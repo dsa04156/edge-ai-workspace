@@ -21,6 +21,56 @@ if [[ ! -d "${API_DIR}" || ! -d "${FRAMEWORK_DIR}" ]]; then
   FRAMEWORK_DIR="${FRAMEWORK_DIR_FALLBACK:-${SCRIPT_DIR}/../mapper-framework}"
 fi
 
+is_valid_module_dir() {
+  local dir="$1"
+  local module_name="$2"
+
+  [[ -d "${dir}" ]] || return 1
+  [[ -f "${dir}/go.mod" ]] || return 1
+  grep -q "^module ${module_name}$" "${dir}/go.mod"
+}
+
+pick_module_dir() {
+  local module_name="$1"
+  shift
+  local candidates=("$@")
+  local d
+  for d in "${candidates[@]}"; do
+    if is_valid_module_dir "${d}" "${module_name}"; then
+      echo "${d}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_module_dirs() {
+  if [[ -z "${API_DIR:-}" ]]; then
+    API_DIR=""
+  fi
+  if [[ -z "${FRAMEWORK_DIR:-}" ]]; then
+    FRAMEWORK_DIR=""
+  fi
+
+  if ! is_valid_module_dir "${API_DIR}" "github.com/kubeedge/api"; then
+    API_DIR="$(pick_module_dir "github.com/kubeedge/api" \
+      "${SCRIPT_DIR}/../api" \
+      "${SCRIPT_DIR}/../../api" \
+      "${SCRIPT_DIR}/../../../api" \
+      "${SCRIPT_DIR}/../../../../api" \
+    )" || API_DIR=""
+  fi
+
+  if ! is_valid_module_dir "${FRAMEWORK_DIR}" "github.com/kubeedge/mapper-framework"; then
+    FRAMEWORK_DIR="$(pick_module_dir "github.com/kubeedge/mapper-framework" \
+      "${SCRIPT_DIR}/../mapper-framework" \
+      "${SCRIPT_DIR}/../../mapper-framework" \
+      "${SCRIPT_DIR}/../../../mapper-framework" \
+      "${SCRIPT_DIR}/../../../../mapper-framework" \
+    )" || FRAMEWORK_DIR=""
+  fi
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -84,6 +134,7 @@ need_cmd() {
 check_env() {
   detect_target_arch
   set_local_bin_path
+  resolve_module_dirs
 
   need_cmd go
   need_cmd sed
@@ -102,13 +153,13 @@ check_env() {
 
   if [[ ! -d "${API_DIR}" ]]; then
     echo "[ERROR] API dir not found: ${API_DIR}" >&2
-    echo "       Set API_DIR to your api repo path." >&2
+    echo "       Set API_DIR to your api repo path (contains go.mod: module github.com/kubeedge/api)." >&2
     exit 1
   fi
 
   if [[ ! -d "${FRAMEWORK_DIR}" ]]; then
     echo "[ERROR] mapper-framework dir not found: ${FRAMEWORK_DIR}" >&2
-    echo "       Set FRAMEWORK_DIR to your mapper-framework repo path." >&2
+    echo "       Set FRAMEWORK_DIR to your mapper-framework repo path (contains go.mod: module github.com/kubeedge/mapper-framework)." >&2
     exit 1
   fi
 

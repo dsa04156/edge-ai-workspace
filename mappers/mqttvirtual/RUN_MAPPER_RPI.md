@@ -72,3 +72,17 @@ cd /home/etri/jinuk/mappers/mqttvirtual
 - 로그 파일:
   - 수동 실행: `mapper.log`
   - register 스크립트 기본: `mapper.log`
+
+## 4) 빌드 에러 시 (api/mapper-framework 경로)
+
+`reading ../mapper-framework/go.mod: no such file or directory` 오류가 나면,
+자동 탐색이 현재 폴더 구조를 못 맞춘 경우다.
+
+아래처럼 경로를 명시해서 실행하면 바로 해결된다.
+
+```bash
+cd /home/etri/edge-ai-workspace/mappers/mqttvirtual
+API_DIR=/home/etri/edge-ai-workspace/api \
+FRAMEWORK_DIR=/home/etri/edge-ai-workspace/mapper-framework \
+./register_mapper_rpi.sh build
+```
