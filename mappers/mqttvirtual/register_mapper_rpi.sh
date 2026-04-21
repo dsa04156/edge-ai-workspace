@@ -288,6 +288,10 @@ build_mapper() {
 }
 
 stop_mapper() {
+  # stop can be called directly (without check/build), so ensure defaults are initialized.
+  detect_target_arch
+  set_local_bin_path
+
   local stop_pattern
   stop_pattern="$(basename "${LOCAL_BIN_PATH}") --config-file ${CONFIG_FILE}"
 
