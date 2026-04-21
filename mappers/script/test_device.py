@@ -43,22 +43,20 @@ class VirtualDevice:
             }
 
         if self.device_type == "vib":
-            rms = round(random.uniform(0.2, 2.5), 3)
-            peak = round(rms * random.uniform(1.5, 2.8), 3)
-            freq = round(random.uniform(20.0, 180.0), 2)
+            vibration = round(random.uniform(0.2, 2.5), 3)
+            alarm = "true" if vibration >= 1.8 else "false"
             return {
-                "rms": str(rms),
-                "peak": str(peak),
-                "dominant_freq": str(freq),
+                "vibration": str(vibration),
+                "alarm": alarm,
                 "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "act":
-            state = random.choice(["idle", "running", "stopped"])
-            load = random.randint(0, 100)
+            power = random.choice(["on", "off"])
+            mode = random.choice(["auto", "manual", "idle"])
             return {
-                "state": state,
-                "load": str(load),
+                "power": power,
+                "mode": mode,
                 "sampling_interval": str(self.interval),
             }
 
