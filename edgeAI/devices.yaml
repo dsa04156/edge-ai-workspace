@@ -1,0 +1,959 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-01/telemetry
+      pubTopic: factory/devices/env-device-01/command
+      clientID: env-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-02/telemetry
+      pubTopic: factory/devices/env-device-02/command
+      clientID: env-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-03/telemetry
+      pubTopic: factory/devices/env-device-03/command
+      clientID: env-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-04
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-04/telemetry
+      pubTopic: factory/devices/env-device-04/command
+      clientID: env-device-04-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-05
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-05/telemetry
+      pubTopic: factory/devices/env-device-05/command
+      clientID: env-device-05-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-06
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-06/telemetry
+      pubTopic: factory/devices/env-device-06/command
+      clientID: env-device-06-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-07
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-07/telemetry
+      pubTopic: factory/devices/env-device-07/command
+      clientID: env-device-07-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-device-08
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/env-device-08/telemetry
+      pubTopic: factory/devices/env-device-08/command
+      clientID: env-device-08-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-01/telemetry
+      pubTopic: factory/devices/vib-device-01/command
+      clientID: vib-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-02/telemetry
+      pubTopic: factory/devices/vib-device-02/command
+      clientID: vib-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-03/telemetry
+      pubTopic: factory/devices/vib-device-03/command
+      clientID: vib-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-04
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-04/telemetry
+      pubTopic: factory/devices/vib-device-04/command
+      clientID: vib-device-04-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-05
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-05/telemetry
+      pubTopic: factory/devices/vib-device-05/command
+      clientID: vib-device-05-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-device-06
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+  - name: alarm
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/vib-device-06/telemetry
+      pubTopic: factory/devices/vib-device-06/command
+      clientID: vib-device-06-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-01/telemetry
+      pubTopic: factory/devices/act-device-01/command
+      clientID: act-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-02/telemetry
+      pubTopic: factory/devices/act-device-02/command
+      clientID: act-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-03/telemetry
+      pubTopic: factory/devices/act-device-03/command
+      clientID: act-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-04
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-04/telemetry
+      pubTopic: factory/devices/act-device-04/command
+      clientID: act-device-04-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-05
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-05/telemetry
+      pubTopic: factory/devices/act-device-05/command
+      clientID: act-device-05-client
+      username: ""
+      password: ""
+      qos: 1
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: act-device-06
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/act-device-06/telemetry
+      pubTopic: factory/devices/act-device-06/command
+      clientID: act-device-06-client
+      username: ""
+      password: ""
+      qos: 1

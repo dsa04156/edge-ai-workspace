@@ -12,7 +12,7 @@ spec:
     - name: temperature
       collectCycle: 60000
       reportCycle: 60000
-      reportToCloud: true
+      reportToCloud: false
       visitors:
         protocolName: mqttvirtual
         configData:
