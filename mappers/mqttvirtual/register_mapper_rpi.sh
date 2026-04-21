@@ -32,6 +32,40 @@ is_valid_module_dir() {
   grep -Eq "^module[[:space:]]+${module_name}([[:space:]]|$)" "${dir}/go.mod"
 }
 
+has_go_mod() {
+  local dir="$1"
+  [[ -d "${dir}" && -f "${dir}/go.mod" ]]
+}
+
+pick_dir_with_go_mod() {
+  local candidates=("$@")
+  local d
+  for d in "${candidates[@]}"; do
+    if has_go_mod "${d}"; then
+      echo "${d}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+replace_path_from_go_mod() {
+  local module_name="$1"
+  local mod_file="${SCRIPT_DIR}/go.mod"
+  local p
+
+  [[ -f "${mod_file}" ]] || return 1
+
+  p="$(sed -n "s#^[[:space:]]*${module_name}[[:space:]]*=>[[:space:]]*\(.*\)[[:space:]]*$#\1#p" "${mod_file}" | tail -n 1)"
+  [[ -n "${p}" ]] || return 1
+
+  if [[ "${p}" == /* ]]; then
+    echo "${p}"
+  else
+    echo "$(cd "${SCRIPT_DIR}" && cd "${p}" 2>/dev/null && pwd -P)"
+  fi
+}
+
 pick_module_dir() {
   local module_name="$1"
   shift
@@ -67,6 +101,19 @@ search_module_dir() {
 }
 
 resolve_module_dirs() {
+  local api_candidates=(
+    "${SCRIPT_DIR}/../api"
+    "${SCRIPT_DIR}/../../api"
+    "${SCRIPT_DIR}/../../../api"
+    "${SCRIPT_DIR}/../../../../api"
+  )
+  local framework_candidates=(
+    "${SCRIPT_DIR}/../mapper-framework"
+    "${SCRIPT_DIR}/../../mapper-framework"
+    "${SCRIPT_DIR}/../../../mapper-framework"
+    "${SCRIPT_DIR}/../../../../mapper-framework"
+  )
+
   if [[ -z "${API_DIR:-}" ]]; then
     API_DIR=""
   fi
@@ -74,12 +121,17 @@ resolve_module_dirs() {
     FRAMEWORK_DIR=""
   fi
 
+  # 1) Trust replace directives first when available.
+  if ! is_valid_module_dir "${API_DIR}" "github.com/kubeedge/api"; then
+    API_DIR="$(replace_path_from_go_mod "github.com/kubeedge/api")" || API_DIR="${API_DIR}"
+  fi
+  if ! is_valid_module_dir "${FRAMEWORK_DIR}" "github.com/kubeedge/mapper-framework"; then
+    FRAMEWORK_DIR="$(replace_path_from_go_mod "github.com/kubeedge/mapper-framework")" || FRAMEWORK_DIR="${FRAMEWORK_DIR}"
+  fi
+
   if ! is_valid_module_dir "${API_DIR}" "github.com/kubeedge/api"; then
     API_DIR="$(pick_module_dir "github.com/kubeedge/api" \
-      "${SCRIPT_DIR}/../api" \
-      "${SCRIPT_DIR}/../../api" \
-      "${SCRIPT_DIR}/../../../api" \
-      "${SCRIPT_DIR}/../../../../api" \
+      "${api_candidates[@]}" \
     )" || API_DIR=""
 
     if [[ -z "${API_DIR}" ]]; then
@@ -94,10 +146,7 @@ resolve_module_dirs() {
 
   if ! is_valid_module_dir "${FRAMEWORK_DIR}" "github.com/kubeedge/mapper-framework"; then
     FRAMEWORK_DIR="$(pick_module_dir "github.com/kubeedge/mapper-framework" \
-      "${SCRIPT_DIR}/../mapper-framework" \
-      "${SCRIPT_DIR}/../../mapper-framework" \
-      "${SCRIPT_DIR}/../../../mapper-framework" \
-      "${SCRIPT_DIR}/../../../../mapper-framework" \
+      "${framework_candidates[@]}" \
     )" || FRAMEWORK_DIR=""
 
     if [[ -z "${FRAMEWORK_DIR}" ]]; then
@@ -108,6 +157,14 @@ resolve_module_dirs() {
         "${HOME}/jinuk" \
       )" || FRAMEWORK_DIR=""
     fi
+  fi
+
+  # 2) Last-resort fallback: accept directory that at least contains go.mod.
+  if [[ -z "${API_DIR}" ]]; then
+    API_DIR="$(pick_dir_with_go_mod "${api_candidates[@]}")" || API_DIR=""
+  fi
+  if [[ -z "${FRAMEWORK_DIR}" ]]; then
+    FRAMEWORK_DIR="$(pick_dir_with_go_mod "${framework_candidates[@]}")" || FRAMEWORK_DIR=""
   fi
 }
 
