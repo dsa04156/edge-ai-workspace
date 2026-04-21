@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import json
+import random
+import signal
+import sys
+import time
+from dataclasses import dataclass
+from typing import Dict, List
+
+import paho.mqtt.client as mqtt
+
+
+BROKER_HOST = "127.0.0.1"
+BROKER_PORT = 1883
+QOS = 0
+PUBLISH_JITTER = 0.3
+ENABLE_HEARTBEAT = True
+HEARTBEAT_INTERVAL = 30
+
+
+@dataclass
+class VirtualDevice:
+    device_id: str
+    device_type: str
+    interval: int
+
+    def telemetry_topic(self) -> str:
+        return f"factory/devices/{self.device_id}/telemetry"
+
+    def heartbeat_topic(self) -> str:
+        return f"factory/devices/{self.device_id}/heartbeat"
+
+    def build_payload(self) -> Dict[str, str]:
+        if self.device_type == "env":
+            temperature = random.randint(275, 305)
+            humidity = random.randint(35, 65)
+            return {
+                "temperature": str(temperature),
+                "humidity": str(humidity),
+                "sampling_interval": str(self.interval),
+            }
+
+        if self.device_type == "vib":
+            rms = round(random.uniform(0.2, 2.5), 3)
+            peak = round(rms * random.uniform(1.5, 2.8), 3)
+            freq = round(random.uniform(20.0, 180.0), 2)
+            return {
+                "rms": str(rms),
+                "peak": str(peak),
+                "dominant_freq": str(freq),
+                "sampling_interval": str(self.interval),
+            }
+
+        if self.device_type == "act":
+            state = random.choice(["idle", "running", "stopped"])
+            load = random.randint(0, 100)
+            return {
+                "state": state,
+                "load": str(load),
+                "sampling_interval": str(self.interval),
+            }
+
+        if self.device_type == "temp":
+            temperature = random.randint(280, 320)
+            return {
+                "temperature": str(temperature),
+                "sampling_interval": str(self.interval),
+            }
+
+        return {
+            "status": "unknown",
+            "sampling_interval": str(self.interval),
+        }
+
+    def build_heartbeat(self) -> Dict[str, str]:
+        return {
+            "device_id": self.device_id,
+            "status": "online",
+            "ts": str(int(time.time())),
+        }
+
+
+DEVICES: List[VirtualDevice] = [
+    VirtualDevice("act-device-01", "act", 5),
+    VirtualDevice("act-device-02", "act", 5),
+    VirtualDevice("act-device-03", "act", 5),
+    VirtualDevice("act-device-04", "act", 5),
+    VirtualDevice("act-device-05", "act", 5),
+    VirtualDevice("act-device-06", "act", 5),
+
+    VirtualDevice("env-device-01", "env", 5),
+    VirtualDevice("env-device-02", "env", 5),
+    VirtualDevice("env-device-03", "env", 5),
+    VirtualDevice("env-device-04", "env", 5),
+    VirtualDevice("env-device-05", "env", 5),
+    VirtualDevice("env-device-06", "env", 5),
+    VirtualDevice("env-device-07", "env", 5),
+    VirtualDevice("env-device-08", "env", 5),
+
+    VirtualDevice("temp-device-01", "temp", 5),
+
+    VirtualDevice("vib-device-01", "vib", 5),
+    VirtualDevice("vib-device-02", "vib", 5),
+    VirtualDevice("vib-device-03", "vib", 5),
+    VirtualDevice("vib-device-04", "vib", 5),
+    VirtualDevice("vib-device-05", "vib", 5),
+    VirtualDevice("vib-device-06", "vib", 5),
+]
+
+
+running = True
+
+
+def on_connect(client: mqtt.Client, userdata, flags, rc, properties=None):
+    if rc == 0:
+        print(f"[INFO] Connected to MQTT broker {BROKER_HOST}:{BROKER_PORT}")
+    else:
+        print(f"[ERROR] MQTT connect failed, rc={rc}")
+
+
+def on_disconnect(client: mqtt.Client, userdata, flags, rc, properties=None):
+    print(f"[WARN] Disconnected from MQTT broker, rc={rc}")
+
+
+def handle_signal(signum, frame):
+    global running
+    running = False
+    print("\n[INFO] Stopping publisher...")
+
+
+def main():
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="virtual-sensor-publisher")
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
+    client.loop_start()
+
+    last_sent: Dict[str, float] = {d.device_id: 0.0 for d in DEVICES}
+    last_heartbeat: Dict[str, float] = {d.device_id: 0.0 for d in DEVICES}
+
+    try:
+        while running:
+            now = time.time()
+
+            for device in DEVICES:
+                if now - last_sent[device.device_id] >= device.interval:
+                    payload = device.build_payload()
+                    payload["device_id"] = device.device_id
+                    payload["ts"] = str(int(now))
+
+                    client.publish(
+                        device.telemetry_topic(),
+                        json.dumps(payload, ensure_ascii=False),
+                        qos=QOS,
+                        retain=False,
+                    )
+
+                    print(f"[PUB] {device.telemetry_topic()} -> {payload}")
+                    last_sent[device.device_id] = now + random.uniform(0.0, PUBLISH_JITTER)
+
+                if ENABLE_HEARTBEAT and now - last_heartbeat[device.device_id] >= HEARTBEAT_INTERVAL:
+                    hb = device.build_heartbeat()
+                    client.publish(
+                        device.heartbeat_topic(),
+                        json.dumps(hb, ensure_ascii=False),
+                        qos=QOS,
+                        retain=False,
+                    )
+                    print(f"[HB ] {device.heartbeat_topic()} -> {hb}")
+                    last_heartbeat[device.device_id] = now
+
+            time.sleep(0.2)
+
+    finally:
+        client.loop_stop()
+        client.disconnect()
+        print("[INFO] Publisher stopped.")
+
+
+if __name__ == "__main__":
+    main()
