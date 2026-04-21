@@ -175,7 +175,7 @@ build_mapper() {
   local tmp_mod
   tmp_mod="$(mktemp)"
   cp "${SCRIPT_DIR}/go.mod" "${tmp_mod}"
-  trap 'cp "${tmp_mod}" "${SCRIPT_DIR}/go.mod"; rm -f "${tmp_mod}"' RETURN
+  trap "cp '${tmp_mod}' '${SCRIPT_DIR}/go.mod'; rm -f '${tmp_mod}'; trap - RETURN" RETURN
 
   sed -i "s#github.com/kubeedge/api => .*#github.com/kubeedge/api => ${API_DIR}#" "${SCRIPT_DIR}/go.mod"
   sed -i "s#github.com/kubeedge/mapper-framework => .*#github.com/kubeedge/mapper-framework => ${FRAMEWORK_DIR}#" "${SCRIPT_DIR}/go.mod"
