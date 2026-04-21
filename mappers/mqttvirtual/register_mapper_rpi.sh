@@ -44,6 +44,26 @@ pick_module_dir() {
   return 1
 }
 
+search_module_dir() {
+  local module_name="$1"
+  shift
+  local roots=("$@")
+  local root
+  local go_mod
+
+  for root in "${roots[@]}"; do
+    [[ -d "${root}" ]] || continue
+    while IFS= read -r go_mod; do
+      if grep -q "^module ${module_name}$" "${go_mod}"; then
+        dirname "${go_mod}"
+        return 0
+      fi
+    done < <(find "${root}" -maxdepth 5 -type f -name go.mod 2>/dev/null)
+  done
+
+  return 1
+}
+
 resolve_module_dirs() {
   if [[ -z "${API_DIR:-}" ]]; then
     API_DIR=""
@@ -59,6 +79,15 @@ resolve_module_dirs() {
       "${SCRIPT_DIR}/../../../api" \
       "${SCRIPT_DIR}/../../../../api" \
     )" || API_DIR=""
+
+    if [[ -z "${API_DIR}" ]]; then
+      API_DIR="$(search_module_dir "github.com/kubeedge/api" \
+        "${SCRIPT_DIR}/../../.." \
+        "${HOME}" \
+        "${HOME}/edge-ai-workspace" \
+        "${HOME}/jinuk" \
+      )" || API_DIR=""
+    fi
   fi
 
   if ! is_valid_module_dir "${FRAMEWORK_DIR}" "github.com/kubeedge/mapper-framework"; then
@@ -68,6 +97,15 @@ resolve_module_dirs() {
       "${SCRIPT_DIR}/../../../mapper-framework" \
       "${SCRIPT_DIR}/../../../../mapper-framework" \
     )" || FRAMEWORK_DIR=""
+
+    if [[ -z "${FRAMEWORK_DIR}" ]]; then
+      FRAMEWORK_DIR="$(search_module_dir "github.com/kubeedge/mapper-framework" \
+        "${SCRIPT_DIR}/../../.." \
+        "${HOME}" \
+        "${HOME}/edge-ai-workspace" \
+        "${HOME}/jinuk" \
+      )" || FRAMEWORK_DIR=""
+    fi
   fi
 }
 
