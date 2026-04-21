@@ -16,8 +16,10 @@ TARGET_ARCH="${TARGET_ARCH:-}"
 # Try common locations first, then fall back to legacy sibling layout.
 API_DIR="${API_DIR:-${SCRIPT_DIR}/../../api}"
 FRAMEWORK_DIR="${FRAMEWORK_DIR:-${SCRIPT_DIR}/../../mapper-framework}"
-if [[ ! -d "${API_DIR}" || ! -d "${FRAMEWORK_DIR}" ]]; then
+if [[ ! -d "${API_DIR}" ]]; then
   API_DIR="${API_DIR_FALLBACK:-${SCRIPT_DIR}/../api}"
+fi
+if [[ ! -d "${FRAMEWORK_DIR}" ]]; then
   FRAMEWORK_DIR="${FRAMEWORK_DIR_FALLBACK:-${SCRIPT_DIR}/../mapper-framework}"
 fi
 
