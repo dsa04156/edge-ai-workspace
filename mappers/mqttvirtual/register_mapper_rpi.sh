@@ -27,7 +27,7 @@ is_valid_module_dir() {
 
   [[ -d "${dir}" ]] || return 1
   [[ -f "${dir}/go.mod" ]] || return 1
-  grep -q "^module ${module_name}$" "${dir}/go.mod"
+  grep -Eq "^module[[:space:]]+${module_name}([[:space:]]|$)" "${dir}/go.mod"
 }
 
 pick_module_dir() {
@@ -54,7 +54,7 @@ search_module_dir() {
   for root in "${roots[@]}"; do
     [[ -d "${root}" ]] || continue
     while IFS= read -r go_mod; do
-      if grep -q "^module ${module_name}$" "${go_mod}"; then
+      if grep -Eq "^module[[:space:]]+${module_name}([[:space:]]|$)" "${go_mod}"; then
         dirname "${go_mod}"
         return 0
       fi
@@ -198,6 +198,9 @@ check_env() {
   if [[ ! -d "${FRAMEWORK_DIR}" ]]; then
     echo "[ERROR] mapper-framework dir not found: ${FRAMEWORK_DIR}" >&2
     echo "       Set FRAMEWORK_DIR to your mapper-framework repo path (contains go.mod: module github.com/kubeedge/mapper-framework)." >&2
+    echo "       Hint: if not cloned yet, prepare one of these paths:" >&2
+    echo "         - ${SCRIPT_DIR}/../mapper-framework" >&2
+    echo "         - ${SCRIPT_DIR}/../../mapper-framework" >&2
     exit 1
   fi
 
