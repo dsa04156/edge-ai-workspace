@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: workflow-reporter-sample
+spec:
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0001-cg0msb
+      restartPolicy: Never
+      containers:
+        - name: workflow-reporter
+          image: 192.168.0.56:5000/workflow-reporter:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: STATE_AGGREGATOR_URL
+              value: http://state-aggregator:8000/workflow-event

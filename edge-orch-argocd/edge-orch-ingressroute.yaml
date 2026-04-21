@@ -1,0 +1,30 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: edge-orch-ingressroute
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/aggregator`)
+      kind: Rule
+      services:
+        - name: state-aggregator
+          port: 8000
+      middlewares:
+        - name: strip-edge-orch-prefix
+    - match: PathPrefix(`/executor`)
+      kind: Rule
+      services:
+        - name: workflow-executor
+          port: 8002
+      middlewares:
+        - name: strip-edge-orch-prefix
+    - match: PathPrefix(`/placement`)
+      kind: Rule
+      services:
+        - name: placement-engine
+          port: 8001
+      middlewares:
+        - name: strip-edge-orch-prefix

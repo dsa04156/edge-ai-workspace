@@ -1,0 +1,106 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-orch-state-aggregator
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: state-aggregator=192.168.0.56:5000/state-aggregator:latest
+    argocd-image-updater.argoproj.io/state-aggregator.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/workflow-edge-orch.git'
+    path: state-aggregator/k8s
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-orch-workflow-executor
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: workflow-executor=192.168.0.56:5000/workflow-executor:latest
+    argocd-image-updater.argoproj.io/workflow-executor.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/workflow-edge-orch.git'
+    path: workflow_executor/k8s
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-orch-placement-engine
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: placement-engine=192.168.0.56:5000/placement-engine:latest
+    argocd-image-updater.argoproj.io/placement-engine.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/workflow-edge-orch.git'
+    path: placement_engine/k8s
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-orch-redis
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/workflow-edge-orch.git'
+    path: redis/k8s
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-orch-nvidia-device-plugin
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/workflow-edge-orch.git'
+    path: nvidia-device-plugin/k8s
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,16 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: virtual-temp-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+    - name: temperature
+      description: virtual temperature
+      type: STRING
+      accessMode: ReadOnly
+    - name: sampling_interval
+      description: report interval
+      type: STRING
+      accessMode: ReadWrite

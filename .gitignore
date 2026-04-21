@@ -1,0 +1,43 @@
+# Excluded workspace
+Platform-Service/
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Build artifacts
+bin/
+dist/
+build/
+out/
+*.out
+*.o
+*.a
+*.so
+*.exe
+*.dll
+*.dylib
+*.test
+*.coverprofile
+
+# Local binaries
+mqttvirtual-arm64
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Data / caches
+.cache/
+tmp/
+*.tmp

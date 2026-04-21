@@ -1,0 +1,20 @@
+# values.yaml
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`192.168.0.56`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+    entryPoints:
+      - web
+
+providers:
+  kubernetesGateway:
+    enabled: true
+
+gateway:
+  listeners:
+    web:
+      namespacePolicy:
+        from: All
+
+service:
+  type: NodePort

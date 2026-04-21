@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: demo-relay-pipeline-
+  namespace: argo
+spec:
+  entrypoint: relay-pipeline
+  serviceAccountName: argo-wf # 아까 설정하신 그 권한! 필수!
+
+  templates:
+  # ---------------------------------------------------------
+  # 0. 메인 파이프라인 (DAG 구조로 단계 정의)
+  # ---------------------------------------------------------
+  - name: relay-pipeline
+    dag:
+      tasks:
+      # 1단계: 엣지 노드에서 실행되는 작업
+      - name: step1-edge-sensing
+        template: edge-task
+      
+      # 2단계: 클라우드 노드에서 실행되는 작업 (1단계 성공 시)
+      - name: step2-cloud-processing
+        depends: "step1-edge-sensing.Succeeded" # 1단계 성공 조건
+        template: cloud-task
+
+  # ---------------------------------------------------------
+  # 1. 엣지 태스크 (Edge Node)
+  # ---------------------------------------------------------
+  - name: edge-task
+    # [핵심] 이 파드는 반드시 '엣지 노드'에 떠야 함!
+    nodeSelector:
+      node-role.kubernetes.io/edge: "" # (주의: 실제 엣지 노드의 라벨에 맞게 수정하세요)
+    container:
+      image: python:3.9-slim
+      command: ["python", "-c"]
+      args:
+        - |
+          import time
+          print("📸 [EDGE] 현장 카메라 데이터 수집 중...")
+          time.sleep(3)
+          print("⚙️ [EDGE] 1차 노이즈 제거 및 압축 완료!")
+          print("✅ [EDGE] 작업 성공. 클라우드로 메타데이터 전송 준비 완료.")
+
+  # ---------------------------------------------------------
+  # 2. 클라우드 태스크 (Cloud Node)
+  # ---------------------------------------------------------
+  - name: cloud-task
+    # [핵심] 이 파드는 반드시 '클라우드 마스터 노드'에 떠야 함!
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "" # (또는 control-plane 라벨)
+    container:
+      image: python:3.9-slim
+      command: ["python", "-c"]
+      args:
+        - |
+          import time
+          print("☁️ [CLOUD] 엣지로부터 데이터 수신 완료.")
+          print("💾 [CLOUD] 메인 DB (PostgreSQL) 업데이트 중...")
+          time.sleep(2)
+          print("📊 [CLOUD] 대시보드 렌더링 완료!")
+          print("✅ [CLOUD] 모든 파이프라인 정상 종료.")

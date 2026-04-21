@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workflow-executor
+  template:
+    metadata:
+      labels:
+        app: workflow-executor
+    spec:
+      serviceAccountName: default
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0001-cg0msb
+      containers:
+        - name: workflow-executor
+          image: 192.168.0.56:5000/workflow-executor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8002
+          env:
+            - name: PLACEMENT_ENGINE_URL
+              value: http://placement-engine:8001
+            - name: STATE_AGGREGATOR_URL
+              value: http://state-aggregator:8000/workflow-event
+            - name: EXECUTOR_NAMESPACE
+              value: default
+            - name: EXECUTOR_DATA_DIR
+              value: /app/data
+            - name: STATE_DB_PATH
+              value: /app/data/workflow_state.db
+          volumeMounts:
+            - name: workflow-executor-data
+              mountPath: /app/data
+      volumes:
+        - name: workflow-executor-data
+          hostPath:
+            path: /var/lib/workflow-executor
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-executor
+spec:
+  selector:
+    app: workflow-executor
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002

@@ -1,0 +1,76 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: webhook-to-workflow
+  namespace: argo-events
+spec:
+  eventBusName: default
+  dependencies:
+    - name: webhook-dep
+      eventSourceName: webhook-es
+      eventName: trigger
+  triggers:
+    - template:
+        name: run-resilience-workflow
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: edge-failover-
+                namespace: argo
+              spec:
+                entrypoint: main
+                serviceAccountName: argo-wf # 아까 권한을 준 ServiceAccount 확인
+                podSpecPatch: |
+                  automountServiceAccountToken: true
+                templates:
+                  - name: main
+                    dag:
+                      tasks:
+                        # 1단계: 엣지에서 작업 시도 (고의로 실패 유도)
+                        - name: edge-task
+                          template: flaky-edge
+                        
+                        # 2단계: 클라우드에서 대체 작업 (엣지 실패 시에만 실행)
+                        - name: cloud-fallback
+                          depends: "edge-task.Failed" # 핵심: 실패 감지
+                          template: reliable-cloud
+                          arguments:
+                            parameters:
+                              - name: fallback-reason
+                                value: "엣지 노드 응답 없음"
+
+                  # 엣지 태스크 템플릿
+                  - name: flaky-edge
+                    nodeSelector:
+                      node-role.kubernetes.io/edge: "" # 엣지 라벨 확인
+                    container:
+                      image: python:3.9-slim
+                      command: ["python", "-c"]
+                      args:
+                        - |
+                          import sys, time
+                          print("⚠️ [EDGE] 센서 데이터 수집 시작...")
+                          time.sleep(2)
+                          print("💥 [EDGE] 치명적인 오류 발생! (OOM)")
+                          sys.exit(1) # 고의로 에러 발생 (Exit 1)
+
+                  # 클라우드 대체 태스크 템플릿
+                  - name: reliable-cloud
+                    nodeSelector:
+                      node-role.kubernetes.io/control-plane: "" # 마스터 라벨 확인
+                    inputs:
+                      parameters:
+                        - name: fallback-reason
+                    container:
+                      image: python:3.9-slim
+                      command: ["python", "-c"]
+                      args:
+                        - |
+                          import sys
+                          print("☁️ [CLOUD] 엣지 실패 감지. 디바이스 트윈 활성화.")
+                          print(f"ℹ️ [CLOUD] 사유: {{inputs.parameters.fallback-reason}}")
+                          print("✅ [CLOUD] 캐시된 데이터로 대체 처리 완료.")

@@ -1,0 +1,9 @@
+expose:
+  type: nodePort
+  tls:
+    enabled: false
+externalURL: http://192.168.0.56:30002
+persistence:
+  enabled: true
+  resourcePolicy: keep
+harborAdminPassword: admin123

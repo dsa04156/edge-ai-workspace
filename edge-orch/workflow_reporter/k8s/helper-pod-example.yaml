@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stage-runner-example
+spec:
+  restartPolicy: Never
+  initContainers:
+    - name: install-workflow-reporter
+      image: 192.168.0.56:5000/workflow-reporter:latest
+      command:
+        - sh
+        - -c
+        - cp -R /app/workflow_reporter /helpers/workflow_reporter
+      volumeMounts:
+        - name: helpers
+          mountPath: /helpers
+  containers:
+    - name: stage-runner
+      image: python:3.11-slim
+      command: ["sh", "-c", "PYTHONPATH=/opt/helpers python /app/run_stage.py"]
+      env:
+        - name: STATE_AGGREGATOR_URL
+          value: http://state-aggregator:8000/workflow-event
+      volumeMounts:
+        - name: app
+          mountPath: /app
+        - name: helpers
+          mountPath: /opt/helpers
+  volumes:
+    - name: app
+      emptyDir: {}
+    - name: helpers
+      emptyDir: {}

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: state-aggregator
+  labels:
+    app: state-aggregator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: state-aggregator
+  template:
+    metadata:
+      labels:
+        app: state-aggregator
+    spec:
+      serviceAccountName: state-aggregator
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0001-cg0msb
+      containers:
+        - name: state-aggregator
+          image: 192.168.0.56:5000/state-aggregator:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PROMETHEUS_URL
+              value: http://prometheus-kube-prometheus-prometheus.kube-system:9090
+            - name: POLL_INTERVAL_SECONDS
+              value: "15"
+            - name: DATA_DIR
+              value: /app/data
+            - name: INSTANCE_MAP_PATH
+              value: /app/app/config/instance_map.json
+          volumeMounts:
+            - name: state-data
+              mountPath: /app/data
+      volumes:
+        - name: state-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: state-aggregator
+  labels:
+    app: state-aggregator
+spec:
+  selector:
+    app: state-aggregator
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

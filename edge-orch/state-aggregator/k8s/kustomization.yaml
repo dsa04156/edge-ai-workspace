@@ -1,0 +1,4 @@
+resources:
+  - deployment.yaml
+  - service-monitor.yaml
+  - rbac.yaml

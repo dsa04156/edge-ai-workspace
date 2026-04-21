@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-gemma26b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-gemma26b
+  template:
+    metadata:
+      labels:
+        app: ollama-gemma26b
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0002-cgnmsb
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+        env:
+        - name: OLLAMA_KEEP_ALIVE
+          value: "24h"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        command: ["/bin/bash", "-lc"]
+        args:
+          - |
+            ollama serve &
+            sleep 10
+            ollama pull gemma4:26b
+            wait
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-gemma26b
+spec:
+  selector:
+    app: ollama-gemma26b
+  ports:
+  - port: 11434
+    targetPort: 11434

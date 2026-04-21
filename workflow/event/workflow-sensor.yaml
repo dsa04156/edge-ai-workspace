@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: webhook-to-workflow
+  namespace: argo-events
+spec:
+  eventBusName: default
+  dependencies:
+    - name: webhook-dep
+      eventSourceName: webhook-es
+      eventName: trigger
+  triggers:
+    - template:
+        name: run-hello-workflow
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: ext-trigger-
+                namespace: argo
+              spec:
+                entrypoint: main
+                serviceAccountName: argo-wf
+                archiveLogs: false
+                podSpecPatch: |
+                  automountServiceAccountToken: true
+                templates:
+                  - name: main
+                    container:
+                      image: alpine:3.19
+                      command: [sh, -c]
+                      args: ["echo 'Triggered by webhook'; date; echo 'payload:'; echo '{{inputs.parameters.payload}}';"]
+                    inputs:
+                      parameters:
+                        - name: payload
+                          value: "{}"
+          parameters:
+            - src:
+                dependencyName: webhook-dep
+                dataKey: body
+              dest: spec.templates.0.inputs.parameters.0.value

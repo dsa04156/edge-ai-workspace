@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vision-pipeline-demo
+spec:
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0001-cg0msb
+      restartPolicy: Never
+      containers:
+        - name: vision-pipeline-runner
+          image: 192.168.0.56:5000/workflow-reporter@sha256:94eb628b28af690b848c9eb4a891a11b9f846bda85941872b39927fc3888fa3f
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "workflow_reporter.demo_workflow"]
+          env:
+            - name: STATE_AGGREGATOR_URL
+              value: http://state-aggregator:8000/workflow-event
+            - name: PLACEMENT_ENGINE_URL
+              value: http://placement-engine:8001
+            - name: WORKFLOW_ID
+              value: wf-vision-demo-001
+            - name: WORKFLOW_TYPE
+              value: vision_pipeline
+            - name: SIMULATE_DELAY
+              value: "false"

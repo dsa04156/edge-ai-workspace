@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-image-updater-config
+  namespace: argocd
+data:
+  log.level: debug
+  registries.conf: |
+    registries:
+      - name: Local Registry
+        api_url: http://192.168.0.56:5000
+        prefix: 192.168.0.56:5000
+        ping: yes
+        insecure: yes

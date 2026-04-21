@@ -1,0 +1,124 @@
+{
+  "workflow_id": "wf-exec-demo-001",
+  "workflow_type": "vision_pipeline",
+  "node_profiles": [
+    {
+      "hostname": "etri-ser0001-CG0MSB",
+      "node_type": "cloud_server",
+      "arch": "x86_64",
+      "compute_class": "high",
+      "memory_class": "high",
+      "accelerator_type": "gpu_server",
+      "preferred_workload": ["large_model_serving", "postprocess"],
+      "risky_workload": ["sensor_ingest"]
+    },
+    {
+      "hostname": "etri-dev0001-jetorn",
+      "node_type": "edge_ai_device",
+      "arch": "aarch64",
+      "compute_class": "medium",
+      "memory_class": "low",
+      "accelerator_type": "gpu_embedded",
+      "preferred_workload": ["edge_inference", "preprocess"],
+      "risky_workload": ["large_model_serving"]
+    },
+    {
+      "hostname": "etri-dev0002-raspi5",
+      "node_type": "edge_light_device",
+      "arch": "aarch64",
+      "compute_class": "low",
+      "memory_class": "low",
+      "accelerator_type": "none",
+      "preferred_workload": ["capture", "sensor_ingest", "preprocess"],
+      "risky_workload": ["large_model_serving", "inference"]
+    }
+  ],
+  "stages": [
+    {
+      "stage_id": "capture",
+      "stage_metadata": {
+        "stage_type": "capture",
+        "requires_accelerator": false,
+        "compute_intensity": "low",
+        "memory_intensity": "low",
+        "latency_sensitivity": "high",
+        "input_size_kb": 128,
+        "output_size_kb": 512
+      },
+      "image": "192.168.0.56:5000/vision-stage-runner:latest",
+      "command": ["python", "-m", "vision_stage_runner.main"],
+      "args": ["--stage", "capture"],
+      "queue_wait_ms": 50,
+      "exec_time_ms": 2000
+    },
+    {
+      "stage_id": "preprocess",
+      "stage_metadata": {
+        "stage_type": "preprocess",
+        "requires_accelerator": false,
+        "compute_intensity": "medium",
+        "memory_intensity": "low",
+        "latency_sensitivity": "high",
+        "input_size_kb": 512,
+        "output_size_kb": 1024
+      },
+      "image": "192.168.0.56:5000/vision-stage-runner:latest",
+      "command": ["python", "-m", "vision_stage_runner.main"],
+      "args": ["--stage", "preprocess"],
+      "queue_wait_ms": 80,
+      "exec_time_ms": 2000
+    },
+    {
+      "stage_id": "inference",
+      "stage_metadata": {
+        "stage_type": "inference",
+        "requires_accelerator": true,
+        "compute_intensity": "high",
+        "memory_intensity": "medium",
+        "latency_sensitivity": "medium",
+        "input_size_kb": 1024,
+        "output_size_kb": 256
+      },
+      "image": "192.168.0.56:5000/vision-stage-runner:latest",
+      "command": ["python", "-m", "vision_stage_runner.main"],
+      "args": ["--stage", "inference"],
+      "queue_wait_ms": 120,
+      "transfer_time_ms": 150,
+      "exec_time_ms": 3000
+    },
+    {
+      "stage_id": "postprocess",
+      "stage_metadata": {
+        "stage_type": "postprocess",
+        "requires_accelerator": false,
+        "compute_intensity": "medium",
+        "memory_intensity": "low",
+        "latency_sensitivity": "medium",
+        "input_size_kb": 256,
+        "output_size_kb": 128
+      },
+      "image": "192.168.0.56:5000/vision-stage-runner:latest",
+      "command": ["python", "-m", "vision_stage_runner.main"],
+      "args": ["--stage", "postprocess"],
+      "queue_wait_ms": 60,
+      "exec_time_ms": 2000
+    },
+    {
+      "stage_id": "result_delivery",
+      "stage_metadata": {
+        "stage_type": "result_delivery",
+        "requires_accelerator": false,
+        "compute_intensity": "low",
+        "memory_intensity": "low",
+        "latency_sensitivity": "high",
+        "input_size_kb": 64,
+        "output_size_kb": 32
+      },
+      "image": "192.168.0.56:5000/vision-stage-runner:latest",
+      "command": ["python", "-m", "vision_stage_runner.main"],
+      "args": ["--stage", "result_delivery"],
+      "queue_wait_ms": 20,
+      "exec_time_ms": 1000
+    }
+  ]
+}

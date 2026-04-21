@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: kube-system
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`grafana.192.168.0.56.sslip.io`)
+      kind: Rule
+      services:
+        - name: prometheus-grafana
+          port: 80

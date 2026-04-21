@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: hello-jetson-
+  namespace: argo
+spec:
+  entrypoint: main
+  serviceAccountName: argo-wf
+  archiveLogs: false
+  podSpecPatch: |
+    automountServiceAccountToken: true
+
+  templates:
+  - name: main
+    nodeSelector:
+      kubernetes.io/hostname: jetson-desktop
+    container:
+      image: alpine:3.19
+      command: [sh, -c]
+      args:
+        - |
+          echo "RUNNING ON: $(hostname)"
+          date -Iseconds
+          uname -a
+          echo "KUBERNETES_SERVICE_HOST=$KUBERNETES_SERVICE_HOST"
+          echo "KUBERNETES_SERVICE_PORT=$KUBERNETES_SERVICE_PORT"
+          ls -l /var/run/secrets/kubernetes.io/serviceaccount || true
+          sleep 3
+          echo "Done!"

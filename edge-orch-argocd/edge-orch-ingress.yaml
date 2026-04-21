@@ -1,0 +1,44 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-edge-orch-prefix
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /aggregator
+      - /executor
+      - /placement
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: edge-orch-ingress
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-edge-orch-prefix@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /aggregator
+            pathType: Prefix
+            backend:
+              service:
+                name: state-aggregator
+                port:
+                  number: 8000
+          - path: /executor
+            pathType: Prefix
+            backend:
+              service:
+                name: workflow-executor
+                port:
+                  number: 8002
+          - path: /placement
+            pathType: Prefix
+            backend:
+              service:
+                name: placement-engine
+                port:
+                  number: 8001
