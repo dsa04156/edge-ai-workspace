@@ -14,10 +14,10 @@ type CustomizedDev struct {
 }
 
 type CustomizedClient struct {
-	deviceMutex sync.Mutex
-	Client      mqtt.Client
+	deviceMutex  sync.Mutex
+	Client       mqtt.Client
 	LatestValues map[string]interface{}
-	Events      chan map[string]interface{}
+	Events       chan map[string]interface{}
 	ProtocolConfig
 }
 

@@ -32,16 +32,27 @@ func (c *CustomizedClient) InitDevice() error {
 	if strings.TrimSpace(c.ConfigData.ClientID) == "" {
 		c.ConfigData.ClientID = "mqttvirtual-client"
 	}
+	if strings.ContainsAny(c.ConfigData.SubTopic, "+#") {
+		return fmt.Errorf("wildcard subTopic %q is not supported by mqttvirtual demo mapper; use one topic per device", c.ConfigData.SubTopic)
+	}
+	if strings.TrimSpace(c.ConfigData.PubTopic) != "" && c.ConfigData.PubTopic == c.ConfigData.SubTopic {
+		log.Printf("warning: pubTopic and subTopic are identical (%s); command payloads may be re-consumed as telemetry", c.ConfigData.SubTopic)
+	}
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(c.ConfigData.Broker)
 	opts.SetClientID(c.ConfigData.ClientID)
+	opts.SetAutoReconnect(true)
+	opts.SetOrderMatters(false)
 
 	if c.ConfigData.Username != "" {
 		opts.SetUsername(c.ConfigData.Username)
 	}
 	if c.ConfigData.Password != "" {
 		opts.SetPassword(c.ConfigData.Password)
+	}
+	opts.OnConnectionLost = func(_ mqtt.Client, err error) {
+		log.Printf("mqtt connection lost broker=%s subTopic=%s err=%v", c.ConfigData.Broker, c.ConfigData.SubTopic, err)
 	}
 
 	opts.OnConnect = func(mc mqtt.Client) {
@@ -54,24 +65,8 @@ func (c *CustomizedClient) InitDevice() error {
 				return
 			}
 
-			c.deviceMutex.Lock()
-			defer c.deviceMutex.Unlock()
-
-			for k, v := range payload {
-				c.LatestValues[k] = v
-			}
-
 			log.Printf("mqtt payload received: %+v", payload)
-
-			payloadCopy := make(map[string]interface{}, len(payload))
-			for k, v := range payload {
-				payloadCopy[k] = v
-			}
-			select {
-			case c.Events <- payloadCopy:
-			default:
-				log.Printf("mqtt event dropped because event buffer is full")
-			}
+			c.applyPayload(payload)
 		})
 		token.Wait()
 		if token.Error() != nil {
@@ -88,6 +83,38 @@ func (c *CustomizedClient) InitDevice() error {
 
 	c.Client = client
 	return nil
+}
+
+func (c *CustomizedClient) applyPayload(payload map[string]interface{}) {
+	payloadCopy := make(map[string]interface{}, len(payload))
+
+	c.deviceMutex.Lock()
+	for k, v := range payload {
+		c.LatestValues[k] = v
+		payloadCopy[k] = v
+	}
+	c.deviceMutex.Unlock()
+
+	c.enqueueEvent(payloadCopy)
+}
+
+func (c *CustomizedClient) enqueueEvent(payload map[string]interface{}) {
+	select {
+	case c.Events <- payload:
+		return
+	default:
+	}
+
+	select {
+	case <-c.Events:
+	default:
+	}
+
+	select {
+	case c.Events <- payload:
+	default:
+		log.Printf("mqtt event dropped after replacing stale buffered event")
+	}
 }
 
 func (c *CustomizedClient) GetDeviceData(visitor *VisitorConfig) (interface{}, error) {
@@ -113,30 +140,24 @@ func (c *CustomizedClient) GetDeviceData(visitor *VisitorConfig) (interface{}, e
 }
 
 func (c *CustomizedClient) DeviceDataWrite(visitor *VisitorConfig, deviceMethodName string, propertyName string, data interface{}) error {
-	c.deviceMutex.Lock()
-	if visitor != nil && visitor.JsonKey != "" {
-		c.LatestValues[visitor.JsonKey] = data
-	} else if propertyName != "" {
-		c.LatestValues[propertyName] = data
-	}
-	c.deviceMutex.Unlock()
-
-	if c.Client == nil {
-		return nil
-	}
-	if !c.Client.IsConnectionOpen() {
-		return fmt.Errorf("mqtt client is not connected")
-	}
-	if strings.TrimSpace(c.ConfigData.PubTopic) == "" {
-		return nil
-	}
-
 	key := propertyName
 	if visitor != nil && visitor.JsonKey != "" {
 		key = visitor.JsonKey
 	}
 	if key == "" {
 		key = "value"
+	}
+
+	if c.Client == nil {
+		c.setLatestValue(key, data)
+		return nil
+	}
+	if !c.Client.IsConnectionOpen() {
+		return fmt.Errorf("mqtt client is not connected")
+	}
+	if strings.TrimSpace(c.ConfigData.PubTopic) == "" {
+		c.setLatestValue(key, data)
+		return nil
 	}
 
 	payload := map[string]interface{}{
@@ -154,6 +175,7 @@ func (c *CustomizedClient) DeviceDataWrite(visitor *VisitorConfig, deviceMethodN
 		return fmt.Errorf("publish failed: %w", token.Error())
 	}
 
+	c.setLatestValue(key, data)
 	log.Printf("mqtt publish topic=%s payload=%s", c.ConfigData.PubTopic, string(b))
 	return nil
 }
@@ -171,6 +193,33 @@ func (c *CustomizedClient) SetDeviceData(data interface{}, visitor *VisitorConfi
 	c.deviceMutex.Unlock()
 
 	return nil
+}
+
+func (c *CustomizedClient) EnsureDeviceData(data interface{}, visitor *VisitorConfig) error {
+	if visitor == nil {
+		return fmt.Errorf("visitor is nil")
+	}
+	if visitor.JsonKey == "" {
+		return fmt.Errorf("visitor jsonKey is empty")
+	}
+
+	c.deviceMutex.Lock()
+	if _, ok := c.LatestValues[visitor.JsonKey]; !ok {
+		c.LatestValues[visitor.JsonKey] = data
+	}
+	c.deviceMutex.Unlock()
+
+	return nil
+}
+
+func (c *CustomizedClient) setLatestValue(key string, data interface{}) {
+	if key == "" {
+		return
+	}
+
+	c.deviceMutex.Lock()
+	c.LatestValues[key] = data
+	c.deviceMutex.Unlock()
 }
 
 func (c *CustomizedClient) StopDevice() error {

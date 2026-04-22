@@ -13,6 +13,11 @@ import (
 
 	"k8s.io/klog/v2"
 
+	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
+	"github.com/kubeedge/mapper-framework/pkg/common"
+	"github.com/kubeedge/mapper-framework/pkg/global"
+	"github.com/kubeedge/mapper-framework/pkg/grpcclient"
+	"github.com/kubeedge/mapper-framework/pkg/util/parse"
 	dbInflux "github.com/kubeedge/mqttvirtual/data/dbmethod/influxdb2"
 	dbMysql "github.com/kubeedge/mqttvirtual/data/dbmethod/mysql"
 	dbRedis "github.com/kubeedge/mqttvirtual/data/dbmethod/redis"
@@ -22,11 +27,6 @@ import (
 	otelMethod "github.com/kubeedge/mqttvirtual/data/publish/otel"
 	"github.com/kubeedge/mqttvirtual/data/stream"
 	"github.com/kubeedge/mqttvirtual/driver"
-	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
-	"github.com/kubeedge/mapper-framework/pkg/common"
-	"github.com/kubeedge/mapper-framework/pkg/global"
-	"github.com/kubeedge/mapper-framework/pkg/grpcclient"
-	"github.com/kubeedge/mapper-framework/pkg/util/parse"
 )
 
 const eventTwinFlushInterval = 5 * time.Second
@@ -358,9 +358,9 @@ func setVisitor(visitorConfig *driver.VisitorConfig, twin *common.Twin, dev *dri
 	} else {
 		value = twin.ObservedDesired.Value
 	}
-	err := dev.CustomizedClient.SetDeviceData(value, visitorConfig)
+	err := dev.CustomizedClient.EnsureDeviceData(value, visitorConfig)
 	if err != nil {
-		return fmt.Errorf("%s set device data error: %v", twin.PropertyName, err)
+		return fmt.Errorf("%s seed device data error: %v", twin.PropertyName, err)
 	}
 	return nil
 }
