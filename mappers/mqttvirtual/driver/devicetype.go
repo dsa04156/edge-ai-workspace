@@ -2,6 +2,7 @@ package driver
 
 import (
 	"sync"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/kubeedge/mapper-framework/pkg/common"
@@ -18,6 +19,8 @@ type CustomizedClient struct {
 	Client       mqtt.Client
 	LatestValues map[string]interface{}
 	Events       chan map[string]interface{}
+	LastSeenAt   time.Time
+	HasTelemetry bool
 	ProtocolConfig
 }
 
@@ -27,13 +30,14 @@ type ProtocolConfig struct {
 }
 
 type ConfigData struct {
-	Broker   string `json:"broker"`
-	SubTopic string `json:"subTopic"`
-	PubTopic string `json:"pubTopic"`
-	ClientID string `json:"clientID"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	QoS      byte   `json:"qos"`
+	Broker         string `json:"broker"`
+	SubTopic       string `json:"subTopic"`
+	PubTopic       string `json:"pubTopic"`
+	ClientID       string `json:"clientID"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	QoS            byte   `json:"qos"`
+	OfflineAfterMs int64  `json:"offlineAfterMs"`
 }
 
 type VisitorConfig struct {

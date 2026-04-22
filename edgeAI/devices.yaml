@@ -45,6 +45,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -93,6 +94,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -141,6 +143,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -189,6 +192,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -237,6 +241,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -285,6 +290,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -333,6 +339,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -381,6 +388,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -429,6 +437,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -477,6 +486,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -525,6 +535,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -573,6 +584,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -621,6 +633,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -669,6 +682,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -717,6 +731,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -765,6 +780,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -813,6 +829,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -861,6 +878,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -909,6 +927,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -957,3 +976,4 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000

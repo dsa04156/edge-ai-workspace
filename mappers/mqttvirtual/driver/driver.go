@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/kubeedge/mapper-framework/pkg/common"
@@ -93,6 +94,8 @@ func (c *CustomizedClient) applyPayload(payload map[string]interface{}) {
 		c.LatestValues[k] = v
 		payloadCopy[k] = v
 	}
+	c.LastSeenAt = time.Now()
+	c.HasTelemetry = true
 	c.deviceMutex.Unlock()
 
 	c.enqueueEvent(payloadCopy)
@@ -233,8 +236,25 @@ func (c *CustomizedClient) GetDeviceStates() (string, error) {
 	if c.Client == nil {
 		return common.DeviceStatusDisCONN, nil
 	}
-	if c.Client.IsConnectionOpen() {
-		return common.DeviceStatusOK, nil
+	if !c.Client.IsConnectionOpen() {
+		return common.DeviceStatusDisCONN, nil
 	}
-	return common.DeviceStatusDisCONN, nil
+
+	c.deviceMutex.Lock()
+	lastSeenAt := c.LastSeenAt
+	hasTelemetry := c.HasTelemetry
+	c.deviceMutex.Unlock()
+
+	if !hasTelemetry {
+		return common.DeviceStatusUnknown, nil
+	}
+
+	offlineAfter := time.Duration(c.ConfigData.OfflineAfterMs) * time.Millisecond
+	if offlineAfter <= 0 {
+		offlineAfter = 15 * time.Second
+	}
+	if time.Since(lastSeenAt) > offlineAfter {
+		return common.DeviceStatusOffline, nil
+	}
+	return common.DeviceStatusOnline, nil
 }

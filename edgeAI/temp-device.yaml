@@ -39,3 +39,4 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: 15000

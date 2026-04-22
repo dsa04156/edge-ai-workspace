@@ -7,6 +7,7 @@ NODE_NAME = "etri-dev0001-jetorn"
 BROKER = "tcp://127.0.0.1:1883"
 TOPIC_PREFIX = "factory/devices"
 CYCLE_MS = 60000
+OFFLINE_AFTER_MS = 15000
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,7 @@ spec:
       username: ""
       password: ""
       qos: 1
+      offlineAfterMs: {OFFLINE_AFTER_MS}
 """
 
 
