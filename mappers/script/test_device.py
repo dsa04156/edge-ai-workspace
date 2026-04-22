@@ -105,8 +105,6 @@ DEVICES: List[VirtualDevice] = [
     VirtualDevice("env-device-07", "env", 5),
     VirtualDevice("env-device-08", "env", 5),
 
-    VirtualDevice("temp-device-01", "temp", 5),
-
     VirtualDevice("vib-device-01", "vib", 5),
     VirtualDevice("vib-device-02", "vib", 5),
     VirtualDevice("vib-device-03", "vib", 5),
