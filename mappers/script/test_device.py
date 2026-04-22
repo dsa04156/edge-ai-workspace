@@ -23,6 +23,7 @@ PUBLISH_JITTER = float(os.getenv("PUBLISH_JITTER", "0.3"))
 ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "1") not in {"0", "false", "False"}
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "30"))
 DEVICE_FILTER = {item.strip() for item in os.getenv("DEVICE_FILTER", "").split(",") if item.strip()}
+ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.15"))
 
 
 @dataclass
@@ -30,6 +31,8 @@ class VirtualDevice:
     device_id: str
     device_type: str
     interval: int
+    last_power: str = "on"
+    last_mode: str = "auto"
 
     def telemetry_topic(self) -> str:
         return f"{TOPIC_PREFIX}/{self.device_id}/telemetry"
@@ -47,7 +50,6 @@ class VirtualDevice:
             return {
                 "temperature": str(temperature),
                 "humidity": str(humidity),
-                "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "vib":
@@ -56,28 +58,27 @@ class VirtualDevice:
             return {
                 "vibration": str(vibration),
                 "alarm": alarm,
-                "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "act":
-            power = random.choice(["on", "off"])
-            mode = random.choice(["auto", "manual", "idle"])
+            if random.random() < ACT_STATE_CHANGE_PROBABILITY:
+                self.last_power = "off" if self.last_power == "on" else "on"
+            if random.random() < ACT_STATE_CHANGE_PROBABILITY:
+                choices = [item for item in ["auto", "manual", "idle"] if item != self.last_mode]
+                self.last_mode = random.choice(choices)
             return {
-                "power": power,
-                "mode": mode,
-                "sampling_interval": str(self.interval),
+                "power": self.last_power,
+                "mode": self.last_mode,
             }
 
         if self.device_type == "temp":
             temperature = random.randint(280, 320)
             return {
                 "temperature": str(temperature),
-                "sampling_interval": str(self.interval),
             }
 
         return {
             "status": "unknown",
-            "sampling_interval": str(self.interval),
         }
 
     def build_heartbeat(self) -> Dict[str, str]:

@@ -30,12 +30,11 @@ import (
 )
 
 const eventTwinFlushInterval = 5 * time.Second
+const minDeviceStatusReportInterval = 30 * time.Second
 
 var deviceStatusPropertyAllowlist = map[string]struct{}{
-	"sampling_interval": {},
-	"alarm":             {},
-	"power":             {},
-	"mode":              {},
+	"alarm": {},
+	"power": {},
 }
 
 type DevPanel struct {
@@ -201,6 +200,7 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 
 	pending := make(map[string]*TwinData)
 	lastReported := make(map[string]string)
+	lastReportTime := make(map[string]time.Time)
 	ticker := time.NewTicker(eventTwinFlushInterval)
 	defer ticker.Stop()
 
@@ -210,6 +210,7 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 		}
 
 		twins := make([]*dmiapi.Twin, 0, len(pending))
+		nextPending := make(map[string]*TwinData)
 		for key, twinData := range pending {
 			reportedTwins, err := twinData.BuildReportedTwins()
 			if err != nil {
@@ -224,11 +225,16 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 				if lastReported[key] == currentValue {
 					continue
 				}
+				if lastSentAt, ok := lastReportTime[key]; ok && time.Since(lastSentAt) < minDeviceStatusReportInterval {
+					nextPending[key] = twinData
+					continue
+				}
 				lastReported[key] = currentValue
+				lastReportTime[key] = time.Now()
 				twins = append(twins, reportedTwin)
 			}
 		}
-		clear(pending)
+		pending = nextPending
 
 		if len(twins) == 0 {
 			return

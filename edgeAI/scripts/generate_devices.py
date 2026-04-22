@@ -19,9 +19,9 @@ class DeviceGroup:
 
 
 GROUPS = [
-    DeviceGroup("env", 8, "virtual-env-model", ["temperature", "humidity", "sampling_interval"], ["sampling_interval"]),
-    DeviceGroup("vib", 6, "virtual-vib-model", ["vibration", "alarm", "sampling_interval"], ["alarm", "sampling_interval"]),
-    DeviceGroup("act", 6, "virtual-act-model", ["power", "mode", "sampling_interval"], ["power", "mode", "sampling_interval"]),
+    DeviceGroup("env", 8, "virtual-env-model", ["temperature", "humidity", "sampling_interval"], []),
+    DeviceGroup("vib", 6, "virtual-vib-model", ["vibration", "alarm", "sampling_interval"], ["alarm"]),
+    DeviceGroup("act", 6, "virtual-act-model", ["power", "mode", "sampling_interval"], ["power"]),
 ]
 
 
