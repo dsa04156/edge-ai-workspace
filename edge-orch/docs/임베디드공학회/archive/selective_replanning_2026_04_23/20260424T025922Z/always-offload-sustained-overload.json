@@ -1,0 +1,187 @@
+{
+  "method": "always-offload",
+  "scenario": "sustained-overload",
+  "scenario_config": {
+    "stress_workers": 6,
+    "stress_seconds": 180,
+    "pressure_override": "high",
+    "mode": "sustained",
+    "per_workflow_stress": false,
+    "description": "6 CPU spin workers for 180s on Jetson"
+  },
+  "stress_state": {
+    "hostname": "etri-dev0001-jetorn",
+    "instance": "192.168.0.3:9100",
+    "node_type": "edge_ai_device",
+    "collected_at": "2026-04-24T02:59:27.801223Z",
+    "raw_metrics": {
+      "up": 1.0,
+      "cpu_utilization": 0.6586913580247373,
+      "memory_usage_ratio": 0.28244576523335896,
+      "load_average": 7.68,
+      "network_rx_rate": 4867.147053333333,
+      "network_tx_rate": 2794.385588962963
+    },
+    "compute_pressure": "high",
+    "memory_pressure": "low",
+    "network_pressure": "low",
+    "node_health": "degraded"
+  },
+  "summary": {
+    "workflow_count": 5,
+    "capture_latency_mean_ms": 4310.8,
+    "preprocess_latency_mean_ms": 3916.0,
+    "inference_latency_mean_ms": 4115.2,
+    "e2e_latency_mean_ms": 12606.0,
+    "preprocess_latency_p95_ms": 4130,
+    "e2e_latency_p95_ms": 12639,
+    "throughput_jobs_per_s": 0.078754,
+    "migration_time_mean_ms": 0.0,
+    "migration_count": 5,
+    "keep_count": 0,
+    "unnecessary_migration_count": 0,
+    "net_gain_mean_ms": null
+  },
+  "workflows": [
+    {
+      "workflow_id": "wf-always-offload-sustained-overload-1776999567-000",
+      "method": "always-offload",
+      "scenario": "sustained-overload",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999567864,
+      "workflow_end_ms": 1776999580439,
+      "capture_latency_ms": 4106,
+      "preprocess_latency_ms": 4130,
+      "inference_latency_ms": 4104,
+      "e2e_latency_ms": 12575,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 180,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "sustained"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-sustained-overload-1776999580-001",
+      "method": "always-offload",
+      "scenario": "sustained-overload",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999580550,
+      "workflow_end_ms": 1776999593189,
+      "capture_latency_ms": 4112,
+      "preprocess_latency_ms": 4111,
+      "inference_latency_ms": 4133,
+      "e2e_latency_ms": 12639,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 180,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "sustained"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-sustained-overload-1776999593-002",
+      "method": "always-offload",
+      "scenario": "sustained-overload",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999593318,
+      "workflow_end_ms": 1776999605964,
+      "capture_latency_ms": 5132,
+      "preprocess_latency_ms": 3090,
+      "inference_latency_ms": 4118,
+      "e2e_latency_ms": 12646,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 180,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "sustained"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-sustained-overload-1776999606-003",
+      "method": "always-offload",
+      "scenario": "sustained-overload",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999606078,
+      "workflow_end_ms": 1776999618628,
+      "capture_latency_ms": 4102,
+      "preprocess_latency_ms": 4102,
+      "inference_latency_ms": 4102,
+      "e2e_latency_ms": 12550,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 180,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "sustained"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-sustained-overload-1776999618-004",
+      "method": "always-offload",
+      "scenario": "sustained-overload",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999618733,
+      "workflow_end_ms": 1776999631353,
+      "capture_latency_ms": 4102,
+      "preprocess_latency_ms": 4147,
+      "inference_latency_ms": 4119,
+      "e2e_latency_ms": 12620,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 180,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "sustained"
+      }
+    }
+  ]
+}

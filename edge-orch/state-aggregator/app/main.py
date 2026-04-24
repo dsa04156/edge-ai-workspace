@@ -7,7 +7,7 @@ from fastapi.responses import PlainTextResponse
 
 from .config import Settings
 from .metrics import render_metrics
-from .models import SummaryState, WorkflowEvent, WorkflowState
+from .models import CostModelState, SummaryState, WorkflowEvent, WorkflowState
 from .service import StateAggregatorService
 
 settings = Settings()
@@ -58,6 +58,11 @@ async def get_workflow(workflow_id: str):
 @app.get("/state/summary", response_model=SummaryState)
 async def get_summary() -> SummaryState:
     return service.get_summary()
+
+
+@app.get("/state/cost-model", response_model=CostModelState)
+async def get_cost_model() -> CostModelState:
+    return service.get_cost_model()
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

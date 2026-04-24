@@ -11,6 +11,7 @@ HealthLevel = Literal["healthy", "degraded", "unavailable"]
 UrgencyLevel = Literal["low", "medium", "high"]
 RiskLevel = Literal["low", "medium", "high"]
 PlacementStability = Literal["stable", "moving", "unstable"]
+ActionType = Literal["keep", "migrate", "offload_to_cloud", "reject"]
 
 
 class WorkflowEvent(BaseModel):
@@ -28,6 +29,56 @@ class WorkflowEvent(BaseModel):
     from_node: str | None = None
     to_node: str | None = None
     reason: str | None = None
+    action_type: ActionType | None = None
+    score_breakdown: dict[str, float | int | bool | str | None] = Field(default_factory=dict)
+
+
+class StageObservation(BaseModel):
+    workflow_id: str
+    stage_id: str
+    stage_type: str | None = None
+    assigned_node: str | None = None
+    started_at: datetime
+    completed_at: datetime
+    observed_latency_ms: int
+    queue_wait_ms: int | None = None
+    transfer_time_ms: int | None = None
+    warmup_ms: int | None = None
+    action_type: ActionType | None = None
+    from_node: str | None = None
+    to_node: str | None = None
+
+
+class MigrationObservation(BaseModel):
+    workflow_id: str
+    stage_id: str
+    stage_type: str | None = None
+    from_node: str
+    to_node: str
+    decided_at: datetime
+    started_at: datetime
+    migration_time_ms: int
+
+
+class StageCostStats(BaseModel):
+    stage_type: str
+    node: str
+    sample_count: int = 0
+    exec_median_ms: float = 0.0
+    exec_ema_ms: float = 0.0
+    queue_median_ms: float = 0.0
+    warmup_median_ms: float = 0.0
+    recent_migration_count_last_hour: int = 0
+    placement_stability: PlacementStability = "stable"
+
+
+class MigrationCostStats(BaseModel):
+    stage_type: str
+    from_node: str
+    to_node: str
+    sample_count: int = 0
+    migration_median_ms: float = 0.0
+    migration_ema_ms: float = 0.0
 
 
 class NodeRawMetrics(BaseModel):
@@ -78,3 +129,9 @@ class SummaryState(BaseModel):
     sla_risk_workflows: list[dict[str, Any]]
     recent_migration_count: int
     unstable_workflows: list[dict[str, Any]]
+
+
+class CostModelState(BaseModel):
+    node_states: list[NodeState]
+    stage_cost_stats: list[StageCostStats] = Field(default_factory=list)
+    migration_cost_stats: list[MigrationCostStats] = Field(default_factory=list)

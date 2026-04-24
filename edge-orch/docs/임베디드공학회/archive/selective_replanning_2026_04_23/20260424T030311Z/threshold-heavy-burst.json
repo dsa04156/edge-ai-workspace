@@ -1,0 +1,180 @@
+{
+  "method": "threshold",
+  "scenario": "heavy-burst",
+  "scenario_config": {
+    "stress_workers": 6,
+    "stress_seconds": 20,
+    "pressure_override": "high",
+    "mode": "burst",
+    "per_workflow_stress": true,
+    "description": "6 CPU spin workers for 20s on Jetson"
+  },
+  "stress_state": null,
+  "summary": {
+    "workflow_count": 5,
+    "capture_latency_mean_ms": 4119.2,
+    "preprocess_latency_mean_ms": 3916.2,
+    "inference_latency_mean_ms": 3718.0,
+    "e2e_latency_mean_ms": 12018.4,
+    "preprocess_latency_p95_ms": 4119,
+    "e2e_latency_p95_ms": 12624,
+    "throughput_jobs_per_s": 0.068063,
+    "migration_time_mean_ms": 0.0,
+    "migration_count": 5,
+    "keep_count": 0,
+    "unnecessary_migration_count": 0,
+    "net_gain_mean_ms": null
+  },
+  "workflows": [
+    {
+      "workflow_id": "wf-threshold-heavy-burst-1776999791-000",
+      "method": "threshold",
+      "scenario": "heavy-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999794632,
+      "workflow_end_ms": 1776999806177,
+      "capture_latency_ms": 4118,
+      "preprocess_latency_ms": 3108,
+      "inference_latency_ms": 4105,
+      "e2e_latency_ms": 11545,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline offloaded preprocess on high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 61,
+        "cpu_percent_before_preprocess": 61,
+        "pressure_override": "high",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-heavy-burst-1776999806-001",
+      "method": "threshold",
+      "scenario": "heavy-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999809527,
+      "workflow_end_ms": 1776999821162,
+      "capture_latency_ms": 4122,
+      "preprocess_latency_ms": 4119,
+      "inference_latency_ms": 3112,
+      "e2e_latency_ms": 11635,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline offloaded preprocess on high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 61,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-heavy-burst-1776999821-002",
+      "method": "threshold",
+      "scenario": "heavy-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999824563,
+      "workflow_end_ms": 1776999836208,
+      "capture_latency_ms": 4127,
+      "preprocess_latency_ms": 4109,
+      "inference_latency_ms": 3122,
+      "e2e_latency_ms": 11645,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline offloaded preprocess on high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 98,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-heavy-burst-1776999836-003",
+      "method": "threshold",
+      "scenario": "heavy-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999839471,
+      "workflow_end_ms": 1776999852095,
+      "capture_latency_ms": 4120,
+      "preprocess_latency_ms": 4119,
+      "inference_latency_ms": 4122,
+      "e2e_latency_ms": 12624,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline offloaded preprocess on high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 98,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-heavy-burst-1776999852-004",
+      "method": "threshold",
+      "scenario": "heavy-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999855450,
+      "workflow_end_ms": 1776999868093,
+      "capture_latency_ms": 4109,
+      "preprocess_latency_ms": 4126,
+      "inference_latency_ms": 4129,
+      "e2e_latency_ms": 12643,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline offloaded preprocess on high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 6,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 98,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": "high",
+        "mode": "burst"
+      }
+    }
+  ]
+}

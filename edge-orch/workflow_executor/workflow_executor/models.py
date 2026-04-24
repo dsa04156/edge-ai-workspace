@@ -56,7 +56,7 @@ class PlacementDecision(BaseModel):
     target_node: str | None
     decision_reason: str
     action_type: ActionType
-    score_breakdown: dict[str, float] = Field(default_factory=dict)
+    score_breakdown: dict[str, float | int | bool | str | None] = Field(default_factory=dict)
 
 
 class WorkflowEvent(BaseModel):
@@ -74,6 +74,8 @@ class WorkflowEvent(BaseModel):
     to_node: str | None = None
     reason: str | None = None
     status: str | None = None
+    action_type: ActionType | None = None
+    score_breakdown: dict[str, float | int | bool | str | None] = Field(default_factory=dict)
 
 
 class ExecuteStageRequest(BaseModel):
@@ -101,6 +103,7 @@ class StageExecutionResult(BaseModel):
     decision_reason: str
     job_name: str
     status: ExecutionStatus
+    score_breakdown: dict[str, float | int | bool | str | None] = Field(default_factory=dict)
 
 
 class WorkflowExecutionResult(BaseModel):

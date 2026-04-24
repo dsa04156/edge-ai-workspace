@@ -1,0 +1,180 @@
+{
+  "method": "threshold",
+  "scenario": "normal",
+  "scenario_config": {
+    "stress_workers": 0,
+    "stress_seconds": 0,
+    "pressure_override": null,
+    "mode": "none",
+    "per_workflow_stress": false,
+    "description": "no additional load"
+  },
+  "stress_state": null,
+  "summary": {
+    "workflow_count": 5,
+    "capture_latency_mean_ms": 4721.2,
+    "preprocess_latency_mean_ms": 5325.6,
+    "inference_latency_mean_ms": 3920.6,
+    "e2e_latency_mean_ms": 14223.4,
+    "preprocess_latency_p95_ms": 5143,
+    "e2e_latency_p95_ms": 14610,
+    "throughput_jobs_per_s": 0.06989,
+    "migration_time_mean_ms": 0.0,
+    "migration_count": 0,
+    "keep_count": 5,
+    "unnecessary_migration_count": 0,
+    "net_gain_mean_ms": null
+  },
+  "workflows": [
+    {
+      "workflow_id": "wf-threshold-normal-1776999631-000",
+      "method": "threshold",
+      "scenario": "normal",
+      "preprocess_target": "etri-dev0001-jetorn",
+      "preprocess_action": "keep",
+      "workflow_start_ms": 1776999631656,
+      "workflow_end_ms": 1776999645263,
+      "capture_latency_ms": 4118,
+      "preprocess_latency_ms": 5126,
+      "inference_latency_ms": 4108,
+      "e2e_latency_ms": 13607,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline kept preprocess on non-high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 0,
+        "duration_seconds": 0,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": null,
+        "mode": "none"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-normal-1776999645-001",
+      "method": "threshold",
+      "scenario": "normal",
+      "preprocess_target": "etri-dev0001-jetorn",
+      "preprocess_action": "keep",
+      "workflow_start_ms": 1776999645385,
+      "workflow_end_ms": 1776999659042,
+      "capture_latency_ms": 5114,
+      "preprocess_latency_ms": 5135,
+      "inference_latency_ms": 3131,
+      "e2e_latency_ms": 13657,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline kept preprocess on non-high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 0,
+        "duration_seconds": 0,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": null,
+        "mode": "none"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-normal-1776999659-002",
+      "method": "threshold",
+      "scenario": "normal",
+      "preprocess_target": "etri-dev0001-jetorn",
+      "preprocess_action": "keep",
+      "workflow_start_ms": 1776999659123,
+      "workflow_end_ms": 1776999673733,
+      "capture_latency_ms": 5131,
+      "preprocess_latency_ms": 5143,
+      "inference_latency_ms": 4129,
+      "e2e_latency_ms": 14610,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline kept preprocess on non-high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 0,
+        "duration_seconds": 0,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": null,
+        "mode": "none"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-normal-1776999673-003",
+      "method": "threshold",
+      "scenario": "normal",
+      "preprocess_target": "etri-dev0001-jetorn",
+      "preprocess_action": "keep",
+      "workflow_start_ms": 1776999673854,
+      "workflow_end_ms": 1776999687489,
+      "capture_latency_ms": 4112,
+      "preprocess_latency_ms": 5110,
+      "inference_latency_ms": 4135,
+      "e2e_latency_ms": 13635,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline kept preprocess on non-high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 0,
+        "duration_seconds": 0,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 98,
+        "pressure_override": null,
+        "mode": "none"
+      }
+    },
+    {
+      "workflow_id": "wf-threshold-normal-1776999687-004",
+      "method": "threshold",
+      "scenario": "normal",
+      "preprocess_target": "etri-dev0001-jetorn",
+      "preprocess_action": "keep",
+      "workflow_start_ms": 1776999687589,
+      "workflow_end_ms": 1776999703197,
+      "capture_latency_ms": 5131,
+      "preprocess_latency_ms": 6114,
+      "inference_latency_ms": 4100,
+      "e2e_latency_ms": 15608,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "threshold baseline kept preprocess on non-high pressure",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "threshold_baseline",
+        "decision_margin_ms": 0,
+        "net_gain_ms": null
+      },
+      "stress": {
+        "workers": 0,
+        "duration_seconds": 0,
+        "cpu_percent_before_capture": null,
+        "cpu_percent_before_preprocess": 5,
+        "pressure_override": null,
+        "mode": "none"
+      }
+    }
+  ]
+}

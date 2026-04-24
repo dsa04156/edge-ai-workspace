@@ -174,6 +174,11 @@ def test_execute_stage_creates_job_and_reports_events(monkeypatch, tmp_path: Pat
         ),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
     ]
     batch_api = FakeBatchApi()
     monkeypatch.setattr(
@@ -190,8 +195,10 @@ def test_execute_stage_creates_job_and_reports_events(monkeypatch, tmp_path: Pat
         "kubernetes.io/hostname": "etri-ser0001-cg0msb"
     }
     assert sent[0]["json"]["stage_id"] == "inference"
-    assert sent[1]["json"]["event_type"] == "stage_start"
-    assert sent[2]["json"]["event_type"] == "stage_end"
+    assert sent[1]["json"]["event_type"] == "stage_job_created"
+    assert sent[2]["json"]["event_type"] == "stage_start"
+    assert sent[3]["json"]["event_type"] == "stage_end"
+    assert result.score_breakdown == {}
     workflow = asyncio.run(service.get_workflow_state("wf-1"))
     assert workflow.current_stage_id == "inference"
     assert workflow.stages[0].job_name is not None
@@ -216,6 +223,8 @@ def test_execute_stage_reports_migration(monkeypatch, tmp_path: Path):
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
     ]
     batch_api = FakeBatchApi()
     monkeypatch.setattr(
@@ -230,6 +239,7 @@ def test_execute_stage_reports_migration(monkeypatch, tmp_path: Path):
 
     assert sent[1]["json"]["event_type"] == "migration_event"
     assert sent[1]["json"]["from_node"] == "etri-dev0001-jetorn"
+    assert sent[2]["json"]["event_type"] == "stage_job_created"
     workflow = asyncio.run(service.get_workflow_state("wf-1"))
     assert any(item.status == "migration_event" for item in workflow.transitions)
 
@@ -287,6 +297,7 @@ def test_execute_workflow_replans_remaining_stages(monkeypatch, tmp_path: Path):
         ),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse(
             {
                 "decisions": [
@@ -301,6 +312,7 @@ def test_execute_workflow_replans_remaining_stages(monkeypatch, tmp_path: Path):
                 ]
             }
         ),
+        DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
@@ -358,6 +370,7 @@ def test_execute_workflow_falls_back_when_replan_request_fails(monkeypatch, tmp_
         ),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
         httpx.ConnectError("replan unavailable"),
         DummyAsyncResponse(
             {
@@ -371,6 +384,8 @@ def test_execute_workflow_falls_back_when_replan_request_fails(monkeypatch, tmp_
                 }
             }
         ),
+        DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
@@ -419,6 +434,7 @@ def test_execute_workflow_falls_back_when_replan_response_is_malformed(monkeypat
         ),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
+        DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({}),
         DummyAsyncResponse(
             {
@@ -432,6 +448,7 @@ def test_execute_workflow_falls_back_when_replan_response_is_malformed(monkeypat
                 }
             }
         ),
+        DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),
         DummyAsyncResponse({"ok": True}),

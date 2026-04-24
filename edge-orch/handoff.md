@@ -1,286 +1,131 @@
 # Handoff
 
-## Current status
+## Current Focus
 
-This repository now has eight working pieces connected end-to-end:
+현재 작업의 중심은 KubeEdge `mqttvirtual` mapper 기반 가상 센서 디바이스 실험이다.
 
-1. `state_aggregator` (With Automated Node Discovery)
-2. `workflow_reporter`
-3. `placement_engine`
-4. `workflow_executor` (With SQLite persistence & Replanning)
-5. `vision_stage_runner` (Multi-arch synthetic stage payload)
-6. **GitHub Actions CI Pipeline** (Self-hosted multi-arch buildx)
-7. **ArgoCD Image Updater** (Automated tag tracking & rollout)
-8. **Traefik Gateway** (Standardized access via sslip.io)
+핵심 목표:
+- MQTT telemetry 수신 경로 검증
+- `DeviceModel` / `Device` / `DeviceStatus` 연동 검증
+- 대표 상태(`DeviceStatus`)와 실측 telemetry 분리
+- 이후 20개 디바이스 병렬 실험으로 확장
 
-The current system supports:
-- Prometheus metric ingestion into `state_aggregator`
-- Normalized node/workflow state exposure
-- Automated multi-arch container builds & registry pushes
-- Automated deployment rollouts via ArgoCD Image Updater
-- Heuristic placement & stage-boundary replanning
-- Standardized domain access (`*.sslip.io`) without local hosts modification
-- Persistent execution state tracking in SQLite
+## Current State
 
-## What was implemented
+확인된 것:
+- 단일 디바이스 `temp-device-01` 기준 `DeviceStatus.status.twins.reported` 반영은 검증했다.
+- `mqttvirtual` 수정본은 `/home/etri/jinuk/mappers/mqttvirtual` 기준으로 관리한다.
+- Jetson 실제 실행 경로는 `/home/etri/mqttvirtual` 이고, 주요 수정 내용은 반영해 두었다.
+- `stream`이 아니라 `non-stream` 센서 상태값 실험이 맞다는 방향으로 정리했다.
 
-### 1. `state_aggregator`
+현재 설계:
+- telemetry:
+  - `temperature`
+  - `humidity`
+  - `vibration`
+- representative status (`DeviceStatus`):
+  - `sampling_interval`
+  - `alarm`
+  - `power`
+  - `mode`
+  - device connectivity state
 
-Location:
-- [state-aggregator/app/main.py](/home/etri/jinuk/edge-orch/state-aggregator/app/main.py)
-- [state-aggregator/app/service.py](/home/etri/jinuk/edge-orch/state-aggregator/app/service.py)
-- [state-aggregator/app/prometheus.py](/home/etri/jinuk/edge-orch/state-aggregator/app/prometheus.py)
-- [state-aggregator/app/kube.py](/home/etri/jinuk/edge-orch/state-aggregator/app/kube.py) (New: Dynamic Node Discovery)
+현재 `DeviceStatus` 보고 정책:
+- 즉시 report 제거
+- `5초` flush loop
+- changed-only
+- 동일 값 재보고 금지
 
-Implemented:
-- **Dynamic Node Discovery**: Uses K8s API (`KubeClient`) to detect nodes and roles in real-time. No longer requires `instance_map.json`.
-- Periodic Prometheus polling & node metric normalization.
-- Workflow event ingestion & summary state generation.
-- `/metrics` endpoint in Prometheus exposition format.
+## Important Changes
 
-### 2. Grafana dashboard
+### 1. `mqttvirtual` mapper
 
-Location:
-- [state-aggregator/grafana/state-aggregator-dashboard.json](/home/etri/jinuk/edge-orch/state-aggregator/grafana/state-aggregator-dashboard.json)
+기준 소스:
+- [mappers/mqttvirtual](/home/etri/jinuk/mappers/mqttvirtual)
 
-Includes panels for:
-- Tracked nodes (Auto-updating)
-- Hotspot nodes & SLA risk workflows
-- CPU/Memory/Network throughput
-- Normalized node state & Workflow control state
+주요 수정:
+- import 경로를 `github.com/kubeedge/mqttvirtual` 로 통일
+- `stream` / `non-stream` build tag 분리
+- `DeviceStatus` 대상 property allowlist 적용
+- `runEventTwinReporter()` 를 즉시 report 에서 `5초 flush + changed-only` 로 변경
 
-### 3. `workflow_reporter`
+핵심 파일:
+- [mappers/mqttvirtual/device/device.go](/home/etri/jinuk/mappers/mqttvirtual/device/device.go)
+- [mappers/mqttvirtual/device/devicetwin.go](/home/etri/jinuk/mappers/mqttvirtual/device/devicetwin.go)
+- [mappers/mqttvirtual/device/devicestatus.go](/home/etri/jinuk/mappers/mqttvirtual/device/devicestatus.go)
+- [mappers/mqttvirtual/driver/driver.go](/home/etri/jinuk/mappers/mqttvirtual/driver/driver.go)
+- [mappers/mqttvirtual/config.yaml](/home/etri/jinuk/mappers/mqttvirtual/config.yaml)
 
-Location:
-- [workflow_reporter/workflow_reporter/client.py](/home/etri/jinuk/edge-orch/workflow_reporter/workflow_reporter/client.py)
-- [workflow_reporter/workflow_reporter/demo_workflow.py](/home/etri/jinuk/edge-orch/workflow_reporter/workflow_reporter/demo_workflow.py)
-
-Implemented:
-- `stage_start`, `stage_end`, `migration_event`, `failure_event`, `workflow_end`.
-- 5-stage vision pipeline demo runner.
-
-### 4. `placement_engine`
-
-Location:
-- [placement_engine/placement_engine/engine.py](/home/etri/jinuk/edge-orch/placement_engine/placement_engine/engine.py)
-- [placement_engine/placement_engine/main.py](/home/etri/jinuk/edge-orch/placement_engine/placement_engine/main.py)
-
-Implemented:
-- Heuristic stage placement logic (`/placement/decide`).
-- Multi-stage replanning logic (`/placement/replan`).
-
-### 5. `workflow_executor`
-
-Location:
-- [workflow_executor/workflow_executor/main.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/main.py)
-- [workflow_executor/workflow_executor/service.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/service.py)
-- [workflow_executor/workflow_executor/storage.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/storage.py) (New: SQLite persistence)
-
-Implemented:
-- **Replanning Hook**: Refreshes placement decisions at stage boundaries.
-- **SQLite Persistence**: Execution history is recorded in `workflow_state.db`.
-- Kubernetes `Job` creation per stage with `imagePullPolicy: Always`.
-
-### 6. `vision_stage_runner`
-
-Location:
-- [vision_stage_runner/vision_stage_runner/main.py](/home/etri/jinuk/edge-orch/vision_stage_runner/vision_stage_runner/main.py)
-
-Implemented:
-- Multi-arch image build for `linux/amd64` and `linux/arm64`.
-- Reusable synthetic stage logic keyed by `workflow_id`.
-
-## What was actually verified
-
-### Verified on the cluster
-- **CI/CD Pipeline**: `git push` -> GitHub Actions Build (Buildx) -> Registry Push -> ArgoCD Image Updater Rollout.
-- **Dynamic Node Discovery**: Added new worker node `etri-ser0002-cgnmsb` and verified it appeared in dashboard automatically.
-- **Heterogeneous Execution**: Successfully ran workflow across x86 server and Raspberry Pi 5.
-
-## Latest successful executor run
-Workflow ID: `wf-exec-demo-001`
-- `capture` -> `etri-dev0002-raspi5` (Job: `wf-exec-demo-001-capture-XXXXXX`)
-- `preprocess` -> `etri-dev0002-raspi5`
-- `inference` -> `etri-ser0001-cg0msb`
-- `postprocess` -> `etri-ser0001-cg0msb`
-- `result_delivery` -> `etri-dev0002-raspi5`
-
-## Images and deployments
-We use a **Tag-based Tracking** strategy with ArgoCD Image Updater.
-- **Registry**: `192.168.0.56:5000`
-- **Tag**: `latest` (Tracked by Digest)
-- **ArgoCD Apps**: Managed in `/home/etri/jinuk/edge-orch-argocd/argocd-apps.yaml`.
-
-## Known limitations
-1. **Live Migration**: No checkpoint-based migration; moves occur at stage boundaries only.
-2. **Data passing**: Stages still use local synthetic logic; no shared storage (Redis/MinIO) yet.
-3. **Synchronous Executor**: `workflow_executor` waits for Job completion synchronously.
-
-## Important operational notes
-
-### Service Access (sslip.io)
-No need to modify `hosts` files. Access via:
-- **ArgoCD**: [http://argocd.192.168.0.56.sslip.io](http://argocd.192.168.0.56.sslip.io)
-- **Grafana**: [http://grafana.192.168.0.56.sslip.io](http://grafana.192.168.0.56.sslip.io)
-- **Prometheus**: [http://prometheus.192.168.0.56.sslip.io](http://prometheus.192.168.0.56.sslip.io)
-
-### Triggering a manual Workflow
+Jetson 실행 기준:
 ```bash
-curl -sS -X POST http://executor.192.168.0.56.sslip.io/execute/workflow \
-  -H 'content-type: application/json' \
-  --data @/home/etri/jinuk/edge-orch/workflow_executor/k8s/demo-request.json
+cd /home/etri/mqttvirtual
+CGO_ENABLED=0 go build -o mqttvirtual-arm64 ./cmd
+pkill -f 'mqttvirtual-arm64 --config-file ./config.yaml' || true
+sudo ./mqttvirtual-arm64 --config-file ./config.yaml --v 4 2>&1 | tee mapper.log
 ```
 
-## Recommended next steps
-1. **Data Persistence Layer**: Implement **Redis** for sharing image data between stages.
-2. **Real AI Integration**: Replace `vision_stage_runner` loops with actual ONNX/PyTorch inference code.
-3. **Overload Scenarios**: Create experiment scripts to trigger intentional node stress.
+### 2. `edgeAI` 디바이스 구성
 
-## Latest Updates (April 2026)
-- **Full CI/CD Automation**: Integrated GitHub Actions (Multi-arch) and ArgoCD Image Updater.
-- **Standardized Entrypoint**: Traefik Gateway with `IngressRoute` and `sslip.io` domains.
-- **Dynamic Infrastructure**: Automated node discovery and cloud-tier node pinning.
- Here is the updated code:
-# Handoff
+기준 경로:
+- [edgeAI/models](/home/etri/jinuk/edgeAI/models)
+- [edgeAI/devices.yaml](/home/etri/jinuk/edgeAI/devices.yaml)
+- [edgeAI/scripts/generate_devices.py](/home/etri/jinuk/edgeAI/scripts/generate_devices.py)
+- [edgeAI/scripts/deploy.sh](/home/etri/jinuk/edgeAI/scripts/deploy.sh)
 
-## Current status
+현재 모델:
+- `virtual-env-model`
+- `virtual-vib-model`
+- `virtual-act-model`
 
-This repository now has eight working pieces connected end-to-end:
+생성된 디바이스:
+- `env-device-01 ~ 08`
+- `vib-device-01 ~ 06`
+- `act-device-01 ~ 06`
 
-1. `state_aggregator` (With Automated Node Discovery)
-2. `workflow_reporter`
-3. `placement_engine`
-4. `workflow_executor` (With SQLite persistence & Replanning)
-5. `vision_stage_runner` (Multi-arch synthetic stage payload)
-6. **GitHub Actions CI Pipeline** (Self-hosted multi-arch buildx)
-7. **ArgoCD Image Updater** (Automated tag tracking & rollout)
-8. **Traefik Gateway** (Standardized access via sslip.io)
+배포 스크립트 동작:
+- `models/` 적용
+- `devices.yaml` 적용
+- `k8s/`는 적용하지 않음
 
-The current system supports:
-- Prometheus metric ingestion into `state_aggregator`
-- Normalized node/workflow state exposure
-- Automated multi-arch container builds & registry pushes
-- Automated deployment rollouts via ArgoCD Image Updater
-- Heuristic placement & stage-boundary replanning
-- Standardized domain access (`*.sslip.io`) without local hosts modification
-- Persistent execution state tracking in SQLite
+즉 현재 `deploy.sh`는 logical device CR만 배포한다.
+가상 센서 publisher 컨테이너는 별도 실행 전제로 본다.
 
-## What was implemented
+## Known Issues
 
-### 1. `state_aggregator`
+1. `DeviceStatus` CR 존재 여부만으로 연결 확인이 안 된다.
+- 값 변화와 `resourceVersion` 증가를 같이 봐야 한다.
 
-Location:
-- [state-aggregator/app/main.py](/home/etri/jinuk/edge-orch/state-aggregator/app/main.py)
-- [state-aggregator/app/service.py](/home/etri/jinuk/edge-orch/state-aggregator/app/service.py)
-- [state-aggregator/app/prometheus.py](/home/etri/jinuk/edge-orch/state-aggregator/app/prometheus.py)
-- [state-aggregator/app/kube.py](/home/etri/jinuk/edge-orch/state-aggregator/app/kube.py) (New: Dynamic Node Discovery)
+2. edgecore 내부 propagation latency 가 있다.
+- mapper 수신 즉시와 CR 반영 시각이 다를 수 있다.
 
-Implemented:
-- **Dynamic Node Discovery**: Uses K8s API (`KubeClient`) to detect nodes and roles in real-time. No longer requires `instance_map.json`.
-- Periodic Prometheus polling & node metric normalization.
-- Workflow event ingestion & summary state generation.
-- `/metrics` endpoint in Prometheus exposition format.
+3. 테스트용 publisher 스크립트는 telemetry/status 해석을 섞기 쉬웠다.
+- [mappers/script/test_device.py](/home/etri/jinuk/mappers/script/test_device.py)
+- 현재 모델 key 에 맞게 수정했지만, 대표 상태는 자주 바뀌지 않게 운용하는 것이 맞다.
 
-### 2. Grafana dashboard
+4. `Platform-Service`는 통합 git 대상에서 제외했다.
 
-Location:
-- [state-aggregator/grafana/state-aggregator-dashboard.json](/home/etri/jinuk/edge-orch/state-aggregator/grafana/state-aggregator-dashboard.json)
+## Recommended Next Steps
 
-Includes panels for:
-- Tracked nodes (Auto-updating)
-- Hotspot nodes & SLA risk workflows
-- CPU/Memory/Network throughput
-- Normalized node state & Workflow control state
+1. Jetson에서 `mqttvirtual` 재빌드/재기동
+- 최신 `5초 flush + changed-only` 정책이 실제 바이너리에 반영되었는지 확인
 
-### 3. `workflow_reporter`
+2. `edgeAI/scripts/deploy.sh` 재실행
+- 대표 상태만 `reportToCloud: true` 인 새 `devices.yaml` 적용
 
-Location:
-- [workflow_reporter/workflow_reporter/client.py](/home/etri/jinuk/edge-orch/workflow_reporter/workflow_reporter/client.py)
-- [workflow_reporter/workflow_reporter/demo_workflow.py](/home/etri/jinuk/edge-orch/workflow_reporter/workflow_reporter/demo_workflow.py)
+3. 대표 상태만 바꿔서 검증
+- `power`, `mode`, `alarm`, `sampling_interval` 변경 시
+- `DeviceStatus.status.twins.reported` 와 `resourceVersion` 확인
 
-Implemented:
-- `stage_start`, `stage_end`, `migration_event`, `failure_event`, `workflow_end`.
-- 5-stage vision pipeline demo runner.
+4. telemetry 경로 별도 검증
+- `temperature`, `humidity`, `vibration` 는 MQTT 수신 로그/consumer 기준으로 확인
+- `DeviceStatus`에 안 올라가도 정상으로 간주
 
-### 4. `placement_engine`
+5. 20개 병렬 검증
+- 대표 상태만 `DeviceStatus` 반영되는지 확인
+- telemetry는 별도 경로로 관측
+- edgecore limiter 재발 여부 확인
 
-Location:
-- [placement_engine/placement_engine/engine.py](/home/etri/jinuk/edge-orch/placement_engine/placement_engine/engine.py)
-- [placement_engine/placement_engine/main.py](/home/etri/jinuk/edge-orch/placement_engine/placement_engine/main.py)
+## Reference
 
-Implemented:
-- Heuristic stage placement logic (`/placement/decide`).
-- Multi-stage replanning logic (`/placement/replan`).
-
-### 5. `workflow_executor`
-
-Location:
-- [workflow_executor/workflow_executor/main.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/main.py)
-- [workflow_executor/workflow_executor/service.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/service.py)
-- [workflow_executor/workflow_executor/storage.py](/home/etri/jinuk/edge-orch/workflow_executor/workflow_executor/storage.py) (New: SQLite persistence)
-
-Implemented:
-- **Replanning Hook**: Refreshes placement decisions at stage boundaries.
-- **SQLite Persistence**: Execution history is recorded in `workflow_state.db`.
-- Kubernetes `Job` creation per stage with `imagePullPolicy: Always`.
-
-### 6. `vision_stage_runner`
-
-Location:
-- [vision_stage_runner/vision_stage_runner/main.py](/home/etri/jinuk/edge-orch/vision_stage_runner/vision_stage_runner/main.py)
-
-Implemented:
-- Multi-arch image build for `linux/amd64` and `linux/arm64`.
-- Reusable synthetic stage logic keyed by `workflow_id`.
-
-## What was actually verified
-
-### Verified on the cluster
-- **CI/CD Pipeline**: `git push` -> GitHub Actions Build (Buildx) -> Registry Push -> ArgoCD Image Updater Rollout.
-- **Dynamic Node Discovery**: Added new worker node `etri-ser0002-cgnmsb` and verified it appeared in dashboard automatically.
-- **Heterogeneous Execution**: Successfully ran workflow across x86 server and Raspberry Pi 5.
-
-## Latest successful executor run
-Workflow ID: `wf-exec-demo-001`
-- `capture` -> `etri-dev0002-raspi5` (Job: `wf-exec-demo-001-capture-XXXXXX`)
-- `preprocess` -> `etri-dev0002-raspi5`
-- `inference` -> `etri-ser0001-cg0msb`
-- `postprocess` -> `etri-ser0001-cg0msb`
-- `result_delivery` -> `etri-dev0002-raspi5`
-
-## Images and deployments
-We use a **Tag-based Tracking** strategy with ArgoCD Image Updater.
-- **Registry**: `192.168.0.56:5000`
-- **Tag**: `latest` (Tracked by Digest)
-- **ArgoCD Apps**: Managed in `/home/etri/jinuk/edge-orch-argocd/argocd-apps.yaml`.
-
-## Known limitations
-1. **Live Migration**: No checkpoint-based migration; moves occur at stage boundaries only.
-2. **Data passing**: Stages still use local synthetic logic; no shared storage (Redis/MinIO) yet.
-3. **Synchronous Executor**: `workflow_executor` waits for Job completion synchronously.
-
-## Important operational notes
-
-### Service Access (sslip.io)
-No need to modify `hosts` files. Access via:
-- **ArgoCD**: [http://argocd.192.168.0.56.sslip.io](http://argocd.192.168.0.56.sslip.io)
-- **Grafana**: [http://grafana.192.168.0.56.sslip.io](http://grafana.192.168.0.56.sslip.io)
-- **Prometheus**: [http://prometheus.192.168.0.56.sslip.io](http://prometheus.192.168.0.56.sslip.io)
-
-### Triggering a manual Workflow
-```bash
-curl -sS -X POST http://executor.192.168.0.56.sslip.io/execute/workflow \
-  -H 'content-type: application/json' \
-  --data @/home/etri/jinuk/edge-orch/workflow_executor/k8s/demo-request.json
-```
-
-## Recommended next steps
-1. **Data Persistence Layer**: Implement **Redis** for sharing image data between stages.
-2. **Real AI Integration**: Replace `vision_stage_runner` loops with actual ONNX/PyTorch inference code.
-3. **Overload Scenarios**: Create experiment scripts to trigger intentional node stress.
-
-## Latest Updates (April 2026)
-- **Full CI/CD Automation**: Integrated GitHub Actions (Multi-arch) and ArgoCD Image Updater.
-- **Standardized Entrypoint**: Traefik Gateway with `IngressRoute` and `sslip.io` domains.
-- **Dynamic Infrastructure**: Automated node discovery and cloud-tier node pinning.
-- **Network Recovery**: Documented E2E resolution for EdgeMesh/DNS failures in [troubleshooting-network.md](docs/troubleshooting-network.md).
+상세 경과 정리:
+- [edge-orch/docs/통합문서.md](/home/etri/jinuk/edge-orch/docs/통합문서.md)

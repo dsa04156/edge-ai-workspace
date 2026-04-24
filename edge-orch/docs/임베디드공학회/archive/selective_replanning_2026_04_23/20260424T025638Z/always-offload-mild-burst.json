@@ -1,0 +1,170 @@
+{
+  "method": "always-offload",
+  "scenario": "mild-burst",
+  "scenario_config": {
+    "stress_workers": 3,
+    "stress_seconds": 20,
+    "pressure_override": "medium",
+    "mode": "burst",
+    "per_workflow_stress": true,
+    "description": "3 CPU spin workers for 20s on Jetson"
+  },
+  "stress_state": null,
+  "summary": {
+    "workflow_count": 5,
+    "capture_latency_mean_ms": 4521.0,
+    "preprocess_latency_mean_ms": 4117.8,
+    "inference_latency_mean_ms": 3912.6,
+    "e2e_latency_mean_ms": 12817.6,
+    "preprocess_latency_p95_ms": 4122,
+    "e2e_latency_p95_ms": 13643,
+    "throughput_jobs_per_s": 0.064593,
+    "migration_time_mean_ms": 0.0,
+    "migration_count": 5,
+    "keep_count": 0,
+    "unnecessary_migration_count": 5,
+    "net_gain_mean_ms": null
+  },
+  "workflows": [
+    {
+      "workflow_id": "wf-always-offload-mild-burst-1776999398-000",
+      "method": "always-offload",
+      "scenario": "mild-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999402088,
+      "workflow_end_ms": 1776999413699,
+      "capture_latency_ms": 4113,
+      "preprocess_latency_ms": 4108,
+      "inference_latency_ms": 3113,
+      "e2e_latency_ms": 11611,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 3,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 2,
+        "cpu_percent_before_preprocess": 2,
+        "pressure_override": "medium",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-mild-burst-1776999413-001",
+      "method": "always-offload",
+      "scenario": "mild-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999417014,
+      "workflow_end_ms": 1776999428596,
+      "capture_latency_ms": 3103,
+      "preprocess_latency_ms": 4112,
+      "inference_latency_ms": 4116,
+      "e2e_latency_ms": 11582,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 3,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 2,
+        "cpu_percent_before_preprocess": 2,
+        "pressure_override": "medium",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-mild-burst-1776999428-002",
+      "method": "always-offload",
+      "scenario": "mild-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999431930,
+      "workflow_end_ms": 1776999445585,
+      "capture_latency_ms": 5131,
+      "preprocess_latency_ms": 4122,
+      "inference_latency_ms": 4108,
+      "e2e_latency_ms": 13655,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 3,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 2,
+        "cpu_percent_before_preprocess": 2,
+        "pressure_override": "medium",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-mild-burst-1776999445-003",
+      "method": "always-offload",
+      "scenario": "mild-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999448895,
+      "workflow_end_ms": 1776999462538,
+      "capture_latency_ms": 5132,
+      "preprocess_latency_ms": 4119,
+      "inference_latency_ms": 4117,
+      "e2e_latency_ms": 13643,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 3,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 2,
+        "cpu_percent_before_preprocess": 55,
+        "pressure_override": "medium",
+        "mode": "burst"
+      }
+    },
+    {
+      "workflow_id": "wf-always-offload-mild-burst-1776999462-004",
+      "method": "always-offload",
+      "scenario": "mild-burst",
+      "preprocess_target": "etri-ser0001-cg0msb",
+      "preprocess_action": "offload_to_cloud",
+      "workflow_start_ms": 1776999465899,
+      "workflow_end_ms": 1776999479496,
+      "capture_latency_ms": 5126,
+      "preprocess_latency_ms": 4128,
+      "inference_latency_ms": 4109,
+      "e2e_latency_ms": 13597,
+      "migration_time_ms": null,
+      "net_gain_ms": null,
+      "decision_reason": "always offload preprocess baseline",
+      "decision_timestamp_ms": null,
+      "score_breakdown": {
+        "selected_policy": "always_offload_baseline"
+      },
+      "stress": {
+        "workers": 3,
+        "duration_seconds": 20,
+        "cpu_percent_before_capture": 55,
+        "cpu_percent_before_preprocess": 55,
+        "pressure_override": "medium",
+        "mode": "burst"
+      }
+    }
+  ]
+}

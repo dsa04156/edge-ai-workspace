@@ -66,3 +66,14 @@ def test_metrics_exposes_node_and_workflow_gauges():
         'workflow_type="vision_pipeline",assigned_node="etri-ser0001-CG0MSB",level="moving"} 1.0'
     ) in body
     assert "edge_orch_summary_recent_migration_count{} 1.0" in body
+
+
+def test_cost_model_endpoint_returns_snapshot():
+    with TestClient(app) as client:
+        response = client.get("/state/cost-model")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert "node_states" in payload
+    assert "stage_cost_stats" in payload
+    assert "migration_cost_stats" in payload

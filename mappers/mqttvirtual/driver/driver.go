@@ -152,15 +152,13 @@ func (c *CustomizedClient) DeviceDataWrite(visitor *VisitorConfig, deviceMethodN
 	}
 
 	if c.Client == nil {
-		c.setLatestValue(key, data)
-		return nil
+		return fmt.Errorf("mqtt client is not initialized")
 	}
 	if !c.Client.IsConnectionOpen() {
 		return fmt.Errorf("mqtt client is not connected")
 	}
 	if strings.TrimSpace(c.ConfigData.PubTopic) == "" {
-		c.setLatestValue(key, data)
-		return nil
+		return fmt.Errorf("mqtt command topic is empty")
 	}
 
 	payload := map[string]interface{}{
@@ -178,7 +176,6 @@ func (c *CustomizedClient) DeviceDataWrite(visitor *VisitorConfig, deviceMethodN
 		return fmt.Errorf("publish failed: %w", token.Error())
 	}
 
-	c.setLatestValue(key, data)
 	log.Printf("mqtt publish topic=%s payload=%s", c.ConfigData.PubTopic, string(b))
 	return nil
 }
@@ -257,4 +254,38 @@ func (c *CustomizedClient) GetDeviceStates() (string, error) {
 		return common.DeviceStatusOffline, nil
 	}
 	return common.DeviceStatusOnline, nil
+}
+
+func (c *CustomizedClient) PublishCommand(visitor *VisitorConfig, propertyName string, data interface{}) error {
+	key := propertyName
+	if visitor != nil && visitor.JsonKey != "" {
+		key = visitor.JsonKey
+	}
+	if key == "" {
+		return fmt.Errorf("command key is empty")
+	}
+	if c.Client == nil {
+		return fmt.Errorf("mqtt client is not initialized")
+	}
+	if !c.Client.IsConnectionOpen() {
+		return fmt.Errorf("mqtt client is not connected")
+	}
+	if strings.TrimSpace(c.ConfigData.PubTopic) == "" {
+		return fmt.Errorf("mqtt command topic is empty")
+	}
+
+	payload := map[string]interface{}{key: data}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshal command payload failed: %w", err)
+	}
+
+	token := c.Client.Publish(c.ConfigData.PubTopic, c.ConfigData.QoS, false, b)
+	token.Wait()
+	if token.Error() != nil {
+		return fmt.Errorf("publish command failed: %w", token.Error())
+	}
+
+	log.Printf("mqtt command publish topic=%s payload=%s", c.ConfigData.PubTopic, string(b))
+	return nil
 }

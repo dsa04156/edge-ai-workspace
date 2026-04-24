@@ -132,6 +132,8 @@ class WorkflowExecutorService:
                     transfer_time_ms=request.stage.transfer_time_ms,
                     reason=decision.decision_reason,
                     status="migrating",
+                    action_type=decision.action_type,
+                    score_breakdown=decision.score_breakdown,
                 )
             )
 
@@ -168,7 +170,21 @@ class WorkflowExecutorService:
                 "assigned_node": decision.target_node,
                 "job_name": job_name,
                 "action_type": decision.action_type,
-            },
+                },
+            )
+
+        await self._send_event(
+            WorkflowEvent(
+                event_type="stage_job_created",
+                workflow_id=request.workflow_id,
+                workflow_type=request.workflow_type,
+                stage_id=request.stage.stage_id,
+                stage_type=request.stage.stage_metadata.stage_type,
+                assigned_node=decision.target_node,
+                status="scheduled",
+                action_type=decision.action_type,
+                score_breakdown=decision.score_breakdown,
+            )
         )
 
         await self._send_event(
@@ -181,6 +197,8 @@ class WorkflowExecutorService:
                 assigned_node=decision.target_node,
                 queue_wait_ms=request.stage.queue_wait_ms,
                 status="running",
+                action_type=decision.action_type,
+                score_breakdown=decision.score_breakdown,
             )
         )
 
@@ -270,7 +288,10 @@ class WorkflowExecutorService:
                 stage_type=request.stage.stage_metadata.stage_type,
                 assigned_node=decision.target_node,
                 exec_time_ms=request.stage.exec_time_ms,
+                transfer_time_ms=request.stage.transfer_time_ms,
                 status="completed",
+                action_type=decision.action_type,
+                score_breakdown=decision.score_breakdown,
             )
         )
 
@@ -284,6 +305,7 @@ class WorkflowExecutorService:
             decision_reason=decision.decision_reason,
             job_name=job_name,
             status="completed",
+            score_breakdown=decision.score_breakdown,
         )
 
     async def execute_workflow(self, request: ExecuteWorkflowRequest) -> WorkflowExecutionResult:
@@ -516,7 +538,9 @@ class WorkflowExecutorService:
         target_node: str,
     ) -> str:
         timestamp = datetime.now(timezone.utc).strftime("%H%M%S")
-        job_name = f"{_sanitize_name(workflow_id)}-{_sanitize_name(stage.stage_id)}-{timestamp}"
+        workflow_stub = _sanitize_name(workflow_id)[:30]
+        stage_stub = _sanitize_name(stage.stage_id)[:12]
+        job_name = f"{workflow_stub}-{stage_stub}-{timestamp}"
         env = [
             client.V1EnvVar(name=key, value=value)
             for key, value in sorted(stage.env.items())

@@ -32,11 +32,6 @@ import (
 const eventTwinFlushInterval = 5 * time.Second
 const minDeviceStatusReportInterval = 30 * time.Second
 
-var deviceStatusPropertyAllowlist = map[string]struct{}{
-	"alarm": {},
-	"power": {},
-}
-
 type DevPanel struct {
 	deviceMuxs   map[string]context.CancelFunc
 	devices      map[string]*driver.CustomizedDev
@@ -44,6 +39,26 @@ type DevPanel struct {
 	wg           sync.WaitGroup
 	serviceMutex sync.Mutex
 	quitChan     chan os.Signal
+}
+
+func syncDesiredToCommand(visitorConfig *driver.VisitorConfig, twin *common.Twin, dev *driver.CustomizedDev) error {
+	if twin.Property.PProperty.AccessMode == "ReadOnly" {
+		return nil
+	}
+	if twin.ObservedDesired.Value == "" {
+		return nil
+	}
+
+	klog.V(2).Infof("Apply desired command device=%s property=%s value=%s", dev.Instance.Name, twin.PropertyName, twin.ObservedDesired.Value)
+	convertedValue, err := common.Convert(twin.Property.PProperty.DataType, twin.ObservedDesired.Value)
+	if err != nil {
+		klog.Errorf("Failed to convert desired value as %s : %v", twin.Property.PProperty.DataType, err)
+		return err
+	}
+	if err := dev.CustomizedClient.PublishCommand(visitorConfig, twin.PropertyName, convertedValue); err != nil {
+		return fmt.Errorf("%s publish desired command error: %v", twin.PropertyName, err)
+	}
+	return nil
 }
 
 var (
@@ -139,10 +154,9 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
-		err = setVisitor(&visitorConfig, &twin, dev)
+		err = syncDesiredToCommand(&visitorConfig, &twin, dev)
 		if err != nil {
 			klog.Error(err)
-			continue
 		}
 
 		// If the device property type is streaming, it will directly enter the streaming data processing function,
@@ -169,7 +183,7 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 			CollectCycle:    time.Millisecond * time.Duration(twin.Property.CollectCycle),
 			ReportToCloud:   twin.Property.ReportToCloud,
 		}
-		if twinData.ReportToCloud && shouldReportAsDeviceStatus(twin.PropertyName) {
+		if twinData.ReportToCloud && shouldReportAsTwinProperty(&twin) {
 			eventTwinData[visitorConfig.JsonKey] = twinData
 		}
 
@@ -188,9 +202,11 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 	}
 }
 
-func shouldReportAsDeviceStatus(propertyName string) bool {
-	_, ok := deviceStatusPropertyAllowlist[propertyName]
-	return ok
+func shouldReportAsTwinProperty(twin *common.Twin) bool {
+	if twin == nil || twin.Property == nil {
+		return false
+	}
+	return twin.Property.PProperty.AccessMode != "ReadOnly"
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
@@ -346,31 +362,6 @@ func dbHandler(ctx context.Context, twin *common.Twin, client *driver.Customized
 	}
 }
 
-// setVisitor check if visitor property is readonly, if not then set it.
-func setVisitor(visitorConfig *driver.VisitorConfig, twin *common.Twin, dev *driver.CustomizedDev) error {
-	if twin.Property.PProperty.AccessMode == "ReadOnly" {
-		klog.V(3).Infof("%s twin readonly property: %s", dev.Instance.Name, twin.PropertyName)
-		return nil
-	}
-	klog.V(2).Infof("Convert type: %s, value: %s ", twin.Property.PProperty.DataType, twin.ObservedDesired.Value)
-	var value interface{}
-	if twin.ObservedDesired.Value != "" {
-		convertedValue, err := common.Convert(twin.Property.PProperty.DataType, twin.ObservedDesired.Value)
-		if err != nil {
-			klog.Errorf("Failed to convert value as %s : %v", twin.Property.PProperty.DataType, err)
-			return err
-		}
-		value = convertedValue
-	} else {
-		value = twin.ObservedDesired.Value
-	}
-	err := dev.CustomizedClient.EnsureDeviceData(value, visitorConfig)
-	if err != nil {
-		return fmt.Errorf("%s seed device data error: %v", twin.PropertyName, err)
-	}
-	return nil
-}
-
 // DevInit initialize the device
 func (d *DevPanel) DevInit(deviceList []*dmiapi.Device, deviceModelList []*dmiapi.DeviceModel) error {
 	if len(deviceList) == 0 || len(deviceModelList) == 0 {
@@ -473,10 +464,6 @@ func (d *DevPanel) DealDeviceTwinGet(deviceID string, twinName string) (interfac
 func getTwinData(deviceID string, twin common.Twin, dev *driver.CustomizedDev) ([]byte, error) {
 	var visitorConfig driver.VisitorConfig
 	err := json.Unmarshal(twin.Property.Visitors, &visitorConfig)
-	if err != nil {
-		return nil, err
-	}
-	err = setVisitor(&visitorConfig, &twin, dev)
 	if err != nil {
 		return nil, err
 	}
@@ -647,8 +634,6 @@ func (d *DevPanel) GetTwinResult(deviceID string, twinName string) (string, stri
 		if err != nil {
 			return "", "", err
 		}
-		err = setVisitor(&visitorConfig, &twin, dev)
-
 		data, err := dev.CustomizedClient.GetDeviceData(&visitorConfig)
 		if err != nil {
 			return "", "", fmt.Errorf("get device data failed: %v", err)

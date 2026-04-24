@@ -50,6 +50,7 @@ class VirtualDevice:
             return {
                 "temperature": str(temperature),
                 "humidity": str(humidity),
+                "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "vib":
@@ -58,6 +59,7 @@ class VirtualDevice:
             return {
                 "vibration": str(vibration),
                 "alarm": alarm,
+                "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "act":
@@ -69,16 +71,19 @@ class VirtualDevice:
             return {
                 "power": self.last_power,
                 "mode": self.last_mode,
+                "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "temp":
             temperature = random.randint(280, 320)
             return {
                 "temperature": str(temperature),
+                "sampling_interval": str(self.interval),
             }
 
         return {
             "status": "unknown",
+            "sampling_interval": str(self.interval),
         }
 
     def build_heartbeat(self) -> Dict[str, str]:
@@ -135,6 +140,20 @@ def on_disconnect(client: mqtt.Client, userdata, flags, rc, properties=None):
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
     payload = msg.payload.decode("utf-8", errors="replace")
     print(f"[CMD] {msg.topic} <- {payload}")
+    for device in DEVICES:
+        if msg.topic != device.command_topic():
+            continue
+        try:
+            body = json.loads(payload)
+        except json.JSONDecodeError:
+            return
+        if "sampling_interval" in body:
+            try:
+                device.interval = int(body["sampling_interval"])
+                print(f"[APPLY] {device.device_id} sampling_interval={device.interval}")
+            except (TypeError, ValueError):
+                pass
+        return
 
 
 def handle_signal(signum, frame):

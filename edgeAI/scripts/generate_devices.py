@@ -8,6 +8,7 @@ BROKER = "tcp://127.0.0.1:1883"
 TOPIC_PREFIX = "factory/devices"
 CYCLE_MS = 60000
 OFFLINE_AFTER_MS = 15000
+STATE_REPORT_CYCLE_MS = 5000
 
 
 @dataclass(frozen=True)
@@ -20,9 +21,9 @@ class DeviceGroup:
 
 
 GROUPS = [
-    DeviceGroup("env", 8, "virtual-env-model", ["temperature", "humidity", "sampling_interval"], []),
-    DeviceGroup("vib", 6, "virtual-vib-model", ["vibration", "alarm", "sampling_interval"], ["alarm"]),
-    DeviceGroup("act", 6, "virtual-act-model", ["power", "mode", "sampling_interval"], ["power"]),
+    DeviceGroup("env", 8, "virtual-env-model", ["temperature", "humidity", "sampling_interval"], ["sampling_interval"]),
+    DeviceGroup("vib", 6, "virtual-vib-model", ["vibration", "alarm", "sampling_interval"], ["sampling_interval"]),
+    DeviceGroup("act", 6, "virtual-act-model", ["power", "mode", "sampling_interval"], ["sampling_interval"]),
 ]
 
 
@@ -65,6 +66,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: {OFFLINE_AFTER_MS}
+status:
+  reportToCloud: true
+  reportCycle: {STATE_REPORT_CYCLE_MS}
 """
 
 

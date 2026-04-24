@@ -4,7 +4,7 @@ import asyncio
 import logging
 
 from .config import Settings, load_instance_map
-from .models import NodeState, SummaryState, WorkflowEvent, WorkflowState
+from .models import CostModelState, NodeState, SummaryState, WorkflowEvent, WorkflowState
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
 from .prometheus import PrometheusClient
 from .storage import StateStore
@@ -77,3 +77,10 @@ class StateAggregatorService:
 
     def get_summary(self) -> SummaryState:
         return build_summary(self.get_nodes(), self.get_workflows())
+
+    def get_cost_model(self) -> CostModelState:
+        return CostModelState(
+            node_states=self.get_nodes(),
+            stage_cost_stats=self.store.get_stage_cost_stats(),
+            migration_cost_stats=self.store.get_migration_cost_stats(),
+        )

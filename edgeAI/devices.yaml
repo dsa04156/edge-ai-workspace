@@ -29,7 +29,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -46,6 +46,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -78,7 +81,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -95,6 +98,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -127,7 +133,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -144,6 +150,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -176,7 +185,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -193,6 +202,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -225,7 +237,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -242,6 +254,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -274,7 +289,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -291,6 +306,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -323,7 +341,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -340,6 +358,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -372,7 +393,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -389,6 +410,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -412,7 +436,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -421,7 +445,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -438,6 +462,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -461,7 +488,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -470,7 +497,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -487,6 +514,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -510,7 +540,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -519,7 +549,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -536,6 +566,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -559,7 +592,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -568,7 +601,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -585,6 +618,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -608,7 +644,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -617,7 +653,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -634,6 +670,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -657,7 +696,7 @@ spec:
   - name: alarm
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -666,7 +705,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -683,6 +722,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -697,7 +739,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -715,7 +757,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -732,6 +774,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -746,7 +791,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -764,7 +809,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -781,6 +826,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -795,7 +843,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -813,7 +861,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -830,6 +878,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -844,7 +895,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -862,7 +913,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -879,6 +930,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -893,7 +947,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -911,7 +965,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -928,6 +982,9 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -942,7 +999,7 @@ spec:
   - name: power
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: true
+    reportToCloud: false
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -960,7 +1017,7 @@ spec:
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -977,3 +1034,6 @@ spec:
       password: ""
       qos: 1
       offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 5000
