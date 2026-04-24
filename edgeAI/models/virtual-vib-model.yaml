@@ -10,8 +10,16 @@ spec:
       description: virtual vibration
       type: STRING
       accessMode: ReadOnly
-    - name: alarm
-      description: vibration alarm state
+    - name: severity
+      description: debounced vibration severity
+      type: STRING
+      accessMode: ReadOnly
+    - name: alarm_latched
+      description: debounced vibration alarm latch
+      type: STRING
+      accessMode: ReadOnly
+    - name: health
+      description: summarized device health
       type: STRING
       accessMode: ReadOnly
     - name: sampling_interval

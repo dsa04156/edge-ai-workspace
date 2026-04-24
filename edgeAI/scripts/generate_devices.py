@@ -21,9 +21,27 @@ class DeviceGroup:
 
 
 GROUPS = [
-    DeviceGroup("env", 8, "virtual-env-model", ["temperature", "humidity", "sampling_interval"], ["sampling_interval"]),
-    DeviceGroup("vib", 6, "virtual-vib-model", ["vibration", "alarm", "sampling_interval"], ["sampling_interval"]),
-    DeviceGroup("act", 6, "virtual-act-model", ["power", "mode", "sampling_interval"], ["sampling_interval"]),
+    DeviceGroup(
+        "env",
+        8,
+        "virtual-env-model",
+        ["temperature", "humidity", "health", "sampling_interval"],
+        ["health", "sampling_interval"],
+    ),
+    DeviceGroup(
+        "vib",
+        6,
+        "virtual-vib-model",
+        ["vibration", "severity", "alarm_latched", "health", "sampling_interval"],
+        ["severity", "alarm_latched", "health", "sampling_interval"],
+    ),
+    DeviceGroup(
+        "act",
+        6,
+        "virtual-act-model",
+        ["power", "mode", "health", "sampling_interval"],
+        ["power", "mode", "health", "sampling_interval"],
+    ),
 ]
 
 
@@ -67,7 +85,7 @@ spec:
       qos: 1
       offlineAfterMs: {OFFLINE_AFTER_MS}
 status:
-  reportToCloud: true
+  reportToCloud: false
   reportCycle: {STATE_REPORT_CYCLE_MS}
 """
 
