@@ -1,0 +1,790 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-env-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-01
+              device_type: rpi-env
+              property: temperature
+            fieldKey: value
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-01
+              device_type: rpi-env
+              property: humidity
+            fieldKey: value
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-env-device-01/telemetry
+      pubTopic: factory/devices/rpi-env-device-01/command
+      clientID: rpi-env-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-env-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-02
+              device_type: rpi-env
+              property: temperature
+            fieldKey: value
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-02
+              device_type: rpi-env
+              property: humidity
+            fieldKey: value
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-env-device-02/telemetry
+      pubTopic: factory/devices/rpi-env-device-02/command
+      clientID: rpi-env-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-env-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-03
+              device_type: rpi-env
+              property: temperature
+            fieldKey: value
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-03
+              device_type: rpi-env
+              property: humidity
+            fieldKey: value
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-env-device-03/telemetry
+      pubTopic: factory/devices/rpi-env-device-03/command
+      clientID: rpi-env-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-env-device-04
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: temperature
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: temperature
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-04
+              device_type: rpi-env
+              property: temperature
+            fieldKey: value
+  - name: humidity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: humidity
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-env-device-04
+              device_type: rpi-env
+              property: humidity
+            fieldKey: value
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-env-device-04/telemetry
+      pubTopic: factory/devices/rpi-env-device-04/command
+      clientID: rpi-env-device-04-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-vib-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-vib-device-01
+              device_type: rpi-vib
+              property: vibration
+            fieldKey: value
+  - name: severity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: severity
+  - name: alarm_latched
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm_latched
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-vib-device-01/telemetry
+      pubTopic: factory/devices/rpi-vib-device-01/command
+      clientID: rpi-vib-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-vib-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-vib-device-02
+              device_type: rpi-vib
+              property: vibration
+            fieldKey: value
+  - name: severity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: severity
+  - name: alarm_latched
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm_latched
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-vib-device-02/telemetry
+      pubTopic: factory/devices/rpi-vib-device-02/command
+      clientID: rpi-vib-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-vib-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-vib-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: vibration
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: vibration
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: rpi-vib-device-03
+              device_type: rpi-vib
+              property: vibration
+            fieldKey: value
+  - name: severity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: severity
+  - name: alarm_latched
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: alarm_latched
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-vib-device-03/telemetry
+      pubTopic: factory/devices/rpi-vib-device-03/command
+      clientID: rpi-vib-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-act-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-act-device-01/telemetry
+      pubTopic: factory/devices/rpi-act-device-01/command
+      clientID: rpi-act-device-01-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-act-device-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-act-device-02/telemetry
+      pubTopic: factory/devices/rpi-act-device-02/command
+      clientID: rpi-act-device-02-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: rpi-act-device-03
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0002-raspi5
+  properties:
+  - name: power
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: power
+  - name: mode
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mode
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: health
+  - name: sampling_interval
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: sampling_interval
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/rpi-act-device-03/telemetry
+      pubTopic: factory/devices/rpi-act-device-03/command
+      clientID: rpi-act-device-03-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: false
+  reportCycle: 5000

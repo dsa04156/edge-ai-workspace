@@ -1,0 +1,28 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: virtual-vib-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+    - name: vibration
+      description: virtual vibration
+      type: STRING
+      accessMode: ReadOnly
+    - name: severity
+      description: debounced vibration severity
+      type: STRING
+      accessMode: ReadOnly
+    - name: alarm_latched
+      description: debounced vibration alarm latch
+      type: STRING
+      accessMode: ReadOnly
+    - name: health
+      description: summarized device health
+      type: STRING
+      accessMode: ReadOnly
+    - name: sampling_interval
+      description: report interval
+      type: STRING
+      accessMode: ReadWrite
