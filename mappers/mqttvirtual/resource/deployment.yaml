@@ -1,33 +1,38 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: mapper-test
+  name: mqttvirtual-mapper
   namespace: default
 spec:
-  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
   selector:
     matchLabels:
-      app: demo
+      app: mqttvirtual-mapper
   template:
     metadata:
       labels:
-        app: demo
+        app: mqttvirtual-mapper
     spec:
-      nodeName: # replace with your edge node name
+      nodeSelector:
+        environment: edge
+        edge.device/mapper: mqttvirtual
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
-        - name: demo
-          volumeMounts: # Required, mapper need to communicate with grpcclient and get the config
-            - name: test-volume
+        - name: mqttvirtual
+          volumeMounts:
+            - name: kubeedge
               mountPath: /etc/kubeedge
             - name: config
               mountPath: /tmp
-          env: # Not Required, this field is used to mount the user database key
+          env:
             - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: mysecret
+                  name: influxdb-token
                   key: token
-          image:  # Replace with your mapper image name
+          image: 192.168.0.56:5000/mqttvirtual:latest
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -37,15 +42,16 @@ spec:
               cpu: 100m
               memory: 100Mi
           command: [ "/bin/sh","-c" ]
-          args: [ "/kubeedge/main --config-file /tmp/config.yaml --v 4" ]
+          args:
+            - rm -f /etc/kubeedge/mqttvirtual.sock && /kubeedge/main --config-file /tmp/config.yaml --v 4
       volumes:
-        - name: test-volume
+        - name: kubeedge
           hostPath:
             path: /etc/kubeedge
             type: Directory
         - name: config
           configMap:
-            name: cm-mapper
+            name: mqttvirtual-config
             items:
               - key: configData
                 path: config.yaml

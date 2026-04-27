@@ -24,6 +24,10 @@ ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "1") not in {"0", "false", "Fal
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "30"))
 DEVICE_FILTER = {item.strip() for item in os.getenv("DEVICE_FILTER", "").split(",") if item.strip()}
 ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.15"))
+VIB_ALARM_HIGH_THRESHOLD = float(os.getenv("VIB_ALARM_HIGH_THRESHOLD", "1.8"))
+VIB_ALARM_LOW_THRESHOLD = float(os.getenv("VIB_ALARM_LOW_THRESHOLD", "1.2"))
+VIB_ALARM_SET_COUNT = int(os.getenv("VIB_ALARM_SET_COUNT", "2"))
+VIB_ALARM_CLEAR_COUNT = int(os.getenv("VIB_ALARM_CLEAR_COUNT", "3"))
 
 
 @dataclass
@@ -33,6 +37,9 @@ class VirtualDevice:
     interval: int
     last_power: str = "on"
     last_mode: str = "auto"
+    alarm_latched: bool = False
+    alarm_high_count: int = 0
+    alarm_low_count: int = 0
 
     def telemetry_topic(self) -> str:
         return f"{TOPIC_PREFIX}/{self.device_id}/telemetry"
@@ -50,15 +57,39 @@ class VirtualDevice:
             return {
                 "temperature": str(temperature),
                 "humidity": str(humidity),
+                "health": "ok",
                 "sampling_interval": str(self.interval),
             }
 
         if self.device_type == "vib":
             vibration = round(random.uniform(0.2, 2.5), 3)
-            alarm = "true" if vibration >= 1.8 else "false"
+            if vibration >= VIB_ALARM_HIGH_THRESHOLD:
+                self.alarm_high_count += 1
+                self.alarm_low_count = 0
+            elif vibration <= VIB_ALARM_LOW_THRESHOLD:
+                self.alarm_low_count += 1
+                self.alarm_high_count = 0
+            else:
+                self.alarm_high_count = 0
+                self.alarm_low_count = 0
+
+            if self.alarm_high_count >= VIB_ALARM_SET_COUNT:
+                self.alarm_latched = True
+            if self.alarm_low_count >= VIB_ALARM_CLEAR_COUNT:
+                self.alarm_latched = False
+
+            if self.alarm_latched:
+                severity = "critical"
+            elif vibration >= VIB_ALARM_LOW_THRESHOLD:
+                severity = "warning"
+            else:
+                severity = "normal"
+
             return {
                 "vibration": str(vibration),
-                "alarm": alarm,
+                "severity": severity,
+                "alarm_latched": "true" if self.alarm_latched else "false",
+                "health": "degraded" if self.alarm_latched else "ok",
                 "sampling_interval": str(self.interval),
             }
 
@@ -71,6 +102,7 @@ class VirtualDevice:
             return {
                 "power": self.last_power,
                 "mode": self.last_mode,
+                "health": "offline" if self.last_power == "off" else "ok",
                 "sampling_interval": str(self.interval),
             }
 
@@ -78,11 +110,12 @@ class VirtualDevice:
             temperature = random.randint(280, 320)
             return {
                 "temperature": str(temperature),
+                "health": "ok",
                 "sampling_interval": str(self.interval),
             }
 
         return {
-            "status": "unknown",
+            "health": "unknown",
             "sampling_interval": str(self.interval),
         }
 

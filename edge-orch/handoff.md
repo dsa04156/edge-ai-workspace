@@ -64,13 +64,13 @@ pkill -f 'mqttvirtual-arm64 --config-file ./config.yaml' || true
 sudo ./mqttvirtual-arm64 --config-file ./config.yaml --v 4 2>&1 | tee mapper.log
 ```
 
-### 2. `edgeAI` 디바이스 구성
+### 2. `edge-device` 디바이스 구성
 
 기준 경로:
-- [edgeAI/models](/home/etri/jinuk/edgeAI/models)
-- [edgeAI/devices.yaml](/home/etri/jinuk/edgeAI/devices.yaml)
-- [edgeAI/scripts/generate_devices.py](/home/etri/jinuk/edgeAI/scripts/generate_devices.py)
-- [edgeAI/scripts/deploy.sh](/home/etri/jinuk/edgeAI/scripts/deploy.sh)
+- [edge-device/models](/home/etri/jinuk/edge-device/models)
+- [edge-device/devices.yaml](/home/etri/jinuk/edge-device/devices.yaml)
+- [edge-device/scripts/generate_devices.py](/home/etri/jinuk/edge-device/scripts/generate_devices.py)
+- [edge-device/scripts/deploy.sh](/home/etri/jinuk/edge-device/scripts/deploy.sh)
 
 현재 모델:
 - `virtual-env-model`
@@ -109,7 +109,7 @@ sudo ./mqttvirtual-arm64 --config-file ./config.yaml --v 4 2>&1 | tee mapper.log
 1. Jetson에서 `mqttvirtual` 재빌드/재기동
 - 최신 `5초 flush + changed-only` 정책이 실제 바이너리에 반영되었는지 확인
 
-2. `edgeAI/scripts/deploy.sh` 재실행
+2. `edge-device/scripts/deploy.sh` 재실행
 - 대표 상태만 `reportToCloud: true` 인 새 `devices.yaml` 적용
 
 3. 대표 상태만 바꿔서 검증

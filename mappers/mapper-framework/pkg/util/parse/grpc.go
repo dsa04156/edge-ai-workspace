@@ -184,7 +184,9 @@ func buildPropertiesFromGrpc(device *dmiapi.Device) []common.DeviceProperty {
 					return nil
 				}
 			default:
-				klog.Errorf("get PushMethod err: Unsupported pushmethod type")
+				if pptv.PushMethod.DbMethod == nil {
+					klog.Errorf("get PushMethod err: Unsupported pushmethod type")
+				}
 			}
 		}
 

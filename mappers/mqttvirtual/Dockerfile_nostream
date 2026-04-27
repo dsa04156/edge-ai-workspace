@@ -1,12 +1,15 @@
-FROM golang:1.22.9-alpine3.19 AS builder
+FROM golang:1.23.12-alpine3.21 AS builder
 
 WORKDIR /build
 
 ENV GO111MODULE=on \
     GOPROXY=https://goproxy.cn,direct
 
-COPY . .
+COPY api ./api
+COPY mapper-framework ./mapper-framework
+COPY mqttvirtual ./mqttvirtual
 
+WORKDIR /build/mqttvirtual
 RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go
 
 
@@ -14,7 +17,7 @@ FROM ubuntu:18.04
 
 RUN mkdir -p kubeedge
 
-COPY --from=builder /build/main kubeedge/
-COPY ./config.yaml kubeedge/
+COPY --from=builder /build/mqttvirtual/main kubeedge/
+COPY --from=builder /build/mqttvirtual/config.yaml kubeedge/
 
 WORKDIR kubeedge

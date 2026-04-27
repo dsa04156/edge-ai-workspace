@@ -32,6 +32,15 @@ import (
 const eventTwinFlushInterval = 5 * time.Second
 const minDeviceStatusReportInterval = 30 * time.Second
 
+var deviceStatusPropertyAllowlist = map[string]struct{}{
+	"alarm_latched":     {},
+	"health":            {},
+	"mode":              {},
+	"power":             {},
+	"sampling_interval": {},
+	"severity":          {},
+}
+
 type DevPanel struct {
 	deviceMuxs   map[string]context.CancelFunc
 	devices      map[string]*driver.CustomizedDev
@@ -206,7 +215,8 @@ func shouldReportAsTwinProperty(twin *common.Twin) bool {
 	if twin == nil || twin.Property == nil {
 		return false
 	}
-	return twin.Property.PProperty.AccessMode != "ReadOnly"
+	_, ok := deviceStatusPropertyAllowlist[twin.PropertyName]
+	return ok
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
