@@ -6,16 +6,17 @@ on:
       - main
     paths:
       - '.github/workflows/**'
-      - 'state-aggregator/**'
-      - 'workflow_executor/**'
-      - 'placement_engine/**'
-      - 'vision_stage_runner/**'
-      - 'workflow_reporter/**'
+      - 'edge-orch/state-aggregator/**'
+      - 'edge-orch/workflow_executor/**'
+      - 'edge-orch/placement_engine/**'
+      - 'edge-orch/vision_stage_runner/**'
+      - 'edge-orch/workflow_reporter/**'
   workflow_dispatch:
 
 jobs:
   build-and-push:
     runs-on: self-hosted
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -24,22 +25,30 @@ jobs:
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t 192.168.0.56:5000/state-aggregator:latest \
-            -f state-aggregator/Dockerfile state-aggregator --push
+            -f edge-orch/state-aggregator/Dockerfile \
+            edge-orch/state-aggregator \
+            --push
 
       - name: Build and Push workflow-executor
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t 192.168.0.56:5000/workflow-executor:latest \
-            -f workflow_executor/Dockerfile workflow_executor --push
+            -f edge-orch/workflow_executor/Dockerfile \
+            edge-orch/workflow_executor \
+            --push
 
       - name: Build and Push placement-engine
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t 192.168.0.56:5000/placement-engine:latest \
-            -f placement_engine/Dockerfile placement_engine --push
+            -f edge-orch/placement_engine/Dockerfile \
+            edge-orch/placement_engine \
+            --push
 
       - name: Build and Push vision-stage-runner
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t 192.168.0.56:5000/vision-stage-runner:latest \
-            -f vision_stage_runner/Dockerfile vision_stage_runner --push
+            -f edge-orch/vision_stage_runner/Dockerfile \
+            edge-orch/vision_stage_runner \
+            --push
