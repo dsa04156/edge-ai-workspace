@@ -20,8 +20,12 @@ function text(value, fallback = "-") {
 
 function age(value) {
   if (value === null || value === undefined) return "no telemetry";
-  if (value < 60) return `${Math.round(value)}s ago`;
-  return `${Math.round(value / 60)}m ago`;
+
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.floor(value % 60);
+
+  if (minutes === 0) return `${seconds}s ago`;
+  return `${minutes}m ${seconds}s ago`;
 }
 
 function setText(id, value) {
