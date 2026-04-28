@@ -47,3 +47,5 @@ actions-runner/*.tar.gz
 actions-runner/
 actions-runner/
 *.tar.gz
+actions-runner/
+*.tar.gz
