@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
-    path: state-aggregator/k8s
+    path: edge-orch/state-aggregator/k8s
     targetRevision: main
     kustomize: {}
   destination:
@@ -31,7 +31,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
-    path: redis/k8s
+    path: edge-orch/redis/k8s
     targetRevision: main
   destination:
     server: 'https://kubernetes.default.svc'
@@ -50,7 +50,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
-    path: nvidia-device-plugin/k8s
+    path: edge-orch/nvidia-device-plugin/k8s
     targetRevision: main
   destination:
     server: 'https://kubernetes.default.svc'

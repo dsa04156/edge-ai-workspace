@@ -121,7 +121,11 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
             }
         ]
 
+    async def fake_mapper_nodes():
+        return {"etri-dev0001-jetorn"}
+
     monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
 
     with TestClient(app) as client:
         response = client.get("/state/dashboard")
@@ -160,3 +164,23 @@ def test_device_without_live_status_is_unavailable():
 
     assert device.status == "unavailable"
     assert device.status_reason == "no live report from device twin"
+
+
+def test_device_with_running_mapper_is_healthy_without_twin_report():
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "env-device-01", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {"reportToCloud": False, "reportCycle": 60000},
+        },
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "healthy"
+    assert device.status_reason == "assigned node and mapper are running"

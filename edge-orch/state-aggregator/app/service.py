@@ -98,9 +98,10 @@ class StateAggregatorService:
     async def get_devices(self) -> list[DeviceState]:
         raw_devices = await self.kube.get_devices()
         node_health = {node.hostname: node.node_health for node in self.get_nodes()}
+        mapper_nodes = await self.kube.get_running_mapper_nodes()
         workflows = self.get_workflows()
         return [
-            self._normalize_device(item, node_health, workflows)
+            self._normalize_device(item, node_health, workflows, mapper_nodes)
             for item in raw_devices
         ]
 
@@ -124,6 +125,7 @@ class StateAggregatorService:
         item: dict[str, Any],
         node_health: dict[str, str],
         workflows: list[WorkflowState],
+        mapper_nodes: set[str] | None = None,
     ) -> DeviceState:
         metadata = item.get("metadata", {})
         spec = item.get("spec", {})
@@ -142,7 +144,14 @@ class StateAggregatorService:
         )
         service_connected = self._device_has_service_binding(name, node_name, workflows)
         device_type = self._classify_device(name, model, protocol)
-        health, reason = self._device_health(status_payload, node_name, node_health, telemetry_enabled)
+        health, reason = self._device_health(
+            status_payload,
+            node_name,
+            node_health,
+            telemetry_enabled,
+            protocol,
+            mapper_nodes or set(),
+        )
         return DeviceState(
             name=name,
             namespace=namespace,
@@ -190,7 +199,10 @@ class StateAggregatorService:
         node_name: str | None,
         node_health: dict[str, str],
         telemetry_enabled: bool,
+        protocol: str | None = None,
+        mapper_nodes: set[str] | None = None,
     ) -> tuple[str, str]:
+        mapper_nodes = mapper_nodes or set()
         if node_name and node_health.get(node_name) == "unavailable":
             return "unavailable", "assigned node is unavailable"
         live_state = self._read_live_device_state(status_payload)
@@ -203,6 +215,14 @@ class StateAggregatorService:
         twin = status_payload.get("twins") or status_payload.get("twin") or {}
         if self._has_reported_twin(twin):
             return "healthy", "device twin reported live values"
+        if (
+            node_name
+            and node_health.get(node_name) == "healthy"
+            and node_name in mapper_nodes
+            and telemetry_enabled
+            and protocol == "mqttvirtual"
+        ):
+            return "healthy", "assigned node and mapper are running"
         if status_payload.get("reportToCloud") is False:
             return "unavailable", "no live report from device twin"
         if not status_payload or set(status_payload).issubset({"reportCycle", "reportToCloud"}):

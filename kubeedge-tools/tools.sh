@@ -12,7 +12,8 @@ yamls_dir=./yamls
 patch_dir=./patch
 crictl_version=v1.20.0
 cni_version=v0.9.0
-flannel_version=v0.14.0
+flannel_version=v0.28.3
+flannel_cni_plugin_version=v1.9.1-flannel1
 
 function pull_and_save_image() {
     local image=$1
@@ -88,33 +89,41 @@ function install_cni() {
 function download_flannel_image() {
     local arch=$1
     echo "download flannel image: $arch"
-    pull_and_save_image "quay.io/coreos/flannel:$flannel_version" "$arch" "$tarball_dir/flannel-$arch.tar"
+    pull_and_save_image "ghcr.io/flannel-io/flannel:$flannel_version" "$arch" "$tarball_dir/flannel-$arch.tar"
+    pull_and_save_image "ghcr.io/flannel-io/flannel-cni-plugin:$flannel_cni_plugin_version" "$arch" "$tarball_dir/flannel-cni-plugin-$arch.tar"
 }
 
 function load_flannel_image() {
     echo "load flannel image"
-    local image_tar="$tarball_dir/flannel-$toolarch.tar"
-    if [[ ! -f "$image_tar" ]]; then
-        echo "skip load: $image_tar not found"
-        return 0
-    fi
+    local image_tars=(
+        "$tarball_dir/flannel-$toolarch.tar"
+        "$tarball_dir/flannel-cni-plugin-$toolarch.tar"
+    )
 
-    if command -v docker >/dev/null 2>&1; then
-        docker load -i "$image_tar"
-    elif command -v ctr >/dev/null 2>&1; then
-        ctr -n k8s.io images import "$image_tar"
-    elif command -v nerdctl >/dev/null 2>&1; then
-        nerdctl -n k8s.io load -i "$image_tar"
-    else
-        echo "no supported runtime found for image load (docker/ctr/nerdctl)"
-        return 1
-    fi
+    for image_tar in "${image_tars[@]}"; do
+        if [[ ! -f "$image_tar" ]]; then
+            echo "skip load: $image_tar not found"
+            continue
+        fi
+
+        if command -v docker >/dev/null 2>&1; then
+            docker load -i "$image_tar"
+        elif command -v ctr >/dev/null 2>&1; then
+            ctr -n k8s.io images import "$image_tar"
+        elif command -v nerdctl >/dev/null 2>&1; then
+            nerdctl -n k8s.io load -i "$image_tar"
+        else
+            echo "no supported runtime found for image load (docker/ctr/nerdctl)"
+            return 1
+        fi
+    done
 }
 
 function clean_flannel_image_tarball() {
     local arch=$1
     echo "clean flannel image tarball: $arch"
     rm -rf $tarball_dir/flannel-$arch.tar
+    rm -rf $tarball_dir/flannel-cni-plugin-$arch.tar
 }
 
 function install_flannel() {

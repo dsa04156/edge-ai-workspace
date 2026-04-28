@@ -73,6 +73,24 @@ class KubeClient:
         items = response.get("items", [])
         return [item for item in items if isinstance(item, dict)]
 
+    async def get_running_mapper_nodes(self, namespace: str = "default") -> set[str]:
+        if not self.enabled:
+            return set()
+        try:
+            pods = self.v1.list_namespaced_pod(
+                namespace=namespace,
+                label_selector="app=mqttvirtual-mapper",
+            )
+        except Exception:
+            logger.exception("Failed to list mapper pods")
+            return set()
+
+        nodes: set[str] = set()
+        for pod in pods.items:
+            if pod.status.phase == "Running" and pod.spec.node_name:
+                nodes.add(pod.spec.node_name)
+        return nodes
+
     def _determine_node_type(self, node: client.V1Node) -> str:
         labels = node.metadata.labels or {}
         
