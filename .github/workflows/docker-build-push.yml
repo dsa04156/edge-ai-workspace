@@ -19,7 +19,17 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Configure Buildx for Local Registry
+        run: |
+          docker buildx rm edgeai-builder || true
+          docker buildx create \
+            --name edgeai-builder \
+            --driver docker-container \
+            --config .github/buildkitd.toml \
+            --use \
+            --bootstrap
 
       - name: Build and Push state-aggregator
         run: |
