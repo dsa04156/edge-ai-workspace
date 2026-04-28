@@ -215,14 +215,12 @@ class StateAggregatorService:
         twin = status_payload.get("twins") or status_payload.get("twin") or {}
         if self._has_reported_twin(twin):
             return "healthy", "device twin reported live values"
-        if (
-            node_name
-            and node_health.get(node_name) == "healthy"
-            and node_name in mapper_nodes
-            and telemetry_enabled
-            and protocol == "mqttvirtual"
-        ):
-            return "healthy", "assigned node and mapper are running"
+        if not node_name:
+            return "unavailable", "device is not assigned to a node"
+        if protocol == "mqttvirtual" and node_name not in mapper_nodes:
+            return "unavailable", "assigned mapper is not running"
+        if node_health.get(node_name) == "healthy" and telemetry_enabled and protocol == "mqttvirtual":
+            return "degraded", "mapper is running but live twin report is missing"
         if status_payload.get("reportToCloud") is False:
             return "unavailable", "no live report from device twin"
         if not status_payload or set(status_payload).issubset({"reportCycle", "reportToCloud"}):
@@ -262,22 +260,28 @@ class StateAggregatorService:
     ) -> dict[str, Any]:
         online_nodes = [node for node in nodes if node.node_health != "unavailable"]
         healthy_devices = [device for device in devices if device.status == "healthy"]
+        operational_devices = [device for device in devices if device.status != "unavailable"]
         telemetry_devices = [device for device in devices if device.telemetry_enabled]
         bound_devices = [device for device in devices if device.service_connected]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
+        unavailable_devices = [device for device in devices if device.status == "unavailable"]
         return {
             "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
             "device_healthy_ratio": self._ratio(len(healthy_devices), len(devices)),
+            "device_operational_ratio": self._ratio(len(operational_devices), len(devices)),
             "device_telemetry_ratio": self._ratio(len(telemetry_devices), len(devices)),
             "device_workflow_binding_ratio": self._ratio(len(bound_devices), len(devices)),
             "registered_device_count": len(devices),
             "active_node_count": len(online_nodes),
+            "operational_device_count": len(operational_devices),
+            "live_device_count": len(healthy_devices),
             "telemetry_device_count": len(telemetry_devices),
             "workflow_bound_device_count": len(bound_devices),
             "sla_risk_workflow_count": len(risk_workflows),
+            "unavailable_device_count": len(unavailable_devices),
             "operator_focus_count": len(risk_workflows)
             + len([node for node in nodes if node.node_health != "healthy"])
-            + len([device for device in devices if device.status != "healthy"]),
+            + len(unavailable_devices),
         }
 
     def _ratio(self, numerator: int, denominator: int) -> float:

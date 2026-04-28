@@ -147,7 +147,7 @@ def test_dashboard_page_is_served():
     assert "디바이스 운영 대시보드" in response.text
 
 
-def test_device_without_live_status_is_unavailable():
+def test_device_without_running_mapper_is_unavailable():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-offline", "namespace": "default"},
@@ -163,10 +163,10 @@ def test_device_without_live_status_is_unavailable():
     )
 
     assert device.status == "unavailable"
-    assert device.status_reason == "no live report from device twin"
+    assert device.status_reason == "assigned mapper is not running"
 
 
-def test_device_with_running_mapper_is_healthy_without_twin_report():
+def test_device_with_running_mapper_is_degraded_without_twin_report():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -182,5 +182,63 @@ def test_device_with_running_mapper_is_healthy_without_twin_report():
         mapper_nodes={"etri-dev0001-jetorn"},
     )
 
-    assert device.status == "healthy"
-    assert device.status_reason == "assigned node and mapper are running"
+    assert device.status == "degraded"
+    assert device.status_reason == "mapper is running but live twin report is missing"
+
+
+def test_dashboard_kpis_separate_operational_and_live_devices():
+    devices = [
+        service._normalize_device(
+            {
+                "metadata": {"name": "env-live", "namespace": "default"},
+                "spec": {
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {
+                    "twins": {"temperature": {"actual": {"value": "24.1"}}},
+                },
+            },
+            node_health={"etri-dev0001-jetorn": "healthy"},
+            workflows=[],
+            mapper_nodes={"etri-dev0001-jetorn"},
+        ),
+        service._normalize_device(
+            {
+                "metadata": {"name": "env-pending", "namespace": "default"},
+                "spec": {
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {"reportToCloud": False, "reportCycle": 60000},
+            },
+            node_health={"etri-dev0001-jetorn": "healthy"},
+            workflows=[],
+            mapper_nodes={"etri-dev0001-jetorn"},
+        ),
+        service._normalize_device(
+            {
+                "metadata": {"name": "env-down", "namespace": "default"},
+                "spec": {
+                    "nodeName": "etri-dev0002-raspi5",
+                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {},
+            },
+            node_health={"etri-dev0002-raspi5": "healthy"},
+            workflows=[],
+            mapper_nodes=set(),
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis(nodes=[], devices=devices, workflows=[])
+
+    assert kpis["device_healthy_ratio"] == 0.333
+    assert kpis["device_operational_ratio"] == 0.667
+    assert kpis["live_device_count"] == 1
+    assert kpis["operational_device_count"] == 2
+    assert kpis["unavailable_device_count"] == 1
+    assert kpis["operator_focus_count"] == 1

@@ -34,17 +34,18 @@ function render() {
   const data = state.data;
   const kpis = data.kpis || {};
   const telemetry = (data.devices || []).filter((device) => device.telemetry_enabled).length;
-  const deviceRisks = (data.devices || []).filter((device) => device.status !== "healthy").length;
+  const unavailableDevices = (data.devices || []).filter((device) => device.status === "unavailable").length;
+  const degradedDevices = (data.devices || []).filter((device) => device.status === "degraded").length;
   setText("updatedAt", `Updated ${new Date(data.generated_at).toLocaleString()}`);
   setText("activeNodeCount", text(kpis.active_node_count, 0));
   setText("nodeRatio", `${pct(kpis.node_online_ratio)} online`);
   setText("deviceCount", text(kpis.registered_device_count, 0));
-  setText("deviceHealthRatio", `${pct(kpis.device_healthy_ratio)} healthy`);
+  setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} available · ${text(kpis.live_device_count, 0)} live`);
   setText("telemetryRatio", pct(kpis.device_telemetry_ratio));
   setText("telemetryCaption", `${telemetry} devices`);
   setText("focusCount", text(kpis.operator_focus_count, 0));
   setText("assetCount", `${(data.nodes || []).length + (data.devices || []).length} assets`);
-  setText("riskCount", `${deviceRisks} device risks`);
+  setText("riskCount", `${unavailableDevices} unavailable · ${degradedDevices} watch`);
 
   renderNodes(data.nodes || []);
   renderDevices(data.devices || []);
@@ -144,7 +145,8 @@ function renderAlerts(data) {
 }
 
 function renderScenario(devices, kpis) {
-  const risky = devices.filter((device) => device.status !== "healthy").length;
+  const unavailable = devices.filter((device) => device.status === "unavailable").length;
+  const degraded = devices.filter((device) => device.status === "degraded").length;
   const byNode = devices.reduce((acc, device) => {
     const key = device.node_name || "unassigned";
     acc[key] = (acc[key] || 0) + 1;
@@ -153,7 +155,7 @@ function renderScenario(devices, kpis) {
   const busiestNode = Object.entries(byNode).sort((a, b) => b[1] - a[1])[0];
   setText("responseKpi", busiestNode ? `${busiestNode[0]} (${busiestNode[1]})` : "no devices");
   setText("interventionKpi", `${kpis.operator_focus_count || 0} focus`);
-  setText("handlingKpi", risky ? `${risky} risk` : "normal");
+  setText("handlingKpi", unavailable ? `${unavailable} risk` : degraded ? `${degraded} watch` : "normal");
   $("deviceStatusList").innerHTML = devices.length
     ? devices
         .slice(0, 6)
