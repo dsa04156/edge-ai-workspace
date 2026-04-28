@@ -7,8 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  # Registry configuration - override via secrets if needed
-  REGISTRY: ${{ secrets.REGISTRY_URL || '192.168.0.56:5000' }}
+  REGISTRY: 192.168.0.56:5000
 
 jobs:
   build-and-push:
@@ -17,11 +16,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Log in to Registry (if credentials provided)
-        if: secrets.REGISTRY_USERNAME != ''
-        run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin "${{ env.REGISTRY }}"
 
       - name: Configure Buildx for Local Registry
         run: |
