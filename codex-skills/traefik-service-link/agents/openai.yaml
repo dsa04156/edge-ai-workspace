@@ -1,0 +1,4 @@
+interface:
+  display_name: "Traefik Service Link"
+  short_description: "Connect Kubernetes services through Traefik"
+  default_prompt: "Use $traefik-service-link to expose a new Kubernetes service through the project Traefik routes."
