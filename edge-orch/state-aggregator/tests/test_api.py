@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 
 from app.main import app, service
-from app.influx import TelemetrySample
+from app.influx import InfluxTelemetryClient, TelemetrySample
 from app.models import NodeState, WorkflowState
 
 
@@ -327,3 +327,25 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
     assert kpis["operational_device_count"] == 2
     assert kpis["unavailable_device_count"] == 1
     assert kpis["operator_focus_count"] == 1
+
+
+def test_influx_csv_parser_reads_latest_device_samples():
+    client = InfluxTelemetryClient(
+        url="http://influxdb:8086",
+        org="edgeai",
+        bucket="device_telemetry",
+        token="token",
+        measurement="virtual_device_telemetry",
+        query_window="-30m",
+    )
+
+    samples = client._parse_csv(
+        "#datatype,string,long,dateTime:RFC3339,string,string,string\n"
+        ",result,table,_time,_value,device_id,property\n"
+        ",_result,0,2026-04-28T10:30:48.353750014Z,282,env-device-01,temperature\n"
+        ",_result,1,2026-04-28T10:30:48.32595157Z,2.367,vib-device-01,vibration\n"
+    )
+
+    assert samples["env-device-01"].property == "temperature"
+    assert samples["env-device-01"].value == "282"
+    assert samples["vib-device-01"].property == "vibration"

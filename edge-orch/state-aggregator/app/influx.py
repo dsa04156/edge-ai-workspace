@@ -75,7 +75,7 @@ from(bucket: "{self._escape_flux_string(self.bucket)}")
         data_lines = [
             line
             for line in content.splitlines()
-            if line and not line.startswith("#") and not line.startswith(",result,table")
+            if line and not line.startswith("#")
         ]
         if not data_lines:
             return samples
