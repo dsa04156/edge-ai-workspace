@@ -27,6 +27,24 @@ class Settings(BaseModel):
             os.getenv("DATA_DIR", str(Path(__file__).resolve().parent / "data"))
         )
     )
+    influxdb_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "INFLUXDB_URL",
+            "http://influxdb.telemetry.svc.cluster.local:8086",
+        )
+    )
+    influxdb_org: str = Field(default_factory=lambda: os.getenv("INFLUXDB_ORG", "edgeai"))
+    influxdb_bucket: str = Field(default_factory=lambda: os.getenv("INFLUXDB_BUCKET", "device_telemetry"))
+    influxdb_token: str | None = Field(default_factory=lambda: os.getenv("INFLUXDB_TOKEN"))
+    influxdb_measurement: str = Field(
+        default_factory=lambda: os.getenv("INFLUXDB_MEASUREMENT", "virtual_device_telemetry")
+    )
+    telemetry_fresh_seconds: int = Field(
+        default_factory=lambda: int(os.getenv("TELEMETRY_FRESH_SECONDS", "120"))
+    )
+    telemetry_query_window: str = Field(
+        default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

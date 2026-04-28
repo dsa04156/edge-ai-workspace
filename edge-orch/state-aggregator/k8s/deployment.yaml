@@ -32,6 +32,23 @@ spec:
               value: /app/data
             - name: INSTANCE_MAP_PATH
               value: /app/app/config/instance_map.json
+            - name: INFLUXDB_URL
+              value: http://influxdb.telemetry.svc.cluster.local:8086
+            - name: INFLUXDB_ORG
+              value: edgeai
+            - name: INFLUXDB_BUCKET
+              value: device_telemetry
+            - name: INFLUXDB_MEASUREMENT
+              value: virtual_device_telemetry
+            - name: TELEMETRY_FRESH_SECONDS
+              value: "120"
+            - name: TELEMETRY_QUERY_WINDOW
+              value: "-30m"
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb-token
+                  key: token
           volumeMounts:
             - name: state-data
               mountPath: /app/data

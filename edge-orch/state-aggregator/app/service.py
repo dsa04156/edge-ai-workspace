@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .config import Settings, load_instance_map
+from .influx import InfluxTelemetryClient, TelemetrySample
 from .models import (
     CostModelState,
     DashboardState,
@@ -30,6 +31,14 @@ class StateAggregatorService:
         self.instance_map = load_instance_map(settings.instance_map_path)
         self.store = StateStore(settings.data_dir)
         self.prometheus = PrometheusClient(settings.prometheus_url, self.instance_map)
+        self.telemetry = InfluxTelemetryClient(
+            settings.influxdb_url,
+            settings.influxdb_org,
+            settings.influxdb_bucket,
+            settings.influxdb_token,
+            settings.influxdb_measurement,
+            settings.telemetry_query_window,
+        )
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
 
@@ -99,9 +108,10 @@ class StateAggregatorService:
         raw_devices = await self.kube.get_devices()
         node_health = {node.hostname: node.node_health for node in self.get_nodes()}
         mapper_nodes = await self.kube.get_running_mapper_nodes()
+        telemetry_samples = await self.telemetry.get_latest_by_device()
         workflows = self.get_workflows()
         return [
-            self._normalize_device(item, node_health, workflows, mapper_nodes)
+            self._normalize_device(item, node_health, workflows, mapper_nodes, telemetry_samples)
             for item in raw_devices
         ]
 
@@ -126,6 +136,7 @@ class StateAggregatorService:
         node_health: dict[str, str],
         workflows: list[WorkflowState],
         mapper_nodes: set[str] | None = None,
+        telemetry_samples: dict[str, TelemetrySample] | None = None,
     ) -> DeviceState:
         metadata = item.get("metadata", {})
         spec = item.get("spec", {})
@@ -139,11 +150,14 @@ class StateAggregatorService:
         model = (spec.get("deviceModelRef") or {}).get("name")
         twin = status_payload.get("twins") or status_payload.get("twin") or {}
         telemetry_enabled = any(
-            isinstance(prop, dict) and bool(prop.get("reportToCloud"))
+            isinstance(prop, dict)
+            and (bool(prop.get("reportToCloud")) or bool(prop.get("pushMethod")))
             for prop in properties
         )
         service_connected = self._device_has_service_binding(name, node_name, workflows)
         device_type = self._classify_device(name, model, protocol)
+        telemetry_sample = (telemetry_samples or {}).get(name)
+        telemetry_age_seconds = self._telemetry_age_seconds(telemetry_sample)
         health, reason = self._device_health(
             status_payload,
             node_name,
@@ -151,6 +165,7 @@ class StateAggregatorService:
             telemetry_enabled,
             protocol,
             mapper_nodes or set(),
+            telemetry_age_seconds,
         )
         return DeviceState(
             name=name,
@@ -164,6 +179,10 @@ class StateAggregatorService:
             service_connected=service_connected,
             status=health,
             status_reason=reason,
+            telemetry_last_seen=telemetry_sample.timestamp if telemetry_sample else None,
+            telemetry_age_seconds=telemetry_age_seconds,
+            telemetry_property=telemetry_sample.property if telemetry_sample else None,
+            telemetry_value=telemetry_sample.value if telemetry_sample else None,
             twin=twin if isinstance(twin, dict) else {},
         )
 
@@ -201,10 +220,15 @@ class StateAggregatorService:
         telemetry_enabled: bool,
         protocol: str | None = None,
         mapper_nodes: set[str] | None = None,
+        telemetry_age_seconds: float | None = None,
     ) -> tuple[str, str]:
         mapper_nodes = mapper_nodes or set()
         if node_name and node_health.get(node_name) == "unavailable":
             return "unavailable", "assigned node is unavailable"
+        if telemetry_age_seconds is not None:
+            if telemetry_age_seconds <= self.settings.telemetry_fresh_seconds:
+                return "healthy", f"telemetry received {int(telemetry_age_seconds)}s ago"
+            return "degraded", f"telemetry stale: last received {int(telemetry_age_seconds)}s ago"
         live_state = self._read_live_device_state(status_payload)
         if live_state in {"online", "connected", "healthy", "active", "true"}:
             return "healthy", f"device status is {live_state}"
@@ -220,7 +244,7 @@ class StateAggregatorService:
         if protocol == "mqttvirtual" and node_name not in mapper_nodes:
             return "unavailable", "assigned mapper is not running"
         if node_health.get(node_name) == "healthy" and telemetry_enabled and protocol == "mqttvirtual":
-            return "degraded", "mapper is running but live twin report is missing"
+            return "degraded", "mapper is running but telemetry has not reached InfluxDB"
         if status_payload.get("reportToCloud") is False:
             return "unavailable", "no live report from device twin"
         if not status_payload or set(status_payload).issubset({"reportCycle", "reportToCloud"}):
@@ -251,6 +275,12 @@ class StateAggregatorService:
             if actual not in (None, "") and not isinstance(actual, dict):
                 return True
         return False
+
+    def _telemetry_age_seconds(self, sample: TelemetrySample | None) -> float | None:
+        if sample is None:
+            return None
+        age = datetime.now(timezone.utc) - sample.timestamp
+        return max(0.0, round(age.total_seconds(), 3))
 
     def _build_dashboard_kpis(
         self,

@@ -18,6 +18,12 @@ function text(value, fallback = "-") {
   return String(value);
 }
 
+function age(value) {
+  if (value === null || value === undefined) return "no telemetry";
+  if (value < 60) return `${Math.round(value)}s ago`;
+  return `${Math.round(value / 60)}m ago`;
+}
+
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
@@ -90,7 +96,7 @@ function renderDevices(devices) {
             <div class="meta">
               <span>${text(device.device_type)}</span>
               <span>${text(device.node_name, "unassigned")}</span>
-              <span>${device.telemetry_enabled ? "telemetry" : "no telemetry"}</span>
+              <span>${age(device.telemetry_age_seconds)}</span>
               <span>${device.properties.length} properties</span>
             </div>
           </article>
@@ -101,7 +107,7 @@ function renderDevices(devices) {
 
 function renderRelations(devices) {
   const rows = devices.slice(0, 12).map((device) => {
-    const twin = device.twin && Object.keys(device.twin).length ? "twin reported" : "twin pending";
+    const telemetry = device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "telemetry pending";
     return `
       <article class="relation">
         <div class="relation-node">
@@ -116,7 +122,7 @@ function renderRelations(devices) {
         <div class="arrow">-&gt;</div>
         <div class="relation-node">
           <span>Twin / Telemetry</span>
-          <strong>${device.telemetry_enabled ? "telemetry enabled" : twin}</strong>
+          <strong>${telemetry}</strong>
         </div>
       </article>
     `;
@@ -168,6 +174,7 @@ function renderScenario(devices, kpis) {
             <div class="meta">
               <span>${text(device.model, "model unknown")}</span>
               <span>${text(device.protocol, "protocol unknown")}</span>
+              <span>${text(device.telemetry_property, "no property")}: ${text(device.telemetry_value, "no value")}</span>
               <span>${text(device.status_reason)}</span>
             </div>
           </article>

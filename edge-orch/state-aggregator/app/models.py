@@ -118,6 +118,10 @@ class DeviceState(BaseModel):
     service_connected: bool = False
     status: HealthLevel
     status_reason: str
+    telemetry_last_seen: datetime | None = None
+    telemetry_age_seconds: float | None = None
+    telemetry_property: str | None = None
+    telemetry_value: str | float | int | bool | None = None
     twin: dict[str, Any] = Field(default_factory=dict)
 
 

@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 
 from app.main import app, service
+from app.influx import TelemetrySample
 from app.models import NodeState, WorkflowState
 
 
@@ -124,8 +125,19 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     async def fake_mapper_nodes():
         return {"etri-dev0001-jetorn"}
 
+    async def fake_telemetry_samples():
+        return {
+            "env-device-01": TelemetrySample(
+                device_id="env-device-01",
+                timestamp=datetime.now(timezone.utc),
+                property="temperature",
+                value="24.1",
+            )
+        }
+
     monkeypatch.setattr(service.kube, "get_devices", fake_devices)
     monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
 
     with TestClient(app) as client:
         response = client.get("/state/dashboard")
@@ -183,7 +195,72 @@ def test_device_with_running_mapper_is_degraded_without_twin_report():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason == "mapper is running but live twin report is missing"
+    assert device.status_reason == "mapper is running but telemetry has not reached InfluxDB"
+
+
+def test_device_with_recent_influx_telemetry_is_healthy():
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "env-device-01", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [
+                    {
+                        "name": "temperature",
+                        "reportToCloud": False,
+                        "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                    }
+                ],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {"reportToCloud": False, "reportCycle": 60000},
+        },
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        telemetry_samples={
+            "env-device-01": TelemetrySample(
+                device_id="env-device-01",
+                timestamp=datetime.now(timezone.utc),
+                property="temperature",
+                value="24.1",
+            )
+        },
+    )
+
+    assert device.status == "healthy"
+    assert device.status_reason.startswith("telemetry received ")
+    assert device.telemetry_enabled is True
+    assert device.telemetry_property == "temperature"
+    assert device.telemetry_value == "24.1"
+
+
+def test_device_with_stale_influx_telemetry_is_degraded():
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "env-device-01", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {},
+        },
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        telemetry_samples={
+            "env-device-01": TelemetrySample(
+                device_id="env-device-01",
+                timestamp=datetime.now(timezone.utc) - timedelta(minutes=10),
+                property="temperature",
+                value="24.1",
+            )
+        },
+    )
+
+    assert device.status == "degraded"
+    assert device.status_reason.startswith("telemetry stale: ")
 
 
 def test_dashboard_kpis_separate_operational_and_live_devices():
@@ -203,6 +280,14 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
             node_health={"etri-dev0001-jetorn": "healthy"},
             workflows=[],
             mapper_nodes={"etri-dev0001-jetorn"},
+            telemetry_samples={
+                "env-live": TelemetrySample(
+                    device_id="env-live",
+                    timestamp=datetime.now(timezone.utc),
+                    property="temperature",
+                    value="24.1",
+                )
+            },
         ),
         service._normalize_device(
             {
