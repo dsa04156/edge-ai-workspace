@@ -22,6 +22,8 @@ jobs:
         if: secrets.REGISTRY_USERNAME != ''
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin "${{ env.REGISTRY }}"
+
+      - name: Configure Buildx for Local Registry
         run: |
           docker buildx rm edgeai-builder || true
           docker buildx create \
