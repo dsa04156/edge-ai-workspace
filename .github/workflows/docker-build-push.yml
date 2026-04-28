@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/**'
-      - 'edge-orch/state-aggregator/**'
-      - 'edge-orch/workflow_executor/**'
-      - 'edge-orch/placement_engine/**'
-      - 'edge-orch/vision_stage_runner/**'
-      - 'edge-orch/workflow_reporter/**'
   workflow_dispatch:
 
 jobs:
