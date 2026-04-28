@@ -77,3 +77,86 @@ def test_cost_model_endpoint_returns_snapshot():
     assert "node_states" in payload
     assert "stage_cost_stats" in payload
     assert "migration_cost_stats" in payload
+
+
+def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge_ai_device",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.33,
+                "memory_usage_ratio": 0.41,
+                "load_average": 1.1,
+                "network_rx_rate": 500.0,
+                "network_tx_rate": 450.0,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "env-device-01", "namespace": "default"},
+                "spec": {
+                    "deviceModelRef": {"name": "virtual-env-model"},
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {
+                    "twins": {
+                        "temperature": {
+                            "actual": {"value": "24.1"},
+                        }
+                    }
+                },
+            }
+        ]
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["kpis"]["active_node_count"] == 1
+    assert payload["kpis"]["registered_device_count"] == 1
+    assert payload["kpis"]["telemetry_device_count"] == 1
+    assert payload["devices"][0]["name"] == "env-device-01"
+    assert "services" not in payload
+
+
+def test_dashboard_page_is_served():
+    with TestClient(app) as client:
+        response = client.get("/dashboard")
+
+    assert response.status_code == 200
+    assert "디바이스 운영 대시보드" in response.text
+
+
+def test_device_without_live_status_is_unavailable():
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "env-device-offline", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {"reportToCloud": False, "reportCycle": 60000},
+        },
+        node_health={},
+        workflows=[],
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "no live report from device twin"

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edge AI Operations Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">KubeEdge Mixed-Device Platform</p>
+          <h1>디바이스 운영 대시보드</h1>
+        </div>
+        <div class="refresh">
+          <span id="updatedAt">-</span>
+          <button id="refreshButton" type="button" aria-label="refresh dashboard">Refresh</button>
+        </div>
+      </header>
+
+      <section class="kpi-grid" aria-label="platform summary">
+        <article class="metric">
+          <span class="metric-label">Active Nodes</span>
+          <strong id="activeNodeCount">0</strong>
+          <span id="nodeRatio">0%</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Registered Devices</span>
+          <strong id="deviceCount">0</strong>
+          <span id="deviceHealthRatio">0% healthy</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Telemetry Configured</span>
+          <strong id="telemetryRatio">0%</strong>
+          <span id="telemetryCaption">0 devices</span>
+        </article>
+        <article class="metric attention">
+          <span class="metric-label">Operator Focus</span>
+          <strong id="focusCount">0</strong>
+          <span>items need review</span>
+        </article>
+      </section>
+
+      <section class="layout">
+        <section class="panel assets">
+          <div class="panel-head">
+            <h2>자산 현황</h2>
+            <span id="assetCount">0 assets</span>
+          </div>
+          <div class="split">
+            <div>
+              <h3>Edge Nodes</h3>
+              <div id="nodeList" class="stack"></div>
+            </div>
+            <div>
+              <h3>Devices</h3>
+              <div id="deviceList" class="stack"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel relations">
+          <div class="panel-head">
+            <h2>연결 관계</h2>
+            <span>Device -> Edge Node -> Twin/Telemetry</span>
+          </div>
+          <div id="relationList" class="relation-list"></div>
+        </section>
+
+        <section class="panel operations">
+          <div class="panel-head">
+            <h2>운영 상태</h2>
+            <span id="riskCount">0 device risks</span>
+          </div>
+          <div id="alertList" class="alert-list"></div>
+        </section>
+
+        <section class="panel scenario">
+          <div class="panel-head">
+            <h2>시나리오 KPI</h2>
+            <span>Okdong PoC view</span>
+          </div>
+          <div class="scenario-grid">
+            <div>
+              <span>Response Time</span>
+              <strong id="responseKpi">device-first</strong>
+            </div>
+            <div>
+              <span>Operator Intervention</span>
+              <strong id="interventionKpi">tracked</strong>
+            </div>
+            <div>
+              <span>Abnormal Handling</span>
+              <strong id="handlingKpi">visible</strong>
+            </div>
+          </div>
+          <div id="deviceStatusList" class="workflow-list"></div>
+        </section>
+      </section>
+    </main>
+    <script src="/static/dashboard.js"></script>
+  </body>
+</html>

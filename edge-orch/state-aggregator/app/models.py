@@ -106,6 +106,21 @@ class NodeState(BaseModel):
     node_health: HealthLevel
 
 
+class DeviceState(BaseModel):
+    name: str
+    namespace: str
+    device_type: str
+    model: str | None = None
+    node_name: str | None = None
+    protocol: str | None = None
+    properties: list[str] = Field(default_factory=list)
+    telemetry_enabled: bool = False
+    service_connected: bool = False
+    status: HealthLevel
+    status_reason: str
+    twin: dict[str, Any] = Field(default_factory=dict)
+
+
 class WorkflowState(BaseModel):
     workflow_id: str
     workflow_type: str | None = None
@@ -135,3 +150,12 @@ class CostModelState(BaseModel):
     node_states: list[NodeState]
     stage_cost_stats: list[StageCostStats] = Field(default_factory=list)
     migration_cost_stats: list[MigrationCostStats] = Field(default_factory=list)
+
+
+class DashboardState(BaseModel):
+    generated_at: datetime
+    nodes: list[NodeState]
+    devices: list[DeviceState]
+    workflows: list[WorkflowState]
+    summary: SummaryState
+    kpis: dict[str, Any]

@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "dsa04156/edge-ai-workspace",
+  "pipelineDirectory": "edge-ai-workspace",
+  "workspaceDirectory": "edge-ai-workspace/edge-ai-workspace",
+  "repositories": {
+    "dsa04156/edge-ai-workspace": {
+      "repositoryPath": "edge-ai-workspace/edge-ai-workspace",
+      "lastRunOn": "04/27/2026 19:20:52 +09:00"
+    }
+  },
+  "lastRunOn": "04/28/2026 12:47:52 +09:00"
+}

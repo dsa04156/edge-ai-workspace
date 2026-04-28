@@ -2,9 +2,19 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime, timezone
+from typing import Any
 
 from .config import Settings, load_instance_map
-from .models import CostModelState, NodeState, SummaryState, WorkflowEvent, WorkflowState
+from .models import (
+    CostModelState,
+    DashboardState,
+    DeviceState,
+    NodeState,
+    SummaryState,
+    WorkflowEvent,
+    WorkflowState,
+)
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
 from .prometheus import PrometheusClient
 from .storage import StateStore
@@ -84,3 +94,173 @@ class StateAggregatorService:
             stage_cost_stats=self.store.get_stage_cost_stats(),
             migration_cost_stats=self.store.get_migration_cost_stats(),
         )
+
+    async def get_devices(self) -> list[DeviceState]:
+        raw_devices = await self.kube.get_devices()
+        node_health = {node.hostname: node.node_health for node in self.get_nodes()}
+        workflows = self.get_workflows()
+        return [
+            self._normalize_device(item, node_health, workflows)
+            for item in raw_devices
+        ]
+
+    async def get_dashboard(self) -> DashboardState:
+        nodes = self.get_nodes()
+        devices = await self.get_devices()
+        workflows = self.get_workflows()
+        summary = build_summary(nodes, workflows)
+        kpis = self._build_dashboard_kpis(nodes, devices, workflows)
+        return DashboardState(
+            generated_at=datetime.now(timezone.utc),
+            nodes=nodes,
+            devices=devices,
+            workflows=workflows,
+            summary=summary,
+            kpis=kpis,
+        )
+
+    def _normalize_device(
+        self,
+        item: dict[str, Any],
+        node_health: dict[str, str],
+        workflows: list[WorkflowState],
+    ) -> DeviceState:
+        metadata = item.get("metadata", {})
+        spec = item.get("spec", {})
+        status_payload = item.get("status", {})
+        name = metadata.get("name", "unknown-device")
+        namespace = metadata.get("namespace", "default")
+        properties = spec.get("properties") or []
+        property_names = [prop.get("name") for prop in properties if isinstance(prop, dict) and prop.get("name")]
+        node_name = spec.get("nodeName")
+        protocol = (spec.get("protocol") or {}).get("protocolName")
+        model = (spec.get("deviceModelRef") or {}).get("name")
+        twin = status_payload.get("twins") or status_payload.get("twin") or {}
+        telemetry_enabled = any(
+            isinstance(prop, dict) and bool(prop.get("reportToCloud"))
+            for prop in properties
+        )
+        service_connected = self._device_has_service_binding(name, node_name, workflows)
+        device_type = self._classify_device(name, model, protocol)
+        health, reason = self._device_health(status_payload, node_name, node_health, telemetry_enabled)
+        return DeviceState(
+            name=name,
+            namespace=namespace,
+            device_type=device_type,
+            model=model,
+            node_name=node_name,
+            protocol=protocol,
+            properties=property_names,
+            telemetry_enabled=telemetry_enabled,
+            service_connected=service_connected,
+            status=health,
+            status_reason=reason,
+            twin=twin if isinstance(twin, dict) else {},
+        )
+
+    def _device_has_service_binding(
+        self,
+        device_name: str,
+        node_name: str | None,
+        workflows: list[WorkflowState],
+    ) -> bool:
+        for workflow in workflows:
+            event = workflow.recent_event
+            if event.get("device_id") == device_name or event.get("source_device") == device_name:
+                return True
+            if node_name and workflow.assigned_node == node_name:
+                return True
+        return False
+
+    def _classify_device(self, name: str, model: str | None, protocol: str | None) -> str:
+        text = " ".join(part for part in [name, model, protocol] if part).lower()
+        if "twin" in text:
+            return "device_twin"
+        if "virtual" in text or "mqttvirtual" in text:
+            return "virtual_device"
+        if "rpi" in text or "raspi" in text:
+            return "sensor_device"
+        if "env" in text or "vib" in text or "act" in text:
+            return "sensor_device"
+        return "physical_device"
+
+    def _device_health(
+        self,
+        status_payload: dict[str, Any],
+        node_name: str | None,
+        node_health: dict[str, str],
+        telemetry_enabled: bool,
+    ) -> tuple[str, str]:
+        if node_name and node_health.get(node_name) == "unavailable":
+            return "unavailable", "assigned node is unavailable"
+        live_state = self._read_live_device_state(status_payload)
+        if live_state in {"online", "connected", "healthy", "active", "true"}:
+            return "healthy", f"device status is {live_state}"
+        if live_state in {"offline", "disconnected", "failed", "unavailable", "false"}:
+            return "unavailable", f"device status is {live_state}"
+        if node_name and node_health.get(node_name) == "degraded":
+            return "degraded", "assigned node is degraded"
+        twin = status_payload.get("twins") or status_payload.get("twin") or {}
+        if self._has_reported_twin(twin):
+            return "healthy", "device twin reported live values"
+        if status_payload.get("reportToCloud") is False:
+            return "unavailable", "no live report from device twin"
+        if not status_payload or set(status_payload).issubset({"reportCycle", "reportToCloud"}):
+            return "unavailable", "no live device status reported"
+        if not telemetry_enabled:
+            return "degraded", "telemetry-to-cloud is disabled"
+        return "degraded", "registered but live status is unknown"
+
+    def _read_live_device_state(self, status_payload: dict[str, Any]) -> str | None:
+        for key in ("status", "phase", "state", "connection", "connected", "health"):
+            value = status_payload.get(key)
+            if value is None:
+                continue
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            return str(value).lower()
+        return None
+
+    def _has_reported_twin(self, twin: Any) -> bool:
+        if not isinstance(twin, dict):
+            return False
+        for value in twin.values():
+            if not isinstance(value, dict):
+                continue
+            actual = value.get("actual") or value.get("reported")
+            if isinstance(actual, dict) and actual.get("value") not in (None, ""):
+                return True
+            if actual not in (None, "") and not isinstance(actual, dict):
+                return True
+        return False
+
+    def _build_dashboard_kpis(
+        self,
+        nodes: list[NodeState],
+        devices: list[DeviceState],
+        workflows: list[WorkflowState],
+    ) -> dict[str, Any]:
+        online_nodes = [node for node in nodes if node.node_health != "unavailable"]
+        healthy_devices = [device for device in devices if device.status == "healthy"]
+        telemetry_devices = [device for device in devices if device.telemetry_enabled]
+        bound_devices = [device for device in devices if device.service_connected]
+        risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
+        return {
+            "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
+            "device_healthy_ratio": self._ratio(len(healthy_devices), len(devices)),
+            "device_telemetry_ratio": self._ratio(len(telemetry_devices), len(devices)),
+            "device_workflow_binding_ratio": self._ratio(len(bound_devices), len(devices)),
+            "registered_device_count": len(devices),
+            "active_node_count": len(online_nodes),
+            "telemetry_device_count": len(telemetry_devices),
+            "workflow_bound_device_count": len(bound_devices),
+            "sla_risk_workflow_count": len(risk_workflows),
+            "operator_focus_count": len(risk_workflows)
+            + len([node for node in nodes if node.node_health != "healthy"])
+            + len([device for device in devices if device.status != "healthy"]),
+        }
+
+    def _ratio(self, numerator: int, denominator: int) -> float:
+        if denominator == 0:
+            return 0.0
+        return round(numerator / denominator, 3)

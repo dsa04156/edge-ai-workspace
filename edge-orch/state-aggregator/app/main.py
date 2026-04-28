@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import Settings
 from .metrics import render_metrics
-from .models import CostModelState, SummaryState, WorkflowEvent, WorkflowState
+from .models import CostModelState, DashboardState, DeviceState, SummaryState, WorkflowEvent, WorkflowState
 from .service import StateAggregatorService
 
 settings = Settings()
@@ -22,6 +24,23 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+async def index():
+    if (STATIC_DIR / "index.html").exists():
+        return FileResponse(STATIC_DIR / "index.html")
+    return {"service": "state-aggregator", "dashboard": "/dashboard"}
+
+
+@app.get("/dashboard")
+async def dashboard():
+    if not (STATIC_DIR / "index.html").exists():
+        raise HTTPException(status_code=404, detail="Dashboard assets not found")
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.post("/workflow-event", response_model=WorkflowState)
@@ -32,6 +51,16 @@ async def post_workflow_event(event: WorkflowEvent) -> WorkflowState:
 @app.get("/state/nodes")
 async def get_nodes():
     return service.get_nodes()
+
+
+@app.get("/state/devices", response_model=list[DeviceState])
+async def get_devices() -> list[DeviceState]:
+    return await service.get_devices()
+
+
+@app.get("/state/dashboard", response_model=DashboardState)
+async def get_dashboard() -> DashboardState:
+    return await service.get_dashboard()
 
 
 @app.get("/state/node/{hostname}")

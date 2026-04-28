@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
+
 from kubernetes import client, config
-from kubernetes.client.rest import ApiException
 
 logger = logging.getLogger(__name__)
 
+
 class KubeClient:
     def __init__(self) -> None:
+        self.enabled = True
         try:
             config.load_incluster_config()
         except config.ConfigException:
@@ -15,8 +18,10 @@ class KubeClient:
                 config.load_kube_config()
             except Exception:
                 logger.warning("Failed to load kube config, kubernetes features will be disabled")
+                self.enabled = False
         
         self.v1 = client.CoreV1Api()
+        self.custom = client.CustomObjectsApi()
 
     async def get_node_map(self) -> dict[str, dict[str, str]]:
         """
@@ -52,6 +57,21 @@ class KubeClient:
             logger.exception("Failed to list nodes from Kubernetes API")
         
         return node_map
+
+    async def get_devices(self) -> list[dict[str, Any]]:
+        if not self.enabled:
+            return []
+        try:
+            response = self.custom.list_cluster_custom_object(
+                group="devices.kubeedge.io",
+                version="v1beta1",
+                plural="devices",
+            )
+        except Exception:
+            logger.exception("Failed to list KubeEdge devices")
+            return []
+        items = response.get("items", [])
+        return [item for item in items if isinstance(item, dict)]
 
     def _determine_node_type(self, node: client.V1Node) -> str:
         labels = node.metadata.labels or {}

@@ -1,0 +1,11 @@
+﻿{
+  "agentId": 22,
+  "agentName": "etri-ser0001-CG0MSB",
+  "poolId": 1,
+  "poolName": "Default",
+  "serverUrl": "https://pipelinesghubeus2.actions.githubusercontent.com/VrhZyHDvxtr3TrzpQhXwxzUMYUzlK5tQag7JcnmFD4ECbY6msh/",
+  "gitHubUrl": "https://github.com/dsa04156/edge-ai-workspace",
+  "workFolder": "_work",
+  "useV2Flow": true,
+  "serverUrlV2": "https://broker.actions.githubusercontent.com/"
+}
