@@ -11,10 +11,12 @@ metadata:
 type: Opaque
 stringData:
   DOCKER_INFLUXDB_INIT_USERNAME: admin
-  DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword123!
+  # ⚠️ WARNING: Change these in production! Use Kubernetes Secrets properly.
+  # Default values for development only. Override with real secrets in production.
+  DOCKER_INFLUXDB_INIT_PASSWORD: changeme  # TODO: Use sealed-secrets or external-secrets
   DOCKER_INFLUXDB_INIT_ORG: edgeai
   DOCKER_INFLUXDB_INIT_BUCKET: device_telemetry
-  DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: edgeai-super-token-change-me
+  DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: changeme  # TODO: Generate secure token
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

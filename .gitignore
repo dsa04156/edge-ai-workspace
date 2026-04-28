@@ -45,6 +45,11 @@ actions-runner/# GitHub Actions runner - sensitive files
 actions-runner/*.tar.gz
 actions-runner/.credentials
 actions-runner/.credentials_rsaparams
+actions-runner/.runner
+actions-runner/.path
+actions-runner/.token
+actions-runner/.cfg
+actions-runner/_work/
 actions-runner/
 *.tar.gz
 *.tar.gz

@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  REGISTRY: 192.168.0.56:5000  # Update this for your registry
+
 jobs:
   build-and-push:
     runs-on: self-hosted
@@ -27,7 +30,7 @@ jobs:
       - name: Build and Push state-aggregator
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t 192.168.0.56:5000/state-aggregator:latest \
+            -t ${{ env.REGISTRY }}/state-aggregator:latest \
             -f edge-orch/state-aggregator/Dockerfile \
             edge-orch/state-aggregator \
             --push
@@ -35,7 +38,7 @@ jobs:
       - name: Build and Push workflow-executor
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t 192.168.0.56:5000/workflow-executor:latest \
+            -t ${{ env.REGISTRY }}/workflow-executor:latest \
             -f edge-orch/workflow_executor/Dockerfile \
             edge-orch/workflow_executor \
             --push
@@ -43,7 +46,7 @@ jobs:
       - name: Build and Push placement-engine
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t 192.168.0.56:5000/placement-engine:latest \
+            -t ${{ env.REGISTRY }}/placement-engine:latest \
             -f edge-orch/placement_engine/Dockerfile \
             edge-orch/placement_engine \
             --push
@@ -51,7 +54,7 @@ jobs:
       - name: Build and Push vision-stage-runner
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t 192.168.0.56:5000/vision-stage-runner:latest \
+            -t ${{ env.REGISTRY }}/vision-stage-runner:latest \
             -f edge-orch/vision_stage_runner/Dockerfile \
             edge-orch/vision_stage_runner \
             --push
