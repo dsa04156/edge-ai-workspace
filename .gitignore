@@ -41,11 +41,10 @@ mqttvirtual-arm64
 .cache/
 tmp/
 *.tmp
+actions-runner/# GitHub Actions runner - sensitive files
 actions-runner/*.tar.gz
-actions-runner/
-actions-runner/*.tar.gz
-actions-runner/
+actions-runner/.credentials
+actions-runner/.credentials_rsaparams
 actions-runner/
 *.tar.gz
-actions-runner/
 *.tar.gz
