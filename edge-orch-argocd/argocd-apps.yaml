@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: edge-orch-state-aggregator
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: state-aggregator=192.168.0.56:5000/state-aggregator
+    argocd-image-updater.argoproj.io/state-aggregator.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   project: default
   source:
