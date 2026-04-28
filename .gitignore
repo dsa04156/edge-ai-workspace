@@ -41,3 +41,5 @@ mqttvirtual-arm64
 .cache/
 tmp/
 *.tmp
+actions-runner/*.tar.gz
+actions-runner/
