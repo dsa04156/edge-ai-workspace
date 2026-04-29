@@ -8,9 +8,12 @@ import signal
 import sys
 import time
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
-import paho.mqtt.client as mqtt
+try:
+    import paho.mqtt.client as mqtt
+except ModuleNotFoundError:
+    mqtt = None
 
 
 BROKER_HOST = os.getenv("MQTT_HOST", "127.0.0.1")
@@ -23,6 +26,7 @@ PUBLISH_JITTER = float(os.getenv("PUBLISH_JITTER", "0.3"))
 ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "1") not in {"0", "false", "False"}
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "30"))
 DEVICE_FILTER = {item.strip() for item in os.getenv("DEVICE_FILTER", "").split(",") if item.strip()}
+SELF_TEST = os.getenv("SELF_TEST", "0") in {"1", "true", "True"}
 ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.15"))
 VIB_ALARM_HIGH_THRESHOLD = float(os.getenv("VIB_ALARM_HIGH_THRESHOLD", "1.8"))
 VIB_ALARM_LOW_THRESHOLD = float(os.getenv("VIB_ALARM_LOW_THRESHOLD", "1.2"))
@@ -150,30 +154,86 @@ DEVICES: List[VirtualDevice] = [
     VirtualDevice("vib-device-04", "vib", 5),
     VirtualDevice("vib-device-05", "vib", 5),
     VirtualDevice("vib-device-06", "vib", 5),
+
+    VirtualDevice("rpi-env-device-01", "env", 5),
+    VirtualDevice("rpi-env-device-02", "env", 5),
+    VirtualDevice("rpi-env-device-03", "env", 5),
+    VirtualDevice("rpi-env-device-04", "env", 5),
+
+    VirtualDevice("rpi-vib-device-01", "vib", 5),
+    VirtualDevice("rpi-vib-device-02", "vib", 5),
+    VirtualDevice("rpi-vib-device-03", "vib", 5),
+
+    VirtualDevice("rpi-act-device-01", "act", 5),
+    VirtualDevice("rpi-act-device-02", "act", 5),
+    VirtualDevice("rpi-act-device-03", "act", 5),
 ]
+
+
+def select_devices() -> List[VirtualDevice]:
+    return [d for d in DEVICES if not DEVICE_FILTER or d.device_id in DEVICE_FILTER]
+
+
+def expected_keys(device_type: str) -> set[str]:
+    if device_type == "env":
+        return {"temperature", "humidity", "health", "sampling_interval"}
+    if device_type == "vib":
+        return {"vibration", "severity", "alarm_latched", "health", "sampling_interval"}
+    if device_type == "act":
+        return {"power", "mode", "health", "sampling_interval"}
+    if device_type == "temp":
+        return {"temperature", "health", "sampling_interval"}
+    return {"health", "sampling_interval"}
+
+
+def run_self_test(devices: Iterable[VirtualDevice]) -> int:
+    failures = 0
+    for device in devices:
+        payload = device.build_payload()
+        keys = set(payload)
+        expected = expected_keys(device.device_type)
+        if keys != expected:
+            print(f"[FAIL] {device.device_id} payload keys={sorted(keys)} expected={sorted(expected)}")
+            failures += 1
+        if device.telemetry_topic() != f"{TOPIC_PREFIX}/{device.device_id}/telemetry":
+            print(f"[FAIL] {device.device_id} telemetry topic={device.telemetry_topic()}")
+            failures += 1
+        if device.command_topic() != f"{TOPIC_PREFIX}/{device.device_id}/command":
+            print(f"[FAIL] {device.device_id} command topic={device.command_topic()}")
+            failures += 1
+        heartbeat = device.build_heartbeat()
+        if heartbeat.get("status") != "online" or heartbeat.get("device_id") != device.device_id:
+            print(f"[FAIL] {device.device_id} heartbeat={heartbeat}")
+            failures += 1
+
+    if failures:
+        print(f"[ERROR] self test failed: {failures}")
+        return 1
+    print("[INFO] self test passed")
+    return 0
 
 
 running = True
 
 
-def on_connect(client: mqtt.Client, userdata, flags, rc, properties=None):
+def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
         print(f"[INFO] Connected to MQTT broker {BROKER_HOST}:{BROKER_PORT}")
-        for device in DEVICES:
+        for device in userdata["devices"]:
             client.subscribe(device.command_topic(), qos=QOS)
             print(f"[SUB] {device.command_topic()}")
     else:
         print(f"[ERROR] MQTT connect failed, rc={rc}")
 
 
-def on_disconnect(client: mqtt.Client, userdata, flags, rc, properties=None):
+def on_disconnect(client, userdata, flags, rc, properties=None):
     print(f"[WARN] Disconnected from MQTT broker, rc={rc}")
 
 
-def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
+def on_message(client, userdata, msg):
     payload = msg.payload.decode("utf-8", errors="replace")
     print(f"[CMD] {msg.topic} <- {payload}")
-    for device in DEVICES:
+    for device in userdata["devices"]:
         if msg.topic != device.command_topic():
             continue
         try:
@@ -199,7 +259,23 @@ def main():
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="virtual-sensor-publisher")
+    devices = select_devices()
+    if not devices:
+        print("[ERROR] No devices selected. Check DEVICE_FILTER.")
+        sys.exit(1)
+
+    if SELF_TEST:
+        sys.exit(run_self_test(devices))
+
+    if mqtt is None:
+        print("[ERROR] paho-mqtt is required unless SELF_TEST=1")
+        sys.exit(1)
+
+    client = mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2,
+        client_id=f"virtual-sensor-publisher-{os.uname().nodename}",
+        userdata={"devices": devices},
+    )
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.on_message = on_message
@@ -208,13 +284,8 @@ def main():
     if MQTT_USERNAME:
         client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
-    devices = [d for d in DEVICES if not DEVICE_FILTER or d.device_id in DEVICE_FILTER]
-    if not devices:
-        print("[ERROR] No devices selected. Check DEVICE_FILTER.")
-        sys.exit(1)
-
     print(f"[INFO] topic prefix: {TOPIC_PREFIX}")
-    print(f"[INFO] qos={QOS} heartbeat={ENABLE_HEARTBEAT} device_count={len(devices)}")
+    print(f"[INFO] broker={BROKER_HOST}:{BROKER_PORT} qos={QOS} heartbeat={ENABLE_HEARTBEAT} device_count={len(devices)}")
 
     client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
     client.loop_start()

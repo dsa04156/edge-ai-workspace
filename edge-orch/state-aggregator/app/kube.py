@@ -73,6 +73,21 @@ class KubeClient:
         items = response.get("items", [])
         return [item for item in items if isinstance(item, dict)]
 
+    async def get_device_statuses(self) -> list[dict[str, Any]]:
+        if not self.enabled:
+            return []
+        try:
+            response = self.custom.list_cluster_custom_object(
+                group="devices.kubeedge.io",
+                version="v1beta1",
+                plural="devicestatuses",
+            )
+        except Exception:
+            logger.exception("Failed to list KubeEdge device statuses")
+            return []
+        items = response.get("items", [])
+        return [item for item in items if isinstance(item, dict)]
+
     async def get_running_mapper_nodes(self, namespace: str = "default") -> set[str]:
         if not self.enabled:
             return set()

@@ -11,7 +11,7 @@ spec:
   - name: temperature
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -34,7 +34,7 @@ spec:
   - name: humidity
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -84,8 +84,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -100,7 +100,7 @@ spec:
   - name: temperature
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -123,7 +123,7 @@ spec:
   - name: humidity
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -173,8 +173,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -189,7 +189,7 @@ spec:
   - name: temperature
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -212,7 +212,7 @@ spec:
   - name: humidity
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -262,8 +262,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -278,7 +278,7 @@ spec:
   - name: temperature
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -301,7 +301,7 @@ spec:
   - name: humidity
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -351,8 +351,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -367,7 +367,7 @@ spec:
   - name: vibration
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -435,8 +435,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -451,7 +451,7 @@ spec:
   - name: vibration
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -519,8 +519,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -535,7 +535,7 @@ spec:
   - name: vibration
     collectCycle: 60000
     reportCycle: 60000
-    reportToCloud: false
+    reportToCloud: true
     visitors:
       protocolName: mqttvirtual
       configData:
@@ -603,8 +603,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -664,8 +664,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -725,8 +725,8 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000
 ---
 apiVersion: devices.kubeedge.io/v1beta1
 kind: Device
@@ -786,5 +786,5 @@ spec:
       qos: 1
       offlineAfterMs: 15000
 status:
-  reportToCloud: false
-  reportCycle: 5000
+  reportToCloud: true
+  reportCycle: 30000

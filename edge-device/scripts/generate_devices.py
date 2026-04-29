@@ -9,7 +9,7 @@ BROKER = "tcp://127.0.0.1:1883"
 TOPIC_PREFIX = "factory/devices"
 CYCLE_MS = 60000
 OFFLINE_AFTER_MS = 15000
-STATE_REPORT_CYCLE_MS = 5000
+STATE_REPORT_CYCLE_MS = 30000
 INFLUX_URL = os.getenv("INFLUX_URL", "http://influxdb.telemetry.svc.cluster.local:8086")
 INFLUX_ORG = os.getenv("INFLUX_ORG", "edgeai")
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "device_telemetry")
@@ -32,14 +32,14 @@ GROUPS = [
         8,
         "virtual-env-model",
         ["temperature", "humidity", "health", "sampling_interval"],
-        ["health", "sampling_interval"],
+        ["temperature", "humidity", "health", "sampling_interval"],
     ),
     DeviceGroup(
         "vib",
         6,
         "virtual-vib-model",
         ["vibration", "severity", "alarm_latched", "health", "sampling_interval"],
-        ["severity", "alarm_latched", "health", "sampling_interval"],
+        ["vibration", "severity", "alarm_latched", "health", "sampling_interval"],
     ),
     DeviceGroup(
         "act",
@@ -56,14 +56,14 @@ RPI_GROUPS = [
         4,
         "virtual-env-model",
         ["temperature", "humidity", "health", "sampling_interval"],
-        ["health", "sampling_interval"],
+        ["temperature", "humidity", "health", "sampling_interval"],
     ),
     DeviceGroup(
         "rpi-vib",
         3,
         "virtual-vib-model",
         ["vibration", "severity", "alarm_latched", "health", "sampling_interval"],
-        ["severity", "alarm_latched", "health", "sampling_interval"],
+        ["vibration", "severity", "alarm_latched", "health", "sampling_interval"],
     ),
     DeviceGroup(
         "rpi-act",
@@ -138,7 +138,7 @@ spec:
       qos: 1
       offlineAfterMs: {OFFLINE_AFTER_MS}
 status:
-  reportToCloud: false
+  reportToCloud: true
   reportCycle: {STATE_REPORT_CYCLE_MS}
 """
 

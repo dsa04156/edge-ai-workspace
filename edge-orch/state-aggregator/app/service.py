@@ -106,12 +106,24 @@ class StateAggregatorService:
 
     async def get_devices(self) -> list[DeviceState]:
         raw_devices = await self.kube.get_devices()
+        raw_statuses = await self.kube.get_device_statuses()
+        status_by_device = {
+            self._object_key(item): item.get("status", {})
+            for item in raw_statuses
+            if self._object_key(item)
+        }
         node_health = {node.hostname: node.node_health for node in self.get_nodes()}
         mapper_nodes = await self.kube.get_running_mapper_nodes()
         telemetry_samples = await self.telemetry.get_latest_by_device()
         workflows = self.get_workflows()
         return [
-            self._normalize_device(item, node_health, workflows, mapper_nodes, telemetry_samples)
+            self._normalize_device(
+                self._merge_device_status(item, status_by_device),
+                node_health,
+                workflows,
+                mapper_nodes,
+                telemetry_samples,
+            )
             for item in raw_devices
         ]
 
@@ -148,7 +160,7 @@ class StateAggregatorService:
         node_name = spec.get("nodeName")
         protocol = (spec.get("protocol") or {}).get("protocolName")
         model = (spec.get("deviceModelRef") or {}).get("name")
-        twin = status_payload.get("twins") or status_payload.get("twin") or {}
+        twin = self._normalize_twin_payload(status_payload.get("twins") or status_payload.get("twin") or {})
         telemetry_enabled = any(
             isinstance(prop, dict)
             and (bool(prop.get("reportToCloud")) or bool(prop.get("pushMethod")))
@@ -158,6 +170,7 @@ class StateAggregatorService:
         device_type = self._classify_device(name, model, protocol)
         telemetry_sample = (telemetry_samples or {}).get(name)
         telemetry_age_seconds = self._telemetry_age_seconds(telemetry_sample)
+        device_status_age_seconds = self._device_status_age_seconds(status_payload)
         health, reason = self._device_health(
             status_payload,
             node_name,
@@ -166,6 +179,7 @@ class StateAggregatorService:
             protocol,
             mapper_nodes or set(),
             telemetry_age_seconds,
+            device_status_age_seconds,
         )
         return DeviceState(
             name=name,
@@ -183,8 +197,29 @@ class StateAggregatorService:
             telemetry_age_seconds=telemetry_age_seconds,
             telemetry_property=telemetry_sample.property if telemetry_sample else None,
             telemetry_value=telemetry_sample.value if telemetry_sample else None,
-            twin=twin if isinstance(twin, dict) else {},
+            twin=twin,
         )
+
+    def _object_key(self, item: dict[str, Any]) -> tuple[str, str] | None:
+        metadata = item.get("metadata") or {}
+        name = metadata.get("name")
+        namespace = metadata.get("namespace", "default")
+        if not name:
+            return None
+        return namespace, name
+
+    def _merge_device_status(
+        self,
+        device: dict[str, Any],
+        status_by_device: dict[tuple[str, str], dict[str, Any]],
+    ) -> dict[str, Any]:
+        key = self._object_key(device)
+        live_status = status_by_device.get(key) if key else None
+        if not live_status:
+            return device
+        merged = dict(device)
+        merged["status"] = live_status
+        return merged
 
     def _device_has_service_binding(
         self,
@@ -221,14 +256,13 @@ class StateAggregatorService:
         protocol: str | None = None,
         mapper_nodes: set[str] | None = None,
         telemetry_age_seconds: float | None = None,
+        device_status_age_seconds: float | None = None,
     ) -> tuple[str, str]:
         mapper_nodes = mapper_nodes or set()
         if node_name and node_health.get(node_name) == "unavailable":
             return "unavailable", "assigned node is unavailable"
-        if telemetry_age_seconds is not None:
-            if telemetry_age_seconds <= self.settings.telemetry_fresh_seconds:
-                return "healthy", f"telemetry received {int(telemetry_age_seconds)}s ago"
-            return "degraded", f"telemetry stale: last received {int(telemetry_age_seconds)}s ago"
+        if device_status_age_seconds is not None and device_status_age_seconds > self.settings.telemetry_fresh_seconds:
+            return "degraded", f"device status stale: last received {int(device_status_age_seconds)}s ago"
         live_state = self._read_live_device_state(status_payload)
         if live_state in {"online", "connected", "healthy", "active", "true"}:
             return "healthy", f"device status is {live_state}"
@@ -239,6 +273,10 @@ class StateAggregatorService:
         twin = status_payload.get("twins") or status_payload.get("twin") or {}
         if self._has_reported_twin(twin):
             return "healthy", "device twin reported live values"
+        if telemetry_age_seconds is not None:
+            if telemetry_age_seconds <= self.settings.telemetry_fresh_seconds:
+                return "healthy", f"telemetry received {int(telemetry_age_seconds)}s ago"
+            return "degraded", f"telemetry stale: last received {int(telemetry_age_seconds)}s ago"
         if not node_name:
             return "unavailable", "device is not assigned to a node"
         if protocol == "mqttvirtual" and node_name not in mapper_nodes:
@@ -264,6 +302,14 @@ class StateAggregatorService:
         return None
 
     def _has_reported_twin(self, twin: Any) -> bool:
+        if isinstance(twin, list):
+            for item in twin:
+                if not isinstance(item, dict):
+                    continue
+                reported = item.get("reported")
+                if isinstance(reported, dict) and reported.get("value") not in (None, ""):
+                    return True
+            return False
         if not isinstance(twin, dict):
             return False
         for value in twin.values():
@@ -276,11 +322,44 @@ class StateAggregatorService:
                 return True
         return False
 
+    def _normalize_twin_payload(self, twin: Any) -> dict[str, Any]:
+        if isinstance(twin, dict):
+            return twin
+        if not isinstance(twin, list):
+            return {}
+        normalized: dict[str, Any] = {}
+        for item in twin:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("propertyName")
+            if name:
+                normalized[name] = {
+                    "reported": item.get("reported"),
+                    "observedDesired": item.get("observedDesired"),
+                }
+        return normalized
+
     def _telemetry_age_seconds(self, sample: TelemetrySample | None) -> float | None:
         if sample is None:
             return None
         age = datetime.now(timezone.utc) - sample.timestamp
         return max(0.0, round(age.total_seconds(), 3))
+
+    def _device_status_age_seconds(self, status_payload: dict[str, Any]) -> float | None:
+        last_seen = self._parse_kube_time(status_payload.get("lastOnlineTime"))
+        if last_seen is None:
+            return None
+        age = datetime.now(timezone.utc) - last_seen
+        return max(0.0, round(age.total_seconds(), 3))
+
+    def _parse_kube_time(self, value: Any) -> datetime | None:
+        if not isinstance(value, str) or not value:
+            return None
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
+        except ValueError:
+            logger.warning("Failed to parse Kubernetes timestamp: %s", value)
+            return None
 
     def _build_dashboard_kpis(
         self,

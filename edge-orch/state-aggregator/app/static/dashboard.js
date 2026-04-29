@@ -1,5 +1,6 @@
 const state = {
   data: null,
+  refreshMs: 5000,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -193,7 +194,14 @@ $("refreshButton").addEventListener("click", () => {
   });
 });
 
-loadDashboard().catch((error) => {
-  $("alertList").innerHTML = `<article class="item alert high"><strong>${error.message}</strong></article>`;
-});
-setInterval(loadDashboard, 15000);
+function scheduleDashboardRefresh() {
+  loadDashboard()
+    .catch((error) => {
+      $("alertList").innerHTML = `<article class="item alert high"><strong>${error.message}</strong></article>`;
+    })
+    .finally(() => {
+      window.setTimeout(scheduleDashboardRefresh, state.refreshMs);
+    });
+}
+
+scheduleDashboardRefresh();

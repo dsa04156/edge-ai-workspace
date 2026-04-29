@@ -125,6 +125,9 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     async def fake_mapper_nodes():
         return {"etri-dev0001-jetorn"}
 
+    async def fake_device_statuses():
+        return []
+
     async def fake_telemetry_samples():
         return {
             "env-device-01": TelemetrySample(
@@ -136,6 +139,7 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
         }
 
     monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
     monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
     monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
 
@@ -149,6 +153,81 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     assert payload["kpis"]["telemetry_device_count"] == 1
     assert payload["devices"][0]["name"] == "env-device-01"
     assert "services" not in payload
+
+
+def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge_ai_device",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.2,
+                "memory_usage_ratio": 0.3,
+                "load_average": 0.8,
+                "network_rx_rate": 100.0,
+                "network_tx_rate": 90.0,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "env-device-01", "namespace": "default"},
+                "spec": {
+                    "deviceModelRef": {"name": "virtual-env-model"},
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [{"name": "health", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {"reportToCloud": False, "reportCycle": 60000},
+            }
+        ]
+
+    async def fake_device_statuses():
+        return [
+            {
+                "metadata": {"name": "env-device-01", "namespace": "default"},
+                "status": {
+                    "state": "online",
+                    "lastOnlineTime": datetime.now(timezone.utc).isoformat(),
+                    "twins": [
+                        {
+                            "propertyName": "health",
+                            "reported": {"value": "ok"},
+                            "observedDesired": {"value": ""},
+                        }
+                    ],
+                },
+            }
+        ]
+
+    async def fake_mapper_nodes():
+        return {"etri-dev0001-jetorn"}
+
+    async def fake_telemetry_samples():
+        return {}
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    device = response.json()["devices"][0]
+    assert device["status"] == "healthy"
+    assert device["status_reason"] == "device status is online"
+    assert device["twin"]["health"]["reported"]["value"] == "ok"
 
 
 def test_dashboard_page_is_served():

@@ -45,10 +45,6 @@ func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 		klog.Errorf("GetDeviceStates failed: %v", err)
 		return
 	}
-	if deviceStates.lastReported == states {
-		return
-	}
-
 	statesRequest := &dmiapi.ReportDeviceStatesRequest{
 		DeviceName:      deviceStates.DeviceName,
 		State:           states,

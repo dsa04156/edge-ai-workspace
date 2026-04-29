@@ -32,15 +32,6 @@ import (
 const eventTwinFlushInterval = 5 * time.Second
 const minDeviceStatusReportInterval = 30 * time.Second
 
-var deviceStatusPropertyAllowlist = map[string]struct{}{
-	"alarm_latched":     {},
-	"health":            {},
-	"mode":              {},
-	"power":             {},
-	"sampling_interval": {},
-	"severity":          {},
-}
-
 type DevPanel struct {
 	deviceMuxs   map[string]context.CancelFunc
 	devices      map[string]*driver.CustomizedDev
@@ -212,11 +203,7 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 }
 
 func shouldReportAsTwinProperty(twin *common.Twin) bool {
-	if twin == nil || twin.Property == nil {
-		return false
-	}
-	_, ok := deviceStatusPropertyAllowlist[twin.PropertyName]
-	return ok
+	return twin != nil && twin.Property != nil
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
@@ -247,14 +234,11 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 				if reportedTwin == nil {
 					continue
 				}
-				currentValue := reportedTwin.GetReported().GetValue()
-				if lastReported[key] == currentValue {
-					continue
-				}
 				if lastSentAt, ok := lastReportTime[key]; ok && time.Since(lastSentAt) < minDeviceStatusReportInterval {
 					nextPending[key] = twinData
 					continue
 				}
+				currentValue := reportedTwin.GetReported().GetValue()
 				lastReported[key] = currentValue
 				lastReportTime[key] = time.Now()
 				twins = append(twins, reportedTwin)
