@@ -230,6 +230,83 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
     assert device["twin"]["health"]["reported"]["value"] == "ok"
 
 
+def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge_ai_device",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.2,
+                "memory_usage_ratio": 0.3,
+                "load_average": 0.8,
+                "network_rx_rate": 100.0,
+                "network_tx_rate": 90.0,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+    fresh_twin_timestamp_ms = str(int(datetime.now(timezone.utc).timestamp() * 1000))
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "act-device-06", "namespace": "default"},
+                "spec": {
+                    "deviceModelRef": {"name": "virtual-act-model"},
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [{"name": "power", "reportToCloud": True}],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {"reportToCloud": True, "reportCycle": 30000},
+            }
+        ]
+
+    async def fake_device_statuses():
+        return [
+            {
+                "metadata": {"name": "act-device-06", "namespace": "default"},
+                "status": {
+                    "lastOnlineTime": "2026-04-24T07:43:51Z",
+                    "twins": [
+                        {
+                            "propertyName": "power",
+                            "reported": {
+                                "value": "on",
+                                "metadata": {"timestamp": fresh_twin_timestamp_ms, "type": "string"},
+                            },
+                            "observedDesired": {"value": ""},
+                        }
+                    ],
+                },
+            }
+        ]
+
+    async def fake_mapper_nodes():
+        return {"etri-dev0001-jetorn"}
+
+    async def fake_telemetry_samples():
+        return {}
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    device = response.json()["devices"][0]
+    assert device["status"] == "healthy"
+    assert device["status_reason"] == "device twin reported live values"
+
+
 def test_dashboard_page_is_served():
     with TestClient(app) as client:
         response = client.get("/dashboard")

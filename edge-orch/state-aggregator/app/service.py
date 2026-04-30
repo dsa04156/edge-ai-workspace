@@ -346,15 +346,56 @@ class StateAggregatorService:
         return max(0.0, round(age.total_seconds(), 3))
 
     def _device_status_age_seconds(self, status_payload: dict[str, Any]) -> float | None:
+        candidates: list[datetime] = []
         last_seen = self._parse_kube_time(status_payload.get("lastOnlineTime"))
-        if last_seen is None:
+        if last_seen is not None:
+            candidates.append(last_seen)
+        candidates.extend(
+            self._reported_twin_timestamps(status_payload.get("twins") or status_payload.get("twin") or {})
+        )
+        if not candidates:
             return None
-        age = datetime.now(timezone.utc) - last_seen
+        age = datetime.now(timezone.utc) - max(candidates)
         return max(0.0, round(age.total_seconds(), 3))
 
+    def _reported_twin_timestamps(self, twin: Any) -> list[datetime]:
+        timestamps: list[datetime] = []
+        if isinstance(twin, list):
+            for item in twin:
+                if not isinstance(item, dict):
+                    continue
+                reported = item.get("reported")
+                if isinstance(reported, dict):
+                    parsed = self._parse_kube_time((reported.get("metadata") or {}).get("timestamp"))
+                    if parsed is not None:
+                        timestamps.append(parsed)
+            return timestamps
+        if not isinstance(twin, dict):
+            return timestamps
+        for value in twin.values():
+            if not isinstance(value, dict):
+                continue
+            actual = value.get("actual") or value.get("reported")
+            if isinstance(actual, dict):
+                parsed = self._parse_kube_time((actual.get("metadata") or {}).get("timestamp"))
+                if parsed is not None:
+                    timestamps.append(parsed)
+        return timestamps
+
     def _parse_kube_time(self, value: Any) -> datetime | None:
+        if isinstance(value, (int, float)):
+            timestamp = float(value)
+            if timestamp > 1_000_000_000_000:
+                timestamp = timestamp / 1000
+            try:
+                return datetime.fromtimestamp(timestamp, timezone.utc)
+            except (OSError, OverflowError, ValueError):
+                logger.warning("Failed to parse Kubernetes numeric timestamp: %s", value)
+                return None
         if not isinstance(value, str) or not value:
             return None
+        if value.isdigit():
+            return self._parse_kube_time(int(value))
         try:
             return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
         except ValueError:
