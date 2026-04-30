@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: edge-orch-state-aggregator
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: state-aggregator=192.168.0.56:5000/state-aggregator:latest
+    argocd-image-updater.argoproj.io/state-aggregator.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   project: default
   source:
@@ -61,12 +65,17 @@ kind: Application
 metadata:
   name: edge-orch-mqttvirtual-mapper
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: mqttvirtual=192.168.0.56:5000/mqttvirtual:latest
+    argocd-image-updater.argoproj.io/mqttvirtual.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
     path: mappers/mqttvirtual/resource
     targetRevision: main
+    kustomize: {}
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
