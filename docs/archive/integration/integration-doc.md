@@ -1,7 +1,7 @@
 # 통합문서
 
 이 문서는 현재 작업 판단을 빠르게 맞추기 위한 정리본이다.
-긴 실험 로그와 과거 상세 기록은 `docs/통합문서-상세기록.md`에 보존한다.
+긴 실험 로그와 과거 상세 기록은 `docs/archive/integration/integration-detail-log.md`에 보존한다.
 
 ---
 
@@ -498,19 +498,19 @@ stage 예시:
 ## 14. 참고 문서
 
 상세 기록:
-- `docs/통합문서-상세기록.md`
+- `docs/archive/integration/integration-detail-log.md`
 
 핵심 요약:
-- `docs/통합문서-핵심요약.md`
+- `docs/archive/integration/integration-summary.md`
 
 연구/논문 관련:
-- `docs/PAPER_STRATEGY.md`
-- `docs/VENUE_STRATEGY.md`
-- `docs/EVALUATION_PLAN.md`
-- `docs/WRITING_CHECKLIST.md`
+- `docs/research/paper-strategy.md`
+- `docs/research/venue-strategy.md`
+- `docs/research/evaluation-plan.md`
+- `docs/research/writing-checklist.md`
 
 시스템/운영 관련:
-- `docs/system-overview.md`
-- `docs/architecture.md`
+- `docs/archive/legacy-orchestration/system-overview.md`
+- `docs/archive/legacy-orchestration/architecture.md`
 - `docs/troubleshooting-network.md`
-- `edge-orch/handoff.md`
+- `docs/archive/integration/handoff-legacy.md`

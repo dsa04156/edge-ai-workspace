@@ -13,13 +13,13 @@
 
 원본 문서:
 - `AGENTS.md`
-- `docs/system-overview.md`
-- `docs/architecture.md`
-- `docs/연구주제정리.md`
-- `docs/PAPER_STRATEGY.md`
-- `docs/VENUE_STRATEGY.md`
-- `docs/EVALUATION_PLAN.md`
-- `docs/WRITING_CHECKLIST.md`
+- `docs/archive/legacy-orchestration/system-overview.md`
+- `docs/archive/legacy-orchestration/architecture.md`
+- `docs/research/research-topics.md`
+- `docs/research/paper-strategy.md`
+- `docs/research/venue-strategy.md`
+- `docs/research/evaluation-plan.md`
+- `docs/research/writing-checklist.md`
 - `docs/troubleshooting-network.md`
 
 ---
@@ -709,11 +709,11 @@ KubeEdge 기반 mixed-device 제어·관리 플랫폼의 디바이스 계층 검
 새 노드를 클러스터에 붙인 뒤에는 아래 프리플라이트 스크립트로 상태를 먼저 확인한다.
 
 - [scripts/check-worker-node-join.sh](/home/etri/jinuk/edge-orch/scripts/check-worker-node-join.sh)
-- [docs/node-join-check.md](/home/etri/jinuk/edge-orch/docs/node-join-check.md)
+- [docs/ops/node-join-check.md](/home/etri/jinuk/docs/ops/node-join-check.md)
 - [scripts/check-edgecore-node.sh](/home/etri/jinuk/edge-orch/scripts/check-edgecore-node.sh)
-- [docs/edge-node-join-check.md](/home/etri/jinuk/edge-orch/docs/edge-node-join-check.md)
+- [docs/ops/edge-node-join-check.md](/home/etri/jinuk/docs/ops/edge-node-join-check.md)
 - [scripts/check-pod-connectivity.sh](/home/etri/jinuk/edge-orch/scripts/check-pod-connectivity.sh)
-- [docs/pod-connectivity-check.md](/home/etri/jinuk/edge-orch/docs/pod-connectivity-check.md)
+- [docs/ops/pod-connectivity-check.md](/home/etri/jinuk/docs/ops/pod-connectivity-check.md)
 
 예시:
 

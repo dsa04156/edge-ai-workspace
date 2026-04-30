@@ -173,5 +173,5 @@ margin 기본 규칙:
 ## 7. 현재 문서와의 관계
 
 - 진행/실험 결과: `SELECTIVE_REPLANNING_PROGRESS_2026-04-23.md`
-- 연구 방향/메시지: `연구주제정리.md`, `PAPER_STRATEGY.md`
+- 연구 방향/메시지: `docs/research/research-topics.md`, `docs/research/paper-strategy.md`
 - 본 문서: 코드 구현 기준의 비용모델 생성 방식 + 런타임 동작 메커니즘 통합 설명

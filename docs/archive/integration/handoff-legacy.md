@@ -128,4 +128,5 @@ sudo ./mqttvirtual-arm64 --config-file ./config.yaml --v 4 2>&1 | tee mapper.log
 ## Reference
 
 상세 경과 정리:
-- [edge-orch/docs/통합문서.md](/home/etri/jinuk/edge-orch/docs/통합문서.md)
+- [docs/README.md](/home/etri/jinuk/docs/README.md)
+- [docs/archive/integration/integration-doc.md](/home/etri/jinuk/docs/archive/integration/integration-doc.md)

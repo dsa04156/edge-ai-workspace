@@ -52,10 +52,10 @@
 
 | 노드 | hostname | 역할 | 아키텍처 | 가속기 타입 | 메모리 등급 | 계산 등급 | 출처 |
 |---|---|---|---|---|---|---|---|
-| 서버 1 | `etri-ser0001-CG0MSB` | `cloud_server` | `amd64` / `x86_64` | `gpu_server` 또는 `gpu_discrete` | `high` | `high` | `docs/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py`, `placement_engine/tests/test_engine.py` |
-| 서버 2 | `etri-ser0002-CGNMSB` | `cloud_worker` | `amd64` | 미확인 | 미확인 | 미확인 | `docs/architecture.md` |
-| Jetson | `etri-dev0001-jetorn` | `edge_ai_device` | `arm64` / `aarch64` | `gpu_embedded` | 문서상 `low`, 테스트상 `medium` | `medium` | `docs/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py`, `placement_engine/tests/test_engine.py` |
-| Raspberry Pi 5 | `etri-dev0002-raspi5` | `edge_light_device` | `arm64` / `aarch64` | `none` | `low` | `low` | `docs/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py` |
+| 서버 1 | `etri-ser0001-CG0MSB` | `cloud_server` | `amd64` / `x86_64` | `gpu_server` 또는 `gpu_discrete` | `high` | `high` | `docs/archive/legacy-orchestration/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py`, `placement_engine/tests/test_engine.py` |
+| 서버 2 | `etri-ser0002-CGNMSB` | `cloud_worker` | `amd64` | 미확인 | 미확인 | 미확인 | `docs/archive/legacy-orchestration/architecture.md` |
+| Jetson | `etri-dev0001-jetorn` | `edge_ai_device` | `arm64` / `aarch64` | `gpu_embedded` | 문서상 `low`, 테스트상 `medium` | `medium` | `docs/archive/legacy-orchestration/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py`, `placement_engine/tests/test_engine.py` |
+| Raspberry Pi 5 | `etri-dev0002-raspi5` | `edge_light_device` | `arm64` / `aarch64` | `none` | `low` | `low` | `docs/archive/legacy-orchestration/architecture.md`, `workflow_reporter/workflow_reporter/demo_workflow.py` |
 
 주의:
 - Jetson의 `memory_class`는 문서와 테스트 값이 다르므로, 실측 후 하나로 통일하는 것이 좋다.
@@ -200,5 +200,5 @@ vcgencmd get_config arm_boost
 
 이 템플릿을 채운 다음에는 아래 둘 중 하나로 이어가면 된다.
 
-1. `docs/통합문서.md`에 최종 사양 표를 요약본으로 추가
+1. `docs/project-context.md`에 최종 사양 표를 요약본으로 추가
 2. 논문 초안의 실험 환경 섹션에 그대로 옮길 수 있게 4줄짜리 축약 표로 정리
