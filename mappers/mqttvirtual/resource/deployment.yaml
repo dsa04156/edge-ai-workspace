@@ -41,7 +41,7 @@ spec:
             - name: DEVICE_STATES_REPORT_ENABLED
               value: "false"
           image: 192.168.0.56:5000/mqttvirtual:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: 300m
