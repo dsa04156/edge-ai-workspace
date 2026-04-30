@@ -161,16 +161,26 @@ class StateAggregatorService:
         protocol = (spec.get("protocol") or {}).get("protocolName")
         model = (spec.get("deviceModelRef") or {}).get("name")
         twin = self._normalize_twin_payload(status_payload.get("twins") or status_payload.get("twin") or {})
-        telemetry_enabled = any(
-            isinstance(prop, dict)
-            and (bool(prop.get("reportToCloud")) or bool(prop.get("pushMethod")))
-            for prop in properties
-        )
+        telemetry_enabled = any(isinstance(prop, dict) and bool(prop.get("pushMethod")) for prop in properties)
         service_connected = self._device_has_service_binding(name, node_name, workflows)
         device_type = self._classify_device(name, model, protocol)
         telemetry_sample = (telemetry_samples or {}).get(name)
         telemetry_age_seconds = self._telemetry_age_seconds(telemetry_sample)
-        device_status_age_seconds = self._device_status_age_seconds(status_payload)
+        telemetry_fresh = (
+            telemetry_age_seconds is not None
+            and telemetry_age_seconds <= self.settings.telemetry_fresh_seconds
+        )
+        device_status_last_reported_at = self._device_status_last_reported_at(status_payload)
+        device_status_age_seconds = self._age_seconds(device_status_last_reported_at)
+        device_status_fresh = (
+            device_status_age_seconds is not None
+            and device_status_age_seconds <= self.settings.device_status_fresh_seconds
+        )
+        mapper_running = protocol != "mqttvirtual" or bool(node_name and node_name in (mapper_nodes or set()))
+        node_ready = bool(node_name and node_health.get(node_name) != "unavailable")
+        kubeedge_state = self._read_status_field(status_payload, ("state", "status", "phase", "connection", "connected"))
+        health_value = self._reported_twin_value(twin, "health") or self._read_status_field(status_payload, ("health",))
+        severity_value = self._reported_twin_value(twin, "severity")
         health, reason = self._device_health(
             status_payload,
             node_name,
@@ -179,7 +189,12 @@ class StateAggregatorService:
             protocol,
             mapper_nodes or set(),
             telemetry_age_seconds,
-            device_status_age_seconds,
+            device_status_fresh,
+            telemetry_fresh,
+            mapper_running,
+            node_ready,
+            health_value,
+            severity_value,
         )
         return DeviceState(
             name=name,
@@ -187,12 +202,24 @@ class StateAggregatorService:
             device_type=device_type,
             model=model,
             node_name=node_name,
+            nodeName=node_name,
             protocol=protocol,
             properties=property_names,
             telemetry_enabled=telemetry_enabled,
             service_connected=service_connected,
             status=health,
             status_reason=reason,
+            kubeedge_state=kubeedge_state,
+            device_status_fresh=device_status_fresh,
+            device_status_last_reported_at=device_status_last_reported_at,
+            telemetry_fresh=telemetry_fresh,
+            telemetry_last_seen_at=telemetry_sample.timestamp if telemetry_sample else None,
+            mapper_running=mapper_running,
+            node_ready=node_ready,
+            health=health_value,
+            severity=severity_value,
+            overall_status=health,
+            reason=reason,
             telemetry_last_seen=telemetry_sample.timestamp if telemetry_sample else None,
             telemetry_age_seconds=telemetry_age_seconds,
             telemetry_property=telemetry_sample.property if telemetry_sample else None,
@@ -256,43 +283,59 @@ class StateAggregatorService:
         protocol: str | None = None,
         mapper_nodes: set[str] | None = None,
         telemetry_age_seconds: float | None = None,
-        device_status_age_seconds: float | None = None,
+        device_status_fresh: bool = False,
+        telemetry_fresh: bool = False,
+        mapper_running: bool = False,
+        node_ready: bool = False,
+        health_value: str | None = None,
+        severity_value: str | None = None,
     ) -> tuple[str, str]:
         mapper_nodes = mapper_nodes or set()
-        if node_name and node_health.get(node_name) == "unavailable":
-            return "unavailable", "assigned node is unavailable"
-        if device_status_age_seconds is not None and device_status_age_seconds > self.settings.telemetry_fresh_seconds:
-            return "degraded", f"device status stale: last received {int(device_status_age_seconds)}s ago"
-        live_state = self._read_live_device_state(status_payload)
-        if live_state in {"online", "connected", "healthy", "active", "true"}:
-            return "healthy", f"device status is {live_state}"
-        if live_state in {"offline", "disconnected", "failed", "unavailable", "false"}:
-            return "unavailable", f"device status is {live_state}"
-        if node_name and node_health.get(node_name) == "degraded":
-            return "degraded", "assigned node is degraded"
-        twin = status_payload.get("twins") or status_payload.get("twin") or {}
-        if self._has_reported_twin(twin):
-            return "healthy", "device twin reported live values"
-        if telemetry_age_seconds is not None:
-            if telemetry_age_seconds <= self.settings.telemetry_fresh_seconds:
-                return "healthy", f"telemetry received {int(telemetry_age_seconds)}s ago"
-            return "degraded", f"telemetry stale: last received {int(telemetry_age_seconds)}s ago"
         if not node_name:
             return "unavailable", "device is not assigned to a node"
-        if protocol == "mqttvirtual" and node_name not in mapper_nodes:
+        if not node_ready:
+            return "unavailable", "assigned node is unavailable"
+        live_state = self._read_live_device_state(status_payload)
+        if live_state in {"offline", "disconnected", "failed", "unavailable", "false"}:
+            return "unavailable", f"device status is {live_state}"
+        if health_value and health_value.lower() == "offline":
+            return "unavailable", "DeviceStatus health is offline"
+        if protocol == "mqttvirtual" and not mapper_running:
             return "unavailable", "assigned mapper is not running"
-        if node_health.get(node_name) == "healthy" and telemetry_enabled and protocol == "mqttvirtual":
+        if node_health.get(node_name) == "degraded":
+            return "degraded", "assigned node is degraded"
+        if telemetry_enabled and telemetry_fresh and device_status_fresh:
+            if severity_value and severity_value.lower() == "critical":
+                return "degraded", "fresh telemetry and DeviceStatus, but severity is critical"
+            return "healthy", "fresh DeviceStatus reported timestamp and recent telemetry"
+        if telemetry_enabled and telemetry_fresh and not device_status_fresh:
+            return "degraded", "recent telemetry but DeviceStatus snapshot is stale"
+        if telemetry_enabled and not telemetry_fresh and device_status_fresh:
+            if telemetry_age_seconds is None:
+                return "degraded", "DeviceStatus snapshot is fresh but telemetry has not reached InfluxDB"
+            return "degraded", f"DeviceStatus snapshot is fresh but telemetry stale: last received {int(telemetry_age_seconds)}s ago"
+        if telemetry_enabled and not telemetry_fresh and not device_status_fresh:
+            if telemetry_age_seconds is not None:
+                return "degraded", f"telemetry and DeviceStatus stale: telemetry last received {int(telemetry_age_seconds)}s ago"
             return "degraded", "mapper is running but telemetry has not reached InfluxDB"
-        if status_payload.get("reportToCloud") is False:
-            return "unavailable", "no live report from device twin"
-        if not status_payload or set(status_payload).issubset({"reportCycle", "reportToCloud"}):
-            return "unavailable", "no live device status reported"
-        if not telemetry_enabled:
-            return "degraded", "telemetry-to-cloud is disabled"
+        if device_status_fresh:
+            if severity_value and severity_value.lower() == "critical":
+                return "degraded", "fresh DeviceStatus snapshot, but severity is critical"
+            return "healthy", "fresh DeviceStatus snapshot"
         return "degraded", "registered but live status is unknown"
 
     def _read_live_device_state(self, status_payload: dict[str, Any]) -> str | None:
         for key in ("status", "phase", "state", "connection", "connected", "health"):
+            value = status_payload.get(key)
+            if value is None:
+                continue
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            return str(value).lower()
+        return None
+
+    def _read_status_field(self, status_payload: dict[str, Any], keys: tuple[str, ...]) -> str | None:
+        for key in keys:
             value = status_payload.get(key)
             if value is None:
                 continue
@@ -345,7 +388,7 @@ class StateAggregatorService:
         age = datetime.now(timezone.utc) - sample.timestamp
         return max(0.0, round(age.total_seconds(), 3))
 
-    def _device_status_age_seconds(self, status_payload: dict[str, Any]) -> float | None:
+    def _device_status_last_reported_at(self, status_payload: dict[str, Any]) -> datetime | None:
         candidates: list[datetime] = []
         last_seen = self._parse_kube_time(status_payload.get("lastOnlineTime"))
         if last_seen is not None:
@@ -355,8 +398,34 @@ class StateAggregatorService:
         )
         if not candidates:
             return None
-        age = datetime.now(timezone.utc) - max(candidates)
+        return max(candidates)
+
+    def _age_seconds(self, timestamp: datetime | None) -> float | None:
+        if timestamp is None:
+            return None
+        age = datetime.now(timezone.utc) - timestamp
         return max(0.0, round(age.total_seconds(), 3))
+
+    def _reported_twin_value(self, twin: Any, property_name: str) -> str | None:
+        if isinstance(twin, list):
+            for item in twin:
+                if not isinstance(item, dict) or item.get("propertyName") != property_name:
+                    continue
+                reported = item.get("reported")
+                if isinstance(reported, dict) and reported.get("value") not in (None, ""):
+                    return str(reported.get("value")).lower()
+            return None
+        if not isinstance(twin, dict):
+            return None
+        value = twin.get(property_name)
+        if not isinstance(value, dict):
+            return None
+        reported = value.get("reported") or value.get("actual")
+        if isinstance(reported, dict) and reported.get("value") not in (None, ""):
+            return str(reported.get("value")).lower()
+        if reported not in (None, "") and not isinstance(reported, dict):
+            return str(reported).lower()
+        return None
 
     def _reported_twin_timestamps(self, twin: Any) -> list[datetime]:
         timestamps: list[datetime] = []

@@ -32,6 +32,14 @@ spec:
                 secretKeyRef:
                   name: influxdb-token
                   key: token
+            - name: DEVICE_STATUS_FLUSH_SECONDS
+              value: "30"
+            - name: DEVICE_STATUS_JITTER_SECONDS
+              value: "10"
+            - name: DEVICE_STATUS_HEARTBEAT_SECONDS
+              value: "120"
+            - name: DEVICE_STATES_REPORT_ENABLED
+              value: "false"
           image: 192.168.0.56:5000/mqttvirtual:latest
           imagePullPolicy: IfNotPresent
           resources:

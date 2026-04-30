@@ -18,6 +18,8 @@ package device
 
 import (
 	"context"
+	"os"
+	"strings"
 	"time"
 
 	"k8s.io/klog/v2"
@@ -36,6 +38,7 @@ type DeviceStates struct {
 	ReportToCloud   bool
 	ReportCycle     time.Duration
 	lastReported    string
+	lastReportedAt  time.Time
 }
 
 // Run timer function.
@@ -43,6 +46,10 @@ func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 	states, err := deviceStates.Client.GetDeviceStates()
 	if err != nil {
 		klog.Errorf("GetDeviceStates failed: %v", err)
+		return
+	}
+	heartbeatInterval := durationFromEnv("DEVICE_STATES_HEARTBEAT_SECONDS", defaultDeviceStatusHeartbeat)
+	if states == deviceStates.lastReported && time.Since(deviceStates.lastReportedAt) < heartbeatInterval {
 		return
 	}
 	statesRequest := &dmiapi.ReportDeviceStatesRequest{
@@ -57,6 +64,7 @@ func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 		return
 	}
 	deviceStates.lastReported = states
+	deviceStates.lastReportedAt = time.Now()
 }
 
 func (deviceStates *DeviceStates) Run(ctx context.Context) {
@@ -64,11 +72,20 @@ func (deviceStates *DeviceStates) Run(ctx context.Context) {
 	if !deviceStates.ReportToCloud {
 		return
 	}
+	if !envBool("DEVICE_STATES_REPORT_ENABLED", false) {
+		klog.V(2).Infof("DeviceStates reporting disabled for %s", deviceStates.DeviceName)
+		return
+	}
 	// Set device status report cycle
 	if deviceStates.ReportCycle == 0 {
 		deviceStates.ReportCycle = common.DefaultReportCycle
 	}
+	minCycle := durationFromEnv("DEVICE_STATES_MIN_REPORT_SECONDS", 60*time.Second)
+	if deviceStates.ReportCycle < minCycle {
+		deviceStates.ReportCycle = minCycle
+	}
 	ticker := time.NewTicker(deviceStates.ReportCycle)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
@@ -77,4 +94,12 @@ func (deviceStates *DeviceStates) Run(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func envBool(name string, fallback bool) bool {
+	raw := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	if raw == "" {
+		return fallback
+	}
+	return raw == "1" || raw == "true" || raw == "yes" || raw == "on"
 }

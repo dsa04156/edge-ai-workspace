@@ -112,12 +112,24 @@ class DeviceState(BaseModel):
     device_type: str
     model: str | None = None
     node_name: str | None = None
+    nodeName: str | None = None
     protocol: str | None = None
     properties: list[str] = Field(default_factory=list)
     telemetry_enabled: bool = False
     service_connected: bool = False
     status: HealthLevel
     status_reason: str
+    kubeedge_state: str | None = None
+    device_status_fresh: bool = False
+    device_status_last_reported_at: datetime | None = None
+    telemetry_fresh: bool = False
+    telemetry_last_seen_at: datetime | None = None
+    mapper_running: bool = False
+    node_ready: bool = False
+    health: str | None = None
+    severity: str | None = None
+    overall_status: HealthLevel
+    reason: str
     telemetry_last_seen: datetime | None = None
     telemetry_age_seconds: float | None = None
     telemetry_property: str | None = None

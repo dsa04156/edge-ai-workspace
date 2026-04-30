@@ -41,8 +41,12 @@ spec:
               value: device_telemetry
             - name: INFLUXDB_MEASUREMENT
               value: virtual_device_telemetry
+            - name: DEVICE_STATUS_FRESH_SECONDS
+              value: "90"
             - name: TELEMETRY_FRESH_SECONDS
-              value: "120"
+              value: "30"
+            - name: MAPPER_HEARTBEAT_FRESH_SECONDS
+              value: "60"
             - name: TELEMETRY_QUERY_WINDOW
               value: "-30m"
             - name: INFLUXDB_TOKEN

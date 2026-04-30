@@ -11,7 +11,7 @@ kubectl apply -f "$ROOT/devices.yaml"
 while read -r device_name; do
   [[ -n "$device_name" ]] || continue
   kubectl patch --subresource=status device "$device_name" -n "$NAMESPACE" --type merge -p \
-    '{"status":{"reportToCloud":true,"reportCycle":30000}}'
+    '{"status":{"reportToCloud":false,"reportCycle":120000}}'
 done < <(awk '/^kind: Device$/{in_device=1; next} in_device && /^  name: /{print $2; in_device=0}' "$ROOT/devices.yaml")
 
 kubectl get devicemodel,device,devicestatus -n default

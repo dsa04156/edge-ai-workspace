@@ -109,7 +109,13 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
                 "spec": {
                     "deviceModelRef": {"name": "virtual-env-model"},
                     "nodeName": "etri-dev0001-jetorn",
-                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                        "properties": [
+                            {
+                                "name": "temperature",
+                                "reportToCloud": False,
+                                "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                            }
+                        ],
                     "protocol": {"protocolName": "mqttvirtual"},
                 },
                 "status": {
@@ -226,7 +232,9 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
     assert response.status_code == 200
     device = response.json()["devices"][0]
     assert device["status"] == "healthy"
-    assert device["status_reason"] == "device status is online"
+    assert device["status_reason"] == "fresh DeviceStatus snapshot"
+    assert device["device_status_fresh"] is True
+    assert device["telemetry_fresh"] is False
     assert device["twin"]["health"]["reported"]["value"] == "ok"
 
 
@@ -304,7 +312,9 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
     assert response.status_code == 200
     device = response.json()["devices"][0]
     assert device["status"] == "healthy"
-    assert device["status_reason"] == "device twin reported live values"
+    assert device["status_reason"] == "fresh DeviceStatus snapshot"
+    assert device["device_status_fresh"] is True
+    assert device["device_status_last_reported_at"] is not None
 
 
 def test_dashboard_page_is_served():
@@ -321,7 +331,13 @@ def test_device_without_running_mapper_is_unavailable():
             "metadata": {"name": "env-device-offline", "namespace": "default"},
             "spec": {
                 "nodeName": "etri-dev0001-jetorn",
-                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "properties": [
+                    {
+                        "name": "temperature",
+                        "reportToCloud": False,
+                        "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                    }
+                ],
                 "protocol": {"protocolName": "mqttvirtual"},
             },
             "status": {"reportToCloud": False, "reportCycle": 60000},
@@ -351,7 +367,7 @@ def test_device_with_running_mapper_is_degraded_without_twin_report():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason == "mapper is running but telemetry has not reached InfluxDB"
+    assert device.status_reason == "registered but live status is unknown"
 
 
 def test_device_with_recent_influx_telemetry_is_healthy():
@@ -384,9 +400,11 @@ def test_device_with_recent_influx_telemetry_is_healthy():
         },
     )
 
-    assert device.status == "healthy"
-    assert device.status_reason.startswith("telemetry received ")
+    assert device.status == "degraded"
+    assert device.status_reason == "recent telemetry but DeviceStatus snapshot is stale"
     assert device.telemetry_enabled is True
+    assert device.telemetry_fresh is True
+    assert device.device_status_fresh is False
     assert device.telemetry_property == "temperature"
     assert device.telemetry_value == "24.1"
 
@@ -397,7 +415,13 @@ def test_device_with_stale_influx_telemetry_is_degraded():
             "metadata": {"name": "env-device-01", "namespace": "default"},
             "spec": {
                 "nodeName": "etri-dev0001-jetorn",
-                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "properties": [
+                    {
+                        "name": "temperature",
+                        "reportToCloud": False,
+                        "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                    }
+                ],
                 "protocol": {"protocolName": "mqttvirtual"},
             },
             "status": {},
@@ -416,7 +440,7 @@ def test_device_with_stale_influx_telemetry_is_degraded():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason.startswith("telemetry stale: ")
+    assert device.status_reason.startswith("telemetry and DeviceStatus stale: ")
 
 
 def test_dashboard_kpis_separate_operational_and_live_devices():
@@ -426,12 +450,19 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
                 "metadata": {"name": "env-live", "namespace": "default"},
                 "spec": {
                     "nodeName": "etri-dev0001-jetorn",
-                    "properties": [{"name": "temperature", "reportToCloud": True}],
+                    "properties": [
+                        {
+                            "name": "temperature",
+                            "reportToCloud": False,
+                            "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                        }
+                    ],
                     "protocol": {"protocolName": "mqttvirtual"},
                 },
-                "status": {
-                    "twins": {"temperature": {"actual": {"value": "24.1"}}},
-                },
+                    "status": {
+                        "lastOnlineTime": datetime.now(timezone.utc).isoformat(),
+                        "twins": {"health": {"actual": {"value": "ok"}}},
+                    },
             },
             node_health={"etri-dev0001-jetorn": "healthy"},
             workflows=[],

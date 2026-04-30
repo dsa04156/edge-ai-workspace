@@ -179,6 +179,8 @@ function renderScenario(devices, kpis) {
             <div class="meta">
               <span>${text(device.model, "model unknown")}</span>
               <span>${text(device.protocol, "protocol unknown")}</span>
+              <span>DeviceStatus: ${device.device_status_fresh ? "fresh" : "stale"}</span>
+              <span>Telemetry: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
               <span>${text(device.telemetry_property, "no property")}: ${text(device.telemetry_value, "no value")}</span>
               <span>${text(device.status_reason)}</span>
             </div>

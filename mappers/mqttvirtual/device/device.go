@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -29,8 +31,11 @@ import (
 	"github.com/kubeedge/mqttvirtual/driver"
 )
 
-const eventTwinFlushInterval = 5 * time.Second
-const minDeviceStatusReportInterval = 30 * time.Second
+const (
+	defaultDeviceStatusFlushInterval = 30 * time.Second
+	defaultDeviceStatusJitter        = 10 * time.Second
+	defaultDeviceStatusHeartbeat     = 120 * time.Second
+)
 
 type DevPanel struct {
 	deviceMuxs   map[string]context.CancelFunc
@@ -203,7 +208,11 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 }
 
 func shouldReportAsTwinProperty(twin *common.Twin) bool {
-	return twin != nil && twin.Property != nil
+	if twin == nil || twin.Property == nil {
+		return false
+	}
+	_, allowed := deviceStatusPropertyAllowlist[twin.PropertyName]
+	return allowed
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
@@ -211,11 +220,14 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 		return
 	}
 
+	flushInterval := durationFromEnv("DEVICE_STATUS_FLUSH_SECONDS", defaultDeviceStatusFlushInterval)
+	jitter := durationFromEnv("DEVICE_STATUS_JITTER_SECONDS", defaultDeviceStatusJitter)
+	heartbeatInterval := durationFromEnv("DEVICE_STATUS_HEARTBEAT_SECONDS", defaultDeviceStatusHeartbeat)
 	pending := make(map[string]*TwinData)
 	lastReported := make(map[string]string)
 	lastReportTime := make(map[string]time.Time)
-	ticker := time.NewTicker(eventTwinFlushInterval)
-	defer ticker.Stop()
+	timer := time.NewTimer(nextFlushDelay(flushInterval, jitter))
+	defer timer.Stop()
 
 	flush := func() {
 		if len(pending) == 0 {
@@ -234,11 +246,18 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 				if reportedTwin == nil {
 					continue
 				}
-				if lastSentAt, ok := lastReportTime[key]; ok && time.Since(lastSentAt) < minDeviceStatusReportInterval {
+				currentValue := reportedTwin.GetReported().GetValue()
+				lastValue, reportedBefore := lastReported[key]
+				lastSentAt, sentBefore := lastReportTime[key]
+				changed := !reportedBefore || lastValue != currentValue
+				heartbeatDue := !sentBefore || time.Since(lastSentAt) >= heartbeatInterval
+				if !changed && !heartbeatDue {
+					continue
+				}
+				if sentBefore && time.Since(lastSentAt) < flushInterval {
 					nextPending[key] = twinData
 					continue
 				}
-				currentValue := reportedTwin.GetReported().GetValue()
 				lastReported[key] = currentValue
 				lastReportTime[key] = time.Now()
 				twins = append(twins, reportedTwin)
@@ -272,13 +291,51 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 				}
 				pending[key] = twinData
 			}
-		case <-ticker.C:
+		case <-timer.C:
 			flush()
+			timer.Reset(nextFlushDelay(flushInterval, jitter))
 		case <-ctx.Done():
 			flush()
 			return
 		}
 	}
+}
+
+var deviceStatusPropertyAllowlist = map[string]struct{}{
+	"health":                  {},
+	"severity":                {},
+	"alarm_latched":           {},
+	"power":                   {},
+	"mode":                    {},
+	"sampling_interval":       {},
+	"config_version":          {},
+	"reported_config_version": {},
+	"command_state":           {},
+	"last_error_code":         {},
+	"last_error_message":      {},
+	"temperature_status":      {},
+	"humidity_status":         {},
+	"vibration_status":        {},
+}
+
+func durationFromEnv(name string, fallback time.Duration) time.Duration {
+	raw := os.Getenv(name)
+	if raw == "" {
+		return fallback
+	}
+	seconds, err := strconv.Atoi(raw)
+	if err != nil || seconds <= 0 {
+		klog.Warningf("invalid %s=%q, using %s", name, raw, fallback)
+		return fallback
+	}
+	return time.Duration(seconds) * time.Second
+}
+
+func nextFlushDelay(interval, jitter time.Duration) time.Duration {
+	if jitter <= 0 {
+		return interval
+	}
+	return interval + time.Duration(rand.Int63n(int64(jitter)))
 }
 
 // pushHandler start data panel work
