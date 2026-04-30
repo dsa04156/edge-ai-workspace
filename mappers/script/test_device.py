@@ -23,9 +23,10 @@ MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 TOPIC_PREFIX = os.getenv("TOPIC_PREFIX", "factory/devices").rstrip("/")
 QOS = int(os.getenv("MQTT_QOS", "1"))
 PUBLISH_JITTER = float(os.getenv("PUBLISH_JITTER", "0.3"))
-ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "1") not in {"0", "false", "False"}
+ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "0") not in {"0", "false", "False"}
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "30"))
 DEVICE_FILTER = {item.strip() for item in os.getenv("DEVICE_FILTER", "").split(",") if item.strip()}
+DEVICE_PLAN = os.getenv("DEVICE_PLAN", "all").strip().lower()
 SELF_TEST = os.getenv("SELF_TEST", "0") in {"1", "true", "True"}
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "stable").strip().lower()
 ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.0"))
@@ -34,6 +35,9 @@ VIB_ALARM_HIGH_THRESHOLD = float(os.getenv("VIB_ALARM_HIGH_THRESHOLD", "1.8"))
 VIB_ALARM_LOW_THRESHOLD = float(os.getenv("VIB_ALARM_LOW_THRESHOLD", "1.2"))
 VIB_ALARM_SET_COUNT = int(os.getenv("VIB_ALARM_SET_COUNT", "2"))
 VIB_ALARM_CLEAR_COUNT = int(os.getenv("VIB_ALARM_CLEAR_COUNT", "3"))
+
+JETSON_NODE = "etri-dev0001-jetorn"
+RPI_NODE = "etri-dev0002-raspi5"
 
 
 @dataclass
@@ -158,6 +162,8 @@ DEVICES: List[VirtualDevice] = [
     VirtualDevice("vib-device-05", "vib", 5),
     VirtualDevice("vib-device-06", "vib", 5),
 
+    VirtualDevice("temp-device-01", "temp", 5),
+
     VirtualDevice("rpi-env-device-01", "env", 5),
     VirtualDevice("rpi-env-device-02", "env", 5),
     VirtualDevice("rpi-env-device-03", "env", 5),
@@ -173,8 +179,74 @@ DEVICES: List[VirtualDevice] = [
 ]
 
 
+RPI_DEVICE_IDS = {
+    "rpi-act-device-01",
+    "rpi-act-device-02",
+    "rpi-act-device-03",
+    "rpi-env-device-01",
+    "rpi-env-device-02",
+    "rpi-env-device-03",
+    "rpi-env-device-04",
+    "rpi-vib-device-01",
+    "rpi-vib-device-02",
+    "rpi-vib-device-03",
+}
+
+DEVICE_PLANS = {
+    "all": None,
+    "jetson": {
+        "node": JETSON_NODE,
+        "devices": {
+            "act-device-01",
+            "act-device-02",
+            "act-device-03",
+            "act-device-04",
+            "act-device-05",
+            "act-device-06",
+            "env-device-01",
+            "env-device-02",
+            "env-device-03",
+            "env-device-04",
+            "env-device-05",
+            "env-device-06",
+            "env-device-07",
+            "env-device-08",
+            "vib-device-01",
+            "vib-device-02",
+            "vib-device-03",
+            "vib-device-04",
+            "vib-device-05",
+            "vib-device-06",
+            "temp-device-01",
+        },
+    },
+    "rpi": {
+        "node": RPI_NODE,
+        "devices": RPI_DEVICE_IDS,
+    },
+    "raspi": {
+        "node": RPI_NODE,
+        "devices": RPI_DEVICE_IDS,
+    },
+}
+
+
 def select_devices() -> List[VirtualDevice]:
-    return [d for d in DEVICES if not DEVICE_FILTER or d.device_id in DEVICE_FILTER]
+    plan = DEVICE_PLANS.get(DEVICE_PLAN)
+    plan_devices = None if plan is None else plan["devices"]
+    return [
+        d
+        for d in DEVICES
+        if (plan_devices is None or d.device_id in plan_devices)
+        and (not DEVICE_FILTER or d.device_id in DEVICE_FILTER)
+    ]
+
+
+def selected_node() -> str:
+    plan = DEVICE_PLANS.get(DEVICE_PLAN)
+    if plan is None:
+        return "all"
+    return plan["node"]
 
 
 def expected_keys(device_type: str) -> set[str]:
@@ -262,9 +334,14 @@ def main():
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
+    if DEVICE_PLAN not in DEVICE_PLANS:
+        allowed = ", ".join(sorted(DEVICE_PLANS))
+        print(f"[ERROR] Unknown DEVICE_PLAN={DEVICE_PLAN!r}. Allowed values: {allowed}")
+        sys.exit(1)
+
     devices = select_devices()
     if not devices:
-        print("[ERROR] No devices selected. Check DEVICE_FILTER.")
+        print(f"[ERROR] No devices selected. Check DEVICE_PLAN={DEVICE_PLAN!r} and DEVICE_FILTER.")
         sys.exit(1)
 
     if SELF_TEST:
@@ -288,8 +365,13 @@ def main():
         client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
     print(f"[INFO] topic prefix: {TOPIC_PREFIX}")
-    print(f"[INFO] broker={BROKER_HOST}:{BROKER_PORT} qos={QOS} heartbeat={ENABLE_HEARTBEAT} device_count={len(devices)}")
-
+    print(
+        f"[INFO] broker={BROKER_HOST}:{BROKER_PORT} "
+        f"qos={QOS} heartbeat={ENABLE_HEARTBEAT} "
+        f"heartbeat_topic=legacy-debug-only "
+        f"device_plan={DEVICE_PLAN} target_node={selected_node()} "
+        f"device_count={len(devices)}"
+    )
     client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
     client.loop_start()
 
