@@ -27,7 +27,9 @@ ENABLE_HEARTBEAT = os.getenv("ENABLE_HEARTBEAT", "1") not in {"0", "false", "Fal
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "30"))
 DEVICE_FILTER = {item.strip() for item in os.getenv("DEVICE_FILTER", "").split(",") if item.strip()}
 SELF_TEST = os.getenv("SELF_TEST", "0") in {"1", "true", "True"}
-ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.15"))
+SIMULATION_MODE = os.getenv("SIMULATION_MODE", "stable").strip().lower()
+ACT_STATE_CHANGE_PROBABILITY = float(os.getenv("ACT_STATE_CHANGE_PROBABILITY", "0.0"))
+VIB_NORMAL_MAX = float(os.getenv("VIB_NORMAL_MAX", "1.0"))
 VIB_ALARM_HIGH_THRESHOLD = float(os.getenv("VIB_ALARM_HIGH_THRESHOLD", "1.8"))
 VIB_ALARM_LOW_THRESHOLD = float(os.getenv("VIB_ALARM_LOW_THRESHOLD", "1.2"))
 VIB_ALARM_SET_COUNT = int(os.getenv("VIB_ALARM_SET_COUNT", "2"))
@@ -66,7 +68,8 @@ class VirtualDevice:
             }
 
         if self.device_type == "vib":
-            vibration = round(random.uniform(0.2, 2.5), 3)
+            upper_bound = 2.5 if SIMULATION_MODE in {"random", "fault", "faulty"} else VIB_NORMAL_MAX
+            vibration = round(random.uniform(0.2, upper_bound), 3)
             if vibration >= VIB_ALARM_HIGH_THRESHOLD:
                 self.alarm_high_count += 1
                 self.alarm_low_count = 0
@@ -98,9 +101,9 @@ class VirtualDevice:
             }
 
         if self.device_type == "act":
-            if random.random() < ACT_STATE_CHANGE_PROBABILITY:
+            if SIMULATION_MODE in {"random", "fault", "faulty"} and random.random() < ACT_STATE_CHANGE_PROBABILITY:
                 self.last_power = "off" if self.last_power == "on" else "on"
-            if random.random() < ACT_STATE_CHANGE_PROBABILITY:
+            if SIMULATION_MODE in {"random", "fault", "faulty"} and random.random() < ACT_STATE_CHANGE_PROBABILITY:
                 choices = [item for item in ["auto", "manual", "idle"] if item != self.last_mode]
                 self.last_mode = random.choice(choices)
             return {
