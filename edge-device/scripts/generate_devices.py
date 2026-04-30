@@ -4,10 +4,10 @@ from dataclasses import dataclass
 
 
 NAMESPACE = "default"
-NODE_NAME = os.getenv("EDGE_NODE_NAME", "etri-dev0001-jetorn")
 BROKER = "tcp://127.0.0.1:1883"
 TOPIC_PREFIX = "factory/devices"
-CYCLE_MS = 60000
+STATUS_PROPERTY_CYCLE_MS = int(os.getenv("STATUS_PROPERTY_CYCLE_MS", "60000"))
+RAW_TELEMETRY_CYCLE_MS = int(os.getenv("RAW_TELEMETRY_CYCLE_MS", "60000"))
 OFFLINE_AFTER_MS = 15000
 STATE_REPORT_CYCLE_MS = 120000
 INFLUX_URL = os.getenv("INFLUX_URL", "http://influxdb.telemetry.svc.cluster.local:8086")
@@ -15,6 +15,15 @@ INFLUX_ORG = os.getenv("INFLUX_ORG", "edgeai")
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "device_telemetry")
 INFLUX_MEASUREMENT = os.getenv("INFLUX_MEASUREMENT", "virtual_device_telemetry")
 DEVICE_PLAN = os.getenv("DEVICE_PLAN", "jetson")
+
+
+def default_node_name() -> str:
+    if DEVICE_PLAN == "rpi":
+        return "etri-dev0002-raspi5"
+    return "etri-dev0001-jetorn"
+
+
+NODE_NAME = os.getenv("EDGE_NODE_NAME", default_node_name())
 
 
 @dataclass(frozen=True)
@@ -103,10 +112,11 @@ def emit_device(group: DeviceGroup, index: int) -> str:
     for key in group.telemetry_keys:
         report_to_cloud = "true" if key in group.status_keys else "false"
         push_method = emit_influx_push_method(device_name, group.prefix, key) if should_store_to_influx(key) else ""
+        cycle_ms = RAW_TELEMETRY_CYCLE_MS if should_store_to_influx(key) else STATUS_PROPERTY_CYCLE_MS
         props.append(
             f"""  - name: {key}
-    collectCycle: {CYCLE_MS}
-    reportCycle: {CYCLE_MS}
+    collectCycle: {cycle_ms}
+    reportCycle: {cycle_ms}
     reportToCloud: {report_to_cloud}
     visitors:
       protocolName: mqttvirtual

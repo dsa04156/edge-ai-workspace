@@ -6,7 +6,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-env-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: temperature
     collectCycle: 60000
@@ -95,7 +95,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-env-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: temperature
     collectCycle: 60000
@@ -184,7 +184,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-env-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: temperature
     collectCycle: 60000
@@ -273,7 +273,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-env-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: temperature
     collectCycle: 60000
@@ -362,7 +362,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-vib-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: vibration
     collectCycle: 60000
@@ -446,7 +446,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-vib-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: vibration
     collectCycle: 60000
@@ -530,7 +530,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-vib-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: vibration
     collectCycle: 60000
@@ -614,7 +614,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-act-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: power
     collectCycle: 60000
@@ -675,7 +675,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-act-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: power
     collectCycle: 60000
@@ -736,7 +736,7 @@ metadata:
 spec:
   deviceModelRef:
     name: virtual-act-model
-  nodeName: etri-dev0001-jetorn
+  nodeName: etri-dev0002-raspi5
   properties:
   - name: power
     collectCycle: 60000

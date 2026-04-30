@@ -44,7 +44,7 @@ spec:
             - name: DEVICE_STATUS_FRESH_SECONDS
               value: "90"
             - name: TELEMETRY_FRESH_SECONDS
-              value: "30"
+              value: "90"
             - name: MAPPER_HEARTBEAT_FRESH_SECONDS
               value: "60"
             - name: TELEMETRY_QUERY_WINDOW

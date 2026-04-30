@@ -40,7 +40,7 @@ class Settings(BaseModel):
         default_factory=lambda: os.getenv("INFLUXDB_MEASUREMENT", "virtual_device_telemetry")
     )
     telemetry_fresh_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("TELEMETRY_FRESH_SECONDS", "30"))
+        default_factory=lambda: int(os.getenv("TELEMETRY_FRESH_SECONDS", "90"))
     )
     device_status_fresh_seconds: int = Field(
         default_factory=lambda: int(os.getenv("DEVICE_STATUS_FRESH_SECONDS", "90"))
