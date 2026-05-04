@@ -58,3 +58,18 @@ jobs:
             -f edge-orch/vision_stage_runner/Dockerfile \
             edge-orch/vision_stage_runner \
             --push
+
+      - name: Deploy state-aggregator latest image
+        run: |
+          CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
+          TARGET_IMAGE=${{ env.REGISTRY }}/state-aggregator:latest
+
+          kubectl set image deployment/state-aggregator \
+            state-aggregator=${TARGET_IMAGE} \
+            -n default
+
+          if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
+            kubectl rollout restart deployment/state-aggregator -n default
+          fi
+
+          kubectl rollout status deployment/state-aggregator -n default --timeout=180s
