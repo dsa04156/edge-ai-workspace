@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app, service
 from app.influx import InfluxTelemetryClient, TelemetrySample
-from app.models import NodeState, WorkflowState
+from app.models import DeviceState, NodeState, WorkflowState
 
 
 def test_metrics_exposes_node_and_workflow_gauges():
@@ -317,12 +317,53 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
     assert device["device_status_last_reported_at"] is not None
 
 
+def test_dashboard_kpis_use_service_binding_names():
+    devices = [
+        DeviceState(
+            name="vib-device-01",
+            namespace="default",
+            device_type="sensor_device",
+            node_name="etri-dev0001-jetorn",
+            nodeName="etri-dev0001-jetorn",
+            protocol="mqttvirtual",
+            telemetry_enabled=True,
+            service_connected=True,
+            status="healthy",
+            status_reason="fresh DeviceStatus reported timestamp and recent telemetry",
+            overall_status="healthy",
+            reason="fresh DeviceStatus reported timestamp and recent telemetry",
+        ),
+        DeviceState(
+            name="rpi-env-device-01",
+            namespace="default",
+            device_type="sensor_device",
+            node_name="etri-dev0002-raspi5",
+            nodeName="etri-dev0002-raspi5",
+            protocol="mqttvirtual",
+            telemetry_enabled=True,
+            service_connected=False,
+            status="degraded",
+            status_reason="mapper is running but telemetry has not reached InfluxDB",
+            overall_status="degraded",
+            reason="mapper is running but telemetry has not reached InfluxDB",
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis([], devices, [])
+
+    assert kpis["service_bound_device_count"] == 1
+    assert kpis["device_service_binding_ratio"] == 0.5
+    assert "workflow_bound_device_count" not in kpis
+    assert "device_workflow_binding_ratio" not in kpis
+
+
 def test_dashboard_page_is_served():
     with TestClient(app) as client:
         response = client.get("/dashboard")
 
     assert response.status_code == 200
     assert "디바이스 운영 대시보드" in response.text
+    assert "서비스 바인딩" in response.text
 
 
 def test_device_without_running_mapper_is_unavailable():

@@ -35,6 +35,11 @@
           <strong id="telemetryRatio">0%</strong>
           <span id="telemetryCaption">0 devices</span>
         </article>
+        <article class="metric">
+          <span class="metric-label">서비스 바인딩</span>
+          <strong id="serviceBindingCount">0</strong>
+          <span id="serviceBindingRatio">0%</span>
+        </article>
         <article class="metric attention">
           <span class="metric-label">Operator Focus</span>
           <strong id="focusCount">0</strong>
@@ -63,7 +68,7 @@
         <section class="panel relations">
           <div class="panel-head">
             <h2>연결 관계</h2>
-            <span>Device -> Edge Node -> Twin/Telemetry</span>
+            <span>Device -> Edge Node -> Telemetry/Status -> Service Demo</span>
           </div>
           <div id="relationList" class="relation-list"></div>
         </section>
@@ -95,7 +100,7 @@
               <strong id="handlingKpi">visible</strong>
             </div>
           </div>
-          <div id="deviceStatusList" class="workflow-list"></div>
+          <div id="deviceStatusList" class="device-status-list"></div>
         </section>
       </section>
     </main>

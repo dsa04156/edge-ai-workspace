@@ -5,10 +5,16 @@
 
 ## Active Guides
 
+- `scope.md`: 현재 PoC 범위, 제외 범위, 문서 표현 기준
+- `repo-structure.md`: 레포 디렉터리 역할과 현재/보조/제외/보관 분류
 - `project-context.md`: 과제 배경, 현재 목표, 테스트베드, 디바이스 등록/토픽 규칙
+- `current-demo-path.md`: 현재 디바이스/MQTT/mapper/telemetry/state-aggregator/dashboard 연결 경로
+- `device-service-binding.md`: 디바이스와 서비스 데모의 운영 관점 연결 구조
+- `service-demo-scenario.md`: 혼합 디바이스 기반 설비 상태 모니터링 서비스 데모 시나리오
+- `dashboard-information-structure.md`: dashboard에 표시할 node/device/service/KPI 정보 구조
 - `device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `dashboard-policy.md`: 대시보드 상태 판단 기준
-- `roadmap.md`: 동적 오프로딩, agent-assisted planning 후속 계획
+- `roadmap.md`: 현재 산출물과 단계별 작업 방향
 
 ## Operations
 
@@ -17,6 +23,7 @@
 - `ops/pod-connectivity-check.md`: pod 연결성 점검
 - `ops/troubleshooting-network.md`: 네트워크/EdgeMesh 복구 기록
 - `ops/node-spec-template.md`: 노드 실측 사양표 템플릿
+- `ops/runbook-current-demo.md`: 현재 서비스 데모 경로 실행/점검 runbook
 
 ## Research
 

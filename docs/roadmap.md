@@ -2,7 +2,7 @@
 
 ## 현재 단계
 
-현재 단계는 서비스 데모와 운영 가시화가 우선이다.
+현재 단계는 서비스 데모와 통합 운영 가시화가 우선이다.
 
 목표:
 
@@ -12,9 +12,9 @@
 4. 옥동 시나리오 등 현장 적용 효과를 생산성 언어로 설명한다.
 
 현재 데모 운영 경로는 `state-aggregator` 중심으로 단순화한다.
-워크플로우 실행기, placement engine, workflow reporter는 현행 데모 경로에서 핵심 컴포넌트로 두지 않는다.
+워크플로우 실행기, placement engine, workflow reporter, 동적 offloading 계열은 현행 연구 방향과 데모 경로에서 제외한다.
 
-## 다음 산출물
+## 현재 산출물
 
 즉시 필요한 산출물:
 
@@ -24,53 +24,73 @@
 4. 통합 대시보드 정보 구조 정의서
 5. 옥동 시나리오 생산성 KPI 정의서
 
-그 다음 산출물:
+그 다음 정리 산출물:
 
-1. 연차별 정량 목표 재정리표
-2. 1000 디바이스 실증 단계 계획
-3. 논문/특허/표준 실적 계획표
+1. 현재 PoC 범위 정의서
+2. 레포 구조와 컴포넌트 역할표
+3. 현재 데모 실행/점검 runbook
+4. 운영 상태 판단 기준과 troubleshooting guide
+5. 실공장 적용성 설명 자료
 
-## 후속 고도화
+## 현재 구현 방향
 
-데모와 연결 구조가 안정화된 뒤 다음 기능을 단계적으로 붙인다.
-
-- 동적 워크플로우 분해 및 재배치
-- 서비스 분할 및 오프로딩 고도화
-- 컨테이너 기반 가상 디바이스 / 서비스 태스크 구조
-- 런타임 리플래닝
-- 엣지 단독 학습 상황 대응
-- 자원 스케줄링 고도화
-- CXL 등 확장 자원 활용
-- agent-assisted planning layer
-
-## 동적 오프로딩 방향
-
-장기적으로는 다음 흐름을 목표로 한다.
+현재 구현은 다음 흐름을 기준으로 한다.
 
 ```text
-device/service event
-  -> state-aggregator 상태 관측
-  -> placement/cost model 판단
-  -> 재배치 또는 offloading action
-  -> 실행 결과와 비용 feedback
+physical / virtual device
+  -> MQTT telemetry / command topic
+  -> mqttvirtual mapper
+  -> KubeEdge DeviceStatus snapshot
+  -> InfluxDB raw telemetry data-plane
+  -> state-aggregator
+  -> dashboard / service demo view
 ```
 
-다만 현재 문서와 발표에서는 동적 오프로딩이 이미 완성된 것처럼 표현하지 않는다.
-현재는 단계적 확장 방향으로 유지한다.
+핵심은 디바이스, 서비스, 노드, telemetry, 운영 상태를 하나의 설명 가능한 PoC 경로로 연결하는 것이다.
 
-## Agent-assisted Planning
+## 현재 범위에서 제외하는 경로
 
-agent-assisted planning은 운영자 의사결정을 보조하는 계층으로 둔다.
+다음 경로는 현재 연구 방향에서 진행하지 않는다.
+새 문서나 발표자료에서 후속 고도화 또는 예정 기능처럼 표현하지 않는다.
 
-초기 역할:
+- 동적 workflow 분해/실행
+- runtime replanning
+- placement engine 기반 자동 재배치
+- cost model 기반 offloading 판단
+- workflow_executor 중심 orchestration
+- workflow_reporter 중심 stage event pipeline
+- agent-assisted planning layer
+- LLM이 전체 플랫폼 제어를 수행하는 구조
+- 전체 플랫폼 자율 제어형 orchestration
 
-- 장애 원인 후보 정리
-- 배치 후보 비교
-- 실험/검증 절차 추천
-- 문서와 운영 로그 기반 리포트 생성
+위 항목들은 필요한 경우 과거 검토/실험 자료 또는 archive로만 다룬다.
 
-제어권 원칙:
+## 정리 우선순위
 
-- agent가 전체 플랫폼 제어를 자율 수행한다고 주장하지 않는다.
-- 중요한 배치/재시작/오프로딩 action은 정책 엔진 또는 운영자 승인 경로를 둔다.
-- 데모 단계에서는 추천과 설명 중심으로 제한한다.
+1. 현재 PoC 범위와 제외 범위를 문서화한다.
+2. 현재 데모 경로와 관련 컴포넌트를 명확히 표시한다.
+3. 디바이스-서비스 바인딩 명세를 작성한다.
+4. 서비스 데모 시나리오를 작성한다.
+5. 대시보드에서 보여줄 정보 구조와 KPI를 정리한다.
+6. 기존 workflow/offloading/agent-planning 문서는 현재 경로와 분리한다.
+
+## 문서 표현 원칙
+
+유지할 표현:
+
+- 서비스 데모 우선
+- 디바이스-서비스 연결 구조
+- 통합 운영 가시화
+- 실공장 기반 PoC
+- 현장 적용성
+- 생산성 향상 효과
+- 단계적 구현
+
+피할 표현:
+
+- 전체 플랫폼 자율 제어형 orchestration을 실증 완료처럼 보이게 하는 표현
+- LLM 기반 전역 제어를 현재 기능처럼 보이게 하는 표현
+- 동적 workflow 실행이 이미 완료된 것처럼 보이는 표현
+- offloading 고도화가 다음 확정 단계인 것처럼 보이는 표현
+- agent-assisted planning이 현재 연구 방향인 것처럼 보이는 표현
+- 고도화 기능이 이미 실증 완료된 것처럼 보이는 표현

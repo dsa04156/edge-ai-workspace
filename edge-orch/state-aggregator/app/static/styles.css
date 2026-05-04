@@ -166,7 +166,7 @@ h3 {
 
 .stack,
 .alert-list,
-.workflow-list {
+.device-status-list {
   display: grid;
   gap: 8px;
 }

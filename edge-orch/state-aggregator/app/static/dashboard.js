@@ -54,6 +54,8 @@ function render() {
   setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} available · ${text(kpis.live_device_count, 0)} live`);
   setText("telemetryRatio", pct(kpis.device_telemetry_ratio));
   setText("telemetryCaption", `${telemetry} devices`);
+  setText("serviceBindingCount", text(kpis.service_bound_device_count, 0));
+  setText("serviceBindingRatio", `${pct(kpis.device_service_binding_ratio)} bound`);
   setText("focusCount", text(kpis.operator_focus_count, 0));
   setText("assetCount", `${(data.nodes || []).length + (data.devices || []).length} assets`);
   setText("riskCount", `${unavailableDevices} unavailable · ${degradedDevices} watch`);
@@ -110,6 +112,14 @@ function renderDevices(devices) {
     : `<div class="empty">No KubeEdge devices found</div>`;
 }
 
+function serviceGroup(device) {
+  const name = (device.name || "").toLowerCase();
+  if (name.includes("vib")) return "설비 상태 모니터링";
+  if (name.includes("act")) return "command 상태 확인";
+  if (name.includes("env") || name.includes("temp")) return "환경 상태 모니터링";
+  return device.service_connected ? "서비스 데모 연결" : "service pending";
+}
+
 function renderRelations(devices) {
   const rows = devices.slice(0, 12).map((device) => {
     const telemetry = device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "telemetry pending";
@@ -126,8 +136,13 @@ function renderRelations(devices) {
         </div>
         <div class="arrow">-&gt;</div>
         <div class="relation-node">
-          <span>Twin / Telemetry</span>
+          <span>Telemetry / Status</span>
           <strong>${telemetry}</strong>
+        </div>
+        <div class="arrow">-&gt;</div>
+        <div class="relation-node">
+          <span>Service Demo</span>
+          <strong>${serviceGroup(device)}</strong>
         </div>
       </article>
     `;
