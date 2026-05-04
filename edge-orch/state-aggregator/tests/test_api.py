@@ -158,6 +158,10 @@ def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     assert payload["kpis"]["registered_device_count"] == 1
     assert payload["kpis"]["telemetry_device_count"] == 1
     assert payload["devices"][0]["name"] == "env-device-01"
+    assert payload["devices"][0]["service_connected"] is True
+    assert payload["devices"][0]["service_demo_group"] == "환경 상태 모니터링"
+    assert payload["devices"][0]["service_binding_source"] == "device_name_pattern"
+    assert payload["devices"][0]["service_binding_reason"] == "device name includes environment service keyword"
     assert "services" not in payload
 
 
@@ -364,6 +368,34 @@ def test_dashboard_page_is_served():
     assert response.status_code == 200
     assert "디바이스 운영 대시보드" in response.text
     assert "서비스 바인딩" in response.text
+
+
+def test_device_response_includes_backend_service_binding_detail():
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "vib-device-01", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [
+                    {
+                        "name": "vibration",
+                        "reportToCloud": False,
+                        "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                    }
+                ],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {"reportToCloud": False, "reportCycle": 60000},
+        },
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.service_connected is True
+    assert device.service_demo_group == "설비 상태 모니터링"
+    assert device.service_binding_source == "device_name_pattern"
+    assert device.service_binding_reason == "device name includes vibration service keyword"
 
 
 def test_device_without_running_mapper_is_unavailable():

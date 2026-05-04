@@ -102,6 +102,9 @@ device_service_binding_ratio
 | `properties` | device property 목록 | `Device.spec.properties` |
 | `telemetry_enabled` | raw telemetry 대상 여부 | property `pushMethod` 여부 |
 | `service_connected` | service binding 여부 | 현재는 service/demo binding 의미로 해석 |
+| `service_demo_group` | 서비스 데모 그룹 | `state-aggregator` backend 판단 |
+| `service_binding_source` | 바인딩 판단 출처 | `device_name_pattern`, `event_binding` 등 |
+| `service_binding_reason` | 바인딩 판단 이유 | `state-aggregator` backend 판단 |
 | `mapper_running` | mapper Running 여부 | mapper pod 상태 |
 | `node_ready` | 할당 node Ready 여부 | Kubernetes/Prometheus node 상태 |
 | `telemetry_fresh` | raw telemetry freshness | InfluxDB latest timestamp |
@@ -134,16 +137,16 @@ device_service_binding_ratio
 현재 dashboard의 relation 영역은 다음 흐름을 보여주는 것이 적절하다.
 
 ```text
-Device -> Node -> Twin / Telemetry -> Service Demo Group
+Device -> Node -> Telemetry / Status -> Service Demo
 ```
 
-현재 `dashboard.js`는 다음 형태의 관계를 보여준다.
+현재 `dashboard.js`는 backend가 내려준 `service_demo_group`과 `service_binding_reason`을 사용해 다음 관계를 보여준다.
 
 ```text
-Device -> Node -> Twin / Telemetry
+Device -> Node -> Telemetry / Status -> Service Demo
 ```
 
-문서 기준으로는 여기에 service demo group을 추가하는 방향이 적절하다.
+즉, 서비스 그룹 판단 로직은 frontend의 device 이름 하드코딩이 아니라 `state-aggregator`의 `DeviceState` 응답 필드를 기준으로 한다.
 
 예시:
 

@@ -239,7 +239,7 @@ h3 {
 
 .relation {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) 26px minmax(150px, 1fr) 26px minmax(150px, 1fr);
+  grid-template-columns: minmax(120px, 1fr) 26px minmax(120px, 1fr) 26px minmax(120px, 1fr) 26px minmax(120px, 1fr);
   align-items: center;
   gap: 8px;
 }
@@ -260,8 +260,17 @@ h3 {
 }
 
 .relation-node strong {
+  display: block;
   overflow-wrap: anywhere;
   font-size: 13px;
+}
+
+.relation-node small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
 }
 
 .arrow {

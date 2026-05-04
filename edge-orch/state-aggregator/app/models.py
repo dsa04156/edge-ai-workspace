@@ -117,6 +117,9 @@ class DeviceState(BaseModel):
     properties: list[str] = Field(default_factory=list)
     telemetry_enabled: bool = False
     service_connected: bool = False
+    service_demo_group: str | None = None
+    service_binding_source: str | None = None
+    service_binding_reason: str | None = None
     status: HealthLevel
     status_reason: str
     kubeedge_state: str | None = None

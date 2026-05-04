@@ -102,6 +102,7 @@ function renderDevices(devices) {
             </div>
             <div class="meta">
               <span>${text(device.device_type)}</span>
+              <span>${text(device.service_demo_group, "service pending")}</span>
               <span>${text(device.node_name, "unassigned")}</span>
               <span>${age(device.telemetry_age_seconds)}</span>
               <span>${device.properties.length} properties</span>
@@ -113,11 +114,11 @@ function renderDevices(devices) {
 }
 
 function serviceGroup(device) {
-  const name = (device.name || "").toLowerCase();
-  if (name.includes("vib")) return "설비 상태 모니터링";
-  if (name.includes("act")) return "command 상태 확인";
-  if (name.includes("env") || name.includes("temp")) return "환경 상태 모니터링";
-  return device.service_connected ? "서비스 데모 연결" : "service pending";
+  return text(device.service_demo_group, device.service_connected ? "서비스 데모 연결" : "service pending");
+}
+
+function serviceBindingReason(device) {
+  return text(device.service_binding_reason, device.service_connected ? "binding detail pending" : "not bound");
 }
 
 function renderRelations(devices) {
@@ -143,6 +144,7 @@ function renderRelations(devices) {
         <div class="relation-node">
           <span>Service Demo</span>
           <strong>${serviceGroup(device)}</strong>
+          <small>${serviceBindingReason(device)}</small>
         </div>
       </article>
     `;

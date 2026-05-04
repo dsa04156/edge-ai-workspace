@@ -162,7 +162,12 @@ class StateAggregatorService:
         model = (spec.get("deviceModelRef") or {}).get("name")
         twin = self._normalize_twin_payload(status_payload.get("twins") or status_payload.get("twin") or {})
         telemetry_enabled = any(isinstance(prop, dict) and bool(prop.get("pushMethod")) for prop in properties)
-        service_connected = self._device_has_service_binding(name, node_name, workflows)
+        service_demo_group, service_binding_source, service_binding_reason = self._device_service_binding_detail(
+            name,
+            node_name,
+            workflows,
+        )
+        service_connected = service_demo_group is not None
         device_type = self._classify_device(name, model, protocol)
         telemetry_sample = (telemetry_samples or {}).get(name)
         telemetry_age_seconds = self._telemetry_age_seconds(telemetry_sample)
@@ -207,6 +212,9 @@ class StateAggregatorService:
             properties=property_names,
             telemetry_enabled=telemetry_enabled,
             service_connected=service_connected,
+            service_demo_group=service_demo_group,
+            service_binding_source=service_binding_source,
+            service_binding_reason=service_binding_reason,
             status=health,
             status_reason=reason,
             kubeedge_state=kubeedge_state,
@@ -248,7 +256,40 @@ class StateAggregatorService:
         merged["status"] = live_status
         return merged
 
-    def _device_has_service_binding(
+    def _device_service_binding_detail(
+        self,
+        device_name: str,
+        node_name: str | None,
+        workflows: list[WorkflowState],
+    ) -> tuple[str | None, str | None, str | None]:
+        name = device_name.lower()
+        if "vib" in name:
+            return (
+                "설비 상태 모니터링",
+                "device_name_pattern",
+                "device name includes vibration service keyword",
+            )
+        if "act" in name:
+            return (
+                "command 상태 확인",
+                "device_name_pattern",
+                "device name includes actuator command service keyword",
+            )
+        if "env" in name or "temp" in name:
+            return (
+                "환경 상태 모니터링",
+                "device_name_pattern",
+                "device name includes environment service keyword",
+            )
+        if self._device_has_event_binding(device_name, node_name, workflows):
+            return (
+                "서비스 데모 연결",
+                "event_binding",
+                "recent service event references this device or node",
+            )
+        return None, None, None
+
+    def _device_has_event_binding(
         self,
         device_name: str,
         node_name: str | None,
