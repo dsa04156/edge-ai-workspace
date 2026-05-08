@@ -225,6 +225,7 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 ## KPI 후보
 
 현재 서비스 데모에서 사용할 수 있는 KPI 후보는 다음이다.
+자세한 옥동 시나리오 생산성 설명은 `docs/okdong-productivity-kpi.md`를 기준으로 한다.
 
 | KPI | 의미 | 설명 방식 |
 |---|---|---|
@@ -289,4 +290,5 @@ device_service_binding_ratio
 - `docs/device-service-binding.md`: 디바이스-서비스 연결 구조
 - `docs/device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
+- `docs/okdong-productivity-kpi.md`: 옥동 시나리오 생산성 KPI 정의
 - `docs/scope.md`: 현재 범위와 제외 범위

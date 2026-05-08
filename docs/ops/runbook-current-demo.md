@@ -1,25 +1,49 @@
-# Current Demo Runbook
+# 현재 서비스 데모 운영 Runbook
 
 ## 목적
 
-이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC의 서비스 데모 경로를 실행하고 점검하는 운영 절차를 정리한다.
+이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC의 서비스 데모를 운영자 기준으로 실행하고 점검하는 절차다.
 
-범위는 device 등록 상태, mapper 상태, MQTT publisher, InfluxDB telemetry, DeviceStatus freshness, state-aggregator API, dashboard 확인까지다.
+운영자가 확인해야 하는 범위는 다음이다.
+
+- device가 등록되어 있는가?
+- device가 의도한 edge node에 할당되어 있는가?
+- mapper가 Running인가?
+- publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
+- InfluxDB raw telemetry가 최신인가?
+- KubeEdge DeviceStatus snapshot이 최신인가?
+- state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
+- 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
 
 이 runbook은 workflow/offloading/agent-assisted planning 계열을 실행하기 위한 절차가 아니다.
+
+## 운영자 빠른 점검 순서
+
+데모 전에는 아래 순서만 먼저 확인한다.
+
+```text
+1. node Ready 확인
+2. state-aggregator / mapper / InfluxDB pod Running 확인
+3. Device CR과 DeviceStatus 조회 가능 여부 확인
+4. Jetson publisher는 Jetson node에서 실행
+5. Raspberry Pi publisher는 Raspberry Pi node에서 실행
+6. /state/dashboard API 응답 확인
+7. dashboard에서 service demo group, freshness, issue list 확인
+```
 
 ## 전체 점검 흐름
 
 ```text
 1. Kubernetes / KubeEdge node 확인
-2. Device / DeviceStatus 확인
-3. mapper pod 확인
-4. edge node local mosquitto 확인
-5. test publisher 실행
-6. InfluxDB telemetry freshness 확인
-7. state-aggregator API 확인
-8. dashboard 확인
-9. degraded reason 기반 troubleshooting
+2. 주요 pod 확인
+3. Device / DeviceStatus 확인
+4. nodeName 매핑 확인
+5. MQTT topic 규칙 확인
+6. edge node local mosquitto 확인
+7. test publisher 실행
+8. state-aggregator API 확인
+9. dashboard 확인
+10. degraded reason 기반 troubleshooting
 ```
 
 ## 사전 조건
@@ -266,20 +290,34 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 
 브라우저 또는 port-forward 경로로 dashboard를 확인한다.
 
-확인할 영역:
+운영자 기준으로 확인할 영역:
 
-1. active node count
-2. registered device count
-3. live device count
-4. telemetry ratio
-5. operator focus count
-6. node list
-7. device list
-8. relation view
-9. alert / issue list
-10. scenario KPI
+1. 전체 node/device 규모
+   - active node count
+   - registered device count
+2. 실제 관측 가능 device
+   - live device count
+   - telemetry ratio
+3. 우선 점검 대상
+   - operator focus count
+   - alert / issue list
+4. node와 mapper 상태
+   - node list
+   - mapper Running 여부
+5. device별 상세 상태
+   - telemetry freshness
+   - DeviceStatus freshness
+   - overall status / reason
+6. 디바이스-서비스 연결 구조
+   - relation view
+   - service demo group
+   - service binding reason
+7. 현장 생산성 설명 지표
+   - scenario KPI
+   - service-bound device count
 
-정상이라면 device, node, telemetry freshness, DeviceStatus freshness가 함께 표시된다.
+정상이라면 device, node, telemetry freshness, DeviceStatus freshness, service demo group이 함께 표시된다.
+운영자는 `reason`과 issue list를 기준으로 먼저 볼 device 또는 node를 좁힌다.
 
 ## 10. 정상 상태 판단
 
@@ -454,3 +492,4 @@ PYTHONPATH=. .venv/bin/pytest -q tests
 - `docs/dashboard-information-structure.md`: dashboard 정보 구조
 - `docs/device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
+- `docs/okdong-productivity-kpi.md`: 옥동 시나리오 생산성 KPI 정의

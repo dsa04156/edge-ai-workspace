@@ -217,6 +217,22 @@ act-device-03: recent telemetry but DeviceStatus snapshot is stale
 rpi-env-device-02: assigned node is unavailable
 ```
 
+## 운영자 기준 화면 해석 순서
+
+운영자는 dashboard를 볼 때 기술 컴포넌트 이름보다 아래 질문 순서로 해석한다.
+
+| 순서 | 운영자 질문 | dashboard/API에서 보는 값 |
+|---|---|---|
+| 1 | 지금 관리 대상 device가 몇 개인가? | `registered_device_count`, device list |
+| 2 | 실제 데이터가 들어오는 device는 몇 개인가? | `live_device_count`, `device_telemetry_ratio`, `telemetry_fresh` |
+| 3 | 운영 snapshot은 최신인가? | `device_status_fresh`, `device_status_last_reported_at` |
+| 4 | 문제가 있으면 어느 node/device부터 봐야 하는가? | `operator_focus_count`, issue list, `reason` |
+| 5 | device가 어떤 서비스 데모에 연결되는가? | `service_demo_group`, `service_binding_reason` |
+| 6 | Jetson/Raspberry Pi 경로가 모두 보이는가? | node list, device `node_name`, mixed-device coverage |
+| 7 | 이 상태를 생산성 효과로 어떻게 설명할 수 있는가? | `okdong-productivity-kpi.md`의 KPI 설명 |
+
+이 순서를 기준으로 화면 문구는 “기술 내부 구조”보다 “운영자가 무엇을 먼저 확인해야 하는가”를 우선한다.
+
 ## Scenario KPI 영역
 
 서비스 데모 관점에서는 다음 KPI를 함께 보여주는 것이 좋다.
@@ -306,3 +322,4 @@ rpi-env-device-02: assigned node is unavailable
 - `docs/service-demo-scenario.md`: 서비스 데모 시나리오
 - `docs/device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
+- `docs/okdong-productivity-kpi.md`: 옥동 시나리오 생산성 KPI 정의
