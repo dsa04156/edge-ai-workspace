@@ -23,6 +23,7 @@
 | 3 | `service-demo-scenario.md` | 서비스 데모 스토리를 설명할 때 |
 | 4 | `ops/runbook-current-demo.md` | 실제 데모를 실행/점검할 때 |
 | 5 | `okdong-productivity-kpi.md` | 옥동 시나리오의 생산성 효과를 설명할 때 |
+| 6 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC를 설명할 때 |
 
 ## 운영자가 자주 보는 문서
 
@@ -34,6 +35,7 @@
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
 | `device-service-binding.md` | device가 어떤 service demo group에 연결되는지 |
 | `current-demo-path.md` | device -> MQTT -> mapper -> InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
+| `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC와 read-only 요약 API |
 
 ## 구현자가 자주 보는 문서
 
@@ -43,6 +45,7 @@
 | `current-demo-path.md` | 현재 구현 경로 |
 | `device-service-binding.md` | backend service binding 필드와 판단 기준 |
 | `dashboard-information-structure.md` | dashboard API/화면 구조 |
+| `kagenti-operator-assistant.md` | `/state/operator-assistant` 응답 구조와 guardrail |
 | `roadmap.md` | 현재 산출물과 정리 우선순위 |
 
 ## 운영 데모 빠른 흐름
@@ -58,6 +61,7 @@ Device 등록
   -> KubeEdge DeviceStatus snapshot
   -> state-aggregator
   -> dashboard
+  -> operator assistant summary
   -> 운영자 판단 / KPI 설명
 ```
 
@@ -81,6 +85,7 @@ Device 등록
 | 통합 dashboard 정보 구조 | `dashboard-information-structure.md` |
 | 현재 데모 실행 runbook | `ops/runbook-current-demo.md` |
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |
+| Kagenti 운영 보조 agent PoC | `kagenti-operator-assistant.md` |
 | 현재 PoC 범위 | `scope.md` |
 
 ## Archive 사용 원칙

@@ -516,6 +516,83 @@ def test_device_with_stale_influx_telemetry_is_degraded():
     assert device.status_reason.startswith("telemetry and DeviceStatus stale: ")
 
 
+def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatch):
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge_ai_device",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.25,
+                "memory_usage_ratio": 0.35,
+                "load_average": 0.7,
+                "network_rx_rate": 120.0,
+                "network_tx_rate": 90.0,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "vib-device-01", "namespace": "default"},
+                "spec": {
+                    "deviceModelRef": {"name": "virtual-vib-model"},
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [
+                        {
+                            "name": "vibration",
+                            "reportToCloud": False,
+                            "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                        }
+                    ],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {},
+            }
+        ]
+
+    async def fake_device_statuses():
+        return []
+
+    async def fake_mapper_nodes():
+        return {"etri-dev0001-jetorn"}
+
+    async def fake_telemetry_samples():
+        return {}
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
+
+    with TestClient(app) as client:
+        response = client.get("/state/operator-assistant")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["assistant_name"] == "kagenti-operator-assistant-poc"
+    assert payload["mode"] == "read_only"
+    assert "운영 보조" in payload["summary_ko"]
+    assert "등록 device 1개" in payload["summary_ko"]
+    assert payload["focus_devices"][0]["name"] == "vib-device-01"
+    assert payload["focus_devices"][0]["service_demo_group"] == "설비 상태 모니터링"
+    assert any("publisher" in action for action in payload["recommended_actions"])
+    assert payload["source_endpoints"] == [
+        "/state/dashboard",
+        "/state/devices",
+        "/state/nodes",
+        "/state/summary",
+    ]
+    assert "kubectl delete" not in " ".join(payload["recommended_actions"])
+
+
 def test_dashboard_kpis_separate_operational_and_live_devices():
     devices = [
         service._normalize_device(
@@ -591,12 +668,12 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
 
 def test_influx_csv_parser_reads_latest_device_samples():
     client = InfluxTelemetryClient(
-        url="http://influxdb:8086",
-        org="edgeai",
-        bucket="device_telemetry",
-        token="token",
-        measurement="virtual_device_telemetry",
-        query_window="-30m",
+        "http://influxdb:8086",
+        "edgeai",
+        "device_telemetry",
+        "[REDACTED]",
+        "virtual_device_telemetry",
+        "-30m",
     )
 
     samples = client._parse_csv(

@@ -9,7 +9,15 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import Settings
 from .metrics import render_metrics
-from .models import CostModelState, DashboardState, DeviceState, SummaryState, WorkflowEvent, WorkflowState
+from .models import (
+    CostModelState,
+    DashboardState,
+    DeviceState,
+    OperatorAssistantState,
+    SummaryState,
+    WorkflowEvent,
+    WorkflowState,
+)
 from .service import StateAggregatorService
 
 settings = Settings()
@@ -61,6 +69,11 @@ async def get_devices() -> list[DeviceState]:
 @app.get("/state/dashboard", response_model=DashboardState)
 async def get_dashboard() -> DashboardState:
     return await service.get_dashboard()
+
+
+@app.get("/state/operator-assistant", response_model=OperatorAssistantState)
+async def get_operator_assistant() -> OperatorAssistantState:
+    return await service.get_operator_assistant()
 
 
 @app.get("/state/node/{hostname}")

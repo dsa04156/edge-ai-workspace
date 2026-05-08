@@ -165,6 +165,17 @@ class SummaryState(BaseModel):
     unstable_workflows: list[dict[str, Any]]
 
 
+class OperatorAssistantState(BaseModel):
+    generated_at: datetime
+    assistant_name: str = "kagenti-operator-assistant-poc"
+    mode: Literal["read_only"] = "read_only"
+    summary_ko: str
+    focus_devices: list[dict[str, Any]] = Field(default_factory=list)
+    recommended_actions: list[str] = Field(default_factory=list)
+    guardrails: list[str] = Field(default_factory=list)
+    source_endpoints: list[str] = Field(default_factory=list)
+
+
 class CostModelState(BaseModel):
     node_states: list[NodeState]
     stage_cost_stats: list[StageCostStats] = Field(default_factory=list)
