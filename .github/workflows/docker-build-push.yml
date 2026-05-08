@@ -1,9 +1,16 @@
 name: Build and Push Images to Local Registry
 
-on:
+"on":
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/docker-build-push.yml"
+      - ".github/buildkitd.toml"
+      - "edge-orch/state-aggregator/**"
+      - "edge-orch/workflow_executor/**"
+      - "edge-orch/placement_engine/**"
+      - "edge-orch/vision_stage_runner/**"
   workflow_dispatch:
 
 env:
