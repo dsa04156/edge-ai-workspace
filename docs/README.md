@@ -1,9 +1,19 @@
 # 문서 안내
 
-이 디렉터리는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC 문서의 진입점이다.
-문서는 한국어 운영자 기준으로 읽기 쉽게 정리한다.
+이 디렉터리는 KubeEdge 기반 혼합 디바이스 edge AI 운영 가시화 PoC 문서의 진입점이다.
+모든 문서는 `goal.md`의 시스템 구축 목표를 기준으로 읽고 정리한다.
 
-현재 기준은 다음 세 가지다.
+## 시스템 구축 목표
+
+KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디바이스 상태를 통합 가시화하고, 운영자가 dashboard와 read-only 운영 보조 요약을 통해 현재 상태, 이상 지점, 생산성 KPI 의미를 빠르게 이해할 수 있는 edge AI 운영 가시화 PoC 시스템을 구축한다.
+
+짧게 말하면 다음과 같다.
+
+```text
+혼합 디바이스 edge AI 서비스 데모를 운영 관점에서 보이게 만드는 시스템
+```
+
+현재 문서와 구현은 아래 세 가지를 우선한다.
 
 1. 서비스 데모를 먼저 완성한다.
 2. 디바이스-서비스 연결 구조를 dashboard에서 보이게 한다.
@@ -14,22 +24,24 @@
 
 ## 먼저 읽을 문서
 
-데모를 실행하거나 설명해야 한다면 아래 순서로 읽는다.
+처음 보는 사람은 아래 순서로 읽는다.
 
 | 순서 | 문서 | 언제 보는가 |
 |---|---|---|
-| 1 | `project-context.md` | 지금 이 레포가 무엇을 하려는지 한 번에 파악할 때 |
-| 2 | `scope.md` | 현재 범위와 제외 범위를 확인할 때 |
-| 3 | `service-demo-scenario.md` | 서비스 데모 스토리를 설명할 때 |
-| 4 | `ops/runbook-current-demo.md` | 실제 데모를 실행/점검할 때 |
-| 5 | `okdong-productivity-kpi.md` | 옥동 시나리오의 생산성 효과를 설명할 때 |
-| 6 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC를 설명할 때 |
+| 1 | `goal.md` | 시스템 구축 목표를 하나로 고정할 때 |
+| 2 | `project-context.md` | 과제 배경과 현재 PoC 방향을 이해할 때 |
+| 3 | `scope.md` | 현재 포함 범위와 제외 범위를 확인할 때 |
+| 4 | `service-demo-scenario.md` | 서비스 데모 스토리를 설명할 때 |
+| 5 | `ops/runbook-current-demo.md` | 실제 데모를 실행/점검할 때 |
+| 6 | `okdong-productivity-kpi.md` | 옥동 시나리오의 생산성 효과를 설명할 때 |
+| 7 | `docs-cleanup-plan.md` | 문서 정리 기준과 archive 분류 기준을 볼 때 |
 
 ## 운영자가 자주 보는 문서
 
 | 문서 | 내용 |
 |---|---|
 | `ops/runbook-current-demo.md` | 데모 전 점검, publisher 실행, dashboard 확인, 문제 원인 좁히기 |
+| `ops/ci-cd-autodeploy.md` | GitHub Actions와 Argo CD 기반 이미지 build/push/rollout 자동 배포 기준 |
 | `dashboard-information-structure.md` | dashboard에 표시되는 node/device/service/KPI 정보 구조 |
 | `dashboard-policy.md` | healthy/degraded/unavailable 판단 기준 |
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
@@ -47,6 +59,19 @@
 | `dashboard-information-structure.md` | dashboard API/화면 구조 |
 | `kagenti-operator-assistant.md` | `/state/operator-assistant` 응답 구조와 guardrail |
 | `roadmap.md` | 현재 산출물과 정리 우선순위 |
+
+## 문서 정리 기준
+
+문서는 아래 네 묶음으로 관리한다.
+
+| 분류 | 기준 | 예시 |
+|---|---|---|
+| Active | 현재 시스템 구축 목표를 직접 설명 | `goal.md`, `service-demo-scenario.md`, `device-service-binding.md` |
+| Ops | 데모 실행, 점검, 장애 대응 | `ops/runbook-current-demo.md`, `ops/troubleshooting-network.md` |
+| Assistant | read-only 운영 보조 agent 설명 | `kagenti-operator-assistant.md` |
+| Archive | 과거 연구, 논문 초안, legacy orchestration | `archive/*` |
+
+문서 정리 세부 계획은 `docs-cleanup-plan.md`를 따른다.
 
 ## 운영 데모 빠른 흐름
 
@@ -80,13 +105,16 @@ Device 등록
 
 | 산출물 | 문서 |
 |---|---|
+| 시스템 구축 목표 | `goal.md` |
 | 서비스 데모 시나리오 | `service-demo-scenario.md` |
 | 디바이스-서비스 바인딩 명세 | `device-service-binding.md` |
 | 통합 dashboard 정보 구조 | `dashboard-information-structure.md` |
 | 현재 데모 실행 runbook | `ops/runbook-current-demo.md` |
+| CI/CD 자동 배포 기준 | `ops/ci-cd-autodeploy.md` |
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |
 | Kagenti 운영 보조 agent PoC | `kagenti-operator-assistant.md` |
 | 현재 PoC 범위 | `scope.md` |
+| 문서 정리 계획 | `docs-cleanup-plan.md` |
 
 ## Archive 사용 원칙
 

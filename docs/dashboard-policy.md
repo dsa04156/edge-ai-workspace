@@ -2,9 +2,11 @@
 
 ## 원칙
 
-대시보드는 `DeviceStatus` snapshot freshness와 raw telemetry freshness를 분리해서 판단한다.
+대시보드는 raw telemetry freshness와 `DeviceStatus` snapshot freshness를 분리해서 표시한다.
 
 `status.state=online`만으로 healthy 처리하지 않는다.
+telemetry pushMethod가 있는 device의 healthy 판단은 InfluxDB latest telemetry timestamp를 우선 기준으로 삼는다.
+`DeviceStatus` timestamp는 status-only device와 운영 snapshot 해석용으로 사용한다.
 `status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 우선 사용한다.
 
 ## Freshness 설정
@@ -43,17 +45,17 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 ## 상태 판단 순서
 
 1. Kubernetes `Device` 목록과 `DeviceStatus` 목록을 조회한다.
-2. 같은 namespace/name의 `DeviceStatus.status`가 있으면 병합해서 판단한다.
+2. 같은 namespace/name의 `DeviceStatus.status`가 있으면 병합해서 snapshot 필드로 표시한다.
 3. 노드 미할당 또는 할당 노드 `unavailable`이면 `unavailable`.
 4. `mqttvirtual` 디바이스인데 해당 노드의 mapper Pod가 Running이 아니면 `unavailable`.
 5. `health=offline` 또는 명시 상태값 `offline/disconnected/failed/unavailable/false`면 `unavailable`.
-6. reported timestamp와 `lastOnlineTime` 중 최신 timestamp를 DeviceStatus snapshot 기준으로 사용한다.
-7. DeviceStatus timestamp가 `DEVICE_STATUS_FRESH_SECONDS` 이내면 `device_status_fresh=true`.
-8. InfluxDB latest telemetry timestamp가 `TELEMETRY_FRESH_SECONDS` 이내면 `telemetry_fresh=true`.
-9. `telemetry_fresh=true`이고 `device_status_fresh=true`이면 `severity=critical`이 아닌 한 `healthy`.
-10. `telemetry_fresh=true`이고 `device_status_fresh=false`이면 live data-plane은 살아 있지만 status snapshot이 stale이므로 `degraded`.
-11. `telemetry_fresh=false`이고 `device_status_fresh=true`이면 status snapshot은 있으나 raw telemetry가 stale하므로 `degraded`.
-12. 둘 다 false이면 노드/mapper 상태에 따라 `degraded` 또는 `unavailable`로 표시하고 reason에 원인을 남긴다.
+6. InfluxDB latest telemetry timestamp가 `TELEMETRY_FRESH_SECONDS` 이내면 `telemetry_fresh=true`.
+7. `spec.properties[].pushMethod`가 있는 telemetry device는 `telemetry_fresh=true`이면 `severity=critical`이 아닌 한 `healthy`.
+8. telemetry device의 `telemetry_fresh=false`이면 InfluxDB latest timestamp 부재 또는 stale 상태로 보고 `degraded`.
+9. `spec.properties[].pushMethod`가 없는 status-only device는 DeviceStatus timestamp를 기준으로 판단한다.
+10. reported timestamp와 `lastOnlineTime` 중 최신 timestamp를 DeviceStatus snapshot 기준으로 사용한다.
+11. status-only device에서 DeviceStatus timestamp가 `DEVICE_STATUS_FRESH_SECONDS` 이내이면 `healthy`, 아니면 `degraded`.
+12. dashboard는 `device_status_fresh`와 `device_status_last_reported_at`도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.
 
 ## API 응답 필드
 
@@ -73,14 +75,14 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
   "health": "ok",
   "severity": "normal",
   "overall_status": "healthy",
-  "reason": "fresh DeviceStatus reported timestamp and recent telemetry"
+  "reason": "recent InfluxDB telemetry"
 }
 ```
 
 ## 해석 규칙
 
 - `DeviceStatus`에 `power:on` 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.
-- InfluxDB에 값이 있어도 DeviceStatus가 stale이면 KubeEdge reported path 문제를 별도로 본다.
-- InfluxDB latest timestamp가 fresh하면 raw telemetry data-plane은 살아 있다고 본다.
+- telemetry device는 InfluxDB latest timestamp가 fresh하면 raw telemetry data-plane이 살아 있다고 보고 healthy로 판단한다.
+- InfluxDB row의 `device_id`가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.
 - telemetry가 없는 actuator류는 DeviceStatus snapshot이 fresh하면 healthy로 볼 수 있다.
-- dashboard의 healthy는 Device CR 존재 여부나 `state=online`이 아니라 freshness와 mapper/node 상태를 함께 본 결과다.
+- dashboard의 healthy는 Device CR 존재 여부나 `state=online` 단독 판단이 아니라 node/mapper 선행 조건과 freshness 기준을 함께 본 결과다.

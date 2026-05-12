@@ -412,19 +412,13 @@ class StateAggregatorService:
             return "unavailable", "assigned mapper is not running"
         if node_health.get(node_name) == "degraded":
             return "degraded", "assigned node is degraded"
-        if telemetry_enabled and telemetry_fresh and device_status_fresh:
+        if telemetry_enabled and telemetry_fresh:
             if severity_value and severity_value.lower() == "critical":
-                return "degraded", "fresh telemetry and DeviceStatus, but severity is critical"
-            return "healthy", "fresh DeviceStatus reported timestamp and recent telemetry"
-        if telemetry_enabled and telemetry_fresh and not device_status_fresh:
-            return "degraded", "recent telemetry but DeviceStatus snapshot is stale"
-        if telemetry_enabled and not telemetry_fresh and device_status_fresh:
-            if telemetry_age_seconds is None:
-                return "degraded", "DeviceStatus snapshot is fresh but telemetry has not reached InfluxDB"
-            return "degraded", f"DeviceStatus snapshot is fresh but telemetry stale: last received {int(telemetry_age_seconds)}s ago"
-        if telemetry_enabled and not telemetry_fresh and not device_status_fresh:
+                return "degraded", "recent InfluxDB telemetry, but severity is critical"
+            return "healthy", "recent InfluxDB telemetry"
+        if telemetry_enabled and not telemetry_fresh:
             if telemetry_age_seconds is not None:
-                return "degraded", f"telemetry and DeviceStatus stale: telemetry last received {int(telemetry_age_seconds)}s ago"
+                return "degraded", f"InfluxDB telemetry stale: last received {int(telemetry_age_seconds)}s ago"
             return "degraded", "mapper is running but telemetry has not reached InfluxDB"
         if device_status_fresh:
             if severity_value and severity_value.lower() == "critical":

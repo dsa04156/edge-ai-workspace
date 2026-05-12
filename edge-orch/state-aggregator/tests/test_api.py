@@ -473,8 +473,8 @@ def test_device_with_recent_influx_telemetry_is_healthy():
         },
     )
 
-    assert device.status == "degraded"
-    assert device.status_reason == "recent telemetry but DeviceStatus snapshot is stale"
+    assert device.status == "healthy"
+    assert device.status_reason == "recent InfluxDB telemetry"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
@@ -513,7 +513,7 @@ def test_device_with_stale_influx_telemetry_is_degraded():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason.startswith("telemetry and DeviceStatus stale: ")
+    assert device.status_reason.startswith("InfluxDB telemetry stale: ")
 
 
 def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatch):

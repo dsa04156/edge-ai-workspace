@@ -396,12 +396,19 @@ func pushHandler(ctx context.Context, twin *common.Twin, client *driver.Customiz
 }
 
 // dbHandler start db client to save data
-func dbHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
-	switch twin.Property.PushMethod.DBMethod.DBMethodName {
-	// TODO add more database
-	case "influx":
-		dbInflux.DataHandler(ctx, twin, client, visitorConfig, dataModel)
+func isInfluxDBMethod(name string) bool {
+	return name == "influx" || name == "influxdb2"
+}
 
+func dbHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
+	methodName := twin.Property.PushMethod.DBMethod.DBMethodName
+	if isInfluxDBMethod(methodName) {
+		dbInflux.DataHandler(ctx, twin, client, visitorConfig, dataModel)
+		return
+	}
+
+	switch methodName {
+	// TODO add more database
 	case "redis":
 		dbRedis.DataHandler(ctx, twin, client, visitorConfig, dataModel)
 

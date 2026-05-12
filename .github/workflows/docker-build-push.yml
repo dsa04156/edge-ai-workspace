@@ -11,6 +11,8 @@ name: Build and Push Images to Local Registry
       - "edge-orch/workflow_executor/**"
       - "edge-orch/placement_engine/**"
       - "edge-orch/vision_stage_runner/**"
+      - "mappers/mqttvirtual/**"
+      - "mappers/mapper-framework/**"
   workflow_dispatch:
 
 env:
@@ -66,6 +68,14 @@ jobs:
             edge-orch/vision_stage_runner \
             --push
 
+      - name: Build and Push mqttvirtual mapper
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/mqttvirtual:latest \
+            -f mappers/mqttvirtual/Dockerfile_nostream \
+            mappers \
+            --push
+
       - name: Deploy state-aggregator latest image
         run: |
           CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
@@ -80,3 +90,18 @@ jobs:
           fi
 
           kubectl rollout status deployment/state-aggregator -n default --timeout=180s
+
+      - name: Deploy mqttvirtual mapper latest image
+        run: |
+          CURRENT_IMAGE=$(kubectl get daemonset mqttvirtual-mapper -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="mqttvirtual")].image}')
+          TARGET_IMAGE=${{ env.REGISTRY }}/mqttvirtual:latest
+
+          kubectl set image daemonset/mqttvirtual-mapper \
+            mqttvirtual=${TARGET_IMAGE} \
+            -n default
+
+          if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
+            kubectl rollout restart daemonset/mqttvirtual-mapper -n default
+          fi
+
+          kubectl rollout status daemonset/mqttvirtual-mapper -n default --timeout=180s

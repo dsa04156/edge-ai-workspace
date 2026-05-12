@@ -1,7 +1,9 @@
-FROM golang:1.23.12-alpine3.21 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.23.12-alpine3.21 AS builder
+
+ARG TARGETOS=linux
+ARG TARGETARCH
 
 WORKDIR /build
-
 ENV GO111MODULE=on \
     GOPROXY=https://goproxy.cn,direct
 
@@ -10,14 +12,12 @@ COPY mapper-framework ./mapper-framework
 COPY mqttvirtual ./mqttvirtual
 
 WORKDIR /build/mqttvirtual
-RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main cmd/main.go
 
 
 FROM ubuntu:18.04
 
-RUN mkdir -p kubeedge
+COPY --from=builder /build/mqttvirtual/main /kubeedge/main
+COPY --from=builder /build/mqttvirtual/config.yaml /kubeedge/config.yaml
 
-COPY --from=builder /build/mqttvirtual/main kubeedge/
-COPY --from=builder /build/mqttvirtual/config.yaml kubeedge/
-
-WORKDIR kubeedge
+WORKDIR /kubeedge

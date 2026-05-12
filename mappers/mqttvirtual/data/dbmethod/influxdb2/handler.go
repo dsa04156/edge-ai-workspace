@@ -22,8 +22,8 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mqttvirtual/driver"
 	"github.com/kubeedge/mapper-framework/pkg/common"
+	"github.com/kubeedge/mqttvirtual/driver"
 )
 
 func DataHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
@@ -62,7 +62,7 @@ func DataHandler(ctx context.Context, twin *common.Twin, client *driver.Customiz
 				err = dbConfig.AddData(dataModel, dbClient)
 				if err != nil {
 					klog.Errorf("influx database add data error: %v", err)
-					return
+					continue
 				}
 			case <-ctx.Done():
 				dbConfig.CloseSession(dbClient)

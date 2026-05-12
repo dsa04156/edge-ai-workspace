@@ -11,7 +11,8 @@
 - mapper가 Running인가?
 - publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
 - InfluxDB raw telemetry가 최신인가?
-- KubeEdge DeviceStatus snapshot이 최신인가?
+- telemetry device는 InfluxDB latest timestamp 기준으로 healthy 판단되는가?
+- KubeEdge DeviceStatus snapshot이 status-only device와 운영 snapshot 해석에 필요한 만큼 최신인가?
 - state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
 - 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
 
@@ -141,7 +142,8 @@ kubectl get devicestatuses.devices.kubeedge.io -A -o yaml
 - Device의 `spec.nodeName`이 의도한 node인가?
 - `DeviceModel` 참조가 맞는가?
 - DeviceStatus에 운영 snapshot이 있는가?
-- DeviceStatus timestamp가 dashboard freshness 기준을 만족하는가?
+- telemetry device의 InfluxDB latest timestamp가 dashboard freshness 기준을 만족하는가?
+- status-only device의 DeviceStatus timestamp가 dashboard freshness 기준을 만족하는가?
 
 ## 4. nodeName 매핑 확인
 
