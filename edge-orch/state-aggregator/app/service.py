@@ -268,6 +268,7 @@ class StateAggregatorService:
             node_ready,
             health_value,
             severity_value,
+            "act" in name.lower(),
         )
         return DeviceState(
             name=name,
@@ -398,6 +399,7 @@ class StateAggregatorService:
         node_ready: bool = False,
         health_value: str | None = None,
         severity_value: str | None = None,
+        is_actuator: bool = False,
     ) -> tuple[str, str]:
         mapper_nodes = mapper_nodes or set()
         if not node_name:
@@ -418,6 +420,8 @@ class StateAggregatorService:
                 return "degraded", "recent InfluxDB telemetry, but severity is critical"
             return "healthy", "recent InfluxDB telemetry"
         if telemetry_enabled and not telemetry_fresh:
+            if is_actuator and health_value and health_value.lower() == "ok":
+                return "healthy", "actuator health is ok; DB liveness row is not updated by mapper"
             if telemetry_age_seconds is not None:
                 return "degraded", f"InfluxDB telemetry stale: last received {int(telemetry_age_seconds)}s ago"
             return "degraded", "DB latest timestamp is missing"

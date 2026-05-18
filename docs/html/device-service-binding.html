@@ -90,8 +90,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: device-service-binding.md</span>
-            <span class="badge">수정: 2026-05-04 16:19</span>
-            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+            <span class="badge">수정: 2026-05-18 16:10</span>
+            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
           </div>
         </header>
         
@@ -177,6 +177,7 @@
 <td>KPI 계산에서 device가 기여하는 항목</td>
 </tr>
 </tbody></table></div>
+<p>대표 KPI 관계는 <code>service_bound_device_count</code>, <code>device_service_binding_ratio</code>, <code>device_telemetry_ratio</code>, <code>telemetry_freshness_ratio</code>, <code>device_status_freshness_ratio</code>, <code>operator_focus_count</code>이다.</p>
 <h3 id="service-group-단위">Service group 단위</h3>
 <p>Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 관점으로 묶는다.</p>
 <p>예시:</p>
@@ -544,6 +545,7 @@ factory/devices/{device-name}/heartbeat</code></pre>
 <td>현재 상태의 운영 해석</td>
 </tr>
 </tbody></table></div>
+<p>dashboard는 <code>device_telemetry_ratio</code>를 telemetry 설정 비율로, <code>telemetry_freshness_ratio</code>를 실제 최신 telemetry 비율로 분리해 보여준다. <code>device_status_freshness_ratio</code>는 DeviceStatus snapshot 최신성을 나타내며, <code>operator_focus_count</code>는 degraded/unavailable device와 비정상 node를 합산해 계산한다.</p>
 <p>현재 API에는 <code>service_connected</code> 필드가 있으며, 이는 device가 서비스 또는 workflow event와 연결되어 있는지를 나타내는 값으로 사용되고 있다.</p>
 <p>현행 연구 방향에서는 이 값을 workflow orchestration 의미로 확장하지 않고, service binding 또는 demo binding 관점으로 해석하는 것이 적절하다.</p>
 <h2 id="현재-코드-기준-주의점">현재 코드 기준 주의점</h2>

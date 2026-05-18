@@ -23,6 +23,10 @@ class GenerateDevicesInfluxPolicyTest(unittest.TestCase):
         self.assertTrue(self.module.should_store_to_influx("act", "health"))
         self.assertTrue(self.module.should_store_to_influx("rpi-act", "health"))
 
+    def test_act_ts_is_not_used_because_mapper_crashes_on_unreported_push_only_property(self):
+        self.assertFalse(self.module.should_store_to_influx("act", "ts"))
+        self.assertFalse(self.module.should_store_to_influx("rpi-act", "ts"))
+
     def test_act_power_is_not_stored_to_influx_by_default(self):
         self.assertFalse(self.module.should_store_to_influx("act", "power"))
 

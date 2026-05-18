@@ -90,8 +90,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
-            <span class="badge">수정: 2026-05-18 14:35</span>
-            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+            <span class="badge">수정: 2026-05-18 16:10</span>
+            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
           </div>
         </header>
         
@@ -219,22 +219,22 @@ kpis</code></pre>
 <tr>
 <td><code>live_device_count</code></td>
 <td>live 판단 device 수</td>
-<td>freshness와 상태 기준으로 live로 볼 수 있는 device 수</td>
+<td>state-aggregator 최종 <code>overall_status</code>가 <code>healthy</code>인 device 수</td>
 </tr>
 <tr>
 <td><code>telemetry_device_count</code></td>
 <td>telemetry 대상 device 수</td>
-<td>raw telemetry data-plane 대상 device 수</td>
+<td>raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수</td>
 </tr>
 <tr>
 <td><code>device_telemetry_ratio</code></td>
-<td>telemetry freshness 비율</td>
-<td>raw telemetry data-plane 가시성</td>
+<td>telemetry 설정 비율</td>
+<td>telemetry 대상 device 수 / 전체 등록 device 수 (fresh 비율 아님)</td>
 </tr>
 <tr>
 <td><code>operator_focus_count</code></td>
 <td>운영자가 우선 확인할 대상 수</td>
-<td>degraded/unavailable 등 점검 대상 규모</td>
+<td>현재 구현은 degraded/unavailable device 수 + non-healthy node 수로 계산한다</td>
 </tr>
 <tr>
 <td><code>service_bound_device_count</code></td>
@@ -446,7 +446,9 @@ rpi-env-device-01 -&gt; etri-dev0002-raspi5 -&gt; DB timestamp pending -&gt; Ras
 TELEMETRY_FRESH_SECONDS=90
 MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <p>해석:</p>
-<ul><li>둘 다 fresh이면 healthy 후보가 된다.</li><li>telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태다.</li><li>DeviceStatus만 fresh이면 운영 snapshot은 있으나 raw telemetry가 stale한 상태다.</li><li>둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.</li></ul>
+<ul><li>telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 <code>healthy</code>로 표시될 수 있다.</li><li>telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.</li><li>DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.</li><li>둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.</li></ul>
+<h2 id="influxdb-query-notes">InfluxDB Query Notes</h2>
+<ul><li>InfluxDB UI에서 볼 수 있는 <code>_start</code> / <code>_stop</code> 필드는 각 row의 device start/stop 이벤트가 아니라 Flux 쿼리의 조회 범위(window)를 보여주는 메타필드이다.</li><li>실제 telemetry 발생 시각은 <code>_time</code> 필드가 되며, dashboard와 state-aggregator는 <code>_time</code> 또는 명시된 <code>telemetry_last_seen_at</code> 값을 사용해 freshness를 판단한다.</li></ul>
 <h2 id="상태-판단-표시">상태 판단 표시</h2>
 <p>상태는 다음 세 단계로 단순화한다.</p>
 <div class="table-wrap"><table>
@@ -458,7 +460,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <tbody>
 <tr>
 <td><code>healthy</code></td>
-<td>node/mapper/device/telemetry/status freshness가 기준을 만족</td>
+<td>node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호.</td>
 <td>정상 관찰</td>
 </tr>
 <tr>
@@ -565,7 +567,7 @@ rpi-env-device-02: assigned node is unavailable</code></pre>
 <p>현재 코드에는 과거 workflow/event 구조에서 온 이름이 일부 남아 있다.</p>
 <p>주의할 이름:</p>
 <ul><li><code>workflows[]</code></li><li><code>WorkflowState</code></li><li><code>WorkflowEvent</code></li><li><code>POST /workflow-event</code></li><li><code>GET /state/cost-model</code></li></ul>
-<p>현재 연구 방향에서는 위 항목을 새로운 핵심 방향으로 설명하지 않는다.</p>
+<p>현재 연구 방향에서는 위 항목을 새로운 핵심 방향으로 설명하지 않는다. 참고: 코드와 API/모델에는 <code>WorkflowEvent</code>, <code>WorkflowState</code>, <code>ActionType</code>, <code>CostModelState</code> 등 legacy 호환용 필드가 남아 있으나, 현재 데모의 핵심 경로에서는 사용되지 않는 보조 필드로 간주한다.</p>
 <p>문서와 dashboard 설명에서는 다음 표현을 우선 사용한다.</p>
 <ul><li>service binding</li><li>service-connected device</li><li>demo group</li><li>device-service relation</li><li>운영 가시화</li></ul>
 <p>이미 정리된 이름:</p>
@@ -629,6 +631,14 @@ rpi-env-device-02: assigned node is unavailable</code></pre>
 <td><code>kpis.device_telemetry_ratio</code></td>
 </tr>
 <tr>
+<td><code>telemetryFreshnessRatio</code></td>
+<td><code>kpis.telemetry_freshness_ratio</code></td>
+</tr>
+<tr>
+<td><code>deviceStatusFreshnessRatio</code></td>
+<td><code>kpis.device_status_freshness_ratio</code></td>
+</tr>
+<tr>
 <td><code>serviceBindingCount</code></td>
 <td><code>kpis.service_bound_device_count</code></td>
 </tr>
@@ -680,6 +690,7 @@ rpi-env-device-02: assigned node is unavailable</code></pre>
 <li class="toc-h2"><a href="#node-card-정보-구조">Node card 정보 구조</a></li>
 <li class="toc-h2"><a href="#device-service-relation-영역">Device-Service Relation 영역</a></li>
 <li class="toc-h2"><a href="#freshness-표시-방식">Freshness 표시 방식</a></li>
+<li class="toc-h2"><a href="#influxdb-query-notes">InfluxDB Query Notes</a></li>
 <li class="toc-h2"><a href="#상태-판단-표시">상태 판단 표시</a></li>
 <li class="toc-h2"><a href="#issue-focus-list">Issue / Focus List</a></li>
 <li class="toc-h2"><a href="#운영자-기준-화면-해석-순서">운영자 기준 화면 해석 순서</a></li>

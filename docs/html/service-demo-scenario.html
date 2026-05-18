@@ -90,8 +90,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: service-demo-scenario.md</span>
-            <span class="badge">수정: 2026-05-08 14:40</span>
-            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+            <span class="badge">수정: 2026-05-18 16:10</span>
+            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
           </div>
         </header>
         
@@ -267,7 +267,7 @@ Device model is mapped</code></pre>
 <ul><li>어떤 device가 live인지</li><li>어떤 device가 service demo에 연결되어 있는지</li><li>어떤 node에서 문제가 발생했는지</li><li>telemetry 문제인지 DeviceStatus 문제인지</li><li>mapper 문제인지 publisher 실행 위치 문제인지</li><li>어떤 device를 먼저 점검해야 하는지</li></ul>
 <h2 id="정상-동작-기준">정상 동작 기준</h2>
 <p>정상 동작 상태는 다음 조건을 만족한다.</p>
-<ol><li>Device CR이 등록되어 있다.</li><li>Device가 의도한 node에 할당되어 있다.</li><li>해당 node가 Ready 상태다.</li><li>mapper pod가 Running이다.</li><li>publisher가 해당 node의 local mosquitto로 telemetry를 publish한다.</li><li>InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다.</li><li>DeviceStatus snapshot이 dashboard freshness 기준을 만족한다.</li><li>dashboard에서 device가 service demo group에 표시된다.</li><li>KPI가 현재 상태를 설명할 수 있다.</li></ol>
+<ol><li>Device CR이 등록되어 있다.</li><li>Device가 의도한 node에 할당되어 있다.</li><li>해당 node가 Ready 상태다.</li><li>mapper pod가 Running이다.</li><li>publisher가 해당 node의 local mosquitto로 telemetry를 publish한다.</li><li>InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다 (telemetry freshness가 healthy 판단의 1차 기준임).</li><li>DeviceStatus snapshot은 status-plane 관찰용 보조 신호로 최신이면 별도 표기되지만, telemetry가 fresh하면 반드시 healthy 판단을 막지 않는다.</li><li>dashboard에서 device가 service demo group에 표시된다.</li><li>KPI가 현재 상태를 설명할 수 있다.</li></ol>
 <h2 id="비정상-저하-상태-예시">비정상/저하 상태 예시</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -293,8 +293,8 @@ Device model is mapped</code></pre>
 </tr>
 <tr>
 <td>DeviceStatus stale</td>
-<td>degraded</td>
-<td>telemetry는 있으나 운영 snapshot이 오래됨</td>
+<td>degraded / note</td>
+<td>telemetry는 있거나 없을 수 있음; dashboard는 DeviceStatus stale을 별도 표기하되 telemetry가 fresh하면 반드시 degraded로 분류하지 않음</td>
 </tr>
 <tr>
 <td>InfluxDB latest 없음</td>
@@ -328,8 +328,13 @@ Device model is mapped</code></pre>
 </tr>
 <tr>
 <td>telemetry_device_count</td>
-<td>fresh telemetry device 수</td>
-<td>raw telemetry data-plane 가시성</td>
+<td>telemetry 대상 device 수</td>
+<td>raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수</td>
+</tr>
+<tr>
+<td>fresh_telemetry_device_count</td>
+<td>최신 telemetry device 수</td>
+<td>telemetry freshness가 최근 갱신된 device 수</td>
 </tr>
 <tr>
 <td>service_bound_device_count</td>

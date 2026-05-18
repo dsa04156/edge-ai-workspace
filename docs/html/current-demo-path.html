@@ -90,8 +90,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: current-demo-path.md</span>
-            <span class="badge">수정: 2026-05-18 14:35</span>
-            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+            <span class="badge">수정: 2026-05-18 16:10</span>
+            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
           </div>
         </header>
         
@@ -123,7 +123,7 @@
 <ol><li>상태 통합 계층</li></ol>
 <ul><li><code>state-aggregator</code>가 Kubernetes, KubeEdge, InfluxDB, Prometheus, mapper 상태를 함께 읽는다.</li><li>dashboard가 사용할 device/node/service 상태와 KPI를 만든다.</li></ul>
 <ol><li>dashboard 계층</li></ol>
-<ul><li>dashboard는 단순히 Device CR 존재 여부만 보지 않는다.</li><li>telemetry freshness, DeviceStatus freshness, mapper 상태, node 상태를 함께 보고 healthy/degraded/unavailable을 판단한다.</li></ul>
+<ul><li>dashboard는 단순히 Device CR 존재 여부만 보지 않는다.</li><li>dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</li></ul>
 <h2 id="구성-요소">구성 요소</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -279,8 +279,8 @@ mappers/mqttvirtual/resource/configmap.yaml</code></pre>
 </tr>
 <tr>
 <td>act device</td>
-<td><code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, <code>command_state</code>, <code>reported_config_version</code></td>
-<td>command event history, actuation latency, state transition history</td>
+<td><code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, <code>ts</code>, <code>command_state</code>, <code>reported_config_version</code></td>
+<td><code>ts</code> liveness row, command event history, actuation latency, state transition history</td>
 </tr>
 </tbody></table></div>
 <p>현재 dashboard는 InfluxDB latest telemetry timestamp를 보고 raw telemetry data-plane이 살아 있는지 판단한다.</p>
@@ -343,7 +343,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <tbody>
 <tr>
 <td><code>healthy</code></td>
-<td>node/mapper가 정상이고 DeviceStatus와 telemetry freshness가 dashboard 기준을 만족하는 상태</td>
+<td>node/mapper가 정상이고 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하는 상태 (DeviceStatus freshness는 별도 표기되는 보조 신호)</td>
 </tr>
 <tr>
 <td><code>degraded</code></td>
@@ -399,6 +399,7 @@ rpi-act-device-*</code></pre>
 <ol><li>Device는 등록되어 있지만 live status가 unknown인 경우</li><li>mapper는 Running이지만 InfluxDB에 fresh telemetry가 없는 경우</li><li>DeviceStatus snapshot timestamp가 오래된 경우</li><li>publisher가 실행되지 않았거나 잘못된 node에서 실행된 경우</li><li>publisher가 local mosquitto <code>127.0.0.1:1883</code>이 아닌 다른 broker로 publish한 경우</li><li>Device는 Jetson에 할당됐지만 Raspberry Pi에서 publisher를 실행한 경우 또는 그 반대의 경우</li><li>raw telemetry는 들어오지만 DeviceStatus report 대상 property가 갱신되지 않는 경우</li><li>node 또는 mapper 상태가 dashboard 판단 기준과 맞지 않는 경우</li></ol>
 <p><code>degraded</code>는 반드시 시스템 전체 실패를 의미하지 않는다.</p>
 <p>현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 dashboard가 healthy로 판단하기 위한 fresh telemetry 또는 fresh DeviceStatus snapshot이 부족한 상태”로 해석한다.</p>
+<p>dashboard KPI는 <code>device_telemetry_ratio</code>(telemetry 설정 비율), <code>telemetry_freshness_ratio</code>(실제 최신 telemetry 비율), <code>device_status_freshness_ratio</code>(최신 DeviceStatus 비율), <code>operator_focus_count</code>(비정상 device + 비정상 node)로 구분해서 읽는다.</p>
 <h2 id="현재-데모-경로에서-제외하는-것">현재 데모 경로에서 제외하는 것</h2>
 <p>다음 항목은 현재 데모 경로에 포함하지 않는다.</p>
 <ul><li><code>edge-orch/workflow_executor/</code> 중심 동적 workflow 실행</li><li><code>edge-orch/workflow_reporter/</code> 중심 stage event pipeline</li><li><code>edge-orch/placement_engine/</code> 중심 자동 배치/재배치</li><li>cost model 기반 runtime offloading 판단</li><li>agent-assisted planning layer</li><li>LLM 기반 전역 제어 구조</li><li>전체 플랫폼을 자율 제어 대상으로 두는 orchestration 구조</li></ul>

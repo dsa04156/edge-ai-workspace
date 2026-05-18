@@ -90,8 +90,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: okdong-productivity-kpi.md</span>
-            <span class="badge">수정: 2026-05-11 13:26</span>
-            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+            <span class="badge">수정: 2026-05-18 16:10</span>
+            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
           </div>
         </header>
         
@@ -126,7 +126,7 @@
 </tr>
 <tr>
 <td>status-plane 분리</td>
-<td>DeviceStatus freshness</td>
+<td>device_status_freshness_ratio</td>
 <td>운영 snapshot 최신성 확인</td>
 </tr>
 <tr>
@@ -198,7 +198,7 @@
 </tbody></table></div>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>등록만 된 device와 실제 데이터가 들어오는 device를 구분해 현장 관측 가능 범위를 확인한다.</code></pre>
-<h3 id="3-telemetry-freshness-비율">3. telemetry freshness 비율</h3>
+<h3 id="3-telemetry-configured-비율">3. telemetry configured 비율</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -211,7 +211,7 @@
 </tr>
 <tr>
 <td>의미</td>
-<td>raw telemetry data-plane이 최근 갱신된 device 비율</td>
+<td>telemetry 수집이 설정된 device 비율(telemetry-enabled / 전체 device)</td>
 </tr>
 <tr>
 <td>dashboard/API</td>
@@ -219,12 +219,12 @@
 </tr>
 <tr>
 <td>운영자 해석</td>
-<td>센서/publisher/MQTT/InfluxDB 경로가 살아 있는지 판단</td>
+<td>telemetry를 받을 대상이 얼마나 연결돼 있는지 판단</td>
 </tr>
 </tbody></table></div>
 <p>설명 문구:</p>
-<pre data-lang="text"><code>raw telemetry가 최근 들어오는지 따로 보이므로, DeviceStatus와 섞지 않고 data-plane 문제를 확인할 수 있다.</code></pre>
-<h3 id="4-devicestatus-freshness-비율">4. DeviceStatus freshness 비율</h3>
+<pre data-lang="text"><code>telemetry 설정 비율은 운영 대상 범위를 보여주고, 실제 최신 여부는 별도 freshness KPI로 분리한다.</code></pre>
+<h3 id="4-telemetry-freshness-비율">4. telemetry freshness 비율</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -233,7 +233,33 @@
 <tbody>
 <tr>
 <td>이름</td>
-<td>status freshness ratio</td>
+<td>telemetry_freshness_ratio</td>
+</tr>
+<tr>
+<td>의미</td>
+<td>raw telemetry data-plane이 최근 갱신된 device 비율</td>
+</tr>
+<tr>
+<td>dashboard/API</td>
+<td><code>kpis.telemetry_freshness_ratio</code>, <code>devices[].telemetry_fresh</code></td>
+</tr>
+<tr>
+<td>운영자 해석</td>
+<td>센서/publisher/MQTT/InfluxDB 경로가 살아 있는지 판단</td>
+</tr>
+</tbody></table></div>
+<p>설명 문구:</p>
+<pre data-lang="text"><code>raw telemetry가 최근 들어오는지 따로 보이므로, DeviceStatus와 섞지 않고 data-plane 문제를 확인할 수 있다.</code></pre>
+<h3 id="5-devicestatus-freshness-비율">5. DeviceStatus freshness 비율</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>내용</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>이름</td>
+<td>device_status_freshness_ratio</td>
 </tr>
 <tr>
 <td>의미</td>
@@ -250,7 +276,7 @@
 </tbody></table></div>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>DeviceStatus는 raw telemetry 저장소가 아니라 운영 snapshot이다. dashboard는 data-plane과 status-plane을 분리해 보여준다.</code></pre>
-<h3 id="5-서비스-연결-device-수">5. 서비스 연결 device 수</h3>
+<h3 id="6-서비스-연결-device-수">6. 서비스 연결 device 수</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -276,7 +302,7 @@
 </tbody></table></div>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>운영자는 device가 어떤 서비스 데모 그룹에 쓰이는지 확인하고, 서비스 영향 범위를 바로 볼 수 있다.</code></pre>
-<h3 id="6-디바이스-서비스-연결-비율">6. 디바이스-서비스 연결 비율</h3>
+<h3 id="7-디바이스-서비스-연결-비율">7. 디바이스-서비스 연결 비율</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -302,7 +328,7 @@
 </tbody></table></div>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>device 목록을 서비스 데모 그룹으로 묶어 보여주므로, 현장 운영자가 서비스별 상태를 이해하기 쉽다.</code></pre>
-<h3 id="7-운영자-우선-점검-대상-수">7. 운영자 우선 점검 대상 수</h3>
+<h3 id="8-운영자-우선-점검-대상-수">8. 운영자 우선 점검 대상 수</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -315,7 +341,7 @@
 </tr>
 <tr>
 <td>의미</td>
-<td>degraded/unavailable 등 운영자가 먼저 확인해야 하는 대상 수</td>
+<td>degraded/unavailable device 수 + non-healthy node 수</td>
 </tr>
 <tr>
 <td>dashboard/API</td>
@@ -328,7 +354,7 @@
 </tbody></table></div>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>운영자는 전체 device를 하나씩 확인하지 않고, dashboard가 제시하는 우선 점검 대상부터 확인할 수 있다.</code></pre>
-<h3 id="8-문제-위치-분리-가능성">8. 문제 위치 분리 가능성</h3>
+<h3 id="9-문제-위치-분리-가능성">9. 문제 위치 분리 가능성</h3>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -395,12 +421,13 @@
 <li class="toc-h2"><a href="#kpi-목록">KPI 목록</a></li>
 <li class="toc-h3"><a href="#1-등록-디바이스-수">1. 등록 디바이스 수</a></li>
 <li class="toc-h3"><a href="#2-live-device-수">2. live device 수</a></li>
-<li class="toc-h3"><a href="#3-telemetry-freshness-비율">3. telemetry freshness 비율</a></li>
-<li class="toc-h3"><a href="#4-devicestatus-freshness-비율">4. DeviceStatus freshness 비율</a></li>
-<li class="toc-h3"><a href="#5-서비스-연결-device-수">5. 서비스 연결 device 수</a></li>
-<li class="toc-h3"><a href="#6-디바이스-서비스-연결-비율">6. 디바이스-서비스 연결 비율</a></li>
-<li class="toc-h3"><a href="#7-운영자-우선-점검-대상-수">7. 운영자 우선 점검 대상 수</a></li>
-<li class="toc-h3"><a href="#8-문제-위치-분리-가능성">8. 문제 위치 분리 가능성</a></li>
+<li class="toc-h3"><a href="#3-telemetry-configured-비율">3. telemetry configured 비율</a></li>
+<li class="toc-h3"><a href="#4-telemetry-freshness-비율">4. telemetry freshness 비율</a></li>
+<li class="toc-h3"><a href="#5-devicestatus-freshness-비율">5. DeviceStatus freshness 비율</a></li>
+<li class="toc-h3"><a href="#6-서비스-연결-device-수">6. 서비스 연결 device 수</a></li>
+<li class="toc-h3"><a href="#7-디바이스-서비스-연결-비율">7. 디바이스-서비스 연결 비율</a></li>
+<li class="toc-h3"><a href="#8-운영자-우선-점검-대상-수">8. 운영자 우선 점검 대상 수</a></li>
+<li class="toc-h3"><a href="#9-문제-위치-분리-가능성">9. 문제 위치 분리 가능성</a></li>
 <li class="toc-h2"><a href="#서비스-데모-그룹별-해석">서비스 데모 그룹별 해석</a></li>
 <li class="toc-h2"><a href="#데모-중-설명-순서">데모 중 설명 순서</a></li>
 <li class="toc-h2"><a href="#발표-보고서용-요약-문구">발표/보고서용 요약 문구</a></li>
