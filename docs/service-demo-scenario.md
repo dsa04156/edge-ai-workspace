@@ -206,8 +206,8 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 3. 해당 node가 Ready 상태다.
 4. mapper pod가 Running이다.
 5. publisher가 해당 node의 local mosquitto로 telemetry를 publish한다.
-6. InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다.
-7. DeviceStatus snapshot이 dashboard freshness 기준을 만족한다.
+6. InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다 (telemetry freshness가 healthy 판단의 1차 기준임).
+7. DeviceStatus snapshot은 status-plane 관찰용 보조 신호로 최신이면 별도 표기되지만, telemetry가 fresh하면 반드시 healthy 판단을 막지 않는다.
 8. dashboard에서 device가 service demo group에 표시된다.
 9. KPI가 현재 상태를 설명할 수 있다.
 
@@ -218,7 +218,7 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 | publisher 미실행 | degraded | Device는 등록됐지만 telemetry가 들어오지 않음 |
 | publisher 실행 node 불일치 | degraded | Device nodeName과 local broker publish 위치가 맞지 않음 |
 | mapper 미동작 | unavailable | mqttvirtual device 처리 경로가 끊김 |
-| DeviceStatus stale | degraded | telemetry는 있으나 운영 snapshot이 오래됨 |
+| DeviceStatus stale | degraded / note | telemetry는 있거나 없을 수 있음; dashboard는 DeviceStatus stale을 별도 표기하되 telemetry가 fresh하면 반드시 degraded로 분류하지 않음 |
 | InfluxDB latest 없음 | degraded | mapper는 있으나 raw telemetry data-plane 확인이 안 됨 |
 | node unavailable | unavailable | device가 할당된 node 상태가 불안정함 |
 
@@ -231,11 +231,12 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 |---|---|---|
 | registered_device_count | 등록 device 수 | PoC에 등록된 device 규모 |
 | live_device_count | live 판단 device 수 | dashboard 기준 현재 살아 있는 device 수 |
-| telemetry_device_count | fresh telemetry device 수 | raw telemetry data-plane 가시성 |
+| telemetry_device_count | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
+| fresh_telemetry_device_count | 현재 코드에는 없음 | (state-aggregator는 fresh 전용 카운트를 별도 제공하지 않음) |
 | service_bound_device_count | service demo에 연결된 device 수 | 디바이스-서비스 연결 구조 가시화 |
 | degraded_device_count | degraded device 수 | 운영자가 확인해야 할 대상 |
 | operator_focus_count | 우선 점검 대상 수 | 수동 점검 범위 감소 효과 |
-| telemetry_freshness_ratio | fresh telemetry 비율 | data-plane 안정성 지표 |
+| telemetry_freshness_ratio | fresh telemetry 비율 | data-plane 안정성 지표 (별도 산출 시 frontend/aggregator가 계산할 수 있음) |
 | device_status_freshness_ratio | fresh DeviceStatus 비율 | status-plane 안정성 지표 |
 
 현재 dashboard/API의 service binding KPI는 다음 이름을 사용한다.

@@ -72,10 +72,10 @@ kpis
 | `node_online_ratio` | node online 비율 | 전체 node 중 online/healthy 비율 |
 | `registered_device_count` | 등록 device 수 | KubeEdge에 등록된 device 규모 |
 | `device_operational_ratio` | 운영 가능 device 비율 | healthy 또는 unavailable 제외 device 비율 해석 후보 |
-| `live_device_count` | live 판단 device 수 | freshness와 상태 기준으로 live로 볼 수 있는 device 수 |
-| `telemetry_device_count` | telemetry 대상 device 수 | raw telemetry data-plane 대상 device 수 |
-| `device_telemetry_ratio` | telemetry freshness 비율 | raw telemetry data-plane 가시성 |
-| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | degraded/unavailable 등 점검 대상 규모 |
+| `live_device_count` | live 판단 device 수 | state-aggregator 최종 `overall_status`가 `healthy`인 device 수 |
+| `telemetry_device_count` | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
+| `device_telemetry_ratio` | telemetry 대상 device 비율 | telemetry 대상 device 수 / 전체 등록 device 수 (fresh 비율 아님) |
+| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | 현재 구현은 SLA/노드/대상 device 중심 합계(예: `sla_risk_workflow_count` + non-healthy node count + unavailable device count)으로 계산되며, degraded/stale telemetry/stale DeviceStatus를 자동으로 포함하지는 않음 |
 | `service_bound_device_count` | 서비스 데모에 연결된 device 수 | device-service 연결 구조 가시성 |
 
 현재 dashboard KPI에서는 service binding 이름을 사용한다.
@@ -175,10 +175,16 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 해석:
 
-- 둘 다 fresh이면 healthy 후보가 된다.
-- telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태다.
-- DeviceStatus만 fresh이면 운영 snapshot은 있으나 raw telemetry가 stale한 상태다.
+- telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 `healthy`로 표시될 수 있다.
+- telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.
+- DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.
 - 둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.
+
+## InfluxDB Query Notes
+
+- InfluxDB UI에서 볼 수 있는 `_start` / `_stop` 필드는 각 row의 device start/stop 이벤트가 아니라 Flux 쿼리의 조회 범위(window)를 보여주는 메타필드이다.
+- 실제 telemetry 발생 시각은 `_time` 필드가 되며, dashboard와 state-aggregator는 `_time` 또는 명시된 `telemetry_last_seen_at` 값을 사용해 freshness를 판단한다.
+
 
 ## 상태 판단 표시
 
@@ -258,7 +264,7 @@ rpi-env-device-02: assigned node is unavailable
 - `POST /workflow-event`
 - `GET /state/cost-model`
 
-현재 연구 방향에서는 위 항목을 새로운 핵심 방향으로 설명하지 않는다.
+현재 연구 방향에서는 위 항목을 새로운 핵심 방향으로 설명하지 않는다. 참고: 코드와 API/모델에는 `WorkflowEvent`, `WorkflowState`, `ActionType`, `CostModelState` 등 legacy 호환용 필드가 남아 있으나, 현재 데모의 핵심 경로에서는 사용되지 않는 보조 필드로 간주한다.
 
 문서와 dashboard 설명에서는 다음 표현을 우선 사용한다.
 

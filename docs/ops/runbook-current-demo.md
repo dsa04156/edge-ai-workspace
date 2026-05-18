@@ -11,8 +11,9 @@
 - mapper가 Running인가?
 - publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
 - InfluxDB raw telemetry가 최신인가?
-- telemetry device는 InfluxDB latest timestamp 기준으로 healthy 판단되는가?
-- KubeEdge DeviceStatus snapshot이 status-only device와 운영 snapshot 해석에 필요한 만큼 최신인가?
+ - InfluxDB raw telemetry가 최신인가? (InfluxDB latest telemetry가 healthy 판단의 1차 기준임)
+ - telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단되는가?
+ - KubeEdge DeviceStatus snapshot이 status-only device와 운영 snapshot 해석에 필요한 만큼 최신인가? (DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 반드시 healthy 판단을 차단하지 않음)
 - state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
 - 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
 
@@ -330,8 +331,8 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 3. Device `nodeName`이 의도한 node다.
 4. mapper pod가 Running이다.
 5. publisher가 같은 node의 local mosquitto로 telemetry를 publish한다.
-6. InfluxDB latest telemetry가 fresh하다.
-7. DeviceStatus snapshot이 fresh하다.
+6. InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 healthy 판단의 1차 기준임).
+7. DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 healthy 판단을 막지 않는다.
 8. dashboard에서 device가 healthy 또는 의도한 상태로 보인다.
 9. service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.
 

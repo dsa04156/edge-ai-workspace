@@ -49,7 +49,7 @@ physical / virtual device
 
 7. dashboard 계층
    - dashboard는 단순히 Device CR 존재 여부만 보지 않는다.
-   - telemetry freshness, DeviceStatus freshness, mapper 상태, node 상태를 함께 보고 healthy/degraded/unavailable을 판단한다.
+   - dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.
 
 ## 구성 요소
 
@@ -248,7 +248,7 @@ Device manifest에서 raw telemetry property는 KubeEdge mapper framework의 `pu
 |---|---|---|
 | env device | `health`, `sampling_interval`, `temperature_status`, `humidity_status` | `temperature`, `humidity` |
 | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |
-| act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | command event history, actuation latency, state transition history |
+| act device | `health`, `power`, `mode`, `sampling_interval`, `ts`, `command_state`, `reported_config_version` | `ts` liveness row, command event history, actuation latency, state transition history |
 
 현재 dashboard는 InfluxDB latest telemetry timestamp를 보고 raw telemetry data-plane이 살아 있는지 판단한다.
 
@@ -318,7 +318,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 | 상태 | 의미 |
 |---|---|
-| `healthy` | node/mapper가 정상이고 DeviceStatus와 telemetry freshness가 dashboard 기준을 만족하는 상태 |
+| `healthy` | node/mapper가 정상이고 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하는 상태 (DeviceStatus freshness는 별도 표기되는 보조 신호) |
 | `degraded` | 등록 또는 일부 경로는 있으나 fresh signal이 부족하거나 일부 상태가 오래된 상태 |
 | `unavailable` | node 미할당, node unavailable, mapper 미동작, 명시 offline 등 운영 경로가 끊긴 상태 |
 
