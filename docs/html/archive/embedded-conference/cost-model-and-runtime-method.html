@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>비용 모델 안내</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/embedded-conference/cost-model-and-runtime-method.md">편집</a>
+      </div>
+      <span>archive/embedded-conference/cost-model-and-runtime-method.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../../README.html">문서 안내</a></li>
+<li><a href="../../goal.html">시스템 구축 목표</a></li>
+<li><a href="../../project-context.html">프로젝트 배경</a></li>
+<li><a href="../../scope.html">프로젝트 범위</a></li>
+<li><a href="../../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../../repo-structure.html">레포 구조</a></li>
+<li><a href="../../roadmap.html">로드맵</a></li>
+<li><a href="../../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="../../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../../ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="../../ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="../../ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../research/README.html">연구 초안 안내</a></li>
+<li><a href="../research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">Archive 문서</p>
+          <h1>비용 모델 안내</h1>
+          <p class="subtitle">중복 정리로 축소된 안내 문서다.</p>
+          <div class="meta">
+            <span class="badge kind">Archive</span>
+            <span class="badge">원본: archive/embedded-conference/cost-model-and-runtime-method.md</span>
+            <span class="badge">수정: 2026-05-12 15:50</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="Archive 안내">
+  <strong>과거 자료</strong>
+  <span>이 문서는 현재 구축 목표가 아니라 과거 연구/통합/legacy 맥락 확인용입니다. 현재 판단은 Active 문서를 우선하세요.</span>
+  <code>archive/embedded-conference/cost-model-and-runtime-method.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="cost-model-and-runtime-method">Cost Model and Runtime Method</h1>
+<p>이 문서는 중복 정리로 축소된 안내 문서다.</p>
+<p>동일한 본문이 아래 문서와 완전히 중복되어 있었기 때문에, canonical 문서는 legacy orchestration archive 쪽으로 둔다.</p>
+<ul><li>Canonical: <code>../legacy-orchestration/cost-model-and-runtime-method.md</code></li></ul>
+<h2 id="정리-근거">정리 근거</h2>
+<p>두 문서는 정리 시점에 다음 값이 동일했다.</p>
+<pre data-lang="text"><code>sha256: 0d8a9850f215fc5ab0ec47454c83bf49c536d0b108e10d4975e1b6e981164984
+line count: 177
+cmp: identical</code></pre>
+<h2 id="현재-해석">현재 해석</h2>
+<p>이 내용은 현재 KubeEdge 혼합 디바이스 edge AI 서비스 운영 가시화 PoC의 구축 목표가 아니라 과거 workflow/orchestration/cost model 연구 맥락이다. 현재 판단은 Active 문서, 특히 <code>../../goal.md</code>를 우선한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#정리-근거">정리 근거</a></li>
+<li class="toc-h2"><a href="#현재-해석">현재 해석</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

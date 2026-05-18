@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>대시보드 판단 기준</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=dashboard-policy.md">편집</a>
+      </div>
+      <span>dashboard-policy.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>대시보드 판단 기준</h1>
+          <p class="subtitle">대시보드는 DB latest timestamp와 DeviceStatus snapshot freshness를 분리해서 표시한다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: dashboard-policy.md</span>
+            <span class="badge">수정: 2026-05-18 14:27</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="dashboard-policy">Dashboard Policy</h1>
+<h2 id="원칙">원칙</h2>
+<p>대시보드는 DB latest timestamp와 <code>DeviceStatus</code> snapshot freshness를 분리해서 표시한다.</p>
+<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다. env/vib/temp는 raw telemetry 값, act는 <code>health</code> liveness 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp는 운영 snapshot 해석용 보조 정보로 사용한다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
+<h2 id="freshness-설정">Freshness 설정</h2>
+<p>현재 기본값:</p>
+<pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
+TELEMETRY_FRESH_SECONDS=90
+MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
+<p>현재 mapper 기반 PoC는 DB liveness 값을 60초 주기로 InfluxDB에 적재하므로 telemetry freshness는 90초 이상으로 둔다. 운영 데모에서 순간 지연으로 degraded가 흔들리면 <code>TELEMETRY_FRESH_SECONDS=180</code>으로 완화한다.</p>
+<h2 id="timestamp-처리">Timestamp 처리</h2>
+<p><code>twins[].reported.metadata.timestamp</code>는 문자열일 수 있다. Unix epoch milliseconds와 seconds를 모두 처리한다.</p>
+<ul><li><code>1777508184621</code>처럼 10자리보다 크면 milliseconds</li><li>10자리 수준이면 seconds</li><li>ISO datetime 문자열도 UTC 기준으로 파싱</li></ul>
+<p>parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 parse error를 남기는 방향으로 확장한다.</p>
+<h2 id="판단-필드">판단 필드</h2>
+<ul><li><code>Device.spec.nodeName</code>: 어느 노드에 할당됐는지 확인</li><li><code>Device.spec.protocol.protocolName</code>: <code>mqttvirtual</code> mapper 확인 여부 결정</li><li><code>Device.spec.properties[].pushMethod</code>: data-plane telemetry 대상 여부</li><li><code>DeviceStatus.status.lastOnlineTime</code>: fallback DeviceStatus timestamp</li><li><code>DeviceStatus.status.twins[].reported.metadata.timestamp</code>: DeviceStatus freshness 우선 기준</li><li>InfluxDB <code>device_telemetry</code>: device live/freshness 기준</li><li>env/vib/temp: raw telemetry property</li><li>act/rpi-act: <code>health</code> liveness property</li></ul>
+<h2 id="상태-판단-순서">상태 판단 순서</h2>
+<ol><li>Kubernetes <code>Device</code> 목록과 <code>DeviceStatus</code> 목록을 조회한다.</li><li>같은 namespace/name의 <code>DeviceStatus.status</code>가 있으면 병합해서 snapshot 필드로 표시한다.</li><li>노드 미할당 또는 할당 노드 <code>unavailable</code>이면 <code>unavailable</code>.</li><li><code>mqttvirtual</code> 디바이스인데 해당 노드의 mapper Pod가 Running이 아니면 <code>unavailable</code>.</li><li><code>health=offline</code> 또는 명시 상태값 <code>offline/disconnected/failed/unavailable/false</code>면 <code>unavailable</code>.</li><li>InfluxDB latest timestamp가 <code>TELEMETRY_FRESH_SECONDS</code> 이내면 <code>telemetry_fresh=true</code>.</li><li>DB timestamp가 fresh하면 <code>severity=critical</code>이 아닌 한 <code>healthy</code>.</li><li>DB timestamp가 없거나 stale이면 <code>degraded</code>.</li><li>reported timestamp와 <code>lastOnlineTime</code> 중 최신 timestamp는 DeviceStatus snapshot 표시용으로 사용한다.</li><li>dashboard는 <code>device_status_fresh</code>와 <code>device_status_last_reported_at</code>도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.</li></ol>
+<h2 id="api-응답-필드">API 응답 필드</h2>
+<p><code>/state/devices</code>는 최소한 다음 정보를 포함한다.</p>
+<pre data-lang="json"><code>{
+  &quot;name&quot;: &quot;env-device-01&quot;,
+  &quot;nodeName&quot;: &quot;etri-dev0001-jetorn&quot;,
+  &quot;kubeedge_state&quot;: &quot;online&quot;,
+  &quot;device_status_fresh&quot;: true,
+  &quot;device_status_last_reported_at&quot;: &quot;2026-04-24T07:43:51Z&quot;,
+  &quot;telemetry_fresh&quot;: true,
+  &quot;telemetry_last_seen_at&quot;: &quot;2026-04-24T07:43:55Z&quot;,
+  &quot;mapper_running&quot;: true,
+  &quot;node_ready&quot;: true,
+  &quot;health&quot;: &quot;ok&quot;,
+  &quot;severity&quot;: &quot;normal&quot;,
+  &quot;overall_status&quot;: &quot;healthy&quot;,
+  &quot;reason&quot;: &quot;recent InfluxDB telemetry&quot;
+}</code></pre>
+<h2 id="해석-규칙">해석 규칙</h2>
+<ul><li><code>DeviceStatus</code>에 <code>power:on</code> 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.</li><li>dashboard의 healthy는 InfluxDB latest timestamp를 우선 기준으로 판단한다.</li><li>env/vib/temp는 raw telemetry, act/rpi-act는 <code>health</code> liveness row가 DB freshness 기준이다.</li><li>InfluxDB row의 <code>device_id</code>가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.</li><li>dashboard의 healthy는 Device CR 존재 여부나 <code>state=online</code> 단독 판단이 아니라 node/mapper 선행 조건과 DB freshness 기준을 함께 본 결과다.</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#원칙">원칙</a></li>
+<li class="toc-h2"><a href="#freshness-설정">Freshness 설정</a></li>
+<li class="toc-h2"><a href="#timestamp-처리">Timestamp 처리</a></li>
+<li class="toc-h2"><a href="#판단-필드">판단 필드</a></li>
+<li class="toc-h2"><a href="#상태-판단-순서">상태 판단 순서</a></li>
+<li class="toc-h2"><a href="#api-응답-필드">API 응답 필드</a></li>
+<li class="toc-h2"><a href="#해석-규칙">해석 규칙</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

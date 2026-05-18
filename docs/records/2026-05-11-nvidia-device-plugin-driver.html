@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NVIDIA device plugin 장애 조사</title>
+  <link rel="stylesheet" href="../assets/record.css">
+</head>
+<body class="record-page">
+  <main class="site-main">
+    <a class="back-link" href="index.html">← 운영 기록 목록</a>
+
+    <article class="record">
+      <header class="record-header">
+        <p class="eyebrow">운영 기록 · GPU</p>
+        <h1>NVIDIA device plugin 장애 조사</h1>
+        <p class="subtitle">
+          kubeadm 기반 KubeEdge PoC 클러스터에서 NVIDIA device plugin DaemonSet이 available 상태가 되지 않는 문제를 조사한 기록이다.
+          결론은 device plugin manifest보다 GPU 서버의 NVIDIA kernel driver module 미로드 문제에 가깝다.
+        </p>
+
+        <dl class="meta-grid">
+          <div class="meta-item">
+            <dt>날짜</dt>
+            <dd><time datetime="2026-05-11">2026-05-11</time></dd>
+          </div>
+          <div class="meta-item">
+            <dt>범위</dt>
+            <dd>Kubernetes / GPU / device plugin</dd>
+          </div>
+          <div class="meta-item">
+            <dt>상태</dt>
+            <dd>원인 후보 확인</dd>
+          </div>
+          <div class="meta-item">
+            <dt>관련 노드</dt>
+            <dd>etri-ser0001-cg0msb, etri-ser0002-cgnmsb</dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="record-body">
+        <section id="summary">
+          <h2>요약</h2>
+          <div class="summary-box">
+            <p>
+              NVIDIA device plugin이 죽은 직접 원인은 pod spec 자체보다 <strong>GPU 노드에서 NVIDIA driver가 현재 커널에 로드되지 않아 NVML 초기화가 실패한 것</strong>으로 판단한다.
+              두 GPU 서버 모두 <code>nvidia-driver-580-open</code> 패키지는 설치되어 있지만, 현재 커널 <code>6.17.0-23-generic</code> 기준 <code>modinfo nvidia</code>가 실패했다.
+            </p>
+          </div>
+        </section>
+
+        <section id="background">
+          <h2>배경</h2>
+          <p>
+            이 PoC는 KubeEdge 기반 혼합 디바이스 엣지 AI 플랫폼으로, x86 서버 GPU와 edge node를 함께 운영한다.
+            NVIDIA device plugin은 Kubernetes가 서버 GPU를 <code>nvidia.com/gpu</code> 자원으로 인식하도록 하는 보조 구성이다.
+          </p>
+          <p>
+            이번 조사는 서비스 데모와 통합 운영 가시화 관점에서 GPU 서버의 사용 가능 여부를 확인하기 위한 운영 기록이다.
+          </p>
+        </section>
+
+        <section id="current-state">
+          <h2>현재 상태</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>상태</th>
+                <th>운영 해석</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DaemonSet</td>
+                <td>Desired 2 / Available 0</td>
+                <td>GPU 서버 2대에 pod를 띄우려 하지만 정상 available pod가 없다.</td>
+              </tr>
+              <tr>
+                <td>Pod</td>
+                <td>RunContainerError / CrashLoopBackOff</td>
+                <td>애플리케이션 실행 후 실패가 아니라 컨테이너 생성 단계에서 실패한다.</td>
+              </tr>
+              <tr>
+                <td>GPU resource</td>
+                <td><code>nvidia.com/gpu</code> capacity/allocatable 0</td>
+                <td>Kubernetes scheduler가 현재 GPU를 사용 가능한 자원으로 보지 못한다.</td>
+              </tr>
+              <tr>
+                <td>Network</td>
+                <td>FlannelIsUp</td>
+                <td>과거 flannel event는 있었지만 현재 직접 원인은 network로 보지 않는다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="evidence">
+          <h2>증거</h2>
+
+          <h3>device plugin event</h3>
+          <pre><code>OCI runtime create failed:
+failed to create the automatic CDI modifier:
+failed to generate CDI spec for mode "auto":
+failed to initialize NVML: Driver Not Loaded</code></pre>
+
+          <h3>etri-ser0001-cg0msb</h3>
+          <pre><code>hostname: etri-ser0001-CG0MSB
+ip: 192.168.0.56
+kernel: 6.17.0-23-generic
+command -v nvidia-smi: /usr/bin/nvidia-smi
+
+nvidia-smi:
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver.
+Make sure that the latest NVIDIA driver is installed and running.
+
+modinfo nvidia:
+modinfo: ERROR: Module nvidia not found.</code></pre>
+
+          <h3>etri-ser0002-cgnmsb</h3>
+          <pre><code>hostname: etri-ser0002-CGNMSB
+ip: 192.168.0.5
+kernel: 6.17.0-23-generic
+command -v nvidia-smi: /usr/bin/nvidia-smi
+
+nvidia-smi:
+Failed to initialize NVML: Unknown Error
+
+modinfo nvidia:
+modinfo: ERROR: Module nvidia not found.</code></pre>
+
+          <h3>설치된 NVIDIA 관련 패키지</h3>
+          <pre><code>libnvidia-container-tools      1.19.0-1
+libnvidia-container1:amd64     1.19.0-1
+nvidia-container-toolkit       1.19.0-1
+nvidia-container-toolkit-base  1.19.0-1
+nvidia-driver-580-open         580.126.09-0ubuntu0.24.04.2</code></pre>
+
+          <h3>현재 커널에서 확인된 nvidia 관련 module 파일</h3>
+          <p>
+            아래 파일들은 kernel 기본 module 성격이며, device plugin/NVML에 필요한 실제 NVIDIA GPU driver module인
+            <code>nvidia.ko</code>, <code>nvidia_uvm.ko</code>, <code>nvidia_modeset.ko</code>, <code>nvidia_drm.ko</code>는 확인되지 않았다.
+          </p>
+          <pre><code>hid-nvidia-shield.ko.zst
+nvidiafb.ko.zst
+i2c-nvidia-gpu.ko.zst
+nvidia-wmi-ec-backlight.ko.zst
+typec_nvidia.ko.zst</code></pre>
+        </section>
+
+        <section id="judgement">
+          <h2>판단</h2>
+          <ol>
+            <li>device plugin pod는 내부 로직 실행 이후가 아니라 OCI runtime create 단계에서 실패한다.</li>
+            <li>실패 메시지는 <code>failed to initialize NVML: Driver Not Loaded</code>다.</li>
+            <li>두 GPU 서버 모두 현재 커널에서 <code>modinfo nvidia</code>가 실패한다.</li>
+            <li>따라서 우선순위는 device plugin 재배포가 아니라 host NVIDIA driver/kernel module 복구다.</li>
+          </ol>
+          <div class="warning">
+            <p>
+              현재 상태에서 <code>kubectl rollout restart</code> 또는 device plugin manifest 재적용만 수행해도 해결 가능성은 낮다.
+              먼저 노드에서 <code>nvidia-smi</code>와 <code>modinfo nvidia</code>가 정상화되어야 한다.
+            </p>
+          </div>
+        </section>
+
+        <section id="actions">
+          <h2>조치 후보</h2>
+          <h3>조치 전 재확인</h3>
+          <pre><code>uname -r
+dpkg -l | grep -E 'linux-headers|nvidia-driver|nvidia-container-toolkit|libnvidia-container'
+dkms status | grep -i nvidia || true
+modinfo nvidia
+lsmod | grep nvidia
+nvidia-smi
+find /lib/modules/$(uname -r) -iname 'nvidia*.ko*'</code></pre>
+
+          <h3>승인 후 검토할 복구 작업</h3>
+          <pre><code>sudo apt install linux-headers-$(uname -r)
+sudo apt install --reinstall nvidia-driver-580-open
+sudo update-initramfs -u
+sudo reboot</code></pre>
+
+          <p>
+            open kernel module 계열이 현재 커널과 맞지 않을 경우 일반 NVIDIA driver 패키지로 전환하는 방안도 별도 검토한다.
+            containerd NVIDIA runtime 설정 변경이나 reboot는 노드 작업 영향이 있으므로 사전 승인 후 진행한다.
+          </p>
+        </section>
+
+        <section id="verification">
+          <h2>검증</h2>
+          <p>driver 복구 후 아래 조건이 만족되면 device plugin 복구를 다시 판단한다.</p>
+          <pre><code>nvidia-smi
+lsmod | grep nvidia
+modinfo nvidia
+kubectl get pods -n kube-system -o wide | grep -Ei 'nvidia|gpu|device-plugin'
+kubectl get nodes -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.'nvidia\.com/gpu'</code></pre>
+          <div class="success">
+            <p>
+              정상 기준은 GPU 서버에서 <code>nvidia-smi</code>가 성공하고, Kubernetes node allocatable에 <code>nvidia.com/gpu</code>가 다시 표시되는 것이다.
+            </p>
+          </div>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer>docs/records · HTML 운영 기록</footer>
+</body>
+</html>

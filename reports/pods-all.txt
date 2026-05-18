@@ -1,0 +1,51 @@
+NAMESPACE                NAME                                                        READY   STATUS    RESTARTS        AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+argocd                   argocd-application-controller-0                             1/1     Running   0               9d     10.244.8.89    etri-ser0002-cgnmsb   <none>           <none>
+argocd                   argocd-applicationset-controller-57b46b7b59-bf2pp           1/1     Running   3 (11d ago)     48d    10.244.0.166   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-dex-server-567f886f6-tmbp5                           1/1     Running   3 (11d ago)     48d    10.244.0.170   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-image-updater-68fb6df66f-c28dc                       1/1     Running   5 (4d18h ago)   8d     10.244.8.92    etri-ser0002-cgnmsb   <none>           <none>
+argocd                   argocd-notifications-controller-65469745c8-vmtgh            1/1     Running   9 (11d ago)     35d    10.244.0.154   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-redis-76dcbd875d-swqn8                               1/1     Running   3 (11d ago)     48d    10.244.0.161   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-repo-server-b9f6d5cfd-fcln2                          1/1     Running   0               9d     10.244.0.173   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-server-f84ff59c-lgccl                                1/1     Running   2 (11d ago)     29d    10.244.0.164   etri-ser0001-cg0msb   <none>           <none>
+default                  mqttvirtual-mapper-wd757                                    1/1     Running   0               8d     192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+default                  mqttvirtual-mapper-xfhvd                                    1/1     Running   0               8d     192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+default                  redis-9fb5659d4-9bqbv                                       1/1     Running   1 (11d ago)     22d    10.244.8.78    etri-ser0002-cgnmsb   <none>           <none>
+default                  state-aggregator-5d5f655767-s94d7                           1/1     Running   0               48m    10.244.0.219   etri-ser0001-cg0msb   <none>           <none>
+k8sgpt-operator-system   release-k8sgpt-operator-controller-manager-c964b796-s456g   2/2     Running   0               19m    10.244.8.95    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              alertmanager-prometheus-kube-prometheus-alertmanager-0      2/2     Running   9 (11d ago)     35d    10.244.0.153   etri-ser0001-cg0msb   <none>           <none>
+kube-system              coredns-bbb9cdcc-fd6qt                                      1/1     Running   2 (11d ago)     28d    10.244.0.172   etri-ser0001-cg0msb   <none>           <none>
+kube-system              coredns-bbb9cdcc-lscfh                                      1/1     Running   2 (11d ago)     28d    10.244.0.159   etri-ser0001-cg0msb   <none>           <none>
+kube-system              etcd-etri-ser0001-cg0msb                                    1/1     Running   4 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-apiserver-etri-ser0001-cg0msb                          1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-controller-manager-etri-ser0001-cg0msb                 1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-flannel-cloud-ds-c625f                                 1/1     Running   0               9d     192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-flannel-cloud-ds-s57tk                                 1/1     Running   0               9d     192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              kube-flannel-edge-ds-mtjtj                                  1/1     Running   0               9d     192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kube-system              kube-flannel-edge-ds-vwcsx                                  1/1     Running   0               9d     192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kube-system              kube-proxy-c7p5t                                            1/1     Running   2 (11d ago)     27d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              kube-proxy-hp6jj                                            1/1     Running   2 (11d ago)     28d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-scheduler-etri-ser0001-cg0msb                          1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              metrics-server-6cb7f996c5-qv8xt                             1/1     Running   2 (11d ago)     17d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              nvidia-device-plugin-daemonset-qj6cm                        1/1     Running   2 (11d ago)     28d    10.244.8.80    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              nvidia-device-plugin-daemonset-wg7n8                        1/1     Running   2 (11d ago)     28d    10.244.0.169   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-grafana-74954dccc5-nggp4                         3/3     Running   6 (11d ago)     29d    10.244.0.158   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-kube-prometheus-operator-76cc5bf8b8-lt4df        1/1     Running   9 (11d ago)     35d    10.244.0.155   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-kube-state-metrics-9c86d9f84-lp9fp               1/1     Running   8 (11d ago)     35d    10.244.0.156   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-prometheus-kube-prometheus-prometheus-0          2/2     Running   4 (11d ago)     29d    10.244.0.160   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-2d2jn                   1/1     Running   1 (13d ago)     17d    192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-dmn4k                   1/1     Running   6 (11d ago)     29d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-z89n7                   1/1     Running   1 (13d ago)     17d    192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-z8jl2                   1/1     Running   4 (11d ago)     43d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              sealed-secrets-548f9c7c49-g9hjd                             1/1     Running   0               9d     10.244.8.81    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 cloud-iptables-manager-2cjsv                                1/1     Running   3 (11d ago)     28d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 cloud-iptables-manager-fvdrb                                1/1     Running   2 (11d ago)     34d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 cloudcore-6f7b4c4c55-zflbr                                  1/1     Running   2 (11d ago)     17d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 edge-eclipse-mosquitto-sjqrc                                1/1     Running   1 (13d ago)     17d    192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kubeedge                 edge-eclipse-mosquitto-w74j7                                1/1     Running   1 (13d ago)     17d    192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kubeedge                 edgemesh-agent-2nxd5                                        1/1     Running   0               4d5h   192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kubeedge                 edgemesh-agent-ch8s8                                        1/1     Running   0               4d5h   192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 edgemesh-agent-lxkvk                                        1/1     Running   0               4d5h   192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 edgemesh-agent-n8g5l                                        1/1     Running   0               4d5h   192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+local-path-storage       local-path-provisioner-7746dc4859-jhg7q                     1/1     Running   1 (11d ago)     13d    10.244.8.79    etri-ser0002-cgnmsb   <none>           <none>
+telemetry                influxdb-0                                                  1/1     Running   1 (11d ago)     13d    10.244.0.165   etri-ser0001-cg0msb   <none>           <none>
+traefik                  traefik-5f9db57887-k9xv2                                    1/1     Running   2 (11d ago)     29d    10.244.0.152   etri-ser0001-cg0msb   <none>           <none>

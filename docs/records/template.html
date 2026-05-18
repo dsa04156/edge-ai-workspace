@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>기록 제목</title>
+  <link rel="stylesheet" href="../assets/record.css">
+</head>
+<body class="record-page">
+  <main class="site-main">
+    <a class="back-link" href="index.html">← 운영 기록 목록</a>
+
+    <article class="record">
+      <header class="record-header">
+        <p class="eyebrow">운영 기록</p>
+        <h1>기록 제목</h1>
+        <p class="subtitle">
+          이 문단에 기록의 한 줄 설명을 적는다. 무엇을 확인했고, 왜 남기는지 운영자 관점으로 요약한다.
+        </p>
+
+        <dl class="meta-grid">
+          <div class="meta-item">
+            <dt>날짜</dt>
+            <dd><time datetime="YYYY-MM-DD">YYYY-MM-DD</time></dd>
+          </div>
+          <div class="meta-item">
+            <dt>범위</dt>
+            <dd>예: KubeEdge / Dashboard / GPU</dd>
+          </div>
+          <div class="meta-item">
+            <dt>상태</dt>
+            <dd>초안 / 조사 중 / 확인 완료</dd>
+          </div>
+          <div class="meta-item">
+            <dt>관련 문서</dt>
+            <dd><a href="../README.md">docs README</a></dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="record-body">
+        <section id="summary">
+          <h2>요약</h2>
+          <div class="summary-box">
+            <p>운영자가 가장 먼저 알아야 하는 결론을 쓴다.</p>
+          </div>
+        </section>
+
+        <section id="background">
+          <h2>배경</h2>
+          <p>이 기록이 필요한 이유와 시스템 범위를 쓴다.</p>
+        </section>
+
+        <section id="current-state">
+          <h2>현재 상태</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>상태</th>
+                <th>의미</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>예: Pod</td>
+                <td>예: Running</td>
+                <td>운영 해석</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="evidence">
+          <h2>증거</h2>
+          <p>명령과 핵심 출력만 남긴다. 민감정보는 반드시 <code>[REDACTED]</code> 처리한다.</p>
+          <pre><code>kubectl get pods -A
+# 핵심 출력</code></pre>
+        </section>
+
+        <section id="judgement">
+          <h2>판단</h2>
+          <p>증거를 바탕으로 원인, 영향, 우선순위를 적는다.</p>
+        </section>
+
+        <section id="actions">
+          <h2>조치 후보</h2>
+          <ol>
+            <li>승인 없이 실행 가능한 확인 작업</li>
+            <li>작업 영향이 있어 승인 후 진행할 조치</li>
+            <li>조치 후 검증 방법</li>
+          </ol>
+        </section>
+
+        <section id="verification">
+          <h2>검증</h2>
+          <p>어떤 상태가 되면 정상으로 볼지 적는다.</p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer>docs/records · HTML 운영 기록 템플릿</footer>
+</body>
+</html>

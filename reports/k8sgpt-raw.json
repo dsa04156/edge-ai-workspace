@@ -1,0 +1,415 @@
+{
+  "provider": "",
+  "errors": null,
+  "status": "ProblemDetected",
+  "problems": 31,
+  "results": [
+    {
+      "kind": "ConfigMap",
+      "name": "argo/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-cmd-params-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-cmd-params-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-gpg-keys-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-gpg-keys-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-image-updater-ssh-config",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-image-updater-ssh-config is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-notifications-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-notifications-cm is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap argocd-notifications-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-rbac-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-rbac-cm is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap argocd-rbac-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-tls-certs-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-tls-certs-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "default/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "k8sgpt-operator-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-node-lease/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/cluster-info",
+      "error": [
+        {
+          "Text": "ConfigMap cluster-info is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/extension-apiserver-authentication",
+      "error": [
+        {
+          "Text": "ConfigMap extension-apiserver-authentication is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-apiserver-legacy-service-account-token-tracking",
+      "error": [
+        {
+          "Text": "ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubeadm-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubeadm-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubelet-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubelet-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/prometheus-prometheus-windows-exporter",
+      "error": [
+        {
+          "Text": "ConfigMap prometheus-prometheus-windows-exporter is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeedge/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeedge/tunnelport",
+      "error": [
+        {
+          "Text": "ConfigMap tunnelport is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap tunnelport is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "local-path-storage/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "telemetry/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "traefik/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "StatefulSet",
+      "name": "argocd/argocd-application-controller",
+      "error": [
+        {
+          "Text": "StatefulSet uses the service argocd/argocd-application-controller which does not exist.",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "argocd",
+              "Masked": "OWQqfVRJ"
+            },
+            {
+              "Unmasked": "argocd-application-controller",
+              "Masked": "IzVDZGtfWn1OT0J4eyU0TUNsKF1PdClvZk9OTGc="
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "Service",
+      "name": "default/ollama-gemma26b",
+      "error": [
+        {
+          "Text": "Service has no endpoints, expected label app=ollama-gemma26b",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app",
+              "Masked": "VF5i"
+            },
+            {
+              "Unmasked": "ollama-gemma26b",
+              "Masked": "YVdPUVNDcUZnTFA0SGw4"
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "Service",
+      "name": "kube-system/prometheus-prometheus-windows-exporter",
+      "error": [
+        {
+          "Text": "Service has no endpoints, expected label app.kubernetes.io/instance=prometheus",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app.kubernetes.io/instance",
+              "Masked": "ZlV2emhyREwjKkdaS19oOCVScUNzOW15QDU="
+            },
+            {
+              "Unmasked": "prometheus",
+              "Masked": "bjFbM2NXb3dEaQ=="
+            }
+          ]
+        },
+        {
+          "Text": "Service has no endpoints, expected label app.kubernetes.io/name=prometheus-windows-exporter",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app.kubernetes.io/name",
+              "Masked": "SSMhe0BIN3BjNzFLMmxvOUBYKW9GNQ=="
+            },
+            {
+              "Unmasked": "prometheus-windows-exporter",
+              "Masked": "emlXRjxKbW1wfGkzTVM8ODVPNnh4fE4hNTVB"
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    }
+  ]
+}

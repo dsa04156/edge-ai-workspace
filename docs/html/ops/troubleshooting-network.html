@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>네트워크 트러블슈팅</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/troubleshooting-network.md">편집</a>
+      </div>
+      <span>ops/troubleshooting-network.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>네트워크 트러블슈팅</h1>
+          <p class="subtitle">새 워커 노드 etri-ser0002-cgnmsb를 클러스터에 추가한 뒤 발생한 네트워크 연결 문제와 복구 과정을 기록한다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: ops/troubleshooting-network.md</span>
+            <span class="badge">수정: 2026-04-30 13:52</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="트러블슈팅-노드-네트워크-및-edgemesh-복구">트러블슈팅: 노드 네트워크 및 EdgeMesh 복구</h1>
+<p>이 문서는 새 워커 노드 <code>etri-ser0002-cgnmsb</code>를 클러스터에 추가한 뒤 발생한 네트워크 연결 문제와 복구 과정을 기록한다.</p>
+<h2 id="1-증상">1. 증상</h2>
+<ul><li>새 노드에서 Kubernetes API 서버 <code>10.96.0.1:443</code>에 연결할 수 없었다.</li><li>클러스터 전체에서 DNS 장애가 발생했고 <code>1.1.1.1</code> 질의가 I/O timeout으로 실패했다.</li><li>EdgeMesh 로그에 <code>peer id mismatch</code>와 <code>failed to install iptables rule (physdev match missing)</code>가 나타났다.</li><li>네트워크 구성이 실패해서 DNS가 죽고, DNS가 죽어서 네트워크 부트스트랩도 완료되지 않는 순환 문제가 생겼다.</li></ul>
+<h2 id="2-원인-분석">2. 원인 분석</h2>
+<h3 id="a-coredns-순환-의존성">A. CoreDNS 순환 의존성</h3>
+<p>새 노드의 CNI(Flannel)와 EdgeMesh 구성이 완료되기 전에 스케줄러가 CoreDNS Pod를 그 노드에 올렸다. 다른 Pod들, 예를 들어 <code>cloud-iptables-manager</code>는 API 서버를 찾기 위해 CoreDNS에 의존하므로, 노드는 자기 자신을 부트스트랩하지 못한 채 미구성 상태에 머물렀다.</p>
+<h3 id="b-edgemesh-peer-id-불일치">B. EdgeMesh Peer ID 불일치</h3>
+<p><code>edgemesh-agent-cfg</code> ConfigMap 안의 bootstrap relay Peer ID(<code>...ijb</code>)가 오래된 값이었다. 실제 relay 서버 <code>etri-ser0001-cg0msb</code>는 다른 ID(<code>...GgD</code>)를 사용 중이었고, 그 결과 보안 프로토콜 협상이 실패했다.</p>
+<h3 id="c-호스트-커널-설정-부족">C. 호스트 커널 설정 부족</h3>
+<p>새 호스트에서 <code>br_netfilter</code>와 <code>xt_physdev</code> 커널 모듈이 활성화되지 않았다. 이 때문에 EdgeMesh가 서비스 인터셉트를 위한 <code>iptables</code> 규칙을 설치하지 못했다.</p>
+<h2 id="3-해결-절차">3. 해결 절차</h2>
+<h3 id="1단계-클러스터-dns-복구">1단계: 클러스터 DNS 복구</h3>
+<p>순환 의존성을 끊기 위해 CoreDNS를 안정적인 control-plane 노드에 고정했다.</p>
+<pre data-lang="bash"><code>kubectl patch deployment coredns -n kube-system -p &#x27;{&quot;spec&quot;: {&quot;template&quot;: {&quot;spec&quot;: {&quot;nodeSelector&quot;: {&quot;kubernetes.io/hostname&quot;: &quot;etri-ser0001-cg0msb&quot;}}}}}&#x27;</code></pre>
+<h3 id="2단계-edgemesh-설정-수정">2단계: EdgeMesh 설정 수정</h3>
+<p><code>edgemesh-agent-cfg</code> ConfigMap의 relay 노드 정보와 Peer ID를 실제 서버 값에 맞게 수정한 뒤 agent를 재시작했다.</p>
+<pre data-lang="bash"><code># edgemesh-agent-cfg의 relayNodes를 실제 서버 hostname/ID에 맞게 수정
+kubectl rollout restart ds edgemesh-agent -n kubeedge</code></pre>
+<h3 id="3단계-호스트-커널-설정-적용">3단계: 호스트 커널 설정 적용</h3>
+<p>새 노드 <code>192.168.0.5</code>에 필요한 모듈과 bridge 관련 sysctl을 수동으로 적용했다.</p>
+<pre data-lang="bash"><code>sudo modprobe br_netfilter
+sudo modprobe xt_physdev
+sudo sysctl -w net.bridge.bridge-nf-call-iptables=1
+sudo sysctl -w net.ipv4.ip_forward=1</code></pre>
+<h2 id="4-검증">4. 검증</h2>
+<ul><li>Peer 연결: EdgeMesh 로그에 <code>New stream between peer ... success</code>가 나타난다.</li><li>DNS 해석: 새 노드에서 내부/외부 DNS 질의가 정상 동작한다.</li><li>서비스 라우팅: 필요한 <code>iptables</code> 규칙이 정상 설치되어 게이트웨이 경로로 트래픽이 흐른다.</li></ul>
+<h2 id="5-이후-노드-추가-시-예방-수칙">5. 이후 노드 추가 시 예방 수칙</h2>
+<ul><li>핵심 인프라 고정: DNS, Registry 같은 핵심 인프라는 안정적인 cloud 노드에 고정한다.</li><li>사전 점검: 노드 프로비저닝 단계에 <code>br_netfilter</code> 활성화를 포함한다.</li><li>설정 동기화: relay 서버가 재시작되거나 바뀐 뒤에는 EdgeMesh Peer ID를 반드시 재확인한다.</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-증상">1. 증상</a></li>
+<li class="toc-h2"><a href="#2-원인-분석">2. 원인 분석</a></li>
+<li class="toc-h3"><a href="#a-coredns-순환-의존성">A. CoreDNS 순환 의존성</a></li>
+<li class="toc-h3"><a href="#b-edgemesh-peer-id-불일치">B. EdgeMesh Peer ID 불일치</a></li>
+<li class="toc-h3"><a href="#c-호스트-커널-설정-부족">C. 호스트 커널 설정 부족</a></li>
+<li class="toc-h2"><a href="#3-해결-절차">3. 해결 절차</a></li>
+<li class="toc-h3"><a href="#1단계-클러스터-dns-복구">1단계: 클러스터 DNS 복구</a></li>
+<li class="toc-h3"><a href="#2단계-edgemesh-설정-수정">2단계: EdgeMesh 설정 수정</a></li>
+<li class="toc-h3"><a href="#3단계-호스트-커널-설정-적용">3단계: 호스트 커널 설정 적용</a></li>
+<li class="toc-h2"><a href="#4-검증">4. 검증</a></li>
+<li class="toc-h2"><a href="#5-이후-노드-추가-시-예방-수칙">5. 이후 노드 추가 시 예방 수칙</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

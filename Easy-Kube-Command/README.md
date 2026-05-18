@@ -1,4 +1,9 @@
-﻿# Easy Ubuntu
+﻿## Legacy Research Drafts
+
+`research/` 폴더의 문서는 과거 연구 방향을 담은 legacy draft이며, 현재 PoC 데모 범위 판단에는 사용하지 않는다.
+현재 기준은 Active Guides 문서를 따른다.
+
+# Easy Ubuntu
 ## 1. quick-cmds.sh
 **Quick-Cmds**는 Kubernetes와 Ubuntu 작업을 빠르게 하기 위한 alias/함수 모음입니다.
 

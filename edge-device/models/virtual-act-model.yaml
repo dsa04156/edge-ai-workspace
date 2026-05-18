@@ -18,6 +18,10 @@ spec:
       description: summarized device health
       type: STRING
       accessMode: ReadOnly
+    - name: ts
+      description: telemetry freshness timestamp
+      type: STRING
+      accessMode: ReadOnly
     - name: sampling_interval
       description: report interval
       type: STRING

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>운영 기록</title>
+  <link rel="stylesheet" href="../assets/record.css">
+</head>
+<body class="record-page">
+  <main class="site-main">
+    <article class="index-page">
+      <header class="index-header">
+        <p class="eyebrow">KubeEdge Edge AI PoC</p>
+        <h1>운영 기록</h1>
+        <p class="subtitle">
+          Markdown으로 길게 남기던 조사/판단/운영 기록을 브라우저에서 읽기 쉬운 HTML 문서로 정리하는 공간이다.
+          문서는 과장된 랜딩페이지가 아니라, 운영자가 빠르게 판단할 수 있는 구조화된 기록을 목표로 한다.
+        </p>
+        <ul class="badge-list" aria-label="기록 원칙">
+          <li class="badge">한국어 운영자 기준</li>
+          <li class="badge">semantic HTML</li>
+          <li class="badge">공통 CSS</li>
+          <li class="badge">Git diff 유지</li>
+          <li class="badge">JS 최소화</li>
+        </ul>
+      </header>
+
+      <div class="index-body">
+        <section>
+          <h2>최근 기록</h2>
+          <ul class="record-list">
+            <li>
+              <a class="record-card" href="2026-05-11-nvidia-device-plugin-driver.html">
+                <strong>NVIDIA device plugin 장애 조사</strong>
+                <span>2026-05-11 · GPU 서버의 NVIDIA driver/kernel module 미로드로 인한 NVML 초기화 실패 기록</span>
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>기록 작성 규칙</h2>
+          <ol>
+            <li>새 기록은 <code>docs/records/YYYY-MM-DD-topic.html</code> 형식으로 작성한다.</li>
+            <li>공통 스타일은 <code>docs/assets/record.css</code>만 사용한다.</li>
+            <li>문서 안에는 <code>article</code>, <code>section</code>, <code>time</code>, <code>dl</code>, <code>pre</code>, <code>code</code> 같은 의미 중심 태그를 쓴다.</li>
+            <li>운영 판단을 흐리는 장식, 임의 지표, 과한 JavaScript는 넣지 않는다.</li>
+            <li>명령 출력은 필요한 부분만 발췌하고, credential/API key/token/password/connection string은 <code>[REDACTED]</code> 처리한다.</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>기본 섹션</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>섹션</th>
+                <th>목적</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>요약</td>
+                <td>운영자가 먼저 알아야 할 결론을 한 문단으로 정리한다.</td>
+              </tr>
+              <tr>
+                <td>배경</td>
+                <td>왜 이 기록이 생겼는지, 어떤 시스템 범위와 관련되는지 적는다.</td>
+              </tr>
+              <tr>
+                <td>현재 상태</td>
+                <td>노드, pod, API, dashboard 등 현재 관측된 상태를 정리한다.</td>
+              </tr>
+              <tr>
+                <td>증거</td>
+                <td>명령과 핵심 출력, 로그, event를 남긴다.</td>
+              </tr>
+              <tr>
+                <td>판단</td>
+                <td>증거를 바탕으로 원인 또는 운영 판단을 적는다.</td>
+              </tr>
+              <tr>
+                <td>조치 후보</td>
+                <td>바로 실행한 조치와 아직 승인 전인 조치 후보를 구분한다.</td>
+              </tr>
+              <tr>
+                <td>검증</td>
+                <td>완료 기준과 재발 시 확인할 명령을 남긴다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer>docs/records · HTML 운영 기록</footer>
+</body>
+</html>

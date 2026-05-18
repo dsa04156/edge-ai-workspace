@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kagenti 운영 보조 Agent</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=kagenti-operator-assistant.md">편집</a>
+      </div>
+      <span>kagenti-operator-assistant.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>Kagenti 운영 보조 Agent</h1>
+          <p class="subtitle">현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC에 Kagenti 계열 agent를 붙일 때의 최소 구현 범위를 정리한…</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: kagenti-operator-assistant.md</span>
+            <span class="badge">수정: 2026-05-08 15:17</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="kagenti-운영-보조-agent-poc">Kagenti 운영 보조 Agent PoC</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC에 Kagenti 계열 agent를 붙일 때의 최소 구현 범위를 정리한다.</p>
+<p>현재 PoC에서 Kagenti는 자율 제어 계층이 아니라 운영자 보조 계층으로 둔다. 역할은 <code>state-aggregator</code>가 만든 운영 상태를 읽고, 한국어로 요약하며, 운영자가 먼저 확인할 대상을 제안하는 것이다.</p>
+<h2 id="한-줄-정의">한 줄 정의</h2>
+<pre data-lang="text"><code>Kagenti operator assistant = state-aggregator API를 읽어 한국어 운영 요약과 점검 순서를 제공하는 read-only agent PoC</code></pre>
+<h2 id="현재-구현-위치">현재 구현 위치</h2>
+<p>state-aggregator에 Kagenti 연동용 read-only endpoint를 추가했다.</p>
+<pre data-lang="text"><code>GET /state/operator-assistant</code></pre>
+<p>이 endpoint는 내부적으로 현재 dashboard 상태를 기반으로 운영자 요약 payload를 만든다.</p>
+<p>참조하는 기존 API:</p>
+<pre data-lang="text"><code>/state/dashboard
+/state/devices
+/state/nodes
+/state/summary</code></pre>
+<h2 id="응답-구조">응답 구조</h2>
+<p><code>/state/operator-assistant</code> 응답은 다음 구조다.</p>
+<pre data-lang="text"><code>generated_at
+assistant_name
+mode
+summary_ko
+focus_devices[]
+recommended_actions[]
+guardrails[]
+source_endpoints[]</code></pre>
+<p>예시 의미:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>field</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>assistant_name</code></td>
+<td>PoC agent 이름. 현재 <code>kagenti-operator-assistant-poc</code></td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>현재는 <code>read_only</code> 고정</td>
+</tr>
+<tr>
+<td><code>summary_ko</code></td>
+<td>한국어 운영 요약</td>
+</tr>
+<tr>
+<td><code>focus_devices[]</code></td>
+<td>degraded/unavailable device 중 우선 확인 대상</td>
+</tr>
+<tr>
+<td><code>recommended_actions[]</code></td>
+<td>운영자가 확인할 점검 순서</td>
+</tr>
+<tr>
+<td><code>guardrails[]</code></td>
+<td>agent가 하면 안 되는 일</td>
+</tr>
+<tr>
+<td><code>source_endpoints[]</code></td>
+<td>요약의 기준이 되는 state API</td>
+</tr>
+</tbody></table></div>
+<h2 id="운영자-요약-예시">운영자 요약 예시</h2>
+<pre data-lang="text"><code>Kagenti 연동 PoC용 read-only 운영 보조 요약입니다.
+등록 device 31개 중 live device 24개,
+서비스 데모 연결 device 28개,
+우선 점검 대상 3개입니다.
+telemetry freshness 비율은 0.774입니다.</code></pre>
+<h2 id="focus-device-예시">focus device 예시</h2>
+<pre data-lang="json"><code>{
+  &quot;name&quot;: &quot;vib-device-01&quot;,
+  &quot;node_name&quot;: &quot;etri-dev0001-jetorn&quot;,
+  &quot;status&quot;: &quot;degraded&quot;,
+  &quot;reason&quot;: &quot;telemetry and DeviceStatus stale&quot;,
+  &quot;service_demo_group&quot;: &quot;설비 상태 모니터링&quot;,
+  &quot;telemetry_fresh&quot;: false,
+  &quot;device_status_fresh&quot;: false,
+  &quot;mapper_running&quot;: true,
+  &quot;node_ready&quot;: true
+}</code></pre>
+<h2 id="recommended-action-예시">recommended action 예시</h2>
+<pre data-lang="text"><code>vib-device-01: publisher 실행 위치, DEVICE_PLAN/DEVICE_FILTER, local mosquitto, InfluxDB latest telemetry를 확인한다.</code></pre>
+<p>이 문구는 운영자가 먼저 확인할 경로를 좁히기 위한 것이다. agent가 직접 재배포, 삭제, 제어 명령을 실행한다는 의미가 아니다.</p>
+<h2 id="guardrail">Guardrail</h2>
+<p>현재 PoC에서 agent가 하면 안 되는 일은 다음이다.</p>
+<ul><li>Kubernetes 리소스 수정</li><li>Device CR 수정</li><li>mapper 재배포</li><li><code>kubectl delete</code>, <code>kubectl apply</code>, <code>kubectl rollout restart</code> 실행</li><li>MQTT command topic publish</li><li>actuator command 직접 실행</li><li>placement/offloading/workflow 판단</li><li>LLM 기반 전역 제어</li></ul>
+<p>허용하는 범위는 다음이다.</p>
+<ul><li>state-aggregator API 조회</li><li>dashboard KPI 요약</li><li>degraded/unavailable device 목록화</li><li>runbook 기반 점검 순서 제안</li><li>서비스 데모 그룹과 KPI 의미 설명</li></ul>
+<h2 id="우리-poc에서의-위치">우리 PoC에서의 위치</h2>
+<p>현재 운영 흐름은 다음이다.</p>
+<pre data-lang="text"><code>Device
+  -&gt; MQTT telemetry / command
+  -&gt; mqttvirtual mapper
+  -&gt; InfluxDB raw telemetry
+  -&gt; KubeEdge DeviceStatus snapshot
+  -&gt; state-aggregator
+  -&gt; dashboard
+  -&gt; operator assistant endpoint
+  -&gt; Kagenti agent / 운영자 요약</code></pre>
+<p>Kagenti agent는 <code>state-aggregator</code> 뒤에 붙는 운영 보조 layer다. 디바이스-서비스 연결 구조와 통합 운영 가시화를 설명하는 데 사용한다.</p>
+<h2 id="데모-시나리오">데모 시나리오</h2>
+<ol><li>운영자가 dashboard를 연다.</li><li><code>state-aggregator</code>가 device/node/telemetry/status/service binding 상태를 보여준다.</li><li>Kagenti agent가 <code>/state/operator-assistant</code>를 조회한다.</li><li>agent가 한국어로 현재 상태를 요약한다.</li><li>degraded/unavailable device가 있으면 <code>focus_devices[]</code>와 <code>recommended_actions[]</code>를 보여준다.</li><li>운영자는 추천 순서에 따라 publisher, local mosquitto, mapper, node, DeviceStatus 경로를 확인한다.</li></ol>
+<h2 id="발표-보고서용-표현">발표/보고서용 표현</h2>
+<pre data-lang="text"><code>본 PoC에서는 Kagenti를 자율 제어 계층이 아니라 운영 보조 계층으로 적용한다.
+Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry freshness, DeviceStatus freshness, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다.
+이를 통해 현장 운영자는 전체 device를 개별 명령으로 확인하기 전에 dashboard와 agent 요약으로 문제 위치를 빠르게 좁힐 수 있다.</code></pre>
+<h2 id="현재-범위에서-제외하는-것">현재 범위에서 제외하는 것</h2>
+<p>다음은 현재 Kagenti PoC의 목표가 아니다.</p>
+<ul><li>완전 자동 복구</li><li>agent가 직접 Kubernetes 리소스를 변경하는 구조</li><li>agent가 actuator command를 직접 발행하는 구조</li><li>workflow/offloading/placement 판단</li><li>LLM 기반 전역 제어</li></ul>
+<p>위 항목은 현재 연구 방향의 구현 목표로 표현하지 않는다. 필요한 경우 별도 archive 또는 비교 검토 자료로만 다룬다.</p>
+<h2 id="관련-파일">관련 파일</h2>
+<pre data-lang="text"><code>edge-orch/state-aggregator/app/models.py
+edge-orch/state-aggregator/app/service.py
+edge-orch/state-aggregator/app/main.py
+edge-orch/state-aggregator/tests/test_api.py</code></pre>
+<h2 id="테스트">테스트</h2>
+<p>state-aggregator 테스트는 다음 명령으로 실행한다.</p>
+<pre data-lang="bash"><code>cd /home/etri/jinuk/edge-orch/state-aggregator
+PYTHONPATH=. .venv/bin/pytest -q tests</code></pre>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
+<li class="toc-h2"><a href="#현재-구현-위치">현재 구현 위치</a></li>
+<li class="toc-h2"><a href="#응답-구조">응답 구조</a></li>
+<li class="toc-h2"><a href="#운영자-요약-예시">운영자 요약 예시</a></li>
+<li class="toc-h2"><a href="#focus-device-예시">focus device 예시</a></li>
+<li class="toc-h2"><a href="#recommended-action-예시">recommended action 예시</a></li>
+<li class="toc-h2"><a href="#guardrail">Guardrail</a></li>
+<li class="toc-h2"><a href="#우리-poc에서의-위치">우리 PoC에서의 위치</a></li>
+<li class="toc-h2"><a href="#데모-시나리오">데모 시나리오</a></li>
+<li class="toc-h2"><a href="#발표-보고서용-표현">발표/보고서용 표현</a></li>
+<li class="toc-h2"><a href="#현재-범위에서-제외하는-것">현재 범위에서 제외하는 것</a></li>
+<li class="toc-h2"><a href="#관련-파일">관련 파일</a></li>
+<li class="toc-h2"><a href="#테스트">테스트</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

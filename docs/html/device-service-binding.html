@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>디바이스-서비스 바인딩</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=device-service-binding.md">편집</a>
+      </div>
+      <span>device-service-binding.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>디바이스-서비스 바인딩</h1>
+          <p class="subtitle">현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC에서 디바이스와 서비스가 어떤 기준으로 연결되는지 정리한다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: device-service-binding.md</span>
+            <span class="badge">수정: 2026-05-04 16:19</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="device-service-binding">Device-Service Binding</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC에서 디바이스와 서비스가 어떤 기준으로 연결되는지 정리한다.</p>
+<p>여기서 바인딩은 동적 workflow 배치나 runtime offloading을 의미하지 않는다. 현재 범위의 바인딩은 “어떤 디바이스 데이터와 운영 상태가 어떤 서비스 데모에 사용되고, dashboard에서 그 관계를 어떻게 볼 수 있는가”를 설명하기 위한 운영 관점의 연결 구조다.</p>
+<h2 id="한-줄-정의">한 줄 정의</h2>
+<pre data-lang="text"><code>Device -&gt; node -&gt; telemetry / status -&gt; service demo -&gt; dashboard / KPI</code></pre>
+<p>현재 바인딩의 목적은 다음이다.</p>
+<ul><li>디바이스가 어떤 node에 배치되어 있는지 보인다.</li><li>디바이스 telemetry가 어떤 서비스 데모의 입력인지 보인다.</li><li>서비스가 어떤 device 상태에 의존하는지 보인다.</li><li>dashboard에서 device, service, node, KPI를 함께 해석할 수 있다.</li></ul>
+<h2 id="바인딩-원칙">바인딩 원칙</h2>
+<p>현재 PoC에서 디바이스-서비스 바인딩은 다음 조건을 기준으로 본다.</p>
+<ol><li>KubeEdge <code>Device</code> CR이 존재한다.</li><li><code>Device.spec.nodeName</code>이 실제 edge node에 할당되어 있다.</li><li>해당 device의 telemetry 또는 운영 snapshot이 수집된다.</li><li>서비스 데모가 해당 device data 또는 상태를 입력으로 사용한다.</li><li><code>state-aggregator</code>와 dashboard가 이 관계를 운영자가 해석할 수 있는 형태로 보여준다.</li></ol>
+<p>바인딩은 다음을 의미하지 않는다.</p>
+<ul><li>runtime workflow scheduling</li><li>dynamic offloading 판단</li><li>placement engine 기반 자동 배치/재배치</li><li>agent-assisted planning 기반 작업 분해</li><li>LLM 기반 전역 제어</li></ul>
+<h2 id="바인딩-단위">바인딩 단위</h2>
+<p>현재 바인딩은 device 단위와 service group 단위로 나눠 설명한다.</p>
+<h3 id="device-단위">Device 단위</h3>
+<p>Device 단위 바인딩은 개별 device가 어떤 node와 service에 연결되는지를 나타낸다.</p>
+<p>필드 예시:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>device_name</code></td>
+<td>KubeEdge Device 이름</td>
+</tr>
+<tr>
+<td><code>device_type</code></td>
+<td>env / vib / act / temp / camera 등 device 성격</td>
+</tr>
+<tr>
+<td><code>nodeName</code></td>
+<td>device가 할당된 edge node</td>
+</tr>
+<tr>
+<td><code>telemetry_topic</code></td>
+<td>raw telemetry 입력 topic</td>
+</tr>
+<tr>
+<td><code>command_topic</code></td>
+<td>command topic</td>
+</tr>
+<tr>
+<td><code>status_properties</code></td>
+<td>DeviceStatus로 올라오는 운영 snapshot property</td>
+</tr>
+<tr>
+<td><code>telemetry_properties</code></td>
+<td>InfluxDB data-plane으로 처리되는 raw telemetry property</td>
+</tr>
+<tr>
+<td><code>service_name</code></td>
+<td>연결된 서비스 데모 이름</td>
+</tr>
+<tr>
+<td><code>service_demo_group</code></td>
+<td><code>state-aggregator</code>가 계산해 API로 내려주는 서비스 데모 그룹</td>
+</tr>
+<tr>
+<td><code>service_binding_source</code></td>
+<td>바인딩 판단 출처. 예: <code>device_name_pattern</code>, <code>event_binding</code></td>
+</tr>
+<tr>
+<td><code>service_binding_reason</code></td>
+<td>바인딩 판단 이유</td>
+</tr>
+<tr>
+<td><code>service_role</code></td>
+<td>service에서 device가 맡는 역할</td>
+</tr>
+<tr>
+<td><code>dashboard_group</code></td>
+<td>dashboard에서 보여줄 그룹</td>
+</tr>
+<tr>
+<td><code>kpi_relation</code></td>
+<td>KPI 계산에서 device가 기여하는 항목</td>
+</tr>
+</tbody></table></div>
+<h3 id="service-group-단위">Service group 단위</h3>
+<p>Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 관점으로 묶는다.</p>
+<p>예시:</p>
+<pre data-lang="text"><code>설비 상태 모니터링 서비스
+  - env-device: 환경 상태 입력
+  - vib-device: 설비 진동 상태 입력
+  - act-device: 제어/명령 적용 대상
+  - state-aggregator: 통합 상태 계산
+  - dashboard: 운영 상태와 KPI 표시</code></pre>
+<h2 id="현재-device-계열별-역할">현재 device 계열별 역할</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device 계열</th>
+<th>주요 데이터</th>
+<th>service 역할</th>
+<th>dashboard 해석</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>env-device-*</code></td>
+<td>temperature, humidity</td>
+<td>현장 환경 상태 입력</td>
+<td>환경 상태 freshness와 이상 여부</td>
+</tr>
+<tr>
+<td><code>vib-device-*</code></td>
+<td>vibration, rms, peak</td>
+<td>설비 상태/이상 징후 입력</td>
+<td>진동 상태 freshness와 severity</td>
+</tr>
+<tr>
+<td><code>act-device-*</code></td>
+<td>power, mode, command_state</td>
+<td>제어/명령 적용 대상</td>
+<td>command 적용 상태와 operational state</td>
+</tr>
+<tr>
+<td><code>temp-device-01</code></td>
+<td>temperature 계열 값</td>
+<td>단일 device 연동 확인</td>
+<td>DeviceStatus/telemetry 경로 확인</td>
+</tr>
+<tr>
+<td><code>rpi-env-device-*</code></td>
+<td>temperature, humidity</td>
+<td>Raspberry Pi edge 환경 입력</td>
+<td>light edge node의 telemetry 상태</td>
+</tr>
+<tr>
+<td><code>rpi-vib-device-*</code></td>
+<td>vibration 계열 값</td>
+<td>Raspberry Pi edge 진동 입력</td>
+<td>light edge node의 설비 상태</td>
+</tr>
+<tr>
+<td><code>rpi-act-device-*</code></td>
+<td>power, mode, command_state</td>
+<td>Raspberry Pi edge 제어 대상</td>
+<td>command loop 상태</td>
+</tr>
+</tbody></table></div>
+<h2 id="현재-api-바인딩-필드">현재 API 바인딩 필드</h2>
+<p><code>state-aggregator</code>는 device별 서비스 연결 정보를 backend에서 계산한 뒤 <code>/state/devices</code>와 <code>/state/dashboard</code>의 <code>devices[]</code> 항목에 포함한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>API field</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>service_connected</code></td>
+<td>서비스 데모에 연결된 device인지 여부</td>
+</tr>
+<tr>
+<td><code>service_demo_group</code></td>
+<td>dashboard에 표시할 서비스 데모 그룹</td>
+</tr>
+<tr>
+<td><code>service_binding_source</code></td>
+<td>바인딩 판단 출처</td>
+</tr>
+<tr>
+<td><code>service_binding_reason</code></td>
+<td>바인딩 판단 이유</td>
+</tr>
+</tbody></table></div>
+<p>현재 기본 판단은 device 이름 패턴을 사용한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device name pattern</th>
+<th><code>service_demo_group</code></th>
+<th><code>service_binding_reason</code></th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>vib</code> 포함</td>
+<td>설비 상태 모니터링</td>
+<td>device name includes vibration service keyword</td>
+</tr>
+<tr>
+<td><code>act</code> 포함</td>
+<td>command 상태 확인</td>
+<td>device name includes actuator command service keyword</td>
+</tr>
+<tr>
+<td><code>env</code> 또는 <code>temp</code> 포함</td>
+<td>환경 상태 모니터링</td>
+<td>device name includes environment service keyword</td>
+</tr>
+</tbody></table></div>
+<p>이 로직은 dashboard frontend 하드코딩이 아니라 backend의 <code>DeviceState</code> 응답 필드로 내려간다. dashboard는 API 응답의 <code>service_demo_group</code>과 <code>service_binding_reason</code>을 그대로 표시한다.</p>
+<h2 id="node-기준-바인딩">node 기준 바인딩</h2>
+<p>현재 테스트베드의 node 바인딩은 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>node</th>
+<th>역할</th>
+<th>연결 device</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>etri-ser0001-cg0msb</code></td>
+<td>control-plane / 운영 서버</td>
+<td>dashboard, state-aggregator, control-plane component</td>
+</tr>
+<tr>
+<td><code>etri-ser0002-cgnmsb</code></td>
+<td>worker / 추론 서버</td>
+<td>서비스 실행 또는 추론 workload 후보</td>
+</tr>
+<tr>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>Jetson edge AI device</td>
+<td><code>env-device-*</code>, <code>vib-device-*</code>, <code>act-device-*</code>, <code>temp-device-01</code></td>
+</tr>
+<tr>
+<td><code>etri-dev0002-raspi5</code></td>
+<td>Raspberry Pi 5 edge device</td>
+<td><code>rpi-env-device-*</code>, <code>rpi-vib-device-*</code>, <code>rpi-act-device-*</code></td>
+</tr>
+</tbody></table></div>
+<p>주의:</p>
+<ul><li>Device의 <code>nodeName</code>과 publisher 실행 위치가 맞아야 live 경로를 확인할 수 있다.</li><li>Jetson device는 Jetson node local mosquitto로 publish되어야 한다.</li><li>Raspberry Pi device는 Raspberry Pi node local mosquitto로 publish되어야 한다.</li></ul>
+<h2 id="topic-기준-바인딩">topic 기준 바인딩</h2>
+<p>각 device는 다음 topic 규칙을 따른다.</p>
+<pre data-lang="text"><code>factory/devices/{device-name}/telemetry
+factory/devices/{device-name}/command
+factory/devices/{device-name}/heartbeat</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>topic</th>
+<th>바인딩 의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>telemetry</code></td>
+<td>서비스 데모가 사용할 raw telemetry 입력</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>service/operator가 device 제어 또는 설정 변경에 사용할 명령 경로</td>
+</tr>
+<tr>
+<td><code>heartbeat</code></td>
+<td>테스트 publisher 보조 신호</td>
+</tr>
+</tbody></table></div>
+<p><code>heartbeat</code>는 현재 KubeEdge Device manifest에 직접 연결하지 않는다.</p>
+<h2 id="status-plane-data-plane-기준-바인딩">status-plane / data-plane 기준 바인딩</h2>
+<p>디바이스-서비스 바인딩을 해석할 때 raw telemetry와 운영 snapshot을 구분한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>저장/전달 경로</th>
+<th>서비스에서의 의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>raw telemetry data-plane</td>
+<td>MQTT -&gt; mapper -&gt; InfluxDB</td>
+<td>분석, 상태 추정, freshness 판단의 입력</td>
+</tr>
+<tr>
+<td>DeviceStatus status-plane</td>
+<td>mapper -&gt; KubeEdge DeviceStatus</td>
+<td>운영 상태 요약, command 적용 상태, 장애 요약</td>
+</tr>
+</tbody></table></div>
+<p>raw telemetry는 DeviceStatus에 직접 올리지 않는다.</p>
+<h2 id="바인딩-예시">바인딩 예시</h2>
+<h3 id="예시-1-jetson-설비-상태-입력">예시 1: Jetson 설비 상태 입력</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>device</td>
+<td><code>vib-device-01</code></td>
+</tr>
+<tr>
+<td>node</td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>telemetry topic</td>
+<td><code>factory/devices/vib-device-01/telemetry</code></td>
+</tr>
+<tr>
+<td>command topic</td>
+<td><code>factory/devices/vib-device-01/command</code></td>
+</tr>
+<tr>
+<td>data-plane property</td>
+<td><code>vibration</code>, <code>rms</code>, <code>peak</code></td>
+</tr>
+<tr>
+<td>status-plane property</td>
+<td><code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, <code>vibration_status</code></td>
+</tr>
+<tr>
+<td>service role</td>
+<td>설비 진동 상태 입력</td>
+</tr>
+<tr>
+<td>dashboard group</td>
+<td>설비 상태 / 진동 상태</td>
+</tr>
+<tr>
+<td>KPI relation</td>
+<td>telemetry freshness, abnormal signal visibility, operator focus</td>
+</tr>
+</tbody></table></div>
+<h3 id="예시-2-jetson-제어-대상">예시 2: Jetson 제어 대상</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>device</td>
+<td><code>act-device-01</code></td>
+</tr>
+<tr>
+<td>node</td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>telemetry topic</td>
+<td><code>factory/devices/act-device-01/telemetry</code></td>
+</tr>
+<tr>
+<td>command topic</td>
+<td><code>factory/devices/act-device-01/command</code></td>
+</tr>
+<tr>
+<td>data-plane property</td>
+<td>command event history, actuation latency 후보</td>
+</tr>
+<tr>
+<td>status-plane property</td>
+<td><code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, <code>command_state</code></td>
+</tr>
+<tr>
+<td>service role</td>
+<td>actuator command 적용 대상</td>
+</tr>
+<tr>
+<td>dashboard group</td>
+<td>제어 상태 / command 상태</td>
+</tr>
+<tr>
+<td>KPI relation</td>
+<td>command applied ratio, response visibility</td>
+</tr>
+</tbody></table></div>
+<h3 id="예시-3-raspberry-pi-환경-상태-입력">예시 3: Raspberry Pi 환경 상태 입력</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>device</td>
+<td><code>rpi-env-device-01</code></td>
+</tr>
+<tr>
+<td>node</td>
+<td><code>etri-dev0002-raspi5</code></td>
+</tr>
+<tr>
+<td>telemetry topic</td>
+<td><code>factory/devices/rpi-env-device-01/telemetry</code></td>
+</tr>
+<tr>
+<td>command topic</td>
+<td><code>factory/devices/rpi-env-device-01/command</code></td>
+</tr>
+<tr>
+<td>data-plane property</td>
+<td><code>temperature</code>, <code>humidity</code></td>
+</tr>
+<tr>
+<td>status-plane property</td>
+<td><code>health</code>, <code>sampling_interval</code>, <code>temperature_status</code>, <code>humidity_status</code></td>
+</tr>
+<tr>
+<td>service role</td>
+<td>light edge 환경 상태 입력</td>
+</tr>
+<tr>
+<td>dashboard group</td>
+<td>Raspberry Pi edge 상태</td>
+</tr>
+<tr>
+<td>KPI relation</td>
+<td>mixed-device coverage, telemetry freshness</td>
+</tr>
+</tbody></table></div>
+<h2 id="dashboard에서-보여줄-바인딩-정보">dashboard에서 보여줄 바인딩 정보</h2>
+<p>dashboard에서는 최소한 다음 관계를 보여줘야 한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>표시 항목</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>device name</td>
+<td>어떤 device인지</td>
+</tr>
+<tr>
+<td>node</td>
+<td>어느 edge node에 연결됐는지</td>
+</tr>
+<tr>
+<td>device type</td>
+<td>env / vib / act 등 device 성격</td>
+</tr>
+<tr>
+<td>service group</td>
+<td>어떤 서비스 데모에 묶이는지</td>
+</tr>
+<tr>
+<td>telemetry freshness</td>
+<td>raw telemetry data-plane이 살아 있는지</td>
+</tr>
+<tr>
+<td>DeviceStatus freshness</td>
+<td>status-plane snapshot이 최신인지</td>
+</tr>
+<tr>
+<td>mapper status</td>
+<td>해당 node의 mapper가 Running인지</td>
+</tr>
+<tr>
+<td>overall status</td>
+<td>healthy / degraded / unavailable</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>현재 상태의 운영 해석</td>
+</tr>
+</tbody></table></div>
+<p>현재 API에는 <code>service_connected</code> 필드가 있으며, 이는 device가 서비스 또는 workflow event와 연결되어 있는지를 나타내는 값으로 사용되고 있다.</p>
+<p>현행 연구 방향에서는 이 값을 workflow orchestration 의미로 확장하지 않고, service binding 또는 demo binding 관점으로 해석하는 것이 적절하다.</p>
+<h2 id="현재-코드-기준-주의점">현재 코드 기준 주의점</h2>
+<p><code>edge-orch/state-aggregator/app/models.py</code>의 <code>DeviceState</code>에는 다음 필드가 있다.</p>
+<pre data-lang="text"><code>service_connected: bool</code></pre>
+<p><code>edge-orch/state-aggregator/app/service.py</code>에서는 현재 workflow event의 <code>device_id</code>, <code>source_device</code>, <code>assigned_node</code>를 참고해 <code>service_connected</code>를 계산한다.</p>
+<p>이 방식은 과거 workflow event 구조의 흔적이 남아 있는 형태다. 현재 문서 기준에서는 다음처럼 정리한다.</p>
+<ul><li><code>service_connected</code>는 현재 데모에서 service binding 여부를 나타내는 운영 필드로 해석한다.</li><li>dashboard/API의 service binding KPI는 <code>service_bound_device_count</code>, <code>device_service_binding_ratio</code> 이름을 사용한다.</li><li><code>WorkflowEvent</code>, <code>WorkflowState</code> 등 과거 event 구조 이름은 현행 service binding과 분리해서 해석한다.</li></ul>
+<h2 id="현재-범위에서-제외하는-바인딩-방식">현재 범위에서 제외하는 바인딩 방식</h2>
+<p>다음 방식은 현재 디바이스-서비스 바인딩 정의에 포함하지 않는다.</p>
+<ul><li>workflow stage를 기준으로 device를 runtime에 재배치하는 방식</li><li>placement engine이 node/device/service 관계를 자동 변경하는 방식</li><li>cost model이 runtime offloading을 결정하는 방식</li><li>agent-assisted planning layer가 service/device 관계를 생성하는 방식</li><li>LLM 기반 전역 제어가 device-service binding을 수행하는 방식</li></ul>
+<p>위 항목은 현재 연구 방향에서 진행하는 다음 단계로 표현하지 않는다. 필요한 경우 과거 검토/실험 또는 archive 경로로만 다룬다.</p>
+<h2 id="정상-바인딩-판단-기준">정상 바인딩 판단 기준</h2>
+<p>현재 데모에서 device-service binding이 정상으로 보이려면 다음 조건을 만족해야 한다.</p>
+<ol><li>Device CR이 존재한다.</li><li>Device가 의도한 node에 할당되어 있다.</li><li>해당 node의 mapper가 Running이다.</li><li>publisher가 같은 node의 local mosquitto에 telemetry를 publish한다.</li><li>InfluxDB에 latest telemetry가 들어온다.</li><li>DeviceStatus snapshot이 dashboard freshness 기준을 만족한다.</li><li>dashboard에서 device가 service group 또는 demo group에 표시된다.</li><li>KPI에서 해당 device가 service visibility 또는 productivity 설명에 기여한다.</li></ol>
+<h2 id="degraded-바인딩-해석">degraded 바인딩 해석</h2>
+<p>바인딩이 존재하지만 dashboard에서 degraded로 보일 수 있는 경우는 다음이다.</p>
+<ul><li>Device CR은 있지만 telemetry freshness가 없다.</li><li>telemetry는 있지만 DeviceStatus snapshot이 오래됐다.</li><li>mapper는 Running이지만 InfluxDB 적재가 되지 않았다.</li><li>publisher 실행 node와 Device <code>nodeName</code>이 다르다.</li><li>service group에는 포함됐지만 KPI 계산에 필요한 signal이 부족하다.</li><li>command topic은 있으나 command 적용 상태가 DeviceStatus에 반영되지 않았다.</li></ul>
+<p>이 경우는 service binding 자체가 무조건 실패했다는 뜻이 아니다. 운영 가시화에 필요한 최신 signal이 부족한 상태로 해석한다.</p>
+<h2 id="관련-문서">관련 문서</h2>
+<ul><li><code>docs/current-demo-path.md</code>: 현재 device/MQTT/mapper/state-aggregator/dashboard 연결 경로</li><li><code>docs/device-status-policy.md</code>: DeviceStatus와 raw telemetry 분리 정책</li><li><code>docs/dashboard-policy.md</code>: dashboard 상태 판단 기준</li><li><code>docs/scope.md</code>: 현재 범위와 제외 범위</li><li><code>docs/repo-structure.md</code>: 레포 디렉터리 역할 분류</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
+<li class="toc-h2"><a href="#바인딩-원칙">바인딩 원칙</a></li>
+<li class="toc-h2"><a href="#바인딩-단위">바인딩 단위</a></li>
+<li class="toc-h3"><a href="#device-단위">Device 단위</a></li>
+<li class="toc-h3"><a href="#service-group-단위">Service group 단위</a></li>
+<li class="toc-h2"><a href="#현재-device-계열별-역할">현재 device 계열별 역할</a></li>
+<li class="toc-h2"><a href="#현재-api-바인딩-필드">현재 API 바인딩 필드</a></li>
+<li class="toc-h2"><a href="#node-기준-바인딩">node 기준 바인딩</a></li>
+<li class="toc-h2"><a href="#topic-기준-바인딩">topic 기준 바인딩</a></li>
+<li class="toc-h2"><a href="#status-plane-data-plane-기준-바인딩">status-plane / data-plane 기준 바인딩</a></li>
+<li class="toc-h2"><a href="#바인딩-예시">바인딩 예시</a></li>
+<li class="toc-h3"><a href="#예시-1-jetson-설비-상태-입력">예시 1: Jetson 설비 상태 입력</a></li>
+<li class="toc-h3"><a href="#예시-2-jetson-제어-대상">예시 2: Jetson 제어 대상</a></li>
+<li class="toc-h3"><a href="#예시-3-raspberry-pi-환경-상태-입력">예시 3: Raspberry Pi 환경 상태 입력</a></li>
+<li class="toc-h2"><a href="#dashboard에서-보여줄-바인딩-정보">dashboard에서 보여줄 바인딩 정보</a></li>
+<li class="toc-h2"><a href="#현재-코드-기준-주의점">현재 코드 기준 주의점</a></li>
+<li class="toc-h2"><a href="#현재-범위에서-제외하는-바인딩-방식">현재 범위에서 제외하는 바인딩 방식</a></li>
+<li class="toc-h2"><a href="#정상-바인딩-판단-기준">정상 바인딩 판단 기준</a></li>
+<li class="toc-h2"><a href="#degraded-바인딩-해석">degraded 바인딩 해석</a></li>
+<li class="toc-h2"><a href="#관련-문서">관련 문서</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

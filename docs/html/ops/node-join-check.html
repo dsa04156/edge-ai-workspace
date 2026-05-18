@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>노드 조인 점검</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/node-join-check.md">편집</a>
+      </div>
+      <span>ops/node-join-check.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>노드 조인 점검</h1>
+          <p class="subtitle">새 노드를 클러스터에 조인한 뒤, 우리가 실제로 겪었던 문제를 빠르게 확인하기 위한 프리플라이트 스크립트다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: ops/node-join-check.md</span>
+            <span class="badge">수정: 2026-04-30 13:52</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="노드-조인-체크-스크립트">노드 조인 체크 스크립트</h1>
+<p>새 노드를 클러스터에 조인한 뒤, 우리가 실제로 겪었던 문제를 빠르게 확인하기 위한 프리플라이트 스크립트다.</p>
+<p>위치:</p>
+<ul><li><code>/home/etri/jinuk/edge-orch/scripts/check-worker-node-join.sh</code></li></ul>
+<h2 id="무엇을-확인하나">무엇을 확인하나</h2>
+<ul><li>노드 <code>Ready</code> 상태</li><li><code>kube-dns</code> 서비스와 엔드포인트 존재 여부</li><li>대상 노드의 <code>kube-proxy</code> 존재 및 최근 <code>iptables-restore</code> 오류 여부</li><li>대상 노드의 <code>edgemesh-agent</code> 존재 여부</li><li>host에서 <code>10.96.0.10:53</code> 접근 가능 여부</li><li>pod 내부 DNS 해석 가능 여부</li><li><code>br_netfilter</code>, <code>xt_physdev</code> 모듈</li><li><code>net.bridge.bridge-nf-call-iptables</code>, <code>net.ipv4.ip_forward</code></li><li>NVIDIA 서버 노드라면:</li><li><code>/dev/nvidia*</code></li><li><code>nvidia-smi</code></li><li><code>nvidia.com/gpu</code> allocatable</li></ul>
+<h2 id="실행-방법">실행 방법</h2>
+<p>control-plane에서 실행:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh etri-ser0002-cgnmsb</code></pre>
+<p>예시:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh etri-ser0001-cg0msb
+bash scripts/check-worker-node-join.sh etri-ser0002-cgnmsb</code></pre>
+<p>GPU까지 확인하려면:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh --check-gpu etri-ser0002-cgnmsb</code></pre>
+<h2 id="종료-코드">종료 코드</h2>
+<ul><li><code>0</code>: 실패 없음</li><li><code>2</code>: 하나 이상 실패</li></ul>
+<h2 id="전제-조건">전제 조건</h2>
+<ul><li><code>kubectl</code> 사용 가능</li><li><code>kubectl debug node/...</code> 사용 가능</li><li><code>busybox:latest</code> 이미지를 pull할 수 있어야 함</li></ul>
+<p>권장:</p>
+<ul><li>기본 실행은 공통 네트워크/서비스 체크만 수행한다.</li><li>GPU smoke 검증은 <code>--check-gpu</code> 옵션을 줬을 때만 수행한다.</li><li>GPU smoke 검증까지 정확히 보려면, 대상 노드 GPU를 이미 점유한 워크로드가 없는 시점에 실행하는 것이 좋다.</li></ul>
+<h2 id="참고">참고</h2>
+<p>이 스크립트는 우리가 실제로 겪었던 다음 문제를 빠르게 찾기 위해 만들었다.</p>
+<ul><li>CoreDNS 서비스 VIP 접근 불가</li><li>EdgeMesh DNS 프록시 경로 이상</li><li><code>kube-proxy</code>의 <code>iptables-restore</code> 실패</li><li>새 노드 커널 모듈/브리지 설정 누락</li><li>GPU 노드인데 Kubernetes에 <code>nvidia.com/gpu</code>가 노출되지 않는 상태</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#무엇을-확인하나">무엇을 확인하나</a></li>
+<li class="toc-h2"><a href="#실행-방법">실행 방법</a></li>
+<li class="toc-h2"><a href="#종료-코드">종료 코드</a></li>
+<li class="toc-h2"><a href="#전제-조건">전제 조건</a></li>
+<li class="toc-h2"><a href="#참고">참고</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

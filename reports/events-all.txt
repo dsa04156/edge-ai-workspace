@@ -1,0 +1,23 @@
+NAMESPACE                LAST SEEN   TYPE     REASON              OBJECT                                                           MESSAGE
+k8sgpt-operator-system   19m         Normal   Scheduled           pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully assigned k8sgpt-operator-system/release-k8sgpt-operator-controller-manager-c964b796-s456g to etri-ser0002-cgnmsb
+default                  48m         Normal   Scheduled           pod/state-aggregator-5d5f655767-s94d7                            Successfully assigned default/state-aggregator-5d5f655767-s94d7 to etri-ser0001-cg0msb
+default                  48m         Normal   SuccessfulCreate    replicaset/state-aggregator-5d5f655767                           Created pod: state-aggregator-5d5f655767-s94d7
+default                  48m         Normal   Pulling             pod/state-aggregator-5d5f655767-s94d7                            Pulling image "192.168.0.56:5000/state-aggregator:latest"
+default                  48m         Normal   ScalingReplicaSet   deployment/state-aggregator                                      Scaled up replica set state-aggregator-5d5f655767 to 1
+default                  48m         Normal   Killing             pod/state-aggregator-6b9fff74b8-wknjl                            Stopping container state-aggregator
+default                  48m         Normal   Started             pod/state-aggregator-5d5f655767-s94d7                            Started container state-aggregator
+default                  48m         Normal   SuccessfulDelete    replicaset/state-aggregator-6b9fff74b8                           Deleted pod: state-aggregator-6b9fff74b8-wknjl
+default                  48m         Normal   Created             pod/state-aggregator-5d5f655767-s94d7                            Created container: state-aggregator
+default                  48m         Normal   ScalingReplicaSet   deployment/state-aggregator                                      Scaled down replica set state-aggregator-6b9fff74b8 to 0 from 1
+default                  48m         Normal   Pulled              pod/state-aggregator-5d5f655767-s94d7                            Successfully pulled image "192.168.0.56:5000/state-aggregator:latest" in 1.727s (1.727s including waiting). Image size: 66769030 bytes.
+k8sgpt-operator-system   19m         Normal   ScalingReplicaSet   deployment/release-k8sgpt-operator-controller-manager            Scaled up replica set release-k8sgpt-operator-controller-manager-c964b796 to 1
+k8sgpt-operator-system   19m         Normal   Pulling             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Pulling image "quay.io/brancz/kube-rbac-proxy:v0.19.1"
+k8sgpt-operator-system   19m         Normal   SuccessfulCreate    replicaset/release-k8sgpt-operator-controller-manager-c964b796   Created pod: release-k8sgpt-operator-controller-manager-c964b796-s456g
+k8sgpt-operator-system   19m         Normal   Started             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Started container kube-rbac-proxy
+k8sgpt-operator-system   19m         Normal   Created             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Created container: kube-rbac-proxy
+k8sgpt-operator-system   19m         Normal   Pulling             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Pulling image "ghcr.io/k8sgpt-ai/k8sgpt-operator:v0.2.27"
+k8sgpt-operator-system   19m         Normal   Pulled              pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully pulled image "quay.io/brancz/kube-rbac-proxy:v0.19.1" in 4.159s (4.159s including waiting). Image size: 33284637 bytes.
+k8sgpt-operator-system   19m         Normal   Pulled              pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully pulled image "ghcr.io/k8sgpt-ai/k8sgpt-operator:v0.2.27" in 4.718s (4.718s including waiting). Image size: 32934759 bytes.
+k8sgpt-operator-system   19m         Normal   Created             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Created container: manager
+k8sgpt-operator-system   19m         Normal   Started             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Started container manager
+k8sgpt-operator-system   19m         Normal   LeaderElection      lease/ea9c19f7.k8sgpt.ai                                         release-k8sgpt-operator-controller-manager-c964b796-s456g_55d566c9-a80b-49c8-b7c2-cf1645d1bcb6 became leader

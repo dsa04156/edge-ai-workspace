@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로드맵</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=roadmap.md">편집</a>
+      </div>
+      <span>roadmap.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>로드맵</h1>
+          <p class="subtitle">현재 단계는 서비스 데모와 통합 운영 가시화가 우선이다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: roadmap.md</span>
+            <span class="badge">수정: 2026-05-08 14:41</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="roadmap">Roadmap</h1>
+<h2 id="현재-단계">현재 단계</h2>
+<p>현재 단계는 서비스 데모와 통합 운영 가시화가 우선이다.</p>
+<p>목표:</p>
+<ol><li>디바이스가 실제로 등록되고 관리되는지 보인다.</li><li>디바이스와 서비스가 실제로 연결되는지 보인다.</li><li>전체 관계와 상태가 대시보드에서 보인다.</li><li>옥동 시나리오 등 현장 적용 효과를 생산성 언어로 설명한다.</li></ol>
+<p>현재 데모 운영 경로는 <code>state-aggregator</code> 중심으로 단순화한다. 워크플로우 실행기, placement engine, workflow reporter, 동적 offloading 계열은 현행 연구 방향과 데모 경로에서 제외한다.</p>
+<h2 id="현재-산출물">현재 산출물</h2>
+<p>즉시 필요한 산출물:</p>
+<ol><li>서비스 데모 시나리오 정의서</li><li>디바이스 등록/관리 절차서</li><li>디바이스-서비스 바인딩 명세</li><li>통합 대시보드 정보 구조 정의서</li><li>옥동 시나리오 생산성 KPI 정의서 (<code>okdong-productivity-kpi.md</code>)</li></ol>
+<p>그 다음 정리 산출물:</p>
+<ol><li>현재 PoC 범위 정의서</li><li>레포 구조와 컴포넌트 역할표</li><li>현재 데모 실행/점검 runbook</li><li>운영 상태 판단 기준과 troubleshooting guide</li><li>실공장 적용성 설명 자료</li></ol>
+<h2 id="현재-구현-방향">현재 구현 방향</h2>
+<p>현재 구현은 다음 흐름을 기준으로 한다.</p>
+<pre data-lang="text"><code>physical / virtual device
+  -&gt; MQTT telemetry / command topic
+  -&gt; mqttvirtual mapper
+  -&gt; KubeEdge DeviceStatus snapshot
+  -&gt; InfluxDB raw telemetry data-plane
+  -&gt; state-aggregator
+  -&gt; dashboard / service demo view</code></pre>
+<p>핵심은 디바이스, 서비스, 노드, telemetry, 운영 상태를 하나의 설명 가능한 PoC 경로로 연결하는 것이다.</p>
+<h2 id="현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</h2>
+<p>다음 경로는 현재 연구 방향에서 진행하지 않는다. 새 문서나 발표자료에서 현재 예정된 기능처럼 표현하지 않는다.</p>
+<ul><li>동적 workflow 분해/실행</li><li>runtime replanning</li><li>placement engine 기반 자동 재배치</li><li>cost model 기반 offloading 판단</li><li>workflow_executor 중심 orchestration</li><li>workflow_reporter 중심 stage event pipeline</li><li>agent-assisted planning layer</li><li>LLM이 전체 플랫폼 제어를 수행하는 구조</li><li>전체 플랫폼 자율 제어형 orchestration</li></ul>
+<p>위 항목들은 필요한 경우 과거 검토/실험 자료 또는 archive로만 다룬다.</p>
+<h2 id="정리-우선순위">정리 우선순위</h2>
+<ol><li>현재 PoC 범위와 제외 범위를 문서화한다.</li><li>현재 데모 경로와 관련 컴포넌트를 명확히 표시한다.</li><li>디바이스-서비스 바인딩 명세를 작성한다.</li><li>서비스 데모 시나리오를 작성한다.</li><li>대시보드에서 보여줄 정보 구조와 KPI를 정리한다.</li><li>기존 workflow/offloading/agent-planning 문서는 현재 경로와 분리한다.</li></ol>
+<h2 id="문서-표현-원칙">문서 표현 원칙</h2>
+<p>유지할 표현:</p>
+<ul><li>서비스 데모 우선</li><li>디바이스-서비스 연결 구조</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
+<p>피할 표현:</p>
+<ul><li>전체 플랫폼 자율 제어형 orchestration을 실증 완료처럼 보이게 하는 표현</li><li>LLM 기반 전역 제어를 현재 기능처럼 보이게 하는 표현</li><li>동적 workflow 실행이 이미 완료된 것처럼 보이는 표현</li><li>offloading 고도화가 다음 확정 단계인 것처럼 보이는 표현</li><li>agent-assisted planning이 현재 연구 방향인 것처럼 보이는 표현</li><li>고도화 기능이 이미 실증 완료된 것처럼 보이는 표현</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-단계">현재 단계</a></li>
+<li class="toc-h2"><a href="#현재-산출물">현재 산출물</a></li>
+<li class="toc-h2"><a href="#현재-구현-방향">현재 구현 방향</a></li>
+<li class="toc-h2"><a href="#현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</a></li>
+<li class="toc-h2"><a href="#정리-우선순위">정리 우선순위</a></li>
+<li class="toc-h2"><a href="#문서-표현-원칙">문서 표현 원칙</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -24,7 +24,7 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 3. device가 어떤 node에 붙어 있는가.
 4. InfluxDB에 device별 최신 값이 최근 들어오는가.
 5. DeviceStatus snapshot이 보조 상태 정보로 최신인가.
-6. env/vib/temp raw telemetry와 act health liveness가 DB timestamp 기준으로 구분되어 있는가.
+6. env/vib/temp raw telemetry와 act ts liveness가 DB timestamp 기준으로 구분되어 있는가.
 7. device가 어떤 service demo group에 연결되어 있는가.
 8. mapper, state-aggregator, dashboard가 현재 상태를 일관되게 보여주는가.
 9. dashboard에서 healthy, degraded, unavailable 판단이 어떻게 내려지는가.

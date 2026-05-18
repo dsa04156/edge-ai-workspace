@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>평가 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/research/evaluation-plan.md">편집</a>
+      </div>
+      <span>archive/research/evaluation-plan.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../../README.html">문서 안내</a></li>
+<li><a href="../../goal.html">시스템 구축 목표</a></li>
+<li><a href="../../project-context.html">프로젝트 배경</a></li>
+<li><a href="../../scope.html">프로젝트 범위</a></li>
+<li><a href="../../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../../repo-structure.html">레포 구조</a></li>
+<li><a href="../../roadmap.html">로드맵</a></li>
+<li><a href="../../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="../../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../../ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="../../ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="../../ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="README.html">연구 초안 안내</a></li>
+<li><a href="evaluation-plan.html">평가 계획</a></li>
+<li><a href="paper-strategy.html">논문 전략</a></li>
+<li><a href="research-topics.html">연구 주제 정리</a></li>
+<li><a href="venue-strategy.html">투고처 전략</a></li>
+<li><a href="writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">Archive 문서</p>
+          <h1>평가 계획</h1>
+          <p class="subtitle">오케스트레이션 논문을 publishable하게 만들기 위한 최소 평가 패키지를 정의한다.</p>
+          <div class="meta">
+            <span class="badge kind">Archive</span>
+            <span class="badge">원본: archive/research/evaluation-plan.md</span>
+            <span class="badge">수정: 2026-04-09 19:14</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="Archive 안내">
+  <strong>과거 자료</strong>
+  <span>이 문서는 현재 구축 목표가 아니라 과거 연구/통합/legacy 맥락 확인용입니다. 현재 판단은 Active 문서를 우선하세요.</span>
+  <code>archive/research/evaluation-plan.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="평가-계획">평가 계획</h1>
+<h2 id="목표">목표</h2>
+<p>오케스트레이션 논문을 publishable하게 만들기 위한 최소 평가 패키지를 정의한다.</p>
+<p>---</p>
+<h2 id="1-핵심-시스템-질문">1. 핵심 시스템 질문</h2>
+<p>혼합 디바이스 엣지 AI 워크플로우를 위한 이기종성 인지형 런타임 오케스트레이션이, 런타임 변화가 있는 환경에서 정적 배치와 단순 heuristic 배치보다 더 나은 성능을 낼 수 있는가?</p>
+<p>---</p>
+<h2 id="2-테스트베드">2. 테스트베드</h2>
+<p>실제 mixed-device 환경을 사용한다.</p>
+<ul><li>x86 cloud/control 노드</li><li>x86 worker 노드</li><li>Jetson edge 노드</li><li>Raspberry Pi edge 노드</li></ul>
+<p>런타임 환경:</p>
+<ul><li>Kubernetes / KubeEdge</li><li>컨테이너 기반 stage 실행</li><li>Prometheus / Grafana 재사용</li></ul>
+<p>---</p>
+<h2 id="3-주력-워크플로우">3. 주력 워크플로우</h2>
+<p>워크플로우는 하나를 깊게 평가한다.</p>
+<p>권장:</p>
+<ul><li>스마트팩토리 비전 파이프라인</li></ul>
+<p>권장 stage 구조:</p>
+<ol><li>capture</li><li>preprocess</li><li>inference</li><li>postprocess</li><li>result delivery</li></ol>
+<p>주력 워크플로우가 단단해지기 전에는 얕은 다중 워크플로우를 늘리지 않는다.</p>
+<p>---</p>
+<h2 id="4-비교군">4. 비교군</h2>
+<h3 id="baseline-a-정적-배치">Baseline A: 정적 배치</h3>
+<p>고정된 stage-to-node 매핑.</p>
+<h3 id="baseline-b-단순-heuristic-배치">Baseline B: 단순 heuristic 배치</h3>
+<p>런타임 replanning 없이 1회성 resource-aware placement 수행.</p>
+<h3 id="baseline-c-제안-방식의-runtime-orchestration">Baseline C: 제안 방식의 runtime orchestration</h3>
+<p>런타임 상태를 반영하는 stage-level placement.</p>
+<h3 id="baseline-d-제안-방식의-runtime-orchestration-replanning">Baseline D: 제안 방식의 runtime orchestration + replanning</h3>
+<p>Baseline C에 overload / burst 기반 replanning을 추가한 형태.</p>
+<h3 id="선택-baseline-e-planning-layer">선택 Baseline E: planning layer</h3>
+<p>충분히 성숙했고 역할이 명확히 분리될 때만 포함한다.</p>
+<p>---</p>
+<h2 id="5-시나리오">5. 시나리오</h2>
+<h3 id="s1-정상-부하">S1. 정상 부하</h3>
+<p>안정적인 workflow 유입률을 유지한다.</p>
+<h3 id="s2-버스트-부하">S2. 버스트 부하</h3>
+<p>workflow 도착률 또는 특정 stage 부하가 순간적으로 급증한다.</p>
+<h3 id="s3-지속-과부하">S3. 지속 과부하</h3>
+<p>일부 노드가 장시간 높은 압박 상태를 겪는다.</p>
+<h3 id="s4-전송-비용-스트레스">S4. 전송 비용 스트레스</h3>
+<p>cross-node transfer cost가 유의미하게 커지는 상황을 만든다.</p>
+<h3 id="s5-노드-열화-부분-장애">S5. 노드 열화 / 부분 장애</h3>
+<p>가능하다면 부분적 성능 저하 또는 노드 가용성 저하를 유도한다.</p>
+<p>---</p>
+<h2 id="6-지표">6. 지표</h2>
+<h3 id="end-to-end-서비스-지표">End-to-end 서비스 지표</h3>
+<ul><li>end-to-end latency</li><li>p95 / p99 latency</li><li>makespan</li><li>workflow completion time</li></ul>
+<h3 id="자원-지표">자원 지표</h3>
+<ul><li>CPU utilization</li><li>memory pressure</li><li>network throughput / transfer load</li><li>가능하면 accelerator utilization</li></ul>
+<h3 id="오케스트레이션-지표">오케스트레이션 지표</h3>
+<ul><li>placement decision latency</li><li>재할당 / migration 횟수</li><li>failed placement 수</li><li>unstable placement 수</li><li>scheduling overhead</li></ul>
+<h3 id="실용성-지표">실용성 지표</h3>
+<ul><li>burst 부하에서의 개선폭</li><li>overload 상황에서의 개선폭</li><li>orchestrator가 추가한 오버헤드</li></ul>
+<p>---</p>
+<h2 id="7-필수-ablation">7. 필수 ablation</h2>
+<p>ablation은 어떤 요소가 실제로 필요한지 보여줘야 한다.</p>
+<h3 id="a1-이기종성-인지-제거">A1. 이기종성 인지 제거</h3>
+<p>모든 노드를 동일한 것으로 취급한다.</p>
+<h3 id="a2-stage-분해-제거">A2. stage 분해 제거</h3>
+<p>서비스 전체 단위 배치로 바꾼다.</p>
+<h3 id="a3-replanning-제거">A3. replanning 제거</h3>
+<p>초기 1회 결정만 사용한다.</p>
+<h3 id="a4-transfer-cost-모델-제거">A4. transfer-cost 모델 제거</h3>
+<p>cross-node handoff cost를 무시한다.</p>
+<h3 id="a5-memory-pressure-항-제거">A5. memory-pressure 항 제거</h3>
+<p>메모리를 배치 판단 요인에서 뺀다.</p>
+<p>이 ablation이 없으면 리뷰어는 쉽게 이렇게 묻는다.</p>
+<p><code>왜 전체 시스템이 꼭 필요한가?</code></p>
+<p>---</p>
+<h2 id="8-데이터-전달-평가-요구사항">8. 데이터 전달 평가 요구사항</h2>
+<p>실제 AI 워크플로우 실행에는 stage handoff가 필요하므로 최소한 다음은 평가한다.</p>
+<ul><li>same-node local handoff 경로</li><li>cross-node handoff 경로</li><li>handoff overhead가 end-to-end latency에 미치는 영향</li></ul>
+<p>Redis나 MinIO를 도입한다면 다음도 측정한다.</p>
+<ul><li>control/state handoff overhead</li><li>artifact handoff overhead</li><li>makespan과 stage transition delay에 미치는 영향</li></ul>
+<p>---</p>
+<h2 id="9-최소-publishable-evidence">9. 최소 publishable evidence</h2>
+<p>논문이 publishable하려면 최소한 아래 다섯 가지를 보여줄 수 있어야 한다.</p>
+<ol><li>정적 배치는 충분하지 않다.</li><li>stage-level orchestration이 도움이 된다.</li><li>heterogeneity-aware placement가 도움이 된다.</li><li>runtime variation에서 replanning이 도움이 된다.</li><li>overhead가 허용 가능한 수준이다.</li></ol>
+<p>이 중 하나라도 빠지면 논문은 크게 약해진다.</p>
+<p>---</p>
+<h2 id="10-최종-원칙">10. 최종 원칙</h2>
+<p>넓지만 얕은 평가보다, 작더라도 빈틈없는 평가가 낫다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목표">목표</a></li>
+<li class="toc-h2"><a href="#1-핵심-시스템-질문">1. 핵심 시스템 질문</a></li>
+<li class="toc-h2"><a href="#2-테스트베드">2. 테스트베드</a></li>
+<li class="toc-h2"><a href="#3-주력-워크플로우">3. 주력 워크플로우</a></li>
+<li class="toc-h2"><a href="#4-비교군">4. 비교군</a></li>
+<li class="toc-h3"><a href="#baseline-a-정적-배치">Baseline A: 정적 배치</a></li>
+<li class="toc-h3"><a href="#baseline-b-단순-heuristic-배치">Baseline B: 단순 heuristic 배치</a></li>
+<li class="toc-h3"><a href="#baseline-c-제안-방식의-runtime-orchestration">Baseline C: 제안 방식의 runtime orchestration</a></li>
+<li class="toc-h3"><a href="#baseline-d-제안-방식의-runtime-orchestration-replanning">Baseline D: 제안 방식의 runtime orchestration + replanning</a></li>
+<li class="toc-h3"><a href="#선택-baseline-e-planning-layer">선택 Baseline E: planning layer</a></li>
+<li class="toc-h2"><a href="#5-시나리오">5. 시나리오</a></li>
+<li class="toc-h3"><a href="#s1-정상-부하">S1. 정상 부하</a></li>
+<li class="toc-h3"><a href="#s2-버스트-부하">S2. 버스트 부하</a></li>
+<li class="toc-h3"><a href="#s3-지속-과부하">S3. 지속 과부하</a></li>
+<li class="toc-h3"><a href="#s4-전송-비용-스트레스">S4. 전송 비용 스트레스</a></li>
+<li class="toc-h3"><a href="#s5-노드-열화-부분-장애">S5. 노드 열화 / 부분 장애</a></li>
+<li class="toc-h2"><a href="#6-지표">6. 지표</a></li>
+<li class="toc-h3"><a href="#end-to-end-서비스-지표">End-to-end 서비스 지표</a></li>
+<li class="toc-h3"><a href="#자원-지표">자원 지표</a></li>
+<li class="toc-h3"><a href="#오케스트레이션-지표">오케스트레이션 지표</a></li>
+<li class="toc-h3"><a href="#실용성-지표">실용성 지표</a></li>
+<li class="toc-h2"><a href="#7-필수-ablation">7. 필수 ablation</a></li>
+<li class="toc-h3"><a href="#a1-이기종성-인지-제거">A1. 이기종성 인지 제거</a></li>
+<li class="toc-h3"><a href="#a2-stage-분해-제거">A2. stage 분해 제거</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

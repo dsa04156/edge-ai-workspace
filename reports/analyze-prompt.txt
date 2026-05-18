@@ -1,0 +1,515 @@
+아래는 kubeadm + KubeEdge 클러스터 진단 자료입니다.
+근거 없는 추측은 하지 말고, 제공된 내용만 기반으로 한국어 요약하세요.
+
+출력 형식:
+1. 핵심 문제 요약
+2. 영향받는 namespace/resource
+3. 가능한 원인
+4. 확인할 read-only 명령
+5. KubeEdge 특화 추가 확인 항목
+6. 자동 실행 금지 조치
+
+===== context.txt =====
+kubernetes-admin@kubernetes
+
+===== nodes.txt =====
+NAME                  STATUS   ROLES           AGE   VERSION                     INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION      CONTAINER-RUNTIME
+etri-dev0001-jetorn   Ready    agent,edge      17d   v1.32.10-kubeedge-v1.23.0   192.168.0.3    <none>        Ubuntu 22.04.5 LTS             5.15.148-tegra      containerd://1.7.28
+etri-dev0002-raspi5   Ready    agent,edge      17d   v1.32.10-kubeedge-v1.23.0   192.168.0.4    <none>        Debian GNU/Linux 13 (trixie)   6.12.79-v8-16k+     containerd://1.7.18
+etri-ser0001-cg0msb   Ready    control-plane   48d   v1.31.14                    192.168.0.56   <none>        Ubuntu 24.04.3 LTS             6.17.0-22-generic   containerd://1.7.18
+etri-ser0002-cgnmsb   Ready    worker          29d   v1.31.14                    192.168.0.5    <none>        Ubuntu 24.04.4 LTS             6.17.0-22-generic   containerd://2.2.1
+
+===== pods-all.txt =====
+NAMESPACE                NAME                                                        READY   STATUS    RESTARTS        AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+argocd                   argocd-application-controller-0                             1/1     Running   0               9d     10.244.8.89    etri-ser0002-cgnmsb   <none>           <none>
+argocd                   argocd-applicationset-controller-57b46b7b59-bf2pp           1/1     Running   3 (11d ago)     48d    10.244.0.166   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-dex-server-567f886f6-tmbp5                           1/1     Running   3 (11d ago)     48d    10.244.0.170   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-image-updater-68fb6df66f-c28dc                       1/1     Running   5 (4d18h ago)   8d     10.244.8.92    etri-ser0002-cgnmsb   <none>           <none>
+argocd                   argocd-notifications-controller-65469745c8-vmtgh            1/1     Running   9 (11d ago)     35d    10.244.0.154   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-redis-76dcbd875d-swqn8                               1/1     Running   3 (11d ago)     48d    10.244.0.161   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-repo-server-b9f6d5cfd-fcln2                          1/1     Running   0               9d     10.244.0.173   etri-ser0001-cg0msb   <none>           <none>
+argocd                   argocd-server-f84ff59c-lgccl                                1/1     Running   2 (11d ago)     29d    10.244.0.164   etri-ser0001-cg0msb   <none>           <none>
+default                  mqttvirtual-mapper-wd757                                    1/1     Running   0               8d     192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+default                  mqttvirtual-mapper-xfhvd                                    1/1     Running   0               8d     192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+default                  redis-9fb5659d4-9bqbv                                       1/1     Running   1 (11d ago)     22d    10.244.8.78    etri-ser0002-cgnmsb   <none>           <none>
+default                  state-aggregator-5d5f655767-s94d7                           1/1     Running   0               48m    10.244.0.219   etri-ser0001-cg0msb   <none>           <none>
+k8sgpt-operator-system   release-k8sgpt-operator-controller-manager-c964b796-s456g   2/2     Running   0               19m    10.244.8.95    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              alertmanager-prometheus-kube-prometheus-alertmanager-0      2/2     Running   9 (11d ago)     35d    10.244.0.153   etri-ser0001-cg0msb   <none>           <none>
+kube-system              coredns-bbb9cdcc-fd6qt                                      1/1     Running   2 (11d ago)     28d    10.244.0.172   etri-ser0001-cg0msb   <none>           <none>
+kube-system              coredns-bbb9cdcc-lscfh                                      1/1     Running   2 (11d ago)     28d    10.244.0.159   etri-ser0001-cg0msb   <none>           <none>
+kube-system              etcd-etri-ser0001-cg0msb                                    1/1     Running   4 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-apiserver-etri-ser0001-cg0msb                          1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-controller-manager-etri-ser0001-cg0msb                 1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-flannel-cloud-ds-c625f                                 1/1     Running   0               9d     192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-flannel-cloud-ds-s57tk                                 1/1     Running   0               9d     192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              kube-flannel-edge-ds-mtjtj                                  1/1     Running   0               9d     192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kube-system              kube-flannel-edge-ds-vwcsx                                  1/1     Running   0               9d     192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kube-system              kube-proxy-c7p5t                                            1/1     Running   2 (11d ago)     27d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              kube-proxy-hp6jj                                            1/1     Running   2 (11d ago)     28d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              kube-scheduler-etri-ser0001-cg0msb                          1/1     Running   5 (11d ago)     48d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              metrics-server-6cb7f996c5-qv8xt                             1/1     Running   2 (11d ago)     17d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              nvidia-device-plugin-daemonset-qj6cm                        1/1     Running   2 (11d ago)     28d    10.244.8.80    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              nvidia-device-plugin-daemonset-wg7n8                        1/1     Running   2 (11d ago)     28d    10.244.0.169   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-grafana-74954dccc5-nggp4                         3/3     Running   6 (11d ago)     29d    10.244.0.158   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-kube-prometheus-operator-76cc5bf8b8-lt4df        1/1     Running   9 (11d ago)     35d    10.244.0.155   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-kube-state-metrics-9c86d9f84-lp9fp               1/1     Running   8 (11d ago)     35d    10.244.0.156   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-prometheus-kube-prometheus-prometheus-0          2/2     Running   4 (11d ago)     29d    10.244.0.160   etri-ser0001-cg0msb   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-2d2jn                   1/1     Running   1 (13d ago)     17d    192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-dmn4k                   1/1     Running   6 (11d ago)     29d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-z89n7                   1/1     Running   1 (13d ago)     17d    192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kube-system              prometheus-prometheus-node-exporter-z8jl2                   1/1     Running   4 (11d ago)     43d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kube-system              sealed-secrets-548f9c7c49-g9hjd                             1/1     Running   0               9d     10.244.8.81    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 cloud-iptables-manager-2cjsv                                1/1     Running   3 (11d ago)     28d    192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 cloud-iptables-manager-fvdrb                                1/1     Running   2 (11d ago)     34d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 cloudcore-6f7b4c4c55-zflbr                                  1/1     Running   2 (11d ago)     17d    192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 edge-eclipse-mosquitto-sjqrc                                1/1     Running   1 (13d ago)     17d    192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+kubeedge                 edge-eclipse-mosquitto-w74j7                                1/1     Running   1 (13d ago)     17d    192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kubeedge                 edgemesh-agent-2nxd5                                        1/1     Running   0               4d5h   192.168.0.3    etri-dev0001-jetorn   <none>           <none>
+kubeedge                 edgemesh-agent-ch8s8                                        1/1     Running   0               4d5h   192.168.0.5    etri-ser0002-cgnmsb   <none>           <none>
+kubeedge                 edgemesh-agent-lxkvk                                        1/1     Running   0               4d5h   192.168.0.56   etri-ser0001-cg0msb   <none>           <none>
+kubeedge                 edgemesh-agent-n8g5l                                        1/1     Running   0               4d5h   192.168.0.4    etri-dev0002-raspi5   <none>           <none>
+local-path-storage       local-path-provisioner-7746dc4859-jhg7q                     1/1     Running   1 (11d ago)     13d    10.244.8.79    etri-ser0002-cgnmsb   <none>           <none>
+telemetry                influxdb-0                                                  1/1     Running   1 (11d ago)     13d    10.244.0.165   etri-ser0001-cg0msb   <none>           <none>
+traefik                  traefik-5f9db57887-k9xv2                                    1/1     Running   2 (11d ago)     29d    10.244.0.152   etri-ser0001-cg0msb   <none>           <none>
+
+===== events-all.txt =====
+NAMESPACE                LAST SEEN   TYPE     REASON              OBJECT                                                           MESSAGE
+k8sgpt-operator-system   19m         Normal   Scheduled           pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully assigned k8sgpt-operator-system/release-k8sgpt-operator-controller-manager-c964b796-s456g to etri-ser0002-cgnmsb
+default                  48m         Normal   Scheduled           pod/state-aggregator-5d5f655767-s94d7                            Successfully assigned default/state-aggregator-5d5f655767-s94d7 to etri-ser0001-cg0msb
+default                  48m         Normal   SuccessfulCreate    replicaset/state-aggregator-5d5f655767                           Created pod: state-aggregator-5d5f655767-s94d7
+default                  48m         Normal   Pulling             pod/state-aggregator-5d5f655767-s94d7                            Pulling image "192.168.0.56:5000/state-aggregator:latest"
+default                  48m         Normal   ScalingReplicaSet   deployment/state-aggregator                                      Scaled up replica set state-aggregator-5d5f655767 to 1
+default                  48m         Normal   Killing             pod/state-aggregator-6b9fff74b8-wknjl                            Stopping container state-aggregator
+default                  48m         Normal   Started             pod/state-aggregator-5d5f655767-s94d7                            Started container state-aggregator
+default                  48m         Normal   SuccessfulDelete    replicaset/state-aggregator-6b9fff74b8                           Deleted pod: state-aggregator-6b9fff74b8-wknjl
+default                  48m         Normal   Created             pod/state-aggregator-5d5f655767-s94d7                            Created container: state-aggregator
+default                  48m         Normal   ScalingReplicaSet   deployment/state-aggregator                                      Scaled down replica set state-aggregator-6b9fff74b8 to 0 from 1
+default                  48m         Normal   Pulled              pod/state-aggregator-5d5f655767-s94d7                            Successfully pulled image "192.168.0.56:5000/state-aggregator:latest" in 1.727s (1.727s including waiting). Image size: 66769030 bytes.
+k8sgpt-operator-system   19m         Normal   ScalingReplicaSet   deployment/release-k8sgpt-operator-controller-manager            Scaled up replica set release-k8sgpt-operator-controller-manager-c964b796 to 1
+k8sgpt-operator-system   19m         Normal   Pulling             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Pulling image "quay.io/brancz/kube-rbac-proxy:v0.19.1"
+k8sgpt-operator-system   19m         Normal   SuccessfulCreate    replicaset/release-k8sgpt-operator-controller-manager-c964b796   Created pod: release-k8sgpt-operator-controller-manager-c964b796-s456g
+k8sgpt-operator-system   19m         Normal   Started             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Started container kube-rbac-proxy
+k8sgpt-operator-system   19m         Normal   Created             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Created container: kube-rbac-proxy
+k8sgpt-operator-system   19m         Normal   Pulling             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Pulling image "ghcr.io/k8sgpt-ai/k8sgpt-operator:v0.2.27"
+k8sgpt-operator-system   19m         Normal   Pulled              pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully pulled image "quay.io/brancz/kube-rbac-proxy:v0.19.1" in 4.159s (4.159s including waiting). Image size: 33284637 bytes.
+k8sgpt-operator-system   19m         Normal   Pulled              pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Successfully pulled image "ghcr.io/k8sgpt-ai/k8sgpt-operator:v0.2.27" in 4.718s (4.718s including waiting). Image size: 32934759 bytes.
+k8sgpt-operator-system   19m         Normal   Created             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Created container: manager
+k8sgpt-operator-system   19m         Normal   Started             pod/release-k8sgpt-operator-controller-manager-c964b796-s456g    Started container manager
+k8sgpt-operator-system   19m         Normal   LeaderElection      lease/ea9c19f7.k8sgpt.ai                                         release-k8sgpt-operator-controller-manager-c964b796-s456g_55d566c9-a80b-49c8-b7c2-cf1645d1bcb6 became leader
+
+===== k8sgpt-raw.json =====
+{
+  "provider": "",
+  "errors": null,
+  "status": "ProblemDetected",
+  "problems": 31,
+  "results": [
+    {
+      "kind": "ConfigMap",
+      "name": "argo/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-cmd-params-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-cmd-params-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-gpg-keys-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-gpg-keys-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-image-updater-ssh-config",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-image-updater-ssh-config is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-notifications-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-notifications-cm is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap argocd-notifications-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-rbac-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-rbac-cm is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap argocd-rbac-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/argocd-tls-certs-cm",
+      "error": [
+        {
+          "Text": "ConfigMap argocd-tls-certs-cm is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "argocd/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "default/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "k8sgpt-operator-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-node-lease/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/cluster-info",
+      "error": [
+        {
+          "Text": "ConfigMap cluster-info is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/extension-apiserver-authentication",
+      "error": [
+        {
+          "Text": "ConfigMap extension-apiserver-authentication is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-apiserver-legacy-service-account-token-tracking",
+      "error": [
+        {
+          "Text": "ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubeadm-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubeadm-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubelet-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubelet-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/prometheus-prometheus-windows-exporter",
+      "error": [
+        {
+          "Text": "ConfigMap prometheus-prometheus-windows-exporter is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeedge/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeedge/tunnelport",
+      "error": [
+        {
+          "Text": "ConfigMap tunnelport is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap tunnelport is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "local-path-storage/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "telemetry/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "traefik/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "StatefulSet",
+      "name": "argocd/argocd-application-controller",
+      "error": [
+        {
+          "Text": "StatefulSet uses the service argocd/argocd-application-controller which does not exist.",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "argocd",
+              "Masked": "OWQqfVRJ"
+            },
+            {
+              "Unmasked": "argocd-application-controller",
+              "Masked": "IzVDZGtfWn1OT0J4eyU0TUNsKF1PdClvZk9OTGc="
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "Service",
+      "name": "default/ollama-gemma26b",
+      "error": [
+        {
+          "Text": "Service has no endpoints, expected label app=ollama-gemma26b",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app",
+              "Masked": "VF5i"
+            },
+            {
+              "Unmasked": "ollama-gemma26b",
+              "Masked": "YVdPUVNDcUZnTFA0SGw4"
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    },
+    {
+      "kind": "Service",
+      "name": "kube-system/prometheus-prometheus-windows-exporter",
+      "error": [
+        {
+          "Text": "Service has no endpoints, expected label app.kubernetes.io/instance=prometheus",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app.kubernetes.io/instance",
+              "Masked": "ZlV2emhyREwjKkdaS19oOCVScUNzOW15QDU="
+            },
+            {
+              "Unmasked": "prometheus",
+              "Masked": "bjFbM2NXb3dEaQ=="
+            }
+          ]
+        },
+        {
+          "Text": "Service has no endpoints, expected label app.kubernetes.io/name=prometheus-windows-exporter",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "app.kubernetes.io/name",
+              "Masked": "SSMhe0BIN3BjNzFLMmxvOUBYKW9GNQ=="
+            },
+            {
+              "Unmasked": "prometheus-windows-exporter",
+              "Masked": "emlXRjxKbW1wfGkzTVM8ODVPNnh4fE4hNTVB"
+            }
+          ]
+        }
+      ],
+      "details": "",
+      "parentObject": ""
+    }
+  ]
+}

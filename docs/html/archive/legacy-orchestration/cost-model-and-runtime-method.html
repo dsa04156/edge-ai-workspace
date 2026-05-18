@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>비용 모델과 런타임 방식</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/legacy-orchestration/cost-model-and-runtime-method.md">편집</a>
+      </div>
+      <span>archive/legacy-orchestration/cost-model-and-runtime-method.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../../README.html">문서 안내</a></li>
+<li><a href="../../goal.html">시스템 구축 목표</a></li>
+<li><a href="../../project-context.html">프로젝트 배경</a></li>
+<li><a href="../../scope.html">프로젝트 범위</a></li>
+<li><a href="../../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../../repo-structure.html">레포 구조</a></li>
+<li><a href="../../roadmap.html">로드맵</a></li>
+<li><a href="../../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="../../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../../ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="../../ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="../../ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../research/README.html">연구 초안 안내</a></li>
+<li><a href="../research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">Archive 문서</p>
+          <h1>비용 모델과 런타임 방식</h1>
+          <p class="subtitle">현재 구현 기준으로 아래 2가지를 한 번에 설명한다.</p>
+          <div class="meta">
+            <span class="badge kind">Archive</span>
+            <span class="badge">원본: archive/legacy-orchestration/cost-model-and-runtime-method.md</span>
+            <span class="badge">수정: 2026-04-30 13:52</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="Archive 안내">
+  <strong>과거 자료</strong>
+  <span>이 문서는 현재 구축 목표가 아니라 과거 연구/통합/legacy 맥락 확인용입니다. 현재 판단은 Active 문서를 우선하세요.</span>
+  <code>archive/legacy-orchestration/cost-model-and-runtime-method.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="cost-model-and-runtime-method">Cost Model and Runtime Method</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 현재 구현 기준으로 아래 2가지를 한 번에 설명한다.</p>
+<ul><li>비용모델(cost model)을 어떤 데이터로 만들고 어떻게 업데이트하는가</li><li>런타임 orchestration이 어떤 구성으로 어떻게 동작하는가</li></ul>
+<p>기준 코드는 아래 컴포넌트다.</p>
+<ul><li><code>state-aggregator</code></li><li><code>placement-engine</code></li><li><code>workflow-executor</code></li></ul>
+<p>---</p>
+<h2 id="1-전체-구조">1. 전체 구조</h2>
+<ol><li><code>workflow-executor</code>가 stage 실행 과정에서 이벤트를 발행한다.</li><li><code>state-aggregator</code>가 이벤트를 수집하고 observation(JSONL)을 누적한다.</li><li><code>state-aggregator</code>가 observation으로 stage/migration 통계를 재계산한다.</li><li><code>placement-engine</code>이 <code>/state/cost-model</code>을 조회해 node state + cost stats를 가져온다.</li><li><code>placement-engine</code>이 stage별 expected cost를 계산하고 keep/migrate/offload를 결정한다.</li><li><code>workflow-executor</code>가 결정 결과대로 Job을 생성하고 실행한다.</li></ol>
+<p>---</p>
+<h2 id="2-비용모델-생성-방식">2. 비용모델 생성 방식</h2>
+<h3 id="2-1-입력-데이터">2.1 입력 데이터</h3>
+<p>비용모델은 두 가지 observation 로그를 기반으로 만든다.</p>
+<ul><li><code>stage_observation.jsonl</code></li><li><code>migration_observation.jsonl</code></li></ul>
+<p>이 로그는 <code>workflow-executor</code> 이벤트(<code>stage_job_created</code>, <code>stage_start</code>, <code>stage_end</code>, <code>migration_event</code>)를 <code>state-aggregator</code>가 재구성해 생성한다.</p>
+<h3 id="2-2-stage-observation-생성">2.2 stage observation 생성</h3>
+<p><code>stage_end</code>가 들어오면 같은 <code>(workflow_id, stage_id)</code>의 <code>stage_start</code>와 결합해 아래를 만든다.</p>
+<ul><li><code>observed_latency_ms</code></li><li><code>queue_wait_ms</code></li><li><code>transfer_time_ms</code></li><li><code>warmup_ms</code></li><li><code>action_type</code></li><li><code>from_node</code>, <code>to_node</code></li></ul>
+<h3 id="2-3-migration-observation-생성">2.3 migration observation 생성</h3>
+<p><code>migration_event</code> 이후 <code>stage_start</code>가 해당 <code>to_node</code>에서 시작되면 migration observation을 기록한다.</p>
+<ul><li><code>migration_time_ms = started_at - decided_at</code></li><li>키: <code>(stage_type, from_node, to_node)</code></li></ul>
+<h3 id="2-4-통계-재계산">2.4 통계 재계산</h3>
+<p><code>state-aggregator</code>는 observation 갱신 시마다 stats를 rebuild한다.</p>
+<ul><li>StageCostStats</li><li><code>exec_median_ms</code></li><li><code>exec_ema_ms</code> (alpha=0.5)</li><li><code>queue_median_ms</code></li><li><code>warmup_median_ms</code></li><li><code>recent_migration_count_last_hour</code></li><li><code>placement_stability</code> (<code>stable</code>/<code>moving</code>/<code>unstable</code>)</li><li>MigrationCostStats</li><li><code>migration_median_ms</code></li><li><code>migration_ema_ms</code> (alpha=0.5)</li></ul>
+<p>최종 스냅샷은 <code>GET /state/cost-model</code>로 제공된다.</p>
+<p>---</p>
+<h2 id="3-placement-cost-계산식">3. placement cost 계산식</h2>
+<p>각 후보 노드에 대해 <code>placement-engine</code>은 아래 합으로 <code>expected_cost_ms</code>를 계산한다.</p>
+<p>$$ \text{expected\_cost} = \text{exec} + \text{queue} + \text{transfer} + \text{warmup} + \text{migration} + \text{resource\_penalty} + \text{instability\_penalty} $$</p>
+<p>score breakdown에는 다음이 포함된다.</p>
+<ul><li><code>expected_cost_ms</code></li><li><code>exec_ms</code>, <code>queue_ms</code>, <code>transfer_ms</code>, <code>warmup_ms</code>, <code>migration_ms</code></li><li><code>resource_penalty_ms</code>, <code>instability_penalty_ms</code></li><li><code>used_exec_fallback</code>, <code>used_migration_fallback</code></li><li>legacy heuristic 항목(<code>legacy_compute_delay</code>, <code>legacy_transfer_cost</code>, ...)</li></ul>
+<p>추가 비교 값:</p>
+<ul><li><code>expected_keep_cost_ms</code></li><li><code>expected_target_cost_ms</code></li><li><code>net_gain_ms = keep - target</code></li><li><code>decision_margin_ms</code></li></ul>
+<p>---</p>
+<h2 id="4-selective-decision-rule">4. selective decision rule</h2>
+<p>현재 stage가 실행 중인 노드를 <code>current</code>, 최소 비용 후보를 <code>best</code>라고 할 때:</p>
+<ol><li><code>best == current</code> 이면 <code>keep</code> (<code>selective_keep_best_node</code>)</li><li><code>net_gain &lt; decision_margin</code> 이면 <code>keep</code> (<code>selective_keep_below_margin</code>)</li><li><code>net_gain &gt;= decision_margin</code> 이면 <code>migrate</code> 또는 <code>offload_to_cloud</code> (<code>selective_migrate_above_margin</code>)</li></ol>
+<p>margin 기본 규칙:</p>
+<ul><li>기본 900ms</li><li><code>compute_pressure=high</code> 또는 <code>node_health=degraded</code>면 600ms</li><li><code>placement_stability=unstable</code>이면 +300ms</li></ul>
+<p>즉,</p>
+<ul><li>정상/안정 구간: 보수적 이동</li><li>고압/불안정 구간: 민감한 이동</li></ul>
+<p>---</p>
+<h2 id="5-런타임-구성과-실행-루프">5. 런타임 구성과 실행 루프</h2>
+<h3 id="5-1-구성-컴포넌트">5.1 구성 컴포넌트</h3>
+<ul><li><code>state-aggregator</code></li><li>node metric 수집/정규화</li><li>workflow event 수집</li><li>cost model state 제공</li><li><code>placement-engine</code></li><li><code>/placement/decide</code></li><li><code>/placement/replan</code></li><li><code>workflow-executor</code></li><li>stage별 실행, Job 생성/대기</li><li>migration/transition/event 발행</li></ul>
+<h3 id="5-2-stage-실행-단위-루프">5.2 stage 실행 단위 루프</h3>
+<ol><li>executor가 현재 placement 확인</li><li>placement-engine <code>/placement/decide</code> 호출</li><li>필요 시 <code>migration_event</code> 발행</li><li>Kubernetes Job 생성 (<code>nodeSelector</code>로 target 고정)</li><li><code>stage_job_created</code> -&gt; <code>stage_start</code> -&gt; <code>stage_end</code> 이벤트 발행</li><li>aggregator가 observation/stats 업데이트</li></ol>
+<h3 id="5-3-workflow-단위-replanning">5.3 workflow 단위 replanning</h3>
+<p><code>execute_workflow</code> 경로에서 남은 stage들에 대해 <code>/placement/replan</code>을 호출해 stage별 decision을 선반영할 수 있다.</p>
+<ul><li>replan 성공: planned decision으로 실행</li><li>replan 실패: stage 단건 decide fallback</li></ul>
+<p>---</p>
+<h2 id="6-api-요약">6. API 요약</h2>
+<ul><li>state-aggregator</li><li><code>POST /workflow-event</code></li><li><code>GET /state/cost-model</code></li><li><code>GET /state/nodes</code></li><li><code>POST /internal/refresh</code></li><li>placement-engine</li><li><code>POST /placement/decide</code></li><li><code>POST /placement/replan</code></li><li>workflow-executor</li><li>내부에서 placement/aggregator API 호출</li><li>Kubernetes Job 생성 및 상태 추적</li></ul>
+<p>---</p>
+<h2 id="7-현재-문서와의-관계">7. 현재 문서와의 관계</h2>
+<ul><li>진행/실험 결과: <code>SELECTIVE_REPLANNING_PROGRESS_2026-04-23.md</code></li><li>연구 방향/메시지: <code>docs/research/research-topics.md</code>, <code>docs/research/paper-strategy.md</code></li><li>본 문서: 코드 구현 기준의 비용모델 생성 방식 + 런타임 동작 메커니즘 통합 설명</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#1-전체-구조">1. 전체 구조</a></li>
+<li class="toc-h2"><a href="#2-비용모델-생성-방식">2. 비용모델 생성 방식</a></li>
+<li class="toc-h3"><a href="#2-1-입력-데이터">2.1 입력 데이터</a></li>
+<li class="toc-h3"><a href="#2-2-stage-observation-생성">2.2 stage observation 생성</a></li>
+<li class="toc-h3"><a href="#2-3-migration-observation-생성">2.3 migration observation 생성</a></li>
+<li class="toc-h3"><a href="#2-4-통계-재계산">2.4 통계 재계산</a></li>
+<li class="toc-h2"><a href="#3-placement-cost-계산식">3. placement cost 계산식</a></li>
+<li class="toc-h2"><a href="#4-selective-decision-rule">4. selective decision rule</a></li>
+<li class="toc-h2"><a href="#5-런타임-구성과-실행-루프">5. 런타임 구성과 실행 루프</a></li>
+<li class="toc-h3"><a href="#5-1-구성-컴포넌트">5.1 구성 컴포넌트</a></li>
+<li class="toc-h3"><a href="#5-2-stage-실행-단위-루프">5.2 stage 실행 단위 루프</a></li>
+<li class="toc-h3"><a href="#5-3-workflow-단위-replanning">5.3 workflow 단위 replanning</a></li>
+<li class="toc-h2"><a href="#6-api-요약">6. API 요약</a></li>
+<li class="toc-h2"><a href="#7-현재-문서와의-관계">7. 현재 문서와의 관계</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

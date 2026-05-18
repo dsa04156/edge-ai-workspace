@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>프로젝트 배경</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=project-context.md">편집</a>
+      </div>
+      <span>project-context.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>프로젝트 배경</h1>
+          <p class="subtitle">현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제…</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: project-context.md</span>
+            <span class="badge">수정: 2026-05-04 15:30</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="project-context">Project Context</h1>
+<h2 id="한-줄-정의">한 줄 정의</h2>
+<p>현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제로 연결하고 이를 대시보드에서 가시화하며 현장 생산성 향상 효과를 설명 가능한 서비스 데모로 만드는 단계다.</p>
+<p>현재 단계에서는 이 기반을 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화 중심으로 정리한다.</p>
+<h2 id="대상-환경">대상 환경</h2>
+<ul><li>x86 엣지 AI 서버</li><li>Jetson 엣지 AI 디바이스</li><li>Raspberry Pi 5 엣지 디바이스</li><li>물리 센서 디바이스</li><li>가상 디바이스 / 디바이스트윈</li></ul>
+<p>현재 테스트베드 노드:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>hostname</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>서버 1</td>
+<td><code>etri-ser0001-cg0msb</code></td>
+<td>control-plane / 운영 서버</td>
+</tr>
+<tr>
+<td>서버 2</td>
+<td><code>etri-ser0002-cgnmsb</code></td>
+<td>worker / 추론 서버</td>
+</tr>
+<tr>
+<td>Jetson</td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>edge AI device</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td><code>etri-dev0002-raspi5</code></td>
+<td>edge light device</td>
+</tr>
+</tbody></table></div>
+<h2 id="현재-우선순위">현재 우선순위</h2>
+<ol><li>서비스 데모 1종을 먼저 완성한다.</li><li>디바이스 등록/관리 체계를 정리한다.</li><li>디바이스-서비스 바인딩 구조를 구현한다.</li><li>통합 대시보드에서 디바이스, 노드, 서비스, 상태, KPI를 함께 보이게 한다.</li><li>옥동 시나리오의 생산성 향상 효과를 설명 가능한 지표로 정리한다.</li><li>현재 문서와 데모에서는 workflow/offloading/agent-assisted planning 계열을 현행 연구 방향과 분리된 과거 검토/보관 경로로 둔다.</li></ol>
+<h2 id="현재-구현-상태">현재 구현 상태</h2>
+<ul><li><code>state-aggregator</code>: KubeEdge Device/DeviceStatus, InfluxDB telemetry, Prometheus metric을 통합해 대시보드 상태 API 제공</li><li><code>mqttvirtual</code> mapper 기반 가상 디바이스 PoC</li><li>DeviceModel / Device / DeviceStatus 연동 검증</li><li>Argo CD 기반 <code>state-aggregator</code>, <code>mqttvirtual-mapper</code>, Redis, NVIDIA device plugin 관리</li></ul>
+<p>현재 데모 운영 경로는 <code>state-aggregator</code> 중심으로 단순화한다. 과거 워크플로우 실행/배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
+<h2 id="디바이스-등록-전략">디바이스 등록 전략</h2>
+<p>현재 데모 단계는 사전 등록 방식이다.</p>
+<ol><li><code>DeviceModel</code>과 <code>Device</code> CR을 Kubernetes에 미리 등록한다.</li><li>각 Device는 특정 edge node의 <code>spec.nodeName</code>에 바인딩한다.</li><li>mapper는 edgecore/DMI를 통해 해당 Device를 전달받고 정해진 telemetry topic을 구독한다.</li><li>실제 센서 수집 프로그램은 Device 이름과 topic 규칙에 맞춰 MQTT payload를 발행한다.</li></ol>
+<p>센서가 MQTT로 임의 topic에 publish한다고 자동으로 KubeEdge Device가 생기지는 않는다. 자동 발견과 자동 등록은 현재 데모 범위 밖의 별도 discovery controller 후보로만 분리해서 본다.</p>
+<h2 id="현재-디바이스-배치">현재 디바이스 배치</h2>
+<ul><li>Jetson: <code>env-device-*</code>, <code>vib-device-*</code>, <code>act-device-*</code>, <code>temp-device-01</code></li><li>Raspberry Pi: <code>rpi-env-device-*</code>, <code>rpi-vib-device-*</code>, <code>rpi-act-device-*</code></li></ul>
+<p>테스트 publisher는 실행한 서버의 로컬 mosquitto로 publish한다. 따라서 Jetson에서 실행하면 Jetson에 할당된 디바이스만 live 처리되고, Raspberry Pi 디바이스는 Raspberry Pi에서 publisher를 실행해야 live 처리된다.</p>
+<h2 id="mqtt-topic-규칙">MQTT Topic 규칙</h2>
+<pre data-lang="text"><code>factory/devices/{device-name}/telemetry
+factory/devices/{device-name}/command
+factory/devices/{device-name}/heartbeat</code></pre>
+<ul><li><code>telemetry</code>: 센서 또는 <code>test_device.py</code>가 발행하고 mapper가 구독한다.</li><li><code>command</code>: mapper가 명령을 발행하고 테스트 publisher가 구독한다.</li><li><code>heartbeat</code>: 테스트 publisher 보조 heartbeat이며 현재 KubeEdge Device manifest에는 직접 연결하지 않는다.</li></ul>
+<p>기본 broker는 각 edge 서버의 로컬 broker다.</p>
+<pre data-lang="text"><code>tcp://127.0.0.1:1883</code></pre>
+<h2 id="테스트-publisher">테스트 Publisher</h2>
+<p>파일:</p>
+<pre data-lang="text"><code>mappers/script/test_device.py</code></pre>
+<p>기본 실행:</p>
+<pre data-lang="bash"><code>python3 mappers/script/test_device.py</code></pre>
+<p>특정 디바이스:</p>
+<pre data-lang="bash"><code>DEVICE_FILTER=act-device-06 python3 mappers/script/test_device.py</code></pre>
+<p>기본 모드는 <code>SIMULATION_MODE=stable</code>이다. act device는 <code>power=on</code>, <code>health=ok</code>를 유지하고, vib device는 정상 범위 진동값을 발행한다. 장애/랜덤 상태 전이는 명시적으로 켠다.</p>
+<pre data-lang="bash"><code>SIMULATION_MODE=random ACT_STATE_CHANGE_PROBABILITY=0.15 python3 mappers/script/test_device.py</code></pre>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
+<li class="toc-h2"><a href="#대상-환경">대상 환경</a></li>
+<li class="toc-h2"><a href="#현재-우선순위">현재 우선순위</a></li>
+<li class="toc-h2"><a href="#현재-구현-상태">현재 구현 상태</a></li>
+<li class="toc-h2"><a href="#디바이스-등록-전략">디바이스 등록 전략</a></li>
+<li class="toc-h2"><a href="#현재-디바이스-배치">현재 디바이스 배치</a></li>
+<li class="toc-h2"><a href="#mqtt-topic-규칙">MQTT Topic 규칙</a></li>
+<li class="toc-h2"><a href="#테스트-publisher">테스트 Publisher</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

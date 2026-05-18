@@ -1,0 +1,5 @@
+NAME                  STATUS   ROLES           AGE   VERSION                     INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION      CONTAINER-RUNTIME
+etri-dev0001-jetorn   Ready    agent,edge      17d   v1.32.10-kubeedge-v1.23.0   192.168.0.3    <none>        Ubuntu 22.04.5 LTS             5.15.148-tegra      containerd://1.7.28
+etri-dev0002-raspi5   Ready    agent,edge      17d   v1.32.10-kubeedge-v1.23.0   192.168.0.4    <none>        Debian GNU/Linux 13 (trixie)   6.12.79-v8-16k+     containerd://1.7.18
+etri-ser0001-cg0msb   Ready    control-plane   48d   v1.31.14                    192.168.0.56   <none>        Ubuntu 24.04.3 LTS             6.17.0-22-generic   containerd://1.7.18
+etri-ser0002-cgnmsb   Ready    worker          29d   v1.31.14                    192.168.0.5    <none>        Ubuntu 24.04.4 LTS             6.17.0-22-generic   containerd://2.2.1

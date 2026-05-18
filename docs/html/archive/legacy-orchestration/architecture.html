@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legacy 오케스트레이션 아키텍처</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/legacy-orchestration/architecture.md">편집</a>
+      </div>
+      <span>archive/legacy-orchestration/architecture.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../../README.html">문서 안내</a></li>
+<li><a href="../../goal.html">시스템 구축 목표</a></li>
+<li><a href="../../project-context.html">프로젝트 배경</a></li>
+<li><a href="../../scope.html">프로젝트 범위</a></li>
+<li><a href="../../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../../repo-structure.html">레포 구조</a></li>
+<li><a href="../../roadmap.html">로드맵</a></li>
+<li><a href="../../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="../../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../../ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="../../ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="../../ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../research/README.html">연구 초안 안내</a></li>
+<li><a href="../research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">Archive 문서</p>
+          <h1>Legacy 오케스트레이션 아키텍처</h1>
+          <p class="subtitle">---</p>
+          <div class="meta">
+            <span class="badge kind">Archive</span>
+            <span class="badge">원본: archive/legacy-orchestration/architecture.md</span>
+            <span class="badge">수정: 2026-04-30 13:52</span>
+            <span class="badge">HTML 생성: 2026-05-18 15:04</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="Archive 안내">
+  <strong>과거 자료</strong>
+  <span>이 문서는 현재 구축 목표가 아니라 과거 연구/통합/legacy 맥락 확인용입니다. 현재 판단은 Active 문서를 우선하세요.</span>
+  <code>archive/legacy-orchestration/architecture.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="아키텍처">아키텍처</h1>
+<h2 id="1-노드와-역할">1. 노드와 역할</h2>
+<h3 id="서버-1">서버 1</h3>
+<ul><li>hostname: <code>etri-ser0001-CG0MSB</code></li><li>role: <code>cloud_server</code></li><li>arch: <code>amd64</code></li><li>preferred for:</li><li>heavy inference</li><li>centralized state aggregation</li><li>placement engine</li><li>planner candidate</li></ul>
+<h3 id="서버-2">서버 2</h3>
+<ul><li>hostname: <code>etri-ser0002-CGNMSB</code></li><li>role: <code>cloud_worker</code></li><li>arch: <code>amd64</code></li><li>preferred for:</li><li>heavy inference</li><li>large-scale preprocessing</li><li>redundant execution capacity</li></ul>
+<h3 id="jetson-노드">Jetson 노드</h3>
+<ul><li>hostname: <code>etri-dev0001-jetorn</code></li><li>role: <code>edge_ai_device</code></li><li>arch: <code>arm64</code></li><li>preferred for:</li><li>edge inference</li><li>preprocess</li><li>latency-sensitive stages</li></ul>
+<h3 id="raspberry-pi-5-노드">Raspberry Pi 5 노드</h3>
+<ul><li>hostname: <code>etri-dev0002-raspi5</code></li><li>role: <code>edge_light_device</code></li><li>arch: <code>arm64</code></li><li>preferred for:</li><li>capture</li><li>lightweight preprocess</li><li>sensor ingestion</li><li>lightweight postprocess</li></ul>
+<p>---</p>
+<h2 id="2-노드-프로파일-스키마">2. 노드 프로파일 스키마</h2>
+<p>각 노드는 고정된 capability profile로 표현한다.</p>
+<p>예시 필드:</p>
+<ul><li><code>hostname</code></li><li><code>node_type</code></li><li><code>arch</code></li><li><code>compute_class</code></li><li><code>memory_class</code></li><li><code>accelerator_type</code></li><li><code>runtime_role</code></li><li><code>preferred_workload</code></li><li><code>risky_workload</code></li></ul>
+<p>예시:</p>
+<pre data-lang="json"><code>{
+  &quot;hostname&quot;: &quot;etri-dev0001-jetorn&quot;,
+  &quot;node_type&quot;: &quot;edge_ai_device&quot;,
+  &quot;arch&quot;: &quot;aarch64&quot;,
+  &quot;compute_class&quot;: &quot;medium&quot;,
+  &quot;memory_class&quot;: &quot;low&quot;,
+  &quot;accelerator_type&quot;: &quot;gpu_embedded&quot;,
+  &quot;runtime_role&quot;: [&quot;inference_candidate&quot;, &quot;edge_processing_candidate&quot;],
+  &quot;preferred_workload&quot;: [&quot;edge_inference&quot;, &quot;preprocess&quot;, &quot;latency_sensitive_stage&quot;],
+  &quot;risky_workload&quot;: [&quot;large_model_serving&quot;, &quot;many_concurrent_workflows&quot;, &quot;central_planner&quot;]
+}</code></pre>
+<p>---</p>
+<h2 id="3-stateaggregator">3. <code>state_aggregator</code></h2>
+<h3 id="목적">목적</h3>
+<p>다음 역할을 수행하는 중앙 상태 허브다.</p>
+<ul><li>Prometheus에서 노드 메트릭을 읽는다.</li><li>워크플로우/단계 이벤트를 수신한다.</li><li>오케스트레이션용 정규화 상태를 만든다.</li><li>배치 로직이 사용할 경량 API를 제공한다.</li></ul>
+<h3 id="배포-형태">배포 형태</h3>
+<ul><li>Kubernetes Deployment</li><li>서버 노드 배치 우선</li></ul>
+<h3 id="입력">입력</h3>
+<h4 id="a-prometheus-기반-메트릭">A. Prometheus 기반 메트릭</h4>
+<p>최소 질의 항목:</p>
+<ul><li>노드 상태 <code>up</code></li><li>CPU 사용률</li><li>메모리 사용 비율</li><li>load average</li><li>네트워크 RX/TX 속도</li></ul>
+<h4 id="b-workflowreporter-기반-이벤트">B. workflow_reporter 기반 이벤트</h4>
+<p>최소 이벤트:</p>
+<ul><li><code>stage_start</code></li><li><code>stage_end</code></li><li><code>migration_event</code></li><li><code>workflow_end</code></li><li><code>failure_event</code></li></ul>
+<h3 id="출력-api">출력 API</h3>
+<p>반드시 제공해야 하는 API:</p>
+<ul><li><code>GET /state/nodes</code></li><li><code>GET /state/node/{hostname}</code></li><li><code>GET /state/workflows</code></li><li><code>GET /state/workflow/{workflow_id}</code></li><li><code>GET /state/summary</code></li><li><code>POST /workflow-event</code></li></ul>
+<h3 id="내부-저장-방식">내부 저장 방식</h3>
+<p>초기 버전 기준:</p>
+<ul><li>최신 상태는 메모리 유지</li><li>원시 로그는 JSONL 저장</li></ul>
+<p>예시 파일:</p>
+<ul><li><code>data/node_state.jsonl</code></li><li><code>data/workflow_event.jsonl</code></li></ul>
+<h3 id="인스턴스-매핑">인스턴스 매핑</h3>
+<p>Prometheus <code>instance</code> 값은 논리적 hostname으로 매핑해야 한다.</p>
+<p>권장 경로:</p>
+<ul><li><code>app/config/instance_map.json</code></li></ul>
+<p>---</p>
+<h2 id="4-workflowreporter">4. <code>workflow_reporter</code></h2>
+<h3 id="목적">목적</h3>
+<p>워크플로우와 단계 실행 이벤트를 aggregator로 전달한다.</p>
+<h3 id="구현-형태">구현 형태</h3>
+<p>초기 버전은 Python helper/module로 구현한다.</p>
+<h3 id="최소-helper-함수-예시">최소 helper 함수 예시</h3>
+<ul><li><code>report_stage_start(...)</code></li><li><code>report_stage_end(...)</code></li><li><code>report_migration(...)</code></li><li><code>report_failure(...)</code></li></ul>
+<h3 id="전송-대상">전송 대상</h3>
+<ul><li><code>POST /workflow-event</code></li></ul>
+<h3 id="최소-이벤트-필드">최소 이벤트 필드</h3>
+<ul><li><code>event_type</code></li><li><code>timestamp</code></li><li><code>workflow_id</code></li><li><code>workflow_type</code></li><li><code>stage_id</code></li><li><code>stage_type</code></li><li><code>assigned_node</code></li></ul>
+<h3 id="선택-필드">선택 필드</h3>
+<ul><li><code>exec_time_ms</code></li><li><code>queue_wait_ms</code></li><li><code>transfer_time_ms</code></li><li><code>from_node</code></li><li><code>to_node</code></li><li><code>reason</code></li><li><code>status</code></li></ul>
+<p>---</p>
+<h2 id="5-placementengine">5. <code>placement_engine</code></h2>
+<h3 id="목적">목적</h3>
+<p>워크플로우 단계가 어디서 실행되어야 하는지 결정한다.</p>
+<h3 id="구현-형태">구현 형태</h3>
+<p>초기 버전은 독립 서비스가 아니라 Python 모듈로 구현한다.</p>
+<h3 id="입력">입력</h3>
+<ul><li>노드 profile</li><li>현재 노드 상태</li><li>워크플로우 단계 메타데이터</li><li>현재 배치 상태</li></ul>
+<h3 id="출력">출력</h3>
+<p>결정 객체 예시:</p>
+<ul><li><code>workflow_id</code></li><li><code>stage_id</code></li><li><code>target_node</code></li><li><code>decision_reason</code></li><li><code>action_type</code></li></ul>
+<p><code>action_type</code> 예시:</p>
+<ul><li><code>keep</code></li><li><code>migrate</code></li><li><code>offload_to_cloud</code></li><li><code>reject</code></li></ul>
+<h3 id="초기-판단-규칙">초기 판단 규칙</h3>
+<ul><li>heavy inference는 서버 우선</li><li>데이터 소스 인접 단계는 Raspberry Pi 우선</li><li>GPU 필요 단계는 서버 또는 Jetson만 허용</li><li>메모리 압박이 높은 노드에는 무거운 단계를 추가 배치하지 않음</li><li>사용 불가 노드는 절대 선택하지 않음</li><li>과부하 시 sibling edge 재분산 또는 cloud offloading을 검토</li></ul>
+<h3 id="초기-구현-원칙">초기 구현 원칙</h3>
+<ul><li>heuristic / weighted score 우선</li><li>RL 사용 금지</li><li>LLM 기반 제어 금지</li></ul>
+<p>---</p>
+<h2 id="6-정규화-상태-모델">6. 정규화 상태 모델</h2>
+<h3 id="노드-수준-상태">노드 수준 상태</h3>
+<ul><li><code>compute_pressure</code>: <code>low</code> / <code>medium</code> / <code>high</code></li><li><code>memory_pressure</code>: <code>low</code> / <code>medium</code> / <code>high</code></li><li><code>network_pressure</code>: <code>low</code> / <code>medium</code> / <code>high</code></li><li><code>node_health</code>: <code>healthy</code> / <code>degraded</code> / <code>unavailable</code></li></ul>
+<h3 id="워크플로우-수준-상태">워크플로우 수준 상태</h3>
+<ul><li><code>workflow_urgency</code></li><li><code>sla_risk</code></li><li><code>placement_stability</code></li></ul>
+<p>이 상태는 <code>state_aggregator</code> 내부에서 생성한다.</p>
+<p>---</p>
+<h2 id="7-모니터링-경로와-제어-경로">7. 모니터링 경로와 제어 경로</h2>
+<h3 id="모니터링-경로">모니터링 경로</h3>
+<ul><li>Prometheus</li><li>Grafana</li><li>JSONL 원시 로그</li></ul>
+<h3 id="제어-경로">제어 경로</h3>
+<ul><li><code>state_aggregator</code> API</li><li><code>placement_engine</code></li><li>이후 선택적으로 <code>agent_assisted_planner</code></li></ul>
+<p>Prometheus와 Grafana는 제어 평면이 아니다. 이들은 모니터링 인프라다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-노드와-역할">1. 노드와 역할</a></li>
+<li class="toc-h3"><a href="#서버-1">서버 1</a></li>
+<li class="toc-h3"><a href="#서버-2">서버 2</a></li>
+<li class="toc-h3"><a href="#jetson-노드">Jetson 노드</a></li>
+<li class="toc-h3"><a href="#raspberry-pi-5-노드">Raspberry Pi 5 노드</a></li>
+<li class="toc-h2"><a href="#2-노드-프로파일-스키마">2. 노드 프로파일 스키마</a></li>
+<li class="toc-h2"><a href="#3-stateaggregator">3. stateaggregator</a></li>
+<li class="toc-h3"><a href="#목적">목적</a></li>
+<li class="toc-h3"><a href="#배포-형태">배포 형태</a></li>
+<li class="toc-h3"><a href="#입력">입력</a></li>
+<li class="toc-h3"><a href="#출력-api">출력 API</a></li>
+<li class="toc-h3"><a href="#내부-저장-방식">내부 저장 방식</a></li>
+<li class="toc-h3"><a href="#인스턴스-매핑">인스턴스 매핑</a></li>
+<li class="toc-h2"><a href="#4-workflowreporter">4. workflowreporter</a></li>
+<li class="toc-h3"><a href="#목적">목적</a></li>
+<li class="toc-h3"><a href="#구현-형태">구현 형태</a></li>
+<li class="toc-h3"><a href="#최소-helper-함수-예시">최소 helper 함수 예시</a></li>
+<li class="toc-h3"><a href="#전송-대상">전송 대상</a></li>
+<li class="toc-h3"><a href="#최소-이벤트-필드">최소 이벤트 필드</a></li>
+<li class="toc-h3"><a href="#선택-필드">선택 필드</a></li>
+<li class="toc-h2"><a href="#5-placementengine">5. placementengine</a></li>
+<li class="toc-h3"><a href="#목적">목적</a></li>
+<li class="toc-h3"><a href="#구현-형태">구현 형태</a></li>
+<li class="toc-h3"><a href="#입력">입력</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>
