@@ -44,9 +44,12 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 - InfluxDB `device_telemetry`: device live/freshness 기준
   - env/vib/temp: raw telemetry property
   - act/rpi-act: `ts` liveness property
- - KPI 관련 주의
-   - `telemetry_device_count`: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)
-   - `device_telemetry_ratio`: telemetry 대상 device 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)
+- KPI 관련 주의
+  - `telemetry_device_count`: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)
+  - `device_telemetry_ratio`: telemetry 설정 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)
+  - `telemetry_freshness_ratio`: 실제 최신 telemetry 비율 = fresh_telemetry_device_count / telemetry_device_count
+  - `device_status_freshness_ratio`: 최신 DeviceStatus 비율 = fresh_device_status_count / registered_device_count
+  - `operator_focus_count`: degraded/unavailable device 수 + non-healthy node 수
 
 ## 상태 판단 순서
 

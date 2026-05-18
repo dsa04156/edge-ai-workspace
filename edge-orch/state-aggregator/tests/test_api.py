@@ -675,7 +675,7 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
     assert kpis["live_device_count"] == 1
     assert kpis["operational_device_count"] == 2
     assert kpis["unavailable_device_count"] == 1
-    assert kpis["operator_focus_count"] == 1
+    assert kpis["operator_focus_count"] == 2
 
 
 def test_influx_csv_parser_reads_latest_device_samples():
@@ -698,3 +698,101 @@ def test_influx_csv_parser_reads_latest_device_samples():
     assert samples["env-device-01"].property == "temperature"
     assert samples["env-device-01"].value == "282"
     assert samples["vib-device-01"].property == "vibration"
+
+
+def test_device_telemetry_ratio_and_freshness_calculation():
+    # device_telemetry_ratio = telemetry_enabled devices / total devices
+    # telemetry_freshness_ratio = fresh telemetry devices / telemetry-enabled devices
+    devices = [
+        service._normalize_device(
+            {
+                "metadata": {"name": "dev-a", "namespace": "default"},
+                "spec": {"properties": [{"name": "p", "pushMethod": {"dbMethod": {"influxdb2": {}}}}]},
+                "status": {},
+            },
+            node_health={"n": "healthy"},
+            workflows=[],
+            mapper_nodes=set(),
+            telemetry_samples={"dev-a": TelemetrySample(device_id="dev-a", timestamp=datetime.now(timezone.utc), property="p", value="1")},
+        ),
+        service._normalize_device(
+            {
+                "metadata": {"name": "dev-b", "namespace": "default"},
+                "spec": {"properties": [{"name": "p2"}]},
+                "status": {},
+            },
+            node_health={"n": "healthy"},
+            workflows=[],
+            mapper_nodes=set(),
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis(nodes=[], devices=devices, workflows=[])
+    assert kpis["telemetry_device_count"] == 1
+    assert kpis["device_telemetry_ratio"] == 0.5
+    # fresh telemetry devices = 1, freshness ratio = 1/1 = 1.0
+    assert kpis["fresh_telemetry_device_count"] == 1
+    assert kpis["telemetry_freshness_ratio"] == 1.0
+
+
+def test_operator_focus_count_counts_degraded_and_nonhealthy_nodes():
+    # One node degraded, one device degraded
+    nodes = [
+        NodeState(
+            hostname="n1",
+            instance="i",
+            node_type="edge",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="degraded",
+        ),
+        NodeState(
+            hostname="n2",
+            instance="i2",
+            node_type="edge",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        ),
+    ]
+
+    devices = [
+        DeviceState(
+            name="good",
+            namespace="default",
+            device_type="sensor_device",
+            node_name="n2",
+            nodeName="n2",
+            protocol="mqttvirtual",
+            telemetry_enabled=False,
+            service_connected=False,
+            status="healthy",
+            status_reason="",
+            overall_status="healthy",
+            reason="",
+        ),
+        DeviceState(
+            name="bad",
+            namespace="default",
+            device_type="sensor_device",
+            node_name="n1",
+            nodeName="n1",
+            protocol="mqttvirtual",
+            telemetry_enabled=False,
+            service_connected=False,
+            status="degraded",
+            status_reason="DB latest timestamp is missing",
+            overall_status="degraded",
+            reason="",
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis(nodes=nodes, devices=devices, workflows=[])
+    # focus_devices = 1 (bad), focus_nodes = 1 (n1 degraded)
+    assert kpis["operator_focus_count"] == 2

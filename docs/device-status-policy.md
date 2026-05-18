@@ -23,6 +23,9 @@ DeviceStatus는 다음 용도로만 사용한다.
 - command 적용 결과
 - raw telemetry에서 계산된 상태 등급
 
+state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 `device_status_fresh`와 `device_status_freshness_ratio`로 최신성을 따로 계산한다.
+raw telemetry 최신성은 `telemetry_fresh`와 `telemetry_freshness_ratio`로 분리해서 본다.
+
 ## DeviceStatus에 허용하는 property
 
 - `health`: `ok` / `degraded` / `offline` / `unknown`
@@ -150,3 +153,5 @@ DEVICE_STATES_REPORT_ENABLED=false
 현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재한다.
 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다.
 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.
+
+즉, dashboard의 `device_telemetry_ratio`는 telemetry 설정 비율(telemetry-enabled device / 전체 device)이고, `telemetry_freshness_ratio`는 실제로 최근 telemetry가 들어온 비율이다.

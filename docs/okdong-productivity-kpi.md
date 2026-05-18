@@ -1,6 +1,6 @@
 # 옥동 시나리오 생산성 KPI
 
-## 목적
+## 목적1
 
 이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC를 옥동 시나리오와 같은 실공장 적용 관점에서 설명하기 위한 KPI를 정리한다.
 
@@ -30,7 +30,7 @@
 |---|---|---|
 | device 등록 가시화 | registered device count, device list | 어떤 device가 관리 대상인지 확인 |
 | live 상태 가시화 | live device count, telemetry freshness | 실제 데이터가 들어오는 device 확인 |
-| status-plane 분리 | DeviceStatus freshness | 운영 snapshot 최신성 확인 |
+| status-plane 분리 | device_status_freshness_ratio | 운영 snapshot 최신성 확인 |
 | node/mapper 원인 분리 | node_ready, mapper_running | 문제가 node/mapper 쪽인지 구분 |
 | service 연결 가시화 | service_demo_group, service_bound_device_count | device가 어떤 서비스 데모에 쓰이는지 확인 |
 | 우선 점검 대상 축소 | operator_focus_count, issue list | 운영자가 먼저 볼 device를 줄임 |
@@ -67,13 +67,28 @@
 등록만 된 device와 실제 데이터가 들어오는 device를 구분해 현장 관측 가능 범위를 확인한다.
 ```
 
-### 3. telemetry freshness 비율
+### 3. telemetry configured 비율
 
 | 항목 | 내용 |
 |---|---|
 | 이름 | device_telemetry_ratio |
-| 의미 | raw telemetry data-plane이 최근 갱신된 device 비율 |
+| 의미 | telemetry 수집이 설정된 device 비율(telemetry-enabled / 전체 device) |
 | dashboard/API | `kpis.device_telemetry_ratio`, `devices[].telemetry_fresh` |
+| 운영자 해석 | telemetry를 받을 대상이 얼마나 연결돼 있는지 판단 |
+
+설명 문구:
+
+```text
+telemetry 설정 비율은 운영 대상 범위를 보여주고, 실제 최신 여부는 별도 freshness KPI로 분리한다.
+```
+
+### 4. telemetry freshness 비율
+
+| 항목 | 내용 |
+|---|---|
+| 이름 | telemetry_freshness_ratio |
+| 의미 | raw telemetry data-plane이 최근 갱신된 device 비율 |
+| dashboard/API | `kpis.telemetry_freshness_ratio`, `devices[].telemetry_fresh` |
 | 운영자 해석 | 센서/publisher/MQTT/InfluxDB 경로가 살아 있는지 판단 |
 
 설명 문구:
@@ -82,11 +97,11 @@
 raw telemetry가 최근 들어오는지 따로 보이므로, DeviceStatus와 섞지 않고 data-plane 문제를 확인할 수 있다.
 ```
 
-### 4. DeviceStatus freshness 비율
+### 5. DeviceStatus freshness 비율
 
 | 항목 | 내용 |
 |---|---|
-| 이름 | status freshness ratio |
+| 이름 | device_status_freshness_ratio |
 | 의미 | DeviceStatus snapshot이 dashboard 기준 시간 안에 갱신된 device 비율 |
 | dashboard/API | `devices[].device_status_fresh`, `devices[].device_status_last_reported_at` |
 | 운영자 해석 | health, severity, power, mode, command_state 같은 운영 snapshot 최신성 확인 |
@@ -97,7 +112,7 @@ raw telemetry가 최근 들어오는지 따로 보이므로, DeviceStatus와 섞
 DeviceStatus는 raw telemetry 저장소가 아니라 운영 snapshot이다. dashboard는 data-plane과 status-plane을 분리해 보여준다.
 ```
 
-### 5. 서비스 연결 device 수
+### 6. 서비스 연결 device 수
 
 | 항목 | 내용 |
 |---|---|
@@ -112,7 +127,7 @@ DeviceStatus는 raw telemetry 저장소가 아니라 운영 snapshot이다. dash
 운영자는 device가 어떤 서비스 데모 그룹에 쓰이는지 확인하고, 서비스 영향 범위를 바로 볼 수 있다.
 ```
 
-### 6. 디바이스-서비스 연결 비율
+### 7. 디바이스-서비스 연결 비율
 
 | 항목 | 내용 |
 |---|---|
@@ -127,12 +142,12 @@ DeviceStatus는 raw telemetry 저장소가 아니라 운영 snapshot이다. dash
 device 목록을 서비스 데모 그룹으로 묶어 보여주므로, 현장 운영자가 서비스별 상태를 이해하기 쉽다.
 ```
 
-### 7. 운영자 우선 점검 대상 수
+### 8. 운영자 우선 점검 대상 수
 
 | 항목 | 내용 |
 |---|---|
 | 이름 | operator_focus_count |
-| 의미 | degraded/unavailable 등 운영자가 먼저 확인해야 하는 대상 수 |
+| 의미 | degraded/unavailable device 수 + non-healthy node 수 |
 | dashboard/API | `kpis.operator_focus_count`, issue/focus list |
 | 운영자 해석 | 전체 device를 다 보지 않고 우선 점검 대상을 좁힘 |
 
@@ -142,7 +157,7 @@ device 목록을 서비스 데모 그룹으로 묶어 보여주므로, 현장 �
 운영자는 전체 device를 하나씩 확인하지 않고, dashboard가 제시하는 우선 점검 대상부터 확인할 수 있다.
 ```
 
-### 8. 문제 위치 분리 가능성
+### 9. 문제 위치 분리 가능성
 
 | 항목 | 내용 |
 |---|---|

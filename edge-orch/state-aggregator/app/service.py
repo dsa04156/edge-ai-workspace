@@ -150,7 +150,8 @@ class StateAggregatorService:
         live = int(kpis.get("live_device_count", 0) or 0)
         focus_count = int(kpis.get("operator_focus_count", 0) or 0)
         service_bound = int(kpis.get("service_bound_device_count", 0) or 0)
-        telemetry_ratio = kpis.get("device_telemetry_ratio", 0)
+        telemetry_configured_ratio = kpis.get("device_telemetry_ratio", 0)
+        telemetry_freshness_ratio = kpis.get("telemetry_freshness_ratio", 0)
 
         focus_devices = [
             {
@@ -172,7 +173,7 @@ class StateAggregatorService:
             "Kagenti 연동 PoC용 read-only 운영 보조 요약입니다. "
             f"등록 device {registered}개 중 live device {live}개, "
             f"서비스 데모 연결 device {service_bound}개, 우선 점검 대상 {focus_count}개입니다. "
-            f"telemetry freshness 비율은 {telemetry_ratio}입니다."
+            f"telemetry configured 비율은 {telemetry_configured_ratio}이고, telemetry freshness 비율은 {telemetry_freshness_ratio}입니다."
         )
 
         return OperatorAssistantState(
@@ -583,14 +584,23 @@ class StateAggregatorService:
         healthy_devices = [device for device in devices if device.status == "healthy"]
         operational_devices = [device for device in devices if device.status != "unavailable"]
         telemetry_devices = [device for device in devices if device.telemetry_enabled]
+        fresh_telemetry_devices = [device for device in devices if device.telemetry_fresh]
         bound_devices = [device for device in devices if device.service_connected]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
         unavailable_devices = [device for device in devices if device.status == "unavailable"]
+        # focus devices: degraded or unavailable
+        focus_devices = [device for device in devices if device.status in {"degraded", "unavailable"}]
+        # focus nodes: nodes whose health is not healthy
+        focus_nodes = [node for node in nodes if node.node_health != "healthy"]
         return {
             "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
             "device_healthy_ratio": self._ratio(len(healthy_devices), len(devices)),
             "device_operational_ratio": self._ratio(len(operational_devices), len(devices)),
+            # device_telemetry_ratio is the configured telemetry target ratio (telemetry-enabled devices / total devices)
             "device_telemetry_ratio": self._ratio(len(telemetry_devices), len(devices)),
+            # fresh telemetry counts and freshness ratio (fresh telemetry / telemetry-enabled devices)
+            "fresh_telemetry_device_count": len(fresh_telemetry_devices),
+            "telemetry_freshness_ratio": self._ratio(len(fresh_telemetry_devices), len(telemetry_devices)),
             "device_service_binding_ratio": self._ratio(len(bound_devices), len(devices)),
             "registered_device_count": len(devices),
             "active_node_count": len(online_nodes),
@@ -600,9 +610,10 @@ class StateAggregatorService:
             "service_bound_device_count": len(bound_devices),
             "sla_risk_workflow_count": len(risk_workflows),
             "unavailable_device_count": len(unavailable_devices),
-            "operator_focus_count": len(risk_workflows)
-            + len([node for node in nodes if node.node_health != "healthy"])
-            + len(unavailable_devices),
+            # operator focus count: number of degraded/unavailable devices plus non-healthy nodes
+            "fresh_device_status_count": len([d for d in devices if d.device_status_fresh]),
+            "device_status_freshness_ratio": self._ratio(len([d for d in devices if d.device_status_fresh]), len(devices)),
+            "operator_focus_count": len(focus_devices) + len(focus_nodes),
         }
 
     def _ratio(self, numerator: int, denominator: int) -> float:

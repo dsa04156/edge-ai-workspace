@@ -232,11 +232,11 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 | registered_device_count | 등록 device 수 | PoC에 등록된 device 규모 |
 | live_device_count | live 판단 device 수 | dashboard 기준 현재 살아 있는 device 수 |
 | telemetry_device_count | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
-| fresh_telemetry_device_count | 현재 코드에는 없음 | (state-aggregator는 fresh 전용 카운트를 별도 제공하지 않음) |
+| fresh_telemetry_device_count | 최신 telemetry device 수 | telemetry freshness가 최근 갱신된 device 수 |
 | service_bound_device_count | service demo에 연결된 device 수 | 디바이스-서비스 연결 구조 가시화 |
 | degraded_device_count | degraded device 수 | 운영자가 확인해야 할 대상 |
 | operator_focus_count | 우선 점검 대상 수 | 수동 점검 범위 감소 효과 |
-| telemetry_freshness_ratio | fresh telemetry 비율 | data-plane 안정성 지표 (별도 산출 시 frontend/aggregator가 계산할 수 있음) |
+| telemetry_freshness_ratio | fresh telemetry 비율 | data-plane 안정성 지표 |
 | device_status_freshness_ratio | fresh DeviceStatus 비율 | status-plane 안정성 지표 |
 
 현재 dashboard/API의 service binding KPI는 다음 이름을 사용한다.

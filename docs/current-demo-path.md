@@ -395,6 +395,8 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 
 현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 dashboard가 healthy로 판단하기 위한 fresh telemetry 또는 fresh DeviceStatus snapshot이 부족한 상태”로 해석한다.
 
+dashboard KPI는 `device_telemetry_ratio`(telemetry 설정 비율), `telemetry_freshness_ratio`(실제 최신 telemetry 비율), `device_status_freshness_ratio`(최신 DeviceStatus 비율), `operator_focus_count`(비정상 device + 비정상 node)로 구분해서 읽는다.
+
 ## 현재 데모 경로에서 제외하는 것
 
 다음 항목은 현재 데모 경로에 포함하지 않는다.

@@ -64,6 +64,8 @@ Device 단위 바인딩은 개별 device가 어떤 node와 service에 연결되�
 | `dashboard_group` | dashboard에서 보여줄 그룹 |
 | `kpi_relation` | KPI 계산에서 device가 기여하는 항목 |
 
+대표 KPI 관계는 `service_bound_device_count`, `device_service_binding_ratio`, `device_telemetry_ratio`, `telemetry_freshness_ratio`, `device_status_freshness_ratio`, `operator_focus_count`이다.
+
 ### Service group 단위
 
 Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 관점으로 묶는다.
@@ -217,6 +219,9 @@ dashboard에서는 최소한 다음 관계를 보여줘야 한다.
 | mapper status | 해당 node의 mapper가 Running인지 |
 | overall status | healthy / degraded / unavailable |
 | reason | 현재 상태의 운영 해석 |
+
+dashboard는 `device_telemetry_ratio`를 telemetry 설정 비율로, `telemetry_freshness_ratio`를 실제 최신 telemetry 비율로 분리해 보여준다.
+`device_status_freshness_ratio`는 DeviceStatus snapshot 최신성을 나타내며, `operator_focus_count`는 degraded/unavailable device와 비정상 node를 합산해 계산한다.
 
 현재 API에는 `service_connected` 필드가 있으며, 이는 device가 서비스 또는 workflow event와 연결되어 있는지를 나타내는 값으로 사용되고 있다.
 

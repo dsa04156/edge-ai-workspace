@@ -74,8 +74,8 @@ kpis
 | `device_operational_ratio` | 운영 가능 device 비율 | healthy 또는 unavailable 제외 device 비율 해석 후보 |
 | `live_device_count` | live 판단 device 수 | state-aggregator 최종 `overall_status`가 `healthy`인 device 수 |
 | `telemetry_device_count` | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
-| `device_telemetry_ratio` | telemetry 대상 device 비율 | telemetry 대상 device 수 / 전체 등록 device 수 (fresh 비율 아님) |
-| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | 현재 구현은 SLA/노드/대상 device 중심 합계(예: `sla_risk_workflow_count` + non-healthy node count + unavailable device count)으로 계산되며, degraded/stale telemetry/stale DeviceStatus를 자동으로 포함하지는 않음 |
+| `device_telemetry_ratio` | telemetry 설정 비율 | telemetry 대상 device 수 / 전체 등록 device 수 (fresh 비율 아님) |
+| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | 현재 구현은 degraded/unavailable device 수 + non-healthy node 수로 계산한다 |
 | `service_bound_device_count` | 서비스 데모에 연결된 device 수 | device-service 연결 구조 가시성 |
 
 현재 dashboard KPI에서는 service binding 이름을 사용한다.
@@ -299,6 +299,8 @@ rpi-env-device-02: assigned node is unavailable
 | `deviceCount` | `kpis.registered_device_count` |
 | `deviceHealthRatio` | `kpis.device_operational_ratio`, `kpis.live_device_count` |
 | `telemetryRatio` | `kpis.device_telemetry_ratio` |
+| `telemetryFreshnessRatio` | `kpis.telemetry_freshness_ratio` |
+| `deviceStatusFreshnessRatio` | `kpis.device_status_freshness_ratio` |
 | `serviceBindingCount` | `kpis.service_bound_device_count` |
 | `serviceBindingRatio` | `kpis.device_service_binding_ratio` |
 | `focusCount` | `kpis.operator_focus_count` |

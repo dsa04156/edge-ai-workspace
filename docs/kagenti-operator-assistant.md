@@ -66,7 +66,7 @@ Kagenti 연동 PoC용 read-only 운영 보조 요약입니다.
 등록 device 31개 중 live device 24개,
 서비스 데모 연결 device 28개,
 우선 점검 대상 3개입니다.
-telemetry freshness 비율은 0.774입니다.
+telemetry configured 비율은 0.903이고, telemetry freshness 비율은 0.774입니다.
 ```
 
 ## focus device 예시
@@ -147,7 +147,7 @@ Kagenti agent는 `state-aggregator` 뒤에 붙는 운영 보조 layer다.
 
 ```text
 본 PoC에서는 Kagenti를 자율 제어 계층이 아니라 운영 보조 계층으로 적용한다.
-Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry freshness, DeviceStatus freshness, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다.
+Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다.
 이를 통해 현장 운영자는 전체 device를 개별 명령으로 확인하기 전에 dashboard와 agent 요약으로 문제 위치를 빠르게 좁힐 수 있다.
 ```
 

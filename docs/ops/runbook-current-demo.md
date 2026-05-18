@@ -287,6 +287,8 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 - `kpis.registered_device_count`
 - `kpis.live_device_count`
 - `kpis.device_telemetry_ratio`
+- `kpis.telemetry_freshness_ratio`
+- `kpis.device_status_freshness_ratio`
 - `kpis.operator_focus_count`
 
 ## 9. dashboard 확인
