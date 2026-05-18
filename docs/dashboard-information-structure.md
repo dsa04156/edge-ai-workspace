@@ -192,7 +192,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 | 상태 | dashboard 의미 | 운영자 행동 |
 |---|---|---|
-| `healthy` | node/mapper/device/telemetry/status freshness가 기준을 만족 | 정상 관찰 |
+| `healthy` | node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호. | 정상 관찰 |
 | `degraded` | 일부 경로는 살아 있지만 fresh signal 또는 snapshot이 부족 | 원인 후보 확인 |
 | `unavailable` | node, mapper, device assignment, offline 상태 등 운영 경로가 끊김 | 즉시 점검 |
 

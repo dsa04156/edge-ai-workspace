@@ -10,10 +10,10 @@
 - device가 의도한 edge node에 할당되어 있는가?
 - mapper가 Running인가?
 - publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
-- InfluxDB raw telemetry가 최신인가?
- - InfluxDB raw telemetry가 최신인가? (InfluxDB latest telemetry가 healthy 판단의 1차 기준임)
- - telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단되는가?
- - KubeEdge DeviceStatus snapshot이 status-only device와 운영 snapshot 해석에 필요한 만큼 최신인가? (DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 반드시 healthy 판단을 차단하지 않음)
+ - InfluxDB raw telemetry가 최신인가?
+    - InfluxDB latest telemetry가 healthy 판단의 1차 기준이다.
+    - telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단된다.
+    - DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 healthy 판단을 차단하지 않는다.
 - state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
 - 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
 
