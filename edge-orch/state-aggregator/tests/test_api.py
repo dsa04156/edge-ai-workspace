@@ -194,7 +194,13 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
                 "spec": {
                     "deviceModelRef": {"name": "virtual-env-model"},
                     "nodeName": "etri-dev0001-jetorn",
-                    "properties": [{"name": "health", "reportToCloud": True}],
+                    "properties": [
+                        {
+                            "name": "health",
+                            "reportToCloud": True,
+                            "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                        }
+                    ],
                     "protocol": {"protocolName": "mqttvirtual"},
                 },
                 "status": {"reportToCloud": False, "reportCycle": 60000},
@@ -235,8 +241,8 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "healthy"
-    assert device["status_reason"] == "fresh DeviceStatus snapshot"
+    assert device["status"] == "degraded"
+    assert device["status_reason"] == "DB latest timestamp is missing"
     assert device["device_status_fresh"] is True
     assert device["telemetry_fresh"] is False
     assert device["twin"]["health"]["reported"]["value"] == "ok"
@@ -272,7 +278,13 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
                 "spec": {
                     "deviceModelRef": {"name": "virtual-act-model"},
                     "nodeName": "etri-dev0001-jetorn",
-                    "properties": [{"name": "power", "reportToCloud": True}],
+                    "properties": [
+                        {
+                            "name": "health",
+                            "reportToCloud": True,
+                            "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                        }
+                    ],
                     "protocol": {"protocolName": "mqttvirtual"},
                 },
                 "status": {"reportToCloud": True, "reportCycle": 30000},
@@ -315,8 +327,8 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "healthy"
-    assert device["status_reason"] == "fresh DeviceStatus snapshot"
+    assert device["status"] == "degraded"
+    assert device["status_reason"] == "DB latest timestamp is missing"
     assert device["device_status_fresh"] is True
     assert device["device_status_last_reported_at"] is not None
 
@@ -347,9 +359,9 @@ def test_dashboard_kpis_use_service_binding_names():
             telemetry_enabled=True,
             service_connected=False,
             status="degraded",
-            status_reason="mapper is running but telemetry has not reached InfluxDB",
+            status_reason="DB latest timestamp is missing",
             overall_status="degraded",
-            reason="mapper is running but telemetry has not reached InfluxDB",
+            reason="DB latest timestamp is missing",
         ),
     ]
 

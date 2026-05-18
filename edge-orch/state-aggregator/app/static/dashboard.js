@@ -20,7 +20,7 @@ function text(value, fallback = "-") {
 }
 
 function age(value) {
-  if (value === null || value === undefined) return "no telemetry";
+  if (value === null || value === undefined) return "DB timestamp 없음";
 
   const minutes = Math.floor(value / 60);
   const seconds = Math.floor(value % 60);
@@ -123,7 +123,7 @@ function serviceBindingReason(device) {
 
 function renderRelations(devices) {
   const rows = devices.slice(0, 12).map((device) => {
-    const telemetry = device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "telemetry pending";
+    const telemetry = device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "DB timestamp pending";
     return `
       <article class="relation">
         <div class="relation-node">
@@ -198,7 +198,7 @@ function renderScenario(devices, kpis) {
               <span>${text(device.protocol, "protocol unknown")}</span>
               <span>DeviceStatus: ${device.device_status_fresh ? "fresh" : "stale"}</span>
               <span>Telemetry: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
-              <span>${text(device.telemetry_property, "no property")}: ${text(device.telemetry_value, "no value")}</span>
+              <span>${text(device.telemetry_property, "DB property 없음")}: ${text(device.telemetry_value, "DB value 없음")}</span>
               <span>${text(device.status_reason)}</span>
             </div>
           </article>

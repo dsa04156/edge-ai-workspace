@@ -357,12 +357,12 @@ kubectl get pods -A -o wide | grep -i mapper
 
 이후 publisher 실행 node와 `Device.spec.nodeName`을 비교한다.
 
-### 증상 B: mapper is running but telemetry has not reached InfluxDB
+### 증상 B: DB latest timestamp is missing 또는 stale
 
 의미:
 
 - mapper pod는 Running으로 보인다.
-- 그러나 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하지 않는다.
+- 그러나 InfluxDB device별 latest timestamp가 없거나 dashboard freshness 기준을 만족하지 않는다.
 
 확인할 것:
 
@@ -373,11 +373,11 @@ kubectl get pods -A -o wide | grep -i mapper
 - Device manifest의 `pushMethod.dbMethod.influxdb2`
 - mapper log
 
-### 증상 C: recent telemetry but DeviceStatus snapshot is stale
+### 증상 C: DB timestamp fresh but DeviceStatus snapshot is stale
 
 의미:
 
-- raw telemetry data-plane은 살아 있다.
+- InfluxDB device별 latest timestamp 기준 data-plane은 살아 있다.
 - DeviceStatus status-plane snapshot은 오래됐다.
 
 확인할 것:

@@ -84,8 +84,10 @@ RPI_GROUPS = [
 ]
 
 
-def should_store_to_influx(key: str) -> bool:
-    return key in {"temperature", "humidity", "vibration"}
+def should_store_to_influx(device_type: str, key: str) -> bool:
+    if key in {"temperature", "humidity", "vibration"}:
+        return True
+    return device_type in {"act", "rpi-act"} and key == "health"
 
 
 def emit_influx_push_method(device_name: str, device_type: str, key: str) -> str:
@@ -111,8 +113,9 @@ def emit_device(group: DeviceGroup, index: int) -> str:
     props = []
     for key in group.telemetry_keys:
         report_to_cloud = "true" if key in group.status_keys else "false"
-        push_method = emit_influx_push_method(device_name, group.prefix, key) if should_store_to_influx(key) else ""
-        cycle_ms = RAW_TELEMETRY_CYCLE_MS if should_store_to_influx(key) else STATUS_PROPERTY_CYCLE_MS
+        stores_to_influx = should_store_to_influx(group.prefix, key)
+        push_method = emit_influx_push_method(device_name, group.prefix, key) if stores_to_influx else ""
+        cycle_ms = RAW_TELEMETRY_CYCLE_MS if stores_to_influx else STATUS_PROPERTY_CYCLE_MS
         props.append(
             f"""  - name: {key}
     collectCycle: {cycle_ms}

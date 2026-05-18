@@ -16,7 +16,7 @@ node state + device state + telemetry freshness + service binding + KPI -> 운�
 
 1. Device CR 존재 여부만으로 정상 판단하지 않는다.
 2. `status.state=online`만으로 healthy 판단하지 않는다.
-3. raw telemetry freshness와 DeviceStatus snapshot freshness를 분리한다.
+3. DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.
 4. mapper Running 여부와 node Ready 상태를 함께 본다.
 5. service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.
 6. 운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.
@@ -107,8 +107,8 @@ device_service_binding_ratio
 | `service_binding_reason` | 바인딩 판단 이유 | `state-aggregator` backend 판단 |
 | `mapper_running` | mapper Running 여부 | mapper pod 상태 |
 | `node_ready` | 할당 node Ready 여부 | Kubernetes/Prometheus node 상태 |
-| `telemetry_fresh` | raw telemetry freshness | InfluxDB latest timestamp |
-| `telemetry_last_seen_at` | telemetry latest time | InfluxDB |
+| `telemetry_fresh` | DB latest timestamp freshness | InfluxDB latest timestamp |
+| `telemetry_last_seen_at` | DB latest time | InfluxDB |
 | `device_status_fresh` | DeviceStatus snapshot freshness | DeviceStatus timestamp |
 | `device_status_last_reported_at` | DeviceStatus latest time | DeviceStatus |
 | `health` | 운영 health 값 | DeviceStatus twin/status |
@@ -151,9 +151,9 @@ Device -> Node -> Telemetry / Status -> Service Demo
 예시:
 
 ```text
-vib-device-01 -> etri-dev0001-jetorn -> fresh telemetry -> 설비 상태 모니터링 서비스
-act-device-01 -> etri-dev0001-jetorn -> fresh DeviceStatus -> command 상태 확인
-rpi-env-device-01 -> etri-dev0002-raspi5 -> telemetry pending -> Raspberry Pi edge 상태 확인
+vib-device-01 -> etri-dev0001-jetorn -> fresh DB timestamp -> 설비 상태 모니터링 서비스
+act-device-01 -> etri-dev0001-jetorn -> fresh DB timestamp -> command 상태 확인
+rpi-env-device-01 -> etri-dev0002-raspi5 -> DB timestamp pending -> Raspberry Pi edge 상태 확인
 ```
 
 ## Freshness 표시 방식
@@ -212,8 +212,8 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 예시:
 
 ```text
-vib-device-01: mapper is running but telemetry has not reached InfluxDB
-act-device-03: recent telemetry but DeviceStatus snapshot is stale
+vib-device-01: DB latest timestamp is missing
+act-device-03: DB timestamp fresh; DeviceStatus snapshot is stale
 rpi-env-device-02: assigned node is unavailable
 ```
 

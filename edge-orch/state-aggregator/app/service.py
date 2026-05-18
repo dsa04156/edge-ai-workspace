@@ -419,7 +419,7 @@ class StateAggregatorService:
         if telemetry_enabled and not telemetry_fresh:
             if telemetry_age_seconds is not None:
                 return "degraded", f"InfluxDB telemetry stale: last received {int(telemetry_age_seconds)}s ago"
-            return "degraded", "mapper is running but telemetry has not reached InfluxDB"
+            return "degraded", "DB latest timestamp is missing"
         if device_status_fresh:
             if severity_value and severity_value.lower() == "critical":
                 return "degraded", "fresh DeviceStatus snapshot, but severity is critical"

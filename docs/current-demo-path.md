@@ -301,7 +301,7 @@ dashboard는 `state-aggregator` API를 기반으로 운영 상태를 보여준�
 
 - Device CR이 존재한다고 healthy가 되는 것은 아니다.
 - `status.state=online`만으로 healthy 판단하지 않는다.
-- DeviceStatus snapshot freshness와 raw telemetry freshness를 분리해서 본다.
+- DeviceStatus snapshot freshness와 DB latest timestamp freshness를 분리해서 본다.
 - mapper pod가 Running인지 확인한다.
 - device가 할당된 node가 Ready인지 확인한다.
 - telemetry가 있는 device는 InfluxDB latest timestamp를 확인한다.

@@ -2,12 +2,13 @@
 
 ## 원칙
 
-대시보드는 raw telemetry freshness와 `DeviceStatus` snapshot freshness를 분리해서 표시한다.
+대시보드는 DB latest timestamp와 `DeviceStatus` snapshot freshness를 분리해서 표시한다.
 
 `status.state=online`만으로 healthy 처리하지 않는다.
-telemetry pushMethod가 있는 device의 healthy 판단은 InfluxDB latest telemetry timestamp를 우선 기준으로 삼는다.
-`DeviceStatus` timestamp는 status-only device와 운영 snapshot 해석용으로 사용한다.
-`status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 우선 사용한다.
+healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다.
+env/vib/temp는 raw telemetry 값, act는 `health` liveness 값을 InfluxDB에 남긴다.
+`DeviceStatus` timestamp는 운영 snapshot 해석용 보조 정보로 사용한다.
+`status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.
 
 ## Freshness 설정
 
@@ -19,8 +20,8 @@ TELEMETRY_FRESH_SECONDS=90
 MAPPER_HEARTBEAT_FRESH_SECONDS=60
 ```
 
-현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재하므로 telemetry freshness는 90초로 둔다.
-별도 고빈도 telemetry consumer를 붙이면 `TELEMETRY_FRESH_SECONDS`는 data-plane 적재 주기에 맞춰 다시 낮출 수 있다.
+현재 mapper 기반 PoC는 DB liveness 값을 60초 주기로 InfluxDB에 적재하므로 telemetry freshness는 90초 이상으로 둔다.
+운영 데모에서 순간 지연으로 degraded가 흔들리면 `TELEMETRY_FRESH_SECONDS=180`으로 완화한다.
 
 ## Timestamp 처리
 
@@ -40,7 +41,9 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 - `Device.spec.properties[].pushMethod`: data-plane telemetry 대상 여부
 - `DeviceStatus.status.lastOnlineTime`: fallback DeviceStatus timestamp
 - `DeviceStatus.status.twins[].reported.metadata.timestamp`: DeviceStatus freshness 우선 기준
-- InfluxDB `device_telemetry`: raw telemetry live/freshness 기준
+- InfluxDB `device_telemetry`: device live/freshness 기준
+  - env/vib/temp: raw telemetry property
+  - act/rpi-act: `health` liveness property
 
 ## 상태 판단 순서
 
@@ -49,13 +52,11 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 3. 노드 미할당 또는 할당 노드 `unavailable`이면 `unavailable`.
 4. `mqttvirtual` 디바이스인데 해당 노드의 mapper Pod가 Running이 아니면 `unavailable`.
 5. `health=offline` 또는 명시 상태값 `offline/disconnected/failed/unavailable/false`면 `unavailable`.
-6. InfluxDB latest telemetry timestamp가 `TELEMETRY_FRESH_SECONDS` 이내면 `telemetry_fresh=true`.
-7. `spec.properties[].pushMethod`가 있는 telemetry device는 `telemetry_fresh=true`이면 `severity=critical`이 아닌 한 `healthy`.
-8. telemetry device의 `telemetry_fresh=false`이면 InfluxDB latest timestamp 부재 또는 stale 상태로 보고 `degraded`.
-9. `spec.properties[].pushMethod`가 없는 status-only device는 DeviceStatus timestamp를 기준으로 판단한다.
-10. reported timestamp와 `lastOnlineTime` 중 최신 timestamp를 DeviceStatus snapshot 기준으로 사용한다.
-11. status-only device에서 DeviceStatus timestamp가 `DEVICE_STATUS_FRESH_SECONDS` 이내이면 `healthy`, 아니면 `degraded`.
-12. dashboard는 `device_status_fresh`와 `device_status_last_reported_at`도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.
+6. InfluxDB latest timestamp가 `TELEMETRY_FRESH_SECONDS` 이내면 `telemetry_fresh=true`.
+7. DB timestamp가 fresh하면 `severity=critical`이 아닌 한 `healthy`.
+8. DB timestamp가 없거나 stale이면 `degraded`.
+9. reported timestamp와 `lastOnlineTime` 중 최신 timestamp는 DeviceStatus snapshot 표시용으로 사용한다.
+10. dashboard는 `device_status_fresh`와 `device_status_last_reported_at`도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.
 
 ## API 응답 필드
 
@@ -82,7 +83,7 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 ## 해석 규칙
 
 - `DeviceStatus`에 `power:on` 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.
-- telemetry device는 InfluxDB latest timestamp가 fresh하면 raw telemetry data-plane이 살아 있다고 보고 healthy로 판단한다.
+- dashboard의 healthy는 InfluxDB latest timestamp를 우선 기준으로 판단한다.
+- env/vib/temp는 raw telemetry, act/rpi-act는 `health` liveness row가 DB freshness 기준이다.
 - InfluxDB row의 `device_id`가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.
-- telemetry가 없는 actuator류는 DeviceStatus snapshot이 fresh하면 healthy로 볼 수 있다.
-- dashboard의 healthy는 Device CR 존재 여부나 `state=online` 단독 판단이 아니라 node/mapper 선행 조건과 freshness 기준을 함께 본 결과다.
+- dashboard의 healthy는 Device CR 존재 여부나 `state=online` 단독 판단이 아니라 node/mapper 선행 조건과 DB freshness 기준을 함께 본 결과다.
