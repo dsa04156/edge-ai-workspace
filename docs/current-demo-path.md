@@ -248,9 +248,9 @@ Device manifest에서 raw telemetry property는 KubeEdge mapper framework의 `pu
 |---|---|---|
 | env device | `health`, `sampling_interval`, `temperature_status`, `humidity_status` | `temperature`, `humidity` |
 | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |
-| act device | `health`, `power`, `mode`, `sampling_interval`, `ts`, `command_state`, `reported_config_version` | `ts` liveness row, command event history, actuation latency, state transition history |
+| act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB liveness row는 `health` property. `ts`는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다. |
 
-현재 dashboard는 InfluxDB latest telemetry timestamp를 보고 raw telemetry data-plane이 살아 있는지 판단한다.
+현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다.
 
 ## state-aggregator
 
@@ -262,19 +262,18 @@ Device manifest에서 raw telemetry property는 KubeEdge mapper framework의 `pu
 edge-orch/state-aggregator/
 ```
 
-주요 API는 다음이다.
+API는 현재 데모 핵심 API와 legacy/compatibility API로 구분한다.
+
+현재 데모 핵심 API:
 
 ```text
 GET /state/nodes
 GET /state/devices
 GET /state/dashboard
 GET /state/summary
-GET /state/cost-model
-POST /workflow-event
+GET /state/operator-assistant
 GET /metrics
 ```
-
-현재 데모 경로에서 중요한 API는 다음이다.
 
 | API | 용도 |
 |---|---|
@@ -282,7 +281,18 @@ GET /metrics
 | `GET /state/devices` | KubeEdge Device / DeviceStatus / mapper / telemetry freshness 통합 조회 |
 | `GET /state/dashboard` | dashboard용 요약 상태와 KPI 조회 |
 | `GET /state/summary` | 전체 운영 상태 요약 조회 |
+| `GET /state/operator-assistant` | 운영자 보조 요약과 우선 점검 대상 조회 |
 | `GET /metrics` | Prometheus scrape용 metric 노출 |
+
+Legacy/compatibility API:
+
+```text
+GET /state/cost-model
+POST /workflow-event
+GET /state/workflows
+```
+
+위 legacy/compatibility API는 과거 workflow/placement/cost-model 실험 호환용이다. 현재 데모 핵심 경로가 아니며, workflow/offloading/placement/autonomous agent 제어를 현재 구현 기능처럼 설명하지 않는다.
 
 `state-aggregator`가 통합하는 입력은 다음이다.
 
@@ -303,8 +313,9 @@ dashboard는 `state-aggregator` API를 기반으로 운영 상태를 보여준�
 - `status.state=online`만으로 healthy 판단하지 않는다.
 - DeviceStatus snapshot freshness와 DB latest timestamp freshness를 분리해서 본다.
 - mapper pod가 Running인지 확인한다.
-- device가 할당된 node가 Ready인지 확인한다.
-- telemetry가 있는 device는 InfluxDB latest timestamp를 확인한다.
+- device가 할당된 node가 dashboard 기준 `node_ready`인지 확인한다. 이 값은 Kubernetes `Ready`가 아니라 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이다.
+- Kubernetes node Ready는 `kubectl get nodes`로 별도 확인한다.
+- telemetry-enabled device는 InfluxDB device-level latest timestamp를 healthy 판단의 1차 기준으로 확인한다.
 
 기본 freshness 설정은 다음이다.
 
@@ -342,7 +353,7 @@ Jetson 경로 점검 흐름은 다음이다.
 3. Jetson node에서 `mqttvirtual` mapper가 Running인지 확인한다.
 4. Jetson node의 local mosquitto에 publisher가 telemetry를 발행하는지 확인한다.
 5. InfluxDB에 해당 device의 latest telemetry가 들어오는지 확인한다.
-6. DeviceStatus snapshot이 fresh한지 확인한다.
+6. DeviceStatus snapshot이 fresh한지 별도 확인한다. 단 telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.
 7. `/state/devices` 또는 dashboard에서 overall status를 확인한다.
 
 ## Raspberry Pi 경로
@@ -384,7 +395,7 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 
 1. Device는 등록되어 있지만 live status가 unknown인 경우
 2. mapper는 Running이지만 InfluxDB에 fresh telemetry가 없는 경우
-3. DeviceStatus snapshot timestamp가 오래된 경우
+3. telemetry가 fresh하지 않은 상태에서 DeviceStatus snapshot timestamp도 오래된 경우
 4. publisher가 실행되지 않았거나 잘못된 node에서 실행된 경우
 5. publisher가 local mosquitto `127.0.0.1:1883`이 아닌 다른 broker로 publish한 경우
 6. Device는 Jetson에 할당됐지만 Raspberry Pi에서 publisher를 실행한 경우 또는 그 반대의 경우
@@ -393,9 +404,9 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 
 `degraded`는 반드시 시스템 전체 실패를 의미하지 않는다.
 
-현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 dashboard가 healthy로 판단하기 위한 fresh telemetry 또는 fresh DeviceStatus snapshot이 부족한 상태”로 해석한다.
+현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 telemetry-enabled device의 InfluxDB latest telemetry가 fresh하지 않거나 node/mapper 선행 조건이 부족한 상태”로 해석한다. DeviceStatus freshness는 status-plane 보조 신호이며 healthy 필수 조건은 아니다.
 
-dashboard KPI는 `device_telemetry_ratio`(telemetry 설정 비율), `telemetry_freshness_ratio`(실제 최신 telemetry 비율), `device_status_freshness_ratio`(최신 DeviceStatus 비율), `operator_focus_count`(비정상 device + 비정상 node)로 구분해서 읽는다.
+dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/unavailable device + non-healthy node, workflow risk 제외)로 구분해서 읽는다.
 
 ## 현재 데모 경로에서 제외하는 것
 

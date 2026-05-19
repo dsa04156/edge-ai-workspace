@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard 검증 체크리스트</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/dashboard-verification.md">편집</a>
+      </div>
+      <span>ops/dashboard-verification.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>Dashboard 검증 체크리스트</h1>
+          <p class="subtitle">KubeEdge 혼합 디바이스 PoC dashboard가 서비스 데모와 통합 운영 가시화를 제대로 보여주는지 확인하기 위한 체크…</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: ops/dashboard-verification.md</span>
+            <span class="badge">수정: 2026-05-19 10:59</span>
+            <span class="badge">HTML 생성: 2026-05-19 10:59</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="dashboard-검증-체크리스트">Dashboard 검증 체크리스트</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 KubeEdge 혼합 디바이스 PoC dashboard가 서비스 데모와 통합 운영 가시화를 제대로 보여주는지 확인하기 위한 체크리스트다.</p>
+<p>검증 대상은 read-only 상태 표시다. workflow/offloading/placement/autonomous agent 제어, MQTT command 실행, actuator command 실행은 검증 대상이 아니다.</p>
+<h2 id="1-overview-kpi">1. Overview KPI</h2>
+<p>Dashboard 상단 KPI에서 다음 항목이 보여야 한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>표시 항목</th>
+<th>API/KPI 필드</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>registered device count</td>
+<td><code>kpis.registered_device_count</code></td>
+<td>KubeEdge Device CR로 등록된 device 수</td>
+</tr>
+<tr>
+<td>live device count</td>
+<td><code>kpis.live_device_count</code></td>
+<td>현재 healthy device 수</td>
+</tr>
+<tr>
+<td>telemetry configured ratio</td>
+<td><code>kpis.device_telemetry_ratio</code></td>
+<td>telemetry-enabled device / 전체 registered device</td>
+</tr>
+<tr>
+<td>telemetry freshness ratio</td>
+<td><code>kpis.telemetry_freshness_ratio</code></td>
+<td>fresh telemetry device / telemetry-enabled device</td>
+</tr>
+<tr>
+<td>DeviceStatus freshness ratio</td>
+<td><code>kpis.device_status_freshness_ratio</code></td>
+<td>fresh DeviceStatus snapshot / 전체 registered device</td>
+</tr>
+<tr>
+<td>operator focus count</td>
+<td><code>kpis.operator_focus_count</code></td>
+<td>degraded/unavailable device 수 + non-healthy node 수</td>
+</tr>
+<tr>
+<td>service-bound device count</td>
+<td><code>kpis.service_bound_device_count</code></td>
+<td>service demo group에 묶인 device 수</td>
+</tr>
+<tr>
+<td>device-service binding ratio</td>
+<td><code>kpis.device_service_binding_ratio</code></td>
+<td>service-bound device / 전체 registered device</td>
+</tr>
+</tbody></table></div>
+<p>주의:</p>
+<ul><li><code>device_telemetry_ratio</code>는 telemetry configured ratio다.</li><li>telemetry freshness는 <code>telemetry_freshness_ratio</code>와 <code>fresh_telemetry_device_count</code>로 본다.</li><li>두 비율을 같은 의미로 설명하지 않는다.</li><li><code>operator_focus_count</code>에는 workflow risk를 포함하지 않는다.</li></ul>
+<h2 id="2-device-table-device-list">2. Device Table / Device List</h2>
+<p>각 device row에서 다음 필드를 표시하거나 바로 확인할 수 있어야 한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>확인 의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>device name</td>
+</tr>
+<tr>
+<td><code>node_name</code></td>
+<td>할당된 edge node</td>
+</tr>
+<tr>
+<td><code>device_type</code></td>
+<td>env/vib/act/rpi-env/rpi-vib/rpi-act/temp 등 분류</td>
+</tr>
+<tr>
+<td><code>telemetry_enabled</code></td>
+<td>InfluxDB data-plane 대상인지 여부</td>
+</tr>
+<tr>
+<td><code>telemetry_fresh</code></td>
+<td>InfluxDB device-level latest sample 기준 fresh 여부</td>
+</tr>
+<tr>
+<td><code>telemetry_last_seen_at</code></td>
+<td>latest sample <code>_time</code></td>
+</tr>
+<tr>
+<td><code>telemetry_property</code></td>
+<td>latest sample property. act/rpi-act는 <code>health</code> 기준</td>
+</tr>
+<tr>
+<td><code>device_status_fresh</code></td>
+<td>DeviceStatus snapshot freshness. healthy 필수 조건 아님</td>
+</tr>
+<tr>
+<td><code>mapper_running</code></td>
+<td>할당 node의 mqttvirtual mapper Running 여부</td>
+</tr>
+<tr>
+<td><code>node_ready</code></td>
+<td>dashboard 기준 node health. Kubernetes Ready와 구분</td>
+</tr>
+<tr>
+<td><code>overall_status</code> / <code>status</code></td>
+<td>최종 상태</td>
+</tr>
+<tr>
+<td><code>reason</code> / <code>status_reason</code></td>
+<td>운영자가 볼 원인 문구</td>
+</tr>
+<tr>
+<td><code>service_demo_group</code></td>
+<td>연결된 서비스 데모 그룹</td>
+</tr>
+<tr>
+<td><code>service_connected</code></td>
+<td>서비스 데모 연결 여부</td>
+</tr>
+</tbody></table></div>
+<p>정상 기준:</p>
+<ul><li>telemetry-enabled device는 <code>telemetry_fresh=true</code>이면 DeviceStatus stale이어도 healthy 가능하다.</li><li><code>node_ready=false</code>, <code>mapper_running=false</code>, <code>telemetry_fresh=false</code>는 reason 또는 issue/focus list에서 원인이 보여야 한다.</li></ul>
+<h2 id="3-service-binding-relation-view">3. Service Binding / Relation View</h2>
+<p>연결 관계 영역에서 다음 흐름이 보여야 한다.</p>
+<pre data-lang="text"><code>Device -&gt; Edge Node -&gt; Telemetry/Status -&gt; Service Demo</code></pre>
+<p>서비스 그룹 기준:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device 계열</th>
+<th>service demo group</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>env-device-*</code>, <code>rpi-env-device-*</code>, <code>temp-device-01</code></td>
+<td>환경 상태 모니터링</td>
+</tr>
+<tr>
+<td><code>vib-device-*</code>, <code>rpi-vib-device-*</code></td>
+<td>설비/진동 상태 모니터링</td>
+</tr>
+<tr>
+<td><code>act-device-*</code>, <code>rpi-act-device-*</code></td>
+<td>command 상태 확인</td>
+</tr>
+</tbody></table></div>
+<p>확인 항목:</p>
+<ul><li>device row 또는 relation view에 <code>service_demo_group</code>이 표시된다.</li><li><code>service_bound_device_count</code>가 표시된다.</li><li><code>device_service_binding_ratio</code>가 표시된다.</li><li>service binding은 frontend 하드코딩이 아니라 state-aggregator API의 <code>service_demo_group</code>, <code>service_binding_source</code>, <code>service_binding_reason</code> 값을 렌더링한다.</li></ul>
+<h2 id="4-issue-focus-list">4. Issue / Focus List</h2>
+<p>운영 상태 영역은 운영자가 먼저 볼 대상을 줄이는 용도다.</p>
+<p>Issue/focus list 기준:</p>
+<ul><li>degraded device</li><li>unavailable device</li><li>non-healthy node</li><li><code>mapper_running=false</code></li><li><code>telemetry_fresh=false</code></li><li><code>node_ready=false</code></li></ul>
+<p><code>operator_focus_count</code> 기준:</p>
+<pre data-lang="text"><code>degraded/unavailable device 수 + non-healthy node 수</code></pre>
+<p>포함하지 않는 것:</p>
+<pre data-lang="text"><code>workflow risk
+offloading risk
+placement risk
+autonomous agent action</code></pre>
+<h2 id="5-explain-panel">5. Explain Panel</h2>
+<p>Dashboard의 Explain Panel은 RAG 챗봇이나 LLM agent가 아니라 현재 <code>/state/dashboard</code> payload를 deterministic JavaScript rule로 해석하는 read-only 설명 영역이다.</p>
+<p>확인 방법:</p>
+<ol><li>Device list에서 device row를 클릭한다.</li><li>우측 또는 하단 Explain Panel에 device 상세 필드와 적용 rule이 표시되는지 확인한다.</li><li>Overview KPI 카드를 클릭한다.</li><li>KPI key, 현재 값, 정의 설명이 표시되는지 확인한다.</li><li>운영 상태 Issue/Focus 항목을 클릭한다.</li><li>우선 점검 대상이 된 이유와 다음 확인 위치가 표시되는지 확인한다.</li></ol>
+<p>Device row 클릭 시 표시되어야 하는 필드:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>device name</code></td>
+<td>device name</td>
+</tr>
+<tr>
+<td><code>node_name</code></td>
+<td>할당 node</td>
+</tr>
+<tr>
+<td><code>device_type</code></td>
+<td>device 분류</td>
+</tr>
+<tr>
+<td><code>overall_status</code></td>
+<td>최종 상태</td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td>state-aggregator 판단 이유</td>
+</tr>
+<tr>
+<td><code>telemetry_enabled</code></td>
+<td>telemetry 대상 여부</td>
+</tr>
+<tr>
+<td><code>telemetry_fresh</code></td>
+<td>InfluxDB latest sample freshness</td>
+</tr>
+<tr>
+<td><code>telemetry_last_seen_at</code></td>
+<td>latest sample timestamp</td>
+</tr>
+<tr>
+<td><code>telemetry_property</code></td>
+<td>latest sample property</td>
+</tr>
+<tr>
+<td><code>telemetry_value</code></td>
+<td>latest sample value</td>
+</tr>
+<tr>
+<td><code>device_status_fresh</code></td>
+<td>DeviceStatus snapshot freshness</td>
+</tr>
+<tr>
+<td><code>device_status_last_reported_at</code></td>
+<td>DeviceStatus snapshot timestamp</td>
+</tr>
+<tr>
+<td><code>mapper_running</code></td>
+<td>할당 node mapper Running 여부</td>
+</tr>
+<tr>
+<td><code>node_ready</code></td>
+<td>dashboard 기준 node_ready</td>
+</tr>
+<tr>
+<td><code>service_demo_group</code></td>
+<td>연결된 서비스 데모 그룹</td>
+</tr>
+<tr>
+<td><code>service_connected</code></td>
+<td>서비스 데모 연결 여부</td>
+</tr>
+</tbody></table></div>
+<p>적용 rule 확인 기준:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Rule</th>
+<th>조건</th>
+<th>설명 요지</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Rule A</td>
+<td><code>overall_status=healthy</code>, <code>telemetry_fresh=true</code></td>
+<td>InfluxDB latest telemetry가 fresh하므로 healthy</td>
+</tr>
+<tr>
+<td>Rule B</td>
+<td><code>severity=critical</code></td>
+<td>telemetry는 들어오지만 severity critical로 degraded</td>
+</tr>
+<tr>
+<td>Rule C</td>
+<td><code>telemetry_enabled=true</code>, <code>telemetry_fresh=false</code></td>
+<td>publisher/MQTT/mapper/InfluxDB 경로 확인</td>
+</tr>
+<tr>
+<td>Rule D</td>
+<td><code>mapper_running=false</code></td>
+<td>할당 node의 mqttvirtual mapper 확인</td>
+</tr>
+<tr>
+<td>Rule E</td>
+<td><code>node_ready=false</code></td>
+<td>dashboard 기준 node unavailable 확인</td>
+</tr>
+<tr>
+<td>Rule F</td>
+<td><code>telemetry_fresh=true</code>, <code>device_status_fresh=false</code></td>
+<td>data-plane은 살아 있고 status-plane 점검 필요</td>
+</tr>
+<tr>
+<td>Rule G</td>
+<td><code>service_connected=false</code></td>
+<td>service binding rule 또는 naming rule 확인</td>
+</tr>
+</tbody></table></div>
+<p>KPI 설명 확인 기준:</p>
+<ul><li><code>registered_device_count</code>: KubeEdge에 등록된 전체 Device CR 수</li><li><code>live_device_count</code>: state-aggregator 최종 status가 healthy인 device 수</li><li><code>telemetry_device_count</code>: telemetry_enabled device 수</li><li><code>device_telemetry_ratio</code>: telemetry configured ratio. freshness 비율 아님</li><li><code>fresh_telemetry_device_count</code>: telemetry_fresh == true인 device 수</li><li><code>telemetry_freshness_ratio</code>: fresh telemetry device 수 / telemetry_enabled device 수</li><li><code>fresh_device_status_count</code>: device_status_fresh == true인 device 수</li><li><code>device_status_freshness_ratio</code>: fresh DeviceStatus device 수 / 전체 device 수</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li><li><code>service_bound_device_count</code>: service demo group에 연결된 device 수</li><li><code>device_service_binding_ratio</code>: service-bound device 수 / 전체 registered device 수</li></ul>
+<p>Issue/Focus 설명 확인 기준:</p>
+<ul><li><code>telemetry_fresh=false</code>: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태 확인</li><li><code>mapper_running=false</code>: mapper pod와 node 배치 확인</li><li><code>node_ready=false</code>: node 상태와 edgecore/cloudcore 확인</li><li><code>device_status_fresh=false</code> + <code>telemetry_fresh=true</code>: DeviceStatus report path 확인</li></ul>
+<h2 id="6-reason-문구">6. Reason 문구</h2>
+<p>reason은 운영자가 바로 다음 점검 위치를 알 수 있게 구체적이어야 한다.</p>
+<p>허용/권장 예시:</p>
+<pre data-lang="text"><code>recent InfluxDB telemetry
+recent InfluxDB telemetry, but severity is critical
+mapper is running but telemetry has not reached InfluxDB
+InfluxDB telemetry stale
+assigned mapper is not running
+assigned node is unavailable
+device is not bound to expected node
+DeviceStatus stale but telemetry fresh</code></pre>
+<p>해석 기준:</p>
+<ul><li><code>recent InfluxDB telemetry</code>: data-plane latest sample이 fresh하다.</li><li><code>InfluxDB telemetry stale</code>: publisher/MQTT/mapper/InfluxDB 경로 중 하나가 끊겼을 수 있다.</li><li><code>assigned mapper is not running</code>: 해당 node의 mqttvirtual mapper부터 확인한다.</li><li><code>assigned node is unavailable</code>: node/Prometheus/node-exporter 상태부터 확인한다.</li><li><code>DeviceStatus stale but telemetry fresh</code>: status-plane은 오래됐지만 data-plane은 살아 있으므로 healthy 가능하다.</li></ul>
+<h2 id="7-influxdb-timestamp-표시-해석">7. InfluxDB timestamp 표시 해석</h2>
+<p>Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.</p>
+<ul><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다.</li><li>실제 telemetry sample timestamp는 <code>_time</code>이다.</li><li>Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이다.</li><li>property별 latest freshness를 보장하지 않는다.</li><li>act/rpi-act device의 dashboard freshness 기준 property는 현재 <code>health</code> liveness row다.</li><li><code>ts</code>는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.</li></ul>
+<h2 id="8-api-기반-빠른-확인">8. API 기반 빠른 확인</h2>
+<p>port-forward:</p>
+<pre data-lang="bash"><code>kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
+# 현재 로컬 클러스터처럼 service가 default namespace에 있으면:
+# kubectl -n default port-forward svc/state-aggregator 8000:8000</code></pre>
+<p>확인:</p>
+<pre data-lang="bash"><code>curl -s http://localhost:8000/state/dashboard
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
+<p>특정 device 확인:</p>
+<pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03</code></pre>
+<h2 id="9-화면-정상-판정">9. 화면 정상 판정</h2>
+<p>정상 화면은 다음을 만족한다.</p>
+<ol><li>Overview KPI에서 telemetry configured ratio와 telemetry freshness ratio가 분리되어 보인다.</li><li>DeviceStatus freshness ratio가 telemetry freshness와 별도 KPI로 보인다.</li><li>Device list에서 telemetry property, latest timestamp, mapper/node 상태, reason을 확인할 수 있다.</li><li>Relation view에서 device-service binding이 보인다.</li><li>Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.</li><li>act/rpi-act device는 <code>telemetry_property=health</code>로 liveness를 설명한다.</li><li>workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.</li></ol>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#1-overview-kpi">1. Overview KPI</a></li>
+<li class="toc-h2"><a href="#2-device-table-device-list">2. Device Table / Device List</a></li>
+<li class="toc-h2"><a href="#3-service-binding-relation-view">3. Service Binding / Relation View</a></li>
+<li class="toc-h2"><a href="#4-issue-focus-list">4. Issue / Focus List</a></li>
+<li class="toc-h2"><a href="#5-explain-panel">5. Explain Panel</a></li>
+<li class="toc-h2"><a href="#6-reason-문구">6. Reason 문구</a></li>
+<li class="toc-h2"><a href="#7-influxdb-timestamp-표시-해석">7. InfluxDB timestamp 표시 해석</a></li>
+<li class="toc-h2"><a href="#8-api-기반-빠른-확인">8. API 기반 빠른 확인</a></li>
+<li class="toc-h2"><a href="#9-화면-정상-판정">9. 화면 정상 판정</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

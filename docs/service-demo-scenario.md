@@ -67,7 +67,7 @@
 |---|---|---|
 | `env-device-*` | 온도/습도 등 환경 상태 입력 | 현장 환경 조건 확인 |
 | `vib-device-*` | 진동 상태 입력 | 설비 이상 징후 확인 |
-| `act-device-*` | actuator 상태/명령 대상 | 제어 상태와 command 적용 확인 |
+| `act-device-*` | actuator 상태/명령 대상 | 현재 InfluxDB `health` liveness와 command 상태 확인 |
 | `temp-device-01` | 단일 온도 device | DeviceStatus/telemetry 연동 확인 |
 
 ### Raspberry Pi 계열
@@ -76,7 +76,7 @@
 |---|---|---|
 | `rpi-env-device-*` | light edge 환경 상태 입력 | Raspberry Pi edge node의 환경 상태 확인 |
 | `rpi-vib-device-*` | light edge 진동 상태 입력 | Raspberry Pi edge node의 설비 상태 확인 |
-| `rpi-act-device-*` | light edge 제어 대상 | Raspberry Pi edge command loop 확인 |
+| `rpi-act-device-*` | light edge 제어 대상 | 현재 InfluxDB `health` liveness와 Raspberry Pi edge command 상태 확인 |
 
 ## 데이터 흐름
 
@@ -90,6 +90,8 @@ sensor / test publisher
   -> state-aggregator latest telemetry query
   -> dashboard service demo view
 ```
+
+InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.
 
 운영 상태 snapshot 흐름은 다음이다.
 
@@ -169,7 +171,8 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 
 확인할 것:
 
-- DeviceStatus snapshot timestamp가 dashboard freshness 기준을 만족한다.
+- DeviceStatus snapshot timestamp는 status-plane 보조 신호로 확인한다. healthy 필수 조건은 아니다.
+- telemetry-enabled device는 InfluxDB latest telemetry freshness가 healthy 판단의 1차 기준이다. telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.
 - raw telemetry 값이 DeviceStatus에 직접 올라가지 않는다.
 - `health`, `severity`, `power`, `mode`, `sampling_interval`, `command_state` 같은 운영 상태 중심 값만 확인한다.
 
@@ -218,7 +221,7 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 | publisher 미실행 | degraded | Device는 등록됐지만 telemetry가 들어오지 않음 |
 | publisher 실행 node 불일치 | degraded | Device nodeName과 local broker publish 위치가 맞지 않음 |
 | mapper 미동작 | unavailable | mqttvirtual device 처리 경로가 끊김 |
-| DeviceStatus stale | degraded / note | telemetry는 있거나 없을 수 있음; dashboard는 DeviceStatus stale을 별도 표기하되 telemetry가 fresh하면 반드시 degraded로 분류하지 않음 |
+| DeviceStatus stale | note | telemetry가 fresh하면 healthy일 수 있음. DeviceStatus stale은 status-plane 보조 신호로 확인 |
 | InfluxDB latest 없음 | degraded | mapper는 있으나 raw telemetry data-plane 확인이 안 됨 |
 | node unavailable | unavailable | device가 할당된 node 상태가 불안정함 |
 
@@ -231,13 +234,15 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 |---|---|---|
 | registered_device_count | 등록 device 수 | PoC에 등록된 device 규모 |
 | live_device_count | live 판단 device 수 | dashboard 기준 현재 살아 있는 device 수 |
-| telemetry_device_count | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
-| fresh_telemetry_device_count | 최신 telemetry device 수 | telemetry freshness가 최근 갱신된 device 수 |
+| telemetry_device_count | telemetry 설정 device 수 | `telemetry_enabled=true`인 device 수 |
+| device_telemetry_ratio | telemetry configured ratio | telemetry 설정 device 수 / 전체 registered device 수. freshness 비율이 아님 |
+| fresh_telemetry_device_count | 최신 telemetry device 수 | telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 수 |
+| telemetry_freshness_ratio | fresh telemetry 비율 | fresh telemetry device 수 / telemetry 설정 device 수 |
+| fresh_device_status_count | 최신 DeviceStatus device 수 | DeviceStatus snapshot이 fresh한 device 수 |
+| device_status_freshness_ratio | fresh DeviceStatus 비율 | status-plane 관찰 지표. healthy 필수 조건은 아님 |
 | service_bound_device_count | service demo에 연결된 device 수 | 디바이스-서비스 연결 구조 가시화 |
 | degraded_device_count | degraded device 수 | 운영자가 확인해야 할 대상 |
-| operator_focus_count | 우선 점검 대상 수 | 수동 점검 범위 감소 효과 |
-| telemetry_freshness_ratio | fresh telemetry 비율 | data-plane 안정성 지표 |
-| device_status_freshness_ratio | fresh DeviceStatus 비율 | status-plane 안정성 지표 |
+| operator_focus_count | 우선 점검 대상 수 | degraded/unavailable device 수 + non-healthy node 수. workflow risk 제외 |
 
 현재 dashboard/API의 service binding KPI는 다음 이름을 사용한다.
 

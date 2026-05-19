@@ -20,30 +20,40 @@
       </header>
 
       <section class="kpi-grid" aria-label="platform summary">
-        <article class="metric">
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="Active Nodes 설명 보기">
           <span class="metric-label">Active Nodes</span>
           <strong id="activeNodeCount">0</strong>
           <span id="nodeRatio">0%</span>
         </article>
-        <article class="metric">
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices 설명 보기">
           <span class="metric-label">Registered Devices</span>
           <strong id="deviceCount">0</strong>
-          <span id="deviceHealthRatio">0% available</span>
+          <span id="deviceHealthRatio">0% available · 0 live</span>
         </article>
-        <article class="metric">
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_telemetry_ratio" tabindex="0" role="button" aria-label="Telemetry Configured 설명 보기">
           <span class="metric-label">Telemetry Configured</span>
           <strong id="telemetryRatio">0%</strong>
-          <span id="telemetryCaption">0 devices</span>
+          <span id="telemetryCaption">0 telemetry-enabled devices</span>
         </article>
-        <article class="metric">
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="telemetry_freshness_ratio" tabindex="0" role="button" aria-label="Telemetry Freshness 설명 보기">
+          <span class="metric-label">Telemetry Freshness</span>
+          <strong id="telemetryFreshnessRatio">0%</strong>
+          <span id="telemetryFreshnessCaption">0 fresh telemetry devices</span>
+        </article>
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_status_freshness_ratio" tabindex="0" role="button" aria-label="DeviceStatus Freshness 설명 보기">
+          <span class="metric-label">DeviceStatus Freshness</span>
+          <strong id="deviceStatusFreshnessRatio">0%</strong>
+          <span id="deviceStatusFreshnessCaption">0 fresh status snapshots</span>
+        </article>
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_bound_device_count" tabindex="0" role="button" aria-label="서비스 바인딩 설명 보기">
           <span class="metric-label">서비스 바인딩</span>
           <strong id="serviceBindingCount">0</strong>
-          <span id="serviceBindingRatio">0%</span>
+          <span id="serviceBindingRatio">0% bound</span>
         </article>
-        <article class="metric attention">
+        <article class="metric attention explainable" data-explain-type="kpi" data-kpi-key="operator_focus_count" tabindex="0" role="button" aria-label="Operator Focus 설명 보기">
           <span class="metric-label">Operator Focus</span>
           <strong id="focusCount">0</strong>
-          <span>items need review</span>
+          <span>degraded/unavailable devices + non-healthy nodes</span>
         </article>
       </section>
 
@@ -79,6 +89,16 @@
             <span id="riskCount">0 device risks</span>
           </div>
           <div id="alertList" class="alert-list"></div>
+        </section>
+
+        <section class="panel explain-panel" aria-live="polite">
+          <div class="panel-head">
+            <h2>Explain Panel</h2>
+            <span>read-only rule 기반 설명</span>
+          </div>
+          <div id="explainPanel" class="explain-content">
+            <div class="empty">Device row, KPI 카드, Issue 항목을 클릭하면 현재 API payload 기준 설명을 표시합니다.</div>
+          </div>
         </section>
 
         <section class="panel scenario">

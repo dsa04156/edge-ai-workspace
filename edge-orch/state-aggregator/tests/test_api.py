@@ -796,3 +796,203 @@ def test_operator_focus_count_counts_degraded_and_nonhealthy_nodes():
     kpis = service._build_dashboard_kpis(nodes=nodes, devices=devices, workflows=[])
     # focus_devices = 1 (bad), focus_nodes = 1 (n1 degraded)
     assert kpis["operator_focus_count"] == 2
+
+
+def test_dashboard_kpis_count_telemetry_enabled_and_freshness_separately():
+    devices = [
+        DeviceState(
+            name="fresh-telemetry",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=True,
+            telemetry_fresh=True,
+            service_connected=False,
+            status="healthy",
+            status_reason="recent InfluxDB telemetry",
+            overall_status="healthy",
+            reason="recent InfluxDB telemetry",
+        ),
+        DeviceState(
+            name="stale-telemetry",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=True,
+            telemetry_fresh=False,
+            service_connected=False,
+            status="degraded",
+            status_reason="InfluxDB telemetry stale",
+            overall_status="degraded",
+            reason="InfluxDB telemetry stale",
+        ),
+        DeviceState(
+            name="status-only",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=False,
+            telemetry_fresh=True,
+            service_connected=False,
+            status="healthy",
+            status_reason="fresh DeviceStatus snapshot",
+            overall_status="healthy",
+            reason="fresh DeviceStatus snapshot",
+        ),
+        DeviceState(
+            name="no-telemetry",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=False,
+            telemetry_fresh=False,
+            service_connected=False,
+            status="degraded",
+            status_reason="registered but live status is unknown",
+            overall_status="degraded",
+            reason="registered but live status is unknown",
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis(nodes=[], devices=devices, workflows=[])
+
+    assert kpis["telemetry_device_count"] == 2
+    assert kpis["device_telemetry_ratio"] == 0.5
+    assert kpis["fresh_telemetry_device_count"] == 1
+    assert kpis["telemetry_freshness_ratio"] == 0.5
+
+
+def test_dashboard_kpis_count_device_status_freshness_separately():
+    devices = [
+        DeviceState(
+            name="fresh-status",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=True,
+            telemetry_fresh=False,
+            device_status_fresh=True,
+            service_connected=False,
+            status="degraded",
+            status_reason="DB latest timestamp is missing",
+            overall_status="degraded",
+            reason="DB latest timestamp is missing",
+        ),
+        DeviceState(
+            name="stale-status-a",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=True,
+            telemetry_fresh=True,
+            device_status_fresh=False,
+            service_connected=False,
+            status="healthy",
+            status_reason="recent InfluxDB telemetry",
+            overall_status="healthy",
+            reason="recent InfluxDB telemetry",
+        ),
+        DeviceState(
+            name="stale-status-b",
+            namespace="default",
+            device_type="sensor_device",
+            telemetry_enabled=False,
+            telemetry_fresh=False,
+            device_status_fresh=False,
+            service_connected=False,
+            status="degraded",
+            status_reason="registered but live status is unknown",
+            overall_status="degraded",
+            reason="registered but live status is unknown",
+        ),
+    ]
+
+    kpis = service._build_dashboard_kpis(nodes=[], devices=devices, workflows=[])
+
+    assert kpis["fresh_device_status_count"] == 1
+    assert kpis["device_status_freshness_ratio"] == 0.333
+
+
+def test_operator_focus_count_ignores_workflow_risk():
+    node = NodeState(
+        hostname="healthy-node",
+        instance="i",
+        node_type="edge",
+        collected_at=datetime.now(timezone.utc),
+        raw_metrics={},
+        compute_pressure="low",
+        memory_pressure="low",
+        network_pressure="low",
+        node_health="healthy",
+    )
+    workflow = WorkflowState(
+        workflow_id="wf-risk",
+        workflow_type="vision_pipeline",
+        last_event_type="migration_event",
+        last_stage_id="stage-a",
+        assigned_node="healthy-node",
+        latest_timestamp=datetime.now(timezone.utc),
+        workflow_urgency="high",
+        sla_risk="high",
+        placement_stability="unstable",
+        recent_event={},
+    )
+    device = DeviceState(
+        name="healthy-device",
+        namespace="default",
+        device_type="sensor_device",
+        telemetry_enabled=True,
+        telemetry_fresh=True,
+        service_connected=False,
+        status="healthy",
+        status_reason="recent InfluxDB telemetry",
+        overall_status="healthy",
+        reason="recent InfluxDB telemetry",
+    )
+
+    kpis = service._build_dashboard_kpis(nodes=[node], devices=[device], workflows=[workflow])
+
+    assert kpis["sla_risk_workflow_count"] == 1
+    assert kpis["operator_focus_count"] == 0
+
+
+def test_telemetry_fresh_device_is_healthy_even_when_device_status_is_stale():
+    stale_device_status_time = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+    device = service._normalize_device(
+        {
+            "metadata": {"name": "env-device-db-fresh", "namespace": "default"},
+            "spec": {
+                "nodeName": "etri-dev0001-jetorn",
+                "properties": [
+                    {
+                        "name": "temperature",
+                        "reportToCloud": False,
+                        "pushMethod": {"dbMethod": {"influxdb2": {}}},
+                    }
+                ],
+                "protocol": {"protocolName": "mqttvirtual"},
+            },
+            "status": {
+                "lastOnlineTime": stale_device_status_time,
+                "twins": {
+                    "temperature": {
+                        "actual": {
+                            "value": "24.1",
+                            "metadata": {"timestamp": stale_device_status_time},
+                        }
+                    }
+                },
+            },
+        },
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        telemetry_samples={
+            "env-device-db-fresh": TelemetrySample(
+                device_id="env-device-db-fresh",
+                timestamp=datetime.now(timezone.utc),
+                property="temperature",
+                value="24.1",
+            )
+        },
+    )
+
+    assert device.telemetry_enabled is True
+    assert device.telemetry_fresh is True
+    assert device.device_status_fresh is False
+    assert device.status == "healthy"
+    assert device.status_reason == "recent InfluxDB telemetry"

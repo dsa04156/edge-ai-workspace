@@ -57,6 +57,8 @@
 <li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
 <li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
 <li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
 <li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
@@ -90,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: device-status-policy.md</span>
-            <span class="badge">수정: 2026-05-18 16:10</span>
-            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
+            <span class="badge">수정: 2026-05-19 10:24</span>
+            <span class="badge">HTML 생성: 2026-05-19 10:59</span>
           </div>
         </header>
         
@@ -107,7 +109,7 @@
   -&gt; state-aggregator latest telemetry query</code></pre>
 <p>DeviceStatus는 다음 용도로만 사용한다.</p>
 <ul><li>운영 상태 요약</li><li>설정 반영 상태</li><li>장애 요약 상태</li><li>command 적용 결과</li><li>raw telemetry에서 계산된 상태 등급</li></ul>
-<p>state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 <code>device_status_fresh</code>와 <code>device_status_freshness_ratio</code>로 최신성을 따로 계산한다. raw telemetry 최신성은 <code>telemetry_fresh</code>와 <code>telemetry_freshness_ratio</code>로 분리해서 본다.</p>
+<p>state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 <code>device_status_fresh</code>와 <code>device_status_freshness_ratio</code>로 최신성을 따로 계산한다. raw telemetry 최신성은 <code>telemetry_fresh</code>, <code>fresh_telemetry_device_count</code>, <code>telemetry_freshness_ratio</code>로 분리해서 본다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.</p>
 <h2 id="devicestatus에-허용하는-property">DeviceStatus에 허용하는 property</h2>
 <ul><li><code>health</code>: <code>ok</code> / <code>degraded</code> / <code>offline</code> / <code>unknown</code></li><li><code>severity</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li><li><code>alarm_latched</code>: <code>true</code> / <code>false</code></li><li><code>power</code>: <code>on</code> / <code>off</code></li><li><code>mode</code>: <code>auto</code> / <code>manual</code> / <code>idle</code> / <code>maintenance</code></li><li><code>sampling_interval</code>: command/desired 반영 확인용 저빈도 상태</li><li><code>config_version</code> 또는 <code>reported_config_version</code></li><li><code>command_state</code>: <code>idle</code> / <code>pending</code> / <code>applied</code> / <code>failed</code></li><li><code>last_error_code</code></li><li><code>last_error_message</code></li><li><code>temperature_status</code>: <code>normal</code> / <code>high</code> / <code>critical</code></li><li><code>humidity_status</code>: <code>normal</code> / <code>high</code> / <code>low</code></li><li><code>vibration_status</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li></ul>
 <h2 id="devicestatus에-올리지-않는-property">DeviceStatus에 올리지 않는 property</h2>
@@ -155,10 +157,10 @@ DEVICE_STATUS_HEARTBEAT_SECONDS=120</code></pre>
 <h2 id="device-manifest-정책">Device Manifest 정책</h2>
 <ul><li>raw telemetry property는 <code>reportToCloud: false</code></li><li>운영 상태 property만 <code>reportToCloud: true</code></li><li>Device <code>status.reportToCloud: false</code></li><li>Device <code>status.reportCycle: 120000</code></li></ul>
 <p>예:</p>
-<ul><li>env device</li><li>DeviceStatus: <code>health</code>, <code>sampling_interval</code>, 이후 <code>temperature_status</code>, <code>humidity_status</code></li><li>InfluxDB: <code>temperature</code>, <code>humidity</code></li><li>vib device</li><li>DeviceStatus: <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, 이후 <code>vibration_status</code></li><li>InfluxDB: <code>vibration</code>, 이후 <code>rms</code>, <code>peak</code>, raw vibration samples</li><li>act device</li><li>DeviceStatus: <code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, 이후 <code>command_state</code>, <code>reported_config_version</code></li><li>event DB: command event history, actuation latency, state transition history</li></ul>
+<ul><li>env device</li><li>DeviceStatus: <code>health</code>, <code>sampling_interval</code>, 이후 <code>temperature_status</code>, <code>humidity_status</code></li><li>InfluxDB: <code>temperature</code>, <code>humidity</code></li><li>vib device</li><li>DeviceStatus: <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, 이후 <code>vibration_status</code></li><li>InfluxDB: <code>vibration</code>, 이후 <code>rms</code>, <code>peak</code>, raw vibration samples</li><li>act device</li><li>DeviceStatus: <code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, 이후 <code>command_state</code>, <code>reported_config_version</code></li><li>InfluxDB liveness: 현재 구현 기준 <code>health</code> property</li><li>향후 확장 후보: command event history, actuation latency, state transition history</li></ul>
 <h2 id="현재-poc-기준">현재 PoC 기준</h2>
 <p>현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재한다. 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다. 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.</p>
-<p>즉, dashboard의 <code>device_telemetry_ratio</code>는 telemetry 설정 비율(telemetry-enabled device / 전체 device)이고, <code>telemetry_freshness_ratio</code>는 실제로 최근 telemetry가 들어온 비율이다.</p>
+<p>즉, dashboard의 <code>telemetry_device_count</code>는 telemetry-enabled device 수이고 <code>device_telemetry_ratio</code>는 telemetry-enabled device / 전체 registered device 비율이다. <code>fresh_telemetry_device_count</code>와 <code>telemetry_freshness_ratio</code>는 InfluxDB device-level latest sample freshness를 별도로 나타낸다. InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. <code>ts</code>는 publisher payload에 포함될 수 있지만 현재 act/rpi-act Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#원칙">원칙</a></li>

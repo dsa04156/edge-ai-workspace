@@ -57,6 +57,8 @@
 <li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
 <li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
 <li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
 <li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
@@ -90,14 +92,14 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: okdong-productivity-kpi.md</span>
-            <span class="badge">수정: 2026-05-18 16:10</span>
-            <span class="badge">HTML 생성: 2026-05-18 17:37</span>
+            <span class="badge">수정: 2026-05-19 10:24</span>
+            <span class="badge">HTML 생성: 2026-05-19 10:59</span>
           </div>
         </header>
         
         <div class="doc-body">
           <h1 id="옥동-시나리오-생산성-kpi">옥동 시나리오 생산성 KPI</h1>
-<h2 id="목적1">목적1</h2>
+<h2 id="목적">목적</h2>
 <p>이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC를 옥동 시나리오와 같은 실공장 적용 관점에서 설명하기 위한 KPI를 정리한다.</p>
 <p>목표는 복잡한 자동 제어를 주장하는 것이 아니라, 운영자가 dashboard를 통해 device, node, telemetry, DeviceStatus, service demo 연결 상태를 빠르게 이해하고 점검 대상을 줄일 수 있음을 설명하는 것이다.</p>
 <h2 id="한-줄-정의">한 줄 정의</h2>
@@ -121,7 +123,7 @@
 </tr>
 <tr>
 <td>live 상태 가시화</td>
-<td>live device count, telemetry freshness</td>
+<td>live device count, fresh_telemetry_device_count, telemetry_freshness_ratio</td>
 <td>실제 데이터가 들어오는 device 확인</td>
 </tr>
 <tr>
@@ -131,8 +133,8 @@
 </tr>
 <tr>
 <td>node/mapper 원인 분리</td>
-<td>node_ready, mapper_running</td>
-<td>문제가 node/mapper 쪽인지 구분</td>
+<td>Kubernetes Ready, dashboard node_ready, mapper_running</td>
+<td>Kubernetes Ready(<code>kubectl get nodes</code>)와 dashboard <code>node_ready</code>(Prometheus/node-exporter 기반 node_health 판단)를 구분해 원인을 분리</td>
 </tr>
 <tr>
 <td>service 연결 가시화</td>
@@ -211,15 +213,15 @@
 </tr>
 <tr>
 <td>의미</td>
-<td>telemetry 수집이 설정된 device 비율(telemetry-enabled / 전체 device)</td>
+<td>telemetry 수집이 설정된 device 비율(telemetry-enabled device / 전체 registered device)</td>
 </tr>
 <tr>
 <td>dashboard/API</td>
-<td><code>kpis.device_telemetry_ratio</code>, <code>devices[].telemetry_fresh</code></td>
+<td><code>kpis.telemetry_device_count</code>, <code>kpis.device_telemetry_ratio</code></td>
 </tr>
 <tr>
 <td>운영자 해석</td>
-<td>telemetry를 받을 대상이 얼마나 연결돼 있는지 판단</td>
+<td>telemetry를 받도록 설정된 관리 대상 범위</td>
 </tr>
 </tbody></table></div>
 <p>설명 문구:</p>
@@ -237,17 +239,18 @@
 </tr>
 <tr>
 <td>의미</td>
-<td>raw telemetry data-plane이 최근 갱신된 device 비율</td>
+<td>telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 비율</td>
 </tr>
 <tr>
 <td>dashboard/API</td>
-<td><code>kpis.telemetry_freshness_ratio</code>, <code>devices[].telemetry_fresh</code></td>
+<td><code>kpis.fresh_telemetry_device_count</code>, <code>kpis.telemetry_freshness_ratio</code>, <code>devices[].telemetry_fresh</code></td>
 </tr>
 <tr>
 <td>운영자 해석</td>
 <td>센서/publisher/MQTT/InfluxDB 경로가 살아 있는지 판단</td>
 </tr>
 </tbody></table></div>
+<p>InfluxDB timestamp 의미는 <code>docs/current-demo-path.md</code>의 data-plane 설명을 따른다. InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.</p>
 <p>설명 문구:</p>
 <pre data-lang="text"><code>raw telemetry가 최근 들어오는지 따로 보이므로, DeviceStatus와 섞지 않고 data-plane 문제를 확인할 수 있다.</code></pre>
 <h3 id="5-devicestatus-freshness-비율">5. DeviceStatus freshness 비율</h3>
@@ -267,11 +270,11 @@
 </tr>
 <tr>
 <td>dashboard/API</td>
-<td><code>devices[].device_status_fresh</code>, <code>devices[].device_status_last_reported_at</code></td>
+<td><code>kpis.fresh_device_status_count</code>, <code>kpis.device_status_freshness_ratio</code>, <code>devices[].device_status_fresh</code>, <code>devices[].device_status_last_reported_at</code></td>
 </tr>
 <tr>
 <td>운영자 해석</td>
-<td>health, severity, power, mode, command_state 같은 운영 snapshot 최신성 확인</td>
+<td>health, severity, power, mode, command_state 같은 운영 snapshot 최신성 확인. healthy 필수 조건은 아님</td>
 </tr>
 </tbody></table></div>
 <p>설명 문구:</p>
@@ -353,7 +356,7 @@
 </tr>
 </tbody></table></div>
 <p>설명 문구:</p>
-<pre data-lang="text"><code>운영자는 전체 device를 하나씩 확인하지 않고, dashboard가 제시하는 우선 점검 대상부터 확인할 수 있다.</code></pre>
+<pre data-lang="text"><code>운영자는 전체 device를 하나씩 확인하지 않고, degraded/unavailable device와 non-healthy node로 좁혀진 우선 점검 대상부터 확인할 수 있다. workflow risk는 현재 데모 범위의 operator_focus_count에 포함하지 않는다.</code></pre>
 <h3 id="9-문제-위치-분리-가능성">9. 문제 위치 분리 가능성</h3>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -414,7 +417,7 @@
 <p>위 항목은 현재 연구 방향의 KPI가 아니며, 필요한 경우 archive 자료의 과거 검토 내용으로만 다룬다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적1">목적1</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
 <li class="toc-h2"><a href="#현장-문제">현장 문제</a></li>
 <li class="toc-h2"><a href="#데모가-보여주는-개선점">데모가 보여주는 개선점</a></li>

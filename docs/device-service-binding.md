@@ -66,6 +66,8 @@ Device 단위 바인딩은 개별 device가 어떤 node와 service에 연결되�
 
 대표 KPI 관계는 `service_bound_device_count`, `device_service_binding_ratio`, `device_telemetry_ratio`, `telemetry_freshness_ratio`, `device_status_freshness_ratio`, `operator_focus_count`이다.
 
+InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.
+
 ### Service group 단위
 
 Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 관점으로 묶는다.
@@ -87,11 +89,11 @@ Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 �
 |---|---|---|---|
 | `env-device-*` | temperature, humidity | 현장 환경 상태 입력 | 환경 상태 freshness와 이상 여부 |
 | `vib-device-*` | vibration, rms, peak | 설비 상태/이상 징후 입력 | 진동 상태 freshness와 severity |
-| `act-device-*` | power, mode, command_state | 제어/명령 적용 대상 | command 적용 상태와 operational state |
+| `act-device-*` | health, power, mode, command_state | 제어/명령 적용 대상 | 현재 InfluxDB liveness는 `health` property 기준. command event history/actuation latency/state transition history는 향후 확장 후보 |
 | `temp-device-01` | temperature 계열 값 | 단일 device 연동 확인 | DeviceStatus/telemetry 경로 확인 |
 | `rpi-env-device-*` | temperature, humidity | Raspberry Pi edge 환경 입력 | light edge node의 telemetry 상태 |
 | `rpi-vib-device-*` | vibration 계열 값 | Raspberry Pi edge 진동 입력 | light edge node의 설비 상태 |
-| `rpi-act-device-*` | power, mode, command_state | Raspberry Pi edge 제어 대상 | command loop 상태 |
+| `rpi-act-device-*` | health, power, mode, command_state | Raspberry Pi edge 제어 대상 | 현재 InfluxDB liveness는 `health` property 기준. `ts`는 dashboard freshness 기준으로 쓰지 않음 |
 
 ## 현재 API 바인딩 필드
 
@@ -184,7 +186,7 @@ raw telemetry는 DeviceStatus에 직접 올리지 않는다.
 | node | `etri-dev0001-jetorn` |
 | telemetry topic | `factory/devices/act-device-01/telemetry` |
 | command topic | `factory/devices/act-device-01/command` |
-| data-plane property | command event history, actuation latency 후보 |
+| data-plane property | 현재 구현 기준 InfluxDB `health` liveness row. command event history, actuation latency, state transition history는 향후 확장 후보 |
 | status-plane property | `health`, `power`, `mode`, `sampling_interval`, `command_state` |
 | service role | actuator command 적용 대상 |
 | dashboard group | 제어 상태 / command 상태 |
@@ -220,8 +222,8 @@ dashboard에서는 최소한 다음 관계를 보여줘야 한다.
 | overall status | healthy / degraded / unavailable |
 | reason | 현재 상태의 운영 해석 |
 
-dashboard는 `device_telemetry_ratio`를 telemetry 설정 비율로, `telemetry_freshness_ratio`를 실제 최신 telemetry 비율로 분리해 보여준다.
-`device_status_freshness_ratio`는 DeviceStatus snapshot 최신성을 나타내며, `operator_focus_count`는 degraded/unavailable device와 비정상 node를 합산해 계산한다.
+dashboard는 `device_telemetry_ratio`를 telemetry configured ratio로, `telemetry_freshness_ratio`를 실제 최신 telemetry 비율로 분리해 보여준다. `fresh_telemetry_device_count`는 telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 수다.
+`fresh_device_status_count`와 `device_status_freshness_ratio`는 DeviceStatus snapshot 최신성을 나타내며, healthy 필수 조건은 아니다. `operator_focus_count`는 degraded/unavailable device와 non-healthy node를 합산해 계산하고 workflow risk는 포함하지 않는다.
 
 현재 API에는 `service_connected` 필드가 있으며, 이는 device가 서비스 또는 workflow event와 연결되어 있는지를 나타내는 값으로 사용되고 있다.
 
@@ -264,7 +266,7 @@ service_connected: bool
 3. 해당 node의 mapper가 Running이다.
 4. publisher가 같은 node의 local mosquitto에 telemetry를 publish한다.
 5. InfluxDB에 latest telemetry가 들어온다.
-6. DeviceStatus snapshot이 dashboard freshness 기준을 만족한다.
+6. DeviceStatus snapshot은 status-plane 보조 신호로 최신성을 확인한다. telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.
 7. dashboard에서 device가 service group 또는 demo group에 표시된다.
 8. KPI에서 해당 device가 service visibility 또는 productivity 설명에 기여한다.
 
@@ -273,7 +275,7 @@ service_connected: bool
 바인딩이 존재하지만 dashboard에서 degraded로 보일 수 있는 경우는 다음이다.
 
 - Device CR은 있지만 telemetry freshness가 없다.
-- telemetry는 있지만 DeviceStatus snapshot이 오래됐다.
+- telemetry는 fresh하지만 DeviceStatus snapshot이 오래됐다. 이 경우 DeviceStatus stale은 보조 경고이며 healthy를 반드시 막지는 않는다.
 - mapper는 Running이지만 InfluxDB 적재가 되지 않았다.
 - publisher 실행 node와 Device `nodeName`이 다르다.
 - service group에는 포함됐지만 KPI 계산에 필요한 signal이 부족하다.

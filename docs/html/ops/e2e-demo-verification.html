@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E2E 데모 검증</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/e2e-demo-verification.md">편집</a>
+      </div>
+      <span>ops/e2e-demo-verification.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>E2E 데모 검증</h1>
+          <p class="subtitle">KubeEdge 혼합 디바이스 PoC의 실제 실행 경로가 끝까지 동작하는지 read-only로 확인한다.</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: ops/e2e-demo-verification.md</span>
+            <span class="badge">수정: 2026-05-19 10:41</span>
+            <span class="badge">HTML 생성: 2026-05-19 10:59</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="e2e-데모-검증">E2E 데모 검증</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 KubeEdge 혼합 디바이스 PoC의 실제 실행 경로가 끝까지 동작하는지 read-only로 확인한다.</p>
+<p>검증 경로:</p>
+<pre data-lang="text"><code>test_device.py
+  -&gt; edge node local MQTT broker(127.0.0.1:1883)
+  -&gt; mqttvirtual mapper
+  -&gt; KubeEdge Device / DeviceStatus
+  -&gt; InfluxDB
+  -&gt; state-aggregator
+  -&gt; dashboard</code></pre>
+<p>검증 대상은 서비스 데모와 통합 운영 가시화다. workflow/offloading/placement/autonomous agent 제어, MQTT command 실행, actuator command 실행은 이 문서의 대상이 아니다.</p>
+<h2 id="금지-명령">금지 명령</h2>
+<p>이 검증에서는 다음 명령을 실행하지 않는다.</p>
+<pre data-lang="text"><code>kubectl delete
+kubectl apply
+kubectl rollout restart
+MQTT command publish
+actuator command 실행</code></pre>
+<h2 id="0-빠른-보조-스크립트">0. 빠른 보조 스크립트</h2>
+<p>repository root에서 실행한다.</p>
+<pre data-lang="bash"><code>bash tools/verify_e2e.sh
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
+<p>state-aggregator가 cluster 안에만 있으면 별도 터미널에서 port-forward를 먼저 실행한다.</p>
+<pre data-lang="bash"><code>kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
+# 현재 로컬 클러스터처럼 service가 default namespace에 있으면:
+# kubectl -n default port-forward svc/state-aggregator 8000:8000</code></pre>
+<h2 id="1-kubernetes-node-상태">1. Kubernetes node 상태</h2>
+<pre data-lang="bash"><code>kubectl get nodes -o wide</code></pre>
+<p>정상 기준:</p>
+<ul><li>Jetson node <code>etri-dev0001-jetorn</code>가 존재한다.</li><li>Raspberry Pi node <code>etri-dev0002-raspi5</code>가 존재한다.</li><li>control-plane/server node가 Ready다.</li><li>Kubernetes Ready와 dashboard <code>node_ready</code>는 같은 의미가 아니다. dashboard <code>node_ready</code>는 state-aggregator가 Prometheus/node-exporter 기반 <code>node_health != unavailable</code>로 판단한 값이다.</li></ul>
+<h2 id="2-mqttvirtual-mapper-상태">2. mqttvirtual mapper 상태</h2>
+<pre data-lang="bash"><code>kubectl get pods -A -o wide | grep -i mqttvirtual</code></pre>
+<p>정상 기준:</p>
+<ul><li>Jetson/Raspberry Pi edge node에 할당된 mapper pod가 Running이다.</li><li>mapper pod의 NODE column이 device 할당 node와 맞는다.</li></ul>
+<p>DMI socket mount 확인:</p>
+<pre data-lang="bash"><code>kubectl get pods -A -o wide | grep -i mqttvirtual
+kubectl -n &lt;mapper-namespace&gt; describe pod &lt;mapper-pod&gt; | grep -A4 -B4 &#x27;/etc/kubeedge/dmi.sock&#x27;</code></pre>
+<p>MQTT connect/subscribe 로그 확인:</p>
+<pre data-lang="bash"><code>kubectl -n &lt;mapper-namespace&gt; logs &lt;mapper-pod&gt; --tail=200 | grep -Ei &#x27;mqtt|connect|subscribe|factory/devices&#x27;</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>/etc/kubeedge/dmi.sock</code> mount가 보인다.</li><li>MQTT connect 또는 subscribe 관련 로그가 보인다.</li><li>topic은 <code>factory/devices/{device-name}/telemetry</code> 경로를 사용한다.</li></ul>
+<h2 id="3-device-cr-devicestatus-상태">3. Device CR / DeviceStatus 상태</h2>
+<pre data-lang="bash"><code>kubectl get devices.devices.kubeedge.io -A
+kubectl get devicestatuses.devices.kubeedge.io -A
+kubectl get devices.devices.kubeedge.io -A -o custom-columns=&#x27;NS:.metadata.namespace,NAME:.metadata.name,NODE:.spec.nodeName,MODEL:.spec.deviceModelRef.name&#x27;</code></pre>
+<p>정상 기준:</p>
+<ul><li>Jetson device는 <code>etri-dev0001-jetorn</code>에 할당되어 있다.</li><li>Raspberry Pi device는 <code>etri-dev0002-raspi5</code>에 할당되어 있다.</li><li>DeviceStatus는 status-plane 보조 snapshot이다. DeviceStatus stale만으로 telemetry-enabled device의 healthy를 막으면 안 된다.</li></ul>
+<p>예상 nodeName:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device 계열</th>
+<th>expected node</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>env-device-*</code>, <code>vib-device-*</code>, <code>act-device-*</code>, <code>temp-device-01</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td><code>rpi-env-device-*</code>, <code>rpi-vib-device-*</code>, <code>rpi-act-device-*</code></td>
+<td><code>etri-dev0002-raspi5</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="4-publisher-실행-검증">4. publisher 실행 검증</h2>
+<p>publisher는 각 edge node의 local mosquitto(<code>127.0.0.1:1883</code>)로 publish해야 한다.</p>
+<p>Jetson device plan:</p>
+<pre data-lang="bash"><code>DEVICE_PLAN=jetson SIMULATION_MODE=stable python3 mappers/script/test_device.py</code></pre>
+<p>Raspberry Pi device plan:</p>
+<pre data-lang="bash"><code>DEVICE_PLAN=rpi SIMULATION_MODE=stable python3 mappers/script/test_device.py</code></pre>
+<p>단일 device:</p>
+<pre data-lang="bash"><code>DEVICE_FILTER=rpi-act-device-03 SIMULATION_MODE=stable python3 mappers/script/test_device.py</code></pre>
+<p>확인할 로그:</p>
+<pre data-lang="text"><code>[PUB] factory/devices/.../telemetry</code></pre>
+<p>정상 기준:</p>
+<ul><li>publisher가 실행된 edge node의 <code>127.0.0.1:1883</code>으로 publish한다.</li><li>publisher log에 <code>factory/devices/{device-name}/telemetry</code> publish 로그가 반복된다.</li><li>wrong node에서 publisher를 실행하면 dashboard reason이 node/publisher/telemetry mismatch를 운영자가 해석할 수 있게 degraded 원인으로 보여야 한다.</li></ul>
+<h2 id="5-influxdb-적재-검증">5. InfluxDB 적재 검증</h2>
+<p>InfluxDB UI 또는 CLI에서 latest sample을 확인한다.</p>
+<p>주의:</p>
+<ul><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다.</li><li>실제 telemetry sample timestamp는 <code>_time</code>이다.</li><li>Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이다.</li><li>property별 latest freshness를 보장하지 않는다.</li><li><code>ts</code>는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.</li></ul>
+<p>공통 latest query 예시:</p>
+<pre data-lang="bash"><code>kubectl exec -n telemetry influxdb-0 -- sh -lc &#x27;influx query --org &quot;$DOCKER_INFLUXDB_INIT_ORG&quot; --token &quot;$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN&quot; &#x27;\&#x27;&#x27;
+from(bucket:&quot;device_telemetry&quot;)
+  |&gt; range(start:-30m)
+  |&gt; filter(fn:(r)=&gt; r._measurement == &quot;virtual_device_telemetry&quot;)
+  |&gt; last()
+  |&gt; keep(columns:[&quot;_time&quot;,&quot;_value&quot;,&quot;device_id&quot;,&quot;property&quot;])
+&#x27;\&#x27;&#x27;&#x27;</code></pre>
+<p>계열별 확인 기준:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device 계열</th>
+<th>확인 property</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>env-device-*</code>, <code>rpi-env-device-*</code></td>
+<td><code>temperature</code>, <code>humidity</code> latest sample</td>
+</tr>
+<tr>
+<td><code>vib-device-*</code>, <code>rpi-vib-device-*</code></td>
+<td><code>vibration</code> latest sample</td>
+</tr>
+<tr>
+<td><code>act-device-*</code>, <code>rpi-act-device-*</code></td>
+<td><code>health</code> liveness row</td>
+</tr>
+</tbody></table></div>
+<p>단일 actuator 예시:</p>
+<pre data-lang="bash"><code>kubectl exec -n telemetry influxdb-0 -- sh -lc &#x27;influx query --org &quot;$DOCKER_INFLUXDB_INIT_ORG&quot; --token &quot;$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN&quot; &#x27;\&#x27;&#x27;
+from(bucket:&quot;device_telemetry&quot;)
+  |&gt; range(start:-30m)
+  |&gt; filter(fn:(r)=&gt; r._measurement == &quot;virtual_device_telemetry&quot;)
+  |&gt; filter(fn:(r)=&gt; r.device_id == &quot;rpi-act-device-03&quot;)
+  |&gt; filter(fn:(r)=&gt; r.property == &quot;health&quot;)
+  |&gt; last()
+  |&gt; keep(columns:[&quot;_time&quot;,&quot;_value&quot;,&quot;device_id&quot;,&quot;property&quot;])
+&#x27;\&#x27;&#x27;&#x27;</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>_time</code>이 현재 시각 기준 dashboard freshness threshold 안에 있다.</li><li>act/rpi-act device는 latest property가 <code>health</code>로 확인된다.</li><li><code>ts</code>를 dashboard freshness 판단용 DB push property로 설명하지 않는다.</li></ul>
+<h2 id="6-state-aggregator-api-검증">6. state-aggregator API 검증</h2>
+<p>port-forward:</p>
+<pre data-lang="bash"><code>kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
+# 현재 로컬 클러스터처럼 service가 default namespace에 있으면:
+# kubectl -n default port-forward svc/state-aggregator 8000:8000</code></pre>
+<p>API 확인:</p>
+<pre data-lang="bash"><code>curl -s http://localhost:8000/state/nodes
+curl -s http://localhost:8000/state/devices
+curl -s http://localhost:8000/state/dashboard
+curl -s http://localhost:8000/state/summary
+curl -s http://localhost:8000/state/operator-assistant</code></pre>
+<p>자동 필드 확인:</p>
+<pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
+<p>필수 device 필드:</p>
+<pre data-lang="text"><code>devices[].name
+devices[].node_name
+devices[].telemetry_enabled
+devices[].telemetry_fresh
+devices[].telemetry_last_seen_at
+devices[].telemetry_property
+devices[].device_status_fresh
+devices[].mapper_running
+devices[].node_ready
+devices[].overall_status
+devices[].reason
+devices[].service_demo_group
+devices[].service_connected</code></pre>
+<p>필수 KPI 필드:</p>
+<pre data-lang="text"><code>kpis.registered_device_count
+kpis.live_device_count
+kpis.telemetry_device_count
+kpis.device_telemetry_ratio
+kpis.fresh_telemetry_device_count
+kpis.telemetry_freshness_ratio
+kpis.fresh_device_status_count
+kpis.device_status_freshness_ratio
+kpis.operator_focus_count
+kpis.service_bound_device_count
+kpis.device_service_binding_ratio</code></pre>
+<p>정상 기준:</p>
+<ul><li>telemetry-enabled device는 InfluxDB latest telemetry가 fresh하면 healthy 가능하다.</li><li>DeviceStatus stale이어도 telemetry fresh이면 healthy일 수 있다.</li><li>mapper가 없으면 reason이 mapper 문제를 설명한다.</li><li>node가 unavailable이면 reason이 node 문제를 설명한다.</li><li>InfluxDB latest sample이 없거나 stale이면 reason이 telemetry missing/stale을 설명한다.</li></ul>
+<h2 id="7-검증-시나리오">7. 검증 시나리오</h2>
+<h3 id="scenario-a-정상-jetson-device">Scenario A: 정상 Jetson device</h3>
+<pre data-lang="bash"><code>DEVICE_PLAN=jetson SIMULATION_MODE=stable python3 mappers/script/test_device.py
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device env-device-01</code></pre>
+<p>정상 기준:</p>
+<ul><li>Jetson device가 <code>healthy</code>다.</li><li><code>telemetry_fresh=true</code></li><li><code>mapper_running=true</code></li><li><code>node_ready=true</code></li></ul>
+<h3 id="scenario-b-정상-raspberry-pi-device">Scenario B: 정상 Raspberry Pi device</h3>
+<pre data-lang="bash"><code>DEVICE_PLAN=rpi SIMULATION_MODE=stable python3 mappers/script/test_device.py
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-env-device-01</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>rpi-*</code> device가 <code>healthy</code>다.</li><li><code>telemetry_fresh=true</code></li><li><code>mapper_running=true</code></li><li><code>node_ready=true</code></li></ul>
+<h3 id="scenario-c-publisher-미실행">Scenario C: publisher 미실행</h3>
+<p>절차:</p>
+<ol><li>특정 device publisher를 실행하지 않는다.</li><li>freshness threshold가 지나기를 기다린다.</li><li>dashboard/API를 확인한다.</li></ol>
+<pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device &lt;device-name&gt;</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>telemetry_fresh=false</code> 또는 latest sample missing</li><li><code>overall_status=degraded</code> 또는 <code>unavailable</code></li><li><code>reason</code>이 telemetry missing/stale을 설명</li></ul>
+<h3 id="scenario-d-devicestatus-stale-but-telemetry-fresh">Scenario D: DeviceStatus stale but telemetry fresh</h3>
+<p>절차:</p>
+<ol><li>InfluxDB latest telemetry가 fresh한 device를 고른다.</li><li>DeviceStatus timestamp가 stale인 상태를 확인한다.</li><li>dashboard/API를 확인한다.</li></ol>
+<p>정상 기준:</p>
+<ul><li><code>telemetry_fresh=true</code></li><li><code>device_status_fresh=false</code></li><li>최종 status는 <code>healthy</code> 가능</li><li>UI에서는 DeviceStatus stale을 보조 신호로만 표시</li></ul>
+<h3 id="scenario-e-mapper-문제">Scenario E: mapper 문제</h3>
+<p>read-only 확인만 수행한다.</p>
+<pre data-lang="bash"><code>kubectl get pods -A -o wide | grep -i mqttvirtual
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
+<p>정상 기준:</p>
+<ul><li>mapper pod가 없는 node의 device는 <code>mapper_running=false</code></li><li>reason이 <code>assigned mapper is not running</code> 또는 mapper 문제를 설명</li></ul>
+<h3 id="scenario-f-act-rpi-act-liveness">Scenario F: act/rpi-act liveness</h3>
+<pre data-lang="bash"><code>DEVICE_FILTER=rpi-act-device-03 SIMULATION_MODE=stable python3 mappers/script/test_device.py
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03</code></pre>
+<p>정상 기준:</p>
+<ul><li>InfluxDB latest property가 <code>health</code></li><li>dashboard <code>telemetry_property=health</code></li><li>dashboard freshness 판단이 <code>health</code> row 기준으로 설명됨</li><li><code>ts</code>는 dashboard freshness 판단용 DB push property가 아님</li></ul>
+<h2 id="실패-시-원인-분리">실패 시 원인 분리</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>증상</th>
+<th>먼저 볼 곳</th>
+<th>해석</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Device CR 없음</td>
+<td><code>kubectl get devices.devices.kubeedge.io -A</code></td>
+<td>등록/manifest 문제</td>
+</tr>
+<tr>
+<td>Device nodeName 불일치</td>
+<td>Device CR custom-columns</td>
+<td>publisher 실행 node와 Device 할당 node mismatch 가능</td>
+</tr>
+<tr>
+<td>mapper Running 아님</td>
+<td>mapper pod, DMI socket mount, logs</td>
+<td>mapper 또는 edge node 문제</td>
+</tr>
+<tr>
+<td>publisher PUB 로그 없음</td>
+<td><code>test_device.py</code> stdout</td>
+<td>publisher/MQTT broker 문제</td>
+</tr>
+<tr>
+<td>InfluxDB latest 없음</td>
+<td>Influx query</td>
+<td>MQTT-&gt;mapper-&gt;DB 경로 문제</td>
+</tr>
+<tr>
+<td>DeviceStatus stale</td>
+<td>DeviceStatus timestamp</td>
+<td>status-plane 보조 경고</td>
+</tr>
+<tr>
+<td>telemetry fresh + DeviceStatus stale</td>
+<td>dashboard/API</td>
+<td>healthy 가능, status-plane 별도 점검</td>
+</tr>
+<tr>
+<td>node_ready=false</td>
+<td><code>/state/nodes</code>, Prometheus/node-exporter</td>
+<td>dashboard 기준 node health 문제</td>
+</tr>
+</tbody></table></div>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#금지-명령">금지 명령</a></li>
+<li class="toc-h2"><a href="#0-빠른-보조-스크립트">0. 빠른 보조 스크립트</a></li>
+<li class="toc-h2"><a href="#1-kubernetes-node-상태">1. Kubernetes node 상태</a></li>
+<li class="toc-h2"><a href="#2-mqttvirtual-mapper-상태">2. mqttvirtual mapper 상태</a></li>
+<li class="toc-h2"><a href="#3-device-cr-devicestatus-상태">3. Device CR / DeviceStatus 상태</a></li>
+<li class="toc-h2"><a href="#4-publisher-실행-검증">4. publisher 실행 검증</a></li>
+<li class="toc-h2"><a href="#5-influxdb-적재-검증">5. InfluxDB 적재 검증</a></li>
+<li class="toc-h2"><a href="#6-state-aggregator-api-검증">6. state-aggregator API 검증</a></li>
+<li class="toc-h2"><a href="#7-검증-시나리오">7. 검증 시나리오</a></li>
+<li class="toc-h3"><a href="#scenario-a-정상-jetson-device">Scenario A: 정상 Jetson device</a></li>
+<li class="toc-h3"><a href="#scenario-b-정상-raspberry-pi-device">Scenario B: 정상 Raspberry Pi device</a></li>
+<li class="toc-h3"><a href="#scenario-c-publisher-미실행">Scenario C: publisher 미실행</a></li>
+<li class="toc-h3"><a href="#scenario-d-devicestatus-stale-but-telemetry-fresh">Scenario D: DeviceStatus stale but telemetry fresh</a></li>
+<li class="toc-h3"><a href="#scenario-e-mapper-문제">Scenario E: mapper 문제</a></li>
+<li class="toc-h3"><a href="#scenario-f-act-rpi-act-liveness">Scenario F: act/rpi-act liveness</a></li>
+<li class="toc-h2"><a href="#실패-시-원인-분리">실패 시 원인 분리</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

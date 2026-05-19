@@ -17,7 +17,7 @@ node state + device state + telemetry freshness + service binding + KPI -> 운�
 1. Device CR 존재 여부만으로 정상 판단하지 않는다.
 2. `status.state=online`만으로 healthy 판단하지 않는다.
 3. DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.
-4. mapper Running 여부와 node Ready 상태를 함께 본다.
+4. Kubernetes Ready와 dashboard `node_ready`를 구분하고, mapper Running 여부와 함께 본다.
 5. service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.
 6. 운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.
 
@@ -54,7 +54,7 @@ kpis
 
 | 영역 | 목적 | 주요 지표 |
 |---|---|---|
-| Overview KPI | 전체 상태 요약 | active node, registered device, live device, telemetry ratio |
+| Overview KPI | 전체 상태 요약 | active node, registered device, live device, telemetry configured ratio, telemetry freshness ratio |
 | Node State | node별 운영 상태 | node_health, cpu, memory, network |
 | Device State | device별 상태 | overall status, node, telemetry age, properties |
 | Device-Service Relation | device-node-telemetry-service 연결 | device -> node -> telemetry/status -> service group |
@@ -73,9 +73,13 @@ kpis
 | `registered_device_count` | 등록 device 수 | KubeEdge에 등록된 device 규모 |
 | `device_operational_ratio` | 운영 가능 device 비율 | healthy 또는 unavailable 제외 device 비율 해석 후보 |
 | `live_device_count` | live 판단 device 수 | state-aggregator 최종 `overall_status`가 `healthy`인 device 수 |
-| `telemetry_device_count` | telemetry 대상 device 수 | raw telemetry data-plane 대상(device.spec.properties.pushMethod 기반) device 수 |
-| `device_telemetry_ratio` | telemetry 설정 비율 | telemetry 대상 device 수 / 전체 등록 device 수 (fresh 비율 아님) |
-| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | 현재 구현은 degraded/unavailable device 수 + non-healthy node 수로 계산한다 |
+| `telemetry_device_count` | telemetry 설정 device 수 | `telemetry_enabled=true`인 device 수 |
+| `device_telemetry_ratio` | telemetry configured ratio | telemetry 설정 device 수 / 전체 등록 device 수. freshness 비율이 아니다. |
+| `fresh_telemetry_device_count` | fresh telemetry device 수 | telemetry 설정 device 중 InfluxDB device-level latest sample이 freshness 기준을 만족한 수 |
+| `telemetry_freshness_ratio` | telemetry freshness ratio | fresh telemetry device 수 / telemetry 설정 device 수 |
+| `fresh_device_status_count` | fresh DeviceStatus device 수 | DeviceStatus snapshot이 freshness 기준을 만족한 device 수 |
+| `device_status_freshness_ratio` | DeviceStatus freshness ratio | fresh DeviceStatus device 수 / 전체 등록 device 수 |
+| `operator_focus_count` | 운영자가 우선 확인할 대상 수 | degraded/unavailable device 수 + non-healthy node 수. workflow risk는 포함하지 않는다. |
 | `service_bound_device_count` | 서비스 데모에 연결된 device 수 | device-service 연결 구조 가시성 |
 
 현재 dashboard KPI에서는 service binding 이름을 사용한다.
@@ -106,8 +110,8 @@ device_service_binding_ratio
 | `service_binding_source` | 바인딩 판단 출처 | `device_name_pattern`, `event_binding` 등 |
 | `service_binding_reason` | 바인딩 판단 이유 | `state-aggregator` backend 판단 |
 | `mapper_running` | mapper Running 여부 | mapper pod 상태 |
-| `node_ready` | 할당 node Ready 여부 | Kubernetes/Prometheus node 상태 |
-| `telemetry_fresh` | DB latest timestamp freshness | InfluxDB latest timestamp |
+| `node_ready` | dashboard 기준 node 사용 가능 여부 | state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값. Kubernetes `Ready`와 구분한다. |
+| `telemetry_fresh` | device-level DB latest timestamp freshness | InfluxDB의 device별 latest sample `_time` 기준. property별 최신성을 보장하지 않는다. |
 | `telemetry_last_seen_at` | DB latest time | InfluxDB |
 | `device_status_fresh` | DeviceStatus snapshot freshness | DeviceStatus timestamp |
 | `device_status_last_reported_at` | DeviceStatus latest time | DeviceStatus |
@@ -152,7 +156,7 @@ Device -> Node -> Telemetry / Status -> Service Demo
 
 ```text
 vib-device-01 -> etri-dev0001-jetorn -> fresh DB timestamp -> 설비 상태 모니터링 서비스
-act-device-01 -> etri-dev0001-jetorn -> fresh DB timestamp -> command 상태 확인
+act-device-01 -> etri-dev0001-jetorn -> health liveness DB timestamp -> command 상태 확인
 rpi-env-device-01 -> etri-dev0002-raspi5 -> DB timestamp pending -> Raspberry Pi edge 상태 확인
 ```
 
@@ -162,8 +166,8 @@ freshness는 반드시 두 축으로 나눠 보여준다.
 
 | freshness | 의미 | healthy 판단에서의 역할 |
 |---|---|---|
-| `telemetry_fresh` | raw telemetry data-plane이 최근 갱신됐는지 | InfluxDB latest 기준 |
-| `device_status_fresh` | DeviceStatus snapshot이 최근 갱신됐는지 | DeviceStatus timestamp 기준 |
+| `telemetry_fresh` | telemetry-enabled device의 InfluxDB device-level latest sample이 최근 갱신됐는지 | healthy 판단의 1차 기준 |
+| `device_status_fresh` | DeviceStatus snapshot이 최근 갱신됐는지 | status-plane 관찰용 보조 신호. healthy 필수 조건이 아니다. |
 
 기본 기준값:
 
@@ -183,7 +187,8 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 ## InfluxDB Query Notes
 
 - InfluxDB UI에서 볼 수 있는 `_start` / `_stop` 필드는 각 row의 device start/stop 이벤트가 아니라 Flux 쿼리의 조회 범위(window)를 보여주는 메타필드이다.
-- 실제 telemetry 발생 시각은 `_time` 필드가 되며, dashboard와 state-aggregator는 `_time` 또는 명시된 `telemetry_last_seen_at` 값을 사용해 freshness를 판단한다.
+- 실제 sample timestamp는 `_time` 필드다. dashboard와 state-aggregator는 `_time` 또는 명시된 `telemetry_last_seen_at` 값을 사용해 freshness를 판단한다.
+- `telemetry_fresh`는 device-level latest sample 기준이다. 즉 device에서 가장 최근에 적재된 sample이 fresh한지를 보며, 모든 property가 각각 fresh하다는 뜻은 아니다.
 
 
 ## 상태 판단 표시
@@ -205,13 +210,13 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 운영자가 먼저 확인할 대상은 다음 기준으로 뽑는다.
 
-1. `unavailable` device
-2. `degraded` device
-3. `unavailable` node
-4. mapper가 Running이 아닌 node
-5. telemetry freshness가 없는 device
-6. DeviceStatus freshness가 없는 device
-7. service-connected device 중 상태가 degraded/unavailable인 device
+`operator_focus_count`는 다음 두 값의 합이다.
+
+1. `degraded` 또는 `unavailable` device 수
+2. `node_health`가 `healthy`가 아닌 node 수
+
+workflow/SLA risk는 현재 데모 범위의 `operator_focus_count`에 포함하지 않는다.
+DeviceStatus stale, telemetry stale, mapper 상태는 reason과 상세 필드로 원인을 설명하되, focus count 자체는 최종 device/node 상태 기준으로 계산한다.
 
 표시할 문구는 `reason` 또는 `status_reason`을 우선 사용한다.
 
@@ -230,12 +235,13 @@ rpi-env-device-02: assigned node is unavailable
 | 순서 | 운영자 질문 | dashboard/API에서 보는 값 |
 |---|---|---|
 | 1 | 지금 관리 대상 device가 몇 개인가? | `registered_device_count`, device list |
-| 2 | 실제 데이터가 들어오는 device는 몇 개인가? | `live_device_count`, `device_telemetry_ratio`, `telemetry_fresh` |
-| 3 | 운영 snapshot은 최신인가? | `device_status_fresh`, `device_status_last_reported_at` |
-| 4 | 문제가 있으면 어느 node/device부터 봐야 하는가? | `operator_focus_count`, issue list, `reason` |
-| 5 | device가 어떤 서비스 데모에 연결되는가? | `service_demo_group`, `service_binding_reason` |
-| 6 | Jetson/Raspberry Pi 경로가 모두 보이는가? | node list, device `node_name`, mixed-device coverage |
-| 7 | 이 상태를 생산성 효과로 어떻게 설명할 수 있는가? | `okdong-productivity-kpi.md`의 KPI 설명 |
+| 2 | telemetry가 설정된 device는 몇 개인가? | `telemetry_device_count`, `device_telemetry_ratio` |
+| 3 | 실제 최신 telemetry가 들어오는 device는 몇 개인가? | `fresh_telemetry_device_count`, `telemetry_freshness_ratio`, `telemetry_fresh` |
+| 4 | 운영 snapshot은 최신인가? | `fresh_device_status_count`, `device_status_freshness_ratio`, `device_status_fresh`, `device_status_last_reported_at` |
+| 5 | 문제가 있으면 어느 node/device부터 봐야 하는가? | `operator_focus_count`, issue list, `reason` |
+| 6 | device가 어떤 서비스 데모에 연결되는가? | `service_demo_group`, `service_binding_reason` |
+| 7 | Jetson/Raspberry Pi 경로가 모두 보이는가? | node list, device `node_name`, mixed-device coverage |
+| 8 | 이 상태를 생산성 효과로 어떻게 설명할 수 있는가? | `okdong-productivity-kpi.md`의 KPI 설명 |
 
 이 순서를 기준으로 화면 문구는 “기술 내부 구조”보다 “운영자가 무엇을 먼저 확인해야 하는가”를 우선한다.
 

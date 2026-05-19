@@ -588,13 +588,15 @@ class StateAggregatorService:
         healthy_devices = [device for device in devices if device.status == "healthy"]
         operational_devices = [device for device in devices if device.status != "unavailable"]
         telemetry_devices = [device for device in devices if device.telemetry_enabled]
-        fresh_telemetry_devices = [device for device in devices if device.telemetry_fresh]
+        fresh_telemetry_devices = [
+            device for device in telemetry_devices if device.telemetry_fresh
+        ]
+        fresh_device_status_devices = [device for device in devices if device.device_status_fresh]
         bound_devices = [device for device in devices if device.service_connected]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
         unavailable_devices = [device for device in devices if device.status == "unavailable"]
-        # focus devices: degraded or unavailable
+        # operator focus excludes workflow risk: only degraded/unavailable devices and non-healthy nodes.
         focus_devices = [device for device in devices if device.status in {"degraded", "unavailable"}]
-        # focus nodes: nodes whose health is not healthy
         focus_nodes = [node for node in nodes if node.node_health != "healthy"]
         return {
             "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
@@ -615,8 +617,8 @@ class StateAggregatorService:
             "sla_risk_workflow_count": len(risk_workflows),
             "unavailable_device_count": len(unavailable_devices),
             # operator focus count: number of degraded/unavailable devices plus non-healthy nodes
-            "fresh_device_status_count": len([d for d in devices if d.device_status_fresh]),
-            "device_status_freshness_ratio": self._ratio(len([d for d in devices if d.device_status_fresh]), len(devices)),
+            "fresh_device_status_count": len(fresh_device_status_devices),
+            "device_status_freshness_ratio": self._ratio(len(fresh_device_status_devices), len(devices)),
             "operator_focus_count": len(focus_devices) + len(focus_nodes),
         }
 

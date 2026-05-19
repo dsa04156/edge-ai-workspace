@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+const assert = require('assert');
+const { explainDeviceRules, explainKpi, issueExplanation } = require('../edge-orch/state-aggregator/app/static/dashboard.js');
+
+function ruleIds(device) {
+  return explainDeviceRules(device).map((rule) => rule.id);
+}
+
+const baseDevice = {
+  name: 'mock-device',
+  status: 'healthy',
+  overall_status: 'healthy',
+  telemetry_enabled: true,
+  telemetry_fresh: true,
+  device_status_fresh: true,
+  mapper_running: true,
+  node_ready: true,
+  service_connected: true,
+};
+
+const cases = [
+  {
+    name: 'healthy + telemetry_fresh=true + device_status_fresh=false',
+    device: { ...baseDevice, device_status_fresh: false },
+    expected: ['Rule A', 'Rule F'],
+  },
+  {
+    name: 'degraded + telemetry_fresh=false',
+    device: { ...baseDevice, status: 'degraded', overall_status: 'degraded', telemetry_fresh: false },
+    expected: ['Rule C'],
+  },
+  {
+    name: 'mapper_running=false',
+    device: { ...baseDevice, mapper_running: false },
+    expected: ['Rule D'],
+  },
+  {
+    name: 'node_ready=false',
+    device: { ...baseDevice, node_ready: false },
+    expected: ['Rule E'],
+  },
+  {
+    name: 'severity=critical',
+    device: { ...baseDevice, status: 'degraded', overall_status: 'degraded', severity: 'critical' },
+    expected: ['Rule B'],
+  },
+  {
+    name: 'service_connected=false',
+    device: { ...baseDevice, service_connected: false },
+    expected: ['Rule G'],
+  },
+];
+
+for (const item of cases) {
+  const actual = ruleIds(item.device);
+  for (const expected of item.expected) {
+    assert(actual.includes(expected), `${item.name}: missing ${expected}; got ${actual.join(', ')}`);
+  }
+}
+
+const kpi = explainKpi('device_telemetry_ratio', { device_telemetry_ratio: 0.75 });
+assert(kpi.text.includes('freshness 비율이 아닙니다'));
+assert.strictEqual(kpi.value, 0.75);
+
+const issueMessages = issueExplanation({ kind: 'device', device: { ...baseDevice, telemetry_fresh: false } });
+assert(issueMessages.join('\n').includes('publisher 실행 위치'));
+
+console.log(`PASS dashboard explain rules: ${cases.length} mock cases`);

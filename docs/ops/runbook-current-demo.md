@@ -8,12 +8,14 @@
 
 - device가 등록되어 있는가?
 - device가 의도한 edge node에 할당되어 있는가?
+- Kubernetes Ready(`kubectl get nodes`)와 dashboard `node_ready`를 구분해 확인했는가?
 - mapper가 Running인가?
 - publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
  - InfluxDB raw telemetry가 최신인가?
     - InfluxDB latest telemetry가 healthy 판단의 1차 기준이다.
     - telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단된다.
     - DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 healthy 판단을 차단하지 않는다.
+    - InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.
 - state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
 - 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
 
@@ -279,15 +281,18 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 - `devices[].name`
 - `devices[].node_name`
 - `devices[].mapper_running`
-- `devices[].node_ready`
+- `devices[].node_ready` (Prometheus/node-exporter 기반 dashboard 판단, Kubernetes Ready와 구분)
 - `devices[].telemetry_fresh`
 - `devices[].device_status_fresh`
 - `devices[].overall_status`
 - `devices[].reason`
 - `kpis.registered_device_count`
 - `kpis.live_device_count`
+- `kpis.telemetry_device_count`
 - `kpis.device_telemetry_ratio`
+- `kpis.fresh_telemetry_device_count`
 - `kpis.telemetry_freshness_ratio`
+- `kpis.fresh_device_status_count`
 - `kpis.device_status_freshness_ratio`
 - `kpis.operator_focus_count`
 
@@ -302,7 +307,8 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
    - registered device count
 2. 실제 관측 가능 device
    - live device count
-   - telemetry ratio
+   - telemetry configured ratio
+   - telemetry freshness ratio
 3. 우선 점검 대상
    - operator focus count
    - alert / issue list
@@ -324,11 +330,32 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 정상이라면 device, node, telemetry freshness, DeviceStatus freshness, service demo group이 함께 표시된다.
 운영자는 `reason`과 issue list를 기준으로 먼저 볼 device 또는 node를 좁힌다.
 
+### Explain Panel 활용 순서
+
+데모 중 healthy/degraded 원인을 설명할 때는 read-only Explain Panel을 사용한다.
+
+```text
+1. Overview KPI 카드를 클릭해 count/ratio 정의를 먼저 설명한다.
+2. Device row를 클릭해 telemetry, DeviceStatus, mapper, node, service binding 필드를 확인한다.
+3. Explain Panel의 Rule A~G 중 어떤 rule이 적용됐는지 읽는다.
+4. Issue/Focus 항목을 클릭해 우선 점검 대상이 된 이유를 설명한다.
+5. 설명은 현재 API payload와 deterministic JavaScript rule 기준이며, LLM/API 호출이나 제어 동작은 수행하지 않는다.
+```
+
+상태별 설명 예시:
+
+- healthy + `telemetry_fresh=true`: InfluxDB latest telemetry가 fresh하므로 healthy로 판단한다.
+- `telemetry_fresh=true` + `device_status_fresh=false`: data-plane은 살아 있고 DeviceStatus report path만 별도 점검한다.
+- `telemetry_fresh=false`: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태를 확인한다.
+- `mapper_running=false`: 할당 node의 mqttvirtual mapper pod 상태를 확인한다.
+- `node_ready=false`: dashboard 기준 node health와 edgecore/cloudcore 연결 상태를 확인한다.
+- `service_connected=false`: service binding rule 또는 device naming rule을 확인한다.
+
 ## 10. 정상 상태 판단
 
 정상 경로는 다음 조건을 만족한다.
 
-1. node가 Ready다.
+1. Kubernetes node가 `kubectl get nodes` 기준 Ready다. dashboard의 `node_ready`는 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이므로 별도로 본다.
 2. Device CR이 존재한다.
 3. Device `nodeName`이 의도한 node다.
 4. mapper pod가 Running이다.
@@ -348,7 +375,7 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 - publisher가 잘못된 node에서 실행됐다.
 - local mosquitto가 동작하지 않는다.
 - mapper는 Running이지만 InfluxDB에 telemetry가 들어가지 않는다.
-- DeviceStatus snapshot이 오래됐다.
+- DeviceStatus snapshot이 오래됐다. 단 telemetry가 fresh하면 이것만으로 degraded가 되는 것은 아니다.
 
 확인 순서:
 
@@ -366,6 +393,8 @@ kubectl get pods -A -o wide | grep -i mapper
 
 - mapper pod는 Running으로 보인다.
 - 그러나 InfluxDB device별 latest timestamp가 없거나 dashboard freshness 기준을 만족하지 않는다.
+- `telemetry_fresh`는 device-level latest sample 기준이다. property별 latest freshness를 보장하지 않는다.
+- Flux query의 `_start`/`_stop`은 조회 window이고 실제 sample timestamp는 `_time`이다.
 
 확인할 것:
 
@@ -374,14 +403,15 @@ kubectl get pods -A -o wide | grep -i mapper
 - `DEVICE_PLAN` / `DEVICE_FILTER`
 - InfluxDB endpoint
 - Device manifest의 `pushMethod.dbMethod.influxdb2`
+- act/rpi-act device는 현재 구현 기준 InfluxDB liveness row가 `health` property다. `ts`는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 보지 않는다.
 - mapper log
 
 ### 증상 C: DB timestamp fresh but DeviceStatus snapshot is stale
 
 의미:
 
-- InfluxDB device별 latest timestamp 기준 data-plane은 살아 있다.
-- DeviceStatus status-plane snapshot은 오래됐다.
+- InfluxDB device-level latest `_time` 기준 data-plane은 살아 있다.
+- DeviceStatus status-plane snapshot은 오래됐다. 이 조합에서는 telemetry-enabled device가 healthy일 수 있다.
 
 확인할 것:
 
@@ -455,7 +485,7 @@ state-aggregator 코드 변경이 있을 때는 다음 명령으로 테스트한
 
 ```bash
 cd /home/etri/jinuk/edge-orch/state-aggregator
-PYTHONPATH=. .venv/bin/pytest -q tests
+PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
 ```
 
 현재 문서 정리 단계에서는 코드 변경이 없으므로 테스트는 필수는 아니다.

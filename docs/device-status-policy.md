@@ -24,7 +24,7 @@ DeviceStatus는 다음 용도로만 사용한다.
 - raw telemetry에서 계산된 상태 등급
 
 state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 `device_status_fresh`와 `device_status_freshness_ratio`로 최신성을 따로 계산한다.
-raw telemetry 최신성은 `telemetry_fresh`와 `telemetry_freshness_ratio`로 분리해서 본다.
+raw telemetry 최신성은 `telemetry_fresh`, `fresh_telemetry_device_count`, `telemetry_freshness_ratio`로 분리해서 본다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.
 
 ## DeviceStatus에 허용하는 property
 
@@ -146,7 +146,8 @@ DEVICE_STATES_REPORT_ENABLED=false
   - InfluxDB: `vibration`, 이후 `rms`, `peak`, raw vibration samples
 - act device
   - DeviceStatus: `health`, `power`, `mode`, `sampling_interval`, 이후 `command_state`, `reported_config_version`
-  - event DB: command event history, actuation latency, state transition history
+  - InfluxDB liveness: 현재 구현 기준 `health` property
+  - 향후 확장 후보: command event history, actuation latency, state transition history
 
 ## 현재 PoC 기준
 
@@ -154,4 +155,4 @@ DEVICE_STATES_REPORT_ENABLED=false
 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다.
 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.
 
-즉, dashboard의 `device_telemetry_ratio`는 telemetry 설정 비율(telemetry-enabled device / 전체 device)이고, `telemetry_freshness_ratio`는 실제로 최근 telemetry가 들어온 비율이다.
+즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 InfluxDB device-level latest sample freshness를 별도로 나타낸다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. `ts`는 publisher payload에 포함될 수 있지만 현재 act/rpi-act Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다.

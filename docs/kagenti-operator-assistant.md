@@ -66,7 +66,7 @@ Kagenti 연동 PoC용 read-only 운영 보조 요약입니다.
 등록 device 31개 중 live device 24개,
 서비스 데모 연결 device 28개,
 우선 점검 대상 3개입니다.
-telemetry configured 비율은 0.903이고, telemetry freshness 비율은 0.774입니다.
+telemetry configured 비율은 telemetry-enabled device / registered device 기준이고, telemetry freshness 비율은 fresh telemetry device / telemetry-enabled device 기준입니다.
 ```
 
 ## focus device 예시
@@ -76,7 +76,7 @@ telemetry configured 비율은 0.903이고, telemetry freshness 비율은 0.774�
   "name": "vib-device-01",
   "node_name": "etri-dev0001-jetorn",
   "status": "degraded",
-  "reason": "telemetry and DeviceStatus stale",
+  "reason": "DB latest timestamp is missing",
   "service_demo_group": "설비 상태 모니터링",
   "telemetry_fresh": false,
   "device_status_fresh": false,
@@ -85,11 +85,15 @@ telemetry configured 비율은 0.903이고, telemetry freshness 비율은 0.774�
 }
 ```
 
+`node_ready`는 Kubernetes `Ready` 값을 그대로 복사한 것이 아니라, state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 dashboard용 값이다.
+
 ## recommended action 예시
 
 ```text
 vib-device-01: publisher 실행 위치, DEVICE_PLAN/DEVICE_FILTER, local mosquitto, InfluxDB latest telemetry를 확인한다.
 ```
+
+InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.
 
 이 문구는 운영자가 먼저 확인할 경로를 좁히기 위한 것이다.
 agent가 직접 재배포, 삭제, 제어 명령을 실행한다는 의미가 아니다.
@@ -147,7 +151,7 @@ Kagenti agent는 `state-aggregator` 뒤에 붙는 운영 보조 layer다.
 
 ```text
 본 PoC에서는 Kagenti를 자율 제어 계층이 아니라 운영 보조 계층으로 적용한다.
-Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다.
+Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다. 이때 operator_focus_count는 degraded/unavailable device 수와 non-healthy node 수의 합이며 workflow risk는 포함하지 않는다.
 이를 통해 현장 운영자는 전체 device를 개별 명령으로 확인하기 전에 dashboard와 agent 요약으로 문제 위치를 빠르게 좁힐 수 있다.
 ```
 

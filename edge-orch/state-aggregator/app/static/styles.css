@@ -107,6 +107,18 @@ h3 {
   align-content: space-between;
 }
 
+.explainable {
+  cursor: pointer;
+}
+
+.explainable:focus,
+.explainable:hover,
+.device-row.selected {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(29, 95, 153, 0.12);
+  outline: none;
+}
+
 .metric strong {
   font-size: 30px;
   line-height: 1;
@@ -237,6 +249,16 @@ h3 {
   gap: 9px;
 }
 
+.relation-summary {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f7fbff;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px;
+}
+
 .relation {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) 26px minmax(120px, 1fr) 26px minmax(120px, 1fr) 26px minmax(120px, 1fr);
@@ -289,6 +311,92 @@ h3 {
   background: #fff1f0;
 }
 
+.explain-panel {
+  grid-column: 2;
+}
+
+.explain-content {
+  display: grid;
+  gap: 12px;
+}
+
+.explain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.explain-header strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.explain-badge {
+  border-radius: 999px;
+  background: #e8f2fb;
+  color: var(--blue);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.explain-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.explain-fields div {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+  padding: 9px;
+  min-width: 0;
+}
+
+.explain-fields dt {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.explain-fields dd {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.explain-rules {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.explain-rules li {
+  border-left: 4px solid var(--blue);
+  border-radius: 7px;
+  background: #f7fbff;
+  padding: 10px;
+}
+
+.explain-rules strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.explain-rules p,
+.explain-text {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .scenario-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(110px, 1fr));
@@ -330,7 +438,8 @@ h3 {
   }
 
   .relations,
-  .scenario {
+  .scenario,
+  .explain-panel {
     grid-column: 1 / -1;
   }
 }
