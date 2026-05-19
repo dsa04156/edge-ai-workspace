@@ -486,6 +486,12 @@ function renderScenario(devices, kpis) {
 }
 
 
+function markSelectedExplain(target) {
+  if (typeof document === "undefined" || !target) return;
+  document.querySelectorAll(".explainable.selected").forEach((item) => item.classList.remove("selected"));
+  target.classList.add("selected");
+}
+
 function handleExplainSelection(target) {
   const explainTarget = target.closest?.("[data-explain-type]");
   if (!explainTarget) return;
@@ -495,12 +501,16 @@ function handleExplainSelection(target) {
     const device = (state.data?.devices || []).find((item) => item.name === deviceName);
     showDeviceExplanation(device);
     renderDevices(state.data?.devices || []);
+    const selectedRow = Array.from(document.querySelectorAll('[data-explain-type="device"]')).find((item) => item.dataset.deviceName === deviceName);
+    markSelectedExplain(selectedRow);
   }
   if (type === "kpi") {
     showKpiExplanation(explainTarget.dataset.kpiKey);
+    markSelectedExplain(explainTarget);
   }
   if (type === "issue") {
     showIssueExplanation(Number(explainTarget.dataset.alertIndex));
+    markSelectedExplain(explainTarget);
   }
 }
 
