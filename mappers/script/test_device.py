@@ -387,24 +387,32 @@ def main():
                     payload = device.build_payload()
                     payload["ts"] = str(int(now))
 
-                    client.publish(
+                    token = client.publish(
                         device.telemetry_topic(),
                         json.dumps(payload, ensure_ascii=False),
                         qos=QOS,
                         retain=False,
                     )
+                    token.wait_for_publish()
+                    if token.rc != mqtt.MQTT_ERR_SUCCESS:
+                        print(f"[ERR] publish failed topic={device.telemetry_topic()} rc={token.rc} payload={payload}")
+                        continue
 
                     print(f"[PUB] {device.telemetry_topic()} -> {payload}")
                     last_sent[device.device_id] = now + random.uniform(0.0, PUBLISH_JITTER)
 
                 if ENABLE_HEARTBEAT and now - last_heartbeat[device.device_id] >= HEARTBEAT_INTERVAL:
                     hb = device.build_heartbeat()
-                    client.publish(
+                    token = client.publish(
                         device.heartbeat_topic(),
                         json.dumps(hb, ensure_ascii=False),
                         qos=QOS,
                         retain=False,
                     )
+                    token.wait_for_publish()
+                    if token.rc != mqtt.MQTT_ERR_SUCCESS:
+                        print(f"[ERR] heartbeat publish failed topic={device.heartbeat_topic()} rc={token.rc} payload={hb}")
+                        continue
                     print(f"[HB ] {device.heartbeat_topic()} -> {hb}")
                     last_heartbeat[device.device_id] = now
 

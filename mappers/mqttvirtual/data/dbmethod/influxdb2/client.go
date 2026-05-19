@@ -69,8 +69,9 @@ func (d *DataBaseConfig) AddData(data *common.DataModel, client influxdb2.Client
 	// write point immediately
 	err := writeAPI.WritePoint(context.Background(), p)
 	if err != nil {
-		klog.V(4).Info("Exit AddData")
+		klog.Errorf("influxdb write failed device=%s property=%s measurement=%s err=%v", data.DeviceName, data.PropertyName, d.Influxdb2DataConfig.Measurement, err)
 		return err
 	}
+	klog.Infof("influxdb write ok device=%s property=%s measurement=%s", data.DeviceName, data.PropertyName, d.Influxdb2DataConfig.Measurement)
 	return nil
 }

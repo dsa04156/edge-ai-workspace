@@ -407,6 +407,7 @@ func isInfluxDBMethod(name string) bool {
 func dbHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
 	methodName := twin.Property.PushMethod.DBMethod.DBMethodName
 	if isInfluxDBMethod(methodName) {
+		klog.Infof("start influxdb handler device=%s property=%s dbMethod=%s", dataModel.DeviceName, dataModel.PropertyName, methodName)
 		dbInflux.DataHandler(ctx, twin, client, visitorConfig, dataModel)
 		return
 	}
