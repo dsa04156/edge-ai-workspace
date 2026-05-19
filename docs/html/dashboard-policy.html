@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-policy.md</span>
-            <span class="badge">수정: 2026-05-18 16:10</span>
-            <span class="badge">HTML 생성: 2026-05-19 10:59</span>
+            <span class="badge">수정: 2026-05-19 11:41</span>
+            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
           </div>
         </header>
         
@@ -101,7 +101,7 @@
           <h1 id="dashboard-policy">Dashboard Policy</h1>
 <h2 id="원칙">원칙</h2>
 <p>대시보드는 DB latest timestamp와 <code>DeviceStatus</code> snapshot freshness를 분리해서 표시한다.</p>
-<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다. env/vib/temp는 raw telemetry 값, act/rpi-act는 <code>ts</code> liveness 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp는 운영 snapshot 해석용 보조 정보로 사용한다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
+<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다. env/vib/temp는 raw telemetry 값, act/rpi-act는 <code>health</code> liveness 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp와 <code>health=ok</code>는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
 <h2 id="freshness-설정">Freshness 설정</h2>
 <p>현재 기본값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
@@ -113,7 +113,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <ul><li><code>1777508184621</code>처럼 10자리보다 크면 milliseconds</li><li>10자리 수준이면 seconds</li><li>ISO datetime 문자열도 UTC 기준으로 파싱</li></ul>
 <p>parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 parse error를 남기는 방향으로 확장한다.</p>
 <h2 id="판단-필드">판단 필드</h2>
-<ul><li><code>Device.spec.nodeName</code>: 어느 노드에 할당됐는지 확인</li><li><code>Device.spec.protocol.protocolName</code>: <code>mqttvirtual</code> mapper 확인 여부 결정</li><li><code>Device.spec.properties[].pushMethod</code>: data-plane telemetry 대상 여부</li><li><code>DeviceStatus.status.lastOnlineTime</code>: fallback DeviceStatus timestamp</li><li><code>DeviceStatus.status.twins[].reported.metadata.timestamp</code>: DeviceStatus freshness 우선 기준</li><li>InfluxDB <code>device_telemetry</code>: device live/freshness 기준</li><li>env/vib/temp: raw telemetry property</li><li>act/rpi-act: <code>ts</code> liveness property</li><li>KPI 관련 주의</li><li><code>telemetry_device_count</code>: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)</li><li><code>device_telemetry_ratio</code>: telemetry 설정 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)</li><li><code>telemetry_freshness_ratio</code>: 실제 최신 telemetry 비율 = fresh_telemetry_device_count / telemetry_device_count</li><li><code>device_status_freshness_ratio</code>: 최신 DeviceStatus 비율 = fresh_device_status_count / registered_device_count</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li></ul>
+<ul><li><code>Device.spec.nodeName</code>: 어느 노드에 할당됐는지 확인</li><li><code>Device.spec.protocol.protocolName</code>: <code>mqttvirtual</code> mapper 확인 여부 결정</li><li><code>Device.spec.properties[].pushMethod</code>: data-plane telemetry 대상 여부</li><li><code>DeviceStatus.status.lastOnlineTime</code>: fallback DeviceStatus timestamp</li><li><code>DeviceStatus.status.twins[].reported.metadata.timestamp</code>: DeviceStatus freshness 우선 기준</li><li>InfluxDB <code>device_telemetry</code>: device live/freshness 기준</li><li>env/vib/temp: raw telemetry property</li><li>act/rpi-act: <code>health</code> liveness property</li><li>KPI 관련 주의</li><li><code>telemetry_device_count</code>: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)</li><li><code>device_telemetry_ratio</code>: telemetry 설정 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)</li><li><code>telemetry_freshness_ratio</code>: 실제 최신 telemetry 비율 = fresh_telemetry_device_count / telemetry_device_count</li><li><code>device_status_freshness_ratio</code>: 최신 DeviceStatus 비율 = fresh_device_status_count / registered_device_count</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li></ul>
 <h2 id="상태-판단-순서">상태 판단 순서</h2>
 <ol><li>Kubernetes <code>Device</code> 목록과 <code>DeviceStatus</code> 목록을 조회한다.</li><li>같은 namespace/name의 <code>DeviceStatus.status</code>가 있으면 병합해서 snapshot 필드로 표시한다.</li><li>노드 미할당 또는 할당 노드 <code>unavailable</code>이면 <code>unavailable</code>.</li><li><code>mqttvirtual</code> 디바이스인데 해당 노드의 mapper Pod가 Running이 아니면 <code>unavailable</code>.</li><li><code>health=offline</code> 또는 명시 상태값 <code>offline/disconnected/failed/unavailable/false</code>면 <code>unavailable</code>.</li><li>InfluxDB latest timestamp가 <code>TELEMETRY_FRESH_SECONDS</code> 이내면 <code>telemetry_fresh=true</code>.</li><li>DB timestamp가 fresh하면 <code>severity=critical</code>이 아닌 한 <code>healthy</code>.</li><li>DB timestamp가 없거나 stale이면 <code>degraded</code>.</li><li>reported timestamp와 <code>lastOnlineTime</code> 중 최신 timestamp는 DeviceStatus snapshot 표시용으로 사용한다.</li><li>dashboard는 <code>device_status_fresh</code>와 <code>device_status_last_reported_at</code>도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.</li></ol>
 <h2 id="api-응답-필드">API 응답 필드</h2>
@@ -134,7 +134,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
   &quot;reason&quot;: &quot;recent InfluxDB telemetry&quot;
 }</code></pre>
 <h2 id="해석-규칙">해석 규칙</h2>
-<ul><li><code>DeviceStatus</code>에 <code>power:on</code> 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.</li><li>dashboard의 healthy는 InfluxDB latest timestamp를 우선 기준으로 판단한다.</li><li>env/vib/temp는 raw telemetry, act/rpi-act는 <code>ts</code> liveness row가 DB freshness 기준이다.</li><li>InfluxDB row의 <code>device_id</code>가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.</li><li>dashboard의 healthy는 Device CR 존재 여부나 <code>state=online</code> 단독 판단이 아니라 node/mapper 선행 조건과 DB freshness 기준을 함께 본 결과다.</li></ul>
+<ul><li><code>DeviceStatus</code>에 <code>power:on</code> 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.</li><li>dashboard의 healthy는 InfluxDB latest timestamp를 우선 기준으로 판단한다.</li><li>env/vib/temp는 raw telemetry, act/rpi-act는 <code>health</code> liveness row가 DB freshness 기준이다.</li><li><code>DeviceStatus</code>의 <code>health=ok</code>만 있고 InfluxDB latest row가 없으면 healthy가 아니라 degraded로 본다.</li><li>InfluxDB row의 <code>device_id</code>가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.</li><li>dashboard의 healthy는 Device CR 존재 여부나 <code>state=online</code> 단독 판단이 아니라 node/mapper 선행 조건과 DB freshness 기준을 함께 본 결과다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#원칙">원칙</a></li>

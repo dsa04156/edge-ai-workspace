@@ -6,8 +6,8 @@
 
 `status.state=online`만으로 healthy 처리하지 않는다.
 healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다.
-env/vib/temp는 raw telemetry 값, act/rpi-act는 `ts` liveness 값을 InfluxDB에 남긴다.
-`DeviceStatus` timestamp는 운영 snapshot 해석용 보조 정보로 사용한다.
+env/vib/temp는 raw telemetry 값, act/rpi-act는 `health` liveness 값을 InfluxDB에 남긴다.
+`DeviceStatus` timestamp와 `health=ok`는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다.
 `status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.
 
 ## Freshness 설정
@@ -43,7 +43,7 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 - `DeviceStatus.status.twins[].reported.metadata.timestamp`: DeviceStatus freshness 우선 기준
 - InfluxDB `device_telemetry`: device live/freshness 기준
   - env/vib/temp: raw telemetry property
-  - act/rpi-act: `ts` liveness property
+  - act/rpi-act: `health` liveness property
 - KPI 관련 주의
   - `telemetry_device_count`: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)
   - `device_telemetry_ratio`: telemetry 설정 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)
@@ -90,6 +90,7 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 
 - `DeviceStatus`에 `power:on` 같은 값이 있어도 timestamp가 오래됐으면 현재값이 아니라 마지막 snapshot이다.
 - dashboard의 healthy는 InfluxDB latest timestamp를 우선 기준으로 판단한다.
-- env/vib/temp는 raw telemetry, act/rpi-act는 `ts` liveness row가 DB freshness 기준이다.
+- env/vib/temp는 raw telemetry, act/rpi-act는 `health` liveness row가 DB freshness 기준이다.
+- `DeviceStatus`의 `health=ok`만 있고 InfluxDB latest row가 없으면 healthy가 아니라 degraded로 본다.
 - InfluxDB row의 `device_id`가 Device 이름과 맞지 않으면 dashboard가 해당 telemetry를 매칭하지 못한다.
 - dashboard의 healthy는 Device CR 존재 여부나 `state=online` 단독 판단이 아니라 node/mapper 선행 조건과 DB freshness 기준을 함께 본 결과다.

@@ -305,7 +305,15 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
                                 "metadata": {"timestamp": fresh_twin_timestamp_ms, "type": "string"},
                             },
                             "observedDesired": {"value": ""},
-                        }
+                        },
+                        {
+                            "propertyName": "health",
+                            "reported": {
+                                "value": "ok",
+                                "metadata": {"timestamp": fresh_twin_timestamp_ms, "type": "string"},
+                            },
+                            "observedDesired": {"value": ""},
+                        },
                     ],
                 },
             }
