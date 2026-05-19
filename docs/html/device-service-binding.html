@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: device-service-binding.md</span>
-            <span class="badge">수정: 2026-05-19 10:24</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:46</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -292,6 +292,38 @@
 </tr>
 </tbody></table></div>
 <p>이 로직은 dashboard frontend 하드코딩이 아니라 backend의 <code>DeviceState</code> 응답 필드로 내려간다. dashboard는 API 응답의 <code>service_demo_group</code>과 <code>service_binding_reason</code>을 그대로 표시한다.</p>
+<h2 id="workflow-stage-placement-설계-관계">workflow stage / placement 설계 관계</h2>
+<p>디바이스-서비스 바인딩은 “어떤 device data가 어떤 service demo에 쓰이는가”를 설명한다. Workflow placement 설계는 그 다음 단계로 “해당 service의 stage가 어느 node에서 실행되는 구조인가”를 dry-run으로 설명한다.</p>
+<p>두 개념은 구분한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>의미</th>
+<th>현재 구현</th>
+<th>실행 여부</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>service binding</td>
+<td>device -&gt; service demo group 관계</td>
+<td>state-aggregator API와 dashboard에 표시</td>
+<td>read-only 표시</td>
+</tr>
+<tr>
+<td>workflow placement design</td>
+<td>device -&gt; workflow stage -&gt; target node 관계</td>
+<td><code>edge-orch/workflow-designer/</code>에서 dry-run 설계</td>
+<td>실제 배포 없음</td>
+</tr>
+</tbody></table></div>
+<p>workflow designer에서 표시하는 관계 예시는 다음이다.</p>
+<pre data-lang="text"><code>vib-device-01
+  -&gt; capture(etri-dev0001-jetorn)
+  -&gt; preprocess(etri-dev0001-jetorn)
+  -&gt; inference(factoryName-ser0001-CG0MS0)
+  -&gt; event-publish(factoryName-ser0001-CG0MS0)
+  -&gt; dashboard-update(factoryName-ser0001-CG0MS0)</code></pre>
+<p>이 관계는 운영자가 서비스 구조를 이해하기 위한 plan generation 결과다. 현재 범위에서는 placement engine 자동 배치, runtime offloading, Kubernetes workload 생성으로 이어지지 않는다.</p>
 <h2 id="node-기준-바인딩">node 기준 바인딩</h2>
 <p>현재 테스트베드의 node 바인딩은 다음과 같다.</p>
 <div class="table-wrap"><table>
@@ -570,6 +602,17 @@ factory/devices/{device-name}/heartbeat</code></pre>
 <p>이 경우는 service binding 자체가 무조건 실패했다는 뜻이 아니다. 운영 가시화에 필요한 최신 signal이 부족한 상태로 해석한다.</p>
 <h2 id="관련-문서">관련 문서</h2>
 <ul><li><code>docs/current-demo-path.md</code>: 현재 device/MQTT/mapper/state-aggregator/dashboard 연결 경로</li><li><code>docs/device-status-policy.md</code>: DeviceStatus와 raw telemetry 분리 정책</li><li><code>docs/dashboard-policy.md</code>: dashboard 상태 판단 기준</li><li><code>docs/scope.md</code>: 현재 범위와 제외 범위</li><li><code>docs/repo-structure.md</code>: 레포 디렉터리 역할 분류</li></ul>
+<h2 id="workflow-designer의-바인딩-표현">Workflow Designer의 바인딩 표현</h2>
+<p>Workflow Designer에서는 device-service binding을 실행 배치와 섞지 않고 다음처럼 분리한다.</p>
+<ol><li>Input device binding</li></ol>
+<ul><li>service가 사용하는 <code>inputDevices[]</code>를 DAG의 시작 node로 표시한다.</li><li>각 stage는 optional <code>connectedDevice</code>를 가질 수 있다.</li></ul>
+<ol><li>Logical data edge</li></ol>
+<ul><li><code>edges[]</code>는 stage 사이 논리 연결과 data 이름을 표현한다.</li><li>예: <code>preprocess -&gt; inference</code>, data=<code>feature-vector</code>, transport=<code>http</code>.</li></ul>
+<ol><li>Stage placement</li></ol>
+<ul><li><code>placements[]</code>는 stage가 실행될 compute node만 표현한다.</li><li>compute node는 <code>Edge AI Server</code>, <code>Jetson</code>, <code>Raspberry Pi 5</code>이며 platform endpoint와 구분한다.</li></ul>
+<ol><li>Endpoint transport</li></ol>
+<ul><li><code>transports[]</code>는 data가 <code>MQTT Broker</code>, <code>InfluxDB</code>, <code>State Aggregator</code>, <code>Dashboard</code> 중 어디로 전달되는지 표현한다.</li></ul>
+<p>이 구조는 여러 서비스를 어디서 어떻게 실행할 수 있는지 dry-run으로 설정하기 위한 것이며, 현재 범위에서는 실제 scheduler/controller 또는 runtime offloading과 연결하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -580,6 +623,7 @@ factory/devices/{device-name}/heartbeat</code></pre>
 <li class="toc-h3"><a href="#service-group-단위">Service group 단위</a></li>
 <li class="toc-h2"><a href="#현재-device-계열별-역할">현재 device 계열별 역할</a></li>
 <li class="toc-h2"><a href="#현재-api-바인딩-필드">현재 API 바인딩 필드</a></li>
+<li class="toc-h2"><a href="#workflow-stage-placement-설계-관계">workflow stage / placement 설계 관계</a></li>
 <li class="toc-h2"><a href="#node-기준-바인딩">node 기준 바인딩</a></li>
 <li class="toc-h2"><a href="#topic-기준-바인딩">topic 기준 바인딩</a></li>
 <li class="toc-h2"><a href="#status-plane-data-plane-기준-바인딩">status-plane / data-plane 기준 바인딩</a></li>
@@ -592,7 +636,8 @@ factory/devices/{device-name}/heartbeat</code></pre>
 <li class="toc-h2"><a href="#현재-범위에서-제외하는-바인딩-방식">현재 범위에서 제외하는 바인딩 방식</a></li>
 <li class="toc-h2"><a href="#정상-바인딩-판단-기준">정상 바인딩 판단 기준</a></li>
 <li class="toc-h2"><a href="#degraded-바인딩-해석">degraded 바인딩 해석</a></li>
-<li class="toc-h2"><a href="#관련-문서">관련 문서</a></li></ol></aside>
+<li class="toc-h2"><a href="#관련-문서">관련 문서</a></li>
+<li class="toc-h2"><a href="#workflow-designer의-바인딩-표현">Workflow Designer의 바인딩 표현</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

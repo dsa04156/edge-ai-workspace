@@ -1,0 +1,84 @@
+serviceName: actuator-command-monitoring
+mode: dry-run
+scopeNote: actuator command 실행 없음. command_state/health 상태를 read-only로 확인한다.
+inputDevices:
+  - act-device-01
+  - rpi-act-device-01
+stages:
+  - name: command-state-read
+    type: input
+    input: act-device-01
+    output: command-state
+    connectedDevice: act-device-01
+    requiredResource: read-only DeviceStatus/telemetry
+  - name: state-validate
+    type: processing
+    input: command-state
+    output: command-health-event
+    connectedDevice: act-device-01
+    requiredResource: server cpu
+  - name: event-publish
+    type: output
+    input: command-health-event
+    output: mqtt-event
+    connectedDevice: act-device-01
+    requiredResource: event bus
+  - name: dashboard-sink
+    type: sink
+    input: mqtt-event
+    output: operator-view
+    requiredResource: dashboard
+edges:
+  - from: device:act-device-01
+    to: command-state-read
+    data: act-device-01
+    transport: read-only
+  - from: command-state-read
+    to: state-validate
+    data: command-state
+    transport: http
+  - from: state-validate
+    to: event-publish
+    data: command-health-event
+    transport: internal
+  - from: event-publish
+    to: dashboard-sink
+    data: mqtt-event
+    transport: mqtt
+placements:
+  - stage: command-state-read
+    targetNode: etri-dev0001-jetorn
+  - stage: state-validate
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: event-publish
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: dashboard-sink
+    targetNode: factoryName-ser0001-CG0MS0
+endpoints:
+  - MQTT Broker
+  - State Aggregator
+  - Dashboard
+transports:
+  - data: command-state
+    producer: command-state-read
+    consumer: state-validate
+    transport: http
+  - data: command-health-event
+    producer: state-validate
+    consumer: event-publish
+    transport: internal
+  - data: mqtt-event
+    producer: event-publish
+    consumer: MQTT Broker
+    endpoint: MQTT Broker
+    transport: mqtt
+  - data: mqtt-event
+    producer: event-publish
+    consumer: State Aggregator
+    endpoint: State Aggregator
+    transport: mqtt
+  - data: mqtt-event
+    producer: event-publish
+    consumer: Dashboard
+    endpoint: Dashboard
+    transport: http

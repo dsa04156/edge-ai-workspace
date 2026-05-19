@@ -1,0 +1,94 @@
+serviceName: environment-monitoring
+mode: dry-run
+inputDevices:
+  - env-device-01
+  - rpi-env-device-01
+stages:
+  - name: collect
+    type: collect
+    input: env-device-01
+    output: env-raw
+    connectedDevice: env-device-01
+    requiredResource: sensor mqtt
+  - name: normalize
+    type: preprocess
+    input: env-raw
+    output: normalized-env
+    connectedDevice: env-device-01
+    requiredResource: lightweight preprocessing
+  - name: threshold-check
+    type: processing
+    input: normalized-env
+    output: environment-state
+    connectedDevice: env-device-01
+    requiredResource: server cpu
+  - name: storage-sink
+    type: sink
+    input: environment-state
+    output: state-record
+    requiredResource: InfluxDB/state store
+  - name: dashboard-sink
+    type: sink
+    input: environment-state
+    output: operator-view
+    requiredResource: dashboard
+edges:
+  - from: device:env-device-01
+    to: collect
+    data: env-device-01
+    transport: mqtt
+  - from: collect
+    to: normalize
+    data: env-raw
+    transport: mqtt
+  - from: normalize
+    to: threshold-check
+    data: normalized-env
+    transport: http
+  - from: threshold-check
+    to: storage-sink
+    data: environment-state
+    transport: influx-line
+  - from: threshold-check
+    to: dashboard-sink
+    data: environment-state
+    transport: http
+placements:
+  - stage: collect
+    targetNode: etri-dev0001-jetorn
+  - stage: normalize
+    targetNode: etri-dev0001-jetorn
+  - stage: threshold-check
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: storage-sink
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: dashboard-sink
+    targetNode: factoryName-ser0001-CG0MS0
+endpoints:
+  - InfluxDB
+  - State Aggregator
+  - Dashboard
+transports:
+  - data: env-raw
+    producer: collect
+    consumer: normalize
+    transport: mqtt
+  - data: normalized-env
+    producer: normalize
+    consumer: threshold-check
+    transport: http
+  - data: environment-state
+    producer: threshold-check
+    consumer: InfluxDB
+    endpoint: InfluxDB
+    transport: influx-line
+  - data: environment-state
+    producer: threshold-check
+    consumer: State Aggregator
+    endpoint: State Aggregator
+    transport: http
+  - data: environment-state
+    producer: threshold-check
+    consumer: Dashboard
+    endpoint: Dashboard
+    transport: http

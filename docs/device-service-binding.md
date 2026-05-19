@@ -116,6 +116,30 @@ Service group 단위 바인딩은 여러 device를 하나의 서비스 데모 �
 
 이 로직은 dashboard frontend 하드코딩이 아니라 backend의 `DeviceState` 응답 필드로 내려간다. dashboard는 API 응답의 `service_demo_group`과 `service_binding_reason`을 그대로 표시한다.
 
+## workflow stage / placement 설계 관계
+
+디바이스-서비스 바인딩은 “어떤 device data가 어떤 service demo에 쓰이는가”를 설명한다. Workflow placement 설계는 그 다음 단계로 “해당 service의 stage가 어느 node에서 실행되는 구조인가”를 dry-run으로 설명한다.
+
+두 개념은 구분한다.
+
+| 구분 | 의미 | 현재 구현 | 실행 여부 |
+|---|---|---|---|
+| service binding | device -> service demo group 관계 | state-aggregator API와 dashboard에 표시 | read-only 표시 |
+| workflow placement design | device -> workflow stage -> target node 관계 | `edge-orch/workflow-designer/`에서 dry-run 설계 | 실제 배포 없음 |
+
+workflow designer에서 표시하는 관계 예시는 다음이다.
+
+```text
+vib-device-01
+  -> capture(etri-dev0001-jetorn)
+  -> preprocess(etri-dev0001-jetorn)
+  -> inference(factoryName-ser0001-CG0MS0)
+  -> event-publish(factoryName-ser0001-CG0MS0)
+  -> dashboard-update(factoryName-ser0001-CG0MS0)
+```
+
+이 관계는 운영자가 서비스 구조를 이해하기 위한 plan generation 결과다. 현재 범위에서는 placement engine 자동 배치, runtime offloading, Kubernetes workload 생성으로 이어지지 않는다.
+
 ## node 기준 바인딩
 
 현재 테스트베드의 node 바인딩은 다음과 같다.
@@ -290,3 +314,25 @@ service_connected: bool
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
 - `docs/scope.md`: 현재 범위와 제외 범위
 - `docs/repo-structure.md`: 레포 디렉터리 역할 분류
+
+## Workflow Designer의 바인딩 표현
+
+Workflow Designer에서는 device-service binding을 실행 배치와 섞지 않고 다음처럼 분리한다.
+
+1. Input device binding
+   - service가 사용하는 `inputDevices[]`를 DAG의 시작 node로 표시한다.
+   - 각 stage는 optional `connectedDevice`를 가질 수 있다.
+
+2. Logical data edge
+   - `edges[]`는 stage 사이 논리 연결과 data 이름을 표현한다.
+   - 예: `preprocess -> inference`, data=`feature-vector`, transport=`http`.
+
+3. Stage placement
+   - `placements[]`는 stage가 실행될 compute node만 표현한다.
+   - compute node는 `Edge AI Server`, `Jetson`, `Raspberry Pi 5`이며 platform endpoint와 구분한다.
+
+4. Endpoint transport
+   - `transports[]`는 data가 `MQTT Broker`, `InfluxDB`, `State Aggregator`, `Dashboard` 중 어디로 전달되는지 표현한다.
+
+이 구조는 여러 서비스를 어디서 어떻게 실행할 수 있는지 dry-run으로 설정하기 위한 것이며, 현재 범위에서는 실제 scheduler/controller 또는 runtime offloading과 연결하지 않는다.
+

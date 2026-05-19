@@ -51,6 +51,10 @@ physical / virtual device
    - dashboard는 단순히 Device CR 존재 여부만 보지 않는다.
    - dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.
 
+8. workflow designer 계층
+   - `edge-orch/workflow-designer/`는 서비스가 어떤 device를 입력으로 쓰고, 어떤 stage 흐름으로 구성되며, 각 stage가 어떤 node에 배치되는지 dry-run으로 설계/시각화한다.
+   - 이 도구는 read-only + dry-run plan generation 전용이다. workflow/offloading/placement 자동 실행, Kubernetes 배포, MQTT command publish, Device CR 수정은 수행하지 않는다.
+
 ## 구성 요소
 
 | 구분 | 경로/컴포넌트 | 역할 |
@@ -61,6 +65,7 @@ physical / virtual device
 | telemetry 저장 | `influxdb/` | raw telemetry data-plane 저장소 |
 | 상태 통합 | `edge-orch/state-aggregator/` | KubeEdge / InfluxDB / Prometheus 상태 통합 API |
 | dashboard | `edge-orch/state-aggregator/app/static/` | 디바이스, 노드, 서비스, KPI 운영 가시화 |
+| workflow designer | `edge-orch/workflow-designer/` | 서비스 stage, input device, target node를 dry-run으로 시각화하고 execution plan을 생성 |
 
 ## Device / DeviceModel
 
@@ -248,9 +253,9 @@ Device manifest에서 raw telemetry property는 KubeEdge mapper framework의 `pu
 |---|---|---|
 | env device | `health`, `sampling_interval`, `temperature_status`, `humidity_status` | `temperature`, `humidity` |
 | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |
-| act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB liveness row는 `health` property. `ts`는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다. |
+| act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB freshness row는 `ts` property다. `health`는 상태 요약용이고, `ts`는 publisher payload와 DB push property로 freshness 기준에 사용한다. |
 
-현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다.
+현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다. act/rpi-act는 `ts` liveness row를 freshness 기준으로 사용한다.
 
 ## state-aggregator
 
@@ -430,3 +435,22 @@ dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry con
 - `docs/device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
 - `docs/roadmap.md`: 현재 산출물과 단계별 작업 방향
+
+## Workflow Designer에서 보는 현재 데모 경로
+
+Workflow Designer는 이 경로를 하나의 node-column 화면으로 합치지 않고 다음 3개 관점으로 나누어 본다.
+
+1. Service Workflow DAG
+   - input device에서 시작해 `collect -> preprocess/normalize -> inference/rule-check -> event-publish -> sink`로 이어지는 서비스 논리 흐름을 표시한다.
+   - `raw-signal`, `feature-vector`, `mqtt-event`, `environment-state` 같은 output data 이름은 stage 사이 edge label로 표시한다.
+
+2. Stage Placement
+   - 각 stage가 `factoryName-ser0001-CG0MS0`, `etri-dev0001-jetorn`, `etri-dev0002-raspi5` 중 어디서 실행되는지 별도 표/카드로 표시한다.
+   - target node 변경은 이 dry-run placement view에서만 수행한다.
+
+3. Data Transport / Endpoint
+   - output data가 어떤 transport로 어느 consumer stage 또는 platform endpoint에 전달되는지 표시한다.
+   - platform endpoint는 compute node와 분리하며 `MQTT Broker`, `InfluxDB`, `State Aggregator`, `Dashboard`로 구분한다.
+
+이 기능은 read-only + dry-run 설계 도구이며 실제 배포, MQTT command publish, Device CR 수정, runtime migration/offloading을 수행하지 않는다.
+

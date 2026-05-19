@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: README.md</span>
-            <span class="badge">수정: 2026-05-12 18:57</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 12:52</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -188,6 +188,10 @@
 <td>device -&gt; MQTT -&gt; mapper -&gt; InfluxDB/DeviceStatus -&gt; state-aggregator -&gt; dashboard 흐름</td>
 </tr>
 <tr>
+<td><code>edge-orch/workflow-designer/README.md</code></td>
+<td>서비스 stage, input device, target node를 dry-run으로 설계/시각화하는 Workflow Designer MVP</td>
+</tr>
+<tr>
 <td><code>kagenti-operator-assistant.md</code></td>
 <td>Kagenti 운영 보조 agent PoC와 read-only 요약 API</td>
 </tr>
@@ -268,7 +272,7 @@
   -&gt; operator assistant summary
   -&gt; 운영자 판단 / KPI 설명</code></pre>
 <p>운영자가 dashboard에서 확인해야 하는 핵심 질문은 다음이다.</p>
-<ol><li>어떤 device가 등록되어 있는가?</li><li>어떤 node에 붙어 있는가?</li><li>telemetry가 최근에 들어왔는가?</li><li>DeviceStatus snapshot이 최신인가?</li><li>mapper와 node는 정상인가?</li><li>어떤 service demo group에 연결되어 있는가?</li><li>문제가 있다면 어느 device/node/mapper/telemetry 경로를 먼저 봐야 하는가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
+<ol><li>어떤 device가 등록되어 있는가?</li><li>어떤 node에 붙어 있는가?</li><li>telemetry가 최근에 들어왔는가?</li><li>DeviceStatus snapshot이 최신인가?</li><li>mapper와 node는 정상인가?</li><li>어떤 service demo group에 연결되어 있는가?</li><li>이 service는 어떤 stage 흐름이고 각 stage는 어느 node에서 실행되는 구조인가?</li><li>문제가 있다면 어느 device/node/mapper/telemetry 경로를 먼저 봐야 하는가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
 <h2 id="현재-주요-산출물">현재 주요 산출물</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -291,6 +295,10 @@
 <tr>
 <td>통합 dashboard 정보 구조</td>
 <td><code>dashboard-information-structure.md</code></td>
+</tr>
+<tr>
+<td>Workflow Designer MVP</td>
+<td><code>../edge-orch/workflow-designer/README.md</code></td>
 </tr>
 <tr>
 <td>현재 데모 실행 runbook</td>

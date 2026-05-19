@@ -1265,6 +1265,29 @@ spec:
               device_type: act
               property: health
             fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-01
+              device_type: act
+              property: ts
+            fieldKey: value
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
@@ -1339,6 +1362,29 @@ spec:
               device_id: act-device-02
               device_type: act
               property: health
+            fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-02
+              device_type: act
+              property: ts
             fieldKey: value
   - name: sampling_interval
     collectCycle: 60000
@@ -1415,6 +1461,29 @@ spec:
               device_type: act
               property: health
             fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-03
+              device_type: act
+              property: ts
+            fieldKey: value
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
@@ -1489,6 +1558,29 @@ spec:
               device_id: act-device-04
               device_type: act
               property: health
+            fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-04
+              device_type: act
+              property: ts
             fieldKey: value
   - name: sampling_interval
     collectCycle: 60000
@@ -1565,6 +1657,29 @@ spec:
               device_type: act
               property: health
             fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-05
+              device_type: act
+              property: ts
+            fieldKey: value
   - name: sampling_interval
     collectCycle: 60000
     reportCycle: 60000
@@ -1639,6 +1754,29 @@ spec:
               device_id: act-device-06
               device_type: act
               property: health
+            fieldKey: value
+  - name: ts
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: false
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: ts
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: act-device-06
+              device_type: act
+              property: ts
             fieldKey: value
   - name: sampling_interval
     collectCycle: 60000

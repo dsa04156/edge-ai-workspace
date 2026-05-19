@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/runbook-current-demo.md</span>
-            <span class="badge">수정: 2026-05-19 10:59</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:46</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -112,7 +112,8 @@
 4. Jetson publisher는 Jetson node에서 실행
 5. Raspberry Pi publisher는 Raspberry Pi node에서 실행
 6. /state/dashboard API 응답 확인
-7. dashboard에서 service demo group, freshness, issue list 확인</code></pre>
+7. dashboard에서 service demo group, freshness, issue list 확인
+8. workflow designer에서 service stage와 target node dry-run plan 확인</code></pre>
 <h2 id="전체-점검-흐름">전체 점검 흐름</h2>
 <pre data-lang="text"><code>1. Kubernetes / KubeEdge node 확인
 2. 주요 pod 확인
@@ -123,7 +124,8 @@
 7. test publisher 실행
 8. state-aggregator API 확인
 9. dashboard 확인
-10. degraded reason 기반 troubleshooting</code></pre>
+10. workflow designer에서 service stage / node placement dry-run 확인
+11. degraded reason 기반 troubleshooting</code></pre>
 <h2 id="사전-조건">사전 조건</h2>
 <p>현재 데모 경로에서 필요한 구성 요소는 다음이다.</p>
 <div class="table-wrap"><table>
@@ -316,7 +318,18 @@ curl -s http://localhost:8000/state/summary</code></pre>
 <ol><li>현장 생산성 설명 지표</li></ol>
 <ul><li>scenario KPI</li><li>service-bound device count</li></ul>
 <p>정상이라면 device, node, telemetry freshness, DeviceStatus freshness, service demo group이 함께 표시된다. 운영자는 <code>reason</code>과 issue list를 기준으로 먼저 볼 device 또는 node를 좁힌다.</p>
-<h3 id="explain-panel-활용-순서">Explain Panel 활용 순서</h3>
+<h2 id="10-workflow-designer로-서비스-구조-설명">10. Workflow Designer로 서비스 구조 설명</h2>
+<p>Dashboard로 실제 운영 상태를 확인한 뒤, 별도 화면인 workflow designer를 열어 서비스 구조를 설명한다.</p>
+<p>실행 예시:</p>
+<pre data-lang="bash"><code>cd /home/etri/jinuk
+python3 -m http.server 8080</code></pre>
+<p>브라우저:</p>
+<pre data-lang="text"><code>http://localhost:8080/edge-orch/workflow-designer/index.html</code></pre>
+<p>데모 설명 순서:</p>
+<ol><li><code>factory-anomaly-detection</code> 예시를 선택한다.</li><li>이 서비스가 <code>vib-device-01</code> 같은 device를 입력으로 사용한다고 설명한다.</li><li><code>capture -&gt; preprocess -&gt; inference -&gt; event-publish -&gt; dashboard-update</code> stage 흐름을 보여준다.</li><li>각 stage의 target node를 확인한다. 예: capture/preprocess는 Jetson, inference/event/dashboard는 Edge AI Server.</li><li>stage를 다른 node로 drag-and-drop하면 execution plan JSON/YAML이 바뀌는 것을 보여준다.</li><li>Validation Result에서 PASS/WARN/FAIL을 확인한다.</li></ol>
+<p>주의:</p>
+<ul><li>이 화면은 dry-run 설계 도구다.</li><li>실제 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.</li><li>자동 offloading/자동 placement를 실증 완료한 기능으로 설명하지 않는다.</li></ul>
+<h2 id="11-explain-panel-활용">11. Explain Panel 활용</h2>
 <p>데모 중 healthy/degraded 원인을 설명할 때는 read-only Explain Panel을 사용한다.</p>
 <pre data-lang="text"><code>1. Overview KPI 카드를 클릭해 count/ratio 정의를 먼저 설명한다.
 2. Device row를 클릭해 telemetry, DeviceStatus, mapper, node, service binding 필드를 확인한다.
@@ -325,10 +338,10 @@ curl -s http://localhost:8000/state/summary</code></pre>
 5. 설명은 현재 API payload와 deterministic JavaScript rule 기준이며, LLM/API 호출이나 제어 동작은 수행하지 않는다.</code></pre>
 <p>상태별 설명 예시:</p>
 <ul><li>healthy + <code>telemetry_fresh=true</code>: InfluxDB latest telemetry가 fresh하므로 healthy로 판단한다.</li><li><code>telemetry_fresh=true</code> + <code>device_status_fresh=false</code>: data-plane은 살아 있고 DeviceStatus report path만 별도 점검한다.</li><li><code>telemetry_fresh=false</code>: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태를 확인한다.</li><li><code>mapper_running=false</code>: 할당 node의 mqttvirtual mapper pod 상태를 확인한다.</li><li><code>node_ready=false</code>: dashboard 기준 node health와 edgecore/cloudcore 연결 상태를 확인한다.</li><li><code>service_connected=false</code>: service binding rule 또는 device naming rule을 확인한다.</li></ul>
-<h2 id="10-정상-상태-판단">10. 정상 상태 판단</h2>
+<h2 id="12-정상-상태-판단">12. 정상 상태 판단</h2>
 <p>정상 경로는 다음 조건을 만족한다.</p>
 <ol><li>Kubernetes node가 <code>kubectl get nodes</code> 기준 Ready다. dashboard의 <code>node_ready</code>는 Prometheus/node-exporter 기반 <code>node_health != unavailable</code> 판단이므로 별도로 본다.</li><li>Device CR이 존재한다.</li><li>Device <code>nodeName</code>이 의도한 node다.</li><li>mapper pod가 Running이다.</li><li>publisher가 같은 node의 local mosquitto로 telemetry를 publish한다.</li><li>InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 healthy 판단의 1차 기준임).</li><li>DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 healthy 판단을 막지 않는다.</li><li>dashboard에서 device가 healthy 또는 의도한 상태로 보인다.</li><li>service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.</li></ol>
-<h2 id="11-degraded-troubleshooting">11. degraded troubleshooting</h2>
+<h2 id="13-degraded-troubleshooting">13. degraded troubleshooting</h2>
 <h3 id="증상-a-device는-등록됐지만-degraded">증상 A: Device는 등록됐지만 degraded</h3>
 <p>가능한 원인:</p>
 <ul><li>publisher가 실행되지 않았다.</li><li>publisher가 잘못된 node에서 실행됐다.</li><li>local mosquitto가 동작하지 않는다.</li><li>mapper는 Running이지만 InfluxDB에 telemetry가 들어가지 않는다.</li><li>DeviceStatus snapshot이 오래됐다. 단 telemetry가 fresh하면 이것만으로 degraded가 되는 것은 아니다.</li></ul>
@@ -361,19 +374,19 @@ kubectl get pods -A -o wide | grep etri-dev0002-raspi5</code></pre>
 <pre data-lang="bash"><code>kubectl get nodes -o wide
 kubectl describe node &lt;node-name&gt;</code></pre>
 <p>edge node라면 edgecore 상태와 cloudcore 연결 상태도 확인한다.</p>
-<h2 id="12-devicestatus-정책-확인">12. DeviceStatus 정책 확인</h2>
+<h2 id="14-devicestatus-정책-확인">14. DeviceStatus 정책 확인</h2>
 <p>DeviceStatus에는 raw telemetry stream을 올리지 않는다.</p>
 <p>허용되는 운영 snapshot 예시:</p>
 <ul><li><code>health</code></li><li><code>severity</code></li><li><code>alarm_latched</code></li><li><code>power</code></li><li><code>mode</code></li><li><code>sampling_interval</code></li><li><code>command_state</code></li><li><code>temperature_status</code></li><li><code>humidity_status</code></li><li><code>vibration_status</code></li></ul>
 <p>올리지 않는 raw stream 예시:</p>
 <ul><li><code>temperature</code></li><li><code>humidity</code></li><li><code>vibration</code></li><li><code>rms</code></li><li><code>peak</code></li><li><code>raw_samples</code></li><li><code>waveform</code></li><li>image / frame</li></ul>
 <p>자세한 기준은 <code>docs/device-status-policy.md</code>를 따른다.</p>
-<h2 id="13-테스트-실행-기준">13. 테스트 실행 기준</h2>
+<h2 id="15-테스트-실행-기준">15. 테스트 실행 기준</h2>
 <p>state-aggregator 코드 변경이 있을 때는 다음 명령으로 테스트한다.</p>
 <pre data-lang="bash"><code>cd /home/etri/jinuk/edge-orch/state-aggregator
 PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests</code></pre>
 <p>현재 문서 정리 단계에서는 코드 변경이 없으므로 테스트는 필수는 아니다.</p>
-<h2 id="14-데모-전-체크리스트">14. 데모 전 체크리스트</h2>
+<h2 id="16-데모-전-체크리스트">16. 데모 전 체크리스트</h2>
 <p>데모 직전에는 다음을 확인한다.</p>
 <ul><li>[ ] <code>kubectl get nodes -o wide</code>에서 주요 node가 Ready다.</li><li>[ ] <code>kubectl get pods -A -o wide</code>에서 mapper와 state-aggregator가 Running이다.</li><li>[ ] Device CR이 등록되어 있다.</li><li>[ ] DeviceStatus CR을 조회할 수 있다.</li><li>[ ] Jetson device publisher는 Jetson에서 실행했다.</li><li>[ ] Raspberry Pi device publisher는 Raspberry Pi에서 실행했다.</li><li>[ ] InfluxDB latest telemetry가 갱신된다.</li><li>[ ] <code>/state/devices</code>에서 <code>telemetry_fresh</code>를 확인했다.</li><li>[ ] <code>/state/devices</code>에서 <code>device_status_fresh</code>를 확인했다.</li><li>[ ] dashboard에서 relation view와 KPI를 확인했다.</li><li>[ ] degraded device의 reason을 설명할 수 있다.</li></ul>
 <h2 id="현재-runbook-범위에서-제외하는-것">현재 runbook 범위에서 제외하는 것</h2>
@@ -382,6 +395,17 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests</code></pre>
 <p>위 항목은 현재 연구 방향에서 진행하는 다음 단계로 표현하지 않는다. 필요한 경우 과거 검토/실험 또는 archive 자료로만 다룬다.</p>
 <h2 id="관련-문서">관련 문서</h2>
 <ul><li><code>docs/current-demo-path.md</code>: 현재 device/MQTT/mapper/state-aggregator/dashboard 연결 경로</li><li><code>docs/device-service-binding.md</code>: 디바이스-서비스 연결 구조</li><li><code>docs/service-demo-scenario.md</code>: 서비스 데모 시나리오</li><li><code>docs/dashboard-information-structure.md</code>: dashboard 정보 구조</li><li><code>docs/device-status-policy.md</code>: DeviceStatus와 raw telemetry 분리 정책</li><li><code>docs/dashboard-policy.md</code>: dashboard 상태 판단 기준</li><li><code>docs/okdong-productivity-kpi.md</code>: 옥동 시나리오 생산성 KPI 정의</li></ul>
+<h2 id="workflow-designer-데모-순서">Workflow Designer 데모 순서</h2>
+<p>운영 dashboard 상태 확인 후, Workflow Designer는 다음 순서로 보여준다.</p>
+<ol><li>Service Workflow DAG View</li></ol>
+<ul><li>input device에서 stage와 platform endpoint까지 이어지는 논리 흐름을 설명한다.</li><li>edge label의 data 이름으로 <code>raw-signal</code>, <code>feature-vector</code>, <code>mqtt-event</code>가 어디서 생성되고 전달되는지 설명한다.</li></ul>
+<ol><li>Stage Placement View</li></ol>
+<ul><li>각 stage의 target node를 확인한다.</li><li>필요하면 select box 또는 node drop target으로 dry-run 배치를 바꿔 본다.</li><li>이 동작은 local plan만 바꾸며 실제 pod 배포나 runtime migration을 수행하지 않는다.</li></ul>
+<ol><li>Data Transport / Endpoint View</li></ol>
+<ul><li>producer stage/node와 consumer stage 또는 endpoint를 확인한다.</li><li><code>MQTT Broker</code>, <code>InfluxDB</code>, <code>State Aggregator</code>, <code>Dashboard</code>가 compute node와 분리되어 있음을 설명한다.</li></ul>
+<ol><li>Execution Plan / Validation</li></ol>
+<ul><li>JSON/YAML dry-run plan을 확인한다.</li><li>WARN/FAIL validation 결과로 배치와 transport 누락을 설명한다.</li></ul>
+<p>주의: 이 runbook 단계는 read-only + dry-run 설계 확인이며, Kubernetes apply/delete/restart, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -397,17 +421,17 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests</code></pre>
 <li class="toc-h2"><a href="#7-test-publisher-실행">7. test publisher 실행</a></li>
 <li class="toc-h2"><a href="#8-state-aggregator-api-확인">8. state-aggregator API 확인</a></li>
 <li class="toc-h2"><a href="#9-dashboard-확인">9. dashboard 확인</a></li>
-<li class="toc-h3"><a href="#explain-panel-활용-순서">Explain Panel 활용 순서</a></li>
-<li class="toc-h2"><a href="#10-정상-상태-판단">10. 정상 상태 판단</a></li>
-<li class="toc-h2"><a href="#11-degraded-troubleshooting">11. degraded troubleshooting</a></li>
+<li class="toc-h2"><a href="#10-workflow-designer로-서비스-구조-설명">10. Workflow Designer로 서비스 구조 설명</a></li>
+<li class="toc-h2"><a href="#11-explain-panel-활용">11. Explain Panel 활용</a></li>
+<li class="toc-h2"><a href="#12-정상-상태-판단">12. 정상 상태 판단</a></li>
+<li class="toc-h2"><a href="#13-degraded-troubleshooting">13. degraded troubleshooting</a></li>
 <li class="toc-h3"><a href="#증상-a-device는-등록됐지만-degraded">증상 A: Device는 등록됐지만 degraded</a></li>
 <li class="toc-h3"><a href="#증상-b-db-latest-timestamp-is-missing-또는-stale">증상 B: DB latest timestamp is missing 또는 stale</a></li>
 <li class="toc-h3"><a href="#증상-c-db-timestamp-fresh-but-devicestatus-snapshot-is-stale">증상 C: DB timestamp fresh but DeviceStatus snapshot is stale</a></li>
 <li class="toc-h3"><a href="#증상-d-assigned-mapper-is-not-running">증상 D: assigned mapper is not running</a></li>
 <li class="toc-h3"><a href="#증상-e-assigned-node-is-unavailable">증상 E: assigned node is unavailable</a></li>
-<li class="toc-h2"><a href="#12-devicestatus-정책-확인">12. DeviceStatus 정책 확인</a></li>
-<li class="toc-h2"><a href="#13-테스트-실행-기준">13. 테스트 실행 기준</a></li>
-<li class="toc-h2"><a href="#14-데모-전-체크리스트">14. 데모 전 체크리스트</a></li></ol></aside>
+<li class="toc-h2"><a href="#14-devicestatus-정책-확인">14. DeviceStatus 정책 확인</a></li>
+<li class="toc-h2"><a href="#15-테스트-실행-기준">15. 테스트 실행 기준</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: device-status-policy.md</span>
-            <span class="badge">수정: 2026-05-19 10:24</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:22</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -157,10 +157,10 @@ DEVICE_STATUS_HEARTBEAT_SECONDS=120</code></pre>
 <h2 id="device-manifest-정책">Device Manifest 정책</h2>
 <ul><li>raw telemetry property는 <code>reportToCloud: false</code></li><li>운영 상태 property만 <code>reportToCloud: true</code></li><li>Device <code>status.reportToCloud: false</code></li><li>Device <code>status.reportCycle: 120000</code></li></ul>
 <p>예:</p>
-<ul><li>env device</li><li>DeviceStatus: <code>health</code>, <code>sampling_interval</code>, 이후 <code>temperature_status</code>, <code>humidity_status</code></li><li>InfluxDB: <code>temperature</code>, <code>humidity</code></li><li>vib device</li><li>DeviceStatus: <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, 이후 <code>vibration_status</code></li><li>InfluxDB: <code>vibration</code>, 이후 <code>rms</code>, <code>peak</code>, raw vibration samples</li><li>act device</li><li>DeviceStatus: <code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, 이후 <code>command_state</code>, <code>reported_config_version</code></li><li>InfluxDB liveness: 현재 구현 기준 <code>health</code> property</li><li>향후 확장 후보: command event history, actuation latency, state transition history</li></ul>
+<ul><li>env device</li><li>DeviceStatus: <code>health</code>, <code>sampling_interval</code>, 이후 <code>temperature_status</code>, <code>humidity_status</code></li><li>InfluxDB: <code>temperature</code>, <code>humidity</code></li><li>vib device</li><li>DeviceStatus: <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, 이후 <code>vibration_status</code></li><li>InfluxDB: <code>vibration</code>, 이후 <code>rms</code>, <code>peak</code>, raw vibration samples</li><li>act device</li><li>DeviceStatus: <code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, 이후 <code>command_state</code>, <code>reported_config_version</code></li><li>InfluxDB liveness: 현재 구현 기준 <code>ts</code> property</li><li>향후 확장 후보: command event history, actuation latency, state transition history</li></ul>
 <h2 id="현재-poc-기준">현재 PoC 기준</h2>
 <p>현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재한다. 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다. 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.</p>
-<p>즉, dashboard의 <code>telemetry_device_count</code>는 telemetry-enabled device 수이고 <code>device_telemetry_ratio</code>는 telemetry-enabled device / 전체 registered device 비율이다. <code>fresh_telemetry_device_count</code>와 <code>telemetry_freshness_ratio</code>는 InfluxDB device-level latest sample freshness를 별도로 나타낸다. InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. <code>ts</code>는 publisher payload에 포함될 수 있지만 현재 act/rpi-act Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다.</p>
+<p>즉, dashboard의 <code>telemetry_device_count</code>는 telemetry-enabled device 수이고 <code>device_telemetry_ratio</code>는 telemetry-enabled device / 전체 registered device 비율이다. <code>fresh_telemetry_device_count</code>와 <code>telemetry_freshness_ratio</code>는 InfluxDB device-level latest sample freshness를 별도로 나타낸다. InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. <code>ts</code>는 publisher payload와 Device manifest의 DB push property로 freshness 기준에 사용한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#원칙">원칙</a></li>

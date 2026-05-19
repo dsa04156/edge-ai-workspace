@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/dashboard-verification.md</span>
-            <span class="badge">수정: 2026-05-19 10:59</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:46</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -381,7 +381,32 @@ autonomous agent action</code></pre>
 <ul><li><code>registered_device_count</code>: KubeEdge에 등록된 전체 Device CR 수</li><li><code>live_device_count</code>: state-aggregator 최종 status가 healthy인 device 수</li><li><code>telemetry_device_count</code>: telemetry_enabled device 수</li><li><code>device_telemetry_ratio</code>: telemetry configured ratio. freshness 비율 아님</li><li><code>fresh_telemetry_device_count</code>: telemetry_fresh == true인 device 수</li><li><code>telemetry_freshness_ratio</code>: fresh telemetry device 수 / telemetry_enabled device 수</li><li><code>fresh_device_status_count</code>: device_status_fresh == true인 device 수</li><li><code>device_status_freshness_ratio</code>: fresh DeviceStatus device 수 / 전체 device 수</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li><li><code>service_bound_device_count</code>: service demo group에 연결된 device 수</li><li><code>device_service_binding_ratio</code>: service-bound device 수 / 전체 registered device 수</li></ul>
 <p>Issue/Focus 설명 확인 기준:</p>
 <ul><li><code>telemetry_fresh=false</code>: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태 확인</li><li><code>mapper_running=false</code>: mapper pod와 node 배치 확인</li><li><code>node_ready=false</code>: node 상태와 edgecore/cloudcore 확인</li><li><code>device_status_fresh=false</code> + <code>telemetry_fresh=true</code>: DeviceStatus report path 확인</li></ul>
-<h2 id="6-reason-문구">6. Reason 문구</h2>
+<h2 id="6-workflow-designer-확인">6. Workflow Designer 확인</h2>
+<p><code>edge-orch/workflow-designer/index.html</code>은 dashboard와 분리된 dry-run 서비스 워크플로우 설계 화면이다. 확인 대상은 시각화, drag-and-drop placement, plan generation, validation이며 실제 배포는 아니다.</p>
+<p>확인 방법:</p>
+<ol><li>repo root에서 <code>python3 -m http.server 8080</code>을 실행한다.</li><li><code>http://localhost:8080/edge-orch/workflow-designer/index.html</code>을 연다.</li><li>기본 예시 <code>factory-anomaly-detection</code>, <code>environment-monitoring</code>, <code>actuator-command-monitoring</code>이 선택 가능한지 확인한다.</li><li>stage card를 Node Pool의 node card 위로 drag-and-drop한다.</li><li>stage의 <code>targetNode</code>가 변경되는지 확인한다.</li><li>Execution Plan Preview의 JSON/YAML이 즉시 갱신되는지 확인한다.</li><li>Validation Result가 PASS/WARN/FAIL로 표시되는지 확인한다.</li></ol>
+<p>검증 rule:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>결과</th>
+<th>조건 예시</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>target node가 있고 stage chain이 이어지며 dry-run plan 생성 가능</td>
+</tr>
+<tr>
+<td>WARN</td>
+<td>Raspberry Pi에 heavy inference 배치, event/dashboard stage가 edge node에 배치, service input device 없음</td>
+</tr>
+<tr>
+<td>FAIL</td>
+<td>targetNode 없음, unknown node, input/output chain 단절</td>
+</tr>
+</tbody></table></div>
+<p>주의: workflow designer는 <code>/state/dashboard</code> read-only fetch를 시도할 수 있지만, 실패해도 example mode로 동작해야 한다. Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행 버튼은 없어야 한다.</p>
+<h2 id="7-reason-문구">7. Reason 문구</h2>
 <p>reason은 운영자가 바로 다음 점검 위치를 알 수 있게 구체적이어야 한다.</p>
 <p>허용/권장 예시:</p>
 <pre data-lang="text"><code>recent InfluxDB telemetry
@@ -394,10 +419,10 @@ device is not bound to expected node
 DeviceStatus stale but telemetry fresh</code></pre>
 <p>해석 기준:</p>
 <ul><li><code>recent InfluxDB telemetry</code>: data-plane latest sample이 fresh하다.</li><li><code>InfluxDB telemetry stale</code>: publisher/MQTT/mapper/InfluxDB 경로 중 하나가 끊겼을 수 있다.</li><li><code>assigned mapper is not running</code>: 해당 node의 mqttvirtual mapper부터 확인한다.</li><li><code>assigned node is unavailable</code>: node/Prometheus/node-exporter 상태부터 확인한다.</li><li><code>DeviceStatus stale but telemetry fresh</code>: status-plane은 오래됐지만 data-plane은 살아 있으므로 healthy 가능하다.</li></ul>
-<h2 id="7-influxdb-timestamp-표시-해석">7. InfluxDB timestamp 표시 해석</h2>
+<h2 id="8-influxdb-timestamp-표시-해석">8. InfluxDB timestamp 표시 해석</h2>
 <p>Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.</p>
 <ul><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다.</li><li>실제 telemetry sample timestamp는 <code>_time</code>이다.</li><li>Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이다.</li><li>property별 latest freshness를 보장하지 않는다.</li><li>act/rpi-act device의 dashboard freshness 기준 property는 현재 <code>health</code> liveness row다.</li><li><code>ts</code>는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.</li></ul>
-<h2 id="8-api-기반-빠른-확인">8. API 기반 빠른 확인</h2>
+<h2 id="9-api-기반-빠른-확인">9. API 기반 빠른 확인</h2>
 <p>port-forward:</p>
 <pre data-lang="bash"><code>kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
 # 현재 로컬 클러스터처럼 service가 default namespace에 있으면:
@@ -407,9 +432,21 @@ DeviceStatus stale but telemetry fresh</code></pre>
 python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
 <p>특정 device 확인:</p>
 <pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03</code></pre>
-<h2 id="9-화면-정상-판정">9. 화면 정상 판정</h2>
+<h2 id="10-화면-정상-판정">10. 화면 정상 판정</h2>
 <p>정상 화면은 다음을 만족한다.</p>
 <ol><li>Overview KPI에서 telemetry configured ratio와 telemetry freshness ratio가 분리되어 보인다.</li><li>DeviceStatus freshness ratio가 telemetry freshness와 별도 KPI로 보인다.</li><li>Device list에서 telemetry property, latest timestamp, mapper/node 상태, reason을 확인할 수 있다.</li><li>Relation view에서 device-service binding이 보인다.</li><li>Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.</li><li>act/rpi-act device는 <code>telemetry_property=health</code>로 liveness를 설명한다.</li><li>workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.</li></ol>
+<h2 id="workflow-designer-검증">Workflow Designer 검증</h2>
+<p>Workflow Designer는 dashboard와 분리된 read-only + dry-run 설계 화면으로 검증한다.</p>
+<p>확인 항목:</p>
+<ol><li>Service Workflow DAG View</li></ol>
+<ul><li>input device, stage, platform endpoint가 구분되어 표시되는가?</li><li>stage edge label에 <code>raw-signal</code>, <code>feature-vector</code>, <code>mqtt-event</code> 같은 data 이름이 표시되는가?</li><li>stage type별 badge/style이 구분되는가?</li></ul>
+<ol><li>Stage Placement View</li></ol>
+<ul><li>stage, type, target node, input, output, required resource가 표시되는가?</li><li>target node 변경은 Placement View의 select/drop target에서만 수행되는가?</li><li>중앙 DAG가 node column placement 화면으로 동작하지 않는가?</li></ul>
+<ol><li>Data Transport / Endpoint View</li></ol>
+<ul><li>data name, producer stage/node, transport, consumer stage 또는 endpoint가 표시되는가?</li><li><code>MQTT Broker</code>, <code>InfluxDB</code>, <code>State Aggregator</code>, <code>Dashboard</code>가 compute node와 분리되어 보이는가?</li></ul>
+<ol><li>Dry-run validation</li></ol>
+<ul><li>target node 누락, producer/consumer edge 오류, endpoint transport 누락을 FAIL/WARN으로 표시하는가?</li><li>inference stage를 Raspberry Pi 5에 배치하면 WARN이 표시되는가?</li><li>event-publish에 MQTT Broker 연결이 없으면 FAIL이 표시되는가?</li></ul>
+<p>금지: 이 검증 중 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행을 하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -418,10 +455,12 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pr
 <li class="toc-h2"><a href="#3-service-binding-relation-view">3. Service Binding / Relation View</a></li>
 <li class="toc-h2"><a href="#4-issue-focus-list">4. Issue / Focus List</a></li>
 <li class="toc-h2"><a href="#5-explain-panel">5. Explain Panel</a></li>
-<li class="toc-h2"><a href="#6-reason-문구">6. Reason 문구</a></li>
-<li class="toc-h2"><a href="#7-influxdb-timestamp-표시-해석">7. InfluxDB timestamp 표시 해석</a></li>
-<li class="toc-h2"><a href="#8-api-기반-빠른-확인">8. API 기반 빠른 확인</a></li>
-<li class="toc-h2"><a href="#9-화면-정상-판정">9. 화면 정상 판정</a></li></ol></aside>
+<li class="toc-h2"><a href="#6-workflow-designer-확인">6. Workflow Designer 확인</a></li>
+<li class="toc-h2"><a href="#7-reason-문구">7. Reason 문구</a></li>
+<li class="toc-h2"><a href="#8-influxdb-timestamp-표시-해석">8. InfluxDB timestamp 표시 해석</a></li>
+<li class="toc-h2"><a href="#9-api-기반-빠른-확인">9. API 기반 빠른 확인</a></li>
+<li class="toc-h2"><a href="#10-화면-정상-판정">10. 화면 정상 판정</a></li>
+<li class="toc-h2"><a href="#workflow-designer-검증">Workflow Designer 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

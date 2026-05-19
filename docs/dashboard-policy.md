@@ -6,7 +6,7 @@
 
 `status.state=online`만으로 healthy 처리하지 않는다.
 healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다.
-env/vib/temp는 raw telemetry 값, act/rpi-act는 `health` liveness 값을 InfluxDB에 남긴다.
+env/vib/temp는 raw telemetry 값, act/rpi-act는 `ts` freshness 값을 InfluxDB에 남긴다.
 `DeviceStatus` timestamp와 `health=ok`는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다.
 `status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.
 

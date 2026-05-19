@@ -48,7 +48,7 @@ docs/generated/consistency-report.html
 5. act/rpi-act InfluxDB liveness row는 현재 `health` property 기준이다. `ts`는 dashboard freshness 판단용 DB push property가 아니다.
 6. dashboard `node_ready`는 Kubernetes Ready condition과 같은 값이 아니라 state-aggregator의 node_health 기반 판단값이다.
 7. InfluxDB timestamp 설명에는 `_start/_stop`, `_time`, device-level latest sample, property별 freshness 비보장 의미가 있어야 한다.
-8. workflow/offloading/placement/agent autonomous control은 현재 구현 기능처럼 표현하지 않는다.
+8. workflow/offloading/placement/agent autonomous control은 현재 구현 기능처럼 표현하지 않는다. 단, read-only/dry-run 설계·시각화 도구는 실제 실행 기능이 아님을 명시하면 허용한다.
 
 ## 구현 메모
 

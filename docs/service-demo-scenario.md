@@ -57,6 +57,7 @@
 | mapper | `mappers/mqttvirtual/` | MQTT와 KubeEdge device 계층 연결 |
 | state API | `edge-orch/state-aggregator/` | 통합 상태 API 제공 |
 | dashboard | `edge-orch/state-aggregator/app/static/` | 운영 가시화 |
+| workflow designer | `edge-orch/workflow-designer/` | 서비스 stage와 target node 배치를 dry-run으로 시각화 |
 | telemetry store | InfluxDB | raw telemetry 저장 및 latest 조회 |
 
 ## 사용 device
@@ -189,12 +190,28 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 - node별 상태
 - operator focus / issue list
 
-### 7단계: 생산성 효과 설명
+### 7단계: workflow designer로 서비스 구조 설명
 
-운영자가 dashboard를 통해 다음을 빠르게 판단할 수 있음을 설명한다.
+`edge-orch/workflow-designer/index.html`을 열어 서비스가 어떤 device를 입력으로 쓰고, 어떤 stage가 어떤 node에서 실행되는 구조인지 dry-run으로 보여준다.
+
+확인 순서:
+
+1. `factory-anomaly-detection`, `environment-monitoring`, `actuator-command-monitoring` 예시 중 하나를 선택한다.
+2. Service/Stage Palette에서 입력 device와 stage 흐름을 확인한다.
+3. Workflow Canvas에서 stage별 target node를 확인한다.
+4. 필요한 경우 stage card를 Node Pool로 drag-and-drop해 target node를 바꾼다.
+5. Execution Plan Preview의 JSON/YAML이 즉시 갱신되는지 확인한다.
+6. Validation Result가 PASS/WARN/FAIL로 나오는지 확인한다.
+
+주의: 현재 workflow designer는 실제 자동 배포/자동 배치 기능이 아니다. Kubernetes 배포, MQTT command publish, Device CR 수정, runtime offloading은 수행하지 않는다.
+
+### 8단계: 생산성 효과 설명
+
+운영자가 dashboard와 workflow designer를 통해 다음을 빠르게 판단할 수 있음을 설명한다.
 
 - 어떤 device가 live인지
 - 어떤 device가 service demo에 연결되어 있는지
+- 서비스 stage가 어떤 node에 배치되는 구조인지
 - 어떤 node에서 문제가 발생했는지
 - telemetry 문제인지 DeviceStatus 문제인지
 - mapper 문제인지 publisher 실행 위치 문제인지
@@ -298,3 +315,22 @@ device_service_binding_ratio
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
 - `docs/okdong-productivity-kpi.md`: 옥동 시나리오 생산성 KPI 정의
 - `docs/scope.md`: 현재 범위와 제외 범위
+
+## Workflow Designer 기준 서비스 시나리오 표현
+
+서비스 데모는 Workflow Designer에서 다음 세 관점으로 설명한다.
+
+- 서비스 논리: input device와 stage DAG를 보여준다. stage edge에는 전달되는 data 이름을 표시한다.
+- 실행 배치: stage별 target node를 별도 Placement View에서 보여주고 dry-run으로만 변경한다.
+- 데이터 전송: producer stage, producer node, transport, consumer stage 또는 endpoint를 별도 표로 보여준다.
+
+기본 예시는 다음이다.
+
+| 서비스 | input device | 논리 흐름 | 주요 endpoint |
+|---|---|---|---|
+| factory-anomaly-detection | `vib-device-01`, `rpi-vib-device-01` | collect -> preprocess -> inference -> event-publish -> sink | MQTT Broker, State Aggregator, Dashboard, optional InfluxDB |
+| environment-monitoring | `env-device-01`, `rpi-env-device-01` | collect -> normalize -> threshold-check -> storage/dashboard sink | InfluxDB, State Aggregator, Dashboard |
+| actuator-command-monitoring | `act-device-01`, `rpi-act-device-01` | command-state-read -> state-validate -> event-publish -> dashboard sink | MQTT Broker, State Aggregator, Dashboard |
+
+`actuator-command-monitoring`은 actuator command를 실행하지 않고 상태 확인만 표시한다.
+

@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-policy.md</span>
-            <span class="badge">수정: 2026-05-19 11:41</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:22</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -101,7 +101,7 @@
           <h1 id="dashboard-policy">Dashboard Policy</h1>
 <h2 id="원칙">원칙</h2>
 <p>대시보드는 DB latest timestamp와 <code>DeviceStatus</code> snapshot freshness를 분리해서 표시한다.</p>
-<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다. env/vib/temp는 raw telemetry 값, act/rpi-act는 <code>health</code> liveness 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp와 <code>health=ok</code>는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
+<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 InfluxDB latest timestamp를 우선 기준으로 삼는다. env/vib/temp는 raw telemetry 값, act/rpi-act는 <code>ts</code> freshness 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp와 <code>health=ok</code>는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
 <h2 id="freshness-설정">Freshness 설정</h2>
 <p>현재 기본값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90

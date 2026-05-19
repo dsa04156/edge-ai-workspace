@@ -172,7 +172,31 @@ Issue/Focus 설명 확인 기준:
 - `node_ready=false`: node 상태와 edgecore/cloudcore 확인
 - `device_status_fresh=false` + `telemetry_fresh=true`: DeviceStatus report path 확인
 
-## 6. Reason 문구
+## 6. Workflow Designer 확인
+
+`edge-orch/workflow-designer/index.html`은 dashboard와 분리된 dry-run 서비스 워크플로우 설계 화면이다. 확인 대상은 시각화, drag-and-drop placement, plan generation, validation이며 실제 배포는 아니다.
+
+확인 방법:
+
+1. repo root에서 `python3 -m http.server 8080`을 실행한다.
+2. `http://localhost:8080/edge-orch/workflow-designer/index.html`을 연다.
+3. 기본 예시 `factory-anomaly-detection`, `environment-monitoring`, `actuator-command-monitoring`이 선택 가능한지 확인한다.
+4. stage card를 Node Pool의 node card 위로 drag-and-drop한다.
+5. stage의 `targetNode`가 변경되는지 확인한다.
+6. Execution Plan Preview의 JSON/YAML이 즉시 갱신되는지 확인한다.
+7. Validation Result가 PASS/WARN/FAIL로 표시되는지 확인한다.
+
+검증 rule:
+
+| 결과 | 조건 예시 |
+|---|---|
+| PASS | target node가 있고 stage chain이 이어지며 dry-run plan 생성 가능 |
+| WARN | Raspberry Pi에 heavy inference 배치, event/dashboard stage가 edge node에 배치, service input device 없음 |
+| FAIL | targetNode 없음, unknown node, input/output chain 단절 |
+
+주의: workflow designer는 `/state/dashboard` read-only fetch를 시도할 수 있지만, 실패해도 example mode로 동작해야 한다. Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행 버튼은 없어야 한다.
+
+## 7. Reason 문구
 
 reason은 운영자가 바로 다음 점검 위치를 알 수 있게 구체적이어야 한다.
 
@@ -197,7 +221,7 @@ DeviceStatus stale but telemetry fresh
 - `assigned node is unavailable`: node/Prometheus/node-exporter 상태부터 확인한다.
 - `DeviceStatus stale but telemetry fresh`: status-plane은 오래됐지만 data-plane은 살아 있으므로 healthy 가능하다.
 
-## 7. InfluxDB timestamp 표시 해석
+## 8. InfluxDB timestamp 표시 해석
 
 Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.
 
@@ -208,7 +232,7 @@ Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.
 - act/rpi-act device의 dashboard freshness 기준 property는 현재 `health` liveness row다.
 - `ts`는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.
 
-## 8. API 기반 빠른 확인
+## 9. API 기반 빠른 확인
 
 port-forward:
 
@@ -231,7 +255,7 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000
 python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03
 ```
 
-## 9. 화면 정상 판정
+## 10. 화면 정상 판정
 
 정상 화면은 다음을 만족한다.
 
@@ -242,3 +266,31 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device r
 5. Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.
 6. act/rpi-act device는 `telemetry_property=health`로 liveness를 설명한다.
 7. workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.
+
+## Workflow Designer 검증
+
+Workflow Designer는 dashboard와 분리된 read-only + dry-run 설계 화면으로 검증한다.
+
+확인 항목:
+
+1. Service Workflow DAG View
+   - input device, stage, platform endpoint가 구분되어 표시되는가?
+   - stage edge label에 `raw-signal`, `feature-vector`, `mqtt-event` 같은 data 이름이 표시되는가?
+   - stage type별 badge/style이 구분되는가?
+
+2. Stage Placement View
+   - stage, type, target node, input, output, required resource가 표시되는가?
+   - target node 변경은 Placement View의 select/drop target에서만 수행되는가?
+   - 중앙 DAG가 node column placement 화면으로 동작하지 않는가?
+
+3. Data Transport / Endpoint View
+   - data name, producer stage/node, transport, consumer stage 또는 endpoint가 표시되는가?
+   - `MQTT Broker`, `InfluxDB`, `State Aggregator`, `Dashboard`가 compute node와 분리되어 보이는가?
+
+4. Dry-run validation
+   - target node 누락, producer/consumer edge 오류, endpoint transport 누락을 FAIL/WARN으로 표시하는가?
+   - inference stage를 Raspberry Pi 5에 배치하면 WARN이 표시되는가?
+   - event-publish에 MQTT Broker 연결이 없으면 FAIL이 표시되는가?
+
+금지: 이 검증 중 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행을 하지 않는다.
+

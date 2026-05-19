@@ -33,6 +33,7 @@
 5. Raspberry Pi publisher는 Raspberry Pi node에서 실행
 6. /state/dashboard API 응답 확인
 7. dashboard에서 service demo group, freshness, issue list 확인
+8. workflow designer에서 service stage와 target node dry-run plan 확인
 ```
 
 ## 전체 점검 흐름
@@ -47,7 +48,8 @@
 7. test publisher 실행
 8. state-aggregator API 확인
 9. dashboard 확인
-10. degraded reason 기반 troubleshooting
+10. workflow designer에서 service stage / node placement dry-run 확인
+11. degraded reason 기반 troubleshooting
 ```
 
 ## 사전 조건
@@ -330,7 +332,39 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 정상이라면 device, node, telemetry freshness, DeviceStatus freshness, service demo group이 함께 표시된다.
 운영자는 `reason`과 issue list를 기준으로 먼저 볼 device 또는 node를 좁힌다.
 
-### Explain Panel 활용 순서
+## 10. Workflow Designer로 서비스 구조 설명
+
+Dashboard로 실제 운영 상태를 확인한 뒤, 별도 화면인 workflow designer를 열어 서비스 구조를 설명한다.
+
+실행 예시:
+
+```bash
+cd /home/etri/jinuk
+python3 -m http.server 8080
+```
+
+브라우저:
+
+```text
+http://localhost:8080/edge-orch/workflow-designer/index.html
+```
+
+데모 설명 순서:
+
+1. `factory-anomaly-detection` 예시를 선택한다.
+2. 이 서비스가 `vib-device-01` 같은 device를 입력으로 사용한다고 설명한다.
+3. `capture -> preprocess -> inference -> event-publish -> dashboard-update` stage 흐름을 보여준다.
+4. 각 stage의 target node를 확인한다. 예: capture/preprocess는 Jetson, inference/event/dashboard는 Edge AI Server.
+5. stage를 다른 node로 drag-and-drop하면 execution plan JSON/YAML이 바뀌는 것을 보여준다.
+6. Validation Result에서 PASS/WARN/FAIL을 확인한다.
+
+주의:
+
+- 이 화면은 dry-run 설계 도구다.
+- 실제 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.
+- 자동 offloading/자동 placement를 실증 완료한 기능으로 설명하지 않는다.
+
+## 11. Explain Panel 활용
 
 데모 중 healthy/degraded 원인을 설명할 때는 read-only Explain Panel을 사용한다.
 
@@ -351,7 +385,7 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 - `node_ready=false`: dashboard 기준 node health와 edgecore/cloudcore 연결 상태를 확인한다.
 - `service_connected=false`: service binding rule 또는 device naming rule을 확인한다.
 
-## 10. 정상 상태 판단
+## 12. 정상 상태 판단
 
 정상 경로는 다음 조건을 만족한다.
 
@@ -365,7 +399,7 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 8. dashboard에서 device가 healthy 또는 의도한 상태로 보인다.
 9. service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.
 
-## 11. degraded troubleshooting
+## 13. degraded troubleshooting
 
 ### 증상 A: Device는 등록됐지만 degraded
 
@@ -449,7 +483,7 @@ kubectl describe node <node-name>
 
 edge node라면 edgecore 상태와 cloudcore 연결 상태도 확인한다.
 
-## 12. DeviceStatus 정책 확인
+## 14. DeviceStatus 정책 확인
 
 DeviceStatus에는 raw telemetry stream을 올리지 않는다.
 
@@ -479,7 +513,7 @@ DeviceStatus에는 raw telemetry stream을 올리지 않는다.
 
 자세한 기준은 `docs/device-status-policy.md`를 따른다.
 
-## 13. 테스트 실행 기준
+## 15. 테스트 실행 기준
 
 state-aggregator 코드 변경이 있을 때는 다음 명령으로 테스트한다.
 
@@ -490,7 +524,7 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
 
 현재 문서 정리 단계에서는 코드 변경이 없으므로 테스트는 필수는 아니다.
 
-## 14. 데모 전 체크리스트
+## 16. 데모 전 체크리스트
 
 데모 직전에는 다음을 확인한다.
 
@@ -528,3 +562,27 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
 - `docs/device-status-policy.md`: DeviceStatus와 raw telemetry 분리 정책
 - `docs/dashboard-policy.md`: dashboard 상태 판단 기준
 - `docs/okdong-productivity-kpi.md`: 옥동 시나리오 생산성 KPI 정의
+
+## Workflow Designer 데모 순서
+
+운영 dashboard 상태 확인 후, Workflow Designer는 다음 순서로 보여준다.
+
+1. Service Workflow DAG View
+   - input device에서 stage와 platform endpoint까지 이어지는 논리 흐름을 설명한다.
+   - edge label의 data 이름으로 `raw-signal`, `feature-vector`, `mqtt-event`가 어디서 생성되고 전달되는지 설명한다.
+
+2. Stage Placement View
+   - 각 stage의 target node를 확인한다.
+   - 필요하면 select box 또는 node drop target으로 dry-run 배치를 바꿔 본다.
+   - 이 동작은 local plan만 바꾸며 실제 pod 배포나 runtime migration을 수행하지 않는다.
+
+3. Data Transport / Endpoint View
+   - producer stage/node와 consumer stage 또는 endpoint를 확인한다.
+   - `MQTT Broker`, `InfluxDB`, `State Aggregator`, `Dashboard`가 compute node와 분리되어 있음을 설명한다.
+
+4. Execution Plan / Validation
+   - JSON/YAML dry-run plan을 확인한다.
+   - WARN/FAIL validation 결과로 배치와 transport 누락을 설명한다.
+
+주의: 이 runbook 단계는 read-only + dry-run 설계 확인이며, Kubernetes apply/delete/restart, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.
+

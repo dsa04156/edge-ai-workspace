@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: current-demo-path.md</span>
-            <span class="badge">수정: 2026-05-19 10:24</span>
-            <span class="badge">HTML 생성: 2026-05-19 11:41</span>
+            <span class="badge">수정: 2026-05-19 15:46</span>
+            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
           </div>
         </header>
         
@@ -126,6 +126,8 @@
 <ul><li><code>state-aggregator</code>가 Kubernetes, KubeEdge, InfluxDB, Prometheus, mapper 상태를 함께 읽는다.</li><li>dashboard가 사용할 device/node/service 상태와 KPI를 만든다.</li></ul>
 <ol><li>dashboard 계층</li></ol>
 <ul><li>dashboard는 단순히 Device CR 존재 여부만 보지 않는다.</li><li>dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</li></ul>
+<ol><li>workflow designer 계층</li></ol>
+<ul><li><code>edge-orch/workflow-designer/</code>는 서비스가 어떤 device를 입력으로 쓰고, 어떤 stage 흐름으로 구성되며, 각 stage가 어떤 node에 배치되는지 dry-run으로 설계/시각화한다.</li><li>이 도구는 read-only + dry-run plan generation 전용이다. workflow/offloading/placement 자동 실행, Kubernetes 배포, MQTT command publish, Device CR 수정은 수행하지 않는다.</li></ul>
 <h2 id="구성-요소">구성 요소</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -163,6 +165,11 @@
 <td>dashboard</td>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>디바이스, 노드, 서비스, KPI 운영 가시화</td>
+</tr>
+<tr>
+<td>workflow designer</td>
+<td><code>edge-orch/workflow-designer/</code></td>
+<td>서비스 stage, input device, target node를 dry-run으로 시각화하고 execution plan을 생성</td>
 </tr>
 </tbody></table></div>
 <h2 id="device-devicemodel">Device / DeviceModel</h2>
@@ -282,10 +289,10 @@ mappers/mqttvirtual/resource/configmap.yaml</code></pre>
 <tr>
 <td>act/rpi-act device</td>
 <td><code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, <code>command_state</code>, <code>reported_config_version</code></td>
-<td>현재 구현 기준 InfluxDB liveness row는 <code>health</code> property. <code>ts</code>는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 설명하지 않는다.</td>
+<td>현재 구현 기준 InfluxDB freshness row는 <code>ts</code> property다. <code>health</code>는 상태 요약용이고, <code>ts</code>는 publisher payload와 DB push property로 freshness 기준에 사용한다.</td>
 </tr>
 </tbody></table></div>
-<p>현재 dashboard는 InfluxDB device-level latest telemetry <code>_time</code>을 보고 data-plane이 살아 있는지 판단한다. <code>_start</code>/<code>_stop</code>은 Flux query window이고 실제 sample timestamp는 <code>_time</code>이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다.</p>
+<p>현재 dashboard는 InfluxDB device-level latest telemetry <code>_time</code>을 보고 data-plane이 살아 있는지 판단한다. <code>_start</code>/<code>_stop</code>은 Flux query window이고 실제 sample timestamp는 <code>_time</code>이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다. act/rpi-act는 <code>ts</code> liveness row를 freshness 기준으로 사용한다.</p>
 <h2 id="state-aggregator">state-aggregator</h2>
 <p><code>state-aggregator</code>는 dashboard 상태 API를 제공하는 FastAPI 기반 컴포넌트다.</p>
 <p>관련 경로:</p>
@@ -416,6 +423,15 @@ rpi-act-device-*</code></pre>
 <p>위 항목은 현재 연구 방향에서 진행하는 다음 단계로 표현하지 않는다. 필요한 경우 과거 검토/실험 자료 또는 보관 경로로만 다룬다.</p>
 <h2 id="관련-문서">관련 문서</h2>
 <ul><li><code>docs/scope.md</code>: 현재 PoC 범위와 제외 범위</li><li><code>docs/repo-structure.md</code>: 레포 디렉터리 역할 분류</li><li><code>docs/project-context.md</code>: 프로젝트 배경과 테스트베드 기준</li><li><code>docs/device-status-policy.md</code>: DeviceStatus와 raw telemetry 분리 정책</li><li><code>docs/dashboard-policy.md</code>: dashboard 상태 판단 기준</li><li><code>docs/roadmap.md</code>: 현재 산출물과 단계별 작업 방향</li></ul>
+<h2 id="workflow-designer에서-보는-현재-데모-경로">Workflow Designer에서 보는 현재 데모 경로</h2>
+<p>Workflow Designer는 이 경로를 하나의 node-column 화면으로 합치지 않고 다음 3개 관점으로 나누어 본다.</p>
+<ol><li>Service Workflow DAG</li></ol>
+<ul><li>input device에서 시작해 <code>collect -&gt; preprocess/normalize -&gt; inference/rule-check -&gt; event-publish -&gt; sink</code>로 이어지는 서비스 논리 흐름을 표시한다.</li><li><code>raw-signal</code>, <code>feature-vector</code>, <code>mqtt-event</code>, <code>environment-state</code> 같은 output data 이름은 stage 사이 edge label로 표시한다.</li></ul>
+<ol><li>Stage Placement</li></ol>
+<ul><li>각 stage가 <code>factoryName-ser0001-CG0MS0</code>, <code>etri-dev0001-jetorn</code>, <code>etri-dev0002-raspi5</code> 중 어디서 실행되는지 별도 표/카드로 표시한다.</li><li>target node 변경은 이 dry-run placement view에서만 수행한다.</li></ul>
+<ol><li>Data Transport / Endpoint</li></ol>
+<ul><li>output data가 어떤 transport로 어느 consumer stage 또는 platform endpoint에 전달되는지 표시한다.</li><li>platform endpoint는 compute node와 분리하며 <code>MQTT Broker</code>, <code>InfluxDB</code>, <code>State Aggregator</code>, <code>Dashboard</code>로 구분한다.</li></ul>
+<p>이 기능은 read-only + dry-run 설계 도구이며 실제 배포, MQTT command publish, Device CR 수정, runtime migration/offloading을 수행하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -435,7 +451,8 @@ rpi-act-device-*</code></pre>
 <li class="toc-h2"><a href="#data-plane-status-plane-분리">data-plane / status-plane 분리</a></li>
 <li class="toc-h2"><a href="#degraded-상태가-나오는-대표-원인">degraded 상태가 나오는 대표 원인</a></li>
 <li class="toc-h2"><a href="#현재-데모-경로에서-제외하는-것">현재 데모 경로에서 제외하는 것</a></li>
-<li class="toc-h2"><a href="#관련-문서">관련 문서</a></li></ol></aside>
+<li class="toc-h2"><a href="#관련-문서">관련 문서</a></li>
+<li class="toc-h2"><a href="#workflow-designer에서-보는-현재-데모-경로">Workflow Designer에서 보는 현재 데모 경로</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

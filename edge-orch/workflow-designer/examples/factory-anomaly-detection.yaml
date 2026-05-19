@@ -1,0 +1,126 @@
+serviceName: factory-anomaly-detection
+mode: dry-run
+inputDevices:
+  - vib-device-01
+  - rpi-vib-device-01
+stages:
+  - name: collect
+    type: collect
+    input: vib-device-01
+    output: raw-signal
+    connectedDevice: vib-device-01
+    requiredResource: edge mqtt + sensor adapter
+  - name: preprocess
+    type: preprocess
+    input: raw-signal
+    output: feature-vector
+    connectedDevice: vib-device-01
+    requiredResource: aarch64 cpu
+  - name: inference
+    type: ai-inference
+    input: feature-vector
+    output: anomaly-score
+    connectedDevice: vib-device-01
+    requiredResource: gpu or jetson
+  - name: event-publish
+    type: output
+    input: anomaly-score
+    output: mqtt-event
+    requiredResource: mqtt publisher
+  - name: dashboard-sink
+    type: sink
+    input: mqtt-event
+    output: operator-view
+    requiredResource: dashboard/state view
+  - name: state-aggregator-sink
+    type: sink
+    input: mqtt-event
+    output: aggregated-state
+    requiredResource: state-aggregator api
+  - name: influxdb-sink
+    type: sink
+    input: anomaly-score
+    output: time-series-record
+    requiredResource: InfluxDB write path
+edges:
+  - from: device:vib-device-01
+    to: collect
+    data: vib-device-01
+    transport: mqtt
+  - from: collect
+    to: preprocess
+    data: raw-signal
+    transport: mqtt
+  - from: preprocess
+    to: inference
+    data: feature-vector
+    transport: http
+  - from: inference
+    to: event-publish
+    data: anomaly-score
+    transport: internal
+  - from: event-publish
+    to: dashboard-sink
+    data: mqtt-event
+    transport: mqtt
+  - from: event-publish
+    to: state-aggregator-sink
+    data: mqtt-event
+    transport: mqtt
+  - from: inference
+    to: influxdb-sink
+    data: anomaly-score
+    transport: influx-line
+placements:
+  - stage: collect
+    targetNode: etri-dev0001-jetorn
+  - stage: preprocess
+    targetNode: etri-dev0001-jetorn
+  - stage: inference
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: event-publish
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: dashboard-sink
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: state-aggregator-sink
+    targetNode: factoryName-ser0001-CG0MS0
+  - stage: influxdb-sink
+    targetNode: factoryName-ser0001-CG0MS0
+endpoints:
+  - MQTT Broker
+  - InfluxDB
+  - State Aggregator
+  - Dashboard
+transports:
+  - data: raw-signal
+    producer: collect
+    consumer: preprocess
+    transport: mqtt
+  - data: feature-vector
+    producer: preprocess
+    consumer: inference
+    transport: http
+  - data: anomaly-score
+    producer: inference
+    consumer: event-publish
+    transport: internal
+  - data: mqtt-event
+    producer: event-publish
+    consumer: MQTT Broker
+    endpoint: MQTT Broker
+    transport: mqtt
+  - data: mqtt-event
+    producer: event-publish
+    consumer: State Aggregator
+    endpoint: State Aggregator
+    transport: mqtt
+  - data: mqtt-event
+    producer: event-publish
+    consumer: Dashboard
+    endpoint: Dashboard
+    transport: http
+  - data: anomaly-score
+    producer: inference
+    consumer: InfluxDB
+    endpoint: InfluxDB
+    transport: influx-line

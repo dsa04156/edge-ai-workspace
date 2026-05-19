@@ -47,6 +47,7 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
 | `device-service-binding.md` | device가 어떤 service demo group에 연결되는지 |
 | `current-demo-path.md` | device -> MQTT -> mapper -> InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
+| `edge-orch/workflow-designer/README.md` | 서비스 stage, input device, target node를 dry-run으로 설계/시각화하는 Workflow Designer MVP |
 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC와 read-only 요약 API |
 
 ## 구현자가 자주 보는 문서
@@ -98,8 +99,9 @@ Device 등록
 4. DeviceStatus snapshot이 최신인가?
 5. mapper와 node는 정상인가?
 6. 어떤 service demo group에 연결되어 있는가?
-7. 문제가 있다면 어느 device/node/mapper/telemetry 경로를 먼저 봐야 하는가?
-8. 이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?
+7. 이 service는 어떤 stage 흐름이고 각 stage는 어느 node에서 실행되는 구조인가?
+8. 문제가 있다면 어느 device/node/mapper/telemetry 경로를 먼저 봐야 하는가?
+9. 이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?
 
 ## 현재 주요 산출물
 
@@ -109,6 +111,7 @@ Device 등록
 | 서비스 데모 시나리오 | `service-demo-scenario.md` |
 | 디바이스-서비스 바인딩 명세 | `device-service-binding.md` |
 | 통합 dashboard 정보 구조 | `dashboard-information-structure.md` |
+| Workflow Designer MVP | `../edge-orch/workflow-designer/README.md` |
 | 현재 데모 실행 runbook | `ops/runbook-current-demo.md` |
 | CI/CD 자동 배포 기준 | `ops/ci-cd-autodeploy.md` |
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |

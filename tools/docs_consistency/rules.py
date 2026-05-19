@@ -277,11 +277,11 @@ def rule_influx_timestamp_notes(corpus: Corpus) -> RuleResult:
 
 def rule_scope_current_implementation(corpus: Corpus) -> RuleResult:
     name = "R8 workflow/offloading/placement/autonomous agent are not current implementation scope"
-    fix = "workflow/offloading/placement/agent autonomous control은 현재 구현 기능이 아니라 제외 범위, archive/legacy, 또는 향후 확장 후보로만 표현한다."
+    fix = "workflow/offloading/placement/agent autonomous control은 현재 구현 기능이 아니라 제외 범위, archive/legacy, 향후 확장 후보, 또는 read-only/dry-run 설계 도구로만 표현한다."
     result = RuleResult(name=name, recommended_fix=fix)
     risky_terms = re.compile(r"(workflow|offloading|placement|agent-assisted|autonomous|자율 제어|전역 제어|자동 배치|자동 재배치|runtime replanning)", re.I)
     current_claim = re.compile(r"(현재|current|구현|실행|동작|제공|완료|적용한다|사용한다|핵심)", re.I)
-    allowed = re.compile(r"(제외|아니다|아니라|아니며|하지 않는다|목표가 아니다|archive|legacy|향후|후보|과거|보관|비교|Guardrail|하면 안 되는|범위에서 제외|호환|흔적|정리 전 이름|현재 이름)", re.I)
+    allowed = re.compile(r"(제외|아니다|아니라|아니며|하지 않는다|목표가 아니다|archive|legacy|향후|후보|과거|보관|비교|Guardrail|하면 안 되는|범위에서 제외|호환|흔적|정리 전 이름|현재 이름|Workflow Designer|read-only|dry-run|설계|시각화|plan generation|실제 배포 없음)", re.I)
     for file, line_no, line in iter_lines(corpus.docs):
         if not risky_terms.search(line):
             continue

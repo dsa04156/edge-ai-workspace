@@ -54,7 +54,7 @@ GROUPS = [
         "act",
         6,
         "virtual-act-model",
-        ["power", "mode", "health", "sampling_interval"],
+        ["power", "mode", "health", "ts", "sampling_interval"],
         ["power", "mode", "health", "sampling_interval"],
     ),
 ]
@@ -78,7 +78,7 @@ RPI_GROUPS = [
         "rpi-act",
         3,
         "virtual-act-model",
-        ["power", "mode", "health", "sampling_interval"],
+        ["power", "mode", "health", "ts", "sampling_interval"],
         ["power", "mode", "health", "sampling_interval"],
     ),
 ]
@@ -87,7 +87,7 @@ RPI_GROUPS = [
 def should_store_to_influx(device_type: str, key: str) -> bool:
     if key in {"temperature", "humidity", "vibration"}:
         return True
-    return device_type in {"act", "rpi-act"} and key == "health"
+    return device_type in {"act", "rpi-act"} and key in {"health", "ts"}
 
 
 def emit_influx_push_method(device_name: str, device_type: str, key: str) -> str:
