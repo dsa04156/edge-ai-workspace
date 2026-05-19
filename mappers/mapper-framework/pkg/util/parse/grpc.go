@@ -294,11 +294,18 @@ func GetDeviceFromGrpc(device *dmiapi.Device, commonModel *common.DeviceModel) (
 				break
 			}
 		}
+		if instance.Properties[i].PProperty.Name == "" {
+			klog.Warningf("skip unresolved property %q for device %s", instance.Properties[i].PropertyName, instance.Name)
+			continue
+		}
 		propertiesMap[instance.Properties[i].PProperty.Name] = instance.Properties[i]
 	}
 	for i := range instance.Twins {
 		if v, ok := propertiesMap[instance.Twins[i].PropertyName]; ok {
 			instance.Twins[i].Property = &v
+		}
+		if instance.Twins[i].Property == nil {
+			klog.Warningf("skip unresolved twin %q for device %s", instance.Twins[i].PropertyName, instance.Name)
 		}
 	}
 	klog.V(2).Infof("final instance data from grpc = %v", instance)

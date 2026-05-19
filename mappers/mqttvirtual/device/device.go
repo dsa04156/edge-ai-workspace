@@ -150,6 +150,10 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 	// handle device twin report
 	eventTwinData := make(map[string]*TwinData)
 	for _, twin := range dev.Instance.Twins {
+		if twin.Property == nil {
+			klog.Warningf("skip unresolved twin %q for device %s", twin.PropertyName, dev.Instance.Name)
+			continue
+		}
 		twin.Property.PProperty.DataType = strings.ToLower(twin.Property.PProperty.DataType)
 		var visitorConfig driver.VisitorConfig
 
