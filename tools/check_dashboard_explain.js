@@ -22,32 +22,32 @@ const cases = [
   {
     name: 'healthy + telemetry_fresh=true + device_status_fresh=false',
     device: { ...baseDevice, device_status_fresh: false },
-    expected: ['Rule A', 'Rule F'],
+    expected: ['Sensor OK'],
   },
   {
     name: 'degraded + telemetry_fresh=false',
     device: { ...baseDevice, status: 'degraded', overall_status: 'degraded', telemetry_fresh: false },
-    expected: ['Rule C'],
+    expected: ['Sensor Stale'],
   },
   {
     name: 'mapper_running=false',
     device: { ...baseDevice, mapper_running: false },
-    expected: ['Rule D'],
+    expected: ['Mapper'],
   },
   {
     name: 'node_ready=false',
     device: { ...baseDevice, node_ready: false },
-    expected: ['Rule E'],
+    expected: ['Node'],
   },
   {
     name: 'severity=critical',
     device: { ...baseDevice, status: 'degraded', overall_status: 'degraded', severity: 'critical' },
-    expected: ['Rule B'],
+    expected: ['Severity'],
   },
   {
     name: 'service_connected=false',
     device: { ...baseDevice, service_connected: false },
-    expected: ['Rule G'],
+    expected: ['Service'],
   },
 ];
 
@@ -59,10 +59,10 @@ for (const item of cases) {
 }
 
 const kpi = explainKpi('device_telemetry_ratio', { device_telemetry_ratio: 0.75 });
-assert(kpi.text.includes('freshness 비율이 아닙니다'));
+assert(kpi.text.includes('센서 데이터 적재가 설정된 device 비율'));
 assert.strictEqual(kpi.value, 0.75);
 
 const issueMessages = issueExplanation({ kind: 'device', device: { ...baseDevice, telemetry_fresh: false } });
-assert(issueMessages.join('\n').includes('publisher 실행 위치'));
+assert(issueMessages.join('\n').includes('센서 데이터가 stale'));
 
 console.log(`PASS dashboard explain rules: ${cases.length} mock cases`);

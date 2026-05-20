@@ -122,6 +122,19 @@ device_service_binding_ratio
 | `overall_status` / `status` | dashboard 최종 상태 | state-aggregator 판단 |
 | `reason` / `status_reason` | 상태 판단 이유 | state-aggregator 판단 |
 
+## Explain Panel 표시 정책
+
+Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 `status`, `reason`, `node`, `sensor`, `last seen`, `mapper`, `service`로 제한한다.
+
+다음 값은 API에는 남기되 Explain Panel 기본 화면에서는 숨긴다.
+
+- `device_type`, `protocol`, `model`, `namespace` 같은 식별/구현 세부값
+- `telemetry_enabled`, `service_connected` 같은 내부 boolean
+- `device_status_fresh`, `device_status_last_reported_at` 같은 status-plane snapshot 보조값
+- `service_binding_source`, `service_binding_reason` 같은 binding 내부 설명
+
+Issue 설명은 node, mapper, sensor freshness 순서로 원인 후보만 보여준다. DeviceStatus stale은 센서 데이터가 fresh한 경우 운영 문제로 띄우지 않는다. DeviceStatus 상세 확인이 필요하면 `/state/devices` API 또는 DeviceStatus 정책 문서에서 확인한다.
+
 ## Node card 정보 구조
 
 각 node card 또는 row는 다음 정보를 포함한다.

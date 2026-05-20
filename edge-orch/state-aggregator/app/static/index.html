@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css?v=sensor-data-20260520" />
+    <link rel="stylesheet" href="/static/styles.css?v=explain-compact-20260520" />
   </head>
   <body>
     <main class="shell">
@@ -94,10 +94,10 @@
         <section class="panel explain-panel" aria-live="polite">
           <div class="panel-head">
             <h2>Explain Panel</h2>
-            <span>read-only rule 기반 설명</span>
+            <span>핵심 상태 설명</span>
           </div>
           <div id="explainPanel" class="explain-content">
-            <div class="empty">Device row, KPI 카드, Issue 항목을 클릭하면 현재 API payload 기준 설명을 표시합니다.</div>
+            <div class="empty">Device, KPI, Issue를 선택하면 센서 데이터와 상태 원인만 요약합니다.</div>
           </div>
         </section>
 
@@ -124,6 +124,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=sensor-data-20260520"></script>
+    <script src="/static/dashboard.js?v=explain-compact-20260520"></script>
   </body>
 </html>

@@ -65,6 +65,12 @@ parse 실패 시 해당 field는 freshness 판단에서 제외하고 reason에 p
 9. reported timestamp와 `lastOnlineTime` 중 최신 timestamp는 DeviceStatus snapshot 표시용으로 사용한다.
 10. dashboard는 `device_status_fresh`와 `device_status_last_reported_at`도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.
 
+## Explain Panel 표시 기준
+
+Explain Panel은 운영자가 즉시 판단할 핵심값만 표시한다. Device 선택 시 기본 표시값은 `status`, `reason`, `node`, `sensor`, `last seen`, `mapper`, `service`이다.
+
+DeviceStatus freshness, binding source, protocol/model 같은 세부 필드는 API와 문서에는 유지하지만 기본 Explain Panel에는 표시하지 않는다. 현재 PoC의 1차 판단은 실제 센서 데이터 freshness이므로, DeviceStatus stale은 data-plane이 fresh한 경우 별도 Issue로 올리지 않는다.
+
 ## API 응답 필드
 
 `/state/devices`는 최소한 다음 정보를 포함한다.

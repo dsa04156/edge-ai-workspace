@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-policy.md</span>
-            <span class="badge">수정: 2026-05-20 21:59</span>
-            <span class="badge">HTML 생성: 2026-05-20 21:59</span>
+            <span class="badge">수정: 2026-05-20 22:12</span>
+            <span class="badge">HTML 생성: 2026-05-20 22:12</span>
           </div>
         </header>
         
@@ -116,6 +116,9 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <ul><li><code>Device.spec.nodeName</code>: 어느 노드에 할당됐는지 확인</li><li><code>Device.spec.protocol.protocolName</code>: <code>mqttvirtual</code> mapper 확인 여부 결정</li><li><code>Device.spec.properties[].pushMethod</code>: data-plane telemetry 대상 여부</li><li><code>DeviceStatus.status.lastOnlineTime</code>: fallback DeviceStatus timestamp</li><li><code>DeviceStatus.status.twins[].reported.metadata.timestamp</code>: DeviceStatus freshness 우선 기준</li><li>InfluxDB <code>device_telemetry</code>: device live/freshness 기준</li><li>env/vib/temp: raw telemetry property</li><li>act/rpi-act: <code>health</code> liveness property</li><li>KPI 관련 주의</li><li><code>telemetry_device_count</code>: raw telemetry 대상(device.spec.properties.pushMethod 기반) device 수 (현재 코드 기준)</li><li><code>device_telemetry_ratio</code>: telemetry 설정 비율 = telemetry_device_count / registered_device_count (fresh 비율 아님)</li><li><code>telemetry_freshness_ratio</code>: 실제 최신 telemetry 비율 = fresh_telemetry_device_count / telemetry_device_count</li><li><code>sensor_data_freshness_ratio</code>: 실제 센서 데이터 freshness 비율 = fresh_sensor_data_device_count / sensor_data_device_count. 현재 dashboard의 메인 freshness KPI</li><li><code>device_status_freshness_ratio</code>: 최신 DeviceStatus 비율 = fresh_device_status_count / registered_device_count. status-plane 보조 지표이며 메인 건강 판단 KPI가 아님</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li></ul>
 <h2 id="상태-판단-순서">상태 판단 순서</h2>
 <ol><li>Kubernetes <code>Device</code> 목록과 <code>DeviceStatus</code> 목록을 조회한다.</li><li>같은 namespace/name의 <code>DeviceStatus.status</code>가 있으면 병합해서 snapshot 필드로 표시한다.</li><li>노드 미할당 또는 할당 노드 <code>unavailable</code>이면 <code>unavailable</code>.</li><li><code>mqttvirtual</code> 디바이스인데 해당 노드의 mapper Pod가 Running이 아니면 <code>unavailable</code>.</li><li><code>health=offline</code> 또는 명시 상태값 <code>offline/disconnected/failed/unavailable/false</code>면 <code>unavailable</code>.</li><li>InfluxDB latest timestamp가 <code>TELEMETRY_FRESH_SECONDS</code> 이내면 <code>telemetry_fresh=true</code>.</li><li>DB timestamp가 fresh하면 <code>severity=critical</code>이 아닌 한 <code>healthy</code>.</li><li>DB timestamp가 없거나 stale이면 <code>degraded</code>.</li><li>reported timestamp와 <code>lastOnlineTime</code> 중 최신 timestamp는 DeviceStatus snapshot 표시용으로 사용한다.</li><li>dashboard는 <code>device_status_fresh</code>와 <code>device_status_last_reported_at</code>도 계속 표시해 운영자가 KubeEdge reported path 상태를 별도로 볼 수 있게 한다.</li></ol>
+<h2 id="explain-panel-표시-기준">Explain Panel 표시 기준</h2>
+<p>Explain Panel은 운영자가 즉시 판단할 핵심값만 표시한다. Device 선택 시 기본 표시값은 <code>status</code>, <code>reason</code>, <code>node</code>, <code>sensor</code>, <code>last seen</code>, <code>mapper</code>, <code>service</code>이다.</p>
+<p>DeviceStatus freshness, binding source, protocol/model 같은 세부 필드는 API와 문서에는 유지하지만 기본 Explain Panel에는 표시하지 않는다. 현재 PoC의 1차 판단은 실제 센서 데이터 freshness이므로, DeviceStatus stale은 data-plane이 fresh한 경우 별도 Issue로 올리지 않는다.</p>
 <h2 id="api-응답-필드">API 응답 필드</h2>
 <p><code>/state/devices</code>는 최소한 다음 정보를 포함한다.</p>
 <pre data-lang="json"><code>{
@@ -142,6 +145,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <li class="toc-h2"><a href="#timestamp-처리">Timestamp 처리</a></li>
 <li class="toc-h2"><a href="#판단-필드">판단 필드</a></li>
 <li class="toc-h2"><a href="#상태-판단-순서">상태 판단 순서</a></li>
+<li class="toc-h2"><a href="#explain-panel-표시-기준">Explain Panel 표시 기준</a></li>
 <li class="toc-h2"><a href="#api-응답-필드">API 응답 필드</a></li>
 <li class="toc-h2"><a href="#해석-규칙">해석 규칙</a></li></ol></aside>
     </div>

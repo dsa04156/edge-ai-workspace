@@ -67,88 +67,42 @@ function deviceReason(device) {
 function explainDeviceRules(device) {
   const rules = [];
   const status = deviceStatus(device);
-
   if (status === "healthy" && device.telemetry_fresh === true) {
-    rules.push({
-      id: "Rule A",
-      title: "healthy + telemetry fresh",
-      text: "이 device는 InfluxDB latest telemetry가 freshness 기준을 만족하므로 healthy로 판단됩니다. DeviceStatus freshness는 status-plane 보조 신호이며, telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있습니다.",
-    });
+    rules.push({ id: "Sensor OK", title: "recent sensor data", text: "InfluxDB에 최근 센서 sample이 들어와 healthy로 판단됩니다." });
   }
-
-  if (device.severity === "critical") {
-    rules.push({
-      id: "Rule B",
-      title: "severity critical",
-      text: "최근 telemetry는 들어오지만 severity가 critical이므로 degraded로 표시됩니다.",
-    });
-  }
-
   if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
-    rules.push({
-      id: "Rule C",
-      title: "telemetry missing/stale",
-      text: "이 device는 telemetry 대상이지만 InfluxDB latest sample이 없거나 freshness 기준을 만족하지 않습니다. publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태를 확인해야 합니다.",
-    });
+    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "센서 sample이 freshness 기준을 넘었습니다. Jetson collector, local mosquitto, mapper, InfluxDB 적재 상태를 확인합니다." });
   }
-
   if (device.mapper_running === false) {
-    rules.push({
-      id: "Rule D",
-      title: "mapper not running",
-      text: "이 device는 mqttvirtual mapper가 필요한 device지만, 할당 node에서 mapper pod가 Running 상태가 아닙니다.",
-    });
+    rules.push({ id: "Mapper", title: "mapper not running", text: "이 device가 할당된 node에서 mqttvirtual mapper가 Running 상태가 아닙니다." });
   }
-
   if (device.node_ready === false) {
-    rules.push({
-      id: "Rule E",
-      title: "node unavailable",
-      text: "이 device가 할당된 node가 dashboard 기준 unavailable입니다. Kubernetes Ready와 dashboard node_ready는 다르며, dashboard node_ready는 Prometheus/node-exporter 기반 node_health 판단입니다.",
-    });
+    rules.push({ id: "Node", title: "assigned node unavailable", text: "할당 node가 dashboard 기준 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 확인합니다." });
   }
-
-  if (device.telemetry_fresh === true && device.device_status_fresh === false) {
-    rules.push({
-      id: "Rule F",
-      title: "DeviceStatus stale but telemetry fresh",
-      text: "data-plane은 살아 있지만 status-plane snapshot은 오래됐습니다. DeviceStatus stale은 healthy 판단을 반드시 막지는 않지만, mapper allowlist/report 경로 점검 대상입니다.",
-    });
+  if (device.severity === "critical") {
+    rules.push({ id: "Severity", title: "critical severity", text: "최근 센서 데이터는 있지만 severity가 critical이므로 degraded로 표시됩니다." });
   }
-
   if (device.service_connected === false) {
-    rules.push({
-      id: "Rule G",
-      title: "service binding missing",
-      text: "이 device는 현재 service demo group에 연결되어 있지 않습니다. service binding rule 또는 device naming rule을 확인해야 합니다.",
-    });
+    rules.push({ id: "Service", title: "service binding missing", text: "서비스 데모 그룹에 아직 연결되지 않았습니다. device naming 또는 binding rule을 확인합니다." });
   }
-
   if (!rules.length) {
-    rules.push({
-      id: "기본 설명",
-      title: "추가 rule 없음",
-      text: "현재 API payload 기준으로 우선 점검 rule에 해당하지 않습니다. 상세 원인은 reason 필드와 telemetry/status-plane 필드를 함께 확인합니다.",
-    });
+    rules.push({ id: "Status", title: "current state", text: deviceReason(device) });
   }
-
   return rules;
 }
 
 const KPI_EXPLANATIONS = {
-  active_node_count: "dashboard 기준 healthy node 수입니다. node_online_ratio와 함께 전체 node 관측 상태를 봅니다.",
-  registered_device_count: "KubeEdge에 등록된 전체 Device CR 수입니다.",
-  live_device_count: "state-aggregator 최종 status가 healthy인 device 수입니다.",
-  telemetry_device_count: "telemetry_enabled device 수입니다.",
-  device_telemetry_ratio: "telemetry configured ratio입니다. telemetry_enabled device 수 / 전체 registered device 수이며 freshness 비율이 아닙니다.",
-  fresh_telemetry_device_count: "telemetry_fresh == true인 device 수입니다.",
-  telemetry_freshness_ratio: "fresh telemetry device 수 / telemetry_enabled device 수입니다.",
-  fresh_sensor_data_device_count: "최근 InfluxDB sample이 freshness 기준을 만족하는 실제 센서 데이터 stream 수입니다.",
-  sensor_data_freshness_ratio: "fresh sensor data stream 수 / telemetry_enabled device 수입니다. 현재 Jetson Arduino 센서 MQTT 데이터의 핵심 freshness KPI입니다.",
-  fresh_device_status_count: "device_status_fresh == true인 device 수입니다. 운영 snapshot 보조 지표이며 센서 데이터 freshness가 아닙니다.",
-  device_status_freshness_ratio: "fresh DeviceStatus device 수 / 전체 device 수입니다. DeviceStatus는 status-plane 보조 신호라서 메인 건강 판단 KPI로 쓰지 않습니다.",
-  operator_focus_count: "degraded/unavailable device 수 + non-healthy node 수입니다. workflow/offloading/placement risk는 포함하지 않습니다.",
-  service_bound_device_count: "service demo group에 연결된 device 수입니다.",
+  active_node_count: "현재 사용 가능한 node 수입니다.",
+  registered_device_count: "KubeEdge에 등록된 Device CR 수와 healthy device 수를 함께 봅니다.",
+  live_device_count: "state-aggregator 최종 상태가 healthy인 device 수입니다.",
+  telemetry_device_count: "InfluxDB 적재 대상 센서 device 수입니다.",
+  device_telemetry_ratio: "센서 데이터 적재가 설정된 device 비율입니다. freshness 비율은 아닙니다.",
+  fresh_telemetry_device_count: "fresh sensor data device 수입니다.",
+  telemetry_freshness_ratio: "fresh sensor data device 수 / telemetry-enabled device 수입니다.",
+  fresh_sensor_data_device_count: "최근 InfluxDB sample이 들어온 실제 센서 stream 수입니다.",
+  sensor_data_freshness_ratio: "현재 메인 freshness KPI입니다. 5초 적재, 20초 stale 기준으로 판단합니다.",
+  operator_focus_count: "운영자가 먼저 볼 degraded/unavailable device와 non-healthy node 수입니다.",
+  service_bound_device_count: "서비스 데모 그룹에 연결된 device 수입니다.",
   device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
 };
 
@@ -174,25 +128,14 @@ function explainKpi(key, kpis = {}) {
 function issueExplanation(alert) {
   if (!alert) return ["선택한 Issue 항목 데이터가 없습니다."];
   if (alert.kind === "node") {
-    return ["이 node는 dashboard 기준 non-healthy 상태이므로 우선 점검 대상입니다. node 상태, node-exporter/Prometheus 관측, edgecore/cloudcore 연결 상태를 확인합니다."];
+    return ["node-exporter/Prometheus 관측, Kubernetes Ready, edgecore/cloudcore 연결을 확인합니다."];
   }
   const device = alert.device || {};
   const messages = [];
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
-    messages.push("telemetry_fresh=false이므로 publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태를 확인합니다.");
-  }
-  if (device.mapper_running === false) {
-    messages.push("mapper_running=false이므로 할당 node의 mqttvirtual mapper pod와 node 배치를 확인합니다.");
-  }
-  if (device.node_ready === false) {
-    messages.push("node_ready=false이므로 node 상태와 edgecore/cloudcore 연결 상태를 확인합니다.");
-  }
-  if (device.device_status_fresh === false && device.telemetry_fresh === true) {
-    messages.push("DeviceStatus는 stale이지만 telemetry는 fresh입니다. data-plane은 살아 있고 DeviceStatus report path를 별도로 확인합니다.");
-  }
-  if (!messages.length) {
-    messages.push("이 항목은 degraded/unavailable 상태 또는 reason 때문에 우선 점검 대상으로 표시됐습니다. device reason과 상세 필드를 확인합니다.");
-  }
+  if (device.node_ready === false) messages.push("할당 node가 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 먼저 확인합니다.");
+  if (device.mapper_running === false) messages.push("mqttvirtual mapper가 Running인지, 해당 device가 올바른 node에 배치됐는지 확인합니다.");
+  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터가 stale입니다. Jetson collector, local mosquitto, mapper log, InfluxDB write를 순서대로 확인합니다.");
+  if (!messages.length) messages.push(deviceReason(device));
   return messages;
 }
 
@@ -214,28 +157,18 @@ function showDeviceExplanation(device) {
   state.selectedDeviceName = device.name;
   panel.innerHTML = `
     <div class="explain-header">
-      <span class="explain-badge">Device Explain</span>
+      <span class="explain-badge">Device</span>
       <strong>${escapeHtml(displayValue(device.name))}</strong>
     </div>
     ${renderExplainFields([
-      ["device name", device.name],
-      ["node_name", device.node_name],
-      ["device_type", device.device_type],
-      ["overall_status", deviceStatus(device)],
+      ["status", deviceStatus(device)],
       ["reason", deviceReason(device)],
-      ["telemetry_enabled", device.telemetry_enabled],
-      ["telemetry_fresh", device.telemetry_fresh],
-      ["telemetry_last_seen_at", device.telemetry_last_seen_at || device.telemetry_last_seen],
-      ["telemetry_property", device.telemetry_property],
-      ["telemetry_value", device.telemetry_value],
-      ["device_status_fresh", device.device_status_fresh],
-      ["device_status_last_reported_at", device.device_status_last_reported_at || device.last_reported_at],
-      ["mapper_running", device.mapper_running],
-      ["node_ready", device.node_ready],
-      ["service_demo_group", device.service_demo_group],
-      ["service_connected", device.service_connected],
+      ["node", device.node_name],
+      ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
+      ["last seen", age(device.telemetry_age_seconds)],
+      ["mapper", device.mapper_running ? "running" : "not running"],
+      ["service", device.service_demo_group || "service pending"],
     ])}
-    <h3>적용된 설명 rule</h3>
     ${renderRuleList(explainDeviceRules(device))}
   `;
 }
@@ -245,8 +178,7 @@ function kpiKeysForCard(key) {
     registered_device_count: ["registered_device_count", "live_device_count"],
     device_telemetry_ratio: ["telemetry_device_count", "device_telemetry_ratio"],
     telemetry_freshness_ratio: ["fresh_telemetry_device_count", "telemetry_freshness_ratio"],
-    sensor_data_freshness_ratio: ["fresh_sensor_data_device_count", "sensor_data_freshness_ratio", "telemetry_freshness_ratio"],
-    device_status_freshness_ratio: ["fresh_device_status_count", "device_status_freshness_ratio"],
+    sensor_data_freshness_ratio: ["fresh_sensor_data_device_count", "sensor_data_freshness_ratio"],
     service_bound_device_count: ["service_bound_device_count", "device_service_binding_ratio"],
   };
   return groups[key] || [key];
@@ -362,19 +294,11 @@ function renderDevices(devices) {
               ${statusPill(device.overall_status || device.status)}
             </div>
             <div class="meta">
-              <span>type: ${escapeHtml(device.device_type)}</span>
               <span>node: ${escapeHtml(text(device.node_name, "unassigned"))}</span>
-              <span>telemetry_enabled: ${boolText(device.telemetry_enabled)}</span>
-              <span>telemetry_fresh: ${boolText(device.telemetry_fresh)}</span>
-              <span>last_seen: ${escapeHtml(text(device.telemetry_last_seen_at || device.telemetry_last_seen, "DB timestamp 없음"))}</span>
-              <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
-              <span>property: ${escapeHtml(text(device.telemetry_property, "DB property 없음"))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "DB property 없음"))}=${escapeHtml(text(device.telemetry_value, "DB value 없음"))}</span>
-              <span>status_snapshot: ${device.device_status_fresh ? "fresh" : "stale"}</span>
-              <span>mapper_running: ${boolText(device.mapper_running)}</span>
-              <span>node_ready: ${boolText(device.node_ready)}</span>
+              <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
+              <span>mapper: ${device.mapper_running ? "running" : "not running"}</span>
               <span>service: ${escapeHtml(text(device.service_demo_group, "service pending"))}</span>
-              <span>service_connected: ${boolText(device.service_connected)}</span>
               <span>reason: ${escapeHtml(text(device.reason || device.status_reason))}</span>
             </div>
           </article>
@@ -490,7 +414,6 @@ function renderScenario(devices, kpis) {
               <span>${escapeHtml(text(device.model, "model unknown"))}</span>
               <span>${escapeHtml(text(device.protocol, "protocol unknown"))}</span>
               <span>Sensor Data: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
-              <span>Status Snapshot: ${device.device_status_fresh ? "fresh" : "stale"}</span>
               <span>${escapeHtml(text(device.telemetry_property, "DB property 없음"))}: ${escapeHtml(text(device.telemetry_value, "DB value 없음"))}</span>
               <span>${escapeHtml(text(device.status_reason))}</span>
             </div>
