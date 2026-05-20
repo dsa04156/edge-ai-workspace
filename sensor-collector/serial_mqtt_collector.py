@@ -10,7 +10,7 @@ BAUDRATE = 115200
 MQTT_HOST = "localhost"
 MQTT_PORT = 1883
 
-SITE = "factory"
+SITE = "etri"
 EDGE_NODE = socket.gethostname()
 
 ser = serial.Serial(SERIAL_PORT, BAUDRATE, timeout=2)
@@ -21,17 +21,6 @@ client.loop_start()
 
 print(f"[START] edge_node={EDGE_NODE}, serial={SERIAL_PORT}, mqtt={MQTT_HOST}:{MQTT_PORT}")
 
-def publish_device(device_id, payload):
-    payload["device_id"] = device_id
-    payload["edge_node"] = EDGE_NODE
-    payload["received_at"] = int(time.time())
-
-    topic = f"{SITE}/{EDGE_NODE}/devices/{device_id}/telemetry"
-    body = json.dumps(payload, ensure_ascii=False)
-
-    client.publish(topic, body)
-    print(f"[PUB] {topic} {body}")
-
 while True:
     try:
         line = ser.readline().decode("utf-8", errors="ignore").strip()
@@ -40,32 +29,22 @@ while True:
 
         data = json.loads(line)
 
-        # 1. 환경 센서 논리 디바이스
-        publish_device("arduino-env-001", {
-            "sensor_group": "environment",
-            "light": data.get("light"),
-            "temperature_raw": data.get("temperature_raw")
-        })
+        sensor = data.get("sensor")
+        device_id = data.get("device_id", "arduino-001")
 
-        # 2. 동작/진동 센서 논리 디바이스
-        publish_device("arduino-motion-001", {
-            "sensor_group": "motion",
-            "accel_x": data.get("accel_x"),
-            "accel_y": data.get("accel_y"),
-            "accel_z": data.get("accel_z")
-        })
+        if not sensor:
+            print(f"[SKIP] missing sensor field: {data}")
+            continue
 
-        # 3. 자기/접근 센서 논리 디바이스
-        publish_device("arduino-magnetic-001", {
-            "sensor_group": "magnetic",
-            "magnetic": data.get("magnetic")
-        })
+        data["edge_node"] = EDGE_NODE
+        data["received_at"] = int(time.time())
 
-        # 4. 버튼 이벤트 논리 디바이스
-        publish_device("arduino-button-001", {
-            "sensor_group": "event",
-            "button": data.get("button")
-        })
+        topic = f"{SITE}/{EDGE_NODE}/{device_id}/{sensor}"
+
+        payload = json.dumps(data, ensure_ascii=False)
+        client.publish(topic, payload)
+
+        print(f"[PUB] {topic} {payload}")
 
     except json.JSONDecodeError:
         print(f"[SKIP] invalid json: {line}")
