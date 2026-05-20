@@ -16,12 +16,12 @@ healthy 판단은 Jetson sensor-collector가 MQTT로 보낸 실제 센서 데이
 
 ```bash
 DEVICE_STATUS_FRESH_SECONDS=90
-TELEMETRY_FRESH_SECONDS=90
+TELEMETRY_FRESH_SECONDS=20
 MAPPER_HEARTBEAT_FRESH_SECONDS=60
 ```
 
-현재 mapper 기반 PoC는 DB liveness 값을 60초 주기로 InfluxDB에 적재하므로 telemetry freshness는 90초 이상으로 둔다.
-운영 데모에서 순간 지연으로 degraded가 흔들리면 `TELEMETRY_FRESH_SECONDS=180`으로 완화한다.
+현재 mapper 기반 PoC는 실제 센서값을 5초 주기로 InfluxDB에 적재하므로 telemetry freshness는 20초로 둔다.
+운영 데모에서 순간 지연으로 degraded가 흔들리면 `TELEMETRY_FRESH_SECONDS=30` 또는 `60`으로 완화한다.
 
 ## Timestamp 처리
 

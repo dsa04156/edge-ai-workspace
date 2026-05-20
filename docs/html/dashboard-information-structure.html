@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
-            <span class="badge">수정: 2026-05-20 21:44</span>
-            <span class="badge">HTML 생성: 2026-05-20 21:44</span>
+            <span class="badge">수정: 2026-05-20 21:59</span>
+            <span class="badge">HTML 생성: 2026-05-20 21:59</span>
           </div>
         </header>
         
@@ -475,7 +475,7 @@ vib-arduino-acceleration-01 -&gt; etri-dev0001-jetorn -&gt; acceleration/x,y,z f
 </tbody></table></div>
 <p>기본 기준값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
-TELEMETRY_FRESH_SECONDS=90
+TELEMETRY_FRESH_SECONDS=20
 MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <p>해석:</p>
 <ul><li>telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 <code>healthy</code>로 표시될 수 있다.</li><li>telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.</li><li>DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.</li><li>둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.</li></ul>

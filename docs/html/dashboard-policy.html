@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-policy.md</span>
-            <span class="badge">수정: 2026-05-20 21:44</span>
-            <span class="badge">HTML 생성: 2026-05-20 21:44</span>
+            <span class="badge">수정: 2026-05-20 21:59</span>
+            <span class="badge">HTML 생성: 2026-05-20 21:59</span>
           </div>
         </header>
         
@@ -105,9 +105,9 @@
 <h2 id="freshness-설정">Freshness 설정</h2>
 <p>현재 기본값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
-TELEMETRY_FRESH_SECONDS=90
+TELEMETRY_FRESH_SECONDS=20
 MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
-<p>현재 mapper 기반 PoC는 DB liveness 값을 60초 주기로 InfluxDB에 적재하므로 telemetry freshness는 90초 이상으로 둔다. 운영 데모에서 순간 지연으로 degraded가 흔들리면 <code>TELEMETRY_FRESH_SECONDS=180</code>으로 완화한다.</p>
+<p>현재 mapper 기반 PoC는 실제 센서값을 5초 주기로 InfluxDB에 적재하므로 telemetry freshness는 20초로 둔다. 운영 데모에서 순간 지연으로 degraded가 흔들리면 <code>TELEMETRY_FRESH_SECONDS=30</code> 또는 <code>60</code>으로 완화한다.</p>
 <h2 id="timestamp-처리">Timestamp 처리</h2>
 <p><code>twins[].reported.metadata.timestamp</code>는 문자열일 수 있다. Unix epoch milliseconds와 seconds를 모두 처리한다.</p>
 <ul><li><code>1777508184621</code>처럼 10자리보다 크면 milliseconds</li><li>10자리 수준이면 seconds</li><li>ISO datetime 문자열도 UTC 기준으로 파싱</li></ul>
