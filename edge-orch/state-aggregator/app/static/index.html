@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css?v=ui-polish-20260519" />
+    <link rel="stylesheet" href="/static/styles.css?v=sensor-data-20260520" />
   </head>
   <body>
     <main class="shell">
@@ -40,10 +40,10 @@
           <strong id="telemetryFreshnessRatio">0%</strong>
           <span id="telemetryFreshnessCaption">0 fresh telemetry devices</span>
         </article>
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_status_freshness_ratio" tabindex="0" role="button" aria-label="DeviceStatus Freshness 설명 보기">
-          <span class="metric-label">DeviceStatus Freshness</span>
-          <strong id="deviceStatusFreshnessRatio">0%</strong>
-          <span id="deviceStatusFreshnessCaption">0 fresh status snapshots</span>
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="sensor_data_freshness_ratio" tabindex="0" role="button" aria-label="Sensor Data Freshness 설명 보기">
+          <span class="metric-label">Sensor Data Freshness</span>
+          <strong id="sensorDataFreshnessRatio">0%</strong>
+          <span id="sensorDataFreshnessCaption">0/0 live sensor streams</span>
         </article>
         <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_bound_device_count" tabindex="0" role="button" aria-label="서비스 바인딩 설명 보기">
           <span class="metric-label">서비스 바인딩</span>
@@ -78,7 +78,7 @@
         <section class="panel relations">
           <div class="panel-head">
             <h2>연결 관계</h2>
-            <span>Device -> Edge Node -> Telemetry/Status -> Service Demo</span>
+            <span>Device -> Edge Node -> Sensor Data -> Service Demo</span>
           </div>
           <div id="relationList" class="relation-list"></div>
         </section>
@@ -124,6 +124,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=ui-polish-20260519"></script>
+    <script src="/static/dashboard.js?v=sensor-data-20260520"></script>
   </body>
 </html>

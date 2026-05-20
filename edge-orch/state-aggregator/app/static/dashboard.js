@@ -143,15 +143,27 @@ const KPI_EXPLANATIONS = {
   device_telemetry_ratio: "telemetry configured ratio입니다. telemetry_enabled device 수 / 전체 registered device 수이며 freshness 비율이 아닙니다.",
   fresh_telemetry_device_count: "telemetry_fresh == true인 device 수입니다.",
   telemetry_freshness_ratio: "fresh telemetry device 수 / telemetry_enabled device 수입니다.",
-  fresh_device_status_count: "device_status_fresh == true인 device 수입니다.",
-  device_status_freshness_ratio: "fresh DeviceStatus device 수 / 전체 device 수입니다. DeviceStatus는 status-plane 보조 신호입니다.",
+  fresh_sensor_data_device_count: "최근 InfluxDB sample이 freshness 기준을 만족하는 실제 센서 데이터 stream 수입니다.",
+  sensor_data_freshness_ratio: "fresh sensor data stream 수 / telemetry_enabled device 수입니다. 현재 Jetson Arduino 센서 MQTT 데이터의 핵심 freshness KPI입니다.",
+  fresh_device_status_count: "device_status_fresh == true인 device 수입니다. 운영 snapshot 보조 지표이며 센서 데이터 freshness가 아닙니다.",
+  device_status_freshness_ratio: "fresh DeviceStatus device 수 / 전체 device 수입니다. DeviceStatus는 status-plane 보조 신호라서 메인 건강 판단 KPI로 쓰지 않습니다.",
   operator_focus_count: "degraded/unavailable device 수 + non-healthy node 수입니다. workflow/offloading/placement risk는 포함하지 않습니다.",
   service_bound_device_count: "service demo group에 연결된 device 수입니다.",
   device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
 };
 
 function explainKpi(key, kpis = {}) {
-  const value = Object.prototype.hasOwnProperty.call(kpis, key) ? kpis[key] : "현재 API payload에 없음";
+  const aliases = {
+    sensor_data_freshness_ratio: "telemetry_freshness_ratio",
+    fresh_sensor_data_device_count: "fresh_telemetry_device_count",
+    sensor_data_device_count: "telemetry_device_count",
+  };
+  const alias = aliases[key];
+  const value = Object.prototype.hasOwnProperty.call(kpis, key)
+    ? kpis[key]
+    : alias && Object.prototype.hasOwnProperty.call(kpis, alias)
+      ? kpis[alias]
+      : "현재 API payload에 없음";
   return {
     key,
     value,
@@ -233,6 +245,7 @@ function kpiKeysForCard(key) {
     registered_device_count: ["registered_device_count", "live_device_count"],
     device_telemetry_ratio: ["telemetry_device_count", "device_telemetry_ratio"],
     telemetry_freshness_ratio: ["fresh_telemetry_device_count", "telemetry_freshness_ratio"],
+    sensor_data_freshness_ratio: ["fresh_sensor_data_device_count", "sensor_data_freshness_ratio", "telemetry_freshness_ratio"],
     device_status_freshness_ratio: ["fresh_device_status_count", "device_status_freshness_ratio"],
     service_bound_device_count: ["service_bound_device_count", "device_service_binding_ratio"],
   };
@@ -287,7 +300,8 @@ function render() {
   const devices = data.devices || [];
   const telemetryEnabled = kpis.telemetry_device_count ?? devices.filter((device) => device.telemetry_enabled).length;
   const freshTelemetry = kpis.fresh_telemetry_device_count ?? devices.filter((device) => device.telemetry_fresh).length;
-  const freshDeviceStatus = kpis.fresh_device_status_count ?? devices.filter((device) => device.device_status_fresh).length;
+  const freshSensorData = kpis.fresh_sensor_data_device_count ?? freshTelemetry;
+  const sensorDataTotal = kpis.sensor_data_device_count ?? telemetryEnabled;
   const unavailableDevices = devices.filter((device) => device.status === "unavailable").length;
   const degradedDevices = devices.filter((device) => device.status === "degraded").length;
   setText("updatedAt", `Updated ${new Date(data.generated_at).toLocaleString()}`);
@@ -299,8 +313,8 @@ function render() {
   setText("telemetryCaption", `${telemetryEnabled} telemetry-enabled devices`);
   setText("telemetryFreshnessRatio", pct(kpis.telemetry_freshness_ratio));
   setText("telemetryFreshnessCaption", `${freshTelemetry} fresh telemetry devices`);
-  setText("deviceStatusFreshnessRatio", pct(kpis.device_status_freshness_ratio));
-  setText("deviceStatusFreshnessCaption", `${freshDeviceStatus} fresh status snapshots`);
+  setText("sensorDataFreshnessRatio", pct(kpis.sensor_data_freshness_ratio ?? kpis.telemetry_freshness_ratio));
+  setText("sensorDataFreshnessCaption", `${freshSensorData}/${sensorDataTotal} live sensor streams`);
   setText("serviceBindingCount", text(kpis.service_bound_device_count, 0));
   setText("serviceBindingRatio", `${pct(kpis.device_service_binding_ratio)} bound`);
   setText("focusCount", text(kpis.operator_focus_count, 0));
@@ -355,7 +369,8 @@ function renderDevices(devices) {
               <span>last_seen: ${escapeHtml(text(device.telemetry_last_seen_at || device.telemetry_last_seen, "DB timestamp 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
               <span>property: ${escapeHtml(text(device.telemetry_property, "DB property 없음"))}</span>
-              <span>DeviceStatus: ${device.device_status_fresh ? "fresh" : "stale"}</span>
+              <span>sensor: ${escapeHtml(text(device.telemetry_property, "DB property 없음"))}=${escapeHtml(text(device.telemetry_value, "DB value 없음"))}</span>
+              <span>status_snapshot: ${device.device_status_fresh ? "fresh" : "stale"}</span>
               <span>mapper_running: ${boolText(device.mapper_running)}</span>
               <span>node_ready: ${boolText(device.node_ready)}</span>
               <span>service: ${escapeHtml(text(device.service_demo_group, "service pending"))}</span>
@@ -394,9 +409,9 @@ function renderRelations(devices, kpis) {
         </div>
         <div class="arrow">-&gt;</div>
         <div class="relation-node">
-          <span>Telemetry / Status</span>
+          <span>Sensor Data</span>
           <strong>${escapeHtml(telemetry)}</strong>
-          <small>${escapeHtml(text(device.telemetry_property, "property pending"))} · telemetry_fresh=${boolText(device.telemetry_fresh)} · DeviceStatus=${device.device_status_fresh ? "fresh" : "stale"}</small>
+          <small>${escapeHtml(text(device.telemetry_property, "property pending"))}=${escapeHtml(text(device.telemetry_value, "DB value 없음"))} · sensor_data_fresh=${boolText(device.telemetry_fresh)}</small>
         </div>
         <div class="arrow">-&gt;</div>
         <div class="relation-node">
@@ -474,8 +489,8 @@ function renderScenario(devices, kpis) {
             <div class="meta">
               <span>${escapeHtml(text(device.model, "model unknown"))}</span>
               <span>${escapeHtml(text(device.protocol, "protocol unknown"))}</span>
-              <span>DeviceStatus: ${device.device_status_fresh ? "fresh" : "stale"}</span>
-              <span>Telemetry: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
+              <span>Sensor Data: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
+              <span>Status Snapshot: ${device.device_status_fresh ? "fresh" : "stale"}</span>
               <span>${escapeHtml(text(device.telemetry_property, "DB property 없음"))}: ${escapeHtml(text(device.telemetry_value, "DB value 없음"))}</span>
               <span>${escapeHtml(text(device.status_reason))}</span>
             </div>

@@ -151,7 +151,7 @@ class StateAggregatorService:
         focus_count = int(kpis.get("operator_focus_count", 0) or 0)
         service_bound = int(kpis.get("service_bound_device_count", 0) or 0)
         telemetry_configured_ratio = kpis.get("device_telemetry_ratio", 0)
-        telemetry_freshness_ratio = kpis.get("telemetry_freshness_ratio", 0)
+        sensor_data_freshness_ratio = kpis.get("sensor_data_freshness_ratio", 0)
 
         focus_devices = [
             {
@@ -173,7 +173,7 @@ class StateAggregatorService:
             "Kagenti 연동 PoC용 read-only 운영 보조 요약입니다. "
             f"등록 device {registered}개 중 live device {live}개, "
             f"서비스 데모 연결 device {service_bound}개, 우선 점검 대상 {focus_count}개입니다. "
-            f"telemetry configured 비율은 {telemetry_configured_ratio}이고, telemetry freshness 비율은 {telemetry_freshness_ratio}입니다."
+            f"telemetry configured 비율은 {telemetry_configured_ratio}이고, 실제 센서 데이터 freshness 비율은 {sensor_data_freshness_ratio}입니다."
         )
 
         return OperatorAssistantState(
@@ -587,6 +587,8 @@ class StateAggregatorService:
         fresh_telemetry_devices = [
             device for device in telemetry_devices if device.telemetry_fresh
         ]
+        sensor_data_devices = telemetry_devices
+        fresh_sensor_data_devices = fresh_telemetry_devices
         fresh_device_status_devices = [device for device in devices if device.device_status_fresh]
         bound_devices = [device for device in devices if device.service_connected]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
@@ -603,6 +605,10 @@ class StateAggregatorService:
             # fresh telemetry counts and freshness ratio (fresh telemetry / telemetry-enabled devices)
             "fresh_telemetry_device_count": len(fresh_telemetry_devices),
             "telemetry_freshness_ratio": self._ratio(len(fresh_telemetry_devices), len(telemetry_devices)),
+            # sensor data freshness is the primary operations KPI for the current Jetson Arduino data-plane.
+            "sensor_data_device_count": len(sensor_data_devices),
+            "fresh_sensor_data_device_count": len(fresh_sensor_data_devices),
+            "sensor_data_freshness_ratio": self._ratio(len(fresh_sensor_data_devices), len(sensor_data_devices)),
             "device_service_binding_ratio": self._ratio(len(bound_devices), len(devices)),
             "registered_device_count": len(devices),
             "active_node_count": len(online_nodes),

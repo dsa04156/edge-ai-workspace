@@ -24,7 +24,7 @@ DeviceStatus는 다음 용도로만 사용한다.
 - raw telemetry에서 계산된 상태 등급
 
 state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 `device_status_fresh`와 `device_status_freshness_ratio`로 최신성을 따로 계산한다.
-raw telemetry 최신성은 `telemetry_fresh`, `fresh_telemetry_device_count`, `telemetry_freshness_ratio`로 분리해서 본다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.
+실제 센서 데이터 최신성은 `telemetry_fresh`, `fresh_sensor_data_device_count`, `sensor_data_freshness_ratio`로 분리해서 본다. `telemetry_freshness_ratio`는 기존 호환 지표로 유지한다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.
 
 ## DeviceStatus에 허용하는 property
 
@@ -151,8 +151,8 @@ DEVICE_STATES_REPORT_ENABLED=false
 
 ## 현재 PoC 기준
 
-현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재한다.
+현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행하고, mqttvirtual mapper가 InfluxDB에 적재한다.
 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다.
 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.
 
-즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 InfluxDB device-level latest sample freshness를 별도로 나타낸다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. `ts`는 publisher payload와 Device manifest의 DB push property로 freshness 기준에 사용한다.
+즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_sensor_data_device_count`와 `sensor_data_freshness_ratio`는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 같은 data-plane freshness의 호환 지표다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. `ts`는 publisher payload와 Device manifest의 DB push property로 freshness 기준에 사용한다.

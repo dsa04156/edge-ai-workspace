@@ -4,19 +4,19 @@
 
 이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC dashboard가 어떤 정보를 보여줘야 하는지 운영 관점에서 정리한다.
 
-현재 dashboard의 목적은 복잡한 자동 제어를 보여주는 것이 아니라, 디바이스와 서비스의 연결 구조, node 상태, telemetry freshness, DeviceStatus freshness, KPI를 한 화면에서 해석 가능하게 만드는 것이다.
+현재 dashboard의 목적은 복잡한 자동 제어를 보여주는 것이 아니라, 디바이스와 서비스의 연결 구조, node 상태, 실제 센서 데이터 freshness, DeviceStatus 보조 snapshot, KPI를 한 화면에서 해석 가능하게 만드는 것이다.
 
 ## 한 줄 정의
 
 ```text
-node state + device state + telemetry freshness + service binding + KPI -> 운영 dashboard
+node state + device state + sensor data freshness + service binding + KPI -> 운영 dashboard
 ```
 
 ## dashboard 정보 구조 원칙
 
 1. Device CR 존재 여부만으로 정상 판단하지 않는다.
 2. `status.state=online`만으로 healthy 판단하지 않는다.
-3. DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.
+3. 실제 센서 데이터의 DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.
 4. Kubernetes Ready와 dashboard `node_ready`를 구분하고, mapper Running 여부와 함께 본다.
 5. service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.
 6. 운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.
@@ -54,11 +54,11 @@ kpis
 
 | 영역 | 목적 | 주요 지표 |
 |---|---|---|
-| Overview KPI | 전체 상태 요약 | active node, registered device, live device, telemetry configured ratio, telemetry freshness ratio |
+| Overview KPI | 전체 상태 요약 | active node, registered device, live device, telemetry configured ratio, sensor data freshness ratio |
 | Node State | node별 운영 상태 | node_health, cpu, memory, network |
 | Device State | device별 상태 | overall status, node, telemetry age, properties |
-| Device-Service Relation | device-node-telemetry-service 연결 | device -> node -> telemetry/status -> service group |
-| Freshness Panel | data-plane/status-plane freshness 분리 | telemetry_fresh, device_status_fresh |
+| Device-Service Relation | device-node-sensor-service 연결 | device -> node -> sensor data -> service group |
+| Freshness Panel | data-plane/status-plane freshness 분리 | sensor_data_freshness_ratio, telemetry_fresh, device_status_fresh |
 | Issue / Focus List | 운영자가 먼저 볼 대상 | degraded/unavailable reason |
 | Scenario KPI | 서비스 데모 설명 지표 | operator_focus_count, service-bound count, freshness ratio |
 
@@ -76,9 +76,11 @@ kpis
 | `telemetry_device_count` | telemetry 설정 device 수 | `telemetry_enabled=true`인 device 수 |
 | `device_telemetry_ratio` | telemetry configured ratio | telemetry 설정 device 수 / 전체 등록 device 수. freshness 비율이 아니다. |
 | `fresh_telemetry_device_count` | fresh telemetry device 수 | telemetry 설정 device 중 InfluxDB device-level latest sample이 freshness 기준을 만족한 수 |
-| `telemetry_freshness_ratio` | telemetry freshness ratio | fresh telemetry device 수 / telemetry 설정 device 수 |
+| `telemetry_freshness_ratio` | telemetry freshness ratio | `sensor_data_freshness_ratio`와 같은 data-plane freshness의 호환 지표 |
+| `fresh_sensor_data_device_count` | fresh sensor data stream 수 | 실제 센서 MQTT 데이터가 InfluxDB freshness 기준을 만족한 device 수 |
+| `sensor_data_freshness_ratio` | sensor data freshness ratio | 현재 dashboard 메인 freshness KPI. fresh sensor data stream 수 / telemetry 설정 device 수 |
 | `fresh_device_status_count` | fresh DeviceStatus device 수 | DeviceStatus snapshot이 freshness 기준을 만족한 device 수 |
-| `device_status_freshness_ratio` | DeviceStatus freshness ratio | fresh DeviceStatus device 수 / 전체 등록 device 수 |
+| `device_status_freshness_ratio` | DeviceStatus freshness ratio | fresh DeviceStatus device 수 / 전체 등록 device 수. status-plane 보조 지표이며 센서 데이터 freshness가 아니다. |
 | `operator_focus_count` | 운영자가 우선 확인할 대상 수 | degraded/unavailable device 수 + non-healthy node 수. workflow risk는 포함하지 않는다. |
 | `service_bound_device_count` | 서비스 데모에 연결된 device 수 | device-service 연결 구조 가시성 |
 
@@ -141,13 +143,13 @@ device_service_binding_ratio
 현재 dashboard의 relation 영역은 다음 흐름을 보여주는 것이 적절하다.
 
 ```text
-Device -> Node -> Telemetry / Status -> Service Demo
+Device -> Node -> Sensor Data -> Service Demo
 ```
 
 현재 `dashboard.js`는 backend가 내려준 `service_demo_group`과 `service_binding_reason`을 사용해 다음 관계를 보여준다.
 
 ```text
-Device -> Node -> Telemetry / Status -> Service Demo
+Device -> Node -> Sensor Data -> Service Demo
 ```
 
 즉, 서비스 그룹 판단 로직은 frontend의 device 이름 하드코딩이 아니라 `state-aggregator`의 `DeviceState` 응답 필드를 기준으로 한다.
@@ -155,9 +157,9 @@ Device -> Node -> Telemetry / Status -> Service Demo
 예시:
 
 ```text
-vib-device-01 -> etri-dev0001-jetorn -> fresh DB timestamp -> 설비 상태 모니터링 서비스
-act-device-01 -> etri-dev0001-jetorn -> health liveness DB timestamp -> command 상태 확인
-rpi-env-device-01 -> etri-dev0002-raspi5 -> DB timestamp pending -> Raspberry Pi edge 상태 확인
+env-arduino-temperature-01 -> etri-dev0001-jetorn -> temperature/raw fresh DB timestamp -> 환경 상태 모니터링 서비스
+env-arduino-light-01 -> etri-dev0001-jetorn -> light/value fresh DB timestamp -> 환경 상태 모니터링 서비스
+vib-arduino-acceleration-01 -> etri-dev0001-jetorn -> acceleration/x,y,z fresh DB timestamp -> 설비 상태 모니터링 서비스
 ```
 
 ## Freshness 표시 방식
@@ -236,7 +238,7 @@ rpi-env-device-02: assigned node is unavailable
 |---|---|---|
 | 1 | 지금 관리 대상 device가 몇 개인가? | `registered_device_count`, device list |
 | 2 | telemetry가 설정된 device는 몇 개인가? | `telemetry_device_count`, `device_telemetry_ratio` |
-| 3 | 실제 최신 telemetry가 들어오는 device는 몇 개인가? | `fresh_telemetry_device_count`, `telemetry_freshness_ratio`, `telemetry_fresh` |
+| 3 | 실제 최신 센서 데이터가 들어오는 device는 몇 개인가? | `fresh_sensor_data_device_count`, `sensor_data_freshness_ratio`, `telemetry_fresh` |
 | 4 | 운영 snapshot은 최신인가? | `fresh_device_status_count`, `device_status_freshness_ratio`, `device_status_fresh`, `device_status_last_reported_at` |
 | 5 | 문제가 있으면 어느 node/device부터 봐야 하는가? | `operator_focus_count`, issue list, `reason` |
 | 6 | device가 어떤 서비스 데모에 연결되는가? | `service_demo_group`, `service_binding_reason` |

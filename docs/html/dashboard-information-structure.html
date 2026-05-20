@@ -92,8 +92,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
-            <span class="badge">수정: 2026-05-18 19:07</span>
-            <span class="badge">HTML 생성: 2026-05-19 16:39</span>
+            <span class="badge">수정: 2026-05-20 21:44</span>
+            <span class="badge">HTML 생성: 2026-05-20 21:44</span>
           </div>
         </header>
         
@@ -101,11 +101,11 @@
           <h1 id="dashboard-information-structure">Dashboard Information Structure</h1>
 <h2 id="목적">목적</h2>
 <p>이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC dashboard가 어떤 정보를 보여줘야 하는지 운영 관점에서 정리한다.</p>
-<p>현재 dashboard의 목적은 복잡한 자동 제어를 보여주는 것이 아니라, 디바이스와 서비스의 연결 구조, node 상태, telemetry freshness, DeviceStatus freshness, KPI를 한 화면에서 해석 가능하게 만드는 것이다.</p>
+<p>현재 dashboard의 목적은 복잡한 자동 제어를 보여주는 것이 아니라, 디바이스와 서비스의 연결 구조, node 상태, 실제 센서 데이터 freshness, DeviceStatus 보조 snapshot, KPI를 한 화면에서 해석 가능하게 만드는 것이다.</p>
 <h2 id="한-줄-정의">한 줄 정의</h2>
-<pre data-lang="text"><code>node state + device state + telemetry freshness + service binding + KPI -&gt; 운영 dashboard</code></pre>
+<pre data-lang="text"><code>node state + device state + sensor data freshness + service binding + KPI -&gt; 운영 dashboard</code></pre>
 <h2 id="dashboard-정보-구조-원칙">dashboard 정보 구조 원칙</h2>
-<ol><li>Device CR 존재 여부만으로 정상 판단하지 않는다.</li><li><code>status.state=online</code>만으로 healthy 판단하지 않는다.</li><li>DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.</li><li>Kubernetes Ready와 dashboard <code>node_ready</code>를 구분하고, mapper Running 여부와 함께 본다.</li><li>service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.</li><li>운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.</li></ol>
+<ol><li>Device CR 존재 여부만으로 정상 판단하지 않는다.</li><li><code>status.state=online</code>만으로 healthy 판단하지 않는다.</li><li>실제 센서 데이터의 DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.</li><li>Kubernetes Ready와 dashboard <code>node_ready</code>를 구분하고, mapper Running 여부와 함께 본다.</li><li>service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.</li><li>운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.</li></ol>
 <h2 id="주요-api">주요 API</h2>
 <p>현재 dashboard는 <code>state-aggregator</code>의 다음 API를 중심으로 구성한다.</p>
 <div class="table-wrap"><table>
@@ -156,7 +156,7 @@ kpis</code></pre>
 <tr>
 <td>Overview KPI</td>
 <td>전체 상태 요약</td>
-<td>active node, registered device, live device, telemetry configured ratio, telemetry freshness ratio</td>
+<td>active node, registered device, live device, telemetry configured ratio, sensor data freshness ratio</td>
 </tr>
 <tr>
 <td>Node State</td>
@@ -170,13 +170,13 @@ kpis</code></pre>
 </tr>
 <tr>
 <td>Device-Service Relation</td>
-<td>device-node-telemetry-service 연결</td>
-<td>device -&gt; node -&gt; telemetry/status -&gt; service group</td>
+<td>device-node-sensor-service 연결</td>
+<td>device -&gt; node -&gt; sensor data -&gt; service group</td>
 </tr>
 <tr>
 <td>Freshness Panel</td>
 <td>data-plane/status-plane freshness 분리</td>
-<td>telemetry_fresh, device_status_fresh</td>
+<td>sensor_data_freshness_ratio, telemetry_fresh, device_status_fresh</td>
 </tr>
 <tr>
 <td>Issue / Focus List</td>
@@ -241,7 +241,17 @@ kpis</code></pre>
 <tr>
 <td><code>telemetry_freshness_ratio</code></td>
 <td>telemetry freshness ratio</td>
-<td>fresh telemetry device 수 / telemetry 설정 device 수</td>
+<td><code>sensor_data_freshness_ratio</code>와 같은 data-plane freshness의 호환 지표</td>
+</tr>
+<tr>
+<td><code>fresh_sensor_data_device_count</code></td>
+<td>fresh sensor data stream 수</td>
+<td>실제 센서 MQTT 데이터가 InfluxDB freshness 기준을 만족한 device 수</td>
+</tr>
+<tr>
+<td><code>sensor_data_freshness_ratio</code></td>
+<td>sensor data freshness ratio</td>
+<td>현재 dashboard 메인 freshness KPI. fresh sensor data stream 수 / telemetry 설정 device 수</td>
 </tr>
 <tr>
 <td><code>fresh_device_status_count</code></td>
@@ -251,7 +261,7 @@ kpis</code></pre>
 <tr>
 <td><code>device_status_freshness_ratio</code></td>
 <td>DeviceStatus freshness ratio</td>
-<td>fresh DeviceStatus device 수 / 전체 등록 device 수</td>
+<td>fresh DeviceStatus device 수 / 전체 등록 device 수. status-plane 보조 지표이며 센서 데이터 freshness가 아니다.</td>
 </tr>
 <tr>
 <td><code>operator_focus_count</code></td>
@@ -435,14 +445,14 @@ device_service_binding_ratio</code></pre>
 </tbody></table></div>
 <h2 id="device-service-relation-영역">Device-Service Relation 영역</h2>
 <p>현재 dashboard의 relation 영역은 다음 흐름을 보여주는 것이 적절하다.</p>
-<pre data-lang="text"><code>Device -&gt; Node -&gt; Telemetry / Status -&gt; Service Demo</code></pre>
+<pre data-lang="text"><code>Device -&gt; Node -&gt; Sensor Data -&gt; Service Demo</code></pre>
 <p>현재 <code>dashboard.js</code>는 backend가 내려준 <code>service_demo_group</code>과 <code>service_binding_reason</code>을 사용해 다음 관계를 보여준다.</p>
-<pre data-lang="text"><code>Device -&gt; Node -&gt; Telemetry / Status -&gt; Service Demo</code></pre>
+<pre data-lang="text"><code>Device -&gt; Node -&gt; Sensor Data -&gt; Service Demo</code></pre>
 <p>즉, 서비스 그룹 판단 로직은 frontend의 device 이름 하드코딩이 아니라 <code>state-aggregator</code>의 <code>DeviceState</code> 응답 필드를 기준으로 한다.</p>
 <p>예시:</p>
-<pre data-lang="text"><code>vib-device-01 -&gt; etri-dev0001-jetorn -&gt; fresh DB timestamp -&gt; 설비 상태 모니터링 서비스
-act-device-01 -&gt; etri-dev0001-jetorn -&gt; health liveness DB timestamp -&gt; command 상태 확인
-rpi-env-device-01 -&gt; etri-dev0002-raspi5 -&gt; DB timestamp pending -&gt; Raspberry Pi edge 상태 확인</code></pre>
+<pre data-lang="text"><code>env-arduino-temperature-01 -&gt; etri-dev0001-jetorn -&gt; temperature/raw fresh DB timestamp -&gt; 환경 상태 모니터링 서비스
+env-arduino-light-01 -&gt; etri-dev0001-jetorn -&gt; light/value fresh DB timestamp -&gt; 환경 상태 모니터링 서비스
+vib-arduino-acceleration-01 -&gt; etri-dev0001-jetorn -&gt; acceleration/x,y,z fresh DB timestamp -&gt; 설비 상태 모니터링 서비스</code></pre>
 <h2 id="freshness-표시-방식">Freshness 표시 방식</h2>
 <p>freshness는 반드시 두 축으로 나눠 보여준다.</p>
 <div class="table-wrap"><table>
@@ -529,8 +539,8 @@ rpi-env-device-02: assigned node is unavailable</code></pre>
 </tr>
 <tr>
 <td>3</td>
-<td>실제 최신 telemetry가 들어오는 device는 몇 개인가?</td>
-<td><code>fresh_telemetry_device_count</code>, <code>telemetry_freshness_ratio</code>, <code>telemetry_fresh</code></td>
+<td>실제 최신 센서 데이터가 들어오는 device는 몇 개인가?</td>
+<td><code>fresh_sensor_data_device_count</code>, <code>sensor_data_freshness_ratio</code>, <code>telemetry_fresh</code></td>
 </tr>
 <tr>
 <td>4</td>

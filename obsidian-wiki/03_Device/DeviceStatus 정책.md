@@ -51,3 +51,7 @@ KubeEdge `DeviceStatus`는 고빈도 telemetry 저장/전송 경로가 아니다
 - image / frame
 - every-event log
 - inference result stream
+
+
+> [!note]
+> 현재 대시보드 메인 freshness KPI는 Jetson Arduino 센서 MQTT 데이터가 InfluxDB에 최근 적재됐는지를 보는 `sensor_data_freshness_ratio`이다. DeviceStatus freshness는 control/status-plane 보조 snapshot으로만 해석한다.
