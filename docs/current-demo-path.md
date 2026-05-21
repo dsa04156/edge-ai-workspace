@@ -11,9 +11,8 @@
 ```text
 physical / virtual device
   -> MQTT telemetry / command topic
-  -> mqttvirtual mapper
-  -> KubeEdge DeviceStatus snapshot
-  -> InfluxDB raw telemetry data-plane
+  -> raw-stream-bridge -> Redis Streams/latest cache -> InfluxDB raw telemetry
+  -> mqttvirtual mapper -> KubeEdge DeviceStatus snapshot / command path
   -> state-aggregator
   -> dashboard / service demo view
 ```
@@ -37,7 +36,8 @@ physical / virtual device
 
 4. telemetry data-plane
    - raw telemetry는 DeviceStatus에 직접 올리지 않는다.
-   - raw telemetry는 MQTT / InfluxDB 경로를 통해 data-plane에서 처리한다.
+   - 목표 구조에서 raw telemetry는 `raw-stream-bridge`가 MQTT를 구독해 Redis Streams에 append하고, Redis latest cache를 갱신하며, InfluxDB에 batch append 저장한다.
+   - mapper의 `reportCycle` 기반 latest snapshot DB 저장은 전환기 호환 경로이며, 최종 구조에서는 raw 저장 책임을 제거한다.
 
 5. status/control-plane
    - `DeviceStatus`는 저빈도 운영 snapshot으로 사용한다.
@@ -61,8 +61,9 @@ physical / virtual device
 |---|---|---|
 | Device 정의 | `edge-device/` | `DeviceModel` / `Device` manifest 생성과 관리 |
 | 테스트 publisher | `mappers/script/test_device.py` | MQTT telemetry / command 테스트 입력 생성 |
-| mapper | `mappers/mqttvirtual/` | MQTT topic 구독, command publish, KubeEdge DMI 연동 |
-| telemetry 저장 | `influxdb/` | raw telemetry data-plane 저장소 |
+| mapper | `mappers/mqttvirtual/` | MQTT topic 구독, command publish, KubeEdge DMI 연동, DeviceStatus/Twin reported 처리 |
+| raw-stream-bridge | 신규 컴포넌트 | MQTT raw stream 구독, Redis Streams append, latest cache, InfluxDB batch write |
+| telemetry 저장 | Redis Streams / InfluxDB | Redis는 live/latest와 replay buffer, InfluxDB는 raw history와 graph/anomaly 분석 |
 | 상태 통합 | `edge-orch/state-aggregator/` | KubeEdge / InfluxDB / Prometheus 상태 통합 API |
 | dashboard | `edge-orch/state-aggregator/app/static/` | 디바이스, 노드, 서비스, KPI 운영 가시화 |
 | workflow designer | `edge-orch/workflow-designer/` | 서비스 stage, input device, target node를 dry-run으로 시각화하고 execution plan을 생성 |
@@ -187,6 +188,7 @@ mapper의 역할은 다음이다.
 4. KubeEdge DMI를 통해 device property read/write 경로를 제공한다.
 5. `factory/devices/{device-name}/command` topic으로 command를 publish한다.
 6. 허용된 운영 상태 property만 DeviceStatus report 대상으로 다룬다.
+7. raw telemetry 영구 저장은 최종 구조에서 담당하지 않는다. raw history는 `raw-stream-bridge`가 Redis Streams와 InfluxDB에 처리한다.
 
 현재 deployment 기준에서 mapper는 edge node에서 동작하며, `/etc/kubeedge/dmi.sock`을 통해 edgecore/DMI와 연결된다.
 

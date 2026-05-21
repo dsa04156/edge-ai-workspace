@@ -46,7 +46,8 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 | `dashboard-policy.md` | healthy/degraded/unavailable 판단 기준 |
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
 | `device-service-binding.md` | device가 어떤 service demo group에 연결되는지 |
-| `current-demo-path.md` | device -> MQTT -> mapper -> InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
+| `current-demo-path.md` | 현재 device -> MQTT -> mapper/InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
+| `raw-telemetry-data-plane.md` | raw sensor stream을 Redis Streams + InfluxDB로 분리하고 mapper를 control/status-plane adapter로 축소하는 목표 구조 |
 | `edge-orch/workflow-designer/README.md` | 서비스 stage, input device, target node를 dry-run으로 설계/시각화하는 Workflow Designer MVP |
 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC와 read-only 요약 API |
 
@@ -82,8 +83,8 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 Device 등록
   -> edge node 할당
   -> MQTT telemetry / command
-  -> mqttvirtual mapper
-  -> InfluxDB raw telemetry
+  -> raw-stream-bridge / mqttvirtual mapper
+  -> Redis latest / InfluxDB raw telemetry
   -> KubeEdge DeviceStatus snapshot
   -> state-aggregator
   -> dashboard
@@ -116,6 +117,7 @@ Device 등록
 | CI/CD 자동 배포 기준 | `ops/ci-cd-autodeploy.md` |
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |
 | Kagenti 운영 보조 agent PoC | `kagenti-operator-assistant.md` |
+| Raw telemetry data-plane 목표 구조 | `raw-telemetry-data-plane.md` |
 | 현재 PoC 범위 | `scope.md` |
 | 문서 정리 계획 | `docs-cleanup-plan.md` |
 

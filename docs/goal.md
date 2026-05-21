@@ -38,6 +38,7 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 - Jetson, Raspberry Pi, server node가 섞인 혼합 디바이스 환경
 - 사전 등록된 KubeEdge Device 관리
 - MQTT telemetry / command topic 구조
+- raw telemetry data-plane: Redis Streams latest/replay와 InfluxDB raw history
 - mqttvirtual mapper 기반 DeviceStatus snapshot 반영
 - InfluxDB device별 latest timestamp 기반 healthy 판단
 - state-aggregator API

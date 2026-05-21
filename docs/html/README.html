@@ -64,6 +64,8 @@
 <li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
 <li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Active 문서</li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
 <li class="group">Archive</li>
 <li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
 <li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
@@ -92,8 +94,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: README.md</span>
-            <span class="badge">수정: 2026-05-19 12:52</span>
-            <span class="badge">HTML 생성: 2026-05-21 12:52</span>
+            <span class="badge">수정: 2026-05-21 13:53</span>
+            <span class="badge">HTML 생성: 2026-05-21 13:54</span>
           </div>
         </header>
         
@@ -185,7 +187,11 @@
 </tr>
 <tr>
 <td><code>current-demo-path.md</code></td>
-<td>device -&gt; MQTT -&gt; mapper -&gt; InfluxDB/DeviceStatus -&gt; state-aggregator -&gt; dashboard 흐름</td>
+<td>현재 device -&gt; MQTT -&gt; mapper/InfluxDB/DeviceStatus -&gt; state-aggregator -&gt; dashboard 흐름</td>
+</tr>
+<tr>
+<td><code>raw-telemetry-data-plane.md</code></td>
+<td>raw sensor stream을 Redis Streams + InfluxDB로 분리하고 mapper를 control/status-plane adapter로 축소하는 목표 구조</td>
 </tr>
 <tr>
 <td><code>edge-orch/workflow-designer/README.md</code></td>
@@ -264,8 +270,8 @@
 <pre data-lang="text"><code>Device 등록
   -&gt; edge node 할당
   -&gt; MQTT telemetry / command
-  -&gt; mqttvirtual mapper
-  -&gt; InfluxDB raw telemetry
+  -&gt; raw-stream-bridge / mqttvirtual mapper
+  -&gt; Redis latest / InfluxDB raw telemetry
   -&gt; KubeEdge DeviceStatus snapshot
   -&gt; state-aggregator
   -&gt; dashboard
@@ -315,6 +321,10 @@
 <tr>
 <td>Kagenti 운영 보조 agent PoC</td>
 <td><code>kagenti-operator-assistant.md</code></td>
+</tr>
+<tr>
+<td>Raw telemetry data-plane 목표 구조</td>
+<td><code>raw-telemetry-data-plane.md</code></td>
 </tr>
 <tr>
 <td>현재 PoC 범위</td>
