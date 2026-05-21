@@ -229,6 +229,28 @@ func (c *CustomizedClient) StopDevice() error {
 	return nil
 }
 
+func (c *CustomizedClient) telemetryOfflineAfter() time.Duration {
+	offlineAfter := time.Duration(c.ConfigData.OfflineAfterMs) * time.Millisecond
+	if offlineAfter <= 0 {
+		offlineAfter = 15 * time.Second
+	}
+	return offlineAfter
+}
+
+func (c *CustomizedClient) HasFreshTelemetry() bool {
+	if c == nil {
+		return false
+	}
+	c.deviceMutex.Lock()
+	lastSeenAt := c.LastSeenAt
+	hasTelemetry := c.HasTelemetry
+	c.deviceMutex.Unlock()
+	if !hasTelemetry || lastSeenAt.IsZero() {
+		return false
+	}
+	return time.Since(lastSeenAt) <= c.telemetryOfflineAfter()
+}
+
 func (c *CustomizedClient) GetDeviceStates() (string, error) {
 	if c.Client == nil {
 		return common.DeviceStatusDisCONN, nil
@@ -238,7 +260,6 @@ func (c *CustomizedClient) GetDeviceStates() (string, error) {
 	}
 
 	c.deviceMutex.Lock()
-	lastSeenAt := c.LastSeenAt
 	hasTelemetry := c.HasTelemetry
 	c.deviceMutex.Unlock()
 
@@ -246,11 +267,7 @@ func (c *CustomizedClient) GetDeviceStates() (string, error) {
 		return common.DeviceStatusUnknown, nil
 	}
 
-	offlineAfter := time.Duration(c.ConfigData.OfflineAfterMs) * time.Millisecond
-	if offlineAfter <= 0 {
-		offlineAfter = 15 * time.Second
-	}
-	if time.Since(lastSeenAt) > offlineAfter {
+	if !c.HasFreshTelemetry() {
 		return common.DeviceStatusOffline, nil
 	}
 	return common.DeviceStatusOnline, nil

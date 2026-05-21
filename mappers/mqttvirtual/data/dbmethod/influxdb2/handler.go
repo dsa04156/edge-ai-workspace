@@ -46,6 +46,10 @@ func DataHandler(ctx context.Context, twin *common.Twin, client *driver.Customiz
 		for {
 			select {
 			case <-ticker.C:
+				if !client.HasFreshTelemetry() {
+					klog.Infof("skip stale cached telemetry device=%s property=%s", dataModel.DeviceName, dataModel.PropertyName)
+					continue
+				}
 				deviceData, err := client.GetDeviceData(visitorConfig)
 				if err != nil {
 					klog.Errorf("publish error: %v", err)
