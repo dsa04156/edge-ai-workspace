@@ -50,6 +50,7 @@
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
 <li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
 <li><a href="current-demo-path.html">현재 데모 흐름</a></li>
 <li><a href="repo-structure.html">레포 구조</a></li>
@@ -94,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: service-demo-scenario.md</span>
-            <span class="badge">수정: 2026-05-19 15:46</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
+            <span class="badge">수정: 2026-05-21 19:05</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
           </div>
         </header>
         
@@ -115,7 +116,7 @@
 <ul><li>device와 service의 연결 관계를 dashboard에서 보이게 한다.</li><li>telemetry freshness와 DeviceStatus freshness를 분리해서 보여준다.</li><li>node, mapper, device 상태를 함께 해석한다.</li><li>operator focus 또는 issue list를 통해 우선 확인 대상을 줄인다.</li><li>KPI로 현장 적용성과 생산성 향상 효과를 설명한다.</li></ul>
 <h2 id="데모-목표">데모 목표</h2>
 <p>이번 서비스 데모에서 보여줄 목표는 다음이다.</p>
-<ol><li>Jetson과 Raspberry Pi에 할당된 device가 사전 등록되어 있음을 보인다.</li><li>각 device가 정해진 MQTT topic으로 telemetry를 발행하는 것을 보인다.</li><li><code>mqttvirtual</code> mapper가 telemetry/command 경로를 연결하는 것을 보인다.</li><li>raw telemetry가 InfluxDB data-plane으로 처리되는 것을 보인다.</li><li>DeviceStatus는 저빈도 운영 snapshot으로만 사용되는 것을 보인다.</li><li><code>state-aggregator</code>가 device, node, mapper, telemetry 상태를 통합하는 것을 보인다.</li><li>dashboard에서 device-service binding과 KPI를 운영 관점으로 보여준다.</li></ol>
+<ol><li>Jetson과 Raspberry Pi에 할당된 device가 사전 등록되어 있음을 보인다.</li><li>각 device의 command/status 경로가 정해져 있음을 보인다.</li><li><code>mqttvirtual</code> mapper가 KubeEdge Device/DeviceModel/DeviceStatus와 command 경로를 연결하는 것을 보인다.</li><li>raw telemetry ingestion은 MapperFramework가 아니라 EdgeX 기반 별도 plane으로 분리할 목표임을 보인다.</li><li>DeviceStatus는 health, severity, command_state, online/offline, control_response 같은 저빈도 운영 snapshot으로만 사용되는 것을 보인다.</li><li><code>state-aggregator</code>가 device, node, mapper, telemetry 상태를 통합하는 것을 보인다.</li><li>dashboard에서 device-service binding과 KPI를 운영 관점으로 보여준다.</li></ol>
 <h2 id="시나리오-구성">시나리오 구성</h2>
 <div class="table-wrap"><table>
 <thead><tr>

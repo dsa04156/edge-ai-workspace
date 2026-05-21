@@ -10,11 +10,15 @@
 
 ```text
 physical / virtual device
-  -> MQTT telemetry / command topic
-  -> mqttvirtual mapper LatestValues cache -> Device CR pushMethod.dbMethod.influxdb2 -> InfluxDB raw telemetry
-  -> mqttvirtual mapper -> KubeEdge DeviceStatus snapshot / command path
+  -> MQTT command/status topic
+  -> mqttvirtual mapper / MapperFramework DMI adapter
+  -> KubeEdge DeviceStatus summary / command path
   -> state-aggregator
   -> dashboard / service demo view
+
+raw telemetry ingestion (future)
+  -> EdgeX Device Service / EdgeX MessageBus
+  -> telemetry store / analytics consumers
 ```
 
 ## 전체 흐름
@@ -34,14 +38,14 @@ physical / virtual device
    - mapper는 telemetry topic을 구독하고 command topic으로 명령을 발행한다.
    - KubeEdge DMI를 통해 `Device` / `DeviceStatus` 계층과 연결된다.
 
-4. telemetry data-plane
+4. telemetry ingestion plane
    - raw telemetry는 DeviceStatus에 직접 올리지 않는다.
-   - 현재 공식 구조에서 raw telemetry는 `mqttvirtual` mapper가 Device CR `pushMethod.dbMethod.influxdb2`에 따라 InfluxDB에 저장한다.
-   - mapper의 `reportCycle` 기반 DB 저장이 현재 공식 경로이며, DeviceStatus에는 raw 값을 올리지 않는다.
+   - MapperFramework를 raw telemetry export engine으로 확장하지 않는다.
+   - 향후 raw telemetry ingestion은 EdgeX 기반 별도 plane에서 처리한다.
 
 5. status/control-plane
    - `DeviceStatus`는 저빈도 운영 snapshot으로 사용한다.
-   - health, severity, alarm, power, mode, sampling_interval 같은 운영 상태를 중심으로 둔다.
+   - health, severity, command_state, online/offline, control_response 같은 운영 상태를 중심으로 둔다.
 
 6. 상태 통합 계층
    - `state-aggregator`가 Kubernetes, KubeEdge, InfluxDB, Prometheus, mapper 상태를 함께 읽는다.
@@ -62,7 +66,7 @@ physical / virtual device
 | Device 정의 | `edge-device/` | `DeviceModel` / `Device` manifest 생성과 관리 |
 | 테스트 publisher | `mappers/script/test_device.py` | MQTT telemetry / command 테스트 입력 생성 |
 | mapper | `mappers/mqttvirtual/` | MQTT topic 구독, command publish, KubeEdge DMI 연동, DeviceStatus/Twin reported 처리 |
-| telemetry 저장 | mapper / InfluxDB | Device CR pushMethod.dbMethod 기반 mapper 저장, InfluxDB raw history/latest와 graph/anomaly 분석 |
+| telemetry ingestion | EdgeX plane TODO | raw telemetry ingestion, 저장, graph/anomaly 분석은 MapperFramework 주 경로에서 분리 |
 | 상태 통합 | `edge-orch/state-aggregator/` | KubeEdge / InfluxDB / Prometheus 상태 통합 API |
 | dashboard | `edge-orch/state-aggregator/app/static/` | 디바이스, 노드, 서비스, KPI 운영 가시화 |
 | workflow designer | `edge-orch/workflow-designer/` | 서비스 stage, input device, target node를 dry-run으로 시각화하고 execution plan을 생성 |
@@ -115,7 +119,7 @@ factory/devices/{device-name}/heartbeat
 
 - `heartbeat`는 테스트 publisher 보조 신호다.
 - 현재 KubeEdge `Device` manifest에는 `heartbeat`를 직접 연결하지 않는다.
-- raw telemetry stream은 DeviceStatus가 아니라 InfluxDB data-plane으로 처리한다.
+- raw telemetry stream은 DeviceStatus가 아니라 향후 EdgeX telemetry ingestion plane에서 처리한다.
 
 ## 테스트 publisher
 
@@ -187,7 +191,7 @@ mapper의 역할은 다음이다.
 4. KubeEdge DMI를 통해 device property read/write 경로를 제공한다.
 5. `factory/devices/{device-name}/command` topic으로 command를 publish한다.
 6. 허용된 운영 상태 property만 DeviceStatus report 대상으로 다룬다.
-7. raw telemetry 영구 저장은 Device CR `pushMethod.dbMethod.influxdb2`에 따라 mapper가 InfluxDB에 처리한다.
+7. raw telemetry 영구 저장은 MapperFramework 주 경로에서 제외하고 향후 EdgeX ingestion plane으로 분리한다.
 
 현재 deployment 기준에서 mapper는 edge node에서 동작하며, `/etc/kubeedge/dmi.sock`을 통해 edgecore/DMI와 연결된다.
 
@@ -199,7 +203,7 @@ mapper의 역할은 다음이다.
 
 - `DeviceStatus`는 control/status-plane의 저빈도 운영 snapshot으로 제한한다.
 - raw telemetry는 DeviceStatus에 올리지 않는다.
-- raw telemetry는 MQTT / InfluxDB data-plane으로 처리한다.
+- raw telemetry는 향후 EdgeX telemetry ingestion plane으로 처리한다.
 - `ReportDeviceStates`는 기본적으로 비활성화한다.
 
 기본 정책:
@@ -221,6 +225,9 @@ DeviceStatus에 올릴 수 있는 값은 운영 상태 요약이다.
 - `config_version`
 - `reported_config_version`
 - `command_state`
+- `online` / `offline`
+- `control_response`
+- `last_control_response`
 - `last_error_code`
 - `last_error_message`
 - `temperature_status`
@@ -234,6 +241,8 @@ DeviceStatus에 올리지 않는 값은 raw stream 성격의 값이다.
 - `temperature` raw stream
 - `humidity` raw stream
 - `vibration` raw stream
+- `acceleration_x`, `acceleration_y`, `acceleration_z`
+- `x`, `y`, `z`
 - `rms`
 - `peak`
 - `raw_samples`
@@ -242,21 +251,22 @@ DeviceStatus에 올리지 않는 값은 raw stream 성격의 값이다.
 - every-event log
 - inference result stream
 
-## InfluxDB telemetry data-plane
+## EdgeX telemetry ingestion plane TODO
 
-InfluxDB는 raw telemetry data-plane 저장소로 사용한다.
+향후 raw telemetry ingestion은 EdgeX 기반 별도 plane으로 구성한다.
+MapperFramework는 이 경로의 export engine이 아니다.
 
-Device manifest에서 raw telemetry property는 KubeEdge mapper framework의 `pushMethod.dbMethod.influxdb2` 경로를 사용한다.
+TODO: EdgeX Device Profile과 KubeEdge DeviceModel 간 매핑표를 문서화한다.
 
 예시 분리 기준:
 
-| device 계열 | DeviceStatus | InfluxDB data-plane |
+| device 계열 | DeviceStatus summary | EdgeX raw telemetry 후보 |
 |---|---|---|
 | env device | `health`, `sampling_interval`, `temperature_status`, `humidity_status` | `temperature`, `humidity` |
 | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |
-| act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB freshness row는 `ts` property다. `health`는 상태 요약용이고, `ts`는 publisher payload와 DB push property로 freshness 기준에 사용한다. |
+| act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version`, `control_response` | actuation event history, state transition history |
 
-현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다. act/rpi-act는 `ts` liveness row를 freshness 기준으로 사용한다.
+EdgeX plane이 붙기 전까지 raw telemetry freshness KPI는 전환 대상 지표로 취급한다. DeviceStatus freshness는 status-plane snapshot 최신성으로 별도 유지한다.
 
 ## state-aggregator
 
@@ -384,12 +394,12 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 
 | 구분 | 역할 | 예시 |
 |---|---|---|
-| data-plane | raw telemetry 저장/조회 | `temperature`, `humidity`, `vibration`, `rms`, `peak`, raw samples |
-| status-plane | 저빈도 운영 snapshot | `health`, `severity`, `power`, `mode`, `sampling_interval`, `command_state` |
+| telemetry ingestion plane | raw telemetry 저장/조회 | EdgeX TODO: `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform` |
+| status-plane | 저빈도 운영 snapshot | `health`, `severity`, `command_state`, `online/offline`, `control_response` |
 
 정책:
 
-- raw telemetry는 MQTT / InfluxDB data-plane에 둔다.
+- raw telemetry는 MapperFramework 주 경로가 아니라 EdgeX telemetry ingestion plane으로 분리한다.
 - DeviceStatus는 운영 상태 요약으로 제한한다.
 - dashboard는 두 경로의 freshness를 분리해서 판단한다.
 
@@ -400,17 +410,17 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 현재 데모에서 device가 `degraded`로 보일 수 있는 대표 원인은 다음이다.
 
 1. Device는 등록되어 있지만 live status가 unknown인 경우
-2. mapper는 Running이지만 InfluxDB에 fresh telemetry가 없는 경우
-3. telemetry가 fresh하지 않은 상태에서 DeviceStatus snapshot timestamp도 오래된 경우
+2. mapper는 Running이지만 DeviceStatus summary가 fresh하지 않은 경우
+3. EdgeX telemetry plane 전환 전 호환 telemetry freshness 지표가 stale인 경우
 4. publisher가 실행되지 않았거나 잘못된 node에서 실행된 경우
 5. publisher가 local mosquitto `127.0.0.1:1883`이 아닌 다른 broker로 publish한 경우
 6. Device는 Jetson에 할당됐지만 Raspberry Pi에서 publisher를 실행한 경우 또는 그 반대의 경우
-7. raw telemetry는 들어오지만 DeviceStatus report 대상 property가 갱신되지 않는 경우
+7. raw telemetry는 들어오지만 DeviceStatus report 대상 summary property가 갱신되지 않는 경우
 8. node 또는 mapper 상태가 dashboard 판단 기준과 맞지 않는 경우
 
 `degraded`는 반드시 시스템 전체 실패를 의미하지 않는다.
 
-현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 telemetry-enabled device의 InfluxDB latest telemetry가 fresh하지 않거나 node/mapper 선행 조건이 부족한 상태”로 해석한다. DeviceStatus freshness는 status-plane 보조 신호이며 healthy 필수 조건은 아니다.
+현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 DeviceStatus summary가 오래됐거나 node/mapper 선행 조건이 부족한 상태”로 해석한다. raw telemetry freshness는 EdgeX ingestion plane 전환 대상 지표와 분리해서 본다.
 
 dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/unavailable device + non-healthy node, workflow risk 제외)로 구분해서 읽는다.
 

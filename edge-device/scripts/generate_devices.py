@@ -85,13 +85,9 @@ RPI_GROUPS = [
 
 
 def should_store_to_influx(device_type: str, key: str) -> bool:
-    # Official PoC path: Device CR pushMethod.dbMethod.influxdb2 -> mqttvirtual
-    # mapper -> InfluxDB. Raw sensor properties are persisted by reportCycle/
-    # collectCycle. DeviceStatus remains limited to the status_keys allowlist.
-    raw_sensor_keys = {"temperature", "humidity", "vibration"}
-    if device_type in {"env", "vib", "rpi-env", "rpi-vib"} and key in raw_sensor_keys:
-        return True
-    # Keep actuator health/liveness DB row for low-frequency operational status.
+    # MapperFramework refactor target: do not expand mqttvirtual into a raw
+    # telemetry export engine. Raw sensor ingestion moves to the EdgeX plane.
+    # Keep only low-frequency actuator health/liveness as control/status summary.
     return device_type in {"act", "rpi-act"} and key == "health"
 
 

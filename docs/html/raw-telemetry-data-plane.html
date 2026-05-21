@@ -50,6 +50,7 @@
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
 <li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
 <li><a href="current-demo-path.html">현재 데모 흐름</a></li>
 <li><a href="repo-structure.html">레포 구조</a></li>
@@ -90,117 +91,170 @@
         <header class="doc-header">
           <p class="eyebrow">Active 문서</p>
           <h1>Raw Telemetry Data Plane Architecture</h1>
-          <p class="subtitle">현재 KubeEdge 기반 mixed-device PoC의 공식 raw telemetry 저장 경로를 정의한다. 현재 목표는 고…</p>
+          <p class="subtitle">현재 KubeEdge 기반 mixed-device PoC에서 raw telemetry와 KubeEdge MapperFramewo…</p>
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: raw-telemetry-data-plane.md</span>
-            <span class="badge">수정: 2026-05-21 15:35</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
+            <span class="badge">수정: 2026-05-21 19:37</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
           </div>
         </header>
         
         <div class="doc-body">
           <h1 id="raw-telemetry-data-plane-architecture">Raw Telemetry Data Plane Architecture</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 현재 KubeEdge 기반 mixed-device PoC의 공식 raw telemetry 저장 경로를 정의한다. 현재 목표는 고도화된 raw stream architecture가 아니라, KubeEdge Device CR과 mapper-framework가 제공하는 표준 흐름을 우선 복구하는 것이다.</p>
-<h2 id="공식-구조">공식 구조</h2>
-<pre data-lang="text"><code>Sensor / Arduino
-  -&gt; MQTT Broker
-  -&gt; mqttvirtual mapper
-  -&gt; LatestValues cache
-  -&gt; Device CR pushMethod.dbMethod.influxdb2
-  -&gt; InfluxDB
-  -&gt; state-aggregator / dashboard</code></pre>
-<h2 id="현재-원칙">현재 원칙</h2>
-<ul><li>raw sensor property는 Device manifest의 <code>pushMethod.dbMethod.influxdb2</code>를 사용한다.</li><li><code>mqttvirtual</code> mapper는 MQTT telemetry를 수신해 LatestValues cache에 보관하고, 각 property의 <code>reportCycle</code>/<code>collectCycle</code> 기준으로 InfluxDB에 저장한다.</li><li><code>DeviceStatus</code>는 raw telemetry 저장소가 아니다.</li><li><code>DeviceStatus</code>/Twin reported는 <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>command_state</code> 같은 control/status 보조 신호로 제한한다.</li><li><code>state-aggregator</code>의 telemetry freshness는 InfluxDB latest timestamp 기준으로 판단한다.</li><li>dashboard는 InfluxDB latest sample과 DeviceStatus snapshot freshness를 분리해서 표시한다.</li></ul>
-<h2 id="컴포넌트-역할">컴포넌트 역할</h2>
+<p>이 문서는 현재 KubeEdge 기반 mixed-device PoC에서 raw telemetry와 KubeEdge MapperFramework 책임을 분리하는 목표를 정의한다. 수정된 목표는 MapperFramework를 raw telemetry export engine으로 확장하지 않는 것이다. 향후 raw telemetry ingestion은 EdgeX 기반 별도 telemetry ingestion plane이 담당한다.</p>
+<h2 id="변경된-공식-구조">변경된 공식 구조</h2>
+<pre data-lang="text"><code>control/status plane
+  KubeEdge Device / DeviceModel
+    -&gt; mqttvirtual mapper / MapperFramework DMI adapter
+    -&gt; DeviceStatus summary: health, severity, command_state, online/offline, control response
+    -&gt; state-aggregator / dashboard
+
+raw telemetry ingestion plane (future)
+  Sensor / Arduino / collector
+    -&gt; EdgeX Device Service / EdgeX MessageBus
+    -&gt; EdgeX Core Data / app service / persistence pipeline
+    -&gt; telemetry store and analytics consumers</code></pre>
+<p>현재 문서/코드 정리 기준에서 <code>temperature</code>, <code>humidity</code>, <code>vibration</code>, <code>acceleration_x/y/z</code>, <code>current</code>, <code>voltage</code>, <code>waveform</code> 같은 raw telemetry는 MapperFramework 주 경로에서 제외한다. 기존 <code>telemetry.Sample</code>/<code>telemetry.Sink</code> 형태는 production raw telemetry path가 아니라 debug/internal compatibility path로만 남긴다.</p>
+<h2 id="mapperframework가-유지할-책임">MapperFramework가 유지할 책임</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>컴포넌트</th>
-<th>책임</th>
-<th>하지 않는 일</th>
+<th>범위</th>
+<th>유지 책임</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Sensor/Arduino</td>
-<td>센서 값을 MQTT telemetry topic으로 발행</td>
-<td>KubeEdge DeviceStatus 직접 수정</td>
+<td>KubeEdge 연동</td>
+<td><code>Device</code>, <code>DeviceModel</code>, <code>DeviceStatus</code>와 DMI adapter 연동</td>
 </tr>
 <tr>
-<td>MQTT Broker</td>
-<td>edge node local telemetry/command broker</td>
-<td>장기 저장, 대시보드 API 생성</td>
+<td>control/status summary</td>
+<td><code>health</code>, <code>severity</code>, <code>command_state</code>, <code>online/offline</code>, <code>control_response</code> 등 저빈도 운영 요약 처리</td>
 </tr>
 <tr>
-<td>mqttvirtual mapper</td>
-<td>MQTT subscribe, LatestValues cache, DMI adapter, <code>pushMethod.dbMethod.influxdb2</code> 기반 InfluxDB 저장, command publish</td>
-<td>raw telemetry를 DeviceStatus에 올리기</td>
+<td>command/desired</td>
+<td>desired 값 수신, MQTT command publish, command 적용 결과 summary 보고</td>
 </tr>
 <tr>
-<td>Device CR</td>
-<td>property별 <code>collectCycle</code>, <code>reportCycle</code>, <code>pushMethod.dbMethod.influxdb2</code> 저장 정책 선언</td>
-<td>runtime sample 자체 저장</td>
+<td>DeviceStatus 보호</td>
+<td>allowlist 기반으로 raw telemetry field가 DeviceStatus summary에 들어가지 못하게 차단</td>
 </tr>
 <tr>
-<td>InfluxDB</td>
-<td>raw telemetry latest/history 저장과 freshness 판단 기준 제공</td>
-<td>control-plane 상태 저장소 역할</td>
-</tr>
-<tr>
-<td>state-aggregator</td>
-<td>KubeEdge Device/DeviceStatus와 InfluxDB latest timestamp를 조합해 dashboard payload 생성</td>
-<td>Redis latest 조회, raw telemetry 별도 bridge 운영</td>
-</tr>
-<tr>
-<td>dashboard</td>
-<td>디바이스-서비스 연결 구조, 센서 데이터 freshness, status snapshot, KPI 가시화</td>
-<td><code>status.state=online</code>만으로 healthy 판단</td>
+<td>dashboard 입력</td>
+<td>state-aggregator가 해석할 수 있는 control/status snapshot 제공</td>
 </tr>
 </tbody></table></div>
-<h2 id="device-cr-property-정책">Device CR property 정책</h2>
-<p>raw sensor property 예시는 다음과 같다.</p>
-<pre data-lang="yaml"><code>- name: temperature
-  collectCycle: 60000
-  reportCycle: 60000
-  reportToCloud: false
-  visitors:
-    protocolName: mqttvirtual
-    configData:
-      dataType: string
-      jsonKey: temperature
-  pushMethod:
-    dbMethod:
-      influxdb2:
-        influxdb2ClientConfig:
-          url: http://influxdb.telemetry.svc.cluster.local:8086
-          org: edgeai
-          bucket: device_telemetry
-        influxdb2DataConfig:
-          measurement: virtual_device_telemetry
-          tag:
-            device_id: env-device-01
-            device_type: env
-            property: temperature
-          fieldKey: value</code></pre>
-<p>정책:</p>
-<ul><li><code>env</code>/<code>rpi-env</code>: <code>temperature</code>, <code>humidity</code>는 InfluxDB 저장 대상이다.</li><li><code>vib</code>/<code>rpi-vib</code>: <code>vibration</code>은 InfluxDB 저장 대상이다.</li><li><code>act</code>/<code>rpi-act</code>: actuator liveness 확인용 <code>health</code> 저장 정책은 유지한다.</li><li>raw sensor property는 <code>reportToCloud: false</code>로 두어 DeviceStatus에 고빈도 값을 올리지 않는다.</li><li>actuator/status property의 <code>reportToCloud</code> allowlist는 기존 DeviceStatus 정책을 따른다.</li></ul>
-<h2 id="mapper-저장-경로">Mapper 저장 경로</h2>
-<p><code>mqttvirtual</code> mapper는 Device CR의 <code>pushMethod.dbMethod</code>를 기준으로 DB handler를 실행한다. <code>raw</code>, <code>value</code>, <code>x</code>, <code>y</code>, <code>z</code>, <code>temperature</code>, <code>humidity</code>, <code>vibration</code> 같은 raw property를 mapper DB 저장에서 제외하는 denylist는 공식 경로와 맞지 않으므로 사용하지 않는다.</p>
-<p>InfluxDB method 이름은 mapper-framework 변환 결과와 legacy 호환을 위해 <code>influx</code>와 <code>influxdb2</code>를 모두 허용한다.</p>
+<h2 id="제거-축소할-telemetry-관련-코드">제거/축소할 telemetry 관련 코드</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>대상</th>
+<th>결정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>MapperFramework raw telemetry export engine</td>
+<td>확장하지 않음</td>
+</tr>
+<tr>
+<td><code>temperature</code>, <code>humidity</code>, <code>vibration</code>, <code>acceleration_x/y/z</code>, <code>current</code>, <code>voltage</code>, <code>waveform</code> 주 경로 처리</td>
+<td>MapperFramework 주 경로에서 제외</td>
+</tr>
+<tr>
+<td><code>telemetry.Sample</code> / <code>telemetry.Sink</code></td>
+<td>debug/internal compatibility path로만 유지하거나 제거 검토</td>
+</tr>
+<tr>
+<td><code>MQTTTelemetrySink</code></td>
+<td>추가하지 않음</td>
+</tr>
+<tr>
+<td><code>CollectorTelemetrySink</code></td>
+<td>추가하지 않음</td>
+</tr>
+<tr>
+<td><code>InfluxDBSink</code></td>
+<td>추가하지 않음</td>
+</tr>
+<tr>
+<td><code>KafkaSink</code></td>
+<td>추가하지 않음</td>
+</tr>
+<tr>
+<td>raw telemetry -&gt; DeviceStatus 변환</td>
+<td>금지</td>
+</tr>
+</tbody></table></div>
+<p>WARNING: MapperFramework에 <code>MQTTTelemetrySink</code>, <code>CollectorTelemetrySink</code>, <code>InfluxDBSink</code>, <code>KafkaSink</code> 또는 유사 production raw telemetry sink를 추가하지 않는다. raw telemetry ingestion은 EdgeX plane에서 다룬다.</p>
+<h2 id="devicestatus-summary-field-목록">DeviceStatus summary field 목록</h2>
+<p>허용 summary field는 운영 상태와 제어 응답을 나타내는 저빈도 값으로 제한한다.</p>
+<pre data-lang="yaml"><code>allowed_status_properties:
+  - health
+  - severity
+  - command_state
+  - online
+  - offline
+  - control_response
+  - last_control_response
+  - alarm_latched
+  - power
+  - mode
+  - sampling_interval
+  - config_version
+  - reported_config_version
+  - last_error_code
+  - last_error_message
+  - temperature_status
+  - humidity_status
+  - vibration_status
+  - mapperLastSeen
+  - controlLastSeen
+  - statusLastSeen
+  - statusSource</code></pre>
+<p>Deprecated summary field:</p>
+<pre data-lang="yaml"><code>deprecated_status_properties:
+  - lastSeen
+  - last_seen
+  - telemetryFresh
+  - telemetry_fresh
+  - source</code></pre>
+<p><code>temperature_status</code>, <code>humidity_status</code>, <code>vibration_status</code>는 raw 값이 아니라 상태 등급이다. 가능하면 raw 값 대신 status 등급을 DeviceStatus로 올린다.</p>
+<h2 id="raw-telemetry-제외-field-목록">raw telemetry 제외 field 목록</h2>
+<p>다음 field는 DeviceStatus summary와 MapperFramework control/status 주 경로에서 제외한다.</p>
+<pre data-lang="yaml"><code>excluded_raw_telemetry_fields:
+  - temperature
+  - humidity
+  - vibration
+  - acceleration_x
+  - acceleration_y
+  - acceleration_z
+  - current
+  - voltage
+  - x
+  - y
+  - z
+  - waveform
+  - raw_samples
+  - rms
+  - peak
+  - image
+  - frame
+  - value
+  - raw</code></pre>
 <h2 id="state-aggregator-dashboard-정책">state-aggregator / dashboard 정책</h2>
-<ul><li>Redis 없이 InfluxDB만 조회한다.</li><li><code>/state/dashboard</code> payload에는 <code>raw_telemetry_latest</code>를 포함하지 않는다.</li><li>KPI에는 <code>raw_live_stream_count</code>를 포함하지 않는다.</li><li>telemetry freshness는 기존처럼 InfluxDB latest timestamp 기준이다.</li><li>DeviceStatus는 <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>command_state</code> 등 운영 snapshot 해석의 보조 신호로만 사용한다.</li></ul>
-<h2 id="redis-raw-stream-bridge-위치">Redis/raw-stream-bridge 위치</h2>
-<p>Redis Streams와 raw-stream-bridge 기반 구조는 현재 PoC 기본 경로가 아니다. 향후 고빈도 fan-out, replay, multi-consumer streaming이 필요할 때 실험적 대안으로 다시 검토할 수 있으나, 현재 공식 구현/문서/CI/CD 대상에서는 제외한다.</p>
+<ul><li><code>/state/dashboard</code> payload는 DeviceStatus summary와 telemetry freshness를 분리해서 해석한다.</li><li>DeviceStatus freshness는 status-plane snapshot 최신성이다.</li><li>raw telemetry ingestion freshness는 EdgeX 기반 telemetry plane 구성 후 별도 기준으로 연결한다.</li><li><code>status.state=online</code> 하나만으로 healthy를 판단하지 않는다.</li></ul>
+<h2 id="edgex-todo">EdgeX TODO</h2>
+<ul><li>EdgeX Device Profile과 KubeEdge DeviceModel 간 매핑표는 <code>docs/kubeedge-edgex-model-mapping.md</code>에 둔다.</li><li>TODO: EdgeX profile의 device resource 이름과 KubeEdge DeviceModel property 이름의 1:1/파생 관계를 정리한다.</li><li>TODO: EdgeX event/reading field와 dashboard 상태 필드의 연결 범위를 정의한다.</li><li>TODO: EdgeX ingestion plane과 KubeEdge DeviceStatus summary plane의 장애/freshness KPI 경계를 정의한다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#공식-구조">공식 구조</a></li>
-<li class="toc-h2"><a href="#현재-원칙">현재 원칙</a></li>
-<li class="toc-h2"><a href="#컴포넌트-역할">컴포넌트 역할</a></li>
-<li class="toc-h2"><a href="#device-cr-property-정책">Device CR property 정책</a></li>
-<li class="toc-h2"><a href="#mapper-저장-경로">Mapper 저장 경로</a></li>
+<li class="toc-h2"><a href="#변경된-공식-구조">변경된 공식 구조</a></li>
+<li class="toc-h2"><a href="#mapperframework가-유지할-책임">MapperFramework가 유지할 책임</a></li>
+<li class="toc-h2"><a href="#제거-축소할-telemetry-관련-코드">제거/축소할 telemetry 관련 코드</a></li>
+<li class="toc-h2"><a href="#devicestatus-summary-field-목록">DeviceStatus summary field 목록</a></li>
+<li class="toc-h2"><a href="#raw-telemetry-제외-field-목록">raw telemetry 제외 field 목록</a></li>
 <li class="toc-h2"><a href="#state-aggregator-dashboard-정책">state-aggregator / dashboard 정책</a></li>
-<li class="toc-h2"><a href="#redis-raw-stream-bridge-위치">Redis/raw-stream-bridge 위치</a></li></ol></aside>
+<li class="toc-h2"><a href="#edgex-todo">EdgeX TODO</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

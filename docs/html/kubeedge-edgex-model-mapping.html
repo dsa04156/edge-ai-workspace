@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KubeEdge-EdgeX 모델 매핑</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=kubeedge-edgex-model-mapping.md">편집</a>
+      </div>
+      <span>kubeedge-edgex-model-mapping.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Active 문서</li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>KubeEdge-EdgeX 모델 매핑</h1>
+          <p class="subtitle">MapperFramework 리팩토링 이후의 모델 경계를 정리한다. KubeEdge DeviceModel은 control/sta…</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: kubeedge-edgex-model-mapping.md</span>
+            <span class="badge">수정: 2026-05-21 19:40</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="kubeedge-devicemodel---edgex-device-profile-매핑표">KubeEdge DeviceModel - EdgeX Device Profile 매핑표</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 MapperFramework 리팩토링 이후의 모델 경계를 정리한다. KubeEdge <code>DeviceModel</code>은 control/status plane의 Device/DeviceStatus 계약을 표현하고, EdgeX <code>Device Profile</code>은 향후 별도 raw telemetry ingestion plane의 resource/readings 계약을 표현한다.</p>
+<p>중요 정책:</p>
+<ul><li>MapperFramework는 raw telemetry export engine으로 확장하지 않는다.</li><li>EdgeX가 <code>temperature</code>, <code>humidity</code>, <code>vibration</code>, <code>acceleration_x/y/z</code>, <code>current</code>, <code>voltage</code>, <code>waveform</code> 같은 raw telemetry ingestion을 담당한다.</li><li>KubeEdge DeviceStatus에는 health/severity/command_state/online/offline/control_response 같은 저빈도 control/status summary만 올린다.</li><li><code>telemetry.Sample</code> / <code>telemetry.Sink</code>는 production raw telemetry path가 아니라 debug/internal compatibility path다.</li><li>WARNING: MapperFramework에 <code>MQTTTelemetrySink</code>, <code>CollectorTelemetrySink</code>, <code>InfluxDBSink</code>, <code>KafkaSink</code>를 추가하지 않는다.</li></ul>
+<h2 id="매핑-원칙">매핑 원칙</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>KubeEdge DeviceModel property</th>
+<th>EdgeX Device Profile resource</th>
+<th>방향</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>control/status summary</td>
+<td>유지</td>
+<td>필요 시 derived/status resource로 별도 정의</td>
+<td>KubeEdge 중심</td>
+</tr>
+<tr>
+<td>raw sensor reading</td>
+<td>DeviceStatus 주 경로 제외</td>
+<td>deviceResource로 정의</td>
+<td>EdgeX 중심</td>
+</tr>
+<tr>
+<td>command/desired</td>
+<td>KubeEdge desired/command path</td>
+<td>EdgeX command resource와 후속 연동 검토</td>
+<td>경계 명시 필요</td>
+</tr>
+<tr>
+<td>freshness/source metadata</td>
+<td><code>mapperLastSeen</code>, <code>controlLastSeen</code>, <code>statusLastSeen</code>, <code>statusSource</code></td>
+<td>EdgeX event origin/reading timestamp/source metadata</td>
+<td>plane별 별도 관리</td>
+</tr>
+</tbody></table></div>
+<p>Deprecated KubeEdge DeviceStatus field:</p>
+<pre data-lang="yaml"><code>deprecated_status_properties:
+  - lastSeen
+  - last_seen
+  - telemetryFresh
+  - telemetry_fresh
+  - source</code></pre>
+<p>대체 필드:</p>
+<pre data-lang="yaml"><code>replacement_status_properties:
+  - mapperLastSeen
+  - controlLastSeen
+  - statusLastSeen
+  - statusSource</code></pre>
+<h2 id="kubeedge-devicemodel-property-edgex-device-profile-resource-매핑">KubeEdge DeviceModel property ↔ EdgeX Device Profile resource 매핑</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>디바이스군</th>
+<th>KubeEdge DeviceModel property</th>
+<th>KubeEdge 처리</th>
+<th>EdgeX Device Profile resource</th>
+<th>EdgeX 처리</th>
+<th>비고/TODO</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>env / rpi-env</td>
+<td><code>health</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>Health</code> 또는 derived <code>DeviceHealth</code></td>
+<td>선택적 derived/status</td>
+<td>raw 값 아님</td>
+</tr>
+<tr>
+<td>env / rpi-env</td>
+<td><code>sampling_interval</code></td>
+<td>command/desired 반영 상태 허용</td>
+<td><code>SamplingInterval</code></td>
+<td>command/config resource 후보</td>
+<td>제어 경로 연동 방식 TODO</td>
+</tr>
+<tr>
+<td>env / rpi-env</td>
+<td><code>temperature_status</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>TemperatureStatus</code></td>
+<td>derived/status 후보</td>
+<td>raw temperature에서 계산 가능</td>
+</tr>
+<tr>
+<td>env / rpi-env</td>
+<td><code>humidity_status</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>HumidityStatus</code></td>
+<td>derived/status 후보</td>
+<td>raw humidity에서 계산 가능</td>
+</tr>
+<tr>
+<td>env / rpi-env</td>
+<td><code>temperature</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Temperature</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>env / rpi-env</td>
+<td><code>humidity</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Humidity</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>health</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>Health</code> 또는 derived <code>DeviceHealth</code></td>
+<td>선택적 derived/status</td>
+<td>raw 값 아님</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>severity</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>VibrationSeverity</code></td>
+<td>derived/status 후보</td>
+<td>alarm 정책과 연결</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>alarm_latched</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>AlarmLatched</code></td>
+<td>derived/status 후보</td>
+<td>debounce/hysteresis 결과</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>sampling_interval</code></td>
+<td>command/desired 반영 상태 허용</td>
+<td><code>SamplingInterval</code></td>
+<td>command/config resource 후보</td>
+<td>제어 경로 연동 방식 TODO</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>vibration_status</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>VibrationStatus</code></td>
+<td>derived/status 후보</td>
+<td>raw vibration에서 계산 가능</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>vibration</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Vibration</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>acceleration_x</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>AccelerationX</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>acceleration_y</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>AccelerationY</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>acceleration_z</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>AccelerationZ</code></td>
+<td>raw reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>vib / rpi-vib</td>
+<td><code>waveform</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Waveform</code></td>
+<td>raw reading/binary or object</td>
+<td>payload format TODO</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>health</code></td>
+<td>DeviceStatus summary 및 현행 liveness row</td>
+<td><code>Health</code> 또는 derived <code>DeviceHealth</code></td>
+<td>선택적 derived/status</td>
+<td>현재 PoC actuator liveness는 <code>health</code> 유지</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>power</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>Power</code></td>
+<td>command/status resource 후보</td>
+<td>통신 생존성 자체가 아님</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>mode</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>Mode</code></td>
+<td>command/status resource 후보</td>
+<td>enum 정리 TODO</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>command_state</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>CommandState</code></td>
+<td>derived/status 후보</td>
+<td>command result 요약</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>control_response</code></td>
+<td>DeviceStatus summary 허용</td>
+<td><code>ControlResponse</code></td>
+<td>event/status 후보</td>
+<td>제어 응답 요약</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>current</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Current</code></td>
+<td>raw/electrical reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+<tr>
+<td>act / rpi-act</td>
+<td><code>voltage</code></td>
+<td>DeviceStatus 제외</td>
+<td><code>Voltage</code></td>
+<td>raw/electrical reading</td>
+<td>EdgeX ingestion plane 담당</td>
+</tr>
+</tbody></table></div>
+<h2 id="devicestatus-summary-allowlist">DeviceStatus summary allowlist</h2>
+<pre data-lang="yaml"><code>allowed_status_properties:
+  - health
+  - severity
+  - command_state
+  - online
+  - offline
+  - control_response
+  - last_control_response
+  - alarm_latched
+  - power
+  - mode
+  - sampling_interval
+  - config_version
+  - reported_config_version
+  - last_error_code
+  - last_error_message
+  - temperature_status
+  - humidity_status
+  - vibration_status
+  - mapperLastSeen
+  - controlLastSeen
+  - statusLastSeen
+  - statusSource</code></pre>
+<h2 id="raw-telemetry-제외-목록">raw telemetry 제외 목록</h2>
+<pre data-lang="yaml"><code>excluded_raw_telemetry_fields:
+  - temperature
+  - humidity
+  - vibration
+  - acceleration_x
+  - acceleration_y
+  - acceleration_z
+  - current
+  - voltage
+  - x
+  - y
+  - z
+  - waveform
+  - raw_samples
+  - rms
+  - peak
+  - image
+  - frame
+  - value
+  - raw</code></pre>
+<h2 id="todo">TODO</h2>
+<ul><li>EdgeX Device Profile YAML 작성 시 각 resource의 type, unit, min/max, read/write 여부를 확정한다.</li><li>KubeEdge DeviceModel property와 EdgeX Device Profile resource의 enum 값을 맞춘다.</li><li>EdgeX event/reading timestamp와 KubeEdge <code>mapperLastSeen</code>/<code>statusLastSeen</code>의 dashboard 표시 경계를 정한다.</li><li>actuator command를 KubeEdge desired path와 EdgeX command resource 중 어디에서 시작할지 결정한다.</li><li>EdgeX ingestion plane 구축 후 state-aggregator가 raw freshness KPI를 어느 API에서 읽을지 정한다.</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#매핑-원칙">매핑 원칙</a></li>
+<li class="toc-h2"><a href="#kubeedge-devicemodel-property-edgex-device-profile-resource-매핑">KubeEdge DeviceModel property ↔ EdgeX Device Profile resource 매핑</a></li>
+<li class="toc-h2"><a href="#devicestatus-summary-allowlist">DeviceStatus summary allowlist</a></li>
+<li class="toc-h2"><a href="#raw-telemetry-제외-목록">raw telemetry 제외 목록</a></li>
+<li class="toc-h2"><a href="#todo">TODO</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

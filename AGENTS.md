@@ -18,7 +18,7 @@
 2. 디바이스 등록/관리 체계를 안정화한다.
 3. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
 4. DeviceStatus는 저빈도 운영 snapshot으로 제한한다.
-5. raw telemetry는 MQTT/InfluxDB data-plane으로 처리한다.
+5. raw telemetry ingestion은 MapperFramework가 아니라 향후 EdgeX 별도 plane으로 처리한다.
 6. 동적 워크플로우, 오프로딩, agent-assisted planning은 후속 고도화로 둔다.
 
 ## 구현 규칙
@@ -29,7 +29,7 @@
 - `factory/devices/{device-name}/telemetry`는 telemetry 입력 topic이다.
 - `factory/devices/{device-name}/command`는 command topic이다.
 - `factory/devices/{device-name}/heartbeat`는 테스트 publisher 보조 heartbeat이며 KubeEdge Device manifest에는 직접 연결하지 않는다.
-- raw telemetry 값을 DeviceStatus에 올리지 않는다.
+- raw telemetry 값을 DeviceStatus에 올리지 않고, MapperFramework를 raw telemetry export engine으로 확장하지 않는다.
 - `status.state=online`만으로 healthy 판단하지 않는다.
 
 ## 문서 표현 규칙

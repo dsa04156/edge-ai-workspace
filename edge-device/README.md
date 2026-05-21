@@ -38,14 +38,15 @@ Runtime:
 python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /home/etri/jinuk/edge-device/devices.yaml
 ```
 
-Raw telemetry properties use KubeEdge Mapper Framework's `pushMethod.dbMethod.influxdb2` path.
+MapperFramework 리팩토링 목표는 raw telemetry export engine 확장이 아니라 KubeEdge control/status summary 연동이다.
+향후 `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform` 같은 raw telemetry ingestion은 EdgeX 기반 별도 plane으로 분리한다.
 
 Current split:
-- `temperature`, `humidity`, `vibration`: `reportToCloud: false`, stored to InfluxDB
-- `health`, `severity`, `alarm_latched`, `power`, `mode`, `sampling_interval`: reported as DeviceStatus summary
+- `temperature`, `humidity`, `vibration`: MapperFramework 주 경로에서 제외, EdgeX telemetry ingestion plane으로 이관 예정
+- `health`, `severity`, `command_state`, `online/offline`, `control_response`, `alarm_latched`, `power`, `mode`, `sampling_interval`: DeviceStatus summary
 - Device `status.reportToCloud`: `false`, to avoid high-rate `ReportDeviceStates`
 
-InfluxDB defaults used by the generator:
+Legacy InfluxDB defaults previously used by the generator:
 
 ```bash
 INFLUX_URL=http://influxdb.telemetry.svc.cluster.local:8086

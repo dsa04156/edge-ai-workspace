@@ -22,9 +22,9 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 1. 어떤 edge node와 server node가 존재하는가.
 2. 어떤 device가 등록되어 있는가.
 3. device가 어떤 node에 붙어 있는가.
-4. InfluxDB에 device별 최신 값이 최근 들어오는가.
-5. DeviceStatus snapshot이 보조 상태 정보로 최신인가.
-6. env/vib/temp raw telemetry와 act ts liveness가 DB timestamp 기준으로 구분되어 있는가.
+4. DeviceStatus snapshot이 control/status summary로 최신인가.
+5. raw telemetry ingestion은 MapperFramework가 아니라 EdgeX plane으로 분리될 예정임이 명확한가.
+6. health, severity, command_state, online/offline, control_response와 raw telemetry가 구분되어 있는가.
 7. device가 어떤 service demo group에 연결되어 있는가.
 8. mapper, state-aggregator, dashboard가 현재 상태를 일관되게 보여주는가.
 9. dashboard에서 healthy, degraded, unavailable 판단이 어떻게 내려지는가.
@@ -37,10 +37,10 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 - KubeEdge node/device 기반 운영 상태 가시화
 - Jetson, Raspberry Pi, server node가 섞인 혼합 디바이스 환경
 - 사전 등록된 KubeEdge Device 관리
-- MQTT telemetry / command topic 구조
-- raw telemetry data-plane: Device CR pushMethod.dbMethod 기반 mapper -> InfluxDB raw history/latest
+- MQTT command/status topic 구조
+- raw telemetry ingestion plane: EdgeX 기반 별도 경로 TODO
 - mqttvirtual mapper 기반 DeviceStatus snapshot 반영
-- InfluxDB device별 latest timestamp 기반 healthy 판단
+- DeviceStatus summary와 raw telemetry freshness 분리
 - state-aggregator API
 - dashboard 운영 가시화
 - device-service binding

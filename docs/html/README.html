@@ -50,6 +50,7 @@
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
 <li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
 <li><a href="current-demo-path.html">현재 데모 흐름</a></li>
 <li><a href="repo-structure.html">레포 구조</a></li>
@@ -94,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: README.md</span>
-            <span class="badge">수정: 2026-05-21 15:36</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
+            <span class="badge">수정: 2026-05-21 19:40</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
           </div>
         </header>
         
@@ -182,16 +183,20 @@
 <td>DeviceStatus와 raw telemetry 분리 정책</td>
 </tr>
 <tr>
+<td><code>kubeedge-edgex-model-mapping.md</code></td>
+<td>KubeEdge DeviceModel property와 EdgeX Device Profile resource 매핑표</td>
+</tr>
+<tr>
 <td><code>device-service-binding.md</code></td>
 <td>device가 어떤 service demo group에 연결되는지</td>
 </tr>
 <tr>
 <td><code>current-demo-path.md</code></td>
-<td>현재 device -&gt; MQTT -&gt; mapper/InfluxDB/DeviceStatus -&gt; state-aggregator -&gt; dashboard 흐름</td>
+<td>현재 device -&gt; mapper/DeviceStatus -&gt; state-aggregator -&gt; dashboard 흐름과 EdgeX telemetry plane TODO</td>
 </tr>
 <tr>
 <td><code>raw-telemetry-data-plane.md</code></td>
-<td>Device CR pushMethod.dbMethod 기반 mapper -&gt; InfluxDB 공식 raw telemetry 저장 구조</td>
+<td>MapperFramework 책임 축소와 EdgeX 기반 raw telemetry ingestion plane 목표</td>
 </tr>
 <tr>
 <td><code>edge-orch/workflow-designer/README.md</code></td>
@@ -269,10 +274,10 @@
 <p>현재 데모는 아래 흐름을 보여준다.</p>
 <pre data-lang="text"><code>Device 등록
   -&gt; edge node 할당
-  -&gt; MQTT telemetry / command
-  -&gt; mqttvirtual mapper
-  -&gt; Device CR pushMethod.dbMethod.influxdb2 / InfluxDB raw telemetry
-  -&gt; KubeEdge DeviceStatus snapshot
+  -&gt; MQTT command/status
+  -&gt; mqttvirtual mapper / MapperFramework DMI adapter
+  -&gt; KubeEdge DeviceStatus summary
+  -&gt; EdgeX raw telemetry ingestion plane TODO
   -&gt; state-aggregator
   -&gt; dashboard
   -&gt; operator assistant summary
@@ -325,6 +330,10 @@
 <tr>
 <td>Raw telemetry data-plane 목표 구조</td>
 <td><code>raw-telemetry-data-plane.md</code></td>
+</tr>
+<tr>
+<td>KubeEdge-EdgeX 모델 매핑표</td>
+<td><code>kubeedge-edgex-model-mapping.md</code></td>
 </tr>
 <tr>
 <td>현재 PoC 범위</td>

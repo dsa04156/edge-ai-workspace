@@ -5,18 +5,25 @@
 KubeEdge `DeviceStatus`는 고빈도 telemetry 저장/전송 경로가 아니다.
 DeviceStatus는 control/status-plane의 저빈도 운영 snapshot으로 제한한다.
 
-raw telemetry는 MQTT 기반 data-plane에서 처리하며, 현재 공식 구조에서는 Device CR `pushMethod.dbMethod.influxdb2`를 기준으로 `mqttvirtual` mapper가 InfluxDB에 저장한다.
+raw telemetry는 향후 EdgeX 기반 별도 telemetry ingestion plane에서 처리한다.
+수정된 MapperFramework 리팩토링 목표에서는 `mqttvirtual` mapper를 raw telemetry export engine으로 확장하지 않는다.
 
 ```text
-sensor/test publisher
-  -> MQTT telemetry topic
-  -> mqttvirtual mapper LatestValues cache
-  -> Device CR pushMethod.dbMethod.influxdb2
-  -> InfluxDB raw telemetry history/latest
-  -> state-aggregator latest telemetry query
+control/status plane
+  KubeEdge Device / DeviceModel
+  -> mqttvirtual mapper / MapperFramework DMI adapter
+  -> DeviceStatus summary
+  -> state-aggregator / dashboard
+
+raw telemetry ingestion plane (future)
+  Sensor / collector
+  -> EdgeX Device Service / EdgeX MessageBus
+  -> telemetry store / analytics consumers
 ```
 
-`mqttvirtual` mapper는 MQTT 입력을 받아 KubeEdge DMI adapter, command/desired 처리, LatestValues cache, DeviceStatus/Twin reported를 담당한다. raw telemetry 영구 저장은 Device CR `pushMethod.dbMethod.influxdb2`에 선언된 property만 InfluxDB로 보낸다.
+`mqttvirtual` mapper는 KubeEdge DMI adapter, command/desired 처리, DeviceStatus/Twin reported를 담당한다. raw telemetry 영구 저장은 MapperFramework 주 경로에서 제외한다.
+기존 `telemetry.Sample` / `telemetry.Sink` package는 production raw telemetry path가 아니라 debug/internal compatibility path로만 취급한다.
+WARNING: MapperFramework에 `MQTTTelemetrySink`, `CollectorTelemetrySink`, `InfluxDBSink`, `KafkaSink`를 추가하지 않는다.
 
 DeviceStatus는 다음 용도로만 사용한다.
 
@@ -39,17 +46,33 @@ state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dash
 - `sampling_interval`: command/desired 반영 확인용 저빈도 상태
 - `config_version` 또는 `reported_config_version`
 - `command_state`: `idle` / `pending` / `applied` / `failed`
+- `online` / `offline`: 연결 상태 summary
+- `control_response` 또는 `last_control_response`: 제어 응답 summary
 - `last_error_code`
 - `last_error_message`
 - `temperature_status`: `normal` / `high` / `critical`
 - `humidity_status`: `normal` / `high` / `low`
 - `vibration_status`: `normal` / `warning` / `critical`
+- `mapperLastSeen`: mapper가 status/control snapshot을 마지막으로 처리한 시각
+- `controlLastSeen`: command/control path의 마지막 처리 시각
+- `statusLastSeen`: DeviceStatus summary 마지막 보고 시각
+- `statusSource`: status summary 출처
+
+Deprecated property:
+
+- `lastSeen`, `last_seen`: `mapperLastSeen`, `controlLastSeen`, `statusLastSeen` 중 의미에 맞는 필드로 대체한다.
+- `telemetryFresh`, `telemetry_fresh`: DeviceStatus allowlist에서 제외한다. raw telemetry freshness는 EdgeX ingestion plane 또는 dashboard data-plane KPI에서 계산한다.
+- `source`: `statusSource`로 대체한다.
 
 ## DeviceStatus에 올리지 않는 property
 
 - `temperature` raw stream
 - `humidity` raw stream
 - `vibration` raw stream
+- `acceleration_x`, `acceleration_y`, `acceleration_z`
+- `current`
+- `voltage`
+- `x`, `y`, `z`
 - `rms`
 - `peak`
 - `raw_samples`
@@ -72,18 +95,37 @@ DeviceStatus allowlist에 포함된 property만 report 대상으로 둔다.
 allowed_status_properties:
   - health
   - severity
+  - command_state
+  - online
+  - offline
+  - control_response
+  - last_control_response
   - alarm_latched
   - power
   - mode
   - sampling_interval
   - config_version
   - reported_config_version
-  - command_state
   - last_error_code
   - last_error_message
   - temperature_status
   - humidity_status
   - vibration_status
+  - mapperLastSeen
+  - controlLastSeen
+  - statusLastSeen
+  - statusSource
+```
+
+deprecated_status_properties:
+
+```yaml
+deprecated_status_properties:
+  - lastSeen
+  - last_seen
+  - telemetryFresh
+  - telemetry_fresh
+  - source
 ```
 
 raw telemetry property:
@@ -93,6 +135,14 @@ raw_telemetry_properties:
   - temperature
   - humidity
   - vibration
+  - acceleration_x
+  - acceleration_y
+  - acceleration_z
+  - current
+  - voltage
+  - x
+  - y
+  - z
   - rms
   - peak
   - waveform
@@ -154,8 +204,10 @@ DEVICE_STATES_REPORT_ENABLED=false
 
 ## 현재 PoC 기준
 
-현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 현재 공식 구현은 mapper가 Device CR `pushMethod.dbMethod.influxdb2`와 `reportCycle` 기준으로 raw sensor property를 InfluxDB에 저장하는 구조다.
+현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 수정된 목표에서는 이 raw sensor property 저장 경로를 MapperFramework 확장 목표에서 제외하고, 향후 EdgeX telemetry ingestion plane으로 분리한다.
 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다.
-원천 데이터는 MQTT/mapper/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 InfluxDB latest timestamp에 맞춘다.
+원천 데이터는 EdgeX 기반 telemetry plane에서 처리하고, MapperFramework는 control/status summary만 KubeEdge DeviceStatus로 보고한다.
 
-즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_sensor_data_device_count`와 `sensor_data_freshness_ratio`는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 같은 data-plane freshness의 호환 지표다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. act/rpi-act device는 현재 구현 기준 InfluxDB liveness row가 `health` property다. `ts`는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 보지 않는다.
+EdgeX Device Profile과 KubeEdge DeviceModel 간 매핑표는 `docs/kubeedge-edgex-model-mapping.md`에 둔다.
+
+즉, dashboard의 `telemetry_device_count`와 `device_telemetry_ratio`는 기존 호환 지표로 남아 있을 수 있지만, MapperFramework 리팩토링의 새 목표는 raw telemetry 저장/전송을 이 경로에 추가하지 않는 것이다. EdgeX ingestion plane이 붙기 전까지 raw telemetry freshness KPI는 전환 대상 지표로 취급한다. DeviceStatus freshness는 별도 status-plane snapshot 최신성으로 유지한다.

@@ -50,6 +50,7 @@
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
 <li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
 <li><a href="current-demo-path.html">현재 데모 흐름</a></li>
 <li><a href="repo-structure.html">레포 구조</a></li>
@@ -94,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: goal.md</span>
-            <span class="badge">수정: 2026-05-21 15:36</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
+            <span class="badge">수정: 2026-05-21 19:05</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
           </div>
         </header>
         
@@ -109,9 +110,9 @@
 <h2 id="시스템-이름-후보">시스템 이름 후보</h2>
 <ul><li>KubeEdge 기반 혼합 디바이스 edge AI 서비스 운영 가시화 플랫폼</li><li>실공장 PoC형 edge AI 운영 가시화 시스템</li><li>혼합 디바이스 서비스 데모 운영 가시화 PoC</li></ul>
 <h2 id="현재-시스템이-반드시-보여줘야-하는-것">현재 시스템이 반드시 보여줘야 하는 것</h2>
-<ol><li>어떤 edge node와 server node가 존재하는가.</li><li>어떤 device가 등록되어 있는가.</li><li>device가 어떤 node에 붙어 있는가.</li><li>InfluxDB에 device별 최신 값이 최근 들어오는가.</li><li>DeviceStatus snapshot이 보조 상태 정보로 최신인가.</li><li>env/vib/temp raw telemetry와 act ts liveness가 DB timestamp 기준으로 구분되어 있는가.</li><li>device가 어떤 service demo group에 연결되어 있는가.</li><li>mapper, state-aggregator, dashboard가 현재 상태를 일관되게 보여주는가.</li><li>dashboard에서 healthy, degraded, unavailable 판단이 어떻게 내려지는가.</li><li>운영자는 문제가 생겼을 때 device, node, mapper, telemetry, dashboard 중 어디부터 봐야 하는가.</li><li>이 데모 상태가 옥동 시나리오의 생산성 향상 효과와 어떻게 연결되는가.</li><li>Kagenti 같은 운영 보조 agent가 read-only 방식으로 상태를 요약할 수 있는가.</li></ol>
+<ol><li>어떤 edge node와 server node가 존재하는가.</li><li>어떤 device가 등록되어 있는가.</li><li>device가 어떤 node에 붙어 있는가.</li><li>DeviceStatus snapshot이 control/status summary로 최신인가.</li><li>raw telemetry ingestion은 MapperFramework가 아니라 EdgeX plane으로 분리될 예정임이 명확한가.</li><li>health, severity, command_state, online/offline, control_response와 raw telemetry가 구분되어 있는가.</li><li>device가 어떤 service demo group에 연결되어 있는가.</li><li>mapper, state-aggregator, dashboard가 현재 상태를 일관되게 보여주는가.</li><li>dashboard에서 healthy, degraded, unavailable 판단이 어떻게 내려지는가.</li><li>운영자는 문제가 생겼을 때 device, node, mapper, telemetry, dashboard 중 어디부터 봐야 하는가.</li><li>이 데모 상태가 옥동 시나리오의 생산성 향상 효과와 어떻게 연결되는가.</li><li>Kagenti 같은 운영 보조 agent가 read-only 방식으로 상태를 요약할 수 있는가.</li></ol>
 <h2 id="현재-범위에-포함하는-것">현재 범위에 포함하는 것</h2>
-<ul><li>KubeEdge node/device 기반 운영 상태 가시화</li><li>Jetson, Raspberry Pi, server node가 섞인 혼합 디바이스 환경</li><li>사전 등록된 KubeEdge Device 관리</li><li>MQTT telemetry / command topic 구조</li><li>raw telemetry data-plane: Device CR pushMethod.dbMethod 기반 mapper -&gt; InfluxDB raw history/latest</li><li>mqttvirtual mapper 기반 DeviceStatus snapshot 반영</li><li>InfluxDB device별 latest timestamp 기반 healthy 판단</li><li>state-aggregator API</li><li>dashboard 운영 가시화</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li></ul>
+<ul><li>KubeEdge node/device 기반 운영 상태 가시화</li><li>Jetson, Raspberry Pi, server node가 섞인 혼합 디바이스 환경</li><li>사전 등록된 KubeEdge Device 관리</li><li>MQTT command/status topic 구조</li><li>raw telemetry ingestion plane: EdgeX 기반 별도 경로 TODO</li><li>mqttvirtual mapper 기반 DeviceStatus snapshot 반영</li><li>DeviceStatus summary와 raw telemetry freshness 분리</li><li>state-aggregator API</li><li>dashboard 운영 가시화</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li></ul>
 <h2 id="현재-범위에서-제외하는-것">현재 범위에서 제외하는 것</h2>
 <p>다음 항목은 현재 시스템 구축 목표가 아니다. 필요하면 archive에서 과거 연구 맥락으로만 확인한다.</p>
 <ul><li>완전 자율형 workflow orchestration</li><li>동적 offloading 최적화</li><li>agent-assisted planning 기반 자동 실행</li><li>LLM/agent가 Kubernetes, Device CR, mapper, command topic을 직접 제어하는 구조</li><li>selective replanning 논문 방향을 현재 구현 목표로 보는 것</li><li>과거 cost model 중심 runtime 최적화를 현재 PoC의 핵심 목표로 보는 것</li></ul>

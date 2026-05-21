@@ -7,9 +7,9 @@ import (
 
 func TestHasFreshTelemetryRejectsStaleCachedValue(t *testing.T) {
 	client := &CustomizedClient{
-		LatestValues:  map[string]interface{}{"value": 23.5},
-		LastSeenAt:    time.Now().Add(-20 * time.Second),
-		HasTelemetry: true,
+		LatestValues:   map[string]interface{}{"value": 23.5},
+		LastSeenAt:     time.Now().Add(-20 * time.Second),
+		HasTelemetry:   true,
 		ProtocolConfig: ProtocolConfig{ConfigData: ConfigData{OfflineAfterMs: 15000}},
 	}
 
@@ -20,9 +20,9 @@ func TestHasFreshTelemetryRejectsStaleCachedValue(t *testing.T) {
 
 func TestHasFreshTelemetryAcceptsRecentMessage(t *testing.T) {
 	client := &CustomizedClient{
-		LatestValues:  map[string]interface{}{"value": 23.5},
-		LastSeenAt:    time.Now().Add(-2 * time.Second),
-		HasTelemetry: true,
+		LatestValues:   map[string]interface{}{"value": 23.5},
+		LastSeenAt:     time.Now().Add(-2 * time.Second),
+		HasTelemetry:   true,
 		ProtocolConfig: ProtocolConfig{ConfigData: ConfigData{OfflineAfterMs: 15000}},
 	}
 

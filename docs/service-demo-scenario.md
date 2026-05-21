@@ -39,10 +39,10 @@
 이번 서비스 데모에서 보여줄 목표는 다음이다.
 
 1. Jetson과 Raspberry Pi에 할당된 device가 사전 등록되어 있음을 보인다.
-2. 각 device가 정해진 MQTT topic으로 telemetry를 발행하는 것을 보인다.
-3. `mqttvirtual` mapper가 telemetry/command 경로를 연결하는 것을 보인다.
-4. raw telemetry가 InfluxDB data-plane으로 처리되는 것을 보인다.
-5. DeviceStatus는 저빈도 운영 snapshot으로만 사용되는 것을 보인다.
+2. 각 device의 command/status 경로가 정해져 있음을 보인다.
+3. `mqttvirtual` mapper가 KubeEdge Device/DeviceModel/DeviceStatus와 command 경로를 연결하는 것을 보인다.
+4. raw telemetry ingestion은 MapperFramework가 아니라 EdgeX 기반 별도 plane으로 분리할 목표임을 보인다.
+5. DeviceStatus는 health, severity, command_state, online/offline, control_response 같은 저빈도 운영 snapshot으로만 사용되는 것을 보인다.
 6. `state-aggregator`가 device, node, mapper, telemetry 상태를 통합하는 것을 보인다.
 7. dashboard에서 device-service binding과 KPI를 운영 관점으로 보여준다.
 

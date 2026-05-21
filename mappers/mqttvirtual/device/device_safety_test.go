@@ -42,13 +42,13 @@ func TestDealDeviceTwinGetUsesActualTwinPropertyName(t *testing.T) {
 }
 
 func TestDeviceStatusAllowlistExcludesRawTelemetry(t *testing.T) {
-	rawNames := []string{"raw", "value", "temperature", "humidity", "x", "y", "z", "acceleration", "light", "magnetic"}
+	rawNames := []string{"raw", "value", "temperature", "humidity", "current", "voltage", "x", "y", "z", "acceleration", "light", "magnetic", "lastSeen", "last_seen", "telemetryFresh", "telemetry_fresh", "source"}
 	for _, name := range rawNames {
 		if _, ok := deviceStatusPropertyAllowlist[name]; ok {
 			t.Fatalf("raw telemetry property %q must not be reported as DeviceStatus/DeviceTwin", name)
 		}
 	}
-	stateNames := []string{"health", "severity", "alarm_latched", "command_state", "temperature_status", "humidity_status", "vibration_status"}
+	stateNames := []string{"health", "severity", "alarm_latched", "command_state", "temperature_status", "humidity_status", "vibration_status", "mapperLastSeen", "controlLastSeen", "statusLastSeen", "statusSource"}
 	for _, name := range stateNames {
 		if _, ok := deviceStatusPropertyAllowlist[name]; !ok {
 			t.Fatalf("operational state property %q should remain allowed", name)

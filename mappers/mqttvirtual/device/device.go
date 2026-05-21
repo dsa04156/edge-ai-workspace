@@ -18,7 +18,6 @@ import (
 	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
 	"github.com/kubeedge/mapper-framework/pkg/common"
 	"github.com/kubeedge/mapper-framework/pkg/global"
-	"github.com/kubeedge/mapper-framework/pkg/grpcclient"
 	"github.com/kubeedge/mapper-framework/pkg/util/parse"
 	dbInflux "github.com/kubeedge/mqttvirtual/data/dbmethod/influxdb2"
 	dbMysql "github.com/kubeedge/mqttvirtual/data/dbmethod/mysql"
@@ -29,6 +28,7 @@ import (
 	otelMethod "github.com/kubeedge/mqttvirtual/data/publish/otel"
 	"github.com/kubeedge/mqttvirtual/data/stream"
 	"github.com/kubeedge/mqttvirtual/driver"
+	"github.com/kubeedge/mqttvirtual/status"
 )
 
 const (
@@ -219,6 +219,11 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 			eventTwinData[visitorConfig.JsonKey] = twinData
 		}
 
+		if !shouldProcessMapperControlStatusProperty(&twin) {
+			klog.V(4).Infof("skip mapper-framework data export for raw telemetry property device=%s property=%s", dev.Instance.Name, twin.PropertyName)
+			continue
+		}
+
 		dataModel := common.NewDataModel(dev.Instance.Name, twin.Property.PropertyName, dev.Instance.Namespace, common.WithType(twin.ObservedDesired.Metadata.Type))
 		// handle push method
 		if twin.Property.PushMethod.MethodConfig != nil && twin.Property.PushMethod.MethodName != "" {
@@ -238,8 +243,14 @@ func shouldReportAsTwinProperty(twin *common.Twin) bool {
 	if twin == nil || twin.Property == nil {
 		return false
 	}
-	_, allowed := deviceStatusPropertyAllowlist[twin.PropertyName]
-	return allowed
+	return status.IsSummaryField(twin.PropertyName)
+}
+
+func shouldProcessMapperControlStatusProperty(twin *common.Twin) bool {
+	if twin == nil || twin.Property == nil {
+		return false
+	}
+	return status.IsSummaryField(twin.PropertyName)
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
@@ -268,21 +279,22 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 			return
 		}
 
-		twins := make([]*dmiapi.Twin, 0, len(pending))
+		summary := status.Summary{
+			DeviceName:      dev.Instance.Name,
+			DeviceNamespace: dev.Instance.Namespace,
+			Source:          "mapper-framework",
+			Values:          make(map[string]string, len(pending)),
+		}
 		nextPending := make(map[string]*TwinData)
 		for key, twinData := range pending {
-			reportedTwins, err := twinData.BuildReportedTwins()
+			statusSummary, err := twinData.BuildStatusSummary()
 			if err != nil {
-				klog.Errorf("event-driven twin build failed for %s/%s: %v", dev.Instance.Name, key, err)
+				klog.Errorf("event-driven status summary build failed for %s/%s: %v", dev.Instance.Name, key, err)
 				continue
 			}
-			for _, reportedTwin := range reportedTwins {
-				if reportedTwin == nil {
-					continue
-				}
-				currentValue := reportedTwin.GetReported().GetValue()
-				lastValue, reportedBefore := lastReported[key]
-				lastSentAt, sentBefore := lastReportTime[key]
+			for statusKey, currentValue := range statusSummary.Values {
+				lastValue, reportedBefore := lastReported[statusKey]
+				lastSentAt, sentBefore := lastReportTime[statusKey]
 				changed := !reportedBefore || lastValue != currentValue
 				heartbeatDue := !sentBefore || time.Since(lastSentAt) >= heartbeatInterval
 				if !changed && !heartbeatDue {
@@ -292,26 +304,19 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 					nextPending[key] = twinData
 					continue
 				}
-				lastReported[key] = currentValue
-				lastReportTime[key] = time.Now()
-				twins = append(twins, reportedTwin)
+				lastReported[statusKey] = currentValue
+				lastReportTime[statusKey] = time.Now()
+				summary.Values[statusKey] = currentValue
 			}
 		}
 		pending = nextPending
 
-		if len(twins) == 0 {
+		if len(summary.Values) == 0 {
 			return
 		}
 
-		req := &dmiapi.ReportDeviceStatusRequest{
-			DeviceName:      dev.Instance.Name,
-			DeviceNamespace: dev.Instance.Namespace,
-			ReportedDevice: &dmiapi.DeviceStatus{
-				Twins: twins,
-			},
-		}
-		if err := grpcclient.ReportDeviceStatus(req); err != nil {
-			klog.Errorf("fail to report device status of %s with err: %+v", req.DeviceName, err)
+		if err := (status.DMIReporter{}).Report(ctx, summary); err != nil {
+			klog.Errorf("fail to report device status summary of %s with err: %+v", summary.DeviceName, err)
 		}
 	}
 
@@ -343,22 +348,7 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 	}
 }
 
-var deviceStatusPropertyAllowlist = map[string]struct{}{
-	"health":                  {},
-	"severity":                {},
-	"alarm_latched":           {},
-	"power":                   {},
-	"mode":                    {},
-	"sampling_interval":       {},
-	"config_version":          {},
-	"reported_config_version": {},
-	"command_state":           {},
-	"last_error_code":         {},
-	"last_error_message":      {},
-	"temperature_status":      {},
-	"humidity_status":         {},
-	"vibration_status":        {},
-}
+var deviceStatusPropertyAllowlist = status.AllowedSummaryFields()
 
 func durationFromEnv(name string, fallback time.Duration) time.Duration {
 	raw := os.Getenv(name)

@@ -20,11 +20,11 @@ func TestIsInfluxDBMethodRejectsOtherMethods(t *testing.T) {
 	}
 }
 
-func TestRawTelemetryPropertiesAreNotDBDenylisted(t *testing.T) {
-	// KubeEdge Device CR pushMethod.dbMethod.influxdb2 is the official persistence path.
-	// Raw sensor properties must not be filtered by the mapper; if a property has a
-	// DB pushMethod, dbHandler should dispatch it to the configured DB method.
-	rawProperties := []string{"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration"}
+func TestRawTelemetryPropertiesAreTrackedAsNonStatusFields(t *testing.T) {
+	// MapperFramework is not the production raw telemetry export engine. Raw sensor
+	// properties are tracked here only as a regression fixture for fields that must
+	// stay out of DeviceStatus/control-status processing.
+	rawProperties := []string{"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration", "current", "voltage"}
 	if len(rawProperties) == 0 {
 		t.Fatal("raw property regression fixture is empty")
 	}

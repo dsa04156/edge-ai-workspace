@@ -2,18 +2,15 @@ package device
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mqttvirtual/driver"
-	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
 	"github.com/kubeedge/mapper-framework/pkg/common"
-	"github.com/kubeedge/mapper-framework/pkg/grpcclient"
-	"github.com/kubeedge/mapper-framework/pkg/util/parse"
+	"github.com/kubeedge/mqttvirtual/driver"
+	"github.com/kubeedge/mqttvirtual/status"
 )
 
 type TwinData struct {
@@ -61,38 +58,51 @@ func (td *TwinData) GetPayLoad() ([]byte, error) {
 }
 
 func (td *TwinData) PushToEdgeCore() {
-	twins, err := td.BuildReportedTwins()
+	summary, err := td.BuildStatusSummary()
 	if err != nil {
-		klog.Errorf("twindata %s unmarshal failed, err: %s", td.Name, err)
+		klog.Errorf("twindata %s summary build failed, err: %s", td.Name, err)
 		return
 	}
-
-	var rdsr = &dmiapi.ReportDeviceStatusRequest{
-		DeviceName:      td.DeviceName,
-		DeviceNamespace: td.DeviceNamespace,
-		ReportedDevice: &dmiapi.DeviceStatus{
-			Twins: twins,
-			//State: "OK",
-		},
-	}
-
-	if err := grpcclient.ReportDeviceStatus(rdsr); err != nil {
-		klog.Errorf("fail to report device status of %s with err: %+v", rdsr.DeviceName, err)
+	if err := (status.DMIReporter{}).Report(context.Background(), summary); err != nil {
+		klog.Errorf("fail to report device status summary of %s with err: %+v", td.DeviceName, err)
 	}
 }
 
-func (td *TwinData) BuildReportedTwins() ([]*dmiapi.Twin, error) {
-	payload, err := td.GetPayLoad()
+func (td *TwinData) BuildStatusSummary() (status.Summary, error) {
+	if td == nil {
+		return status.Summary{}, fmt.Errorf("twin data is nil")
+	}
+	if !status.IsSummaryField(td.Name) {
+		return status.Summary{}, fmt.Errorf("property %q is not allowed in DeviceStatus summary", td.Name)
+	}
+	value, err := td.GetStringValue()
 	if err != nil {
-		return nil, err
+		return status.Summary{}, err
 	}
+	return status.Summary{
+		DeviceName:      td.DeviceName,
+		DeviceNamespace: td.DeviceNamespace,
+		Source:          "mapper-framework",
+		Values: map[string]string{
+			td.Name: value,
+		},
+	}, nil
+}
 
-	var msg common.DeviceTwinUpdate
-	if err = json.Unmarshal(payload, &msg); err != nil {
-		return nil, err
+func (td *TwinData) GetStringValue() (string, error) {
+	if td == nil || td.Client == nil || td.VisitorConfig == nil {
+		return "", fmt.Errorf("twin data/client/visitor is nil")
 	}
-
-	return parse.ConvMsgTwinToGrpc(msg.Twin), nil
+	td.VisitorConfig.VisitorConfigData.DataType = strings.ToLower(td.VisitorConfig.VisitorConfigData.DataType)
+	results, err := td.Client.GetDeviceData(td.VisitorConfig)
+	if err != nil {
+		return "", fmt.Errorf("get device data failed: %v", err)
+	}
+	sData, err := common.ConvertToString(results)
+	if err != nil {
+		return "", err
+	}
+	return sData, nil
 }
 
 func (td *TwinData) Run(ctx context.Context) {

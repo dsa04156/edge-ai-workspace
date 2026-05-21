@@ -2,13 +2,11 @@
 
 ## 원칙
 
-대시보드는 실제 센서 데이터의 DB latest timestamp와 `DeviceStatus` snapshot freshness를 분리해서 표시한다.
+대시보드는 raw telemetry freshness와 `DeviceStatus` snapshot freshness를 분리해서 표시한다.
 
 `status.state=online`만으로 healthy 처리하지 않는다.
-healthy 판단은 Jetson sensor-collector가 MQTT로 보낸 실제 센서 데이터가 InfluxDB에 최근 적재됐는지를 우선 기준으로 삼는다.
-현재 공식 구조에서는 Device CR `pushMethod.dbMethod.influxdb2` 기반 mqttvirtual mapper가 InfluxDB raw history/latest 저장을 담당한다. healthy/freshness 판단은 InfluxDB latest timestamp를 우선한다.
-현재 Jetson Arduino 센서는 temperature/raw, light/value, magnetic/value, acceleration/x,y,z 값을 InfluxDB에 남긴다.
-`DeviceStatus` timestamp와 `health=ok`는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다.
+MapperFramework 리팩토링 목표에서는 raw telemetry export engine을 추가하지 않는다. raw telemetry ingestion은 향후 EdgeX 기반 별도 plane이 담당한다.
+`DeviceStatus` timestamp와 `health=ok`는 운영 snapshot 해석용 보조 정보이며, raw telemetry freshness와 섞지 않는다.
 `status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.
 
 ## Freshness 설정
@@ -21,7 +19,7 @@ TELEMETRY_FRESH_SECONDS=20
 MAPPER_HEARTBEAT_FRESH_SECONDS=60
 ```
 
-현재 mapper 기반 PoC는 실제 센서값을 5초 주기로 InfluxDB에 적재하므로 telemetry freshness는 20초로 둔다.
+EdgeX ingestion plane이 붙기 전까지 telemetry freshness 설정은 전환 대상 호환 지표로 취급한다.
 운영 데모에서 순간 지연으로 degraded가 흔들리면 `TELEMETRY_FRESH_SECONDS=30` 또는 `60`으로 완화한다.
 
 ## Timestamp 처리

@@ -50,6 +50,7 @@
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
 <li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
 <li><a href="current-demo-path.html">현재 데모 흐름</a></li>
 <li><a href="repo-structure.html">레포 구조</a></li>
@@ -94,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: device-status-policy.md</span>
-            <span class="badge">수정: 2026-05-21 15:36</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
+            <span class="badge">수정: 2026-05-21 19:40</span>
+            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
           </div>
         </header>
         
@@ -103,21 +104,27 @@
           <h1 id="devicestatus-policy">DeviceStatus Policy</h1>
 <h2 id="원칙">원칙</h2>
 <p>KubeEdge <code>DeviceStatus</code>는 고빈도 telemetry 저장/전송 경로가 아니다. DeviceStatus는 control/status-plane의 저빈도 운영 snapshot으로 제한한다.</p>
-<p>raw telemetry는 MQTT 기반 data-plane에서 처리하며, 현재 공식 구조에서는 Device CR <code>pushMethod.dbMethod.influxdb2</code>를 기준으로 <code>mqttvirtual</code> mapper가 InfluxDB에 저장한다.</p>
-<pre data-lang="text"><code>sensor/test publisher
-  -&gt; MQTT telemetry topic
-  -&gt; mqttvirtual mapper LatestValues cache
-  -&gt; Device CR pushMethod.dbMethod.influxdb2
-  -&gt; InfluxDB raw telemetry history/latest
-  -&gt; state-aggregator latest telemetry query</code></pre>
-<p><code>mqttvirtual</code> mapper는 MQTT 입력을 받아 KubeEdge DMI adapter, command/desired 처리, LatestValues cache, DeviceStatus/Twin reported를 담당한다. raw telemetry 영구 저장은 Device CR <code>pushMethod.dbMethod.influxdb2</code>에 선언된 property만 InfluxDB로 보낸다.</p>
+<p>raw telemetry는 향후 EdgeX 기반 별도 telemetry ingestion plane에서 처리한다. 수정된 MapperFramework 리팩토링 목표에서는 <code>mqttvirtual</code> mapper를 raw telemetry export engine으로 확장하지 않는다.</p>
+<pre data-lang="text"><code>control/status plane
+  KubeEdge Device / DeviceModel
+  -&gt; mqttvirtual mapper / MapperFramework DMI adapter
+  -&gt; DeviceStatus summary
+  -&gt; state-aggregator / dashboard
+
+raw telemetry ingestion plane (future)
+  Sensor / collector
+  -&gt; EdgeX Device Service / EdgeX MessageBus
+  -&gt; telemetry store / analytics consumers</code></pre>
+<p><code>mqttvirtual</code> mapper는 KubeEdge DMI adapter, command/desired 처리, DeviceStatus/Twin reported를 담당한다. raw telemetry 영구 저장은 MapperFramework 주 경로에서 제외한다. 기존 <code>telemetry.Sample</code> / <code>telemetry.Sink</code> package는 production raw telemetry path가 아니라 debug/internal compatibility path로만 취급한다. WARNING: MapperFramework에 <code>MQTTTelemetrySink</code>, <code>CollectorTelemetrySink</code>, <code>InfluxDBSink</code>, <code>KafkaSink</code>를 추가하지 않는다.</p>
 <p>DeviceStatus는 다음 용도로만 사용한다.</p>
 <ul><li>운영 상태 요약</li><li>설정 반영 상태</li><li>장애 요약 상태</li><li>command 적용 결과</li><li>raw telemetry에서 계산된 상태 등급</li></ul>
 <p>state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 <code>device_status_fresh</code>와 <code>device_status_freshness_ratio</code>로 최신성을 따로 계산한다. 실제 센서 데이터 최신성은 <code>telemetry_fresh</code>, <code>fresh_sensor_data_device_count</code>, <code>sensor_data_freshness_ratio</code>로 분리해서 본다. <code>telemetry_freshness_ratio</code>는 기존 호환 지표로 유지한다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.</p>
 <h2 id="devicestatus에-허용하는-property">DeviceStatus에 허용하는 property</h2>
-<ul><li><code>health</code>: <code>ok</code> / <code>degraded</code> / <code>offline</code> / <code>unknown</code></li><li><code>severity</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li><li><code>alarm_latched</code>: <code>true</code> / <code>false</code></li><li><code>power</code>: <code>on</code> / <code>off</code></li><li><code>mode</code>: <code>auto</code> / <code>manual</code> / <code>idle</code> / <code>maintenance</code></li><li><code>sampling_interval</code>: command/desired 반영 확인용 저빈도 상태</li><li><code>config_version</code> 또는 <code>reported_config_version</code></li><li><code>command_state</code>: <code>idle</code> / <code>pending</code> / <code>applied</code> / <code>failed</code></li><li><code>last_error_code</code></li><li><code>last_error_message</code></li><li><code>temperature_status</code>: <code>normal</code> / <code>high</code> / <code>critical</code></li><li><code>humidity_status</code>: <code>normal</code> / <code>high</code> / <code>low</code></li><li><code>vibration_status</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li></ul>
+<ul><li><code>health</code>: <code>ok</code> / <code>degraded</code> / <code>offline</code> / <code>unknown</code></li><li><code>severity</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li><li><code>alarm_latched</code>: <code>true</code> / <code>false</code></li><li><code>power</code>: <code>on</code> / <code>off</code></li><li><code>mode</code>: <code>auto</code> / <code>manual</code> / <code>idle</code> / <code>maintenance</code></li><li><code>sampling_interval</code>: command/desired 반영 확인용 저빈도 상태</li><li><code>config_version</code> 또는 <code>reported_config_version</code></li><li><code>command_state</code>: <code>idle</code> / <code>pending</code> / <code>applied</code> / <code>failed</code></li><li><code>online</code> / <code>offline</code>: 연결 상태 summary</li><li><code>control_response</code> 또는 <code>last_control_response</code>: 제어 응답 summary</li><li><code>last_error_code</code></li><li><code>last_error_message</code></li><li><code>temperature_status</code>: <code>normal</code> / <code>high</code> / <code>critical</code></li><li><code>humidity_status</code>: <code>normal</code> / <code>high</code> / <code>low</code></li><li><code>vibration_status</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li><li><code>mapperLastSeen</code>: mapper가 status/control snapshot을 마지막으로 처리한 시각</li><li><code>controlLastSeen</code>: command/control path의 마지막 처리 시각</li><li><code>statusLastSeen</code>: DeviceStatus summary 마지막 보고 시각</li><li><code>statusSource</code>: status summary 출처</li></ul>
+<p>Deprecated property:</p>
+<ul><li><code>lastSeen</code>, <code>last_seen</code>: <code>mapperLastSeen</code>, <code>controlLastSeen</code>, <code>statusLastSeen</code> 중 의미에 맞는 필드로 대체한다.</li><li><code>telemetryFresh</code>, <code>telemetry_fresh</code>: DeviceStatus allowlist에서 제외한다. raw telemetry freshness는 EdgeX ingestion plane 또는 dashboard data-plane KPI에서 계산한다.</li><li><code>source</code>: <code>statusSource</code>로 대체한다.</li></ul>
 <h2 id="devicestatus에-올리지-않는-property">DeviceStatus에 올리지 않는 property</h2>
-<ul><li><code>temperature</code> raw stream</li><li><code>humidity</code> raw stream</li><li><code>vibration</code> raw stream</li><li><code>rms</code></li><li><code>peak</code></li><li><code>raw_samples</code></li><li><code>waveform</code></li><li>image / frame</li><li>every-event log</li><li>inference result stream</li></ul>
+<ul><li><code>temperature</code> raw stream</li><li><code>humidity</code> raw stream</li><li><code>vibration</code> raw stream</li><li><code>acceleration_x</code>, <code>acceleration_y</code>, <code>acceleration_z</code></li><li><code>current</code></li><li><code>voltage</code></li><li><code>x</code>, <code>y</code>, <code>z</code></li><li><code>rms</code></li><li><code>peak</code></li><li><code>raw_samples</code></li><li><code>waveform</code></li><li>image / frame</li><li>every-event log</li><li>inference result stream</li></ul>
 <p><code>last_temperature</code>, <code>last_humidity</code>, <code>last_vibration</code> 같은 값은 30~60초 이상의 저빈도 snapshot일 때만 조건부 허용한다. 가능하면 raw 값 대신 <code>temperature_status</code>, <code>humidity_status</code>, <code>vibration_status</code>를 우선 사용한다.</p>
 <h2 id="mapper-보고-정책">Mapper 보고 정책</h2>
 <p><code>mqttvirtual</code> mapper는 MQTT payload를 수신하더라도 모든 property를 DeviceStatus로 report하지 않는다. DeviceStatus allowlist에 포함된 property만 report 대상으로 둔다.</p>
@@ -125,23 +132,46 @@
 <pre data-lang="yaml"><code>allowed_status_properties:
   - health
   - severity
+  - command_state
+  - online
+  - offline
+  - control_response
+  - last_control_response
   - alarm_latched
   - power
   - mode
   - sampling_interval
   - config_version
   - reported_config_version
-  - command_state
   - last_error_code
   - last_error_message
   - temperature_status
   - humidity_status
-  - vibration_status</code></pre>
+  - vibration_status
+  - mapperLastSeen
+  - controlLastSeen
+  - statusLastSeen
+  - statusSource</code></pre>
+<p>deprecated_status_properties:</p>
+<pre data-lang="yaml"><code>deprecated_status_properties:
+  - lastSeen
+  - last_seen
+  - telemetryFresh
+  - telemetry_fresh
+  - source</code></pre>
 <p>raw telemetry property:</p>
 <pre data-lang="yaml"><code>raw_telemetry_properties:
   - temperature
   - humidity
   - vibration
+  - acceleration_x
+  - acceleration_y
+  - acceleration_z
+  - current
+  - voltage
+  - x
+  - y
+  - z
   - rms
   - peak
   - waveform
@@ -163,8 +193,9 @@ DEVICE_STATUS_HEARTBEAT_SECONDS=120</code></pre>
 <p>예:</p>
 <ul><li>env device</li><li>DeviceStatus: <code>health</code>, <code>sampling_interval</code>, 이후 <code>temperature_status</code>, <code>humidity_status</code></li><li>InfluxDB: <code>temperature</code>, <code>humidity</code></li><li>vib device</li><li>DeviceStatus: <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>sampling_interval</code>, 이후 <code>vibration_status</code></li><li>InfluxDB: <code>vibration</code>, 이후 <code>rms</code>, <code>peak</code>, raw vibration samples</li><li>act device</li><li>DeviceStatus: <code>health</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>, 이후 <code>command_state</code>, <code>reported_config_version</code></li><li>InfluxDB liveness: 현재 구현 기준 <code>health</code> property</li><li>향후 확장 후보: command event history, actuation latency, state transition history</li></ul>
 <h2 id="현재-poc-기준">현재 PoC 기준</h2>
-<p>현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 현재 공식 구현은 mapper가 Device CR <code>pushMethod.dbMethod.influxdb2</code>와 <code>reportCycle</code> 기준으로 raw sensor property를 InfluxDB에 저장하는 구조다. 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다. 원천 데이터는 MQTT/mapper/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 InfluxDB latest timestamp에 맞춘다.</p>
-<p>즉, dashboard의 <code>telemetry_device_count</code>는 telemetry-enabled device 수이고 <code>device_telemetry_ratio</code>는 telemetry-enabled device / 전체 registered device 비율이다. <code>fresh_sensor_data_device_count</code>와 <code>sensor_data_freshness_ratio</code>는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다. <code>fresh_telemetry_device_count</code>와 <code>telemetry_freshness_ratio</code>는 같은 data-plane freshness의 호환 지표다. InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. act/rpi-act device는 현재 구현 기준 InfluxDB liveness row가 <code>health</code> property다. <code>ts</code>는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 보지 않는다.</p>
+<p>현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 수정된 목표에서는 이 raw sensor property 저장 경로를 MapperFramework 확장 목표에서 제외하고, 향후 EdgeX telemetry ingestion plane으로 분리한다. 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다. 원천 데이터는 EdgeX 기반 telemetry plane에서 처리하고, MapperFramework는 control/status summary만 KubeEdge DeviceStatus로 보고한다.</p>
+<p>EdgeX Device Profile과 KubeEdge DeviceModel 간 매핑표는 <code>docs/kubeedge-edgex-model-mapping.md</code>에 둔다.</p>
+<p>즉, dashboard의 <code>telemetry_device_count</code>와 <code>device_telemetry_ratio</code>는 기존 호환 지표로 남아 있을 수 있지만, MapperFramework 리팩토링의 새 목표는 raw telemetry 저장/전송을 이 경로에 추가하지 않는 것이다. EdgeX ingestion plane이 붙기 전까지 raw telemetry freshness KPI는 전환 대상 지표로 취급한다. DeviceStatus freshness는 별도 status-plane snapshot 최신성으로 유지한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#원칙">원칙</a></li>

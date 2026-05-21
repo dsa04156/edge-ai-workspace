@@ -98,23 +98,26 @@ func (c *CustomizedClient) applyPayload(payload map[string]interface{}) {
 	c.HasTelemetry = true
 	c.deviceMutex.Unlock()
 
-	c.enqueueEvent(payloadCopy)
+	c.enqueueEvent(c.Events, payloadCopy)
 }
 
-func (c *CustomizedClient) enqueueEvent(payload map[string]interface{}) {
+func (c *CustomizedClient) enqueueEvent(queue chan map[string]interface{}, payload map[string]interface{}) {
+	if queue == nil {
+		return
+	}
 	select {
-	case c.Events <- payload:
+	case queue <- payload:
 		return
 	default:
 	}
 
 	select {
-	case <-c.Events:
+	case <-queue:
 	default:
 	}
 
 	select {
-	case c.Events <- payload:
+	case queue <- payload:
 	default:
 		log.Printf("mqtt event dropped after replacing stale buffered event")
 	}

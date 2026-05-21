@@ -45,9 +45,10 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 | `dashboard-information-structure.md` | dashboard에 표시되는 node/device/service/KPI 정보 구조 |
 | `dashboard-policy.md` | healthy/degraded/unavailable 판단 기준 |
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
+| `kubeedge-edgex-model-mapping.md` | KubeEdge DeviceModel property와 EdgeX Device Profile resource 매핑표 |
 | `device-service-binding.md` | device가 어떤 service demo group에 연결되는지 |
-| `current-demo-path.md` | 현재 device -> MQTT -> mapper/InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
-| `raw-telemetry-data-plane.md` | Device CR pushMethod.dbMethod 기반 mapper -> InfluxDB 공식 raw telemetry 저장 구조 |
+| `current-demo-path.md` | 현재 device -> mapper/DeviceStatus -> state-aggregator -> dashboard 흐름과 EdgeX telemetry plane TODO |
+| `raw-telemetry-data-plane.md` | MapperFramework 책임 축소와 EdgeX 기반 raw telemetry ingestion plane 목표 |
 | `edge-orch/workflow-designer/README.md` | 서비스 stage, input device, target node를 dry-run으로 설계/시각화하는 Workflow Designer MVP |
 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC와 read-only 요약 API |
 
@@ -82,10 +83,10 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 ```text
 Device 등록
   -> edge node 할당
-  -> MQTT telemetry / command
-  -> mqttvirtual mapper
-  -> Device CR pushMethod.dbMethod.influxdb2 / InfluxDB raw telemetry
-  -> KubeEdge DeviceStatus snapshot
+  -> MQTT command/status
+  -> mqttvirtual mapper / MapperFramework DMI adapter
+  -> KubeEdge DeviceStatus summary
+  -> EdgeX raw telemetry ingestion plane TODO
   -> state-aggregator
   -> dashboard
   -> operator assistant summary
@@ -118,6 +119,7 @@ Device 등록
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |
 | Kagenti 운영 보조 agent PoC | `kagenti-operator-assistant.md` |
 | Raw telemetry data-plane 목표 구조 | `raw-telemetry-data-plane.md` |
+| KubeEdge-EdgeX 모델 매핑표 | `kubeedge-edgex-model-mapping.md` |
 | 현재 PoC 범위 | `scope.md` |
 | 문서 정리 계획 | `docs-cleanup-plan.md` |
 
