@@ -189,4 +189,3 @@ class DashboardState(BaseModel):
     workflows: list[WorkflowState]
     summary: SummaryState
     kpis: dict[str, Any]
-    raw_telemetry_latest: list[dict[str, Any]] = Field(default_factory=list)

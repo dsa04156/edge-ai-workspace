@@ -90,58 +90,30 @@
         <header class="doc-header">
           <p class="eyebrow">Active 문서</p>
           <h1>Raw Telemetry Data Plane Architecture</h1>
-          <p class="subtitle">KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus…</p>
+          <p class="subtitle">현재 KubeEdge 기반 mixed-device PoC의 공식 raw telemetry 저장 경로를 정의한다. 현재 목표는 고…</p>
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: raw-telemetry-data-plane.md</span>
-            <span class="badge">수정: 2026-05-21 14:11</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:07</span>
+            <span class="badge">수정: 2026-05-21 15:35</span>
+            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
           </div>
         </header>
         
         <div class="doc-body">
           <h1 id="raw-telemetry-data-plane-architecture">Raw Telemetry Data Plane Architecture</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus를 분리하는 목표 구조와 현재 구현 경로를 정의한다.</p>
-<p>현재 repo 구현 상태:</p>
-<ul><li><code>edge-orch/raw-stream-bridge/</code>: MQTT -&gt; Redis Streams/latest -&gt; InfluxDB batch append MVP 추가</li><li><code>edge-device/scripts/generate_devices.py</code>: raw sensor property의 mapper <code>pushMethod.dbMethod</code> 제거, actuator <code>health</code> liveness만 전환기 유지</li><li><code>mappers/mqttvirtual/device/device.go</code>: raw/value/x/y/z/temperature/humidity/vibration 계열 mapper DB persistence denylist 추가</li><li><code>edge-orch/state-aggregator</code>: Redis latest read client와 dashboard <code>raw_telemetry_latest</code> payload 추가</li><li><code>edge-orch/state-aggregator/app/static/index.html</code>, <code>dashboard.js</code>: Redis latest 기반 Live Sensor Panel 추가</li></ul>
-<p>핵심 방향은 다음이다.</p>
-<ul><li>raw telemetry는 MQTT, Redis Streams, InfluxDB로 구성된 data-plane에서 처리한다.</li><li>KubeEdge <code>DeviceStatus</code>와 <code>DeviceTwin reported</code>는 health, severity, alarm, status, command_state 같은 control/status-plane 상태만 담는다.</li><li><code>mqttvirtual</code> mapper는 raw telemetry 영구 저장 책임을 내려놓고 KubeEdge device runtime adapter 역할에 집중한다.</li><li>dashboard는 live 값, history, health/freshness 판단을 서로 다른 저장소와 API에서 분리해서 읽는다.</li></ul>
-<h2 id="전체-아키텍처-다이어그램">전체 아키텍처 다이어그램</h2>
+<p>이 문서는 현재 KubeEdge 기반 mixed-device PoC의 공식 raw telemetry 저장 경로를 정의한다. 현재 목표는 고도화된 raw stream architecture가 아니라, KubeEdge Device CR과 mapper-framework가 제공하는 표준 흐름을 우선 복구하는 것이다.</p>
+<h2 id="공식-구조">공식 구조</h2>
 <pre data-lang="text"><code>Sensor / Arduino
-  |
-  |  MQTT publish: telemetry payload, 1s or faster
-  v
-MQTT Broker on edge node
-  |
-  +--------------------------------------------------------------+
-  |                                                              |
-  v                                                              v
-raw-stream-bridge                                          mqttvirtual mapper
-  |                                                        ------------------
-  | MQTT subscribe                                        - MQTT subscribe
-  | normalize envelope                                    - latest operational state cache
-  | XADD telemetry:raw                                    - DeviceStatus/Twin reported
-  | update telemetry:latest                               - desired/command handling
-  | batch write to InfluxDB                               - KubeEdge DMI adapter
-  | consumer group / replay                               - no raw telemetry persistence
-  v
-Redis Streams + Redis latest cache
-  |
-  | batch append / retry
-  v
-InfluxDB raw telemetry bucket
-  |
-  +----------------------+-------------------------------+
-                         |
-                         v
-state-aggregator / dashboard
-  ----------------------------
-  - live sensor panel: Redis latest
-  - historical graph: InfluxDB query
-  - freshness/health: InfluxDB latest timestamp + KubeEdge/DeviceStatus
-  - status/control display: DeviceStatus/Twin reported</code></pre>
-<h2 id="컴포넌트-역할-정의">컴포넌트 역할 정의</h2>
+  -&gt; MQTT Broker
+  -&gt; mqttvirtual mapper
+  -&gt; LatestValues cache
+  -&gt; Device CR pushMethod.dbMethod.influxdb2
+  -&gt; InfluxDB
+  -&gt; state-aggregator / dashboard</code></pre>
+<h2 id="현재-원칙">현재 원칙</h2>
+<ul><li>raw sensor property는 Device manifest의 <code>pushMethod.dbMethod.influxdb2</code>를 사용한다.</li><li><code>mqttvirtual</code> mapper는 MQTT telemetry를 수신해 LatestValues cache에 보관하고, 각 property의 <code>reportCycle</code>/<code>collectCycle</code> 기준으로 InfluxDB에 저장한다.</li><li><code>DeviceStatus</code>는 raw telemetry 저장소가 아니다.</li><li><code>DeviceStatus</code>/Twin reported는 <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>command_state</code> 같은 control/status 보조 신호로 제한한다.</li><li><code>state-aggregator</code>의 telemetry freshness는 InfluxDB latest timestamp 기준으로 판단한다.</li><li>dashboard는 InfluxDB latest sample과 DeviceStatus snapshot freshness를 분리해서 표시한다.</li></ul>
+<h2 id="컴포넌트-역할">컴포넌트 역할</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>컴포넌트</th>
@@ -151,488 +123,84 @@ state-aggregator / dashboard
 <tbody>
 <tr>
 <td>Sensor/Arduino</td>
-<td>센서 샘플을 MQTT로 발행</td>
+<td>센서 값을 MQTT telemetry topic으로 발행</td>
 <td>KubeEdge DeviceStatus 직접 수정</td>
 </tr>
 <tr>
 <td>MQTT Broker</td>
 <td>edge node local telemetry/command broker</td>
-<td>장기 저장, 집계</td>
-</tr>
-<tr>
-<td>raw-stream-bridge</td>
-<td>raw telemetry subscribe, Redis Streams append, latest cache, InfluxDB batch write</td>
-<td>KubeEdge Device CR/DeviceStatus 수정, actuator command 실행</td>
-</tr>
-<tr>
-<td>Redis Streams</td>
-<td>raw event buffer, replay, consumer group 기반 fan-out</td>
-<td>장기 history 저장의 최종 저장소</td>
-</tr>
-<tr>
-<td>Redis latest cache</td>
-<td>dashboard live panel용 최신값</td>
-<td>freshness의 유일한 판단 근거</td>
-</tr>
-<tr>
-<td>InfluxDB</td>
-<td>raw telemetry append 저장, history, graph, anomaly 분석, freshness latest timestamp</td>
-<td>DeviceStatus/control-plane 저장소</td>
+<td>장기 저장, 대시보드 API 생성</td>
 </tr>
 <tr>
 <td>mqttvirtual mapper</td>
-<td>KubeEdge DMI adapter, latest operational state, DeviceStatus/Twin reported, desired/command 처리</td>
-<td>raw telemetry 영구 저장, high-frequency sample history 보존</td>
+<td>MQTT subscribe, LatestValues cache, DMI adapter, <code>pushMethod.dbMethod.influxdb2</code> 기반 InfluxDB 저장, command publish</td>
+<td>raw telemetry를 DeviceStatus에 올리기</td>
+</tr>
+<tr>
+<td>Device CR</td>
+<td>property별 <code>collectCycle</code>, <code>reportCycle</code>, <code>pushMethod.dbMethod.influxdb2</code> 저장 정책 선언</td>
+<td>runtime sample 자체 저장</td>
+</tr>
+<tr>
+<td>InfluxDB</td>
+<td>raw telemetry latest/history 저장과 freshness 판단 기준 제공</td>
+<td>control-plane 상태 저장소 역할</td>
 </tr>
 <tr>
 <td>state-aggregator</td>
-<td>KubeEdge, mapper, InfluxDB, Redis latest를 조합해 dashboard API 생성</td>
-<td>raw telemetry를 DeviceStatus로 승격</td>
+<td>KubeEdge Device/DeviceStatus와 InfluxDB latest timestamp를 조합해 dashboard payload 생성</td>
+<td>Redis latest 조회, raw telemetry 별도 bridge 운영</td>
 </tr>
 <tr>
 <td>dashboard</td>
-<td>live/history/status를 분리해 표시</td>
-<td>DeviceStatus를 raw telemetry 저장소처럼 사용</td>
+<td>디바이스-서비스 연결 구조, 센서 데이터 freshness, status snapshot, KPI 가시화</td>
+<td><code>status.state=online</code>만으로 healthy 판단</td>
 </tr>
 </tbody></table></div>
-<h2 id="plane-분리-원칙">Plane 분리 원칙</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>구분</th>
-<th>Data-plane</th>
-<th>Control/status-plane</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>대상</td>
-<td>raw/value/x/y/z/temperature/humidity/vibration 등 고빈도 값</td>
-<td>health/severity/alarm_latched/status/command_state 등 운영 상태</td>
-</tr>
-<tr>
-<td>입력</td>
-<td>MQTT telemetry payload</td>
-<td>mapper가 계산/반영한 operational state, desired/command 결과</td>
-</tr>
-<tr>
-<td>최신값</td>
-<td>Redis <code>telemetry:latest:*</code></td>
-<td>mapper 내부 operational state, KubeEdge DeviceStatus</td>
-</tr>
-<tr>
-<td>이력</td>
-<td>InfluxDB raw append</td>
-<td>KubeEdge DeviceStatus/Twin reported snapshot</td>
-</tr>
-<tr>
-<td>dashboard 용도</td>
-<td>live sensor panel, graph, anomaly/history</td>
-<td>health/status/control 상태 표시</td>
-</tr>
-<tr>
-<td>저장 주기</td>
-<td>event-driven append 또는 짧은 batch</td>
-<td>changed-only, throttled report</td>
-</tr>
-</tbody></table></div>
-<h2 id="redis-streams-설계">Redis Streams 설계</h2>
-<h3 id="stream">Stream</h3>
-<p>기본 stream:</p>
-<pre data-lang="text"><code>telemetry:raw</code></pre>
-<p>권장 field:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>field</th>
-<th>설명</th>
-<th>예시</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>device_id</code></td>
-<td>KubeEdge Device 이름</td>
-<td><code>env-arduino-temperature-01</code></td>
-</tr>
-<tr>
-<td><code>sensor</code></td>
-<td>센서/property 이름</td>
-<td><code>temperature</code>, <code>raw</code>, <code>x</code></td>
-</tr>
-<tr>
-<td><code>value</code></td>
-<td>샘플 값</td>
-<td><code>28.1</code></td>
-</tr>
-<tr>
-<td><code>edge_node</code></td>
-<td>edge node 이름</td>
-<td><code>etri-dev0001-jetorn</code></td>
-</tr>
-<tr>
-<td><code>topic</code></td>
-<td>원본 MQTT topic</td>
-<td><code>etri/etri-dev0001-jetorn/arduino-001/temperature</code></td>
-</tr>
-<tr>
-<td><code>timestamp</code></td>
-<td>source timestamp 또는 bridge receive timestamp, epoch ms 권장</td>
-<td><code>1710000000000</code></td>
-</tr>
-<tr>
-<td><code>received_at</code></td>
-<td>bridge 수신 epoch ms</td>
-<td><code>1710000000123</code></td>
-</tr>
-<tr>
-<td><code>schema_version</code></td>
-<td>payload schema 버전</td>
-<td><code>1</code></td>
-</tr>
-</tbody></table></div>
-<p>예시:</p>
-<pre data-lang="json"><code>{
-  &quot;device_id&quot;: &quot;env-arduino-temperature-01&quot;,
-  &quot;sensor&quot;: &quot;temperature&quot;,
-  &quot;value&quot;: 28.1,
-  &quot;edge_node&quot;: &quot;etri-dev0001-jetorn&quot;,
-  &quot;topic&quot;: &quot;etri/etri-dev0001-jetorn/arduino-001/temperature&quot;,
-  &quot;timestamp&quot;: 1710000000000,
-  &quot;received_at&quot;: 1710000000123,
-  &quot;schema_version&quot;: &quot;1&quot;
-}</code></pre>
-<p>XADD 예시:</p>
-<pre data-lang="bash"><code>XADD telemetry:raw MAXLEN ~ 1000000 \
-  device_id env-arduino-temperature-01 \
-  sensor temperature \
-  value 28.1 \
-  edge_node etri-dev0001-jetorn \
-  timestamp 1710000000000 \
-  received_at 1710000000123</code></pre>
-<h3 id="latest-cache">Latest cache</h3>
-<p>권장 key:</p>
-<pre data-lang="text"><code>telemetry:latest:{device_id}
-telemetry:latest:{device_id}:{sensor}</code></pre>
-<p>간단한 hash 방식:</p>
-<pre data-lang="text"><code>HSET telemetry:latest:env-arduino-temperature-01 \
-  temperature.value 28.1 \
-  temperature.timestamp 1710000000000 \
-  temperature.received_at 1710000000123 \
-  temperature.edge_node etri-dev0001-jetorn</code></pre>
-<p>property별 key 방식:</p>
-<pre data-lang="text"><code>HSET telemetry:latest:env-arduino-temperature-01:temperature \
-  value 28.1 \
-  timestamp 1710000000000 \
-  received_at 1710000000123 \
-  edge_node etri-dev0001-jetorn</code></pre>
-<p>권장 TTL:</p>
-<pre data-lang="text"><code>EXPIRE telemetry:latest:{device_id}:{sensor} 60</code></pre>
-<p>TTL은 dashboard live panel의 “방금 들어온 값” 표시용이다. 시스템 healthy 판단은 계속 InfluxDB latest timestamp를 우선한다.</p>
-<h3 id="consumer-group">Consumer group</h3>
-<p>bridge 자체가 InfluxDB까지 쓰는 단일 프로세스로 시작할 수 있지만, 확장 시에는 consumer group을 분리한다.</p>
-<pre data-lang="text"><code>producer: raw-stream-bridge-ingest
-stream:   telemetry:raw
-consumer group:
-  - influx-writer-group
-  - anomaly-detector-group
-  - dashboard-derived-metric-group</code></pre>
-<p>예시:</p>
-<pre data-lang="bash"><code>XGROUP CREATE telemetry:raw influx-writer-group $ MKSTREAM
-XREADGROUP GROUP influx-writer-group writer-01 COUNT 500 BLOCK 1000 STREAMS telemetry:raw &gt;
-XACK telemetry:raw influx-writer-group &lt;message-id&gt;</code></pre>
-<h2 id="mqtt-topic-구조">MQTT topic 구조</h2>
-<p>현재 PoC에는 두 계열 topic이 공존할 수 있다.</p>
-<h3 id="실제-arduino-edge-sensor-topic">실제 Arduino/edge sensor topic</h3>
-<pre data-lang="text"><code>etri/{edge_node}/{sensor_unit}/{sensor}</code></pre>
-<p>예시:</p>
-<pre data-lang="text"><code>etri/etri-dev0001-jetorn/arduino-001/temperature
-etri/etri-dev0001-jetorn/arduino-001/light
-etri/etri-dev0001-jetorn/arduino-001/magnetic
-etri/etri-dev0001-jetorn/arduino-001/acceleration</code></pre>
-<h3 id="kubeedge-device-단위-topic">KubeEdge Device 단위 topic</h3>
-<pre data-lang="text"><code>factory/devices/{device_id}/telemetry
-factory/devices/{device_id}/command</code></pre>
-<p>권장 방향:</p>
-<ul><li>raw-stream-bridge는 실제 sensor topic과 Device 단위 topic을 모두 subscribe 가능하게 둔다.</li><li>topic-to-device mapping은 ConfigMap으로 관리한다.</li><li>mapper는 command와 operational state에 필요한 topic만 유지한다.</li></ul>
-<p>예시 mapping:</p>
-<pre data-lang="yaml"><code>topic_mappings:
-  - topic: etri/etri-dev0001-jetorn/arduino-001/temperature
-    device_id: env-arduino-temperature-01
-    sensor: temperature
-    edge_node: etri-dev0001-jetorn
-  - topic: etri/etri-dev0001-jetorn/arduino-001/acceleration
-    device_id: vib-arduino-acceleration-01
-    sensor_fields: [x, y, z]
-    edge_node: etri-dev0001-jetorn</code></pre>
-<h2 id="raw-stream-bridge-python-예시-코드">raw-stream-bridge Python 예시 코드</h2>
-<p>아래 코드는 구조 예시다. 실제 배포 시에는 ConfigMap, Secret, graceful shutdown, retry/backoff, metrics를 추가한다.</p>
-<pre data-lang="python"><code>import json
-import os
-import signal
-import time
-from dataclasses import dataclass
-from typing import Any
-
-import paho.mqtt.client as mqtt
-import redis
-from influxdb_client import InfluxDBClient, Point, WriteOptions
-
-MQTT_HOST = os.getenv(&quot;MQTT_HOST&quot;, &quot;127.0.0.1&quot;)
-MQTT_PORT = int(os.getenv(&quot;MQTT_PORT&quot;, &quot;1883&quot;))
-MQTT_TOPICS = os.getenv(&quot;MQTT_TOPICS&quot;, &quot;etri/+/+/+,factory/devices/+/telemetry&quot;).split(&quot;,&quot;)
-REDIS_URL = os.getenv(&quot;REDIS_URL&quot;, &quot;redis://redis.telemetry.svc.cluster.local:6379/0&quot;)
-STREAM_KEY = os.getenv(&quot;STREAM_KEY&quot;, &quot;telemetry:raw&quot;)
-LATEST_PREFIX = os.getenv(&quot;LATEST_PREFIX&quot;, &quot;telemetry:latest&quot;)
-MAXLEN = int(os.getenv(&quot;STREAM_MAXLEN&quot;, &quot;1000000&quot;))
-LATEST_TTL_SECONDS = int(os.getenv(&quot;LATEST_TTL_SECONDS&quot;, &quot;60&quot;))
-
-INFLUX_URL = os.getenv(&quot;INFLUX_URL&quot;, &quot;http://influxdb.telemetry.svc.cluster.local:8086&quot;)
-INFLUX_ORG = os.getenv(&quot;INFLUX_ORG&quot;, &quot;edgeai&quot;)
-INFLUX_BUCKET = os.getenv(&quot;INFLUX_BUCKET&quot;, &quot;device_telemetry&quot;)
-INFLUX_TOKEN = os.getenv(&quot;INFLUX_TOKEN&quot;, &quot;&quot;)
-MEASUREMENT = os.getenv(&quot;INFLUX_MEASUREMENT&quot;, &quot;raw_sensor_telemetry&quot;)
-
-redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
-influx_client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
-write_api = influx_client.write_api(write_options=WriteOptions(batch_size=500, flush_interval=1000))
-
-@dataclass
-class Sample:
-    device_id: str
-    sensor: str
-    value: Any
-    edge_node: str
-    topic: str
-    timestamp_ms: int
-    received_at_ms: int
-
-def now_ms() -&gt; int:
-    return int(time.time() * 1000)
-
-def map_topic(topic: str, payload: dict[str, Any]) -&gt; list[Sample]:
-    received_at = now_ms()
-    source_ts = int(payload.get(&quot;timestamp&quot;) or payload.get(&quot;source_ts&quot;) or received_at)
-
-    # 실제 구현에서는 ConfigMap 기반 topic mapping을 사용한다.
-    parts = topic.split(&quot;/&quot;)
-    if topic.startswith(&quot;etri/&quot;) and len(parts) &gt;= 4:
-        edge_node = parts[1]
-        sensor = parts[3]
-        device_id = payload.get(&quot;device_id&quot;) or f&quot;unknown-{sensor}&quot;
-    else:
-        device_id = payload.get(&quot;device_id&quot;) or parts[2]
-        sensor = payload.get(&quot;sensor&quot;) or &quot;value&quot;
-        edge_node = payload.get(&quot;edge_node&quot;) or &quot;unknown&quot;
-
-    samples: list[Sample] = []
-    if sensor == &quot;acceleration&quot;:
-        for axis in (&quot;x&quot;, &quot;y&quot;, &quot;z&quot;):
-            if axis in payload:
-                samples.append(Sample(device_id, axis, payload[axis], edge_node, topic, source_ts, received_at))
-    else:
-        value = payload.get(&quot;value&quot;, payload.get(sensor, payload.get(&quot;raw&quot;)))
-        if value is not None:
-            samples.append(Sample(device_id, sensor, value, edge_node, topic, source_ts, received_at))
-    return samples
-
-def append_sample(sample: Sample) -&gt; None:
-    fields = {
-        &quot;device_id&quot;: sample.device_id,
-        &quot;sensor&quot;: sample.sensor,
-        &quot;value&quot;: str(sample.value),
-        &quot;edge_node&quot;: sample.edge_node,
-        &quot;topic&quot;: sample.topic,
-        &quot;timestamp&quot;: str(sample.timestamp_ms),
-        &quot;received_at&quot;: str(sample.received_at_ms),
-        &quot;schema_version&quot;: &quot;1&quot;,
-    }
-    redis_client.xadd(STREAM_KEY, fields, maxlen=MAXLEN, approximate=True)
-
-    latest_key = f&quot;{LATEST_PREFIX}:{sample.device_id}:{sample.sensor}&quot;
-    redis_client.hset(latest_key, mapping=fields)
-    redis_client.expire(latest_key, LATEST_TTL_SECONDS)
-
-    point = (
-        Point(MEASUREMENT)
-        .tag(&quot;device_id&quot;, sample.device_id)
-        .tag(&quot;sensor&quot;, sample.sensor)
-        .tag(&quot;edge_node&quot;, sample.edge_node)
-        .field(&quot;value&quot;, float(sample.value) if isinstance(sample.value, (int, float)) or str(sample.value).replace(&quot;.&quot;, &quot;&quot;, 1).isdigit() else str(sample.value))
-        .time(sample.timestamp_ms, write_precision=&quot;ms&quot;)
-    )
-    write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
-
-def on_message(_client, _userdata, msg):
-    try:
-        payload = json.loads(msg.payload.decode(&quot;utf-8&quot;))
-        for sample in map_topic(msg.topic, payload):
-            append_sample(sample)
-    except Exception as exc:
-        print(f&quot;bridge error topic={msg.topic} err={exc}&quot;, flush=True)
-
-def main():
-    client = mqtt.Client(client_id=&quot;raw-stream-bridge&quot;)
-    client.on_message = on_message
-    client.connect(MQTT_HOST, MQTT_PORT, keepalive=60)
-    for topic in MQTT_TOPICS:
-        client.subscribe(topic.strip(), qos=1)
-    client.loop_start()
-
-    stop = False
-    def handle_stop(_sig, _frame):
-        nonlocal stop
-        stop = True
-    signal.signal(signal.SIGTERM, handle_stop)
-    signal.signal(signal.SIGINT, handle_stop)
-
-    while not stop:
-        time.sleep(1)
-
-    client.loop_stop()
-    write_api.flush()
-    influx_client.close()
-
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-<h2 id="influxdb-write-구조">InfluxDB write 구조</h2>
-<p>권장 measurement:</p>
-<pre data-lang="text"><code>raw_sensor_telemetry</code></pre>
-<p>권장 tags:</p>
-<pre data-lang="text"><code>device_id, sensor, edge_node, source, schema_version</code></pre>
-<p>권장 fields:</p>
-<pre data-lang="text"><code>value, raw_json(optional), quality(optional)</code></pre>
-<p>권장 timestamp:</p>
-<ul><li>source timestamp가 있으면 source timestamp 사용</li><li>없으면 bridge receive timestamp 사용</li><li>InfluxDB write 시각을 sample time으로 사용하지 않는다</li></ul>
-<p>예시 line protocol:</p>
-<pre data-lang="text"><code>raw_sensor_telemetry,device_id=env-arduino-temperature-01,sensor=temperature,edge_node=etri-dev0001-jetorn value=28.1 1710000000000000000</code></pre>
-<p>운영 정책:</p>
-<ul><li>raw append는 batch write를 사용한다.</li><li>batch size 예: 500~5000 points</li><li>flush interval 예: 1~5초</li><li>retry/backoff와 failed batch log를 둔다.</li><li>retention policy를 분리한다.</li></ul>
-<p>권장 retention/downsampling:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>bucket</th>
-<th>용도</th>
-<th>보존</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>device_telemetry_raw</code></td>
-<td>1초 또는 고빈도 원본</td>
-<td>7~30일</td>
-</tr>
-<tr>
-<td><code>device_telemetry_1m</code></td>
-<td>1분 downsample 평균/최대/최소</td>
-<td>90~180일</td>
-</tr>
-<tr>
-<td><code>device_telemetry</code></td>
-<td>현재 dashboard 호환 latest/history</td>
-<td>전환기 호환용</td>
-</tr>
-</tbody></table></div>
-<p>PoC 최소 단계에서는 기존 <code>device_telemetry</code> bucket에 <code>raw_sensor_telemetry</code> measurement를 추가하고, 이후 bucket을 분리한다.</p>
-<h2 id="dashboard-live-history-status-분리">Dashboard live/history/status 분리</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>화면 영역</th>
-<th>데이터 소스</th>
-<th>목적</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>live sensor panel</td>
-<td>Redis latest</td>
-<td>최근 1~2초 값 표시, 운영자가 센서 입력을 즉시 확인</td>
-</tr>
-<tr>
-<td>historical graph</td>
-<td>InfluxDB</td>
-<td>시간대별 trend, anomaly, KPI 분석</td>
-</tr>
-<tr>
-<td>health/freshness</td>
-<td>state-aggregator + InfluxDB latest timestamp</td>
-<td>device healthy/degraded/unavailable 판단</td>
-</tr>
-<tr>
-<td>DeviceStatus panel</td>
-<td>KubeEdge DeviceStatus/Twin reported</td>
-<td>health, severity, alarm, command_state 같은 control/status-plane 표시</td>
-</tr>
-<tr>
-<td>service binding</td>
-<td>state-aggregator backend fields</td>
-<td>service demo group과 device 연결 표시</td>
-</tr>
-</tbody></table></div>
-<p>중요 정책:</p>
-<ul><li>Redis latest는 live 표시용이다. Redis key TTL이 지났다고 바로 device healthy를 바꾸지 않는다.</li><li>healthy 판단은 현재 방향대로 InfluxDB latest timestamp를 우선한다.</li><li>DeviceStatus는 raw telemetry 저장소가 아니며, stale/fresh 여부를 별도 KPI로 표시한다.</li></ul>
-<h2 id="mapper에서-제거해야-하는-책임">mapper에서 제거해야 하는 책임</h2>
-<p><code>mqttvirtual</code> mapper에서 단계적으로 제거할 책임:</p>
-<ol><li>raw telemetry InfluxDB 영구 저장</li><li>raw/value/x/y/z/temperature/humidity/vibration 같은 high-frequency property의 DB pushMethod 처리</li><li>reportCycle 기반 latest snapshot을 raw history처럼 사용하는 구조</li><li>raw telemetry 값을 DeviceStatus/Twin reported에 올리는 경로</li><li>raw sample history 보존 책임</li><li>raw stream anomaly/history 분석을 위한 buffering 책임</li></ol>
-<p>mapper에 남길 책임:</p>
-<ol><li>KubeEdge DMI device runtime adapter</li><li>MQTT command publish</li><li>desired -&gt; command 처리</li><li>latest operational state 유지</li><li>health/severity/alarm_latched/status/command_state 중심 DeviceStatus/Twin reported</li><li>mapper/node/device runtime 상태 관찰</li></ol>
-<h2 id="device-manifest-전환-방향">Device manifest 전환 방향</h2>
-<p>현재는 일부 raw property에 <code>pushMethod.dbMethod.influxdb2</code>가 있다. 목표 구조에서는 raw property의 DB pushMethod를 제거한다.</p>
-<p>전환 전:</p>
-<pre data-lang="yaml"><code>properties:
-  - name: raw
-    reportToCloud: false
-    pushMethod:
-      dbMethod:
-        influxdb2: ...</code></pre>
-<p>전환 후:</p>
-<pre data-lang="yaml"><code>properties:
-  - name: health
-    reportToCloud: true
-  - name: severity
-    reportToCloud: true
-  - name: alarm_latched
-    reportToCloud: true
-  - name: command_state
-    reportToCloud: true</code></pre>
-<p>raw sensor stream은 Device manifest의 DB pushMethod가 아니라 raw-stream-bridge mapping에서 처리한다.</p>
-<h2 id="migration-단계별-계획">Migration 단계별 계획</h2>
-<h3 id="0단계-현-상태-고정">0단계: 현 상태 고정</h3>
-<ul><li>현재 mapper가 InfluxDB에 주기 snapshot을 쓰는 구조를 문서화한다.</li><li>dashboard freshness가 InfluxDB latest timestamp 기준임을 유지한다.</li><li>DeviceStatus allowlist를 유지한다.</li></ul>
-<h3 id="1단계-raw-stream-bridge-mvp-추가">1단계: raw-stream-bridge MVP 추가</h3>
-<ul><li>Redis 배포 또는 기존 Redis 연결을 준비한다.</li><li>raw-stream-bridge를 추가한다.</li><li>MQTT topic mapping ConfigMap을 작성한다.</li><li>Redis <code>telemetry:raw</code> XADD와 <code>telemetry:latest:*</code> update를 먼저 검증한다.</li><li>InfluxDB batch write를 추가한다.</li></ul>
-<h3 id="2단계-dual-write-검증">2단계: dual-write 검증</h3>
-<ul><li>짧은 기간 동안 mapper DB write와 bridge DB write를 동시에 유지한다.</li><li>InfluxDB measurement를 분리한다.</li><li>mapper 기존: <code>virtual_device_telemetry</code></li><li>bridge 신규: <code>raw_sensor_telemetry</code></li><li>같은 device의 latest timestamp와 sample count를 비교한다.</li><li>1초 입력이면 bridge 측 sample count가 입력률과 맞는지 확인한다.</li></ul>
-<h3 id="3단계-dashboard-live-history-분리">3단계: dashboard live/history 분리</h3>
-<ul><li>state-aggregator에 Redis latest client를 추가한다.</li><li>dashboard live sensor panel은 Redis latest를 사용한다.</li><li>historical graph는 InfluxDB <code>raw_sensor_telemetry</code>를 사용한다.</li><li>health/freshness는 기존 정책대로 InfluxDB latest timestamp를 사용한다.</li></ul>
-<h3 id="4단계-mapper-raw-db-write-제거">4단계: mapper raw DB write 제거</h3>
-<ul><li>Device manifest generator에서 raw property <code>pushMethod.dbMethod</code>를 제거한다.</li><li>mapper의 InfluxDB DBMethod handler는 운영 상태/liveness 전용 또는 legacy optional로 축소한다.</li><li>raw property는 <code>reportToCloud: false</code>를 유지하고 DeviceStatus allowlist 밖에 둔다.</li></ul>
-<h3 id="5단계-운영-정책-정리">5단계: 운영 정책 정리</h3>
-<ul><li>retention/downsampling bucket을 분리한다.</li><li>raw-stream-bridge metrics와 alert를 추가한다.</li><li>Redis stream pending/lag, Influx write failure, MQTT disconnect 상태를 dashboard issue로 노출한다.</li></ul>
-<h2 id="poc-최소-구현-순서">PoC 최소 구현 순서</h2>
-<ol><li><code>raw-stream-bridge</code> 단일 Python Deployment 작성</li><li>Redis Deployment/Service 추가</li><li>MQTT wildcard subscribe + topic mapping ConfigMap 작성</li><li>Redis Streams XADD 검증</li><li>Redis latest cache 검증</li><li>InfluxDB batch write 검증</li><li>state-aggregator에 Redis latest read API 추가</li><li>dashboard live sensor panel을 Redis latest 기반으로 추가</li><li>InfluxDB history query를 <code>raw_sensor_telemetry</code> 기준으로 추가</li><li>Device manifest에서 raw DB pushMethod 제거</li><li>mapper가 control/status-plane만 담당하도록 코드와 docs 정리</li></ol>
-<h2 id="성공-기준">성공 기준</h2>
-<ul><li>센서가 1초마다 publish하면 Redis Streams에는 1초 샘플이 append된다.</li><li>InfluxDB raw measurement에도 1초 샘플이 batch write로 보존된다.</li><li>mapper는 raw telemetry를 DB에 쓰지 않는다.</li><li>DeviceStatus에는 raw/value/x/y/z/temperature 같은 값이 올라오지 않는다.</li><li>dashboard live panel은 Redis latest 값을 보여준다.</li><li>dashboard history graph는 InfluxDB raw history를 보여준다.</li><li>dashboard healthy 판단은 InfluxDB latest timestamp와 KubeEdge/node/mapper 상태를 조합해 기존 정책대로 유지한다.</li></ul>
+<h2 id="device-cr-property-정책">Device CR property 정책</h2>
+<p>raw sensor property 예시는 다음과 같다.</p>
+<pre data-lang="yaml"><code>- name: temperature
+  collectCycle: 60000
+  reportCycle: 60000
+  reportToCloud: false
+  visitors:
+    protocolName: mqttvirtual
+    configData:
+      dataType: string
+      jsonKey: temperature
+  pushMethod:
+    dbMethod:
+      influxdb2:
+        influxdb2ClientConfig:
+          url: http://influxdb.telemetry.svc.cluster.local:8086
+          org: edgeai
+          bucket: device_telemetry
+        influxdb2DataConfig:
+          measurement: virtual_device_telemetry
+          tag:
+            device_id: env-device-01
+            device_type: env
+            property: temperature
+          fieldKey: value</code></pre>
+<p>정책:</p>
+<ul><li><code>env</code>/<code>rpi-env</code>: <code>temperature</code>, <code>humidity</code>는 InfluxDB 저장 대상이다.</li><li><code>vib</code>/<code>rpi-vib</code>: <code>vibration</code>은 InfluxDB 저장 대상이다.</li><li><code>act</code>/<code>rpi-act</code>: actuator liveness 확인용 <code>health</code> 저장 정책은 유지한다.</li><li>raw sensor property는 <code>reportToCloud: false</code>로 두어 DeviceStatus에 고빈도 값을 올리지 않는다.</li><li>actuator/status property의 <code>reportToCloud</code> allowlist는 기존 DeviceStatus 정책을 따른다.</li></ul>
+<h2 id="mapper-저장-경로">Mapper 저장 경로</h2>
+<p><code>mqttvirtual</code> mapper는 Device CR의 <code>pushMethod.dbMethod</code>를 기준으로 DB handler를 실행한다. <code>raw</code>, <code>value</code>, <code>x</code>, <code>y</code>, <code>z</code>, <code>temperature</code>, <code>humidity</code>, <code>vibration</code> 같은 raw property를 mapper DB 저장에서 제외하는 denylist는 공식 경로와 맞지 않으므로 사용하지 않는다.</p>
+<p>InfluxDB method 이름은 mapper-framework 변환 결과와 legacy 호환을 위해 <code>influx</code>와 <code>influxdb2</code>를 모두 허용한다.</p>
+<h2 id="state-aggregator-dashboard-정책">state-aggregator / dashboard 정책</h2>
+<ul><li>Redis 없이 InfluxDB만 조회한다.</li><li><code>/state/dashboard</code> payload에는 <code>raw_telemetry_latest</code>를 포함하지 않는다.</li><li>KPI에는 <code>raw_live_stream_count</code>를 포함하지 않는다.</li><li>telemetry freshness는 기존처럼 InfluxDB latest timestamp 기준이다.</li><li>DeviceStatus는 <code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>command_state</code> 등 운영 snapshot 해석의 보조 신호로만 사용한다.</li></ul>
+<h2 id="redis-raw-stream-bridge-위치">Redis/raw-stream-bridge 위치</h2>
+<p>Redis Streams와 raw-stream-bridge 기반 구조는 현재 PoC 기본 경로가 아니다. 향후 고빈도 fan-out, replay, multi-consumer streaming이 필요할 때 실험적 대안으로 다시 검토할 수 있으나, 현재 공식 구현/문서/CI/CD 대상에서는 제외한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#전체-아키텍처-다이어그램">전체 아키텍처 다이어그램</a></li>
-<li class="toc-h2"><a href="#컴포넌트-역할-정의">컴포넌트 역할 정의</a></li>
-<li class="toc-h2"><a href="#plane-분리-원칙">Plane 분리 원칙</a></li>
-<li class="toc-h2"><a href="#redis-streams-설계">Redis Streams 설계</a></li>
-<li class="toc-h3"><a href="#stream">Stream</a></li>
-<li class="toc-h3"><a href="#latest-cache">Latest cache</a></li>
-<li class="toc-h3"><a href="#consumer-group">Consumer group</a></li>
-<li class="toc-h2"><a href="#mqtt-topic-구조">MQTT topic 구조</a></li>
-<li class="toc-h3"><a href="#실제-arduino-edge-sensor-topic">실제 Arduino/edge sensor topic</a></li>
-<li class="toc-h3"><a href="#kubeedge-device-단위-topic">KubeEdge Device 단위 topic</a></li>
-<li class="toc-h2"><a href="#raw-stream-bridge-python-예시-코드">raw-stream-bridge Python 예시 코드</a></li>
-<li class="toc-h2"><a href="#influxdb-write-구조">InfluxDB write 구조</a></li>
-<li class="toc-h2"><a href="#dashboard-live-history-status-분리">Dashboard live/history/status 분리</a></li>
-<li class="toc-h2"><a href="#mapper에서-제거해야-하는-책임">mapper에서 제거해야 하는 책임</a></li>
-<li class="toc-h2"><a href="#device-manifest-전환-방향">Device manifest 전환 방향</a></li>
-<li class="toc-h2"><a href="#migration-단계별-계획">Migration 단계별 계획</a></li>
-<li class="toc-h3"><a href="#0단계-현-상태-고정">0단계: 현 상태 고정</a></li>
-<li class="toc-h3"><a href="#1단계-raw-stream-bridge-mvp-추가">1단계: raw-stream-bridge MVP 추가</a></li>
-<li class="toc-h3"><a href="#2단계-dual-write-검증">2단계: dual-write 검증</a></li>
-<li class="toc-h3"><a href="#3단계-dashboard-live-history-분리">3단계: dashboard live/history 분리</a></li>
-<li class="toc-h3"><a href="#4단계-mapper-raw-db-write-제거">4단계: mapper raw DB write 제거</a></li>
-<li class="toc-h3"><a href="#5단계-운영-정책-정리">5단계: 운영 정책 정리</a></li>
-<li class="toc-h2"><a href="#poc-최소-구현-순서">PoC 최소 구현 순서</a></li></ol></aside>
+<li class="toc-h2"><a href="#공식-구조">공식 구조</a></li>
+<li class="toc-h2"><a href="#현재-원칙">현재 원칙</a></li>
+<li class="toc-h2"><a href="#컴포넌트-역할">컴포넌트 역할</a></li>
+<li class="toc-h2"><a href="#device-cr-property-정책">Device CR property 정책</a></li>
+<li class="toc-h2"><a href="#mapper-저장-경로">Mapper 저장 경로</a></li>
+<li class="toc-h2"><a href="#state-aggregator-dashboard-정책">state-aggregator / dashboard 정책</a></li>
+<li class="toc-h2"><a href="#redis-raw-stream-bridge-위치">Redis/raw-stream-bridge 위치</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

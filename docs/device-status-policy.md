@@ -5,18 +5,18 @@
 KubeEdge `DeviceStatus`는 고빈도 telemetry 저장/전송 경로가 아니다.
 DeviceStatus는 control/status-plane의 저빈도 운영 snapshot으로 제한한다.
 
-raw telemetry는 MQTT 기반 data-plane에서 처리하며, 목표 구조에서는 `raw-stream-bridge`가 Redis Streams에 append하고 InfluxDB에 batch write한다.
+raw telemetry는 MQTT 기반 data-plane에서 처리하며, 현재 공식 구조에서는 Device CR `pushMethod.dbMethod.influxdb2`를 기준으로 `mqttvirtual` mapper가 InfluxDB에 저장한다.
 
 ```text
 sensor/test publisher
   -> MQTT telemetry topic
-  -> raw-stream-bridge
-  -> Redis Streams telemetry:raw / Redis latest cache
-  -> InfluxDB raw telemetry history
+  -> mqttvirtual mapper LatestValues cache
+  -> Device CR pushMethod.dbMethod.influxdb2
+  -> InfluxDB raw telemetry history/latest
   -> state-aggregator latest telemetry query
 ```
 
-`mqttvirtual` mapper는 같은 MQTT 입력을 볼 수 있지만 raw telemetry 영구 저장 책임을 갖지 않는다. mapper는 KubeEdge DMI adapter, command/desired 처리, latest operational state, DeviceStatus/Twin reported에 집중한다.
+`mqttvirtual` mapper는 MQTT 입력을 받아 KubeEdge DMI adapter, command/desired 처리, LatestValues cache, DeviceStatus/Twin reported를 담당한다. raw telemetry 영구 저장은 Device CR `pushMethod.dbMethod.influxdb2`에 선언된 property만 InfluxDB로 보낸다.
 
 DeviceStatus는 다음 용도로만 사용한다.
 
@@ -149,13 +149,13 @@ DEVICE_STATES_REPORT_ENABLED=false
   - InfluxDB: `vibration`, 이후 `rms`, `peak`, raw vibration samples
 - act device
   - DeviceStatus: `health`, `power`, `mode`, `sampling_interval`, 이후 `command_state`, `reported_config_version`
-  - InfluxDB liveness: 현재 구현 기준 `ts` property
+  - InfluxDB liveness: 현재 구현 기준 `health` property
   - 향후 확장 후보: command event history, actuation latency, state transition history
 
 ## 현재 PoC 기준
 
-현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 현 구현에는 mapper가 `reportCycle`마다 latest snapshot을 InfluxDB에 쓰는 전환기 경로가 남아 있지만, 목표 구조는 raw-stream-bridge가 MQTT raw stream을 Redis Streams와 InfluxDB에 event-driven/batch 방식으로 저장하는 것이다.
+현재 Jetson sensor-collector 기반 PoC는 Arduino 센서값을 MQTT로 발행한다. 현재 공식 구현은 mapper가 Device CR `pushMethod.dbMethod.influxdb2`와 `reportCycle` 기준으로 raw sensor property를 InfluxDB에 저장하는 구조다.
 실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다.
-고빈도 원천 데이터는 MQTT/Redis Streams/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 InfluxDB latest timestamp에 맞춘다.
+원천 데이터는 MQTT/mapper/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 InfluxDB latest timestamp에 맞춘다.
 
-즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_sensor_data_device_count`와 `sensor_data_freshness_ratio`는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 같은 data-plane freshness의 호환 지표다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. `ts`는 publisher payload와 Device manifest의 DB push property로 freshness 기준에 사용한다.
+즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_sensor_data_device_count`와 `sensor_data_freshness_ratio`는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다. `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`는 같은 data-plane freshness의 호환 지표다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다. act/rpi-act device는 현재 구현 기준 InfluxDB liveness row가 `health` property다. `ts`는 publisher payload에 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 보지 않는다.

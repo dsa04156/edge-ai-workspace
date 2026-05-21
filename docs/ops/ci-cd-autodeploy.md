@@ -8,7 +8,6 @@
 
 - `state-aggregator`
 - `mqttvirtual-mapper`
-- `raw-stream-bridge`
 - `docs-html`
 
 ## 기본 원칙
@@ -59,7 +58,6 @@ trigger:
 .github/workflows/docker-build-push.yml
 .github/buildkitd.toml
 edge-orch/state-aggregator/**
-edge-orch/raw-stream-bridge/**
 edge-orch/workflow_executor/**
 edge-orch/placement_engine/**
 edge-orch/vision_stage_runner/**
@@ -73,7 +71,6 @@ docs-site/**
 
 ```text
 192.168.0.56:5000/state-aggregator:latest
-192.168.0.56:5000/raw-stream-bridge:latest
 192.168.0.56:5000/workflow-executor:latest
 192.168.0.56:5000/placement-engine:latest
 192.168.0.56:5000/vision-stage-runner:latest
@@ -85,7 +82,6 @@ docs-site/**
 
 ```text
 deployment/state-aggregator
-daemonset/raw-stream-bridge
 daemonset/mqttvirtual-mapper
 deployment/docs-html
 ```
@@ -118,7 +114,7 @@ argocd-image-updater.argoproj.io/write-back-method: argocd
 
 ## 자동 rollout 방식
 
-GitHub Actions는 `state-aggregator`, `raw-stream-bridge`, `mqttvirtual-mapper`에 대해 build/push 후 다음 흐름으로 최신 이미지를 반영한다. `docs-html`은 위의 Image Updater 방식으로 반영한다.
+GitHub Actions는 `state-aggregator`, `mqttvirtual-mapper`에 대해 build/push 후 다음 흐름으로 최신 이미지를 반영한다. `docs-html`은 위의 Image Updater 방식으로 반영한다.
 
 ```text
 1. 현재 workload image 확인

@@ -94,8 +94,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: README.md</span>
-            <span class="badge">수정: 2026-05-21 13:53</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:07</span>
+            <span class="badge">수정: 2026-05-21 15:36</span>
+            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
           </div>
         </header>
         
@@ -191,7 +191,7 @@
 </tr>
 <tr>
 <td><code>raw-telemetry-data-plane.md</code></td>
-<td>raw sensor stream을 Redis Streams + InfluxDB로 분리하고 mapper를 control/status-plane adapter로 축소하는 목표 구조</td>
+<td>Device CR pushMethod.dbMethod 기반 mapper -&gt; InfluxDB 공식 raw telemetry 저장 구조</td>
 </tr>
 <tr>
 <td><code>edge-orch/workflow-designer/README.md</code></td>
@@ -270,8 +270,8 @@
 <pre data-lang="text"><code>Device 등록
   -&gt; edge node 할당
   -&gt; MQTT telemetry / command
-  -&gt; raw-stream-bridge / mqttvirtual mapper
-  -&gt; Redis latest / InfluxDB raw telemetry
+  -&gt; mqttvirtual mapper
+  -&gt; Device CR pushMethod.dbMethod.influxdb2 / InfluxDB raw telemetry
   -&gt; KubeEdge DeviceStatus snapshot
   -&gt; state-aggregator
   -&gt; dashboard

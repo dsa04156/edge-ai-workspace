@@ -94,8 +94,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/ci-cd-autodeploy.md</span>
-            <span class="badge">수정: 2026-05-21 15:07</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:07</span>
+            <span class="badge">수정: 2026-05-21 15:35</span>
+            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
           </div>
         </header>
         
@@ -104,7 +104,7 @@
 <h2 id="목적">목적</h2>
 <p>이 문서는 현재 KubeEdge 혼합 디바이스 edge AI 운영 가시화 PoC에서 GitHub Actions와 Argo CD를 함께 사용해 새 이미지를 자동 반영하는 기준을 정리한다.</p>
 <p>현재 자동 배포 대상은 운영 데모 경로와 문서 확인에 직접 필요한 구성 요소다.</p>
-<ul><li><code>state-aggregator</code></li><li><code>mqttvirtual-mapper</code></li><li><code>raw-stream-bridge</code></li><li><code>docs-html</code></li></ul>
+<ul><li><code>state-aggregator</code></li><li><code>mqttvirtual-mapper</code></li><li><code>docs-html</code></li></ul>
 <h2 id="기본-원칙">기본 원칙</h2>
 <ul><li>GitHub Actions는 변경된 path를 감지해 필요한 이미지만 build/push한다. docs-only 변경에서는 Python 서비스 이미지를 다시 build하지 않는다.</li><li>Kubernetes manifest에는 <code>:latest</code> tag와 <code>imagePullPolicy: Always</code>를 사용한다.</li><li><code>docs-html</code>은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.</li><li>GitHub Actions는 docs 변경 시 <code>scripts/build-docs-html.py</code>로 <code>docs/html</code>을 먼저 재생성한 뒤 <code>docs-html:latest</code> 이미지를 build/push한다.</li><li>Argo CD Image Updater가 Application image override를 갱신하면 Argo CD가 sync하여 새 Pod를 생성한다.</li><li>그 외 현재 데모 workload는 GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.</li></ul>
 <h2 id="왜-digest-pinning을-제거했는가">왜 digest pinning을 제거했는가</h2>
@@ -124,7 +124,6 @@
 <pre data-lang="text"><code>.github/workflows/docker-build-push.yml
 .github/buildkitd.toml
 edge-orch/state-aggregator/**
-edge-orch/raw-stream-bridge/**
 edge-orch/workflow_executor/**
 edge-orch/placement_engine/**
 edge-orch/vision_stage_runner/**
@@ -134,7 +133,6 @@ docs/**
 docs-site/**</code></pre>
 <p>현재 workflow는 다음 이미지를 build/push한다.</p>
 <pre data-lang="text"><code>192.168.0.56:5000/state-aggregator:latest
-192.168.0.56:5000/raw-stream-bridge:latest
 192.168.0.56:5000/workflow-executor:latest
 192.168.0.56:5000/placement-engine:latest
 192.168.0.56:5000/vision-stage-runner:latest
@@ -142,7 +140,6 @@ docs-site/**</code></pre>
 192.168.0.56:5000/docs-html:latest</code></pre>
 <p>운영 데모 경로와 문서 확인 경로에 자동 rollout하는 대상은 다음이다.</p>
 <pre data-lang="text"><code>deployment/state-aggregator
-daemonset/raw-stream-bridge
 daemonset/mqttvirtual-mapper
 deployment/docs-html</code></pre>
 <h2 id="docs-html의-image-updater-방식"><code>docs-html</code>의 Image Updater 방식</h2>
@@ -161,7 +158,7 @@ argocd-image-updater.argoproj.io/write-back-method: argocd</code></pre>
 5. Image Updater가 Argo CD Application override를 새 digest로 갱신한다.
 6. Argo CD가 docs-html Deployment를 sync하고 새 Pod가 최신 docs 이미지를 pull한다.</code></pre>
 <h2 id="자동-rollout-방식">자동 rollout 방식</h2>
-<p>GitHub Actions는 <code>state-aggregator</code>, <code>raw-stream-bridge</code>, <code>mqttvirtual-mapper</code>에 대해 build/push 후 다음 흐름으로 최신 이미지를 반영한다. <code>docs-html</code>은 위의 Image Updater 방식으로 반영한다.</p>
+<p>GitHub Actions는 <code>state-aggregator</code>, <code>mqttvirtual-mapper</code>에 대해 build/push 후 다음 흐름으로 최신 이미지를 반영한다. <code>docs-html</code>은 위의 Image Updater 방식으로 반영한다.</p>
 <pre data-lang="text"><code>1. 현재 workload image 확인
 2. image를 registry의 :latest로 설정
 3. 기존 image도 이미 :latest이면 rollout restart 수행

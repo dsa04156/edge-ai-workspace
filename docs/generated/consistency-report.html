@@ -58,7 +58,7 @@
 <body>
   <main>
     <h1>Docs-Code Consistency Report</h1>
-    <p class="subtitle">Generated at 2026-05-21 14:15:06 KST · Overall <span class="badge pass">PASS</span></p>
+    <p class="subtitle">Generated at 2026-05-21 15:38:05 KST · Overall <span class="badge pass">PASS</span></p>
 
     <h2>1. Summary</h2>
     <div class="summary-grid">
@@ -100,7 +100,7 @@
               <details open>
                 <summary>Evidence</summary>
                 <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:77: | `device_telemetry_ratio` | telemetry configured ratio | telemetry 설정 device 수 / 전체 등록 device 수. freshness 비율이 아니다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:416: dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/…</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:415: dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/…</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:67: 대표 KPI 관계는 `service_bound_device_count`, `device_service_binding_ratio`, `device_telemetry_ratio`, `telemetry_freshness_ratio`, `device_status_freshness_ratio`, `operator_focus_count`이다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:249: dashboard는 `device_telemetry_ratio`를 telemetry configured ratio로, `telemetry_freshness_ratio`를 실제 최신 telemetry 비율로 분리해 보여준다. `fresh_telemetry_device_count`는 telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 수다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-status-policy.md:161: 즉, dashboard의 `telemetry_device_count`는 telemetry-enabled device 수이고 `device_telemetry_ratio`는 telemetry-enabled device / 전체 registered device 비율이다. `fresh_sensor_data_device_count`와 `sensor_data_freshness_ratio`는 InfluxDB device-level latest sample freshness를 현재 메인 운영 KPI로 나타낸다…</span></li>
@@ -141,8 +141,8 @@
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:197: - telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 `healthy`로 표시될 수 있다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:215: | `healthy` | node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호. | 정상 관찰 |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:52: - dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:339: | `healthy` | node/mapper가 정상이고 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하는 상태 (DeviceStatus freshness는 별도 표기되는 보조 신호) |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:363: 6. DeviceStatus snapshot이 fresh한지 별도 확인한다. 단 telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.</span></li></ul>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:338: | `healthy` | node/mapper가 정상이고 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하는 상태 (DeviceStatus freshness는 별도 표기되는 보조 신호) |</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:362: 6. DeviceStatus snapshot이 fresh한지 별도 확인한다. 단 telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> DeviceStatus freshness는 status-plane 관찰용 보조 신호다. telemetry-enabled device는 InfluxDB latest telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다고 설명한다.</div>
             </section>
@@ -172,12 +172,12 @@
                 <h3>R5 act/rpi-act InfluxDB liveness uses health property, not ts</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/device-service-binding.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-device/scripts/generate_devices.py, mappers/script/test_device.py</div>
+              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/device-service-binding.md, docs/device-status-policy.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-device/scripts/generate_devices.py, mappers/script/test_device.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:257: | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:258: | act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB freshness row는 `ts` property다. `health`는 상태 요약용이고, `ts`는 publisher payload와 DB push property로 freshness 기준에 사용한다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:259: </span></li>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:256: | vib device | `health`, `severity`, `alarm_latched`, `sampling_interval`, `vibration_status` | `vibration`, `rms`, `peak`, raw vibration samples |</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:257: | act/rpi-act device | `health`, `power`, `mode`, `sampling_interval`, `command_state`, `reported_config_version` | 현재 구현 기준 InfluxDB freshness row는 `ts` property다. `health`는 상태 요약용이고, `ts`는 publisher payload와 DB push property로 freshness 기준에 사용한다. |</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:258: </span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:91: | `vib-device-*` | vibration, rms, peak | 설비 상태/이상 징후 입력 | 진동 상태 freshness와 severity |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:92: | `act-device-*` | health, power, mode, command_state | 제어/명령 적용 대상 | 현재 InfluxDB liveness는 `health` property 기준. command event history/actuation latency/state transition history는 향후 확장 후보 |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:93: | `temp-device-01` | temperature 계열 값 | 단일 device 연동 확인 | DeviceStatus/telemetry 경로 확인 |</span></li></ul>
@@ -198,7 +198,7 @@
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:115: | `node_ready` | dashboard 기준 node 사용 가능 여부 | state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값. Kubernetes `Ready`와 구분한다. |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:34: | node/mapper 원인 분리 | Kubernetes Ready, dashboard node_ready, mapper_running | Kubernetes Ready(`kubectl get nodes`)와 dashboard `node_ready`(Prometheus/node-exporter 기반 node_health 판단)를 구분해 원인을 분리 |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/kagenti-operator-assistant.md:88: `node_ready`는 Kubernetes `Ready` 값을 그대로 복사한 것이 아니라, state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 dashboard용 값이다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:323: - device가 할당된 node가 dashboard 기준 `node_ready`인지 확인한다. 이 값은 Kubernetes `Ready`가 아니라 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이다.</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:322: - device가 할당된 node가 dashboard 기준 `node_ready`인지 확인한다. 이 값은 Kubernetes `Ready`가 아니라 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/ops/runbook-current-demo.md:11: - Kubernetes Ready(`kubectl get nodes`)와 dashboard `node_ready`를 구분해 확인했는가?</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> dashboard `node_ready`는 Kubernetes Ready condition 자체가 아니라 state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값이라고 설명한다. Kubernetes Ready는 `kubectl get nodes` 기준으로 별도 표현한다.</div>
@@ -216,7 +216,7 @@
                 <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:78: | `fresh_telemetry_device_count` | fresh telemetry device 수 | telemetry 설정 device 중 InfluxDB device-level latest sample이 freshness 기준을 만족한 수 |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:90: | 의미 | telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 비율 |</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/kagenti-operator-assistant.md:96: InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest fr…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:260: 현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다. act/rpi-act는 `ts` liveness row를 freshness 기준으로 사…</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:259: 현재 dashboard는 InfluxDB device-level latest telemetry `_time`을 보고 data-plane이 살아 있는지 판단한다. `_start`/`_stop`은 Flux query window이고 실제 sample timestamp는 `_time`이다. 이 판단은 device별 latest sample 기준이며 property별 latest freshness를 보장하지 않는다. act/rpi-act는 `ts` liveness row를 freshness 기준으로 사…</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:69: InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest fr…</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-status-policy.md:30: 실제 센서 데이터 최신성은 `telemetry_fresh`, `fresh_sensor_data_device_count`, `sensor_data_freshness_ratio`로 분리해서 본다. `telemetry_freshness_ratio`는 기존 호환 지표로 유지한다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니…</span></li></ul>
               </details>

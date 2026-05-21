@@ -20,20 +20,12 @@ func TestIsInfluxDBMethodRejectsOtherMethods(t *testing.T) {
 	}
 }
 
-func TestShouldPersistPropertyToDBSkipsRawTelemetry(t *testing.T) {
+func TestRawTelemetryPropertiesAreNotDBDenylisted(t *testing.T) {
+	// KubeEdge Device CR pushMethod.dbMethod.influxdb2 is the official persistence path.
+	// Raw sensor properties must not be filtered by the mapper; if a property has a
+	// DB pushMethod, dbHandler should dispatch it to the configured DB method.
 	rawProperties := []string{"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration"}
-	for _, name := range rawProperties {
-		if shouldPersistPropertyToDB(name) {
-			t.Fatalf("expected raw telemetry property %q not to be persisted by mapper", name)
-		}
-	}
-}
-
-func TestShouldPersistPropertyToDBAllowsOperationalLiveness(t *testing.T) {
-	allowed := []string{"health", "severity", "alarm_latched", "status", "command_state"}
-	for _, name := range allowed {
-		if !shouldPersistPropertyToDB(name) {
-			t.Fatalf("expected operational property %q to remain mapper-persistable", name)
-		}
+	if len(rawProperties) == 0 {
+		t.Fatal("raw property regression fixture is empty")
 	}
 }

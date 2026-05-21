@@ -449,7 +449,7 @@ def test_device_with_running_mapper_is_degraded_without_twin_report():
             "metadata": {"name": "env-device-01", "namespace": "default"},
             "spec": {
                 "nodeName": "etri-dev0001-jetorn",
-                "properties": [{"name": "temperature", "reportToCloud": True}],
+                "properties": [{"name": "temperature", "reportToCloud": False, "pushMethod": {"dbMethod": {"influxdb2": {}}}}],
                 "protocol": {"protocolName": "mqttvirtual"},
             },
             "status": {"reportToCloud": False, "reportCycle": 60000},
@@ -1007,7 +1007,7 @@ def test_telemetry_fresh_device_is_healthy_even_when_device_status_is_stale():
     assert device.status_reason == "recent InfluxDB telemetry"
 
 
-def test_dashboard_treats_raw_sensor_properties_as_telemetry_after_mapper_pushmethod_removed(monkeypatch):
+def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypatch):
     service.store.nodes = {
         "etri-dev0001-jetorn": NodeState(
             hostname="etri-dev0001-jetorn",
@@ -1030,7 +1030,7 @@ def test_dashboard_treats_raw_sensor_properties_as_telemetry_after_mapper_pushme
                     "deviceModelRef": {"name": "virtual-env-model"},
                     "nodeName": "etri-dev0001-jetorn",
                     "properties": [
-                        {"name": "temperature", "reportToCloud": False},
+                        {"name": "temperature", "reportToCloud": False, "pushMethod": {"dbMethod": {"influxdb2": {}}}},
                         {"name": "health", "reportToCloud": True},
                     ],
                     "protocol": {"protocolName": "mqttvirtual"},
@@ -1068,54 +1068,3 @@ def test_dashboard_treats_raw_sensor_properties_as_telemetry_after_mapper_pushme
     assert payload["devices"][0]["telemetry_enabled"] is True
     assert payload["kpis"]["telemetry_device_count"] == 1
     assert payload["devices"][0]["overall_status"] == "healthy"
-
-
-def test_dashboard_payload_includes_redis_latest_raw_sensor_samples(monkeypatch):
-    service.store.nodes = {}
-
-    async def fake_devices():
-        return []
-
-    async def fake_statuses():
-        return []
-
-    async def fake_mapper_nodes():
-        return set()
-
-    async def fake_telemetry_samples():
-        return {}
-
-    async def fake_raw_latest():
-        return [
-            {
-                "device_id": "env-device-01",
-                "sensor": "temperature",
-                "value": "28.1",
-                "edge_node": "etri-dev0001-jetorn",
-                "timestamp": "1710000000000",
-                "received_at": "1710000000123",
-            }
-        ]
-
-    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
-    monkeypatch.setattr(service.kube, "get_device_statuses", fake_statuses)
-    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
-    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
-    monkeypatch.setattr(service.raw_telemetry, "get_latest", fake_raw_latest)
-
-    with TestClient(app) as client:
-        response = client.get("/state/dashboard")
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["raw_telemetry_latest"] == [
-        {
-            "device_id": "env-device-01",
-            "sensor": "temperature",
-            "value": "28.1",
-            "edge_node": "etri-dev0001-jetorn",
-            "timestamp": "1710000000000",
-            "received_at": "1710000000123",
-        }
-    ]
-    assert payload["kpis"]["raw_live_stream_count"] == 1

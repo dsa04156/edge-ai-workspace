@@ -49,10 +49,6 @@ spec:
               value: "60"
             - name: TELEMETRY_QUERY_WINDOW
               value: "-30m"
-            - name: REDIS_URL
-              value: redis://redis.telemetry.svc.cluster.local:6379/0
-            - name: REDIS_LATEST_PREFIX
-              value: telemetry:latest
             - name: INFLUXDB_TOKEN
               valueFrom:
                 secretKeyRef:

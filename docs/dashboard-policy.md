@@ -6,7 +6,7 @@
 
 `status.state=online`만으로 healthy 처리하지 않는다.
 healthy 판단은 Jetson sensor-collector가 MQTT로 보낸 실제 센서 데이터가 InfluxDB에 최근 적재됐는지를 우선 기준으로 삼는다.
-목표 구조에서는 raw-stream-bridge가 Redis latest와 InfluxDB raw history를 담당한다. Redis latest는 live sensor panel용이고, healthy/freshness 판단은 기존 방향대로 InfluxDB latest timestamp를 우선한다.
+현재 공식 구조에서는 Device CR `pushMethod.dbMethod.influxdb2` 기반 mqttvirtual mapper가 InfluxDB raw history/latest 저장을 담당한다. healthy/freshness 판단은 InfluxDB latest timestamp를 우선한다.
 현재 Jetson Arduino 센서는 temperature/raw, light/value, magnetic/value, acceleration/x,y,z 값을 InfluxDB에 남긴다.
 `DeviceStatus` timestamp와 `health=ok`는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다.
 `status.lastOnlineTime`보다 `twins[].reported.metadata.timestamp`가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.

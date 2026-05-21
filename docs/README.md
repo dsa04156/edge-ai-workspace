@@ -47,7 +47,7 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
 | `device-service-binding.md` | device가 어떤 service demo group에 연결되는지 |
 | `current-demo-path.md` | 현재 device -> MQTT -> mapper/InfluxDB/DeviceStatus -> state-aggregator -> dashboard 흐름 |
-| `raw-telemetry-data-plane.md` | raw sensor stream을 Redis Streams + InfluxDB로 분리하고 mapper를 control/status-plane adapter로 축소하는 목표 구조 |
+| `raw-telemetry-data-plane.md` | Device CR pushMethod.dbMethod 기반 mapper -> InfluxDB 공식 raw telemetry 저장 구조 |
 | `edge-orch/workflow-designer/README.md` | 서비스 stage, input device, target node를 dry-run으로 설계/시각화하는 Workflow Designer MVP |
 | `kagenti-operator-assistant.md` | Kagenti 운영 보조 agent PoC와 read-only 요약 API |
 
@@ -83,8 +83,8 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 Device 등록
   -> edge node 할당
   -> MQTT telemetry / command
-  -> raw-stream-bridge / mqttvirtual mapper
-  -> Redis latest / InfluxDB raw telemetry
+  -> mqttvirtual mapper
+  -> Device CR pushMethod.dbMethod.influxdb2 / InfluxDB raw telemetry
   -> KubeEdge DeviceStatus snapshot
   -> state-aggregator
   -> dashboard

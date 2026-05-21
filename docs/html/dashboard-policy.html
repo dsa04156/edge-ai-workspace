@@ -94,8 +94,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-policy.md</span>
-            <span class="badge">수정: 2026-05-21 13:54</span>
-            <span class="badge">HTML 생성: 2026-05-21 15:07</span>
+            <span class="badge">수정: 2026-05-21 15:35</span>
+            <span class="badge">HTML 생성: 2026-05-21 15:38</span>
           </div>
         </header>
         
@@ -103,7 +103,7 @@
           <h1 id="dashboard-policy">Dashboard Policy</h1>
 <h2 id="원칙">원칙</h2>
 <p>대시보드는 실제 센서 데이터의 DB latest timestamp와 <code>DeviceStatus</code> snapshot freshness를 분리해서 표시한다.</p>
-<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 Jetson sensor-collector가 MQTT로 보낸 실제 센서 데이터가 InfluxDB에 최근 적재됐는지를 우선 기준으로 삼는다. 목표 구조에서는 raw-stream-bridge가 Redis latest와 InfluxDB raw history를 담당한다. Redis latest는 live sensor panel용이고, healthy/freshness 판단은 기존 방향대로 InfluxDB latest timestamp를 우선한다. 현재 Jetson Arduino 센서는 temperature/raw, light/value, magnetic/value, acceleration/x,y,z 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp와 <code>health=ok</code>는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
+<p><code>status.state=online</code>만으로 healthy 처리하지 않는다. healthy 판단은 Jetson sensor-collector가 MQTT로 보낸 실제 센서 데이터가 InfluxDB에 최근 적재됐는지를 우선 기준으로 삼는다. 현재 공식 구조에서는 Device CR <code>pushMethod.dbMethod.influxdb2</code> 기반 mqttvirtual mapper가 InfluxDB raw history/latest 저장을 담당한다. healthy/freshness 판단은 InfluxDB latest timestamp를 우선한다. 현재 Jetson Arduino 센서는 temperature/raw, light/value, magnetic/value, acceleration/x,y,z 값을 InfluxDB에 남긴다. <code>DeviceStatus</code> timestamp와 <code>health=ok</code>는 운영 snapshot 해석용 보조 정보이며, DB latest timestamp가 없으면 healthy 근거로 쓰지 않는다. <code>status.lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 DeviceStatus freshness 기준으로 표시한다.</p>
 <h2 id="freshness-설정">Freshness 설정</h2>
 <p>현재 기본값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
