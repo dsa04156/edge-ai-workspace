@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 PressureLevel = Literal["low", "medium", "high"]
-HealthLevel = Literal["healthy", "degraded", "unavailable"]
+HealthLevel = Literal["available", "healthy", "degraded", "unavailable"]
 UrgencyLevel = Literal["low", "medium", "high"]
 RiskLevel = Literal["low", "medium", "high"]
 PlacementStability = Literal["stable", "moving", "unstable"]
@@ -126,6 +126,7 @@ class DeviceState(BaseModel):
     device_status_fresh: bool = False
     device_status_last_reported_at: datetime | None = None
     telemetry_fresh: bool = False
+    telemetry_status: Literal["fresh", "stale", "disabled"] = "disabled"
     telemetry_last_seen_at: datetime | None = None
     mapper_running: bool = False
     node_ready: bool = False

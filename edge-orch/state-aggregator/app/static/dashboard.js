@@ -67,11 +67,11 @@ function deviceReason(device) {
 function explainDeviceRules(device) {
   const rules = [];
   const status = deviceStatus(device);
-  if (status === "healthy") {
-    rules.push({ id: "Control OK", title: "control/status path available", text: "node와 mapper 경로가 살아 있어 healthy로 판단됩니다. 센서 데이터 freshness는 별도 KPI로 봅니다." });
+  if (status === "available" || status === "healthy") {
+    rules.push({ id: "Control OK", title: "control/status path available", text: "node와 mapper 경로가 살아 있고 control/status summary가 정상이라 available로 판단됩니다. 센서 데이터 freshness는 별도 KPI로 봅니다." });
   }
   if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
-    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "센서 데이터 freshness가 낮습니다. healthy 판단과는 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다." });
+    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "센서 데이터 freshness가 낮습니다. availability 판단과는 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다." });
   }
   if (device.mapper_running === false) {
     rules.push({ id: "Mapper", title: "mapper not running", text: "이 device가 할당된 node에서 mqttvirtual mapper가 Running 상태가 아닙니다." });
@@ -93,14 +93,14 @@ function explainDeviceRules(device) {
 
 const KPI_EXPLANATIONS = {
   active_node_count: "현재 사용 가능한 node 수입니다.",
-  registered_device_count: "KubeEdge에 등록된 Device CR 수와 healthy device 수를 함께 봅니다.",
-  live_device_count: "control/status 기준 healthy인 device 수입니다. 센서 데이터 freshness와 분리됩니다.",
+  registered_device_count: "KubeEdge에 등록된 Device CR 수와 available device 수를 함께 봅니다.",
+  live_device_count: "control/status 기준 available인 device 수입니다. 센서 데이터 freshness와 분리됩니다.",
   telemetry_device_count: "센서 데이터 적재/수집 대상 device 수입니다.",
   device_telemetry_ratio: "센서 데이터 적재가 설정된 device 비율입니다. freshness 비율은 아닙니다.",
   fresh_telemetry_device_count: "fresh sensor data device 수입니다.",
   telemetry_freshness_ratio: "fresh sensor data device 수 / telemetry-enabled device 수입니다.",
   fresh_sensor_data_device_count: "최근 센서 데이터 sample이 들어온 실제 sensor stream 수입니다.",
-  sensor_data_freshness_ratio: "센서 데이터 freshness KPI입니다. healthy 판단과 분리해서 봅니다.",
+  sensor_data_freshness_ratio: "센서 데이터 freshness KPI입니다. availability 판단과 분리해서 봅니다.",
   operator_focus_count: "운영자가 먼저 볼 degraded/unavailable device와 non-healthy node 수입니다.",
   service_bound_device_count: "서비스 데모 그룹에 연결된 device 수입니다.",
   device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
@@ -134,7 +134,7 @@ function issueExplanation(alert) {
   const messages = [];
   if (device.node_ready === false) messages.push("할당 node가 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 먼저 확인합니다.");
   if (device.mapper_running === false) messages.push("mqttvirtual mapper가 Running인지, 해당 device가 올바른 node에 배치됐는지 확인합니다.");
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터 freshness가 낮습니다. healthy 판단과 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다.");
+  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터 freshness가 낮습니다. availability 판단과 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다.");
   if (!messages.length) messages.push(deviceReason(device));
   return messages;
 }

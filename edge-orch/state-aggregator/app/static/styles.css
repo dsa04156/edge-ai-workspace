@@ -341,6 +341,7 @@ h3 {
   white-space: nowrap;
 }
 
+.pill.available,
 .pill.healthy,
 .pill.running {
   border-color: rgba(45, 212, 119, 0.26);

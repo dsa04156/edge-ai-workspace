@@ -88,6 +88,28 @@ class KubeClient:
         items = response.get("items", [])
         return [item for item in items if isinstance(item, dict)]
 
+    async def get_node_readiness(self) -> dict[str, bool]:
+        if not self.enabled:
+            return {}
+        try:
+            nodes = self.v1.list_node()
+        except Exception:
+            logger.exception("Failed to list node readiness")
+            return {}
+
+        readiness: dict[str, bool] = {}
+        for node in nodes.items:
+            name = node.metadata.name
+            ready = False
+            status = node.status
+            for condition in (status.conditions if status is not None else []) or []:
+                if condition.type == "Ready":
+                    ready = condition.status == "True"
+                    break
+            if name:
+                readiness[name] = ready
+        return readiness
+
     async def get_running_mapper_nodes(self, namespace: str = "default") -> set[str]:
         if not self.enabled:
             return set()
@@ -102,9 +124,22 @@ class KubeClient:
 
         nodes: set[str] = set()
         for pod in pods.items:
-            if pod.status.phase == "Running" and pod.spec.node_name:
-                nodes.add(pod.spec.node_name)
+            status = pod.status
+            if status is None or status.phase != "Running" or not pod.spec.node_name:
+                continue
+            if not self._pod_ready(pod):
+                continue
+            nodes.add(pod.spec.node_name)
         return nodes
+
+    def _pod_ready(self, pod: client.V1Pod) -> bool:
+        status = pod.status
+        if status is None:
+            return False
+        for condition in status.conditions or []:
+            if condition.type == "Ready":
+                return condition.status == "True"
+        return False
 
     def _determine_node_type(self, node: client.V1Node) -> str:
         labels = node.metadata.labels or {}

@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: raw-telemetry-data-plane.md</span>
-            <span class="badge">수정: 2026-05-21 19:37</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-21 20:52</span>
+            <span class="badge">HTML 생성: 2026-05-21 20:56</span>
           </div>
         </header>
         
@@ -242,7 +242,7 @@ raw telemetry ingestion plane (future)
   - value
   - raw</code></pre>
 <h2 id="state-aggregator-dashboard-정책">state-aggregator / dashboard 정책</h2>
-<ul><li><code>/state/dashboard</code> payload는 DeviceStatus summary와 telemetry freshness를 분리해서 해석한다.</li><li>DeviceStatus freshness는 status-plane snapshot 최신성이다.</li><li>raw telemetry ingestion freshness는 EdgeX 기반 telemetry plane 구성 후 별도 기준으로 연결한다.</li><li><code>status.state=online</code> 하나만으로 healthy를 판단하지 않는다.</li></ul>
+<ul><li><code>/state/dashboard</code> payload는 availability와 telemetry freshness를 분리해서 해석한다.</li><li>Availability는 node 상태, mapper Pod Running/Ready, DeviceStatus summary, <code>statusLastSeen</code>/<code>controlLastSeen</code>/<code>mapperLastSeen</code> freshness를 종합해 <code>available/degraded/unavailable</code>로 판단한다.</li><li>DeviceStatus freshness는 status-plane snapshot/heartbeat 최신성이다.</li><li>raw telemetry ingestion freshness는 <code>telemetry_status</code>와 sensor freshness KPI로 별도 표시한다.</li><li>InfluxDB latest timestamp, <code>telemetryFresh</code>, <code>telemetry_fresh</code>, raw sensor sample 유무만으로 device를 unavailable 처리하지 않는다.</li><li><code>status.state=online</code> 하나만으로 available을 판단하지 않는다.</li></ul>
 <h2 id="edgex-todo">EdgeX TODO</h2>
 <ul><li>EdgeX Device Profile과 KubeEdge DeviceModel 간 매핑표는 <code>docs/kubeedge-edgex-model-mapping.md</code>에 둔다.</li><li>TODO: EdgeX profile의 device resource 이름과 KubeEdge DeviceModel property 이름의 1:1/파생 관계를 정리한다.</li><li>TODO: EdgeX event/reading field와 dashboard 상태 필드의 연결 범위를 정의한다.</li><li>TODO: EdgeX ingestion plane과 KubeEdge DeviceStatus summary plane의 장애/freshness KPI 경계를 정의한다.</li></ul>
         </div>

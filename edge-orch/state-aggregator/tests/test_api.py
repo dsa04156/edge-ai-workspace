@@ -241,8 +241,8 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "healthy"
-    assert device["status_reason"] == "fresh DeviceStatus/control summary"
+    assert device["status"] == "available"
+    assert device["status_reason"] == "control/status path is available; sensor data freshness is separate"
     assert device["device_status_fresh"] is True
     assert device["telemetry_fresh"] is False
     assert device["twin"]["health"]["reported"]["value"] == "ok"
@@ -335,8 +335,8 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "healthy"
-    assert device["status_reason"] == "fresh DeviceStatus/control summary"
+    assert device["status"] == "available"
+    assert device["status_reason"] == "control/status path is available; sensor data freshness is separate"
     assert device["device_status_fresh"] is True
     assert device["device_status_last_reported_at"] is not None
 
@@ -352,9 +352,9 @@ def test_dashboard_kpis_use_service_binding_names():
             protocol="mqttvirtual",
             telemetry_enabled=True,
             service_connected=True,
-            status="healthy",
+            status="available",
             status_reason="fresh DeviceStatus reported timestamp and recent telemetry",
-            overall_status="healthy",
+            overall_status="available",
             reason="fresh DeviceStatus reported timestamp and recent telemetry",
         ),
         DeviceState(
@@ -459,8 +459,8 @@ def test_device_with_running_mapper_is_healthy_without_sensor_freshness():
         mapper_nodes={"etri-dev0001-jetorn"},
     )
 
-    assert device.status == "healthy"
-    assert device.status_reason == "control path is available; sensor data freshness is separate"
+    assert device.status == "available"
+    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is False
 
@@ -495,8 +495,8 @@ def test_device_with_recent_sensor_data_keeps_freshness_separate_from_health():
         },
     )
 
-    assert device.status == "healthy"
-    assert device.status_reason == "control path is available; sensor data freshness is separate"
+    assert device.status == "available"
+    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
@@ -534,9 +534,165 @@ def test_device_with_stale_sensor_data_remains_control_healthy():
         },
     )
 
-    assert device.status == "healthy"
-    assert device.status_reason == "control path is available; sensor data freshness is separate"
+    assert device.status == "available"
+    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
     assert device.telemetry_fresh is False
+
+
+
+def _base_mqttvirtual_device(status: dict | None = None, node_name: str | None = "etri-dev0001-jetorn") -> dict:
+    spec = {
+        "properties": [
+            {"name": "temperature", "reportToCloud": False, "pushMethod": {"dbMethod": {"influxdb2": {}}}},
+        ],
+        "protocol": {"protocolName": "mqttvirtual"},
+    }
+    if node_name is not None:
+        spec["nodeName"] = node_name
+    return {
+        "metadata": {"name": "env-device-availability", "namespace": "default"},
+        "spec": spec,
+        "status": status or {},
+    }
+
+
+def test_availability_unavailable_when_device_has_no_assigned_node():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(node_name=None),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "device is not assigned to a node"
+
+
+def test_availability_unavailable_when_assigned_node_is_not_ready():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(),
+        node_health={"etri-dev0001-jetorn": "unavailable"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "assigned node is unavailable"
+
+
+def test_availability_unavailable_when_kubernetes_node_ready_is_false():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        node_readiness={"etri-dev0001-jetorn": False},
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "assigned node is unavailable"
+
+
+def test_availability_unavailable_when_mapper_pod_is_missing():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes=set(),
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "assigned mapper is not running"
+
+
+def test_availability_unavailable_when_device_status_health_is_offline():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(
+            status={
+                "twins": {
+                    "health": {
+                        "actual": {
+                            "value": "offline",
+                            "metadata": {"timestamp": datetime.now(timezone.utc).isoformat()},
+                        }
+                    }
+                }
+            }
+        ),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "DeviceStatus health is offline"
+
+
+def test_availability_unavailable_when_device_status_online_is_false():
+    device = service._normalize_device(
+        _base_mqttvirtual_device(
+            status={
+                "twins": {
+                    "online": {
+                        "actual": {
+                            "value": "false",
+                            "metadata": {"timestamp": datetime.now(timezone.utc).isoformat()},
+                        }
+                    }
+                }
+            }
+        ),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "unavailable"
+    assert device.status_reason == "DeviceStatus online is false"
+
+
+def test_availability_degraded_when_status_heartbeat_is_stale():
+    stale = (datetime.now(timezone.utc) - timedelta(seconds=service.settings.device_status_fresh_seconds + 30)).isoformat()
+    device = service._normalize_device(
+        _base_mqttvirtual_device(
+            status={
+                "twins": {
+                    "statusLastSeen": {"actual": {"value": stale, "metadata": {"timestamp": stale}}},
+                    "health": {"actual": {"value": "ok", "metadata": {"timestamp": stale}}},
+                }
+            }
+        ),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+    )
+
+    assert device.status == "degraded"
+    assert device.status_reason == "status heartbeat is stale"
+    assert device.device_status_fresh is False
+
+
+def test_availability_available_when_raw_telemetry_missing_but_control_status_is_normal():
+    now = datetime.now(timezone.utc).isoformat()
+    device = service._normalize_device(
+        _base_mqttvirtual_device(
+            status={
+                "twins": {
+                    "statusLastSeen": {"actual": {"value": now, "metadata": {"timestamp": now}}},
+                    "health": {"actual": {"value": "ok", "metadata": {"timestamp": now}}},
+                }
+            }
+        ),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        telemetry_samples={},
+    )
+
+    assert device.status == "available"
+    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.telemetry_fresh is False
+    assert device.telemetry_status == "stale"
 
 
 def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatch):
@@ -782,9 +938,9 @@ def test_operator_focus_count_counts_degraded_and_nonhealthy_nodes():
             protocol="mqttvirtual",
             telemetry_enabled=False,
             service_connected=False,
-            status="healthy",
+            status="available",
             status_reason="",
-            overall_status="healthy",
+            overall_status="available",
             reason="",
         ),
         DeviceState(
@@ -817,10 +973,10 @@ def test_dashboard_kpis_count_telemetry_enabled_and_freshness_separately():
             telemetry_enabled=True,
             telemetry_fresh=True,
             service_connected=False,
-            status="healthy",
-            status_reason="recent InfluxDB telemetry",
-            overall_status="healthy",
-            reason="recent InfluxDB telemetry",
+            status="available",
+            status_reason="control/status path is available",
+            overall_status="available",
+            reason="control/status path is available",
         ),
         DeviceState(
             name="stale-telemetry",
@@ -841,10 +997,10 @@ def test_dashboard_kpis_count_telemetry_enabled_and_freshness_separately():
             telemetry_enabled=False,
             telemetry_fresh=True,
             service_connected=False,
-            status="healthy",
-            status_reason="fresh DeviceStatus snapshot",
-            overall_status="healthy",
-            reason="fresh DeviceStatus snapshot",
+            status="available",
+            status_reason="control/status path is available",
+            overall_status="available",
+            reason="control/status path is available",
         ),
         DeviceState(
             name="no-telemetry",
@@ -891,10 +1047,10 @@ def test_dashboard_kpis_count_device_status_freshness_separately():
             telemetry_fresh=True,
             device_status_fresh=False,
             service_connected=False,
-            status="healthy",
-            status_reason="recent InfluxDB telemetry",
-            overall_status="healthy",
-            reason="recent InfluxDB telemetry",
+            status="available",
+            status_reason="control/status path is available",
+            overall_status="available",
+            reason="control/status path is available",
         ),
         DeviceState(
             name="stale-status-b",
@@ -948,10 +1104,10 @@ def test_operator_focus_count_ignores_workflow_risk():
         telemetry_enabled=True,
         telemetry_fresh=True,
         service_connected=False,
-        status="healthy",
-        status_reason="recent InfluxDB telemetry",
-        overall_status="healthy",
-        reason="recent InfluxDB telemetry",
+        status="available",
+        status_reason="control/status path is available",
+        overall_status="available",
+        reason="control/status path is available",
     )
 
     kpis = service._build_dashboard_kpis(nodes=[node], devices=[device], workflows=[workflow])
@@ -1004,8 +1160,8 @@ def test_sensor_data_freshness_does_not_gate_control_health_when_device_status_i
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
-    assert device.status == "healthy"
-    assert device.status_reason == "control path is available; sensor data freshness is separate"
+    assert device.status == "available"
+    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
 
 
 def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypatch):
@@ -1068,4 +1224,4 @@ def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypa
     payload = response.json()
     assert payload["devices"][0]["telemetry_enabled"] is True
     assert payload["kpis"]["telemetry_device_count"] == 1
-    assert payload["devices"][0]["overall_status"] == "healthy"
+    assert payload["devices"][0]["overall_status"] == "available"
