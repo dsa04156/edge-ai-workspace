@@ -11,6 +11,7 @@ KubeEdge 기반 mixed-device 제어·관리 플랫폼에서 DeviceModel/Device m
 ## Layout
 
 - `models/`: legacy/공통 DeviceModel manifests
+- `live/`: 현재 클러스터에 등록된 Arduino-backed live Device manifests. 새 실디바이스 등록은 이 디렉터리에 Device YAML을 추가한다.
 - `devices.yaml`, `devices-rpi.yaml`: live manifest로 유지하지 않는다. legacy virtual Device manifest를 저장하지 않는다.
 - `scripts/generate_devices.py`: legacy virtual Device manifest generator. 기본 실행 시 Device YAML을 생성하지 않는다.
 

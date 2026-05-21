@@ -1,0 +1,99 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: vib-arduino-acceleration-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: jetson-sensor-acceleration-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - collectCycle: 5000
+    name: x
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            bucket: device_telemetry
+            org: edgeai
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+          influxdb2DataConfig:
+            fieldKey: value
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: vib-arduino-acceleration-01
+              device_type: jetson_acceleration
+              property: x
+    reportCycle: 5000
+    reportToCloud: false
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: x
+      protocolName: mqttvirtual
+  - collectCycle: 5000
+    name: "y"
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            bucket: device_telemetry
+            org: edgeai
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+          influxdb2DataConfig:
+            fieldKey: value
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: vib-arduino-acceleration-01
+              device_type: jetson_acceleration
+              property: "y"
+    reportCycle: 5000
+    reportToCloud: false
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: "y"
+      protocolName: mqttvirtual
+  - collectCycle: 5000
+    name: z
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            bucket: device_telemetry
+            org: edgeai
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+          influxdb2DataConfig:
+            fieldKey: value
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: vib-arduino-acceleration-01
+              device_type: jetson_acceleration
+              property: z
+    reportCycle: 5000
+    reportToCloud: false
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: z
+      protocolName: mqttvirtual
+  - collectCycle: 60000
+    name: received_at
+    reportCycle: 120000
+    reportToCloud: true
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: received_at
+      protocolName: mqttvirtual
+  protocol:
+    configData:
+      broker: tcp://127.0.0.1:1883
+      clientID: vib-arduino-acceleration-01-client
+      offlineAfterMs: 15000
+      password: ''
+      pubTopic: factory/devices/vib-arduino-acceleration-01/command
+      qos: 1
+      subTopic: etri/etri-dev0001-jetorn/arduino-001/acceleration
+      username: ''
+    protocolName: mqttvirtual

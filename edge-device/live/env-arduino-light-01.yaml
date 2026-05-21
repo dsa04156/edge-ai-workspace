@@ -1,0 +1,53 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: env-arduino-light-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: jetson-sensor-light-model
+  nodeName: etri-dev0001-jetorn
+  properties:
+  - collectCycle: 5000
+    name: value
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            bucket: device_telemetry
+            org: edgeai
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+          influxdb2DataConfig:
+            fieldKey: value
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: env-arduino-light-01
+              device_type: jetson_light
+              property: value
+    reportCycle: 5000
+    reportToCloud: false
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: value
+      protocolName: mqttvirtual
+  - collectCycle: 60000
+    name: received_at
+    reportCycle: 120000
+    reportToCloud: true
+    visitors:
+      configData:
+        dataType: string
+        jsonKey: received_at
+      protocolName: mqttvirtual
+  protocol:
+    configData:
+      broker: tcp://127.0.0.1:1883
+      clientID: env-arduino-light-01-client
+      offlineAfterMs: 15000
+      password: ''
+      pubTopic: factory/devices/env-arduino-light-01/command
+      qos: 1
+      subTopic: etri/etri-dev0001-jetorn/arduino-001/light
+      username: ''
+    protocolName: mqttvirtual
