@@ -92,6 +92,7 @@ spec:
     repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
     path: docs-site
     targetRevision: main
+    kustomize: {}
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
