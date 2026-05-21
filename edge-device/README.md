@@ -1,123 +1,60 @@
 # edge-device PoC
 
-KubeEdge 기반 mixed-device 제어·관리 플랫폼에서 가상 디바이스를 컨테이너 단위로 구현하기 위한 1차 PoC 작업 디렉터리다.
+KubeEdge 기반 mixed-device 제어·관리 플랫폼에서 DeviceModel/Device manifest를 관리하기 위한 디렉터리다.
 
-현재 목표:
-- 가상 디바이스 20개 병렬 실행
-- MQTT 기반 telemetry / command 경로 검증
-- KubeEdge `DeviceModel` / `Device` / `DeviceStatus` 반영 검증
-- 이후 물리/가상 혼합 디바이스 관리로 확장
+현재 운영 기준:
+- live PoC의 기본 Device CR은 물리/Arduino/EdgeX-backed 등록 경로를 기준으로 한다.
+- 과거 `env-device-*`, `vib-device-*`, `act-device-*`, `rpi-*-device-*` 가상 Device는 live 클러스터에서 제거된 legacy test 대상이다.
+- MapperFramework는 raw telemetry export engine이 아니라 KubeEdge control/status summary adapter로 유지한다.
+- raw telemetry ingestion은 향후 EdgeX 별도 plane에서 담당한다.
 
 ## Layout
 
-- `models/`: DeviceModel manifests
-- `k8s/`: StatefulSet manifests for virtual devices
-- `virtual-device/`: shared container image source
-- `scripts/generate_devices.py`: generate 20 Device manifests
+- `models/`: legacy/공통 DeviceModel manifests
+- `devices.yaml`, `devices-rpi.yaml`: live manifest로 유지하지 않는다. legacy virtual Device manifest를 저장하지 않는다.
+- `scripts/generate_devices.py`: legacy virtual Device manifest generator. 기본 실행 시 Device YAML을 생성하지 않는다.
 
-## Device Plan
+## Legacy virtual Device generation
 
-- `env-device-01` ~ `env-device-08`
-- `vib-device-01` ~ `vib-device-06`
-- `act-device-01` ~ `act-device-06`
-
-Models:
-- `virtual-env-model`
-- `virtual-vib-model`
-- `virtual-act-model`
-
-Runtime:
-- shared image: `192.168.0.56:5000/virtual-device:latest`
-- `StatefulSet` 3개
-- edge broker: `HOST_IP:1883`
-- topic prefix: `factory/devices`
-
-## Generate Device YAML
+가상 Device를 다시 만들면 live dashboard/device 목록에 `env-device-*`, `vib-device-*`, `act-device-*`, `rpi-env-device-*`, `rpi-vib-device-*`, `rpi-act-device-*`가 재생성된다.
+따라서 명시적인 legacy test가 아니면 아래 명령을 사용하지 않는다.
 
 ```bash
-python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /home/etri/jinuk/edge-device/devices.yaml
+ENABLE_LEGACY_VIRTUAL_DEVICES=1 python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /tmp/legacy-devices.yaml
+ENABLE_LEGACY_VIRTUAL_DEVICES=1 DEVICE_PLAN=rpi python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /tmp/legacy-devices-rpi.yaml
 ```
+
+live 클러스터에 적용하기 전에는 반드시 대상 Device 이름을 확인한다.
+
+```bash
+kubectl apply --dry-run=server -f /tmp/legacy-devices.yaml
+```
+
+## MapperFramework / EdgeX split
 
 MapperFramework 리팩토링 목표는 raw telemetry export engine 확장이 아니라 KubeEdge control/status summary 연동이다.
 향후 `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform` 같은 raw telemetry ingestion은 EdgeX 기반 별도 plane으로 분리한다.
 
 Current split:
-- `temperature`, `humidity`, `vibration`: MapperFramework 주 경로에서 제외, EdgeX telemetry ingestion plane으로 이관 예정
+- `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform`: MapperFramework 주 경로에서 제외, EdgeX telemetry ingestion plane으로 이관 예정
 - `health`, `severity`, `command_state`, `online/offline`, `control_response`, `alarm_latched`, `power`, `mode`, `sampling_interval`: DeviceStatus summary
-- Device `status.reportToCloud`: `false`, to avoid high-rate `ReportDeviceStates`
-
-Legacy InfluxDB defaults previously used by the generator:
-
-```bash
-INFLUX_URL=http://influxdb.telemetry.svc.cluster.local:8086
-INFLUX_ORG=edgeai
-INFLUX_BUCKET=device_telemetry
-INFLUX_MEASUREMENT=virtual_device_telemetry
-```
-
-If the mapper runs as a host process instead of a Kubernetes Pod, generate with an address reachable from the edge node:
-
-```bash
-INFLUX_URL=http://10.100.80.4:8086 \
-python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /home/etri/jinuk/edge-device/devices.yaml
-```
-
-The mapper InfluxDB client reads the token from the `TOKEN` environment variable. For a Pod-based mapper, create a secret in the mapper namespace:
-
-```bash
-kubectl create secret generic influxdb-token -n default \
-  --from-literal=token=edgeai-super-token-change-me
-```
-
-For a host-run mapper:
-
-```bash
-sudo env TOKEN=edgeai-super-token-change-me ./mqttvirtual-arm64 --config-file ./config.yaml --v 4
-```
+- raw telemetry field는 DeviceStatus summary로 올리지 않는다.
 
 ## Apply Models
+
+DeviceModel은 공통/legacy compatibility 목적으로 남아 있을 수 있다. 실제 Device CR 생성과는 별개다.
 
 ```bash
 kubectl apply -f /home/etri/jinuk/edge-device/models/
 ```
 
-## Apply Devices
+## Current live expectation
+
+현재 live 클러스터에서 legacy virtual Device가 없어야 한다.
+확인 예:
 
 ```bash
-kubectl apply -f /home/etri/jinuk/edge-device/devices.yaml
+kubectl get device -n default --no-headers | grep -E '^(env|vib|act|rpi-env|rpi-vib|rpi-act)-device-' || true
 ```
 
-## Apply StatefulSets
-
-The manifests use `192.168.0.56:5000/virtual-device:latest`.
-
-```bash
-kubectl apply -f /home/etri/jinuk/edge-device/k8s/
-```
-
-## Verified So Far
-
-- `temp-device-01` 단일 디바이스는 `DeviceStatus` 기준 reported 값 반영을 확인했다.
-- `virtual-device` 공통 이미지를 edge registry(`192.168.0.56:5000`)에 push하고, Jetson에서 pull 가능한 상태로 맞췄다.
-- `StatefulSet` 3개를 통해 `env` / `vib` / `act` 가상 디바이스 컨테이너를 실제로 기동했다.
-- 대표 telemetry topic 확인:
-  - `factory/devices/env-device-01/telemetry`
-  - `factory/devices/vib-device-01/telemetry`
-  - `factory/devices/act-device-01/telemetry`
-
-## Current Caveat
-
-20개 병렬 인스턴스 전체에 대해 `DeviceStatus.status.twins` 가 안정적으로 채워지지는 않았다.
-
-현재 분석 결과:
-- 가상 디바이스 컨테이너의 MQTT publish는 정상이다.
-- KubeEdge `Device` / `DeviceStatus` CR 생성도 정상이다.
-- 남은 병목은 `mqttvirtual` mapper 구현 쪽이다.
-
-대표 증상:
-- `broken pipe`
-- `use of closed network connection`
-- `deviceModel ... not found`
-- `connect refused`
-
-즉, 현재 단계는 "인프라/배포/가상 디바이스 런타임" 은 준비되었고, "다중 디바이스용 mapper 안정화" 가 다음 핵심 작업이다.
+위 명령이 비어 있으면 정상이다.

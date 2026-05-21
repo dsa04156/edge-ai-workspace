@@ -15,6 +15,11 @@ INFLUX_ORG = os.getenv("INFLUX_ORG", "edgeai")
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "device_telemetry")
 INFLUX_MEASUREMENT = os.getenv("INFLUX_MEASUREMENT", "virtual_device_telemetry")
 DEVICE_PLAN = os.getenv("DEVICE_PLAN", "jetson")
+ENABLE_LEGACY_VIRTUAL_DEVICES = os.getenv("ENABLE_LEGACY_VIRTUAL_DEVICES", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 
 def default_node_name() -> str:
@@ -158,6 +163,13 @@ status:
 
 
 def main() -> None:
+    if not ENABLE_LEGACY_VIRTUAL_DEVICES:
+        print(
+            "# Legacy virtual Device generation is disabled by default.\n"
+            "# Set ENABLE_LEGACY_VIRTUAL_DEVICES=1 only for explicit legacy virtual-device tests."
+        )
+        return
+
     groups = RPI_GROUPS if DEVICE_PLAN == "rpi" else GROUPS
     docs = []
     for group in groups:
