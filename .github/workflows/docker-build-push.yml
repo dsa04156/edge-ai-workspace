@@ -143,7 +143,22 @@ jobs:
             -t ${{ env.REGISTRY }}/docs-html:latest \
             -f docs-site/Dockerfile \
             . \
+            --metadata-file /tmp/docs-html-build-metadata.json \
             --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/docs-html-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "DOCS_HTML_IMAGE=${{ env.REGISTRY }}/docs-html@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Deploy docs-html latest image
+        if: steps.changes.outputs.docs == 'true'
+        run: |
+          test -n "${DOCS_HTML_IMAGE}"
+          kubectl patch application docs-html -n argocd --type=merge \
+            -p "{\"spec\":{\"source\":{\"kustomize\":{\"images\":[\"${DOCS_HTML_IMAGE}\"]}}}}"
+          kubectl annotate application docs-html -n argocd \
+            argocd.argoproj.io/refresh=hard \
+            --overwrite
+          kubectl rollout status deployment/docs-html -n default --timeout=180s
 
       - name: Deploy state-aggregator latest image
         if: steps.changes.outputs.state_aggregator == 'true'
