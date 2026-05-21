@@ -203,7 +203,7 @@ class StateAggregatorService:
             if not device.get("mapper_running", False):
                 actions.append(f"{name}: mqttvirtual mapper pod Running 여부와 node 배치를 확인한다.")
             if not device.get("telemetry_fresh", False):
-                actions.append(f"{name}: publisher 실행 위치, DEVICE_PLAN/DEVICE_FILTER, local mosquitto, InfluxDB latest telemetry를 확인한다.")
+                actions.append(f"{name}: sensor data freshness는 healthy 판단과 별도 KPI다. EdgeX/collector/MQTT/DB 적재 경로를 별도 확인한다.")
             if device.get("telemetry_fresh") and not device.get("device_status_fresh", False):
                 actions.append(f"{name}: DeviceStatus snapshot 대상 property와 mapper allowlist 정책을 확인한다.")
         if not actions:
@@ -421,19 +421,15 @@ class StateAggregatorService:
             return "unavailable", "assigned mapper is not running"
         if node_health.get(node_name) == "degraded":
             return "degraded", "assigned node is degraded"
-        if telemetry_enabled and telemetry_fresh:
-            if severity_value and severity_value.lower() == "critical":
-                return "degraded", "recent InfluxDB telemetry, but severity is critical"
-            return "healthy", "recent InfluxDB telemetry"
-        if telemetry_enabled and not telemetry_fresh:
-            if telemetry_age_seconds is not None:
-                return "degraded", f"InfluxDB telemetry stale: last received {int(telemetry_age_seconds)}s ago"
-            return "degraded", "DB latest timestamp is missing"
+        if severity_value and severity_value.lower() == "critical":
+            return "degraded", "DeviceStatus severity is critical"
+        if health_value and health_value.lower() in {"error", "failed", "degraded", "critical"}:
+            return "degraded", f"DeviceStatus health is {health_value.lower()}"
         if device_status_fresh:
-            if severity_value and severity_value.lower() == "critical":
-                return "degraded", "fresh DeviceStatus snapshot, but severity is critical"
-            return "healthy", "fresh DeviceStatus snapshot"
-        return "degraded", "registered but live status is unknown"
+            return "healthy", "fresh DeviceStatus/control summary"
+        if telemetry_enabled:
+            return "healthy", "control path is available; sensor data freshness is separate"
+        return "healthy", "registered control path is available"
 
     def _read_live_device_state(self, status_payload: dict[str, Any]) -> str | None:
         for key in ("status", "phase", "state", "connection", "connected", "health"):

@@ -241,8 +241,8 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "degraded"
-    assert device["status_reason"] == "DB latest timestamp is missing"
+    assert device["status"] == "healthy"
+    assert device["status_reason"] == "fresh DeviceStatus/control summary"
     assert device["device_status_fresh"] is True
     assert device["telemetry_fresh"] is False
     assert device["twin"]["health"]["reported"]["value"] == "ok"
@@ -335,8 +335,8 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "degraded"
-    assert device["status_reason"] == "DB latest timestamp is missing"
+    assert device["status"] == "healthy"
+    assert device["status_reason"] == "fresh DeviceStatus/control summary"
     assert device["device_status_fresh"] is True
     assert device["device_status_last_reported_at"] is not None
 
@@ -443,7 +443,7 @@ def test_device_without_running_mapper_is_unavailable():
     assert device.status_reason == "assigned mapper is not running"
 
 
-def test_device_with_running_mapper_is_degraded_without_twin_report():
+def test_device_with_running_mapper_is_healthy_without_sensor_freshness():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -459,12 +459,13 @@ def test_device_with_running_mapper_is_degraded_without_twin_report():
         mapper_nodes={"etri-dev0001-jetorn"},
     )
 
-    assert device.status == "degraded"
-    assert device.status_reason == "DB latest timestamp is missing"
+    assert device.status == "healthy"
+    assert device.status_reason == "control path is available; sensor data freshness is separate"
     assert device.telemetry_enabled is True
+    assert device.telemetry_fresh is False
 
 
-def test_device_with_recent_influx_telemetry_is_healthy():
+def test_device_with_recent_sensor_data_keeps_freshness_separate_from_health():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -495,7 +496,7 @@ def test_device_with_recent_influx_telemetry_is_healthy():
     )
 
     assert device.status == "healthy"
-    assert device.status_reason == "recent InfluxDB telemetry"
+    assert device.status_reason == "control path is available; sensor data freshness is separate"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
@@ -503,7 +504,7 @@ def test_device_with_recent_influx_telemetry_is_healthy():
     assert device.telemetry_value == "24.1"
 
 
-def test_device_with_stale_influx_telemetry_is_degraded():
+def test_device_with_stale_sensor_data_remains_control_healthy():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -533,8 +534,9 @@ def test_device_with_stale_influx_telemetry_is_degraded():
         },
     )
 
-    assert device.status == "degraded"
-    assert device.status_reason.startswith("InfluxDB telemetry stale: ")
+    assert device.status == "healthy"
+    assert device.status_reason == "control path is available; sensor data freshness is separate"
+    assert device.telemetry_fresh is False
 
 
 def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatch):
@@ -602,9 +604,8 @@ def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatc
     assert payload["mode"] == "read_only"
     assert "운영 보조" in payload["summary_ko"]
     assert "등록 device 1개" in payload["summary_ko"]
-    assert payload["focus_devices"][0]["name"] == "vib-device-01"
-    assert payload["focus_devices"][0]["service_demo_group"] == "설비 상태 모니터링"
-    assert any("publisher" in action for action in payload["recommended_actions"])
+    assert payload["focus_devices"] == []
+    assert payload["recommended_actions"] == ["현재 우선 점검 대상이 없으므로 dashboard KPI와 service demo group만 확인한다."]
     assert payload["source_endpoints"] == [
         "/state/dashboard",
         "/state/devices",
@@ -679,12 +680,12 @@ def test_dashboard_kpis_separate_operational_and_live_devices():
 
     kpis = service._build_dashboard_kpis(nodes=[], devices=devices, workflows=[])
 
-    assert kpis["device_healthy_ratio"] == 0.333
+    assert kpis["device_healthy_ratio"] == 0.667
     assert kpis["device_operational_ratio"] == 0.667
-    assert kpis["live_device_count"] == 1
+    assert kpis["live_device_count"] == 2
     assert kpis["operational_device_count"] == 2
     assert kpis["unavailable_device_count"] == 1
-    assert kpis["operator_focus_count"] == 2
+    assert kpis["operator_focus_count"] == 1
 
 
 def test_influx_csv_parser_reads_latest_device_samples():
@@ -959,7 +960,7 @@ def test_operator_focus_count_ignores_workflow_risk():
     assert kpis["operator_focus_count"] == 0
 
 
-def test_telemetry_fresh_device_is_healthy_even_when_device_status_is_stale():
+def test_sensor_data_freshness_does_not_gate_control_health_when_device_status_is_stale():
     stale_device_status_time = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
     device = service._normalize_device(
         {
@@ -1004,7 +1005,7 @@ def test_telemetry_fresh_device_is_healthy_even_when_device_status_is_stale():
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
     assert device.status == "healthy"
-    assert device.status_reason == "recent InfluxDB telemetry"
+    assert device.status_reason == "control path is available; sensor data freshness is separate"
 
 
 def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypatch):
