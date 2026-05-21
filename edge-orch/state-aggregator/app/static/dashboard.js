@@ -255,6 +255,7 @@ function render() {
 
   renderNodes(data.nodes || []);
   renderDevices(devices);
+  renderRawTelemetryLatest(data.raw_telemetry_latest || [], kpis);
   renderRelations(devices, kpis);
   renderAlerts(data);
   renderScenario(devices, kpis);
@@ -305,6 +306,32 @@ function renderDevices(devices) {
         `)
         .join("")
     : `<div class="empty">No KubeEdge devices found</div>`;
+}
+
+function renderRawTelemetryLatest(rows, kpis) {
+  const target = $("rawTelemetryList");
+  if (!target) return;
+  const count = kpis.raw_live_stream_count ?? rows.length;
+  setText("rawTelemetryCount", `${count} Redis latest streams`);
+  target.innerHTML = rows.length
+    ? rows
+        .slice(0, 12)
+        .map((row) => `
+          <article class="item raw-telemetry-row">
+            <div class="item-title">
+              <strong>${escapeHtml(text(row.device_id, "unknown-device"))}</strong>
+              <span class="pill healthy">${escapeHtml(text(row.sensor, "sensor"))}</span>
+            </div>
+            <div class="meta">
+              <span>live: ${escapeHtml(text(row.value, "value 없음"))}</span>
+              <span>edge: ${escapeHtml(text(row.edge_node, "unknown"))}</span>
+              <span>source_ts: ${escapeHtml(text(row.timestamp, "timestamp 없음"))}</span>
+              <span>received_at: ${escapeHtml(text(row.received_at, "received_at 없음"))}</span>
+            </div>
+          </article>
+        `)
+        .join("")
+    : `<div class="empty">Redis latest raw sensor sample 없음</div>`;
 }
 
 function serviceGroup(device) {

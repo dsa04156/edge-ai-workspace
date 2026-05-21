@@ -8,11 +8,14 @@ name: Build and Push Images to Local Registry
       - ".github/workflows/docker-build-push.yml"
       - ".github/buildkitd.toml"
       - "edge-orch/state-aggregator/**"
+      - "edge-orch/raw-stream-bridge/**"
       - "edge-orch/workflow_executor/**"
       - "edge-orch/placement_engine/**"
       - "edge-orch/vision_stage_runner/**"
       - "mappers/mqttvirtual/**"
       - "mappers/mapper-framework/**"
+      - "docs/**"
+      - "docs-site/**"
   workflow_dispatch:
 
 env:
@@ -42,6 +45,14 @@ jobs:
             -t ${{ env.REGISTRY }}/state-aggregator:latest \
             -f edge-orch/state-aggregator/Dockerfile \
             edge-orch/state-aggregator \
+            --push
+
+      - name: Build and Push raw-stream-bridge
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/raw-stream-bridge:latest \
+            -f edge-orch/raw-stream-bridge/Dockerfile \
+            . \
             --push
 
       - name: Build and Push workflow-executor
@@ -76,6 +87,14 @@ jobs:
             mappers \
             --push
 
+      - name: Build and Push docs-html
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/docs-html:latest \
+            -f docs-site/Dockerfile \
+            . \
+            --push
+
       - name: Deploy state-aggregator latest image
         run: |
           CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
@@ -90,6 +109,22 @@ jobs:
           fi
 
           kubectl rollout status deployment/state-aggregator -n default --timeout=180s
+
+      - name: Deploy raw-stream-bridge latest image
+        run: |
+          kubectl apply -f edge-orch/raw-stream-bridge/k8s.yaml
+          CURRENT_IMAGE=$(kubectl get daemonset raw-stream-bridge -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="raw-stream-bridge")].image}')
+          TARGET_IMAGE=${{ env.REGISTRY }}/raw-stream-bridge:latest
+
+          kubectl set image daemonset/raw-stream-bridge \
+            raw-stream-bridge=${TARGET_IMAGE} \
+            -n default
+
+          if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
+            kubectl rollout restart daemonset/raw-stream-bridge -n default
+          fi
+
+          kubectl rollout status daemonset/raw-stream-bridge -n default --timeout=180s
 
       - name: Deploy mqttvirtual mapper latest image
         run: |

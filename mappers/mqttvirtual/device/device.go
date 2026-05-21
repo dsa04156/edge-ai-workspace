@@ -446,12 +446,33 @@ func isInfluxDBMethod(name string) bool {
 	return name == "influx" || name == "influxdb2"
 }
 
+var rawTelemetryDBDenylist = map[string]struct{}{
+	"raw":          {},
+	"value":        {},
+	"x":            {},
+	"y":            {},
+	"z":            {},
+	"temperature":  {},
+	"humidity":     {},
+	"vibration":    {},
+	"acceleration": {},
+}
+
+func shouldPersistPropertyToDB(propertyName string) bool {
+	_, denied := rawTelemetryDBDenylist[strings.ToLower(propertyName)]
+	return !denied
+}
+
 func dbHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
 	if twin == nil || twin.Property == nil || client == nil || visitorConfig == nil || dataModel == nil {
 		klog.Warning("skip db handler because twin/client/visitor/dataModel is nil")
 		return
 	}
 	methodName := twin.Property.PushMethod.DBMethod.DBMethodName
+	if !shouldPersistPropertyToDB(twin.PropertyName) {
+		klog.Infof("skip mapper DB persistence for raw telemetry device=%s property=%s; raw-stream-bridge owns data-plane", dataModel.DeviceName, twin.PropertyName)
+		return
+	}
 	if isInfluxDBMethod(methodName) {
 		klog.Infof("start influxdb handler device=%s property=%s dbMethod=%s", dataModel.DeviceName, dataModel.PropertyName, methodName)
 		dbInflux.DataHandler(ctx, twin, client, visitorConfig, dataModel)

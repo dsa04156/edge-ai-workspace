@@ -75,3 +75,27 @@ spec:
     automated:
       prune: true
       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: docs-html
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: docs-html=192.168.0.56:5000/docs-html:latest
+    argocd-image-updater.argoproj.io/docs-html.update-strategy: digest
+    argocd-image-updater.argoproj.io/docs-html.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
+    path: docs-site
+    targetRevision: main
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

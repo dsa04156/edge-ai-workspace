@@ -94,15 +94,17 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: raw-telemetry-data-plane.md</span>
-            <span class="badge">수정: 2026-05-21 13:52</span>
-            <span class="badge">HTML 생성: 2026-05-21 13:54</span>
+            <span class="badge">수정: 2026-05-21 14:11</span>
+            <span class="badge">HTML 생성: 2026-05-21 14:30</span>
           </div>
         </header>
         
         <div class="doc-body">
           <h1 id="raw-telemetry-data-plane-architecture">Raw Telemetry Data Plane Architecture</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus를 분리하는 목표 구조를 정의한다.</p>
+<p>이 문서는 KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus를 분리하는 목표 구조와 현재 구현 경로를 정의한다.</p>
+<p>현재 repo 구현 상태:</p>
+<ul><li><code>edge-orch/raw-stream-bridge/</code>: MQTT -&gt; Redis Streams/latest -&gt; InfluxDB batch append MVP 추가</li><li><code>edge-device/scripts/generate_devices.py</code>: raw sensor property의 mapper <code>pushMethod.dbMethod</code> 제거, actuator <code>health</code> liveness만 전환기 유지</li><li><code>mappers/mqttvirtual/device/device.go</code>: raw/value/x/y/z/temperature/humidity/vibration 계열 mapper DB persistence denylist 추가</li><li><code>edge-orch/state-aggregator</code>: Redis latest read client와 dashboard <code>raw_telemetry_latest</code> payload 추가</li><li><code>edge-orch/state-aggregator/app/static/index.html</code>, <code>dashboard.js</code>: Redis latest 기반 Live Sensor Panel 추가</li></ul>
 <p>핵심 방향은 다음이다.</p>
 <ul><li>raw telemetry는 MQTT, Redis Streams, InfluxDB로 구성된 data-plane에서 처리한다.</li><li>KubeEdge <code>DeviceStatus</code>와 <code>DeviceTwin reported</code>는 health, severity, alarm, status, command_state 같은 control/status-plane 상태만 담는다.</li><li><code>mqttvirtual</code> mapper는 raw telemetry 영구 저장 책임을 내려놓고 KubeEdge device runtime adapter 역할에 집중한다.</li><li>dashboard는 live 값, history, health/freshness 판단을 서로 다른 저장소와 API에서 분리해서 읽는다.</li></ul>
 <h2 id="전체-아키텍처-다이어그램">전체 아키텍처 다이어그램</h2>

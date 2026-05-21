@@ -19,6 +19,7 @@ from .models import (
 )
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
 from .prometheus import PrometheusClient
+from .redis_latest import RedisLatestTelemetryClient, is_raw_telemetry_property
 from .storage import StateStore
 from .kube import KubeClient
 
@@ -40,6 +41,7 @@ class StateAggregatorService:
             settings.influxdb_measurement,
             settings.telemetry_query_window,
         )
+        self.raw_telemetry = RedisLatestTelemetryClient(settings.redis_url, settings.redis_latest_prefix)
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
 
@@ -132,8 +134,10 @@ class StateAggregatorService:
         nodes = self.get_nodes()
         devices = await self.get_devices()
         workflows = self.get_workflows()
+        raw_latest = await self.raw_telemetry.get_latest()
         summary = build_summary(nodes, workflows)
         kpis = self._build_dashboard_kpis(nodes, devices, workflows)
+        kpis["raw_live_stream_count"] = len(raw_latest)
         return DashboardState(
             generated_at=datetime.now(timezone.utc),
             nodes=nodes,
@@ -141,6 +145,7 @@ class StateAggregatorService:
             workflows=workflows,
             summary=summary,
             kpis=kpis,
+            raw_telemetry_latest=raw_latest,
         )
 
     async def get_operator_assistant(self) -> OperatorAssistantState:
@@ -229,7 +234,7 @@ class StateAggregatorService:
         protocol = (spec.get("protocol") or {}).get("protocolName")
         model = (spec.get("deviceModelRef") or {}).get("name")
         twin = self._normalize_twin_payload(status_payload.get("twins") or status_payload.get("twin") or {})
-        telemetry_enabled = any(isinstance(prop, dict) and bool(prop.get("pushMethod")) for prop in properties)
+        telemetry_enabled = self._is_telemetry_enabled(properties)
         service_demo_group, service_binding_source, service_binding_reason = self._device_service_binding_detail(
             name,
             node_name,
@@ -302,6 +307,16 @@ class StateAggregatorService:
             telemetry_value=telemetry_sample.value if telemetry_sample else None,
             twin=twin,
         )
+
+    def _is_telemetry_enabled(self, properties: list[Any]) -> bool:
+        for prop in properties:
+            if not isinstance(prop, dict):
+                continue
+            if prop.get("pushMethod"):
+                return True
+            if is_raw_telemetry_property(prop.get("name")):
+                return True
+        return False
 
     def _object_key(self, item: dict[str, Any]) -> tuple[str, str] | None:
         metadata = item.get("metadata") or {}

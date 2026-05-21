@@ -85,9 +85,11 @@ RPI_GROUPS = [
 
 
 def should_store_to_influx(device_type: str, key: str) -> bool:
-    if key in {"temperature", "humidity", "vibration"}:
-        return True
-    return device_type in {"act", "rpi-act"} and key in {"health", "ts"}
+    # Target architecture: raw sensor telemetry is persisted by raw-stream-bridge
+    # (MQTT -> Redis Streams/latest -> InfluxDB batch append), not by mqttvirtual
+    # mapper pushMethod. Keep only actuator health liveness as a transitional
+    # low-frequency DB timestamp source until raw-stream-bridge covers actuators.
+    return device_type in {"act", "rpi-act"} and key == "health"
 
 
 def emit_influx_push_method(device_name: str, device_type: str, key: str) -> str:

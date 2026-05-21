@@ -51,6 +51,12 @@ class Settings(BaseModel):
     telemetry_query_window: str = Field(
         default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
     )
+    redis_url: str = Field(
+        default_factory=lambda: os.getenv("REDIS_URL", "redis://redis.telemetry.svc.cluster.local:6379/0")
+    )
+    redis_latest_prefix: str = Field(
+        default_factory=lambda: os.getenv("REDIS_LATEST_PREFIX", "telemetry:latest")
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

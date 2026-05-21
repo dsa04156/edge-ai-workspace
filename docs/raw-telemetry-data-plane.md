@@ -2,7 +2,15 @@
 
 ## 목적
 
-이 문서는 KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus를 분리하는 목표 구조를 정의한다.
+이 문서는 KubeEdge 기반 mixed-device PoC에서 raw sensor stream과 KubeEdge DeviceStatus를 분리하는 목표 구조와 현재 구현 경로를 정의한다.
+
+현재 repo 구현 상태:
+
+- `edge-orch/raw-stream-bridge/`: MQTT -> Redis Streams/latest -> InfluxDB batch append MVP 추가
+- `edge-device/scripts/generate_devices.py`: raw sensor property의 mapper `pushMethod.dbMethod` 제거, actuator `health` liveness만 전환기 유지
+- `mappers/mqttvirtual/device/device.go`: raw/value/x/y/z/temperature/humidity/vibration 계열 mapper DB persistence denylist 추가
+- `edge-orch/state-aggregator`: Redis latest read client와 dashboard `raw_telemetry_latest` payload 추가
+- `edge-orch/state-aggregator/app/static/index.html`, `dashboard.js`: Redis latest 기반 Live Sensor Panel 추가
 
 핵심 방향은 다음이다.
 

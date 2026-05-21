@@ -71,6 +71,11 @@ async def get_dashboard() -> DashboardState:
     return await service.get_dashboard()
 
 
+@app.get("/state/raw-telemetry/latest")
+async def get_raw_telemetry_latest():
+    return await service.raw_telemetry.get_latest()
+
+
 @app.get("/state/operator-assistant", response_model=OperatorAssistantState)
 async def get_operator_assistant() -> OperatorAssistantState:
     return await service.get_operator_assistant()

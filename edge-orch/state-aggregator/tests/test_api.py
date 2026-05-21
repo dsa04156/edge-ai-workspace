@@ -460,7 +460,8 @@ def test_device_with_running_mapper_is_degraded_without_twin_report():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason == "registered but live status is unknown"
+    assert device.status_reason == "DB latest timestamp is missing"
+    assert device.telemetry_enabled is True
 
 
 def test_device_with_recent_influx_telemetry_is_healthy():
@@ -1004,3 +1005,117 @@ def test_telemetry_fresh_device_is_healthy_even_when_device_status_is_stale():
     assert device.device_status_fresh is False
     assert device.status == "healthy"
     assert device.status_reason == "recent InfluxDB telemetry"
+
+
+def test_dashboard_treats_raw_sensor_properties_as_telemetry_after_mapper_pushmethod_removed(monkeypatch):
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge_ai_device",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0, "cpu_utilization": 0.1, "memory_usage_ratio": 0.2, "load_average": 0.1, "network_rx_rate": 1.0, "network_tx_rate": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "env-device-01", "namespace": "default"},
+                "spec": {
+                    "deviceModelRef": {"name": "virtual-env-model"},
+                    "nodeName": "etri-dev0001-jetorn",
+                    "properties": [
+                        {"name": "temperature", "reportToCloud": False},
+                        {"name": "health", "reportToCloud": True},
+                    ],
+                    "protocol": {"protocolName": "mqttvirtual"},
+                },
+                "status": {},
+            }
+        ]
+
+    async def fake_mapper_nodes():
+        return {"etri-dev0001-jetorn"}
+
+    async def fake_device_statuses():
+        return []
+
+    async def fake_telemetry_samples():
+        return {
+            "env-device-01": TelemetrySample(
+                device_id="env-device-01",
+                timestamp=datetime.now(timezone.utc),
+                property="temperature",
+                value="24.1",
+            )
+        }
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["devices"][0]["telemetry_enabled"] is True
+    assert payload["kpis"]["telemetry_device_count"] == 1
+    assert payload["devices"][0]["overall_status"] == "healthy"
+
+
+def test_dashboard_payload_includes_redis_latest_raw_sensor_samples(monkeypatch):
+    service.store.nodes = {}
+
+    async def fake_devices():
+        return []
+
+    async def fake_statuses():
+        return []
+
+    async def fake_mapper_nodes():
+        return set()
+
+    async def fake_telemetry_samples():
+        return {}
+
+    async def fake_raw_latest():
+        return [
+            {
+                "device_id": "env-device-01",
+                "sensor": "temperature",
+                "value": "28.1",
+                "edge_node": "etri-dev0001-jetorn",
+                "timestamp": "1710000000000",
+                "received_at": "1710000000123",
+            }
+        ]
+
+    monkeypatch.setattr(service.kube, "get_devices", fake_devices)
+    monkeypatch.setattr(service.kube, "get_device_statuses", fake_statuses)
+    monkeypatch.setattr(service.kube, "get_running_mapper_nodes", fake_mapper_nodes)
+    monkeypatch.setattr(service.telemetry, "get_latest_by_device", fake_telemetry_samples)
+    monkeypatch.setattr(service.raw_telemetry, "get_latest", fake_raw_latest)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["raw_telemetry_latest"] == [
+        {
+            "device_id": "env-device-01",
+            "sensor": "temperature",
+            "value": "28.1",
+            "edge_node": "etri-dev0001-jetorn",
+            "timestamp": "1710000000000",
+            "received_at": "1710000000123",
+        }
+    ]
+    assert payload["kpis"]["raw_live_stream_count"] == 1

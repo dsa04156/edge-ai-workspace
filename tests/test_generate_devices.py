@@ -30,10 +30,10 @@ class GenerateDevicesInfluxPolicyTest(unittest.TestCase):
     def test_act_power_is_not_stored_to_influx_by_default(self):
         self.assertFalse(self.module.should_store_to_influx("act", "power"))
 
-    def test_raw_sensor_values_are_stored_to_influx(self):
-        self.assertTrue(self.module.should_store_to_influx("env", "temperature"))
-        self.assertTrue(self.module.should_store_to_influx("env", "humidity"))
-        self.assertTrue(self.module.should_store_to_influx("vib", "vibration"))
+    def test_raw_sensor_values_are_not_stored_by_mapper_after_bridge_split(self):
+        self.assertFalse(self.module.should_store_to_influx("env", "temperature"))
+        self.assertFalse(self.module.should_store_to_influx("env", "humidity"))
+        self.assertFalse(self.module.should_store_to_influx("vib", "vibration"))
 
 
 if __name__ == "__main__":

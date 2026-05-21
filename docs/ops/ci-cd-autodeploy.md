@@ -4,17 +4,20 @@
 
 이 문서는 현재 KubeEdge 혼합 디바이스 edge AI 운영 가시화 PoC에서 GitHub Actions와 Argo CD를 함께 사용해 새 이미지를 자동 반영하는 기준을 정리한다.
 
-현재 자동 배포 대상은 운영 데모 경로에 직접 필요한 두 구성 요소다.
+현재 자동 배포 대상은 운영 데모 경로와 문서 확인에 직접 필요한 구성 요소다.
 
 - `state-aggregator`
 - `mqttvirtual-mapper`
+- `raw-stream-bridge`
+- `docs-html`
 
 ## 기본 원칙
 
 - Kubernetes manifest에는 `:latest` tag와 `imagePullPolicy: Always`를 사용한다.
-- Argo CD Application에는 image updater의 digest pinning annotation을 두지 않는다.
-- GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.
-- Argo CD는 Git에 선언된 기본 desired state를 유지하고, GitHub Actions는 새 이미지 tag를 실행 중 Pod에 pull시키는 역할을 맡는다.
+- `docs-html`은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.
+- GitHub Actions는 docs 변경 시 `docs-html:latest` 이미지를 build/push한다.
+- Argo CD Image Updater가 Application image override를 갱신하면 Argo CD가 sync하여 새 Pod를 생성한다.
+- 그 외 현재 데모 workload는 GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.
 
 ## 왜 digest pinning을 제거했는가
 
@@ -55,33 +58,63 @@ trigger:
 .github/workflows/docker-build-push.yml
 .github/buildkitd.toml
 edge-orch/state-aggregator/**
+edge-orch/raw-stream-bridge/**
 edge-orch/workflow_executor/**
 edge-orch/placement_engine/**
 edge-orch/vision_stage_runner/**
 mappers/mqttvirtual/**
 mappers/mapper-framework/**
+docs/**
+docs-site/**
 ```
 
 현재 workflow는 다음 이미지를 build/push한다.
 
 ```text
 192.168.0.56:5000/state-aggregator:latest
+192.168.0.56:5000/raw-stream-bridge:latest
 192.168.0.56:5000/workflow-executor:latest
 192.168.0.56:5000/placement-engine:latest
 192.168.0.56:5000/vision-stage-runner:latest
 192.168.0.56:5000/mqttvirtual:latest
+192.168.0.56:5000/docs-html:latest
 ```
 
-운영 데모 경로에 자동 rollout하는 대상은 다음이다.
+운영 데모 경로와 문서 확인 경로에 자동 rollout하는 대상은 다음이다.
 
 ```text
 deployment/state-aggregator
+daemonset/raw-stream-bridge
 daemonset/mqttvirtual-mapper
+deployment/docs-html
+```
+
+## `docs-html`의 Image Updater 방식
+
+`docs-html`은 정적 HTML이 이미지 안에 들어가는 구조이므로 docs 변경 시 이미지를 새로 build/push해야 한다. 다만 Pod 재시작은 GitHub Actions에서 직접 `kubectl rollout restart`하지 않고, 이미 설치된 Argo CD Image Updater가 처리한다.
+
+`edge-orch-argocd/argocd-apps.yaml`의 `docs-html` Application에는 다음 annotation을 둔다.
+
+```yaml
+argocd-image-updater.argoproj.io/image-list: docs-html=192.168.0.56:5000/docs-html:latest
+argocd-image-updater.argoproj.io/docs-html.update-strategy: digest
+argocd-image-updater.argoproj.io/docs-html.force-update: "true"
+argocd-image-updater.argoproj.io/write-back-method: argocd
+```
+
+흐름은 다음과 같다.
+
+```text
+1. docs 또는 docs-site 변경이 main에 push된다.
+2. GitHub Actions가 192.168.0.56:5000/docs-html:latest를 build/push한다.
+3. Argo CD Image Updater가 registry의 latest digest 변경을 감지한다.
+4. Image Updater가 Argo CD Application override를 새 digest로 갱신한다.
+5. Argo CD가 docs-html Deployment를 sync하고 새 Pod가 최신 docs 이미지를 pull한다.
 ```
 
 ## 자동 rollout 방식
 
-GitHub Actions는 build/push 후 다음 흐름으로 최신 이미지를 반영한다.
+GitHub Actions는 `state-aggregator`, `raw-stream-bridge`, `mqttvirtual-mapper`에 대해 build/push 후 다음 흐름으로 최신 이미지를 반영한다. `docs-html`은 위의 Image Updater 방식으로 반영한다.
 
 ```text
 1. 현재 workload image 확인
@@ -105,9 +138,10 @@ Argo CD Application은 다음 경로를 sync한다.
 ```text
 edge-orch/state-aggregator/k8s
 mappers/mqttvirtual/resource
+docs-site
 ```
 
-현재 Argo CD Application에는 아래 digest update annotation을 두지 않는다.
+현재 `docs-html` Argo CD Application에는 Image Updater annotation을 둔다. 운영 데모 workload에는 아래 digest update annotation을 두지 않는다.
 
 ```yaml
 argocd-image-updater.argoproj.io/image-list: ...
@@ -115,7 +149,7 @@ argocd-image-updater.argoproj.io/*.update-strategy: digest
 argocd-image-updater.argoproj.io/write-back-method: argocd
 ```
 
-이 annotation이 있으면 Argo CD Image Updater가 live Application에 digest override를 다시 넣을 수 있어, `:latest` 기반 자동 rollout과 충돌한다.
+이 annotation이 운영 데모 workload에 있으면 Argo CD Image Updater가 live Application에 digest override를 다시 넣을 수 있어, GitHub Actions rollout 방식과 충돌한다. `docs-html`은 Image Updater를 의도적으로 사용하는 예외다.
 
 ## 배포 후 확인
 
@@ -157,4 +191,5 @@ recent InfluxDB telemetry
 
 - 이 자동 배포는 현재 데모 운영 가시화 경로의 빠른 반영을 위한 설정이다.
 - 재현성을 우선하는 배포 단계에서는 digest pinning으로 되돌릴 수 있지만, 그 경우 새 build마다 manifest 또는 Application의 digest를 갱신해야 한다.
-- docs-only 변경은 image build path에 포함되지 않으면 workflow를 트리거하지 않는다.
+- docs-only 변경은 `.github/workflows/docker-build-push.yml`의 path trigger에 포함되어야 한다.
+- `docs-html`은 정적 파일을 이미지에 포함하므로, docs 변경 자동 반영에는 `docs-html` 이미지 build/push와 Argo CD Image Updater digest 감지가 모두 필요하다.
