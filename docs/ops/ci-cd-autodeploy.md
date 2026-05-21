@@ -13,6 +13,7 @@
 
 ## 기본 원칙
 
+- GitHub Actions는 변경된 path를 감지해 필요한 이미지만 build/push한다. docs-only 변경에서는 Python 서비스 이미지를 다시 build하지 않는다.
 - Kubernetes manifest에는 `:latest` tag와 `imagePullPolicy: Always`를 사용한다.
 - `docs-html`은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.
 - GitHub Actions는 docs 변경 시 `scripts/build-docs-html.py`로 `docs/html`을 먼저 재생성한 뒤 `docs-html:latest` 이미지를 build/push한다.
@@ -90,6 +91,8 @@ deployment/docs-html
 ```
 
 ## `docs-html`의 Image Updater 방식
+
+`docs-html` Dockerfile은 이미 local registry에 올라간 `192.168.0.56:5000/docs-html:latest`를 base로 사용한다. 따라서 docs-only rebuild는 Docker Hub의 `nginx:1.27-alpine`을 다시 pull하지 않는다. local registry가 완전히 비어 있는 최초 bootstrap 상황에서만 nginx base를 한 번 받아 초기 `docs-html:latest`를 만들어야 한다.
 
 `docs-html`은 정적 HTML이 이미지 안에 들어가는 구조이므로 docs 변경 시 이미지를 새로 build/push해야 한다. 다만 Pod 재시작은 GitHub Actions에서 직접 `kubectl rollout restart`하지 않고, 이미 설치된 Argo CD Image Updater가 처리한다.
 

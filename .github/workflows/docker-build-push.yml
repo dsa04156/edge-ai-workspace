@@ -28,6 +28,55 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CHANGED="__ALL__"
+          else
+            BEFORE="${{ github.event.before }}"
+            SHA="${{ github.sha }}"
+            if [ -z "${BEFORE}" ] || [[ "${BEFORE}" =~ ^0+$ ]]; then
+              CHANGED="__ALL__"
+            else
+              CHANGED="$(git diff --name-only "${BEFORE}" "${SHA}")"
+            fi
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "${CHANGED}"
+
+          has_change() {
+            local pattern="$1"
+            if [ "${CHANGED}" = "__ALL__" ]; then
+              return 0
+            fi
+            printf '%s\n' "${CHANGED}" | grep -E "${pattern}" >/dev/null
+          }
+
+          set_output() {
+            local name="$1"
+            local pattern="$2"
+            if has_change "${pattern}"; then
+              echo "${name}=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "${name}=false" >> "$GITHUB_OUTPUT"
+            fi
+          }
+
+          COMMON='^(\.github/workflows/docker-build-push\.yml|\.github/buildkitd\.toml)$'
+          set_output state_aggregator "${COMMON}|^edge-orch/state-aggregator/"
+          set_output raw_stream_bridge "${COMMON}|^edge-orch/raw-stream-bridge/"
+          set_output workflow_executor "${COMMON}|^edge-orch/workflow_executor/"
+          set_output placement_engine "${COMMON}|^edge-orch/placement_engine/"
+          set_output vision_stage_runner "${COMMON}|^edge-orch/vision_stage_runner/"
+          set_output mqttvirtual "${COMMON}|^mappers/(mqttvirtual|mapper-framework)/"
+          set_output docs "${COMMON}|^(docs|docs-site)/"
 
       - name: Configure Buildx for Local Registry
         run: |
@@ -40,6 +89,7 @@ jobs:
             --bootstrap
 
       - name: Build and Push state-aggregator
+        if: steps.changes.outputs.state_aggregator == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/state-aggregator:latest \
@@ -48,6 +98,7 @@ jobs:
             --push
 
       - name: Build and Push raw-stream-bridge
+        if: steps.changes.outputs.raw_stream_bridge == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/raw-stream-bridge:latest \
@@ -56,6 +107,7 @@ jobs:
             --push
 
       - name: Build and Push workflow-executor
+        if: steps.changes.outputs.workflow_executor == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/workflow-executor:latest \
@@ -64,6 +116,7 @@ jobs:
             --push
 
       - name: Build and Push placement-engine
+        if: steps.changes.outputs.placement_engine == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/placement-engine:latest \
@@ -72,6 +125,7 @@ jobs:
             --push
 
       - name: Build and Push vision-stage-runner
+        if: steps.changes.outputs.vision_stage_runner == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/vision-stage-runner:latest \
@@ -80,6 +134,7 @@ jobs:
             --push
 
       - name: Build and Push mqttvirtual mapper
+        if: steps.changes.outputs.mqttvirtual == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/mqttvirtual:latest \
@@ -88,10 +143,12 @@ jobs:
             --push
 
       - name: Generate docs HTML
+        if: steps.changes.outputs.docs == 'true'
         run: |
           python3 scripts/build-docs-html.py
 
       - name: Build and Push docs-html
+        if: steps.changes.outputs.docs == 'true'
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ${{ env.REGISTRY }}/docs-html:latest \
@@ -100,6 +157,7 @@ jobs:
             --push
 
       - name: Deploy state-aggregator latest image
+        if: steps.changes.outputs.state_aggregator == 'true'
         run: |
           CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
           TARGET_IMAGE=${{ env.REGISTRY }}/state-aggregator:latest
@@ -115,6 +173,7 @@ jobs:
           kubectl rollout status deployment/state-aggregator -n default --timeout=180s
 
       - name: Deploy raw-stream-bridge latest image
+        if: steps.changes.outputs.raw_stream_bridge == 'true'
         run: |
           kubectl apply -f edge-orch/raw-stream-bridge/k8s.yaml
           CURRENT_IMAGE=$(kubectl get daemonset raw-stream-bridge -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="raw-stream-bridge")].image}')
@@ -131,6 +190,7 @@ jobs:
           kubectl rollout status daemonset/raw-stream-bridge -n default --timeout=180s
 
       - name: Deploy mqttvirtual mapper latest image
+        if: steps.changes.outputs.mqttvirtual == 'true'
         run: |
           CURRENT_IMAGE=$(kubectl get daemonset mqttvirtual-mapper -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="mqttvirtual")].image}')
           TARGET_IMAGE=${{ env.REGISTRY }}/mqttvirtual:latest

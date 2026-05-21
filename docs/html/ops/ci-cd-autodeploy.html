@@ -94,8 +94,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/ci-cd-autodeploy.md</span>
-            <span class="badge">수정: 2026-05-21 14:54</span>
-            <span class="badge">HTML 생성: 2026-05-21 14:54</span>
+            <span class="badge">수정: 2026-05-21 15:07</span>
+            <span class="badge">HTML 생성: 2026-05-21 15:07</span>
           </div>
         </header>
         
@@ -106,7 +106,7 @@
 <p>현재 자동 배포 대상은 운영 데모 경로와 문서 확인에 직접 필요한 구성 요소다.</p>
 <ul><li><code>state-aggregator</code></li><li><code>mqttvirtual-mapper</code></li><li><code>raw-stream-bridge</code></li><li><code>docs-html</code></li></ul>
 <h2 id="기본-원칙">기본 원칙</h2>
-<ul><li>Kubernetes manifest에는 <code>:latest</code> tag와 <code>imagePullPolicy: Always</code>를 사용한다.</li><li><code>docs-html</code>은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.</li><li>GitHub Actions는 docs 변경 시 <code>scripts/build-docs-html.py</code>로 <code>docs/html</code>을 먼저 재생성한 뒤 <code>docs-html:latest</code> 이미지를 build/push한다.</li><li>Argo CD Image Updater가 Application image override를 갱신하면 Argo CD가 sync하여 새 Pod를 생성한다.</li><li>그 외 현재 데모 workload는 GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.</li></ul>
+<ul><li>GitHub Actions는 변경된 path를 감지해 필요한 이미지만 build/push한다. docs-only 변경에서는 Python 서비스 이미지를 다시 build하지 않는다.</li><li>Kubernetes manifest에는 <code>:latest</code> tag와 <code>imagePullPolicy: Always</code>를 사용한다.</li><li><code>docs-html</code>은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.</li><li>GitHub Actions는 docs 변경 시 <code>scripts/build-docs-html.py</code>로 <code>docs/html</code>을 먼저 재생성한 뒤 <code>docs-html:latest</code> 이미지를 build/push한다.</li><li>Argo CD Image Updater가 Application image override를 갱신하면 Argo CD가 sync하여 새 Pod를 생성한다.</li><li>그 외 현재 데모 workload는 GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.</li></ul>
 <h2 id="왜-digest-pinning을-제거했는가">왜 digest pinning을 제거했는가</h2>
 <p><code>image@sha256:...</code> 형태로 workload image가 고정되면 같은 tag에 새 이미지를 push해도 Kubernetes가 새 이미지를 사용하지 않는다.</p>
 <p>예를 들어 아래처럼 digest가 박혀 있으면:</p>
@@ -146,6 +146,7 @@ daemonset/raw-stream-bridge
 daemonset/mqttvirtual-mapper
 deployment/docs-html</code></pre>
 <h2 id="docs-html의-image-updater-방식"><code>docs-html</code>의 Image Updater 방식</h2>
+<p><code>docs-html</code> Dockerfile은 이미 local registry에 올라간 <code>192.168.0.56:5000/docs-html:latest</code>를 base로 사용한다. 따라서 docs-only rebuild는 Docker Hub의 <code>nginx:1.27-alpine</code>을 다시 pull하지 않는다. local registry가 완전히 비어 있는 최초 bootstrap 상황에서만 nginx base를 한 번 받아 초기 <code>docs-html:latest</code>를 만들어야 한다.</p>
 <p><code>docs-html</code>은 정적 HTML이 이미지 안에 들어가는 구조이므로 docs 변경 시 이미지를 새로 build/push해야 한다. 다만 Pod 재시작은 GitHub Actions에서 직접 <code>kubectl rollout restart</code>하지 않고, 이미 설치된 Argo CD Image Updater가 처리한다.</p>
 <p><code>edge-orch-argocd/argocd-apps.yaml</code>의 <code>docs-html</code> Application에는 다음 annotation을 둔다.</p>
 <pre data-lang="yaml"><code>argocd-image-updater.argoproj.io/image-list: docs-html=192.168.0.56:5000/docs-html:latest
