@@ -42,11 +42,14 @@ type DevPanel struct {
 	devices      map[string]*driver.CustomizedDev
 	models       map[string]common.DeviceModel
 	wg           sync.WaitGroup
-	serviceMutex sync.Mutex
+	serviceMutex sync.RWMutex
 	quitChan     chan os.Signal
 }
 
 func syncDesiredToCommand(visitorConfig *driver.VisitorConfig, twin *common.Twin, dev *driver.CustomizedDev) error {
+	if visitorConfig == nil || twin == nil || twin.Property == nil || dev == nil || dev.CustomizedClient == nil {
+		return nil
+	}
 	if twin.Property.PProperty.AccessMode == "ReadOnly" {
 		return nil
 	}
@@ -81,7 +84,7 @@ func NewDevPanel() *DevPanel {
 			devices:      make(map[string]*driver.CustomizedDev),
 			models:       make(map[string]common.DeviceModel),
 			wg:           sync.WaitGroup{},
-			serviceMutex: sync.Mutex{},
+			serviceMutex: sync.RWMutex{},
 			quitChan:     make(chan os.Signal),
 		}
 	})
@@ -90,19 +93,21 @@ func NewDevPanel() *DevPanel {
 
 // DevStart start all devices.
 func (d *DevPanel) DevStart() {
-	for id, dev := range d.devices {
+	devices := d.snapshotDevices()
+	for id, dev := range devices {
 		klog.V(4).Info("Dev: ", id, dev)
 		ctx, cancel := context.WithCancel(context.Background())
+		d.serviceMutex.Lock()
 		d.deviceMuxs[id] = cancel
 		d.wg.Add(1)
+		d.serviceMutex.Unlock()
 		go d.start(ctx, dev)
 	}
 	signal.Notify(d.quitChan, os.Interrupt)
 	go func() {
 		<-d.quitChan
-		for id, device := range d.devices {
-			err := device.CustomizedClient.StopDevice()
-			if err != nil {
+		for id, device := range d.snapshotDevices() {
+			if err := stopCustomizedDevice(device, id); err != nil {
 				klog.Errorf("Service has stopped but failed to stop %s:%v", id, err)
 			}
 		}
@@ -112,9 +117,23 @@ func (d *DevPanel) DevStart() {
 	d.wg.Wait()
 }
 
+func (d *DevPanel) snapshotDevices() map[string]*driver.CustomizedDev {
+	d.serviceMutex.RLock()
+	defer d.serviceMutex.RUnlock()
+	devices := make(map[string]*driver.CustomizedDev, len(d.devices))
+	for id, dev := range d.devices {
+		devices[id] = dev
+	}
+	return devices
+}
+
 // start the device
 func (d *DevPanel) start(ctx context.Context, dev *driver.CustomizedDev) {
 	defer d.wg.Done()
+	if dev == nil {
+		klog.Error("start called with nil device")
+		return
+	}
 
 	var protocolConfig driver.ProtocolConfig
 	if err := json.Unmarshal(dev.Instance.PProtocol.ConfigData, &protocolConfig); err != nil {
@@ -138,6 +157,10 @@ func (d *DevPanel) start(ctx context.Context, dev *driver.CustomizedDev) {
 
 // dataHandler initialize the timer to handle data plane and devicetwin.
 func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
+	if dev == nil || dev.CustomizedClient == nil {
+		klog.Error("dataHandler skipped because device or customized client is nil")
+		return
+	}
 	// handle device status report
 	getStates := &DeviceStates{
 		Client:          dev.CustomizedClient,
@@ -158,11 +181,11 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 		var visitorConfig driver.VisitorConfig
 
 		err := json.Unmarshal(twin.Property.Visitors, &visitorConfig)
-		visitorConfig.VisitorConfigData.DataType = strings.ToLower(visitorConfig.VisitorConfigData.DataType)
 		if err != nil {
-			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
+			klog.Errorf("Unmarshal VisitorConfig device=%s property=%s error: %v", dev.Instance.Name, twin.PropertyName, err)
 			continue
 		}
+		visitorConfig.VisitorConfigData.DataType = strings.ToLower(visitorConfig.VisitorConfigData.DataType)
 		err = syncDesiredToCommand(&visitorConfig, &twin, dev)
 		if err != nil {
 			klog.Error(err)
@@ -220,7 +243,7 @@ func shouldReportAsTwinProperty(twin *common.Twin) bool {
 }
 
 func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventTwinData map[string]*TwinData) {
-	if dev.CustomizedClient == nil || dev.CustomizedClient.Events == nil {
+	if dev == nil || dev.CustomizedClient == nil || dev.CustomizedClient.Events == nil {
 		return
 	}
 
@@ -231,7 +254,14 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 	lastReported := make(map[string]string)
 	lastReportTime := make(map[string]time.Time)
 	timer := time.NewTimer(nextFlushDelay(flushInterval, jitter))
-	defer timer.Stop()
+	defer func() {
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+	}()
 
 	flush := func() {
 		if len(pending) == 0 {
@@ -299,6 +329,14 @@ func runEventTwinReporter(ctx context.Context, dev *driver.CustomizedDev, eventT
 			flush()
 			timer.Reset(nextFlushDelay(flushInterval, jitter))
 		case <-ctx.Done():
+			for len(dev.CustomizedClient.Events) > 0 {
+				payload := <-dev.CustomizedClient.Events
+				for key := range payload {
+					if twinData, ok := eventTwinData[key]; ok {
+						pending[key] = twinData
+					}
+				}
+			}
 			flush()
 			return
 		}
@@ -344,6 +382,10 @@ func nextFlushDelay(interval, jitter time.Duration) time.Duration {
 
 // pushHandler start data panel work
 func pushHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
+	if twin == nil || twin.Property == nil || client == nil || visitorConfig == nil || dataModel == nil {
+		klog.Warning("skip push handler because twin/client/visitor/dataModel is nil")
+		return
+	}
 	if twin.Property.PushMethod.MethodName == common.PushMethodOTEL {
 		otelMethod.DataHandler(ctx, twin, client, visitorConfig, dataModel)
 		return
@@ -405,6 +447,10 @@ func isInfluxDBMethod(name string) bool {
 }
 
 func dbHandler(ctx context.Context, twin *common.Twin, client *driver.CustomizedClient, visitorConfig *driver.VisitorConfig, dataModel *common.DataModel) {
+	if twin == nil || twin.Property == nil || client == nil || visitorConfig == nil || dataModel == nil {
+		klog.Warning("skip db handler because twin/client/visitor/dataModel is nil")
+		return
+	}
 	methodName := twin.Property.PushMethod.DBMethod.DBMethodName
 	if isInfluxDBMethod(methodName) {
 		klog.Infof("start influxdb handler device=%s property=%s dbMethod=%s", dataModel.DeviceName, dataModel.PropertyName, methodName)
@@ -430,6 +476,8 @@ func (d *DevPanel) DevInit(deviceList []*dmiapi.Device, deviceModelList []*dmiap
 	if len(deviceList) == 0 || len(deviceModelList) == 0 {
 		return ErrEmptyData
 	}
+	d.serviceMutex.Lock()
+	defer d.serviceMutex.Unlock()
 
 	for i := range deviceModelList {
 		model := deviceModelList[i]
@@ -462,60 +510,75 @@ func (d *DevPanel) DevInit(deviceList []*dmiapi.Device, deviceModelList []*dmiap
 
 // UpdateDev stop old device, then update and start new device
 func (d *DevPanel) UpdateDev(model *common.DeviceModel, device *common.DeviceInstance) {
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
-
-	if oldDevice, ok := d.devices[device.ID]; ok {
-		err := d.stopDev(oldDevice, device.ID)
-		if err != nil {
-			klog.Error(err)
-		}
+	if model == nil || device == nil {
+		klog.Errorf("UpdateDev skipped because model or device is nil")
+		return
 	}
-	// start new device
-	d.devices[device.ID] = new(driver.CustomizedDev)
-	d.devices[device.ID].Instance = *device
-	d.models[model.ID] = *model
 
+	newDev := &driver.CustomizedDev{Instance: *device}
 	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	var oldDevice *driver.CustomizedDev
+	var oldCancel context.CancelFunc
+	d.serviceMutex.Lock()
+	oldDevice = d.devices[device.ID]
+	oldCancel = d.deviceMuxs[device.ID]
+	d.devices[device.ID] = newDev
+	d.models[model.ID] = *model
 	d.deviceMuxs[device.ID] = cancelFunc
 	d.wg.Add(1)
-	go d.start(ctx, d.devices[device.ID])
+	d.serviceMutex.Unlock()
+
+	if oldCancel != nil {
+		oldCancel()
+	}
+	if err := stopCustomizedDevice(oldDevice, device.ID); err != nil {
+		klog.Error(err)
+	}
+	go d.start(ctx, newDev)
 }
 
 // UpdateDevTwins update device's twins
 func (d *DevPanel) UpdateDevTwins(deviceID string, twins []common.Twin) error {
+	var model common.DeviceModel
+	var instance common.DeviceInstance
 	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
 	dev, ok := d.devices[deviceID]
-	if !ok {
+	if !ok || dev == nil {
+		d.serviceMutex.Unlock()
 		return fmt.Errorf("device %s not found", deviceID)
 	}
 	dev.Instance.Twins = twins
-	model := d.models[dev.Instance.Model]
-	d.UpdateDev(&model, &dev.Instance)
+	instance = dev.Instance
+	model = d.models[dev.Instance.Model]
+	d.serviceMutex.Unlock()
 
+	d.UpdateDev(&model, &instance)
 	return nil
 }
 
 // DealDeviceTwinGet get device's twin data
 func (d *DevPanel) DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error) {
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	d.serviceMutex.RLock()
 	dev, ok := d.devices[deviceID]
-	if !ok {
+	if !ok || dev == nil {
+		d.serviceMutex.RUnlock()
 		return nil, fmt.Errorf("not found device %s", deviceID)
 	}
+	twins := append([]common.Twin(nil), dev.Instance.Twins...)
+	d.serviceMutex.RUnlock()
+
 	var res []parse.TwinResultResponse
-	for _, twin := range dev.Instance.Twins {
+	for _, twin := range twins {
 		if twinName != "" && twin.PropertyName != twinName {
 			continue
 		}
-		payload, err := getTwinData(deviceID, twin, d.devices[deviceID])
+		payload, err := getTwinData(deviceID, twin, dev)
 		if err != nil {
 			return nil, err
 		}
 		item := parse.TwinResultResponse{
-			PropertyName: twinName,
+			PropertyName: twin.PropertyName,
 			Payload:      payload,
 		}
 		res = append(res, item)
@@ -525,10 +588,16 @@ func (d *DevPanel) DealDeviceTwinGet(deviceID string, twinName string) (interfac
 
 // getTwinData get twin
 func getTwinData(deviceID string, twin common.Twin, dev *driver.CustomizedDev) ([]byte, error) {
+	if dev == nil || dev.CustomizedClient == nil {
+		return nil, fmt.Errorf("device=%s property=%s customized client is nil", deviceID, twin.PropertyName)
+	}
+	if twin.Property == nil {
+		return nil, fmt.Errorf("device=%s property=%s twin property is nil", deviceID, twin.PropertyName)
+	}
 	var visitorConfig driver.VisitorConfig
 	err := json.Unmarshal(twin.Property.Visitors, &visitorConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("device=%s property=%s unmarshal visitor config failed: %w", deviceID, twin.PropertyName, err)
 	}
 	twinData := &TwinData{
 		DeviceName:    deviceID,
@@ -538,52 +607,62 @@ func getTwinData(deviceID string, twin common.Twin, dev *driver.CustomizedDev) (
 		VisitorConfig: &visitorConfig,
 		Topic:         fmt.Sprintf(common.TopicTwinUpdate, deviceID),
 	}
-	return twinData.GetPayLoad()
+	payload, err := twinData.GetPayLoad()
+	if err != nil {
+		return nil, fmt.Errorf("device=%s property=%s get twin payload failed: %w", deviceID, twin.PropertyName, err)
+	}
+	return payload, nil
 }
 
 // GetDevice get device instance
 func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	d.serviceMutex.RLock()
 	found, ok := d.devices[deviceID]
 	if !ok || found == nil {
+		d.serviceMutex.RUnlock()
 		return nil, fmt.Errorf("device %s not found", deviceID)
 	}
+	instance := found.Instance
+	d.serviceMutex.RUnlock()
 
 	// get the latest reported twin value
-	for i, twin := range found.Instance.Twins {
+	for i, twin := range instance.Twins {
 		payload, err := getTwinData(deviceID, twin, found)
 		if err != nil {
 			return nil, err
 		}
-		found.Instance.Twins[i].Reported.Value = string(payload)
+		instance.Twins[i].Reported.Value = string(payload)
 	}
-	return found, nil
+	return &driver.CustomizedDev{Instance: instance, CustomizedClient: found.CustomizedClient}, nil
 }
 
 // RemoveDevice remove device instance
 func (d *DevPanel) RemoveDevice(deviceID string) error {
 	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
 	dev := d.devices[deviceID]
+	cancelFunc := d.deviceMuxs[deviceID]
 	delete(d.devices, deviceID)
-	err := d.stopDev(dev, deviceID)
-	if err != nil {
-		return err
+	delete(d.deviceMuxs, deviceID)
+	d.serviceMutex.Unlock()
+
+	if cancelFunc != nil {
+		cancelFunc()
 	}
-	return nil
+	return stopCustomizedDevice(dev, deviceID)
 }
 
 // WriteDevice write value to the device
 func (d *DevPanel) WriteDevice(deviceMethodName, deviceID, propertyName, data string) error {
 	var dataType string
 	var deviceproperty common.DeviceProperty
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	var client *driver.CustomizedClient
+	d.serviceMutex.RLock()
 	dev, ok := d.devices[deviceID]
-	if !ok {
+	if !ok || dev == nil {
+		d.serviceMutex.RUnlock()
 		return fmt.Errorf("not found device %s", deviceID)
 	}
+	client = dev.CustomizedClient
 
 	deviceMethodMap := make(map[string][]string)
 
@@ -594,7 +673,8 @@ func (d *DevPanel) WriteDevice(deviceMethodName, deviceID, propertyName, data st
 	// Determine whether the called device method exists
 	propertyNames, ok := deviceMethodMap[deviceMethodName]
 	if !ok {
-		return fmt.Errorf("deviceMethod name %s does not exist in device instance", deviceMethodName)
+		d.serviceMutex.RUnlock()
+		return fmt.Errorf("device=%s property=%s deviceMethod name %s does not exist in device instance", deviceID, propertyName, deviceMethodName)
 	}
 	// Determine whether the device property to be written is in the list defined by the device method
 	flag := false
@@ -605,7 +685,8 @@ func (d *DevPanel) WriteDevice(deviceMethodName, deviceID, propertyName, data st
 		}
 	}
 	if !flag {
-		return fmt.Errorf("deviceProperty %s to be written is not in the list defined by devicemethod", propertyName)
+		d.serviceMutex.RUnlock()
+		return fmt.Errorf("device=%s property=%s is not in the list defined by devicemethod %s", deviceID, propertyName, deviceMethodName)
 	}
 	// Determine whether the device property to be written is in the device instance
 	flag = false
@@ -618,46 +699,64 @@ func (d *DevPanel) WriteDevice(deviceMethodName, deviceID, propertyName, data st
 		flag = true
 		break
 	}
+	d.serviceMutex.RUnlock()
 	if !flag {
-		return fmt.Errorf("can't find device propertyName %s in device instance", propertyName)
+		return fmt.Errorf("device=%s property=%s not found in device instance", deviceID, propertyName)
+	}
+	if client == nil {
+		return fmt.Errorf("device=%s property=%s customized client is nil", deviceID, propertyName)
 	}
 	klog.V(2).Infof("start writing values %v to device %s property %s", data, deviceID, propertyName)
 	writeData, err := common.Convert(strings.ToLower(dataType), data)
 	if err != nil {
-		return fmt.Errorf("conversion data format failed, datatype is %s, data is %s", strings.ToLower(dataType), data)
+		return fmt.Errorf("device=%s property=%s conversion failed, datatype is %s, data is %s: %w", deviceID, propertyName, strings.ToLower(dataType), data, err)
 	}
 	var visitorConfig driver.VisitorConfig
 	err = json.Unmarshal(deviceproperty.Visitors, &visitorConfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("device=%s property=%s unmarshal visitor config failed: %w", deviceID, propertyName, err)
 	}
 
-	err = dev.CustomizedClient.DeviceDataWrite(&visitorConfig, deviceMethodName, propertyName, writeData)
+	err = client.DeviceDataWrite(&visitorConfig, deviceMethodName, propertyName, writeData)
 	if err != nil {
-		return err
+		return fmt.Errorf("device=%s property=%s write failed: %w", deviceID, propertyName, err)
 	}
 	return nil
 }
 
 // stopDev stop device and goroutine
 func (d *DevPanel) stopDev(dev *driver.CustomizedDev, id string) error {
+	d.serviceMutex.Lock()
 	cancelFunc, ok := d.deviceMuxs[id]
+	if ok {
+		delete(d.deviceMuxs, id)
+	}
+	d.serviceMutex.Unlock()
 	if !ok {
 		return fmt.Errorf("can not find device %s from device muxs", id)
 	}
+	cancelFunc()
+	return stopCustomizedDevice(dev, id)
+}
 
+func stopCustomizedDevice(dev *driver.CustomizedDev, id string) error {
+	if dev == nil {
+		return nil
+	}
+	if dev.CustomizedClient == nil {
+		return nil
+	}
 	err := dev.CustomizedClient.StopDevice()
 	if err != nil {
-		klog.Errorf("stop device %s error: %v", id, err)
+		return fmt.Errorf("stop device %s error: %w", id, err)
 	}
-	cancelFunc()
 	return nil
 }
 
 // GetModel if the model exists, return device model
 func (d *DevPanel) GetModel(modelID string) (common.DeviceModel, error) {
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	d.serviceMutex.RLock()
+	defer d.serviceMutex.RUnlock()
 	if model, ok := d.models[modelID]; ok {
 		return model, nil
 	}
@@ -680,30 +779,39 @@ func (d *DevPanel) RemoveModel(modelID string) {
 
 // GetTwinResult Get twin's value and data type
 func (d *DevPanel) GetTwinResult(deviceID string, twinName string) (string, string, error) {
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	d.serviceMutex.RLock()
 	dev, ok := d.devices[deviceID]
-	if !ok {
+	if !ok || dev == nil {
+		d.serviceMutex.RUnlock()
 		return "", "", fmt.Errorf("not found device %s", deviceID)
+	}
+	twins := append([]common.Twin(nil), dev.Instance.Twins...)
+	client := dev.CustomizedClient
+	d.serviceMutex.RUnlock()
+	if client == nil {
+		return "", "", fmt.Errorf("device=%s customized client is nil", deviceID)
 	}
 	var res string
 	var dataType string
-	for _, twin := range dev.Instance.Twins {
+	for _, twin := range twins {
 		if twinName != "" && twin.PropertyName != twinName {
 			continue
+		}
+		if twin.Property == nil {
+			return "", "", fmt.Errorf("device=%s property=%s twin property is nil", deviceID, twin.PropertyName)
 		}
 		var visitorConfig driver.VisitorConfig
 		err := json.Unmarshal(twin.Property.Visitors, &visitorConfig)
 		if err != nil {
-			return "", "", err
+			return "", "", fmt.Errorf("device=%s property=%s unmarshal visitor config failed: %w", deviceID, twin.PropertyName, err)
 		}
-		data, err := dev.CustomizedClient.GetDeviceData(&visitorConfig)
+		data, err := client.GetDeviceData(&visitorConfig)
 		if err != nil {
-			return "", "", fmt.Errorf("get device data failed: %v", err)
+			return "", "", fmt.Errorf("device=%s property=%s get device data failed: %w", deviceID, twin.PropertyName, err)
 		}
 		res, err = common.ConvertToString(data)
 		if err != nil {
-			return "", "", err
+			return "", "", fmt.Errorf("device=%s property=%s convert value failed: %w", deviceID, twin.PropertyName, err)
 		}
 		dataType = twin.Property.PProperty.DataType
 	}
@@ -713,8 +821,8 @@ func (d *DevPanel) GetTwinResult(deviceID string, twinName string) (string, stri
 // GetDeviceMethod get method and property dataType of device
 func (d *DevPanel) GetDeviceMethod(deviceID string) (map[string][]string, map[string]string, error) {
 	klog.V(2).Infof("starting get method and property dataType of device %s", deviceID)
-	d.serviceMutex.Lock()
-	defer d.serviceMutex.Unlock()
+	d.serviceMutex.RLock()
+	defer d.serviceMutex.RUnlock()
 	found, ok := d.devices[deviceID]
 	if !ok || found == nil {
 		return nil, nil, fmt.Errorf("device %s not found", deviceID)
