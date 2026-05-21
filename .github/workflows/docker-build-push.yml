@@ -87,6 +87,10 @@ jobs:
             mappers \
             --push
 
+      - name: Generate docs HTML
+        run: |
+          python3 scripts/build-docs-html.py
+
       - name: Build and Push docs-html
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \

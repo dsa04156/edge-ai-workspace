@@ -15,7 +15,7 @@
 
 - Kubernetes manifest에는 `:latest` tag와 `imagePullPolicy: Always`를 사용한다.
 - `docs-html`은 Argo CD Image Updater의 digest update annotation으로 새 registry digest를 감지한다.
-- GitHub Actions는 docs 변경 시 `docs-html:latest` 이미지를 build/push한다.
+- GitHub Actions는 docs 변경 시 `scripts/build-docs-html.py`로 `docs/html`을 먼저 재생성한 뒤 `docs-html:latest` 이미지를 build/push한다.
 - Argo CD Image Updater가 Application image override를 갱신하면 Argo CD가 sync하여 새 Pod를 생성한다.
 - 그 외 현재 데모 workload는 GitHub Actions가 이미지를 build/push한 뒤 workload를 rollout restart한다.
 
@@ -106,10 +106,11 @@ argocd-image-updater.argoproj.io/write-back-method: argocd
 
 ```text
 1. docs 또는 docs-site 변경이 main에 push된다.
-2. GitHub Actions가 192.168.0.56:5000/docs-html:latest를 build/push한다.
-3. Argo CD Image Updater가 registry의 latest digest 변경을 감지한다.
-4. Image Updater가 Argo CD Application override를 새 digest로 갱신한다.
-5. Argo CD가 docs-html Deployment를 sync하고 새 Pod가 최신 docs 이미지를 pull한다.
+2. GitHub Actions가 `python3 scripts/build-docs-html.py`를 실행해 `docs/html`을 runner workspace에서 재생성한다.
+3. GitHub Actions가 재생성된 `docs/html`을 포함해 `192.168.0.56:5000/docs-html:latest`를 build/push한다.
+4. Argo CD Image Updater가 registry의 latest digest 변경을 감지한다.
+5. Image Updater가 Argo CD Application override를 새 digest로 갱신한다.
+6. Argo CD가 docs-html Deployment를 sync하고 새 Pod가 최신 docs 이미지를 pull한다.
 ```
 
 ## 자동 rollout 방식
@@ -192,4 +193,4 @@ recent InfluxDB telemetry
 - 이 자동 배포는 현재 데모 운영 가시화 경로의 빠른 반영을 위한 설정이다.
 - 재현성을 우선하는 배포 단계에서는 digest pinning으로 되돌릴 수 있지만, 그 경우 새 build마다 manifest 또는 Application의 digest를 갱신해야 한다.
 - docs-only 변경은 `.github/workflows/docker-build-push.yml`의 path trigger에 포함되어야 한다.
-- `docs-html`은 정적 파일을 이미지에 포함하므로, docs 변경 자동 반영에는 `docs-html` 이미지 build/push와 Argo CD Image Updater digest 감지가 모두 필요하다.
+- `docs-html`은 정적 파일을 이미지에 포함하므로, docs 변경 자동 반영에는 CI에서의 `docs/html` 재생성, `docs-html` 이미지 build/push, Argo CD Image Updater digest 감지가 모두 필요하다.
