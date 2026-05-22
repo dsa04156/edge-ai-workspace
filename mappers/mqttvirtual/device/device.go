@@ -34,7 +34,7 @@ import (
 const (
 	defaultDeviceStatusFlushInterval = 30 * time.Second
 	defaultDeviceStatusJitter        = 10 * time.Second
-	defaultDeviceStatusHeartbeat     = 120 * time.Second
+	defaultDeviceStatusHeartbeat     = 60 * time.Second
 )
 
 type DevPanel struct {

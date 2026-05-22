@@ -28,6 +28,7 @@ import (
 	"github.com/kubeedge/mapper-framework/pkg/common"
 	"github.com/kubeedge/mapper-framework/pkg/grpcclient"
 	"github.com/kubeedge/mqttvirtual/driver"
+	"github.com/kubeedge/mqttvirtual/status"
 )
 
 // DeviceStates is structure for getting device states.
@@ -44,8 +45,16 @@ type DeviceStates struct {
 // Run timer function.
 func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 	states, err := deviceStates.Client.GetDeviceStates()
+	now := time.Now().UTC()
+	summary := status.BuildHeartbeatSummary(deviceStates.DeviceName, deviceStates.DeviceNamespace, now, states, err)
+	if err := (status.DMIReporter{}).Report(context.Background(), summary); err != nil {
+		klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", deviceStates.DeviceName, err)
+	}
 	if err != nil {
 		klog.Errorf("GetDeviceStates failed: %v", err)
+		return
+	}
+	if !envBool("DEVICE_STATES_REPORT_ENABLED", false) {
 		return
 	}
 	heartbeatInterval := durationFromEnv("DEVICE_STATES_HEARTBEAT_SECONDS", defaultDeviceStatusHeartbeat)
@@ -72,10 +81,6 @@ func (deviceStates *DeviceStates) Run(ctx context.Context) {
 	if !deviceStates.ReportToCloud {
 		return
 	}
-	if !envBool("DEVICE_STATES_REPORT_ENABLED", false) {
-		klog.V(2).Infof("DeviceStates reporting disabled for %s", deviceStates.DeviceName)
-		return
-	}
 	// Set device status report cycle
 	if deviceStates.ReportCycle == 0 {
 		deviceStates.ReportCycle = common.DefaultReportCycle
@@ -86,6 +91,7 @@ func (deviceStates *DeviceStates) Run(ctx context.Context) {
 	}
 	ticker := time.NewTicker(deviceStates.ReportCycle)
 	defer ticker.Stop()
+	deviceStates.PushStatesToEdgeCore()
 	for {
 		select {
 		case <-ticker.C:

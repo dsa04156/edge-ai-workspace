@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
 	"github.com/kubeedge/mapper-framework/pkg/common"
@@ -25,6 +26,49 @@ type Summary struct {
 	DeviceNamespace string
 	Source          string
 	Values          map[string]string
+}
+
+func BuildHeartbeatSummary(deviceName, deviceNamespace string, now time.Time, state string, stateErr error) Summary {
+	stamp := now.UTC().Format(time.RFC3339)
+	values := map[string]string{
+		"health":         "online",
+		"severity":       "normal",
+		"online":         "true",
+		"mapperLastSeen": stamp,
+		"statusLastSeen": stamp,
+		"statusSource":   "mapper-framework",
+	}
+
+	if stateErr != nil {
+		values["health"] = "offline"
+		values["severity"] = "critical"
+		values["online"] = "false"
+		values["last_error_code"] = "mapper_status_error"
+		values["last_error_message"] = stateErr.Error()
+	} else {
+		switch state {
+		case "online":
+		case "offline", "disconnected":
+			values["health"] = "offline"
+			values["severity"] = "critical"
+			values["online"] = "false"
+			values["last_error_code"] = "mapper_offline"
+			values["last_error_message"] = state
+		default:
+			values["health"] = "degraded"
+			values["severity"] = "warning"
+			values["online"] = "false"
+			values["last_error_code"] = "mapper_state_unknown"
+			values["last_error_message"] = state
+		}
+	}
+
+	return Summary{
+		DeviceName:      deviceName,
+		DeviceNamespace: deviceNamespace,
+		Source:          "mapper-framework",
+		Values:          values,
+	}
 }
 
 // DMIReporter reports summary-only DeviceStatus updates through the KubeEdge DMI API.
