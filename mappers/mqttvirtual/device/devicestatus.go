@@ -66,6 +66,7 @@ func runStatusHeartbeatReporter(ctx context.Context, dev *driver.CustomizedDev) 
 			klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", dev.Instance.Name, reportErr)
 			return
 		}
+		klog.Infof("ReportDeviceStatus success deviceName=%s namespace=%s twins=%d propertyNames=%v", summary.DeviceName, summary.DeviceNamespace, len(propertyNames), propertyNames)
 		klog.Infof("reported low-frequency DeviceStatus heartbeat device=%s namespace=%s fields=%d interval=%s", dev.Instance.Name, dev.Instance.Namespace, len(summary.Values), interval)
 	}
 
