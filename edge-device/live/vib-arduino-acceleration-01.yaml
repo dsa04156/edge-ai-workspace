@@ -10,20 +10,6 @@ spec:
   properties:
   - collectCycle: 5000
     name: x
-    pushMethod:
-      dbMethod:
-        influxdb2:
-          influxdb2ClientConfig:
-            bucket: device_telemetry
-            org: edgeai
-            url: http://influxdb.telemetry.svc.cluster.local:8086
-          influxdb2DataConfig:
-            fieldKey: value
-            measurement: virtual_device_telemetry
-            tag:
-              device_id: vib-arduino-acceleration-01
-              device_type: jetson_acceleration
-              property: x
     reportCycle: 5000
     reportToCloud: false
     visitors:
@@ -33,20 +19,6 @@ spec:
       protocolName: mqttvirtual
   - collectCycle: 5000
     name: "y"
-    pushMethod:
-      dbMethod:
-        influxdb2:
-          influxdb2ClientConfig:
-            bucket: device_telemetry
-            org: edgeai
-            url: http://influxdb.telemetry.svc.cluster.local:8086
-          influxdb2DataConfig:
-            fieldKey: value
-            measurement: virtual_device_telemetry
-            tag:
-              device_id: vib-arduino-acceleration-01
-              device_type: jetson_acceleration
-              property: "y"
     reportCycle: 5000
     reportToCloud: false
     visitors:
@@ -56,20 +28,6 @@ spec:
       protocolName: mqttvirtual
   - collectCycle: 5000
     name: z
-    pushMethod:
-      dbMethod:
-        influxdb2:
-          influxdb2ClientConfig:
-            bucket: device_telemetry
-            org: edgeai
-            url: http://influxdb.telemetry.svc.cluster.local:8086
-          influxdb2DataConfig:
-            fieldKey: value
-            measurement: virtual_device_telemetry
-            tag:
-              device_id: vib-arduino-acceleration-01
-              device_type: jetson_acceleration
-              property: z
     reportCycle: 5000
     reportToCloud: false
     visitors:
@@ -77,15 +35,78 @@ spec:
         dataType: string
         jsonKey: z
       protocolName: mqttvirtual
-  - collectCycle: 60000
-    name: received_at
-    reportCycle: 120000
+  - name: health
+    collectCycle: 60000
+    reportCycle: 60000
     reportToCloud: true
     visitors:
+      protocolName: mqttvirtual
       configData:
         dataType: string
-        jsonKey: received_at
+        jsonKey: health
+  - name: severity
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
       protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: severity
+  - name: online
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: online
+  - name: mapperLastSeen
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: mapperLastSeen
+  - name: statusLastSeen
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: statusLastSeen
+  - name: statusSource
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: statusSource
+  - name: last_error_code
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: last_error_code
+  - name: last_error_message
+    collectCycle: 60000
+    reportCycle: 60000
+    reportToCloud: true
+    visitors:
+      protocolName: mqttvirtual
+      configData:
+        dataType: string
+        jsonKey: last_error_message
   protocol:
     configData:
       broker: tcp://127.0.0.1:1883

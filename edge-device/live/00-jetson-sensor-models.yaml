@@ -1,0 +1,187 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: jetson-sensor-temperature-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: raw
+    description: raw temperature reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: health
+    description: mapper operational health summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: severity
+    description: mapper operational severity summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: online
+    description: mapper online boolean summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: jetson-sensor-light-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: value
+    description: light reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: health
+    description: mapper operational health summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: severity
+    description: mapper operational severity summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: online
+    description: mapper online boolean summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: jetson-sensor-magnetic-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: value
+    description: magnetic reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: health
+    description: mapper operational health summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: severity
+    description: mapper operational severity summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: online
+    description: mapper online boolean summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: jetson-sensor-acceleration-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: x
+    description: acceleration x reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: "y"
+    description: acceleration y reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: z
+    description: acceleration z reading from serial sensor collector
+    type: STRING
+    accessMode: ReadOnly
+  - name: health
+    description: mapper operational health summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: severity
+    description: mapper operational severity summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: online
+    description: mapper online boolean summary
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
