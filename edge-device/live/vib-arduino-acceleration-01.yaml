@@ -50,7 +50,7 @@ spec:
             measurement: virtual_device_telemetry
             tag:
               device_id: vib-arduino-acceleration-01
-              property: y
+              property: "y"
             fieldKey: value
   - collectCycle: 5000
     name: z

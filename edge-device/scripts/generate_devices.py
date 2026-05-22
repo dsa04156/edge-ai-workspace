@@ -109,22 +109,26 @@ def should_store_to_influx(device_type: str, key: str) -> bool:
     return key in RAW_TELEMETRY_KEYS
 
 
+def yaml_quote(value: str) -> str:
+    return '"' + value.replace('"', '\\"') + '"'
+
+
 def emit_influx_push_method(device_name: str, device_type: str, key: str) -> str:
     return f"""
     pushMethod:
       dbMethod:
         influxdb2:
           influxdb2ClientConfig:
-            url: {INFLUX_URL}
-            org: {INFLUX_ORG}
-            bucket: {INFLUX_BUCKET}
+            url: {yaml_quote(INFLUX_URL)}
+            org: {yaml_quote(INFLUX_ORG)}
+            bucket: {yaml_quote(INFLUX_BUCKET)}
           influxdb2DataConfig:
-            measurement: {INFLUX_MEASUREMENT}
+            measurement: {yaml_quote(INFLUX_MEASUREMENT)}
             tag:
-              device_id: {device_name}
-              device_type: {device_type}
-              property: {key}
-            fieldKey: value"""
+              device_id: {yaml_quote(device_name)}
+              device_type: {yaml_quote(device_type)}
+              property: {yaml_quote(key)}
+            fieldKey: "value"""
 
 
 def emit_device(group: DeviceGroup, index: int) -> str:
