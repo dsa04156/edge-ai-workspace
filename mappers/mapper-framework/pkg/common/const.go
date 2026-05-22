@@ -44,8 +44,3 @@ const (
 	DevInitModeRegister  = "register"
 	DevInitModeConfigmap = "configmap"
 )
-
-const (
-	SaveFrame = "saveFrame"
-	SaveVideo = "saveVideo"
-)

@@ -17,6 +17,19 @@ spec:
         dataType: string
         jsonKey: raw
       protocolName: mqttvirtual
+    pushMethod:
+      dbMethod:
+        influxdb2:
+          influxdb2ClientConfig:
+            url: http://influxdb.telemetry.svc.cluster.local:8086
+            org: edgeai
+            bucket: device_telemetry
+          influxdb2DataConfig:
+            measurement: virtual_device_telemetry
+            tag:
+              device_id: env-arduino-temperature-01
+              property: raw
+            fieldKey: value
   - name: health
     collectCycle: 60000
     reportCycle: 60000

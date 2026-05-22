@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 import sys
-import yaml
+
+try:
+    import yaml  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - exercised in minimal CI/edge shells
+    yaml = None
 
 ROOT = Path(__file__).resolve().parents[1]
 LIVE_DIR = ROOT / "edge-device" / "live"
@@ -19,14 +24,84 @@ STATUS_FIELDS = {
     "last_error_code",
     "last_error_message",
 }
-RAW_FIELDS = {"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration", "acceleration"}
+RAW_FIELDS = {"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration", "current", "voltage", "acceleration"}
 
 
 def iter_docs(path: Path):
-    with path.open() as f:
-        for doc in yaml.safe_load_all(f):
-            if doc:
-                yield doc
+    if yaml is not None:
+        with path.open() as f:
+            for doc in yaml.safe_load_all(f):
+                if doc:
+                    yield doc
+        return
+    yield from iter_docs_fallback(path)
+
+
+def iter_docs_fallback(path: Path):
+    """Small YAML fallback for the repository's simple Device/DeviceModel manifests."""
+    for raw_doc in path.read_text().split("---"):
+        lines = [line.rstrip("\n") for line in raw_doc.splitlines() if line.strip()]
+        if not lines:
+            continue
+        doc: dict[str, Any] = {"metadata": {}, "spec": {}}
+        section = None
+        in_properties = False
+        current_prop: dict[str, Any] | None = None
+        for line in lines:
+            stripped = line.strip()
+            indent = len(line) - len(line.lstrip(" "))
+            if indent == 0 and stripped.startswith("kind:"):
+                doc["kind"] = stripped.split(":", 1)[1].strip()
+            elif indent == 0 and stripped == "metadata:":
+                section = "metadata"
+                in_properties = False
+            elif indent == 0 and stripped == "spec:":
+                section = "spec"
+                in_properties = False
+            elif section == "metadata" and indent == 2 and stripped.startswith("name:"):
+                doc["metadata"]["name"] = stripped.split(":", 1)[1].strip().strip('"')
+            elif section == "metadata" and indent == 2 and stripped.startswith("namespace:"):
+                doc["metadata"]["namespace"] = stripped.split(":", 1)[1].strip().strip('"')
+            elif section == "spec" and indent == 2 and stripped == "deviceModelRef:":
+                doc["spec"].setdefault("deviceModelRef", {})
+                in_properties = False
+            elif section == "spec" and indent == 4 and stripped.startswith("name:") and "deviceModelRef" in doc["spec"] and not in_properties:
+                doc["spec"]["deviceModelRef"]["name"] = stripped.split(":", 1)[1].strip().strip('"')
+            elif section == "spec" and indent == 2 and stripped == "properties:":
+                doc["spec"]["properties"] = []
+                in_properties = True
+            elif in_properties and indent == 2 and stripped.startswith("-"):
+                current_prop = {}
+                doc["spec"]["properties"].append(current_prop)
+                rest = stripped[1:].strip()
+                if rest.startswith("name:"):
+                    current_prop["name"] = rest.split(":", 1)[1].strip().strip('"')
+                elif rest:
+                    key, _, value = rest.partition(":")
+                    current_prop[key] = parse_scalar(value.strip())
+            elif in_properties and current_prop is not None and indent == 4 and stripped.startswith("name:"):
+                current_prop["name"] = stripped.split(":", 1)[1].strip().strip('"')
+            elif in_properties and current_prop is not None and indent == 4 and stripped.startswith("reportToCloud:"):
+                current_prop["reportToCloud"] = parse_scalar(stripped.split(":", 1)[1].strip())
+            elif in_properties and current_prop is not None and indent == 4 and stripped == "pushMethod:":
+                current_prop["pushMethod"] = {}
+            elif in_properties and current_prop is not None and indent == 6 and stripped == "dbMethod:":
+                current_prop.setdefault("pushMethod", {})["dbMethod"] = {}
+            elif in_properties and current_prop is not None and indent == 8 and stripped.endswith(":"):
+                push_method = current_prop.setdefault("pushMethod", {})
+                db_method = push_method.setdefault("dbMethod", {})
+                db_method[stripped[:-1]] = {}
+        if doc.get("kind"):
+            yield doc
+
+
+def parse_scalar(value: str) -> Any:
+    value = value.strip().strip('"')
+    if value == "true":
+        return True
+    if value == "false":
+        return False
+    return value
 
 
 def main() -> int:
@@ -71,8 +146,14 @@ def main() -> int:
                 errors.append(f"{name}.{field}: status heartbeat field must not have pushMethod")
 
         for field, prop in props.items():
-            if field in RAW_FIELDS and prop.get("reportToCloud") is not False:
-                errors.append(f"{name}.{field}: raw telemetry must keep reportToCloud=false")
+            if field in RAW_FIELDS:
+                if prop.get("reportToCloud") is not False:
+                    errors.append(f"{name}.{field}: raw telemetry must keep reportToCloud=false")
+                db_method = (prop.get("pushMethod") or {}).get("dbMethod") or {}
+                if not db_method:
+                    errors.append(f"{name}.{field}: raw telemetry should define pushMethod.dbMethod for mapper DB storage")
+                elif "influxdb2" not in db_method:
+                    errors.append(f"{name}.{field}: raw telemetry dbMethod should include influxdb2")
 
     if errors:
         for error in errors:

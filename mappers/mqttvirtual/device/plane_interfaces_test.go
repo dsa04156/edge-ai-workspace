@@ -31,18 +31,18 @@ func TestDefaultStatusReporterImplementsStatusReporter(t *testing.T) {
 	var _ status.Reporter = status.DMIReporter{}
 }
 
-func TestMapperFrameworkMainPathExcludesRawTelemetryProperties(t *testing.T) {
+func TestMapperFrameworkDataPathAllowsRawTelemetryWhileDeviceStatusRejectsIt(t *testing.T) {
 	raw := []string{"temperature", "humidity", "vibration", "acceleration_x", "acceleration_y", "acceleration_z", "current", "voltage", "waveform"}
 	for _, field := range raw {
-		if shouldProcessMapperControlStatusProperty(&common.Twin{PropertyName: field, Property: &common.DeviceProperty{}}) {
-			t.Fatalf("raw telemetry field %q must be excluded from MapperFramework main path", field)
+		if shouldReportAsTwinProperty(&common.Twin{PropertyName: field, Property: &common.DeviceProperty{ReportToCloud: true}}) {
+			t.Fatalf("raw telemetry field %q must not be reported through DeviceStatus", field)
 		}
 	}
 
 	summary := []string{"health", "severity", "command_state", "control_response", "statusSource"}
 	for _, field := range summary {
-		if !shouldProcessMapperControlStatusProperty(&common.Twin{PropertyName: field, Property: &common.DeviceProperty{}}) {
-			t.Fatalf("summary field %q should remain in MapperFramework control/status path", field)
+		if !shouldReportAsTwinProperty(&common.Twin{PropertyName: field, Property: &common.DeviceProperty{ReportToCloud: true}}) {
+			t.Fatalf("summary field %q should remain eligible for DeviceStatus", field)
 		}
 	}
 }

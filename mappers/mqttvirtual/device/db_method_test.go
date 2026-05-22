@@ -21,9 +21,8 @@ func TestIsInfluxDBMethodRejectsOtherMethods(t *testing.T) {
 }
 
 func TestRawTelemetryPropertiesAreTrackedAsNonStatusFields(t *testing.T) {
-	// MapperFramework is not the production raw telemetry export engine. Raw sensor
-	// properties are tracked here only as a regression fixture for fields that must
-	// stay out of DeviceStatus/control-status processing.
+	// Raw sensor properties may use mapper DB export when dbMethod is configured,
+	// but they must stay out of DeviceStatus/control-status reporting.
 	rawProperties := []string{"raw", "value", "x", "y", "z", "temperature", "humidity", "vibration", "current", "voltage"}
 	if len(rawProperties) == 0 {
 		t.Fatal("raw property regression fixture is empty")

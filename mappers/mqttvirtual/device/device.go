@@ -26,7 +26,6 @@ import (
 	httpMethod "github.com/kubeedge/mqttvirtual/data/publish/http"
 	mqttMethod "github.com/kubeedge/mqttvirtual/data/publish/mqtt"
 	otelMethod "github.com/kubeedge/mqttvirtual/data/publish/otel"
-	"github.com/kubeedge/mqttvirtual/data/stream"
 	"github.com/kubeedge/mqttvirtual/driver"
 	"github.com/kubeedge/mqttvirtual/status"
 )
@@ -200,17 +199,6 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 			klog.Error(err)
 		}
 
-		// If the device property type is streaming, it will directly enter the streaming data processing function,
-		// such as saving frames or saving videos, and will no longer push it to the user database and application.
-		// If there are other needs for stream data processing, users can add functions in the mapper/data/stream directory.
-		if twin.Property.PProperty.DataType == "stream" {
-			err = stream.StreamHandler(&twin, dev.CustomizedClient, &visitorConfig)
-			if err != nil {
-				klog.Errorf("processed streaming data by %s Error: %v", twin.PropertyName, err)
-			}
-			continue
-		}
-
 		// handle twin
 		twinData := &TwinData{
 			DeviceName:      dev.Instance.Name,
@@ -228,17 +216,15 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 			eventTwinData[visitorConfig.JsonKey] = twinData
 		}
 
-		if !shouldProcessMapperControlStatusProperty(&twin) {
-			klog.V(4).Infof("skip mapper-framework data export for raw telemetry property device=%s property=%s", dev.Instance.Name, twin.PropertyName)
-			continue
-		}
-
 		dataModel := common.NewDataModel(dev.Instance.Name, twin.Property.PropertyName, dev.Instance.Namespace, common.WithType(twin.ObservedDesired.Metadata.Type))
-		// handle push method
-		if twin.Property.PushMethod.MethodConfig != nil && twin.Property.PushMethod.MethodName != "" {
+		// handle push publish path. This is independent from DeviceStatus reporting:
+		// any property with PushMethod.MethodName configured may be published even when
+		// it is raw telemetry and reportToCloud=false.
+		if twin.Property.PushMethod.MethodName != "" {
 			pushHandler(ctx, &twin, dev.CustomizedClient, &visitorConfig, dataModel)
 		}
-		// handle database
+		// handle database path. This is independent from DeviceStatus reporting:
+		// raw telemetry may flow to InfluxDB/DB handlers when dbMethod is configured.
 		if twin.Property.PushMethod.DBMethod.DBMethodName != "" {
 			dbHandler(ctx, &twin, dev.CustomizedClient, &visitorConfig, dataModel)
 		}
@@ -249,13 +235,6 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 }
 
 func shouldReportAsTwinProperty(twin *common.Twin) bool {
-	if twin == nil || twin.Property == nil {
-		return false
-	}
-	return status.IsSummaryField(twin.PropertyName)
-}
-
-func shouldProcessMapperControlStatusProperty(twin *common.Twin) bool {
 	if twin == nil || twin.Property == nil {
 		return false
 	}

@@ -20,7 +20,6 @@ import (
 	httpMethod "github.com/kubeedge/Template/data/publish/http"
 	mqttMethod "github.com/kubeedge/Template/data/publish/mqtt"
 	otelMethod "github.com/kubeedge/Template/data/publish/otel"
-	"github.com/kubeedge/Template/data/stream"
 	"github.com/kubeedge/Template/driver"
 	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
 	"github.com/kubeedge/mapper-framework/pkg/common"
@@ -132,17 +131,6 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 		err = setVisitor(&visitorConfig, &twin, dev)
 		if err != nil {
 			klog.Error(err)
-			continue
-		}
-
-		// If the device property type is streaming, it will directly enter the streaming data processing function,
-		// such as saving frames or saving videos, and will no longer push it to the user database and application.
-		// If there are other needs for stream data processing, users can add functions in the mapper/data/stream directory.
-		if twin.Property.PProperty.DataType == "stream" {
-			err = stream.StreamHandler(&twin, dev.CustomizedClient, &visitorConfig)
-			if err != nil {
-				klog.Errorf("processed streaming data by %s Error: %v", twin.PropertyName, err)
-			}
 			continue
 		}
 

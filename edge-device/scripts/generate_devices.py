@@ -89,11 +89,24 @@ RPI_GROUPS = [
 ]
 
 
+RAW_TELEMETRY_KEYS = {
+    "raw",
+    "value",
+    "temperature",
+    "humidity",
+    "vibration",
+    "current",
+    "voltage",
+    "x",
+    "y",
+    "z",
+}
+
+
 def should_store_to_influx(device_type: str, key: str) -> bool:
-    # MapperFramework refactor target: do not expand mqttvirtual into a raw
-    # telemetry export engine. Raw sensor ingestion moves to the EdgeX plane.
-    # Keep only low-frequency actuator health/liveness as control/status summary.
-    return device_type in {"act", "rpi-act"} and key == "health"
+    # Raw telemetry is not reported through DeviceStatus, but MapperFramework DB
+    # export is allowed when a property has dbMethod configured.
+    return key in RAW_TELEMETRY_KEYS
 
 
 def emit_influx_push_method(device_name: str, device_type: str, key: str) -> str:
