@@ -49,6 +49,8 @@ func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 	summary := status.BuildHeartbeatSummary(deviceStates.DeviceName, deviceStates.DeviceNamespace, now, states, err)
 	if err := (status.DMIReporter{}).Report(context.Background(), summary); err != nil {
 		klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", deviceStates.DeviceName, err)
+	} else {
+		klog.Infof("reported low-frequency DeviceStatus heartbeat device=%s namespace=%s fields=%d", deviceStates.DeviceName, deviceStates.DeviceNamespace, len(summary.Values))
 	}
 	if err != nil {
 		klog.Errorf("GetDeviceStates failed: %v", err)

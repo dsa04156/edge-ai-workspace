@@ -114,7 +114,10 @@ func (DMIReporter) Report(ctx context.Context, summary Summary) error {
 	req := &dmiapi.ReportDeviceStatusRequest{
 		DeviceName:      summary.DeviceName,
 		DeviceNamespace: summary.DeviceNamespace,
-		ReportedDevice:  &dmiapi.DeviceStatus{Twins: twins},
+		ReportedDevice: &dmiapi.DeviceStatus{
+			Twins:         twins,
+			ReportToCloud: true,
+		},
 	}
 	if err := grpcclient.ReportDeviceStatus(req); err != nil {
 		return fmt.Errorf("report DeviceStatus summary for %s failed: %w", summary.DeviceName, err)
