@@ -129,12 +129,12 @@ func (DMIReporter) Report(ctx context.Context, summary Summary) error {
 			ReportToCloud: true,
 		},
 	}
-	klog.V(4).Infof("ReportDeviceStatus request deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
+	klog.Infof("ReportDeviceStatus request deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
 	if err := grpcclient.ReportDeviceStatus(req); err != nil {
 		klog.Errorf("ReportDeviceStatus failed deviceName=%s namespace=%s twins=%d propertyNames=%v err=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames, err)
 		return fmt.Errorf("report DeviceStatus summary for %s failed: %w", summary.DeviceName, err)
 	}
-	klog.V(4).Infof("ReportDeviceStatus success deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
+	klog.Infof("ReportDeviceStatus success deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
 	return nil
 }
 
