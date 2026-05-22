@@ -19,6 +19,7 @@ package device
 import (
 	"context"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -55,6 +56,12 @@ func runStatusHeartbeatReporter(ctx context.Context, dev *driver.CustomizedDev) 
 		states, err := dev.CustomizedClient.GetDeviceStates()
 		now := time.Now().UTC()
 		summary := status.BuildHeartbeatSummary(dev.Instance.Name, dev.Instance.Namespace, now, states, err)
+		propertyNames := make([]string, 0, len(summary.Values))
+		for name := range summary.Values {
+			propertyNames = append(propertyNames, name)
+		}
+		sort.Strings(propertyNames)
+		klog.Infof("ReportDeviceStatus request deviceName=%s namespace=%s twins=%d propertyNames=%v", summary.DeviceName, summary.DeviceNamespace, len(propertyNames), propertyNames)
 		if reportErr := (status.DMIReporter{}).Report(ctx, summary); reportErr != nil {
 			klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", dev.Instance.Name, reportErr)
 			return
