@@ -42,21 +42,43 @@ type DeviceStates struct {
 	lastReportedAt  time.Time
 }
 
-// Run timer function.
-func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
-	states, err := deviceStates.Client.GetDeviceStates()
-	now := time.Now().UTC()
-	summary := status.BuildHeartbeatSummary(deviceStates.DeviceName, deviceStates.DeviceNamespace, now, states, err)
-	if err := (status.DMIReporter{}).Report(context.Background(), summary); err != nil {
-		klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", deviceStates.DeviceName, err)
-	} else {
-		klog.Infof("reported low-frequency DeviceStatus heartbeat device=%s namespace=%s fields=%d", deviceStates.DeviceName, deviceStates.DeviceNamespace, len(summary.Values))
-	}
-	if err != nil {
-		klog.Errorf("GetDeviceStates failed: %v", err)
+func runStatusHeartbeatReporter(ctx context.Context, dev *driver.CustomizedDev) {
+	if dev == nil || dev.CustomizedClient == nil {
+		klog.Warning("skip DeviceStatus heartbeat because device or customized client is nil")
 		return
 	}
-	if !envBool("DEVICE_STATES_REPORT_ENABLED", false) {
+	interval := durationFromEnv("DEVICE_STATUS_HEARTBEAT_SECONDS", defaultDeviceStatusHeartbeat)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	report := func() {
+		states, err := dev.CustomizedClient.GetDeviceStates()
+		now := time.Now().UTC()
+		summary := status.BuildHeartbeatSummary(dev.Instance.Name, dev.Instance.Namespace, now, states, err)
+		if reportErr := (status.DMIReporter{}).Report(ctx, summary); reportErr != nil {
+			klog.Errorf("fail to report low-frequency DeviceStatus heartbeat of %s with err: %+v", dev.Instance.Name, reportErr)
+			return
+		}
+		klog.Infof("reported low-frequency DeviceStatus heartbeat device=%s namespace=%s fields=%d interval=%s", dev.Instance.Name, dev.Instance.Namespace, len(summary.Values), interval)
+	}
+
+	report()
+	for {
+		select {
+		case <-ticker.C:
+			report()
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// Run timer function for the legacy DeviceStates path. DeviceStatus heartbeat is
+// handled by runStatusHeartbeatReporter and must not be gated by this path.
+func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
+	states, err := deviceStates.Client.GetDeviceStates()
+	if err != nil {
+		klog.Errorf("GetDeviceStates failed: %v", err)
 		return
 	}
 	heartbeatInterval := durationFromEnv("DEVICE_STATES_HEARTBEAT_SECONDS", defaultDeviceStatusHeartbeat)

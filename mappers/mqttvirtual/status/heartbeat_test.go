@@ -14,20 +14,22 @@ func TestBuildHeartbeatSummaryReportsOnlineMapperStatus(t *testing.T) {
 		t.Fatalf("unexpected heartbeat identity: %+v", summary)
 	}
 	want := map[string]string{
-		"health":         "online",
-		"severity":       "normal",
-		"online":         "true",
-		"mapperLastSeen": now.Format(time.RFC3339),
-		"statusLastSeen": now.Format(time.RFC3339),
-		"statusSource":   "mapper-framework",
+		"health":             "online",
+		"severity":           "normal",
+		"online":             "true",
+		"mapperLastSeen":     now.Format(time.RFC3339),
+		"statusLastSeen":     now.Format(time.RFC3339),
+		"statusSource":       "mapper-framework",
+		"last_error_code":    "",
+		"last_error_message": "",
+	}
+	if len(summary.Values) != len(want) {
+		t.Fatalf("heartbeat must contain exactly the allowed fields, got %+v", summary.Values)
 	}
 	for key, value := range want {
 		if summary.Values[key] != value {
 			t.Fatalf("heartbeat field %s = %q, want %q; summary=%+v", key, summary.Values[key], value, summary.Values)
 		}
-	}
-	if _, ok := summary.Values["last_error_code"]; ok {
-		t.Fatalf("online heartbeat should not include last_error_code: %+v", summary.Values)
 	}
 	if _, ok := summary.Values["temperature"]; ok {
 		t.Fatalf("heartbeat must not include raw telemetry fields: %+v", summary.Values)
@@ -47,6 +49,9 @@ func TestBuildHeartbeatSummaryReportsFailureStatus(t *testing.T) {
 		"statusSource":       "mapper-framework",
 		"last_error_code":    "mapper_status_error",
 		"last_error_message": "mqtt connection lost",
+	}
+	if len(summary.Values) != 8 {
+		t.Fatalf("failure heartbeat must contain exactly the allowed fields, got %+v", summary.Values)
 	}
 	for key, value := range want {
 		if summary.Values[key] != value {

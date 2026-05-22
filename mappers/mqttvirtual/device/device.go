@@ -161,15 +161,24 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 		klog.Error("dataHandler skipped because device or customized client is nil")
 		return
 	}
-	// handle device status report
-	getStates := &DeviceStates{
-		Client:          dev.CustomizedClient,
-		DeviceName:      dev.Instance.Name,
-		DeviceNamespace: dev.Instance.Namespace,
-		ReportToCloud:   dev.Instance.Status.ReportToCloud,
-		ReportCycle:     time.Millisecond * time.Duration(dev.Instance.Status.ReportCycle),
+	// Report low-frequency KubeEdge DeviceStatus heartbeat through DMI.
+	// This is the only supported DeviceStatus update path; cloud-side bridge/patch
+	// jobs must not synthesize DeviceStatus.
+	go runStatusHeartbeatReporter(ctx, dev)
+
+	// Keep legacy DeviceStates reporting separated and disabled by default.
+	// DeviceStatus heartbeat above must not depend on spec.status.reportToCloud or
+	// DEVICE_STATES_REPORT_ENABLED.
+	if envBool("DEVICE_STATES_REPORT_ENABLED", false) {
+		getStates := &DeviceStates{
+			Client:          dev.CustomizedClient,
+			DeviceName:      dev.Instance.Name,
+			DeviceNamespace: dev.Instance.Namespace,
+			ReportToCloud:   dev.Instance.Status.ReportToCloud,
+			ReportCycle:     time.Millisecond * time.Duration(dev.Instance.Status.ReportCycle),
+		}
+		go getStates.Run(ctx)
 	}
-	go getStates.Run(ctx)
 	// handle device twin report
 	eventTwinData := make(map[string]*TwinData)
 	for _, twin := range dev.Instance.Twins {

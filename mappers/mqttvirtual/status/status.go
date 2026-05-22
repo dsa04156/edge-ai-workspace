@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
+
+	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/api/apis/dmi/v1beta1"
 	"github.com/kubeedge/mapper-framework/pkg/common"
@@ -31,12 +34,14 @@ type Summary struct {
 func BuildHeartbeatSummary(deviceName, deviceNamespace string, now time.Time, state string, stateErr error) Summary {
 	stamp := now.UTC().Format(time.RFC3339)
 	values := map[string]string{
-		"health":         "online",
-		"severity":       "normal",
-		"online":         "true",
-		"mapperLastSeen": stamp,
-		"statusLastSeen": stamp,
-		"statusSource":   "mapper-framework",
+		"health":             "online",
+		"severity":           "normal",
+		"online":             "true",
+		"mapperLastSeen":     stamp,
+		"statusLastSeen":     stamp,
+		"statusSource":       "mapper-framework",
+		"last_error_code":    "",
+		"last_error_message": "",
 	}
 
 	if stateErr != nil {
@@ -110,6 +115,11 @@ func (DMIReporter) Report(ctx context.Context, summary Summary) error {
 	if len(twins) == 0 {
 		return nil
 	}
+	propertyNames := make([]string, 0, len(twins))
+	for _, twin := range twins {
+		propertyNames = append(propertyNames, twin.GetPropertyName())
+	}
+	sort.Strings(propertyNames)
 
 	req := &dmiapi.ReportDeviceStatusRequest{
 		DeviceName:      summary.DeviceName,
@@ -119,9 +129,12 @@ func (DMIReporter) Report(ctx context.Context, summary Summary) error {
 			ReportToCloud: true,
 		},
 	}
+	klog.V(4).Infof("ReportDeviceStatus request deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
 	if err := grpcclient.ReportDeviceStatus(req); err != nil {
+		klog.Errorf("ReportDeviceStatus failed deviceName=%s namespace=%s twins=%d propertyNames=%v err=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames, err)
 		return fmt.Errorf("report DeviceStatus summary for %s failed: %w", summary.DeviceName, err)
 	}
+	klog.V(4).Infof("ReportDeviceStatus success deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
 	return nil
 }
 
