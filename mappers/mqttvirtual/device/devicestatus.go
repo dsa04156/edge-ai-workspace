@@ -77,10 +77,6 @@ func (deviceStates *DeviceStates) PushStatesToEdgeCore() {
 }
 
 func (deviceStates *DeviceStates) Run(ctx context.Context) {
-	// No need to report device status to the cloud
-	if !deviceStates.ReportToCloud {
-		return
-	}
 	// Set device status report cycle
 	if deviceStates.ReportCycle == 0 {
 		deviceStates.ReportCycle = common.DefaultReportCycle

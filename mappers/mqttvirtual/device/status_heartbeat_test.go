@@ -22,6 +22,9 @@ func TestDeviceStatesReportsLowFrequencyDeviceStatusHeartbeat(t *testing.T) {
 			t.Fatalf("devicestatus.go must report low-frequency DeviceStatus heartbeat; missing marker %q", marker)
 		}
 	}
+	if strings.Contains(text, "if !deviceStates.ReportToCloud {\n\t\treturn\n\t}") {
+		t.Fatalf("DeviceStatus heartbeat must not be disabled by spec.status.reportToCloud=false")
+	}
 	if strings.Contains(text, "if !envBool(\"DEVICE_STATES_REPORT_ENABLED\", false) {\n\t\tklog.V(2)") {
 		t.Fatalf("DeviceStatus heartbeat must not be disabled by the legacy DeviceStates env gate")
 	}
