@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from io import StringIO
@@ -51,8 +52,35 @@ from(bucket: "{self._escape_flux_string(self.bucket)}")
   |> last()
   |> keep(columns: ["device_id", "property", "_time", "_value"])
 '''
+        text = await self._query(flux, timeout=5.0, log_message="Failed to query InfluxDB telemetry")
+        if not text:
+            return {}
+        return self._parse_csv(text)
+
+    async def get_history(self, device_id: str, window: str = "-30m", limit: int = 300) -> list[TelemetrySample]:
+        if not self.token:
+            logger.warning("InfluxDB token is not configured; skipping telemetry history query")
+            return []
+
+        safe_window = self._normalize_window(window)
+        safe_limit = max(1, min(int(limit), 1000))
+        flux = f'''
+from(bucket: "{self._escape_flux_string(self.bucket)}")
+  |> range(start: {safe_window})
+  |> filter(fn: (r) => r._measurement == "{self._escape_flux_string(self.measurement)}")
+  |> filter(fn: (r) => r.device_id == "{self._escape_flux_string(device_id)}")
+  |> keep(columns: ["device_id", "property", "_time", "_value"])
+  |> sort(columns: ["_time"], desc: false)
+  |> limit(n: {safe_limit})
+'''
+        text = await self._query(flux, timeout=10.0, log_message="Failed to query InfluxDB telemetry history")
+        if not text:
+            return []
+        return self._parse_csv_rows(text)
+
+    async def _query(self, flux: str, timeout: float, log_message: str) -> str | None:
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(
                     f"{self.url}/api/v2/query",
                     params={"org": self.org},
@@ -64,14 +92,19 @@ from(bucket: "{self._escape_flux_string(self.bucket)}")
                     content=flux,
                 )
                 response.raise_for_status()
+                return response.text
         except Exception:
-            logger.exception("Failed to query InfluxDB telemetry")
-            return {}
-
-        return self._parse_csv(response.text)
+            logger.exception(log_message)
+            return None
 
     def _parse_csv(self, content: str) -> dict[str, TelemetrySample]:
         samples: dict[str, TelemetrySample] = {}
+        for sample in self._parse_csv_rows(content):
+            samples[sample.device_id] = sample
+        return samples
+
+    def _parse_csv_rows(self, content: str) -> list[TelemetrySample]:
+        samples: list[TelemetrySample] = []
         data_lines = [
             line
             for line in content.splitlines()
@@ -89,12 +122,13 @@ from(bucket: "{self._escape_flux_string(self.bucket)}")
             timestamp = self._parse_time(timestamp_text)
             if timestamp is None:
                 continue
-            value: Any = row.get("_value")
-            samples[device_id] = TelemetrySample(
-                device_id=device_id,
-                timestamp=timestamp,
-                property=row.get("property") or None,
-                value=value,
+            samples.append(
+                TelemetrySample(
+                    device_id=device_id,
+                    timestamp=timestamp,
+                    property=row.get("property") or None,
+                    value=row.get("_value"),
+                )
             )
         return samples
 
@@ -104,6 +138,11 @@ from(bucket: "{self._escape_flux_string(self.bucket)}")
         except ValueError:
             logger.warning("Failed to parse InfluxDB timestamp: %s", value)
             return None
+
+    def _normalize_window(self, value: str) -> str:
+        if re.fullmatch(r"-[1-9][0-9]*[smhdw]", value or ""):
+            return value
+        return "-30m"
 
     def _escape_flux_string(self, value: str) -> str:
         return value.replace("\\", "\\\\").replace('"', '\\"')

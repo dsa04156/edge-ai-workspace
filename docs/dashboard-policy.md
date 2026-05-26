@@ -119,6 +119,8 @@ DeviceStatus/control heartbeat는 운영 snapshot 최신성 보조 신호로 표
 
 `/state/devices`는 최소한 다음 정보를 포함한다.
 
+`/state/devices/{device_id}/telemetry`는 선택한 device의 최근 InfluxDB telemetry samples를 시간순으로 반환하며 dashboard detail graph에서 사용한다. 기본 조회 범위는 `-30m`, 기본 limit은 `300`이다.
+
 ```json
 {
   "name": "env-arduino-temperature-01",

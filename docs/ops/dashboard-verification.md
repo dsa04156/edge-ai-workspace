@@ -113,7 +113,8 @@ Dashboard의 Explain Panel은 RAG 챗봇이나 LLM agent가 아니라 현재 `/s
 
 1. Device list에서 device row를 클릭한다.
 2. 우측 또는 하단 Explain Panel에 device 상세 필드와 적용 rule이 표시되는지 확인한다.
-3. Overview KPI 카드를 클릭한다.
+3. 선택한 device의 Explain Panel에 InfluxDB telemetry history graph가 표시되는지 확인한다.
+4. Overview KPI 카드를 클릭한다.
 4. KPI key, 현재 값, 정의 설명이 표시되는지 확인한다.
 5. 운영 상태 Issue/Focus 항목을 클릭한다.
 6. 우선 점검 대상이 된 이유와 다음 확인 위치가 표시되는지 확인한다.
@@ -132,6 +133,7 @@ Device row 클릭 시 표시되어야 하는 필드:
 | `telemetry_last_seen_at` | latest sample timestamp |
 | `telemetry_property` | latest sample property |
 | `telemetry_value` | latest sample value |
+| `telemetry history graph` | `/state/devices/{device_id}/telemetry`에서 조회한 최근 InfluxDB sample 추이 |
 | `device_status_fresh` | DeviceStatus snapshot freshness |
 | `device_status_last_reported_at` | DeviceStatus snapshot timestamp |
 | `mapper_running` | 할당 node mapper Running 여부 |

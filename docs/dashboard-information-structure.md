@@ -29,6 +29,7 @@ node state + device state + sensor data freshness + service binding + KPI -> 운
 |---|---|
 | `GET /state/dashboard` | dashboard 전체 데이터와 KPI 조회 |
 | `GET /state/devices` | device별 상태, telemetry, DeviceStatus, mapper 정보 조회 |
+| `GET /state/devices/{device_id}/telemetry` | device별 InfluxDB telemetry history 조회. device detail graph에 사용 |
 | `GET /state/nodes` | node별 상태와 metric 조회 |
 | `GET /state/summary` | 전체 운영 상태 요약 조회 |
 | `GET /metrics` | Prometheus scrape용 metric 제공 |
@@ -124,7 +125,7 @@ device_service_binding_ratio
 
 ## Explain Panel 표시 정책
 
-Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 `status`, `reason`, `node`, `sensor`, `last seen`, `mapper`, `service`로 제한한다.
+Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 `status`, `reason`, `node`, `sensor`, `last seen`, `mapper`, `service`이며, 하단에는 InfluxDB 최근 telemetry history graph를 표시한다.
 
 다음 값은 API에는 남기되 Explain Panel 기본 화면에서는 숨긴다.
 

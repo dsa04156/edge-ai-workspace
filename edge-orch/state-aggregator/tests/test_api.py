@@ -1310,3 +1310,37 @@ def test_device_status_bridge_writes_only_control_status_summary_fields():
     values = {twin["propertyName"]: twin["reported"]["value"] for twin in twins}
     assert values["health"] == "online"
     assert values["statusSource"] == "mapper-framework/bridge"
+
+
+def test_device_telemetry_history_endpoint_returns_recent_points(monkeypatch):
+    now = datetime.now(timezone.utc)
+
+    async def fake_history(device_id: str, window: str = "-30m", limit: int = 300):
+        assert device_id == "env-arduino-temperature-01"
+        assert window == "-10m"
+        assert limit == 2
+        return [
+            TelemetrySample(
+                device_id=device_id,
+                timestamp=now - timedelta(seconds=2),
+                property="temperature",
+                value="24.1",
+            ),
+            TelemetrySample(
+                device_id=device_id,
+                timestamp=now,
+                property="temperature",
+                value="24.3",
+            ),
+        ]
+
+    monkeypatch.setattr(service.telemetry, "get_history", fake_history, raising=False)
+
+    with TestClient(app) as client:
+        response = client.get("/state/devices/env-arduino-temperature-01/telemetry?window=-10m&limit=2")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [point["value"] for point in payload] == ["24.1", "24.3"]
+    assert payload[0]["property"] == "temperature"
+    assert payload[0]["device_id"] == "env-arduino-temperature-01"

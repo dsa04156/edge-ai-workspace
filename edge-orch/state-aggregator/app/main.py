@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -15,6 +15,7 @@ from .models import (
     DeviceState,
     OperatorAssistantState,
     SummaryState,
+    TelemetryPoint,
     WorkflowEvent,
     WorkflowState,
 )
@@ -64,6 +65,24 @@ async def get_nodes():
 @app.get("/state/devices", response_model=list[DeviceState])
 async def get_devices() -> list[DeviceState]:
     return await service.get_devices()
+
+
+@app.get("/state/devices/{device_id}/telemetry", response_model=list[TelemetryPoint])
+async def get_device_telemetry(
+    device_id: str,
+    window: str = Query(default="-30m", pattern=r"^-[1-9][0-9]*[smhdw]$"),
+    limit: int = Query(default=300, ge=1, le=1000),
+) -> list[TelemetryPoint]:
+    samples = await service.get_device_telemetry_history(device_id=device_id, window=window, limit=limit)
+    return [
+        TelemetryPoint(
+            device_id=sample.device_id,
+            timestamp=sample.timestamp,
+            property=sample.property,
+            value=sample.value,
+        )
+        for sample in samples
+    ]
 
 
 @app.get("/state/dashboard", response_model=DashboardState)

@@ -2,6 +2,7 @@ const state = {
   data: null,
   refreshMs: 5000,
   selectedDeviceName: null,
+  telemetryHistory: {},
   alerts: [],
 };
 
@@ -68,10 +69,10 @@ function explainDeviceRules(device) {
   const rules = [];
   const status = deviceStatus(device);
   if (status === "available" || status === "healthy") {
-    rules.push({ id: "Control OK", title: "control/status path available", text: "node와 mapper 경로가 살아 있고 control/status summary가 정상이라 available로 판단됩니다. 센서 데이터 freshness는 별도 KPI로 봅니다." });
+    rules.push({ id: "Telemetry OK", title: "latest telemetry sample is fresh", text: "node와 mapper 선행 조건이 정상이고 InfluxDB latest telemetry가 freshness 기준을 만족해 available로 판단됩니다." });
   }
   if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
-    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "센서 데이터 freshness가 낮습니다. availability 판단과는 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다." });
+    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "InfluxDB latest telemetry가 없거나 오래되어 degraded로 판단됩니다. publisher/MQTT/mapper/DB 적재 경로를 확인합니다." });
   }
   if (device.mapper_running === false) {
     rules.push({ id: "Mapper", title: "mapper not running", text: "이 device가 할당된 node에서 mqttvirtual mapper가 Running 상태가 아닙니다." });
@@ -151,6 +152,112 @@ function renderExplainFields(fields) {
     .join("")}</dl>`;
 }
 
+
+function numericValue(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatChartTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function renderTelemetryChart(points = []) {
+  const numericPoints = points
+    .map((point) => ({
+      ...point,
+      at: new Date(point.timestamp).getTime(),
+      numeric: numericValue(point.value),
+      property: point.property || "value",
+    }))
+    .filter((point) => Number.isFinite(point.at) && point.numeric !== null)
+    .sort((a, b) => a.at - b.at);
+
+  if (!points.length) {
+    return `<div class="telemetry-chart empty">InfluxDB history 데이터가 없습니다.</div>`;
+  }
+
+  if (!numericPoints.length) {
+    const recent = points.slice(-8).reverse();
+    return `
+      <div class="telemetry-chart">
+        <div class="chart-head"><strong>Recent telemetry</strong><span>non-numeric values</span></div>
+        <ul class="telemetry-values">${recent
+          .map((point) => `<li><span>${escapeHtml(formatChartTime(point.timestamp))}</span><strong>${escapeHtml(text(point.property, "value"))}=${escapeHtml(text(point.value))}</strong></li>`)
+          .join("")}</ul>
+      </div>
+    `;
+  }
+
+  const width = 420;
+  const height = 190;
+  const pad = { left: 42, right: 14, top: 18, bottom: 30 };
+  const minTime = Math.min(...numericPoints.map((point) => point.at));
+  const maxTime = Math.max(...numericPoints.map((point) => point.at));
+  const minValue = Math.min(...numericPoints.map((point) => point.numeric));
+  const maxValue = Math.max(...numericPoints.map((point) => point.numeric));
+  const timeSpan = Math.max(1, maxTime - minTime);
+  const valueSpan = Math.max(1, maxValue - minValue);
+  const x = (time) => pad.left + ((time - minTime) / timeSpan) * (width - pad.left - pad.right);
+  const y = (value) => height - pad.bottom - ((value - minValue) / valueSpan) * (height - pad.top - pad.bottom);
+  const colors = ["#2dd477", "#7c83ff", "#f6b84b", "#ff6b6b", "#55d6ff"];
+  const grouped = numericPoints.reduce((acc, point) => {
+    acc[point.property] = acc[point.property] || [];
+    acc[point.property].push(point);
+    return acc;
+  }, {});
+  const series = Object.entries(grouped).slice(0, 5);
+  const polylines = series
+    .map(([property, values], index) => {
+      const coordinates = values.map((point) => `${x(point.at).toFixed(1)},${y(point.numeric).toFixed(1)}`).join(" ");
+      return `<polyline points="${coordinates}" fill="none" stroke="${colors[index]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />`;
+    })
+    .join("");
+  const dots = series
+    .flatMap(([property, values], index) => values.slice(-24).map((point) => `<circle cx="${x(point.at).toFixed(1)}" cy="${y(point.numeric).toFixed(1)}" r="2.4" fill="${colors[index]}" />`))
+    .join("");
+  const legend = series
+    .map(([property], index) => `<span><i style="background:${colors[index]}"></i>${escapeHtml(property)}</span>`)
+    .join("");
+
+  return `
+    <div class="telemetry-chart">
+      <div class="chart-head"><strong>InfluxDB telemetry history</strong><span>${numericPoints.length} points · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))} - ${escapeHtml(formatChartTime(numericPoints.at(-1).timestamp))}</span></div>
+      <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Telemetry history chart">
+        <line x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}" />
+        <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${height - pad.bottom}" />
+        <text x="8" y="${y(maxValue).toFixed(1)}">${escapeHtml(maxValue.toFixed(2))}</text>
+        <text x="8" y="${y(minValue).toFixed(1)}">${escapeHtml(minValue.toFixed(2))}</text>
+        ${polylines}
+        ${dots}
+      </svg>
+      <div class="chart-legend">${legend}</div>
+    </div>
+  `;
+}
+
+async function loadDeviceTelemetry(deviceName) {
+  const chart = $("telemetryChart");
+  if (!chart || !deviceName) return;
+  chart.innerHTML = `<div class="telemetry-chart empty">InfluxDB history 조회 중...</div>`;
+  try {
+    const response = await fetch(`/state/devices/${encodeURIComponent(deviceName)}/telemetry?window=-30m&limit=300`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`telemetry history api failed: ${response.status}`);
+    const points = await response.json();
+    state.telemetryHistory[deviceName] = points;
+    if (state.selectedDeviceName === deviceName) {
+      chart.innerHTML = renderTelemetryChart(points);
+    }
+  } catch (error) {
+    if (state.selectedDeviceName === deviceName) {
+      chart.innerHTML = `<div class="telemetry-chart empty">${escapeHtml(error.message)}</div>`;
+    }
+  }
+}
+
 function showDeviceExplanation(device) {
   const panel = $("explainPanel");
   if (!panel || !device) return;
@@ -169,8 +276,10 @@ function showDeviceExplanation(device) {
       ["mapper", device.mapper_running ? "running" : "not running"],
       ["service", device.service_demo_group || "service pending"],
     ])}
+    <div id="telemetryChart">${renderTelemetryChart(state.telemetryHistory[device.name] || [])}</div>
     ${renderRuleList(explainDeviceRules(device))}
   `;
+  loadDeviceTelemetry(device.name);
 }
 
 function kpiKeysForCard(key) {
@@ -488,6 +597,7 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined") {
   module.exports = {
     explainDeviceRules,
+    renderTelemetryChart,
     explainKpi,
     issueExplanation,
     deviceStatus,

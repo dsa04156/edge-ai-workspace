@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
-            <span class="badge">수정: 2026-05-26 10:40</span>
-            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
+            <span class="badge">수정: 2026-05-26 11:00</span>
+            <span class="badge">HTML 생성: 2026-05-26 11:00</span>
           </div>
         </header>
         
@@ -124,6 +124,10 @@
 <tr>
 <td><code>GET /state/devices</code></td>
 <td>device별 상태, telemetry, DeviceStatus, mapper 정보 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/devices/{device_id}/telemetry</code></td>
+<td>device별 InfluxDB telemetry history 조회. device detail graph에 사용</td>
 </tr>
 <tr>
 <td><code>GET /state/nodes</code></td>
@@ -402,7 +406,7 @@ device_service_binding_ratio</code></pre>
 </tr>
 </tbody></table></div>
 <h2 id="explain-panel-표시-정책">Explain Panel 표시 정책</h2>
-<p>Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 <code>status</code>, <code>reason</code>, <code>node</code>, <code>sensor</code>, <code>last seen</code>, <code>mapper</code>, <code>service</code>로 제한한다.</p>
+<p>Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 <code>status</code>, <code>reason</code>, <code>node</code>, <code>sensor</code>, <code>last seen</code>, <code>mapper</code>, <code>service</code>이며, 하단에는 InfluxDB 최근 telemetry history graph를 표시한다.</p>
 <p>다음 값은 API에는 남기되 Explain Panel 기본 화면에서는 숨긴다.</p>
 <ul><li><code>device_type</code>, <code>protocol</code>, <code>model</code>, <code>namespace</code> 같은 식별/구현 세부값</li><li><code>telemetry_enabled</code>, <code>service_connected</code> 같은 내부 boolean</li><li><code>device_status_fresh</code>, <code>device_status_last_reported_at</code> 같은 status-plane snapshot 보조값</li><li><code>service_binding_source</code>, <code>service_binding_reason</code> 같은 binding 내부 설명</li></ul>
 <p>Issue 설명은 node, mapper, sensor freshness 순서로 원인 후보만 보여준다. DeviceStatus stale은 센서 데이터가 fresh한 경우 운영 문제로 띄우지 않는다. DeviceStatus 상세 확인이 필요하면 <code>/state/devices</code> API 또는 DeviceStatus 정책 문서에서 확인한다.</p>

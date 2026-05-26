@@ -106,6 +106,13 @@ class NodeState(BaseModel):
     node_health: HealthLevel
 
 
+class TelemetryPoint(BaseModel):
+    device_id: str
+    timestamp: datetime
+    property: str | None = None
+    value: str | float | int | bool | None = None
+
+
 class DeviceState(BaseModel):
     name: str
     namespace: str

@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/dashboard-verification.md</span>
-            <span class="badge">수정: 2026-05-26 10:39</span>
-            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
+            <span class="badge">수정: 2026-05-26 11:00</span>
+            <span class="badge">HTML 생성: 2026-05-26 11:00</span>
           </div>
         </header>
         
@@ -263,7 +263,7 @@ autonomous agent action</code></pre>
 <h2 id="5-explain-panel">5. Explain Panel</h2>
 <p>Dashboard의 Explain Panel은 RAG 챗봇이나 LLM agent가 아니라 현재 <code>/state/dashboard</code> payload를 deterministic JavaScript rule로 해석하는 read-only 설명 영역이다.</p>
 <p>확인 방법:</p>
-<ol><li>Device list에서 device row를 클릭한다.</li><li>우측 또는 하단 Explain Panel에 device 상세 필드와 적용 rule이 표시되는지 확인한다.</li><li>Overview KPI 카드를 클릭한다.</li><li>KPI key, 현재 값, 정의 설명이 표시되는지 확인한다.</li><li>운영 상태 Issue/Focus 항목을 클릭한다.</li><li>우선 점검 대상이 된 이유와 다음 확인 위치가 표시되는지 확인한다.</li></ol>
+<ol><li>Device list에서 device row를 클릭한다.</li><li>우측 또는 하단 Explain Panel에 device 상세 필드와 적용 rule이 표시되는지 확인한다.</li><li>선택한 device의 Explain Panel에 InfluxDB telemetry history graph가 표시되는지 확인한다.</li><li>Overview KPI 카드를 클릭한다.</li><li>KPI key, 현재 값, 정의 설명이 표시되는지 확인한다.</li><li>운영 상태 Issue/Focus 항목을 클릭한다.</li><li>우선 점검 대상이 된 이유와 다음 확인 위치가 표시되는지 확인한다.</li></ol>
 <p>Device row 클릭 시 표시되어야 하는 필드:</p>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -310,6 +310,10 @@ autonomous agent action</code></pre>
 <tr>
 <td><code>telemetry_value</code></td>
 <td>latest sample value</td>
+</tr>
+<tr>
+<td><code>telemetry history graph</code></td>
+<td><code>/state/devices/{device_id}/telemetry</code>에서 조회한 최근 InfluxDB sample 추이</td>
 </tr>
 <tr>
 <td><code>device_status_fresh</code></td>

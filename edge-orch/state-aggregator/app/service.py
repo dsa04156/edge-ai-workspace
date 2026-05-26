@@ -120,6 +120,9 @@ class StateAggregatorService:
             migration_cost_stats=self.store.get_migration_cost_stats(),
         )
 
+    async def get_device_telemetry_history(self, device_id: str, window: str = "-30m", limit: int = 300) -> list[TelemetrySample]:
+        return await self.telemetry.get_history(device_id=device_id, window=window, limit=limit)
+
     async def get_devices(self) -> list[DeviceState]:
         raw_devices = await self.kube.get_devices()
         raw_statuses = await self.kube.get_device_statuses()
