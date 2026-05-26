@@ -8,9 +8,9 @@ spec:
     name: jetson-sensor-acceleration-model
   nodeName: etri-dev0001-jetorn
   properties:
-  - collectCycle: 5000
+  - collectCycle: 1000
     name: x
-    reportCycle: 5000
+    reportCycle: 1000
     reportToCloud: false
     visitors:
       configData:
@@ -30,9 +30,9 @@ spec:
               device_id: vib-arduino-acceleration-01
               property: x
             fieldKey: value
-  - collectCycle: 5000
+  - collectCycle: 1000
     name: "y"
-    reportCycle: 5000
+    reportCycle: 1000
     reportToCloud: false
     visitors:
       configData:
@@ -52,9 +52,9 @@ spec:
               device_id: vib-arduino-acceleration-01
               property: "y"
             fieldKey: value
-  - collectCycle: 5000
+  - collectCycle: 1000
     name: z
-    reportCycle: 5000
+    reportCycle: 1000
     reportToCloud: false
     visitors:
       configData:

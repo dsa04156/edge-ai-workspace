@@ -8,9 +8,9 @@ spec:
     name: jetson-sensor-temperature-model
   nodeName: etri-dev0001-jetorn
   properties:
-  - collectCycle: 5000
+  - collectCycle: 1000
     name: raw
-    reportCycle: 5000
+    reportCycle: 1000
     reportToCloud: false
     visitors:
       configData:
