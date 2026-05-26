@@ -53,7 +53,7 @@ func runStatusHeartbeatReporter(ctx context.Context, dev *driver.CustomizedDev) 
 	defer ticker.Stop()
 
 	report := func() {
-		states, err := dev.CustomizedClient.GetDeviceStates()
+		states, err := dev.CustomizedClient.GetDeviceStatusSummaryState()
 		now := time.Now().UTC()
 		summary := status.BuildHeartbeatSummary(dev.Instance.Name, dev.Instance.Namespace, now, states, err)
 		propertyNames := make([]string, 0, len(summary.Values))

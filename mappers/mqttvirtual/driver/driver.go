@@ -276,6 +276,28 @@ func (c *CustomizedClient) GetDeviceStates() (string, error) {
 	return common.DeviceStatusOnline, nil
 }
 
+func (c *CustomizedClient) GetDeviceStatusSummaryState() (string, error) {
+	if c == nil || c.Client == nil {
+		return common.DeviceStatusDisCONN, nil
+	}
+	if !c.Client.IsConnectionOpen() {
+		return common.DeviceStatusDisCONN, nil
+	}
+
+	c.deviceMutex.Lock()
+	lastSeenAt := c.LastSeenAt
+	hasTelemetry := c.HasTelemetry
+	c.deviceMutex.Unlock()
+
+	if !hasTelemetry || lastSeenAt.IsZero() {
+		return "telemetry_missing", nil
+	}
+	if time.Since(lastSeenAt) > c.telemetryOfflineAfter() {
+		return "telemetry_stale", nil
+	}
+	return common.DeviceStatusOnline, nil
+}
+
 func (c *CustomizedClient) PublishCommand(visitor *VisitorConfig, propertyName string, data interface{}) error {
 	key := propertyName
 	if visitor != nil && visitor.JsonKey != "" {
