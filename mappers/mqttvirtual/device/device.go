@@ -161,8 +161,9 @@ func dataHandler(ctx context.Context, dev *driver.CustomizedDev) {
 		return
 	}
 	// Report low-frequency KubeEdge DeviceStatus heartbeat through DMI.
-	// This is the only supported DeviceStatus update path; cloud-side bridge/patch
-	// jobs must not synthesize DeviceStatus.
+	// DMI remains the primary KubeEdge DeviceStatus path; the reporter also patches
+	// the Kubernetes status subresource when enabled so cloud-visible Device.status
+	// stays available in clusters where DMI status is not propagated upstream.
 	go runStatusHeartbeatReporter(ctx, dev)
 
 	// Keep legacy DeviceStates reporting separated and disabled by default.

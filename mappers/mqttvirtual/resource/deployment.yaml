@@ -19,6 +19,8 @@ spec:
         edge.device/mapper: mqttvirtual
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: mqttvirtual-mapper
+      automountServiceAccountToken: true
       containers:
         - name: mqttvirtual
           volumeMounts:
@@ -40,6 +42,8 @@ spec:
               value: "120"
             - name: DEVICE_STATES_REPORT_ENABLED
               value: "false"
+            - name: DEVICE_STATUS_K8S_PATCH_ENABLED
+              value: "true"
             - name: INFLUXDB_BATCH_FLUSH_SECONDS
               value: "30"
             - name: INFLUXDB_BATCH_SIZE

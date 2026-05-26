@@ -129,6 +129,10 @@ func (DMIReporter) Report(ctx context.Context, summary Summary) error {
 		return fmt.Errorf("report DeviceStatus summary for %s failed: %w", summary.DeviceName, err)
 	}
 	klog.Infof("ReportDeviceStatus success deviceName=%s namespace=%s twins=%d propertyNames=%v", req.DeviceName, req.DeviceNamespace, len(req.ReportedDevice.GetTwins()), propertyNames)
+	if err := reportKubernetesDeviceStatus(ctx, summary, values); err != nil {
+		klog.Errorf("patch Kubernetes Device status failed deviceName=%s namespace=%s propertyNames=%v err=%v", summary.DeviceName, summary.DeviceNamespace, propertyNames, err)
+		return fmt.Errorf("patch Kubernetes Device status for %s failed: %w", summary.DeviceName, err)
+	}
 	return nil
 }
 
