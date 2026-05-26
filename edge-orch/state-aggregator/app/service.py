@@ -42,20 +42,25 @@ class StateAggregatorService:
         )
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
+        self._device_status_bridge_task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._poller_task is None:
             self._poller_task = asyncio.create_task(self._poll_prometheus())
+        if self.settings.device_status_bridge_enabled and self._device_status_bridge_task is None:
+            self._device_status_bridge_task = asyncio.create_task(self._bridge_device_status_heartbeats())
 
     async def stop(self) -> None:
-        if self._poller_task is None:
-            return
-        self._poller_task.cancel()
-        try:
-            await self._poller_task
-        except asyncio.CancelledError:
-            pass
+        tasks = [task for task in (self._poller_task, self._device_status_bridge_task) if task is not None]
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
         self._poller_task = None
+        self._device_status_bridge_task = None
 
     async def _poll_prometheus(self) -> None:
         while True:
@@ -64,6 +69,16 @@ class StateAggregatorService:
             except Exception:
                 logger.exception("Failed to refresh Prometheus node metrics")
             await asyncio.sleep(self.settings.poll_interval_seconds)
+
+    async def _bridge_device_status_heartbeats(self) -> None:
+        while True:
+            try:
+                patched = await self.kube.bridge_device_status_heartbeats()
+                if patched:
+                    logger.info("bridged DeviceStatus heartbeats for %s device(s)", patched)
+            except Exception:
+                logger.exception("Failed to bridge DeviceStatus heartbeats")
+            await asyncio.sleep(self.settings.device_status_bridge_interval_seconds)
 
     async def refresh_nodes(self) -> list[NodeState]:
         # Dynamically discover nodes from K8s API

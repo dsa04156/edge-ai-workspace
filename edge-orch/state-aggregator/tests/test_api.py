@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta, timezone
+import asyncio
 
 from fastapi.testclient import TestClient
 
 from app.main import app, service
 from app.influx import InfluxTelemetryClient, TelemetrySample
+from app.kube import KubeClient
 from app.models import DeviceState, NodeState, WorkflowState
 
 
@@ -1225,3 +1227,51 @@ def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypa
     assert payload["devices"][0]["telemetry_enabled"] is True
     assert payload["kpis"]["telemetry_device_count"] == 1
     assert payload["devices"][0]["overall_status"] == "available"
+
+
+def test_device_status_bridge_writes_only_control_status_summary_fields():
+    patched_bodies = []
+
+    class DummyCustom:
+        def patch_namespaced_custom_object(self, **kwargs):
+            patched_bodies.append(kwargs["body"])
+
+    kube = KubeClient.__new__(KubeClient)
+    kube.enabled = True
+    kube.custom = DummyCustom()
+
+    async def fake_devices():
+        return [
+            {
+                "metadata": {"name": "env-arduino-temperature-01", "namespace": "default"},
+                "spec": {"nodeName": "etri-dev0001-jetorn"},
+            }
+        ]
+
+    async def fake_mapper_nodes(namespace="default"):
+        return {"etri-dev0001-jetorn"}
+
+    kube.get_devices = fake_devices
+    kube.get_running_mapper_nodes = fake_mapper_nodes
+
+    patched = asyncio.run(kube.bridge_device_status_heartbeats())
+
+    assert patched == 1
+    twins = patched_bodies[0]["status"]["twins"]
+    names = {twin["propertyName"] for twin in twins}
+    assert names == {
+        "health",
+        "severity",
+        "online",
+        "mapperLastSeen",
+        "statusLastSeen",
+        "statusSource",
+        "last_error_code",
+        "last_error_message",
+    }
+    assert "temperature" not in names
+    assert "humidity" not in names
+    assert "vibration" not in names
+    values = {twin["propertyName"]: twin["reported"]["value"] for twin in twins}
+    assert values["health"] == "online"
+    assert values["statusSource"] == "mapper-framework/bridge"

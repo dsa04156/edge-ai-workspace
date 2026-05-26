@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from kubernetes import client, config
@@ -131,6 +132,79 @@ class KubeClient:
                 continue
             nodes.add(pod.spec.node_name)
         return nodes
+
+    async def bridge_device_status_heartbeats(self, namespace: str = "default") -> int:
+        """Refresh DeviceStatus summary twins from live control-plane state.
+
+        This cloud-side bridge is a safety path for clusters where mapper DMI
+        ReportDeviceStatus succeeds at the edge but the cloud DeviceStatus CR is
+        not persisted. It writes only control/status summary fields; raw sensor
+        telemetry stays out of DeviceStatus.
+        """
+        if not self.enabled:
+            return 0
+
+        devices = await self.get_devices()
+        mapper_nodes = await self.get_running_mapper_nodes(namespace=namespace)
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        patched = 0
+
+        for item in devices:
+            metadata = item.get("metadata", {}) if isinstance(item, dict) else {}
+            spec = item.get("spec", {}) if isinstance(item, dict) else {}
+            name = metadata.get("name")
+            item_namespace = metadata.get("namespace") or namespace
+            node_name = spec.get("nodeName", "")
+            if not name or item_namespace != namespace:
+                continue
+
+            mapper_running = node_name in mapper_nodes
+            state = "online" if mapper_running else "offline"
+            health = "online" if mapper_running else "offline"
+            severity = "normal" if mapper_running else "critical"
+            payload = {
+                "status": {
+                    "state": state,
+                    "lastOnlineTime": now,
+                    "twins": [
+                        self._status_twin("health", health, now),
+                        self._status_twin("severity", severity, now),
+                        self._status_twin("online", "true" if mapper_running else "false", now),
+                        self._status_twin("mapperLastSeen", now if mapper_running else "", now),
+                        self._status_twin("statusLastSeen", now, now),
+                        self._status_twin("statusSource", "mapper-framework/bridge", now),
+                        self._status_twin("last_error_code", "" if mapper_running else "mapper_not_running", now),
+                        self._status_twin(
+                            "last_error_message",
+                            "" if mapper_running else f"mqttvirtual mapper is not running on node {node_name}",
+                            now,
+                        ),
+                    ],
+                }
+            }
+            try:
+                self.custom.patch_namespaced_custom_object(
+                    group="devices.kubeedge.io",
+                    version="v1beta1",
+                    namespace=item_namespace,
+                    plural="devicestatuses",
+                    name=name,
+                    body=payload,
+                )
+                patched += 1
+            except Exception:
+                logger.exception("Failed to bridge DeviceStatus heartbeat for %s/%s", item_namespace, name)
+        return patched
+
+    def _status_twin(self, name: str, value: str, timestamp: str) -> dict[str, Any]:
+        return {
+            "propertyName": name,
+            "observedDesired": {"value": "", "metadata": {}},
+            "reported": {
+                "value": value,
+                "metadata": {"type": "string", "timestamp": timestamp},
+            },
+        }
 
     def _pod_ready(self, pod: client.V1Pod) -> bool:
         status = pod.status

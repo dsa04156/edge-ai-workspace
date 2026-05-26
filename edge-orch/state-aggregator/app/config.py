@@ -48,6 +48,13 @@ class Settings(BaseModel):
     mapper_heartbeat_fresh_seconds: int = Field(
         default_factory=lambda: int(os.getenv("MAPPER_HEARTBEAT_FRESH_SECONDS", "60"))
     )
+    device_status_bridge_enabled: bool = Field(
+        default_factory=lambda: os.getenv("DEVICE_STATUS_BRIDGE_ENABLED", "false").lower()
+        not in {"0", "false", "no", "off"}
+    )
+    device_status_bridge_interval_seconds: int = Field(
+        default_factory=lambda: int(os.getenv("DEVICE_STATUS_BRIDGE_INTERVAL_SECONDS", "30"))
+    )
     telemetry_query_window: str = Field(
         default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
     )
