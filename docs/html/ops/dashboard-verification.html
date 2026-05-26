@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/dashboard-verification.md</span>
-            <span class="badge">수정: 2026-05-19 15:46</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:39</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -223,7 +223,7 @@
 </tr>
 </tbody></table></div>
 <p>정상 기준:</p>
-<ul><li>telemetry-enabled device는 <code>telemetry_fresh=true</code>이면 DeviceStatus stale이어도 healthy 가능하다.</li><li><code>node_ready=false</code>, <code>mapper_running=false</code>, <code>telemetry_fresh=false</code>는 reason 또는 issue/focus list에서 원인이 보여야 한다.</li></ul>
+<ul><li>telemetry-enabled device는 <code>telemetry_fresh=true</code>이면 DeviceStatus stale이어도 <code>available</code> 가능하다.</li><li><code>node_ready=false</code>, <code>mapper_running=false</code>, <code>telemetry_fresh=false</code>는 reason 또는 issue/focus list에서 원인이 보여야 한다.</li></ul>
 <h2 id="3-service-binding-relation-view">3. Service Binding / Relation View</h2>
 <p>연결 관계 영역에서 다음 흐름이 보여야 한다.</p>
 <pre data-lang="text"><code>Device -&gt; Edge Node -&gt; Telemetry/Status -&gt; Service Demo</code></pre>
@@ -235,15 +235,15 @@
 </tr></thead>
 <tbody>
 <tr>
-<td><code>env-device-*</code>, <code>rpi-env-device-*</code>, <code>temp-device-01</code></td>
+<td><code>env-arduino-temperature-01</code>, <code>env-arduino-light-01</code>, <code>env-arduino-magnetic-01</code></td>
 <td>환경 상태 모니터링</td>
 </tr>
 <tr>
-<td><code>vib-device-*</code>, <code>rpi-vib-device-*</code></td>
+<td><code>vib-arduino-acceleration-01</code></td>
 <td>설비/진동 상태 모니터링</td>
 </tr>
 <tr>
-<td><code>act-device-*</code>, <code>rpi-act-device-*</code></td>
+<td><code>act-*</code>, <code>rpi-act-*</code> future 후보</td>
 <td>command 상태 확인</td>
 </tr>
 </tbody></table></div>
@@ -346,8 +346,8 @@ autonomous agent action</code></pre>
 <tbody>
 <tr>
 <td>Rule A</td>
-<td><code>overall_status=healthy</code>, <code>telemetry_fresh=true</code></td>
-<td>InfluxDB latest telemetry가 fresh하므로 healthy</td>
+<td><code>overall_status=available</code>, <code>telemetry_fresh=true</code></td>
+<td>InfluxDB latest telemetry가 fresh하므로 available</td>
 </tr>
 <tr>
 <td>Rule B</td>
@@ -381,7 +381,7 @@ autonomous agent action</code></pre>
 </tr>
 </tbody></table></div>
 <p>KPI 설명 확인 기준:</p>
-<ul><li><code>registered_device_count</code>: KubeEdge에 등록된 전체 Device CR 수</li><li><code>live_device_count</code>: state-aggregator 최종 status가 healthy인 device 수</li><li><code>telemetry_device_count</code>: telemetry_enabled device 수</li><li><code>device_telemetry_ratio</code>: telemetry configured ratio. freshness 비율 아님</li><li><code>fresh_telemetry_device_count</code>: telemetry_fresh == true인 device 수</li><li><code>telemetry_freshness_ratio</code>: fresh telemetry device 수 / telemetry_enabled device 수</li><li><code>fresh_device_status_count</code>: device_status_fresh == true인 device 수</li><li><code>device_status_freshness_ratio</code>: fresh DeviceStatus device 수 / 전체 device 수</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li><li><code>service_bound_device_count</code>: service demo group에 연결된 device 수</li><li><code>device_service_binding_ratio</code>: service-bound device 수 / 전체 registered device 수</li></ul>
+<ul><li><code>registered_device_count</code>: KubeEdge에 등록된 전체 Device CR 수</li><li><code>live_device_count</code>: state-aggregator 최종 status가 <code>available</code> 또는 기존 호환 <code>healthy</code>인 device 수</li><li><code>telemetry_device_count</code>: telemetry_enabled device 수</li><li><code>device_telemetry_ratio</code>: telemetry configured ratio. freshness 비율 아님</li><li><code>fresh_telemetry_device_count</code>: telemetry_fresh == true인 device 수</li><li><code>telemetry_freshness_ratio</code>: fresh telemetry device 수 / telemetry_enabled device 수</li><li><code>fresh_device_status_count</code>: device_status_fresh == true인 device 수</li><li><code>device_status_freshness_ratio</code>: fresh DeviceStatus device 수 / 전체 device 수</li><li><code>operator_focus_count</code>: degraded/unavailable device 수 + non-healthy node 수</li><li><code>service_bound_device_count</code>: service demo group에 연결된 device 수</li><li><code>device_service_binding_ratio</code>: service-bound device 수 / 전체 registered device 수</li></ul>
 <p>Issue/Focus 설명 확인 기준:</p>
 <ul><li><code>telemetry_fresh=false</code>: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태 확인</li><li><code>mapper_running=false</code>: mapper pod와 node 배치 확인</li><li><code>node_ready=false</code>: node 상태와 edgecore/cloudcore 확인</li><li><code>device_status_fresh=false</code> + <code>telemetry_fresh=true</code>: DeviceStatus report path 확인</li></ul>
 <h2 id="6-workflow-designer-확인">6. Workflow Designer 확인</h2>
@@ -424,7 +424,7 @@ DeviceStatus stale but telemetry fresh</code></pre>
 <ul><li><code>recent InfluxDB telemetry</code>: data-plane latest sample이 fresh하다.</li><li><code>InfluxDB telemetry stale</code>: publisher/MQTT/mapper/InfluxDB 경로 중 하나가 끊겼을 수 있다.</li><li><code>assigned mapper is not running</code>: 해당 node의 mqttvirtual mapper부터 확인한다.</li><li><code>assigned node is unavailable</code>: node/Prometheus/node-exporter 상태부터 확인한다.</li><li><code>DeviceStatus stale but telemetry fresh</code>: status-plane은 오래됐지만 data-plane은 살아 있으므로 healthy 가능하다.</li></ul>
 <h2 id="8-influxdb-timestamp-표시-해석">8. InfluxDB timestamp 표시 해석</h2>
 <p>Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.</p>
-<ul><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다.</li><li>실제 telemetry sample timestamp는 <code>_time</code>이다.</li><li>Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이다.</li><li>property별 latest freshness를 보장하지 않는다.</li><li>act/rpi-act device의 dashboard freshness 기준 property는 현재 <code>health</code> liveness row다.</li><li><code>ts</code>는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.</li></ul>
+<ul><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다.</li><li>실제 telemetry sample timestamp는 <code>_time</code>이다.</li><li>Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이다.</li><li>property별 latest freshness를 보장하지 않는다.</li><li>act/rpi-act device의 dashboard freshness 기준 property는 future/compatibility 기준으로 <code>health</code> liveness row를 사용할 수 있다.</li><li><code>ts</code>는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.</li></ul>
 <h2 id="9-api-기반-빠른-확인">9. API 기반 빠른 확인</h2>
 <p>port-forward:</p>
 <pre data-lang="bash"><code>kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
@@ -437,7 +437,7 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pr
 <pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03</code></pre>
 <h2 id="10-화면-정상-판정">10. 화면 정상 판정</h2>
 <p>정상 화면은 다음을 만족한다.</p>
-<ol><li>Overview KPI에서 telemetry configured ratio와 telemetry freshness ratio가 분리되어 보인다.</li><li>DeviceStatus freshness ratio가 telemetry freshness와 별도 KPI로 보인다.</li><li>Device list에서 telemetry property, latest timestamp, mapper/node 상태, reason을 확인할 수 있다.</li><li>Relation view에서 device-service binding이 보인다.</li><li>Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.</li><li>act/rpi-act device는 <code>telemetry_property=health</code>로 liveness를 설명한다.</li><li>workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.</li></ol>
+<ol><li>Overview KPI에서 telemetry configured ratio와 telemetry freshness ratio가 분리되어 보인다.</li><li>DeviceStatus freshness ratio가 telemetry freshness와 별도 KPI로 보인다.</li><li>Device list에서 telemetry property, latest timestamp, mapper/node 상태, reason을 확인할 수 있다.</li><li>Relation view에서 device-service binding이 보인다.</li><li>Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.</li><li>현재 4개 Arduino sensor device는 InfluxDB latest sample <code>_time</code>으로 freshness를 설명한다.</li><li>workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.</li></ol>
 <h2 id="workflow-designer-검증">Workflow Designer 검증</h2>
 <p>Workflow Designer는 dashboard와 분리된 read-only + dry-run 설계 화면으로 검증한다.</p>
 <p>확인 항목:</p>

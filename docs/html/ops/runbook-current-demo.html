@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: ops/runbook-current-demo.md</span>
-            <span class="badge">수정: 2026-05-19 15:46</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:40</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -105,7 +105,7 @@
 <h2 id="목적">목적</h2>
 <p>이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC의 서비스 데모를 운영자 기준으로 실행하고 점검하는 절차다.</p>
 <p>운영자가 확인해야 하는 범위는 다음이다.</p>
-<ul><li>device가 등록되어 있는가?</li><li>device가 의도한 edge node에 할당되어 있는가?</li><li>Kubernetes Ready(<code>kubectl get nodes</code>)와 dashboard <code>node_ready</code>를 구분해 확인했는가?</li><li>mapper가 Running인가?</li><li>publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?</li><li>InfluxDB raw telemetry가 최신인가?</li><li>InfluxDB latest telemetry가 healthy 판단의 1차 기준이다.</li><li>telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단된다.</li><li>DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 healthy 판단을 차단하지 않는다.</li><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.</li><li>state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?</li><li>문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?</li></ul>
+<ul><li>device가 등록되어 있는가?</li><li>device가 의도한 edge node에 할당되어 있는가?</li><li>Kubernetes Ready(<code>kubectl get nodes</code>)와 dashboard <code>node_ready</code>를 구분해 확인했는가?</li><li>mapper가 Running인가?</li><li>publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?</li><li>InfluxDB raw telemetry가 최신인가?</li><li>InfluxDB latest telemetry가 <code>available</code> 판단의 1차 기준이다.</li><li>telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단된다.</li><li>DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 <code>available</code> 판단을 차단하지 않는다.</li><li>InfluxDB UI의 <code>_start</code>와 <code>_stop</code>은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 <code>_time</code>이다. Dashboard의 <code>telemetry_fresh</code>는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.</li><li>state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?</li><li>문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?</li></ul>
 <p>이 runbook은 workflow/offloading/agent-assisted planning 계열을 실행하기 위한 절차가 아니다.</p>
 <h2 id="운영자-빠른-점검-순서">운영자 빠른 점검 순서</h2>
 <p>데모 전에는 아래 순서만 먼저 확인한다.</p>
@@ -343,7 +343,7 @@ python3 -m http.server 8080</code></pre>
 <ul><li>healthy + <code>telemetry_fresh=true</code>: InfluxDB latest telemetry가 fresh하므로 healthy로 판단한다.</li><li><code>telemetry_fresh=true</code> + <code>device_status_fresh=false</code>: data-plane은 살아 있고 DeviceStatus report path만 별도 점검한다.</li><li><code>telemetry_fresh=false</code>: publisher 실행 위치, local mosquitto, mapper log, InfluxDB 적재 상태를 확인한다.</li><li><code>mapper_running=false</code>: 할당 node의 mqttvirtual mapper pod 상태를 확인한다.</li><li><code>node_ready=false</code>: dashboard 기준 node health와 edgecore/cloudcore 연결 상태를 확인한다.</li><li><code>service_connected=false</code>: service binding rule 또는 device naming rule을 확인한다.</li></ul>
 <h2 id="12-정상-상태-판단">12. 정상 상태 판단</h2>
 <p>정상 경로는 다음 조건을 만족한다.</p>
-<ol><li>Kubernetes node가 <code>kubectl get nodes</code> 기준 Ready다. dashboard의 <code>node_ready</code>는 Prometheus/node-exporter 기반 <code>node_health != unavailable</code> 판단이므로 별도로 본다.</li><li>Device CR이 존재한다.</li><li>Device <code>nodeName</code>이 의도한 node다.</li><li>mapper pod가 Running이다.</li><li>publisher가 같은 node의 local mosquitto로 telemetry를 publish한다.</li><li>InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 healthy 판단의 1차 기준임).</li><li>DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 healthy 판단을 막지 않는다.</li><li>dashboard에서 device가 healthy 또는 의도한 상태로 보인다.</li><li>service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.</li></ol>
+<ol><li>Kubernetes node가 <code>kubectl get nodes</code> 기준 Ready다. dashboard의 <code>node_ready</code>는 Prometheus/node-exporter 기반 <code>node_health != unavailable</code> 판단이므로 별도로 본다.</li><li>Device CR이 존재한다.</li><li>Device <code>nodeName</code>이 의도한 node다.</li><li>mapper pod가 Running이다.</li><li>publisher가 같은 node의 local mosquitto로 telemetry를 publish한다.</li><li>InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 <code>available</code> 판단의 1차 기준임).</li><li>DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 <code>available</code> 판단을 막지 않는다.</li><li>dashboard에서 device가 healthy 또는 의도한 상태로 보인다.</li><li>service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.</li></ol>
 <h2 id="13-degraded-troubleshooting">13. degraded troubleshooting</h2>
 <h3 id="증상-a-device는-등록됐지만-degraded">증상 A: Device는 등록됐지만 degraded</h3>
 <p>가능한 원인:</p>

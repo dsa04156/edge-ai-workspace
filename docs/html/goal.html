@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: goal.md</span>
-            <span class="badge">수정: 2026-05-21 19:05</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:40</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -127,7 +127,7 @@
 <p>판단 질문:</p>
 <ol><li>이 문서가 현재 서비스 데모 운영 가시화에 직접 필요한가?</li><li>운영자가 dashboard를 해석하거나 데모를 점검하는 데 필요한가?</li><li>device-service 연결 구조나 DeviceStatus/telemetry 정책을 설명하는가?</li><li>생산성 KPI 또는 실공장 PoC 설명에 필요한가?</li><li>아니라면 과거 연구 맥락으로 archive에 남길 가치가 있는가?</li></ol>
 <h2 id="앞으로의-구현-우선순위">앞으로의 구현 우선순위</h2>
-<ol><li>서비스 데모 시나리오를 명확하게 유지한다.</li><li>device-service binding을 backend API와 dashboard에서 일관되게 보여준다.</li><li>dashboard healthy 판단은 InfluxDB device별 latest timestamp를 우선 기준으로 삼고, DeviceStatus는 보조 snapshot으로 표시한다.</li><li>dashboard가 운영자 질문에 바로 답하도록 정보를 배치한다.</li><li>운영 runbook과 troubleshooting 문서를 실제 점검 흐름 중심으로 유지한다.</li><li>read-only 운영 보조 요약은 dashboard를 보조하는 계층으로만 둔다.</li><li>과거 workflow/offloading/replanning 자료는 현재 구축 목표와 분리한다.</li></ol>
+<ol><li>서비스 데모 시나리오를 명확하게 유지한다.</li><li>device-service binding을 backend API와 dashboard에서 일관되게 보여준다.</li><li>dashboard <code>available</code> 판단은 InfluxDB device별 latest timestamp를 우선 기준으로 삼고, DeviceStatus는 보조 snapshot으로 표시한다.</li><li>dashboard가 운영자 질문에 바로 답하도록 정보를 배치한다.</li><li>운영 runbook과 troubleshooting 문서를 실제 점검 흐름 중심으로 유지한다.</li><li>read-only 운영 보조 요약은 dashboard를 보조하는 계층으로만 둔다.</li><li>과거 workflow/offloading/replanning 자료는 현재 구축 목표와 분리한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-문장-목표">한 문장 목표</a></li>

@@ -53,7 +53,7 @@ raw telemetry ingestion (future)
 
 7. dashboard 계층
    - dashboard는 단순히 Device CR 존재 여부만 보지 않는다.
-   - dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.
+   - dashboard는 InfluxDB latest telemetry freshness를 `available` 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.
 
 8. workflow designer 계층
    - `edge-orch/workflow-designer/`는 서비스가 어떤 device를 입력으로 쓰고, 어떤 stage 흐름으로 구성되며, 각 stage가 어떤 node에 배치되는지 dry-run으로 설계/시각화한다.
@@ -84,10 +84,14 @@ raw telemetry ingestion (future)
 | Jetson 계열 device | `etri-dev0001-jetorn` |
 | Raspberry Pi 계열 device | `etri-dev0002-raspi5` |
 
-현재 배치 기준은 다음과 같다.
+현재 dashboard 기준 등록 device는 다음 4개 Arduino 센서다.
 
-- Jetson: `env-device-*`, `vib-device-*`, `act-device-*`, `temp-device-01`
-- Raspberry Pi: `rpi-env-device-*`, `rpi-vib-device-*`, `rpi-act-device-*`
+- `env-arduino-temperature-01`
+- `env-arduino-light-01`
+- `env-arduino-magnetic-01`
+- `vib-arduino-acceleration-01`
+
+현재 4개 device는 `etri-dev0001-jetorn`에 할당되어 있다. Jetson 디바이스는 `etri-dev0001-jetorn`, Raspberry Pi 디바이스는 `etri-dev0002-raspi5`에 할당하는 규칙은 유지한다.
 
 관련 경로:
 
@@ -326,12 +330,12 @@ dashboard는 `state-aggregator` API를 기반으로 운영 상태를 보여준�
 현재 dashboard 판단 기준은 다음과 같다.
 
 - Device CR이 존재한다고 healthy가 되는 것은 아니다.
-- `status.state=online`만으로 healthy 판단하지 않는다.
+- `status.state=online`만으로 `available` 판단하지 않는다.
 - DeviceStatus snapshot freshness와 DB latest timestamp freshness를 분리해서 본다.
 - mapper pod가 Running인지 확인한다.
 - device가 할당된 node가 dashboard 기준 `node_ready`인지 확인한다. 이 값은 Kubernetes `Ready`가 아니라 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이다.
 - Kubernetes node Ready는 `kubectl get nodes`로 별도 확인한다.
-- telemetry-enabled device는 InfluxDB device-level latest timestamp를 healthy 판단의 1차 기준으로 확인한다.
+- telemetry-enabled device는 InfluxDB device-level latest timestamp를 `available` 판단의 1차 기준으로 확인한다.
 
 기본 freshness 설정은 다음이다.
 
@@ -353,13 +357,13 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 Jetson device는 `etri-dev0001-jetorn`에 할당한다.
 
-대표 device 계열:
+대표 device:
 
 ```text
-env-device-*
-vib-device-*
-act-device-*
-temp-device-01
+env-arduino-temperature-01
+env-arduino-light-01
+env-arduino-magnetic-01
+vib-arduino-acceleration-01
 ```
 
 Jetson 경로 점검 흐름은 다음이다.
@@ -420,7 +424,7 @@ Raspberry Pi device를 live로 만들려면 Raspberry Pi node의 local mosquitto
 
 `degraded`는 반드시 시스템 전체 실패를 의미하지 않는다.
 
-현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 DeviceStatus summary가 오래됐거나 node/mapper 선행 조건이 부족한 상태”로 해석한다. raw telemetry freshness는 EdgeX ingestion plane 전환 대상 지표와 분리해서 본다.
+현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 InfluxDB latest telemetry가 없거나 stale인 상태”를 우선 `degraded`로 해석한다. DeviceStatus summary freshness는 status-plane 보조 신호로 별도 표시한다.
 
 dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/unavailable device + non-healthy node, workflow risk 제외)로 구분해서 읽는다.
 

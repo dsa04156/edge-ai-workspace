@@ -12,9 +12,9 @@
 - mapper가 Running인가?
 - publisher가 올바른 node의 local mosquitto로 telemetry를 보내고 있는가?
  - InfluxDB raw telemetry가 최신인가?
-    - InfluxDB latest telemetry가 healthy 판단의 1차 기준이다.
+    - InfluxDB latest telemetry가 `available` 판단의 1차 기준이다.
     - telemetry device는 InfluxDB latest timestamp 기준으로 healthy로 우선 판단된다.
-    - DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 healthy 판단을 차단하지 않는다.
+    - DeviceStatus는 status-plane 관찰용 보조 신호이며, telemetry가 fresh하면 `available` 판단을 차단하지 않는다.
     - InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.
 - state-aggregator API와 dashboard가 device-service 연결 구조를 보여주는가?
 - 문제가 있으면 dashboard reason으로 먼저 볼 대상을 좁힐 수 있는가?
@@ -394,8 +394,8 @@ http://localhost:8080/edge-orch/workflow-designer/index.html
 3. Device `nodeName`이 의도한 node다.
 4. mapper pod가 Running이다.
 5. publisher가 같은 node의 local mosquitto로 telemetry를 publish한다.
-6. InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 healthy 판단의 1차 기준임).
-7. DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 healthy 판단을 막지 않는다.
+6. InfluxDB latest telemetry가 fresh하다 (telemetry freshness가 `available` 판단의 1차 기준임).
+7. DeviceStatus snapshot은 fresh이면 별도 표기되지만 telemetry가 fresh하면 `available` 판단을 막지 않는다.
 8. dashboard에서 device가 healthy 또는 의도한 상태로 보인다.
 9. service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.
 

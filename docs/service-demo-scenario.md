@@ -173,7 +173,7 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 확인할 것:
 
 - DeviceStatus snapshot timestamp는 status-plane 보조 신호로 확인한다. healthy 필수 조건은 아니다.
-- telemetry-enabled device는 InfluxDB latest telemetry freshness가 healthy 판단의 1차 기준이다. telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.
+- telemetry-enabled device는 InfluxDB latest telemetry freshness가 `available` 판단의 1차 기준이다. telemetry가 fresh하면 DeviceStatus가 stale이어도 `available`일 수 있다.
 - raw telemetry 값이 DeviceStatus에 직접 올라가지 않는다.
 - `health`, `severity`, `power`, `mode`, `sampling_interval`, `command_state` 같은 운영 상태 중심 값만 확인한다.
 
@@ -226,8 +226,8 @@ DEVICE_FILTER=vib-device-01 SIMULATION_MODE=stable python3 mappers/script/test_d
 3. 해당 node가 Ready 상태다.
 4. mapper pod가 Running이다.
 5. publisher가 해당 node의 local mosquitto로 telemetry를 publish한다.
-6. InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다 (telemetry freshness가 healthy 판단의 1차 기준임).
-7. DeviceStatus snapshot은 status-plane 관찰용 보조 신호로 최신이면 별도 표기되지만, telemetry가 fresh하면 반드시 healthy 판단을 막지 않는다.
+6. InfluxDB latest telemetry가 dashboard freshness 기준을 만족한다 (telemetry freshness가 `available` 판단의 1차 기준임).
+7. DeviceStatus snapshot은 status-plane 관찰용 보조 신호로 최신이면 별도 표기되지만, telemetry가 fresh하면 반드시 `available` 판단을 막지 않는다.
 8. dashboard에서 device가 service demo group에 표시된다.
 9. KPI가 현재 상태를 설명할 수 있다.
 

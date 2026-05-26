@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
-            <span class="badge">수정: 2026-05-20 22:12</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:40</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -108,7 +108,7 @@
 <h2 id="한-줄-정의">한 줄 정의</h2>
 <pre data-lang="text"><code>node state + device state + sensor data freshness + service binding + KPI -&gt; 운영 dashboard</code></pre>
 <h2 id="dashboard-정보-구조-원칙">dashboard 정보 구조 원칙</h2>
-<ol><li>Device CR 존재 여부만으로 정상 판단하지 않는다.</li><li><code>status.state=online</code>만으로 healthy 판단하지 않는다.</li><li>실제 센서 데이터의 DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.</li><li>Kubernetes Ready와 dashboard <code>node_ready</code>를 구분하고, mapper Running 여부와 함께 본다.</li><li>service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.</li><li>운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.</li></ol>
+<ol><li>Device CR 존재 여부만으로 정상 판단하지 않는다.</li><li><code>status.state=online</code>만으로 <code>available</code> 판단하지 않는다.</li><li>실제 센서 데이터의 DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.</li><li>Kubernetes Ready와 dashboard <code>node_ready</code>를 구분하고, mapper Running 여부와 함께 본다.</li><li>service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.</li><li>운영자가 먼저 볼 항목과 원인 후보를 dashboard에서 바로 확인할 수 있게 한다.</li></ol>
 <h2 id="주요-api">주요 API</h2>
 <p>현재 dashboard는 <code>state-aggregator</code>의 다음 API를 중심으로 구성한다.</p>
 <div class="table-wrap"><table>
@@ -467,13 +467,13 @@ vib-arduino-acceleration-01 -&gt; etri-dev0001-jetorn -&gt; acceleration/x,y,z f
 <thead><tr>
 <th>freshness</th>
 <th>의미</th>
-<th>healthy 판단에서의 역할</th>
+<th>availability 판단에서의 역할</th>
 </tr></thead>
 <tbody>
 <tr>
 <td><code>telemetry_fresh</code></td>
 <td>telemetry-enabled device의 InfluxDB device-level latest sample이 최근 갱신됐는지</td>
-<td>healthy 판단의 1차 기준</td>
+<td>available 판단의 1차 기준</td>
 </tr>
 <tr>
 <td><code>device_status_fresh</code></td>
@@ -483,10 +483,10 @@ vib-arduino-acceleration-01 -&gt; etri-dev0001-jetorn -&gt; acceleration/x,y,z f
 </tbody></table></div>
 <p>기본 기준값:</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
-TELEMETRY_FRESH_SECONDS=20
+TELEMETRY_FRESH_SECONDS=90
 MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 <p>해석:</p>
-<ul><li>telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 <code>healthy</code>로 표시될 수 있다.</li><li>telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.</li><li>DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.</li><li>둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.</li></ul>
+<ul><li>telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 telemetry-enabled device를 <code>available</code>로 판단할 수 있다. DeviceStatus snapshot이 stale하면 status-plane 보조 신호로 별도 표기한다.</li><li>telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.</li><li>DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.</li><li>둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.</li></ul>
 <h2 id="influxdb-query-notes">InfluxDB Query Notes</h2>
 <ul><li>InfluxDB UI에서 볼 수 있는 <code>_start</code> / <code>_stop</code> 필드는 각 row의 device start/stop 이벤트가 아니라 Flux 쿼리의 조회 범위(window)를 보여주는 메타필드이다.</li><li>실제 sample timestamp는 <code>_time</code> 필드다. dashboard와 state-aggregator는 <code>_time</code> 또는 명시된 <code>telemetry_last_seen_at</code> 값을 사용해 freshness를 판단한다.</li><li><code>telemetry_fresh</code>는 device-level latest sample 기준이다. 즉 device에서 가장 최근에 적재된 sample이 fresh한지를 보며, 모든 property가 각각 fresh하다는 뜻은 아니다.</li></ul>
 <h2 id="상태-판단-표시">상태 판단 표시</h2>
@@ -499,7 +499,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>healthy</code></td>
+<td><code>available</code></td>
 <td>node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호.</td>
 <td>정상 관찰</td>
 </tr>
@@ -515,7 +515,7 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 </tr>
 </tbody></table></div>
 <p>주의:</p>
-<ul><li><code>status.state=online</code>은 참고값이다.</li><li>dashboard의 healthy는 Device CR 존재나 <code>online</code> 값만으로 결정하지 않는다.</li></ul>
+<ul><li><code>status.state=online</code>은 참고값이다.</li><li>dashboard의 <code>available</code>은 Device CR 존재나 <code>online</code> 값만으로 결정하지 않는다.</li></ul>
 <h2 id="issue-focus-list">Issue / Focus List</h2>
 <p>운영자가 먼저 확인할 대상은 다음 기준으로 뽑는다.</p>
 <p><code>operator_focus_count</code>는 다음 두 값의 합이다.</p>

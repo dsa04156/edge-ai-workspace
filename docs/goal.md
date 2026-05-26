@@ -101,7 +101,7 @@ Kagenti 또는 유사 agent는 제어 주체가 아니라 운영 보조 계층�
 
 1. 서비스 데모 시나리오를 명확하게 유지한다.
 2. device-service binding을 backend API와 dashboard에서 일관되게 보여준다.
-3. dashboard healthy 판단은 InfluxDB device별 latest timestamp를 우선 기준으로 삼고, DeviceStatus는 보조 snapshot으로 표시한다.
+3. dashboard `available` 판단은 InfluxDB device별 latest timestamp를 우선 기준으로 삼고, DeviceStatus는 보조 snapshot으로 표시한다.
 4. dashboard가 운영자 질문에 바로 답하도록 정보를 배치한다.
 5. 운영 runbook과 troubleshooting 문서를 실제 점검 흐름 중심으로 유지한다.
 6. read-only 운영 보조 요약은 dashboard를 보조하는 계층으로만 둔다.

@@ -56,11 +56,17 @@
 
 ## 현재 디바이스 배치
 
-- Jetson: `env-device-*`, `vib-device-*`, `act-device-*`, `temp-device-01`
-- Raspberry Pi: `rpi-env-device-*`, `rpi-vib-device-*`, `rpi-act-device-*`
+현재 dashboard 기준 등록 device는 Arduino 센서 4종이다.
 
+| device | 할당 node | 서비스 데모 그룹 | freshness 기준 |
+|---|---|---|---|
+| `env-arduino-temperature-01` | `etri-dev0001-jetorn` | 환경 상태 모니터링 | InfluxDB latest telemetry `_time` |
+| `env-arduino-light-01` | `etri-dev0001-jetorn` | 환경 상태 모니터링 | InfluxDB latest telemetry `_time` |
+| `env-arduino-magnetic-01` | `etri-dev0001-jetorn` | 환경 상태 모니터링 | InfluxDB latest telemetry `_time` |
+| `vib-arduino-acceleration-01` | `etri-dev0001-jetorn` | 설비 상태 모니터링 | InfluxDB latest telemetry `_time` |
+
+Jetson 디바이스는 `etri-dev0001-jetorn`, Raspberry Pi 디바이스는 `etri-dev0002-raspi5`에 할당한다.
 테스트 publisher는 실행한 서버의 로컬 mosquitto로 publish한다.
-따라서 Jetson에서 실행하면 Jetson에 할당된 디바이스만 live 처리되고, Raspberry Pi 디바이스는 Raspberry Pi에서 publisher를 실행해야 live 처리된다.
 
 ## MQTT Topic 규칙
 

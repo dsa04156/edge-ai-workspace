@@ -51,7 +51,7 @@ Dashboard 상단 KPI에서 다음 항목이 보여야 한다.
 
 정상 기준:
 
-- telemetry-enabled device는 `telemetry_fresh=true`이면 DeviceStatus stale이어도 healthy 가능하다.
+- telemetry-enabled device는 `telemetry_fresh=true`이면 DeviceStatus stale이어도 `available` 가능하다.
 - `node_ready=false`, `mapper_running=false`, `telemetry_fresh=false`는 reason 또는 issue/focus list에서 원인이 보여야 한다.
 
 ## 3. Service Binding / Relation View
@@ -66,9 +66,9 @@ Device -> Edge Node -> Telemetry/Status -> Service Demo
 
 | device 계열 | service demo group |
 |---|---|
-| `env-device-*`, `rpi-env-device-*`, `temp-device-01` | 환경 상태 모니터링 |
-| `vib-device-*`, `rpi-vib-device-*` | 설비/진동 상태 모니터링 |
-| `act-device-*`, `rpi-act-device-*` | command 상태 확인 |
+| `env-arduino-temperature-01`, `env-arduino-light-01`, `env-arduino-magnetic-01` | 환경 상태 모니터링 |
+| `vib-arduino-acceleration-01` | 설비/진동 상태 모니터링 |
+| `act-*`, `rpi-act-*` future 후보 | command 상태 확인 |
 
 확인 항목:
 
@@ -143,7 +143,7 @@ Device row 클릭 시 표시되어야 하는 필드:
 
 | Rule | 조건 | 설명 요지 |
 |---|---|---|
-| Rule A | `overall_status=healthy`, `telemetry_fresh=true` | InfluxDB latest telemetry가 fresh하므로 healthy |
+| Rule A | `overall_status=available`, `telemetry_fresh=true` | InfluxDB latest telemetry가 fresh하므로 available |
 | Rule B | `severity=critical` | telemetry는 들어오지만 severity critical로 degraded |
 | Rule C | `telemetry_enabled=true`, `telemetry_fresh=false` | publisher/MQTT/mapper/InfluxDB 경로 확인 |
 | Rule D | `mapper_running=false` | 할당 node의 mqttvirtual mapper 확인 |
@@ -154,7 +154,7 @@ Device row 클릭 시 표시되어야 하는 필드:
 KPI 설명 확인 기준:
 
 - `registered_device_count`: KubeEdge에 등록된 전체 Device CR 수
-- `live_device_count`: state-aggregator 최종 status가 healthy인 device 수
+- `live_device_count`: state-aggregator 최종 status가 `available` 또는 기존 호환 `healthy`인 device 수
 - `telemetry_device_count`: telemetry_enabled device 수
 - `device_telemetry_ratio`: telemetry configured ratio. freshness 비율 아님
 - `fresh_telemetry_device_count`: telemetry_fresh == true인 device 수
@@ -229,7 +229,7 @@ Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.
 - 실제 telemetry sample timestamp는 `_time`이다.
 - Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이다.
 - property별 latest freshness를 보장하지 않는다.
-- act/rpi-act device의 dashboard freshness 기준 property는 현재 `health` liveness row다.
+- act/rpi-act device의 dashboard freshness 기준 property는 future/compatibility 기준으로 `health` liveness row를 사용할 수 있다.
 - `ts`는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.
 
 ## 9. API 기반 빠른 확인
@@ -264,7 +264,7 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device r
 3. Device list에서 telemetry property, latest timestamp, mapper/node 상태, reason을 확인할 수 있다.
 4. Relation view에서 device-service binding이 보인다.
 5. Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.
-6. act/rpi-act device는 `telemetry_property=health`로 liveness를 설명한다.
+6. 현재 4개 Arduino sensor device는 InfluxDB latest sample `_time`으로 freshness를 설명한다.
 7. workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.
 
 ## Workflow Designer 검증

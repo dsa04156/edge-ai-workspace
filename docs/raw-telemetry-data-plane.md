@@ -123,11 +123,11 @@ excluded_raw_telemetry_fields:
 
 ## state-aggregator / dashboard 정책
 
-- `/state/dashboard` payload는 availability와 telemetry freshness를 분리해서 해석한다.
-- Availability는 node 상태, mapper Pod Running/Ready, DeviceStatus summary, `statusLastSeen`/`controlLastSeen`/`mapperLastSeen` freshness를 종합해 `available/degraded/unavailable`로 판단한다.
-- DeviceStatus freshness는 status-plane snapshot/heartbeat 최신성이다.
-- raw telemetry ingestion freshness는 `telemetry_status`와 sensor freshness KPI로 별도 표시한다.
-- InfluxDB latest timestamp, `telemetryFresh`, `telemetry_fresh`, raw sensor sample 유무만으로 device를 unavailable 처리하지 않는다.
+- `/state/dashboard` payload는 telemetry-enabled device availability에 InfluxDB latest telemetry freshness를 직접 반영한다.
+- Availability는 node 상태, mapper Pod Running/Ready, DeviceStatus의 명시 offline/critical 신호, InfluxDB latest sample freshness를 종합해 `available/degraded/unavailable`로 판단한다.
+- DeviceStatus freshness는 status-plane snapshot/heartbeat 최신성 보조 신호다.
+- raw telemetry ingestion freshness는 `telemetry_status`와 sensor freshness KPI로도 별도 표시한다.
+- InfluxDB latest timestamp가 없거나 `TELEMETRY_FRESH_SECONDS`보다 오래되면 telemetry-enabled device는 `degraded`로 표시한다.
 - `status.state=online` 하나만으로 available을 판단하지 않는다.
 
 ## EdgeX TODO

@@ -15,7 +15,7 @@ node state + device state + sensor data freshness + service binding + KPI -> 운
 ## dashboard 정보 구조 원칙
 
 1. Device CR 존재 여부만으로 정상 판단하지 않는다.
-2. `status.state=online`만으로 healthy 판단하지 않는다.
+2. `status.state=online`만으로 `available` 판단하지 않는다.
 3. 실제 센서 데이터의 DB latest timestamp freshness와 DeviceStatus snapshot freshness를 분리한다.
 4. Kubernetes Ready와 dashboard `node_ready`를 구분하고, mapper Running 여부와 함께 본다.
 5. service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.
@@ -179,22 +179,22 @@ vib-arduino-acceleration-01 -> etri-dev0001-jetorn -> acceleration/x,y,z fresh D
 
 freshness는 반드시 두 축으로 나눠 보여준다.
 
-| freshness | 의미 | healthy 판단에서의 역할 |
+| freshness | 의미 | availability 판단에서의 역할 |
 |---|---|---|
-| `telemetry_fresh` | telemetry-enabled device의 InfluxDB device-level latest sample이 최근 갱신됐는지 | healthy 판단의 1차 기준 |
+| `telemetry_fresh` | telemetry-enabled device의 InfluxDB device-level latest sample이 최근 갱신됐는지 | available 판단의 1차 기준 |
 | `device_status_fresh` | DeviceStatus snapshot이 최근 갱신됐는지 | status-plane 관찰용 보조 신호. healthy 필수 조건이 아니다. |
 
 기본 기준값:
 
 ```bash
 DEVICE_STATUS_FRESH_SECONDS=90
-TELEMETRY_FRESH_SECONDS=20
+TELEMETRY_FRESH_SECONDS=90
 MAPPER_HEARTBEAT_FRESH_SECONDS=60
 ```
 
 해석:
 
-- telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 healthy로 판단하는 1차 기준이 된다 — DeviceStatus snapshot이 stale하더라도 telemetry가 fresh하면 최종 `healthy`로 표시될 수 있다.
+- telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 telemetry-enabled device를 `available`로 판단할 수 있다. DeviceStatus snapshot이 stale하면 status-plane 보조 신호로 별도 표기한다.
 - telemetry만 fresh이면 data-plane은 살아 있지만 status-plane이 stale한 상태로 별도 표기한다.
 - DeviceStatus만 fresh이면 status-plane은 최신이나 raw telemetry가 stale한 상태로 별도 표기한다.
 - 둘 다 stale이면 degraded 또는 unavailable 원인을 reason에 표시한다.
@@ -212,14 +212,14 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60
 
 | 상태 | dashboard 의미 | 운영자 행동 |
 |---|---|---|
-| `healthy` | node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호. | 정상 관찰 |
+| `available` | node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호. | 정상 관찰 |
 | `degraded` | 일부 경로는 살아 있지만 fresh signal 또는 snapshot이 부족 | 원인 후보 확인 |
 | `unavailable` | node, mapper, device assignment, offline 상태 등 운영 경로가 끊김 | 즉시 점검 |
 
 주의:
 
 - `status.state=online`은 참고값이다.
-- dashboard의 healthy는 Device CR 존재나 `online` 값만으로 결정하지 않는다.
+- dashboard의 `available`은 Device CR 존재나 `online` 값만으로 결정하지 않는다.
 
 ## Issue / Focus List
 

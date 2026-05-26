@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: project-context.md</span>
-            <span class="badge">수정: 2026-05-04 15:30</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:39</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -146,8 +146,41 @@
 <ol><li><code>DeviceModel</code>과 <code>Device</code> CR을 Kubernetes에 미리 등록한다.</li><li>각 Device는 특정 edge node의 <code>spec.nodeName</code>에 바인딩한다.</li><li>mapper는 edgecore/DMI를 통해 해당 Device를 전달받고 정해진 telemetry topic을 구독한다.</li><li>실제 센서 수집 프로그램은 Device 이름과 topic 규칙에 맞춰 MQTT payload를 발행한다.</li></ol>
 <p>센서가 MQTT로 임의 topic에 publish한다고 자동으로 KubeEdge Device가 생기지는 않는다. 자동 발견과 자동 등록은 현재 데모 범위 밖의 별도 discovery controller 후보로만 분리해서 본다.</p>
 <h2 id="현재-디바이스-배치">현재 디바이스 배치</h2>
-<ul><li>Jetson: <code>env-device-*</code>, <code>vib-device-*</code>, <code>act-device-*</code>, <code>temp-device-01</code></li><li>Raspberry Pi: <code>rpi-env-device-*</code>, <code>rpi-vib-device-*</code>, <code>rpi-act-device-*</code></li></ul>
-<p>테스트 publisher는 실행한 서버의 로컬 mosquitto로 publish한다. 따라서 Jetson에서 실행하면 Jetson에 할당된 디바이스만 live 처리되고, Raspberry Pi 디바이스는 Raspberry Pi에서 publisher를 실행해야 live 처리된다.</p>
+<p>현재 dashboard 기준 등록 device는 Arduino 센서 4종이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>device</th>
+<th>할당 node</th>
+<th>서비스 데모 그룹</th>
+<th>freshness 기준</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>env-arduino-temperature-01</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>환경 상태 모니터링</td>
+<td>InfluxDB latest telemetry <code>_time</code></td>
+</tr>
+<tr>
+<td><code>env-arduino-light-01</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>환경 상태 모니터링</td>
+<td>InfluxDB latest telemetry <code>_time</code></td>
+</tr>
+<tr>
+<td><code>env-arduino-magnetic-01</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>환경 상태 모니터링</td>
+<td>InfluxDB latest telemetry <code>_time</code></td>
+</tr>
+<tr>
+<td><code>vib-arduino-acceleration-01</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>설비 상태 모니터링</td>
+<td>InfluxDB latest telemetry <code>_time</code></td>
+</tr>
+</tbody></table></div>
+<p>Jetson 디바이스는 <code>etri-dev0001-jetorn</code>, Raspberry Pi 디바이스는 <code>etri-dev0002-raspi5</code>에 할당한다. 테스트 publisher는 실행한 서버의 로컬 mosquitto로 publish한다.</p>
 <h2 id="mqtt-topic-규칙">MQTT Topic 규칙</h2>
 <pre data-lang="text"><code>factory/devices/{device-name}/telemetry
 factory/devices/{device-name}/command

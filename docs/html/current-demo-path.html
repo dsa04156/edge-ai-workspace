@@ -95,8 +95,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: current-demo-path.md</span>
-            <span class="badge">수정: 2026-05-21 19:06</span>
-            <span class="badge">HTML 생성: 2026-05-21 19:41</span>
+            <span class="badge">수정: 2026-05-26 10:40</span>
+            <span class="badge">HTML 생성: 2026-05-26 10:40</span>
           </div>
         </header>
         
@@ -131,7 +131,7 @@ raw telemetry ingestion (future)
 <ol><li>상태 통합 계층</li></ol>
 <ul><li><code>state-aggregator</code>가 Kubernetes, KubeEdge, InfluxDB, Prometheus, mapper 상태를 함께 읽는다.</li><li>dashboard가 사용할 device/node/service 상태와 KPI를 만든다.</li></ul>
 <ol><li>dashboard 계층</li></ol>
-<ul><li>dashboard는 단순히 Device CR 존재 여부만 보지 않는다.</li><li>dashboard는 InfluxDB latest telemetry freshness를 healthy 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</li></ul>
+<ul><li>dashboard는 단순히 Device CR 존재 여부만 보지 않는다.</li><li>dashboard는 InfluxDB latest telemetry freshness를 <code>available</code> 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</li></ul>
 <ol><li>workflow designer 계층</li></ol>
 <ul><li><code>edge-orch/workflow-designer/</code>는 서비스가 어떤 device를 입력으로 쓰고, 어떤 stage 흐름으로 구성되며, 각 stage가 어떤 node에 배치되는지 dry-run으로 설계/시각화한다.</li><li>이 도구는 read-only + dry-run plan generation 전용이다. workflow/offloading/placement 자동 실행, Kubernetes 배포, MQTT command publish, Device CR 수정은 수행하지 않는다.</li></ul>
 <h2 id="구성-요소">구성 요소</h2>
@@ -197,8 +197,9 @@ raw telemetry ingestion (future)
 <td><code>etri-dev0002-raspi5</code></td>
 </tr>
 </tbody></table></div>
-<p>현재 배치 기준은 다음과 같다.</p>
-<ul><li>Jetson: <code>env-device-*</code>, <code>vib-device-*</code>, <code>act-device-*</code>, <code>temp-device-01</code></li><li>Raspberry Pi: <code>rpi-env-device-*</code>, <code>rpi-vib-device-*</code>, <code>rpi-act-device-*</code></li></ul>
+<p>현재 dashboard 기준 등록 device는 다음 4개 Arduino 센서다.</p>
+<ul><li><code>env-arduino-temperature-01</code></li><li><code>env-arduino-light-01</code></li><li><code>env-arduino-magnetic-01</code></li><li><code>vib-arduino-acceleration-01</code></li></ul>
+<p>현재 4개 device는 <code>etri-dev0001-jetorn</code>에 할당되어 있다. Jetson 디바이스는 <code>etri-dev0001-jetorn</code>, Raspberry Pi 디바이스는 <code>etri-dev0002-raspi5</code>에 할당하는 규칙은 유지한다.</p>
 <p>관련 경로:</p>
 <pre data-lang="text"><code>edge-device/models/
 edge-device/devices.yaml
@@ -352,7 +353,7 @@ GET /state/workflows</code></pre>
 <h2 id="dashboard">dashboard</h2>
 <p>dashboard는 <code>state-aggregator</code> API를 기반으로 운영 상태를 보여준다.</p>
 <p>현재 dashboard 판단 기준은 다음과 같다.</p>
-<ul><li>Device CR이 존재한다고 healthy가 되는 것은 아니다.</li><li><code>status.state=online</code>만으로 healthy 판단하지 않는다.</li><li>DeviceStatus snapshot freshness와 DB latest timestamp freshness를 분리해서 본다.</li><li>mapper pod가 Running인지 확인한다.</li><li>device가 할당된 node가 dashboard 기준 <code>node_ready</code>인지 확인한다. 이 값은 Kubernetes <code>Ready</code>가 아니라 Prometheus/node-exporter 기반 <code>node_health != unavailable</code> 판단이다.</li><li>Kubernetes node Ready는 <code>kubectl get nodes</code>로 별도 확인한다.</li><li>telemetry-enabled device는 InfluxDB device-level latest timestamp를 healthy 판단의 1차 기준으로 확인한다.</li></ul>
+<ul><li>Device CR이 존재한다고 healthy가 되는 것은 아니다.</li><li><code>status.state=online</code>만으로 <code>available</code> 판단하지 않는다.</li><li>DeviceStatus snapshot freshness와 DB latest timestamp freshness를 분리해서 본다.</li><li>mapper pod가 Running인지 확인한다.</li><li>device가 할당된 node가 dashboard 기준 <code>node_ready</code>인지 확인한다. 이 값은 Kubernetes <code>Ready</code>가 아니라 Prometheus/node-exporter 기반 <code>node_health != unavailable</code> 판단이다.</li><li>Kubernetes node Ready는 <code>kubectl get nodes</code>로 별도 확인한다.</li><li>telemetry-enabled device는 InfluxDB device-level latest timestamp를 <code>available</code> 판단의 1차 기준으로 확인한다.</li></ul>
 <p>기본 freshness 설정은 다음이다.</p>
 <pre data-lang="bash"><code>DEVICE_STATUS_FRESH_SECONDS=90
 TELEMETRY_FRESH_SECONDS=90
@@ -379,11 +380,11 @@ MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></pre>
 </tbody></table></div>
 <h2 id="jetson-경로">Jetson 경로</h2>
 <p>Jetson device는 <code>etri-dev0001-jetorn</code>에 할당한다.</p>
-<p>대표 device 계열:</p>
-<pre data-lang="text"><code>env-device-*
-vib-device-*
-act-device-*
-temp-device-01</code></pre>
+<p>대표 device:</p>
+<pre data-lang="text"><code>env-arduino-temperature-01
+env-arduino-light-01
+env-arduino-magnetic-01
+vib-arduino-acceleration-01</code></pre>
 <p>Jetson 경로 점검 흐름은 다음이다.</p>
 <ol><li>Jetson node가 Kubernetes/KubeEdge에서 Ready 상태인지 확인한다.</li><li>Jetson에 할당된 Device CR이 존재하는지 확인한다.</li><li>Jetson node에서 <code>mqttvirtual</code> mapper가 Running인지 확인한다.</li><li>Jetson node의 local mosquitto에 publisher가 telemetry를 발행하는지 확인한다.</li><li>InfluxDB에 해당 device의 latest telemetry가 들어오는지 확인한다.</li><li>DeviceStatus snapshot이 fresh한지 별도 확인한다. 단 telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.</li><li><code>/state/devices</code> 또는 dashboard에서 overall status를 확인한다.</li></ol>
 <h2 id="raspberry-pi-경로">Raspberry Pi 경로</h2>
@@ -421,7 +422,7 @@ rpi-act-device-*</code></pre>
 <p>현재 데모에서 device가 <code>degraded</code>로 보일 수 있는 대표 원인은 다음이다.</p>
 <ol><li>Device는 등록되어 있지만 live status가 unknown인 경우</li><li>mapper는 Running이지만 DeviceStatus summary가 fresh하지 않은 경우</li><li>EdgeX telemetry plane 전환 전 호환 telemetry freshness 지표가 stale인 경우</li><li>publisher가 실행되지 않았거나 잘못된 node에서 실행된 경우</li><li>publisher가 local mosquitto <code>127.0.0.1:1883</code>이 아닌 다른 broker로 publish한 경우</li><li>Device는 Jetson에 할당됐지만 Raspberry Pi에서 publisher를 실행한 경우 또는 그 반대의 경우</li><li>raw telemetry는 들어오지만 DeviceStatus report 대상 summary property가 갱신되지 않는 경우</li><li>node 또는 mapper 상태가 dashboard 판단 기준과 맞지 않는 경우</li></ol>
 <p><code>degraded</code>는 반드시 시스템 전체 실패를 의미하지 않는다.</p>
-<p>현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 DeviceStatus summary가 오래됐거나 node/mapper 선행 조건이 부족한 상태”로 해석한다. raw telemetry freshness는 EdgeX ingestion plane 전환 대상 지표와 분리해서 본다.</p>
+<p>현재 기준에서는 “등록, mapper, API 경로 중 일부는 존재하지만 InfluxDB latest telemetry가 없거나 stale인 상태”를 우선 <code>degraded</code>로 해석한다. DeviceStatus summary freshness는 status-plane 보조 신호로 별도 표시한다.</p>
 <p>dashboard KPI는 <code>telemetry_device_count</code>/<code>device_telemetry_ratio</code>(telemetry configured 범위), <code>fresh_telemetry_device_count</code>/<code>telemetry_freshness_ratio</code>(실제 최신 telemetry), <code>fresh_device_status_count</code>/<code>device_status_freshness_ratio</code>(DeviceStatus 최신성), <code>operator_focus_count</code>(degraded/unavailable device + non-healthy node, workflow risk 제외)로 구분해서 읽는다.</p>
 <h2 id="현재-데모-경로에서-제외하는-것">현재 데모 경로에서 제외하는 것</h2>
 <p>다음 항목은 현재 데모 경로에 포함하지 않는다.</p>

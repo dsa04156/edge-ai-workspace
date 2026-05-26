@@ -34,7 +34,7 @@ DeviceStatus는 다음 용도로만 사용한다.
 - raw telemetry에서 계산된 상태 등급
 
 state-aggregator는 DeviceStatus를 저빈도 운영 snapshot으로 보고, dashboard에서는 `device_status_fresh`와 `device_status_freshness_ratio`로 최신성을 따로 계산한다.
-실제 센서 데이터 최신성은 `telemetry_fresh`, `fresh_sensor_data_device_count`, `sensor_data_freshness_ratio`로 분리해서 본다. `telemetry_freshness_ratio`는 기존 호환 지표로 유지한다. telemetry-enabled device의 healthy 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.
+실제 센서 데이터 최신성은 `telemetry_fresh`, `fresh_sensor_data_device_count`, `sensor_data_freshness_ratio`로 분리해서 본다. `telemetry_freshness_ratio`는 기존 호환 지표로 유지한다. telemetry-enabled device의 `available` 판단 1차 기준은 InfluxDB device-level latest sample freshness이며, DeviceStatus freshness는 필수 조건이 아니다.
 
 ## DeviceStatus에 허용하는 property
 
