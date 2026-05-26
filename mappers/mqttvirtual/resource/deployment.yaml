@@ -40,6 +40,10 @@ spec:
               value: "120"
             - name: DEVICE_STATES_REPORT_ENABLED
               value: "false"
+            - name: INFLUXDB_BATCH_FLUSH_SECONDS
+              value: "30"
+            - name: INFLUXDB_BATCH_SIZE
+              value: "1000"
           image: 192.168.0.56:5000/mqttvirtual:latest
           imagePullPolicy: Always
           resources:

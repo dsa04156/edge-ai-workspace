@@ -1,9 +1,9 @@
 package influxdb2
 
 import (
-	"context"
 	"encoding/json"
 	"os"
+	"strconv"
 	"time"
 
 	"k8s.io/klog/v2"
@@ -48,9 +48,11 @@ func NewDataBaseClient(clientConfig json.RawMessage, dataConfig json.RawMessage)
 }
 
 func (d *DataBaseConfig) InitDbClient() influxdb2.Client {
-	var usrtoken string
-	usrtoken = os.Getenv("TOKEN")
-	client := influxdb2.NewClient(d.Influxdb2ClientConfig.Url, usrtoken)
+	usrtoken := os.Getenv("TOKEN")
+	client := influxdb2.NewClientWithOptions(d.Influxdb2ClientConfig.Url, usrtoken,
+		influxdb2.DefaultOptions().
+			SetBatchSize(influxBatchSize()).
+			SetFlushInterval(influxFlushInterval()))
 
 	return client
 }
@@ -60,18 +62,34 @@ func (d *DataBaseConfig) CloseSession(client influxdb2.Client) {
 }
 
 func (d *DataBaseConfig) AddData(data *common.DataModel, client influxdb2.Client) error {
-	// write device data to influx database
-	writeAPI := client.WriteAPIBlocking(d.Influxdb2ClientConfig.Org, d.Influxdb2ClientConfig.Bucket)
+	writeAPI := client.WriteAPI(d.Influxdb2ClientConfig.Org, d.Influxdb2ClientConfig.Bucket)
 	p := influxdb2.NewPoint(d.Influxdb2DataConfig.Measurement,
 		d.Influxdb2DataConfig.Tag,
 		map[string]interface{}{d.Influxdb2DataConfig.FieldKey: data.Value},
 		time.Now())
-	// write point immediately
-	err := writeAPI.WritePoint(context.Background(), p)
-	if err != nil {
-		klog.Errorf("influxdb write failed device=%s property=%s measurement=%s err=%v", data.DeviceName, data.PropertyName, d.Influxdb2DataConfig.Measurement, err)
-		return err
-	}
-	klog.Infof("influxdb write ok device=%s property=%s measurement=%s", data.DeviceName, data.PropertyName, d.Influxdb2DataConfig.Measurement)
+	writeAPI.WritePoint(p)
+	klog.V(4).Infof("influxdb point queued device=%s property=%s measurement=%s", data.DeviceName, data.PropertyName, d.Influxdb2DataConfig.Measurement)
 	return nil
+}
+
+func influxBatchSize() uint {
+	return envUint("INFLUXDB_BATCH_SIZE", 1000)
+}
+
+func influxFlushInterval() uint {
+	seconds := envUint("INFLUXDB_BATCH_FLUSH_SECONDS", 30)
+	return seconds * uint(time.Second/time.Millisecond)
+}
+
+func envUint(name string, fallback uint) uint {
+	raw := os.Getenv(name)
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.ParseUint(raw, 10, 32)
+	if err != nil || value == 0 {
+		klog.Warningf("invalid %s=%q, using default %d", name, raw, fallback)
+		return fallback
+	}
+	return uint(value)
 }
