@@ -50,8 +50,9 @@ func reportKubernetesDeviceStatus(ctx context.Context, summary Summary, values m
 	if !envBoolDefault("DEVICE_STATUS_K8S_PATCH_ENABLED", true) {
 		return nil
 	}
+	apiServer := strings.TrimRight(strings.TrimSpace(os.Getenv("DEVICE_STATUS_K8S_API_SERVER")), "/")
 	host := strings.TrimSpace(os.Getenv("KUBERNETES_SERVICE_HOST"))
-	if host == "" {
+	if host == "" && apiServer == "" {
 		return nil
 	}
 
@@ -64,7 +65,7 @@ func reportKubernetesDeviceStatus(ctx context.Context, summary Summary, values m
 		return fmt.Errorf("read Kubernetes service account token failed: %w", err)
 	}
 
-	endpoint := kubernetesDeviceStatusEndpoint(summary)
+	endpoint := kubernetesDeviceStatusEndpoint(summary, apiServer)
 	mergedValues, err := getCurrentKubernetesStatusValues(ctx, client, strings.TrimSpace(string(token)), endpoint)
 	if err != nil {
 		return err
@@ -136,10 +137,17 @@ func getCurrentKubernetesStatusValues(ctx context.Context, client *http.Client, 
 	return values, nil
 }
 
-func kubernetesDeviceStatusEndpoint(summary Summary) string {
+func kubernetesDeviceStatusEndpoint(summary Summary, apiServer string) string {
 	namespace := strings.TrimSpace(summary.DeviceNamespace)
 	if namespace == "" {
 		namespace = "default"
+	}
+	path := fmt.Sprintf("/apis/devices.kubeedge.io/v1beta1/namespaces/%s/devices/%s/status",
+		url.PathEscape(namespace),
+		url.PathEscape(summary.DeviceName),
+	)
+	if apiServer != "" {
+		return apiServer + path
 	}
 	port := strings.TrimSpace(os.Getenv("KUBERNETES_SERVICE_PORT_HTTPS"))
 	if port == "" {
@@ -148,11 +156,10 @@ func kubernetesDeviceStatusEndpoint(summary Summary) string {
 	if port == "" {
 		port = "443"
 	}
-	return fmt.Sprintf("https://%s:%s/apis/devices.kubeedge.io/v1beta1/namespaces/%s/devices/%s/status",
+	return fmt.Sprintf("https://%s:%s%s",
 		strings.TrimSpace(os.Getenv("KUBERNETES_SERVICE_HOST")),
 		port,
-		url.PathEscape(namespace),
-		url.PathEscape(summary.DeviceName),
+		path,
 	)
 }
 

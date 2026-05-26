@@ -84,3 +84,14 @@ func TestGetCurrentKubernetesStatusValuesKeepsOnlyAllowedSummaryFields(t *testin
 		t.Fatalf("raw telemetry field should not be preserved: %+v", values)
 	}
 }
+
+func TestKubernetesDeviceStatusEndpointUsesExplicitAPIServer(t *testing.T) {
+	endpoint := kubernetesDeviceStatusEndpoint(Summary{
+		DeviceName:      "env-arduino-light-01",
+		DeviceNamespace: "default",
+	}, "https://192.168.0.56:6443")
+	want := "https://192.168.0.56:6443/apis/devices.kubeedge.io/v1beta1/namespaces/default/devices/env-arduino-light-01/status"
+	if endpoint != want {
+		t.Fatalf("endpoint = %q, want %q", endpoint, want)
+	}
+}
