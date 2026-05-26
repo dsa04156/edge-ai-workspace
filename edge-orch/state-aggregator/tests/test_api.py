@@ -243,8 +243,8 @@ def test_dashboard_endpoint_merges_kubeedge_device_status(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "available"
-    assert device["status_reason"] == "control/status path is available; sensor data freshness is separate"
+    assert device["status"] == "degraded"
+    assert device["status_reason"] == "latest telemetry sample is missing"
     assert device["device_status_fresh"] is True
     assert device["telemetry_fresh"] is False
     assert device["twin"]["health"]["reported"]["value"] == "ok"
@@ -337,8 +337,8 @@ def test_fresh_twin_timestamp_overrides_stale_last_online_time(monkeypatch):
 
     assert response.status_code == 200
     device = response.json()["devices"][0]
-    assert device["status"] == "available"
-    assert device["status_reason"] == "control/status path is available; sensor data freshness is separate"
+    assert device["status"] == "degraded"
+    assert device["status_reason"] == "latest telemetry sample is missing"
     assert device["device_status_fresh"] is True
     assert device["device_status_last_reported_at"] is not None
 
@@ -445,7 +445,7 @@ def test_device_without_running_mapper_is_unavailable():
     assert device.status_reason == "assigned mapper is not running"
 
 
-def test_device_with_running_mapper_is_healthy_without_sensor_freshness():
+def test_device_with_running_mapper_is_available_when_devicestatus_does_not_report_data_problem():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -461,8 +461,8 @@ def test_device_with_running_mapper_is_healthy_without_sensor_freshness():
         mapper_nodes={"etri-dev0001-jetorn"},
     )
 
-    assert device.status == "available"
-    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.status == "degraded"
+    assert device.status_reason == "latest telemetry sample is missing"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is False
 
@@ -498,7 +498,7 @@ def test_device_with_recent_sensor_data_keeps_freshness_separate_from_health():
     )
 
     assert device.status == "available"
-    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.status_reason == "latest telemetry sample is fresh"
     assert device.telemetry_enabled is True
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
@@ -506,7 +506,7 @@ def test_device_with_recent_sensor_data_keeps_freshness_separate_from_health():
     assert device.telemetry_value == "24.1"
 
 
-def test_device_with_stale_sensor_data_remains_control_healthy():
+def test_device_with_stale_sensor_data_remains_available_until_devicestatus_reports_problem():
     device = service._normalize_device(
         {
             "metadata": {"name": "env-device-01", "namespace": "default"},
@@ -536,8 +536,8 @@ def test_device_with_stale_sensor_data_remains_control_healthy():
         },
     )
 
-    assert device.status == "available"
-    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.status == "degraded"
+    assert device.status_reason == "latest telemetry sample is stale"
     assert device.telemetry_fresh is False
 
 
@@ -670,7 +670,7 @@ def test_availability_degraded_when_status_heartbeat_is_stale():
     )
 
     assert device.status == "degraded"
-    assert device.status_reason == "status heartbeat is stale"
+    assert device.status_reason == "latest telemetry sample is missing"
     assert device.device_status_fresh is False
 
 
@@ -691,10 +691,38 @@ def test_availability_available_when_raw_telemetry_missing_but_control_status_is
         telemetry_samples={},
     )
 
-    assert device.status == "available"
-    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.status == "degraded"
+    assert device.status_reason == "latest telemetry sample is missing"
     assert device.telemetry_fresh is False
     assert device.telemetry_status == "stale"
+
+
+def test_availability_degraded_when_devicestatus_reports_telemetry_input_stale():
+    now = datetime.now(timezone.utc).isoformat()
+    device = service._normalize_device(
+        _base_mqttvirtual_device(
+            status={
+                "twins": {
+                    "statusLastSeen": {"actual": {"value": now, "metadata": {"timestamp": now}}},
+                    "health": {"actual": {"value": "degraded", "metadata": {"timestamp": now}}},
+                    "severity": {"actual": {"value": "warning", "metadata": {"timestamp": now}}},
+                    "online": {"actual": {"value": "true", "metadata": {"timestamp": now}}},
+                    "last_error_code": {"actual": {"value": "telemetry_input_stale", "metadata": {"timestamp": now}}},
+                    "last_error_message": {"actual": {"value": "telemetry input is stale", "metadata": {"timestamp": now}}},
+                }
+            }
+        ),
+        node_health={"etri-dev0001-jetorn": "healthy"},
+        workflows=[],
+        mapper_nodes={"etri-dev0001-jetorn"},
+        telemetry_samples={},
+    )
+
+    assert device.status == "degraded"
+    assert device.status_reason == "latest telemetry sample is missing"
+    assert device.health == "degraded"
+    assert device.severity == "warning"
+    assert device.twin["last_error_code"]["actual"]["value"] == "telemetry_input_stale"
 
 
 def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatch):
@@ -746,7 +774,14 @@ def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatc
         return {"etri-dev0001-jetorn"}
 
     async def fake_telemetry_samples():
-        return {}
+        return {
+            "vib-device-01": TelemetrySample(
+                device_id="vib-device-01",
+                timestamp=datetime.now(timezone.utc),
+                property="vibration",
+                value="1",
+            )
+        }
 
     monkeypatch.setattr(service.kube, "get_devices", fake_devices)
     monkeypatch.setattr(service.kube, "get_device_statuses", fake_device_statuses)
@@ -1163,7 +1198,7 @@ def test_sensor_data_freshness_does_not_gate_control_health_when_device_status_i
     assert device.telemetry_fresh is True
     assert device.device_status_fresh is False
     assert device.status == "available"
-    assert device.status_reason == "control/status path is available; sensor data freshness is separate"
+    assert device.status_reason == "latest telemetry sample is fresh"
 
 
 def test_dashboard_treats_pushmethod_raw_sensor_properties_as_telemetry(monkeypatch):

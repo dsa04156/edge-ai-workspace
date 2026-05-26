@@ -469,6 +469,10 @@ class StateAggregatorService:
             return "unavailable", "DeviceStatus online is false"
         if protocol == "mqttvirtual" and not mapper_running:
             return "unavailable", "assigned mapper is not running"
+        if telemetry_enabled and not telemetry_fresh:
+            if telemetry_age_seconds is None:
+                return "degraded", "latest telemetry sample is missing"
+            return "degraded", "latest telemetry sample is stale"
         if (
             status_heartbeat_age_seconds is not None
             and status_heartbeat_age_seconds > self.settings.device_status_fresh_seconds
@@ -480,12 +484,10 @@ class StateAggregatorService:
             return "degraded", "DeviceStatus severity is critical"
         if health_value and health_value.lower() in {"error", "failed", "degraded", "critical"}:
             return "degraded", f"DeviceStatus health is {health_value.lower()}"
-        if device_status_fresh:
-            if telemetry_enabled:
-                return "available", "control/status path is available; sensor data freshness is separate"
-            return "available", "control/status path is available"
         if telemetry_enabled:
-            return "available", "control/status path is available; sensor data freshness is separate"
+            return "available", "latest telemetry sample is fresh"
+        if device_status_fresh:
+            return "available", "control/status path is available"
         return "available", "registered control/status path is available"
 
     def _read_live_device_state(self, status_payload: dict[str, Any]) -> str | None:
