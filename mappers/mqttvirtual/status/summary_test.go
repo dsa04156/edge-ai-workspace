@@ -11,7 +11,7 @@ func TestSummaryRejectsRawTelemetryFields(t *testing.T) {
 }
 
 func TestSummaryAllowsControlStatusFields(t *testing.T) {
-	for _, field := range []string{"health", "mapperLastSeen", "controlLastSeen", "statusLastSeen", "statusSource", "severity", "command_state", "online", "offline", "control_response"} {
+	for _, field := range []string{"mapperLastSeen", "controlLastSeen", "statusLastSeen", "statusSource", "command_state", "control_response", "last_error_code", "last_error_message"} {
 		if !IsSummaryField(field) {
 			t.Fatalf("summary field %q should be allowed", field)
 		}

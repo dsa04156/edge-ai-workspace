@@ -10,18 +10,6 @@ spec:
     description: raw temperature reading from serial sensor collector
     type: STRING
     accessMode: ReadOnly
-  - name: health
-    description: mapper operational health summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: severity
-    description: mapper operational severity summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: online
-    description: mapper online boolean summary
-    type: STRING
-    accessMode: ReadOnly
   - name: mapperLastSeen
     description: mapper heartbeat timestamp
     type: STRING
@@ -55,18 +43,6 @@ spec:
     description: light reading from serial sensor collector
     type: STRING
     accessMode: ReadOnly
-  - name: health
-    description: mapper operational health summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: severity
-    description: mapper operational severity summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: online
-    description: mapper online boolean summary
-    type: STRING
-    accessMode: ReadOnly
   - name: mapperLastSeen
     description: mapper heartbeat timestamp
     type: STRING
@@ -98,18 +74,6 @@ spec:
   properties:
   - name: value
     description: magnetic reading from serial sensor collector
-    type: STRING
-    accessMode: ReadOnly
-  - name: health
-    description: mapper operational health summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: severity
-    description: mapper operational severity summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: online
-    description: mapper online boolean summary
     type: STRING
     accessMode: ReadOnly
   - name: mapperLastSeen
@@ -151,18 +115,6 @@ spec:
     accessMode: ReadOnly
   - name: z
     description: acceleration z reading from serial sensor collector
-    type: STRING
-    accessMode: ReadOnly
-  - name: health
-    description: mapper operational health summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: severity
-    description: mapper operational severity summary
-    type: STRING
-    accessMode: ReadOnly
-  - name: online
-    description: mapper online boolean summary
     type: STRING
     accessMode: ReadOnly
   - name: mapperLastSeen

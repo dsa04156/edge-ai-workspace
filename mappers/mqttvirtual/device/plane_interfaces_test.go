@@ -8,7 +8,7 @@ import (
 )
 
 func TestStatusReporterAcceptsOnlySummaryFields(t *testing.T) {
-	allowed := []string{"health", "mapperLastSeen", "controlLastSeen", "statusLastSeen", "statusSource", "severity", "command_state", "online", "offline", "control_response"}
+	allowed := []string{"mapperLastSeen", "controlLastSeen", "statusLastSeen", "statusSource", "command_state", "control_response", "last_error_code", "last_error_message"}
 	for _, field := range allowed {
 		if !status.IsSummaryField(field) {
 			t.Fatalf("summary field %q should be allowed for DeviceStatus", field)
@@ -39,7 +39,7 @@ func TestMapperFrameworkDataPathAllowsRawTelemetryWhileDeviceStatusRejectsIt(t *
 		}
 	}
 
-	summary := []string{"health", "severity", "command_state", "control_response", "statusSource"}
+	summary := []string{"mapperLastSeen", "statusLastSeen", "statusSource", "last_error_code", "last_error_message", "command_state", "control_response"}
 	for _, field := range summary {
 		if !shouldReportAsTwinProperty(&common.Twin{PropertyName: field, Property: &common.DeviceProperty{ReportToCloud: true}}) {
 			t.Fatalf("summary field %q should remain eligible for DeviceStatus", field)

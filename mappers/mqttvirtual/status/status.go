@@ -34,9 +34,6 @@ type Summary struct {
 func BuildHeartbeatSummary(deviceName, deviceNamespace string, now time.Time, state string, stateErr error) Summary {
 	stamp := now.UTC().Format(time.RFC3339)
 	values := map[string]string{
-		"health":             "online",
-		"severity":           "normal",
-		"online":             "true",
 		"mapperLastSeen":     stamp,
 		"statusLastSeen":     stamp,
 		"statusSource":       "mapper-framework",
@@ -45,24 +42,21 @@ func BuildHeartbeatSummary(deviceName, deviceNamespace string, now time.Time, st
 	}
 
 	if stateErr != nil {
-		values["health"] = "offline"
-		values["severity"] = "critical"
-		values["online"] = "false"
 		values["last_error_code"] = "mapper_status_error"
 		values["last_error_message"] = stateErr.Error()
 	} else {
 		switch state {
 		case "online":
+		case "telemetry_missing":
+			values["last_error_code"] = "telemetry_input_missing"
+			values["last_error_message"] = "no telemetry input has been received"
+		case "telemetry_stale":
+			values["last_error_code"] = "telemetry_input_stale"
+			values["last_error_message"] = "telemetry input is stale"
 		case "offline", "disconnected":
-			values["health"] = "offline"
-			values["severity"] = "critical"
-			values["online"] = "false"
 			values["last_error_code"] = "mapper_offline"
 			values["last_error_message"] = state
 		default:
-			values["health"] = "degraded"
-			values["severity"] = "warning"
-			values["online"] = "false"
 			values["last_error_code"] = "mapper_state_unknown"
 			values["last_error_message"] = state
 		}
@@ -152,14 +146,10 @@ func AllowedSummaryFields() map[string]struct{} {
 }
 
 var summaryFields = map[string]struct{}{
-	"health":                  {},
-	"severity":                {},
 	"mapperLastSeen":          {},
 	"controlLastSeen":         {},
 	"statusLastSeen":          {},
 	"statusSource":            {},
-	"online":                  {},
-	"offline":                 {},
 	"control_response":        {},
 	"last_control_response":   {},
 	"alarm_latched":           {},

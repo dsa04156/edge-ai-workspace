@@ -74,33 +74,6 @@ spec:
               device_id: vib-arduino-acceleration-01
               property: z
             fieldKey: value
-  - name: health
-    collectCycle: 60000
-    reportCycle: 60000
-    reportToCloud: true
-    visitors:
-      protocolName: mqttvirtual
-      configData:
-        dataType: string
-        jsonKey: health
-  - name: severity
-    collectCycle: 60000
-    reportCycle: 60000
-    reportToCloud: true
-    visitors:
-      protocolName: mqttvirtual
-      configData:
-        dataType: string
-        jsonKey: severity
-  - name: online
-    collectCycle: 60000
-    reportCycle: 60000
-    reportToCloud: true
-    visitors:
-      protocolName: mqttvirtual
-      configData:
-        dataType: string
-        jsonKey: online
   - name: mapperLastSeen
     collectCycle: 60000
     reportCycle: 60000
