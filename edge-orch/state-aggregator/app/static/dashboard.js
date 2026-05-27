@@ -375,6 +375,9 @@ function renderNodes(nodes) {
         .map((node) => {
           const cpu = Math.round((node.raw_metrics?.cpu_utilization || 0) * 100);
           const mem = Math.round((node.raw_metrics?.memory_usage_ratio || 0) * 100);
+          const gpuValue = node.raw_metrics?.gpu_utilization;
+          const gpu = gpuValue === null || gpuValue === undefined ? null : Math.round(gpuValue * 100);
+          const gpuMeta = gpu === null ? "" : `<span>gpu ${gpu}%</span>`;
           return `
             <article class="item">
               <div class="item-title">
@@ -385,6 +388,7 @@ function renderNodes(nodes) {
                 <span>${escapeHtml(text(node.node_type, "node"))}</span>
                 <span>cpu ${cpu}%</span>
                 <span>mem ${mem}%</span>
+                ${gpuMeta}
               </div>
             </article>
           `;
