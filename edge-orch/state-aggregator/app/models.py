@@ -91,6 +91,12 @@ class NodeRawMetrics(BaseModel):
     load_average: float = 0.0
     network_rx_rate: float = 0.0
     network_tx_rate: float = 0.0
+    gpu_utilization: float | None = None
+    gpu_memory_used_mib: float | None = None
+    gpu_memory_total_mib: float | None = None
+    gpu_memory_usage_ratio: float | None = None
+    gpu_temperature_celsius: float | None = None
+    gpu_power_watts: float | None = None
     collected_at: datetime
 
 
