@@ -14,6 +14,11 @@ PROMETHEUS_QUERIES = {
     "load_average": "node_load1",
     "network_rx_rate": 'sum by(instance) (rate(node_network_receive_bytes_total{device!="lo"}[5m]))',
     "network_tx_rate": 'sum by(instance) (rate(node_network_transmit_bytes_total{device!="lo"}[5m]))',
+    "gpu_utilization": "DCGM_FI_DEV_GPU_UTIL",
+    "gpu_memory_used_mib": "DCGM_FI_DEV_FB_USED",
+    "gpu_memory_free_mib": "DCGM_FI_DEV_FB_FREE",
+    "gpu_temperature_celsius": "DCGM_FI_DEV_GPU_TEMP",
+    "gpu_power_watts": "DCGM_FI_DEV_POWER_USAGE",
 }
 
 
@@ -36,12 +41,21 @@ class PrometheusClient:
                     instance = sample.get("metric", {}).get("instance")
                     if not instance:
                         continue
-                    results.setdefault(instance, {})[metric_name] = float(sample["value"][1])
+                    node_key = self._node_key(instance)
+                    results.setdefault(node_key, {})[metric_name] = float(sample["value"][1])
 
         collected_at = datetime.now(timezone.utc)
         items: list[NodeRawMetrics] = []
         for instance, values in results.items():
-            mapping = self.instance_map.get(instance, {})
+            mapping = self._instance_mapping(instance)
+            gpu_memory_used_mib = values.get("gpu_memory_used_mib")
+            gpu_memory_free_mib = values.get("gpu_memory_free_mib")
+            gpu_memory_total_mib = None
+            gpu_memory_usage_ratio = None
+            if gpu_memory_used_mib is not None and gpu_memory_free_mib is not None:
+                gpu_memory_total_mib = gpu_memory_used_mib + gpu_memory_free_mib
+                if gpu_memory_total_mib > 0:
+                    gpu_memory_usage_ratio = round(gpu_memory_used_mib / gpu_memory_total_mib, 3)
             items.append(
                 NodeRawMetrics(
                     instance=instance,
@@ -53,7 +67,36 @@ class PrometheusClient:
                     load_average=values.get("load_average", 0.0),
                     network_rx_rate=values.get("network_rx_rate", 0.0),
                     network_tx_rate=values.get("network_tx_rate", 0.0),
+                    gpu_utilization=self._ratio_percent(values.get("gpu_utilization")),
+                    gpu_memory_used_mib=gpu_memory_used_mib,
+                    gpu_memory_total_mib=gpu_memory_total_mib,
+                    gpu_memory_usage_ratio=gpu_memory_usage_ratio,
+                    gpu_temperature_celsius=values.get("gpu_temperature_celsius"),
+                    gpu_power_watts=values.get("gpu_power_watts"),
                     collected_at=collected_at,
                 )
             )
         return items
+
+    def _node_key(self, instance: str) -> str:
+        if instance in self.instance_map:
+            return instance
+        host = instance.rsplit(":", 1)[0]
+        if host in self.instance_map:
+            mapped = self.instance_map[host]
+            for candidate, candidate_mapping in self.instance_map.items():
+                if candidate_mapping == mapped and candidate.endswith(":9100"):
+                    return candidate
+        return instance
+
+    def _instance_mapping(self, instance: str) -> dict[str, str]:
+        mapping = self.instance_map.get(instance)
+        if mapping is not None:
+            return mapping
+        host = instance.rsplit(":", 1)[0]
+        return self.instance_map.get(host, {})
+
+    def _ratio_percent(self, value: float | None) -> float | None:
+        if value is None:
+            return None
+        return round(value / 100.0, 3)

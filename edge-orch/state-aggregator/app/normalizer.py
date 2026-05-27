@@ -28,19 +28,32 @@ def normalize_node_state(raw: NodeRawMetrics) -> NodeState:
     else:
         node_health = "healthy"
 
+    raw_metrics = {
+        "up": raw.up,
+        "cpu_utilization": raw.cpu_utilization,
+        "memory_usage_ratio": raw.memory_usage_ratio,
+        "load_average": raw.load_average,
+        "network_rx_rate": raw.network_rx_rate,
+        "network_tx_rate": raw.network_tx_rate,
+    }
+    for key in (
+        "gpu_utilization",
+        "gpu_memory_used_mib",
+        "gpu_memory_total_mib",
+        "gpu_memory_usage_ratio",
+        "gpu_temperature_celsius",
+        "gpu_power_watts",
+    ):
+        value = getattr(raw, key)
+        if value is not None:
+            raw_metrics[key] = value
+
     return NodeState(
         hostname=raw.hostname,
         instance=raw.instance,
         node_type=raw.node_type,
         collected_at=raw.collected_at,
-        raw_metrics={
-            "up": raw.up,
-            "cpu_utilization": raw.cpu_utilization,
-            "memory_usage_ratio": raw.memory_usage_ratio,
-            "load_average": raw.load_average,
-            "network_rx_rate": raw.network_rx_rate,
-            "network_tx_rate": raw.network_tx_rate,
-        },
+        raw_metrics=raw_metrics,
         compute_pressure=compute_pressure,
         memory_pressure=memory_pressure,
         network_pressure=network_pressure,
