@@ -80,6 +80,10 @@ class PrometheusClient:
 
     def _node_key(self, instance: str) -> str:
         if instance in self.instance_map:
+            mapped = self.instance_map[instance]
+            for candidate, candidate_mapping in self.instance_map.items():
+                if candidate_mapping == mapped and candidate.endswith(":9100"):
+                    return candidate
             return instance
         host = instance.rsplit(":", 1)[0]
         if host in self.instance_map:

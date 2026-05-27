@@ -29,11 +29,16 @@ class KubeClient:
         Returns a map of IP:Port -> {hostname, node_type}
         """
         node_map = {}
+        node_metadata_by_name: dict[str, dict[str, str]] = {}
         try:
             nodes = self.v1.list_node()
             for node in nodes.items:
                 hostname = node.metadata.name
                 node_type = self._determine_node_type(node)
+                node_metadata_by_name[hostname] = {
+                    "hostname": hostname,
+                    "node_type": node_type,
+                }
                 
                 # Find InternalIP
                 ip = None
@@ -45,15 +50,25 @@ class KubeClient:
                 if ip:
                     # Map both plain IP and common node-exporter port
                     key = f"{ip}:9100"
-                    node_map[key] = {
-                        "hostname": hostname,
-                        "node_type": node_type
-                    }
+                    node_map[key] = node_metadata_by_name[hostname]
                     # Also map the IP itself just in case
-                    node_map[ip] = {
-                        "hostname": hostname,
-                        "node_type": node_type
-                    }
+                    node_map[ip] = node_metadata_by_name[hostname]
+
+            # DCGM exporter usually exposes metrics through Pod IPs, e.g.
+            # 10.244.x.y:9400. Map those Pod IP instances back to the hosting
+            # Kubernetes node so GPU metrics merge with the node-exporter CPU
+            # metrics instead of appearing as separate edge-node rows.
+            dcgm_pods = self.v1.list_namespaced_pod(
+                namespace="kube-system",
+                label_selector="app=dcgm-exporter",
+            )
+            for pod in dcgm_pods.items:
+                node_name = pod.spec.node_name if pod.spec is not None else None
+                pod_ip = pod.status.pod_ip if pod.status is not None else None
+                if not node_name or not pod_ip or node_name not in node_metadata_by_name:
+                    continue
+                node_map[pod_ip] = node_metadata_by_name[node_name]
+                node_map[f"{pod_ip}:9400"] = node_metadata_by_name[node_name]
         except Exception:
             logger.exception("Failed to list nodes from Kubernetes API")
         
