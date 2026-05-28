@@ -21,6 +21,11 @@ PROMETHEUS_QUERIES = {
     "gpu_power_watts": "DCGM_FI_DEV_POWER_USAGE",
 }
 
+SERVICE_USAGE_QUERIES = {
+    "cpu_usage_cores": 'sum by(namespace,pod,container) (rate(container_cpu_usage_seconds_total{container!="",container!="POD",image!=""}[5m]))',
+    "memory_working_set_mib": 'sum by(namespace,pod,container) (container_memory_working_set_bytes{container!="",container!="POD",image!=""}) / 1024 / 1024',
+}
+
 
 class PrometheusClient:
     def __init__(self, base_url: str, instance_map: dict[str, dict[str, str]]) -> None:
@@ -77,6 +82,32 @@ class PrometheusClient:
                 )
             )
         return items
+
+    async def collect_service_resource_usage(self) -> list[dict[str, object]]:
+        """Collect current per-container service CPU/MEM usage from Prometheus/cAdvisor."""
+        results: dict[tuple[str, str, str], dict[str, object]] = {}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            for metric_name, query in SERVICE_USAGE_QUERIES.items():
+                response = await client.get(
+                    f"{self.base_url}/api/v1/query",
+                    params={"query": query},
+                )
+                response.raise_for_status()
+                payload = response.json()
+                for sample in payload.get("data", {}).get("result", []):
+                    metric = sample.get("metric", {})
+                    namespace = metric.get("namespace")
+                    pod = metric.get("pod")
+                    container = metric.get("container")
+                    if not namespace or not pod or not container:
+                        continue
+                    key = (namespace, pod, container)
+                    row = results.setdefault(
+                        key,
+                        {"namespace": namespace, "pod": pod, "container": container},
+                    )
+                    row[metric_name] = float(sample["value"][1])
+        return list(results.values())
 
     def _node_key(self, instance: str) -> str:
         if instance in self.instance_map:

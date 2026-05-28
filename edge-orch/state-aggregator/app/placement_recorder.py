@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -17,11 +16,11 @@ class InfluxResourceProfileRecorder:
         self.bucket = bucket
         self.token = token
 
-    async def record_snapshot(self, node_profiles: list[dict], placement_advice: list[dict]) -> bool:
+    async def record_snapshot(self, service_profiles: list[dict[str, Any]]) -> bool:
         if not self.token:
-            logger.warning("InfluxDB token is not configured; skipping resource profile event write")
+            logger.warning("InfluxDB token is not configured; skipping service resource profile write")
             return False
-        lines = self._node_profile_lines(node_profiles) + self._placement_advice_lines(placement_advice)
+        lines = self._service_profile_lines(service_profiles)
         if not lines:
             return False
         try:
@@ -38,62 +37,46 @@ class InfluxResourceProfileRecorder:
                 response.raise_for_status()
                 return True
         except Exception:
-            logger.exception("Failed to write resource profile events to InfluxDB")
+            logger.exception("Failed to write service resource profile events to InfluxDB")
             return False
 
-    def _node_profile_lines(self, node_profiles: list[dict]) -> list[str]:
+    def _service_profile_lines(self, service_profiles: list[dict[str, Any]]) -> list[str]:
         lines: list[str] = []
-        for profile in node_profiles:
+        for profile in service_profiles:
             ts = self._timestamp_ns(profile.get("generated_at"))
+            requirements = profile.get("resource_requirements") or {}
+            requests = requirements.get("requests") or {}
+            limits = requirements.get("limits") or {}
+            missing = requirements.get("missing") or {}
             tags = {
-                "node": profile.get("node"),
-                "node_type": profile.get("node_type") or "unknown",
-                "status": profile.get("status") or "unknown",
-                "event": "resource_profile",
+                "namespace": profile.get("namespace"),
+                "service": profile.get("service"),
+                "profile_type": profile.get("profile_type") or "running_service_resource_requirements",
+                "requirements_declared": str(bool(profile.get("requirements_declared"))).lower(),
+                "event": "service_resource_profile",
             }
-            cpu = profile.get("cpu") or {}
-            memory = profile.get("memory") or {}
-            gpu = profile.get("gpu") or {}
-            network = profile.get("network") or {}
             fields = {
-                "cpu_usage_ratio": cpu.get("usage_ratio"),
-                "cpu_available_ratio": cpu.get("available_ratio"),
-                "memory_usage_ratio": memory.get("usage_ratio"),
-                "memory_available_ratio": memory.get("available_ratio"),
-                "gpu_available": bool(gpu.get("available")),
-                "gpu_utilization_ratio": gpu.get("utilization_ratio"),
-                "gpu_memory_free_mib": gpu.get("memory_free_mib"),
-                "gpu_memory_total_mib": gpu.get("memory_total_mib"),
-                "network_rx_mbps": network.get("rx_mbps"),
-                "network_tx_mbps": network.get("tx_mbps"),
-                "cpu_pressure": cpu.get("pressure"),
-                "memory_pressure": memory.get("pressure"),
-                "gpu_pressure": gpu.get("pressure"),
-                "network_pressure": network.get("pressure"),
+                "pod_count": profile.get("pod_count"),
+                "container_count": profile.get("container_count"),
+                "request_coverage_ratio": profile.get("request_coverage_ratio"),
+                "limit_coverage_ratio": profile.get("limit_coverage_ratio"),
+                "request_cpu_cores": requests.get("cpu_cores"),
+                "request_memory_mib": requests.get("memory_mib"),
+                "limit_cpu_cores": limits.get("cpu_cores"),
+                "limit_memory_mib": limits.get("memory_mib"),
+                "limit_gpu_units": limits.get("gpu_units"),
+                "current_cpu_usage_cores": (profile.get("current_usage") or {}).get("cpu_cores"),
+                "current_memory_working_set_mib": (profile.get("current_usage") or {}).get("memory_working_set_mib"),
+                "usage_sampled_container_count": (profile.get("current_usage") or {}).get("sampled_container_count"),
+                "usage_coverage_ratio": (profile.get("current_usage") or {}).get("usage_coverage_ratio"),
+                "missing_cpu_request_containers": missing.get("cpu_request_containers"),
+                "missing_memory_request_containers": missing.get("memory_request_containers"),
+                "missing_cpu_limit_containers": missing.get("cpu_limit_containers"),
+                "missing_memory_limit_containers": missing.get("memory_limit_containers"),
+                "nodes": ",".join(profile.get("nodes") or []),
+                "interpretation": profile.get("interpretation"),
             }
-            lines.append(self._line("resource_profile_events", tags, fields, ts))
-        return [line for line in lines if line]
-
-    def _placement_advice_lines(self, placement_advice: list[dict]) -> list[str]:
-        lines: list[str] = []
-        for advice in placement_advice:
-            ts = self._timestamp_ns(advice.get("generated_at"))
-            for candidate in advice.get("candidates") or []:
-                tags = {
-                    "service": advice.get("service"),
-                    "stage": advice.get("stage"),
-                    "node": candidate.get("node"),
-                    "node_type": candidate.get("node_type") or "unknown",
-                    "decision": candidate.get("decision") or "unknown",
-                    "event": "placement_advice",
-                }
-                fields = {
-                    "score": candidate.get("score"),
-                    "best_node": candidate.get("node") == advice.get("best_node"),
-                    "reason": "; ".join(candidate.get("reasons") or []),
-                    "requirements": json.dumps(advice.get("requirements") or {}, ensure_ascii=False, sort_keys=True),
-                }
-                lines.append(self._line("placement_advice_events", tags, fields, ts))
+            lines.append(self._line("service_resource_profile_events", tags, fields, ts))
         return [line for line in lines if line]
 
     def _line(self, measurement: str, tags: dict[str, Any], fields: dict[str, Any], timestamp_ns: int) -> str:

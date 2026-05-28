@@ -148,6 +148,44 @@ class KubeClient:
             nodes.add(pod.spec.node_name)
         return nodes
 
+    async def get_running_service_pods(self) -> list[dict[str, Any]]:
+        """Return running pod resource declarations for service requirement profiling."""
+        if not self.enabled:
+            return []
+        try:
+            pods = self.v1.list_pod_for_all_namespaces(field_selector="status.phase=Running")
+        except Exception:
+            logger.exception("Failed to list running pods for service resource profiling")
+            return []
+
+        results: list[dict[str, Any]] = []
+        for pod in pods.items:
+            metadata = pod.metadata
+            spec = pod.spec
+            status = pod.status
+            if metadata is None or spec is None or status is None:
+                continue
+            labels = metadata.labels or {}
+            results.append(
+                {
+                    "namespace": metadata.namespace,
+                    "name": metadata.name,
+                    "workload": self._workload_name(pod),
+                    "node": spec.node_name,
+                    "phase": status.phase,
+                    "labels": labels,
+                    "containers": [
+                        {
+                            "name": container.name,
+                            "requests": dict((container.resources.requests or {}) if container.resources else {}),
+                            "limits": dict((container.resources.limits or {}) if container.resources else {}),
+                        }
+                        for container in spec.containers or []
+                    ],
+                }
+            )
+        return results
+
     async def bridge_device_status_heartbeats(self, namespace: str = "default") -> int:
         """Refresh DeviceStatus summary twins from live control-plane state.
 
@@ -229,6 +267,18 @@ class KubeClient:
             if condition.type == "Ready":
                 return condition.status == "True"
         return False
+
+    def _workload_name(self, pod: client.V1Pod) -> str:
+        metadata = pod.metadata
+        labels = metadata.labels or {} if metadata is not None else {}
+        for key in ("app.kubernetes.io/name", "app", "k8s-app"):
+            if labels.get(key):
+                return labels[key]
+        owner_refs = metadata.owner_references or [] if metadata is not None else []
+        for owner in owner_refs:
+            if owner.name:
+                return owner.name
+        return metadata.name if metadata is not None and metadata.name else "unknown"
 
     def _determine_node_type(self, node: client.V1Node) -> str:
         labels = node.metadata.labels or {}

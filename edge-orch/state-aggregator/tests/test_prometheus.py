@@ -1,6 +1,6 @@
 import asyncio
 
-from app.prometheus import PrometheusClient
+from app.prometheus import PrometheusClient, SERVICE_USAGE_QUERIES
 
 
 class FakeResponse:
@@ -115,3 +115,35 @@ def test_collect_node_metrics_merges_dcgm_pod_ip_with_node_exporter(monkeypatch)
     assert item.hostname == "etri-ser0001-cg0msb"
     assert item.up == 1.0
     assert item.gpu_utilization == 0.33
+
+
+def test_collect_service_resource_usage_merges_container_cpu_and_memory(monkeypatch):
+    import app.prometheus as prometheus_module
+
+    class UsageClient(FakeAsyncClient):
+        async def get(self, url, params):
+            query = params["query"]
+            if query == SERVICE_USAGE_QUERIES["cpu_usage_cores"]:
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "redis-a", "container": "redis"}, "value": [0, "0.07"]},
+                ])
+            if query == SERVICE_USAGE_QUERIES["memory_working_set_mib"]:
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "redis-a", "container": "redis"}, "value": [0, "88.5"]},
+                ])
+            return FakeResponse([])
+
+    monkeypatch.setattr(prometheus_module.httpx, "AsyncClient", UsageClient)
+    client = PrometheusClient("http://prometheus.example", {})
+
+    usage = asyncio.run(client.collect_service_resource_usage())
+
+    assert usage == [
+        {
+            "namespace": "default",
+            "pod": "redis-a",
+            "container": "redis",
+            "cpu_usage_cores": 0.07,
+            "memory_working_set_mib": 88.5,
+        }
+    ]

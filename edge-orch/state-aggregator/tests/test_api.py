@@ -82,45 +82,64 @@ def test_cost_model_endpoint_returns_snapshot():
     assert "migration_cost_stats" in payload
 
 
-def test_resource_profile_endpoints_return_profiles_and_filtered_advice():
-    service.store.nodes = {
-        "gpu-node": NodeState(
-            hostname="gpu-node",
-            instance="192.168.0.10:9100",
-            node_type="x86-gpu",
-            collected_at=datetime.now(timezone.utc),
-            raw_metrics={
-                "up": 1.0,
-                "cpu_utilization": 0.25,
-                "memory_usage_ratio": 0.30,
-                "load_average": 0.5,
-                "network_rx_rate": 1000.0,
-                "network_tx_rate": 900.0,
-                "gpu_utilization": 0.2,
-                "gpu_memory_used_mib": 1024.0,
-                "gpu_memory_total_mib": 8192.0,
-                "gpu_memory_usage_ratio": 0.125,
+def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypatch):
+    async def fake_running_service_pods():
+        return [
+            {
+                "namespace": "default",
+                "name": "redis-abc",
+                "workload": "redis",
+                "node": "server-node",
+                "phase": "Running",
+                "containers": [
+                    {
+                        "name": "redis",
+                        "requests": {"cpu": "100m", "memory": "128Mi"},
+                        "limits": {"cpu": "200m", "memory": "256Mi"},
+                    }
+                ],
             },
-            compute_pressure="low",
-            memory_pressure="low",
-            network_pressure="low",
-            node_health="healthy",
-        )
-    }
-    service._resource_profiles = []
-    service._placement_advice = []
+            {
+                "namespace": "default",
+                "name": "state-aggregator-abc",
+                "workload": "state-aggregator",
+                "node": "server-node",
+                "phase": "Running",
+                "containers": [{"name": "app", "requests": {}, "limits": {}}],
+            },
+        ]
+
+    monkeypatch.setattr(service.kube, "get_running_service_pods", fake_running_service_pods)
+
+    async def fake_record_snapshot(profiles):
+        return True
+
+    async def fake_collect_usage():
+        return [
+            {"namespace": "default", "pod": "redis-abc", "container": "redis", "cpu_usage_cores": 0.04, "memory_working_set_mib": 80},
+        ]
+
+    monkeypatch.setattr(service.resource_recorder, "record_snapshot", fake_record_snapshot)
+    monkeypatch.setattr(service.prometheus, "collect_service_resource_usage", fake_collect_usage)
+    service._service_resource_profiles = []
 
     with TestClient(app) as client:
-        profile_response = client.get("/state/resource-profiles")
-        advice_response = client.get("/state/placement-advice?service=anomaly-detection")
+        profile_response = client.get("/state/resource-profiles?refresh=true")
+        service_response = client.get("/state/service-resource-profiles?service=redis")
 
     assert profile_response.status_code == 200
     profile_payload = profile_response.json()
     assert profile_payload["recording_backend"] == "influxdb"
-    assert profile_payload["node_profiles"][0]["node"] == "gpu-node"
-    assert advice_response.status_code == 200
-    advice_payload = advice_response.json()
-    assert [item["service"] for item in advice_payload["placement_advice"]] == ["anomaly-detection"]
+    assert profile_payload["profile_scope"] == "running_service_resource_requirements"
+    assert profile_payload["summary"]["profile_count"] == 2
+    assert "placement_advice" not in profile_payload
+    assert service_response.status_code == 200
+    service_payload = service_response.json()
+    assert [item["service"] for item in service_payload["service_resource_profiles"]] == ["redis"]
+    redis_profile = service_payload["service_resource_profiles"][0]
+    assert redis_profile["resource_requirements"]["requests"]["cpu_cores"] == 0.1
+    assert redis_profile["current_usage"]["cpu_cores"] == 0.04
+    assert redis_profile["current_usage"]["memory_working_set_mib"] == 80
 
 
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):

@@ -128,20 +128,24 @@ async def get_cost_model() -> CostModelState:
 
 
 @app.get("/state/resource-profiles")
-async def get_resource_profiles():
-    return service.get_resource_profile_state()
+async def get_resource_profiles(refresh: bool = False):
+    return await service.get_resource_profile_state(refresh=refresh)
 
 
-@app.get("/state/placement-advice")
-async def get_placement_advice(service_name: str | None = Query(default=None, alias="service")):
-    state = service.get_resource_profile_state()
-    advice = state.get("placement_advice") or []
+@app.get("/state/service-resource-profiles")
+async def get_service_resource_profiles(refresh: bool = False, namespace: str | None = None, service_name: str | None = Query(default=None, alias="service")):
+    state = await service.get_resource_profile_state(refresh=refresh)
+    profiles = state.get("service_resource_profiles") or []
+    if namespace:
+        profiles = [item for item in profiles if item.get("namespace") == namespace]
     if service_name:
-        advice = [item for item in advice if item.get("service") == service_name]
+        profiles = [item for item in profiles if item.get("service") == service_name]
     return {
         "generated_at": state.get("generated_at"),
         "recorded_at": state.get("recorded_at"),
-        "placement_advice": advice,
+        "profile_scope": state.get("profile_scope"),
+        "summary": state.get("summary"),
+        "service_resource_profiles": profiles,
     }
 
 

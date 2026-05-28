@@ -1,70 +1,130 @@
-from datetime import datetime, timezone
-
-from app.models import NodeState
 from app.placement_recorder import InfluxResourceProfileRecorder
-from app.resource_profile import build_node_resource_profiles, build_placement_advice
+from app.resource_profile import (
+    build_service_resource_profiles,
+    parse_cpu_cores,
+    parse_memory_mib,
+    summarize_service_resource_profiles,
+)
 
 
-def _node(hostname: str, gpu: bool = False, unavailable: bool = False) -> NodeState:
-    metrics = {
-        "up": 0.0 if unavailable else 1.0,
-        "cpu_utilization": 0.25,
-        "memory_usage_ratio": 0.40,
-        "load_average": 0.8,
-        "network_rx_rate": 1_000_000.0,
-        "network_tx_rate": 1_000_000.0,
-    }
-    if gpu:
-        metrics.update(
+def _pod(name: str, workload: str, node: str, requests=None, limits=None):
+    return {
+        "namespace": "default",
+        "name": name,
+        "workload": workload,
+        "node": node,
+        "phase": "Running",
+        "containers": [
             {
-                "gpu_utilization": 0.35,
-                "gpu_memory_used_mib": 2048.0,
-                "gpu_memory_total_mib": 8192.0,
-                "gpu_memory_usage_ratio": 0.25,
+                "name": "app",
+                "requests": requests or {},
+                "limits": limits or {},
             }
-        )
-    return NodeState(
-        hostname=hostname,
-        instance=f"{hostname}:9100",
-        node_type="x86-gpu" if gpu else "edge_device",
-        collected_at=datetime.now(timezone.utc),
-        raw_metrics=metrics,
-        compute_pressure="low",
-        memory_pressure="low",
-        network_pressure="low",
-        node_health="unavailable" if unavailable else "healthy",
+        ],
+    }
+
+
+def test_quantity_parsers_normalize_kubernetes_units():
+    assert parse_cpu_cores("250m") == 0.25
+    assert parse_cpu_cores("2") == 2.0
+    assert parse_memory_mib("512Mi") == 512
+    assert parse_memory_mib("1Gi") == 1024
+
+
+def test_service_resource_profiles_aggregate_running_service_requirements_and_usage():
+    profiles = build_service_resource_profiles(
+        [
+            _pod(
+                "analyzer-a",
+                "analyzer",
+                "gpu-node",
+                requests={"cpu": "500m", "memory": "512Mi"},
+                limits={"cpu": "1", "memory": "1Gi", "nvidia.com/gpu": "1"},
+            ),
+            _pod(
+                "analyzer-b",
+                "analyzer",
+                "gpu-node",
+                requests={"cpu": "250m", "memory": "256Mi"},
+                limits={"cpu": "500m", "memory": "512Mi"},
+            ),
+        ],
+        [
+            {"namespace": "default", "pod": "analyzer-a", "container": "app", "cpu_usage_cores": 0.31, "memory_working_set_mib": 300},
+            {"namespace": "default", "pod": "analyzer-b", "container": "app", "cpu_usage_cores": 0.12, "memory_working_set_mib": 180},
+        ],
     )
 
-
-def test_resource_profiles_turn_node_metrics_into_readable_profiles():
-    profiles = build_node_resource_profiles([_node("gpu-node", gpu=True), _node("rpi-node")])
-
-    gpu_profile = profiles[0]
-    assert gpu_profile["node"] == "gpu-node"
-    assert gpu_profile["gpu"]["available"] is True
-    assert gpu_profile["gpu"]["memory_free_mib"] == 6144.0
-    assert gpu_profile["network"]["rx_mbps"] == 8.0
-
-
-def test_placement_advice_rejects_gpu_service_on_non_gpu_node():
-    profiles = build_node_resource_profiles([_node("gpu-node", gpu=True), _node("rpi-node")])
-    advice = build_placement_advice(profiles)
-    anomaly = next(item for item in advice if item["service"] == "anomaly-detection")
-
-    decisions = {candidate["node"]: candidate["decision"] for candidate in anomaly["candidates"]}
-    assert decisions["gpu-node"] == "fit"
-    assert decisions["rpi-node"] == "reject"
-    assert anomaly["best_node"] == "gpu-node"
+    assert len(profiles) == 1
+    profile = profiles[0]
+    assert profile["profile_type"] == "running_service_resource_requirements"
+    assert profile["service"] == "analyzer"
+    assert profile["pod_count"] == 2
+    assert profile["resource_requirements"]["requests"]["cpu_cores"] == 0.75
+    assert profile["resource_requirements"]["requests"]["memory_mib"] == 768
+    assert profile["resource_requirements"]["limits"]["gpu_units"] == 1
+    assert profile["current_usage"]["cpu_cores"] == 0.43
+    assert profile["current_usage"]["memory_working_set_mib"] == 480
+    assert profile["current_usage"]["usage_coverage_ratio"] == 1
+    assert profile["requirements_declared"] is True
 
 
-def test_influx_recorder_builds_resource_and_placement_lines():
-    profiles = build_node_resource_profiles([_node("gpu-node", gpu=True)])
-    advice = build_placement_advice(profiles)
+def test_service_resource_profiles_mark_missing_requests_limits():
+    profiles = build_service_resource_profiles([_pod("reader-a", "reader", "edge-node")])
+
+    profile = profiles[0]
+    assert profile["requirements_declared"] is False
+    assert profile["request_coverage_ratio"] == 0
+    assert profile["limit_coverage_ratio"] == 0
+    assert "요구량 프로파일 보강" in profile["interpretation"]
+
+
+def test_service_resource_summary_counts_profile_declaration_state_and_current_usage():
+    profiles = build_service_resource_profiles(
+        [
+            _pod(
+                "redis-a",
+                "redis",
+                "server-node",
+                requests={"cpu": "100m", "memory": "128Mi"},
+                limits={"cpu": "200m", "memory": "256Mi"},
+            ),
+            _pod("reader-a", "reader", "edge-node"),
+        ],
+        [
+            {"namespace": "default", "pod": "redis-a", "container": "app", "cpu_usage_cores": 0.03, "memory_working_set_mib": 70},
+        ],
+    )
+    summary = summarize_service_resource_profiles(profiles)
+
+    assert summary["profile_count"] == 2
+    assert summary["running_pod_count"] == 2
+    assert summary["fully_declared_profile_count"] == 1
+    assert summary["partially_declared_profile_count"] == 1
+    assert summary["declared_request_cpu_cores"] == 0.1
+    assert summary["current_cpu_usage_cores"] == 0.03
+    assert summary["current_memory_working_set_mib"] == 70
+    assert summary["usage_coverage_ratio"] == 0.5
+
+
+def test_influx_recorder_builds_service_resource_profile_lines():
+    profiles = build_service_resource_profiles(
+        [
+            _pod(
+                "redis-a",
+                "redis",
+                "server-node",
+                requests={"cpu": "100m", "memory": "128Mi"},
+                limits={"cpu": "200m", "memory": "256Mi"},
+            )
+        ],
+        [{"namespace": "default", "pod": "redis-a", "container": "app", "cpu_usage_cores": 0.03, "memory_working_set_mib": 70}],
+    )
     recorder = InfluxResourceProfileRecorder("http://influx", "edgeai", "device_telemetry", "token")
 
-    lines = recorder._node_profile_lines(profiles) + recorder._placement_advice_lines(advice)
+    lines = recorder._service_profile_lines(profiles)
 
-    assert any(line.startswith("resource_profile_events,") for line in lines)
-    assert any(line.startswith("placement_advice_events,") for line in lines)
-    assert any("node=gpu-node" in line for line in lines)
-    assert any("decision=fit" in line for line in lines)
+    assert any(line.startswith("service_resource_profile_events,") for line in lines)
+    assert any("service=redis" in line for line in lines)
+    assert any("request_cpu_cores=0.1" in line for line in lines)
+    assert any("current_cpu_usage_cores=0.03" in line for line in lines)
