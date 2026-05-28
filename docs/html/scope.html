@@ -61,6 +61,7 @@
 <li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
 <li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
 <li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
 <li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
@@ -95,8 +96,8 @@
           <div class="meta">
             <span class="badge kind">Active</span>
             <span class="badge">원본: scope.md</span>
-            <span class="badge">수정: 2026-05-04 06:31</span>
-            <span class="badge">HTML 생성: 2026-05-26 11:00</span>
+            <span class="badge">수정: 2026-05-28 14:58</span>
+            <span class="badge">HTML 생성: 2026-05-28 14:58</span>
           </div>
         </header>
         
@@ -148,6 +149,11 @@
 <td>대시보드</td>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 가시화 UI</td>
+</tr>
+<tr>
+<td>GPU runtime 보조</td>
+<td>HAMi Helm release <code>hami</code> in <code>kube-system</code></td>
+<td>x86 GPU 서버의 GPU 공유/스케줄링 기반. DeviceStatus/raw telemetry 경로가 아니라 node observability와 추론 Pod 자원 운영 보조</td>
 </tr>
 <tr>
 <td>운영 도구</td>

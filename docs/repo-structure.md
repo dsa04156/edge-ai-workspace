@@ -91,6 +91,7 @@
 | `edge-orch/state-aggregator/` | 현재 범위 | 현재 운영 상태 API/dashboard 경로 |
 | `edge-orch/redis/` | 현재 범위 보조/확인 필요 | state-aggregator 또는 현재 서비스 데모와 연결될 때만 유지 |
 | `edge-orch/nvidia-device-plugin/` | 현재 범위 보조 | x86 추론 서버/GPU 운영 보조 |
+| HAMi Helm release `hami` (`kube-system`) | 현재 범위 보조 | x86 GPU 서버의 GPU 공유/스케줄링 기반. 설치/점검 메모는 `docs/ops/gpu-hami-runtime.md` |
 | `edge-orch/gemma/` | 확인 필요 | 현재 서비스 데모와 연결되는지 확인 후 분류 |
 | `edge-orch/vision_stage_runner/` | 확인 필요 | 현재 서비스 데모와 연결되는 경우만 현재 범위로 승격 |
 | `edge-orch/workflow_executor/` | 제외/보관 | workflow orchestration 경로로 현재 제외 |

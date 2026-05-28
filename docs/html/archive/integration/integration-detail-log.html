@@ -61,6 +61,7 @@
 <li><a href="../../ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="../../ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
 <li><a href="../../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../../ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
 <li><a href="../../ops/node-join-check.html">노드 조인 점검</a></li>
 <li><a href="../../ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li><a href="../../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
@@ -95,8 +96,8 @@
           <div class="meta">
             <span class="badge kind">Archive</span>
             <span class="badge">원본: archive/integration/integration-detail-log.md</span>
-            <span class="badge">수정: 2026-04-30 04:53</span>
-            <span class="badge">HTML 생성: 2026-05-26 11:00</span>
+            <span class="badge">수정: 2026-05-28 14:58</span>
+            <span class="badge">HTML 생성: 2026-05-28 14:58</span>
           </div>
         </header>
         <aside class="archive-banner" aria-label="Archive 안내">
@@ -275,6 +276,8 @@
 </tbody></table></div>
 <p>추가 메모:</p>
 <ul><li>서버 1과 서버 2 모두 현재 Kubernetes에서 <code>nvidia.com/gpu=1</code>로 노출된다.</li><li>서버 2는 예전 GPU Operator 잔재를 정리한 뒤, 최소 <code>device plugin</code> 경로로 GPU 노출을 복구했다.</li><li>Jetson과 Raspberry Pi는 ARM 계열 edge 장비이며, 실제 테스트베드 이기종성을 보여주는 핵심 노드다.</li></ul>
+<p>2026-05-28 HAMi 설치 메모:</p>
+<ul><li><code>kube-system</code> namespace에 Helm release <code>hami</code>가 설치되어 있다. 확인된 chart/app version은 <code>hami-2.9.0</code> / <code>2.9.0</code>이다.</li><li><code>hami-scheduler</code> Deployment는 <code>1/1 Running</code>, <code>hami-device-plugin</code> DaemonSet은 <code>gpu=on</code> label을 가진 x86 GPU 서버 2대에서 <code>2/2 Running</code> 상태다.</li><li>HAMi 설치 이후 Kubernetes allocatable 기준으로 <code>etri-ser0001-cg0msb</code>, <code>etri-ser0002-cgnmsb</code> 모두 <code>nvidia.com/gpu=10</code>으로 노출된다. 이는 물리 GPU 1장을 vGPU 단위로 나누어 여러 Pod가 사용할 수 있게 하는 runtime substrate로 해석한다.</li><li>이 archive의 stage-level placement / runtime replanning 문맥에서 HAMi는 GPU stage 배치 실험을 위한 자원 공유 계층으로 볼 수 있다. 다만 HAMi 설치 자체가 runtime replanning 기능 완성을 의미하지 않으며, 현재 활성 PoC에서는 <code>docs/ops/gpu-hami-runtime.md</code>의 운영 메모처럼 GPU runtime 보조/관측 기반으로 다룬다.</li></ul>
 <p>---</p>
 <h2 id="8-기술-원칙">8. 기술 원칙</h2>
 <h3 id="모니터링">모니터링</h3>

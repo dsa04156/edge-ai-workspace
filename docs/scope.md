@@ -45,6 +45,7 @@
 | telemetry 저장 | `influxdb/` | raw telemetry data-plane 저장소 |
 | 상태 통합 | `edge-orch/state-aggregator/` | KubeEdge/InfluxDB/Prometheus 상태 통합 API |
 | 대시보드 | `edge-orch/state-aggregator/app/static/` | 운영 가시화 UI |
+| GPU runtime 보조 | HAMi Helm release `hami` in `kube-system` | x86 GPU 서버의 GPU 공유/스케줄링 기반. DeviceStatus/raw telemetry 경로가 아니라 node observability와 추론 Pod 자원 운영 보조 |
 | 운영 도구 | `kubeedge-tools/`, `docs/ops/` | 설치, 노드 join, 네트워크 점검, 운영 절차 |
 | 배포 보조 | `edge-orch-argocd/`, `traefik/`, `harbor/` | Argo CD, ingress, registry 관련 리소스 |
 

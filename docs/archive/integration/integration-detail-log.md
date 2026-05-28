@@ -361,6 +361,12 @@ KubeEdge 기반 mixed-device 제어·관리 플랫폼의 디바이스 계층 검
 - 서버 2는 예전 GPU Operator 잔재를 정리한 뒤, 최소 `device plugin` 경로로 GPU 노출을 복구했다.
 - Jetson과 Raspberry Pi는 ARM 계열 edge 장비이며, 실제 테스트베드 이기종성을 보여주는 핵심 노드다.
 
+2026-05-28 HAMi 설치 메모:
+- `kube-system` namespace에 Helm release `hami`가 설치되어 있다. 확인된 chart/app version은 `hami-2.9.0` / `2.9.0`이다.
+- `hami-scheduler` Deployment는 `1/1 Running`, `hami-device-plugin` DaemonSet은 `gpu=on` label을 가진 x86 GPU 서버 2대에서 `2/2 Running` 상태다.
+- HAMi 설치 이후 Kubernetes allocatable 기준으로 `etri-ser0001-cg0msb`, `etri-ser0002-cgnmsb` 모두 `nvidia.com/gpu=10`으로 노출된다. 이는 물리 GPU 1장을 vGPU 단위로 나누어 여러 Pod가 사용할 수 있게 하는 runtime substrate로 해석한다.
+- 이 archive의 stage-level placement / runtime replanning 문맥에서 HAMi는 GPU stage 배치 실험을 위한 자원 공유 계층으로 볼 수 있다. 다만 HAMi 설치 자체가 runtime replanning 기능 완성을 의미하지 않으며, 현재 활성 PoC에서는 `docs/ops/gpu-hami-runtime.md`의 운영 메모처럼 GPU runtime 보조/관측 기반으로 다룬다.
+
 ---
 
 ## 8. 기술 원칙

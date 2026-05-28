@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HAMi GPU runtime 운영 메모</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/gpu-hami-runtime.md">편집</a>
+      </div>
+      <span>ops/gpu-hami-runtime.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li class="group">운영 문서</li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>HAMi GPU runtime 운영 메모</h1>
+          <p class="subtitle">x86 GPU 서버의 GPU 공유/스케줄링 기반으로 설치된 HAMi 상태를 기록한다. 현재 PoC에서 HAMi는 GPU 자원 운…</p>
+          <div class="meta">
+            <span class="badge kind">Active</span>
+            <span class="badge">원본: ops/gpu-hami-runtime.md</span>
+            <span class="badge">수정: 2026-05-28 14:57</span>
+            <span class="badge">HTML 생성: 2026-05-28 14:58</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="hami-gpu-runtime-운영-메모">HAMi GPU runtime 운영 메모</h1>
+<p>이 문서는 x86 GPU 서버의 GPU 공유/스케줄링 기반으로 설치된 HAMi 상태를 기록한다. 현재 PoC에서 HAMi는 GPU 자원 운영 보조 계층이며, KubeEdge <code>DeviceStatus</code>나 raw telemetry 경로가 아니다.</p>
+<h2 id="현재-설치-상태">현재 설치 상태</h2>
+<p>확인일: 2026-05-28</p>
+<p>HAMi는 <code>kube-system</code> namespace에 Helm release로 설치되어 있다.</p>
+<pre data-lang="text"><code>release: hami
+namespace: kube-system
+chart: hami-2.9.0
+app version: 2.9.0</code></pre>
+<p>실행 중인 주요 리소스:</p>
+<pre data-lang="text"><code>hami-scheduler       Deployment  1/1 Running
+hami-device-plugin   DaemonSet   gpu=on node 대상, 2/2 Running</code></pre>
+<p>서비스:</p>
+<pre data-lang="text"><code>hami-device-plugin-monitor   NodePort 31992
+hami-scheduler               NodePort 31998, 31993</code></pre>
+<p>현재 HAMi device plugin이 동작하는 GPU 서버:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>노드</th>
+<th>역할</th>
+<th>GPU label</th>
+<th>HAMi 관점</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>etri-ser0001-cg0msb</code></td>
+<td>control-plane / cloud GPU server</td>
+<td><code>gpu=on</code>, <code>gpu.platform=server</code></td>
+<td>HAMi device plugin 대상</td>
+</tr>
+<tr>
+<td><code>etri-ser0002-cgnmsb</code></td>
+<td>worker / cloud GPU server</td>
+<td><code>gpu=on</code>, <code>gpu.platform=server</code>, <code>accelerator=nvidia-gpu</code></td>
+<td>HAMi device plugin 대상</td>
+</tr>
+</tbody></table></div>
+<p>현재 Kubernetes allocatable 기준으로 두 서버 모두 <code>nvidia.com/gpu=10</code>으로 노출된다. 이는 물리 GPU 1장을 HAMi가 vGPU 단위로 나누어 스케줄링할 수 있게 만든 상태로 해석한다.</p>
+<pre data-lang="text"><code>etri-ser0001-cg0msb nvidia.com/gpu=10
+etri-ser0002-cgnmsb nvidia.com/gpu=10</code></pre>
+<h2 id="poc-내-역할">PoC 내 역할</h2>
+<p>HAMi는 다음 용도로 본다.</p>
+<ul><li>x86 GPU 서버의 GPU 자원 공유/분할 스케줄링</li><li>여러 추론/실험 Pod가 GPU를 독점하지 않고 나눠 쓰는 기반</li><li>GPU stage 배치 실험 또는 과거 runtime replanning 실험을 재현할 때 사용할 수 있는 자원 계층</li><li>DCGM exporter / Prometheus / state-aggregator / Grafana와 함께 GPU 운영 가시성을 보강하는 기반</li></ul>
+<p>HAMi가 직접 담당하지 않는 것:</p>
+<ul><li>KubeEdge DeviceStatus 생성 또는 수정</li><li>raw sensor telemetry ingestion</li><li>MapperFramework 데이터 경로</li><li>dashboard의 device healthy/degraded 판단</li><li>workflow runtime replanning 자체</li></ul>
+<p>즉, HAMi는 GPU 자원 제공/스케줄링 계층이고, 실제 상태 관측은 DCGM exporter와 Prometheus/state-aggregator 경로로 유지한다.</p>
+<h2 id="현재-관측-경로와의-관계">현재 관측 경로와의 관계</h2>
+<p>현재 GPU 관측 흐름은 다음과 같이 유지한다.</p>
+<pre data-lang="text"><code>x86 GPU server
+  -&gt; HAMi device plugin / scheduler: GPU 공유 자원 노출
+  -&gt; DCGM exporter: GPU 사용률/메모리/온도/전력 metric 노출
+  -&gt; Prometheus
+  -&gt; state-aggregator Node.raw_metrics
+  -&gt; dashboard/Grafana</code></pre>
+<p>주의:</p>
+<ul><li>HAMi가 <code>nvidia.com/gpu</code> allocatable 값을 10으로 노출하더라도, dashboard에서 GPU 사용률은 DCGM exporter metric을 기준으로 본다.</li><li>HAMi resource count와 DCGM GPU utilization은 서로 다른 의미다.</li><li>GPU 사용률/온도/전력은 node observability data로만 다루고, KubeEdge DeviceStatus에는 넣지 않는다.</li></ul>
+<h2 id="점검-명령">점검 명령</h2>
+<p>HAMi release 확인:</p>
+<pre data-lang="bash"><code>helm list -n kube-system | grep -i hami</code></pre>
+<p>HAMi Pod/Service 확인:</p>
+<pre data-lang="bash"><code>kubectl get all -n kube-system | grep -Ei &#x27;hami|vgpu&#x27;</code></pre>
+<p>GPU node allocatable 확인:</p>
+<pre data-lang="bash"><code>kubectl get nodes etri-ser0001-cg0msb etri-ser0002-cgnmsb \
+  -o jsonpath=&#x27;{range .items[*]}{.metadata.name}{&quot; allocatable=&quot;}{.status.allocatable}{&quot;\n&quot;}{end}&#x27;</code></pre>
+<p>GPU 관측 확인:</p>
+<pre data-lang="bash"><code>curl -fsS http://aggregator.192.168.0.56.sslip.io/state/dashboard \
+  | python3 -m json.tool \
+  | grep -E &#x27;hostname|gpu_utilization|gpu_memory_usage_ratio|gpu_temperature_celsius|gpu_power_watts&#x27;</code></pre>
+<h2 id="문서-연구-해석-주의">문서/연구 해석 주의</h2>
+<p>과거 archive의 stage-level placement / runtime replanning 문서를 볼 때 HAMi는 새로 추가된 GPU runtime substrate로만 해석한다. HAMi 설치 자체가 runtime replanning 기능 완성을 의미하지 않는다. 현재 활성 PoC 설명에서는 여전히 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화를 우선한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-설치-상태">현재 설치 상태</a></li>
+<li class="toc-h2"><a href="#poc-내-역할">PoC 내 역할</a></li>
+<li class="toc-h2"><a href="#현재-관측-경로와의-관계">현재 관측 경로와의 관계</a></li>
+<li class="toc-h2"><a href="#점검-명령">점검 명령</a></li>
+<li class="toc-h2"><a href="#문서-연구-해석-주의">문서/연구 해석 주의</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

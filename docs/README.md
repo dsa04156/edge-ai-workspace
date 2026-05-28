@@ -42,6 +42,7 @@ KubeEdge 기반 혼합 디바이스 환경에서 실제 서비스 데모와 디�
 |---|---|
 | `ops/runbook-current-demo.md` | 데모 전 점검, publisher 실행, dashboard 확인, 문제 원인 좁히기 |
 | `ops/ci-cd-autodeploy.md` | GitHub Actions와 Argo CD 기반 이미지 build/push/rollout 자동 배포 기준 |
+| `ops/gpu-hami-runtime.md` | HAMi 기반 GPU 공유/스케줄링 설치 상태와 GPU 관측 경로 점검 |
 | `dashboard-information-structure.md` | dashboard에 표시되는 node/device/service/KPI 정보 구조 |
 | `dashboard-policy.md` | healthy/degraded/unavailable 판단 기준 |
 | `device-status-policy.md` | DeviceStatus와 raw telemetry 분리 정책 |
@@ -115,6 +116,7 @@ Device 등록
 | 통합 dashboard 정보 구조 | `dashboard-information-structure.md` |
 | Workflow Designer MVP | `../edge-orch/workflow-designer/README.md` |
 | 현재 데모 실행 runbook | `ops/runbook-current-demo.md` |
+| GPU runtime 운영 메모 | `ops/gpu-hami-runtime.md` |
 | CI/CD 자동 배포 기준 | `ops/ci-cd-autodeploy.md` |
 | 옥동 시나리오 생산성 KPI | `okdong-productivity-kpi.md` |
 | Kagenti 운영 보조 agent PoC | `kagenti-operator-assistant.md` |
