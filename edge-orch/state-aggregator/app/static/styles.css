@@ -375,11 +375,32 @@ h3 {
 .relation-summary {
   border: 1px solid rgba(124, 131, 255, 0.22);
   border-radius: 12px;
-  background: rgba(124, 131, 255, 0.09);
-  color: #cdd1ff;
-  font-size: 12px;
-  font-weight: 720;
-  padding: 10px;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: rgba(124, 131, 255, 0.08);
+}
+
+.compact-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.compact-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.compact-list span {
+  color: var(--muted);
+  text-align: right;
 }
 
 .relation {

@@ -82,6 +82,47 @@ def test_cost_model_endpoint_returns_snapshot():
     assert "migration_cost_stats" in payload
 
 
+def test_resource_profile_endpoints_return_profiles_and_filtered_advice():
+    service.store.nodes = {
+        "gpu-node": NodeState(
+            hostname="gpu-node",
+            instance="192.168.0.10:9100",
+            node_type="x86-gpu",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.25,
+                "memory_usage_ratio": 0.30,
+                "load_average": 0.5,
+                "network_rx_rate": 1000.0,
+                "network_tx_rate": 900.0,
+                "gpu_utilization": 0.2,
+                "gpu_memory_used_mib": 1024.0,
+                "gpu_memory_total_mib": 8192.0,
+                "gpu_memory_usage_ratio": 0.125,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+    service._resource_profiles = []
+    service._placement_advice = []
+
+    with TestClient(app) as client:
+        profile_response = client.get("/state/resource-profiles")
+        advice_response = client.get("/state/placement-advice?service=anomaly-detection")
+
+    assert profile_response.status_code == 200
+    profile_payload = profile_response.json()
+    assert profile_payload["recording_backend"] == "influxdb"
+    assert profile_payload["node_profiles"][0]["node"] == "gpu-node"
+    assert advice_response.status_code == 200
+    advice_payload = advice_response.json()
+    assert [item["service"] for item in advice_payload["placement_advice"]] == ["anomaly-detection"]
+
+
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     service.store.nodes = {
         "etri-dev0001-jetorn": NodeState(

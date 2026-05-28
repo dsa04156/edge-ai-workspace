@@ -55,6 +55,11 @@
           <strong id="focusCount">0</strong>
           <span>degraded/unavailable devices + non-healthy nodes</span>
         </article>
+        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="placement_fit_candidate_count" tabindex="0" role="button" aria-label="자원 프로파일 설명 보기">
+          <span class="metric-label">Resource Profile</span>
+          <strong id="resourceProfileCount">0</strong>
+          <span id="placementFitCaption">0 fit placement candidates</span>
+        </article>
       </section>
 
       <section class="layout">
@@ -91,6 +96,14 @@
           <div id="alertList" class="alert-list"></div>
         </section>
 
+        <section class="panel resource-profiler">
+          <div class="panel-head">
+            <h2>자원 프로파일러</h2>
+            <span>Prometheus → Profile → InfluxDB 기록</span>
+          </div>
+          <div id="resourceProfileList" class="stack"></div>
+        </section>
+
         <section class="panel explain-panel" aria-live="polite">
           <div class="panel-head">
             <h2>Explain Panel</h2>
@@ -124,6 +137,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=gpu-node-usage-20260527"></script>
+    <script src="/static/dashboard.js?v=resource-profiler-20260528"></script>
   </body>
 </html>

@@ -127,6 +127,24 @@ async def get_cost_model() -> CostModelState:
     return service.get_cost_model()
 
 
+@app.get("/state/resource-profiles")
+async def get_resource_profiles():
+    return service.get_resource_profile_state()
+
+
+@app.get("/state/placement-advice")
+async def get_placement_advice(service_name: str | None = Query(default=None, alias="service")):
+    state = service.get_resource_profile_state()
+    advice = state.get("placement_advice") or []
+    if service_name:
+        advice = [item for item in advice if item.get("service") == service_name]
+    return {
+        "generated_at": state.get("generated_at"),
+        "recorded_at": state.get("recorded_at"),
+        "placement_advice": advice,
+    }
+
+
 @app.get("/metrics", response_class=PlainTextResponse)
 async def get_metrics() -> PlainTextResponse:
     payload = render_metrics(

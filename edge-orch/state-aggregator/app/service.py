@@ -18,7 +18,9 @@ from .models import (
     WorkflowState,
 )
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
+from .placement_recorder import InfluxResourceProfileRecorder
 from .prometheus import PrometheusClient
+from .resource_profile import DEFAULT_SERVICE_PROFILES, build_node_resource_profiles, build_placement_advice
 from .storage import StateStore
 from .kube import KubeClient
 
@@ -40,6 +42,15 @@ class StateAggregatorService:
             settings.influxdb_measurement,
             settings.telemetry_query_window,
         )
+        self.resource_recorder = InfluxResourceProfileRecorder(
+            settings.influxdb_url,
+            settings.influxdb_org,
+            settings.influxdb_bucket,
+            settings.influxdb_token,
+        )
+        self._resource_profiles: list[dict[str, Any]] = []
+        self._placement_advice: list[dict[str, Any]] = []
+        self._last_resource_recorded_at: datetime | None = None
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
         self._device_status_bridge_task: asyncio.Task | None = None
@@ -90,6 +101,14 @@ class StateAggregatorService:
         states = [normalize_node_state(item) for item in raw_nodes]
         for state in states:
             self.store.upsert_node_state(state)
+        self._resource_profiles = build_node_resource_profiles(states)
+        self._placement_advice = build_placement_advice(self._resource_profiles, DEFAULT_SERVICE_PROFILES)
+        recorded = await self.resource_recorder.record_snapshot(
+            self._resource_profiles,
+            self._placement_advice,
+        )
+        if recorded:
+            self._last_resource_recorded_at = datetime.now(timezone.utc)
         return states
 
     def record_workflow_event(self, event: WorkflowEvent) -> WorkflowState:
@@ -119,6 +138,21 @@ class StateAggregatorService:
             stage_cost_stats=self.store.get_stage_cost_stats(),
             migration_cost_stats=self.store.get_migration_cost_stats(),
         )
+
+    def get_resource_profile_state(self) -> dict[str, Any]:
+        nodes = self.get_nodes()
+        if not self._resource_profiles and nodes:
+            self._resource_profiles = build_node_resource_profiles(nodes)
+        if not self._placement_advice and self._resource_profiles:
+            self._placement_advice = build_placement_advice(self._resource_profiles, DEFAULT_SERVICE_PROFILES)
+        return {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
+            "recording_backend": "influxdb",
+            "service_profiles": DEFAULT_SERVICE_PROFILES,
+            "node_profiles": self._resource_profiles,
+            "placement_advice": self._placement_advice,
+        }
 
     async def get_device_telemetry_history(self, device_id: str, window: str = "-30m", limit: int = 300) -> list[TelemetrySample]:
         return await self.telemetry.get_history(device_id=device_id, window=window, limit=limit)
@@ -154,6 +188,8 @@ class StateAggregatorService:
         workflows = self.get_workflows()
         summary = build_summary(nodes, workflows)
         kpis = self._build_dashboard_kpis(nodes, devices, workflows)
+        resource_state = self.get_resource_profile_state()
+        kpis.update(self._build_resource_profile_kpis(resource_state))
         return DashboardState(
             generated_at=datetime.now(timezone.utc),
             nodes=nodes,
@@ -161,6 +197,7 @@ class StateAggregatorService:
             workflows=workflows,
             summary=summary,
             kpis=kpis,
+            resource_profiles=resource_state,
         )
 
     async def get_operator_assistant(self) -> OperatorAssistantState:
@@ -725,6 +762,31 @@ class StateAggregatorService:
             "fresh_device_status_count": len(fresh_device_status_devices),
             "device_status_freshness_ratio": self._ratio(len(fresh_device_status_devices), len(devices)),
             "operator_focus_count": len(focus_devices) + len(focus_nodes),
+        }
+
+    def _build_resource_profile_kpis(self, resource_state: dict[str, Any]) -> dict[str, Any]:
+        node_profiles = resource_state.get("node_profiles") or []
+        advice = resource_state.get("placement_advice") or []
+        gpu_nodes = [node for node in node_profiles if (node.get("gpu") or {}).get("available")]
+        fit_candidates = 0
+        warning_candidates = 0
+        reject_candidates = 0
+        for item in advice:
+            for candidate in item.get("candidates") or []:
+                decision = candidate.get("decision")
+                if decision == "fit":
+                    fit_candidates += 1
+                elif decision == "warning":
+                    warning_candidates += 1
+                elif decision == "reject":
+                    reject_candidates += 1
+        return {
+            "resource_profile_node_count": len(node_profiles),
+            "resource_profile_gpu_node_count": len(gpu_nodes),
+            "placement_fit_candidate_count": fit_candidates,
+            "placement_warning_candidate_count": warning_candidates,
+            "placement_reject_candidate_count": reject_candidates,
+            "placement_profile_recorded": resource_state.get("recorded_at") is not None,
         }
 
     def _ratio(self, numerator: int, denominator: int) -> float:

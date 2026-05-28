@@ -105,6 +105,11 @@ const KPI_EXPLANATIONS = {
   operator_focus_count: "운영자가 먼저 볼 degraded/unavailable device와 non-healthy node 수입니다.",
   service_bound_device_count: "서비스 데모 그룹에 연결된 device 수입니다.",
   device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
+  resource_profile_node_count: "Prometheus 수집값으로 생성한 노드 자원 프로파일 수입니다.",
+  resource_profile_gpu_node_count: "GPU metric이 확인된 자원 프로파일 노드 수입니다.",
+  placement_fit_candidate_count: "서비스 요구 프로파일과 현재 자원 상태를 비교했을 때 fit으로 판단된 후보 수입니다. 자동 배치 실행이 아니라 read-only 판단 기록입니다.",
+  placement_warning_candidate_count: "배치 가능하지만 CPU/MEM/GPU/network 압력 때문에 주의가 필요한 후보 수입니다.",
+  placement_reject_candidate_count: "GPU 미존재, GPU memory 부족, node unavailable 등으로 제외된 후보 수입니다.",
 };
 
 function explainKpi(key, kpis = {}) {
@@ -359,6 +364,8 @@ function render() {
   setText("serviceBindingCount", text(kpis.service_bound_device_count, 0));
   setText("serviceBindingRatio", `${pct(kpis.device_service_binding_ratio)} bound`);
   setText("focusCount", text(kpis.operator_focus_count, 0));
+  setText("resourceProfileCount", text(kpis.resource_profile_node_count, 0));
+  setText("placementFitCaption", `${text(kpis.placement_fit_candidate_count, 0)} fit · ${text(kpis.placement_warning_candidate_count, 0)} warning · ${text(kpis.placement_reject_candidate_count, 0)} reject`);
   setText("assetCount", `${(data.nodes || []).length + devices.length} assets`);
   setText("riskCount", `${unavailableDevices} unavailable · ${degradedDevices} degraded`);
 
@@ -366,6 +373,7 @@ function render() {
   renderDevices(devices);
   renderRelations(devices, kpis);
   renderAlerts(data);
+  renderResourceProfiles(data.resource_profiles || {}, kpis);
   renderScenario(devices, kpis);
 }
 
@@ -418,6 +426,40 @@ function renderDevices(devices) {
         `)
         .join("")
     : `<div class="empty">No KubeEdge devices found</div>`;
+}
+
+function renderResourceProfiles(resourceState, kpis) {
+  const profiles = resourceState.node_profiles || [];
+  const advice = resourceState.placement_advice || [];
+  const bestRows = advice
+    .map((item) => {
+      const best = (item.candidates || []).find((candidate) => candidate.node === item.best_node) || (item.candidates || [])[0];
+      if (!best) return null;
+      return { service: item.service, stage: item.stage, candidate: best };
+    })
+    .filter(Boolean);
+  const nodeRows = profiles.slice(0, 5).map((profile) => {
+    const cpu = Math.round((profile.cpu?.usage_ratio || 0) * 100);
+    const mem = Math.round((profile.memory?.usage_ratio || 0) * 100);
+    const gpu = profile.gpu?.available && profile.gpu?.utilization_ratio !== null && profile.gpu?.utilization_ratio !== undefined
+      ? `gpu ${Math.round(profile.gpu.utilization_ratio * 100)}%`
+      : "gpu 없음";
+    return `<li><strong>${escapeHtml(profile.node)}</strong><span>cpu ${cpu}% · mem ${mem}% · ${escapeHtml(gpu)} · ${escapeHtml(profile.status)}</span></li>`;
+  });
+  const adviceRows = bestRows.slice(0, 5).map((row) => `
+    <li>
+      <strong>${escapeHtml(row.service)} / ${escapeHtml(row.stage)}</strong>
+      <span>${escapeHtml(text(row.candidate.node))} · ${escapeHtml(row.candidate.decision)} · score ${escapeHtml(text(row.candidate.score))}</span>
+    </li>
+  `);
+  $("resourceProfileList").innerHTML = profiles.length
+    ? `
+      <div class="relation-summary">recording=${resourceState.recorded_at ? "influxdb ok" : "pending/token 없음"} · gpu_nodes=${text(kpis.resource_profile_gpu_node_count, 0)}</div>
+      <ul class="compact-list">${nodeRows.join("")}</ul>
+      <div class="relation-summary">placement advice · 자동 실행 없음(read-only)</div>
+      <ul class="compact-list">${adviceRows.join("") || "<li><span>서비스 프로파일 판단 결과가 없습니다.</span></li>"}</ul>
+    `
+    : `<div class="empty">Prometheus resource profile snapshot pending</div>`;
 }
 
 function serviceGroup(device) {

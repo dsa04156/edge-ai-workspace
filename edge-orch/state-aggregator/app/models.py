@@ -203,3 +203,4 @@ class DashboardState(BaseModel):
     workflows: list[WorkflowState]
     summary: SummaryState
     kpis: dict[str, Any]
+    resource_profiles: dict[str, Any] = Field(default_factory=dict)
