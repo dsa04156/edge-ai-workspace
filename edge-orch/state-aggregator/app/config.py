@@ -59,10 +59,13 @@ class Settings(BaseModel):
         default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
     )
     resource_profile_recording_mode: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "manual").lower()
+        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "scheduled").lower()
     )
     resource_profile_window: str = Field(
         default_factory=lambda: os.getenv("RESOURCE_PROFILE_WINDOW", "10m")
+    )
+    resource_profile_record_interval_seconds: int = Field(
+        default_factory=lambda: int(os.getenv("RESOURCE_PROFILE_RECORD_INTERVAL_SECONDS", "600"))
     )
 
 

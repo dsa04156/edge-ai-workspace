@@ -4,6 +4,8 @@ import asyncio
 from fastapi.testclient import TestClient
 
 from app.main import app, service
+from app.config import Settings
+from app.service import StateAggregatorService
 from app.influx import InfluxTelemetryClient, TelemetrySample
 from app.kube import KubeClient
 from app.models import DeviceState, NodeState, WorkflowState
@@ -148,7 +150,8 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
     assert profile_response.status_code == 200
     profile_payload = profile_response.json()
     assert profile_payload["recording_backend"] == "influxdb"
-    assert profile_payload["recording_mode"] == "manual"
+    assert profile_payload["recording_mode"] == "scheduled"
+    assert profile_payload["recording_interval_seconds"] == 600
     assert profile_payload["last_record_result"] == "never_recorded"
     assert profile_payload["profile_scope"] == "running_service_resource_requirements"
     assert profile_payload["summary"]["profile_count"] == 2
@@ -168,12 +171,37 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
     assert record_response.status_code == 200
     record_payload = record_response.json()
     assert record_payload["recorded"] is True
-    assert record_payload["recording_mode"] == "manual"
+    assert record_payload["recording_mode"] == "scheduled"
+    assert record_payload["recording_interval_seconds"] == 600
     assert record_payload["profile_window"] == "10m"
     recorded_redis = [item for item in record_payload["service_resource_profiles"] if item["service"] == "redis"][0]
     assert recorded_redis["usage_profile"]["window"] == "10m"
     assert recorded_redis["usage_profile"]["avg_cpu_usage_cores"] == 0.03
     assert len(record_calls) == 1
+
+
+def test_service_start_schedules_operational_resource_profile_recorder(monkeypatch, tmp_path):
+    import app.service as service_module
+
+    created_tasks = []
+
+    def fake_create_task(coroutine):
+        created_tasks.append(coroutine.cr_code.co_name)
+        coroutine.close()
+        return asyncio.Future()
+
+    settings = Settings(
+        data_dir=tmp_path,
+        resource_profile_recording_mode="scheduled",
+        resource_profile_record_interval_seconds=600,
+    )
+    aggregator = StateAggregatorService(settings)
+    monkeypatch.setattr(service_module.asyncio, "create_task", fake_create_task)
+
+    asyncio.run(aggregator.start())
+
+    assert "_poll_prometheus" in created_tasks
+    assert "_record_resource_profiles_periodically" in created_tasks
 
 
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):

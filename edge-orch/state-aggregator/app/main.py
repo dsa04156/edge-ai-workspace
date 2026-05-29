@@ -145,6 +145,7 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
         "recorded_at": state.get("recorded_at"),
         "recording_backend": state.get("recording_backend"),
         "recording_mode": state.get("recording_mode"),
+        "recording_interval_seconds": state.get("recording_interval_seconds"),
         "last_record_result": state.get("last_record_result"),
         "profile_scope": state.get("profile_scope"),
         "summary": state.get("summary"),

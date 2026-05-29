@@ -53,16 +53,23 @@ class StateAggregatorService:
         self._last_resource_record_result = "never_recorded"
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
+        self._resource_profile_recorder_task: asyncio.Task | None = None
         self._device_status_bridge_task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._poller_task is None:
             self._poller_task = asyncio.create_task(self._poll_prometheus())
+        if self.settings.resource_profile_recording_mode == "scheduled" and self._resource_profile_recorder_task is None:
+            self._resource_profile_recorder_task = asyncio.create_task(self._record_resource_profiles_periodically())
         if self.settings.device_status_bridge_enabled and self._device_status_bridge_task is None:
             self._device_status_bridge_task = asyncio.create_task(self._bridge_device_status_heartbeats())
 
     async def stop(self) -> None:
-        tasks = [task for task in (self._poller_task, self._device_status_bridge_task) if task is not None]
+        tasks = [
+            task
+            for task in (self._poller_task, self._resource_profile_recorder_task, self._device_status_bridge_task)
+            if task is not None
+        ]
         for task in tasks:
             task.cancel()
         for task in tasks:
@@ -71,6 +78,7 @@ class StateAggregatorService:
             except asyncio.CancelledError:
                 pass
         self._poller_task = None
+        self._resource_profile_recorder_task = None
         self._device_status_bridge_task = None
 
     async def _poll_prometheus(self) -> None:
@@ -80,6 +88,14 @@ class StateAggregatorService:
             except Exception:
                 logger.exception("Failed to refresh Prometheus node metrics")
             await asyncio.sleep(self.settings.poll_interval_seconds)
+
+    async def _record_resource_profiles_periodically(self) -> None:
+        while True:
+            await asyncio.sleep(self.settings.resource_profile_record_interval_seconds)
+            try:
+                await self.record_service_resource_profiles(window=self.settings.resource_profile_window)
+            except Exception:
+                logger.exception("Failed to record scheduled service resource profile snapshot")
 
     async def _bridge_device_status_heartbeats(self) -> None:
         while True:
@@ -161,6 +177,7 @@ class StateAggregatorService:
             "recorded": recorded,
             "recording_backend": "influxdb",
             "recording_mode": self.settings.resource_profile_recording_mode,
+            "recording_interval_seconds": self.settings.resource_profile_record_interval_seconds,
             "last_record_result": self._last_resource_record_result,
             "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
             "profile_scope": "running_service_resource_requirements",
@@ -178,6 +195,7 @@ class StateAggregatorService:
             "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
             "recording_backend": "influxdb",
             "recording_mode": self.settings.resource_profile_recording_mode,
+            "recording_interval_seconds": self.settings.resource_profile_record_interval_seconds,
             "last_record_result": self._last_resource_record_result,
             "profile_scope": "running_service_resource_requirements",
             "summary": summary,
