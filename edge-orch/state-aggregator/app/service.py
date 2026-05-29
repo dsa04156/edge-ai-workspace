@@ -50,6 +50,7 @@ class StateAggregatorService:
         )
         self._service_resource_profiles: list[dict[str, Any]] = []
         self._last_resource_recorded_at: datetime | None = None
+        self._last_resource_record_result = "never_recorded"
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
         self._device_status_bridge_task: asyncio.Task | None = None
@@ -135,10 +136,38 @@ class StateAggregatorService:
         pods = await self.kube.get_running_service_pods()
         usage_samples = await self.prometheus.collect_service_resource_usage()
         self._service_resource_profiles = build_service_resource_profiles(pods, usage_samples)
-        recorded = await self.resource_recorder.record_snapshot(self._service_resource_profiles)
-        if recorded:
-            self._last_resource_recorded_at = datetime.now(timezone.utc)
+        if self.settings.resource_profile_recording_mode == "poll":
+            recorded = await self.resource_recorder.record_snapshot(self._service_resource_profiles)
+            self._last_resource_record_result = "recorded" if recorded else "failed"
+            if recorded:
+                self._last_resource_recorded_at = datetime.now(timezone.utc)
         return self._service_resource_profiles
+
+    async def record_service_resource_profiles(self, window: str | None = None) -> dict[str, Any]:
+        profile_window = window or self.settings.resource_profile_window
+        pods = await self.kube.get_running_service_pods()
+        usage_samples = await self.prometheus.collect_service_resource_profile_usage(window=profile_window)
+        profiles = build_service_resource_profiles(pods, usage_samples, profile_window=profile_window)
+        self._service_resource_profiles = profiles
+        if self.settings.resource_profile_recording_mode == "disabled":
+            self._last_resource_record_result = "disabled"
+            recorded = False
+        else:
+            recorded = await self.resource_recorder.record_snapshot(profiles)
+            self._last_resource_record_result = "recorded" if recorded else "failed"
+            if recorded:
+                self._last_resource_recorded_at = datetime.now(timezone.utc)
+        return {
+            "recorded": recorded,
+            "recording_backend": "influxdb",
+            "recording_mode": self.settings.resource_profile_recording_mode,
+            "last_record_result": self._last_resource_record_result,
+            "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
+            "profile_scope": "running_service_resource_requirements",
+            "profile_window": profile_window,
+            "summary": summarize_service_resource_profiles(profiles),
+            "service_resource_profiles": profiles,
+        }
 
     async def get_resource_profile_state(self, refresh: bool = False) -> dict[str, Any]:
         if refresh or not self._service_resource_profiles:
@@ -148,6 +177,8 @@ class StateAggregatorService:
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
             "recording_backend": "influxdb",
+            "recording_mode": self.settings.resource_profile_recording_mode,
+            "last_record_result": self._last_resource_record_result,
             "profile_scope": "running_service_resource_requirements",
             "summary": summary,
             "service_resource_profiles": self._service_resource_profiles,

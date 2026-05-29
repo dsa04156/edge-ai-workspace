@@ -69,6 +69,55 @@ def test_service_resource_profiles_aggregate_running_service_requirements_and_us
     assert profile["requirements_declared"] is True
 
 
+def test_service_resource_profiles_aggregate_window_usage_profile():
+    profiles = build_service_resource_profiles(
+        [
+            _pod("analyzer-a", "analyzer", "gpu-node", requests={"cpu": "500m", "memory": "512Mi"}),
+            _pod("analyzer-b", "analyzer", "gpu-node", requests={"cpu": "250m", "memory": "256Mi"}),
+        ],
+        [
+            {
+                "namespace": "default",
+                "pod": "analyzer-a",
+                "container": "app",
+                "cpu_usage_cores": 0.31,
+                "memory_working_set_mib": 300,
+                "avg_cpu_usage_cores": 0.20,
+                "max_cpu_usage_cores": 0.55,
+                "p95_cpu_usage_cores": 0.49,
+                "avg_memory_working_set_mib": 210,
+                "max_memory_working_set_mib": 330,
+                "p95_memory_working_set_mib": 300,
+            },
+            {
+                "namespace": "default",
+                "pod": "analyzer-b",
+                "container": "app",
+                "cpu_usage_cores": 0.12,
+                "memory_working_set_mib": 180,
+                "avg_cpu_usage_cores": 0.10,
+                "max_cpu_usage_cores": 0.25,
+                "p95_cpu_usage_cores": 0.22,
+                "avg_memory_working_set_mib": 120,
+                "max_memory_working_set_mib": 210,
+                "p95_memory_working_set_mib": 190,
+            },
+        ],
+        profile_window="10m",
+    )
+
+    usage_profile = profiles[0]["usage_profile"]
+    assert usage_profile["window"] == "10m"
+    assert usage_profile["avg_cpu_usage_cores"] == 0.3
+    assert usage_profile["max_cpu_usage_cores"] == 0.8
+    assert usage_profile["p95_cpu_usage_cores"] == 0.71
+    assert usage_profile["avg_memory_working_set_mib"] == 330
+    assert usage_profile["max_memory_working_set_mib"] == 540
+    assert usage_profile["p95_memory_working_set_mib"] == 490
+    assert usage_profile["sampled_container_count"] == 2
+    assert usage_profile["usage_coverage_ratio"] == 1
+
+
 def test_service_resource_profiles_mark_missing_requests_limits():
     profiles = build_service_resource_profiles([_pod("reader-a", "reader", "edge-node")])
 
@@ -128,3 +177,34 @@ def test_influx_recorder_builds_service_resource_profile_lines():
     assert any("service=redis" in line for line in lines)
     assert any("request_cpu_cores=0.1" in line for line in lines)
     assert any("current_cpu_usage_cores=0.03" in line for line in lines)
+
+
+def test_influx_recorder_writes_window_profile_summary_fields():
+    profiles = build_service_resource_profiles(
+        [_pod("redis-a", "redis", "server-node", requests={"cpu": "100m", "memory": "128Mi"})],
+        [
+            {
+                "namespace": "default",
+                "pod": "redis-a",
+                "container": "app",
+                "avg_cpu_usage_cores": 0.02,
+                "max_cpu_usage_cores": 0.08,
+                "p95_cpu_usage_cores": 0.06,
+                "avg_memory_working_set_mib": 64,
+                "max_memory_working_set_mib": 96,
+                "p95_memory_working_set_mib": 88,
+            }
+        ],
+        profile_window="10m",
+    )
+    recorder = InfluxResourceProfileRecorder("http://influx", "edgeai", "device_telemetry", "token")
+
+    line = recorder._service_profile_lines(profiles)[0]
+
+    assert 'profile_window="10m"' in line
+    assert "avg_cpu_usage_cores=0.02" in line
+    assert "max_cpu_usage_cores=0.08" in line
+    assert "p95_cpu_usage_cores=0.06" in line
+    assert "avg_memory_working_set_mib=64.0" in line
+    assert "max_memory_working_set_mib=96.0" in line
+    assert "p95_memory_working_set_mib=88.0" in line

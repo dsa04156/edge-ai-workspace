@@ -111,17 +111,35 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
 
     monkeypatch.setattr(service.kube, "get_running_service_pods", fake_running_service_pods)
 
+    record_calls = []
+
     async def fake_record_snapshot(profiles):
+        record_calls.append(profiles)
         return True
 
-    async def fake_collect_usage():
+    async def fake_collect_usage(*args, **kwargs):
         return [
-            {"namespace": "default", "pod": "redis-abc", "container": "redis", "cpu_usage_cores": 0.04, "memory_working_set_mib": 80},
+            {
+                "namespace": "default",
+                "pod": "redis-abc",
+                "container": "redis",
+                "cpu_usage_cores": 0.04,
+                "memory_working_set_mib": 80,
+                "avg_cpu_usage_cores": 0.03,
+                "max_cpu_usage_cores": 0.09,
+                "p95_cpu_usage_cores": 0.07,
+                "avg_memory_working_set_mib": 70,
+                "max_memory_working_set_mib": 90,
+                "p95_memory_working_set_mib": 85,
+            },
         ]
 
     monkeypatch.setattr(service.resource_recorder, "record_snapshot", fake_record_snapshot)
     monkeypatch.setattr(service.prometheus, "collect_service_resource_usage", fake_collect_usage)
+    monkeypatch.setattr(service.prometheus, "collect_service_resource_profile_usage", fake_collect_usage)
     service._service_resource_profiles = []
+    service._last_resource_recorded_at = None
+    service._last_resource_record_result = "never_recorded"
 
     with TestClient(app) as client:
         profile_response = client.get("/state/resource-profiles?refresh=true")
@@ -130,6 +148,8 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
     assert profile_response.status_code == 200
     profile_payload = profile_response.json()
     assert profile_payload["recording_backend"] == "influxdb"
+    assert profile_payload["recording_mode"] == "manual"
+    assert profile_payload["last_record_result"] == "never_recorded"
     assert profile_payload["profile_scope"] == "running_service_resource_requirements"
     assert profile_payload["summary"]["profile_count"] == 2
     assert "placement_advice" not in profile_payload
@@ -140,6 +160,20 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
     assert redis_profile["resource_requirements"]["requests"]["cpu_cores"] == 0.1
     assert redis_profile["current_usage"]["cpu_cores"] == 0.04
     assert redis_profile["current_usage"]["memory_working_set_mib"] == 80
+    assert record_calls == []
+
+    with TestClient(app) as client:
+        record_response = client.post("/state/service-resource-profiles/record?window=10m")
+
+    assert record_response.status_code == 200
+    record_payload = record_response.json()
+    assert record_payload["recorded"] is True
+    assert record_payload["recording_mode"] == "manual"
+    assert record_payload["profile_window"] == "10m"
+    recorded_redis = [item for item in record_payload["service_resource_profiles"] if item["service"] == "redis"][0]
+    assert recorded_redis["usage_profile"]["window"] == "10m"
+    assert recorded_redis["usage_profile"]["avg_cpu_usage_cores"] == 0.03
+    assert len(record_calls) == 1
 
 
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):

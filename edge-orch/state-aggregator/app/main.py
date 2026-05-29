@@ -143,10 +143,20 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
     return {
         "generated_at": state.get("generated_at"),
         "recorded_at": state.get("recorded_at"),
+        "recording_backend": state.get("recording_backend"),
+        "recording_mode": state.get("recording_mode"),
+        "last_record_result": state.get("last_record_result"),
         "profile_scope": state.get("profile_scope"),
         "summary": state.get("summary"),
         "service_resource_profiles": profiles,
     }
+
+
+@app.post("/state/service-resource-profiles/record")
+async def record_service_resource_profiles(
+    window: str = Query(default="10m", pattern=r"^[1-9][0-9]*[smhdw]$"),
+):
+    return await service.record_service_resource_profiles(window=window)
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

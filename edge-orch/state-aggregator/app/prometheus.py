@@ -26,6 +26,15 @@ SERVICE_USAGE_QUERIES = {
     "memory_working_set_mib": 'sum by(namespace,pod,container) (container_memory_working_set_bytes{container!="",container!="POD",image!=""}) / 1024 / 1024',
 }
 
+SERVICE_USAGE_PROFILE_QUERIES = {
+    "avg_cpu_usage_cores": lambda window: f'sum by(namespace,pod,container) (avg_over_time(rate(container_cpu_usage_seconds_total{{container!="",container!="POD",image!=""}}[1m])[{window}:]))',
+    "max_cpu_usage_cores": lambda window: f'sum by(namespace,pod,container) (max_over_time(rate(container_cpu_usage_seconds_total{{container!="",container!="POD",image!=""}}[1m])[{window}:]))',
+    "p95_cpu_usage_cores": lambda window: f'sum by(namespace,pod,container) (quantile_over_time(0.95, rate(container_cpu_usage_seconds_total{{container!="",container!="POD",image!=""}}[1m])[{window}:]))',
+    "avg_memory_working_set_mib": lambda window: f'sum by(namespace,pod,container) (avg_over_time(container_memory_working_set_bytes{{container!="",container!="POD",image!=""}}[{window}]) / 1024 / 1024)',
+    "max_memory_working_set_mib": lambda window: f'sum by(namespace,pod,container) (max_over_time(container_memory_working_set_bytes{{container!="",container!="POD",image!=""}}[{window}]) / 1024 / 1024)',
+    "p95_memory_working_set_mib": lambda window: f'sum by(namespace,pod,container) (quantile_over_time(0.95, container_memory_working_set_bytes{{container!="",container!="POD",image!=""}}[{window}]) / 1024 / 1024)',
+}
+
 
 class PrometheusClient:
     def __init__(self, base_url: str, instance_map: dict[str, dict[str, str]]) -> None:
@@ -85,9 +94,18 @@ class PrometheusClient:
 
     async def collect_service_resource_usage(self) -> list[dict[str, object]]:
         """Collect current per-container service CPU/MEM usage from Prometheus/cAdvisor."""
+        return await self._collect_service_usage_queries(SERVICE_USAGE_QUERIES)
+
+    async def collect_service_resource_profile_usage(self, window: str = "10m") -> list[dict[str, object]]:
+        """Collect per-container service CPU/MEM window statistics for profile evidence."""
+        return await self._collect_service_usage_queries(
+            {metric_name: build_query(window) for metric_name, build_query in SERVICE_USAGE_PROFILE_QUERIES.items()}
+        )
+
+    async def _collect_service_usage_queries(self, queries: dict[str, str]) -> list[dict[str, object]]:
         results: dict[tuple[str, str, str], dict[str, object]] = {}
         async with httpx.AsyncClient(timeout=10.0) as client:
-            for metric_name, query in SERVICE_USAGE_QUERIES.items():
+            for metric_name, query in queries.items():
                 response = await client.get(
                     f"{self.base_url}/api/v1/query",
                     params={"query": query},

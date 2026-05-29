@@ -8,7 +8,11 @@ PROFILED_NAMESPACES = {"default", "offload-test", "kubeedge", "telemetry"}
 INFRA_NAMESPACES = {"kube-system", "argocd", "traefik", "local-path-storage"}
 
 
-def build_service_resource_profiles(pods: list[dict[str, Any]], usage_samples: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+def build_service_resource_profiles(
+    pods: list[dict[str, Any]],
+    usage_samples: list[dict[str, Any]] | None = None,
+    profile_window: str | None = None,
+) -> list[dict[str, Any]]:
     """Build resource profiles for running services.
 
     The profile combines two different signals:
@@ -45,7 +49,16 @@ def build_service_resource_profiles(pods: list[dict[str, Any]], usage_samples: l
         missing_memory_limit = 0
         current_cpu_usage_cores = 0.0
         current_memory_working_set_mib = 0.0
+        usage_profile_totals = {
+            "avg_cpu_usage_cores": 0.0,
+            "max_cpu_usage_cores": 0.0,
+            "p95_cpu_usage_cores": 0.0,
+            "avg_memory_working_set_mib": 0.0,
+            "max_memory_working_set_mib": 0.0,
+            "p95_memory_working_set_mib": 0.0,
+        }
         usage_sample_count = 0
+        profile_sample_count = 0
         container_rows: list[dict[str, Any]] = []
 
         for pod in items:
@@ -84,12 +97,21 @@ def build_service_resource_profiles(pods: list[dict[str, Any]], usage_samples: l
                 usage = usage_by_container.get((namespace, pod.get("name"), container.get("name"))) or {}
                 cpu_usage = _float_or_none(usage.get("cpu_usage_cores"))
                 memory_usage = _float_or_none(usage.get("memory_working_set_mib"))
+                profile_values = {
+                    key: _float_or_none(usage.get(key))
+                    for key in usage_profile_totals
+                }
                 if cpu_usage is not None or memory_usage is not None:
                     usage_sample_count += 1
+                if any(value is not None for value in profile_values.values()):
+                    profile_sample_count += 1
                 if cpu_usage is not None:
                     current_cpu_usage_cores += cpu_usage
                 if memory_usage is not None:
                     current_memory_working_set_mib += memory_usage
+                for key, value in profile_values.items():
+                    if value is not None:
+                        usage_profile_totals[key] += value
 
                 container_rows.append(
                     {
@@ -108,6 +130,14 @@ def build_service_resource_profiles(pods: list[dict[str, Any]], usage_samples: l
                         "current_usage": {
                             "cpu_cores": _round_or_none(cpu_usage),
                             "memory_working_set_mib": _round_or_none(memory_usage),
+                        },
+                        "usage_profile": {
+                            "avg_cpu_usage_cores": _round_or_none(profile_values["avg_cpu_usage_cores"]),
+                            "max_cpu_usage_cores": _round_or_none(profile_values["max_cpu_usage_cores"]),
+                            "p95_cpu_usage_cores": _round_or_none(profile_values["p95_cpu_usage_cores"]),
+                            "avg_memory_working_set_mib": _round_or_none(profile_values["avg_memory_working_set_mib"]),
+                            "max_memory_working_set_mib": _round_or_none(profile_values["max_memory_working_set_mib"]),
+                            "p95_memory_working_set_mib": _round_or_none(profile_values["p95_memory_working_set_mib"]),
                         },
                     }
                 )
@@ -166,6 +196,12 @@ def build_service_resource_profiles(pods: list[dict[str, Any]], usage_samples: l
                     "memory_working_set_mib": round(current_memory_working_set_mib, 3),
                     "sampled_container_count": usage_sample_count,
                     "usage_coverage_ratio": _ratio(usage_sample_count, container_count),
+                },
+                "usage_profile": {
+                    "window": profile_window,
+                    **{key: round(value, 3) for key, value in usage_profile_totals.items()},
+                    "sampled_container_count": profile_sample_count,
+                    "usage_coverage_ratio": _ratio(profile_sample_count, container_count),
                 },
                 "containers": container_rows,
                 "interpretation": _interpret_profile(

@@ -58,6 +58,12 @@ class Settings(BaseModel):
     telemetry_query_window: str = Field(
         default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
     )
+    resource_profile_recording_mode: str = Field(
+        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "manual").lower()
+    )
+    resource_profile_window: str = Field(
+        default_factory=lambda: os.getenv("RESOURCE_PROFILE_WINDOW", "10m")
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

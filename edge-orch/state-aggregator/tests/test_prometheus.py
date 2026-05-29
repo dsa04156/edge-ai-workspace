@@ -1,6 +1,6 @@
 import asyncio
 
-from app.prometheus import PrometheusClient, SERVICE_USAGE_QUERIES
+from app.prometheus import PrometheusClient, SERVICE_USAGE_QUERIES, SERVICE_USAGE_PROFILE_QUERIES
 
 
 class FakeResponse:
@@ -145,5 +145,57 @@ def test_collect_service_resource_usage_merges_container_cpu_and_memory(monkeypa
             "container": "redis",
             "cpu_usage_cores": 0.07,
             "memory_working_set_mib": 88.5,
+        }
+    ]
+
+
+def test_collect_service_resource_profile_usage_returns_window_statistics(monkeypatch):
+    import app.prometheus as prometheus_module
+
+    class ProfileUsageClient(FakeAsyncClient):
+        async def get(self, url, params):
+            query = params["query"]
+            if query == SERVICE_USAGE_PROFILE_QUERIES["avg_cpu_usage_cores"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "0.21"]},
+                ])
+            if query == SERVICE_USAGE_PROFILE_QUERIES["max_cpu_usage_cores"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "0.75"]},
+                ])
+            if query == SERVICE_USAGE_PROFILE_QUERIES["p95_cpu_usage_cores"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "0.62"]},
+                ])
+            if query == SERVICE_USAGE_PROFILE_QUERIES["avg_memory_working_set_mib"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "220"]},
+                ])
+            if query == SERVICE_USAGE_PROFILE_QUERIES["max_memory_working_set_mib"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "310"]},
+                ])
+            if query == SERVICE_USAGE_PROFILE_QUERIES["p95_memory_working_set_mib"]("10m"):
+                return FakeResponse([
+                    {"metric": {"namespace": "default", "pod": "analyzer-a", "container": "app"}, "value": [0, "290"]},
+                ])
+            return FakeResponse([])
+
+    monkeypatch.setattr(prometheus_module.httpx, "AsyncClient", ProfileUsageClient)
+    client = PrometheusClient("http://prometheus.example", {})
+
+    usage = asyncio.run(client.collect_service_resource_profile_usage(window="10m"))
+
+    assert usage == [
+        {
+            "namespace": "default",
+            "pod": "analyzer-a",
+            "container": "app",
+            "avg_cpu_usage_cores": 0.21,
+            "max_cpu_usage_cores": 0.75,
+            "p95_cpu_usage_cores": 0.62,
+            "avg_memory_working_set_mib": 220.0,
+            "max_memory_working_set_mib": 310.0,
+            "p95_memory_working_set_mib": 290.0,
         }
     ]

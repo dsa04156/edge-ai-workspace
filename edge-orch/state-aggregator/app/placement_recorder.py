@@ -48,6 +48,7 @@ class InfluxResourceProfileRecorder:
             requests = requirements.get("requests") or {}
             limits = requirements.get("limits") or {}
             missing = requirements.get("missing") or {}
+            usage_profile = profile.get("usage_profile") or {}
             tags = {
                 "namespace": profile.get("namespace"),
                 "service": profile.get("service"),
@@ -69,6 +70,15 @@ class InfluxResourceProfileRecorder:
                 "current_memory_working_set_mib": (profile.get("current_usage") or {}).get("memory_working_set_mib"),
                 "usage_sampled_container_count": (profile.get("current_usage") or {}).get("sampled_container_count"),
                 "usage_coverage_ratio": (profile.get("current_usage") or {}).get("usage_coverage_ratio"),
+                "profile_window": usage_profile.get("window"),
+                "avg_cpu_usage_cores": usage_profile.get("avg_cpu_usage_cores"),
+                "max_cpu_usage_cores": usage_profile.get("max_cpu_usage_cores"),
+                "p95_cpu_usage_cores": usage_profile.get("p95_cpu_usage_cores"),
+                "avg_memory_working_set_mib": usage_profile.get("avg_memory_working_set_mib"),
+                "max_memory_working_set_mib": usage_profile.get("max_memory_working_set_mib"),
+                "p95_memory_working_set_mib": usage_profile.get("p95_memory_working_set_mib"),
+                "profile_sampled_container_count": usage_profile.get("sampled_container_count"),
+                "profile_usage_coverage_ratio": usage_profile.get("usage_coverage_ratio"),
                 "missing_cpu_request_containers": missing.get("cpu_request_containers"),
                 "missing_memory_request_containers": missing.get("memory_request_containers"),
                 "missing_cpu_limit_containers": missing.get("cpu_limit_containers"),
