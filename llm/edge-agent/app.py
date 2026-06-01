@@ -1,22 +1,23 @@
 from __future__ import annotations
 
 import inspect
+import json
+import re
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from agents.factory import create_agents
-from tools.k8s_tools import get_gpu_status, get_k8s_events, get_k8s_nodes, get_k8s_pods
-from tools.kubeedge_tools import get_kubeedge_devices
-from tools.mqtt_tools import get_mqtt_status
-from tools.prometheus_tools import query_prometheus
 from workflows.approval_store import ApprovalStore
 
 
 app = FastAPI(title="KubeEdge Edge AI Operations Agent", version="0.1.0")
 approval_store = ApprovalStore()
-agents = create_agents()
+conversation_history: list[dict[str, str]] = []
+
+
+AGENT_NAMES = ("status", "metrics", "device", "shell", "diagnosis", "planner")
 
 
 class ChatRequest(BaseModel):
@@ -54,10 +55,14 @@ def _needs_plan(message: str) -> bool:
         "병목",
     )
     lower_message = message.lower()
-    return any(keyword in lower_message for keyword in keywords)
+    explicit_action_words = ("해줘", "만들어", "작성", "제안", "계획", "복구안", "조치안")
+    return any(keyword in lower_message for keyword in keywords) and any(
+        word in lower_message for word in explicit_action_words
+    )
 
 
 async def _run_agent(agent_name: str, prompt: str) -> str | None:
+    agents = create_agents()
     agent = agents.get(agent_name)
     if agent is None:
         return None
@@ -75,26 +80,113 @@ async def _run_agent(agent_name: str, prompt: str) -> str | None:
     return None
 
 
-def _collect_read_only_context() -> dict[str, Any]:
+def _history_text() -> str:
+    recent = conversation_history[-8:]
+    return "\n".join(f"{item['role']}: {item['content']}" for item in recent)
+
+
+def _extract_json_object(text: str) -> dict[str, Any] | None:
+    text = text.strip()
+    candidates = [text]
+    match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+    if match:
+        candidates.append(match.group(0))
+    for candidate in candidates:
+        try:
+            value = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return None
+
+
+def _fallback_route(message: str) -> dict[str, Any]:
+    lower = message.lower()
+    selected: list[str] = []
+    if any(word in lower for word in ("노드", "pod", "파드", "이벤트", "gpu", "상태")):
+        selected.append("status")
+    if any(word in lower for word in ("메트릭", "prometheus", "cpu", "memory", "메모리", "network", "rtt", "throughput")):
+        selected.append("metrics")
+    if any(word in lower for word in ("device", "디바이스", "twin", "센서", "kubeedge")):
+        selected.append("device")
+    if any(word in lower for word in ("장애", "느려", "느린", "병목", "원인", "진단")):
+        selected.extend(["status", "metrics", "diagnosis"])
+    if any(word in lower for word in ("명령", "shell", "로그", "확인해줘")) and "kubectl" in lower:
+        selected.append("shell")
+    if _needs_plan(message):
+        selected.append("planner")
+
+    deduped = [name for name in AGENT_NAMES if name in selected]
     return {
-        "nodes": get_k8s_nodes(),
-        "pods": get_k8s_pods(),
-        "events": get_k8s_events(),
-        "gpu": get_gpu_status(),
-        "devices": get_kubeedge_devices(),
-        "mqtt": get_mqtt_status(),
-        "metrics": {
-            "cpu": query_prometheus(
-                'sum(rate(container_cpu_usage_seconds_total{container!="POD"}[5m]))'
-            ),
-            "memory": query_prometheus(
-                'sum(container_memory_working_set_bytes{container!="POD"})'
-            ),
-            "network": query_prometheus(
-                "sum(rate(container_network_receive_bytes_total[5m]))"
-            ),
-        },
+        "mode": "delegate" if deduped else "chat",
+        "agents": deduped,
+        "reason": "keyword fallback",
+        "clarifying_question": "",
     }
+
+
+async def _orchestrate(message: str) -> dict[str, Any]:
+    prompt = f"""
+너는 KubeEdge Edge AI 운영 플랫폼의 Orchestrator Agent다.
+사용자와 자연스럽게 계속 대화한다.
+
+사용자 최근 대화:
+{_history_text()}
+
+현재 사용자 메시지:
+{message}
+
+아래 JSON만 출력한다. 설명 문장은 출력하지 않는다.
+{{
+  "mode": "chat" | "delegate" | "clarify",
+  "agents": ["status" | "metrics" | "device" | "shell" | "diagnosis" | "planner"],
+  "reason": "짧은 판단 이유",
+  "clarifying_question": "mode가 clarify일 때 사용자에게 물을 한 문장"
+}}
+
+판단 기준:
+- 단순 인사, 개념 질문, 이전 답변에 대한 후속 질문은 mode=chat.
+- 운영 상태 조회가 필요할 때만 필요한 하위 Agent를 agents에 넣고 mode=delegate.
+- 범위가 너무 넓거나 대상 서비스/namespace/node가 불명확하면 mode=clarify.
+- Planner는 사용자가 명시적으로 계획, 조치안, 복구안, 스케일 제안 등을 요구할 때만 선택.
+- Shell은 사용자가 명시적으로 제한된 테스트/조회 명령을 요구할 때만 선택.
+"""
+    result = await _run_agent("coordinator", prompt)
+    parsed = _extract_json_object(result or "")
+    if not parsed:
+        return _fallback_route(message)
+    agents = [
+        name
+        for name in parsed.get("agents", [])
+        if isinstance(name, str) and name in AGENT_NAMES
+    ]
+    mode = parsed.get("mode")
+    if mode not in {"chat", "delegate", "clarify"}:
+        mode = "delegate" if agents else "chat"
+    return {
+        "mode": mode,
+        "agents": agents,
+        "reason": str(parsed.get("reason", "")),
+        "clarifying_question": str(parsed.get("clarifying_question", "")),
+    }
+
+
+async def _collect_agent_results(message: str, selected_agents: list[str]) -> dict[str, str]:
+    results: dict[str, str] = {}
+    for agent_name in selected_agents:
+        prompt = f"""
+사용자 요청:
+{message}
+
+너는 {agent_name} Agent다. 네 책임 범위에 해당하는 정보만 확인하고 한국어로 짧게 요약한다.
+질문과 직접 관련 없는 정보는 생략한다.
+실제 변경 명령은 실행하지 않는다.
+"""
+        result = await _run_agent(agent_name, prompt)
+        if result:
+            results[agent_name] = result
+    return results
 
 
 def _make_plan(message: str, context: dict[str, Any]) -> dict[str, Any]:
@@ -148,38 +240,15 @@ def health() -> dict[str, str]:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
-    context = _collect_read_only_context()
-    plan_id = None
-    approval_required = False
-
     agent_response = await _run_agent(
-        "coordinator",
-        f"""
-사용자 요청: {request.message}
-읽기 전용 운영 컨텍스트: {context}
-한국어로 답변하고, 실제 변경 명령은 실행하지 마세요.
-""",
+        "orchestrator",
+        request.message,
     )
 
-    if _needs_plan(request.message):
-        plan = _make_plan(request.message, context)
-        record = approval_store.create_plan(request.message, plan)
-        plan_id = record["plan_id"]
-        approval_required = True
-        fallback = (
-            "요청을 분석했습니다. 현재 버전은 운영 변경을 즉시 실행하지 않으며, "
-            f"읽기 전용 점검과 조치 후보를 승인 대기 계획으로 저장했습니다. plan_id={plan_id}"
-        )
-    else:
-        fallback = (
-            "요청을 읽기 전용으로 처리했습니다. Kubernetes, KubeEdge Device, Prometheus, MQTT "
-            "상태 조회 도구를 사용해 상태를 종합할 수 있습니다."
-        )
-
     return ChatResponse(
-        response=agent_response or fallback,
-        plan_id=plan_id,
-        approval_required=approval_required,
+        response=agent_response or "응답 생성에 실패했습니다.",
+        plan_id=None,
+        approval_required=False,
     )
 
 

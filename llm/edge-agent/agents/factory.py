@@ -24,6 +24,8 @@ COMMON_SAFETY_INSTRUCTIONS = """
 실제 삭제, 재시작, 배포 변경, scale, rollout, apply, delete, patch, label, annotate 명령은 실행하지 않는다.
 Planner Agent는 계획만 만들고 즉시 실행하지 않는다. 모든 변경 제안은 사용자 승인 대기 상태로 둔다.
 run_shell은 테스트용이며 운영 전 제거 또는 제한 tool로 분리해야 한다.
+사용자가 일반 대화를 하면 운영 도구를 호출하지 말고 자연스럽게 대화한다.
+도구 결과가 질문과 직접 관련 없으면 답변에 억지로 포함하지 않는다.
 """
 
 
@@ -73,56 +75,42 @@ def _build_agent(spec: AgentSpec, client: Any) -> Any:
 def create_agents() -> dict[str, Any]:
     client = _chat_client()
     specs = {
-        "coordinator": AgentSpec(
-            name="Coordinator Agent",
+        "orchestrator": AgentSpec(
+            name="Orchestrator Agent",
             instructions=COMMON_SAFETY_INSTRUCTIONS
             + """
-사용자 요청을 수신하고 Status, Metrics, Device, Diagnosis, Planner 결과를 종합한다.
-운영 상태 설명은 간결하고 실행 가능한 한국어로 제공한다.
-""",
+        너는 KubeEdge 기반 Edge AI 운영 대화형 오케스트레이터다.
+
+        사용자와 자연스럽게 대화한다.
+        항상 모든 도구를 호출하지 않는다.
+        단순 질문이면 바로 답한다.
+        상태 확인 요청이면 필요한 조회 도구만 호출한다.
+        장애, 병목, 지연, 재배치, 오프로딩 요청이면 관련 도구를 순차적으로 호출해 원인을 분석한다.
+
+        사용 가능한 역할:
+        - Status Agent 역할: Kubernetes Node, Pod, Event, GPU 상태 확인
+        - Metrics Agent 역할: Prometheus 지표 확인
+        - Device Agent 역할: KubeEdge Device, Device Twin 확인
+        - Diagnosis Agent 역할: 수집 결과 기반 원인 분석
+        - Planner Agent 역할: 조치 후보 제안
+
+        중요:
+        - 운영 변경은 직접 실행하지 않는다.
+        - kubectl apply/delete/scale/rollout/restart/patch/label/annotate는 실행하지 않는다.
+        - 필요한 경우 "승인이 필요합니다"라고 말하고 계획만 제시한다.
+        - 답변은 한국어로 한다.
+        """,
             tools=(
                 get_k8s_nodes,
                 get_k8s_pods,
                 get_k8s_events,
                 get_gpu_status,
                 get_kubeedge_devices,
+                get_device_twin,
                 query_prometheus,
                 get_mqtt_status,
+                run_shell,
             ),
-        ),
-        "status": AgentSpec(
-            name="Status Agent",
-            instructions=COMMON_SAFETY_INSTRUCTIONS
-            + "Kubernetes Node, Pod, Event, GPU 상태를 읽기 전용으로 조회한다.",
-            tools=(get_k8s_nodes, get_k8s_pods, get_k8s_events, get_gpu_status),
-        ),
-        "device": AgentSpec(
-            name="Device Agent",
-            instructions=COMMON_SAFETY_INSTRUCTIONS
-            + "KubeEdge Device, Device Twin, Edge Device 상태를 조회한다.",
-            tools=(get_kubeedge_devices, get_device_twin),
-        ),
-        "metrics": AgentSpec(
-            name="Metrics Agent",
-            instructions=COMMON_SAFETY_INSTRUCTIONS
-            + "Prometheus Query로 CPU, Memory, GPU, Network, RTT, Throughput을 조회한다.",
-            tools=(query_prometheus,),
-        ),
-        "diagnosis": AgentSpec(
-            name="Diagnosis Agent",
-            instructions=COMMON_SAFETY_INSTRUCTIONS
-            + "장애 원인, 병목 원인, 서비스 상태를 진단한다.",
-            tools=(get_k8s_nodes, get_k8s_pods, get_k8s_events, query_prometheus),
-        ),
-        "planner": AgentSpec(
-            name="Planner Agent",
-            instructions=COMMON_SAFETY_INSTRUCTIONS
-            + """
-오프로딩, 재배치, Scale-Out, Recovery Plan을 생성한다.
-절대 즉시 실행하지 말고 승인 필요 계획만 만든다.
-Executor Agent는 초기 버전에서 구현하지 않는다.
-""",
-            tools=(get_k8s_nodes, get_k8s_pods, query_prometheus, run_shell),
         ),
     }
     return {key: _build_agent(spec, client) for key, spec in specs.items()}
