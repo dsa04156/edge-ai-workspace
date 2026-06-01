@@ -75,11 +75,10 @@ metadata:
   labels:
     app: ollama-qwen3
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: ollama-qwen3
   ports:
     - name: http
       port: 11434
       targetPort: 11434
-      nodePort: 11434
