@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-qwen3-data
+  labels:
+    app: ollama-qwen3
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-qwen3
+  labels:
+    app: ollama-qwen3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-qwen3
+  template:
+    metadata:
+      labels:
+        app: ollama-qwen3
+    spec:
+      nodeSelector:
+        agent-node: "true"
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 11434
+          env:
+            - name: OLLAMA_HOST
+              value: 0.0.0.0:11434
+            - name: OLLAMA_KEEP_ALIVE
+              value: 24h
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - |
+              ollama serve &
+              until ollama list >/dev/null 2>&1; do
+                sleep 2
+              done
+              ollama pull qwen3:8b
+              wait
+      volumes:
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: ollama-qwen3-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-qwen3
+  labels:
+    app: ollama-qwen3
+spec:
+  selector:
+    app: ollama-qwen3
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
