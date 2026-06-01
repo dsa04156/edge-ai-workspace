@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-model-config
+  labels:
+    app: llm-model
+data:
+  MODEL_ID: "qwen3:8b"

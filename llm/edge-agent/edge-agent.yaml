@@ -32,7 +32,10 @@ spec:
             - name: OPENAI_API_KEY
               value: ollama
             - name: OPENAI_MODEL_ID
-              value: qwen3:8b
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-model-config
+                  key: MODEL_ID
             - name: PROMETHEUS_URL
               value: http://prometheus-kube-prometheus-prometheus.kube-system.svc:9090
 ---
