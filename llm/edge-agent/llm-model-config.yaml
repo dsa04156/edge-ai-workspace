@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: llm-model-config
-  labels:
-    app: llm-model
-data:
-  MODEL_ID: "qwen2.5-coder:7b"

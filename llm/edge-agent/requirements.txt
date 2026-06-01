@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-pydantic
-agent-framework
-kubernetes
-prometheus-api-client
-paho-mqtt
-httpx
