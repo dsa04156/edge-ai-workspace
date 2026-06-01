@@ -1,6 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: edge-ai-llm
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: edge-agent=192.168.0.56:5000/edge-agent:latest
+    argocd-image-updater.argoproj.io/edge-agent.update-strategy: digest
+    argocd-image-updater.argoproj.io/edge-agent.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/dsa04156/edge-ai-workspace.git'
+    path: llm
+    targetRevision: main
+    directory:
+      recurse: true
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: edge-orch-state-aggregator
   namespace: argocd
 spec:
