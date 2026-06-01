@@ -5,4 +5,4 @@ metadata:
   labels:
     app: llm-model
 data:
-  MODEL_ID: "qwen3:8b"
+  MODEL_ID: "qwen2.5-coder:7b"
