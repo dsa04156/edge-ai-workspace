@@ -204,24 +204,24 @@ jobs:
 
           kubectl rollout status daemonset/mqttvirtual-mapper -n default --timeout=180s
 
-      - name: Deploy Ollama qwen3 and edge-agent
-        if: steps.changes.outputs.edge_agent == 'true'
-        run: |
-          kubectl label node etri-ser0002-cgnmsb agent-node=true --overwrite
-          kubectl apply -f llm/ollama-qwen3.yaml
-          kubectl apply -f llm/edge-agent/edge-agent-rbac.yaml
-          kubectl apply -f llm/edge-agent/edge-agent.yaml
+      # - name: Deploy Ollama qwen3 and edge-agent
+      #   if: steps.changes.outputs.edge_agent == 'true'
+      #   run: |
+      #     kubectl label node etri-ser0002-cgnmsb agent-node=true --overwrite
+      #     kubectl apply -f llm/ollama-qwen3.yaml
+      #     kubectl apply -f llm/edge-agent/edge-agent-rbac.yaml
+      #     kubectl apply -f llm/edge-agent/edge-agent.yaml
 
-          CURRENT_IMAGE=$(kubectl get deployment edge-agent -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="edge-agent")].image}' 2>/dev/null || true)
-          TARGET_IMAGE=${{ env.REGISTRY }}/edge-agent:latest
+      #     CURRENT_IMAGE=$(kubectl get deployment edge-agent -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="edge-agent")].image}' 2>/dev/null || true)
+      #     TARGET_IMAGE=${{ env.REGISTRY }}/edge-agent:latest
 
-          kubectl set image deployment/edge-agent \
-            edge-agent=${TARGET_IMAGE} \
-            -n default
+      #     kubectl set image deployment/edge-agent \
+      #       edge-agent=${TARGET_IMAGE} \
+      #       -n default
 
-          if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
-            kubectl rollout restart deployment/edge-agent -n default
-          fi
+      #     if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
+      #       kubectl rollout restart deployment/edge-agent -n default
+      #     fi
 
-          kubectl rollout status deployment/ollama-qwen3 -n default --timeout=900s
-          kubectl rollout status deployment/edge-agent -n default --timeout=180s
+      #     kubectl rollout status deployment/ollama-qwen3 -n default --timeout=900s
+      #     kubectl rollout status deployment/edge-agent -n default --timeout=180s
