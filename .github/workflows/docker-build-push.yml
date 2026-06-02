@@ -15,8 +15,8 @@ name: Build and Push Images to Local Registry
       - "mappers/mapper-framework/**"
       - "docs/**"
       - "docs-site/**"
-      - "llm/edge-agent/**"
-      - "llm/ollama-qwen3.yaml"
+      # - "llm/edge-agent/**"
+      # - "llm/ollama-qwen3.yaml"
   workflow_dispatch:
 
 env:
@@ -77,7 +77,6 @@ jobs:
           set_output vision_stage_runner "${COMMON}|^edge-orch/vision_stage_runner/"
           set_output mqttvirtual "${COMMON}|^mappers/(mqttvirtual|mapper-framework)/"
           set_output docs "${COMMON}|^(docs|docs-site)/"
-          set_output edge_agent "${COMMON}|^llm/edge-agent/|^llm/ollama-qwen3\\.yaml$"
 
       - name: Configure Buildx for Local Registry
         run: |
@@ -152,14 +151,14 @@ jobs:
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "DOCS_HTML_IMAGE=${{ env.REGISTRY }}/docs-html@${DIGEST}" >> "$GITHUB_ENV"
 
-      - name: Build and Push edge-agent
-        if: steps.changes.outputs.edge_agent == 'true'
-        run: |
-          docker buildx build --platform linux/amd64 \
-            -t ${{ env.REGISTRY }}/edge-agent:latest \
-            -f llm/edge-agent/Dockerfile \
-            llm/edge-agent \
-            --push
+      # - name: Build and Push edge-agent
+      #   if: steps.changes.outputs.edge_agent == 'true'
+      #   run: |
+      #     docker buildx build --platform linux/amd64 \
+      #       -t ${{ env.REGISTRY }}/edge-agent:latest \
+      #       -f llm/edge-agent/Dockerfile \
+      #       llm/edge-agent \
+      #       --push
 
       - name: Deploy docs-html latest image
         if: steps.changes.outputs.docs == 'true'
