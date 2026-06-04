@@ -32,6 +32,25 @@
 - raw telemetry 값을 DeviceStatus에 올리지 않고, MapperFramework를 raw telemetry export engine으로 확장하지 않는다.
 - `status.state=online`만으로 healthy 판단하지 않는다.
 
+
+## Legacy / Archive Boundary
+
+아래 경로와 주제는 현재 PoC 구현 경로가 아니라 과거 실험, 참조, 보관 자료로 본다.
+
+- `edge-orch/workflow_executor/`: 과거 workflow 실행/orchestration 실험
+- `edge-orch/workflow_reporter/`: 과거 stage event reporting 실험
+- `edge-orch/placement_engine/`: 과거 placement/offloading/replanning 실험
+- `workflow/`: 과거 workflow/event/scenario manifest
+- `docs/archive/*`: 과거 통합 기록, 연구 초안, legacy orchestration 자료
+- legacy orchestration, dynamic offloading, runtime replanning, agent-assisted planning 관련 문서와 코드
+
+처리 규칙:
+
+- 위 자료는 히스토리와 비교 근거로만 읽고, 현재 서비스 데모 요구사항이나 구현 목표로 해석하지 않는다.
+- 현재 작업 대상으로 승격하려면 먼저 `docs/scope.md`와 `docs/repo-structure.md`를 갱신해 범위 변경을 명시한다.
+- 별도 승인 없이 위 경로의 내용을 dashboard, DeviceStatus, telemetry, service demo의 현재 동작으로 설명하지 않는다.
+- 삭제/이동은 이 문서의 규칙만으로 수행하지 않고, 별도 정리 작업에서 승인 후 진행한다.
+
 ## 문서 표현 규칙
 
 유지할 표현:

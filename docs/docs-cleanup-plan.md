@@ -103,6 +103,20 @@ Archive는 검색 결과에 나오더라도 뒤로 밀거나, 별도 필터로 �
 6. Archive
 7. 정리/검토 후보
 
+
+## Legacy / Reference 로컬 표식
+
+현재 단계에서는 legacy 자료를 이동하거나 삭제하기보다, 먼저 로컬 README 표식으로 오해를 줄인다.
+
+대상 경로:
+
+- `edge-orch/workflow_executor/`
+- `edge-orch/workflow_reporter/`
+- `edge-orch/placement_engine/`
+- `workflow/`
+
+각 README는 `Status: Legacy / Reference`를 명시하고, 현재 PoC 판단 기준이 `docs/scope.md`와 `docs/repo-structure.md`임을 안내한다. 이 표식은 삭제/이동 승인이 아니라, 검색과 에이전트 작업에서 현재 범위로 오해하지 않도록 하는 1차 가드레일이다.
+
 ## 실제 파일 이동은 아직 보류
 
 현재 단계에서는 파일 이동/삭제를 하지 않는다.

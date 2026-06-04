@@ -11,11 +11,12 @@
 
 | 분류 | 의미 |
 |---|---|
-| 현재 범위 | 현재 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화에 직접 연결되는 경로 |
-| 현재 범위 보조 | 설치, 배포, 운영, ingress, registry 등 현재 범위를 지원하는 경로 |
-| 제외/보관 | 현재 연구 방향에서 진행하지 않는 과거 workflow/offloading/agent-planning 계열 또는 archive 자료 |
+| Current | 현재 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화에 직접 연결되는 경로 |
+| Current-supporting | 설치, 배포, 운영, ingress, registry 등 현재 범위를 지원하는 경로 |
+| Legacy / Reference | 현재 연구 방향에서 진행하지 않는 과거 workflow/offloading/agent-planning 실험 또는 참조 구현 |
+| Archive | 과거 통합 기록, 연구 초안, 논문/실험 자료. 현재 판단 기준이 아님 |
 | 외부/참조 | KubeEdge API, mapper framework 등 외부 코드 또는 참고용 코드 |
-| 정리 검토 | 운영 중 생성된 데이터, 캐시, runner 산출물 등 레포 관리 대상인지 검토가 필요한 경로 |
+| Cleanup Review | 운영 중 생성된 데이터, 캐시, runner 산출물 등 레포 관리 대상인지 검토가 필요한 경로 |
 
 ## 현재 범위 경로
 
@@ -40,20 +41,20 @@
 | `.github/` | GitHub workflow 등 자동화 설정 | 현재 CI/CD에 쓰는 항목만 유지 |
 | `Easy-Kube-Command/` | kubectl 편의 명령 모음 | 운영 보조 자료로 유지 여부 검토 |
 
-## 현재 범위에서 제외/보관할 경로
+## Legacy / Reference 및 Archive 경로
 
 다음 경로는 현재 연구 방향에서 진행하지 않는다.
-새 문서에서 후속 고도화 또는 예정 기능처럼 표현하지 않는다.
+새 문서에서 후속 고도화 또는 예정 기능처럼 표현하지 않는다. 에이전트와 작업자는 이 경로를 히스토리/비교/참조 자료로만 읽고, 현재 구현 요구사항으로 사용하지 않는다.
 
 | 경로 | 현재 처리 원칙 |
 |---|---|
-| `edge-orch/workflow_executor/` | 현재 데모 경로에서 제외, 과거 실험/참조로만 유지 |
-| `edge-orch/workflow_reporter/` | 현재 데모 경로에서 제외, 과거 실험/참조로만 유지 |
-| `edge-orch/placement_engine/` | 현재 연구 방향에서 제외, 과거 실험/참조로만 유지 |
-| `workflow/` | workflow/event/scenario 관련 과거 실험 또는 보조 manifest로 분리 검토 |
-| `docs/archive/legacy-orchestration/` | 현재 판단 기준이 아니라 archive |
-| `docs/archive/embedded-conference/` | replanning/offloading 실험은 현재 방향과 분리된 과거 자료 |
-| `docs/archive/integration/` | 과거 통합 기록, 현재 판단은 active guides 우선 |
+| `edge-orch/workflow_executor/` | Legacy / Reference. 과거 workflow 실행/orchestration 실험. 현재 service demo 구현 대상으로 사용하지 않음 |
+| `edge-orch/workflow_reporter/` | Legacy / Reference. 과거 stage event reporting 실험. 현재 dashboard 요구사항으로 해석하지 않음 |
+| `edge-orch/placement_engine/` | Legacy / Reference. 과거 placement/offloading/replanning 실험. 현재 자동 재배치 기능으로 설명하지 않음 |
+| `workflow/` | Legacy / Reference. 과거 workflow/event/scenario manifest. 현재 배포 경로로 사용하지 않음 |
+| `docs/archive/legacy-orchestration/` | Archive. 현재 판단 기준이 아니라 과거 orchestration 자료 |
+| `docs/archive/embedded-conference/` | Archive. replanning/offloading 실험은 현재 방향과 분리된 과거 자료 |
+| `docs/archive/integration/` | Archive. 과거 통합 기록, 현재 판단은 active guides 우선 |
 
 ## 외부/참조 성격 경로
 
@@ -71,8 +72,8 @@
 
 | 경로 | 검토 이유 |
 |---|---|
-| `actions-runner/` | GitHub Actions runner 작업 디렉터리와 로그/체크아웃 산출물 포함 |
-| `Platform-Service/` | 여러 서비스, venv, mysql data 등 운영/실험 산출물이 섞여 있음 |
+| `actions-runner/` | Cleanup Review. GitHub Actions runner 작업 디렉터리와 로그/체크아웃 산출물 포함 |
+| `Platform-Service/` | Cleanup Review. 여러 서비스, venv, mysql data 등 운영/실험 산출물이 섞여 있음. 현재 PoC 경로로 승격 전 역할 확인 필요 |
 | `.pytest_cache/`, `**/__pycache__/` | 테스트/파이썬 캐시 |
 | `.vscode/` | 개인/환경 설정일 수 있음 |
 | `her/` | 역할 확인 필요 |
@@ -94,10 +95,10 @@
 | HAMi Helm release `hami` (`kube-system`) | 현재 범위 보조 | x86 GPU 서버의 GPU 공유/스케줄링 기반. 설치/점검 메모는 `docs/ops/gpu-hami-runtime.md` |
 | `edge-orch/gemma/` | 확인 필요 | 현재 서비스 데모와 연결되는지 확인 후 분류 |
 | `edge-orch/vision_stage_runner/` | 확인 필요 | 현재 서비스 데모와 연결되는 경우만 현재 범위로 승격 |
-| `edge-orch/workflow_executor/` | 제외/보관 | workflow orchestration 경로로 현재 제외 |
-| `edge-orch/workflow_reporter/` | 제외/보관 | stage event pipeline 경로로 현재 제외 |
-| `edge-orch/placement_engine/` | 제외/보관 | placement/offloading 경로로 현재 제외 |
-| `edge-orch/experiments/` | 제외/보관 또는 확인 필요 | 실험 자료로 분리 검토 |
+| `edge-orch/workflow_executor/` | Legacy / Reference | 과거 workflow orchestration 실험. 현재 제외 |
+| `edge-orch/workflow_reporter/` | Legacy / Reference | 과거 stage event pipeline 실험. 현재 제외 |
+| `edge-orch/placement_engine/` | Legacy / Reference | 과거 placement/offloading 실험. 현재 제외 |
+| `edge-orch/experiments/` | Legacy / Reference 또는 Cleanup Review | 실험 자료로 분리하고 현재 범위 승격 전 확인 |
 
 ## 새 작업 판단 절차
 

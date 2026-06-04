@@ -5,6 +5,21 @@
 이 문서는 현재 PoC에서 무엇을 구현 범위로 볼지, 무엇을 현재 연구 방향에서 제외할지 정리한다.
 레포 안에는 현재 구현물, 과거 실험, 운영 도구, 연구 문서가 함께 있으므로 새 작업 판단은 이 문서를 기준으로 한다.
 
+
+## 범위 분류 용어
+
+이 문서와 `docs/repo-structure.md`에서 쓰는 분류는 다음 의미로 고정한다.
+
+| 분류 | 의미 | 처리 규칙 |
+|---|---|---|
+| Current | 현재 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화에 직접 연결되는 구현 경로 | 새 기능/수정의 기본 대상 |
+| Current-supporting | 설치, 배포, 운영, ingress, registry, GPU runtime처럼 현재 경로를 지원하는 자료 | 현재 경로와 연결될 때만 수정 |
+| Legacy / Reference | 과거 workflow, placement, offloading, agent-planning 실험 또는 참조 구현 | 히스토리와 비교 근거로만 읽고 현재 요구사항으로 해석하지 않음 |
+| Archive | 과거 통합 기록, 연구 초안, 논문/실험 자료 | 현재 판단 기준이 아니며 필요할 때만 인용 |
+| Cleanup Review | 캐시, runner 산출물, 대형 바이너리, 운영 중 생성 데이터처럼 보존 여부 검토가 필요한 자료 | 삭제/이동 전 별도 승인 필요 |
+
+`Legacy / Reference`와 `Archive` 자료는 현재 PoC 구현 방향을 바꾸는 근거가 아니다. 해당 자료를 현재 범위로 승격하려면 먼저 이 문서와 `docs/repo-structure.md`에 승격 이유, 현재 경로와의 연결, 검증 기준을 명시한다.
+
 ## 현재 PoC 범위
 
 현재 범위는 혼합 디바이스 엣지 AI 플랫폼을 실공장 기반 서비스 데모 관점에서 설명 가능하게 만드는 것이다.
@@ -64,17 +79,18 @@
 - LLM이 전체 플랫폼 제어를 수행하는 구조
 - 전체 플랫폼 자율 제어형 orchestration
 
-이 항목들은 필요한 경우 과거 검토/실험 자료 또는 보관 자료로만 다룬다.
+이 항목들은 필요한 경우 `Legacy / Reference` 또는 `Archive` 자료로만 다룬다. 현재 구현 요구사항, 발표자료의 현행 기능, 또는 다음 확정 단계처럼 해석하지 않는다.
 
 ## 제외 대상 컴포넌트 처리 원칙
 
 | 경로/컴포넌트 | 현재 처리 원칙 |
 |---|---|
-| `edge-orch/workflow_executor/` | 현재 데모 경로에서 제외, 과거 실험/참조로만 유지 |
-| `edge-orch/workflow_reporter/` | 현재 데모 경로에서 제외, 과거 실험/참조로만 유지 |
-| `edge-orch/placement_engine/` | 현재 연구 방향에서 제외, 과거 실험/참조로만 유지 |
-| `docs/archive/legacy-orchestration/` | 현재 판단 기준이 아니라 archive |
-| `docs/archive/embedded-conference/`의 replanning/offloading 실험 | 현재 방향과 분리된 과거 실험 자료 |
+| `edge-orch/workflow_executor/` | Legacy / Reference. 과거 workflow 실행/orchestration 실험으로만 유지 |
+| `edge-orch/workflow_reporter/` | Legacy / Reference. 과거 stage event reporting 실험으로만 유지 |
+| `edge-orch/placement_engine/` | Legacy / Reference. 과거 placement/offloading/replanning 실험으로만 유지 |
+| `workflow/` | Legacy / Reference. 과거 workflow/event/scenario manifest로만 유지 |
+| `docs/archive/legacy-orchestration/` | Archive. 현재 판단 기준이 아니라 과거 orchestration 자료 |
+| `docs/archive/embedded-conference/`의 replanning/offloading 실험 | Archive. 현재 방향과 분리된 과거 실험 자료 |
 
 ## 문서 작성 원칙
 
