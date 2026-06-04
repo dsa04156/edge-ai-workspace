@@ -29,7 +29,8 @@
 | 서버 1 | `etri-ser0001-CG0MSB` | `cloud_server` | `amd64` / `x86_64` | `12th Gen Intel(R) Core(TM) i9-12900KS` | 24 vCPU, 16코어 / 24스레드 | 약 `126 GiB` | `NVIDIA GeForce RTX 5060 Ti` | `8151 MiB` | 미확인 | `192.168.0.56` | heavy inference, state aggregation, placement engine, `nvidia.com/gpu=1` |
 | 서버 2 | `etri-ser0002-CGNMSB` | `cloud_worker` | `amd64` / `x86_64` | `Intel(R) Core(TM) Ultra 9 285` | 24 vCPU, 24코어 / 24스레드 | 약 `30 GiB` | `NVIDIA GeForce RTX 5080` | `16303 MiB` | 미확인 | `192.168.0.5` | `nvidia.com/gpu=1`, Kubernetes GPU 노출 복구 완료 |
 | Jetson | `etri-dev0001-jetorn` | `edge_ai_device` | `arm64` / `aarch64` | `Cortex-A78AE` | 6 vCPU, 6코어 / 6스레드 | 약 `7.4 GiB` | `NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super` 내장 GPU | 미확인 | 미확인 | `192.168.0.3` | edge inference, preprocess |
-| Raspberry Pi 5 | `etri-dev0002-raspi5` | `edge_light_device` | `arm64` / `aarch64` | `Cortex-A76` | 4 vCPU, 4코어 / 4스레드 | 약 `15 GiB` | 전용 AI 가속기 없음, GPU 모델 미확인 | 해당 없음 | 미확인 | `192.168.0.4` | capture, lightweight preprocess |
+| Raspberry Pi 5 (기존) | `etri-dev0002-raspi5` | `edge_light_device` | `arm64` / `aarch64` | `Cortex-A76` | 4 vCPU, 4코어 / 4스레드 | 약 `8 GiB` | 전용 AI 가속기 없음, GPU 모델 미확인 | 해당 없음 | 미확인 | `192.168.0.4` | capture, lightweight preprocess |
+| Raspberry Pi 5 (신규) | `etri-dev0003-raspi5` | `edge_light_device` | `arm64` / `aarch64` | `Cortex-A76` | 4 vCPU, 4코어 / 4스레드 | 약 `8 GiB` | 전용 AI 가속기 없음, GPU 모델 미확인 | 미확인 | 미확인 | `192.168.0.6` | 2026-06-04 신규 추가, Sense HAT 장착 |
 
 ---
 
@@ -42,11 +43,38 @@
 | 서버 1 | `etri-ser0001-CG0MSB` | `2026-04-10` | `Ubuntu 24.04.3 LTS` | `6.17.0-20-generic` | `12th Gen Intel(R) Core(TM) i9-12900KS` | `1` | `16` | `24` | `125 GiB` | `0` | `NVIDIA GeForce RTX 5060 Ti` | driver `580.126.09`, `nvidia.com/gpu=1` | 미확인 | 미확인 | `enp5s0: 192.168.0.56/24` | 메인 제어/추론 서버 | Codex |
 | 서버 2 | `etri-ser0002-CGNMSB` | `2026-04-10` | `Ubuntu 24.04.4 LTS` | `6.17.0-20-generic` | `Intel(R) Core(TM) Ultra 9 285` | `1` | `24` | `24` | `30 GiB` | `0` | `NVIDIA GeForce RTX 5080` | driver `580.126.09`, host `nvidia-smi` 정상, `nvidia.com/gpu=1` | 미확인 | 미확인 | `InternalIP: 192.168.0.5` | stale operator 정리 후 최소 device plugin 경로로 복구 | Codex |
 | Jetson | `etri-dev0001-jetorn` | `2026-04-10` | `Ubuntu 22.04.5 LTS` | `5.15.148-tegra` | `Cortex-A78AE` | `1` | `6` | `6` | `7.4 GiB` | `3.7 GiB` | `NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super` 내장 GPU | `nvidia-l4t 36.4.7`, CUDA 패키지 확인 | 미확인 | 미확인 | `InternalIP: 192.168.0.3` | Jetson platform label 확인 | Codex |
-| Raspberry Pi 5 | `etri-dev0002-raspi5` | `2026-04-10` | `Debian GNU/Linux 13 (trixie)` | `6.12.79-v8-16k+` | `Cortex-A76` | `-` | `4` | `4` | `15 GiB` | `2.0 GiB` | 미확인 | 해당 없음 | 미확인 | 미확인 | `InternalIP: 192.168.0.4` | 보드 모델 `Raspberry Pi 5 Model B Rev 1.1` 확인 | Codex |
+| Raspberry Pi 5 (기존) | `etri-dev0002-raspi5` | `2026-06-04` | `Debian GNU/Linux 13 (trixie)` | `6.12.75+rpt-rpi-2712` | `Cortex-A76` | `-` | `4` | `4` | 약 `8 GiB` | `-` | 미확인 | 해당 없음 | 약 `227 GiB` | `InternalIP: 192.168.0.4` | 6.12 커널로 downgrade (iptables 모듈 호환), Sense HAT 탑재됨 | Sisyphus |
+| Raspberry Pi 5 (신규) | `etri-dev0003-raspi5` | `2026-06-04` | `Debian GNU/Linux 13 (trixie)` | `6.12.75+rpt-rpi-2712` | `Cortex-A76` | `-` | `4` | `4` | 약 `8 GiB` | `-` | 미확인 | 해당 없음 | 약 `227 GiB` | `InternalIP: 192.168.0.6` | Sense HAT 장착, edgemesh-agent 정상, 2026-06-04 신규 추가 | Sisyphus |
 
 ---
 
-## 3. 저장소 기준으로 이미 확인된 항목
+## 3. 소프트웨어 / 런타임 버전 실측표
+
+아래 표는 2026-06-04 기준 각 노드에 설치된 소프트웨어 버전이다.
+문서에 명시된 버전과 실제 운영 버전을 비교하기 위한 목적이 크다.
+
+| 노드 | hostname | KubeEdge | containerd | 커널 | Kubernetes | OS | Go | 비고 |
+|---|---|---|---|---|---|---|---|---|
+| 서버 1 | `etri-ser0001-cg0msb` | `v1.31.14` | 미확인 | `6.17.0-20-generic` | `v1.31.14` | `Ubuntu 24.04` | 미확인 | control-plane |
+| 서버 2 | `etri-ser0002-cgnmsb` | `v1.31.14` | 미확인 | `6.17.0-20-generic` | `v1.31.14` | `Ubuntu 24.04` | 미확인 | worker |
+| Jetson | `etri-dev0001-jetorn` | `v1.23.0` | `2.2.1` | `5.15.148-tegra` | `v1.32.10-kubeedge-v1.23.0` | `Ubuntu 22.04 (L4T)` | edgecore 정적 | NVIDIA L4T 플랫폼, containerd v2 |
+| Raspi5 (기존) | `etri-dev0002-raspi5` | `v1.23.0` | `1.7.18` | `6.12.75+rpt-rpi-2712` | `v1.32.10-kubeedge-v1.23.0` | `Debian 13 (trixie)` | `1.24.4` (host에 설치됨) | edgecore 정적, Sense HAT 있음 (디바이스 감지 불가) |
+| Raspi5 (신규) | `etri-dev0003-raspi5` | `v1.23.0` | `1.7.24` | `6.12.75+rpt-rpi-2712` | `v1.32.10-kubeedge-v1.23.0` | `Debian 13 (trixie)` | edgecore 정적 | Sense HAT 정상 동작, 2026-06-04 신규 추가 |
+
+### 주요 버전 차이 포인트
+
+1. **KubeEdge**: edge 노드 3대 모두 `v1.23.0`으로 통일. cloud 노드는 `v1.31.14` (Kubernetes 버전과 일치).
+2. **containerd**:
+   - Raspi5 2대: Debian 13 패키지로 `1.7.18` / `1.7.24`
+   - Jetson: 별도 설치 `2.2.1` (v2 계열)
+3. **커널**:
+   - Raspi5 2대: Debian RPi 팩토리 커널 `6.12.75` (iptables 모듈 호환성을 위해 6.18에서 downgrade)
+   - Jetson: NVIDIA L4T 커널 `5.15.148-tegra`
+4. **Kubernetes 버전 표시**: `kubectl get nodes`에서 edge 노드는 `v1.32.10-kubeedge-v1.23.0`으로 표시됨 (kubelet 버전 기반).
+
+---
+
+## 4. 저장소 기준으로 이미 확인된 항목
 
 아래 정보는 저장소 문서/코드에서 이미 확인되는 항목이다.
 
@@ -64,7 +92,7 @@
 
 ---
 
-## 4. 이번에 사용한 확인 명령 예시
+## 5. 이번에 사용한 확인 명령 예시
 
 ### 서버 1에서 직접 실행
 
@@ -93,6 +121,7 @@ kubectl debug node/<node-name> --image=busybox -- chroot /host sh -lc '<command>
 예시:
 
 ```bash
+kubectl debug node/etri-dev0003-raspi5 --image=busybox -- chroot /host sh -lc 'cat /proc/device-tree/model; lscpu; free -h'
 kubectl debug node/etri-dev0002-raspi5 --image=busybox -- chroot /host sh -lc 'cat /proc/device-tree/model; lscpu; free -h'
 kubectl debug node/etri-dev0001-jetorn --image=busybox -- chroot /host sh -lc 'cat /proc/device-tree/model; lscpu; free -h; dpkg -l | grep -E "nvidia-l4t|jetpack"'
 kubectl debug node/etri-ser0002-cgnmsb --image=busybox -- chroot /host sh -lc 'lscpu; free -h; lspci | grep -Ei "vga|3d|display|nvidia"; nvidia-smi || true'
@@ -100,7 +129,7 @@ kubectl debug node/etri-ser0002-cgnmsb --image=busybox -- chroot /host sh -lc 'l
 
 ---
 
-## 5. 장비에서 추가 수집할 명령 예시
+## 6. 장비에서 추가 수집할 명령 예시
 
 아래 명령은 각 장비에서 직접 실행해서 표를 채우기 위한 기본 수집 세트다.
 
@@ -158,7 +187,7 @@ vcgencmd get_config arm_boost
 
 ---
 
-## 6. 표를 채울 때 권장 포맷
+## 7. 표를 채울 때 권장 포맷
 
 ### CPU 모델 예시
 - `Intel Xeon Silver 4310`
@@ -183,7 +212,7 @@ vcgencmd get_config arm_boost
 
 ---
 
-## 7. 논문용 축약 표 예시
+## 8. 논문용 축약 표 예시
 
 논문 본문에는 아래 정도로 짧게 넣는 편이 보통 좋다.
 
@@ -196,7 +225,7 @@ vcgencmd get_config arm_boost
 
 ---
 
-## 8. 다음 정리 추천
+## 9. 다음 정리 추천
 
 이 템플릿을 채운 다음에는 아래 둘 중 하나로 이어가면 된다.
 
