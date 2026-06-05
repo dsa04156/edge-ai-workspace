@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from app.models import WorkflowEvent, WorkflowState
+from app.models import NodeState, WorkflowEvent, WorkflowState
 from app.storage import StateStore
 
 
@@ -160,3 +160,34 @@ def test_store_reloads_observations_on_restart(tmp_path):
     assert len(stats) == 1
     assert stats[0].stage_type == "capture"
     assert stats[0].sample_count == 1
+
+
+def _node_state(hostname: str, instance: str) -> NodeState:
+    return NodeState(
+        hostname=hostname,
+        instance=instance,
+        node_type="edge_light_device",
+        collected_at=datetime.now(timezone.utc),
+        raw_metrics={
+            "up": 1.0,
+            "cpu_utilization": 0.1,
+            "memory_usage_ratio": 0.2,
+            "load_average": 0.1,
+            "network_rx_rate": 10.0,
+            "network_tx_rate": 12.0,
+        },
+        compute_pressure="low",
+        memory_pressure="low",
+        network_pressure="low",
+        node_health="healthy",
+    )
+
+
+def test_replace_node_states_prunes_absent_nodes(tmp_path):
+    store = StateStore(tmp_path)
+    store.upsert_node_state(_node_state("deleted-node", "192.168.0.99:9100"))
+    store.upsert_node_state(_node_state("etri-dev0003-raspi5", "192.168.0.6:9100"))
+
+    store.replace_node_states([_node_state("etri-dev0003-raspi5", "192.168.0.6:9100")])
+
+    assert [node.hostname for node in store.get_node_states()] == ["etri-dev0003-raspi5"]

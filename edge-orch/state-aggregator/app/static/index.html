@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css?v=explain-compact-20260520" />
+    <link rel="stylesheet" href="/static/styles.css?v=dashboard-polish-20260605" />
   </head>
   <body>
     <main class="shell">
@@ -65,17 +65,26 @@
       <section class="layout">
         <section class="panel assets">
           <div class="panel-head">
-            <h2>자산 현황</h2>
+            <div>
+              <p class="section-kicker">Inventory</p>
+              <h2>자산 현황</h2>
+            </div>
             <span id="assetCount">0 assets</span>
           </div>
-          <div class="split">
-            <div>
-              <h3>Edge Nodes</h3>
-              <div id="nodeList" class="stack"></div>
+          <div class="split asset-split">
+            <div class="asset-column">
+              <div class="asset-column-head">
+                <h3>Edge Nodes</h3>
+                <span>hostnames only</span>
+              </div>
+              <div id="nodeList" class="stack asset-scroll" aria-label="Edge node cards"></div>
             </div>
-            <div>
-              <h3>Devices</h3>
-              <div id="deviceList" class="stack"></div>
+            <div class="asset-column">
+              <div class="asset-column-head">
+                <h3>Devices</h3>
+                <span>registered assets</span>
+              </div>
+              <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
             </div>
           </div>
         </section>
@@ -104,15 +113,44 @@
           <div id="resourceProfileList" class="stack"></div>
         </section>
 
-        <section class="panel explain-panel" aria-live="polite">
-          <div class="panel-head">
-            <h2>Explain Panel</h2>
-            <span>핵심 상태 설명</span>
-          </div>
-          <div id="explainPanel" class="explain-content">
-            <div class="empty">Device, KPI, Issue를 선택하면 센서 데이터와 상태 원인만 요약합니다.</div>
-          </div>
-        </section>
+        <aside class="side-rail" aria-label="read-only operator assistance">
+          <section class="panel explain-panel" aria-live="polite">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Explain</p>
+                <h2>Explain Panel</h2>
+              </div>
+              <span>핵심 상태 설명</span>
+            </div>
+            <div id="explainPanel" class="explain-content">
+              <div class="empty">Device, KPI, Issue를 선택하면 센서 데이터와 상태 원인만 요약합니다.</div>
+            </div>
+          </section>
+
+          <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Read-only Qwen</p>
+                <h2 id="operatorChatTitle">운영 보조 채팅</h2>
+              </div>
+              <span>관측 요약 전용</span>
+            </div>
+            <div class="chat-guardrail">
+              Qwen은 현재 dashboard 신호만 설명합니다. Kubernetes/MQTT/actuator 조치 실행이나 동적 오케스트레이션을 수행하지 않습니다.
+            </div>
+            <div id="chatTranscript" class="chat-transcript" aria-live="polite">
+              <div class="chat-empty">상태 원인, 점검 순서, KPI 의미를 질문하세요.</div>
+            </div>
+            <form id="operatorChatForm" class="chat-form">
+              <label for="operatorChatInput">운영 질문</label>
+              <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="예: degraded device를 먼저 어떻게 읽어야 하나요?"></textarea>
+              <div class="chat-actions">
+                <span id="chatStatus">read-only mode</span>
+                <button id="operatorChatSubmit" type="submit">Qwen에게 질문</button>
+              </div>
+            </form>
+          </section>
+        </aside>
 
         <section class="panel scenario">
           <div class="panel-head">
@@ -137,6 +175,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=service-resource-profiler-20260528"></script>
+    <script src="/static/dashboard.js?v=dashboard-polish-20260605"></script>
   </body>
 </html>

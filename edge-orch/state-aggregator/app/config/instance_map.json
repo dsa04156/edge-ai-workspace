@@ -10,5 +10,9 @@
   "192.168.0.4:9100": {
     "hostname": "etri-dev0002-raspi5",
     "node_type": "edge_light_device"
+  },
+  "192.168.0.6:9100": {
+    "hostname": "etri-dev0003-raspi5",
+    "node_type": "edge_light_device"
   }
 }

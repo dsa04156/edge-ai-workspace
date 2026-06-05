@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+
+import httpx
 from datetime import datetime, timezone
 from typing import Any
 
@@ -13,6 +15,8 @@ from .models import (
     DeviceState,
     NodeState,
     OperatorAssistantState,
+    OperatorChatRequest,
+    OperatorChatResponse,
     SummaryState,
     WorkflowEvent,
     WorkflowState,
@@ -110,13 +114,15 @@ class StateAggregatorService:
     async def refresh_nodes(self) -> list[NodeState]:
         # Dynamically discover nodes from K8s API
         new_map = await self.kube.get_node_map()
+        current_node_names = {mapping["hostname"] for mapping in new_map.values() if mapping.get("hostname")}
         if new_map:
             self.prometheus.instance_map = new_map
-            
+
         raw_nodes = await self.prometheus.collect_node_metrics()
         states = [normalize_node_state(item) for item in raw_nodes]
-        for state in states:
-            self.store.upsert_node_state(state)
+        if current_node_names:
+            states = [state for state in states if state.hostname in current_node_names]
+        self.store.replace_node_states(states)
         await self.refresh_service_resource_profiles()
         return states
 
@@ -314,6 +320,75 @@ class StateAggregatorService:
         if not actions:
             actions.append("현재 우선 점검 대상이 없으므로 dashboard KPI와 service demo group만 확인한다.")
         return actions[:10]
+
+    async def chat_with_operator_assistant(self, request: OperatorChatRequest) -> OperatorChatResponse:
+        assistant = await self.get_operator_assistant()
+        system_prompt = self._operator_chat_system_prompt(assistant)
+        payload = {
+            "model": self.settings.qwen_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": request.message},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 700,
+        }
+        endpoint = f"{self.settings.qwen_base_url.rstrip('/')}/chat/completions"
+        try:
+            async with httpx.AsyncClient(timeout=self.settings.qwen_timeout_seconds) as client:
+                response = await client.post(endpoint, json=payload)
+                response.raise_for_status()
+                data = response.json()
+        except httpx.HTTPError as exc:
+            logger.warning("Qwen operator chat request failed: %s", exc)
+            return OperatorChatResponse(
+                model=self.settings.qwen_model,
+                answer="로컬 Qwen 모델에 연결하지 못했습니다. 모델 서버(192.168.0.6:8000) 상태를 확인해 주세요.",
+                source_endpoints=assistant.source_endpoints,
+                guardrails=assistant.guardrails,
+                upstream_status="unavailable",
+            )
+
+        answer = self._extract_chat_answer(data)
+        return OperatorChatResponse(
+            model=self.settings.qwen_model,
+            answer=answer or "Qwen 응답이 비어 있습니다. 모델 서버 로그를 확인해 주세요.",
+            source_endpoints=assistant.source_endpoints,
+            guardrails=assistant.guardrails,
+        )
+
+    def _operator_chat_system_prompt(self, assistant: OperatorAssistantState) -> str:
+        focus_lines = [
+            f"- {item.get('name')}: {item.get('status')} / {item.get('reason')} / node={item.get('node_name')}"
+            for item in assistant.focus_devices[:6]
+        ]
+        actions = "\n".join(f"- {action}" for action in assistant.recommended_actions[:6])
+        focus = "\n".join(focus_lines) if focus_lines else "- 현재 우선 점검 device 없음"
+        return (
+            "You are a read-only Korean operator assistant for a KubeEdge mixed-device PoC dashboard. "
+            "Answer in Korean unless the user asks otherwise. Do not claim you can execute commands. "
+            "Do not suggest Kubernetes apply/delete/rollout, MQTT command publishing, actuator control, dynamic offloading, "
+            "or agent-assisted planning as actions. Only explain current dashboard signals and safe inspection order.\n\n"
+            f"Dashboard summary: {assistant.summary_ko}\n"
+            f"Focus devices:\n{focus}\n"
+            f"Recommended safe checks:\n{actions}\n"
+            f"Guardrails: {'; '.join(assistant.guardrails)}"
+        )
+
+    def _extract_chat_answer(self, payload: dict[str, Any]) -> str:
+        choices = payload.get("choices")
+        if not isinstance(choices, list) or not choices:
+            return ""
+        first = choices[0]
+        if not isinstance(first, dict):
+            return ""
+        message = first.get("message")
+        if isinstance(message, dict):
+            content = message.get("content")
+            if isinstance(content, str):
+                return content.strip()
+        text = first.get("text")
+        return text.strip() if isinstance(text, str) else ""
 
     def _normalize_device(
         self,

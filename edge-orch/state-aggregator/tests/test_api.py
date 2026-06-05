@@ -204,6 +204,169 @@ def test_service_start_schedules_operational_resource_profile_recorder(monkeypat
     assert "_record_resource_profiles_periodically" in created_tasks
 
 
+def test_refresh_nodes_replaces_snapshot_and_filters_unmapped_targets(monkeypatch, tmp_path):
+    now = datetime.now(timezone.utc)
+    aggregator = StateAggregatorService(Settings(data_dir=tmp_path))
+    aggregator.store.nodes = {
+        "deleted-node": NodeState(
+            hostname="deleted-node",
+            instance="192.168.0.99:9100",
+            node_type="edge_light_device",
+            collected_at=now,
+            raw_metrics={
+                "up": 1.0,
+                "cpu_utilization": 0.1,
+                "memory_usage_ratio": 0.2,
+                "load_average": 0.1,
+                "network_rx_rate": 1.0,
+                "network_tx_rate": 1.0,
+            },
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    async def fake_node_map():
+        return {
+            "192.168.0.6:9100": {"hostname": "etri-dev0003-raspi5", "node_type": "edge_light_device"},
+            "192.168.0.6": {"hostname": "etri-dev0003-raspi5", "node_type": "edge_light_device"},
+        }
+
+    async def fake_collect_node_metrics():
+        from app.models import NodeRawMetrics
+
+        return [
+            NodeRawMetrics(
+                instance="192.168.0.6:9100",
+                hostname="etri-dev0003-raspi5",
+                node_type="edge_light_device",
+                up=1.0,
+                cpu_utilization=0.1,
+                memory_usage_ratio=0.2,
+                load_average=0.1,
+                network_rx_rate=1.0,
+                network_tx_rate=1.0,
+                collected_at=now,
+            ),
+            NodeRawMetrics(
+                instance="192.168.0.99:9100",
+                hostname="192.168.0.99:9100",
+                up=0.0,
+                collected_at=now,
+            ),
+        ]
+
+    async def fake_refresh_profiles():
+        return []
+
+    monkeypatch.setattr(aggregator.kube, "get_node_map", fake_node_map)
+    monkeypatch.setattr(aggregator.prometheus, "collect_node_metrics", fake_collect_node_metrics)
+    monkeypatch.setattr(aggregator, "refresh_service_resource_profiles", fake_refresh_profiles)
+
+    states = asyncio.run(aggregator.refresh_nodes())
+
+    assert [state.hostname for state in states] == ["etri-dev0003-raspi5"]
+    assert [node.hostname for node in aggregator.get_nodes()] == ["etri-dev0003-raspi5"]
+
+
+def test_operator_chat_returns_safe_response_when_qwen_unavailable(monkeypatch):
+    import app.service as service_module
+
+    async def fake_operator_assistant():
+        from app.models import OperatorAssistantState
+
+        return OperatorAssistantState(
+            generated_at=datetime.now(timezone.utc),
+            summary_ko="등록 device 1개 중 live device 1개입니다.",
+            focus_devices=[],
+            recommended_actions=["dashboard KPI를 확인한다."],
+            guardrails=["read-only endpoint"],
+            source_endpoints=["/state/dashboard"],
+        )
+
+    class FailingQwenClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def post(self, *args, **kwargs):
+            raise service_module.httpx.ConnectError("qwen unavailable")
+
+    monkeypatch.setattr(service, "get_operator_assistant", fake_operator_assistant)
+    monkeypatch.setattr(service_module.httpx, "AsyncClient", FailingQwenClient)
+
+    with TestClient(app) as client:
+        response = client.post("/state/operator-chat", json={"message": "현재 상태 요약해줘"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["mode"] == "read_only"
+    assert payload["model"] == "qwen3.6-35b"
+    assert payload["upstream_status"] == "unavailable"
+    assert "연결하지 못했습니다" in payload["answer"]
+
+
+def test_operator_chat_posts_openai_compatible_payload(monkeypatch):
+    import app.service as service_module
+
+    calls = []
+
+    async def fake_operator_assistant():
+        from app.models import OperatorAssistantState
+
+        return OperatorAssistantState(
+            generated_at=datetime.now(timezone.utc),
+            summary_ko="Sense HAT device 6개가 fresh입니다.",
+            focus_devices=[{"name": "env-sensehat-humidity-01", "status": "available", "reason": "fresh", "node_name": "etri-dev0003-raspi5"}],
+            recommended_actions=["dashboard KPI를 확인한다."],
+            guardrails=["read-only endpoint"],
+            source_endpoints=["/state/dashboard", "/state/devices"],
+        )
+
+    class FakeQwenResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"choices": [{"message": {"content": "현재 Sense HAT 데이터는 fresh입니다."}}]}
+
+    class FakeQwenClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def post(self, url, json):
+            calls.append({"url": url, "json": json})
+            return FakeQwenResponse()
+
+    monkeypatch.setattr(service, "get_operator_assistant", fake_operator_assistant)
+    monkeypatch.setattr(service_module.httpx, "AsyncClient", FakeQwenClient)
+
+    with TestClient(app) as client:
+        response = client.post("/state/operator-chat", json={"message": "Sense HAT 상태 알려줘"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["answer"] == "현재 Sense HAT 데이터는 fresh입니다."
+    assert payload["source_endpoints"] == ["/state/dashboard", "/state/devices"]
+    assert calls[0]["url"] == "http://192.168.0.6:8000/v1/chat/completions"
+    assert calls[0]["json"]["model"] == "qwen3.6-35b"
+    assert calls[0]["json"]["messages"][0]["role"] == "system"
+    assert "read-only" in calls[0]["json"]["messages"][0]["content"]
+
+
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):
     service.store.nodes = {
         "etri-dev0001-jetorn": NodeState(

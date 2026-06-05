@@ -14,6 +14,8 @@ from .models import (
     DashboardState,
     DeviceState,
     OperatorAssistantState,
+    OperatorChatRequest,
+    OperatorChatResponse,
     SummaryState,
     TelemetryPoint,
     WorkflowEvent,
@@ -94,6 +96,11 @@ async def get_dashboard() -> DashboardState:
 @app.get("/state/operator-assistant", response_model=OperatorAssistantState)
 async def get_operator_assistant() -> OperatorAssistantState:
     return await service.get_operator_assistant()
+
+
+@app.post("/state/operator-chat", response_model=OperatorChatResponse)
+async def post_operator_chat(request: OperatorChatRequest) -> OperatorChatResponse:
+    return await service.chat_with_operator_assistant(request)
 
 
 @app.get("/state/node/{hostname}")

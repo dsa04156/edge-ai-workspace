@@ -4,6 +4,10 @@ const state = {
   selectedDeviceName: null,
   telemetryHistory: {},
   alerts: [],
+  chat: {
+    loading: false,
+    messages: [],
+  },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -57,6 +61,25 @@ function displayValue(value, fallback = "데이터 없음") {
   return String(value);
 }
 
+function isRawInstance(value) {
+  const safe = text(value, "");
+  return /^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(safe) || /^[\w.-]+:\d+$/.test(safe);
+}
+
+function cleanNodeLabel(value, fallback = "node pending") {
+  const safe = text(value, fallback).trim();
+  if (isRawInstance(safe)) return fallback;
+  return safe;
+}
+
+function nodeDisplayName(node, index) {
+  const candidates = [node?.hostname, node?.name, node?.node_name, node?.label]
+    .map((value) => text(value, "").trim())
+    .filter(Boolean);
+  const readableLabel = candidates.find((value) => !isRawInstance(value));
+  return cleanNodeLabel(readableLabel, `Unmapped node ${index + 1}`);
+}
+
 function deviceStatus(device) {
   return device?.overall_status || device?.status || "unknown";
 }
@@ -69,7 +92,7 @@ function explainDeviceRules(device) {
   const rules = [];
   const status = deviceStatus(device);
   if (status === "available" || status === "healthy") {
-    rules.push({ id: "Telemetry OK", title: "latest telemetry sample is fresh", text: "node와 mapper 선행 조건이 정상이고 InfluxDB latest telemetry가 freshness 기준을 만족해 available로 판단됩니다." });
+    rules.push({ id: "Sensor OK", title: "latest telemetry sample is fresh", text: "node와 mapper 선행 조건이 정상이고 InfluxDB latest telemetry가 freshness 기준을 만족해 available로 판단됩니다." });
   }
   if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
     rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "InfluxDB latest telemetry가 없거나 오래되어 degraded로 판단됩니다. publisher/MQTT/mapper/DB 적재 경로를 확인합니다." });
@@ -144,7 +167,7 @@ function issueExplanation(alert) {
   const messages = [];
   if (device.node_ready === false) messages.push("할당 node가 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 먼저 확인합니다.");
   if (device.mapper_running === false) messages.push("mqttvirtual mapper가 Running인지, 해당 device가 올바른 node에 배치됐는지 확인합니다.");
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터 freshness가 낮습니다. availability 판단과 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다.");
+  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터가 stale입니다. availability 판단과 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다.");
   if (!messages.length) messages.push(deviceReason(device));
   return messages;
 }
@@ -279,7 +302,7 @@ function showDeviceExplanation(device) {
     ${renderExplainFields([
       ["status", deviceStatus(device)],
       ["reason", deviceReason(device)],
-      ["node", device.node_name],
+      ["node", cleanNodeLabel(device.node_name, "unassigned")],
       ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
       ["last seen", age(device.telemetry_age_seconds)],
       ["mapper", device.mapper_running ? "running" : "not running"],
@@ -344,6 +367,87 @@ async function loadDashboard() {
   render();
 }
 
+function renderChatTranscript() {
+  const transcript = $("chatTranscript");
+  if (!transcript) return;
+  if (!state.chat.messages.length) {
+    transcript.innerHTML = `<div class="chat-empty">상태 원인, 점검 순서, KPI 의미를 질문하세요.</div>`;
+    return;
+  }
+  transcript.innerHTML = state.chat.messages
+    .map((message) => {
+      const meta = message.meta || [];
+      const metaHtml = meta.length ? `<div class="chat-meta">${meta.map((item) => `<span class="pill">${escapeHtml(item)}</span>`).join("")}</div>` : "";
+      return `
+        <article class="chat-message ${escapeHtml(message.role)} ${message.loading ? "loading" : ""}">
+          <span>${escapeHtml(message.label)}</span>
+          <p>${escapeHtml(message.text)}</p>
+          ${metaHtml}
+        </article>
+      `;
+    })
+    .join("");
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+function setChatLoading(loading) {
+  state.chat.loading = loading;
+  const submit = $("operatorChatSubmit");
+  const input = $("operatorChatInput");
+  if (submit) submit.disabled = loading;
+  if (input) input.disabled = loading;
+  setText("chatStatus", loading ? "Qwen 응답 대기 중" : "read-only mode");
+}
+
+function chatResponseMeta(payload) {
+  const meta = [text(payload.assistant_name, "qwen operator"), `mode=${text(payload.mode, "read_only")}`, `model=${text(payload.model, "unknown")}`, `upstream=${text(payload.upstream_status, "unknown")}`];
+  if (Array.isArray(payload.source_endpoints) && payload.source_endpoints.length) meta.push(`${payload.source_endpoints.length} source endpoints`);
+  if (Array.isArray(payload.guardrails) && payload.guardrails.length) meta.push(`${payload.guardrails.length} guardrails`);
+  return meta;
+}
+
+async function submitOperatorChat(message) {
+  state.chat.messages.push({ role: "user", label: "Operator", text: message });
+  const loadingMessage = { role: "assistant", label: "Qwen read-only", text: "현재 dashboard 상태를 기준으로 답변을 생성 중입니다.", loading: true };
+  state.chat.messages.push(loadingMessage);
+  renderChatTranscript();
+  setChatLoading(true);
+  try {
+    const response = await fetch("/state/operator-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = {};
+    }
+    if (!response.ok) {
+      const detail = payload.detail || `operator chat api failed: ${response.status}`;
+      throw new Error(Array.isArray(detail) ? detail.map((item) => item.msg || item.type || "request error").join(", ") : detail);
+    }
+    Object.assign(loadingMessage, {
+      role: "assistant",
+      label: "Qwen read-only",
+      text: text(payload.answer, "응답이 비어 있습니다."),
+      loading: false,
+      meta: chatResponseMeta(payload),
+    });
+  } catch (error) {
+    Object.assign(loadingMessage, {
+      role: "error",
+      label: "Chat error",
+      text: error.message || "Qwen chat 요청에 실패했습니다.",
+      loading: false,
+    });
+  } finally {
+    setChatLoading(false);
+    renderChatTranscript();
+  }
+}
+
 function render() {
   const data = state.data;
   const kpis = data.kpis || {};
@@ -384,16 +488,18 @@ function render() {
 function renderNodes(nodes) {
   $("nodeList").innerHTML = nodes.length
     ? nodes
-        .map((node) => {
+        .map((node, index) => {
           const cpu = Math.round((node.raw_metrics?.cpu_utilization || 0) * 100);
           const mem = Math.round((node.raw_metrics?.memory_usage_ratio || 0) * 100);
           const gpuValue = node.raw_metrics?.gpu_utilization;
           const gpu = gpuValue === null || gpuValue === undefined ? null : Math.round(gpuValue * 100);
           const gpuMeta = gpu === null ? "" : `<span>gpu ${gpu}%</span>`;
+          const displayName = nodeDisplayName(node, index);
+          const mappingMeta = isRawInstance(node.hostname) ? `<span>hostname mapping pending</span>` : "";
           return `
             <article class="item">
               <div class="item-title">
-                <strong>${escapeHtml(node.hostname)}</strong>
+                <strong class="node-name">${escapeHtml(displayName)}</strong>
                 ${statusPill(node.node_health)}
               </div>
               <div class="meta">
@@ -401,6 +507,7 @@ function renderNodes(nodes) {
                 <span>cpu ${cpu}%</span>
                 <span>mem ${mem}%</span>
                 ${gpuMeta}
+                ${mappingMeta}
               </div>
             </article>
           `;
@@ -419,7 +526,7 @@ function renderDevices(devices) {
               ${statusPill(device.overall_status || device.status)}
             </div>
             <div class="meta">
-              <span>node: ${escapeHtml(text(device.node_name, "unassigned"))}</span>
+              <span>node: ${escapeHtml(cleanNodeLabel(device.node_name, "unassigned"))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
               <span>mapper: ${device.mapper_running ? "running" : "not running"}</span>
@@ -471,6 +578,7 @@ function serviceBindingReason(device) {
 function renderRelations(devices, kpis) {
   const rows = devices.map((device) => {
     const telemetry = device.telemetry_last_seen_at || device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "DB timestamp pending";
+    const nodeName = cleanNodeLabel(device.node_name, "unassigned");
     return `
       <article class="relation">
         <div class="relation-node">
@@ -481,7 +589,7 @@ function renderRelations(devices, kpis) {
         <div class="arrow">-&gt;</div>
         <div class="relation-node">
           <span>Node</span>
-          <strong>${escapeHtml(text(device.node_name, "unassigned"))}</strong>
+          <strong>${escapeHtml(nodeName)}</strong>
           <small>node_ready=${boolText(device.node_ready)}</small>
         </div>
         <div class="arrow">-&gt;</div>
@@ -505,13 +613,14 @@ function renderRelations(devices, kpis) {
 
 function renderAlerts(data) {
   const alerts = [];
-  for (const node of data.nodes || []) {
+  for (const [index, node] of (data.nodes || []).entries()) {
     if (node.node_health !== "healthy") {
+      const displayName = nodeDisplayName(node, index);
       alerts.push({
         kind: "node",
         level: node.node_health === "unavailable" ? "high" : "medium",
-        title: `${node.hostname}: non-healthy node`,
-        text: `${node.hostname}: non-healthy node (${node.node_health})`,
+        title: `${displayName}: non-healthy node`,
+        text: `${displayName}: non-healthy node (${node.node_health})`,
         node,
       });
     }
@@ -546,7 +655,7 @@ function renderScenario(devices, kpis) {
   const unavailable = devices.filter((device) => device.status === "unavailable").length;
   const degraded = devices.filter((device) => device.status === "degraded").length;
   const byNode = devices.reduce((acc, device) => {
-    const key = device.node_name || "unassigned";
+    const key = cleanNodeLabel(device.node_name, "unassigned");
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -624,6 +733,17 @@ if (typeof document !== "undefined" && $("refreshButton")) {
   });
 }
 
+if (typeof document !== "undefined" && $("operatorChatForm")) {
+  $("operatorChatForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = $("operatorChatInput");
+    const message = input?.value.trim();
+    if (!message || state.chat.loading) return;
+    input.value = "";
+    submitOperatorChat(message);
+  });
+}
+
 function scheduleDashboardRefresh() {
   loadDashboard()
     .catch((error) => {
@@ -646,5 +766,10 @@ if (typeof module !== "undefined") {
     issueExplanation,
     deviceStatus,
     deviceReason,
+    cleanNodeLabel,
+    nodeDisplayName,
+    chatResponseMeta,
+    submitOperatorChat,
+    state,
   };
 }

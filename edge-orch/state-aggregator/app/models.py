@@ -190,6 +190,20 @@ class OperatorAssistantState(BaseModel):
     source_endpoints: list[str] = Field(default_factory=list)
 
 
+class OperatorChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=1200)
+
+
+class OperatorChatResponse(BaseModel):
+    assistant_name: str = "kagenti-qwen-operator-chat"
+    mode: Literal["read_only"] = "read_only"
+    model: str
+    answer: str
+    source_endpoints: list[str] = Field(default_factory=list)
+    guardrails: list[str] = Field(default_factory=list)
+    upstream_status: str = "ok"
+
+
 class CostModelState(BaseModel):
     node_states: list[NodeState]
     stage_cost_stats: list[StageCostStats] = Field(default_factory=list)

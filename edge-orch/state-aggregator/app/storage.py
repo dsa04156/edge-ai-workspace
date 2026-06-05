@@ -63,6 +63,12 @@ class StateStore:
             self.nodes[node_state.hostname] = node_state
             self._append_jsonl(self.node_log, node_state.model_dump(mode="json"))
 
+    def replace_node_states(self, node_states: list[NodeState]) -> None:
+        with self._lock:
+            self.nodes = {node_state.hostname: node_state for node_state in node_states}
+            for node_state in node_states:
+                self._append_jsonl(self.node_log, node_state.model_dump(mode="json"))
+
     def record_workflow_event(self, event: WorkflowEvent, workflow_state: WorkflowState) -> None:
         with self._lock:
             self.workflows[workflow_state.workflow_id] = workflow_state

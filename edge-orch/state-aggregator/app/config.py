@@ -67,6 +67,15 @@ class Settings(BaseModel):
     resource_profile_record_interval_seconds: int = Field(
         default_factory=lambda: int(os.getenv("RESOURCE_PROFILE_RECORD_INTERVAL_SECONDS", "600"))
     )
+    qwen_base_url: str = Field(
+        default_factory=lambda: os.getenv("QWEN_BASE_URL", "http://192.168.0.6:8000/v1")
+    )
+    qwen_model: str = Field(
+        default_factory=lambda: os.getenv("QWEN_MODEL", "qwen3.6-35b")
+    )
+    qwen_timeout_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "20"))
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:
