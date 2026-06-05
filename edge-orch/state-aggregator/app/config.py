@@ -68,7 +68,7 @@ class Settings(BaseModel):
         default_factory=lambda: int(os.getenv("RESOURCE_PROFILE_RECORD_INTERVAL_SECONDS", "600"))
     )
     qwen_base_url: str = Field(
-        default_factory=lambda: os.getenv("QWEN_BASE_URL", "http://192.168.0.6:8000/v1")
+        default_factory=lambda: os.getenv("QWEN_BASE_URL", "http://192.168.0.5:8080/v1")
     )
     qwen_model: str = Field(
         default_factory=lambda: os.getenv("QWEN_MODEL", "qwen3.6-35b")

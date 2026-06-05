@@ -343,7 +343,7 @@ class StateAggregatorService:
             logger.warning("Qwen operator chat request failed: %s", exc)
             return OperatorChatResponse(
                 model=self.settings.qwen_model,
-                answer="로컬 Qwen 모델에 연결하지 못했습니다. 모델 서버(192.168.0.6:8000) 상태를 확인해 주세요.",
+                answer="로컬 Qwen 모델에 연결하지 못했습니다. 모델 서버(192.168.0.5:8080) 상태를 확인해 주세요.",
                 source_endpoints=assistant.source_endpoints,
                 guardrails=assistant.guardrails,
                 upstream_status="unavailable",

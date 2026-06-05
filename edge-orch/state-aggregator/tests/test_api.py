@@ -361,7 +361,7 @@ def test_operator_chat_posts_openai_compatible_payload(monkeypatch):
     payload = response.json()
     assert payload["answer"] == "현재 Sense HAT 데이터는 fresh입니다."
     assert payload["source_endpoints"] == ["/state/dashboard", "/state/devices"]
-    assert calls[0]["url"] == "http://192.168.0.6:8000/v1/chat/completions"
+    assert calls[0]["url"] == "http://192.168.0.5:8080/v1/chat/completions"
     assert calls[0]["json"]["model"] == "qwen3.6-35b"
     assert calls[0]["json"]["messages"][0]["role"] == "system"
     assert "read-only" in calls[0]["json"]["messages"][0]["content"]
