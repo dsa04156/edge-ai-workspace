@@ -58,7 +58,7 @@
         <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="서비스 자원 요구량 프로파일 설명 보기">
           <span class="metric-label">Service Resource Profiles</span>
           <strong id="resourceProfileCount">0</strong>
-          <span id="placementFitCaption">0 pods · 0 needs spec</span>
+          <span id="placementFitCaption">0 pods · 0 missing spec</span>
         </article>
       </section>
 
@@ -82,7 +82,10 @@
             <div class="asset-column">
               <div class="asset-column-head">
                 <h3>Devices</h3>
-                <span>registered assets</span>
+                <div class="device-filter-bar">
+                  <span id="deviceFilterLabel">registered assets</span>
+                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>Clear filter</button>
+                </div>
               </div>
               <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
             </div>
@@ -91,10 +94,10 @@
 
         <section class="panel relations">
           <div class="panel-head">
-            <h2>연결 관계</h2>
-            <span>Device -> Edge Node -> Sensor Data -> Service Demo</span>
+            <h2>Pod Placement / Configuration</h2>
+            <span>observed pods · declared/current resources · read-only</span>
           </div>
-          <div id="relationList" class="relation-list"></div>
+          <div id="placementList" class="placement-list"></div>
         </section>
 
         <section class="panel operations">

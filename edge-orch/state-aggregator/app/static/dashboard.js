@@ -2,6 +2,8 @@ const state = {
   data: null,
   refreshMs: 5000,
   selectedDeviceName: null,
+  selectedNodeName: null,
+  selectedNodeFilterValues: [],
   telemetryHistory: {},
   alerts: [],
   chat: {
@@ -80,12 +82,64 @@ function nodeDisplayName(node, index) {
   return cleanNodeLabel(readableLabel, `Unmapped node ${index + 1}`);
 }
 
+function nodeFilterValues(node, index) {
+  const values = [nodeDisplayName(node, index), node?.hostname, node?.name, node?.node_name, node?.label]
+    .map((value) => text(value, "").trim())
+    .filter(Boolean)
+    .flatMap((value) => [value, cleanNodeLabel(value, value)]);
+  return [...new Set(values)];
+}
+
 function deviceStatus(device) {
   return device?.overall_status || device?.status || "unknown";
 }
 
 function deviceReason(device) {
   return device?.reason || device?.status_reason || "데이터 없음";
+}
+
+function isOperationalDevice(device) {
+  const status = deviceStatus(device);
+  return status === "available" || status === "healthy";
+}
+
+function sortDevicesStatusFirst(devices = []) {
+  return [...devices].sort((left, right) => {
+    const statusDelta = Number(isOperationalDevice(right)) - Number(isOperationalDevice(left));
+    if (statusDelta !== 0) return statusDelta;
+    return text(left?.name, "").localeCompare(text(right?.name, ""));
+  });
+}
+
+function deviceNodeLabel(device) {
+  return cleanNodeLabel(device?.node_name || device?.nodeName, "unassigned");
+}
+
+function filteredDevices(devices = []) {
+  if (!state.selectedNodeName) return sortDevicesStatusFirst(devices);
+  return sortDevicesStatusFirst(devices.filter((device) => {
+    const labels = [text(device?.node_name, "").trim(), text(device?.nodeName, "").trim(), deviceNodeLabel(device)].filter(Boolean);
+    return labels.some((label) => state.selectedNodeFilterValues.includes(label));
+  }));
+}
+
+function renderDeviceFilterSummary(totalCount, visibleCount) {
+  const label = $("deviceFilterLabel");
+  const clear = $("clearNodeFilter");
+  if (label) {
+    label.textContent = state.selectedNodeName
+      ? `${visibleCount}/${totalCount} on ${state.selectedNodeName}`
+      : "registered assets";
+  }
+  if (clear) clear.hidden = !state.selectedNodeName;
+}
+
+function refreshSelectedNodeFilterValues(nodes = []) {
+  if (!state.selectedNodeName) return;
+  const selected = nodes
+    .map((node, index) => ({ node, index, displayName: nodeDisplayName(node, index) }))
+    .find((item) => item.displayName === state.selectedNodeName);
+  if (selected) state.selectedNodeFilterValues = nodeFilterValues(selected.node, selected.index);
 }
 
 function explainDeviceRules(device) {
@@ -302,7 +356,7 @@ function showDeviceExplanation(device) {
     ${renderExplainFields([
       ["status", deviceStatus(device)],
       ["reason", deviceReason(device)],
-      ["node", cleanNodeLabel(device.node_name, "unassigned")],
+      ["node", deviceNodeLabel(device)],
       ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
       ["last seen", age(device.telemetry_age_seconds)],
       ["mapper", device.mapper_running ? "running" : "not running"],
@@ -473,19 +527,20 @@ function render() {
   setText("serviceBindingRatio", `${pct(kpis.device_service_binding_ratio)} bound`);
   setText("focusCount", text(kpis.operator_focus_count, 0));
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
-  setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)} pods · ${text(kpis.service_resource_partially_declared_profile_count, 0)} needs spec`);
+  setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)} pods · ${text(kpis.service_resource_partially_declared_profile_count, 0)} missing spec`);
   setText("assetCount", `${(data.nodes || []).length + devices.length} assets`);
   setText("riskCount", `${unavailableDevices} unavailable · ${degradedDevices} degraded`);
 
   renderNodes(data.nodes || []);
   renderDevices(devices);
-  renderRelations(devices, kpis);
+  renderPodPlacement(data.resource_profiles || {}, kpis);
   renderAlerts(data);
   renderResourceProfiles(data.resource_profiles || {}, kpis);
   renderScenario(devices, kpis);
 }
 
 function renderNodes(nodes) {
+  refreshSelectedNodeFilterValues(nodes);
   $("nodeList").innerHTML = nodes.length
     ? nodes
         .map((node, index) => {
@@ -497,7 +552,7 @@ function renderNodes(nodes) {
           const displayName = nodeDisplayName(node, index);
           const mappingMeta = isRawInstance(node.hostname) ? `<span>hostname mapping pending</span>` : "";
           return `
-            <article class="item">
+            <article class="item node-card ${state.selectedNodeName === displayName ? "selected" : ""}" data-node-filter="${escapeHtml(displayName)}" data-node-index="${index}" tabindex="0" role="button" aria-label="${escapeHtml(displayName)} node device filter">
               <div class="item-title">
                 <strong class="node-name">${escapeHtml(displayName)}</strong>
                 ${statusPill(node.node_health)}
@@ -517,8 +572,10 @@ function renderNodes(nodes) {
 }
 
 function renderDevices(devices) {
-  $("deviceList").innerHTML = devices.length
-    ? devices
+  const visibleDevices = filteredDevices(devices);
+  renderDeviceFilterSummary(devices.length, visibleDevices.length);
+  $("deviceList").innerHTML = visibleDevices.length
+    ? visibleDevices
         .map((device) => `
           <article class="item device-row explainable ${state.selectedDeviceName === device.name ? "selected" : ""}" data-explain-type="device" data-device-name="${escapeHtml(device.name)}" tabindex="0" role="button" aria-label="${escapeHtml(device.name)} 설명 보기">
             <div class="item-title">
@@ -526,7 +583,7 @@ function renderDevices(devices) {
               ${statusPill(device.overall_status || device.status)}
             </div>
             <div class="meta">
-              <span>node: ${escapeHtml(cleanNodeLabel(device.node_name, "unassigned"))}</span>
+              <span>node: ${escapeHtml(deviceNodeLabel(device))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
               <span>mapper: ${device.mapper_running ? "running" : "not running"}</span>
@@ -536,7 +593,9 @@ function renderDevices(devices) {
           </article>
         `)
         .join("")
-    : `<div class="empty">No KubeEdge devices found</div>`;
+    : state.selectedNodeName
+      ? `<div class="empty">${escapeHtml(state.selectedNodeName)}에 연결된 device가 없습니다.</div>`
+      : `<div class="empty">No KubeEdge devices found</div>`;
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -575,40 +634,85 @@ function serviceBindingReason(device) {
   return text(device.service_binding_reason, device.service_connected ? "binding detail pending" : "not bound");
 }
 
-function renderRelations(devices, kpis) {
-  const rows = devices.map((device) => {
-    const telemetry = device.telemetry_last_seen_at || device.telemetry_last_seen ? `last seen ${age(device.telemetry_age_seconds)}` : "DB timestamp pending";
-    const nodeName = cleanNodeLabel(device.node_name, "unassigned");
+function formatResourceValue(value, unit) {
+  const numeric = numericValue(value);
+  if (numeric === null) return "missing";
+  return `${numeric} ${unit}`;
+}
+
+function missingResourceTotal(profile) {
+  const missing = profile.resource_requirements?.missing || {};
+  return [
+    missing.cpu_request_containers,
+    missing.memory_request_containers,
+    missing.cpu_limit_containers,
+    missing.memory_limit_containers,
+  ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+}
+
+function renderPodsByNode(profile) {
+  const entries = Object.entries(profile.pods_by_node || {});
+  const rows = entries.length ? entries : (profile.nodes || []).map((node) => [node, "observed"]);
+  return rows.length
+    ? rows
+        .map(([node, count]) => `<span>${escapeHtml(cleanNodeLabel(node, "unknown node"))}: ${count === "observed" ? "pods observed" : `${escapeHtml(text(count))} pods observed`}</span>`)
+        .join("")
+    : `<span>node observation pending</span>`;
+}
+
+function renderContainerRows(profile) {
+  const containers = profile.containers || [];
+  if (!containers.length) return `<li class="empty">Container-level observed config pending</li>`;
+  return containers
+    .slice(0, 6)
+    .map((container) => {
+      const requests = container.requests || {};
+      const limits = container.limits || {};
+      const usage = container.current_usage || {};
+      return `
+        <li>
+          <strong>${escapeHtml(text(container.pod, "pod pending"))}/${escapeHtml(text(container.container, "container"))}</strong>
+          <span>node=${escapeHtml(cleanNodeLabel(container.node, "unknown"))} · declared req ${escapeHtml(formatResourceValue(requests.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(requests.memory_mib, "MiB"))} · declared limit ${escapeHtml(formatResourceValue(limits.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(limits.memory_mib, "MiB"))} · current ${escapeHtml(formatResourceValue(usage.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(usage.memory_working_set_mib, "MiB"))}</span>
+        </li>
+      `;
+    })
+    .join("");
+}
+
+function renderPodPlacement(resourceState, kpis) {
+  const profiles = resourceState.service_resource_profiles || [];
+  const summary = `<div class="relation-summary">read-only observed pods=${text(kpis.service_resource_profile_pod_count, 0)} · current=${text(kpis.service_resource_current_cpu_usage_cores, 0)} core / ${text(kpis.service_resource_current_memory_working_set_mib, 0)} MiB · declared requests=${text(kpis.service_resource_request_cpu_cores, 0)} core / ${text(kpis.service_resource_request_memory_mib, 0)} MiB · missing profiles=${text(kpis.service_resource_partially_declared_profile_count, 0)}</div>`;
+  const rows = profiles.slice(0, 8).map((profile) => {
+    const req = profile.resource_requirements?.requests || {};
+    const limits = profile.resource_requirements?.limits || {};
+    const usage = profile.current_usage || {};
+    const usageProfile = profile.usage_profile || {};
+    const missingTotal = missingResourceTotal(profile);
+    const declaration = missingTotal ? `missing ${missingTotal}` : "declared";
     return `
-      <article class="relation">
-        <div class="relation-node">
-          <span>Device</span>
-          <strong>${escapeHtml(device.name)}</strong>
-          <small>${escapeHtml(text(device.device_type))}</small>
+      <details class="pod-placement-card" open>
+        <summary>
+          <span>
+            <strong>${escapeHtml(profile.namespace)}/${escapeHtml(profile.service)}</strong>
+            <small>${escapeHtml(text(profile.pod_count, 0))} pods · ${escapeHtml(text(profile.container_count, 0))} containers · ${escapeHtml(declaration)}</small>
+          </span>
+          ${statusPill(missingTotal ? "missing" : "declared")}
+        </summary>
+        <div class="placement-node-map" aria-label="observed pod placement by node">
+          ${renderPodsByNode(profile)}
         </div>
-        <div class="arrow">-&gt;</div>
-        <div class="relation-node">
-          <span>Node</span>
-          <strong>${escapeHtml(nodeName)}</strong>
-          <small>node_ready=${boolText(device.node_ready)}</small>
-        </div>
-        <div class="arrow">-&gt;</div>
-        <div class="relation-node">
-          <span>Sensor Data</span>
-          <strong>${escapeHtml(telemetry)}</strong>
-          <small>${escapeHtml(text(device.telemetry_property, "property pending"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))} · sensor_data_fresh=${boolText(device.telemetry_fresh)}</small>
-        </div>
-        <div class="arrow">-&gt;</div>
-        <div class="relation-node">
-          <span>Service Demo</span>
-          <strong>${escapeHtml(serviceGroup(device))}</strong>
-          <small>${escapeHtml(serviceBindingReason(device))}</small>
-        </div>
-      </article>
+        <dl class="placement-config-grid">
+          <div><dt>declared requests</dt><dd>${escapeHtml(formatResourceValue(req.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(req.memory_mib, "MiB"))}</dd></div>
+          <div><dt>declared limits</dt><dd>${escapeHtml(formatResourceValue(limits.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(limits.memory_mib, "MiB"))} · gpu ${escapeHtml(formatResourceValue(limits.gpu_units, "units"))}</dd></div>
+          <div><dt>current usage</dt><dd>${escapeHtml(formatResourceValue(usage.cpu_cores, "core"))} / ${escapeHtml(formatResourceValue(usage.memory_working_set_mib, "MiB"))} · coverage ${pct(usage.usage_coverage_ratio)}</dd></div>
+          <div><dt>observed profile</dt><dd>window ${escapeHtml(text(usageProfile.window, "current"))} · p95 ${escapeHtml(formatResourceValue(usageProfile.p95_cpu_usage_cores, "core"))} / ${escapeHtml(formatResourceValue(usageProfile.p95_memory_working_set_mib, "MiB"))}</dd></div>
+        </dl>
+        <ul class="compact-list placement-containers">${renderContainerRows(profile)}</ul>
+        <p class="placement-note">${escapeHtml(text(profile.interpretation, "observed/current/declared resource config only"))}</p>
+      </details>
     `;
   });
-  const summary = `<div class="relation-summary">service_bound_device_count=${text(kpis.service_bound_device_count, 0)} · device_service_binding_ratio=${pct(kpis.device_service_binding_ratio)}</div>`;
-  $("relationList").innerHTML = rows.length ? summary + rows.join("") : `<div class="empty">No device relationships yet</div>`;
+  $("placementList").innerHTML = profiles.length ? summary + rows.join("") : `<div class="empty">Running service pod placement/configuration pending</div>`;
 }
 
 function renderAlerts(data) {
@@ -655,7 +759,7 @@ function renderScenario(devices, kpis) {
   const unavailable = devices.filter((device) => device.status === "unavailable").length;
   const degraded = devices.filter((device) => device.status === "degraded").length;
   const byNode = devices.reduce((acc, device) => {
-    const key = cleanNodeLabel(device.node_name, "unassigned");
+    const key = deviceNodeLabel(device);
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -664,7 +768,7 @@ function renderScenario(devices, kpis) {
   setText("interventionKpi", `${kpis.operator_focus_count || 0} focus`);
   setText("handlingKpi", unavailable ? `${unavailable} risk` : degraded ? `${degraded} watch` : "normal");
   $("deviceStatusList").innerHTML = devices.length
-    ? devices
+    ? sortDevicesStatusFirst(devices)
         .slice(0, 8)
         .map((device) => `
           <article class="item">
@@ -686,10 +790,27 @@ function renderScenario(devices, kpis) {
 }
 
 
+function applyNodeDeviceFilter(nodeName, nodeIndex = null) {
+  const numericIndex = Number(nodeIndex);
+  const node = Number.isInteger(numericIndex) ? (state.data?.nodes || [])[numericIndex] : null;
+  state.selectedNodeName = nodeName || null;
+  state.selectedNodeFilterValues = nodeName && node ? nodeFilterValues(node, numericIndex) : [];
+  renderNodes(state.data?.nodes || []);
+  renderDevices(state.data?.devices || []);
+}
+
+
 function markSelectedExplain(target) {
   if (typeof document === "undefined" || !target) return;
   document.querySelectorAll(".explainable.selected").forEach((item) => item.classList.remove("selected"));
   target.classList.add("selected");
+}
+
+function handleNodeFilterSelection(target) {
+  const nodeTarget = target.closest?.("[data-node-filter]");
+  if (!nodeTarget) return false;
+  applyNodeDeviceFilter(nodeTarget.dataset.nodeFilter, nodeTarget.dataset.nodeIndex);
+  return true;
 }
 
 function handleExplainSelection(target) {
@@ -715,14 +836,22 @@ function handleExplainSelection(target) {
 }
 
 if (typeof document !== "undefined") {
-  document.addEventListener("click", (event) => handleExplainSelection(event.target));
+  document.addEventListener("click", (event) => {
+    if (handleNodeFilterSelection(event.target)) return;
+    handleExplainSelection(event.target);
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
-    const target = event.target?.closest?.("[data-explain-type]");
+    const target = event.target?.closest?.("[data-explain-type], [data-node-filter]");
     if (!target) return;
     event.preventDefault();
+    if (handleNodeFilterSelection(target)) return;
     handleExplainSelection(target);
   });
+}
+
+if (typeof document !== "undefined" && $("clearNodeFilter")) {
+  $("clearNodeFilter").addEventListener("click", () => applyNodeDeviceFilter(null));
 }
 
 if (typeof document !== "undefined" && $("refreshButton")) {
@@ -766,6 +895,11 @@ if (typeof module !== "undefined") {
     issueExplanation,
     deviceStatus,
     deviceReason,
+    isOperationalDevice,
+    sortDevicesStatusFirst,
+    filteredDevices,
+    nodeFilterValues,
+    missingResourceTotal,
     cleanNodeLabel,
     nodeDisplayName,
     chatResponseMeta,
