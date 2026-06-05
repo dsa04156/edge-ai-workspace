@@ -4,8 +4,8 @@ const state = {
   selectedDeviceName: null,
   selectedNodeName: null,
   selectedNodeFilterValues: [],
+  selectedTopologyService: null,
   telemetryHistory: {},
-  alerts: [],
   chat: {
     loading: false,
     messages: [],
@@ -517,15 +517,10 @@ function render() {
   setText("nodeRatio", `${pct(kpis.node_online_ratio)} online`);
   setText("deviceCount", text(kpis.registered_device_count, 0));
   setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} available · ${text(kpis.live_device_count, 0)} live`);
-  setText("telemetryRatio", pct(kpis.device_telemetry_ratio));
-  setText("telemetryCaption", `${telemetryEnabled} telemetry-enabled devices`);
   setText("telemetryFreshnessRatio", pct(kpis.telemetry_freshness_ratio));
   setText("telemetryFreshnessCaption", `${freshTelemetry} fresh telemetry devices`);
   setText("sensorDataFreshnessRatio", pct(kpis.sensor_data_freshness_ratio ?? kpis.telemetry_freshness_ratio));
   setText("sensorDataFreshnessCaption", `${freshSensorData}/${sensorDataTotal} live sensor streams`);
-  setText("serviceBindingCount", text(kpis.service_bound_device_count, 0));
-  setText("serviceBindingRatio", `${pct(kpis.device_service_binding_ratio)} bound`);
-  setText("focusCount", text(kpis.operator_focus_count, 0));
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
   setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)} pods · ${text(kpis.service_resource_partially_declared_profile_count, 0)} missing spec`);
   setText("assetCount", `${(data.nodes || []).length + devices.length} assets`);
@@ -533,10 +528,7 @@ function render() {
 
   renderNodes(data.nodes || []);
   renderDevices(devices);
-  renderPodPlacement(data.resource_profiles || {}, kpis);
-  renderAlerts(data);
-  renderResourceProfiles(data.resource_profiles || {}, kpis);
-  renderScenario(devices, kpis);
+  renderTopology(data.resource_profiles || {}, kpis);
 }
 
 function renderNodes(nodes) {
@@ -713,6 +705,53 @@ function renderPodPlacement(resourceState, kpis) {
     `;
   });
   $("placementList").innerHTML = profiles.length ? summary + rows.join("") : `<div class="empty">Running service pod placement/configuration pending</div>`;
+}
+
+function renderTopology(resourceState, kpis) {
+  const profiles = resourceState.service_resource_profiles || [];
+  if (!profiles.length) {
+    $("topologyMap").innerHTML = `<div class="empty">Running service topology pending</div>`;
+    return;
+  }
+  const svcMap = {};
+  profiles.forEach((p) => {
+    const key = `${p.namespace}/${p.service}`;
+    if (!svcMap[key]) svcMap[key] = { namespace: p.namespace, service: p.service, pod_count: 0, nodes: [], pods: [], containers: [], cpu_req: 0, mem_req: 0, cpu_cur: 0, mem_cur: 0 };
+    const s = svcMap[key];
+    s.pod_count = Math.max(s.pod_count, Number(p.pod_count) || 0);
+    if (p.nodes) s.nodes = [...new Set([...s.nodes, ...p.nodes])];
+    Object.entries(p.pods_by_node || {}).forEach(([node, count]) => { s.pods.push({ node, count: String(count) }); });
+    if (p.resource_requirements?.requests) { s.cpu_req += Number(p.resource_requirements.requests.cpu_cores) || 0; s.mem_req += Number(p.resource_requirements.requests.memory_mib) || 0; }
+    if (p.current_usage) { s.cpu_cur += Number(p.current_usage.cpu_cores) || 0; s.mem_cur += Number(p.current_usage.memory_working_set_mib) || 0; }
+    if (p.containers) s.containers = [...s.containers, ...p.containers];
+  });
+  const services = Object.values(svcMap).sort((a, b) => b.pod_count - a.pod_count);
+  const selected = state.selectedTopologyService;
+  $("topologyMap").innerHTML = services.map((svc) => {
+    const key = `${svc.namespace}/${svc.service}`;
+    const open = key === selected;
+    const nodes = svc.nodes.length ? svc.nodes : [`node-${svc.pod_count}`];
+    const podsPerNode = nodes.map((n, i) => ({
+      name: n,
+      count: i === nodes.length - 1 ? svc.pod_count - nodes.slice(0, -1).reduce((s, _, j) => s + (i === j ? 1 : Math.max(1, Math.ceil(svc.pod_count / nodes.length))), 0) : Math.max(1, Math.ceil(svc.pod_count / nodes.length)),
+      pods: svc.pods.filter((p) => p.node === n),
+    }));
+    const totalPods = podsPerNode.reduce((sum, n) => sum + (Number(n.count) || 0), 0);
+    return `
+      <details class="topo-service ${open ? "open" : ""}">
+        <summary>
+          <div class="topo-svc-header">
+            <span class="topo-svc-name"><span class="topo-ns">${escapeHtml(svc.namespace)}</span> / <strong>${escapeHtml(svc.service)}</strong></span>
+            <span class="topo-svc-meta">${svc.pod_count} pods · ${svc.nodes.length} nodes · ${svc.containers.length} containers</span>
+          </div>
+        </summary>
+        <div class="topo-detail">
+          ${nodes.length > 1 ? `<div class="topo-pod-grid">${nodes.map((n, i) => `<div class="topo-node-block"><div class="topo-node-label">${escapeHtml(n)}</div><div class="topo-pod-pills">${Array.from({ length: podsPerNode[i]?.count || 1 }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${i}-${j}</span>`).join("")}</div></div>`).join("")}</div>` : `<div class="topo-single-node"><span class="topo-node-label">${escapeHtml(nodes[0])}</span><div class="topo-pod-pills">${Array.from({ length: svc.pod_count }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${j}</span>`).join("")}</div></div>`}
+          <div class="topo-resource-bar"><div class="topo-resource-item"><span>req</span><span>${formatResourceValue(svc.cpu_req, "core")} / ${formatResourceValue(svc.mem_req, "MiB")}</span></div><div class="topo-resource-item"><span>current</span><span>${formatResourceValue(svc.cpu_cur, "core")} / ${formatResourceValue(svc.mem_cur, "MiB")}</span></div></div>
+          ${svc.containers.length ? `<div class="topo-containers"><span class="topo-sec-title">Containers</span>${svc.containers.slice(0, 8).map((c) => `<div class="topo-container-row"><span class="topo-pod-ref">${escapeHtml(c.pod || "-")}/${escapeHtml(c.container || "-")}</span><span>${escapeHtml(c.node ? `node:${cleanNodeLabel(c.node, "")}` : "")}</span><span>req ${formatResourceValue(c.requests?.cpu_cores, "core")}/${formatResourceValue(c.requests?.memory_mib, "MiB")}</span><span>use ${formatResourceValue(c.current_usage?.cpu_cores, "core")}/${formatResourceValue(c.current_usage?.memory_working_set_mib, "MiB")}</span></div>`).join("")}</div>` : ""}
+        </div>
+      </details>`;
+  }).join("");
 }
 
 function renderAlerts(data) {
@@ -904,6 +943,7 @@ if (typeof module !== "undefined") {
     nodeDisplayName,
     chatResponseMeta,
     submitOperatorChat,
+    renderTopology,
     state,
   };
 }
