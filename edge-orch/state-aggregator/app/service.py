@@ -386,7 +386,14 @@ class StateAggregatorService:
         if isinstance(message, dict):
             content = message.get("content")
             if isinstance(content, str):
-                return content.strip()
+                content = content.strip()
+                if content:
+                    return content
+            reasoning = message.get("reasoning_content")
+            if isinstance(reasoning, str):
+                reasoning = reasoning.strip()
+                if reasoning:
+                    return reasoning
         text = first.get("text")
         return text.strip() if isinstance(text, str) else ""
 
