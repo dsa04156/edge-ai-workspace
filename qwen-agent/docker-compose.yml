@@ -1,0 +1,37 @@
+services:
+  qwen-vllm:
+    image: vllm/vllm-openai:cu130-nightly
+    container_name: qwen-vllm
+    restart: unless-stopped
+    ipc: host
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+      - TOKENIZERS_PARALLELISM=false
+    command:
+      - nvidia/Qwen3.6-35B-A3B-NVFP4
+      - --served-model-name=qwen3.6-35b
+      - --host=0.0.0.0
+      - --port=8000
+      - --quantization=compressed-tensors
+      - --tensor-parallel-size=1
+      - --gpu-memory-utilization=0.90
+      - --max-model-len=32768
+      - --max-num-seqs=8
+      - --kv-cache-dtype=fp8_e4m3
+      - --enable-chunked-prefill
+      - --enable-prefix-caching
+      - --reasoning-parser=qwen3
+      - --enable-auto-tool-choice
+      - --tool-call-parser=qwen3_coder
+      - --trust-remote-code
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

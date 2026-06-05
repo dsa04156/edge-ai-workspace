@@ -74,7 +74,7 @@ class Settings(BaseModel):
         default_factory=lambda: os.getenv("QWEN_MODEL", "qwen3.6-35b")
     )
     qwen_timeout_seconds: float = Field(
-        default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "20"))
+        default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "90"))
     )
 
 

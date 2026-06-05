@@ -1,0 +1,217 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-temperature-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: temp_humidity
+    description: temperature reading derived from Sense HAT humidity sensor
+    type: STRING
+    accessMode: ReadOnly
+  - name: temp_pressure
+    description: temperature reading derived from Sense HAT pressure sensor
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-humidity-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: humidity
+    description: humidity reading from Sense HAT
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-pressure-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: pressure
+    description: pressure reading from Sense HAT
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-compass-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: compass
+    description: compass heading from Sense HAT magnetometer
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-orientation-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: pitch
+    description: orientation pitch from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: roll
+    description: orientation roll from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: yaw
+    description: orientation yaw from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: sensehat-sensor-gyroscope-model
+  namespace: default
+spec:
+  protocol: mqttvirtual
+  properties:
+  - name: gyro_x
+    description: gyroscope x axis from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: gyro_y
+    description: gyroscope y axis from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: gyro_z
+    description: gyroscope z axis from Sense HAT IMU
+    type: STRING
+    accessMode: ReadOnly
+  - name: mapperLastSeen
+    description: mapper heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusLastSeen
+    description: DeviceStatus heartbeat timestamp
+    type: STRING
+    accessMode: ReadOnly
+  - name: statusSource
+    description: DeviceStatus summary source
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_code
+    description: last mapper status error code
+    type: STRING
+    accessMode: ReadOnly
+  - name: last_error_message
+    description: last mapper status error message
+    type: STRING
+    accessMode: ReadOnly

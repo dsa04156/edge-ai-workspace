@@ -1,0 +1,15 @@
+[Unit]
+Description=Sense HAT MQTT publisher for KubeEdge mqttvirtual
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=etri
+WorkingDirectory=/home/etri
+ExecStart=/usr/bin/python3 /home/etri/sensehat_publisher.py --host 127.0.0.1 --port 1883 --interval 1
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
