@@ -7,9 +7,11 @@ const state = {
   selectedTopologyService: null,
   publisherModeFilter: "all",
   telemetryHistory: {},
-  chat: {
+  composer: {
     loading: false,
-    messages: [],
+    response: null,
+    error: null,
+    selectedAssetKeys: null,
   },
 };
 
@@ -32,6 +34,14 @@ const PUBLISHER_MODE_LABELS = {
   "infra-issue": "Unexpected issue",
   observed: "Observed",
 };
+
+const DEFAULT_COMPOSER_OBJECTIVE = "현재 dashboard KPI와 디바이스/서비스 연결 상태를 기준으로 운영자가 먼저 점검할 read-only 분석 순서를 구성한다.";
+const COMPOSER_CONTEXT_SOURCES = ["/state/dashboard", "/state/devices", "/state/nodes", "/state/summary"];
+const COMPOSER_READONLY_TOOLS = ["state_api_read", "dashboard_kpi_read", "device_status_read", "telemetry_history_read", "service_profile_read", "runbook_reference"];
+const COMPOSER_AGENT_ROLES = ["operations_analyst", "device_troubleshooter", "service_visibility_reviewer", "telemetry_investigator"];
+const COMPOSER_STEP_DEFAULTS = ["KPI 확인", "대상 자산 상태 확인", "mapper/node/telemetry 점검", "운영자 점검 순서 요약"];
+const COMPOSER_ASSET_TYPES = ["node", "device", "service", "kpi"];
+
 
 
 function pct(value) {
@@ -518,84 +528,257 @@ async function loadDashboard() {
   render();
 }
 
-function renderChatTranscript() {
-  const transcript = $("chatTranscript");
-  if (!transcript) return;
-  if (!state.chat.messages.length) {
-    transcript.innerHTML = `<div class="chat-empty">상태 원인, 점검 순서, KPI 의미를 질문하세요.</div>`;
+function uniqueComposerList(values = [], defaults = []) {
+  const source = Array.isArray(values) && values.length ? values : defaults;
+  return [...new Set(source.map((value) => text(value, "").trim()).filter(Boolean))];
+}
+
+function normalizeComposerAssets(assets = []) {
+  if (!Array.isArray(assets)) return [];
+  return assets
+    .map((asset) => ({
+      type: text(asset?.type, "").trim(),
+      id: text(asset?.id, "").trim(),
+      label: text(asset?.label, "").trim(),
+    }))
+    .filter((asset) => COMPOSER_ASSET_TYPES.includes(asset.type) && asset.id)
+    .slice(0, 12);
+}
+
+function normalizeComposerSteps(steps = []) {
+  const source = Array.isArray(steps) && steps.length ? steps : COMPOSER_STEP_DEFAULTS;
+  return source
+    .map((step, index) => ({
+      order: Number(step?.order) || index + 1,
+      title: text(typeof step === "string" ? step : step?.title, "").trim(),
+    }))
+    .filter((step) => step.title)
+    .slice(0, 12)
+    .map((step, index) => ({ ...step, order: index + 1 }));
+}
+
+function buildComposerPayload(source = {}) {
+  const orderedSteps = normalizeComposerSteps(source.ordered_steps);
+  return {
+    objective: text(source.objective, DEFAULT_COMPOSER_OBJECTIVE).trim() || DEFAULT_COMPOSER_OBJECTIVE,
+    agent_role: COMPOSER_AGENT_ROLES.includes(source.agent_role) ? source.agent_role : "operations_analyst",
+    context_sources: uniqueComposerList(source.context_sources, COMPOSER_CONTEXT_SOURCES).slice(0, 8),
+    target_assets: normalizeComposerAssets(source.target_assets),
+    allowed_readonly_tools: uniqueComposerList(source.allowed_readonly_tools, COMPOSER_READONLY_TOOLS).filter((tool) => COMPOSER_READONLY_TOOLS.includes(tool)).slice(0, 8),
+    ordered_steps: orderedSteps.length ? orderedSteps : normalizeComposerSteps(COMPOSER_STEP_DEFAULTS),
+  };
+}
+
+function composerAssetKey(asset) {
+  return `${asset.type}:${asset.id}`;
+}
+
+function composerAssetOptions(data = {}) {
+  const nodes = (data.nodes || []).map((node, index) => {
+    const id = nodeDisplayName(node, index);
+    const health = text(node.node_health, "unknown");
+    return {
+      type: "node",
+      id,
+      label: `${id} · ${text(node.node_type, "node")} · ${health}`,
+      group: "Nodes",
+      preferred: health !== "healthy",
+    };
+  });
+  const devices = (data.devices || []).map((device) => {
+    const status = deviceStatus(device);
+    return {
+      type: "device",
+      id: text(device.name, "device"),
+      label: `${text(device.name, "device")} · ${status} · node ${deviceNodeLabel(device)}`,
+      group: "Devices",
+      preferred: status === "degraded" || status === "unavailable" || device.mapper_running === false || device.telemetry_fresh === false,
+    };
+  });
+  const profileMap = {};
+  (data.resource_profiles?.service_resource_profiles || []).forEach((profile) => {
+    const id = `${text(profile.namespace, "default")}/${text(profile.service, "service")}`;
+    profileMap[id] = {
+      type: "service",
+      id,
+      label: `${id} · ${text(profile.pod_count, 0)} pods · ${text(profile.container_count, 0)} containers`,
+      group: "Services",
+      preferred: Boolean(profile.resource_requirements?.missing),
+    };
+  });
+  const kpis = data.kpis || {};
+  const kpiOptions = [
+    { id: "telemetry_freshness_ratio", label: `Telemetry Freshness · ${pct(kpis.telemetry_freshness_ratio)}` },
+    { id: "sensor_data_freshness_ratio", label: `Sensor Data Freshness · ${pct(kpis.sensor_data_freshness_ratio ?? kpis.telemetry_freshness_ratio)}` },
+    { id: "registered_device_count", label: `Registered Devices · ${text(kpis.registered_device_count, 0)}` },
+    { id: "service_resource_profile_count", label: `Service Profiles · ${text(kpis.service_resource_profile_count, 0)}` },
+  ].map((item) => ({ type: "kpi", id: item.id, label: item.label, group: "KPIs", preferred: true }));
+  return [...nodes, ...devices, ...Object.values(profileMap), ...kpiOptions].filter((asset) => asset.id && asset.id !== "-");
+}
+
+function defaultComposerAssetKeys(options = []) {
+  const preferred = options.filter((asset) => asset.preferred).slice(0, 8);
+  const fallback = options.filter((asset) => !preferred.some((item) => composerAssetKey(item) === composerAssetKey(asset))).slice(0, 4);
+  return [...preferred, ...fallback].slice(0, 8).map(composerAssetKey);
+}
+
+function renderComposerAssetChoices(data = {}) {
+  const container = $("composerAssetChoices");
+  if (!container) return;
+  const options = composerAssetOptions(data);
+  if (!options.length) {
+    container.innerHTML = `<div class="empty">Dashboard data load 후 자산을 선택할 수 있습니다.</div>`;
     return;
   }
-  transcript.innerHTML = state.chat.messages
-    .map((message) => {
-      const meta = message.meta || [];
-      const metaHtml = meta.length ? `<div class="chat-meta">${meta.map((item) => `<span class="pill">${escapeHtml(item)}</span>`).join("")}</div>` : "";
-      return `
-        <article class="chat-message ${escapeHtml(message.role)} ${message.loading ? "loading" : ""}">
-          <span>${escapeHtml(message.label)}</span>
-          <p>${escapeHtml(message.text)}</p>
-          ${metaHtml}
-        </article>
-      `;
-    })
+  if (!(state.composer.selectedAssetKeys instanceof Set)) {
+    state.composer.selectedAssetKeys = new Set(defaultComposerAssetKeys(options));
+  }
+  const grouped = options.reduce((acc, asset) => {
+    acc[asset.group] = acc[asset.group] || [];
+    acc[asset.group].push(asset);
+    return acc;
+  }, {});
+  container.innerHTML = Object.entries(grouped)
+    .map(([group, assets]) => `
+      <div class="composer-asset-group">
+        <strong>${escapeHtml(group)}</strong>
+        ${assets
+          .map((asset) => {
+            const checked = state.composer.selectedAssetKeys.has(composerAssetKey(asset)) ? "checked" : "";
+            return `<label><input type="checkbox" name="target_assets" data-asset-type="${escapeHtml(asset.type)}" data-asset-id="${escapeHtml(asset.id)}" data-asset-label="${escapeHtml(asset.label)}" ${checked} /> <span>${escapeHtml(asset.label)}</span></label>`;
+          })
+          .join("")}
+      </div>
+    `)
     .join("");
-  transcript.scrollTop = transcript.scrollHeight;
 }
 
-function setChatLoading(loading) {
-  state.chat.loading = loading;
-  const submit = $("operatorChatSubmit");
-  const input = $("operatorChatInput");
-  if (submit) submit.disabled = loading;
-  if (input) input.disabled = loading;
-  setText("chatStatus", loading ? "Qwen 응답 대기 중" : "read-only mode");
+function selectedComposerValues(name) {
+  if (typeof document === "undefined") return [];
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((input) => input.value);
 }
 
-function chatResponseMeta(payload) {
-  const meta = [text(payload.assistant_name, "qwen operator"), `mode=${text(payload.mode, "read_only")}`, `model=${text(payload.model, "unknown")}`, `upstream=${text(payload.upstream_status, "unknown")}`];
-  if (Array.isArray(payload.source_endpoints) && payload.source_endpoints.length) meta.push(`${payload.source_endpoints.length} source endpoints`);
-  if (Array.isArray(payload.guardrails) && payload.guardrails.length) meta.push(`${payload.guardrails.length} guardrails`);
-  return meta;
+function selectedComposerAssets() {
+  if (typeof document === "undefined") return [];
+  return Array.from(document.querySelectorAll('input[name="target_assets"]:checked')).map((input) => ({
+    type: input.dataset.assetType,
+    id: input.dataset.assetId,
+    label: input.dataset.assetLabel,
+  }));
 }
 
-async function submitOperatorChat(message) {
-  state.chat.messages.push({ role: "user", label: "Operator", text: message });
-  const loadingMessage = { role: "assistant", label: "Qwen read-only", text: "현재 dashboard 상태를 기준으로 답변을 생성 중입니다.", loading: true };
-  state.chat.messages.push(loadingMessage);
-  renderChatTranscript();
-  setChatLoading(true);
+function selectedComposerSteps() {
+  if (typeof document === "undefined") return [];
+  return Array.from(document.querySelectorAll("[data-composer-step]")).map((input) => input.value);
+}
+
+function readComposerForm() {
+  return buildComposerPayload({
+    objective: $("composerObjective")?.value,
+    agent_role: $("composerAgentRole")?.value,
+    context_sources: selectedComposerValues("context_sources"),
+    target_assets: selectedComposerAssets(),
+    allowed_readonly_tools: selectedComposerValues("allowed_readonly_tools"),
+    ordered_steps: selectedComposerSteps(),
+  });
+}
+
+function renderDashboardLoadError(error) {
+  const message = escapeHtml(error?.message || "dashboard api failed");
+  const panel = $("explainPanel") || $("composerResult") || $("nodeList");
+  if (panel) panel.innerHTML = `<article class="item alert high"><strong>${message}</strong></article>`;
+}
+
+function renderComposerList(items = [], emptyText = "없음") {
+  if (!Array.isArray(items) || !items.length) return `<div class="composer-empty">${escapeHtml(emptyText)}</div>`;
+  return `<ul>${items.map((item) => `<li>${escapeHtml(typeof item === "string" ? item : JSON.stringify(item))}</li>`).join("")}</ul>`;
+}
+
+function renderCompositionSummary(composition = {}) {
+  const assets = (composition.target_assets || []).map((asset) => `${asset.type}:${asset.id}`);
+  const steps = (composition.ordered_steps || []).map((step) => `${step.order}. ${step.title}`);
+  return `
+    <dl class="composer-meta-grid">
+      <div><dt>assistant</dt><dd>${escapeHtml(text(state.composer.response?.assistant_name, "agent workflow composer"))}</dd></div>
+      <div><dt>mode</dt><dd>${escapeHtml(text(state.composer.response?.mode, "read_only_composition"))}</dd></div>
+      <div><dt>model</dt><dd>${escapeHtml(text(state.composer.response?.model, "unknown"))}</dd></div>
+      <div><dt>upstream</dt><dd>${escapeHtml(text(state.composer.response?.upstream_status, "unknown"))}</dd></div>
+    </dl>
+    <div class="composer-result-block"><strong>Composition Metadata</strong>${renderComposerList([
+      `objective=${text(composition.objective, "-")}`,
+      `agent_role=${text(composition.agent_role, "-")}`,
+      `context_sources=${(composition.context_sources || []).join(", ")}`,
+      `allowed_readonly_tools=${(composition.allowed_readonly_tools || []).join(", ")}`,
+    ])}</div>
+    <div class="composer-result-block"><strong>Target Assets</strong>${renderComposerList(assets, "선택한 자산 없음")}</div>
+    <div class="composer-result-block"><strong>Ordered Steps</strong>${renderComposerList(steps, "단계 없음")}</div>
+  `;
+}
+
+function renderComposerResult() {
+  const result = $("composerResult");
+  if (!result) return;
+  if (state.composer.loading) {
+    result.innerHTML = `<div class="composer-empty">read-only 워크플로우 분석 결과를 기다리는 중입니다.</div>`;
+    return;
+  }
+  if (state.composer.error) {
+    result.innerHTML = `<article class="composer-message error"><span>Composer error</span><p>${escapeHtml(state.composer.error)}</p></article>`;
+    return;
+  }
+  const payload = state.composer.response;
+  if (!payload) {
+    result.innerHTML = `<div class="composer-empty">워크플로우 구성을 제출하면 read-only 분석 결과와 guardrail을 표시합니다.</div>`;
+    return;
+  }
+  result.innerHTML = `
+    <article class="composer-message assistant">
+      <span>Read-only analysis result</span>
+      <p>${escapeHtml(text(payload.answer, "응답이 비어 있습니다."))}</p>
+    </article>
+    ${renderCompositionSummary(payload.composition || {})}
+    <div class="composer-result-block"><strong>Source Endpoints</strong>${renderComposerList(payload.source_endpoints, "source endpoint 없음")}</div>
+    <div class="composer-result-block guardrails"><strong>Guardrails</strong>${renderComposerList(payload.guardrails, "guardrail 없음")}</div>
+  `;
+}
+
+function setComposerLoading(loading) {
+  state.composer.loading = loading;
+  const form = $("agentWorkflowComposerForm");
+  if (form) {
+    form.querySelectorAll("input, select, textarea, button").forEach((input) => {
+      input.disabled = loading;
+    });
+  }
+  setText("composerStatus", loading ? "composer response pending" : "read-only composition mode");
+  renderComposerResult();
+}
+
+async function submitAgentWorkflowComposer(payload) {
+  state.composer.response = null;
+  state.composer.error = null;
+  setComposerLoading(true);
   try {
-    const response = await fetch("/state/operator-chat", {
+    const response = await fetch("/state/agent-workflow-compose", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(payload),
     });
-    let payload = {};
+    let responsePayload = {};
     try {
-      payload = await response.json();
+      responsePayload = await response.json();
     } catch (error) {
-      payload = {};
+      responsePayload = {};
     }
     if (!response.ok) {
-      const detail = payload.detail || `operator chat api failed: ${response.status}`;
+      const detail = responsePayload.detail || `agent workflow compose api failed: ${response.status}`;
       throw new Error(Array.isArray(detail) ? detail.map((item) => item.msg || item.type || "request error").join(", ") : detail);
     }
-    Object.assign(loadingMessage, {
-      role: "assistant",
-      label: "Qwen read-only",
-      text: text(payload.answer, "응답이 비어 있습니다."),
-      loading: false,
-      meta: chatResponseMeta(payload),
-    });
+    state.composer.response = responsePayload;
   } catch (error) {
-    Object.assign(loadingMessage, {
-      role: "error",
-      label: "Chat error",
-      text: error.message || "Qwen chat 요청에 실패했습니다.",
-      loading: false,
-    });
+    state.composer.error = error.message || "Agent Workflow Composer 요청에 실패했습니다.";
   } finally {
-    setChatLoading(false);
-    renderChatTranscript();
+    setComposerLoading(false);
   }
 }
 
@@ -626,6 +809,7 @@ function render() {
   renderNodes(data.nodes || []);
   renderDevices(devices);
   renderTopology(data.resource_profiles || {}, kpis);
+  renderComposerAssetChoices(data);
 }
 
 function renderNodes(nodes) {
@@ -1014,28 +1198,25 @@ if (typeof document !== "undefined" && $("clearNodeFilter")) {
 
 if (typeof document !== "undefined" && $("refreshButton")) {
   $("refreshButton").addEventListener("click", () => {
-    loadDashboard().catch((error) => {
-      $("alertList").innerHTML = `<article class="item alert high"><strong>${escapeHtml(error.message)}</strong></article>`;
-    });
+    loadDashboard().catch(renderDashboardLoadError);
   });
 }
 
-if (typeof document !== "undefined" && $("operatorChatForm")) {
-  $("operatorChatForm").addEventListener("submit", (event) => {
+if (typeof document !== "undefined" && $("agentWorkflowComposerForm")) {
+  $("agentWorkflowComposerForm").addEventListener("change", (event) => {
+    if (event.target?.name !== "target_assets") return;
+    state.composer.selectedAssetKeys = new Set(selectedComposerAssets().map(composerAssetKey));
+  });
+  $("agentWorkflowComposerForm").addEventListener("submit", (event) => {
     event.preventDefault();
-    const input = $("operatorChatInput");
-    const message = input?.value.trim();
-    if (!message || state.chat.loading) return;
-    input.value = "";
-    submitOperatorChat(message);
+    if (state.composer.loading) return;
+    submitAgentWorkflowComposer(readComposerForm());
   });
 }
 
 function scheduleDashboardRefresh() {
   loadDashboard()
-    .catch((error) => {
-      $("alertList").innerHTML = `<article class="item alert high"><strong>${escapeHtml(error.message)}</strong></article>`;
-    })
+    .catch(renderDashboardLoadError)
     .finally(() => {
       window.setTimeout(scheduleDashboardRefresh, state.refreshMs);
     });
@@ -1070,9 +1251,11 @@ if (typeof module !== "undefined") {
     missingResourceTotal,
     cleanNodeLabel,
     nodeDisplayName,
-    chatResponseMeta,
-    submitOperatorChat,
+    buildComposerPayload,
+    composerAssetOptions,
+    defaultComposerAssetKeys,
     renderTopology,
+    submitAgentWorkflowComposer,
     state,
   };
 }
