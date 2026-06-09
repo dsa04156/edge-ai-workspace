@@ -1,0 +1,75 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: virt-act-02
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-act-model
+  nodeName: etri-dev0002-raspi5
+
+  properties:
+    - name: power
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: power
+
+    - name: mode
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: mode
+
+    - name: health
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: true
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: health
+
+    - name: ts
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: ts
+
+    - name: sampling_interval
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: sampling_interval
+
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/virt-act-02/telemetry
+      pubTopic: factory/devices/virt-act-02/command
+      clientID: virt-act-02-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 60000

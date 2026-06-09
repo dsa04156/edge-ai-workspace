@@ -5,6 +5,7 @@ const state = {
   selectedNodeName: null,
   selectedNodeFilterValues: [],
   selectedTopologyService: null,
+  publisherModeFilter: "all",
   telemetryHistory: {},
   chat: {
     loading: false,
@@ -13,6 +14,25 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+const DEMO_PUBLISHER_DEVICES = ["virt-env-01", "virt-env-02", "virt-vib-01", "virt-act-01", "virt-act-02"];
+const DEMO_PUBLISHER_DEVICE_SET = new Set(DEMO_PUBLISHER_DEVICES);
+const DEMO_PUBLISHER_DEVICE_PLANS = {
+  "virt-env-01": "jetson",
+  "virt-env-02": "rpi",
+  "virt-vib-01": "jetson",
+  "virt-act-01": "jetson",
+  "virt-act-02": "rpi",
+};
+const PUBLISHER_FILTERS = ["all", "running", "planned-off", "infra-issue"];
+const PUBLISHER_MODE_LABELS = {
+  all: "All",
+  running: "Running",
+  "planned-off": "Planned off",
+  "infra-issue": "Unexpected issue",
+  observed: "Observed",
+};
+
 
 function pct(value) {
   return `${Math.round((value || 0) * 100)}%`;
@@ -115,23 +135,109 @@ function deviceNodeLabel(device) {
   return cleanNodeLabel(device?.node_name || device?.nodeName, "unassigned");
 }
 
+function isDemoPublisherDevice(deviceOrName) {
+  const name = typeof deviceOrName === "string" ? deviceOrName : deviceOrName?.name;
+  return DEMO_PUBLISHER_DEVICE_SET.has(text(name, ""));
+}
+
+function publisherDevicePlan(deviceOrName) {
+  const name = typeof deviceOrName === "string" ? deviceOrName : deviceOrName?.name;
+  return DEMO_PUBLISHER_DEVICE_PLANS[text(name, "")] || "jetson/rpi";
+}
+
+function publisherModeKey(device) {
+  if (device?.telemetry_fresh === true) return "running";
+  if (device?.node_ready === false || device?.mapper_running === false) return "infra-issue";
+  if (isDemoPublisherDevice(device) && device?.telemetry_enabled === true && device?.telemetry_fresh === false && device?.node_ready !== false && device?.mapper_running !== false) return "planned-off";
+  return "observed";
+}
+
+function publisherModeLabel(mode) {
+  return PUBLISHER_MODE_LABELS[mode] || PUBLISHER_MODE_LABELS.observed;
+}
+
+function publisherModeReason(device) {
+  const mode = publisherModeKey(device);
+  if (mode === "running") return "telemetry_fresh=true, so the publisher is currently represented as running.";
+  if (mode === "infra-issue") return "node_ready=false or mapper_running=false, so this is an unexpected infrastructure issue before publisher intent is considered.";
+  if (mode === "planned-off") return "demo virtual device with telemetry enabled but no fresh telemetry; inferred as demo publisher idle/planned-off from virt demo mode, not from an external plan file.";
+  return "non-demo device or telemetry-disabled device without node/mapper issue; shown as observed status only.";
+}
+
+function renderPublisherBadge(device) {
+  const mode = publisherModeKey(device);
+  return `<span class="pill publisher-mode ${escapeHtml(mode)}">${escapeHtml(publisherModeLabel(mode))}</span>`;
+}
+
+function deviceMatchesNodeFilter(device) {
+  if (!state.selectedNodeName) return true;
+  const labels = [text(device?.node_name, "").trim(), text(device?.nodeName, "").trim(), deviceNodeLabel(device)].filter(Boolean);
+  return labels.some((label) => state.selectedNodeFilterValues.includes(label));
+}
+
+function deviceMatchesPublisherFilter(device) {
+  if (!state.publisherModeFilter || state.publisherModeFilter === "all") return true;
+  return publisherModeKey(device) === state.publisherModeFilter;
+}
+
 function filteredDevices(devices = []) {
-  if (!state.selectedNodeName) return sortDevicesStatusFirst(devices);
-  return sortDevicesStatusFirst(devices.filter((device) => {
-    const labels = [text(device?.node_name, "").trim(), text(device?.nodeName, "").trim(), deviceNodeLabel(device)].filter(Boolean);
-    return labels.some((label) => state.selectedNodeFilterValues.includes(label));
-  }));
+  return sortDevicesStatusFirst(devices.filter((device) => deviceMatchesNodeFilter(device) && deviceMatchesPublisherFilter(device)));
 }
 
 function renderDeviceFilterSummary(totalCount, visibleCount) {
   const label = $("deviceFilterLabel");
   const clear = $("clearNodeFilter");
   if (label) {
-    label.textContent = state.selectedNodeName
-      ? `${visibleCount}/${totalCount} on ${state.selectedNodeName}`
-      : "registered assets";
+    const parts = [];
+    if (state.selectedNodeName) parts.push(`node ${state.selectedNodeName}`);
+    if (state.publisherModeFilter && state.publisherModeFilter !== "all") parts.push(`publisher ${publisherModeLabel(state.publisherModeFilter)}`);
+    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "registered assets";
   }
   if (clear) clear.hidden = !state.selectedNodeName;
+}
+
+function demoPublisherDevices(devices = []) {
+  return devices.filter((device) => isDemoPublisherDevice(device));
+}
+
+function publisherSummary(devices = []) {
+  const demoDevices = demoPublisherDevices(devices);
+  const counts = { total: DEMO_PUBLISHER_DEVICES.length, registered: demoDevices.length, running: 0, plannedOff: 0, infraIssue: 0 };
+  const byNode = {};
+  demoDevices.forEach((device) => {
+    const mode = publisherModeKey(device);
+    if (mode === "running") counts.running += 1;
+    if (mode === "planned-off") counts.plannedOff += 1;
+    if (mode === "infra-issue") counts.infraIssue += 1;
+    const node = deviceNodeLabel(device);
+    byNode[node] = (byNode[node] || 0) + 1;
+  });
+  return { ...counts, byNode };
+}
+
+function renderPublisherFilterButtons() {
+  if (typeof document === "undefined") return;
+  PUBLISHER_FILTERS.forEach((mode) => {
+    const button = document.querySelector(`[data-publisher-filter="${mode}"]`);
+    if (!button) return;
+    const active = (state.publisherModeFilter || "all") === mode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+function renderPublisherSummary(devices = []) {
+  const summary = publisherSummary(devices);
+  setText("demoPublisherTotal", `${summary.total} demo devices / ${summary.registered} registered`);
+  setText("demoPublisherRunning", summary.running);
+  setText("demoPublisherPlannedOff", summary.plannedOff);
+  setText("demoPublisherIssue", summary.infraIssue);
+  const nodeSplit = Object.entries(summary.byNode)
+    .sort((left, right) => left[0].localeCompare(right[0]))
+    .map(([node, count]) => `${node} ${count}`)
+    .join(" / ");
+  setText("demoPublisherNodeSplit", nodeSplit || "node split pending");
+  renderPublisherFilterButtons();
 }
 
 function refreshSelectedNodeFilterValues(nodes = []) {
@@ -145,10 +251,14 @@ function refreshSelectedNodeFilterValues(nodes = []) {
 function explainDeviceRules(device) {
   const rules = [];
   const status = deviceStatus(device);
+  const mode = publisherModeKey(device);
+  rules.push({ id: "Publisher Mode", title: publisherModeLabel(mode), text: publisherModeReason(device) });
   if (status === "available" || status === "healthy") {
     rules.push({ id: "Sensor OK", title: "latest telemetry sample is fresh", text: "node와 mapper 선행 조건이 정상이고 InfluxDB latest telemetry가 freshness 기준을 만족해 available로 판단됩니다." });
   }
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
+  if (device.telemetry_enabled === true && device.telemetry_fresh === false && mode === "planned-off") {
+    rules.push({ id: "Publisher Idle", title: "demo publisher intentionally idle", text: "이 virt demo device는 node와 mapper가 정상이라, fresh telemetry 없음은 장애가 아니라 시연용 publisher 미실행 상태로 해석합니다." });
+  } else if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
     rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "InfluxDB latest telemetry가 없거나 오래되어 degraded로 판단됩니다. publisher/MQTT/mapper/DB 적재 경로를 확인합니다." });
   }
   if (device.mapper_running === false) {
@@ -236,6 +346,22 @@ function renderExplainFields(fields) {
   return `<dl class="explain-fields">${fields
     .map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(displayValue(value, "현재 API payload에 없음"))}</dd></div>`)
     .join("")}</dl>`;
+}
+
+function renderReadOnlyCommandHints(device) {
+  const deviceName = text(device?.name, "device-name");
+  const plan = publisherDevicePlan(device);
+  const commands = [
+    `SELF_TEST=1 DEVICE_FILTER=${deviceName} DEVICE_PLAN=${plan} python3 mappers/script/test_device.py`,
+    `DEVICE_FILTER=${deviceName} DEVICE_PLAN=${plan} python3 mappers/script/test_device.py`,
+  ];
+  return `
+    <div class="command-hints" aria-label="read-only publisher command hints">
+      <span>Read-only command hints</span>
+      <p>Copy manually on the correct host if needed. The dashboard does not execute commands.</p>
+      ${commands.map((command) => `<code>${escapeHtml(command)}</code>`).join("")}
+    </div>
+  `;
 }
 
 
@@ -357,11 +483,15 @@ function showDeviceExplanation(device) {
       ["status", deviceStatus(device)],
       ["reason", deviceReason(device)],
       ["node", deviceNodeLabel(device)],
+      ["publisher mode", publisherModeLabel(publisherModeKey(device))],
+      ["demo publisher", isDemoPublisherDevice(device) ? "yes" : "no"],
+      ["publisher plan", publisherDevicePlan(device)],
       ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
       ["last seen", age(device.telemetry_age_seconds)],
       ["mapper", device.mapper_running ? "running" : "not running"],
       ["service", device.service_demo_group || "service pending"],
     ])}
+    ${renderReadOnlyCommandHints(device)}
     <div id="telemetryChart">${renderTelemetryChart(state.telemetryHistory[device.name] || [])}</div>
     ${renderRuleList(explainDeviceRules(device))}
   `;
@@ -563,8 +693,17 @@ function renderNodes(nodes) {
     : `<div class="empty">No node state yet</div>`;
 }
 
+function deviceFilterEmptyText() {
+  const publisherFiltered = state.publisherModeFilter && state.publisherModeFilter !== "all";
+  if (state.selectedNodeName && publisherFiltered) return `No devices match ${state.selectedNodeName} and ${publisherModeLabel(state.publisherModeFilter)} publisher filter`;
+  if (state.selectedNodeName) return `${state.selectedNodeName} has no matching devices`;
+  if (publisherFiltered) return `No devices match ${publisherModeLabel(state.publisherModeFilter)} publisher filter`;
+  return "No KubeEdge devices found";
+}
+
 function renderDevices(devices) {
   const visibleDevices = filteredDevices(devices);
+  renderPublisherSummary(devices);
   renderDeviceFilterSummary(devices.length, visibleDevices.length);
   $("deviceList").innerHTML = visibleDevices.length
     ? visibleDevices
@@ -572,10 +711,11 @@ function renderDevices(devices) {
           <article class="item device-row explainable ${state.selectedDeviceName === device.name ? "selected" : ""}" data-explain-type="device" data-device-name="${escapeHtml(device.name)}" tabindex="0" role="button" aria-label="${escapeHtml(device.name)} 설명 보기">
             <div class="item-title">
               <strong>${escapeHtml(device.name)}</strong>
-              ${statusPill(device.overall_status || device.status)}
+              <div class="item-pills">${statusPill(device.overall_status || device.status)}${renderPublisherBadge(device)}</div>
             </div>
             <div class="meta">
               <span>node: ${escapeHtml(deviceNodeLabel(device))}</span>
+              <span>publisher: ${escapeHtml(publisherModeLabel(publisherModeKey(device)))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
               <span>mapper: ${device.mapper_running ? "running" : "not running"}</span>
@@ -585,9 +725,7 @@ function renderDevices(devices) {
           </article>
         `)
         .join("")
-    : state.selectedNodeName
-      ? `<div class="empty">${escapeHtml(state.selectedNodeName)}에 연결된 device가 없습니다.</div>`
-      : `<div class="empty">No KubeEdge devices found</div>`;
+    : `<div class="empty">${escapeHtml(deviceFilterEmptyText())}</div>`;
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -838,6 +976,11 @@ function applyNodeDeviceFilter(nodeName, nodeIndex = null) {
   renderDevices(state.data?.devices || []);
 }
 
+function applyPublisherModeFilter(mode) {
+  state.publisherModeFilter = PUBLISHER_FILTERS.includes(mode) ? mode : "all";
+  renderDevices(state.data?.devices || []);
+}
+
 
 function markSelectedExplain(target) {
   if (typeof document === "undefined" || !target) return;
@@ -849,6 +992,13 @@ function handleNodeFilterSelection(target) {
   const nodeTarget = target.closest?.("[data-node-filter]");
   if (!nodeTarget) return false;
   applyNodeDeviceFilter(nodeTarget.dataset.nodeFilter, nodeTarget.dataset.nodeIndex);
+  return true;
+}
+
+function handlePublisherFilterSelection(target) {
+  const filterTarget = target.closest?.("[data-publisher-filter]");
+  if (!filterTarget) return false;
+  applyPublisherModeFilter(filterTarget.dataset.publisherFilter);
   return true;
 }
 
@@ -877,14 +1027,16 @@ function handleExplainSelection(target) {
 if (typeof document !== "undefined") {
   document.addEventListener("click", (event) => {
     if (handleNodeFilterSelection(event.target)) return;
+    if (handlePublisherFilterSelection(event.target)) return;
     handleExplainSelection(event.target);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
-    const target = event.target?.closest?.("[data-explain-type], [data-node-filter]");
+    const target = event.target?.closest?.("[data-explain-type], [data-node-filter], [data-publisher-filter]");
     if (!target) return;
     event.preventDefault();
     if (handleNodeFilterSelection(target)) return;
+    if (handlePublisherFilterSelection(target)) return;
     handleExplainSelection(target);
   });
 }
@@ -937,6 +1089,18 @@ if (typeof module !== "undefined") {
     isOperationalDevice,
     sortDevicesStatusFirst,
     filteredDevices,
+    DEMO_PUBLISHER_DEVICES,
+    PUBLISHER_FILTERS,
+    isDemoPublisherDevice,
+    demoPublisherDevices,
+    publisherDevicePlan,
+    publisherModeKey,
+    publisherModeLabel,
+    publisherModeReason,
+    publisherSummary,
+    deviceMatchesPublisherFilter,
+    renderPublisherBadge,
+    renderReadOnlyCommandHints,
     nodeFilterValues,
     missingResourceTotal,
     cleanNodeLabel,

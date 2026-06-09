@@ -139,94 +139,26 @@ class VirtualDevice:
 
 
 DEVICES: List[VirtualDevice] = [
-    VirtualDevice("act-device-01", "act", 5),
-    VirtualDevice("act-device-02", "act", 5),
-    VirtualDevice("act-device-03", "act", 5),
-    VirtualDevice("act-device-04", "act", 5),
-    VirtualDevice("act-device-05", "act", 5),
-    VirtualDevice("act-device-06", "act", 5),
-
-    VirtualDevice("env-device-01", "env", 5),
-    VirtualDevice("env-device-02", "env", 5),
-    VirtualDevice("env-device-03", "env", 5),
-    VirtualDevice("env-device-04", "env", 5),
-    VirtualDevice("env-device-05", "env", 5),
-    VirtualDevice("env-device-06", "env", 5),
-    VirtualDevice("env-device-07", "env", 5),
-    VirtualDevice("env-device-08", "env", 5),
-
-    VirtualDevice("vib-device-01", "vib", 5),
-    VirtualDevice("vib-device-02", "vib", 5),
-    VirtualDevice("vib-device-03", "vib", 5),
-    VirtualDevice("vib-device-04", "vib", 5),
-    VirtualDevice("vib-device-05", "vib", 5),
-    VirtualDevice("vib-device-06", "vib", 5),
-
-    VirtualDevice("temp-device-01", "temp", 5),
-
-    VirtualDevice("rpi-env-device-01", "env", 5),
-    VirtualDevice("rpi-env-device-02", "env", 5),
-    VirtualDevice("rpi-env-device-03", "env", 5),
-    VirtualDevice("rpi-env-device-04", "env", 5),
-
-    VirtualDevice("rpi-vib-device-01", "vib", 5),
-    VirtualDevice("rpi-vib-device-02", "vib", 5),
-    VirtualDevice("rpi-vib-device-03", "vib", 5),
-
-    VirtualDevice("rpi-act-device-01", "act", 5),
-    VirtualDevice("rpi-act-device-02", "act", 5),
-    VirtualDevice("rpi-act-device-03", "act", 5),
+    VirtualDevice("virt-env-01", "env", 5),
+    VirtualDevice("virt-env-02", "env", 5),
+    VirtualDevice("virt-vib-01", "vib", 5),
+    VirtualDevice("virt-act-01", "act", 5),
+    VirtualDevice("virt-act-02", "act", 5),
 ]
-
-
-RPI_DEVICE_IDS = {
-    "rpi-act-device-01",
-    "rpi-act-device-02",
-    "rpi-act-device-03",
-    "rpi-env-device-01",
-    "rpi-env-device-02",
-    "rpi-env-device-03",
-    "rpi-env-device-04",
-    "rpi-vib-device-01",
-    "rpi-vib-device-02",
-    "rpi-vib-device-03",
-}
 
 DEVICE_PLANS = {
     "all": None,
     "jetson": {
         "node": JETSON_NODE,
-        "devices": {
-            "act-device-01",
-            "act-device-02",
-            "act-device-03",
-            "act-device-04",
-            "act-device-05",
-            "act-device-06",
-            "env-device-01",
-            "env-device-02",
-            "env-device-03",
-            "env-device-04",
-            "env-device-05",
-            "env-device-06",
-            "env-device-07",
-            "env-device-08",
-            "vib-device-01",
-            "vib-device-02",
-            "vib-device-03",
-            "vib-device-04",
-            "vib-device-05",
-            "vib-device-06",
-            "temp-device-01",
-        },
+        "devices": {"virt-env-01", "virt-vib-01", "virt-act-01"},
     },
     "rpi": {
         "node": RPI_NODE,
-        "devices": RPI_DEVICE_IDS,
+        "devices": {"virt-env-02", "virt-act-02"},
     },
     "raspi": {
         "node": RPI_NODE,
-        "devices": RPI_DEVICE_IDS,
+        "devices": {"virt-env-02", "virt-act-02"},
     },
 }
 

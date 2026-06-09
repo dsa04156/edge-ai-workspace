@@ -1,0 +1,65 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: virt-env-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: virtual-env-model
+  nodeName: etri-dev0001-jetorn
+
+  properties:
+    - name: temperature
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: temperature
+
+    - name: humidity
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: humidity
+
+    - name: health
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: true
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: health
+
+    - name: sampling_interval
+      collectCycle: 60000
+      reportCycle: 60000
+      reportToCloud: false
+      visitors:
+        protocolName: mqttvirtual
+        configData:
+          dataType: string
+          jsonKey: sampling_interval
+
+  protocol:
+    protocolName: mqttvirtual
+    configData:
+      broker: tcp://127.0.0.1:1883
+      subTopic: factory/devices/virt-env-01/telemetry
+      pubTopic: factory/devices/virt-env-01/command
+      clientID: virt-env-01-client
+      username: ""
+      password: ""
+      qos: 1
+      offlineAfterMs: 15000
+status:
+  reportToCloud: true
+  reportCycle: 60000
