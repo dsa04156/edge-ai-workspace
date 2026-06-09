@@ -12,8 +12,6 @@ from .influx import InfluxTelemetryClient, TelemetrySample
 from .models import (
     CostModelState,
     DashboardState,
-    AgentWorkflowComposeRequest,
-    AgentWorkflowComposeResponse,
     DeviceState,
     NodeState,
     OperatorAssistantState,
@@ -322,90 +320,6 @@ class StateAggregatorService:
         if not actions:
             actions.append("현재 우선 점검 대상이 없으므로 dashboard KPI와 service demo group만 확인한다.")
         return actions[:10]
-
-    async def compose_agent_workflow(self, request: AgentWorkflowComposeRequest) -> AgentWorkflowComposeResponse:
-        assistant = await self.get_operator_assistant()
-        composition = self._agent_workflow_composition_payload(request)
-        payload = {
-            "model": self.settings.qwen_model,
-            "messages": [
-                {"role": "system", "content": self._agent_workflow_system_prompt(assistant)},
-                {"role": "user", "content": self._agent_workflow_user_prompt(composition)},
-            ],
-            "temperature": 0.2,
-            "max_tokens": 900,
-        }
-        endpoint = f"{self.settings.qwen_base_url.rstrip('/')}/chat/completions"
-        try:
-            async with httpx.AsyncClient(timeout=self.settings.qwen_timeout_seconds) as client:
-                response = await client.post(endpoint, json=payload)
-                response.raise_for_status()
-                data = response.json()
-        except httpx.HTTPError as exc:
-            logger.warning("Qwen agent workflow compose request failed: %s", exc)
-            return AgentWorkflowComposeResponse(
-                model=self.settings.qwen_model,
-                composition=composition,
-                answer="로컬 Qwen 모델에 연결하지 못했습니다. 모델 서버(192.168.0.6:8000) 상태를 확인해 주세요.",
-                source_endpoints=assistant.source_endpoints,
-                guardrails=self._agent_workflow_guardrails(),
-                upstream_status="unavailable",
-            )
-
-        answer = self._extract_chat_answer(data)
-        return AgentWorkflowComposeResponse(
-            model=self.settings.qwen_model,
-            composition=composition,
-            answer=answer or "Qwen 응답이 비어 있습니다. 모델 서버 로그를 확인해 주세요.",
-            source_endpoints=assistant.source_endpoints,
-            guardrails=self._agent_workflow_guardrails(),
-        )
-
-    def _agent_workflow_composition_payload(self, request: AgentWorkflowComposeRequest) -> dict[str, Any]:
-        return {
-            "objective": request.objective,
-            "agent_role": request.agent_role,
-            "context_sources": request.context_sources or [
-                "/state/dashboard",
-                "/state/devices",
-                "/state/nodes",
-                "/state/summary",
-            ],
-            "target_assets": [asset.model_dump() for asset in request.target_assets],
-            "allowed_readonly_tools": request.allowed_readonly_tools or [
-                "state_api_read",
-                "dashboard_kpi_read",
-                "device_status_read",
-                "telemetry_history_read",
-            ],
-            "ordered_steps": [step.model_dump() for step in sorted(request.ordered_steps, key=lambda item: item.order)],
-        }
-
-    def _agent_workflow_guardrails(self) -> list[str]:
-        return [
-            "read-only composition: Kubernetes apply/delete/rollout/patch를 수행하지 않는다.",
-            "MQTT command topic publish 또는 actuator 제어를 수행하지 않는다.",
-            "동적 오프로딩, runtime replanning, workflow execution으로 해석하지 않는다.",
-            "운영자에게 관측 기반 점검 순서와 분석 계획만 제안한다.",
-        ]
-
-    def _agent_workflow_system_prompt(self, assistant: OperatorAssistantState) -> str:
-        return (
-            "You are a Korean read-only Agent Workflow Composer for a KubeEdge mixed-device PoC dashboard. "
-            "The user assembles analysis workflows from context sources, assets, read-only tools, and ordered steps. "
-            "You may explain and refine the analysis workflow, but you must not execute or claim to execute Kubernetes, MQTT, "
-            "actuator, dynamic offloading, runtime replanning, or workflow_executor actions. "
-            "Answer in Korean unless the user asks otherwise.\n\n"
-            f"Dashboard summary: {assistant.summary_ko}\n"
-            f"Guardrails: {'; '.join(self._agent_workflow_guardrails())}"
-        )
-
-    def _agent_workflow_user_prompt(self, composition: dict[str, Any]) -> str:
-        return (
-            "다음 read-only 운영 분석 에이전트 워크플로우 구성을 검토하고, "
-            "실행이 아니라 운영자가 따라갈 분석 순서로 정리해 주세요.\n"
-            f"composition={composition}"
-        )
 
     async def chat_with_operator_assistant(self, request: OperatorChatRequest) -> OperatorChatResponse:
         assistant = await self.get_operator_assistant()

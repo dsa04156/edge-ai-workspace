@@ -10,8 +10,6 @@ from fastapi.staticfiles import StaticFiles
 from .config import Settings
 from .metrics import render_metrics
 from .models import (
-    AgentWorkflowComposeRequest,
-    AgentWorkflowComposeResponse,
     CostModelState,
     DashboardState,
     DeviceState,
@@ -103,11 +101,6 @@ async def get_operator_assistant() -> OperatorAssistantState:
 @app.post("/state/operator-chat", response_model=OperatorChatResponse)
 async def post_operator_chat(request: OperatorChatRequest) -> OperatorChatResponse:
     return await service.chat_with_operator_assistant(request)
-
-
-@app.post("/state/agent-workflow-compose", response_model=AgentWorkflowComposeResponse)
-async def post_agent_workflow_compose(request: AgentWorkflowComposeRequest) -> AgentWorkflowComposeResponse:
-    return await service.compose_agent_workflow(request)
 
 
 @app.get("/state/node/{hostname}")

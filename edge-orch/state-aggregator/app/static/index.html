@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609-agent-composer" />
+    <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
   </head>
   <body>
     <main class="shell">
@@ -102,68 +102,28 @@
             </div>
           </section>
 
-          <section class="panel workflow-composer" aria-labelledby="workflowComposerTitle">
+          <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">Agent Workflow Composer</p>
-                <h2 id="workflowComposerTitle">에이전트 워크플로우 구성</h2>
+                <p class="section-kicker">Read-only Qwen</p>
+                <h2 id="operatorChatTitle">운영 보조 채팅</h2>
               </div>
-              <span>read-only analysis plan</span>
+              <span>관측 요약 전용</span>
             </div>
-            <div class="composer-guardrail">
-              현재 dashboard API 신호를 읽어 운영자 점검 순서를 구성합니다. Kubernetes/MQTT/actuator 조치 실행, 동적 오프로딩, runtime replanning은 제공하지 않습니다.
+            <div class="chat-guardrail">
+              Qwen은 현재 dashboard 신호만 설명합니다. Kubernetes/MQTT/actuator 조치 실행이나 동적 오케스트레이션을 수행하지 않습니다.
             </div>
-            <form id="agentWorkflowComposerForm" class="composer-form">
-              <label class="composer-field" for="composerObjective">
-                <span>Objective</span>
-                <textarea id="composerObjective" name="objective" rows="3" maxlength="1200">현재 dashboard KPI와 디바이스/서비스 연결 상태를 기준으로 운영자가 먼저 점검할 read-only 분석 순서를 구성한다.</textarea>
-              </label>
-              <label class="composer-field" for="composerAgentRole">
-                <span>Agent Role</span>
-                <select id="composerAgentRole" name="agent_role">
-                  <option value="operations_analyst">operations_analyst</option>
-                  <option value="device_troubleshooter">device_troubleshooter</option>
-                  <option value="service_visibility_reviewer">service_visibility_reviewer</option>
-                  <option value="telemetry_investigator">telemetry_investigator</option>
-                </select>
-              </label>
-              <fieldset class="composer-checks">
-                <legend>Context Sources</legend>
-                <label><input type="checkbox" name="context_sources" value="/state/dashboard" checked /> /state/dashboard</label>
-                <label><input type="checkbox" name="context_sources" value="/state/devices" checked /> /state/devices</label>
-                <label><input type="checkbox" name="context_sources" value="/state/nodes" checked /> /state/nodes</label>
-                <label><input type="checkbox" name="context_sources" value="/state/summary" checked /> /state/summary</label>
-              </fieldset>
-              <fieldset class="composer-checks composer-assets-fieldset">
-                <legend>Target Assets</legend>
-                <div id="composerAssetChoices" class="composer-asset-choices" aria-live="polite">
-                  <div class="empty">Dashboard data load 후 자산을 선택할 수 있습니다.</div>
-                </div>
-              </fieldset>
-              <fieldset class="composer-checks">
-                <legend>Allowed Read-only Tools</legend>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="state_api_read" checked /> state_api_read</label>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="dashboard_kpi_read" checked /> dashboard_kpi_read</label>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="device_status_read" checked /> device_status_read</label>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="telemetry_history_read" checked /> telemetry_history_read</label>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="service_profile_read" checked /> service_profile_read</label>
-                <label><input type="checkbox" name="allowed_readonly_tools" value="runbook_reference" checked /> runbook_reference</label>
-              </fieldset>
-              <fieldset class="composer-steps">
-                <legend>Ordered Steps</legend>
-                <label><span>1</span><input type="text" data-composer-step value="KPI 확인" maxlength="160" /></label>
-                <label><span>2</span><input type="text" data-composer-step value="대상 자산 상태 확인" maxlength="160" /></label>
-                <label><span>3</span><input type="text" data-composer-step value="mapper/node/telemetry 점검" maxlength="160" /></label>
-                <label><span>4</span><input type="text" data-composer-step value="운영자 점검 순서 요약" maxlength="160" /></label>
-              </fieldset>
-              <div class="composer-actions">
-                <span id="composerStatus">read-only composition mode</span>
-                <button id="agentWorkflowComposerSubmit" type="submit">구성 분석 요청</button>
+            <div id="chatTranscript" class="chat-transcript" aria-live="polite">
+              <div class="chat-empty">상태 원인, 점검 순서, KPI 의미를 질문하세요.</div>
+            </div>
+            <form id="operatorChatForm" class="chat-form">
+              <label for="operatorChatInput">운영 질문</label>
+              <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="예: degraded device를 먼저 어떻게 읽어야 하나요?"></textarea>
+              <div class="chat-actions">
+                <span id="chatStatus">read-only mode</span>
+                <button id="operatorChatSubmit" type="submit">Qwen에게 질문</button>
               </div>
             </form>
-            <div id="composerResult" class="composer-result" aria-live="polite">
-              <div class="composer-empty">워크플로우 구성을 제출하면 read-only 분석 결과와 guardrail을 표시합니다.</div>
-            </div>
           </section>
         </aside>
 
@@ -192,6 +152,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=dashboard-static-20260609-agent-composer"></script>
+    <script src="/static/dashboard.js?v=dashboard-static-20260609"></script>
   </body>
 </html>

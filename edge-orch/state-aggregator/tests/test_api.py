@@ -361,93 +361,10 @@ def test_operator_chat_posts_openai_compatible_payload(monkeypatch):
     payload = response.json()
     assert payload["answer"] == "현재 Sense HAT 데이터는 fresh입니다."
     assert payload["source_endpoints"] == ["/state/dashboard", "/state/devices"]
-    assert calls[0]["url"] == "http://192.168.0.6:8000/v1/chat/completions"
+    assert calls[0]["url"] == "http://192.168.0.5:8080/v1/chat/completions"
     assert calls[0]["json"]["model"] == "qwen3.6-35b"
     assert calls[0]["json"]["messages"][0]["role"] == "system"
     assert "read-only" in calls[0]["json"]["messages"][0]["content"]
-
-
-def test_agent_workflow_composer_posts_structured_readonly_payload(monkeypatch):
-    import app.service as service_module
-
-    calls = []
-
-    async def fake_operator_assistant():
-        from app.models import OperatorAssistantState
-
-        return OperatorAssistantState(
-            generated_at=datetime.now(timezone.utc),
-            summary_ko="Sense HAT device 6개가 fresh입니다.",
-            focus_devices=[],
-            recommended_actions=["dashboard KPI를 확인한다."],
-            guardrails=["read-only endpoint"],
-            source_endpoints=["/state/dashboard", "/state/devices", "/state/nodes", "/state/summary"],
-        )
-
-    class FakeQwenResponse:
-        def raise_for_status(self):
-            return None
-
-        def json(self):
-            return {"choices": [{"message": {"content": "구성된 에이전트는 먼저 KPI를 읽고 device freshness를 점검합니다."}}]}
-
-    class FakeQwenClient:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc, tb):
-            return None
-
-        async def post(self, url, json):
-            calls.append({"url": url, "json": json})
-            return FakeQwenResponse()
-
-    monkeypatch.setattr(service, "get_operator_assistant", fake_operator_assistant)
-    monkeypatch.setattr(service_module.httpx, "AsyncClient", FakeQwenClient)
-
-    request = {
-        "objective": "Sense HAT 상태를 분석하는 에이전트 워크플로우를 구성해줘",
-        "agent_role": "operations_analyst",
-        "context_sources": ["/state/dashboard", "/state/devices"],
-        "target_assets": [{"type": "device", "id": "env-sensehat-humidity-01", "label": "Sense HAT humidity"}],
-        "allowed_readonly_tools": ["state_api_read", "dashboard_kpi_read", "telemetry_history_read"],
-        "ordered_steps": [
-            {"order": 2, "title": "Check telemetry freshness"},
-            {"order": 1, "title": "Read dashboard KPI"},
-        ],
-    }
-
-    with TestClient(app) as client:
-        response = client.post("/state/agent-workflow-compose", json=request)
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["mode"] == "read_only_composition"
-    assert payload["model"] == "qwen3.6-35b"
-    assert payload["composition"]["ordered_steps"][0]["order"] == 1
-    assert payload["composition"]["target_assets"][0]["id"] == "env-sensehat-humidity-01"
-    assert "MQTT" in " ".join(payload["guardrails"])
-    assert calls[0]["url"] == "http://192.168.0.6:8000/v1/chat/completions"
-    assert calls[0]["json"]["messages"][0]["role"] == "system"
-    assert "Workflow Composer" in calls[0]["json"]["messages"][0]["content"]
-    assert "composition=" in calls[0]["json"]["messages"][1]["content"]
-
-
-def test_agent_workflow_composer_rejects_mutating_tool():
-    request = {
-        "objective": "잘못된 도구 테스트",
-        "agent_role": "operations_analyst",
-        "allowed_readonly_tools": ["kubectl_apply"],
-        "ordered_steps": [{"order": 1, "title": "Try mutation"}],
-    }
-
-    with TestClient(app) as client:
-        response = client.post("/state/agent-workflow-compose", json=request)
-
-    assert response.status_code == 422
 
 
 def test_dashboard_endpoint_combines_nodes_and_devices(monkeypatch):

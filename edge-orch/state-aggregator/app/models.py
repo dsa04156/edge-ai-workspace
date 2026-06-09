@@ -190,54 +190,6 @@ class OperatorAssistantState(BaseModel):
     source_endpoints: list[str] = Field(default_factory=list)
 
 
-ReadonlyComposerTool = Literal[
-    "state_api_read",
-    "dashboard_kpi_read",
-    "node_status_read",
-    "device_status_read",
-    "telemetry_history_read",
-    "service_profile_read",
-    "runbook_reference",
-]
-AgentWorkflowRole = Literal[
-    "operations_analyst",
-    "device_troubleshooter",
-    "service_visibility_reviewer",
-    "telemetry_investigator",
-]
-
-
-class AgentWorkflowAsset(BaseModel):
-    type: Literal["node", "device", "service", "kpi"]
-    id: str = Field(min_length=1, max_length=160)
-    label: str | None = Field(default=None, max_length=200)
-
-
-class AgentWorkflowStep(BaseModel):
-    order: int = Field(ge=1, le=12)
-    title: str = Field(min_length=1, max_length=160)
-
-
-class AgentWorkflowComposeRequest(BaseModel):
-    objective: str = Field(min_length=1, max_length=1200)
-    agent_role: AgentWorkflowRole = "operations_analyst"
-    context_sources: list[str] = Field(default_factory=list, max_length=8)
-    target_assets: list[AgentWorkflowAsset] = Field(default_factory=list, max_length=12)
-    allowed_readonly_tools: list[ReadonlyComposerTool] = Field(default_factory=list, max_length=8)
-    ordered_steps: list[AgentWorkflowStep] = Field(default_factory=list, min_length=1, max_length=12)
-
-
-class AgentWorkflowComposeResponse(BaseModel):
-    assistant_name: str = "kagenti-agent-workflow-composer-poc"
-    mode: Literal["read_only_composition"] = "read_only_composition"
-    model: str
-    composition: dict[str, Any]
-    answer: str
-    source_endpoints: list[str] = Field(default_factory=list)
-    guardrails: list[str] = Field(default_factory=list)
-    upstream_status: str = "ok"
-
-
 class OperatorChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1200)
 
