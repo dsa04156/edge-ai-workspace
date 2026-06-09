@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css?v=dashboard-demo-publisher-20260609" />
+    <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
   </head>
   <body>
     <main class="shell">
@@ -70,26 +70,6 @@
                 <div class="device-filter-bar">
                   <span id="deviceFilterLabel">registered assets</span>
                   <button id="clearNodeFilter" class="ghost-button" type="button" hidden>Clear filter</button>
-                </div>
-              </div>
-              <div class="demo-publisher-panel" aria-label="Demo virtual publisher status">
-                <div class="demo-publisher-head">
-                  <div>
-                    <span>Demo virtual publishers</span>
-                    <strong id="demoPublisherTotal">5 demo devices / 0 registered</strong>
-                  </div>
-                  <em id="demoPublisherNodeSplit">node split pending</em>
-                </div>
-                <div class="demo-publisher-counts" aria-label="Demo publisher counters">
-                  <span><strong id="demoPublisherRunning">0</strong> running</span>
-                  <span><strong id="demoPublisherPlannedOff">0</strong> planned off</span>
-                  <span><strong id="demoPublisherIssue">0</strong> unexpected issue</span>
-                </div>
-                <div class="publisher-filter-group" role="group" aria-label="Publisher mode filter">
-                  <button class="publisher-filter active" type="button" data-publisher-filter="all" aria-pressed="true">All</button>
-                  <button class="publisher-filter" type="button" data-publisher-filter="running" aria-pressed="false">Running</button>
-                  <button class="publisher-filter" type="button" data-publisher-filter="planned-off" aria-pressed="false">Planned off</button>
-                  <button class="publisher-filter" type="button" data-publisher-filter="infra-issue" aria-pressed="false">Unexpected issue</button>
                 </div>
               </div>
               <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
@@ -172,6 +152,6 @@
         </section>
       </section>
     </main>
-    <script src="/static/dashboard.js?v=dashboard-demo-publisher-20260609"></script>
+    <script src="/static/dashboard.js?v=dashboard-static-20260609"></script>
   </body>
 </html>

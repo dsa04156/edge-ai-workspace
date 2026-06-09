@@ -196,25 +196,6 @@ function renderDeviceFilterSummary(totalCount, visibleCount) {
   if (clear) clear.hidden = !state.selectedNodeName;
 }
 
-function demoPublisherDevices(devices = []) {
-  return devices.filter((device) => isDemoPublisherDevice(device));
-}
-
-function publisherSummary(devices = []) {
-  const demoDevices = demoPublisherDevices(devices);
-  const counts = { total: DEMO_PUBLISHER_DEVICES.length, registered: demoDevices.length, running: 0, plannedOff: 0, infraIssue: 0 };
-  const byNode = {};
-  demoDevices.forEach((device) => {
-    const mode = publisherModeKey(device);
-    if (mode === "running") counts.running += 1;
-    if (mode === "planned-off") counts.plannedOff += 1;
-    if (mode === "infra-issue") counts.infraIssue += 1;
-    const node = deviceNodeLabel(device);
-    byNode[node] = (byNode[node] || 0) + 1;
-  });
-  return { ...counts, byNode };
-}
-
 function renderPublisherFilterButtons() {
   if (typeof document === "undefined") return;
   PUBLISHER_FILTERS.forEach((mode) => {
@@ -224,20 +205,6 @@ function renderPublisherFilterButtons() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", active ? "true" : "false");
   });
-}
-
-function renderPublisherSummary(devices = []) {
-  const summary = publisherSummary(devices);
-  setText("demoPublisherTotal", `${summary.total} demo devices / ${summary.registered} registered`);
-  setText("demoPublisherRunning", summary.running);
-  setText("demoPublisherPlannedOff", summary.plannedOff);
-  setText("demoPublisherIssue", summary.infraIssue);
-  const nodeSplit = Object.entries(summary.byNode)
-    .sort((left, right) => left[0].localeCompare(right[0]))
-    .map(([node, count]) => `${node} ${count}`)
-    .join(" / ");
-  setText("demoPublisherNodeSplit", nodeSplit || "node split pending");
-  renderPublisherFilterButtons();
 }
 
 function refreshSelectedNodeFilterValues(nodes = []) {
@@ -703,7 +670,7 @@ function deviceFilterEmptyText() {
 
 function renderDevices(devices) {
   const visibleDevices = filteredDevices(devices);
-  renderPublisherSummary(devices);
+  renderPublisherFilterButtons();
   renderDeviceFilterSummary(devices.length, visibleDevices.length);
   $("deviceList").innerHTML = visibleDevices.length
     ? visibleDevices
@@ -1092,12 +1059,10 @@ if (typeof module !== "undefined") {
     DEMO_PUBLISHER_DEVICES,
     PUBLISHER_FILTERS,
     isDemoPublisherDevice,
-    demoPublisherDevices,
     publisherDevicePlan,
     publisherModeKey,
     publisherModeLabel,
     publisherModeReason,
-    publisherSummary,
     deviceMatchesPublisherFilter,
     renderPublisherBadge,
     renderReadOnlyCommandHints,
