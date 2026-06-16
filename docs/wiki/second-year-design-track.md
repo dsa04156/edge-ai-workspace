@@ -1,0 +1,60 @@
+# 2차년도 설계 트랙
+
+## 한 줄 요약
+
+2차년도 설계 트랙은 현재 운영 가시화 PoC 위에 가상디바이스, 디바이스트윈, workflow 설계를 얹는 방향이다.
+이는 설계와 prototype 방향이지, dynamic workflow/offloading 구현 완료 주장이 아니다.
+
+## 현재 기준
+
+현재 PoC는 아래 운영 기반을 만든다.
+
+- 등록된 device
+- node assignment
+- telemetry/status 분리
+- 상태 통합
+- dashboard 가시화
+- service-demo binding
+
+2차년도 트랙은 이 기반 위에서 아래를 설계한다.
+
+- 물리 on-device 기능, 상태, 자원, I/O를 표현하는 가상디바이스
+- capability, resource, I/O, state, workflow binding snapshot을 관리하는 디바이스트윈
+- stage 기반 AI service workflow
+- validation과 execution-plan UI
+- 후속 prototype 대상인 scheduling/resource placement 정책
+
+## 경계
+
+2차년도 가상디바이스는 legacy `test_device.py` fake MQTT publisher 의미와 다르다.
+아래 legacy 경로를 현재 기능으로 조용히 승격하지 않는다.
+
+- `edge-orch/workflow_executor/`
+- `edge-orch/workflow_reporter/`
+- `edge-orch/placement_engine/`
+- `workflow/`
+- selective replanning 또는 offloading archive 자료
+
+legacy 구현을 재사용하려면 먼저 `docs/scope.md`와 `docs/repo-structure.md`에 승격 근거를 남긴다.
+
+## 운영상 의미
+
+제안서나 보고서에서는 아래처럼 쓴다.
+
+- 2차년도 작업은 단계적 설계/prototype 트랙으로 설명한다.
+- 현재 dashboard 주장은 service demo visibility에 묶어 둔다.
+- LLM이나 agent가 전체 플랫폼을 제어한다고 쓰지 않는다.
+- workflow design/dry-run planning과 실제 runtime execution을 구분한다.
+
+## 관련 Wiki
+
+- [운영 모델](operating-model.md)
+- [현재 데모 흐름](current-demo-flow.md)
+- [대시보드와 KPI 모델](dashboard-and-kpi.md)
+
+## 근거 문서
+
+- [2차년도 가상디바이스·워크플로우 설계](../second-year-virtual-device-workflow-architecture.md)
+- [프로젝트 범위](../scope.md)
+- [레포 구조](../repo-structure.md)
+- [로드맵](../roadmap.md)

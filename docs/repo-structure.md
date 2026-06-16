@@ -29,6 +29,18 @@
 | `edge-orch/state-aggregator/` | KubeEdge/InfluxDB/Prometheus 상태 통합 API와 dashboard | 현재 데모 운영 경로의 상태 통합 컴포넌트로 유지 |
 | `influxdb/` | telemetry data-plane 저장소 manifest | raw telemetry 저장 경로로 유지 |
 
+## 2차년도 설계 트랙 경로
+
+다음 경로는 현재 서비스 데모 기능으로 주장하지 않고, 2차년도 협약 방향에 맞춘 설계/프로토타입 후보로 관리한다.
+
+| 경로 | 역할 | 작업 원칙 |
+|---|---|---|
+| `docs/second-year-virtual-device-workflow-architecture.md` | 가상디바이스, 디바이스트윈, AI 서비스 워크플로우 재설계 기준 | 가짜 MQTT publisher 방식과 구분하고, 물리 온디바이스 매핑 기반 가상디바이스 정의를 우선 |
+| `docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf` | 2차년도 협약 방향 원문 | 요구사항과 표현 근거로만 사용하고 PDF 원본은 수정하지 않음 |
+| `virtual-device/` | 2차년도 가상디바이스 registry seed와 설명 | 현재 기능 완료 주장이 아니라 물리 온디바이스 매핑 기반 registry 프로토타입으로 관리 |
+| 신규 `virtual-device-*` 경로 후보 | 물리 온디바이스 매핑 가상디바이스 registry/runtime/twin engine 후보 | 생성 전 `docs/scope.md`와 설계 문서에 역할, API, 검증 기준을 먼저 명시 |
+| 신규 `workflow-*` 경로 후보 | AI 서비스 workflow builder/runtime/control plane 후보 | legacy workflow 코드를 현행 기능으로 오해하지 않도록 새 설계 경계 명시 |
+
 ## 현재 범위 보조 경로
 
 | 경로 | 역할 | 작업 원칙 |

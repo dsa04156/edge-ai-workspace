@@ -23,6 +23,7 @@
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
       <button type="button" data-search-filter="active">Active</button>
       <button type="button" data-search-filter="ops">운영</button>
       <button type="button" data-search-filter="archive">Archive</button>
@@ -36,17 +37,25 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
+<li class="group">Wiki 문서</li>
+<li><a href="wiki/index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="wiki/SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="wiki/log.html">Wiki 변경 로그</a></li>
+<li><a href="wiki/operating-model.html">운영 모델</a></li>
+<li><a href="wiki/current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/operations-entry-points.html">운영 진입점</a></li>
+<li><a href="wiki/second-year-design-track.html">2차년도 설계 트랙</a></li>
 <li class="group">Active 문서</li>
 <li><a href="README.html">문서 안내</a></li>
 <li><a href="goal.html">시스템 구축 목표</a></li>
 <li><a href="project-context.html">프로젝트 배경</a></li>
 <li><a href="scope.html">프로젝트 범위</a></li>
 <li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
-<li class="group">운영 문서</li>
-<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
-<li class="group">Active 문서</li>
 <li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
 <li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
@@ -56,18 +65,18 @@
 <li><a href="repo-structure.html">레포 구조</a></li>
 <li><a href="roadmap.html">로드맵</a></li>
 <li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
 <li class="group">운영 문서</li>
-<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
 <li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
-<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
 <li><a href="ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
-<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
-<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
-<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
 <li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
-<li class="group">Active 문서</li>
-<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li class="group">Archive</li>
 <li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
 <li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
@@ -94,10 +103,10 @@
           <h1>레포 구조</h1>
           <p class="subtitle">레포 안의 디렉터리와 주요 파일을 현재 PoC 범위 기준으로 분류한다. 새 작업을 시작할 때 어떤 경로를 현재 구현 경로로 볼지…</p>
           <div class="meta">
-            <span class="badge kind">Active</span>
+            <span class="badge kind">Active 문서</span>
             <span class="badge">원본: repo-structure.md</span>
-            <span class="badge">수정: 2026-06-04 13:52</span>
-            <span class="badge">HTML 생성: 2026-06-04 13:53</span>
+            <span class="badge">수정: 2026-06-12 16:50</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
           </div>
         </header>
         
@@ -175,6 +184,41 @@
 <td><code>influxdb/</code></td>
 <td>telemetry data-plane 저장소 manifest</td>
 <td>raw telemetry 저장 경로로 유지</td>
+</tr>
+</tbody></table></div>
+<h2 id="2차년도-설계-트랙-경로">2차년도 설계 트랙 경로</h2>
+<p>다음 경로는 현재 서비스 데모 기능으로 주장하지 않고, 2차년도 협약 방향에 맞춘 설계/프로토타입 후보로 관리한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>경로</th>
+<th>역할</th>
+<th>작업 원칙</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>docs/second-year-virtual-device-workflow-architecture.md</code></td>
+<td>가상디바이스, 디바이스트윈, AI 서비스 워크플로우 재설계 기준</td>
+<td>가짜 MQTT publisher 방식과 구분하고, 물리 온디바이스 매핑 기반 가상디바이스 정의를 우선</td>
+</tr>
+<tr>
+<td><code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code></td>
+<td>2차년도 협약 방향 원문</td>
+<td>요구사항과 표현 근거로만 사용하고 PDF 원본은 수정하지 않음</td>
+</tr>
+<tr>
+<td><code>virtual-device/</code></td>
+<td>2차년도 가상디바이스 registry seed와 설명</td>
+<td>현재 기능 완료 주장이 아니라 물리 온디바이스 매핑 기반 registry 프로토타입으로 관리</td>
+</tr>
+<tr>
+<td>신규 <code>virtual-device-*</code> 경로 후보</td>
+<td>물리 온디바이스 매핑 가상디바이스 registry/runtime/twin engine 후보</td>
+<td>생성 전 <code>docs/scope.md</code>와 설계 문서에 역할, API, 검증 기준을 먼저 명시</td>
+</tr>
+<tr>
+<td>신규 <code>workflow-*</code> 경로 후보</td>
+<td>AI 서비스 workflow builder/runtime/control plane 후보</td>
+<td>legacy workflow 코드를 현행 기능으로 오해하지 않도록 새 설계 경계 명시</td>
 </tr>
 </tbody></table></div>
 <h2 id="현재-범위-보조-경로">현재 범위 보조 경로</h2>
@@ -402,6 +446,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#분류-기준">분류 기준</a></li>
 <li class="toc-h2"><a href="#현재-범위-경로">현재 범위 경로</a></li>
+<li class="toc-h2"><a href="#2차년도-설계-트랙-경로">2차년도 설계 트랙 경로</a></li>
 <li class="toc-h2"><a href="#현재-범위-보조-경로">현재 범위 보조 경로</a></li>
 <li class="toc-h2"><a href="#legacy-reference-및-archive-경로">Legacy / Reference 및 Archive 경로</a></li>
 <li class="toc-h2"><a href="#외부-참조-성격-경로">외부/참조 성격 경로</a></li>

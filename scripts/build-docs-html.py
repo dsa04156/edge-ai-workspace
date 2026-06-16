@@ -21,15 +21,27 @@ CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
 SEARCH_EXCLUDED_PATHS = {"archive/integration/integration-detail-log.md"}
 
+WIKI_ORDER = [
+    "wiki/index.md",
+    "wiki/SCHEMA.md",
+    "wiki/log.md",
+    "wiki/operating-model.md",
+    "wiki/current-demo-flow.md",
+    "wiki/status-and-telemetry.md",
+    "wiki/dashboard-and-kpi.md",
+    "wiki/operations-entry-points.md",
+    "wiki/second-year-design-track.md",
+]
+
 ACTIVE_ORDER = [
     "README.md",
     "goal.md",
     "project-context.md",
     "scope.md",
     "service-demo-scenario.md",
-    "ops/runbook-current-demo.md",
     "okdong-productivity-kpi.md",
     "kagenti-operator-assistant.md",
+    "second-year-virtual-device-workflow-architecture.md",
     "dashboard-information-structure.md",
     "dashboard-policy.md",
     "device-status-policy.md",
@@ -39,6 +51,19 @@ ACTIVE_ORDER = [
     "repo-structure.md",
     "roadmap.md",
     "docs-cleanup-plan.md",
+]
+
+OPS_ORDER = [
+    "ops/runbook-current-demo.md",
+    "ops/dashboard-verification.md",
+    "ops/e2e-demo-verification.md",
+    "ops/ci-cd-autodeploy.md",
+    "ops/gpu-hami-runtime.md",
+    "ops/troubleshooting-network.md",
+    "ops/edge-node-join-check.md",
+    "ops/node-join-check.md",
+    "ops/pod-connectivity-check.md",
+    "ops/node-spec-template.md",
 ]
 
 
@@ -57,8 +82,18 @@ DISPLAY_TITLES = {
     "kubeedge-edgex-model-mapping.md": "KubeEdge-EdgeX 모델 매핑",
     "device-service-binding.md": "디바이스-서비스 바인딩",
     "kagenti-operator-assistant.md": "Kagenti 운영 보조 Agent",
+    "second-year-virtual-device-workflow-architecture.md": "2차년도 가상디바이스·워크플로우 설계",
     "repo-structure.md": "레포 구조",
     "roadmap.md": "로드맵",
+    "wiki/index.md": "KubeEdge PoC LLM Wiki",
+    "wiki/SCHEMA.md": "LLM Wiki 운영 규칙",
+    "wiki/log.md": "Wiki 변경 로그",
+    "wiki/operating-model.md": "운영 모델",
+    "wiki/current-demo-flow.md": "현재 데모 흐름 요약",
+    "wiki/status-and-telemetry.md": "상태와 텔레메트리",
+    "wiki/dashboard-and-kpi.md": "대시보드와 KPI 모델",
+    "wiki/operations-entry-points.md": "운영 진입점",
+    "wiki/second-year-design-track.md": "2차년도 설계 트랙",
     "ops/runbook-current-demo.md": "현재 데모 운영 Runbook",
     "ops/troubleshooting-network.md": "네트워크 트러블슈팅",
     "ops/edge-node-join-check.md": "Edge 노드 조인 점검",
@@ -88,12 +123,16 @@ DISPLAY_TITLES = {
 def md_files() -> list[Path]:
     files = sorted(DOCS.rglob("*.md"))
     files = [p for p in files if "/html/" not in p.as_posix()]
-    order = {name: idx for idx, name in enumerate(ACTIVE_ORDER)}
+    order = {
+        **{name: idx for idx, name in enumerate(WIKI_ORDER)},
+        **{name: idx for idx, name in enumerate(ACTIVE_ORDER)},
+        **{name: idx for idx, name in enumerate(OPS_ORDER)},
+    }
+    group_order = {"wiki": 0, "active": 1, "ops": 2, "archive": 3}
 
     def key(p: Path):
         rel = p.relative_to(DOCS).as_posix()
-        active = 0 if not rel.startswith("archive/") else 1
-        return (active, order.get(rel, 999), rel)
+        return (group_order[filter_of(rel)], order.get(rel, 999), rel)
 
     return sorted(files, key=key)
 
@@ -363,6 +402,7 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
   <div class=\"search-box\" data-search-index=\"{html.escape(index_href, quote=True)}\">
     <div class=\"search-filters\" role=\"group\" aria-label=\"검색 범위\">
       <button type=\"button\" class=\"active\" data-search-filter=\"all\">전체</button>
+      <button type=\"button\" data-search-filter=\"wiki\">Wiki</button>
       <button type=\"button\" data-search-filter=\"active\">Active</button>
       <button type=\"button\" data-search-filter=\"ops\">운영</button>
       <button type=\"button\" data-search-filter=\"archive\">Archive</button>
@@ -376,7 +416,11 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
 
 def home_intro_markup() -> str:
     return """<section class=\"home-intro\" aria-label=\"문서 정리 기준\">
-  <a class=\"intro-card primary\" href=\"goal.html\">
+  <a class=\"intro-card primary\" href=\"wiki/index.html\">
+    <strong>LLM Wiki</strong>
+    <span>질문이 있을 때 먼저 읽는 지식 지도입니다. 여기서 원본문서로 들어갑니다.</span>
+  </a>
+  <a class=\"intro-card\" href=\"goal.html\">
     <strong>시스템 구축 목표</strong>
     <span>혼합 디바이스 edge AI 서비스 데모를 운영 관점에서 보이게 만드는 것이 현재 기준입니다.</span>
   </a>
@@ -384,10 +428,6 @@ def home_intro_markup() -> str:
     <strong>문서 정리 기준</strong>
     <span>Active와 운영 문서를 먼저 보고, Archive는 과거 맥락 확인용으로 분리합니다.</span>
   </a>
-  <div class=\"intro-card muted\">
-    <strong>Archive는 과거 맥락</strong>
-    <span>workflow/offloading/replanning 자료는 현재 구축 목표가 아니라 보관 자료로 봅니다.</span>
-  </div>
 </section>"""
 
 
@@ -412,6 +452,8 @@ def render_search_index(files: list[Path]) -> None:
 
 
 def group_of(rel: str) -> str:
+    if rel.startswith("wiki/"):
+        return "Wiki 문서"
     if rel.startswith("archive/"):
         return "Archive"
     if rel.startswith("ops/"):
@@ -420,6 +462,8 @@ def group_of(rel: str) -> str:
 
 
 def filter_of(rel: str) -> str:
+    if rel.startswith("wiki/"):
+        return "wiki"
     if rel.startswith("archive/"):
         return "archive"
     if rel.startswith("ops/"):
@@ -494,7 +538,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     body = render_markdown(text, out_path, md)
     is_archive = rel.startswith("archive/")
-    kind = "Archive" if is_archive else "Active"
+    kind = group_of(rel)
     desc = short_desc(first_paragraph(text))
     page_class = "doc archive" if is_archive else "doc"
     archive_note = archive_banner(rel) if is_archive else ""
@@ -520,7 +564,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
       {sidebar(files, out_path)}
       <article class="{page_class}">
         <header class="doc-header">
-          <p class="eyebrow">{html.escape(kind)} 문서</p>
+          <p class="eyebrow">{html.escape(kind)}</p>
           <h1>{html.escape(title)}</h1>
           <p class="subtitle">{html.escape(desc) if desc else '기존 Markdown 문서를 HTML로 변환한 읽기용 페이지입니다.'}</p>
           <div class="meta">
@@ -547,7 +591,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
 
 def render_index(files: list[Path]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    groups: dict[str, list[Path]] = {"Active 문서": [], "운영 문서": [], "Archive": []}
+    groups: dict[str, list[Path]] = {"Wiki 문서": [], "Active 문서": [], "운영 문서": [], "Archive": []}
     for md in files:
         groups[group_of(md.relative_to(DOCS).as_posix())].append(md)
     sections = []
@@ -582,7 +626,7 @@ def render_index(files: list[Path]) -> None:
           원본 Markdown은 그대로 유지하고, 이 디렉터리는 읽기용 산출물로 재생성할 수 있다.
         </p>
         <div class="meta">
-          <span class="badge kind">Active 문서 우선</span>
+          <span class="badge kind">Wiki 우선</span>
           <span class="badge">운영자 기준</span>
           <span class="badge">Markdown 원본 유지</span>
           <span class="badge">정적 HTML</span>

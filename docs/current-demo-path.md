@@ -125,6 +125,11 @@ factory/devices/{device-name}/heartbeat
 - 현재 KubeEdge `Device` manifest에는 `heartbeat`를 직접 연결하지 않는다.
 - raw telemetry stream은 DeviceStatus가 아니라 향후 EdgeX telemetry ingestion plane에서 처리한다.
 
+InfluxDB timestamp 의미는 다음과 같이 고정한다.
+InfluxDB UI나 Flux 결과의 `_start`와 `_stop`은 query window이며 device start/stop 이벤트가 아니다.
+실제 sample timestamp는 `_time`이고, dashboard의 `telemetry_fresh`는 device-level latest sample 기준이다.
+따라서 `telemetry_fresh=true`가 해당 device의 모든 property별 latest freshness를 보장한다는 뜻은 아니다.
+
 ## 테스트 publisher
 
 테스트 publisher는 다음 파일이다.
@@ -468,4 +473,3 @@ Workflow Designer는 이 경로를 하나의 node-column 화면으로 합치지 
    - platform endpoint는 compute node와 분리하며 `MQTT Broker`, `InfluxDB`, `State Aggregator`, `Dashboard`로 구분한다.
 
 이 기능은 read-only + dry-run 설계 도구이며 실제 배포, MQTT command publish, Device CR 수정, runtime migration/offloading을 수행하지 않는다.
-

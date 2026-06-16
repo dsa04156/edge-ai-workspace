@@ -1,22 +1,35 @@
 # 문서 정리 계획
 
-이 문서는 `docs/goal.md`의 시스템 구축 목표를 기준으로 기존 문서를 정리하기 위한 작업 계획이다.
-현재 단계에서는 삭제보다 분류, 노출 순서 조정, 검색 노이즈 축소를 우선한다.
+이 문서는 `docs/goal.md`의 시스템 구축 목표를 기준으로 문서 묶음과 노출 순서를 정리한다.
+현재 단계에서는 삭제보다 분류, 진입점 단순화, 검색 노이즈 축소를 우선한다.
 
 ## 정리 원칙
 
 1. 원본 Markdown은 계속 source of truth로 유지한다.
 2. HTML은 `scripts/build-docs-html.py`로 재생성되는 보기용 산출물로 둔다.
-3. Active 문서는 현재 시스템 구축 목표와 직접 연결되는 문서만 둔다.
-4. Ops 문서는 운영 점검, 장애 대응, 데모 실행에 필요한 문서로 둔다.
-5. Archive 문서는 과거 연구/논문/legacy orchestration 맥락으로만 둔다.
-6. 삭제는 즉시 하지 않고, 중복/검색 제외/통합 후보를 먼저 표시한다.
-7. workflow/offloading/agent-assisted planning 계열은 현재 방향으로 보이지 않게 분리한다.
+3. `docs/wiki/`는 질문과 탐색의 첫 진입점으로 둔다.
+4. Active 문서는 현재 시스템 구축 목표와 직접 연결되는 원본문서로 둔다.
+5. Ops 문서는 운영 점검, 장애 대응, 데모 실행에 필요한 원본문서로 둔다.
+6. Archive 문서는 과거 연구/논문/legacy orchestration 맥락으로만 둔다.
+7. 삭제는 즉시 하지 않고, 중복/검색 제외/통합 후보를 먼저 표시한다.
+8. workflow/offloading/agent-assisted planning 계열은 현재 방향으로 보이지 않게 분리한다.
+
+## Wiki 문서
+
+Karpathy식 LLM wiki 구조는 `docs/wiki/`에 둔다.
+원본 Active/Ops 문서는 source of truth로 유지하고, wiki 문서는 질문 응답과 문서 탐색을 빠르게 하기 위한 합성 계층으로 관리한다.
+
+| 문서 | 역할 | 조치 |
+|---|---|---|
+| `wiki/index.md` | 전체 wiki map과 source document map | 신규 Wiki 진입점 |
+| `wiki/SCHEMA.md` | 에이전트 유지 규칙과 ingest/query/lint workflow | 신규 유지 규칙 |
+| `wiki/log.md` | append-only 변경 이력 | 신규 log |
+| `wiki/*.md` synthesis pages | Active/Ops 문서 기반 주제별 요약 | source 문서 링크와 현재 범위 경계 유지 |
 
 ## Active 문서
 
-현재 PoC 목표를 설명하는 중심 문서다.
-README와 HTML 홈에서 가장 먼저 보여준다.
+현재 PoC 목표를 설명하는 원본문서다.
+wiki에서 요약하되, 정확한 정책 문구나 세부 필드는 Active 문서를 기준으로 확인한다.
 
 | 문서 | 역할 | 조치 |
 |---|---|---|
@@ -38,7 +51,7 @@ README와 HTML 홈에서 가장 먼저 보여준다.
 ## Ops 문서
 
 운영자가 데모 실행, 점검, 장애 대응에 사용하는 문서다.
-HTML 홈에서는 Active 다음에 보여준다.
+HTML 홈에서는 Wiki와 Active 다음에 보여준다.
 
 | 문서 | 역할 | 조치 |
 |---|---|---|
@@ -74,34 +87,31 @@ HTML 홈에서는 Active 다음에 보여준다.
 
 ## 검색 정책 제안
 
-문서 사이트 검색은 기본적으로 Active와 Ops를 우선한다.
-Archive는 검색 결과에 나오더라도 뒤로 밀거나, 별도 필터로 접근하게 한다.
+문서 사이트 검색은 Wiki, Active, Ops, Archive를 분리한다.
+Archive는 검색 결과에 나오더라도 별도 필터로 확인하는 것을 기본으로 한다.
 
 권장 필터:
 
 - 전체
+- Wiki
 - Active
 - 운영
 - Archive
 
 권장 기본값:
 
-- 문서 홈: Active + 운영 우선
+- 문서 홈: Wiki -> Active -> 운영 -> Archive 순서
 - Archive 포함 여부: 사용자가 직접 선택
 - 대형 로그 문서: 기본 검색 제외 후보
 
 ## HTML 홈 개편 방향
 
-현재 홈은 전체 문서 목록을 보여준다.
-앞으로는 다음 순서로 보이게 한다.
+HTML 홈은 전체 문서 목록을 보여주되, 판단 순서가 드러나도록 다음 순서로 묶는다.
 
-1. 시스템 구축 목표
-2. 처음 읽을 문서
-3. 데모 실행/운영 문서
-4. 아키텍처/정책 문서
-5. 운영 보조 agent 문서
-6. Archive
-7. 정리/검토 후보
+1. Wiki 문서
+2. Active 문서
+3. 운영 문서
+4. Archive
 
 
 ## Legacy / Reference 로컬 표식
@@ -121,12 +131,3 @@ Archive는 검색 결과에 나오더라도 뒤로 밀거나, 별도 필터로 �
 
 현재 단계에서는 파일 이동/삭제를 하지 않는다.
 먼저 README와 HTML 홈에서 노출 구조를 정리한 뒤, 중복 여부가 확실한 문서만 별도 승인 후 삭제/통합한다.
-
-## 다음 작업 후보
-
-1. `README.md`를 `goal.md` 중심으로 재정리한다.
-2. `scripts/build-docs-html.py`의 Active 문서 순서에 `goal.md`와 이 문서를 추가한다.
-3. HTML 홈에서 Archive 섹션을 뒤로 빼고 설명 문구를 강화한다.
-4. 검색 필터를 추가해 Active/Ops/Archive를 분리한다.
-5. 중복 cost model 문서는 `archive/legacy-orchestration/cost-model-and-runtime-method.md`를 canonical로 유지하고, embedded-conference 쪽 문서는 안내 문서로 축소했다.
-6. `integration-detail-log.md`는 기본 검색에서 제외했다.

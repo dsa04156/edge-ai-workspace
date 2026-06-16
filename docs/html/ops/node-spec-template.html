@@ -23,6 +23,7 @@
   <div class="search-box" data-search-index="../search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
       <button type="button" data-search-filter="active">Active</button>
       <button type="button" data-search-filter="ops">운영</button>
       <button type="button" data-search-filter="archive">Archive</button>
@@ -36,17 +37,25 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
+<li class="group">Wiki 문서</li>
+<li><a href="../wiki/index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="../wiki/SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="../wiki/log.html">Wiki 변경 로그</a></li>
+<li><a href="../wiki/operating-model.html">운영 모델</a></li>
+<li><a href="../wiki/current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="../wiki/status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="../wiki/dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../wiki/operations-entry-points.html">운영 진입점</a></li>
+<li><a href="../wiki/second-year-design-track.html">2차년도 설계 트랙</a></li>
 <li class="group">Active 문서</li>
 <li><a href="../README.html">문서 안내</a></li>
 <li><a href="../goal.html">시스템 구축 목표</a></li>
 <li><a href="../project-context.html">프로젝트 배경</a></li>
 <li><a href="../scope.html">프로젝트 범위</a></li>
 <li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
-<li class="group">운영 문서</li>
-<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
-<li class="group">Active 문서</li>
 <li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
 <li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
 <li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
@@ -56,18 +65,18 @@
 <li><a href="../repo-structure.html">레포 구조</a></li>
 <li><a href="../roadmap.html">로드맵</a></li>
 <li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="../raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
 <li class="group">운영 문서</li>
-<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
 <li><a href="dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="e2e-demo-verification.html">E2E 데모 검증</a></li>
-<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
 <li><a href="gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
-<li><a href="node-join-check.html">노드 조인 점검</a></li>
-<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
-<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
 <li><a href="troubleshooting-network.html">네트워크 트러블슈팅</a></li>
-<li class="group">Active 문서</li>
-<li><a href="../raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li><a href="edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="node-join-check.html">노드 조인 점검</a></li>
+<li><a href="pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="node-spec-template.html">노드 실측 사양표</a></li>
 <li class="group">Archive</li>
 <li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
 <li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
@@ -90,14 +99,14 @@
 </nav>
       <article class="doc">
         <header class="doc-header">
-          <p class="eyebrow">Active 문서</p>
+          <p class="eyebrow">운영 문서</p>
           <h1>노드 실측 사양표</h1>
           <p class="subtitle">실제 장비 기준으로 서버/Jetson/Raspberry Pi의 CPU, RAM, GPU/NPU 모델명을 정리한 문서다. 저장소…</p>
           <div class="meta">
-            <span class="badge kind">Active</span>
+            <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/node-spec-template.md</span>
-            <span class="badge">수정: 2026-04-30 13:52</span>
-            <span class="badge">HTML 생성: 2026-06-04 13:53</span>
+            <span class="badge">수정: 2026-06-04 17:09</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
           </div>
         </header>
         
@@ -172,18 +181,32 @@
 <td>edge inference, preprocess</td>
 </tr>
 <tr>
-<td>Raspberry Pi 5</td>
+<td>Raspberry Pi 5 (기존)</td>
 <td><code>etri-dev0002-raspi5</code></td>
 <td><code>edge_light_device</code></td>
 <td><code>arm64</code> / <code>aarch64</code></td>
 <td><code>Cortex-A76</code></td>
 <td>4 vCPU, 4코어 / 4스레드</td>
-<td>약 <code>15 GiB</code></td>
+<td>약 <code>8 GiB</code></td>
 <td>전용 AI 가속기 없음, GPU 모델 미확인</td>
 <td>해당 없음</td>
 <td>미확인</td>
 <td><code>192.168.0.4</code></td>
 <td>capture, lightweight preprocess</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5 (신규)</td>
+<td><code>etri-dev0003-raspi5</code></td>
+<td><code>edge_light_device</code></td>
+<td><code>arm64</code> / <code>aarch64</code></td>
+<td><code>Cortex-A76</code></td>
+<td>4 vCPU, 4코어 / 4스레드</td>
+<td>약 <code>8 GiB</code></td>
+<td>전용 AI 가속기 없음, GPU 모델 미확인</td>
+<td>미확인</td>
+<td>미확인</td>
+<td><code>192.168.0.6</code></td>
+<td>2026-06-04 신규 추가, Sense HAT 장착</td>
 </tr>
 </tbody></table></div>
 <p>---</p>
@@ -272,28 +295,124 @@
 <td>Codex</td>
 </tr>
 <tr>
-<td>Raspberry Pi 5</td>
+<td>Raspberry Pi 5 (기존)</td>
 <td><code>etri-dev0002-raspi5</code></td>
-<td><code>2026-04-10</code></td>
+<td><code>2026-06-04</code></td>
 <td><code>Debian GNU/Linux 13 (trixie)</code></td>
-<td><code>6.12.79-v8-16k+</code></td>
+<td><code>6.12.75+rpt-rpi-2712</code></td>
 <td><code>Cortex-A76</code></td>
 <td><code>-</code></td>
 <td><code>4</code></td>
 <td><code>4</code></td>
-<td><code>15 GiB</code></td>
-<td><code>2.0 GiB</code></td>
+<td>약 <code>8 GiB</code></td>
+<td><code>-</code></td>
 <td>미확인</td>
 <td>해당 없음</td>
-<td>미확인</td>
-<td>미확인</td>
+<td>약 <code>227 GiB</code></td>
 <td><code>InternalIP: 192.168.0.4</code></td>
-<td>보드 모델 <code>Raspberry Pi 5 Model B Rev 1.1</code> 확인</td>
-<td>Codex</td>
+<td>6.12 커널로 downgrade (iptables 모듈 호환), Sense HAT 탑재됨</td>
+<td>Sisyphus</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5 (신규)</td>
+<td><code>etri-dev0003-raspi5</code></td>
+<td><code>2026-06-04</code></td>
+<td><code>Debian GNU/Linux 13 (trixie)</code></td>
+<td><code>6.12.75+rpt-rpi-2712</code></td>
+<td><code>Cortex-A76</code></td>
+<td><code>-</code></td>
+<td><code>4</code></td>
+<td><code>4</code></td>
+<td>약 <code>8 GiB</code></td>
+<td><code>-</code></td>
+<td>미확인</td>
+<td>해당 없음</td>
+<td>약 <code>227 GiB</code></td>
+<td><code>InternalIP: 192.168.0.6</code></td>
+<td>Sense HAT 장착, edgemesh-agent 정상, 2026-06-04 신규 추가</td>
+<td>Sisyphus</td>
 </tr>
 </tbody></table></div>
 <p>---</p>
-<h2 id="3-저장소-기준으로-이미-확인된-항목">3. 저장소 기준으로 이미 확인된 항목</h2>
+<h2 id="3-소프트웨어-런타임-버전-실측표">3. 소프트웨어 / 런타임 버전 실측표</h2>
+<p>아래 표는 2026-06-04 기준 각 노드에 설치된 소프트웨어 버전이다. 문서에 명시된 버전과 실제 운영 버전을 비교하기 위한 목적이 크다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>노드</th>
+<th>hostname</th>
+<th>KubeEdge</th>
+<th>containerd</th>
+<th>커널</th>
+<th>Kubernetes</th>
+<th>OS</th>
+<th>Go</th>
+<th>비고</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>서버 1</td>
+<td><code>etri-ser0001-cg0msb</code></td>
+<td><code>v1.31.14</code></td>
+<td>미확인</td>
+<td><code>6.17.0-20-generic</code></td>
+<td><code>v1.31.14</code></td>
+<td><code>Ubuntu 24.04</code></td>
+<td>미확인</td>
+<td>control-plane</td>
+</tr>
+<tr>
+<td>서버 2</td>
+<td><code>etri-ser0002-cgnmsb</code></td>
+<td><code>v1.31.14</code></td>
+<td>미확인</td>
+<td><code>6.17.0-20-generic</code></td>
+<td><code>v1.31.14</code></td>
+<td><code>Ubuntu 24.04</code></td>
+<td>미확인</td>
+<td>worker</td>
+</tr>
+<tr>
+<td>Jetson</td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td><code>v1.23.0</code></td>
+<td><code>2.2.1</code></td>
+<td><code>5.15.148-tegra</code></td>
+<td><code>v1.32.10-kubeedge-v1.23.0</code></td>
+<td><code>Ubuntu 22.04 (L4T)</code></td>
+<td>edgecore 정적</td>
+<td>NVIDIA L4T 플랫폼, containerd v2</td>
+</tr>
+<tr>
+<td>Raspi5 (기존)</td>
+<td><code>etri-dev0002-raspi5</code></td>
+<td><code>v1.23.0</code></td>
+<td><code>1.7.18</code></td>
+<td><code>6.12.75+rpt-rpi-2712</code></td>
+<td><code>v1.32.10-kubeedge-v1.23.0</code></td>
+<td><code>Debian 13 (trixie)</code></td>
+<td><code>1.24.4</code> (host에 설치됨)</td>
+<td>edgecore 정적, Sense HAT 있음 (디바이스 감지 불가)</td>
+</tr>
+<tr>
+<td>Raspi5 (신규)</td>
+<td><code>etri-dev0003-raspi5</code></td>
+<td><code>v1.23.0</code></td>
+<td><code>1.7.24</code></td>
+<td><code>6.12.75+rpt-rpi-2712</code></td>
+<td><code>v1.32.10-kubeedge-v1.23.0</code></td>
+<td><code>Debian 13 (trixie)</code></td>
+<td>edgecore 정적</td>
+<td>Sense HAT 정상 동작, 2026-06-04 신규 추가</td>
+</tr>
+</tbody></table></div>
+<h3 id="주요-버전-차이-포인트">주요 버전 차이 포인트</h3>
+<ol><li><strong>KubeEdge</strong>: edge 노드 3대 모두 <code>v1.23.0</code>으로 통일. cloud 노드는 <code>v1.31.14</code> (Kubernetes 버전과 일치).</li><li><strong>containerd</strong>:</li></ol>
+<ul><li>Raspi5 2대: Debian 13 패키지로 <code>1.7.18</code> / <code>1.7.24</code></li><li>Jetson: 별도 설치 <code>2.2.1</code> (v2 계열)</li></ul>
+<ol><li><strong>커널</strong>:</li></ol>
+<ul><li>Raspi5 2대: Debian RPi 팩토리 커널 <code>6.12.75</code> (iptables 모듈 호환성을 위해 6.18에서 downgrade)</li><li>Jetson: NVIDIA L4T 커널 <code>5.15.148-tegra</code></li></ul>
+<ol><li><strong>Kubernetes 버전 표시</strong>: <code>kubectl get nodes</code>에서 edge 노드는 <code>v1.32.10-kubeedge-v1.23.0</code>으로 표시됨 (kubelet 버전 기반).</li></ol>
+<p>---</p>
+<h2 id="4-저장소-기준으로-이미-확인된-항목">4. 저장소 기준으로 이미 확인된 항목</h2>
 <p>아래 정보는 저장소 문서/코드에서 이미 확인되는 항목이다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -351,7 +470,7 @@
 <p>주의:</p>
 <ul><li>Jetson의 <code>memory_class</code>는 문서와 테스트 값이 다르므로, 실측 후 하나로 통일하는 것이 좋다.</li><li>서버 2는 GPU Operator 잔재를 정리한 뒤 <code>nvidia-container-toolkit + k8s-device-plugin</code> 최소 경로로 GPU 노출을 복구했다.</li><li>서버 1은 containerd v2 계열 설정에서 <code>enable_cdi = true</code>를 반영한 뒤 <code>nvidia.com/gpu=1</code>로 정상 노출됐다.</li></ul>
 <p>---</p>
-<h2 id="4-이번에-사용한-확인-명령-예시">4. 이번에 사용한 확인 명령 예시</h2>
+<h2 id="5-이번에-사용한-확인-명령-예시">5. 이번에 사용한 확인 명령 예시</h2>
 <h3 id="서버-1에서-직접-실행">서버 1에서 직접 실행</h3>
 <pre data-lang="bash"><code>lscpu
 free -h
@@ -365,11 +484,12 @@ kubectl get node &lt;node-name&gt; -o jsonpath=&#x27;{...}&#x27;</code></pre>
 <h3 id="원격-노드-내부를-직접-확인할-때-사용">원격 노드 내부를 직접 확인할 때 사용</h3>
 <pre data-lang="bash"><code>kubectl debug node/&lt;node-name&gt; --image=busybox -- chroot /host sh -lc &#x27;&lt;command&gt;&#x27;</code></pre>
 <p>예시:</p>
-<pre data-lang="bash"><code>kubectl debug node/etri-dev0002-raspi5 --image=busybox -- chroot /host sh -lc &#x27;cat /proc/device-tree/model; lscpu; free -h&#x27;
+<pre data-lang="bash"><code>kubectl debug node/etri-dev0003-raspi5 --image=busybox -- chroot /host sh -lc &#x27;cat /proc/device-tree/model; lscpu; free -h&#x27;
+kubectl debug node/etri-dev0002-raspi5 --image=busybox -- chroot /host sh -lc &#x27;cat /proc/device-tree/model; lscpu; free -h&#x27;
 kubectl debug node/etri-dev0001-jetorn --image=busybox -- chroot /host sh -lc &#x27;cat /proc/device-tree/model; lscpu; free -h; dpkg -l | grep -E &quot;nvidia-l4t|jetpack&quot;&#x27;
 kubectl debug node/etri-ser0002-cgnmsb --image=busybox -- chroot /host sh -lc &#x27;lscpu; free -h; lspci | grep -Ei &quot;vga|3d|display|nvidia&quot;; nvidia-smi || true&#x27;</code></pre>
 <p>---</p>
-<h2 id="5-장비에서-추가-수집할-명령-예시">5. 장비에서 추가 수집할 명령 예시</h2>
+<h2 id="6-장비에서-추가-수집할-명령-예시">6. 장비에서 추가 수집할 명령 예시</h2>
 <p>아래 명령은 각 장비에서 직접 실행해서 표를 채우기 위한 기본 수집 세트다.</p>
 <h3 id="공통-linux-기본-수집">공통 Linux 기본 수집</h3>
 <pre data-lang="bash"><code>hostnamectl
@@ -400,7 +520,7 @@ free -h
 vcgencmd version
 vcgencmd get_config arm_boost</code></pre>
 <p>---</p>
-<h2 id="6-표를-채울-때-권장-포맷">6. 표를 채울 때 권장 포맷</h2>
+<h2 id="7-표를-채울-때-권장-포맷">7. 표를 채울 때 권장 포맷</h2>
 <h3 id="cpu-모델-예시">CPU 모델 예시</h3>
 <ul><li><code>Intel Xeon Silver 4310</code></li><li><code>AMD EPYC 7313P</code></li><li><code>ARM Cortex-A76</code></li></ul>
 <h3 id="ram-예시">RAM 예시</h3>
@@ -410,7 +530,7 @@ vcgencmd get_config arm_boost</code></pre>
 <h3 id="저장장치-예시">저장장치 예시</h3>
 <ul><li><code>Samsung PM9A1 NVMe 1TB</code></li><li><code>WD Blue SSD 500GB</code></li><li><code>microSD 128GB</code></li></ul>
 <p>---</p>
-<h2 id="7-논문용-축약-표-예시">7. 논문용 축약 표 예시</h2>
+<h2 id="8-논문용-축약-표-예시">8. 논문용 축약 표 예시</h2>
 <p>논문 본문에는 아래 정도로 짧게 넣는 편이 보통 좋다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -456,30 +576,32 @@ vcgencmd get_config arm_boost</code></pre>
 </tr>
 </tbody></table></div>
 <p>---</p>
-<h2 id="8-다음-정리-추천">8. 다음 정리 추천</h2>
+<h2 id="9-다음-정리-추천">9. 다음 정리 추천</h2>
 <p>이 템플릿을 채운 다음에는 아래 둘 중 하나로 이어가면 된다.</p>
 <ol><li><code>docs/project-context.md</code>에 최종 사양 표를 요약본으로 추가</li><li>논문 초안의 실험 환경 섹션에 그대로 옮길 수 있게 4줄짜리 축약 표로 정리</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-최종-정리용-표">1. 최종 정리용 표</a></li>
 <li class="toc-h2"><a href="#2-상세-실측-기록용-표">2. 상세 실측 기록용 표</a></li>
-<li class="toc-h2"><a href="#3-저장소-기준으로-이미-확인된-항목">3. 저장소 기준으로 이미 확인된 항목</a></li>
-<li class="toc-h2"><a href="#4-이번에-사용한-확인-명령-예시">4. 이번에 사용한 확인 명령 예시</a></li>
+<li class="toc-h2"><a href="#3-소프트웨어-런타임-버전-실측표">3. 소프트웨어 / 런타임 버전 실측표</a></li>
+<li class="toc-h3"><a href="#주요-버전-차이-포인트">주요 버전 차이 포인트</a></li>
+<li class="toc-h2"><a href="#4-저장소-기준으로-이미-확인된-항목">4. 저장소 기준으로 이미 확인된 항목</a></li>
+<li class="toc-h2"><a href="#5-이번에-사용한-확인-명령-예시">5. 이번에 사용한 확인 명령 예시</a></li>
 <li class="toc-h3"><a href="#서버-1에서-직접-실행">서버 1에서 직접 실행</a></li>
 <li class="toc-h3"><a href="#클러스터에서-각-노드-기본-정보-확인">클러스터에서 각 노드 기본 정보 확인</a></li>
 <li class="toc-h3"><a href="#원격-노드-내부를-직접-확인할-때-사용">원격 노드 내부를 직접 확인할 때 사용</a></li>
-<li class="toc-h2"><a href="#5-장비에서-추가-수집할-명령-예시">5. 장비에서 추가 수집할 명령 예시</a></li>
+<li class="toc-h2"><a href="#6-장비에서-추가-수집할-명령-예시">6. 장비에서 추가 수집할 명령 예시</a></li>
 <li class="toc-h3"><a href="#공통-linux-기본-수집">공통 Linux 기본 수집</a></li>
 <li class="toc-h3"><a href="#x86-서버에서-gpu-확인">x86 서버에서 GPU 확인</a></li>
 <li class="toc-h3"><a href="#jetson에서-gpu-플랫폼-확인">Jetson에서 GPU/플랫폼 확인</a></li>
 <li class="toc-h3"><a href="#raspberry-pi-5에서-플랫폼-확인">Raspberry Pi 5에서 플랫폼 확인</a></li>
-<li class="toc-h2"><a href="#6-표를-채울-때-권장-포맷">6. 표를 채울 때 권장 포맷</a></li>
+<li class="toc-h2"><a href="#7-표를-채울-때-권장-포맷">7. 표를 채울 때 권장 포맷</a></li>
 <li class="toc-h3"><a href="#cpu-모델-예시">CPU 모델 예시</a></li>
 <li class="toc-h3"><a href="#ram-예시">RAM 예시</a></li>
 <li class="toc-h3"><a href="#gpu-npu-예시">GPU/NPU 예시</a></li>
 <li class="toc-h3"><a href="#저장장치-예시">저장장치 예시</a></li>
-<li class="toc-h2"><a href="#7-논문용-축약-표-예시">7. 논문용 축약 표 예시</a></li>
-<li class="toc-h2"><a href="#8-다음-정리-추천">8. 다음 정리 추천</a></li></ol></aside>
+<li class="toc-h2"><a href="#8-논문용-축약-표-예시">8. 논문용 축약 표 예시</a></li>
+<li class="toc-h2"><a href="#9-다음-정리-추천">9. 다음 정리 추천</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

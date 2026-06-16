@@ -23,6 +23,7 @@
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
       <button type="button" data-search-filter="active">Active</button>
       <button type="button" data-search-filter="ops">운영</button>
       <button type="button" data-search-filter="archive">Archive</button>
@@ -36,17 +37,25 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
+<li class="group">Wiki 문서</li>
+<li><a href="wiki/index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="wiki/SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="wiki/log.html">Wiki 변경 로그</a></li>
+<li><a href="wiki/operating-model.html">운영 모델</a></li>
+<li><a href="wiki/current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/operations-entry-points.html">운영 진입점</a></li>
+<li><a href="wiki/second-year-design-track.html">2차년도 설계 트랙</a></li>
 <li class="group">Active 문서</li>
 <li><a href="README.html">문서 안내</a></li>
 <li><a href="goal.html">시스템 구축 목표</a></li>
 <li><a href="project-context.html">프로젝트 배경</a></li>
 <li><a href="scope.html">프로젝트 범위</a></li>
 <li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
-<li class="group">운영 문서</li>
-<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
-<li class="group">Active 문서</li>
 <li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
 <li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
@@ -56,18 +65,18 @@
 <li><a href="repo-structure.html">레포 구조</a></li>
 <li><a href="roadmap.html">로드맵</a></li>
 <li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
 <li class="group">운영 문서</li>
-<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
 <li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
-<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
 <li><a href="ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
-<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
-<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
-<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
 <li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
-<li class="group">Active 문서</li>
-<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li class="group">Archive</li>
 <li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
 <li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
@@ -92,22 +101,52 @@
         <header class="doc-header">
           <p class="eyebrow">Active 문서</p>
           <h1>문서 정리 계획</h1>
-          <p class="subtitle">docs/goal.md의 시스템 구축 목표를 기준으로 기존 문서를 정리하기 위한 작업 계획이다. 현재 단계에서는 삭제보다 분류,…</p>
+          <p class="subtitle">docs/goal.md의 시스템 구축 목표를 기준으로 문서 묶음과 노출 순서를 정리한다. 현재 단계에서는 삭제보다 분류, 진입점…</p>
           <div class="meta">
-            <span class="badge kind">Active</span>
+            <span class="badge kind">Active 문서</span>
             <span class="badge">원본: docs-cleanup-plan.md</span>
-            <span class="badge">수정: 2026-06-04 13:52</span>
-            <span class="badge">HTML 생성: 2026-06-04 13:53</span>
+            <span class="badge">수정: 2026-06-16 20:49</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
           </div>
         </header>
         
         <div class="doc-body">
           <h1 id="문서-정리-계획">문서 정리 계획</h1>
-<p>이 문서는 <code>docs/goal.md</code>의 시스템 구축 목표를 기준으로 기존 문서를 정리하기 위한 작업 계획이다. 현재 단계에서는 삭제보다 분류, 노출 순서 조정, 검색 노이즈 축소를 우선한다.</p>
+<p>이 문서는 <code>docs/goal.md</code>의 시스템 구축 목표를 기준으로 문서 묶음과 노출 순서를 정리한다. 현재 단계에서는 삭제보다 분류, 진입점 단순화, 검색 노이즈 축소를 우선한다.</p>
 <h2 id="정리-원칙">정리 원칙</h2>
-<ol><li>원본 Markdown은 계속 source of truth로 유지한다.</li><li>HTML은 <code>scripts/build-docs-html.py</code>로 재생성되는 보기용 산출물로 둔다.</li><li>Active 문서는 현재 시스템 구축 목표와 직접 연결되는 문서만 둔다.</li><li>Ops 문서는 운영 점검, 장애 대응, 데모 실행에 필요한 문서로 둔다.</li><li>Archive 문서는 과거 연구/논문/legacy orchestration 맥락으로만 둔다.</li><li>삭제는 즉시 하지 않고, 중복/검색 제외/통합 후보를 먼저 표시한다.</li><li>workflow/offloading/agent-assisted planning 계열은 현재 방향으로 보이지 않게 분리한다.</li></ol>
+<ol><li>원본 Markdown은 계속 source of truth로 유지한다.</li><li>HTML은 <code>scripts/build-docs-html.py</code>로 재생성되는 보기용 산출물로 둔다.</li><li><code>docs/wiki/</code>는 질문과 탐색의 첫 진입점으로 둔다.</li><li>Active 문서는 현재 시스템 구축 목표와 직접 연결되는 원본문서로 둔다.</li><li>Ops 문서는 운영 점검, 장애 대응, 데모 실행에 필요한 원본문서로 둔다.</li><li>Archive 문서는 과거 연구/논문/legacy orchestration 맥락으로만 둔다.</li><li>삭제는 즉시 하지 않고, 중복/검색 제외/통합 후보를 먼저 표시한다.</li><li>workflow/offloading/agent-assisted planning 계열은 현재 방향으로 보이지 않게 분리한다.</li></ol>
+<h2 id="wiki-문서">Wiki 문서</h2>
+<p>Karpathy식 LLM wiki 구조는 <code>docs/wiki/</code>에 둔다. 원본 Active/Ops 문서는 source of truth로 유지하고, wiki 문서는 질문 응답과 문서 탐색을 빠르게 하기 위한 합성 계층으로 관리한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>문서</th>
+<th>역할</th>
+<th>조치</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>wiki/index.md</code></td>
+<td>전체 wiki map과 source document map</td>
+<td>신규 Wiki 진입점</td>
+</tr>
+<tr>
+<td><code>wiki/SCHEMA.md</code></td>
+<td>에이전트 유지 규칙과 ingest/query/lint workflow</td>
+<td>신규 유지 규칙</td>
+</tr>
+<tr>
+<td><code>wiki/log.md</code></td>
+<td>append-only 변경 이력</td>
+<td>신규 log</td>
+</tr>
+<tr>
+<td><code>wiki/*.md</code> synthesis pages</td>
+<td>Active/Ops 문서 기반 주제별 요약</td>
+<td>source 문서 링크와 현재 범위 경계 유지</td>
+</tr>
+</tbody></table></div>
 <h2 id="active-문서">Active 문서</h2>
-<p>현재 PoC 목표를 설명하는 중심 문서다. README와 HTML 홈에서 가장 먼저 보여준다.</p>
+<p>현재 PoC 목표를 설명하는 원본문서다. wiki에서 요약하되, 정확한 정책 문구나 세부 필드는 Active 문서를 기준으로 확인한다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>문서</th>
@@ -187,7 +226,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="ops-문서">Ops 문서</h2>
-<p>운영자가 데모 실행, 점검, 장애 대응에 사용하는 문서다. HTML 홈에서는 Active 다음에 보여준다.</p>
+<p>운영자가 데모 실행, 점검, 장애 대응에 사용하는 문서다. HTML 홈에서는 Wiki와 Active 다음에 보여준다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>문서</th>
@@ -296,14 +335,14 @@
 </tr>
 </tbody></table></div>
 <h2 id="검색-정책-제안">검색 정책 제안</h2>
-<p>문서 사이트 검색은 기본적으로 Active와 Ops를 우선한다. Archive는 검색 결과에 나오더라도 뒤로 밀거나, 별도 필터로 접근하게 한다.</p>
+<p>문서 사이트 검색은 Wiki, Active, Ops, Archive를 분리한다. Archive는 검색 결과에 나오더라도 별도 필터로 확인하는 것을 기본으로 한다.</p>
 <p>권장 필터:</p>
-<ul><li>전체</li><li>Active</li><li>운영</li><li>Archive</li></ul>
+<ul><li>전체</li><li>Wiki</li><li>Active</li><li>운영</li><li>Archive</li></ul>
 <p>권장 기본값:</p>
-<ul><li>문서 홈: Active + 운영 우선</li><li>Archive 포함 여부: 사용자가 직접 선택</li><li>대형 로그 문서: 기본 검색 제외 후보</li></ul>
+<ul><li>문서 홈: Wiki -&gt; Active -&gt; 운영 -&gt; Archive 순서</li><li>Archive 포함 여부: 사용자가 직접 선택</li><li>대형 로그 문서: 기본 검색 제외 후보</li></ul>
 <h2 id="html-홈-개편-방향">HTML 홈 개편 방향</h2>
-<p>현재 홈은 전체 문서 목록을 보여준다. 앞으로는 다음 순서로 보이게 한다.</p>
-<ol><li>시스템 구축 목표</li><li>처음 읽을 문서</li><li>데모 실행/운영 문서</li><li>아키텍처/정책 문서</li><li>운영 보조 agent 문서</li><li>Archive</li><li>정리/검토 후보</li></ol>
+<p>HTML 홈은 전체 문서 목록을 보여주되, 판단 순서가 드러나도록 다음 순서로 묶는다.</p>
+<ol><li>Wiki 문서</li><li>Active 문서</li><li>운영 문서</li><li>Archive</li></ol>
 <h2 id="legacy-reference-로컬-표식">Legacy / Reference 로컬 표식</h2>
 <p>현재 단계에서는 legacy 자료를 이동하거나 삭제하기보다, 먼저 로컬 README 표식으로 오해를 줄인다.</p>
 <p>대상 경로:</p>
@@ -311,11 +350,10 @@
 <p>각 README는 <code>Status: Legacy / Reference</code>를 명시하고, 현재 PoC 판단 기준이 <code>docs/scope.md</code>와 <code>docs/repo-structure.md</code>임을 안내한다. 이 표식은 삭제/이동 승인이 아니라, 검색과 에이전트 작업에서 현재 범위로 오해하지 않도록 하는 1차 가드레일이다.</p>
 <h2 id="실제-파일-이동은-아직-보류">실제 파일 이동은 아직 보류</h2>
 <p>현재 단계에서는 파일 이동/삭제를 하지 않는다. 먼저 README와 HTML 홈에서 노출 구조를 정리한 뒤, 중복 여부가 확실한 문서만 별도 승인 후 삭제/통합한다.</p>
-<h2 id="다음-작업-후보">다음 작업 후보</h2>
-<ol><li><code>README.md</code>를 <code>goal.md</code> 중심으로 재정리한다.</li><li><code>scripts/build-docs-html.py</code>의 Active 문서 순서에 <code>goal.md</code>와 이 문서를 추가한다.</li><li>HTML 홈에서 Archive 섹션을 뒤로 빼고 설명 문구를 강화한다.</li><li>검색 필터를 추가해 Active/Ops/Archive를 분리한다.</li><li>중복 cost model 문서는 <code>archive/legacy-orchestration/cost-model-and-runtime-method.md</code>를 canonical로 유지하고, embedded-conference 쪽 문서는 안내 문서로 축소했다.</li><li><code>integration-detail-log.md</code>는 기본 검색에서 제외했다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#정리-원칙">정리 원칙</a></li>
+<li class="toc-h2"><a href="#wiki-문서">Wiki 문서</a></li>
 <li class="toc-h2"><a href="#active-문서">Active 문서</a></li>
 <li class="toc-h2"><a href="#ops-문서">Ops 문서</a></li>
 <li class="toc-h2"><a href="#archive-문서">Archive 문서</a></li>
@@ -323,8 +361,7 @@
 <li class="toc-h2"><a href="#검색-정책-제안">검색 정책 제안</a></li>
 <li class="toc-h2"><a href="#html-홈-개편-방향">HTML 홈 개편 방향</a></li>
 <li class="toc-h2"><a href="#legacy-reference-로컬-표식">Legacy / Reference 로컬 표식</a></li>
-<li class="toc-h2"><a href="#실제-파일-이동은-아직-보류">실제 파일 이동은 아직 보류</a></li>
-<li class="toc-h2"><a href="#다음-작업-후보">다음 작업 후보</a></li></ol></aside>
+<li class="toc-h2"><a href="#실제-파일-이동은-아직-보류">실제 파일 이동은 아직 보류</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

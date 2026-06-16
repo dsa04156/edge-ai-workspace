@@ -23,6 +23,7 @@
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
       <button type="button" data-search-filter="active">Active</button>
       <button type="button" data-search-filter="ops">운영</button>
       <button type="button" data-search-filter="archive">Archive</button>
@@ -36,17 +37,25 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
+<li class="group">Wiki 문서</li>
+<li><a href="wiki/index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="wiki/SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="wiki/log.html">Wiki 변경 로그</a></li>
+<li><a href="wiki/operating-model.html">운영 모델</a></li>
+<li><a href="wiki/current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/operations-entry-points.html">운영 진입점</a></li>
+<li><a href="wiki/second-year-design-track.html">2차년도 설계 트랙</a></li>
 <li class="group">Active 문서</li>
 <li><a href="README.html">문서 안내</a></li>
 <li><a href="goal.html">시스템 구축 목표</a></li>
 <li><a href="project-context.html">프로젝트 배경</a></li>
 <li><a href="scope.html">프로젝트 범위</a></li>
 <li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
-<li class="group">운영 문서</li>
-<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
-<li class="group">Active 문서</li>
 <li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
 <li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
 <li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
 <li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
 <li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
@@ -56,18 +65,18 @@
 <li><a href="repo-structure.html">레포 구조</a></li>
 <li><a href="roadmap.html">로드맵</a></li>
 <li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
 <li class="group">운영 문서</li>
-<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
 <li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
 <li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
-<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
 <li><a href="ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
-<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
-<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
-<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
 <li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
-<li class="group">Active 문서</li>
-<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
 <li class="group">Archive</li>
 <li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
 <li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
@@ -94,10 +103,10 @@
           <h1>대시보드 정보 구조</h1>
           <p class="subtitle">현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC dashboard가 어떤 정보를 보여줘야 하는지 운영 관점에서 정리한…</p>
           <div class="meta">
-            <span class="badge kind">Active</span>
+            <span class="badge kind">Active 문서</span>
             <span class="badge">원본: dashboard-information-structure.md</span>
             <span class="badge">수정: 2026-05-26 20:00</span>
-            <span class="badge">HTML 생성: 2026-06-04 13:53</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
           </div>
         </header>
         

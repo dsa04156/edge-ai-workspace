@@ -65,6 +65,22 @@ physical / virtual device
 
 위 항목들은 필요한 경우 과거 검토/실험 자료 또는 archive로만 다룬다.
 
+## 2차년도 설계 방향
+
+2차년도 협약 방향에서는 현재 운영 가시화 PoC를 기반으로 다음 설계를 별도 트랙으로 추진한다.
+이 내용은 현재 기능 완료 주장이 아니라 설계 및 프로토타입 방향이다.
+
+1. 물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽 가상디바이스 인스턴스로 표현한다.
+2. 디바이스트윈은 raw telemetry 저장소가 아니라 상태, capability, resource, I/O, workflow binding snapshot으로 둔다.
+3. AI 서비스를 workflow stage로 분해하고, 가상디바이스를 stage input/output 또는 실행 후보로 동적으로 연결한다.
+4. 웹페이지는 단순 dashboard가 아니라 가상디바이스 풀, twin inspector, workflow canvas, binding/validation, execution plan을 포함하는 워크플로우 통합 개발도구로 설계한다.
+5. `test_device.py` 기반 가짜 MQTT publisher는 이 방향의 가상디바이스 정의로 사용하지 않고 legacy test 경로로만 취급한다.
+
+기준 문서:
+
+- `second-year-virtual-device-workflow-architecture.md`
+- `(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf`
+
 ## 정리 우선순위
 
 1. 현재 PoC 범위와 제외 범위를 문서화한다.

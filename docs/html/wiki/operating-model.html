@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>운영 모델</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=wiki/operating-model.md">편집</a>
+      </div>
+      <span>wiki/operating-model.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Wiki 문서</li>
+<li><a href="index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="log.html">Wiki 변경 로그</a></li>
+<li><a href="operating-model.html">운영 모델</a></li>
+<li><a href="current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="operations-entry-points.html">운영 진입점</a></li>
+<li><a href="second-year-design-track.html">2차년도 설계 트랙</a></li>
+<li class="group">Active 문서</li>
+<li><a href="../README.html">문서 안내</a></li>
+<li><a href="../goal.html">시스템 구축 목표</a></li>
+<li><a href="../project-context.html">프로젝트 배경</a></li>
+<li><a href="../scope.html">프로젝트 범위</a></li>
+<li><a href="../service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li><a href="../okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="../second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
+<li><a href="../dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="../dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="../device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="../kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
+<li><a href="../device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="../current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="../repo-structure.html">레포 구조</a></li>
+<li><a href="../roadmap.html">로드맵</a></li>
+<li><a href="../docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="../raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li><a href="../ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="../ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="../ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="../ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
+<li><a href="../ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li><a href="../ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="../ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="../ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="../ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li class="group">Archive</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="../archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="../archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="../archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="../archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="../archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="../archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="../archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Wiki 문서</p>
+          <h1>운영 모델</h1>
+          <p class="subtitle">현재 시스템은 KubeEdge 기반 혼합 디바이스 엣지 AI 서비스 데모를 운영 관점에서 보이게 만드는 PoC다. 핵심은 디바이…</p>
+          <div class="meta">
+            <span class="badge kind">Wiki 문서</span>
+            <span class="badge">원본: wiki/operating-model.md</span>
+            <span class="badge">수정: 2026-06-16 20:44</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="운영-모델">운영 모델</h1>
+<h2 id="한-줄-요약">한 줄 요약</h2>
+<p>현재 시스템은 KubeEdge 기반 혼합 디바이스 엣지 AI 서비스 데모를 운영 관점에서 보이게 만드는 PoC다. 핵심은 디바이스와 서비스를 실제로 연결하고, 그 상태를 dashboard와 read-only 운영 보조 요약으로 해석 가능하게 만드는 것이다.</p>
+<h2 id="현재-기준">현재 기준</h2>
+<p>이 프로젝트는 동적 orchestration 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 서비스 데모 1종을 운영 관점에서 설명 가능하게 만드는 것이다.</p>
+<ol><li>디바이스가 등록되고 edge node에 할당된다.</li><li>telemetry와 command 경로가 보인다.</li><li>mapper와 status 경로를 점검할 수 있다.</li><li>상태가 <code>state-aggregator</code> API로 모인다.</li><li>dashboard 상태, service binding, 생산성 KPI를 함께 설명할 수 있다.</li></ol>
+<p>짧은 정의:</p>
+<pre data-lang="text"><code>혼합 디바이스 edge AI 서비스 데모를 운영 관점에서 보이게 만드는 시스템</code></pre>
+<h2 id="경계">경계</h2>
+<p>현재 모델은 다음을 주장하지 않는다.</p>
+<ul><li>완전 자율형 orchestration</li><li>LLM 기반 인프라 제어</li><li>dynamic offloading이 현재 데모 경로라는 주장</li><li><code>workflow_executor</code> 또는 <code>placement_engine</code>이 현재 데모 제어 컴포넌트라는 주장</li><li>runtime replanning 구현 완료</li></ul>
+<p>Legacy workflow, offloading, selective replanning, agent-assisted planning 자료는 <code>docs/scope.md</code>에서 승격하지 않는 한 과거 맥락 또는 설계 후보로만 본다.</p>
+<h2 id="운영상-의미">운영상 의미</h2>
+<p>새 문서나 기능이 현재 PoC 범위인지 판단할 때 이 페이지를 기준으로 삼는다. 아래 질문에 직접 답하면 현재 경로에 가깝다.</p>
+<ul><li>어떤 device가 존재하는가?</li><li>어떤 node에 할당되어 있는가?</li><li>최근 telemetry가 보이는가?</li><li><code>DeviceStatus</code> snapshot이 운영 신호로 최신인가?</li><li>mapper, node, telemetry 중 어디를 먼저 봐야 하는가?</li><li>어떤 service demo group이 이 device에 의존하는가?</li><li>이 상태가 옥동 생산성 설명과 어떻게 연결되는가?</li></ul>
+<p>주요 내용이 dynamic workflow 실행, placement 최적화, agent control 확장이라면 먼저 2차년도 설계 트랙 또는 legacy/reference로 분류한다.</p>
+<h2 id="관련-wiki">관련 Wiki</h2>
+<ul><li><a href="current-demo-flow.html">현재 데모 흐름</a></li><li><a href="status-and-telemetry.html">상태와 텔레메트리</a></li><li><a href="dashboard-and-kpi.html">대시보드와 KPI 모델</a></li><li><a href="second-year-design-track.html">2차년도 설계 트랙</a></li></ul>
+<h2 id="근거-문서">근거 문서</h2>
+<ul><li><a href="../goal.html">시스템 구축 목표</a></li><li><a href="../project-context.html">프로젝트 배경</a></li><li><a href="../scope.html">프로젝트 범위</a></li><li><a href="../roadmap.html">로드맵</a></li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
+<li class="toc-h2"><a href="#현재-기준">현재 기준</a></li>
+<li class="toc-h2"><a href="#경계">경계</a></li>
+<li class="toc-h2"><a href="#운영상-의미">운영상 의미</a></li>
+<li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
+<li class="toc-h2"><a href="#근거-문서">근거 문서</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

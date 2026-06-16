@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2차년도 가상디바이스·워크플로우 설계</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=second-year-virtual-device-workflow-architecture.md">편집</a>
+      </div>
+      <span>second-year-virtual-device-workflow-architecture.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">Wiki</button>
+      <button type="button" data-search-filter="active">Active</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="archive">Archive</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">Wiki 문서</li>
+<li><a href="wiki/index.html">KubeEdge PoC LLM Wiki</a></li>
+<li><a href="wiki/SCHEMA.html">LLM Wiki 운영 규칙</a></li>
+<li><a href="wiki/log.html">Wiki 변경 로그</a></li>
+<li><a href="wiki/operating-model.html">운영 모델</a></li>
+<li><a href="wiki/current-demo-flow.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/status-and-telemetry.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/dashboard-and-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/operations-entry-points.html">운영 진입점</a></li>
+<li><a href="wiki/second-year-design-track.html">2차년도 설계 트랙</a></li>
+<li class="group">Active 문서</li>
+<li><a href="README.html">문서 안내</a></li>
+<li><a href="goal.html">시스템 구축 목표</a></li>
+<li><a href="project-context.html">프로젝트 배경</a></li>
+<li><a href="scope.html">프로젝트 범위</a></li>
+<li><a href="service-demo-scenario.html">서비스 데모 시나리오</a></li>
+<li><a href="okdong-productivity-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="kagenti-operator-assistant.html">Kagenti 운영 보조 Agent</a></li>
+<li><a href="second-year-virtual-device-workflow-architecture.html">2차년도 가상디바이스·워크플로우 설계</a></li>
+<li><a href="dashboard-information-structure.html">대시보드 정보 구조</a></li>
+<li><a href="dashboard-policy.html">대시보드 판단 기준</a></li>
+<li><a href="device-status-policy.html">DeviceStatus 정책</a></li>
+<li><a href="kubeedge-edgex-model-mapping.html">KubeEdge-EdgeX 모델 매핑</a></li>
+<li><a href="device-service-binding.html">디바이스-서비스 바인딩</a></li>
+<li><a href="current-demo-path.html">현재 데모 흐름</a></li>
+<li><a href="repo-structure.html">레포 구조</a></li>
+<li><a href="roadmap.html">로드맵</a></li>
+<li><a href="docs-cleanup-plan.html">문서 정리 계획</a></li>
+<li><a href="raw-telemetry-data-plane.html">Raw Telemetry Data Plane Architecture</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/runbook-current-demo.html">현재 데모 운영 Runbook</a></li>
+<li><a href="ops/dashboard-verification.html">Dashboard 검증 체크리스트</a></li>
+<li><a href="ops/e2e-demo-verification.html">E2E 데모 검증</a></li>
+<li><a href="ops/ci-cd-autodeploy.html">CI/CD 자동 배포 기준</a></li>
+<li><a href="ops/gpu-hami-runtime.html">HAMi GPU runtime 운영 메모</a></li>
+<li><a href="ops/troubleshooting-network.html">네트워크 트러블슈팅</a></li>
+<li><a href="ops/edge-node-join-check.html">Edge 노드 조인 점검</a></li>
+<li><a href="ops/node-join-check.html">노드 조인 점검</a></li>
+<li><a href="ops/pod-connectivity-check.html">파드 통신 점검</a></li>
+<li><a href="ops/node-spec-template.html">노드 실측 사양표</a></li>
+<li class="group">Archive</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.html">Selective Replanning 그림 자료</a></li>
+<li><a href="archive/embedded-conference/cost-model-and-runtime-method.html">비용 모델 안내</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.html">Selective Replanning 진행 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.html">Selective Replanning 결과 기록</a></li>
+<li><a href="archive/integration/handoff-legacy.html">과거 인수인계</a></li>
+<li><a href="archive/integration/integration-detail-log.html">통합 상세 로그</a></li>
+<li><a href="archive/integration/integration-doc.html">통합 문서</a></li>
+<li><a href="archive/integration/integration-summary.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/architecture.html">Legacy 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/legacy-orchestration/cost-model-and-runtime-method.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/system-overview.html">Legacy 시스템 개요</a></li>
+<li><a href="archive/research/README.html">연구 초안 안내</a></li>
+<li><a href="archive/research/evaluation-plan.html">평가 계획</a></li>
+<li><a href="archive/research/paper-strategy.html">논문 전략</a></li>
+<li><a href="archive/research/research-topics.html">연구 주제 정리</a></li>
+<li><a href="archive/research/venue-strategy.html">투고처 전략</a></li>
+<li><a href="archive/research/writing-checklist.html">논문 작성 체크리스트</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">Active 문서</p>
+          <h1>2차년도 가상디바이스·워크플로우 설계</h1>
+          <p class="subtitle">2차년도 협약 방향에 맞춰 현재 PoC를 어떤 구조로 확장할지 정의한다. 기준 문서는 docs/(2차년도협약용) 연구개발계획서-…</p>
+          <div class="meta">
+            <span class="badge kind">Active 문서</span>
+            <span class="badge">원본: second-year-virtual-device-workflow-architecture.md</span>
+            <span class="badge">수정: 2026-06-16 20:06</span>
+            <span class="badge">HTML 생성: 2026-06-16 20:49</span>
+          </div>
+        </header>
+        
+        <div class="doc-body">
+          <h1 id="2차년도-가상디바이스-디바이스트윈-워크플로우-설계">2차년도 가상디바이스·디바이스트윈·워크플로우 설계</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 2차년도 협약 방향에 맞춰 현재 PoC를 어떤 구조로 확장할지 정의한다. 기준 문서는 <code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code>다.</p>
+<p>이 설계는 기존 <code>test_device.py</code> 기반 MQTT 가짜 센서 생성 방식을 가상디바이스의 본류로 보지 않는다. 2차년도 방향의 가상디바이스는 물리 온디바이스와 매핑되는 컨테이너/소프트웨어 인스턴스이며, 디바이스트윈과 워크플로우 오케스트레이션의 관리 대상이다.</p>
+<h2 id="핵심-정의">핵심 정의</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>용어</th>
+<th>정의</th>
+<th>현재 PoC와의 관계</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 온디바이스</td>
+<td>Jetson, Raspberry Pi, 센서, 액추에이터, 카메라처럼 실제 현장에 존재하는 장비</td>
+<td>KubeEdge node/device, MQTT/collector, InfluxDB telemetry의 원천</td>
+</tr>
+<tr>
+<td>가상디바이스</td>
+<td>물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽에서 컨테이너/소프트웨어 인스턴스로 표현한 대상</td>
+<td>물리 장비를 workflow와 오케스트레이션이 다룰 수 있는 관리 단위로 추상화</td>
+</tr>
+<tr>
+<td>디바이스트윈</td>
+<td>물리/가상디바이스의 현재 상태, capability, resource, I/O, binding 상태를 담는 snapshot</td>
+<td>raw telemetry 저장소가 아니라 상태/제어/관리 snapshot</td>
+</tr>
+<tr>
+<td>AI 서비스 워크플로우</td>
+<td>AI 서비스를 collect, preprocess, inference, postprocess, event, dashboard sink 같은 stage로 분해하고 물리/가상디바이스를 동적으로 연결하는 실행 구조</td>
+<td>기존 workflow 실험을 그대로 쓰지 않고 2차년도용으로 새로 설계</td>
+</tr>
+<tr>
+<td>Input source</td>
+<td>workflow stage가 읽을 수 있는 데이터 입력 단위. InfluxDB stream, twin 상태, virtual device API가 될 수 있음</td>
+<td>가상디바이스의 I/O 중 workflow 입력으로 노출되는 부분</td>
+</tr>
+</tbody></table></div>
+<h2 id="하지-않는-방식">하지 않는 방식</h2>
+<p>다음 방식은 2차년도 가상디바이스 설계의 중심으로 쓰지 않는다.</p>
+<pre data-lang="text"><code>test_device.py
+  -&gt; 가짜 온도/진동/health 생성
+  -&gt; MQTT publish
+  -&gt; mqttvirtual mapper
+  -&gt; InfluxDB / DeviceStatus</code></pre>
+<p>이 방식은 과거 경로 검증이나 legacy 테스트에는 쓸 수 있지만, 협약 방향의 가상디바이스 정의와 다르다. 2차년도 문서와 설계에서는 가상디바이스를 &quot;가짜 센서 publisher&quot;가 아니라 &quot;물리 온디바이스와 매핑되는 소프트웨어 관리 인스턴스&quot;로 표현한다.</p>
+<h2 id="목표-구조">목표 구조</h2>
+<pre data-lang="text"><code>Physical On-Device Layer
+  Jetson / Raspberry Pi / sensor / actuator / camera
+  -&gt; telemetry, state, resource, I/O event 생성
+
+Data and State Layer
+  InfluxDB      -&gt; raw telemetry stream 저장
+  Device Twin   -&gt; 상태/capability/resource/I/O/binding snapshot
+  Prometheus    -&gt; node/container resource metric
+  Kubernetes    -&gt; container, pod, placement, lifecycle 상태
+
+Virtual Device Layer
+  virtual-device-instance-001
+  virtual-device-instance-002
+  ...
+  virtual-device-instance-030
+  -&gt; physical_ref, capability, resource profile, I/O endpoint, twin state 제공
+
+Workflow Layer
+  AI service workflow builder/runtime
+  -&gt; 가상디바이스 선택
+  -&gt; stage 구성
+  -&gt; input/output 연결
+  -&gt; 실행 위치와 자원 요구량 관리
+
+Web Control Layer
+  workflow 통합 개발도구
+  -&gt; 가상디바이스 풀
+  -&gt; 디바이스트윈 상태
+  -&gt; workflow canvas
+  -&gt; binding/validation/execution plan</code></pre>
+<h2 id="가상디바이스-모델">가상디바이스 모델</h2>
+<p>가상디바이스는 최소한 다음 정보를 가진다. 현재 registry seed는 <code>virtual-device/registry/virtual-devices.json</code>에 둔다.</p>
+<pre data-lang="yaml"><code>id: vd-sensehat-gyro-001
+kind: virtual_device
+display_name: Sense HAT Gyroscope Virtual Device
+physical_ref:
+  node: etri-dev0003-raspi5
+  kubeedge_device: imu-sensehat-gyroscope-01
+  hardware: sensehat-001
+capabilities:
+  inputs:
+    - gyro_x
+    - gyro_y
+    - gyro_z
+  outputs: []
+  operations:
+    - read_latest
+    - read_window
+resources:
+  compute_class: edge_light
+  accelerator: none
+  node_cpu_source: prometheus
+  node_memory_source: prometheus
+io:
+  telemetry_sources:
+    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_x
+    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_y
+    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_z
+twin:
+  health: available
+  telemetry_fresh: true
+  status_last_seen: &quot;2026-06-12T07:25:27Z&quot;
+  bound_workflow: factory-anomaly-workflow-01</code></pre>
+<p>현재 PoC에 승격된 최소 API 표면은 <code>state-aggregator</code>의 read-only GET API다. 이 단계에서 가상디바이스는 Kubernetes CRD가 아니라 registry seed를 API view로 노출한 것이다. Kubernetes/KubeEdge에는 물리 <code>Device</code>와 workload가 등록되고, 가상디바이스 registry는 <code>state-aggregator</code> Pod에 파일 또는 ConfigMap으로 주입한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>API</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>GET /state/virtual-devices</code></td>
+<td>30개 가상디바이스 pool과 node별 요약 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/virtual-devices/{id}</code></td>
+<td>physical ref, capability, resource, I/O, twin 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/virtual-devices/{id}/twin</code></td>
+<td>raw telemetry를 제외한 상태 snapshot 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/virtual-devices/{id}/latest</code></td>
+<td>registry의 <code>influx://...</code> source에서 최신 telemetry 값 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/virtual-devices/{id}/window</code></td>
+<td>registry의 <code>influx://...</code> source에서 window telemetry 값 조회</td>
+</tr>
+</tbody></table></div>
+<p>물리 환경 예시는 다음처럼 구분한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>노드</th>
+<th>장착 장치</th>
+<th>VD 역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>etri-dev0002-raspi5</code></td>
+<td>AI HAT</td>
+<td>AI HAT NPU가 붙은 lightweight inference/resource 후보</td>
+</tr>
+<tr>
+<td><code>etri-dev0003-raspi5</code></td>
+<td>Sense HAT</td>
+<td>환경/IMU sensor virtual-device 입력 source</td>
+</tr>
+</tbody></table></div>
+<h2 id="디바이스트윈-모델">디바이스트윈 모델</h2>
+<p>디바이스트윈은 raw telemetry stream 전체를 담지 않는다. 디바이스트윈은 workflow와 운영자가 판단할 수 있는 상태 snapshot만 유지한다.</p>
+<p>허용하는 대표 필드:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>영역</th>
+<th>필드 예시</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>상태</td>
+<td><code>health</code>, <code>availability</code>, <code>severity</code>, <code>freshness</code>, <code>status_last_seen</code></td>
+</tr>
+<tr>
+<td>capability</td>
+<td><code>inputs</code>, <code>outputs</code>, <code>operations</code>, <code>supported_models</code></td>
+</tr>
+<tr>
+<td>자원</td>
+<td><code>cpu_class</code>, <code>memory_class</code>, <code>accelerator</code>, <code>current_load</code>, <code>resource_profile</code></td>
+</tr>
+<tr>
+<td>입출력</td>
+<td><code>telemetry_sources</code>, <code>command_endpoints</code>, <code>result_outputs</code></td>
+</tr>
+<tr>
+<td>workflow binding</td>
+<td><code>bound_workflow</code>, <code>bound_stage</code>, <code>binding_state</code>, <code>last_binding_change</code></td>
+</tr>
+<tr>
+<td>오류</td>
+<td><code>last_error_code</code>, <code>last_error_message</code>, <code>recovery_hint</code></td>
+</tr>
+</tbody></table></div>
+<p>제외하는 필드:</p>
+<ul><li>고빈도 raw temperature/humidity/vibration/gyro stream 전체</li><li>이미지 frame 또는 waveform 원본</li><li>매 event log 전체</li><li>모델 inference raw result stream 전체</li></ul>
+<p>raw 데이터는 InfluxDB 같은 data-plane에 남기고, twin은 상태와 관리 정보를 제공한다.</p>
+<h2 id="워크플로우와의-관계">워크플로우와의 관계</h2>
+<p>AI 서비스 워크플로우는 가상디바이스를 stage 입력 또는 실행 대상 후보로 사용한다.</p>
+<pre data-lang="text"><code>AI Service Workflow
+  source stage
+    -&gt; vd-sensehat-gyro-001.read_window()
+  preprocess stage
+    -&gt; gyro feature extraction
+  inference stage
+    -&gt; anomaly model
+  event stage
+    -&gt; alert/event output
+  dashboard sink
+    -&gt; operator view</code></pre>
+<p>workflow가 동적으로 바꾸는 것은 물리 장비 자체가 아니라 다음 항목이다.</p>
+<ul><li>어떤 가상디바이스를 어떤 workflow stage에 bind할지</li><li>어떤 input source를 stage 입력으로 사용할지</li><li>stage를 어느 node/container에서 실행할지</li><li>가상디바이스 resource profile을 기준으로 실행 가능 여부를 판단할지</li><li>장애나 stale 상태에서 어떤 대체 가상디바이스로 전환할지</li></ul>
+<h2 id="30개-가상디바이스-해석">30개 가상디바이스 해석</h2>
+<p>2차년도 목표에서 &quot;30개&quot;는 가짜 센서 30개를 MQTT로 만들었다는 뜻으로 설명하지 않는다. 현재 테스트베드에서는 물리 온디바이스, 센서 기능, telemetry stream, 자원 profile, I/O endpoint를 조합해 30개의 가상디바이스 인스턴스를 구성한다.</p>
+<p>예시 구성:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>분류</th>
+<th>예시</th>
+<th>설명</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 센서 기능 단위</td>
+<td>Sense HAT humidity, pressure, gyro, orientation</td>
+<td>한 물리 장비의 여러 I/O 기능을 가상디바이스로 분리</td>
+</tr>
+<tr>
+<td>물리 디바이스 단위</td>
+<td>Jetson sensor bundle, Raspberry Pi Sense HAT bundle</td>
+<td>여러 stream을 하나의 가상디바이스 capability로 묶음</td>
+</tr>
+<tr>
+<td>자원 profile 단위</td>
+<td>Jetson GPU-lite, Raspberry Pi AI HAT, Raspberry Pi Sense HAT, x86 GPU server</td>
+<td>workflow placement와 resource 판단에 쓰는 가상 자원 표현</td>
+</tr>
+<tr>
+<td>서비스 I/O 단위</td>
+<td>anomaly input source, environment input source, actuator state source</td>
+<td>workflow stage에서 바로 선택 가능한 입력/출력 단위</td>
+</tr>
+</tbody></table></div>
+<h2 id="현재-시스템에서-재사용할-것">현재 시스템에서 재사용할 것</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>기존 구성</th>
+<th>재사용 방식</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>InfluxDB telemetry</td>
+<td>가상디바이스 I/O source와 freshness 판단의 data-plane</td>
+</tr>
+<tr>
+<td>KubeEdge Device/DeviceStatus</td>
+<td>물리 온디바이스 상태와 일부 twin snapshot의 source</td>
+</tr>
+<tr>
+<td>Prometheus/Kubernetes 상태</td>
+<td>가상디바이스 resource profile과 placement 판단의 source</td>
+</tr>
+<tr>
+<td>state-aggregator</td>
+<td>물리/가상디바이스, twin, workflow 상태를 통합하는 API 후보</td>
+</tr>
+<tr>
+<td>dashboard UI 패턴</td>
+<td>운영 가시화와 issue/freshness 표현 방식 재사용</td>
+</tr>
+</tbody></table></div>
+<h2 id="새로-설계할-것">새로 설계할 것</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구성</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Device Registry</td>
+<td>물리 ref, capability, resource, I/O, twin schema를 가진 가상디바이스 목록 관리</td>
+</tr>
+<tr>
+<td>Virtual Device Runtime</td>
+<td>각 가상디바이스의 API, lifecycle, InfluxDB query, 상태 refresh 담당</td>
+</tr>
+<tr>
+<td>Twin Engine</td>
+<td>physical/virtual device의 상태 snapshot 생성, binding 상태 관리</td>
+</tr>
+<tr>
+<td>Workflow Builder</td>
+<td>사용자가 AI 서비스를 stage 단위로 구성하고 가상디바이스를 연결하는 웹 기반 개발도구</td>
+</tr>
+<tr>
+<td>Workflow Runtime</td>
+<td>stage 실행, input/output handoff, lifecycle, 장애 처리 담당</td>
+</tr>
+<tr>
+<td>Orchestration Policy</td>
+<td>자원 상태와 twin 상태를 기준으로 bind/rebind/placement 판단</td>
+</tr>
+</tbody></table></div>
+<h2 id="웹페이지-설계-방향">웹페이지 설계 방향</h2>
+<p>웹페이지는 단순 dashboard가 아니라 &quot;워크플로우 통합 개발도구&quot;로 설계한다.</p>
+<p>권장 화면 구조:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>영역</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Device Pool</td>
+<td>30개 가상디바이스의 상태, 물리 매핑, capability, resource, binding 표시</td>
+</tr>
+<tr>
+<td>Workflow Canvas</td>
+<td>AI service stage와 data flow를 구성</td>
+</tr>
+<tr>
+<td>Twin Inspector</td>
+<td>선택한 가상디바이스의 상태, resource, I/O, 오류, bound workflow 확인</td>
+</tr>
+<tr>
+<td>Binding Panel</td>
+<td>stage와 가상디바이스를 연결/해제하고 대체 후보를 확인</td>
+</tr>
+<tr>
+<td>Validation Panel</td>
+<td>누락된 input, stale source, resource 부족, unsupported operation 확인</td>
+</tr>
+<tr>
+<td>Execution Plan</td>
+<td>컨테이너 배포/실행 계획, stage placement, I/O endpoint 요약</td>
+</tr>
+</tbody></table></div>
+<p>초기 버전은 실제 자동 제어보다 다음을 우선한다.</p>
+<ol><li>가상디바이스 30개 목록을 정의하고 볼 수 있다.</li><li>가상디바이스가 어떤 물리 온디바이스/데이터/자원과 매핑되는지 확인할 수 있다.</li><li>사용자가 AI 서비스 workflow stage를 만들고 가상디바이스를 bind할 수 있다.</li><li>workflow 실행 전 validation 결과를 볼 수 있다.</li><li>실행/배포는 명시적 사용자 동작과 검증 단계를 거친다.</li></ol>
+<h2 id="단계별-진행안">단계별 진행안</h2>
+<h3 id="1단계-모델과-registry">1단계: 모델과 registry</h3>
+<ul><li><code>VirtualDevice</code> schema 정의</li><li>physical ref, capability, resource, I/O, twin field 정의</li><li>현재 InfluxDB/KubeEdge/Prometheus에서 만들 수 있는 가상디바이스 후보 산정</li><li>30개 가상디바이스 pool manifest 또는 registry seed 작성</li></ul>
+<p>현재 초안:</p>
+<ul><li><code>virtual-device/registry/virtual-devices.json</code>: 30개 가상디바이스 인스턴스 seed</li><li><code>tests/test_virtual_device_registry.py</code>: registry 구조와 legacy fake MQTT publisher 배제 검증</li><li><code>state-aggregator</code>의 <code>GET /state/virtual-devices*</code>: registry seed를 운영 API로 조회하는 최소 구현</li></ul>
+<h3 id="2단계-twin-engine">2단계: twin engine</h3>
+<ul><li>InfluxDB latest/window query를 통해 I/O freshness 계산</li><li>KubeEdge DeviceStatus와 node metric을 twin snapshot에 병합</li><li>raw telemetry는 twin에 저장하지 않고 source reference와 derived status만 제공</li></ul>
+<h3 id="3단계-workflow-builder">3단계: workflow builder</h3>
+<ul><li>AI service stage schema 정의</li><li>stage input/output type 정의</li><li>가상디바이스 bind/release 모델 정의</li><li>workflow validation rule 작성</li></ul>
+<h3 id="4단계-웹-ui">4단계: 웹 UI</h3>
+<ul><li>가상디바이스 pool</li><li>workflow canvas</li><li>twin inspector</li><li>validation panel</li><li>execution plan preview</li></ul>
+<h3 id="5단계-runtime-orchestration">5단계: runtime/orchestration</h3>
+<ul><li>workflow runtime과 container lifecycle 연계</li><li>resource/twin 상태 기반 placement 후보 계산</li><li>장애/stale 상태에서 rebind/retry 정책 적용</li><li>결과와 이벤트를 dashboard/twin에 반영</li></ul>
+<h2 id="표현-원칙">표현 원칙</h2>
+<p>사용할 표현:</p>
+<ul><li>물리·가상 디바이스 연계</li><li>디바이스트윈 기반 상태 관리</li><li>가상디바이스 인스턴스</li><li>AI 서비스 워크플로우</li><li>컨테이너 기반 워크플로우 통합 개발도구</li><li>물리 온디바이스와 매핑되는 가상디바이스</li><li>자원·입출력·상태 기반 오케스트레이션</li></ul>
+<p>피할 표현:</p>
+<ul><li>가상디바이스는 가짜 MQTT publisher라는 표현</li><li>raw telemetry를 디바이스트윈에 직접 저장한다는 표현</li><li>30개 물리 센서를 이미 확보했다는 표현</li><li>동적 오케스트레이션이 현재 PoC에서 완성됐다는 표현</li><li>LLM이 전체 제어를 수행한다는 표현</li></ul>
+<h2 id="현재-poc와의-경계">현재 PoC와의 경계</h2>
+<p>현재 PoC 문서는 서비스 데모와 운영 가시화를 중심으로 유지한다. 이 문서는 2차년도 설계 트랙이며, 기존 current demo가 이미 이 기능을 제공한다고 주장하지 않는다. 구현으로 승격할 때는 <code>docs/scope.md</code>, <code>docs/repo-structure.md</code>, <code>docs/roadmap.md</code>에서 현재 범위와 2차년도 설계 범위를 분리해 표시한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#핵심-정의">핵심 정의</a></li>
+<li class="toc-h2"><a href="#하지-않는-방식">하지 않는 방식</a></li>
+<li class="toc-h2"><a href="#목표-구조">목표 구조</a></li>
+<li class="toc-h2"><a href="#가상디바이스-모델">가상디바이스 모델</a></li>
+<li class="toc-h2"><a href="#디바이스트윈-모델">디바이스트윈 모델</a></li>
+<li class="toc-h2"><a href="#워크플로우와의-관계">워크플로우와의 관계</a></li>
+<li class="toc-h2"><a href="#30개-가상디바이스-해석">30개 가상디바이스 해석</a></li>
+<li class="toc-h2"><a href="#현재-시스템에서-재사용할-것">현재 시스템에서 재사용할 것</a></li>
+<li class="toc-h2"><a href="#새로-설계할-것">새로 설계할 것</a></li>
+<li class="toc-h2"><a href="#웹페이지-설계-방향">웹페이지 설계 방향</a></li>
+<li class="toc-h2"><a href="#단계별-진행안">단계별 진행안</a></li>
+<li class="toc-h3"><a href="#1단계-모델과-registry">1단계: 모델과 registry</a></li>
+<li class="toc-h3"><a href="#2단계-twin-engine">2단계: twin engine</a></li>
+<li class="toc-h3"><a href="#3단계-workflow-builder">3단계: workflow builder</a></li>
+<li class="toc-h3"><a href="#4단계-웹-ui">4단계: 웹 UI</a></li>
+<li class="toc-h3"><a href="#5단계-runtime-orchestration">5단계: runtime/orchestration</a></li>
+<li class="toc-h2"><a href="#표현-원칙">표현 원칙</a></li>
+<li class="toc-h2"><a href="#현재-poc와의-경계">현재 PoC와의 경계</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>
