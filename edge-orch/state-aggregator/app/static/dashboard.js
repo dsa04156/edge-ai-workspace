@@ -26,16 +26,34 @@ const DEMO_PUBLISHER_DEVICE_PLANS = {
 };
 const PUBLISHER_FILTERS = ["all", "running", "planned-off", "infra-issue"];
 const PUBLISHER_MODE_LABELS = {
-  all: "All",
-  running: "Running",
-  "planned-off": "Planned off",
-  "infra-issue": "Unexpected issue",
-  observed: "Observed",
+  all: "전체",
+  running: "실행 중",
+  "planned-off": "계획 정지",
+  "infra-issue": "인프라 이슈",
+  observed: "관측",
 };
 
 
 function pct(value) {
   return `${Math.round((value || 0) * 100)}%`;
+}
+
+function oneDecimal(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "0";
+  return numeric.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+function threeDecimal(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "0";
+  return numeric.toLocaleString(undefined, { maximumFractionDigits: 3 });
+}
+
+function ratio(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(0, Math.min(1, numeric));
 }
 
 function escapeHtml(value) {
@@ -67,13 +85,27 @@ function age(value) {
   const minutes = Math.floor(value / 60);
   const seconds = Math.floor(value % 60);
 
-  if (minutes === 0) return `${seconds}s ago`;
-  return `${minutes}m ${seconds}s ago`;
+  if (minutes === 0) return `${seconds}초 전`;
+  return `${minutes}분 ${seconds}초 전`;
 }
 
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
+}
+
+function setPercentStyle(id, value) {
+  const el = $(id);
+  if (el) el.style.width = pct(ratio(value));
+}
+
+function setStatusRing(id, parts) {
+  const el = $(id);
+  if (!el) return;
+  el.style.setProperty("--ok", pct(parts.ok));
+  el.style.setProperty("--warn", pct(parts.warn));
+  el.style.setProperty("--bad", pct(parts.bad));
+  el.style.setProperty("--unknown", pct(parts.unknown));
 }
 
 
@@ -132,7 +164,7 @@ function sortDevicesStatusFirst(devices = []) {
 }
 
 function deviceNodeLabel(device) {
-  return cleanNodeLabel(device?.node_name || device?.nodeName, "unassigned");
+  return cleanNodeLabel(device?.node_name || device?.nodeName, "미할당");
 }
 
 function isDemoPublisherDevice(deviceOrName) {
@@ -158,10 +190,10 @@ function publisherModeLabel(mode) {
 
 function publisherModeReason(device) {
   const mode = publisherModeKey(device);
-  if (mode === "running") return "telemetry_fresh=true, so the publisher is currently represented as running.";
-  if (mode === "infra-issue") return "node_ready=false or mapper_running=false, so this is an unexpected infrastructure issue before publisher intent is considered.";
-  if (mode === "planned-off") return "demo virtual device with telemetry enabled but no fresh telemetry; inferred as demo publisher idle/planned-off from virt demo mode, not from an external plan file.";
-  return "non-demo device or telemetry-disabled device without node/mapper issue; shown as observed status only.";
+  if (mode === "running") return "telemetry_fresh=true라 현재 publisher가 실행 중인 것으로 표시합니다.";
+  if (mode === "infra-issue") return "node_ready=false 또는 mapper_running=false라 publisher 의도보다 인프라 이슈를 먼저 봅니다.";
+  if (mode === "planned-off") return "등록된 데모 device에 fresh telemetry가 없어 계획 정지 상태로 해석합니다.";
+  return "데모 대상이 아니거나 telemetry-disabled device라 관측 상태만 표시합니다.";
 }
 
 function renderPublisherBadge(device) {
@@ -191,7 +223,7 @@ function renderDeviceFilterSummary(totalCount, visibleCount) {
     const parts = [];
     if (state.selectedNodeName) parts.push(`node ${state.selectedNodeName}`);
     if (state.publisherModeFilter && state.publisherModeFilter !== "all") parts.push(`publisher ${publisherModeLabel(state.publisherModeFilter)}`);
-    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "registered assets";
+    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "등록 자산";
   }
   if (clear) clear.hidden = !state.selectedNodeName;
 }
@@ -254,8 +286,8 @@ const KPI_EXPLANATIONS = {
   device_telemetry_ratio: "센서 데이터 적재가 설정된 device 비율입니다. freshness 비율은 아닙니다.",
   fresh_telemetry_device_count: "fresh sensor data device 수입니다.",
   telemetry_freshness_ratio: "fresh sensor data device 수 / telemetry-enabled device 수입니다.",
-  fresh_sensor_data_device_count: "최근 센서 데이터 sample이 들어온 실제 sensor stream 수입니다.",
-  sensor_data_freshness_ratio: "센서 데이터 freshness KPI입니다. availability 판단과 분리해서 봅니다.",
+  fresh_sensor_data_device_count: "InfluxDB latest telemetry 기준으로 fresh한 센서 stream 수입니다.",
+  sensor_data_freshness_ratio: "telemetry_freshness_ratio와 같은 InfluxDB freshness 계열 값입니다. Overview에서는 중복 표시하지 않습니다.",
   operator_focus_count: "운영자가 먼저 볼 degraded/unavailable device와 non-healthy node 수입니다.",
   service_bound_device_count: "서비스 데모 그룹에 연결된 device 수입니다.",
   device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
@@ -263,10 +295,12 @@ const KPI_EXPLANATIONS = {
   service_resource_profile_pod_count: "프로파일링 대상 Running Pod 수입니다.",
   service_resource_request_cpu_cores: "실행 서비스들이 Kubernetes requests.cpu로 선언한 CPU core 합계입니다.",
   service_resource_request_memory_mib: "실행 서비스들이 Kubernetes requests.memory로 선언한 memory MiB 합계입니다.",
-  service_resource_current_cpu_usage_cores: "Prometheus/cAdvisor에서 가져온 현재 컨테이너 CPU 사용량(core) 합계입니다.",
-  service_resource_current_memory_working_set_mib: "Prometheus/cAdvisor에서 가져온 현재 컨테이너 memory working set(MiB) 합계입니다.",
-  service_resource_usage_coverage_ratio: "현재 사용량 샘플이 붙은 컨테이너 비율입니다.",
+  service_resource_current_cpu_usage_cores: "전체 노드 사용량이 아니라 Prometheus/cAdvisor에서 가져온 서비스 Pod 컨테이너 CPU 사용량(core) 합계입니다.",
+  service_resource_current_memory_working_set_mib: "전체 노드 메모리가 아니라 Prometheus/cAdvisor에서 가져온 서비스 Pod 컨테이너 memory working set(MiB) 합계입니다.",
+  service_resource_usage_coverage_ratio: "Prometheus/cAdvisor current usage 샘플이 붙은 서비스 Pod 컨테이너 비율입니다.",
   service_resource_limit_gpu_units: "실행 서비스들이 limits의 GPU 리소스로 선언한 GPU 단위 합계입니다.",
+  service_resource_profile_container_count: "서비스 프로파일에 포함된 Running Pod container 수입니다.",
+  service_resource_fully_declared_profile_count: "requests/limits가 모두 선언된 서비스 프로파일 수입니다.",
   service_resource_partially_declared_profile_count: "requests/limits가 일부 또는 전체 누락된 서비스 프로파일 수입니다.",
 };
 
@@ -470,8 +504,11 @@ function kpiKeysForCard(key) {
     registered_device_count: ["registered_device_count", "live_device_count"],
     device_telemetry_ratio: ["telemetry_device_count", "device_telemetry_ratio"],
     telemetry_freshness_ratio: ["fresh_telemetry_device_count", "telemetry_freshness_ratio"],
-    sensor_data_freshness_ratio: ["fresh_sensor_data_device_count", "sensor_data_freshness_ratio"],
     service_bound_device_count: ["service_bound_device_count", "device_service_binding_ratio"],
+    device_service_binding_ratio: ["service_bound_device_count", "device_service_binding_ratio"],
+    service_resource_current_cpu_usage_cores: ["service_resource_current_cpu_usage_cores", "service_resource_request_cpu_cores"],
+    service_resource_current_memory_working_set_mib: ["service_resource_current_memory_working_set_mib", "service_resource_request_memory_mib"],
+    service_resource_usage_coverage_ratio: ["service_resource_profile_container_count", "service_resource_usage_coverage_ratio"],
   };
   return groups[key] || [key];
 }
@@ -547,7 +584,7 @@ function setChatLoading(loading) {
   const input = $("operatorChatInput");
   if (submit) submit.disabled = loading;
   if (input) input.disabled = loading;
-  setText("chatStatus", loading ? "Qwen 응답 대기 중" : "read-only mode");
+  setText("chatStatus", loading ? "Qwen 응답 대기 중" : "읽기 전용 모드");
 }
 
 function chatResponseMeta(payload) {
@@ -558,8 +595,8 @@ function chatResponseMeta(payload) {
 }
 
 async function submitOperatorChat(message) {
-  state.chat.messages.push({ role: "user", label: "Operator", text: message });
-  const loadingMessage = { role: "assistant", label: "Qwen read-only", text: "현재 dashboard 상태를 기준으로 답변을 생성 중입니다.", loading: true };
+  state.chat.messages.push({ role: "user", label: "운영자", text: message });
+  const loadingMessage = { role: "assistant", label: "Qwen 읽기 전용", text: "현재 dashboard 상태를 기준으로 답변을 생성 중입니다.", loading: true };
   state.chat.messages.push(loadingMessage);
   renderChatTranscript();
   setChatLoading(true);
@@ -581,7 +618,7 @@ async function submitOperatorChat(message) {
     }
     Object.assign(loadingMessage, {
       role: "assistant",
-      label: "Qwen read-only",
+      label: "Qwen 읽기 전용",
       text: text(payload.answer, "응답이 비어 있습니다."),
       loading: false,
       meta: chatResponseMeta(payload),
@@ -589,7 +626,7 @@ async function submitOperatorChat(message) {
   } catch (error) {
     Object.assign(loadingMessage, {
       role: "error",
-      label: "Chat error",
+      label: "채팅 오류",
       text: error.message || "Qwen chat 요청에 실패했습니다.",
       loading: false,
     });
@@ -603,29 +640,186 @@ function render() {
   const data = state.data;
   const kpis = data.kpis || {};
   const devices = data.devices || [];
+  const nodes = data.nodes || [];
+  const resourceState = data.resource_profiles || {};
   const telemetryEnabled = kpis.telemetry_device_count ?? devices.filter((device) => device.telemetry_enabled).length;
   const freshTelemetry = kpis.fresh_telemetry_device_count ?? devices.filter((device) => device.telemetry_fresh).length;
-  const freshSensorData = kpis.fresh_sensor_data_device_count ?? freshTelemetry;
-  const sensorDataTotal = kpis.sensor_data_device_count ?? telemetryEnabled;
   const unavailableDevices = devices.filter((device) => device.status === "unavailable").length;
   const degradedDevices = devices.filter((device) => device.status === "degraded").length;
-  setText("updatedAt", `Updated ${new Date(data.generated_at).toLocaleString()}`);
+  const boundDevices = Number(kpis.service_bound_device_count) || 0;
+  const registeredDevices = Number(kpis.registered_device_count) || devices.length;
+  const profiledContainers = Number(kpis.service_resource_profile_container_count) || 0;
+  const sampledContainers = Math.round(profiledContainers * ratio(kpis.service_resource_usage_coverage_ratio));
+  setText("updatedAt", `갱신 ${new Date(data.generated_at).toLocaleString()}`);
   setText("activeNodeCount", text(kpis.active_node_count, 0));
   setText("nodeRatio", `${pct(kpis.node_online_ratio)} online`);
   setText("deviceCount", text(kpis.registered_device_count, 0));
-  setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} available · ${text(kpis.live_device_count, 0)} live`);
+  setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} 사용 가능 · ${text(kpis.live_device_count, 0)} live`);
   setText("telemetryFreshnessRatio", pct(kpis.telemetry_freshness_ratio));
-  setText("telemetryFreshnessCaption", `${freshTelemetry} fresh telemetry devices`);
-  setText("sensorDataFreshnessRatio", pct(kpis.sensor_data_freshness_ratio ?? kpis.telemetry_freshness_ratio));
-  setText("sensorDataFreshnessCaption", `${freshSensorData}/${sensorDataTotal} live sensor streams`);
+  setText("telemetryFreshnessCaption", `${freshTelemetry}/${telemetryEnabled}개 InfluxDB fresh`);
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
-  setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)} pods · ${text(kpis.service_resource_partially_declared_profile_count, 0)} missing spec`);
-  setText("assetCount", `${(data.nodes || []).length + devices.length} assets`);
-  setText("riskCount", `${unavailableDevices} unavailable · ${degradedDevices} degraded`);
+  setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)}개 pod · ${text(kpis.service_resource_partially_declared_profile_count, 0)}개 spec 누락`);
+  setText("serviceCpuUsage", threeDecimal(kpis.service_resource_current_cpu_usage_cores));
+  setText("serviceCpuUsageCaption", `${threeDecimal(kpis.service_resource_request_cpu_cores)} core request`);
+  setText("serviceMemoryUsage", `${oneDecimal(kpis.service_resource_current_memory_working_set_mib)} MiB`);
+  setText("serviceMemoryUsageCaption", `${oneDecimal(kpis.service_resource_request_memory_mib)} MiB request`);
+  setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
+  setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
+  setText("serviceBindingRatio", pct(kpis.device_service_binding_ratio));
+  setText("serviceBindingCaption", `${boundDevices}/${registeredDevices}개 device 연결`);
+  setText("assetCount", `${nodes.length + devices.length}개 자산`);
+  setText("riskCount", `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
+  renderOverviewVisuals(data, kpis, devices);
+  renderKpiCatalog(kpis);
+  renderNodeMetricMatrix(nodes);
+  renderResourceProfiles(resourceState, kpis);
+  renderScenario(devices, kpis);
 
-  renderNodes(data.nodes || []);
+  renderNodes(nodes);
   renderDevices(devices);
-  renderTopology(data.resource_profiles || {}, kpis);
+  renderTopology(resourceState, kpis);
+}
+
+function renderOverviewVisuals(data, kpis, devices) {
+  const nodes = data?.nodes || [];
+  const total = devices.length || 0;
+  const available = devices.filter((device) => isOperationalDevice(device)).length;
+  const degraded = devices.filter((device) => deviceStatus(device) === "degraded").length;
+  const unavailable = devices.filter((device) => deviceStatus(device) === "unavailable").length;
+  const unknown = Math.max(0, total - available - degraded - unavailable);
+  const deviceRatio = total ? available / total : ratio(kpis.device_operational_ratio);
+  const telemetryRatio = ratio(kpis.telemetry_freshness_ratio);
+  const nodeRatioValue = ratio(kpis.node_online_ratio);
+  const bindingRatio = ratio(kpis.device_service_binding_ratio);
+  const coverageRatio = ratio(kpis.service_resource_usage_coverage_ratio);
+  const cpuCurrent = Number(kpis.service_resource_current_cpu_usage_cores) || 0;
+  const cpuRequest = Number(kpis.service_resource_request_cpu_cores) || 0;
+  const memoryCurrent = Number(kpis.service_resource_current_memory_working_set_mib) || 0;
+  const memoryRequest = Number(kpis.service_resource_request_memory_mib) || 0;
+  const statusTotal = total || 1;
+  const nodeNames = nodes.map((node, index) => nodeDisplayName(node, index));
+  const nodeScope = nodeNames.length
+    ? `대상 노드 ${nodeNames.length}개: ${nodeNames.slice(0, 3).join(", ")}${nodeNames.length > 3 ? ` 외 ${nodeNames.length - 3}개` : ""}`
+    : "대상 노드 없음";
+  setStatusRing("overallHealthRing", {
+    ok: available / statusTotal,
+    warn: degraded / statusTotal,
+    bad: unavailable / statusTotal,
+    unknown: unknown / statusTotal,
+  });
+  setText("overallHealthPercent", pct(deviceRatio));
+  setText("overviewMetricScope", `${nodeScope} · Prometheus + KubeEdge + InfluxDB`);
+  setText("overviewHealthCaption", `${available}/${total}개 device 사용 가능 · ${degraded + unavailable}개 주의 필요`);
+  setText("nodeOnlineValue", pct(nodeRatioValue));
+  setText("deviceAvailableValue", pct(deviceRatio));
+  setText("telemetryFreshValue", pct(telemetryRatio));
+  setPercentStyle("nodeOnlineBar", nodeRatioValue);
+  setPercentStyle("deviceAvailableBar", deviceRatio);
+  setPercentStyle("telemetryFreshBar", telemetryRatio);
+  setText("bindingValue", pct(bindingRatio));
+  setText("coverageValue", pct(coverageRatio));
+  setPercentStyle("bindingBar", bindingRatio);
+  setPercentStyle("coverageBar", coverageRatio);
+  setText("cpuResourceValue", `${threeDecimal(cpuCurrent)} / ${threeDecimal(cpuRequest)} core`);
+  setText("memoryResourceValue", `${oneDecimal(memoryCurrent)} / ${oneDecimal(memoryRequest)} MiB`);
+  setText("gpuResourceValue", `${threeDecimal(kpis.service_resource_limit_gpu_units)} units`);
+  setPercentStyle("cpuResourceBar", cpuRequest > 0 ? cpuCurrent / cpuRequest : 0);
+  setPercentStyle("memoryResourceBar", memoryRequest > 0 ? memoryCurrent / memoryRequest : 0);
+  setText("statusAvailableCount", available);
+  setText("statusDegradedCount", degraded);
+  setText("statusUnavailableCount", unavailable);
+  setText("statusUnknownCount", unknown);
+  setPercentStyle("statusStackAvailable", available / statusTotal);
+  setPercentStyle("statusStackDegraded", degraded / statusTotal);
+  setPercentStyle("statusStackUnavailable", unavailable / statusTotal);
+  setPercentStyle("statusStackUnknown", unknown / statusTotal);
+}
+
+function formatKpiValue(key, value) {
+  if (key.endsWith("_ratio")) return pct(value);
+  if (key.includes("memory") && Number.isFinite(Number(value))) return `${oneDecimal(value)} MiB`;
+  if (key.includes("cpu") && Number.isFinite(Number(value))) return `${threeDecimal(value)} core`;
+  if (key.includes("gpu") && Number.isFinite(Number(value))) return `${threeDecimal(value)} units`;
+  if (typeof value === "boolean") return value ? "true" : "false";
+  return displayValue(value);
+}
+
+function kpiCategory(key) {
+  if (key.startsWith("service_resource")) return "서비스 리소스";
+  if (key.includes("telemetry") || key.includes("sensor")) return "텔레메트리";
+  if (key.includes("device")) return "디바이스";
+  if (key.includes("node")) return "노드";
+  if (key.includes("workflow") || key.includes("sla")) return "워크플로우";
+  return "운영";
+}
+
+function renderKpiCatalog(kpis = {}) {
+  const catalog = $("kpiCatalog");
+  if (!catalog) return;
+  const hiddenKeys = new Set([
+    "device_status_freshness_ratio",
+    "fresh_device_status_count",
+    "sensor_data_freshness_ratio",
+    "fresh_sensor_data_device_count",
+    "sensor_data_device_count",
+  ]);
+  const entries = Object.entries(kpis).filter(([key]) => !hiddenKeys.has(key)).sort(([left], [right]) => {
+    const groupDelta = kpiCategory(left).localeCompare(kpiCategory(right));
+    return groupDelta || left.localeCompare(right);
+  });
+  setText("kpiCatalogCount", `${entries.length} metrics`);
+  catalog.innerHTML = entries.length
+    ? entries
+        .map(([key, value]) => `
+          <article class="kpi-catalog-row explainable" data-explain-type="kpi" data-kpi-key="${escapeHtml(key)}" tabindex="0" role="button" aria-label="${escapeHtml(key)} KPI 설명 보기">
+            <span>${escapeHtml(kpiCategory(key))}</span>
+            <strong>${escapeHtml(formatKpiValue(key, value))}</strong>
+            <code>${escapeHtml(key)}</code>
+          </article>
+        `)
+        .join("")
+    : `<div class="empty">KPI payload가 없습니다.</div>`;
+}
+
+function renderNodeMetricMatrix(nodes = []) {
+  const matrix = $("nodeMetricMatrix");
+  if (!matrix) return;
+  const nodeNames = nodes.map((node, index) => nodeDisplayName(node, index));
+  setText(
+    "nodeMetricScope",
+    nodeNames.length
+      ? `${nodeNames.slice(0, 2).join(", ")}${nodeNames.length > 2 ? ` 외 ${nodeNames.length - 2}개` : ""}`
+      : "노드 없음",
+  );
+  matrix.innerHTML = nodes.length
+    ? nodes
+        .map((node, index) => {
+          const metrics = node.raw_metrics || {};
+          const cpu = ratio(metrics.cpu_utilization);
+          const memory = ratio(metrics.memory_usage_ratio);
+          const gpu = metrics.gpu_utilization === null || metrics.gpu_utilization === undefined ? null : ratio(metrics.gpu_utilization);
+          const networkRx = Number(metrics.network_rx_rate) || 0;
+          const networkTx = Number(metrics.network_tx_rate) || 0;
+          const displayName = nodeDisplayName(node, index);
+          return `
+            <article class="node-metric-card">
+              <div class="node-metric-title">
+                <strong>${escapeHtml(displayName)}</strong>
+                ${statusPill(node.node_health)}
+              </div>
+              <div class="node-metric-row"><span>CPU</span><strong>${pct(cpu)}</strong><div class="metric-bar"><i style="width:${pct(cpu)}"></i></div></div>
+              <div class="node-metric-row"><span>Memory</span><strong>${pct(memory)}</strong><div class="metric-bar"><i style="width:${pct(memory)}"></i></div></div>
+              <div class="node-metric-row"><span>GPU</span><strong>${gpu === null ? "N/A" : pct(gpu)}</strong><div class="metric-bar muted-bar"><i style="width:${gpu === null ? "0%" : pct(gpu)}"></i></div></div>
+              <div class="node-metric-foot">
+                <span>load ${escapeHtml(threeDecimal(metrics.load_average))}</span>
+                <span>rx ${escapeHtml(oneDecimal(networkRx / 1024))} KiB/s</span>
+                <span>tx ${escapeHtml(oneDecimal(networkTx / 1024))} KiB/s</span>
+              </div>
+            </article>
+          `;
+        })
+        .join("")
+    : `<div class="empty">Prometheus node metrics가 없습니다.</div>`;
 }
 
 function renderNodes(nodes) {
@@ -639,7 +833,7 @@ function renderNodes(nodes) {
           const gpu = gpuValue === null || gpuValue === undefined ? null : Math.round(gpuValue * 100);
           const gpuMeta = gpu === null ? "" : `<span>gpu ${gpu}%</span>`;
           const displayName = nodeDisplayName(node, index);
-          const mappingMeta = isRawInstance(node.hostname) ? `<span>hostname mapping pending</span>` : "";
+          const mappingMeta = isRawInstance(node.hostname) ? `<span>hostname 매핑 대기</span>` : "";
           return `
             <article class="item node-card ${state.selectedNodeName === displayName ? "selected" : ""}" data-node-filter="${escapeHtml(displayName)}" data-node-index="${index}" tabindex="0" role="button" aria-label="${escapeHtml(displayName)} node device filter">
               <div class="item-title">
@@ -657,15 +851,15 @@ function renderNodes(nodes) {
           `;
         })
         .join("")
-    : `<div class="empty">No node state yet</div>`;
+    : `<div class="empty">아직 node 상태가 없습니다.</div>`;
 }
 
 function deviceFilterEmptyText() {
   const publisherFiltered = state.publisherModeFilter && state.publisherModeFilter !== "all";
-  if (state.selectedNodeName && publisherFiltered) return `No devices match ${state.selectedNodeName} and ${publisherModeLabel(state.publisherModeFilter)} publisher filter`;
-  if (state.selectedNodeName) return `${state.selectedNodeName} has no matching devices`;
-  if (publisherFiltered) return `No devices match ${publisherModeLabel(state.publisherModeFilter)} publisher filter`;
-  return "No KubeEdge devices found";
+  if (state.selectedNodeName && publisherFiltered) return `${state.selectedNodeName} 및 ${publisherModeLabel(state.publisherModeFilter)} publisher 필터에 맞는 device가 없습니다.`;
+  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 device가 없습니다.`;
+  if (publisherFiltered) return `${publisherModeLabel(state.publisherModeFilter)} publisher 필터에 맞는 device가 없습니다.`;
+  return "KubeEdge device가 없습니다.";
 }
 
 function renderDevices(devices) {
@@ -685,8 +879,8 @@ function renderDevices(devices) {
               <span>publisher: ${escapeHtml(publisherModeLabel(publisherModeKey(device)))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
-              <span>mapper: ${device.mapper_running ? "running" : "not running"}</span>
-              <span>service: ${escapeHtml(text(device.service_demo_group, "service pending"))}</span>
+              <span>mapper: ${device.mapper_running ? "실행 중" : "미실행"}</span>
+              <span>service: ${escapeHtml(text(device.service_demo_group, "service 대기"))}</span>
               <span>reason: ${escapeHtml(text(device.reason || device.status_reason))}</span>
             </div>
           </article>
@@ -724,16 +918,16 @@ function renderResourceProfiles(resourceState, kpis) {
 }
 
 function serviceGroup(device) {
-  return text(device.service_demo_group, device.service_connected ? "서비스 데모 연결" : "service pending");
+  return text(device.service_demo_group, device.service_connected ? "서비스 데모 연결" : "service 대기");
 }
 
 function serviceBindingReason(device) {
-  return text(device.service_binding_reason, device.service_connected ? "binding detail pending" : "not bound");
+  return text(device.service_binding_reason, device.service_connected ? "binding 상세 대기" : "미바인딩");
 }
 
 function formatResourceValue(value, unit) {
   const numeric = numericValue(value);
-  if (numeric === null) return "missing";
+  if (numeric === null) return "없음";
   return `${numeric} ${unit}`;
 }
 
@@ -815,7 +1009,7 @@ function renderPodPlacement(resourceState, kpis) {
 function renderTopology(resourceState, kpis) {
   const profiles = resourceState.service_resource_profiles || [];
   if (!profiles.length) {
-    $("topologyMap").innerHTML = `<div class="empty">Running service topology pending</div>`;
+    $("topologyMap").innerHTML = `<div class="empty">실행 중인 서비스 토폴로지가 아직 없습니다.</div>`;
     return;
   }
   const svcMap = {};
@@ -843,20 +1037,31 @@ function renderTopology(resourceState, kpis) {
     }));
     const totalPods = podsPerNode.reduce((sum, n) => sum + (Number(n.count) || 0), 0);
     return `
-      <details class="topo-service ${open ? "open" : ""}">
+      <details class="topo-service ${open ? "open" : ""}" data-topology-key="${escapeHtml(key)}" ${open ? "open" : ""}>
         <summary>
           <div class="topo-svc-header">
             <span class="topo-svc-name"><span class="topo-ns">${escapeHtml(svc.namespace)}</span> / <strong>${escapeHtml(svc.service)}</strong></span>
-            <span class="topo-svc-meta">${svc.pod_count} pods · ${svc.nodes.length} nodes · ${svc.containers.length} containers</span>
+            <span class="topo-svc-meta">${svc.pod_count}개 pod · ${svc.nodes.length}개 node · ${svc.containers.length}개 container</span>
           </div>
         </summary>
         <div class="topo-detail">
           ${nodes.length > 1 ? `<div class="topo-pod-grid">${nodes.map((n, i) => `<div class="topo-node-block"><div class="topo-node-label">${escapeHtml(n)}</div><div class="topo-pod-pills">${Array.from({ length: podsPerNode[i]?.count || 1 }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${i}-${j}</span>`).join("")}</div></div>`).join("")}</div>` : `<div class="topo-single-node"><span class="topo-node-label">${escapeHtml(nodes[0])}</span><div class="topo-pod-pills">${Array.from({ length: svc.pod_count }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${j}</span>`).join("")}</div></div>`}
-          <div class="topo-resource-bar"><div class="topo-resource-item"><span>req</span><span>${formatResourceValue(svc.cpu_req, "core")} / ${formatResourceValue(svc.mem_req, "MiB")}</span></div><div class="topo-resource-item"><span>current</span><span>${formatResourceValue(svc.cpu_cur, "core")} / ${formatResourceValue(svc.mem_cur, "MiB")}</span></div></div>
-          ${svc.containers.length ? `<div class="topo-containers"><span class="topo-sec-title">Containers</span>${svc.containers.slice(0, 8).map((c) => `<div class="topo-container-row"><span class="topo-pod-ref">${escapeHtml(c.pod || "-")}/${escapeHtml(c.container || "-")}</span><span>${escapeHtml(c.node ? `node:${cleanNodeLabel(c.node, "")}` : "")}</span><span>req ${formatResourceValue(c.requests?.cpu_cores, "core")}/${formatResourceValue(c.requests?.memory_mib, "MiB")}</span><span>use ${formatResourceValue(c.current_usage?.cpu_cores, "core")}/${formatResourceValue(c.current_usage?.memory_working_set_mib, "MiB")}</span></div>`).join("")}</div>` : ""}
+          <div class="topo-resource-bar"><div class="topo-resource-item"><span>요청량</span><span>${formatResourceValue(svc.cpu_req, "core")} / ${formatResourceValue(svc.mem_req, "MiB")}</span></div><div class="topo-resource-item"><span>현재 사용량</span><span>${formatResourceValue(svc.cpu_cur, "core")} / ${formatResourceValue(svc.mem_cur, "MiB")}</span></div></div>
+          ${svc.containers.length ? `<div class="topo-containers"><span class="topo-sec-title">컨테이너</span>${svc.containers.slice(0, 8).map((c) => `<div class="topo-container-row"><span class="topo-pod-ref">${escapeHtml(c.pod || "-")}/${escapeHtml(c.container || "-")}</span><span>${escapeHtml(c.node ? `node:${cleanNodeLabel(c.node, "")}` : "")}</span><span>요청 ${formatResourceValue(c.requests?.cpu_cores, "core")}/${formatResourceValue(c.requests?.memory_mib, "MiB")}</span><span>사용 ${formatResourceValue(c.current_usage?.cpu_cores, "core")}/${formatResourceValue(c.current_usage?.memory_working_set_mib, "MiB")}</span></div>`).join("")}</div>` : ""}
         </div>
       </details>`;
   }).join("");
+  document.querySelectorAll(".topo-service").forEach((details) => {
+    details.addEventListener("toggle", () => {
+      const key = details.dataset.topologyKey;
+      details.classList.toggle("open", details.open);
+      if (details.open) {
+        state.selectedTopologyService = key || null;
+        return;
+      }
+      if (state.selectedTopologyService === key) state.selectedTopologyService = null;
+    });
+  });
 }
 
 function renderAlerts(data) {

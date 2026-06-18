@@ -295,6 +295,7 @@ API는 현재 데모 핵심 API와 legacy/compatibility API로 구분한다.
 GET /state/nodes
 GET /state/devices
 GET /state/dashboard
+GET /state/virtual-resources
 GET /state/summary
 GET /state/operator-assistant
 GET /metrics
@@ -305,6 +306,7 @@ GET /metrics
 | `GET /state/nodes` | Kubernetes / Prometheus 기반 node 상태 조회 |
 | `GET /state/devices` | KubeEdge Device / DeviceStatus / mapper / telemetry freshness 통합 조회 |
 | `GET /state/dashboard` | dashboard용 요약 상태와 KPI 조회 |
+| `GET /state/virtual-resources` | 자원증강형 가상디바이스 Resource Profile / Resource Instance / Resource Twin 조회 |
 | `GET /state/summary` | 전체 운영 상태 요약 조회 |
 | `GET /state/operator-assistant` | 운영자 보조 요약과 우선 점검 대상 조회 |
 | `GET /metrics` | Prometheus scrape용 metric 노출 |
@@ -319,11 +321,57 @@ GET /state/workflows
 
 위 legacy/compatibility API는 과거 workflow/placement/cost-model 실험 호환용이다. 현재 데모 핵심 경로가 아니며, workflow/offloading/placement/autonomous agent 제어를 현재 구현 기능처럼 설명하지 않는다.
 
+`/state/virtual-resources`는 센서 생성기가 아니라 물리 디바이스의 부족한
+AI 연산/GPU/NPU/storage/cache를 보강하는 논리 자원 상태를 표시한다.
+Prometheus/service resource observation이 실패해도 registry에 등록된 Resource Profile은
+숨기지 않고 `configured_not_running`과 observation error로 표시한다.
+`/state/dashboard`도 이 경우 dashboard shell과 device/node KPI를 유지하고,
+service resource KPI만 0과 observation error로 degrade한다.
+
+자원증강을 Kubernetes 관리 객체로 승격하기 위한 CRD 초안은 다음 경로에 둔다.
+
+```text
+edge-orch/device-augmentation/crds/
+edge-orch/device-augmentation/samples/
+edge-orch/device-augmentation/k8s/
+```
+
+현재 CRD는 `AugmentationResource`와 `DeviceAugmentation`을 정의한다.
+이는 Jetson/Raspberry Pi 같은 엣지 디바이스의 부족한 연산/저장 자원을 외부
+실행 자원으로 보강하는 관리 표면이다. 읽기 전용 controller는
+`state-aggregator`의 virtual resource 관측값을 기준으로 CRD `status`를 reconcile한다.
+workload 생성/이동, 자동 offloading, runtime migration은 현재 구현 범위가 아니다.
+
+```bash
+kubectl get augmentationresources
+kubectl get deviceaugmentations -n default
+kubectl get augmentationresource vd-x86-gpu-inference -o yaml
+kubectl get deviceaugmentation jetson-gpu-storage-augmentation -n default -o yaml
+kubectl get deployment device-augmentation-controller -n default
+```
+
+`AugmentationResource.status.conditions`는 runtime observation과 endpoint readiness를,
+`DeviceAugmentation.status.conditions`는 binding/capability/resource/ready 판단을
+보여준다. `DeviceAugmentation.status.selectedResources`는 바인딩된 자원의 role,
+node, observed instance, endpoint flag를 운영자가 확인하기 위한 snapshot이다.
+
+`state-aggregator`는 이 CRD status를 다음 read-only API로 노출한다.
+
+```text
+GET /state/augmentation-resources
+GET /state/device-augmentations
+```
+
+dashboard `자원증강` 탭은 기존 `/state/virtual-resources`의 Resource Profile/Instance
+정보에 위 CRD status를 덧붙여 `DeviceAugmentation` phase, conditions,
+selectedResources를 표시한다.
+
 `state-aggregator`가 통합하는 입력은 다음이다.
 
 - Kubernetes node 상태
 - KubeEdge `Device` 목록
 - KubeEdge `DeviceStatus` snapshot
+- 자원증강 CRD `AugmentationResource`/`DeviceAugmentation` status
 - `mqttvirtual` mapper pod Running 여부
 - InfluxDB latest telemetry timestamp
 - Prometheus node metric

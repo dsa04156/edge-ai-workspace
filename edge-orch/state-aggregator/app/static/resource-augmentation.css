@@ -1,0 +1,343 @@
+.augmentation-workbench {
+  display: none;
+}
+
+.augmentation-workbench.active {
+  display: block;
+}
+
+.augmentation-actions,
+.augmentation-section-head,
+.augmentation-kpis,
+.augmentation-flow-canvas,
+.augmentation-instance-lane,
+.augmentation-bottom-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.augmentation-actions,
+.augmentation-section-head {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.augmentation-actions span,
+.augmentation-section-head span,
+.augmentation-section-head em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.augmentation-section-head h3 {
+  margin: 3px 0 0;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.augmentation-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.augmentation-kpis div,
+.augmentation-pool,
+.augmentation-inspector,
+.augmentation-flow,
+.augmentation-plan {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-soft);
+}
+
+.augmentation-kpis div {
+  min-height: 84px;
+  padding: 14px;
+}
+
+.augmentation-kpis span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.augmentation-kpis strong {
+  display: block;
+  margin-top: 10px;
+  color: #0c3440;
+  font-size: 28px;
+}
+
+.augmentation-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.85fr);
+  gap: 14px;
+}
+
+.augmentation-pool,
+.augmentation-inspector,
+.augmentation-flow,
+.augmentation-plan {
+  padding: 16px;
+}
+
+.augmentation-table-shell {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.augmentation-table {
+  min-width: 620px;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.augmentation-table th,
+.augmentation-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.augmentation-table th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.augmentation-table tr {
+  cursor: pointer;
+}
+
+.augmentation-table tr:hover,
+.augmentation-table tr.selected {
+  background: rgba(8, 124, 143, 0.08);
+}
+
+.augmentation-table td strong,
+.augmentation-table td span {
+  display: block;
+}
+
+.augmentation-table td span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.augmentation-status {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.augmentation-status,
+.augmentation-instance-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #eef4f8;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.augmentation-status.idle,
+.augmentation-instance-chip.idle {
+  border-color: rgba(7, 139, 92, 0.28);
+  background: rgba(7, 139, 92, 0.1);
+  color: var(--green);
+}
+
+.augmentation-status.allocated,
+.augmentation-status.partially_available,
+.augmentation-instance-chip.allocated,
+.augmentation-instance-chip.partially_available {
+  border-color: rgba(8, 124, 143, 0.3);
+  background: rgba(8, 124, 143, 0.1);
+  color: var(--blue);
+}
+
+.augmentation-status.configured_not_running,
+.augmentation-status.degraded,
+.augmentation-instance-chip.configured_not_running,
+.augmentation-instance-chip.degraded {
+  border-color: rgba(163, 101, 0, 0.3);
+  background: rgba(163, 101, 0, 0.1);
+  color: var(--yellow);
+}
+
+.augmentation-status.unavailable,
+.augmentation-instance-chip.unavailable {
+  border-color: rgba(194, 58, 43, 0.3);
+  background: rgba(194, 58, 43, 0.1);
+  color: var(--red);
+}
+
+.augmentation-fields {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.augmentation-fields div,
+.augmentation-instance-list li,
+.augmentation-validation-list li {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+
+.augmentation-fields dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.augmentation-fields dd {
+  min-width: 0;
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.augmentation-instance-list,
+.augmentation-validation-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.augmentation-instance-list li {
+  grid-template-columns: 1fr;
+}
+
+.augmentation-instance-list span,
+.augmentation-validation-list span {
+  color: var(--muted);
+}
+
+.augmentation-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  margin-top: 14px;
+}
+
+.augmentation-flow-canvas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  align-items: stretch;
+  margin: 16px 0;
+}
+
+.augmentation-stage {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px;
+  background: #fff;
+}
+
+.augmentation-stage span,
+.augmentation-stage strong {
+  display: block;
+}
+
+.augmentation-stage span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.augmentation-stage strong {
+  margin-top: 6px;
+  color: var(--text);
+}
+
+.augmentation-flow-canvas i {
+  display: none;
+}
+
+.augmentation-instance-lane {
+  flex-wrap: wrap;
+}
+
+.augmentation-instance-chip {
+  flex: 1 1 150px;
+  min-width: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.augmentation-instance-chip.selected {
+  box-shadow: 0 0 0 2px rgba(8, 124, 143, 0.18);
+}
+
+.augmentation-instance-chip span,
+.augmentation-instance-chip strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-validation-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.augmentation-validation-list li {
+  grid-template-columns: 58px minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+
+.augmentation-validation-list li.pass strong {
+  color: var(--green);
+}
+
+.augmentation-validation-list li.warn strong {
+  color: var(--yellow);
+}
+
+.augmentation-plan-preview {
+  min-height: 150px;
+  max-height: 230px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fcfd;
+  color: var(--text);
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  .augmentation-kpis,
+  .augmentation-grid,
+  .augmentation-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .augmentation-flow-canvas {
+    grid-template-columns: 1fr;
+  }
+
+  .augmentation-fields div {
+    grid-template-columns: 1fr;
+  }
+
+  .augmentation-instance-chip {
+    flex-basis: 100%;
+  }
+}

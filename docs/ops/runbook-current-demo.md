@@ -32,8 +32,9 @@
 4. Jetson publisher는 Jetson node에서 실행
 5. Raspberry Pi publisher는 Raspberry Pi node에서 실행
 6. /state/dashboard API 응답 확인
-7. dashboard에서 service demo group, freshness, issue list 확인
-8. workflow designer에서 service stage와 target node dry-run plan 확인
+7. /state/virtual-resources API 응답 확인
+8. dashboard에서 service demo group, freshness, issue list, 자원증강 탭 확인
+9. workflow designer에서 service stage와 target node dry-run plan 확인
 ```
 
 ## 전체 점검 흐름
@@ -47,9 +48,10 @@
 6. edge node local mosquitto 확인
 7. test publisher 실행
 8. state-aggregator API 확인
-9. dashboard 확인
-10. workflow designer에서 service stage / node placement dry-run 확인
-11. degraded reason 기반 troubleshooting
+9. 자원증강형 가상디바이스 API 확인
+10. dashboard 확인
+11. workflow designer에서 service stage / node placement dry-run 확인
+12. degraded reason 기반 troubleshooting
 ```
 
 ## 사전 조건
@@ -267,6 +269,7 @@ state-aggregator endpoint가 노출되어 있다면 다음 API를 확인한다.
 curl -s http://localhost:8000/state/nodes
 curl -s http://localhost:8000/state/devices
 curl -s http://localhost:8000/state/dashboard
+curl -s http://localhost:8000/state/virtual-resources
 curl -s http://localhost:8000/state/summary
 ```
 
@@ -297,8 +300,112 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 - `kpis.fresh_device_status_count`
 - `kpis.device_status_freshness_ratio`
 - `kpis.operator_focus_count`
+- `resource_profiles.observation_error`
 
-## 9. dashboard 확인
+`resource_profiles.observation_error`가 있더라도 `/state/dashboard`가 200이면 dashboard shell과
+device/node KPI는 확인 가능한 상태다. 이 경우 service resource KPI만 0으로 degrade된 것으로 해석한다.
+
+자동 확인:
+
+```bash
+python3 tools/check_dashboard_api.py --base-url http://localhost:8000
+```
+
+이 스크립트는 `/state/dashboard`와 `/state/virtual-resources`를 함께 확인한다.
+과거 배포처럼 자원증강 API가 없는 환경만 확인할 때는 `--skip-virtual-resources`를 붙인다.
+
+## 9. 자원증강형 가상디바이스 API 확인
+
+자원증강형 가상디바이스는 가상 센서가 아니라 AI HAT, GPU, cache 같은 보강 실행 자원이다.
+현재 API는 read-only 상태 조회와 dry-run binding preview용이다.
+
+```bash
+curl -s http://localhost:8000/state/virtual-resources
+curl -s http://localhost:8000/state/virtual-resources/vd-x86-gpu-inference
+curl -s http://localhost:8000/state/virtual-resources/vd-x86-gpu-inference/twin
+```
+
+확인할 필드:
+
+- `resources[].id`
+- `resources[].display_name`
+- `resources[].desired_instances`
+- `resources[].observed_instances`
+- `resources[].free_instances`
+- `resources[].allocated_instances`
+- `resources[].status`
+- `resources[].twin.binding_state`
+- `resources[].twin.status_reason`
+- `observation_error`
+
+Kubernetes 관리 표면 초안은 다음 CRD로 확인한다.
+
+```bash
+kubectl apply -k edge-orch/device-augmentation/crds --dry-run=server
+kubectl apply -k edge-orch/device-augmentation/samples --dry-run=server
+kubectl apply -k edge-orch/device-augmentation/k8s --dry-run=server
+
+kubectl get augmentationresources
+kubectl describe augmentationresource vd-x86-gpu-inference
+kubectl get augmentationresource vd-x86-gpu-inference -o yaml
+
+kubectl get deviceaugmentations -n default
+kubectl describe deviceaugmentation jetson-gpu-storage-augmentation -n default
+kubectl get deviceaugmentation jetson-gpu-storage-augmentation -n default -o yaml
+
+kubectl get deployment device-augmentation-controller -n default
+kubectl logs -n default deploy/device-augmentation-controller --tail=100
+```
+
+state-aggregator를 통해 dashboard 입력 상태를 확인한다.
+
+```bash
+curl -s http://127.0.0.1:8000/state/augmentation-resources
+curl -s http://127.0.0.1:8000/state/device-augmentations
+```
+
+주의:
+
+- 현재 CRD는 Jetson/Raspberry Pi 같은 엣지 디바이스의 자원증강 관리 표면이다.
+- 읽기 전용 controller는 `state-aggregator`의 virtual resource 관측값을 기준으로 CRD `status`를 reconcile한다.
+- CRD와 controller 적용만으로 자동 offloading, runtime migration, workload 생성이 실행되지 않는다.
+
+자원증강 CRD status에서 확인할 필드:
+
+| 필드 | 의미 |
+|---|---|
+| `AugmentationResource.status.conditions` | runtime instance 관측 여부와 endpoint readiness |
+| `DeviceAugmentation.status.conditions` | binding resolved, capability satisfied, resource available, ready 판단 |
+| `DeviceAugmentation.status.selectedResources` | binding role, resource name, node, observed instance, endpoint readiness snapshot |
+
+dashboard `자원증강` 탭에서 확인할 것:
+
+- `Runtime Scope` 문구에 CRD binding phase가 붙어 있는가?
+- `읽기 전용 계획` validation list가 `DeviceAugmentation.status.conditions` 기준으로 PASS/WAIT를 표시하는가?
+- plan preview JSON에 `kubernetes_crd=true`, `device_augmentation_status.selected_resources`가 보이는가?
+
+상태 해석:
+
+| 상태 | 데모 해석 |
+|---|---|
+| `configured_not_running` | registry에는 있으나 실행 인스턴스가 관측되지 않음. 0-runtime 정상 표시 |
+| `idle` | 실행 인스턴스가 있고 아직 bind되지 않음 |
+| `allocated` | 관측된 인스턴스가 모두 사용 중 |
+| `partially_available` | 여러 인스턴스 중 일부만 사용 가능 |
+| `unavailable` | 인스턴스는 있으나 node/pod/endpoint가 사용 불가 |
+
+Prometheus/service resource observation이 실패하면 `observation_error`가 표시되고,
+registry에 등록된 Resource Profile은 숨기지 않는다. 이때 `observed_instances=0`,
+`status=configured_not_running`, `twin.binding_state=not_running`으로 보이는 것이 의도한 degraded 동작이다.
+
+주의:
+
+- 이 API는 Kubernetes workload를 생성하지 않는다.
+- 이 API는 Device CR을 수정하지 않는다.
+- 이 API는 MQTT command 또는 actuator command를 publish하지 않는다.
+- dashboard의 stage binding dry-run은 실행 계획 preview이며 실제 offloading 또는 migration이 아니다.
+
+## 10. dashboard 확인
 
 브라우저 또는 port-forward 경로로 dashboard를 확인한다.
 
@@ -328,11 +435,17 @@ namespace나 service 이름이 다르면 현재 배포 상태에 맞춰 조정�
 7. 현장 생산성 설명 지표
    - scenario KPI
    - service-bound device count
+8. 자원증강 탭
+   - Resource Profile 수
+   - observed runtime instance 수
+   - 실행 안 됨 수
+   - Resource Twin binding state
+   - read-only execution plan preview
 
 정상이라면 device, node, telemetry freshness, DeviceStatus freshness, service demo group이 함께 표시된다.
 운영자는 `reason`과 issue list를 기준으로 먼저 볼 device 또는 node를 좁힌다.
 
-## 10. Workflow Designer로 서비스 구조 설명
+## 11. Workflow Designer로 서비스 구조 설명
 
 Dashboard로 실제 운영 상태를 확인한 뒤, 별도 화면인 workflow designer를 열어 서비스 구조를 설명한다.
 
@@ -364,7 +477,7 @@ http://localhost:8080/edge-orch/workflow-designer/index.html
 - 실제 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.
 - 자동 offloading/자동 placement를 실증 완료한 기능으로 설명하지 않는다.
 
-## 11. Explain Panel 활용
+## 12. Explain Panel 활용
 
 데모 중 healthy/degraded 원인을 설명할 때는 read-only Explain Panel을 사용한다.
 
@@ -385,7 +498,7 @@ http://localhost:8080/edge-orch/workflow-designer/index.html
 - `node_ready=false`: dashboard 기준 node health와 edgecore/cloudcore 연결 상태를 확인한다.
 - `service_connected=false`: service binding rule 또는 device naming rule을 확인한다.
 
-## 12. 정상 상태 판단
+## 13. 정상 상태 판단
 
 정상 경로는 다음 조건을 만족한다.
 
@@ -399,7 +512,7 @@ http://localhost:8080/edge-orch/workflow-designer/index.html
 8. dashboard에서 device가 healthy 또는 의도한 상태로 보인다.
 9. service demo group 또는 relation view에서 device-service 연결을 해석할 수 있다.
 
-## 13. degraded troubleshooting
+## 14. degraded troubleshooting
 
 ### 증상 A: Device는 등록됐지만 degraded
 
@@ -483,7 +596,7 @@ kubectl describe node <node-name>
 
 edge node라면 edgecore 상태와 cloudcore 연결 상태도 확인한다.
 
-## 14. DeviceStatus 정책 확인
+## 15. DeviceStatus 정책 확인
 
 DeviceStatus에는 raw telemetry stream을 올리지 않는다.
 
@@ -513,7 +626,7 @@ DeviceStatus에는 raw telemetry stream을 올리지 않는다.
 
 자세한 기준은 `docs/device-status-policy.md`를 따른다.
 
-## 15. 테스트 실행 기준
+## 16. 테스트 실행 기준
 
 state-aggregator 코드 변경이 있을 때는 다음 명령으로 테스트한다.
 
@@ -524,7 +637,7 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
 
 현재 문서 정리 단계에서는 코드 변경이 없으므로 테스트는 필수는 아니다.
 
-## 16. 데모 전 체크리스트
+## 17. 데모 전 체크리스트
 
 데모 직전에는 다음을 확인한다.
 
@@ -537,7 +650,10 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
 - [ ] InfluxDB latest telemetry가 갱신된다.
 - [ ] `/state/devices`에서 `telemetry_fresh`를 확인했다.
 - [ ] `/state/devices`에서 `device_status_fresh`를 확인했다.
+- [ ] `/state/virtual-resources`에서 Resource Profile 4종과 0/1/N runtime 상태를 확인했다.
+- [ ] `observation_error`가 있으면 registry profile이 숨겨지지 않고 `configured_not_running`으로 degrade되는지 확인했다.
 - [ ] dashboard에서 relation view와 KPI를 확인했다.
+- [ ] dashboard 자원증강 탭에서 Resource Twin과 read-only execution plan preview를 확인했다.
 - [ ] degraded device의 reason을 설명할 수 있다.
 
 ## 현재 runbook 범위에서 제외하는 것
@@ -585,4 +701,3 @@ PATH=.venv/bin:$PATH PYTHONPATH=. pytest -q tests
    - WARN/FAIL validation 결과로 배치와 transport 누락을 설명한다.
 
 주의: 이 runbook 단계는 read-only + dry-run 설계 확인이며, Kubernetes apply/delete/restart, MQTT command publish, Device CR 수정, actuator command 실행은 하지 않는다.
-

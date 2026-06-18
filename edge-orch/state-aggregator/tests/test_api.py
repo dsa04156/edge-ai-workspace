@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import asyncio
 
+import httpx
 from fastapi.testclient import TestClient
 
 from app.main import app, service
@@ -82,6 +83,13 @@ def test_cost_model_endpoint_returns_snapshot():
     assert "node_states" in payload
     assert "stage_cost_stats" in payload
     assert "migration_cost_stats" in payload
+
+
+def test_virtual_device_routes_are_not_registered():
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-devices")
+
+    assert response.status_code == 404
 
 
 def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypatch):
@@ -178,6 +186,136 @@ def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypa
     assert recorded_redis["usage_profile"]["window"] == "10m"
     assert recorded_redis["usage_profile"]["avg_cpu_usage_cores"] == 0.03
     assert len(record_calls) == 1
+
+
+def test_virtual_resources_endpoint_returns_resource_profiles_with_observed_instances(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "namespace": "edge-ai",
+                    "service": "gpu-inference",
+                    "pod_count": 1,
+                    "nodes": ["etri-ser0002-cgnmsb"],
+                    "pods_by_node": {"etri-ser0002-cgnmsb": 1},
+                    "containers": [
+                        {
+                            "pod": "gpu-inference-abc",
+                            "container": "runtime",
+                            "node": "etri-ser0002-cgnmsb",
+                        }
+                    ],
+                }
+            ]
+        }
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {
+        "etri-ser0002-cgnmsb": NodeState(
+            hostname="etri-ser0002-cgnmsb",
+            instance="192.168.0.5:9100",
+            node_type="server",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+
+    assert response.status_code == 200
+    payload = response.json()
+    gpu = next(item for item in payload["resources"] if item["id"] == "vd-x86-gpu-inference")
+    assert gpu["observed_instances"] == 1
+    assert gpu["free_instances"] == 1
+    assert gpu["status"] == "idle"
+    assert gpu["instances"][0]["pod"] == "gpu-inference-abc"
+
+
+def test_virtual_resources_endpoint_scopes_instances_to_registry_node(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "namespace": "edge-ai",
+                    "service": "gpu-inference",
+                    "pod_count": 2,
+                    "nodes": ["etri-ser0002-cgnmsb", "etri-dev0001-jetorn"],
+                    "containers": [
+                        {
+                            "pod": "gpu-server-abc",
+                            "container": "runtime",
+                            "node": "etri-ser0002-cgnmsb",
+                        },
+                        {
+                            "pod": "gpu-jetson-abc",
+                            "container": "runtime",
+                            "node": "etri-dev0001-jetorn",
+                        },
+                    ],
+                }
+            ]
+        }
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {
+        "etri-ser0002-cgnmsb": NodeState(
+            hostname="etri-ser0002-cgnmsb",
+            instance="192.168.0.5:9100",
+            node_type="server",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        ),
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.6:9100",
+            node_type="edge",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        ),
+    }
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+
+    assert response.status_code == 200
+    payload = response.json()
+    server_gpu = next(item for item in payload["resources"] if item["id"] == "vd-x86-gpu-inference")
+    jetson_gpu = next(item for item in payload["resources"] if item["id"] == "vd-jetson-gpu-lite")
+    assert [item["pod"] for item in server_gpu["instances"]] == ["gpu-server-abc"]
+    assert [item["pod"] for item in jetson_gpu["instances"]] == ["gpu-jetson-abc"]
+
+
+def test_virtual_resources_endpoint_keeps_registry_when_observation_fails(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        raise httpx.ConnectError("prometheus unavailable")
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {}
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+        twin_response = client.get("/state/virtual-resources/vd-aihat-inference/twin")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["observation_error"] == "service resource observation unavailable: ConnectError"
+    assert len(payload["resources"]) == 4
+    assert {item["status"] for item in payload["resources"]} == {"configured_not_running"}
+    assert twin_response.status_code == 200
+    assert twin_response.json()["binding_state"] == "not_running"
 
 
 def test_service_start_schedules_operational_resource_profile_recorder(monkeypatch, tmp_path):
@@ -1089,6 +1227,7 @@ def test_operator_assistant_endpoint_returns_korean_read_only_summary(monkeypatc
         "/state/devices",
         "/state/nodes",
         "/state/summary",
+        "/state/virtual-resources",
     ]
     assert "kubectl delete" not in " ".join(payload["recommended_actions"])
 

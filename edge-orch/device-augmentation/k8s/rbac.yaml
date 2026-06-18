@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: device-augmentation-controller
+  namespace: default
+  labels:
+    app: device-augmentation-controller
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: device-augmentation-controller
+  labels:
+    app: device-augmentation-controller
+rules:
+  - apiGroups:
+      - augmentation.edge-ai.io
+    resources:
+      - augmentationresources
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - augmentation.edge-ai.io
+    resources:
+      - augmentationresources/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: device-augmentation-controller
+  labels:
+    app: device-augmentation-controller
+subjects:
+  - kind: ServiceAccount
+    name: device-augmentation-controller
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: device-augmentation-controller
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: device-augmentation-controller
+  namespace: default
+  labels:
+    app: device-augmentation-controller
+rules:
+  - apiGroups:
+      - augmentation.edge-ai.io
+    resources:
+      - deviceaugmentations
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - augmentation.edge-ai.io
+    resources:
+      - deviceaugmentations/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: device-augmentation-controller
+  namespace: default
+  labels:
+    app: device-augmentation-controller
+subjects:
+  - kind: ServiceAccount
+    name: device-augmentation-controller
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: device-augmentation-controller

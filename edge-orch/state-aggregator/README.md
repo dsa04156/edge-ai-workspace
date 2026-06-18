@@ -23,6 +23,16 @@ GET /state/node/{hostname}
 GET /state/workflows
 GET /state/workflow/{workflow_id}
 GET /state/summary
+
+현재 workflow UI는 Kubernetes apply/delete/restart 같은 실행 제어를 하지 않는다.
+등록된 KubeEdge Device는 `GET /state/devices`로 조회하고, source freshness와
+최근 sample은 `GET /state/devices/{device_id}/telemetry`로 확인한다.
+자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
+read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
+Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
+`GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
+`DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
+이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
 B. Prometheus reader
 
 Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기

@@ -1,0 +1,99 @@
+apiVersion: augmentation.edge-ai.io/v1alpha1
+kind: AugmentationResource
+metadata:
+  name: vd-aihat-inference
+  labels:
+    edge-ai.io/resource-class: ai-hat
+spec:
+  displayName: AI HAT Inference
+  resourceType: ai-hat
+  nodeSelector:
+    kubernetes.io/hostname: etri-dev0002-raspi5
+  stageTypes:
+    - ai_inference
+  capabilities:
+    - lightweight_inference
+    - npu_inference
+  runtimeRef:
+    namespace: default
+    podSelector:
+      edge-ai.io/augmentation-resource: vd-aihat-inference
+  allocationPolicy:
+    maxBindings: 2
+    allowShared: true
+---
+apiVersion: augmentation.edge-ai.io/v1alpha1
+kind: AugmentationResource
+metadata:
+  name: vd-x86-gpu-inference
+  labels:
+    edge-ai.io/resource-class: gpu
+spec:
+  displayName: x86 GPU Inference
+  resourceType: gpu
+  nodeSelector:
+    kubernetes.io/hostname: etri-ser0002-cgnmsb
+  stageTypes:
+    - ai_inference
+  capabilities:
+    - gpu_inference
+    - vision_inference
+    - anomaly_model
+  runtimeRef:
+    namespace: default
+    podSelector:
+      edge-ai.io/augmentation-resource: vd-x86-gpu-inference
+  allocationPolicy:
+    maxBindings: 4
+    allowShared: true
+---
+apiVersion: augmentation.edge-ai.io/v1alpha1
+kind: AugmentationResource
+metadata:
+  name: vd-jetson-gpu-lite
+  labels:
+    edge-ai.io/resource-class: gpu-lite
+spec:
+  displayName: Jetson GPU-lite
+  resourceType: gpu-lite
+  nodeSelector:
+    kubernetes.io/hostname: etri-dev0001-jetorn
+  stageTypes:
+    - preprocess
+    - ai_inference
+  capabilities:
+    - edge_preprocess
+    - gpu_lite_inference
+  runtimeRef:
+    namespace: default
+    podSelector:
+      edge-ai.io/augmentation-resource: vd-jetson-gpu-lite
+  allocationPolicy:
+    maxBindings: 2
+    allowShared: true
+---
+apiVersion: augmentation.edge-ai.io/v1alpha1
+kind: AugmentationResource
+metadata:
+  name: vd-storage-cache
+  labels:
+    edge-ai.io/resource-class: storage-cache
+spec:
+  displayName: Storage Cache
+  resourceType: storage-cache
+  nodeSelector:
+    kubernetes.io/hostname: etri-ser0002-cgnmsb
+  stageTypes:
+    - result_cache
+    - storage
+  capabilities:
+    - result_cache
+    - window_storage
+    - model_cache
+  runtimeRef:
+    namespace: default
+    podSelector:
+      edge-ai.io/augmentation-resource: vd-storage-cache
+  allocationPolicy:
+    maxBindings: 8
+    allowShared: true

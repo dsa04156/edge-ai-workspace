@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
+    <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
+    <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
+    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-device-20260618" />
+    <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
   </head>
   <body>
     <main class="shell">
@@ -15,43 +19,150 @@
         </div>
         <div class="refresh">
           <span id="updatedAt">-</span>
-          <button id="refreshButton" type="button" aria-label="refresh dashboard">Refresh</button>
+          <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
         </div>
       </header>
 
-      <section class="kpi-grid" aria-label="platform summary">
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="Active Nodes 설명 보기">
-          <span class="metric-label">Active Nodes</span>
-          <strong id="activeNodeCount">0</strong>
-          <span id="nodeRatio">0%</span>
-        </article>
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices 설명 보기">
-          <span class="metric-label">Registered Devices</span>
-          <strong id="deviceCount">0</strong>
-          <span id="deviceHealthRatio">0% available · 0 live</span>
-        </article>
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="telemetry_freshness_ratio" tabindex="0" role="button" aria-label="Telemetry Freshness 설명 보기">
-          <span class="metric-label">Telemetry Freshness</span>
-          <strong id="telemetryFreshnessRatio">0%</strong>
-          <span id="telemetryFreshnessCaption">0 fresh</span>
-        </article>
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="sensor_data_freshness_ratio" tabindex="0" role="button" aria-label="Sensor Data Freshness 설명 보기">
-          <span class="metric-label">Sensor Data Freshness</span>
-          <strong id="sensorDataFreshnessRatio">0%</strong>
-          <span id="sensorDataFreshnessCaption">0/0 streams</span>
-        </article>
-        <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
-          <span class="metric-label">Service Profiles</span>
-          <strong id="resourceProfileCount">0</strong>
-          <span id="placementFitCaption">0 pods · 0 missing spec</span>
-        </article>
-      </section>
+      <nav class="main-menu" aria-label="dashboard pages">
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">개요</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">자산</button>
+        <button type="button" data-dashboard-page="workflow" aria-pressed="false">워크플로우</button>
+        <button type="button" data-dashboard-page="augmentation" aria-pressed="false">자원증강</button>
+      </nav>
+
+      <section class="ops-shell">
+        <div class="ops-main">
+          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="platform summary">
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="Active Nodes 설명 보기">
+              <span class="metric-label">활성 노드</span>
+              <strong id="activeNodeCount">0</strong>
+              <span id="nodeRatio">0%</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices 설명 보기">
+              <span class="metric-label">등록 디바이스</span>
+              <strong id="deviceCount">0</strong>
+              <span id="deviceHealthRatio">0% available · 0 live</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="telemetry_freshness_ratio" tabindex="0" role="button" aria-label="Telemetry Freshness 설명 보기">
+              <span class="metric-label">InfluxDB 텔레메트리</span>
+              <strong id="telemetryFreshnessRatio">0%</strong>
+              <span id="telemetryFreshnessCaption">0 fresh</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
+              <span class="metric-label">서비스 프로파일</span>
+              <strong id="resourceProfileCount">0</strong>
+              <span id="placementFitCaption">0 pods · 0 missing spec</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
+              <span class="metric-label">서비스 Pod CPU</span>
+              <strong id="serviceCpuUsage">0</strong>
+              <span id="serviceCpuUsageCaption">0 core request</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
+              <span class="metric-label">서비스 Pod 메모리</span>
+              <strong id="serviceMemoryUsage">0</strong>
+              <span id="serviceMemoryUsageCaption">0 MiB request</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
+              <span class="metric-label">Pod 사용량 수집률</span>
+              <strong id="usageCoverageRatio">0%</strong>
+              <span id="usageCoverageCaption">0/0 컨테이너 수집</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_binding_ratio" tabindex="0" role="button" aria-label="Service Binding 설명 보기">
+              <span class="metric-label">서비스 연결 디바이스</span>
+              <strong id="serviceBindingRatio">0%</strong>
+              <span id="serviceBindingCaption">0/0 device 연결</span>
+            </article>
+          </section>
+
+          <section class="panel overview-visuals dashboard-page active" data-page="overview" aria-label="observability metrics">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">관측 메트릭</p>
+                <h2>현상태 시각화</h2>
+              </div>
+              <div class="panel-head-meta">
+                <span id="overviewMetricScope">대상 노드 집계 대기</span>
+                <span id="overviewHealthCaption">상태 집계 대기</span>
+              </div>
+            </div>
+            <div class="overview-visual-grid">
+              <article class="health-ring-card">
+                <div id="overallHealthRing" class="health-ring" style="--ok: 0%; --warn: 0%; --bad: 0%; --unknown: 100%">
+                  <strong id="overallHealthPercent">0%</strong>
+                  <span>운영 가능</span>
+                </div>
+                <div class="ring-legend">
+                  <span><i class="legend-ok"></i>사용 가능</span>
+                  <span><i class="legend-warn"></i>주의</span>
+                  <span><i class="legend-bad"></i>장애</span>
+                </div>
+              </article>
+              <article class="metric-bars">
+                <div class="metric-bar-row">
+                  <span>노드 online</span>
+                  <strong id="nodeOnlineValue">0%</strong>
+                  <div class="metric-bar"><i id="nodeOnlineBar"></i></div>
+                </div>
+                <div class="metric-bar-row">
+                  <span>디바이스 사용 가능</span>
+                  <strong id="deviceAvailableValue">0%</strong>
+                  <div class="metric-bar"><i id="deviceAvailableBar"></i></div>
+                </div>
+                <div class="metric-bar-row">
+                  <span>텔레메트리 fresh</span>
+                  <strong id="telemetryFreshValue">0%</strong>
+                  <div class="metric-bar"><i id="telemetryFreshBar"></i></div>
+                </div>
+                <div class="metric-bar-row">
+                  <span>서비스 연결 디바이스</span>
+                  <strong id="bindingValue">0%</strong>
+                  <div class="metric-bar"><i id="bindingBar"></i></div>
+                </div>
+                <div class="metric-bar-row">
+                  <span>Pod 사용량 수집률</span>
+                  <strong id="coverageValue">0%</strong>
+                  <div class="metric-bar"><i id="coverageBar"></i></div>
+                </div>
+              </article>
+              <article class="status-distribution">
+                <div class="status-stack" aria-label="device status distribution">
+                  <i id="statusStackAvailable"></i>
+                  <i id="statusStackDegraded"></i>
+                  <i id="statusStackUnavailable"></i>
+                  <i id="statusStackUnknown"></i>
+                </div>
+                <dl class="status-distribution-list">
+                  <div><dt>정상</dt><dd id="statusAvailableCount">0</dd></div>
+                  <div><dt>주의</dt><dd id="statusDegradedCount">0</dd></div>
+                  <div><dt>장애</dt><dd id="statusUnavailableCount">0</dd></div>
+                  <div><dt>미확인</dt><dd id="statusUnknownCount">0</dd></div>
+                </dl>
+              </article>
+              <article class="resource-snapshot">
+                <div class="resource-row">
+                  <span>Service Pod CPU current/request</span>
+                  <strong id="cpuResourceValue">0 / 0 core</strong>
+                  <div class="metric-bar"><i id="cpuResourceBar"></i></div>
+                </div>
+                <div class="resource-row">
+                  <span>Service Pod Memory current/request</span>
+                  <strong id="memoryResourceValue">0 / 0 MiB</strong>
+                  <div class="metric-bar"><i id="memoryResourceBar"></i></div>
+                </div>
+                <div class="resource-row">
+                  <span>GPU limit</span>
+                  <strong id="gpuResourceValue">0 units</strong>
+                </div>
+              </article>
+            </div>
+          </section>
 
       <section class="layout">
-        <section class="panel assets">
+        <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">Inventory</p>
+              <p class="section-kicker">자산</p>
               <h2>자산 현황</h2>
             </div>
             <span id="assetCount">0 assets</span>
@@ -59,17 +170,17 @@
           <div class="split asset-split">
             <div class="asset-column">
               <div class="asset-column-head">
-                <h3>Edge Nodes</h3>
-                <span>hostnames only</span>
+                <h3>엣지 노드</h3>
+                <span>호스트명 기준</span>
               </div>
               <div id="nodeList" class="stack asset-scroll" aria-label="Edge node cards"></div>
             </div>
             <div class="asset-column">
               <div class="asset-column-head">
-                <h3>Devices</h3>
+                <h3>디바이스</h3>
                 <div class="device-filter-bar">
-                  <span id="deviceFilterLabel">registered assets</span>
-                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>Clear filter</button>
+                  <span id="deviceFilterLabel">등록 자산</span>
+                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>필터 해제</button>
                 </div>
               </div>
               <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
@@ -77,25 +188,317 @@
           </div>
         </section>
 
-        <section class="panel topology-panel">
+        <section class="panel topology-panel dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
               <p class="section-kicker">서비스 바인딩</p>
-              <h2>Service Topology</h2>
+              <h2>서비스 토폴로지</h2>
             </div>
-            <span>service 클릭 → pod/resource 상세 · read-only</span>
+            <span>서비스 클릭 → pod/resource 상세 · 읽기 전용</span>
           </div>
           <div id="topologyMap" class="topology-map"></div>
         </section>
 
-        <aside class="side-rail" aria-label="read-only operator assistance">
+        <section class="panel workflow-workbench dashboard-page" data-page="workflow" aria-labelledby="workflowWorkbenchTitle">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">디바이스 워크플로우</p>
+              <h2 id="workflowWorkbenchTitle">등록 디바이스 워크플로우 구성 도구</h2>
+            </div>
+            <div class="workflow-actions">
+              <span class="workflow-scope">등록 디바이스 · 텔레메트리 신선도 · dry-run</span>
+              <span id="workflowStatus">device 목록 연결 대기</span>
+              <button id="workflowRefresh" type="button">디바이스 새로고침</button>
+            </div>
+          </div>
+
+          <div class="workflow-summary" aria-label="device workflow summary">
+            <div>
+              <span>등록 디바이스</span>
+              <strong id="workflowDeviceTotalCount">0</strong>
+            </div>
+            <div>
+              <span>사용 가능</span>
+              <strong id="workflowDeviceAvailableCount">0</strong>
+            </div>
+            <div>
+              <span>신선한 텔레메트리</span>
+              <strong id="workflowFreshTelemetryCount">0</strong>
+            </div>
+            <div>
+              <span>AI HAT 리소스</span>
+              <strong id="workflowAiHatCount">0</strong>
+            </div>
+            <div>
+              <span>바인딩 노드</span>
+              <strong id="workflowBoundCount">0</strong>
+            </div>
+            <div>
+              <span>검증</span>
+              <strong id="workflowValidationSummary">WAIT</strong>
+            </div>
+          </div>
+
+          <div class="workflow-builder-bar" aria-label="workflow builder controls">
+            <label>
+              <span>워크플로우</span>
+              <select id="workflowSelector" name="workflowSelector"></select>
+            </label>
+            <label>
+              <span>새 워크플로우</span>
+              <input id="workflowNameInput" name="workflowName" type="text" maxlength="40" placeholder="factory-vision-inspection" />
+            </label>
+            <button id="createWorkflow" type="button">생성</button>
+          </div>
+
+          <div class="workflow-studio" aria-label="n8n style workflow studio">
+            <aside class="workflow-palette">
+              <div class="inspector-head">
+                <span>노드 팔레트</span>
+              </div>
+              <div id="workflowNodePalette" class="workflow-node-palette" aria-label="workflow node palette"></div>
+              <div class="workflow-toolbar" aria-label="device source filters">
+                <button type="button" data-device-filter="all" class="active">전체</button>
+                <button type="button" data-device-filter="telemetry">텔레메트리</button>
+                <button type="button" data-device-filter="fresh">신선</button>
+                <button type="button" data-device-filter="stale">지연</button>
+                <button type="button" data-device-filter="sensehat">Sense HAT</button>
+                <button type="button" data-device-filter="aihat">AI HAT</button>
+              </div>
+              <div id="deviceSourcePool" class="device-source-pool" aria-label="registered device source pool"></div>
+            </aside>
+
+            <section class="workflow-canvas-shell">
+              <div class="workflow-graph-actions" aria-label="workflow graph actions">
+                <div class="workflow-action-cluster">
+                  <button id="startWorkflowLink" type="button">연결 시작</button>
+                  <button id="removeWorkflowLink" type="button">연결 삭제</button>
+                  <button id="removeWorkflowNode" type="button">노드 삭제</button>
+                </div>
+                <div class="workflow-action-cluster workflow-zoom-controls" aria-label="canvas zoom controls">
+                  <button id="workflowAutoLayout" type="button">자동 정렬</button>
+                  <button id="workflowZoomOut" type="button" aria-label="캔버스 축소">−</button>
+                  <button id="workflowZoomReset" type="button">100%</button>
+                  <button id="workflowZoomIn" type="button" aria-label="캔버스 확대">+</button>
+                </div>
+                <span id="workflowLinkHint">node를 선택하고 Start Link를 누른 뒤 다른 node를 클릭하세요.</span>
+              </div>
+              <div id="workflowGraphCanvas" class="workflow-graph-canvas" aria-label="workflow graph canvas">
+                <svg id="workflowGraphEdges" class="workflow-graph-edges" aria-hidden="true"></svg>
+                <div id="workflowGraphNodes" class="workflow-graph-nodes"></div>
+              </div>
+            </section>
+
+            <aside class="workflow-inspector" aria-live="polite">
+              <div class="inspector-head">
+                <span>인스펙터</span>
+                <div class="inspector-actions">
+                  <button id="bindWorkflowDevice" type="button">바인딩</button>
+                  <button id="releaseWorkflowDevice" type="button">해제</button>
+                  <button id="readLatestWorkflowDevice" type="button">텔레메트리 읽기</button>
+                </div>
+              </div>
+              <div id="workflowBindingInspector" class="workflow-binding-inspector">
+                <div class="workflow-empty">node를 선택하면 설정, Device binding, telemetry freshness를 표시합니다.</div>
+              </div>
+            </aside>
+          </div>
+
+          <div class="workflow-bottom-grid">
+            <section class="workflow-validation-panel" aria-labelledby="workflowValidationTitle">
+              <div class="inspector-head">
+                <span id="workflowValidationTitle">검증 패널</span>
+                <strong id="workflowValidationBadge">WAIT</strong>
+              </div>
+              <ul id="workflowValidationList" class="workflow-validation-list"></ul>
+            </section>
+            <section class="workflow-plan-panel" aria-labelledby="workflowPlanTitle">
+              <div class="inspector-head">
+                <span id="workflowPlanTitle">실행 계획</span>
+                <strong>미리보기</strong>
+              </div>
+              <pre id="workflowExecutionPlan" class="workflow-plan-preview"></pre>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel augmentation-workbench dashboard-page" data-page="augmentation" aria-labelledby="augmentationTitle">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">자원증강 가상디바이스</p>
+              <h2 id="augmentationTitle">Resource Command Center</h2>
+            </div>
+            <div class="augmentation-actions">
+              <span>registry + observed runtime · read-only/dry-run</span>
+              <button id="augmentationRefresh" type="button">자원 새로고침</button>
+            </div>
+          </div>
+
+          <div class="augmentation-kpis" aria-label="resource augmentation summary">
+            <div><span>자원 프로파일</span><strong id="augmentationProfileCount">0</strong></div>
+            <div><span>실행 인스턴스</span><strong id="augmentationObservedCount">0</strong></div>
+            <div><span>사용 가능</span><strong id="augmentationAvailableCount">0</strong></div>
+            <div><span>바인딩됨</span><strong id="augmentationAllocatedCount">0</strong></div>
+            <div><span>실행 안 됨</span><strong id="augmentationNotRunningCount">0</strong></div>
+            <div><span>주의/장애</span><strong id="augmentationRiskCount">0</strong></div>
+          </div>
+
+          <div class="augmentation-grid">
+            <section class="augmentation-pool" aria-labelledby="augmentationPoolTitle">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Virtual Resource Pool</span>
+                  <h3 id="augmentationPoolTitle">구성 자원과 실행 인스턴스</h3>
+                </div>
+                <em id="augmentationRuntimeScope">observed runtime pending</em>
+              </div>
+              <div class="augmentation-table-shell">
+                <table class="augmentation-table">
+                  <thead>
+                    <tr>
+                      <th>자원</th>
+                      <th>노드</th>
+                      <th>유형</th>
+                      <th>목표</th>
+                      <th>실행</th>
+                      <th>유휴</th>
+                      <th>할당</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody id="augmentationResourceRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <aside class="augmentation-inspector" aria-live="polite">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Resource Twin Inspector</span>
+                  <h3 id="augmentationInspectorTitle">선택 자원</h3>
+                </div>
+                <em id="augmentationInspectorStatus">unknown</em>
+              </div>
+              <div id="augmentationInspectorBody" class="augmentation-inspector-body"></div>
+            </aside>
+          </div>
+
+          <div class="augmentation-bottom-grid">
+            <section class="augmentation-flow" aria-labelledby="augmentationFlowTitle">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Workflow Resource Lane</span>
+                  <h3 id="augmentationFlowTitle">엣지 디바이스 자원증강 워크플로</h3>
+                </div>
+                <em>실제 apply 없음</em>
+              </div>
+              <div class="augmentation-flow-canvas">
+                <div class="augmentation-stage source"><span>Target Edge Device</span><strong>etri-dev0001-jetorn</strong></div>
+                <i></i>
+                <div class="augmentation-stage transform"><span>Resource Gap</span><strong>gpu/storage 부족</strong></div>
+                <i></i>
+                <div class="augmentation-stage inference"><span>Augmented Inference</span><strong id="augmentationBoundResource">resource pending</strong></div>
+                <i></i>
+                <div class="augmentation-stage storage"><span>Result Cache</span><strong id="augmentationStorageResource">storage pending</strong></div>
+                <i></i>
+                <div class="augmentation-stage event"><span>Augmented Device</span><strong>operator view</strong></div>
+              </div>
+              <div id="augmentationInstanceLane" class="augmentation-instance-lane"></div>
+            </section>
+
+            <section class="augmentation-plan" aria-labelledby="augmentationPlanTitle">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Validation + Execution Plan</span>
+                  <h3 id="augmentationPlanTitle">읽기 전용 계획</h3>
+                </div>
+                <em>dry-run · Kubernetes apply 없음</em>
+              </div>
+              <ul id="augmentationValidationList" class="augmentation-validation-list"></ul>
+              <pre id="augmentationPlanPreview" class="augmentation-plan-preview"></pre>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel scenario dashboard-page active" data-page="overview">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">개요</p>
+              <h2>운영 상태</h2>
+            </div>
+            <span id="riskCount">0 risks</span>
+          </div>
+          <div class="scenario-grid" id="scenarioSummary">
+            <div>
+              <span>응답 기준</span>
+              <strong id="responseKpi">device-first</strong>
+            </div>
+            <div>
+              <span>운영 집중</span>
+              <strong id="interventionKpi">tracked</strong>
+            </div>
+            <div>
+              <span>처리 상태</span>
+              <strong id="handlingKpi">visible</strong>
+            </div>
+          </div>
+        </section>
+        <section class="overview-ops-grid dashboard-page active" data-page="overview" aria-label="collected operations metrics">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">수집 메트릭</p>
+                <h2>KPI 카탈로그</h2>
+              </div>
+              <span id="kpiCatalogCount">0 metrics</span>
+            </div>
+            <div id="kpiCatalog" class="kpi-catalog"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">노드 관측</p>
+                <h2>노드 압력</h2>
+              </div>
+              <div class="panel-head-meta">
+                <span>Prometheus node-exporter/DCGM</span>
+                <span id="nodeMetricScope">대상 노드 집계 대기</span>
+              </div>
+            </div>
+            <div id="nodeMetricMatrix" class="node-metric-matrix"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">서비스 리소스</p>
+                <h2>리소스 프로파일</h2>
+              </div>
+              <span>requests/limits/current usage</span>
+            </div>
+            <div id="resourceProfileList" class="resource-profile-list"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">디바이스 신호</p>
+                <h2>최근 센서 상태</h2>
+              </div>
+              <span>InfluxDB freshness 기준</span>
+            </div>
+            <div id="deviceStatusList" class="device-status-list"></div>
+          </section>
+        </section>
+        <div id="alertList" hidden></div>
+      </section>
+        </div>
+        <aside class="side-rail t-panel-reveal" aria-label="read-only operator assistance">
           <section class="panel explain-panel" aria-live="polite">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">Explain</p>
-                <h2>Explain Panel</h2>
+                <p class="section-kicker">상태 설명</p>
+                <h2>설명 패널</h2>
               </div>
-              <span>핵심 상태 설명</span>
+              <span>항상 표시</span>
             </div>
             <div id="explainPanel" class="explain-content">
               <div class="empty">Device, KPI, Service를 선택하면 상태 원인을 요약합니다.</div>
@@ -126,32 +529,16 @@
             </form>
           </section>
         </aside>
-
-        <section class="panel scenario">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">Summary</p>
-              <h2>운영 상태</h2>
-            </div>
-            <span id="riskCount">0 risks</span>
-          </div>
-          <div class="scenario-grid" id="scenarioSummary">
-            <div>
-              <span>Response Time</span>
-              <strong id="responseKpi">device-first</strong>
-            </div>
-            <div>
-              <span>Focus</span>
-              <strong id="interventionKpi">tracked</strong>
-            </div>
-            <div>
-              <span>Handling</span>
-              <strong id="handlingKpi">visible</strong>
-            </div>
-          </div>
-        </section>
       </section>
     </main>
+    <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=dashboard-static-20260609"></script>
+    <script src="/static/workflow-state.js?v=workflow-canvas-20260617"></script>
+    <script src="/static/workflow-render.js?v=workflow-canvas-20260617"></script>
+    <script src="/static/workflow-render-panels.js?v=workflow-canvas-20260617"></script>
+    <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
+    <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
+    <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
+    <script src="/static/resource-augmentation.js?v=resource-augmentation-crd-20260618"></script>
   </body>
 </html>

@@ -1,0 +1,42 @@
+{
+  "include": [
+    "edge-orch/state-aggregator/app/augmentation_crds.py",
+    "edge-orch/state-aggregator/app/main.py",
+    "edge-orch/state-aggregator/app/operator_assistant.py",
+    "edge-orch/state-aggregator/app/virtual_resource_registry.py",
+    "edge-orch/state-aggregator/app/virtual_resources.py",
+    "edge-orch/state-aggregator/tests/test_augmentation_crds.py",
+    "edge-orch/state-aggregator/tests/test_dashboard_resilience.py",
+    "edge-orch/device-augmentation/controller/app",
+    "edge-orch/device-augmentation/controller/tests"
+  ],
+  "exclude": [
+    "**/.venv",
+    "**/venv",
+    ".venv-publisher",
+    ".playwright-cli",
+    "actions-runner",
+    "docs/archive",
+    "edge-orch/workflow_executor",
+    "edge-orch/workflow_reporter",
+    "edge-orch/placement_engine"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "edge-orch/state-aggregator",
+      "extraPaths": [
+        "edge-orch/state-aggregator"
+      ]
+    },
+    {
+      "root": "edge-orch/device-augmentation/controller",
+      "extraPaths": [
+        "edge-orch/device-augmentation/controller"
+      ]
+    }
+  ],
+  "venvPath": "edge-orch/state-aggregator",
+  "venv": ".venv",
+  "typeCheckingMode": "basic",
+  "reportMissingTypeStubs": false
+}

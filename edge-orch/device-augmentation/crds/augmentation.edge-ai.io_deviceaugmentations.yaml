@@ -1,0 +1,195 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: deviceaugmentations.augmentation.edge-ai.io
+  labels:
+    app.kubernetes.io/name: device-augmentation
+    app.kubernetes.io/part-of: edge-ai-platform
+  annotations:
+    edge-ai.io/scope: "resource-augmentation"
+    edge-ai.io/description: "Binds an edge device to external compute or storage augmentation resources."
+spec:
+  group: augmentation.edge-ai.io
+  scope: Namespaced
+  names:
+    plural: deviceaugmentations
+    singular: deviceaugmentation
+    kind: DeviceAugmentation
+    listKind: DeviceAugmentationList
+    shortNames:
+      - devaug
+      - vdb
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Target
+          type: string
+          jsonPath: .spec.targetDevice.name
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Inference
+          type: string
+          jsonPath: .spec.bindings.inferenceResource
+        - name: Storage
+          type: string
+          jsonPath: .spec.bindings.storageResource
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - targetDevice
+                - requiredCapabilities
+                - bindings
+              properties:
+                targetDevice:
+                  type: object
+                  required:
+                    - kind
+                    - name
+                  properties:
+                    kind:
+                      type: string
+                      enum:
+                        - EdgeNode
+                        - KubeEdgeDevice
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                augmentationPurpose:
+                  type: string
+                  enum:
+                    - ai_inference
+                    - preprocessing
+                    - storage_cache
+                    - model_cache
+                    - mixed
+                requiredCapabilities:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                bindings:
+                  type: object
+                  properties:
+                    inferenceResource:
+                      type: string
+                    preprocessResource:
+                      type: string
+                    storageResource:
+                      type: string
+                    modelCacheResource:
+                      type: string
+                workloadPolicy:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                      enum:
+                        - read_only
+                        - manual_bind
+                        - controller_managed
+                      default: read_only
+                    automaticOffloading:
+                      type: boolean
+                      default: false
+                    runtimeMigration:
+                      type: boolean
+                      default: false
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum:
+                    - Pending
+                    - Ready
+                    - PartiallyReady
+                    - Blocked
+                    - Degraded
+                    - Unknown
+                boundResources:
+                  type: array
+                  items:
+                    type: string
+                selectedResources:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - role
+                      - name
+                      - phase
+                      - node
+                      - observedInstances
+                      - bindingState
+                      - endpointReady
+                    properties:
+                      role:
+                        type: string
+                        enum:
+                          - inference
+                          - preprocess
+                          - storage
+                          - modelCache
+                      name:
+                        type: string
+                      phase:
+                        type: string
+                      node:
+                        type: string
+                      observedInstances:
+                        type: integer
+                        minimum: 0
+                      bindingState:
+                        type: string
+                      endpointReady:
+                        type: boolean
+                missingCapabilities:
+                  type: array
+                  items:
+                    type: string
+                reason:
+                  type: string
+                lastValidatedAt:
+                  type: string
+                  format: date-time
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - status
+                      - reason
+                      - message
+                      - lastTransitionTime
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time

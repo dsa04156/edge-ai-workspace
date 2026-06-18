@@ -1,0 +1,85 @@
+.main-menu {
+  position: sticky;
+  top: 88px;
+  z-index: 18;
+  display: flex;
+  gap: var(--space-2);
+  margin: -6px 0 var(--space-4);
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(7, 9, 11, 0.82);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft);
+}
+
+.main-menu button {
+  flex: 0 1 160px;
+  border-radius: var(--radius-sm);
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.main-menu button:hover,
+.main-menu button.active,
+.main-menu button[aria-pressed="true"] {
+  border-color: rgba(99, 208, 230, 0.38);
+  background: rgba(99, 208, 230, 0.12);
+  color: var(--text);
+  transform: none;
+}
+
+.dashboard-page {
+  display: none;
+}
+
+.dashboard-page.active {
+  display: block;
+}
+
+.kpi-grid.dashboard-page.active {
+  display: grid;
+}
+
+.layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.layout > .dashboard-page.active {
+  grid-column: 1 / -1;
+}
+
+.side-rail.dashboard-page.active {
+  position: relative;
+  top: auto;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(360px, 1.05fr);
+  grid-template-rows: auto;
+}
+
+.topology-panel.dashboard-page.active {
+  margin-top: var(--space-4);
+}
+
+.scenario.dashboard-page.active {
+  margin-top: 0;
+}
+
+@media (max-width: 860px) {
+  .main-menu {
+    top: 84px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .main-menu button {
+    min-width: 0;
+    padding: 0 var(--space-2);
+    font-size: 12px;
+  }
+
+  .side-rail.dashboard-page.active {
+    grid-template-columns: 1fr;
+  }
+}
