@@ -366,6 +366,11 @@ dashboard `자원증강` 탭은 기존 `/state/virtual-resources`의 Resource Pr
 정보에 위 CRD status를 덧붙여 `DeviceAugmentation` phase, conditions,
 selectedResources를 표시한다.
 
+대표 시나리오는 `edge-orch/device-augmentation/scenarios/jetson-vision-inspection`
+이다. 이 시나리오는 `etri-dev0001-jetorn`의 부족한 GPU inference와 cache/storage를
+`vd-x86-gpu-inference`, `vd-storage-cache`로 보강하는 관계를
+`jetson-gpu-storage-augmentation` CRD 상태로 확인한다.
+
 `state-aggregator`가 통합하는 입력은 다음이다.
 
 - Kubernetes node 상태

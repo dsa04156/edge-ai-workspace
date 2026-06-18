@@ -343,6 +343,7 @@ Kubernetes 관리 표면 초안은 다음 CRD로 확인한다.
 ```bash
 kubectl apply -k edge-orch/device-augmentation/crds --dry-run=server
 kubectl apply -k edge-orch/device-augmentation/samples --dry-run=server
+kubectl apply -k edge-orch/device-augmentation/scenarios/jetson-vision-inspection --dry-run=server
 kubectl apply -k edge-orch/device-augmentation/k8s --dry-run=server
 
 kubectl get augmentationresources
@@ -362,6 +363,7 @@ state-aggregator를 통해 dashboard 입력 상태를 확인한다.
 ```bash
 curl -s http://127.0.0.1:8000/state/augmentation-resources
 curl -s http://127.0.0.1:8000/state/device-augmentations
+python3 tools/check_resource_augmentation_scenario.py --base-url http://127.0.0.1:8000
 ```
 
 주의:
@@ -377,6 +379,21 @@ curl -s http://127.0.0.1:8000/state/device-augmentations
 | `AugmentationResource.status.conditions` | runtime instance 관측 여부와 endpoint readiness |
 | `DeviceAugmentation.status.conditions` | binding resolved, capability satisfied, resource available, ready 판단 |
 | `DeviceAugmentation.status.selectedResources` | binding role, resource name, node, observed instance, endpoint readiness snapshot |
+
+대표 서비스 시나리오:
+
+| 항목 | 값 |
+|---|---|
+| scenario | `jetson-vision-inspection` |
+| target device | `etri-dev0001-jetorn` |
+| DeviceAugmentation | `jetson-gpu-storage-augmentation` |
+| inference resource | `vd-x86-gpu-inference` |
+| storage resource | `vd-storage-cache` |
+
+정상 기준은 checker가 `/state/virtual-resources`, `/state/augmentation-resources`,
+`/state/device-augmentations`를 함께 읽어 확인한다. `PASS: resource
+augmentation virtual device scenario is Ready`가 나오면 dashboard에 표시되는
+자원증강 가상디바이스 시나리오가 API와 CRD status 기준으로 연결된 상태다.
 
 dashboard `자원증강` 탭에서 확인할 것:
 

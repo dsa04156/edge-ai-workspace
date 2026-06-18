@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-augmentation-scenario-jetson-vision-inspection
+  namespace: default
+  labels:
+    edge-ai.io/scenario: jetson-vision-inspection
+    edge-ai.io/scenario-type: resource-augmentation
+data:
+  targetDevice: etri-dev0001-jetorn
+  deviceAugmentation: jetson-gpu-storage-augmentation
+  inferenceResource: vd-x86-gpu-inference
+  storageResource: vd-storage-cache
+  workflow: |
+    Jetson visual inspection resource augmentation
+      1. etri-dev0001-jetorn remains the target edge device.
+      2. Heavy vision inference is represented by vd-x86-gpu-inference.
+      3. Result windows and model cache are represented by vd-storage-cache.
+      4. DeviceAugmentation status must be Ready before the dashboard presents the augmented device as operational.
+  boundary: |
+    This scenario is read-only. It does not create workloads, publish MQTT commands,
+    mutate KubeEdge Device CRs, run automatic offloading, or perform runtime migration.

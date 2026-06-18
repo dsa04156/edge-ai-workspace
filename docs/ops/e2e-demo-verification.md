@@ -215,6 +215,7 @@ curl -s http://localhost:8000/state/devices
 curl -s http://localhost:8000/state/dashboard
 curl -s http://localhost:8000/state/summary
 curl -s http://localhost:8000/state/operator-assistant
+curl -s http://localhost:8000/state/virtual-resources
 ```
 
 자동 필드 확인:
@@ -222,6 +223,9 @@ curl -s http://localhost:8000/state/operator-assistant
 ```bash
 python3 tools/check_dashboard_api.py --base-url http://localhost:8000
 ```
+
+이 스크립트는 `/state/dashboard`와 `/state/virtual-resources`를 함께 검증한다.
+자원증강 API가 없는 과거 배포만 확인할 때는 `--skip-virtual-resources`를 사용한다.
 
 필수 device 필드:
 
@@ -264,6 +268,9 @@ kpis.device_service_binding_ratio
 - mapper가 없으면 reason이 mapper 문제를 설명한다.
 - node가 unavailable이면 reason이 node 문제를 설명한다.
 - InfluxDB latest sample이 없거나 stale이면 reason이 telemetry missing/stale을 설명한다.
+- `/state/virtual-resources`는 AI HAT, GPU, cache 같은 보강 실행 자원을 Resource Profile 단위로 보여준다.
+- Resource Profile은 실행 인스턴스가 0개여도 숨겨지지 않고 `configured_not_running`으로 표시될 수 있다.
+- `observation_error`가 있으면 service resource 관측 실패로 해석하고, 센서 생성이나 자동 오프로딩 실패로 설명하지 않는다.
 
 ## 7. 검증 시나리오
 
@@ -356,6 +363,31 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device r
 - dashboard freshness 판단이 `health` row 기준으로 설명됨
 - `ts`는 dashboard freshness 판단용 DB push property가 아님
 
+### Scenario G: 자원증강형 가상디바이스 표시
+
+자원증강형 가상디바이스는 가상 센서가 아니라 물리 디바이스의 부족한 AI 연산/GPU/스토리지/cache를 보강하는 실행 자원이다.
+
+```bash
+curl -s http://localhost:8000/state/virtual-resources
+curl -s http://localhost:8000/state/virtual-resources/vd-aihat-inference/twin
+curl -s http://localhost:8000/state/augmentation-resources
+curl -s http://localhost:8000/state/device-augmentations
+python3 tools/check_resource_augmentation_scenario.py --base-url http://localhost:8000
+```
+
+정상 기준:
+
+- `mode=read_only`
+- `scope=resource_augmentation_virtual_devices`
+- `resources[]`에 AI HAT/GPU/cache Resource Profile이 표시됨
+- 각 profile에 `desired_instances`, `observed_instances`, `free_instances`, `allocated_instances`가 표시됨
+- `jetson-vision-inspection` 시나리오에서 `jetson-gpu-storage-augmentation`이 `Ready`
+- `selectedResources`에 `vd-x86-gpu-inference`, `vd-storage-cache`가 표시됨
+- 두 `AugmentationResource`가 `Available`이고 endpoint ready임
+- 실행 중인 runtime이 없으면 `status=configured_not_running`, `twin.binding_state=not_running`
+- 관측 실패 시에도 registry profile은 표시되고 `observation_error`로 원인이 드러남
+- 이 검증 중 Kubernetes 배포, MQTT command publish, Device CR 수정, runtime migration/offloading을 하지 않음
+
 ## 실패 시 원인 분리
 
 | 증상 | 먼저 볼 곳 | 해석 |
@@ -368,3 +400,6 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device r
 | DeviceStatus stale | DeviceStatus timestamp | status-plane 보조 경고 |
 | telemetry fresh + DeviceStatus stale | dashboard/API | healthy 가능, status-plane 별도 점검 |
 | node_ready=false | `/state/nodes`, Prometheus/node-exporter | dashboard 기준 node health 문제 |
+| virtual resource profile 없음 | `/state/virtual-resources` | registry/API 연결 문제 |
+| virtual resource observed_instances=0 | `/state/virtual-resources`, service resource profiles | 보강 자원 registry는 있으나 runtime 미실행 가능 |
+| virtual resource observation_error | `/state/virtual-resources`, Prometheus/service resource observation | 관측 실패. 자동 오프로딩 실패로 해석하지 않음 |

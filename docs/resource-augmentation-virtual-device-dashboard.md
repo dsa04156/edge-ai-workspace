@@ -133,6 +133,39 @@ capability satisfaction, selected resource role이 `conditions`와
 `selectedResources`로 표시된다. workload 생성/이동, 자동 offloading,
 runtime migration은 구현하지 않는다.
 
+## 대표 서비스 시나리오
+
+현재 포함된 실행 시나리오는 Jetson 비전 검사 자원증강이다.
+
+```text
+etri-dev0001-jetorn
+  -> jetson-gpu-storage-augmentation
+  -> vd-x86-gpu-inference
+  -> vd-storage-cache
+```
+
+시나리오 파일은 다음 위치에 둔다.
+
+```text
+edge-orch/device-augmentation/scenarios/jetson-vision-inspection/
+```
+
+이 overlay는 `AugmentationResource`/`DeviceAugmentation` 샘플과 시나리오
+ConfigMap을 함께 적용한다. 정상 기준은 다음이다.
+
+- `DeviceAugmentation` `jetson-gpu-storage-augmentation`의 `phase=Ready`
+- `selectedResources`에 `inference=vd-x86-gpu-inference`,
+  `storage=vd-storage-cache`가 표시됨
+- 두 `AugmentationResource`가 모두 `phase=Available`,
+  `endpointReady=true`
+- dashboard `자원증강` 탭의 plan preview가 같은 CRD status를 read-only로 표시
+
+자동 확인은 다음 명령으로 수행한다.
+
+```bash
+python3 tools/check_resource_augmentation_scenario.py --base-url http://127.0.0.1:8000
+```
+
 ## 현재 구현 경계
 
 현재 dashboard frontend는 `state-aggregator`의 read-only API인

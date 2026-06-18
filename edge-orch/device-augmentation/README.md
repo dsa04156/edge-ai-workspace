@@ -23,6 +23,19 @@ kubectl apply -k edge-orch/device-augmentation/samples
 kubectl apply -k edge-orch/device-augmentation/k8s
 ```
 
+For the packaged service scenario, apply the scenario overlay instead of the
+raw samples:
+
+```bash
+kubectl apply -k edge-orch/device-augmentation/crds
+kubectl apply -k edge-orch/device-augmentation/scenarios/jetson-vision-inspection
+kubectl apply -k edge-orch/device-augmentation/k8s
+```
+
+The scenario represents `etri-dev0001-jetorn` as an augmented Jetson device that
+uses `vd-x86-gpu-inference` and `vd-storage-cache` through
+`jetson-gpu-storage-augmentation`.
+
 ## Inspect
 
 ```bash
@@ -36,6 +49,7 @@ kubectl get deviceaugmentation jetson-gpu-storage-augmentation -n default -o yam
 
 kubectl get deployment device-augmentation-controller -n default
 kubectl logs -n default deploy/device-augmentation-controller --tail=100
+python3 tools/check_resource_augmentation_scenario.py --base-url http://127.0.0.1:8000
 ```
 
 Status fields to inspect:

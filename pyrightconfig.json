@@ -8,7 +8,9 @@
     "edge-orch/state-aggregator/tests/test_augmentation_crds.py",
     "edge-orch/state-aggregator/tests/test_dashboard_resilience.py",
     "edge-orch/device-augmentation/controller/app",
-    "edge-orch/device-augmentation/controller/tests"
+    "edge-orch/device-augmentation/controller/tests",
+    "tools/check_resource_augmentation_scenario.py",
+    "tests/test_check_resource_augmentation_scenario.py"
   ],
   "exclude": [
     "**/.venv",
