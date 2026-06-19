@@ -81,6 +81,47 @@ physical / virtual device
 - `second-year-virtual-device-workflow-architecture.md`
 - `(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf`
 
+## 다음 작업 기록: Runtime Resource Augmentation Scheduler v1
+
+기록일: 2026-06-19
+
+현재 완료된 것은 자원증강 리소스의 등록, 상태 집계, dashboard 가시화, dry-run/validation 중심의 실행 계획 확인이다.
+`AugmentationResource`와 `DeviceAugmentation` 상태가 Ready/Available로 보이고, state-aggregator API와 dashboard에서 이를 확인할 수 있다.
+다만 이 상태는 실제 AI workload offloading이나 runtime migration이 이미 동작한다는 뜻은 아니다.
+
+다음 구현 후보는 `Runtime Resource Augmentation Scheduler v1`이다.
+목표는 버튼으로 임의 Job을 만드는 것이 아니라, 이미 수집 중인 pod/service 사용량과
+`AugmentationResource`/`DeviceAugmentation` 상태를 결합해 자원증강이 필요한 workload와
+선택 가능한 보강 resource를 자동으로 판단하는 최소 경로를 검증하는 것이다.
+
+범위:
+
+1. `state-aggregator`가 관측 중인 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 정규화한다.
+2. 대상 workload, target edge device, 필요한 capability를 `DeviceAugmentation`과 연결한다.
+3. `AugmentationResource` 후보 중 Available/Ready, endpointReady, capability 조건을 만족하는 자원을 선택한다.
+4. scheduler policy는 v1에서 threshold/rule 기반으로 시작하고, cost model 기반 전역 최적화는 후속으로 둔다.
+5. 결과는 실행 artifact가 아니라 `recommendation/status`로 노출한다: pressure reason, selected resource, confidence, apply state.
+6. dashboard는 수동 실행 버튼이 아니라 현재 부하, 증강 필요성, 선택 자원, 적용 상태를 보여준다.
+
+검증 기준:
+
+1. pod/service usage snapshot이 특정 workload와 resource profile에 매핑된다.
+2. resource pressure가 있을 때만 증강 recommendation이 생성된다.
+3. `AugmentationResource`가 Available/Ready가 아니면 selected resource로 사용하지 않는다.
+4. dashboard에서 recommendation의 근거와 선택 자원이 설명 가능하게 보인다.
+5. 기존 DeviceStatus/raw telemetry 분리 정책을 깨지 않는다.
+6. dashboard/API가 직접 Kubernetes workload mutation을 수행하지 않는다.
+
+명시적으로 제외하는 것:
+
+- 버튼 클릭마다 Kubernetes Job을 생성하는 방식
+- 고정 vibration sample 또는 dummy payload를 analyzer로 보내는 smoke-test 실행
+- placement engine 기반 자동 재배치
+- runtime migration
+- cost model 기반 offloading 최적화
+- legacy `workflow_executor`/`placement_engine`의 무조건 승격
+- LLM 또는 agent가 전체 플랫폼 제어를 수행하는 구조
+
 ## 정리 우선순위
 
 1. 현재 PoC 범위와 제외 범위를 문서화한다.

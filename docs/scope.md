@@ -71,6 +71,31 @@
 - 이 트랙의 워크플로우는 기존 `edge-orch/workflow_executor/`, `workflow_reporter/`, `placement_engine/` 구현을 그대로 현재 기능으로 승격한다는 뜻이 아니다.
 - 새 workflow 구현은 별도 설계와 검증 기준을 갖는 2차년도 프로토타입 경로로 다룬다.
 
+### 프로토타입 승격 후보: Runtime Resource Augmentation Scheduler v1
+
+2026-06-19 기준 다음 작업 후보는 자원증강 리소스를 수동 실행 버튼으로 호출하는 것이 아니라,
+runtime 관측값을 기반으로 자동 스케줄링 판단까지 이어지는 최소 경로다.
+현재 완료된 자원증강 상태 집계와 dashboard 가시화 위에 pod/service 사용량,
+resource pressure, capability matching, selected augmentation resource 상태를 얹는 형태로 다룬다.
+
+포함할 수 있는 범위:
+
+- Prometheus/Kubernetes에서 관측한 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 사용
+- `AugmentationResource`와 `DeviceAugmentation`의 Available/Ready 상태를 scheduling 후보 필터로 사용
+- 대상 edge workload와 보강 resource 사이의 capability matching, pressure reason, selected resource role을 status로 기록
+- dashboard에는 "왜 증강 대상인지", "어떤 자원이 선택됐는지", "현재 적용/대기/불가 상태인지"를 표시
+- 실제 Kubernetes mutation은 dashboard나 버튼이 아니라 별도 scheduler/controller 정책 경로에서만 수행
+
+포함하지 않는 범위:
+
+- 수동 실행 버튼으로 임의 Job을 생성하는 흐름
+- 고정 샘플 payload로 analyzer endpoint를 호출하는 smoke-test 실행
+- dashboard가 직접 Kubernetes apply/delete/restart를 수행하는 구조
+- runtime migration
+- cost model 기반 전역 최적화
+- legacy `workflow_executor`, `workflow_reporter`, `placement_engine`의 현행 기능 승격
+- agent-assisted planning 또는 LLM 기반 전역 제어
+
 ## 현재 구현 과정에 포함되는 컴포넌트
 
 현재 구현 과정에서 직접 다루는 컴포넌트는 다음과 같다.

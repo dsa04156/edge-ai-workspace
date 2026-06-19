@@ -6,8 +6,10 @@
 CPU/GPU/NPU/storage를 보강하는 논리 자원 객체로 표현하기 위한 dashboard
 구성 기준을 정리한다.
 
-현재 구현은 운영 가시화와 dry-run binding preview 범위다. Kubernetes workload
-생성, runtime migration, 자동 offloading, Device CR mutation은 수행하지 않는다.
+현재 구현은 운영 가시화와 dry-run binding preview 범위다. 다음 단계는 수동 실행
+버튼이 아니라 runtime pod/service 사용량을 기반으로 자원증강 recommendation/status를
+자동 계산하는 scheduler/controller 경로다. Dashboard는 Kubernetes workload 생성,
+runtime migration, 자동 offloading, Device CR mutation을 직접 수행하지 않는다.
 
 ## 모델
 
@@ -51,7 +53,7 @@ Resource Profile을 숨기지 않는다.
 
 ### Workflow Resource Lane
 
-workflow canvas는 다음 관계를 dry-run으로 보여준다.
+workflow canvas는 다음 관계를 관측/판단 중심으로 보여준다.
 
 ```text
 Physical device/source
@@ -60,13 +62,14 @@ Physical device/source
   -> dashboard event
 ```
 
-AI inference/resource stage는 Resource Profile 또는 Resource Instance에 bind된다.
-이 bind는 현재 브라우저/UI 상태와 execution plan preview로만 표현한다.
+AI inference/resource stage는 Resource Profile 또는 Resource Instance에 bind될 수
+있다. v1에서는 이 bind를 브라우저 버튼 실행으로 적용하지 않고, 관측된 runtime
+부하와 CRD status를 근거로 scheduler recommendation/status로 표현한다.
 
 ### 엣지 디바이스 자원증강 워크플로
 
 현재 `자원증강` 탭의 대표 서비스 워크플로는 Jetson/Raspberry Pi 같은
-엣지 디바이스의 부족 자원을 외부 실행 자원으로 보강하는 dry-run이다.
+엣지 디바이스의 부족 자원을 외부 실행 자원으로 보강하는 runtime 판단 흐름이다.
 
 ```text
 target edge device
@@ -82,17 +85,17 @@ target edge device
 | 단계 | 실행 위치/의미 |
 |---|---|
 | target edge device | `etri-dev0001-jetorn`, `etri-dev0002-raspi5` 같은 물리 엣지 디바이스다. |
-| resource gap detection | 대상 디바이스가 직접 감당하기 어려운 GPU/AI/storage 요구를 식별한다. |
-| augmentation resource binding | x86 GPU, AI HAT, Jetson GPU-lite, storage cache 같은 보강 자원에 매핑한다. |
-| remote inference execution | 무거운 AI 추론 또는 전처리 작업은 서버/다른 엣지 자원에서 실행된다. |
-| result cache binding | 결과 window, 모델 cache, 산출물 저장을 외부 cache/storage 자원에 연결한다. |
+| resource gap detection | pod/service CPU/GPU/memory 사용량과 capability 요구를 보고 대상 디바이스가 직접 감당하기 어려운 GPU/AI/storage 요구를 식별한다. |
+| augmentation resource binding | x86 GPU, AI HAT, Jetson GPU-lite, storage cache 같은 보강 자원을 후보로 선택하고 그 근거를 status로 남긴다. |
+| remote inference execution | 실제 실행 위치 변경은 dashboard 버튼이 아니라 scheduler/controller 정책 경로에서만 다룬다. |
+| result cache binding | 결과 window, 모델 cache, 산출물 저장을 외부 cache/storage 자원에 연결할 수 있는지 status로 표시한다. |
 | augmented device status | 운영자는 대상 엣지 디바이스의 실행 능력이 보강된 상태로 본다. |
 
 이 워크플로는 센서 source를 가상으로 생성한다는 뜻이 아니다. 물리 엣지
 디바이스는 대상 device로 남고, 부족한 연산/저장 능력을 외부 실행 자원으로
 보강한다. 현재 dashboard는 `device_augmentation=jetson-gpu-storage-augmentation`
-에 대해 선택 가능한 inference/storage 가상디바이스와 실행 계획을 read-only로
-표시한다.
+에 대해 선택 가능한 inference/storage 가상디바이스, runtime pressure, scheduler
+recommendation을 read-only로 표시한다.
 
 ## Kubernetes 관리 표면
 
@@ -135,7 +138,7 @@ runtime migration은 구현하지 않는다.
 
 ## 대표 서비스 시나리오
 
-현재 포함된 실행 시나리오는 Jetson 비전 검사 자원증강이다.
+현재 포함된 대표 시나리오는 Jetson 비전 검사 자원증강이다.
 
 ```text
 etri-dev0001-jetorn
@@ -166,6 +169,36 @@ ConfigMap을 함께 적용한다. 정상 기준은 다음이다.
 python3 tools/check_resource_augmentation_scenario.py --base-url http://127.0.0.1:8000
 ```
 
+## 다음 scheduler/controller 계획
+
+`Runtime Resource Augmentation Scheduler v1`은 다음 순서로 동작하도록 설계한다.
+
+```text
+pod/service resource observation
+  -> workload-to-device/resource mapping
+  -> resource pressure detection
+  -> AugmentationResource candidate filtering
+  -> DeviceAugmentation recommendation/status update
+  -> dashboard explanation
+```
+
+v1 판단 기준은 rule/threshold 기반으로 시작한다.
+
+- CPU/memory/GPU 사용량 또는 throttling/queue 같은 workload pressure가 관측되는가?
+- target workload가 요구하는 capability와 `AugmentationResource` capability가 맞는가?
+- 후보 resource의 `phase=Available`, `endpointReady=true`, runtime instance가 관측되는가?
+- 이미 selected/allocated된 resource라면 다른 workload와 충돌하지 않는가?
+
+v1 산출물은 Job 실행 결과가 아니라 다음 status다.
+
+- `recommendation`: `none`, `candidate`, `selected`, `blocked`
+- `pressureReason`: CPU/GPU/memory/capability/storage/cache 근거
+- `selectedResources`: inference/cache/storage role별 후보
+- `applyState`: `observed-only`, `pending-controller`, `applied`, `blocked`
+
+Dashboard는 이 status를 표시한다. 버튼 클릭으로 Kubernetes Job을 만들거나
+고정 sample payload를 analyzer로 보내는 흐름은 사용하지 않는다.
+
 ## 현재 구현 경계
 
 현재 dashboard frontend는 `state-aggregator`의 read-only API인
@@ -181,7 +214,7 @@ Kubernetes `AugmentationResource`/`DeviceAugmentation` CRD status를 병합해 �
   resource profile KPI만 0과 observation error로 degrade한다.
 - `AugmentationResource` CRD status는 dashboard의 resource observation 보조 신호로 사용한다.
 - `DeviceAugmentation` CRD status는 workflow resource lane의 binding/condition/selected resource 근거로 표시한다.
-- 상태 표현은 read-only/dry-run이다.
+- 상태 표현은 read-only/dry-run이며, 다음 단계에서 scheduler recommendation/status를 추가한다.
 
 현재 추가한 API 표면은 다음과 같다.
 
@@ -196,7 +229,8 @@ GET /state/device-augmentations
 이 API는 Resource Profile, observed instances, resource twin snapshot,
 workflow/stage binding state, CRD `conditions`, `selectedResources`를 반환한다.
 현재 binding state는 read-only 관측값이며, 실제 Kubernetes apply/delete/restart
-또는 workload migration으로 이어지지 않는다.
+또는 workload migration으로 이어지지 않는다. 향후 적용이 필요하면 dashboard가
+아니라 scheduler/controller가 정책에 따라 reconcile한다.
 
 dashboard의 `자원증강` 탭은 다음 순서로 상태를 합성한다.
 
@@ -227,11 +261,15 @@ dashboard의 `자원증강` 탭은 다음 순서로 상태를 합성한다.
 - 실행 인스턴스
 - Resource Twin
 - read-only / dry-run binding
+- runtime observation
+- scheduler recommendation/status
 - execution plan preview
 
 피할 표현:
 
 - 가상 센서 생성
 - 자동 offloading 완료
+- 버튼 클릭 기반 수동 실행
+- per-click Kubernetes Job 생성
 - runtime migration 실행
 - LLM 또는 dashboard가 Kubernetes 조치를 직접 수행
