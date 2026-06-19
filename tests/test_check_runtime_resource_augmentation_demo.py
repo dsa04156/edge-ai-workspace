@@ -17,10 +17,12 @@ def test_runtime_resource_augmentation_checker_accepts_15_item_demo_payload() ->
     module = load_checker()
     payload = {
         "scope": "runtime_resource_augmentation_demo_v1",
+        "ai_service": "factory-vision-inspection-ai",
         "summary": {"total": 15, "selected": 5, "blocked": 2, "candidate": 4, "none": 4},
         "recommendations": [
             {
                 "virtual_device": f"vd-inspection-{index:03d}",
+                "ai_service": "factory-vision-inspection-ai",
                 "recommendation": (
                     "selected"
                     if index <= 5
@@ -51,11 +53,41 @@ def test_runtime_resource_augmentation_checker_rejects_wrong_count() -> None:
     module = load_checker()
     payload = {
         "scope": "runtime_resource_augmentation_demo_v1",
+        "ai_service": "wrong-service",
         "summary": {"total": 14, "selected": 0, "blocked": 0, "candidate": 0, "none": 14},
         "recommendations": [],
     }
 
     errors = module.validate_runtime_augmentation(payload)
 
+    assert "ai_service='wrong-service', expected 'factory-vision-inspection-ai'" in errors
     assert "summary.total=14, expected 15" in errors
     assert "recommendations count=0, expected 15" in errors
+
+
+def test_runtime_resource_augmentation_checker_rejects_multiple_ai_services() -> None:
+    module = load_checker()
+    payload = {
+        "scope": "runtime_resource_augmentation_demo_v1",
+        "ai_service": "factory-vision-inspection-ai",
+        "summary": {"total": 15, "selected": 5, "blocked": 2, "candidate": 4, "none": 4},
+        "recommendations": [
+            {
+                "virtual_device": f"vd-inspection-{index:03d}",
+                "ai_service": "factory-vision-inspection-ai" if index < 15 else "another-ai-service",
+                "recommendation": "selected" if index <= 5 else "none",
+                "target_device": "etri-dev0001-jetorn",
+                "pressure_reason": ["gpu_inference_pressure"],
+                "selected_resources": [
+                    {"role": "inference", "name": "vd-x86-gpu-inference"},
+                    {"role": "storage", "name": "vd-storage-cache"},
+                ] if index <= 5 else [],
+                "apply_state": "observed-only",
+            }
+            for index in range(1, 16)
+        ],
+    }
+
+    errors = module.validate_runtime_augmentation(payload)
+
+    assert "recommendations must reference exactly one ai_service" in errors

@@ -14,9 +14,11 @@ on observed runtime resource pressure.
 
 ## Demo Story
 
-The factory runs a Jetson-based visual inspection service on
-`etri-dev0001-jetorn`. The Jetson remains the physical target edge device and
-continues to own the service context.
+The factory runs one Jetson-based visual inspection AI service,
+`factory-vision-inspection-ai`, on `etri-dev0001-jetorn`. The demo assumes 15
+virtual devices provide the runtime observation targets for that single AI
+service. The Jetson remains the physical target edge device and continues to
+own the service context.
 
 During normal operation, telemetry and pod/service resource usage are collected.
 When the inspection workload shows resource pressure, the platform evaluates
@@ -36,7 +38,9 @@ candidates because their runtime instances are available and endpoint-ready.
 | Role | Resource |
 |---|---|
 | Target edge device | `etri-dev0001-jetorn` |
+| AI service | `factory-vision-inspection-ai` |
 | Service scenario | `jetson-vision-inspection` |
+| Observed virtual devices | 15 `vd-inspection-*` virtual devices |
 | Device augmentation object | `jetson-gpu-storage-augmentation` |
 | Inference augmentation resource | `vd-x86-gpu-inference` |
 | Storage/cache augmentation resource | `vd-storage-cache` |
@@ -48,6 +52,7 @@ candidates because their runtime instances are available and endpoint-ready.
 ```text
 1. Observe target workload
    -> collect pod/service CPU, memory, GPU, endpoint, and telemetry freshness
+   -> group 15 virtual device observations under one AI service
 
 2. Detect resource pressure
    -> classify whether the Jetson-side inspection service needs support
@@ -89,7 +94,9 @@ Output:
 ```json
 {
   "scenario": "jetson-vision-inspection",
+  "ai_service": "factory-vision-inspection-ai",
   "target_device": "etri-dev0001-jetorn",
+  "virtual_device": "vd-inspection-001",
   "recommendation": "selected",
   "pressure_reason": ["gpu_inference_pressure", "cache_required"],
   "selected_resources": [
@@ -125,7 +132,7 @@ Kubernetes mutation.
 
 The demo is ready when the following are visible without manual execution:
 
-1. The dashboard shows the target service/device for `jetson-vision-inspection`.
+1. The dashboard shows one AI service, `factory-vision-inspection-ai`, and 15 virtual devices.
 2. The dashboard shows observed runtime resource pressure or a normal/no-pressure state.
 3. The dashboard shows which `AugmentationResource` objects were selected or blocked.
 4. The dashboard explains the reason for the decision.

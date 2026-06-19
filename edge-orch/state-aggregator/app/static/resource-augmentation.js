@@ -4,6 +4,7 @@ const augmentationState = {
   recommendations: [],
   recommendationSummary: { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 },
   selectedRecommendationId: "",
+  aiService: "",
 };
 const DEVICE_AUGMENTATION_ID = "jetson-gpu-storage-augmentation";
 
@@ -77,6 +78,7 @@ function normalizeAugmentationResource(resource) {
 function normalizeAugmentationRecommendation(item) {
   return {
     id: item.virtual_device,
+    aiService: item.ai_service || "",
     scenario: item.scenario,
     targetDevice: item.target_device,
     workload: item.workload,
@@ -238,10 +240,11 @@ function renderAugmentationRecommendations() {
   const recommendations = augmentationState.recommendations;
   const selected = selectedAugmentationRecommendation();
   const summary = augmentationState.recommendationSummary;
-  augEl("augmentationRecommendationScope").textContent = `${summary.total || 0} demo AI services · ${summary.selected || 0} selected · ${summary.blocked || 0} blocked`;
+  augEl("augmentationRecommendationService").textContent = augmentationState.aiService || selected?.aiService || "-";
+  augEl("augmentationRecommendationScope").textContent = `${summary.total || 0} virtual devices · ${summary.selected || 0} selected · ${summary.blocked || 0} blocked`;
   augEl("augmentationRecommendationRows").innerHTML = recommendations.map((item) => `
     <button class="augmentation-recommendation-row ${augEscape(item.recommendation)} ${item.id === augmentationState.selectedRecommendationId ? "selected" : ""}" type="button" data-augmentation-recommendation-id="${augEscape(item.id)}">
-      <span><strong>${augEscape(item.id)}</strong><em>${augEscape(item.workload)}</em></span>
+      <span><strong>${augEscape(item.id)}</strong><em>${augEscape(item.aiService || item.workload)}</em></span>
       <b>${augEscape(augRecommendationLabel(item.recommendation))}</b>
       <small>${item.pressureScore}%</small>
     </button>
@@ -252,7 +255,8 @@ function renderAugmentationRecommendations() {
   }
   augEl("augmentationRecommendationDetail").innerHTML = `
     <dl class="augmentation-fields">
-      <div><dt>service</dt><dd>${augEscape(selected.id)}</dd></div>
+      <div><dt>virtual device</dt><dd>${augEscape(selected.id)}</dd></div>
+      <div><dt>AI service</dt><dd>${augEscape(selected.aiService || selected.workload)}</dd></div>
       <div><dt>target</dt><dd>${augEscape(selected.targetDevice)}</dd></div>
       <div><dt>state</dt><dd>${augEscape(augRecommendationLabel(selected.recommendation))} · ${selected.pressureScore}%</dd></div>
       <div><dt>apply</dt><dd>${augEscape(selected.applyState)}</dd></div>
@@ -282,6 +286,7 @@ async function loadAugmentationRecommendations() {
   if (!response.ok) throw new Error(`runtime augmentation API unavailable: HTTP ${response.status}`);
   const payload = await response.json();
   augmentationState.recommendationSummary = payload.summary || { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 };
+  augmentationState.aiService = payload.ai_service || "";
   augmentationState.recommendations = (payload.recommendations || []).map(normalizeAugmentationRecommendation);
   alignSelectedAugmentationRecommendation();
 }
@@ -306,6 +311,7 @@ async function loadAugmentation() {
     augmentationState.resources = [];
     augmentationState.recommendations = [];
     augmentationState.recommendationSummary = { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 };
+    augmentationState.aiService = "";
   }
   alignSelectedAugmentationResource();
   renderAugmentation();

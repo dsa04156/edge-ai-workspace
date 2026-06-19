@@ -11,6 +11,9 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationRecommendationTotal"' in html
     assert 'id="augmentationRecommendationRows"' in html
     assert 'id="augmentationRecommendationDetail"' in html
+    assert 'id="augmentationRecommendationService"' in html
+    assert "15개 가상디바이스 자원증강 판단" in html
     assert "/state/runtime-resource-augmentation" in js
     assert "renderAugmentationRecommendations" in js
+    assert "ai_service" in js
     assert "pressure_reason" in js

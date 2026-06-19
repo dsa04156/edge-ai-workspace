@@ -10,6 +10,7 @@ from typing import Any
 JsonMap = dict[str, Any]
 EXPECTED_SCOPE = "runtime_resource_augmentation_demo_v1"
 EXPECTED_TOTAL = 15
+EXPECTED_AI_SERVICE = "factory-vision-inspection-ai"
 
 
 class Options:
@@ -41,6 +42,8 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
     errors: list[str] = []
     if payload.get("scope") != EXPECTED_SCOPE:
         errors.append(f"scope={payload.get('scope')!r}, expected {EXPECTED_SCOPE!r}")
+    if payload.get("ai_service") != EXPECTED_AI_SERVICE:
+        errors.append(f"ai_service={payload.get('ai_service')!r}, expected {EXPECTED_AI_SERVICE!r}")
 
     summary = payload.get("summary")
     if not isinstance(summary, dict):
@@ -56,6 +59,14 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
         recommendations = []
     if len(recommendations) != EXPECTED_TOTAL:
         errors.append(f"recommendations count={len(recommendations)}, expected {EXPECTED_TOTAL}")
+
+    virtual_devices = [item.get("virtual_device") for item in recommendations if isinstance(item, dict)]
+    if len(set(virtual_devices)) != EXPECTED_TOTAL:
+        errors.append("recommendations must reference 15 unique virtual_device values")
+
+    ai_services = {item.get("ai_service") for item in recommendations if isinstance(item, dict)}
+    if ai_services != {EXPECTED_AI_SERVICE}:
+        errors.append("recommendations must reference exactly one ai_service")
 
     states = {item.get("recommendation") for item in recommendations if isinstance(item, dict)}
     for required in ("none", "candidate", "selected", "blocked"):

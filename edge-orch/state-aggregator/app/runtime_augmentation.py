@@ -10,6 +10,7 @@ RecommendationState = Literal["none", "candidate", "selected", "blocked"]
 ApplyState = Literal["observed-only", "pending-controller", "applied", "blocked"]
 
 SCENARIO_ID = "jetson-vision-inspection"
+AI_SERVICE = "factory-vision-inspection-ai"
 TARGET_DEVICE = "etri-dev0001-jetorn"
 INFERENCE_RESOURCE = "vd-x86-gpu-inference"
 STORAGE_RESOURCE = "vd-storage-cache"
@@ -37,6 +38,7 @@ class RuntimeAugmentationRecommendation(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     virtual_device: str
+    ai_service: str = AI_SERVICE
     scenario: str = SCENARIO_ID
     target_device: str = TARGET_DEVICE
     workload: str
@@ -55,6 +57,7 @@ class RuntimeAugmentationState(BaseModel):
     mode: Literal["read_only"] = "read_only"
     scope: str = "runtime_resource_augmentation_demo_v1"
     scenario_id: str = SCENARIO_ID
+    ai_service: str = AI_SERVICE
     summary: RuntimeAugmentationSummary
     recommendations: list[RuntimeAugmentationRecommendation] = Field(default_factory=list)
 
@@ -85,7 +88,7 @@ def build_runtime_augmentation_state() -> RuntimeAugmentationState:
 def _recommendation(index: int, state: RecommendationState) -> RuntimeAugmentationRecommendation:
     return RuntimeAugmentationRecommendation(
         virtual_device=f"vd-inspection-{index:03d}",
-        workload=f"jetson-inspection-stage-{index:02d}",
+        workload=AI_SERVICE,
         recommendation=state,
         pressure_score=_pressure_score(index=index, state=state),
         pressure_reason=_pressure_reason(state),

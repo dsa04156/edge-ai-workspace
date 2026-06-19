@@ -237,6 +237,26 @@
   grid-column: 1 / -1;
 }
 
+.augmentation-service-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 124, 143, 0.07);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.augmentation-service-strip strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
 .augmentation-recommendation-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
