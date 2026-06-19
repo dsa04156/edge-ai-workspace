@@ -1,0 +1,439 @@
+:root {
+  --ops-bg: #eef4f7;
+  --ops-grid: rgba(42, 71, 85, 0.07);
+  --ops-panel-bg: #ffffff;
+  --ops-panel-soft: #f6fafc;
+  --ops-panel-border: #cfdee6;
+  --ops-text: #102a35;
+  --ops-muted: #60737d;
+  --ops-accent: #087c8f;
+  --ops-accent-soft: rgba(8, 124, 143, 0.1);
+  --ops-success: #087f5b;
+  --ops-warn: #a36500;
+  --ops-danger: #b42318;
+  --ops-shadow: 0 8px 24px rgba(20, 49, 63, 0.08);
+}
+
+html {
+  scroll-padding-top: 112px;
+}
+
+body {
+  background:
+    linear-gradient(var(--ops-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ops-grid) 1px, transparent 1px),
+    var(--ops-bg);
+  background-size: 24px 24px;
+  color: var(--ops-text);
+  letter-spacing: 0;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Aptos", "Pretendard", "Noto Sans KR", "IBM Plex Sans KR", sans-serif;
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+h3,
+p,
+span,
+strong,
+em,
+dd,
+dt,
+button,
+label {
+  letter-spacing: 0;
+}
+
+.shell {
+  width: min(1480px, calc(100% - 28px));
+  padding: 14px 0 28px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 76px;
+  margin: 0 0 12px;
+  padding: 16px 18px;
+  border: 1px solid #1d4250;
+  border-bottom: 4px solid #08a6b8;
+  border-radius: 8px;
+  background: #132938;
+  box-shadow: var(--ops-shadow);
+}
+
+.topbar h1 {
+  color: #f8fcfd;
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: 1.1;
+}
+
+.eyebrow {
+  color: #9edfe8;
+  font-size: 11px;
+}
+
+.refresh {
+  color: #c5d6dd;
+}
+
+button {
+  border-radius: 8px;
+}
+
+.main-menu {
+  position: sticky;
+  top: 88px;
+  z-index: 24;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 8px;
+  border: 1px solid var(--ops-panel-border);
+  border-radius: 8px;
+  background: rgba(250, 253, 255, 0.94);
+  box-shadow: var(--ops-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.main-menu button {
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 6px;
+  color: var(--ops-muted);
+  white-space: nowrap;
+}
+
+.main-menu button.active,
+.main-menu button[aria-pressed="true"] {
+  background: #063c4b;
+  color: #ffffff;
+  box-shadow: inset 0 -3px 0 #14b8c8;
+}
+
+.ops-shell {
+  display: block;
+}
+
+.ops-main {
+  min-width: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.kpi-grid.dashboard-page.active {
+  display: grid;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+  gap: 12px;
+  margin: 0 0 14px;
+}
+
+.metric {
+  min-height: 104px;
+  border: 1px solid var(--ops-panel-border);
+  border-radius: 8px;
+  background: var(--ops-panel-bg);
+  box-shadow: var(--ops-shadow);
+  padding: 14px;
+  overflow: hidden;
+}
+
+.metric-label,
+.metric span {
+  color: var(--ops-muted);
+  overflow-wrap: anywhere;
+}
+
+.metric strong {
+  margin-top: 8px;
+  color: var(--ops-text);
+  font-size: clamp(25px, 2vw, 32px);
+  line-height: 1.05;
+}
+
+.panel,
+.workflow-validation-panel,
+.workflow-plan-panel,
+.augmentation-flow,
+.augmentation-recommendations,
+.augmentation-plan,
+.augmentation-pool,
+.augmentation-inspector {
+  min-width: 0;
+  border: 1px solid var(--ops-panel-border);
+  border-radius: 8px;
+  background: var(--ops-panel-bg);
+  box-shadow: var(--ops-shadow);
+}
+
+.panel {
+  padding: 14px;
+}
+
+.panel-head,
+.augmentation-section-head,
+.inspector-head {
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ops-panel-border);
+  background: transparent;
+}
+
+.panel-head > div,
+.augmentation-section-head > div,
+.inspector-head > div {
+  min-width: 0;
+}
+
+.panel-head h2,
+.augmentation-section-head h3,
+.inspector-head span {
+  color: var(--ops-text);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.panel-head > span,
+.panel-head-meta,
+.panel-head-meta span,
+.augmentation-section-head em {
+  color: var(--ops-muted);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.section-kicker {
+  color: var(--ops-accent);
+  font-size: 11px;
+}
+
+.overview-visual-grid,
+.overview-ops-grid.dashboard-page.active,
+.split,
+.workflow-bottom-grid,
+.augmentation-grid,
+.augmentation-recommendation-layout,
+.augmentation-workflow-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.overview-ops-grid.dashboard-page.active {
+  margin-top: 14px;
+}
+
+.scenario-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.side-rail {
+  position: static;
+  top: auto;
+  width: auto;
+  max-height: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+  padding: 0;
+  overflow: visible;
+}
+
+.side-rail .panel {
+  background: var(--ops-panel-soft);
+}
+
+.explain-content,
+.chat-transcript,
+.augmentation-inspector-body,
+.augmentation-recommendation-detail,
+.workflow-binding-inspector {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.asset-scroll,
+.device-status-list,
+.resource-profile-list,
+.node-metric-matrix,
+.kpi-catalog {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.workflow-workbench,
+.augmentation-workbench {
+  overflow: hidden;
+}
+
+.workflow-studio {
+  min-width: 0;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(720px, 1.9fr) minmax(260px, 0.65fr);
+  gap: 14px;
+}
+
+.workflow-palette {
+  grid-column: 1 !important;
+  order: 1;
+}
+
+.workflow-canvas-shell {
+  grid-column: 2 !important;
+  order: 2;
+}
+
+.workflow-inspector {
+  grid-column: auto !important;
+  order: 3;
+}
+
+.workflow-canvas-shell,
+.workflow-inspector,
+.workflow-palette,
+.workflow-graph-canvas {
+  min-width: 0;
+}
+
+.workflow-graph-actions,
+.workflow-actions,
+.augmentation-actions,
+.refresh,
+.chat-actions {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.augmentation-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.augmentation-kpis div,
+.augmentation-stage,
+.augmentation-service-strip,
+.augmentation-recommendation-row,
+.augmentation-offload-path div,
+.augmentation-workflow-steps li,
+.augmentation-validation-list li {
+  border-color: var(--ops-panel-border);
+  border-radius: 8px;
+}
+
+.augmentation-recommendation-row {
+  grid-template-columns: minmax(0, 1fr) minmax(68px, 88px) minmax(66px, 78px);
+}
+
+.augmentation-recommendation-row strong,
+.augmentation-recommendation-row em,
+.augmentation-recommendation-row b,
+.augmentation-recommendation-row small,
+.augmentation-fields dd,
+.augmentation-stage strong,
+.resource-row strong,
+.metric-bar-row span,
+.topo-service-title,
+.topo-device-ref,
+.topo-pod-ref {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-flow-canvas {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.augmentation-flow-canvas i {
+  display: none;
+}
+
+.augmentation-workflow-steps,
+.augmentation-offload-path,
+.augmentation-recommendation-list {
+  scrollbar-gutter: stable;
+}
+
+.augmentation-status,
+.workflow-validation-panel strong,
+.augmentation-workflow-steps b {
+  border-radius: 999px;
+}
+
+.augmentation-table-shell {
+  overflow-x: auto;
+}
+
+.augmentation-table {
+  min-width: 720px;
+}
+
+pre,
+code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  .workflow-studio {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 12px, 720px);
+    padding-top: 8px;
+  }
+
+  .topbar {
+    position: relative;
+    min-height: auto;
+  }
+
+  .main-menu {
+    top: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel-head,
+  .augmentation-section-head,
+  .inspector-head,
+  .refresh {
+    flex-direction: column;
+  }
+
+  .overview-visual-grid,
+  .overview-ops-grid.dashboard-page.active,
+  .split,
+  .workflow-bottom-grid,
+  .augmentation-grid,
+  .augmentation-recommendation-layout,
+  .augmentation-workflow-demo,
+  .side-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .metric {
+    min-height: 86px;
+  }
+}
