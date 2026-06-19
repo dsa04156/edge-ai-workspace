@@ -32,3 +32,13 @@ def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None
     assert ".workflow-canvas-shell" in css
     assert ".workflow-inspector" in css
     assert "grid-column: auto !important;" in css
+
+
+def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".augmentation-recommendation-row" in css
+    assert "min-height: 58px;" in css
+    assert "align-items: center;" in css
+    assert ".augmentation-recommendation-row span" in css
+    assert "line-height: 1.25;" in css
