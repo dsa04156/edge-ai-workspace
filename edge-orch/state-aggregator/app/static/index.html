@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-waiting-pool-20260619" />
+    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-candidates-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
   </head>
   <body>
@@ -341,7 +341,7 @@
             <div><span>바인딩됨</span><strong id="augmentationAllocatedCount">0</strong></div>
             <div><span>실행 안 됨</span><strong id="augmentationNotRunningCount">0</strong></div>
             <div><span>주의/장애</span><strong id="augmentationRiskCount">0</strong></div>
-            <div><span>대기 가상디바이스</span><strong id="augmentationRecommendationTotal">0</strong></div>
+            <div><span>증강 후보</span><strong id="augmentationRecommendationTotal">0</strong></div>
             <div><span>선택 자원</span><strong id="augmentationRecommendationSelected">0</strong></div>
             <div><span>결정 상태</span><strong id="augmentationRecommendationBlocked">-</strong></div>
           </div>
@@ -391,16 +391,16 @@
               <div class="augmentation-section-head">
                 <div>
                   <span>Runtime Scheduler Preview</span>
-                  <h3 id="augmentationRecommendationTitle">대기 가상디바이스 풀</h3>
+                  <h3 id="augmentationRecommendationTitle">증강 자원 후보</h3>
                 </div>
                 <em id="augmentationRecommendationScope">recommendation pending</em>
               </div>
               <div class="augmentation-service-strip">AI 서비스 <strong id="augmentationRecommendationService">-</strong></div>
               <div class="augmentation-recommendation-layout">
-                <div class="augmentation-recommendation-list" id="augmentationVirtualDeviceRows"></div>
+                <div class="augmentation-recommendation-list" id="augmentationCandidateResourceRows"></div>
                 <div class="augmentation-recommendation-detail" id="augmentationDecisionDetail">
                   <h4>스케줄링 결정</h4>
-                  <div>service resource request 대기 중입니다.</div>
+                  <div>결과 가상디바이스 계획 대기 중입니다.</div>
                 </div>
               </div>
             </section>
@@ -560,6 +560,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=resource-augmentation-waiting-pool-20260619"></script>
+    <script src="/static/resource-augmentation.js?v=resource-augmentation-candidates-20260619"></script>
   </body>
 </html>

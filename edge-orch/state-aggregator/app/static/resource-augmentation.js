@@ -1,10 +1,10 @@
 const augmentationState = {
   resources: [],
   selectedId: "vd-x86-gpu-inference",
-  virtualDevices: [],
+  candidateResources: [],
   decision: null,
-  runtimeSummary: { virtual_device_total: 0, waiting: 0, running: 0, reserved: 0 },
-  selectedVirtualDeviceId: "",
+  runtimeSummary: { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 },
+  selectedCandidateResourceId: "",
   aiService: "",
 };
 const DEVICE_AUGMENTATION_ID = "jetson-gpu-storage-augmentation";
@@ -76,13 +76,13 @@ function normalizeAugmentationResource(resource) {
   };
 }
 
-function normalizeRuntimeVirtualDevice(item) {
+function normalizeCandidateResource(item) {
   return {
     id: item.name,
-    state: item.state || "waiting",
+    kind: item.kind || "-",
+    phase: item.phase || "Unknown",
     capability: item.capability || "-",
     node: item.node || "-",
-    activation: item.activation || "on_request",
   };
 }
 
@@ -90,9 +90,9 @@ function selectedAugmentationResource() {
   return augmentationState.resources.find((resource) => resource.id === augmentationState.selectedId) || augmentationState.resources[0];
 }
 
-function selectedRuntimeVirtualDevice() {
-  return augmentationState.virtualDevices.find((item) => item.id === augmentationState.selectedVirtualDeviceId)
-    || augmentationState.virtualDevices[0];
+function selectedCandidateResource() {
+  return augmentationState.candidateResources.find((item) => item.id === augmentationState.selectedCandidateResourceId)
+    || augmentationState.candidateResources[0];
 }
 
 function resourceMatches(resource, text) {
@@ -128,7 +128,7 @@ function renderAugmentationKpis(resources) {
   augEl("augmentationAllocatedCount").textContent = allocated;
   augEl("augmentationNotRunningCount").textContent = notRunning;
   augEl("augmentationRiskCount").textContent = risk;
-  augEl("augmentationRecommendationTotal").textContent = augmentationState.runtimeSummary.waiting || 0;
+  augEl("augmentationRecommendationTotal").textContent = augmentationState.runtimeSummary.candidate_resource_total || 0;
   augEl("augmentationRecommendationSelected").textContent = augmentationState.decision?.selectedResources?.length || 0;
   augEl("augmentationRecommendationBlocked").textContent = augRecommendationLabel(augmentationState.decision?.state);
   augEl("augmentationRuntimeScope").textContent = augmentationState.loadError || `${observed} observed runtime instances`;
@@ -226,39 +226,41 @@ function renderAugmentationPlan(resource) {
   }, null, 2);
 }
 
-function alignSelectedRuntimeVirtualDevice() {
-  if (augmentationState.virtualDevices.some((item) => item.id === augmentationState.selectedVirtualDeviceId)) return;
-  augmentationState.selectedVirtualDeviceId = augmentationState.virtualDevices[0]?.id || "";
+function alignSelectedCandidateResource() {
+  if (augmentationState.candidateResources.some((item) => item.id === augmentationState.selectedCandidateResourceId)) return;
+  augmentationState.selectedCandidateResourceId = augmentationState.candidateResources[0]?.id || "";
 }
 
 function renderAugmentationDecision() {
-  const virtualDevices = augmentationState.virtualDevices;
-  const selected = selectedRuntimeVirtualDevice();
+  const candidateResources = augmentationState.candidateResources;
+  const selected = selectedCandidateResource();
   const decision = augmentationState.decision;
   const summary = augmentationState.runtimeSummary;
   augEl("augmentationRecommendationService").textContent = augmentationState.aiService || decision?.aiService || "-";
-  augEl("augmentationRecommendationScope").textContent = `${summary.virtual_device_total || 0} virtual devices · ${summary.waiting || 0} waiting · trigger=${augEscape(decision?.trigger || "none")}`;
-  augEl("augmentationVirtualDeviceRows").innerHTML = virtualDevices.map((item) => `
-    <button class="augmentation-recommendation-row ${augEscape(item.state)} ${item.id === augmentationState.selectedVirtualDeviceId ? "selected" : ""}" type="button" data-runtime-virtual-device-id="${augEscape(item.id)}">
+  augEl("augmentationRecommendationScope").textContent = `${summary.candidate_resource_total || 0} candidate resources · ${summary.available || 0} available · trigger=${augEscape(decision?.trigger || "none")}`;
+  augEl("augmentationCandidateResourceRows").innerHTML = candidateResources.map((item) => `
+    <button class="augmentation-recommendation-row ${augEscape(item.phase.toLowerCase())} ${item.id === augmentationState.selectedCandidateResourceId ? "selected" : ""}" type="button" data-candidate-resource-id="${augEscape(item.id)}">
       <span><strong>${augEscape(item.id)}</strong><em>${augEscape(item.capability)}</em></span>
-      <b>${augEscape(item.state)}</b>
-      <small>${augEscape(item.activation)}</small>
+      <b>${augEscape(item.kind)}</b>
+      <small>${augEscape(item.phase)}</small>
     </button>
-  `).join("") || '<div class="workflow-empty">대기 가상디바이스 API 응답 대기 중입니다.</div>';
+  `).join("") || '<div class="workflow-empty">증강 자원 후보 API 응답 대기 중입니다.</div>';
   if (!decision) {
-    augEl("augmentationDecisionDetail").innerHTML = "<h4>스케줄링 결정</h4><div>service resource request 대기 중입니다.</div>";
+    augEl("augmentationDecisionDetail").innerHTML = "<h4>스케줄링 결정</h4><div>결과 가상디바이스 계획 대기 중입니다.</div>";
     return;
   }
+  const augmentedDevice = decision.resultingAugmentedDevice || {};
   augEl("augmentationDecisionDetail").innerHTML = `
     <h4>스케줄링 결정</h4>
     <dl class="augmentation-fields">
-      <div><dt>selected virtual</dt><dd>${augEscape(selected?.id || "-")}</dd></div>
+      <div><dt>candidate</dt><dd>${augEscape(selected?.id || "-")}</dd></div>
       <div><dt>AI service</dt><dd>${augEscape(decision.aiService)}</dd></div>
       <div><dt>target</dt><dd>${augEscape(decision.targetDevice)}</dd></div>
       <div><dt>state</dt><dd>${augEscape(augRecommendationLabel(decision.state))} · ${decision.pressureScore}%</dd></div>
       <div><dt>apply</dt><dd>${augEscape(decision.applyState)}</dd></div>
       <div><dt>reason</dt><dd>${augEscape(decision.pressureReason.join(", ") || "no request")}</dd></div>
-      <div><dt>candidates</dt><dd>${augEscape(decision.virtualDeviceCandidates.join(", ") || "-")}</dd></div>
+      <div><dt>selected candidates</dt><dd>${augEscape(decision.candidateResourceNames.join(", ") || "-")}</dd></div>
+      <div><dt>결과 가상디바이스</dt><dd>${augEscape(augmentedDevice.name || "-")} · ${augEscape(augmentedDevice.phase || "-")}</dd></div>
       <div><dt>explain</dt><dd>${augEscape(decision.explanation)}</dd></div>
     </dl>
     <ul class="augmentation-instance-list">
@@ -289,8 +291,9 @@ function normalizeAugmentationDecision(decision) {
     targetDevice: decision.target_device || "",
     pressureScore: Number(decision.pressure_score) || 0,
     pressureReason: decision.pressure_reason || [],
+    candidateResourceNames: decision.candidate_resource_names || [],
     selectedResources: decision.selected_resources || [],
-    virtualDeviceCandidates: decision.virtual_device_candidates || [],
+    resultingAugmentedDevice: decision.resulting_augmented_device || null,
     applyState: decision.apply_state || "observed-only",
     explanation: decision.explanation || "",
   };
@@ -300,11 +303,11 @@ async function loadRuntimeAugmentationDecision() {
   const response = await fetch("/state/runtime-resource-augmentation", { cache: "no-store", headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error(`runtime augmentation API unavailable: HTTP ${response.status}`);
   const payload = await response.json();
-  augmentationState.runtimeSummary = payload.summary || { virtual_device_total: 0, waiting: 0, running: 0, reserved: 0 };
+  augmentationState.runtimeSummary = payload.summary || { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 };
   augmentationState.aiService = payload.ai_service || "";
-  augmentationState.virtualDevices = (payload.virtual_devices || []).map(normalizeRuntimeVirtualDevice);
+  augmentationState.candidateResources = (payload.candidate_resources || []).map(normalizeCandidateResource);
   augmentationState.decision = normalizeAugmentationDecision(payload.decision);
-  alignSelectedRuntimeVirtualDevice();
+  alignSelectedCandidateResource();
 }
 
 async function loadAugmentation() {
@@ -325,9 +328,9 @@ async function loadAugmentation() {
   } catch (error) {
     augmentationState.loadError = `virtual resource API unavailable: ${error?.name || "network error"}`;
     augmentationState.resources = [];
-    augmentationState.virtualDevices = [];
+    augmentationState.candidateResources = [];
     augmentationState.decision = null;
-    augmentationState.runtimeSummary = { virtual_device_total: 0, waiting: 0, running: 0, reserved: 0 };
+    augmentationState.runtimeSummary = { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 };
     augmentationState.aiService = "";
   }
   alignSelectedAugmentationResource();
@@ -339,11 +342,11 @@ function bindAugmentationEvents() {
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
     const target = event.target.closest("[data-augmentation-id]");
-    const runtimeVirtualTarget = event.target.closest("[data-runtime-virtual-device-id]");
-    if (!target && !runtimeVirtualTarget) return;
+    const candidateTarget = event.target.closest("[data-candidate-resource-id]");
+    if (!target && !candidateTarget) return;
     if (target) augmentationState.selectedId = target.dataset.augmentationId || augmentationState.selectedId;
-    if (runtimeVirtualTarget) {
-      augmentationState.selectedVirtualDeviceId = runtimeVirtualTarget.dataset.runtimeVirtualDeviceId || augmentationState.selectedVirtualDeviceId;
+    if (candidateTarget) {
+      augmentationState.selectedCandidateResourceId = candidateTarget.dataset.candidateResourceId || augmentationState.selectedCandidateResourceId;
     }
     renderAugmentation();
   });

@@ -7,7 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 DecisionState = Literal["none", "candidate", "selected", "blocked"]
-VirtualDeviceState = Literal["waiting", "running", "reserved"]
+CandidateResourceKind = Literal["gpu-inference", "storage-cache", "model-cache"]
+CandidateResourcePhase = Literal["Available", "Bound", "Blocked"]
+AugmentedDevicePhase = Literal["Planned", "Bound", "Blocked"]
 ApplyState = Literal["observed-only", "pending-controller", "applied", "blocked"]
 
 SCENARIO_ID = "jetson-vision-inspection"
@@ -20,10 +22,10 @@ STORAGE_RESOURCE = "vd-storage-cache"
 class RuntimeAugmentationSummary(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    virtual_device_total: int
-    waiting: int
-    running: int
-    reserved: int
+    candidate_resource_total: int
+    available: int
+    bound: int
+    blocked: int
 
 
 class RuntimeAugmentationSelectedResource(BaseModel):
@@ -34,14 +36,23 @@ class RuntimeAugmentationSelectedResource(BaseModel):
     reason: str
 
 
-class RuntimeAugmentationVirtualDevice(BaseModel):
+class RuntimeAugmentationCandidateResource(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     name: str
-    state: VirtualDeviceState = "waiting"
-    capability: str = "vision-inference-slot"
-    node: str = "virtual-pool"
-    activation: Literal["on_request"] = "on_request"
+    kind: CandidateResourceKind
+    phase: CandidateResourcePhase = "Available"
+    node: str
+    capability: str
+
+
+class RuntimeAugmentationAugmentedDevice(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: str = "ad-jetorn-inspection-001"
+    target_device: str = TARGET_DEVICE
+    phase: AugmentedDevicePhase = "Planned"
+    binding_mode: Literal["planned", "bound"] = "planned"
 
 
 class RuntimeAugmentationDecision(BaseModel):
@@ -54,8 +65,9 @@ class RuntimeAugmentationDecision(BaseModel):
     target_device: str = TARGET_DEVICE
     pressure_score: int = Field(ge=0, le=100)
     pressure_reason: list[str] = Field(default_factory=list)
+    candidate_resource_names: list[str] = Field(default_factory=list)
     selected_resources: list[RuntimeAugmentationSelectedResource] = Field(default_factory=list)
-    virtual_device_candidates: list[str] = Field(default_factory=list)
+    resulting_augmented_device: RuntimeAugmentationAugmentedDevice
     apply_state: ApplyState
     explanation: str
 
@@ -69,27 +81,87 @@ class RuntimeAugmentationState(BaseModel):
     scenario_id: str = SCENARIO_ID
     ai_service: str = AI_SERVICE
     summary: RuntimeAugmentationSummary
-    virtual_devices: list[RuntimeAugmentationVirtualDevice] = Field(default_factory=list)
+    candidate_resources: list[RuntimeAugmentationCandidateResource] = Field(default_factory=list)
     decision: RuntimeAugmentationDecision
 
 
 def build_runtime_augmentation_state() -> RuntimeAugmentationState:
-    virtual_devices = [_virtual_device(index) for index in range(1, 16)]
+    candidate_resources = _candidate_resources()
     return RuntimeAugmentationState(
         generated_at=datetime.now(timezone.utc),
         summary=RuntimeAugmentationSummary(
-            virtual_device_total=len(virtual_devices),
-            waiting=sum(1 for item in virtual_devices if item.state == "waiting"),
-            running=sum(1 for item in virtual_devices if item.state == "running"),
-            reserved=sum(1 for item in virtual_devices if item.state == "reserved"),
+            candidate_resource_total=len(candidate_resources),
+            available=sum(1 for item in candidate_resources if item.phase == "Available"),
+            bound=sum(1 for item in candidate_resources if item.phase == "Bound"),
+            blocked=sum(1 for item in candidate_resources if item.phase == "Blocked"),
         ),
-        virtual_devices=virtual_devices,
+        candidate_resources=candidate_resources,
         decision=_decision(),
     )
 
 
-def _virtual_device(index: int) -> RuntimeAugmentationVirtualDevice:
-    return RuntimeAugmentationVirtualDevice(name=f"vd-inspection-{index:03d}")
+def _candidate_resources() -> list[RuntimeAugmentationCandidateResource]:
+    resources = [
+        RuntimeAugmentationCandidateResource(
+            name=INFERENCE_RESOURCE,
+            kind="gpu-inference",
+            node="x86-gpu-pool",
+            capability="remote gpu inference runtime",
+        ),
+        RuntimeAugmentationCandidateResource(
+            name=STORAGE_RESOURCE,
+            kind="storage-cache",
+            node="storage-pool",
+            capability="result window cache",
+        ),
+        *[
+            RuntimeAugmentationCandidateResource(
+                name=f"aug-gpu-x86-{index:03d}",
+                kind="gpu-inference",
+                node="x86-gpu-pool",
+                capability="remote gpu inference runtime",
+            )
+            for index in range(1, 9)
+        ],
+        RuntimeAugmentationCandidateResource(
+            name="aug-storage-cache-001",
+            kind="storage-cache",
+            node="storage-pool",
+            capability="result window cache",
+        ),
+        RuntimeAugmentationCandidateResource(
+            name="aug-model-cache-001",
+            kind="model-cache",
+            node="storage-pool",
+            capability="model artifact cache",
+        ),
+    ]
+    resources.extend(
+        [
+            RuntimeAugmentationCandidateResource(
+                name="aug-jetson-gpu-001",
+                kind="gpu-inference",
+                phase="Blocked",
+                node="jetson-pool",
+                capability="jetson gpu runtime",
+            ),
+            RuntimeAugmentationCandidateResource(
+                name="aug-jetson-gpu-002",
+                kind="gpu-inference",
+                phase="Blocked",
+                node="jetson-pool",
+                capability="jetson gpu runtime",
+            ),
+            RuntimeAugmentationCandidateResource(
+                name="aug-storage-cache-002",
+                kind="storage-cache",
+                phase="Blocked",
+                node="storage-pool",
+                capability="result window cache",
+            ),
+        ]
+    )
+    return resources
 
 
 def _decision() -> RuntimeAugmentationDecision:
@@ -98,12 +170,9 @@ def _decision() -> RuntimeAugmentationDecision:
         state=state,
         pressure_score=88,
         pressure_reason=["gpu_inference_pressure", "cache_required"],
+        candidate_resource_names=[INFERENCE_RESOURCE, STORAGE_RESOURCE],
         selected_resources=_selected_resources(state),
-        virtual_device_candidates=[
-            "vd-inspection-001",
-            "vd-inspection-002",
-            "vd-inspection-003",
-        ],
+        resulting_augmented_device=RuntimeAugmentationAugmentedDevice(),
         apply_state=_apply_state(state),
         explanation=_explanation(state),
     )
@@ -139,7 +208,7 @@ def _apply_state(state: DecisionState) -> ApplyState:
 def _explanation(state: DecisionState) -> str:
     return {
         "none": "no service resource request is waiting for augmentation",
-        "candidate": "a service resource request exists and matching virtual devices are waiting",
-        "selected": "a service resource request exists and waiting virtual devices can be activated with inference/cache resources",
+        "candidate": "a service resource request exists and matching augmentation resources are available",
+        "selected": "a service resource request exists and selected augmentation resources can be bound as one augmented virtual device",
         "blocked": "a service resource request exists but required augmentation resources are not ready",
     }[state]

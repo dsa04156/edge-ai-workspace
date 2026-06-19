@@ -16,10 +16,11 @@ observed runtime resource pressure and service resource requests.
 
 The factory runs one Jetson-based visual inspection AI service,
 `factory-vision-inspection-ai`, on `etri-dev0001-jetorn`. The demo assumes 15
-virtual devices are waiting as an activation pool. They are not 15 independent
-AI services and they are not 15 always-running observation targets. When the AI
-service emits a resource request, the scheduler evaluates the waiting virtual
-device pool and selects augmentation resources.
+augmentation resource candidates are registered. They are not 15 independent AI
+services and they are not 15 waiting virtual devices. When the AI service emits
+a resource request, the scheduler evaluates the physical edge device state and
+the augmentation resource candidate pool, then plans one augmented virtual
+device bound to the target physical device.
 
 During normal operation, telemetry and pod/service resource usage are collected.
 When the inspection workload shows resource pressure, the platform evaluates
@@ -41,7 +42,8 @@ candidates because their runtime instances are available and endpoint-ready.
 | Target edge device | `etri-dev0001-jetorn` |
 | AI service | `factory-vision-inspection-ai` |
 | Service scenario | `jetson-vision-inspection` |
-| Waiting virtual devices | 15 `vd-inspection-*` virtual devices |
+| Augmentation resource candidates | 15 `aug-*` candidate resources |
+| Resulting augmented device | `ad-jetorn-inspection-001` |
 | Device augmentation object | `jetson-gpu-storage-augmentation` |
 | Inference augmentation resource | `vd-x86-gpu-inference` |
 | Storage/cache augmentation resource | `vd-storage-cache` |
@@ -55,13 +57,15 @@ candidates because their runtime instances are available and endpoint-ready.
    -> collect pod/service CPU, memory, GPU, endpoint, and telemetry freshness
    -> detect whether the AI service emits a resource request
 
-2. Keep virtual devices waiting
-   -> 15 virtual devices stay in waiting/on_request state until a request exists
+2. Inspect target physical edge device
+   -> target device remains `etri-dev0001-jetorn`
+   -> resource gap is computed for that physical device and AI service
 
 3. Detect resource pressure
    -> classify whether the Jetson-side inspection service needs support
 
 4. Filter augmentation candidates
+   -> inspect 15 registered augmentation resource candidates
    -> read AugmentationResource status
    -> require phase=Available and endpointReady=true
 
@@ -70,10 +74,10 @@ candidates because their runtime instances are available and endpoint-ready.
    -> cache/storage role maps to vd-storage-cache
 
 6. Update scheduler decision/status
-   -> one decision exposes selectedResources, pressure reason, and candidate virtual devices
+   -> one decision exposes selectedResources, pressure reason, and resulting augmented device
 
 7. Explain in dashboard
-   -> show waiting virtual device pool, target service request, selected resources, and apply state
+   -> show AI service, target physical device, candidate resources, selected resources, resulting augmented device, and apply state
 ```
 
 ## Scheduler Decision Model
@@ -100,14 +104,14 @@ Output:
   "scenario": "jetson-vision-inspection",
   "ai_service": "factory-vision-inspection-ai",
   "target_device": "etri-dev0001-jetorn",
-  "virtual_devices": [
-    {"name": "vd-inspection-001", "state": "waiting", "activation": "on_request"}
+  "candidate_resources": [
+    {"name": "aug-gpu-x86-001", "kind": "gpu-inference", "phase": "Available"}
   ],
   "decision": {
     "state": "selected",
     "trigger": "service_resource_request",
     "pressure_reason": ["gpu_inference_pressure", "cache_required"],
-    "virtual_device_candidates": ["vd-inspection-001", "vd-inspection-002", "vd-inspection-003"],
+    "candidate_resource_names": ["vd-x86-gpu-inference", "vd-storage-cache"],
     "selected_resources": [
       {
         "role": "inference",
@@ -120,6 +124,11 @@ Output:
         "reason": "cache resource is available"
       }
     ],
+    "resulting_augmented_device": {
+      "name": "ad-jetorn-inspection-001",
+      "target_device": "etri-dev0001-jetorn",
+      "phase": "Planned"
+    },
     "apply_state": "observed-only"
   }
 }
@@ -143,13 +152,15 @@ Kubernetes mutation.
 The demo is ready when the following are visible without manual execution:
 
 1. The dashboard shows one AI service, `factory-vision-inspection-ai`.
-2. The dashboard shows 15 waiting virtual devices as an activation pool.
-3. The dashboard shows one scheduler decision for the service resource request.
-4. The dashboard shows which `AugmentationResource` objects were selected or blocked.
-5. The dashboard explains the reason for the decision.
-6. `DeviceAugmentation` status remains the source of truth for selected resource roles.
-7. No per-click Kubernetes Job is created.
-8. No fixed vibration sample or dummy analyzer payload is used as the scenario.
+2. The dashboard shows target physical edge device `etri-dev0001-jetorn`.
+3. The dashboard shows 15 augmentation resource candidates.
+4. The dashboard shows one scheduler decision for the service resource request.
+5. The dashboard shows the resulting augmented virtual device, `ad-jetorn-inspection-001`.
+6. The dashboard shows which `AugmentationResource` objects were selected or blocked.
+7. The dashboard explains the reason for the decision.
+8. `DeviceAugmentation` status remains the source of truth for selected resource roles.
+9. No per-click Kubernetes Job is created.
+10. No fixed vibration sample or dummy analyzer payload is used as the scenario.
 
 ## Non-Goals
 

@@ -6,18 +6,20 @@ from app.main import app
 from app.runtime_augmentation import build_runtime_augmentation_state
 
 
-def test_runtime_augmentation_state_contains_waiting_virtual_device_pool_for_one_ai_service() -> None:
+def test_runtime_augmentation_state_contains_candidate_resources_not_waiting_virtual_devices() -> None:
     state = build_runtime_augmentation_state()
 
     assert state.scope == "runtime_resource_augmentation_demo_v1"
     assert state.ai_service == "factory-vision-inspection-ai"
-    assert state.summary.virtual_device_total == 15
-    assert state.summary.waiting == 15
-    assert state.summary.running == 0
-    assert state.summary.reserved == 0
-    assert len(state.virtual_devices) == 15
-    assert len({item.name for item in state.virtual_devices}) == 15
-    assert {item.state for item in state.virtual_devices} == {"waiting"}
+    assert state.summary.candidate_resource_total == 15
+    assert state.summary.available == 12
+    assert state.summary.bound == 0
+    assert state.summary.blocked == 3
+    assert len(state.candidate_resources) == 15
+    assert len({item.name for item in state.candidate_resources}) == 15
+    assert {item.name for item in state.candidate_resources} >= {"vd-x86-gpu-inference", "vd-storage-cache"}
+    assert {item.kind for item in state.candidate_resources} >= {"gpu-inference", "storage-cache", "model-cache"}
+    assert not hasattr(state, "virtual_devices")
     assert not hasattr(state, "recommendations")
 
 
@@ -31,15 +33,17 @@ def test_runtime_augmentation_decision_explains_request_and_selected_resources()
     assert decision.trigger == "service_resource_request"
     assert decision.state == "selected"
     assert "gpu_inference_pressure" in decision.pressure_reason
+    assert decision.resulting_augmented_device.name == "ad-jetorn-inspection-001"
+    assert decision.resulting_augmented_device.target_device == "etri-dev0001-jetorn"
+    assert decision.resulting_augmented_device.phase == "Planned"
     assert [resource.name for resource in decision.selected_resources] == [
         "vd-x86-gpu-inference",
         "vd-storage-cache",
     ]
     assert decision.apply_state == "observed-only"
-    assert decision.virtual_device_candidates == [
-        "vd-inspection-001",
-        "vd-inspection-002",
-        "vd-inspection-003",
+    assert decision.candidate_resource_names == [
+        "vd-x86-gpu-inference",
+        "vd-storage-cache",
     ]
 
 
@@ -50,9 +54,11 @@ def test_runtime_augmentation_route_returns_pool_and_single_decision() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["ai_service"] == "factory-vision-inspection-ai"
-    assert payload["summary"]["virtual_device_total"] == 15
-    assert len(payload["virtual_devices"]) == 15
-    assert payload["virtual_devices"][0]["state"] == "waiting"
+    assert payload["summary"]["candidate_resource_total"] == 15
+    assert len(payload["candidate_resources"]) == 15
+    assert {item["name"] for item in payload["candidate_resources"]} >= {"vd-x86-gpu-inference", "vd-storage-cache"}
     assert payload["decision"]["state"] == "selected"
+    assert payload["decision"]["resulting_augmented_device"]["name"] == "ad-jetorn-inspection-001"
     assert payload["decision"]["selected_resources"][0]["name"] == "vd-x86-gpu-inference"
+    assert "virtual_devices" not in payload
     assert "recommendations" not in payload

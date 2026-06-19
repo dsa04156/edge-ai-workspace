@@ -49,28 +49,31 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
     if not isinstance(summary, dict):
         errors.append("missing summary object")
         summary = {}
-    total = summary.get("virtual_device_total")
+    total = summary.get("candidate_resource_total")
     if total != EXPECTED_TOTAL:
-        errors.append(f"summary.virtual_device_total={total!r}, expected {EXPECTED_TOTAL}")
-    if summary.get("waiting") != EXPECTED_TOTAL:
-        errors.append(f"summary.waiting={summary.get('waiting')!r}, expected {EXPECTED_TOTAL}")
+        errors.append(f"summary.candidate_resource_total={total!r}, expected {EXPECTED_TOTAL}")
+    if summary.get("available", 0) < 1:
+        errors.append("summary.available must be greater than 0")
 
     if "recommendations" in payload:
         errors.append("legacy recommendations list must not be present")
+    if "virtual_devices" in payload:
+        errors.append("legacy virtual_devices waiting pool must not be present")
 
-    virtual_device_items = payload.get("virtual_devices")
-    if not isinstance(virtual_device_items, list):
-        errors.append("missing virtual_devices list")
-        virtual_device_items = []
-    if len(virtual_device_items) != EXPECTED_TOTAL:
-        errors.append(f"virtual_devices count={len(virtual_device_items)}, expected {EXPECTED_TOTAL}")
+    candidate_items = payload.get("candidate_resources")
+    if not isinstance(candidate_items, list):
+        errors.append("missing candidate_resources list")
+        candidate_items = []
+    if len(candidate_items) != EXPECTED_TOTAL:
+        errors.append(f"candidate_resources count={len(candidate_items)}, expected {EXPECTED_TOTAL}")
 
-    virtual_devices = [item.get("name") for item in virtual_device_items if isinstance(item, dict)]
-    if len(set(virtual_devices)) != EXPECTED_TOTAL:
-        errors.append("virtual_devices must reference 15 unique names")
-    states = {item.get("state") for item in virtual_device_items if isinstance(item, dict)}
-    if states != {"waiting"}:
-        errors.append(f"virtual_devices states={sorted(states)!r}, expected ['waiting']")
+    candidates = [item.get("name") for item in candidate_items if isinstance(item, dict)]
+    if len(set(candidates)) != EXPECTED_TOTAL:
+        errors.append("candidate_resources must reference 15 unique names")
+    kinds = {item.get("kind") for item in candidate_items if isinstance(item, dict)}
+    for required in ("gpu-inference", "storage-cache", "model-cache"):
+        if required not in kinds:
+            errors.append(f"missing candidate resource kind {required!r}")
 
     decision = payload.get("decision")
     if not isinstance(decision, dict):
@@ -82,6 +85,9 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
         errors.append(f"decision.trigger={decision.get('trigger')!r}, expected 'service_resource_request'")
     if decision.get("state") != "selected":
         errors.append(f"decision.state={decision.get('state')!r}, expected 'selected'")
+    candidate_names = decision.get("candidate_resource_names")
+    if not isinstance(candidate_names, list) or not candidate_names:
+        errors.append("decision.candidate_resource_names must be a non-empty list")
     resources = decision.get("selected_resources")
     if not isinstance(resources, list):
         errors.append("decision.selected_resources is not a list")
@@ -91,6 +97,18 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
         errors.append("decision missing vd-x86-gpu-inference")
     if "vd-storage-cache" not in names:
         errors.append("decision missing vd-storage-cache")
+    candidate_name_set = set(candidates)
+    for name in names:
+        if name not in candidate_name_set:
+            errors.append(f"selected resource {name!r} is not present in candidate_resources")
+    augmented_device = decision.get("resulting_augmented_device")
+    if not isinstance(augmented_device, dict):
+        errors.append("missing decision.resulting_augmented_device object")
+        augmented_device = {}
+    if augmented_device.get("name") != "ad-jetorn-inspection-001":
+        errors.append(f"resulting_augmented_device.name={augmented_device.get('name')!r}, expected 'ad-jetorn-inspection-001'")
+    if augmented_device.get("target_device") != "etri-dev0001-jetorn":
+        errors.append(f"resulting_augmented_device.target_device={augmented_device.get('target_device')!r}, expected 'etri-dev0001-jetorn'")
 
     return errors
 
@@ -107,11 +125,12 @@ def main(argv: list[str] | None = None) -> int:
     summary = payload.get("summary", {})
     print("PASS: runtime resource augmentation demo is ready")
     print(
-        "  virtual_devices={total} waiting={waiting} decision={decision} resources={resources}".format(
-            total=summary.get("virtual_device_total"),
-            waiting=summary.get("waiting"),
+        "  candidates={total} available={available} decision={decision} resources={resources} augmented_device={augmented_device}".format(
+            total=summary.get("candidate_resource_total"),
+            available=summary.get("available"),
             decision=(payload.get("decision") or {}).get("state"),
             resources=len((payload.get("decision") or {}).get("selected_resources") or []),
+            augmented_device=((payload.get("decision") or {}).get("resulting_augmented_device") or {}).get("name"),
         )
     )
     return 0
