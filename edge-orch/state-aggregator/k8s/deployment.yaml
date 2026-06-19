@@ -54,9 +54,15 @@ spec:
             - name: TELEMETRY_QUERY_WINDOW
               value: "-30m"
             - name: RESOURCE_AUGMENTATION_INFERENCE_URL
-              value: ""
+              value: http://j-server-analyzer-svc.offload-test.svc.cluster.local:8000/analyze
             - name: RESOURCE_AUGMENTATION_TIMEOUT_SECONDS
               value: "30"
+            - name: RESOURCE_AUGMENTATION_JOB_NAMESPACE
+              value: default
+            - name: RESOURCE_AUGMENTATION_JOB_IMAGE
+              value: 192.168.0.56:5000/state-aggregator:latest
+            - name: RESOURCE_AUGMENTATION_JOB_TTL_SECONDS
+              value: "600"
             - name: INFLUXDB_TOKEN
               valueFrom:
                 secretKeyRef:
