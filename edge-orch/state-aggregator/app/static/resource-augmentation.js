@@ -3,6 +3,7 @@ const augmentationState = {
   selectedId: "vd-x86-gpu-inference",
   candidateResources: [],
   decision: null,
+  workflowDemo: null,
   runtimeSummary: { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 },
   selectedCandidateResourceId: "",
   aiService: "",
@@ -269,6 +270,56 @@ function renderAugmentationDecision() {
   `;
 }
 
+function normalizeWorkflowDemo(workflowDemo) {
+  if (!workflowDemo || typeof workflowDemo !== "object") return null;
+  const offloadPath = workflowDemo.offload_path || {};
+  return {
+    name: workflowDemo.name || "-",
+    status: workflowDemo.status || "unknown",
+    steps: Array.isArray(workflowDemo.steps) ? workflowDemo.steps : [],
+    offloadPath: {
+      source: offloadPath.source || "-",
+      inference: offloadPath.inference || "-",
+      cache: offloadPath.cache || "-",
+      result: offloadPath.result || "-",
+    },
+  };
+}
+
+function workflowStepLabel(state) {
+  return {
+    completed: "완료",
+    active: "진행",
+    planned: "계획",
+  }[state] || augText(state, "unknown");
+}
+
+function renderAugmentationWorkflowDemo() {
+  const workflow = augmentationState.workflowDemo;
+  augEl("augmentationWorkflowStatus").textContent = workflow ? `${workflow.name} · ${workflow.status}` : "workflow pending";
+  if (!workflow) {
+    augEl("augmentationWorkflowSteps").innerHTML = "";
+    augEl("augmentationOffloadPath").innerHTML = '<div class="workflow-empty">오프로딩 경로 대기 중입니다.</div>';
+    return;
+  }
+  augEl("augmentationWorkflowSteps").innerHTML = workflow.steps.map((step) => `
+    <li class="${augEscape(step.state || "planned")}">
+      <b>${augEscape(workflowStepLabel(step.state))}</b>
+      <span><strong>${augEscape(step.label || step.id)}</strong><em>${augEscape(step.detail || "-")}</em></span>
+    </li>
+  `).join("");
+  const path = workflow.offloadPath;
+  augEl("augmentationOffloadPath").innerHTML = `
+    <div><span>source</span><strong>${augEscape(path.source)}</strong></div>
+    <i></i>
+    <div><span>inference</span><strong>${augEscape(path.inference)}</strong></div>
+    <i></i>
+    <div><span>cache</span><strong>${augEscape(path.cache)}</strong></div>
+    <i></i>
+    <div><span>result</span><strong>${augEscape(path.result)}</strong></div>
+  `;
+}
+
 function renderAugmentation() {
   const resources = augmentationState.resources;
   const selected = selectedAugmentationResource();
@@ -276,6 +327,7 @@ function renderAugmentation() {
   renderAugmentationRows(resources);
   renderAugmentationInspector(selected);
   renderAugmentationDecision();
+  renderAugmentationWorkflowDemo();
   renderAugmentationFlow(resources, selected);
   renderAugmentationPlan(selected);
   window.renderAugmentationCrd?.(DEVICE_AUGMENTATION_ID);
@@ -307,6 +359,7 @@ async function loadRuntimeAugmentationDecision() {
   augmentationState.aiService = payload.ai_service || "";
   augmentationState.candidateResources = (payload.candidate_resources || []).map(normalizeCandidateResource);
   augmentationState.decision = normalizeAugmentationDecision(payload.decision);
+  augmentationState.workflowDemo = normalizeWorkflowDemo(payload.workflow_demo);
   alignSelectedCandidateResource();
 }
 
@@ -330,6 +383,7 @@ async function loadAugmentation() {
     augmentationState.resources = [];
     augmentationState.candidateResources = [];
     augmentationState.decision = null;
+    augmentationState.workflowDemo = null;
     augmentationState.runtimeSummary = { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 };
     augmentationState.aiService = "";
   }

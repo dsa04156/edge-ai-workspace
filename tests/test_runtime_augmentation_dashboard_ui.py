@@ -11,12 +11,19 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationRecommendationTotal"' in html
     assert 'id="augmentationCandidateResourceRows"' in html
     assert 'id="augmentationDecisionDetail"' in html
+    assert 'id="augmentationWorkflowStatus"' in html
+    assert 'id="augmentationWorkflowSteps"' in html
+    assert 'id="augmentationOffloadPath"' in html
     assert 'id="augmentationRecommendationService"' in html
     assert "증강 자원 후보" in html
     assert "결과 가상디바이스" in html
+    assert "오프로딩 경로" in html
     assert "스케줄링 결정" in html
     assert "/state/runtime-resource-augmentation" in js
     assert "renderAugmentationDecision" in js
+    assert "renderAugmentationWorkflowDemo" in js
+    assert "workflow_demo" in js
+    assert "offload_path" in js
     assert "candidate_resources" in js
     assert "resulting_augmented_device" in js
     assert "decision" in js

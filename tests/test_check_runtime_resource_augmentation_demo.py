@@ -50,6 +50,23 @@ def test_runtime_resource_augmentation_checker_accepts_candidate_pool_and_augmen
             },
             "apply_state": "observed-only",
         },
+        "workflow_demo": {
+            "name": "inspection-resource-augmentation-demo",
+            "status": "offload_planned",
+            "steps": [
+                {"id": "service-request", "state": "completed"},
+                {"id": "pressure-detected", "state": "completed"},
+                {"id": "candidate-scan", "state": "completed"},
+                {"id": "offload-plan", "state": "active"},
+                {"id": "augmented-device-bind", "state": "planned"},
+            ],
+            "offload_path": {
+                "source": "etri-dev0001-jetorn",
+                "inference": "vd-x86-gpu-inference",
+                "cache": "vd-storage-cache",
+                "result": "ad-jetorn-inspection-001",
+            },
+        },
     }
 
     errors = module.validate_runtime_augmentation(payload)

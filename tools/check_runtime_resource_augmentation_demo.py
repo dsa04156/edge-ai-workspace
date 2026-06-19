@@ -110,6 +110,34 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
     if augmented_device.get("target_device") != "etri-dev0001-jetorn":
         errors.append(f"resulting_augmented_device.target_device={augmented_device.get('target_device')!r}, expected 'etri-dev0001-jetorn'")
 
+    workflow = payload.get("workflow_demo")
+    if not isinstance(workflow, dict):
+        errors.append("missing workflow_demo object")
+        workflow = {}
+    if workflow.get("status") != "offload_planned":
+        errors.append(f"workflow_demo.status={workflow.get('status')!r}, expected 'offload_planned'")
+    steps = workflow.get("steps")
+    if not isinstance(steps, list):
+        errors.append("workflow_demo.steps is not a list")
+        steps = []
+    step_ids = [step.get("id") for step in steps if isinstance(step, dict)]
+    for required in ("service-request", "pressure-detected", "candidate-scan", "offload-plan", "augmented-device-bind"):
+        if required not in step_ids:
+            errors.append(f"missing workflow step {required!r}")
+    offload_path = workflow.get("offload_path")
+    if not isinstance(offload_path, dict):
+        errors.append("missing workflow_demo.offload_path object")
+        offload_path = {}
+    expected_path = {
+        "source": "etri-dev0001-jetorn",
+        "inference": "vd-x86-gpu-inference",
+        "cache": "vd-storage-cache",
+        "result": "ad-jetorn-inspection-001",
+    }
+    for key, expected in expected_path.items():
+        if offload_path.get(key) != expected:
+            errors.append(f"workflow_demo.offload_path.{key}={offload_path.get(key)!r}, expected {expected!r}")
+
     return errors
 
 
@@ -125,12 +153,13 @@ def main(argv: list[str] | None = None) -> int:
     summary = payload.get("summary", {})
     print("PASS: runtime resource augmentation demo is ready")
     print(
-        "  candidates={total} available={available} decision={decision} resources={resources} augmented_device={augmented_device}".format(
+        "  candidates={total} available={available} decision={decision} resources={resources} augmented_device={augmented_device} workflow={workflow}".format(
             total=summary.get("candidate_resource_total"),
             available=summary.get("available"),
             decision=(payload.get("decision") or {}).get("state"),
             resources=len((payload.get("decision") or {}).get("selected_resources") or []),
             augmented_device=((payload.get("decision") or {}).get("resulting_augmented_device") or {}).get("name"),
+            workflow=(payload.get("workflow_demo") or {}).get("status"),
         )
     )
     return 0

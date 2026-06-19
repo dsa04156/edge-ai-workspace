@@ -78,6 +78,7 @@ candidates because their runtime instances are available and endpoint-ready.
 
 7. Explain in dashboard
    -> show AI service, target physical device, candidate resources, selected resources, resulting augmented device, and apply state
+   -> show workflow step progress and offload path from target device to inference/cache resources
 ```
 
 ## Scheduler Decision Model
@@ -130,6 +131,22 @@ Output:
       "phase": "Planned"
     },
     "apply_state": "observed-only"
+  },
+  "workflow_demo": {
+    "status": "offload_planned",
+    "steps": [
+      {"id": "service-request", "state": "completed"},
+      {"id": "pressure-detected", "state": "completed"},
+      {"id": "candidate-scan", "state": "completed"},
+      {"id": "offload-plan", "state": "active"},
+      {"id": "augmented-device-bind", "state": "planned"}
+    ],
+    "offload_path": {
+      "source": "etri-dev0001-jetorn",
+      "inference": "vd-x86-gpu-inference",
+      "cache": "vd-storage-cache",
+      "result": "ad-jetorn-inspection-001"
+    }
   }
 }
 ```
@@ -156,11 +173,13 @@ The demo is ready when the following are visible without manual execution:
 3. The dashboard shows 15 augmentation resource candidates.
 4. The dashboard shows one scheduler decision for the service resource request.
 5. The dashboard shows the resulting augmented virtual device, `ad-jetorn-inspection-001`.
-6. The dashboard shows which `AugmentationResource` objects were selected or blocked.
-7. The dashboard explains the reason for the decision.
-8. `DeviceAugmentation` status remains the source of truth for selected resource roles.
-9. No per-click Kubernetes Job is created.
-10. No fixed vibration sample or dummy analyzer payload is used as the scenario.
+6. The dashboard shows workflow progress from service request to augmented-device binding.
+7. The dashboard shows the offload path from `etri-dev0001-jetorn` to inference/cache resources.
+8. The dashboard shows which `AugmentationResource` objects were selected or blocked.
+9. The dashboard explains the reason for the decision.
+10. `DeviceAugmentation` status remains the source of truth for selected resource roles.
+11. No per-click Kubernetes Job is created.
+12. No fixed vibration sample or dummy analyzer payload is used as the scenario.
 
 ## Non-Goals
 

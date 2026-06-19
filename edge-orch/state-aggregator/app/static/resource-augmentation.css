@@ -385,6 +385,109 @@
   flex-wrap: wrap;
 }
 
+.augmentation-workflow-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 14px;
+  margin: 14px 0;
+}
+
+.augmentation-workflow-demo h4 {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.augmentation-workflow-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.augmentation-workflow-steps li {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.augmentation-workflow-steps b {
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #e4edf1;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.augmentation-workflow-steps li.completed b {
+  background: #dbf3eb;
+  color: var(--green);
+}
+
+.augmentation-workflow-steps li.active b {
+  background: #fff1d6;
+  color: #8a5a00;
+}
+
+.augmentation-workflow-steps strong,
+.augmentation-workflow-steps em {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-workflow-steps em {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.augmentation-offload-path {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.augmentation-offload-path div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.augmentation-offload-path span,
+.augmentation-offload-path strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-offload-path span {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.augmentation-offload-path strong {
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.augmentation-offload-path i {
+  justify-self: center;
+  width: 1px;
+  height: 12px;
+  background: var(--line);
+}
+
 .augmentation-instance-chip {
   flex: 1 1 150px;
   min-width: 0;
@@ -440,7 +543,8 @@
   .augmentation-kpis,
   .augmentation-grid,
   .augmentation-bottom-grid,
-  .augmentation-recommendation-layout {
+  .augmentation-recommendation-layout,
+  .augmentation-workflow-demo {
     grid-template-columns: 1fr;
   }
 }

@@ -11,6 +11,7 @@ CandidateResourceKind = Literal["gpu-inference", "storage-cache", "model-cache"]
 CandidateResourcePhase = Literal["Available", "Bound", "Blocked"]
 AugmentedDevicePhase = Literal["Planned", "Bound", "Blocked"]
 ApplyState = Literal["observed-only", "pending-controller", "applied", "blocked"]
+WorkflowStepState = Literal["completed", "active", "planned"]
 
 SCENARIO_ID = "jetson-vision-inspection"
 AI_SERVICE = "factory-vision-inspection-ai"
@@ -72,6 +73,33 @@ class RuntimeAugmentationDecision(BaseModel):
     explanation: str
 
 
+class RuntimeAugmentationWorkflowStep(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    label: str
+    state: WorkflowStepState
+    detail: str
+
+
+class RuntimeAugmentationOffloadPath(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    source: str
+    inference: str
+    cache: str
+    result: str
+
+
+class RuntimeAugmentationWorkflowDemo(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: str = "inspection-resource-augmentation-demo"
+    status: Literal["offload_planned"] = "offload_planned"
+    steps: list[RuntimeAugmentationWorkflowStep] = Field(default_factory=list)
+    offload_path: RuntimeAugmentationOffloadPath
+
+
 class RuntimeAugmentationState(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -83,6 +111,7 @@ class RuntimeAugmentationState(BaseModel):
     summary: RuntimeAugmentationSummary
     candidate_resources: list[RuntimeAugmentationCandidateResource] = Field(default_factory=list)
     decision: RuntimeAugmentationDecision
+    workflow_demo: RuntimeAugmentationWorkflowDemo
 
 
 def build_runtime_augmentation_state() -> RuntimeAugmentationState:
@@ -97,6 +126,7 @@ def build_runtime_augmentation_state() -> RuntimeAugmentationState:
         ),
         candidate_resources=candidate_resources,
         decision=_decision(),
+        workflow_demo=_workflow_demo(),
     )
 
 
@@ -175,6 +205,49 @@ def _decision() -> RuntimeAugmentationDecision:
         resulting_augmented_device=RuntimeAugmentationAugmentedDevice(),
         apply_state=_apply_state(state),
         explanation=_explanation(state),
+    )
+
+
+def _workflow_demo() -> RuntimeAugmentationWorkflowDemo:
+    return RuntimeAugmentationWorkflowDemo(
+        steps=[
+            RuntimeAugmentationWorkflowStep(
+                id="service-request",
+                label="AI 서비스 요청",
+                state="completed",
+                detail=f"{AI_SERVICE} request detected on {TARGET_DEVICE}",
+            ),
+            RuntimeAugmentationWorkflowStep(
+                id="pressure-detected",
+                label="부족 자원 판단",
+                state="completed",
+                detail="gpu_inference_pressure + cache_required",
+            ),
+            RuntimeAugmentationWorkflowStep(
+                id="candidate-scan",
+                label="증강 후보 검색",
+                state="completed",
+                detail="15 registered augmentation candidates scanned",
+            ),
+            RuntimeAugmentationWorkflowStep(
+                id="offload-plan",
+                label="오프로딩 계획",
+                state="active",
+                detail=f"{INFERENCE_RESOURCE} + {STORAGE_RESOURCE} selected",
+            ),
+            RuntimeAugmentationWorkflowStep(
+                id="augmented-device-bind",
+                label="가상디바이스 바인딩",
+                state="planned",
+                detail="ad-jetorn-inspection-001 planned for target device",
+            ),
+        ],
+        offload_path=RuntimeAugmentationOffloadPath(
+            source=TARGET_DEVICE,
+            inference=INFERENCE_RESOURCE,
+            cache=STORAGE_RESOURCE,
+            result="ad-jetorn-inspection-001",
+        ),
     )
 
 

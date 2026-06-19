@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-candidates-20260619" />
+    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-workflow-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
   </head>
   <body>
@@ -411,7 +411,7 @@
                   <span>Workflow Resource Lane</span>
                   <h3 id="augmentationFlowTitle">엣지 디바이스 자원증강 워크플로</h3>
                 </div>
-                <em>실제 apply 없음</em>
+                <em id="augmentationWorkflowStatus">workflow pending</em>
               </div>
               <div class="augmentation-flow-canvas">
                 <div class="augmentation-stage source"><span>Target Edge Device</span><strong>etri-dev0001-jetorn</strong></div>
@@ -423,6 +423,16 @@
                 <div class="augmentation-stage storage"><span>Result Cache</span><strong id="augmentationStorageResource">storage pending</strong></div>
                 <i></i>
                 <div class="augmentation-stage event"><span>Augmented Device</span><strong>operator view</strong></div>
+              </div>
+              <div class="augmentation-workflow-demo">
+                <div>
+                  <h4>진행 단계</h4>
+                  <ol id="augmentationWorkflowSteps" class="augmentation-workflow-steps"></ol>
+                </div>
+                <div>
+                  <h4>오프로딩 경로</h4>
+                  <div id="augmentationOffloadPath" class="augmentation-offload-path"></div>
+                </div>
               </div>
               <div id="augmentationInstanceLane" class="augmentation-instance-lane"></div>
             </section>
@@ -560,6 +570,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=resource-augmentation-candidates-20260619"></script>
+    <script src="/static/resource-augmentation.js?v=resource-augmentation-workflow-20260619"></script>
   </body>
 </html>

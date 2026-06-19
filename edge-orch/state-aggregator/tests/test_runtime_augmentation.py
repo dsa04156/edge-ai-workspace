@@ -62,3 +62,29 @@ def test_runtime_augmentation_route_returns_pool_and_single_decision() -> None:
     assert payload["decision"]["selected_resources"][0]["name"] == "vd-x86-gpu-inference"
     assert "virtual_devices" not in payload
     assert "recommendations" not in payload
+
+
+def test_runtime_augmentation_state_exposes_workflow_demo_and_offload_path() -> None:
+    state = build_runtime_augmentation_state()
+
+    workflow = state.workflow_demo
+    assert workflow.name == "inspection-resource-augmentation-demo"
+    assert workflow.status == "offload_planned"
+    assert [step.state for step in workflow.steps] == [
+        "completed",
+        "completed",
+        "completed",
+        "active",
+        "planned",
+    ]
+    assert [step.id for step in workflow.steps] == [
+        "service-request",
+        "pressure-detected",
+        "candidate-scan",
+        "offload-plan",
+        "augmented-device-bind",
+    ]
+    assert workflow.offload_path.source == "etri-dev0001-jetorn"
+    assert workflow.offload_path.inference == "vd-x86-gpu-inference"
+    assert workflow.offload_path.cache == "vd-storage-cache"
+    assert workflow.offload_path.result == "ad-jetorn-inspection-001"
