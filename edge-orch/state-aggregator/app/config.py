@@ -76,6 +76,12 @@ class Settings(BaseModel):
     qwen_timeout_seconds: float = Field(
         default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "90"))
     )
+    resource_augmentation_inference_url: str = Field(
+        default_factory=lambda: os.getenv("RESOURCE_AUGMENTATION_INFERENCE_URL", "")
+    )
+    resource_augmentation_timeout_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("RESOURCE_AUGMENTATION_TIMEOUT_SECONDS", "30"))
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

@@ -329,7 +329,8 @@
               <h2 id="augmentationTitle">Resource Command Center</h2>
             </div>
             <div class="augmentation-actions">
-              <span>registry + observed runtime · read-only/dry-run</span>
+              <span>registry + observed runtime · manual execution v1 · no Kubernetes mutation</span>
+              <button id="augmentationExecute" type="button">수동 실행</button>
               <button id="augmentationRefresh" type="button">자원 새로고침</button>
             </div>
           </div>
@@ -416,6 +417,21 @@
               </div>
               <ul id="augmentationValidationList" class="augmentation-validation-list"></ul>
               <pre id="augmentationPlanPreview" class="augmentation-plan-preview"></pre>
+              <div class="augmentation-execution-card" aria-live="polite">
+                <div class="augmentation-section-head">
+                  <div>
+                    <span>Last Execution</span>
+                    <h3>수동 실행 결과</h3>
+                  </div>
+                  <em id="augmentationExecutionStatus">not_run</em>
+                </div>
+                <dl class="augmentation-execution-fields">
+                  <div><dt>target</dt><dd id="augmentationExecutionTarget">-</dd></div>
+                  <div><dt>latency</dt><dd id="augmentationExecutionLatency">-</dd></div>
+                  <div><dt>artifact</dt><dd id="augmentationExecutionArtifact">-</dd></div>
+                  <div><dt>error</dt><dd id="augmentationExecutionError">-</dd></div>
+                </dl>
+              </div>
             </section>
           </div>
         </section>

@@ -14,6 +14,12 @@ from .augmentation_crds import (
     AugmentationResourceCrdState,
     DeviceAugmentationCrdState,
 )
+from .augmentation_execution import (
+    AugmentationExecutionRequest,
+    AugmentationExecutionState,
+    HttpAugmentationExecutionRunner,
+    ResourceAugmentationExecutor,
+)
 from .config import Settings
 from .metrics import render_metrics
 from .models import (
@@ -42,6 +48,13 @@ from .virtual_resources import (
 settings = Settings()
 service = StateAggregatorService(settings)
 augmentation_crds = AugmentationCrdReader()
+augmentation_executor = ResourceAugmentationExecutor(
+    runner=HttpAugmentationExecutionRunner(
+        endpoint_url=settings.resource_augmentation_inference_url,
+        timeout_seconds=settings.resource_augmentation_timeout_seconds,
+    ),
+    target_endpoint=settings.resource_augmentation_inference_url or None,
+)
 
 
 @asynccontextmanager
@@ -265,6 +278,25 @@ async def get_augmentation_resources() -> AugmentationResourceCrdState:
 @app.get("/state/device-augmentations", response_model=DeviceAugmentationCrdState)
 async def get_device_augmentations(namespace: str = "default") -> DeviceAugmentationCrdState:
     return await augmentation_crds.get_device_augmentations(namespace=namespace)
+
+
+@app.get("/state/resource-augmentation/execution", response_model=AugmentationExecutionState)
+async def get_resource_augmentation_execution() -> AugmentationExecutionState:
+    return augmentation_executor.state()
+
+
+@app.post("/state/resource-augmentation/execution", response_model=AugmentationExecutionState)
+async def post_resource_augmentation_execution(
+    request: AugmentationExecutionRequest,
+    namespace: str = "default",
+) -> AugmentationExecutionState:
+    resources = await augmentation_crds.get_augmentation_resources()
+    device_augmentations = await augmentation_crds.get_device_augmentations(namespace=namespace)
+    return await augmentation_executor.trigger(
+        request=request,
+        resources=resources,
+        device_augmentations=device_augmentations,
+    )
 
 
 @app.post("/state/service-resource-profiles/record")
