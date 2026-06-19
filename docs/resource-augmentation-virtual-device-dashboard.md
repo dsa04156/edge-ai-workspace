@@ -139,6 +139,8 @@ runtime migration은 구현하지 않는다.
 ## 대표 서비스 시나리오
 
 현재 포함된 대표 시나리오는 Jetson 비전 검사 자원증강이다.
+데모 workflow의 operator story, 상태 전이, scheduler decision model은
+`docs/runtime-resource-augmentation-demo-workflow.md`를 기준으로 한다.
 
 ```text
 etri-dev0001-jetorn
