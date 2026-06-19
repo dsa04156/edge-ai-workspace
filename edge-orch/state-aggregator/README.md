@@ -32,20 +32,7 @@ read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
 `GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
 `DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
-`POST /state/resource-augmentation/execution`은 고정된 Jetson inspection →
-x86 GPU inference/cache 시나리오를 수동 trigger로 실행하고,
-`GET /state/resource-augmentation/execution`은 마지막 실행 결과를 반환한다.
-이 실행 경로는 `AugmentationResource`가 `Available`이고 `DeviceAugmentation`이
-`Ready`일 때만 지정 inference endpoint를 호출한다.
-Kubernetes apply/delete/restart, Device CR mutation, MQTT command publish,
-자동 offloading, runtime migration은 수행하지 않는다.
-
-자원증강 실행 endpoint 설정:
-
-```bash
-RESOURCE_AUGMENTATION_INFERENCE_URL=http://x86-gpu-inference.edge-ai.svc.cluster.local:8080/infer
-RESOURCE_AUGMENTATION_TIMEOUT_SECONDS=30
-```
+이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
 B. Prometheus reader
 
 Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기

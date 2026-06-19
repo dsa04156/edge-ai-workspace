@@ -1,6 +1,5 @@
-const augmentationState = { resources: [], selectedId: "vd-x86-gpu-inference", execution: null, executing: false };
+const augmentationState = { resources: [], selectedId: "vd-x86-gpu-inference" };
 const DEVICE_AUGMENTATION_ID = "jetson-gpu-storage-augmentation";
-const AUGMENTATION_EXECUTION_ENDPOINT = "/state/resource-augmentation/execution";
 
 function augEl(id) {
   return document.getElementById(id);
@@ -28,15 +27,6 @@ function augStatusLabel(value) {
     allocated: "할당됨",
     degraded: "주의",
     idle: "대기",
-  }[value] || augText(value, "unknown");
-}
-
-function augExecutionStatusLabel(value) {
-  return {
-    not_run: "실행 전",
-    blocked: "차단됨",
-    succeeded: "성공",
-    failed: "실패",
   }[value] || augText(value, "unknown");
 }
 
@@ -201,25 +191,6 @@ function renderAugmentationPlan(resource) {
   }, null, 2);
 }
 
-function renderAugmentationExecution() {
-  const button = augEl("augmentationExecute");
-  if (button) {
-    button.disabled = augmentationState.executing;
-    button.textContent = augmentationState.executing ? "실행 중" : "수동 실행";
-  }
-  const execution = augmentationState.execution?.last_execution || null;
-  const status = execution?.status || "not_run";
-  augEl("augmentationExecutionStatus").textContent = augExecutionStatusLabel(status);
-  augEl("augmentationExecutionTarget").textContent = execution
-    ? `${augText(execution.target_device)} · ${augText(execution.target_resources?.inference)}`
-    : "-";
-  augEl("augmentationExecutionLatency").textContent = execution?.latency_ms === null || execution?.latency_ms === undefined
-    ? "-"
-    : `${execution.latency_ms} ms`;
-  augEl("augmentationExecutionArtifact").textContent = augText(execution?.output_artifact);
-  augEl("augmentationExecutionError").textContent = augText(execution?.error);
-}
-
 function renderAugmentation() {
   const resources = augmentationState.resources;
   const selected = selectedAugmentationResource();
@@ -228,46 +199,7 @@ function renderAugmentation() {
   renderAugmentationInspector(selected);
   renderAugmentationFlow(resources, selected);
   renderAugmentationPlan(selected);
-  renderAugmentationExecution();
   window.renderAugmentationCrd?.(DEVICE_AUGMENTATION_ID);
-}
-
-async function loadAugmentationExecution() {
-  const response = await fetch(AUGMENTATION_EXECUTION_ENDPOINT, { cache: "no-store", headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  augmentationState.execution = await response.json();
-}
-
-async function triggerAugmentationExecution() {
-  augmentationState.executing = true;
-  renderAugmentationExecution();
-  try {
-    const response = await fetch(AUGMENTATION_EXECUTION_ENDPOINT, {
-      method: "POST",
-      cache: "no-store",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({
-        input_source: "jetson-inspection-camera",
-        payload: { triggered_by: "dashboard" },
-      }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    augmentationState.execution = await response.json();
-  } catch (error) {
-    augmentationState.execution = {
-      last_execution: {
-        status: "failed",
-        target_device: "etri-dev0001-jetorn",
-        target_resources: { inference: "vd-x86-gpu-inference", storage: "vd-storage-cache" },
-        latency_ms: null,
-        output_artifact: null,
-        error: `execution API unavailable: ${error?.message || error?.name || "network error"}`,
-      },
-    };
-  } finally {
-    augmentationState.executing = false;
-    renderAugmentationExecution();
-  }
 }
 
 async function loadAugmentation() {
@@ -277,34 +209,23 @@ async function loadAugmentation() {
     if (!response.ok) {
       augmentationState.loadError = `virtual resource API unavailable: HTTP ${response.status}`;
       augmentationState.resources = [];
-    } else {
-      const payload = await response.json();
-      augmentationState.loadError = payload.observation_error || "";
-      augmentationState.resources = (payload.resources || []).map(normalizeAugmentationResource);
+      alignSelectedAugmentationResource();
+      renderAugmentation();
+      return;
     }
+    const payload = await response.json();
+    augmentationState.loadError = payload.observation_error || "";
+    augmentationState.resources = (payload.resources || []).map(normalizeAugmentationResource);
   } catch (error) {
     augmentationState.loadError = `virtual resource API unavailable: ${error?.name || "network error"}`;
     augmentationState.resources = [];
   }
-  await loadAugmentationExecution().catch((error) => {
-    augmentationState.execution = {
-      last_execution: {
-        status: "failed",
-        target_device: "etri-dev0001-jetorn",
-        target_resources: {},
-        latency_ms: null,
-        output_artifact: null,
-        error: `execution state unavailable: ${error?.message || error?.name || "network error"}`,
-      },
-    };
-  });
   alignSelectedAugmentationResource();
   renderAugmentation();
 }
 
 function bindAugmentationEvents() {
   augEl("augmentationRefresh")?.addEventListener("click", () => loadAugmentation().catch(console.error));
-  augEl("augmentationExecute")?.addEventListener("click", () => triggerAugmentationExecution().catch(console.error));
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
     const target = event.target.closest("[data-augmentation-id]");

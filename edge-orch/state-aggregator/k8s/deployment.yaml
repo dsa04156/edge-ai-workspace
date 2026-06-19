@@ -53,10 +53,6 @@ spec:
               value: "30"
             - name: TELEMETRY_QUERY_WINDOW
               value: "-30m"
-            - name: RESOURCE_AUGMENTATION_INFERENCE_URL
-              value: ""
-            - name: RESOURCE_AUGMENTATION_TIMEOUT_SECONDS
-              value: "30"
             - name: INFLUXDB_TOKEN
               valueFrom:
                 secretKeyRef:

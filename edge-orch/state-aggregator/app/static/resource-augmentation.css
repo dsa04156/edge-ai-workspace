@@ -186,7 +186,6 @@
 }
 
 .augmentation-fields div,
-.augmentation-execution-fields div,
 .augmentation-instance-list li,
 .augmentation-validation-list li {
   display: grid;
@@ -201,8 +200,7 @@
   font-size: 12px;
 }
 
-.augmentation-fields dd,
-.augmentation-execution-fields dd {
+.augmentation-fields dd {
   min-width: 0;
   margin: 0;
   font-weight: 700;
@@ -212,7 +210,6 @@
 }
 
 .augmentation-instance-list,
-.augmentation-execution-fields,
 .augmentation-validation-list {
   margin: 0;
   padding: 0;
@@ -323,30 +320,6 @@
   font-size: 12px;
 }
 
-.augmentation-execution-card {
-  margin-top: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px;
-  background: #fff;
-}
-
-.augmentation-execution-fields {
-  display: grid;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.augmentation-execution-fields div {
-  grid-template-columns: 72px minmax(0, 1fr);
-  padding: 7px 0;
-}
-
-.augmentation-execution-fields dt {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 @media (max-width: 1080px) {
   .augmentation-kpis,
   .augmentation-grid,
@@ -361,10 +334,6 @@
   }
 
   .augmentation-fields div {
-    grid-template-columns: 1fr;
-  }
-
-  .augmentation-execution-fields div {
     grid-template-columns: 1fr;
   }
 
