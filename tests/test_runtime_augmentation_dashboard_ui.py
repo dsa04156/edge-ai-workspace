@@ -28,3 +28,4 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "resulting_augmented_device" in js
     assert "decision" in js
     assert "ai_service" in js
+    assert html.index('class="augmentation-bottom-grid"') < html.index('class="augmentation-grid"')

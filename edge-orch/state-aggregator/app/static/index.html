@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-workflow-20260619" />
+    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-layout-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
   </head>
   <body>
@@ -346,46 +346,6 @@
             <div><span>결정 상태</span><strong id="augmentationRecommendationBlocked">-</strong></div>
           </div>
 
-          <div class="augmentation-grid">
-            <section class="augmentation-pool" aria-labelledby="augmentationPoolTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Virtual Resource Pool</span>
-                  <h3 id="augmentationPoolTitle">구성 자원과 실행 인스턴스</h3>
-                </div>
-                <em id="augmentationRuntimeScope">observed runtime pending</em>
-              </div>
-              <div class="augmentation-table-shell">
-                <table class="augmentation-table">
-                  <thead>
-                    <tr>
-                      <th>자원</th>
-                      <th>노드</th>
-                      <th>유형</th>
-                      <th>목표</th>
-                      <th>실행</th>
-                      <th>유휴</th>
-                      <th>할당</th>
-                      <th>상태</th>
-                    </tr>
-                  </thead>
-                  <tbody id="augmentationResourceRows"></tbody>
-                </table>
-              </div>
-            </section>
-
-            <aside class="augmentation-inspector" aria-live="polite">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Resource Twin Inspector</span>
-                  <h3 id="augmentationInspectorTitle">선택 자원</h3>
-                </div>
-                <em id="augmentationInspectorStatus">unknown</em>
-              </div>
-              <div id="augmentationInspectorBody" class="augmentation-inspector-body"></div>
-            </aside>
-          </div>
-
           <div class="augmentation-bottom-grid">
             <section class="augmentation-recommendations" aria-labelledby="augmentationRecommendationTitle">
               <div class="augmentation-section-head">
@@ -448,6 +408,46 @@
               <ul id="augmentationValidationList" class="augmentation-validation-list"></ul>
               <pre id="augmentationPlanPreview" class="augmentation-plan-preview"></pre>
             </section>
+          </div>
+
+          <div class="augmentation-grid">
+            <section class="augmentation-pool" aria-labelledby="augmentationPoolTitle">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Virtual Resource Pool</span>
+                  <h3 id="augmentationPoolTitle">구성 자원과 실행 인스턴스</h3>
+                </div>
+                <em id="augmentationRuntimeScope">observed runtime pending</em>
+              </div>
+              <div class="augmentation-table-shell">
+                <table class="augmentation-table">
+                  <thead>
+                    <tr>
+                      <th>자원</th>
+                      <th>노드</th>
+                      <th>유형</th>
+                      <th>목표</th>
+                      <th>실행</th>
+                      <th>유휴</th>
+                      <th>할당</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody id="augmentationResourceRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <aside class="augmentation-inspector" aria-live="polite">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Resource Twin Inspector</span>
+                  <h3 id="augmentationInspectorTitle">선택 자원</h3>
+                </div>
+                <em id="augmentationInspectorStatus">unknown</em>
+              </div>
+              <div id="augmentationInspectorBody" class="augmentation-inspector-body"></div>
+            </aside>
           </div>
         </section>
 
@@ -570,6 +570,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=resource-augmentation-workflow-20260619"></script>
+    <script src="/static/resource-augmentation.js?v=resource-augmentation-layout-20260619"></script>
   </body>
 </html>

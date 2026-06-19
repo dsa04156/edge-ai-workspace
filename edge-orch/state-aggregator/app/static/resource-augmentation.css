@@ -76,6 +76,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.85fr);
   gap: 14px;
+  margin-top: 14px;
 }
 
 .augmentation-pool,
@@ -84,6 +85,11 @@
 .augmentation-recommendations,
 .augmentation-plan {
   padding: 16px;
+}
+
+.augmentation-inspector-body {
+  max-height: 520px;
+  overflow: auto;
 }
 
 .augmentation-table-shell {
@@ -229,7 +235,7 @@
 
 .augmentation-bottom-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
   margin-top: 14px;
 }
 
@@ -259,7 +265,7 @@
 
 .augmentation-recommendation-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: minmax(420px, 1fr) minmax(360px, 0.9fr);
   gap: 14px;
   margin-top: 12px;
 }
@@ -273,7 +279,7 @@
 
 .augmentation-recommendation-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 72px 56px;
+  grid-template-columns: minmax(0, 1fr) 96px 82px;
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -529,7 +535,7 @@
 
 .augmentation-plan-preview {
   min-height: 150px;
-  max-height: 230px;
+  max-height: 210px;
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
