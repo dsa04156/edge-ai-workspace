@@ -347,6 +347,8 @@
 
 .augmentation-recommendation-detail {
   min-height: 180px;
+  max-height: 380px;
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #f8fcfd;
