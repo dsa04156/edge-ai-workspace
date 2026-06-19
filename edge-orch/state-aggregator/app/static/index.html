@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css?v=dashboard-static-20260609" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-layout2-20260619" />
+    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
   </head>
   <body>
@@ -347,24 +347,6 @@
           </div>
 
           <div class="augmentation-bottom-grid">
-            <section class="augmentation-recommendations" aria-labelledby="augmentationRecommendationTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Runtime Scheduler Preview</span>
-                  <h3 id="augmentationRecommendationTitle">증강 자원 후보</h3>
-                </div>
-                <em id="augmentationRecommendationScope">recommendation pending</em>
-              </div>
-              <div class="augmentation-service-strip">AI 서비스 <strong id="augmentationRecommendationService">-</strong></div>
-              <div class="augmentation-recommendation-layout">
-                <div class="augmentation-recommendation-list" id="augmentationCandidateResourceRows"></div>
-                <div class="augmentation-recommendation-detail" id="augmentationDecisionDetail">
-                  <h4>스케줄링 결정</h4>
-                  <div>결과 가상디바이스 계획 대기 중입니다.</div>
-                </div>
-              </div>
-            </section>
-
             <section class="augmentation-flow" aria-labelledby="augmentationFlowTitle">
               <div class="augmentation-section-head">
                 <div>
@@ -395,6 +377,24 @@
                 </div>
               </div>
               <div id="augmentationInstanceLane" class="augmentation-instance-lane"></div>
+            </section>
+
+            <section class="augmentation-recommendations" aria-labelledby="augmentationRecommendationTitle">
+              <div class="augmentation-section-head">
+                <div>
+                  <span>Runtime Scheduler Preview</span>
+                  <h3 id="augmentationRecommendationTitle">증강 자원 후보</h3>
+                </div>
+                <em id="augmentationRecommendationScope">recommendation pending</em>
+              </div>
+              <div class="augmentation-service-strip">AI 서비스 <strong id="augmentationRecommendationService">-</strong></div>
+              <div class="augmentation-recommendation-layout">
+                <div class="augmentation-recommendation-list" id="augmentationCandidateResourceRows"></div>
+                <div class="augmentation-recommendation-detail" id="augmentationDecisionDetail">
+                  <h4>스케줄링 결정</h4>
+                  <div>결과 가상디바이스 계획 대기 중입니다.</div>
+                </div>
+              </div>
             </section>
 
             <section class="augmentation-plan" aria-labelledby="augmentationPlanTitle">
@@ -570,6 +570,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=resource-augmentation-layout2-20260619"></script>
+    <script src="/static/resource-augmentation.js?v=resource-augmentation-flow-first-20260619"></script>
   </body>
 </html>
