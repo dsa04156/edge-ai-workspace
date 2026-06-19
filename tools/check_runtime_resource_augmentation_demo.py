@@ -49,43 +49,48 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
     if not isinstance(summary, dict):
         errors.append("missing summary object")
         summary = {}
-    total = summary.get("total")
+    total = summary.get("virtual_device_total")
     if total != EXPECTED_TOTAL:
-        errors.append(f"summary.total={total!r}, expected {EXPECTED_TOTAL}")
+        errors.append(f"summary.virtual_device_total={total!r}, expected {EXPECTED_TOTAL}")
+    if summary.get("waiting") != EXPECTED_TOTAL:
+        errors.append(f"summary.waiting={summary.get('waiting')!r}, expected {EXPECTED_TOTAL}")
 
-    recommendations = payload.get("recommendations")
-    if not isinstance(recommendations, list):
-        errors.append("missing recommendations list")
-        recommendations = []
-    if len(recommendations) != EXPECTED_TOTAL:
-        errors.append(f"recommendations count={len(recommendations)}, expected {EXPECTED_TOTAL}")
+    if "recommendations" in payload:
+        errors.append("legacy recommendations list must not be present")
 
-    virtual_devices = [item.get("virtual_device") for item in recommendations if isinstance(item, dict)]
+    virtual_device_items = payload.get("virtual_devices")
+    if not isinstance(virtual_device_items, list):
+        errors.append("missing virtual_devices list")
+        virtual_device_items = []
+    if len(virtual_device_items) != EXPECTED_TOTAL:
+        errors.append(f"virtual_devices count={len(virtual_device_items)}, expected {EXPECTED_TOTAL}")
+
+    virtual_devices = [item.get("name") for item in virtual_device_items if isinstance(item, dict)]
     if len(set(virtual_devices)) != EXPECTED_TOTAL:
-        errors.append("recommendations must reference 15 unique virtual_device values")
+        errors.append("virtual_devices must reference 15 unique names")
+    states = {item.get("state") for item in virtual_device_items if isinstance(item, dict)}
+    if states != {"waiting"}:
+        errors.append(f"virtual_devices states={sorted(states)!r}, expected ['waiting']")
 
-    ai_services = {item.get("ai_service") for item in recommendations if isinstance(item, dict)}
-    if ai_services != {EXPECTED_AI_SERVICE}:
-        errors.append("recommendations must reference exactly one ai_service")
-
-    states = {item.get("recommendation") for item in recommendations if isinstance(item, dict)}
-    for required in ("none", "candidate", "selected", "blocked"):
-        if required not in states:
-            errors.append(f"missing recommendation state {required!r}")
-
-    selected = [item for item in recommendations if isinstance(item, dict) and item.get("recommendation") == "selected"]
-    if not selected:
-        errors.append("expected at least one selected recommendation")
-    for item in selected:
-        resources = item.get("selected_resources")
-        if not isinstance(resources, list):
-            errors.append(f"{item.get('virtual_device')}: selected_resources is not a list")
-            continue
-        names = {resource.get("name") for resource in resources if isinstance(resource, dict)}
-        if "vd-x86-gpu-inference" not in names:
-            errors.append(f"{item.get('virtual_device')}: missing vd-x86-gpu-inference")
-        if "vd-storage-cache" not in names:
-            errors.append(f"{item.get('virtual_device')}: missing vd-storage-cache")
+    decision = payload.get("decision")
+    if not isinstance(decision, dict):
+        errors.append("missing decision object")
+        decision = {}
+    if decision.get("ai_service") != EXPECTED_AI_SERVICE:
+        errors.append(f"decision.ai_service={decision.get('ai_service')!r}, expected {EXPECTED_AI_SERVICE!r}")
+    if decision.get("trigger") != "service_resource_request":
+        errors.append(f"decision.trigger={decision.get('trigger')!r}, expected 'service_resource_request'")
+    if decision.get("state") != "selected":
+        errors.append(f"decision.state={decision.get('state')!r}, expected 'selected'")
+    resources = decision.get("selected_resources")
+    if not isinstance(resources, list):
+        errors.append("decision.selected_resources is not a list")
+        resources = []
+    names = {resource.get("name") for resource in resources if isinstance(resource, dict)}
+    if "vd-x86-gpu-inference" not in names:
+        errors.append("decision missing vd-x86-gpu-inference")
+    if "vd-storage-cache" not in names:
+        errors.append("decision missing vd-storage-cache")
 
     return errors
 
@@ -102,12 +107,11 @@ def main(argv: list[str] | None = None) -> int:
     summary = payload.get("summary", {})
     print("PASS: runtime resource augmentation demo is ready")
     print(
-        "  total={total} selected={selected} candidate={candidate} blocked={blocked} none={none}".format(
-            total=summary.get("total"),
-            selected=summary.get("selected"),
-            candidate=summary.get("candidate"),
-            blocked=summary.get("blocked"),
-            none=summary.get("none"),
+        "  virtual_devices={total} waiting={waiting} decision={decision} resources={resources}".format(
+            total=summary.get("virtual_device_total"),
+            waiting=summary.get("waiting"),
+            decision=(payload.get("decision") or {}).get("state"),
+            resources=len((payload.get("decision") or {}).get("selected_resources") or []),
         )
     )
     return 0

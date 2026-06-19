@@ -9,16 +9,17 @@ to decide.
 
 This is not a manual execution flow. The dashboard must not create one-off Jobs,
 send fixed sample payloads, mutate KubeEdge `Device` CRs, or directly move
-workloads. The demo focuses on automatic scheduling recommendation/status based
-on observed runtime resource pressure.
+workloads. The demo focuses on automatic scheduling decision/status based on
+observed runtime resource pressure and service resource requests.
 
 ## Demo Story
 
 The factory runs one Jetson-based visual inspection AI service,
 `factory-vision-inspection-ai`, on `etri-dev0001-jetorn`. The demo assumes 15
-virtual devices provide the runtime observation targets for that single AI
-service. The Jetson remains the physical target edge device and continues to
-own the service context.
+virtual devices are waiting as an activation pool. They are not 15 independent
+AI services and they are not 15 always-running observation targets. When the AI
+service emits a resource request, the scheduler evaluates the waiting virtual
+device pool and selects augmentation resources.
 
 During normal operation, telemetry and pod/service resource usage are collected.
 When the inspection workload shows resource pressure, the platform evaluates
@@ -40,7 +41,7 @@ candidates because their runtime instances are available and endpoint-ready.
 | Target edge device | `etri-dev0001-jetorn` |
 | AI service | `factory-vision-inspection-ai` |
 | Service scenario | `jetson-vision-inspection` |
-| Observed virtual devices | 15 `vd-inspection-*` virtual devices |
+| Waiting virtual devices | 15 `vd-inspection-*` virtual devices |
 | Device augmentation object | `jetson-gpu-storage-augmentation` |
 | Inference augmentation resource | `vd-x86-gpu-inference` |
 | Storage/cache augmentation resource | `vd-storage-cache` |
@@ -52,24 +53,27 @@ candidates because their runtime instances are available and endpoint-ready.
 ```text
 1. Observe target workload
    -> collect pod/service CPU, memory, GPU, endpoint, and telemetry freshness
-   -> group 15 virtual device observations under one AI service
+   -> detect whether the AI service emits a resource request
 
-2. Detect resource pressure
+2. Keep virtual devices waiting
+   -> 15 virtual devices stay in waiting/on_request state until a request exists
+
+3. Detect resource pressure
    -> classify whether the Jetson-side inspection service needs support
 
-3. Filter augmentation candidates
+4. Filter augmentation candidates
    -> read AugmentationResource status
    -> require phase=Available and endpointReady=true
 
-4. Match capabilities
+5. Match capabilities
    -> inference role maps to vd-x86-gpu-inference
    -> cache/storage role maps to vd-storage-cache
 
-5. Update recommendation/status
-   -> DeviceAugmentation exposes selectedResources and pressure reason
+6. Update scheduler decision/status
+   -> one decision exposes selectedResources, pressure reason, and candidate virtual devices
 
-6. Explain in dashboard
-   -> show target device, pressure reason, selected resources, and apply state
+7. Explain in dashboard
+   -> show waiting virtual device pool, target service request, selected resources, and apply state
 ```
 
 ## Scheduler Decision Model
@@ -96,22 +100,28 @@ Output:
   "scenario": "jetson-vision-inspection",
   "ai_service": "factory-vision-inspection-ai",
   "target_device": "etri-dev0001-jetorn",
-  "virtual_device": "vd-inspection-001",
-  "recommendation": "selected",
-  "pressure_reason": ["gpu_inference_pressure", "cache_required"],
-  "selected_resources": [
-    {
-      "role": "inference",
-      "name": "vd-x86-gpu-inference",
-      "reason": "x86 GPU inference endpoint is available"
-    },
-    {
-      "role": "storage",
-      "name": "vd-storage-cache",
-      "reason": "cache resource is available"
-    }
+  "virtual_devices": [
+    {"name": "vd-inspection-001", "state": "waiting", "activation": "on_request"}
   ],
-  "apply_state": "observed-only"
+  "decision": {
+    "state": "selected",
+    "trigger": "service_resource_request",
+    "pressure_reason": ["gpu_inference_pressure", "cache_required"],
+    "virtual_device_candidates": ["vd-inspection-001", "vd-inspection-002", "vd-inspection-003"],
+    "selected_resources": [
+      {
+        "role": "inference",
+        "name": "vd-x86-gpu-inference",
+        "reason": "x86 GPU inference endpoint is available"
+      },
+      {
+        "role": "storage",
+        "name": "vd-storage-cache",
+        "reason": "cache resource is available"
+      }
+    ],
+    "apply_state": "observed-only"
+  }
 }
 ```
 
@@ -132,13 +142,14 @@ Kubernetes mutation.
 
 The demo is ready when the following are visible without manual execution:
 
-1. The dashboard shows one AI service, `factory-vision-inspection-ai`, and 15 virtual devices.
-2. The dashboard shows observed runtime resource pressure or a normal/no-pressure state.
-3. The dashboard shows which `AugmentationResource` objects were selected or blocked.
-4. The dashboard explains the reason for the decision.
-5. `DeviceAugmentation` status remains the source of truth for selected resource roles.
-6. No per-click Kubernetes Job is created.
-7. No fixed vibration sample or dummy analyzer payload is used as the scenario.
+1. The dashboard shows one AI service, `factory-vision-inspection-ai`.
+2. The dashboard shows 15 waiting virtual devices as an activation pool.
+3. The dashboard shows one scheduler decision for the service resource request.
+4. The dashboard shows which `AugmentationResource` objects were selected or blocked.
+5. The dashboard explains the reason for the decision.
+6. `DeviceAugmentation` status remains the source of truth for selected resource roles.
+7. No per-click Kubernetes Job is created.
+8. No fixed vibration sample or dummy analyzer payload is used as the scenario.
 
 ## Non-Goals
 
@@ -152,11 +163,11 @@ The demo is ready when the following are visible without manual execution:
 
 ## Implementation Plan
 
-1. Add a runtime augmentation recommendation model to `state-aggregator`.
+1. Add a runtime augmentation decision model to `state-aggregator`.
 2. Map current pod/service resource observations to the `jetson-vision-inspection` scenario.
 3. Add a rule-based scheduler function that produces `none`, `candidate`,
    `selected`, or `blocked`.
-4. Expose recommendation/status through a read-only API.
+4. Expose scheduler decision/status through a read-only API.
 5. Extend the resource augmentation dashboard to show pressure reason,
    selected resources, and apply state.
 6. Add tests for normal, selected, and blocked states.

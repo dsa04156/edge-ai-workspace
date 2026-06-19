@@ -6,7 +6,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-RecommendationState = Literal["none", "candidate", "selected", "blocked"]
+DecisionState = Literal["none", "candidate", "selected", "blocked"]
+VirtualDeviceState = Literal["waiting", "running", "reserved"]
 ApplyState = Literal["observed-only", "pending-controller", "applied", "blocked"]
 
 SCENARIO_ID = "jetson-vision-inspection"
@@ -19,11 +20,10 @@ STORAGE_RESOURCE = "vd-storage-cache"
 class RuntimeAugmentationSummary(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    total: int
-    none: int
-    candidate: int
-    selected: int
-    blocked: int
+    virtual_device_total: int
+    waiting: int
+    running: int
+    reserved: int
 
 
 class RuntimeAugmentationSelectedResource(BaseModel):
@@ -34,18 +34,28 @@ class RuntimeAugmentationSelectedResource(BaseModel):
     reason: str
 
 
-class RuntimeAugmentationRecommendation(BaseModel):
+class RuntimeAugmentationVirtualDevice(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    virtual_device: str
+    name: str
+    state: VirtualDeviceState = "waiting"
+    capability: str = "vision-inference-slot"
+    node: str = "virtual-pool"
+    activation: Literal["on_request"] = "on_request"
+
+
+class RuntimeAugmentationDecision(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    state: DecisionState
+    trigger: Literal["service_resource_request"] = "service_resource_request"
     ai_service: str = AI_SERVICE
     scenario: str = SCENARIO_ID
     target_device: str = TARGET_DEVICE
-    workload: str
-    recommendation: RecommendationState
     pressure_score: int = Field(ge=0, le=100)
     pressure_reason: list[str] = Field(default_factory=list)
     selected_resources: list[RuntimeAugmentationSelectedResource] = Field(default_factory=list)
+    virtual_device_candidates: list[str] = Field(default_factory=list)
     apply_state: ApplyState
     explanation: str
 
@@ -59,66 +69,47 @@ class RuntimeAugmentationState(BaseModel):
     scenario_id: str = SCENARIO_ID
     ai_service: str = AI_SERVICE
     summary: RuntimeAugmentationSummary
-    recommendations: list[RuntimeAugmentationRecommendation] = Field(default_factory=list)
+    virtual_devices: list[RuntimeAugmentationVirtualDevice] = Field(default_factory=list)
+    decision: RuntimeAugmentationDecision
 
 
 def build_runtime_augmentation_state() -> RuntimeAugmentationState:
-    recommendations = [
-        _recommendation(index, state)
-        for index, state in [
-            *[(index, "selected") for index in range(1, 6)],
-            *[(index, "candidate") for index in range(6, 10)],
-            *[(index, "blocked") for index in range(10, 12)],
-            *[(index, "none") for index in range(12, 16)],
-        ]
-    ]
+    virtual_devices = [_virtual_device(index) for index in range(1, 16)]
     return RuntimeAugmentationState(
         generated_at=datetime.now(timezone.utc),
         summary=RuntimeAugmentationSummary(
-            total=len(recommendations),
-            none=sum(1 for item in recommendations if item.recommendation == "none"),
-            candidate=sum(1 for item in recommendations if item.recommendation == "candidate"),
-            selected=sum(1 for item in recommendations if item.recommendation == "selected"),
-            blocked=sum(1 for item in recommendations if item.recommendation == "blocked"),
+            virtual_device_total=len(virtual_devices),
+            waiting=sum(1 for item in virtual_devices if item.state == "waiting"),
+            running=sum(1 for item in virtual_devices if item.state == "running"),
+            reserved=sum(1 for item in virtual_devices if item.state == "reserved"),
         ),
-        recommendations=recommendations,
+        virtual_devices=virtual_devices,
+        decision=_decision(),
     )
 
 
-def _recommendation(index: int, state: RecommendationState) -> RuntimeAugmentationRecommendation:
-    return RuntimeAugmentationRecommendation(
-        virtual_device=f"vd-inspection-{index:03d}",
-        workload=AI_SERVICE,
-        recommendation=state,
-        pressure_score=_pressure_score(index=index, state=state),
-        pressure_reason=_pressure_reason(state),
+def _virtual_device(index: int) -> RuntimeAugmentationVirtualDevice:
+    return RuntimeAugmentationVirtualDevice(name=f"vd-inspection-{index:03d}")
+
+
+def _decision() -> RuntimeAugmentationDecision:
+    state: DecisionState = "selected"
+    return RuntimeAugmentationDecision(
+        state=state,
+        pressure_score=88,
+        pressure_reason=["gpu_inference_pressure", "cache_required"],
         selected_resources=_selected_resources(state),
+        virtual_device_candidates=[
+            "vd-inspection-001",
+            "vd-inspection-002",
+            "vd-inspection-003",
+        ],
         apply_state=_apply_state(state),
         explanation=_explanation(state),
     )
 
 
-def _pressure_score(*, index: int, state: RecommendationState) -> int:
-    base = {
-        "selected": 86,
-        "candidate": 72,
-        "blocked": 91,
-        "none": 24,
-    }[state]
-    return min(100, base + (index % 4))
-
-
-def _pressure_reason(state: RecommendationState) -> list[str]:
-    if state == "none":
-        return []
-    if state == "blocked":
-        return ["gpu_inference_pressure", "cache_required", "augmentation_resource_not_ready"]
-    if state == "candidate":
-        return ["gpu_inference_pressure", "candidate_resource_available"]
-    return ["gpu_inference_pressure", "cache_required"]
-
-
-def _selected_resources(state: RecommendationState) -> list[RuntimeAugmentationSelectedResource]:
+def _selected_resources(state: DecisionState) -> list[RuntimeAugmentationSelectedResource]:
     if state not in {"selected", "candidate"}:
         return []
     resources = [
@@ -139,16 +130,16 @@ def _selected_resources(state: RecommendationState) -> list[RuntimeAugmentationS
     return resources
 
 
-def _apply_state(state: RecommendationState) -> ApplyState:
+def _apply_state(state: DecisionState) -> ApplyState:
     if state == "blocked":
         return "blocked"
     return "observed-only"
 
 
-def _explanation(state: RecommendationState) -> str:
+def _explanation(state: DecisionState) -> str:
     return {
-        "none": "runtime pressure is below the augmentation threshold",
-        "candidate": "pressure is observed and at least one augmentation candidate is available",
-        "selected": "pressure is observed and both inference/cache resources are selected",
-        "blocked": "pressure is observed but one or more required augmentation resources are not ready",
+        "none": "no service resource request is waiting for augmentation",
+        "candidate": "a service resource request exists and matching virtual devices are waiting",
+        "selected": "a service resource request exists and waiting virtual devices can be activated with inference/cache resources",
+        "blocked": "a service resource request exists but required augmentation resources are not ready",
     }[state]
