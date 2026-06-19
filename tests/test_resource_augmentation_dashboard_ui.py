@@ -11,10 +11,6 @@ def test_resource_augmentation_dashboard_exposes_execution_controls() -> None:
 
     assert 'id="augmentationExecute"' in html
     assert 'id="augmentationExecutionStatus"' in html
-    assert 'id="augmentationExecutionProgressBar"' in html
-    assert 'id="augmentationExecutionSteps"' in html
     assert 'id="augmentationExecutionArtifact"' in html
     assert "/state/resource-augmentation/execution" in js
     assert "renderAugmentationExecution" in js
-    assert "augmentationExecutionProgressBar" in js
-    assert "progress_steps" in js

@@ -77,25 +77,10 @@ class Settings(BaseModel):
         default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "90"))
     )
     resource_augmentation_inference_url: str = Field(
-        default_factory=lambda: os.getenv(
-            "RESOURCE_AUGMENTATION_INFERENCE_URL",
-            "http://j-server-analyzer-svc.offload-test.svc.cluster.local:8000/analyze",
-        )
+        default_factory=lambda: os.getenv("RESOURCE_AUGMENTATION_INFERENCE_URL", "")
     )
     resource_augmentation_timeout_seconds: float = Field(
         default_factory=lambda: float(os.getenv("RESOURCE_AUGMENTATION_TIMEOUT_SECONDS", "30"))
-    )
-    resource_augmentation_job_namespace: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_AUGMENTATION_JOB_NAMESPACE", "default")
-    )
-    resource_augmentation_job_image: str = Field(
-        default_factory=lambda: os.getenv(
-            "RESOURCE_AUGMENTATION_JOB_IMAGE",
-            "192.168.0.56:5000/state-aggregator:latest",
-        )
-    )
-    resource_augmentation_job_ttl_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("RESOURCE_AUGMENTATION_JOB_TTL_SECONDS", "600"))
     )
 
 

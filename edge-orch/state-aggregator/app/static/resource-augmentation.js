@@ -35,8 +35,6 @@ function augExecutionStatusLabel(value) {
   return {
     not_run: "실행 전",
     blocked: "차단됨",
-    pending: "대기 중",
-    running: "실행 중",
     succeeded: "성공",
     failed: "실패",
   }[value] || augText(value, "unknown");
@@ -211,17 +209,9 @@ function renderAugmentationExecution() {
   }
   const execution = augmentationState.execution?.last_execution || null;
   const status = execution?.status || "not_run";
-  const progress = Math.max(0, Math.min(100, Number(execution?.progress_percent) || 0));
   augEl("augmentationExecutionStatus").textContent = augExecutionStatusLabel(status);
-  augEl("augmentationExecutionProgressBar").style.width = `${progress}%`;
-  augEl("augmentationExecutionSteps").innerHTML = (execution?.progress_steps || []).map((step) => `
-    <li class="${augEscape(step.status || "pending")}"><strong>${augEscape(augExecutionStatusLabel(step.status || "pending"))}</strong><span>${augEscape(step.label || step.id)}</span></li>
-  `).join("") || '<li><strong>대기</strong><span>아직 실행 이력이 없습니다.</span></li>';
   augEl("augmentationExecutionTarget").textContent = execution
     ? `${augText(execution.target_device)} · ${augText(execution.target_resources?.inference)}`
-    : "-";
-  augEl("augmentationExecutionJob").textContent = execution?.job_name
-    ? `${augText(execution.job_namespace)} / ${augText(execution.job_name)}`
     : "-";
   augEl("augmentationExecutionLatency").textContent = execution?.latency_ms === null || execution?.latency_ms === undefined
     ? "-"
@@ -248,20 +238,6 @@ async function loadAugmentationExecution() {
   augmentationState.execution = await response.json();
 }
 
-function executionStillRunning() {
-  const status = augmentationState.execution?.last_execution?.status;
-  return status === "pending" || status === "running";
-}
-
-async function pollAugmentationExecution() {
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    if (!executionStillRunning()) return;
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await loadAugmentationExecution();
-    renderAugmentationExecution();
-  }
-}
-
 async function triggerAugmentationExecution() {
   augmentationState.executing = true;
   renderAugmentationExecution();
@@ -277,8 +253,6 @@ async function triggerAugmentationExecution() {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     augmentationState.execution = await response.json();
-    renderAugmentationExecution();
-    pollAugmentationExecution().catch(console.error);
   } catch (error) {
     augmentationState.execution = {
       last_execution: {

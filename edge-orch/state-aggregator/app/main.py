@@ -17,7 +17,7 @@ from .augmentation_crds import (
 from .augmentation_execution import (
     AugmentationExecutionRequest,
     AugmentationExecutionState,
-    KubernetesJobAugmentationExecutionRunner,
+    HttpAugmentationExecutionRunner,
     ResourceAugmentationExecutor,
 )
 from .config import Settings
@@ -49,11 +49,9 @@ settings = Settings()
 service = StateAggregatorService(settings)
 augmentation_crds = AugmentationCrdReader()
 augmentation_executor = ResourceAugmentationExecutor(
-    runner=KubernetesJobAugmentationExecutionRunner(
-        namespace=settings.resource_augmentation_job_namespace,
-        image=settings.resource_augmentation_job_image,
+    runner=HttpAugmentationExecutionRunner(
         endpoint_url=settings.resource_augmentation_inference_url,
-        ttl_seconds_after_finished=settings.resource_augmentation_job_ttl_seconds,
+        timeout_seconds=settings.resource_augmentation_timeout_seconds,
     ),
     target_endpoint=settings.resource_augmentation_inference_url or None,
 )
@@ -284,7 +282,7 @@ async def get_device_augmentations(namespace: str = "default") -> DeviceAugmenta
 
 @app.get("/state/resource-augmentation/execution", response_model=AugmentationExecutionState)
 async def get_resource_augmentation_execution() -> AugmentationExecutionState:
-    return await augmentation_executor.refresh_state()
+    return augmentation_executor.state()
 
 
 @app.post("/state/resource-augmentation/execution", response_model=AugmentationExecutionState)

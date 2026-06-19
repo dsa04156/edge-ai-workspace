@@ -213,7 +213,6 @@
 
 .augmentation-instance-list,
 .augmentation-execution-fields,
-.augmentation-execution-steps,
 .augmentation-validation-list {
   margin: 0;
   padding: 0;
@@ -338,55 +337,6 @@
   margin-top: 10px;
 }
 
-.augmentation-execution-progress {
-  height: 10px;
-  margin-top: 12px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e4edf1;
-}
-
-.augmentation-execution-progress span {
-  display: block;
-  width: 0%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #087c8f, #078b5c);
-  transition: width 240ms ease;
-}
-
-.augmentation-execution-steps {
-  display: grid;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.augmentation-execution-steps li {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 7px 9px;
-  font-size: 12px;
-}
-
-.augmentation-execution-steps strong {
-  color: var(--muted);
-}
-
-.augmentation-execution-steps li.running strong {
-  color: var(--blue);
-}
-
-.augmentation-execution-steps li.succeeded strong {
-  color: var(--green);
-}
-
-.augmentation-execution-steps li.failed strong {
-  color: var(--red);
-}
-
 .augmentation-execution-fields div {
   grid-template-columns: 72px minmax(0, 1fr);
   padding: 7px 0;
@@ -415,10 +365,6 @@
   }
 
   .augmentation-execution-fields div {
-    grid-template-columns: 1fr;
-  }
-
-  .augmentation-execution-steps li {
     grid-template-columns: 1fr;
   }
 

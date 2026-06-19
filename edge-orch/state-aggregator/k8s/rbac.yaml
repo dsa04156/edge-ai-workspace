@@ -37,30 +37,3 @@ roleRef:
   kind: ClusterRole
   name: state-aggregator-node-reader
   apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: state-aggregator-job-runner
-  namespace: default
-rules:
-  - apiGroups: ["batch"]
-    resources: ["jobs"]
-    verbs: ["get", "list", "watch", "create", "delete"]
-  - apiGroups: [""]
-    resources: ["pods/log"]
-    verbs: ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: state-aggregator-job-runner-binding
-  namespace: default
-subjects:
-  - kind: ServiceAccount
-    name: state-aggregator
-    namespace: default
-roleRef:
-  kind: Role
-  name: state-aggregator-job-runner
-  apiGroup: rbac.authorization.k8s.io
