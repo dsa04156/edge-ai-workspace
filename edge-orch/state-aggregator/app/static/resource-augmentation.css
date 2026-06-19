@@ -46,6 +46,7 @@
 .augmentation-pool,
 .augmentation-inspector,
 .augmentation-flow,
+.augmentation-recommendations,
 .augmentation-plan {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -80,6 +81,7 @@
 .augmentation-pool,
 .augmentation-inspector,
 .augmentation-flow,
+.augmentation-recommendations,
 .augmentation-plan {
   padding: 16px;
 }
@@ -231,6 +233,100 @@
   margin-top: 14px;
 }
 
+.augmentation-recommendations {
+  grid-column: 1 / -1;
+}
+
+.augmentation-recommendation-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.augmentation-recommendation-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.augmentation-recommendation-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px 56px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 10px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.augmentation-recommendation-row:hover,
+.augmentation-recommendation-row.selected {
+  border-color: #087c8f;
+  box-shadow: 0 8px 18px rgba(8, 124, 143, 0.12);
+}
+
+.augmentation-recommendation-row span,
+.augmentation-recommendation-row em {
+  display: block;
+  min-width: 0;
+}
+
+.augmentation-recommendation-row strong,
+.augmentation-recommendation-row em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.augmentation-recommendation-row em {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.augmentation-recommendation-row b,
+.augmentation-recommendation-row small {
+  justify-self: end;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.augmentation-recommendation-row b {
+  background: #e4edf1;
+}
+
+.augmentation-recommendation-row.selected b {
+  background: #dbf3eb;
+  color: var(--green);
+}
+
+.augmentation-recommendation-row.blocked b {
+  background: #fde7e7;
+  color: var(--red);
+}
+
+.augmentation-recommendation-row.candidate b {
+  background: #fff1d6;
+  color: #8a5a00;
+}
+
+.augmentation-recommendation-detail {
+  min-height: 180px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fcfd;
+  padding: 12px;
+}
+
 .augmentation-flow-canvas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
@@ -323,7 +419,8 @@
 @media (max-width: 1080px) {
   .augmentation-kpis,
   .augmentation-grid,
-  .augmentation-bottom-grid {
+  .augmentation-bottom-grid,
+  .augmentation-recommendation-layout {
     grid-template-columns: 1fr;
   }
 }

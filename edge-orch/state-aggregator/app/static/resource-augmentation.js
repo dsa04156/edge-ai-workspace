@@ -1,4 +1,10 @@
-const augmentationState = { resources: [], selectedId: "vd-x86-gpu-inference" };
+const augmentationState = {
+  resources: [],
+  selectedId: "vd-x86-gpu-inference",
+  recommendations: [],
+  recommendationSummary: { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 },
+  selectedRecommendationId: "",
+};
 const DEVICE_AUGMENTATION_ID = "jetson-gpu-storage-augmentation";
 
 function augEl(id) {
@@ -36,6 +42,15 @@ function augReasonLabel(value) {
   return reason;
 }
 
+function augRecommendationLabel(value) {
+  return {
+    none: "정상",
+    candidate: "후보",
+    selected: "선택",
+    blocked: "차단",
+  }[value] || augText(value, "unknown");
+}
+
 function normalizeAugmentationResource(resource) {
   const twin = resource.twin || {};
   return {
@@ -59,8 +74,28 @@ function normalizeAugmentationResource(resource) {
   };
 }
 
+function normalizeAugmentationRecommendation(item) {
+  return {
+    id: item.virtual_device,
+    scenario: item.scenario,
+    targetDevice: item.target_device,
+    workload: item.workload,
+    recommendation: item.recommendation || "none",
+    pressureScore: Number(item.pressure_score) || 0,
+    pressureReason: item.pressure_reason || [],
+    selectedResources: item.selected_resources || [],
+    applyState: item.apply_state || "observed-only",
+    explanation: item.explanation || "",
+  };
+}
+
 function selectedAugmentationResource() {
   return augmentationState.resources.find((resource) => resource.id === augmentationState.selectedId) || augmentationState.resources[0];
+}
+
+function selectedAugmentationRecommendation() {
+  return augmentationState.recommendations.find((item) => item.id === augmentationState.selectedRecommendationId)
+    || augmentationState.recommendations[0];
 }
 
 function resourceMatches(resource, text) {
@@ -96,6 +131,9 @@ function renderAugmentationKpis(resources) {
   augEl("augmentationAllocatedCount").textContent = allocated;
   augEl("augmentationNotRunningCount").textContent = notRunning;
   augEl("augmentationRiskCount").textContent = risk;
+  augEl("augmentationRecommendationTotal").textContent = augmentationState.recommendationSummary.total || 0;
+  augEl("augmentationRecommendationSelected").textContent = augmentationState.recommendationSummary.selected || 0;
+  augEl("augmentationRecommendationBlocked").textContent = augmentationState.recommendationSummary.blocked || 0;
   augEl("augmentationRuntimeScope").textContent = augmentationState.loadError || `${observed} observed runtime instances`;
 }
 
@@ -191,20 +229,67 @@ function renderAugmentationPlan(resource) {
   }, null, 2);
 }
 
+function alignSelectedAugmentationRecommendation() {
+  if (augmentationState.recommendations.some((item) => item.id === augmentationState.selectedRecommendationId)) return;
+  augmentationState.selectedRecommendationId = augmentationState.recommendations[0]?.id || "";
+}
+
+function renderAugmentationRecommendations() {
+  const recommendations = augmentationState.recommendations;
+  const selected = selectedAugmentationRecommendation();
+  const summary = augmentationState.recommendationSummary;
+  augEl("augmentationRecommendationScope").textContent = `${summary.total || 0} demo AI services · ${summary.selected || 0} selected · ${summary.blocked || 0} blocked`;
+  augEl("augmentationRecommendationRows").innerHTML = recommendations.map((item) => `
+    <button class="augmentation-recommendation-row ${augEscape(item.recommendation)} ${item.id === augmentationState.selectedRecommendationId ? "selected" : ""}" type="button" data-augmentation-recommendation-id="${augEscape(item.id)}">
+      <span><strong>${augEscape(item.id)}</strong><em>${augEscape(item.workload)}</em></span>
+      <b>${augEscape(augRecommendationLabel(item.recommendation))}</b>
+      <small>${item.pressureScore}%</small>
+    </button>
+  `).join("") || '<div class="workflow-empty">runtime recommendation API 응답 대기 중입니다.</div>';
+  if (!selected) {
+    augEl("augmentationRecommendationDetail").textContent = "runtime recommendation 대기 중입니다.";
+    return;
+  }
+  augEl("augmentationRecommendationDetail").innerHTML = `
+    <dl class="augmentation-fields">
+      <div><dt>service</dt><dd>${augEscape(selected.id)}</dd></div>
+      <div><dt>target</dt><dd>${augEscape(selected.targetDevice)}</dd></div>
+      <div><dt>state</dt><dd>${augEscape(augRecommendationLabel(selected.recommendation))} · ${selected.pressureScore}%</dd></div>
+      <div><dt>apply</dt><dd>${augEscape(selected.applyState)}</dd></div>
+      <div><dt>reason</dt><dd>${augEscape(selected.pressureReason.join(", ") || "no pressure")}</dd></div>
+      <div><dt>explain</dt><dd>${augEscape(selected.explanation)}</dd></div>
+    </dl>
+    <ul class="augmentation-instance-list">
+      ${selected.selectedResources.length ? selected.selectedResources.map((resource) => `<li><strong>${augEscape(resource.role)} · ${augEscape(resource.name)}</strong><span>${augEscape(resource.reason || "-")}</span></li>`).join("") : "<li><strong>no resource selected</strong><span>현재는 보강 자원이 선택되지 않았습니다.</span></li>"}
+    </ul>
+  `;
+}
+
 function renderAugmentation() {
   const resources = augmentationState.resources;
   const selected = selectedAugmentationResource();
   renderAugmentationKpis(resources);
   renderAugmentationRows(resources);
   renderAugmentationInspector(selected);
+  renderAugmentationRecommendations();
   renderAugmentationFlow(resources, selected);
   renderAugmentationPlan(selected);
   window.renderAugmentationCrd?.(DEVICE_AUGMENTATION_ID);
 }
 
+async function loadAugmentationRecommendations() {
+  const response = await fetch("/state/runtime-resource-augmentation", { cache: "no-store", headers: { Accept: "application/json" } });
+  if (!response.ok) throw new Error(`runtime augmentation API unavailable: HTTP ${response.status}`);
+  const payload = await response.json();
+  augmentationState.recommendationSummary = payload.summary || { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 };
+  augmentationState.recommendations = (payload.recommendations || []).map(normalizeAugmentationRecommendation);
+  alignSelectedAugmentationRecommendation();
+}
+
 async function loadAugmentation() {
   try {
     await window.loadAugmentationCrd?.();
+    await loadAugmentationRecommendations();
     const response = await fetch("/state/virtual-resources", { cache: "no-store", headers: { Accept: "application/json" } });
     if (!response.ok) {
       augmentationState.loadError = `virtual resource API unavailable: HTTP ${response.status}`;
@@ -219,6 +304,8 @@ async function loadAugmentation() {
   } catch (error) {
     augmentationState.loadError = `virtual resource API unavailable: ${error?.name || "network error"}`;
     augmentationState.resources = [];
+    augmentationState.recommendations = [];
+    augmentationState.recommendationSummary = { total: 0, selected: 0, candidate: 0, blocked: 0, none: 0 };
   }
   alignSelectedAugmentationResource();
   renderAugmentation();
@@ -229,8 +316,12 @@ function bindAugmentationEvents() {
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
     const target = event.target.closest("[data-augmentation-id]");
-    if (!target) return;
-    augmentationState.selectedId = target.dataset.augmentationId || augmentationState.selectedId;
+    const recommendationTarget = event.target.closest("[data-augmentation-recommendation-id]");
+    if (!target && !recommendationTarget) return;
+    if (target) augmentationState.selectedId = target.dataset.augmentationId || augmentationState.selectedId;
+    if (recommendationTarget) {
+      augmentationState.selectedRecommendationId = recommendationTarget.dataset.augmentationRecommendationId || augmentationState.selectedRecommendationId;
+    }
     renderAugmentation();
   });
 }
