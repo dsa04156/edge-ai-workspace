@@ -328,6 +328,78 @@ button {
   margin: 14px 0;
 }
 
+.augmentation-at-glance {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 10px;
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #a8c7d2;
+  border-left: 4px solid #087c8f;
+  border-radius: 8px;
+  background: #f7fbfc;
+  box-shadow: var(--ops-shadow);
+}
+
+.augmentation-glance-card {
+  min-width: 0;
+  min-height: 78px;
+  border: 1px solid var(--ops-panel-border);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.augmentation-glance-card.current {
+  border-color: #087c8f;
+  background: #eaf8fa;
+  box-shadow: inset 0 0 0 1px rgba(8, 124, 143, 0.16);
+}
+
+.augmentation-glance-card span,
+.augmentation-glance-card strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-glance-card span {
+  color: var(--ops-muted);
+  font-size: 11px;
+}
+
+.augmentation-glance-card strong {
+  margin-top: 8px;
+  color: var(--ops-text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.augmentation-glance-flow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  color: var(--ops-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.augmentation-glance-flow span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.augmentation-glance-flow i {
+  display: block;
+  height: 1px;
+  background: #87aebc;
+}
+
 .augmentation-kpis div,
 .augmentation-stage,
 .augmentation-service-strip,
@@ -516,6 +588,17 @@ code {
     grid-template-columns: 1fr;
     align-items: start;
     gap: 8px;
+  }
+
+  .augmentation-at-glance,
+  .augmentation-glance-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .augmentation-glance-flow i {
+    height: 8px;
+    width: 1px;
+    justify-self: center;
   }
 
   .augmentation-demo-progress,

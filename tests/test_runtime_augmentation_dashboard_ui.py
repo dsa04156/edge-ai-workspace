@@ -15,6 +15,12 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationWorkflowProgress"' in html
     assert 'id="augmentationWorkflowProgressText"' in html
     assert 'id="augmentationWorkflowSummary"' in html
+    assert 'id="augmentationAtGlance"' in html
+    assert 'id="augmentationAtGlancePhase"' in html
+    assert 'id="augmentationAtGlanceService"' in html
+    assert 'id="augmentationAtGlanceTarget"' in html
+    assert 'id="augmentationAtGlanceResources"' in html
+    assert 'id="augmentationAtGlanceResult"' in html
     assert 'id="augmentationWorkflowSteps"' in html
     assert 'id="augmentationOffloadPath"' in html
     assert 'id="augmentationRecommendationService"' in html
@@ -27,6 +33,7 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "renderAugmentationDecision" in js
     assert "renderAugmentationWorkflowDemo" in js
     assert "renderAugmentationWorkflowFrame" in js
+    assert "renderAugmentationAtGlance" in js
     assert "startAugmentationWorkflowPlayback" in js
     assert "scenario_timeline" in js
     assert "playback_interval_ms" in js

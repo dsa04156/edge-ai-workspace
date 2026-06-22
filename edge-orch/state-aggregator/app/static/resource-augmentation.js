@@ -319,6 +319,17 @@ function workflowAutomationLabel(value) {
   }[value] || augText(value, "자동 판단");
 }
 
+function renderAugmentationAtGlance(workflow, frame) {
+  const decision = augmentationState.decision || {};
+  const augmentedDevice = decision.resultingAugmentedDevice || {};
+  const selectedResources = (decision.selectedResources || []).map((resource) => resource.name).filter(Boolean);
+  augEl("augmentationAtGlancePhase").textContent = frame?.label || workflow?.status || "-";
+  augEl("augmentationAtGlanceService").textContent = augmentationState.aiService || decision.aiService || "-";
+  augEl("augmentationAtGlanceTarget").textContent = decision.targetDevice || "-";
+  augEl("augmentationAtGlanceResources").textContent = selectedResources.length ? selectedResources.join(" + ") : "-";
+  augEl("augmentationAtGlanceResult").textContent = augmentedDevice.name || "-";
+}
+
 function workflowPlaybackSignature(workflow) {
   return [
     workflow.name,
@@ -351,6 +362,7 @@ function renderAugmentationWorkflowFrame(workflow, frame) {
   const progressPercent = Number.isFinite(frame?.progressPercent) ? frame.progressPercent : workflow.progressPercent;
   const summary = frame?.summary || workflow.operatorSummary || workflow.status;
   const phaseLabel = frame?.label ? `${frame.label} · ` : "";
+  renderAugmentationAtGlance(workflow, frame);
   augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${phaseLabel}${summary}`;
   augEl("augmentationWorkflowProgress").style.width = `${progressPercent}%`;
   augEl("augmentationWorkflowProgressText").textContent = `${progressPercent}%`;
@@ -393,6 +405,7 @@ function renderAugmentationWorkflowDemo() {
   augEl("augmentationWorkflowStatus").textContent = workflow ? `${workflow.name} · ${workflow.status}` : "workflow pending";
   if (!workflow) {
     stopAugmentationWorkflowPlayback();
+    renderAugmentationAtGlance(null, null);
     augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
     augEl("augmentationWorkflowProgress").style.width = "0%";
     augEl("augmentationWorkflowProgressText").textContent = "0%";

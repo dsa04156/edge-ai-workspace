@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=augmentation-state-machine-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=augmentation-at-glance-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -52,3 +52,13 @@ def test_dashboard_refactor_supports_augmentation_demo_progress_without_overflow
     assert ".augmentation-workflow-steps li.current" in css
     assert "grid-template-columns: minmax(0, 1fr) auto;" in css
     assert "overflow-wrap: anywhere;" in css
+
+
+def test_dashboard_refactor_adds_compact_augmentation_at_glance_panel() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".augmentation-at-glance" in css
+    assert ".augmentation-glance-card" in css
+    assert ".augmentation-glance-flow" in css
+    assert "grid-template-columns: repeat(5, minmax(150px, 1fr));" in css
+    assert ".augmentation-glance-card.current" in css

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-state-machine-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-at-glance-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -347,6 +347,32 @@
             <div><span>결정 상태</span><strong id="augmentationRecommendationBlocked">-</strong></div>
           </div>
 
+          <section id="augmentationAtGlance" class="augmentation-at-glance" aria-label="runtime augmentation at a glance">
+            <div class="augmentation-glance-card current">
+              <span>현재 단계</span>
+              <strong id="augmentationAtGlancePhase">-</strong>
+            </div>
+            <div class="augmentation-glance-card">
+              <span>AI 서비스</span>
+              <strong id="augmentationAtGlanceService">-</strong>
+            </div>
+            <div class="augmentation-glance-card">
+              <span>대상 디바이스</span>
+              <strong id="augmentationAtGlanceTarget">-</strong>
+            </div>
+            <div class="augmentation-glance-card">
+              <span>선택 자원</span>
+              <strong id="augmentationAtGlanceResources">-</strong>
+            </div>
+            <div class="augmentation-glance-card">
+              <span>결과 객체</span>
+              <strong id="augmentationAtGlanceResult">-</strong>
+            </div>
+            <div class="augmentation-glance-flow" aria-hidden="true">
+              <span>AI service</span><i></i><span>edge pressure</span><i></i><span>candidate pool</span><i></i><span>offload plan</span><i></i><span>augmented device</span>
+            </div>
+          </section>
+
           <div class="augmentation-bottom-grid">
             <section class="augmentation-flow" aria-labelledby="augmentationFlowTitle">
               <div class="augmentation-section-head">
@@ -581,6 +607,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=augmentation-state-machine-20260622"></script>
+    <script src="/static/resource-augmentation.js?v=augmentation-at-glance-20260622"></script>
   </body>
 </html>
