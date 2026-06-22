@@ -56,7 +56,7 @@ def test_runtime_resource_augmentation_checker_accepts_candidate_pool_and_augmen
             "automation_trigger": "runtime_metrics_observed",
             "progress_percent": 80,
             "current_step_id": "offload-plan",
-            "operator_summary": "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨.",
+            "operator_summary": "GPU inference and result-cache offload are ready as an observed-only binding plan.",
             "auto_play": True,
             "playback_interval_ms": 1600,
             "scenario_timeline": [

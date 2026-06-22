@@ -73,7 +73,7 @@ def test_runtime_augmentation_state_exposes_workflow_demo_and_offload_path() -> 
     assert workflow.automation_trigger == "runtime_metrics_observed"
     assert workflow.progress_percent == 80
     assert workflow.current_step_id == "offload-plan"
-    assert workflow.operator_summary == "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨."
+    assert workflow.operator_summary == "GPU inference and result-cache offload are ready as an observed-only binding plan."
     assert workflow.auto_play is True
     assert workflow.playback_interval_ms == 1600
     assert [phase.id for phase in workflow.scenario_timeline] == [
