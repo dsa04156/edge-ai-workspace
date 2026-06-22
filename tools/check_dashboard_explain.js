@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const assert = require('assert');
-const { explainDeviceRules, explainKpi, issueExplanation } = require('../edge-orch/state-aggregator/app/static/dashboard.js');
+const { explainDeviceRules, explainKpi, issueExplanation, renderTelemetryChart } = require('../edge-orch/state-aggregator/app/static/dashboard.js');
 
 function ruleIds(device) {
   return explainDeviceRules(device).map((rule) => rule.id);
@@ -64,5 +64,20 @@ assert.strictEqual(kpi.value, 0.75);
 
 const issueMessages = issueExplanation({ kind: 'device', device: { ...baseDevice, telemetry_fresh: false } });
 assert(issueMessages.join('\n').includes('센서 데이터가 stale'));
+
+const chart = renderTelemetryChart([
+  { timestamp: '2026-06-22T07:00:00Z', property: 'temperature', value: '24.2' },
+  { timestamp: '2026-06-22T07:01:00Z', property: 'temperature', value: '24.8' },
+  { timestamp: '2026-06-22T07:02:00Z', property: 'temperature', value: '25.1' },
+  { timestamp: '2026-06-22T07:00:00Z', property: 'humidity', value: '45.0' },
+  { timestamp: '2026-06-22T07:01:00Z', property: 'humidity', value: '46.5' },
+  { timestamp: '2026-06-22T07:02:00Z', property: 'humidity', value: '47.0' },
+]);
+assert(chart.includes('telemetry-summary-strip'), 'chart should expose summary stats above the plot');
+assert(chart.includes('chart-gridline'), 'chart should render gridlines for scanability');
+assert(chart.includes('chart-tick'), 'chart should render y-axis tick labels');
+assert(chart.includes('chart-area'), 'chart should render an area layer under each line');
+assert(chart.includes('chart-latest-marker'), 'chart should highlight the latest value per series');
+assert(chart.includes('Latest'), 'chart summary should label the latest value');
 
 console.log(`PASS dashboard explain rules: ${cases.length} mock cases`);

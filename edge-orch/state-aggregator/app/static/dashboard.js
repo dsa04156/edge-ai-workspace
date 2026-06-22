@@ -405,9 +405,9 @@ function renderTelemetryChart(points = []) {
     `;
   }
 
-  const width = 420;
-  const height = 190;
-  const pad = { left: 42, right: 14, top: 18, bottom: 30 };
+  const width = 560;
+  const height = 230;
+  const pad = { left: 54, right: 22, top: 24, bottom: 42 };
   const minTime = Math.min(...numericPoints.map((point) => point.at));
   const maxTime = Math.max(...numericPoints.map((point) => point.at));
   const minValue = Math.min(...numericPoints.map((point) => point.numeric));
@@ -416,36 +416,74 @@ function renderTelemetryChart(points = []) {
   const valueSpan = Math.max(1, maxValue - minValue);
   const x = (time) => pad.left + ((time - minTime) / timeSpan) * (width - pad.left - pad.right);
   const y = (value) => height - pad.bottom - ((value - minValue) / valueSpan) * (height - pad.top - pad.bottom);
-  const colors = ["#2dd477", "#7c83ff", "#f6b84b", "#ff6b6b", "#55d6ff"];
+  const baselineY = height - pad.bottom;
+  const colors = ["#087c8f", "#0f8b5f", "#b7791f", "#c2410c", "#365fd8"];
   const grouped = numericPoints.reduce((acc, point) => {
     acc[point.property] = acc[point.property] || [];
     acc[point.property].push(point);
     return acc;
   }, {});
   const series = Object.entries(grouped).slice(0, 5);
+  const latestPoint = numericPoints.at(-1);
+  const avgValue = numericPoints.reduce((sum, point) => sum + point.numeric, 0) / numericPoints.length;
+  const yTicks = [maxValue, minValue + valueSpan * 0.66, minValue + valueSpan * 0.33, minValue];
+  const xTicks = [minTime, minTime + timeSpan / 2, maxTime];
+  const summary = [
+    ["Latest", `${latestPoint.property} ${latestPoint.numeric.toFixed(2)}`],
+    ["Range", `${minValue.toFixed(2)} - ${maxValue.toFixed(2)}`],
+    ["Avg", avgValue.toFixed(2)],
+    ["Series", String(series.length)],
+  ];
+  const summaryCards = summary
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+  const gridlines = yTicks
+    .map((tick) => {
+      const tickY = y(tick);
+      return `<g class="chart-gridline"><line x1="${pad.left}" y1="${tickY.toFixed(1)}" x2="${width - pad.right}" y2="${tickY.toFixed(1)}" /><text class="chart-tick" x="10" y="${(tickY + 3).toFixed(1)}">${escapeHtml(tick.toFixed(2))}</text></g>`;
+    })
+    .join("");
+  const timeTicks = xTicks
+    .map((tick) => `<text class="chart-time-tick" x="${x(tick).toFixed(1)}" y="${height - 14}" text-anchor="middle">${escapeHtml(formatChartTime(tick))}</text>`)
+    .join("");
   const polylines = series
     .map(([property, values], index) => {
       const coordinates = values.map((point) => `${x(point.at).toFixed(1)},${y(point.numeric).toFixed(1)}`).join(" ");
-      return `<polyline points="${coordinates}" fill="none" stroke="${colors[index]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />`;
+      const areaCoordinates = [
+        `${x(values[0].at).toFixed(1)},${baselineY.toFixed(1)}`,
+        ...values.map((point) => `${x(point.at).toFixed(1)},${y(point.numeric).toFixed(1)}`),
+        `${x(values.at(-1).at).toFixed(1)},${baselineY.toFixed(1)}`,
+      ].join(" ");
+      return `
+        <polygon class="chart-area" points="${areaCoordinates}" fill="${colors[index]}" />
+        <polyline class="chart-line" points="${coordinates}" fill="none" stroke="${colors[index]}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+      `;
     })
     .join("");
   const dots = series
-    .flatMap(([property, values], index) => values.slice(-24).map((point) => `<circle cx="${x(point.at).toFixed(1)}" cy="${y(point.numeric).toFixed(1)}" r="2.4" fill="${colors[index]}" />`))
+    .flatMap(([property, values], index) => {
+      const recent = values.slice(-18).map((point) => `<circle class="chart-dot" cx="${x(point.at).toFixed(1)}" cy="${y(point.numeric).toFixed(1)}" r="2.3" fill="${colors[index]}" />`);
+      const latest = values.at(-1);
+      recent.push(`<circle class="chart-latest-marker" cx="${x(latest.at).toFixed(1)}" cy="${y(latest.numeric).toFixed(1)}" r="5.4" fill="${colors[index]}" />`);
+      return recent;
+    })
     .join("");
   const legend = series
-    .map(([property], index) => `<span><i style="background:${colors[index]}"></i>${escapeHtml(property)}</span>`)
+    .map(([property, values], index) => `<span><i style="background:${colors[index]}"></i><b>${escapeHtml(property)}</b><em>${escapeHtml(values.at(-1).numeric.toFixed(2))}</em></span>`)
     .join("");
 
   return `
     <div class="telemetry-chart">
       <div class="chart-head"><strong>InfluxDB telemetry history</strong><span>${numericPoints.length} points · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))} - ${escapeHtml(formatChartTime(numericPoints.at(-1).timestamp))}</span></div>
+      <div class="telemetry-summary-strip">${summaryCards}</div>
       <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Telemetry history chart">
-        <line x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}" />
-        <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${height - pad.bottom}" />
-        <text x="8" y="${y(maxValue).toFixed(1)}">${escapeHtml(maxValue.toFixed(2))}</text>
-        <text x="8" y="${y(minValue).toFixed(1)}">${escapeHtml(minValue.toFixed(2))}</text>
+        <rect class="chart-plot-bg" x="${pad.left}" y="${pad.top}" width="${width - pad.left - pad.right}" height="${height - pad.top - pad.bottom}" rx="6" />
+        ${gridlines}
+        <line class="chart-axis" x1="${pad.left}" y1="${baselineY}" x2="${width - pad.right}" y2="${baselineY}" />
+        <line class="chart-axis" x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${baselineY}" />
         ${polylines}
         ${dots}
+        ${timeTicks}
       </svg>
       <div class="chart-legend">${legend}</div>
     </div>

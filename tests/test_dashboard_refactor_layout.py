@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=operator-rail-kube-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=telemetry-kube-ui-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -25,6 +25,18 @@ def test_dashboard_refactor_defines_non_overlapping_operating_layout() -> None:
     assert ".side-rail .operator-chat" in css
     assert "letter-spacing: 0;" in css
     assert "overflow-wrap: anywhere;" in css
+
+
+def test_dashboard_refactor_upgrades_telemetry_history_chart() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".telemetry-summary-strip" in css
+    assert ".chart-plot-bg" in css
+    assert ".chart-gridline line" in css
+    assert ".chart-area" in css
+    assert ".chart-latest-marker" in css
+    assert ".chart-time-tick" in css
+    assert "aspect-ratio: 16 / 7;" in css
 
 
 def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_assets() -> None:
