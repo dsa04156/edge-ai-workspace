@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-dynamic-canvas-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=asset-rail-topology-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -189,11 +189,24 @@
           </div>
         </section>
 
+        <section class="panel explain-panel dashboard-page" data-page="inventory" aria-live="polite">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">상태 설명</p>
+              <h2>설명 패널</h2>
+            </div>
+            <span>Assets context</span>
+          </div>
+          <div id="explainPanel" class="explain-content">
+            <div class="empty">Device, KPI, Service를 선택하면 상태 원인을 요약합니다.</div>
+          </div>
+        </section>
+
         <section class="panel topology-panel dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
               <p class="section-kicker">서비스 바인딩</p>
-              <h2>서비스 토폴로지</h2>
+              <h2>Service Topology</h2>
             </div>
             <span>서비스 클릭 → pod/resource 상세 · 읽기 전용</span>
           </div>
@@ -568,20 +581,7 @@
         <div id="alertList" hidden></div>
       </section>
         </div>
-        <aside class="side-rail t-panel-reveal" aria-label="read-only operator assistance">
-          <section class="panel explain-panel" aria-live="polite">
-            <div class="panel-head">
-              <div>
-                <p class="section-kicker">상태 설명</p>
-                <h2>설명 패널</h2>
-              </div>
-              <span>항상 표시</span>
-            </div>
-            <div id="explainPanel" class="explain-content">
-              <div class="empty">Device, KPI, Service를 선택하면 상태 원인을 요약합니다.</div>
-            </div>
-          </section>
-
+        <aside class="side-rail t-panel-reveal" aria-label="sticky operator chat">
           <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
             <div class="panel-head">
               <div>
@@ -609,7 +609,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
-    <script src="/static/dashboard.js?v=dashboard-static-20260609"></script>
+    <script src="/static/dashboard.js?v=asset-rail-topology-20260622"></script>
     <script src="/static/workflow-state.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow-render.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow-render-panels.js?v=workflow-canvas-20260617"></script>

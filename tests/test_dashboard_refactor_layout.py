@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=augmentation-dynamic-canvas-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=asset-rail-topology-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -16,22 +16,44 @@ def test_dashboard_refactor_defines_non_overlapping_operating_layout() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
 
     assert ".ops-shell" in css
-    assert "display: block;" in css
+    assert "grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);" in css
     assert ".side-rail" in css
-    assert "position: static;" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));" in css
+    assert "position: sticky;" in css
+    assert "height: calc(100vh - 124px);" in css
+    assert ".side-rail .operator-chat" in css
     assert "letter-spacing: 0;" in css
     assert "overflow-wrap: anywhere;" in css
+
+
+def test_assets_page_places_explain_panel_before_topology_and_keeps_chat_in_sticky_rail() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assets_index = html.index('class="panel assets dashboard-page"')
+    explain_index = html.index('class="panel explain-panel dashboard-page"')
+    topology_index = html.index('class="panel topology-panel dashboard-page"')
+    side_rail_index = html.index('class="side-rail')
+    chat_index = html.index('class="panel operator-chat"')
+
+    assert assets_index < explain_index < topology_index < side_rail_index < chat_index
+    assert html.count('id="explainPanel"') == 1
+    assert html.index('id="explainPanel"') < side_rail_index
+    assert "Service Topology" in html
+    assert ".topology-panel" in css
+    assert ".topo-service-flow" in css
+    assert ".topo-node-lane" in css
 
 
 def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
 
-    assert "grid-template-columns: minmax(220px, 0.55fr) minmax(720px, 1.9fr) minmax(260px, 0.65fr);" in css
+    assert "grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);" in css
     assert ".workflow-palette" in css
     assert ".workflow-canvas-shell" in css
     assert ".workflow-inspector" in css
-    assert "grid-column: auto !important;" in css
+    assert "grid-column: 1 / -1 !important;" in css
+    assert ".workflow-binding-inspector" in css
+    assert "grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));" in css
 
 
 def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:
@@ -78,5 +100,8 @@ def test_dashboard_refactor_adds_n8n_style_augmentation_node_canvas() -> None:
     assert "animation: augmentationEdgeFlow" in css
     assert "@keyframes augmentationNodePulse" in css
     assert ".augmentation-graph-node.current" in css
-    assert "min-height: 390px;" in css
+    assert "min-height: 430px;" in css
+    assert "width: 152px;" in css
+    assert "display: none;" in css
+    assert "font-size: 10px;" in css
     assert "position: absolute;" in css

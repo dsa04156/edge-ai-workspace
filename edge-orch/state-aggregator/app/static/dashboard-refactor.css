@@ -121,7 +121,10 @@ button {
 }
 
 .ops-shell {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  gap: 14px;
+  align-items: start;
 }
 
 .ops-main {
@@ -246,20 +249,36 @@ button {
 }
 
 .side-rail {
-  position: static;
-  top: auto;
+  position: sticky;
+  top: 112px;
   width: auto;
-  max-height: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  margin-top: 14px;
+  height: calc(100vh - 124px);
+  max-height: calc(100vh - 124px);
+  display: block;
+  margin-top: 0;
   padding: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .side-rail .panel {
   background: var(--ops-panel-soft);
+}
+
+.side-rail .operator-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.side-rail .chat-transcript {
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: none;
+}
+
+.side-rail .chat-form {
+  flex: 0 0 auto;
 }
 
 .explain-content,
@@ -280,6 +299,138 @@ button {
   overflow: auto;
 }
 
+.topology-panel {
+  min-height: auto;
+}
+
+.topology-map {
+  gap: 12px;
+}
+
+.topo-service {
+  border-color: #bdd4dc;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(20, 49, 63, 0.08);
+}
+
+.topo-service summary {
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.topo-svc-header {
+  width: 100%;
+  min-width: 0;
+}
+
+.topo-svc-name,
+.topo-svc-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.topo-detail {
+  background: #f8fcfd;
+}
+
+.topo-service-flow {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.32fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.topo-service-origin,
+.topo-node-lane {
+  min-width: 0;
+  border: 1px solid #d4e3e9;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.topo-service-origin {
+  display: grid;
+  align-content: center;
+  border-left: 4px solid #087c8f;
+}
+
+.topo-service-origin span,
+.topo-node-lane span,
+.topo-pod-count {
+  color: var(--ops-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.topo-service-origin strong,
+.topo-node-lane strong {
+  display: block;
+  min-width: 0;
+  margin-top: 4px;
+  color: var(--ops-text);
+  overflow-wrap: anywhere;
+}
+
+.topo-service-origin em {
+  display: block;
+  min-width: 0;
+  margin-top: 4px;
+  color: var(--ops-muted);
+  font-size: 12px;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.topo-node-lanes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.topo-node-lane {
+  border-left: 4px solid #087f5b;
+}
+
+.topo-pod-count {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #dbf3eb;
+  color: #087f5b;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.topo-pod-pills {
+  margin-top: 8px;
+}
+
+.topo-pod-pill {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+}
+
+.topo-resource-bar {
+  gap: 10px;
+}
+
+.topo-resource-item {
+  background: #ffffff;
+}
+
+.topo-container-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(110px, 0.7fr) repeat(2, minmax(130px, 1fr));
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+}
+
 .workflow-workbench,
 .augmentation-workbench {
   overflow: hidden;
@@ -287,7 +438,7 @@ button {
 
 .workflow-studio {
   min-width: 0;
-  grid-template-columns: minmax(220px, 0.55fr) minmax(720px, 1.9fr) minmax(260px, 0.65fr);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -302,7 +453,7 @@ button {
 }
 
 .workflow-inspector {
-  grid-column: auto !important;
+  grid-column: 1 / -1 !important;
   order: 3;
 }
 
@@ -311,6 +462,12 @@ button {
 .workflow-palette,
 .workflow-graph-canvas {
   min-width: 0;
+}
+
+.workflow-binding-inspector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .workflow-graph-actions,
@@ -450,7 +607,7 @@ button {
 
 .augmentation-node-canvas {
   position: relative;
-  min-height: 390px;
+  min-height: 430px;
   margin: 12px 0;
   border: 1px solid #bfd4dd;
   border-radius: 8px;
@@ -508,12 +665,13 @@ button {
 }
 
 .augmentation-edge-label {
+  display: none;
   fill: #5d737d;
   paint-order: stroke;
   stroke: #f8fcfd;
   stroke-width: 5px;
   stroke-linejoin: round;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   text-anchor: middle;
   text-transform: uppercase;
@@ -528,8 +686,8 @@ button {
   left: var(--x);
   top: var(--y);
   z-index: 2;
-  width: 206px;
-  min-height: 96px;
+  width: 152px;
+  min-height: 112px;
   transform: translate(-50%, -50%);
   border: 1px solid #b8d0da;
   border-radius: 8px;
@@ -563,13 +721,13 @@ button {
 
 .augmentation-node-badge {
   position: absolute;
-  right: 10px;
-  top: 10px;
+  right: 8px;
+  top: 8px;
   border-radius: 999px;
   background: #e4edf1;
   color: #5d737d;
-  padding: 4px 8px;
-  font-size: 10px;
+  padding: 4px 7px;
+  font-size: 9px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -585,25 +743,33 @@ button {
 }
 
 .augmentation-graph-node span {
-  padding-right: 76px;
+  padding-right: 64px;
   color: var(--ops-muted);
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
 }
 
 .augmentation-graph-node strong {
+  display: -webkit-box;
   margin-top: 8px;
   color: var(--ops-text);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.24;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .augmentation-graph-node em {
+  display: -webkit-box;
   margin-top: 7px;
   color: var(--ops-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-style: normal;
   line-height: 1.3;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .augmentation-graph-node.trigger {
@@ -765,6 +931,17 @@ button {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .augmentation-graph-edges path.flowing,
+  .augmentation-graph-node.current {
+    animation: none;
+  }
+
+  .augmentation-flow-packet {
+    display: none;
+  }
+}
+
 .augmentation-demo-progress {
   grid-column: 1 / -1;
   display: grid;
@@ -869,6 +1046,17 @@ code {
     padding-top: 8px;
   }
 
+  .ops-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .side-rail {
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
   .topbar {
     position: relative;
     min-height: auto;
@@ -893,7 +1081,8 @@ code {
   .augmentation-grid,
   .augmentation-recommendation-layout,
   .augmentation-workflow-demo,
-  .side-rail {
+  .topo-service-flow,
+  .topo-container-row {
     grid-template-columns: 1fr;
   }
 

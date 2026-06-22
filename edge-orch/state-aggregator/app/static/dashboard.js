@@ -1030,24 +1030,41 @@ function renderTopology(resourceState, kpis) {
     const key = `${svc.namespace}/${svc.service}`;
     const open = key === selected;
     const nodes = svc.nodes.length ? svc.nodes : [`node-${svc.pod_count}`];
-    const podsPerNode = nodes.map((n, i) => ({
-      name: n,
-      count: i === nodes.length - 1 ? svc.pod_count - nodes.slice(0, -1).reduce((s, _, j) => s + (i === j ? 1 : Math.max(1, Math.ceil(svc.pod_count / nodes.length))), 0) : Math.max(1, Math.ceil(svc.pod_count / nodes.length)),
-      pods: svc.pods.filter((p) => p.node === n),
-    }));
-    const totalPods = podsPerNode.reduce((sum, n) => sum + (Number(n.count) || 0), 0);
+    const podCountForNode = (nodeName, index) => {
+      const observed = svc.pods.find((pod) => pod.node === nodeName);
+      if (observed) return Number(observed.count) || 0;
+      if (nodes.length <= 1) return svc.pod_count;
+      if (index === nodes.length - 1) return Math.max(1, svc.pod_count - Math.max(1, Math.ceil(svc.pod_count / nodes.length)) * (nodes.length - 1));
+      return Math.max(1, Math.ceil(svc.pod_count / nodes.length));
+    };
+    const podsPerNode = nodes.map((nodeName, index) => {
+      const podNames = [...new Set(svc.containers.filter((container) => container.node === nodeName).map((container) => container.pod).filter(Boolean))];
+      return { name: nodeName, count: Math.max(podNames.length, podCountForNode(nodeName, index)), podNames };
+    });
     return `
       <details class="topo-service ${open ? "open" : ""}" data-topology-key="${escapeHtml(key)}" ${open ? "open" : ""}>
         <summary>
           <div class="topo-svc-header">
             <span class="topo-svc-name"><span class="topo-ns">${escapeHtml(svc.namespace)}</span> / <strong>${escapeHtml(svc.service)}</strong></span>
-            <span class="topo-svc-meta">${svc.pod_count}개 pod · ${svc.nodes.length}개 node · ${svc.containers.length}개 container</span>
+            <span class="topo-svc-meta">${svc.pod_count} pods · ${svc.nodes.length} nodes · ${svc.containers.length} containers</span>
           </div>
         </summary>
         <div class="topo-detail">
-          ${nodes.length > 1 ? `<div class="topo-pod-grid">${nodes.map((n, i) => `<div class="topo-node-block"><div class="topo-node-label">${escapeHtml(n)}</div><div class="topo-pod-pills">${Array.from({ length: podsPerNode[i]?.count || 1 }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${i}-${j}</span>`).join("")}</div></div>`).join("")}</div>` : `<div class="topo-single-node"><span class="topo-node-label">${escapeHtml(nodes[0])}</span><div class="topo-pod-pills">${Array.from({ length: svc.pod_count }, (_, j) => `<span class="topo-pod-pill">${escapeHtml(svc.service)}-p${j}</span>`).join("")}</div></div>`}
-          <div class="topo-resource-bar"><div class="topo-resource-item"><span>요청량</span><span>${formatResourceValue(svc.cpu_req, "core")} / ${formatResourceValue(svc.mem_req, "MiB")}</span></div><div class="topo-resource-item"><span>현재 사용량</span><span>${formatResourceValue(svc.cpu_cur, "core")} / ${formatResourceValue(svc.mem_cur, "MiB")}</span></div></div>
-          ${svc.containers.length ? `<div class="topo-containers"><span class="topo-sec-title">컨테이너</span>${svc.containers.slice(0, 8).map((c) => `<div class="topo-container-row"><span class="topo-pod-ref">${escapeHtml(c.pod || "-")}/${escapeHtml(c.container || "-")}</span><span>${escapeHtml(c.node ? `node:${cleanNodeLabel(c.node, "")}` : "")}</span><span>요청 ${formatResourceValue(c.requests?.cpu_cores, "core")}/${formatResourceValue(c.requests?.memory_mib, "MiB")}</span><span>사용 ${formatResourceValue(c.current_usage?.cpu_cores, "core")}/${formatResourceValue(c.current_usage?.memory_working_set_mib, "MiB")}</span></div>`).join("")}</div>` : ""}
+          <div class="topo-service-flow">
+            <div class="topo-service-origin"><span>service</span><strong>${escapeHtml(svc.service)}</strong><em>${escapeHtml(svc.namespace)}</em></div>
+            <div class="topo-node-lanes">
+              ${podsPerNode.map((node) => `
+                <div class="topo-node-lane">
+                  <span>node</span>
+                  <strong>${escapeHtml(node.name)}</strong>
+                  <b class="topo-pod-count">${node.count} pods</b>
+                  ${node.podNames.length ? `<div class="topo-pod-pills">${node.podNames.slice(0, 4).map((podName) => `<span class="topo-pod-pill">${escapeHtml(podName)}</span>`).join("")}</div>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="topo-resource-bar"><div class="topo-resource-item"><span>declared requests</span><span>${formatResourceValue(svc.cpu_req, "core")} / ${formatResourceValue(svc.mem_req, "MiB")}</span></div><div class="topo-resource-item"><span>current usage</span><span>${formatResourceValue(svc.cpu_cur, "core")} / ${formatResourceValue(svc.mem_cur, "MiB")}</span></div></div>
+          ${svc.containers.length ? `<div class="topo-containers"><span class="topo-sec-title">containers</span>${svc.containers.slice(0, 8).map((c) => `<div class="topo-container-row"><span class="topo-pod-ref">${escapeHtml(c.pod || "-")}/${escapeHtml(c.container || "-")}</span><span>${escapeHtml(c.node ? `node:${cleanNodeLabel(c.node, "")}` : "")}</span><span>request ${formatResourceValue(c.requests?.cpu_cores, "core")}/${formatResourceValue(c.requests?.memory_mib, "MiB")}</span><span>usage ${formatResourceValue(c.current_usage?.cpu_cores, "core")}/${formatResourceValue(c.current_usage?.memory_working_set_mib, "MiB")}</span></div>`).join("")}</div>` : ""}
         </div>
       </details>`;
   }).join("");
