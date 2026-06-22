@@ -26,6 +26,10 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "/state/runtime-resource-augmentation" in js
     assert "renderAugmentationDecision" in js
     assert "renderAugmentationWorkflowDemo" in js
+    assert "renderAugmentationWorkflowFrame" in js
+    assert "startAugmentationWorkflowPlayback" in js
+    assert "scenario_timeline" in js
+    assert "playback_interval_ms" in js
     assert "workflowAutomationLabel" in js
     assert "workflow_demo" in js
     assert "progress_percent" in js

@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=runtime-workflow-demo-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=augmentation-state-machine-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 

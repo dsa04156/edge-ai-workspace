@@ -7,6 +7,9 @@ const augmentationState = {
   runtimeSummary: { candidate_resource_total: 0, available: 0, bound: 0, blocked: 0 },
   selectedCandidateResourceId: "",
   aiService: "",
+  workflowPlaybackIndex: 0,
+  workflowPlaybackTimer: null,
+  workflowPlaybackSignature: "",
 };
 const DEVICE_AUGMENTATION_ID = "jetson-gpu-storage-augmentation";
 
@@ -281,6 +284,17 @@ function normalizeWorkflowDemo(workflowDemo) {
     progressPercent,
     currentStepId: workflowDemo.current_step_id || "",
     operatorSummary: workflowDemo.operator_summary || "",
+    autoPlay: workflowDemo.auto_play !== false,
+    playbackIntervalMs: Math.max(500, Number(workflowDemo.playback_interval_ms) || 1600),
+    scenarioTimeline: Array.isArray(workflowDemo.scenario_timeline)
+      ? workflowDemo.scenario_timeline.map((phase) => ({
+        id: phase.id || "",
+        label: phase.label || phase.id || "",
+        activeStepId: phase.active_step_id || "",
+        progressPercent: Math.max(0, Math.min(100, Number(phase.progress_percent) || 0)),
+        summary: phase.summary || "",
+      }))
+      : [],
     steps: Array.isArray(workflowDemo.steps) ? workflowDemo.steps : [],
     offloadPath: {
       source: offloadPath.source || "-",
@@ -305,10 +319,80 @@ function workflowAutomationLabel(value) {
   }[value] || augText(value, "자동 판단");
 }
 
+function workflowPlaybackSignature(workflow) {
+  return [
+    workflow.name,
+    workflow.playbackIntervalMs,
+    workflow.scenarioTimeline.map((phase) => `${phase.id}:${phase.progressPercent}:${phase.activeStepId}`).join("|"),
+  ].join("::");
+}
+
+function stopAugmentationWorkflowPlayback() {
+  if (augmentationState.workflowPlaybackTimer) {
+    window.clearInterval(augmentationState.workflowPlaybackTimer);
+  }
+  augmentationState.workflowPlaybackTimer = null;
+  augmentationState.workflowPlaybackSignature = "";
+  augmentationState.workflowPlaybackIndex = 0;
+}
+
+function workflowStepStateForFrame(workflow, step, activeStepId) {
+  const stepIds = workflow.steps.map((item) => item.id);
+  const activeIndex = stepIds.indexOf(activeStepId);
+  const stepIndex = stepIds.indexOf(step.id);
+  if (activeIndex < 0 || stepIndex < 0) return step.state || "planned";
+  if (stepIndex < activeIndex) return "completed";
+  if (stepIndex === activeIndex) return "active";
+  return "planned";
+}
+
+function renderAugmentationWorkflowFrame(workflow, frame) {
+  const activeStepId = frame?.activeStepId || workflow.currentStepId;
+  const progressPercent = Number.isFinite(frame?.progressPercent) ? frame.progressPercent : workflow.progressPercent;
+  const summary = frame?.summary || workflow.operatorSummary || workflow.status;
+  const phaseLabel = frame?.label ? `${frame.label} · ` : "";
+  augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${phaseLabel}${summary}`;
+  augEl("augmentationWorkflowProgress").style.width = `${progressPercent}%`;
+  augEl("augmentationWorkflowProgressText").textContent = `${progressPercent}%`;
+  augEl("augmentationWorkflowSteps").innerHTML = workflow.steps.map((step) => {
+    const state = workflowStepStateForFrame(workflow, step, activeStepId);
+    return `
+      <li class="${augEscape(state)} ${step.id === activeStepId ? "current" : ""}">
+        <b>${augEscape(workflowStepLabel(state))}</b>
+        <span><strong>${augEscape(step.label || step.id)}</strong><em>${augEscape(step.detail || "-")}</em></span>
+      </li>
+    `;
+  }).join("");
+}
+
+function startAugmentationWorkflowPlayback(workflow) {
+  const timeline = workflow.scenarioTimeline || [];
+  const signature = workflowPlaybackSignature(workflow);
+  if (augmentationState.workflowPlaybackSignature !== signature) {
+    stopAugmentationWorkflowPlayback();
+    augmentationState.workflowPlaybackSignature = signature;
+  }
+  const frame = timeline[augmentationState.workflowPlaybackIndex] || {
+    activeStepId: workflow.currentStepId,
+    progressPercent: workflow.progressPercent,
+    summary: workflow.operatorSummary,
+  };
+  renderAugmentationWorkflowFrame(workflow, frame);
+  if (!workflow.autoPlay || timeline.length < 2 || augmentationState.workflowPlaybackTimer) return;
+  augmentationState.workflowPlaybackTimer = window.setInterval(() => {
+    const activeWorkflow = augmentationState.workflowDemo;
+    const activeTimeline = activeWorkflow?.scenarioTimeline || [];
+    if (!activeWorkflow || activeTimeline.length < 2) return;
+    augmentationState.workflowPlaybackIndex = (augmentationState.workflowPlaybackIndex + 1) % activeTimeline.length;
+    renderAugmentationWorkflowFrame(activeWorkflow, activeTimeline[augmentationState.workflowPlaybackIndex]);
+  }, workflow.playbackIntervalMs);
+}
+
 function renderAugmentationWorkflowDemo() {
   const workflow = augmentationState.workflowDemo;
   augEl("augmentationWorkflowStatus").textContent = workflow ? `${workflow.name} · ${workflow.status}` : "workflow pending";
   if (!workflow) {
+    stopAugmentationWorkflowPlayback();
     augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
     augEl("augmentationWorkflowProgress").style.width = "0%";
     augEl("augmentationWorkflowProgressText").textContent = "0%";
@@ -316,15 +400,7 @@ function renderAugmentationWorkflowDemo() {
     augEl("augmentationOffloadPath").innerHTML = '<div class="workflow-empty">오프로딩 경로 대기 중입니다.</div>';
     return;
   }
-  augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${workflow.operatorSummary || workflow.status}`;
-  augEl("augmentationWorkflowProgress").style.width = `${workflow.progressPercent}%`;
-  augEl("augmentationWorkflowProgressText").textContent = `${workflow.progressPercent}%`;
-  augEl("augmentationWorkflowSteps").innerHTML = workflow.steps.map((step) => `
-    <li class="${augEscape(step.state || "planned")} ${step.id === workflow.currentStepId ? "current" : ""}">
-      <b>${augEscape(workflowStepLabel(step.state))}</b>
-      <span><strong>${augEscape(step.label || step.id)}</strong><em>${augEscape(step.detail || "-")}</em></span>
-    </li>
-  `).join("");
+  startAugmentationWorkflowPlayback(workflow);
   const path = workflow.offloadPath;
   augEl("augmentationOffloadPath").innerHTML = `
     <div><span>source</span><strong>${augEscape(path.source)}</strong></div>

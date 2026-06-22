@@ -12,6 +12,14 @@ CandidateResourcePhase = Literal["Available", "Bound", "Blocked"]
 AugmentedDevicePhase = Literal["Planned", "Bound", "Blocked"]
 ApplyState = Literal["observed-only", "pending-controller", "applied", "blocked"]
 WorkflowStepState = Literal["completed", "active", "planned"]
+ScenarioPhaseId = Literal[
+    "normal",
+    "pressure_detected",
+    "candidate_evaluating",
+    "offload_planned",
+    "binding_planned",
+    "observed_only_complete",
+]
 
 SCENARIO_ID = "jetson-vision-inspection"
 AI_SERVICE = "factory-vision-inspection-ai"
@@ -82,6 +90,16 @@ class RuntimeAugmentationWorkflowStep(BaseModel):
     detail: str
 
 
+class RuntimeAugmentationScenarioPhase(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: ScenarioPhaseId
+    label: str
+    active_step_id: str
+    progress_percent: int = Field(ge=0, le=100)
+    summary: str
+
+
 class RuntimeAugmentationOffloadPath(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -100,6 +118,9 @@ class RuntimeAugmentationWorkflowDemo(BaseModel):
     progress_percent: int = Field(default=80, ge=0, le=100)
     current_step_id: str = "offload-plan"
     operator_summary: str = "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨."
+    auto_play: bool = True
+    playback_interval_ms: int = Field(default=1600, ge=500, le=10000)
+    scenario_timeline: list[RuntimeAugmentationScenarioPhase] = Field(default_factory=list)
     steps: list[RuntimeAugmentationWorkflowStep] = Field(default_factory=list)
     offload_path: RuntimeAugmentationOffloadPath
 
@@ -214,12 +235,13 @@ def _decision() -> RuntimeAugmentationDecision:
 
 def _workflow_demo() -> RuntimeAugmentationWorkflowDemo:
     return RuntimeAugmentationWorkflowDemo(
+        scenario_timeline=_scenario_timeline(),
         steps=[
             RuntimeAugmentationWorkflowStep(
                 id="service-request",
-                label="AI 서비스 요청",
+                label="AI 서비스 관측",
                 state="completed",
-                detail=f"{AI_SERVICE} request detected on {TARGET_DEVICE}",
+                detail=f"{AI_SERVICE} running on {TARGET_DEVICE}",
             ),
             RuntimeAugmentationWorkflowStep(
                 id="pressure-detected",
@@ -245,6 +267,12 @@ def _workflow_demo() -> RuntimeAugmentationWorkflowDemo:
                 state="planned",
                 detail="ad-jetorn-inspection-001 planned for target device",
             ),
+            RuntimeAugmentationWorkflowStep(
+                id="observed-only-complete",
+                label="관측 결과 고정",
+                state="planned",
+                detail="no Kubernetes mutation, dashboard-only decision recorded",
+            ),
         ],
         offload_path=RuntimeAugmentationOffloadPath(
             source=TARGET_DEVICE,
@@ -253,6 +281,53 @@ def _workflow_demo() -> RuntimeAugmentationWorkflowDemo:
             result="ad-jetorn-inspection-001",
         ),
     )
+
+
+def _scenario_timeline() -> list[RuntimeAugmentationScenarioPhase]:
+    return [
+        RuntimeAugmentationScenarioPhase(
+            id="normal",
+            label="정상 관측",
+            active_step_id="service-request",
+            progress_percent=0,
+            summary="AI 서비스가 물리 엣지 디바이스에서 정상 실행 중입니다.",
+        ),
+        RuntimeAugmentationScenarioPhase(
+            id="pressure_detected",
+            label="부하 감지",
+            active_step_id="pressure-detected",
+            progress_percent=20,
+            summary="GPU 추론 압력과 결과 캐시 요구가 관측되었습니다.",
+        ),
+        RuntimeAugmentationScenarioPhase(
+            id="candidate_evaluating",
+            label="후보 평가",
+            active_step_id="candidate-scan",
+            progress_percent=40,
+            summary="등록된 증강 자원 후보 15개를 가용성 기준으로 평가합니다.",
+        ),
+        RuntimeAugmentationScenarioPhase(
+            id="offload_planned",
+            label="오프로딩 계획",
+            active_step_id="offload-plan",
+            progress_percent=60,
+            summary=f"{INFERENCE_RESOURCE}와 {STORAGE_RESOURCE}를 선택했습니다.",
+        ),
+        RuntimeAugmentationScenarioPhase(
+            id="binding_planned",
+            label="바인딩 계획",
+            active_step_id="augmented-device-bind",
+            progress_percent=80,
+            summary="선택 자원을 물리 디바이스에 종속된 가상디바이스로 묶을 계획입니다.",
+        ),
+        RuntimeAugmentationScenarioPhase(
+            id="observed_only_complete",
+            label="관측 완료",
+            active_step_id="observed-only-complete",
+            progress_percent=100,
+            summary="observed-only 데모 결과를 대시보드에 기록했습니다.",
+        ),
+    ]
 
 
 def _selected_resources(state: DecisionState) -> list[RuntimeAugmentationSelectedResource]:

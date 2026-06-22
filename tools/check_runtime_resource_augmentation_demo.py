@@ -11,6 +11,15 @@ JsonMap = dict[str, Any]
 EXPECTED_SCOPE = "runtime_resource_augmentation_demo_v1"
 EXPECTED_TOTAL = 15
 EXPECTED_AI_SERVICE = "factory-vision-inspection-ai"
+EXPECTED_TIMELINE = [
+    "normal",
+    "pressure_detected",
+    "candidate_evaluating",
+    "offload_planned",
+    "binding_planned",
+    "observed_only_complete",
+]
+EXPECTED_TIMELINE_PROGRESS = [0, 20, 40, 60, 80, 100]
 
 
 class Options:
@@ -125,6 +134,20 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
         errors.append(f"workflow_demo.current_step_id={workflow.get('current_step_id')!r}, expected 'offload-plan'")
     if not workflow.get("operator_summary"):
         errors.append("workflow_demo.operator_summary must be present")
+    if workflow.get("auto_play") is not True:
+        errors.append(f"workflow_demo.auto_play={workflow.get('auto_play')!r}, expected True")
+    if workflow.get("playback_interval_ms") != 1600:
+        errors.append(f"workflow_demo.playback_interval_ms={workflow.get('playback_interval_ms')!r}, expected 1600")
+    timeline = workflow.get("scenario_timeline")
+    if not isinstance(timeline, list):
+        errors.append("workflow_demo.scenario_timeline is not a list")
+        timeline = []
+    timeline_ids = [phase.get("id") for phase in timeline if isinstance(phase, dict)]
+    if timeline_ids != EXPECTED_TIMELINE:
+        errors.append(f"workflow_demo.scenario_timeline ids={timeline_ids!r}, expected {EXPECTED_TIMELINE!r}")
+    timeline_progress = [phase.get("progress_percent") for phase in timeline if isinstance(phase, dict)]
+    if timeline_progress != EXPECTED_TIMELINE_PROGRESS:
+        errors.append(f"workflow_demo.scenario_timeline progress={timeline_progress!r}, expected {EXPECTED_TIMELINE_PROGRESS!r}")
     steps = workflow.get("steps")
     if not isinstance(steps, list):
         errors.append("workflow_demo.steps is not a list")

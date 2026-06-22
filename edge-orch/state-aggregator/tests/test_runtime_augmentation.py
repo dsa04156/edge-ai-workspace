@@ -74,11 +74,31 @@ def test_runtime_augmentation_state_exposes_workflow_demo_and_offload_path() -> 
     assert workflow.progress_percent == 80
     assert workflow.current_step_id == "offload-plan"
     assert workflow.operator_summary == "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨."
+    assert workflow.auto_play is True
+    assert workflow.playback_interval_ms == 1600
+    assert [phase.id for phase in workflow.scenario_timeline] == [
+        "normal",
+        "pressure_detected",
+        "candidate_evaluating",
+        "offload_planned",
+        "binding_planned",
+        "observed_only_complete",
+    ]
+    assert [phase.progress_percent for phase in workflow.scenario_timeline] == [0, 20, 40, 60, 80, 100]
+    assert [phase.active_step_id for phase in workflow.scenario_timeline] == [
+        "service-request",
+        "pressure-detected",
+        "candidate-scan",
+        "offload-plan",
+        "augmented-device-bind",
+        "observed-only-complete",
+    ]
     assert [step.state for step in workflow.steps] == [
         "completed",
         "completed",
         "completed",
         "active",
+        "planned",
         "planned",
     ]
     assert [step.id for step in workflow.steps] == [
@@ -87,6 +107,7 @@ def test_runtime_augmentation_state_exposes_workflow_demo_and_offload_path() -> 
         "candidate-scan",
         "offload-plan",
         "augmented-device-bind",
+        "observed-only-complete",
     ]
     assert workflow.offload_path.source == "etri-dev0001-jetorn"
     assert workflow.offload_path.inference == "vd-x86-gpu-inference"

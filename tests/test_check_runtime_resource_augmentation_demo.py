@@ -57,12 +57,23 @@ def test_runtime_resource_augmentation_checker_accepts_candidate_pool_and_augmen
             "progress_percent": 80,
             "current_step_id": "offload-plan",
             "operator_summary": "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨.",
+            "auto_play": True,
+            "playback_interval_ms": 1600,
+            "scenario_timeline": [
+                {"id": "normal", "active_step_id": "service-request", "progress_percent": 0},
+                {"id": "pressure_detected", "active_step_id": "pressure-detected", "progress_percent": 20},
+                {"id": "candidate_evaluating", "active_step_id": "candidate-scan", "progress_percent": 40},
+                {"id": "offload_planned", "active_step_id": "offload-plan", "progress_percent": 60},
+                {"id": "binding_planned", "active_step_id": "augmented-device-bind", "progress_percent": 80},
+                {"id": "observed_only_complete", "active_step_id": "observed-only-complete", "progress_percent": 100},
+            ],
             "steps": [
                 {"id": "service-request", "state": "completed"},
                 {"id": "pressure-detected", "state": "completed"},
                 {"id": "candidate-scan", "state": "completed"},
                 {"id": "offload-plan", "state": "active"},
                 {"id": "augmented-device-bind", "state": "planned"},
+                {"id": "observed-only-complete", "state": "planned"},
             ],
             "offload_path": {
                 "source": "etri-dev0001-jetorn",
@@ -151,12 +162,16 @@ def test_runtime_resource_augmentation_checker_rejects_missing_workflow_progress
         },
         "workflow_demo": {
             "status": "offload_planned",
+            "auto_play": True,
+            "playback_interval_ms": 1600,
+            "scenario_timeline": [],
             "steps": [
                 {"id": "service-request", "state": "completed"},
                 {"id": "pressure-detected", "state": "completed"},
                 {"id": "candidate-scan", "state": "completed"},
                 {"id": "offload-plan", "state": "active"},
                 {"id": "augmented-device-bind", "state": "planned"},
+                {"id": "observed-only-complete", "state": "planned"},
             ],
             "offload_path": {
                 "source": "etri-dev0001-jetorn",
@@ -172,3 +187,4 @@ def test_runtime_resource_augmentation_checker_rejects_missing_workflow_progress
     assert "workflow_demo.automation_trigger=None, expected 'runtime_metrics_observed'" in errors
     assert "workflow_demo.progress_percent=None, expected integer 1..100" in errors
     assert "workflow_demo.current_step_id=None, expected 'offload-plan'" in errors
+    assert "workflow_demo.scenario_timeline ids=[], expected ['normal', 'pressure_detected', 'candidate_evaluating', 'offload_planned', 'binding_planned', 'observed_only_complete']" in errors
