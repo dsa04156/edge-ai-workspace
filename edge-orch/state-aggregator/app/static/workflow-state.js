@@ -90,7 +90,7 @@ function selectedWorkflowTarget() {
 }
 
 function displayDeviceType(device) {
-  if (device.device_type === "virtual_device") return "등록 디바이스";
+  if (device.device_type === "virtual_device") return "registered device";
   return device.device_type || device.model || "device";
 }
 
@@ -142,7 +142,7 @@ function resourceTargets(devices, nodes) {
     deviceStatusFresh: node.node_health === "healthy",
     deviceStatusLastReportedAt: null,
     overallStatus: node.node_health || "unknown",
-    reason: nodeKnown ? "등록된 edge node에 AI HAT 리소스가 연결되어 있습니다." : "dev0002의 AI HAT 리소스 선언은 있으나 node 상태를 아직 읽지 못했습니다.",
+    reason: nodeKnown ? "AI HAT resource is mapped to a registered edge node." : "AI HAT resource is declared for dev0002, but node status is not observed yet.",
   }];
 }
 

@@ -3,7 +3,7 @@ function createWorkflow() {
   const name = workflowText(input.value, "").trim();
   const id = workflowSlug(name);
   if (!id || workflowState.workflows.some((workflow) => workflow.id === id)) {
-    workflowEl("workflowStatus").textContent = "workflow name 중복 또는 입력 오류";
+    workflowEl("workflowStatus").textContent = "workflow name is duplicated or invalid";
     return;
   }
   workflowState.workflows.push({ id, name, nodes: [], edges: [] });
@@ -149,7 +149,7 @@ async function loadWorkflowDevices() {
 async function readLatestWorkflowDevice() {
   const target = targetById(selectedWorkflowNode()?.targetId || workflowState.selectedTargetId);
   if (!target || target.kind !== "device") {
-    workflowEl("workflowStatus").textContent = "선택 node는 telemetry device가 아닙니다";
+    workflowEl("workflowStatus").textContent = "selected node is not a telemetry device";
     return;
   }
   const node = selectedWorkflowNode();

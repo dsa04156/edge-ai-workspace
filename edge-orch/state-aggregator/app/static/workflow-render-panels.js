@@ -132,7 +132,7 @@ function renderGraph() {
     const target = targetById(node.targetId);
     const template = nodeTemplate(node.type);
     const bound = target ? "bound" : "unbound";
-    return `<button class="workflow-node ${selected} ${linkSource} ${bound} type-${workflowEscape(node.type)}" type="button" data-node-id="${workflowEscape(node.id)}" style="left:${node.x * scale}px;top:${node.y * scale}px;transform:scale(${scale})"><i class="workflow-port workflow-port-in"></i><i class="workflow-port workflow-port-out"></i><span>${workflowEscape(template.label)}</span><strong>${workflowEscape(node.label)}</strong><small>${workflowEscape(target?.displayName || template.caption)}</small><em>입력 ${incomingEdges(workflow, node.id).length} · 출력 ${outgoingEdges(workflow, node.id).length}</em></button>`;
+    return `<button class="workflow-node ${selected} ${linkSource} ${bound} type-${workflowEscape(node.type)}" type="button" data-node-id="${workflowEscape(node.id)}" style="left:${node.x * scale}px;top:${node.y * scale}px;transform:scale(${scale})"><i class="workflow-port workflow-port-in"></i><i class="workflow-port workflow-port-out"></i><span>${workflowEscape(template.label)}</span><strong>${workflowEscape(node.label)}</strong><small>${workflowEscape(target?.displayName || template.caption)}</small><em>in ${incomingEdges(workflow, node.id).length} · out ${outgoingEdges(workflow, node.id).length}</em></button>`;
   }).join("");
   const measuredNodes = visualNodes.map((node) => measureWorkflowNode(nodeRoot, canvas, scale, node));
   const nodeMap = new Map(measuredNodes.map((node) => [node.id, node]));
@@ -163,15 +163,15 @@ function renderTargetPool() {
   const targets = sortedWorkflowTargets();
   const pool = workflowEl("deviceSourcePool");
   if (!targets.length) {
-    pool.innerHTML = '<div class="workflow-empty">선택한 조건에 맞는 Device/source가 없습니다.</div>';
+    pool.innerHTML = '<div class="workflow-empty">No Device/source matches the selected filter.</div>';
     return;
   }
   pool.innerHTML = targets.map((target) => {
     const selected = workflowState.selectedTargetId === target.id ? "selected" : "";
     const recommended = nodeAcceptsTarget(node, target) ? "recommended" : "";
     const status = target.kind === "resource" ? target.overallStatus : target.telemetryStatus;
-    const detail = target.kind === "resource" ? "AI HAT 리소스" : `${target.protocol} · ${target.properties.slice(0, 3).join(", ") || "속성 없음"}`;
-    return `<button class="device-card ${selected} ${recommended} status-${workflowEscape(status)}" type="button" data-target-id="${workflowEscape(target.id)}"><span>${workflowEscape(status)}</span><strong>${workflowEscape(target.displayName)}</strong><small>${workflowEscape(target.nodeName || "미할당")} · ${workflowEscape(target.type)}</small><em>${workflowEscape(detail)}</em></button>`;
+    const detail = target.kind === "resource" ? "AI HAT resource" : `${target.protocol} · ${target.properties.slice(0, 3).join(", ") || "no properties"}`;
+    return `<button class="device-card ${selected} ${recommended} status-${workflowEscape(status)}" type="button" data-target-id="${workflowEscape(target.id)}"><span>${workflowEscape(status)}</span><strong>${workflowEscape(target.displayName)}</strong><small>${workflowEscape(target.nodeName || "unassigned")} · ${workflowEscape(target.type)}</small><em>${workflowEscape(detail)}</em></button>`;
   }).join("");
 }
 
@@ -179,7 +179,7 @@ function renderInspector(latestPayload = null) {
   const node = selectedWorkflowNode();
   const target = node ? targetById(node.targetId) : null;
   if (!node) {
-    workflowEl("workflowBindingInspector").innerHTML = '<div class="workflow-empty"><span class="workflow-message-text">canvas에서 node를 선택하세요.</span></div>';
+    workflowEl("workflowBindingInspector").innerHTML = '<div class="workflow-empty"><span class="workflow-message-text">Select a node on the canvas.</span></div>';
     return;
   }
   workflowEl("workflowBindingInspector").innerHTML = `${renderNodeConfig(node)}${renderTargetInspector(node, target, latestPayload)}`;
@@ -188,13 +188,13 @@ function renderInspector(latestPayload = null) {
 function renderNodeConfig(node) {
   const targetOptions = workflowState.targets.filter((target) => nodeAcceptsTarget(node, target)).map((target) => `<option value="${workflowEscape(target.id)}" ${target.id === node.targetId ? "selected" : ""}>${workflowEscape(target.displayName)}</option>`).join("");
   const propertyOptions = (targetById(node.targetId)?.properties || []).map((property) => `<option value="${workflowEscape(property)}" ${node.config.property === property ? "selected" : ""}>${workflowEscape(property)}</option>`).join("");
-  return `<div class="inspector-title"><span>노드 설정</span><strong>${workflowEscape(node.label)}</strong></div><dl class="workflow-fields"><div><dt>유형</dt><dd>${workflowEscape(nodeTemplate(node.type).label)}</dd></div><div><dt>노드명</dt><dd><input class="workflow-config-input" data-config-field="label" value="${workflowEscape(node.label)}" /></dd></div>${targetOptions ? `<div><dt>대상</dt><dd><select class="workflow-config-input" data-config-field="targetId"><option value="">없음</option>${targetOptions}</select></dd></div>` : ""}${node.type === "device_source" ? `<div><dt>윈도우</dt><dd><input class="workflow-config-input" data-config-field="window" value="${workflowEscape(node.config.window || "-30m")}" /></dd></div><div><dt>속성</dt><dd><select class="workflow-config-input" data-config-field="property"><option value="auto">자동</option>${propertyOptions}</select></dd></div>` : ""}${node.type === "condition" ? `<div><dt>규칙</dt><dd><input class="workflow-config-input" data-config-field="value" value="${workflowEscape(node.config.value || "true")}" /></dd></div>` : ""}${node.type === "ai_inference" ? `<div><dt>모델</dt><dd><input class="workflow-config-input" data-config-field="model" value="${workflowEscape(node.config.model || "anomaly-lite")}" /></dd></div>` : ""}${node.type === "postprocess" ? `<div><dt>임계값</dt><dd><input class="workflow-config-input" data-config-field="threshold" value="${workflowEscape(node.config.threshold || "0.82")}" /></dd></div>` : ""}${node.type === "store_observe" ? `<div><dt>저장소</dt><dd><input class="workflow-config-input" data-config-field="sink" value="${workflowEscape(node.config.sink || "InfluxDB + result cache")}" /></dd></div>` : ""}</dl>`;
+  return `<div class="inspector-title"><span>Node Settings</span><strong>${workflowEscape(node.label)}</strong></div><dl class="workflow-fields"><div><dt>type</dt><dd>${workflowEscape(nodeTemplate(node.type).label)}</dd></div><div><dt>label</dt><dd><input class="workflow-config-input" data-config-field="label" value="${workflowEscape(node.label)}" /></dd></div>${targetOptions ? `<div><dt>target</dt><dd><select class="workflow-config-input" data-config-field="targetId"><option value="">none</option>${targetOptions}</select></dd></div>` : ""}${node.type === "device_source" ? `<div><dt>window</dt><dd><input class="workflow-config-input" data-config-field="window" value="${workflowEscape(node.config.window || "-30m")}" /></dd></div><div><dt>property</dt><dd><select class="workflow-config-input" data-config-field="property"><option value="auto">auto</option>${propertyOptions}</select></dd></div>` : ""}${node.type === "condition" ? `<div><dt>rule</dt><dd><input class="workflow-config-input" data-config-field="value" value="${workflowEscape(node.config.value || "true")}" /></dd></div>` : ""}${node.type === "ai_inference" ? `<div><dt>model</dt><dd><input class="workflow-config-input" data-config-field="model" value="${workflowEscape(node.config.model || "anomaly-lite")}" /></dd></div>` : ""}${node.type === "postprocess" ? `<div><dt>threshold</dt><dd><input class="workflow-config-input" data-config-field="threshold" value="${workflowEscape(node.config.threshold || "0.82")}" /></dd></div>` : ""}${node.type === "store_observe" ? `<div><dt>sink</dt><dd><input class="workflow-config-input" data-config-field="sink" value="${workflowEscape(node.config.sink || "InfluxDB + result cache")}" /></dd></div>` : ""}</dl>`;
 }
 
 function renderTargetInspector(node, target, latestPayload) {
-  if (!target) return '<div class="workflow-source-list"><span>바인딩</span><p class="workflow-message-text">이 node에 연결할 Device 또는 resource를 선택하세요.</p></div>';
+  if (!target) return '<div class="workflow-source-list"><span>Binding</span><p class="workflow-message-text">Select a Device or resource for this node.</p></div>';
   const latestRows = Array.isArray(latestPayload) ? latestPayload.slice(0, 6).map((item) => `<li>${workflowEscape(item.property)} = ${workflowEscape(item.value)} · ${workflowEscape(item.timestamp)}</li>`).join("") : "";
-  return `<div class="workflow-source-list"><span>바인딩 대상</span><dl class="workflow-fields compact"><div><dt>대상</dt><dd>${workflowEscape(target.displayName)}</dd></div><div><dt>노드</dt><dd>${workflowEscape(target.nodeName || "미할당")}</dd></div><div><dt>텔레메트리</dt><dd>${workflowEscape(target.telemetryStatus)} · ${workflowEscape(target.telemetryLastSeenAt || "sample 없음")}</dd></div><div><dt>상태</dt><dd>${workflowEscape(target.overallStatus)} · ${workflowEscape(target.reason)}</dd></div></dl><ul>${target.properties.length ? target.properties.slice(0, 8).map((item) => `<li>${workflowEscape(item)}</li>`).join("") : "<li>telemetry source 아님</li>"}</ul></div>${latestRows ? `<div class="workflow-source-list"><span>최신 텔레메트리</span><ul>${latestRows}</ul></div>` : ""}`;
+  return `<div class="workflow-source-list"><span>Binding Target</span><dl class="workflow-fields compact"><div><dt>target</dt><dd>${workflowEscape(target.displayName)}</dd></div><div><dt>node</dt><dd>${workflowEscape(target.nodeName || "unassigned")}</dd></div><div><dt>telemetry</dt><dd>${workflowEscape(target.telemetryStatus)} · ${workflowEscape(target.telemetryLastSeenAt || "no sample")}</dd></div><div><dt>status</dt><dd>${workflowEscape(target.overallStatus)} · ${workflowEscape(target.reason)}</dd></div></dl><ul>${target.properties.length ? target.properties.slice(0, 8).map((item) => `<li>${workflowEscape(item)}</li>`).join("") : "<li>not a telemetry source</li>"}</ul></div>${latestRows ? `<div class="workflow-source-list"><span>Latest Telemetry</span><ul>${latestRows}</ul></div>` : ""}`;
 }
 
 function renderValidation() {

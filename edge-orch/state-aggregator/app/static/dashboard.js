@@ -793,7 +793,7 @@ function kpiCategory(key) {
   if (key.includes("telemetry") || key.includes("sensor")) return "텔레메트리";
   if (key.includes("device")) return "디바이스";
   if (key.includes("node")) return "노드";
-  if (key.includes("workflow") || key.includes("sla")) return "워크플로우";
+  if (key.includes("workflow") || key.includes("sla")) return "Workflow";
   return "운영";
 }
 

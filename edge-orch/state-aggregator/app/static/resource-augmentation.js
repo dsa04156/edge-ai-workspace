@@ -33,27 +33,27 @@ function augEscape(value) {
 
 function augStatusLabel(value) {
   return {
-    configured_not_running: "미실행",
-    partially_available: "부분 가능",
-    unavailable: "장애",
-    allocated: "할당됨",
-    degraded: "주의",
-    idle: "대기",
+    configured_not_running: "not running",
+    partially_available: "partially available",
+    unavailable: "unavailable",
+    allocated: "allocated",
+    degraded: "degraded",
+    idle: "idle",
   }[value] || augText(value, "unknown");
 }
 
 function augReasonLabel(value) {
   const reason = augText(value, "-");
-  if (reason === "registry exists but no runtime instance is observed") return "registry 등록됨 · 실행 인스턴스 0";
+  if (reason === "registry exists but no runtime instance is observed") return "registry exists · 0 runtime instances observed";
   return reason;
 }
 
 function augRecommendationLabel(value) {
   return {
-    none: "정상",
-    candidate: "후보",
-    selected: "선택",
-    blocked: "차단",
+    none: "normal",
+    candidate: "candidate",
+    selected: "selected",
+    blocked: "blocked",
   }[value] || augText(value, "unknown");
 }
 
@@ -154,10 +154,10 @@ function renderAugmentationRows(resources) {
 }
 
 function renderAugmentationInspector(resource) {
-  augEl("augmentationInspectorTitle").textContent = resource?.name || "선택 자원";
+  augEl("augmentationInspectorTitle").textContent = resource?.name || "Selected Resource";
   augEl("augmentationInspectorStatus").textContent = resource ? augStatusLabel(resource.status) : "unknown";
   if (!resource) {
-    augEl("augmentationInspectorBody").innerHTML = '<div class="workflow-empty">Virtual resource API 응답 대기 중입니다.</div>';
+    augEl("augmentationInspectorBody").innerHTML = '<div class="workflow-empty">Virtual resource API response pending.</div>';
     return;
   }
   augEl("augmentationInspectorBody").innerHTML = `
@@ -172,7 +172,7 @@ function renderAugmentationInspector(resource) {
       <div><dt>reason</dt><dd>${augEscape(resource.statusReason)}</dd></div>
     </dl>
     <ul class="augmentation-instance-list">
-      ${resource.instances.length ? resource.instances.map((instance) => `<li><strong>${augEscape(instance.id)}</strong><span>${augEscape(instance.node)} · ${augEscape(instance.pod)} · ${augEscape(instance.binding_state || "free")}</span></li>`).join("") : "<li><strong>0 runtime</strong><span>registry에는 있으나 실행 인스턴스가 관측되지 않습니다.</span></li>"}
+      ${resource.instances.length ? resource.instances.map((instance) => `<li><strong>${augEscape(instance.id)}</strong><span>${augEscape(instance.node)} · ${augEscape(instance.pod)} · ${augEscape(instance.binding_state || "free")}</span></li>`).join("") : "<li><strong>0 runtime</strong><span>registry exists, but no runtime instance is observed.</span></li>"}
     </ul>
   `;
 }
@@ -248,27 +248,27 @@ function renderAugmentationDecision() {
       <b>${augEscape(item.kind)}</b>
       <small>${augEscape(item.phase)}</small>
     </button>
-  `).join("") || '<div class="workflow-empty">증강 자원 후보 API 응답 대기 중입니다.</div>';
+  `).join("") || '<div class="workflow-empty">Candidate resource API response pending.</div>';
   if (!decision) {
-    augEl("augmentationDecisionDetail").innerHTML = "<h4>스케줄링 결정</h4><div>결과 가상디바이스 계획 대기 중입니다.</div>";
+    augEl("augmentationDecisionDetail").innerHTML = "<h4>Scheduler Decision</h4><div>Augmented Device Plan is pending.</div>";
     return;
   }
   const augmentedDevice = decision.resultingAugmentedDevice || {};
   augEl("augmentationDecisionDetail").innerHTML = `
-    <h4>스케줄링 결정</h4>
+    <h4>Scheduler Decision</h4>
     <dl class="augmentation-fields">
       <div><dt>candidate</dt><dd>${augEscape(selected?.id || "-")}</dd></div>
-      <div><dt>AI service</dt><dd>${augEscape(decision.aiService)}</dd></div>
+      <div><dt>AI Workload</dt><dd>${augEscape(decision.aiService)}</dd></div>
       <div><dt>target</dt><dd>${augEscape(decision.targetDevice)}</dd></div>
       <div><dt>state</dt><dd>${augEscape(augRecommendationLabel(decision.state))} · ${decision.pressureScore}%</dd></div>
       <div><dt>apply</dt><dd>${augEscape(decision.applyState)}</dd></div>
       <div><dt>reason</dt><dd>${augEscape(decision.pressureReason.join(", ") || "no request")}</dd></div>
       <div><dt>selected candidates</dt><dd>${augEscape(decision.candidateResourceNames.join(", ") || "-")}</dd></div>
-      <div><dt>결과 가상디바이스</dt><dd>${augEscape(augmentedDevice.name || "-")} · ${augEscape(augmentedDevice.phase || "-")}</dd></div>
+      <div><dt>Augmented Device Plan</dt><dd>${augEscape(augmentedDevice.name || "-")} · ${augEscape(augmentedDevice.phase || "-")}</dd></div>
       <div><dt>explain</dt><dd>${augEscape(decision.explanation)}</dd></div>
     </dl>
     <ul class="augmentation-instance-list">
-      ${decision.selectedResources.length ? decision.selectedResources.map((resource) => `<li><strong>${augEscape(resource.role)} · ${augEscape(resource.name)}</strong><span>${augEscape(resource.reason || "-")}</span></li>`).join("") : "<li><strong>no resource selected</strong><span>현재는 보강 자원이 선택되지 않았습니다.</span></li>"}
+      ${decision.selectedResources.length ? decision.selectedResources.map((resource) => `<li><strong>${augEscape(resource.role)} · ${augEscape(resource.name)}</strong><span>${augEscape(resource.reason || "-")}</span></li>`).join("") : "<li><strong>no resource selected</strong><span>No augmentation resource is selected.</span></li>"}
     </ul>
   `;
 }
@@ -307,16 +307,16 @@ function normalizeWorkflowDemo(workflowDemo) {
 
 function workflowStepLabel(state) {
   return {
-    completed: "완료",
-    active: "진행",
-    planned: "계획",
+    completed: "done",
+    active: "running",
+    planned: "planned",
   }[state] || augText(state, "unknown");
 }
 
 function workflowAutomationLabel(value) {
   return {
-    runtime_metrics_observed: "런타임 관측 기반 자동 판단",
-  }[value] || augText(value, "자동 판단");
+    runtime_metrics_observed: "runtime metrics observed",
+  }[value] || augText(value, "automatic decision");
 }
 
 function workflowRuntimeStatusLabel(state) {
@@ -568,11 +568,11 @@ function renderAugmentationWorkflowDemo() {
     renderAugmentationNodeCanvas(null, null);
     renderAugmentationPlaybackInspector(null, null);
     renderAugmentationExecutionTimeline(null, null);
-    augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
+    augEl("augmentationWorkflowSummary").textContent = "observed runtime decision pending";
     augEl("augmentationWorkflowProgress").style.width = "0%";
     augEl("augmentationWorkflowProgressText").textContent = "0%";
     augEl("augmentationWorkflowSteps").innerHTML = "";
-    augEl("augmentationOffloadPath").innerHTML = '<div class="workflow-empty">오프로딩 경로 대기 중입니다.</div>';
+    augEl("augmentationOffloadPath").innerHTML = '<div class="workflow-empty">Planned offload path pending.</div>';
     return;
   }
   startAugmentationWorkflowPlayback(workflow);

@@ -29,11 +29,11 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationWorkflowSteps"' in html
     assert 'id="augmentationOffloadPath"' in html
     assert 'id="augmentationRecommendationService"' in html
-    assert "자동 데모 진행" in html
-    assert "증강 자원 후보" in html
-    assert "결과 가상디바이스" in html
-    assert "오프로딩 경로" in html
-    assert "스케줄링 결정" in html
+    assert "Auto Demo Playback" in html
+    assert "Candidate Resources" in html
+    assert "Augmented Device Plan" in html
+    assert "Planned Offload Path" in html
+    assert "Scheduler Decision" in html
     assert "/state/runtime-resource-augmentation" in js
     assert "renderAugmentationDecision" in js
     assert "renderAugmentationWorkflowDemo" in js
@@ -90,6 +90,45 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
     assert "등록 자산" not in html
 
 
+def test_dashboard_uses_consistent_english_domain_terms() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation.js").read_text()
+
+    for label in (
+        ">Overview<",
+        ">Assets<",
+        ">AI Pipeline<",
+        ">Resource Augmentation<",
+        "AI Pipeline Builder",
+        "Runtime Augmentation Preview",
+        "AI Workload",
+        "Candidate Resources",
+        "Scheduler Decision",
+        "Augmented Device Plan",
+        "Read-only Plan",
+    ):
+        assert label in html
+
+    for old_label in (
+        ">개요<",
+        ">워크플로우<",
+        ">자원증강<",
+        "자원증강 가상디바이스",
+        "AI 서비스",
+        "증강 자원 후보",
+        "결과 가상디바이스",
+        "스케줄링 결정",
+        "자동 데모 진행",
+    ):
+        assert old_label not in html
+
+    assert "AI Workload" in js
+    assert "Scheduler Decision" in js
+    assert "Augmented Device Plan" in js
+    assert "Candidate resource API response pending." in js
+    assert "AI Service" not in js
+
+
 def test_device_explanation_panel_omits_command_hints() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
@@ -108,7 +147,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=asset-device-slim-20260622" in html
+    assert "/static/dashboard.js?v=terminology-cleanup-20260622" in html
 
 
 def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
@@ -116,7 +155,7 @@ def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=asset-device-slim-20260622" in html
+    assert "/static/dashboard.js?v=terminology-cleanup-20260622" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
     assert "service:" not in render_devices
@@ -131,9 +170,9 @@ def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> No
     state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
 
     assert "/static/workflow.css?v=ai-pipeline-compact-20260622" in html
-    assert "/static/workflow-state.js?v=ai-pipeline-compact-20260622" in html
-    assert "/static/workflow-render-panels.js?v=ai-pipeline-compact-20260622" in html
-    assert "/static/workflow-actions.js?v=ai-pipeline-compact-20260622" in html
+    assert "/static/workflow-state.js?v=terminology-cleanup-20260622" in html
+    assert "/static/workflow-render-panels.js?v=terminology-cleanup-20260622" in html
+    assert "/static/workflow-actions.js?v=terminology-cleanup-20260622" in html
     assert "factory-vision-inspection-pipeline" in state_js
     for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
         assert f'label: "{label}"' in state_js
