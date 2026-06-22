@@ -2729,6 +2729,13 @@ body {
   font-weight: 750;
 }
 
+.assets .device-row .meta span {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
 .chat-guardrail,
 .chat-empty,
 .chat-message p,

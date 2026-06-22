@@ -108,7 +108,22 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=explain-panel-slim-20260622" in html
+    assert "/static/dashboard.js?v=asset-device-slim-20260622" in html
+
+
+def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+    render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
+
+    assert "/static/dashboard.js?v=asset-device-slim-20260622" in html
+    assert "publisher:" not in render_devices
+    assert "mapper:" not in render_devices
+    assert "service:" not in render_devices
+    assert "reason:" not in render_devices
+    assert "node:" in render_devices
+    assert "sensor:" in render_devices
+    assert "age:" in render_devices
 
 
 def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:

@@ -920,12 +920,8 @@ function renderDevices(devices) {
             </div>
             <div class="meta">
               <span>node: ${escapeHtml(deviceNodeLabel(device))}</span>
-              <span>publisher: ${escapeHtml(publisherModeLabel(publisherModeKey(device)))}</span>
               <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
               <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
-              <span>mapper: ${device.mapper_running ? "실행 중" : "미실행"}</span>
-              <span>service: ${escapeHtml(text(device.service_demo_group, "service 대기"))}</span>
-              <span>reason: ${escapeHtml(text(device.reason || device.status_reason))}</span>
             </div>
           </article>
         `)
