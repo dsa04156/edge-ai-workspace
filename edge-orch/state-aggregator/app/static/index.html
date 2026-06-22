@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=asset-rail-topology-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=operator-rail-kube-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -186,19 +186,6 @@
               </div>
               <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
             </div>
-          </div>
-        </section>
-
-        <section class="panel explain-panel dashboard-page" data-page="inventory" aria-live="polite">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">상태 설명</p>
-              <h2>설명 패널</h2>
-            </div>
-            <span>Assets context</span>
-          </div>
-          <div id="explainPanel" class="explain-content">
-            <div class="empty">Device, KPI, Service를 선택하면 상태 원인을 요약합니다.</div>
           </div>
         </section>
 
@@ -581,7 +568,19 @@
         <div id="alertList" hidden></div>
       </section>
         </div>
-        <aside class="side-rail t-panel-reveal" aria-label="sticky operator chat">
+        <aside class="side-rail t-panel-reveal" aria-label="sticky operator assistance">
+          <section class="panel explain-panel operator-context-panel" aria-live="polite">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">상태 설명</p>
+                <h2>설명 패널</h2>
+              </div>
+              <span>Operator context</span>
+            </div>
+            <div id="explainPanel" class="explain-content">
+              <div class="empty">Device, KPI, Service를 선택하면 상태 원인을 요약합니다.</div>
+            </div>
+          </section>
           <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
             <div class="panel-head">
               <div>

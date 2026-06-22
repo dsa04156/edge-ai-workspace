@@ -254,20 +254,37 @@ button {
   width: auto;
   height: calc(100vh - 124px);
   max-height: calc(100vh - 124px);
-  display: block;
+  display: grid;
+  grid-template-rows: minmax(180px, auto) minmax(0, 1fr);
+  gap: 12px;
   margin-top: 0;
   padding: 0;
   overflow: hidden;
 }
 
 .side-rail .panel {
-  background: var(--ops-panel-soft);
+  min-height: 0;
+  border-color: #d5e1e7;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.side-rail .explain-panel {
+  overflow: hidden;
+}
+
+.operator-context-panel .panel-head {
+  gap: 10px;
+}
+
+.side-rail .explain-content {
+  max-height: clamp(160px, 25vh, 240px);
 }
 
 .side-rail .operator-chat {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   min-height: 0;
 }
 
@@ -310,7 +327,7 @@ button {
 .topo-service {
   border-color: #bdd4dc;
   background: #ffffff;
-  box-shadow: 0 8px 22px rgba(20, 49, 63, 0.08);
+  box-shadow: none;
 }
 
 .topo-service summary {
@@ -1052,6 +1069,7 @@ code {
 
   .side-rail {
     position: static;
+    grid-template-rows: auto;
     height: auto;
     max-height: none;
     overflow: visible;
