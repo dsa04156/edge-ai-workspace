@@ -39,6 +39,17 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "renderAugmentationAtGlance" in js
     assert "renderAugmentationNodeCanvas" in js
     assert "augmentationNodeCanvasModel" in js
+    assert "Observe Edge Device" in js
+    assert "Detect Resource Pressure" in js
+    assert "Evaluate Candidate Pool" in js
+    assert "Select GPU Resource" in js
+    assert "Select Cache Resource" in js
+    assert "Plan Augmented Device Binding" in js
+    assert "runtime metrics" in js
+    assert "candidate scan" in js
+    assert "select inference" in js
+    assert "AI Service" not in js
+    assert "ai-service" not in js
     assert "startAugmentationWorkflowPlayback" in js
     assert "scenario_timeline" in js
     assert "playback_interval_ms" in js

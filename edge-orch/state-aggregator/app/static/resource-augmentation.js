@@ -340,22 +340,20 @@ function augmentationNodeCanvasModel(workflow) {
   const pressure = decision.pressureReason?.join(" + ") || "pressure pending";
   return {
     nodes: [
-      { id: "ai-service", stepId: "service-request", kind: "trigger", title: "AI Service", value: augmentationState.aiService || decision.aiService || "-", meta: "factory vision", x: 8, y: 18, order: 0 },
-      { id: "edge-device", stepId: "service-request", kind: "device", title: "Edge Device", value: decision.targetDevice || "-", meta: "physical target", x: 29, y: 18, order: 1 },
-      { id: "pressure", stepId: "pressure-detected", kind: "pressure", title: "Runtime Pressure", value: `${decision.pressureScore || 0}% pressure`, meta: pressure, x: 50, y: 18, order: 2 },
-      { id: "candidates", stepId: "candidate-scan", kind: "pool", title: "Candidate Pool", value: `${candidateCount} resources`, meta: "availability scan", x: 71, y: 18, order: 3 },
-      { id: "gpu-offload", stepId: "offload-plan", kind: "resource", title: "GPU Offload", value: inference, meta: "remote inference", x: 39, y: 68, order: 4 },
-      { id: "cache-offload", stepId: "offload-plan", kind: "resource", title: "Cache Offload", value: storage, meta: "result window", x: 61, y: 68, order: 5 },
-      { id: "augmented-device", stepId: "augmented-device-bind", kind: "result", title: "Augmented Device", value: result, meta: workflow?.status || "planned binding", x: 84, y: 68, order: 6 },
+      { id: "edge-device", stepId: "service-request", kind: "device", title: "Observe Edge Device", value: decision.targetDevice || "-", meta: "physical resource target", x: 14, y: 22, order: 0 },
+      { id: "pressure", stepId: "pressure-detected", kind: "pressure", title: "Detect Resource Pressure", value: `${decision.pressureScore || 0}% pressure`, meta: pressure, x: 35, y: 22, order: 1 },
+      { id: "candidates", stepId: "candidate-scan", kind: "pool", title: "Evaluate Candidate Pool", value: `${candidateCount} resources`, meta: "12 available · 3 blocked", x: 56, y: 22, order: 2 },
+      { id: "gpu-offload", stepId: "offload-plan", kind: "resource", title: "Select GPU Resource", value: inference, meta: "remote inference", x: 45, y: 70, order: 3 },
+      { id: "cache-offload", stepId: "offload-plan", kind: "resource", title: "Select Cache Resource", value: storage, meta: "result window", x: 67, y: 70, order: 4 },
+      { id: "augmented-device", stepId: "augmented-device-bind", kind: "result", title: "Plan Augmented Device Binding", value: result, meta: workflow?.status || "planned binding", x: 88, y: 46, order: 5 },
     ],
     edges: [
-      ["ai-service", "edge-device"],
-      ["edge-device", "pressure"],
-      ["pressure", "candidates"],
-      ["candidates", "gpu-offload"],
-      ["candidates", "cache-offload"],
-      ["gpu-offload", "augmented-device"],
-      ["cache-offload", "augmented-device"],
+      ["edge-device", "pressure", "runtime metrics"],
+      ["pressure", "candidates", "pressure signal"],
+      ["candidates", "gpu-offload", "candidate scan"],
+      ["candidates", "cache-offload", "candidate scan"],
+      ["gpu-offload", "augmented-device", "select inference"],
+      ["cache-offload", "augmented-device", "select cache"],
     ],
   };
 }
@@ -379,7 +377,7 @@ function renderAugmentationNodeCanvas(workflow, frame) {
         <path d="M 0 0 L 10 5 L 0 10 z"></path>
       </marker>
     </defs>
-    ${model.edges.map(([fromId, toId]) => {
+    ${model.edges.map(([fromId, toId, label]) => {
       const from = nodesById[fromId];
       const to = nodesById[toId];
       if (!from || !to) return "";
@@ -389,7 +387,12 @@ function renderAugmentationNodeCanvas(workflow, frame) {
       const y2 = to.y * 3.9;
       const bend = Math.max(56, Math.abs(x2 - x1) * 0.34);
       const active = from.order <= activeOrder && to.order <= activeOrder + 1;
-      return `<path class="${active ? "active" : ""}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}" marker-end="url(#augmentationArrow)"></path>`;
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2 - 8;
+      return `
+        <path class="${active ? "active" : ""}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}" marker-end="url(#augmentationArrow)"></path>
+        <text class="augmentation-edge-label ${active ? "active" : ""}" x="${midX}" y="${midY}">${augEscape(label || "")}</text>
+      `;
     }).join("")}
   `;
   nodesEl.innerHTML = model.nodes.map((node) => {

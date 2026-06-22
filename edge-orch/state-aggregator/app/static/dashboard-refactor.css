@@ -491,12 +491,28 @@ button {
   stroke: none;
 }
 
+.augmentation-edge-label {
+  fill: #5d737d;
+  paint-order: stroke;
+  stroke: #f8fcfd;
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+
+.augmentation-edge-label.active {
+  fill: #087c8f;
+}
+
 .augmentation-graph-node {
   position: absolute;
   left: var(--x);
   top: var(--y);
   z-index: 2;
-  width: 184px;
+  width: 206px;
   min-height: 96px;
   transform: translate(-50%, -50%);
   border: 1px solid #b8d0da;
