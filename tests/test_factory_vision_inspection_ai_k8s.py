@@ -54,6 +54,8 @@ def test_factory_vision_ai_manifest_contract():
     assert deployment["spec"]["template"]["spec"]["nodeSelector"] == {
         "kubernetes.io/hostname": "etri-dev0001-jetorn"
     }
+    assert deployment["spec"]["template"]["spec"]["securityContext"]["runAsUser"] == 10001
+    assert deployment["spec"]["template"]["spec"]["securityContext"]["runAsGroup"] == 10001
     assert container["image"] == "192.168.0.56:5000/vision-stage-runner:latest"
     assert container["imagePullPolicy"] == "Always"
     assert container["ports"] == [{"containerPort": 8080, "name": "http"}]
