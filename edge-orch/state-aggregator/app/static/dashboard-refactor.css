@@ -1270,6 +1270,13 @@ code {
   .workflow-studio {
     grid-template-columns: 1fr;
   }
+
+  .workflow-palette,
+  .workflow-canvas-shell,
+  .workflow-inspector {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1890,5 +1897,17 @@ button:focus-visible,
 
   .panel {
     padding: 14px;
+  }
+
+  .workflow-palette,
+  .workflow-canvas-shell,
+  .workflow-inspector {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+  }
+
+  .workflow-palette .inspector-head span {
+    white-space: normal;
+    word-break: keep-all;
   }
 }
