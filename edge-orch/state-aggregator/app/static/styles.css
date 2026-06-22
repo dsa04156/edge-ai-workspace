@@ -800,43 +800,6 @@ h3 {
 }
 
 
-.command-hints {
-  display: grid;
-  gap: var(--space-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  padding: var(--space-3);
-}
-
-.command-hints span {
-  color: var(--blue);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.command-hints p {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.command-hints code {
-  display: block;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--bg-deep);
-  color: var(--green);
-  padding: var(--space-2);
-  font-family: "IBM Plex Mono", "Cascadia Code", monospace;
-  font-size: 11px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-
 .telemetry-chart {
   border: 1px solid rgba(124, 131, 255, 0.2);
   border-radius: 12px;

@@ -349,20 +349,16 @@ function renderExplainFields(fields) {
     .join("")}</dl>`;
 }
 
-function renderReadOnlyCommandHints(device) {
-  const deviceName = text(device?.name, "device-name");
-  const plan = publisherDevicePlan(device);
-  const commands = [
-    `SELF_TEST=1 DEVICE_FILTER=${deviceName} DEVICE_PLAN=${plan} python3 mappers/script/test_device.py`,
-    `DEVICE_FILTER=${deviceName} DEVICE_PLAN=${plan} python3 mappers/script/test_device.py`,
-  ];
-  return `
-    <div class="command-hints" aria-label="read-only publisher command hints">
-      <span>Read-only command hints</span>
-      <p>Copy manually on the correct host if needed. The dashboard does not execute commands.</p>
-      ${commands.map((command) => `<code>${escapeHtml(command)}</code>`).join("")}
-    </div>
-  `;
+function renderDeviceFactList(fields) {
+  return `<dl class="explain-facts">${fields
+    .map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(displayValue(value, "현재 API payload에 없음"))}</dd></div>`)
+    .join("")}</dl>`;
+}
+
+function renderDeviceReasonList(rules) {
+  return `<ul class="explain-reasons">${rules
+    .map((rule) => `<li><strong>${escapeHtml(rule.title)}</strong><p>${escapeHtml(rule.text)}</p></li>`)
+    .join("")}</ul>`;
 }
 
 
@@ -513,26 +509,36 @@ function showDeviceExplanation(device) {
   const panel = $("explainPanel");
   if (!panel || !device) return;
   state.selectedDeviceName = device.name;
+  const status = deviceStatus(device);
+  const publisherMode = publisherModeLabel(publisherModeKey(device));
   panel.innerHTML = `
     <div class="explain-header">
       <span class="explain-badge">Device</span>
       <strong>${escapeHtml(displayValue(device.name))}</strong>
     </div>
-    ${renderExplainFields([
-      ["status", deviceStatus(device)],
+    <div class="explain-status-strip">
+      <div>
+        <span>Status</span>
+        <strong>${escapeHtml(status)}</strong>
+      </div>
+      <div>
+        <span>Publisher</span>
+        <strong>${escapeHtml(publisherMode)}</strong>
+      </div>
+      <div>
+        <span>Node</span>
+        <strong>${escapeHtml(deviceNodeLabel(device))}</strong>
+      </div>
+    </div>
+    ${renderDeviceFactList([
       ["reason", deviceReason(device)],
-      ["node", deviceNodeLabel(device)],
-      ["publisher mode", publisherModeLabel(publisherModeKey(device))],
-      ["demo publisher", isDemoPublisherDevice(device) ? "yes" : "no"],
-      ["publisher plan", publisherDevicePlan(device)],
       ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
       ["last seen", age(device.telemetry_age_seconds)],
       ["mapper", device.mapper_running ? "running" : "not running"],
       ["service", device.service_demo_group || "service pending"],
     ])}
-    ${renderReadOnlyCommandHints(device)}
     <div id="telemetryChart">${renderTelemetryChart(state.telemetryHistory[device.name] || [])}</div>
-    ${renderRuleList(explainDeviceRules(device))}
+    ${renderDeviceReasonList(explainDeviceRules(device))}
   `;
   loadDeviceTelemetry(device.name);
 }
@@ -1325,7 +1331,6 @@ if (typeof module !== "undefined") {
     publisherModeReason,
     deviceMatchesPublisherFilter,
     renderPublisherBadge,
-    renderReadOnlyCommandHints,
     nodeFilterValues,
     missingResourceTotal,
     cleanNodeLabel,

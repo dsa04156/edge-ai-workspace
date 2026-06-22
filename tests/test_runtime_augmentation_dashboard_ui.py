@@ -90,6 +90,27 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
     assert "등록 자산" not in html
 
 
+def test_device_explanation_panel_omits_command_hints() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+    css = (
+        (ROOT / "edge-orch/state-aggregator/app/static/styles.css").read_text()
+        + (ROOT / "edge-orch/state-aggregator/app/static/theme-refresh.css").read_text()
+    )
+
+    show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
+
+    assert "command-hints" not in show_device
+    assert "renderReadOnlyCommandHints" not in js
+    assert ".command-hints" not in css
+    assert "explain-status-strip" in show_device
+    assert "renderDeviceFactList" in js
+    assert "explain-facts" in js
+    assert "renderDeviceReasonList" in js
+    assert "explain-reasons" in js
+    assert "/static/dashboard.js?v=explain-panel-slim-20260622" in html
+
+
 def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()

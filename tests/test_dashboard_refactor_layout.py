@@ -8,8 +8,12 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-compact-20260622"
+    base_link = "/static/styles.css?v=explain-panel-slim-20260622"
+    theme_link = "/static/theme-refresh.css?v=explain-panel-slim-20260622"
+    assert base_link in html
+    assert theme_link in html
     assert refactor_link in html
-    assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
+    assert html.index(refactor_link) > html.index(theme_link)
 
 
 def test_dashboard_refactor_defines_non_overlapping_operating_layout() -> None:
@@ -108,6 +112,18 @@ def test_operator_explain_panel_avoids_nested_scroll() -> None:
     assert "max-height: none;" in css
     assert "overflow: visible;" in css
     assert "overflow-y: auto;" in css
+
+
+def test_device_explain_panel_uses_line_items_not_gray_cards() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/theme-refresh.css").read_text()
+
+    assert ".explain-status-strip" in css
+    assert ".explain-facts" in css
+    assert ".explain-reasons" in css
+    assert ".explain-facts div" in css
+    assert ".explain-facts div {\n  border-bottom: 1px solid #dce8ef;" in css
+    assert ".explain-reasons li {\n  border-left: 2px solid #087f96;" in css
+    assert ".command-hints" not in css
 
 
 def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:
