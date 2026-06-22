@@ -1,5 +1,5 @@
-const NODE_W = 188;
-const NODE_H = 138;
+const NODE_W = 160;
+const NODE_H = 118;
 const AI_HAT_NODE = "etri-dev0002-raspi5";
 
 const NODE_TEMPLATES = [
@@ -20,12 +20,12 @@ const workflowState = {
       id: "factory-vision-inspection-pipeline",
       name: "factory-vision-inspection-pipeline",
       nodes: [
-        { id: "collect-1", label: "Collect Raw Telemetry", type: "device_source", x: 52, y: 138, targetId: "", config: { window: "-30m", property: "auto" } },
-        { id: "preprocess-1", label: "Normalize Feature Window", type: "transform", x: 292, y: 138, targetId: "", config: { method: "normalize-window" } },
-        { id: "inference-1", label: "Run Defect Inference", type: "ai_inference", x: 532, y: 138, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "factory-vision-inspection-lite", accelerator: "ai-hat" } },
-        { id: "postprocess-1", label: "Format Inspection Event", type: "postprocess", x: 772, y: 138, targetId: "", config: { threshold: "0.82", output: "defect-score" } },
-        { id: "store-1", label: "Persist Result Cache", type: "store_observe", x: 1012, y: 138, targetId: "", config: { sink: "InfluxDB + result cache" } },
-        { id: "dashboard-1", label: "Publish Dashboard Signal", type: "dashboard_event", x: 1252, y: 138, targetId: "", config: { severity: "warning" } },
+        { id: "collect-1", label: "Collect Raw Telemetry", type: "device_source", x: 40, y: 72, targetId: "", config: { window: "-30m", property: "auto" } },
+        { id: "preprocess-1", label: "Normalize Feature Window", type: "transform", x: 236, y: 72, targetId: "", config: { method: "normalize-window" } },
+        { id: "inference-1", label: "Run Defect Inference", type: "ai_inference", x: 432, y: 72, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "factory-vision-inspection-lite", accelerator: "ai-hat" } },
+        { id: "postprocess-1", label: "Format Inspection Event", type: "postprocess", x: 40, y: 242, targetId: "", config: { threshold: "0.82", output: "defect-score" } },
+        { id: "store-1", label: "Persist Result Cache", type: "store_observe", x: 236, y: 242, targetId: "", config: { sink: "InfluxDB + result cache" } },
+        { id: "dashboard-1", label: "Publish Dashboard Signal", type: "dashboard_event", x: 432, y: 242, targetId: "", config: { severity: "warning" } },
       ],
       edges: [
         { from: "collect-1", to: "preprocess-1", label: "raw telemetry" },

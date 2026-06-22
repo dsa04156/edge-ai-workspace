@@ -259,7 +259,9 @@ button {
   gap: 12px;
   margin-top: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .side-rail .panel {
@@ -270,7 +272,7 @@ button {
 }
 
 .side-rail .explain-panel {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .operator-context-panel .panel-head {
@@ -278,7 +280,8 @@ button {
 }
 
 .side-rail .explain-content {
-  max-height: clamp(160px, 25vh, 240px);
+  max-height: none;
+  overflow: visible;
 }
 
 .side-rail .operator-chat {
@@ -662,8 +665,8 @@ button {
 }
 
 .workflow-node {
-  width: 188px;
-  min-height: 138px;
+  width: 160px;
+  min-height: 118px;
   overflow: hidden;
 }
 

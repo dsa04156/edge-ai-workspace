@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-workflow-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-compact-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -78,14 +78,36 @@ def test_workflow_cards_handle_long_pipeline_labels_without_overlap() -> None:
         + (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
     )
 
-    assert "width: 188px;" in css
-    assert "min-height: 138px;" in css
+    assert "width: 160px;" in css
+    assert "min-height: 118px;" in css
     assert "-webkit-line-clamp: 2;" in css
     assert ".workflow-node small" in css
     assert ".workflow-message-text" in css
     assert "overflow-wrap: anywhere;" in css
     assert "text-overflow: ellipsis;" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));" in css
+    assert "grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));" in css
+
+
+def test_workflow_canvas_uses_three_column_compact_layout() -> None:
+    js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-render-panels.js").read_text()
+    actions_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-actions.js").read_text()
+
+    assert "canvas.clientWidth < 980" in js
+    assert "index % 3" in js
+    assert "index / 3" in js
+    assert "index * 190" in js
+    assert "Math.min(workflowState.canvasScale, 0.96)" in js
+    assert "(workflow.nodes.length % 3)" in actions_js
+
+
+def test_operator_explain_panel_avoids_nested_scroll() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".side-rail .explain-panel" in css
+    assert ".side-rail .explain-content" in css
+    assert "max-height: none;" in css
+    assert "overflow: visible;" in css
+    assert "overflow-y: auto;" in css
 
 
 def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:

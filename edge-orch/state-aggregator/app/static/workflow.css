@@ -135,7 +135,7 @@ body {
 
 .workflow-node-palette {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -279,7 +279,7 @@ body {
 
 .workflow-graph-canvas {
   position: relative;
-  min-height: 560px;
+  min-height: 480px;
   max-height: 760px;
   overflow: auto;
   border: 1px solid rgba(222, 235, 242, 0.08);
@@ -330,10 +330,10 @@ body {
 
 .workflow-node {
   position: absolute;
-  width: 188px;
-  min-height: 138px;
+  width: 160px;
+  min-height: 118px;
   border-radius: 8px;
-  padding: 14px 14px 13px;
+  padding: 11px 12px 10px;
   display: grid;
   align-content: start;
   gap: 7px;
@@ -345,7 +345,7 @@ body {
 }
 
 .workflow-node strong {
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.2;
 }
 
