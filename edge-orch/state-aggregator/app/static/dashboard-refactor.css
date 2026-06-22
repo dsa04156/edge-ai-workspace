@@ -661,6 +661,44 @@ button {
   gap: 12px;
 }
 
+.workflow-node {
+  width: 188px;
+  min-height: 138px;
+  overflow: hidden;
+}
+
+.workflow-node strong,
+.workflow-node small,
+.workflow-template span,
+.workflow-template em,
+.device-card strong,
+.device-card small {
+  display: -webkit-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workflow-node em,
+.device-card em,
+.workflow-message-text {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.workflow-node em,
+.device-card em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .workflow-graph-actions,
 .workflow-actions,
 .augmentation-actions,

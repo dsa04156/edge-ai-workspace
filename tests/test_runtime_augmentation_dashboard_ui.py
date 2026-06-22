@@ -85,3 +85,24 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
     assert "개 자산" not in js
     assert "자산 현황" not in html
     assert "등록 자산" not in html
+
+
+def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
+
+    assert "/static/workflow.css?v=ai-pipeline-workflow-20260622" in html
+    assert "/static/workflow-state.js?v=ai-pipeline-workflow-20260622" in html
+    assert "/static/workflow-render-panels.js?v=ai-pipeline-workflow-20260622" in html
+    assert "/static/workflow-actions.js?v=ai-pipeline-workflow-20260622" in html
+    assert "factory-vision-inspection-pipeline" in state_js
+    for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
+        assert f'label: "{label}"' in state_js
+    assert "Collect Raw Telemetry" in state_js
+    assert "Normalize Feature Window" in state_js
+    assert "Run Defect Inference" in state_js
+    assert "Format Inspection Event" in state_js
+    assert "Persist Result Cache" in state_js
+    assert "Publish Dashboard Signal" in state_js
+    assert "AI Service" not in state_js
+    assert "ai-service" not in state_js

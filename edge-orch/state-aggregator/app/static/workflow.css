@@ -39,7 +39,8 @@ body {
 .workflow-node em,
 .device-card strong,
 .inspector-title strong,
-.workflow-template span {
+.workflow-template span,
+.workflow-message-text {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -134,6 +135,7 @@ body {
 
 .workflow-node-palette {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -277,7 +279,7 @@ body {
 
 .workflow-graph-canvas {
   position: relative;
-  min-height: 640px;
+  min-height: 560px;
   max-height: 760px;
   overflow: auto;
   border: 1px solid rgba(222, 235, 242, 0.08);
@@ -328,8 +330,8 @@ body {
 
 .workflow-node {
   position: absolute;
-  width: 172px;
-  min-height: 126px;
+  width: 188px;
+  min-height: 138px;
   border-radius: 8px;
   padding: 14px 14px 13px;
   display: grid;
@@ -339,11 +341,33 @@ body {
   white-space: normal;
   touch-action: none;
   transform-origin: top left;
+  overflow: hidden;
 }
 
 .workflow-node strong {
   font-size: 15px;
   line-height: 1.2;
+}
+
+.workflow-node strong,
+.workflow-node small,
+.workflow-template span,
+.workflow-template em,
+.device-card strong,
+.device-card small {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workflow-node em,
+.device-card em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workflow-port {
@@ -380,6 +404,15 @@ body {
 
 .workflow-node.type-ai_inference {
   border-color: rgba(99, 208, 230, 0.42);
+}
+
+.workflow-node.type-transform {
+  border-color: rgba(50, 213, 131, 0.3);
+}
+
+.workflow-node.type-postprocess,
+.workflow-node.type-store_observe {
+  border-color: rgba(135, 160, 255, 0.34);
 }
 
 .workflow-node.type-condition,

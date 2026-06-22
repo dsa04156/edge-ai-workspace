@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=telemetry-kube-ui-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-workflow-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -70,6 +70,22 @@ def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None
     assert "grid-column: 1 / -1 !important;" in css
     assert ".workflow-binding-inspector" in css
     assert "grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));" in css
+
+
+def test_workflow_cards_handle_long_pipeline_labels_without_overlap() -> None:
+    css = (
+        (ROOT / "edge-orch/state-aggregator/app/static/workflow.css").read_text()
+        + (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+    )
+
+    assert "width: 188px;" in css
+    assert "min-height: 138px;" in css
+    assert "-webkit-line-clamp: 2;" in css
+    assert ".workflow-node small" in css
+    assert ".workflow-message-text" in css
+    assert "overflow-wrap: anywhere;" in css
+    assert "text-overflow: ellipsis;" in css
+    assert "grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));" in css
 
 
 def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:

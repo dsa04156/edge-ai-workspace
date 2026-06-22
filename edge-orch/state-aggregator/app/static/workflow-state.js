@@ -1,13 +1,15 @@
-const NODE_W = 172;
-const NODE_H = 126;
+const NODE_W = 188;
+const NODE_H = 138;
 const AI_HAT_NODE = "etri-dev0002-raspi5";
 
 const NODE_TEMPLATES = [
-  { type: "device_source", label: "디바이스 소스", caption: "등록 디바이스 telemetry", data: "telemetry window" },
-  { type: "transform", label: "변환", caption: "윈도우 집계", data: "feature vector" },
-  { type: "condition", label: "조건", caption: "임계값 / freshness gate", data: "branch decision" },
-  { type: "ai_inference", label: "AI 추론", caption: "AI HAT 대상", data: "inference result" },
-  { type: "dashboard_event", label: "대시보드 이벤트", caption: "운영자 이벤트", data: "event payload" },
+  { type: "device_source", label: "Collect", caption: "camera/sensor telemetry intake", data: "raw telemetry" },
+  { type: "transform", label: "Preprocess", caption: "normalize, window, feature extraction", data: "feature tensor" },
+  { type: "ai_inference", label: "Inference", caption: "edge model execution", data: "prediction" },
+  { type: "postprocess", label: "Postprocess", caption: "threshold, score, event shaping", data: "inspection event" },
+  { type: "store_observe", label: "Store & Observe", caption: "InfluxDB/cache/result persistence", data: "stored result" },
+  { type: "dashboard_event", label: "Dashboard", caption: "operator signal and review", data: "operator signal" },
+  { type: "condition", label: "Quality Gate", caption: "optional freshness/threshold branch", data: "branch decision" },
 ];
 
 const workflowState = {
@@ -15,25 +17,27 @@ const workflowState = {
   nodes: [],
   workflows: [
     {
-      id: "sensehat-aihat-anomaly",
-      name: "sensehat-aihat-anomaly",
+      id: "factory-vision-inspection-pipeline",
+      name: "factory-vision-inspection-pipeline",
       nodes: [
-        { id: "source-1", label: "Sense HAT 소스", type: "device_source", x: 52, y: 104, targetId: "", config: { window: "-30m", property: "auto" } },
-        { id: "transform-1", label: "특징 생성", type: "transform", x: 300, y: 104, targetId: "", config: { method: "rolling-vector" } },
-        { id: "condition-1", label: "Freshness 조건", type: "condition", x: 548, y: 104, targetId: "", config: { metric: "telemetry_fresh", operator: "equals", value: "true" } },
-        { id: "inference-1", label: "AI HAT 추론", type: "ai_inference", x: 300, y: 318, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "anomaly-lite", accelerator: "ai-hat" } },
-        { id: "event-1", label: "대시보드 이벤트", type: "dashboard_event", x: 548, y: 318, targetId: "", config: { severity: "warning" } },
+        { id: "collect-1", label: "Collect Raw Telemetry", type: "device_source", x: 52, y: 138, targetId: "", config: { window: "-30m", property: "auto" } },
+        { id: "preprocess-1", label: "Normalize Feature Window", type: "transform", x: 292, y: 138, targetId: "", config: { method: "normalize-window" } },
+        { id: "inference-1", label: "Run Defect Inference", type: "ai_inference", x: 532, y: 138, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "factory-vision-inspection-lite", accelerator: "ai-hat" } },
+        { id: "postprocess-1", label: "Format Inspection Event", type: "postprocess", x: 772, y: 138, targetId: "", config: { threshold: "0.82", output: "defect-score" } },
+        { id: "store-1", label: "Persist Result Cache", type: "store_observe", x: 1012, y: 138, targetId: "", config: { sink: "InfluxDB + result cache" } },
+        { id: "dashboard-1", label: "Publish Dashboard Signal", type: "dashboard_event", x: 1252, y: 138, targetId: "", config: { severity: "warning" } },
       ],
       edges: [
-        { from: "source-1", to: "transform-1", label: "telemetry" },
-        { from: "transform-1", to: "condition-1", label: "특징" },
-        { from: "condition-1", to: "inference-1", label: "fresh" },
-        { from: "inference-1", to: "event-1", label: "결과" },
+        { from: "collect-1", to: "preprocess-1", label: "raw telemetry" },
+        { from: "preprocess-1", to: "inference-1", label: "feature tensor" },
+        { from: "inference-1", to: "postprocess-1", label: "prediction" },
+        { from: "postprocess-1", to: "store-1", label: "inspection event" },
+        { from: "store-1", to: "dashboard-1", label: "operator signal" },
       ],
     },
   ],
-  selectedWorkflowId: "sensehat-aihat-anomaly",
-  selectedNodeId: "source-1",
+  selectedWorkflowId: "factory-vision-inspection-pipeline",
+  selectedNodeId: "collect-1",
   selectedTargetId: "",
   selectedFilter: "all",
   linkFromNodeId: "",

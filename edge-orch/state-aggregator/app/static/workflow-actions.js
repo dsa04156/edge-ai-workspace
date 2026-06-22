@@ -18,7 +18,7 @@ function addWorkflowNode(type) {
   const template = nodeTemplate(type);
   const count = workflow.nodes.filter((node) => node.type === type).length + 1;
   const id = `${workflowSlug(type)}-${Date.now().toString(36)}`;
-  workflow.nodes.push({ id, label: `${template.label} ${count}`, type, x: 56 + (workflow.nodes.length % 4) * 248, y: 104 + Math.floor(workflow.nodes.length / 4) * 196, targetId: "", config: defaultNodeConfig(type) });
+  workflow.nodes.push({ id, label: `${template.label} ${count}`, type, x: 56 + (workflow.nodes.length % 6) * 240, y: 138 + Math.floor(workflow.nodes.length / 6) * 210, targetId: "", config: defaultNodeConfig(type) });
   workflowState.selectedNodeId = id;
   autoBindDefaults();
   renderWorkflow();
@@ -31,13 +31,13 @@ function setWorkflowScale(value) {
 
 function autoLayoutWorkflow() {
   const workflow = currentWorkflow();
-  const laneByType = { device_source: 0, transform: 1, condition: 2, ai_inference: 1, dashboard_event: 2 };
+  const laneByType = { device_source: 0, transform: 1, ai_inference: 2, postprocess: 3, store_observe: 4, dashboard_event: 5, condition: 3 };
   const laneCounts = new Map();
   workflow.nodes.forEach((node) => {
     const lane = laneByType[node.type] ?? 1;
     const offset = laneCounts.get(lane) || 0;
-    node.x = 56 + lane * 248;
-    node.y = 104 + offset * 196;
+    node.x = 56 + lane * 240;
+    node.y = 138 + offset * 210;
     laneCounts.set(lane, offset + 1);
   });
   workflowState.linkFromNodeId = "";
@@ -48,6 +48,8 @@ function defaultNodeConfig(type) {
   if (type === "device_source") return { window: "-30m", property: "auto" };
   if (type === "condition") return { metric: "telemetry_fresh", operator: "equals", value: "true" };
   if (type === "ai_inference") return { model: "anomaly-lite", accelerator: "ai-hat" };
+  if (type === "postprocess") return { threshold: "0.82", output: "defect-score" };
+  if (type === "store_observe") return { sink: "InfluxDB + result cache" };
   if (type === "dashboard_event") return { severity: "warning" };
   return { method: "rolling-vector" };
 }

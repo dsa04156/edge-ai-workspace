@@ -118,8 +118,8 @@ function renderGraph() {
       y: 48 + Math.floor(index / 2) * 178,
     };
   });
-  const maxX = Math.max(vertical ? 300 : compact ? 420 : 930, ...visualNodes.map((node) => node.x + NODE_W + 88));
-  const maxY = Math.max(vertical ? 980 : compact ? 640 : 620, ...visualNodes.map((node) => node.y + NODE_H + 110));
+  const maxX = Math.max(vertical ? 320 : compact ? 460 : 1540, ...visualNodes.map((node) => node.x + NODE_W + 96));
+  const maxY = Math.max(vertical ? 1160 : compact ? 760 : 560, ...visualNodes.map((node) => node.y + NODE_H + 110));
   canvas.style.setProperty("--workflow-scale", String(scale));
   edgeRoot.setAttribute("viewBox", `0 0 ${maxX} ${maxY}`);
   edgeRoot.style.width = `${maxX * scale}px`;
@@ -179,7 +179,7 @@ function renderInspector(latestPayload = null) {
   const node = selectedWorkflowNode();
   const target = node ? targetById(node.targetId) : null;
   if (!node) {
-    workflowEl("workflowBindingInspector").innerHTML = '<div class="workflow-empty">canvas에서 node를 선택하세요.</div>';
+    workflowEl("workflowBindingInspector").innerHTML = '<div class="workflow-empty"><span class="workflow-message-text">canvas에서 node를 선택하세요.</span></div>';
     return;
   }
   workflowEl("workflowBindingInspector").innerHTML = `${renderNodeConfig(node)}${renderTargetInspector(node, target, latestPayload)}`;
@@ -188,11 +188,11 @@ function renderInspector(latestPayload = null) {
 function renderNodeConfig(node) {
   const targetOptions = workflowState.targets.filter((target) => nodeAcceptsTarget(node, target)).map((target) => `<option value="${workflowEscape(target.id)}" ${target.id === node.targetId ? "selected" : ""}>${workflowEscape(target.displayName)}</option>`).join("");
   const propertyOptions = (targetById(node.targetId)?.properties || []).map((property) => `<option value="${workflowEscape(property)}" ${node.config.property === property ? "selected" : ""}>${workflowEscape(property)}</option>`).join("");
-  return `<div class="inspector-title"><span>노드 설정</span><strong>${workflowEscape(node.label)}</strong></div><dl class="workflow-fields"><div><dt>유형</dt><dd>${workflowEscape(nodeTemplate(node.type).label)}</dd></div><div><dt>노드명</dt><dd><input class="workflow-config-input" data-config-field="label" value="${workflowEscape(node.label)}" /></dd></div>${targetOptions ? `<div><dt>대상</dt><dd><select class="workflow-config-input" data-config-field="targetId"><option value="">없음</option>${targetOptions}</select></dd></div>` : ""}${node.type === "device_source" ? `<div><dt>윈도우</dt><dd><input class="workflow-config-input" data-config-field="window" value="${workflowEscape(node.config.window || "-30m")}" /></dd></div><div><dt>속성</dt><dd><select class="workflow-config-input" data-config-field="property"><option value="auto">자동</option>${propertyOptions}</select></dd></div>` : ""}${node.type === "condition" ? `<div><dt>규칙</dt><dd><input class="workflow-config-input" data-config-field="value" value="${workflowEscape(node.config.value || "true")}" /></dd></div>` : ""}${node.type === "ai_inference" ? `<div><dt>모델</dt><dd><input class="workflow-config-input" data-config-field="model" value="${workflowEscape(node.config.model || "anomaly-lite")}" /></dd></div>` : ""}</dl>`;
+  return `<div class="inspector-title"><span>노드 설정</span><strong>${workflowEscape(node.label)}</strong></div><dl class="workflow-fields"><div><dt>유형</dt><dd>${workflowEscape(nodeTemplate(node.type).label)}</dd></div><div><dt>노드명</dt><dd><input class="workflow-config-input" data-config-field="label" value="${workflowEscape(node.label)}" /></dd></div>${targetOptions ? `<div><dt>대상</dt><dd><select class="workflow-config-input" data-config-field="targetId"><option value="">없음</option>${targetOptions}</select></dd></div>` : ""}${node.type === "device_source" ? `<div><dt>윈도우</dt><dd><input class="workflow-config-input" data-config-field="window" value="${workflowEscape(node.config.window || "-30m")}" /></dd></div><div><dt>속성</dt><dd><select class="workflow-config-input" data-config-field="property"><option value="auto">자동</option>${propertyOptions}</select></dd></div>` : ""}${node.type === "condition" ? `<div><dt>규칙</dt><dd><input class="workflow-config-input" data-config-field="value" value="${workflowEscape(node.config.value || "true")}" /></dd></div>` : ""}${node.type === "ai_inference" ? `<div><dt>모델</dt><dd><input class="workflow-config-input" data-config-field="model" value="${workflowEscape(node.config.model || "anomaly-lite")}" /></dd></div>` : ""}${node.type === "postprocess" ? `<div><dt>임계값</dt><dd><input class="workflow-config-input" data-config-field="threshold" value="${workflowEscape(node.config.threshold || "0.82")}" /></dd></div>` : ""}${node.type === "store_observe" ? `<div><dt>저장소</dt><dd><input class="workflow-config-input" data-config-field="sink" value="${workflowEscape(node.config.sink || "InfluxDB + result cache")}" /></dd></div>` : ""}</dl>`;
 }
 
 function renderTargetInspector(node, target, latestPayload) {
-  if (!target) return '<div class="workflow-source-list"><span>바인딩</span><p>이 node에 연결할 Device 또는 resource를 선택하세요.</p></div>';
+  if (!target) return '<div class="workflow-source-list"><span>바인딩</span><p class="workflow-message-text">이 node에 연결할 Device 또는 resource를 선택하세요.</p></div>';
   const latestRows = Array.isArray(latestPayload) ? latestPayload.slice(0, 6).map((item) => `<li>${workflowEscape(item.property)} = ${workflowEscape(item.value)} · ${workflowEscape(item.timestamp)}</li>`).join("") : "";
   return `<div class="workflow-source-list"><span>바인딩 대상</span><dl class="workflow-fields compact"><div><dt>대상</dt><dd>${workflowEscape(target.displayName)}</dd></div><div><dt>노드</dt><dd>${workflowEscape(target.nodeName || "미할당")}</dd></div><div><dt>텔레메트리</dt><dd>${workflowEscape(target.telemetryStatus)} · ${workflowEscape(target.telemetryLastSeenAt || "sample 없음")}</dd></div><div><dt>상태</dt><dd>${workflowEscape(target.overallStatus)} · ${workflowEscape(target.reason)}</dd></div></dl><ul>${target.properties.length ? target.properties.slice(0, 8).map((item) => `<li>${workflowEscape(item)}</li>`).join("") : "<li>telemetry source 아님</li>"}</ul></div>${latestRows ? `<div class="workflow-source-list"><span>최신 텔레메트리</span><ul>${latestRows}</ul></div>` : ""}`;
 }
