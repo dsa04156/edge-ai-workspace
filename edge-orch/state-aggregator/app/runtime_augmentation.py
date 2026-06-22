@@ -96,6 +96,10 @@ class RuntimeAugmentationWorkflowDemo(BaseModel):
 
     name: str = "inspection-resource-augmentation-demo"
     status: Literal["offload_planned"] = "offload_planned"
+    automation_trigger: Literal["runtime_metrics_observed"] = "runtime_metrics_observed"
+    progress_percent: int = Field(default=80, ge=0, le=100)
+    current_step_id: str = "offload-plan"
+    operator_summary: str = "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨."
     steps: list[RuntimeAugmentationWorkflowStep] = Field(default_factory=list)
     offload_path: RuntimeAugmentationOffloadPath
 

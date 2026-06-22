@@ -116,6 +116,15 @@ def validate_runtime_augmentation(payload: JsonMap) -> list[str]:
         workflow = {}
     if workflow.get("status") != "offload_planned":
         errors.append(f"workflow_demo.status={workflow.get('status')!r}, expected 'offload_planned'")
+    if workflow.get("automation_trigger") != "runtime_metrics_observed":
+        errors.append(f"workflow_demo.automation_trigger={workflow.get('automation_trigger')!r}, expected 'runtime_metrics_observed'")
+    progress = workflow.get("progress_percent")
+    if not isinstance(progress, int) or progress < 1 or progress > 100:
+        errors.append(f"workflow_demo.progress_percent={progress!r}, expected integer 1..100")
+    if workflow.get("current_step_id") != "offload-plan":
+        errors.append(f"workflow_demo.current_step_id={workflow.get('current_step_id')!r}, expected 'offload-plan'")
+    if not workflow.get("operator_summary"):
+        errors.append("workflow_demo.operator_summary must be present")
     steps = workflow.get("steps")
     if not isinstance(steps, list):
         errors.append("workflow_demo.steps is not a list")

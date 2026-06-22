@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=dashboard-refactor-20260619" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=runtime-workflow-demo-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -368,6 +368,16 @@
                 <div class="augmentation-stage event"><span>Augmented Device</span><strong>operator view</strong></div>
               </div>
               <div class="augmentation-workflow-demo">
+                <div class="augmentation-demo-progress">
+                  <div>
+                    <span>자동 데모 진행</span>
+                    <strong id="augmentationWorkflowSummary">observed runtime 판단 대기</strong>
+                  </div>
+                  <div class="augmentation-progress-meter">
+                    <span class="augmentation-progress-bar"><i id="augmentationWorkflowProgress"></i></span>
+                    <b id="augmentationWorkflowProgressText">0%</b>
+                  </div>
+                </div>
                 <div>
                   <h4>진행 단계</h4>
                   <ol id="augmentationWorkflowSteps" class="augmentation-workflow-steps"></ol>
@@ -571,6 +581,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=resource-augmentation-flow-first-20260619"></script>
+    <script src="/static/resource-augmentation.js?v=runtime-workflow-demo-20260622"></script>
   </body>
 </html>

@@ -376,6 +376,68 @@ button {
   gap: 10px;
 }
 
+.augmentation-demo-progress {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--ops-panel-border);
+  border-radius: 8px;
+  background: var(--ops-panel-soft);
+  padding: 12px;
+}
+
+.augmentation-demo-progress div,
+.augmentation-demo-progress strong,
+.augmentation-demo-progress span,
+.augmentation-demo-progress b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.augmentation-demo-progress > div:first-child span {
+  display: block;
+  color: var(--ops-muted);
+  font-size: 12px;
+}
+
+.augmentation-demo-progress > div:first-child strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ops-text);
+  line-height: 1.3;
+}
+
+.augmentation-progress-meter {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 42px;
+  gap: 10px;
+  align-items: center;
+}
+
+.augmentation-progress-bar {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: #dbe7ed;
+  overflow: hidden;
+}
+
+.augmentation-progress-bar i {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #087f5b, #08a6b8);
+}
+
+.augmentation-workflow-steps li.current {
+  border-color: #087c8f;
+  box-shadow: 0 0 0 2px rgba(8, 124, 143, 0.12);
+}
+
 .augmentation-flow-canvas i {
   display: none;
 }
@@ -454,6 +516,11 @@ code {
     grid-template-columns: 1fr;
     align-items: start;
     gap: 8px;
+  }
+
+  .augmentation-demo-progress,
+  .augmentation-progress-meter {
+    grid-template-columns: 1fr;
   }
 
   .augmentation-recommendation-row b,

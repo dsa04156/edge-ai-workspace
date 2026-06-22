@@ -273,9 +273,14 @@ function renderAugmentationDecision() {
 function normalizeWorkflowDemo(workflowDemo) {
   if (!workflowDemo || typeof workflowDemo !== "object") return null;
   const offloadPath = workflowDemo.offload_path || {};
+  const progressPercent = Math.max(0, Math.min(100, Number(workflowDemo.progress_percent) || 0));
   return {
     name: workflowDemo.name || "-",
     status: workflowDemo.status || "unknown",
+    automationTrigger: workflowDemo.automation_trigger || "runtime_metrics_observed",
+    progressPercent,
+    currentStepId: workflowDemo.current_step_id || "",
+    operatorSummary: workflowDemo.operator_summary || "",
     steps: Array.isArray(workflowDemo.steps) ? workflowDemo.steps : [],
     offloadPath: {
       source: offloadPath.source || "-",
@@ -294,16 +299,28 @@ function workflowStepLabel(state) {
   }[state] || augText(state, "unknown");
 }
 
+function workflowAutomationLabel(value) {
+  return {
+    runtime_metrics_observed: "런타임 관측 기반 자동 판단",
+  }[value] || augText(value, "자동 판단");
+}
+
 function renderAugmentationWorkflowDemo() {
   const workflow = augmentationState.workflowDemo;
   augEl("augmentationWorkflowStatus").textContent = workflow ? `${workflow.name} · ${workflow.status}` : "workflow pending";
   if (!workflow) {
+    augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
+    augEl("augmentationWorkflowProgress").style.width = "0%";
+    augEl("augmentationWorkflowProgressText").textContent = "0%";
     augEl("augmentationWorkflowSteps").innerHTML = "";
     augEl("augmentationOffloadPath").innerHTML = '<div class="workflow-empty">오프로딩 경로 대기 중입니다.</div>';
     return;
   }
+  augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${workflow.operatorSummary || workflow.status}`;
+  augEl("augmentationWorkflowProgress").style.width = `${workflow.progressPercent}%`;
+  augEl("augmentationWorkflowProgressText").textContent = `${workflow.progressPercent}%`;
   augEl("augmentationWorkflowSteps").innerHTML = workflow.steps.map((step) => `
-    <li class="${augEscape(step.state || "planned")}">
+    <li class="${augEscape(step.state || "planned")} ${step.id === workflow.currentStepId ? "current" : ""}">
       <b>${augEscape(workflowStepLabel(step.state))}</b>
       <span><strong>${augEscape(step.label || step.id)}</strong><em>${augEscape(step.detail || "-")}</em></span>
     </li>

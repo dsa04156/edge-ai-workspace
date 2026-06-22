@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=dashboard-refactor-20260619"
+    refactor_link = "/static/dashboard-refactor.css?v=runtime-workflow-demo-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -42,3 +42,13 @@ def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:
     assert "align-items: center;" in css
     assert ".augmentation-recommendation-row span" in css
     assert "line-height: 1.25;" in css
+
+
+def test_dashboard_refactor_supports_augmentation_demo_progress_without_overflow() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".augmentation-demo-progress" in css
+    assert ".augmentation-progress-bar" in css
+    assert ".augmentation-workflow-steps li.current" in css
+    assert "grid-template-columns: minmax(0, 1fr) auto;" in css
+    assert "overflow-wrap: anywhere;" in css

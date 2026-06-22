@@ -70,6 +70,10 @@ def test_runtime_augmentation_state_exposes_workflow_demo_and_offload_path() -> 
     workflow = state.workflow_demo
     assert workflow.name == "inspection-resource-augmentation-demo"
     assert workflow.status == "offload_planned"
+    assert workflow.automation_trigger == "runtime_metrics_observed"
+    assert workflow.progress_percent == 80
+    assert workflow.current_step_id == "offload-plan"
+    assert workflow.operator_summary == "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨."
     assert [step.state for step in workflow.steps] == [
         "completed",
         "completed",

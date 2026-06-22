@@ -53,6 +53,10 @@ def test_runtime_resource_augmentation_checker_accepts_candidate_pool_and_augmen
         "workflow_demo": {
             "name": "inspection-resource-augmentation-demo",
             "status": "offload_planned",
+            "automation_trigger": "runtime_metrics_observed",
+            "progress_percent": 80,
+            "current_step_id": "offload-plan",
+            "operator_summary": "GPU 추론과 결과 캐시 오프로딩이 observed-only 바인딩 계획으로 준비됨.",
             "steps": [
                 {"id": "service-request", "state": "completed"},
                 {"id": "pressure-detected", "state": "completed"},
@@ -110,3 +114,61 @@ def test_runtime_resource_augmentation_checker_rejects_waiting_virtual_device_po
     errors = module.validate_runtime_augmentation(payload)
 
     assert "legacy virtual_devices waiting pool must not be present" in errors
+
+
+def test_runtime_resource_augmentation_checker_rejects_missing_workflow_progress() -> None:
+    module = load_checker()
+    payload = {
+        "scope": "runtime_resource_augmentation_demo_v1",
+        "ai_service": "factory-vision-inspection-ai",
+        "summary": {"candidate_resource_total": 15, "available": 12, "bound": 0, "blocked": 3},
+        "candidate_resources": [
+            {"name": "vd-x86-gpu-inference", "kind": "gpu-inference", "phase": "Available"},
+            {"name": "vd-storage-cache", "kind": "storage-cache", "phase": "Available"},
+        ] + [
+            {"name": f"aug-gpu-x86-{index:03d}", "kind": "gpu-inference", "phase": "Available"}
+            for index in range(1, 9)
+        ] + [
+            {"name": "aug-storage-cache-001", "kind": "storage-cache", "phase": "Available"},
+            {"name": "aug-model-cache-001", "kind": "model-cache", "phase": "Available"},
+            {"name": "aug-jetson-gpu-001", "kind": "gpu-inference", "phase": "Blocked"},
+            {"name": "aug-jetson-gpu-002", "kind": "gpu-inference", "phase": "Blocked"},
+            {"name": "aug-storage-cache-002", "kind": "storage-cache", "phase": "Blocked"},
+        ],
+        "decision": {
+            "state": "selected",
+            "trigger": "service_resource_request",
+            "ai_service": "factory-vision-inspection-ai",
+            "candidate_resource_names": ["vd-x86-gpu-inference", "vd-storage-cache"],
+            "selected_resources": [
+                {"role": "inference", "name": "vd-x86-gpu-inference"},
+                {"role": "storage", "name": "vd-storage-cache"},
+            ],
+            "resulting_augmented_device": {
+                "name": "ad-jetorn-inspection-001",
+                "target_device": "etri-dev0001-jetorn",
+            },
+        },
+        "workflow_demo": {
+            "status": "offload_planned",
+            "steps": [
+                {"id": "service-request", "state": "completed"},
+                {"id": "pressure-detected", "state": "completed"},
+                {"id": "candidate-scan", "state": "completed"},
+                {"id": "offload-plan", "state": "active"},
+                {"id": "augmented-device-bind", "state": "planned"},
+            ],
+            "offload_path": {
+                "source": "etri-dev0001-jetorn",
+                "inference": "vd-x86-gpu-inference",
+                "cache": "vd-storage-cache",
+                "result": "ad-jetorn-inspection-001",
+            },
+        },
+    }
+
+    errors = module.validate_runtime_augmentation(payload)
+
+    assert "workflow_demo.automation_trigger=None, expected 'runtime_metrics_observed'" in errors
+    assert "workflow_demo.progress_percent=None, expected integer 1..100" in errors
+    assert "workflow_demo.current_step_id=None, expected 'offload-plan'" in errors
