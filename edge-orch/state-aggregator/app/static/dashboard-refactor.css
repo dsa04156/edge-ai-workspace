@@ -1766,7 +1766,7 @@ button:focus-visible,
 }
 
 .workflow-studio {
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 14px;
 }
 
