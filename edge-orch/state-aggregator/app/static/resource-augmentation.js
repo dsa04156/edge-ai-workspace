@@ -330,6 +330,80 @@ function renderAugmentationAtGlance(workflow, frame) {
   augEl("augmentationAtGlanceResult").textContent = augmentedDevice.name || "-";
 }
 
+function augmentationNodeCanvasModel(workflow) {
+  const decision = augmentationState.decision || {};
+  const selectedResources = decision.selectedResources || [];
+  const inference = selectedResources.find((resource) => resource.role === "inference")?.name || "inference pending";
+  const storage = selectedResources.find((resource) => resource.role === "storage")?.name || "cache pending";
+  const result = decision.resultingAugmentedDevice?.name || "augmented device pending";
+  const candidateCount = augmentationState.runtimeSummary.candidate_resource_total || augmentationState.candidateResources.length || 0;
+  const pressure = decision.pressureReason?.join(" + ") || "pressure pending";
+  return {
+    nodes: [
+      { id: "ai-service", stepId: "service-request", kind: "trigger", title: "AI Service", value: augmentationState.aiService || decision.aiService || "-", meta: "factory vision", x: 8, y: 18, order: 0 },
+      { id: "edge-device", stepId: "service-request", kind: "device", title: "Edge Device", value: decision.targetDevice || "-", meta: "physical target", x: 29, y: 18, order: 1 },
+      { id: "pressure", stepId: "pressure-detected", kind: "pressure", title: "Runtime Pressure", value: `${decision.pressureScore || 0}% pressure`, meta: pressure, x: 50, y: 18, order: 2 },
+      { id: "candidates", stepId: "candidate-scan", kind: "pool", title: "Candidate Pool", value: `${candidateCount} resources`, meta: "availability scan", x: 71, y: 18, order: 3 },
+      { id: "gpu-offload", stepId: "offload-plan", kind: "resource", title: "GPU Offload", value: inference, meta: "remote inference", x: 39, y: 68, order: 4 },
+      { id: "cache-offload", stepId: "offload-plan", kind: "resource", title: "Cache Offload", value: storage, meta: "result window", x: 61, y: 68, order: 5 },
+      { id: "augmented-device", stepId: "augmented-device-bind", kind: "result", title: "Augmented Device", value: result, meta: workflow?.status || "planned binding", x: 84, y: 68, order: 6 },
+    ],
+    edges: [
+      ["ai-service", "edge-device"],
+      ["edge-device", "pressure"],
+      ["pressure", "candidates"],
+      ["candidates", "gpu-offload"],
+      ["candidates", "cache-offload"],
+      ["gpu-offload", "augmented-device"],
+      ["cache-offload", "augmented-device"],
+    ],
+  };
+}
+
+function renderAugmentationNodeCanvas(workflow, frame) {
+  const nodesEl = augEl("augmentationGraphNodes");
+  const edgesEl = augEl("augmentationGraphEdges");
+  if (!nodesEl || !edgesEl) return;
+  if (!workflow) {
+    nodesEl.innerHTML = "";
+    edgesEl.innerHTML = "";
+    return;
+  }
+  const activeStepId = frame?.activeStepId || workflow.currentStepId;
+  const model = augmentationNodeCanvasModel(workflow);
+  const nodesById = Object.fromEntries(model.nodes.map((node) => [node.id, node]));
+  const activeOrder = model.nodes.find((node) => node.stepId === activeStepId)?.order ?? -1;
+  edgesEl.innerHTML = `
+    <defs>
+      <marker id="augmentationArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z"></path>
+      </marker>
+    </defs>
+    ${model.edges.map(([fromId, toId]) => {
+      const from = nodesById[fromId];
+      const to = nodesById[toId];
+      if (!from || !to) return "";
+      const x1 = from.x * 10;
+      const y1 = from.y * 3.9;
+      const x2 = to.x * 10;
+      const y2 = to.y * 3.9;
+      const bend = Math.max(56, Math.abs(x2 - x1) * 0.34);
+      const active = from.order <= activeOrder && to.order <= activeOrder + 1;
+      return `<path class="${active ? "active" : ""}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}" marker-end="url(#augmentationArrow)"></path>`;
+    }).join("")}
+  `;
+  nodesEl.innerHTML = model.nodes.map((node) => {
+    const state = node.stepId === activeStepId ? "current" : node.order < activeOrder ? "completed" : "planned";
+    return `
+      <article class="augmentation-graph-node ${augEscape(node.kind)} ${augEscape(state)}" style="--x: ${node.x}%; --y: ${node.y}%">
+        <span>${augEscape(node.title)}</span>
+        <strong>${augEscape(node.value)}</strong>
+        <em>${augEscape(node.meta)}</em>
+      </article>
+    `;
+  }).join("");
+}
+
 function workflowPlaybackSignature(workflow) {
   return [
     workflow.name,
@@ -363,6 +437,7 @@ function renderAugmentationWorkflowFrame(workflow, frame) {
   const summary = frame?.summary || workflow.operatorSummary || workflow.status;
   const phaseLabel = frame?.label ? `${frame.label} · ` : "";
   renderAugmentationAtGlance(workflow, frame);
+  renderAugmentationNodeCanvas(workflow, frame);
   augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${phaseLabel}${summary}`;
   augEl("augmentationWorkflowProgress").style.width = `${progressPercent}%`;
   augEl("augmentationWorkflowProgressText").textContent = `${progressPercent}%`;
@@ -406,6 +481,7 @@ function renderAugmentationWorkflowDemo() {
   if (!workflow) {
     stopAugmentationWorkflowPlayback();
     renderAugmentationAtGlance(null, null);
+    renderAugmentationNodeCanvas(null, null);
     augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
     augEl("augmentationWorkflowProgress").style.width = "0%";
     augEl("augmentationWorkflowProgressText").textContent = "0%";

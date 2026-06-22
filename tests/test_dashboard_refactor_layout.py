@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=augmentation-at-glance-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=augmentation-node-canvas-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -62,3 +62,14 @@ def test_dashboard_refactor_adds_compact_augmentation_at_glance_panel() -> None:
     assert ".augmentation-glance-flow" in css
     assert "grid-template-columns: repeat(5, minmax(150px, 1fr));" in css
     assert ".augmentation-glance-card.current" in css
+
+
+def test_dashboard_refactor_adds_n8n_style_augmentation_node_canvas() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+
+    assert ".augmentation-node-canvas" in css
+    assert ".augmentation-graph-edges" in css
+    assert ".augmentation-graph-nodes" in css
+    assert ".augmentation-graph-node.current" in css
+    assert "min-height: 390px;" in css
+    assert "position: absolute;" in css

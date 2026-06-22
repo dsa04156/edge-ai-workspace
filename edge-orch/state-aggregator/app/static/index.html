@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-at-glance-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-node-canvas-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -393,6 +393,10 @@
                 <i></i>
                 <div class="augmentation-stage event"><span>Augmented Device</span><strong>operator view</strong></div>
               </div>
+              <div id="augmentationNodeCanvas" class="augmentation-node-canvas" aria-label="n8n style runtime augmentation graph">
+                <svg id="augmentationGraphEdges" class="augmentation-graph-edges" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true"></svg>
+                <div id="augmentationGraphNodes" class="augmentation-graph-nodes"></div>
+              </div>
               <div class="augmentation-workflow-demo">
                 <div class="augmentation-demo-progress">
                   <div>
@@ -607,6 +611,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=augmentation-at-glance-20260622"></script>
+    <script src="/static/resource-augmentation.js?v=augmentation-node-canvas-20260622"></script>
   </body>
 </html>
