@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=augmentation-workflow-canvas-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=augmentation-dynamic-canvas-20260622"
     assert refactor_link in html
     assert html.index(refactor_link) > html.index("/static/theme-refresh.css")
 
@@ -71,6 +71,12 @@ def test_dashboard_refactor_adds_n8n_style_augmentation_node_canvas() -> None:
     assert ".augmentation-graph-edges" in css
     assert ".augmentation-graph-nodes" in css
     assert ".augmentation-edge-label" in css
+    assert ".augmentation-flow-packet" in css
+    assert ".augmentation-node-badge" in css
+    assert ".augmentation-playback-inspector" in css
+    assert ".augmentation-execution-timeline" in css
+    assert "animation: augmentationEdgeFlow" in css
+    assert "@keyframes augmentationNodePulse" in css
     assert ".augmentation-graph-node.current" in css
     assert "min-height: 390px;" in css
     assert "position: absolute;" in css

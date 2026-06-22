@@ -15,6 +15,8 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationWorkflowProgress"' in html
     assert 'id="augmentationWorkflowProgressText"' in html
     assert 'id="augmentationWorkflowSummary"' in html
+    assert 'id="augmentationPlaybackInspector"' in html
+    assert 'id="augmentationExecutionTimeline"' in html
     assert 'id="augmentationAtGlance"' in html
     assert 'id="augmentationAtGlancePhase"' in html
     assert 'id="augmentationAtGlanceService"' in html
@@ -38,6 +40,9 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "renderAugmentationWorkflowFrame" in js
     assert "renderAugmentationAtGlance" in js
     assert "renderAugmentationNodeCanvas" in js
+    assert "renderAugmentationPlaybackInspector" in js
+    assert "renderAugmentationExecutionTimeline" in js
+    assert "augmentationNodePayload" in js
     assert "augmentationNodeCanvasModel" in js
     assert "Observe Edge Device" in js
     assert "Detect Resource Pressure" in js
@@ -54,6 +59,9 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "scenario_timeline" in js
     assert "playback_interval_ms" in js
     assert "workflowAutomationLabel" in js
+    assert "data-workflow-node-id" in js
+    assert "flowing" in js
+    assert "augmentation-flow-packet" in js
     assert "workflow_demo" in js
     assert "progress_percent" in js
     assert "current_step_id" in js
@@ -65,3 +73,15 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert "ai_service" in js
     assert html.index('class="augmentation-flow"') < html.index('class="augmentation-recommendations"')
     assert html.index('class="augmentation-bottom-grid"') < html.index('class="augmentation-grid"')
+
+
+def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+
+    assert ">Assets<" in html
+    assert "Asset Inventory" in html
+    assert "Registered Assets" in html
+    assert "개 자산" not in js
+    assert "자산 현황" not in html
+    assert "등록 자산" not in html

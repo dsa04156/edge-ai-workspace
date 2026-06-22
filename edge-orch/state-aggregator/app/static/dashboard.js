@@ -223,7 +223,7 @@ function renderDeviceFilterSummary(totalCount, visibleCount) {
     const parts = [];
     if (state.selectedNodeName) parts.push(`node ${state.selectedNodeName}`);
     if (state.publisherModeFilter && state.publisherModeFilter !== "all") parts.push(`publisher ${publisherModeLabel(state.publisherModeFilter)}`);
-    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "등록 자산";
+    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "Registered Assets";
   }
   if (clear) clear.hidden = !state.selectedNodeName;
 }
@@ -667,7 +667,7 @@ function render() {
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", pct(kpis.device_service_binding_ratio));
   setText("serviceBindingCaption", `${boundDevices}/${registeredDevices}개 device 연결`);
-  setText("assetCount", `${nodes.length + devices.length}개 자산`);
+  setText("assetCount", `${nodes.length + devices.length} assets`);
   setText("riskCount", `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderKpiCatalog(kpis);

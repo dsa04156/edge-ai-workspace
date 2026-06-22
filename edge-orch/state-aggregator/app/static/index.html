@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/workflow.css?v=workflow-canvas-20260617" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=workflow-canvas-20260617" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-workflow-canvas-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=augmentation-dynamic-canvas-20260622" />
   </head>
   <body>
     <main class="shell">
@@ -26,7 +26,7 @@
 
       <nav class="main-menu" aria-label="dashboard pages">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">개요</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">자산</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">Assets</button>
         <button type="button" data-dashboard-page="workflow" aria-pressed="false">워크플로우</button>
         <button type="button" data-dashboard-page="augmentation" aria-pressed="false">자원증강</button>
       </nav>
@@ -163,8 +163,8 @@
         <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">자산</p>
-              <h2>자산 현황</h2>
+              <p class="section-kicker">Assets</p>
+              <h2>Asset Inventory</h2>
             </div>
             <span id="assetCount">0 assets</span>
           </div>
@@ -180,7 +180,7 @@
               <div class="asset-column-head">
                 <h3>디바이스</h3>
                 <div class="device-filter-bar">
-                  <span id="deviceFilterLabel">등록 자산</span>
+                  <span id="deviceFilterLabel">Registered Assets</span>
                   <button id="clearNodeFilter" class="ghost-button" type="button" hidden>필터 해제</button>
                 </div>
               </div>
@@ -408,6 +408,7 @@
                     <b id="augmentationWorkflowProgressText">0%</b>
                   </div>
                 </div>
+                <div id="augmentationPlaybackInspector" class="augmentation-playback-inspector" aria-live="polite"></div>
                 <div>
                   <h4>진행 단계</h4>
                   <ol id="augmentationWorkflowSteps" class="augmentation-workflow-steps"></ol>
@@ -415,6 +416,10 @@
                 <div>
                   <h4>오프로딩 경로</h4>
                   <div id="augmentationOffloadPath" class="augmentation-offload-path"></div>
+                </div>
+                <div>
+                  <h4>Execution Timeline</h4>
+                  <ol id="augmentationExecutionTimeline" class="augmentation-execution-timeline"></ol>
                 </div>
               </div>
               <div id="augmentationInstanceLane" class="augmentation-instance-lane"></div>
@@ -611,6 +616,6 @@
     <script src="/static/workflow-actions.js?v=workflow-canvas-20260617"></script>
     <script src="/static/workflow.js?v=workflow-canvas-20260617"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=augmentation-workflow-canvas-20260622"></script>
+    <script src="/static/resource-augmentation.js?v=augmentation-dynamic-canvas-20260622"></script>
   </body>
 </html>

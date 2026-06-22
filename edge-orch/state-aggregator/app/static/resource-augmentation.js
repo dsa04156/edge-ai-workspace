@@ -319,6 +319,34 @@ function workflowAutomationLabel(value) {
   }[value] || augText(value, "자동 판단");
 }
 
+function workflowRuntimeStatusLabel(state) {
+  return {
+    completed: "completed",
+    current: "running",
+    planned: "waiting",
+  }[state] || augText(state, "waiting");
+}
+
+function workflowNodeStates(model, activeStepId) {
+  const activeNodes = model.nodes.filter((node) => node.stepId === activeStepId);
+  const activeOrderMin = activeNodes.length ? Math.min(...activeNodes.map((node) => node.order)) : -1;
+  return Object.fromEntries(model.nodes.map((node) => {
+    const state = node.stepId === activeStepId ? "current" : node.order < activeOrderMin ? "completed" : "planned";
+    return [node.id, state];
+  }));
+}
+
+function augmentationNodePayload(model, activeStepId, frame) {
+  const states = workflowNodeStates(model, activeStepId);
+  const activeNode = model.nodes.find((node) => node.stepId === activeStepId) || model.nodes[0];
+  return {
+    states,
+    activeNode,
+    phase: frame?.label || activeNode?.title || "workflow playback",
+    summary: frame?.summary || activeNode?.meta || "runtime observation pending",
+  };
+}
+
 function renderAugmentationAtGlance(workflow, frame) {
   const decision = augmentationState.decision || {};
   const augmentedDevice = decision.resultingAugmentedDevice || {};
@@ -370,7 +398,8 @@ function renderAugmentationNodeCanvas(workflow, frame) {
   const activeStepId = frame?.activeStepId || workflow.currentStepId;
   const model = augmentationNodeCanvasModel(workflow);
   const nodesById = Object.fromEntries(model.nodes.map((node) => [node.id, node]));
-  const activeOrder = model.nodes.find((node) => node.stepId === activeStepId)?.order ?? -1;
+  const payload = augmentationNodePayload(model, activeStepId, frame);
+  const nodeStates = payload.states;
   edgesEl.innerHTML = `
     <defs>
       <marker id="augmentationArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -386,23 +415,73 @@ function renderAugmentationNodeCanvas(workflow, frame) {
       const x2 = to.x * 10;
       const y2 = to.y * 3.9;
       const bend = Math.max(56, Math.abs(x2 - x1) * 0.34);
-      const active = from.order <= activeOrder && to.order <= activeOrder + 1;
+      const fromState = nodeStates[from.id] || "planned";
+      const toState = nodeStates[to.id] || "planned";
+      const edgeState = toState === "completed" ? "completed" : ["current", "completed"].includes(fromState) && toState !== "completed" ? "flowing" : "planned";
       const midX = (x1 + x2) / 2;
       const midY = (y1 + y2) / 2 - 8;
       return `
-        <path class="${active ? "active" : ""}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}" marker-end="url(#augmentationArrow)"></path>
-        <text class="augmentation-edge-label ${active ? "active" : ""}" x="${midX}" y="${midY}">${augEscape(label || "")}</text>
+        <path class="${augEscape(edgeState)} ${edgeState === "flowing" ? "active" : ""}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}" marker-end="url(#augmentationArrow)"></path>
+        ${edgeState === "flowing" ? `<circle class="augmentation-flow-packet" r="5"><animateMotion dur="1.8s" repeatCount="indefinite" path="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}"></animateMotion></circle>` : ""}
+        <text class="augmentation-edge-label ${edgeState === "planned" ? "" : "active"}" x="${midX}" y="${midY}">${augEscape(label || "")}</text>
       `;
     }).join("")}
   `;
   nodesEl.innerHTML = model.nodes.map((node) => {
-    const state = node.stepId === activeStepId ? "current" : node.order < activeOrder ? "completed" : "planned";
+    const state = nodeStates[node.id] || "planned";
+    const badge = workflowRuntimeStatusLabel(state);
     return `
-      <article class="augmentation-graph-node ${augEscape(node.kind)} ${augEscape(state)}" style="--x: ${node.x}%; --y: ${node.y}%">
+      <article class="augmentation-graph-node ${augEscape(node.kind)} ${augEscape(state)}" data-workflow-node-id="${augEscape(node.id)}" style="--x: ${node.x}%; --y: ${node.y}%">
+        <b class="augmentation-node-badge">${augEscape(badge)}</b>
         <span>${augEscape(node.title)}</span>
         <strong>${augEscape(node.value)}</strong>
         <em>${augEscape(node.meta)}</em>
       </article>
+    `;
+  }).join("");
+}
+
+function renderAugmentationPlaybackInspector(workflow, frame) {
+  const el = augEl("augmentationPlaybackInspector");
+  if (!el) return;
+  if (!workflow) {
+    el.innerHTML = '<div class="workflow-empty">Runtime playback pending</div>';
+    return;
+  }
+  const model = augmentationNodeCanvasModel(workflow);
+  const payload = augmentationNodePayload(model, frame?.activeStepId || workflow.currentStepId, frame);
+  const currentIndex = Math.max(0, workflow.scenarioTimeline.findIndex((phase) => phase.id === frame?.id));
+  const elapsedSeconds = currentIndex * Math.round(workflow.playbackIntervalMs / 1000);
+  el.innerHTML = `
+    <div>
+      <span>Now running</span>
+      <strong>${augEscape(payload.activeNode?.title || "-")}</strong>
+      <em>${augEscape(payload.summary)}</em>
+    </div>
+    <dl>
+      <div><dt>phase</dt><dd>${augEscape(payload.phase)}</dd></div>
+      <div><dt>elapsed</dt><dd>${elapsedSeconds}s</dd></div>
+      <div><dt>mode</dt><dd>read-only playback</dd></div>
+    </dl>
+  `;
+}
+
+function renderAugmentationExecutionTimeline(workflow, frame) {
+  const el = augEl("augmentationExecutionTimeline");
+  if (!el) return;
+  if (!workflow) {
+    el.innerHTML = "";
+    return;
+  }
+  const activeIndex = Math.max(0, workflow.scenarioTimeline.findIndex((phase) => phase.id === frame?.id));
+  el.innerHTML = workflow.scenarioTimeline.map((phase, index) => {
+    const state = index === activeIndex ? "current" : index < activeIndex ? "completed" : "planned";
+    const seconds = index * Math.round(workflow.playbackIntervalMs / 1000);
+    return `
+      <li class="${augEscape(state)}">
+        <b>00:${String(seconds).padStart(2, "0")}</b>
+        <span><strong>${augEscape(phase.label || phase.id || "-")}</strong><em>${augEscape(phase.summary || "-")}</em></span>
+      </li>
     `;
   }).join("");
 }
@@ -441,6 +520,8 @@ function renderAugmentationWorkflowFrame(workflow, frame) {
   const phaseLabel = frame?.label ? `${frame.label} · ` : "";
   renderAugmentationAtGlance(workflow, frame);
   renderAugmentationNodeCanvas(workflow, frame);
+  renderAugmentationPlaybackInspector(workflow, frame);
+  renderAugmentationExecutionTimeline(workflow, frame);
   augEl("augmentationWorkflowSummary").textContent = `${workflowAutomationLabel(workflow.automationTrigger)} · ${phaseLabel}${summary}`;
   augEl("augmentationWorkflowProgress").style.width = `${progressPercent}%`;
   augEl("augmentationWorkflowProgressText").textContent = `${progressPercent}%`;
@@ -485,6 +566,8 @@ function renderAugmentationWorkflowDemo() {
     stopAugmentationWorkflowPlayback();
     renderAugmentationAtGlance(null, null);
     renderAugmentationNodeCanvas(null, null);
+    renderAugmentationPlaybackInspector(null, null);
+    renderAugmentationExecutionTimeline(null, null);
     augEl("augmentationWorkflowSummary").textContent = "observed runtime 판단 대기";
     augEl("augmentationWorkflowProgress").style.width = "0%";
     augEl("augmentationWorkflowProgressText").textContent = "0%";
