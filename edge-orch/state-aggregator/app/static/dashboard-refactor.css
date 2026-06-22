@@ -72,7 +72,7 @@ label {
 
 .topbar h1 {
   color: #f8fcfd;
-  font-size: clamp(24px, 2.6vw, 34px);
+  font-size: 34px;
   line-height: 1.1;
 }
 
@@ -166,7 +166,7 @@ button {
 .metric strong {
   margin-top: 8px;
   color: var(--ops-text);
-  font-size: clamp(25px, 2vw, 32px);
+  font-size: 32px;
   line-height: 1.05;
 }
 
@@ -1458,7 +1458,7 @@ textarea {
 
 .topbar h1 {
   color: #ffffff;
-  font-size: clamp(28px, 3vw, 42px);
+  font-size: 42px;
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: 0;
@@ -1642,7 +1642,7 @@ button:focus-visible,
 .metric strong {
   margin-top: 8px;
   color: #0e2738;
-  font-size: clamp(28px, 2.4vw, 36px);
+  font-size: 36px;
   font-weight: 850;
 }
 
@@ -1897,6 +1897,10 @@ button:focus-visible,
 
   .panel {
     padding: 14px;
+  }
+
+  .metric strong {
+    font-size: 30px;
   }
 
   .workflow-palette,
