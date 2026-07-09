@@ -52,3 +52,15 @@ def test_dashboard_screen_keeps_kpi_catalog_cjk_labels_unsplit() -> None:
     assert "white-space: nowrap !important;" in css
     assert ".kpi-catalog-row code" in css
     assert "overflow-wrap: anywhere !important;" in css
+
+
+def test_dashboard_screen_collapses_mid_width_layout_before_cards_overlap() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+
+    assert "clamp(320px, 28vw, 376px)" in css
+    assert "@media (max-width: 1360px)" in css
+    assert ".ops-shell" in css
+    assert ".side-rail" in css
+    assert ".overview-ops-grid.dashboard-page.active" in css
+    assert ".overview-visual-grid" in css
+    assert ".kpi-catalog-row strong" in css

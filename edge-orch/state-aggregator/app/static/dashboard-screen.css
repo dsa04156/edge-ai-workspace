@@ -368,7 +368,7 @@ button:focus-visible,
 .ops-shell {
   grid-area: workspace;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 376px;
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 28vw, 376px);
   gap: 16px;
   width: 100%;
   min-width: 0;
@@ -700,6 +700,42 @@ button:focus-visible,
   white-space: normal !important;
   word-break: normal !important;
   overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 1360px) {
+  .ops-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side-rail {
+    grid-column: 1 / -1 !important;
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .overview-ops-grid.dashboard-page.active,
+  .overview-visual-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kpi-catalog-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .kpi-catalog-row span {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .kpi-catalog-row strong {
+    justify-self: start;
+    text-align: left !important;
+  }
+
+  .kpi-catalog-row code {
+    grid-column: 1 / -1;
+  }
 }
 
 .health-ring-card,
