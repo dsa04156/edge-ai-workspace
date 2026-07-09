@@ -26,9 +26,10 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
 
-    assert "--console-bg: #15191d;" in css
-    assert "--console-rail: #07090b;" in css
-    assert "--console-yellow: #f4ea2a;" in css
+    assert "--console-bg: #020617;" in css
+    assert "--console-rail: #020617;" in css
+    assert "--console-accent: #22c55e;" in css
+    assert "--console-yellow: var(--console-accent);" in css
     assert "--line: var(--console-border);" in css
     assert "--text: var(--console-text);" in css
     assert "--muted: var(--console-muted);" in css

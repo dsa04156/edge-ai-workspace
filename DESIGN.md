@@ -8,23 +8,26 @@ The dashboard is a dense Kubernetes-style resource console for a mixed-device ed
 
 | Role | Token | Value | Usage |
 |------|-------|-------|-------|
-| App background | --console-bg | #15191d | Page canvas |
-| Resource rail | --console-rail | #07090b | Persistent navigation |
-| Command bar | --console-command | #1b2025 | Top search/context bar |
-| Panel | --console-panel | #20262b | Primary sections |
-| Row | --console-row | #1a1f24 | Tables, metrics, list rows |
-| Border | --console-border | #343c44 | Section separation |
-| Text | --console-text | #eef2f5 | Main content |
-| Muted | --console-muted | #9aa4ad | Metadata |
-| Selection | --console-yellow | #f4ea2a | Active nav and primary action |
-| Info | --console-blue | #49a6ff | Links and selected evidence |
-| Healthy | --console-green | #3dd56d | Available state |
-| Warning | --console-orange | #f5bd4f | Degraded/risk state |
-| Error | --console-red | #ff6b6b | Unavailable state |
+| App background | --console-bg | #020617 | Page canvas, from OLED dark kit |
+| Resource rail | --console-rail | #020617 | Persistent navigation |
+| Command bar | --console-command | #0F172A | Top search/context bar |
+| Panel | --console-panel | #0F172A | Primary sections |
+| Raised panel | --console-panel-2 | #1E293B | Controls and selected row surfaces |
+| Row | --console-row | #111827 | Tables, metrics, list rows |
+| Border | --console-border | #334155 | Section separation |
+| Text | --console-text | #F8FAFC | Main content |
+| Muted | --console-muted | #CBD5E1 | Metadata |
+| Dim | --console-dim | #94A3B8 | Low-priority metadata |
+| Accent / CTA | --console-accent | #22C55E | Active nav, primary action, focus |
+| Info | --console-blue | #38BDF8 | Links and selected evidence |
+| Healthy | --console-green | #22C55E | Available state |
+| Warning | --console-orange | #F59E0B | Degraded/risk state |
+| Error | --console-red | #F87171 | Unavailable state |
 
 Rules:
 
-- Yellow is only for selection and explicit primary action.
+- The color kit is OLED dark mode: `#020617`, `#0F172A`, `#1E293B`, `#22C55E`, `#F8FAFC`.
+- Green accent is only for selection, primary action, focus, and healthy state.
 - Status colors are only for state.
 - Panels use borders and tonal separation, not decorative shadows.
 
@@ -50,6 +53,7 @@ Breakpoints:
 - Desktop: `rail command` / `rail workspace`, workspace split into content plus 376px inspector.
 - Tablet: resource rail becomes horizontal, inspector stacks under workspace.
 - Mobile: one-column workspace, metric rows become vertical.
+- Mobile work surfaces keep graph/table content inside local horizontal scrollers instead of forcing the whole page wider than the viewport.
 
 ## 5. Components
 

@@ -1,25 +1,29 @@
 :root {
   color-scheme: dark;
 
-  --console-bg: #15191d;
-  --console-rail: #07090b;
-  --console-command: #1b2025;
-  --console-workspace: #191e23;
-  --console-panel: #20262b;
-  --console-panel-2: #252c32;
-  --console-row: #1a1f24;
-  --console-row-hover: #222932;
-  --console-border: #343c44;
-  --console-border-strong: #56616c;
-  --console-text: #eef2f5;
-  --console-muted: #9aa4ad;
-  --console-dim: #6f7a84;
-  --console-yellow: #f4ea2a;
-  --console-blue: #49a6ff;
-  --console-green: #3dd56d;
-  --console-orange: #f5bd4f;
-  --console-red: #ff6b6b;
-  --console-focus: 0 0 0 3px rgba(244, 234, 42, 0.28);
+  --console-bg: #020617;
+  --console-rail: #020617;
+  --console-command: #0f172a;
+  --console-workspace: #020617;
+  --console-panel: #0f172a;
+  --console-panel-2: #1e293b;
+  --console-row: #111827;
+  --console-row-hover: #1e293b;
+  --console-border: #334155;
+  --console-border-strong: #475569;
+  --console-text: #f8fafc;
+  --console-muted: #cbd5e1;
+  --console-dim: #94a3b8;
+  --console-accent: #22c55e;
+  --console-yellow: var(--console-accent);
+  --console-blue: #38bdf8;
+  --console-green: #22c55e;
+  --console-orange: #f59e0b;
+  --console-red: #f87171;
+  --console-ink: #020617;
+  --console-grid: rgba(148, 163, 184, 0.08);
+  --console-control: #0b1120;
+  --console-focus: 0 0 0 3px rgba(34, 197, 94, 0.28);
 
   --bg: var(--console-bg);
   --bg-deep: var(--console-bg);
@@ -45,14 +49,14 @@
   --radius-lg: 6px;
 
   --ops-bg: var(--console-bg);
-  --ops-grid: rgba(255, 255, 255, 0.028);
+  --ops-grid: var(--console-grid);
   --ops-panel-bg: var(--console-panel);
   --ops-panel-soft: var(--console-panel-2);
   --ops-panel-border: var(--console-border);
   --ops-text: var(--console-text);
   --ops-muted: var(--console-muted);
   --ops-accent: var(--console-yellow);
-  --ops-accent-soft: rgba(244, 234, 42, 0.13);
+  --ops-accent-soft: rgba(34, 197, 94, 0.13);
   --ops-success: var(--console-green);
   --ops-warn: var(--console-orange);
   --ops-danger: var(--console-red);
@@ -65,6 +69,12 @@
 
 html {
   scroll-padding-top: 88px;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -178,7 +188,7 @@ code,
   padding: 0 8px;
   border: 1px solid var(--console-border);
   border-radius: 3px;
-  background: #11161a;
+  background: var(--console-control);
   color: var(--console-muted);
   font-size: 12px;
   font-weight: 750;
@@ -193,7 +203,7 @@ code,
   padding: 0 12px;
   border: 1px solid var(--console-border-strong);
   border-radius: 4px;
-  background: #10151a;
+  background: var(--console-control);
   color: var(--console-muted);
 }
 
@@ -248,7 +258,7 @@ button,
 
 button:hover {
   border-color: var(--console-yellow);
-  background: #2d353d;
+  background: var(--console-panel-2);
   color: var(--console-yellow);
   transform: translateY(-1px);
 }
@@ -272,8 +282,8 @@ button:focus-visible,
   padding: 0 14px;
   border-color: var(--console-yellow);
   background: var(--console-yellow);
-  color: #101214;
-  -webkit-text-fill-color: #101214;
+  color: var(--console-ink);
+  -webkit-text-fill-color: var(--console-ink);
   font-weight: 850;
 }
 
@@ -335,12 +345,13 @@ button:focus-visible,
   font-size: 14px;
   font-weight: 800;
   text-align: left;
+  white-space: nowrap;
 }
 
 .main-menu button:hover {
   border-color: var(--console-border);
   border-left-color: var(--console-yellow);
-  background: #11171c;
+  background: var(--console-row);
   color: var(--console-text);
   -webkit-text-fill-color: var(--console-text);
 }
@@ -350,8 +361,8 @@ button:focus-visible,
   border-color: var(--console-yellow);
   border-left-color: var(--console-yellow);
   background: var(--console-yellow);
-  color: #101214;
-  -webkit-text-fill-color: #101214;
+  color: var(--console-ink);
+  -webkit-text-fill-color: var(--console-ink);
 }
 
 .ops-shell {
@@ -363,6 +374,13 @@ button:focus-visible,
   min-width: 0;
   margin: 0;
   padding: 16px 18px 28px;
+}
+
+.dashboard-page,
+.panel,
+.workflow-workbench,
+.augmentation-workbench {
+  max-width: 100%;
 }
 
 .ops-main {
@@ -638,7 +656,7 @@ button:focus-visible,
       var(--console-green) 0 var(--ok),
       var(--console-orange) var(--ok) calc(var(--ok) + var(--warn)),
       var(--console-red) calc(var(--ok) + var(--warn)) calc(var(--ok) + var(--warn) + var(--bad)),
-      #3a444d calc(var(--ok) + var(--warn) + var(--bad)) 100%
+      var(--console-border) calc(var(--ok) + var(--warn) + var(--bad)) 100%
     );
   box-shadow: none;
 }
@@ -714,7 +732,7 @@ button:focus-visible,
   overflow: hidden;
   border: 1px solid var(--console-border);
   border-radius: 99px;
-  background: #10151a;
+  background: var(--console-control);
 }
 
 .metric-bar i {
@@ -747,7 +765,7 @@ button:focus-visible,
 }
 
 #statusStackUnknown {
-  background: #46515b;
+  background: var(--console-border-strong);
 }
 
 .status-distribution-list {
@@ -869,6 +887,13 @@ button:focus-visible,
   overflow-y: auto;
 }
 
+.augmentation-table-shell,
+.resource-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .node-card,
 .device-row,
 .service-card,
@@ -938,6 +963,7 @@ button:focus-visible,
 table,
 .resource-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
   color: var(--console-text);
   font-size: 13px;
@@ -976,7 +1002,7 @@ td {
   background:
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    #11161a;
+    var(--console-control);
   background-size: 24px 24px, 24px 24px, auto;
 }
 
@@ -1050,6 +1076,7 @@ td {
 .augmentation-node-canvas {
   min-height: 360px;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .workflow-bottom-grid {
@@ -1089,7 +1116,7 @@ td {
   min-height: 34px;
   border: 1px solid var(--console-border-strong) !important;
   border-radius: 4px !important;
-  background: #10151a !important;
+  background: var(--console-control) !important;
   color: var(--console-text) !important;
   -webkit-text-fill-color: var(--console-text) !important;
 }
@@ -1169,8 +1196,8 @@ td {
 .shell .topbar #refreshButton {
   border-color: var(--console-yellow) !important;
   background: var(--console-yellow) !important;
-  color: #101214 !important;
-  -webkit-text-fill-color: #101214 !important;
+  color: var(--console-ink) !important;
+  -webkit-text-fill-color: var(--console-ink) !important;
   opacity: 1 !important;
 }
 
@@ -1187,8 +1214,8 @@ td {
 .side-rail .chat-actions button:not(:disabled) {
   border-color: var(--console-yellow) !important;
   background: var(--console-yellow) !important;
-  color: #101214 !important;
-  -webkit-text-fill-color: #101214 !important;
+  color: var(--console-ink) !important;
+  -webkit-text-fill-color: var(--console-ink) !important;
 }
 
 .side-rail .explain-empty,
@@ -1252,7 +1279,7 @@ td {
   min-width: 0;
   border: 1px solid var(--console-border);
   border-radius: 4px;
-  background: #10151a;
+  background: var(--console-control);
   color: var(--console-text);
 }
 
@@ -1327,11 +1354,14 @@ td {
 
   .main-menu {
     position: sticky;
-    top: 70px;
+    top: 86px;
     flex-direction: row;
     height: auto;
     padding: 10px 12px;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
     border-right: 0;
     border-bottom: 1px solid var(--console-border);
   }
@@ -1346,10 +1376,12 @@ td {
     min-width: max-content;
     border-left-width: 1px;
     text-align: center;
+    scroll-snap-align: start;
   }
 
   .ops-shell {
     grid-template-columns: minmax(0, 1fr);
+    padding-inline: 14px;
   }
 
   .side-rail {
@@ -1365,6 +1397,8 @@ td {
   .topbar {
     grid-template-columns: minmax(0, 1fr);
     min-height: 0;
+    gap: 10px;
+    padding: 12px;
   }
 
   .cluster-context {
@@ -1374,6 +1408,10 @@ td {
   .refresh {
     justify-content: space-between;
     white-space: normal;
+  }
+
+  .global-search {
+    min-height: 46px;
   }
 
   .overview-visual-grid,
@@ -1406,6 +1444,27 @@ td {
 
   .panel-head-meta {
     justify-content: flex-start;
+  }
+
+  .workflow-graph-actions,
+  .workflow-builder-bar,
+  .augmentation-actions {
+    align-items: stretch;
+  }
+
+  .workflow-action-cluster,
+  .workflow-zoom-controls,
+  .augmentation-mode-toggle {
+    width: 100%;
+  }
+
+  .workflow-action-cluster button,
+  .augmentation-mode-toggle button {
+    flex: 1 1 120px;
+  }
+
+  .augmentation-flow-canvas {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
   }
 }
 
@@ -1442,6 +1501,7 @@ td {
 
   .main-menu {
     top: 0;
+    padding: 9px 10px;
   }
 
   .main-menu button {
@@ -1455,6 +1515,19 @@ td {
 
   .shell .topbar h1 {
     font-size: 18px;
+  }
+
+  .workflow-graph-canvas,
+  .augmentation-node-canvas {
+    min-height: 300px;
+  }
+
+  .augmentation-flow-canvas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chat-actions {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1486,6 +1559,13 @@ td {
     padding: 8px 10px;
   }
 
+  .main-menu button {
+    min-height: 36px;
+    min-width: 0;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
   .refresh {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -1498,5 +1578,27 @@ td {
   .health-ring {
     width: 132px;
     height: 132px;
+  }
+
+  .main-menu {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    overflow-x: visible;
+  }
+
+  .main-menu button {
+    width: 100%;
+    min-height: 42px;
+    padding: 5px 4px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  table,
+  .resource-table {
+    min-width: 620px;
   }
 }
