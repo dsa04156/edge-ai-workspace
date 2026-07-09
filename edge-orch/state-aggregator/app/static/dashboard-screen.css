@@ -1087,6 +1087,210 @@ button:focus-visible,
   background: var(--console-panel-2) !important;
 }
 
+.asset-column-head,
+.scenario-grid > div,
+.kpi-catalog-row,
+.node-metric-card,
+.resource-profile-list li,
+.resource-profile-list .compact-list li,
+.compact-list li,
+.relation-summary,
+.device-status-list .item,
+.topo-service,
+.topo-service summary,
+.topo-detail,
+.topo-service-origin,
+.topo-node-lane,
+.topo-pod-pill,
+.topo-resource-item,
+.topo-container-row,
+.workflow-template,
+.device-card,
+.workflow-source-list,
+.workflow-fields div,
+.workflow-empty,
+.validation-item,
+.workflow-plan-preview,
+.pod-placement-card,
+.pod-placement-card summary,
+.placement-node-map,
+.placement-config-grid div,
+.placement-containers li,
+.placement-note {
+  border-color: var(--console-border) !important;
+  background: var(--console-row) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+  box-shadow: none !important;
+}
+
+.asset-column-head h3,
+.item-title strong,
+.node-card .item-title strong,
+.device-row .item-title strong,
+.service-card .item-title strong,
+.node-name,
+.scenario-grid strong,
+.kpi-catalog-row strong,
+.node-metric-title strong,
+.resource-profile-list strong,
+.compact-list strong,
+.device-status-list .item strong,
+.topo-service-title,
+.topo-service-origin strong,
+.topo-resource-item strong,
+.workflow-template strong,
+.workflow-template span,
+.device-card strong,
+.workflow-node strong,
+.inspector-title strong,
+.workflow-source-list p,
+.workflow-message-text,
+.workflow-fields dd,
+.validation-item span,
+.workflow-plan-preview,
+.pod-placement-card summary strong,
+.placement-config-grid dd {
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.asset-column-head span,
+.scenario-grid span,
+.kpi-catalog-row span,
+.kpi-catalog-row code,
+.node-metric-row span,
+.node-metric-foot span,
+.resource-profile-list span,
+.compact-list span,
+.device-status-list .item .meta span,
+.device-status-list .meta span,
+.topo-svc-meta,
+.topo-ns,
+.topo-service-origin span,
+.topo-service-origin em,
+.topo-resource-item span,
+.workflow-template em,
+.device-card small,
+.device-card em,
+.workflow-node small,
+.workflow-node em,
+.inspector-title span,
+.workflow-source-list span,
+.workflow-source-list li,
+.workflow-fields dt,
+.validation-item em,
+.workflow-plan-preview code,
+.pod-placement-card summary small,
+.placement-node-map span,
+.placement-config-grid dt,
+.placement-note {
+  color: var(--console-muted) !important;
+  -webkit-text-fill-color: var(--console-muted) !important;
+}
+
+.meta span,
+.item-pills > *,
+.status,
+.pill,
+.badge,
+.publisher-filter,
+.workflow-toolbar button,
+.workflow-actions button,
+.workflow-graph-actions button,
+.workflow-action-cluster button,
+.workflow-inspector button,
+.workflow-node span,
+.device-card > span,
+.validation-item strong,
+.topo-pod-count,
+.topo-pod-pill,
+.node-metric-foot span {
+  border: 1px solid var(--console-border) !important;
+  border-radius: 3px !important;
+  background: var(--console-panel-2) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+  box-shadow: none !important;
+}
+
+.status.available,
+.status.running,
+.status.healthy,
+.status.pass,
+.status.ok,
+.pill.available,
+.pill.healthy,
+.pill.declared,
+.pill.running,
+.pill.observed,
+.device-card.status-fresh > span,
+.device-card.status-healthy > span,
+.validation-item.pass strong,
+.topo-pod-count.running {
+  border-color: rgba(34, 197, 94, 0.55) !important;
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: var(--console-green) !important;
+  -webkit-text-fill-color: var(--console-green) !important;
+}
+
+.status.warning,
+.status.degraded,
+.status.pending,
+.pill.degraded,
+.pill.pending,
+.pill.medium,
+.pill.missing,
+.pill.moving,
+.device-card.status-stale > span,
+.device-card.status-degraded > span,
+.device-card.status-medium > span,
+.validation-item.warn strong {
+  border-color: rgba(245, 158, 11, 0.58) !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: var(--console-orange) !important;
+  -webkit-text-fill-color: var(--console-orange) !important;
+}
+
+.status.unavailable,
+.status.offline,
+.status.fail,
+.pill.unavailable,
+.pill.failed,
+.pill.high,
+.pill.unstable,
+.pill.infra-issue,
+.device-card.status-disabled > span,
+.device-card.status-unavailable > span,
+.validation-item.fail strong {
+  border-color: rgba(248, 113, 113, 0.55) !important;
+  background: rgba(248, 113, 113, 0.16) !important;
+  color: var(--console-red) !important;
+  -webkit-text-fill-color: var(--console-red) !important;
+}
+
+.workflow-plan-preview,
+.augmentation-plan-preview,
+pre {
+  border-color: var(--console-border) !important;
+  background: var(--console-control) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.workflow-edge-label {
+  fill: var(--console-muted) !important;
+  stroke: var(--console-control) !important;
+  stroke-width: 4px !important;
+}
+
+.workflow-graph-canvas::before {
+  border-color: var(--console-border) !important;
+  background: var(--console-panel-2) !important;
+  color: var(--console-muted) !important;
+  -webkit-text-fill-color: var(--console-muted) !important;
+}
+
 table,
 .resource-table {
   width: 100%;

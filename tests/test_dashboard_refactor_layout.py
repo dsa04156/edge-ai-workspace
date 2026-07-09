@@ -103,6 +103,42 @@ def test_dashboard_screen_overrides_legacy_light_augmentation_states() -> None:
     assert "-webkit-text-fill-color: var(--console-ink) !important;" in css
 
 
+def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+
+    legacy_surface_selectors = [
+        ".asset-column-head",
+        ".scenario-grid > div",
+        ".kpi-catalog-row",
+        ".node-metric-card",
+        ".resource-profile-list .compact-list li",
+        ".device-status-list .item",
+        ".node-card .item-title strong",
+        ".device-row .item-title strong",
+        ".topo-service",
+        ".topo-pod-pill",
+        ".workflow-template",
+        ".device-card",
+        ".workflow-node span",
+        ".inspector-title strong",
+        ".workflow-source-list",
+        ".validation-item",
+        ".workflow-plan-preview",
+        ".workflow-graph-canvas::before",
+        ".pod-placement-card",
+    ]
+
+    for selector in legacy_surface_selectors:
+        assert selector in css
+
+    assert "background: var(--console-row) !important;" in css
+    assert ".workflow-edge-label" in css
+    assert "fill: var(--console-muted) !important;" in css
+    assert "stroke: var(--console-control) !important;" in css
+    assert ".status.available" in css
+    assert ".pill.unavailable" in css
+
+
 def test_dashboard_screen_keeps_augmentation_readable_in_narrow_desktop_workspace() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
 
