@@ -2143,3 +2143,21 @@ td {
     min-width: 620px;
   }
 }
+
+.ops-shell > .side-rail {
+  grid-column: 2 !important;
+  right: auto !important;
+  left: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  z-index: auto !important;
+  transform: none !important;
+}
+
+@media (max-width: 1360px) {
+  .ops-shell > .side-rail {
+    grid-column: 1 / -1 !important;
+  }
+}

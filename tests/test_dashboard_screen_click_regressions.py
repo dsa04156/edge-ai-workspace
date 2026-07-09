@@ -69,6 +69,9 @@ def test_dashboard_screen_collapses_mid_width_layout_before_cards_overlap() -> N
 def test_dashboard_screen_keeps_side_rail_inside_ops_shell_grid() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+    final_guard_start = css.rfind("\n.ops-shell > .side-rail {\n")
+    final_guard_end = css.find("\n@media (max-width: 1360px)", final_guard_start)
+    final_guard = css[final_guard_start:final_guard_end]
 
     assert '<section class="ops-shell">' in html
     assert '<div class="ops-main">' in html
@@ -79,3 +82,6 @@ def test_dashboard_screen_keeps_side_rail_inside_ops_shell_grid() -> None:
     assert "left: auto !important;" in css
     assert "width: auto !important;" in css
     assert "height: auto !important;" in css
+    assert "z-index: auto !important;" in final_guard
+    assert "right: auto !important;" in final_guard
+    assert "grid-column: 2 !important;" in final_guard
