@@ -59,6 +59,8 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "top: 86px;" in css
     assert ".augmentation-mode-toggle" in css
     assert '.augmentation-mode-toggle button[aria-pressed="true"]' in css
+    assert ".augmentation-mode-toggle button.active" in css
+    assert "color: var(--console-ink) !important;" in css
     assert ".augmentation-section-head" in css
     assert ".augmentation-kpis" in css
     assert ".augmentation-bottom-grid" in css
@@ -83,6 +85,33 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "Resource rail" in design
     assert "## Resource Augmentation" in screen_design
     assert "dark left resource rail" in screen_design
+
+
+def test_dashboard_screen_overrides_legacy_light_augmentation_states() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+
+    assert ".augmentation-recommendation-detail" in css
+    assert ".augmentation-workflow-steps li" in css
+    assert ".augmentation-offload-path div" in css
+    assert ".augmentation-playback-inspector" in css
+    assert ".augmentation-execution-timeline li" in css
+    assert ".augmentation-plan-preview" in css
+    assert ".augmentation-graph-node.current" in css
+    assert ".augmentation-recommendation-row b" in css
+    assert "background: var(--console-row) !important;" in css
+    assert "background: var(--console-panel-2) !important;" in css
+    assert "-webkit-text-fill-color: var(--console-ink) !important;" in css
+
+
+def test_dashboard_screen_keeps_augmentation_readable_in_narrow_desktop_workspace() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+
+    assert ".augmentation-section-head h3" in css
+    assert "text-wrap: balance;" in css
+    assert "@media (max-width: 1440px)" in css
+    assert ".augmentation-workbench .augmentation-bottom-grid" in css
+    assert ".augmentation-workbench .augmentation-grid" in css
+    assert ".augmentation-workbench .augmentation-section-head" in css
 
 
 def test_dashboard_screen_copy_stays_preview_oriented() -> None:

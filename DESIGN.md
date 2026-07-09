@@ -85,6 +85,8 @@ Breakpoints:
 
 - Devices, nodes, services, resource candidates, and runtime evidence share the same row grammar.
 - Long IDs and telemetry values wrap without overlapping.
+- Segmented controls and active resource actions use accent fill with ink text; inactive controls use raised panel fill with light text.
+- Legacy light cards or badges inside resource augmentation must be overridden by the final dark surface layer.
 
 ### Inspector Rail
 

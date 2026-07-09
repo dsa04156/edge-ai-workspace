@@ -473,13 +473,17 @@ button:focus-visible,
 }
 
 .panel-head h2,
-.augmentation-section-head h2 {
+.augmentation-section-head h2,
+.augmentation-section-head h3 {
   margin: 0;
   color: var(--console-text);
   -webkit-text-fill-color: var(--console-text);
   font-size: 18px;
   font-weight: 850;
   line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .section-kicker,
@@ -510,7 +514,8 @@ button:focus-visible,
 }
 
 .workflow-workbench > .panel-head h2,
-.augmentation-workbench > .panel-head h2 {
+.augmentation-workbench > .panel-head h2,
+.augmentation-section-head h3 {
   overflow-wrap: normal;
   word-break: keep-all;
 }
@@ -934,23 +939,46 @@ button:focus-visible,
   border: 1px solid var(--console-border);
   border-radius: 3px;
   background: var(--console-panel-2);
-  color: var(--console-muted);
+  color: var(--console-text);
+  -webkit-text-fill-color: var(--console-text);
   font-size: 12px;
   font-weight: 800;
 }
 
+.augmentation-mode-toggle {
+  border-color: var(--console-border-strong) !important;
+  background: var(--console-control) !important;
+}
+
+.augmentation-mode-toggle button {
+  background: var(--console-panel-2) !important;
+}
+
+.augmentation-mode-toggle button.active,
 .augmentation-mode-toggle button[aria-pressed="true"],
+.workflow-toolbar button.active,
+.workflow-graph-actions button.active,
+.workflow-action-cluster button.active,
+.workflow-inspector button.active {
+  border-color: var(--console-yellow) !important;
+  background: var(--console-yellow) !important;
+  color: var(--console-ink) !important;
+  -webkit-text-fill-color: var(--console-ink) !important;
+}
+
 .status-chip.ok,
 .node-status.online,
 .device-status.available {
   border-color: var(--console-green);
   color: var(--console-green);
+  -webkit-text-fill-color: var(--console-green);
 }
 
 .status-chip.warn,
 .device-status.degraded {
   border-color: var(--console-orange);
   color: var(--console-orange);
+  -webkit-text-fill-color: var(--console-orange);
 }
 
 .status-chip.danger,
@@ -958,6 +986,105 @@ button:focus-visible,
 .device-status.unavailable {
   border-color: var(--console-red);
   color: var(--console-red);
+  -webkit-text-fill-color: var(--console-red);
+}
+
+.augmentation-recommendation-detail,
+.augmentation-decision-selected,
+.augmentation-playback-inspector,
+.augmentation-playback-inspector div,
+.augmentation-playback-inspector dl,
+.augmentation-playback-inspector dl div,
+.augmentation-execution-timeline li,
+.augmentation-plan-preview,
+.augmentation-validation-list li,
+.augmentation-graph-node,
+.augmentation-edge-label,
+.augmentation-node-badge,
+.augmentation-workflow-steps li,
+.augmentation-offload-path div {
+  border-color: var(--console-border) !important;
+  background: var(--console-row) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.augmentation-recommendation-row b,
+.augmentation-recommendation-row small,
+.augmentation-execution-timeline b,
+.augmentation-workflow-steps b {
+  border: 1px solid var(--console-border) !important;
+  background: var(--console-panel-2) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.augmentation-recommendation-row.selected b,
+.augmentation-execution-timeline li.completed b,
+.augmentation-workflow-steps li.completed b {
+  border-color: rgba(34, 197, 94, 0.55) !important;
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: var(--console-green) !important;
+  -webkit-text-fill-color: var(--console-green) !important;
+}
+
+.augmentation-recommendation-row.blocked b {
+  border-color: rgba(248, 113, 113, 0.55) !important;
+  background: rgba(248, 113, 113, 0.16) !important;
+  color: var(--console-red) !important;
+  -webkit-text-fill-color: var(--console-red) !important;
+}
+
+.augmentation-recommendation-row.candidate b,
+.augmentation-execution-timeline li.current b,
+.augmentation-workflow-steps li.active b {
+  border-color: rgba(245, 158, 11, 0.58) !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: var(--console-orange) !important;
+  -webkit-text-fill-color: var(--console-orange) !important;
+}
+
+.augmentation-playback-inspector span,
+.augmentation-playback-inspector dt,
+.augmentation-playback-inspector em,
+.augmentation-execution-timeline em,
+.augmentation-plan-preview,
+.augmentation-validation-list span,
+.augmentation-graph-node span,
+.augmentation-graph-node em,
+.augmentation-edge-label,
+.augmentation-node-badge {
+  color: var(--console-muted) !important;
+  -webkit-text-fill-color: var(--console-muted) !important;
+}
+
+.augmentation-playback-inspector strong,
+.augmentation-playback-inspector dd,
+.augmentation-execution-timeline strong,
+.augmentation-validation-list strong,
+.augmentation-graph-node strong {
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.augmentation-progress-bar,
+.augmentation-progress-meter,
+.metric-bar,
+.topo-resource-track {
+  background: var(--console-control) !important;
+}
+
+.augmentation-progress-bar i,
+.metric-bar i,
+.topo-resource-fill {
+  background: linear-gradient(90deg, var(--console-green), var(--console-blue)) !important;
+}
+
+.augmentation-graph-node.current,
+.augmentation-table tr:hover,
+.augmentation-table tr.selected {
+  border-color: var(--console-yellow) !important;
+  background: var(--console-panel-2) !important;
 }
 
 table,
@@ -1390,6 +1517,17 @@ td {
     max-height: none;
     overflow: visible;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1440px) {
+  .augmentation-workbench .augmentation-bottom-grid,
+  .augmentation-workbench .augmentation-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .augmentation-workbench .augmentation-section-head {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
