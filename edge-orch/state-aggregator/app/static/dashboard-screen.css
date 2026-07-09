@@ -603,9 +603,17 @@ button:focus-visible,
 
 .overview-visual-grid {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 240px;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
   gap: 10px;
   align-items: stretch;
+}
+
+.overview-visuals .panel-head {
+  grid-template-columns: minmax(260px, 1fr);
+}
+
+.overview-visuals .panel-head-meta {
+  justify-self: start;
 }
 
 .health-ring-card,
