@@ -25,16 +25,25 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
 
-    assert "--console-bg: #edf4f7;" in css
+    assert "--console-bg: #f4f6f8;" in css
+    assert "--console-nav: #f8fafc;" in css
+    assert "--console-accent: #0b6bcb;" in css
     assert "--line: var(--console-border);" in css
     assert "--text: var(--console-text);" in css
     assert "--muted: var(--console-muted);" in css
     assert "color-scheme: light;" in css
     assert ".dashboard-page:not(.active)" in css
+    assert 'grid-template-areas:\n    "topbar topbar"\n    "nav workspace";' in css
+    assert "grid-area: nav;" in css
+    assert 'content: "Resources";' in css
+    assert "flex: 0 0 auto;" in css
+    assert "border-left: 3px solid transparent;" in css
+    assert "border-left-color: var(--console-accent);" in css
     assert "grid-template-columns: minmax(0, 1fr) minmax(336px, 384px);" in css
     assert "word-break: keep-all;" in css
     assert ".ring-legend" in css
     assert "grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));" in css
+    assert "white-space: nowrap;" in css
     assert ".panel-head-meta span" in css
     assert ".augmentation-mode-toggle" in css
     assert '.augmentation-mode-toggle button[aria-pressed="true"]' in css
@@ -48,8 +57,10 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "@media (max-width: 760px)" in css
     assert "clamp(" not in css
     assert "## 8. Screen Architecture" in design
-    assert "`dashboard-screen.css` is the final visual contract." in design
+    assert "`dashboard-screen.css` is the final Headlamp-style visual contract." in design
+    assert "Resource navigation rail" in design
     assert "## Resource Augmentation" in screen_design
+    assert "Headlamp형 left resource rail" in screen_design
 
 
 def test_dashboard_screen_copy_stays_preview_oriented() -> None:

@@ -2,7 +2,7 @@
 
 ## 1. Atmosphere & Identity
 
-A Kubernetes-style operations console for mixed-device edge AI. It should feel clear, inspectable, and controlled: a bright working surface with a deep navy command header, cyan active states, compact status cards, and list-detail layouts that make runtime state easy to scan.
+A Headlamp-inspired Kubernetes operations console for mixed-device edge AI. It should feel like a cluster resource browser first: a crisp app bar, a persistent left resource navigation rail, dense white work surfaces, table/list-detail inspection, and quiet blue selection states. The interface is not a marketing dashboard; it is an operator tool for finding cluster, device, telemetry, service binding, and resource augmentation evidence quickly.
 
 ## 2. Color
 
@@ -10,17 +10,18 @@ A Kubernetes-style operations console for mixed-device edge AI. It should feel c
 
 | Role | Token | Light | Dark | Usage |
 |------|-------|-------|------|-------|
-| Surface/base | --console-bg | #eef4f7 | #0b1117 | Page background |
-| Surface/grid | --console-grid | rgba(34, 66, 80, 0.08) | rgba(120, 190, 210, 0.08) | Background grid |
+| Surface/base | --console-bg | #f4f6f8 | #0b1117 | Page background |
+| Surface/nav | --console-nav | #f8fafc | #0d1720 | Left navigation rail |
+| Surface/grid | --console-grid | rgba(15, 23, 42, 0.045) | rgba(120, 190, 210, 0.08) | Subtle background grid |
 | Surface/panel | --console-panel | #ffffff | #111a22 | Cards and panels |
-| Surface/soft | --console-soft | #f7fbfd | #17232d | Nested blocks |
-| Surface/header | --console-header | #102b3a | #07131c | Top command header |
-| Text/primary | --console-text | #102235 | #f4f8fb | Main text |
-| Text/secondary | --console-muted | #5b7181 | #9fb1bd | Metadata |
-| Border/default | --console-border | #d7e3ea | #243645 | Panel borders |
-| Border/strong | --console-border-strong | #b9ccd8 | #365064 | Selected outlines |
-| Accent/primary | --console-accent | #008a9a | #21c4d5 | Active tabs and focus |
-| Accent/deep | --console-accent-deep | #004c5c | #063a48 | Primary buttons |
+| Surface/soft | --console-soft | #f8fafc | #17232d | Nested blocks |
+| Surface/header | --console-header | #ffffff | #07131c | Top app bar |
+| Text/primary | --console-text | #172033 | #f4f8fb | Main text |
+| Text/secondary | --console-muted | #637083 | #9fb1bd | Metadata |
+| Border/default | --console-border | #d9e0e8 | #243645 | Panel borders |
+| Border/strong | --console-border-strong | #b7c2ce | #365064 | Selected outlines |
+| Accent/primary | --console-accent | #0b6bcb | #63a7ff | Active navigation, focus, links |
+| Accent/deep | --console-accent-deep | #074d91 | #2f7bdc | Primary buttons |
 | Status/success | --console-success | #0a8f5a | #32d583 | Healthy/running |
 | Status/warning | --console-warning | #d97706 | #f5bd4f | Warning |
 | Status/error | --console-error | #dc2626 | #ff6f61 | Critical/offline |
@@ -28,8 +29,9 @@ A Kubernetes-style operations console for mixed-device edge AI. It should feel c
 
 ### Rules
 
-- Use the navy header and cyan active underline as the dashboard signature.
-- Use white panels on the grid background; avoid dark cards in the content area.
+- Use the left navigation rail and blue selected resource state as the dashboard signature.
+- Use white panels on a cool gray app background; avoid dark cards in the content area.
+- Keep color quiet. Blue is for selection/action, status colors are for state only.
 - Status colors are reserved for state, not decoration.
 
 ## 3. Typography
@@ -76,7 +78,7 @@ All spacing derives from a base of 4px.
 
 - Max content width: 1600px
 - Page shell: full-width operational canvas with 16px edge margin
-- Main layout: one primary content column plus a sticky right operator rail
+- Main layout: persistent left navigation rail, primary content column, sticky right operator rail
 - Breakpoints: mobile 720px, tablet 1040px, desktop 1280px
 
 ### Rules
@@ -88,15 +90,16 @@ All spacing derives from a base of 4px.
 
 ### Command Header
 
-- Structure: product eyebrow, dashboard title, update timestamp, refresh button.
+- Structure: product identity, cluster context, update timestamp, refresh button.
 - States: refresh button has hover, active, and focus states.
 - Motion: hover uses transform only.
 
-### Segmented Navigation
+### Resource Navigation Rail
 
-- Structure: horizontal tab bar with one active segment.
-- Variants: desktop equal columns, mobile horizontal scroll.
+- Structure: persistent left rail with page/resource buttons.
+- Variants: desktop vertical rail, mobile horizontal scroll.
 - Accessibility: active tab uses `aria-pressed=true`.
+- States: selected item uses blue left marker, soft blue background, and strong text.
 
 ### Metric Card
 
@@ -126,12 +129,12 @@ All spacing derives from a base of 4px.
 
 ### Strategy
 
-Mixed, but restrained: white panels use a subtle border plus a soft tinted shadow; inner blocks use tonal shifts.
+Restrained Headlamp-like elevation: panels rely on borders and tonal contrast first; shadows are shallow and only separate the app bar, sticky rail, and selected work surfaces.
 
 | Level | Value | Usage |
 |-------|-------|-------|
-| Panel | 0 8px 22px rgba(24, 57, 74, 0.08) | Main panels |
-| Raised | 0 14px 34px rgba(24, 57, 74, 0.12) | Selected and hover states |
+| Panel | 0 1px 2px rgba(15, 23, 42, 0.05) | Main panels |
+| Raised | 0 12px 28px rgba(15, 23, 42, 0.10) | App bar, sticky rails, selected states |
 | Border | 1px solid var(--console-border) | Cards, dividers |
 
 ## 8. Screen Architecture
@@ -140,8 +143,8 @@ Mixed, but restrained: white panels use a subtle border plus a soft tinted shado
 
 The dashboard is a single operational console, not a landing page. The frame is fixed around five regions:
 
-1. Command header: product identity, current observation time, refresh action.
-2. Page switcher: Overview, Assets, AI Pipeline, Resource Augmentation.
+1. App bar: product identity, cluster context, current observation time, refresh action.
+2. Resource navigation rail: Overview, Assets, AI Pipeline, Resource Augmentation.
 3. Main workspace: active page content only.
 4. Operator rail: explanation panel and read-only assistant.
 5. Scroll containers: only dense lists, tables, code previews, and the right rail own scrolling.
@@ -176,10 +179,10 @@ Resource Augmentation:
 
 ### Final CSS Layer
 
-`dashboard-screen.css` is the final visual contract. Earlier CSS files may keep legacy component rules, but this layer owns:
+`dashboard-screen.css` is the final Headlamp-style visual contract. Earlier CSS files may keep legacy component rules, but this layer owns:
 
-- light console color scheme and aliases for legacy `--line`, `--text`, `--muted`, status, and shadow tokens
-- header, page switcher, main workspace, and operator rail geometry
+- light Kubernetes console color scheme and aliases for legacy `--line`, `--text`, `--muted`, status, and shadow tokens
+- app bar, left resource navigation rail, main workspace, and operator rail geometry
 - panel, KPI, list row, chip, table, graph, and workflow surface treatment
 - responsive behavior at 1180px, 900px, 760px, and 520px
 - CJK-safe headings and wrap-safe technical values

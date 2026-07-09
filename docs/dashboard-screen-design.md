@@ -8,8 +8,8 @@
 
 ## 전체 프레임
 
-- Command header: 플랫폼명, 마지막 갱신 시각, refresh.
-- Page switcher: Overview, Assets, AI Pipeline, Resource Augmentation.
+- App bar: 플랫폼명, cluster context, 마지막 갱신 시각, refresh.
+- Resource navigation rail: Overview, Assets, AI Pipeline, Resource Augmentation.
 - Main workspace: 현재 선택된 page만 표시.
 - Operator rail: State Explanation, read-only Qwen assistant.
 - Dense scroll: 긴 목록, table, plan preview, operator rail에만 허용.
@@ -47,6 +47,6 @@
 
 ## Responsive
 
-- Desktop: main workspace + sticky operator rail.
-- Tablet: operator rail을 본문 아래로 내리고, graph는 세로 stack으로 전환.
-- Mobile: page switcher는 가로 스크롤, KPI는 1~2열, panel header는 단일열.
+- Desktop: Headlamp형 left resource rail + main workspace + sticky operator rail.
+- Tablet: resource rail은 가로 tab으로 접고 operator rail을 본문 아래로 내리며, graph는 세로 stack으로 전환.
+- Mobile: resource rail은 가로 스크롤 tab으로 접히고, KPI는 1~2열, panel header는 단일열.
