@@ -20,26 +20,32 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 
 
 def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
     workflow_js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation-workflow.js").read_text()
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
 
-    assert "--console-bg: #f4f6f8;" in css
-    assert "--console-nav: #f8fafc;" in css
-    assert "--console-accent: #0b6bcb;" in css
+    assert "--console-bg: #1f2428;" in css
+    assert "--console-nav: #07090b;" in css
+    assert "--console-accent: #f4ea2a;" in css
     assert "--line: var(--console-border);" in css
     assert "--text: var(--console-text);" in css
     assert "--muted: var(--console-muted);" in css
-    assert "color-scheme: light;" in css
+    assert "color-scheme: dark;" in css
     assert ".dashboard-page:not(.active)" in css
-    assert 'grid-template-areas:\n    "topbar topbar"\n    "nav workspace";' in css
+    assert 'grid-template-areas:\n    "nav topbar"\n    "nav workspace";' in css
     assert "grid-area: nav;" in css
-    assert 'content: "Resources";' in css
+    assert 'content: "Edge AI\\A Resources";' in css
+    assert ".global-search" in css
+    assert "Search resources" in html
     assert "flex: 0 0 auto;" in css
-    assert "border-left: 3px solid transparent;" in css
+    assert "border-left: 4px solid transparent;" in css
     assert "border-left-color: var(--console-accent);" in css
+    assert "background: var(--console-accent);" in css
     assert "grid-template-columns: minmax(0, 1fr) minmax(336px, 384px);" in css
+    assert "grid-column: 2 !important;" in css
+    assert "grid-column: 1 / -1 !important;" in css
     assert "word-break: keep-all;" in css
     assert ".ring-legend" in css
     assert "grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));" in css
@@ -60,7 +66,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "`dashboard-screen.css` is the final Headlamp-style visual contract." in design
     assert "Resource navigation rail" in design
     assert "## Resource Augmentation" in screen_design
-    assert "Headlamp형 left resource rail" in screen_design
+    assert "Headlamp형 dark left resource rail" in screen_design
 
 
 def test_dashboard_screen_copy_stays_preview_oriented() -> None:

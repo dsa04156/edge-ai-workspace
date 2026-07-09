@@ -16,10 +16,15 @@
   <body>
     <main class="shell">
       <header class="topbar">
-        <div>
+        <div class="cluster-context">
           <p class="eyebrow">KubeEdge Mixed-Device Platform</p>
           <h1>Edge AI Operations Dashboard</h1>
+          <span class="cluster-pill">default cluster</span>
         </div>
+        <label class="global-search" aria-label="Search resources">
+          <span>Search</span>
+          <input type="search" name="resourceSearch" placeholder="Search resources" autocomplete="off" />
+        </label>
         <div class="refresh">
           <span id="updatedAt">-</span>
           <button id="refreshButton" type="button" aria-label="Refresh dashboard">Refresh</button>

@@ -8,8 +8,8 @@
 
 ## 전체 프레임
 
-- App bar: 플랫폼명, cluster context, 마지막 갱신 시각, refresh.
-- Resource navigation rail: Overview, Assets, AI Pipeline, Resource Augmentation.
+- Resource navigation rail: 검은 좌측 레일, Edge AI identity, Overview, Assets, AI Pipeline, Resource Augmentation.
+- App bar: cluster context, global search, 마지막 갱신 시각, refresh.
 - Main workspace: 현재 선택된 page만 표시.
 - Operator rail: State Explanation, read-only Qwen assistant.
 - Dense scroll: 긴 목록, table, plan preview, operator rail에만 허용.
@@ -47,6 +47,6 @@
 
 ## Responsive
 
-- Desktop: Headlamp형 left resource rail + main workspace + sticky operator rail.
+- Desktop: Headlamp형 dark left resource rail + compact search app bar + main workspace + sticky operator rail.
 - Tablet: resource rail은 가로 tab으로 접고 operator rail을 본문 아래로 내리며, graph는 세로 stack으로 전환.
 - Mobile: resource rail은 가로 스크롤 tab으로 접히고, KPI는 1~2열, panel header는 단일열.
