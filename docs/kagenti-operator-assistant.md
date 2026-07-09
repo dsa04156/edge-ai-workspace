@@ -30,6 +30,7 @@ GET /state/operator-assistant
 /state/devices
 /state/nodes
 /state/summary
+/state/virtual-resources
 ```
 
 ## 응답 구조
@@ -57,7 +58,7 @@ source_endpoints[]
 | `focus_devices[]` | degraded/unavailable device 중 우선 확인 대상 |
 | `recommended_actions[]` | 운영자가 확인할 점검 순서 |
 | `guardrails[]` | agent가 하면 안 되는 일 |
-| `source_endpoints[]` | 요약의 기준이 되는 state API |
+| `source_endpoints[]` | 요약의 기준이 되는 read-only state API |
 
 ## 운영자 요약 예시
 
@@ -141,7 +142,7 @@ Kagenti agent는 `state-aggregator` 뒤에 붙는 운영 보조 layer다.
 ## 데모 시나리오
 
 1. 운영자가 dashboard를 연다.
-2. `state-aggregator`가 device/node/telemetry/status/service binding 상태를 보여준다.
+2. `state-aggregator`가 device/node/telemetry/status/service binding/resource augmentation 상태를 보여준다.
 3. Kagenti agent가 `/state/operator-assistant`를 조회한다.
 4. agent가 한국어로 현재 상태를 요약한다.
 5. degraded/unavailable device가 있으면 `focus_devices[]`와 `recommended_actions[]`를 보여준다.
@@ -151,7 +152,7 @@ Kagenti agent는 `state-aggregator` 뒤에 붙는 운영 보조 layer다.
 
 ```text
 본 PoC에서는 Kagenti를 자율 제어 계층이 아니라 운영 보조 계층으로 적용한다.
-Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다. 이때 operator_focus_count는 degraded/unavailable device 수와 non-healthy node 수의 합이며 workflow risk는 포함하지 않는다.
+Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding, resource augmentation 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다. 이때 operator_focus_count는 degraded/unavailable device 수와 non-healthy node 수의 합이며 workflow risk는 포함하지 않는다.
 이를 통해 현장 운영자는 전체 device를 개별 명령으로 확인하기 전에 dashboard와 agent 요약으로 문제 위치를 빠르게 좁힐 수 있다.
 ```
 

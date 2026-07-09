@@ -1,0 +1,915 @@
+:root {
+  color-scheme: light;
+
+  --console-bg: #edf4f7;
+  --console-grid: rgba(34, 66, 80, 0.075);
+  --console-panel: #ffffff;
+  --console-soft: #f7fbfd;
+  --console-soft-strong: #eef7fa;
+  --console-header: #102b3a;
+  --console-header-deep: #07131c;
+  --console-text: #102235;
+  --console-muted: #5b7181;
+  --console-border: #d7e3ea;
+  --console-border-strong: #b9ccd8;
+  --console-accent: #008a9a;
+  --console-accent-deep: #004c5c;
+  --console-success: #0a8f5a;
+  --console-warning: #d97706;
+  --console-error: #dc2626;
+  --console-info: #1d6fd6;
+  --console-shadow: 0 8px 22px rgba(24, 57, 74, 0.08);
+  --console-shadow-raised: 0 14px 34px rgba(24, 57, 74, 0.12);
+  --console-focus: 0 0 0 3px rgba(0, 138, 154, 0.24);
+
+  --bg: var(--console-bg);
+  --bg-deep: var(--console-bg);
+  --surface: var(--console-panel);
+  --surface-2: var(--console-soft);
+  --surface-3: var(--console-soft-strong);
+  --surface-accent: rgba(0, 138, 154, 0.1);
+  --line: var(--console-border);
+  --line-strong: var(--console-border-strong);
+  --text: var(--console-text);
+  --muted: var(--console-muted);
+  --muted-2: #78909c;
+  --green: var(--console-success);
+  --yellow: var(--console-warning);
+  --red: var(--console-error);
+  --blue: var(--console-info);
+  --blue-2: var(--console-accent);
+  --ink: var(--console-text);
+  --shadow: var(--console-shadow-raised);
+  --shadow-soft: var(--console-shadow);
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --ops-bg: var(--console-bg);
+  --ops-grid: var(--console-grid);
+  --ops-panel-bg: var(--console-panel);
+  --ops-panel-soft: var(--console-soft);
+  --ops-panel-border: var(--console-border);
+  --ops-text: var(--console-text);
+  --ops-muted: var(--console-muted);
+  --ops-accent: var(--console-accent);
+  --ops-accent-soft: rgba(0, 138, 154, 0.1);
+  --ops-success: var(--console-success);
+  --ops-warn: var(--console-warning);
+  --ops-danger: var(--console-error);
+  --ops-shadow: var(--console-shadow);
+}
+
+html {
+  scroll-padding-top: 156px;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    linear-gradient(var(--console-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--console-grid) 1px, transparent 1px),
+    linear-gradient(180deg, #f8fbfd 0, var(--console-bg) 280px);
+  background-size: 24px 24px, 24px 24px, auto;
+  color: var(--console-text);
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Aptos", "Pretendard", "Noto Sans KR", "IBM Plex Sans KR", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+button,
+.section-kicker,
+.metric-label,
+.panel-head > span,
+.augmentation-section-head em {
+  word-break: keep-all;
+}
+
+.shell {
+  width: min(1600px, calc(100% - 32px));
+  padding: 14px 0 32px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 86px;
+  margin: 0 0 12px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 5px solid var(--console-accent);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(16, 43, 58, 0.98), rgba(7, 19, 28, 0.98)),
+    var(--console-header);
+  box-shadow: var(--console-shadow-raised);
+}
+
+.topbar h1 {
+  color: #ffffff;
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.eyebrow,
+.section-kicker {
+  color: var(--console-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.topbar .eyebrow {
+  color: #dff9fd;
+  text-transform: uppercase;
+}
+
+.refresh {
+  justify-content: end;
+  color: #d7e6ee;
+  font-size: 14px;
+}
+
+button,
+.refresh button {
+  border: 1px solid var(--console-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--console-panel);
+  color: var(--console-text);
+  box-shadow: none;
+  transition:
+    border-color 160ms ease-out,
+    background 160ms ease-out,
+    color 160ms ease-out,
+    transform 140ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.refresh button {
+  min-height: 44px;
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+button:hover {
+  border-color: var(--console-accent);
+  background: #e9f7fa;
+  color: var(--console-accent-deep);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0) scale(0.99);
+}
+
+button:focus-visible,
+.explainable:focus-visible,
+.node-card:focus-visible,
+.device-row:focus-visible,
+.augmentation-recommendation-row:focus-visible,
+.augmentation-instance-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--console-focus);
+}
+
+.main-menu {
+  top: 104px;
+  z-index: 35;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  min-height: 58px;
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--console-border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--console-shadow);
+}
+
+.main-menu button {
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  border-right: 1px solid #e2ebf0;
+  border-radius: 0;
+  background: transparent;
+  color: #526879;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: normal;
+}
+
+.main-menu button:last-child {
+  border-right: 0;
+}
+
+.main-menu button.active,
+.main-menu button[aria-pressed="true"] {
+  border-right-color: transparent;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #006879, #004652);
+  color: #ffffff;
+  box-shadow: inset 0 -3px 0 #0cc7d7, 0 2px 7px rgba(0, 138, 154, 0.24);
+}
+
+.dashboard-page:not(.active) {
+  display: none !important;
+}
+
+.ops-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(336px, 384px);
+  gap: 16px;
+  align-items: start;
+}
+
+.ops-main,
+.panel,
+.metric,
+.workflow-workbench,
+.augmentation-workbench,
+.side-rail {
+  min-width: 0;
+}
+
+.panel,
+.metric,
+.workflow-validation-panel,
+.workflow-plan-panel,
+.augmentation-flow,
+.augmentation-recommendations,
+.augmentation-plan,
+.augmentation-pool,
+.augmentation-inspector,
+.augmentation-kpis div,
+.augmentation-at-glance,
+.health-ring-card,
+.metric-bars,
+.status-distribution,
+.resource-snapshot,
+.telemetry-chart,
+.workflow-palette,
+.workflow-canvas-shell,
+.workflow-inspector,
+.asset-column,
+.node-card,
+.device-row,
+.topo-service,
+.workflow-summary > div,
+.scenario-grid > div,
+.augmentation-glance-card,
+.augmentation-recommendation-row,
+.augmentation-decision-selected,
+.augmentation-playback-inspector,
+.augmentation-workflow-steps li,
+.augmentation-execution-timeline li,
+.augmentation-offload-path div,
+.augmentation-stage,
+.workflow-message,
+.workflow-node,
+.workflow-palette-node {
+  border: 1px solid var(--console-border);
+  border-radius: var(--radius);
+  background: var(--console-panel);
+  color: var(--console-text);
+  box-shadow: var(--console-shadow);
+}
+
+.panel {
+  padding: 18px;
+}
+
+.panel-head,
+.augmentation-section-head,
+.inspector-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e3ecf1;
+}
+
+.augmentation-workbench .augmentation-section-head {
+  grid-template-columns: 1fr;
+  justify-items: start;
+}
+
+.augmentation-workbench .augmentation-section-head em {
+  max-width: 100%;
+  text-align: left;
+}
+
+.panel-head h2,
+.augmentation-section-head h3,
+.inspector-head span {
+  color: var(--console-text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.augmentation-section-head h3 {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.panel-head > span,
+.panel-head-meta,
+.panel-head-meta span,
+.augmentation-section-head em,
+.augmentation-actions span {
+  color: var(--console-muted);
+}
+
+.panel-head-meta,
+.panel-head-meta span {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metric {
+  min-height: 94px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #ffffff, #f8fbfd);
+}
+
+.metric:hover,
+.metric.selected,
+.explainable:focus,
+.explainable:hover,
+.explainable.selected,
+.node-card:hover,
+.node-card.selected,
+.device-row:hover,
+.device-row.selected,
+.augmentation-recommendation-row:hover,
+.augmentation-recommendation-row.selected,
+.workflow-node.selected,
+.workflow-palette-node:hover {
+  border-color: var(--console-accent);
+  background: #f1fcff;
+  box-shadow: var(--console-shadow-raised);
+  transform: translateY(-1px);
+}
+
+.metric-label,
+.metric span {
+  color: var(--console-muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.metric strong {
+  margin-top: 8px;
+  color: #0e2738;
+  font-size: 36px;
+  font-weight: 850;
+  line-height: 1.04;
+}
+
+.overview-visual-grid {
+  grid-template-columns: minmax(260px, 0.72fr) minmax(320px, 1.25fr) minmax(260px, 0.72fr);
+}
+
+.ring-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.ring-legend span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.resource-snapshot {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-ops-grid.dashboard-page.active {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.side-rail {
+  position: sticky;
+  top: 120px;
+  height: calc(100vh - 136px);
+  max-height: calc(100vh - 136px);
+  display: grid;
+  grid-template-rows: minmax(180px, auto) minmax(0, 1fr);
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.side-rail .panel {
+  border-color: var(--console-border);
+  background: var(--console-panel);
+  box-shadow: var(--console-shadow);
+}
+
+.side-rail .operator-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.side-rail .chat-transcript {
+  flex: 1 1 auto;
+  min-height: 180px;
+}
+
+.split,
+.asset-split {
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+  gap: 14px;
+}
+
+.workflow-summary {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.workflow-studio {
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.workflow-graph-canvas,
+.augmentation-node-canvas {
+  border: 1px solid var(--console-border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(var(--console-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--console-grid) 1px, transparent 1px),
+    #fbfdfe;
+  background-size: 22px 22px;
+}
+
+.workflow-graph-actions,
+.workflow-builder-bar,
+.workflow-toolbar,
+.augmentation-actions,
+.inspector-actions {
+  gap: 8px;
+}
+
+.augmentation-mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--console-border);
+  border-radius: var(--radius);
+  background: var(--console-soft);
+}
+
+.augmentation-mode-toggle button {
+  min-height: 34px;
+  min-width: 92px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--console-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.augmentation-mode-toggle button:hover {
+  background: #e9f7fa;
+  color: var(--console-accent-deep);
+}
+
+.augmentation-mode-toggle button.active,
+.augmentation-mode-toggle button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #006879, #004652);
+  color: #ffffff;
+  box-shadow: inset 0 -2px 0 #0cc7d7;
+}
+
+.augmentation-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.augmentation-kpis strong {
+  color: #0e2738;
+}
+
+.augmentation-at-glance {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 14px;
+  margin: 0 0 16px;
+  border-left: 4px solid var(--console-accent);
+}
+
+.augmentation-glance-card.current {
+  border-color: var(--console-accent);
+  background: #f1fcff;
+}
+
+.augmentation-bottom-grid,
+.augmentation-grid,
+.augmentation-recommendation-layout,
+.augmentation-workflow-demo {
+  gap: 16px;
+}
+
+.augmentation-recommendation-layout {
+  grid-template-columns: minmax(360px, 1fr) minmax(320px, 0.82fr);
+}
+
+.augmentation-recommendation-row {
+  grid-template-columns: minmax(0, 1fr) minmax(74px, 92px) minmax(70px, 86px);
+  min-height: 60px;
+  align-items: center;
+}
+
+.augmentation-recommendation-row strong,
+.augmentation-recommendation-row em {
+  white-space: normal;
+}
+
+.augmentation-fields div {
+  grid-template-columns: minmax(104px, 0.35fr) minmax(0, 1fr);
+}
+
+.augmentation-status,
+.augmentation-instance-chip,
+.pill,
+.status,
+.badge,
+.topo-pod-count,
+.workflow-validation-panel strong {
+  border-radius: 999px;
+  border: 1px solid var(--console-border);
+  background: #edf4f8;
+  color: var(--console-muted);
+  font-weight: 800;
+  white-space: normal;
+}
+
+.status.available,
+.status.running,
+.augmentation-status.idle,
+.augmentation-instance-chip.idle,
+.workflow-validation-panel strong.ok {
+  border-color: rgba(10, 143, 90, 0.24);
+  background: #e8f7ef;
+  color: var(--console-success);
+}
+
+.status.warning,
+.status.degraded,
+.augmentation-status.configured_not_running,
+.augmentation-status.degraded,
+.augmentation-instance-chip.configured_not_running,
+.augmentation-instance-chip.degraded {
+  border-color: rgba(217, 119, 6, 0.28);
+  background: #fff6e8;
+  color: var(--console-warning);
+}
+
+.status.unavailable,
+.status.offline,
+.augmentation-status.unavailable,
+.augmentation-instance-chip.unavailable {
+  border-color: rgba(220, 38, 38, 0.24);
+  background: #fff0f0;
+  color: var(--console-error);
+}
+
+.metric-bar,
+.augmentation-progress-bar,
+.topo-resource-track {
+  border-radius: 999px;
+  background: #e8eef3;
+  overflow: hidden;
+}
+
+.metric-bar i,
+.augmentation-progress-bar i,
+.topo-resource-fill {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #168de2, #16c5bd);
+}
+
+.chat-transcript,
+.explain-content,
+.augmentation-inspector-body,
+.augmentation-recommendation-detail,
+.workflow-binding-inspector,
+.asset-scroll,
+.augmentation-recommendation-list,
+.augmentation-plan-preview,
+.augmentation-table-shell {
+  scrollbar-color: #bfd0dc transparent;
+}
+
+.augmentation-table {
+  min-width: 760px;
+}
+
+.augmentation-table th {
+  color: var(--console-muted);
+}
+
+.augmentation-table tr:hover,
+.augmentation-table tr.selected {
+  background: #f1fcff;
+}
+
+.augmentation-node-badge,
+.augmentation-edge-label {
+  border-color: var(--console-border);
+  background: #ffffff;
+  color: var(--console-muted);
+}
+
+.augmentation-graph-node.current {
+  border-color: var(--console-accent);
+  background: #f1fcff;
+  box-shadow: 0 0 0 3px rgba(0, 138, 154, 0.12), var(--console-shadow);
+}
+
+.topo-service-flow,
+.topo-container-row,
+.telemetry-summary-strip,
+.resource-snapshot,
+.augmentation-flow-canvas,
+.augmentation-playback-inspector dl {
+  min-width: 0;
+}
+
+.metric strong,
+.metric span,
+.panel-head h2,
+.panel-head span,
+.augmentation-section-head h3,
+.augmentation-section-head span,
+.augmentation-section-head em,
+.resource-row strong,
+.metric-bar-row span,
+.topo-service-title,
+.topo-device-ref,
+.topo-pod-ref,
+.augmentation-fields dd,
+.augmentation-stage strong,
+.augmentation-recommendation-row strong,
+.augmentation-recommendation-row em,
+.augmentation-recommendation-row b,
+.augmentation-recommendation-row small,
+.augmentation-graph-node strong,
+.augmentation-graph-node em,
+.workflow-message-text,
+pre,
+code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+pre,
+code {
+  white-space: pre-wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .ops-shell,
+  .workflow-studio,
+  .augmentation-recommendation-layout,
+  .augmentation-workflow-demo,
+  .overview-visual-grid,
+  .overview-ops-grid.dashboard-page.active,
+  .split,
+  .asset-split {
+    grid-template-columns: 1fr;
+  }
+
+  .side-rail {
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .resource-snapshot {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .panel-head,
+  .augmentation-section-head,
+  .inspector-head,
+  .augmentation-actions,
+  .refresh {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .augmentation-at-glance,
+  .augmentation-glance-flow,
+  .augmentation-demo-progress,
+  .augmentation-progress-meter,
+  .augmentation-playback-inspector,
+  .augmentation-playback-inspector dl {
+    grid-template-columns: 1fr;
+  }
+
+  .augmentation-glance-flow i {
+    width: 1px;
+    height: 8px;
+    justify-self: center;
+  }
+
+  .augmentation-node-canvas {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .augmentation-graph-edges {
+    display: none;
+  }
+
+  .augmentation-graph-nodes {
+    position: relative;
+    display: grid;
+    gap: 10px;
+  }
+
+  .augmentation-graph-node {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    min-height: 86px;
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 0;
+  }
+
+  .shell {
+    width: min(100% - 20px, 1600px);
+    padding-top: 10px;
+  }
+
+  .topbar {
+    position: static;
+    grid-template-columns: 1fr;
+    align-items: start;
+    min-height: auto;
+  }
+
+  .topbar h1 {
+    font-size: 28px;
+  }
+
+  .refresh {
+    justify-content: start;
+  }
+
+  .main-menu {
+    position: static;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .main-menu button {
+    flex: 0 0 auto;
+    min-width: 136px;
+    border: 1px solid #e2ebf0;
+    border-radius: var(--radius-sm);
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .panel-head,
+  .augmentation-section-head,
+  .inspector-head,
+  .augmentation-actions,
+  .refresh {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .metric strong {
+    font-size: 30px;
+  }
+
+  .workflow-palette,
+  .workflow-canvas-shell,
+  .workflow-inspector {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+  }
+
+  .augmentation-recommendation-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .augmentation-recommendation-row span {
+    width: 100%;
+  }
+
+  .augmentation-recommendation-row strong,
+  .augmentation-recommendation-row em {
+    white-space: normal;
+  }
+
+  .augmentation-recommendation-row b,
+  .augmentation-recommendation-row small {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .augmentation-mode-toggle {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .augmentation-mode-toggle button {
+    flex: 1 0 92px;
+  }
+
+  .augmentation-fields div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(100% - 12px, 1600px);
+  }
+
+  .kpi-grid,
+  .workflow-summary,
+  .augmentation-kpis,
+  .scenario-grid,
+  .telemetry-summary-strip {
+    grid-template-columns: 1fr;
+  }
+}

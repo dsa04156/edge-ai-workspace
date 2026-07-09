@@ -4,12 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edge AI Operations Dashboard</title>
+    <meta name="description" content="디바이스 운영 대시보드 서비스 바인딩" />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=ai-pipeline-compact-20260622" />
     <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=reference-console-20260622" />
+    <link rel="stylesheet" href="/static/dashboard-screen.css?v=screen-design-v2-20260708" />
   </head>
   <body>
     <main class="shell">
@@ -330,6 +332,10 @@
             </div>
             <div class="augmentation-actions">
               <span>registry + observed runtime · read-only/dry-run</span>
+              <div class="augmentation-mode-toggle" aria-label="runtime augmentation mode">
+                <button class="active" type="button" data-augmentation-mode="observed" aria-pressed="true">Observed</button>
+                <button type="button" data-augmentation-mode="demo" aria-pressed="false">Demo</button>
+              </div>
               <button id="augmentationRefresh" type="button">Refresh Resources</button>
             </div>
           </div>
@@ -368,7 +374,7 @@
               <strong id="augmentationAtGlanceResult">-</strong>
             </div>
             <div class="augmentation-glance-flow" aria-hidden="true">
-              <span>AI service</span><i></i><span>edge pressure</span><i></i><span>candidate pool</span><i></i><span>offload plan</span><i></i><span>augmented device</span>
+              <span>AI service</span><i></i><span>edge pressure</span><i></i><span>candidate pool</span><i></i><span>decision path</span><i></i><span>augmented device</span>
             </div>
           </section>
 
@@ -399,7 +405,7 @@
               <div class="augmentation-workflow-demo">
                 <div class="augmentation-demo-progress">
                   <div>
-                    <span>Auto Demo Playback</span>
+                    <span>Decision Playback</span>
                     <strong id="augmentationWorkflowSummary">observed runtime decision pending</strong>
                   </div>
                   <div class="augmentation-progress-meter">
@@ -413,11 +419,11 @@
                   <ol id="augmentationWorkflowSteps" class="augmentation-workflow-steps"></ol>
                 </div>
                 <div>
-                  <h4>Planned Offload Path</h4>
+                  <h4>Decision Path</h4>
                   <div id="augmentationOffloadPath" class="augmentation-offload-path"></div>
                 </div>
                 <div>
-                  <h4>Execution Timeline</h4>
+                  <h4>Evidence Timeline</h4>
                   <ol id="augmentationExecutionTimeline" class="augmentation-execution-timeline"></ol>
                 </div>
               </div>
@@ -427,7 +433,7 @@
             <section class="augmentation-recommendations" aria-labelledby="augmentationRecommendationTitle">
               <div class="augmentation-section-head">
                 <div>
-                  <span>Runtime Scheduler Preview</span>
+                  <span>Runtime Decision Preview</span>
                   <h3 id="augmentationRecommendationTitle">Candidate Resources</h3>
                 </div>
                 <em id="augmentationRecommendationScope">recommendation pending</em>
@@ -436,7 +442,7 @@
               <div class="augmentation-recommendation-layout">
                 <div class="augmentation-recommendation-list" id="augmentationCandidateResourceRows"></div>
                 <div class="augmentation-recommendation-detail" id="augmentationDecisionDetail">
-                  <h4>Scheduler Decision</h4>
+                  <h4>Read-only Decision</h4>
                   <div>Augmented Device Plan is pending.</div>
                 </div>
               </div>
@@ -614,6 +620,10 @@
     <script src="/static/workflow-actions.js?v=terminology-cleanup-20260622"></script>
     <script src="/static/workflow.js?v=ai-pipeline-compact-20260622"></script>
     <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation.js?v=terminology-cleanup-20260622"></script>
+    <script src="/static/resource-augmentation-state.js?v=dashboard-resource-refactor-20260708"></script>
+    <script src="/static/resource-augmentation-workflow-model.js?v=dashboard-resource-refactor-20260708"></script>
+    <script src="/static/resource-augmentation-workflow.js?v=dashboard-resource-refactor-20260708"></script>
+    <script src="/static/resource-augmentation-panels.js?v=dashboard-resource-refactor-20260708"></script>
+    <script src="/static/resource-augmentation.js?v=dashboard-resource-refactor-20260708"></script>
   </body>
 </html>

@@ -133,3 +133,61 @@ Mixed, but restrained: white panels use a subtle border plus a soft tinted shado
 | Panel | 0 8px 22px rgba(24, 57, 74, 0.08) | Main panels |
 | Raised | 0 14px 34px rgba(24, 57, 74, 0.12) | Selected and hover states |
 | Border | 1px solid var(--console-border) | Cards, dividers |
+
+## 8. Screen Architecture
+
+### Dashboard Frame
+
+The dashboard is a single operational console, not a landing page. The frame is fixed around five regions:
+
+1. Command header: product identity, current observation time, refresh action.
+2. Page switcher: Overview, Assets, AI Pipeline, Resource Augmentation.
+3. Main workspace: active page content only.
+4. Operator rail: explanation panel and read-only assistant.
+5. Scroll containers: only dense lists, tables, code previews, and the right rail own scrolling.
+
+### Page Blueprints
+
+Overview:
+
+- First row: KPI cards for nodes, devices, telemetry, service resources, pod usage, and service binding.
+- Second row: current state visualization with health ring, metric bars, status distribution, and resource snapshot.
+- Third row: collected operational evidence, split into KPI catalog, node pressure, service profiles, and latest sensor state.
+
+Assets:
+
+- Primary panel: edge nodes and devices as a list-detail inventory.
+- Secondary panel: service topology under Assets, because it explains device-service binding rather than runtime execution.
+
+AI Pipeline:
+
+- Summary strip first.
+- Builder controls second.
+- Workspace split into node palette, graph canvas, and inspector.
+- Validation and execution plan stay below the canvas as dry-run evidence.
+
+Resource Augmentation:
+
+- Summary cards first.
+- At-a-glance decision strip second.
+- Runtime flow graph and playback evidence third.
+- Candidate resources and read-only plan next.
+- Resource pool and resource twin inspector last.
+
+### Final CSS Layer
+
+`dashboard-screen.css` is the final visual contract. Earlier CSS files may keep legacy component rules, but this layer owns:
+
+- light console color scheme and aliases for legacy `--line`, `--text`, `--muted`, status, and shadow tokens
+- header, page switcher, main workspace, and operator rail geometry
+- panel, KPI, list row, chip, table, graph, and workflow surface treatment
+- responsive behavior at 1180px, 900px, 760px, and 520px
+- CJK-safe headings and wrap-safe technical values
+
+No screen may introduce a new visible component pattern unless it is added here first.
+
+### Scope Guardrails
+
+- The dashboard may preview runtime decisions and dry-run plans.
+- The dashboard must not imply Kubernetes apply/delete/restart, Device CR mutation, MQTT command publishing, actuator control, runtime migration, or fully autonomous orchestration.
+- Resource augmentation is shown as observed runtime state or an explicit demo scenario, not as a scheduler execution surface.

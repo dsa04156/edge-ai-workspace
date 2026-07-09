@@ -46,85 +46,62 @@ Data and State Layer
   Prometheus    -> node/container resource metric
   Kubernetes    -> container, pod, placement, lifecycle 상태
 
-Virtual Device Layer
-  virtual-device-instance-001
-  virtual-device-instance-002
-  ...
-  virtual-device-instance-030
-  -> physical_ref, capability, resource profile, I/O endpoint, twin state 제공
+Device Source Layer
+  KubeEdge Device / DeviceStatus
+  InfluxDB latest telemetry
+  node resource profile
+  -> physical_ref, freshness, resource profile, I/O endpoint 상태 제공
 
 Workflow Layer
   AI service workflow builder/runtime
-  -> 가상디바이스 선택
+  -> 등록 Device/source와 node resource 후보 선택
   -> stage 구성
   -> input/output 연결
   -> 실행 위치와 자원 요구량 관리
 
 Web Control Layer
   workflow 통합 개발도구
-  -> 가상디바이스 풀
-  -> 디바이스트윈 상태
+  -> 등록 Device/source 풀
+  -> DeviceStatus snapshot / telemetry freshness
   -> workflow canvas
   -> binding/validation/execution plan
 ```
 
-## 가상디바이스 모델
+## 현재 PoC Workflow Source 모델
 
-가상디바이스는 최소한 다음 정보를 가진다.
-현재 registry seed는 `virtual-device/registry/virtual-devices.json`에 둔다.
+현재 PoC의 workflow builder는 별도 VirtualDevice registry를 만들지 않는다.
+선택 가능한 source는 `state-aggregator`가 Kubernetes/KubeEdge에서 조회한 등록
+`Device`와 InfluxDB latest telemetry freshness를 결합한 read-only view다.
 
 ```yaml
-id: vd-sensehat-gyro-001
-kind: virtual_device
-display_name: Sense HAT Gyroscope Virtual Device
-physical_ref:
-  node: etri-dev0003-raspi5
-  kubeedge_device: imu-sensehat-gyroscope-01
-  hardware: sensehat-001
-capabilities:
-  inputs:
-    - gyro_x
-    - gyro_y
-    - gyro_z
-  outputs: []
-  operations:
-    - read_latest
-    - read_window
-resources:
-  compute_class: edge_light
-  accelerator: none
-  node_cpu_source: prometheus
-  node_memory_source: prometheus
-io:
-  telemetry_sources:
-    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_x
-    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_y
-    - influx://device_telemetry/virtual_device_telemetry/imu-sensehat-gyroscope-01/gyro_z
-twin:
-  health: available
-  telemetry_fresh: true
-  status_last_seen: "2026-06-12T07:25:27Z"
-  bound_workflow: factory-anomaly-workflow-01
+name: imu-sensehat-gyroscope-01
+kind: kubeedge_device
+node: etri-dev0003-raspi5
+telemetry_status: fresh
+telemetry_last_seen_at: "2026-06-12T07:25:27Z"
+device_status_fresh: true
+overall_status: healthy
+properties:
+  - gyro_x
+  - gyro_y
+  - gyro_z
 ```
 
 현재 PoC에 승격된 최소 API 표면은 `state-aggregator`의 read-only GET API다.
-이 단계에서 가상디바이스는 Kubernetes CRD가 아니라 registry seed를 API view로 노출한 것이다.
-Kubernetes/KubeEdge에는 물리 `Device`와 workload가 등록되고, 가상디바이스 registry는 `state-aggregator` Pod에 파일 또는 ConfigMap으로 주입한다.
+이 단계에서 Kubernetes/KubeEdge에는 물리 `Device`와 workload만 등록된다.
 
 | API | 역할 |
 |---|---|
-| `GET /state/virtual-devices` | 30개 가상디바이스 pool과 node별 요약 조회 |
-| `GET /state/virtual-devices/{id}` | physical ref, capability, resource, I/O, twin 조회 |
-| `GET /state/virtual-devices/{id}/twin` | raw telemetry를 제외한 상태 snapshot 조회 |
-| `GET /state/virtual-devices/{id}/latest` | registry의 `influx://...` source에서 최신 telemetry 값 조회 |
-| `GET /state/virtual-devices/{id}/window` | registry의 `influx://...` source에서 window telemetry 값 조회 |
+| `GET /state/devices` | 등록 Device, DeviceStatus freshness, telemetry freshness 조회 |
+| `GET /state/devices/{device_id}/telemetry` | InfluxDB에서 해당 Device의 window telemetry sample 조회 |
+| `GET /state/nodes` | AI HAT 등 노드 부착 resource 후보 판단에 필요한 노드 상태 조회 |
 
 물리 환경 예시는 다음처럼 구분한다.
 
-| 노드 | 장착 장치 | VD 역할 |
+| 노드 | 장착 장치 | Workflow 역할 |
 |---|---|---|
 | `etri-dev0002-raspi5` | AI HAT | AI HAT NPU가 붙은 lightweight inference/resource 후보 |
-| `etri-dev0003-raspi5` | Sense HAT | 환경/IMU sensor virtual-device 입력 source |
+| `etri-dev0003-raspi5` | Sense HAT | 등록 Device telemetry 입력 source |
 
 ## 디바이스트윈 모델
 
@@ -153,12 +130,12 @@ raw 데이터는 InfluxDB 같은 data-plane에 남기고, twin은 상태와 관�
 
 ## 워크플로우와의 관계
 
-AI 서비스 워크플로우는 가상디바이스를 stage 입력 또는 실행 대상 후보로 사용한다.
+AI 서비스 워크플로우는 등록 Device를 stage 입력 source로, 노드 부착 resource를 실행 대상 후보로 사용한다.
 
 ```text
 AI Service Workflow
   source stage
-    -> vd-sensehat-gyro-001.read_window()
+    -> /state/devices/{device_id}/telemetry
   preprocess stage
     -> gyro feature extraction
   inference stage
@@ -229,26 +206,21 @@ workflow가 동적으로 바꾸는 것은 물리 장비 자체가 아니라 다�
 
 초기 버전은 실제 자동 제어보다 다음을 우선한다.
 
-1. 가상디바이스 30개 목록을 정의하고 볼 수 있다.
-2. 가상디바이스가 어떤 물리 온디바이스/데이터/자원과 매핑되는지 확인할 수 있다.
-3. 사용자가 AI 서비스 workflow stage를 만들고 가상디바이스를 bind할 수 있다.
+1. 등록 Device/source 목록을 볼 수 있다.
+2. Device가 어떤 물리 온디바이스/데이터 freshness/자원과 연결되는지 확인할 수 있다.
+3. 사용자가 AI 서비스 workflow stage를 만들고 등록 Device 또는 노드 resource 후보를 bind할 수 있다.
 4. workflow 실행 전 validation 결과를 볼 수 있다.
 5. 실행/배포는 명시적 사용자 동작과 검증 단계를 거친다.
 
 ## 단계별 진행안
 
-### 1단계: 모델과 registry
-
-- `VirtualDevice` schema 정의
-- physical ref, capability, resource, I/O, twin field 정의
-- 현재 InfluxDB/KubeEdge/Prometheus에서 만들 수 있는 가상디바이스 후보 산정
-- 30개 가상디바이스 pool manifest 또는 registry seed 작성
+### 1단계: 등록 Device 기반 source pool
 
 현재 초안:
 
-- `virtual-device/registry/virtual-devices.json`: 30개 가상디바이스 인스턴스 seed
-- `tests/test_virtual_device_registry.py`: registry 구조와 legacy fake MQTT publisher 배제 검증
-- `state-aggregator`의 `GET /state/virtual-devices*`: registry seed를 운영 API로 조회하는 최소 구현
+- `state-aggregator`의 `GET /state/devices`: 등록 Device와 freshness를 운영 API로 조회
+- `state-aggregator`의 `GET /state/devices/{device_id}/telemetry`: InfluxDB sample 조회
+- dashboard workflow UI: 브라우저 상태 안에서 stage graph, device/resource binding, validation, execution plan preview 제공
 
 ### 2단계: twin engine
 
@@ -260,14 +232,14 @@ workflow가 동적으로 바꾸는 것은 물리 장비 자체가 아니라 다�
 
 - AI service stage schema 정의
 - stage input/output type 정의
-- 가상디바이스 bind/release 모델 정의
+- 등록 Device/source bind/release 모델 정의
 - workflow validation rule 작성
 
 ### 4단계: 웹 UI
 
-- 가상디바이스 pool
+- 등록 Device/source pool
 - workflow canvas
-- twin inspector
+- DeviceStatus/telemetry inspector
 - validation panel
 - execution plan preview
 

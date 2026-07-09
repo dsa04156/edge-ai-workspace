@@ -35,11 +35,10 @@
 
 | 경로 | 역할 | 작업 원칙 |
 |---|---|---|
-| `docs/second-year-virtual-device-workflow-architecture.md` | 가상디바이스, 디바이스트윈, AI 서비스 워크플로우 재설계 기준 | 가짜 MQTT publisher 방식과 구분하고, 물리 온디바이스 매핑 기반 가상디바이스 정의를 우선 |
+| `docs/second-year-virtual-device-workflow-architecture.md` | 등록 Device/source, 디바이스트윈, AI 서비스 워크플로우 재설계 기준 | 현재 PoC는 KubeEdge Device와 InfluxDB freshness 기반으로 관리하고, 별도 VirtualDevice registry는 현재 구현 경로로 두지 않음 |
 | `docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf` | 2차년도 협약 방향 원문 | 요구사항과 표현 근거로만 사용하고 PDF 원본은 수정하지 않음 |
-| `virtual-device/` | 2차년도 가상디바이스 registry seed와 설명 | 현재 기능 완료 주장이 아니라 물리 온디바이스 매핑 기반 registry 프로토타입으로 관리 |
-| 신규 `virtual-device-*` 경로 후보 | 물리 온디바이스 매핑 가상디바이스 registry/runtime/twin engine 후보 | 생성 전 `docs/scope.md`와 설계 문서에 역할, API, 검증 기준을 먼저 명시 |
 | 신규 `workflow-*` 경로 후보 | AI 서비스 workflow builder/runtime/control plane 후보 | legacy workflow 코드를 현행 기능으로 오해하지 않도록 새 설계 경계 명시 |
+| 신규 `resource-augmentation-scheduler` 경로 후보 | runtime pod/service 사용량과 `AugmentationResource`/`DeviceAugmentation` 상태를 결합해 자원증강 recommendation/status를 계산하는 v1 prototype 후보 | dashboard 수동 실행이나 per-click Job 생성이 아니라 controller/scheduler 정책 경로로 다룸 |
 
 ## 현재 범위 보조 경로
 
@@ -106,7 +105,7 @@
 | `edge-orch/nvidia-device-plugin/` | 현재 범위 보조 | x86 추론 서버/GPU 운영 보조 |
 | HAMi Helm release `hami` (`kube-system`) | 현재 범위 보조 | x86 GPU 서버의 GPU 공유/스케줄링 기반. 설치/점검 메모는 `docs/ops/gpu-hami-runtime.md` |
 | `edge-orch/gemma/` | 확인 필요 | 현재 서비스 데모와 연결되는지 확인 후 분류 |
-| `edge-orch/vision_stage_runner/` | 확인 필요 | 현재 서비스 데모와 연결되는 경우만 현재 범위로 승격 |
+| `edge-orch/vision_stage_runner/` | 2차년도 prototype 후보/확인 필요 | runtime resource augmentation scheduler가 선택한 workload/resource 검증 경로와 연결되는 경우에만 제한적으로 승격 |
 | `edge-orch/workflow_executor/` | Legacy / Reference | 과거 workflow orchestration 실험. 현재 제외 |
 | `edge-orch/workflow_reporter/` | Legacy / Reference | 과거 stage event pipeline 실험. 현재 제외 |
 | `edge-orch/placement_engine/` | Legacy / Reference | 과거 placement/offloading 실험. 현재 제외 |

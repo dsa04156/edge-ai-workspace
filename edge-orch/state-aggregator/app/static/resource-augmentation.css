@@ -24,6 +24,40 @@
   flex-wrap: wrap;
 }
 
+.augmentation-mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 3px;
+}
+
+.augmentation-mode-toggle button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 160ms ease-out, color 160ms ease-out, transform 140ms ease-out;
+}
+
+.augmentation-mode-toggle button:hover {
+  transform: translateY(-1px);
+}
+
+.augmentation-mode-toggle button.active {
+  background: #0b6f80;
+  color: #fff;
+}
+
+.augmentation-mode-toggle button:focus-visible {
+  outline: 3px solid rgba(8, 124, 143, 0.35);
+  outline-offset: 2px;
+}
+
 .augmentation-actions span,
 .augmentation-section-head span,
 .augmentation-section-head em {
@@ -452,7 +486,7 @@
 
 .augmentation-workflow-steps li {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
   border: 1px solid var(--line);
@@ -468,6 +502,7 @@
   color: var(--muted);
   font-size: 11px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .augmentation-workflow-steps li.completed b {

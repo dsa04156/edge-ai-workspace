@@ -2,13 +2,28 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RESOURCE_AUGMENTATION_SCRIPTS = (
+    "resource-augmentation-state.js",
+    "resource-augmentation-workflow-model.js",
+    "resource-augmentation-workflow.js",
+    "resource-augmentation-panels.js",
+    "resource-augmentation.js",
+)
+
+
+def resource_augmentation_js() -> str:
+    static_dir = ROOT / "edge-orch/state-aggregator/app/static"
+    return "\n".join((static_dir / name).read_text() for name in RESOURCE_AUGMENTATION_SCRIPTS)
 
 
 def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation.js").read_text()
+    js = resource_augmentation_js()
 
     assert 'id="augmentationRecommendationTotal"' in html
+    assert 'class="augmentation-mode-toggle"' in html
+    assert 'data-augmentation-mode="observed"' in html
+    assert 'data-augmentation-mode="demo"' in html
     assert 'id="augmentationCandidateResourceRows"' in html
     assert 'id="augmentationDecisionDetail"' in html
     assert 'id="augmentationWorkflowStatus"' in html
@@ -29,12 +44,18 @@ def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> No
     assert 'id="augmentationWorkflowSteps"' in html
     assert 'id="augmentationOffloadPath"' in html
     assert 'id="augmentationRecommendationService"' in html
-    assert "Auto Demo Playback" in html
+    assert "Decision Playback" in html
     assert "Candidate Resources" in html
     assert "Augmented Device Plan" in html
-    assert "Planned Offload Path" in html
-    assert "Scheduler Decision" in html
+    assert "Decision Path" in html
+    assert "Evidence Timeline" in html
+    assert "Read-only Decision" in html
+    assert "Scheduler Decision" not in html
     assert "/state/runtime-resource-augmentation" in js
+    assert "augmentationMode" in js
+    assert "initialAugmentationMode" in js
+    assert "runtimeAugmentationUrl" in js
+    assert "setAugmentationMode" in js
     assert "renderAugmentationDecision" in js
     assert "renderAugmentationWorkflowDemo" in js
     assert "renderAugmentationWorkflowFrame" in js
@@ -92,7 +113,7 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
 
 def test_dashboard_uses_consistent_english_domain_terms() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation.js").read_text()
+    js = resource_augmentation_js()
 
     for label in (
         ">Overview<",
@@ -103,7 +124,7 @@ def test_dashboard_uses_consistent_english_domain_terms() -> None:
         "Runtime Augmentation Preview",
         "AI Workload",
         "Candidate Resources",
-        "Scheduler Decision",
+        "Read-only Decision",
         "Augmented Device Plan",
         "Read-only Plan",
     ):
@@ -123,7 +144,8 @@ def test_dashboard_uses_consistent_english_domain_terms() -> None:
         assert old_label not in html
 
     assert "AI Workload" in js
-    assert "Scheduler Decision" in js
+    assert "Read-only Decision" in js
+    assert "Scheduler Decision" not in js
     assert "Augmented Device Plan" in js
     assert "Candidate resource API response pending." in js
     assert "AI Service" not in js

@@ -8,12 +8,63 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     refactor_link = "/static/dashboard-refactor.css?v=reference-console-20260622"
+    screen_link = "/static/dashboard-screen.css?v=screen-design-v2-20260708"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
     assert theme_link in html
     assert refactor_link in html
+    assert screen_link in html
     assert html.index(refactor_link) > html.index(theme_link)
+    assert html.index(screen_link) > html.index(refactor_link)
+
+
+def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+    workflow_js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation-workflow.js").read_text()
+    design = (ROOT / "DESIGN.md").read_text()
+    screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
+
+    assert "--console-bg: #edf4f7;" in css
+    assert "--line: var(--console-border);" in css
+    assert "--text: var(--console-text);" in css
+    assert "--muted: var(--console-muted);" in css
+    assert "color-scheme: light;" in css
+    assert ".dashboard-page:not(.active)" in css
+    assert "grid-template-columns: minmax(0, 1fr) minmax(336px, 384px);" in css
+    assert "word-break: keep-all;" in css
+    assert ".ring-legend" in css
+    assert "grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));" in css
+    assert ".panel-head-meta span" in css
+    assert ".augmentation-mode-toggle" in css
+    assert '.augmentation-mode-toggle button[aria-pressed="true"]' in css
+    assert ".augmentation-workbench .augmentation-section-head" in css
+    assert ".augmentation-recommendation-row small" in css
+    assert "overflow-wrap: normal;" in css
+    assert "augmentationEdgeBoundaryPoint" in workflow_js
+    assert "AUGMENTATION_GRAPH_NODE_HALF_WIDTH" in workflow_js
+    assert "@media (max-width: 1180px)" in css
+    assert "@media (max-width: 900px)" in css
+    assert "@media (max-width: 760px)" in css
+    assert "clamp(" not in css
+    assert "## 8. Screen Architecture" in design
+    assert "`dashboard-screen.css` is the final visual contract." in design
+    assert "## Resource Augmentation" in screen_design
+
+
+def test_dashboard_screen_copy_stays_preview_oriented() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation-panels.js").read_text()
+
+    assert "Decision Playback" in html
+    assert "Decision Path" in html
+    assert "Evidence Timeline" in html
+    assert "Auto Demo Playback" not in html
+    assert "Planned Offload Path" not in html
+    assert "Execution Timeline" not in html
+    assert "augmentationStatusClass" in js
+    assert 'class="augmentation-instance-chip ${resource.status}' not in js
+    assert 'class="augmentation-status ${augEscape(resource.status)}' not in js
 
 
 def test_dashboard_refactor_defines_non_overlapping_operating_layout() -> None:

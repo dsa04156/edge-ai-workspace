@@ -42,7 +42,7 @@ def parse_args(argv: list[str]) -> Options:
 
 
 def fetch_json(base_url: str) -> JsonMap:
-    with urllib.request.urlopen(f"{base_url}/state/runtime-resource-augmentation", timeout=10) as response:
+    with urllib.request.urlopen(f"{base_url}/state/runtime-resource-augmentation?mode=demo", timeout=10) as response:
         payload = json.loads(response.read().decode("utf-8"))
     return payload if isinstance(payload, dict) else {}
 

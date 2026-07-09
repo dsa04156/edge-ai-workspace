@@ -121,6 +121,15 @@ DeviceStatus/control heartbeat는 운영 snapshot 최신성 보조 신호로 표
 
 `/state/devices/{device_id}/telemetry`는 선택한 device의 최근 InfluxDB telemetry samples를 시간순으로 반환하며 dashboard detail graph에서 사용한다. 기본 조회 범위는 `-30m`, 기본 limit은 `300`이다.
 
+`/state/virtual-resources`는 자원증강형 가상디바이스를 Resource Profile 단위로 반환한다.
+이 API는 가상 센서 생성 경로가 아니라 AI HAT/GPU/cache 같은 보강 실행 자원 상태 조회 경로다.
+실행 인스턴스가 0개여도 registry에 있는 profile은 숨기지 않으며, 상태는 `configured_not_running`으로 표시한다.
+
+`/state/dashboard`는 service resource observation 실패 시 dashboard 전체를 500으로 내리지 않는다.
+이 경우 `resource_profiles.observation_error`에 원인을 남기고 service resource KPI만 0으로 degrade한다.
+`/state/operator-assistant`와 `/state/operator-chat`도 같은 degraded dashboard snapshot을 사용한다.
+resource observation 실패가 먼저 발생하면 chat은 Qwen 호출 전에 read-only degraded observation 응답을 반환한다.
+
 ```json
 {
   "name": "env-arduino-temperature-01",

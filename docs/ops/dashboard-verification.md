@@ -198,7 +198,35 @@ Issue/Focus 설명 확인 기준:
 
 주의: workflow designer는 `/state/dashboard` read-only fetch를 시도할 수 있지만, 실패해도 example mode로 동작해야 한다. Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행 버튼은 없어야 한다.
 
-## 7. Reason 문구
+## 7. 자원증강 탭
+
+자원증강 탭은 센서를 가상으로 만드는 화면이 아니라 AI HAT, GPU, cache 같은 보강 실행 자원을 Device처럼 운영 가시화하는 화면이다.
+
+확인 방법:
+
+1. Dashboard에서 `자원증강` 탭을 연다.
+2. Resource Profile 목록이 1개 또는 여러 개 표시되는지 확인한다.
+3. 실행 인스턴스가 없는 profile도 숨겨지지 않는지 확인한다.
+4. Resource Twin Inspector에서 availability, node/pod/endpoint readiness, binding state가 표시되는지 확인한다.
+5. Workflow Resource Lane과 Execution Plan Preview가 read-only/dry-run preview로만 동작하는지 확인한다.
+
+API 확인:
+
+```bash
+curl -s http://localhost:8000/state/virtual-resources
+curl -s http://localhost:8000/state/virtual-resources/vd-x86-gpu-inference
+curl -s http://localhost:8000/state/virtual-resources/vd-x86-gpu-inference/twin
+```
+
+정상 기준:
+
+- `resources[]`에는 registry에 등록된 Resource Profile이 표시된다.
+- `observed_instances`는 0, 1, N 모두 가능하다.
+- 실행 인스턴스가 없으면 `status=configured_not_running`, `twin.binding_state=not_running`으로 표시된다.
+- 관측 실패 시 `observation_error`가 표시되어도 registry profile은 숨겨지지 않는다.
+- 이 탭은 Kubernetes apply/delete/restart, Device CR mutation, MQTT command publish, runtime migration/offloading을 실행하지 않는다.
+
+## 8. Reason 문구
 
 reason은 운영자가 바로 다음 점검 위치를 알 수 있게 구체적이어야 한다.
 
@@ -223,7 +251,7 @@ DeviceStatus stale but telemetry fresh
 - `assigned node is unavailable`: node/Prometheus/node-exporter 상태부터 확인한다.
 - `DeviceStatus stale but telemetry fresh`: status-plane은 오래됐지만 data-plane은 살아 있으므로 healthy 가능하다.
 
-## 8. InfluxDB timestamp 표시 해석
+## 9. InfluxDB timestamp 표시 해석
 
 Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.
 
@@ -234,7 +262,7 @@ Dashboard와 API의 telemetry freshness는 InfluxDB latest sample 기준이다.
 - act/rpi-act device의 dashboard freshness 기준 property는 future/compatibility 기준으로 `health` liveness row를 사용할 수 있다.
 - `ts`는 publisher payload에는 포함될 수 있지만 현재 dashboard freshness 판단용 DB push property가 아니다.
 
-## 9. API 기반 빠른 확인
+## 10. API 기반 빠른 확인
 
 port-forward:
 
@@ -248,8 +276,12 @@ kubectl -n edge-orch port-forward svc/state-aggregator 8000:80
 
 ```bash
 curl -s http://localhost:8000/state/dashboard
+curl -s http://localhost:8000/state/virtual-resources
 python3 tools/check_dashboard_api.py --base-url http://localhost:8000
 ```
+
+`tools/check_dashboard_api.py`는 `/state/dashboard`와 `/state/virtual-resources`를 함께 검증한다.
+자원증강 API가 없는 과거 배포만 확인할 때는 `--skip-virtual-resources`를 사용한다.
 
 특정 device 확인:
 
@@ -257,7 +289,7 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000
 python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device rpi-act-device-03
 ```
 
-## 10. 화면 정상 판정
+## 11. 화면 정상 판정
 
 정상 화면은 다음을 만족한다.
 
@@ -267,7 +299,8 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000 --device r
 4. Relation view에서 device-service binding이 보인다.
 5. Issue/focus list가 degraded/unavailable device, non-healthy node, mapper/telemetry/node 문제를 보여준다.
 6. 현재 4개 Arduino sensor device는 InfluxDB latest sample `_time`으로 freshness를 설명한다.
-7. workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.
+7. 자원증강 탭에서 Resource Profile, observed instance, Resource Twin, dry-run plan preview가 보인다.
+8. workflow/offloading/placement/autonomous agent가 현재 구현 기능처럼 보이지 않는다.
 
 ## Workflow Designer 검증
 
@@ -295,4 +328,3 @@ Workflow Designer는 dashboard와 분리된 read-only + dry-run 설계 화면으
    - event-publish에 MQTT Broker 연결이 없으면 FAIL이 표시되는가?
 
 금지: 이 검증 중 Kubernetes 배포, MQTT command publish, Device CR 수정, actuator command 실행을 하지 않는다.
-

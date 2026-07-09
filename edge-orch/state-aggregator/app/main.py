@@ -29,7 +29,8 @@ from .models import (
     WorkflowState,
 )
 from .operator_assistant import degraded_operator_chat_response, operator_assistant_from_dashboard
-from .runtime_augmentation import RuntimeAugmentationState, build_runtime_augmentation_state
+from .runtime_augmentation import RuntimeAugmentationState
+from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource_augmentation_state
 from .service import StateAggregatorService
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
@@ -269,8 +270,9 @@ async def get_device_augmentations(namespace: str = "default") -> DeviceAugmenta
 
 
 @app.get("/state/runtime-resource-augmentation", response_model=RuntimeAugmentationState)
-async def get_runtime_resource_augmentation() -> RuntimeAugmentationState:
-    return build_runtime_augmentation_state()
+async def get_runtime_resource_augmentation(refresh: bool = False, namespace: str = "default", mode: str = "observed") -> RuntimeAugmentationState:
+    query = RuntimeAugmentationQuery(refresh=refresh, namespace=namespace, mode=mode)
+    return await runtime_resource_augmentation_state(service=service, crds=augmentation_crds, query=query)
 
 
 @app.post("/state/service-resource-profiles/record")
