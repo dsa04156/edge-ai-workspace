@@ -2,98 +2,24 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RESOURCE_AUGMENTATION_SCRIPTS = (
-    "resource-augmentation-state.js",
-    "resource-augmentation-workflow-model.js",
-    "resource-augmentation-workflow.js",
-    "resource-augmentation-panels.js",
-    "resource-augmentation.js",
-)
 
 
-def resource_augmentation_js() -> str:
-    static_dir = ROOT / "edge-orch/state-aggregator/app/static"
-    return "\n".join((static_dir / name).read_text() for name in RESOURCE_AUGMENTATION_SCRIPTS)
-
-
-def test_resource_augmentation_dashboard_exposes_runtime_recommendations() -> None:
+def test_resource_augmentation_dashboard_surface_is_removed_for_redesign() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    js = resource_augmentation_js()
 
-    assert 'id="augmentationRecommendationTotal"' in html
-    assert 'class="augmentation-mode-toggle"' in html
-    assert 'data-augmentation-mode="observed"' in html
-    assert 'data-augmentation-mode="demo"' in html
-    assert 'id="augmentationCandidateResourceRows"' in html
-    assert 'id="augmentationDecisionDetail"' in html
-    assert 'id="augmentationWorkflowStatus"' in html
-    assert 'id="augmentationWorkflowProgress"' in html
-    assert 'id="augmentationWorkflowProgressText"' in html
-    assert 'id="augmentationWorkflowSummary"' in html
-    assert 'id="augmentationPlaybackInspector"' in html
-    assert 'id="augmentationExecutionTimeline"' in html
-    assert 'id="augmentationAtGlance"' in html
-    assert 'id="augmentationAtGlancePhase"' in html
-    assert 'id="augmentationAtGlanceService"' in html
-    assert 'id="augmentationAtGlanceTarget"' in html
-    assert 'id="augmentationAtGlanceResources"' in html
-    assert 'id="augmentationAtGlanceResult"' in html
-    assert 'id="augmentationNodeCanvas"' in html
-    assert 'id="augmentationGraphEdges"' in html
-    assert 'id="augmentationGraphNodes"' in html
-    assert 'id="augmentationWorkflowSteps"' in html
-    assert 'id="augmentationOffloadPath"' in html
-    assert 'id="augmentationRecommendationService"' in html
-    assert "Decision Playback" in html
-    assert "Candidate Resources" in html
-    assert "Augmented Device Plan" in html
-    assert "Decision Path" in html
-    assert "Evidence Timeline" in html
-    assert "Read-only Decision" in html
-    assert "Scheduler Decision" not in html
-    assert "/state/runtime-resource-augmentation" in js
-    assert "augmentationMode" in js
-    assert "initialAugmentationMode" in js
-    assert "runtimeAugmentationUrl" in js
-    assert "setAugmentationMode" in js
-    assert "renderAugmentationDecision" in js
-    assert "renderAugmentationWorkflowDemo" in js
-    assert "renderAugmentationWorkflowFrame" in js
-    assert "renderAugmentationAtGlance" in js
-    assert "renderAugmentationNodeCanvas" in js
-    assert "renderAugmentationPlaybackInspector" in js
-    assert "renderAugmentationExecutionTimeline" in js
-    assert "augmentationNodePayload" in js
-    assert "augmentationNodeCanvasModel" in js
-    assert "Observe Edge Device" in js
-    assert "Detect Resource Pressure" in js
-    assert "Evaluate Candidate Pool" in js
-    assert "Select GPU Resource" in js
-    assert "Select Cache Resource" in js
-    assert "Plan Augmented Device Binding" in js
-    assert "runtime metrics" in js
-    assert "candidate scan" in js
-    assert "select inference" in js
-    assert "AI Service" not in js
-    assert "ai-service" not in js
-    assert "startAugmentationWorkflowPlayback" in js
-    assert "scenario_timeline" in js
-    assert "playback_interval_ms" in js
-    assert "workflowAutomationLabel" in js
-    assert "data-workflow-node-id" in js
-    assert "flowing" in js
-    assert "augmentation-flow-packet" in js
-    assert "workflow_demo" in js
-    assert "progress_percent" in js
-    assert "current_step_id" in js
-    assert "operator_summary" in js
-    assert "offload_path" in js
-    assert "candidate_resources" in js
-    assert "resulting_augmented_device" in js
-    assert "decision" in js
-    assert "ai_service" in js
-    assert html.index('class="augmentation-flow"') < html.index('class="augmentation-recommendations"')
-    assert html.index('class="augmentation-bottom-grid"') < html.index('class="augmentation-grid"')
+    assert ">Resource Augmentation<" not in html
+    assert 'data-dashboard-page="augmentation"' not in html
+    assert 'data-page="augmentation"' not in html
+    assert "resource-augmentation.css" not in html
+    assert "resource-augmentation-crd.js" not in html
+    assert "resource-augmentation-state.js" not in html
+    assert "resource-augmentation-workflow-model.js" not in html
+    assert "resource-augmentation-workflow.js" not in html
+    assert "resource-augmentation-panels.js" not in html
+    assert "resource-augmentation.js" not in html
+    assert 'class="augmentation-workbench dashboard-page"' not in html
+    assert 'id="augmentationRecommendationTotal"' not in html
+    assert 'id="augmentationNodeCanvas"' not in html
 
 
 def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> None:
@@ -113,20 +39,12 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
 
 def test_dashboard_uses_consistent_english_domain_terms() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    js = resource_augmentation_js()
 
     for label in (
         ">Overview<",
         ">Assets<",
         ">AI Pipeline<",
-        ">Resource Augmentation<",
         "AI Pipeline Builder",
-        "Runtime Augmentation Preview",
-        "AI Workload",
-        "Candidate Resources",
-        "Read-only Decision",
-        "Augmented Device Plan",
-        "Read-only Plan",
     ):
         assert label in html
 
@@ -142,13 +60,6 @@ def test_dashboard_uses_consistent_english_domain_terms() -> None:
         "자동 데모 진행",
     ):
         assert old_label not in html
-
-    assert "AI Workload" in js
-    assert "Read-only Decision" in js
-    assert "Scheduler Decision" not in js
-    assert "Augmented Device Plan" in js
-    assert "Candidate resource API response pending." in js
-    assert "AI Service" not in js
 
 
 def test_device_explanation_panel_omits_command_hints() -> None:

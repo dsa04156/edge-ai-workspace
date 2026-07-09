@@ -368,7 +368,7 @@ button:focus-visible,
 .ops-shell {
   grid-area: workspace;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(320px, 28vw, 376px);
+  grid-template-columns: minmax(0, 1fr) 376px;
   gap: 16px;
   width: 100%;
   min-width: 0;
@@ -405,15 +405,22 @@ button:focus-visible,
 
 .side-rail {
   grid-column: 2 !important;
+  grid-row: auto !important;
   position: sticky;
   top: 86px;
+  right: auto !important;
+  left: auto !important;
   align-self: start;
   display: grid;
   gap: 12px;
+  width: auto !important;
+  max-width: 100%;
+  height: auto !important;
   max-height: calc(100dvh - 104px);
   overflow-y: auto;
   padding-right: 2px;
   min-width: 0;
+  z-index: auto;
   opacity: 1 !important;
   filter: none !important;
   transform: none !important;

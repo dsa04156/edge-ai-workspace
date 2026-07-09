@@ -83,10 +83,9 @@ Breakpoints:
 
 ### Resource Lists and Tables
 
-- Devices, nodes, services, resource candidates, and runtime evidence share the same row grammar.
+- Devices, nodes, services, and runtime evidence share the same row grammar.
 - Long IDs and telemetry values wrap without overlapping.
 - Segmented controls and active resource actions use accent fill with ink text; inactive controls use raised panel fill with light text.
-- Legacy light cards or badges inside resource augmentation must be overridden by the final dark surface layer.
 
 ### Inspector Rail
 
@@ -105,12 +104,12 @@ Breakpoints:
 
 - root console tokens and aliases for legacy dashboard variables
 - app frame geometry: rail, command bar, workspace, inspector
-- metric rows, panels, resource rows, tables, graph surfaces, and augmentation previews
+- metric rows, panels, resource rows, tables, and graph surfaces
 - responsive behavior at 1180px, 900px, 760px, and 520px
 - CJK-safe headings and wrap-safe technical values
 
 ## 8. Scope Guardrails
 
-- The dashboard may show observed runtime state, resource candidates, read-only decisions, and dry-run plans.
+- The dashboard may show observed runtime state, read-only explanations, and dry-run plans.
 - It must not imply Kubernetes apply/delete/restart, Device CR mutation, MQTT command publishing, actuator control, runtime migration, or completed autonomous orchestration.
-- Resource augmentation is visualized as observed state or explicit demo scenario evidence, not as a scheduler execution surface.
+- Resource augmentation is deferred from the active dashboard surface until its information structure and operating responsibility are redesigned.

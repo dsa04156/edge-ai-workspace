@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
     <link rel="stylesheet" href="/static/workflow.css?v=ai-pipeline-compact-20260622" />
-    <link rel="stylesheet" href="/static/resource-augmentation.css?v=resource-augmentation-flow-first-20260619" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=reference-console-20260622" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=resource-console-v3-20260709" />
@@ -35,7 +34,6 @@
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">Overview</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">Assets</button>
         <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI Pipeline</button>
-        <button type="button" data-dashboard-page="augmentation" aria-pressed="false">Resource Augmentation</button>
       </nav>
 
       <section class="ops-shell">
@@ -329,184 +327,6 @@
           </div>
         </section>
 
-        <section class="panel augmentation-workbench dashboard-page" data-page="augmentation" aria-labelledby="augmentationTitle">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">Resource Augmentation</p>
-              <h2 id="augmentationTitle">Runtime Augmentation Preview</h2>
-            </div>
-            <div class="augmentation-actions">
-              <span>registry + observed runtime · read-only/dry-run</span>
-              <div class="augmentation-mode-toggle" aria-label="runtime augmentation mode">
-                <button class="active" type="button" data-augmentation-mode="observed" aria-pressed="true">Observed</button>
-                <button type="button" data-augmentation-mode="demo" aria-pressed="false">Demo</button>
-              </div>
-              <button id="augmentationRefresh" type="button">Refresh Resources</button>
-            </div>
-          </div>
-
-          <div class="augmentation-kpis" aria-label="resource augmentation summary">
-            <div><span>Resource Profiles</span><strong id="augmentationProfileCount">0</strong></div>
-            <div><span>Observed Runtime</span><strong id="augmentationObservedCount">0</strong></div>
-            <div><span>Available</span><strong id="augmentationAvailableCount">0</strong></div>
-            <div><span>Allocated</span><strong id="augmentationAllocatedCount">0</strong></div>
-            <div><span>Not Running</span><strong id="augmentationNotRunningCount">0</strong></div>
-            <div><span>Risk</span><strong id="augmentationRiskCount">0</strong></div>
-            <div><span>Candidate Resources</span><strong id="augmentationRecommendationTotal">0</strong></div>
-            <div><span>Selected Resources</span><strong id="augmentationRecommendationSelected">0</strong></div>
-            <div><span>Decision State</span><strong id="augmentationRecommendationBlocked">-</strong></div>
-          </div>
-
-          <section id="augmentationAtGlance" class="augmentation-at-glance" aria-label="runtime augmentation at a glance">
-            <div class="augmentation-glance-card current">
-              <span>Current Phase</span>
-              <strong id="augmentationAtGlancePhase">-</strong>
-            </div>
-            <div class="augmentation-glance-card">
-              <span>AI Workload</span>
-              <strong id="augmentationAtGlanceService">-</strong>
-            </div>
-            <div class="augmentation-glance-card">
-              <span>Target Device</span>
-              <strong id="augmentationAtGlanceTarget">-</strong>
-            </div>
-            <div class="augmentation-glance-card">
-              <span>Selected Resources</span>
-              <strong id="augmentationAtGlanceResources">-</strong>
-            </div>
-            <div class="augmentation-glance-card">
-              <span>Augmented Device Plan</span>
-              <strong id="augmentationAtGlanceResult">-</strong>
-            </div>
-            <div class="augmentation-glance-flow" aria-hidden="true">
-              <span>AI service</span><i></i><span>edge pressure</span><i></i><span>candidate pool</span><i></i><span>decision path</span><i></i><span>augmented device</span>
-            </div>
-          </section>
-
-          <div class="augmentation-bottom-grid">
-            <section class="augmentation-flow" aria-labelledby="augmentationFlowTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Workflow Resource Lane</span>
-                  <h3 id="augmentationFlowTitle">Runtime Augmentation Flow</h3>
-                </div>
-                <em id="augmentationWorkflowStatus">workflow pending</em>
-              </div>
-              <div class="augmentation-flow-canvas">
-                <div class="augmentation-stage source"><span>Target Edge Device</span><strong>etri-dev0001-jetorn</strong></div>
-                <i></i>
-                <div class="augmentation-stage transform"><span>Resource Gap</span><strong>gpu/storage required</strong></div>
-                <i></i>
-                <div class="augmentation-stage inference"><span>Augmented Inference</span><strong id="augmentationBoundResource">resource pending</strong></div>
-                <i></i>
-                <div class="augmentation-stage storage"><span>Result Cache</span><strong id="augmentationStorageResource">storage pending</strong></div>
-                <i></i>
-                <div class="augmentation-stage event"><span>Augmented Device</span><strong>operator view</strong></div>
-              </div>
-              <div id="augmentationNodeCanvas" class="augmentation-node-canvas" aria-label="n8n style runtime augmentation graph">
-                <svg id="augmentationGraphEdges" class="augmentation-graph-edges" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true"></svg>
-                <div id="augmentationGraphNodes" class="augmentation-graph-nodes"></div>
-              </div>
-              <div class="augmentation-workflow-demo">
-                <div class="augmentation-demo-progress">
-                  <div>
-                    <span>Decision Playback</span>
-                    <strong id="augmentationWorkflowSummary">observed runtime decision pending</strong>
-                  </div>
-                  <div class="augmentation-progress-meter">
-                    <span class="augmentation-progress-bar"><i id="augmentationWorkflowProgress"></i></span>
-                    <b id="augmentationWorkflowProgressText">0%</b>
-                  </div>
-                </div>
-                <div id="augmentationPlaybackInspector" class="augmentation-playback-inspector" aria-live="polite"></div>
-                <div>
-                  <h4>Playback Steps</h4>
-                  <ol id="augmentationWorkflowSteps" class="augmentation-workflow-steps"></ol>
-                </div>
-                <div>
-                  <h4>Decision Path</h4>
-                  <div id="augmentationOffloadPath" class="augmentation-offload-path"></div>
-                </div>
-                <div>
-                  <h4>Evidence Timeline</h4>
-                  <ol id="augmentationExecutionTimeline" class="augmentation-execution-timeline"></ol>
-                </div>
-              </div>
-              <div id="augmentationInstanceLane" class="augmentation-instance-lane"></div>
-            </section>
-
-            <section class="augmentation-recommendations" aria-labelledby="augmentationRecommendationTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Runtime Decision Preview</span>
-                  <h3 id="augmentationRecommendationTitle">Candidate Resources</h3>
-                </div>
-                <em id="augmentationRecommendationScope">recommendation pending</em>
-              </div>
-              <div class="augmentation-service-strip">AI Workload <strong id="augmentationRecommendationService">-</strong></div>
-              <div class="augmentation-recommendation-layout">
-                <div class="augmentation-recommendation-list" id="augmentationCandidateResourceRows"></div>
-                <div class="augmentation-recommendation-detail" id="augmentationDecisionDetail">
-                  <h4>Read-only Decision</h4>
-                  <div>Augmented Device Plan is pending.</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="augmentation-plan" aria-labelledby="augmentationPlanTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Validation + Execution Plan</span>
-                  <h3 id="augmentationPlanTitle">Read-only Plan</h3>
-                </div>
-                <em>dry-run · no Kubernetes apply</em>
-              </div>
-              <ul id="augmentationValidationList" class="augmentation-validation-list"></ul>
-              <pre id="augmentationPlanPreview" class="augmentation-plan-preview"></pre>
-            </section>
-          </div>
-
-          <div class="augmentation-grid">
-            <section class="augmentation-pool" aria-labelledby="augmentationPoolTitle">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Virtual Resource Pool</span>
-                  <h3 id="augmentationPoolTitle">Resource Profiles and Runtime Instances</h3>
-                </div>
-                <em id="augmentationRuntimeScope">observed runtime pending</em>
-              </div>
-              <div class="augmentation-table-shell">
-                <table class="augmentation-table">
-                  <thead>
-                    <tr>
-                      <th>Resource</th>
-                      <th>Node</th>
-                      <th>Type</th>
-                      <th>Desired</th>
-                      <th>Observed</th>
-                      <th>Free</th>
-                      <th>Allocated</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="augmentationResourceRows"></tbody>
-                </table>
-              </div>
-            </section>
-
-            <aside class="augmentation-inspector" aria-live="polite">
-              <div class="augmentation-section-head">
-                <div>
-                  <span>Resource Twin Inspector</span>
-                  <h3 id="augmentationInspectorTitle">Selected Resource</h3>
-                </div>
-                <em id="augmentationInspectorStatus">unknown</em>
-              </div>
-              <div id="augmentationInspectorBody" class="augmentation-inspector-body"></div>
-            </aside>
-          </div>
-        </section>
-
         <section class="panel scenario dashboard-page active" data-page="overview">
           <div class="panel-head">
             <div>
@@ -624,11 +444,5 @@
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
     <script src="/static/workflow-actions.js?v=terminology-cleanup-20260622"></script>
     <script src="/static/workflow.js?v=ai-pipeline-compact-20260622"></script>
-    <script src="/static/resource-augmentation-crd.js?v=resource-augmentation-crd-20260618"></script>
-    <script src="/static/resource-augmentation-state.js?v=dashboard-resource-refactor-20260708"></script>
-    <script src="/static/resource-augmentation-workflow-model.js?v=dashboard-resource-refactor-20260708"></script>
-    <script src="/static/resource-augmentation-workflow.js?v=dashboard-resource-refactor-20260708"></script>
-    <script src="/static/resource-augmentation-panels.js?v=dashboard-resource-refactor-20260708"></script>
-    <script src="/static/resource-augmentation.js?v=dashboard-resource-refactor-20260708"></script>
   </body>
 </html>

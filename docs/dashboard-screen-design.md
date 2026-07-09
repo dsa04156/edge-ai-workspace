@@ -2,13 +2,13 @@
 
 ## 목적
 
-- 운영자가 디바이스, 노드, 서비스, telemetry freshness, 자원증강 후보를 리소스 콘솔 흐름으로 읽게 한다.
+- 운영자가 디바이스, 노드, 서비스, telemetry freshness를 리소스 콘솔 흐름으로 읽게 한다.
 - 현재 PoC 범위는 통합 운영 가시화와 read-only preview다.
 - 화면은 실행 버튼 중심이 아니라 관측값, 판단 근거, dry-run 계획 중심으로 설계한다.
 
 ## 전체 프레임
 
-- Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline, Resource Augmentation.
+- Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline.
 - Command bar: cluster context, global search, 마지막 갱신 시각, refresh.
 - Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.
 - Inspector rail: State Explanation, read-only Qwen assistant.
@@ -31,19 +31,17 @@
 - Palette, graph canvas, inspector를 한 작업면으로 묶는다.
 - Validation과 Execution Plan은 dry-run preview로만 표시한다.
 
-## Resource Augmentation
+## Deferred Resource Augmentation
 
-- Summary rows: profile, observed runtime, available, allocated, risk, candidate, selected, decision.
-- At-a-glance: current phase, AI workload, target device, selected resources, augmented device plan.
-- Runtime flow: graph, playback, decision path, evidence timeline.
-- Candidate resources: read-only decision detail과 함께 표시한다.
-- Resource pool: registry/runtime instance table과 selected resource inspector.
+- Resource Augmentation은 기능 재구상 전까지 dashboard navigation과 active page에서 제외한다.
+- 기존 resource augmentation JS/CSS 자산은 재설계 참고용으로 보관할 수 있지만 운영 화면에서 로드하지 않는다.
+- 다시 노출하려면 화면 정보 구조, 책임 범위, 검증 기준을 먼저 갱신한다.
 
 ## 표현 경계
 
-- 유지: observed runtime, read-only decision, dry-run, preview, resource candidate, augmented device plan.
+- 유지: observed state, read-only explanation, dry-run, preview.
 - 금지: dashboard apply/delete/restart, MQTT command publish, actuator command, runtime migration, autonomous orchestration completed.
-- 자원증강은 기본 observed 상태와 명시적 demo 상태를 분리한다.
+- 자원증강은 재설계 전까지 현재 dashboard 운영 기능으로 표현하지 않는다.
 
 ## Responsive
 

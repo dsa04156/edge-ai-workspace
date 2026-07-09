@@ -22,7 +22,6 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
-    workflow_js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation-workflow.js").read_text()
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
 
@@ -57,25 +56,10 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert ".side-rail" in css
     assert "position: sticky;" in css
     assert "top: 86px;" in css
-    assert ".augmentation-mode-toggle" in css
-    assert '.augmentation-mode-toggle button[aria-pressed="true"]' in css
-    assert ".augmentation-mode-toggle button.active" in css
     assert "color: var(--console-ink) !important;" in css
-    assert ".augmentation-section-head" in css
-    assert ".augmentation-kpis" in css
-    assert ".augmentation-bottom-grid" in css
-    assert ".augmentation-grid" in css
-    assert ".augmentation-flow-canvas" in css
-    assert ".augmentation-node-canvas" in css
     assert ".workflow-graph-canvas" in css
-    assert "augmentation-kpis" in html
-    assert "augmentation-flow-canvas" in html
-    assert "augmentation-node-canvas" in html
     assert "workflow-graph-canvas" in html
-    assert ".augmentation-recommendation-row small" in css
     assert "overflow-wrap: normal;" in css
-    assert "augmentationEdgeBoundaryPoint" in workflow_js
-    assert "AUGMENTATION_GRAPH_NODE_HALF_WIDTH" in workflow_js
     assert "@media (max-width: 1180px)" in css
     assert "@media (max-width: 900px)" in css
     assert "@media (max-width: 760px)" in css
@@ -83,24 +67,21 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "# Edge AI Resource Console Design System" in design
     assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
     assert "Resource rail" in design
-    assert "## Resource Augmentation" in screen_design
+    assert "Resource Augmentation" not in html
+    assert "Deferred Resource Augmentation" in screen_design
     assert "dark left resource rail" in screen_design
 
 
-def test_dashboard_screen_overrides_legacy_light_augmentation_states() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    nav_js = (ROOT / "edge-orch/state-aggregator/app/static/navigation.js").read_text()
 
-    assert ".augmentation-recommendation-detail" in css
-    assert ".augmentation-workflow-steps li" in css
-    assert ".augmentation-offload-path div" in css
-    assert ".augmentation-playback-inspector" in css
-    assert ".augmentation-execution-timeline li" in css
-    assert ".augmentation-plan-preview" in css
-    assert ".augmentation-graph-node.current" in css
-    assert ".augmentation-recommendation-row b" in css
-    assert "background: var(--console-row) !important;" in css
-    assert "background: var(--console-panel-2) !important;" in css
-    assert "-webkit-text-fill-color: var(--console-ink) !important;" in css
+    assert 'data-dashboard-page="augmentation"' not in html
+    assert 'data-page="augmentation"' not in html
+    assert "resource-augmentation.css" not in html
+    assert "resource-augmentation.js" not in html
+    assert '["overview", "inventory", "workflow"]' in nav_js
+    assert "augmentation" not in nav_js
 
 
 def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None:
@@ -139,30 +120,24 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
     assert ".pill.unavailable" in css
 
 
-def test_dashboard_screen_keeps_augmentation_readable_in_narrow_desktop_workspace() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
-
-    assert ".augmentation-section-head h3" in css
-    assert "text-wrap: balance;" in css
-    assert "@media (max-width: 1440px)" in css
-    assert ".augmentation-workbench .augmentation-bottom-grid" in css
-    assert ".augmentation-workbench .augmentation-grid" in css
-    assert ".augmentation-workbench .augmentation-section-head" in css
-
-
-def test_dashboard_screen_copy_stays_preview_oriented() -> None:
+def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-augmentation-panels.js").read_text()
 
-    assert "Decision Playback" in html
-    assert "Decision Path" in html
-    assert "Evidence Timeline" in html
+    assert ">Overview<" in html
+    assert ">Assets<" in html
+    assert ">AI Pipeline<" in html
+    assert ">Resource Augmentation<" not in html
+
+
+def test_dashboard_screen_copy_omits_removed_augmentation_preview() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+
+    assert "Decision Playback" not in html
+    assert "Decision Path" not in html
+    assert "Evidence Timeline" not in html
     assert "Auto Demo Playback" not in html
     assert "Planned Offload Path" not in html
     assert "Execution Timeline" not in html
-    assert "augmentationStatusClass" in js
-    assert 'class="augmentation-instance-chip ${resource.status}' not in js
-    assert 'class="augmentation-status ${augEscape(resource.status)}' not in js
 
 
 def test_dashboard_refactor_defines_non_overlapping_operating_layout() -> None:
@@ -287,52 +262,30 @@ def test_inventory_device_metadata_is_plain_text_not_pills() -> None:
     assert "padding: 0;" in css
 
 
-def test_dashboard_refactor_prevents_candidate_resource_row_overlap() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+def test_dashboard_refactor_no_longer_requires_candidate_resource_rows() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ".augmentation-recommendation-row" in css
-    assert "min-height: 58px;" in css
-    assert "align-items: center;" in css
-    assert ".augmentation-recommendation-row span" in css
-    assert "line-height: 1.25;" in css
+    assert "augmentationCandidateResourceRows" not in html
+    assert "augmentationDecisionDetail" not in html
 
 
-def test_dashboard_refactor_supports_augmentation_demo_progress_without_overflow() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+def test_dashboard_refactor_no_longer_requires_augmentation_demo_progress() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ".augmentation-demo-progress" in css
-    assert ".augmentation-progress-bar" in css
-    assert ".augmentation-workflow-steps li.current" in css
-    assert "grid-template-columns: minmax(0, 1fr) auto;" in css
-    assert "overflow-wrap: anywhere;" in css
+    assert "augmentationWorkflowProgress" not in html
+    assert "augmentationWorkflowSteps" not in html
 
 
-def test_dashboard_refactor_adds_compact_augmentation_at_glance_panel() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+def test_dashboard_refactor_no_longer_requires_augmentation_at_glance_panel() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ".augmentation-at-glance" in css
-    assert ".augmentation-glance-card" in css
-    assert ".augmentation-glance-flow" in css
-    assert "grid-template-columns: repeat(5, minmax(150px, 1fr));" in css
-    assert ".augmentation-glance-card.current" in css
+    assert "augmentationAtGlance" not in html
+    assert "augmentationAtGlancePhase" not in html
 
 
-def test_dashboard_refactor_adds_n8n_style_augmentation_node_canvas() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+def test_dashboard_refactor_no_longer_requires_augmentation_node_canvas() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ".augmentation-node-canvas" in css
-    assert ".augmentation-graph-edges" in css
-    assert ".augmentation-graph-nodes" in css
-    assert ".augmentation-edge-label" in css
-    assert ".augmentation-flow-packet" in css
-    assert ".augmentation-node-badge" in css
-    assert ".augmentation-playback-inspector" in css
-    assert ".augmentation-execution-timeline" in css
-    assert "animation: augmentationEdgeFlow" in css
-    assert "@keyframes augmentationNodePulse" in css
-    assert ".augmentation-graph-node.current" in css
-    assert "min-height: 430px;" in css
-    assert "width: 152px;" in css
-    assert "display: none;" in css
-    assert "font-size: 10px;" in css
-    assert "position: absolute;" in css
+    assert "augmentationNodeCanvas" not in html
+    assert "augmentationGraphEdges" not in html
+    assert "augmentationGraphNodes" not in html
