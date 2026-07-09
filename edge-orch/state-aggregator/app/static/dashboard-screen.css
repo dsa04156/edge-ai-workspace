@@ -639,6 +639,69 @@ button:focus-visible,
   justify-self: start;
 }
 
+.overview-ops-grid.dashboard-page.active {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.overview-ops-grid .panel {
+  min-width: 0;
+}
+
+.overview-ops-grid .panel-head {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.overview-ops-grid .panel-head-meta {
+  justify-content: flex-start;
+}
+
+.overview-ops-grid .panel-head-meta span {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.kpi-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.kpi-catalog-row {
+  display: grid !important;
+  grid-template-columns: minmax(max-content, auto) minmax(0, 1fr) !important;
+  gap: 5px 8px !important;
+  min-width: 0;
+}
+
+.kpi-catalog-row span {
+  min-width: max-content;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  white-space: nowrap !important;
+}
+
+.kpi-catalog-row strong {
+  min-width: 0;
+  justify-self: end;
+  overflow: hidden;
+  text-align: right !important;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+.kpi-catalog-row code {
+  grid-column: 1 / -1;
+  min-width: 0;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
 .health-ring-card,
 .metric-bars,
 .status-distribution,
@@ -1571,6 +1634,99 @@ td {
 .side-rail .explain-content {
   max-height: none;
   overflow: visible;
+}
+
+.side-rail .explain-content,
+.side-rail .explain-header,
+.side-rail .explain-fields,
+.side-rail .explain-facts,
+.side-rail .explain-reasons,
+.side-rail .explain-rules {
+  min-width: 0;
+}
+
+.side-rail .explain-header strong,
+.side-rail .explain-fields dd,
+.side-rail .explain-status-strip strong,
+.side-rail .explain-facts dd,
+.side-rail .explain-reasons strong,
+.side-rail .explain-rules strong,
+.side-rail .telemetry-values strong,
+.side-rail .chart-head strong,
+.side-rail .chart-legend b,
+.side-rail .chart-legend em {
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.side-rail .explain-badge,
+.side-rail .explain-fields div,
+.side-rail .explain-status-strip div,
+.side-rail .explain-facts div,
+.side-rail .explain-reasons li,
+.side-rail .explain-rules li,
+.side-rail .telemetry-chart,
+.side-rail .telemetry-chart .chart-svg,
+.side-rail .telemetry-summary-strip div {
+  border-color: var(--console-border) !important;
+  background: var(--console-row) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+  box-shadow: none !important;
+}
+
+.side-rail .explain-badge {
+  border-color: rgba(34, 197, 94, 0.55) !important;
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: var(--console-green) !important;
+  -webkit-text-fill-color: var(--console-green) !important;
+  border-radius: 3px !important;
+}
+
+.side-rail .explain-fields dt,
+.side-rail .explain-status-strip span,
+.side-rail .explain-facts dt,
+.side-rail .explain-reasons p,
+.side-rail .explain-rules p,
+.side-rail .explain-text,
+.side-rail .chart-head span,
+.side-rail .chart-svg text,
+.side-rail .chart-legend span,
+.side-rail .telemetry-values li,
+.side-rail .telemetry-values span {
+  color: var(--console-muted) !important;
+  -webkit-text-fill-color: var(--console-muted) !important;
+}
+
+.side-rail .telemetry-chart .chart-legend span {
+  border-color: var(--console-border) !important;
+  background: var(--console-panel-2) !important;
+}
+
+.side-rail .explain-facts div,
+.side-rail .explain-reasons li {
+  border-color: var(--console-border) !important;
+}
+
+.side-rail .explain-reasons li {
+  border-left-color: var(--console-blue) !important;
+}
+
+.side-rail .chart-plot-bg {
+  fill: var(--console-control) !important;
+}
+
+.side-rail .chart-line {
+  filter: none !important;
+}
+
+.side-rail .chart-latest-marker {
+  stroke: var(--console-row) !important;
+}
+
+.side-rail .chart-axis,
+.side-rail .chart-gridline line {
+  stroke: var(--console-border) !important;
 }
 
 .operator-chat-log,
