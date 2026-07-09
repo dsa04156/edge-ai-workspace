@@ -8,7 +8,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     refactor_link = "/static/dashboard-refactor.css?v=reference-console-20260622"
-    screen_link = "/static/dashboard-screen.css?v=screen-design-v2-20260708"
+    screen_link = "/static/dashboard-screen.css?v=resource-console-v3-20260709"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -26,24 +26,24 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
 
-    assert "--console-bg: #1f2428;" in css
-    assert "--console-nav: #07090b;" in css
-    assert "--console-accent: #f4ea2a;" in css
+    assert "--console-bg: #15191d;" in css
+    assert "--console-rail: #07090b;" in css
+    assert "--console-yellow: #f4ea2a;" in css
     assert "--line: var(--console-border);" in css
     assert "--text: var(--console-text);" in css
     assert "--muted: var(--console-muted);" in css
     assert "color-scheme: dark;" in css
     assert ".dashboard-page:not(.active)" in css
-    assert 'grid-template-areas:\n    "nav topbar"\n    "nav workspace";' in css
-    assert "grid-area: nav;" in css
-    assert 'content: "Edge AI\\A Resources";' in css
+    assert 'grid-template-areas:\n    "rail command"\n    "rail workspace";' in css
+    assert "grid-area: rail;" in css
+    assert 'content: "Edge AI\\AResource Console";' in css
     assert ".global-search" in css
     assert "Search resources" in html
     assert "flex: 0 0 auto;" in css
     assert "border-left: 4px solid transparent;" in css
-    assert "border-left-color: var(--console-accent);" in css
-    assert "background: var(--console-accent);" in css
-    assert "grid-template-columns: minmax(0, 1fr) minmax(336px, 384px);" in css
+    assert "border-left-color: var(--console-yellow);" in css
+    assert "background: var(--console-yellow);" in css
+    assert "grid-template-columns: minmax(0, 1fr) 376px;" in css
     assert "grid-column: 2 !important;" in css
     assert "grid-column: 1 / -1 !important;" in css
     assert "word-break: keep-all;" in css
@@ -51,9 +51,24 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));" in css
     assert "white-space: nowrap;" in css
     assert ".panel-head-meta span" in css
+    assert ".metric," in css
+    assert 'grid-template-areas:\n    "label value"\n    "caption value";' in css
+    assert ".side-rail" in css
+    assert "position: sticky;" in css
+    assert "top: 86px;" in css
     assert ".augmentation-mode-toggle" in css
     assert '.augmentation-mode-toggle button[aria-pressed="true"]' in css
-    assert ".augmentation-workbench .augmentation-section-head" in css
+    assert ".augmentation-section-head" in css
+    assert ".augmentation-kpis" in css
+    assert ".augmentation-bottom-grid" in css
+    assert ".augmentation-grid" in css
+    assert ".augmentation-flow-canvas" in css
+    assert ".augmentation-node-canvas" in css
+    assert ".workflow-graph-canvas" in css
+    assert "augmentation-kpis" in html
+    assert "augmentation-flow-canvas" in html
+    assert "augmentation-node-canvas" in html
+    assert "workflow-graph-canvas" in html
     assert ".augmentation-recommendation-row small" in css
     assert "overflow-wrap: normal;" in css
     assert "augmentationEdgeBoundaryPoint" in workflow_js
@@ -62,11 +77,11 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "@media (max-width: 900px)" in css
     assert "@media (max-width: 760px)" in css
     assert "clamp(" not in css
-    assert "## 8. Screen Architecture" in design
-    assert "`dashboard-screen.css` is the final Headlamp-style visual contract." in design
-    assert "Resource navigation rail" in design
+    assert "# Edge AI Resource Console Design System" in design
+    assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
+    assert "Resource rail" in design
     assert "## Resource Augmentation" in screen_design
-    assert "Headlamp형 dark left resource rail" in screen_design
+    assert "dark left resource rail" in screen_design
 
 
 def test_dashboard_screen_copy_stays_preview_oriented() -> None:

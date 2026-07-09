@@ -1,196 +1,110 @@
-# Edge AI Operations Dashboard Design System
+# Edge AI Resource Console Design System
 
 ## 1. Atmosphere & Identity
 
-A Headlamp-inspired Kubernetes operations console for mixed-device edge AI. It should feel like a cluster resource browser first: a dark persistent resource rail, compact top search/context bar, yellow active navigation marker, dense dark work surfaces, and table/list-detail inspection. The interface is not a marketing dashboard; it is an operator tool for finding cluster, device, telemetry, service binding, and resource augmentation evidence quickly.
+The dashboard is a dense Kubernetes-style resource console for a mixed-device edge AI PoC. It should read as an operator workspace: persistent resource navigation, command search, resource rows, flat bordered panels, and a right-side inspector. It is not a card-heavy BI dashboard and not a marketing surface.
 
 ## 2. Color
 
-### Palette
+| Role | Token | Value | Usage |
+|------|-------|-------|-------|
+| App background | --console-bg | #15191d | Page canvas |
+| Resource rail | --console-rail | #07090b | Persistent navigation |
+| Command bar | --console-command | #1b2025 | Top search/context bar |
+| Panel | --console-panel | #20262b | Primary sections |
+| Row | --console-row | #1a1f24 | Tables, metrics, list rows |
+| Border | --console-border | #343c44 | Section separation |
+| Text | --console-text | #eef2f5 | Main content |
+| Muted | --console-muted | #9aa4ad | Metadata |
+| Selection | --console-yellow | #f4ea2a | Active nav and primary action |
+| Info | --console-blue | #49a6ff | Links and selected evidence |
+| Healthy | --console-green | #3dd56d | Available state |
+| Warning | --console-orange | #f5bd4f | Degraded/risk state |
+| Error | --console-red | #ff6b6b | Unavailable state |
 
-| Role | Token | Light | Dark | Usage |
-|------|-------|-------|------|-------|
-| Surface/base | --console-bg | #1f2428 | #1f2428 | Page background |
-| Surface/nav | --console-nav | #07090b | #07090b | Left navigation rail |
-| Surface/grid | --console-grid | rgba(255, 255, 255, 0.035) | rgba(255, 255, 255, 0.035) | Subtle resource grid |
-| Surface/panel | --console-panel | #24292e | #24292e | Cards and panels |
-| Surface/soft | --console-soft | #2b3137 | #2b3137 | Nested blocks |
-| Surface/header | --console-header | #262b30 | #262b30 | Top app/search bar |
-| Text/primary | --console-text | #f4f5f6 | #f4f5f6 | Main text |
-| Text/secondary | --console-muted | #a8b0b8 | #a8b0b8 | Metadata |
-| Border/default | --console-border | #3a4148 | #3a4148 | Panel borders |
-| Border/strong | --console-border-strong | #555f68 | #555f68 | Selected outlines |
-| Accent/primary | --console-accent | #f4ea2a | #f4ea2a | Active navigation and primary selection |
-| Accent/deep | --console-accent-deep | #c9bd12 | #c9bd12 | Pressed yellow state |
-| Status/success | --console-success | #3dd56d | #3dd56d | Healthy/running |
-| Status/warning | --console-warning | #f5bd4f | #f5bd4f | Warning |
-| Status/error | --console-error | #ff6b6b | #ff6b6b | Critical/offline |
-| Status/info | --console-info | #5fb5ff | #5fb5ff | Informational |
+Rules:
 
-### Rules
-
-- Use the black left navigation rail and yellow selected resource state as the dashboard signature.
-- Use dark panels on a charcoal app background; avoid bright white cards in the content area.
-- Keep color quiet. Yellow is for selection/action, status colors are for state only.
-- Status colors are reserved for state, not decoration.
+- Yellow is only for selection and explicit primary action.
+- Status colors are only for state.
+- Panels use borders and tonal separation, not decorative shadows.
 
 ## 3. Typography
 
-### Scale
-
-| Level | Size | Weight | Line Height | Tracking | Usage |
-|-------|------|--------|-------------|----------|-------|
-| Display | 34px | 800 | 1.1 | 0 | Dashboard title |
-| H1 | 28px | 800 | 1.15 | 0 | Page title |
-| H2 | 20px | 750 | 1.25 | 0 | Panel title |
-| H3 | 15px | 750 | 1.35 | 0 | Card title |
-| Body | 14px | 500 | 1.55 | 0 | Default text |
-| Body/sm | 13px | 500 | 1.45 | 0 | Secondary text |
-| Caption | 12px | 650 | 1.35 | 0 | Labels and metadata |
-
-### Font Stack
-
 - Primary: "Aptos", "Pretendard", "Noto Sans KR", "IBM Plex Sans KR", system-ui, sans-serif
 - Mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace
+- Metrics and resource values use tabular numbers.
+- Letter spacing stays at `0`.
+- CJK labels use `word-break: keep-all`; technical values may wrap anywhere.
 
-### Rules
+## 4. Layout
 
-- Use tabular numbers for metrics and resource values.
-- Do not use negative letter spacing in compact cards.
+The screen has four fixed regions:
 
-## 4. Spacing & Layout
+1. Resource rail: persistent left rail on desktop; horizontal resource tabs below 1180px.
+2. Command bar: cluster context, global search, update time, refresh action.
+3. Workspace: active page content only, built from resource rows and flat panels.
+4. Inspector rail: state explanation and read-only assistant; sticky on desktop, stacked below content on tablet/mobile.
 
-### Base Unit
+Breakpoints:
 
-All spacing derives from a base of 4px.
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| --space-1 | 4px | Tight icon/label gap |
-| --space-2 | 8px | Compact controls |
-| --space-3 | 12px | Small card gap |
-| --space-4 | 16px | Panel padding |
-| --space-5 | 20px | Section gap |
-| --space-6 | 24px | Page rhythm |
-| --space-8 | 32px | Major groups |
-
-### Grid
-
-- Max content width: 1600px
-- Page shell: full-width operational canvas with 16px edge margin
-- Main layout: full-height dark left navigation rail, compact top search/context bar, primary content column, sticky right operator rail
-- Breakpoints: mobile 720px, tablet 1040px, desktop 1280px
-
-### Rules
-
-- Prefer list-detail panels for devices, services, events, and resource choices.
-- Avoid nested scroll inside explanation panels; the right rail owns scrolling.
+- Desktop: `rail command` / `rail workspace`, workspace split into content plus 376px inspector.
+- Tablet: resource rail becomes horizontal, inspector stacks under workspace.
+- Mobile: one-column workspace, metric rows become vertical.
 
 ## 5. Components
 
-### Command Header
+### Resource Rail
 
-- Structure: product identity, cluster context, global search affordance, update timestamp, refresh button.
-- States: refresh button has hover, active, and focus states.
-- Motion: hover uses transform only.
+- Black rail, compact labels, yellow selected state.
+- Active tab uses `aria-pressed=true`.
+- Desktop buttons are row-like; tablet/mobile buttons are horizontally scrollable.
 
-### Resource Navigation Rail
+### Command Bar
 
-- Structure: persistent left rail with page/resource buttons.
-- Variants: desktop vertical rail, mobile horizontal scroll.
-- Accessibility: active tab uses `aria-pressed=true`.
-- States: selected item uses yellow background, black text, and a left marker.
+- No hero treatment.
+- Search is a command input, not a large page banner.
+- Refresh is the only yellow action in the bar.
 
-### Metric Card
+### Metric Row
 
-- Structure: label, large value, caption.
-- Variants: default, success, warning, danger.
-- Spacing: `--space-4` padding, `--space-3` inner gap.
+- Metrics are rows, not cards.
+- Structure: uppercase label, numeric value, caption.
+- Desktop layout places value on the right; mobile stacks value under label.
 
-### List Detail Workspace
+### Panel
 
-- Structure: left scrollable list, right detail cards.
-- States: selected row uses cyan border and soft cyan background.
+- Flat bordered surface, 4px radius.
+- Header uses kicker, title, and metadata chips.
+- No nested cards inside panel sections unless the content is a repeated item.
+
+### Resource Lists and Tables
+
+- Devices, nodes, services, resource candidates, and runtime evidence share the same row grammar.
+- Long IDs and telemetry values wrap without overlapping.
+
+### Inspector Rail
+
+- Contains State Explanation and read-only assistant.
+- It explains observed evidence and dry-run previews; it does not expose execution controls.
 
 ## 6. Motion & Interaction
 
-| Type | Duration | Easing | Usage |
-|------|----------|--------|-------|
-| Micro | 140ms | ease-out | Button active |
-| Standard | 220ms | ease-in-out | Card hover and tab switch |
-| Emphasis | 420ms | cubic-bezier(0.16, 1, 0.3, 1) | Workflow packet animation |
-
-### Rules
-
-- Animate only `transform`, `opacity`, and background/border color.
+- Motion is limited to real controls: hover, active, focus.
+- Animate only `transform`, `background`, `border-color`, and `color`.
 - Respect `prefers-reduced-motion`.
 
-## 7. Depth & Surface
+## 7. Final CSS Layer
 
-### Strategy
+`dashboard-screen.css` is the final Resource Console visual contract. It intentionally replaces the previous card-dashboard layer and owns:
 
-Restrained Headlamp-like elevation: panels rely on borders and tonal contrast first; shadows are shallow and only separate the app bar, sticky rail, and selected work surfaces.
-
-| Level | Value | Usage |
-|-------|-------|-------|
-| Panel | 0 1px 2px rgba(15, 23, 42, 0.05) | Main panels |
-| Raised | 0 12px 28px rgba(15, 23, 42, 0.10) | App bar, sticky rails, selected states |
-| Border | 1px solid var(--console-border) | Cards, dividers |
-
-## 8. Screen Architecture
-
-### Dashboard Frame
-
-The dashboard is a single operational console, not a landing page. The frame is fixed around five regions:
-
-1. Resource navigation rail: Edge AI identity, Overview, Assets, AI Pipeline, Resource Augmentation.
-2. App bar: cluster context, global search affordance, current observation time, refresh action.
-3. Main workspace: active page content only.
-4. Operator rail: explanation panel and read-only assistant.
-5. Scroll containers: only dense lists, tables, code previews, and the right rail own scrolling.
-
-### Page Blueprints
-
-Overview:
-
-- First row: KPI cards for nodes, devices, telemetry, service resources, pod usage, and service binding.
-- Second row: current state visualization with health ring, metric bars, status distribution, and resource snapshot.
-- Third row: collected operational evidence, split into KPI catalog, node pressure, service profiles, and latest sensor state.
-
-Assets:
-
-- Primary panel: edge nodes and devices as a list-detail inventory.
-- Secondary panel: service topology under Assets, because it explains device-service binding rather than runtime execution.
-
-AI Pipeline:
-
-- Summary strip first.
-- Builder controls second.
-- Workspace split into node palette, graph canvas, and inspector.
-- Validation and execution plan stay below the canvas as dry-run evidence.
-
-Resource Augmentation:
-
-- Summary cards first.
-- At-a-glance decision strip second.
-- Runtime flow graph and playback evidence third.
-- Candidate resources and read-only plan next.
-- Resource pool and resource twin inspector last.
-
-### Final CSS Layer
-
-`dashboard-screen.css` is the final Headlamp-style visual contract. Earlier CSS files may keep legacy component rules, but this layer owns:
-
-- dark Headlamp-like Kubernetes console color scheme and aliases for legacy `--line`, `--text`, `--muted`, status, and shadow tokens
-- app bar, left resource navigation rail, main workspace, and operator rail geometry
-- panel, KPI, list row, chip, table, graph, and workflow surface treatment
+- root console tokens and aliases for legacy dashboard variables
+- app frame geometry: rail, command bar, workspace, inspector
+- metric rows, panels, resource rows, tables, graph surfaces, and augmentation previews
 - responsive behavior at 1180px, 900px, 760px, and 520px
 - CJK-safe headings and wrap-safe technical values
 
-No screen may introduce a new visible component pattern unless it is added here first.
+## 8. Scope Guardrails
 
-### Scope Guardrails
-
-- The dashboard may preview runtime decisions and dry-run plans.
-- The dashboard must not imply Kubernetes apply/delete/restart, Device CR mutation, MQTT command publishing, actuator control, runtime migration, or fully autonomous orchestration.
-- Resource augmentation is shown as observed runtime state or an explicit demo scenario, not as a scheduler execution surface.
+- The dashboard may show observed runtime state, resource candidates, read-only decisions, and dry-run plans.
+- It must not imply Kubernetes apply/delete/restart, Device CR mutation, MQTT command publishing, actuator control, runtime migration, or completed autonomous orchestration.
+- Resource augmentation is visualized as observed state or explicit demo scenario evidence, not as a scheduler execution surface.
