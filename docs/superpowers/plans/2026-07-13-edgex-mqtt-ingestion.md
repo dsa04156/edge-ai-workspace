@@ -1,0 +1,1334 @@
+# EdgeX MQTT Ingestion Vertical Slice Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build an edge-local, profile-driven MQTT bridge that converts one vibration device's canonical factory telemetry into EdgeX Device MQTT async events and proves the latest event can be read from Core Data.
+
+**Architecture:** A small Python service subscribes to `factory/devices/{device-name}/telemetry`, validates and projects the payload through a route profile, and republishes it to `incoming/data/{device-name}/{source-name}`. Stock EdgeX `device-mqtt` v4.0.2 converts the message using a hidden, push-only Device Profile and persists the resulting Event/Readings through Core Data. Existing KubeEdge DeviceStatus and MapperFramework code remain untouched.
+
+**Tech Stack:** Python 3.11+, paho-mqtt 2.x, PyYAML 6.x, pytest 8.x, Mosquitto 2.x, Docker Compose, EdgeX Foundry v4.0.2, PostgreSQL.
+
+## Global Constraints
+
+- Run every shell command through `rtk`.
+- Use `apply_patch` for repository file edits.
+- Apply TDD: each production behavior must have a test that was observed failing first.
+- Target edge node is `etri-dev0001-jetorn`.
+- Input broker is the edge-local Mosquitto endpoint, normally `127.0.0.1:1883` for host publishers.
+- Canonical input topic is `factory/devices/{device-name}/telemetry`.
+- EdgeX async topic is `incoming/data/{device-name}/{source-name}`.
+- First device is `vib-arduino-acceleration-01`; first source is `telemetry`.
+- EdgeX release is pinned to stable tag `v4.0.2`; do not use `main` or `latest`.
+- The no-security EdgeX profile is allowed only for the isolated PoC and its APIs bind to loopback.
+- Do not change KubeEdge Device, DeviceModel, DeviceStatus, MapperFramework, or `mappers/mqttvirtual/`.
+- Do not add raw telemetry fields to DeviceStatus.
+- Do not couple or replace `sensor-collector/` or `virtual-device/` in this slice.
+- Do not add InfluxDB, dashboard, state-aggregator, command execution, RTSP, Modbus, OPC-UA, or CRDs.
+- Preserve all unrelated dirty-worktree changes.
+
+---
+
+## File Structure
+
+```text
+edgex/
+├── README.md
+├── compose/
+│   └── docker-compose.override.yml
+├── device-config/
+│   ├── devices/
+│   │   └── vib-arduino-acceleration-01.yaml
+│   └── profiles/
+│       └── etri-vibration-mqtt.yaml
+├── mqtt-bridge/
+│   ├── Dockerfile
+│   ├── pyproject.toml
+│   ├── config/
+│   │   └── vibration.yaml
+│   ├── src/mqtt_edge_bridge/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── health.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── service.py
+│   │   └── transform.py
+│   └── tests/
+│       ├── test_broker_integration.py
+│       ├── test_config.py
+│       ├── test_edgex_config.py
+│       ├── test_health.py
+│       ├── test_service.py
+│       └── test_transform.py
+└── scripts/
+    ├── smoke_test.py
+    └── test_smoke_test.py
+```
+
+`config.py` owns YAML parsing and startup validation. `transform.py` is pure and owns topic lookup, allowlist projection, type conversion, and timestamp validation. `service.py` owns MQTT callbacks and counters. `health.py` owns the container-readable lifecycle file. `main.py` only wires configuration, paho, signals, and process exit.
+
+---
+
+### Task 1: Route Configuration and Startup Validation
+
+**Files:**
+- Create: `edgex/mqtt-bridge/pyproject.toml`
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/__init__.py`
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/models.py`
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/config.py`
+- Create: `edgex/mqtt-bridge/config/vibration.yaml`
+- Test: `edgex/mqtt-bridge/tests/test_config.py`
+
+**Interfaces:**
+- Consumes: YAML mapping with `broker`, `ignoreRetained`, and `routes`.
+- Produces: `load_config(path: Path) -> BridgeConfig`, immutable `BrokerConfig`, `FieldMapping`, `Route`, and `BridgeConfig` values.
+
+- [ ] **Step 1: Create packaging metadata and the failing configuration tests**
+
+Create `pyproject.toml` with this exact dependency boundary:
+
+```toml
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etri-mqtt-edge-bridge"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "paho-mqtt>=2.1,<3",
+  "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<9"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires a local mosquitto executable"]
+```
+
+Create tests that define the desired API before production modules exist:
+
+```python
+from pathlib import Path
+
+import pytest
+import yaml
+
+from mqtt_edge_bridge.config import ConfigError, load_config
+
+
+VALID = """
+broker:
+  host: 127.0.0.1
+  port: 1883
+  clientId: etri-mqtt-edge-bridge
+  qos: 1
+  keepaliveSeconds: 60
+  reconnectMinSeconds: 1
+  reconnectMaxSeconds: 30
+ignoreRetained: true
+routes:
+  - inputTopic: factory/devices/vib-arduino-acceleration-01/telemetry
+    deviceName: vib-arduino-acceleration-01
+    sourceName: telemetry
+    outputTopic: incoming/data/vib-arduino-acceleration-01/telemetry
+    timestampFields: [source_ts, ts, timestamp]
+    fields:
+      x: {target: acceleration_x, type: float}
+      y: {target: acceleration_y, type: float}
+      z: {target: acceleration_z, type: float}
+"""
+
+
+def write_config(tmp_path: Path, text: str = VALID) -> Path:
+    path = tmp_path / "bridge.yaml"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def test_load_config_builds_immutable_route(tmp_path: Path) -> None:
+    config = load_config(write_config(tmp_path))
+    route = config.routes[0]
+    assert config.broker.qos == 1
+    assert config.ignore_retained is True
+    assert route.device_name == "vib-arduino-acceleration-01"
+    assert route.output_topic == "incoming/data/vib-arduino-acceleration-01/telemetry"
+    assert [field.target for field in route.fields] == [
+        "acceleration_x",
+        "acceleration_y",
+        "acceleration_z",
+    ]
+
+
+def test_output_topic_must_match_device_and_source(tmp_path: Path) -> None:
+    invalid = VALID.replace(
+        "incoming/data/vib-arduino-acceleration-01/telemetry",
+        "incoming/data/another-device/telemetry",
+    )
+    with pytest.raises(ConfigError, match="outputTopic must equal"):
+        load_config(write_config(tmp_path, invalid))
+
+
+def test_duplicate_input_topic_is_rejected(tmp_path: Path) -> None:
+    data = yaml.safe_load(VALID)
+    data["routes"].append(dict(data["routes"][0]))
+    invalid = yaml.safe_dump(data, sort_keys=False)
+    with pytest.raises(ConfigError, match="duplicate inputTopic"):
+        load_config(write_config(tmp_path, invalid))
+```
+
+- [ ] **Step 2: Install the editable test environment and verify RED**
+
+Run:
+
+```bash
+rtk python3 -m venv .venv
+rtk .venv/bin/pip install -e '.[test]'
+rtk .venv/bin/pytest tests/test_config.py -v
+```
+
+Working directory: `edgex/mqtt-bridge`
+
+Expected: collection fails with `ModuleNotFoundError: No module named 'mqtt_edge_bridge.config'`.
+
+- [ ] **Step 3: Implement immutable models and strict YAML parsing**
+
+Implement these public types in `models.py`:
+
+```python
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class BrokerConfig:
+    host: str
+    port: int
+    client_id: str
+    qos: int
+    keepalive_seconds: int
+    reconnect_min_seconds: int
+    reconnect_max_seconds: int
+
+
+@dataclass(frozen=True)
+class FieldMapping:
+    source: str
+    target: str
+    value_type: str
+
+
+@dataclass(frozen=True)
+class Route:
+    input_topic: str
+    device_name: str
+    source_name: str
+    output_topic: str
+    timestamp_fields: tuple[str, ...]
+    fields: tuple[FieldMapping, ...]
+
+
+@dataclass(frozen=True)
+class BridgeConfig:
+    broker: BrokerConfig
+    ignore_retained: bool
+    routes: tuple[Route, ...]
+```
+
+Implement `ConfigError(ValueError)` and `load_config()` in `config.py`. It must:
+
+```python
+def load_config(path: Path) -> BridgeConfig:
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    root = _mapping(raw, "root")
+    broker_raw = _mapping(root.get("broker"), "broker")
+    broker = BrokerConfig(
+        host=_text(broker_raw.get("host"), "broker.host"),
+        port=_integer(broker_raw.get("port"), "broker.port", minimum=1, maximum=65535),
+        client_id=_text(broker_raw.get("clientId"), "broker.clientId"),
+        qos=_integer(broker_raw.get("qos"), "broker.qos", minimum=0, maximum=2),
+        keepalive_seconds=_integer(
+            broker_raw.get("keepaliveSeconds"), "broker.keepaliveSeconds", minimum=3
+        ),
+        reconnect_min_seconds=_integer(
+            broker_raw.get("reconnectMinSeconds"), "broker.reconnectMinSeconds", minimum=1
+        ),
+        reconnect_max_seconds=_integer(
+            broker_raw.get("reconnectMaxSeconds"), "broker.reconnectMaxSeconds", minimum=1
+        ),
+    )
+    if broker.reconnect_max_seconds < broker.reconnect_min_seconds:
+        raise ConfigError("broker.reconnectMaxSeconds must be >= reconnectMinSeconds")
+    routes = tuple(_route(item, index) for index, item in enumerate(_list(root.get("routes"), "routes")))
+    if not routes:
+        raise ConfigError("routes must not be empty")
+    topics = [route.input_topic for route in routes]
+    if len(topics) != len(set(topics)):
+        raise ConfigError("duplicate inputTopic")
+    return BridgeConfig(
+        broker=broker,
+        ignore_retained=_boolean(root.get("ignoreRetained"), "ignoreRetained"),
+        routes=routes,
+    )
+```
+
+`_route()` must accept only non-empty field maps, support only `type: float` in this slice, reject duplicate target names, and enforce:
+
+```python
+def _mapping(value: object, name: str) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise ConfigError(f"{name} must be a mapping")
+    return value
+
+
+def _list(value: object, name: str) -> list[object]:
+    if not isinstance(value, list):
+        raise ConfigError(f"{name} must be a list")
+    return value
+
+
+def _text(value: object, name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ConfigError(f"{name} must be a non-empty string")
+    return value.strip()
+
+
+def _integer(
+    value: object,
+    name: str,
+    *,
+    minimum: int,
+    maximum: int | None = None,
+) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ConfigError(f"{name} must be an integer")
+    if value < minimum or (maximum is not None and value > maximum):
+        raise ConfigError(f"{name} is outside the allowed range")
+    return value
+
+
+def _boolean(value: object, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise ConfigError(f"{name} must be a boolean")
+    return value
+
+
+def _route(value: object, index: int) -> Route:
+    raw = _mapping(value, f"routes[{index}]")
+    input_topic = _text(raw.get("inputTopic"), f"routes[{index}].inputTopic")
+    device_name = _text(raw.get("deviceName"), f"routes[{index}].deviceName")
+    source_name = _text(raw.get("sourceName"), f"routes[{index}].sourceName")
+    output_topic = _text(raw.get("outputTopic"), f"routes[{index}].outputTopic")
+    expected = f"incoming/data/{device_name}/{source_name}"
+    if output_topic != expected:
+        raise ConfigError(f"routes[{index}].outputTopic must equal {expected}")
+
+    timestamp_fields = tuple(
+        _text(item, f"routes[{index}].timestampFields")
+        for item in _list(raw.get("timestampFields"), f"routes[{index}].timestampFields")
+    )
+    if not timestamp_fields:
+        raise ConfigError(f"routes[{index}].timestampFields must not be empty")
+
+    fields_raw = _mapping(raw.get("fields"), f"routes[{index}].fields")
+    fields: list[FieldMapping] = []
+    for source, definition in fields_raw.items():
+        source_name_field = _text(source, f"routes[{index}].fields source")
+        field_raw = _mapping(definition, f"routes[{index}].fields.{source_name_field}")
+        target = _text(field_raw.get("target"), f"routes[{index}].fields.{source}.target")
+        value_type = _text(field_raw.get("type"), f"routes[{index}].fields.{source}.type")
+        if value_type != "float":
+            raise ConfigError(f"routes[{index}].fields.{source}.type must be float")
+        fields.append(FieldMapping(source_name_field, target, value_type))
+    if not fields:
+        raise ConfigError(f"routes[{index}].fields must not be empty")
+    targets = [field.target for field in fields]
+    if len(targets) != len(set(targets)):
+        raise ConfigError(f"routes[{index}] has duplicate field targets")
+    return Route(
+        input_topic=input_topic,
+        device_name=device_name,
+        source_name=source_name,
+        output_topic=output_topic,
+        timestamp_fields=timestamp_fields,
+        fields=tuple(fields),
+    )
+```
+
+- [ ] **Step 4: Add the approved vibration route and verify GREEN**
+
+Create `config/vibration.yaml` using the `VALID` content from the test. Run:
+
+```bash
+rtk .venv/bin/pytest tests/test_config.py -v
+```
+
+Expected: `3 passed`.
+
+- [ ] **Step 5: Commit Task 1**
+
+```bash
+rtk git add edgex/mqtt-bridge
+rtk git commit -m "feat: validate EdgeX MQTT bridge routes"
+```
+
+---
+
+### Task 2: Pure Telemetry Transformation
+
+**Files:**
+- Modify: `edgex/mqtt-bridge/src/mqtt_edge_bridge/models.py`
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/transform.py`
+- Test: `edgex/mqtt-bridge/tests/test_transform.py`
+
+**Interfaces:**
+- Consumes: `BridgeConfig`, MQTT topic, payload bytes, and retained flag.
+- Produces: `TelemetryTransformer.transform(...) -> OutboundMessage`; raises `TransformError` containing only a safe reason code and field names.
+
+- [ ] **Step 1: Write failing happy-path and allowlist tests**
+
+```python
+import json
+
+from mqtt_edge_bridge.config import load_config
+from mqtt_edge_bridge.transform import TelemetryTransformer
+
+from test_config import write_config
+
+
+def test_transform_projects_and_types_vibration_payload(tmp_path) -> None:
+    transformer = TelemetryTransformer(load_config(write_config(tmp_path)))
+    message = transformer.transform(
+        "factory/devices/vib-arduino-acceleration-01/telemetry",
+        b'{"x":"0.12","y":0.08,"z":"0.91","ts":"1783935600","health":"ok"}',
+        retained=False,
+    )
+    assert message.topic == "incoming/data/vib-arduino-acceleration-01/telemetry"
+    assert json.loads(message.payload) == {
+        "acceleration_x": 0.12,
+        "acceleration_y": 0.08,
+        "acceleration_z": 0.91,
+        "source_timestamp": 1783935600,
+    }
+    assert b"health" not in message.payload
+
+
+def test_timestamp_uses_declared_priority(tmp_path) -> None:
+    transformer = TelemetryTransformer(load_config(write_config(tmp_path)))
+    message = transformer.transform(
+        "factory/devices/vib-arduino-acceleration-01/telemetry",
+        b'{"x":1,"y":2,"z":3,"source_ts":10,"ts":20}',
+        retained=False,
+    )
+    assert json.loads(message.payload)["source_timestamp"] == 10
+```
+
+- [ ] **Step 2: Verify RED**
+
+```bash
+rtk .venv/bin/pytest tests/test_transform.py -v
+```
+
+Expected: import fails because `mqtt_edge_bridge.transform` does not exist.
+
+- [ ] **Step 3: Implement the minimal transformer**
+
+Add to `models.py`:
+
+```python
+@dataclass(frozen=True)
+class OutboundMessage:
+    topic: str
+    payload: bytes
+    device_name: str
+    source_name: str
+```
+
+Implement in `transform.py`:
+
+```python
+class TransformError(ValueError):
+    def __init__(self, code: str, fields: tuple[str, ...] = ()) -> None:
+        self.code = code
+        self.fields = fields
+        suffix = f" fields={','.join(fields)}" if fields else ""
+        super().__init__(f"{code}{suffix}")
+
+
+class TelemetryTransformer:
+    def __init__(self, config: BridgeConfig) -> None:
+        self._routes = {route.input_topic: route for route in config.routes}
+        self._ignore_retained = config.ignore_retained
+
+    def transform(self, topic: str, payload: bytes, *, retained: bool) -> OutboundMessage:
+        if retained and self._ignore_retained:
+            raise TransformError("retained_message")
+        route = self._routes.get(topic)
+        if route is None:
+            raise TransformError("unknown_topic")
+        try:
+            decoded = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise TransformError("invalid_json") from exc
+        if not isinstance(decoded, dict):
+            raise TransformError("payload_must_be_object")
+        missing = tuple(field.source for field in route.fields if field.source not in decoded)
+        if missing:
+            raise TransformError("missing_fields", missing)
+        output: dict[str, float | int] = {}
+        invalid: list[str] = []
+        for field in route.fields:
+            try:
+                value = float(decoded[field.source])
+                if isinstance(decoded[field.source], bool) or not math.isfinite(value):
+                    raise ValueError
+                output[field.target] = value
+            except (TypeError, ValueError):
+                invalid.append(field.source)
+        if invalid:
+            raise TransformError("invalid_float", tuple(invalid))
+        output["source_timestamp"] = _timestamp(decoded, route.timestamp_fields)
+        return OutboundMessage(
+            topic=route.output_topic,
+            payload=json.dumps(output, sort_keys=True, separators=(",", ":")).encode("utf-8"),
+            device_name=route.device_name,
+            source_name=route.source_name,
+        )
+```
+
+`_timestamp()` must reject booleans, non-integral floats, non-positive integers, missing fields, and non-integer strings with `TransformError("invalid_timestamp")` or `TransformError("missing_timestamp")`.
+
+```python
+def _timestamp(payload: dict[str, object], names: tuple[str, ...]) -> int:
+    for name in names:
+        if name not in payload or payload[name] in (None, ""):
+            continue
+        raw = payload[name]
+        if isinstance(raw, bool):
+            raise TransformError("invalid_timestamp", (name,))
+        if isinstance(raw, float):
+            if not math.isfinite(raw) or not raw.is_integer():
+                raise TransformError("invalid_timestamp", (name,))
+            value = int(raw)
+        else:
+            try:
+                value = int(raw)
+            except (TypeError, ValueError) as exc:
+                raise TransformError("invalid_timestamp", (name,)) from exc
+        if value <= 0:
+            raise TransformError("invalid_timestamp", (name,))
+        return value
+    raise TransformError("missing_timestamp")
+```
+
+- [ ] **Step 4: Add failing error-case tests**
+
+Parameterize cases for invalid JSON, missing `y`, `NaN`, missing timestamp, invalid timestamp, unknown topic, and retained input. Assert only `TransformError.code` and safe `fields`; do not assert or log raw payloads.
+
+```python
+@pytest.mark.parametrize(
+    ("payload", "code"),
+    [
+        (b"not-json", "invalid_json"),
+        (b'{"x":1,"z":3,"ts":10}', "missing_fields"),
+        (b'{"x":"NaN","y":2,"z":3,"ts":10}', "invalid_float"),
+        (b'{"x":1,"y":2,"z":3}', "missing_timestamp"),
+        (b'{"x":1,"y":2,"z":3,"ts":"10.5"}', "invalid_timestamp"),
+    ],
+)
+def test_invalid_samples_are_rejected(tmp_path, payload, code) -> None:
+    transformer = TelemetryTransformer(load_config(write_config(tmp_path)))
+    with pytest.raises(TransformError) as caught:
+        transformer.transform(
+            "factory/devices/vib-arduino-acceleration-01/telemetry",
+            payload,
+            retained=False,
+        )
+    assert caught.value.code == code
+```
+
+- [ ] **Step 5: Verify all transformer tests GREEN**
+
+```bash
+rtk .venv/bin/pytest tests/test_transform.py -v
+```
+
+Expected: all transformer tests pass with no warnings.
+
+- [ ] **Step 6: Commit Task 2**
+
+```bash
+rtk git add edgex/mqtt-bridge/src edgex/mqtt-bridge/tests/test_transform.py
+rtk git commit -m "feat: transform factory telemetry for EdgeX"
+```
+
+---
+
+### Task 3: MQTT Runtime, Safe Logs, Counters, and Health
+
+**Files:**
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/health.py`
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/service.py`
+- Test: `edgex/mqtt-bridge/tests/test_health.py`
+- Test: `edgex/mqtt-bridge/tests/test_service.py`
+
+**Interfaces:**
+- Consumes: `BridgeConfig`, `TelemetryTransformer`, and one paho-compatible MQTT client.
+- Produces: `MqttBridgeService.start()`, `stop()`, `handle_message()`, `BridgeStats`, and an atomic health JSON file.
+
+- [ ] **Step 1: Write failing health-file tests**
+
+```python
+import json
+
+from mqtt_edge_bridge.health import HealthFile
+
+
+def test_health_file_is_atomic_and_reports_ready(tmp_path) -> None:
+    path = tmp_path / "health.json"
+    health = HealthFile(path)
+    health.write("ready")
+    assert json.loads(path.read_text()) == {"reason": None, "state": "ready"}
+    assert health.is_ready() is True
+
+
+def test_degraded_health_is_not_ready(tmp_path) -> None:
+    health = HealthFile(tmp_path / "health.json")
+    health.write("degraded", "broker_disconnected")
+    assert health.is_ready() is False
+```
+
+- [ ] **Step 2: Verify health tests RED, then implement `HealthFile`**
+
+Run `rtk .venv/bin/pytest tests/test_health.py -v`; expect an import failure. Implement writes through a sibling temporary file followed by `Path.replace()` and only accept `starting`, `ready`, `degraded`, and `stopped`.
+
+```python
+import json
+from pathlib import Path
+
+
+class HealthFile:
+    _STATES = {"starting", "ready", "degraded", "stopped"}
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def write(self, state: str, reason: str | None = None) -> None:
+        if state not in self._STATES:
+            raise ValueError(f"unsupported health state: {state}")
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.path.with_suffix(self.path.suffix + ".tmp")
+        temporary.write_text(
+            json.dumps({"reason": reason, "state": state}, sort_keys=True),
+            encoding="utf-8",
+        )
+        temporary.replace(self.path)
+
+    def is_ready(self) -> bool:
+        try:
+            body = json.loads(self.path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return False
+        return body == {"reason": None, "state": "ready"}
+```
+
+- [ ] **Step 3: Write failing service behavior tests with a fake client**
+
+The fake client records `connect`, `subscribe`, `publish`, `loop_start`, `loop_stop`, and `disconnect` calls. Tests must cover:
+
+```python
+def test_connect_subscribes_routes_and_marks_ready(service, fake_client, health) -> None:
+    service.start()
+    fake_client.on_connect(fake_client, None, None, 0, None)
+    assert fake_client.subscriptions == [
+        ("factory/devices/vib-arduino-acceleration-01/telemetry", 1)
+    ]
+    assert health.is_ready() is True
+
+
+def test_valid_message_is_published_once(service, fake_client) -> None:
+    service.handle_message(
+        "factory/devices/vib-arduino-acceleration-01/telemetry",
+        b'{"x":1,"y":2,"z":3,"ts":10}',
+        retained=False,
+    )
+    assert fake_client.publications[0][0] == (
+        "incoming/data/vib-arduino-acceleration-01/telemetry"
+    )
+    assert service.stats.published == 1
+
+
+def test_invalid_message_does_not_publish_or_log_payload(service, fake_client, caplog) -> None:
+    secret = b'{"x":"secret","y":2,"z":3,"ts":10}'
+    service.handle_message(
+        "factory/devices/vib-arduino-acceleration-01/telemetry",
+        secret,
+        retained=False,
+    )
+    assert fake_client.publications == []
+    assert service.stats.invalid == 1
+    assert "secret" not in caplog.text
+```
+
+Also test retained count, publish `rc != 0`, disconnect degradation, and reconnect delay configuration.
+
+- [ ] **Step 4: Verify service tests RED**
+
+```bash
+rtk .venv/bin/pytest tests/test_service.py -v
+```
+
+Expected: import fails because `mqtt_edge_bridge.service` does not exist.
+
+- [ ] **Step 5: Implement `MqttBridgeService` minimally**
+
+Define:
+
+```python
+@dataclass
+class BridgeStats:
+    received: int = 0
+    published: int = 0
+    invalid: int = 0
+    retained: int = 0
+    publish_failed: int = 0
+
+
+class MqttBridgeService:
+    def __init__(self, config, transformer, client, health, logger) -> None:
+        self.config = config
+        self.transformer = transformer
+        self.client = client
+        self.health = health
+        self.logger = logger
+        self.stats = BridgeStats()
+
+    def start(self) -> None:
+        self.health.write("starting")
+        self.client.on_connect = self._on_connect
+        self.client.on_disconnect = self._on_disconnect
+        self.client.on_message = self._on_message
+        self.client.reconnect_delay_set(
+            self.config.broker.reconnect_min_seconds,
+            self.config.broker.reconnect_max_seconds,
+        )
+        self.client.connect(
+            self.config.broker.host,
+            self.config.broker.port,
+            self.config.broker.keepalive_seconds,
+        )
+        self.client.loop_start()
+
+    def handle_message(self, topic: str, payload: bytes, *, retained: bool) -> None:
+        self.stats.received += 1
+        try:
+            outbound = self.transformer.transform(topic, payload, retained=retained)
+        except TransformError as exc:
+            if exc.code == "retained_message":
+                self.stats.retained += 1
+            else:
+                self.stats.invalid += 1
+            log_event(self.logger, "warning", "sample_rejected", topic=topic,
+                      reason=exc.code, fields=list(exc.fields))
+            return
+        result = self.client.publish(
+            outbound.topic,
+            outbound.payload,
+            qos=self.config.broker.qos,
+            retain=False,
+        )
+        if getattr(result, "rc", 0) != 0:
+            self.stats.publish_failed += 1
+            self.health.write("degraded", "publish_failed")
+            log_event(self.logger, "error", "publish_failed",
+                      device_name=outbound.device_name,
+                      source_name=outbound.source_name,
+                      output_topic=outbound.topic)
+            return
+        self.stats.published += 1
+```
+
+`log_event()` must JSON-encode only explicitly supplied metadata. `_on_connect` subscribes each exact route topic at configured QoS and marks ready only for reason code 0. `_on_disconnect` marks degraded. `stop()` stops the loop, disconnects, and writes `stopped`.
+
+```python
+def log_event(logger, level: str, event: str, **fields: object) -> None:
+    message = json.dumps({"event": event, **fields}, sort_keys=True, separators=(",", ":"))
+    getattr(logger, level)(message)
+
+
+def _reason_value(reason_code: object) -> int:
+    value = getattr(reason_code, "value", reason_code)
+    return int(value)
+
+
+def _on_connect(self, client, userdata, flags, reason_code, properties) -> None:
+    if _reason_value(reason_code) != 0:
+        self.health.write("degraded", "connect_failed")
+        log_event(self.logger, "error", "connect_failed", reason=_reason_value(reason_code))
+        return
+    for route in self.config.routes:
+        client.subscribe(route.input_topic, qos=self.config.broker.qos)
+    self.health.write("ready")
+    log_event(self.logger, "info", "ready", routes=len(self.config.routes))
+
+
+def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties) -> None:
+    self.health.write("degraded", "broker_disconnected")
+    log_event(self.logger, "warning", "broker_disconnected", reason=_reason_value(reason_code))
+
+
+def _on_message(self, client, userdata, message) -> None:
+    self.handle_message(message.topic, bytes(message.payload), retained=bool(message.retain))
+
+
+def stop(self) -> None:
+    self.client.loop_stop()
+    self.client.disconnect()
+    self.health.write("stopped")
+```
+
+- [ ] **Step 6: Verify Task 3 GREEN and commit**
+
+```bash
+rtk .venv/bin/pytest tests/test_health.py tests/test_service.py -v
+rtk git add edgex/mqtt-bridge/src edgex/mqtt-bridge/tests
+rtk git commit -m "feat: run MQTT EdgeX bridge with health state"
+```
+
+Expected: all Task 3 tests pass and logs contain no payload values.
+
+---
+
+### Task 4: Executable Container and Real Broker Integration
+
+**Files:**
+- Create: `edgex/mqtt-bridge/src/mqtt_edge_bridge/main.py`
+- Create: `edgex/mqtt-bridge/Dockerfile`
+- Test: `edgex/mqtt-bridge/tests/test_broker_integration.py`
+
+**Interfaces:**
+- Consumes: `--config PATH`, `--health-file PATH`, and optional `--healthcheck PATH`.
+- Produces: a signal-aware bridge process and an ARM64-compatible OCI image.
+
+- [ ] **Step 1: Write a failing CLI healthcheck test**
+
+Call `main(["--healthcheck", path])` with ready and degraded health files. Assert return codes 0 and 1. Run the test and confirm `mqtt_edge_bridge.main` is missing.
+
+- [ ] **Step 2: Implement CLI wiring and signal shutdown**
+
+`main.py` must create a paho v2 client using the configured stable client ID and MQTT 3.1.1 durable session, construct `TelemetryTransformer`, start `MqttBridgeService`, wait on a `threading.Event`, and always call `stop()` in `finally`. `--healthcheck` reads only the health file and does not connect to MQTT.
+
+Use this paho construction:
+
+```python
+client = mqtt.Client(
+    mqtt.CallbackAPIVersion.VERSION2,
+    client_id=config.broker.client_id,
+    protocol=mqtt.MQTTv311,
+    clean_session=False,
+)
+```
+
+The complete control flow is:
+
+```python
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=Path)
+    parser.add_argument("--health-file", type=Path,
+                        default=Path("/tmp/mqtt-edge-bridge-health.json"))
+    parser.add_argument("--healthcheck", type=Path)
+    args = parser.parse_args(argv)
+    if args.healthcheck is not None:
+        return 0 if HealthFile(args.healthcheck).is_ready() else 1
+    if args.config is None:
+        parser.error("--config is required")
+
+    config = load_config(args.config)
+    client = mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2,
+        client_id=config.broker.client_id,
+        protocol=mqtt.MQTTv311,
+        clean_session=False,
+    )
+    health = HealthFile(args.health_file)
+    service = MqttBridgeService(
+        config,
+        TelemetryTransformer(config),
+        client,
+        health,
+        logging.getLogger("mqtt-edge-bridge"),
+    )
+    stopped = threading.Event()
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        signal.signal(signum, lambda *_: stopped.set())
+    try:
+        service.start()
+        stopped.wait()
+        return 0
+    finally:
+        service.stop()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+- [ ] **Step 3: Write the real Mosquitto integration test**
+
+The test must skip only when `shutil.which("mosquitto")` is absent. It starts Mosquitto on an unused loopback port, starts the bridge against that port, subscribes a second paho client to `incoming/data/#`, publishes one factory payload, and waits at most five seconds for one transformed payload.
+
+```python
+@pytest.mark.integration
+def test_real_broker_routes_one_vibration_sample(tmp_path, free_port) -> None:
+    broker = subprocess.Popen(
+        ["mosquitto", "-p", str(free_port)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    try:
+        received = run_bridge_and_round_trip(
+            tmp_path,
+            free_port,
+            topic="factory/devices/vib-arduino-acceleration-01/telemetry",
+            payload=b'{"x":0.12,"y":0.08,"z":0.91,"ts":1783935600}',
+        )
+        assert received.topic == "incoming/data/vib-arduino-acceleration-01/telemetry"
+        assert json.loads(received.payload)["acceleration_x"] == 0.12
+    finally:
+        broker.terminate()
+        broker.wait(timeout=5)
+```
+
+The helper uses events instead of sleeps and fails with captured broker output if startup or delivery times out.
+
+- [ ] **Step 4: Verify RED, complete the integration helper, and verify GREEN**
+
+```bash
+rtk .venv/bin/pytest tests/test_broker_integration.py -v -m integration
+```
+
+Expected: one pass when Mosquitto is installed; otherwise one explicit skip.
+
+- [ ] **Step 5: Add the container image**
+
+Create a multi-architecture-safe Dockerfile based on `python:3.12-slim`, install the local wheel without a compiler, run as a non-root UID, mount config read-only, and define:
+
+```dockerfile
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY src ./src
+RUN python -m pip install --no-cache-dir . \
+    && useradd --create-home --uid 10001 bridge
+
+COPY config ./config
+RUN chown -R bridge:bridge /app
+USER 10001:10001
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+  CMD ["python", "-m", "mqtt_edge_bridge.main", "--healthcheck", "/tmp/mqtt-edge-bridge-health.json"]
+ENTRYPOINT ["python", "-m", "mqtt_edge_bridge.main"]
+CMD ["--config", "/app/config/vibration.yaml", "--health-file", "/tmp/mqtt-edge-bridge-health.json"]
+```
+
+- [ ] **Step 6: Run the bridge suite and build the image**
+
+```bash
+rtk .venv/bin/pytest -q
+rtk docker build -t etri/mqtt-edge-bridge:0.1.0 .
+```
+
+Expected: unit suite passes, broker integration passes or explicitly skips, and image build exits 0.
+
+- [ ] **Step 7: Commit Task 4**
+
+```bash
+rtk git add edgex/mqtt-bridge
+rtk git commit -m "feat: package MQTT EdgeX bridge"
+```
+
+---
+
+### Task 5: EdgeX Device Profile, Device, and Compose Override
+
+**Files:**
+- Create: `edgex/device-config/profiles/etri-vibration-mqtt.yaml`
+- Create: `edgex/device-config/devices/vib-arduino-acceleration-01.yaml`
+- Create: `edgex/compose/docker-compose.override.yml`
+- Test: `edgex/mqtt-bridge/tests/test_edgex_config.py`
+
+**Interfaces:**
+- Consumes: transformed `telemetry` payload.
+- Produces: EdgeX `etri-vibration-mqtt` profile, `vib-arduino-acceleration-01` device registration, and compose mounts/environment for stock `device-mqtt`.
+
+- [ ] **Step 1: Write failing static contract tests**
+
+Load the two YAML documents with PyYAML and assert:
+
+```python
+def test_profile_matches_bridge_output() -> None:
+    profile = load_yaml(PROFILE)
+    resources = {item["name"]: item for item in profile["deviceResources"]}
+    assert set(resources) == {
+        "acceleration_x", "acceleration_y", "acceleration_z", "source_timestamp"
+    }
+    assert resources["acceleration_x"]["properties"] == {
+        "valueType": "Float64", "readWrite": "R", "units": "g"
+    }
+    assert all(item["isHidden"] is True for item in resources.values())
+    command = profile["deviceCommands"][0]
+    assert command["name"] == "telemetry"
+    assert command["isHidden"] is True
+    assert [item["deviceResource"] for item in command["resourceOperations"]] == [
+        "acceleration_x", "acceleration_y", "acceleration_z", "source_timestamp"
+    ]
+
+
+def test_device_is_push_only_mqtt_registration() -> None:
+    device = load_yaml(DEVICE)["deviceList"][0]
+    assert device["name"] == "vib-arduino-acceleration-01"
+    assert device["profileName"] == "etri-vibration-mqtt"
+    assert device["protocols"]["mqtt"]["CommandTopic"] == (
+        "command/vib-arduino-acceleration-01"
+    )
+    assert "autoEvents" not in device
+```
+
+Run and confirm failure because the YAML files do not exist.
+
+- [ ] **Step 2: Create the EdgeX profile and device definitions**
+
+Use EdgeX v4 profile syntax. Every resource is `isHidden: true`; `telemetry` is an `R` command with `isHidden: true`; no AutoEvent is declared. Labels are `mqtt`, `vibration`, and `etri-poc`.
+
+Profile content:
+
+```yaml
+name: etri-vibration-mqtt
+manufacturer: ETRI
+model: Arduino-Acceleration
+description: Push-only vibration telemetry ingested through EdgeX Device MQTT
+labels: [mqtt, vibration, etri-poc]
+deviceResources:
+  - name: acceleration_x
+    isHidden: true
+    properties: {valueType: Float64, readWrite: R, units: g}
+  - name: acceleration_y
+    isHidden: true
+    properties: {valueType: Float64, readWrite: R, units: g}
+  - name: acceleration_z
+    isHidden: true
+    properties: {valueType: Float64, readWrite: R, units: g}
+  - name: source_timestamp
+    isHidden: true
+    properties: {valueType: Int64, readWrite: R, units: s}
+deviceCommands:
+  - name: telemetry
+    isHidden: true
+    readWrite: R
+    resourceOperations:
+      - {deviceResource: acceleration_x}
+      - {deviceResource: acceleration_y}
+      - {deviceResource: acceleration_z}
+      - {deviceResource: source_timestamp}
+```
+
+Device content:
+
+```yaml
+deviceList:
+  - name: vib-arduino-acceleration-01
+    profileName: etri-vibration-mqtt
+    description: Jetson-connected Arduino acceleration source
+    labels: [mqtt, vibration, etri-poc]
+    protocols:
+      mqtt:
+        CommandTopic: command/vib-arduino-acceleration-01
+```
+
+- [ ] **Step 3: Add and test the compose override**
+
+The override must mount `${ETRI_EDGEX_ROOT}/device-config` read-only, set `DEVICE_DEVICESDIR=/custom-config/devices` and `DEVICE_PROFILESDIR=/custom-config/profiles`, and configure stock `device-mqtt` to reach the existing host Mosquitto through `host.docker.internal` at port 1883. It also adds `mqtt-edge-bridge` with host networking so the bridge retains `127.0.0.1:1883` semantics.
+
+```yaml
+services:
+  device-mqtt:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DEVICE_DEVICESDIR: /custom-config/devices
+      DEVICE_PROFILESDIR: /custom-config/profiles
+      MQTTBROKERINFO_HOST: host.docker.internal
+      MQTTBROKERINFO_PORT: "1883"
+      MQTTBROKERINFO_QOS: "1"
+      MQTTBROKERINFO_INCOMINGTOPIC: incoming/data/#
+    volumes:
+      - ${ETRI_EDGEX_ROOT}/device-config:/custom-config:ro
+
+  mqtt-edge-bridge:
+    build: ${ETRI_EDGEX_ROOT}/mqtt-bridge
+    container_name: etri-mqtt-edge-bridge
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ${ETRI_EDGEX_ROOT}/mqtt-bridge/config:/app/config:ro
+```
+
+Add a static test asserting no EdgeX service exposes a non-loopback API port in this override and no KubeEdge resource appears in either YAML.
+
+- [ ] **Step 4: Verify config tests GREEN**
+
+```bash
+rtk .venv/bin/pytest tests/test_edgex_config.py -v
+```
+
+Expected: profile, device, and compose contract tests pass.
+
+- [ ] **Step 5: Commit Task 5**
+
+```bash
+rtk git add edgex/device-config edgex/compose edgex/mqtt-bridge/tests/test_edgex_config.py
+rtk git commit -m "feat: register vibration device with EdgeX MQTT"
+```
+
+---
+
+### Task 6: Core Data Smoke Test and Operator Runbook
+
+**Files:**
+- Create: `edgex/scripts/smoke_test.py`
+- Create: `edgex/scripts/test_smoke_test.py`
+- Create: `edgex/README.md`
+- Modify: `docs/raw-telemetry-data-plane.md`
+
+**Interfaces:**
+- Consumes: local MQTT broker, Core Metadata at `127.0.0.1:59881`, and Core Data at `127.0.0.1:59880`.
+- Produces: deterministic pass/fail verification that profile/device exist and the latest event has the four expected readings.
+
+- [ ] **Step 1: Write failing event-validation tests**
+
+```python
+from smoke_test import SmokeFailure, validate_latest_event
+
+
+def test_validate_latest_event_accepts_expected_readings() -> None:
+    response = {
+        "events": [{
+            "deviceName": "vib-arduino-acceleration-01",
+            "sourceName": "telemetry",
+            "readings": [
+                {"resourceName": "acceleration_x", "value": "1.200000e-01"},
+                {"resourceName": "acceleration_y", "value": "8.000000e-02"},
+                {"resourceName": "acceleration_z", "value": "9.100000e-01"},
+                {"resourceName": "source_timestamp", "value": "1783935600"},
+            ],
+        }]
+    }
+    validate_latest_event(response)
+
+
+def test_validate_latest_event_rejects_wrong_source() -> None:
+    with pytest.raises(SmokeFailure, match="sourceName"):
+        validate_latest_event({"events": [{"sourceName": "other", "readings": []}]})
+```
+
+Run and confirm import failure.
+
+- [ ] **Step 2: Implement deterministic smoke verification**
+
+`smoke_test.py` must:
+
+1. GET `/api/v3/deviceprofile/name/etri-vibration-mqtt` from Core Metadata.
+2. GET `/api/v3/device/name/vib-arduino-acceleration-01` from Core Metadata.
+3. Publish the fixed sample to `factory/devices/vib-arduino-acceleration-01/telemetry` at QoS 1 and retain false.
+4. Poll `/api/v3/event/device/name/vib-arduino-acceleration-01?limit=1` for at most 15 seconds.
+5. Require `sourceName=telemetry` and exact reading values `0.12`, `0.08`, `0.91`, and `1783935600`.
+6. Exit 0 with one `PASS` line; raise `SmokeFailure` and exit 1 with one safe reason line otherwise.
+
+The script never calls Core Command and never accesses Kubernetes.
+
+Implement its validation and orchestration with this shape:
+
+```python
+import json
+import math
+import time
+import urllib.request
+
+from paho.mqtt import publish as mqtt_publish
+
+
+DEVICE = "vib-arduino-acceleration-01"
+PROFILE = "etri-vibration-mqtt"
+SOURCE = "telemetry"
+EXPECTED_FLOATS = {
+    "acceleration_x": 0.12,
+    "acceleration_y": 0.08,
+    "acceleration_z": 0.91,
+}
+EXPECTED_TIMESTAMP = 1783935600
+
+
+class SmokeFailure(RuntimeError):
+    pass
+
+
+def get_json(url: str, timeout: float = 3.0) -> dict[str, object]:
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            return json.load(response)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SmokeFailure(f"http request failed: {url}") from exc
+
+
+def validate_latest_event(response: dict[str, object]) -> None:
+    events = response.get("events")
+    if not isinstance(events, list) or not events:
+        raise SmokeFailure("latest event is missing")
+    event = events[0]
+    if not isinstance(event, dict) or event.get("sourceName") != SOURCE:
+        raise SmokeFailure("latest event sourceName does not match telemetry")
+    readings = event.get("readings")
+    if not isinstance(readings, list):
+        raise SmokeFailure("latest event readings are missing")
+    values = {
+        item.get("resourceName"): str(item.get("value"))
+        for item in readings
+        if isinstance(item, dict)
+    }
+    try:
+        for name, expected in EXPECTED_FLOATS.items():
+            if not math.isclose(float(values[name]), expected, rel_tol=1e-9, abs_tol=1e-9):
+                raise SmokeFailure(f"latest event {name} does not match expected value")
+        if int(values["source_timestamp"]) != EXPECTED_TIMESTAMP:
+            raise SmokeFailure("latest event source_timestamp does not match expected value")
+    except (KeyError, TypeError, ValueError) as exc:
+        raise SmokeFailure("latest event readings are missing or invalid") from exc
+
+
+def run(metadata_url: str, data_url: str, mqtt_host: str, mqtt_port: int) -> None:
+    get_json(f"{metadata_url}/api/v3/deviceprofile/name/{PROFILE}")
+    get_json(f"{metadata_url}/api/v3/device/name/{DEVICE}")
+    mqtt_publish.single(
+        f"factory/devices/{DEVICE}/telemetry",
+        json.dumps({"x": 0.12, "y": 0.08, "z": 0.91, "ts": 1783935600}),
+        qos=1,
+        retain=False,
+        hostname=mqtt_host,
+        port=mqtt_port,
+    )
+    deadline = time.monotonic() + 15
+    latest_url = f"{data_url}/api/v3/event/device/name/{DEVICE}?limit=1"
+    last_error: SmokeFailure | None = None
+    while time.monotonic() < deadline:
+        try:
+            validate_latest_event(get_json(latest_url))
+            return
+        except SmokeFailure as exc:
+            last_error = exc
+            time.sleep(0.5)
+    raise last_error or SmokeFailure("latest event polling timed out")
+
+
+def main() -> int:
+    try:
+        run("http://127.0.0.1:59881", "http://127.0.0.1:59880", "127.0.0.1", 1883)
+    except SmokeFailure as exc:
+        print(f"FAIL reason={exc}")
+        return 1
+    print(f"PASS device={DEVICE} source={SOURCE} readings=4")
+    return 0
+```
+
+- [ ] **Step 3: Verify smoke unit tests GREEN**
+
+```bash
+rtk ../mqtt-bridge/.venv/bin/pytest test_smoke_test.py -v
+```
+
+Working directory: `edgex/scripts`
+
+Expected: event validation and HTTP/publish boundary tests pass without a live EdgeX deployment.
+
+- [ ] **Step 4: Write the exact PoC runbook**
+
+`edgex/README.md` must document:
+
+```bash
+rtk git clone --branch v4.0.2 --depth 1 https://github.com/edgexfoundry/edgex-compose.git /opt/edgex-compose
+cd /opt/edgex-compose/compose-builder
+rtk make gen no-secty ds-mqtt
+export ETRI_EDGEX_ROOT=/home/jinuk/codex-work/jinuk/edgex
+rtk docker compose -f docker-compose.yml -f "$ETRI_EDGEX_ROOT/compose/docker-compose.override.yml" config
+rtk docker compose -f docker-compose.yml -f "$ETRI_EDGEX_ROOT/compose/docker-compose.override.yml" up -d --build
+rtk python3 "$ETRI_EDGEX_ROOT/scripts/smoke_test.py"
+```
+
+Before `up`, require an explicit connectivity check from a temporary container to `host.docker.internal:1883`. If the existing Mosquitto listens only on loopback, the runbook must stop and instruct the operator to expose an authenticated listener only to the Docker bridge subnet; it must not silently replace or stop the broker. Explain that no-security is isolated PoC-only and APIs remain on loopback.
+
+Add an implementation-status section to `docs/raw-telemetry-data-plane.md` naming `edgex/` as the MQTT-only prototype path and reiterating that MapperFramework and DeviceStatus remain unchanged.
+
+- [ ] **Step 5: Run all automated verification**
+
+```bash
+rtk .venv/bin/pytest -q
+rtk docker build -t etri/mqtt-edge-bridge:0.1.0 .
+rtk python -m compileall -q src
+```
+
+Working directory: `edgex/mqtt-bridge`
+
+Then:
+
+```bash
+rtk ../mqtt-bridge/.venv/bin/pytest -q
+```
+
+Working directory: `edgex/scripts`
+
+Expected: every unit test passes, broker integration passes or explicitly skips only for missing Mosquitto, image build succeeds, and compileall emits no output.
+
+- [ ] **Step 6: Run live smoke when local prerequisites are available**
+
+Run the README sequence only after confirming Docker, Mosquitto reachability, free EdgeX API ports, and sufficient disk. Expected final output:
+
+```text
+PASS device=vib-arduino-acceleration-01 source=telemetry readings=4
+```
+
+If those external prerequisites are absent, record the exact failed prerequisite and do not claim live EdgeX success; automated bridge/config tests remain independently valid.
+
+- [ ] **Step 7: Commit Task 6**
+
+```bash
+rtk git add edgex/README.md edgex/scripts docs/raw-telemetry-data-plane.md
+rtk git commit -m "docs: add EdgeX MQTT smoke runbook"
+```
+
+---
+
+## Final Verification Checklist
+
+- [ ] Every production function added under `mqtt_edge_bridge` has a test that was observed failing first.
+- [ ] `rtk .venv/bin/pytest -q` passes under `edgex/mqtt-bridge`.
+- [ ] Mosquitto integration passes or reports one explicit missing-binary skip.
+- [ ] `rtk docker build -t etri/mqtt-edge-bridge:0.1.0 .` succeeds.
+- [ ] EdgeX profile resources exactly match Bridge output keys.
+- [ ] Device and command resources are hidden and no AutoEvent exists.
+- [ ] Raw x/y/z fields are absent from all KubeEdge status code and manifests changed by this branch.
+- [ ] `rtk git diff --check` reports no whitespace errors.
+- [ ] `rtk git status --short` contains only intended files for this feature plus pre-existing user changes.
+- [ ] Live Core Data success is claimed only if the smoke script printed the exact PASS line.
