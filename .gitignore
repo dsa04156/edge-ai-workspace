@@ -1,5 +1,6 @@
 # Excluded workspace
 Platform-Service/
+.worktrees/
 
 # Logs
 *.log
