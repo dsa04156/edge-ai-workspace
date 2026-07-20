@@ -15,6 +15,7 @@ from .augmentation_crds import (
     DeviceAugmentationCrdState,
 )
 from .config import Settings
+from .edgex import EdgeXError
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -94,16 +95,9 @@ async def get_device_telemetry(
     window: str = Query(default="-30m", pattern=r"^-[1-9][0-9]*[smhdw]$"),
     limit: int = Query(default=300, ge=1, le=1000),
 ) -> list[TelemetryPoint]:
-    samples = await service.get_device_telemetry_history(device_id=device_id, window=window, limit=limit)
-    return [
-        TelemetryPoint(
-            device_id=sample.device_id,
-            timestamp=sample.timestamp,
-            property=sample.property,
-            value=sample.value,
-        )
-        for sample in samples
-    ]
+    return await service.get_device_telemetry_history(
+        device_id=device_id, window=window, limit=limit
+    )
 
 
 @app.get("/state/dashboard", response_model=DashboardState)
@@ -132,7 +126,14 @@ def _resource_observation_error_state(exc: httpx.HTTPError) -> JsonMap:
 
 async def _dashboard_state() -> DashboardState:
     nodes = service.get_nodes()
-    devices = await service.get_devices()
+    device_observation_error: str | None = None
+    try:
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        device_observation_error = (
+            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
+        )
     workflows = service.get_workflows()
     kpis = service._build_dashboard_kpis(nodes, devices, workflows)
     try:
@@ -148,6 +149,7 @@ async def _dashboard_state() -> DashboardState:
         summary=service.get_summary(),
         kpis=kpis,
         resource_profiles=resource_state,
+        device_observation_error=device_observation_error,
     )
 
 

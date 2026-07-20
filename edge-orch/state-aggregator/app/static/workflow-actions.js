@@ -46,10 +46,10 @@ function autoLayoutWorkflow() {
 
 function defaultNodeConfig(type) {
   if (type === "device_source") return { window: "-30m", property: "auto" };
-  if (type === "condition") return { metric: "telemetry_fresh", operator: "equals", value: "true" };
+  if (type === "condition") return { metric: "event_fresh", operator: "equals", value: "true" };
   if (type === "ai_inference") return { model: "anomaly-lite", accelerator: "ai-hat" };
   if (type === "postprocess") return { threshold: "0.82", output: "defect-score" };
-  if (type === "store_observe") return { sink: "InfluxDB + result cache" };
+  if (type === "store_observe") return { sink: "EdgeX downstream storage + result cache" };
   if (type === "dashboard_event") return { severity: "warning" };
   return { method: "rolling-vector" };
 }

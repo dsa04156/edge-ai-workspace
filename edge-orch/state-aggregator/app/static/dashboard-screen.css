@@ -321,7 +321,7 @@ button:focus-visible,
 }
 
 .main-menu::after {
-  content: "KubeEdge PoC";
+  content: "EdgeX / K8s PoC";
   position: absolute;
   top: 58px;
   left: 16px;
@@ -1074,7 +1074,8 @@ button:focus-visible,
 
 .status-chip.ok,
 .node-status.online,
-.device-status.available {
+.device-status.available,
+.pill.connection-connected {
   border-color: var(--console-green);
   color: var(--console-green);
   -webkit-text-fill-color: var(--console-green);
@@ -1089,7 +1090,8 @@ button:focus-visible,
 
 .status-chip.danger,
 .node-status.offline,
-.device-status.unavailable {
+.device-status.unavailable,
+.pill.connection-disconnected {
   border-color: var(--console-red);
   color: var(--console-red);
   -webkit-text-fill-color: var(--console-red);
@@ -1300,7 +1302,6 @@ button:focus-visible,
 .status,
 .pill,
 .badge,
-.publisher-filter,
 .workflow-toolbar button,
 .workflow-actions button,
 .workflow-graph-actions button,
