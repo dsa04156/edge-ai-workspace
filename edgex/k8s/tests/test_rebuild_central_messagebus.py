@@ -46,12 +46,17 @@ def test_default_mode_never_deletes_or_applies_live_resources(tmp_path: Path) ->
     assert "kubectl apply -k edgex/k8s" not in calls
 
 
-def test_execute_validates_nodes_and_dry_run_before_exact_namespace_delete(
+def test_execute_validates_nodes_and_dry_run_before_exact_edgex_label_delete(
     tmp_path: Path,
 ) -> None:
     calls = run_script(tmp_path, "--execute")
-    delete_call = "kubectl delete namespace telemetry --ignore-not-found=true --wait=true --timeout=300s"
+    delete_call = (
+        "kubectl delete deployment,statefulset,job,service,configmap,secret,pvc "
+        "-n telemetry -l app.kubernetes.io/part-of=edgex-telemetry "
+        "--ignore-not-found=true --wait=true --timeout=300s"
+    )
     assert delete_call in calls
+    assert not any("delete namespace" in call for call in calls)
     delete_index = calls.index(delete_call)
     for required_call in (
         "kubectl get node etri-ser0002-cgnmsb",

@@ -21,6 +21,11 @@ rtk kubectl get node etri-dev0003-raspi5
 rtk kubectl kustomize edgex/k8s >/tmp/edgex-central-messagebus.yaml
 rtk kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml
 rtk kubectl get all,pvc,configmap,secret -n telemetry || true
-rtk kubectl delete namespace telemetry --ignore-not-found=true --wait=true --timeout=300s
+rtk kubectl delete deployment,statefulset,job,service,configmap,secret,pvc \
+  -n telemetry \
+  -l app.kubernetes.io/part-of=edgex-telemetry \
+  --ignore-not-found=true \
+  --wait=true \
+  --timeout=300s
 rtk kubectl apply -k edgex/k8s
 rtk kubectl get pods -n telemetry -o wide
