@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.md</span>
+            <span class="badge">수정: 2026-07-20 14:44</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="엣지엑스-중앙-메시지버스와-엣지-디바이스-서비스-구현-계획">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> Move the EdgeX Core, internal MessageBus, and PostgreSQL workloads from the Jetson to <code>etri-ser0002-cgnmsb</code> while retaining only protocol Device Services on the sensor edge nodes for the MQTT vertical slice.</p>
+<p><strong>Architecture:</strong> The existing <code>edgex/k8s</code> Kustomize entry point remains authoritative. Core services, the internal Mosquitto MessageBus, and PostgreSQL run on server2 using amd64 EdgeX 4.0.2 images; the two ARM64 Device MQTT instances remain node-pinned to Jetson and Raspberry Pi and connect to the same central services through Kubernetes service DNS. SQLite replay and the alternate HTTPS ingest-gateway plane are not part of this slice.</p>
+<p><strong>Tech Stack:</strong> Kubernetes/KubeEdge, Kustomize, Argo CD, EdgeX Foundry 4.0.2, Mosquitto 2.0.22, PostgreSQL 16.3, Python 3.12, pytest 8, PyYAML 6.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>Every repository shell command starts with <code>rtk</code>.</li><li>The operational render entry point remains <code>edgex/k8s</code> and the namespace remains <code>telemetry</code>.</li><li>Central node: <code>etri-ser0002-cgnmsb</code>.</li><li>Jetson Device MQTT node: <code>etri-dev0001-jetorn</code>.</li><li>Sense HAT Device MQTT node: <code>etri-dev0003-raspi5</code>.</li><li>Central EdgeX images use version <code>4.0.2</code> without the <code>-arm64</code> repository suffix.</li><li>Device MQTT images remain <code>edgexfoundry/device-mqtt-arm64:4.0.2</code>.</li><li>EdgeX internal MessageBus remains a ClusterIP service and is not a southbound device broker.</li><li>Existing unrelated working-tree changes are preserved.</li><li>Existing telemetry data does not require backup and service interruption is accepted.</li><li>Live deletion is limited to the exact <code>telemetry</code> namespace and occurs only after render and server-side dry-run succeed.</li></ul>
+<p>---</p>
+<h2 id="file-structure">File Structure</h2>
+<pre data-lang="text"><code>edgex/k8s/
+├── core.yaml                 # central Keeper, config bootstrapper, Data, Metadata, Command
+├── messagebus.yaml           # central internal MQTT MessageBus
+├── postgres.yaml             # central EdgeX persistent database
+├── device-mqtt.yaml          # edge-only Device MQTT instances
+├── kustomization.yaml        # single operational render entry point
+├── tests/
+│   └── test_central_messagebus_topology.py
+└── scripts/
+    └── rebuild-central-messagebus.sh
+
+docs/
+├── 프로젝트-배경.md
+├── 원시-텔레메트리-데이터-플레인.md
+├── 프로젝트-범위.md
+├── 저장소-구조.md
+└── ops/runbook-central-messagebus-rebuild.md</code></pre>
+<h3 id="task-1-lock-the-direct-messagebus-placement-contract">Task 1: Lock the Direct MessageBus Placement Contract</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/k8s/tests/test_central_messagebus_topology.py</code></li><li>Read: <code>edgex/k8s/kustomization.yaml</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: rendered resources from <code>kubectl kustomize edgex/k8s</code>.</li><li>Produces: placement and architecture assertions used as the migration gate.</li></ul>
+<ul><li>[ ] <strong>Step 1: Write the failing topology tests</strong></li></ul>
+<pre data-lang="python"><code>from __future__ import annotations
+
+import os
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+
+K8S_DIR = Path(__file__).resolve().parents[1]
+CENTRAL_NODE = &quot;etri-ser0002-cgnmsb&quot;
+EDGE_PLACEMENT = {
+    &quot;edgex-device-mqtt&quot;: &quot;etri-dev0001-jetorn&quot;,
+    &quot;edgex-device-mqtt-sensehat&quot;: &quot;etri-dev0003-raspi5&quot;,
+}
+CENTRAL_WORKLOADS = {
+    &quot;edgex-core-keeper&quot;,
+    &quot;edgex-core-common-config-bootstrapper&quot;,
+    &quot;edgex-core-data&quot;,
+    &quot;edgex-core-metadata&quot;,
+    &quot;edgex-core-command&quot;,
+    &quot;edgex-messagebus&quot;,
+    &quot;edgex-postgres&quot;,
+}
+
+
+def render() -&gt; list[dict[str, Any]]:
+    result = subprocess.run(
+        [os.environ.get(&quot;KUBECTL&quot;, &quot;kubectl&quot;), &quot;kustomize&quot;, str(K8S_DIR)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [item for item in yaml.safe_load_all(result.stdout) if item]
+
+
+def pod_spec(resource: dict[str, Any]) -&gt; dict[str, Any]:
+    return resource[&quot;spec&quot;][&quot;template&quot;][&quot;spec&quot;]
+
+
+def workloads() -&gt; dict[str, dict[str, Any]]:
+    return {
+        resource[&quot;metadata&quot;][&quot;name&quot;]: resource
+        for resource in render()
+        if resource[&quot;kind&quot;] in {&quot;Deployment&quot;, &quot;StatefulSet&quot;, &quot;Job&quot;}
+    }
+
+
+def test_central_workloads_run_only_on_server2() -&gt; None:
+    rendered = workloads()
+    assert CENTRAL_WORKLOADS &lt;= rendered.keys()
+    for name in CENTRAL_WORKLOADS:
+        assert pod_spec(rendered[name])[&quot;nodeSelector&quot;] == {
+            &quot;kubernetes.io/hostname&quot;: CENTRAL_NODE
+        }
+
+
+def test_device_services_remain_on_the_sensor_edges() -&gt; None:
+    rendered = workloads()
+    for name, node in EDGE_PLACEMENT.items():
+        assert pod_spec(rendered[name])[&quot;nodeSelector&quot;] == {
+            &quot;kubernetes.io/hostname&quot;: node
+        }
+
+
+def test_core_images_are_amd64_and_device_images_are_arm64() -&gt; None:
+    rendered = workloads()
+    for name in CENTRAL_WORKLOADS:
+        containers = [
+            *pod_spec(rendered[name]).get(&quot;initContainers&quot;, []),
+            *pod_spec(rendered[name]).get(&quot;containers&quot;, []),
+        ]
+        for container in containers:
+            image = container[&quot;image&quot;]
+            if &quot;edgexfoundry/&quot; in image:
+                assert &quot;:4.0.2&quot; in image
+                assert &quot;-arm64&quot; not in image
+    for name in EDGE_PLACEMENT:
+        assert pod_spec(rendered[name])[&quot;containers&quot;][0][&quot;image&quot;] == (
+            &quot;edgexfoundry/device-mqtt-arm64:4.0.2&quot;
+        )
+
+
+def test_edge_has_no_local_core_messagebus_or_database() -&gt; None:
+    rendered = workloads()
+    edge_nodes = set(EDGE_PLACEMENT.values())
+    for name, resource in rendered.items():
+        node = pod_spec(resource).get(&quot;nodeSelector&quot;, {}).get(&quot;kubernetes.io/hostname&quot;)
+        if node in edge_nodes:
+            assert name in EDGE_PLACEMENT
+
+
+def test_internal_messagebus_is_cluster_only() -&gt; None:
+    service = next(
+        item
+        for item in render()
+        if item[&quot;kind&quot;] == &quot;Service&quot; and item[&quot;metadata&quot;][&quot;name&quot;] == &quot;edgex-messagebus&quot;
+    )
+    assert service[&quot;spec&quot;][&quot;type&quot;] == &quot;ClusterIP&quot;
+    assert service[&quot;spec&quot;][&quot;ports&quot;] == [{&quot;name&quot;: &quot;mqtt&quot;, &quot;port&quot;: 1883, &quot;targetPort&quot;: &quot;mqtt&quot;}]
+
+
+def test_device_services_use_the_central_configuration_and_registry() -&gt; None:
+    rendered = workloads()
+    for name in EDGE_PLACEMENT:
+        args = pod_spec(rendered[name])[&quot;containers&quot;][0][&quot;args&quot;]
+        assert &quot;-cp=keeper.http://edgex-core-keeper:59890&quot; in args
+        assert &quot;--registry&quot; in args</code></pre>
+<ul><li>[ ] <strong>Step 2: Run the test and verify old Jetson placement fails</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk python3 -m pytest edgex/k8s/tests/test_central_messagebus_topology.py -q</code></pre>
+<p>Expected: placement and image tests fail because Core, MessageBus, and PostgreSQL still target <code>etri-dev0001-jetorn</code> and use ARM64 images.</p>
+<ul><li>[ ] <strong>Step 3: Commit the failing contract</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/k8s/tests/test_central_messagebus_topology.py
+rtk git commit -m &quot;test: define central EdgeX placement contract&quot;</code></pre>
+<h3 id="task-2-move-the-core-data-plane-to-server2">Task 2: Move the Core Data Plane to server2</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edgex/k8s/core.yaml</code></li><li>Modify: <code>edgex/k8s/messagebus.yaml</code></li><li>Modify: <code>edgex/k8s/postgres.yaml</code></li><li>Verify: <code>edgex/k8s/device-mqtt.yaml</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: existing <code>telemetry</code> namespace service names and the Task 1 topology contract.</li><li>Produces: one central EdgeX Core/MessageBus/PostgreSQL stack with edge-only Device MQTT workloads.</li></ul>
+<ul><li>[ ] <strong>Step 1: Change every Core workload node selector</strong></li></ul>
+<p>In <code>edgex/k8s/core.yaml</code>, replace every Core workload selector value:</p>
+<pre data-lang="yaml"><code>nodeSelector:
+  kubernetes.io/hostname: etri-ser0002-cgnmsb</code></pre>
+<p>This applies to Keeper, core-common-config-bootstrapper, Core Data, Core Metadata, and Core Command.</p>
+<ul><li>[ ] <strong>Step 2: Change Core EdgeX images to amd64 repositories</strong></li></ul>
+<p>Use exactly these images:</p>
+<pre data-lang="yaml"><code>edgexfoundry/core-keeper:4.0.2
+edgexfoundry/core-common-config-bootstrapper:4.0.2
+edgexfoundry/core-data:4.0.2
+edgexfoundry/core-metadata:4.0.2
+edgexfoundry/core-command:4.0.2</code></pre>
+<ul><li>[ ] <strong>Step 3: Move MessageBus and PostgreSQL to server2</strong></li></ul>
+<p>In <code>edgex/k8s/messagebus.yaml</code> and <code>edgex/k8s/postgres.yaml</code>, set:</p>
+<pre data-lang="yaml"><code>nodeSelector:
+  kubernetes.io/hostname: etri-ser0002-cgnmsb</code></pre>
+<p>Keep <code>edgex-messagebus</code> as <code>type: ClusterIP</code> and do not add a host port or local edge broker.</p>
+<ul><li>[ ] <strong>Step 4: Run the topology tests</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk python3 -m pytest edgex/k8s/tests/test_central_messagebus_topology.py -q</code></pre>
+<p>Expected: <code>6 passed</code>.</p>
+<ul><li>[ ] <strong>Step 5: Run existing manifest tests to discover incompatible legacy assertions</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk python3 -m pytest edgex/k8s/tests -q</code></pre>
+<p>Expected: the new topology test passes. Any failures that only assert the alternate HTTPS gateway/edge-agent topology are recorded as legacy-test conflicts and are not satisfied by reintroducing that data path.</p>
+<ul><li>[ ] <strong>Step 6: Commit central placement changes</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/k8s/core.yaml edgex/k8s/messagebus.yaml edgex/k8s/postgres.yaml
+rtk git commit -m &quot;feat: centralize EdgeX core data plane&quot;</code></pre>
+<h3 id="task-3-align-active-documentation-and-mark-the-https-plane-inactive">Task 3: Align Active Documentation and Mark the HTTPS Plane Inactive</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>docs/프로젝트-배경.md</code></li><li>Modify: <code>docs/프로젝트-범위.md</code></li><li>Modify: <code>docs/저장소-구조.md</code></li><li>Modify: <code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li>Create: <code>docs/ops/runbook-central-messagebus-rebuild.md</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: the rendered topology from Task 2.</li><li>Produces: one current architecture description and an exact destructive rebuild procedure.</li></ul>
+<ul><li>[ ] <strong>Step 1: Replace the active telemetry flow in the four scope documents</strong></li></ul>
+<p>Use this canonical flow verbatim:</p>
+<pre data-lang="text"><code>physical sensor / PLC / equipment
+  -&gt; EdgeX Device Service on Jetson or Raspberry Pi
+  -&gt; central EdgeX MessageBus on etri-ser0002-cgnmsb
+  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
+<p>State explicitly that <code>edgex/telemetry-plane</code>, <code>edgex-ingest-gateway</code>, and <code>edge-telemetry-agent</code> are inactive design/prototype artifacts and are not deployed by <code>edgex/k8s/kustomization.yaml</code>.</p>
+<ul><li>[ ] <strong>Step 2: Document the phase-one failure behavior</strong></li></ul>
+<p>Add these exact constraints:</p>
+<pre data-lang="text"><code>- Phase one has no SQLite durable replay.
+- Central MessageBus/network failure may lose telemetry.
+- Recovery acceptance is new Event ingestion after connectivity returns.
+- SQLite replay requires a separate approved design and implementation.</code></pre>
+<ul><li>[ ] <strong>Step 3: Write the rebuild runbook</strong></li></ul>
+<p>The runbook must contain these ordered commands and state that the delete target is exactly namespace <code>telemetry</code>:</p>
+<pre data-lang="bash"><code>rtk kubectl get nodes -o wide
+rtk kubectl kustomize edgex/k8s &gt;/tmp/edgex-central-messagebus.yaml
+rtk kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml
+rtk kubectl get all,pvc,configmap,secret -n telemetry
+rtk kubectl delete namespace telemetry --wait=true --timeout=300s
+rtk kubectl apply -k edgex/k8s
+rtk kubectl rollout status deployment/edgex-core-keeper -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-data -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-metadata -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-command -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-messagebus -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-device-mqtt -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-device-mqtt-sensehat -n telemetry --timeout=300s</code></pre>
+<ul><li>[ ] <strong>Step 4: Scan active docs for conflicting current paths</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk rg -n &quot;edge-telemetry-agent|edgex-ingest-gateway|HTTPS POST /v1/events&quot; docs --glob &#x27;!docs/archive/**&#x27; --glob &#x27;!docs/superpowers/**&#x27;</code></pre>
+<p>Expected: matches only identify those paths as inactive/prototype or historical evidence.</p>
+<ul><li>[ ] <strong>Step 5: Commit documentation</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add docs/프로젝트-배경.md docs/프로젝트-범위.md docs/저장소-구조.md docs/원시-텔레메트리-데이터-플레인.md docs/ops/runbook-central-messagebus-rebuild.md
+rtk git commit -m &quot;docs: align EdgeX central message bus operations&quot;</code></pre>
+<h3 id="task-4-add-a-guarded-rebuild-helper">Task 4: Add a Guarded Rebuild Helper</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/k8s/scripts/rebuild-central-messagebus.sh</code></li><li>Create: <code>edgex/k8s/tests/test_rebuild_central_messagebus.py</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: a working <code>kubectl</code> context and <code>edgex/k8s</code> render.</li><li>Produces: a no-op preflight by default and an exact namespace rebuild only with <code>--execute</code>.</li></ul>
+<ul><li>[ ] <strong>Step 1: Write failing script-safety tests</strong></li></ul>
+<pre data-lang="python"><code>from pathlib import Path
+
+
+SCRIPT = Path(__file__).parents[1] / &quot;scripts&quot; / &quot;rebuild-central-messagebus.sh&quot;
+
+
+def test_rebuild_requires_explicit_execute_flag() -&gt; None:
+    text = SCRIPT.read_text()
+    assert &#x27;if [[ &quot;${1:-}&quot; != &quot;--execute&quot; ]]&#x27; in text
+    assert &quot;kubectl delete namespace telemetry&quot; in text
+    assert &quot;kubectl apply --dry-run=server&quot; in text
+    assert text.index(&quot;kubectl apply --dry-run=server&quot;) &lt; text.index(
+        &quot;kubectl delete namespace telemetry&quot;
+    )
+
+
+def test_rebuild_validates_exact_nodes_before_delete() -&gt; None:
+    text = SCRIPT.read_text()
+    for node in (
+        &quot;etri-ser0002-cgnmsb&quot;,
+        &quot;etri-dev0001-jetorn&quot;,
+        &quot;etri-dev0003-raspi5&quot;,
+    ):
+        assert f&quot;kubectl get node {node}&quot; in text</code></pre>
+<ul><li>[ ] <strong>Step 2: Run the tests and confirm the script is missing</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk python3 -m pytest edgex/k8s/tests/test_rebuild_central_messagebus.py -q</code></pre>
+<p>Expected: <code>FileNotFoundError</code> for <code>rebuild-central-messagebus.sh</code>.</p>
+<ul><li>[ ] <strong>Step 3: Implement the guarded helper</strong></li></ul>
+<pre data-lang="bash"><code>#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ &quot;${1:-}&quot; != &quot;--execute&quot; ]]; then
+  echo &quot;preflight only: pass --execute to delete and rebuild namespace telemetry&quot;
+  kubectl get nodes -o wide
+  kubectl kustomize edgex/k8s &gt;/tmp/edgex-central-messagebus.yaml
+  kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml
+  exit 0
+fi
+
+kubectl get node etri-ser0002-cgnmsb
+kubectl get node etri-dev0001-jetorn
+kubectl get node etri-dev0003-raspi5
+kubectl kustomize edgex/k8s &gt;/tmp/edgex-central-messagebus.yaml
+kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml
+kubectl get all,pvc,configmap,secret -n telemetry || true
+kubectl delete namespace telemetry --wait=true --timeout=300s
+kubectl apply -k edgex/k8s
+kubectl get pods -n telemetry -o wide</code></pre>
+<ul><li>[ ] <strong>Step 4: Make the helper executable and run tests</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>rtk chmod +x edgex/k8s/scripts/rebuild-central-messagebus.sh
+rtk python3 -m pytest edgex/k8s/tests/test_rebuild_central_messagebus.py -q</code></pre>
+<p>Expected: <code>2 passed</code>.</p>
+<ul><li>[ ] <strong>Step 5: Commit the guarded helper</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/k8s/scripts/rebuild-central-messagebus.sh edgex/k8s/tests/test_rebuild_central_messagebus.py
+rtk git commit -m &quot;ops: guard destructive EdgeX rebuild&quot;</code></pre>
+<h3 id="task-5-verify-and-perform-the-authorized-cutover">Task 5: Verify and Perform the Authorized Cutover</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Verify: <code>edgex/k8s/</code></li><li>Verify: <code>docs/ops/runbook-central-messagebus-rebuild.md</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Tasks 1-4 and the user&#x27;s authorization for data loss and downtime.</li><li>Produces: a live central Core/MessageBus deployment or an evidence-backed infrastructure blocker.</li></ul>
+<ul><li>[ ] <strong>Step 1: Run repository verification</strong></li></ul>
+<pre data-lang="bash"><code>rtk python3 -m pytest edgex/k8s/tests/test_central_messagebus_topology.py edgex/k8s/tests/test_rebuild_central_messagebus.py -q
+rtk kubectl kustomize edgex/k8s &gt;/tmp/edgex-central-messagebus.yaml
+rtk kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml</code></pre>
+<p>Expected: all focused tests pass and server-side dry-run accepts every resource.</p>
+<ul><li>[ ] <strong>Step 2: Audit the exact live deletion target</strong></li></ul>
+<pre data-lang="bash"><code>rtk kubectl config current-context
+rtk kubectl get nodes -o wide
+rtk kubectl get all,pvc -n telemetry -o wide</code></pre>
+<p>Expected: context is the intended testbed, all three target nodes exist, and only namespace <code>telemetry</code> is in deletion scope.</p>
+<ul><li>[ ] <strong>Step 3: Execute the authorized destructive rebuild</strong></li></ul>
+<pre data-lang="bash"><code>rtk edgex/k8s/scripts/rebuild-central-messagebus.sh --execute</code></pre>
+<p>Expected: old <code>telemetry</code> resources and PVCs are deleted and the direct MessageBus topology is applied.</p>
+<ul><li>[ ] <strong>Step 4: Verify placement and service readiness</strong></li></ul>
+<pre data-lang="bash"><code>rtk kubectl get pods -n telemetry -o wide
+rtk kubectl get services -n telemetry
+rtk kubectl rollout status deployment/edgex-core-keeper -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-data -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-metadata -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-core-command -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-messagebus -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-device-mqtt -n telemetry --timeout=300s
+rtk kubectl rollout status deployment/edgex-device-mqtt-sensehat -n telemetry --timeout=300s</code></pre>
+<p>Expected: Core/MessageBus/PostgreSQL are on server2 and only Device MQTT workloads are on the edge nodes.</p>
+<ul><li>[ ] <strong>Step 5: Run the MQTT/Core Data smoke and dashboard check</strong></li></ul>
+<p>Use the existing canary publisher and then verify Core Data and dashboard:</p>
+<pre data-lang="bash"><code>rtk kubectl get --raw &#x27;/api/v1/namespaces/telemetry/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/vib-arduino-acceleration-01?limit=1&#x27;
+rtk kubectl get --raw &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;</code></pre>
+<p>Expected: the latest Event contains typed readings and <code>/state/devices</code> reports the device using Core Metadata/Core Data evidence.</p>
+<ul><li>[ ] <strong>Step 6: Record exact evidence and remaining limitations</strong></li></ul>
+<p>Record Pod <code>nodeName</code>, image IDs, Event UUID/origin/readings, dashboard status/reason, and the explicit absence of SQLite replay. Do not claim Modbus, OPC-UA, Serial/I2C, RTSP workflow, or dynamic offloading completion.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h2"><a href="#file-structure">File Structure</a></li>
+<li class="toc-h3"><a href="#task-1-lock-the-direct-messagebus-placement-contract">Task 1: Lock the Direct MessageBus Placement Contract</a></li>
+<li class="toc-h3"><a href="#task-2-move-the-core-data-plane-to-server2">Task 2: Move the Core Data Plane to server2</a></li>
+<li class="toc-h3"><a href="#task-3-align-active-documentation-and-mark-the-https-plane-inactive">Task 3: Align Active Documentation and Mark the HTTPS Plane Inactive</a></li>
+<li class="toc-h3"><a href="#task-4-add-a-guarded-rebuild-helper">Task 4: Add a Guarded Rebuild Helper</a></li>
+<li class="toc-h3"><a href="#task-5-verify-and-perform-the-authorized-cutover">Task 5: Verify and Perform the Authorized Cutover</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

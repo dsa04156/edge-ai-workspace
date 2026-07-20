@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>엣지엑스 MQTT 수집 수직 슬라이스 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>엣지엑스 MQTT 수집 수직 슬라이스 설계</h1>
+          <p class="subtitle">이 설계는 etri-dev0001-jetorn의 로컬 MQTT telemetry를 EdgeX 물리 디바이스 통합 계층으로 수집하…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.md</span>
+            <span class="badge">수정: 2026-07-20 14:39</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="엣지엑스-mqtt-수집-수직-슬라이스-설계">엣지엑스 MQTT 수집 수직 슬라이스 설계</h1>
+<h2 id="1-목적">1. 목적</h2>
+<p>이 설계는 <code>etri-dev0001-jetorn</code>의 로컬 MQTT telemetry를 EdgeX 물리 디바이스 통합 계층으로 수집하는 첫 번째 canary를 정의한다. 첫 ingestion 완료 기준은 MQTT 메시지 한 건이 EdgeX <code>Event/Reading</code>으로 저장되고 Core Data API에서 최신값으로 조회되는 것이다.</p>
+<p>이 canary는 물리 디바이스 연동 계층을 MapperFramework에서 EdgeX Device Service로 교체하는 전체 cutover의 첫 단계다. canary가 EdgeX로 전환된 뒤에는 KubeEdge Device/DeviceStatus와 <code>mqttvirtual</code> mapper를 병행 status/control plane이나 fallback으로 사용하지 않는다. KubeEdge는 edge node와 workload 관리에만 남긴다.</p>
+<h2 id="2-범위">2. 범위</h2>
+<h3 id="포함">포함</h3>
+<ul><li>기존 로컬 Mosquitto의 MQTT telemetry 구독</li><li>profile 기반 topic 및 payload 변환</li><li>EdgeX <code>device-mqtt</code> 표준 async topic으로 재발행</li><li>진동/가속도 디바이스용 EdgeX Device Profile과 Device 정의</li><li>EdgeX Core Data 단기 저장 및 최신 event 조회</li><li>변환기 단위 테스트와 broker/EdgeX smoke test</li><li>잘못된 topic, JSON, 필드, 자료형 및 broker 장애 처리</li></ul>
+<h3 id="제외">제외</h3>
+<ul><li>전체 MQTT device migration 완료 주장</li><li>Serial, Modbus, OPC-UA, RTSP protocol wave 완료 주장</li><li>중앙 서버로 raw telemetry 상시 전송</li><li>EdgeX App Service 기반 장기 저장</li><li>실제 actuator command 실행과 Workflow 실행</li><li>실제 Arduino collector와 <code>virtual-device/</code>의 자동 결합 또는 대체</li><li>Kubernetes CRD 추가</li></ul>
+<h2 id="3-검토한-방식">3. 검토한 방식</h2>
+<h3 id="a-profile-기반-mqtt-to-edgex-bridge">A. profile 기반 MQTT-to-EdgeX Bridge</h3>
+<p>기존 MQTT topic을 유지하고 독립 Bridge가 EdgeX topic/payload로 변환한다. publisher가 EdgeX를 몰라도 되고, 이후 MQTT 디바이스는 route profile만 추가하면 된다. 이 방식을 채택한다.</p>
+<h3 id="b-publisher의-이중-발행">B. publisher의 이중 발행</h3>
+<p>각 publisher가 기존 topic과 EdgeX topic을 동시에 발행한다. 초기 코드는 적지만 모든 publisher가 EdgeX naming과 Device Profile을 알아야 하므로 채택하지 않는다.</p>
+<h3 id="c-커스텀-edgex-device-service">C. 커스텀 EdgeX Device Service</h3>
+<p>기존 factory topic을 직접 해석하는 새 Device Service를 SDK로 작성한다. 가장 자유롭지만 첫 PoC에 필요한 코드와 운영 책임이 커서 채택하지 않는다.</p>
+<h2 id="4-아키텍처">4. 아키텍처</h2>
+<pre data-lang="text"><code>MQTT publisher / sensor collector
+  -&gt; edge-local Mosquitto
+       topic: factory/devices/{device-name}/telemetry
+  -&gt; MQTT-to-EdgeX Bridge
+       route validation
+       allowlist projection
+       type conversion
+       source timestamp validation
+  -&gt; edge-local Mosquitto
+       topic: incoming/data/{device-name}/{source-name}
+  -&gt; EdgeX device-mqtt
+  -&gt; EdgeX MessageBus
+  -&gt; EdgeX Core Data
+  -&gt; edge-local PostgreSQL persistent volume</code></pre>
+<p>Bridge의 southbound 입력과 EdgeX async 출력은 같은 로컬 Mosquitto를 사용할 수 있다. EdgeX 내부 MessageBus broker는 EdgeX compose network 안에서 별도로 유지한다. topic namespace가 다르므로 Bridge는 자신이 발행한 <code>incoming/data/#</code>를 다시 구독하지 않는다.</p>
+<p>EdgeX 배포는 ARM64를 지원하는 안정 release tag <code>v4.0.2</code>에 고정한다. 개발 smoke 환경은 no-security profile을 사용하되 API port는 loopback에만 노출한다. 운영 배포에서 no-security profile을 사용하지 않는다.</p>
+<h2 id="5-컴포넌트-경계">5. 컴포넌트 경계</h2>
+<h3 id="mqtt-to-edgex-bridge">MQTT-to-EdgeX Bridge</h3>
+<p>한 edge node에서 한 인스턴스를 실행한다. 여러 MQTT device route를 한 process가 처리한다. protocol 연결, schema 검증과 EdgeX async topic 변환만 담당하며 데이터를 저장하지 않는다.</p>
+<p>Bridge route는 다음 정보를 선언한다.</p>
+<pre data-lang="yaml"><code>routes:
+  - inputTopic: factory/devices/vib-arduino-acceleration-01/telemetry
+    deviceName: vib-arduino-acceleration-01
+    sourceName: telemetry
+    outputTopic: incoming/data/vib-arduino-acceleration-01/telemetry
+    timestampFields:
+      - source_ts
+      - ts
+      - timestamp
+    fields:
+      x:
+        target: acceleration_x
+        type: float
+      y:
+        target: acceleration_y
+        type: float
+      z:
+        target: acceleration_z
+        type: float</code></pre>
+<p>route의 <code>outputTopic</code>은 반드시 <code>incoming/data/{deviceName}/{sourceName}</code>과 일치해야 한다. Bridge는 시작할 때 이 관계를 검증하고 일치하지 않으면 실행을 중단한다.</p>
+<h3 id="edgex-device-mqtt">EdgeX Device MQTT</h3>
+<p>공식 <code>device-mqtt</code>를 수정하지 않는다. Bridge가 발행한 표준 async topic을 구독하고 Device Profile에 따라 payload를 EdgeX readings로 변환한다. Device 정의에는 SDK가 요구하는 <code>CommandTopic</code>을 <code>command/vib-arduino-acceleration-01</code>로 선언하지만, 첫 단계의 resource와 command는 숨김 처리해 센서 GET/SET 요청을 노출하지 않는다.</p>
+<h3 id="edgex-core-data">EdgeX Core Data</h3>
+<p>수집된 Event/Reading을 edge node의 PostgreSQL persistent volume에 단기 저장한다. 첫 단계에서는 기본 retention을 사용하며, 장기 historian 역할은 부여하지 않는다.</p>
+<h2 id="6-데이터-계약">6. 데이터 계약</h2>
+<h3 id="bridge-입력">Bridge 입력</h3>
+<pre data-lang="text"><code>topic: factory/devices/vib-arduino-acceleration-01/telemetry</code></pre>
+<pre data-lang="json"><code>{
+  &quot;x&quot;: &quot;0.12&quot;,
+  &quot;y&quot;: &quot;0.08&quot;,
+  &quot;z&quot;: &quot;0.91&quot;,
+  &quot;ts&quot;: &quot;1783935600&quot;
+}</code></pre>
+<p>숫자 문자열과 JSON number를 모두 허용한다. route에 선언되지 않은 <code>health</code>, <code>severity</code>, <code>alarm_latched</code> 같은 status 필드는 출력에서 제외한다.</p>
+<h3 id="bridge-출력">Bridge 출력</h3>
+<pre data-lang="text"><code>topic: incoming/data/vib-arduino-acceleration-01/telemetry</code></pre>
+<pre data-lang="json"><code>{
+  &quot;acceleration_x&quot;: 0.12,
+  &quot;acceleration_y&quot;: 0.08,
+  &quot;acceleration_z&quot;: 0.91,
+  &quot;source_timestamp&quot;: 1783935600
+}</code></pre>
+<p><code>source_timestamp</code>는 route의 <code>timestampFields</code>에서 처음 발견한 유효한 epoch-second 값이다. timestamp가 없거나 정수로 변환할 수 없으면 전체 sample을 거부한다. Bridge 수신 시각을 원본 시각처럼 대체하지 않는다.</p>
+<h3 id="edgex-device-profile">EdgeX Device Profile</h3>
+<p>Device Profile 이름은 <code>etri-vibration-mqtt</code>로 한다. 다음 read-only resource를 가진다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>resource</th>
+<th>EdgeX valueType</th>
+<th>unit</th>
+<th>isHidden</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>acceleration_x</code></td>
+<td><code>Float64</code></td>
+<td><code>g</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>acceleration_y</code></td>
+<td><code>Float64</code></td>
+<td><code>g</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>acceleration_z</code></td>
+<td><code>Float64</code></td>
+<td><code>g</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>source_timestamp</code></td>
+<td><code>Int64</code></td>
+<td><code>s</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody></table></div>
+<p><code>telemetry</code> read-only Device Command가 네 resource를 묶고 <code>isHidden: true</code>로 등록된다. 센서는 push 방식이므로 Core Command GET을 센서에 보내지 않는다.</p>
+<h2 id="7-최신값-조회-의미">7. 최신값 조회 의미</h2>
+<p>첫 단계의 <code>getLatest</code>는 별도 서비스 API가 아니라 Core Data 조회로 검증한다.</p>
+<pre data-lang="text"><code>Core Data event query
+  deviceName = vib-arduino-acceleration-01
+  sourceName = telemetry
+  limit = 1</code></pre>
+<p>반환 event의 <code>source_timestamp</code>가 입력 sample의 timestamp와 같고, 세 가속도 reading이 Device Profile 자료형으로 저장돼야 한다. 이후 state-aggregator 연동 단계에서 이 조회를 공통 <code>getLatest</code> 서비스 계약으로 감싼다.</p>
+<h2 id="8-오류-처리">8. 오류 처리</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>상황</th>
+<th>동작</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>등록되지 않은 topic</td>
+<td>payload를 읽지 않고 warning counter 증가</td>
+</tr>
+<tr>
+<td>UTF-8/JSON 오류</td>
+<td>sample 거부, 구조화 로그와 invalid-json counter 기록</td>
+</tr>
+<tr>
+<td>필수 x/y/z 누락</td>
+<td>전체 sample 거부, 누락 field 목록 기록</td>
+</tr>
+<tr>
+<td>숫자 변환 실패</td>
+<td>전체 sample 거부, field 이름만 기록하고 원본 payload는 로그에 남기지 않음</td>
+</tr>
+<tr>
+<td>timestamp 누락/오류</td>
+<td>전체 sample 거부</td>
+</tr>
+<tr>
+<td>retained telemetry</td>
+<td>기본적으로 거부해 과거 sample을 신규 데이터로 저장하지 않음</td>
+</tr>
+<tr>
+<td>input broker 연결 끊김</td>
+<td>1초에서 30초까지 exponential backoff로 재연결</td>
+</tr>
+<tr>
+<td>output publish 실패</td>
+<td>QoS 1 publish 실패를 오류로 기록하고 연결 복구 후 다음 sample부터 처리</td>
+</tr>
+<tr>
+<td>route 설정 오류</td>
+<td>fail-fast로 process 종료</td>
+</tr>
+<tr>
+<td>EdgeX device-mqtt 중단</td>
+<td>Bridge 출력은 broker에 남을 수 있지만 장기 재전송을 보장하지 않음</td>
+</tr>
+</tbody></table></div>
+<p>Bridge의 영구 store-and-forward는 첫 단계에서 구현하지 않는다. 누락 없는 수집이 필요한 운영 단계에서는 durable MQTT session과 디스크 기반 spool을 별도 설계한다.</p>
+<h2 id="9-관측성">9. 관측성</h2>
+<p>Bridge 로그는 한 줄 JSON으로 출력하며 다음 키를 포함한다.</p>
+<pre data-lang="text"><code>level, event, device_name, source_name, input_topic, output_topic, reason</code></pre>
+<p>원본 payload와 MQTT password는 로그에 기록하지 않는다. process health는 다음 상태로 판단한다.</p>
+<ul><li><code>starting</code>: route 검증 및 broker 연결 전</li><li><code>ready</code>: input/output broker 연결 완료</li><li><code>degraded</code>: broker 연결 끊김 또는 최근 publish 실패</li></ul>
+<p>첫 단계에서는 별도 Prometheus endpoint를 추가하지 않고 로그와 container healthcheck로 검증한다.</p>
+<h2 id="10-테스트-설계">10. 테스트 설계</h2>
+<h3 id="단위-테스트">단위 테스트</h3>
+<ul><li>정확한 input topic이 EdgeX output topic으로 매핑되는지 검증</li><li>x/y/z 숫자 문자열과 JSON number가 <code>float</code>로 변환되는지 검증</li><li>선언되지 않은 status field가 출력에 포함되지 않는지 검증</li><li>timestamp field 우선순위와 정수 변환 검증</li><li>잘못된 JSON, 필수 field 누락, 숫자 오류, timestamp 오류 거부 검증</li><li>retained message 거부 검증</li><li>route의 topic/device/source 불일치 시 startup 실패 검증</li></ul>
+<p>테스트는 실제 변환 함수를 사용하고 broker client만 경계에서 대체한다.</p>
+<h3 id="broker-통합-테스트">broker 통합 테스트</h3>
+<p>테스트 Mosquitto에 factory topic을 publish하고, EdgeX async topic에서 변환된 payload 한 건을 수신하는지 확인한다. QoS는 1, retain은 false로 검증한다.</p>
+<h3 id="edgex-smoke-test">EdgeX smoke test</h3>
+<ol><li>EdgeX stable compose와 Device MQTT를 시작한다.</li><li>Device Profile과 Device가 Core Metadata에 등록됐는지 확인한다.</li><li>factory topic에 고정 sample을 한 건 publish한다.</li><li>Core Data에서 device/source 최신 event 한 건을 조회한다.</li><li>x/y/z 값과 <code>source_timestamp</code>가 입력과 일치하는지 확인한다.</li><li>해당 canary의 KubeEdge DeviceStatus와 <code>mqttvirtual</code> mapper 경로가 비활성 상태인지 확인한다.</li></ol>
+<h2 id="11-완료-조건">11. 완료 조건</h2>
+<ul><li>Bridge의 모든 단위 테스트가 통과한다.</li><li>Mosquitto broker 통합 테스트가 통과한다.</li><li>EdgeX Core Metadata에 <code>vib-arduino-acceleration-01</code>과</li></ul>
+<p><code>etri-vibration-mqtt</code>가 등록된다.</p>
+<ul><li>MQTT sample 한 건이 Core Data의 <code>telemetry</code> event로 조회된다.</li><li>조회된 네 reading이 입력 payload와 일치한다.</li><li>중앙 서버가 없어도 edge-local 수집과 최신값 조회가 동작한다.</li><li>canary의 inventory, state, telemetry는 EdgeX만 제공하며 MapperFramework,</li></ul>
+<p><code>mqttvirtual</code>, KubeEdge DeviceStatus가 병행 처리하거나 fallback하지 않는다.</p>
+<h2 id="12-후속-단계">12. 후속 단계</h2>
+<p>첫 수직 흐름 완료 후 protocol별 별도 gate로 다음을 진행한다.</p>
+<ol><li>나머지 MQTT device를 EdgeX Device MQTT로 batch migration하고 임시 bridge를 제거한다.</li><li>EdgeX App Service에서 AI service와 장기 storage로 event를 전달한다.</li><li>Serial Device Service를 실제 장비 endpoint로 검증한다.</li><li>Modbus Device Service를 실제 register/read-write 정책으로 검증한다.</li><li>OPC-UA Device Service를 endpoint security와 subscription recovery까지 검증한다.</li><li>RTSP Device Service/media adapter를 AI/storage consumer까지 검증한다.</li></ol>
+<h2 id="13-기준-문서">13. 기준 문서</h2>
+<ul><li><code>docs/프로젝트-배경.md</code></li><li><code>docs/물리-디바이스-상태-정책.md</code></li><li><code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li><code>docs/쿠버엣지-엣지엑스-모델-매핑.md</code></li><li><a href="https://docs.edgexfoundry.org/4.1/microservices/device/services/device-mqtt/Ch-ExamplesAddingMQTTDevice/">EdgeX Device MQTT: How To Add an MQTT Device</a></li><li><a href="https://docs.edgexfoundry.org/4.1/microservices/device/services/device-mqtt/details/MultiLevelTopics/">EdgeX Device MQTT: Multi-Level Topics</a></li><li><a href="https://docs.edgexfoundry.org/4.1/microservices/core/data/details/DataRetention/">EdgeX Core Data Retention</a></li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-목적">1. 목적</a></li>
+<li class="toc-h2"><a href="#2-범위">2. 범위</a></li>
+<li class="toc-h3"><a href="#포함">포함</a></li>
+<li class="toc-h3"><a href="#제외">제외</a></li>
+<li class="toc-h2"><a href="#3-검토한-방식">3. 검토한 방식</a></li>
+<li class="toc-h3"><a href="#a-profile-기반-mqtt-to-edgex-bridge">A. profile 기반 MQTT-to-EdgeX Bridge</a></li>
+<li class="toc-h3"><a href="#b-publisher의-이중-발행">B. publisher의 이중 발행</a></li>
+<li class="toc-h3"><a href="#c-커스텀-edgex-device-service">C. 커스텀 EdgeX Device Service</a></li>
+<li class="toc-h2"><a href="#4-아키텍처">4. 아키텍처</a></li>
+<li class="toc-h2"><a href="#5-컴포넌트-경계">5. 컴포넌트 경계</a></li>
+<li class="toc-h3"><a href="#mqtt-to-edgex-bridge">MQTT-to-EdgeX Bridge</a></li>
+<li class="toc-h3"><a href="#edgex-device-mqtt">EdgeX Device MQTT</a></li>
+<li class="toc-h3"><a href="#edgex-core-data">EdgeX Core Data</a></li>
+<li class="toc-h2"><a href="#6-데이터-계약">6. 데이터 계약</a></li>
+<li class="toc-h3"><a href="#bridge-입력">Bridge 입력</a></li>
+<li class="toc-h3"><a href="#bridge-출력">Bridge 출력</a></li>
+<li class="toc-h3"><a href="#edgex-device-profile">EdgeX Device Profile</a></li>
+<li class="toc-h2"><a href="#7-최신값-조회-의미">7. 최신값 조회 의미</a></li>
+<li class="toc-h2"><a href="#8-오류-처리">8. 오류 처리</a></li>
+<li class="toc-h2"><a href="#9-관측성">9. 관측성</a></li>
+<li class="toc-h2"><a href="#10-테스트-설계">10. 테스트 설계</a></li>
+<li class="toc-h3"><a href="#단위-테스트">단위 테스트</a></li>
+<li class="toc-h3"><a href="#broker-통합-테스트">broker 통합 테스트</a></li>
+<li class="toc-h3"><a href="#edgex-smoke-test">EdgeX smoke test</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

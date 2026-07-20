@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>통합 문서</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/integration/통합-문서.md">편집</a>
+      </div>
+      <span>archive/integration/통합-문서.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="통합-문서.html">통합 문서</a></li>
+<li><a href="통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../research/논문-전략.html">논문 전략</a></li>
+<li><a href="../research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">보관 문서</p>
+          <h1>통합 문서</h1>
+          <p class="subtitle">현재 작업 판단을 빠르게 맞추기 위한 정리본이다. 긴 실험 로그와 과거 상세 기록은 docs/archive/integration…</p>
+          <div class="meta">
+            <span class="badge kind">보관 문서</span>
+            <span class="badge">원본: archive/integration/통합-문서.md</span>
+            <span class="badge">수정: 2026-07-20 14:43</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="보관 문서 안내">
+  <strong>과거 자료</strong>
+  <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
+  <code>archive/integration/통합-문서.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="통합-문서">통합 문서</h1>
+<p>이 문서는 현재 작업 판단을 빠르게 맞추기 위한 정리본이다. 긴 실험 로그와 과거 상세 기록은 <code>docs/archive/integration/통합-상세-기록.md</code>에 보존한다.</p>
+<p>---</p>
+<h2 id="0-지금-한-줄-정의">0. 지금 한 줄 정의</h2>
+<p>현재 단계는 <strong>혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제로 연결하고 이를 대시보드에서 가시화하며 현장 생산성 향상 효과를 설명 가능한 서비스 데모로 만드는 단계</strong>다.</p>
+<p>장기적으로는 이 기반 위에 동적 워크플로우, 가상화, 스케줄링, 오프로딩 고도화를 붙인다.</p>
+<p>---</p>
+<h2 id="1-현재-우선순위">1. 현재 우선순위</h2>
+<ol><li>서비스 데모 1종을 먼저 완성한다.</li><li>디바이스 등록/관리 체계를 정리한다.</li><li>디바이스-서비스 바인딩 구조를 구현한다.</li><li>통합 대시보드에서 디바이스, 노드, 서비스, 상태, KPI를 함께 보이게 한다.</li><li>옥동 시나리오의 생산성 향상 효과를 설명 가능한 지표로 정리한다.</li><li>이후 동적 워크플로우, 스케줄링, 가상화, 고도화 오프로딩으로 확장한다.</li></ol>
+<p>현재 과장하면 안 되는 것:</p>
+<ul><li>완전 자율형 오케스트레이션</li><li>LLM이 전체 제어를 수행한다는 주장</li><li>동적 워크플로우 전체 구현 완료</li><li>고도화 기능이 이미 실증 완료된 것처럼 보이는 표현</li></ul>
+<p>---</p>
+<h2 id="2-현재-구현-상태">2. 현재 구현 상태</h2>
+<p>완료 또는 상당 부분 구현된 축:</p>
+<ul><li><code>state_aggregator</code>: KubeEdge Device/DeviceStatus, InfluxDB telemetry, Prometheus metric을 통합해 대시보드 상태 API 제공</li><li>KubeEdge <code>mqttvirtual</code> mapper 기반 가상 디바이스 PoC</li><li>DeviceModel / Device / DeviceStatus 연동 검증</li><li>GitOps: Argo CD 기반 <code>state-aggregator</code>, <code>mqttvirtual-mapper</code>, Redis, NVIDIA device plugin 관리</li></ul>
+<p>현재 실제 작업의 중심:</p>
+<ul><li>raw telemetry와 대표 운영 상태 분리</li><li>다중 가상 디바이스에서 DeviceStatus 요청 부하 안정화</li><li>대시보드에서 DeviceStatus snapshot freshness와 InfluxDB history freshness를 구분 표시</li></ul>
+<p>현재 데모 운영 경로는 <code>state_aggregator</code> 중심으로 단순화한다. 과거 워크플로우 실행/배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
+<p>---</p>
+<h2 id="3-테스트베드와-노드">3. 테스트베드와 노드</h2>
+<p>현재 전제로 두는 노드:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>hostname</th>
+<th>역할</th>
+<th>비고</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>서버 1</td>
+<td><code>etri-ser0001-CG0MSB</code></td>
+<td>제어/추론 서버</td>
+<td>RTX 5060 Ti, <code>nvidia.com/gpu=1</code></td>
+</tr>
+<tr>
+<td>서버 2</td>
+<td><code>etri-ser0002-CGNMSB</code></td>
+<td>워커/추론 서버</td>
+<td>RTX 5080, <code>nvidia.com/gpu=1</code></td>
+</tr>
+<tr>
+<td>Jetson</td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td>edge AI device</td>
+<td>ARM64, Jetson Orin Nano</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td><code>etri-dev0002-raspi5</code></td>
+<td>edge light device</td>
+<td>ARM64, sensor/light preprocess</td>
+</tr>
+</tbody></table></div>
+<p>현재 가상 디바이스 PoC는 Jetson과 Raspberry Pi edge node를 대상으로 진행한다.</p>
+<p>---</p>
+<h2 id="4-가상-디바이스-poc">4. 가상 디바이스 PoC</h2>
+<p>목표:</p>
+<ul><li>물리/가상 혼합 디바이스 관리 구조 검증</li><li>DeviceTwin 기반 상태 반영 검증</li><li>MQTT telemetry / command 경로 검증</li><li>디바이스 상태를 대시보드와 서비스 데모로 연결할 기반 확보</li></ul>
+<p>현재 설계:</p>
+<ul><li><code>env-device-01</code> ~ <code>env-device-08</code></li><li><code>vib-device-01</code> ~ <code>vib-device-06</code></li><li><code>act-device-01</code> ~ <code>act-device-06</code></li><li>Jetson 대상 총 20개 Device manifest 생성</li><li>Raspberry Pi 대상 <code>rpi-env-device-01</code> ~ <code>04</code>, <code>rpi-vib-device-01</code> ~ <code>03</code>, <code>rpi-act-device-01</code> ~ <code>03</code> 추가</li><li>단일 검증용 <code>temp-device-01</code> 포함</li><li>현재 운영 대시보드 기준 총 31개 Device 등록</li></ul>
+<p>주요 경로:</p>
+<ul><li>Device manifest 생성: <code>edge-device/scripts/generate_devices.py</code></li><li>Device manifest: <code>edge-device/devices.yaml</code></li><li>DeviceModel: <code>edge-device/models/</code></li><li>배포 스크립트: <code>edge-device/scripts/deploy.sh</code></li><li>mapper 소스: <code>mappers/mqttvirtual/</code></li><li>테스트 publisher: <code>mappers/script/test_device.py</code></li></ul>
+<p>테스트 publisher 실행 기준:</p>
+<ul><li>이 스크립트는 실행한 서버의 mosquitto로 테스트 telemetry를 publish하는 로컬 publisher다.</li><li>서버가 Jetson인지 Raspberry Pi인지, 또는 다른 서버인지는 판단하지 않는다.</li><li>기본 broker는 실행한 서버의 로컬 MQTT broker(<code>127.0.0.1:1883</code>)다.</li><li>해당 서버의 mapper가 <code>Device.spec.nodeName</code>에 따라 자신에게 할당된 topic만 소비한다.</li><li>Jetson에서 실행하면 Jetson 로컬 mosquitto로만 publish되므로 Jetson에 할당된 디바이스만 live 처리된다.</li><li>Raspberry Pi에 할당된 <code>rpi-*</code> 디바이스를 live로 만들려면 Raspberry Pi 서버에서 같은 스크립트를 실행해야 한다.</li><li>기본 모드는 <code>SIMULATION_MODE=stable</code>이다. 모든 act device는 <code>power=on</code>, <code>health=ok</code>를 유지하고, vib device도 정상 범위 진동값을 발행한다.</li><li>장애/랜덤 상태 전이를 보고 싶을 때만 <code>SIMULATION_MODE=random ACT_STATE_CHANGE_PROBABILITY=0.15</code>처럼 명시해서 실행한다.</li><li>기본 실행:</li><li><code>python3 mappers/script/test_device.py</code></li><li>특정 디바이스 topic만 발행:</li><li><code>DEVICE_FILTER=act-device-06 python3 mappers/script/test_device.py</code></li><li><code>DEVICE_FILTER=rpi-env-device-01 python3 mappers/script/test_device.py</code></li><li>원격 broker로 발행해야 하는 경우:</li><li><code>MQTT_HOST=&lt;broker-ip&gt; MQTT_PORT=1883 python3 mappers/script/test_device.py</code></li><li>브로커 없이 topic/payload schema만 검증:</li><li><code>SELF_TEST=1 python3 mappers/script/test_device.py</code></li><li><code>SELF_TEST=1 DEVICE_FILTER=act-device-06,rpi-env-device-01 python3 mappers/script/test_device.py</code></li></ul>
+<p><code>test_device.py</code>의 payload는 <code>DeviceModel</code>/<code>Device</code> property와 맞춰야 한다. <code>env</code>는 <code>temperature</code>, <code>humidity</code>, <code>health</code>, <code>sampling_interval</code>을 발행하고, <code>vib</code>는 <code>vibration</code>, <code>severity</code>, <code>alarm_latched</code>, <code>health</code>, <code>sampling_interval</code>을 발행하며, <code>act</code>는 <code>power</code>, <code>mode</code>, <code>health</code>, <code>sampling_interval</code>을 발행한다.</p>
+<p>현재 확인된 것:</p>
+<ul><li>단일 <code>temp-device-01</code> 기준 <code>DeviceStatus.status.twins.reported</code> 반영을 확인했다.</li><li>가상 디바이스 MQTT publish 경로는 정상 동작한다.</li><li><code>DeviceStatus</code> CR 생성에 필요한 cloudcore RBAC 문제는 수정했다.</li><li>20~30개 병렬 구간에서는 mapper와 DeviceStatus 요청 부하를 줄이는 방향으로 구조를 정리 중이다.</li></ul>
+<p>---</p>
+<h2 id="5-디바이스-등록-전략">5. 디바이스 등록 전략</h2>
+<p>현재 데모 단계의 기본 방식:</p>
+<ul><li>물리 센서를 연결하기 전에 <code>DeviceModel</code>과 <code>Device</code> CR을 사전 등록한다.</li><li>각 Device는 특정 edge node의 <code>spec.nodeName</code>에 바인딩한다.</li><li>mapper는 edgecore/DMI를 통해 해당 Device를 전달받고 정해진 telemetry topic을 구독한다.</li><li>실제 센서 수집 프로그램은 Device 이름과 topic 규칙에 맞춰 MQTT payload를 발행한다.</li><li>이 경우 센서를 꽂는 것만으로 자동 등록되는 것은 아니며, 사전 등록된 Device와 publisher 규칙이 맞아야 수집된다.</li></ul>
+<p>현재 권장 운영 방식:</p>
+<ul><li>데모와 PoC는 사전 등록 방식으로 간다.</li><li>Jetson/Raspberry Pi별로 필요한 센서 수만큼 Device manifest를 생성한다.</li><li>실제 센서가 붙으면 센서 publisher가 <code>factory/devices/{device-name}/telemetry</code> 규칙으로 값을 보낸다.</li><li>raw telemetry는 InfluxDB 등 data plane으로 저장하고, <code>DeviceStatus</code>에는 요약 상태만 올린다.</li></ul>
+<p>후속 확장 방향:</p>
+<ul><li>자동 발견과 자동 등록은 <code>edge-device-agent</code> 또는 별도 discovery controller로 분리한다.</li><li>agent는 각 edge node에서 USB/I2C/GPIO/Serial/MQTT 기반 센서 discovery를 수행한다.</li><li>발견 결과는 중앙 등록 API 또는 Kubernetes API를 통해 <code>Device</code> CR 생성 요청으로 올린다.</li><li>중앙에서는 승인, 중복 확인, 노드 매핑, <code>DeviceModel</code> 선택, naming 정책을 적용한다.</li><li>자동 등록은 운영 안정성과 승인 절차가 필요하므로 현재 데모 완료 이후 단계적 과제로 둔다.</li></ul>
+<p>정리:</p>
+<ul><li>현재: 사전 등록 Device + mapper 구독 + 센서 publisher 연동</li><li>후속: edge discovery agent + 승인 기반 Device CR 자동 생성</li></ul>
+<p>---</p>
+<h2 id="6-devicestatus-정책">6. DeviceStatus 정책</h2>
+<p>핵심 판단:</p>
+<ul><li>KubeEdge 원래 방식에 맞춰 <code>DeviceStatus</code>는 디바이스별 저빈도 control/status-plane snapshot으로만 사용한다.</li><li><code>DeviceStatus</code>는 고속 telemetry 저장소가 아니다. 온도, 습도, 진동 같은 raw telemetry stream은 MQTT data-plane으로 받고 InfluxDB에 저장한다.</li><li>대시보드는 <code>DeviceStatus</code> snapshot freshness와 InfluxDB telemetry freshness를 분리해서 판단한다.</li><li><code>status.state=online</code>은 참고값일 뿐이며 live/healthy 판단의 단독 근거로 쓰지 않는다.</li></ul>
+<p>배경 오류:</p>
+<pre data-lang="text"><code>fail to report device states because of too many request</code></pre>
+<p>이 오류는 <code>ReportDeviceStates</code>와 <code>ReportDeviceStatus</code>를 너무 자주 또는 여러 디바이스가 동시에 호출할 때 발생한다. 따라서 <code>DeviceStatus</code>는 “빠른 telemetry stream”이 아니라 “저주기 최신 snapshot”으로 다룬다.</p>
+<p>현재 정책:</p>
+<ol><li>Device <code>status.reportToCloud</code>는 기본적으로 끈다. <code>ReportDeviceStates</code>는 telemetry 수신마다 호출하지 않는다.</li><li>DeviceStatus twin reported 대상은 allowlist로 제한한다.</li><li>raw telemetry property는 <code>reportToCloud: false</code>로 두고 InfluxDB <code>pushMethod.dbMethod.influxdb2</code>로 저장한다.</li><li>mapper는 changed-only 방식으로 pending status cache를 flush한다.</li><li>기본 주기는 <code>DEVICE_STATUS_FLUSH_SECONDS=30</code>, <code>DEVICE_STATUS_JITTER_SECONDS=10</code>, <code>DEVICE_STATUS_HEARTBEAT_SECONDS=120</code>이다.</li><li>동일 값 반복 보고는 하지 않고, heartbeat 목적의 동일 값 재보고도 120초 이상으로 제한한다.</li><li>실제 센서가 고빈도 데이터를 발행해도 DeviceStatus 주기를 올리지 않는다. 고빈도 원천 데이터는 MQTT/InfluxDB data-plane에서 처리하고, 대시보드 freshness는 현재 InfluxDB 적재/집계 주기에 맞춘다.</li><li>현재 mapper 기반 PoC는 raw telemetry를 60초 주기로 InfluxDB에 적재하므로 <code>TELEMETRY_FRESH_SECONDS=90</code>을 사용한다. 실제 고빈도 consumer를 붙이면 이 freshness 기준은 data-plane 적재 주기에 맞춰 다시 낮출 수 있다.</li></ol>
+<p>DeviceStatus CR 구조:</p>
+<pre data-lang="yaml"><code>apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceStatus
+metadata:
+  name: &lt;device-name&gt;
+  namespace: default
+  ownerReferences:
+    - kind: Device
+      name: &lt;device-name&gt;
+spec: {}
+status:
+  state: online
+  lastOnlineTime: &quot;2026-04-24T07:43:51Z&quot;
+  twins:
+    - propertyName: health
+      reported:
+        value: ok
+        metadata:
+          timestamp: &quot;1777508184621&quot;
+          type: string
+      observedDesired:
+        value: &quot;&quot;
+        metadata:
+          timestamp: &quot;1777508184621&quot;
+          type: string</code></pre>
+<p>필드 의미:</p>
+<ul><li><code>metadata.name</code>: <code>Device.metadata.name</code>과 같은 디바이스 이름이다.</li><li><code>ownerReferences</code>: 어떤 <code>Device</code>에서 생성된 <code>DeviceStatus</code>인지 연결한다.</li><li><code>status.state</code>: KubeEdge device state 값이다. <code>online</code>이 남아 있어도 단독 live 근거로 쓰지 않는다.</li><li><code>status.lastOnlineTime</code>: KubeEdge가 기록한 마지막 online 시각이다. 현재 환경에서는 twin이 갱신돼도 이 값이 갱신되지 않을 수 있다.</li><li><code>status.twins[].propertyName</code>: reported 값이 어떤 Device property인지 나타낸다.</li><li><code>status.twins[].reported.value</code>: mapper가 cloud로 보고한 최신 property 값이다.</li><li><code>status.twins[].reported.metadata.timestamp</code>: 해당 reported 값의 갱신 시각이다. 현재 대시보드 freshness 판단의 주 기준이다.</li><li><code>status.twins[].observedDesired</code>: cloud desired 값을 mapper가 관측했는지 확인하는 필드다. 현재 live 판단의 주 기준은 아니다.</li></ul>
+<p>대시보드 해석 원칙:</p>
+<ul><li><code>state=online</code>만 보고 <code>healthy</code>로 판단하지 않는다.</li><li><code>lastOnlineTime</code>보다 <code>twins[].reported.metadata.timestamp</code>가 더 최신이면 reported timestamp를 우선한다.</li><li>reported timestamp가 <code>DEVICE_STATUS_FRESH_SECONDS</code> 이내면 최신 DeviceStatus snapshot으로 본다.</li><li>reported timestamp가 freshness 기준을 넘으면 값이 남아 있어도 stale snapshot으로 보고 <code>degraded</code> 처리한다.</li><li>실제 live 여부는 InfluxDB 최신 telemetry timestamp 또는 mapper/MQTT last_seen 기준을 별도로 본다.</li></ul>
+<p>DeviceStatus property 의미:</p>
+<ul><li><code>health</code>: <code>ok</code> / <code>degraded</code> / <code>offline</code> / <code>unknown</code></li><li><code>severity</code>: <code>normal</code> / <code>warning</code> / <code>critical</code></li><li><code>alarm_latched</code>: <code>true</code> / <code>false</code></li><li><code>power</code>: <code>on</code> / <code>off</code></li><li><code>mode</code>: <code>auto</code> / <code>manual</code> / <code>idle</code> / <code>maintenance</code></li><li><code>sampling_interval</code>: command/desired 반영 여부 확인용 저빈도 상태</li><li><code>config_version</code> 또는 <code>reported_config_version</code>: 설정 반영 버전</li><li><code>command_state</code>: <code>idle</code> / <code>pending</code> / <code>applied</code> / <code>failed</code></li><li><code>last_error_code</code>, <code>last_error_message</code>: 최근 장애 요약</li><li><code>temperature_status</code>, <code>humidity_status</code>, <code>vibration_status</code>: raw 값이 아닌 요약 상태</li></ul>
+<p>현재 manifest 정책:</p>
+<ul><li>대시보드에서 최신 운영 snapshot으로 볼 property만 <code>reportToCloud: true</code></li><li><code>temperature</code>, <code>humidity</code>, <code>vibration</code>, <code>rms</code>, <code>peak</code>, <code>waveform</code>, <code>raw_samples</code> 같은 raw telemetry는 <code>reportToCloud: false</code></li><li>이력/그래프가 필요한 raw telemetry는 InfluxDB <code>pushMethod.dbMethod.influxdb2</code> 사용</li><li>Device <code>status.reportToCloud: false</code></li><li>Device <code>status.reportCycle: 120000</code></li></ul>
+<p>주의:</p>
+<ul><li><code>act-device-06 power:on</code>처럼 <code>DeviceStatus</code>에 값이 있어도 reported timestamp가 오래됐으면 현재값이 아니라 마지막 reported snapshot이다.</li><li>대시보드는 stale snapshot을 healthy/live로 표시하면 안 된다.</li></ul>
+<p>---</p>
+<h2 id="7-대시보드-device-상태-판단-정책">7. 대시보드 device 상태 판단 정책</h2>
+<p>2026-04-29 기준으로 <code>state-aggregator</code>의 device 판단 기준을 재정리했다.</p>
+<p>핵심 결론:</p>
+<ul><li>KubeEdge <code>Device</code> CR은 등록, 노드 할당, 프로토콜, property 같은 최소 메타데이터 기준으로 사용한다.</li><li><code>DeviceStatus</code>는 운영 상태와 설정 반영 상태를 담는 control/status-plane snapshot으로 사용한다.</li><li>실제 raw telemetry live 여부는 InfluxDB 최신 수신 시각으로 판단한다.</li><li><code>DeviceStatus</code> snapshot freshness와 telemetry freshness는 서로 다른 boolean으로 계산한다.</li><li>운영 대시보드에서는 <code>available/operational</code>과 <code>healthy/live</code>를 분리해서 표시한다.</li></ul>
+<p>현재 데이터 경로:</p>
+<pre data-lang="text"><code>MQTT telemetry
+  -&gt; mqttvirtual mapper
+  -&gt; DeviceStatus low-rate status snapshot
+  -&gt; InfluxDB device_telemetry bucket for history
+  -&gt; state-aggregator KubeEdge DeviceStatus + InfluxDB query
+  -&gt; device_status_fresh / telemetry_fresh / mapper_running / node_ready 계산
+  -&gt; dashboard 표시</code></pre>
+<p>현재 <code>state-aggregator</code> 판단 기준:</p>
+<ul><li><code>healthy</code>: telemetry가 필요한 디바이스는 InfluxDB latest timestamp와 DeviceStatus reported timestamp가 모두 fresh하고, <code>severity=critical</code>이 아니다. telemetry가 없는 actuator류는 DeviceStatus snapshot이 fresh하면 healthy로 본다.</li><li><code>degraded</code>: telemetry 또는 DeviceStatus 중 하나가 stale이거나, <code>severity=critical</code>이거나, 노드와 mapper는 살아 있지만 최근 telemetry가 없음.</li><li><code>unavailable</code>: 노드 미할당, 할당 노드 unavailable, mapper 미실행, 명시적 offline 상태</li></ul>
+<p>현재 코드 기준 device status 판단 순서:</p>
+<ol><li>Kubernetes <code>Device</code> 목록과 <code>DeviceStatus</code> 목록을 각각 조회한다.</li><li>같은 namespace/name의 <code>DeviceStatus.status</code>가 있으면 <code>Device.status</code> 대신 병합해서 판단한다.</li><li>노드 미할당 또는 할당 노드 <code>unavailable</code>이면 <code>unavailable</code>이다.</li><li><code>mqttvirtual</code> 디바이스인데 해당 노드에 mapper Pod가 Running이 아니면 <code>unavailable</code>이다.</li><li><code>health=offline</code> 또는 명시 상태값 <code>offline/disconnected/failed/unavailable/false</code>면 <code>unavailable</code>이다.</li><li><code>twins[].reported.metadata.timestamp</code>와 <code>lastOnlineTime</code> 중 최신 timestamp를 DeviceStatus snapshot 기준으로 사용한다.</li><li>DeviceStatus timestamp가 <code>DEVICE_STATUS_FRESH_SECONDS</code> 이내면 <code>device_status_fresh=true</code>다.</li><li>InfluxDB latest telemetry timestamp가 <code>TELEMETRY_FRESH_SECONDS</code> 이내면 <code>telemetry_fresh=true</code>다.</li><li><code>telemetry_fresh=true</code>이고 <code>device_status_fresh=true</code>이면 <code>severity=critical</code>이 아닌 한 <code>healthy</code>다.</li><li><code>telemetry_fresh=true</code>이고 <code>device_status_fresh=false</code>이면 live data-plane은 살아 있지만 status snapshot은 stale이므로 <code>degraded</code>다.</li><li><code>telemetry_fresh=false</code>이고 <code>device_status_fresh=true</code>이면 status snapshot은 있으나 raw telemetry가 stale하므로 <code>degraded</code>다.</li><li>둘 다 false이면 노드/mapper 상태에 따라 <code>degraded</code> 또는 <code>unavailable</code>로 표시하고 reason에 원인을 남긴다.</li></ol>
+<p>상태 판단에 쓰는 실제 필드:</p>
+<ul><li><code>Device.spec.nodeName</code>: 어느 노드에 할당됐는지 확인한다.</li><li><code>Device.spec.protocol.protocolName</code>: <code>mqttvirtual</code> mapper 확인 여부를 결정한다.</li><li><code>Device.spec.properties[].pushMethod</code>: data-plane telemetry 대상인지 판단한다.</li><li><code>DeviceStatus.status.lastOnlineTime</code>: fallback DeviceStatus snapshot timestamp로 사용한다.</li><li><code>DeviceStatus.status.twins[].reported.metadata.timestamp</code>: DeviceStatus snapshot freshness의 우선 기준이다.</li><li>InfluxDB <code>device_telemetry</code>: raw telemetry live/freshness 기준이다.</li></ul>
+<p><code>/state/devices</code> 주요 응답 필드:</p>
+<pre data-lang="json"><code>{
+  &quot;name&quot;: &quot;env-device-01&quot;,
+  &quot;nodeName&quot;: &quot;etri-dev0001-jetorn&quot;,
+  &quot;kubeedge_state&quot;: &quot;online&quot;,
+  &quot;device_status_fresh&quot;: true,
+  &quot;device_status_last_reported_at&quot;: &quot;2026-04-24T07:43:51Z&quot;,
+  &quot;telemetry_fresh&quot;: true,
+  &quot;telemetry_last_seen_at&quot;: &quot;2026-04-24T07:43:55Z&quot;,
+  &quot;mapper_running&quot;: true,
+  &quot;node_ready&quot;: true,
+  &quot;health&quot;: &quot;ok&quot;,
+  &quot;severity&quot;: &quot;normal&quot;,
+  &quot;overall_status&quot;: &quot;healthy&quot;,
+  &quot;reason&quot;: &quot;fresh DeviceStatus reported timestamp and recent telemetry&quot;
+}</code></pre>
+<p>현재 설정:</p>
+<ul><li>InfluxDB URL: <code>http://influxdb.telemetry.svc.cluster.local:8086</code></li><li>org: <code>edgeai</code></li><li>bucket: <code>device_telemetry</code></li><li>measurement: <code>virtual_device_telemetry</code></li><li>tag: <code>device_id</code>, <code>device_type</code>, <code>property</code></li><li>field: <code>value</code></li><li>DeviceStatus freshness 기준: <code>DEVICE_STATUS_FRESH_SECONDS=90</code></li><li>telemetry freshness 기준: <code>TELEMETRY_FRESH_SECONDS=90</code></li><li>mapper heartbeat freshness 기준: <code>MAPPER_HEARTBEAT_FRESH_SECONDS=60</code></li><li>query window: <code>TELEMETRY_QUERY_WINDOW=-30m</code></li></ul>
+<p>현재 검증 결과:</p>
+<ul><li>등록 Device: 31개</li><li>DeviceStatus snapshot 갱신과 InfluxDB history 적재를 함께 확인해야 한다.</li><li>Jetson/Raspberry Pi별 publisher가 실제로 떠 있지 않으면 해당 device는 stale 또는 degraded로 표시되는 것이 맞다.</li></ul>
+<p>해석:</p>
+<ul><li><code>DeviceStatus</code>에 <code>power:on</code> 같은 값이 있어도 timestamp가 오래됐으면 live가 아니라 마지막 reported snapshot이다.</li><li>InfluxDB에 값이 있어도 DeviceStatus가 stale이면 KubeEdge reported path 문제를 별도로 봐야 한다.</li><li>대시보드에서는 snapshot freshness와 telemetry history freshness를 구분해서 보여야 한다.</li></ul>
+<p>운영 주의:</p>
+<ul><li><code>argocd-image-updater</code>가 <code>state-aggregator:latest</code> digest를 잘못 덮어쓰는 상황이 있어, <code>edge-orch-state-aggregator</code> Application의 image-updater annotation을 제거하고 digest를 수동 고정했다.</li><li><code>state-aggregator</code> 이미지를 수동 빌드/푸시할 때는 Argo CD Application의 <code>spec.source.kustomize.images</code> digest도 함께 갱신해야 한다.</li><li>Argo CD Image Updater는 Application annotation이 있는 앱만 감시한다. 현재 데모 안정화 단계에서는 <code>state-aggregator</code>와 <code>mqttvirtual-mapper</code> 모두 image-updater annotation을 두지 않는다.</li></ul>
+<p>---</p>
+<h2 id="8-mapper-구성-방향">8. Mapper 구성 방향</h2>
+<p>KubeEdge Mapper Framework 방향:</p>
+<ul><li><code>DeviceModel</code> / <code>Device</code> CRD로 모델과 인스턴스를 정의한다.</li><li>DMI를 통해 edgecore가 mapper에 device/model 변경을 전달한다.</li><li><code>device/</code> 계층은 framework 공통 흐름에 가깝게 유지한다.</li><li>프로토콜 특화 구현은 <code>driver/</code>에 둔다.</li></ul>
+<p>현재 <code>mqttvirtual</code> 역할:</p>
+<ul><li>MQTT broker 연결</li><li>디바이스별 telemetry topic subscribe</li><li>command topic publish</li><li><code>visitor.configData.jsonKey</code> 기준 payload key와 Device property 매핑</li><li>latest value cache 유지</li><li>reported twin 생성에 필요한 이벤트 전달</li></ul>
+<p>남은 안정화 방향:</p>
+<ul><li>디바이스별 MQTT client 구조가 병렬 구간에서 불안정하면 broker 단위 shared client 또는 connection manager를 검토한다.</li><li><code>device/</code> 계층의 정책성 코드는 장기적으로 <code>driver/</code> 또는 명시 설정으로 밀어낸다.</li><li>DeviceStatus 보고는 전체 manifest property 대상 최신 snapshot을 저빈도 flush로 유지한다.</li><li>빠른 telemetry history는 InfluxDB로 보내고, DeviceStatus는 최소 30초 수준으로 throttle한다.</li></ul>
+<p>---</p>
+<h2 id="9-서비스-데모-방향">9. 서비스 데모 방향</h2>
+<p>대표 데모는 다음 흐름을 반드시 보여야 한다.</p>
+<pre data-lang="text"><code>디바이스 입력
+  -&gt; MQTT telemetry
+  -&gt; AI/처리 서비스 실행
+  -&gt; 결과 전달
+  -&gt; 대시보드 표시
+  -&gt; 운영 상태/KPI 확인</code></pre>
+<p>대시보드에서 보여야 할 것:</p>
+<ul><li>어떤 센서/가상 디바이스가 연결되어 있는가</li><li>어떤 edge node가 활성 상태인가</li><li>어떤 서비스가 어느 노드에서 실행 중인가</li><li>어떤 디바이스가 어떤 서비스에 연결되어 있는가</li><li>장애, 미연결, 과부하, 성능저하가 있는가</li><li>시나리오별 처리 결과와 KPI가 무엇인가</li></ul>
+<p>권장 화면 구성:</p>
+<ol><li>자산 현황</li><li>디바이스-서비스 연결 관계</li><li>운영 상태</li><li>시나리오 KPI</li></ol>
+<p>---</p>
+<h2 id="10-옥동-시나리오-kpi">10. 옥동 시나리오 KPI</h2>
+<p>옥동 시나리오는 단순 탐지 데모가 아니라 현장 생산성 향상 효과를 설명해야 한다.</p>
+<p>정리해야 할 질문:</p>
+<ul><li>어떤 공정의 어떤 문제를 개선하는가</li><li>기존 수작업 또는 단순 룰 기반 방식 대비 무엇이 나아지는가</li><li>운영자 개입이 얼마나 줄어드는가</li><li>왜 AI 모델이 필요한가</li><li>어떤 지표로 생산성 향상을 설명할 것인가</li></ul>
+<p>사용 가능한 KPI:</p>
+<ul><li>응답 시간 단축</li><li>작업자 개입 횟수 감소</li><li>이상 대응 시간 감소</li><li>설비 가동 중단 감소</li><li>품질/안전 리스크 감소</li><li>현장 재설정 시간 감소</li></ul>
+<p>---</p>
+<h2 id="11-런타임-오케스트레이션-장기-축">11. 런타임 오케스트레이션 장기 축</h2>
+<p>장기 연구 중심 문장:</p>
+<p><strong>이기종 혼합 디바이스 엣지 AI 워크플로우를 위한 런타임 오케스트레이션</strong></p>
+<p>장기 핵심 축:</p>
+<ol><li>workflow-stage decomposition</li><li>runtime state collection and normalization</li><li>stage-level placement / replanning / offloading</li><li>real mixed-device testbed validation</li></ol>
+<p>stage 예시:</p>
+<ul><li>capture</li><li>preprocess</li><li>inference</li><li>postprocess</li><li>result delivery</li></ul>
+<p>초기 배치 원칙:</p>
+<ul><li>heavy inference는 서버 우선</li><li>데이터 소스 인접 stage는 edge device 우선</li><li>GPU-required stage는 서버 또는 Jetson만 허용</li><li>unavailable node는 선택하지 않음</li><li>overload 시 edge 재분산 또는 cloud offloading 검토</li></ul>
+<p>현재는 이 장기 축을 과장하지 않고, 데모와 연결 구조가 확보된 뒤 단계적으로 붙인다. 현재 운영 경로는 <code>state_aggregator</code> 중심으로 유지하고, 별도 워크플로우 실행/배치 컴포넌트는 포함하지 않는다.</p>
+<p>---</p>
+<h2 id="12-다음-실행-순서">12. 다음 실행 순서</h2>
+<ol><li><code>edge-device/scripts/deploy.sh</code>로 최신 DeviceModel/Device manifest를 적용한다.</li><li>최신 <code>mqttvirtual</code> mapper 이미지를 빌드하고 edge node DaemonSet으로 재기동한다.</li><li>각 서버에서 로컬 mosquitto로 필요한 MQTT payload를 발행한다.</li><li><code>DeviceStatus.status.twins.reported</code>에 raw value가 아니라 요약 상태만 올라오는지 확인한다.</li><li><code>ReportDeviceStates ... too many request</code> 오류가 사라졌는지 mapper 로그를 확인한다.</li><li>raw telemetry가 InfluxDB <code>device_telemetry</code> bucket에 저장되는지 확인한다.</li><li><code>state-aggregator</code> <code>/state/devices</code>에서 <code>telemetry_last_seen</code>, <code>telemetry_age_seconds</code>, <code>status_reason</code>을 확인한다.</li><li>디바이스-서비스 바인딩과 대시보드 표시 구조를 연결한다.</li><li>자동 발견/자동 등록 controller는 데모 안정화 이후 후속 과제로 설계한다.</li></ol>
+<p>검증 기준:</p>
+<ul><li><code>temperature</code>, <code>humidity</code>, <code>vibration</code> 같은 raw telemetry는 DeviceStatus에 올라가지 않고 InfluxDB에 저장된다.</li><li><code>health</code>, <code>severity</code>, <code>alarm_latched</code>, <code>power</code>, <code>mode</code>, <code>sampling_interval</code>은 운영 상태 판단에 사용한다.</li><li>Device <code>status.reportToCloud</code>는 false, <code>reportCycle</code>은 120000ms로 유지한다.</li><li>mapper 로그에 DeviceStates rate limit 오류가 반복되지 않는다.</li><li>서비스 데모에서 raw telemetry는 별도 data plane으로 처리된다.</li><li>dashboard의 <code>healthy</code>는 Device CR 존재 여부나 <code>state=online</code>이 아니라 DeviceStatus freshness와 InfluxDB <code>last_seen</code>을 분리해서 판단된다.</li></ul>
+<p>---</p>
+<h2 id="13-산출물-우선순위">13. 산출물 우선순위</h2>
+<p>즉시 필요한 산출물:</p>
+<ol><li>서비스 데모 시나리오 정의서</li><li>디바이스 등록/관리 절차서</li><li>디바이스-서비스 바인딩 명세</li><li>통합 대시보드 정보 구조 정의서</li><li>옥동 시나리오 생산성 KPI 정의서</li></ol>
+<p>그 다음:</p>
+<ol><li>연차별 정량 목표 재정리표</li><li>1000 디바이스 실증 단계 계획</li><li>논문/특허/표준 실적 계획표</li></ol>
+<p>후속:</p>
+<ol><li>동적 워크플로우 설계서</li><li>오프로딩 및 재배치 정책 설계서</li><li>가상화/스케줄링 고도화 설계서</li><li>agent-assisted planning 설계서</li></ol>
+<p>---</p>
+<h2 id="14-참고-문서">14. 참고 문서</h2>
+<p>상세 기록:</p>
+<ul><li><code>docs/archive/integration/통합-상세-기록.md</code></li></ul>
+<p>핵심 요약:</p>
+<ul><li><code>docs/archive/integration/통합-요약.md</code></li></ul>
+<p>연구/논문 관련:</p>
+<ul><li><code>docs/archive/research/논문-전략.md</code></li><li><code>docs/archive/research/투고처-전략.md</code></li><li><code>docs/archive/research/평가-계획.md</code></li><li><code>docs/archive/research/논문-작성-점검표.md</code></li></ul>
+<p>시스템/운영 관련:</p>
+<ul><li><code>docs/archive/legacy-orchestration/시스템-개요.md</code></li><li><code>docs/archive/legacy-orchestration/아키텍처.md</code></li><li><code>docs/ops/네트워크-문제해결.md</code></li><li><code>docs/archive/integration/과거-인수인계.md</code></li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#0-지금-한-줄-정의">0. 지금 한 줄 정의</a></li>
+<li class="toc-h2"><a href="#1-현재-우선순위">1. 현재 우선순위</a></li>
+<li class="toc-h2"><a href="#2-현재-구현-상태">2. 현재 구현 상태</a></li>
+<li class="toc-h2"><a href="#3-테스트베드와-노드">3. 테스트베드와 노드</a></li>
+<li class="toc-h2"><a href="#4-가상-디바이스-poc">4. 가상 디바이스 PoC</a></li>
+<li class="toc-h2"><a href="#5-디바이스-등록-전략">5. 디바이스 등록 전략</a></li>
+<li class="toc-h2"><a href="#6-devicestatus-정책">6. DeviceStatus 정책</a></li>
+<li class="toc-h2"><a href="#7-대시보드-device-상태-판단-정책">7. 대시보드 device 상태 판단 정책</a></li>
+<li class="toc-h2"><a href="#8-mapper-구성-방향">8. Mapper 구성 방향</a></li>
+<li class="toc-h2"><a href="#9-서비스-데모-방향">9. 서비스 데모 방향</a></li>
+<li class="toc-h2"><a href="#10-옥동-시나리오-kpi">10. 옥동 시나리오 KPI</a></li>
+<li class="toc-h2"><a href="#11-런타임-오케스트레이션-장기-축">11. 런타임 오케스트레이션 장기 축</a></li>
+<li class="toc-h2"><a href="#12-다음-실행-순서">12. 다음 실행 순서</a></li>
+<li class="toc-h2"><a href="#13-산출물-우선순위">13. 산출물 우선순위</a></li>
+<li class="toc-h2"><a href="#14-참고-문서">14. 참고 문서</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

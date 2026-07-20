@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</h1>
+          <p class="subtitle">현재 Jetson 중심 EdgeX 전체 스택을 중앙 Core와 엣지 Device Service로 분리한다. EdgeX Core와…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.md</span>
+            <span class="badge">수정: 2026-07-20 14:39</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="엣지엑스-중앙-메시지버스와-엣지-디바이스-서비스-분리-배치-설계">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</h1>
+<h2 id="결정">결정</h2>
+<p>현재 Jetson 중심 EdgeX 전체 스택을 중앙 Core와 엣지 Device Service로 분리한다. EdgeX Core와 영구 저장소는 <code>etri-ser0002-cgnmsb</code>에 배치하고, 센서가 연결된 Jetson/Raspberry Pi에는 EdgeCore와 해당 프로토콜의 Device Service만 유지한다.</p>
+<pre data-lang="text"><code>sensor / PLC / equipment
+  -&gt; EdgeX Device Service on Jetson or Raspberry Pi
+  -&gt; central EdgeX MessageBus
+     -&gt; Core Data -&gt; PostgreSQL
+     -&gt; Application Service / AI consumer (후속 consumer wave)</code></pre>
+<p>첫 수직 슬라이스는 기존 MQTT 장비만 대상으로 한다. SQLite durable outbox, Modbus, OPC-UA, Serial/I2C custom Device Service, RTSP workflow Pod와 동적 offloading은 이 재구축의 완료 조건에 포함하지 않는다.</p>
+<h2 id="배치-경계">배치 경계</h2>
+<h3 id="센서-edge-node">센서 Edge Node</h3>
+<ul><li><code>etri-dev0001-jetorn</code>: EdgeCore, Jetson local Mosquitto를 southbound로 사용하는</li></ul>
+<p><code>edgex-device-mqtt</code></p>
+<ul><li><code>etri-dev0003-raspi5</code>: EdgeCore, Sense HAT MQTT endpoint를 소유하는 별도</li></ul>
+<p><code>edgex-device-mqtt-sensehat</code> instance</p>
+<ul><li>MQTT southbound broker는 센서와 Device MQTT 사이의 protocol endpoint이며</li></ul>
+<p>EdgeX internal MessageBus가 아니다.</p>
+<ul><li>Core Keeper, Core Metadata, Core Data, Core Command, PostgreSQL과 EdgeX internal</li></ul>
+<p>MessageBus는 edge node에 배치하지 않는다.</p>
+<h3 id="중앙-edge-ai-서버">중앙 Edge AI 서버</h3>
+<p><code>etri-ser0002-cgnmsb</code>에는 다음 workload를 한 세트만 배치한다.</p>
+<ul><li>EdgeX Core Keeper</li><li>Core common configuration bootstrapper</li><li>EdgeX Core Metadata</li><li>EdgeX Core Data</li><li>EdgeX Core Command</li><li>EdgeX internal MessageBus</li><li>PostgreSQL</li></ul>
+<p>Application Service는 구체적인 서비스 데모 consumer 계약을 정의한 후 같은 중앙 MessageBus에 연결한다. 단순히 topology를 채우기 위한 빈 Application Service는 이번 수직 슬라이스에 배치하지 않는다.</p>
+<p><code>state-aggregator</code>, dashboard와 KubeEdge control-plane의 기존 배치는 이번 변경에서 이동하지 않는다. 이들은 중앙 Core Metadata/Core Data를 소비하되 물리 디바이스 상태의 별도 authority가 되지 않는다.</p>
+<h2 id="통신과-구성">통신과 구성</h2>
+<p>모든 EdgeX 서비스는 동일한 중앙 MessageBus를 사용한다. Device Service는 EdgeX Event/Reading을 중앙 bus에 발행하고 Core Data와 Application Service가 구독한다. Core Command와 Device Service의 command request/response도 같은 내부 bus를 사용한다.</p>
+<p>Device Service는 중앙 Core Keeper의 configuration/registry와 Core Metadata에 접근한다. 현행 Kubernetes service DNS를 유지하고, 중앙 서비스의 Pod placement만 server2로 이동한다. MessageBus와 Core API는 public endpoint로 노출하지 않고 ClusterIP와 클러스터 내부 DNS를 사용한다. 실제 KubeEdge edge node에서 ClusterIP와 service DNS 연결이 되지 않으면 배포를 중단하고, 별도 승인된 사설 endpoint 설계로 전환한다.</p>
+<h2 id="데이터와-상태-권위">데이터와 상태 권위</h2>
+<ul><li>inventory/schema/management state: Core Metadata Device/Profile/Device Service</li><li>telemetry/freshness: Core Data Event/Reading의 <code>origin</code></li><li>command: Core Command에서 담당 Device Service로 전달</li><li>node/workload state: Kubernetes/KubeEdge와 Prometheus의 진단 정보</li></ul>
+<p>KubeEdge DeviceTwin, Device/DeviceModel/DeviceStatus와 MapperFramework는 physical inventory, telemetry, availability 또는 command의 병행 plane이나 fallback으로 사용하지 않는다.</p>
+<h2 id="장애-동작">장애 동작</h2>
+<p>1차 수직 슬라이스에는 durable outbox가 없다. 중앙 MessageBus 또는 네트워크가 끊기면 Device Service의 전송 성공을 보장하지 않으며, 연결 복구 후 새 telemetry부터 정상 처리한다. 이 제한을 운영 문서와 dashboard reason에 명시한다.</p>
+<p>SQLite outbox는 후속 독립 변경으로 추가한다. 추가 시에는 Device Service가 만든 EdgeX Event를 publish 전에 SQLite에 commit하고 MQTT QoS 1 PUBACK 이후 삭제하는 계약을 사용한다. PostgreSQL 저장 확인까지 요구할 경우 direct MessageBus만으로는 충분하지 않으므로 별도 persisted-ack 설계를 승인받는다.</p>
+<h2 id="재구축과-삭제">재구축과 삭제</h2>
+<p>사용자는 기존 telemetry 데이터 보존과 무중단 전환을 요구하지 않는다. 따라서 live cutover에서는 기존 <code>telemetry</code> namespace workload와 PVC를 삭제하고 같은 namespace를 새 topology로 재생성할 수 있다. 단, 삭제 전 read-only inventory로 namespace, PVC와 대상 node를 정확히 확인하고, repository render와 dry-run 검증이 통과한 뒤에만 실행한다.</p>
+<h2 id="검증-기준">검증 기준</h2>
+<ul><li>Kustomize render에서 Core/MessageBus/PostgreSQL workload는 모두</li></ul>
+<p><code>etri-ser0002-cgnmsb</code>에만 배치된다.</p>
+<ul><li>Device MQTT workload는 각각 지정된 Jetson/Raspberry Pi에만 배치된다.</li><li>edge node에는 Core/MessageBus/PostgreSQL workload가 없다.</li><li>중앙 Core 이미지는 amd64용 EdgeX 4.0.2 image이고 Device MQTT는 ARM64 4.0.2다.</li><li>Device Service의 configuration provider, registry, MessageBus와 Core Metadata</li></ul>
+<p>endpoint는 중앙 service DNS를 가리킨다.</p>
+<ul><li>MQTT canary payload가 Device MQTT를 거쳐 중앙 Core Data의 typed Event/Reading으로</li></ul>
+<p>저장된다.</p>
+<ul><li>dashboard <code>/state/devices</code>가 Core Metadata 상태와 fresh Core Data Event를 사용한다.</li><li>중앙 MessageBus 중단 시 현재 버전의 데이터 유실 가능성을 확인하고 복구 후 새 Event</li></ul>
+<p>수집이 재개됨을 확인한다.</p>
+<h2 id="범위-밖">범위 밖</h2>
+<ul><li>SQLite offline replay 구현</li><li>기존 telemetry 데이터 migration/backup</li><li>EdgeX Core/PostgreSQL HA</li><li>Modbus, OPC-UA, Serial/I2C와 RTSP protocol wave</li><li>Workflow Pod apply/delete/restart</li><li>runtime migration, dynamic offloading, agent-assisted planning</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#결정">결정</a></li>
+<li class="toc-h2"><a href="#배치-경계">배치 경계</a></li>
+<li class="toc-h3"><a href="#센서-edge-node">센서 Edge Node</a></li>
+<li class="toc-h3"><a href="#중앙-edge-ai-서버">중앙 Edge AI 서버</a></li>
+<li class="toc-h2"><a href="#통신과-구성">통신과 구성</a></li>
+<li class="toc-h2"><a href="#데이터와-상태-권위">데이터와 상태 권위</a></li>
+<li class="toc-h2"><a href="#장애-동작">장애 동작</a></li>
+<li class="toc-h2"><a href="#재구축과-삭제">재구축과 삭제</a></li>
+<li class="toc-h2"><a href="#검증-기준">검증 기준</a></li>
+<li class="toc-h2"><a href="#범위-밖">범위 밖</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

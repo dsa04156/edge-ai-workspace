@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>문서 안내</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=문서-안내.md">편집</a>
+      </div>
+      <span>문서-안내.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="일일-기록.html">일일 기록</a></li>
+<li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">최신 기준 문서</p>
+          <h1>문서 안내</h1>
+          <p class="subtitle">이 디렉터리는 EdgeX 기반 물리 디바이스 데이터 플레인과 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI…</p>
+          <div class="meta">
+            <span class="badge kind">최신 기준 문서</span>
+            <span class="badge">원본: 문서-안내.md</span>
+            <span class="badge">수정: 2026-07-20 14:51</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="문서-안내">문서 안내</h1>
+<p>이 디렉터리는 EdgeX 기반 물리 디바이스 데이터 플레인과 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 PoC 문서의 단일 진입점이다. 처음 읽을 때는 전체 파일을 훑지 말고 <code>wiki/지식-지도.md</code>에서 목적에 맞는 최신 기준 문서를 찾는다.</p>
+<h2 id="한-문장-목표">한 문장 목표</h2>
+<p>Jetson·Raspberry Pi의 EdgeX Device Service에서 중앙 MessageBus·Core Data·PostgreSQL까지 원시 텔레메트리 권위 경로를 단일화하고, 디바이스·서비스·노드·워크로드 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
+<p>짧은 표현:</p>
+<pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
+<p>현재 문서와 구현은 아래 세 가지를 우선한다.</p>
+<ol><li>MQTT 수직 슬라이스를 엣지 Device Service와 중앙 EdgeX MessageBus·Core Data·PostgreSQL 경로로 검증한다.</li><li>EdgeX 디바이스·프로필·서비스와 AI 서비스의 연결 구조를 대시보드에서 보이게 한다.</li><li>실공장 기반 PoC의 현장 적용성과 생산성 향상 효과를 설명하되, 중앙 전환과 추가 프로토콜 지원은 실행 증거가 있을 때만 완료로 판정한다.</li></ol>
+<p>과거 워크플로·오프로딩·에이전트 보조 계획 자료는 현재 판단 기준이 아니다. 필요할 때만 <code>docs/archive/</code>와 <code>docs/superpowers/</code>에서 설계 이력으로 확인한다.</p>
+<h2 id="먼저-읽을-문서">먼저 읽을 문서</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>순서</th>
+<th>문서</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>wiki/지식-지도.md</code></td>
+<td>질문별 최신 문서 지도</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>프로젝트-범위.md</code></td>
+<td>현재 범위, 2차년도 설계, 제외 범위의 최우선 기준</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>원시-텔레메트리-데이터-플레인.md</code></td>
+<td>엣지 Device Service와 중앙 MessageBus 저장 구조</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>저장소-구조.md</code></td>
+<td>현재·보조·레거시·보관 코드 경계</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>현재-데모-경로.md</code></td>
+<td>현재 데모의 데이터 흐름과 검증 상태</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>ops/현재-데모-운영-절차.md</code></td>
+<td>실제 데모 실행과 점검</td>
+</tr>
+</tbody></table></div>
+<h2 id="문서-묶음">문서 묶음</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>묶음</th>
+<th>기준</th>
+<th>대표 문서</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>위키</td>
+<td>최신 기준·운영 원본문서를 합성한 지식 지도</td>
+<td><code>wiki/지식-지도.md</code>, <code>wiki/운영-모델.md</code></td>
+</tr>
+<tr>
+<td>최신 기준</td>
+<td>현재 시스템 구축 목표와 정책을 직접 설명</td>
+<td><code>프로젝트-범위.md</code>, <code>원시-텔레메트리-데이터-플레인.md</code>, <code>저장소-구조.md</code></td>
+</tr>
+<tr>
+<td>운영</td>
+<td>데모 실행, 점검, 장애 대응</td>
+<td><code>ops/현재-데모-운영-절차.md</code>, <code>ops/네트워크-문제해결.md</code></td>
+</tr>
+<tr>
+<td>설계 이력</td>
+<td>과거·후속 설계와 구현 계획</td>
+<td><code>superpowers/*</code>, <code>일일-기록.md</code></td>
+</tr>
+<tr>
+<td>보관</td>
+<td>과거 연구, 통합 기록, 레거시 오케스트레이션</td>
+<td><code>archive/*</code></td>
+</tr>
+</tbody></table></div>
+<p>정리 기준과 보관 정책은 <code>문서-정리-계획.md</code>를 따른다.</p>
+<h2 id="목표-데이터-흐름">목표 데이터 흐름</h2>
+<pre data-lang="text"><code>물리 센서 / PLC / 장비
+  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
+  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
+  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Application Service / AI consumer / state-aggregator / dashboard
+
+KubeEdge
+  -&gt; 엣지 노드 / 워크로드 배치와 상태 관리</code></pre>
+<p>현재 승인된 프로토콜은 MQTT 하나다. 1차 수직 슬라이스에는 SQLite offline replay가 없어 중앙 MessageBus·네트워크 장애 시 telemetry가 유실될 수 있다. 중앙 topology와 대시보드 조회 전환은 실제 배포·조회 증거를 확보한 뒤 완료로 표시한다. Serial·Modbus·OPC-UA·RTSP는 프로토콜별 Device Service, 실장비 연결, command·state·telemetry 검증 전까지 지원 완료로 표시하지 않는다.</p>
+<p>dashboard에서 확인할 핵심 질문:</p>
+<ol><li>EdgeX Core Metadata에 어떤 device/profile/Device Service가 등록되어 있는가?</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>은 무엇인가?</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 최신인가?</li><li>어떤 AI service, storage, service demo group에 연결되어 있는가?</li><li>문제가 있다면 Device Service, MessageBus/Core Data, consumer, state-aggregator 중 어디부터 봐야 하는가?</li><li>관련 edge node/workload는 KubeEdge에서 정상인가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
+<h2 id="최신성-판단-원칙">최신성 판단 원칙</h2>
+<ul><li><code>프로젝트-범위.md</code>와 <code>저장소-구조.md</code>가 현재/레거시 경계의 최우선 기준이다.</li><li>같은 주제의 문서가 충돌하면 수정 시각이 아니라 근거와 실행 증거가 명시된 기준 문서를 따른다.</li><li><code>wiki/</code>는 탐색용 요약이며 정책의 원본이 아니다.</li><li><code>html/</code>은 <code>scripts/build-docs-html.py</code>로 다시 만드는 보기용 산출물이다.</li><li><code>superpowers/</code>는 설계·구현 계획 이력이며 현재 완료 상태의 근거가 아니다.</li></ul>
+<h2 id="보관-문서-사용-원칙">보관 문서 사용 원칙</h2>
+<p><code>docs/archive/</code>는 과거 실험, 이전 통합 문서, 논문/연구 초안, legacy orchestration 자료를 보관하는 위치다. 새 작업 판단은 최신 기준 문서를 우선한다.</p>
+<p>보관 문서를 읽을 때 주의할 점:</p>
+<ul><li>현재 구현 방향으로 간주하지 않는다.</li><li>발표자료에 그대로 옮기지 않는다.</li><li>workflow/offloading/agent-assisted planning을 다음 확정 단계처럼 표현하지 않는다.</li><li>현재 데모 설명은 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화, 현장 적용성, 생산성 향상 효과 중심으로 작성한다.</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-문장-목표">한 문장 목표</a></li>
+<li class="toc-h2"><a href="#먼저-읽을-문서">먼저 읽을 문서</a></li>
+<li class="toc-h2"><a href="#문서-묶음">문서 묶음</a></li>
+<li class="toc-h2"><a href="#목표-데이터-흐름">목표 데이터 흐름</a></li>
+<li class="toc-h2"><a href="#최신성-판단-원칙">최신성 판단 원칙</a></li>
+<li class="toc-h2"><a href="#보관-문서-사용-원칙">보관 문서 사용 원칙</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

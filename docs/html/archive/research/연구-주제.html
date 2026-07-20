@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>연구 주제 정리</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/research/연구-주제.md">편집</a>
+      </div>
+      <span>archive/research/연구-주제.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="논문-전략.html">논문 전략</a></li>
+<li><a href="연구-주제.html">연구 주제 정리</a></li>
+<li><a href="연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="투고처-전략.html">투고처 전략</a></li>
+<li><a href="평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">보관 문서</p>
+          <h1>연구 주제 정리</h1>
+          <p class="subtitle">이기종 혼합 디바이스 엣지 AI 워크플로우를 위한 런타임 오케스트레이션</p>
+          <div class="meta">
+            <span class="badge kind">보관 문서</span>
+            <span class="badge">원본: archive/research/연구-주제.md</span>
+            <span class="badge">수정: 2026-07-20 14:39</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="보관 문서 안내">
+  <strong>과거 자료</strong>
+  <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
+  <code>archive/research/연구-주제.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="연구-주제-정리">연구 주제 정리</h1>
+<h2 id="1-주제명">1. 주제명</h2>
+<p>이기종 혼합 디바이스 엣지 AI 워크플로우를 위한 런타임 오케스트레이션</p>
+<h2 id="2-영문-제목-후보">2. 영문 제목 후보</h2>
+<ul><li>Heterogeneity-Aware Runtime Orchestration for Mixed-Device Edge AI Workflows</li><li>Runtime Replanning for Heterogeneous Edge AI Workflow Execution</li><li>Workflow-Aware Orchestration for Mixed-Device Edge AI Systems</li></ul>
+<h2 id="3-왜-이-주제를-하는가">3. 왜 이 주제를 하는가</h2>
+<p>온디바이스 AI와 엣지 AI가 확산되면서, 단일 서버가 모든 연산을 처리하는 구조는 실제 환경을 충분히 설명하지 못한다. 현실의 서비스는 디바이스, 엣지, 서버가 함께 협력하는 분산 실행 구조를 요구한다.</p>
+<p>하지만 실제 엣지 환경은 다음 문제를 가진다.</p>
+<ul><li>노드마다 CPU, 메모리, GPU/NPU, 네트워크 특성이 다르다.</li><li>서비스 부하는 시간에 따라 계속 변한다.</li><li>정적 배치나 단순 규칙 기반 오프로딩은 쉽게 병목을 만든다.</li><li>AI 서비스를 통째로 이동하는 coarse-grained offloading은 비효율적이다.</li><li>mixed-device 환경에서는 단계마다 적합한 실행 위치가 다르다.</li></ul>
+<p>즉, 이 연구는 이기종 엣지 환경에서 AI 서비스를 어떻게 단계로 나누고, 어디에 배치하고, 언제 재배치할지를 다룬다.</p>
+<h2 id="4-핵심-문제-정의">4. 핵심 문제 정의</h2>
+<h3 id="한-줄-문제-정의">한 줄 문제 정의</h3>
+<p>서로 다른 하드웨어 구성을 가진 이기종 엣지 환경에서, 시스템 상태를 반영한 단계 수준 런타임 오케스트레이션이 정적 배치나 단순 heuristic 방식보다 더 낮은 지연 시간과 더 안정적인 자원 활용을 제공할 수 있는가?</p>
+<h3 id="세부-문제">세부 문제</h3>
+<ol><li>정적 배치의 한계</li></ol>
+<ul><li>초기에는 잘 맞더라도 부하 변화가 생기면 금방 비효율적이 된다.</li></ul>
+<ol><li>이기종성으로 인한 불균형</li></ol>
+<ul><li>x86 서버, Jetson, Raspberry Pi에 같은 정책을 일괄 적용하면 병목이 생긴다.</li></ul>
+<ol><li>단순 상태 지표의 한계</li></ol>
+<ul><li>CPU, 메모리만으로는 실제 병목과 서비스 지연 원인을 충분히 설명할 수 없다.</li></ul>
+<ol><li>런타임 재계획 필요성</li></ol>
+<ul><li>실제 운영에서는 전체 워크플로우를 다시 나누거나 특정 단계만 이동해야 하는 경우가 생긴다.</li></ul>
+<h2 id="5-핵심-아이디어">5. 핵심 아이디어</h2>
+<p>핵심 문장:</p>
+<p>AI 서비스를 워크플로우 단계로 분해하고, 이기종 노드 상태를 반영하는 runtime orchestration engine이 기본 배치와 재배치를 수행하며, 필요할 때만 보조적인 agent-assisted planning layer가 개입한다.</p>
+<p>중요한 점은 다음과 같다.</p>
+<ul><li>메인 기여는 런타임 오케스트레이션 시스템이다.</li><li>agent는 보조적인 planning/policy layer다.</li><li>논문의 헤드라인은 agent autonomy가 아니라 stage-level orchestration이다.</li></ul>
+<h2 id="6-시스템-구조">6. 시스템 구조</h2>
+<h3 id="6-1-runtime-state-layer">6.1 Runtime State Layer</h3>
+<p>각 노드와 서비스의 상태를 수집하고 정규화한다.</p>
+<p>예시 입력:</p>
+<ul><li>CPU usage</li><li>memory pressure</li><li>accelerator availability</li><li>node type</li><li>network throughput / latency proxy</li><li>queue length 또는 backlog proxy</li><li>stage별 실행 시간</li><li>end-to-end latency</li></ul>
+<p>목적:</p>
+<ul><li>의사결정 가능한 상태 벡터를 만든다.</li></ul>
+<h3 id="6-2-workflow-decomposition">6.2 Workflow Decomposition</h3>
+<p>AI 서비스를 분할 가능한 workflow DAG 또는 ordered stage 구조로 표현한다.</p>
+<p>예시 단계:</p>
+<ul><li>capture</li><li>preprocess</li><li>inference</li><li>postprocess</li><li>result delivery</li></ul>
+<p>목적:</p>
+<ul><li>서비스 전체 이동이 아니라 stage-level offloading을 가능하게 한다.</li></ul>
+<h3 id="6-3-heterogeneity-aware-placement-engine">6.3 Heterogeneity-Aware Placement Engine</h3>
+<p>기본 배치와 런타임 재배치를 수행하는 핵심 엔진이다.</p>
+<p>입력:</p>
+<ul><li>노드 capability/profile</li><li>stage 요구 자원</li><li>현재 runtime state</li></ul>
+<p>출력:</p>
+<ul><li>각 stage의 배치 위치</li><li>migration 여부</li><li>offloading 여부</li></ul>
+<p>예시 비용 함수:</p>
+<p><code>Cost(stage, node) = compute_delay + transfer_cost + memory_pressure + migration_penalty</code></p>
+<h3 id="6-4-optional-agent-assisted-planning-layer">6.4 Optional Agent-Assisted Planning Layer</h3>
+<p>planning이 꼭 필요한 상황에서만 개입하는 후순위 계층이다.</p>
+<p>개입 조건 예시:</p>
+<ul><li>workload burst</li><li>p95 latency 급증</li><li>특정 노드 overload</li><li>반복적인 병목</li><li>SLA violation 위험 증가</li><li>노드 장애 또는 성능 저하</li></ul>
+<p>가능한 출력:</p>
+<ul><li>workflow 재분할 여부</li><li>특정 stage의 다른 edge 노드 이동 여부</li><li>cloud offloading 여부</li><li>replica 증가 여부</li><li>degraded mode 전환 여부</li></ul>
+<h2 id="7-전체-동작-흐름">7. 전체 동작 흐름</h2>
+<p>전체 루프:</p>
+<p><code>monitor -&gt; normalize -&gt; place -&gt; execute -&gt; feedback -&gt; replan</code></p>
+<p>단계별 의미:</p>
+<ol><li>각 노드의 자원 상태와 capability를 수집한다.</li><li>AI 서비스를 workflow stage로 모델링한다.</li><li>placement engine이 기본 배치를 수행한다.</li><li>실행 결과와 상태 변화를 다시 반영한다.</li><li>병목이나 버스트가 크면 제한적으로 재계획을 수행한다.</li></ol>
+<h2 id="8-연구-목표">8. 연구 목표</h2>
+<ol><li>이기종 노드 상태와 capability를 반영하는 runtime state model 설계</li><li>AI 서비스를 workflow 단위로 분해하고 stage-level dynamic offloading이 가능한 orchestration framework 구현</li><li>정적 배치와 단순 heuristic보다 나은 stage-level placement 및 replanning 효과 검증</li><li>실제 mixed-device testbed에서 latency, makespan, load balance, migration overhead 기준 평가</li></ol>
+<h2 id="9-기대-기여점">9. 기대 기여점</h2>
+<ol><li>mixed-device edge 환경에서 동작하는 workflow-aware runtime orchestration architecture 제안</li><li>heterogeneity-aware stage-level placement 및 dynamic replanning 메커니즘 제시</li><li>실제 x86 + Jetson + Raspberry Pi testbed 기반 실험 검증</li></ol>
+<p>선택적 확장:</p>
+<ol><li>burst/overload 상황에서만 개입하는 agent-assisted replanning layer</li></ol>
+<h2 id="10-논문-framing-규칙">10. 논문 framing 규칙</h2>
+<p>반드시 강조할 것:</p>
+<ul><li>workflow-aware runtime orchestration</li><li>heterogeneity-aware stage placement</li><li>dynamic offloading</li><li>stage-level replanning</li><li>mixed-device edge AI workflows</li></ul>
+<p>헤드라인에서 피할 것:</p>
+<ul><li>full agentic AI system</li><li>autonomous AI scheduler replacing Kubernetes</li><li>LLM-controlled orchestration</li><li>observability platform paper</li><li>RL-first control logic</li></ul>
+<h2 id="11-왜-이-방향이-더-강한가">11. 왜 이 방향이 더 강한가</h2>
+<p>이 방향은 다음 이유로 논문 성공 가능성을 높인다.</p>
+<ul><li>핵심 기여축이 하나로 모인다.</li><li>실제 시스템 논문으로 읽히기 쉽다.</li><li>평가 설계를 더 단단하게 만들 수 있다.</li><li>agent, telemetry, RL 같은 부가 축이 본론을 흐리지 않는다.</li><li>SEC, Middleware, FGCS, IEEE Access 쪽 framing과 자연스럽게 맞는다.</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-주제명">1. 주제명</a></li>
+<li class="toc-h2"><a href="#2-영문-제목-후보">2. 영문 제목 후보</a></li>
+<li class="toc-h2"><a href="#3-왜-이-주제를-하는가">3. 왜 이 주제를 하는가</a></li>
+<li class="toc-h2"><a href="#4-핵심-문제-정의">4. 핵심 문제 정의</a></li>
+<li class="toc-h3"><a href="#한-줄-문제-정의">한 줄 문제 정의</a></li>
+<li class="toc-h3"><a href="#세부-문제">세부 문제</a></li>
+<li class="toc-h2"><a href="#5-핵심-아이디어">5. 핵심 아이디어</a></li>
+<li class="toc-h2"><a href="#6-시스템-구조">6. 시스템 구조</a></li>
+<li class="toc-h3"><a href="#6-1-runtime-state-layer">6.1 Runtime State Layer</a></li>
+<li class="toc-h3"><a href="#6-2-workflow-decomposition">6.2 Workflow Decomposition</a></li>
+<li class="toc-h3"><a href="#6-3-heterogeneity-aware-placement-engine">6.3 Heterogeneity-Aware Placement Engine</a></li>
+<li class="toc-h3"><a href="#6-4-optional-agent-assisted-planning-layer">6.4 Optional Agent-Assisted Planning Layer</a></li>
+<li class="toc-h2"><a href="#7-전체-동작-흐름">7. 전체 동작 흐름</a></li>
+<li class="toc-h2"><a href="#8-연구-목표">8. 연구 목표</a></li>
+<li class="toc-h2"><a href="#9-기대-기여점">9. 기대 기여점</a></li>
+<li class="toc-h2"><a href="#10-논문-framing-규칙">10. 논문 framing 규칙</a></li>
+<li class="toc-h2"><a href="#11-왜-이-방향이-더-강한가">11. 왜 이 방향이 더 강한가</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

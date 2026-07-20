@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>과거 인수인계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/integration/과거-인수인계.md">편집</a>
+      </div>
+      <span>archive/integration/과거-인수인계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="통합-문서.html">통합 문서</a></li>
+<li><a href="통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../research/논문-전략.html">논문 전략</a></li>
+<li><a href="../research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">보관 문서</p>
+          <h1>과거 인수인계</h1>
+          <p class="subtitle">현재 작업의 중심은 KubeEdge mqttvirtual mapper 기반 가상 센서 디바이스 실험이다.</p>
+          <div class="meta">
+            <span class="badge kind">보관 문서</span>
+            <span class="badge">원본: archive/integration/과거-인수인계.md</span>
+            <span class="badge">수정: 2026-07-20 15:19</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="보관 문서 안내">
+  <strong>과거 자료</strong>
+  <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
+  <code>archive/integration/과거-인수인계.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="과거-인수인계">과거 인수인계</h1>
+<h2 id="current-focus">Current Focus</h2>
+<p>현재 작업의 중심은 KubeEdge <code>mqttvirtual</code> mapper 기반 가상 센서 디바이스 실험이다.</p>
+<p>핵심 목표:</p>
+<ul><li>MQTT telemetry 수신 경로 검증</li><li><code>DeviceModel</code> / <code>Device</code> / <code>DeviceStatus</code> 연동 검증</li><li>대표 상태(<code>DeviceStatus</code>)와 실측 telemetry 분리</li><li>이후 20개 디바이스 병렬 실험으로 확장</li></ul>
+<h2 id="current-state">Current State</h2>
+<p>확인된 것:</p>
+<ul><li>단일 디바이스 <code>temp-device-01</code> 기준 <code>DeviceStatus.status.twins.reported</code> 반영은 검증했다.</li><li><code>mqttvirtual</code> 수정본은 <code>/home/etri/jinuk/mappers/mqttvirtual</code> 기준으로 관리한다.</li><li>Jetson 실제 실행 경로는 <code>/home/etri/mqttvirtual</code> 이고, 주요 수정 내용은 반영해 두었다.</li><li><code>stream</code>이 아니라 <code>non-stream</code> 센서 상태값 실험이 맞다는 방향으로 정리했다.</li></ul>
+<p>현재 설계:</p>
+<ul><li>telemetry:</li><li><code>temperature</code></li><li><code>humidity</code></li><li><code>vibration</code></li><li>representative status (<code>DeviceStatus</code>):</li><li><code>sampling_interval</code></li><li><code>alarm</code></li><li><code>power</code></li><li><code>mode</code></li><li>device connectivity state</li></ul>
+<p>현재 <code>DeviceStatus</code> 보고 정책:</p>
+<ul><li>즉시 report 제거</li><li><code>5초</code> flush loop</li><li>changed-only</li><li>동일 값 재보고 금지</li></ul>
+<h2 id="important-changes">Important Changes</h2>
+<h3 id="1-mqttvirtual-mapper">1. <code>mqttvirtual</code> mapper</h3>
+<p>기준 소스:</p>
+<ul><li><a href="../../../mappers/mqttvirtual">mappers/mqttvirtual</a></li></ul>
+<p>주요 수정:</p>
+<ul><li>import 경로를 <code>github.com/kubeedge/mqttvirtual</code> 로 통일</li><li><code>stream</code> / <code>non-stream</code> build tag 분리</li><li><code>DeviceStatus</code> 대상 property allowlist 적용</li><li><code>runEventTwinReporter()</code> 를 즉시 report 에서 <code>5초 flush + changed-only</code> 로 변경</li></ul>
+<p>핵심 파일:</p>
+<ul><li><a href="../../../mappers/mqttvirtual/device/device.go">mappers/mqttvirtual/device/device.go</a></li><li><a href="../../../mappers/mqttvirtual/device/devicetwin.go">mappers/mqttvirtual/device/devicetwin.go</a></li><li><a href="../../../mappers/mqttvirtual/device/devicestatus.go">mappers/mqttvirtual/device/devicestatus.go</a></li><li><a href="../../../mappers/mqttvirtual/driver/driver.go">mappers/mqttvirtual/driver/driver.go</a></li><li><a href="../../../mappers/mqttvirtual/config.yaml">mappers/mqttvirtual/config.yaml</a></li></ul>
+<p>Jetson 실행 기준:</p>
+<pre data-lang="bash"><code>cd /home/etri/mqttvirtual
+CGO_ENABLED=0 go build -o mqttvirtual-arm64 ./cmd
+pkill -f &#x27;mqttvirtual-arm64 --config-file ./config.yaml&#x27; || true
+sudo ./mqttvirtual-arm64 --config-file ./config.yaml --v 4 2&gt;&amp;1 | tee mapper.log</code></pre>
+<h3 id="2-edge-device-디바이스-구성">2. <code>edge-device</code> 디바이스 구성</h3>
+<p>기준 경로:</p>
+<ul><li><a href="../../../edge-device/models">edge-device/models</a></li><li><code>edge-device/devices.yaml</code> (과거 파일, 현재 저장소에는 없음)</li><li><a href="../../../edge-device/scripts/generate_devices.py">edge-device/scripts/generate_devices.py</a></li><li><a href="../../../edge-device/scripts/deploy.sh">edge-device/scripts/deploy.sh</a></li></ul>
+<p>현재 모델:</p>
+<ul><li><code>virtual-env-model</code></li><li><code>virtual-vib-model</code></li><li><code>virtual-act-model</code></li></ul>
+<p>생성된 디바이스:</p>
+<ul><li><code>env-device-01 ~ 08</code></li><li><code>vib-device-01 ~ 06</code></li><li><code>act-device-01 ~ 06</code></li></ul>
+<p>배포 스크립트 동작:</p>
+<ul><li><code>models/</code> 적용</li><li><code>devices.yaml</code> 적용</li><li><code>k8s/</code>는 적용하지 않음</li></ul>
+<p>즉 현재 <code>deploy.sh</code>는 logical device CR만 배포한다. 가상 센서 publisher 컨테이너는 별도 실행 전제로 본다.</p>
+<h2 id="known-issues">Known Issues</h2>
+<ol><li><code>DeviceStatus</code> CR 존재 여부만으로 연결 확인이 안 된다.</li></ol>
+<ul><li>값 변화와 <code>resourceVersion</code> 증가를 같이 봐야 한다.</li></ul>
+<ol><li>edgecore 내부 propagation latency 가 있다.</li></ol>
+<ul><li>mapper 수신 즉시와 CR 반영 시각이 다를 수 있다.</li></ul>
+<ol><li>테스트용 publisher 스크립트는 telemetry/status 해석을 섞기 쉬웠다.</li></ol>
+<ul><li><a href="../../../mappers/script/test_device.py">mappers/script/test_device.py</a></li><li>현재 모델 key 에 맞게 수정했지만, 대표 상태는 자주 바뀌지 않게 운용하는 것이 맞다.</li></ul>
+<ol><li><code>Platform-Service</code>는 통합 git 대상에서 제외했다.</li></ol>
+<h2 id="recommended-next-steps">Recommended Next Steps</h2>
+<ol><li>Jetson에서 <code>mqttvirtual</code> 재빌드/재기동</li></ol>
+<ul><li>최신 <code>5초 flush + changed-only</code> 정책이 실제 바이너리에 반영되었는지 확인</li></ul>
+<ol><li><code>edge-device/scripts/deploy.sh</code> 재실행</li></ol>
+<ul><li>대표 상태만 <code>reportToCloud: true</code> 인 새 <code>devices.yaml</code> 적용</li></ul>
+<ol><li>대표 상태만 바꿔서 검증</li></ol>
+<ul><li><code>power</code>, <code>mode</code>, <code>alarm</code>, <code>sampling_interval</code> 변경 시</li><li><code>DeviceStatus.status.twins.reported</code> 와 <code>resourceVersion</code> 확인</li></ul>
+<ol><li>telemetry 경로 별도 검증</li></ol>
+<ul><li><code>temperature</code>, <code>humidity</code>, <code>vibration</code> 는 MQTT 수신 로그/consumer 기준으로 확인</li><li><code>DeviceStatus</code>에 안 올라가도 정상으로 간주</li></ul>
+<ol><li>20개 병렬 검증</li></ol>
+<ul><li>대표 상태만 <code>DeviceStatus</code> 반영되는지 확인</li><li>telemetry는 별도 경로로 관측</li><li>edgecore limiter 재발 여부 확인</li></ul>
+<h2 id="reference">Reference</h2>
+<p>상세 경과 정리:</p>
+<ul><li><a href="../../문서-안내.html">docs/문서-안내.md</a></li><li><a href="통합-문서.html">docs/archive/integration/통합-문서.md</a></li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#current-focus">Current Focus</a></li>
+<li class="toc-h2"><a href="#current-state">Current State</a></li>
+<li class="toc-h2"><a href="#important-changes">Important Changes</a></li>
+<li class="toc-h3"><a href="#1-mqttvirtual-mapper">1. mqttvirtual mapper</a></li>
+<li class="toc-h3"><a href="#2-edge-device-디바이스-구성">2. edge-device 디바이스 구성</a></li>
+<li class="toc-h2"><a href="#known-issues">Known Issues</a></li>
+<li class="toc-h2"><a href="#recommended-next-steps">Recommended Next Steps</a></li>
+<li class="toc-h2"><a href="#reference">Reference</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

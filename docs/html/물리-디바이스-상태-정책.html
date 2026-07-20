@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>물리 디바이스 상태 정책</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=물리-디바이스-상태-정책.md">편집</a>
+      </div>
+      <span>물리-디바이스-상태-정책.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="일일-기록.html">일일 기록</a></li>
+<li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">최신 기준 문서</p>
+          <h1>물리 디바이스 상태 정책</h1>
+          <p class="subtitle">물리 디바이스의 inventory, state, telemetry, command에 대한 권위는 EdgeX다.</p>
+          <div class="meta">
+            <span class="badge kind">최신 기준 문서</span>
+            <span class="badge">원본: 물리-디바이스-상태-정책.md</span>
+            <span class="badge">수정: 2026-07-20 14:39</span>
+            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="물리-디바이스-상태-정책">물리 디바이스 상태 정책</h1>
+<h2 id="권위와-경계">권위와 경계</h2>
+<p>물리 디바이스의 inventory, state, telemetry, command에 대한 권위는 EdgeX다.</p>
+<pre data-lang="text"><code>physical MQTT / Serial / Modbus / OPC-UA / RTSP device
+  -&gt; EdgeX Device Service
+     (exclusive protocol connection, profile-based normalization,
+      operating state, commands)
+  -&gt; EdgeX MessageBus -&gt; Core Data
+  -&gt; AI services / storage / state-aggregator / dashboard</code></pre>
+<p>KubeEdge는 Kubernetes edge node와 workload에만 사용한다. KubeEdge <code>Device</code>, <code>DeviceModel</code>, <code>DeviceStatus</code>, MapperFramework와 <code>mqttvirtual</code>은 legacy physical integration 경로이며 current status/control plane, 병행 plane 또는 EdgeX 장애 시 fallback이 아니다. mapper가 InfluxDB로 직접 쓰는 경로도 legacy다.</p>
+<h2 id="inventory와-state">Inventory와 state</h2>
+<p>Core Metadata Device가 물리 inventory의 원본이다. consumer는 다음 필드를 보존하고 노출한다.</p>
+<ul><li><code>name</code></li><li><code>profileName</code></li><li><code>serviceName</code></li><li><code>protocols</code></li><li><code>adminState</code></li><li><code>operatingState</code></li><li><code>tags</code>와 properties의 선택적 node diagnostic/placement</li></ul>
+<p>Device Service는 <code>protocols</code>의 endpoint를 독점 연결하고 Device Profile에 따라 normalize하며 state와 command를 관리한다. command를 KubeEdge desired/twin이나 mapper topic으로 우회하지 않는다.</p>
+<p>Kubernetes node placement는 display-only 진단 정보다. placement 누락, Kubernetes Node NotReady, mapper Pod 상태를 물리 디바이스 availability의 gate로 사용하지 않는다.</p>
+<h2 id="telemetry와-timestamp">Telemetry와 timestamp</h2>
+<p>Core Data Event가 physical telemetry의 원본이다. event의 다음 값을 손실 없이 사용한다.</p>
+<ul><li><code>deviceName</code>: Core Metadata Device와의 결합 key</li><li><code>sourceName</code>: Device Profile resource/source</li><li><code>origin</code>: nanoseconds 단위의 sample/event 시각</li><li>Readings: EdgeX <code>valueType</code>과 typed value</li></ul>
+<p>freshness는 최신 유효 Event의 <code>origin</code>으로 계산한다. 수집 API 호출 시각, 데이터베이스 query window, Kubernetes heartbeat 또는 legacy DeviceStatus timestamp로 대체하지 않는다. storage와 AI consumer는 EdgeX MessageBus/Core Data 이후에 위치하며 mapper direct-to-Influx로 Core Data를 우회하지 않는다.</p>
+<h2 id="availability">Availability</h2>
+<p>physical device availability는 다음 우선순위로 계산한다.</p>
+<ol><li><code>adminState=LOCKED</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=DOWN</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code> / <code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 Core Data event가 freshness 기준 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이지만 event가 없거나 stale이면 <code>degraded</code>.</li></ol>
+<p>알 수 없는 enum이나 parse할 수 없는 <code>origin</code>은 정상으로 추정하지 않고 <code>degraded</code>와 명시적 reason으로 노출한다. node/workload 관찰 정보는 별도로 표시할 수 있지만 위 결과를 승격하거나 강등하지 않는다.</p>
+<h2 id="명령과-상태-변경">명령과 상태 변경</h2>
+<p>명령은 해당 protocol을 소유한 EdgeX Device Service의 Device Profile command를 통해 실행한다. Core Metadata admin/operating state와 command response를 표시하되, telemetry Reading을 임의 status summary로 복제하여 별도 authority를 만들지 않는다. 연결 실패와 command 실패는 Device Service/Core Metadata의 상태와 오류로 관찰한다.</p>
+<h2 id="전달-범위와-migration-gate">전달 범위와 migration gate</h2>
+<p>현재 delivered 범위는 MQTT canary first다. 첫 canary는 <code>vib-arduino-acceleration-01</code>의 canonical MQTT payload를 profile 기반 typed Event/Readings로 변환하고 Core Data에서 조회하는 vertical slice다. 이는 레포 구성과 코드 경로의 전달을 뜻하며 live cluster cutover 완료를 뜻하지 않는다.</p>
+<p>Serial, Modbus, OPC-UA, RTSP는 target architecture의 protocol wave다. 각 wave는 다음 gate를 독립적으로 통과해야 delivered로 표시한다.</p>
+<ul><li>해당 EdgeX Device Service와 Device Profile 선택/구현</li><li>실제 장비 endpoint의 독점 연결</li><li>normalization 및 typed Reading 검증</li><li>Core Metadata state와 Core Data freshness 검증</li><li>지원 command와 실패 동작 검증</li><li>AI services/storage/dashboard consumer 검증</li><li>실제 배포 환경 cutover 확인</li></ul>
+<p>한 protocol의 성공을 다른 protocol 완료 근거로 사용하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 보존되는 독립 프로토타입이며 EdgeX Serial wave 완료로 간주하거나 자동 결합하지 않는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#권위와-경계">권위와 경계</a></li>
+<li class="toc-h2"><a href="#inventory와-state">Inventory와 state</a></li>
+<li class="toc-h2"><a href="#telemetry와-timestamp">Telemetry와 timestamp</a></li>
+<li class="toc-h2"><a href="#availability">Availability</a></li>
+<li class="toc-h2"><a href="#명령과-상태-변경">명령과 상태 변경</a></li>
+<li class="toc-h2"><a href="#전달-범위와-migration-gate">전달 범위와 migration gate</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>
