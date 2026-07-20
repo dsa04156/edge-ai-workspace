@@ -1,0 +1,62 @@
+name: etri-uno-mqtt
+manufacturer: ETRI
+model: Arduino-UNO
+labels:
+  - mqtt
+  - arduino
+  - etri-poc
+description: Read-only Arduino UNO telemetry received through EdgeX Device MQTT
+deviceResources:
+  - name: raw
+    isHidden: false
+    description: Raw temperature sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+  - name: value
+    isHidden: false
+    description: Scalar light or magnetic sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+  - name: x
+    isHidden: false
+    description: Acceleration on the x axis
+    properties:
+      valueType: Int32
+      readWrite: R
+  - name: y
+    isHidden: false
+    description: Acceleration on the y axis
+    properties:
+      valueType: Int32
+      readWrite: R
+  - name: z
+    isHidden: false
+    description: Acceleration on the z axis
+    properties:
+      valueType: Int32
+      readWrite: R
+deviceCommands:
+  - name: temperature
+    isHidden: false
+    readWrite: R
+    resourceOperations:
+      - deviceResource: raw
+  - name: light
+    isHidden: false
+    readWrite: R
+    resourceOperations:
+      - deviceResource: value
+  - name: magnetic
+    isHidden: false
+    readWrite: R
+    resourceOperations:
+      - deviceResource: value
+  - name: acceleration
+    isHidden: false
+    readWrite: R
+    resourceOperations:
+      - deviceResource: x
+      - deviceResource: y
+      - deviceResource: z

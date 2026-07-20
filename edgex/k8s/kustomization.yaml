@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: telemetry
+
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - messagebus.yaml
+  - core.yaml
+  - device-mqtt.yaml
+
+configMapGenerator:
+  - name: edgex-device-mqtt-profiles
+    files:
+      - etri-uno-mqtt.yaml=config/etri-uno-mqtt.yaml
+  - name: edgex-device-mqtt-devices
+    files:
+      - arduino-001.yaml=config/arduino-001.yaml
+  - name: edgex-device-mqtt-sensehat-profiles
+    files:
+      - etri-sensehat-mqtt.yaml=config/etri-sensehat-mqtt.yaml
+  - name: edgex-device-mqtt-sensehat-devices
+    files:
+      - sensehat-001.yaml=config/sensehat-001.yaml
+
+generatorOptions:
+  labels:
+    app.kubernetes.io/part-of: edgex-telemetry
