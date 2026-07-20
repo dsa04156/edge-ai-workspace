@@ -11,7 +11,7 @@ sensor / PLC / equipment
   -> EdgeX Device Service on Jetson or Raspberry Pi
   -> central EdgeX MessageBus
      -> Core Data -> PostgreSQL
-     -> Application Service / AI consumer
+     -> Application Service / AI consumer (후속 consumer wave)
 ```
 
 첫 수직 슬라이스는 기존 MQTT 장비만 대상으로 한다. SQLite durable outbox,
@@ -42,6 +42,10 @@ offloading은 이 재구축의 완료 조건에 포함하지 않는다.
 - EdgeX Core Command
 - EdgeX internal MessageBus
 - PostgreSQL
+
+Application Service는 구체적인 서비스 데모 consumer 계약을 정의한 후 같은 중앙
+MessageBus에 연결한다. 단순히 topology를 채우기 위한 빈 Application Service는 이번
+수직 슬라이스에 배치하지 않는다.
 
 `state-aggregator`, dashboard와 KubeEdge control-plane의 기존 배치는 이번 변경에서
 이동하지 않는다. 이들은 중앙 Core Metadata/Core Data를 소비하되 물리 디바이스
