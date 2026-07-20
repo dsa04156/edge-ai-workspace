@@ -1,0 +1,374 @@
+# Dashboard Source Failure Isolation Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** EdgeX device 관측 실패를 device 영역에만 격리해 `/state/dashboard`가 node와 다른 독립 상태를 계속 반환하고 표시하게 한다.
+
+**Architecture:** FastAPI 집계 경계에서 예상 가능한 `EdgeXError`만 잡아 `devices=[]`와 명시적인 `device_observation_error`를 반환한다. 브라우저는 이 필드를 source 장애로 표시하고 node/workload/resource 렌더링을 계속한다.
+
+**Tech Stack:** Python 3.11, FastAPI, Pydantic v2, pytest, vanilla JavaScript, Node.js `node:test`
+
+## Global Constraints
+
+- 물리 device inventory/state/telemetry의 authority는 EdgeX다.
+- EdgeX 관측 실패를 실제 device inventory 0개로 설명하지 않는다.
+- Kubernetes node 상태는 EdgeX device availability와 별도 영역으로 유지한다.
+- 마지막 성공 device 값을 캐시하거나 stale 값을 정상 데이터로 표시하지 않는다.
+- 기존 미커밋 EdgeX authority 전환 변경을 보존한다.
+- Kubernetes/EdgeX runtime mutation과 배포는 이 계획 범위에 포함하지 않는다.
+- 대상 파일에 기존 사용자 변경이 있으므로 구현 결과는 커밋하지 않고 검토 가능한 working-tree diff로 남긴다.
+
+---
+
+### Task 1: Backend partial-degraded contract
+
+**Files:**
+- Modify: `edge-orch/state-aggregator/tests/test_dashboard_resilience.py`
+- Modify: `edge-orch/state-aggregator/app/models.py:214-221`
+- Modify: `edge-orch/state-aggregator/app/main.py:11-31,126-144`
+
+**Interfaces:**
+- Consumes: `app.edgex.EdgeXError`, `StateAggregatorService.get_devices()`
+- Produces: `DashboardState.device_observation_error: str | None`
+
+- [ ] **Step 1: Write the failing API regression tests**
+
+```python
+from datetime import datetime, timezone
+
+from app.edgex import EdgeXBackendError
+from app.models import NodeState
+
+
+def _healthy_node() -> NodeState:
+    return NodeState(
+        hostname="etri-ser0001-cg0msb",
+        instance="192.168.0.56:9100",
+        node_type="cloud_server",
+        collected_at=datetime.now(timezone.utc),
+        raw_metrics={"up": 1.0},
+        compute_pressure="low",
+        memory_pressure="low",
+        network_pressure="low",
+        node_health="healthy",
+    )
+
+
+def test_dashboard_endpoint_isolates_edgex_device_observation_failure(monkeypatch):
+    async def failing_devices():
+        raise EdgeXBackendError("Core Metadata unavailable")
+
+    async def fake_resource_state(refresh=False):
+        return {"summary": {}, "service_resource_profiles": []}
+
+    monkeypatch.setattr(service, "get_nodes", lambda: [_healthy_node()])
+    monkeypatch.setattr(service, "get_devices", failing_devices)
+    monkeypatch.setattr(service, "get_workflows", lambda: [])
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [node["hostname"] for node in payload["nodes"]] == ["etri-ser0001-cg0msb"]
+    assert payload["devices"] == []
+    assert payload["device_observation_error"] == (
+        "EdgeX device observation unavailable: EdgeXBackendError"
+    )
+
+
+def test_dashboard_endpoint_has_no_device_observation_error_when_edgex_is_available(monkeypatch):
+    async def fake_devices():
+        return []
+
+    async def fake_resource_state(refresh=False):
+        return {"summary": {}, "service_resource_profiles": []}
+
+    monkeypatch.setattr(service, "get_nodes", lambda: [])
+    monkeypatch.setattr(service, "get_devices", fake_devices)
+    monkeypatch.setattr(service, "get_workflows", lambda: [])
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+
+    with TestClient(app) as client:
+        response = client.get("/state/dashboard")
+
+    assert response.status_code == 200
+    assert response.json()["device_observation_error"] is None
+```
+
+- [ ] **Step 2: Run the focused tests and verify RED**
+
+Run:
+
+```bash
+cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py -k device_observation
+```
+
+Expected: the failure-isolation test receives `500` because `EdgeXBackendError` escapes `_dashboard_state()`, and the normal test lacks `device_observation_error`.
+
+- [ ] **Step 3: Add the response field and isolate only EdgeX errors**
+
+In `app/models.py`:
+
+```python
+class DashboardState(BaseModel):
+    generated_at: datetime
+    nodes: list[NodeState]
+    devices: list[DeviceState]
+    workflows: list[WorkflowState]
+    summary: SummaryState
+    kpis: dict[str, Any]
+    resource_profiles: dict[str, Any] = Field(default_factory=dict)
+    device_observation_error: str | None = None
+```
+
+In `app/main.py`, import `EdgeXError` and change the device boundary:
+
+```python
+from .edgex import EdgeXError
+
+
+async def _dashboard_state() -> DashboardState:
+    nodes = service.get_nodes()
+    device_observation_error: str | None = None
+    try:
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        device_observation_error = (
+            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
+        )
+    workflows = service.get_workflows()
+    kpis = service._build_dashboard_kpis(nodes, devices, workflows)
+    try:
+        resource_state = await service.get_resource_profile_state()
+    except httpx.HTTPError as exc:
+        resource_state = _resource_observation_error_state(exc)
+    kpis.update(service._build_resource_profile_kpis(resource_state))
+    return DashboardState(
+        generated_at=datetime.now(timezone.utc),
+        nodes=nodes,
+        devices=devices,
+        workflows=workflows,
+        summary=service.get_summary(),
+        kpis=kpis,
+        resource_profiles=resource_state,
+        device_observation_error=device_observation_error,
+    )
+```
+
+- [ ] **Step 4: Run the focused tests and verify GREEN**
+
+Run:
+
+```bash
+cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py -k device_observation
+```
+
+Expected: both device observation tests pass.
+
+### Task 2: Frontend source-error presentation
+
+**Files:**
+- Create: `edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js`
+- Modify: `edge-orch/state-aggregator/app/static/dashboard.js:600-643,813-840,1027-1064,1209-1235`
+
+**Interfaces:**
+- Consumes: `DashboardState.device_observation_error`
+- Produces: `deviceFilterEmptyText(data)` and `buildDashboardAlerts(data)` pure helpers
+
+- [ ] **Step 1: Write the failing JavaScript tests**
+
+```javascript
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+const {
+  buildDashboardAlerts,
+  deviceFilterEmptyText,
+} = require("../app/static/dashboard.js");
+
+test("shows EdgeX observation failure instead of empty inventory", () => {
+  const data = {
+    device_observation_error: "EdgeX device observation unavailable: EdgeXBackendError",
+    nodes: [],
+    devices: [],
+  };
+
+  assert.equal(deviceFilterEmptyText(data), "EdgeX device 관측 불가");
+  assert.deepEqual(buildDashboardAlerts(data), [
+    {
+      kind: "source",
+      level: "high",
+      title: "EdgeX device observation unavailable",
+      text: "EdgeX device observation unavailable: EdgeXBackendError",
+    },
+  ]);
+});
+
+test("keeps the normal empty inventory message when EdgeX observation succeeds", () => {
+  assert.equal(
+    deviceFilterEmptyText({ device_observation_error: null }),
+    "EdgeX Core Metadata device가 없습니다.",
+  );
+});
+```
+
+- [ ] **Step 2: Run the JavaScript test and verify RED**
+
+Run:
+
+```bash
+node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+```
+
+Expected: FAIL because `buildDashboardAlerts` and the parameterized `deviceFilterEmptyText` contract do not exist.
+
+- [ ] **Step 3: Add pure presentation helpers and use them in rendering**
+
+Add these pure helpers in `dashboard.js`:
+
+```javascript
+function deviceObservationUnavailable(data = state.data) {
+  return Boolean(data?.device_observation_error);
+}
+
+function deviceFilterEmptyText(data = state.data) {
+  if (deviceObservationUnavailable(data)) return "EdgeX device 관측 불가";
+  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 EdgeX device가 없습니다.`;
+  return "EdgeX Core Metadata device가 없습니다.";
+}
+
+function buildDashboardAlerts(data = {}) {
+  const alerts = [];
+  if (data.device_observation_error) {
+    alerts.push({
+      kind: "source",
+      level: "high",
+      title: "EdgeX device observation unavailable",
+      text: data.device_observation_error,
+    });
+  }
+  for (const [index, node] of (data.nodes || []).entries()) {
+    if (node.node_health !== "healthy") {
+      const displayName = nodeDisplayName(node, index);
+      alerts.push({
+        kind: "node",
+        level: node.node_health === "unavailable" ? "high" : "medium",
+        title: `${displayName}: non-healthy node`,
+        text: `${displayName}: non-healthy node (${node.node_health})`,
+        node,
+      });
+    }
+  }
+  for (const device of data.devices || []) {
+    const status = deviceStatus(device);
+    const reasons = [];
+    if (status === "degraded" || status === "unavailable") reasons.push(status);
+    if (device.connection_state !== "connected") reasons.push(`connection=${text(device.connection_state, "unknown")}`);
+    if (device.telemetry_freshness !== "fresh") reasons.push(`event=${text(device.telemetry_freshness, "no_events")}`);
+    if (reasons.length) {
+      alerts.push({
+        kind: "device",
+        level: status === "unavailable" ? "high" : "medium",
+        title: `${device.name}: ${reasons.join(", ")}`,
+        text: `${device.name}: ${reasons.join(", ")} · ${deviceReason(device)}`,
+        device,
+      });
+    }
+  }
+  return alerts.slice(0, 12);
+}
+```
+
+Change the device empty-state call with this exact diff:
+
+```diff
+-function renderDevices(devices) {
++function renderDevices(devices, data = state.data) {
+   const visibleDevices = filteredDevices(devices);
+@@
+-    : `<div class="empty">${escapeHtml(deviceFilterEmptyText())}</div>`;
++    : `<div class="empty">${escapeHtml(deviceFilterEmptyText(data))}</div>`;
+```
+
+Replace `renderAlerts` with:
+
+```javascript
+function renderAlerts(data) {
+  state.alerts = buildDashboardAlerts(data);
+  $("alertList").innerHTML = state.alerts.length
+    ? state.alerts
+        .map((alert, index) => `<article class="item alert ${escapeHtml(alert.level)} explainable" data-explain-type="issue" data-alert-index="${index}" tabindex="0" role="button" aria-label="Issue 설명 보기"><strong>${escapeHtml(alert.text)}</strong></article>`)
+        .join("")
+    : `<div class="empty">No active alerts</div>`;
+}
+```
+
+Do not change the device row template. In `render()`, set `const deviceObservationFailed = deviceObservationUnavailable(data)`. For `deviceCount`, `deviceHealthRatio`, `telemetryFreshnessRatio`, `telemetryFreshnessCaption`, `serviceBindingRatio`, `serviceBindingCaption`, and `riskCount`, use `관측 불가` or the sanitized `data.device_observation_error` when true and retain the current expressions when false. Call `renderAlerts(data)` and `renderDevices(devices, data)`.
+
+In `renderOverviewVisuals()`, use `{ ok: 0, warn: 0, bad: 0, unknown: 1 }` for the status ring during an EdgeX observation failure. Set `overallHealthPercent`, `overviewHealthCaption`, `deviceAvailableValue`, `telemetryFreshValue`, and `bindingValue` to `관측 불가`; set the related bars to `0`; set the four device status counts to `-`. Keep node, CPU, memory, GPU, and resource coverage values on their existing paths.
+
+Add these exact entries to the existing CommonJS export object:
+
+```diff
+ if (typeof module !== "undefined") {
+   module.exports = {
++    buildDashboardAlerts,
++    deviceFilterEmptyText,
++    deviceObservationUnavailable,
+     explainDeviceRules,
+```
+
+- [ ] **Step 4: Run the JavaScript test and syntax check**
+
+Run:
+
+```bash
+node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+node --check edge-orch/state-aggregator/app/static/dashboard.js
+```
+
+Expected: tests pass and syntax check exits `0`.
+
+### Task 3: Regression verification
+
+**Files:**
+- Verify only: `edge-orch/state-aggregator/app/**`
+- Verify only: `edge-orch/state-aggregator/tests/**`
+
+**Interfaces:**
+- Consumes: Task 1 API contract and Task 2 rendering helpers
+- Produces: verified working-tree implementation ready for review/deployment by the user
+
+- [ ] **Step 1: Run focused backend and frontend suites**
+
+```bash
+cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py tests/test_api.py tests/test_edgex.py
+cd ../../
+node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+```
+
+Expected: all selected tests pass.
+
+- [ ] **Step 2: Run the full state-aggregator Python suite**
+
+```bash
+cd edge-orch/state-aggregator
+pytest -q
+```
+
+Expected: all tests pass with no new warnings or errors.
+
+- [ ] **Step 3: Validate the final diff without staging user changes**
+
+```bash
+git diff --check -- edge-orch/state-aggregator/app/main.py edge-orch/state-aggregator/app/models.py edge-orch/state-aggregator/app/static/dashboard.js edge-orch/state-aggregator/tests/test_dashboard_resilience.py edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+git status --short -- edge-orch/state-aggregator
+```
+
+Expected: no whitespace errors; only the intended files plus pre-existing user changes remain in the working tree.
