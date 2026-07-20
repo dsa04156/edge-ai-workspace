@@ -1,0 +1,114 @@
+# EdgeX 중앙 MessageBus와 엣지 Device Service 분리 배치 설계
+
+## 결정
+
+현재 Jetson 중심 EdgeX 전체 스택을 중앙 Core와 엣지 Device Service로 분리한다.
+EdgeX Core와 영구 저장소는 `etri-ser0002-cgnmsb`에 배치하고, 센서가 연결된
+Jetson/Raspberry Pi에는 EdgeCore와 해당 프로토콜의 Device Service만 유지한다.
+
+```text
+sensor / PLC / equipment
+  -> EdgeX Device Service on Jetson or Raspberry Pi
+  -> central EdgeX MessageBus
+     -> Core Data -> PostgreSQL
+     -> Application Service / AI consumer
+```
+
+첫 수직 슬라이스는 기존 MQTT 장비만 대상으로 한다. SQLite durable outbox,
+Modbus, OPC-UA, Serial/I2C custom Device Service, RTSP workflow Pod와 동적
+offloading은 이 재구축의 완료 조건에 포함하지 않는다.
+
+## 배치 경계
+
+### 센서 Edge Node
+
+- `etri-dev0001-jetorn`: EdgeCore, Jetson local Mosquitto를 southbound로 사용하는
+  `edgex-device-mqtt`
+- `etri-dev0003-raspi5`: EdgeCore, Sense HAT MQTT endpoint를 소유하는 별도
+  `edgex-device-mqtt-sensehat` instance
+- MQTT southbound broker는 센서와 Device MQTT 사이의 protocol endpoint이며
+  EdgeX internal MessageBus가 아니다.
+- Core Keeper, Core Metadata, Core Data, Core Command, PostgreSQL과 EdgeX internal
+  MessageBus는 edge node에 배치하지 않는다.
+
+### 중앙 Edge AI 서버
+
+`etri-ser0002-cgnmsb`에는 다음 workload를 한 세트만 배치한다.
+
+- EdgeX Core Keeper
+- Core common configuration bootstrapper
+- EdgeX Core Metadata
+- EdgeX Core Data
+- EdgeX Core Command
+- EdgeX internal MessageBus
+- PostgreSQL
+
+`state-aggregator`, dashboard와 KubeEdge control-plane의 기존 배치는 이번 변경에서
+이동하지 않는다. 이들은 중앙 Core Metadata/Core Data를 소비하되 물리 디바이스
+상태의 별도 authority가 되지 않는다.
+
+## 통신과 구성
+
+모든 EdgeX 서비스는 동일한 중앙 MessageBus를 사용한다. Device Service는 EdgeX
+Event/Reading을 중앙 bus에 발행하고 Core Data와 Application Service가 구독한다.
+Core Command와 Device Service의 command request/response도 같은 내부 bus를 사용한다.
+
+Device Service는 중앙 Core Keeper의 configuration/registry와 Core Metadata에
+접근한다. 현행 Kubernetes service DNS를 유지하고, 중앙 서비스의 Pod placement만
+server2로 이동한다. MessageBus와 Core API는 public endpoint로 노출하지 않고
+ClusterIP와 클러스터 내부 DNS를 사용한다. 실제 KubeEdge edge node에서 ClusterIP와
+service DNS 연결이 되지 않으면 배포를 중단하고, 별도 승인된 사설 endpoint 설계로
+전환한다.
+
+## 데이터와 상태 권위
+
+- inventory/schema/management state: Core Metadata Device/Profile/Device Service
+- telemetry/freshness: Core Data Event/Reading의 `origin`
+- command: Core Command에서 담당 Device Service로 전달
+- node/workload state: Kubernetes/KubeEdge와 Prometheus의 진단 정보
+
+KubeEdge DeviceTwin, Device/DeviceModel/DeviceStatus와 MapperFramework는 physical
+inventory, telemetry, availability 또는 command의 병행 plane이나 fallback으로
+사용하지 않는다.
+
+## 장애 동작
+
+1차 수직 슬라이스에는 durable outbox가 없다. 중앙 MessageBus 또는 네트워크가
+끊기면 Device Service의 전송 성공을 보장하지 않으며, 연결 복구 후 새 telemetry부터
+정상 처리한다. 이 제한을 운영 문서와 dashboard reason에 명시한다.
+
+SQLite outbox는 후속 독립 변경으로 추가한다. 추가 시에는 Device Service가 만든
+EdgeX Event를 publish 전에 SQLite에 commit하고 MQTT QoS 1 PUBACK 이후 삭제하는
+계약을 사용한다. PostgreSQL 저장 확인까지 요구할 경우 direct MessageBus만으로는
+충분하지 않으므로 별도 persisted-ack 설계를 승인받는다.
+
+## 재구축과 삭제
+
+사용자는 기존 telemetry 데이터 보존과 무중단 전환을 요구하지 않는다. 따라서 live
+cutover에서는 기존 `telemetry` namespace workload와 PVC를 삭제하고 같은 namespace를
+새 topology로 재생성할 수 있다. 단, 삭제 전 read-only inventory로 namespace, PVC와
+대상 node를 정확히 확인하고, repository render와 dry-run 검증이 통과한 뒤에만 실행한다.
+
+## 검증 기준
+
+- Kustomize render에서 Core/MessageBus/PostgreSQL workload는 모두
+  `etri-ser0002-cgnmsb`에만 배치된다.
+- Device MQTT workload는 각각 지정된 Jetson/Raspberry Pi에만 배치된다.
+- edge node에는 Core/MessageBus/PostgreSQL workload가 없다.
+- 중앙 Core 이미지는 amd64용 EdgeX 4.0.2 image이고 Device MQTT는 ARM64 4.0.2다.
+- Device Service의 configuration provider, registry, MessageBus와 Core Metadata
+  endpoint는 중앙 service DNS를 가리킨다.
+- MQTT canary payload가 Device MQTT를 거쳐 중앙 Core Data의 typed Event/Reading으로
+  저장된다.
+- dashboard `/state/devices`가 Core Metadata 상태와 fresh Core Data Event를 사용한다.
+- 중앙 MessageBus 중단 시 현재 버전의 데이터 유실 가능성을 확인하고 복구 후 새 Event
+  수집이 재개됨을 확인한다.
+
+## 범위 밖
+
+- SQLite offline replay 구현
+- 기존 telemetry 데이터 migration/backup
+- EdgeX Core/PostgreSQL HA
+- Modbus, OPC-UA, Serial/I2C와 RTSP protocol wave
+- Workflow Pod apply/delete/restart
+- runtime migration, dynamic offloading, agent-assisted planning
