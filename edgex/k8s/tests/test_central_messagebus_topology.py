@@ -9,6 +9,7 @@ import yaml
 
 
 K8S_DIR = Path(__file__).resolve().parents[1]
+ARGO_APPLICATIONS = K8S_DIR.parents[1] / "edge-orch-argocd" / "argocd-apps.yaml"
 CENTRAL_NODE = "etri-ser0002-cgnmsb"
 EDGE_PLACEMENT = {
     "edgex-device-mqtt": "etri-dev0001-jetorn",
@@ -112,3 +113,16 @@ def test_device_services_use_the_central_configuration_and_registry() -> None:
         args = pod_spec(rendered[name])["containers"][0]["args"]
         assert "-cp=keeper.http://edgex-core-keeper:59890" in args
         assert "--registry" in args
+
+
+def test_argocd_owns_edgex_but_not_the_legacy_mapper() -> None:
+    applications = {
+        resource["metadata"]["name"]: resource
+        for resource in yaml.safe_load_all(ARGO_APPLICATIONS.read_text())
+        if resource and resource.get("kind") == "Application"
+    }
+
+    assert "edge-orch-mqttvirtual-mapper" not in applications
+    edgex = applications["edgex-telemetry"]
+    assert edgex["spec"]["source"]["path"] == "edgex/k8s"
+    assert edgex["spec"]["destination"]["namespace"] == "telemetry"
