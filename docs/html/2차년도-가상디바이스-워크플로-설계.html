@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 2차년도-가상디바이스-워크플로-설계.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -133,7 +133,7 @@
 <h2 id="목적과-적용-경계">목적과 적용 경계</h2>
 <p>이 문서는 2차년도 협약 방향에 맞춘 확장 설계다. 기준 문서는 <code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code>다.</p>
 <p>현재 PoC에서 물리 디바이스의 inventory, state, telemetry, command 권위는 EdgeX로 단일화한다. KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, <code>mqttvirtual</code>, MapperFramework와 mapper direct-to-InfluxDB는 legacy/reference 경로이며 현재 status/control plane, 병행 plane 또는 EdgeX fallback이 아니다. KubeEdge/Kubernetes node와 workload 정보는 placement/resource 진단에는 사용할 수 있다.</p>
-<p>현재 전달된 physical 경로는 MQTT canary <code>vib-arduino-acceleration-01</code>과 EdgeX-backed aggregator/dashboard의 repository code scope다. 2026-07-14 Kubernetes live smoke로 MQTT ingestion은 검증했지만 Argo CD adoption과 새 dashboard image의 live cutover는 pending이다. Serial, Modbus, OPC-UA, RTSP는 각각 검증이 필요한 후속 migration wave다.</p>
+<p>현재 repository에 전달된 physical 경로는 loopback Protocol Adapter, direct-mode telemetry agent, SQLite outbox, HTTPS ingest gateway와 EdgeX-backed aggregator/dashboard 계약이다. <code>sensehat-001</code>은 교체 가능한 검증 fixture다. 2026-07-16 G003는 HTTPS/outbox 기반의 과거 live evidence지만 현재 image와 dashboard의 live cutover는 별도 확인이 필요하다. Serial, Modbus, OPC-UA와 RTSP workflow는 각각 검증이 필요한 후속 migration wave다.</p>
 <h2 id="핵심-정의">핵심 정의</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -145,7 +145,7 @@
 <tr>
 <td>물리 온디바이스</td>
 <td>Jetson, Raspberry Pi, 센서, 액추에이터, 카메라처럼 현장에 존재하는 장비</td>
-<td>EdgeX Device Service가 endpoint를 연결하고 Core Metadata Device/Profile 및 Core Data Event/Reading으로 표현</td>
+<td>Protocol Adapter와 durable telemetry agent가 endpoint를 연결하고 Core Metadata Device/Profile 및 Core Data Event/Reading으로 표현</td>
 </tr>
 <tr>
 <td>가상디바이스</td>
@@ -172,13 +172,14 @@
 <h2 id="현재와-목표-구조">현재와 목표 구조</h2>
 <pre data-lang="text"><code>Physical On-Device Layer
   Jetson / Raspberry Pi / sensor / actuator / camera
-  -&gt; MQTT canary first; Serial / Modbus / OPC-UA / RTSP are gated waves
+  -&gt; Protocol Adapter; direct I2C first
+  -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS -&gt; central ingest gateway
 
 Physical Device Authority
-  EdgeX Device Service
-  -&gt; Device Profile based normalization and supported command
-  -&gt; Core Metadata Device inventory/state
-  -&gt; EdgeX MessageBus -&gt; Core Data Event/Reading
+  EdgeX Core Metadata Device/Profile inventory/state
+  -&gt; Core Data Event/Reading -&gt; PostgreSQL
+  -&gt; central internal MessageBus is a Core runtime detail, not edge transport
 
 Consumers
   AI services / storage / state-aggregator / dashboard
@@ -192,28 +193,27 @@ Future Virtual Device and Workflow Layer
   Virtual Device Registry / Twin Engine / Workflow Runtime
   -&gt; EdgeX physical references plus Kubernetes resource candidates
   -&gt; does not replace or duplicate EdgeX physical authority</code></pre>
-<p>Storage may persist data consumed after EdgeX MessageBus/Core Data, but a mapper direct-to-storage path is not current telemetry authority. Physical freshness is calculated from the latest valid Core Data Event <code>origin</code>, not from query time, Kubernetes heartbeat, or legacy <code>DeviceStatus</code> timestamps.</p>
+<p>PostgreSQL persists Core Data Event/Reading and the edge SQLite outbox is only a delivery buffer. A mapper direct-to-storage path is not current telemetry authority. Physical freshness is calculated from the latest valid Core Data Event <code>origin</code>, not from query time, Kubernetes heartbeat, or legacy <code>DeviceStatus</code> timestamps.</p>
 <h2 id="현재-poc-workflow-source-모델">현재 PoC Workflow Source 모델</h2>
 <p>현재 workflow builder는 별도 Virtual Device Registry를 만들지 않는다. <code>state-aggregator</code>가 EdgeX Core Metadata Device와 Core Data latest Event freshness를 결합한 read-only source view를 제공하며, Kubernetes node/workload 정보는 별도 placement 진단으로만 결합한다.</p>
 <p>현재 physical source API 표현은 EdgeX 필드를 보존한다.</p>
-<pre data-lang="yaml"><code>name: vib-arduino-acceleration-01
-profileName: vibration-arduino-mqtt
-serviceName: device-mqtt
+<pre data-lang="yaml"><code>name: sensehat-001
+profileName: etri-sensehat
+serviceName: edge-telemetry-agent
 protocols:
-  mqtt:
-    Host: 127.0.0.1
-    Port: &quot;1883&quot;
-    Topic: factory/devices/vib-arduino-acceleration-01/telemetry
+  i2c:
+    Bus: &quot;1&quot;
+    Address: &quot;0x5c&quot;
 adminState: UNLOCKED
 operatingState: UP
 latestEvent:
-  deviceName: vib-arduino-acceleration-01
-  sourceName: Acceleration
+  deviceName: sensehat-001
+  sourceName: humidity
   origin: 1784016000000000000
   readings:
-    - resourceName: AccelerationX
+    - resourceName: humidity
       valueType: Float64
-      value: &quot;0.125&quot;</code></pre>
+      value: &quot;45.3&quot;</code></pre>
 <p>현재 최소 API 표면은 <code>state-aggregator</code>의 read-only GET API다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -250,8 +250,8 @@ latestEvent:
 </tr>
 <tr>
 <td><code>etri-dev0003-raspi5</code></td>
-<td>Sense HAT</td>
-<td>protocol wave 완료 전에는 장착/placement 맥락만 표시; physical telemetry 완료로 간주하지 않음</td>
+<td>현재 Sense HAT fixture</td>
+<td>direct agent 검증용 교체 가능 입력; live cutover evidence와 고정 아키텍처로 해석하지 않음</td>
 </tr>
 </tbody></table></div>
 <h2 id="디바이스트윈-모델">디바이스트윈 모델</h2>
@@ -361,8 +361,12 @@ latestEvent:
 <td>physical inventory/state authority</td>
 </tr>
 <tr>
-<td>EdgeX MessageBus/Core Data</td>
-<td>physical Event/Reading telemetry authority</td>
+<td>EdgeX Core Data/PostgreSQL</td>
+<td>physical Event/Reading persistence와 telemetry authority</td>
+</tr>
+<tr>
+<td>edge SQLite outbox</td>
+<td>중앙 persisted ACK 전까지의 장애 버퍼; inventory나 장기 저장 권위가 아님</td>
 </tr>
 <tr>
 <td>state-aggregator</td>
@@ -424,11 +428,11 @@ latestEvent:
 <h2 id="단계별-진행안">단계별 진행안</h2>
 <h3 id="1단계-edgex-등록-device-기반-source-pool">1단계: EdgeX 등록 Device 기반 source pool</h3>
 <p>현재 전달 범위:</p>
-<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 source 조회와 browser-local workflow preview</li><li>MQTT canary <code>vib-arduino-acceleration-01</code> repository vertical slice</li></ul>
+<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 source 조회와 browser-local workflow preview</li><li>loopback direct agent repository vertical slice와 교체 가능한 <code>sensehat-001</code> fixture</li><li>필요성이 검증된 MQTT-only 장비용 별도 adapter 후보(현재 workload 없음)</li></ul>
 <p>live deployment/cutover 여부는 배포 환경에서 별도로 확인한다.</p>
 <h3 id="2단계-protocol-migration-waves">2단계: protocol migration waves</h3>
-<p>Serial, Modbus, OPC-UA, RTSP별로 다음 gate를 독립적으로 통과한다.</p>
-<ul><li>EdgeX Device Service와 Device Profile 선택/구현</li><li>실제 endpoint 독점 연결</li><li>normalization과 typed Reading 검증</li><li>Core Metadata state와 Core Data Event freshness 검증</li><li>지원 command와 실패 동작 검증</li><li>AI services/storage/dashboard consumer 검증</li><li>live deployment cutover 확인</li></ul>
+<p>Serial, Modbus, OPC-UA와 RTSP workflow별로 다음 gate를 독립적으로 통과한다.</p>
+<ul><li>Protocol Adapter와 Device Profile 선택/구현</li><li>실제 endpoint 독점 연결</li><li>normalization과 typed Reading 검증</li><li>SQLite durable enqueue와 HTTPS replay 검증</li><li>Core Metadata state와 Core Data Event freshness 검증</li><li>지원 command와 실패 동작 검증</li><li>AI services/storage/dashboard consumer 검증</li><li>live deployment cutover 확인</li></ul>
 <h3 id="3단계-virtual-device-twin-contracts">3단계: virtual-device/twin contracts</h3>
 <ul><li>EdgeX <code>physical_ref</code>와 capability/I/O schema 정의</li><li>derived snapshot의 소유권과 refresh 규칙 정의</li><li>raw Event/Reading을 복제하지 않는 storage 경계 정의</li></ul>
 <h3 id="4단계-workflow-builder-확장">4단계: workflow builder 확장</h3>

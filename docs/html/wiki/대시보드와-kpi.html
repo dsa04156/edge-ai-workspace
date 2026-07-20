@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-20 15:01</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -163,7 +163,7 @@
 </tr>
 <tr>
 <td><code>device_service_name</code></td>
-<td>관리 EdgeX Device Service</td>
+<td>Core Metadata 호환용 논리 수집 서비스 식별자</td>
 </tr>
 <tr>
 <td><code>protocol_names</code></td>
@@ -287,10 +287,10 @@
 <p>다음은 current physical health, availability, KPI의 입력이나 fallback이 아니다.</p>
 <ul><li>KubeEdge <code>DeviceStatus</code>와 DeviceStatus freshness</li><li>MapperFramework 또는 mapper readiness</li><li>direct InfluxDB latest sample</li><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>, <code>mqttvirtual</code>, legacy mapper heartbeat</li></ul>
 <p>Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.</p>
-<h2 id="mqtt-canary와-전달-상태">MQTT canary와 전달 상태</h2>
-<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>, namespace는 <code>telemetry</code>다. 대시보드의 현재 MQTT 입력 대상은 <code>arduino-001</code>과 <code>sensehat-001</code>이다.</p>
-<p>2026-07-14 UNO와 2026-07-15 Sense HAT canary에서 typed Event/Reading을 확인했다. 이 결과는 장비·profile·dashboard contract의 근거이며 중앙 server2 MessageBus/Core/PostgreSQL topology와 대시보드 중앙 조회 전환은 별도 live evidence가 필요하다.</p>
-<p>Serial, Modbus, OPC-UA, RTSP는 프로토콜별 live EdgeX migration evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
+<h2 id="direct-전달-상태">direct 전달 상태</h2>
+<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, agent namespace는 <code>edgex-edge</code>다. 대시보드의 임시 검증 입력은 <code>sensehat-001</code> 1개이며 <code>arduino-001</code>, Jetson MQTT agent와 MQTT profile은 현재 contract에서 제거되었다.</p>
+<p>2026-07-14 UNO와 2026-07-15 Sense HAT canary, 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Event 계약과 durable replay의 과거 근거다. 현재 중앙 server2 Core/PostgreSQL과 대시보드 조회 전환은 같은 실행에서 새 live evidence를 확보해야 하며 특정 publisher 교체 여부와 분리한다.</p>
+<p>Serial, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
 <h2 id="workflow-augmentation-경계">Workflow/augmentation 경계</h2>
 <p>Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
@@ -305,7 +305,7 @@
 <li class="toc-h2"><a href="#physical-availability-판단">Physical availability 판단</a></li>
 <li class="toc-h2"><a href="#kpi">KPI</a></li>
 <li class="toc-h2"><a href="#제외한-health-입력">제외한 health 입력</a></li>
-<li class="toc-h2"><a href="#mqtt-canary와-전달-상태">MQTT canary와 전달 상태</a></li>
+<li class="toc-h2"><a href="#direct-전달-상태">direct 전달 상태</a></li>
 <li class="toc-h2"><a href="#workflow-augmentation-경계">Workflow/augmentation 경계</a></li>
 <li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
 <li class="toc-h2"><a href="#근거-문서">근거 문서</a></li></ol></aside>

@@ -124,19 +124,19 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-07-20 14:51</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-안내">문서 안내</h1>
 <p>이 디렉터리는 EdgeX 기반 물리 디바이스 데이터 플레인과 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 PoC 문서의 단일 진입점이다. 처음 읽을 때는 전체 파일을 훑지 말고 <code>wiki/지식-지도.md</code>에서 목적에 맞는 최신 기준 문서를 찾는다.</p>
 <h2 id="한-문장-목표">한 문장 목표</h2>
-<p>Jetson·Raspberry Pi의 EdgeX Device Service에서 중앙 MessageBus·Core Data·PostgreSQL까지 원시 텔레메트리 권위 경로를 단일화하고, 디바이스·서비스·노드·워크로드 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
+<p>Jetson·Raspberry Pi의 Protocol Adapter와 durable telemetry agent에서 HTTPS ingest gateway·Core Data·PostgreSQL까지 원시 텔레메트리 권위 경로를 단일화하고, 디바이스·서비스·노드·워크로드 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
 <p>짧은 표현:</p>
 <pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
 <p>현재 문서와 구현은 아래 세 가지를 우선한다.</p>
-<ol><li>MQTT 수직 슬라이스를 엣지 Device Service와 중앙 EdgeX MessageBus·Core Data·PostgreSQL 경로로 검증한다.</li><li>EdgeX 디바이스·프로필·서비스와 AI 서비스의 연결 구조를 대시보드에서 보이게 한다.</li><li>실공장 기반 PoC의 현장 적용성과 생산성 향상 효과를 설명하되, 중앙 전환과 추가 프로토콜 지원은 실행 증거가 있을 때만 완료로 판정한다.</li></ol>
+<ol><li>교체 가능한 Protocol Adapter 입력을 SQLite edge agent와 HTTPS gateway·Core Data·PostgreSQL 경로로 검증한다.</li><li>EdgeX 디바이스·프로필·서비스와 AI 서비스의 연결 구조를 대시보드에서 보이게 한다.</li><li>실공장 기반 PoC의 현장 적용성과 생산성 향상 효과를 설명하되, 중앙 전환과 추가 프로토콜 지원은 실행 증거가 있을 때만 완료로 판정한다.</li></ol>
 <p>과거 워크플로·오프로딩·에이전트 보조 계획 자료는 현재 판단 기준이 아니다. 필요할 때만 <code>docs/archive/</code>와 <code>docs/superpowers/</code>에서 설계 이력으로 확인한다.</p>
 <h2 id="먼저-읽을-문서">먼저 읽을 문서</h2>
 <div class="table-wrap"><table>
@@ -159,7 +159,7 @@
 <tr>
 <td>3</td>
 <td><code>원시-텔레메트리-데이터-플레인.md</code></td>
-<td>엣지 Device Service와 중앙 MessageBus 저장 구조</td>
+<td>Protocol Adapter, SQLite outbox와 HTTPS persisted-ACK 구조</td>
 </tr>
 <tr>
 <td>4</td>
@@ -214,16 +214,16 @@
 <p>정리 기준과 보관 정책은 <code>문서-정리-계획.md</code>를 따른다.</p>
 <h2 id="목표-데이터-흐름">목표 데이터 흐름</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
-  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
-  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard
 
 KubeEdge
   -&gt; 엣지 노드 / 워크로드 배치와 상태 관리</code></pre>
-<p>현재 승인된 프로토콜은 MQTT 하나다. 1차 수직 슬라이스에는 SQLite offline replay가 없어 중앙 MessageBus·네트워크 장애 시 telemetry가 유실될 수 있다. 중앙 topology와 대시보드 조회 전환은 실제 배포·조회 증거를 확보한 뒤 완료로 표시한다. Serial·Modbus·OPC-UA·RTSP는 프로토콜별 Device Service, 실장비 연결, command·state·telemetry 검증 전까지 지원 완료로 표시하지 않는다.</p>
+<p>현재 root render는 direct-mode edge agent, SQLite offline replay와 Core Data persisted ACK를 포함한다. <code>sensehat-001</code>은 교체 가능한 live 검증 fixture이며 고정 입력 계약이 아니다. MQTT-mode agent, <code>device-mqtt</code>, edge-local broker는 현재 배포하지 않는다. MQTT-only·Serial·Modbus·OPC-UA·추가 I2C adapter 및 RTSP workflow는 독립 검증 전까지 지원 완료로 표시하지 않는다.</p>
 <p>dashboard에서 확인할 핵심 질문:</p>
-<ol><li>EdgeX Core Metadata에 어떤 device/profile/Device Service가 등록되어 있는가?</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>은 무엇인가?</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 최신인가?</li><li>어떤 AI service, storage, service demo group에 연결되어 있는가?</li><li>문제가 있다면 Device Service, MessageBus/Core Data, consumer, state-aggregator 중 어디부터 봐야 하는가?</li><li>관련 edge node/workload는 KubeEdge에서 정상인가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
+<ol><li>EdgeX Core Metadata에 어떤 device/profile/Device Service가 등록되어 있는가?</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>은 무엇인가?</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 최신인가?</li><li>어떤 AI service, storage, service demo group에 연결되어 있는가?</li><li>문제가 있다면 Protocol Adapter, agent outbox, HTTPS gateway, Core Data, consumer 중 어디부터 봐야 하는가?</li><li>관련 edge node/workload는 KubeEdge에서 정상인가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
 <h2 id="최신성-판단-원칙">최신성 판단 원칙</h2>
 <ul><li><code>프로젝트-범위.md</code>와 <code>저장소-구조.md</code>가 현재/레거시 경계의 최우선 기준이다.</li><li>같은 주제의 문서가 충돌하면 수정 시각이 아니라 근거와 실행 증거가 명시된 기준 문서를 따른다.</li><li><code>wiki/</code>는 탐색용 요약이며 정책의 원본이 아니다.</li><li><code>html/</code>은 <code>scripts/build-docs-html.py</code>로 다시 만드는 보기용 산출물이다.</li><li><code>superpowers/</code>는 설계·구현 계획 이력이며 현재 완료 상태의 근거가 아니다.</li></ul>
 <h2 id="보관-문서-사용-원칙">보관 문서 사용 원칙</h2>

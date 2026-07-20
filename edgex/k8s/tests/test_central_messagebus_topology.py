@@ -12,8 +12,7 @@ K8S_DIR = Path(__file__).resolve().parents[1]
 ARGO_APPLICATIONS = K8S_DIR.parents[1] / "edge-orch-argocd" / "argocd-apps.yaml"
 CENTRAL_NODE = "etri-ser0002-cgnmsb"
 EDGE_PLACEMENT = {
-    "edgex-device-mqtt": "etri-dev0001-jetorn",
-    "edgex-device-mqtt-sensehat": "etri-dev0003-raspi5",
+    "edgex-edge-agent-sensehat": "etri-dev0003-raspi5",
 }
 CENTRAL_WORKLOADS = {
     "edgex-core-keeper",
@@ -23,6 +22,8 @@ CENTRAL_WORKLOADS = {
     "edgex-core-command",
     "edgex-messagebus",
     "edgex-postgres",
+    "edgex-ingest-gateway",
+    "edgex-metadata-bootstrap",
 }
 
 
@@ -57,7 +58,7 @@ def test_central_workloads_run_only_on_server2() -> None:
         }
 
 
-def test_device_services_remain_on_the_sensor_edges() -> None:
+def test_telemetry_agents_remain_on_the_sensor_edges() -> None:
     rendered = workloads()
     for name, node in EDGE_PLACEMENT.items():
         assert pod_spec(rendered[name])["nodeSelector"] == {
@@ -65,7 +66,7 @@ def test_device_services_remain_on_the_sensor_edges() -> None:
         }
 
 
-def test_core_images_are_amd64_and_device_images_are_arm64() -> None:
+def test_core_images_are_amd64_and_edge_agent_images_are_arm64() -> None:
     rendered = workloads()
     for name in CENTRAL_WORKLOADS:
         containers = [
@@ -78,9 +79,9 @@ def test_core_images_are_amd64_and_device_images_are_arm64() -> None:
                 assert ":4.0.2" in image
                 assert "-arm64" not in image
     for name in EDGE_PLACEMENT:
-        assert pod_spec(rendered[name])["containers"][0]["image"] == (
-            "edgexfoundry/device-mqtt-arm64:4.0.2"
-        )
+        image = pod_spec(rendered[name])["containers"][0]["image"]
+        assert image.startswith("192.168.0.56:5000/edgex-telemetry-plane:")
+        assert "@sha256:" in image
 
 
 def test_edge_has_no_local_core_messagebus_or_database() -> None:
@@ -107,12 +108,15 @@ def test_internal_messagebus_is_cluster_only() -> None:
     ]
 
 
-def test_device_services_use_the_central_configuration_and_registry() -> None:
+def test_deployed_edge_agent_is_direct_and_broker_free() -> None:
     rendered = workloads()
-    for name in EDGE_PLACEMENT:
-        args = pod_spec(rendered[name])["containers"][0]["args"]
-        assert "-cp=keeper.http://edgex-core-keeper:59890" in args
-        assert "--registry" in args
+    sensehat_env = {
+        item["name"]: item
+        for item in pod_spec(rendered["edgex-edge-agent-sensehat"])["containers"][0]["env"]
+    }
+    assert sensehat_env["TELEMETRY_SOURCE_MODE"]["value"] == "direct"
+    assert "LOCAL_MQTT_HOST" not in sensehat_env
+    assert "edgex-edge-agent-jetson" not in rendered
 
 
 def test_argocd_owns_edgex_but_not_the_legacy_mapper() -> None:
@@ -125,4 +129,4 @@ def test_argocd_owns_edgex_but_not_the_legacy_mapper() -> None:
     assert "edge-orch-mqttvirtual-mapper" not in applications
     edgex = applications["edgex-telemetry"]
     assert edgex["spec"]["source"]["path"] == "edgex/k8s"
-    assert edgex["spec"]["destination"]["namespace"] == "telemetry"
+    assert edgex["spec"]["destination"]["namespace"] == "edgex-system"

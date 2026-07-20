@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-규칙.md</span>
-            <span class="badge">수정: 2026-07-20 14:52</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -251,7 +251,7 @@
 <p>피할 표현:</p>
 <ul><li>완전 자율형 오케스트레이션</li><li>LLM이 전체 제어를 수행</li><li>동적 워크플로우 전체 구현 완료</li><li>runtime replanning 구현 완료</li><li>placement/offloading이 현재 데모 경로인 것처럼 보이는 표현</li><li>agent-assisted planning이 현재 control plane인 것처럼 보이는 표현</li></ul>
 <p>물리 디바이스 상태와 텔레메트리 표현은 다음 기준을 지킨다.</p>
-<ul><li>물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata가 권위다.</li><li>원시 텔레메트리는 엣지 Device Service에서 중앙 EdgeX MessageBus·Core Data·PostgreSQL로 전달한다. 현재 1차 수직 슬라이스에는 SQLite offline replay가 없다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 레거시 물리 연동 경로이며 병행 plane이나 fallback으로 사용하지 않는다.</li><li><code>adminState</code>, <code>operatingState</code>, Device Service 상태, 최신 Event freshness를 함께 보고 availability를 판단한다.</li></ul>
+<ul><li>물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata가 권위다.</li><li>원시 텔레메트리는 Protocol Adapter에서 edge agent SQLite outbox와 HTTPS gateway를 거쳐 Core Data·PostgreSQL로 전달한다. 현재 1차 수직 슬라이스는 offline replay와 persisted ACK를 포함한다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 레거시 물리 연동 경로이며 병행 plane이나 fallback으로 사용하지 않는다.</li><li><code>adminState</code>, <code>operatingState</code>, Device Service 상태, 최신 Event freshness를 함께 보고 availability를 판단한다.</li></ul>
 <h2 id="문서-우선순위">문서 우선순위</h2>
 <p>문서가 충돌하면 아래 순서로 판단한다.</p>
 <ol><li>루트 <code>AGENTS.md</code>와 직접 지시</li><li><code>docs/프로젝트-범위.md</code></li><li><code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li><code>docs/프로젝트-배경.md</code></li><li><code>docs/물리-디바이스-상태-정책.md</code></li><li><code>docs/대시보드-판단-정책.md</code></li><li><code>docs/단계별-추진계획.md</code></li><li>기타 최신 기준 문서</li><li>운영 문서</li><li>설계 이력</li><li>보관 문서는 과거 맥락으로만 사용</li></ol>

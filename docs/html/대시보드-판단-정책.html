@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -133,11 +133,10 @@
 <h2 id="권위와-표시-경계">권위와 표시 경계</h2>
 <p>대시보드는 물리 디바이스에 EdgeX를 단일 authority로 사용한다.</p>
 <pre data-lang="text"><code>physical MQTT / Serial / Modbus / OPC-UA / RTSP device
-  -&gt; EdgeX Device Service
-     (exclusive protocol connection, normalization, state, commands)
-  -&gt; EdgeX MessageBus -&gt; Core Data
+  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway -&gt; EdgeX Core Data REST
   -&gt; AI services / storage / state-aggregator / dashboard</code></pre>
-<ul><li>inventory/state: EdgeX Core Metadata</li><li>telemetry/freshness: EdgeX Core Data Event와 typed Readings</li><li>command: 해당 protocol을 소유한 EdgeX Device Service</li><li>node/workload 관찰: Kubernetes/KubeEdge와 Prometheus</li></ul>
+<ul><li>inventory/state: EdgeX Core Metadata</li><li>telemetry/freshness: EdgeX Core Data Event와 typed Readings</li><li>command: 현재 비활성; 후속에는 해당 protocol adapter의 검증된 command 경로</li><li>node/workload 관찰: Kubernetes/KubeEdge와 Prometheus</li></ul>
 <p>Kubernetes/KubeEdge node placement는 별도 display-only diagnostic이다. node 미할당, Node NotReady 또는 mapper Pod 상태로 physical device availability를 강등하지 않는다. KubeEdge Device/DeviceModel/DeviceStatus, MapperFramework, <code>mqttvirtual</code>, mapper direct-to-Influx 값은 legacy이며 화면/API의 current physical status/control fallback으로 병합하지 않는다.</p>
 <h2 id="inventory-표시">Inventory 표시</h2>
 <p>Core Metadata의 다음 필드를 device 응답과 detail에 표시한다.</p>
@@ -165,34 +164,34 @@
 <p><code>/state/devices/{device_id}/telemetry</code>는 선택 device의 최근 Core Data Events/Readings를 event origin 순서로 반환한다. typed value와 <code>deviceName</code>, <code>sourceName</code>, nanosecond <code>origin</code>을 보존한다. <code>/state/virtual-resources</code>는 자원증강형 가상디바이스를 Resource Profile 단위로 반환한다. 이 API는 가상 센서 생성 경로가 아니라 AI HAT/GPU/cache 같은 보강 실행 자원 상태 조회 경로다. 실행 인스턴스가 0개여도 registry에 있는 profile은 숨기지 않으며, 상태는 <code>configured_not_running</code>으로 표시한다.</p>
 <p><code>/state/dashboard</code>는 service resource observation 실패 시 dashboard 전체를 500으로 내리지 않는다. 이 경우 <code>resource_profiles.observation_error</code>에 원인을 남기고 service resource KPI만 0으로 degrade한다. <code>/state/operator-assistant</code>와 <code>/state/operator-chat</code>도 같은 degraded dashboard snapshot을 사용한다. resource observation 실패가 먼저 발생하면 chat은 Qwen 호출 전에 read-only degraded observation 응답을 반환한다.</p>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;vib-arduino-acceleration-01&quot;,
-  &quot;profileName&quot;: &quot;etri-vibration-mqtt&quot;,
-  &quot;serviceName&quot;: &quot;device-mqtt&quot;,
+  &quot;name&quot;: &quot;sensehat-001&quot;,
+  &quot;profileName&quot;: &quot;etri-sensehat&quot;,
+  &quot;serviceName&quot;: &quot;edge-telemetry-agent&quot;,
   &quot;adminState&quot;: &quot;UNLOCKED&quot;,
   &quot;operatingState&quot;: &quot;UP&quot;,
   &quot;latestEvent&quot;: {
-    &quot;deviceName&quot;: &quot;vib-arduino-acceleration-01&quot;,
-    &quot;sourceName&quot;: &quot;telemetry&quot;,
+    &quot;deviceName&quot;: &quot;sensehat-001&quot;,
+    &quot;sourceName&quot;: &quot;humidity&quot;,
     &quot;origin&quot;: 1783990000000000000,
     &quot;fresh&quot;: true,
     &quot;readings&quot;: [
       {
-        &quot;resourceName&quot;: &quot;acceleration_x&quot;,
+        &quot;resourceName&quot;: &quot;humidity&quot;,
         &quot;valueType&quot;: &quot;Float64&quot;,
-        &quot;value&quot;: 0.031
+        &quot;value&quot;: 45.3
       }
     ]
   },
   &quot;nodeDiagnostic&quot;: {
-    &quot;nodeName&quot;: &quot;etri-dev0001-jetorn&quot;,
+    &quot;nodeName&quot;: &quot;etri-dev0003-raspi5&quot;,
     &quot;displayOnly&quot;: true
   },
   &quot;overall_status&quot;: &quot;available&quot;,
   &quot;reason&quot;: &quot;EdgeX operating state is UP and latest event is fresh&quot;
 }</code></pre>
 <h2 id="전달-범위-해석">전달 범위 해석</h2>
-<p>현재 delivered 범위는 MQTT canary first다. 예시 device의 MQTT -&gt; EdgeX device-mqtt -&gt; Core Data 경로가 canary이며, dashboard/aggregator cutover 코드는 EdgeX authority contract를 따른다. 레포의 구성 또는 화면 필드만으로 live cluster cutover가 완료되었다고 주장하지 않는다.</p>
-<p>Serial, Modbus, OPC-UA, RTSP는 각각 독립 migration wave다. 해당 Device Service/profile, 실제 장비 연결, state, command, typed telemetry, dashboard consumer와 실제 배포를 검증하기 전에는 dashboard에서 지원 완료 protocol로 표시하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입으로 보존하며 EdgeX Serial 완료 신호로 사용하지 않는다.</p>
+<p>현재 데이터 플레인은 Protocol Adapter -&gt; loopback edge agent -&gt; SQLite outbox -&gt; HTTPS ingest gateway -&gt; Core Data다. dashboard/aggregator는 중앙 Metadata와 Core Data를 authority로 사용한다. <code>sensehat-001</code>은 교체 가능한 검증 fixture이며 현재 Jetson MQTT workload는 없다. 레포의 구성 또는 화면 필드만으로 live cluster cutover가 완료되었다고 주장하지 않는다.</p>
+<p>Serial, Modbus, OPC-UA와 추가 I2C 장비는 각각 독립 adapter wave다. RTSP는 frame을 Workflow Pod가 직접 구독하는 별도 media wave다. 해당 adapter/profile, 실제 장비 연결, typed telemetry, dashboard consumer와 실제 배포를 검증하기 전에는 지원 완료 protocol로 표시하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입으로 보존하며 현재 Serial adapter 완료 신호로 사용하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#권위와-표시-경계">권위와 표시 경계</a></li>

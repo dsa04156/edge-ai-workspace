@@ -33,25 +33,16 @@ spec:
               value: /app/data
             - name: INSTANCE_MAP_PATH
               value: /app/app/config/instance_map.json
-            - name: INFLUXDB_URL
-              value: http://influxdb.telemetry.svc.cluster.local:8086
-            - name: INFLUXDB_ORG
-              value: edgeai
-            - name: INFLUXDB_BUCKET
-              value: device_telemetry
+            - name: RESOURCE_PROFILE_RECORDING_MODE
+              value: disabled
             - name: EDGEX_CORE_METADATA_URL
-              value: http://edgex-core-metadata.telemetry.svc.cluster.local:59881
+              value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
             - name: EDGEX_CORE_DATA_URL
-              value: http://edgex-core-data.telemetry.svc.cluster.local:59880
+              value: http://edgex-core-data.edgex-system.svc.cluster.local:59880
             - name: EDGEX_TIMEOUT_SECONDS
               value: "10"
             - name: EDGEX_EVENT_FRESH_SECONDS
               value: "90"
-            - name: INFLUXDB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-token
-                  key: token
           volumeMounts:
             - name: state-data
               mountPath: /app/data

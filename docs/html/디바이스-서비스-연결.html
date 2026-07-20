@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -133,13 +133,13 @@
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX cutover 이후 물리 디바이스와 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workflow 배치가 아니라 다음 데이터 소유·전달 관계다.</p>
 <pre data-lang="text"><code>EdgeX Device
-  -&gt; EdgeX Device Service
-  -&gt; EdgeX MessageBus / Core Data
+  -&gt; Protocol Adapter / edge-telemetry-agent
+  -&gt; SQLite outbox / HTTPS gateway / Core Data
   -&gt; AI service / storage / dashboard consumer</code></pre>
 <p>물리 디바이스의 inventory와 상태 권위는 EdgeX뿐이다.</p>
 <h2 id="바인딩-원칙">바인딩 원칙</h2>
 <p>정상적인 device-service binding은 다음 정보를 함께 가진다.</p>
-<ol><li>Core Metadata에 device가 등록되어 있다.</li><li>device의 <code>profileName</code>, <code>serviceName</code>, <code>protocols</code>, <code>adminState</code>, <code>operatingState</code>를 읽을 수 있다.</li><li>해당 Device Service가 device event를 EdgeX MessageBus/Core Data 경로로 발행한다.</li><li>Core Data 최신 event의 <code>sourceName</code>, timestamp, readings를 읽을 수 있다.</li><li>AI 서비스, 저장소, dashboard는 이 EdgeX 경로의 consumer로 연결된다.</li></ol>
+<ol><li>Core Metadata에 device가 등록되어 있다.</li><li>device의 <code>profileName</code>, <code>serviceName</code>, <code>protocols</code>, <code>adminState</code>, <code>operatingState</code>를 읽을 수 있다.</li><li>Protocol Adapter가 profile에 맞는 Event를 만들고 agent가 SQLite/HTTPS/Core Data 경로로 전달한다.</li><li>Core Data 최신 event의 <code>sourceName</code>, timestamp, readings를 읽을 수 있다.</li><li>AI 서비스, 저장소, dashboard는 이 EdgeX 경로의 consumer로 연결된다.</li></ol>
 <p>이 바인딩은 runtime scheduling, 자동 재배치, offloading, 자동 복구 또는 actuator 제어를 의미하지 않는다.</p>
 <h2 id="state-devices-바인딩-필드"><code>/state/devices</code> 바인딩 필드</h2>
 <div class="table-wrap"><table>
@@ -162,7 +162,7 @@
 </tr>
 <tr>
 <td><code>device_service_name</code></td>
-<td>device를 소유·수집하는 EdgeX Device Service</td>
+<td>현재 수집 경로를 나타내는 논리 EdgeX Device Service</td>
 </tr>
 <tr>
 <td><code>protocol_names</code></td>
@@ -202,8 +202,8 @@
 </tr>
 </tbody></table></div>
 <p>Core Metadata 이름은 API에서 snake_case로 정규화된다. 즉 <code>profileName</code> → <code>profile_name</code>, <code>serviceName</code> → <code>device_service_name</code>, <code>protocols</code> → <code>protocol_names</code>, <code>adminState</code> → <code>admin_state</code>, <code>operatingState</code> → <code>operating_state</code>다.</p>
-<h2 id="바인딩-예시-mqtt-canary">바인딩 예시: MQTT canary</h2>
-<p>현재 전달된 물리 canary는 <code>vib-arduino-acceleration-01</code> 하나다.</p>
+<h2 id="바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</h2>
+<p>현재 서비스 데모 device는 <code>sensehat-001</code>이다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -212,7 +212,7 @@
 <tbody>
 <tr>
 <td>device</td>
-<td><code>vib-arduino-acceleration-01</code></td>
+<td><code>sensehat-001</code></td>
 </tr>
 <tr>
 <td>source</td>
@@ -220,15 +220,15 @@
 </tr>
 <tr>
 <td>profile</td>
-<td>Core Metadata의 <code>profileName</code></td>
+<td><code>etri-sensehat</code></td>
 </tr>
 <tr>
 <td>Device Service</td>
-<td>Core Metadata의 <code>serviceName</code></td>
+<td><code>edge-telemetry-agent</code></td>
 </tr>
 <tr>
 <td>protocol</td>
-<td><code>mqtt</code></td>
+<td><code>i2c</code></td>
 </tr>
 <tr>
 <td>metadata state</td>
@@ -251,7 +251,7 @@
 <td>AI service, storage, dashboard</td>
 </tr>
 </tbody></table></div>
-<p>이 예시는 MQTT canary 계약을 설명한다. 실환경의 profile/resource 이름과 최신 값은 EdgeX 응답으로 확인해야 하며, 문서 자체는 live 배포 완료 증거가 아니다.</p>
+<p>이 예시는 broker-free I2C direct 계약을 설명한다. 실환경의 최신 값은 EdgeX 응답으로 확인해야 하며, 문서 자체는 live 배포 완료 증거가 아니다.</p>
 <h2 id="서비스-consumer-연결">서비스 consumer 연결</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -263,7 +263,7 @@
 <tr>
 <td>AI service</td>
 <td>Core Data event/readings</td>
-<td>진동 특징 계산과 상태 추론 입력</td>
+<td>센서 특징 계산과 상태 추론 입력</td>
 </tr>
 <tr>
 <td>storage</td>
@@ -292,14 +292,19 @@
 </tr></thead>
 <tbody>
 <tr>
-<td>MQTT canary</td>
-<td>전달된 코드 범위</td>
-<td><code>vib-arduino-acceleration-01</code>의 EdgeX MQTT Device Service 경로</td>
+<td>Sense HAT I2C</td>
+<td>현재 검증 fixture</td>
+<td>교체 가능한 <code>sensehat-001</code> adapter와 SQLite/HTTPS 경로</td>
+</tr>
+<tr>
+<td>MQTT-only adapter</td>
+<td>미배포 조건부 경로</td>
+<td>실제 장비 또는 local pub/sub 요구를 검증한 뒤에만 broker 사용</td>
 </tr>
 <tr>
 <td>Serial</td>
 <td>미구현 future wave</td>
-<td>별도 Device Service/profile, hardware validation, acceptance 필요</td>
+<td>별도 adapter/profile, hardware validation, acceptance 필요</td>
 </tr>
 <tr>
 <td>Modbus</td>
@@ -314,10 +319,10 @@
 <tr>
 <td>RTSP</td>
 <td>미구현 future wave</td>
-<td>camera stream Device Service와 media/AI 경로 검증 필요</td>
+<td>Workflow Pod 직접 stream 구독과 metadata/AI 경로 검증 필요</td>
 </tr>
 </tbody></table></div>
-<p>후속 protocol은 설계 가능성이나 profile 초안만으로 현재 binding으로 계산하지 않는다. 각 wave가 구현·검증되기 전에는 MQTT canary의 성공을 다른 protocol의 성공으로 일반화하지 않는다.</p>
+<p>후속 protocol은 설계 가능성이나 profile 초안만으로 현재 binding으로 계산하지 않는다. 각 wave가 구현·검증되기 전에는 현재 fixture 성공을 다른 protocol의 성공으로 일반화하지 않는다.</p>
 <h2 id="생산성-해석">생산성 해석</h2>
 <p>바인딩 정보는 운영자가 device 이름만 보고 여러 시스템을 교차 조회하는 대신 profile, Device Service, protocol, 연결 상태, event freshness, latest readings, consumer 영향 범위를 한 흐름으로 확인하게 한다. 이는 점검 경로 단축과 원인 후보 축소를 설명하는 운영 생산성 지표이며 자동 제어 성능 주장이 아니다.</p>
         </div>
@@ -325,7 +330,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#바인딩-원칙">바인딩 원칙</a></li>
 <li class="toc-h2"><a href="#state-devices-바인딩-필드">/state/devices 바인딩 필드</a></li>
-<li class="toc-h2"><a href="#바인딩-예시-mqtt-canary">바인딩 예시: MQTT canary</a></li>
+<li class="toc-h2"><a href="#바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</a></li>
 <li class="toc-h2"><a href="#서비스-consumer-연결">서비스 consumer 연결</a></li>
 <li class="toc-h2"><a href="#정상-바인딩-판단">정상 바인딩 판단</a></li>
 <li class="toc-h2"><a href="#kubernetes-node-placement-경계">Kubernetes node placement 경계</a></li>

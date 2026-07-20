@@ -58,19 +58,19 @@
 <body>
   <main>
     <h1>Docs-Code Consistency Report</h1>
-    <p class="subtitle">Generated at 2026-06-04 13:53:43 KST · Overall <span class="badge warn">WARN</span></p>
+    <p class="subtitle">Generated at 2026-07-20 17:36:40 KST · Overall <span class="badge pass">PASS</span></p>
 
     <h2>1. Summary</h2>
     <div class="summary-grid">
             <div class="summary-card pass-card">
               <div class="summary-label">PASS</div>
-              <div class="summary-value">7</div>
+              <div class="summary-value">8</div>
             </div>
             
 
             <div class="summary-card warn-card">
               <div class="summary-label">WARN</div>
-              <div class="summary-value">1</div>
+              <div class="summary-value">0</div>
             </div>
             
 
@@ -83,7 +83,7 @@
     <details>
       <summary>Checked inputs</summary>
       <div class="columns">
-        <div><h3>Docs</h3><ul><li><code>docs/dashboard-information-structure.md</code></li><li><code>docs/okdong-productivity-kpi.md</code></li><li><code>docs/kagenti-operator-assistant.md</code></li><li><code>docs/current-demo-path.md</code></li><li><code>docs/device-service-binding.md</code></li><li><code>docs/device-status-policy.md</code></li><li><code>docs/service-demo-scenario.md</code></li><li><code>docs/ops/runbook-current-demo.md</code></li></ul></div>
+        <div><h3>Docs</h3><ul><li><code>docs/대시보드-정보-구조.md</code></li><li><code>docs/옥동-생산성-kpi.md</code></li><li><code>docs/카젠티-운영-보조-에이전트.md</code></li><li><code>docs/현재-데모-경로.md</code></li><li><code>docs/디바이스-서비스-연결.md</code></li><li><code>docs/물리-디바이스-상태-정책.md</code></li><li><code>docs/서비스-데모-시나리오.md</code></li><li><code>docs/ops/현재-데모-운영-절차.md</code></li></ul></div>
         <div><h3>Code</h3><ul><li><code>edge-orch/state-aggregator/app/service.py</code></li><li><code>edge-orch/state-aggregator/app/influx.py</code></li><li><code>edge-orch/state-aggregator/app/static/dashboard.js</code></li><li><code>edge-device/scripts/generate_devices.py</code></li><li><code>mappers/script/test_device.py</code></li></ul></div>
       </div>
     </details>
@@ -96,15 +96,10 @@
                 <h3>R1 device_telemetry_ratio means telemetry configured ratio</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/device-status-policy.md, docs/service-demo-scenario.md, edge-orch/state-aggregator/app/service.py</div>
+              <div class="meta"><strong>Matched files:</strong> -</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:78: | `device_telemetry_ratio` | telemetry configured ratio | telemetry 설정 device 수 / 전체 등록 device 수. freshness 비율이 아니다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:429: dashboard KPI는 `telemetry_device_count`/`device_telemetry_ratio`(telemetry configured 범위), `fresh_telemetry_device_count`/`telemetry_freshness_ratio`(실제 최신 telemetry), `fresh_device_status_count`/`device_status_freshness_ratio`(DeviceStatus 최신성), `operator_focus_count`(degraded/…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:67: 대표 KPI 관계는 `service_bound_device_count`, `device_service_binding_ratio`, `device_telemetry_ratio`, `telemetry_freshness_ratio`, `device_status_freshness_ratio`, `operator_focus_count`이다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:249: dashboard는 `device_telemetry_ratio`를 telemetry configured ratio로, `telemetry_freshness_ratio`를 실제 최신 telemetry 비율로 분리해 보여준다. `fresh_telemetry_device_count`는 telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 수다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-status-policy.md:213: 즉, dashboard의 `telemetry_device_count`와 `device_telemetry_ratio`는 기존 호환 지표로 남아 있을 수 있지만, MapperFramework 리팩토링의 새 목표는 raw telemetry 저장/전송을 이 경로에 추가하지 않는 것이다. EdgeX ingestion plane이 붙기 전까지 raw telemetry freshness KPI는 전환 대상 지표로 취급한다. DeviceStatus freshness는 별도 status-plane snapsho…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/service-demo-scenario.md:255: | device_telemetry_ratio | telemetry configured ratio | telemetry 설정 device 수 / 전체 registered device 수. freshness 비율이 아님 |</span></li></ul>
+                <ul class="evidence-list"><li><span class="muted">No explicit evidence found.</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> `device_telemetry_ratio`는 telemetry_enabled device 수 / 전체 registered device 수이며 freshness 비율이 아니다. 최신성은 `telemetry_freshness_ratio`로 설명한다.</div>
             </section>
@@ -115,15 +110,10 @@
                 <h3>R2 telemetry freshness must use telemetry_freshness_ratio/fresh_telemetry_device_count</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/device-status-policy.md, docs/kagenti-operator-assistant.md, docs/okdong-productivity-kpi.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-orch/state-aggregator/app/service.py</div>
+              <div class="meta"><strong>Matched files:</strong> -</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:78: | `device_telemetry_ratio` | telemetry configured ratio | telemetry 설정 device 수 / 전체 등록 device 수. freshness 비율이 아니다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:79: | `fresh_telemetry_device_count` | fresh telemetry device 수 | telemetry 설정 device 중 InfluxDB device-level latest sample이 freshness 기준을 만족한 수 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:80: | `telemetry_freshness_ratio` | telemetry freshness ratio | `sensor_data_freshness_ratio`와 같은 data-plane freshness의 호환 지표 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:117: | `telemetry_fresh` | device-level DB latest timestamp freshness | InfluxDB의 device별 latest sample `_time` 기준. property별 최신성을 보장하지 않는다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:128: Explain Panel은 운영 판단에 바로 필요한 값만 표시한다. Device row를 선택했을 때 표시하는 기본 필드는 `status`, `reason`, `node`, `sensor`, `last seen`, `mapper`, `service`이며, 하단에는 InfluxDB 최근 telemetry history graph를 표시한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:198: - telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 telemetry-enabled device를 `available`로 판단할 수 있다. DeviceStatus snapshot이 stale하면 status-plane 보조 신호로 별도 표기한다.</span></li></ul>
+                <ul class="evidence-list"><li><span class="muted">No explicit evidence found.</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> telemetry 최신성은 `fresh_telemetry_device_count`와 `telemetry_freshness_ratio`로 설명한다. `device_telemetry_ratio`와 같은 의미로 섞지 않는다.</div>
             </section>
@@ -134,15 +124,10 @@
                 <h3>R3 DeviceStatus freshness is auxiliary, not required for healthy</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-orch/state-aggregator/app/service.py</div>
+              <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:186: | `device_status_fresh` | DeviceStatus snapshot이 최근 갱신됐는지 | status-plane 관찰용 보조 신호. healthy 필수 조건이 아니다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:198: - telemetry 최신값(InfluxDB)이 fresh이면 state-aggregator는 telemetry-enabled device를 `available`로 판단할 수 있다. DeviceStatus snapshot이 stale하면 status-plane 보조 신호로 별도 표기한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:216: | `available` | node/mapper 선행조건이 정상이고, telemetry 대상 device는 InfluxDB latest telemetry가 freshness 기준을 만족하는 상태. DeviceStatus freshness는 별도 표시되는 status-plane 보조 신호. | 정상 관찰 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:56: - dashboard는 InfluxDB latest telemetry freshness를 `available` 판단의 1차 기준으로 보며, DeviceStatus freshness는 status-plane 관찰용 보조 신호로 별도 표시한다. mapper 상태와 node 상태는 선행 조건으로 함께 확인한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:352: | `healthy` | node/mapper가 정상이고 InfluxDB latest telemetry가 dashboard freshness 기준을 만족하는 상태 (DeviceStatus freshness는 별도 표기되는 보조 신호) |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:376: 6. DeviceStatus snapshot이 fresh한지 별도 확인한다. 단 telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다.</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:253: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> DeviceStatus freshness는 status-plane 관찰용 보조 신호다. telemetry-enabled device는 InfluxDB latest telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다고 설명한다.</div>
             </section>
@@ -153,15 +138,10 @@
                 <h3>R4 operator_focus_count excludes workflow risk</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/kagenti-operator-assistant.md, docs/okdong-productivity-kpi.md, docs/service-demo-scenario.md, edge-orch/state-aggregator/app/service.py</div>
+              <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:64: | Scenario KPI | 서비스 데모 설명 지표 | operator_focus_count, service-bound count, freshness ratio |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:85: | `operator_focus_count` | 운영자가 우선 확인할 대상 수 | degraded/unavailable device 수 + non-healthy node 수. workflow risk는 포함하지 않는다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:151: | 이름 | operator_focus_count |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:153: | dashboard/API | `kpis.operator_focus_count`, issue/focus list |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:159: 운영자는 전체 device를 하나씩 확인하지 않고, degraded/unavailable device와 non-healthy node로 좁혀진 우선 점검 대상부터 확인할 수 있다. workflow risk는 현재 데모 범위의 operator_focus_count에 포함하지 않는다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/kagenti-operator-assistant.md:154: Kagenti agent는 state-aggregator API를 read-only로 조회해 device, node, telemetry configured ratio, telemetry freshness ratio, DeviceStatus freshness ratio, service binding 상태를 한국어로 요약하고, 운영자가 우선 확인해야 할 대상을 제안한다. 이때 operator_focus_count는 degraded/unavailable device 수와 non-healthy node…</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:240: focus_devices = []</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> `operator_focus_count`는 degraded/unavailable device 수 + non-healthy node 수로 설명한다. workflow/SLA risk는 현재 데모 범위 count에서 제외한다.</div>
             </section>
@@ -172,15 +152,11 @@
                 <h3>R5 act/rpi-act InfluxDB liveness uses health property, not ts</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/device-service-binding.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-device/scripts/generate_devices.py, mappers/script/test_device.py</div>
+              <div class="meta"><strong>Matched files:</strong> edge-device/scripts/generate_devices.py, mappers/script/test_device.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:91: | `vib-device-*` | vibration, rms, peak | 설비 상태/이상 징후 입력 | 진동 상태 freshness와 severity |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:92: | `act-device-*` | health, power, mode, command_state | 제어/명령 적용 대상 | 현재 InfluxDB liveness는 `health` property 기준. command event history/actuation latency/state transition history는 향후 확장 후보 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:93: | `temp-device-01` | temperature 계열 값 | 단일 device 연동 확인 | DeviceStatus/telemetry 경로 확인 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:95: | `rpi-vib-device-*` | vibration 계열 값 | Raspberry Pi edge 진동 입력 | light edge node의 설비 상태 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:96: | `rpi-act-device-*` | health, power, mode, command_state | Raspberry Pi edge 제어 대상 | 현재 InfluxDB liveness는 `health` property 기준. `ts`는 dashboard freshness 기준으로 쓰지 않음 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:97: </span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-device/scripts/generate_devices.py:48: [&quot;temperature&quot;, &quot;humidity&quot;, &quot;health&quot;, &quot;sampling_interval&quot;],</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">mappers/script/test_device.py:137: &quot;ts&quot;: str(int(time.time())),</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> act/rpi-act의 현재 InfluxDB liveness row는 `health` property다. `ts`는 publisher payload에는 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 쓰지 않는다.</div>
             </section>
@@ -191,50 +167,24 @@
                 <h3>R6 dashboard node_ready is not identical to Kubernetes Ready</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/kagenti-operator-assistant.md, docs/okdong-productivity-kpi.md, docs/ops/runbook-current-demo.md, edge-orch/state-aggregator/app/service.py</div>
+              <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:20: 4. Kubernetes Ready와 dashboard `node_ready`를 구분하고, mapper Running 여부와 함께 본다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:116: | `node_ready` | dashboard 기준 node 사용 가능 여부 | state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값. Kubernetes `Ready`와 구분한다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:34: | node/mapper 원인 분리 | Kubernetes Ready, dashboard node_ready, mapper_running | Kubernetes Ready(`kubectl get nodes`)와 dashboard `node_ready`(Prometheus/node-exporter 기반 node_health 판단)를 구분해 원인을 분리 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/kagenti-operator-assistant.md:88: `node_ready`는 Kubernetes `Ready` 값을 그대로 복사한 것이 아니라, state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 dashboard용 값이다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/current-demo-path.md:336: - device가 할당된 node가 dashboard 기준 `node_ready`인지 확인한다. 이 값은 Kubernetes `Ready`가 아니라 Prometheus/node-exporter 기반 `node_health != unavailable` 판단이다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/ops/runbook-current-demo.md:11: - Kubernetes Ready(`kubectl get nodes`)와 dashboard `node_ready`를 구분해 확인했는가?</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:436: online_nodes = [node for node in nodes if node.node_health != &quot;unavailable&quot;]</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> dashboard `node_ready`는 Kubernetes Ready condition 자체가 아니라 state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값이라고 설명한다. Kubernetes Ready는 `kubectl get nodes` 기준으로 별도 표현한다.</div>
             </section>
             
 
-            <section class="rule-card warn-border">
+            <section class="rule-card pass-border">
               <div class="rule-head">
                 <h3>R7 InfluxDB timestamp semantics are documented</h3>
-                <span class="badge warn">WARN</span>
+                <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/device-status-policy.md, docs/kagenti-operator-assistant.md, docs/okdong-productivity-kpi.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md, edge-orch/state-aggregator/app/influx.py</div>
+              <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/influx.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list">
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/current-demo-path.md:1</code>
-              <div class="evidence-text">_start/_stop query window, _time sample timestamp, device-level latest sample, not property-level freshness</div>
-              <div class="message">InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.</div>
-            </li>
-            
-
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/device-status-policy.md:1</code>
-              <div class="evidence-text">_start/_stop query window, _time sample timestamp, not property-level freshness</div>
-              <div class="message">InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.</div>
-            </li>
-            
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:79: | `fresh_telemetry_device_count` | fresh telemetry device 수 | telemetry 설정 device 중 InfluxDB device-level latest sample이 freshness 기준을 만족한 수 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/okdong-productivity-kpi.md:90: | 의미 | telemetry-enabled device 중 InfluxDB device-level latest sample이 fresh한 비율 |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/kagenti-operator-assistant.md:96: InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest fr…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/device-service-binding.md:69: InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest fr…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/service-demo-scenario.md:95: InfluxDB timestamp 의미는 `docs/current-demo-path.md`의 data-plane 설명을 따른다. InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest fr…</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/ops/runbook-current-demo.md:18: - InfluxDB UI의 `_start`와 `_stop`은 Flux query 조회 window이며 device start/stop 이벤트가 아니다. 실제 telemetry sample timestamp는 `_time`이다. Dashboard의 `telemetry_fresh`는 device-level latest sample 기준이며, property별 latest freshness를 보장하지 않는다.</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/influx.py:41: async def get_latest_by_device(self) -&gt; dict[str, TelemetrySample]:</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> InfluxDB latest 설명에는 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, `telemetry_fresh`는 device-level latest sample 기준, property별 latest freshness를 보장하지 않는다는 문구를 넣는다.</div>
             </section>
@@ -245,39 +195,22 @@
                 <h3>R8 workflow/offloading/placement/autonomous agent are not current implementation scope</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/current-demo-path.md, docs/dashboard-information-structure.md, docs/device-service-binding.md, docs/kagenti-operator-assistant.md, docs/okdong-productivity-kpi.md, docs/ops/runbook-current-demo.md, docs/service-demo-scenario.md</div>
+              <div class="meta"><strong>Matched files:</strong> docs/대시보드-정보-구조.md, docs/디바이스-서비스-연결.md, docs/물리-디바이스-상태-정책.md, docs/서비스-데모-시나리오.md, docs/옥동-생산성-kpi.md, docs/카젠티-운영-보조-에이전트.md, docs/현재-데모-경로.md</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:21: 5. service binding은 workflow orchestration이 아니라 서비스 데모 연결 구조로 해석한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:45: workflows[]</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:50: 현재 연구 방향에서는 `workflows[]`를 dashboard의 핵심 future 방향으로 확장하지 않는다. 과거 event 구조와 호환을 위해 남아 있는 필드로 보고, 현재 dashboard 설명은 `nodes`, `devices`, `kpis`, service binding 중심으로 둔다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:85: | `operator_focus_count` | 운영자가 우선 확인할 대상 수 | degraded/unavailable device 수 + non-healthy node 수. workflow risk는 포함하지 않는다. |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:95: 이 값은 workflow orchestration이 아니라 service/demo binding 의미로 해석한다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/dashboard-information-structure.md:234: workflow/SLA risk는 현재 데모 범위의 `operator_focus_count`에 포함하지 않는다.</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:93: | Node Diagnostics | 선택적 workload placement와 자원 상태. 물리 상태 판정에는 사용하지 않음 |</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:133: 7. 필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:137: 현재 repository에 전달된 물리 경로는 loopback Protocol Adapter, direct-mode edge agent, SQLite outbox, HTTPS gateway와 EdgeX-backed aggregator/dashboard 계약이다. `sensehat-001`은 교체 가능한 검증 fixture다. 새 image의 live cutover evidence를 확보하기 전에는 운영 전환 완료로 표시하지 않는다. 현재 Jetson MQTT workload는 없으며 MQTT-o…</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/옥동-생산성-kpi.md:140: - 동적 workflow 실행 성능</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/옥동-생산성-kpi.md:141: - runtime offloading 또는 자동 재배치 효과</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/옥동-생산성-kpi.md:145: Workflow/node 설계 화면과 운영 보조 agent는 read-only 또는 dry-run이다. EdgeX 또는 Kubernetes 리소스를 수정하지 않는다.</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> workflow/offloading/placement/agent autonomous control은 현재 구현 기능이 아니라 제외 범위, archive/legacy, 향후 확장 후보, 또는 read-only/dry-run 설계 도구로만 표현한다.</div>
             </section>
             
 
     <h2>3. File-level Findings</h2>
-    <section class='file-card'><h3>docs/current-demo-path.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R7 InfluxDB timestamp semantics are documented</strong>
-                  <code>line 1</code>
-                  <div class="evidence-text">_start/_stop query window, _time sample timestamp, device-level latest sample, not property-level freshness</div>
-                  <div class="message">InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.</div>
-                </li>
-                </ul></section>
-<section class='file-card'><h3>docs/device-status-policy.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R7 InfluxDB timestamp semantics are documented</strong>
-                  <code>line 1</code>
-                  <div class="evidence-text">_start/_stop query window, _time sample timestamp, not property-level freshness</div>
-                  <div class="message">InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.</div>
-                </li>
-                </ul></section>
+    <p class="ok-text">No file-level WARN/FAIL findings.</p>
 
     <h2>4. Recommended Patches</h2>
     
@@ -318,7 +251,7 @@
             
 
             <div class="patch-card">
-              <div><span class="badge warn">WARN</span> <strong>R7 InfluxDB timestamp semantics are documented</strong></div>
+              <div><span class="badge pass">PASS</span> <strong>R7 InfluxDB timestamp semantics are documented</strong></div>
               <pre>InfluxDB latest 설명에는 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, `telemetry_fresh`는 device-level latest sample 기준, property별 latest freshness를 보장하지 않는다는 문구를 넣는다.</pre>
             </div>
             

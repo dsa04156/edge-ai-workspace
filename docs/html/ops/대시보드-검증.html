@@ -124,17 +124,17 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-20 14:59</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-검증-점검표">대시보드 검증 점검표</h1>
 <h2 id="목적과-범위">목적과 범위</h2>
 <p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI를 <strong>read-only</strong>로 확인하는 절차다. 물리 디바이스 inventory, 관리 상태, telemetry의 authority는 EdgeX이며 KubeEdge는 Kubernetes node와 workload 관찰에만 사용한다.</p>
-<p>현재 검증 대상은 MQTT canary 하나다.</p>
-<pre data-lang="text"><code>arduino-001</code></pre>
-<p>2026-07-14 Jetson MQTT에서 EdgeX Core Data까지의 ingestion과 dashboard live cutover를 모두 PASS했다. 배포 image의 runtime <code>imageID</code>는 <code>sha256:e13c8de7e8571ddd52821dc585fc7497eef3cfc880f9dc0654863dd26280d43a</code>이며, 이 image의 <code>/state/devices</code>가 <code>source=edgex</code>, <code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>와 <code>acceleration</code>, <code>magnetic</code>, <code>temperature</code>, <code>light</code> typed readings를 반환했다. <code>http://192.168.0.56/aggregator#inventory</code>의 Assets/Explain Panel에서도 같은 네 source를 확인했으며 화면 증거는 <code>output/edgex-dashboard-live-20260714.png</code>다.</p>
+<p>현재 검증 대상은 direct agent 기반 중앙 EdgeX 서비스 데모다. <code>sensehat-001</code>은 교체 가능한 live fixture다.</p>
+<pre data-lang="text"><code>sensehat-001</code></pre>
+<p>2026-07-14 Jetson MQTT dashboard evidence는 과거 canary 근거다. 현재 direct cutover는 새 image, canonical Event ID, Core Data readback과 dashboard freshness를 같은 실행에서 확인하기 전까지 PASS로 승격하지 않는다. Sense HAT publisher 교체 여부는 별도다.</p>
 <p>Serial, Modbus, OPC-UA, RTSP는 이 문서의 PASS 범위가 아니다. workflow builder와 자원증강 화면도 read-only/dry-run 경계를 넘지 않는다.</p>
 <h2 id="1-authority와-관찰-경계">1. Authority와 관찰 경계</h2>
 <div class="table-wrap"><table>
@@ -166,21 +166,21 @@
 </tr>
 </tbody></table></div>
 <p><code>node_name</code>은 Device metadata의 선택적 placement 진단값이다. node가 없거나 NotReady여도 물리 디바이스의 inventory, <code>overall_status</code>, telemetry freshness를 바꾸지 않는다. 반대로 EdgeX device가 unavailable/degraded여도 node/workload card와 같은 원인으로 합치지 않는다.</p>
-<p>현재 MQTT canary의 physical data path는 다음과 같다.</p>
-<pre data-lang="text"><code>Jetson southbound MQTT (127.0.0.1:1883)
-  -&gt; mqtt-edge-bridge
-  -&gt; edgex-device-mqtt
-  -&gt; edgex-messagebus
+<p>현재 physical data path는 다음과 같다.</p>
+<pre data-lang="text"><code>Sense HAT I2C
+  -&gt; loopback edge-telemetry-agent
+  -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
   -&gt; edgex-core-data
   -&gt; state-aggregator
   -&gt; dashboard</code></pre>
-<p><code>edgex-messagebus</code>는 EdgeX 내부 ClusterIP message bus다. southbound MQTT endpoint가 아니다.</p>
+<p><code>edgex-messagebus</code>는 중앙 EdgeX 내부 ClusterIP message bus다. Sense HAT transport나 edge broker가 아니다.</p>
 <h2 id="2-kubernetes-service-proxy로-api-확인">2. Kubernetes Service proxy로 API 확인</h2>
-<p>state-aggregator는 namespace <code>default</code>, EdgeX runtime은 namespace <code>telemetry</code>에 있다. API 확인은 Kubernetes API Service proxy를 사용한다.</p>
+<p>state-aggregator는 namespace <code>default</code>, 중앙 EdgeX runtime은 <code>edgex-system</code>, edge agent는 <code>edgex-edge</code>에 있다. API 확인은 Kubernetes API Service proxy를 사용한다.</p>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
 kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices/vib-arduino-acceleration-01/telemetry&#x27;
+  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices/sensehat-001/telemetry&#x27;
 kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;
 kubectl get --raw \
@@ -209,7 +209,7 @@ kubectl get --raw \
 </tr>
 <tr>
 <td><code>device_service_name</code></td>
-<td>protocol endpoint를 소유한 EdgeX Device Service</td>
+<td>현재 수집 경로를 나타내는 논리 EdgeX Device Service</td>
 </tr>
 <tr>
 <td><code>protocol_names</code></td>
@@ -397,8 +397,8 @@ kubectl get --raw \
 <td>Core Metadata adminState 정책</td>
 </tr>
 <tr>
-<td><code>DOWN</code>, disconnected, Device Service unavailable</td>
-<td>Core Metadata operatingState와 <code>edgex-device-mqtt</code></td>
+<td><code>DOWN</code>, disconnected, logical Device Service unavailable</td>
+<td>Core Metadata operatingState와 latest Event freshness</td>
 </tr>
 <tr>
 <td>Event stale/no events</td>
@@ -410,9 +410,9 @@ kubectl get --raw \
 </tr>
 </tbody></table></div>
 <h2 id="7-failure-isolation">7. Failure isolation</h2>
-<p>MQTT canary는 다음 순서로만 격리한다. 각 단계는 앞 단계의 physical authority를 대체하지 않는다.</p>
-<ol><li><strong>Jetson southbound MQTT</strong>: <code>factory/devices/vib-arduino-acceleration-01/telemetry</code>가 Jetson local Mosquitto <code>127.0.0.1:1883</code>에 도달하는지 확인한다.</li><li><strong>bridge</strong>: <code>mqtt-edge-bridge</code>가 canary 입력을 EdgeX input으로 정규화하는지 확인한다.</li><li><strong>device-mqtt</strong>: <code>edgex-device-mqtt</code>가 Device Profile/Device Service ownership으로 payload를 typed Event/Readings로 처리하는지 확인한다.</li><li><strong>messagebus</strong>: <code>edgex-messagebus</code> 내부 전달과 <code>edgex-core-data</code> consumer 연결을 확인한다.</li><li><strong>Core Data</strong>: 최신 Event의 <code>deviceName</code>, <code>sourceName=telemetry</code>, nanosecond <code>origin</code>, typed readings를 확인한다.</li><li><strong>aggregator</strong>: namespace <code>default</code>의 <code>/state/devices</code>와 device telemetry endpoint가 같은 EdgeX state/Event를 <code>source=edgex</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>으로 반환하는지 확인한다.</li><li><strong>dashboard</strong>: API payload와 UI card/table/Explain Panel의 값이 일치하는지 확인한다.</li></ol>
-<p>KubeEdge node readiness와 <code>telemetry</code> namespace workload placement/Pod readiness는 병렬 진단이다. 이를 1--7의 physical availability 판정에 넣지 않는다.</p>
+<p>현재 direct 경로는 다음 순서로 격리한다. 각 단계는 앞 단계의 physical authority를 대체하지 않는다.</p>
+<ol><li><strong>I2C publisher</strong>: Sense HAT read와 canonical Event mapping을 확인한다.</li><li><strong>loopback admission</strong>: <code>127.0.0.1:18080/v1/events</code>가 정확한 Event ID로 <code>202 queued</code>를 반환하는지 확인한다.</li><li><strong>SQLite outbox</strong>: PVC와 pending/rejected metric을 확인한다.</li><li><strong>HTTPS gateway</strong>: mTLS/HMAC 인증과 Core Data REST 응답을 확인한다.</li><li><strong>Core Data</strong>: 최신 Event의 <code>deviceName=sensehat-001</code>, source, nanosecond <code>origin</code>, typed readings를 확인한다.</li><li><strong>aggregator</strong>: namespace <code>default</code>의 <code>/state/devices</code>와 device telemetry endpoint가 같은 EdgeX state/Event를 <code>source=edgex</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>으로 반환하는지 확인한다.</li><li><strong>dashboard</strong>: API payload와 UI card/table/Explain Panel의 값이 일치하는지 확인한다.</li></ol>
+<p>KubeEdge node readiness와 <code>edgex-system</code>/<code>edgex-edge</code> workload placement/Pod readiness는 병렬 진단이다. 이를 1--7의 physical availability 판정에 넣지 않는다.</p>
 <h3 id="post-cutover-absence-check">Post-cutover absence check</h3>
 <p>dashboard/API의 current physical inventory, state, telemetry, KPI, Explain Panel에 KubeEdge <code>DeviceStatus</code>, legacy mapper, 또는 direct Influx 값이 나타나거나 physical authority로 사용되어서는 안 된다. 이 항목은 legacy path를 운영 절차로 되살리기 위한 것이 아니라 EdgeX cutover 후 부재를 확인하는 check다.</p>
 <h2 id="8-workflow-builder와-자원증강-경계">8. Workflow builder와 자원증강 경계</h2>

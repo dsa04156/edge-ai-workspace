@@ -124,15 +124,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-정보-구조">대시보드 정보 구조</h1>
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX를 물리 디바이스의 유일한 상태 권위로 사용하는 운영 dashboard 정보 구조를 정의한다. Dashboard는 Core Metadata의 등록·연결 상태와 Core Data event freshness를 함께 보여 주어 운영자가 점검 대상을 빠르게 좁히도록 돕는다.</p>
-<pre data-lang="text"><code>physical device -&gt; EdgeX Device Service -&gt; EdgeX MessageBus / Core Data -&gt; AI services / storage / dashboard</code></pre>
+<pre data-lang="text"><code>physical device -&gt; Protocol Adapter -&gt; SQLite edge agent -&gt; HTTPS gateway -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
 <ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 별도 저장소의 최신값을 다시 조회한 결과가 아니다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
 <h2 id="주요-api">주요 API</h2>
@@ -230,11 +230,11 @@
 </tbody></table></div>
 <p>대표 응답 항목:</p>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;vib-arduino-acceleration-01&quot;,
+  &quot;name&quot;: &quot;sensehat-001&quot;,
   &quot;source&quot;: &quot;edgex&quot;,
-  &quot;profile_name&quot;: &quot;Arduino-Acceleration-Profile&quot;,
-  &quot;device_service_name&quot;: &quot;device-mqtt&quot;,
-  &quot;protocol_names&quot;: [&quot;mqtt&quot;],
+  &quot;profile_name&quot;: &quot;etri-sensehat&quot;,
+  &quot;device_service_name&quot;: &quot;edge-telemetry-agent&quot;,
+  &quot;protocol_names&quot;: [&quot;i2c&quot;],
   &quot;admin_state&quot;: &quot;UNLOCKED&quot;,
   &quot;operating_state&quot;: &quot;UP&quot;,
   &quot;connection_state&quot;: &quot;connected&quot;,
@@ -242,14 +242,14 @@
   &quot;latest_event_timestamp&quot;: &quot;2026-07-14T08:30:00Z&quot;,
   &quot;latest_readings&quot;: [
     {
-      &quot;device_name&quot;: &quot;vib-arduino-acceleration-01&quot;,
-      &quot;source_name&quot;: &quot;ArduinoAcceleration&quot;,
-      &quot;resource_name&quot;: &quot;acceleration-x&quot;,
+      &quot;device_name&quot;: &quot;sensehat-001&quot;,
+      &quot;source_name&quot;: &quot;humidity&quot;,
+      &quot;resource_name&quot;: &quot;humidity&quot;,
       &quot;value_type&quot;: &quot;Float64&quot;,
-      &quot;value&quot;: 0.12,
+      &quot;value&quot;: 45.3,
       &quot;timestamp&quot;: &quot;2026-07-14T08:30:00Z&quot;,
       &quot;event_id&quot;: &quot;event-id&quot;,
-      &quot;units&quot;: &quot;g&quot;
+      &quot;units&quot;: &quot;%&quot;
     }
   ],
   &quot;telemetry_freshness&quot;: &quot;fresh&quot;,
@@ -377,7 +377,7 @@
 <h2 id="운영자-해석-순서">운영자 해석 순서</h2>
 <ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
-<p>현재 전달된 물리 경로는 MQTT canary <code>vib-arduino-acceleration-01</code>과 EdgeX-backed aggregator/dashboard다. Serial, Modbus, OPC-UA, RTSP는 구현 완료로 표시하지 않으며, 각각 별도 검증과 승인 후 진행할 future migration wave다.</p>
+<p>현재 repository에 전달된 물리 경로는 loopback Protocol Adapter, direct-mode edge agent, SQLite outbox, HTTPS gateway와 EdgeX-backed aggregator/dashboard 계약이다. <code>sensehat-001</code>은 교체 가능한 검증 fixture다. 새 image의 live cutover evidence를 확보하기 전에는 운영 전환 완료로 표시하지 않는다. 현재 Jetson MQTT workload는 없으며 MQTT-only·Serial·Modbus·OPC-UA와 RTSP workflow는 각각 별도 검증과 승인 후 진행할 migration wave다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

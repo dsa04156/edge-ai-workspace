@@ -141,7 +141,7 @@ spec:
     kustomize: {}
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: telemetry
+    namespace: edgex-system
   syncPolicy:
     automated:
       prune: true

@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -142,13 +142,15 @@
 <ol><li>현재 PoC 범위 정의서</li><li>레포 구조와 컴포넌트 역할표</li><li>현재 데모 실행/점검 runbook</li><li>운영 상태 판단 기준과 troubleshooting guide</li><li>실공장 적용성 설명 자료</li></ol>
 <h2 id="현재-구현-방향">현재 구현 방향</h2>
 <p>물리 디바이스 연동은 다음 권위 경로로 교체한다.</p>
-<pre data-lang="text"><code>physical MQTT / Serial / Modbus / OPC-UA / RTSP device
-  -&gt; EdgeX Device Service
-  -&gt; EdgeX MessageBus / Core Data
+<pre data-lang="text"><code>physical I2C / Serial / Modbus / OPC-UA device
+  -&gt; Protocol Adapter
+  -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS -&gt; central ingest gateway -&gt; Core Data
   -&gt; AI services / storage / state-aggregator
   -&gt; dashboard / service demo view</code></pre>
+<p>RTSP frame은 이 telemetry 경로에 넣지 않고 요청 시 Workflow Pod가 직접 구독한다. 카메라 상태와 분석 결과 metadata만 canonical Event로 전달한다. MQTT는 MQTT-only 장비나 명시적 local pub/sub 요구가 실제로 확인된 뒤 별도 Protocol Adapter로 검증한다. 현재 MQTT workload는 없다. 중앙 EdgeX internal MessageBus는 stock Core runtime 내부 구성이지 물리 노드의 northbound 전송 경로가 아니다.</p>
 <p>KubeEdge는 edge node와 workload 관리에만 사용한다. MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus와 mapper direct-to-Influx는 legacy physical integration 경로이며 병행 status/control plane 또는 fallback으로 사용하지 않는다.</p>
-<p>현재 delivered 단계는 <code>vib-arduino-acceleration-01</code> MQTT canary와 EdgeX 기반 state-aggregator/dashboard cutover 코드다. 실제 운영 환경 cutover는 별도 smoke로 확인해야 하며 Serial, Modbus, OPC-UA, RTSP는 protocol별 migration gate를 통과하기 전까지 완료로 주장하지 않는다.</p>
+<p>현재 repository delivered 단계는 loopback Protocol Adapter 계약, direct-mode agent, SQLite outbox, HTTPS ingest gateway, Metadata bootstrap과 EdgeX 기반 state-aggregator/dashboard 계약이다. 새 image의 실제 운영 환경 cutover는 별도 smoke로 확인해야 한다. <code>sensehat-001</code>은 교체 가능한 검증 fixture이며 Serial, Modbus, OPC-UA와 RTSP workflow는 protocol별 migration gate를 통과하기 전까지 완료로 주장하지 않는다. 과거 Jetson MQTT mode는 현재 render에서 제거된 비교 기록이다.</p>
 <h2 id="현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</h2>
 <p>다음 경로는 현재 연구 방향에서 진행하지 않는다. 새 문서나 발표자료에서 현재 예정된 기능처럼 표현하지 않는다.</p>
 <ul><li>동적 workflow 분해/실행</li><li>runtime replanning</li><li>placement engine 기반 자동 재배치</li><li>cost model 기반 offloading 판단</li><li>workflow_executor 중심 orchestration</li><li>workflow_reporter 중심 stage event pipeline</li><li>agent-assisted planning layer</li><li>LLM이 전체 플랫폼 제어를 수행하는 구조</li><li>전체 플랫폼 자율 제어형 orchestration</li></ul>

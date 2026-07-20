@@ -35,7 +35,7 @@ Dashboard는 다음 질문에 답해야 한다.
 | `source` | physical authority이며 현재 값은 `edgex` |
 | `name` | Core Metadata Device 이름 |
 | `profile_name` | Device Profile |
-| `device_service_name` | 관리 EdgeX Device Service |
+| `device_service_name` | Core Metadata 호환용 논리 수집 서비스 식별자 |
 | `protocol_names` | 등록 protocol 목록 |
 | `admin_state` | Core Metadata 관리 허용 상태 |
 | `operating_state` | Device Service가 보고한 동작 상태 |
@@ -92,13 +92,13 @@ Physical-device KPI의 분모는 Core Metadata inventory다.
 
 Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.
 
-## MQTT canary와 전달 상태
+## direct 전달 상태
 
-현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`, namespace는 `telemetry`다. 대시보드의 현재 MQTT 입력 대상은 `arduino-001`과 `sensehat-001`이다.
+현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, agent namespace는 `edgex-edge`다. 대시보드의 임시 검증 입력은 `sensehat-001` 1개이며 `arduino-001`, Jetson MQTT agent와 MQTT profile은 현재 contract에서 제거되었다.
 
-2026-07-14 UNO와 2026-07-15 Sense HAT canary에서 typed Event/Reading을 확인했다. 이 결과는 장비·profile·dashboard contract의 근거이며 중앙 server2 MessageBus/Core/PostgreSQL topology와 대시보드 중앙 조회 전환은 별도 live evidence가 필요하다.
+2026-07-14 UNO와 2026-07-15 Sense HAT canary, 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Event 계약과 durable replay의 과거 근거다. 현재 중앙 server2 Core/PostgreSQL과 대시보드 조회 전환은 같은 실행에서 새 live evidence를 확보해야 하며 특정 publisher 교체 여부와 분리한다.
 
-Serial, Modbus, OPC-UA, RTSP는 프로토콜별 live EdgeX migration evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.
+Serial, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.
 
 ## Workflow/augmentation 경계
 

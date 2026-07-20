@@ -120,26 +120,26 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>서비스 데모 시나리오</h1>
-          <p class="subtitle">EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 물리 범위는 MQTT c…</p>
+          <p class="subtitle">EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 구현 범위는 direct…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-데모-시나리오.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="서비스-데모-시나리오">서비스 데모 시나리오</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 물리 범위는 MQTT canary <code>vib-arduino-acceleration-01</code>과 EdgeX-backed state-aggregator/dashboard다.</p>
-<pre data-lang="text"><code>physical vibration device
-  -&gt; EdgeX MQTT Device Service
-  -&gt; EdgeX MessageBus / Core Data
+<p>이 문서는 EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 구현 범위는 direct agent·SQLite/HTTPS 경로와 EdgeX-backed state-aggregator/dashboard다. Sense HAT <code>sensehat-001</code>은 교체 가능한 검증 fixture다.</p>
+<pre data-lang="text"><code>Sense HAT (I2C)
+  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway -&gt; EdgeX Core Data
   -&gt; AI services / storage / dashboard</code></pre>
 <h2 id="대표-시나리오">대표 시나리오</h2>
-<p>대표 시나리오는 “MQTT 진동 canary의 EdgeX 등록·연결·event freshness·최신 reading과 서비스 consumer 연결을 한 화면에서 확인한다”이다.</p>
+<p>대표 시나리오는 “승인된 Protocol Adapter 입력의 EdgeX 등록·local durable queue·event freshness·최신 reading과 서비스 consumer 연결을 한 화면에서 확인한다”이다.</p>
 <p>이 시나리오가 증명하는 것은 다음과 같다.</p>
-<ul><li>Core Metadata device가 물리 inventory와 상태의 권위다.</li><li>Device Service가 profile과 MQTT protocol로 canary를 소유한다.</li><li>Core Data 최신 event가 freshness와 reading의 권위다.</li><li>AI 서비스, 저장소, dashboard가 EdgeX 경로의 consumer다.</li><li>운영자는 상태와 데이터 문제를 한 경로에서 좁힐 수 있다.</li></ul>
+<ul><li>Core Metadata device가 물리 inventory와 상태의 권위다.</li><li>Protocol Adapter가 I2C sample을 profile에 맞는 canonical Event로 만든다.</li><li>edge agent가 SQLite commit과 HTTPS replay를 담당한다.</li><li>Core Data 최신 event가 freshness와 reading의 권위다.</li><li>AI 서비스, 저장소, dashboard가 EdgeX 경로의 consumer다.</li><li>운영자는 상태와 데이터 문제를 한 경로에서 좁힐 수 있다.</li></ul>
 <p>Live 설치·현장 배포 완료는 별도 실행 증거로만 주장한다. 이 문서와 예시 값은 배포 증거가 아니다.</p>
 <h2 id="구성-요소">구성 요소</h2>
 <div class="table-wrap"><table>
@@ -149,20 +149,20 @@
 </tr></thead>
 <tbody>
 <tr>
-<td><code>vib-arduino-acceleration-01</code></td>
-<td>현재 MQTT physical canary</td>
+<td><code>sensehat-001</code></td>
+<td>현재 Sense HAT I2C physical demo</td>
 </tr>
 <tr>
 <td>EdgeX Core Metadata</td>
 <td>device, profile, Device Service, protocol, admin/operating state 제공</td>
 </tr>
 <tr>
-<td>EdgeX MQTT Device Service</td>
-<td>canary 수집과 event 발행</td>
+<td>Protocol Adapter / edge agent</td>
+<td>I2C 수집, Event 정규화, SQLite 보존과 replay</td>
 </tr>
 <tr>
-<td>EdgeX MessageBus / Core Data</td>
-<td>event 전달, 최신 event와 history 제공</td>
+<td>ingest gateway / Core Data</td>
+<td>저장 확인, 최신 event와 history 제공</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
@@ -188,11 +188,13 @@
 <h2 id="데모-진행-순서">데모 진행 순서</h2>
 <h3 id="1-core-metadata-identity-확인">1. Core Metadata identity 확인</h3>
 <p><code>/state/devices</code>에서 canary를 찾고 다음을 확인한다.</p>
-<pre data-lang="text"><code>name = vib-arduino-acceleration-01
+<pre data-lang="text"><code>name = sensehat-001
 source = edgex
 profile_name is present
 device_service_name is present
-protocol_names includes mqtt
+profile_name = etri-sensehat
+device_service_name = edge-telemetry-agent
+protocol_names includes i2c
 admin_state is present
 operating_state is present</code></pre>
 <p>이 단계의 inventory 기준은 EdgeX Core Metadata다.</p>
@@ -206,10 +208,10 @@ operating_state is present</code></pre>
 <p>Freshness 기준은 <code>EDGEX_EVENT_FRESH_SECONDS</code>다. 최신 event가 fresh하다는 사실은 그 event에 포함되지 않은 모든 resource도 fresh하다는 뜻이 아니다.</p>
 <h3 id="4-consumer-관계-확인">4. Consumer 관계 확인</h3>
 <p>Dashboard relation에서 다음 경로를 확인한다.</p>
-<pre data-lang="text"><code>vib-arduino-acceleration-01
-  -&gt; EdgeX MQTT Device Service
+<pre data-lang="text"><code>sensehat-001
+  -&gt; I2C Protocol Adapter / edge-telemetry-agent
   -&gt; Core Data source/readings
-  -&gt; vibration AI / storage / dashboard</code></pre>
+  -&gt; sensor AI / storage / dashboard</code></pre>
 <p>Consumer 연결은 service binding이며 자동 workflow 실행이나 재배치를 뜻하지 않는다.</p>
 <h3 id="5-dashboard와-kpi-확인">5. Dashboard와 KPI 확인</h3>
 <ul><li><code>registered_device_count</code></li><li><code>available_device_count</code></li><li><code>degraded_device_count</code></li><li><code>unavailable_device_count</code></li><li><code>edgex_connected_device_count</code>, <code>edgex_connection_ratio</code></li><li><code>device_service_available_count</code>, <code>device_service_availability_ratio</code></li><li><code>core_data_event_device_count</code></li><li><code>fresh_core_data_event_device_count</code></li><li><code>stale_core_data_event_device_count</code></li><li><code>core_data_freshness_ratio</code></li><li><code>operator_focus_count</code></li></ul>
@@ -264,8 +266,12 @@ operating_state is present</code></pre>
 </tr></thead>
 <tbody>
 <tr>
+<td>I2C</td>
+<td><code>sensehat-001</code>은 현재 direct 경로의 교체 가능한 검증 fixture</td>
+</tr>
+<tr>
 <td>MQTT</td>
-<td>canary <code>vib-arduino-acceleration-01</code>만 현재 전달 범위</td>
+<td>현재 workload 없음; MQTT-only 장비 검증 후에만 broker·adapter 추가</td>
 </tr>
 <tr>
 <td>Serial</td>
@@ -281,14 +287,14 @@ operating_state is present</code></pre>
 </tr>
 <tr>
 <td>RTSP</td>
-<td>미구현 future migration wave</td>
+<td>Workflow Pod 직접 구독 future media wave</td>
 </tr>
 </tbody></table></div>
-<p>Future wave는 protocol별 Device Service/profile, 실제 장치, event contract, freshness 및 consumer 검증을 각각 통과해야 한다. MQTT canary 결과로 다른 protocol이 구현되었다고 주장하지 않는다.</p>
+<p>Future wave는 protocol별 adapter/profile, 실제 장치, event contract, freshness 및 consumer 검증을 각각 통과해야 한다. 검증 fixture 결과로 다른 protocol이 구현되었다고 주장하지 않는다.</p>
 <h2 id="생산성-향상-효과-설명">생산성 향상 효과 설명</h2>
 <ol><li>운영자가 물리 inventory, Device Service 연결, 최신 event를 서로 다른 시스템에서 수작업으로 대조하는 시간을 줄인다.</li><li>profile, protocol, admin/operating/connection, freshness를 한 화면에서 확인해 원인 후보를 좁힌다.</li><li>source/resource별 latest reading으로 AI와 저장소의 입력 영향 범위를 빠르게 설명한다.</li><li>focus list로 점검 순서를 정하되 agent나 dashboard가 직접 변경을 실행하지 않는다.</li><li>선택적 node diagnostics를 physical 상태와 분리해 잘못된 장애 판정을 줄인다.</li></ol>
 <h2 id="성공-기준">성공 기준</h2>
-<ul><li><code>/state/devices</code>에 canary가 <code>source=edgex</code>로 나타난다.</li><li>profile, Device Service, MQTT protocol, admin/operating/connection 필드가 계약과 일치한다.</li><li>Core Data event timestamp, freshness, latest readings가 표시된다.</li><li>AI/storage/dashboard consumer 관계가 EdgeX 경로로 설명된다.</li><li>node placement는 diagnostics로만 표시된다.</li><li>Serial, Modbus, OPC-UA, RTSP가 현재 구현으로 표시되지 않는다.</li><li>모든 설계·운영 보조 기능은 read-only 또는 dry-run이며 실제 리소스를 변경하지 않는다.</li></ul>
+<ul><li><code>/state/devices</code>에 canary가 <code>source=edgex</code>로 나타난다.</li><li>profile, logical Device Service, I2C protocol, admin/operating/connection 필드가 계약과 일치한다.</li><li>Core Data event timestamp, freshness, latest readings가 표시된다.</li><li>AI/storage/dashboard consumer 관계가 EdgeX 경로로 설명된다.</li><li>node placement는 diagnostics로만 표시된다.</li><li>Serial, Modbus, OPC-UA, RTSP가 현재 구현으로 표시되지 않는다.</li><li>모든 설계·운영 보조 기능은 read-only 또는 dry-run이며 실제 리소스를 변경하지 않는다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

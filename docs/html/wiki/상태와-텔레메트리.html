@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/상태와-텔레메트리.md</span>
-            <span class="badge">수정: 2026-07-20 14:52</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -134,9 +134,9 @@
 <p>현재 physical-device 상태는 EdgeX Core Metadata 관리 상태와 Core Data 최신 Event/Reading freshness로 판단한다. KubeEdge/Kubernetes는 node와 workload만 관리·관찰한다.</p>
 <h2 id="목표-권위와-데이터-경로">목표 권위와 데이터 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
-  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
-  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; state-aggregator -&gt; 대시보드</code></pre>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -161,7 +161,7 @@
 <td>placement, Node readiness, workload 상태</td>
 </tr>
 </tbody></table></div>
-<p>Core Metadata의 Device와 Profile은 중앙에 사전 등록하고, 엣지 Device Service가 프로토콜 연결과 표준화를 담당한다. KubeEdge/Kubernetes는 physical Device inventory, telemetry, command, availability의 원본이 아니다.</p>
+<p>Core Metadata의 Device와 Profile은 중앙에 사전 등록하고, Protocol Adapter가 프로토콜 연결과 표준화를, edge agent가 durable 전달을 담당한다. KubeEdge/Kubernetes는 physical Device inventory, telemetry, command, availability의 원본이 아니다.</p>
 <h2 id="event-reading과-freshness">Event/Reading과 freshness</h2>
 <p>Core Data Event의 <code>deviceName</code>은 inventory join key이고 <code>sourceName</code>은 telemetry source/resource다. <code>origin</code>은 nanoseconds 단위의 Event 시각이며, Reading은 <code>valueType</code>과 typed 값을 보존한다.</p>
 <p><code>state-aggregator</code>는 이를 다음 dashboard API field로 정규화한다.</p>
@@ -199,12 +199,12 @@
 <p><code>device_service_available</code>은 빠른 Device Service 상태 표시에 사용하지만 final availability를 단독으로 결정하지 않는다. <code>node_name</code>, Node Ready, workload 배치·상태는 별도 Kubernetes/KubeEdge diagnostic이며 physical availability의 선행 조건이나 gate가 아니다.</p>
 <h2 id="운영-진단-순서">운영 진단 순서</h2>
 <p>Physical device가 <code>degraded</code> 또는 <code>unavailable</code>이면 다음 근거를 순서대로 확인한다.</p>
-<ol><li>Core Metadata Device, Profile, Device Service가 의도한 binding으로 등록되어 있는지</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>와 <code>device_service_available</code></li><li>Core Data 최신 Event의 <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>, typed Readings</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code></li><li>엣지 Device Service, 중앙 MessageBus, Core Data/PostgreSQL, state-aggregator 연결</li><li>필요할 때만 관련 KubeEdge/Kubernetes node와 workload placement</li></ol>
+<ol><li>Core Metadata Device, Profile, Device Service가 의도한 binding으로 등록되어 있는지</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>와 <code>device_service_available</code></li><li>Core Data 최신 Event의 <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>, typed Readings</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code></li><li>Protocol Adapter, agent outbox, HTTPS gateway, Core Data/PostgreSQL, state-aggregator 연결</li><li>필요할 때만 관련 KubeEdge/Kubernetes node와 workload placement</li></ol>
 <p>Kubernetes node/workload 문제는 EdgeX physical state와 분리해 서비스 실행 또는 placement 진단으로 설명한다.</p>
-<h2 id="mqtt-canary와-중앙-전환-상태">MQTT canary와 중앙 전환 상태</h2>
-<p>기존 Jetson 로컬 MQTT → bridge → <code>device-mqtt</code> → Core Data/PostgreSQL 경로에서는 2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 확인했다.</p>
+<h2 id="direct-agent와-중앙-전환-상태">direct agent와 중앙 전환 상태</h2>
+<p>현재 <code>sensehat-001</code>은 loopback agent → SQLite → HTTPS gateway → Core Data/PostgreSQL 경로를 확인하는 교체 가능한 fixture다. 과거 MQTT canary는 비교 기록에만 남고 현재 Jetson compatibility workload는 없다.</p>
 <p>이 결과는 장비·profile·Reading 계약의 근거다. 중앙 server2 topology와 대시보드 중앙 조회 전환은 각각 별도 live evidence를 확보해야 한다.</p>
-<p>현재 승인된 프로토콜은 MQTT 하나다. 1차 수직 슬라이스에는 SQLite offline replay가 없어 장애 시 telemetry가 유실될 수 있다. Serial, Modbus, OPC-UA, RTSP는 각각 profile, 실장비 연결, command·state·telemetry, dashboard consumer 증거를 확보하기 전까지 완료로 주장하지 않는다.</p>
+<p>1차 수직 슬라이스는 SQLite offline replay와 Core Data persisted ACK를 포함한다. Serial, Modbus, OPC-UA와 추가 I2C adapter는 profile, 실장비 연결, typed telemetry와 dashboard consumer 증거를 확보하기 전까지 완료로 주장하지 않는다. RTSP frame은 별도 Workflow Pod가 직접 구독한다.</p>
 <h2 id="제외한-legacy-신호">제외한 legacy 신호</h2>
 <p>다음은 current physical health, telemetry freshness, dashboard KPI의 입력이나 fallback이 아니다.</p>
 <ul><li>KubeEdge <code>DeviceStatus</code> 및 DeviceStatus freshness</li><li>MapperFramework, mapper readiness, <code>mqttvirtual</code></li><li>mapper direct-to-Influx latest sample</li><li>legacy <code>command</code>/<code>heartbeat</code> topic과 mapper heartbeat</li></ul>
@@ -222,7 +222,7 @@
 <li class="toc-h2"><a href="#event-reading과-freshness">Event/Reading과 freshness</a></li>
 <li class="toc-h2"><a href="#availability-해석">Availability 해석</a></li>
 <li class="toc-h2"><a href="#운영-진단-순서">운영 진단 순서</a></li>
-<li class="toc-h2"><a href="#mqtt-canary와-중앙-전환-상태">MQTT canary와 중앙 전환 상태</a></li>
+<li class="toc-h2"><a href="#direct-agent와-중앙-전환-상태">direct agent와 중앙 전환 상태</a></li>
 <li class="toc-h2"><a href="#제외한-legacy-신호">제외한 legacy 신호</a></li>
 <li class="toc-h2"><a href="#workflow-augmentation-경계">Workflow/augmentation 경계</a></li>
 <li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>

@@ -120,42 +120,36 @@
         <header class="doc-header">
           <p class="eyebrow">운영 문서</p>
           <h1>중앙 메시지버스 배치 재구축 절차</h1>
-          <p class="subtitle">telemetry namespace의 EdgeX 라벨 자원을 엣지 Device Service → 중앙 EdgeX MessageB…</p>
+          <p class="subtitle">더 이상 실행 가능한 운영 절차가 아니다.</p>
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/중앙-메시지버스-재구축-절차.md</span>
-            <span class="badge">수정: 2026-07-20 15:04</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="중앙-메시지버스-배치-재구축-절차">중앙 메시지버스 배치 재구축 절차</h1>
-<h2 id="목적">목적</h2>
-<p>이 문서는 <code>telemetry</code> namespace의 EdgeX 라벨 자원을 엣지 Device Service → 중앙 EdgeX MessageBus → Core Data·PostgreSQL topology로 재구축할 때 사용하는 파괴적 운영 절차다. 일상 점검은 <code>현재-데모-운영-절차.md</code>를 사용하고, 이 문서는 승인된 전체 재구축에서만 사용한다.</p>
-<h2 id="파괴적-작업-경고">파괴적 작업 경고</h2>
-<p>아래 절차는 <code>app.kubernetes.io/part-of=edgex-telemetry</code> 라벨이 붙은 Deployment, StatefulSet, Job, Service, ConfigMap, Secret, PVC만 삭제한다. <code>telemetry</code> namespace 자체와 InfluxDB, Redis 등 다른 서비스는 삭제하지 않는다. 기존 telemetry 데이터의 backup·migration·무중단 전환은 현재 범위에 없다. 명시적인 재구축 승인 없이 삭제 명령을 실행하지 않는다.</p>
-<h2 id="사전-조건">사전 조건</h2>
-<ul><li>대상 cluster와 kube context를 운영자가 확인했다.</li><li><code>edgex/k8s/kustomization.yaml</code>이 현재 승인된 root 진입점이다.</li><li>render와 server-side dry-run이 성공했다.</li><li>삭제 대상이 <code>telemetry</code> 안의 EdgeX 라벨 자원인지 확인했다.</li><li>중앙 노드 <code>etri-ser0002-cgnmsb</code>, Jetson <code>etri-dev0001-jetorn</code>, Raspberry Pi <code>etri-dev0003-raspi5</code>가 존재한다.</li><li>세 노드의 EdgeMesh agent에서 Kubernetes DNS 질의가 성공한다.</li></ul>
-<h2 id="읽기-전용-확인">읽기 전용 확인</h2>
-<pre data-lang="bash"><code>edgex/k8s/scripts/rebuild-central-messagebus.sh</code></pre>
-<p>render 결과에서 다음 배치를 확인한다.</p>
-<ul><li>Core Keeper, Core Metadata, Core Data, Core Command, MessageBus, PostgreSQL: <code>etri-ser0002-cgnmsb</code></li><li><code>edgex-device-mqtt</code>: <code>etri-dev0001-jetorn</code></li><li><code>edgex-device-mqtt-sensehat</code>: <code>etri-dev0003-raspi5</code></li><li>Edge node에는 Core, MessageBus, PostgreSQL workload가 없음</li></ul>
-<h2 id="승인-후-재구축">승인 후 재구축</h2>
-<pre data-lang="bash"><code>edgex/k8s/scripts/rebuild-central-messagebus.sh --execute</code></pre>
-<p>스크립트는 render, server-side dry-run, node 존재 여부, EdgeMesh DNS를 먼저 검사한다. 그 뒤 EdgeX 라벨 자원만 교체하고 PostgreSQL, MessageBus, Keeper, 공통설정 bootstrap Job, Core 서비스, Device Service 순서로 Ready를 확인한다.</p>
-<h2 id="재구축-후-검증">재구축 후 검증</h2>
-<ol><li>중앙 workload가 모두 server2에서 Ready인지 확인한다.</li><li>두 Device MQTT workload가 지정된 엣지 노드에서 Ready인지 확인한다.</li><li>Core Metadata에서 Device, Profile, Device Service 등록을 확인한다.</li><li>UNO와 Sense HAT MQTT payload를 발행한다.</li><li>Core Data에서 typed Event/Reading과 <code>origin</code>을 확인한다.</li><li>PostgreSQL 저장을 확인한다.</li><li><code>/state/devices</code>에서 중앙 inventory와 fresh Event가 표시되는지 확인한다.</li><li>중앙 MessageBus 중단 시 데이터 유실 가능성을 확인하고, 복구 뒤 새 Event 수집이 재개되는지 확인한다.</li></ol>
-<h2 id="현재-장애-계약">현재 장애 계약</h2>
-<ul><li>SQLite offline replay가 없다.</li><li>중앙 MessageBus 또는 네트워크 장애 시 telemetry가 유실될 수 있다.</li><li>복구 성공 기준은 연결 회복 뒤 새 Event 수집 재개다.</li><li>과거 누락분 자동 재전송을 기대하지 않는다.</li><li>SQLite replay와 PostgreSQL persisted acknowledgement는 별도 승인된 설계가 필요하다.</li></ul>
+          <h1 id="중앙-messagebus-직접-수집-재구축-절차-폐기">중앙 MessageBus 직접 수집 재구축 절차 — 폐기</h1>
+<h2 id="상태">상태</h2>
+<p>이 문서는 더 이상 실행 가능한 운영 절차가 아니다.</p>
+<p>과거 <code>telemetry</code> namespace의 edge Device Service -&gt; 중앙 MessageBus 직접 수집 topology는 현재 HTTPS telemetry plane으로 교체되었다. 이 파일의 예전 명령으로 namespace, Deployment 또는 PVC를 재구축하면 현재 <code>edgex-system</code> / <code>edgex-edge</code> 구성과 Secret을 손상시킬 수 있다.</p>
+<h2 id="현재-진입점">현재 진입점</h2>
+<ul><li>배포: <code>edgex/k8s/kustomization.yaml</code></li><li>운영 점검: <a href="현재-데모-운영-절차.html">현재 서비스 데모 운영 절차</a></li><li>아키텍처: <a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li></ul>
+<p>현재 경로:</p>
+<pre data-lang="text"><code>Protocol Adapter
+  -&gt; edge-telemetry-agent
+  -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Core Data / PostgreSQL</code></pre>
+<p>중앙 <code>edgex-messagebus</code>는 stock EdgeX Core의 중앙 런타임/consumer용으로만 남는다. 물리 node의 Device Service가 여기에 직접 발행하는 topology를 복구하지 않는다.</p>
+<h2 id="파괴적-재설치">파괴적 재설치</h2>
+<p>데이터 삭제, namespace 재생성 또는 PVC 제거가 필요하면 대상 namespace, 보존할 shared workload, Secret 재발급, image digest와 복구 검증을 별도 작업 문서로 먼저 승인한다. 이 폐기 문서는 그 권한이나 절차를 제공하지 않는다.</p>
+<p>과거 전환 기록은 <code>docs/archive/integration/</code>에서 비교 근거로만 확인한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#파괴적-작업-경고">파괴적 작업 경고</a></li>
-<li class="toc-h2"><a href="#사전-조건">사전 조건</a></li>
-<li class="toc-h2"><a href="#읽기-전용-확인">읽기 전용 확인</a></li>
-<li class="toc-h2"><a href="#승인-후-재구축">승인 후 재구축</a></li>
-<li class="toc-h2"><a href="#재구축-후-검증">재구축 후 검증</a></li>
-<li class="toc-h2"><a href="#현재-장애-계약">현재 장애 계약</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태">상태</a></li>
+<li class="toc-h2"><a href="#현재-진입점">현재 진입점</a></li>
+<li class="toc-h2"><a href="#파괴적-재설치">파괴적 재설치</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

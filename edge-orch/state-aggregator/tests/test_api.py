@@ -93,6 +93,8 @@ def test_virtual_device_routes_are_not_registered():
 
 
 def test_resource_profile_endpoints_return_service_requirement_profiles(monkeypatch):
+    monkeypatch.setattr(service.settings, "resource_profile_recording_mode", "scheduled")
+
     async def fake_running_service_pods():
         return [
             {
@@ -721,7 +723,7 @@ def test_device_telemetry_history_endpoint_returns_edgex_points(monkeypatch):
     assert point["value"] == 24.3
 
 
-def test_settings_default_to_telemetry_namespace_edgex_services(monkeypatch):
+def test_settings_default_to_central_edgex_services(monkeypatch):
     monkeypatch.delenv("EDGEX_CORE_METADATA_URL", raising=False)
     monkeypatch.delenv("EDGEX_CORE_DATA_URL", raising=False)
 
@@ -729,9 +731,19 @@ def test_settings_default_to_telemetry_namespace_edgex_services(monkeypatch):
 
     assert (
         settings.edgex_core_metadata_url
-        == "http://edgex-core-metadata.telemetry.svc.cluster.local:59881"
+        == "http://edgex-core-metadata.edgex-system.svc.cluster.local:59881"
     )
     assert (
         settings.edgex_core_data_url
-        == "http://edgex-core-data.telemetry.svc.cluster.local:59880"
+        == "http://edgex-core-data.edgex-system.svc.cluster.local:59880"
     )
+
+
+def test_settings_disable_optional_influx_recording_by_default(monkeypatch):
+    monkeypatch.delenv("RESOURCE_PROFILE_RECORDING_MODE", raising=False)
+    monkeypatch.delenv("INFLUXDB_URL", raising=False)
+
+    settings = Settings()
+
+    assert settings.resource_profile_recording_mode == "disabled"
+    assert settings.influxdb_url == "http://influxdb:8086"

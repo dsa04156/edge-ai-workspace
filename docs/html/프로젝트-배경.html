@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-배경.md</span>
-            <span class="badge">수정: 2026-07-20 14:50</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -161,7 +161,12 @@
 <tr>
 <td>Raspberry Pi 5</td>
 <td><code>etri-dev0002-raspi5</code></td>
-<td>edge light device</td>
+<td>AI HAT resource 후보</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td><code>etri-dev0003-raspi5</code></td>
+<td>Sense HAT I2C input source</td>
 </tr>
 </tbody></table></div>
 <h2 id="현재-우선순위">현재 우선순위</h2>
@@ -169,28 +174,29 @@
 <h2 id="현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</h2>
 <p>물리 디바이스 통합의 권위 경로는 다음 하나뿐이다.</p>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
-  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
-  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Jetson 또는 Raspberry Pi의 Protocol Adapter
+  -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>command는 Core Command에서 해당 프로토콜을 독점 연결한 EdgeX Device Service로 전달한다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 Core Keeper, Metadata, Data, Command, MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li><code>edgex-device-mqtt</code>는 <code>etri-dev0001-jetorn</code>, <code>edgex-device-mqtt-sensehat</code>는 <code>etri-dev0003-raspi5</code>에 배치한다.</li></ul>
-<p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 이 중앙 MessageBus topology를 렌더링한다. <code>edgex/telemetry-plane/</code>, HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays는 비활성 대안 설계·프로토타입이며 현재 배포 경로가 아니다.</p>
-<p>1차 MQTT 수직 슬라이스에는 SQLite offline replay가 없다. 중앙 MessageBus 또는 네트워크 장애 시 telemetry가 유실될 수 있고, 복구 기준은 연결 회복 뒤 새 Event 수집이 재개되는 것이다.</p>
+<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 command 실행은 비활성이고 Device Profile은 read-only schema를 제공한다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>현재 live 검증 fixture는 <code>etri-dev0003-raspi5</code>의 direct agent와 <code>sensehat-001</code>이다. root render에는 Jetson MQTT agent나 edge-local broker가 없다.</li></ul>
+<p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 중앙 <code>edgex-system</code> overlay와 edge <code>edgex-edge</code> agent overlay를 렌더링한다. <code>edgex/telemetry-plane/</code>, HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays가 현재 구현·배포 경로다.</p>
+<p>1차 Sense HAT 수직 슬라이스는 SQLite offline replay를 포함한다. 중앙 gateway 또는 네트워크 장애 중 Event를 보존하고 Core Data persisted ACK를 확인한 뒤에만 outbox에서 삭제한다.</p>
 <p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 기존 canary에서 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology live cutover 완료를 자동으로 뜻하지 않는다.</p>
-<p>Serial, Modbus, OPC-UA, RTSP는 목표 아키텍처에 포함되지만 아직 완료로 주장하지 않는다. 각 프로토콜은 해당 EdgeX Device Service, profile, 실제 장비 연결, 명령·상태·telemetry 검증을 독립 migration wave로 통과한 뒤 현재 범위로 승격한다.</p>
+<p>Serial, Modbus, OPC-UA와 추가 I2C 장비는 목표 아키텍처에 포함되지만 아직 완료로 주장하지 않는다. 각 프로토콜은 해당 adapter, profile, 실제 장비 연결과 typed telemetry 검증을 독립 wave로 통과한 뒤 승격한다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media wave다.</p>
 <p><code>state-aggregator</code>와 대시보드는 중앙 EdgeX Core Metadata/Core Data를 소비하는 현재 cutover 대상이다. Prometheus/Kubernetes 정보는 node/workload 관찰을 보조하지만 물리 디바이스 상태를 결정하지 않는다. 과거 워크플로 실행·배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
 <h2 id="디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</h2>
-<p>EdgeX Core Metadata에 Device Profile과 Device를 사전 등록한다. Device Service는 Device의 <code>protocols</code>에 정의된 endpoint를 독점 사용하고, profile resource에 따라 값을 정규화하며, operating state와 command를 관리한다. 임의의 MQTT topic 발행만으로 Core Metadata Device가 자동 생성되지는 않는다. discovery를 지원하는 프로토콜도 승인과 profile 검증 없이 current inventory로 승격하지 않는다.</p>
+<p>EdgeX Core Metadata에 Device Profile과 Device를 사전 등록한다. Protocol Adapter는 Device의 <code>protocols</code>에 정의된 endpoint를 사용하고 profile resource에 맞는 canonical Event를 만든다. agent는 Event를 durable queue에 수용하고 중앙 전달을 담당한다. 임의의 MQTT topic이나 HTTP POST만으로 Core Metadata Device가 자동 생성되지는 않는다.</p>
 <p>availability는 EdgeX 관리 상태와 최신 Core Data event를 다음 순서로 해석한다.</p>
 <ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>이면 <code>unavailable</code>/<code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code>/<code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 event가 freshness 기준 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이어도 event가 없거나 stale이면 <code>degraded</code>.</li></ol>
-<h2 id="mqtt-canary">MQTT canary</h2>
-<p>현재 첫 canary 입력은 다음 canonical topic을 사용한다.</p>
+<h2 id="과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</h2>
+<p>과거 canary 입력은 다음 canonical topic을 사용했다.</p>
 <pre data-lang="text"><code>factory/devices/{device-name}/telemetry</code></pre>
-<p>canary bridge는 payload를 route profile로 검증/정규화하여 EdgeX device-mqtt async topic으로 전달하고, stock device-mqtt가 typed Event/Readings를 Core Data에 기록한다. 이는 MQTT canary의 전달 범위이며 Serial/Modbus/OPC-UA/RTSP 완료나 live cluster cutover 완료를 뜻하지 않는다.</p>
+<p>이 Jetson MQTT agent는 현재 root render와 live EdgeX Metadata에서 제거되었다. MQTT-only 장비나 local pub/sub 요구가 확인되면 별도 Protocol Adapter와 broker를 독립 검증한 뒤에만 새 운영 경로로 추가한다.</p>
 <p><code>mappers/script/test_device.py</code>, <code>mappers/mqttvirtual/</code>, KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, mapper의 direct-to-Influx 경로와 다음 topic 규칙은 legacy physical integration/test 경로다.</p>
 <pre data-lang="text"><code>factory/devices/{device-name}/command
 factory/devices/{device-name}/heartbeat</code></pre>
-<p>이 legacy 경로는 현재 EdgeX status/control plane과 병행해서 실행하거나 fallback으로 사용하지 않는다. 과거 데이터나 manifest는 마이그레이션 비교 자료일 수 있지만 Core Metadata inventory, Core Data telemetry, EdgeX Device Service command보다 우선하지 않는다.</p>
+<p>이 legacy 경로는 현재 EdgeX status/control plane과 병행해서 실행하거나 fallback으로 사용하지 않는다. 과거 데이터나 manifest는 마이그레이션 비교 자료일 수 있지만 Core Metadata inventory, Core Data telemetry와 별도 승인된 Adapter/command 경로보다 우선하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
@@ -198,7 +204,7 @@ factory/devices/{device-name}/heartbeat</code></pre>
 <li class="toc-h2"><a href="#현재-우선순위">현재 우선순위</a></li>
 <li class="toc-h2"><a href="#현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</a></li>
 <li class="toc-h2"><a href="#디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</a></li>
-<li class="toc-h2"><a href="#mqtt-canary">MQTT canary</a></li></ol></aside>
+<li class="toc-h2"><a href="#과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

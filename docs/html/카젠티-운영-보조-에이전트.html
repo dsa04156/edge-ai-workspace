@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 카젠티-운영-보조-에이전트.md</span>
-            <span class="badge">수정: 2026-07-20 14:39</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -198,7 +198,7 @@ latest_event_timestamp
 latest_readings[]
 telemetry_freshness
 node_name</code></pre>
-<p><code>source=edgex</code>이며, profile/Device Service/protocol/admin/operating 정보는 Core Metadata에서 온다. Event timestamp, <code>source_name</code>, <code>resource_name</code>, value는 Core Data에서 온다. <code>node_name</code>은 선택적 진단 정보다.</p>
+<p><code>source=edgex</code>이며, profile/논리 수집 서비스/protocol/admin/operating 정보는 Core Metadata에서 온다. Event timestamp, <code>source_name</code>, <code>resource_name</code>, value는 Core Data에서 온다. <code>node_name</code>은 선택적 진단 정보다.</p>
 <h2 id="운영자-요약-예시">운영자 요약 예시</h2>
 <pre data-lang="text"><code>EdgeX 기반 read-only 운영 보조 요약입니다.
 Core Metadata 등록 device 1개 중 available device 1개,
@@ -207,38 +207,38 @@ Core Data event freshness 비율은 1.0입니다.</code></pre>
 <p>수치 예시는 payload 형식 설명용이며 live 환경의 현재 수치를 주장하지 않는다.</p>
 <h2 id="focus-device-예시">Focus device 예시</h2>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;vib-arduino-acceleration-01&quot;,
+  &quot;name&quot;: &quot;sensehat-001&quot;,
   &quot;node_name&quot;: null,
   &quot;status&quot;: &quot;degraded&quot;,
-  &quot;reason&quot;: &quot;EdgeX device service is UP but latest Core Data event is stale&quot;,
+  &quot;reason&quot;: &quot;Edge telemetry agent is UP but latest Core Data event is stale&quot;,
   &quot;admin_state&quot;: &quot;UNLOCKED&quot;,
   &quot;operating_state&quot;: &quot;UP&quot;,
   &quot;device_service_available&quot;: true,
   &quot;telemetry_freshness&quot;: &quot;stale&quot;
 }</code></pre>
-<p>Focus payload는 <code>/state/devices</code> 계약의 운영 판단 필드만 요약한다. 상세 조사에서는 원본 항목의 <code>source</code>, profile, Device Service, protocol, <code>latest_event_timestamp</code>, <code>latest_readings</code>를 함께 확인한다.</p>
+<p>Focus payload는 <code>/state/devices</code> 계약의 운영 판단 필드만 요약한다. 상세 조사에서는 원본 항목의 <code>source</code>, profile, 논리 수집 서비스, protocol, <code>latest_event_timestamp</code>, <code>latest_readings</code>를 함께 확인한다.</p>
 <h2 id="recommended-action-예시">Recommended action 예시</h2>
-<pre data-lang="text"><code>vib-arduino-acceleration-01: Core Data 최신 event와 EdgeX Device Service 수집 경로를 확인한다.</code></pre>
+<pre data-lang="text"><code>sensehat-001: I2C adapter, edge outbox, HTTPS gateway와 Core Data 최신 event를 순서대로 확인한다.</code></pre>
 <p>추천 규칙:</p>
-<ul><li><code>admin_state=LOCKED</code>: Core Metadata admin 정책을 확인한다.</li><li><code>operating_state</code>가 UP이 아니거나 <code>device_service_available=false</code>: EdgeX Device Service와 device connection을 확인한다.</li><li><code>telemetry_freshness</code>가 fresh가 아님: Core Data 최신 event, profile resource, event source를 확인한다.</li><li>필요할 때에만 node/workload placement를 별도 진단한다.</li></ul>
+<ul><li><code>admin_state=LOCKED</code>: Core Metadata admin 정책을 확인한다.</li><li><code>operating_state</code>가 UP이 아니거나 <code>device_service_available=false</code>: 논리 수집 서비스 등록, agent health와 physical adapter connection을 확인한다.</li><li><code>telemetry_freshness</code>가 fresh가 아님: Core Data 최신 event, profile resource, event source를 확인한다.</li><li>필요할 때에만 node/workload placement를 별도 진단한다.</li></ul>
 <p>Agent는 점검 순서를 제안할 뿐 명령을 실행하지 않는다.</p>
 <h2 id="서비스-영향-설명">서비스 영향 설명</h2>
 <p>Assistant가 설명하는 binding은 다음 흐름이다.</p>
 <pre data-lang="text"><code>EdgeX Device
-  -&gt; EdgeX Device Service
-  -&gt; EdgeX MessageBus / Core Data
+  -&gt; Protocol Adapter -&gt; edge telemetry agent / SQLite outbox
+  -&gt; HTTPS ingest gateway -&gt; Core Data / PostgreSQL
   -&gt; AI service / storage / dashboard</code></pre>
-<p>운영자는 profile, protocol, Device Service와 Core Data source/resource를 통해 어느 consumer가 영향을 받는지 확인한다. 이 관계는 workflow orchestration이나 자동 placement가 아니다.</p>
+<p>운영자는 profile, protocol, 논리 수집 서비스, adapter/agent 상태와 Core Data source/resource를 통해 어느 consumer가 영향을 받는지 확인한다. 이 관계는 workflow orchestration이나 자동 placement가 아니다.</p>
 <h2 id="guardrail">Guardrail</h2>
 <p>금지 범위:</p>
-<ul><li>EdgeX Core Metadata device/profile 수정</li><li>Device Service 재시작·재배포</li><li>MQTT 또는 다른 protocol command 발행</li><li>Kubernetes 리소스 생성·수정·삭제</li><li>actuator 직접 제어</li><li>자동 placement/offloading/workflow 실행</li><li>LLM 기반 전역 제어</li></ul>
+<ul><li>EdgeX Core Metadata device/profile 수정</li><li>Protocol Adapter 또는 telemetry agent 재시작·재배포</li><li>MQTT 또는 다른 protocol command 발행</li><li>Kubernetes 리소스 생성·수정·삭제</li><li>actuator 직접 제어</li><li>자동 placement/offloading/workflow 실행</li><li>LLM 기반 전역 제어</li></ul>
 <p>허용 범위:</p>
 <ul><li>state-aggregator read-only API 조회</li><li>EdgeX KPI와 device 상태 요약</li><li>degraded/unavailable device 목록화</li><li>Core Data event freshness와 latest readings 설명</li><li>runbook 기반 점검 순서 제안</li><li>AI/storage/dashboard consumer 영향 범위 설명</li></ul>
 <p>Workflow designer와 assistant preview는 dry-run/no-mutation 경계를 유지한다.</p>
 <h2 id="현재-physical-범위">현재 physical 범위</h2>
-<p>현재 전달된 물리 경로는 MQTT canary <code>vib-arduino-acceleration-01</code>이다. Serial, Modbus, OPC-UA, RTSP는 구현되지 않은 future migration wave이며 assistant가 현재 연결·정상 대상으로 요약해서는 안 된다. 각 wave는 Device Service/profile, 실제 protocol 연결, Core Data event와 consumer 처리를 검증한 뒤 별도로 활성화한다.</p>
+<p>현재 repository에 전달된 물리 경로는 loopback Protocol Adapter, direct-mode agent, SQLite outbox와 HTTPS gateway 경로다. <code>sensehat-001</code>은 교체 가능한 검증 fixture다. 새 image의 live cutover 증거가 없으면 assistant는 이를 운영 전환 완료로 요약해서는 안 된다. 현재 Jetson MQTT workload는 없으며 MQTT-only·Serial·Modbus·OPC-UA와 RTSP workflow는 future migration wave다. 각 wave는 Adapter/profile, 실제 protocol 연결, durable replay, Core Data event와 consumer 처리를 검증한 뒤 별도로 활성화한다.</p>
 <h2 id="생산성-표현">생산성 표현</h2>
-<pre data-lang="text"><code>Kagenti operator assistant는 EdgeX 기반 device identity, Device Service 상태와 Core Data event freshness를 read-only로 요약한다. 운영자는 전체 장치를 개별 명령으로 확인하기 전에 focus list와 추천 점검 순서로 문제 범위를 좁히고, source/resource별 최신 reading과 AI·저장소·dashboard 영향 범위를 확인할 수 있다.</code></pre>
+<pre data-lang="text"><code>Kagenti operator assistant는 EdgeX 기반 device identity, 논리 수집 서비스 상태와 Core Data event freshness를 read-only로 요약한다. 운영자는 전체 장치를 개별 명령으로 확인하기 전에 focus list와 추천 점검 순서로 문제 범위를 좁히고, source/resource별 최신 reading과 AI·저장소·dashboard 영향 범위를 확인할 수 있다.</code></pre>
 <p>이는 운영 점검 경로를 단순화하는 PoC 언어다. 자동 복구, live deployment 완료, 정량적 인력 절감 또는 미구현 protocol 지원을 주장하지 않는다.</p>
         </div>
       </article>

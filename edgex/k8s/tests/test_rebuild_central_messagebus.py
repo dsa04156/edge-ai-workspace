@@ -9,91 +9,29 @@ K8S_DIR = Path(__file__).resolve().parents[1]
 SCRIPT = K8S_DIR / "scripts" / "rebuild-central-messagebus.sh"
 
 
-def run_script(tmp_path: Path, *arguments: str) -> list[str]:
+def test_legacy_messagebus_rebuild_script_is_fail_closed(tmp_path: Path) -> None:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    log_path = tmp_path / "calls.log"
+    call_log = tmp_path / "rtk-calls.log"
     fake_rtk = bin_dir / "rtk"
     fake_rtk.write_text(
         "#!/usr/bin/env bash\n"
-        "set -eu\n"
-        'printf "%s\\n" "$*" >>"$REBUILD_TEST_LOG"\n'
-        'case "$*" in\n'
-        '  "kubectl -n kube-system get service kube-dns -o jsonpath={.spec.clusterIP}") '
-        'printf "10.96.0.10" ;;\n'
-        '  *"--field-selector spec.nodeName="*) printf "edgemesh-agent-test" ;;\n'
-        "esac\n"
+        f"printf '%s\\n' \"$*\" >>'{call_log}'\n"
     )
     fake_rtk.chmod(0o755)
     environment = os.environ.copy()
     environment["PATH"] = f"{bin_dir}:{environment['PATH']}"
-    environment["REBUILD_TEST_LOG"] = str(log_path)
-    subprocess.run(
-        ["bash", str(SCRIPT), *arguments],
+
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--execute"],
         cwd=K8S_DIR.parents[1],
         env=environment,
-        check=True,
+        check=False,
         capture_output=True,
         text=True,
     )
-    return log_path.read_text().splitlines()
 
-
-def test_default_mode_never_deletes_or_applies_live_resources(tmp_path: Path) -> None:
-    calls = run_script(tmp_path)
-    for required_call in (
-        "kubectl config current-context",
-        "kubectl get nodes -o wide",
-        "kubectl get node etri-ser0002-cgnmsb",
-        "kubectl get node etri-dev0001-jetorn",
-        "kubectl get node etri-dev0003-raspi5",
-        "kubectl kustomize edgex/k8s",
-        "kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml",
-        "kubectl -n kube-system get service kube-dns -o jsonpath={.spec.clusterIP}",
-    ):
-        assert required_call in calls
-    assert sum("nslookup kubernetes.default.svc.cluster.local" in call for call in calls) == 3
-    assert not any("delete" in call for call in calls)
-    assert "kubectl apply -k edgex/k8s" not in calls
-
-
-def test_execute_validates_nodes_and_dry_run_before_exact_edgex_label_delete(
-    tmp_path: Path,
-) -> None:
-    calls = run_script(tmp_path, "--execute")
-    delete_call = (
-        "kubectl delete deployment,statefulset,job,service,configmap,secret,pvc "
-        "-n telemetry -l app.kubernetes.io/part-of=edgex-telemetry "
-        "--ignore-not-found=true --wait=true --timeout=300s"
-    )
-    assert delete_call in calls
-    assert not any("delete namespace" in call for call in calls)
-    delete_index = calls.index(delete_call)
-    for required_call in (
-        "kubectl get node etri-ser0002-cgnmsb",
-        "kubectl get node etri-dev0001-jetorn",
-        "kubectl get node etri-dev0003-raspi5",
-        "kubectl apply --dry-run=server -f /tmp/edgex-central-messagebus.yaml",
-    ):
-        assert required_call in calls[:delete_index]
-    dns_checks = [
-        call
-        for call in calls[:delete_index]
-        if "nslookup kubernetes.default.svc.cluster.local" in call
-    ]
-    assert len(dns_checks) == 3
-    assert calls[delete_index + 1] == "kubectl apply -k edgex/k8s"
-
-    readiness_calls = calls[delete_index + 2 :]
-    assert readiness_calls == [
-        "kubectl -n telemetry rollout status statefulset/edgex-postgres --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-messagebus --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-core-keeper --timeout=300s",
-        "kubectl -n telemetry wait --for=condition=complete job/edgex-core-common-config-bootstrapper --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-core-data --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-core-metadata --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-core-command --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-device-mqtt --timeout=300s",
-        "kubectl -n telemetry rollout status deployment/edgex-device-mqtt-sensehat --timeout=300s",
-        "kubectl get pods -n telemetry -o wide",
-    ]
+    assert result.returncode == 64
+    assert "폐기" in result.stderr
+    assert "edgex/k8s" in result.stderr
+    assert not call_log.exists()

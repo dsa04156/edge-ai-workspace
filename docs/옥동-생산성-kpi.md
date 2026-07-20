@@ -56,7 +56,7 @@ Kubernetes node 정보는 AI/workload 배치 진단에만 사용한다. 물리 �
 | 이름 | `device_service_availability_ratio` |
 | 분자 | `device_service_available_count` |
 | 분모 | `registered_device_count` |
-| 운영자 해석 | EdgeX Device Service 수집 경로가 사용 가능한 device 비율 |
+| 운영자 해석 | Core Metadata에 등록된 논리 수집 서비스와 device 운영 상태가 사용 가능한 비율 |
 
 ### 5. Core Data event 관측 수
 
@@ -97,26 +97,26 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 | 근거 | `device_service_name`, profile, protocol, Core Data source/resource, consumer relation |
 | 운영자 해석 | 어느 device input이 AI 서비스, 저장소, dashboard에 영향을 주는지 확인 |
 
-이 지표는 device → EdgeX Device Service → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
+이 지표는 device → Protocol Adapter/edge agent → HTTPS gateway → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
 
-## MQTT canary KPI 해석
+## direct 검증 fixture KPI 해석
 
-현재 전달 범위의 physical example은 `vib-arduino-acceleration-01`이다. 다음 증거를 함께 제시한다.
+현재 repository 전달 범위의 교체 가능한 physical example은 `sensehat-001`이다. 다음 증거를 함께 제시한다.
 
 1. `source=edgex`
-2. profile과 Device Service identity
-3. `protocol_names`의 MQTT
+2. profile과 논리 수집 서비스 identity
+3. `protocol_names`의 I2C
 4. admin/operating/connection 상태
 5. latest Core Data event timestamp와 freshness
-6. latest acceleration readings의 source/resource/value
+6. latest temperature/humidity/pressure/orientation readings의 source/resource/value
 7. AI/storage/dashboard consumer 관계
 
-단일 canary 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다.
+단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.
 
 ## 생산성 설명 문구
 
 ```text
-본 PoC는 EdgeX Core Metadata의 device 등록·서비스 연결 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, Device Service, protocol, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
+본 PoC는 EdgeX Core Metadata의 device 등록·논리 수집 서비스 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, adapter/agent, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
 ```
 
 이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.
@@ -125,13 +125,14 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 | 범위 | KPI 포함 여부 |
 |---|---|
-| MQTT `vib-arduino-acceleration-01` | 현재 canary 증거가 있을 때 포함 |
+| I2C `sensehat-001` direct | 새 image의 실제 Event와 중앙 readback 증거가 있을 때 포함 |
+| MQTT-only 장비 adapter | 현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함 |
 | Serial | 구현·현장 검증 전에는 제외 |
 | Modbus | 구현·현장 검증 전에는 제외 |
 | OPC-UA | 구현·현장 검증 전에는 제외 |
 | RTSP | 구현·현장 검증 전에는 제외 |
 
-후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.
+후속 wave는 각각 Core Metadata identity, Protocol Adapter, durable delivery, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.
 
 ## 현재 범위에서 말하지 않는 것
 

@@ -30,7 +30,7 @@ class Settings(BaseModel):
     influxdb_url: str = Field(
         default_factory=lambda: os.getenv(
             "INFLUXDB_URL",
-            "http://influxdb.telemetry.svc.cluster.local:8086",
+            "http://influxdb:8086",
         )
     )
     influxdb_org: str = Field(default_factory=lambda: os.getenv("INFLUXDB_ORG", "edgeai"))
@@ -39,13 +39,13 @@ class Settings(BaseModel):
     edgex_core_metadata_url: str = Field(
         default_factory=lambda: os.getenv(
             "EDGEX_CORE_METADATA_URL",
-            "http://edgex-core-metadata.telemetry.svc.cluster.local:59881",
+            "http://edgex-core-metadata.edgex-system.svc.cluster.local:59881",
         )
     )
     edgex_core_data_url: str = Field(
         default_factory=lambda: os.getenv(
             "EDGEX_CORE_DATA_URL",
-            "http://edgex-core-data.telemetry.svc.cluster.local:59880",
+            "http://edgex-core-data.edgex-system.svc.cluster.local:59880",
         )
     )
     edgex_timeout_seconds: float = Field(
@@ -55,7 +55,7 @@ class Settings(BaseModel):
         default_factory=lambda: int(os.getenv("EDGEX_EVENT_FRESH_SECONDS", "90"))
     )
     resource_profile_recording_mode: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "scheduled").lower()
+        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "disabled").lower()
     )
     resource_profile_window: str = Field(
         default_factory=lambda: os.getenv("RESOURCE_PROFILE_WINDOW", "10m")

@@ -120,144 +120,197 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>원시 텔레메트리 데이터 플레인</h1>
-          <p class="subtitle">현재 운영 배포인 엣지 Device Service → 중앙 EdgeX MessageBus → Core Data·PostgreSQ…</p>
+          <p class="subtitle">물리 노드의 Protocol Adapter가 만든 canonical EdgeX Event를 SQLite에 먼저 보존하고, HTT…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-20 14:49</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="중앙-엣지엑스-원시-텔레메트리-데이터-플레인">중앙 엣지엑스 원시 텔레메트리 데이터 플레인</h1>
+          <h1 id="https-기반-원시-텔레메트리-데이터-플레인">HTTPS 기반 원시 텔레메트리 데이터 플레인</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 현재 운영 배포인 엣지 Device Service → 중앙 EdgeX MessageBus → Core Data·PostgreSQL 경로의 책임과 검증 기준을 고정한다. 과거 HTTPS ingest gateway와 SQLite 영속 송신함 설계는 <code>edgex/telemetry-plane/</code>에 프로토타입으로 남아 있지만 현재 <code>edgex/k8s/kustomization.yaml</code>의 배포 경로가 아니다.</p>
+<p>이 문서는 물리 노드의 Protocol Adapter가 만든 canonical EdgeX Event를 SQLite에 먼저 보존하고, HTTPS/mTLS로 중앙 EdgeX Core Data와 PostgreSQL까지 전달하는 현재 권위 경로를 고정한다.</p>
+<p>핵심 원칙은 다음과 같다.</p>
+<ul><li>센서 전송에 MQTT를 기본 요구하지 않는다.</li><li>중앙 연결 실패가 물리 수집을 중단시키지 않도록 edge outbox에 먼저 기록한다.</li><li>gateway 수신이 아니라 Core Data의 PostgreSQL 저장 결과를 outbox 삭제 기준으로 사용한다.</li><li>EdgeX Core Metadata와 Core Data를 inventory/schema와 telemetry의 중앙 authority로 유지한다.</li><li>RTSP frame은 telemetry plane에 넣지 않는다.</li></ul>
 <h2 id="현재-권위-경로">현재 권위 경로</h2>
-<pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
-  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
-  -&gt; Core Data -&gt; PostgreSQL
-  -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<p>현재 수직 슬라이스는 MQTT 장비만 대상으로 한다.</p>
-<ul><li><code>etri-dev0001-jetorn</code>: Jetson 로컬 Mosquitto를 southbound로 사용하는 <code>edgex-device-mqtt</code></li><li><code>etri-dev0003-raspi5</code>: Sense HAT MQTT endpoint를 소유하는 <code>edgex-device-mqtt-sensehat</code></li><li><code>etri-ser0002-cgnmsb</code>: Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL</li></ul>
-<p>southbound MQTT broker는 센서와 Device Service 사이의 프로토콜 endpoint다. EdgeX 내부 MessageBus는 Device Service와 중앙 Core·consumer 사이의 ClusterIP 메시지 경로이며 외부 broker가 아니다.</p>
-<h2 id="데이터와-상태-권위">데이터와 상태 권위</h2>
+<pre data-lang="text"><code>[물리 노드 / EdgeCore]
+
+센서 / PLC / 장비
+  -&gt; Protocol Adapter
+     - Modbus / OPC-UA / Serial / I2C 직접 수집
+     - 또는 MQTT-only 장비용 optional MQTT adapter
+  -&gt; canonical EdgeX v3 Event
+  -&gt; edge-telemetry-agent
+  -&gt; SQLite outbox
+       |
+       | HTTPS + mTLS + HMAC
+       v
+
+[Edge AI 서버: etri-ser0002-cgnmsb]
+
+edgex-ingest-gateway
+  -&gt; EdgeX Core Data REST
+  -&gt; PostgreSQL
+  -&gt; 중앙 Application Service / AI consumer / dashboard</code></pre>
+<p>카메라의 RTSP frame은 요청 시 Workflow Pod가 직접 구독한다. 카메라 연결 상태, 추론 결과와 운영 metadata만 필요할 때 canonical Event로 이 경로에 넣는다.</p>
+<h2 id="messagebus와-mqtt의-위치">MessageBus와 MQTT의 위치</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>영역</th>
-<th>권위</th>
-<th>기준 데이터</th>
+<th>구분</th>
+<th>현재 역할</th>
+<th>필수 여부</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>inventory / schema / 관리 상태</td>
-<td>중앙 EdgeX Core Metadata</td>
-<td>Device, Device Profile, Device Service, <code>adminState</code>, <code>operatingState</code></td>
+<td>물리 노드 local MQTT broker</td>
+<td>MQTT-only 장비 또는 local pub/sub compatibility 입력</td>
+<td>조건부</td>
 </tr>
 <tr>
-<td>telemetry / freshness</td>
-<td>중앙 EdgeX Core Data</td>
-<td>Event <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>, typed Reading</td>
+<td>agent northbound</td>
+<td>HTTPS/mTLS로 gateway에 Event 전송</td>
+<td>필수</td>
 </tr>
 <tr>
-<td>command</td>
-<td>Core Command와 담당 Device Service</td>
-<td>profile command와 protocol endpoint</td>
+<td>중앙 EdgeX internal MessageBus</td>
+<td>stock EdgeX Core의 중앙 런타임과 후속 consumer 통합</td>
+<td>현재 중앙 배포에 필요</td>
 </tr>
 <tr>
-<td>node / workload</td>
-<td>Kubernetes / KubeEdge / Prometheus</td>
-<td>배치, readiness, 자원 상태 진단</td>
+<td>SQLite outbox</td>
+<td>중앙 장애 중 Event 보존과 복구 후 replay</td>
+<td>필수</td>
 </tr>
 </tbody></table></div>
-<p>KubeEdge Device, DeviceModel, DeviceStatus와 MapperFramework는 물리 inventory·telemetry·availability·command의 병행 plane이나 fallback이 아니다.</p>
-<h2 id="통신-경계">통신 경계</h2>
-<ul><li>모든 EdgeX 서비스는 중앙 <code>edgex-messagebus</code>를 사용한다.</li><li>Device Service는 중앙 Core Keeper의 configuration/registry와 Core Metadata에 접근한다.</li><li>MessageBus와 Core API는 public endpoint로 노출하지 않고 ClusterIP와 클러스터 내부 DNS를 사용한다.</li><li>EdgeCore 노드에서 ClusterIP 또는 service DNS 연결이 되지 않으면 배포를 중단하고 별도 승인된 사설 endpoint 설계로 전환한다.</li><li>Application Service는 실제 서비스 데모 consumer 계약을 정의한 뒤 추가한다. 빈 placeholder 서비스는 배치하지 않는다.</li></ul>
-<h2 id="장애-동작">장애 동작</h2>
-<p>현재 1차 수직 슬라이스에는 SQLite offline replay가 없다.</p>
-<ul><li>중앙 MessageBus 또는 네트워크가 끊기면 telemetry가 유실될 수 있다.</li><li>복구 기준은 연결 회복 뒤 새로운 Event 수집이 재개되는 것이다.</li><li>기존 샘플의 자동 재전송이나 누락 없는 전달을 주장하지 않는다.</li><li>SQLite replay는 별도 승인된 설계와 구현이 필요하다.</li><li>PostgreSQL 저장 확인까지 요구하려면 direct MessageBus 외에 persisted acknowledgement 계약이 필요하다.</li></ul>
-<h2 id="mqtt-수직-슬라이스">MQTT 수직 슬라이스</h2>
-<p>현재 등록과 검증 대상은 다음 두 Device Service instance다.</p>
+<p>중앙 <code>edgex-messagebus</code>는 센서가 서버로 데이터를 보내는 경로가 아니다. 물리 노드에는 기본 broker를 배치하지 않는다. 현재 root render에는 MQTT-mode agent, <code>device-mqtt</code>, edge-local broker가 없으며 모든 edge northbound는 HTTPS다.</p>
+<p>EdgeX 내부 MessageBus provider를 다른 구현으로 교체하는 것은 별도 중앙 런타임 변경이다. 이 선택과 엣지 northbound가 HTTPS인 것은 서로 독립이다.</p>
+<h2 id="현재-배포된-검증-fixture">현재 배포된 검증 fixture</h2>
+<pre data-lang="text"><code>Sense HAT (I2C)
+  -&gt; edge-device/publishers/sensehat_publisher.py
+  -&gt; http://127.0.0.1:18080/v1/events
+  -&gt; edge-telemetry-agent
+  -&gt; /var/lib/edgex/outbox/outbox.db
+  -&gt; https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443
+  -&gt; Core Data / PostgreSQL</code></pre>
+<ul><li>배치 노드: <code>etri-dev0003-raspi5</code></li><li>EdgeX Device: <code>sensehat-001</code></li><li>Device Profile: <code>etri-sensehat</code></li><li>source: <code>temperature</code>, <code>humidity</code>, <code>pressure</code>, <code>compass</code>, <code>orientation</code>, <code>gyroscope</code></li><li>local ingress: host-network namespace의 loopback에만 bind</li><li>local MQTT broker: 사용하지 않음</li></ul>
+<p>이 Sense HAT identity와 publisher는 현재 연결 검증에 사용한 fixture다. 사용자가 교체할 수 있으며 시스템의 고정 입력, MQTT 정책 또는 완료 기준으로 다루지 않는다. 장비가 Serial/Modbus/OPC-UA/I2C로 직접 연결되면 adapter가 Event를 만들어 loopback agent API로 전달한다. MQTT-only 장비는 별도 adapter와 broker 필요성을 검증한 뒤 같은 loopback 계약에 연결한다.</p>
+<h2 id="event와-저장-계약">Event와 저장 계약</h2>
+<p>Protocol Adapter는 최소한 다음 필드를 가진 Event를 만든다.</p>
+<pre data-lang="json"><code>{
+  &quot;apiVersion&quot;: &quot;v3&quot;,
+  &quot;id&quot;: &quot;4b722578-d997-47f2-8685-88cc7161e80d&quot;,
+  &quot;deviceName&quot;: &quot;sensehat-001&quot;,
+  &quot;profileName&quot;: &quot;etri-sensehat&quot;,
+  &quot;sourceName&quot;: &quot;humidity&quot;,
+  &quot;origin&quot;: 1784516400000000000,
+  &quot;tags&quot;: {
+    &quot;edge_node_id&quot;: &quot;etri-dev0003-raspi5&quot;,
+    &quot;source_adapter&quot;: &quot;i2c&quot;
+  },
+  &quot;readings&quot;: [
+    {
+      &quot;deviceName&quot;: &quot;sensehat-001&quot;,
+      &quot;profileName&quot;: &quot;etri-sensehat&quot;,
+      &quot;resourceName&quot;: &quot;humidity&quot;,
+      &quot;valueType&quot;: &quot;Float64&quot;,
+      &quot;value&quot;: 45.3,
+      &quot;origin&quot;: 1784516400000000000
+    }
+  ]
+}</code></pre>
+<p>agent는 Event 전체를 엄격히 검증한다. 같은 Event ID와 같은 canonical payload는 idempotent duplicate로 ACK하고, 같은 ID의 다른 payload는 <code>409 event_id_conflict</code>로 거절한다. outbox 용량을 넘으면 <code>507 outbox_full</code>을 반환하므로 adapter가 sample을 저장됐다고 오인하지 않는다.</p>
+<h2 id="전달과-장애-동작">전달과 장애 동작</h2>
+<ol><li>adapter가 agent의 loopback <code>POST /v1/events</code>를 호출한다.</li><li>agent가 Event를 SQLite WAL outbox에 transaction commit한다.</li><li>commit 성공 뒤 <code>202 queued</code>와 정확한 <code>event_id</code>를 반환한다.</li><li>uploader가 device/source stream별 FIFO로 gateway에 재전송한다.</li><li>gateway가 mTLS client identity와 edge별 HMAC을 검증한다.</li><li>gateway가 Core Data <code>POST /api/v3/event/{service}/{profile}/{device}/{source}</code>를 호출한다.</li><li>Core Data가 PostgreSQL 저장 뒤 반환한 ID를 gateway가 확인한다.</li><li>gateway가 정확한 persisted ACK를 반환한 뒤에만 agent가 outbox row를 삭제한다.</li></ol>
+<p>응답이 유실되어 같은 ID가 재전송되면 gateway는 Core Data의 기존 Event를 다시 읽고 canonical fingerprint가 같은 경우만 저장 완료로 조정한다. ID만 같고 내용이 다르면 quarantine 대상 충돌로 처리한다.</p>
+<p>중앙 gateway, Core Data 또는 네트워크가 중단되면 outbox row를 유지하고 exponential backoff로 재시도한다. 노드별 PVC는 2GiB이고 논리 admission 한도는 기본 1GiB다. 이 버퍼는 영구 archive가 아니며 장기간 장애와 노드 디스크 손실을 보호하는 백업도 아니다.</p>
+<h2 id="metadata와-상태-권위">Metadata와 상태 권위</h2>
+<p><code>edgex-metadata-bootstrap</code> Job이 다음 순서로 이름 기반 idempotent 등록을 수행한다.</p>
+<ol><li>논리 Device Service <code>edge-telemetry-agent</code></li><li>Device Profile</li><li>Device</li></ol>
+<p>현재 live contract는 임시 검증 fixture인 <code>sensehat-001 / etri-sensehat</code> 1개만 포함한다. <code>arduino-001</code>, <code>etri-uno-mqtt</code>와 Jetson MQTT device는 제거되었다. inventory와 schema는 Core Metadata, telemetry와 freshness는 Core Data Event/Reading이 권위다. Kubernetes node placement는 display-only 진단이다.</p>
+<p>현재 command 실행은 <code>COMMAND_ENABLED=false</code>다. Metadata의 read-only command grouping을 actuator 제어 완료로 해석하지 않는다.</p>
+<h2 id="trust-boundary와-secret">Trust boundary와 secret</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>Device Service</th>
-<th>배치 노드</th>
-<th>southbound endpoint</th>
-<th>대표 Device</th>
+<th>경계</th>
+<th>보호 수단</th>
+<th>실패 동작</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>edgex-device-mqtt</code></td>
-<td><code>etri-dev0001-jetorn</code></td>
-<td>Jetson 로컬 Mosquitto</td>
-<td><code>arduino-001</code></td>
+<td>host adapter -&gt; agent</td>
+<td>host-network loopback <code>127.0.0.1:18080</code>, 엄격한 Event schema, 1MiB 제한</td>
+<td>외부 인터페이스에는 bind하지 않음</td>
 </tr>
 <tr>
-<td><code>edgex-device-mqtt-sensehat</code></td>
-<td><code>etri-dev0003-raspi5</code></td>
-<td>Sense HAT MQTT endpoint</td>
-<td><code>sensehat-001</code></td>
+<td>edge agent -&gt; gateway</td>
+<td>TLS server verification, mTLS client cert, edge별 HMAC</td>
+<td>ACK하지 않고 outbox 보존</td>
+</tr>
+<tr>
+<td>gateway -&gt; Core Data</td>
+<td>cluster DNS/ClusterIP, 제한된 REST path</td>
+<td>retryable failure로 agent에 전달</td>
+</tr>
+<tr>
+<td>Core Data -&gt; PostgreSQL</td>
+<td>중앙 namespace 내부 service와 Secret 기반 DB 설정</td>
+<td>Core Data 성공 전 persisted ACK 금지</td>
 </tr>
 </tbody></table></div>
-<p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 기존 canary에서 확인했다. 이 증거는 장비·profile·Reading 계약의 근거지만 중앙 server2 topology의 live cutover 완료를 자동으로 뜻하지 않는다.</p>
-<h2 id="프로토콜-확장-기준">프로토콜 확장 기준</h2>
-<p>현재 완료 범위는 MQTT 하나다. Modbus, OPC-UA, Serial/I2C custom Device Service와 RTSP workflow Pod는 각각 다음 검증을 통과한 뒤 별도 wave로 승격한다.</p>
-<ul><li>명시된 protocol connection owner와 실제 endpoint reconnect</li><li>Device Profile과 typed Reading 계약</li><li>Device Service 상태와 command 동작</li><li>중앙 Core Data·PostgreSQL 저장</li><li>대시보드 consumer와 freshness 판정</li></ul>
-<p>RTSP frame은 Core Data Event로 저장하지 않고 별도 미디어 경로를 설계한다.</p>
-<h2 id="현재-배포와-프로토타입-구분">현재 배포와 프로토타입 구분</h2>
+<p>필요한 Secret:</p>
+<ul><li><code>edgex-ingest-gateway-tls</code></li><li><code>edgex-telemetry-plane-credentials</code></li><li><code>edgex-telemetry-edge-auth</code></li><li>edge별 <code>*-credentials</code></li><li>edge별 <code>*-gateway-mtls</code></li><li><code>edgex-postgres-credentials</code></li></ul>
+<p>private key, HMAC secret, DB URL은 ConfigMap이나 image에 넣지 않는다. 운영 적용 전 <code>edgex/k8s/scripts/preflight-runtime-secrets.sh</code>로 key와 namespace를 점검한다.</p>
+<h2 id="배포-경로">배포 경로</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>경로</th>
-<th>상태</th>
-<th>처리 원칙</th>
+<th>역할</th>
 </tr></thead>
 <tbody>
 <tr>
 <td><code>edgex/k8s/kustomization.yaml</code></td>
-<td>현재 운영 배포 진입점</td>
-<td>중앙 Core/MessageBus/PostgreSQL과 엣지 Device Service 배치를 렌더링</td>
+<td>Argo CD가 사용하는 단일 운영 진입점</td>
 </tr>
 <tr>
-<td><code>edgex/k8s/core.yaml</code>, <code>messagebus.yaml</code>, <code>postgres.yaml</code></td>
-<td>현재 중앙 데이터 플레인</td>
-<td><code>etri-ser0002-cgnmsb</code>에만 배치</td>
+<td><code>edgex/k8s/overlays/testbed/server2</code></td>
+<td><code>edgex-system</code> 중앙 stack</td>
 </tr>
 <tr>
-<td><code>edgex/k8s/device-mqtt.yaml</code></td>
-<td>현재 엣지 Device Service</td>
-<td>Jetson과 Raspberry Pi에 각각 배치</td>
+<td><code>edgex/k8s/overlays/testbed/sensor-gateways</code></td>
+<td><code>edgex-edge</code> edge agent</td>
 </tr>
 <tr>
 <td><code>edgex/telemetry-plane/</code></td>
-<td>비활성 설계·프로토타입</td>
-<td>HTTPS gateway와 SQLite outbox 구현 참고용, 현재 배포 아님</td>
+<td>agent, gateway, outbox, Metadata bootstrap 구현</td>
 </tr>
 <tr>
-<td><code>edgex/k8s/base/server/</code>, <code>base/edge-agent/</code>, 관련 overlays</td>
-<td>비활성 대안 설계</td>
-<td>root Kustomize 진입점에서 사용하지 않음</td>
-</tr>
-<tr>
-<td><code>edgex/mqtt-bridge/</code></td>
-<td>보존 canary / legacy evidence</td>
-<td>현재 중앙 topology나 fallback으로 설명하지 않음</td>
+<td><code>edge-device/publishers/</code></td>
+<td>교체 예정인 Sense HAT 검증 adapter 참고 구현</td>
 </tr>
 </tbody></table></div>
-<h2 id="완료-검증-기준">완료 검증 기준</h2>
-<ul><li>Kustomize render에서 Core, MessageBus, PostgreSQL workload는 <code>etri-ser0002-cgnmsb</code>에만 배치된다.</li><li>Device MQTT workload는 각각 지정된 Jetson과 Raspberry Pi에만 배치된다.</li><li>엣지 노드에는 Core, MessageBus, PostgreSQL workload가 없다.</li><li>중앙 서비스는 amd64, Device MQTT는 ARM64 EdgeX 4.0.2 image를 사용한다.</li><li>Device Service의 registry, MessageBus, Core Metadata endpoint는 중앙 service DNS를 가리킨다.</li><li>MQTT payload가 Device Service를 거쳐 중앙 Core Data의 typed Event/Reading으로 저장된다.</li><li><code>/state/devices</code>가 중앙 Core Metadata 상태와 fresh Core Data Event를 사용한다.</li><li>중앙 MessageBus 장애 시 데이터 유실 가능성을 확인하고 복구 뒤 새 Event 수집 재개를 검증한다.</li></ul>
+<p>과거 단일 <code>telemetry</code> namespace용 root Core/DB/<code>device-mqtt</code> manifest와 <code>edgex/k8s/config/*mqtt*</code> 파일은 제거되었다. 과거 검증 맥락은 <code>docs/archive/integration/</code>에만 남긴다.</p>
+<h2 id="검증-기준">검증 기준</h2>
+<p>현재 자동 검증:</p>
+<ul><li>telemetry-plane unit/integration test: source mode, outbox, exact ACK, retry, gateway idempotency, Metadata bootstrap</li><li>Kustomize manifest test: 중앙/edge placement, direct-only edge render, loopback host network, Secret 참조, immutable image, NetworkPolicy</li><li>adapter fixture test: canonical Event mapping과 local durable queue ACK 검증</li><li>root Kustomize render: <code>device-mqtt</code> workload 부재</li></ul>
+<p>live 완료 판정에는 다음 증거가 추가로 필요하다.</p>
+<ul><li>새 agent/gateway image digest 배포</li><li>실제 또는 승인된 adapter sample의 <code>202 queued</code></li><li>Core Data의 동일 Event ID readback</li><li>gateway 중단 중 outbox 증가와 복구 후 drain</li><li>Core Metadata의 Device/Profile과 dashboard freshness 표시</li></ul>
+<p>Sense HAT publisher의 교체 여부는 telemetry plane 자체의 완료 판정과 분리한다.</p>
 <h2 id="범위-밖">범위 밖</h2>
-<ul><li>SQLite offline replay와 persisted acknowledgement</li><li>기존 telemetry 데이터 migration과 backup</li><li>EdgeX Core/PostgreSQL HA</li><li>Modbus, OPC-UA, Serial/I2C, RTSP protocol wave 완료 주장</li><li>Workflow Pod apply/delete/restart</li><li>runtime migration, dynamic offloading, agent-assisted planning</li></ul>
+<ul><li>RTSP frame의 Core Data 저장</li><li>EdgeX Core/PostgreSQL HA와 node disk backup</li><li>command/actuator mutation</li><li>Workflow Pod apply/delete/restart</li><li>runtime migration, dynamic offloading, agent-assisted planning</li><li>MQTT가 필요하지 않은 노드에 broker를 상시 배치하는 구성</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#현재-권위-경로">현재 권위 경로</a></li>
-<li class="toc-h2"><a href="#데이터와-상태-권위">데이터와 상태 권위</a></li>
-<li class="toc-h2"><a href="#통신-경계">통신 경계</a></li>
-<li class="toc-h2"><a href="#장애-동작">장애 동작</a></li>
-<li class="toc-h2"><a href="#mqtt-수직-슬라이스">MQTT 수직 슬라이스</a></li>
-<li class="toc-h2"><a href="#프로토콜-확장-기준">프로토콜 확장 기준</a></li>
-<li class="toc-h2"><a href="#현재-배포와-프로토타입-구분">현재 배포와 프로토타입 구분</a></li>
-<li class="toc-h2"><a href="#완료-검증-기준">완료 검증 기준</a></li>
+<li class="toc-h2"><a href="#messagebus와-mqtt의-위치">MessageBus와 MQTT의 위치</a></li>
+<li class="toc-h2"><a href="#현재-배포된-검증-fixture">현재 배포된 검증 fixture</a></li>
+<li class="toc-h2"><a href="#event와-저장-계약">Event와 저장 계약</a></li>
+<li class="toc-h2"><a href="#전달과-장애-동작">전달과 장애 동작</a></li>
+<li class="toc-h2"><a href="#metadata와-상태-권위">Metadata와 상태 권위</a></li>
+<li class="toc-h2"><a href="#trust-boundary와-secret">Trust boundary와 secret</a></li>
+<li class="toc-h2"><a href="#배포-경로">배포 경로</a></li>
+<li class="toc-h2"><a href="#검증-기준">검증 기준</a></li>
 <li class="toc-h2"><a href="#범위-밖">범위 밖</a></li></ol></aside>
     </div>
   </div>

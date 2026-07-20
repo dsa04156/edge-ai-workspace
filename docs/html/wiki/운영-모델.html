@@ -124,8 +124,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-모델.md</span>
-            <span class="badge">수정: 2026-07-20 14:52</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -133,17 +133,17 @@
 <h2 id="한-줄-요약">한 줄 요약</h2>
 <p>현재 시스템은 센서 엣지의 원시 텔레메트리를 중앙 EdgeX Core·PostgreSQL에 안전하게 저장하고, KubeEdge가 관리하는 엣지 노드·워크로드와 함께 운영 관점에서 보여주는 PoC다. 핵심은 디바이스와 서비스를 실제로 연결하고 저장·상태·최신성 근거를 대시보드에서 해석 가능하게 만드는 것이다.</p>
 <h2 id="현재-기준">현재 기준</h2>
-<p>이 프로젝트는 동적 오케스트레이션 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 MQTT 수직 슬라이스와 서비스 데모 1종을 운영 관점에서 설명 가능하게 만드는 것이다.</p>
-<ol><li>Jetson과 Raspberry Pi의 EdgeX Device Service가 실제 MQTT endpoint를 연결하고 typed Event를 만든다.</li><li>Device Service가 Event를 중앙 EdgeX MessageBus에 발행하고 Core Data가 PostgreSQL에 저장한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li></ol>
+<p>이 프로젝트는 동적 오케스트레이션 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 교체 가능한 Protocol Adapter → direct agent → SQLite/HTTPS 수직 슬라이스와 서비스 데모 1종을 운영 관점에서 설명 가능하게 만드는 것이다.</p>
+<ol><li>Jetson과 Raspberry Pi의 Protocol Adapter가 실제 endpoint를 연결하고 typed Event를 만든다.</li><li>edge agent가 Event를 SQLite에 먼저 저장하고 HTTPS gateway가 Core Data REST로 PostgreSQL 저장을 확인한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li></ol>
 <p>짧은 정의:</p>
 <pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
 <h2 id="경계">경계</h2>
 <p>현재 모델은 다음을 주장하지 않는다.</p>
-<ul><li>완전 자율형 orchestration</li><li>LLM 기반 인프라 제어</li><li>dynamic offloading이 현재 데모 경로라는 주장</li><li><code>workflow_executor</code> 또는 <code>placement_engine</code>이 현재 데모 제어 컴포넌트라는 주장</li><li>runtime replanning 구현 완료</li><li>SQLite offline replay나 누락 없는 전달이 현재 구현됐다는 주장</li></ul>
+<ul><li>완전 자율형 orchestration</li><li>LLM 기반 인프라 제어</li><li>dynamic offloading이 현재 데모 경로라는 주장</li><li><code>workflow_executor</code> 또는 <code>placement_engine</code>이 현재 데모 제어 컴포넌트라는 주장</li><li>runtime replanning 구현 완료</li><li>node disk backup이나 전체 downstream exactly-once가 구현됐다는 주장</li></ul>
 <p>Legacy workflow, offloading, selective replanning, agent-assisted planning 자료는 <code>docs/프로젝트-범위.md</code>에서 승격하지 않는 한 과거 맥락 또는 설계 후보로만 본다.</p>
 <h2 id="운영상-의미">운영상 의미</h2>
 <p>새 문서나 기능이 현재 PoC 범위인지 판단할 때 이 페이지를 기준으로 삼는다. 아래 질문에 직접 답하면 현재 경로에 가깝다.</p>
-<ul><li>중앙 EdgeX Core Metadata에 어떤 디바이스와 프로필이 등록되어 있는가?</li><li>센서 Event가 중앙 PostgreSQL에 저장되었는가?</li><li>최근 텔레메트리와 source timestamp가 fresh한가?</li><li>엣지 Device Service, 중앙 MessageBus, Core Data 중 어디에서 문제가 발생했는가?</li><li>관련 엣지 노드와 워크로드가 KubeEdge에서 정상인가?</li><li>어떤 서비스 데모가 이 디바이스 입력에 의존하는가?</li><li>이 상태가 옥동 생산성 설명과 어떻게 연결되는가?</li></ul>
+<ul><li>중앙 EdgeX Core Metadata에 어떤 디바이스와 프로필이 등록되어 있는가?</li><li>센서 Event가 중앙 PostgreSQL에 저장되었는가?</li><li>최근 텔레메트리와 source timestamp가 fresh한가?</li><li>Protocol Adapter, SQLite agent, HTTPS gateway, Core Data 중 어디에서 문제가 발생했는가?</li><li>관련 엣지 노드와 워크로드가 KubeEdge에서 정상인가?</li><li>어떤 서비스 데모가 이 디바이스 입력에 의존하는가?</li><li>이 상태가 옥동 생산성 설명과 어떻게 연결되는가?</li></ul>
 <p>주요 내용이 dynamic workflow 실행, placement 최적화, agent control 확장이라면 먼저 2차년도 설계 트랙 또는 legacy/reference로 분류한다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li><li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a></li></ul>

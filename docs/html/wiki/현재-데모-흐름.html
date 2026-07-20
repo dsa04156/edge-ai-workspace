@@ -120,28 +120,28 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>현재 데모 흐름 요약</h1>
-          <p class="subtitle">현재 데모의 목표 경로는 Jetson·Raspberry Pi의 EdgeX Device Service에서 중앙 MessageBus…</p>
+          <p class="subtitle">현재 데모의 목표 경로는 Jetson·Raspberry Pi의 Protocol Adapter와 SQLite telemetry a…</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/현재-데모-흐름.md</span>
-            <span class="badge">수정: 2026-07-20 14:51</span>
-            <span class="badge">HTML 생성: 2026-07-20 16:01</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-데모-흐름">현재 데모 흐름</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>현재 데모의 목표 경로는 Jetson·Raspberry Pi의 EdgeX Device Service에서 중앙 MessageBus·Core Data·PostgreSQL까지 이어지고, <code>state-aggregator</code>와 대시보드가 중앙 inventory·telemetry를 소비하는 수직 슬라이스다.</p>
+<p>현재 데모의 목표 경로는 Jetson·Raspberry Pi의 Protocol Adapter와 SQLite telemetry agent에서 HTTPS gateway·Core Data·PostgreSQL까지 이어지고, <code>state-aggregator</code>와 대시보드가 중앙 inventory·telemetry를 소비하는 수직 슬라이스다.</p>
 <h2 id="목표-운영-경로">목표 운영 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 EdgeX Device Service
-  -&gt; etri-ser0002-cgnmsb의 중앙 EdgeX MessageBus
-  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
+  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<p>중앙 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다. <code>edgex-device-mqtt</code>는 Jetson, Sense HAT instance는 Raspberry Pi에 배치한다.</p>
-<p>운영 배포의 Kustomize 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays는 비활성 설계·프로토타입이다.</p>
+<p>중앙 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다. 현재 edge telemetry agent는 Raspberry Pi 검증 노드에 direct mode 1개만 배치한다.</p>
+<p>운영 배포의 Kustomize 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays가 현재 구현·배포 경로다.</p>
 <h2 id="권위와-device-등록">권위와 Device 등록</h2>
-<p>물리 디바이스의 inventory와 관리 상태는 EdgeX Core Metadata가 소유한다. Device Profile과 Device는 사전 등록하며, Device Service가 protocol endpoint 연결, profile 기반 정규화, operating state, command를 독점 관리한다.</p>
+<p>물리 디바이스의 inventory와 관리 상태는 EdgeX Core Metadata가 소유한다. Device Profile과 Device는 사전 등록하며, Protocol Adapter가 endpoint 연결과 profile 기반 Event 정규화를 담당하고 agent가 durable 전달을 담당한다. 현재 command 실행은 비활성이다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>영역</th>
@@ -167,10 +167,10 @@
 </tbody></table></div>
 <p>KubeEdge/Kubernetes는 물리 Device inventory, availability, telemetry, command의 원본이 아니다. <code>node_name</code>은 화면에 표시할 수 있는 선택적 placement 진단 정보이며 physical availability의 gate가 아니다.</p>
 <p><code>/state/devices</code>는 EdgeX 값을 dashboard용 snake_case로 제공한다. 현재 확인 필드는 <code>source=edgex</code>, <code>name</code>, <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, 선택적 <code>node_name</code>이다.</p>
-<h2 id="보존-중인-mqtt-canary">보존 중인 MQTT canary</h2>
-<p>기존 Jetson 로컬 MQTT → bridge → <code>device-mqtt</code> → Core Data/PostgreSQL 경로는 중앙 전환을 검증하는 동안 보존하는 canary다.</p>
+<h2 id="교체-가능한-direct-검증-fixture">교체 가능한 direct 검증 fixture</h2>
+<p>현재 <code>sensehat-001</code>은 I2C publisher → loopback HTTP → agent → SQLite → HTTPS → Core Data 경로를 확인하는 교체 가능한 fixture다. 현재 배포에는 Jetson MQTT agent, <code>device-mqtt</code>, edge-local broker가 없다.</p>
 <p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology와 대시보드 조회 전환의 완료 증거가 아니다.</p>
-<p>현재 승인된 프로토콜은 MQTT 하나다. 1차 수직 슬라이스에는 SQLite offline replay가 없고 중앙 MessageBus·네트워크 장애 시 telemetry가 유실될 수 있다. Serial, Modbus, OPC-UA, RTSP는 프로토콜별 profile·실장비·command·state·telemetry 증거를 확보하기 전에는 지원 완료로 표시하지 않는다.</p>
+<p>1차 수직 슬라이스는 SQLite offline replay와 persisted ACK를 포함한다. Serial, Modbus, OPC-UA와 추가 I2C adapter는 profile·실장비·typed telemetry 증거를 확보하기 전에는 지원 완료로 표시하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 경로다.</p>
 <h2 id="service-binding과-workflow-augmentation-경계">Service binding과 workflow/augmentation 경계</h2>
 <p>service binding은 EdgeX Device, Device Service, telemetry source와 서비스 데모 consumer의 관계를 dashboard에서 설명하는 범위다. backend가 binding metadata를 제공하면 frontend는 device 이름을 다시 하드코딩하지 않는다.</p>
 <p><code>edge-orch/workflow-designer/</code>와 augmentation 표면은 read-only 또는 browser 상태의 dry-run planning 범위다. stage 구성, device/resource bind/release, validation, execution-plan preview는 표시할 수 있지만 Kubernetes apply/delete/restart, EdgeX metadata/state mutation, MQTT command publish, actuator command, workload migration/offloading을 실행하지 않는다.</p>
@@ -187,7 +187,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
 <li class="toc-h2"><a href="#목표-운영-경로">목표 운영 경로</a></li>
 <li class="toc-h2"><a href="#권위와-device-등록">권위와 Device 등록</a></li>
-<li class="toc-h2"><a href="#보존-중인-mqtt-canary">보존 중인 MQTT canary</a></li>
+<li class="toc-h2"><a href="#교체-가능한-direct-검증-fixture">교체 가능한 direct 검증 fixture</a></li>
 <li class="toc-h2"><a href="#service-binding과-workflow-augmentation-경계">Service binding과 workflow/augmentation 경계</a></li>
 <li class="toc-h2"><a href="#제외한-legacy-경로">제외한 legacy 경로</a></li>
 <li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
