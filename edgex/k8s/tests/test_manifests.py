@@ -34,6 +34,7 @@ def test_operational_entrypoint_retires_custom_edge_agents() -> None:
     assert kustomization["resources"] == [
         "overlays/testbed/server2",
         "base/edge-namespace",
+        "base/device-serial-jetson",
     ]
 
     resources = _render(K8S_DIR)

@@ -1,0 +1,67 @@
+apiVersion: "v2"
+name: etri-arduino-serial
+manufacturer: Arduino
+model: Uno
+labels:
+  - arduino
+  - serial
+  - jetson
+description: Read-only Arduino Uno telemetry connected to the Jetson serial port
+
+deviceResources:
+  - name: temperature_raw
+    description: Raw temperature sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+  - name: light_raw
+    description: Raw ambient light sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+  - name: magnetic_raw
+    description: Raw magnetic sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+  - name: acceleration_x_raw
+    description: Raw acceleration X-axis value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+  - name: acceleration_y_raw
+    description: Raw acceleration Y-axis value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+  - name: acceleration_z_raw
+    description: Raw acceleration Z-axis value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: temperature
+    readWrite: R
+    resourceOperations:
+      - deviceResource: temperature_raw
+  - name: light
+    readWrite: R
+    resourceOperations:
+      - deviceResource: light_raw
+  - name: magnetic
+    readWrite: R
+    resourceOperations:
+      - deviceResource: magnetic_raw
+  - name: acceleration
+    readWrite: R
+    resourceOperations:
+      - deviceResource: acceleration_x_raw
+      - deviceResource: acceleration_y_raw
+      - deviceResource: acceleration_z_raw

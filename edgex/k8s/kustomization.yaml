@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - overlays/testbed/server2
   - base/edge-namespace
+  - base/device-serial-jetson

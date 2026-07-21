@@ -79,7 +79,7 @@ def test_core_images_are_amd64() -> None:
             if "edgexfoundry/" in image:
                 assert ":4.0.2" in image
                 assert "-arm64" not in image
-def test_transition_render_has_no_workloads_on_sensor_edges() -> None:
+def test_only_serial_device_service_runs_on_sensor_edges() -> None:
     rendered = workloads()
     scheduled_on_edges = {
         name
@@ -88,7 +88,10 @@ def test_transition_render_has_no_workloads_on_sensor_edges() -> None:
             "kubernetes.io/hostname"
         ) in EDGE_NODES
     }
-    assert not scheduled_on_edges
+    assert scheduled_on_edges == {"device-serial-jetson"}
+    assert pod_spec(rendered["device-serial-jetson"])["nodeSelector"] == {
+        "kubernetes.io/hostname": "etri-dev0001-jetorn"
+    }
 
 
 def test_internal_messagebus_is_cluster_only() -> None:

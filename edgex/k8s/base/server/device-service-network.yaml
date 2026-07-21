@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: edgex-device-service-ingress
+  labels:
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - edgex-core-keeper
+          - edgex-core-metadata
+          - edgex-messagebus
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: edgex-edge
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: device-serial-jetson
+      ports:
+        - protocol: TCP
+          port: 59890
+        - protocol: TCP
+          port: 59881
+        - protocol: TCP
+          port: 1883

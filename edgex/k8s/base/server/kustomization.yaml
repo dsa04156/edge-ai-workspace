@@ -4,3 +4,4 @@ namespace: edgex-system
 resources:
   - core.yaml
   - gateway.yaml
+  - device-service-network.yaml
