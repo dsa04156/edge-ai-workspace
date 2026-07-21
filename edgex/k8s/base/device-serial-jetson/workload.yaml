@@ -110,10 +110,20 @@ spec:
             items:
               - key: configuration.yaml
                 path: configuration.yaml
-              - key: etri-arduino-serial.yaml
-                path: profiles/etri-arduino-serial.yaml
-              - key: arduino-001.yaml
-                path: devices/arduino-001.yaml
+              - key: etri-arduino-temperature.yaml
+                path: profiles/etri-arduino-temperature.yaml
+              - key: etri-arduino-light.yaml
+                path: profiles/etri-arduino-light.yaml
+              - key: etri-arduino-magnetic.yaml
+                path: profiles/etri-arduino-magnetic.yaml
+              - key: etri-arduino-acceleration-x.yaml
+                path: profiles/etri-arduino-acceleration-x.yaml
+              - key: etri-arduino-acceleration-y.yaml
+                path: profiles/etri-arduino-acceleration-y.yaml
+              - key: etri-arduino-acceleration-z.yaml
+                path: profiles/etri-arduino-acceleration-z.yaml
+              - key: arduino-virtual-devices.yaml
+                path: devices/arduino-virtual-devices.yaml
         - name: arduino-serial
           hostPath:
             path: /dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00

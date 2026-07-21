@@ -85,14 +85,42 @@ def test_serial_configmap_is_identical_to_canonical_sdk_resources() -> None:
     configmap = find_generated_configmap(resources)
     expected = {
         "configuration.yaml": DEVICE_SERVICE_DIR.joinpath("res/configuration.yaml").read_text(),
-        "etri-arduino-serial.yaml": DEVICE_SERVICE_DIR.joinpath(
-            "res/profiles/etri-arduino-serial.yaml"
-        ).read_text(),
-        "arduino-001.yaml": DEVICE_SERVICE_DIR.joinpath(
-            "res/devices/arduino-001.yaml"
+        **{
+            filename: DEVICE_SERVICE_DIR.joinpath("res/profiles", filename).read_text()
+            for filename in (
+                "etri-arduino-temperature.yaml",
+                "etri-arduino-light.yaml",
+                "etri-arduino-magnetic.yaml",
+                "etri-arduino-acceleration-x.yaml",
+                "etri-arduino-acceleration-y.yaml",
+                "etri-arduino-acceleration-z.yaml",
+            )
+        },
+        "arduino-virtual-devices.yaml": DEVICE_SERVICE_DIR.joinpath(
+            "res/devices/arduino-virtual-devices.yaml"
         ).read_text(),
     }
     assert configmap["data"] == expected
+
+
+def test_serial_deployment_mounts_only_virtual_device_resources() -> None:
+    resources = named(render(K8S_DIR / "base/device-serial-jetson"))
+    deployment = resources[("Deployment", "device-serial-jetson")]
+    service_config = next(
+        volume
+        for volume in pod_spec(deployment)["volumes"]
+        if volume["name"] == "service-config"
+    )
+    assert service_config["configMap"]["items"] == [
+        {"key": "configuration.yaml", "path": "configuration.yaml"},
+        {"key": "etri-arduino-temperature.yaml", "path": "profiles/etri-arduino-temperature.yaml"},
+        {"key": "etri-arduino-light.yaml", "path": "profiles/etri-arduino-light.yaml"},
+        {"key": "etri-arduino-magnetic.yaml", "path": "profiles/etri-arduino-magnetic.yaml"},
+        {"key": "etri-arduino-acceleration-x.yaml", "path": "profiles/etri-arduino-acceleration-x.yaml"},
+        {"key": "etri-arduino-acceleration-y.yaml", "path": "profiles/etri-arduino-acceleration-y.yaml"},
+        {"key": "etri-arduino-acceleration-z.yaml", "path": "profiles/etri-arduino-acceleration-z.yaml"},
+        {"key": "arduino-virtual-devices.yaml", "path": "devices/arduino-virtual-devices.yaml"},
+    ]
 
 
 def test_serial_deployment_has_one_narrow_privileged_device_exception() -> None:

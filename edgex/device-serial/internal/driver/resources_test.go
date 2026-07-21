@@ -11,71 +11,80 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestResourceFilesDefineReadOnlyArduinoProfile(t *testing.T) {
-	profile := loadYAMLMap(t, resourcePath(t, "profiles", "etri-arduino-serial.yaml"))
-
-	assert.Equal(t, "v2", profile["apiVersion"])
-	assert.Equal(t, "etri-arduino-serial", profile["name"])
-
-	resources := requireMapSlice(t, profile, "deviceResources")
-	require.Len(t, resources, 6)
-	expectedResources := map[string]struct{}{
-		"temperature_raw":    {},
-		"light_raw":          {},
-		"magnetic_raw":       {},
-		"acceleration_x_raw": {},
-		"acceleration_y_raw": {},
-		"acceleration_z_raw": {},
-	}
-	for _, resource := range resources {
-		name := requireString(t, resource, "name")
-		_, expected := expectedResources[name]
-		assert.Truef(t, expected, "unexpected resource %q", name)
-		delete(expectedResources, name)
-		properties := requireMap(t, resource, "properties")
-		assert.Equal(t, "Int32", properties["valueType"])
-		assert.Equal(t, "R", properties["readWrite"])
-	}
-	assert.Empty(t, expectedResources)
-
-	commands := requireMapSlice(t, profile, "deviceCommands")
-	require.Len(t, commands, 4)
-	expectedCommands := map[string][]string{
-		"temperature":  {"temperature_raw"},
-		"light":        {"light_raw"},
-		"magnetic":     {"magnetic_raw"},
-		"acceleration": {"acceleration_x_raw", "acceleration_y_raw", "acceleration_z_raw"},
-	}
-	for _, command := range commands {
-		name := requireString(t, command, "name")
-		assert.Equal(t, "R", command["readWrite"])
-		operations := requireMapSlice(t, command, "resourceOperations")
-		operationNames := make([]string, 0, len(operations))
-		for _, operation := range operations {
-			operationNames = append(operationNames, requireString(t, operation, "deviceResource"))
-		}
-		assert.Equal(t, expectedCommands[name], operationNames)
-		delete(expectedCommands, name)
-	}
-	assert.Empty(t, expectedCommands)
+var expectedVirtualDevices = []struct {
+	name        string
+	profile     string
+	profileFile string
+	resource    string
+	command     string
+}{
+	{"virtual-temperature-001", "etri-arduino-temperature", "etri-arduino-temperature.yaml", "temperature_raw", "temperature"},
+	{"virtual-light-001", "etri-arduino-light", "etri-arduino-light.yaml", "light_raw", "light"},
+	{"virtual-magnetic-001", "etri-arduino-magnetic", "etri-arduino-magnetic.yaml", "magnetic_raw", "magnetic"},
+	{"virtual-acceleration-x-001", "etri-arduino-acceleration-x", "etri-arduino-acceleration-x.yaml", "acceleration_x_raw", "acceleration_x"},
+	{"virtual-acceleration-y-001", "etri-arduino-acceleration-y", "etri-arduino-acceleration-y.yaml", "acceleration_y_raw", "acceleration_y"},
+	{"virtual-acceleration-z-001", "etri-arduino-acceleration-z", "etri-arduino-acceleration-z.yaml", "acceleration_z_raw", "acceleration_z"},
 }
 
-func TestResourceFilesDefineExactArduinoDevice(t *testing.T) {
-	devices := loadYAMLMap(t, resourcePath(t, "devices", "arduino-001.yaml"))
+func TestResourceFilesDefineSixReadOnlyVirtualProfiles(t *testing.T) {
+	for _, expected := range expectedVirtualDevices {
+		t.Run(expected.name, func(t *testing.T) {
+			profile := loadYAMLMap(t, resourcePath(t, "profiles", expected.profileFile))
+			assert.Equal(t, "v2", profile["apiVersion"])
+			assert.Equal(t, expected.profile, profile["name"])
+
+			resources := requireMapSlice(t, profile, "deviceResources")
+			require.Len(t, resources, 1)
+			assert.Equal(t, expected.resource, resources[0]["name"])
+			properties := requireMap(t, resources[0], "properties")
+			assert.Equal(t, "Int32", properties["valueType"])
+			assert.Equal(t, "R", properties["readWrite"])
+			assert.Equal(t, "raw", properties["units"])
+
+			commands := requireMapSlice(t, profile, "deviceCommands")
+			require.Len(t, commands, 1)
+			assert.Equal(t, expected.command, commands[0]["name"])
+			assert.Equal(t, "R", commands[0]["readWrite"])
+			operations := requireMapSlice(t, commands[0], "resourceOperations")
+			require.Len(t, operations, 1)
+			assert.Equal(t, expected.resource, operations[0]["deviceResource"])
+		})
+	}
+
+	_, err := os.Stat(resourcePath(t, "profiles", "etri-arduino-serial.yaml"))
+	assert.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestResourceFilesDefineExactVirtualDevices(t *testing.T) {
+	devices := loadYAMLMap(t, resourcePath(t, "devices", "arduino-virtual-devices.yaml"))
 	deviceList := requireMapSlice(t, devices, "deviceList")
-	require.Len(t, deviceList, 1)
-	device := deviceList[0]
+	require.Len(t, deviceList, len(expectedVirtualDevices))
 
-	assert.Equal(t, "arduino-001", device["name"])
-	assert.Equal(t, "etri-arduino-serial", device["profileName"])
-	_, hasAutoEvents := device["autoEvents"]
-	assert.False(t, hasAutoEvents)
+	byName := make(map[string]map[string]any, len(deviceList))
+	for _, device := range deviceList {
+		byName[requireString(t, device, "name")] = device
+	}
+	for _, expected := range expectedVirtualDevices {
+		device := byName[expected.name]
+		require.NotNil(t, device)
+		assert.Equal(t, expected.profile, device["profileName"])
+		_, hasAutoEvents := device["autoEvents"]
+		assert.False(t, hasAutoEvents)
 
-	protocols := requireMap(t, device, "protocols")
-	serial := requireMap(t, protocols, "serial")
-	assert.Equal(t, "/dev/arduino-001", serial["Port"])
-	assert.Equal(t, "115200", serial["BaudRate"])
-	assert.Equal(t, "arduino-001", serial["DeviceID"])
+		protocols := requireMap(t, device, "protocols")
+		serial := requireMap(t, protocols, "serial")
+		assert.Equal(t, "/dev/arduino-001", serial["Port"])
+		assert.Equal(t, "115200", serial["BaudRate"])
+		assert.Equal(t, "arduino-001", serial["DeviceID"])
+		assert.Equal(t, expected.resource, serial["ResourceName"])
+
+		tags := requireMap(t, device, "tags")
+		assert.Equal(t, "arduino-001", tags["physicalDeviceId"])
+		assert.Equal(t, "etri-dev0001-jetorn", tags["nodeName"])
+	}
+
+	_, err := os.Stat(resourcePath(t, "devices", "arduino-001.yaml"))
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestResourceFilesEnableAsyncSDKWithoutDiscovery(t *testing.T) {

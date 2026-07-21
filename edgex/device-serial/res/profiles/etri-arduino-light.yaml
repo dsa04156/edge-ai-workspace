@@ -1,0 +1,24 @@
+apiVersion: "v2"
+name: etri-arduino-light
+manufacturer: Arduino
+model: Uno virtual light source
+labels:
+  - arduino
+  - serial
+  - jetson
+  - virtual-device
+description: Read-only virtual light device sourced from the Jetson Arduino serial connection
+
+deviceResources:
+  - name: light_raw
+    description: Raw ambient light sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: light
+    readWrite: R
+    resourceOperations:
+      - deviceResource: light_raw
