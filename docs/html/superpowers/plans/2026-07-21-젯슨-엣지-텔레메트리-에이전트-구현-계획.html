@@ -126,8 +126,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.md</span>
-            <span class="badge">수정: 2026-07-21 09:58</span>
-            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+            <span class="badge">수정: 2026-07-21 10:27</span>
+            <span class="badge">HTML 생성: 2026-07-21 10:27</span>
           </div>
         </header>
         <div class="doc-body">
@@ -279,7 +279,7 @@ Arduino Serial: adapter/Profile/Device/Event는 아직 미구현
 Jetson legacy MQTT: current EdgeX plane과 별개이며 변경하지 않음</code></pre>
 <p>운영 절차에는 두 agent 이름, 두 node selector, 서로 다른 PVC/Secret, <code>source_seen=false</code> 예상 상태와 다음 diagnostics 명령을 기록한다.</p>
 <pre data-lang="bash"><code>kubectl -n edgex-edge exec deploy/edgex-edge-agent-jetson -- \
-  python -c &#x27;import json,httpx; r=httpx.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;, verify=&quot;/run/gateway-mtls/ca.crt&quot;, cert=(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;), timeout=10); r.raise_for_status(); print(json.dumps(r.json(), sort_keys=True))&#x27;</code></pre>
+  python -c &#x27;import json,ssl,httpx; ctx=ssl.create_default_context(cafile=&quot;/run/gateway-mtls/ca.crt&quot;); ctx.load_cert_chain(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;); client=httpx.Client(verify=ctx,trust_env=False,timeout=10); response=client.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;); assert response.status_code in (200,503), response.text; print(json.dumps(response.json(), sort_keys=True)); client.close()&#x27;</code></pre>
 <ul><li>[ ] <strong>Step 3: 오래된 표현 제거 확인</strong></li></ul>
 <p>Run: <code>rg -n --glob &#x27;!docs/html/**&#x27; &#x27;Jetson telemetry agent나|Raspberry Pi 검증 노드에 direct mode 1개|render에 .*Jetson agent&#x27; docs</code></p>
 <p>Expected: 활성 기준/운영 문서에서 결과 없음. 과거 설계·archive는 수정하지 않는다.</p>
@@ -344,7 +344,7 @@ git commit -m &quot;docs: document Jetson agent deployment state&quot;</code></p
 <ul><li>[ ] <strong>Step 6: 인증 heartbeat와 기존 경로 회귀 확인</strong></li></ul>
 <p>Jetson Pod 안에서 mounted client certificate를 사용해 <code>/diagnostics</code>를 조회한다.</p>
 <pre data-lang="bash"><code>kubectl -n edgex-edge exec deploy/edgex-edge-agent-jetson -- \
-  python -c &#x27;import json,httpx; r=httpx.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;, verify=&quot;/run/gateway-mtls/ca.crt&quot;, cert=(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;), timeout=10); r.raise_for_status(); d=r.json()[&quot;edges&quot;][&quot;etri-dev0001-jetorn&quot;]; print(json.dumps({&quot;healthy&quot;:d[&quot;healthy&quot;],&quot;source_seen&quot;:d[&quot;source_seen&quot;],&quot;reason&quot;:d.get(&quot;reason&quot;)}, sort_keys=True))&#x27;</code></pre>
+  python -c &#x27;import json,ssl,httpx; ctx=ssl.create_default_context(cafile=&quot;/run/gateway-mtls/ca.crt&quot;); ctx.load_cert_chain(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;); client=httpx.Client(verify=ctx,trust_env=False,timeout=10); response=client.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;); assert response.status_code in (200,503), response.text; d=response.json()[&quot;edges&quot;][&quot;etri-dev0001-jetorn&quot;]; print(json.dumps({&quot;healthy&quot;:d[&quot;healthy&quot;],&quot;source_seen&quot;:d[&quot;source_seen&quot;],&quot;reason&quot;:d.get(&quot;reason&quot;)}, sort_keys=True)); client.close()&#x27;</code></pre>
 <p>Expected: Jetson key exists, <code>source_seen</code> is <code>false</code>; heartbeat receipt fields are present even though device telemetry health is not yet true.</p>
 <p>Run: <code>kubectl -n edgex-system get statefulset edgex-postgres -o jsonpath=&#x27;{.status.readyReplicas}{&quot;\n&quot;}&#x27;</code></p>
 <p>Expected: <code>1</code>.</p>

@@ -101,6 +101,23 @@ class DocsHtmlSearchTest(unittest.TestCase):
         long = "이 문서는 현재 구현 기준으로 아래 2가지를 한 번에 설명한다. 비용모델과 런타임 orchestration이 어떤 구성으로 어떻게 동작하는지 아주 길게 설명한다."
         self.assertLessEqual(len(build_docs_html.short_desc(long)), 80)
 
+    def test_operational_mtls_diagnostics_uses_httpx_028_compatible_ssl_context(self):
+        runbook = (ROOT / "docs" / "ops" / "현재-데모-운영-절차.md").read_text(encoding="utf-8")
+
+        self.assertNotIn("httpx.get(\"https://edgex-ingest-gateway", runbook)
+        self.assertIn("ssl.create_default_context", runbook)
+        self.assertIn("load_cert_chain", runbook)
+        self.assertIn("trust_env=False", runbook)
+
+    def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
+        runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")
+
+        self.assertIn("service.edgemesh.kubeedge.io/service-proxy-name", runbook)
+        self.assertIn("kube-dns", runbook)
+        self.assertIn("argocd-repo-server", runbook)
+        self.assertIn("argocd-redis", runbook)
+        self.assertIn("edgex-ingest-gateway", runbook)
+
 
 if __name__ == "__main__":
     unittest.main()
