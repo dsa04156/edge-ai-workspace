@@ -94,11 +94,11 @@ Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. n
 
 ## direct 전달 상태
 
-현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, 다음 Device Service namespace는 `edgex-edge`다. 기존 `sensehat-001`/Agent bootstrap은 퇴역했고 현재 physical input은 없다. dashboard는 등록 device 없음과 `no_events` 전환 상태를 그대로 표시해야 한다.
+현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, Serial Device Service namespace는 `edgex-edge`다. 기존 `sensehat-001`/Agent bootstrap은 퇴역했고 현재 physical input은 `arduino-001`이다. dashboard는 이를 `available`, `connected`, `fresh`와 6개 typed Reading으로 표시한다.
 
-2026-07-14 UNO와 2026-07-15 Sense HAT canary, 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Event 계약과 durable replay의 과거 근거다. 현재 중앙 server2 Core/PostgreSQL과 대시보드 조회 전환은 같은 실행에서 새 live evidence를 확보해야 하며 특정 publisher 교체 여부와 분리한다.
+2026-07-21 Jetson Serial Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT/Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.
 
-Serial, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.
+Serial은 정상 경로만 지원 완료로 표시한다. 실제 분리·복구, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.
 
 ## Workflow/augmentation 경계
 

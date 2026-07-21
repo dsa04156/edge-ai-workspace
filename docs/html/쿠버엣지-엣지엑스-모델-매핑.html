@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -129,8 +131,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 쿠버엣지-엣지엑스-모델-매핑.md</span>
-            <span class="badge">수정: 2026-07-21 15:26</span>
-            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
+            <span class="badge">수정: 2026-07-21 17:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -157,8 +159,8 @@
 </tr>
 <tr>
 <td>command</td>
-<td>현재 비활성</td>
-<td>read-only profile grouping; actuator 실행 아님</td>
+<td>EdgeX Core Command</td>
+<td><code>arduino-001</code> latest-value GET만 활성; actuator 실행 아님</td>
 </tr>
 <tr>
 <td>node/workload 진단</td>
@@ -336,11 +338,11 @@ readings:
 <p>physical availability는 Core Metadata와 Core Data만으로 판정한다.</p>
 <ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>: unavailable</li><li><code>operatingState=UNKNOWN</code>: degraded</li><li><code>operatingState=UP</code>이고 최신 Event <code>origin</code>이 freshness 기준 이내: available</li><li><code>operatingState=UP</code>이지만 Event가 없거나 stale: degraded</li></ol>
 <p>Kubernetes node readiness, mapper Pod 상태, KubeEdge <code>DeviceStatus</code>는 이 결과를 승격하거나 강등하지 않는다. node/workload 데이터는 placement 후보와 장애 진단의 보조 정보로만 노출한다.</p>
-<p>현재 command는 비활성이다. 후속 command는 해당 endpoint를 소유한 Protocol Adapter의 인증·TTL·dedupe·실패 동작을 검증한 뒤 별도 활성화한다. legacy KubeEdge desired property나 mapper command topic은 fallback이 아니다.</p>
+<p>현재 <code>arduino-001</code>은 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code> read-only GET만 제공한다. 후속 write command는 해당 endpoint를 소유한 Device Service의 인증·TTL·dedupe·실패 동작을 검증한 뒤 별도 활성화한다. legacy KubeEdge desired property나 mapper command topic은 fallback이 아니다.</p>
 <h2 id="protocol-wave-boundary">Protocol-wave boundary</h2>
-<p>현재 delivered repository scope는 loopback direct adapter와 SQLite/HTTPS plane, EdgeX-backed aggregator/dashboard다. Sense HAT <code>sensehat-001</code>은 교체 가능한 fixture이며 repository artifact의 존재는 live deployment 완료를 의미하지 않는다.</p>
-<p>Serial, Modbus, OPC-UA와 추가 I2C adapter는 adapter/Profile, 실제 endpoint, typed Reading, freshness와 downstream consumer를 각각 검증한 뒤에만 완료로 표시한다. RTSP는 Workflow Pod 직접 구독 경로로 별도 검증한다. Sense HAT 성공을 다른 protocol의 완료 근거로 사용하지 않는다.</p>
-<p><code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입이다. 이 prototype을 EdgeX Serial Device Service로 부르거나 Serial protocol wave가 완료됐다는 근거로 사용하지 않는다.</p>
+<p>현재 delivered scope는 Jetson의 <code>device-serial-jetson</code> / <code>etri-arduino-serial</code> / <code>arduino-001</code>, 중앙 Core Data/PostgreSQL과 EdgeX-backed aggregator/dashboard다. 과거 loopback Agent/SQLite/HTTPS plane과 Sense HAT <code>sensehat-001</code>은 현재 배포나 fallback이 아니다.</p>
+<p>Serial은 정상 수집 경로만 완료로 표시하며 실제 분리·복구는 남아 있다. Modbus, OPC-UA와 추가 I2C adapter는 Device Service/Profile, 실제 endpoint, typed Reading, freshness와 downstream consumer를 각각 검증한 뒤에만 완료로 표시한다. RTSP는 Workflow Pod 직접 구독 경로로 별도 검증한다.</p>
+<p><code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입이다. 현재 Serial 완료 근거는 이 prototype이 아니라 <code>edgex/device-serial/</code>, root Kustomize와 live readback이다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-현재-권위">목적과 현재 권위</a></li>

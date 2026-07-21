@@ -101,15 +101,17 @@ class DocsHtmlSearchTest(unittest.TestCase):
         long = "이 문서는 현재 구현 기준으로 아래 2가지를 한 번에 설명한다. 비용모델과 런타임 orchestration이 어떤 구성으로 어떻게 동작하는지 아주 길게 설명한다."
         self.assertLessEqual(len(build_docs_html.short_desc(long)), 80)
 
-    def test_operational_runbook_records_agent_retirement_boundary(self):
+    def test_operational_runbook_records_current_serial_device_service_boundary(self):
         runbook = (ROOT / "docs" / "ops" / "현재-데모-운영-절차.md").read_text(encoding="utf-8")
 
         self.assertNotIn("ssl.create_default_context", runbook)
         self.assertNotIn("load_cert_chain", runbook)
-        self.assertIn("edge workload | 없음", runbook)
-        self.assertIn("edgex-edge-agent-jetson", runbook)
-        self.assertIn("고정 ClusterIP/PodIP/node IP로 우회하지 않는다", runbook)
-        self.assertIn("공식 EdgeX Device SDK 기반 custom Serial Device Service", runbook)
+        self.assertIn("edge workload | `device-serial-jetson` 1 replica", runbook)
+        self.assertIn("`edgex-edge-agent-*`", runbook)
+        self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
+        self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
+        self.assertIn("/dev/arduino-001", runbook)
+        self.assertIn("arduino-001", runbook)
 
     def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
         runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")

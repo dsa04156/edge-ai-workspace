@@ -1,6 +1,6 @@
 # 옥동 시나리오 생산성 KPI
 
-> **현재 전환 상태:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 아래에서 해당 이름을 사용하는 항목은 KPI 산정 형식의 과거 예시이며 현재 실증 표본에 포함하지 않는다. Jetson Serial Device Service의 종단간 증거가 확보된 뒤 실제 device identity로 교체한다.
+> **현재 실증 표본:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 현재 KPI의 live physical 표본은 Jetson Serial Device Service의 `arduino-001` 1개이며, 이 단일 표본을 전체 공장 성과로 외삽하지 않는다.
 
 ## 목적
 
@@ -99,18 +99,18 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 | 근거 | `device_service_name`, profile, protocol, Core Data source/resource, consumer relation |
 | 운영자 해석 | 어느 device input이 AI 서비스, 저장소, dashboard에 영향을 주는지 확인 |
 
-이 지표는 device → Protocol Adapter/edge agent → HTTPS gateway → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
+이 지표는 device → EdgeX Device Service → 중앙 MessageBus → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
 
-## direct 검증 fixture KPI 해석
+## 현재 Serial 표본 KPI 해석
 
-현재 repository 전달 범위의 교체 가능한 physical example은 `sensehat-001`이다. 다음 증거를 함께 제시한다.
+현재 physical example은 `arduino-001`이다. 다음 증거를 함께 제시한다.
 
 1. `source=edgex`
 2. profile과 논리 수집 서비스 identity
-3. `protocol_names`의 I2C
+3. `protocol_names`의 Serial
 4. admin/operating/connection 상태
 5. latest Core Data event timestamp와 freshness
-6. latest temperature/humidity/pressure/orientation readings의 source/resource/value
+6. latest temperature/light/magnetic/acceleration readings의 source/resource/value
 7. AI/storage/dashboard consumer 관계
 
 단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.
@@ -118,7 +118,7 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 ## 생산성 설명 문구
 
 ```text
-본 PoC는 EdgeX Core Metadata의 device 등록·논리 수집 서비스 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, adapter/agent, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
+본 PoC는 EdgeX Core Metadata의 device 등록·Device Service 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, Device Service, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
 ```
 
 이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.
@@ -127,14 +127,14 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 | 범위 | KPI 포함 여부 |
 |---|---|
-| I2C `sensehat-001` direct | 새 image의 실제 Event와 중앙 readback 증거가 있을 때 포함 |
+| Serial `arduino-001` | 정상 수집, 중앙 readback과 dashboard freshness 표본에 포함 |
 | MQTT-only 장비 adapter | 현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함 |
-| Serial | 구현·현장 검증 전에는 제외 |
+| I2C | 현재 제외; 교체 센서와 Device Service 증거가 있을 때만 포함 |
 | Modbus | 구현·현장 검증 전에는 제외 |
 | OPC-UA | 구현·현장 검증 전에는 제외 |
 | RTSP | 구현·현장 검증 전에는 제외 |
 
-후속 wave는 각각 Core Metadata identity, Protocol Adapter, durable delivery, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.
+후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다. 현재 Serial 경로는 outbox나 offline replay가 없으므로 durable edge buffering KPI를 주장하지 않는다.
 
 ## 현재 범위에서 말하지 않는 것
 

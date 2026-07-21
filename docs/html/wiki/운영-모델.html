@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -129,18 +131,18 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-모델.md</span>
-            <span class="badge">수정: 2026-07-21 15:29</span>
-            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
+            <span class="badge">수정: 2026-07-21 17:06</span>
+            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="운영-모델">운영 모델</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>현재 시스템은 중앙 EdgeX Core·PostgreSQL과 KubeEdge 노드·워크로드 관리 기반을 유지한 채, 정식 EdgeX Device Service로 실제 장비 1종을 연결하는 전환 단계의 PoC다. 핵심은 Device Service/Profile/Device와 실제 Event/Reading을 대시보드에서 같은 identity로 해석 가능하게 만드는 것이다.</p>
+<p>현재 시스템은 중앙 EdgeX Core·PostgreSQL과 KubeEdge 노드·워크로드 관리 기반을 유지한 채, 정식 EdgeX Device Service로 실제 장비 1종을 연결한 PoC다. 핵심은 Device Service/Profile/Device와 실제 Event/Reading을 대시보드에서 같은 identity로 해석 가능하게 만드는 것이다.</p>
 <h2 id="현재-기준">현재 기준</h2>
 <p>이 프로젝트는 동적 오케스트레이션 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 Jetson Arduino → Serial Device Service → Core Data → dashboard 수직 슬라이스와 서비스 데모 1종을 운영 관점에서 설명 가능하게 만드는 것이다.</p>
 <ol><li>EdgeX Device Service가 실제 endpoint를 연결하고 typed Event를 만든다.</li><li>Core Data와 PostgreSQL이 Event/Reading을 저장한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li></ol>
-<p>2026-07-21 기존 custom edge Agent/SQLite outbox와 <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 edge Device Service가 없으므로 telemetry는 전환 중이며 완료로 표시하지 않는다.</p>
+<p>2026-07-21 기존 custom edge Agent/SQLite outbox와 <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 <code>device-serial-jetson</code>이 <code>arduino-001</code>의 typed telemetry를 중앙에 저장하고 dashboard에서 fresh 상태로 표시한다. 이 완료 범위에는 offline replay와 물리 분리·복구 시연이 없다.</p>
 <p>짧은 정의:</p>
 <pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
 <h2 id="경계">경계</h2>
