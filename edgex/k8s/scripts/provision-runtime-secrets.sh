@@ -3,13 +3,14 @@ set -eu
 
 KUBECTL=${KUBECTL:-kubectl}
 OPENSSL=${OPENSSL:-openssl}
-replace=false
+mode=create
 
 case "${1:-}" in
     "") ;;
-    --replace) replace=true ;;
+    --replace) mode=replace_all ;;
+    --replace-telemetry) mode=replace_telemetry ;;
     *)
-        printf '%s\n' "usage: $0 [--replace]" >&2
+        printf '%s\n' "usage: $0 [--replace|--replace-telemetry]" >&2
         exit 64
         ;;
 esac
@@ -45,12 +46,14 @@ edgex-system/edgex-telemetry-plane-credentials
 edgex-system/edgex-telemetry-edge-auth
 edgex-system/edgex-ingest-gateway-tls
 edgex-edge/edgex-edge-agent-sensehat-credentials
-edgex-edge/edgex-edge-agent-sensehat-gateway-mtls'
+edgex-edge/edgex-edge-agent-sensehat-gateway-mtls
+edgex-edge/edgex-edge-agent-jetson-credentials
+edgex-edge/edgex-edge-agent-jetson-gateway-mtls'
 
 ensure_namespace edgex-system
 ensure_namespace edgex-edge
 
-if [ "$replace" = false ]; then
+if [ "$mode" = create ]; then
     old_ifs=$IFS
     IFS='/'
     printf '%s\n' "$required_secrets" | while read -r identifier; do
@@ -67,26 +70,37 @@ random_hex() {
     "$OPENSSL" rand -hex 32 | tr -d '\r\n'
 }
 
-printf '%s' edgex >"$secret_tmp/db-username"
-random_hex >"$secret_tmp/db-password"
-db_password=$(tr -d '\n' <"$secret_tmp/db-password")
-printf 'postgresql://edgex:%s@edgex-postgres.edgex-system.svc:5432/edgex_db' \
-    "$db_password" >"$secret_tmp/database-url"
-unset db_password
+if [ "$mode" != replace_telemetry ]; then
+    printf '%s' edgex >"$secret_tmp/db-username"
+    random_hex >"$secret_tmp/db-password"
+    db_password=$(tr -d '\n' <"$secret_tmp/db-password")
+    printf 'postgresql://edgex:%s@edgex-postgres.edgex-system.svc:5432/edgex_db' \
+        "$db_password" >"$secret_tmp/database-url"
+    unset db_password
+fi
 
 random_hex >"$secret_tmp/sensehat-auth"
+random_hex >"$secret_tmp/jetson-auth"
 sensehat_auth=$(tr -d '\n' <"$secret_tmp/sensehat-auth")
-printf '{"etri-dev0003-raspi5":"%s"}' \
-    "$sensehat_auth" >"$secret_tmp/edge-auth-secrets.json"
-unset sensehat_auth
+jetson_auth=$(tr -d '\n' <"$secret_tmp/jetson-auth")
+printf '{"etri-dev0001-jetorn":"%s","etri-dev0003-raspi5":"%s"}' \
+    "$jetson_auth" "$sensehat_auth" >"$secret_tmp/edge-auth-secrets.json"
+unset jetson_auth sensehat_auth
 
-for scalar_file in db-username db-password database-url sensehat-auth edge-auth-secrets.json; do
+scalar_files='sensehat-auth jetson-auth edge-auth-secrets.json'
+hex_files='sensehat-auth jetson-auth'
+if [ "$mode" != replace_telemetry ]; then
+    scalar_files="db-username db-password database-url $scalar_files"
+    hex_files="db-password $hex_files"
+fi
+
+for scalar_file in $scalar_files; do
     if [ "$(wc -l <"$secret_tmp/$scalar_file" | tr -d ' ')" -ne 0 ]; then
         printf '%s\n' "generated Secret value unexpectedly contains a newline: $scalar_file" >&2
         exit 70
     fi
 done
-for hex_file in db-password sensehat-auth; do
+for hex_file in $hex_files; do
     hex_value=$(cat "$secret_tmp/$hex_file")
     case "$hex_value" in
         *[!0-9a-f]*|'')
@@ -136,6 +150,7 @@ issue_edge_certificate() {
 }
 
 issue_edge_certificate etri-dev0003-raspi5 sensehat
+issue_edge_certificate etri-dev0001-jetorn jetson
 
 apply_secret() {
     namespace=$1
@@ -149,11 +164,13 @@ apply_secret() {
     printf '%s\n' "provisioned $namespace/$name"
 }
 
-apply_secret edgex-system edgex-postgres-credentials \
-    "--from-file=username=$secret_tmp/db-username" \
-    "--from-file=password=$secret_tmp/db-password"
-apply_secret edgex-system edgex-telemetry-plane-credentials \
-    "--from-file=database-url=$secret_tmp/database-url"
+if [ "$mode" != replace_telemetry ]; then
+    apply_secret edgex-system edgex-postgres-credentials \
+        "--from-file=username=$secret_tmp/db-username" \
+        "--from-file=password=$secret_tmp/db-password"
+    apply_secret edgex-system edgex-telemetry-plane-credentials \
+        "--from-file=database-url=$secret_tmp/database-url"
+fi
 apply_secret edgex-system edgex-telemetry-edge-auth \
     "--from-file=edge-auth-secrets.json=$secret_tmp/edge-auth-secrets.json"
 apply_secret edgex-system edgex-ingest-gateway-tls \
@@ -167,5 +184,11 @@ apply_secret edgex-edge edgex-edge-agent-sensehat-gateway-mtls \
     "--from-file=ca.crt=$secret_tmp/ca.crt" \
     "--from-file=tls.crt=$secret_tmp/sensehat.crt" \
     "--from-file=tls.key=$secret_tmp/sensehat.key"
+apply_secret edgex-edge edgex-edge-agent-jetson-credentials \
+    "--from-file=edge-auth-secret=$secret_tmp/jetson-auth"
+apply_secret edgex-edge edgex-edge-agent-jetson-gateway-mtls \
+    "--from-file=ca.crt=$secret_tmp/ca.crt" \
+    "--from-file=tls.crt=$secret_tmp/jetson.crt" \
+    "--from-file=tls.key=$secret_tmp/jetson.key"
 
 KUBECTL="$KUBECTL" "$(dirname "$0")/preflight-runtime-secrets.sh"

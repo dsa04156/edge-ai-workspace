@@ -50,6 +50,8 @@ fi
 if check_namespace edgex-edge; then
     check_secret edgex-edge edgex-edge-agent-sensehat-credentials edge-auth-secret
     check_secret edgex-edge edgex-edge-agent-sensehat-gateway-mtls ca.crt tls.crt tls.key
+    check_secret edgex-edge edgex-edge-agent-jetson-credentials edge-auth-secret
+    check_secret edgex-edge edgex-edge-agent-jetson-gateway-mtls ca.crt tls.crt tls.key
 else
     failed=1
 fi

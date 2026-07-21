@@ -12,6 +12,7 @@ K8S_DIR = Path(__file__).resolve().parents[1]
 ARGO_APPLICATIONS = K8S_DIR.parents[1] / "edge-orch-argocd" / "argocd-apps.yaml"
 CENTRAL_NODE = "etri-ser0002-cgnmsb"
 EDGE_PLACEMENT = {
+    "edgex-edge-agent-jetson": "etri-dev0001-jetorn",
     "edgex-edge-agent-sensehat": "etri-dev0003-raspi5",
 }
 CENTRAL_WORKLOADS = {
@@ -110,13 +111,13 @@ def test_internal_messagebus_is_cluster_only() -> None:
 
 def test_deployed_edge_agent_is_direct_and_broker_free() -> None:
     rendered = workloads()
-    sensehat_env = {
-        item["name"]: item
-        for item in pod_spec(rendered["edgex-edge-agent-sensehat"])["containers"][0]["env"]
-    }
-    assert sensehat_env["TELEMETRY_SOURCE_MODE"]["value"] == "direct"
-    assert "LOCAL_MQTT_HOST" not in sensehat_env
-    assert "edgex-edge-agent-jetson" not in rendered
+    for name in EDGE_PLACEMENT:
+        env = {
+            item["name"]: item
+            for item in pod_spec(rendered[name])["containers"][0]["env"]
+        }
+        assert env["TELEMETRY_SOURCE_MODE"]["value"] == "direct"
+        assert "LOCAL_MQTT_HOST" not in env
 
 
 def test_argocd_owns_edgex_but_not_the_legacy_mapper() -> None:

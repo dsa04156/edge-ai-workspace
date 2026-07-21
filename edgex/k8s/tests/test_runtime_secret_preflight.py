@@ -29,6 +29,16 @@ REQUIRED_SECRETS = (
         "edgex-edge-agent-sensehat-gateway-mtls",
         ("ca.crt", "tls.crt", "tls.key"),
     ),
+    (
+        "edgex-edge",
+        "edgex-edge-agent-jetson-credentials",
+        ("edge-auth-secret",),
+    ),
+    (
+        "edgex-edge",
+        "edgex-edge-agent-jetson-gateway-mtls",
+        ("ca.crt", "tls.crt", "tls.key"),
+    ),
 )
 SECRET_IDENTIFIERS = tuple(
     f"{namespace}/{secret}" for namespace, secret, _ in REQUIRED_SECRETS
