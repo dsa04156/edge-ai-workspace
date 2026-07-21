@@ -308,3 +308,34 @@ def test_backend_outage_raises_typed_backend_error():
 
     with pytest.raises(EdgeXBackendError, match="EdgeX request failed"):
         asyncio.run(client.get_devices())
+
+
+def test_core_data_requests_respect_global_concurrency_limit():
+    active_requests = 0
+    peak_requests = 0
+
+    async def handler(request):
+        nonlocal active_requests, peak_requests
+        if request.url.host != "data":
+            return _response(_envelope("devices", []))
+        active_requests += 1
+        peak_requests = max(peak_requests, active_requests)
+        await asyncio.sleep(0.01)
+        active_requests -= 1
+        return _response(_envelope("events", []))
+
+    client = EdgeXClient(
+        "http://metadata",
+        "http://data",
+        core_data_max_concurrency=1,
+        transport=httpx.MockTransport(handler),
+    )
+
+    async def fetch_all():
+        await asyncio.gather(
+            *(client.get_latest_event(f"virtual-device-{index}") for index in range(6))
+        )
+
+    asyncio.run(fetch_all())
+
+    assert peak_requests == 1

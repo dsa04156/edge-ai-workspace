@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -30,12 +31,19 @@ class EdgeXClient:
         core_data_url: str,
         timeout_seconds: float = 10.0,
         *,
+        core_data_max_concurrency: int = 1,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
+        if isinstance(core_data_max_concurrency, bool) or core_data_max_concurrency < 1:
+            raise ValueError("core_data_max_concurrency must be positive")
         self.core_metadata_url = core_metadata_url.rstrip("/")
         self.core_data_url = core_data_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
         self.transport = transport
+        # Core Data assembles Event responses with follow-up Reading queries.
+        # Keep upstream concurrency below its small PostgreSQL pool so parallel
+        # dashboard refreshes cannot starve those follow-up queries.
+        self._core_data_semaphore = asyncio.Semaphore(core_data_max_concurrency)
 
     async def get_devices(self) -> list[EdgeXDevice]:
         payload = await self._get(self.core_metadata_url, "/api/v3/device/all")
@@ -161,6 +169,18 @@ class EdgeXClient:
         return events
 
     async def _get(
+        self,
+        base_url: str,
+        path: str,
+        *,
+        params: dict[str, int] | None = None,
+    ) -> dict[str, Any]:
+        if base_url == self.core_data_url:
+            async with self._core_data_semaphore:
+                return await self._get_unlimited(base_url, path, params=params)
+        return await self._get_unlimited(base_url, path, params=params)
+
+    async def _get_unlimited(
         self,
         base_url: str,
         path: str,
