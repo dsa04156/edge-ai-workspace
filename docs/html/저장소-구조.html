@@ -84,11 +84,16 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +129,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 15:23</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
@@ -181,22 +186,22 @@
 <tr>
 <td><code>edgex/k8s/kustomization.yaml</code></td>
 <td>현재 EdgeX 운영 배포 진입점</td>
-<td><code>overlays/testbed/server2</code>와 <code>sensor-gateways</code>를 함께 렌더링해 중앙 <code>edgex-system</code>과 agent <code>edgex-edge</code>를 배치</td>
+<td><code>overlays/testbed/server2</code>와 <code>base/edge-namespace</code>를 렌더링해 중앙 <code>edgex-system</code>과 비어 있는 <code>edgex-edge</code> 전환 공간을 관리</td>
 </tr>
 <tr>
 <td><code>edgex/k8s/base/server/</code></td>
 <td>중앙 EdgeX data plane</td>
-<td>ingest gateway, Core Keeper/Metadata/Data/Command, 내부 MessageBus, PostgreSQL과 Metadata bootstrap을 server2에 배치</td>
+<td>ingest gateway, Core Keeper/Metadata/Data/Command, 내부 MessageBus와 PostgreSQL을 server2에 배치</td>
 </tr>
 <tr>
-<td><code>edgex/k8s/base/edge-agent/</code>, <code>overlays/testbed/sensor-gateways/</code></td>
-<td>엣지 telemetry plane</td>
-<td>SQLite outbox direct agent를 물리 노드에 배치. 현재 render에는 MQTT-mode agent나 edge-local broker가 없음</td>
+<td><code>edgex/k8s/base/edge-namespace/</code></td>
+<td>다음 Device Service용 edge namespace</td>
+<td><code>edgex-edge</code> Namespace와 default-deny NetworkPolicy만 유지. 현재 workload 없음</td>
 </tr>
 <tr>
 <td><code>edgex/telemetry-plane/</code></td>
-<td>현재 telemetry 구현</td>
-<td>loopback adapter admission, SQLite outbox, HTTPS/mTLS gateway, Core Data persisted ACK와 Metadata bootstrap 구현</td>
+<td>중앙 gateway 구현과 퇴역 Agent 코드</td>
+<td>gateway는 유지하지만 edge Agent/outbox/Metadata bootstrap은 운영 render가 아님. 다음 Device Service 인증 경로 확정 후 추가 정리</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
@@ -209,7 +214,7 @@
 <td>EdgeX device/state/typed telemetry와 node/workload 관찰을 구분하며 live cutover는 별도 evidence gate</td>
 </tr>
 </tbody></table></div>
-<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. 현재 1차 수직 슬라이스는 SQLite offline replay와 Core Data persisted ACK를 포함한다. <code>sensehat-001</code>은 교체 가능한 live 검증 fixture일 뿐 고정 아키텍처가 아니다. 현재 render에는 MQTT 입력 workload가 없으며, MQTT-only·Modbus·OPC-UA·Serial·추가 I2C adapter와 RTSP workflow는 각각 검증 전까지 완료로 주장하지 않는다.</p>
+<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. 기존 Agent/SQLite/HTTPS 수직 슬라이스는 퇴역했으며 <code>sensehat-001</code>도 현재 inventory 계약이 아니다. 현재 render에는 edge Device Service나 MQTT 입력 workload가 없다. Jetson Arduino Serial Device Service가 다음 수직 슬라이스이며, MQTT-only·Modbus·OPC-UA·추가 I2C와 RTSP는 각각 검증 전까지 완료로 주장하지 않는다.</p>
 <h2 id="2차년도-설계-트랙-경로">2차년도 설계 트랙 경로</h2>
 <p>다음 경로는 현재 서비스 데모 기능으로 주장하지 않고, 2차년도 협약 방향에 맞춘 설계/프로토타입 후보로 관리한다.</p>
 <div class="table-wrap"><table>
@@ -316,6 +321,10 @@
 <tr>
 <td><code>edgex/mqtt-bridge/</code></td>
 <td>Legacy-canary evidence. 과거 Jetson-local 장비·profile·Reading 비교 근거이며 현재 중앙 topology나 fallback으로 사용하지 않음</td>
+</tr>
+<tr>
+<td>삭제된 <code>edgex/k8s/base/edge-agent/</code>, <code>overlays/testbed/sensor-gateways/</code></td>
+<td>퇴역. Agent Deployment/PVC를 운영 진입점으로 복구하지 않음</td>
 </tr>
 <tr>
 <td><code>edge-orch/workflow_executor/</code></td>
@@ -482,9 +491,9 @@
 </tbody></table></div>
 <h2 id="새-작업-판단-절차">새 작업 판단 절차</h2>
 <p>새 파일을 만들거나 기존 파일을 수정하기 전에 다음을 확인한다.</p>
-<ol><li><code>docs/프로젝트-범위.md</code>의 현재 PoC 범위에 들어가는가?</li><li>서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화에 직접 기여하는가?</li><li>중앙 EdgeX Metadata inventory/schema와 Core Data/PostgreSQL authority, Protocol Adapter→SQLite agent→HTTPS gateway 경로와 protocol별 독립 adapter gate를 지키는가?</li><li>workflow/offloading/agent-planning 계열을 다시 현재 경로로 끌어오는 작업은 아닌가?</li><li>현재 범위가 아니라면 archive/reference/정리 검토 대상으로 표시할 수 있는가?</li></ol>
+<ol><li><code>docs/프로젝트-범위.md</code>의 현재 PoC 범위에 들어가는가?</li><li>서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화에 직접 기여하는가?</li><li>중앙 EdgeX Metadata inventory/schema와 Core Data/PostgreSQL authority, 정식 Device Service의 endpoint 소유권과 protocol별 검증 gate를 지키는가?</li><li>workflow/offloading/agent-planning 계열을 다시 현재 경로로 끌어오는 작업은 아닌가?</li><li>현재 범위가 아니라면 archive/reference/정리 검토 대상으로 표시할 수 있는가?</li></ol>
 <h2 id="정리-순서-제안">정리 순서 제안</h2>
-<ol><li>현재 범위 문서 유지: <code>프로젝트-범위.md</code>, <code>원시-텔레메트리-데이터-플레인.md</code>, <code>저장소-구조.md</code>, <code>프로젝트-배경.md</code>, <code>물리-디바이스-상태-정책.md</code>, <code>대시보드-판단-정책.md</code>, <code>단계별-추진계획.md</code></li><li>현재 목표 경로 문서화: Protocol Adapter -&gt; SQLite agent -&gt; HTTPS gateway -&gt; Core Data/PostgreSQL -&gt; consumers</li><li>route/profile과 EdgeX Metadata Device/Profile binding 명세 유지</li><li>중앙 내부 MessageBus와 physical HTTPS transport를 구분하고 대시보드 live migration evidence를 별도로 기록</li><li>제외/보관 경로를 README 또는 archive index에 명시</li><li>정리 검토 대상에서 캐시/runner/운영 데이터 분리 여부 결정</li></ol>
+<ol><li>현재 범위 문서 유지: <code>프로젝트-범위.md</code>, <code>원시-텔레메트리-데이터-플레인.md</code>, <code>저장소-구조.md</code>, <code>프로젝트-배경.md</code>, <code>물리-디바이스-상태-정책.md</code>, <code>대시보드-판단-정책.md</code>, <code>단계별-추진계획.md</code></li><li>현재 목표 경로 문서화: physical endpoint -&gt; EdgeX Device Service -&gt; Core Data/PostgreSQL -&gt; consumers</li><li>route/profile과 EdgeX Metadata Device/Profile binding 명세 유지</li><li>중앙 내부 MessageBus와 물리 protocol 연결을 구분하고 대시보드 live evidence를 별도로 기록</li><li>제외/보관 경로를 README 또는 archive index에 명시</li><li>정리 검토 대상에서 캐시/runner/운영 데이터 분리 여부 결정</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

@@ -11,9 +11,13 @@ import yaml
 K8S_DIR = Path(__file__).resolve().parents[1]
 ARGO_APPLICATIONS = K8S_DIR.parents[1] / "edge-orch-argocd" / "argocd-apps.yaml"
 CENTRAL_NODE = "etri-ser0002-cgnmsb"
-EDGE_PLACEMENT = {
-    "edgex-edge-agent-jetson": "etri-dev0001-jetorn",
-    "edgex-edge-agent-sensehat": "etri-dev0003-raspi5",
+EDGE_NODES = {
+    "etri-dev0001-jetorn",
+    "etri-dev0003-raspi5",
+}
+RETIRED_EDGE_WORKLOADS = {
+    "edgex-edge-agent-jetson",
+    "edgex-edge-agent-sensehat",
 }
 CENTRAL_WORKLOADS = {
     "edgex-core-keeper",
@@ -24,7 +28,6 @@ CENTRAL_WORKLOADS = {
     "edgex-messagebus",
     "edgex-postgres",
     "edgex-ingest-gateway",
-    "edgex-metadata-bootstrap",
 }
 
 
@@ -59,15 +62,12 @@ def test_central_workloads_run_only_on_server2() -> None:
         }
 
 
-def test_telemetry_agents_remain_on_the_sensor_edges() -> None:
+def test_retired_telemetry_agents_are_absent() -> None:
     rendered = workloads()
-    for name, node in EDGE_PLACEMENT.items():
-        assert pod_spec(rendered[name])["nodeSelector"] == {
-            "kubernetes.io/hostname": node
-        }
+    assert not RETIRED_EDGE_WORKLOADS & rendered.keys()
 
 
-def test_core_images_are_amd64_and_edge_agent_images_are_arm64() -> None:
+def test_core_images_are_amd64() -> None:
     rendered = workloads()
     for name in CENTRAL_WORKLOADS:
         containers = [
@@ -79,21 +79,16 @@ def test_core_images_are_amd64_and_edge_agent_images_are_arm64() -> None:
             if "edgexfoundry/" in image:
                 assert ":4.0.2" in image
                 assert "-arm64" not in image
-    for name in EDGE_PLACEMENT:
-        image = pod_spec(rendered[name])["containers"][0]["image"]
-        assert image.startswith("192.168.0.56:5000/edgex-telemetry-plane:")
-        assert "@sha256:" in image
-
-
-def test_edge_has_no_local_core_messagebus_or_database() -> None:
+def test_transition_render_has_no_workloads_on_sensor_edges() -> None:
     rendered = workloads()
-    edge_nodes = set(EDGE_PLACEMENT.values())
-    for name, resource in rendered.items():
-        node = pod_spec(resource).get("nodeSelector", {}).get(
+    scheduled_on_edges = {
+        name
+        for name, resource in rendered.items()
+        if pod_spec(resource).get("nodeSelector", {}).get(
             "kubernetes.io/hostname"
-        )
-        if node in edge_nodes:
-            assert name in EDGE_PLACEMENT
+        ) in EDGE_NODES
+    }
+    assert not scheduled_on_edges
 
 
 def test_internal_messagebus_is_cluster_only() -> None:
@@ -107,17 +102,6 @@ def test_internal_messagebus_is_cluster_only() -> None:
     assert service["spec"]["ports"] == [
         {"name": "mqtt", "port": 1883, "targetPort": "mqtt"}
     ]
-
-
-def test_deployed_edge_agent_is_direct_and_broker_free() -> None:
-    rendered = workloads()
-    for name in EDGE_PLACEMENT:
-        env = {
-            item["name"]: item
-            for item in pod_spec(rendered[name])["containers"][0]["env"]
-        }
-        assert env["TELEMETRY_SOURCE_MODE"]["value"] == "direct"
-        assert "LOCAL_MQTT_HOST" not in env
 
 
 def test_argocd_owns_edgex_but_not_the_legacy_mapper() -> None:

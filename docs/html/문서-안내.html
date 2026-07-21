@@ -84,6 +84,7 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -91,6 +92,8 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -122,24 +125,31 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>문서 안내</h1>
-          <p class="subtitle">이 디렉터리는 EdgeX 기반 물리 디바이스 데이터 플레인과 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI…</p>
+          <p class="subtitle">이 디렉터리는 EdgeX 기반 물리 디바이스 관리와 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 P…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-07-21 09:58</span>
-            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+            <span class="badge">수정: 2026-07-21 15:20</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-안내">문서 안내</h1>
-<p>이 디렉터리는 EdgeX 기반 물리 디바이스 데이터 플레인과 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 PoC 문서의 단일 진입점이다. 처음 읽을 때는 전체 파일을 훑지 말고 <code>wiki/지식-지도.md</code>에서 목적에 맞는 최신 기준 문서를 찾는다.</p>
+<p>이 디렉터리는 EdgeX 기반 물리 디바이스 관리와 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 PoC 문서의 단일 진입점이다. 처음 읽을 때는 <code>wiki/지식-지도.md</code>에서 목적에 맞는 최신 기준 문서를 찾는다.</p>
+<h2 id="현재-상태">현재 상태</h2>
+<p>2026-07-21 기준 중앙 <code>edgex-system</code>에는 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway가 유지된다. <code>edgex-edge</code>의 커스텀 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 전용 SQLite outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역했다.</p>
+<p>현재 <code>edgex-edge</code>에는 Namespace와 기본 deny NetworkPolicy만 있으며, 물리 센서 telemetry는 의도적으로 중단된 개발 전환 상태다. 이 상태를 서비스 데모 완료나 디바이스 연결 완료로 설명하지 않는다.</p>
+<p>다음 수직 슬라이스는 <code>etri-dev0001-jetorn</code>에 연결된 Arduino 센서 1종을 정식 EdgeX Device Service로 구현하고, Device Profile/Device 등록, Core Data Event/Reading, 대시보드 freshness까지 한 흐름으로 검증하는 것이다.</p>
 <h2 id="한-문장-목표">한 문장 목표</h2>
-<p>Jetson·Raspberry Pi의 Protocol Adapter와 durable telemetry agent에서 HTTPS ingest gateway·Core Data·PostgreSQL까지 원시 텔레메트리 권위 경로를 단일화하고, 디바이스·서비스·노드·워크로드 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
-<p>짧은 표현:</p>
-<pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
-<p>현재 문서와 구현은 아래 세 가지를 우선한다.</p>
-<ol><li>교체 가능한 Protocol Adapter 입력을 SQLite edge agent와 HTTPS gateway·Core Data·PostgreSQL 경로로 검증한다.</li><li>EdgeX 디바이스·프로필·서비스와 AI 서비스의 연결 구조를 대시보드에서 보이게 한다.</li><li>실공장 기반 PoC의 현장 적용성과 생산성 향상 효과를 설명하되, 중앙 전환과 추가 프로토콜 지원은 실행 증거가 있을 때만 완료로 판정한다.</li></ol>
-<p>과거 워크플로·오프로딩·에이전트 보조 계획 자료는 현재 판단 기준이 아니다. 필요할 때만 <code>docs/archive/</code>와 <code>docs/superpowers/</code>에서 설계 이력으로 확인한다.</p>
+<p>물리 장비를 EdgeX Device Service와 Device/Profile로 일관되게 추상화하고, 디바이스-서비스 연결과 실제 telemetry 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
+<pre data-lang="text"><code>센서 / PLC / 장비
+  -&gt; 프로토콜별 EdgeX Device Service
+  -&gt; 중앙 EdgeX Core Data / Metadata / Command
+  -&gt; PostgreSQL / Application Service / AI consumer / dashboard
+
+KubeEdge
+  -&gt; 엣지 노드와 Device Service·AI workload 배치/상태 관리</code></pre>
+<p>MQTT는 EdgeX의 전제조건이 아니다. MQTT-only 장비나 명시적인 로컬 pub/sub 요구가 있을 때만 broker를 배치한다. Serial, Modbus, OPC-UA, I2C 직접 연결에는 해당 프로토콜 Device Service를 사용한다. 카메라 frame은 요청 시 Workflow Pod가 RTSP를 직접 구독하고 상태·분석 결과 metadata만 EdgeX Event로 전달할 수 있다.</p>
 <h2 id="먼저-읽을-문서">먼저 읽을 문서</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -156,90 +166,81 @@
 <tr>
 <td>2</td>
 <td><code>프로젝트-범위.md</code></td>
-<td>현재 범위, 2차년도 설계, 제외 범위의 최우선 기준</td>
+<td>현재 범위와 제외 범위의 최우선 기준</td>
 </tr>
 <tr>
 <td>3</td>
 <td><code>원시-텔레메트리-데이터-플레인.md</code></td>
-<td>Protocol Adapter, SQLite outbox와 HTTPS persisted-ACK 구조</td>
+<td>현재 전환 상태와 목표 Device Service 데이터 경로</td>
 </tr>
 <tr>
 <td>4</td>
 <td><code>저장소-구조.md</code></td>
-<td>현재·보조·레거시·보관 코드 경계</td>
+<td>현재·후속·레거시·보관 코드 경계</td>
 </tr>
 <tr>
 <td>5</td>
 <td><code>현재-데모-경로.md</code></td>
-<td>현재 데모의 데이터 흐름과 검증 상태</td>
+<td>중앙 EdgeX 유지 상태와 다음 수직 슬라이스</td>
 </tr>
 <tr>
 <td>6</td>
 <td><code>ops/현재-데모-운영-절차.md</code></td>
-<td>실제 데모 실행과 점검</td>
+<td>현재 배포 확인과 Agent 퇴역 검증</td>
 </tr>
 </tbody></table></div>
-<h2 id="문서-묶음">문서 묶음</h2>
+<h2 id="문서-분류">문서 분류</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>묶음</th>
-<th>기준</th>
-<th>대표 문서</th>
+<th>분류</th>
+<th>의미</th>
+<th>대표 경로</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>위키</td>
-<td>최신 기준·운영 원본문서를 합성한 지식 지도</td>
-<td><code>wiki/지식-지도.md</code>, <code>wiki/운영-모델.md</code></td>
-</tr>
-<tr>
 <td>최신 기준</td>
-<td>현재 시스템 구축 목표와 정책을 직접 설명</td>
-<td><code>프로젝트-범위.md</code>, <code>원시-텔레메트리-데이터-플레인.md</code>, <code>저장소-구조.md</code></td>
+<td>현재 범위와 실제 운영 render</td>
+<td><code>프로젝트-범위.md</code>, <code>저장소-구조.md</code>, <code>현재-데모-경로.md</code></td>
 </tr>
 <tr>
 <td>운영</td>
-<td>데모 실행, 점검, 장애 대응</td>
-<td><code>ops/현재-데모-운영-절차.md</code>, <code>ops/네트워크-문제해결.md</code></td>
+<td>배포·점검·장애 대응</td>
+<td><code>ops/</code></td>
+</tr>
+<tr>
+<td>위키</td>
+<td>최신 기준을 짧게 합성한 탐색 문서</td>
+<td><code>wiki/</code></td>
 </tr>
 <tr>
 <td>설계 이력</td>
-<td>과거·후속 설계와 구현 계획</td>
-<td><code>superpowers/*</code>, <code>일일-기록.md</code></td>
+<td>미구현 또는 퇴역 설계·계획</td>
+<td><code>superpowers/</code></td>
 </tr>
 <tr>
 <td>보관</td>
-<td>과거 연구, 통합 기록, 레거시 오케스트레이션</td>
-<td><code>archive/*</code></td>
+<td>과거 통합·실험·연구 자료</td>
+<td><code>archive/</code></td>
+</tr>
+<tr>
+<td>생성물</td>
+<td>원본 Markdown에서 재생성한 문서 웹</td>
+<td><code>html/</code></td>
 </tr>
 </tbody></table></div>
-<p>정리 기준과 보관 정책은 <code>문서-정리-계획.md</code>를 따른다.</p>
-<h2 id="목표-데이터-흐름">목표 데이터 흐름</h2>
-<pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
-  -&gt; HTTPS/mTLS ingest gateway
-  -&gt; EdgeX Core Data -&gt; PostgreSQL
-  -&gt; Application Service / AI consumer / state-aggregator / dashboard
-
-KubeEdge
-  -&gt; 엣지 노드 / 워크로드 배치와 상태 관리</code></pre>
-<p>현재 root render는 Raspberry Pi와 Jetson의 노드별 direct-mode edge agent, 독립 SQLite outbox와 Core Data persisted ACK를 포함한다. <code>sensehat-001</code>은 canonical Event까지 연결한 교체 가능한 live 검증 fixture다. Jetson agent는 SQLite와 인증 heartbeat 기반만 제공하며 Arduino Serial adapter, Device Profile/Device와 Event 연결은 아직 다음 migration wave다. MQTT-mode agent, <code>device-mqtt</code>, edge-local broker는 현재 EdgeX 배포에 포함하지 않는다. MQTT-only·Serial·Modbus·OPC-UA·추가 I2C adapter 및 RTSP workflow는 독립 검증 전까지 지원 완료로 표시하지 않는다.</p>
-<p>dashboard에서 확인할 핵심 질문:</p>
-<ol><li>EdgeX Core Metadata에 어떤 device/profile/Device Service가 등록되어 있는가?</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>은 무엇인가?</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 최신인가?</li><li>어떤 AI service, storage, service demo group에 연결되어 있는가?</li><li>문제가 있다면 Protocol Adapter, agent outbox, HTTPS gateway, Core Data, consumer 중 어디부터 봐야 하는가?</li><li>관련 edge node/workload는 KubeEdge에서 정상인가?</li><li>이 상태가 현장 생산성 향상 효과로 어떻게 설명되는가?</li></ol>
+<p>Agent/SQLite/HTTPS persisted-ACK 관련 과거 구현은 설계·검증 이력으로만 읽는다. 현재 운영 배포의 edge workload나 fallback으로 복구하지 않는다.</p>
+<h2 id="대시보드에서-확인할-질문">대시보드에서 확인할 질문</h2>
+<ol><li>Core Metadata에 어떤 Device Service, Device Profile, Device가 등록되어 있는가?</li><li>Device Service가 실제 endpoint를 소유하고 <code>adminState</code>/<code>operatingState</code>를 보고하는가?</li><li>Core Data에 최신 Event/Reading이 있고 freshness가 정상인가?</li><li>어떤 AI 서비스, 저장소, dashboard consumer가 같은 device identity를 사용하는가?</li><li>관련 node/workload 상태는 KubeEdge에서 어떻게 보이는가?</li></ol>
 <h2 id="최신성-판단-원칙">최신성 판단 원칙</h2>
-<ul><li><code>프로젝트-범위.md</code>와 <code>저장소-구조.md</code>가 현재/레거시 경계의 최우선 기준이다.</li><li>같은 주제의 문서가 충돌하면 수정 시각이 아니라 근거와 실행 증거가 명시된 기준 문서를 따른다.</li><li><code>wiki/</code>는 탐색용 요약이며 정책의 원본이 아니다.</li><li><code>html/</code>은 <code>scripts/build-docs-html.py</code>로 다시 만드는 보기용 산출물이다.</li><li><code>superpowers/</code>는 설계·구현 계획 이력이며 현재 완료 상태의 근거가 아니다.</li></ul>
-<h2 id="보관-문서-사용-원칙">보관 문서 사용 원칙</h2>
-<p><code>docs/archive/</code>는 과거 실험, 이전 통합 문서, 논문/연구 초안, legacy orchestration 자료를 보관하는 위치다. 새 작업 판단은 최신 기준 문서를 우선한다.</p>
-<p>보관 문서를 읽을 때 주의할 점:</p>
-<ul><li>현재 구현 방향으로 간주하지 않는다.</li><li>발표자료에 그대로 옮기지 않는다.</li><li>workflow/offloading/agent-assisted planning을 다음 확정 단계처럼 표현하지 않는다.</li><li>현재 데모 설명은 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화, 현장 적용성, 생산성 향상 효과 중심으로 작성한다.</li></ul>
+<ul><li>사용자 승인과 실제 root render, 테스트, live read-only 증거를 우선한다.</li><li><code>html/</code>은 <code>scripts/build-docs-html.py</code>로 만드는 생성물이며 직접 편집하지 않는다.</li><li><code>superpowers/</code>와 <code>archive/</code>는 현재 완료 상태의 근거가 아니다.</li><li>동적 workflow/offloading/agent-assisted planning은 별도 범위 승격과 검증 전까지 후속 고도화다.</li></ul>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-문장-목표">한 문장 목표</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-상태">현재 상태</a></li>
+<li class="toc-h2"><a href="#한-문장-목표">한 문장 목표</a></li>
 <li class="toc-h2"><a href="#먼저-읽을-문서">먼저 읽을 문서</a></li>
-<li class="toc-h2"><a href="#문서-묶음">문서 묶음</a></li>
-<li class="toc-h2"><a href="#목표-데이터-흐름">목표 데이터 흐름</a></li>
-<li class="toc-h2"><a href="#최신성-판단-원칙">최신성 판단 원칙</a></li>
-<li class="toc-h2"><a href="#보관-문서-사용-원칙">보관 문서 사용 원칙</a></li></ol></aside>
+<li class="toc-h2"><a href="#문서-분류">문서 분류</a></li>
+<li class="toc-h2"><a href="#대시보드에서-확인할-질문">대시보드에서 확인할 질문</a></li>
+<li class="toc-h2"><a href="#최신성-판단-원칙">최신성 판단 원칙</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -84,11 +84,16 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +129,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 쿠버엣지-엣지엑스-모델-매핑.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 15:26</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
@@ -147,7 +152,7 @@
 </tr>
 <tr>
 <td>telemetry</td>
-<td>Protocol Adapter, SQLite/HTTPS plane과 Core Data Event/Reading</td>
+<td>EdgeX Device Service와 Core Data Event/Reading</td>
 <td>Event <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>; Reading <code>resourceName</code>, <code>valueType</code>, typed value</td>
 </tr>
 <tr>
@@ -162,7 +167,8 @@
 </tr>
 </tbody></table></div>
 <p>MapperFramework direct-to-InfluxDB 및 KubeEdge desired/twin 경로를 current ingestion/command 경로로 확장하지 않는다. AI services, storage, state-aggregator, dashboard는 Core Data 이후의 consumer다.</p>
-<h2 id="current-edgex-api-예시">Current EdgeX API 예시</h2>
+<h2 id="과거-edgex-api-형식-예시">과거 EdgeX API 형식 예시</h2>
+<p>아래 <code>sensehat-001</code>/<code>edge-telemetry-agent</code> 값은 퇴역한 fixture다. field mapping 예시로만 읽고 현재 Metadata 등록이나 live 상태로 해석하지 않는다.</p>
 <p>Core Metadata Device 응답에서 physical inventory/state에 필요한 형태는 다음과 같다.</p>
 <pre data-lang="yaml"><code>name: sensehat-001
 profileName: etri-sensehat
@@ -338,7 +344,7 @@ readings:
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-현재-권위">목적과 현재 권위</a></li>
-<li class="toc-h2"><a href="#current-edgex-api-예시">Current EdgeX API 예시</a></li>
+<li class="toc-h2"><a href="#과거-edgex-api-형식-예시">과거 EdgeX API 형식 예시</a></li>
 <li class="toc-h2"><a href="#legacy-property-edgex-resource-migration-reference">Legacy property → EdgeX resource migration reference</a></li>
 <li class="toc-h2"><a href="#availability와-command-경계">Availability와 command 경계</a></li>
 <li class="toc-h2"><a href="#protocol-wave-boundary">Protocol-wave boundary</a></li></ol></aside>

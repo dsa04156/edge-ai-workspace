@@ -84,11 +84,16 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +129,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 시스템-구축-목표.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 15:28</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
@@ -138,9 +143,9 @@
 <h2 id="시스템-이름-후보">시스템 이름 후보</h2>
 <ul><li>EdgeX 물리 디바이스 기반 edge AI 서비스 운영 가시화 플랫폼</li><li>실공장 PoC형 edge AI 운영 가시화 시스템</li><li>혼합 디바이스 서비스 데모 운영 가시화 PoC</li></ul>
 <h2 id="현재-시스템이-반드시-보여줘야-하는-것">현재 시스템이 반드시 보여줘야 하는 것</h2>
-<ol><li>어떤 edge node와 server node 및 workload가 존재하는가.</li><li>EdgeX Core Metadata에 어떤 Device Profile, Device, Device Service가 등록되어 있는가.</li><li>물리 I2C/Serial/Modbus/OPC-UA endpoint가 protocol별 Adapter에 연결되고, MQTT-only 장비만 명시적 compatibility broker를 사용하는가.</li><li>telemetry가 edge SQLite outbox와 HTTPS ingest gateway를 거쳐 Core Data/DB에 저장되고 AI services, state-aggregator, dashboard로 전달되는가.</li><li>API의 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>이 inventory와 연결 상태를 일관되게 보여주는가.</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 Core Data event의 최신성과 값을 보여주는가.</li><li><code>admin_state=LOCKED</code> 또는 <code>operating_state=DOWN</code>이면 <code>unavailable</code>, Device Service가 연결되고 최신 event가 fresh이면 <code>available</code>, 그 밖의 불완전하거나 오래된 상태는 <code>degraded</code>로 설명되는가.</li><li>device가 어떤 service demo group과 AI/storage consumer에 연결되어 있는가.</li><li>운영자는 문제가 생겼을 때 Protocol Adapter, edge outbox, HTTPS gateway, Core Data, consumer, state-aggregator, dashboard 중 어디부터 봐야 하는가.</li><li>KubeEdge node/workload 정보가 물리 device availability의 권위나 gate가 아니라 선택적 진단 및 배치 정보로만 표시되는가.</li><li>이 데모 상태가 옥동 시나리오의 생산성 향상 효과와 어떻게 연결되는가.</li><li>Kagenti 같은 운영 보조 agent가 read-only 방식으로 상태를 요약할 수 있는가.</li></ol>
+<ol><li>어떤 edge node와 server node 및 workload가 존재하는가.</li><li>EdgeX Core Metadata에 어떤 Device Profile, Device, Device Service가 등록되어 있는가.</li><li>물리 I2C/Serial/Modbus/OPC-UA endpoint가 protocol별 EdgeX Device Service에 연결되고, MQTT-only 장비만 명시적 broker를 사용하는가.</li><li>telemetry가 EdgeX Event/Reading으로 Core Data/DB에 저장되고 AI services, state-aggregator, dashboard로 전달되는가.</li><li>API의 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>이 inventory와 연결 상태를 일관되게 보여주는가.</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 Core Data event의 최신성과 값을 보여주는가.</li><li><code>admin_state=LOCKED</code> 또는 <code>operating_state=DOWN</code>이면 <code>unavailable</code>, Device Service가 연결되고 최신 event가 fresh이면 <code>available</code>, 그 밖의 불완전하거나 오래된 상태는 <code>degraded</code>로 설명되는가.</li><li>device가 어떤 service demo group과 AI/storage consumer에 연결되어 있는가.</li><li>운영자는 문제가 생겼을 때 Protocol Adapter, edge outbox, HTTPS gateway, Core Data, consumer, state-aggregator, dashboard 중 어디부터 봐야 하는가.</li><li>KubeEdge node/workload 정보가 물리 device availability의 권위나 gate가 아니라 선택적 진단 및 배치 정보로만 표시되는가.</li><li>이 데모 상태가 옥동 시나리오의 생산성 향상 효과와 어떻게 연결되는가.</li><li>Kagenti 같은 운영 보조 agent가 read-only 방식으로 상태를 요약할 수 있는가.</li></ol>
 <h2 id="현재-범위에-포함하는-것">현재 범위에 포함하는 것</h2>
-<ul><li>EdgeX Core Metadata 기반 물리 디바이스 inventory</li><li>I2C/Serial/Modbus/OPC-UA별 Protocol Adapter와 edge telemetry agent 경계</li><li>SQLite outbox, HTTPS/mTLS ingest, Core Data/DB 기반 telemetry와 최신 event</li><li>MQTT-only 장비 또는 local pub/sub 요구에 한정한 optional broker 경계</li><li>Workflow Pod가 직접 구독하는 RTSP media 경로와 상태/결과 metadata 경계</li><li>AI services/storage/state-aggregator/dashboard 소비 경로</li><li>EdgeX 기반 state-aggregator API와 dashboard 운영 가시화</li><li>KubeEdge 기반 edge node/workload 관리</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li><li>현재 코드/asset 범위의 direct agent, SQLite/HTTPS 전송 및 EdgeX dashboard 계약</li><li><code>sensehat-001</code>은 교체 가능한 검증 fixture이며 Jetson MQTT workload는 현재 배포에서 제거</li><li>새 direct image의 live cutover와 Serial/Modbus/OPC-UA/RTSP 지원은 protocol별 독립 실행 증거가 확보되기 전까지 미검증</li></ul>
+<ul><li>EdgeX Core Metadata 기반 물리 디바이스 inventory</li><li>I2C/Serial/Modbus/OPC-UA별 Protocol Adapter와 edge telemetry agent 경계</li><li>Device Service, Core Data/DB 기반 telemetry와 최신 Event/Reading</li><li>MQTT-only 장비 또는 local pub/sub 요구에 한정한 optional broker 경계</li><li>Workflow Pod가 직접 구독하는 RTSP media 경로와 상태/결과 metadata 경계</li><li>AI services/storage/state-aggregator/dashboard 소비 경로</li><li>EdgeX 기반 state-aggregator API와 dashboard 운영 가시화</li><li>KubeEdge 기반 edge node/workload 관리</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li><li>중앙 EdgeX와 EdgeX dashboard 계약. 2026-07-21 edge Device Service는 아직 없는 전환 상태</li><li>다음 Jetson Arduino Serial Device Service 수직 슬라이스와 protocol별 독립 검증</li><li>새 direct image의 live cutover와 Serial/Modbus/OPC-UA/RTSP 지원은 protocol별 독립 실행 증거가 확보되기 전까지 미검증</li></ul>
 <h2 id="현재-범위에서-제외하는-것">현재 범위에서 제외하는 것</h2>
 <p>다음 항목은 현재 시스템 구축 목표가 아니다. 필요하면 archive에서 과거 연구 맥락으로만 확인한다.</p>
 <ul><li>완전 자율형 workflow orchestration</li><li>동적 offloading 최적화</li><li>agent-assisted planning 기반 자동 실행</li><li>LLM/agent가 Kubernetes나 EdgeX metadata/state/command를 직접 제어하는 구조</li><li>MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus 또는 direct Influx를 물리 inventory/state/telemetry의 현재·병행·fallback 경로로 사용하는 구조</li><li>selective replanning 논문 방향을 현재 구현 목표로 보는 것</li><li>과거 cost model 중심 runtime 최적화를 현재 PoC의 핵심 목표로 보는 것</li></ul>
@@ -155,7 +160,7 @@
 <p>판단 질문:</p>
 <ol><li>이 문서가 현재 서비스 데모 운영 가시화에 직접 필요한가?</li><li>운영자가 dashboard를 해석하거나 데모를 점검하는 데 필요한가?</li><li>EdgeX device-service 연결 구조나 Core Data telemetry/availability 정책을 설명하는가?</li><li>생산성 KPI 또는 실공장 PoC 설명에 필요한가?</li><li>아니라면 과거 연구 맥락으로 archive에 남길 가치가 있는가?</li></ol>
 <h2 id="앞으로의-구현-우선순위">앞으로의 구현 우선순위</h2>
-<ol><li>서비스 데모 시나리오를 명확하게 유지한다.</li><li>EdgeX device-service binding을 backend API와 dashboard에서 일관되게 보여준다.</li><li>dashboard availability를 EdgeX <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, Core Data latest event freshness로 설명한다.</li><li>direct agent 경로의 저장소 산출물과 실제 live cutover 증거를 구분하고, 검증 fixture의 교체를 아키텍처 완료 기준과 분리한다.</li><li>Serial/Modbus/OPC-UA/RTSP는 각 protocol의 Device Service와 실장비 event를 독립 검증한 뒤 지원 범위로 승격한다.</li><li>dashboard가 운영자 질문에 바로 답하도록 정보를 배치한다.</li><li>운영 runbook과 troubleshooting 문서를 실제 점검 흐름 중심으로 유지한다.</li><li>read-only 운영 보조 요약은 dashboard를 보조하는 계층으로만 둔다.</li><li>과거 workflow/offloading/replanning 자료는 현재 구축 목표와 분리한다.</li></ol>
+<ol><li>서비스 데모 시나리오를 명확하게 유지한다.</li><li>EdgeX device-service binding을 backend API와 dashboard에서 일관되게 보여준다.</li><li>dashboard availability를 EdgeX <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, Core Data latest event freshness로 설명한다.</li><li>Device Service 저장소 산출물과 실제 endpoint/live Event 증거를 구분하고, 검증 fixture를 아키텍처 완료 기준과 분리한다.</li><li>Serial/Modbus/OPC-UA/RTSP는 각 protocol의 Device Service와 실장비 event를 독립 검증한 뒤 지원 범위로 승격한다.</li><li>dashboard가 운영자 질문에 바로 답하도록 정보를 배치한다.</li><li>운영 runbook과 troubleshooting 문서를 실제 점검 흐름 중심으로 유지한다.</li><li>read-only 운영 보조 요약은 dashboard를 보조하는 계층으로만 둔다.</li><li>과거 workflow/offloading/replanning 자료는 현재 구축 목표와 분리한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-문장-목표">한 문장 목표</a></li>

@@ -84,11 +84,16 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -124,8 +129,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/상태와-텔레메트리.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 15:28</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
@@ -134,8 +139,7 @@
 <p>현재 physical-device 상태는 EdgeX Core Metadata 관리 상태와 Core Data 최신 Event/Reading freshness로 판단한다. KubeEdge/Kubernetes는 node와 workload만 관리·관찰한다.</p>
 <h2 id="목표-권위와-데이터-경로">목표 권위와 데이터 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
-  -&gt; HTTPS/mTLS ingest gateway
+  -&gt; EdgeX Device Service
   -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; state-aggregator -&gt; 대시보드</code></pre>
 <div class="table-wrap"><table>
@@ -161,7 +165,7 @@
 <td>placement, Node readiness, workload 상태</td>
 </tr>
 </tbody></table></div>
-<p>Core Metadata의 Device와 Profile은 중앙에 사전 등록하고, Protocol Adapter가 프로토콜 연결과 표준화를, edge agent가 durable 전달을 담당한다. KubeEdge/Kubernetes는 physical Device inventory, telemetry, command, availability의 원본이 아니다.</p>
+<p>Core Metadata의 Device와 Profile은 중앙에 사전 등록하고, Device Service가 protocol 연결, 표준화, 상태와 지원 command를 담당한다. KubeEdge/Kubernetes는 physical Device inventory, telemetry, command, availability의 원본이 아니다.</p>
 <h2 id="event-reading과-freshness">Event/Reading과 freshness</h2>
 <p>Core Data Event의 <code>deviceName</code>은 inventory join key이고 <code>sourceName</code>은 telemetry source/resource다. <code>origin</code>은 nanoseconds 단위의 Event 시각이며, Reading은 <code>valueType</code>과 typed 값을 보존한다.</p>
 <p><code>state-aggregator</code>는 이를 다음 dashboard API field로 정규화한다.</p>
@@ -201,8 +205,8 @@
 <p>Physical device가 <code>degraded</code> 또는 <code>unavailable</code>이면 다음 근거를 순서대로 확인한다.</p>
 <ol><li>Core Metadata Device, Profile, Device Service가 의도한 binding으로 등록되어 있는지</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>와 <code>device_service_available</code></li><li>Core Data 최신 Event의 <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>, typed Readings</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code></li><li>Protocol Adapter, agent outbox, HTTPS gateway, Core Data/PostgreSQL, state-aggregator 연결</li><li>필요할 때만 관련 KubeEdge/Kubernetes node와 workload placement</li></ol>
 <p>Kubernetes node/workload 문제는 EdgeX physical state와 분리해 서비스 실행 또는 placement 진단으로 설명한다.</p>
-<h2 id="direct-agent와-중앙-전환-상태">direct agent와 중앙 전환 상태</h2>
-<p>현재 <code>sensehat-001</code>은 loopback agent → SQLite → HTTPS gateway → Core Data/PostgreSQL 경로를 확인하는 교체 가능한 fixture다. 과거 MQTT canary는 비교 기록에만 남고 현재 Jetson compatibility workload는 없다.</p>
+<h2 id="device-service-전환-상태">Device Service 전환 상태</h2>
+<p>2026-07-21 기존 direct Agent/SQLite/HTTPS edge 경로와 <code>sensehat-001</code> bootstrap은 퇴역했다. 중앙 EdgeX는 유지되지만 edge Device Service가 아직 없어 telemetry는 전환 중이다. 과거 MQTT canary와 Agent evidence는 비교 기록일 뿐 현재 workload나 fallback이 아니다.</p>
 <p>이 결과는 장비·profile·Reading 계약의 근거다. 중앙 server2 topology와 대시보드 중앙 조회 전환은 각각 별도 live evidence를 확보해야 한다.</p>
 <p>1차 수직 슬라이스는 SQLite offline replay와 Core Data persisted ACK를 포함한다. Serial, Modbus, OPC-UA와 추가 I2C adapter는 profile, 실장비 연결, typed telemetry와 dashboard consumer 증거를 확보하기 전까지 완료로 주장하지 않는다. RTSP frame은 별도 Workflow Pod가 직접 구독한다.</p>
 <h2 id="제외한-legacy-신호">제외한 legacy 신호</h2>
@@ -222,7 +226,7 @@
 <li class="toc-h2"><a href="#event-reading과-freshness">Event/Reading과 freshness</a></li>
 <li class="toc-h2"><a href="#availability-해석">Availability 해석</a></li>
 <li class="toc-h2"><a href="#운영-진단-순서">운영 진단 순서</a></li>
-<li class="toc-h2"><a href="#direct-agent와-중앙-전환-상태">direct agent와 중앙 전환 상태</a></li>
+<li class="toc-h2"><a href="#device-service-전환-상태">Device Service 전환 상태</a></li>
 <li class="toc-h2"><a href="#제외한-legacy-신호">제외한 legacy 신호</a></li>
 <li class="toc-h2"><a href="#workflow-augmentation-경계">Workflow/augmentation 경계</a></li>
 <li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>

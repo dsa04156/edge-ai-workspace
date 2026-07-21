@@ -84,6 +84,7 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -91,6 +92,8 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -122,53 +125,54 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>디바이스-서비스 연결</h1>
-          <p class="subtitle">EdgeX cutover 이후 물리 디바이스와 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workfl…</p>
+          <p class="subtitle">물리 디바이스와 EdgeX Device Service, 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 w…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-07-21 09:58</span>
-            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+            <span class="badge">수정: 2026-07-21 15:22</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="디바이스-서비스-연결">디바이스-서비스 연결</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 EdgeX cutover 이후 물리 디바이스와 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workflow 배치가 아니라 다음 데이터 소유·전달 관계다.</p>
-<pre data-lang="text"><code>EdgeX Device
-  -&gt; Protocol Adapter / edge-telemetry-agent
-  -&gt; SQLite outbox / HTTPS gateway / Core Data
+<p>이 문서는 물리 디바이스와 EdgeX Device Service, 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workflow 배치가 아니라 다음 소유·전달 관계다.</p>
+<pre data-lang="text"><code>physical endpoint
+  -&gt; EdgeX Device Service
+  -&gt; Device Profile / Device
+  -&gt; Event / Reading / Command
   -&gt; AI service / storage / dashboard consumer</code></pre>
-<p>물리 디바이스의 inventory와 상태 권위는 EdgeX뿐이다.</p>
+<p>2026-07-21 현재 기존 <code>edge-telemetry-agent</code>와 <code>sensehat-001</code> bootstrap은 퇴역했고 정식 Device Service는 아직 배포되지 않았다. 아래 계약을 만족하는 Jetson Arduino 수직 슬라이스가 다음 구현 대상이다.</p>
 <h2 id="바인딩-원칙">바인딩 원칙</h2>
-<p>정상적인 device-service binding은 다음 정보를 함께 가진다.</p>
-<ol><li>Core Metadata에 device가 등록되어 있다.</li><li>device의 <code>profileName</code>, <code>serviceName</code>, <code>protocols</code>, <code>adminState</code>, <code>operatingState</code>를 읽을 수 있다.</li><li>Protocol Adapter가 profile에 맞는 Event를 만들고 agent가 SQLite/HTTPS/Core Data 경로로 전달한다.</li><li>Core Data 최신 event의 <code>sourceName</code>, timestamp, readings를 읽을 수 있다.</li><li>AI 서비스, 저장소, dashboard는 이 EdgeX 경로의 consumer로 연결된다.</li></ol>
-<p>이 바인딩은 runtime scheduling, 자동 재배치, offloading, 자동 복구 또는 actuator 제어를 의미하지 않는다.</p>
+<p>정상적인 device-service binding은 다음을 함께 가진다.</p>
+<ol><li>Device Service가 실제 protocol endpoint를 독점 소유한다.</li><li>Core Metadata에 Device Service, Device Profile, Device가 등록되어 있다.</li><li>Device의 <code>profileName</code>, <code>serviceName</code>, <code>protocols</code>, <code>adminState</code>, <code>operatingState</code>를 조회할 수 있다.</li><li>Device Service가 profile에 맞는 typed Event/Reading을 Core Data에 전달한다.</li><li>Core Data에서 <code>deviceName</code>, <code>sourceName</code>, timestamp와 readings를 조회할 수 있다.</li><li>AI 서비스, 저장소와 dashboard가 같은 device identity를 consumer key로 사용한다.</li></ol>
+<p>KubeEdge node/workload 상태는 배치 진단 정보이며 물리 디바이스 inventory/state/telemetry의 권위가 아니다.</p>
 <h2 id="state-devices-바인딩-필드"><code>/state/devices</code> 바인딩 필드</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>필드</th>
-<th>바인딩에서의 의미</th>
+<th>의미</th>
 </tr></thead>
 <tbody>
 <tr>
 <td><code>name</code></td>
-<td>EdgeX device identity</td>
+<td>EdgeX Device identity</td>
 </tr>
 <tr>
 <td><code>source</code></td>
-<td>authoritative source. 현재 <code>edgex</code></td>
+<td>authoritative source, 현재 <code>edgex</code></td>
 </tr>
 <tr>
 <td><code>profile_name</code></td>
-<td>device resource 계약을 정의하는 profile</td>
+<td>resource 계약을 정의한 Device Profile</td>
 </tr>
 <tr>
 <td><code>device_service_name</code></td>
-<td>현재 수집 경로를 나타내는 논리 EdgeX Device Service</td>
+<td>실제 endpoint를 관리하는 Device Service</td>
 </tr>
 <tr>
 <td><code>protocol_names</code></td>
-<td>현재 device가 선언한 protocol 목록</td>
+<td>Device가 선언한 protocol 목록</td>
 </tr>
 <tr>
 <td><code>admin_state</code></td>
@@ -176,23 +180,23 @@
 </tr>
 <tr>
 <td><code>operating_state</code></td>
-<td>device 운영 상태</td>
+<td>Device Service가 보고한 장비 상태</td>
 </tr>
 <tr>
 <td><code>connection_state</code></td>
-<td>정규화된 연결 상태</td>
+<td>dashboard용 정규화 연결 상태</td>
 </tr>
 <tr>
 <td><code>device_service_available</code></td>
-<td>Device Service 수집 경로 가용성</td>
+<td>Device Service 경로 가용성</td>
 </tr>
 <tr>
 <td><code>latest_event_timestamp</code></td>
-<td>최신 Core Data event 시각</td>
+<td>최신 Core Data Event 시각</td>
 </tr>
 <tr>
 <td><code>latest_readings</code></td>
-<td>최신 event의 source/resource/value 목록</td>
+<td>최신 Event의 source/resource/value</td>
 </tr>
 <tr>
 <td><code>telemetry_freshness</code></td>
@@ -203,141 +207,101 @@
 <td>선택적 Kubernetes 배치 진단값</td>
 </tr>
 </tbody></table></div>
-<p>Core Metadata 이름은 API에서 snake_case로 정규화된다. 즉 <code>profileName</code> → <code>profile_name</code>, <code>serviceName</code> → <code>device_service_name</code>, <code>protocols</code> → <code>protocol_names</code>, <code>adminState</code> → <code>admin_state</code>, <code>operatingState</code> → <code>operating_state</code>다.</p>
-<h2 id="바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</h2>
-<p>현재 서비스 데모 device는 <code>sensehat-001</code>이다.</p>
+<h2 id="첫-수직-슬라이스-후보">첫 수직 슬라이스 후보</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
-<th>계약</th>
+<th>확정 방식</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>device</td>
-<td><code>sensehat-001</code></td>
+<td>physical node</td>
+<td><code>etri-dev0001-jetorn</code></td>
 </tr>
 <tr>
-<td>source</td>
-<td><code>edgex</code></td>
-</tr>
-<tr>
-<td>profile</td>
-<td><code>etri-sensehat</code></td>
+<td>endpoint</td>
+<td>Jetson에서 <code>/dev/ttyACM*</code> read-only 확인 후 확정</td>
 </tr>
 <tr>
 <td>Device Service</td>
-<td><code>edge-telemetry-agent</code></td>
+<td>공식 EdgeX Device SDK 기반 custom Serial service</td>
 </tr>
 <tr>
-<td>protocol</td>
-<td><code>i2c</code></td>
+<td>Device Profile</td>
+<td>실제 Arduino payload field/value type 확인 후 작성</td>
 </tr>
 <tr>
-<td>metadata state</td>
-<td><code>adminState</code>, <code>operatingState</code></td>
+<td>Device</td>
+<td>실제 장비 identity 하나를 사전 등록</td>
 </tr>
 <tr>
-<td>connection</td>
-<td><code>connection_state</code>, <code>device_service_available</code></td>
+<td>telemetry</td>
+<td>실제 sample을 Core Data Event/Reading으로 readback</td>
 </tr>
 <tr>
-<td>event</td>
-<td>Core Data <code>sourceName</code>, event/reading timestamp</td>
+<td>command</td>
+<td>장비 지원 여부와 안전 범위 확인 전까지 제외</td>
 </tr>
 <tr>
-<td>readings</td>
-<td><code>latest_readings[].resource_name</code>, <code>value_type</code>, <code>value</code>, <code>units</code></td>
-</tr>
-<tr>
-<td>consumers</td>
-<td>AI service, storage, dashboard</td>
+<td>dashboard</td>
+<td>Metadata 상태와 최신 Event freshness 표시</td>
 </tr>
 </tbody></table></div>
-<p>이 예시는 broker-free I2C direct 계약을 설명한다. 실환경의 최신 값은 EdgeX 응답으로 확인해야 하며, 문서 자체는 live 배포 완료 증거가 아니다.</p>
-<h2 id="서비스-consumer-연결">서비스 consumer 연결</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>consumer</th>
-<th>입력</th>
-<th>역할</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>AI service</td>
-<td>Core Data event/readings</td>
-<td>센서 특징 계산과 상태 추론 입력</td>
-</tr>
-<tr>
-<td>storage</td>
-<td>EdgeX event stream 또는 consumer가 정규화한 결과</td>
-<td>이력·분석 저장</td>
-</tr>
-<tr>
-<td>dashboard/state-aggregator</td>
-<td>Core Metadata device + Core Data latest/history</td>
-<td>inventory, 상태, freshness, reading 가시화</td>
-</tr>
-</tbody></table></div>
-<p>Consumer는 동일한 EdgeX device identity와 <code>source_name</code>/<code>resource_name</code>을 유지해야 한다. 별도 inventory나 별도 최신값 조회를 물리 상태 권위로 승격하지 않는다.</p>
+<p>임시 이름 예시 <code>device-serial-jetson</code>, <code>etri-arduino-serial</code>, <code>arduino-001</code>은 실제 endpoint 조사와 profile 승인 전까지 확정 계약이 아니다.</p>
 <h2 id="정상-바인딩-판단">정상 바인딩 판단</h2>
-<ol><li><code>source=edgex</code>다.</li><li>profile, Device Service, protocol 필드가 비어 있지 않다.</li><li><code>admin_state</code>가 잠금 상태가 아니고 <code>operating_state=UP</code>이다.</li><li><code>connection_state=connected</code>이고 <code>device_service_available=true</code>다.</li><li><code>latest_event_timestamp</code>가 존재하고 <code>telemetry_freshness=fresh</code>다.</li><li><code>latest_readings</code>가 기대한 <code>source_name</code>과 <code>resource_name</code>을 포함한다.</li><li>필요한 consumer가 같은 EdgeX event identity를 처리한다.</li></ol>
-<p>Event가 <code>stale</code> 또는 <code>no_events</code>이면 Device Service가 UP이어도 degraded로 해석한다. 잠금 또는 DOWN 상태는 unavailable이다.</p>
-<h2 id="kubernetes-node-placement-경계">Kubernetes node placement 경계</h2>
-<p><code>node_name</code>은 EdgeX tags/properties에서 제공될 수 있는 선택적 진단 정보다. AI workload 위치, 네트워크 경로 또는 자원 문제를 설명할 때만 사용한다. Node가 없거나 준비 상태를 확인할 수 없다는 이유만으로 물리 device binding을 끊거나 availability를 낮추지 않는다.</p>
-<p>Workflow designer의 node 배치 preview는 read-only dry-run이다. Kubernetes workload 생성·변경, EdgeX device 변경, command 발행을 수행하지 않는다.</p>
-<h2 id="protocol-migration-waves">Protocol migration waves</h2>
+<ol><li><code>source=edgex</code>다.</li><li>profile, Device Service, protocol 필드가 비어 있지 않다.</li><li><code>admin_state</code>가 잠금 상태가 아니고 <code>operating_state=UP</code>이다.</li><li>Device Service가 실제 endpoint 연결 상태를 보고한다.</li><li>최신 Event가 존재하고 <code>telemetry_freshness=fresh</code>다.</li><li><code>latest_readings</code>가 기대한 resource와 value type을 포함한다.</li><li>필요한 consumer가 같은 device identity를 사용한다.</li></ol>
+<p>Device Service가 UP이어도 Event가 <code>stale</code> 또는 <code>no_events</code>이면 <code>degraded</code>다. 잠금 또는 DOWN 상태는 <code>unavailable</code>이다.</p>
+<h2 id="프로토콜별-승격-gate">프로토콜별 승격 gate</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>wave</th>
-<th>상태</th>
-<th>범위</th>
+<th>프로토콜</th>
+<th>현재 상태</th>
+<th>승격 조건</th>
 </tr></thead>
 <tbody>
-<tr>
-<td>Sense HAT I2C</td>
-<td>현재 검증 fixture</td>
-<td>교체 가능한 <code>sensehat-001</code> adapter와 SQLite/HTTPS 경로</td>
-</tr>
-<tr>
-<td>MQTT-only adapter</td>
-<td>미배포 조건부 경로</td>
-<td>실제 장비 또는 local pub/sub 요구를 검증한 뒤에만 broker 사용</td>
-</tr>
 <tr>
 <td>Serial</td>
-<td>Jetson agent 기반만 배포</td>
-<td><code>etri-dev0001-jetorn</code>의 direct agent/PVC/auth는 준비하지만 별도 adapter/profile, hardware validation, Event acceptance는 아직 필요</td>
+<td>다음 구현</td>
+<td>Jetson 실제 endpoint, custom Device Service, Profile/Device, typed Event 검증</td>
+</tr>
+<tr>
+<td>I2C</td>
+<td>미배포</td>
+<td>교체할 실제 센서와 Device Service를 별도 검증</td>
+</tr>
+<tr>
+<td>MQTT</td>
+<td>조건부</td>
+<td>MQTT-only 장비 또는 local pub/sub 요구가 확인될 때만 broker와 Device Service 배포</td>
 </tr>
 <tr>
 <td>Modbus</td>
-<td>미구현 future wave</td>
-<td>주소·register 계약과 현장 검증 필요</td>
+<td>미구현</td>
+<td>주소/register/read-write와 재연결 검증</td>
 </tr>
 <tr>
 <td>OPC-UA</td>
-<td>미구현 future wave</td>
-<td>endpoint/security/node mapping 검증 필요</td>
+<td>미구현</td>
+<td>endpoint security, node mapping, subscription recovery 검증</td>
 </tr>
 <tr>
 <td>RTSP</td>
-<td>미구현 future wave</td>
-<td>Workflow Pod 직접 stream 구독과 metadata/AI 경로 검증 필요</td>
+<td>별도 media 경로</td>
+<td>Workflow Pod 직접 구독과 상태/결과 metadata 계약 검증</td>
 </tr>
 </tbody></table></div>
-<p>후속 protocol은 설계 가능성이나 profile 초안만으로 현재 binding으로 계산하지 않는다. 각 wave가 구현·검증되기 전에는 현재 fixture 성공을 다른 protocol의 성공으로 일반화하지 않는다.</p>
-<h2 id="생산성-해석">생산성 해석</h2>
-<p>바인딩 정보는 운영자가 device 이름만 보고 여러 시스템을 교차 조회하는 대신 profile, Device Service, protocol, 연결 상태, event freshness, latest readings, consumer 영향 범위를 한 흐름으로 확인하게 한다. 이는 점검 경로 단축과 원인 후보 축소를 설명하는 운영 생산성 지표이며 자동 제어 성능 주장이 아니다.</p>
+<p>후속 프로토콜은 profile 초안이나 과거 fixture만으로 현재 binding에 포함하지 않는다.</p>
+<h2 id="workflow-경계">workflow 경계</h2>
+<p>현재 Workflow Builder는 EdgeX Device 목록과 resource를 조회해 browser 안에서 bind/release dry-run, validation과 execution plan preview만 제공할 수 있다. Kubernetes apply/delete/restart, EdgeX metadata mutation, command publish, actuator command, runtime migration/offloading은 수행하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#바인딩-원칙">바인딩 원칙</a></li>
 <li class="toc-h2"><a href="#state-devices-바인딩-필드">/state/devices 바인딩 필드</a></li>
-<li class="toc-h2"><a href="#바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</a></li>
-<li class="toc-h2"><a href="#서비스-consumer-연결">서비스 consumer 연결</a></li>
+<li class="toc-h2"><a href="#첫-수직-슬라이스-후보">첫 수직 슬라이스 후보</a></li>
 <li class="toc-h2"><a href="#정상-바인딩-판단">정상 바인딩 판단</a></li>
-<li class="toc-h2"><a href="#kubernetes-node-placement-경계">Kubernetes node placement 경계</a></li>
-<li class="toc-h2"><a href="#protocol-migration-waves">Protocol migration waves</a></li>
-<li class="toc-h2"><a href="#생산성-해석">생산성 해석</a></li></ol></aside>
+<li class="toc-h2"><a href="#프로토콜별-승격-gate">프로토콜별 승격 gate</a></li>
+<li class="toc-h2"><a href="#workflow-경계">workflow 경계</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

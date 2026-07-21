@@ -1,5 +1,7 @@
 # 옥동 시나리오 생산성 KPI
 
+> **현재 전환 상태:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 아래에서 해당 이름을 사용하는 항목은 KPI 산정 형식의 과거 예시이며 현재 실증 표본에 포함하지 않는다. Jetson Serial Device Service의 종단간 증거가 확보된 뒤 실제 device identity로 교체한다.
+
 ## 목적
 
 이 문서는 EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는 것이 아니라, 운영자가 inventory, Device Service 연결, Core Data event freshness와 서비스 영향 범위를 빠르게 이해해 점검 시간을 줄일 수 있음을 보이는 것이다.

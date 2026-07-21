@@ -15,7 +15,7 @@
 ## 현재 우선순위
 
 1. 서비스 데모 1종을 먼저 완성한다.
-2. EdgeX Device Profile/Device 등록과 Protocol Adapter/Telemetry Agent 연동을 안정화한다.
+2. EdgeX Device Profile/Device 등록과 Device Service 연동을 안정화한다.
 3. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
 4. 물리 디바이스 inventory, state, telemetry, command의 권위는 EdgeX로 단일화한다.
 5. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
@@ -38,20 +38,20 @@
 
 ## 구현 규칙
 
-- 물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata의 Device Profile과 Device를 권위로 사용한다.
-- 실제 프로토콜 연결과 표준화는 물리 노드의 Protocol Adapter가 담당하고, canonical EdgeX v3 Event를 `edge-telemetry-agent`에 전달한다.
-- `edge-telemetry-agent`는 Event를 SQLite outbox에 먼저 commit하고 HTTPS/mTLS로 중앙 `edgex-ingest-gateway`에 재전송한다. gateway는 Core Data REST의 영구 저장 응답 뒤에만 persisted ACK를 반환한다.
+- 물리 디바이스는 EdgeX Core Metadata의 Device Profile과 Device로 사전 등록한다.
+- EdgeX Device Service가 MQTT/Serial/Modbus/OPC-UA/RTSP endpoint의 연결, 표준화, 상태와 지원 command를 독점 관리한다.
+- KubeEdge는 edge node와 workload 관리에만 사용한다.
 - 중앙 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway는 server2에 한 세트만 배치한다.
-- 중앙 내부 MessageBus는 stock EdgeX Core의 중앙 런타임/후속 consumer용이다. 센서에서 서버로 보내는 전송 경로나 엣지 장애 버퍼가 아니다.
-- MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요한 노드에만 둔다. Modbus, OPC-UA, Serial, I2C 직접 adapter와 HTTPS northbound에는 MQTT를 요구하지 않는다.
-- 현재 root render의 edge workload는 `etri-dev0003-raspi5`의 direct-mode agent 1개뿐이다. `sensehat-001`과 host publisher는 교체 가능한 검증 fixture이며 아키텍처의 고정 계약이나 완료 기준이 아니다.
-- 현재 배포에는 MQTT-mode agent, `device-mqtt`, edge-local broker가 없다. MQTT-only 장비가 들어오면 별도 Protocol Adapter와 검증 gate를 추가한 뒤에만 배포한다.
-- RTSP frame은 agent/Core Data로 운반하지 않고 요청 시 Workflow Pod가 직접 구독한다. 상태·결과 metadata만 telemetry Event로 전달할 수 있다.
+- 중앙 내부 `edgex-messagebus`는 ClusterIP로 분리하며 고정 ClusterIP/PodIP/node IP를 데이터 경로에 사용하지 않는다.
+- MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요한 노드에만 둔다. Modbus, OPC-UA, Serial, I2C 직접 Device Service에는 MQTT를 요구하지 않는다.
+- 현재 전환 상태에서 `edgex-edge`에는 Device Service가 아직 없고 Namespace와 기본 deny 정책만 있다. 이전 `edgex-edge-agent-*`, outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역 상태다.
+- 다음 수직 슬라이스는 `etri-dev0001-jetorn`의 Arduino 센서 1종을 공식 EdgeX Device SDK 기반 custom Serial Device Service, Device Profile, Device로 연결하는 것이다.
+- RTSP frame은 Core Data로 운반하지 않고 요청 시 Workflow Pod가 직접 구독한다. 상태·분석 결과 metadata만 EdgeX Event로 전달할 수 있다.
 - 현재 command 실행은 비활성이다. command, actuator mutation, runtime migration/offloading은 별도 승인과 검증 전까지 완료로 주장하지 않는다.
 - KubeEdge는 엣지 노드와 워크로드 관리에만 사용하며 KubeEdge Device/DeviceModel/DeviceStatus를 물리 디바이스 권위나 병행 plane으로 사용하지 않는다.
-- root `edgex/k8s/kustomization.yaml`이 현재 운영 배포 진입점이다.
-- `edgex/telemetry-plane/`, `edgex/k8s/base/`와 `edgex/k8s/overlays/testbed/`는 현재 HTTPS telemetry plane의 구현·배포 경로다.
-- 운영 namespace는 중앙 `edgex-system`과 물리 노드 agent용 `edgex-edge`로 분리한다.
+- EdgeX 운영 배포의 단일 진입점은 root `edgex/k8s/kustomization.yaml`이며 Argo CD Application `edgex-telemetry`가 동기화한다.
+- `edgex/telemetry-plane/`의 edge Agent 코드는 운영 경로가 아니다. 중앙 ingest gateway는 다음 Device Service 연결이 확정될 때까지 유지한다.
+- 운영 namespace는 중앙 `edgex-system`과 물리 노드 Device Service용 `edgex-edge`로 분리한다.
 - `mappers/mqttvirtual/`, mapper direct-to-Influx, `command`/`heartbeat` topic은 legacy test/integration 경로이며 fallback이 아니다.
 - 대시보드의 물리 디바이스 availability는 중앙 EdgeX `adminState`, `operatingState`, Core Data 최신 Event freshness로 판단한다.
 - Kubernetes node placement는 물리 디바이스 availability gate가 아닌 선택적 진단 정보다.

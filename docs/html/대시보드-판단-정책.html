@@ -84,11 +84,16 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +129,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 15:29</span>
+            <span class="badge">HTML 생성: 2026-07-21 15:31</span>
           </div>
         </header>
         <div class="doc-body">
@@ -133,11 +138,12 @@
 <h2 id="권위와-표시-경계">권위와 표시 경계</h2>
 <p>대시보드는 물리 디바이스에 EdgeX를 단일 authority로 사용한다.</p>
 <pre data-lang="text"><code>physical MQTT / Serial / Modbus / OPC-UA / RTSP device
-  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
-  -&gt; HTTPS/mTLS ingest gateway -&gt; EdgeX Core Data REST
+  -&gt; protocol-specific EdgeX Device Service
+  -&gt; EdgeX Event / Reading -&gt; Core Data
   -&gt; AI services / storage / state-aggregator / dashboard</code></pre>
 <ul><li>inventory/state: EdgeX Core Metadata</li><li>telemetry/freshness: EdgeX Core Data Event와 typed Readings</li><li>command: 현재 비활성; 후속에는 해당 protocol adapter의 검증된 command 경로</li><li>node/workload 관찰: Kubernetes/KubeEdge와 Prometheus</li></ul>
 <p>Kubernetes/KubeEdge node placement는 별도 display-only diagnostic이다. node 미할당, Node NotReady 또는 mapper Pod 상태로 physical device availability를 강등하지 않는다. KubeEdge Device/DeviceModel/DeviceStatus, MapperFramework, <code>mqttvirtual</code>, mapper direct-to-Influx 값은 legacy이며 화면/API의 current physical status/control fallback으로 병합하지 않는다.</p>
+<p>이 문서 아래의 <code>sensehat-001</code> payload는 field 정규화 예시다. 해당 fixture와 <code>edge-telemetry-agent</code> bootstrap은 퇴역했으며 live inventory로 해석하지 않는다.</p>
 <h2 id="inventory-표시">Inventory 표시</h2>
 <p>Core Metadata의 다음 필드를 device 응답과 detail에 표시한다.</p>
 <ul><li><code>name</code></li><li><code>profileName</code></li><li><code>serviceName</code></li><li><code>protocols</code> (secret은 마스킹)</li><li><code>adminState</code></li><li><code>operatingState</code></li><li><code>tags</code>/properties의 선택적 node diagnostic</li></ul>
@@ -190,7 +196,7 @@
   &quot;reason&quot;: &quot;EdgeX operating state is UP and latest event is fresh&quot;
 }</code></pre>
 <h2 id="전달-범위-해석">전달 범위 해석</h2>
-<p>현재 데이터 플레인은 Protocol Adapter -&gt; loopback edge agent -&gt; SQLite outbox -&gt; HTTPS ingest gateway -&gt; Core Data다. dashboard/aggregator는 중앙 Metadata와 Core Data를 authority로 사용한다. <code>sensehat-001</code>은 교체 가능한 검증 fixture이며 현재 Jetson MQTT workload는 없다. 레포의 구성 또는 화면 필드만으로 live cluster cutover가 완료되었다고 주장하지 않는다.</p>
+<p>2026-07-21 기존 Agent/SQLite/HTTPS edge 경로와 <code>sensehat-001</code> bootstrap은 퇴역했다. dashboard/aggregator는 중앙 Metadata와 Core Data를 authority로 유지하지만, 새 Device Service와 실제 Event가 생기기 전에는 등록 없음/<code>no_events</code> 상태를 그대로 표시한다. 레포의 구성 또는 화면 필드만으로 live device 연결 완료를 주장하지 않는다.</p>
 <p>Serial, Modbus, OPC-UA와 추가 I2C 장비는 각각 독립 adapter wave다. RTSP는 frame을 Workflow Pod가 직접 구독하는 별도 media wave다. 해당 adapter/profile, 실제 장비 연결, typed telemetry, dashboard consumer와 실제 배포를 검증하기 전에는 지원 완료 protocol로 표시하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입으로 보존하며 현재 Serial adapter 완료 신호로 사용하지 않는다.</p>
         </div>
       </article>

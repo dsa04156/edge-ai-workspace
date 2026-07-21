@@ -94,7 +94,7 @@ Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. n
 
 ## direct 전달 상태
 
-현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, agent namespace는 `edgex-edge`다. 대시보드의 임시 검증 입력은 `sensehat-001` 1개이며 `arduino-001`, Jetson MQTT agent와 MQTT profile은 현재 contract에서 제거되었다.
+현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, 다음 Device Service namespace는 `edgex-edge`다. 기존 `sensehat-001`/Agent bootstrap은 퇴역했고 현재 physical input은 없다. dashboard는 등록 device 없음과 `no_events` 전환 상태를 그대로 표시해야 한다.
 
 2026-07-14 UNO와 2026-07-15 Sense HAT canary, 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Event 계약과 durable replay의 과거 근거다. 현재 중앙 server2 Core/PostgreSQL과 대시보드 조회 전환은 같은 실행에서 새 live evidence를 확보해야 하며 특정 publisher 교체 여부와 분리한다.
 

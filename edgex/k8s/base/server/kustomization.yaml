@@ -4,15 +4,3 @@ namespace: edgex-system
 resources:
   - core.yaml
   - gateway.yaml
-  - metadata.yaml
-
-configMapGenerator:
-  - name: edgex-metadata-contract
-    files:
-      - metadata-contract.json=config/metadata-contract.json
-
-generatorOptions:
-  disableNameSuffixHash: true
-  labels:
-    app.kubernetes.io/name: edgex-metadata-bootstrap
-    app.kubernetes.io/part-of: edgex-system
