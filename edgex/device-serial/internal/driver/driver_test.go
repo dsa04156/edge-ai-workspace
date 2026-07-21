@@ -2,15 +2,19 @@ package driver
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces"
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces/mocks"
 	sdkModels "github.com/edgexfoundry/device-sdk-go/v4/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/common"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,6 +28,7 @@ func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
 
@@ -57,6 +62,15 @@ func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 	assert.Equal(t, "temperature_raw", values[0].DeviceResourceName)
 	assert.Equal(t, int32(336), values[0].Value)
 	assert.Equal(t, int64(987654321), values[0].Origin)
+
+	cached, ok := driver.cache.latest(
+		"virtual-temperature-001",
+		"temperature_raw",
+		driver.now(),
+	)
+	require.True(t, ok)
+	assert.Equal(t, int32(336), cached.Value)
+	assert.Equal(t, int64(987654321), cached.Origin)
 }
 
 func TestDriverRejectsReadBeforeFirstSampleAndAllWrites(t *testing.T) {
@@ -107,6 +121,12 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
+	sdk.On("AddCustomRoute", latestRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
+		Return(nil).
+		Once()
+	sdk.On("AddCustomRoute", recentRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
+		Return(nil).
+		Once()
 	sdk.On("Devices").Return([]models.Device{{
 		Name:       "virtual-temperature-001",
 		Protocols:  testSerialProtocols(),
@@ -115,10 +135,21 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
 	require.NoError(t, driver.Initialize(sdk))
 	require.NoError(t, driver.Start())
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
+	managed.options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "temperature",
+		Readings: []Reading{
+			{ResourceName: "temperature_raw", Value: 336},
+		},
+	}, 987654321)
+	<-asyncValues
+	_, ok := driver.cache.latest("virtual-temperature-001", "temperature_raw", driver.now())
+	require.True(t, ok)
 
 	require.NoError(t, driver.UpdateDevice(
 		"virtual-temperature-001",
@@ -126,6 +157,24 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 		models.AdminState(models.Locked),
 	))
 	require.Eventually(t, managed.isClosed, time.Second, 5*time.Millisecond)
+	_, ok = driver.cache.latest("virtual-temperature-001", "temperature_raw", driver.now())
+	assert.False(t, ok)
+	require.NoError(t, driver.Stop(false))
+}
+
+func TestDriverStartFailsWhenLocalDataRouteCannotRegister(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+	sdk.On("AddCustomRoute", latestRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
+		Return(errors.New("route unavailable")).
+		Once()
+
+	driver := newDriver((&recordingReaderFactory{}).create)
+	require.NoError(t, driver.Initialize(sdk))
+	assert.ErrorContains(t, driver.Start(), "register local latest route")
 	require.NoError(t, driver.Stop(false))
 }
 
@@ -138,6 +187,7 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
 	require.NoError(t, driver.AddDevice(
@@ -147,6 +197,14 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 	))
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
+	managed.options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "temperature",
+		Readings: []Reading{
+			{ResourceName: "temperature_raw", Value: 336},
+		},
+	}, 987654321)
+	<-asyncValues
 
 	require.NoError(t, driver.UpdateDevice(
 		"virtual-temperature-001",
@@ -156,6 +214,9 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 
 	assert.Equal(t, 1, factory.count())
 	assert.False(t, managed.isClosed())
+	cached, ok := driver.cache.latest("virtual-temperature-001", "temperature_raw", driver.now())
+	require.True(t, ok)
+	assert.Equal(t, int32(336), cached.Value)
 }
 
 func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
@@ -167,13 +228,26 @@ func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
 	require.NoError(t, driver.Initialize(sdk))
 	require.NoError(t, driver.AddDevice("virtual-temperature-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
+	managed.options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "temperature",
+		Readings: []Reading{
+			{ResourceName: "temperature_raw", Value: 336},
+		},
+	}, 987654321)
+	<-asyncValues
+	_, ok := driver.cache.latest("virtual-temperature-001", "temperature_raw", driver.now())
+	require.True(t, ok)
 
 	require.NoError(t, driver.RemoveDevice("virtual-temperature-001", testSerialProtocols()))
 	require.Eventually(t, managed.isClosed, time.Second, 5*time.Millisecond)
+	_, ok = driver.cache.latest("virtual-temperature-001", "temperature_raw", driver.now())
+	assert.False(t, ok)
 	assert.ErrorContains(t, driver.Discover(), "not supported")
 	require.NoError(t, driver.Stop(false))
 }
@@ -195,6 +269,7 @@ func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
 
@@ -251,6 +326,19 @@ func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, values, 1)
 	assert.Equal(t, int32(292), values[0].Value)
+
+	for _, device := range devices {
+		samples := driver.cache.query(
+			device.name,
+			device.resource,
+			987654321,
+			987654321,
+			10,
+			driver.now(),
+		)
+		require.Len(t, samples, 1)
+		assert.Equal(t, int64(987654321), samples[0].Origin)
+	}
 }
 
 func TestDriverFansOutConnectionStateAndClosesAfterLastRoute(t *testing.T) {

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
+	"time"
 
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces"
 	sdkModels "github.com/edgexfoundry/device-sdk-go/v4/pkg/models"
@@ -40,11 +42,6 @@ type managedReader interface {
 
 type readerFactory func(config SerialConfig, options ReaderOptions) managedReader
 
-type latestReading struct {
-	value  int32
-	origin int64
-}
-
 type managedConnection struct {
 	reader   managedReader
 	cancel   context.CancelFunc
@@ -68,7 +65,8 @@ type Driver struct {
 	cancel      context.CancelFunc
 	connections map[connectionKey]*managedConnection
 	bindings    map[string]*deviceBinding
-	latest      map[string]map[string]latestReading
+	cache       *recentCache
+	now         func() int64
 	newReader   readerFactory
 	stopped     bool
 }
@@ -83,7 +81,8 @@ func newDriver(factory readerFactory) *Driver {
 	return &Driver{
 		connections: make(map[connectionKey]*managedConnection),
 		bindings:    make(map[string]*deviceBinding),
-		latest:      make(map[string]map[string]latestReading),
+		cache:       newRecentCache(recentCacheMaxAge, recentCacheMaxSamples),
+		now:         func() int64 { return time.Now().UnixNano() },
 		newReader:   factory,
 	}
 }
@@ -115,9 +114,28 @@ func (driver *Driver) Initialize(sdk interfaces.DeviceServiceSDK) error {
 func (driver *Driver) Start() error {
 	driver.mu.RLock()
 	sdk := driver.sdk
+	clock := driver.now
 	driver.mu.RUnlock()
 	if sdk == nil {
 		return errors.New("serial driver is not initialized")
+	}
+	api := newLocalDataAPI(driver.cache, driver.isKnownLocalSource)
+	api.now = clock
+	if err := sdk.AddCustomRoute(
+		latestRoute,
+		interfaces.Unauthenticated,
+		api.latest,
+		http.MethodGet,
+	); err != nil {
+		return fmt.Errorf("register local latest route: %w", err)
+	}
+	if err := sdk.AddCustomRoute(
+		recentRoute,
+		interfaces.Unauthenticated,
+		api.recent,
+		http.MethodGet,
+	); err != nil {
+		return fmt.Errorf("register local recent route: %w", err)
 	}
 
 	for _, device := range sdk.Devices() {
@@ -217,7 +235,7 @@ func (driver *Driver) UpdateDevice(
 	if current != nil {
 		delete(current.connection.routes, current.config.ResourceName)
 		delete(driver.bindings, deviceName)
-		delete(driver.latest, deviceName)
+		driver.cache.deleteDevice(deviceName)
 		if len(current.connection.routes) == 0 && current.connection != target {
 			delete(driver.connections, current.config.key())
 			obsolete = current.connection
@@ -248,7 +266,7 @@ func (driver *Driver) UpdateDevice(
 	}
 	target.routes[config.ResourceName] = deviceName
 	driver.bindings[deviceName] = &deviceBinding{config: config, connection: target}
-	delete(driver.latest, deviceName)
+	driver.cache.deleteDevice(deviceName)
 	if target.hasState {
 		state := target.state
 		knownState = &state
@@ -290,34 +308,29 @@ func (driver *Driver) HandleReadCommands(
 		return nil, errors.New("at least one read request is required")
 	}
 
-	driver.mu.RLock()
-	deviceLatest := driver.latest[deviceName]
-	values := make([]latestReading, len(requests))
+	now := driver.now()
+	values := make([]cachedSample, len(requests))
 	for index, request := range requests {
 		if request.Type != common.ValueTypeInt32 {
-			driver.mu.RUnlock()
 			return nil, fmt.Errorf("resource %q must use %s", request.DeviceResourceName, common.ValueTypeInt32)
 		}
 		if _, ok := supportedResources[request.DeviceResourceName]; !ok {
-			driver.mu.RUnlock()
 			return nil, fmt.Errorf("unsupported serial resource %q", request.DeviceResourceName)
 		}
-		latest, ok := deviceLatest[request.DeviceResourceName]
+		latest, ok := driver.cache.latest(deviceName, request.DeviceResourceName, now)
 		if !ok {
-			driver.mu.RUnlock()
 			return nil, fmt.Errorf("no recent reading for %s/%s", deviceName, request.DeviceResourceName)
 		}
 		values[index] = latest
 	}
-	driver.mu.RUnlock()
 
 	result := make([]*sdkModels.CommandValue, len(requests))
 	for index, request := range requests {
 		commandValue, err := sdkModels.NewCommandValueWithOrigin(
 			request.DeviceResourceName,
 			common.ValueTypeInt32,
-			values[index].value,
-			values[index].origin,
+			values[index].Value,
+			values[index].Origin,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create command value for %q: %w", request.DeviceResourceName, err)
@@ -408,13 +421,11 @@ func (driver *Driver) handleSample(
 			driver.warn("create async serial reading for %s/%s: %v", deviceName, reading.ResourceName, err)
 			return
 		}
-		if driver.latest[deviceName] == nil {
-			driver.latest[deviceName] = make(map[string]latestReading)
-		}
-		driver.latest[deviceName][reading.ResourceName] = latestReading{
-			value:  reading.Value,
-			origin: origin,
-		}
+		driver.cache.append(deviceName, reading.ResourceName, cachedSample{
+			Origin:    origin,
+			ValueType: common.ValueTypeInt32,
+			Value:     reading.Value,
+		})
 		events = append(events, routedEvent{
 			deviceName: deviceName,
 			sourceName: sourceName,
@@ -480,7 +491,7 @@ func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 		}
 	}
 	if clearLatest {
-		delete(driver.latest, deviceName)
+		driver.cache.deleteDevice(deviceName)
 	}
 	driver.mu.Unlock()
 	if unused == nil {
@@ -490,6 +501,13 @@ func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 	if err := unused.reader.Close(); err != nil {
 		driver.warn("close serial reader for %s: %v", unused.config.DeviceID, err)
 	}
+}
+
+func (driver *Driver) isKnownLocalSource(deviceName string, resourceName string) bool {
+	driver.mu.RLock()
+	defer driver.mu.RUnlock()
+	binding := driver.bindings[deviceName]
+	return binding != nil && binding.config.ResourceName == resourceName && !driver.stopped
 }
 
 func (driver *Driver) warn(message string, args ...any) {
