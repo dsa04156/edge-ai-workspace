@@ -195,3 +195,11 @@ spec:
       ports:
         - protocol: TCP
           port: 59910
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              edge-ai.io/local-data-client: "true"
+      ports:
+        - protocol: TCP
+          port: 59910

@@ -86,6 +86,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -133,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-21 18:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
+            <span class="badge">수정: 2026-07-21 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -160,6 +162,8 @@ edgex-edge
       ├─ 공유 Serial reader 1개
       ├─ 1-resource Device Profile 6개
       ├─ virtual-*-001 Device 6개
+      ├─ 10분 / 10,000 sample memory recent cache
+      ├─ latest / recent Local Data API
       └─ 최소 ingress/egress NetworkPolicy
 
 KubeEdge
@@ -173,6 +177,7 @@ KubeEdge
   -&gt; /dev/serial/by-id/... on etri-dev0001-jetorn
   -&gt; /dev/arduino-001 in device-serial-jetson
   -&gt; resource route / 6 virtual Devices
+     +-&gt; memory recent cache -&gt; same-node Workflow Pod
   -&gt; Device별 EdgeX async Event / Reading
   -&gt; 중앙 internal MessageBus
   -&gt; Core Data / PostgreSQL
@@ -186,7 +191,7 @@ KubeEdge
 <tbody>
 <tr>
 <td>EdgeX Device Service</td>
-<td>공유 115200 baud Serial 연결 1개, JSON line 검증, resource fan-out, 재연결, 상태, read-only command</td>
+<td>공유 115200 baud Serial 연결 1개, JSON line 검증, resource fan-out, 재연결, 상태, recent cache/Local Data API, read-only command</td>
 </tr>
 <tr>
 <td>Device Profile</td>
@@ -229,8 +234,12 @@ GET /api/v3/device/name/{deviceName}
 GET /api/v3/deviceservice/name/{serviceName}
 
 현재값 command:
-GET /api/v3/device/name/{deviceName}/{commandName}</code></pre>
-<p>고주기 실시간 데이터와 카메라 frame을 Core Data GET polling으로 소비하지 않는다. 실시간 AI 입력은 Device Service의 검증된 stream 경로나 RTSP 직접 구독을 별도 설계하고, EdgeX에는 inventory, 상태, command와 필요한 Event/Reading을 남긴다.</p>
+GET /api/v3/device/name/{deviceName}/{commandName}
+
+Jetson 로컬 최신값/최근 구간:
+GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}/latest
+GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={n}</code></pre>
+<p>Local Data API는 최근 10분·시계열별 최대 10,000 sample의 휘발성 cache만 조회하며 중앙 history로 fallback하지 않는다. 고주기 연속 stream과 카메라 frame을 이 REST API나 Core Data GET polling으로 소비하지 않는다. 실시간 AI 입력은 Device Service의 검증된 stream 경로나 RTSP 직접 구독을 별도 설계하고, EdgeX에는 inventory, 상태, command와 필요한 Event/Reading을 남긴다.</p>
 <h2 id="현재-완료와-미완료">현재 완료와 미완료</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -267,8 +276,12 @@ GET /api/v3/device/name/{deviceName}/{commandName}</code></pre>
 <td>Device별 command 6개 GET 재검증 gate</td>
 </tr>
 <tr>
-<td>local cache</td>
-<td>최신값 1개만 메모리에 유지; recent window cache 없음</td>
+<td>local cache/API</td>
+<td>Device/resource별 최근 10분·최대 10,000 sample, latest/recent GET; Pod 재시작 시 초기화</td>
+</tr>
+<tr>
+<td>SQLite outbox/offline replay</td>
+<td>없음; 중앙 단절 중 미전송 Event 재전송을 보장하지 않음</td>
 </tr>
 <tr>
 <td>영구 저장</td>

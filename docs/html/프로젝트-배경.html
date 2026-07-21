@@ -86,6 +86,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -133,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-배경.md</span>
-            <span class="badge">수정: 2026-07-21 18:01</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
+            <span class="badge">수정: 2026-07-21 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -187,7 +189,7 @@
   -&gt; EdgeX Event / Reading
   -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 Device Profile은 read-only schema와 최신값 GET만 제공하며 write/actuator command는 없다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>2026-07-21 기존 direct Agent 두 개, SQLite PVC와 <code>sensehat-001</code> Metadata bootstrap은 퇴역했다. 현재 <code>edgex-edge</code>의 Jetson Arduino용 <code>device-serial-jetson</code>은 한 물리 Serial 연결을 6개 가상 Device로 fan-out한다.</li></ul>
+<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 Device Profile은 read-only schema와 최신값 GET만 제공하며 write/actuator command는 없다.</li><li>Jetson Serial Device Service는 Device/resource별 최근 10분·최대 10,000 sample을 메모리에 보관하고 같은 node의 허용된 Workflow Pod에 read-only Local Data API를 제공한다. 이 cache는 재시작 비보존이며 durable queue가 아니다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>2026-07-21 기존 direct Agent 두 개, SQLite PVC와 <code>sensehat-001</code> Metadata bootstrap은 퇴역했다. 현재 <code>edgex-edge</code>의 Jetson Arduino용 <code>device-serial-jetson</code>은 한 물리 Serial 연결을 6개 가상 Device로 fan-out한다.</li></ul>
 <p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 중앙 <code>edgex-system</code> overlay, <code>edgex-edge</code> Namespace/default-deny base와 Jetson Serial Device Service를 렌더링한다. 중앙 ingest gateway는 유지하지만 현재 Serial Event 경로는 Device Service → 중앙 MessageBus → Core Data/PostgreSQL이며 gateway를 사용하지 않는다.</p>
 <p>과거 Sense HAT Agent/SQLite offline replay 결과는 설계·검증 이력이며 현재 배포 완료 근거가 아니다.</p>
 <p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 기존 canary에서 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology live cutover 완료를 자동으로 뜻하지 않는다.</p>

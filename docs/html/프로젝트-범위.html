@@ -86,6 +86,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -133,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-21 18:01</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
+            <span class="badge">수정: 2026-07-21 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -191,10 +193,10 @@
   -&gt; 중앙 Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
 <p>포함하는 방향:</p>
-<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
+<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>같은 Jetson의 허용된 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
 <p>KubeEdge 범위는 Kubernetes edge node와 workload 관리로 제한한다. EdgeX Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 서로 다른 관리 객체다. KubeEdge DeviceStatus, MapperFramework, <code>mqttvirtual</code>과 mapper direct-write는 legacy physical integration이며 현재 plane의 병행 경로나 fallback이 아니다.</p>
 <p>2026-07-21에 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 두 outbox PVC와 Agent 전용 Metadata bootstrap을 퇴역했다. 대신 root render는 <code>edgex-edge</code>에 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>과 최소 NetworkPolicy를 배포한다. 중앙 EdgeX와 ingest gateway는 유지하지만, ingest gateway는 현재 Serial Event 경로에 참여하지 않는다.</p>
-<p>1차 수직 슬라이스는 <code>etri-dev0001-jetorn</code>의 Arduino Uno다. <code>/dev/serial/by-id/...</code> CharDevice를 Pod의 <code>/dev/arduino-001</code>에 단독 마운트하고 <code>device-serial-jetson</code>이 공유 reader 1개로 읽는다. temperature, light, magnetic, acceleration X/Y/Z는 각각 1-resource Profile과 <code>virtual-*-001</code> Device로 등록되며 Core Data Event, Core Command GET과 dashboard의 독립 identity가 된다. Device Service 메모리에는 Device별 최신값 1개만 있고 recent window cache나 durable outbox는 없다.</p>
+<p>1차 수직 슬라이스는 <code>etri-dev0001-jetorn</code>의 Arduino Uno다. <code>/dev/serial/by-id/...</code> CharDevice를 Pod의 <code>/dev/arduino-001</code>에 단독 마운트하고 <code>device-serial-jetson</code>이 공유 reader 1개로 읽는다. temperature, light, magnetic, acceleration X/Y/Z는 각각 1-resource Profile과 <code>virtual-*-001</code> Device로 등록되며 Core Data Event, Core Command GET과 dashboard의 독립 identity가 된다. Device Service 메모리는 Device/resource별 최근 10분·최대 10,000 sample을 보존하고 latest/recent Local Data API를 제공한다. 이 cache는 Pod 재시작 시 사라지며 durable outbox나 offline replay가 아니다.</p>
 <p>현재 root render에는 <code>device-mqtt</code>와 edge-local broker가 없다. MQTT-only 장비가 들어오면 별도 Device Service와 프로토콜별 검증 gate를 추가한 뒤에만 배포한다. Modbus, OPC-UA와 추가 I2C도 profile·실장비·telemetry 검증 전까지 완료로 주장하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media 경로다.</p>
 <p>현재 범위의 핵심 표현:</p>
 <ul><li>서비스 데모 우선</li><li>EdgeX Device Service와 Device Profile/Device</li><li>중앙 Core Data·server2 PostgreSQL 권위</li><li>MQTT는 필요가 확인된 장비의 Device Service 검증 이후에만 배포</li><li>프로토콜별 독립 migration gate</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>

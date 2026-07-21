@@ -112,7 +112,10 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
         self.assertIn("/dev/arduino-001", runbook)
         self.assertIn("공유 Serial reader 1개", runbook)
-        self.assertIn("구간 캐시가 아니다", runbook)
+        self.assertIn("Device/resource별 최근 10분·최대 10,000 sample", runbook)
+        self.assertIn("/api/v3/localdata/device/name/", runbook)
+        self.assertIn("edge-ai.io/local-data-client=true", runbook)
+        self.assertIn("SQLite outbox/offline replay: 없음", runbook)
         self.assertIn("InfluxDB workload를 배포하지 않는다", runbook)
         for device_name in (
             "virtual-temperature-001",

@@ -256,7 +256,20 @@ def test_serial_network_policies_limit_both_namespace_boundaries() -> None:
                 }
             ],
             "ports": [{"protocol": "TCP", "port": 59910}],
-        }
+        },
+        {
+            "from": [
+                {
+                    "namespaceSelector": {},
+                    "podSelector": {
+                        "matchLabels": {
+                            "edge-ai.io/local-data-client": "true"
+                        }
+                    },
+                }
+            ],
+            "ports": [{"protocol": "TCP", "port": 59910}],
+        },
     ]
 
     server = named(render(K8S_DIR / "base/server"))
