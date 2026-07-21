@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 물리-디바이스-상태-정책.md</span>
-            <span class="badge">수정: 2026-07-21 17:04</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:02</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -144,7 +146,7 @@
   -&gt; EdgeX Event / Reading -&gt; Core Data
   -&gt; AI services / storage / state-aggregator / dashboard</code></pre>
 <p>RTSP frame은 이 telemetry 경로에 넣지 않는다. Workflow Pod가 stream을 직접 구독하고 상태·결과 metadata만 Event로 전달한다. 중앙 EdgeX 내부 MessageBus는 EdgeX Core 런타임 구성이지 물리 protocol endpoint나 장애 버퍼가 아니다.</p>
-<p>KubeEdge는 Kubernetes edge node와 workload에만 사용한다. KubeEdge <code>Device</code>, <code>DeviceModel</code>, <code>DeviceStatus</code>, MapperFramework와 <code>mqttvirtual</code>은 legacy physical integration 경로이며 current status/control plane, 병행 plane 또는 EdgeX 장애 시 fallback이 아니다. mapper가 InfluxDB로 직접 쓰는 경로도 legacy다.</p>
+<p>KubeEdge는 Kubernetes edge node와 workload에만 사용한다. KubeEdge <code>Device</code>, <code>DeviceModel</code>, <code>DeviceStatus</code>, MapperFramework와 <code>mqttvirtual</code>은 legacy physical integration 경로이며 current status/control plane, 병행 plane 또는 EdgeX 장애 시 fallback이 아니다. mapper direct-write도 legacy다.</p>
 <h2 id="inventory와-state">Inventory와 state</h2>
 <p>Core Metadata Device가 물리 inventory의 원본이다. consumer는 다음 필드를 보존하고 노출한다.</p>
 <ul><li><code>name</code></li><li><code>profileName</code></li><li><code>serviceName</code></li><li><code>protocols</code></li><li><code>adminState</code></li><li><code>operatingState</code></li><li><code>tags</code>와 properties의 선택적 node diagnostic/placement</li></ul>
@@ -153,16 +155,16 @@
 <h2 id="telemetry와-timestamp">Telemetry와 timestamp</h2>
 <p>Core Data Event가 physical telemetry의 원본이다. event의 다음 값을 손실 없이 사용한다.</p>
 <ul><li><code>deviceName</code>: Core Metadata Device와의 결합 key</li><li><code>sourceName</code>: Device Profile resource/source</li><li><code>origin</code>: nanoseconds 단위의 sample/event 시각</li><li>Readings: EdgeX <code>valueType</code>과 typed value</li></ul>
-<p>freshness는 최신 유효 Event의 <code>origin</code>으로 계산한다. 수집 API 호출 시각, 데이터베이스 query window, Kubernetes heartbeat 또는 legacy DeviceStatus timestamp로 대체하지 않는다. storage와 AI consumer는 Core Data 이후에 위치하며 mapper direct-to-Influx로 Core Data를 우회하지 않는다.</p>
+<p>freshness는 최신 유효 Event의 nanosecond <code>origin</code>을 sample 시각으로 사용해 계산한다. 수집 API 호출 시각, 데이터베이스 query window, Kubernetes heartbeat 또는 legacy DeviceStatus timestamp로 대체하지 않는다. storage와 AI consumer는 Core Data 이후에 위치하며 mapper direct-write로 Core Data를 우회하지 않는다.</p>
 <p>현재 Serial 경로는 Device Service가 EdgeX SDK async Event를 중앙 MessageBus에 발행하고 Core Data가 PostgreSQL에 저장한 뒤 API에서 Event/Reading을 조회하는 구조다. MQTT broker ACK만으로 저장 성공을 주장하지 않고 Core Data readback을 확인한다. edge outbox가 없으므로 중앙 단절 중 유실 방지나 offline replay를 보장하지 않는다.</p>
 <h2 id="availability">Availability</h2>
 <p>physical device availability는 다음 우선순위로 계산한다.</p>
 <ol><li><code>adminState=LOCKED</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=DOWN</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code> / <code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 Core Data event가 freshness 기준 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이지만 event가 없거나 stale이면 <code>degraded</code>.</li></ol>
 <p>알 수 없는 enum이나 parse할 수 없는 <code>origin</code>은 정상으로 추정하지 않고 <code>degraded</code>와 명시적 reason으로 노출한다. node/workload 관찰 정보는 별도로 표시할 수 있지만 위 결과를 승격하거나 강등하지 않는다.</p>
 <h2 id="명령과-상태-변경">명령과 상태 변경</h2>
-<p><code>arduino-001</code>의 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code>은 Device Service 메모리의 최신값을 반환하는 read-only Core Command GET이다. Device Profile에는 writable resource가 없으며 actuator 실행 가능성을 뜻하지 않는다. write command를 추가할 때는 해당 Protocol Adapter의 지원 범위, 인증, TTL, 중복 실행 방지와 실패 상태를 별도 검증하고 KubeEdge desired/twin이나 mapper topic으로 우회하지 않는다.</p>
+<p>6개 가상 Device의 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration_x</code>, <code>acceleration_y</code>, <code>acceleration_z</code>는 Device Service 메모리의 최신값 1개를 반환하는 read-only Core Command GET이다. 이 메모리는 Pod 재시작 시 사라지고 최근 구간 캐시가 아니다. Device Profile에는 writable resource가 없으며 actuator 실행 가능성을 뜻하지 않는다.</p>
 <h2 id="전달-범위와-migration-gate">전달 범위와 migration gate</h2>
-<p>2026-07-21 기존 <code>sensehat-001</code>, direct Agent와 SQLite PVC는 퇴역했다. Jetson에는 <code>device-serial-jetson</code>이 배포되어 <code>arduino-001</code>의 Profile/Device/Event와 dashboard availability를 정상 경로에서 검증했다. edge-local broker는 없다. MQTT-only 장비 또는 local pub/sub 요구가 확인되면 별도 Device Service/profile과 실제 endpoint를 검증한 뒤에만 broker를 추가한다.</p>
+<p>2026-07-21 기존 <code>sensehat-001</code>, direct Agent와 SQLite PVC는 퇴역했다. Jetson의 <code>device-serial-jetson</code>은 물리 source <code>arduino-001</code>을 공유 reader 하나로 수집하고 6개 가상 Device Event로 분리한다. edge-local broker와 별도 InfluxDB는 없다. MQTT-only 장비 또는 local pub/sub 요구가 확인되면 별도 Device Service/profile과 실제 endpoint를 검증한 뒤에만 broker를 추가한다.</p>
 <p>Serial 외 Modbus, OPC-UA와 추가 I2C 장비는 target architecture의 protocol-adapter wave다. RTSP는 별도 media/workflow wave다. 각 wave는 다음 gate를 독립적으로 통과해야 delivered로 표시한다.</p>
 <ul><li>해당 Protocol Adapter와 EdgeX Device Profile 선택/구현</li><li>실제 장비 endpoint의 독점 연결</li><li>normalization 및 typed Reading 검증</li><li>Core Metadata inventory와 Core Data freshness 검증</li><li>지원 command가 있을 때만 command와 실패 동작 검증</li><li>AI services/storage/dashboard consumer 검증</li><li>실제 배포 환경 cutover 확인</li></ul>
 <p>한 protocol의 성공을 다른 protocol 완료 근거로 사용하지 않는다. 현재 Serial 완료 범위도 정상 수집 경로에 한정하며 실제 장치 분리·복구와 offline replay를 포함하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 보존되는 독립 프로토타입이며 현재 EdgeX Serial 경로와 자동 결합하지 않는다.</p>

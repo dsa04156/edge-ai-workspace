@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 쿠버엣지-엣지엑스-모델-매핑.md</span>
-            <span class="badge">수정: 2026-07-21 17:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:02</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -160,7 +162,7 @@
 <tr>
 <td>command</td>
 <td>EdgeX Core Command</td>
-<td><code>arduino-001</code> latest-value GET만 활성; actuator 실행 아님</td>
+<td>6개 <code>virtual-*-001</code> Device의 latest-value GET만 활성; actuator 실행 아님</td>
 </tr>
 <tr>
 <td>node/workload 진단</td>
@@ -168,7 +170,7 @@
 <td>placement/resource 진단 전용; physical availability gate가 아님</td>
 </tr>
 </tbody></table></div>
-<p>MapperFramework direct-to-InfluxDB 및 KubeEdge desired/twin 경로를 current ingestion/command 경로로 확장하지 않는다. AI services, storage, state-aggregator, dashboard는 Core Data 이후의 consumer다.</p>
+<p>MapperFramework direct-write 및 KubeEdge desired/twin 경로를 current ingestion/command 경로로 확장하지 않는다. AI services, storage, state-aggregator, dashboard는 Core Data 이후의 consumer다.</p>
 <h2 id="과거-edgex-api-형식-예시">과거 EdgeX API 형식 예시</h2>
 <p>아래 <code>sensehat-001</code>/<code>edge-telemetry-agent</code> 값은 퇴역한 fixture다. field mapping 예시로만 읽고 현재 Metadata 등록이나 live 상태로 해석하지 않는다.</p>
 <p>Core Metadata Device 응답에서 physical inventory/state에 필요한 형태는 다음과 같다.</p>
@@ -338,9 +340,9 @@ readings:
 <p>physical availability는 Core Metadata와 Core Data만으로 판정한다.</p>
 <ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>: unavailable</li><li><code>operatingState=UNKNOWN</code>: degraded</li><li><code>operatingState=UP</code>이고 최신 Event <code>origin</code>이 freshness 기준 이내: available</li><li><code>operatingState=UP</code>이지만 Event가 없거나 stale: degraded</li></ol>
 <p>Kubernetes node readiness, mapper Pod 상태, KubeEdge <code>DeviceStatus</code>는 이 결과를 승격하거나 강등하지 않는다. node/workload 데이터는 placement 후보와 장애 진단의 보조 정보로만 노출한다.</p>
-<p>현재 <code>arduino-001</code>은 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code> read-only GET만 제공한다. 후속 write command는 해당 endpoint를 소유한 Device Service의 인증·TTL·dedupe·실패 동작을 검증한 뒤 별도 활성화한다. legacy KubeEdge desired property나 mapper command topic은 fallback이 아니다.</p>
+<p>현재 6개 가상 Device는 각각 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration_x</code>, <code>acceleration_y</code>, <code>acceleration_z</code> read-only GET을 제공한다. 후속 write command는 해당 endpoint를 소유한 Device Service의 인증·TTL·dedupe·실패 동작을 검증한 뒤 별도 활성화한다.</p>
 <h2 id="protocol-wave-boundary">Protocol-wave boundary</h2>
-<p>현재 delivered scope는 Jetson의 <code>device-serial-jetson</code> / <code>etri-arduino-serial</code> / <code>arduino-001</code>, 중앙 Core Data/PostgreSQL과 EdgeX-backed aggregator/dashboard다. 과거 loopback Agent/SQLite/HTTPS plane과 Sense HAT <code>sensehat-001</code>은 현재 배포나 fallback이 아니다.</p>
+<p>현재 target scope는 Jetson의 <code>device-serial-jetson</code>, 1-resource Profile/가상 Device 6개, 중앙 Core Data/PostgreSQL과 EdgeX-backed aggregator/dashboard다. 물리 <code>arduino-001</code>은 protocol/tag source ID이며 Metadata Device가 아니다. 과거 loopback Agent/SQLite/HTTPS plane은 현재 배포나 fallback이 아니다.</p>
 <p>Serial은 정상 수집 경로만 완료로 표시하며 실제 분리·복구는 남아 있다. Modbus, OPC-UA와 추가 I2C adapter는 Device Service/Profile, 실제 endpoint, typed Reading, freshness와 downstream consumer를 각각 검증한 뒤에만 완료로 표시한다. RTSP는 Workflow Pod 직접 구독 경로로 별도 검증한다.</p>
 <p><code>virtual-device/</code> Serial JSON runtime은 독립 프로토타입이다. 현재 Serial 완료 근거는 이 prototype이 아니라 <code>edgex/device-serial/</code>, root Kustomize와 live readback이다.</p>
         </div>

@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -127,18 +129,19 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>현재 데모 경로</h1>
-          <p class="subtitle">2026-07-21 현재 중앙 EdgeX는 etri-ser0002-cgnmsb에 유지되고, 기존 커스텀 edge Agent 두…</p>
+          <p class="subtitle">Core Data telemetry freshness는 latest Event의 nanosecond origin을 sample…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-21 17:03</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-데모-경로">현재 데모 경로</h1>
+<p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="상태-요약">상태 요약</h2>
-<p>2026-07-21 현재 중앙 EdgeX는 <code>etri-ser0002-cgnmsb</code>에 유지되고, 기존 커스텀 edge Agent 두 개는 퇴역했다. Jetson에는 정식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>이 배포되어 Arduino Uno의 실제 Serial telemetry를 중앙 Core Data와 대시보드까지 전달한다.</p>
+<p>2026-07-21 현재 중앙 EdgeX는 <code>etri-ser0002-cgnmsb</code>에 유지되고, 기존 커스텀 edge Agent 두 개는 퇴역했다. Jetson의 정식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>은 Arduino Uno의 실제 Serial telemetry를 한 번 읽고 resource별 가상 Device 6개로 전달한다.</p>
 <pre data-lang="text"><code>[현재 배포]
 
 etri-ser0002-cgnmsb
@@ -154,8 +157,9 @@ etri-ser0002-cgnmsb
 edgex-edge
   └─ device-serial-jetson @ etri-dev0001-jetorn
       ├─ /dev/arduino-001 (exact CharDevice mount)
-      ├─ etri-arduino-serial profile
-      ├─ arduino-001 device
+      ├─ 공유 Serial reader 1개
+      ├─ 1-resource Device Profile 6개
+      ├─ virtual-*-001 Device 6개
       └─ 최소 ingress/egress NetworkPolicy
 
 KubeEdge
@@ -168,7 +172,8 @@ KubeEdge
 <pre data-lang="text"><code>Arduino sensor
   -&gt; /dev/serial/by-id/... on etri-dev0001-jetorn
   -&gt; /dev/arduino-001 in device-serial-jetson
-  -&gt; EdgeX async Event / Reading
+  -&gt; resource route / 6 virtual Devices
+  -&gt; Device별 EdgeX async Event / Reading
   -&gt; 중앙 internal MessageBus
   -&gt; Core Data / PostgreSQL
   -&gt; state-aggregator / dashboard</code></pre>
@@ -181,7 +186,7 @@ KubeEdge
 <tbody>
 <tr>
 <td>EdgeX Device Service</td>
-<td>115200 baud Serial 연결, JSON line 검증, 재연결, 값 표준화, 상태, read-only command</td>
+<td>공유 115200 baud Serial 연결 1개, JSON line 검증, resource fan-out, 재연결, 상태, read-only command</td>
 </tr>
 <tr>
 <td>Device Profile</td>
@@ -189,7 +194,7 @@ KubeEdge
 </tr>
 <tr>
 <td>Device</td>
-<td>실제 또는 가상화된 장비 identity와 protocol binding</td>
+<td>temperature/light/magnetic/acceleration X/Y/Z 가상 identity와 물리 source binding</td>
 </tr>
 <tr>
 <td>Core Metadata</td>
@@ -201,7 +206,7 @@ KubeEdge
 </tr>
 <tr>
 <td>Core Command</td>
-<td><code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code> read-only GET을 담당 Device Service로 전달</td>
+<td>6개 가상 Device의 단일-resource read-only GET을 담당 Device Service로 전달</td>
 </tr>
 <tr>
 <td>KubeEdge</td>
@@ -247,19 +252,27 @@ GET /api/v3/device/name/{deviceName}/{commandName}</code></pre>
 </tr>
 <tr>
 <td>Device Profile/Device 등록</td>
-<td><code>etri-arduino-serial</code> / <code>arduino-001</code> 등록</td>
+<td>1-resource Profile 6개 / <code>virtual-*-001</code> Device 6개가 root render 대상</td>
 </tr>
 <tr>
 <td>Core Data 실제 sensor Event/Reading</td>
-<td>4 source, 6개 <code>Int32</code> resource live readback 확인</td>
+<td>Device별 <code>Int32</code> Reading 하나; 새 image cutover 후 live readback gate</td>
 </tr>
 <tr>
 <td>dashboard device freshness</td>
-<td><code>available</code>, <code>connected</code>, <code>fresh</code> 확인</td>
+<td>6개 행의 <code>available</code>, <code>connected</code>, <code>fresh</code> 재검증 gate</td>
 </tr>
 <tr>
 <td>read-only command</td>
-<td>4개 command GET 확인</td>
+<td>Device별 command 6개 GET 재검증 gate</td>
+</tr>
+<tr>
+<td>local cache</td>
+<td>최신값 1개만 메모리에 유지; recent window cache 없음</td>
+</tr>
+<tr>
+<td>영구 저장</td>
+<td>중앙 Core Data/PostgreSQL; 별도 InfluxDB 없음</td>
 </tr>
 <tr>
 <td>write command/actuator</td>

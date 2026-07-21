@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,16 +133,16 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 2차년도-가상디바이스-워크플로-설계.md</span>
-            <span class="badge">수정: 2026-07-21 17:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:05</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="2차년도-가상디바이스-디바이스트윈-워크플로-설계">2차년도 가상디바이스·디바이스트윈·워크플로 설계</h1>
 <h2 id="목적과-적용-경계">목적과 적용 경계</h2>
 <p>이 문서는 2차년도 협약 방향에 맞춘 확장 설계다. 기준 문서는 <code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code>다.</p>
-<p>현재 PoC에서 물리 디바이스의 inventory, state, telemetry, command 권위는 EdgeX로 단일화한다. KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, <code>mqttvirtual</code>, MapperFramework와 mapper direct-to-InfluxDB는 legacy/reference 경로이며 현재 status/control plane, 병행 plane 또는 EdgeX fallback이 아니다. KubeEdge/Kubernetes node와 workload 정보는 placement/resource 진단에는 사용할 수 있다.</p>
-<p>2026-07-21 현재 중앙 EdgeX는 유지되고 custom edge Agent/SQLite outbox 배포와 <code>sensehat-001</code> bootstrap은 퇴역했다. Jetson Arduino는 공식 EdgeX Device SDK 기반 Serial Device Service/Profile/Device로 연결되어 정상 수집·저장·조회·dashboard 경로가 live다. Agent 관련 예시는 과거 baseline을 설명하는 설계 이력이며 현재 배포 계약이 아니다.</p>
+<p>현재 PoC에서 가상 Device inventory, state, telemetry, command 권위는 EdgeX로 단일화한다. KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, <code>mqttvirtual</code>, MapperFramework와 mapper direct-to-storage 실험은 legacy/reference 경로이며 현재 status/control plane, 병행 plane 또는 EdgeX fallback이 아니다. KubeEdge/Kubernetes node와 workload 정보는 placement/resource 진단에는 사용할 수 있다.</p>
+<p>2026-07-21 현재 중앙 EdgeX는 유지되고 custom edge Agent/SQLite outbox 배포와 <code>sensehat-001</code> bootstrap은 퇴역했다. Jetson Arduino는 공식 EdgeX Device SDK 기반 Serial Device Service가 한 번 읽고, 온도·조도·자기·가속도 X/Y/Z를 6개 가상 Device로 분리한다. 물리 <code>arduino-001</code>은 wire ID와 tag일 뿐 Core Metadata Device가 아니다. Agent 관련 예시는 과거 baseline을 설명하는 설계 이력이며 현재 배포 계약이 아니다.</p>
 <h2 id="핵심-정의">핵심 정의</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -152,12 +154,12 @@
 <tr>
 <td>물리 온디바이스</td>
 <td>Jetson, Raspberry Pi, 센서, 액추에이터, 카메라처럼 현장에 존재하는 장비</td>
-<td>EdgeX Device Service가 endpoint를 연결하고 Core Metadata Device/Profile 및 Core Data Event/Reading으로 표현</td>
+<td>EdgeX Device Service가 endpoint를 연결하며 physical ID와 endpoint는 protocol/tag metadata로 유지</td>
 </tr>
 <tr>
 <td>가상디바이스</td>
-<td>물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽의 소프트웨어 인스턴스로 표현한 대상</td>
-<td>2차년도 설계 대상이며 현재 별도 운영 registry가 완성됐다고 보지 않음</td>
+<td>물리 온디바이스의 기능, 상태, 자원, 입출력을 소프트웨어 identity로 표현한 대상</td>
+<td>현재 Arduino 6개 sensor resource는 EdgeX Device/Profile로 구현; 범용 별도 registry는 후속 범위</td>
 </tr>
 <tr>
 <td>디바이스트윈</td>
@@ -179,10 +181,10 @@
 <h2 id="현재와-목표-구조">현재와 목표 구조</h2>
 <pre data-lang="text"><code>Physical On-Device Layer
   Jetson / Raspberry Pi / sensor / actuator / camera
-  -&gt; protocol-specific EdgeX Device Service
+  -&gt; protocol-specific EdgeX Device Service (shared physical connection)
   -&gt; EdgeX SDK async Event -&gt; central internal MessageBus
 
-Physical Device Authority
+Virtual Device Authority
   EdgeX Core Metadata Device/Profile inventory/state
   -&gt; Core Data Event/Reading -&gt; PostgreSQL
 
@@ -202,21 +204,26 @@ Future Virtual Device and Workflow Layer
 <h2 id="현재-poc-workflow-source-모델">현재 PoC Workflow Source 모델</h2>
 <p>현재 workflow builder는 별도 Virtual Device Registry를 만들지 않는다. <code>state-aggregator</code>가 EdgeX Core Metadata Device와 Core Data latest Event freshness를 결합한 read-only source view를 제공하며, Kubernetes node/workload 정보는 별도 placement 진단으로만 결합한다.</p>
 <p>현재 physical source API 표현은 EdgeX 필드를 보존한다.</p>
-<pre data-lang="yaml"><code>name: arduino-001
-profileName: etri-arduino-serial
+<pre data-lang="yaml"><code>name: virtual-temperature-001
+profileName: etri-arduino-temperature
 serviceName: device-serial-jetson
 protocols:
   serial:
     Port: /dev/arduino-001
     BaudRate: &quot;115200&quot;
+    DeviceID: arduino-001
+    ResourceName: temperature
+tags:
+  physicalDeviceId: arduino-001
+  nodeName: etri-dev0001-jetorn
 adminState: UNLOCKED
 operatingState: UP
 latestEvent:
-  deviceName: arduino-001
+  deviceName: virtual-temperature-001
   sourceName: temperature
   origin: 1784016000000000000
   readings:
-    - resourceName: temperature_raw
+    - resourceName: temperature
       valueType: Int32
       value: &quot;283&quot;</code></pre>
 <p>현재 최소 API 표면은 <code>state-aggregator</code>의 read-only GET API다.</p>
@@ -251,7 +258,7 @@ latestEvent:
 <tr>
 <td><code>etri-dev0001-jetorn</code></td>
 <td>Arduino Uno</td>
-<td><code>device-serial-jetson</code>의 현재 physical input</td>
+<td><code>device-serial-jetson</code>의 공유 physical input, EdgeX 가상 Device 6개로 fan-out</td>
 </tr>
 <tr>
 <td><code>etri-dev0002-raspi5</code></td>
@@ -438,7 +445,7 @@ latestEvent:
 <h2 id="단계별-진행안">단계별 진행안</h2>
 <h3 id="1단계-edgex-등록-device-기반-source-pool">1단계: EdgeX 등록 Device 기반 source pool</h3>
 <p>현재 전달 범위:</p>
-<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 source 조회와 browser-local workflow preview</li><li>Jetson <code>arduino-001</code> Serial Device Service 정상 수집·저장·dashboard 수직 슬라이스</li><li>필요성이 검증된 MQTT-only 장비용 별도 adapter 후보(현재 workload 없음)</li></ul>
+<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 source 조회와 browser-local workflow preview</li><li>Jetson physical <code>arduino-001</code> 공유 Serial reader와 6개 가상 Device 수집·저장·dashboard 수직 슬라이스</li><li>필요성이 검증된 MQTT-only 장비용 별도 adapter 후보(현재 workload 없음)</li></ul>
 <p>live deployment/cutover 여부는 배포 환경에서 별도로 확인한다.</p>
 <h3 id="2단계-protocol-migration-waves">2단계: protocol migration waves</h3>
 <p>Serial의 남은 장애 검증과 Modbus, OPC-UA, I2C, RTSP workflow별로 다음 gate를 독립적으로 통과한다.</p>

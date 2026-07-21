@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-21 17:04</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -140,9 +142,10 @@
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX를 물리 디바이스의 유일한 상태 권위로 사용하는 운영 dashboard 정보 구조를 정의한다. Dashboard는 Core Metadata의 등록·연결 상태와 Core Data event freshness를 함께 보여 주어 운영자가 점검 대상을 빠르게 좁히도록 돕는다.</p>
 <pre data-lang="text"><code>physical device -&gt; EdgeX Device Service -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
-<p>2026-07-21 현재 <code>device-serial-jetson</code>과 <code>arduino-001</code>이 live physical inventory/telemetry를 제공한다. 아래 payload는 이 Serial 수직 슬라이스의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
+<p>2026-07-21 현재 <code>device-serial-jetson</code>이 physical <code>arduino-001</code>을 한 번 읽고 6개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
 <ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 별도 저장소의 최신값을 다시 조회한 결과가 아니다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
+<p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -238,9 +241,9 @@
 </tbody></table></div>
 <p>대표 응답 항목:</p>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;arduino-001&quot;,
+  &quot;name&quot;: &quot;virtual-temperature-001&quot;,
   &quot;source&quot;: &quot;edgex&quot;,
-  &quot;profile_name&quot;: &quot;etri-arduino-serial&quot;,
+  &quot;profile_name&quot;: &quot;etri-arduino-temperature&quot;,
   &quot;device_service_name&quot;: &quot;device-serial-jetson&quot;,
   &quot;protocol_names&quot;: [&quot;serial&quot;],
   &quot;admin_state&quot;: &quot;UNLOCKED&quot;,
@@ -250,9 +253,9 @@
   &quot;latest_event_timestamp&quot;: &quot;2026-07-21T08:00:33Z&quot;,
   &quot;latest_readings&quot;: [
     {
-      &quot;device_name&quot;: &quot;arduino-001&quot;,
+      &quot;device_name&quot;: &quot;virtual-temperature-001&quot;,
       &quot;source_name&quot;: &quot;temperature&quot;,
-      &quot;resource_name&quot;: &quot;temperature_raw&quot;,
+      &quot;resource_name&quot;: &quot;temperature&quot;,
       &quot;value_type&quot;: &quot;Int32&quot;,
       &quot;value&quot;: 283,
       &quot;timestamp&quot;: &quot;2026-07-21T08:00:33Z&quot;,
@@ -261,7 +264,7 @@
     }
   ],
   &quot;telemetry_freshness&quot;: &quot;fresh&quot;,
-  &quot;node_name&quot;: null
+  &quot;node_name&quot;: &quot;etri-dev0001-jetorn&quot;
 }</code></pre>
 <p><code>source_name</code>은 Core Data event의 <code>sourceName</code>, <code>resource_name</code>은 reading의 <code>resourceName</code>이다. 예시의 식별자와 값은 계약 설명용이며 live 배포 증거가 아니다.</p>
 <h2 id="dashboard-영역">Dashboard 영역</h2>
@@ -385,7 +388,7 @@
 <h2 id="운영자-해석-순서">운영자 해석 순서</h2>
 <ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
-<p>기존 loopback Agent/SQLite/HTTPS edge 경로와 <code>sensehat-001</code> bootstrap은 퇴역했다. dashboard는 stale cache나 과거 Core Data record를 현재 연결로 보정하지 않는다. 현재 Jetson Serial Device Service의 Metadata, Event/Reading과 freshness는 live 종단간 확인됐지만 실제 케이블 분리·복구 검증은 별도 PASS 항목으로 남는다.</p>
+<p>기존 loopback Agent/SQLite/HTTPS edge 경로와 <code>sensehat-001</code> bootstrap은 퇴역했다. dashboard는 stale cache나 과거 Core Data record를 현재 연결로 보정하지 않는다. Device Service의 메모리 최신값 1개는 구간 캐시가 아니며 재시작하면 사라진다. 6개 가상 Device의 Metadata, 단일 Reading Event와 freshness를 각각 확인하고 실제 케이블 분리·복구 검증은 별도 PASS 항목으로 남긴다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

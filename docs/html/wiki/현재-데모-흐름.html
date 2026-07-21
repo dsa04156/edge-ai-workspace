@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/현재-데모-흐름.md</span>
-            <span class="badge">수정: 2026-07-21 17:06</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:03</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -148,7 +150,7 @@
 
 edgex-edge
   -&gt; device-serial-jetson @ etri-dev0001-jetorn
-  -&gt; /dev/arduino-001, etri-arduino-serial, arduino-001
+  -&gt; /dev/arduino-001, 공유 reader 1개, virtual-*-001 Device 6개
   -&gt; default-deny + 최소 허용 NetworkPolicy</code></pre>
 <p>KubeEdge는 node와 workload 관리만 담당한다. EdgeX Core Metadata와 Core Data가 물리 디바이스 inventory/state와 telemetry의 권위다.</p>
 <h2 id="현재-흐름">현재 흐름</h2>
@@ -188,7 +190,7 @@ edgex-edge
 <p>Device Service가 UP이어도 Event가 없거나 stale이면 device는 degraded다. node placement는 진단 정보이며 physical availability gate가 아니다.</p>
 <h2 id="퇴역-경로">퇴역 경로</h2>
 <p>다음 항목은 현재 배포나 fallback이 아니다.</p>
-<ul><li><code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code></li><li>Agent SQLite outbox와 HTTPS persisted-ACK edge 경로</li><li><code>edge-telemetry-agent</code>라는 논리 Device Service와 <code>sensehat-001</code> bootstrap</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework</li><li><code>mqttvirtual</code>, mapper direct-to-Influx, legacy command/heartbeat topic</li></ul>
+<ul><li><code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code></li><li>Agent SQLite outbox와 HTTPS persisted-ACK edge 경로</li><li><code>edge-telemetry-agent</code>라는 논리 Device Service와 <code>sensehat-001</code> bootstrap</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework</li><li><code>mqttvirtual</code>, mapper direct-write, legacy command/heartbeat topic</li></ul>
 <h2 id="workflow-경계">workflow 경계</h2>
 <p>Workflow Builder는 현재 browser 상태 안에서 stage 구성, device/resource bind/release dry-run, validation과 execution-plan preview만 제공한다. Kubernetes apply/delete/restart, EdgeX mutation, command publish, actuator 제어와 runtime offloading은 수행하지 않는다.</p>
 <h2 id="관련-문서">관련 문서</h2>

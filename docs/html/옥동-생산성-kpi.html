@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -127,20 +129,21 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>옥동 생산성 KPI</h1>
-          <p class="subtitle">&gt; 현재 실증 표본: 기존 sensehat-001 Agent fixture는 퇴역했다. 현재 KPI의 live physical…</p>
+          <p class="subtitle">&gt; 현재 실증 표본: 기존 sensehat-001 Agent fixture는 퇴역했다. 현재 KPI 표본은 Jetson의 Ard…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 옥동-생산성-kpi.md</span>
-            <span class="badge">수정: 2026-07-21 17:04</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="옥동-시나리오-생산성-kpi">옥동 시나리오 생산성 KPI</h1>
-<blockquote><p><strong>현재 실증 표본:</strong> 기존 <code>sensehat-001</code> Agent fixture는 퇴역했다. 현재 KPI의 live physical 표본은 Jetson Serial Device Service의 <code>arduino-001</code> 1개이며, 이 단일 표본을 전체 공장 성과로 외삽하지 않는다.</p></blockquote>
+<blockquote><p><strong>현재 실증 표본:</strong> 기존 <code>sensehat-001</code> Agent fixture는 퇴역했다. 현재 KPI 표본은 Jetson의 Arduino 물리 source 1개를 resource별 가상 Device 6개로 나눈 수직 슬라이스이며, 이를 전체 공장 성과로 외삽하지 않는다.</p></blockquote>
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는 것이 아니라, 운영자가 inventory, Device Service 연결, Core Data event freshness와 서비스 영향 범위를 빠르게 이해해 점검 시간을 줄일 수 있음을 보이는 것이다.</p>
 <pre data-lang="text"><code>EdgeX device 상태와 최신 event를 한 화면에서 보고 문제 위치를 좁히는 운영 가시화 PoC</code></pre>
+<p>이 문서의 Core Data freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 사용한다. API 조회 시각이나 Kubernetes 상태는 freshness 시계가 아니다.</p>
 <h2 id="현장-문제와-개선점">현장 문제와 개선점</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -362,7 +365,7 @@
 </tbody></table></div>
 <p>이 지표는 device → EdgeX Device Service → 중앙 MessageBus → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.</p>
 <h2 id="현재-serial-표본-kpi-해석">현재 Serial 표본 KPI 해석</h2>
-<p>현재 physical example은 <code>arduino-001</code>이다. 다음 증거를 함께 제시한다.</p>
+<p>현재 physical source는 <code>arduino-001</code>, EdgeX inventory example은 6개 <code>virtual-*-001</code> Device다. 다음 증거를 함께 제시한다.</p>
 <ol><li><code>source=edgex</code></li><li>profile과 논리 수집 서비스 identity</li><li><code>protocol_names</code>의 Serial</li><li>admin/operating/connection 상태</li><li>latest Core Data event timestamp와 freshness</li><li>latest temperature/light/magnetic/acceleration readings의 source/resource/value</li><li>AI/storage/dashboard consumer 관계</li></ol>
 <p>단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.</p>
 <h2 id="생산성-설명-문구">생산성 설명 문구</h2>
@@ -376,8 +379,8 @@
 </tr></thead>
 <tbody>
 <tr>
-<td>Serial <code>arduino-001</code></td>
-<td>정상 수집, 중앙 readback과 dashboard freshness 표본에 포함</td>
+<td>Serial Arduino source / 가상 Device 6개</td>
+<td>Device별 중앙 readback과 dashboard freshness 표본에 포함</td>
 </tr>
 <tr>
 <td>MQTT-only 장비 adapter</td>

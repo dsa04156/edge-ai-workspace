@@ -1,6 +1,6 @@
 # 옥동 시나리오 생산성 KPI
 
-> **현재 실증 표본:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 현재 KPI의 live physical 표본은 Jetson Serial Device Service의 `arduino-001` 1개이며, 이 단일 표본을 전체 공장 성과로 외삽하지 않는다.
+> **현재 실증 표본:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 현재 KPI 표본은 Jetson의 Arduino 물리 source 1개를 resource별 가상 Device 6개로 나눈 수직 슬라이스이며, 이를 전체 공장 성과로 외삽하지 않는다.
 
 ## 목적
 
@@ -9,6 +9,8 @@
 ```text
 EdgeX device 상태와 최신 event를 한 화면에서 보고 문제 위치를 좁히는 운영 가시화 PoC
 ```
+
+이 문서의 Core Data freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 사용한다. API 조회 시각이나 Kubernetes 상태는 freshness 시계가 아니다.
 
 ## 현장 문제와 개선점
 
@@ -103,7 +105,7 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 ## 현재 Serial 표본 KPI 해석
 
-현재 physical example은 `arduino-001`이다. 다음 증거를 함께 제시한다.
+현재 physical source는 `arduino-001`, EdgeX inventory example은 6개 `virtual-*-001` Device다. 다음 증거를 함께 제시한다.
 
 1. `source=edgex`
 2. profile과 논리 수집 서비스 identity
@@ -127,7 +129,7 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 | 범위 | KPI 포함 여부 |
 |---|---|
-| Serial `arduino-001` | 정상 수집, 중앙 readback과 dashboard freshness 표본에 포함 |
+| Serial Arduino source / 가상 Device 6개 | Device별 중앙 readback과 dashboard freshness 표본에 포함 |
 | MQTT-only 장비 adapter | 현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함 |
 | I2C | 현재 제외; 교체 센서와 Device Service 증거가 있을 때만 포함 |
 | Modbus | 구현·현장 검증 전에는 제외 |

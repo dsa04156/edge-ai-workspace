@@ -87,14 +87,14 @@ Physical-device KPI의 분모는 Core Metadata inventory다.
 
 - KubeEdge `DeviceStatus`와 DeviceStatus freshness
 - MapperFramework 또는 mapper readiness
-- direct InfluxDB latest sample
+- mapper direct-write latest sample
 - KubeEdge `Device`/`DeviceModel`, `mqttvirtual`, legacy mapper heartbeat
 
 Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.
 
 ## direct 전달 상태
 
-현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, Serial Device Service namespace는 `edgex-edge`다. 기존 `sensehat-001`/Agent bootstrap은 퇴역했고 현재 physical input은 `arduino-001`이다. dashboard는 이를 `available`, `connected`, `fresh`와 6개 typed Reading으로 표시한다.
+현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, Serial Device Service namespace는 `edgex-edge`다. physical input `arduino-001`은 EdgeX inventory에서 6개 가상 Device로 분리되고 dashboard도 여섯 행의 상태와 단일 Reading을 표시한다.
 
 2026-07-21 Jetson Serial Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT/Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.
 

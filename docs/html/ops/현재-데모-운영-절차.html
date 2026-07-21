@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -127,18 +129,19 @@
         <header class="doc-header">
           <p class="eyebrow">운영 문서</p>
           <h1>현재 데모 운영 절차</h1>
-          <p class="subtitle">Jetson Arduino Uno → EdgeX Serial Device Service → 중앙 MessageBus/Core D…</p>
+          <p class="subtitle">Jetson Arduino Uno → EdgeX Serial Device Service → 가상 Device 6개 → 중앙 Me…</p>
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-21 17:05</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-서비스-데모-운영-절차">현재 서비스 데모 운영 절차</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 Jetson Arduino Uno → EdgeX Serial Device Service → 중앙 MessageBus/Core Data/PostgreSQL → state-aggregator/dashboard로 이어지는 현재 정상 경로를 점검한다. 기존 Agent, SQLite outbox, Sense HAT bootstrap과 edge-local MQTT broker는 현재 경로가 아니다.</p>
+<p>이 문서는 Jetson Arduino Uno → EdgeX Serial Device Service → 가상 Device 6개 → 중앙 MessageBus/Core Data/PostgreSQL → state-aggregator/dashboard로 이어지는 현재 정상 경로를 점검한다. 기존 Agent, SQLite outbox, Sense HAT bootstrap, edge-local MQTT broker와 InfluxDB workload는 현재 경로가 아니다.</p>
+<p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="배치-기준">배치 기준</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -171,8 +174,12 @@
 <td><code>etri-dev0001-jetorn</code></td>
 </tr>
 <tr>
-<td>Device/Profile/Service</td>
-<td><code>arduino-001</code> / <code>etri-arduino-serial</code> / <code>device-serial-jetson</code></td>
+<td>physical source</td>
+<td>Arduino Uno, wire <code>device_id=arduino-001</code>, <code>/dev/arduino-001</code></td>
+</tr>
+<tr>
+<td>EdgeX inventory</td>
+<td>가상 Device 6개 / 1-resource Profile 6개 / <code>device-serial-jetson</code></td>
 </tr>
 <tr>
 <td>운영 진입점</td>
@@ -183,12 +190,59 @@
 <td><code>edgex-telemetry</code></td>
 </tr>
 </tbody></table></div>
-<p>EdgeMesh 리소스는 이 절차의 변경 대상이 아니다. Kubernetes <code>ClusterIP Service</code> 객체는 정상 서비스 디스커버리에 사용하지만 고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다.</p>
+<p>EdgeMesh 리소스는 이 절차의 변경 대상이 아니다. Kubernetes <code>ClusterIP Service</code> 객체는 정상 서비스 디스커버리에 사용하지만 고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다. Device Service는 중앙 Keeper, Metadata와 MessageBus의 <code>.svc.cluster.local</code> FQDN을 사용한다.</p>
+<h2 id="가상-device-계약">가상 Device 계약</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Device</th>
+<th>Profile</th>
+<th>Resource</th>
+<th>Command</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>virtual-temperature-001</code></td>
+<td><code>etri-arduino-temperature</code></td>
+<td><code>temperature_raw</code></td>
+<td><code>temperature</code></td>
+</tr>
+<tr>
+<td><code>virtual-light-001</code></td>
+<td><code>etri-arduino-light</code></td>
+<td><code>light_raw</code></td>
+<td><code>light</code></td>
+</tr>
+<tr>
+<td><code>virtual-magnetic-001</code></td>
+<td><code>etri-arduino-magnetic</code></td>
+<td><code>magnetic_raw</code></td>
+<td><code>magnetic</code></td>
+</tr>
+<tr>
+<td><code>virtual-acceleration-x-001</code></td>
+<td><code>etri-arduino-acceleration-x</code></td>
+<td><code>acceleration_x_raw</code></td>
+<td><code>acceleration_x</code></td>
+</tr>
+<tr>
+<td><code>virtual-acceleration-y-001</code></td>
+<td><code>etri-arduino-acceleration-y</code></td>
+<td><code>acceleration_y_raw</code></td>
+<td><code>acceleration_y</code></td>
+</tr>
+<tr>
+<td><code>virtual-acceleration-z-001</code></td>
+<td><code>etri-arduino-acceleration-z</code></td>
+<td><code>acceleration_z_raw</code></td>
+<td><code>acceleration_z</code></td>
+</tr>
+</tbody></table></div>
+<p>여섯 Device는 같은 <code>Port=/dev/arduino-001</code>, <code>BaudRate=115200</code>, <code>DeviceID=arduino-001</code>을 사용하고 <code>ResourceName</code>만 다르다. Driver는 이 공통 연결을 공유 Serial reader 1개로 열며, acceleration wire sample 하나를 X/Y/Z Event 세 개로 나눈다.</p>
 <h2 id="1-로컬-render-검증">1. 로컬 render 검증</h2>
 <pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt;/tmp/edgex-current.yaml
 kubectl apply --dry-run=server -f /tmp/edgex-current.yaml</code></pre>
 <p>정상 기준:</p>
-<ul><li>중앙 Core/MessageBus/PostgreSQL/gateway가 render된다.</li><li><code>Namespace/edgex-edge</code>, default-deny와 Device Service별 최소 NetworkPolicy가 render된다.</li><li><code>Service</code>와 <code>Deployment/device-serial-jetson</code>이 render된다.</li><li>Device Service는 <code>etri-dev0001-jetorn</code>에 고정되고 <code>hostNetwork: true</code>를 사용하지 않는다.</li><li>host의 Arduino by-id CharDevice만 Pod의 <code>/dev/arduino-001</code>에 마운트된다.</li><li>중앙 Keeper/Metadata/MessageBus는 <code>.svc.cluster.local</code> FQDN으로 참조된다.</li><li><code>edgex-edge-agent-*</code>, Agent PVC/ConfigMap/bootstrap, <code>device-mqtt</code>와 edge-local broker가 없다.</li></ul>
+<ul><li>중앙 Core/MessageBus/PostgreSQL/gateway가 render된다.</li><li><code>Namespace/edgex-edge</code>, default-deny와 Device Service별 최소 NetworkPolicy가 render된다.</li><li><code>Service</code>와 <code>Deployment/device-serial-jetson</code>이 render된다.</li><li>Device Service는 <code>etri-dev0001-jetorn</code>에 고정되고 <code>hostNetwork: true</code>를 사용하지 않는다.</li><li>host의 Arduino by-id CharDevice만 Pod의 <code>/dev/arduino-001</code>에 마운트된다.</li><li>ConfigMap에는 위 Profile 6개와 Device list 1개가 포함된다.</li><li>중앙 Keeper/Metadata/MessageBus는 <code>.svc.cluster.local</code> FQDN으로 참조된다.</li><li><code>edgex-edge-agent-*</code>, Agent PVC/ConfigMap/bootstrap, <code>device-mqtt</code>, edge-local broker와 InfluxDB workload를 배포하지 않는다.</li></ul>
 <p>현재 PoC의 Serial 장치 접근은 단일 Pod에 <code>privileged: true</code>, UID/GID 0을 허용한다. 이 예외는 정확한 CharDevice mount, <code>Recreate</code> 전략, service-account token 비마운트와 최소 NetworkPolicy로 제한한다. 후속 운영 강화에서는 Device Plugin 또는 더 좁은 장치 권한으로 대체한다.</p>
 <h2 id="2-argo-cd-상태">2. Argo CD 상태</h2>
 <pre data-lang="bash"><code>kubectl -n argocd get application edgex-telemetry \
@@ -200,42 +254,62 @@ kubectl -n edgex-edge get deploy,pod,service,pvc,configmap,networkpolicy -o wide
 kubectl -n edgex-edge get deployment device-serial-jetson \
   -o jsonpath=&#x27;{.spec.template.spec.nodeSelector.kubernetes\.io/hostname}{&quot;\n&quot;}{.spec.template.spec.hostNetwork}{&quot;\n&quot;}{.spec.template.spec.containers[0].image}{&quot;\n&quot;}&#x27;</code></pre>
 <p>정상 기준:</p>
-<ul><li>중앙 Core 서비스와 PostgreSQL이 Ready다. common-config bootstrap Job은 Completed일 수 있다.</li><li><code>device-serial-jetson</code> Pod가 Jetson에서 <code>1/1 Running</code>이다.</li><li>image는 immutable ARM64 digest다.</li><li>Pod restart가 반복 증가하지 않는다.</li><li><code>edgex-edge</code>에 Agent outbox PVC와 local broker가 없다.</li></ul>
+<ul><li>중앙 Core 서비스와 PostgreSQL이 Ready다. common-config bootstrap Job은 Completed일 수 있다.</li><li><code>device-serial-jetson</code> Pod가 Jetson에서 <code>1/1 Running</code>이다.</li><li>image는 immutable ARM64 digest다.</li><li>Pod restart가 반복 증가하지 않는다.</li><li><code>edgex-edge</code>에 Agent outbox PVC, local broker와 별도 telemetry DB가 없다.</li></ul>
 <p>로그에서 시작 중 잘린 Serial line 1~2개가 malformed로 폐기될 수 있다. 이후 metric 등록, reader restart, Metadata update가 반복되거나 ERROR가 계속 나오면 정상으로 보지 않는다.</p>
 <h2 id="4-core-metadata-binding">4. Core Metadata binding</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceservice/name/device-serial-jetson&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceprofile/name/etri-arduino-serial&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/name/arduino-001&#x27;</code></pre>
+
+for name in \
+  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
+  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001
+do
+  kubectl get --raw \
+    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/name/${name}&quot;
+done</code></pre>
 <p>정상 기준:</p>
-<ul><li>Device Service base address는 <code>http://device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>이다.</li><li>Device는 <code>UNLOCKED</code>, <code>UP</code>, service/profile binding이 일치한다.</li><li>Serial protocol은 <code>/dev/arduino-001</code>, baud <code>115200</code>, DeviceID <code>arduino-001</code>이다.</li><li>Profile은 <code>temperature_raw</code>, <code>light_raw</code>, <code>magnetic_raw</code>, <code>acceleration_x_raw</code>, <code>acceleration_y_raw</code>, <code>acceleration_z_raw</code> 6개 <code>Int32</code> read-only resource를 갖는다.</li></ul>
+<ul><li>Device Service base address는 <code>http://device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>이다.</li><li>위 Device 6개가 각각 <code>UNLOCKED</code>, <code>UP</code>이고 service/profile binding이 일치한다.</li><li>각 Device의 Serial protocol은 공통 물리 endpoint와 고유 <code>ResourceName</code>을 가진다.</li><li><code>tags.physicalDeviceId=arduino-001</code>, <code>tags.nodeName=etri-dev0001-jetorn</code>이다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li></ul>
 <h2 id="5-core-data-event-reading">5. Core Data Event/Reading</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/arduino-001?limit=20&#x27;</code></pre>
+<pre data-lang="bash"><code>for name in \
+  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
+  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001
+do
+  kubectl get --raw \
+    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/${name}?limit=1&quot;
+done</code></pre>
 <p>정상 기준:</p>
-<ul><li><code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code> source가 모두 관측된다.</li><li>6개 Reading의 <code>valueType</code>이 <code>Int32</code>, units가 <code>raw</code>다.</li><li>Event/Reading <code>origin</code>이 계속 증가한다.</li><li>API readback으로 저장을 확인하며 중앙 MessageBus의 MQTT ACK만으로 persistence를 주장하지 않는다.</li></ul>
+<ul><li>Device별 latest Event에 계약된 <code>Int32</code> Reading 하나만 있다.</li><li>units는 <code>raw</code>이고 Event/Reading의 nanosecond <code>origin</code>이 계속 증가한다.</li><li>acceleration wire sample은 X/Y/Z Device에 각각 독립 Event로 저장된다.</li><li>API readback으로 저장을 확인하며 중앙 MessageBus의 MQTT ACK만으로 persistence를 주장하지 않는다.</li></ul>
 <h2 id="6-read-only-core-command">6. read-only Core Command</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-command:59882/proxy/api/v3/device/name/arduino-001/temperature&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-command:59882/proxy/api/v3/device/name/arduino-001/acceleration&#x27;</code></pre>
-<p>정상 기준은 Device Service가 보관한 최신값과 origin을 반환하는 것이다. Profile에는 writable resource가 없으므로 PUT이나 actuator command를 보내지 않는다.</p>
+<pre data-lang="bash"><code>for pair in \
+  virtual-temperature-001/temperature \
+  virtual-light-001/light \
+  virtual-magnetic-001/magnetic \
+  virtual-acceleration-x-001/acceleration_x \
+  virtual-acceleration-y-001/acceleration_y \
+  virtual-acceleration-z-001/acceleration_z
+do
+  kubectl get --raw \
+    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-command:59882/proxy/api/v3/device/name/${pair}&quot;
+done</code></pre>
+<p>정상 기준은 각 Device Service가 메모리에 보관한 최신값 1개와 <code>origin</code>을 반환하는 것이다. 이 값은 Pod 재시작 시 사라지며 최근 10초·10분 같은 구간 캐시가 아니다. Profile에는 writable resource가 없으므로 PUT이나 actuator command를 보내지 않는다.</p>
 <h2 id="7-dashboard-api">7. dashboard API</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
 kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;</code></pre>
-<p><code>arduino-001</code>의 정상 기준:</p>
-<ul><li><code>source=edgex</code></li><li><code>device_service_name=device-serial-jetson</code></li><li><code>profile_name=etri-arduino-serial</code></li><li><code>protocol_names=[serial]</code></li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code></li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code></li><li>6개 typed <code>latest_readings</code></li></ul>
-<p>Kubernetes node/workload 상태는 별도 진단이며 위 physical availability를 덮어쓰지 않는다.</p>
-<h2 id="8-남은-장애-검증">8. 남은 장애 검증</h2>
-<p>parser의 malformed line 복구, reader backoff와 동일 Metadata update의 no-op 동작은 단위 테스트했다. 실제 케이블 분리 → DOWN/degraded → 재연결 → 새 Event 발행은 아직 현장 시연이 남아 있다. 현재 Device Service에는 SQLite outbox와 offline replay가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다.</p>
+<p>정상 기준:</p>
+<ul><li>위 가상 Device 6개가 서로 다른 inventory 행으로 나타난다.</li><li>각 행의 <code>device_service_name=device-serial-jetson</code>, profile과 resource가 계약과 일치한다.</li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code>다.</li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>이고 latest Reading은 하나다.</li></ul>
+<p>Kubernetes node/workload 상태는 별도 진단이며 위 Device availability를 덮어쓰지 않는다.</p>
+<h2 id="8-저장과-캐시-경계">8. 저장과 캐시 경계</h2>
+<ul><li>Device Service 메모리: Device별 최신값 1개, Core Command GET용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 없음</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li></ul>
+<p>따라서 로컬 Workflow Pod가 최근 구간을 직접 소비하는 기능은 현재 완료 범위가 아니다. 필요하면 별도 Recent Cache/Local Data API 설계와 보존 기간·메모리 한도·재시작 의미를 먼저 확정한다.</p>
+<h2 id="9-남은-장애-검증">9. 남은 장애 검증</h2>
+<p>parser의 malformed line 복구, 공유 reader, state fan-out, 마지막 route 제거 시 close, reader backoff와 동일 Metadata update의 no-op 동작은 단위 테스트한다. 실제 케이블 분리 → 여섯 Device DOWN/degraded → 재연결 → 새 Event 발행은 현장 시연 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#배치-기준">배치 기준</a></li>
+<li class="toc-h2"><a href="#가상-device-계약">가상 Device 계약</a></li>
 <li class="toc-h2"><a href="#1-로컬-render-검증">1. 로컬 render 검증</a></li>
 <li class="toc-h2"><a href="#2-argo-cd-상태">2. Argo CD 상태</a></li>
 <li class="toc-h2"><a href="#3-live-workload와-장치-mount">3. live workload와 장치 mount</a></li>
@@ -243,7 +317,8 @@ kubectl get --raw \
 <li class="toc-h2"><a href="#5-core-data-event-reading">5. Core Data Event/Reading</a></li>
 <li class="toc-h2"><a href="#6-read-only-core-command">6. read-only Core Command</a></li>
 <li class="toc-h2"><a href="#7-dashboard-api">7. dashboard API</a></li>
-<li class="toc-h2"><a href="#8-남은-장애-검증">8. 남은 장애 검증</a></li></ol></aside>
+<li class="toc-h2"><a href="#8-저장과-캐시-경계">8. 저장과 캐시 경계</a></li>
+<li class="toc-h2"><a href="#9-남은-장애-검증">9. 남은 장애 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

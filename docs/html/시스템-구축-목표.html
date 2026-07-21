@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 시스템-구축-목표.md</span>
-            <span class="badge">수정: 2026-07-21 17:04</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:03</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -147,10 +149,10 @@
 <h2 id="현재-시스템이-반드시-보여줘야-하는-것">현재 시스템이 반드시 보여줘야 하는 것</h2>
 <ol><li>어떤 edge node와 server node 및 workload가 존재하는가.</li><li>EdgeX Core Metadata에 어떤 Device Profile, Device, Device Service가 등록되어 있는가.</li><li>물리 I2C/Serial/Modbus/OPC-UA endpoint가 protocol별 EdgeX Device Service에 연결되고, MQTT-only 장비만 명시적 broker를 사용하는가.</li><li>telemetry가 EdgeX Event/Reading으로 Core Data/DB에 저장되고 AI services, state-aggregator, dashboard로 전달되는가.</li><li>API의 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>이 inventory와 연결 상태를 일관되게 보여주는가.</li><li><code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>가 Core Data event의 최신성과 값을 보여주는가.</li><li><code>admin_state=LOCKED</code> 또는 <code>operating_state=DOWN</code>이면 <code>unavailable</code>, Device Service가 연결되고 최신 event가 fresh이면 <code>available</code>, 그 밖의 불완전하거나 오래된 상태는 <code>degraded</code>로 설명되는가.</li><li>device가 어떤 service demo group과 AI/storage consumer에 연결되어 있는가.</li><li>운영자는 문제가 생겼을 때 physical endpoint, Device Service, 중앙 MessageBus, Core Data, consumer, state-aggregator, dashboard 중 어디부터 봐야 하는가.</li><li>KubeEdge node/workload 정보가 물리 device availability의 권위나 gate가 아니라 선택적 진단 및 배치 정보로만 표시되는가.</li><li>이 데모 상태가 옥동 시나리오의 생산성 향상 효과와 어떻게 연결되는가.</li><li>Kagenti 같은 운영 보조 agent가 read-only 방식으로 상태를 요약할 수 있는가.</li></ol>
 <h2 id="현재-범위에-포함하는-것">현재 범위에 포함하는 것</h2>
-<ul><li>EdgeX Core Metadata 기반 물리 디바이스 inventory</li><li>I2C/Serial/Modbus/OPC-UA별 EdgeX Device Service 경계</li><li>Device Service, Core Data/DB 기반 telemetry와 최신 Event/Reading</li><li>MQTT-only 장비 또는 local pub/sub 요구에 한정한 optional broker 경계</li><li>Workflow Pod가 직접 구독하는 RTSP media 경로와 상태/결과 metadata 경계</li><li>AI services/storage/state-aggregator/dashboard 소비 경로</li><li>EdgeX 기반 state-aggregator API와 dashboard 운영 가시화</li><li>KubeEdge 기반 edge node/workload 관리</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li><li>중앙 EdgeX와 EdgeX dashboard 계약. 2026-07-21 Jetson Arduino Serial Device Service 정상 경로 live 검증</li><li><code>arduino-001</code> 수직 슬라이스와 이후 protocol별 독립 검증</li><li>Modbus/OPC-UA/I2C/RTSP 지원과 Serial 물리 분리·복구는 각각 독립 실행 증거가 확보되기 전까지 미검증</li></ul>
+<ul><li>EdgeX Core Metadata 기반 물리 디바이스 inventory</li><li>I2C/Serial/Modbus/OPC-UA별 EdgeX Device Service 경계</li><li>Device Service, Core Data/DB 기반 telemetry와 최신 Event/Reading</li><li>MQTT-only 장비 또는 local pub/sub 요구에 한정한 optional broker 경계</li><li>Workflow Pod가 직접 구독하는 RTSP media 경로와 상태/결과 metadata 경계</li><li>AI services/storage/state-aggregator/dashboard 소비 경로</li><li>EdgeX 기반 state-aggregator API와 dashboard 운영 가시화</li><li>KubeEdge 기반 edge node/workload 관리</li><li>device-service binding</li><li>서비스 데모 시나리오</li><li>운영 runbook</li><li>옥동 시나리오 생산성 KPI 설명</li><li>read-only 운영 보조 요약 API</li><li>중앙 EdgeX와 EdgeX dashboard 계약. 2026-07-21 Jetson Arduino Serial Device Service 정상 경로 live 검증</li><li>Arduino 물리 source를 6개 <code>virtual-*-001</code> Device로 분리한 수직 슬라이스와 이후 protocol별 독립 검증</li><li>Modbus/OPC-UA/I2C/RTSP 지원과 Serial 물리 분리·복구는 각각 독립 실행 증거가 확보되기 전까지 미검증</li></ul>
 <h2 id="현재-범위에서-제외하는-것">현재 범위에서 제외하는 것</h2>
 <p>다음 항목은 현재 시스템 구축 목표가 아니다. 필요하면 archive에서 과거 연구 맥락으로만 확인한다.</p>
-<ul><li>완전 자율형 workflow orchestration</li><li>동적 offloading 최적화</li><li>agent-assisted planning 기반 자동 실행</li><li>LLM/agent가 Kubernetes나 EdgeX metadata/state/command를 직접 제어하는 구조</li><li>MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus 또는 direct Influx를 물리 inventory/state/telemetry의 현재·병행·fallback 경로로 사용하는 구조</li><li>selective replanning 논문 방향을 현재 구현 목표로 보는 것</li><li>과거 cost model 중심 runtime 최적화를 현재 PoC의 핵심 목표로 보는 것</li></ul>
+<ul><li>완전 자율형 workflow orchestration</li><li>동적 offloading 최적화</li><li>agent-assisted planning 기반 자동 실행</li><li>LLM/agent가 Kubernetes나 EdgeX metadata/state/command를 직접 제어하는 구조</li><li>MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus 또는 mapper direct-write를 물리 inventory/state/telemetry의 현재·병행·fallback 경로로 사용하는 구조</li><li>selective replanning 논문 방향을 현재 구현 목표로 보는 것</li><li>과거 cost model 중심 runtime 최적화를 현재 PoC의 핵심 목표로 보는 것</li></ul>
 <h2 id="운영-보조-agent의-위치">운영 보조 agent의 위치</h2>
 <p>Kagenti 또는 유사 agent는 제어 주체가 아니라 운영 보조 계층으로 제한한다.</p>
 <p>허용하는 역할:</p>

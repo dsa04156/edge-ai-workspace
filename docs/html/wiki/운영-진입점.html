@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-21 17:06</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:03</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -171,10 +173,10 @@
 <p>현재 중앙 EdgeX runtime은 <code>edgex-system</code>, <code>device-serial-jetson</code>은 <code>edgex-edge</code>, state-aggregator는 <code>default</code> namespace에 있다. 물리 inventory, 관리 상태, telemetry는 EdgeX가 authority이며 KubeEdge node/workload 정보는 별도 진단이다.</p>
 <h2 id="운영자-읽기-순서">운영자 읽기 순서</h2>
 <p>라이브 데모에서는 다음 순서로 본다.</p>
-<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 Argo, 중앙 EdgeX와 <code>device-serial-jetson</code> 상태를 확인한다.</li><li>EdgeX Core Metadata에서 <code>device-serial-jetson</code> / <code>etri-arduino-serial</code> / <code>arduino-001</code> binding을 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 <code>source=edgex</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>을 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
+<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 Argo, 중앙 EdgeX와 <code>device-serial-jetson</code> 상태를 확인한다.</li><li>EdgeX Core Metadata에서 <code>device-serial-jetson</code>, 1-resource Profile 6개와 <code>virtual-*-001</code> Device 6개 binding을 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 <code>source=edgex</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>을 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
 <p>KubeEdge node readiness와 workload placement는 dashboard에서 볼 수 있지만 물리 availability를 결정하지 않는다. 물리 availability는 EdgeX 관리 상태와 Core Data 최신 Event freshness로만 해석한다.</p>
 <h2 id="현재-live-판정">현재 live 판정</h2>
-<p>2026-07-21 ARM64 immutable image, Jetson Pod, 중앙 Metadata/Core Data/Core Command와 state-aggregator/dashboard를 같은 실행에서 확인했다. <code>arduino-001</code> 정상 경로는 live다. 실제 케이블 분리·복구와 offline replay는 확인하지 않았으며, 과거 MQTT/Sense HAT/Agent 기록은 현재 fallback이 아니다.</p>
+<p>2026-07-21 기존 aggregate Device의 ARM64 수직 슬라이스를 확인한 뒤 repository target을 6개 가상 Device로 분리했다. 새 image revision은 Metadata/Core Data/Core Command와 dashboard를 같은 실행에서 다시 확인해야 한다. 실제 케이블 분리·복구와 offline replay는 별도 gate다.</p>
 <h2 id="경계">경계</h2>
 <p>Ops 문서는 operator assistant, workflow builder, 자원증강 화면이 infrastructure를 변경할 수 있는 것처럼 표현하지 않는다. 별도 승인된 control path가 생기기 전까지 이 기능은 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>

@@ -111,7 +111,18 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
         self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
         self.assertIn("/dev/arduino-001", runbook)
-        self.assertIn("arduino-001", runbook)
+        self.assertIn("공유 Serial reader 1개", runbook)
+        self.assertIn("구간 캐시가 아니다", runbook)
+        self.assertIn("InfluxDB workload를 배포하지 않는다", runbook)
+        for device_name in (
+            "virtual-temperature-001",
+            "virtual-light-001",
+            "virtual-magnetic-001",
+            "virtual-acceleration-x-001",
+            "virtual-acceleration-y-001",
+            "virtual-acceleration-z-001",
+        ):
+            self.assertIn(device_name, runbook)
 
     def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
         runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")

@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,14 +133,14 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-21 17:05</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:05</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-검증-점검표">대시보드 검증 점검표</h1>
 <h2 id="목적과-현재-경계">목적과 현재 경계</h2>
-<p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI를 read-only로 확인한다. 2026-07-21 기존 custom Agent와 <code>sensehat-001</code> bootstrap은 퇴역했고, 현재 검증 목표는 <strong><code>device-serial-jetson</code>의 <code>arduino-001</code> live 상태만 정확히 표시하는 것</strong>이다.</p>
+<p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI를 read-only로 확인한다. 2026-07-21 기존 custom Agent와 <code>sensehat-001</code> bootstrap은 퇴역했고, 현재 검증 목표는 <strong><code>device-serial-jetson</code>이 만든 6개 가상 Device를 각각 정확히 표시하는 것</strong>이다.</p>
 <p>물리 디바이스 inventory, 관리 상태와 telemetry의 authority는 EdgeX다. KubeEdge는 node/workload 관찰에만 사용한다.</p>
 <h2 id="api-확인">API 확인</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
@@ -148,9 +150,9 @@ kubectl get --raw \
 kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/summary&#x27;</code></pre>
 <p>현재 정상 기준:</p>
-<ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>arduino-001</code>의 service/profile/protocol이 각각 <code>device-serial-jetson</code>, <code>etri-arduino-serial</code>, Serial로 일치한다.</li><li><code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>와 6개 typed latest Reading을 반환한다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li></ul>
+<ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>virtual-temperature-001</code>, <code>virtual-light-001</code>, <code>virtual-magnetic-001</code>, <code>virtual-acceleration-{x,y,z}-001</code>이 각각 독립 행이다.</li><li>각 Device의 service/profile/protocol이 <code>device-serial-jetson</code>, 해당 1-resource Profile, Serial로 일치한다.</li><li>각 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>와 단일 typed latest Reading을 반환한다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li></ul>
 <h2 id="dashboard-ui-확인">Dashboard UI 확인</h2>
-<ol><li>요약 카드가 실제 <code>registered_device_count</code>와 일치한다.</li><li>device 목록이 Core Metadata 응답과 일치한다.</li><li><code>arduino-001</code> detail이 Metadata와 latest Event 값을 동일하게 표시한다.</li><li>stale/no events 상태를 fresh로 보정하지 않는다.</li><li>KubeEdge node와 workload는 별도 진단 영역에 표시한다.</li><li><code>sensehat-001</code>이나 Agent outbox를 현재 점검 대상으로 안내하지 않는다.</li></ol>
+<ol><li>요약 카드가 실제 <code>registered_device_count</code>와 일치한다.</li><li>device 목록이 Core Metadata 응답과 일치한다.</li><li>6개 가상 Device detail이 각 Metadata와 latest Event 값을 동일하게 표시한다.</li><li>stale/no events 상태를 fresh로 보정하지 않는다.</li><li>KubeEdge node와 workload는 별도 진단 영역에 표시한다.</li><li><code>sensehat-001</code>이나 Agent outbox를 현재 점검 대상으로 안내하지 않는다.</li></ol>
 <h2 id="현재-device-service-pass-기준">현재 Device Service PASS 기준</h2>
 <div class="table-wrap"><table>
 <thead><tr>

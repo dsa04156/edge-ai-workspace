@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -94,6 +95,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -131,8 +133,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-규칙.md</span>
-            <span class="badge">수정: 2026-07-21 17:06</span>
-            <span class="badge">HTML 생성: 2026-07-21 17:08</span>
+            <span class="badge">수정: 2026-07-21 18:03</span>
+            <span class="badge">HTML 생성: 2026-07-21 18:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -258,7 +260,7 @@
 <p>피할 표현:</p>
 <ul><li>완전 자율형 오케스트레이션</li><li>LLM이 전체 제어를 수행</li><li>동적 워크플로우 전체 구현 완료</li><li>runtime replanning 구현 완료</li><li>placement/offloading이 현재 데모 경로인 것처럼 보이는 표현</li><li>agent-assisted planning이 현재 control plane인 것처럼 보이는 표현</li></ul>
 <p>물리 디바이스 상태와 텔레메트리 표현은 다음 기준을 지킨다.</p>
-<ul><li>물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata가 권위다.</li><li>원시 텔레메트리는 protocol별 EdgeX Device Service에서 Event/Reading으로 표준화되어 Core Data·PostgreSQL에 저장된다. 2026-07-21 현재 Serial은 <code>device-serial-jetson</code> / <code>arduino-001</code> 정상 경로가 live이며 다른 protocol은 별도 검증 전까지 미지원이다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 레거시 물리 연동 경로이며 병행 plane이나 fallback으로 사용하지 않는다.</li><li><code>adminState</code>, <code>operatingState</code>, Device Service 상태, 최신 Event freshness를 함께 보고 availability를 판단한다.</li></ul>
+<ul><li>물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata가 권위다.</li><li>원시 텔레메트리는 protocol별 EdgeX Device Service에서 Event/Reading으로 표준화되어 Core Data·PostgreSQL에 저장된다. 2026-07-21 Serial target은 <code>device-serial-jetson</code>과 6개 가상 Device이며 다른 protocol은 별도 검증 전까지 미지원이다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 레거시 물리 연동 경로이며 병행 plane이나 fallback으로 사용하지 않는다.</li><li><code>adminState</code>, <code>operatingState</code>, Device Service 상태, 최신 Event freshness를 함께 보고 availability를 판단한다.</li></ul>
 <h2 id="문서-우선순위">문서 우선순위</h2>
 <p>문서가 충돌하면 아래 순서로 판단한다.</p>
 <ol><li>루트 <code>AGENTS.md</code>와 직접 지시</li><li><code>docs/프로젝트-범위.md</code></li><li><code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li><code>docs/프로젝트-배경.md</code></li><li><code>docs/물리-디바이스-상태-정책.md</code></li><li><code>docs/대시보드-판단-정책.md</code></li><li><code>docs/단계별-추진계획.md</code></li><li>기타 최신 기준 문서</li><li>운영 문서</li><li>설계 이력</li><li>보관 문서는 과거 맥락으로만 사용</li></ol>

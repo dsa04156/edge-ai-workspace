@@ -20,13 +20,11 @@ printf 'base_url=%s\n' "$BASE_URL"
 section "1. Kubernetes nodes"
 run_readonly kubectl get nodes -o wide
 
-section "2. mqttvirtual mapper pods"
-run_readonly sh -c "kubectl get pods -A -o wide | grep -i mqttvirtual"
+section "2. EdgeX Device Service workload"
+run_readonly kubectl -n edgex-edge get pods -l app=device-serial-jetson -o wide
 
-section "3. Device CR / DeviceStatus"
-run_readonly kubectl get devices.devices.kubeedge.io -A
-run_readonly kubectl get devicestatuses.devices.kubeedge.io -A
-run_readonly kubectl get devices.devices.kubeedge.io -A -o "custom-columns=NS:.metadata.namespace,NAME:.metadata.name,NODE:.spec.nodeName,MODEL:.spec.deviceModelRef.name"
+section "3. EdgeX virtual Device inventory"
+run_readonly kubectl get --raw /api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/all
 
 section "4. State-aggregator API reachability"
 for path in /state/nodes /state/devices /state/dashboard /state/summary /state/operator-assistant; do
@@ -46,29 +44,22 @@ done
 section "5. Dashboard API field check"
 run_readonly python3 "$ROOT_DIR/tools/check_dashboard_api.py" --base-url "$BASE_URL"
 
-section "6. Publisher commands to run on each edge node"
+section "6. Expected Arduino virtual devices"
 cat <<'EOF'
-Jetson node(etri-dev0001-jetorn):
-  DEVICE_PLAN=jetson SIMULATION_MODE=stable python3 mappers/script/test_device.py
+virtual-temperature-001
+virtual-light-001
+virtual-magnetic-001
+virtual-acceleration-x-001
+virtual-acceleration-y-001
+virtual-acceleration-z-001
 
-Raspberry Pi node(etri-dev0002-raspi5):
-  DEVICE_PLAN=rpi SIMULATION_MODE=stable python3 mappers/script/test_device.py
-
-Single device example:
-  DEVICE_FILTER=rpi-act-device-03 SIMULATION_MODE=stable python3 mappers/script/test_device.py
-
-Check publisher stdout for:
-  [PUB] factory/devices/.../telemetry
+The physical wire DeviceID arduino-001 is protocol/tag metadata, not an EdgeX Device.
 EOF
 
-section "7. InfluxDB query reminder"
+section "7. Persistence and local cache boundary"
 cat <<'EOF'
-Read-only example:
-  kubectl exec -n telemetry influxdb-0 -- sh -lc 'influx query --org "$DOCKER_INFLUXDB_INIT_ORG" --token "$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN" '\''from(bucket:"device_telemetry") |> range(start:-30m) |> filter(fn:(r)=> r._measurement == "virtual_device_telemetry") |> last() |> keep(columns:["_time","_value","device_id","property"])'\'''
-
-Meaning:
-  _start/_stop = Flux query window
-  _time = actual telemetry sample timestamp
-  telemetry_fresh = device-level latest sample freshness
-  act/rpi-act liveness property = health, not ts
+Core Data/PostgreSQL stores Event/Reading history.
+The Device Service keeps only one volatile latest value per virtual Device/resource.
+That latest value is not a recent-window cache and is lost on Pod restart.
+No SQLite outbox or separate InfluxDB workload is deployed.
 EOF
