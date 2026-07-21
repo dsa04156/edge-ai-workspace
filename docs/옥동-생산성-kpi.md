@@ -115,7 +115,7 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 6. latest temperature/light/magnetic/acceleration readings의 source/resource/value
 7. AI/storage/dashboard consumer 관계
 
-단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.
+단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 다른 protocol과 장기 가용성은 각각 별도 증거가 필요하다.
 
 ## 생산성 설명 문구
 

@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 옥동-생산성-kpi.md</span>
-            <span class="badge">수정: 2026-07-21 18:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -369,7 +369,7 @@
 <h2 id="현재-serial-표본-kpi-해석">현재 Serial 표본 KPI 해석</h2>
 <p>현재 physical source는 <code>arduino-001</code>, EdgeX inventory example은 6개 <code>virtual-*-001</code> Device다. 다음 증거를 함께 제시한다.</p>
 <ol><li><code>source=edgex</code></li><li>profile과 논리 수집 서비스 identity</li><li><code>protocol_names</code>의 Serial</li><li>admin/operating/connection 상태</li><li>latest Core Data event timestamp와 freshness</li><li>latest temperature/light/magnetic/acceleration readings의 source/resource/value</li><li>AI/storage/dashboard consumer 관계</li></ol>
-<p>단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.</p>
+<p>단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 다른 protocol과 장기 가용성은 각각 별도 증거가 필요하다.</p>
 <h2 id="생산성-설명-문구">생산성 설명 문구</h2>
 <pre data-lang="text"><code>본 PoC는 EdgeX Core Metadata의 device 등록·Device Service 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, Device Service, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.</code></pre>
 <p>이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.</p>

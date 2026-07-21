@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-21 18:54</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -245,7 +245,7 @@
 kubectl apply --dry-run=server -f /tmp/edgex-current.yaml</code></pre>
 <p>정상 기준:</p>
 <ul><li>중앙 Core/MessageBus/PostgreSQL/gateway가 render된다.</li><li><code>Namespace/edgex-edge</code>, default-deny와 Device Service별 최소 NetworkPolicy가 render된다.</li><li><code>Service</code>와 <code>Deployment/device-serial-jetson</code>이 render된다.</li><li>Device Service는 <code>etri-dev0001-jetorn</code>에 고정되고 <code>hostNetwork: true</code>를 사용하지 않는다.</li><li>host의 Arduino by-id CharDevice만 Pod의 <code>/dev/arduino-001</code>에 마운트된다.</li><li>ConfigMap에는 위 Profile 6개와 Device list 1개가 포함된다.</li><li>중앙 Keeper/Metadata/MessageBus는 <code>.svc.cluster.local</code> FQDN으로 참조된다.</li><li><code>edgex-edge-agent-*</code>, Agent PVC/ConfigMap/bootstrap, <code>device-mqtt</code>, edge-local broker와 InfluxDB workload를 배포하지 않는다.</li></ul>
-<p>현재 PoC의 Serial 장치 접근은 단일 Pod에 <code>privileged: true</code>, UID/GID 0을 허용한다. 이 예외는 정확한 CharDevice mount, <code>Recreate</code> 전략, service-account token 비마운트와 최소 NetworkPolicy로 제한한다. 후속 운영 강화에서는 Device Plugin 또는 더 좁은 장치 권한으로 대체한다.</p>
+<p>현재 PoC의 Serial 장치 접근은 단일 Pod에 <code>privileged: true</code>, UID/GID 0을 허용한다. 이 예외는 정확한 CharDevice mount, <code>Recreate</code> 전략과 service-account token 비마운트로 범위를 줄인다. NetworkPolicy는 manifest에 선언되어 있지만 현재 Flannel CNI에서는 강제되지 않는다. 후속 운영 강화에서는 Device Plugin 또는 더 좁은 장치 권한으로 대체한다.</p>
 <h2 id="2-argo-cd-상태">2. Argo CD 상태</h2>
 <pre data-lang="bash"><code>kubectl -n argocd get application edgex-telemetry \
   -o jsonpath=&#x27;{.spec.source.targetRevision}{&quot;\n&quot;}{.status.sync.status}{&quot;\n&quot;}{.status.health.status}{&quot;\n&quot;}{.status.operationState.phase}{&quot;\n&quot;}&#x27;</code></pre>
@@ -295,7 +295,7 @@ do
 done</code></pre>
 <p>정상 기준은 각 Device Service가 10분 recent cache에서 최신값 1개와 <code>origin</code>을 반환하는 것이다. sample이 10분 보존 범위를 벗어나거나 Pod가 재시작해 아직 새 sample이 없으면 최신값 조회가 실패할 수 있다. Profile에는 writable resource가 없으므로 PUT이나 actuator command를 보내지 않는다.</p>
 <h2 id="7-jetson-local-data-api">7. Jetson Local Data API</h2>
-<p>NetworkPolicy 허용과 같은-node 배치를 함께 확인하려면 임시 client Pod를 Jetson에 배치한다.</p>
+<p>의도된 client label과 같은-node 배치를 함께 확인하려면 임시 client Pod를 Jetson에 배치한다.</p>
 <pre data-lang="bash"><code>kubectl run local-data-check \
   --namespace default \
   --image=curlimages/curl:8.12.1 \
@@ -320,6 +320,7 @@ kubectl delete pod --namespace default local-data-check</code></pre>
 <p>정상 기준:</p>
 <ul><li>latest는 <code>count=1</code>이고 <code>temperature_raw</code>, <code>Int32</code>, 원본 nanosecond <code>origin</code>을 반환한다.</li><li>recent는 <code>origin</code> 오름차순이며 <code>count</code>와 <code>samples</code> 길이가 같다.</li><li><code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>이다.</li><li>알려진 source에 범위 데이터가 없으면 <code>200</code>과 빈 <code>samples</code>, latest가 없으면 <code>404</code>다.</li><li><code>limit</code>은 1~10,000이고 기본값은 1,000이다.</li></ul>
 <p>다른 5개 가상 Device도 각 Profile의 resource 이름으로 같은 계약을 확인한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
+<p>주의: 현재 테스트베드의 Flannel CNI는 Kubernetes NetworkPolicy를 집행하지 않는다. 2026-07-21 실측에서 <code>edge-ai.io/local-data-client=true</code> label이 없는 기존 Pod도 이 API에 접근했다. 따라서 label은 배치·정책 의도 표식이며 현재 보안 경계가 아니다. Local Data API는 unauthenticated read-only endpoint이므로 실제 접근 차단이 필요하면 NetworkPolicy 지원 CNI 또는 mTLS/애플리케이션 인증을 먼저 적용한다.</p>
 <h2 id="8-dashboard-api">8. dashboard API</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
@@ -330,7 +331,7 @@ kubectl get --raw \
 <p>Kubernetes node/workload 상태는 별도 진단이며 위 Device availability를 덮어쓰지 않는다.</p>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
 <ul><li>Device Service 메모리: Device/resource별 최근 10분·최대 10,000 sample, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li></ul>
-<p>따라서 같은 Jetson의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비할 수 있다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
+<p>따라서 같은 Jetson의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
 <h2 id="10-남은-장애-검증">10. 남은 장애 검증</h2>
 <p>parser의 malformed line 복구, 공유 reader, state fan-out, 마지막 route 제거 시 close, reader backoff와 동일 Metadata update의 no-op 동작은 단위 테스트한다. 실제 케이블 분리 → 여섯 Device DOWN/degraded → 재연결 → 새 Event 발행은 현장 시연 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다.</p>
         </div>

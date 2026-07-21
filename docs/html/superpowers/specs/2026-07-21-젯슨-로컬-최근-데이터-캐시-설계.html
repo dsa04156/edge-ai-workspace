@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.md</span>
-            <span class="badge">수정: 2026-07-21 18:40</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -201,16 +201,16 @@
 <h2 id="네트워크와-접근-경계">네트워크와 접근 경계</h2>
 <ul><li>기존 Service FQDN</li></ul>
 <p><code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>을 사용한다.</p>
-<ul><li>manifest와 client 설정에 고정 ClusterIP, Pod IP 또는 node IP를 기록하지 않는다.</li><li><code>hostNetwork</code>, edge-local MQTT broker와 EdgeMesh 설정을 추가하거나 변경하지 않는다.</li><li>기존 <code>edgex-system</code> Core Service 접근은 유지한다.</li><li>Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label이 있을 때만 ingress</li></ul>
-<p>NetworkPolicy를 통과한다.</p>
+<ul><li>manifest와 client 설정에 고정 ClusterIP, Pod IP 또는 node IP를 기록하지 않는다.</li><li><code>hostNetwork</code>, edge-local MQTT broker와 EdgeMesh 설정을 추가하거나 변경하지 않는다.</li><li>기존 <code>edgex-system</code> Core Service 접근은 유지한다.</li><li>manifest의 ingress rule은 <code>edge-ai.io/local-data-client=true</code> label이 있는 Workflow</li></ul>
+<p>Pod를 의도한 client로 선언한다.</p>
 <ul><li>Workflow Pod는 대상 Runtime과 같은 Jetson에 배치하는 것을 binding/execution plan의</li></ul>
 <p>선행 조건으로 둔다. 이 기능이 Workflow 실행 오케스트레이션을 구현했다는 뜻은 아니다.</p>
-<p>현재 EdgeX security secret store가 비활성화되어 있으므로 custom route는 Device SDK의 unauthenticated route로 등록하되, Kubernetes NetworkPolicy로 호출 주체를 제한한다.</p>
+<p>현재 EdgeX security secret store가 비활성화되어 있으므로 custom route는 Device SDK의 unauthenticated read-only route다. 2026-07-21 live 검증에서 현재 Flannel CNI가 NetworkPolicy를 집행하지 않아 label 없는 Pod도 API에 접근할 수 있음을 확인했다. 따라서 해당 label과 NetworkPolicy manifest는 의도 선언이지 현재 테스트베드의 보안 경계가 아니다. 실제 호출 주체 제한이 필요하면 NetworkPolicy 지원 CNI를 배치하거나 mTLS 또는 애플리케이션 인증을 추가해야 한다.</p>
 <h2 id="오류와-상태-동작">오류와 상태 동작</h2>
 <ul><li>malformed Serial payload와 다른 physical <code>device_id</code>는 기존과 같이 폐기하며 cache에도 넣지 않는다.</li><li>route가 없는 resource는 cache와 중앙 Event 모두 생성하지 않는다.</li><li>캐시 저장은 메모리 연산이며 중앙 Event 발행의 성공 여부와 분리한다.</li><li>중앙 MessageBus 송신이 지연돼도 이미 정상 파싱된 sample의 로컬 조회는 가능하다.</li><li>stale sample을 현재값처럼 꾸미지 않는다. 응답의 원본 <code>origin</code>을 보존해 Workflow가 age를 판단하게 한다.</li><li>cache API 오류가 Serial reader와 중앙 Event 발행 루프를 중단시키지 않는다.</li></ul>
 <h2 id="구현-경계">구현 경계</h2>
 <h3 id="포함">포함</h3>
-<ul><li>동시성 안전한 bounded recent cache</li><li>기존 최신값 map을 cache의 latest 조회로 통합</li><li>Device SDK custom route 두 개와 JSON 응답</li><li>6개 가상 디바이스별 독립 cache</li><li>Workflow client label을 허용하는 ingress NetworkPolicy</li><li>단위·통합·manifest 테스트, ARM64 이미지 build/push, Argo 배포와 live readback</li><li>활성 문서와 생성 HTML 최신화</li></ul>
+<ul><li>동시성 안전한 bounded recent cache</li><li>기존 최신값 map을 cache의 latest 조회로 통합</li><li>Device SDK custom route 두 개와 JSON 응답</li><li>6개 가상 디바이스별 독립 cache</li><li>Workflow client label을 선언하는 ingress NetworkPolicy와 현재 CNI 비강제 한계 문서화</li><li>단위·통합·manifest 테스트, ARM64 이미지 build/push, Argo 배포와 live readback</li><li>활성 문서와 생성 HTML 최신화</li></ul>
 <h3 id="제외">제외</h3>
 <ul><li>SQLite Outbox와 offline replay</li><li>Pod 재시작 후 cache 복구</li><li>중앙 history proxy 또는 Core Data fallback</li><li>actuator/write command</li><li>MQTT broker, 별도 cache sidecar, InfluxDB</li><li>EdgeMesh 구성 변경</li><li>Workflow apply/delete/restart 또는 동적 오프로딩 실행</li><li>Modbus, OPC-UA, 추가 I2C와 RTSP adapter 구현</li></ul>
 <h2 id="테스트-전략">테스트 전략</h2>
@@ -227,7 +227,9 @@
 <ol><li>중앙 Metadata/Core Data/Core Command와 dashboard가 계속 정상인지 회귀 검증하고</li></ol>
 <p>EdgeMesh generation이 바뀌지 않았음을 확인한다.</p>
 <h2 id="완료-기준">완료 기준</h2>
-<ul><li>6개 <code>(deviceName, resourceName)</code> 시계열이 서로 섞이지 않는다.</li><li>최신값과 최근 구간 API가 위 계약대로 응답한다.</li><li>각 시계열이 10분과 10,000개 한도를 넘지 않는다.</li><li>Workflow label이 없는 Pod는 새 ingress 허용 대상이 아니다.</li><li>중앙 Core Data 저장, Core Command GET과 dashboard freshness가 기존대로 동작한다.</li><li>live manifest에 fixed ClusterIP/PodIP/node IP, SQLite/PVC, InfluxDB, local broker가 없다.</li><li>EdgeMesh를 변경하지 않는다.</li><li>테스트, render, live readback, 문서 일관성 검증이 모두 통과한다.</li></ul>
+<ul><li>6개 <code>(deviceName, resourceName)</code> 시계열이 서로 섞이지 않는다.</li><li>최신값과 최근 구간 API가 위 계약대로 응답한다.</li><li>각 시계열이 10분과 10,000개 한도를 넘지 않는다.</li><li>manifest의 의도된 client는 Workflow label로 식별하며, 현재 Flannel에서는 이 정책이</li></ul>
+<p>강제되지 않는다는 live 한계를 기록한다.</p>
+<ul><li>중앙 Core Data 저장, Core Command GET과 dashboard freshness가 기존대로 동작한다.</li><li>live manifest에 fixed ClusterIP/PodIP/node IP, SQLite/PVC, InfluxDB, local broker가 없다.</li><li>EdgeMesh를 변경하지 않는다.</li><li>테스트, render, live readback, 문서 일관성 검증이 모두 통과한다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태">상태</a></li>

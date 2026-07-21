@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/현재-데모-흐름.md</span>
-            <span class="badge">수정: 2026-07-21 18:03</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -155,6 +155,7 @@ edgex-edge
   -&gt; /dev/arduino-001, 공유 reader 1개, virtual-*-001 Device 6개
   -&gt; default-deny + 최소 허용 NetworkPolicy</code></pre>
 <p>KubeEdge는 node와 workload 관리만 담당한다. EdgeX Core Metadata와 Core Data가 물리 디바이스 inventory/state와 telemetry의 권위다.</p>
+<p>NetworkPolicy는 최소 허용 의도를 manifest에 기록하지만 현재 Flannel CNI에서는 강제되지 않는다. Local Data API의 Workflow client label은 배치 계약이지 보안 경계가 아니다.</p>
 <h2 id="현재-흐름">현재 흐름</h2>
 <pre data-lang="text"><code>Arduino sensor
   -&gt; Jetson Serial endpoint

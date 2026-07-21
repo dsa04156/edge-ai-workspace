@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-07-21 18:53</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -259,7 +259,7 @@
 </tr>
 <tr>
 <td>local API</td>
-<td>같은 Jetson의 <code>edge-ai.io/local-data-client=true</code> Workflow Pod가 latest/recent GET 사용</td>
+<td>같은 Jetson의 <code>edge-ai.io/local-data-client=true</code> Workflow Pod가 latest/recent GET 사용; 현재 Flannel에서는 label이 접근 제어를 강제하지 않음</td>
 </tr>
 <tr>
 <td>storage</td>
@@ -310,7 +310,7 @@
 </tbody></table></div>
 <p>후속 프로토콜은 profile 초안이나 과거 fixture만으로 현재 binding에 포함하지 않는다.</p>
 <h2 id="workflow-경계">workflow 경계</h2>
-<p>현재 Workflow Builder는 EdgeX Device 목록과 resource를 조회해 browser 안에서 bind/release dry-run, validation과 execution plan preview만 제공할 수 있다. 실제 Workflow Pod가 별도 실행 경로로 같은 Jetson에 배치되면 Service FQDN의 <code>/api/v3/localdata/device/name/{device}/resource/name/{resource}</code>를 사용해 최근 구간을 읽을 수 있다. 해당 Pod에는 <code>edge-ai.io/local-data-client=true</code> label이 필요하다.</p>
+<p>현재 Workflow Builder는 EdgeX Device 목록과 resource를 조회해 browser 안에서 bind/release dry-run, validation과 execution plan preview만 제공할 수 있다. 실제 Workflow Pod가 별도 실행 경로로 같은 Jetson에 배치되면 Service FQDN의 <code>/api/v3/localdata/device/name/{device}/resource/name/{resource}</code>를 사용해 최근 구간을 읽을 수 있다. 해당 Pod에는 정책 의도를 나타내는 <code>edge-ai.io/local-data-client=true</code> label을 붙인다. 현재 Flannel CNI에서는 NetworkPolicy가 강제되지 않으므로 이 label은 보안 경계가 아니다.</p>
 <p>이 Local Data API 구현이 Workflow Builder의 Kubernetes apply/delete/restart, EdgeX metadata mutation, command publish, actuator command, runtime migration/offloading을 활성화한 것은 아니다.</p>
         </div>
       </article>

@@ -135,8 +135,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-21 18:53</span>
-            <span class="badge">HTML 생성: 2026-07-21 18:55</span>
+            <span class="badge">수정: 2026-07-21 19:07</span>
+            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -193,7 +193,7 @@
   -&gt; 중앙 Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
 <p>포함하는 방향:</p>
-<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>같은 Jetson의 허용된 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
+<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>같은 Jetson의 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API; 현재 Flannel에서는 client label 기반 NetworkPolicy가 강제되지 않음</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
 <p>KubeEdge 범위는 Kubernetes edge node와 workload 관리로 제한한다. EdgeX Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 서로 다른 관리 객체다. KubeEdge DeviceStatus, MapperFramework, <code>mqttvirtual</code>과 mapper direct-write는 legacy physical integration이며 현재 plane의 병행 경로나 fallback이 아니다.</p>
 <p>2026-07-21에 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 두 outbox PVC와 Agent 전용 Metadata bootstrap을 퇴역했다. 대신 root render는 <code>edgex-edge</code>에 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>과 최소 NetworkPolicy를 배포한다. 중앙 EdgeX와 ingest gateway는 유지하지만, ingest gateway는 현재 Serial Event 경로에 참여하지 않는다.</p>
 <p>1차 수직 슬라이스는 <code>etri-dev0001-jetorn</code>의 Arduino Uno다. <code>/dev/serial/by-id/...</code> CharDevice를 Pod의 <code>/dev/arduino-001</code>에 단독 마운트하고 <code>device-serial-jetson</code>이 공유 reader 1개로 읽는다. temperature, light, magnetic, acceleration X/Y/Z는 각각 1-resource Profile과 <code>virtual-*-001</code> Device로 등록되며 Core Data Event, Core Command GET과 dashboard의 독립 identity가 된다. Device Service 메모리는 Device/resource별 최근 10분·최대 10,000 sample을 보존하고 latest/recent Local Data API를 제공한다. 이 cache는 Pod 재시작 시 사라지며 durable outbox나 offline replay가 아니다.</p>
