@@ -17,7 +17,7 @@ STABLE_ARDUINO_PATH = (
 )
 IMAGE = (
     "192.168.0.56:5000/edgex-device-serial@"
-    "sha256:f0fde8925337cdc70740458c881bee3663af86332ae50a9807fc437de1808301"
+    "sha256:4c933c3d8827dec325055634ed196380690c4748362fecb3f9676b412e724b71"
 )
 CENTRAL_FQDNS = {
     "edgex-core-keeper.edgex-system.svc.cluster.local",
