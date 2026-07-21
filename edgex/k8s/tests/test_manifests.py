@@ -25,6 +25,7 @@ CENTRAL_DEPLOYMENTS = {
 CENTRAL_STATEFULSETS = {"edgex-postgres"}
 CENTRAL_JOBS = {"edgex-core-common-config-bootstrapper", "edgex-metadata-bootstrap"}
 EDGE_AGENTS = {
+    "edgex-edge-agent-jetson": "etri-dev0001-jetorn",
     "edgex-edge-agent-sensehat": "etri-dev0003-raspi5",
 }
 
@@ -313,7 +314,7 @@ def test_only_loopback_direct_adapter_uses_host_network_and_no_host_ports(
     for workload in _workloads([*server_resources, *edge_resources]):
         pod = _pod_spec(workload)
         name = workload["metadata"]["name"]
-        if name == "edgex-edge-agent-sensehat":
+        if name in EDGE_AGENTS:
             assert pod.get("hostNetwork") is True
             assert pod["dnsPolicy"] == "ClusterFirstWithHostNet"
         else:
@@ -683,6 +684,9 @@ def test_edge_agents_have_distinct_durable_outboxes_and_mtls(
         deployment = resources[("Deployment", name)]
         assert deployment["spec"]["strategy"]["type"] == "Recreate"
         pod = _pod_spec(deployment)
+        assert pod["nodeSelector"] == {"kubernetes.io/hostname": edge_id}
+        assert pod["hostNetwork"] is True
+        assert pod["dnsPolicy"] == "ClusterFirstWithHostNet"
         container = _container(deployment, "telemetry-edge-agent")
         assert container["image"] == (
             "192.168.0.56:5000/edgex-telemetry-plane:"
