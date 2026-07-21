@@ -1,0 +1,17 @@
+apiVersion: "v2"
+name: etri-sensehat-compass
+manufacturer: Raspberry Pi
+model: Sense HAT v1 virtual compass source
+labels: [sensehat, i2c, raspi, virtual-device]
+description: Read-only fused compass heading from the Sense HAT IMU
+
+deviceResources:
+  - name: compass
+    description: Fused compass heading normalized to 0 through 360 degrees
+    properties: {valueType: Float64, readWrite: R, units: deg}
+
+deviceCommands:
+  - name: compass
+    readWrite: R
+    resourceOperations:
+      - deviceResource: compass

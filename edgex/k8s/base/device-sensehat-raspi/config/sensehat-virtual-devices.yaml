@@ -1,0 +1,43 @@
+deviceList:
+  - name: env-sensehat-temperature-01
+    profileName: etri-sensehat-temperature
+    description: Virtual temperature device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: temperature}
+  - name: env-sensehat-humidity-01
+    profileName: etri-sensehat-humidity
+    description: Virtual humidity device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: humidity}
+  - name: env-sensehat-pressure-01
+    profileName: etri-sensehat-pressure
+    description: Virtual pressure device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: pressure}
+  - name: imu-sensehat-compass-01
+    profileName: etri-sensehat-compass
+    description: Virtual compass device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: compass}
+  - name: imu-sensehat-orientation-01
+    profileName: etri-sensehat-orientation
+    description: Virtual orientation device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: orientation}
+  - name: imu-sensehat-gyroscope-01
+    profileName: etri-sensehat-gyroscope
+    description: Virtual gyroscope device backed by Sense HAT on Raspberry Pi
+    labels: [sensehat, i2c, raspi, virtual-device]
+    tags: {physicalDeviceId: sensehat-001, nodeName: etri-dev0003-raspi5}
+    protocols:
+      i2c: {Bus: /dev/i2c-1, DeviceID: sensehat-001, ResourceGroup: gyroscope}

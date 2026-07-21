@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1.7
+FROM debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl --fail --silent --show-error --location \
+      --output /tmp/librtimulib7_7.2.1-7_arm64.deb \
+      https://archive.raspberrypi.com/debian/pool/main/r/rtimulib/librtimulib7_7.2.1-7_arm64.deb \
+    && curl --fail --silent --show-error --location \
+      --output /tmp/python3-rtimulib_7.2.1-7_arm64.deb \
+      https://archive.raspberrypi.com/debian/pool/main/r/rtimulib/python3-rtimulib_7.2.1-7_arm64.deb \
+    && printf '%s  %s\n' \
+      'f40afd613a6f8ed589948cd713b50ae0bb20e74c13e663ac756deb640a7b69a2' '/tmp/librtimulib7_7.2.1-7_arm64.deb' \
+      '67b25a603ae136c4b4d7877a3639e5bf7f0d333dbf7d6d5b47428a76addae357' '/tmp/python3-rtimulib_7.2.1-7_arm64.deb' \
+      | sha256sum --check --strict \
+    && apt-get update \
+    && apt-get install --yes --no-install-recommends \
+      /tmp/librtimulib7_7.2.1-7_arm64.deb \
+      /tmp/python3-rtimulib_7.2.1-7_arm64.deb \
+    && rm -rf /var/lib/apt/lists/* /tmp/*.deb
+
+COPY --chmod=0555 reader/read_sensehat.py /opt/device-sensehat/read_sensehat.py
+COPY --chmod=0444 reader/RTIMULib.ini /etc/RTIMULib.ini

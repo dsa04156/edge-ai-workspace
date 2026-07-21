@@ -58,12 +58,13 @@ def pod_spec(deployment: dict[str, Any]) -> dict[str, Any]:
     return deployment["spec"]["template"]["spec"]
 
 
-def test_root_entrypoint_adds_only_the_jetson_serial_edge_workload() -> None:
+def test_root_entrypoint_adds_only_the_current_serial_and_i2c_edge_workloads() -> None:
     root = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert root["resources"] == [
         "overlays/testbed/server2",
         "base/edge-namespace",
         "base/device-serial-jetson",
+        "base/device-sensehat-raspi",
     ]
 
     resources = render()
@@ -74,8 +75,9 @@ def test_root_entrypoint_adds_only_the_jetson_serial_edge_workload() -> None:
         and pod_spec(resource).get("nodeSelector", {}).get("kubernetes.io/hostname")
         in {"etri-dev0001-jetorn", "etri-dev0002-raspi5", "etri-dev0003-raspi5"}
     ]
-    assert [resource["metadata"]["name"] for resource in edge_workloads] == [
-        "device-serial-jetson"
+    assert sorted(resource["metadata"]["name"] for resource in edge_workloads) == [
+        "device-sensehat-raspi",
+        "device-serial-jetson",
     ]
     assert not [resource for resource in resources if resource["kind"] == "PersistentVolumeClaim"]
 

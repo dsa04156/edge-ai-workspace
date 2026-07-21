@@ -35,6 +35,7 @@ def test_operational_entrypoint_retires_custom_edge_agents() -> None:
         "overlays/testbed/server2",
         "base/edge-namespace",
         "base/device-serial-jetson",
+        "base/device-sensehat-raspi",
     ]
 
     resources = _render(K8S_DIR)
