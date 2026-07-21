@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,15 +137,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-21 19:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:10</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="edgex-device-service-기반-원시-텔레메트리-데이터-플레인">EdgeX Device Service 기반 원시 텔레메트리 데이터 플레인</h1>
 <h2 id="문서-상태">문서 상태</h2>
 <p>이 문서는 2026-07-21 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → <code>edge-telemetry-agent</code> → SQLite outbox → HTTPS gateway 경로는 운영 배포에서 제거되었으며 설계·검증 이력으로만 남는다.</p>
-<p>현재 중앙 EdgeX Core는 유지되고 Jetson의 <code>device-serial-jetson</code>이 실제 Arduino endpoint를 공유 reader 하나로 수집한다. resource route가 6개 가상 Device identity를 만들고 중앙 저장, read-only 조회와 dashboard freshness의 결합 key가 된다.</p>
+<p>현재 중앙 EdgeX Core는 유지된다. Jetson의 <code>device-serial-jetson</code>은 실제 Arduino endpoint를 공유 reader 하나로 수집하고, Raspberry Pi의 <code>device-sensehat-raspi</code>는 Sense HAT v1 <code>/dev/i2c-1</code>을 직접 수집한다. 각 resource route가 6개 가상 Device identity를 만들어 총 12개 Device가 중앙 저장, read-only 조회와 dashboard freshness의 결합 key가 된다.</p>
 <h2 id="목표-권위-경로">목표 권위 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
   -&gt; 프로토콜별 EdgeX Device Service
@@ -202,7 +204,7 @@
 </tr>
 <tr>
 <td>edge <code>edgex-edge</code></td>
-<td><code>device-serial-jetson</code>, ConfigMap, default-deny와 최소 허용 NetworkPolicy</td>
+<td><code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>, 각 ConfigMap, default-deny와 최소 허용 NetworkPolicy</td>
 </tr>
 <tr>
 <td>custom edge Agent</td>
@@ -214,10 +216,10 @@
 </tr>
 <tr>
 <td>정식 Device Service</td>
-<td>Jetson Arduino Serial 정상 경로 live 검증</td>
+<td>Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C 정상 경로 live 검증</td>
 </tr>
 </tbody></table></div>
-<p>중앙 ingest gateway는 기존 중앙 구성 보존을 위해 남아 있지만 현재 Serial Device Service는 이를 사용하지 않는다. 현재 Event는 EdgeX SDK async 경로로 중앙 MessageBus와 Core Data에 전달된다.</p>
+<p>중앙 ingest gateway는 기존 중앙 구성 보존을 위해 남아 있지만 현재 Serial/I2C Device Service는 이를 사용하지 않는다. 현재 Event는 EdgeX SDK async 경로로 중앙 MessageBus와 Core Data에 전달된다.</p>
 <h2 id="device-service-계약">Device Service 계약</h2>
 <p>각 Device Service는 한 종류의 프로토콜 구현을 소유하고 여러 Device 인스턴스를 관리할 수 있다.</p>
 <p>현재 첫 계약의 한 Device 예시는 다음과 같다. 나머지 5개 Device도 같은 물리 connection과 서로 다른 <code>ResourceName</code>을 사용한다.</p>
@@ -233,6 +235,7 @@ protocols:
 tags:
   physicalDeviceId: arduino-001
   nodeName: etri-dev0001-jetorn</code></pre>
+<p>Sense HAT I2C 계약은 exact <code>/dev/i2c-1</code>, <code>DeviceID=sensehat-001</code>과 <code>ResourceGroup</code>을 사용한다. temperature, humidity, pressure, compass, orientation, gyroscope의 6개 Device가 총 11개 <code>Float64</code> resource를 제공한다. RTIMULib Python reader는 Device Service 컨테이너 내부 protocol module이며 MQTT publisher나 별도 Agent가 아니다.</p>
 <p>host의 정확한 by-id CharDevice만 Pod에 마운트하며 <code>hostNetwork</code>는 사용하지 않는다. 현재 PoC는 이 장치 접근을 위해 단일 Pod에 <code>privileged: true</code>와 root 실행을 허용한다. 후속 운영 강화에서는 Device Plugin 또는 더 좁은 장치 권한으로 대체한다.</p>
 <p>Device Profile에는 최소한 다음을 명시한다.</p>
 <ul><li>resource 이름과 의미</li><li><code>valueType</code>과 단위</li><li>read/write 권한</li><li>허용 범위와 변환 규칙</li><li>device command가 있으면 resource operation과 안전 제약</li></ul>
@@ -276,21 +279,21 @@ tags:
 <p>저장된 최근·과거 데이터는 deviceName을 기준으로 Core Data에서 조회한다.</p>
 <pre data-lang="http"><code>GET /api/v3/event/device/name/{deviceName}?limit=20</code></pre>
 <p>고주기 실시간 추론은 REST polling으로 구현하지 않는다. 필요하면 Device Service/Application Service의 stream consumer 또는 장비의 native stream을 별도 데이터 계약으로 사용한다. 카메라는 RTSP를 직접 사용한다.</p>
-<p>같은 Jetson의 Workflow Pod가 짧은 입력 window를 사용할 때는 Device Service의 Local Data API를 호출한다.</p>
+<p>같은 Jetson 또는 Raspberry Pi의 Workflow Pod가 짧은 입력 window를 사용할 때는 해당 Device Service의 Local Data API를 호출한다.</p>
 <pre data-lang="http"><code>GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}/latest
 GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={1..10000}</code></pre>
 <ul><li>cache key: <code>(deviceName, resourceName)</code></li><li>보존: 최근 10분, 시계열별 최대 10,000 sample</li><li>recent 기본 limit: 1,000; 가장 최근 sample을 선택한 뒤 <code>origin</code> 오름차순 반환</li><li>latest sample 없음: <code>404</code></li><li>알려진 source의 recent 결과 없음: <code>200</code>과 빈 <code>samples</code></li><li>Pod 재시작: cache 초기화</li><li>중앙 Core Data fallback: 없음</li></ul>
-<p>Workflow Pod에는 <code>edge-ai.io/local-data-client=true</code> label을 붙이고 대상 Runtime과 같은 Jetson에 배치한다. 호출 주소는 고정 IP가 아니라 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>이다. 이 접근 계약은 현재 Workflow Builder가 Kubernetes 실행을 수행한다는 뜻이 아니다.</p>
+<p>Workflow Pod에는 <code>edge-ai.io/local-data-client=true</code> label을 붙이고 대상 Runtime과 같은 edge node에 배치한다. 호출 주소는 고정 IP가 아니라 Serial의 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code> 또는 I2C의 <code>device-sensehat-raspi.edgex-edge.svc.cluster.local:59911</code>이다. 이 접근 계약은 현재 Workflow Builder가 Kubernetes 실행을 수행한다는 뜻이 아니다.</p>
 <p>recent cache와 장애 outbox는 다음처럼 목적을 분리한다.</p>
 <ul><li>recent cache: 같은 node의 Workflow Pod가 최신 구간을 읽는 용도</li><li>outbox: 중앙 전송 실패 중 아직 영구 저장되지 않은 Event 보존 용도</li></ul>
-<p>현재 Serial Device Service에는 recent cache와 Local Data API가 있지만 SQLite outbox와 offline replay는 없다. 따라서 중앙 연결 장애 중 이미 파싱한 sample을 로컬 Workflow가 cache 보존 범위 안에서 읽을 수는 있어도, 미전송 Event의 재전송이나 데이터 무손실을 보장하지 않는다. 과거 Agent의 SQLite 구현을 정식 Device Service 기능으로 간주하거나 재배포하지 않는다.</p>
+<p>현재 두 Device Service에는 recent cache와 Local Data API가 있지만 SQLite outbox와 offline replay는 없다. 따라서 중앙 연결 장애 중 이미 파싱한 sample을 로컬 Workflow가 cache 보존 범위 안에서 읽을 수는 있어도, 미전송 Event의 재전송이나 데이터 무손실을 보장하지 않는다. 과거 Agent의 SQLite 구현을 정식 Device Service 기능으로 간주하거나 재배포하지 않는다.</p>
 <h2 id="보안과-네트워크">보안과 네트워크</h2>
 <ul><li>고정 ClusterIP/PodIP/node IP를 설정에 넣지 않는다.</li><li>Kubernetes/EdgeMesh DNS와 정상 서비스 디스커버리를 사용한다.</li><li><code>edgex-edge</code>는 기본 deny를 유지하고 Device Service별 필요한 egress/ingress만 추가한다.</li><li>Local Data API ingress manifest는 <code>edge-ai.io/local-data-client=true</code> label을 의도된 client로 선언한다.</li><li>장치 파일 권한은 필요한 Device Service Pod에만 최소 범위로 부여한다.</li><li>현재값 read-only command만 허용한다. write/actuator command는 allow-list, timeout, validation, audit와 fail-closed 동작을 검증하기 전까지 Profile에 두지 않는다.</li><li>EdgeMesh는 Local Data API 추가에서도 변경하지 않는다.</li></ul>
 <p>현재 테스트베드의 Flannel CNI는 NetworkPolicy를 집행하지 않으며 label 없는 Pod의 Local Data API 접근도 실측됐다. 따라서 위 ingress manifest와 label은 현재 보안 경계가 아니다. API는 unauthenticated read-only이고, 실제 호출 주체 제한은 정책 지원 CNI 또는 mTLS/애플리케이션 인증을 추가한 뒤 주장한다.</p>
 <h2 id="완료-증거">완료 증거</h2>
 <p>프로토콜별 수직 슬라이스는 다음을 모두 만족해야 현재 지원으로 승격한다.</p>
 <ol><li>실제 endpoint 연결과 재연결 증거</li><li>Device Service/Profile/Device 등록과 상태 조회</li><li>typed Event/Reading의 Core Data readback</li><li>잘못된 payload, 장치 분리, 중앙 단절 시 실패 동작</li><li>dashboard inventory/state/freshness 일치</li><li>필요한 경우 read-only와 write/actuator를 구분한 command의 허용·거부·timeout 증거</li></ol>
-<p>현재 공유 reader와 6-way route, malformed line 복구, 재연결 backoff는 단위 테스트했다. 6-Device cutover는 Metadata/Event/Command/dashboard와 Local Data API live readback을 같은 revision에서 통과했다. 실제 케이블 분리, 중앙 단절 중 데이터 보존과 NetworkPolicy 차단은 완료 증거가 아니다.</p>
+<p>Serial 공유 reader와 6-way route, malformed line 복구, 재연결 backoff를 단위 테스트했다. I2C reader는 실제 Sense HAT의 온도·습도·압력·나침반·자세·자이로 값을 읽고 reader process 재시작/backoff를 단위 테스트했다. 12-Device cutover는 Metadata/Event/Command/dashboard와 두 Local Data API live readback을 같은 revision에서 통과했다. 실제 케이블/보드 분리, 중앙 단절 중 데이터 보존과 NetworkPolicy 차단은 완료 증거가 아니다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#문서-상태">문서 상태</a></li>

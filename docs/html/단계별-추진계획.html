@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,8 +137,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-07-21 17:04</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:15</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -160,7 +162,7 @@
   -&gt; dashboard / service demo view</code></pre>
 <p>RTSP frame은 이 telemetry 경로에 넣지 않고 요청 시 Workflow Pod가 직접 구독한다. 카메라 상태와 분석 결과 metadata만 canonical Event로 전달한다. MQTT는 MQTT-only 장비나 명시적 local pub/sub 요구가 실제로 확인된 뒤 별도 Protocol Adapter로 검증한다. 현재 MQTT workload는 없다. 중앙 EdgeX internal MessageBus는 stock Core runtime 내부 구성이지 물리 노드의 northbound 전송 경로가 아니다.</p>
 <p>KubeEdge는 edge node와 workload 관리에만 사용한다. MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus와 mapper direct-to-Influx는 legacy physical integration 경로이며 병행 status/control plane 또는 fallback으로 사용하지 않는다.</p>
-<p>2026-07-21 현재 기존 direct Agent/SQLite outbox/Metadata bootstrap은 퇴역했다. <code>edgex-edge</code>의 Jetson Arduino Serial Device Service/Profile/Device는 실제 Event/Reading, read-only command와 state-aggregator/dashboard freshness까지 정상 경로를 종단간 검증했다. 다음 검증은 실제 장치 분리·복구이며, Modbus, OPC-UA, 추가 I2C와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
+<p>2026-07-21 현재 기존 direct Agent/SQLite outbox/aggregate Metadata bootstrap은 퇴역했다. <code>edgex-edge</code>의 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service/Profile/Device는 실제 Event/Reading, read-only command, Local Data API와 state-aggregator/dashboard freshness까지 정상 경로를 종단간 검증했다. 다음 검증은 실제 장치 분리·복구이며, Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
 <h2 id="현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</h2>
 <p>다음 경로는 현재 연구 방향에서 진행하지 않는다. 새 문서나 발표자료에서 현재 예정된 기능처럼 표현하지 않는다.</p>
 <ul><li>동적 workflow 분해/실행</li><li>runtime replanning</li><li>placement engine 기반 자동 재배치</li><li>cost model 기반 offloading 판단</li><li>workflow_executor 중심 orchestration</li><li>workflow_reporter 중심 stage event pipeline</li><li>agent-assisted planning layer</li><li>LLM이 전체 플랫폼 제어를 수행하는 구조</li><li>전체 플랫폼 자율 제어형 orchestration</li></ul>

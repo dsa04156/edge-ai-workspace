@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,8 +137,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/지식-지도.md</span>
-            <span class="badge">수정: 2026-07-21 17:06</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:17</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -183,7 +185,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="위키-문서">위키 문서</h2>
-<ul><li><a href="운영-모델.html">운영 모델</a>: 현재 PoC의 목표, 권위 경로, 완료 판단 기준을 요약한다.</li><li><a href="현재-데모-흐름.html">현재 데모 흐름</a>: Jetson Arduino Serial Device Service부터 중앙 Core Data와 dashboard까지의 현재 수직 슬라이스를 정리한다.</li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a>: EdgeX 물리 디바이스 상태·텔레메트리와 KubeEdge 노드·워크로드 상태를 분리한다.</li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a>: 디바이스·서비스·노드·KPI를 운영 판단 기준으로 묶는다.</li><li><a href="운영-진입점.html">운영 진입점</a>: 실제 데모 실행과 검증 문서로 안내한다.</li><li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a>: 가상디바이스·디바이스트윈·워크플로 설계를 현재 완료 기능과 분리한다.</li></ul>
+<ul><li><a href="운영-모델.html">운영 모델</a>: 현재 PoC의 목표, 권위 경로, 완료 판단 기준을 요약한다.</li><li><a href="현재-데모-흐름.html">현재 데모 흐름</a>: Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C Device Service부터 중앙 Core Data와 dashboard까지의 현재 수직 슬라이스를 정리한다.</li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a>: EdgeX 물리 디바이스 상태·텔레메트리와 KubeEdge 노드·워크로드 상태를 분리한다.</li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a>: 디바이스·서비스·노드·KPI를 운영 판단 기준으로 묶는다.</li><li><a href="운영-진입점.html">운영 진입점</a>: 실제 데모 실행과 검증 문서로 안내한다.</li><li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a>: 가상디바이스·디바이스트윈·워크플로 설계를 현재 완료 기능과 분리한다.</li></ul>
 <h2 id="원본문서-묶음">원본문서 묶음</h2>
 <h3 id="최신-기준">최신 기준</h3>
 <ul><li><a href="../문서-안내.html">문서 안내</a>: 사람용 첫 진입점</li><li><a href="../시스템-구축-목표.html">시스템 구축 목표</a>: 현재 목표 고정</li><li><a href="../프로젝트-배경.html">프로젝트 배경</a>: 과제 배경, 노드, 디바이스, 현재 구현 상태</li><li><a href="../프로젝트-범위.html">프로젝트 범위</a>: 현재 구현, 2차년도 설계, 보조, 레거시, 보관 경계</li><li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a>: EdgeX Device Service와 Core Data 저장 권위 경로</li><li><a href="../현재-데모-경로.html">현재 데모 경로</a>: 디바이스부터 대시보드까지의 구현 경로</li><li><a href="../디바이스-서비스-연결.html">디바이스-서비스 바인딩</a>: device와 service demo group의 운영 관계</li><li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a>: dashboard API와 화면 정보 구조</li><li><a href="../대시보드-판단-정책.html">대시보드 판단 기준</a>: available/degraded/unavailable 판단</li><li><a href="../물리-디바이스-상태-정책.html">DeviceStatus 정책</a>: status snapshot과 raw telemetry 분리</li><li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a>: 현장 생산성 효과 설명</li><li><a href="../단계별-추진계획.html">로드맵</a>: 현재 산출물과 2차년도 방향</li></ul>

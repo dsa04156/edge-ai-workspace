@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>가상디바이스 런타임 구현 계획</title>
+  <title>Raspberry Pi Sense HAT I2C Device Service 구현 계획</title>
   <link rel="stylesheet" href="../../../assets/docs-site.css">
 </head>
 <body>
@@ -11,9 +11,9 @@
     <div class="topbar">
       <div class="topbar-left">
         <a href="../../index.html">← 문서 홈</a>
-        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.md">편집</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.md">편집</a>
       </div>
-      <span>superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.md</span>
+      <span>superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -132,60 +132,88 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
-          <h1>가상디바이스 런타임 구현 계획</h1>
-          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:executing-pl…</p>
+          <h1>Raspberry Pi Sense HAT I2C Device Service 구현 계획</h1>
+          <p class="subtitle">&gt; 실행 방식: 테스트를 먼저 실패시키고 최소 구현으로 통과시킨 뒤, ARM64 image와 &gt; live EdgeX readba…</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
-            <span class="badge">원본: superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.md</span>
-            <span class="badge">수정: 2026-07-21 15:13</span>
+            <span class="badge">원본: superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.md</span>
+            <span class="badge">수정: 2026-07-21 19:18</span>
             <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="가상디바이스-런타임-구현-계획">가상디바이스 런타임 구현 계획</h1>
-<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
-<p><strong>Goal:</strong> Build an executable second-year prototype that reads Serial JSON through a profile-driven adapter, emits normalized virtual-device telemetry to a local MQTT broker, and publishes lifecycle/heartbeat status without implementing AI, KubeEdge, EdgeX, registry, dashboard, or orchestration features.</p>
-<p><strong>Architecture:</strong> A validated YAML <code>DeviceProfile</code> configures one adapter, one normalizer, and one MQTT output. <code>VirtualDeviceRuntime</code> owns lifecycle, duplicate/stale suppression, status transitions, heartbeat, bounded reconnect backoff, and graceful shutdown; adapter and publisher dependencies are injectable so tests need neither serial hardware nor a broker.</p>
-<p><strong>Tech Stack:</strong> Python 3.11+, dataclasses, PyYAML, pyserial, paho-mqtt, pytest, Docker.</p>
-<h2 id="global-constraints">Global Constraints</h2>
-<ul><li>Keep <code>sensor-collector/serial_mqtt_collector.py</code> and <code>tests/test_serial_mqtt_collector.py</code> unchanged and passing.</li><li>Publish only fields declared under <code>mapping.properties</code>; never copy the complete raw payload.</li><li>Keep <code>sourceTimestamp</code> separate from <code>collectedAt</code> and suppress exact duplicates and older comparable timestamps.</li><li>Runtime support is limited to Serial JSON plus a test-only fake adapter and local MQTT output.</li><li>Preserve all pre-existing dirty-worktree changes and do not commit unrelated files.</li></ul>
+          <h1 id="raspberry-pi-sense-hat-i2c-device-service-구현-계획">Raspberry Pi Sense HAT I2C Device Service 구현 계획</h1>
+<blockquote><p><strong>실행 방식:</strong> 테스트를 먼저 실패시키고 최소 구현으로 통과시킨 뒤, ARM64 image와 live EdgeX readback까지 단계별로 검증한다.</p></blockquote>
+<p><strong>Goal:</strong> <code>etri-dev0003-raspi5</code>의 Sense HAT v1을 MQTT 없이 직접 읽는 EdgeX Device Service를 배포하고 6개 가상 Device를 중앙/로컬 API와 dashboard에서 확인한다.</p>
+<p><strong>Architecture:</strong> image 내부 RTIMULib Python reader가 <code>/dev/i2c-1</code>을 한 번 읽어 JSON sample을 만들고 Go EdgeX Device SDK driver가 6개 Device Event, Command와 bounded recent cache로 fan-out한다. 중앙 EdgeX와 EdgeMesh는 유지한다.</p>
+<p><strong>Tech Stack:</strong> Go 1.25, EdgeX Device SDK Go v4.0.2, Python 3/RTIMULib 7.2.1, Kustomize, Argo CD, Docker buildx, ko, pytest/unittest.</p>
 <p>---</p>
-<h3 id="task-1-scope-boundary-profile-validation-and-normalized-models">Task 1: Scope boundary, profile validation, and normalized models</h3>
+<h2 id="task-1-rtimulib-protocol-reader">Task 1: RTIMULib protocol reader</h2>
 <p><strong>Files:</strong></p>
-<ul><li>Modify: <code>docs/프로젝트-범위.md</code></li><li>Modify: <code>docs/저장소-구조.md</code></li><li>Create: <code>virtual-device/pyproject.toml</code></li><li>Create: <code>virtual-device/profiles/serial-vibration-example.yaml</code></li><li>Create: <code>virtual-device/virtual_device/__init__.py</code></li><li>Create: <code>virtual-device/virtual_device/config.py</code></li><li>Create: <code>virtual-device/virtual_device/models.py</code></li><li>Create: <code>virtual-device/virtual_device/normalizer.py</code></li><li>Create: <code>virtual-device/tests/test_config.py</code></li><li>Create: <code>virtual-device/tests/test_normalizer.py</code></li><li>Create: <code>virtual-device/tests/test_duplicate_suppression.py</code></li></ul>
-<p><strong>Interfaces:</strong></p>
-<ul><li>Produces: <code>load_profile(path, env=None, overrides=None) -&gt; DeviceProfile</code></li><li>Produces: <code>Normalizer(profile).normalize(raw, collected_at) -&gt; NormalizedSample</code></li><li>Produces: <code>SampleGuard.check(source_timestamp, data) -&gt; SampleDecision</code></li><li>Produces: <code>TelemetryEnvelope.from_sample(profile, sample, sequence).to_dict()</code></li></ul>
-<ul><li>[x] Write tests for valid/invalid YAML, CLI/environment precedence, mapping-only output, type conversion, timestamp preservation, missing required fields, exact duplicate suppression, same-value/new-timestamp acceptance, and older-timestamp rejection.</li><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m pytest tests/test_config.py tests/test_normalizer.py tests/test_duplicate_suppression.py -q</code>; verify collection/import failures because modules do not exist.</li><li>[x] Implement the dataclasses, validation, environment overrides, normalization, quality errors, and sample guard with only the behavior required by the failing tests.</li><li>[x] Re-run the same command and require all Task 1 tests to pass.</li></ul>
-<h3 id="task-2-adapter-and-publisher-boundaries">Task 2: Adapter and publisher boundaries</h3>
+<ul><li>Create: <code>edgex/device-sensehat/reader/read_sensehat.py</code></li><li>Create: <code>edgex/device-sensehat/reader/test_read_sensehat.py</code></li><li>Create: <code>edgex/device-sensehat/reader/RTIMULib.ini</code></li></ul>
+<ol><li>degree normalization, validity flag, finite-value와 11-field sample 계약 테스트를 먼저</li></ol>
+<p>작성하고 RED를 확인한다.</p>
+<ol><li>fake RTIMU object로 pressure/humidity/IMU 성공과 invalid read 오류를 테스트한다.</li><li>shell/network/MQTT 없이 JSON line 하나를 생성하는 reader를 구현한다.</li><li>retry는 Go layer가 소유하므로 Python fatal read는 non-zero exit로 단순화한다.</li></ol>
+<h2 id="task-2-go-parser와-managed-process-source">Task 2: Go parser와 managed process source</h2>
 <p><strong>Files:</strong></p>
-<ul><li>Create: <code>virtual-device/virtual_device/adapters/__init__.py</code></li><li>Create: <code>virtual-device/virtual_device/adapters/base.py</code></li><li>Create: <code>virtual-device/virtual_device/adapters/serial_json.py</code></li><li>Create: <code>virtual-device/virtual_device/adapters/fake.py</code></li><li>Create: <code>virtual-device/virtual_device/publisher.py</code></li><li>Create: <code>virtual-device/tests/test_serial_adapter.py</code></li></ul>
-<p><strong>Interfaces:</strong></p>
-<ul><li>Produces: <code>Adapter.start()</code>, <code>Adapter.read()</code>, <code>Adapter.health()</code>, <code>Adapter.stop()</code></li><li>Produces: <code>SerialJsonAdapter(connection, serial_factory=None)</code> and <code>FakeAdapter(samples)</code></li><li>Produces: <code>MqttPublisher(config, client_factory=None)</code> and <code>InMemoryPublisher</code></li><li>Produces: <code>InvalidSampleError</code> for malformed JSON and <code>AdapterConnectionError</code> for transport failures.</li></ul>
-<ul><li>[x] Write tests using a fake serial object for decode, malformed JSON recovery, health state, and close behavior; test fake adapter sequencing and in-memory publication.</li><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m pytest tests/test_serial_adapter.py -q</code>; verify expected missing-interface failures.</li><li>[x] Implement minimal adapter and publisher classes with lazy imports for pyserial and paho-mqtt.</li><li>[x] Re-run the Task 2 tests and require them to pass without serial hardware or a broker.</li></ul>
-<h3 id="task-3-runtime-lifecycle-status-heartbeat-and-reconnect">Task 3: Runtime lifecycle, status, heartbeat, and reconnect</h3>
+<ul><li>Create: <code>edgex/device-sensehat/go.mod</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/sample.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/sample_test.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/source.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/source_test.go</code></li></ul>
+<ol><li>strict JSON, device ID, required finite Float64 field 테스트를 RED로 만든다.</li><li>command factory를 주입할 수 있는 source test double로 process exit, state UP/DOWN,</li></ol>
+<p>backoff와 context stop을 검증한다.</p>
+<ol><li>scanner limit, stderr drain, shell 미사용과 child cleanup을 구현한다.</li></ol>
+<h2 id="task-3-i2c-binding-recent-cache와-local-data-api">Task 3: I2C binding, recent cache와 Local Data API</h2>
 <p><strong>Files:</strong></p>
-<ul><li>Create: <code>virtual-device/virtual_device/status.py</code></li><li>Create: <code>virtual-device/virtual_device/runtime.py</code></li><li>Create: <code>virtual-device/tests/test_runtime.py</code></li></ul>
-<p><strong>Interfaces:</strong></p>
-<ul><li>Produces: <code>RuntimeStatusTracker</code> with starting/running/degraded/stopped/failed phases.</li><li>Produces: <code>VirtualDeviceRuntime(profile, adapter, publisher, clock, sleeper)</code> with <code>run(max_iterations=None)</code>, <code>request_stop()</code>, and graceful cleanup.</li></ul>
-<ul><li>[x] Write runtime tests for fake-adapter end-to-end output, invalid JSON continuation, invalid mapping quality, disconnected/degraded status, heartbeat, bounded reconnect backoff, and stopped status.</li><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m pytest tests/test_runtime.py -q</code>; verify expected missing-runtime failures.</li><li>[x] Implement lifecycle and status transitions, publish telemetry only after <code>SampleGuard</code> accepts it, increment sequence only for published telemetry, retry failed adapter starts/reads with capped backoff, and always close adapter/publisher.</li><li>[x] Re-run Task 3 plus Tasks 1-2 and require all tests to pass.</li></ul>
-<h3 id="task-4-cli-container-image-and-operator-documentation">Task 4: CLI, container image, and operator documentation</h3>
+<ul><li>Create: <code>edgex/device-sensehat/internal/driver/config.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/config_test.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/recent_cache.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/recent_cache_test.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/local_data_api.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/local_data_api_test.go</code></li></ul>
+<ol><li><code>/dev/i2c-1</code>, <code>sensehat-001</code>과 6개 ResourceGroup만 허용하는 binding 테스트를 작성한다.</li><li>Float64 cache의 10분·10,000개 eviction, device/resource 격리, newest limit, 동시 접근을</li></ol>
+<p>테스트한다.</p>
+<ol><li>Jetson과 같은 latest/recent HTTP status/query/정렬 계약을 테스트한다.</li></ol>
+<h2 id="task-4-edgex-device-sdk-driver">Task 4: EdgeX Device SDK driver</h2>
 <p><strong>Files:</strong></p>
-<ul><li>Create: <code>virtual-device/virtual_device/main.py</code></li><li>Create: <code>virtual-device/Dockerfile</code></li><li>Create: <code>virtual-device/README.md</code></li></ul>
-<p><strong>Interfaces:</strong></p>
-<ul><li>Produces: <code>python -m virtual_device.main --profile profiles/serial-vibration-example.yaml</code></li><li>CLI overrides: <code>--mqtt-host</code>, <code>--mqtt-port</code>, <code>--serial-port</code>, <code>--serial-baud-rate</code>, and <code>--serial-timeout-seconds</code>.</li><li>Environment overrides: <code>VD_MQTT_HOST</code>, <code>VD_MQTT_PORT</code>, <code>VD_SERIAL_PORT</code>, <code>VD_SERIAL_BAUD_RATE</code>, and <code>VD_SERIAL_TIMEOUT_SECONDS</code>, with documented legacy aliases.</li></ul>
-<ul><li>[x] Add a CLI configuration test to <code>test_config.py</code> if parsing/override behavior is not already covered.</li><li>[x] Verify the test fails before <code>main.py</code> exists.</li><li>[x] Implement adapter/publisher factories, signal handlers for SIGINT/SIGTERM, clear configuration errors, and the container entrypoint.</li><li>[x] Document definition, AI-service distinction, flow, layout, profile schema, precedence, local and Docker commands, topics/payloads, supported scope, exclusions, and concrete adapter extension points.</li><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m virtual_device.main --help</code> and require exit code 0.</li></ul>
-<h3 id="task-5-full-verification-and-review">Task 5: Full verification and review</h3>
+<ul><li>Create: <code>edgex/device-sensehat/cmd/device-sensehat/main.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/driver.go</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/driver_test.go</code></li></ul>
+<ol><li>한 sample의 6개 Device fan-out과 group별 resource 수/단위/type/origin을 테스트한다.</li><li>multi-resource Core Command GET, write 거부, LOCKED/remove/cache cleanup, 동일 update no-op,</li></ol>
+<p>shared source 한 개와 state fan-out을 테스트한다.</p>
+<ol><li>Device SDK custom route와 async channel 통합을 구현한다.</li></ol>
+<h2 id="task-5-profile-device-config-resources">Task 5: Profile/Device/config resources</h2>
 <p><strong>Files:</strong></p>
-<ul><li>Verify only; modify a production file only after first adding a reproducing failing test.</li></ul>
-<ul><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m pytest -q</code>.</li><li>[x] Run <code>../.venv-publisher/bin/python -m pytest tests/test_serial_mqtt_collector.py -q</code> from the repository root.</li><li>[x] Run <code>cd virtual-device &amp;&amp; ../.venv-publisher/bin/python -m compileall -q virtual_device</code>.</li><li>[x] Inspect <code>git diff --check</code> and the scoped diff for raw-payload leakage, timestamp conflation, unbounded busy loops, and accidental legacy changes.</li><li>[x] Report created/modified files, design decisions, exact test evidence, hardware command, exclusions, and compatibility status.</li></ul>
+<ul><li>Create: <code>edgex/device-sensehat/res/configuration.yaml</code></li><li>Create: <code>edgex/device-sensehat/res/profiles/etri-sensehat-*.yaml</code> (6개)</li><li>Create: <code>edgex/device-sensehat/res/devices/sensehat-virtual-devices.yaml</code></li><li>Create: <code>edgex/device-sensehat/internal/driver/resources_test.go</code></li></ul>
+<ol><li>6개 Device/Profile 이름, Float64/resource/units/command와 공통 I2C binding 테스트를 RED로</li></ol>
+<p>작성한다.</p>
+<ol><li>canonical resources를 구현하고 aggregate <code>sensehat-001</code> Device를 만들지 않는다.</li></ol>
+<h2 id="task-6-arm64-runtime와-kubernetes-manifest">Task 6: ARM64 runtime와 Kubernetes manifest</h2>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-sensehat/Dockerfile.base</code></li><li>Create: <code>edgex/device-sensehat/.ko.yaml</code></li><li>Create: <code>edgex/k8s/base/device-sensehat-raspi/**</code></li><li>Modify: <code>edgex/k8s/kustomization.yaml</code></li><li>Create: <code>edgex/k8s/tests/test_device_sensehat_manifest.py</code></li><li>Modify: <code>edgex/k8s/tests/test_device_serial_manifest.py</code></li></ul>
+<ol><li>root render에 Serial/I2C 두 edge workload만 있고 MQTT Agent/InfluxDB/PVC가 없다는</li></ol>
+<p>manifest 테스트를 먼저 실패시킨다.</p>
+<ol><li>exact Raspberry Pi placement, <code>/dev/i2c-1</code> CharDevice, Recreate, FQDN, port 59911,</li></ol>
+<p>read-only root와 <code>/tmp</code>, 정책 의도 label을 테스트한다.</p>
+<ol><li>canonical resource와 ConfigMap byte equality를 테스트한다.</li><li>RTIMULib ARM64 base image를 build/push하고 digest로 <code>.ko.yaml</code>을 고정한다.</li><li>Go service image를 build/push하고 workload image를 digest로 고정한다.</li></ol>
+<h2 id="task-7-argo-live-cutover와-회귀">Task 7: Argo live cutover와 회귀</h2>
+<ol><li>구현 commit을 원격 branch에 push하고 <code>edgex-telemetry</code> targetRevision을 해당 SHA로</li></ol>
+<p>동기화한다.</p>
+<ol><li><code>device-sensehat-raspi</code>가 <code>etri-dev0003-raspi5</code>에서 기대 digest, Ready, restart 0인지</li></ol>
+<p>확인한다.</p>
+<ol><li>Metadata 6개, Core Data latest 6개, Core Command 6개, Local Data API와 dashboard 12개</li></ol>
+<p>inventory/freshness를 readback한다.</p>
+<ol><li>Jetson Serial 6개가 계속 fresh이고 local cache/command가 회귀하지 않았는지 확인한다.</li><li>legacy MQTT publisher의 최근 publish가 없고 새 Pod가 local MQTT port를 사용하지 않음을</li></ol>
+<p>확인한다.</p>
+<ol><li>EdgeMesh generation 14, image v1.17.0, 5/5 Ready가 유지되는지 확인한다.</li></ol>
+<h2 id="task-8-protocol-matrix와-문서-최종-검증">Task 8: protocol matrix와 문서/최종 검증</h2>
+<p><strong>Files:</strong></p>
+<ul><li>Update: <code>docs/문서-안내.md</code>, <code>docs/프로젝트-범위.md</code>, <code>docs/프로젝트-배경.md</code></li><li>Update: <code>docs/원시-텔레메트리-데이터-플레인.md</code>, <code>docs/디바이스-서비스-연결.md</code></li><li>Update: <code>docs/현재-데모-경로.md</code>, <code>docs/ops/현재-데모-운영-절차.md</code></li><li>Update: <code>docs/wiki/*.md</code>, <code>docs/일일-기록.md</code>, <code>docs/wiki/변경-기록.md</code></li><li>Regenerate: <code>docs/html/**</code>, <code>docs/generated/consistency-report.html</code></li></ul>
+<ol><li>Serial/I2C는 live PASS, MQTT physical input은 미사용, Modbus/OPC-UA는 endpoint 부재로</li></ol>
+<p>미검증이라고 명시한다.</p>
+<ol><li>기존 Sense HAT MQTT/KubeEdge fixture를 현재 경로로 설명하지 않는다.</li><li>Python/Go race/vet, EdgeX K8s, state-aggregator, docs test와 root render를 모두 실행한다.</li><li>live resource, 임시 Pod 부재, fixed IP/PVC/Agent/InfluxDB 부재와 EdgeMesh 무변경을 다시</li></ol>
+<p>확인한다.</p>
+<ol><li><code>git diff --check</code>, clean worktree와 remote HEAD 일치를 확인한 뒤 최종 push한다.</li></ol>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
-<li class="toc-h3"><a href="#task-1-scope-boundary-profile-validation-and-normalized-models">Task 1: Scope boundary, profile validation, and normalized models</a></li>
-<li class="toc-h3"><a href="#task-2-adapter-and-publisher-boundaries">Task 2: Adapter and publisher boundaries</a></li>
-<li class="toc-h3"><a href="#task-3-runtime-lifecycle-status-heartbeat-and-reconnect">Task 3: Runtime lifecycle, status, heartbeat, and reconnect</a></li>
-<li class="toc-h3"><a href="#task-4-cli-container-image-and-operator-documentation">Task 4: CLI, container image, and operator documentation</a></li>
-<li class="toc-h3"><a href="#task-5-full-verification-and-review">Task 5: Full verification and review</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#task-1-rtimulib-protocol-reader">Task 1: RTIMULib protocol reader</a></li>
+<li class="toc-h2"><a href="#task-2-go-parser와-managed-process-source">Task 2: Go parser와 managed process source</a></li>
+<li class="toc-h2"><a href="#task-3-i2c-binding-recent-cache와-local-data-api">Task 3: I2C binding, recent cache와 Local Data API</a></li>
+<li class="toc-h2"><a href="#task-4-edgex-device-sdk-driver">Task 4: EdgeX Device SDK driver</a></li>
+<li class="toc-h2"><a href="#task-5-profile-device-config-resources">Task 5: Profile/Device/config resources</a></li>
+<li class="toc-h2"><a href="#task-6-arm64-runtime와-kubernetes-manifest">Task 6: ARM64 runtime와 Kubernetes manifest</a></li>
+<li class="toc-h2"><a href="#task-7-argo-live-cutover와-회귀">Task 7: Argo live cutover와 회귀</a></li>
+<li class="toc-h2"><a href="#task-8-protocol-matrix와-문서-최종-검증">Task 8: protocol matrix와 문서/최종 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

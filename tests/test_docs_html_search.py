@@ -101,16 +101,18 @@ class DocsHtmlSearchTest(unittest.TestCase):
         long = "이 문서는 현재 구현 기준으로 아래 2가지를 한 번에 설명한다. 비용모델과 런타임 orchestration이 어떤 구성으로 어떻게 동작하는지 아주 길게 설명한다."
         self.assertLessEqual(len(build_docs_html.short_desc(long)), 80)
 
-    def test_operational_runbook_records_current_serial_device_service_boundary(self):
+    def test_operational_runbook_records_current_serial_and_i2c_device_service_boundary(self):
         runbook = (ROOT / "docs" / "ops" / "현재-데모-운영-절차.md").read_text(encoding="utf-8")
 
         self.assertNotIn("ssl.create_default_context", runbook)
         self.assertNotIn("load_cert_chain", runbook)
-        self.assertIn("edge workload | `device-serial-jetson` 1 replica", runbook)
+        self.assertIn("edge workload | `device-serial-jetson`, `device-sensehat-raspi` 각 1 replica", runbook)
         self.assertIn("`edgex-edge-agent-*`", runbook)
         self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
         self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
+        self.assertIn("device-sensehat-raspi.edgex-edge.svc.cluster.local", runbook)
         self.assertIn("/dev/arduino-001", runbook)
+        self.assertIn("/dev/i2c-1", runbook)
         self.assertIn("공유 Serial reader 1개", runbook)
         self.assertIn("Device/resource별 최근 10분·최대 10,000 sample", runbook)
         self.assertIn("/api/v3/localdata/device/name/", runbook)
@@ -126,6 +128,12 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "virtual-acceleration-x-001",
             "virtual-acceleration-y-001",
             "virtual-acceleration-z-001",
+            "env-sensehat-temperature-01",
+            "env-sensehat-humidity-01",
+            "env-sensehat-pressure-01",
+            "imu-sensehat-compass-01",
+            "imu-sensehat-orientation-01",
+            "imu-sensehat-gyroscope-01",
         ):
             self.assertIn(device_name, runbook)
 

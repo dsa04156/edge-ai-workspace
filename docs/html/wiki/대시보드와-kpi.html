@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,8 +137,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-21 18:03</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:17</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -299,9 +301,9 @@
 <ul><li>KubeEdge <code>DeviceStatus</code>와 DeviceStatus freshness</li><li>MapperFramework 또는 mapper readiness</li><li>mapper direct-write latest sample</li><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>, <code>mqttvirtual</code>, legacy mapper heartbeat</li></ul>
 <p>Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.</p>
 <h2 id="direct-전달-상태">direct 전달 상태</h2>
-<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, Serial Device Service namespace는 <code>edgex-edge</code>다. physical input <code>arduino-001</code>은 EdgeX inventory에서 6개 가상 Device로 분리되고 dashboard도 여섯 행의 상태와 단일 Reading을 표시한다.</p>
-<p>2026-07-21 Jetson Serial Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT/Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.</p>
-<p>Serial은 정상 경로만 지원 완료로 표시한다. 실제 분리·복구, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
+<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, Serial/I2C Device Service namespace는 <code>edgex-edge</code>다. physical input <code>arduino-001</code>, <code>sensehat-001</code>은 EdgeX inventory에서 기능별 가상 Device 6개씩으로 분리되고 dashboard는 총 12개 행의 상태와 계약된 Reading을 표시한다.</p>
+<p>2026-07-21 Jetson Serial, Raspberry Pi 직접 I2C Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT 기반 Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.</p>
+<p>Serial과 Sense HAT I2C는 정상 경로만 지원 완료로 표시한다. 실제 분리·복구, Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
 <h2 id="workflow-augmentation-경계">Workflow/augmentation 경계</h2>
 <p>Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>

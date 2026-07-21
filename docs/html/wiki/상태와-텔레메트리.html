@@ -85,6 +85,7 @@
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,8 +137,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/상태와-텔레메트리.md</span>
-            <span class="badge">수정: 2026-07-21 19:07</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:17</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -212,9 +214,9 @@
 <ol><li>Core Metadata Device, Profile, Device Service가 의도한 binding으로 등록되어 있는지</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>와 <code>device_service_available</code></li><li>Core Data 최신 Event의 <code>deviceName</code>, <code>sourceName</code>, <code>origin</code>, typed Readings</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code></li><li>physical endpoint, Device Service, 중앙 MessageBus, Core Data/PostgreSQL, state-aggregator 연결</li><li>필요할 때만 관련 KubeEdge/Kubernetes node와 workload placement</li></ol>
 <p>Kubernetes node/workload 문제는 EdgeX physical state와 분리해 서비스 실행 또는 placement 진단으로 설명한다.</p>
 <h2 id="현재-device-service-상태">현재 Device Service 상태</h2>
-<p>2026-07-21 기존 direct Agent/SQLite/HTTPS edge 경로와 <code>sensehat-001</code> bootstrap은 퇴역했다. Jetson의 <code>device-serial-jetson</code>이 물리 source <code>arduino-001</code>을 공유 reader 하나로 수집해 6개 가상 Device Event로 전달한다.</p>
-<p>새 cutover의 정상 API 기준은 6개 가상 Device가 각각 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>이고 계약된 <code>Int32</code> Reading 하나를 제공하는 것이다.</p>
-<p>1차 수직 슬라이스에는 Device/resource별 최근 10분·최대 10,000 sample의 휘발성 recent cache와 latest/recent Local Data API가 있다. 같은 Jetson의 Workflow Pod가 이를 읽을 수 있지만 SQLite offline replay와 미전송 Event 재전송은 없다. 현재 Flannel은 client label NetworkPolicy를 강제하지 않으므로 endpoint는 unauthenticated read-only이고 label은 보안 경계가 아니다. Serial 정상 경로만 완료 범위이며 실제 장치 분리·복구는 남아 있다. Modbus, OPC-UA와 추가 I2C adapter는 profile, 실장비 연결, typed telemetry와 dashboard consumer 증거를 확보하기 전까지 완료로 주장하지 않는다. RTSP frame은 별도 Workflow Pod가 직접 구독한다.</p>
+<p>2026-07-21 기존 direct Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. Jetson의 <code>device-serial-jetson</code>과 Raspberry Pi의 <code>device-sensehat-raspi</code>가 물리 source <code>arduino-001</code>, <code>sensehat-001</code>을 각각 하나의 reader로 수집해 기능별 가상 Device 6개씩으로 전달한다.</p>
+<p>새 cutover의 정상 API 기준은 총 12개 가상 Device가 각각 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>인 것이다. Serial Device는 계약된 <code>Int32</code> Reading 하나, I2C Device는 Profile별 총 11개 <code>Float64</code> Reading을 제공한다.</p>
+<p>두 수직 슬라이스에는 Device/resource별 최근 10분·최대 10,000 sample의 휘발성 recent cache와 latest/recent Local Data API가 있다. 같은 edge node의 Workflow Pod가 이를 읽을 수 있지만 SQLite offline replay와 미전송 Event 재전송은 없다. 현재 Flannel은 client label NetworkPolicy를 강제하지 않으므로 endpoint는 unauthenticated read-only이고 label은 보안 경계가 아니다. Serial/Sense HAT I2C 정상 경로만 완료 범위이며 실제 장치 분리·복구는 남아 있다. Modbus, OPC-UA와 다른 I2C 장비·주소는 profile, 실장비 연결, typed telemetry와 dashboard consumer 증거를 확보하기 전까지 완료로 주장하지 않는다. RTSP frame은 별도 Workflow Pod가 직접 구독한다.</p>
 <h2 id="제외한-legacy-신호">제외한 legacy 신호</h2>
 <p>다음은 current physical health, telemetry freshness, dashboard KPI의 입력이나 fallback이 아니다.</p>
 <ul><li>KubeEdge <code>DeviceStatus</code> 및 DeviceStatus freshness</li><li>MapperFramework, mapper readiness, <code>mqttvirtual</code></li><li>mapper direct-write latest sample</li><li>legacy <code>command</code>/<code>heartbeat</code> topic과 mapper heartbeat</li></ul>

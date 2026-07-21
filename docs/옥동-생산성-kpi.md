@@ -1,6 +1,6 @@
 # 옥동 시나리오 생산성 KPI
 
-> **현재 실증 표본:** 기존 `sensehat-001` Agent fixture는 퇴역했다. 현재 KPI 표본은 Jetson의 Arduino 물리 source 1개를 resource별 가상 Device 6개로 나눈 수직 슬라이스이며, 이를 전체 공장 성과로 외삽하지 않는다.
+> **현재 실증 표본:** 기존 MQTT/Agent 기반 `sensehat-001` fixture는 퇴역했다. 현재 KPI 표본은 Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C의 물리 source 2개를 기능별 가상 Device 6개씩, 총 12개로 나눈 두 수직 슬라이스이며 이를 전체 공장 성과로 외삽하지 않는다.
 
 ## 목적
 
@@ -103,19 +103,19 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 이 지표는 device → EdgeX Device Service → 중앙 MessageBus → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
 
-## 현재 Serial 표본 KPI 해석
+## 현재 Serial/I2C 표본 KPI 해석
 
-현재 physical source는 `arduino-001`, EdgeX inventory example은 6개 `virtual-*-001` Device다. 다음 증거를 함께 제시한다.
+현재 physical source는 `arduino-001`, `sensehat-001`이고 EdgeX inventory는 Serial 6개 `virtual-*-001` Device와 환경/IMU I2C Device 6개다. 다음 증거를 함께 제시한다.
 
 1. `source=edgex`
 2. profile과 논리 수집 서비스 identity
-3. `protocol_names`의 Serial
+3. `protocol_names`의 Serial 또는 I2C
 4. admin/operating/connection 상태
 5. latest Core Data event timestamp와 freshness
-6. latest temperature/light/magnetic/acceleration readings의 source/resource/value
+6. latest Serial 및 Sense HAT 환경/IMU readings의 source/resource/value
 7. AI/storage/dashboard consumer 관계
 
-단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 다른 protocol과 장기 가용성은 각각 별도 증거가 필요하다.
+두 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개와 Sense HAT I2C 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 Modbus/OPC-UA 및 장기 가용성은 각각 별도 증거가 필요하다.
 
 ## 생산성 설명 문구
 
@@ -130,13 +130,13 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 | 범위 | KPI 포함 여부 |
 |---|---|
 | Serial Arduino source / 가상 Device 6개 | Device별 중앙 readback과 dashboard freshness 표본에 포함 |
+| I2C Sense HAT source / 가상 Device 6개 | Device별 중앙 readback과 dashboard freshness 표본에 포함 |
 | MQTT-only 장비 adapter | 현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함 |
-| I2C | 현재 제외; 교체 센서와 Device Service 증거가 있을 때만 포함 |
 | Modbus | 구현·현장 검증 전에는 제외 |
 | OPC-UA | 구현·현장 검증 전에는 제외 |
 | RTSP | 구현·현장 검증 전에는 제외 |
 
-후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다. 현재 Serial 경로는 outbox나 offline replay가 없으므로 durable edge buffering KPI를 주장하지 않는다.
+후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다. 현재 Serial/I2C 경로는 outbox나 offline replay가 없으므로 durable edge buffering KPI를 주장하지 않는다.
 
 ## 현재 범위에서 말하지 않는 것
 

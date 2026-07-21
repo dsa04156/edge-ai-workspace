@@ -85,6 +85,7 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
@@ -135,8 +137,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-21 19:08</span>
-            <span class="badge">HTML 생성: 2026-07-21 19:08</span>
+            <span class="badge">수정: 2026-07-21 20:16</span>
+            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -295,6 +297,53 @@
 <ul><li>Workflow client label은 현재 배치·정책 의도 표식으로만 사용하며 보안 경계로 설명하지 않는다.</li><li>cache는 로컬 저지연 조회, PostgreSQL은 영구 이력, 미구현 outbox는 장애 재전송 책임으로 계속 분리한다.</li></ul>
 <h3 id="다음-작업">다음 작업</h3>
 <ul><li>Raspberry Pi Sense HAT I2C Device Service를 독립 수직 슬라이스로 구현·검증한다.</li><li>정책 집행 또는 API 인증을 별도 보안 강화 작업으로 다룬다.</li></ul>
+<h3 id="sense-hat-i2c-추가-진행">Sense HAT I2C 추가 진행</h3>
+<ul><li>공식 EdgeX Device SDK 기반 <code>device-sensehat-raspi</code>를 추가하고 <code>etri-dev0003-raspi5</code>의 exact <code>/dev/i2c-1</code> CharDevice를 직접 연결했다.</li><li>RTIMULib reader를 Device Service 내부 protocol module로 두고 physical <code>sensehat-001</code>을 environment/IMU 가상 Device 6개, 총 11개 <code>Float64</code> resource로 fan-out했다.</li><li>Device/resource별 최근 10분·최대 10,000 sample 메모리 cache, read-only Core Command와 Local Data API 계약을 Serial service와 같은 경계로 구현했다.</li><li>ARM64 image <code>sha256:13c7b672110362d4907b797ccae50aad67d968da2296783295509f99c82b836c</code>와 구현 revision <code>365af7f21b92edf4b2fe2433096236d2892da65b</code>을 배포했다.</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Sense HAT Device Service</td>
+<td>PASS</td>
+<td>Raspberry Pi에서 Ready, restart 0, 기대 immutable ARM64 digest 실행</td>
+</tr>
+<tr>
+<td>실제 I2C 입력</td>
+<td>PASS</td>
+<td>temperature 2개, humidity, pressure, compass, orientation 3축, gyroscope 3축이 모두 유한한 실제 값 반환</td>
+</tr>
+<tr>
+<td>Metadata/Core Data</td>
+<td>PASS</td>
+<td>I2C Device 6개가 <code>UNLOCKED</code>, <code>UP</code>; 6개 Event의 총 11개 <code>Float64</code> resource readback</td>
+</tr>
+<tr>
+<td>Command/Local Data API</td>
+<td>PASS</td>
+<td>command 6개와 11개 local source의 최신값, 10분·10,000 sample retention 확인</td>
+</tr>
+<tr>
+<td>dashboard</td>
+<td>PASS</td>
+<td>Serial 6개 + I2C 6개, 총 12개가 <code>connected</code>, <code>available</code>, <code>fresh</code></td>
+</tr>
+<tr>
+<td>Service discovery</td>
+<td>PASS</td>
+<td>Raspberry Pi 임시 client에서 <code>.svc.cluster.local</code> FQDN으로 조회; 고정 ClusterIP/PodIP/node IP 미사용</td>
+</tr>
+<tr>
+<td>EdgeMesh</td>
+<td>무변경</td>
+<td>generation/observed 14, 5/5 Ready, image <code>kubeedge/edgemesh-agent:v1.17.0</code> 유지</td>
+</tr>
+</tbody></table></div>
+<h3 id="추가-이슈-다음-검증">추가 이슈 / 다음 검증</h3>
+<ul><li>Sense HAT 보드 분리·복구 현장 시연은 아직 남아 있다.</li><li>Modbus와 OPC-UA는 실제 endpoint가 없으므로 구현·실장 검증 완료로 표시하지 않는다.</li><li>EdgeX SDK의 중앙 internal MessageBus 연결은 유지하지만 물리 I2C 입력에 local MQTT broker나 Agent를 사용하지 않는다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -313,7 +362,9 @@
 <li class="toc-h3"><a href="#확인한-상태">확인한 상태</a></li>
 <li class="toc-h3"><a href="#이슈-리스크">이슈 / 리스크</a></li>
 <li class="toc-h3"><a href="#결정-사항">결정 사항</a></li>
-<li class="toc-h3"><a href="#다음-작업">다음 작업</a></li></ol></aside>
+<li class="toc-h3"><a href="#다음-작업">다음 작업</a></li>
+<li class="toc-h3"><a href="#sense-hat-i2c-추가-진행">Sense HAT I2C 추가 진행</a></li>
+<li class="toc-h3"><a href="#추가-이슈-다음-검증">추가 이슈 / 다음 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>
