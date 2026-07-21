@@ -39,6 +39,7 @@ type latestReading struct {
 type managedDevice struct {
 	reader managedReader
 	cancel context.CancelFunc
+	config SerialConfig
 }
 
 type Driver struct {
@@ -167,9 +168,13 @@ func (driver *Driver) UpdateDevice(
 		driver.mu.Unlock()
 		return errors.New("serial driver is stopped")
 	}
+	if current := driver.readers[deviceName]; current != nil && current.config == config {
+		driver.mu.Unlock()
+		return nil
+	}
 
 	readerContext, cancel := context.WithCancel(driver.ctx)
-	managed := &managedDevice{cancel: cancel}
+	managed := &managedDevice{cancel: cancel, config: config}
 	options := ReaderOptions{
 		OnSample: func(sample Sample, origin int64) {
 			driver.handleSample(deviceName, managed, sample, origin)

@@ -134,6 +134,35 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	require.NoError(t, driver.Stop(false))
 }
 
+func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+	require.NoError(t, driver.AddDevice(
+		"arduino-001",
+		testSerialProtocols(),
+		models.AdminState(models.Unlocked),
+	))
+	managed := factory.only(t)
+	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
+
+	require.NoError(t, driver.UpdateDevice(
+		"arduino-001",
+		testSerialProtocols(),
+		models.AdminState(models.Unlocked),
+	))
+
+	assert.Equal(t, 1, factory.count())
+	assert.False(t, managed.isClosed())
+}
+
 func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
 	sdk := mocks.NewDeviceServiceSDK(t)
@@ -196,6 +225,12 @@ func (factory *recordingReaderFactory) only(t *testing.T) *fakeManagedReader {
 	defer factory.mu.Unlock()
 	require.Len(t, factory.readers, 1)
 	return factory.readers[0]
+}
+
+func (factory *recordingReaderFactory) count() int {
+	factory.mu.Lock()
+	defer factory.mu.Unlock()
+	return len(factory.readers)
 }
 
 type fakeManagedReader struct {
