@@ -25,11 +25,6 @@ def _healthy_node() -> NodeState:
 async def _empty_resource_state(refresh=False):
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "recorded_at": None,
-        "recording_backend": "influxdb",
-        "recording_mode": "scheduled",
-        "recording_interval_seconds": 600,
-        "last_record_result": None,
         "profile_scope": "running_service_resource_requirements",
         "summary": {
             "profile_count": 0,

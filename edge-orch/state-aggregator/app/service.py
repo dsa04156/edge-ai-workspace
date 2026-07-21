@@ -25,7 +25,6 @@ from .models import (
     WorkflowState,
 )
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
-from .placement_recorder import InfluxResourceProfileRecorder
 from .prometheus import PrometheusClient
 from .resource_profile import build_service_resource_profiles, summarize_service_resource_profiles
 from .storage import StateStore
@@ -46,31 +45,16 @@ class StateAggregatorService:
             settings.edgex_core_data_url,
             settings.edgex_timeout_seconds,
         )
-        self.resource_recorder = InfluxResourceProfileRecorder(
-            settings.influxdb_url,
-            settings.influxdb_org,
-            settings.influxdb_bucket,
-            settings.influxdb_token,
-        )
         self._service_resource_profiles: list[dict[str, Any]] = []
-        self._last_resource_recorded_at: datetime | None = None
-        self._last_resource_record_result = "never_recorded"
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
-        self._resource_profile_recorder_task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._poller_task is None:
             self._poller_task = asyncio.create_task(self._poll_prometheus())
-        if self.settings.resource_profile_recording_mode == "scheduled" and self._resource_profile_recorder_task is None:
-            self._resource_profile_recorder_task = asyncio.create_task(self._record_resource_profiles_periodically())
 
     async def stop(self) -> None:
-        tasks = [
-            task
-            for task in (self._poller_task, self._resource_profile_recorder_task)
-            if task is not None
-        ]
+        tasks = [task for task in (self._poller_task,) if task is not None]
         for task in tasks:
             task.cancel()
         for task in tasks:
@@ -79,7 +63,6 @@ class StateAggregatorService:
             except asyncio.CancelledError:
                 pass
         self._poller_task = None
-        self._resource_profile_recorder_task = None
 
     async def _poll_prometheus(self) -> None:
         while True:
@@ -88,15 +71,6 @@ class StateAggregatorService:
             except Exception:
                 logger.exception("Failed to refresh Prometheus node metrics")
             await asyncio.sleep(self.settings.poll_interval_seconds)
-
-    async def _record_resource_profiles_periodically(self) -> None:
-        while True:
-            await asyncio.sleep(self.settings.resource_profile_record_interval_seconds)
-            try:
-                await self.record_service_resource_profiles(window=self.settings.resource_profile_window)
-            except Exception:
-                logger.exception("Failed to record scheduled service resource profile snapshot")
-
 
     async def refresh_nodes(self) -> list[NodeState]:
         # Dynamically discover nodes from K8s API
@@ -145,39 +119,7 @@ class StateAggregatorService:
         pods = await self.kube.get_running_service_pods()
         usage_samples = await self.prometheus.collect_service_resource_usage()
         self._service_resource_profiles = build_service_resource_profiles(pods, usage_samples)
-        if self.settings.resource_profile_recording_mode == "poll":
-            recorded = await self.resource_recorder.record_snapshot(self._service_resource_profiles)
-            self._last_resource_record_result = "recorded" if recorded else "failed"
-            if recorded:
-                self._last_resource_recorded_at = datetime.now(timezone.utc)
         return self._service_resource_profiles
-
-    async def record_service_resource_profiles(self, window: str | None = None) -> dict[str, Any]:
-        profile_window = window or self.settings.resource_profile_window
-        pods = await self.kube.get_running_service_pods()
-        usage_samples = await self.prometheus.collect_service_resource_profile_usage(window=profile_window)
-        profiles = build_service_resource_profiles(pods, usage_samples, profile_window=profile_window)
-        self._service_resource_profiles = profiles
-        if self.settings.resource_profile_recording_mode == "disabled":
-            self._last_resource_record_result = "disabled"
-            recorded = False
-        else:
-            recorded = await self.resource_recorder.record_snapshot(profiles)
-            self._last_resource_record_result = "recorded" if recorded else "failed"
-            if recorded:
-                self._last_resource_recorded_at = datetime.now(timezone.utc)
-        return {
-            "recorded": recorded,
-            "recording_backend": "influxdb",
-            "recording_mode": self.settings.resource_profile_recording_mode,
-            "recording_interval_seconds": self.settings.resource_profile_record_interval_seconds,
-            "last_record_result": self._last_resource_record_result,
-            "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
-            "profile_scope": "running_service_resource_requirements",
-            "profile_window": profile_window,
-            "summary": summarize_service_resource_profiles(profiles),
-            "service_resource_profiles": profiles,
-        }
 
     async def get_resource_profile_state(self, refresh: bool = False) -> dict[str, Any]:
         if refresh or not self._service_resource_profiles:
@@ -185,11 +127,6 @@ class StateAggregatorService:
         summary = summarize_service_resource_profiles(self._service_resource_profiles)
         return {
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "recorded_at": self._last_resource_recorded_at.isoformat() if self._last_resource_recorded_at else None,
-            "recording_backend": "influxdb",
-            "recording_mode": self.settings.resource_profile_recording_mode,
-            "recording_interval_seconds": self.settings.resource_profile_record_interval_seconds,
-            "last_record_result": self._last_resource_record_result,
             "profile_scope": "running_service_resource_requirements",
             "summary": summary,
             "service_resource_profiles": self._service_resource_profiles,

@@ -108,11 +108,6 @@ async def get_dashboard() -> DashboardState:
 def _resource_observation_error_state(exc: httpx.HTTPError) -> JsonMap:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "recorded_at": None,
-        "recording_backend": "influxdb",
-        "recording_mode": service.settings.resource_profile_recording_mode,
-        "recording_interval_seconds": service.settings.resource_profile_record_interval_seconds,
-        "last_record_result": service._last_resource_record_result,
         "profile_scope": "running_service_resource_requirements",
         "observation_error": f"service resource observation unavailable: {exc.__class__.__name__}",
         "summary": {
@@ -214,11 +209,6 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
         profiles = [item for item in profiles if item.get("service") == service_name]
     return {
         "generated_at": state.get("generated_at"),
-        "recorded_at": state.get("recorded_at"),
-        "recording_backend": state.get("recording_backend"),
-        "recording_mode": state.get("recording_mode"),
-        "recording_interval_seconds": state.get("recording_interval_seconds"),
-        "last_record_result": state.get("last_record_result"),
         "profile_scope": state.get("profile_scope"),
         "summary": state.get("summary"),
         "service_resource_profiles": profiles,
@@ -275,13 +265,6 @@ async def get_device_augmentations(namespace: str = "default") -> DeviceAugmenta
 async def get_runtime_resource_augmentation(refresh: bool = False, namespace: str = "default", mode: str = "observed") -> RuntimeAugmentationState:
     query = RuntimeAugmentationQuery(refresh=refresh, namespace=namespace, mode=mode)
     return await runtime_resource_augmentation_state(service=service, crds=augmentation_crds, query=query)
-
-
-@app.post("/state/service-resource-profiles/record")
-async def record_service_resource_profiles(
-    window: str = Query(default="10m", pattern=r"^[1-9][0-9]*[smhdw]$"),
-):
-    return await service.record_service_resource_profiles(window=window)
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

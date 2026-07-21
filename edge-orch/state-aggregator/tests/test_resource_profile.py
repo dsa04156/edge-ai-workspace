@@ -1,4 +1,5 @@
-from app.placement_recorder import InfluxResourceProfileRecorder
+from pathlib import Path
+
 from app.resource_profile import (
     build_service_resource_profiles,
     parse_cpu_cores,
@@ -156,55 +157,11 @@ def test_service_resource_summary_counts_profile_declaration_state_and_current_u
     assert summary["usage_coverage_ratio"] == 0.5
 
 
-def test_influx_recorder_builds_service_resource_profile_lines():
-    profiles = build_service_resource_profiles(
-        [
-            _pod(
-                "redis-a",
-                "redis",
-                "server-node",
-                requests={"cpu": "100m", "memory": "128Mi"},
-                limits={"cpu": "200m", "memory": "256Mi"},
-            )
-        ],
-        [{"namespace": "default", "pod": "redis-a", "container": "app", "cpu_usage_cores": 0.03, "memory_working_set_mib": 70}],
-    )
-    recorder = InfluxResourceProfileRecorder("http://influx", "edgeai", "device_telemetry", "token")
+def test_influx_modules_and_ui_contract_are_removed():
+    app_dir = Path(__file__).resolve().parents[1] / "app"
 
-    lines = recorder._service_profile_lines(profiles)
-
-    assert any(line.startswith("service_resource_profile_events,") for line in lines)
-    assert any("service=redis" in line for line in lines)
-    assert any("request_cpu_cores=0.1" in line for line in lines)
-    assert any("current_cpu_usage_cores=0.03" in line for line in lines)
-
-
-def test_influx_recorder_writes_window_profile_summary_fields():
-    profiles = build_service_resource_profiles(
-        [_pod("redis-a", "redis", "server-node", requests={"cpu": "100m", "memory": "128Mi"})],
-        [
-            {
-                "namespace": "default",
-                "pod": "redis-a",
-                "container": "app",
-                "avg_cpu_usage_cores": 0.02,
-                "max_cpu_usage_cores": 0.08,
-                "p95_cpu_usage_cores": 0.06,
-                "avg_memory_working_set_mib": 64,
-                "max_memory_working_set_mib": 96,
-                "p95_memory_working_set_mib": 88,
-            }
-        ],
-        profile_window="10m",
-    )
-    recorder = InfluxResourceProfileRecorder("http://influx", "edgeai", "device_telemetry", "token")
-
-    line = recorder._service_profile_lines(profiles)[0]
-
-    assert 'profile_window="10m"' in line
-    assert "avg_cpu_usage_cores=0.02" in line
-    assert "max_cpu_usage_cores=0.08" in line
-    assert "p95_cpu_usage_cores=0.06" in line
-    assert "avg_memory_working_set_mib=64.0" in line
-    assert "max_memory_working_set_mib=96.0" in line
-    assert "p95_memory_working_set_mib=88.0" in line
+    assert not (app_dir / "influx.py").exists()
+    assert not (app_dir / "placement_recorder.py").exists()
+    workflow_panels = (app_dir / "static" / "workflow-render-panels.js").read_text()
+    assert "InfluxDB" not in workflow_panels
+    assert "EdgeX Core Data / PostgreSQL" in workflow_panels

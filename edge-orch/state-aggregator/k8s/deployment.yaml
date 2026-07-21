@@ -33,8 +33,6 @@ spec:
               value: /app/data
             - name: INSTANCE_MAP_PATH
               value: /app/app/config/instance_map.json
-            - name: RESOURCE_PROFILE_RECORDING_MODE
-              value: disabled
             - name: EDGEX_CORE_METADATA_URL
               value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
             - name: EDGEX_CORE_DATA_URL

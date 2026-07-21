@@ -27,15 +27,6 @@ class Settings(BaseModel):
             os.getenv("DATA_DIR", str(Path(__file__).resolve().parent / "data"))
         )
     )
-    influxdb_url: str = Field(
-        default_factory=lambda: os.getenv(
-            "INFLUXDB_URL",
-            "http://influxdb:8086",
-        )
-    )
-    influxdb_org: str = Field(default_factory=lambda: os.getenv("INFLUXDB_ORG", "edgeai"))
-    influxdb_bucket: str = Field(default_factory=lambda: os.getenv("INFLUXDB_BUCKET", "device_telemetry"))
-    influxdb_token: str | None = Field(default_factory=lambda: os.getenv("INFLUXDB_TOKEN"))
     edgex_core_metadata_url: str = Field(
         default_factory=lambda: os.getenv(
             "EDGEX_CORE_METADATA_URL",
@@ -53,15 +44,6 @@ class Settings(BaseModel):
     )
     edgex_event_fresh_seconds: int = Field(
         default_factory=lambda: int(os.getenv("EDGEX_EVENT_FRESH_SECONDS", "90"))
-    )
-    resource_profile_recording_mode: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "disabled").lower()
-    )
-    resource_profile_window: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_PROFILE_WINDOW", "10m")
-    )
-    resource_profile_record_interval_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("RESOURCE_PROFILE_RECORD_INTERVAL_SECONDS", "600"))
     )
     qwen_base_url: str = Field(
         default_factory=lambda: os.getenv("QWEN_BASE_URL", "http://192.168.0.5:8080/v1")
