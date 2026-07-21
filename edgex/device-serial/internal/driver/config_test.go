@@ -11,9 +11,10 @@ import (
 func TestParseSerialConfig(t *testing.T) {
 	protocols := map[string]models.ProtocolProperties{
 		"serial": {
-			"Port":     "/dev/arduino-001",
-			"BaudRate": "115200",
-			"DeviceID": "arduino-001",
+			"Port":         "/dev/arduino-001",
+			"BaudRate":     "115200",
+			"DeviceID":     "arduino-001",
+			"ResourceName": "temperature_raw",
 		},
 	}
 
@@ -21,18 +22,20 @@ func TestParseSerialConfig(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, SerialConfig{
-		Port:     "/dev/arduino-001",
-		BaudRate: 115200,
-		DeviceID: "arduino-001",
+		Port:         "/dev/arduino-001",
+		BaudRate:     115200,
+		DeviceID:     "arduino-001",
+		ResourceName: "temperature_raw",
 	}, config)
 }
 
 func TestParseSerialConfigAcceptsNumericBaudRate(t *testing.T) {
 	protocols := map[string]models.ProtocolProperties{
 		"serial": {
-			"Port":     "/dev/arduino-001",
-			"BaudRate": 115200,
-			"DeviceID": "arduino-001",
+			"Port":         "/dev/arduino-001",
+			"BaudRate":     115200,
+			"DeviceID":     "arduino-001",
+			"ResourceName": "light_raw",
 		},
 	}
 
@@ -40,6 +43,7 @@ func TestParseSerialConfigAcceptsNumericBaudRate(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 115200, config.BaudRate)
+	assert.Equal(t, "light_raw", config.ResourceName)
 }
 
 func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
@@ -51,37 +55,49 @@ func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
 		{
 			name: "relative port",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": "ttyACM0", "BaudRate": "115200", "DeviceID": "arduino-001",
+				"Port": "ttyACM0", "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 		{
 			name: "missing port",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"BaudRate": "115200", "DeviceID": "arduino-001",
+				"BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 		{
 			name: "unsupported baud rate",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": "/dev/arduino-001", "BaudRate": "9600", "DeviceID": "arduino-001",
+				"Port": "/dev/arduino-001", "BaudRate": "9600", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 		{
 			name: "non numeric baud rate",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": "/dev/arduino-001", "BaudRate": "fast", "DeviceID": "arduino-001",
+				"Port": "/dev/arduino-001", "BaudRate": "fast", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 		{
 			name: "missing device id",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": "/dev/arduino-001", "BaudRate": "115200",
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "ResourceName": "temperature_raw",
+			}},
+		},
+		{
+			name: "missing resource name",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001",
+			}},
+		},
+		{
+			name: "unsupported resource name",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "pressure_raw",
 			}},
 		},
 		{
 			name: "invalid property type",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": true, "BaudRate": "115200", "DeviceID": "arduino-001",
+				"Port": true, "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 	}

@@ -14,54 +14,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDriverPublishesAsyncValuesAndServesLatestReads(t *testing.T) {
+func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 2)
 	sdk := mocks.NewDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
-	sdk.On("UpdateDeviceOperatingState", "arduino-001", models.OperatingState(models.Up)).Return(nil).Once()
+	sdk.On("UpdateDeviceOperatingState", "virtual-temperature-001", models.OperatingState(models.Up)).Return(nil).Once()
 
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
 
-	require.NoError(t, driver.AddDevice("arduino-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
+	require.NoError(t, driver.AddDevice("virtual-temperature-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
 
 	managed.options.OnState(models.OperatingState(models.Up))
 	managed.options.OnSample(Sample{
 		DeviceName: "arduino-001",
-		SourceName: "acceleration",
+		SourceName: "temperature",
 		Readings: []Reading{
-			{ResourceName: "acceleration_x_raw", Value: 336},
-			{ResourceName: "acceleration_y_raw", Value: 288},
-			{ResourceName: "acceleration_z_raw", Value: 292},
+			{ResourceName: "temperature_raw", Value: 336},
 		},
 	}, 987654321)
 
 	event := <-asyncValues
-	assert.Equal(t, "arduino-001", event.DeviceName)
-	assert.Equal(t, "acceleration", event.SourceName)
-	require.Len(t, event.CommandValues, 3)
-	assert.Equal(t, "acceleration_x_raw", event.CommandValues[0].DeviceResourceName)
+	assert.Equal(t, "virtual-temperature-001", event.DeviceName)
+	assert.Equal(t, "temperature", event.SourceName)
+	require.Len(t, event.CommandValues, 1)
+	assert.Equal(t, "temperature_raw", event.CommandValues[0].DeviceResourceName)
 	assert.Equal(t, common.ValueTypeInt32, event.CommandValues[0].Type)
 	assert.Equal(t, int32(336), event.CommandValues[0].Value)
 	assert.Equal(t, int64(987654321), event.CommandValues[0].Origin)
 
-	values, err := driver.HandleReadCommands("arduino-001", testSerialProtocols(), []sdkModels.CommandRequest{
-		{DeviceResourceName: "acceleration_z_raw", Type: common.ValueTypeInt32},
-		{DeviceResourceName: "acceleration_x_raw", Type: common.ValueTypeInt32},
+	values, err := driver.HandleReadCommands("virtual-temperature-001", testSerialProtocols(), []sdkModels.CommandRequest{
+		{DeviceResourceName: "temperature_raw", Type: common.ValueTypeInt32},
 	})
 	require.NoError(t, err)
-	require.Len(t, values, 2)
-	assert.Equal(t, "acceleration_z_raw", values[0].DeviceResourceName)
-	assert.Equal(t, int32(292), values[0].Value)
+	require.Len(t, values, 1)
+	assert.Equal(t, "temperature_raw", values[0].DeviceResourceName)
+	assert.Equal(t, int32(336), values[0].Value)
 	assert.Equal(t, int64(987654321), values[0].Origin)
-	assert.Equal(t, "acceleration_x_raw", values[1].DeviceResourceName)
-	assert.Equal(t, int32(336), values[1].Value)
 }
 
 func TestDriverRejectsReadBeforeFirstSampleAndAllWrites(t *testing.T) {
@@ -74,31 +69,31 @@ func TestDriverRejectsReadBeforeFirstSampleAndAllWrites(t *testing.T) {
 	driver := newDriver((&recordingReaderFactory{}).create)
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
-	require.NoError(t, driver.AddDevice("arduino-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
+	require.NoError(t, driver.AddDevice("virtual-temperature-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
 
-	_, err := driver.HandleReadCommands("arduino-001", testSerialProtocols(), []sdkModels.CommandRequest{
+	_, err := driver.HandleReadCommands("virtual-temperature-001", testSerialProtocols(), []sdkModels.CommandRequest{
 		{DeviceResourceName: "temperature_raw", Type: common.ValueTypeInt32},
 	})
 	assert.ErrorContains(t, err, "no recent reading")
 
-	_, err = driver.HandleReadCommands("arduino-001", testSerialProtocols(), []sdkModels.CommandRequest{
+	_, err = driver.HandleReadCommands("virtual-temperature-001", testSerialProtocols(), []sdkModels.CommandRequest{
 		{DeviceResourceName: "temperature_raw", Type: common.ValueTypeString},
 	})
 	assert.ErrorContains(t, err, "Int32")
 
-	err = driver.HandleWriteCommands("arduino-001", testSerialProtocols(), nil, nil)
+	err = driver.HandleWriteCommands("virtual-temperature-001", testSerialProtocols(), nil, nil)
 	assert.ErrorContains(t, err, "read-only")
 }
 
 func TestDriverValidatesDeviceIdentityAndSerialProperties(t *testing.T) {
 	driver := NewDriver()
 
-	valid := models.Device{Name: "arduino-001", Protocols: testSerialProtocols()}
+	valid := models.Device{Name: "virtual-temperature-001", Protocols: testSerialProtocols()}
 	require.NoError(t, driver.ValidateDevice(valid))
 
-	wrongIdentity := valid
-	wrongIdentity.Name = "different-name"
-	assert.ErrorContains(t, driver.ValidateDevice(wrongIdentity), "must match")
+	emptyIdentity := valid
+	emptyIdentity.Name = ""
+	assert.ErrorContains(t, driver.ValidateDevice(emptyIdentity), "name is required")
 
 	badPort := valid
 	badPort.Protocols = testSerialProtocols()
@@ -113,7 +108,7 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
 	sdk.On("Devices").Return([]models.Device{{
-		Name:       "arduino-001",
+		Name:       "virtual-temperature-001",
 		Protocols:  testSerialProtocols(),
 		AdminState: models.AdminState(models.Unlocked),
 	}}).Once()
@@ -126,7 +121,7 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
 
 	require.NoError(t, driver.UpdateDevice(
-		"arduino-001",
+		"virtual-temperature-001",
 		testSerialProtocols(),
 		models.AdminState(models.Locked),
 	))
@@ -146,7 +141,7 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 	require.NoError(t, driver.Initialize(sdk))
 	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
 	require.NoError(t, driver.AddDevice(
-		"arduino-001",
+		"virtual-temperature-001",
 		testSerialProtocols(),
 		models.AdminState(models.Unlocked),
 	))
@@ -154,7 +149,7 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
 
 	require.NoError(t, driver.UpdateDevice(
-		"arduino-001",
+		"virtual-temperature-001",
 		testSerialProtocols(),
 		models.AdminState(models.Unlocked),
 	))
@@ -173,11 +168,11 @@ func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
 	factory := &recordingReaderFactory{}
 	driver := newDriver(factory.create)
 	require.NoError(t, driver.Initialize(sdk))
-	require.NoError(t, driver.AddDevice("arduino-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
+	require.NoError(t, driver.AddDevice("virtual-temperature-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
 
-	require.NoError(t, driver.RemoveDevice("arduino-001", testSerialProtocols()))
+	require.NoError(t, driver.RemoveDevice("virtual-temperature-001", testSerialProtocols()))
 	require.Eventually(t, managed.isClosed, time.Second, 5*time.Millisecond)
 	assert.ErrorContains(t, driver.Discover(), "not supported")
 	require.NoError(t, driver.Stop(false))
@@ -191,12 +186,179 @@ func TestDriverRequiresAsyncReadings(t *testing.T) {
 	assert.ErrorContains(t, driver.Initialize(sdk), "asynchronous readings")
 }
 
-func testSerialProtocols() map[string]models.ProtocolProperties {
+func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 3)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	devices := []struct {
+		name     string
+		resource string
+	}{
+		{name: "virtual-acceleration-x-001", resource: "acceleration_x_raw"},
+		{name: "virtual-acceleration-y-001", resource: "acceleration_y_raw"},
+		{name: "virtual-acceleration-z-001", resource: "acceleration_z_raw"},
+	}
+	for _, device := range devices {
+		require.NoError(t, driver.AddDevice(
+			device.name,
+			testSerialProtocols(device.resource),
+			models.AdminState(models.Unlocked),
+		))
+	}
+
+	assert.Equal(t, 1, factory.count())
+	managed := factory.only(t)
+	managed.options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "acceleration",
+		Readings: []Reading{
+			{ResourceName: "acceleration_x_raw", Value: 336},
+			{ResourceName: "acceleration_y_raw", Value: 288},
+			{ResourceName: "acceleration_z_raw", Value: 292},
+		},
+	}, 987654321)
+
+	events := make(map[string]*sdkModels.AsyncValues, len(devices))
+	for range devices {
+		event := <-asyncValues
+		events[event.DeviceName] = event
+	}
+	for _, device := range devices {
+		event := events[device.name]
+		require.NotNil(t, event)
+		assert.Equal(t, device.resource[:len(device.resource)-4], event.SourceName)
+		require.Len(t, event.CommandValues, 1)
+		assert.Equal(t, device.resource, event.CommandValues[0].DeviceResourceName)
+		assert.Equal(t, int64(987654321), event.CommandValues[0].Origin)
+	}
+
+	values, err := driver.HandleReadCommands(
+		"virtual-acceleration-z-001",
+		testSerialProtocols("acceleration_z_raw"),
+		[]sdkModels.CommandRequest{{
+			DeviceResourceName: "acceleration_z_raw",
+			Type:               common.ValueTypeInt32,
+		}},
+	)
+	require.NoError(t, err)
+	require.Len(t, values, 1)
+	assert.Equal(t, int32(292), values[0].Value)
+}
+
+func TestDriverFansOutConnectionStateAndClosesAfterLastRoute(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 2)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+	sdk.On("UpdateDeviceOperatingState", "virtual-temperature-001", models.OperatingState(models.Up)).Return(nil).Once()
+	sdk.On("UpdateDeviceOperatingState", "virtual-light-001", models.OperatingState(models.Up)).Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+
+	require.NoError(t, driver.AddDevice(
+		"virtual-temperature-001",
+		testSerialProtocols("temperature_raw"),
+		models.AdminState(models.Unlocked),
+	))
+	require.NoError(t, driver.AddDevice(
+		"virtual-light-001",
+		testSerialProtocols("light_raw"),
+		models.AdminState(models.Unlocked),
+	))
+	managed := factory.only(t)
+	managed.options.OnState(models.OperatingState(models.Up))
+
+	require.NoError(t, driver.RemoveDevice(
+		"virtual-temperature-001",
+		testSerialProtocols("temperature_raw"),
+	))
+	assert.False(t, managed.isClosed())
+	require.NoError(t, driver.RemoveDevice(
+		"virtual-light-001",
+		testSerialProtocols("light_raw"),
+	))
+	require.Eventually(t, managed.isClosed, time.Second, 5*time.Millisecond)
+	require.NoError(t, driver.Stop(false))
+}
+
+func TestDriverAppliesKnownConnectionStateToNewRoute(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+	sdk.On("UpdateDeviceOperatingState", "virtual-temperature-001", models.OperatingState(models.Up)).Return(nil).Once()
+	sdk.On("UpdateDeviceOperatingState", "virtual-light-001", models.OperatingState(models.Up)).Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	require.NoError(t, driver.AddDevice(
+		"virtual-temperature-001",
+		testSerialProtocols("temperature_raw"),
+		models.AdminState(models.Unlocked),
+	))
+	managed := factory.only(t)
+	managed.options.OnState(models.OperatingState(models.Up))
+
+	require.NoError(t, driver.AddDevice(
+		"virtual-light-001",
+		testSerialProtocols("light_raw"),
+		models.AdminState(models.Unlocked),
+	))
+	assert.Equal(t, 1, factory.count())
+}
+
+func TestDriverRejectsDuplicateResourceBinding(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+	require.NoError(t, driver.AddDevice(
+		"virtual-temperature-001",
+		testSerialProtocols("temperature_raw"),
+		models.AdminState(models.Unlocked),
+	))
+
+	err := driver.AddDevice(
+		"virtual-temperature-duplicate",
+		testSerialProtocols("temperature_raw"),
+		models.AdminState(models.Unlocked),
+	)
+	assert.ErrorContains(t, err, "already routed")
+	assert.Equal(t, 1, factory.count())
+}
+
+func testSerialProtocols(resourceNames ...string) map[string]models.ProtocolProperties {
+	resourceName := "temperature_raw"
+	if len(resourceNames) > 0 {
+		resourceName = resourceNames[0]
+	}
 	return map[string]models.ProtocolProperties{
 		"serial": {
-			"Port":     "/dev/arduino-001",
-			"BaudRate": "115200",
-			"DeviceID": "arduino-001",
+			"Port":         "/dev/arduino-001",
+			"BaudRate":     "115200",
+			"DeviceID":     "arduino-001",
+			"ResourceName": resourceName,
 		},
 	}
 }

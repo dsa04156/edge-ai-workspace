@@ -24,6 +24,15 @@ var supportedResources = map[string]struct{}{
 	"acceleration_z_raw": {},
 }
 
+var sourceNames = map[string]string{
+	"temperature_raw":    "temperature",
+	"light_raw":          "light",
+	"magnetic_raw":       "magnetic",
+	"acceleration_x_raw": "acceleration_x",
+	"acceleration_y_raw": "acceleration_y",
+	"acceleration_z_raw": "acceleration_z",
+}
+
 type managedReader interface {
 	Run(ctx context.Context)
 	Close() error
@@ -36,23 +45,32 @@ type latestReading struct {
 	origin int64
 }
 
-type managedDevice struct {
-	reader managedReader
-	cancel context.CancelFunc
-	config SerialConfig
+type managedConnection struct {
+	reader   managedReader
+	cancel   context.CancelFunc
+	config   SerialConfig
+	routes   map[string]string
+	state    models.OperatingState
+	hasState bool
+}
+
+type deviceBinding struct {
+	config     SerialConfig
+	connection *managedConnection
 }
 
 type Driver struct {
-	mu        sync.RWMutex
-	sdk       interfaces.DeviceServiceSDK
-	logger    logger.LoggingClient
-	async     chan *sdkModels.AsyncValues
-	ctx       context.Context
-	cancel    context.CancelFunc
-	readers   map[string]*managedDevice
-	latest    map[string]map[string]latestReading
-	newReader readerFactory
-	stopped   bool
+	mu          sync.RWMutex
+	sdk         interfaces.DeviceServiceSDK
+	logger      logger.LoggingClient
+	async       chan *sdkModels.AsyncValues
+	ctx         context.Context
+	cancel      context.CancelFunc
+	connections map[connectionKey]*managedConnection
+	bindings    map[string]*deviceBinding
+	latest      map[string]map[string]latestReading
+	newReader   readerFactory
+	stopped     bool
 }
 
 func NewDriver() *Driver {
@@ -63,9 +81,10 @@ func NewDriver() *Driver {
 
 func newDriver(factory readerFactory) *Driver {
 	return &Driver{
-		readers:   make(map[string]*managedDevice),
-		latest:    make(map[string]map[string]latestReading),
-		newReader: factory,
+		connections: make(map[connectionKey]*managedConnection),
+		bindings:    make(map[string]*deviceBinding),
+		latest:      make(map[string]map[string]latestReading),
+		newReader:   factory,
 	}
 }
 
@@ -119,11 +138,12 @@ func (driver *Driver) Stop(force bool) error {
 	if driver.cancel != nil {
 		driver.cancel()
 	}
-	managed := make([]*managedDevice, 0, len(driver.readers))
-	for _, current := range driver.readers {
+	managed := make([]*managedConnection, 0, len(driver.connections))
+	for _, current := range driver.connections {
 		managed = append(managed, current)
 	}
-	driver.readers = make(map[string]*managedDevice)
+	driver.connections = make(map[connectionKey]*managedConnection)
+	driver.bindings = make(map[string]*deviceBinding)
 	driver.mu.Unlock()
 
 	var closeErrors []error
@@ -159,6 +179,13 @@ func (driver *Driver) UpdateDevice(
 		return err
 	}
 
+	var obsolete *managedConnection
+	var created *managedConnection
+	var readerContext context.Context
+	var readerCancel context.CancelFunc
+	var knownState *models.OperatingState
+	var sdk interfaces.DeviceServiceSDK
+
 	driver.mu.Lock()
 	if driver.sdk == nil || driver.ctx == nil {
 		driver.mu.Unlock()
@@ -168,36 +195,81 @@ func (driver *Driver) UpdateDevice(
 		driver.mu.Unlock()
 		return errors.New("serial driver is stopped")
 	}
-	if current := driver.readers[deviceName]; current != nil && current.config == config {
+	if current := driver.bindings[deviceName]; current != nil && current.config == config {
 		driver.mu.Unlock()
 		return nil
 	}
 
-	readerContext, cancel := context.WithCancel(driver.ctx)
-	managed := &managedDevice{cancel: cancel, config: config}
-	options := ReaderOptions{
-		OnSample: func(sample Sample, origin int64) {
-			driver.handleSample(deviceName, managed, sample, origin)
-		},
-		OnState: func(state models.OperatingState) {
-			driver.handleState(deviceName, managed, state)
-		},
-		OnInvalidLine: func(err error) {
-			driver.warn("discarding malformed serial telemetry for %s: %v", deviceName, err)
-		},
-	}
-	managed.reader = driver.newReader(config, options)
-	previous := driver.readers[deviceName]
-	driver.readers[deviceName] = managed
-	driver.mu.Unlock()
-
-	if previous != nil {
-		previous.cancel()
-		if err := previous.reader.Close(); err != nil {
-			driver.warn("close replaced serial reader for %s: %v", deviceName, err)
+	key := config.key()
+	target := driver.connections[key]
+	if target != nil {
+		if routedDevice, ok := target.routes[config.ResourceName]; ok && routedDevice != deviceName {
+			driver.mu.Unlock()
+			return fmt.Errorf(
+				"serial resource %q is already routed to %q",
+				config.ResourceName,
+				routedDevice,
+			)
 		}
 	}
-	go managed.reader.Run(readerContext)
+
+	current := driver.bindings[deviceName]
+	if current != nil {
+		delete(current.connection.routes, current.config.ResourceName)
+		delete(driver.bindings, deviceName)
+		delete(driver.latest, deviceName)
+		if len(current.connection.routes) == 0 && current.connection != target {
+			delete(driver.connections, current.config.key())
+			obsolete = current.connection
+		}
+	}
+
+	if target == nil {
+		readerContext, readerCancel = context.WithCancel(driver.ctx)
+		target = &managedConnection{
+			cancel: readerCancel,
+			config: config,
+			routes: make(map[string]string),
+		}
+		options := ReaderOptions{
+			OnSample: func(sample Sample, origin int64) {
+				driver.handleSample(target, sample, origin)
+			},
+			OnState: func(state models.OperatingState) {
+				driver.handleState(target, state)
+			},
+			OnInvalidLine: func(err error) {
+				driver.warn("discarding malformed serial telemetry for %s: %v", config.DeviceID, err)
+			},
+		}
+		target.reader = driver.newReader(config, options)
+		driver.connections[key] = target
+		created = target
+	}
+	target.routes[config.ResourceName] = deviceName
+	driver.bindings[deviceName] = &deviceBinding{config: config, connection: target}
+	delete(driver.latest, deviceName)
+	if target.hasState {
+		state := target.state
+		knownState = &state
+	}
+	sdk = driver.sdk
+	driver.mu.Unlock()
+
+	if obsolete != nil {
+		obsolete.cancel()
+		if err := obsolete.reader.Close(); err != nil {
+			driver.warn("close unused serial reader for %s: %v", obsolete.config.DeviceID, err)
+		}
+	}
+	if created != nil {
+		go created.reader.Run(readerContext)
+	}
+	if knownState != nil {
+		if err := sdk.UpdateDeviceOperatingState(deviceName, *knownState); err != nil {
+			driver.warn("update operating state for %s to %s: %v", deviceName, *knownState, err)
+		}
+	}
 	return nil
 }
 
@@ -284,33 +356,46 @@ func validateDeviceConfig(
 	if deviceName == "" {
 		return SerialConfig{}, errors.New("EdgeX device name is required")
 	}
-	if config.DeviceID != deviceName {
-		return SerialConfig{}, fmt.Errorf(
-			"serial DeviceID %q must match EdgeX device name %q",
-			config.DeviceID,
-			deviceName,
-		)
-	}
 	return config, nil
 }
 
 func (driver *Driver) handleSample(
-	deviceName string,
-	managed *managedDevice,
+	managed *managedConnection,
 	sample Sample,
 	origin int64,
 ) {
-	if sample.DeviceName != deviceName {
-		driver.warn("discarding serial telemetry with unexpected device %q for %s", sample.DeviceName, deviceName)
+	if sample.DeviceName != managed.config.DeviceID {
+		driver.warn(
+			"discarding serial telemetry with unexpected physical device %q for %s",
+			sample.DeviceName,
+			managed.config.DeviceID,
+		)
 		return
 	}
 
-	commandValues := make([]*sdkModels.CommandValue, 0, len(sample.Readings))
-	latest := make(map[string]latestReading, len(sample.Readings))
+	type routedEvent struct {
+		deviceName string
+		sourceName string
+		value      *sdkModels.CommandValue
+	}
+	events := make([]routedEvent, 0, len(sample.Readings))
+
+	driver.mu.Lock()
+	if driver.connections[managed.config.key()] != managed || driver.stopped {
+		driver.mu.Unlock()
+		return
+	}
 	for _, reading := range sample.Readings {
 		if _, ok := supportedResources[reading.ResourceName]; !ok {
-			driver.warn("discarding unsupported serial resource %q for %s", reading.ResourceName, deviceName)
-			return
+			continue
+		}
+		deviceName, ok := managed.routes[reading.ResourceName]
+		if !ok {
+			continue
+		}
+		sourceName, ok := sourceNames[reading.ResourceName]
+		if !ok {
+			continue
 		}
 		commandValue, err := sdkModels.NewCommandValueWithOrigin(
 			reading.ResourceName,
@@ -319,73 +404,91 @@ func (driver *Driver) handleSample(
 			origin,
 		)
 		if err != nil {
+			driver.mu.Unlock()
 			driver.warn("create async serial reading for %s/%s: %v", deviceName, reading.ResourceName, err)
 			return
 		}
-		commandValues = append(commandValues, commandValue)
-		latest[reading.ResourceName] = latestReading{value: reading.Value, origin: origin}
-	}
-	if len(commandValues) == 0 {
-		return
-	}
-
-	driver.mu.Lock()
-	if driver.readers[deviceName] != managed || driver.stopped {
-		driver.mu.Unlock()
-		return
-	}
-	if driver.latest[deviceName] == nil {
-		driver.latest[deviceName] = make(map[string]latestReading)
-	}
-	for resourceName, reading := range latest {
-		driver.latest[deviceName][resourceName] = reading
+		if driver.latest[deviceName] == nil {
+			driver.latest[deviceName] = make(map[string]latestReading)
+		}
+		driver.latest[deviceName][reading.ResourceName] = latestReading{
+			value:  reading.Value,
+			origin: origin,
+		}
+		events = append(events, routedEvent{
+			deviceName: deviceName,
+			sourceName: sourceName,
+			value:      commandValue,
+		})
 	}
 	async := driver.async
 	ctx := driver.ctx
 	driver.mu.Unlock()
 
-	event := &sdkModels.AsyncValues{
-		DeviceName:    deviceName,
-		SourceName:    sample.SourceName,
-		CommandValues: commandValues,
-	}
-	select {
-	case async <- event:
-	case <-ctx.Done():
+	for _, routed := range events {
+		event := &sdkModels.AsyncValues{
+			DeviceName:    routed.deviceName,
+			SourceName:    routed.sourceName,
+			CommandValues: []*sdkModels.CommandValue{routed.value},
+		}
+		select {
+		case async <- event:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 
 func (driver *Driver) handleState(
-	deviceName string,
-	managed *managedDevice,
+	managed *managedConnection,
 	state models.OperatingState,
 ) {
-	driver.mu.RLock()
-	active := driver.readers[deviceName] == managed && !driver.stopped
+	driver.mu.Lock()
+	active := driver.connections[managed.config.key()] == managed && !driver.stopped
 	sdk := driver.sdk
-	driver.mu.RUnlock()
+	if active {
+		managed.state = state
+		managed.hasState = true
+	}
+	deviceSet := make(map[string]struct{}, len(managed.routes))
+	if active {
+		for _, deviceName := range managed.routes {
+			deviceSet[deviceName] = struct{}{}
+		}
+	}
+	driver.mu.Unlock()
 	if !active || sdk == nil {
 		return
 	}
-	if err := sdk.UpdateDeviceOperatingState(deviceName, state); err != nil {
-		driver.warn("update operating state for %s to %s: %v", deviceName, state, err)
+	for deviceName := range deviceSet {
+		if err := sdk.UpdateDeviceOperatingState(deviceName, state); err != nil {
+			driver.warn("update operating state for %s to %s: %v", deviceName, state, err)
+		}
 	}
 }
 
 func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 	driver.mu.Lock()
-	managed := driver.readers[deviceName]
-	delete(driver.readers, deviceName)
+	binding := driver.bindings[deviceName]
+	var unused *managedConnection
+	if binding != nil {
+		delete(binding.connection.routes, binding.config.ResourceName)
+		delete(driver.bindings, deviceName)
+		if len(binding.connection.routes) == 0 {
+			delete(driver.connections, binding.config.key())
+			unused = binding.connection
+		}
+	}
 	if clearLatest {
 		delete(driver.latest, deviceName)
 	}
 	driver.mu.Unlock()
-	if managed == nil {
+	if unused == nil {
 		return
 	}
-	managed.cancel()
-	if err := managed.reader.Close(); err != nil {
-		driver.warn("close serial reader for %s: %v", deviceName, err)
+	unused.cancel()
+	if err := unused.reader.Close(); err != nil {
+		driver.warn("close serial reader for %s: %v", unused.config.DeviceID, err)
 	}
 }
 

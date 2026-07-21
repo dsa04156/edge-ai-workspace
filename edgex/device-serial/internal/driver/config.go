@@ -13,9 +13,24 @@ import (
 const supportedBaudRate = 115200
 
 type SerialConfig struct {
-	Port     string
-	BaudRate int
-	DeviceID string
+	Port         string
+	BaudRate     int
+	DeviceID     string
+	ResourceName string
+}
+
+type connectionKey struct {
+	port     string
+	baudRate int
+	deviceID string
+}
+
+func (config SerialConfig) key() connectionKey {
+	return connectionKey{
+		port:     config.Port,
+		baudRate: config.BaudRate,
+		deviceID: config.DeviceID,
+	}
 }
 
 func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialConfig, error) {
@@ -45,7 +60,20 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 		return SerialConfig{}, err
 	}
 
-	return SerialConfig{Port: port, BaudRate: baudRate, DeviceID: deviceID}, nil
+	resourceName, err := requiredString(properties, "ResourceName")
+	if err != nil {
+		return SerialConfig{}, err
+	}
+	if _, ok := supportedResources[resourceName]; !ok {
+		return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
+	}
+
+	return SerialConfig{
+		Port:         port,
+		BaudRate:     baudRate,
+		DeviceID:     deviceID,
+		ResourceName: resourceName,
+	}, nil
 }
 
 func requiredString(properties models.ProtocolProperties, name string) (string, error) {
