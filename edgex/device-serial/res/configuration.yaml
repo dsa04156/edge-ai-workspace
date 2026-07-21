@@ -8,7 +8,12 @@ Service:
   Port: 59910
   StartupMsg: Jetson Arduino serial Device Service started
 
+Clients:
+  core-metadata:
+    Host: edgex-core-metadata
+
 MessageBus:
+  Host: edgex-messagebus
   Optional:
     ClientId: device-serial-jetson
 

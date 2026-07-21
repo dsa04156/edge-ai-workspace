@@ -84,8 +84,12 @@ func TestResourceFilesEnableAsyncSDKWithoutDiscovery(t *testing.T) {
 	assert.Equal(t, 59910, service["Port"])
 
 	messageBus := requireMap(t, configuration, "MessageBus")
+	assert.Equal(t, "edgex-messagebus", messageBus["Host"])
 	optional := requireMap(t, messageBus, "Optional")
 	assert.Equal(t, "device-serial-jetson", optional["ClientId"])
+	clients := requireMap(t, configuration, "Clients")
+	coreMetadata := requireMap(t, clients, "core-metadata")
+	assert.Equal(t, "edgex-core-metadata", coreMetadata["Host"])
 
 	device := requireMap(t, configuration, "Device")
 	assert.Equal(t, 16, device["AsyncBufferSize"])
