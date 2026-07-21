@@ -84,11 +84,13 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +126,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 09:58</span>
+            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
           </div>
         </header>
         <div class="doc-body">
@@ -186,7 +188,7 @@ edgex-ingest-gateway
 </tbody></table></div>
 <p>중앙 <code>edgex-messagebus</code>는 센서가 서버로 데이터를 보내는 경로가 아니다. 물리 노드에는 기본 broker를 배치하지 않는다. 현재 root render에는 MQTT-mode agent, <code>device-mqtt</code>, edge-local broker가 없으며 모든 edge northbound는 HTTPS다.</p>
 <p>EdgeX 내부 MessageBus provider를 다른 구현으로 교체하는 것은 별도 중앙 런타임 변경이다. 이 선택과 엣지 northbound가 HTTPS인 것은 서로 독립이다.</p>
-<h2 id="현재-배포된-검증-fixture">현재 배포된 검증 fixture</h2>
+<h2 id="현재-배포-대상과-검증-fixture">현재 배포 대상과 검증 fixture</h2>
 <pre data-lang="text"><code>Sense HAT (I2C)
   -&gt; edge-device/publishers/sensehat_publisher.py
   -&gt; http://127.0.0.1:18080/v1/events
@@ -196,6 +198,51 @@ edgex-ingest-gateway
   -&gt; Core Data / PostgreSQL</code></pre>
 <ul><li>배치 노드: <code>etri-dev0003-raspi5</code></li><li>EdgeX Device: <code>sensehat-001</code></li><li>Device Profile: <code>etri-sensehat</code></li><li>source: <code>temperature</code>, <code>humidity</code>, <code>pressure</code>, <code>compass</code>, <code>orientation</code>, <code>gyroscope</code></li><li>local ingress: host-network namespace의 loopback에만 bind</li><li>local MQTT broker: 사용하지 않음</li></ul>
 <p>이 Sense HAT identity와 publisher는 현재 연결 검증에 사용한 fixture다. 사용자가 교체할 수 있으며 시스템의 고정 입력, MQTT 정책 또는 완료 기준으로 다루지 않는다. 장비가 Serial/Modbus/OPC-UA/I2C로 직접 연결되면 adapter가 Event를 만들어 loopback agent API로 전달한다. MQTT-only 장비는 별도 adapter와 broker 필요성을 검증한 뒤 같은 loopback 계약에 연결한다.</p>
+<p>Jetson에는 같은 direct agent 기반을 별도 identity와 PVC로 배치한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>Jetson agent 기반</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>배치 노드</td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>workload</td>
+<td><code>edgex-edge-agent-jetson</code></td>
+</tr>
+<tr>
+<td>edge identity</td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>local ingress</td>
+<td>loopback HTTP <code>127.0.0.1:18080</code></td>
+</tr>
+<tr>
+<td>local buffer</td>
+<td><code>edgex-edge-agent-jetson-outbox</code> PVC의 SQLite WAL</td>
+</tr>
+<tr>
+<td>northbound</td>
+<td>gateway service DNS를 사용하는 HTTPS/mTLS + 전용 HMAC</td>
+</tr>
+<tr>
+<td>현재 source</td>
+<td>없음. 인증 heartbeat만 전송</td>
+</tr>
+<tr>
+<td>Arduino Serial/Profile/Device</td>
+<td>아직 연결·등록하지 않음</td>
+</tr>
+<tr>
+<td>local MQTT broker</td>
+<td>agent 의존성 없음</td>
+</tr>
+</tbody></table></div>
+<p>Jetson agent가 Ready여도 source가 들어오기 전 중앙 diagnostics의 <code>source_seen=false</code>는 정상적인 기반 배포 상태다. 기존 Jetson-local Mosquitto나 legacy MQTT reader가 실행 중이더라도 이 direct agent의 입력·northbound 경로로 간주하지 않는다.</p>
 <h2 id="event와-저장-계약">Event와 저장 계약</h2>
 <p>Protocol Adapter는 최소한 다음 필드를 가진 Event를 만든다.</p>
 <pre data-lang="json"><code>{
@@ -304,7 +351,7 @@ edgex-ingest-gateway
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#현재-권위-경로">현재 권위 경로</a></li>
 <li class="toc-h2"><a href="#messagebus와-mqtt의-위치">MessageBus와 MQTT의 위치</a></li>
-<li class="toc-h2"><a href="#현재-배포된-검증-fixture">현재 배포된 검증 fixture</a></li>
+<li class="toc-h2"><a href="#현재-배포-대상과-검증-fixture">현재 배포 대상과 검증 fixture</a></li>
 <li class="toc-h2"><a href="#event와-저장-계약">Event와 저장 계약</a></li>
 <li class="toc-h2"><a href="#전달과-장애-동작">전달과 장애 동작</a></li>
 <li class="toc-h2"><a href="#metadata와-상태-권위">Metadata와 상태 권위</a></li>

@@ -84,11 +84,13 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -124,8 +126,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/현재-데모-흐름.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 09:58</span>
+            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
           </div>
         </header>
         <div class="doc-body">
@@ -138,7 +140,7 @@
   -&gt; HTTPS/mTLS ingest gateway
   -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<p>중앙 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다. 현재 edge telemetry agent는 Raspberry Pi 검증 노드에 direct mode 1개만 배치한다.</p>
+<p>중앙 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다. edge telemetry agent는 <code>etri-dev0003-raspi5</code>와 <code>etri-dev0001-jetorn</code>에 direct mode로 각각 배치하고 노드별 SQLite PVC와 identity를 분리한다.</p>
 <p>운영 배포의 Kustomize 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays가 현재 구현·배포 경로다.</p>
 <h2 id="권위와-device-등록">권위와 Device 등록</h2>
 <p>물리 디바이스의 inventory와 관리 상태는 EdgeX Core Metadata가 소유한다. Device Profile과 Device는 사전 등록하며, Protocol Adapter가 endpoint 연결과 profile 기반 Event 정규화를 담당하고 agent가 durable 전달을 담당한다. 현재 command 실행은 비활성이다.</p>
@@ -168,7 +170,7 @@
 <p>KubeEdge/Kubernetes는 물리 Device inventory, availability, telemetry, command의 원본이 아니다. <code>node_name</code>은 화면에 표시할 수 있는 선택적 placement 진단 정보이며 physical availability의 gate가 아니다.</p>
 <p><code>/state/devices</code>는 EdgeX 값을 dashboard용 snake_case로 제공한다. 현재 확인 필드는 <code>source=edgex</code>, <code>name</code>, <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, 선택적 <code>node_name</code>이다.</p>
 <h2 id="교체-가능한-direct-검증-fixture">교체 가능한 direct 검증 fixture</h2>
-<p>현재 <code>sensehat-001</code>은 I2C publisher → loopback HTTP → agent → SQLite → HTTPS → Core Data 경로를 확인하는 교체 가능한 fixture다. 현재 배포에는 Jetson MQTT agent, <code>device-mqtt</code>, edge-local broker가 없다.</p>
+<p>현재 <code>sensehat-001</code>은 I2C publisher → loopback HTTP → agent → SQLite → HTTPS → Core Data 경로를 확인하는 교체 가능한 fixture다. Jetson에는 direct agent와 인증 heartbeat 기반만 추가하며 Arduino Serial adapter, Metadata Device/Profile과 Event는 아직 연결하지 않는다. 현재 EdgeX 배포에는 Jetson MQTT agent, <code>device-mqtt</code>, edge-local broker가 없다.</p>
 <p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology와 대시보드 조회 전환의 완료 증거가 아니다.</p>
 <p>1차 수직 슬라이스는 SQLite offline replay와 persisted ACK를 포함한다. Serial, Modbus, OPC-UA와 추가 I2C adapter는 profile·실장비·typed telemetry 증거를 확보하기 전에는 지원 완료로 표시하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 경로다.</p>
 <h2 id="service-binding과-workflow-augmentation-경계">Service binding과 workflow/augmentation 경계</h2>

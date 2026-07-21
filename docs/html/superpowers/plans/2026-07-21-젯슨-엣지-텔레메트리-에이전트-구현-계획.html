@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jetson 엣지 텔레메트리 에이전트 구현 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>Jetson 엣지 텔레메트리 에이전트 구현 계획</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.md</span>
+            <span class="badge">수정: 2026-07-21 09:58</span>
+            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="jetson-엣지-텔레메트리-에이전트-구현-계획">Jetson 엣지 텔레메트리 에이전트 구현 계획</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> <code>etri-dev0001-jetorn</code>에 broker-free direct-mode telemetry agent와 독립 SQLite outbox를 배치하고, 중앙 DB를 보존한 채 mTLS/HMAC heartbeat 경로를 검증한다.</p>
+<p><strong>Architecture:</strong> 현재 Sense HAT의 노드별 Deployment/PVC 패턴을 Jetson에 한 인스턴스 추가한다. Arduino Serial adapter와 Metadata 등록은 이번 범위에서 제외하고, telemetry-only Secret 교체로 중앙 gateway와 두 edge identity를 함께 재발급한다.</p>
+<p><strong>Tech Stack:</strong> Kubernetes, Kustomize, Argo CD, POSIX shell, OpenSSL, Python/pytest, EdgeX v4 Core Data, FastAPI telemetry plane, SQLite WAL</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>root 운영 진입점은 <code>edgex/k8s/kustomization.yaml</code>을 유지한다.</li><li>Jetson identity는 <code>etri-dev0001-jetorn</code>, Sense HAT identity는 <code>etri-dev0003-raspi5</code>다.</li><li>edge northbound는 DNS 기반 <code>https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443</code>만 사용한다.</li><li>고정 ClusterIP/PodIP, edge-local broker, <code>device-mqtt</code>, MQTT agent 환경변수를 추가하지 않는다.</li><li>Arduino <code>/dev/ttyACM*</code>, Serial adapter, Device Profile/Device와 command는 이번 단계에서 변경하지 않는다.</li><li>EdgeMesh와 기존 MQTT/legacy workload를 변경하지 않는다.</li><li>PostgreSQL credential과 PVC 데이터는 telemetry 인증 교체 중 유지한다.</li><li>live 완료 기준은 Jetson Pod Ready/PVC Bound와 인증된 gateway heartbeat이며 <code>source_seen=false</code>는 예상 상태다.</li></ul>
+<p>---</p>
+<h3 id="task-1-jetson-direct-agent-manifest">Task 1: Jetson direct agent manifest</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/k8s/overlays/testbed/sensor-gateways/jetson.yaml</code></li><li>Modify: <code>edgex/k8s/overlays/testbed/sensor-gateways/kustomization.yaml</code></li><li>Modify: <code>edgex/k8s/tests/test_manifests.py</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: 공통 ConfigMap <code>edgex-edge-agent-contract</code>, arm64 telemetry image, 명시적인 <code>edgex-edge-agent-jetson-credentials</code>와 <code>edgex-edge-agent-jetson-gateway-mtls</code> Secret</li><li>Produces: Deployment <code>edgex-edge-agent-jetson</code>, PVC <code>edgex-edge-agent-jetson-outbox</code>, <code>EDGE_ID=etri-dev0001-jetorn</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Jetson agent가 render에 필요하다는 실패 테스트 작성</strong></li></ul>
+<pre data-lang="python"><code>EDGE_AGENTS = {
+    &quot;edgex-edge-agent-jetson&quot;: &quot;etri-dev0001-jetorn&quot;,
+    &quot;edgex-edge-agent-sensehat&quot;: &quot;etri-dev0003-raspi5&quot;,
+}
+
+# test_edge_agents_have_distinct_durable_outboxes_and_mtls 내부
+assert pod[&quot;nodeSelector&quot;] == {&quot;kubernetes.io/hostname&quot;: edge_id}
+assert pod[&quot;hostNetwork&quot;] is True
+assert pod[&quot;dnsPolicy&quot;] == &quot;ClusterFirstWithHostNet&quot;</code></pre>
+<ul><li>[ ] <strong>Step 2: 실패 확인</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/k8s/tests/test_manifests.py::test_edge_agents_have_distinct_durable_outboxes_and_mtls -q</code></p>
+<p>Expected: <code>KeyError: (&#x27;Deployment&#x27;, &#x27;edgex-edge-agent-jetson&#x27;)</code></p>
+<ul><li>[ ] <strong>Step 3: Jetson manifest와 Kustomize resource 추가</strong></li></ul>
+<p><code>jetson.yaml</code>은 Sense HAT manifest와 동일한 security/probe/resource 계약을 사용하되 다음 값을 고정한다.</p>
+<pre data-lang="yaml"><code>metadata:
+  name: edgex-edge-agent-jetson-outbox
+  labels:
+    app.kubernetes.io/instance: edgex-edge-agent-jetson
+    edge.etri.io/id: etri-dev0001-jetorn
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edgex-edge-agent-jetson
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: etri-dev0001-jetorn
+      containers:
+        - name: telemetry-edge-agent
+          env:
+            - name: EDGE_ID
+              value: etri-dev0001-jetorn
+            - name: EDGE_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-edge-agent-jetson-credentials
+                  key: edge-auth-secret
+      volumes:
+        - name: outbox
+          persistentVolumeClaim:
+            claimName: edgex-edge-agent-jetson-outbox
+        - name: gateway-mtls
+          secret:
+            secretName: edgex-edge-agent-jetson-gateway-mtls</code></pre>
+<p><code>kustomization.yaml</code> resources에 <code>jetson.yaml</code>을 추가한다. <code>/dev</code> 또는 MQTT 관련 volume/env는 넣지 않는다.</p>
+<ul><li>[ ] <strong>Step 4: manifest 집중 테스트 통과 확인</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/k8s/tests/test_manifests.py -q</code></p>
+<p>Expected: all tests pass; root render has two edge agents and no <code>device-mqtt</code> workload.</p>
+<ul><li>[ ] <strong>Step 5: manifest 변경 커밋</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/k8s/overlays/testbed/sensor-gateways/jetson.yaml edgex/k8s/overlays/testbed/sensor-gateways/kustomization.yaml edgex/k8s/tests/test_manifests.py
+git commit -m &quot;feat: deploy Jetson telemetry agent foundation&quot;</code></pre>
+<h3 id="task-2-두-edge-identity의-telemetry-only-secret-provisioning">Task 2: 두 edge identity의 telemetry-only Secret provisioning</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edgex/k8s/scripts/provision-runtime-secrets.sh</code></li><li>Modify: <code>edgex/k8s/scripts/preflight-runtime-secrets.sh</code></li><li>Modify: <code>edgex/k8s/tests/test_runtime_secret_preflight.py</code></li><li>Modify: <code>edgex/k8s/tests/test_provision_runtime_secrets.py</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: <code>KUBECTL</code>, <code>OPENSSL</code>, 기존 Secret naming 규칙과 preflight output 계약</li><li>Produces: <code>--replace-telemetry</code> mode, Jetson HMAC/mTLS Secrets, 두 identity를 가진 <code>edge-auth-secrets.json</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Jetson Secret inventory와 telemetry-only 모드 실패 테스트 작성</strong></li></ul>
+<p><code>REQUIRED_SECRETS</code>에 다음 두 항목을 추가한다.</p>
+<pre data-lang="python"><code>(
+    &quot;edgex-edge&quot;,
+    &quot;edgex-edge-agent-jetson-credentials&quot;,
+    (&quot;edge-auth-secret&quot;,),
+),
+(
+    &quot;edgex-edge&quot;,
+    &quot;edgex-edge-agent-jetson-gateway-mtls&quot;,
+    (&quot;ca.crt&quot;, &quot;tls.crt&quot;, &quot;tls.key&quot;),
+),</code></pre>
+<p>provisioning 테스트에는 fake <code>kubectl</code> 호출 로그를 사용해 <code>--replace-telemetry</code> 실행 시 생성되는 Secret만 검사한다.</p>
+<pre data-lang="python"><code>created = [line for line in calls if &quot; create secret generic &quot; in f&quot; {line} &quot;]
+assert any(&quot;edgex-telemetry-edge-auth&quot; in line for line in created)
+assert any(&quot;edgex-ingest-gateway-tls&quot; in line for line in created)
+assert any(&quot;edgex-edge-agent-jetson-credentials&quot; in line for line in created)
+assert any(&quot;edgex-edge-agent-jetson-gateway-mtls&quot; in line for line in created)
+assert not any(&quot;edgex-postgres-credentials&quot; in line for line in created)
+assert not any(&quot;edgex-telemetry-plane-credentials&quot; in line for line in created)</code></pre>
+<ul><li>[ ] <strong>Step 2: 실패 확인</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/k8s/tests/test_runtime_secret_preflight.py edgex/k8s/tests/test_provision_runtime_secrets.py -q</code></p>
+<p>Expected: Jetson inventory와 <code>--replace-telemetry</code> 지원이 없어 FAIL.</p>
+<ul><li>[ ] <strong>Step 3: provisioning argument와 생성 계약 구현</strong></li></ul>
+<p>argument mode를 다음으로 고정한다.</p>
+<pre data-lang="sh"><code>mode=create
+case &quot;${1:-}&quot; in
+    &quot;&quot;) ;;
+    --replace) mode=replace_all ;;
+    --replace-telemetry) mode=replace_telemetry ;;
+    *)
+        printf &#x27;%s\n&#x27; &quot;usage: $0 [--replace|--replace-telemetry]&quot; &gt;&amp;2
+        exit 64
+        ;;
+esac</code></pre>
+<p>telemetry generation은 두 edge HMAC과 client certificate를 만든다.</p>
+<pre data-lang="sh"><code>random_hex &gt;&quot;$secret_tmp/sensehat-auth&quot;
+random_hex &gt;&quot;$secret_tmp/jetson-auth&quot;
+printf &#x27;{&quot;etri-dev0001-jetorn&quot;:&quot;%s&quot;,&quot;etri-dev0003-raspi5&quot;:&quot;%s&quot;}&#x27; \
+    &quot;$(tr -d &#x27;\n&#x27; &lt;&quot;$secret_tmp/jetson-auth&quot;)&quot; \
+    &quot;$(tr -d &#x27;\n&#x27; &lt;&quot;$secret_tmp/sensehat-auth&quot;)&quot; \
+    &gt;&quot;$secret_tmp/edge-auth-secrets.json&quot;
+
+issue_edge_certificate etri-dev0001-jetorn jetson
+issue_edge_certificate etri-dev0003-raspi5 sensehat</code></pre>
+<p><code>mode=replace_telemetry</code>이면 DB 파일을 생성하거나 DB Secret을 apply하지 않는다. 그 외 mode는 기존 DB provisioning을 유지한다. telemetry Secret 네 묶음과 중앙 auth/TLS는 모든 mode에서 apply한다.</p>
+<ul><li>[ ] <strong>Step 4: preflight에 Jetson Secret key 추가</strong></li></ul>
+<pre data-lang="sh"><code>check_secret edgex-edge edgex-edge-agent-jetson-credentials edge-auth-secret
+check_secret edgex-edge edgex-edge-agent-jetson-gateway-mtls ca.crt tls.crt tls.key</code></pre>
+<ul><li>[ ] <strong>Step 5: Secret 테스트 통과 확인</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/k8s/tests/test_runtime_secret_preflight.py edgex/k8s/tests/test_provision_runtime_secrets.py -q</code></p>
+<p>Expected: all tests pass; no Secret payload appears in test output.</p>
+<ul><li>[ ] <strong>Step 6: Secret provisioning 변경 커밋</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/k8s/scripts/provision-runtime-secrets.sh edgex/k8s/scripts/preflight-runtime-secrets.sh edgex/k8s/tests/test_runtime_secret_preflight.py edgex/k8s/tests/test_provision_runtime_secrets.py
+git commit -m &quot;ops: provision per-node telemetry credentials&quot;</code></pre>
+<h3 id="task-3-현재-문서와-운영-절차-최신화">Task 3: 현재 문서와 운영 절차 최신화</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>docs/문서-안내.md</code></li><li>Modify: <code>docs/프로젝트-범위.md</code></li><li>Modify: <code>docs/프로젝트-배경.md</code></li><li>Modify: <code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li>Modify: <code>docs/현재-데모-경로.md</code></li><li>Modify: <code>docs/디바이스-서비스-연결.md</code></li><li>Modify: <code>docs/ops/현재-데모-운영-절차.md</code></li><li>Modify: <code>docs/wiki/현재-데모-흐름.md</code></li><li>Regenerate: <code>docs/html/</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 1 render, Task 2 Secret names, live evidence gate</li><li>Produces: Sense HAT Event fixture와 Jetson agent foundation을 구분하는 최신 기준/운영 문서</li></ul>
+<ul><li>[ ] <strong>Step 1: 오래된 현재형 표현을 먼저 확인</strong></li></ul>
+<p>Run: <code>rg -n --glob &#x27;!docs/html/**&#x27; &#x27;Jetson telemetry agent나|Raspberry Pi 검증 노드에 direct mode 1개|render에 .*Jetson agent&#x27; docs</code></p>
+<p>Expected: 현재 배포와 충돌할 문장이 <code>현재-데모-경로.md</code>, <code>ops/현재-데모-운영-절차.md</code>, <code>wiki/현재-데모-흐름.md</code>에서 검색됨.</p>
+<ul><li>[ ] <strong>Step 2: 기준 문서에 배포 상태 경계 추가</strong></li></ul>
+<p>모든 문서에서 다음 네 상태를 같은 의미로 사용한다.</p>
+<pre data-lang="text"><code>Raspberry Pi Sense HAT: canonical Event까지 검증된 교체 가능 fixture
+Jetson: direct agent + SQLite PVC + 인증 heartbeat 기반만 배포
+Arduino Serial: adapter/Profile/Device/Event는 아직 미구현
+Jetson legacy MQTT: current EdgeX plane과 별개이며 변경하지 않음</code></pre>
+<p>운영 절차에는 두 agent 이름, 두 node selector, 서로 다른 PVC/Secret, <code>source_seen=false</code> 예상 상태와 다음 diagnostics 명령을 기록한다.</p>
+<pre data-lang="bash"><code>kubectl -n edgex-edge exec deploy/edgex-edge-agent-jetson -- \
+  python -c &#x27;import json,httpx; r=httpx.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;, verify=&quot;/run/gateway-mtls/ca.crt&quot;, cert=(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;), timeout=10); r.raise_for_status(); print(json.dumps(r.json(), sort_keys=True))&#x27;</code></pre>
+<ul><li>[ ] <strong>Step 3: 오래된 표현 제거 확인</strong></li></ul>
+<p>Run: <code>rg -n --glob &#x27;!docs/html/**&#x27; &#x27;Jetson telemetry agent나|Raspberry Pi 검증 노드에 direct mode 1개|render에 .*Jetson agent&#x27; docs</code></p>
+<p>Expected: 활성 기준/운영 문서에서 결과 없음. 과거 설계·archive는 수정하지 않는다.</p>
+<ul><li>[ ] <strong>Step 4: HTML 재생성과 문서 테스트</strong></li></ul>
+<p>Run: <code>python3 scripts/build-docs-html.py</code></p>
+<p>Expected: <code>docs/html/index.html</code>과 <code>docs/html/search-index.json</code>이 재생성됨.</p>
+<p>Run: <code>python3 -m unittest tests.test_docs_html_search</code></p>
+<p>Expected: <code>OK</code>.</p>
+<ul><li>[ ] <strong>Step 5: 문서 변경 커밋</strong></li></ul>
+<pre data-lang="bash"><code>git add docs/문서-안내.md docs/프로젝트-범위.md docs/프로젝트-배경.md docs/원시-텔레메트리-데이터-플레인.md docs/현재-데모-경로.md docs/디바이스-서비스-연결.md docs/ops/현재-데모-운영-절차.md docs/wiki/현재-데모-흐름.md docs/html
+git commit -m &quot;docs: document Jetson agent deployment state&quot;</code></pre>
+<h3 id="task-4-저장소-검증과-원격-푸시">Task 4: 저장소 검증과 원격 푸시</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Verify only: <code>edgex/k8s/</code>, <code>edgex/telemetry-plane/</code>, <code>docs/</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 1~3 commits</li><li>Produces: immutable Git revision for Argo CD</li></ul>
+<ul><li>[ ] <strong>Step 1: 전체 Kustomize와 Secret 테스트</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/k8s/tests -q</code></p>
+<p>Expected: all tests pass.</p>
+<p>Run: <code>kubectl kustomize edgex/k8s &gt;/tmp/edgex-jetson-agent.yaml</code></p>
+<p>Expected: exit 0.</p>
+<ul><li>[ ] <strong>Step 2: telemetry-plane 회귀 테스트</strong></li></ul>
+<p>Run: <code>python3 -m pytest edgex/telemetry-plane/tests -q</code></p>
+<p>Expected: all tests pass.</p>
+<ul><li>[ ] <strong>Step 3: 문서와 diff 검증</strong></li></ul>
+<p>Run: <code>python3 -m unittest tests.test_docs_html_search</code></p>
+<p>Expected: <code>OK</code>.</p>
+<p>Run: <code>git diff --check</code></p>
+<p>Expected: no output.</p>
+<ul><li>[ ] <strong>Step 4: 대상 변경만 포함됐는지 확인하고 푸시</strong></li></ul>
+<p>Run: <code>git status --short</code></p>
+<p>Expected: 사용자 기존 변경은 남아 있을 수 있지만 Jetson 작업 대상 파일은 모두 커밋됨.</p>
+<p>Run: <code>git push origin agent/edgex-central-docs</code></p>
+<p>Expected: remote branch advances to local <code>HEAD</code>.</p>
+<h3 id="task-5-telemetry-secret-교체와-argo-cd-live-배포">Task 5: telemetry Secret 교체와 Argo CD live 배포</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Execute: <code>edgex/k8s/scripts/provision-runtime-secrets.sh</code></li><li>Mutate live resources: <code>edgex-telemetry</code> Argo CD Application, telemetry gateway/agent Pods</li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: pushed Git <code>HEAD</code>, existing Kubernetes namespaces and PVCs</li><li>Produces: live Jetson agent heartbeat identity without changing central DB or legacy MQTT workloads</li></ul>
+<ul><li>[ ] <strong>Step 1: live Secret inventory와 DB 상태 사전 확인</strong></li></ul>
+<p>Run: <code>kubectl -n edgex-system get secret edgex-postgres-credentials edgex-telemetry-plane-credentials edgex-telemetry-edge-auth edgex-ingest-gateway-tls</code></p>
+<p>Expected: all four Secrets exist.</p>
+<p>Run: <code>kubectl -n edgex-system get statefulset edgex-postgres -o jsonpath=&#x27;{.status.readyReplicas}{&quot;\n&quot;}&#x27;</code></p>
+<p>Expected: <code>1</code>.</p>
+<ul><li>[ ] <strong>Step 2: DB를 제외한 telemetry identity 교체</strong></li></ul>
+<p>Run: <code>edgex/k8s/scripts/provision-runtime-secrets.sh --replace-telemetry</code></p>
+<p>Expected: 중앙 auth/TLS와 두 edge identity Secret이 provision되고 <code>Runtime Secret preflight passed.</code>가 출력됨. DB credential Secret은 apply되지 않음.</p>
+<ul><li>[ ] <strong>Step 3: Argo CD를 pushed commit으로 전환</strong></li></ul>
+<p>Run: <code>git rev-parse HEAD</code></p>
+<p>Expected: pushed commit SHA.</p>
+<p>Run: <code>rtk kubectl -n argocd patch application edgex-telemetry --type merge -p &quot;$(rtk git rev-parse HEAD | awk &#x27;{printf \&quot;{\\\&quot;spec\\\&quot;:{\\\&quot;source\\\&quot;:{\\\&quot;targetRevision\\\&quot;:\\\&quot;%s\\\&quot;}}}\&quot;, $1}&#x27;)&quot;</code></p>
+<p>Expected: Application target revision이 현재 <code>HEAD</code>의 정확한 SHA로 변경됨.</p>
+<ul><li>[ ] <strong>Step 4: 새 Secret을 읽도록 gateway와 기존 agent Pod 재생성</strong></li></ul>
+<p>Run: <code>kubectl -n edgex-system delete pod -l app.kubernetes.io/name=edgex-ingest-gateway</code></p>
+<p>Run: <code>kubectl -n edgex-edge delete pod -l app.kubernetes.io/instance=edgex-edge-agent-sensehat</code></p>
+<p>Expected: 각 Deployment가 새 Pod를 만들고 기존 PVC는 유지됨.</p>
+<ul><li>[ ] <strong>Step 5: Argo sync와 workload 준비 확인</strong></li></ul>
+<p>Run: <code>kubectl -n argocd wait application/edgex-telemetry --for=jsonpath=&#x27;{.status.health.status}&#x27;=Healthy --timeout=300s</code></p>
+<p>Run: <code>kubectl -n edgex-edge rollout status deployment/edgex-edge-agent-jetson --timeout=300s</code></p>
+<p>Run: <code>kubectl -n edgex-edge rollout status deployment/edgex-edge-agent-sensehat --timeout=300s</code></p>
+<p>Expected: both Deployments successfully rolled out; both PVCs are Bound.</p>
+<ul><li>[ ] <strong>Step 6: 인증 heartbeat와 기존 경로 회귀 확인</strong></li></ul>
+<p>Jetson Pod 안에서 mounted client certificate를 사용해 <code>/diagnostics</code>를 조회한다.</p>
+<pre data-lang="bash"><code>kubectl -n edgex-edge exec deploy/edgex-edge-agent-jetson -- \
+  python -c &#x27;import json,httpx; r=httpx.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;, verify=&quot;/run/gateway-mtls/ca.crt&quot;, cert=(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;), timeout=10); r.raise_for_status(); d=r.json()[&quot;edges&quot;][&quot;etri-dev0001-jetorn&quot;]; print(json.dumps({&quot;healthy&quot;:d[&quot;healthy&quot;],&quot;source_seen&quot;:d[&quot;source_seen&quot;],&quot;reason&quot;:d.get(&quot;reason&quot;)}, sort_keys=True))&#x27;</code></pre>
+<p>Expected: Jetson key exists, <code>source_seen</code> is <code>false</code>; heartbeat receipt fields are present even though device telemetry health is not yet true.</p>
+<p>Run: <code>kubectl -n edgex-system get statefulset edgex-postgres -o jsonpath=&#x27;{.status.readyReplicas}{&quot;\n&quot;}&#x27;</code></p>
+<p>Expected: <code>1</code>.</p>
+<p>Run: <code>kubectl get pods -A --field-selector spec.nodeName=etri-dev0001-jetorn -o wide</code></p>
+<p>Expected: <code>edgex-edge-agent-jetson</code> is Running; existing <code>kubeedge/edge-eclipse-mosquitto</code>와 legacy MQTT readers remain untouched.</p>
+<h2 id="최종-보고">최종 보고</h2>
+<ul><li>pushed commit SHA와 branch</li><li>Argo CD target revision, sync와 health</li><li>Jetson/Sense HAT agent Ready, PVC Bound</li><li>gateway diagnostics의 Jetson <code>source_seen=false</code>와 heartbeat evidence</li><li>PostgreSQL Ready 유지</li><li>Arduino Serial/Profile/Device/Event가 아직 다음 단계라는 경계</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h3"><a href="#task-1-jetson-direct-agent-manifest">Task 1: Jetson direct agent manifest</a></li>
+<li class="toc-h3"><a href="#task-2-두-edge-identity의-telemetry-only-secret-provisioning">Task 2: 두 edge identity의 telemetry-only Secret provisioning</a></li>
+<li class="toc-h3"><a href="#task-3-현재-문서와-운영-절차-최신화">Task 3: 현재 문서와 운영 절차 최신화</a></li>
+<li class="toc-h3"><a href="#task-4-저장소-검증과-원격-푸시">Task 4: 저장소 검증과 원격 푸시</a></li>
+<li class="toc-h3"><a href="#task-5-telemetry-secret-교체와-argo-cd-live-배포">Task 5: telemetry Secret 교체와 Argo CD live 배포</a></li>
+<li class="toc-h2"><a href="#최종-보고">최종 보고</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

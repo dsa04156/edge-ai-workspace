@@ -84,11 +84,13 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,8 +126,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 물리-디바이스-상태-정책.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 09:58</span>
+            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
           </div>
         </header>
         <div class="doc-body">
@@ -156,7 +158,7 @@
 <p>현재 command 실행은 <code>COMMAND_ENABLED=false</code>로 비활성이다. Device Profile의 read-only command grouping은 schema 표현이며 actuator 실행 가능성을 뜻하지 않는다. command를 활성화할 때는 해당 Protocol Adapter의 지원 범위, 인증, TTL, 중복 실행 방지, 실패 상태를 별도 검증하고 KubeEdge desired/twin이나 mapper topic으로 우회하지 않는다.</p>
 <h2 id="전달-범위와-migration-gate">전달 범위와 migration gate</h2>
 <p>현재 <code>etri-dev0003-raspi5</code>의 <code>sensehat-001</code>은 direct admission을 검증하는 교체 가능한 fixture다. 승인된 Protocol Adapter가 <code>http://127.0.0.1:18080/v1/events</code>로 canonical Event를 전달하고 agent가 SQLite outbox와 HTTPS/mTLS replay를 담당한다. 이 경로에는 로컬 MQTT broker가 필요하지 않다.</p>
-<p>현재 Jetson MQTT mode와 edge-local broker는 배포하지 않는다. MQTT-only 장비 또는 로컬 pub/sub 요구가 확인되면 별도 adapter/profile과 실제 endpoint를 검증한 뒤에만 추가하며 전체 physical plane의 기본 경로로 설명하지 않는다.</p>
+<p>현재 Jetson MQTT mode와 edge-local broker는 배포하지 않는다. 대신 <code>etri-dev0001-jetorn</code>에는 direct agent, 독립 SQLite PVC와 인증 heartbeat 기반만 둔다. 이 기반은 Arduino Serial 장치를 열거나 Device/Profile/Event를 등록하지 않으므로 Serial wave 완료 근거가 아니다. MQTT-only 장비 또는 로컬 pub/sub 요구가 확인되면 별도 adapter/profile과 실제 endpoint를 검증한 뒤에만 추가하며 전체 physical plane의 기본 경로로 설명하지 않는다.</p>
 <p>Serial, Modbus, OPC-UA와 추가 I2C 장비는 target architecture의 protocol-adapter wave다. RTSP는 별도 media/workflow wave다. 각 wave는 다음 gate를 독립적으로 통과해야 delivered로 표시한다.</p>
 <ul><li>해당 Protocol Adapter와 EdgeX Device Profile 선택/구현</li><li>실제 장비 endpoint의 독점 연결</li><li>normalization 및 typed Reading 검증</li><li>Core Metadata inventory와 Core Data freshness 검증</li><li>지원 command가 있을 때만 command와 실패 동작 검증</li><li>AI services/storage/dashboard consumer 검증</li><li>실제 배포 환경 cutover 확인</li></ul>
 <p>한 protocol의 성공을 다른 protocol 완료 근거로 사용하지 않는다. <code>virtual-device/</code> Serial JSON runtime은 보존되는 독립 프로토타입이며 EdgeX Serial wave 완료로 간주하거나 자동 결합하지 않는다.</p>
