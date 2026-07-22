@@ -83,7 +83,7 @@
   padding: 12px;
 }
 
-.service-demo-route span,
+.service-demo-route > div > span,
 .service-demo-devices > span,
 .service-demo-values dt {
   display: block;

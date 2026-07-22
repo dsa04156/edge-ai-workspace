@@ -190,5 +190,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(html, /service-demo\.js\?v=live-sensor-20260722/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /\.service-demo-route > div > span,/);
+  assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
 });
