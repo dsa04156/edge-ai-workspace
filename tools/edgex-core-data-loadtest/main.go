@@ -56,7 +56,7 @@ func ParseConfig(args []string, errorOutput io.Writer) (Config, error) {
 	flags.Float64Var(&cfg.MaxErrorRate, "max-error-rate", cfg.MaxErrorRate, "maximum accepted failed request ratio")
 	flags.DurationVar(&cfg.MaxP95, "max-p95", cfg.MaxP95, "maximum accepted p95 commit latency")
 	flags.Float64Var(&cfg.MinRateRatio, "min-rate-ratio", cfg.MinRateRatio, "minimum achieved-to-target event rate ratio")
-	flags.BoolVar(&cfg.Verify, "verify", cfg.Verify, "read back totalCount for every synthetic device")
+	flags.BoolVar(&cfg.Verify, "verify", cfg.Verify, "read back the dedicated Event count for every synthetic device")
 	flags.BoolVar(&cfg.Cleanup, "cleanup", cfg.Cleanup, "delete events for every synthetic device after verification")
 	if err := flags.Parse(args); err != nil {
 		return Config{}, err

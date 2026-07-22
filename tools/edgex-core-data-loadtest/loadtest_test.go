@@ -330,6 +330,7 @@ type fakeEventClient struct {
 	active         int
 	maxActive      int
 	countOverrides map[string]int64
+	respectContext bool
 }
 
 func newFakeEventClient() *fakeEventClient {
@@ -373,7 +374,10 @@ func (f *fakeEventClient) Store(ctx context.Context, sample Sample) StoreResult 
 	return StoreResult{EventID: fmt.Sprintf("event-%d", sample.Sequence), Latency: time.Since(started)}
 }
 
-func (f *fakeEventClient) Count(_ context.Context, deviceName string) (int64, error) {
+func (f *fakeEventClient) Count(ctx context.Context, deviceName string) (int64, error) {
+	if f.respectContext && ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if err := f.failCount[deviceName]; err != nil {
@@ -385,7 +389,10 @@ func (f *fakeEventClient) Count(_ context.Context, deviceName string) (int64, er
 	return f.counts[deviceName], nil
 }
 
-func (f *fakeEventClient) Delete(_ context.Context, deviceName string) error {
+func (f *fakeEventClient) Delete(ctx context.Context, deviceName string) error {
+	if f.respectContext && ctx.Err() != nil {
+		return ctx.Err()
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if err := f.failDelete[deviceName]; err != nil {
@@ -546,6 +553,23 @@ func TestRunStopsSchedulingWhenContextIsCancelled(t *testing.T) {
 	}
 	if report.Pass {
 		t.Fatal("cancelled run unexpectedly passed")
+	}
+}
+
+func TestRunPropagatesCancellationToMaintenanceOperations(t *testing.T) {
+	cfg := fastRunnerConfig()
+	client := newFakeEventClient()
+	client.respectContext = true
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	report := Run(ctx, cfg, client)
+
+	if got := operationErrorCount(report.Verification.Errors, report.Verification.SuppressedErrors); got != cfg.Devices {
+		t.Fatalf("verification cancellation errors = %d, want %d", got, cfg.Devices)
+	}
+	if got := operationErrorCount(report.Cleanup.Errors, report.Cleanup.SuppressedErrors); got != cfg.Devices {
+		t.Fatalf("cleanup cancellation errors = %d, want %d", got, cfg.Devices)
 	}
 }
 

@@ -503,7 +503,7 @@ func Run(ctx context.Context, cfg Config, client EventClient) Report {
 	}
 	report.Latency = summarizeLatencies(latencies)
 
-	maintenanceContext := context.Background()
+	maintenanceContext := ctx
 	if cfg.Verify {
 		report.Verification = verifyStoredEvents(maintenanceContext, cfg, client, expectedByDevice)
 	}
