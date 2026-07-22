@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -16,18 +17,19 @@ import (
 
 func validTestConfig() Config {
 	return Config{
-		BaseURL:        "http://edgex-core-data.edgex-system.svc.cluster.local:59880",
-		RunID:          "run-20260722",
-		Devices:        1000,
-		PerDeviceHz:    1,
-		Duration:       time.Minute,
-		Concurrency:    128,
-		RequestTimeout: 5 * time.Second,
-		MaxErrorRate:   0,
-		MaxP95:         time.Second,
-		MinRateRatio:   0.95,
-		Verify:         true,
-		Cleanup:        true,
+		BaseURL:                "http://edgex-core-data.edgex-system.svc.cluster.local:59880",
+		RunID:                  "run-20260722",
+		Devices:                1000,
+		PerDeviceHz:            1,
+		Duration:               time.Minute,
+		Concurrency:            128,
+		MaintenanceConcurrency: 8,
+		RequestTimeout:         5 * time.Second,
+		MaxErrorRate:           0,
+		MaxP95:                 time.Second,
+		MinRateRatio:           0.95,
+		Verify:                 true,
+		Cleanup:                true,
 	}
 }
 
@@ -47,6 +49,7 @@ func TestConfigValidate(t *testing.T) {
 		{"frequency", func(c *Config) { c.PerDeviceHz = 0 }, "per-device-hz"},
 		{"duration", func(c *Config) { c.Duration = 0 }, "duration"},
 		{"concurrency", func(c *Config) { c.Concurrency = 0 }, "concurrency"},
+		{"maintenance concurrency", func(c *Config) { c.MaintenanceConcurrency = 0 }, "maintenance-concurrency"},
 		{"timeout", func(c *Config) { c.RequestTimeout = 0 }, "request-timeout"},
 		{"error rate", func(c *Config) { c.MaxErrorRate = 1.1 }, "max-error-rate"},
 		{"p95", func(c *Config) { c.MaxP95 = 0 }, "max-p95"},
@@ -253,13 +256,19 @@ func TestHTTPClientStoreRejectsMismatchedResponseID(t *testing.T) {
 
 func TestHTTPClientCountAndDeleteUseExactDeviceRoute(t *testing.T) {
 	requests := make([]string, 0, 2)
+	deleted := false
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests = append(requests, r.Method+" "+r.URL.RequestURI())
 		w.Header().Set("Content-Type", "application/json")
 		switch r.Method {
 		case http.MethodGet:
-			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":200,"totalCount":42,"events":[]}`))
+			count := 42
+			if deleted {
+				count = 0
+			}
+			_, _ = fmt.Fprintf(w, `{"apiVersion":"v3","statusCode":200,"count":%d}`, count)
 		case http.MethodDelete:
+			deleted = true
 			w.WriteHeader(http.StatusAccepted)
 			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":202}`))
 		default:
@@ -282,8 +291,9 @@ func TestHTTPClientCountAndDeleteUseExactDeviceRoute(t *testing.T) {
 	}
 
 	want := []string{
-		"GET /api/v3/event/device/name/loadtest-run-20260722-0999?limit=1",
+		"GET /api/v3/event/count/device/name/loadtest-run-20260722-0999",
 		"DELETE /api/v3/event/device/name/loadtest-run-20260722-0999",
+		"GET /api/v3/event/count/device/name/loadtest-run-20260722-0999",
 	}
 	if fmt.Sprint(requests) != fmt.Sprint(want) {
 		t.Fatalf("requests = %v, want %v", requests, want)
@@ -439,6 +449,39 @@ func TestRunRespectsConcurrencyLimit(t *testing.T) {
 	}
 }
 
+func TestMaintenanceOperationsUseTheirOwnLowerConcurrency(t *testing.T) {
+	cfg := fastRunnerConfig()
+	cfg.Devices = 24
+	cfg.Concurrency = 16
+	cfg.MaintenanceConcurrency = 3
+
+	var mu sync.Mutex
+	active := 0
+	maximum := 0
+	results := parallelDeviceOperation(context.Background(), cfg, func(context.Context, int) (int64, error) {
+		mu.Lock()
+		active++
+		if active > maximum {
+			maximum = active
+		}
+		mu.Unlock()
+		time.Sleep(time.Millisecond)
+		mu.Lock()
+		active--
+		mu.Unlock()
+		return 1, nil
+	})
+	for range results {
+	}
+
+	if maximum > cfg.MaintenanceConcurrency {
+		t.Fatalf("max active maintenance operations = %d, limit = %d", maximum, cfg.MaintenanceConcurrency)
+	}
+	if maximum < 2 {
+		t.Fatalf("max active maintenance operations = %d, want concurrent execution", maximum)
+	}
+}
+
 func TestRunAggregatesFailuresAndReadbackMismatch(t *testing.T) {
 	cfg := fastRunnerConfig()
 	client := newFakeEventClient()
@@ -463,6 +506,29 @@ func TestRunAggregatesFailuresAndReadbackMismatch(t *testing.T) {
 	}
 	if len(report.Cleanup.Errors) != 1 || report.Pass {
 		t.Fatalf("unexpected cleanup/pass: cleanup=%#v pass=%v", report.Cleanup, report.Pass)
+	}
+}
+
+func TestMaintenanceErrorDetailsAreBounded(t *testing.T) {
+	cfg := fastRunnerConfig()
+	cfg.Devices = 24
+	client := newFakeEventClient()
+	expected := make(map[string]int, cfg.Devices)
+	for index := 0; index < cfg.Devices; index++ {
+		deviceName := DeviceName(cfg.RunID, index)
+		expected[deviceName] = 1
+		client.failCount[deviceName] = fmt.Errorf("count unavailable")
+		client.failDelete[deviceName] = fmt.Errorf("delete unavailable")
+	}
+
+	verification := verifyStoredEvents(context.Background(), cfg, client, expected)
+	cleanup := cleanupStoredEvents(context.Background(), cfg, client)
+
+	if len(verification.Errors) != maxDetailedOperationErrors || verification.SuppressedErrors != 4 {
+		t.Fatalf("verification errors=%d suppressed=%d", len(verification.Errors), verification.SuppressedErrors)
+	}
+	if len(cleanup.Errors) != maxDetailedOperationErrors || cleanup.SuppressedErrors != 4 {
+		t.Fatalf("cleanup errors=%d suppressed=%d", len(cleanup.Errors), cleanup.SuppressedErrors)
 	}
 }
 
@@ -500,12 +566,12 @@ func TestErrorClassIsBoundedAndStable(t *testing.T) {
 	}
 }
 
-func TestParseConfigUsesScaleBaselineDefaults(t *testing.T) {
+func TestParseConfigUsesSafeScaleBaselineDefaults(t *testing.T) {
 	cfg, err := ParseConfig(nil, &bytes.Buffer{})
 	if err != nil {
 		t.Fatalf("ParseConfig() error = %v", err)
 	}
-	if cfg.Devices != 1000 || cfg.PerDeviceHz != 1 || cfg.Duration != time.Minute || cfg.Concurrency != 128 {
+	if cfg.Devices != 1000 || math.Abs(cfg.PerDeviceHz-(1.0/60.0)) > 1e-9 || cfg.Duration != time.Minute || cfg.Concurrency != 128 || cfg.MaintenanceConcurrency != 8 {
 		t.Fatalf("unexpected scale defaults: %#v", cfg)
 	}
 	if cfg.BaseURL != "http://edgex-core-data.edgex-system.svc.cluster.local:59880" {

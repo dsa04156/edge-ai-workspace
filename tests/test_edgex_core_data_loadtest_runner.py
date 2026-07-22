@@ -10,12 +10,14 @@ def script() -> str:
     return SCRIPT_PATH.read_text(encoding="utf-8")
 
 
-def test_runner_defaults_to_1000_devices_at_one_hz():
+def test_runner_defaults_to_safe_1000_device_low_rate():
     text = script()
     assert 'DEVICES="${DEVICES:-1000}"' in text
-    assert 'PER_DEVICE_HZ="${PER_DEVICE_HZ:-1}"' in text
+    assert 'PER_DEVICE_HZ="${PER_DEVICE_HZ:-0.0166666667}"' in text
     assert 'DURATION="${DURATION:-60s}"' in text
     assert 'CONCURRENCY="${CONCURRENCY:-128}"' in text
+    assert 'MAINTENANCE_CONCURRENCY="${MAINTENANCE_CONCURRENCY:-8}"' in text
+    assert '--maintenance-concurrency="$MAINTENANCE_CONCURRENCY"' in text
 
 
 def test_runner_executes_inside_server2_with_service_dns():

@@ -17,18 +17,19 @@ const defaultCoreDataURL = "http://edgex-core-data.edgex-system.svc.cluster.loca
 
 func DefaultConfig() Config {
 	return Config{
-		BaseURL:        defaultCoreDataURL,
-		RunID:          generatedRunID(),
-		Devices:        1000,
-		PerDeviceHz:    1,
-		Duration:       time.Minute,
-		Concurrency:    128,
-		RequestTimeout: 5 * time.Second,
-		MaxErrorRate:   0,
-		MaxP95:         time.Second,
-		MinRateRatio:   0.95,
-		Verify:         true,
-		Cleanup:        true,
+		BaseURL:                defaultCoreDataURL,
+		RunID:                  generatedRunID(),
+		Devices:                1000,
+		PerDeviceHz:            1.0 / 60.0,
+		Duration:               time.Minute,
+		Concurrency:            128,
+		MaintenanceConcurrency: 8,
+		RequestTimeout:         5 * time.Second,
+		MaxErrorRate:           0,
+		MaxP95:                 time.Second,
+		MinRateRatio:           0.95,
+		Verify:                 true,
+		Cleanup:                true,
 	}
 }
 
@@ -50,6 +51,7 @@ func ParseConfig(args []string, errorOutput io.Writer) (Config, error) {
 	flags.Float64Var(&cfg.PerDeviceHz, "per-device-hz", cfg.PerDeviceHz, "events per second for each synthetic device")
 	flags.DurationVar(&cfg.Duration, "duration", cfg.Duration, "load generation duration")
 	flags.IntVar(&cfg.Concurrency, "concurrency", cfg.Concurrency, "maximum concurrent HTTP requests")
+	flags.IntVar(&cfg.MaintenanceConcurrency, "maintenance-concurrency", cfg.MaintenanceConcurrency, "maximum concurrent readback and cleanup requests")
 	flags.DurationVar(&cfg.RequestTimeout, "request-timeout", cfg.RequestTimeout, "per-request timeout")
 	flags.Float64Var(&cfg.MaxErrorRate, "max-error-rate", cfg.MaxErrorRate, "maximum accepted failed request ratio")
 	flags.DurationVar(&cfg.MaxP95, "max-p95", cfg.MaxP95, "maximum accepted p95 commit latency")

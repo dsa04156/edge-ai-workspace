@@ -23,26 +23,29 @@ var runIDPattern = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
 var httpStatusPattern = regexp.MustCompile(`HTTP ([0-9]{3})`)
 
 const (
-	loadtestServiceName = "core-data-loadtest"
-	loadtestProfileName = "loadtest-profile-v1"
-	loadtestSourceName  = "value"
-	loadtestRunIDTag    = "loadTestRunId"
-	maxResponseBodySize = 64 << 10
+	loadtestServiceName        = "core-data-loadtest"
+	loadtestProfileName        = "loadtest-profile-v1"
+	loadtestSourceName         = "value"
+	loadtestRunIDTag           = "loadTestRunId"
+	maxResponseBodySize        = 64 << 10
+	maxDetailedOperationErrors = 20
+	deletePollInterval         = 50 * time.Millisecond
 )
 
 type Config struct {
-	BaseURL        string
-	RunID          string
-	Devices        int
-	PerDeviceHz    float64
-	Duration       time.Duration
-	Concurrency    int
-	RequestTimeout time.Duration
-	MaxErrorRate   float64
-	MaxP95         time.Duration
-	MinRateRatio   float64
-	Verify         bool
-	Cleanup        bool
+	BaseURL                string
+	RunID                  string
+	Devices                int
+	PerDeviceHz            float64
+	Duration               time.Duration
+	Concurrency            int
+	MaintenanceConcurrency int
+	RequestTimeout         time.Duration
+	MaxErrorRate           float64
+	MaxP95                 time.Duration
+	MinRateRatio           float64
+	Verify                 bool
+	Cleanup                bool
 }
 
 func (c Config) Validate() error {
@@ -64,6 +67,9 @@ func (c Config) Validate() error {
 	}
 	if c.Concurrency <= 0 {
 		return fmt.Errorf("concurrency must be greater than zero")
+	}
+	if c.MaintenanceConcurrency <= 0 {
+		return fmt.Errorf("maintenance-concurrency must be greater than zero")
 	}
 	if c.RequestTimeout <= 0 {
 		return fmt.Errorf("request-timeout must be greater than zero")
@@ -102,12 +108,14 @@ type VerificationReport struct {
 	Matched           bool     `json:"matched"`
 	MismatchedDevices int      `json:"mismatchedDevices"`
 	Errors            []string `json:"errors,omitempty"`
+	SuppressedErrors  int      `json:"suppressedErrors,omitempty"`
 }
 
 type CleanupReport struct {
-	Enabled bool     `json:"enabled"`
-	Deleted int      `json:"deletedDevices"`
-	Errors  []string `json:"errors,omitempty"`
+	Enabled          bool     `json:"enabled"`
+	Deleted          int      `json:"deletedDevices"`
+	Errors           []string `json:"errors,omitempty"`
+	SuppressedErrors int      `json:"suppressedErrors,omitempty"`
 }
 
 type Report struct {
@@ -169,11 +177,11 @@ func Evaluate(cfg Config, report Report) []string {
 	if cfg.Verify && (!report.Verification.Matched || report.Verification.Persisted != report.Succeeded) {
 		reasons = append(reasons, fmt.Sprintf("readback persisted %d events, succeeded %d", report.Verification.Persisted, report.Succeeded))
 	}
-	if cfg.Verify && len(report.Verification.Errors) > 0 {
-		reasons = append(reasons, fmt.Sprintf("verification errors: %d", len(report.Verification.Errors)))
+	if cfg.Verify && operationErrorCount(report.Verification.Errors, report.Verification.SuppressedErrors) > 0 {
+		reasons = append(reasons, fmt.Sprintf("verification errors: %d", operationErrorCount(report.Verification.Errors, report.Verification.SuppressedErrors)))
 	}
-	if cfg.Cleanup && len(report.Cleanup.Errors) > 0 {
-		reasons = append(reasons, fmt.Sprintf("cleanup errors: %d", len(report.Cleanup.Errors)))
+	if cfg.Cleanup && operationErrorCount(report.Cleanup.Errors, report.Cleanup.SuppressedErrors) > 0 {
+		reasons = append(reasons, fmt.Sprintf("cleanup errors: %d", operationErrorCount(report.Cleanup.Errors, report.Cleanup.SuppressedErrors)))
 	}
 	return reasons
 }
@@ -322,19 +330,51 @@ func (c *HTTPClient) Store(ctx context.Context, sample Sample) StoreResult {
 }
 
 func (c *HTTPClient) Count(ctx context.Context, deviceName string) (int64, error) {
-	path := "/api/v3/event/device/name/" + url.PathEscape(deviceName) + "?limit=1"
+	path := "/api/v3/event/count/device/name/" + url.PathEscape(deviceName)
 	var response struct {
-		TotalCount int64 `json:"totalCount"`
+		Count int64 `json:"count"`
 	}
 	if err := c.doJSON(ctx, http.MethodGet, path, nil, http.StatusOK, &response); err != nil {
 		return 0, err
 	}
-	return response.TotalCount, nil
+	return response.Count, nil
 }
 
 func (c *HTTPClient) Delete(ctx context.Context, deviceName string) error {
+	operationContext, cancel := context.WithTimeout(ctx, c.requestTimeout)
+	defer cancel()
+
 	path := "/api/v3/event/device/name/" + url.PathEscape(deviceName)
-	return c.doJSON(ctx, http.MethodDelete, path, nil, http.StatusAccepted, nil)
+	if err := c.doJSON(operationContext, http.MethodDelete, path, nil, http.StatusAccepted, nil); err != nil {
+		return err
+	}
+
+	var lastCount int64
+	var lastErr error
+	for {
+		lastCount, lastErr = c.Count(operationContext, deviceName)
+		if lastErr == nil && lastCount == 0 {
+			return nil
+		}
+		if operationContext.Err() != nil {
+			return deletionConfirmationError(path, lastCount, lastErr, operationContext.Err())
+		}
+
+		timer := time.NewTimer(deletePollInterval)
+		select {
+		case <-timer.C:
+		case <-operationContext.Done():
+			timer.Stop()
+			return deletionConfirmationError(path, lastCount, lastErr, operationContext.Err())
+		}
+	}
+}
+
+func deletionConfirmationError(path string, remaining int64, lastErr error, contextErr error) error {
+	if lastErr != nil {
+		return fmt.Errorf("confirm DELETE %s: %v: %w", path, lastErr, contextErr)
+	}
+	return fmt.Errorf("confirm DELETE %s: %d events remain: %w", path, remaining, contextErr)
 }
 
 func (c *HTTPClient) doJSON(ctx context.Context, method string, path string, payload []byte, expectedStatus int, destination any) error {
@@ -536,7 +576,7 @@ func verifyStoredEvents(ctx context.Context, cfg Config, client EventClient, exp
 		report.CheckedDevices++
 		deviceName := DeviceName(cfg.RunID, result.index)
 		if result.err != nil {
-			report.Errors = append(report.Errors, fmt.Sprintf("%s: %v", deviceName, result.err))
+			appendBoundedOperationError(&report.Errors, &report.SuppressedErrors, fmt.Sprintf("%s: %v", deviceName, result.err))
 			continue
 		}
 		report.Persisted += int(result.count)
@@ -555,7 +595,7 @@ func cleanupStoredEvents(ctx context.Context, cfg Config, client EventClient) Cl
 	})
 	for result := range results {
 		if result.err != nil {
-			report.Errors = append(report.Errors, fmt.Sprintf("%s: %v", DeviceName(cfg.RunID, result.index), result.err))
+			appendBoundedOperationError(&report.Errors, &report.SuppressedErrors, fmt.Sprintf("%s: %v", DeviceName(cfg.RunID, result.index), result.err))
 			continue
 		}
 		report.Deleted++
@@ -563,14 +603,26 @@ func cleanupStoredEvents(ctx context.Context, cfg Config, client EventClient) Cl
 	return report
 }
 
+func appendBoundedOperationError(details *[]string, suppressed *int, message string) {
+	if len(*details) < maxDetailedOperationErrors {
+		*details = append(*details, message)
+		return
+	}
+	*suppressed++
+}
+
+func operationErrorCount(details []string, suppressed int) int {
+	return len(details) + suppressed
+}
+
 func parallelDeviceOperation(
 	ctx context.Context,
 	cfg Config,
 	operation func(context.Context, int) (int64, error),
 ) <-chan deviceOperationResult {
-	results := make(chan deviceOperationResult, cfg.Concurrency)
-	indices := make(chan int, cfg.Concurrency)
-	workerCount := cfg.Concurrency
+	results := make(chan deviceOperationResult, cfg.MaintenanceConcurrency)
+	indices := make(chan int, cfg.MaintenanceConcurrency)
+	workerCount := cfg.MaintenanceConcurrency
 	if cfg.Devices < workerCount {
 		workerCount = cfg.Devices
 	}
