@@ -8,7 +8,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     refactor_link = "/static/dashboard-refactor.css?v=reference-console-20260622"
-    screen_link = "/static/dashboard-screen.css?v=resource-console-v3-20260709"
+    screen_link = "/static/dashboard-screen.css?v=edgex-cutover-20260714"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html

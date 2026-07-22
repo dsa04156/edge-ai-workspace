@@ -1,15 +1,14 @@
 작업명
 
-Prometheus 기반 node state + workflow event 통합 상태 허브 구현
+EdgeX physical-device state + Prometheus node/workload state 통합 허브 구현
 
 목적
 
-KubeEdge mixed-device 환경에서,
-
-Prometheus/node-exporter로부터 노드 상태를 읽고
-workflow/stage 이벤트를 수신하고
-이를 scheduler/planner가 쓸 수 있는 normalized state로 변환하는
-중앙 상태 허브를 구현한다.
+EdgeX Core Metadata/Core Data를 물리 디바이스 inventory, state, telemetry의 권위 원본으로 읽고,
+Prometheus/node-exporter와 Kubernetes에서 node/workload 상태를 읽으며
+workflow/stage 이벤트를 함께 정규화하는 중앙 상태 허브를 구현한다.
+KubeEdge는 edge node/workload 관리 정보에만 사용하고 KubeEdge Device/DeviceStatus나
+MapperFramework를 physical-device fallback으로 조회하지 않는다.
 구현해야 할 것
 A. API 서버
 
@@ -24,9 +23,9 @@ GET /state/workflows
 GET /state/workflow/{workflow_id}
 GET /state/summary
 
-현재 workflow UI는 Kubernetes apply/delete/restart 같은 실행 제어를 하지 않는다.
-등록된 KubeEdge Device는 `GET /state/devices`로 조회하고, source freshness와
-최근 sample은 `GET /state/devices/{device_id}/telemetry`로 확인한다.
+현재 workflow UI는 Kubernetes 또는 EdgeX metadata/state/command를 변경하지 않는다.
+등록된 EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Core Data Event/Reading
+history는 `GET /state/devices/{device_id}/telemetry`로 확인한다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
@@ -333,7 +332,7 @@ decision reason이 함께 반환됨
 이건 세 작업 모두에 같이 붙이면 된다.
 
 환경
-mixed-device KubeEdge cluster
+EdgeX physical-device + Kubernetes/KubeEdge node/workload cluster
 nodes:
 x86 server: etri-ser0001-CG0MSB
 Jetson: etri-dev0001-jetorn

@@ -2,22 +2,25 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 
 import httpx
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .config import Settings, load_instance_map
-from .influx import InfluxTelemetryClient, TelemetrySample
+from .edgex import EdgeXClient
 from .models import (
     CostModelState,
     DashboardState,
     DeviceState,
+    EdgeXDevice,
     NodeState,
     OperatorAssistantState,
     OperatorChatRequest,
     OperatorChatResponse,
     SummaryState,
+    TelemetryPoint,
     WorkflowEvent,
     WorkflowState,
 )
@@ -38,13 +41,10 @@ class StateAggregatorService:
         self.instance_map = load_instance_map(settings.instance_map_path)
         self.store = StateStore(settings.data_dir)
         self.prometheus = PrometheusClient(settings.prometheus_url, self.instance_map)
-        self.telemetry = InfluxTelemetryClient(
-            settings.influxdb_url,
-            settings.influxdb_org,
-            settings.influxdb_bucket,
-            settings.influxdb_token,
-            settings.influxdb_measurement,
-            settings.telemetry_query_window,
+        self.edgex = EdgeXClient(
+            settings.edgex_core_metadata_url,
+            settings.edgex_core_data_url,
+            settings.edgex_timeout_seconds,
         )
         self.resource_recorder = InfluxResourceProfileRecorder(
             settings.influxdb_url,
@@ -58,20 +58,17 @@ class StateAggregatorService:
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
         self._resource_profile_recorder_task: asyncio.Task | None = None
-        self._device_status_bridge_task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._poller_task is None:
             self._poller_task = asyncio.create_task(self._poll_prometheus())
         if self.settings.resource_profile_recording_mode == "scheduled" and self._resource_profile_recorder_task is None:
             self._resource_profile_recorder_task = asyncio.create_task(self._record_resource_profiles_periodically())
-        if self.settings.device_status_bridge_enabled and self._device_status_bridge_task is None:
-            self._device_status_bridge_task = asyncio.create_task(self._bridge_device_status_heartbeats())
 
     async def stop(self) -> None:
         tasks = [
             task
-            for task in (self._poller_task, self._resource_profile_recorder_task, self._device_status_bridge_task)
+            for task in (self._poller_task, self._resource_profile_recorder_task)
             if task is not None
         ]
         for task in tasks:
@@ -83,7 +80,6 @@ class StateAggregatorService:
                 pass
         self._poller_task = None
         self._resource_profile_recorder_task = None
-        self._device_status_bridge_task = None
 
     async def _poll_prometheus(self) -> None:
         while True:
@@ -101,15 +97,6 @@ class StateAggregatorService:
             except Exception:
                 logger.exception("Failed to record scheduled service resource profile snapshot")
 
-    async def _bridge_device_status_heartbeats(self) -> None:
-        while True:
-            try:
-                patched = await self.kube.bridge_device_status_heartbeats()
-                if patched:
-                    logger.info("bridged DeviceStatus heartbeats for %s device(s)", patched)
-            except Exception:
-                logger.exception("Failed to bridge DeviceStatus heartbeats")
-            await asyncio.sleep(self.settings.device_status_bridge_interval_seconds)
 
     async def refresh_nodes(self) -> list[NodeState]:
         # Dynamically discover nodes from K8s API
@@ -208,32 +195,26 @@ class StateAggregatorService:
             "service_resource_profiles": self._service_resource_profiles,
         }
 
-    async def get_device_telemetry_history(self, device_id: str, window: str = "-30m", limit: int = 300) -> list[TelemetrySample]:
-        return await self.telemetry.get_history(device_id=device_id, window=window, limit=limit)
+    async def get_device_telemetry_history(
+        self, device_id: str, window: str = "-30m", limit: int = 300
+    ) -> list[TelemetryPoint]:
+        match = re.fullmatch(r"-([1-9][0-9]*)([smhdw])", window)
+        if match is None:
+            raise ValueError("window must be a negative duration such as -30m")
+        amount = int(match.group(1))
+        unit = match.group(2)
+        seconds = amount * {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}[unit]
+        start = datetime.now(timezone.utc) - timedelta(seconds=seconds)
+        return await self.edgex.get_event_history(device_id, limit=limit, start=start)
 
     async def get_devices(self) -> list[DeviceState]:
-        raw_devices = await self.kube.get_devices()
-        raw_statuses = await self.kube.get_device_statuses()
-        status_by_device = {
-            self._object_key(item): item.get("status", {})
-            for item in raw_statuses
-            if self._object_key(item)
-        }
-        node_health = {node.hostname: node.node_health for node in self.get_nodes()}
-        node_readiness = await self.kube.get_node_readiness()
-        mapper_nodes = await self.kube.get_running_mapper_nodes()
-        telemetry_samples = await self.telemetry.get_latest_by_device()
-        workflows = self.get_workflows()
+        inventory = await self.edgex.get_devices()
+        latest_events = await asyncio.gather(
+            *(self.edgex.get_latest_source_readings(device.name) for device in inventory)
+        )
         return [
-            self._normalize_device(
-                self._merge_device_status(item, status_by_device),
-                node_health,
-                workflows,
-                mapper_nodes,
-                telemetry_samples,
-                node_readiness,
-            )
-            for item in raw_devices
+            self._normalize_edgex_device(device, readings)
+            for device, readings in zip(inventory, latest_events)
         ]
 
     async def get_dashboard(self) -> DashboardState:
@@ -256,46 +237,39 @@ class StateAggregatorService:
 
     async def get_operator_assistant(self) -> OperatorAssistantState:
         dashboard = await self.get_dashboard()
+        focus_devices = []
+        for device in dashboard.devices:
+            status, reason = self._device_health(device)
+            if status in {"degraded", "unavailable"}:
+                focus_devices.append(
+                    {
+                        "name": device.name,
+                        "node_name": device.node_name,
+                        "status": status,
+                        "reason": reason,
+                        "admin_state": device.admin_state,
+                        "operating_state": device.operating_state,
+                        "device_service_available": device.device_service_available,
+                        "telemetry_freshness": device.telemetry_freshness,
+                    }
+                )
         kpis = dashboard.kpis
-        registered = int(kpis.get("registered_device_count", len(dashboard.devices)) or 0)
-        live = int(kpis.get("live_device_count", 0) or 0)
-        focus_count = int(kpis.get("operator_focus_count", 0) or 0)
-        service_bound = int(kpis.get("service_bound_device_count", 0) or 0)
-        telemetry_configured_ratio = kpis.get("device_telemetry_ratio", 0)
-        sensor_data_freshness_ratio = kpis.get("sensor_data_freshness_ratio", 0)
-
-        focus_devices = [
-            {
-                "name": device.name,
-                "node_name": device.node_name,
-                "status": device.overall_status,
-                "reason": device.reason,
-                "service_demo_group": device.service_demo_group,
-                "telemetry_fresh": device.telemetry_fresh,
-                "device_status_fresh": device.device_status_fresh,
-                "mapper_running": device.mapper_running,
-                "node_ready": device.node_ready,
-            }
-            for device in dashboard.devices
-            if device.overall_status in {"degraded", "unavailable"}
-        ][:10]
-
         summary = (
-            "Kagenti 연동 PoC용 read-only 운영 보조 요약입니다. "
-            f"등록 device {registered}개 중 live device {live}개, "
-            f"서비스 데모 연결 device {service_bound}개, 우선 점검 대상 {focus_count}개입니다. "
-            f"telemetry configured 비율은 {telemetry_configured_ratio}이고, 실제 센서 데이터 freshness 비율은 {sensor_data_freshness_ratio}입니다."
+            "EdgeX 기반 read-only 운영 보조 요약입니다. "
+            f"Core Metadata 등록 device {len(dashboard.devices)}개 중 "
+            f"available device {kpis.get('available_device_count', 0)}개, "
+            f"우선 점검 대상 {kpis.get('operator_focus_count', 0)}개입니다. "
+            f"Core Data event freshness 비율은 {kpis.get('core_data_freshness_ratio', 0)}입니다."
         )
-
         return OperatorAssistantState(
             generated_at=datetime.now(timezone.utc),
             summary_ko=summary,
-            focus_devices=focus_devices,
+            focus_devices=focus_devices[:10],
             recommended_actions=self._operator_recommended_actions(focus_devices),
             guardrails=[
-                "read-only endpoint: Kubernetes 리소스, Device CR, command topic을 수정하지 않는다.",
-                "운영자에게 점검 순서만 제안하고 rollout/delete/apply 같은 조치는 실행하지 않는다.",
-                "workflow/offloading/agent-assisted planning 판단으로 해석하지 않는다.",
+                "read-only endpoint: EdgeX 및 Kubernetes 리소스를 수정하지 않는다.",
+                "운영자에게 점검 순서만 제안하고 명령 또는 제어를 실행하지 않는다.",
+                "Kubernetes node_name은 진단 정보이며 물리 device availability 판단에 사용하지 않는다.",
             ],
             source_endpoints=[
                 "/state/dashboard",
@@ -309,17 +283,13 @@ class StateAggregatorService:
         actions: list[str] = []
         for device in focus_devices:
             name = device.get("name", "unknown-device")
-            if not device.get("node_ready", False):
-                actions.append(f"{name}: 할당 node Ready 상태와 edgecore/cloudcore 연결을 먼저 확인한다.")
-            if not device.get("mapper_running", False):
-                actions.append(f"{name}: mqttvirtual mapper pod Running 여부와 node 배치를 확인한다.")
-            if not device.get("telemetry_fresh", False):
-                actions.append(f"{name}: sensor data freshness는 availability 판단과 별도 KPI다. EdgeX/collector/MQTT/DB 적재 경로를 별도 확인한다.")
-            if device.get("telemetry_fresh") and not device.get("device_status_fresh", False):
-                actions.append(f"{name}: DeviceStatus snapshot 대상 property와 mapper allowlist 정책을 확인한다.")
-        if not actions:
-            actions.append("현재 우선 점검 대상이 없으므로 dashboard KPI와 service demo group만 확인한다.")
-        return actions[:10]
+            if str(device.get("admin_state", "")).upper() == "LOCKED":
+                actions.append(f"{name}: Core Metadata adminState 잠금 정책을 확인한다.")
+            if not device.get("device_service_available", False):
+                actions.append(f"{name}: EdgeX device service와 operatingState를 확인한다.")
+            if device.get("telemetry_freshness") != "fresh":
+                actions.append(f"{name}: Core Data 최신 event와 device service 수집 경로를 확인한다.")
+        return actions[:10] or ["현재 우선 점검 대상이 없으므로 EdgeX KPI를 확인한다."]
 
     async def chat_with_operator_assistant(self, request: OperatorChatRequest) -> OperatorChatResponse:
         assistant = await self.get_operator_assistant()
@@ -365,7 +335,7 @@ class StateAggregatorService:
         actions = "\n".join(f"- {action}" for action in assistant.recommended_actions[:6])
         focus = "\n".join(focus_lines) if focus_lines else "- 현재 우선 점검 device 없음"
         return (
-            "You are a read-only Korean operator assistant for a KubeEdge mixed-device PoC dashboard. "
+            "You are a read-only Korean operator assistant for an EdgeX physical-device and Kubernetes workload dashboard. "
             "Answer in Korean unless the user asks otherwise. Do not claim you can execute commands. "
             "Do not suggest Kubernetes apply/delete/rollout, MQTT command publishing, actuator control, dynamic offloading, "
             "or agent-assisted planning as actions. Only explain current dashboard signals and safe inspection order.\n\n"
@@ -397,452 +367,65 @@ class StateAggregatorService:
         text = first.get("text")
         return text.strip() if isinstance(text, str) else ""
 
-    def _normalize_device(
-        self,
-        item: dict[str, Any],
-        node_health: dict[str, str],
-        workflows: list[WorkflowState],
-        mapper_nodes: set[str] | None = None,
-        telemetry_samples: dict[str, TelemetrySample] | None = None,
-        node_readiness: dict[str, bool] | None = None,
+    def _normalize_edgex_device(
+        self, device: EdgeXDevice, readings: list[TelemetryPoint]
     ) -> DeviceState:
-        metadata = item.get("metadata", {})
-        spec = item.get("spec", {})
-        status_payload = item.get("status", {})
-        name = metadata.get("name", "unknown-device")
-        namespace = metadata.get("namespace", "default")
-        properties = spec.get("properties") or []
-        property_names = [prop.get("name") for prop in properties if isinstance(prop, dict) and prop.get("name")]
-        node_name = spec.get("nodeName")
-        protocol = (spec.get("protocol") or {}).get("protocolName")
-        model = (spec.get("deviceModelRef") or {}).get("name")
-        twin = self._normalize_twin_payload(status_payload.get("twins") or status_payload.get("twin") or {})
-        telemetry_enabled = self._is_telemetry_enabled(properties)
-        service_demo_group, service_binding_source, service_binding_reason = self._device_service_binding_detail(
-            name,
-            node_name,
-            workflows,
+        latest_timestamp = max(
+            (reading.timestamp for reading in readings), default=None
         )
-        service_connected = service_demo_group is not None
-        device_type = self._classify_device(name, model, protocol)
-        telemetry_sample = (telemetry_samples or {}).get(name)
-        telemetry_age_seconds = self._telemetry_age_seconds(telemetry_sample)
-        telemetry_fresh = (
-            telemetry_age_seconds is not None
-            and telemetry_age_seconds <= self.settings.telemetry_fresh_seconds
+        age_seconds = (
+            max(0.0, (datetime.now(timezone.utc) - latest_timestamp).total_seconds())
+            if latest_timestamp is not None
+            else None
         )
-        telemetry_status = self._telemetry_status(telemetry_enabled, telemetry_fresh)
-        device_status_last_reported_at = self._device_status_last_reported_at(status_payload)
-        device_status_age_seconds = self._age_seconds(device_status_last_reported_at)
-        device_status_fresh = (
-            device_status_age_seconds is not None
-            and device_status_age_seconds <= self.settings.device_status_fresh_seconds
+        freshness = (
+            "no_events"
+            if age_seconds is None
+            else "fresh"
+            if age_seconds <= self.settings.edgex_event_fresh_seconds
+            else "stale"
         )
-        status_heartbeat_last_seen_at = self._status_heartbeat_last_seen_at(twin, status_payload)
-        status_heartbeat_age_seconds = self._age_seconds(status_heartbeat_last_seen_at)
-        if status_heartbeat_age_seconds is not None:
-            device_status_fresh = status_heartbeat_age_seconds <= self.settings.device_status_fresh_seconds
-        mapper_running = protocol != "mqttvirtual" or bool(node_name and node_name in (mapper_nodes or set()))
-        node_ready = self._node_ready(node_name, node_health, node_readiness or {})
-        kubeedge_state = self._read_status_field(status_payload, ("state", "status", "phase", "connection", "connected"))
-        health_value = self._reported_twin_value(twin, "health") or self._read_status_field(status_payload, ("health",))
-        online_value = self._reported_twin_value(twin, "online") or self._read_status_field(status_payload, ("online", "connected"))
-        severity_value = self._reported_twin_value(twin, "severity")
-        health, reason = self._device_health(
-            status_payload,
-            node_name,
-            node_health,
-            telemetry_enabled,
-            protocol,
-            mapper_nodes or set(),
-            telemetry_age_seconds,
-            device_status_fresh,
-            telemetry_fresh,
-            mapper_running,
-            node_ready,
-            health_value,
-            online_value,
-            severity_value,
-            status_heartbeat_age_seconds,
+        operating_state = device.operating_state.upper()
+        admin_state = device.admin_state.upper()
+        connection_state = (
+            "disconnected"
+            if admin_state == "LOCKED" or operating_state == "DOWN"
+            else "connected"
+            if operating_state == "UP"
+            else "unknown"
         )
-        return DeviceState(
-            name=name,
-            namespace=namespace,
-            device_type=device_type,
-            model=model,
-            node_name=node_name,
-            nodeName=node_name,
-            protocol=protocol,
-            properties=property_names,
-            telemetry_enabled=telemetry_enabled,
-            service_connected=service_connected,
-            service_demo_group=service_demo_group,
-            service_binding_source=service_binding_source,
-            service_binding_reason=service_binding_reason,
-            status=health,
-            status_reason=reason,
-            kubeedge_state=kubeedge_state,
-            device_status_fresh=device_status_fresh,
-            device_status_last_reported_at=device_status_last_reported_at,
-            telemetry_fresh=telemetry_fresh,
-            telemetry_status=telemetry_status,
-            telemetry_last_seen_at=telemetry_sample.timestamp if telemetry_sample else None,
-            mapper_running=mapper_running,
-            node_ready=node_ready,
-            health=health_value,
-            severity=severity_value,
-            overall_status=health,
-            reason=reason,
-            telemetry_last_seen=telemetry_sample.timestamp if telemetry_sample else None,
-            telemetry_age_seconds=telemetry_age_seconds,
-            telemetry_property=telemetry_sample.property if telemetry_sample else None,
-            telemetry_value=telemetry_sample.value if telemetry_sample else None,
-            twin=twin,
+        state = DeviceState(
+            name=device.name,
+            profile_name=device.profile_name,
+            device_service_name=device.device_service_name,
+            protocol_names=device.protocol_names,
+            admin_state=device.admin_state,
+            operating_state=device.operating_state,
+            connection_state=connection_state,
+            device_service_available=operating_state == "UP",
+            latest_event_timestamp=latest_timestamp,
+            latest_readings=readings,
+            telemetry_freshness=freshness,
+            node_name=device.node_name,
+        )
+        overall_status, reason = self._device_health(state)
+        return state.model_copy(
+            update={"overall_status": overall_status, "reason": reason}
         )
 
-    def _telemetry_status(self, telemetry_enabled: bool, telemetry_fresh: bool) -> str:
-        if not telemetry_enabled:
-            return "disabled"
-        return "fresh" if telemetry_fresh else "stale"
-
-    def _node_ready(
-        self,
-        node_name: str | None,
-        node_health: dict[str, str],
-        node_readiness: dict[str, bool],
-    ) -> bool:
-        if not node_name:
-            return False
-        if node_readiness.get(node_name) is False:
-            return False
-        if node_readiness and node_name not in node_readiness:
-            return False
-        return node_health.get(node_name) != "unavailable"
-
-    def _is_telemetry_enabled(self, properties: list[Any]) -> bool:
-        for prop in properties:
-            if not isinstance(prop, dict):
-                continue
-            if prop.get("pushMethod"):
-                return True
-        return False
-
-    def _object_key(self, item: dict[str, Any]) -> tuple[str, str] | None:
-        metadata = item.get("metadata") or {}
-        name = metadata.get("name")
-        namespace = metadata.get("namespace", "default")
-        if not name:
-            return None
-        return namespace, name
-
-    def _merge_device_status(
-        self,
-        device: dict[str, Any],
-        status_by_device: dict[tuple[str, str], dict[str, Any]],
-    ) -> dict[str, Any]:
-        key = self._object_key(device)
-        live_status = status_by_device.get(key) if key else None
-        if not live_status:
-            return device
-        merged = dict(device)
-        merged["status"] = live_status
-        return merged
-
-    def _device_service_binding_detail(
-        self,
-        device_name: str,
-        node_name: str | None,
-        workflows: list[WorkflowState],
-    ) -> tuple[str | None, str | None, str | None]:
-        name = device_name.lower()
-        if "vib" in name:
-            return (
-                "설비 상태 모니터링",
-                "device_name_pattern",
-                "device name includes vibration service keyword",
-            )
-        if "act" in name:
-            return (
-                "command 상태 확인",
-                "device_name_pattern",
-                "device name includes actuator command service keyword",
-            )
-        if "env" in name or "temp" in name:
-            return (
-                "환경 상태 모니터링",
-                "device_name_pattern",
-                "device name includes environment service keyword",
-            )
-        if self._device_has_event_binding(device_name, node_name, workflows):
-            return (
-                "서비스 데모 연결",
-                "event_binding",
-                "recent service event references this device or node",
-            )
-        return None, None, None
-
-    def _device_has_event_binding(
-        self,
-        device_name: str,
-        node_name: str | None,
-        workflows: list[WorkflowState],
-    ) -> bool:
-        for workflow in workflows:
-            event = workflow.recent_event
-            if event.get("device_id") == device_name or event.get("source_device") == device_name:
-                return True
-            if node_name and workflow.assigned_node == node_name:
-                return True
-        return False
-
-    def _classify_device(self, name: str, model: str | None, protocol: str | None) -> str:
-        text = " ".join(part for part in [name, model, protocol] if part).lower()
-        if "twin" in text:
-            return "device_twin"
-        if "virtual" in text or "mqttvirtual" in text:
-            return "virtual_device"
-        if "rpi" in text or "raspi" in text:
-            return "sensor_device"
-        if "env" in text or "vib" in text or "act" in text:
-            return "sensor_device"
-        return "physical_device"
-
-    def _device_health(
-        self,
-        status_payload: dict[str, Any],
-        node_name: str | None,
-        node_health: dict[str, str],
-        telemetry_enabled: bool,
-        protocol: str | None = None,
-        mapper_nodes: set[str] | None = None,
-        telemetry_age_seconds: float | None = None,
-        device_status_fresh: bool = False,
-        telemetry_fresh: bool = False,
-        mapper_running: bool = False,
-        node_ready: bool = False,
-        health_value: str | None = None,
-        online_value: str | None = None,
-        severity_value: str | None = None,
-        status_heartbeat_age_seconds: float | None = None,
-    ) -> tuple[str, str]:
-        mapper_nodes = mapper_nodes or set()
-        if not node_name:
-            return "unavailable", "device is not assigned to a node"
-        if not node_ready:
-            return "unavailable", "assigned node is unavailable"
-        live_state = self._read_live_device_state(status_payload)
-        if live_state in {"offline", "disconnected", "failed", "unavailable", "false"}:
-            return "unavailable", f"device status is {live_state}"
-        if health_value and health_value.lower() == "offline":
-            return "unavailable", "DeviceStatus health is offline"
-        if online_value and online_value.lower() in {"false", "offline", "disconnected", "unavailable"}:
-            return "unavailable", "DeviceStatus online is false"
-        if protocol == "mqttvirtual" and not mapper_running:
-            return "unavailable", "assigned mapper is not running"
-        if telemetry_enabled and not telemetry_fresh:
-            if telemetry_age_seconds is None:
-                return "degraded", "latest telemetry sample is missing"
-            return "degraded", "latest telemetry sample is stale"
-        if (
-            status_heartbeat_age_seconds is not None
-            and status_heartbeat_age_seconds > self.settings.device_status_fresh_seconds
-        ):
-            return "degraded", "status heartbeat is stale"
-        if node_health.get(node_name) == "degraded":
-            return "degraded", "assigned node is degraded"
-        if severity_value and severity_value.lower() == "critical":
-            return "degraded", "DeviceStatus severity is critical"
-        if health_value and health_value.lower() in {"error", "failed", "degraded", "critical"}:
-            return "degraded", f"DeviceStatus health is {health_value.lower()}"
-        if telemetry_enabled:
-            return "available", "latest telemetry sample is fresh"
-        if device_status_fresh:
-            return "available", "control/status path is available"
-        return "available", "registered control/status path is available"
-
-    def _read_live_device_state(self, status_payload: dict[str, Any]) -> str | None:
-        for key in ("status", "phase", "state", "connection", "connected", "health"):
-            value = status_payload.get(key)
-            if value is None:
-                continue
-            if isinstance(value, bool):
-                return "true" if value else "false"
-            return str(value).lower()
-        return None
-
-    def _read_status_field(self, status_payload: dict[str, Any], keys: tuple[str, ...]) -> str | None:
-        for key in keys:
-            value = status_payload.get(key)
-            if value is None:
-                continue
-            if isinstance(value, bool):
-                return "true" if value else "false"
-            return str(value).lower()
-        return None
-
-    def _has_reported_twin(self, twin: Any) -> bool:
-        if isinstance(twin, list):
-            for item in twin:
-                if not isinstance(item, dict):
-                    continue
-                reported = item.get("reported")
-                if isinstance(reported, dict) and reported.get("value") not in (None, ""):
-                    return True
-            return False
-        if not isinstance(twin, dict):
-            return False
-        for value in twin.values():
-            if not isinstance(value, dict):
-                continue
-            actual = value.get("actual") or value.get("reported")
-            if isinstance(actual, dict) and actual.get("value") not in (None, ""):
-                return True
-            if actual not in (None, "") and not isinstance(actual, dict):
-                return True
-        return False
-
-    def _normalize_twin_payload(self, twin: Any) -> dict[str, Any]:
-        if isinstance(twin, dict):
-            return twin
-        if not isinstance(twin, list):
-            return {}
-        normalized: dict[str, Any] = {}
-        for item in twin:
-            if not isinstance(item, dict):
-                continue
-            name = item.get("propertyName")
-            if name:
-                normalized[name] = {
-                    "reported": item.get("reported"),
-                    "observedDesired": item.get("observedDesired"),
-                }
-        return normalized
-
-    def _telemetry_age_seconds(self, sample: TelemetrySample | None) -> float | None:
-        if sample is None:
-            return None
-        age = datetime.now(timezone.utc) - sample.timestamp
-        return max(0.0, round(age.total_seconds(), 3))
-
-    def _device_status_last_reported_at(self, status_payload: dict[str, Any]) -> datetime | None:
-        candidates: list[datetime] = []
-        last_seen = self._parse_kube_time(status_payload.get("lastOnlineTime"))
-        if last_seen is not None:
-            candidates.append(last_seen)
-        candidates.extend(
-            self._reported_twin_timestamps(status_payload.get("twins") or status_payload.get("twin") or {})
-        )
-        if not candidates:
-            return None
-        return max(candidates)
-
-    def _status_heartbeat_last_seen_at(self, twin: Any, status_payload: dict[str, Any]) -> datetime | None:
-        candidates: list[datetime] = []
-        for key in ("statusLastSeen", "controlLastSeen", "mapperLastSeen"):
-            direct = self._parse_kube_time(status_payload.get(key))
-            if direct is not None:
-                candidates.append(direct)
-            twin_time = self._reported_twin_timestamp_or_value(twin, key)
-            if twin_time is not None:
-                candidates.append(twin_time)
-        if not candidates:
-            return None
-        return max(candidates)
-
-    def _reported_twin_timestamp_or_value(self, twin: Any, property_name: str) -> datetime | None:
-        if isinstance(twin, list):
-            for item in twin:
-                if not isinstance(item, dict) or item.get("propertyName") != property_name:
-                    continue
-                parsed = self._parse_reported_timestamp_or_value(item.get("reported"))
-                if parsed is not None:
-                    return parsed
-            return None
-        if not isinstance(twin, dict):
-            return None
-        value = twin.get(property_name)
-        if not isinstance(value, dict):
-            return None
-        return self._parse_reported_timestamp_or_value(value.get("actual") or value.get("reported"))
-
-    def _parse_reported_timestamp_or_value(self, reported: Any) -> datetime | None:
-        if isinstance(reported, dict):
-            parsed = self._parse_kube_time(reported.get("value"))
-            if parsed is not None:
-                return parsed
-            return self._parse_kube_time((reported.get("metadata") or {}).get("timestamp"))
-        return self._parse_kube_time(reported)
-
-    def _age_seconds(self, timestamp: datetime | None) -> float | None:
-        if timestamp is None:
-            return None
-        age = datetime.now(timezone.utc) - timestamp
-        return max(0.0, round(age.total_seconds(), 3))
-
-    def _reported_twin_value(self, twin: Any, property_name: str) -> str | None:
-        if isinstance(twin, list):
-            for item in twin:
-                if not isinstance(item, dict) or item.get("propertyName") != property_name:
-                    continue
-                reported = item.get("reported")
-                if isinstance(reported, dict) and reported.get("value") not in (None, ""):
-                    return str(reported.get("value")).lower()
-            return None
-        if not isinstance(twin, dict):
-            return None
-        value = twin.get(property_name)
-        if not isinstance(value, dict):
-            return None
-        reported = value.get("reported") or value.get("actual")
-        if isinstance(reported, dict) and reported.get("value") not in (None, ""):
-            return str(reported.get("value")).lower()
-        if reported not in (None, "") and not isinstance(reported, dict):
-            return str(reported).lower()
-        return None
-
-    def _reported_twin_timestamps(self, twin: Any) -> list[datetime]:
-        timestamps: list[datetime] = []
-        if isinstance(twin, list):
-            for item in twin:
-                if not isinstance(item, dict):
-                    continue
-                reported = item.get("reported")
-                if isinstance(reported, dict):
-                    parsed = self._parse_kube_time((reported.get("metadata") or {}).get("timestamp"))
-                    if parsed is not None:
-                        timestamps.append(parsed)
-            return timestamps
-        if not isinstance(twin, dict):
-            return timestamps
-        for value in twin.values():
-            if not isinstance(value, dict):
-                continue
-            actual = value.get("actual") or value.get("reported")
-            if isinstance(actual, dict):
-                parsed = self._parse_kube_time((actual.get("metadata") or {}).get("timestamp"))
-                if parsed is not None:
-                    timestamps.append(parsed)
-        return timestamps
-
-    def _parse_kube_time(self, value: Any) -> datetime | None:
-        if isinstance(value, (int, float)):
-            timestamp = float(value)
-            if timestamp > 1_000_000_000_000:
-                timestamp = timestamp / 1000
-            try:
-                return datetime.fromtimestamp(timestamp, timezone.utc)
-            except (OSError, OverflowError, ValueError):
-                logger.warning("Failed to parse Kubernetes numeric timestamp: %s", value)
-                return None
-        if not isinstance(value, str) or not value:
-            return None
-        if value.isdigit():
-            return self._parse_kube_time(int(value))
-        try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
-        except ValueError:
-            logger.warning("Failed to parse Kubernetes timestamp: %s", value)
-            return None
+    def _device_health(self, device: DeviceState) -> tuple[str, str]:
+        if device.admin_state.upper() == "LOCKED":
+            return "unavailable", "EdgeX adminState is LOCKED"
+        operating_state = device.operating_state.upper()
+        if operating_state == "DOWN":
+            return "unavailable", "EdgeX operatingState is DOWN"
+        if operating_state != "UP":
+            return "degraded", f"EdgeX operatingState is {operating_state or 'UNKNOWN'}"
+        if device.telemetry_freshness == "fresh":
+            return "available", "EdgeX device service is UP and latest Core Data event is fresh"
+        if device.telemetry_freshness == "stale":
+            return "degraded", "EdgeX device service is UP but latest Core Data event is stale"
+        return "degraded", "EdgeX device service is UP but no Core Data event is available"
 
     def _build_dashboard_kpis(
         self,
@@ -851,47 +434,62 @@ class StateAggregatorService:
         workflows: list[WorkflowState],
     ) -> dict[str, Any]:
         online_nodes = [node for node in nodes if node.node_health != "unavailable"]
-        healthy_devices = [device for device in devices if device.status in {"available", "healthy"}]
-        operational_devices = [device for device in devices if device.status != "unavailable"]
-        telemetry_devices = [device for device in devices if device.telemetry_enabled]
-        fresh_telemetry_devices = [
-            device for device in telemetry_devices if device.telemetry_fresh
+        health = [(device, *self._device_health(device)) for device in devices]
+        available_devices = [device for device, status, _ in health if status == "available"]
+        degraded_devices = [device for device, status, _ in health if status == "degraded"]
+        unavailable_devices = [device for device, status, _ in health if status == "unavailable"]
+        connected_devices = [
+            device for device in devices if device.connection_state == "connected"
         ]
-        sensor_data_devices = telemetry_devices
-        fresh_sensor_data_devices = fresh_telemetry_devices
-        fresh_device_status_devices = [device for device in devices if device.device_status_fresh]
-        bound_devices = [device for device in devices if device.service_connected]
+        service_available_devices = [
+            device for device in devices if device.device_service_available
+        ]
+        event_devices = [
+            device for device in devices if device.telemetry_freshness != "no_events"
+        ]
+        fresh_event_devices = [
+            device for device in devices if device.telemetry_freshness == "fresh"
+        ]
+        stale_event_devices = [
+            device for device in devices if device.telemetry_freshness == "stale"
+        ]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
-        unavailable_devices = [device for device in devices if device.status == "unavailable"]
-        # operator focus excludes workflow risk: only degraded/unavailable devices and non-healthy nodes.
-        focus_devices = [device for device in devices if device.status in {"degraded", "unavailable"}]
-        focus_nodes = [node for node in nodes if node.node_health != "healthy"]
         return {
             "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
-            "device_healthy_ratio": self._ratio(len(healthy_devices), len(devices)),
-            "device_operational_ratio": self._ratio(len(operational_devices), len(devices)),
-            # device_telemetry_ratio is the configured telemetry target ratio (telemetry-enabled devices / total devices)
-            "device_telemetry_ratio": self._ratio(len(telemetry_devices), len(devices)),
-            # fresh telemetry counts and freshness ratio (fresh telemetry / telemetry-enabled devices)
-            "fresh_telemetry_device_count": len(fresh_telemetry_devices),
-            "telemetry_freshness_ratio": self._ratio(len(fresh_telemetry_devices), len(telemetry_devices)),
-            # sensor data freshness is the primary operations KPI for the current Jetson Arduino data-plane.
-            "sensor_data_device_count": len(sensor_data_devices),
-            "fresh_sensor_data_device_count": len(fresh_sensor_data_devices),
-            "sensor_data_freshness_ratio": self._ratio(len(fresh_sensor_data_devices), len(sensor_data_devices)),
-            "device_service_binding_ratio": self._ratio(len(bound_devices), len(devices)),
             "registered_device_count": len(devices),
-            "active_node_count": len(online_nodes),
-            "operational_device_count": len(operational_devices),
-            "live_device_count": len(healthy_devices),
-            "telemetry_device_count": len(telemetry_devices),
-            "service_bound_device_count": len(bound_devices),
-            "sla_risk_workflow_count": len(risk_workflows),
+            "available_device_count": len(available_devices),
+            "degraded_device_count": len(degraded_devices),
             "unavailable_device_count": len(unavailable_devices),
-            # operator focus count: number of degraded/unavailable devices plus non-healthy nodes
-            "fresh_device_status_count": len(fresh_device_status_devices),
-            "device_status_freshness_ratio": self._ratio(len(fresh_device_status_devices), len(devices)),
-            "operator_focus_count": len(focus_devices) + len(focus_nodes),
+            "edgex_connected_device_count": len(connected_devices),
+            "edgex_connection_ratio": self._ratio(len(connected_devices), len(devices)),
+            "edgex_operating_up_count": sum(
+                device.operating_state.upper() == "UP" for device in devices
+            ),
+            "edgex_operating_down_count": sum(
+                device.operating_state.upper() == "DOWN" for device in devices
+            ),
+            "edgex_operating_unknown_count": sum(
+                device.operating_state.upper() not in {"UP", "DOWN"} for device in devices
+            ),
+            "edgex_admin_unlocked_count": sum(
+                device.admin_state.upper() == "UNLOCKED" for device in devices
+            ),
+            "edgex_admin_locked_count": sum(
+                device.admin_state.upper() == "LOCKED" for device in devices
+            ),
+            "device_service_available_count": len(service_available_devices),
+            "device_service_availability_ratio": self._ratio(
+                len(service_available_devices), len(devices)
+            ),
+            "core_data_event_device_count": len(event_devices),
+            "fresh_core_data_event_device_count": len(fresh_event_devices),
+            "stale_core_data_event_device_count": len(stale_event_devices),
+            "core_data_freshness_ratio": self._ratio(
+                len(fresh_event_devices), len(devices)
+            ),
+            "active_node_count": len(online_nodes),
+            "sla_risk_workflow_count": len(risk_workflows),
+            "operator_focus_count": len(degraded_devices) + len(unavailable_devices),
         }
 
     def _build_resource_profile_kpis(self, resource_state: dict[str, Any]) -> dict[str, Any]:

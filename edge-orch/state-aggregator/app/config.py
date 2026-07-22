@@ -30,36 +30,32 @@ class Settings(BaseModel):
     influxdb_url: str = Field(
         default_factory=lambda: os.getenv(
             "INFLUXDB_URL",
-            "http://influxdb.telemetry.svc.cluster.local:8086",
+            "http://influxdb:8086",
         )
     )
     influxdb_org: str = Field(default_factory=lambda: os.getenv("INFLUXDB_ORG", "edgeai"))
     influxdb_bucket: str = Field(default_factory=lambda: os.getenv("INFLUXDB_BUCKET", "device_telemetry"))
     influxdb_token: str | None = Field(default_factory=lambda: os.getenv("INFLUXDB_TOKEN"))
-    influxdb_measurement: str = Field(
-        default_factory=lambda: os.getenv("INFLUXDB_MEASUREMENT", "virtual_device_telemetry")
+    edgex_core_metadata_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "EDGEX_CORE_METADATA_URL",
+            "http://edgex-core-metadata.edgex-system.svc.cluster.local:59881",
+        )
     )
-    telemetry_fresh_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("TELEMETRY_FRESH_SECONDS", "90"))
+    edgex_core_data_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "EDGEX_CORE_DATA_URL",
+            "http://edgex-core-data.edgex-system.svc.cluster.local:59880",
+        )
     )
-    device_status_fresh_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("DEVICE_STATUS_FRESH_SECONDS", "90"))
+    edgex_timeout_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("EDGEX_TIMEOUT_SECONDS", "10"))
     )
-    mapper_heartbeat_fresh_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("MAPPER_HEARTBEAT_FRESH_SECONDS", "60"))
-    )
-    device_status_bridge_enabled: bool = Field(
-        default_factory=lambda: os.getenv("DEVICE_STATUS_BRIDGE_ENABLED", "false").lower()
-        not in {"0", "false", "no", "off"}
-    )
-    device_status_bridge_interval_seconds: int = Field(
-        default_factory=lambda: int(os.getenv("DEVICE_STATUS_BRIDGE_INTERVAL_SECONDS", "30"))
-    )
-    telemetry_query_window: str = Field(
-        default_factory=lambda: os.getenv("TELEMETRY_QUERY_WINDOW", "-30m")
+    edgex_event_fresh_seconds: int = Field(
+        default_factory=lambda: int(os.getenv("EDGEX_EVENT_FRESH_SECONDS", "90"))
     )
     resource_profile_recording_mode: str = Field(
-        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "scheduled").lower()
+        default_factory=lambda: os.getenv("RESOURCE_PROFILE_RECORDING_MODE", "disabled").lower()
     )
     resource_profile_window: str = Field(
         default_factory=lambda: os.getenv("RESOURCE_PROFILE_WINDOW", "10m")

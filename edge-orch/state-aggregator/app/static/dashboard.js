@@ -5,8 +5,6 @@ const state = {
   selectedNodeName: null,
   selectedNodeFilterValues: [],
   selectedTopologyService: null,
-  publisherModeFilter: "all",
-  telemetryHistory: {},
   chat: {
     loading: false,
     messages: [],
@@ -15,23 +13,6 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
-const DEMO_PUBLISHER_DEVICES = ["virt-env-01", "virt-env-02", "virt-vib-01", "virt-act-01", "virt-act-02"];
-const DEMO_PUBLISHER_DEVICE_SET = new Set(DEMO_PUBLISHER_DEVICES);
-const DEMO_PUBLISHER_DEVICE_PLANS = {
-  "virt-env-01": "jetson",
-  "virt-env-02": "rpi",
-  "virt-vib-01": "jetson",
-  "virt-act-01": "jetson",
-  "virt-act-02": "rpi",
-};
-const PUBLISHER_FILTERS = ["all", "running", "planned-off", "infra-issue"];
-const PUBLISHER_MODE_LABELS = {
-  all: "전체",
-  running: "실행 중",
-  "planned-off": "계획 정지",
-  "infra-issue": "인프라 이슈",
-  observed: "관측",
-};
 
 
 function pct(value) {
@@ -79,14 +60,14 @@ function text(value, fallback = "-") {
   return String(value);
 }
 
-function age(value) {
-  if (value === null || value === undefined) return "DB timestamp 없음";
-
-  const minutes = Math.floor(value / 60);
-  const seconds = Math.floor(value % 60);
-
+function timestampAge(value) {
+  if (!value) return "이벤트 없음";
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return text(value);
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  const minutes = Math.floor(seconds / 60);
   if (minutes === 0) return `${seconds}초 전`;
-  return `${minutes}분 ${seconds}초 전`;
+  return `${minutes}분 ${seconds % 60}초 전`;
 }
 
 function setText(id, value) {
@@ -143,16 +124,26 @@ function nodeFilterValues(node, index) {
 }
 
 function deviceStatus(device) {
-  return device?.overall_status || device?.status || "unknown";
+  if (["available", "degraded", "unavailable"].includes(device?.overall_status)) return device.overall_status;
+  const adminState = text(device?.admin_state, "UNKNOWN").toUpperCase();
+  const operatingState = text(device?.operating_state, "UNKNOWN").toUpperCase();
+  if (adminState === "LOCKED" || operatingState === "DOWN" || device?.connection_state === "disconnected") return "unavailable";
+  if (adminState === "UNKNOWN" || operatingState === "UNKNOWN" || device?.connection_state === "unknown") return "degraded";
+  if (operatingState === "UP" && device?.connection_state === "connected" && device?.telemetry_freshness === "fresh") return "available";
+  return "degraded";
 }
 
 function deviceReason(device) {
-  return device?.reason || device?.status_reason || "데이터 없음";
+  if (device?.reason) return device.reason;
+  const status = deviceStatus(device);
+  if (status === "unavailable") return `${text(device?.admin_state, "UNKNOWN")} / ${text(device?.operating_state, "UNKNOWN")} · ${text(device?.connection_state, "unknown")}`;
+  if (status === "available") return "EdgeX Device Service가 연결되어 있고 최신 Core Data 이벤트가 fresh입니다.";
+  if (text(device?.operating_state, "UNKNOWN").toUpperCase() === "UNKNOWN" || device?.connection_state === "unknown") return "EdgeX operating/connection state를 확인할 수 없습니다.";
+  return `Core Data event freshness: ${text(device?.telemetry_freshness, "no_events")}`;
 }
 
 function isOperationalDevice(device) {
-  const status = deviceStatus(device);
-  return status === "available" || status === "healthy";
+  return deviceStatus(device) === "available";
 }
 
 function sortDevicesStatusFirst(devices = []) {
@@ -167,38 +158,9 @@ function deviceNodeLabel(device) {
   return cleanNodeLabel(device?.node_name || device?.nodeName, "미할당");
 }
 
-function isDemoPublisherDevice(deviceOrName) {
-  const name = typeof deviceOrName === "string" ? deviceOrName : deviceOrName?.name;
-  return DEMO_PUBLISHER_DEVICE_SET.has(text(name, ""));
-}
-
-function publisherDevicePlan(deviceOrName) {
-  const name = typeof deviceOrName === "string" ? deviceOrName : deviceOrName?.name;
-  return DEMO_PUBLISHER_DEVICE_PLANS[text(name, "")] || "jetson/rpi";
-}
-
-function publisherModeKey(device) {
-  if (device?.telemetry_fresh === true) return "running";
-  if (device?.node_ready === false || device?.mapper_running === false) return "infra-issue";
-  if (isDemoPublisherDevice(device) && device?.telemetry_enabled === true && device?.telemetry_fresh === false && device?.node_ready !== false && device?.mapper_running !== false) return "planned-off";
-  return "observed";
-}
-
-function publisherModeLabel(mode) {
-  return PUBLISHER_MODE_LABELS[mode] || PUBLISHER_MODE_LABELS.observed;
-}
-
-function publisherModeReason(device) {
-  const mode = publisherModeKey(device);
-  if (mode === "running") return "telemetry_fresh=true라 현재 publisher가 실행 중인 것으로 표시합니다.";
-  if (mode === "infra-issue") return "node_ready=false 또는 mapper_running=false라 publisher 의도보다 인프라 이슈를 먼저 봅니다.";
-  if (mode === "planned-off") return "등록된 데모 device에 fresh telemetry가 없어 계획 정지 상태로 해석합니다.";
-  return "데모 대상이 아니거나 telemetry-disabled device라 관측 상태만 표시합니다.";
-}
-
-function renderPublisherBadge(device) {
-  const mode = publisherModeKey(device);
-  return `<span class="pill publisher-mode ${escapeHtml(mode)}">${escapeHtml(publisherModeLabel(mode))}</span>`;
+function renderConnectionBadge(device) {
+  const connection = text(device?.connection_state, "unknown");
+  return `<span class="pill connection-${escapeHtml(connection)}">${escapeHtml(connection)}</span>`;
 }
 
 function deviceMatchesNodeFilter(device) {
@@ -207,13 +169,8 @@ function deviceMatchesNodeFilter(device) {
   return labels.some((label) => state.selectedNodeFilterValues.includes(label));
 }
 
-function deviceMatchesPublisherFilter(device) {
-  if (!state.publisherModeFilter || state.publisherModeFilter === "all") return true;
-  return publisherModeKey(device) === state.publisherModeFilter;
-}
-
 function filteredDevices(devices = []) {
-  return sortDevicesStatusFirst(devices.filter((device) => deviceMatchesNodeFilter(device) && deviceMatchesPublisherFilter(device)));
+  return sortDevicesStatusFirst(devices.filter((device) => deviceMatchesNodeFilter(device)));
 }
 
 function renderDeviceFilterSummary(totalCount, visibleCount) {
@@ -222,22 +179,11 @@ function renderDeviceFilterSummary(totalCount, visibleCount) {
   if (label) {
     const parts = [];
     if (state.selectedNodeName) parts.push(`node ${state.selectedNodeName}`);
-    if (state.publisherModeFilter && state.publisherModeFilter !== "all") parts.push(`publisher ${publisherModeLabel(state.publisherModeFilter)}`);
-    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "Registered Assets";
+    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "EdgeX Devices";
   }
   if (clear) clear.hidden = !state.selectedNodeName;
 }
 
-function renderPublisherFilterButtons() {
-  if (typeof document === "undefined") return;
-  PUBLISHER_FILTERS.forEach((mode) => {
-    const button = document.querySelector(`[data-publisher-filter="${mode}"]`);
-    if (!button) return;
-    const active = (state.publisherModeFilter || "all") === mode;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-}
 
 function refreshSelectedNodeFilterValues(nodes = []) {
   if (!state.selectedNodeName) return;
@@ -248,49 +194,46 @@ function refreshSelectedNodeFilterValues(nodes = []) {
 }
 
 function explainDeviceRules(device) {
-  const rules = [];
+  const rules = [{
+    id: "EdgeX Owner",
+    title: `${text(device.device_service_name, "unknown service")} · ${text(device.profile_name, "unknown profile")}`,
+    text: `이 source는 EdgeX Device Service ${text(device.device_service_name, "unknown")}가 profile ${text(device.profile_name, "unknown")} 및 protocol ${Array.isArray(device.protocol_names) && device.protocol_names.length ? device.protocol_names.join(", ") : "unknown"}로 소유합니다. Core Data sourceName: ${[...new Set((device.latest_readings || []).map((reading) => reading.source_name).filter(Boolean))].join(", ") || "event 없음"}.`,
+  }];
   const status = deviceStatus(device);
-  const mode = publisherModeKey(device);
-  rules.push({ id: "Publisher Mode", title: publisherModeLabel(mode), text: publisherModeReason(device) });
-  if (status === "available" || status === "healthy") {
-    rules.push({ id: "Sensor OK", title: "latest telemetry sample is fresh", text: "node와 mapper 선행 조건이 정상이고 InfluxDB latest telemetry가 freshness 기준을 만족해 available로 판단됩니다." });
-  }
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false && mode === "planned-off") {
-    rules.push({ id: "Publisher Idle", title: "demo publisher intentionally idle", text: "이 virt demo device는 node와 mapper가 정상이라, fresh telemetry 없음은 장애가 아니라 시연용 publisher 미실행 상태로 해석합니다." });
-  } else if (device.telemetry_enabled === true && device.telemetry_fresh === false) {
-    rules.push({ id: "Sensor Stale", title: "sensor data missing/stale", text: "InfluxDB latest telemetry가 없거나 오래되어 degraded로 판단됩니다. publisher/MQTT/mapper/DB 적재 경로를 확인합니다." });
-  }
-  if (device.mapper_running === false) {
-    rules.push({ id: "Mapper", title: "mapper not running", text: "이 device가 할당된 node에서 mqttvirtual mapper가 Running 상태가 아닙니다." });
-  }
-  if (device.node_ready === false) {
-    rules.push({ id: "Node", title: "assigned node unavailable", text: "할당 node가 dashboard 기준 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 확인합니다." });
-  }
-  if (device.severity === "critical") {
-    rules.push({ id: "Severity", title: "critical severity", text: "최근 센서 데이터는 있지만 severity가 critical이므로 degraded로 표시됩니다." });
-  }
-  if (device.service_connected === false) {
-    rules.push({ id: "Service", title: "service binding missing", text: "서비스 데모 그룹에 아직 연결되지 않았습니다. device naming 또는 binding rule을 확인합니다." });
-  }
-  if (!rules.length) {
-    rules.push({ id: "Status", title: "current state", text: deviceReason(device) });
+  if (status === "available") {
+    rules.push({ id: "Available", title: "service connected and event fresh", text: "operatingState=UP이고 EdgeX Device Service가 연결되어 있으며 최신 Core Data event가 freshness 기준을 만족합니다." });
+  } else if (status === "unavailable") {
+    rules.push({ id: "Unavailable", title: "device locked or disconnected", text: "adminState=LOCKED, operatingState=DOWN 또는 connectionState=disconnected 상태입니다. EdgeX Device Service와 장치 연결을 확인합니다." });
+  } else if (device.telemetry_freshness === "stale") {
+    rules.push({ id: "Event Stale", title: "latest Core Data event is stale", text: "EdgeX Core Data의 최신 event가 freshness 기준을 벗어나 degraded로 표시됩니다." });
+  } else if (device.telemetry_freshness === "no_events") {
+    rules.push({ id: "No Events", title: "Core Data event not observed", text: "이 device의 Core Data event가 아직 없어 degraded로 표시됩니다." });
+  } else {
+    rules.push({ id: "Unknown", title: "EdgeX state unknown", text: "operating state 또는 connection state를 확인할 수 없어 degraded로 표시됩니다." });
   }
   return rules;
 }
 
 const KPI_EXPLANATIONS = {
   active_node_count: "현재 사용 가능한 node 수입니다.",
-  registered_device_count: "KubeEdge에 등록된 Device CR 수와 available device 수를 함께 봅니다.",
-  live_device_count: "control/status 기준 available인 device 수입니다. 센서 데이터 freshness와 분리됩니다.",
-  telemetry_device_count: "센서 데이터 적재/수집 대상 device 수입니다.",
-  device_telemetry_ratio: "센서 데이터 적재가 설정된 device 비율입니다. freshness 비율은 아닙니다.",
-  fresh_telemetry_device_count: "fresh sensor data device 수입니다.",
-  telemetry_freshness_ratio: "fresh sensor data device 수 / telemetry-enabled device 수입니다.",
-  fresh_sensor_data_device_count: "InfluxDB latest telemetry 기준으로 fresh한 센서 stream 수입니다.",
-  sensor_data_freshness_ratio: "telemetry_freshness_ratio와 같은 InfluxDB freshness 계열 값입니다. Overview에서는 중복 표시하지 않습니다.",
-  operator_focus_count: "운영자가 먼저 볼 degraded/unavailable device와 non-healthy node 수입니다.",
-  service_bound_device_count: "서비스 데모 그룹에 연결된 device 수입니다.",
-  device_service_binding_ratio: "service-bound device 수 / 전체 registered device 수입니다.",
+  registered_device_count: "EdgeX Core Metadata에 등록된 device 수입니다.",
+  available_device_count: "EdgeX state와 Core Data event freshness 기준으로 available인 device 수입니다.",
+  degraded_device_count: "EdgeX source가 UP이지만 event가 없거나 stale이거나 state가 unknown인 device 수입니다.",
+  unavailable_device_count: "adminState=LOCKED 또는 operatingState=DOWN인 device 수입니다.",
+  edgex_connected_device_count: "EdgeX connection_state가 connected인 device 수입니다.",
+  edgex_connection_ratio: "connected EdgeX device 수 / 전체 registered device 수입니다.",
+  edgex_operating_up_count: "Core Metadata operatingState=UP device 수입니다.",
+  edgex_operating_down_count: "Core Metadata operatingState=DOWN device 수입니다.",
+  edgex_operating_unknown_count: "operatingState가 UP/DOWN이 아닌 device 수입니다.",
+  edgex_admin_unlocked_count: "Core Metadata adminState=UNLOCKED device 수입니다.",
+  edgex_admin_locked_count: "Core Metadata adminState=LOCKED device 수입니다.",
+  device_service_available_count: "operatingState=UP인 EdgeX Device Service device 수입니다.",
+  device_service_availability_ratio: "Device Service available device 수 / 전체 registered device 수입니다.",
+  core_data_event_device_count: "Core Data event가 하나 이상 관측된 device 수입니다.",
+  fresh_core_data_event_device_count: "최신 Core Data event가 fresh인 device 수입니다.",
+  stale_core_data_event_device_count: "최신 Core Data event가 stale인 device 수입니다.",
+  core_data_freshness_ratio: "fresh Core Data event device 수 / 전체 registered device 수입니다.",
+  operator_focus_count: "운영자가 먼저 볼 degraded/unavailable physical device 수입니다.",
   service_resource_profile_count: "현재 Running Pod를 서비스 단위로 묶어 만든 자원 요구량 프로파일 수입니다.",
   service_resource_profile_pod_count: "프로파일링 대상 Running Pod 수입니다.",
   service_resource_request_cpu_cores: "실행 서비스들이 Kubernetes requests.cpu로 선언한 CPU core 합계입니다.",
@@ -305,17 +248,9 @@ const KPI_EXPLANATIONS = {
 };
 
 function explainKpi(key, kpis = {}) {
-  const aliases = {
-    sensor_data_freshness_ratio: "telemetry_freshness_ratio",
-    fresh_sensor_data_device_count: "fresh_telemetry_device_count",
-    sensor_data_device_count: "telemetry_device_count",
-  };
-  const alias = aliases[key];
   const value = Object.prototype.hasOwnProperty.call(kpis, key)
     ? kpis[key]
-    : alias && Object.prototype.hasOwnProperty.call(kpis, alias)
-      ? kpis[alias]
-      : "현재 API payload에 없음";
+    : "현재 API payload에 없음";
   return {
     key,
     value,
@@ -330,9 +265,9 @@ function issueExplanation(alert) {
   }
   const device = alert.device || {};
   const messages = [];
-  if (device.node_ready === false) messages.push("할당 node가 unavailable입니다. node 상태와 edgecore/cloudcore 연결을 먼저 확인합니다.");
-  if (device.mapper_running === false) messages.push("mqttvirtual mapper가 Running인지, 해당 device가 올바른 node에 배치됐는지 확인합니다.");
-  if (device.telemetry_enabled === true && device.telemetry_fresh === false) messages.push("센서 데이터가 stale입니다. availability 판단과 분리해서 EdgeX/collector/MQTT/DB 적재 경로를 확인합니다.");
+  if (device.connection_state === "disconnected") messages.push(`EdgeX Device Service ${text(device.device_service_name, "unknown")}와 source 연결을 확인합니다.`);
+  if (device.telemetry_freshness === "stale") messages.push("EdgeX Core Data 최신 event가 stale입니다. Device Service의 event 발행 경로를 확인합니다.");
+  if (device.telemetry_freshness === "no_events") messages.push("EdgeX Core Data event가 없습니다. profile의 device resource와 sourceName을 확인합니다.");
   if (!messages.length) messages.push(deviceReason(device));
   return messages;
 }
@@ -380,22 +315,22 @@ function renderTelemetryChart(points = []) {
       ...point,
       at: new Date(point.timestamp).getTime(),
       numeric: numericValue(point.value),
-      property: point.property || "value",
+      property: point.source_name && point.resource_name ? `${point.source_name}.${point.resource_name}` : point.resource_name || point.source_name || point.property || "value",
     }))
     .filter((point) => Number.isFinite(point.at) && point.numeric !== null)
     .sort((a, b) => a.at - b.at);
 
   if (!points.length) {
-    return `<div class="telemetry-chart empty">InfluxDB history 데이터가 없습니다.</div>`;
+    return `<div class="telemetry-chart empty">Core Data latest readings가 없습니다.</div>`;
   }
 
   if (!numericPoints.length) {
     const recent = points.slice(-8).reverse();
     return `
       <div class="telemetry-chart">
-        <div class="chart-head"><strong>Recent telemetry</strong><span>non-numeric values</span></div>
+        <div class="chart-head"><strong>Core Data readings</strong><span>non-numeric values</span></div>
         <ul class="telemetry-values">${recent
-          .map((point) => `<li><span>${escapeHtml(formatChartTime(point.timestamp))}</span><strong>${escapeHtml(text(point.property, "value"))}=${escapeHtml(text(point.value))}</strong></li>`)
+          .map((point) => `<li><span>${escapeHtml(formatChartTime(point.timestamp))}</span><strong>${escapeHtml(text(point.resource_name || point.source_name || point.property, "value"))}=${escapeHtml(text(point.value))}</strong></li>`)
           .join("")}</ul>
       </div>
     `;
@@ -413,13 +348,13 @@ function renderTelemetryChart(points = []) {
   const x = (time) => pad.left + ((time - minTime) / timeSpan) * (width - pad.left - pad.right);
   const y = (value) => height - pad.bottom - ((value - minValue) / valueSpan) * (height - pad.top - pad.bottom);
   const baselineY = height - pad.bottom;
-  const colors = ["#087c8f", "#0f8b5f", "#b7791f", "#c2410c", "#365fd8"];
+  const colors = ["#087c8f", "#0f8b5f", "#b7791f", "#c2410c", "#365fd8", "#7c3aed", "#be185d", "#4d7c0f"];
   const grouped = numericPoints.reduce((acc, point) => {
     acc[point.property] = acc[point.property] || [];
     acc[point.property].push(point);
     return acc;
   }, {});
-  const series = Object.entries(grouped).slice(0, 5);
+  const series = Object.entries(grouped).slice(0, 8);
   const latestPoint = numericPoints.at(-1);
   const avgValue = numericPoints.reduce((sum, point) => sum + point.numeric, 0) / numericPoints.length;
   const yTicks = [maxValue, minValue + valueSpan * 0.66, minValue + valueSpan * 0.33, minValue];
@@ -470,9 +405,9 @@ function renderTelemetryChart(points = []) {
 
   return `
     <div class="telemetry-chart">
-      <div class="chart-head"><strong>InfluxDB telemetry history</strong><span>${numericPoints.length} points · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))} - ${escapeHtml(formatChartTime(numericPoints.at(-1).timestamp))}</span></div>
+      <div class="chart-head"><strong>Core Data latest source readings</strong><span>${numericPoints.length} readings · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))}</span></div>
       <div class="telemetry-summary-strip">${summaryCards}</div>
-      <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Telemetry history chart">
+      <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Core Data latest source readings chart">
         <rect class="chart-plot-bg" x="${pad.left}" y="${pad.top}" width="${width - pad.left - pad.right}" height="${height - pad.top - pad.bottom}" rx="6" />
         ${gridlines}
         <line class="chart-axis" x1="${pad.left}" y1="${baselineY}" x2="${width - pad.right}" y2="${baselineY}" />
@@ -486,34 +421,14 @@ function renderTelemetryChart(points = []) {
   `;
 }
 
-async function loadDeviceTelemetry(deviceName) {
-  const chart = $("telemetryChart");
-  if (!chart || !deviceName) return;
-  chart.innerHTML = `<div class="telemetry-chart empty">InfluxDB history 조회 중...</div>`;
-  try {
-    const response = await fetch(`/state/devices/${encodeURIComponent(deviceName)}/telemetry?window=-30m&limit=300`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`telemetry history api failed: ${response.status}`);
-    const points = await response.json();
-    state.telemetryHistory[deviceName] = points;
-    if (state.selectedDeviceName === deviceName) {
-      chart.innerHTML = renderTelemetryChart(points);
-    }
-  } catch (error) {
-    if (state.selectedDeviceName === deviceName) {
-      chart.innerHTML = `<div class="telemetry-chart empty">${escapeHtml(error.message)}</div>`;
-    }
-  }
-}
-
 function showDeviceExplanation(device) {
   const panel = $("explainPanel");
   if (!panel || !device) return;
   state.selectedDeviceName = device.name;
   const status = deviceStatus(device);
-  const publisherMode = publisherModeLabel(publisherModeKey(device));
   panel.innerHTML = `
     <div class="explain-header">
-      <span class="explain-badge">Device</span>
+      <span class="explain-badge">EdgeX Device</span>
       <strong>${escapeHtml(displayValue(device.name))}</strong>
     </div>
     <div class="explain-status-strip">
@@ -522,34 +437,36 @@ function showDeviceExplanation(device) {
         <strong>${escapeHtml(status)}</strong>
       </div>
       <div>
-        <span>Publisher</span>
-        <strong>${escapeHtml(publisherMode)}</strong>
+        <span>Connection</span>
+        <strong>${escapeHtml(text(device.connection_state, "unknown"))}</strong>
       </div>
       <div>
-        <span>Node</span>
-        <strong>${escapeHtml(deviceNodeLabel(device))}</strong>
+        <span>Event freshness</span>
+        <strong>${escapeHtml(text(device.telemetry_freshness, "no_events"))}</strong>
       </div>
     </div>
     ${renderDeviceFactList([
-      ["reason", deviceReason(device)],
-      ["sensor", `${text(device.telemetry_property, "property 없음")}=${text(device.telemetry_value, "value 없음")}`],
-      ["last seen", age(device.telemetry_age_seconds)],
-      ["mapper", device.mapper_running ? "running" : "not running"],
-      ["service", device.service_demo_group || "service pending"],
+      ["source", device.source],
+      ["EdgeX Device Service", device.device_service_name],
+      ["Device Service available", boolText(device.device_service_available)],
+      ["profile", device.profile_name],
+      ["protocols", Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : null],
+      ["admin / operating", `${text(device.admin_state, "UNKNOWN")} / ${text(device.operating_state, "UNKNOWN")}`],
+      ["Core Data sourceName", [...new Set((device.latest_readings || []).map((reading) => reading.source_name).filter(Boolean))].join(", ") || "event 없음"],
+      ["latest Core Data event", device.latest_event_timestamp || "event 없음"],
+      ["event age", timestampAge(device.latest_event_timestamp)],
+      ["optional node placement", deviceNodeLabel(device)],
     ])}
-    <div id="telemetryChart">${renderTelemetryChart(state.telemetryHistory[device.name] || [])}</div>
+    <div id="telemetryChart">${renderTelemetryChart(device.latest_readings || [])}</div>
     ${renderDeviceReasonList(explainDeviceRules(device))}
   `;
-  loadDeviceTelemetry(device.name);
 }
 
 function kpiKeysForCard(key) {
   const groups = {
-    registered_device_count: ["registered_device_count", "live_device_count"],
-    device_telemetry_ratio: ["telemetry_device_count", "device_telemetry_ratio"],
-    telemetry_freshness_ratio: ["fresh_telemetry_device_count", "telemetry_freshness_ratio"],
-    service_bound_device_count: ["service_bound_device_count", "device_service_binding_ratio"],
-    device_service_binding_ratio: ["service_bound_device_count", "device_service_binding_ratio"],
+    registered_device_count: ["registered_device_count", "available_device_count"],
+    core_data_freshness_ratio: ["fresh_core_data_event_device_count", "core_data_freshness_ratio"],
+    device_service_availability_ratio: ["device_service_available_count", "device_service_availability_ratio"],
     service_resource_current_cpu_usage_cores: ["service_resource_current_cpu_usage_cores", "service_resource_request_cpu_cores"],
     service_resource_current_memory_working_set_mib: ["service_resource_current_memory_working_set_mib", "service_resource_request_memory_mib"],
     service_resource_usage_coverage_ratio: ["service_resource_profile_container_count", "service_resource_usage_coverage_ratio"],
@@ -686,21 +603,26 @@ function render() {
   const devices = data.devices || [];
   const nodes = data.nodes || [];
   const resourceState = data.resource_profiles || {};
-  const telemetryEnabled = kpis.telemetry_device_count ?? devices.filter((device) => device.telemetry_enabled).length;
-  const freshTelemetry = kpis.fresh_telemetry_device_count ?? devices.filter((device) => device.telemetry_fresh).length;
-  const unavailableDevices = devices.filter((device) => device.status === "unavailable").length;
-  const degradedDevices = devices.filter((device) => device.status === "degraded").length;
-  const boundDevices = Number(kpis.service_bound_device_count) || 0;
+  const deviceObservationFailed = deviceObservationUnavailable(data);
+  const deviceObservationError = text(
+    data.device_observation_error,
+    "EdgeX device 관측 불가",
+  );
+  const telemetryEnabled = Number(kpis.registered_device_count) || devices.length;
+  const freshTelemetry = Number(kpis.fresh_core_data_event_device_count) || devices.filter((device) => device.telemetry_freshness === "fresh").length;
+  const unavailableDevices = devices.filter((device) => deviceStatus(device) === "unavailable").length;
+  const degradedDevices = devices.filter((device) => deviceStatus(device) === "degraded").length;
+  const boundDevices = Number(kpis.device_service_available_count) || 0;
   const registeredDevices = Number(kpis.registered_device_count) || devices.length;
   const profiledContainers = Number(kpis.service_resource_profile_container_count) || 0;
   const sampledContainers = Math.round(profiledContainers * ratio(kpis.service_resource_usage_coverage_ratio));
   setText("updatedAt", `갱신 ${new Date(data.generated_at).toLocaleString()}`);
   setText("activeNodeCount", text(kpis.active_node_count, 0));
   setText("nodeRatio", `${pct(kpis.node_online_ratio)} online`);
-  setText("deviceCount", text(kpis.registered_device_count, 0));
-  setText("deviceHealthRatio", `${pct(kpis.device_operational_ratio)} 사용 가능 · ${text(kpis.live_device_count, 0)} live`);
-  setText("telemetryFreshnessRatio", pct(kpis.telemetry_freshness_ratio));
-  setText("telemetryFreshnessCaption", `${freshTelemetry}/${telemetryEnabled}개 InfluxDB fresh`);
+  setText("deviceCount", deviceObservationFailed ? "관측 불가" : text(kpis.registered_device_count, 0));
+  setText("deviceHealthRatio", deviceObservationFailed ? "EdgeX Core Metadata 연결 필요" : `${pct(kpis.device_service_availability_ratio)} service available · ${text(kpis.available_device_count, 0)} data available`);
+  setText("telemetryFreshnessRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.core_data_freshness_ratio));
+  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 Core Data event fresh`);
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
   setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)}개 pod · ${text(kpis.service_resource_partially_declared_profile_count, 0)}개 spec 누락`);
   setText("serviceCpuUsage", threeDecimal(kpis.service_resource_current_cpu_usage_cores));
@@ -709,32 +631,34 @@ function render() {
   setText("serviceMemoryUsageCaption", `${oneDecimal(kpis.service_resource_request_memory_mib)} MiB request`);
   setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
-  setText("serviceBindingRatio", pct(kpis.device_service_binding_ratio));
-  setText("serviceBindingCaption", `${boundDevices}/${registeredDevices}개 device 연결`);
-  setText("assetCount", `${nodes.length + devices.length} assets`);
-  setText("riskCount", `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
+  setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
+  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX device 관측 불가" : `${boundDevices}/${registeredDevices}개 device 연결`);
+  setText("assetCount", deviceObservationFailed ? `${nodes.length} node assets · EdgeX 관측 불가` : `${nodes.length + devices.length} assets`);
+  setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
-  renderKpiCatalog(kpis);
+  renderKpiCatalog(kpis, deviceObservationFailed);
   renderNodeMetricMatrix(nodes);
   renderResourceProfiles(resourceState, kpis);
   renderScenario(devices, kpis);
 
   renderNodes(nodes);
-  renderDevices(devices);
+  renderDevices(devices, data);
+  renderAlerts(data);
   renderTopology(resourceState, kpis);
 }
 
 function renderOverviewVisuals(data, kpis, devices) {
   const nodes = data?.nodes || [];
+  const deviceObservationFailed = deviceObservationUnavailable(data);
   const total = devices.length || 0;
   const available = devices.filter((device) => isOperationalDevice(device)).length;
   const degraded = devices.filter((device) => deviceStatus(device) === "degraded").length;
   const unavailable = devices.filter((device) => deviceStatus(device) === "unavailable").length;
   const unknown = Math.max(0, total - available - degraded - unavailable);
-  const deviceRatio = total ? available / total : ratio(kpis.device_operational_ratio);
-  const telemetryRatio = ratio(kpis.telemetry_freshness_ratio);
+  const deviceRatio = total ? available / total : ratio(kpis.device_service_availability_ratio);
+  const telemetryRatio = ratio(kpis.core_data_freshness_ratio);
   const nodeRatioValue = ratio(kpis.node_online_ratio);
-  const bindingRatio = ratio(kpis.device_service_binding_ratio);
+  const bindingRatio = ratio(kpis.device_service_availability_ratio);
   const coverageRatio = ratio(kpis.service_resource_usage_coverage_ratio);
   const cpuCurrent = Number(kpis.service_resource_current_cpu_usage_cores) || 0;
   const cpuRequest = Number(kpis.service_resource_request_cpu_cores) || 0;
@@ -745,38 +669,40 @@ function renderOverviewVisuals(data, kpis, devices) {
   const nodeScope = nodeNames.length
     ? `대상 노드 ${nodeNames.length}개: ${nodeNames.slice(0, 3).join(", ")}${nodeNames.length > 3 ? ` 외 ${nodeNames.length - 3}개` : ""}`
     : "대상 노드 없음";
-  setStatusRing("overallHealthRing", {
-    ok: available / statusTotal,
-    warn: degraded / statusTotal,
-    bad: unavailable / statusTotal,
-    unknown: unknown / statusTotal,
-  });
-  setText("overallHealthPercent", pct(deviceRatio));
-  setText("overviewMetricScope", `${nodeScope} · Prometheus + KubeEdge + InfluxDB`);
-  setText("overviewHealthCaption", `${available}/${total}개 device 사용 가능 · ${degraded + unavailable}개 주의 필요`);
+  setStatusRing("overallHealthRing", deviceObservationFailed
+    ? { ok: 0, warn: 0, bad: 0, unknown: 1 }
+    : {
+        ok: available / statusTotal,
+        warn: degraded / statusTotal,
+        bad: unavailable / statusTotal,
+        unknown: unknown / statusTotal,
+      });
+  setText("overallHealthPercent", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
+  setText("overviewMetricScope", `${nodeScope} · Kubernetes/Prometheus nodes · EdgeX devices`);
+  setText("overviewHealthCaption", deviceObservationFailed ? "EdgeX device 관측 불가 · node 상태는 계속 표시합니다." : `${available}/${total}개 device 사용 가능 · ${degraded + unavailable}개 주의 필요`);
   setText("nodeOnlineValue", pct(nodeRatioValue));
-  setText("deviceAvailableValue", pct(deviceRatio));
-  setText("telemetryFreshValue", pct(telemetryRatio));
+  setText("deviceAvailableValue", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
+  setText("telemetryFreshValue", deviceObservationFailed ? "관측 불가" : pct(telemetryRatio));
   setPercentStyle("nodeOnlineBar", nodeRatioValue);
-  setPercentStyle("deviceAvailableBar", deviceRatio);
-  setPercentStyle("telemetryFreshBar", telemetryRatio);
-  setText("bindingValue", pct(bindingRatio));
+  setPercentStyle("deviceAvailableBar", deviceObservationFailed ? 0 : deviceRatio);
+  setPercentStyle("telemetryFreshBar", deviceObservationFailed ? 0 : telemetryRatio);
+  setText("bindingValue", deviceObservationFailed ? "관측 불가" : pct(bindingRatio));
   setText("coverageValue", pct(coverageRatio));
-  setPercentStyle("bindingBar", bindingRatio);
+  setPercentStyle("bindingBar", deviceObservationFailed ? 0 : bindingRatio);
   setPercentStyle("coverageBar", coverageRatio);
   setText("cpuResourceValue", `${threeDecimal(cpuCurrent)} / ${threeDecimal(cpuRequest)} core`);
   setText("memoryResourceValue", `${oneDecimal(memoryCurrent)} / ${oneDecimal(memoryRequest)} MiB`);
   setText("gpuResourceValue", `${threeDecimal(kpis.service_resource_limit_gpu_units)} units`);
   setPercentStyle("cpuResourceBar", cpuRequest > 0 ? cpuCurrent / cpuRequest : 0);
   setPercentStyle("memoryResourceBar", memoryRequest > 0 ? memoryCurrent / memoryRequest : 0);
-  setText("statusAvailableCount", available);
-  setText("statusDegradedCount", degraded);
-  setText("statusUnavailableCount", unavailable);
-  setText("statusUnknownCount", unknown);
-  setPercentStyle("statusStackAvailable", available / statusTotal);
-  setPercentStyle("statusStackDegraded", degraded / statusTotal);
-  setPercentStyle("statusStackUnavailable", unavailable / statusTotal);
-  setPercentStyle("statusStackUnknown", unknown / statusTotal);
+  setText("statusAvailableCount", deviceObservationFailed ? "-" : available);
+  setText("statusDegradedCount", deviceObservationFailed ? "-" : degraded);
+  setText("statusUnavailableCount", deviceObservationFailed ? "-" : unavailable);
+  setText("statusUnknownCount", deviceObservationFailed ? "-" : unknown);
+  setPercentStyle("statusStackAvailable", deviceObservationFailed ? 0 : available / statusTotal);
+  setPercentStyle("statusStackDegraded", deviceObservationFailed ? 0 : degraded / statusTotal);
+  setPercentStyle("statusStackUnavailable", deviceObservationFailed ? 0 : unavailable / statusTotal);
+  setPercentStyle("statusStackUnknown", deviceObservationFailed ? 1 : unknown / statusTotal);
 }
 
 function formatKpiValue(key, value) {
@@ -788,25 +714,30 @@ function formatKpiValue(key, value) {
   return displayValue(value);
 }
 
+function formatDashboardKpiValue(key, value, deviceObservationFailed = false) {
+  const dependsOnDeviceObservation =
+    key === "operator_focus_count" ||
+    key.includes("device") ||
+    key.includes("edgex") ||
+    key.includes("core_data");
+  if (deviceObservationFailed && dependsOnDeviceObservation) return "관측 불가";
+  return formatKpiValue(key, value);
+}
+
 function kpiCategory(key) {
   if (key.startsWith("service_resource")) return "서비스 리소스";
-  if (key.includes("telemetry") || key.includes("sensor")) return "텔레메트리";
+  if (key.includes("core_data") || key.includes("event")) return "EdgeX Event";
+  if (key.includes("device_service") || key.includes("edgex")) return "EdgeX Device";
   if (key.includes("device")) return "디바이스";
   if (key.includes("node")) return "노드";
   if (key.includes("workflow") || key.includes("sla")) return "Workflow";
   return "운영";
 }
 
-function renderKpiCatalog(kpis = {}) {
+function renderKpiCatalog(kpis = {}, deviceObservationFailed = false) {
   const catalog = $("kpiCatalog");
   if (!catalog) return;
-  const hiddenKeys = new Set([
-    "device_status_freshness_ratio",
-    "fresh_device_status_count",
-    "sensor_data_freshness_ratio",
-    "fresh_sensor_data_device_count",
-    "sensor_data_device_count",
-  ]);
+  const hiddenKeys = new Set([]);
   const entries = Object.entries(kpis).filter(([key]) => !hiddenKeys.has(key)).sort(([left], [right]) => {
     const groupDelta = kpiCategory(left).localeCompare(kpiCategory(right));
     return groupDelta || left.localeCompare(right);
@@ -817,7 +748,7 @@ function renderKpiCatalog(kpis = {}) {
         .map(([key, value]) => `
           <article class="kpi-catalog-row explainable" data-explain-type="kpi" data-kpi-key="${escapeHtml(key)}" tabindex="0" role="button" aria-label="${escapeHtml(key)} KPI 설명 보기">
             <span>${escapeHtml(kpiCategory(key))}</span>
-            <strong>${escapeHtml(formatKpiValue(key, value))}</strong>
+            <strong>${escapeHtml(formatDashboardKpiValue(key, value, deviceObservationFailed))}</strong>
             <code>${escapeHtml(key)}</code>
           </article>
         `)
@@ -898,17 +829,18 @@ function renderNodes(nodes) {
     : `<div class="empty">아직 node 상태가 없습니다.</div>`;
 }
 
-function deviceFilterEmptyText() {
-  const publisherFiltered = state.publisherModeFilter && state.publisherModeFilter !== "all";
-  if (state.selectedNodeName && publisherFiltered) return `${state.selectedNodeName} 및 ${publisherModeLabel(state.publisherModeFilter)} publisher 필터에 맞는 device가 없습니다.`;
-  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 device가 없습니다.`;
-  if (publisherFiltered) return `${publisherModeLabel(state.publisherModeFilter)} publisher 필터에 맞는 device가 없습니다.`;
-  return "KubeEdge device가 없습니다.";
+function deviceObservationUnavailable(data = state.data) {
+  return Boolean(data?.device_observation_error);
 }
 
-function renderDevices(devices) {
+function deviceFilterEmptyText(data = state.data) {
+  if (deviceObservationUnavailable(data)) return "EdgeX device 관측 불가";
+  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 EdgeX device가 없습니다.`;
+  return "EdgeX Core Metadata device가 없습니다.";
+}
+
+function renderDevices(devices, data = state.data) {
   const visibleDevices = filteredDevices(devices);
-  renderPublisherFilterButtons();
   renderDeviceFilterSummary(devices.length, visibleDevices.length);
   $("deviceList").innerHTML = visibleDevices.length
     ? visibleDevices
@@ -916,17 +848,19 @@ function renderDevices(devices) {
           <article class="item device-row explainable ${state.selectedDeviceName === device.name ? "selected" : ""}" data-explain-type="device" data-device-name="${escapeHtml(device.name)}" tabindex="0" role="button" aria-label="${escapeHtml(device.name)} 설명 보기">
             <div class="item-title">
               <strong>${escapeHtml(device.name)}</strong>
-              <div class="item-pills">${statusPill(device.overall_status || device.status)}${renderPublisherBadge(device)}</div>
+              <div class="item-pills">${statusPill(deviceStatus(device))}${renderConnectionBadge(device)}</div>
             </div>
             <div class="meta">
-              <span>node: ${escapeHtml(deviceNodeLabel(device))}</span>
-              <span>sensor: ${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}=${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
-              <span>age: ${escapeHtml(age(device.telemetry_age_seconds))}</span>
+              <span>service: ${escapeHtml(text(device.device_service_name, "unknown"))}</span>
+              <span>profile: ${escapeHtml(text(device.profile_name, "unknown"))}</span>
+              <span>protocol: ${escapeHtml(Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "unknown")}</span>
+              <span>Core Data event: ${escapeHtml(timestampAge(device.latest_event_timestamp))} · ${escapeHtml(text(device.telemetry_freshness, "no_events"))}</span>
+              <span>node placement: ${escapeHtml(deviceNodeLabel(device))}</span>
             </div>
           </article>
         `)
         .join("")
-    : `<div class="empty">${escapeHtml(deviceFilterEmptyText())}</div>`;
+    : `<div class="empty">${escapeHtml(deviceFilterEmptyText(data))}</div>`;
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -951,19 +885,12 @@ function renderResourceProfiles(resourceState, kpis) {
   });
   $("resourceProfileList").innerHTML = profiles.length
     ? `
-      <div class="relation-summary">recording=${resourceState.recorded_at ? "influxdb ok" : "pending/token 없음"} · scope=current usage + declared requests · total_use=${text(kpis.service_resource_current_cpu_usage_cores, 0)} core / ${text(kpis.service_resource_current_memory_working_set_mib, 0)} MiB · total_req=${text(kpis.service_resource_request_cpu_cores, 0)} core / ${text(kpis.service_resource_request_memory_mib, 0)} MiB</div>
+      <div class="relation-summary">recording=${resourceState.recorded_at ? "snapshot available" : "pending"} · scope=current usage + declared requests · total_use=${text(kpis.service_resource_current_cpu_usage_cores, 0)} core / ${text(kpis.service_resource_current_memory_working_set_mib, 0)} MiB · total_req=${text(kpis.service_resource_request_cpu_cores, 0)} core / ${text(kpis.service_resource_request_memory_mib, 0)} MiB</div>
       <ul class="compact-list">${rows.join("")}</ul>
     `
     : `<div class="empty">Running service resource requirement profile pending</div>`;
 }
 
-function serviceGroup(device) {
-  return text(device.service_demo_group, device.service_connected ? "서비스 데모 연결" : "service 대기");
-}
-
-function serviceBindingReason(device) {
-  return text(device.service_binding_reason, device.service_connected ? "binding 상세 대기" : "미바인딩");
-}
 
 function formatResourceValue(value, unit) {
   const numeric = numericValue(value);
@@ -1121,8 +1048,16 @@ function renderTopology(resourceState, kpis) {
   });
 }
 
-function renderAlerts(data) {
+function buildDashboardAlerts(data = {}) {
   const alerts = [];
+  if (data.device_observation_error) {
+    alerts.push({
+      kind: "source",
+      level: "high",
+      title: "EdgeX device observation unavailable",
+      text: data.device_observation_error,
+    });
+  }
   for (const [index, node] of (data.nodes || []).entries()) {
     if (node.node_health !== "healthy") {
       const displayName = nodeDisplayName(node, index);
@@ -1139,11 +1074,10 @@ function renderAlerts(data) {
     const status = deviceStatus(device);
     const reasons = [];
     if (status === "degraded" || status === "unavailable") reasons.push(status);
-    if (device.mapper_running === false) reasons.push("mapper_running=false");
-    if (device.telemetry_enabled && device.telemetry_fresh === false) reasons.push("telemetry_fresh=false");
-    if (device.node_ready === false) reasons.push("node_ready=false");
+    if (device.connection_state !== "connected") reasons.push(`connection=${text(device.connection_state, "unknown")}`);
+    if (device.telemetry_freshness !== "fresh") reasons.push(`event=${text(device.telemetry_freshness, "no_events")}`);
     if (reasons.length) {
-      const level = status === "unavailable" || device.node_ready === false ? "high" : "medium";
+      const level = status === "unavailable" ? "high" : "medium";
       alerts.push({
         kind: "device",
         level,
@@ -1153,7 +1087,11 @@ function renderAlerts(data) {
       });
     }
   }
-  state.alerts = alerts.slice(0, 12);
+  return alerts.slice(0, 12);
+}
+
+function renderAlerts(data) {
+  state.alerts = buildDashboardAlerts(data);
   $("alertList").innerHTML = state.alerts.length
     ? state.alerts
         .map((alert, index) => `<article class="item alert ${escapeHtml(alert.level)} explainable" data-explain-type="issue" data-alert-index="${index}" tabindex="0" role="button" aria-label="Issue 설명 보기"><strong>${escapeHtml(alert.text)}</strong></article>`)
@@ -1162,8 +1100,8 @@ function renderAlerts(data) {
 }
 
 function renderScenario(devices, kpis) {
-  const unavailable = devices.filter((device) => device.status === "unavailable").length;
-  const degraded = devices.filter((device) => device.status === "degraded").length;
+  const unavailable = devices.filter((device) => deviceStatus(device) === "unavailable").length;
+  const degraded = devices.filter((device) => deviceStatus(device) === "degraded").length;
   const byNode = devices.reduce((acc, device) => {
     const key = deviceNodeLabel(device);
     acc[key] = (acc[key] || 0) + 1;
@@ -1180,14 +1118,15 @@ function renderScenario(devices, kpis) {
           <article class="item">
             <div class="item-title">
               <strong>${escapeHtml(device.name)}</strong>
-              ${statusPill(device.status)}
+              ${statusPill(deviceStatus(device))}
             </div>
             <div class="meta">
-              <span>${escapeHtml(text(device.model, "model unknown"))}</span>
-              <span>${escapeHtml(text(device.protocol, "protocol unknown"))}</span>
-              <span>Sensor Data: ${device.telemetry_fresh ? "fresh" : "stale"}</span>
-              <span>${escapeHtml(text(device.telemetry_property, "sensor property 없음"))}: ${escapeHtml(text(device.telemetry_value, "sensor value 없음"))}</span>
-              <span>${escapeHtml(text(device.status_reason))}</span>
+              <span>EdgeX Device Service: ${escapeHtml(text(device.device_service_name, "unknown"))}</span>
+              <span>Profile: ${escapeHtml(text(device.profile_name, "unknown"))}</span>
+              <span>Protocols: ${escapeHtml(Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "unknown")}</span>
+              <span>Connection: ${escapeHtml(text(device.connection_state, "unknown"))}</span>
+              <span>Core Data event: ${escapeHtml(text(device.telemetry_freshness, "no_events"))} · ${escapeHtml(timestampAge(device.latest_event_timestamp))}</span>
+              <span>Readings: ${escapeHtml((device.latest_readings || []).map((reading) => `${reading.resource_name || reading.source_name}=${text(reading.value)}`).join(", ") || "none")}</span>
             </div>
           </article>
         `)
@@ -1205,10 +1144,6 @@ function applyNodeDeviceFilter(nodeName, nodeIndex = null) {
   renderDevices(state.data?.devices || []);
 }
 
-function applyPublisherModeFilter(mode) {
-  state.publisherModeFilter = PUBLISHER_FILTERS.includes(mode) ? mode : "all";
-  renderDevices(state.data?.devices || []);
-}
 
 
 function markSelectedExplain(target) {
@@ -1224,12 +1159,6 @@ function handleNodeFilterSelection(target) {
   return true;
 }
 
-function handlePublisherFilterSelection(target) {
-  const filterTarget = target.closest?.("[data-publisher-filter]");
-  if (!filterTarget) return false;
-  applyPublisherModeFilter(filterTarget.dataset.publisherFilter);
-  return true;
-}
 
 function handleExplainSelection(target) {
   const explainTarget = target.closest?.("[data-explain-type]");
@@ -1256,16 +1185,14 @@ function handleExplainSelection(target) {
 if (typeof document !== "undefined") {
   document.addEventListener("click", (event) => {
     if (handleNodeFilterSelection(event.target)) return;
-    if (handlePublisherFilterSelection(event.target)) return;
     handleExplainSelection(event.target);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
-    const target = event.target?.closest?.("[data-explain-type], [data-node-filter], [data-publisher-filter]");
+    const target = event.target?.closest?.("[data-explain-type], [data-node-filter]");
     if (!target) return;
     event.preventDefault();
     if (handleNodeFilterSelection(target)) return;
-    if (handlePublisherFilterSelection(target)) return;
     handleExplainSelection(target);
   });
 }
@@ -1309,6 +1236,10 @@ if (typeof document !== "undefined") {
 
 if (typeof module !== "undefined") {
   module.exports = {
+    buildDashboardAlerts,
+    deviceFilterEmptyText,
+    deviceObservationUnavailable,
+    formatDashboardKpiValue,
     explainDeviceRules,
     renderTelemetryChart,
     explainKpi,
@@ -1318,15 +1249,6 @@ if (typeof module !== "undefined") {
     isOperationalDevice,
     sortDevicesStatusFirst,
     filteredDevices,
-    DEMO_PUBLISHER_DEVICES,
-    PUBLISHER_FILTERS,
-    isDemoPublisherDevice,
-    publisherDevicePlan,
-    publisherModeKey,
-    publisherModeLabel,
-    publisherModeReason,
-    deviceMatchesPublisherFilter,
-    renderPublisherBadge,
     nodeFilterValues,
     missingResourceTotal,
     cleanNodeLabel,

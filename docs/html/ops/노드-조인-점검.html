@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>노드 조인 점검</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/노드-조인-점검.md">편집</a>
+      </div>
+      <span>ops/노드-조인-점검.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../일일-기록.html">일일 기록</a></li>
+<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">운영 문서</p>
+          <h1>노드 조인 점검</h1>
+          <p class="subtitle">새 노드를 클러스터에 조인한 뒤, 우리가 실제로 겪었던 문제를 빠르게 확인하기 위한 프리플라이트 스크립트다.</p>
+          <div class="meta">
+            <span class="badge kind">운영 문서</span>
+            <span class="badge">원본: ops/노드-조인-점검.md</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="노드-조인-점검">노드 조인 점검</h1>
+<p>새 노드를 클러스터에 조인한 뒤, 우리가 실제로 겪었던 문제를 빠르게 확인하기 위한 프리플라이트 스크립트다.</p>
+<p>위치:</p>
+<ul><li><a href="../../edge-orch/scripts/check-worker-node-join.sh">scripts/check-worker-node-join.sh</a></li></ul>
+<h2 id="무엇을-확인하나">무엇을 확인하나</h2>
+<ul><li>노드 <code>Ready</code> 상태</li><li><code>kube-dns</code> 서비스와 엔드포인트 존재 여부</li><li>대상 노드의 <code>kube-proxy</code> 존재 및 최근 <code>iptables-restore</code> 오류 여부</li><li>대상 노드의 <code>edgemesh-agent</code> 존재 여부</li><li>host에서 <code>10.96.0.10:53</code> 접근 가능 여부</li><li>pod 내부 DNS 해석 가능 여부</li><li><code>br_netfilter</code>, <code>xt_physdev</code> 모듈</li><li><code>net.bridge.bridge-nf-call-iptables</code>, <code>net.ipv4.ip_forward</code></li><li>NVIDIA 서버 노드라면:</li><li><code>/dev/nvidia*</code></li><li><code>nvidia-smi</code></li><li><code>nvidia.com/gpu</code> allocatable</li></ul>
+<h2 id="실행-방법">실행 방법</h2>
+<p>control-plane에서 실행:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh etri-ser0002-cgnmsb</code></pre>
+<p>예시:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh etri-ser0001-cg0msb
+bash scripts/check-worker-node-join.sh etri-ser0002-cgnmsb</code></pre>
+<p>GPU까지 확인하려면:</p>
+<pre data-lang="bash"><code>bash scripts/check-worker-node-join.sh --check-gpu etri-ser0002-cgnmsb</code></pre>
+<h2 id="종료-코드">종료 코드</h2>
+<ul><li><code>0</code>: 실패 없음</li><li><code>2</code>: 하나 이상 실패</li></ul>
+<h2 id="전제-조건">전제 조건</h2>
+<ul><li><code>kubectl</code> 사용 가능</li><li><code>kubectl debug node/...</code> 사용 가능</li><li><code>busybox:latest</code> 이미지를 pull할 수 있어야 함</li></ul>
+<p>권장:</p>
+<ul><li>기본 실행은 공통 네트워크/서비스 체크만 수행한다.</li><li>GPU smoke 검증은 <code>--check-gpu</code> 옵션을 줬을 때만 수행한다.</li><li>GPU smoke 검증까지 정확히 보려면, 대상 노드 GPU를 이미 점유한 워크로드가 없는 시점에 실행하는 것이 좋다.</li></ul>
+<h2 id="참고">참고</h2>
+<p>이 스크립트는 우리가 실제로 겪었던 다음 문제를 빠르게 찾기 위해 만들었다.</p>
+<ul><li>CoreDNS 서비스 VIP 접근 불가</li><li>EdgeMesh DNS 프록시 경로 이상</li><li><code>kube-proxy</code>의 <code>iptables-restore</code> 실패</li><li>새 노드 커널 모듈/브리지 설정 누락</li><li>GPU 노드인데 Kubernetes에 <code>nvidia.com/gpu</code>가 노출되지 않는 상태</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#무엇을-확인하나">무엇을 확인하나</a></li>
+<li class="toc-h2"><a href="#실행-방법">실행 방법</a></li>
+<li class="toc-h2"><a href="#종료-코드">종료 코드</a></li>
+<li class="toc-h2"><a href="#전제-조건">전제 조건</a></li>
+<li class="toc-h2"><a href="#참고">참고</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

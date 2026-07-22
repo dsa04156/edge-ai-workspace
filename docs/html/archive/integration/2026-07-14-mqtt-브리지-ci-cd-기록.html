@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-07-14 MQTT 브리지 CI/CD 기록</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.md">편집</a>
+      </div>
+      <span>archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="통합-문서.html">통합 문서</a></li>
+<li><a href="통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../research/논문-전략.html">논문 전략</a></li>
+<li><a href="../research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc archive">
+        <header class="doc-header">
+          <p class="eyebrow">보관 문서</p>
+          <h1>2026-07-14 MQTT 브리지 CI/CD 기록</h1>
+          <p class="subtitle">&gt; 상태: 중앙 MessageBus 분리 배치 이전의 브리지 배포 기록. 현재 운영 기준이 아니다.</p>
+          <div class="meta">
+            <span class="badge kind">보관 문서</span>
+            <span class="badge">원본: archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.md</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+          </div>
+        </header>
+        <aside class="archive-banner" aria-label="보관 문서 안내">
+  <strong>과거 자료</strong>
+  <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
+  <code>archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="2026-07-14-mqtt-브리지-ci-cd-기록">2026-07-14 MQTT 브리지 CI/CD 기록</h1>
+<blockquote><p>상태: 중앙 MessageBus 분리 배치 이전의 브리지 배포 기록. 현재 운영 기준이 아니다.</p></blockquote>
+<h2 id="목적과-운영-경계">목적과 운영 경계</h2>
+<p>이 문서는 EdgeX가 물리 디바이스, telemetry, command의 권위를 가지는 Kubernetes 운영 경로의 이미지 빌드와 배포 기준이다. KubeEdge는 edge node와 workload 관리에만 사용하며, MQTT 입력은 canary 호환 입력으로만 취급한다.</p>
+<p>현재 이 문서의 CI/CD 대상 이미지는 다음 세 가지다.</p>
+<ul><li><code>192.168.0.56:5000/state-aggregator:latest</code></li><li><code>192.168.0.56:5000/mqtt-edge-bridge:latest</code> 및 배포에 사용하는 불변 <code>@sha256:</code> 참조</li><li><code>192.168.0.56:5000/docs-html:latest</code> 및 배포에 사용하는 불변 <code>@sha256:</code> 참조</li></ul>
+<p>Docker Compose는 운영 배포 경로가 아니다. 이 문서에서 Docker Buildx는 Kubernetes가 pull할 OCI 이미지를 만드는 도구일 뿐이며, 컨테이너를 Compose로 실행하거나 배포하는 방법을 제공하지 않는다.</p>
+<h2 id="github-actions-workflow">GitHub Actions workflow</h2>
+<p>workflow는 <code>.github/workflows/docker-build-push.yml</code>이다. <code>main</code> push와 <code>workflow_dispatch</code>에서 실행되며, workflow 또는 BuildKit 설정 변경은 세 이미지의 변경 감지를 모두 활성화한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>대상</th>
+<th>변경 감지</th>
+<th>build context</th>
+<th>배포 대상</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>state-aggregator</code></td>
+<td><code>edge-orch/state-aggregator/</code></td>
+<td><code>edge-orch/state-aggregator</code></td>
+<td><code>default</code> namespace의 <code>deployment/state-aggregator</code></td>
+</tr>
+<tr>
+<td><code>mqtt-edge-bridge</code></td>
+<td><code>edgex/mqtt-bridge/</code></td>
+<td><code>edgex/mqtt-bridge</code></td>
+<td><code>telemetry</code> namespace의 EdgeX Application</td>
+</tr>
+<tr>
+<td><code>docs-html</code></td>
+<td><code>docs/</code> 또는 <code>docs-site/</code></td>
+<td>저장소 루트 (<code>docs-site/Dockerfile</code>)</td>
+<td><code>default</code> namespace의 <code>deployment/docs-html</code></td>
+</tr>
+</tbody></table></div>
+<p>push trigger는 <code>edgex/**</code>도 포함한다. job 내부의 bridge build 조건은 <code>edgex/mqtt-bridge/</code>이므로 EdgeX manifest/config 변경이 bridge 이미지 build를 불필요하게 만들지 않도록 구분한다. docs 변경은 build 전에 <code>python3 scripts/build-docs-html.py</code>로 runner workspace의 <code>docs/html</code>을 생성한다.</p>
+<p>세 이미지 모두 Buildx로 <code>linux/amd64,linux/arm64</code> manifest를 registry에 push한다. <code>state-aggregator</code>는 <code>:latest</code>를 사용하고 Deployment의 <code>imagePullPolicy: Always</code> 및 rollout으로 새 tag를 pull한다. bridge와 docs job은 <code>--metadata-file</code>의 <code>containerimage.digest</code>를 읽어 다음처럼 immutable 참조를 만든다.</p>
+<pre data-lang="text"><code>192.168.0.56:5000/mqtt-edge-bridge@sha256:&lt;registry-digest&gt;
+192.168.0.56:5000/docs-html@sha256:&lt;registry-digest&gt;</code></pre>
+<p>tag는 build 입력이고, bridge와 docs의 배포 입력은 workflow가 확보한 registry digest다. 배포 시 이전 tag나 source manifest의 초기 digest를 추측해서 사용하지 않는다.</p>
+<h2 id="edgex-telemetry-argo-cd-application">EdgeX telemetry Argo CD Application</h2>
+<p><code>edge-orch-argocd/argocd-apps.yaml</code>의 <code>edgex-telemetry</code> Application이 EdgeX Kubernetes 운영 배포의 단일 진입점이다.</p>
+<pre data-lang="yaml"><code>metadata:
+  name: edgex-telemetry
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://github.com/dsa04156/edge-ai-workspace.git
+    path: edgex/k8s
+    targetRevision: main
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: telemetry
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true</code></pre>
+<p><code>edgex/k8s/kustomization.yaml</code> renders the EdgeX resources and <code>mqtt-edge-bridge</code> Deployment into <code>telemetry</code>. The bridge is node-pinned to the Jetson and uses host networking only to reach that device&#x27;s local MQTT broker; it does not make KubeEdge a physical-device authority.</p>
+<p>The Application has a digest Image Updater annotation for <code>mqtt-edge-bridge</code>. The workflow also patches the Application with the digest produced by the current build, which is the immediate promotion path; the updater remains the digest-tracking convergence mechanism.</p>
+<pre data-lang="yaml"><code>argocd-image-updater.argoproj.io/image-list: mqtt-edge-bridge=192.168.0.56:5000/mqtt-edge-bridge:latest
+argocd-image-updater.argoproj.io/mqtt-edge-bridge.update-strategy: digest
+argocd-image-updater.argoproj.io/mqtt-edge-bridge.force-update: &quot;true&quot;
+argocd-image-updater.argoproj.io/write-back-method: argocd</code></pre>
+<h3 id="first-time-application-bootstrap">First-time Application bootstrap</h3>
+<p>Before the first bridge promotion, render the committed Kustomization and ask the API server to validate that rendered output. These are preflight checks; they do not create resources.</p>
+<pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt; /tmp/edgex-telemetry-rendered.yaml
+kubectl apply --dry-run=server -f /tmp/edgex-telemetry-rendered.yaml</code></pre>
+<p>Then run the workflow with <code>workflow_dispatch</code> (or a qualifying bridge change). Its <code>Deploy MQTT EdgeX bridge through Argo CD</code> step first applies the Application manifest:</p>
+<pre data-lang="bash"><code>kubectl apply -f edge-orch-argocd/argocd-apps.yaml</code></pre>
+<p>That application apply bootstraps or reconciles <code>edgex-telemetry</code>; <code>CreateNamespace=true</code> allows Argo CD to create <code>telemetry</code> during sync. The workflow builds and pushes the bridge before this step, so the digest passed to the Application is a registry-published artifact.</p>
+<h3 id="bridge-promotion-and-rollout-wait">Bridge promotion and rollout wait</h3>
+<p>After Buildx records the registry digest in <code>MQTT_EDGE_BRIDGE_IMAGE</code>, the workflow applies it as an Argo Kustomize image override, requests a hard refresh, waits until the Deployment template contains the exact immutable image, and then waits for rollout completion.</p>
+<pre data-lang="bash"><code>kubectl patch application edgex-telemetry -n argocd --type=merge \
+  -p &quot;{\&quot;spec\&quot;:{\&quot;source\&quot;:{\&quot;kustomize\&quot;:{\&quot;images\&quot;:[\&quot;${MQTT_EDGE_BRIDGE_IMAGE}\&quot;]}}}}&quot;
+kubectl annotate application edgex-telemetry -n argocd \
+  argocd.argoproj.io/refresh=hard --overwrite
+kubectl rollout status deployment/mqtt-edge-bridge -n telemetry --timeout=180s</code></pre>
+<p>The workflow&#x27;s polling gate is required before <code>rollout status</code>: it reads the <code>mqtt-edge-bridge</code> container image from <code>deployment/mqtt-edge-bridge</code> and requires exact equality with <code>MQTT_EDGE_BRIDGE_IMAGE</code>. A successful rollout alone proves readiness, not artifact identity.</p>
+<p>Verify the immutable artifact identity from the running container as well as the Pod template. The <code>imageID</code> must contain the same digest as the workflow&#x27;s <code>MQTT_EDGE_BRIDGE_IMAGE</code>; do not accept only <code>:latest</code> as evidence.</p>
+<pre data-lang="bash"><code>kubectl get deployment mqtt-edge-bridge -n telemetry \
+  -o jsonpath=&#x27;{.spec.template.spec.containers[?(@.name==&quot;mqtt-edge-bridge&quot;)].image}{&quot;\n&quot;}&#x27;
+kubectl get pods -n telemetry -l app.kubernetes.io/name=mqtt-edge-bridge \
+  -o jsonpath=&#x27;{range .items[*]}{.metadata.name}{&quot;\t&quot;}{.status.containerStatuses[?(@.name==&quot;mqtt-edge-bridge&quot;)].imageID}{&quot;\n&quot;}{end}&#x27;</code></pre>
+<h2 id="state-aggregator-deployment"><code>state-aggregator</code> deployment</h2>
+<p><code>state-aggregator</code> remains a <code>default</code> namespace Deployment. It reads EdgeX Core Metadata and Core Data through the <code>telemetry</code> service DNS names; it is not part of the <code>edgex-telemetry</code> Application and must not be moved into that namespace as part of an image promotion.</p>
+<p>For a qualifying <code>state-aggregator</code> build, the workflow updates the dashboard CSS ConfigMap in <code>default</code>, sets the Deployment container image to <code>192.168.0.56:5000/state-aggregator:latest</code>, restarts it when the template already has that same tag, and waits for rollout completion.</p>
+<pre data-lang="bash"><code>kubectl create configmap state-aggregator-dashboard-screen-css -n default \
+  --from-file=dashboard-screen.css=edge-orch/state-aggregator/app/static/dashboard-screen.css \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl set image deployment/state-aggregator \
+  state-aggregator=192.168.0.56:5000/state-aggregator:latest -n default
+kubectl rollout status deployment/state-aggregator -n default --timeout=180s</code></pre>
+<p>Because this target deliberately uses a mutable tag, deployment evidence is the successful <code>default</code> namespace rollout and the current Pod <code>imageID</code>; it is not a replacement for the digest-pinned bridge verification.</p>
+<h2 id="docs-html-image-updater-and-promotion"><code>docs-html</code> Image Updater and promotion</h2>
+<p><code>docs-html</code> is a separate Argo CD Application sourced from <code>docs-site</code> and deployed to <code>default</code>. Its Application declares digest tracking:</p>
+<pre data-lang="yaml"><code>argocd-image-updater.argoproj.io/image-list: docs-html=192.168.0.56:5000/docs-html:latest
+argocd-image-updater.argoproj.io/docs-html.update-strategy: digest
+argocd-image-updater.argoproj.io/docs-html.force-update: &quot;true&quot;
+argocd-image-updater.argoproj.io/write-back-method: argocd</code></pre>
+<p>After rebuilding the static HTML image, the workflow obtains <code>DOCS_HTML_IMAGE</code> from Buildx metadata, patches the <code>docs-html</code> Application&#x27;s Kustomize image override to that immutable reference, requests an Argo hard refresh, and waits for <code>deployment/docs-html</code> in <code>default</code>. Image Updater keeps the Application converged on registry digest changes; the workflow patch makes the build&#x27;s digest the immediate deployment input.</p>
+<pre data-lang="bash"><code>kubectl patch application docs-html -n argocd --type=merge \
+  -p &quot;{\&quot;spec\&quot;:{\&quot;source\&quot;:{\&quot;kustomize\&quot;:{\&quot;images\&quot;:[\&quot;${DOCS_HTML_IMAGE}\&quot;]}}}}&quot;
+kubectl annotate application docs-html -n argocd \
+  argocd.argoproj.io/refresh=hard --overwrite
+kubectl rollout status deployment/docs-html -n default --timeout=180s</code></pre>
+<p>Use the same template-image plus running-container <code>imageID</code> check described for the bridge, substituting <code>docs-html</code> and <code>DOCS_HTML_IMAGE</code>, when proving a docs release.</p>
+<h2 id="post-cutover-legacy-absence">Post-cutover legacy absence</h2>
+<p><code>mqttvirtual-mapper</code> image build, DaemonSet, 현재 Argo Application은 cutover 후 없어야 한다. <code>mappers/mqttvirtual/</code> 소스는 Legacy/Reference로 남을 수 있지만 current build path, Kubernetes 배포, Argo source, rollout 대상이 아니다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-운영-경계">목적과 운영 경계</a></li>
+<li class="toc-h2"><a href="#github-actions-workflow">GitHub Actions workflow</a></li>
+<li class="toc-h2"><a href="#edgex-telemetry-argo-cd-application">EdgeX telemetry Argo CD Application</a></li>
+<li class="toc-h3"><a href="#first-time-application-bootstrap">First-time Application bootstrap</a></li>
+<li class="toc-h3"><a href="#bridge-promotion-and-rollout-wait">Bridge promotion and rollout wait</a></li>
+<li class="toc-h2"><a href="#state-aggregator-deployment">state-aggregator deployment</a></li>
+<li class="toc-h2"><a href="#docs-html-image-updater-and-promotion">docs-html Image Updater and promotion</a></li>
+<li class="toc-h2"><a href="#post-cutover-legacy-absence">Post-cutover legacy absence</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

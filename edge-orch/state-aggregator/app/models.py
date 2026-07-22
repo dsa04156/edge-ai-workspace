@@ -112,46 +112,47 @@ class NodeState(BaseModel):
     node_health: HealthLevel
 
 
+class EdgeXDevice(BaseModel):
+    name: str
+    description: str | None = None
+    profile_name: str
+    device_service_name: str
+    protocol_names: list[str] = Field(default_factory=list)
+    admin_state: str
+    operating_state: str
+    tags: dict[str, Any] = Field(default_factory=dict)
+    properties: dict[str, Any] = Field(default_factory=dict)
+    node_name: str | None = None
+
+
 class TelemetryPoint(BaseModel):
-    device_id: str
+    device_name: str
+    source_name: str
+    resource_name: str
+    value_type: str
+    value: str | float | int | bool | dict[str, Any] | list[Any] | None
     timestamp: datetime
-    property: str | None = None
-    value: str | float | int | bool | None = None
+    origin: int
+    event_id: str | None = None
+    units: str | None = None
 
 
 class DeviceState(BaseModel):
     name: str
-    namespace: str
-    device_type: str
-    model: str | None = None
+    source: Literal["edgex"] = "edgex"
+    profile_name: str
+    device_service_name: str
+    protocol_names: list[str] = Field(default_factory=list)
+    admin_state: str
+    operating_state: str
+    connection_state: Literal["connected", "disconnected", "unknown"] = "unknown"
+    device_service_available: bool = False
+    latest_event_timestamp: datetime | None = None
+    latest_readings: list[TelemetryPoint] = Field(default_factory=list)
+    telemetry_freshness: Literal["fresh", "stale", "no_events"] = "no_events"
+    overall_status: HealthLevel = "degraded"
+    reason: str = ""
     node_name: str | None = None
-    nodeName: str | None = None
-    protocol: str | None = None
-    properties: list[str] = Field(default_factory=list)
-    telemetry_enabled: bool = False
-    service_connected: bool = False
-    service_demo_group: str | None = None
-    service_binding_source: str | None = None
-    service_binding_reason: str | None = None
-    status: HealthLevel
-    status_reason: str
-    kubeedge_state: str | None = None
-    device_status_fresh: bool = False
-    device_status_last_reported_at: datetime | None = None
-    telemetry_fresh: bool = False
-    telemetry_status: Literal["fresh", "stale", "disabled"] = "disabled"
-    telemetry_last_seen_at: datetime | None = None
-    mapper_running: bool = False
-    node_ready: bool = False
-    health: str | None = None
-    severity: str | None = None
-    overall_status: HealthLevel
-    reason: str
-    telemetry_last_seen: datetime | None = None
-    telemetry_age_seconds: float | None = None
-    telemetry_property: str | None = None
-    telemetry_value: str | float | int | bool | None = None
-    twin: dict[str, Any] = Field(default_factory=dict)
 
 
 class WorkflowState(BaseModel):
@@ -218,3 +219,4 @@ class DashboardState(BaseModel):
     summary: SummaryState
     kpis: dict[str, Any]
     resource_profiles: dict[str, Any] = Field(default_factory=dict)
+    device_observation_error: str | None = None

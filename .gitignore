@@ -1,5 +1,6 @@
 # Excluded workspace
 Platform-Service/
+.worktrees/
 
 # Logs
 *.log
@@ -8,6 +9,8 @@ logs/
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
+*.egg-info/
 .venv/
 venv/
 

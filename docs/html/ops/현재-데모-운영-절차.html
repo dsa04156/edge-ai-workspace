@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>현재 데모 운영 절차</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/현재-데모-운영-절차.md">편집</a>
+      </div>
+      <span>ops/현재-데모-운영-절차.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../일일-기록.html">일일 기록</a></li>
+<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">운영 문서</p>
+          <h1>현재 데모 운영 절차</h1>
+          <p class="subtitle">Protocol Adapter -&gt; edge telemetry agent -&gt; SQLite outbox -&gt; HTTPS inge…</p>
+          <div class="meta">
+            <span class="badge kind">운영 문서</span>
+            <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
+            <span class="badge">수정: 2026-07-21 10:27</span>
+            <span class="badge">HTML 생성: 2026-07-21 10:27</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="현재-서비스-데모-운영-절차">현재 서비스 데모 운영 절차</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 Protocol Adapter -&gt; edge telemetry agent -&gt; SQLite outbox -&gt; HTTPS ingest gateway -&gt; EdgeX Core Data/PostgreSQL -&gt; dashboard 경로를 점검한다. 특정 Sense HAT publisher나 MQTT broker를 데이터 플레인의 정상 조건으로 요구하지 않는다.</p>
+<h2 id="배치-기준">배치 기준</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>기준</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>중앙 namespace</td>
+<td><code>edgex-system</code></td>
+</tr>
+<tr>
+<td>edge agent namespace</td>
+<td><code>edgex-edge</code></td>
+</tr>
+<tr>
+<td>중앙 노드</td>
+<td><code>etri-ser0002-cgnmsb</code></td>
+</tr>
+<tr>
+<td>edge node</td>
+<td><code>etri-dev0003-raspi5</code>(Sense HAT Event fixture), <code>etri-dev0001-jetorn</code>(Jetson agent 기반)</td>
+</tr>
+<tr>
+<td>중앙 workload</td>
+<td>ingest gateway, Core Keeper/Metadata/Data/Command, internal MessageBus, PostgreSQL</td>
+</tr>
+<tr>
+<td>edge workload</td>
+<td><code>edgex-edge-agent-sensehat</code>, <code>edgex-edge-agent-jetson</code> direct mode 각 1개</td>
+</tr>
+<tr>
+<td>운영 진입점</td>
+<td><code>edgex/k8s/kustomization.yaml</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="1-render와-secret-preflight">1. render와 Secret preflight</h2>
+<pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt;/tmp/edgex-https-plane.yaml
+kubectl apply --dry-run=server -f /tmp/edgex-https-plane.yaml
+edgex/k8s/scripts/preflight-runtime-secrets.sh</code></pre>
+<p>기존 cluster에 Jetson identity를 처음 추가할 때만 허용된 점검 창에서 다음 telemetry-only 교체를 먼저 수행한다.</p>
+<pre data-lang="bash"><code>edgex/k8s/scripts/provision-runtime-secrets.sh --replace-telemetry</code></pre>
+<p>이 모드는 <code>edgex-postgres-credentials</code>와 <code>edgex-telemetry-plane-credentials</code>를 apply하지 않는다. gateway와 두 agent의 TLS/HMAC은 함께 재발급되므로 Secret 적용 후 gateway와 기존 Sense HAT agent Pod도 재생성해 같은 generation을 읽게 한다. 최초 빈 cluster의 전체 Secret 생성은 argument 없이 실행하고, DB까지 교체하는 <code>--replace</code>는 별도 파괴적 승인 없이 사용하지 않는다.</p>
+<p>정상 기준:</p>
+<ul><li>root render에 <code>edgex-device-mqtt</code> Deployment가 없다.</li><li>Core/MessageBus/PostgreSQL/gateway는 server2에만 배치된다.</li><li>두 edge agent는 <code>TELEMETRY_SOURCE_MODE=direct</code>, <code>hostNetwork=true</code>, <code>DIRECT_ADAPTER_HOST=127.0.0.1</code>이다.</li><li>두 agent는 서로 다른 <code>EDGE_ID</code>, credential Secret, mTLS Secret과 outbox PVC를 사용한다.</li><li>render에 <code>LOCAL_MQTT_*</code>, MQTT-mode agent와 edge-local broker가 없다.</li><li>TLS, HMAC과 DB credential은 Secret reference다.</li></ul>
+<h2 id="2-workload와-storage">2. workload와 storage</h2>
+<pre data-lang="bash"><code>kubectl -n edgex-system get deploy,statefulset,job,pod,service,pvc -o wide
+kubectl -n edgex-edge get deploy,pod,pvc -o wide</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>edgex-ingest-gateway</code>, Core 서비스와 PostgreSQL이 Ready다.</li><li><code>edgex-edge-agent-sensehat</code>과 <code>edgex-edge-agent-jetson</code>이 Ready다.</li><li>PostgreSQL PVC는 Bound다.</li><li>agent별 outbox PVC가 서로 다르고 Bound다.</li><li>중앙 <code>edgex-messagebus</code>는 ClusterIP이며 edge namespace에는 MessageBus나 DB가 없다.</li></ul>
+<p>Jetson agent는 아직 source adapter가 없으므로 인증 heartbeat만 확인한다.</p>
+<pre data-lang="bash"><code>kubectl -n edgex-edge exec deploy/edgex-edge-agent-jetson -- \
+  python -c &#x27;import json,ssl,httpx; ctx=ssl.create_default_context(cafile=&quot;/run/gateway-mtls/ca.crt&quot;); ctx.load_cert_chain(&quot;/run/gateway-mtls/tls.crt&quot;,&quot;/run/gateway-mtls/tls.key&quot;); client=httpx.Client(verify=ctx,trust_env=False,timeout=10); response=client.get(&quot;https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443/diagnostics&quot;); assert response.status_code in (200,503), response.text; print(json.dumps(response.json()[&quot;edges&quot;][&quot;etri-dev0001-jetorn&quot;], sort_keys=True)); client.close()&#x27;</code></pre>
+<p>정상 기준은 Jetson identity가 존재하고 최근 heartbeat receipt가 있으며 <code>source_seen=false</code>인 것이다. source 미연결 때문에 diagnostics 전체가 unhealthy이면 HTTP <code>503</code>이 예상되며, 이를 Pod/TLS/HMAC 실패로 단정하지 않는다.</p>
+<h2 id="3-metadata">3. Metadata</h2>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceservice/name/edge-telemetry-agent&#x27;
+kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceprofile/name/etri-sensehat&#x27;
+kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/name/sensehat-001&#x27;</code></pre>
+<p>확인 항목:</p>
+<ul><li><code>serviceName=edge-telemetry-agent</code></li><li><code>profileName=etri-sensehat</code></li><li>protocol은 <code>i2c</code>, label에는 <code>mqtt</code>가 없음</li><li>Device Profile에 11개 Float64 resource가 있음</li><li>Jetson Arduino Device/Profile은 이번 agent 기반 단계에서 등록하지 않음</li></ul>
+<h2 id="4-protocol-adapter-admission">4. Protocol Adapter admission</h2>
+<p>현재 검증 fixture는 <code>sensehat-001</code>이지만 publisher 구현은 교체 가능하다. 물리 노드에서 승인된 adapter가 만든 canonical Event 파일로 loopback admission만 확인한다.</p>
+<pre data-lang="bash"><code>curl --fail-with-body \
+  -H &#x27;Content-Type: application/json&#x27; \
+  --data-binary @canonical-event.json \
+  http://127.0.0.1:18080/v1/events</code></pre>
+<p>정상 기준:</p>
+<ul><li>local endpoint는 <code>http://127.0.0.1:18080/v1/events</code>다.</li><li>응답은 <code>202 queued</code>와 정확한 Event ID를 포함한다.</li><li>adapter와 agent 사이에는 Mosquitto나 MQTT client를 요구하지 않는다.</li></ul>
+<p>agent 로그와 metric:</p>
+<pre data-lang="bash"><code>kubectl -n edgex-edge logs deploy/edgex-edge-agent-sensehat --tail=100
+kubectl -n edgex-edge port-forward deploy/edgex-edge-agent-sensehat 18443:8443</code></pre>
+<p>8443 health endpoint는 mTLS를 요구하므로 단순 curl 실패를 agent 장애로 판단하지 않는다. Pod probe와 로그, outbox DB를 함께 본다.</p>
+<h2 id="5-core-data-readback">5. Core Data readback</h2>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/sensehat-001?limit=10&#x27;</code></pre>
+<p>정상 기준:</p>
+<ul><li><code>deviceName=sensehat-001</code></li><li><code>profileName=etri-sensehat</code></li><li>source가 여섯 source 중 하나</li><li><code>origin</code>은 publisher sample의 nanosecond 시각</li><li>Reading <code>valueType=Float64</code></li><li>local publisher가 출력한 Event ID가 중앙 응답에 존재</li></ul>
+<h2 id="6-outbox-장애-복구">6. outbox 장애 복구</h2>
+<p>이 검증은 telemetry 중단을 허용한 점검 창에서만 수행한다.</p>
+<ol><li>중앙 gateway를 일시적으로 0 replica로 만든다.</li><li>승인된 Protocol Adapter Event를 한 번 넣는다.</li><li>agent PVC의 SQLite pending count가 증가하는지 확인한다.</li><li>gateway를 1 replica로 복구한다.</li><li>pending count가 0으로 drain되고 같은 Event ID가 Core Data에 있는지 확인한다.</li></ol>
+<p>Argo CD self-heal이 replica 변경을 즉시 되돌릴 수 있으므로 실제 live 검증은 Application 동기화 정책과 점검 창을 먼저 확인한다. DB 파일을 복사하거나 직접 수정하지 않는다.</p>
+<p>성공 기준은 “연결이 다시 됨”이 아니라 다음 세 항목이다.</p>
+<ul><li>중단 중 outbox 보존</li><li>복구 후 exact Event replay</li><li>Core Data persisted ACK 뒤 outbox 삭제</li></ul>
+<h2 id="7-dashboard">7. dashboard</h2>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
+kubectl get --raw \
+  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;</code></pre>
+<p>정상 기준:</p>
+<ul><li>inventory는 중앙 Core Metadata contract와 일치한다. 현재 임시 fixture는 <code>sensehat-001</code> 1개다.</li><li>latest Event/Reading과 freshness는 Core Data 값과 같다.</li><li><code>profileName=etri-sensehat</code>, <code>serviceName=edge-telemetry-agent</code>다.</li><li>node/workload는 display-only 진단으로 분리된다.</li><li>Serial, Modbus, OPC-UA, RTSP는 검증 전까지 완료로 표시하지 않는다.</li></ul>
+<h2 id="장애-원인-순서">장애 원인 순서</h2>
+<ol><li>센서 endpoint와 Protocol Adapter</li><li>loopback <code>127.0.0.1:18080</code></li><li>edge agent admission과 SQLite PVC</li><li>edge -&gt; gateway DNS/TLS/HMAC</li><li>gateway -&gt; Core Data REST</li><li>PostgreSQL과 Core Data readback</li><li>Metadata binding</li><li>state-aggregator와 dashboard freshness</li></ol>
+<p>현재 배포 문제를 local MQTT broker부터 확인하지 않는다. MQTT-only 장비를 별도로 배포한 경우에만 그 adapter와 broker를 독립 점검한다.</p>
+<h2 id="완료-판정">완료 판정</h2>
+<p>manifest와 과거 G003 기록만으로 이번 중앙 전환 완료를 주장하지 않는다. 새 image digest, canonical Event ID, Core Data readback, outage replay와 dashboard 관측을 한 실행 기록으로 남긴 뒤 완료로 판정한다. Sense HAT publisher 교체 여부는 이 판정과 분리한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#배치-기준">배치 기준</a></li>
+<li class="toc-h2"><a href="#1-render와-secret-preflight">1. render와 Secret preflight</a></li>
+<li class="toc-h2"><a href="#2-workload와-storage">2. workload와 storage</a></li>
+<li class="toc-h2"><a href="#3-metadata">3. Metadata</a></li>
+<li class="toc-h2"><a href="#4-protocol-adapter-admission">4. Protocol Adapter admission</a></li>
+<li class="toc-h2"><a href="#5-core-data-readback">5. Core Data readback</a></li>
+<li class="toc-h2"><a href="#6-outbox-장애-복구">6. outbox 장애 복구</a></li>
+<li class="toc-h2"><a href="#7-dashboard">7. dashboard</a></li>
+<li class="toc-h2"><a href="#장애-원인-순서">장애 원인 순서</a></li>
+<li class="toc-h2"><a href="#완료-판정">완료 판정</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -53,7 +53,7 @@
     const scopedItems = filterItems(items, activeFilter);
     const query = normalize(inputEl.value);
     if (!query) {
-      const label = activeFilter === 'all' ? '전체 문서' : activeFilter === 'active' ? 'Active 문서' : activeFilter === 'ops' ? '운영 문서' : 'Archive';
+      const label = activeFilter === 'all' ? '전체 문서' : activeFilter === 'wiki' ? '위키' : activeFilter === 'active' ? '최신 기준 문서' : activeFilter === 'ops' ? '운영 문서' : activeFilter === 'history' ? '설계 이력' : '보관 문서';
       resultsEl.innerHTML = `<p class="search-empty">${escapeHtml(label)}에서 검색어를 입력하면 관련 문서가 여기에 표시됩니다.</p>`;
       return;
     }

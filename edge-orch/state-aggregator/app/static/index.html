@@ -10,13 +10,13 @@
     <link rel="stylesheet" href="/static/workflow.css?v=ai-pipeline-compact-20260622" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=reference-console-20260622" />
-    <link rel="stylesheet" href="/static/dashboard-screen.css?v=resource-console-v3-20260709" />
+    <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
-          <p class="eyebrow">KubeEdge Mixed-Device Platform</p>
+          <p class="eyebrow">EdgeX Device + Kubernetes Edge Platform</p>
           <h1>Edge AI Operations Dashboard</h1>
           <span class="cluster-pill">default cluster</span>
         </div>
@@ -47,10 +47,10 @@
             <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices details">
               <span class="metric-label">Registered Devices</span>
               <strong id="deviceCount">0</strong>
-              <span id="deviceHealthRatio">0% available · 0 live</span>
+              <span id="deviceHealthRatio">0% service available · 0 data available</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="telemetry_freshness_ratio" tabindex="0" role="button" aria-label="Telemetry Freshness details">
-              <span class="metric-label">InfluxDB Telemetry</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="Core Data Freshness details">
+              <span class="metric-label">EdgeX Core Data</span>
               <strong id="telemetryFreshnessRatio">0%</strong>
               <span id="telemetryFreshnessCaption">0 fresh</span>
             </article>
@@ -74,10 +74,10 @@
               <strong id="usageCoverageRatio">0%</strong>
               <span id="usageCoverageCaption">0/0 containers observed</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_binding_ratio" tabindex="0" role="button" aria-label="Service Binding 설명 보기">
-              <span class="metric-label">Service-bound Devices</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="Device Service Availability 설명 보기">
+              <span class="metric-label">Device Service Available</span>
               <strong id="serviceBindingRatio">0%</strong>
-              <span id="serviceBindingCaption">0/0 devices bound</span>
+              <span id="serviceBindingCaption">0/0 devices available</span>
             </article>
           </section>
 
@@ -116,7 +116,7 @@
                   <div class="metric-bar"><i id="deviceAvailableBar"></i></div>
                 </div>
                 <div class="metric-bar-row">
-                  <span>Telemetry fresh</span>
+                  <span>Core Data events fresh</span>
                   <strong id="telemetryFreshValue">0%</strong>
                   <div class="metric-bar"><i id="telemetryFreshBar"></i></div>
                 </div>
@@ -211,7 +211,7 @@
               <h2 id="workflowWorkbenchTitle">AI Pipeline Builder</h2>
             </div>
             <div class="workflow-actions">
-              <span class="workflow-scope">registered devices · telemetry freshness · dry-run</span>
+              <span class="workflow-scope">EdgeX devices · Core Data event freshness · dry-run</span>
               <span id="workflowStatus">device list pending</span>
               <button id="workflowRefresh" type="button">Refresh Devices</button>
             </div>
@@ -219,7 +219,7 @@
 
           <div class="workflow-summary" aria-label="device workflow summary">
             <div>
-              <span>Registered Devices</span>
+              <span>EdgeX Devices</span>
               <strong id="workflowDeviceTotalCount">0</strong>
             </div>
             <div>
@@ -227,7 +227,7 @@
               <strong id="workflowDeviceAvailableCount">0</strong>
             </div>
             <div>
-              <span>Fresh Telemetry</span>
+              <span>Fresh Events</span>
               <strong id="workflowFreshTelemetryCount">0</strong>
             </div>
             <div>
@@ -264,9 +264,9 @@
               <div id="workflowNodePalette" class="workflow-node-palette" aria-label="workflow node palette"></div>
               <div class="workflow-toolbar" aria-label="device source filters">
                 <button type="button" data-device-filter="all" class="active">All</button>
-                <button type="button" data-device-filter="telemetry">Telemetry</button>
-                <button type="button" data-device-filter="fresh">Fresh</button>
-                <button type="button" data-device-filter="stale">Stale</button>
+                <button type="button" data-device-filter="telemetry">EdgeX Sources</button>
+                <button type="button" data-device-filter="fresh">Fresh Event</button>
+                <button type="button" data-device-filter="stale">Stale/No Event</button>
                 <button type="button" data-device-filter="sensehat">Sense HAT</button>
                 <button type="button" data-device-filter="aihat">AI HAT</button>
               </div>
@@ -300,11 +300,11 @@
                 <div class="inspector-actions">
                   <button id="bindWorkflowDevice" type="button">Bind</button>
                   <button id="releaseWorkflowDevice" type="button">Release</button>
-                  <button id="readLatestWorkflowDevice" type="button">Read Telemetry</button>
+                  <button id="readLatestWorkflowDevice" type="button">Read Latest Event</button>
                 </div>
               </div>
               <div id="workflowBindingInspector" class="workflow-binding-inspector">
-                <div class="workflow-empty">Select a node to inspect settings, Device binding, and telemetry freshness.</div>
+                <div class="workflow-empty">Select a node to inspect EdgeX identity, source binding, and Core Data event freshness.</div>
               </div>
             </aside>
           </div>
@@ -387,10 +387,10 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">Device Signals</p>
-                <h2>Latest Sensor State</h2>
+                <p class="section-kicker">EdgeX Device Signals</p>
+                <h2>Latest Core Data Events</h2>
               </div>
-              <span>InfluxDB freshness basis</span>
+              <span>Core Data freshness basis</span>
             </div>
             <div id="deviceStatusList" class="device-status-list"></div>
           </section>
@@ -420,7 +420,7 @@
               <span>observed summary only</span>
             </div>
             <div class="chat-guardrail">
-              Qwen explains the current dashboard signals only. It does not run Kubernetes, MQTT, actuator, or dynamic orchestration actions.
+              Qwen explains the current dashboard signals only. It does not mutate EdgeX devices, Kubernetes workloads, actuators, or pipeline state.
             </div>
             <div id="chatTranscript" class="chat-transcript" aria-live="polite">
               <div class="chat-empty">Ask about status reasons, inspection order, or KPI meaning.</div>
@@ -438,9 +438,9 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
-    <script src="/static/dashboard.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow-state.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow-render.js?v=ai-pipeline-compact-20260622"></script>
+    <script src="/static/dashboard.js?v=edgex-multisource-20260714"></script>
+    <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
+    <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
     <script src="/static/workflow-actions.js?v=terminology-cleanup-20260622"></script>
     <script src="/static/workflow.js?v=ai-pipeline-compact-20260622"></script>

@@ -19,104 +19,112 @@ DOCS = ROOT / "docs"
 OUT = DOCS / "html"
 CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
-SEARCH_EXCLUDED_PATHS = {"archive/integration/integration-detail-log.md"}
+SEARCH_EXCLUDED_PATHS = {"archive/integration/통합-상세-기록.md"}
+DESIGN_HISTORY_PATHS = {
+    "일일-기록.md",
+    "대시보드-화면-설계.md",
+    "자원-증강-가상디바이스-대시보드.md",
+    "런타임-자원-증강-데모-워크플로.md",
+}
 
 WIKI_ORDER = [
-    "wiki/index.md",
-    "wiki/SCHEMA.md",
-    "wiki/log.md",
-    "wiki/operating-model.md",
-    "wiki/current-demo-flow.md",
-    "wiki/status-and-telemetry.md",
-    "wiki/dashboard-and-kpi.md",
-    "wiki/operations-entry-points.md",
-    "wiki/second-year-design-track.md",
+    "wiki/지식-지도.md",
+    "wiki/운영-규칙.md",
+    "wiki/변경-기록.md",
+    "wiki/운영-모델.md",
+    "wiki/현재-데모-흐름.md",
+    "wiki/상태와-텔레메트리.md",
+    "wiki/대시보드와-kpi.md",
+    "wiki/운영-진입점.md",
+    "wiki/2차년도-설계-트랙.md",
 ]
 
 ACTIVE_ORDER = [
-    "README.md",
-    "goal.md",
-    "project-context.md",
-    "scope.md",
-    "service-demo-scenario.md",
-    "okdong-productivity-kpi.md",
-    "kagenti-operator-assistant.md",
-    "second-year-virtual-device-workflow-architecture.md",
-    "dashboard-information-structure.md",
-    "dashboard-policy.md",
-    "device-status-policy.md",
-    "kubeedge-edgex-model-mapping.md",
-    "device-service-binding.md",
-    "current-demo-path.md",
-    "repo-structure.md",
-    "roadmap.md",
-    "docs-cleanup-plan.md",
+    "문서-안내.md",
+    "시스템-구축-목표.md",
+    "프로젝트-배경.md",
+    "프로젝트-범위.md",
+    "원시-텔레메트리-데이터-플레인.md",
+    "서비스-데모-시나리오.md",
+    "옥동-생산성-kpi.md",
+    "카젠티-운영-보조-에이전트.md",
+    "2차년도-가상디바이스-워크플로-설계.md",
+    "대시보드-정보-구조.md",
+    "대시보드-판단-정책.md",
+    "물리-디바이스-상태-정책.md",
+    "쿠버엣지-엣지엑스-모델-매핑.md",
+    "디바이스-서비스-연결.md",
+    "현재-데모-경로.md",
+    "저장소-구조.md",
+    "단계별-추진계획.md",
+    "문서-정리-계획.md",
 ]
 
 OPS_ORDER = [
-    "ops/runbook-current-demo.md",
-    "ops/dashboard-verification.md",
-    "ops/e2e-demo-verification.md",
-    "ops/ci-cd-autodeploy.md",
-    "ops/gpu-hami-runtime.md",
-    "ops/troubleshooting-network.md",
-    "ops/edge-node-join-check.md",
-    "ops/node-join-check.md",
-    "ops/pod-connectivity-check.md",
-    "ops/node-spec-template.md",
+    "ops/현재-데모-운영-절차.md",
+    "ops/중앙-메시지버스-재구축-절차.md",
+    "ops/대시보드-검증.md",
+    "ops/gpu-hami-런타임-운영.md",
+    "ops/네트워크-문제해결.md",
+    "ops/엣지-노드-조인-점검.md",
+    "ops/노드-조인-점검.md",
+    "ops/파드-연결성-점검.md",
+    "ops/노드-실측-사양표.md",
 ]
 
 
 DISPLAY_TITLES = {
-    "README.md": "문서 안내",
-    "goal.md": "시스템 구축 목표",
-    "docs-cleanup-plan.md": "문서 정리 계획",
-    "project-context.md": "프로젝트 배경",
-    "scope.md": "프로젝트 범위",
-    "service-demo-scenario.md": "서비스 데모 시나리오",
-    "current-demo-path.md": "현재 데모 흐름",
-    "okdong-productivity-kpi.md": "옥동 생산성 KPI",
-    "dashboard-information-structure.md": "대시보드 정보 구조",
-    "dashboard-policy.md": "대시보드 판단 기준",
-    "device-status-policy.md": "DeviceStatus 정책",
-    "kubeedge-edgex-model-mapping.md": "KubeEdge-EdgeX 모델 매핑",
-    "device-service-binding.md": "디바이스-서비스 바인딩",
-    "kagenti-operator-assistant.md": "Kagenti 운영 보조 Agent",
-    "second-year-virtual-device-workflow-architecture.md": "2차년도 가상디바이스·워크플로우 설계",
-    "repo-structure.md": "레포 구조",
-    "roadmap.md": "로드맵",
-    "wiki/index.md": "KubeEdge PoC LLM Wiki",
-    "wiki/SCHEMA.md": "LLM Wiki 운영 규칙",
-    "wiki/log.md": "Wiki 변경 로그",
-    "wiki/operating-model.md": "운영 모델",
-    "wiki/current-demo-flow.md": "현재 데모 흐름 요약",
-    "wiki/status-and-telemetry.md": "상태와 텔레메트리",
-    "wiki/dashboard-and-kpi.md": "대시보드와 KPI 모델",
-    "wiki/operations-entry-points.md": "운영 진입점",
-    "wiki/second-year-design-track.md": "2차년도 설계 트랙",
-    "ops/runbook-current-demo.md": "현재 데모 운영 Runbook",
-    "ops/troubleshooting-network.md": "네트워크 트러블슈팅",
-    "ops/edge-node-join-check.md": "Edge 노드 조인 점검",
-    "ops/node-join-check.md": "노드 조인 점검",
-    "ops/pod-connectivity-check.md": "파드 통신 점검",
-    "ops/node-spec-template.md": "노드 실측 사양표",
-    "archive/integration/integration-summary.md": "통합 문서 요약",
-    "archive/integration/integration-doc.md": "통합 문서",
-    "archive/integration/integration-detail-log.md": "통합 상세 로그",
-    "archive/integration/handoff-legacy.md": "과거 인수인계",
-    "archive/embedded-conference/cost-model-and-runtime-method.md": "비용 모델 안내",
-    "archive/legacy-orchestration/cost-model-and-runtime-method.md": "비용 모델과 런타임 방식",
-    "archive/legacy-orchestration/architecture.md": "Legacy 오케스트레이션 아키텍처",
-    "archive/legacy-orchestration/system-overview.md": "Legacy 시스템 개요",
-    "archive/research/README.md": "연구 초안 안내",
-    "archive/research/evaluation-plan.md": "평가 계획",
-    "archive/research/paper-strategy.md": "논문 전략",
-    "archive/research/research-topics.md": "연구 주제 정리",
-    "archive/research/venue-strategy.md": "투고처 전략",
-    "archive/research/writing-checklist.md": "논문 작성 체크리스트",
-    "archive/embedded-conference/experiments/selective-replanning-progress-2026-04-23.md": "Selective Replanning 진행 기록",
-    "archive/embedded-conference/experiments/selective-replanning-results-2026-04-23.md": "Selective Replanning 결과 기록",
-    "archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/README.md": "Selective Replanning 그림 자료",
+    "문서-안내.md": "문서 안내",
+    "시스템-구축-목표.md": "시스템 구축 목표",
+    "문서-정리-계획.md": "문서 정리 계획",
+    "프로젝트-배경.md": "프로젝트 배경",
+    "프로젝트-범위.md": "프로젝트 범위",
+    "서비스-데모-시나리오.md": "서비스 데모 시나리오",
+    "현재-데모-경로.md": "현재 데모 경로",
+    "옥동-생산성-kpi.md": "옥동 생산성 KPI",
+    "대시보드-정보-구조.md": "대시보드 정보 구조",
+    "대시보드-판단-정책.md": "대시보드 판단 정책",
+    "물리-디바이스-상태-정책.md": "물리 디바이스 상태 정책",
+    "쿠버엣지-엣지엑스-모델-매핑.md": "쿠버엣지-엣지엑스 모델 매핑",
+    "디바이스-서비스-연결.md": "디바이스-서비스 연결",
+    "카젠티-운영-보조-에이전트.md": "카젠티 운영 보조 에이전트",
+    "2차년도-가상디바이스-워크플로-설계.md": "2차년도 가상디바이스·워크플로 설계",
+    "원시-텔레메트리-데이터-플레인.md": "원시 텔레메트리 데이터 플레인",
+    "저장소-구조.md": "저장소 구조",
+    "단계별-추진계획.md": "단계별 추진계획",
+    "wiki/지식-지도.md": "쿠버엣지 PoC 지식 지도",
+    "wiki/운영-규칙.md": "위키 운영 규칙",
+    "wiki/변경-기록.md": "위키 변경 기록",
+    "wiki/운영-모델.md": "운영 모델",
+    "wiki/현재-데모-흐름.md": "현재 데모 흐름 요약",
+    "wiki/상태와-텔레메트리.md": "상태와 텔레메트리",
+    "wiki/대시보드와-kpi.md": "대시보드와 KPI 모델",
+    "wiki/운영-진입점.md": "운영 진입점",
+    "wiki/2차년도-설계-트랙.md": "2차년도 설계 트랙",
+    "ops/현재-데모-운영-절차.md": "현재 데모 운영 절차",
+    "ops/중앙-메시지버스-재구축-절차.md": "중앙 메시지버스 배치 재구축 절차",
+    "ops/네트워크-문제해결.md": "네트워크 문제 해결",
+    "ops/엣지-노드-조인-점검.md": "엣지 노드 조인 점검",
+    "ops/노드-조인-점검.md": "노드 조인 점검",
+    "ops/파드-연결성-점검.md": "파드 연결성 점검",
+    "ops/노드-실측-사양표.md": "노드 실측 사양표",
+    "archive/integration/통합-요약.md": "통합 문서 요약",
+    "archive/integration/통합-문서.md": "통합 문서",
+    "archive/integration/통합-상세-기록.md": "통합 상세 기록",
+    "archive/integration/과거-인수인계.md": "과거 인수인계",
+    "archive/embedded-conference/비용-모델과-런타임-방식.md": "비용 모델 안내",
+    "archive/legacy-orchestration/비용-모델과-런타임-방식.md": "비용 모델과 런타임 방식",
+    "archive/legacy-orchestration/아키텍처.md": "레거시 오케스트레이션 아키텍처",
+    "archive/legacy-orchestration/시스템-개요.md": "레거시 시스템 개요",
+    "archive/research/연구-초안-안내.md": "연구 초안 안내",
+    "archive/research/평가-계획.md": "평가 계획",
+    "archive/research/논문-전략.md": "논문 전략",
+    "archive/research/연구-주제.md": "연구 주제 정리",
+    "archive/research/투고처-전략.md": "투고처 전략",
+    "archive/research/논문-작성-점검표.md": "논문 작성 점검표",
+    "archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.md": "선택적 재계획 진행 기록",
+    "archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.md": "선택적 재계획 결과 기록",
+    "archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.md": "선택적 재계획 그림 자료",
 }
 
 
@@ -128,7 +136,7 @@ def md_files() -> list[Path]:
         **{name: idx for idx, name in enumerate(ACTIVE_ORDER)},
         **{name: idx for idx, name in enumerate(OPS_ORDER)},
     }
-    group_order = {"wiki": 0, "active": 1, "ops": 2, "archive": 3}
+    group_order = {"wiki": 0, "active": 1, "ops": 2, "history": 3, "archive": 4}
 
     def key(p: Path):
         rel = p.relative_to(DOCS).as_posix()
@@ -402,10 +410,11 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
   <div class=\"search-box\" data-search-index=\"{html.escape(index_href, quote=True)}\">
     <div class=\"search-filters\" role=\"group\" aria-label=\"검색 범위\">
       <button type=\"button\" class=\"active\" data-search-filter=\"all\">전체</button>
-      <button type=\"button\" data-search-filter=\"wiki\">Wiki</button>
-      <button type=\"button\" data-search-filter=\"active\">Active</button>
+      <button type=\"button\" data-search-filter=\"wiki\">위키</button>
+      <button type=\"button\" data-search-filter=\"active\">최신 기준</button>
       <button type=\"button\" data-search-filter=\"ops\">운영</button>
-      <button type=\"button\" data-search-filter=\"archive\">Archive</button>
+      <button type=\"button\" data-search-filter=\"history\">설계 이력</button>
+      <button type=\"button\" data-search-filter=\"archive\">보관</button>
     </div>
     <input id=\"doc-search-input\" type=\"search\" placeholder=\"예: device status, dashboard, KPI, runbook\" autocomplete=\"off\">
     <div id=\"doc-search-results\" class=\"search-results\" aria-live=\"polite\"></div>
@@ -416,17 +425,17 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
 
 def home_intro_markup() -> str:
     return """<section class=\"home-intro\" aria-label=\"문서 정리 기준\">
-  <a class=\"intro-card primary\" href=\"wiki/index.html\">
-    <strong>LLM Wiki</strong>
-    <span>질문이 있을 때 먼저 읽는 지식 지도입니다. 여기서 원본문서로 들어갑니다.</span>
+  <a class=\"intro-card primary\" href=\"wiki/지식-지도.html\">
+    <strong>지식 지도</strong>
+    <span>질문이 있을 때 먼저 읽고 최신 원본문서로 이동합니다.</span>
   </a>
-  <a class=\"intro-card\" href=\"goal.html\">
-    <strong>시스템 구축 목표</strong>
-    <span>혼합 디바이스 edge AI 서비스 데모를 운영 관점에서 보이게 만드는 것이 현재 기준입니다.</span>
+  <a class=\"intro-card\" href=\"프로젝트-범위.html\">
+    <strong>프로젝트 범위</strong>
+    <span>현재 구현, 2차년도 설계, 레거시·보관 경계를 판단하는 최우선 기준입니다.</span>
   </a>
-  <a class=\"intro-card\" href=\"docs-cleanup-plan.html\">
+  <a class=\"intro-card\" href=\"문서-정리-계획.html\">
     <strong>문서 정리 기준</strong>
-    <span>Active와 운영 문서를 먼저 보고, Archive는 과거 맥락 확인용으로 분리합니다.</span>
+    <span>최신 기준과 운영 문서를 먼저 보고 설계 이력과 보관 자료는 필요할 때만 확인합니다.</span>
   </a>
 </section>"""
 
@@ -453,12 +462,14 @@ def render_search_index(files: list[Path]) -> None:
 
 def group_of(rel: str) -> str:
     if rel.startswith("wiki/"):
-        return "Wiki 문서"
+        return "위키"
     if rel.startswith("archive/"):
-        return "Archive"
+        return "보관 문서"
     if rel.startswith("ops/"):
         return "운영 문서"
-    return "Active 문서"
+    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
+        return "설계 이력"
+    return "최신 기준 문서"
 
 
 def filter_of(rel: str) -> str:
@@ -468,6 +479,8 @@ def filter_of(rel: str) -> str:
         return "archive"
     if rel.startswith("ops/"):
         return "ops"
+    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
+        return "history"
     return "active"
 
 
@@ -476,9 +489,9 @@ def is_search_excluded(rel: str) -> bool:
 
 
 def archive_banner(rel: str) -> str:
-    return f"""<aside class=\"archive-banner\" aria-label=\"Archive 안내\">
+    return f"""<aside class=\"archive-banner\" aria-label=\"보관 문서 안내\">
   <strong>과거 자료</strong>
-  <span>이 문서는 현재 구축 목표가 아니라 과거 연구/통합/legacy 맥락 확인용입니다. 현재 판단은 Active 문서를 우선하세요.</span>
+  <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
   <code>{html.escape(rel)}</code>
 </aside>"""
 
@@ -541,7 +554,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
     kind = group_of(rel)
     desc = short_desc(first_paragraph(text))
     page_class = "doc archive" if is_archive else "doc"
-    archive_note = archive_banner(rel) if is_archive else ""
+    archive_note = f"        {archive_banner(rel)}\n" if is_archive else ""
     html_text = f'''<!doctype html>
 <html lang="ko">
 <head>
@@ -574,8 +587,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
             <span class="badge">HTML 생성: {html.escape(generated_at())}</span>
           </div>
         </header>
-        {archive_note}
-        <div class="doc-body">
+{archive_note}        <div class="doc-body">
           {body}
         </div>
       </article>
@@ -591,7 +603,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
 
 def render_index(files: list[Path]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    groups: dict[str, list[Path]] = {"Wiki 문서": [], "Active 문서": [], "운영 문서": [], "Archive": []}
+    groups: dict[str, list[Path]] = {"위키": [], "최신 기준 문서": [], "운영 문서": [], "설계 이력": [], "보관 문서": []}
     for md in files:
         groups[group_of(md.relative_to(DOCS).as_posix())].append(md)
     sections = []

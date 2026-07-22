@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>디바이스-서비스 연결</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=디바이스-서비스-연결.md">편집</a>
+      </div>
+      <span>디바이스-서비스-연결.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="일일-기록.html">일일 기록</a></li>
+<li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">최신 기준 문서</p>
+          <h1>디바이스-서비스 연결</h1>
+          <p class="subtitle">EdgeX cutover 이후 물리 디바이스와 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workfl…</p>
+          <div class="meta">
+            <span class="badge kind">최신 기준 문서</span>
+            <span class="badge">원본: 디바이스-서비스-연결.md</span>
+            <span class="badge">수정: 2026-07-21 09:58</span>
+            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="디바이스-서비스-연결">디바이스-서비스 연결</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 EdgeX cutover 이후 물리 디바이스와 서비스 consumer 사이의 바인딩 계약을 정의한다. 바인딩은 동적 workflow 배치가 아니라 다음 데이터 소유·전달 관계다.</p>
+<pre data-lang="text"><code>EdgeX Device
+  -&gt; Protocol Adapter / edge-telemetry-agent
+  -&gt; SQLite outbox / HTTPS gateway / Core Data
+  -&gt; AI service / storage / dashboard consumer</code></pre>
+<p>물리 디바이스의 inventory와 상태 권위는 EdgeX뿐이다.</p>
+<h2 id="바인딩-원칙">바인딩 원칙</h2>
+<p>정상적인 device-service binding은 다음 정보를 함께 가진다.</p>
+<ol><li>Core Metadata에 device가 등록되어 있다.</li><li>device의 <code>profileName</code>, <code>serviceName</code>, <code>protocols</code>, <code>adminState</code>, <code>operatingState</code>를 읽을 수 있다.</li><li>Protocol Adapter가 profile에 맞는 Event를 만들고 agent가 SQLite/HTTPS/Core Data 경로로 전달한다.</li><li>Core Data 최신 event의 <code>sourceName</code>, timestamp, readings를 읽을 수 있다.</li><li>AI 서비스, 저장소, dashboard는 이 EdgeX 경로의 consumer로 연결된다.</li></ol>
+<p>이 바인딩은 runtime scheduling, 자동 재배치, offloading, 자동 복구 또는 actuator 제어를 의미하지 않는다.</p>
+<h2 id="state-devices-바인딩-필드"><code>/state/devices</code> 바인딩 필드</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>바인딩에서의 의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>EdgeX device identity</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>authoritative source. 현재 <code>edgex</code></td>
+</tr>
+<tr>
+<td><code>profile_name</code></td>
+<td>device resource 계약을 정의하는 profile</td>
+</tr>
+<tr>
+<td><code>device_service_name</code></td>
+<td>현재 수집 경로를 나타내는 논리 EdgeX Device Service</td>
+</tr>
+<tr>
+<td><code>protocol_names</code></td>
+<td>현재 device가 선언한 protocol 목록</td>
+</tr>
+<tr>
+<td><code>admin_state</code></td>
+<td>운영 허용/잠금 상태</td>
+</tr>
+<tr>
+<td><code>operating_state</code></td>
+<td>device 운영 상태</td>
+</tr>
+<tr>
+<td><code>connection_state</code></td>
+<td>정규화된 연결 상태</td>
+</tr>
+<tr>
+<td><code>device_service_available</code></td>
+<td>Device Service 수집 경로 가용성</td>
+</tr>
+<tr>
+<td><code>latest_event_timestamp</code></td>
+<td>최신 Core Data event 시각</td>
+</tr>
+<tr>
+<td><code>latest_readings</code></td>
+<td>최신 event의 source/resource/value 목록</td>
+</tr>
+<tr>
+<td><code>telemetry_freshness</code></td>
+<td><code>fresh</code>, <code>stale</code>, <code>no_events</code></td>
+</tr>
+<tr>
+<td><code>node_name</code></td>
+<td>선택적 Kubernetes 배치 진단값</td>
+</tr>
+</tbody></table></div>
+<p>Core Metadata 이름은 API에서 snake_case로 정규화된다. 즉 <code>profileName</code> → <code>profile_name</code>, <code>serviceName</code> → <code>device_service_name</code>, <code>protocols</code> → <code>protocol_names</code>, <code>adminState</code> → <code>admin_state</code>, <code>operatingState</code> → <code>operating_state</code>다.</p>
+<h2 id="바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</h2>
+<p>현재 서비스 데모 device는 <code>sensehat-001</code>이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>계약</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>device</td>
+<td><code>sensehat-001</code></td>
+</tr>
+<tr>
+<td>source</td>
+<td><code>edgex</code></td>
+</tr>
+<tr>
+<td>profile</td>
+<td><code>etri-sensehat</code></td>
+</tr>
+<tr>
+<td>Device Service</td>
+<td><code>edge-telemetry-agent</code></td>
+</tr>
+<tr>
+<td>protocol</td>
+<td><code>i2c</code></td>
+</tr>
+<tr>
+<td>metadata state</td>
+<td><code>adminState</code>, <code>operatingState</code></td>
+</tr>
+<tr>
+<td>connection</td>
+<td><code>connection_state</code>, <code>device_service_available</code></td>
+</tr>
+<tr>
+<td>event</td>
+<td>Core Data <code>sourceName</code>, event/reading timestamp</td>
+</tr>
+<tr>
+<td>readings</td>
+<td><code>latest_readings[].resource_name</code>, <code>value_type</code>, <code>value</code>, <code>units</code></td>
+</tr>
+<tr>
+<td>consumers</td>
+<td>AI service, storage, dashboard</td>
+</tr>
+</tbody></table></div>
+<p>이 예시는 broker-free I2C direct 계약을 설명한다. 실환경의 최신 값은 EdgeX 응답으로 확인해야 하며, 문서 자체는 live 배포 완료 증거가 아니다.</p>
+<h2 id="서비스-consumer-연결">서비스 consumer 연결</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>consumer</th>
+<th>입력</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>AI service</td>
+<td>Core Data event/readings</td>
+<td>센서 특징 계산과 상태 추론 입력</td>
+</tr>
+<tr>
+<td>storage</td>
+<td>EdgeX event stream 또는 consumer가 정규화한 결과</td>
+<td>이력·분석 저장</td>
+</tr>
+<tr>
+<td>dashboard/state-aggregator</td>
+<td>Core Metadata device + Core Data latest/history</td>
+<td>inventory, 상태, freshness, reading 가시화</td>
+</tr>
+</tbody></table></div>
+<p>Consumer는 동일한 EdgeX device identity와 <code>source_name</code>/<code>resource_name</code>을 유지해야 한다. 별도 inventory나 별도 최신값 조회를 물리 상태 권위로 승격하지 않는다.</p>
+<h2 id="정상-바인딩-판단">정상 바인딩 판단</h2>
+<ol><li><code>source=edgex</code>다.</li><li>profile, Device Service, protocol 필드가 비어 있지 않다.</li><li><code>admin_state</code>가 잠금 상태가 아니고 <code>operating_state=UP</code>이다.</li><li><code>connection_state=connected</code>이고 <code>device_service_available=true</code>다.</li><li><code>latest_event_timestamp</code>가 존재하고 <code>telemetry_freshness=fresh</code>다.</li><li><code>latest_readings</code>가 기대한 <code>source_name</code>과 <code>resource_name</code>을 포함한다.</li><li>필요한 consumer가 같은 EdgeX event identity를 처리한다.</li></ol>
+<p>Event가 <code>stale</code> 또는 <code>no_events</code>이면 Device Service가 UP이어도 degraded로 해석한다. 잠금 또는 DOWN 상태는 unavailable이다.</p>
+<h2 id="kubernetes-node-placement-경계">Kubernetes node placement 경계</h2>
+<p><code>node_name</code>은 EdgeX tags/properties에서 제공될 수 있는 선택적 진단 정보다. AI workload 위치, 네트워크 경로 또는 자원 문제를 설명할 때만 사용한다. Node가 없거나 준비 상태를 확인할 수 없다는 이유만으로 물리 device binding을 끊거나 availability를 낮추지 않는다.</p>
+<p>Workflow designer의 node 배치 preview는 read-only dry-run이다. Kubernetes workload 생성·변경, EdgeX device 변경, command 발행을 수행하지 않는다.</p>
+<h2 id="protocol-migration-waves">Protocol migration waves</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>wave</th>
+<th>상태</th>
+<th>범위</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Sense HAT I2C</td>
+<td>현재 검증 fixture</td>
+<td>교체 가능한 <code>sensehat-001</code> adapter와 SQLite/HTTPS 경로</td>
+</tr>
+<tr>
+<td>MQTT-only adapter</td>
+<td>미배포 조건부 경로</td>
+<td>실제 장비 또는 local pub/sub 요구를 검증한 뒤에만 broker 사용</td>
+</tr>
+<tr>
+<td>Serial</td>
+<td>Jetson agent 기반만 배포</td>
+<td><code>etri-dev0001-jetorn</code>의 direct agent/PVC/auth는 준비하지만 별도 adapter/profile, hardware validation, Event acceptance는 아직 필요</td>
+</tr>
+<tr>
+<td>Modbus</td>
+<td>미구현 future wave</td>
+<td>주소·register 계약과 현장 검증 필요</td>
+</tr>
+<tr>
+<td>OPC-UA</td>
+<td>미구현 future wave</td>
+<td>endpoint/security/node mapping 검증 필요</td>
+</tr>
+<tr>
+<td>RTSP</td>
+<td>미구현 future wave</td>
+<td>Workflow Pod 직접 stream 구독과 metadata/AI 경로 검증 필요</td>
+</tr>
+</tbody></table></div>
+<p>후속 protocol은 설계 가능성이나 profile 초안만으로 현재 binding으로 계산하지 않는다. 각 wave가 구현·검증되기 전에는 현재 fixture 성공을 다른 protocol의 성공으로 일반화하지 않는다.</p>
+<h2 id="생산성-해석">생산성 해석</h2>
+<p>바인딩 정보는 운영자가 device 이름만 보고 여러 시스템을 교차 조회하는 대신 profile, Device Service, protocol, 연결 상태, event freshness, latest readings, consumer 영향 범위를 한 흐름으로 확인하게 한다. 이는 점검 경로 단축과 원인 후보 축소를 설명하는 운영 생산성 지표이며 자동 제어 성능 주장이 아니다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#바인딩-원칙">바인딩 원칙</a></li>
+<li class="toc-h2"><a href="#state-devices-바인딩-필드">/state/devices 바인딩 필드</a></li>
+<li class="toc-h2"><a href="#바인딩-예시-sense-hat-i2c">바인딩 예시: Sense HAT I2C</a></li>
+<li class="toc-h2"><a href="#서비스-consumer-연결">서비스 consumer 연결</a></li>
+<li class="toc-h2"><a href="#정상-바인딩-판단">정상 바인딩 판단</a></li>
+<li class="toc-h2"><a href="#kubernetes-node-placement-경계">Kubernetes node placement 경계</a></li>
+<li class="toc-h2"><a href="#protocol-migration-waves">Protocol migration waves</a></li>
+<li class="toc-h2"><a href="#생산성-해석">생산성 해석</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -1,21 +1,45 @@
 # State Aggregator Monitoring
 
-`state_aggregator` now exposes Prometheus-format metrics at `/metrics`.
+`state_aggregator` exposes Prometheus-format metrics at `/metrics` and serves
+EdgeX-backed physical-device state through `/state/devices` and
+`/state/devices/{device_id}/telemetry`.
+
+## Physical-device authority
+
+EdgeX is the only physical-device data plane:
+
+- Core Metadata supplies device inventory (`name`, `profileName`, `serviceName`,
+  `protocols`, `adminState`, `operatingState`, and tags/properties diagnostics).
+- Core Data supplies events (`deviceName`, `sourceName`, nanosecond `origin`, and
+  typed readings).
+- `LOCKED` or `DOWN` devices are unavailable/disconnected, `UNKNOWN` devices are
+  degraded/unknown, and `UP` devices are available only while their latest event
+  is fresh. An `UP` device with no event or a stale event is degraded.
+- Optional Kubernetes node placement is display-only and never gates physical
+  availability.
+
+The Deployment remains on `etri-ser0001-cg0msb` and reaches Core Metadata and
+Core Data through the `edgex-system` namespace ClusterIP services on ports
+`59881` and `59880`. Optional InfluxDB resource-profile recording is disabled
+until an explicit central endpoint and runtime Secret are provisioned.
+Kubernetes access is retained only for node, workload, and
+augmentation-resource observation. The service account has no KubeEdge
+`Device` or `DeviceStatus` permissions, and no MapperFramework settings are
+used.
+
+The historical mqttvirtual mapper source remains in the repository, but its
+kustomization renders no resources and it is not managed by the active Argo CD
+applications. KubeEdge remains responsible only for Kubernetes edge nodes and
+workloads.
 
 Kubernetes manifests:
+
 - `deployment.yaml`: Deployment + Service
+- `rbac.yaml`: node, pod, and augmentation-resource read access
 - `service-monitor.yaml`: kube-prometheus `ServiceMonitor`
 
-Workflow UI는 별도 registry ConfigMap을 사용하지 않는다. 등록 Device는
-state-aggregator가 Kubernetes Device/DeviceStatus와 InfluxDB telemetry를 조회해
-`/state/devices` 및 `/state/devices/{device_id}/telemetry`로 제공한다.
-
-Apply order:
-
-```bash
-kubectl apply -f state-aggregator/k8s/deployment.yaml
-kubectl apply -f state-aggregator/k8s/service-monitor.yaml
-```
+Apply these manifests through the directory kustomization (or the
+`edge-orch-state-aggregator` Argo CD application).
 
 Expected scrape path:
 
@@ -23,9 +47,9 @@ Expected scrape path:
 http://state-aggregator:8000/metrics
 ```
 
-If your kube-prometheus stack uses a different `ServiceMonitor` selector label than
-`release: prometheus`, update `service-monitor.yaml` to match your cluster's
-Prometheus configuration.
+If your kube-prometheus stack uses a different `ServiceMonitor` selector label
+than `release: prometheus`, update `service-monitor.yaml` to match your
+cluster's Prometheus configuration.
 
 Grafana dashboard import file:
 
@@ -33,4 +57,5 @@ Grafana dashboard import file:
 state-aggregator/grafana/state-aggregator-dashboard.json
 ```
 
-Import that JSON into Grafana and bind the `Prometheus` datasource when prompted.
+Import that JSON into Grafana and bind the `Prometheus` datasource when
+prompted.

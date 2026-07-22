@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>대시보드 데이터 소스 장애 격리 구현 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>대시보드 데이터 소스 장애 격리 구현 계획</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.md</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="대시보드-데이터-소스-장애-격리-구현-계획">대시보드 데이터 소스 장애 격리 구현 계획</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> EdgeX device 관측 실패를 device 영역에만 격리해 <code>/state/dashboard</code>가 node와 다른 독립 상태를 계속 반환하고 표시하게 한다.</p>
+<p><strong>Architecture:</strong> FastAPI 집계 경계에서 예상 가능한 <code>EdgeXError</code>만 잡아 <code>devices=[]</code>와 명시적인 <code>device_observation_error</code>를 반환한다. 브라우저는 이 필드를 source 장애로 표시하고 node/workload/resource 렌더링을 계속한다.</p>
+<p><strong>Tech Stack:</strong> Python 3.11, FastAPI, Pydantic v2, pytest, vanilla JavaScript, Node.js <code>node:test</code></p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>물리 device inventory/state/telemetry의 authority는 EdgeX다.</li><li>EdgeX 관측 실패를 실제 device inventory 0개로 설명하지 않는다.</li><li>Kubernetes node 상태는 EdgeX device availability와 별도 영역으로 유지한다.</li><li>마지막 성공 device 값을 캐시하거나 stale 값을 정상 데이터로 표시하지 않는다.</li><li>기존 미커밋 EdgeX authority 전환 변경을 보존한다.</li><li>Kubernetes/EdgeX runtime mutation과 배포는 이 계획 범위에 포함하지 않는다.</li><li>대상 파일에 기존 사용자 변경이 있으므로 구현 결과는 커밋하지 않고 검토 가능한 working-tree diff로 남긴다.</li></ul>
+<p>---</p>
+<h3 id="task-1-backend-partial-degraded-contract">Task 1: Backend partial-degraded contract</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edge-orch/state-aggregator/tests/test_dashboard_resilience.py</code></li><li>Modify: <code>edge-orch/state-aggregator/app/models.py:214-221</code></li><li>Modify: <code>edge-orch/state-aggregator/app/main.py:11-31,126-144</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: <code>app.edgex.EdgeXError</code>, <code>StateAggregatorService.get_devices()</code></li><li>Produces: <code>DashboardState.device_observation_error: str | None</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Write the failing API regression tests</strong></li></ul>
+<pre data-lang="python"><code>from datetime import datetime, timezone
+
+from app.edgex import EdgeXBackendError
+from app.models import NodeState
+
+
+def _healthy_node() -&gt; NodeState:
+    return NodeState(
+        hostname=&quot;etri-ser0001-cg0msb&quot;,
+        instance=&quot;192.168.0.56:9100&quot;,
+        node_type=&quot;cloud_server&quot;,
+        collected_at=datetime.now(timezone.utc),
+        raw_metrics={&quot;up&quot;: 1.0},
+        compute_pressure=&quot;low&quot;,
+        memory_pressure=&quot;low&quot;,
+        network_pressure=&quot;low&quot;,
+        node_health=&quot;healthy&quot;,
+    )
+
+
+def test_dashboard_endpoint_isolates_edgex_device_observation_failure(monkeypatch):
+    async def failing_devices():
+        raise EdgeXBackendError(&quot;Core Metadata unavailable&quot;)
+
+    async def fake_resource_state(refresh=False):
+        return {&quot;summary&quot;: {}, &quot;service_resource_profiles&quot;: []}
+
+    monkeypatch.setattr(service, &quot;get_nodes&quot;, lambda: [_healthy_node()])
+    monkeypatch.setattr(service, &quot;get_devices&quot;, failing_devices)
+    monkeypatch.setattr(service, &quot;get_workflows&quot;, lambda: [])
+    monkeypatch.setattr(service, &quot;get_resource_profile_state&quot;, fake_resource_state)
+
+    with TestClient(app) as client:
+        response = client.get(&quot;/state/dashboard&quot;)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [node[&quot;hostname&quot;] for node in payload[&quot;nodes&quot;]] == [&quot;etri-ser0001-cg0msb&quot;]
+    assert payload[&quot;devices&quot;] == []
+    assert payload[&quot;device_observation_error&quot;] == (
+        &quot;EdgeX device observation unavailable: EdgeXBackendError&quot;
+    )
+
+
+def test_dashboard_endpoint_has_no_device_observation_error_when_edgex_is_available(monkeypatch):
+    async def fake_devices():
+        return []
+
+    async def fake_resource_state(refresh=False):
+        return {&quot;summary&quot;: {}, &quot;service_resource_profiles&quot;: []}
+
+    monkeypatch.setattr(service, &quot;get_nodes&quot;, lambda: [])
+    monkeypatch.setattr(service, &quot;get_devices&quot;, fake_devices)
+    monkeypatch.setattr(service, &quot;get_workflows&quot;, lambda: [])
+    monkeypatch.setattr(service, &quot;get_resource_profile_state&quot;, fake_resource_state)
+
+    with TestClient(app) as client:
+        response = client.get(&quot;/state/dashboard&quot;)
+
+    assert response.status_code == 200
+    assert response.json()[&quot;device_observation_error&quot;] is None</code></pre>
+<ul><li>[ ] <strong>Step 2: Run the focused tests and verify RED</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py -k device_observation</code></pre>
+<p>Expected: the failure-isolation test receives <code>500</code> because <code>EdgeXBackendError</code> escapes <code>_dashboard_state()</code>, and the normal test lacks <code>device_observation_error</code>.</p>
+<ul><li>[ ] <strong>Step 3: Add the response field and isolate only EdgeX errors</strong></li></ul>
+<p>In <code>app/models.py</code>:</p>
+<pre data-lang="python"><code>class DashboardState(BaseModel):
+    generated_at: datetime
+    nodes: list[NodeState]
+    devices: list[DeviceState]
+    workflows: list[WorkflowState]
+    summary: SummaryState
+    kpis: dict[str, Any]
+    resource_profiles: dict[str, Any] = Field(default_factory=dict)
+    device_observation_error: str | None = None</code></pre>
+<p>In <code>app/main.py</code>, import <code>EdgeXError</code> and change the device boundary:</p>
+<pre data-lang="python"><code>from .edgex import EdgeXError
+
+
+async def _dashboard_state() -&gt; DashboardState:
+    nodes = service.get_nodes()
+    device_observation_error: str | None = None
+    try:
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        device_observation_error = (
+            f&quot;EdgeX device observation unavailable: {exc.__class__.__name__}&quot;
+        )
+    workflows = service.get_workflows()
+    kpis = service._build_dashboard_kpis(nodes, devices, workflows)
+    try:
+        resource_state = await service.get_resource_profile_state()
+    except httpx.HTTPError as exc:
+        resource_state = _resource_observation_error_state(exc)
+    kpis.update(service._build_resource_profile_kpis(resource_state))
+    return DashboardState(
+        generated_at=datetime.now(timezone.utc),
+        nodes=nodes,
+        devices=devices,
+        workflows=workflows,
+        summary=service.get_summary(),
+        kpis=kpis,
+        resource_profiles=resource_state,
+        device_observation_error=device_observation_error,
+    )</code></pre>
+<ul><li>[ ] <strong>Step 4: Run the focused tests and verify GREEN</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py -k device_observation</code></pre>
+<p>Expected: both device observation tests pass.</p>
+<h3 id="task-2-frontend-source-error-presentation">Task 2: Frontend source-error presentation</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js</code></li><li>Modify: <code>edge-orch/state-aggregator/app/static/dashboard.js:600-643,813-840,1027-1064,1209-1235</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: <code>DashboardState.device_observation_error</code></li><li>Produces: <code>deviceFilterEmptyText(data)</code> and <code>buildDashboardAlerts(data)</code> pure helpers</li></ul>
+<ul><li>[ ] <strong>Step 1: Write the failing JavaScript tests</strong></li></ul>
+<pre data-lang="javascript"><code>const test = require(&quot;node:test&quot;);
+const assert = require(&quot;node:assert/strict&quot;);
+
+const {
+  buildDashboardAlerts,
+  deviceFilterEmptyText,
+} = require(&quot;../app/static/dashboard.js&quot;);
+
+test(&quot;shows EdgeX observation failure instead of empty inventory&quot;, () =&gt; {
+  const data = {
+    device_observation_error: &quot;EdgeX device observation unavailable: EdgeXBackendError&quot;,
+    nodes: [],
+    devices: [],
+  };
+
+  assert.equal(deviceFilterEmptyText(data), &quot;EdgeX device 관측 불가&quot;);
+  assert.deepEqual(buildDashboardAlerts(data), [
+    {
+      kind: &quot;source&quot;,
+      level: &quot;high&quot;,
+      title: &quot;EdgeX device observation unavailable&quot;,
+      text: &quot;EdgeX device observation unavailable: EdgeXBackendError&quot;,
+    },
+  ]);
+});
+
+test(&quot;keeps the normal empty inventory message when EdgeX observation succeeds&quot;, () =&gt; {
+  assert.equal(
+    deviceFilterEmptyText({ device_observation_error: null }),
+    &quot;EdgeX Core Metadata device가 없습니다.&quot;,
+  );
+});</code></pre>
+<ul><li>[ ] <strong>Step 2: Run the JavaScript test and verify RED</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js</code></pre>
+<p>Expected: FAIL because <code>buildDashboardAlerts</code> and the parameterized <code>deviceFilterEmptyText</code> contract do not exist.</p>
+<ul><li>[ ] <strong>Step 3: Add pure presentation helpers and use them in rendering</strong></li></ul>
+<p>Add these pure helpers in <code>dashboard.js</code>:</p>
+<pre data-lang="javascript"><code>function deviceObservationUnavailable(data = state.data) {
+  return Boolean(data?.device_observation_error);
+}
+
+function deviceFilterEmptyText(data = state.data) {
+  if (deviceObservationUnavailable(data)) return &quot;EdgeX device 관측 불가&quot;;
+  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 EdgeX device가 없습니다.`;
+  return &quot;EdgeX Core Metadata device가 없습니다.&quot;;
+}
+
+function buildDashboardAlerts(data = {}) {
+  const alerts = [];
+  if (data.device_observation_error) {
+    alerts.push({
+      kind: &quot;source&quot;,
+      level: &quot;high&quot;,
+      title: &quot;EdgeX device observation unavailable&quot;,
+      text: data.device_observation_error,
+    });
+  }
+  for (const [index, node] of (data.nodes || []).entries()) {
+    if (node.node_health !== &quot;healthy&quot;) {
+      const displayName = nodeDisplayName(node, index);
+      alerts.push({
+        kind: &quot;node&quot;,
+        level: node.node_health === &quot;unavailable&quot; ? &quot;high&quot; : &quot;medium&quot;,
+        title: `${displayName}: non-healthy node`,
+        text: `${displayName}: non-healthy node (${node.node_health})`,
+        node,
+      });
+    }
+  }
+  for (const device of data.devices || []) {
+    const status = deviceStatus(device);
+    const reasons = [];
+    if (status === &quot;degraded&quot; || status === &quot;unavailable&quot;) reasons.push(status);
+    if (device.connection_state !== &quot;connected&quot;) reasons.push(`connection=${text(device.connection_state, &quot;unknown&quot;)}`);
+    if (device.telemetry_freshness !== &quot;fresh&quot;) reasons.push(`event=${text(device.telemetry_freshness, &quot;no_events&quot;)}`);
+    if (reasons.length) {
+      alerts.push({
+        kind: &quot;device&quot;,
+        level: status === &quot;unavailable&quot; ? &quot;high&quot; : &quot;medium&quot;,
+        title: `${device.name}: ${reasons.join(&quot;, &quot;)}`,
+        text: `${device.name}: ${reasons.join(&quot;, &quot;)} · ${deviceReason(device)}`,
+        device,
+      });
+    }
+  }
+  return alerts.slice(0, 12);
+}</code></pre>
+<p>Change the device empty-state call with this exact diff:</p>
+<pre data-lang="diff"><code>-function renderDevices(devices) {
++function renderDevices(devices, data = state.data) {
+   const visibleDevices = filteredDevices(devices);
+@@
+-    : `&lt;div class=&quot;empty&quot;&gt;${escapeHtml(deviceFilterEmptyText())}&lt;/div&gt;`;
++    : `&lt;div class=&quot;empty&quot;&gt;${escapeHtml(deviceFilterEmptyText(data))}&lt;/div&gt;`;</code></pre>
+<p>Replace <code>renderAlerts</code> with:</p>
+<pre data-lang="javascript"><code>function renderAlerts(data) {
+  state.alerts = buildDashboardAlerts(data);
+  $(&quot;alertList&quot;).innerHTML = state.alerts.length
+    ? state.alerts
+        .map((alert, index) =&gt; `&lt;article class=&quot;item alert ${escapeHtml(alert.level)} explainable&quot; data-explain-type=&quot;issue&quot; data-alert-index=&quot;${index}&quot; tabindex=&quot;0&quot; role=&quot;button&quot; aria-label=&quot;Issue 설명 보기&quot;&gt;&lt;strong&gt;${escapeHtml(alert.text)}&lt;/strong&gt;&lt;/article&gt;`)
+        .join(&quot;&quot;)
+    : `&lt;div class=&quot;empty&quot;&gt;No active alerts&lt;/div&gt;`;
+}</code></pre>
+<p>Do not change the device row template. In <code>render()</code>, set <code>const deviceObservationFailed = deviceObservationUnavailable(data)</code>. For <code>deviceCount</code>, <code>deviceHealthRatio</code>, <code>telemetryFreshnessRatio</code>, <code>telemetryFreshnessCaption</code>, <code>serviceBindingRatio</code>, <code>serviceBindingCaption</code>, and <code>riskCount</code>, use <code>관측 불가</code> or the sanitized <code>data.device_observation_error</code> when true and retain the current expressions when false. Call <code>renderAlerts(data)</code> and <code>renderDevices(devices, data)</code>.</p>
+<p>In <code>renderOverviewVisuals()</code>, use <code>{ ok: 0, warn: 0, bad: 0, unknown: 1 }</code> for the status ring during an EdgeX observation failure. Set <code>overallHealthPercent</code>, <code>overviewHealthCaption</code>, <code>deviceAvailableValue</code>, <code>telemetryFreshValue</code>, and <code>bindingValue</code> to <code>관측 불가</code>; set the related bars to <code>0</code>; set the four device status counts to <code>-</code>. Keep node, CPU, memory, GPU, and resource coverage values on their existing paths.</p>
+<p>Add these exact entries to the existing CommonJS export object:</p>
+<pre data-lang="diff"><code> if (typeof module !== &quot;undefined&quot;) {
+   module.exports = {
++    buildDashboardAlerts,
++    deviceFilterEmptyText,
++    deviceObservationUnavailable,
+     explainDeviceRules,</code></pre>
+<ul><li>[ ] <strong>Step 4: Run the JavaScript test and syntax check</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+node --check edge-orch/state-aggregator/app/static/dashboard.js</code></pre>
+<p>Expected: tests pass and syntax check exits <code>0</code>.</p>
+<h3 id="task-3-regression-verification">Task 3: Regression verification</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Verify only: <code>edge-orch/state-aggregator/app/**</code></li><li>Verify only: <code>edge-orch/state-aggregator/tests/**</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 1 API contract and Task 2 rendering helpers</li><li>Produces: verified working-tree implementation ready for review/deployment by the user</li></ul>
+<ul><li>[ ] <strong>Step 1: Run focused backend and frontend suites</strong></li></ul>
+<pre data-lang="bash"><code>cd edge-orch/state-aggregator
+pytest -q tests/test_dashboard_resilience.py tests/test_api.py tests/test_edgex.py
+cd ../../
+node --test edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js</code></pre>
+<p>Expected: all selected tests pass.</p>
+<ul><li>[ ] <strong>Step 2: Run the full state-aggregator Python suite</strong></li></ul>
+<pre data-lang="bash"><code>cd edge-orch/state-aggregator
+pytest -q</code></pre>
+<p>Expected: all tests pass with no new warnings or errors.</p>
+<ul><li>[ ] <strong>Step 3: Validate the final diff without staging user changes</strong></li></ul>
+<pre data-lang="bash"><code>git diff --check -- edge-orch/state-aggregator/app/main.py edge-orch/state-aggregator/app/models.py edge-orch/state-aggregator/app/static/dashboard.js edge-orch/state-aggregator/tests/test_dashboard_resilience.py edge-orch/state-aggregator/tests/test_dashboard_source_isolation.js
+git status --short -- edge-orch/state-aggregator</code></pre>
+<p>Expected: no whitespace errors; only the intended files plus pre-existing user changes remain in the working tree.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h3"><a href="#task-1-backend-partial-degraded-contract">Task 1: Backend partial-degraded contract</a></li>
+<li class="toc-h3"><a href="#task-2-frontend-source-error-presentation">Task 2: Frontend source-error presentation</a></li>
+<li class="toc-h3"><a href="#task-3-regression-verification">Task 3: Regression verification</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

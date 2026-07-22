@@ -1,61 +1,64 @@
 # edge-device PoC
 
-KubeEdge 기반 mixed-device 제어·관리 플랫폼에서 DeviceModel/Device manifest를 관리하기 위한 디렉터리다.
+이 디렉터리는 과거 KubeEdge `DeviceModel`/`Device` manifest와 MapperFramework 기반 물리 디바이스 연동 실험을 보존하는 legacy/reference 경로다. 현재 물리 디바이스의 inventory, state, telemetry, command를 관리하거나 복구하는 경로가 아니다.
 
-현재 운영 기준:
-- live PoC의 기본 Device CR은 물리/Arduino/EdgeX-backed 등록 경로를 기준으로 한다.
-- 과거 `env-device-*`, `vib-device-*`, `act-device-*`, `rpi-*-device-*` 가상 Device는 live 클러스터에서 제거된 legacy test 대상이다.
-- MapperFramework는 raw telemetry export engine이 아니라 KubeEdge control/status summary adapter로 유지한다.
-- raw telemetry ingestion은 향후 EdgeX 별도 plane에서 담당한다.
+현재 권위 경로:
+
+```text
+physical device
+  -> Protocol Adapter -> edge-telemetry-agent -> SQLite outbox
+  -> HTTPS ingest gateway -> EdgeX Core Data / PostgreSQL
+  -> AI services / storage / state-aggregator / dashboard
+```
+
+- inventory와 state의 원본은 EdgeX Core Metadata의 Device Profile/Device다.
+- telemetry의 원본은 EdgeX Core Data Event/Reading이며 freshness는 Event `origin`을 기준으로 계산한다.
+- 현재 command 실행은 비활성이다. 활성화 시 protocol endpoint를 소유한 Adapter와 Device Profile command 계약을 별도 검증한다.
+- KubeEdge는 edge node와 workload 관리 및 선택적 placement 진단에만 사용한다. `DeviceStatus`를 물리 availability의 병행 plane이나 EdgeX 장애 fallback으로 사용하지 않는다.
+- `mqttvirtual`, MapperFramework, mapper direct-to-InfluxDB 경로는 legacy test/integration 자료다.
 
 ## Layout
 
-- `models/`: legacy/공통 DeviceModel manifests
-- `live/`: 현재 클러스터에 등록된 Arduino-backed live Device manifests. 새 실디바이스 등록은 이 디렉터리에 Device YAML을 추가한다.
-- `devices.yaml`, `devices-rpi.yaml`: live manifest로 유지하지 않는다. legacy virtual Device manifest를 저장하지 않는다.
+- `models/`: legacy/reference KubeEdge DeviceModel manifests
+- `live/`: 과거 Arduino-backed KubeEdge Device manifest 자료. 이름과 관계없이 현재 physical inventory는 이 디렉터리가 아니라 EdgeX Core Metadata에서 관리한다.
+- `devices.yaml`, `devices-rpi.yaml`: legacy virtual Device manifest 출력 대상이며 current manifest가 아니다.
 - `scripts/generate_devices.py`: legacy virtual Device manifest generator. 기본 실행 시 Device YAML을 생성하지 않는다.
 
 ## Legacy virtual Device generation
 
-가상 Device를 다시 만들면 live dashboard/device 목록에 `env-device-*`, `vib-device-*`, `act-device-*`, `rpi-env-device-*`, `rpi-vib-device-*`, `rpi-act-device-*`가 재생성된다.
-따라서 명시적인 legacy test가 아니면 아래 명령을 사용하지 않는다.
+명시적인 legacy 호환성 검증에서만 아래 generator를 사용한다. 생성된 manifest를 current physical inventory 또는 status/control plane으로 해석하지 않는다.
 
 ```bash
 ENABLE_LEGACY_VIRTUAL_DEVICES=1 python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /tmp/legacy-devices.yaml
 ENABLE_LEGACY_VIRTUAL_DEVICES=1 DEVICE_PLAN=rpi python3 /home/etri/jinuk/edge-device/scripts/generate_devices.py > /tmp/legacy-devices-rpi.yaml
 ```
 
-live 클러스터에 적용하기 전에는 반드시 대상 Device 이름을 확인한다.
+적용이 필요한 legacy test에서는 먼저 server-side dry-run으로 대상 이름을 확인한다.
 
 ```bash
 kubectl apply --dry-run=server -f /tmp/legacy-devices.yaml
 ```
 
-## MapperFramework / EdgeX split
+이 절차는 EdgeX 등록이나 current cutover 절차가 아니다.
 
-MapperFramework 리팩토링 목표는 raw telemetry export engine 확장이 아니라 KubeEdge control/status summary 연동이다.
-향후 `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform` 같은 raw telemetry ingestion은 EdgeX 기반 별도 plane으로 분리한다.
+## Current EdgeX model
 
-Current split:
-- `temperature`, `humidity`, `vibration`, `acceleration_x/y/z`, `waveform`: MapperFramework 주 경로에서 제외, EdgeX telemetry ingestion plane으로 이관 예정
-- `health`, `severity`, `command_state`, `online/offline`, `control_response`, `alarm_latched`, `power`, `mode`, `sampling_interval`: DeviceStatus summary
-- raw telemetry field는 DeviceStatus summary로 올리지 않는다.
+Core Metadata Device를 조회하는 consumer는 다음 필드를 기준으로 physical inventory와 state를 표현한다.
 
-## Apply Models
+- `name`
+- `profileName`
+- `serviceName`
+- `protocols`
+- `adminState`
+- `operatingState`
+- 선택적 `tags`/properties 기반 node diagnostic 정보
 
-DeviceModel은 공통/legacy compatibility 목적으로 남아 있을 수 있다. 실제 Device CR 생성과는 별개다.
+Core Data telemetry는 Event의 `deviceName`, `sourceName`, `origin`과 각 Reading의 `valueType`/typed value를 보존한다. KubeEdge `DeviceStatus` summary나 mapper timestamp로 이 값을 복제하거나 대체하지 않는다.
 
-```bash
-kubectl apply -f /home/etri/jinuk/edge-device/models/
-```
+Kubernetes Node/Pod 정보는 workload 배치와 진단에 표시할 수 있지만 EdgeX `adminState`, `operatingState`, Core Data Event freshness로 계산한 물리 디바이스 availability를 변경하지 않는다.
 
-## Current live expectation
+## Delivery boundary
 
-현재 live 클러스터에서 legacy virtual Device가 없어야 한다.
-확인 예:
+현재 repository에서 전달된 physical cutover 코드 범위는 loopback Protocol Adapter, direct-mode agent, SQLite/HTTPS plane과 EdgeX-backed aggregator/dashboard다. `sensehat-001`은 교체 가능한 검증 fixture이며 현재 Jetson/Arduino MQTT workload는 없다. 이는 repository artifact 범위이며 live cluster 배포 완료를 의미하지 않는다.
 
-```bash
-kubectl get device -n default --no-headers | grep -E '^(env|vib|act|rpi-env|rpi-vib|rpi-act)-device-' || true
-```
-
-위 명령이 비어 있으면 정상이다.
+Serial, Modbus, OPC-UA, RTSP는 각각 별도 migration gate를 통과해야 하는 후속 protocol wave다. `virtual-device/`의 Serial JSON runtime은 독립 프로토타입으로 유지하며 EdgeX Serial Device Service 또는 Serial wave 완료로 간주하지 않는다.

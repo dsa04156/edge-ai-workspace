@@ -19,23 +19,23 @@ class DocsHtmlSearchTest(unittest.TestCase):
             docs = Path(tmp) / "docs"
             out = docs / "html"
             docs.mkdir()
-            (docs / "README.md").write_text(
-                "# 운영 문서\n\n서비스 데모와 디바이스 상태를 설명한다.\n\n```bash\necho secret\n```\n",
+            (docs / "문서-안내.md").write_text(
+                "# 문서 안내\n\n서비스 데모와 디바이스 상태를 설명한다.\n\n```bash\necho secret\n```\n",
                 encoding="utf-8",
             )
             (docs / "ops").mkdir()
-            (docs / "ops" / "runbook.md").write_text(
-                "# 현재 데모 Runbook\n\n장애 조치와 dashboard 확인 절차.\n",
+            (docs / "ops" / "운영-절차.md").write_text(
+                "# 현재 데모 운영 절차\n\n장애 조치와 대시보드 확인 절차.\n",
                 encoding="utf-8",
             )
             (docs / "archive").mkdir()
-            (docs / "archive" / "old.md").write_text(
-                "# 과거 연구\n\nselective replanning 과거 기록.\n",
+            (docs / "archive" / "과거-연구.md").write_text(
+                "# 과거 연구\n\n선택적 재계획 과거 기록.\n",
                 encoding="utf-8",
             )
             (docs / "archive" / "integration").mkdir()
-            (docs / "archive" / "integration" / "integration-detail-log.md").write_text(
-                "# 통합 상세 로그\n\n아주 긴 과거 통합 로그.\n",
+            (docs / "archive" / "integration" / "통합-상세-기록.md").write_text(
+                "# 통합 상세 기록\n\n아주 긴 과거 통합 기록.\n",
                 encoding="utf-8",
             )
 
@@ -53,17 +53,17 @@ class DocsHtmlSearchTest(unittest.TestCase):
                 build_docs_html.OUT = old_out
 
         self.assertEqual(len(data), 4)
-        readme = next(item for item in data if item["path"] == "README.md")
+        readme = next(item for item in data if item["path"] == "문서-안내.md")
         self.assertEqual(readme["title"], "문서 안내")
-        self.assertEqual(readme["url"], "README.html")
-        self.assertEqual(readme["group"], "Active 문서")
+        self.assertEqual(readme["url"], "문서-안내.html")
+        self.assertEqual(readme["group"], "최신 기준 문서")
         self.assertEqual(readme["filter"], "active")
         self.assertIn("서비스 데모", readme["text"])
         self.assertIn("디바이스 상태", readme["text"])
         self.assertNotIn("```", readme["text"])
-        ops = next(item for item in data if item["path"] == "ops/runbook.md")
-        archive = next(item for item in data if item["path"] == "archive/old.md")
-        detail_log = next(item for item in data if item["path"] == "archive/integration/integration-detail-log.md")
+        ops = next(item for item in data if item["path"] == "ops/운영-절차.md")
+        archive = next(item for item in data if item["path"] == "archive/과거-연구.md")
+        detail_log = next(item for item in data if item["path"] == "archive/integration/통합-상세-기록.md")
         self.assertEqual(ops["filter"], "ops")
         self.assertEqual(archive["filter"], "archive")
         self.assertFalse(archive["search_excluded"])
@@ -78,27 +78,45 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn('data-search-filter="all"', html)
         self.assertIn('data-search-filter="active"', html)
         self.assertIn('data-search-filter="ops"', html)
+        self.assertIn('data-search-filter="history"', html)
         self.assertIn('data-search-filter="archive"', html)
         self.assertIn('docs-search.js', html)
 
-    def test_home_intro_marks_archive_as_secondary(self):
+    def test_home_intro_prioritizes_current_scope(self):
         intro = build_docs_html.home_intro_markup()
-        self.assertIn("시스템 구축 목표", intro)
-        self.assertIn("Active와 운영 문서를 먼저", intro)
-        self.assertIn("Archive는 과거 맥락", intro)
+        self.assertIn("프로젝트 범위", intro)
+        self.assertIn("최신 기준과 운영 문서를 먼저", intro)
+        self.assertIn("설계 이력과 보관 자료", intro)
 
     def test_archive_banner_warns_not_current_direction(self):
-        banner = build_docs_html.archive_banner("archive/integration/integration-doc.md")
+        banner = build_docs_html.archive_banner("archive/integration/통합-문서.md")
         self.assertIn("과거 자료", banner)
         self.assertIn("현재 구축 목표", banner)
-        self.assertIn("archive/integration/integration-doc.md", banner)
+        self.assertIn("archive/integration/통합-문서.md", banner)
 
     def test_display_titles_are_korean_and_descriptions_are_short(self):
-        self.assertEqual(build_docs_html.display_title("service-demo-scenario.md", "# Service Demo Scenario\n"), "서비스 데모 시나리오")
-        self.assertEqual(build_docs_html.display_title("archive/integration/integration-doc.md", "# 통합문서\n"), "통합 문서")
-        self.assertEqual(build_docs_html.display_title("archive/integration/integration-detail-log.md", "# 통합문서\n"), "통합 상세 로그")
+        self.assertEqual(build_docs_html.display_title("서비스-데모-시나리오.md", "# Service Demo Scenario\n"), "서비스 데모 시나리오")
+        self.assertEqual(build_docs_html.display_title("archive/integration/통합-문서.md", "# 통합문서\n"), "통합 문서")
+        self.assertEqual(build_docs_html.display_title("archive/integration/통합-상세-기록.md", "# 통합 문서\n"), "통합 상세 기록")
         long = "이 문서는 현재 구현 기준으로 아래 2가지를 한 번에 설명한다. 비용모델과 런타임 orchestration이 어떤 구성으로 어떻게 동작하는지 아주 길게 설명한다."
         self.assertLessEqual(len(build_docs_html.short_desc(long)), 80)
+
+    def test_operational_mtls_diagnostics_uses_httpx_028_compatible_ssl_context(self):
+        runbook = (ROOT / "docs" / "ops" / "현재-데모-운영-절차.md").read_text(encoding="utf-8")
+
+        self.assertNotIn("httpx.get(\"https://edgex-ingest-gateway", runbook)
+        self.assertIn("ssl.create_default_context", runbook)
+        self.assertIn("load_cert_chain", runbook)
+        self.assertIn("trust_env=False", runbook)
+
+    def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
+        runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")
+
+        self.assertIn("service.edgemesh.kubeedge.io/service-proxy-name", runbook)
+        self.assertIn("kube-dns", runbook)
+        self.assertIn("argocd-repo-server", runbook)
+        self.assertIn("argocd-redis", runbook)
+        self.assertIn("edgex-ingest-gateway", runbook)
 
 
 if __name__ == "__main__":

@@ -20,14 +20,14 @@ docs/generated/consistency-report.html
 
 ## 검사 대상 문서
 
-- `docs/dashboard-information-structure.md`
-- `docs/okdong-productivity-kpi.md`
-- `docs/kagenti-operator-assistant.md`
-- `docs/current-demo-path.md`
-- `docs/device-service-binding.md`
-- `docs/device-status-policy.md`
-- `docs/service-demo-scenario.md`
-- `docs/ops/runbook-current-demo.md`
+- `docs/대시보드-정보-구조.md`
+- `docs/옥동-생산성-kpi.md`
+- `docs/카젠티-운영-보조-에이전트.md`
+- `docs/현재-데모-경로.md`
+- `docs/디바이스-서비스-연결.md`
+- `docs/물리-디바이스-상태-정책.md`
+- `docs/서비스-데모-시나리오.md`
+- `docs/ops/현재-데모-운영-절차.md`
 
 `docs/archive`는 기본 검사 대상에 포함하지 않는다.
 

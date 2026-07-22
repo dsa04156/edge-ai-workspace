@@ -3,11 +3,11 @@ const NODE_H = 118;
 const AI_HAT_NODE = "etri-dev0002-raspi5";
 
 const NODE_TEMPLATES = [
-  { type: "device_source", label: "Collect", caption: "camera/sensor telemetry intake", data: "raw telemetry" },
+  { type: "device_source", label: "Collect", caption: "EdgeX Core Data event intake", data: "typed readings" },
   { type: "transform", label: "Preprocess", caption: "normalize, window, feature extraction", data: "feature tensor" },
   { type: "ai_inference", label: "Inference", caption: "edge model execution", data: "prediction" },
   { type: "postprocess", label: "Postprocess", caption: "threshold, score, event shaping", data: "inspection event" },
-  { type: "store_observe", label: "Store & Observe", caption: "InfluxDB/cache/result persistence", data: "stored result" },
+  { type: "store_observe", label: "Store & Observe", caption: "result cache and event persistence", data: "stored result" },
   { type: "dashboard_event", label: "Dashboard", caption: "operator signal and review", data: "operator signal" },
   { type: "condition", label: "Quality Gate", caption: "optional freshness/threshold branch", data: "branch decision" },
 ];
@@ -20,15 +20,15 @@ const workflowState = {
       id: "factory-vision-inspection-pipeline",
       name: "factory-vision-inspection-pipeline",
       nodes: [
-        { id: "collect-1", label: "Collect Raw Telemetry", type: "device_source", x: 40, y: 72, targetId: "", config: { window: "-30m", property: "auto" } },
+        { id: "collect-1", label: "Collect EdgeX Event", type: "device_source", x: 40, y: 72, targetId: "", config: { window: "-30m", property: "auto" } },
         { id: "preprocess-1", label: "Normalize Feature Window", type: "transform", x: 236, y: 72, targetId: "", config: { method: "normalize-window" } },
         { id: "inference-1", label: "Run Defect Inference", type: "ai_inference", x: 432, y: 72, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "factory-vision-inspection-lite", accelerator: "ai-hat" } },
         { id: "postprocess-1", label: "Format Inspection Event", type: "postprocess", x: 40, y: 242, targetId: "", config: { threshold: "0.82", output: "defect-score" } },
-        { id: "store-1", label: "Persist Result Cache", type: "store_observe", x: 236, y: 242, targetId: "", config: { sink: "InfluxDB + result cache" } },
+        { id: "store-1", label: "Persist Result Cache", type: "store_observe", x: 236, y: 242, targetId: "", config: { sink: "result cache" } },
         { id: "dashboard-1", label: "Publish Dashboard Signal", type: "dashboard_event", x: 432, y: 242, targetId: "", config: { severity: "warning" } },
       ],
       edges: [
-        { from: "collect-1", to: "preprocess-1", label: "raw telemetry" },
+        { from: "collect-1", to: "preprocess-1", label: "typed readings" },
         { from: "preprocess-1", to: "inference-1", label: "feature tensor" },
         { from: "inference-1", to: "postprocess-1", label: "prediction" },
         { from: "postprocess-1", to: "store-1", label: "inspection event" },
@@ -89,31 +89,40 @@ function selectedWorkflowTarget() {
   return targetById(workflowState.selectedTargetId);
 }
 
-function displayDeviceType(device) {
-  if (device.device_type === "virtual_device") return "registered device";
-  return device.device_type || device.model || "device";
-}
 
 function targetFromDevice(device) {
-  const nodeName = device.node_name || device.nodeName || "";
+  const nodeName = device.node_name || "";
+  const readings = Array.isArray(device.latest_readings) ? device.latest_readings : [];
+  const properties = [...new Set(readings.map((reading) => reading.resource_name || reading.source_name).filter(Boolean))];
   return {
-    id: `device:${device.namespace || "default"}:${device.name}`,
+    id: `edgex:${device.name}`,
     kind: "device",
     name: device.name,
-    namespace: device.namespace || "default",
+    namespace: "",
     displayName: device.name,
     nodeName,
-    type: displayDeviceType(device),
-    protocol: device.protocol || "-",
-    properties: Array.isArray(device.properties) ? device.properties : [],
-    telemetryEnabled: Boolean(device.telemetry_enabled || (device.telemetry_status && device.telemetry_status !== "disabled")),
-    telemetryFresh: Boolean(device.telemetry_fresh),
-    telemetryStatus: device.telemetry_status || (device.telemetry_fresh ? "fresh" : "stale"),
-    telemetryLastSeenAt: device.telemetry_last_seen_at || device.telemetry_last_seen || null,
-    deviceStatusFresh: Boolean(device.device_status_fresh),
-    deviceStatusLastReportedAt: device.device_status_last_reported_at || null,
-    overallStatus: device.overall_status || device.status || "unknown",
-    reason: device.reason || device.status_reason || "-",
+    type: "EdgeX device",
+    source: device.source || "edgex",
+    profileName: device.profile_name,
+    serviceName: device.device_service_name,
+    protocolNames: Array.isArray(device.protocol_names) ? device.protocol_names : [],
+    protocol: Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "-",
+    properties,
+    sourceNames: [...new Set(readings.map((reading) => reading.source_name).filter(Boolean))],
+    latestReadings: readings,
+    eventFresh: device.telemetry_freshness === "fresh",
+    eventFreshness: device.telemetry_freshness || "no_events",
+    latestEventTimestamp: device.latest_event_timestamp || null,
+    connectionState: device.connection_state || "unknown",
+    adminState: device.admin_state || "UNKNOWN",
+    operatingState: device.operating_state || "UNKNOWN",
+    deviceServiceAvailable: Boolean(device.device_service_available),
+    telemetryEnabled: true,
+    telemetryFresh: device.telemetry_freshness === "fresh",
+    telemetryStatus: device.telemetry_freshness || "no_events",
+    telemetryLastSeenAt: device.latest_event_timestamp || null,
+    overallStatus: device.overall_status || (device.admin_state !== "UNKNOWN" && device.connection_state === "connected" && device.operating_state === "UP" && device.telemetry_freshness === "fresh" ? "available" : device.connection_state === "disconnected" || device.admin_state === "LOCKED" || device.operating_state === "DOWN" ? "unavailable" : "degraded"),
+    reason: device.reason || `${device.admin_state || "UNKNOWN"} / ${device.operating_state || "UNKNOWN"} · ${device.connection_state || "unknown"}`,
   };
 }
 
@@ -139,8 +148,6 @@ function resourceTargets(devices, nodes) {
     telemetryFresh: false,
     telemetryStatus: "resource",
     telemetryLastSeenAt: null,
-    deviceStatusFresh: node.node_health === "healthy",
-    deviceStatusLastReportedAt: null,
     overallStatus: node.node_health || "unknown",
     reason: nodeKnown ? "AI HAT resource is mapped to a registered edge node." : "AI HAT resource is declared for dev0002, but node status is not observed yet.",
   }];
@@ -153,7 +160,7 @@ function isSenseHatTarget(target) {
 
 function nodeAcceptsTarget(node, target) {
   if (!node || !target) return false;
-  if (node.type === "device_source") return target.kind === "device" && target.telemetryEnabled;
+  if (node.type === "device_source") return target.kind === "device";
   if (node.type === "ai_inference") return target.kind === "resource" || target.nodeName === AI_HAT_NODE;
   return false;
 }

@@ -16,14 +16,14 @@ from typing import Callable, Iterable
 STATUS_ORDER = {"PASS": 0, "WARN": 1, "FAIL": 2}
 
 DOC_FILES = [
-    "docs/dashboard-information-structure.md",
-    "docs/okdong-productivity-kpi.md",
-    "docs/kagenti-operator-assistant.md",
-    "docs/current-demo-path.md",
-    "docs/device-service-binding.md",
-    "docs/device-status-policy.md",
-    "docs/service-demo-scenario.md",
-    "docs/ops/runbook-current-demo.md",
+    "docs/대시보드-정보-구조.md",
+    "docs/옥동-생산성-kpi.md",
+    "docs/카젠티-운영-보조-에이전트.md",
+    "docs/현재-데모-경로.md",
+    "docs/디바이스-서비스-연결.md",
+    "docs/물리-디바이스-상태-정책.md",
+    "docs/서비스-데모-시나리오.md",
+    "docs/ops/현재-데모-운영-절차.md",
 ]
 
 CODE_FILES = [
@@ -262,12 +262,20 @@ def rule_influx_timestamp_notes(corpus: Corpus) -> RuleResult:
         ("device-level latest sample", re.compile(r"(device-level|device별).*latest.*sample|latest sample.*device", re.I)),
         ("not property-level freshness", re.compile(r"property별.*(보장하지|아니|not)|not.*property", re.I)),
     ]
+    influx_topic = re.compile(r"InfluxDB|\bFlux\b|_start\b|_stop\b|_time\b", re.I)
+    timestamp_claim = re.compile(r"latest|freshness|timestamp|최신|신선도|시각", re.I)
     for file, text in corpus.docs.items():
-        missing = [label for label, pat in required if not pat.search(text)]
+        paragraphs = re.split(r"\n\s*\n", text)
+        claims = [paragraph for paragraph in paragraphs if influx_topic.search(paragraph) and timestamp_claim.search(paragraph)]
+        if not claims:
+            continue
+        claim_text = "\n\n".join(claims)
+        missing = [label for label, pat in required if not pat.search(claim_text)]
         if missing:
-            result.add_finding(make_finding(name, "WARN", file, 1, ", ".join(missing), "InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.", fix))
+            first_line = text[: text.find(claims[0])].count("\n") + 1
+            result.add_finding(make_finding(name, "WARN", file, first_line, ", ".join(missing), "InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.", fix))
         else:
-            for idx, line in enumerate(text.splitlines(), 1):
+            for idx, line in enumerate(claim_text.splitlines(), 1):
                 if "_start" in line or "device-level latest" in line or "property별" in line:
                     result.add_evidence(file, idx, line)
                     break

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>위키 운영 규칙</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=wiki/운영-규칙.md">편집</a>
+      </div>
+      <span>wiki/운영-규칙.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="변경-기록.html">위키 변경 기록</a></li>
+<li><a href="운영-모델.html">운영 모델</a></li>
+<li><a href="현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="운영-진입점.html">운영 진입점</a></li>
+<li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../일일-기록.html">일일 기록</a></li>
+<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">위키</p>
+          <h1>위키 운영 규칙</h1>
+          <p class="subtitle">docs/wiki/는 KubeEdge 기반 혼합 디바이스 엣지 AI PoC 문서를 위한 LLM 유지형 지식 지도다. 기존 doc…</p>
+          <div class="meta">
+            <span class="badge kind">위키</span>
+            <span class="badge">원본: wiki/운영-규칙.md</span>
+            <span class="badge">수정: 2026-07-20 17:28</span>
+            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="위키-운영-규칙">위키 운영 규칙</h1>
+<h2 id="목적">목적</h2>
+<p><code>docs/wiki/</code>는 KubeEdge 기반 혼합 디바이스 엣지 AI PoC 문서를 위한 LLM 유지형 지식 지도다. 기존 <code>docs/*.md</code> 원본문서를 대체하지 않고, 여러 문서에 흩어진 판단 기준을 주제별로 압축해 연결한다.</p>
+<h2 id="계층">계층</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>계층</th>
+<th>경로</th>
+<th>소유</th>
+<th>규칙</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>원본 문서</td>
+<td><code>docs/*.md</code>, <code>docs/ops/*.md</code>, 필요한 프로젝트 README</td>
+<td>사람과 구현 작업</td>
+<td>source of truth로 유지한다.</td>
+</tr>
+<tr>
+<td>Wiki</td>
+<td><code>docs/wiki/*.md</code></td>
+<td>LLM이 유지하고 사람이 검토</td>
+<td>요약, 연결, 충돌 표시, 탐색 지도를 담당한다.</td>
+</tr>
+<tr>
+<td>운영 규칙</td>
+<td><code>docs/wiki/운영-규칙.md</code>, 루트 <code>AGENTS.md</code></td>
+<td>사람과 에이전트</td>
+<td>문서 갱신 방식과 금지 표현을 고정한다.</td>
+</tr>
+<tr>
+<td>HTML 보기</td>
+<td><code>docs/html/</code></td>
+<td>생성 산출물</td>
+<td><code>python3 scripts/build-docs-html.py</code>로 재생성한다. 직접 편집하지 않는다.</td>
+</tr>
+</tbody></table></div>
+<h2 id="문서-유형">문서 유형</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>유형</th>
+<th>파일</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>색인</td>
+<td><code>지식-지도.md</code></td>
+<td>위키와 원본문서의 첫 진입점</td>
+</tr>
+<tr>
+<td>로그</td>
+<td><code>변경-기록.md</code></td>
+<td>수집, 질의, 점검 변경 이력</td>
+</tr>
+<tr>
+<td>합성 문서</td>
+<td><code>&lt;주제&gt;.md</code></td>
+<td>여러 원본문서를 하나의 주제로 요약</td>
+</tr>
+<tr>
+<td>개념 문서</td>
+<td><code>&lt;개념&gt;.md</code></td>
+<td>정의, 경계, 관련 문서, 근거 문서 정리</td>
+</tr>
+<tr>
+<td>공백 문서</td>
+<td><code>&lt;주제&gt;-공백.md</code></td>
+<td>충돌, 누락, 확인 필요 사항 정리</td>
+</tr>
+</tbody></table></div>
+<h2 id="기본-템플릿">기본 템플릿</h2>
+<p>합성 문서와 개념 문서는 필요할 때 아래 구조를 따른다.</p>
+<pre data-lang="markdown"><code># 문서 제목
+
+## 한 줄 요약
+
+현재 운영 관점의 의미를 짧게 쓴다.
+
+## 현재 기준
+
+프로젝트가 지금 사실로 취급하는 내용을 쓴다.
+
+## 경계
+
+현재 기능이 아닌 것, legacy로 보아야 할 것, 과장하면 안 되는 것을 쓴다.
+
+## 운영상 의미
+
+운영자, 구현자, 검토자가 이 내용을 어떻게 써야 하는지 쓴다.
+
+## 관련 Wiki
+
+- [관련 문서](related-page.md)
+
+## 근거 문서
+
+- [원본문서](../source.md)</code></pre>
+<h2 id="유지-workflow">유지 Workflow</h2>
+<h3 id="ingest">Ingest</h3>
+<p>원본문서가 바뀌거나 새 문서가 추가되면 다음 순서로 처리한다.</p>
+<ol><li><code>docs/wiki/지식-지도.md</code>를 먼저 읽는다.</li><li>변경된 원본문서를 읽는다.</li><li>영향을 받는 wiki 문서를 찾는다.</li><li>영향을 받은 wiki 문서만 수정한다.</li><li><code>docs/wiki/지식-지도.md</code>의 링크와 설명을 갱신한다.</li><li><code>docs/wiki/변경-기록.md</code>에 변경 이력을 추가한다.</li><li><code>python3 scripts/build-docs-html.py</code>로 HTML을 재생성한다.</li></ol>
+<p>로그 형식:</p>
+<pre data-lang="markdown"><code>## [YYYY-MM-DD] ingest | 짧은 제목
+
+- 근거: `docs/path.md`
+- 갱신: `docs/wiki/page.md`
+- 메모: 변경 의미 한 문장</code></pre>
+<h3 id="query">Query</h3>
+<p>문서 질문에 답할 때는 다음 순서로 읽는다.</p>
+<ol><li><code>docs/wiki/지식-지도.md</code></li><li>관련 wiki 문서</li><li>세부 명령, API, 정책 문구가 필요할 때만 원본문서</li></ol>
+<p>질문 답변에서 재사용할 만한 합성이 생기면 위키에 반영하고 <code>변경-기록.md</code>에 질의 항목을 남긴다.</p>
+<h3 id="lint">Lint</h3>
+<p>주기적으로 다음을 점검한다.</p>
+<ul><li><code>지식-지도.md</code>에서 연결되지 않은 고아 문서</li><li>끊어진 링크</li><li>중복 요약</li><li><code>docs/프로젝트-범위.md</code>와 충돌하는 주장</li><li>legacy workflow/offloading/agent-assisted planning을 현재 기능처럼 보이게 하는 표현</li><li>운영 runbook으로 이어지지 않는 운영 설명</li></ul>
+<p>수정이 있으면 <code>변경-기록.md</code>에 점검 항목을 남긴다.</p>
+<h2 id="프로젝트-표현-규칙">프로젝트 표현 규칙</h2>
+<p>유지할 표현:</p>
+<ul><li>서비스 데모 우선</li><li>디바이스-서비스 연결 구조</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 확장</li></ul>
+<p>피할 표현:</p>
+<ul><li>완전 자율형 오케스트레이션</li><li>LLM이 전체 제어를 수행</li><li>동적 워크플로우 전체 구현 완료</li><li>runtime replanning 구현 완료</li><li>placement/offloading이 현재 데모 경로인 것처럼 보이는 표현</li><li>agent-assisted planning이 현재 control plane인 것처럼 보이는 표현</li></ul>
+<p>물리 디바이스 상태와 텔레메트리 표현은 다음 기준을 지킨다.</p>
+<ul><li>물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata가 권위다.</li><li>원시 텔레메트리는 Protocol Adapter에서 edge agent SQLite outbox와 HTTPS gateway를 거쳐 Core Data·PostgreSQL로 전달한다. 현재 1차 수직 슬라이스는 offline replay와 persisted ACK를 포함한다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 레거시 물리 연동 경로이며 병행 plane이나 fallback으로 사용하지 않는다.</li><li><code>adminState</code>, <code>operatingState</code>, Device Service 상태, 최신 Event freshness를 함께 보고 availability를 판단한다.</li></ul>
+<h2 id="문서-우선순위">문서 우선순위</h2>
+<p>문서가 충돌하면 아래 순서로 판단한다.</p>
+<ol><li>루트 <code>AGENTS.md</code>와 직접 지시</li><li><code>docs/프로젝트-범위.md</code></li><li><code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li><code>docs/프로젝트-배경.md</code></li><li><code>docs/물리-디바이스-상태-정책.md</code></li><li><code>docs/대시보드-판단-정책.md</code></li><li><code>docs/단계별-추진계획.md</code></li><li>기타 최신 기준 문서</li><li>운영 문서</li><li>설계 이력</li><li>보관 문서는 과거 맥락으로만 사용</li></ol>
+<p>Archive나 Legacy 항목을 현재 경로로 승격하려면 먼저 <code>docs/프로젝트-범위.md</code>와 <code>docs/저장소-구조.md</code>를 갱신한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#계층">계층</a></li>
+<li class="toc-h2"><a href="#문서-유형">문서 유형</a></li>
+<li class="toc-h2"><a href="#기본-템플릿">기본 템플릿</a></li>
+<li class="toc-h2"><a href="#유지-workflow">유지 Workflow</a></li>
+<li class="toc-h3"><a href="#ingest">Ingest</a></li>
+<li class="toc-h3"><a href="#query">Query</a></li>
+<li class="toc-h3"><a href="#lint">Lint</a></li>
+<li class="toc-h2"><a href="#프로젝트-표현-규칙">프로젝트 표현 규칙</a></li>
+<li class="toc-h2"><a href="#문서-우선순위">문서 우선순위</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

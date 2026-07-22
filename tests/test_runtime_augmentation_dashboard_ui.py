@@ -37,6 +37,21 @@ def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> N
     assert "등록 자산" not in html
 
 
+def test_dashboard_physical_device_contract_is_edgex_only() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+
+    assert "EdgeX Device + Kubernetes Edge Platform" in html
+    assert 'data-kpi-key="core_data_freshness_ratio"' in html
+    assert 'data-kpi-key="device_service_availability_ratio"' in html
+    assert "device_service_name" in js
+    assert "profile_name" in js
+    assert "operating_state" in js
+    assert "latest_event_timestamp" in js
+    assert "mapper_running" not in js
+    assert "device_status_fresh" not in js
+    assert "kubeedge_state" not in js
+
 def test_dashboard_uses_consistent_english_domain_terms() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
@@ -80,7 +95,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=terminology-cleanup-20260622" in html
+    assert "/static/dashboard.js?v=edgex-multisource-20260714" in html
 
 
 def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
@@ -88,14 +103,14 @@ def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=terminology-cleanup-20260622" in html
+    assert "/static/dashboard.js?v=edgex-multisource-20260714" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
-    assert "service:" not in render_devices
-    assert "reason:" not in render_devices
-    assert "node:" in render_devices
-    assert "sensor:" in render_devices
-    assert "age:" in render_devices
+    assert "service:" in render_devices
+    assert "profile:" in render_devices
+    assert "protocol:" in render_devices
+    assert "Core Data event:" in render_devices
+    assert "node placement:" in render_devices
 
 
 def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:
@@ -103,13 +118,13 @@ def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> No
     state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
 
     assert "/static/workflow.css?v=ai-pipeline-compact-20260622" in html
-    assert "/static/workflow-state.js?v=terminology-cleanup-20260622" in html
+    assert "/static/workflow-state.js?v=edgex-cutover-20260714" in html
     assert "/static/workflow-render-panels.js?v=terminology-cleanup-20260622" in html
     assert "/static/workflow-actions.js?v=terminology-cleanup-20260622" in html
     assert "factory-vision-inspection-pipeline" in state_js
     for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
         assert f'label: "{label}"' in state_js
-    assert "Collect Raw Telemetry" in state_js
+    assert "Collect EdgeX Event" in state_js
     assert "Normalize Feature Window" in state_js
     assert "Run Defect Inference" in state_js
     assert "Format Inspection Event" in state_js
