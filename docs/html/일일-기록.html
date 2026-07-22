@@ -139,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-22 11:14</span>
-            <span class="badge">HTML 생성: 2026-07-22 11:15</span>
+            <span class="badge">수정: 2026-07-22 11:23</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:23</span>
           </div>
         </header>
         <div class="doc-body">
@@ -350,7 +350,7 @@
 <h3 id="오늘-목표">오늘 목표</h3>
 <ul><li>실제 Jetson Arduino 가속도를 사용하는 첫 서비스 데모를 구현하고 디바이스-서비스-AI 연결을 대시보드에 표시한다.</li></ul>
 <h3 id="진행-내용">진행 내용</h3>
-<ul><li><code>sensor-anomaly-demo</code>를 추가해 <code>virtual-acceleration-{x,y,z}-001</code>의 Local Data API를 500ms polling하고 같은 nanosecond <code>origin</code>을 한 frame으로 결합했다.</li><li>30 sample warm-up, threshold 4.0, anomaly 2연속, clear 3연속인 <code>online-gaussian-baseline-v1</code> 변화 탐지기를 구현했다.</li><li>최근 결과 최대 1,000건, pending frame 10초·1,000건, source별 cursor와 중복 제거를 bounded memory로 구현했다.</li><li><code>/healthz</code>, <code>/readyz</code>, <code>/api/v1/status</code>, <code>/api/v1/results</code> read-only API와 Jetson Deployment/Service/NetworkPolicy/Argo CD Application을 추가했다.</li><li><code>state-aggregator</code>에 failure-isolated <code>/state/service-demo</code>를 추가하고 dashboard에 physical source → Device Service → Device 3개 → AI consumer binding, raw X/Y/Z, magnitude, score, origin, 최근 input age와 상태를 표시했다.</li><li>실제 센서 입력이 없던 <code>edge-orch-factory-vision-inspection-ai</code> manifest를 현재 Argo CD 목록에서 제거했다. live Application 삭제는 rollout 단계에서 exact resource를 다시 확인한 뒤 수행한다.</li></ul>
+<ul><li><code>sensor-anomaly-demo</code>를 추가해 <code>virtual-acceleration-{x,y,z}-001</code>의 Local Data API를 500ms polling하고 같은 nanosecond <code>origin</code>을 한 frame으로 결합했다.</li><li>30 sample warm-up, threshold 4.0, anomaly 2연속, clear 3연속인 <code>online-gaussian-baseline-v1</code> 변화 탐지기를 구현했다.</li><li>최근 결과 최대 1,000건, pending frame 10초·1,000건, source별 cursor와 중복 제거를 bounded memory로 구현했다.</li><li><code>/healthz</code>, <code>/readyz</code>, <code>/api/v1/status</code>, <code>/api/v1/results</code> read-only API와 Jetson Deployment/Service/NetworkPolicy/Argo CD Application을 추가했다.</li><li><code>state-aggregator</code>에 failure-isolated <code>/state/service-demo</code>를 추가하고 dashboard에 physical source → Device Service → Device 3개 → AI consumer binding, raw X/Y/Z, magnitude, score, origin, 최근 input age와 상태를 표시했다.</li><li>실제 센서 입력이 없던 <code>edge-orch-factory-vision-inspection-ai</code> manifest와 live Application, exact orphan workload를 제거했다.</li></ul>
 <h3 id="확인한-상태">확인한 상태</h3>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -387,7 +387,7 @@
 <tr>
 <td>dashboard panel</td>
 <td>PASS</td>
-<td>정상/anomaly/unavailable, 비가짜 0, textContent, responsive/status label JS 테스트 7개 통과</td>
+<td>정상/anomaly/unavailable, 비가짜 0, textContent, input age, responsive/status label JS 테스트 8개 통과</td>
 </tr>
 <tr>
 <td>ARM64 image</td>
@@ -397,7 +397,7 @@
 <tr>
 <td>live rollout</td>
 <td>PASS</td>
-<td><code>sensor-anomaly-demo</code> Jetson Ready/restart 0, local origin <code>1784684879474770489</code> → <code>1784684881510391366</code>, frame 617 → 619</td>
+<td><code>sensor-anomaly-demo</code> Jetson Ready/restart 0, local origin <code>1784686831141419624</code> → <code>1784686833177002883</code>, frame 2535 → 2537</td>
 </tr>
 <tr>
 <td>central readback</td>
@@ -406,13 +406,18 @@
 </tr>
 <tr>
 <td>state-aggregator image</td>
-<td>BUILD PASS</td>
-<td>AMD64 tag <code>20260722-service-demo-v3</code>, registry·manifest digest <code>sha256:4069e3a15a8acc2dda9701497089af8d788816acbc4e9a5043093ab20e8cfe04</code>; rollout 뒤 Pod imageID 대조</td>
+<td>PASS</td>
+<td>AMD64 tag <code>20260722-service-demo-v3</code>, registry·manifest·Pod imageID가 모두 <code>sha256:4069e3a15a8acc2dda9701497089af8d788816acbc4e9a5043093ab20e8cfe04</code>, Ready/restart 0</td>
+</tr>
+<tr>
+<td>Argo CD</td>
+<td>PASS</td>
+<td><code>edge-orch-sensor-anomaly-demo</code>, <code>edge-orch-state-aggregator</code>가 <code>547722d0831f5e203740717f3d686200c30ac578</code>에서 <code>Synced/Healthy</code></td>
 </tr>
 <tr>
 <td>browser</td>
 <td>PASS</td>
-<td>Firefox 실제 렌더에서 NORMAL/fresh, 12/12 available/fresh, desktop·390px layout와 console error/warning 0 확인</td>
+<td>Firefox 실제 렌더에서 NORMAL/fresh, 12/12 available/fresh, input age 포함 5개 지표의 desktop·390px 무겹침과 console error/warning 0 확인</td>
 </tr>
 <tr>
 <td>legacy cleanup</td>
