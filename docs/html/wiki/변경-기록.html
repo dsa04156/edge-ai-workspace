@@ -143,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-22 14:49</span>
-            <span class="badge">HTML 생성: 2026-07-22 14:50</span>
+            <span class="badge">수정: 2026-07-22 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,6 +166,8 @@
 <ul><li>근거: <code>edgex/local-data-cache/</code>, 두 Device Service의 cache adapter·stats API·custom metrics, Go race 테스트와 Kustomize manifest 테스트</li><li>갱신: <code>docs/문서-안내.md</code>, <code>docs/원시-텔레메트리-데이터-플레인.md</code>, <code>docs/디바이스-서비스-연결.md</code>, <code>docs/ops/현재-데모-운영-절차.md</code>, <code>docs/wiki/상태와-텔레메트리.md</code>, <code>docs/일일-기록.md</code></li><li>메모: 기존 slice cache를 공통 series별 ring으로 교체하고 Device Service별 sample slot 64MiB 상한, <code>/api/v3/localdata/stats</code>와 custom metrics를 추가했다. Pod 재시작 비보존, SQLite outbox·offline replay 부재와 중앙 history 책임은 그대로 유지한다.</li></ul>
 <h2 id="2026-07-22-verify-local-data-cache-v2-실기기-배포-검증">[2026-07-22] verify | Local Data Cache v2 실기기 배포 검증</h2>
 <ul><li>근거: immutable ARM64 image 2개, Argo CD revision <code>0a8a761bf05051178074c5d18accdaa6a1d4bc0d</code>, Jetson/Raspberry Pi Local Data API와 중앙 Core Data/dashboard/AI service readback</li><li>갱신: <code>docs/일일-기록.md</code>, <code>docs/wiki/변경-기록.md</code></li><li>메모: Serial 6 series와 Sense HAT 11 series가 각각 64MiB budget 이하에서 증가하고, 11개 I2C source·중앙 Event·AI demo 회귀가 모두 PASS였다. EdgeMesh는 generation/observed 14와 5/5 Ready로 변경하지 않았다.</li></ul>
+<h2 id="2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</h2>
+<ul><li>근거: Jetson Arduino <code>cdc_acm</code> detach/rebind, Sense HAT reader process 재시작, 중앙 MessageBus 0 replica와 Local Data/Core Data 비교</li><li>갱신: <code>docs/프로젝트-배경.md</code>, <code>docs/물리-디바이스-상태-정책.md</code>, <code>docs/단계별-추진계획.md</code>, <code>docs/현재-데모-경로.md</code>, <code>docs/문서-안내.md</code>, <code>docs/ops/현재-데모-운영-절차.md</code>, <code>docs/wiki/상태와-텔레메트리.md</code>, <code>docs/wiki/운영-진입점.md</code>, <code>docs/일일-기록.md</code>, <code>tools/verify_e2e.sh</code></li><li>메모: 두 physical source의 6개 Device 단위 <code>DOWN → UP</code>과 새 Event 재개를 확인했다. 중앙 단절 중 local ring과 AI service는 지속됐지만 Core Data는 멈췄고 복구 뒤 미전송 구간은 replay되지 않았다. 실제 케이블·보드 손분리는 현장 gate로 남긴다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-06-16-ingest-llm-wiki-계층-추가">[2026-06-16] ingest | LLM wiki 계층 추가</a></li>
@@ -175,7 +177,8 @@
 <li class="toc-h2"><a href="#2026-07-21-verify-local-data-api-live-검증과-networkpolicy-한계-정정">[2026-07-21] verify | Local Data API live 검증과 NetworkPolicy 한계 정정</a></li>
 <li class="toc-h2"><a href="#2026-07-21-ingest-raspberry-pi-sense-hat-직접-i2c-수직-슬라이스-반영">[2026-07-21] ingest | Raspberry Pi Sense HAT 직접 I2C 수직 슬라이스 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-22-ingest-local-data-cache-v2-bounded-ring-반영">[2026-07-22] ingest | Local Data Cache v2 bounded ring 반영</a></li>
-<li class="toc-h2"><a href="#2026-07-22-verify-local-data-cache-v2-실기기-배포-검증">[2026-07-22] verify | Local Data Cache v2 실기기 배포 검증</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-22-verify-local-data-cache-v2-실기기-배포-검증">[2026-07-22] verify | Local Data Cache v2 실기기 배포 검증</a></li>
+<li class="toc-h2"><a href="#2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -143,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-22 14:50</span>
+            <span class="badge">수정: 2026-07-22 16:48</span>
+            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
           </div>
         </header>
         <div class="doc-body">
@@ -336,8 +336,12 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 <td>online 통계 baseline 변화 탐지; 학습된 고장 분류기 아님. 실제 장치 움직임 anomaly 시연은 미완료</td>
 </tr>
 <tr>
+<td>driver/reader 장애 복구</td>
+<td>Serial <code>cdc_acm</code> detach 시 6개 <code>DOWN</code>, rebind 약 31초 뒤 <code>UP</code>; Sense HAT reader 종료 시 6개 <code>DOWN</code>, 약 1.3초 뒤 새 reader와 <code>UP</code>; 양쪽 모두 새 local/Core Data origin 확인</td>
+</tr>
+<tr>
 <td>SQLite outbox/offline replay</td>
-<td>없음; 중앙 단절 중 미전송 Event 재전송을 보장하지 않음</td>
+<td>없음; MessageBus 0 replica 중 local ring과 AI service는 지속됐지만 Core Data는 멈췄고 복구 후 미전송 구간은 replay되지 않음</td>
 </tr>
 <tr>
 <td>영구 저장</td>
@@ -348,8 +352,8 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 <td>Profile에 없음; 별도 승인과 안전 검증 전까지 비활성</td>
 </tr>
 <tr>
-<td>물리 케이블/보드 분리·복구</td>
-<td>단위 테스트 외 실제 시연은 남음</td>
+<td>물리 케이블/보드 손분리</td>
+<td>driver/reader 장애 주입과 별개인 현장 시연은 남음</td>
 </tr>
 <tr>
 <td>동적 workflow/offloading</td>
@@ -357,8 +361,8 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 </tr>
 </tbody></table></div>
 <h2 id="완료-판정">완료 판정</h2>
-<p>정상 수집 경로는 다음 1, 2, 3, 5와 read-only command까지 같은 배포에서 확인했다. 완전한 장애·복구 데모를 PASS로 선언하려면 4를 실제 장치에서 추가 확인한다.</p>
-<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li><li><code>sensor-anomaly-demo</code>와 중앙 <code>/state/service-demo</code>가 같은 세 Device identity와 증가하는 실제 origin을 반환한다.</li></ol>
+<p>정상 수집 경로와 driver/reader 장애 복구는 다음 1~5와 read-only command까지 같은 배포에서 확인했다. 실제 케이블·보드 손분리를 포함한 현장 장애·복구 데모를 PASS로 선언하려면 4의 물리 조작 시연을 추가 확인한다.</p>
+<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다. 현재는 driver/reader 장애 주입까지 PASS이고 실제 케이블·보드 손분리는 별도 현장 gate다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li><li><code>sensor-anomaly-demo</code>와 중앙 <code>/state/service-demo</code>가 같은 세 Device identity와 증가하는 실제 origin을 반환한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태-요약">상태 요약</a></li>

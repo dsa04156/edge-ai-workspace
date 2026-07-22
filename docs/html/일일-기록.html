@@ -143,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-22 14:49</span>
-            <span class="badge">HTML 생성: 2026-07-22 14:50</span>
+            <span class="badge">수정: 2026-07-22 16:48</span>
+            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
           </div>
         </header>
         <div class="doc-body">
@@ -532,6 +532,63 @@
 <td>generation/observed 14, 5/5 Ready, <code>kubeedge/edgemesh-agent:v1.17.0</code> 유지</td>
 </tr>
 </tbody></table></div>
+<h3 id="device-service-장애-복구-실측">Device Service 장애·복구 실측</h3>
+<ul><li>Jetson Arduino의 정확한 USB identity를 VID/PID <code>2341:0043</code>, serial <code>75035303230351E0D171</code>, <code>cdc_acm</code> interface <code>1-2.1:1.0</code>으로 확인하고 해당 interface만 detach/rebind했다.</li><li>Raspberry Pi Sense HAT Device Service의 Python I2C reader 자식 프로세스만 종료해 source restart를 주입했다.</li><li>Argo CD self-heal을 원복 가능한 범위에서 잠시 비활성화하고 중앙 MessageBus가 실제 0 Pod인 구간을 만든 뒤 두 local ring, AI consumer와 중앙 Core Data를 분리 관찰했다.</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Serial source state fan-out</td>
+<td>PASS</td>
+<td>USB detach 후 6개 Device가 <code>DOWN</code>; rebind 약 31초 뒤 6개 <code>UP</code>, 새 local origin <code>1784706241287759855</code>와 Core Data readback 확인</td>
+</tr>
+<tr>
+<td>Sense HAT reader restart</td>
+<td>PASS</td>
+<td>reader PID 15 종료 후 Metadata가 <code>UP → DOWN → UP</code>; 약 1.3초 뒤 새 PID 37과 11개 resource/중앙 Event 확인</td>
+</tr>
+<tr>
+<td>Device Service Pod recovery</td>
+<td>PASS</td>
+<td>Serial ring <code>3540 → 78</code>, Sense HAT ring <code>6600 → 154</code>로 초기화된 뒤 다시 증가; 두 Pod restart 0</td>
+</tr>
+<tr>
+<td>중앙 장애 중 local continuity</td>
+<td>PASS</td>
+<td>MessageBus 0 Pod 동안 Serial ring <code>1878 → 2094</code>, Sense HAT ring <code>3234 → 3641</code>, AI service <code>live/fresh</code> 유지</td>
+</tr>
+<tr>
+<td>중앙 장애 중 persistence</td>
+<td>유실 확인</td>
+<td>Serial count <code>78741</code>, I2C count <code>73870</code> 고정; 복구 후 각각 1건부터 재개, 최대 origin gap 약 128.213초/128.010초</td>
+</tr>
+<tr>
+<td>outbox/offline replay</td>
+<td>없음 확인</td>
+<td>outage 중 ring sample은 중앙 미전송 queue가 아니며 복구 뒤 과거 구간이 replay되지 않음</td>
+</tr>
+<tr>
+<td>Argo CD</td>
+<td>원복 완료</td>
+<td><code>selfHeal=true</code>, MessageBus 1/1, <code>edgex-telemetry</code> <code>Synced/Healthy/Succeeded</code></td>
+</tr>
+<tr>
+<td>임시 검증 Pod</td>
+<td>정리 완료</td>
+<td><code>recovery-check-jetson</code>, <code>recovery-check-sensehat</code>, <code>serial-host-recovery-check</code> 삭제</td>
+</tr>
+<tr>
+<td>EdgeMesh</td>
+<td>무변경</td>
+<td>generation/observed 14, 5/5 Ready, image <code>kubeedge/edgemesh-agent:v1.17.0</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="장애-검증-결정">장애 검증 결정</h3>
+<ul><li>Serial/I2C의 정상 수집과 driver/reader 수준 복구는 현재 PASS로 기록한다.</li><li>실제 케이블·Sense HAT 보드 손분리와 실제 장치 움직임 anomaly는 별도 현장 gate로 유지한다.</li><li>중앙 단절 중 미전송 Event 보존이 요구되면 ring cache를 재사용하지 않고 persisted ACK 계약을 가진 SQLite outbox를 별도 설계한다.</li><li>현행 read-only 종합 점검 진입점 <code>tools/verify_e2e.sh</code>를 두 Device Service, 12개 Device, Local Data stats와 중앙 Core Data 경계에 맞게 갱신한다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

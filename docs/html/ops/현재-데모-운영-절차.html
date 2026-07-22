@@ -143,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 14:42</span>
-            <span class="badge">HTML 생성: 2026-07-22 14:50</span>
+            <span class="badge">수정: 2026-07-22 16:48</span>
+            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
           </div>
         </header>
         <div class="doc-body">
@@ -512,8 +512,50 @@ done</code></pre>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
 <ul><li>Device Service 메모리: 공통 Go ring cache, Device/resource별 최근 10분·최대 10,000 sample, 서비스별 sample slot 합계 최대 64MiB, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; <code>/api/v3/localdata/stats</code>와 custom metrics로 관측, Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>64MiB 계산 경계: sample slot 배열만 포함; Go map/runtime/HTTP buffer는 제외되며 Pod memory limit가 전체 프로세스 상한</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: process memory의 최근 최대 1,000건; Pod 재시작 시 초기화, raw history 저장소가 아님</li></ul>
 <p>따라서 각 Device Service와 같은 edge node의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
-<h2 id="10-남은-장애-검증">10. 남은 장애 검증</h2>
-<p>Serial parser의 malformed line 복구, 공유 reader, state fan-out, 마지막 route 제거 시 close, reader backoff와 동일 Metadata update의 no-op 동작은 단위 테스트한다. Sense HAT protocol binding, resource fan-out, reader 재시작과 local cache/API도 단위 테스트하고 실제 I2C 값의 live readback을 확인한다. 실제 케이블/보드 분리 → 해당 6개 Device DOWN/degraded → 재연결 → 새 Event 발행은 현장 시연 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다. Modbus와 OPC-UA는 실제 endpoint가 없어 완료로 판정하지 않는다.</p>
+<h2 id="10-장애-복구-검증">10. 장애·복구 검증</h2>
+<h3 id="10-1-2026-07-22-실측-결과">10.1 2026-07-22 실측 결과</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>시나리오</th>
+<th>장애 중 관찰</th>
+<th>복구 결과</th>
+<th>판정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Jetson Arduino USB driver detach</td>
+<td><code>cdc_acm</code> interface <code>1-2.1:1.0</code> detach 후 Serial 가상 Device 6개 <code>DOWN</code></td>
+<td>rebind 약 31초 뒤 6개 <code>UP</code>, Pod restart 0, 새 Local Data/Core Data origin</td>
+<td>driver-level PASS</td>
+</tr>
+<tr>
+<td>Sense HAT reader process 종료</td>
+<td>Python reader PID 종료 후 I2C 가상 Device 6개 <code>DOWN</code></td>
+<td>약 1.3초 뒤 새 PID로 재시작, 6개 <code>UP</code>, 11개 source와 중앙 Event 재개</td>
+<td>reader-level PASS</td>
+</tr>
+<tr>
+<td>중앙 MessageBus 0 replica</td>
+<td>Serial ring <code>1878 → 2094</code>, Sense HAT ring <code>3234 → 3641</code>; <code>sensor-anomaly-demo</code>는 <code>live/fresh</code>; 두 Core Data count는 고정</td>
+<td>broker 복구 후 각 Device는 새 Event 1건부터 재개; Serial 약 128.213초, I2C 약 128.010초 저장 공백</td>
+<td>local continuity PASS, offline replay 없음</td>
+</tr>
+<tr>
+<td>Device Service Pod 재생성</td>
+<td>각 서비스 ring cache 초기화</td>
+<td>Serial <code>3540 → 78</code>, Sense HAT <code>6600 → 154</code> sample에서 다시 증가하고 중앙 Event 재개</td>
+<td>restart recovery PASS</td>
+</tr>
+</tbody></table></div>
+<p>Serial USB 장애 주입 대상은 VID/PID <code>2341:0043</code>, serial <code>75035303230351E0D171</code>, interface <code>1-2.1:1.0</code>으로 실측 확인한 Arduino 하나였다. 다른 테스트베드에서는 이 값을 재사용하지 말고 <code>/dev/serial/by-id</code>와 sysfs identity를 다시 대조한다. Serial의 약 31초 복구 시간은 reader의 지수 backoff가 포함된 값이다.</p>
+<h3 id="10-2-재실행-조건과-기대-결과">10.2 재실행 조건과 기대 결과</h3>
+<p><strong>Test Scenario: source 장애 후 Device 상태와 수집 복구</strong></p>
+<ul><li>시작 조건: 중앙 Core 서비스와 두 Device Service가 Ready이고 12개 Device가 <code>UP</code>, latest origin이 증가한다.</li><li>실행 역할: 테스트베드 운영자. 실제 장치 또는 kernel driver/reader process를 하나씩만 중단한다.</li><li>확인 순서: 장애 전 <code>tools/verify_e2e.sh</code> 실행 → 대상 source 중단 → Core Metadata의 해당 6개 Device <code>DOWN</code> 확인 → source 복구 → 6개 <code>UP</code> 확인 → Local Data와 Core Data origin 증가 확인.</li><li>기대 결과: 비대상 Device Service와 EdgeMesh는 변경되지 않고 대상 physical source에 묶인 6개 Device만 함께 상태 전이한다.</li></ul>
+<p><strong>Test Scenario: 중앙 MessageBus 장애 중 로컬 연속성</strong></p>
+<ul><li>시작 조건: Argo CD Application policy와 MessageBus replica를 기록하고 두 local stats 및 대표 Core Data Event를 저장한다.</li><li>실행 역할: 데이터 유실과 중앙 중단을 승인받은 운영자. MessageBus endpoint가 실제 0 Pod인지 확인한 뒤 제한된 시간만 중단한다.</li><li>확인 순서: 장애 중 두 Local Data latest/stats와 <code>sensor-anomaly-demo</code> 증가 확인 → Core Data count/origin 고정 확인 → MessageBus 1 replica와 Argo self-heal 원복 → 중앙 새 Event 확인.</li><li>기대 결과: 로컬 ring과 같은-node AI consumer는 지속되지만 중앙 Event는 멈춘다. 복구 후 새 Event는 재개되지만 outage 구간은 replay되지 않는다.</li></ul>
+<p>재검증 후에는 다음 read-only 진입점으로 전체 상태를 다시 확인한다.</p>
+<pre data-lang="bash"><code>rtk bash tools/verify_e2e.sh</code></pre>
+<p>이 결과는 실제 케이블·보드 손분리 현장 시연을 대체하지 않는다. 실제 손분리 → 해당 6개 Device <code>DOWN</code>/dashboard degraded → 재연결 → 새 Event 발행은 현장 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다. Modbus와 OPC-UA는 실제 endpoint가 없어 완료로 판정하지 않는다.</p>
 <p><code>sensor-anomaly-demo</code>는 실제 증가 raw origin과 로컬 inference/중앙 readback을 배포 gate로 검증한다. detector anomaly/clear 전이는 결정론적 테스트 대상이고 실제 장치 움직임 anomaly는 별도 현장 시연 gate다. 이 고정 Deployment를 동적 workflow 실행, runtime migration 또는 offloading 완료로 설명하지 않는다.</p>
         </div>
       </article>
@@ -532,7 +574,9 @@ done</code></pre>
 <li class="toc-h2"><a href="#8-dashboard-api">8. dashboard API</a></li>
 <li class="toc-h2"><a href="#8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</a></li>
 <li class="toc-h2"><a href="#9-저장과-캐시-경계">9. 저장과 캐시 경계</a></li>
-<li class="toc-h2"><a href="#10-남은-장애-검증">10. 남은 장애 검증</a></li></ol></aside>
+<li class="toc-h2"><a href="#10-장애-복구-검증">10. 장애·복구 검증</a></li>
+<li class="toc-h3"><a href="#10-1-2026-07-22-실측-결과">10.1 2026-07-22 실측 결과</a></li>
+<li class="toc-h3"><a href="#10-2-재실행-조건과-기대-결과">10.2 재실행 조건과 기대 결과</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>
