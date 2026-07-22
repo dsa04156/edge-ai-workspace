@@ -216,35 +216,39 @@ def test_latest_source_readings_keep_newest_event_for_each_source():
     assert [point.event_id for point in points] == ["temp-new", "light-new"]
 
 
-def test_history_sorts_events_newest_first_and_flattens_readings():
-    old_origin = 1_700_000_000_000_000_000
-    new_origin = old_origin + 5_000_000_000
+def test_history_filters_bounded_device_events_by_origin_before_flattening():
+    before_start = 1_700_000_000_000_000_000
+    start_origin = before_start + 1_000_000_000
+    end_origin = start_origin + 5_000_000_000
+    after_end = end_origin + 1_000_000_000
 
     def handler(request):
         assert request.url.params["offset"] == "5"
         assert request.url.params["limit"] == "20"
-        assert request.url.params["start"] == str(old_origin)
-        assert request.url.params["end"] == str(new_origin)
+        assert "start" not in request.url.params
+        assert "end" not in request.url.params
         return _response(
             _envelope(
                 "events",
                 [
-                    _event(old_origin, event_id="old"),
+                    _event(after_end, event_id="after-end"),
+                    _event(before_start, event_id="before-start"),
+                    _event(start_origin, event_id="at-start"),
                     _event(
-                        new_origin,
-                        event_id="new",
+                        end_origin,
+                        event_id="at-end",
                         readings=[
                             {
                                 "resourceName": "x",
                                 "valueType": "Float32",
                                 "value": "2.0",
-                                "origin": new_origin,
+                                "origin": end_origin,
                             },
                             {
                                 "resourceName": "y",
                                 "valueType": "Float32",
                                 "value": "3.0",
-                                "origin": new_origin,
+                                "origin": end_origin,
                             },
                         ],
                     ),
@@ -260,12 +264,12 @@ def test_history_sorts_events_newest_first_and_flattens_readings():
             "vib-arduino-acceleration-01",
             offset=5,
             limit=20,
-            start=old_origin,
-            end=new_origin,
+            start=start_origin,
+            end=end_origin,
         )
     )
 
-    assert [point.event_id for point in points] == ["new", "new", "old"]
+    assert [point.event_id for point in points] == ["at-end", "at-end", "at-start"]
     assert [point.resource_name for point in points] == ["x", "y", "acceleration_x"]
 
 

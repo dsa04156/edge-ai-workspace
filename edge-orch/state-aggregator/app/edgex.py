@@ -126,12 +126,26 @@ class EdgeXClient:
     ) -> list[TelemetryPoint]:
         if offset < 0 or limit <= 0:
             raise ValueError("offset must be non-negative and limit must be positive")
+        start_origin = self._origin_parameter(start) if start is not None else None
+        end_origin = self._origin_parameter(end) if end is not None else None
+        if (
+            start_origin is not None
+            and end_origin is not None
+            and end_origin < start_origin
+        ):
+            raise ValueError("history end must not precede start")
+
+        # EdgeX v3's device Event route accepts only offset/limit; start/end
+        # query parameters are ignored. Fetch the bounded per-device page first,
+        # then enforce the requested origin range before readings are flattened.
         params: dict[str, int] = {"offset": offset, "limit": limit}
-        if start is not None:
-            params["start"] = self._origin_parameter(start)
-        if end is not None:
-            params["end"] = self._origin_parameter(end)
         events = await self._get_events(device_name, params=params)
+        events = [
+            event
+            for event in events
+            if (start_origin is None or self._event_origin(event) >= start_origin)
+            and (end_origin is None or self._event_origin(event) <= end_origin)
+        ]
         events.sort(key=self._event_origin, reverse=True)
         points: list[TelemetryPoint] = []
         for index, event in enumerate(events):
