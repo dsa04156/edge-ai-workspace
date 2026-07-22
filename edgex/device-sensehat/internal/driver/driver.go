@@ -85,9 +85,22 @@ func (driver *Driver) Initialize(sdk interfaces.DeviceServiceSDK) error {
 	if driver.sdk != nil {
 		return errors.New("Sense HAT driver is already initialized")
 	}
+	cacheConfig, err := parseRecentCacheConfig(sdk.DriverConfigs())
+	if err != nil {
+		return fmt.Errorf("invalid local data cache configuration: %w", err)
+	}
+	cacheMetrics := newLocalDataCacheMetrics()
+	cache, err := newConfiguredRecentCache(cacheConfig, cacheMetrics.observe)
+	if err != nil {
+		return err
+	}
+	if err := cacheMetrics.register(sdk.MetricsManager()); err != nil {
+		return err
+	}
 	driver.sdk = sdk
 	driver.logger = sdk.LoggingClient()
 	driver.async = async
+	driver.cache = cache
 	driver.ctx, driver.cancel = context.WithCancel(context.Background())
 	return nil
 }
@@ -107,6 +120,9 @@ func (driver *Driver) Start() error {
 	}
 	if err := sdk.AddCustomRoute(recentRoute, interfaces.Unauthenticated, api.recent, http.MethodGet); err != nil {
 		return fmt.Errorf("register local recent route: %w", err)
+	}
+	if err := sdk.AddCustomRoute(statsRoute, interfaces.Unauthenticated, api.stats, http.MethodGet); err != nil {
+		return fmt.Errorf("register local stats route: %w", err)
 	}
 	for _, device := range sdk.Devices() {
 		if err := driver.UpdateDevice(device.Name, device.Protocols, device.AdminState); err != nil {
@@ -335,6 +351,7 @@ func (driver *Driver) handleSample(managed *managedConnection, sample Sample) {
 	}
 	resourceValues := sample.ResourceValues()
 	events := make([]routedEvent, 0, len(managed.routes))
+	cacheErrors := make([]error, 0)
 
 	driver.mu.Lock()
 	if driver.connections[managed.config.key()] != managed || driver.stopped {
@@ -361,9 +378,18 @@ func (driver *Driver) handleSample(managed *managedConnection, sample Sample) {
 				valid = false
 				break
 			}
-			driver.cache.append(deviceName, resourceName, cachedSample{
+			if err := driver.cache.appendChecked(deviceName, resourceName, cachedSample{
 				Origin: sample.Origin, ValueType: common.ValueTypeFloat64, Value: value,
-			})
+			}); err != nil {
+				cacheErrors = append(cacheErrors, fmt.Errorf(
+					"cache %s/%s: %w",
+					deviceName,
+					resourceName,
+					err,
+				))
+				valid = false
+				break
+			}
 			commandValues = append(commandValues, commandValue)
 		}
 		if valid {
@@ -374,6 +400,9 @@ func (driver *Driver) handleSample(managed *managedConnection, sample Sample) {
 	ctx := driver.ctx
 	driver.mu.Unlock()
 
+	for _, err := range cacheErrors {
+		driver.warn("discarding Sense HAT telemetry: %v", err)
+	}
 	for _, routed := range events {
 		event := &sdkModels.AsyncValues{
 			DeviceName: routed.deviceName, SourceName: routed.sourceName, CommandValues: routed.values,

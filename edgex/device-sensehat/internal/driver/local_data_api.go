@@ -13,11 +13,13 @@ import (
 const (
 	recentRoute = "/api/v3/localdata/device/name/:device/resource/name/:resource"
 	latestRoute = recentRoute + "/latest"
+	statsRoute  = "/api/v3/localdata/stats"
 )
 
 type retentionInfo struct {
 	MaxAge     string `json:"maxAge"`
 	MaxSamples int    `json:"maxSamples"`
+	MaxBytes   int64  `json:"maxBytes"`
 }
 
 type localDataResponse struct {
@@ -34,6 +36,24 @@ type localDataErrorResponse struct {
 	APIVersion string `json:"apiVersion"`
 	StatusCode int    `json:"statusCode"`
 	Message    string `json:"message"`
+}
+
+type localDataEvictions struct {
+	Age             int64 `json:"age"`
+	SeriesLimit     int64 `json:"seriesLimit"`
+	GlobalRebalance int64 `json:"globalRebalance"`
+	Total           int64 `json:"total"`
+}
+
+type localDataStatsResponse struct {
+	APIVersion     string             `json:"apiVersion"`
+	StatusCode     int                `json:"statusCode"`
+	Retention      retentionInfo      `json:"retention"`
+	SlotBytes      int64              `json:"slotBytes"`
+	Series         int                `json:"series"`
+	Samples        int                `json:"samples"`
+	AllocatedBytes int64              `json:"allocatedBytes"`
+	Evictions      localDataEvictions `json:"evictions"`
 }
 
 type localDataAPI struct {
@@ -88,6 +108,29 @@ func (api *localDataAPI) recent(context echo.Context) error {
 	return context.JSON(http.StatusOK, api.response(deviceName, resourceName, samples))
 }
 
+func (api *localDataAPI) stats(context echo.Context) error {
+	stats := api.cache.stats()
+	return context.JSON(http.StatusOK, localDataStatsResponse{
+		APIVersion: "v3",
+		StatusCode: http.StatusOK,
+		Retention: retentionInfo{
+			MaxAge:     stats.MaxAge.String(),
+			MaxSamples: stats.MaxSamplesPerSeries,
+			MaxBytes:   stats.MaxBytes,
+		},
+		SlotBytes:      stats.SlotBytes,
+		Series:         stats.Series,
+		Samples:        stats.Samples,
+		AllocatedBytes: stats.AllocatedBytes,
+		Evictions: localDataEvictions{
+			Age:             stats.Evictions.Age,
+			SeriesLimit:     stats.Evictions.SeriesLimit,
+			GlobalRebalance: stats.Evictions.GlobalRebalance,
+			Total:           stats.Evictions.Total(),
+		},
+	})
+}
+
 func (api *localDataAPI) knownSource(context echo.Context) (string, string, bool) {
 	deviceName := context.Param("device")
 	resourceName := context.Param("resource")
@@ -107,6 +150,7 @@ func (api *localDataAPI) response(deviceName string, resourceName string, sample
 		Retention: retentionInfo{
 			MaxAge:     api.cache.maxAge.String(),
 			MaxSamples: api.cache.maxSamples,
+			MaxBytes:   api.cache.maxBytes,
 		},
 		Samples: samples,
 	}

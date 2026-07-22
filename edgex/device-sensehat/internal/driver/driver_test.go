@@ -12,8 +12,10 @@ import (
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces"
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces/mocks"
 	sdkModels "github.com/edgexfoundry/device-sdk-go/v4/pkg/models"
+	bootstrapMocks "github.com/edgexfoundry/go-mod-bootstrap/v4/bootstrap/interfaces/mocks"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/common"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/models"
+	gometrics "github.com/rcrowley/go-metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -94,7 +96,7 @@ func testSenseHatSample() Sample {
 
 func TestDriverPublishesSixGroupedEventsAndServesMultiResourceReads(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 6)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -150,12 +152,13 @@ func TestDriverPublishesSixGroupedEventsAndServesMultiResourceReads(t *testing.T
 
 func TestDriverStartsPreloadedDeviceAndClearsCacheWhenLocked(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
 	sdk.On("AddCustomRoute", latestRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).Return(nil).Once()
 	sdk.On("AddCustomRoute", recentRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).Return(nil).Once()
+	sdk.On("AddCustomRoute", statsRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).Return(nil).Once()
 	sdk.On("Devices").Return([]models.Device{{
 		Name:       "env-sensehat-humidity-01",
 		Protocols:  testI2CProtocols("humidity"),
@@ -187,7 +190,7 @@ func TestDriverStartsPreloadedDeviceAndClearsCacheWhenLocked(t *testing.T) {
 
 func TestDriverRejectsInvalidReadWriteAndPreservesUnchangedBinding(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -222,12 +225,12 @@ func TestDriverRejectsInvalidReadWriteAndPreservesUnchangedBinding(t *testing.T)
 }
 
 func TestDriverRequiresAsyncReadingsAndReportsRouteFailure(t *testing.T) {
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(false).Once()
 	assert.ErrorContains(t, NewDriver().Initialize(sdk), "asynchronous readings")
 
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk2 := mocks.NewDeviceServiceSDK(t)
+	sdk2 := newTestDeviceServiceSDK(t)
 	sdk2.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk2.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk2.On("LoggingClient").Return(nil).Once()
@@ -236,4 +239,60 @@ func TestDriverRequiresAsyncReadingsAndReportsRouteFailure(t *testing.T) {
 	require.NoError(t, driver.Initialize(sdk2))
 	assert.ErrorContains(t, driver.Start(), "register local latest route")
 	require.NoError(t, driver.Stop(false))
+}
+
+func TestDriverUsesConfiguredCacheAndRegistersMetrics(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("DriverConfigs").Return(map[string]string{
+		localDataCacheMaxAgeConfig:     "30s",
+		localDataCacheMaxSamplesConfig: "2",
+		localDataCacheMaxBytesConfig:   "4096",
+	}).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	manager := bootstrapMocks.NewMetricsManager(t)
+	registered := make(map[string]interface{})
+	for _, name := range []string{
+		localDataCacheSamplesMetric,
+		localDataCacheSeriesMetric,
+		localDataCacheAllocatedBytesMetric,
+		localDataCacheEvictionsMetric,
+	} {
+		metricName := name
+		manager.On("Register", metricName, mock.Anything, mock.Anything).
+			Run(func(arguments mock.Arguments) {
+				registered[metricName] = arguments.Get(1)
+			}).
+			Return(nil).
+			Once()
+	}
+	sdk.On("MetricsManager").Return(manager).Once()
+
+	driver := newDriver((&recordingSourceFactory{}).create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	stats := driver.cache.stats()
+	assert.Equal(t, 30*time.Second, stats.MaxAge)
+	assert.Equal(t, 2, stats.MaxSamplesPerSeries)
+	assert.Equal(t, int64(4096), stats.MaxBytes)
+
+	for origin := int64(1); origin <= 3; origin++ {
+		driver.cache.append("device", "humidity", floatSample(origin, float64(origin)))
+	}
+	assert.Equal(t, int64(2), registered[localDataCacheSamplesMetric].(gometrics.Gauge).Value())
+	assert.Equal(t, int64(1), registered[localDataCacheSeriesMetric].(gometrics.Gauge).Value())
+	assert.Positive(t, registered[localDataCacheAllocatedBytesMetric].(gometrics.Gauge).Value())
+	assert.Equal(t, int64(1), registered[localDataCacheEvictionsMetric].(gometrics.Counter).Count())
+}
+
+func newTestDeviceServiceSDK(t *testing.T) *mocks.DeviceServiceSDK {
+	t.Helper()
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("DriverConfigs").Return(map[string]string{}).Maybe()
+	sdk.On("MetricsManager").Return(nil).Maybe()
+	return sdk
 }
