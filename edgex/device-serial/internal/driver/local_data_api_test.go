@@ -50,6 +50,7 @@ func TestLocalDataAPIReturnsLatestAndRecentSamples(t *testing.T) {
 	assert.Equal(t, int32(283), latest.Samples[0].Value)
 	assert.Equal(t, "10m0s", latest.Retention.MaxAge)
 	assert.Equal(t, 10_000, latest.Retention.MaxSamples)
+	assert.Equal(t, int64(recentCacheMaxBytes), latest.Retention.MaxBytes)
 
 	recentRecorder := executeLocalDataRequest(
 		t,
@@ -63,6 +64,36 @@ func TestLocalDataAPIReturnsLatestAndRecentSamples(t *testing.T) {
 	assert.Equal(t, 2, recent.Count)
 	require.Len(t, recent.Samples, 2)
 	assert.Equal(t, []int64{now - 2, now - 1}, sampleOrigins(recent.Samples))
+}
+
+func TestLocalDataAPIStatsReportsAllocationAndEvictions(t *testing.T) {
+	cache := newRecentCache(recentCacheMaxAge, 1)
+	cache.append("device", "resource", cachedSample{
+		Origin:    1,
+		ValueType: common.ValueTypeInt32,
+		Value:     1,
+	})
+	cache.append("device", "resource", cachedSample{
+		Origin:    2,
+		ValueType: common.ValueTypeInt32,
+		Value:     2,
+	})
+	api := newLocalDataAPI(cache, func(deviceName string, resourceName string) bool { return true })
+
+	recorder := executeLocalDataRequest(t, api.stats, statsRoute, "", "")
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	response := decodeLocalDataStatsResponse(t, recorder)
+	assert.Equal(t, "v3", response.APIVersion)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "10m0s", response.Retention.MaxAge)
+	assert.Equal(t, 1, response.Retention.MaxSamples)
+	assert.Equal(t, int64(recentCacheMaxBytes), response.Retention.MaxBytes)
+	assert.Equal(t, 1, response.Series)
+	assert.Equal(t, 1, response.Samples)
+	assert.Positive(t, response.SlotBytes)
+	assert.LessOrEqual(t, response.AllocatedBytes, response.Retention.MaxBytes)
+	assert.Equal(t, int64(1), response.Evictions.SeriesLimit)
+	assert.Equal(t, response.Evictions.Total, response.Evictions.SeriesLimit)
 }
 
 func TestLocalDataAPIRecentReturnsEmptyArrayForKnownSource(t *testing.T) {
@@ -218,6 +249,13 @@ func decodeLocalDataResponse(t *testing.T, recorder *httptest.ResponseRecorder) 
 func decodeLocalDataErrorResponse(t *testing.T, recorder *httptest.ResponseRecorder) localDataErrorResponse {
 	t.Helper()
 	var response localDataErrorResponse
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	return response
+}
+
+func decodeLocalDataStatsResponse(t *testing.T, recorder *httptest.ResponseRecorder) localDataStatsResponse {
+	t.Helper()
+	var response localDataStatsResponse
 	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
 	return response
 }

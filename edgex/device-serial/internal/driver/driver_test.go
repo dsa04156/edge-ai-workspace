@@ -11,8 +11,10 @@ import (
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces"
 	"github.com/edgexfoundry/device-sdk-go/v4/pkg/interfaces/mocks"
 	sdkModels "github.com/edgexfoundry/device-sdk-go/v4/pkg/models"
+	bootstrapMocks "github.com/edgexfoundry/go-mod-bootstrap/v4/bootstrap/interfaces/mocks"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/common"
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/models"
+	gometrics "github.com/rcrowley/go-metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -20,7 +22,7 @@ import (
 
 func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 2)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -75,7 +77,7 @@ func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 
 func TestDriverRejectsReadBeforeFirstSampleAndAllWrites(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -117,7 +119,7 @@ func TestDriverValidatesDeviceIdentityAndSerialProperties(t *testing.T) {
 
 func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -125,6 +127,9 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 		Return(nil).
 		Once()
 	sdk.On("AddCustomRoute", recentRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
+		Return(nil).
+		Once()
+	sdk.On("AddCustomRoute", statsRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
 		Return(nil).
 		Once()
 	sdk.On("Devices").Return([]models.Device{{
@@ -164,7 +169,7 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 
 func TestDriverStartFailsWhenLocalDataRouteCannotRegister(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -180,7 +185,7 @@ func TestDriverStartFailsWhenLocalDataRouteCannotRegister(t *testing.T) {
 
 func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -221,7 +226,7 @@ func TestDriverDoesNotRestartReaderForUnchangedMetadataUpdate(t *testing.T) {
 
 func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -253,7 +258,7 @@ func TestDriverRemoveStopsReaderAndDiscoveryIsUnsupported(t *testing.T) {
 }
 
 func TestDriverRequiresAsyncReadings(t *testing.T) {
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(false).Once()
 
 	driver := NewDriver()
@@ -262,7 +267,7 @@ func TestDriverRequiresAsyncReadings(t *testing.T) {
 
 func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 3)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -343,7 +348,7 @@ func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 
 func TestDriverFansOutConnectionStateAndClosesAfterLastRoute(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 2)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -382,7 +387,7 @@ func TestDriverFansOutConnectionStateAndClosesAfterLastRoute(t *testing.T) {
 
 func TestDriverAppliesKnownConnectionStateToNewRoute(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -412,7 +417,7 @@ func TestDriverAppliesKnownConnectionStateToNewRoute(t *testing.T) {
 
 func TestDriverRejectsDuplicateResourceBinding(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
-	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk := newTestDeviceServiceSDK(t)
 	sdk.On("AsyncReadingsEnabled").Return(true).Once()
 	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
@@ -434,6 +439,66 @@ func TestDriverRejectsDuplicateResourceBinding(t *testing.T) {
 	)
 	assert.ErrorContains(t, err, "already routed")
 	assert.Equal(t, 1, factory.count())
+}
+
+func TestDriverUsesConfiguredCacheAndRegistersMetrics(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("DriverConfigs").Return(map[string]string{
+		localDataCacheMaxAgeConfig:     "30s",
+		localDataCacheMaxSamplesConfig: "2",
+		localDataCacheMaxBytesConfig:   "4096",
+	}).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	manager := bootstrapMocks.NewMetricsManager(t)
+	registered := make(map[string]interface{})
+	for _, name := range []string{
+		localDataCacheSamplesMetric,
+		localDataCacheSeriesMetric,
+		localDataCacheAllocatedBytesMetric,
+		localDataCacheEvictionsMetric,
+	} {
+		metricName := name
+		manager.On("Register", metricName, mock.Anything, mock.Anything).
+			Run(func(arguments mock.Arguments) {
+				registered[metricName] = arguments.Get(1)
+			}).
+			Return(nil).
+			Once()
+	}
+	sdk.On("MetricsManager").Return(manager).Once()
+
+	driver := newDriver((&recordingReaderFactory{}).create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	stats := driver.cache.stats()
+	assert.Equal(t, 30*time.Second, stats.MaxAge)
+	assert.Equal(t, 2, stats.MaxSamplesPerSeries)
+	assert.Equal(t, int64(4096), stats.MaxBytes)
+
+	for origin := int64(1); origin <= 3; origin++ {
+		driver.cache.append("device", "resource", cachedSample{
+			Origin:    origin,
+			ValueType: common.ValueTypeInt32,
+			Value:     int32(origin),
+		})
+	}
+	assert.Equal(t, int64(2), registered[localDataCacheSamplesMetric].(gometrics.Gauge).Value())
+	assert.Equal(t, int64(1), registered[localDataCacheSeriesMetric].(gometrics.Gauge).Value())
+	assert.Positive(t, registered[localDataCacheAllocatedBytesMetric].(gometrics.Gauge).Value())
+	assert.Equal(t, int64(1), registered[localDataCacheEvictionsMetric].(gometrics.Counter).Count())
+}
+
+func newTestDeviceServiceSDK(t *testing.T) *mocks.DeviceServiceSDK {
+	t.Helper()
+	sdk := mocks.NewDeviceServiceSDK(t)
+	sdk.On("DriverConfigs").Return(map[string]string{}).Maybe()
+	sdk.On("MetricsManager").Return(nil).Maybe()
+	return sdk
 }
 
 func testSerialProtocols(resourceNames ...string) map[string]models.ProtocolProperties {

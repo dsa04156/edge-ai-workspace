@@ -104,9 +104,22 @@ func (driver *Driver) Initialize(sdk interfaces.DeviceServiceSDK) error {
 	if driver.sdk != nil {
 		return errors.New("serial driver is already initialized")
 	}
+	cacheConfig, err := parseRecentCacheConfig(sdk.DriverConfigs())
+	if err != nil {
+		return fmt.Errorf("invalid local data cache configuration: %w", err)
+	}
+	cacheMetrics := newLocalDataCacheMetrics()
+	cache, err := newConfiguredRecentCache(cacheConfig, cacheMetrics.observe)
+	if err != nil {
+		return err
+	}
+	if err := cacheMetrics.register(sdk.MetricsManager()); err != nil {
+		return err
+	}
 	driver.sdk = sdk
 	driver.logger = sdk.LoggingClient()
 	driver.async = async
+	driver.cache = cache
 	driver.ctx, driver.cancel = context.WithCancel(context.Background())
 	return nil
 }
@@ -136,6 +149,14 @@ func (driver *Driver) Start() error {
 		http.MethodGet,
 	); err != nil {
 		return fmt.Errorf("register local recent route: %w", err)
+	}
+	if err := sdk.AddCustomRoute(
+		statsRoute,
+		interfaces.Unauthenticated,
+		api.stats,
+		http.MethodGet,
+	); err != nil {
+		return fmt.Errorf("register local stats route: %w", err)
 	}
 
 	for _, device := range sdk.Devices() {
@@ -392,6 +413,7 @@ func (driver *Driver) handleSample(
 		value      *sdkModels.CommandValue
 	}
 	events := make([]routedEvent, 0, len(sample.Readings))
+	cacheErrors := make([]error, 0)
 
 	driver.mu.Lock()
 	if driver.connections[managed.config.key()] != managed || driver.stopped {
@@ -421,11 +443,19 @@ func (driver *Driver) handleSample(
 			driver.warn("create async serial reading for %s/%s: %v", deviceName, reading.ResourceName, err)
 			return
 		}
-		driver.cache.append(deviceName, reading.ResourceName, cachedSample{
+		if err := driver.cache.appendChecked(deviceName, reading.ResourceName, cachedSample{
 			Origin:    origin,
 			ValueType: common.ValueTypeInt32,
 			Value:     reading.Value,
-		})
+		}); err != nil {
+			cacheErrors = append(cacheErrors, fmt.Errorf(
+				"cache %s/%s: %w",
+				deviceName,
+				reading.ResourceName,
+				err,
+			))
+			continue
+		}
 		events = append(events, routedEvent{
 			deviceName: deviceName,
 			sourceName: sourceName,
@@ -436,6 +466,9 @@ func (driver *Driver) handleSample(
 	ctx := driver.ctx
 	driver.mu.Unlock()
 
+	for _, err := range cacheErrors {
+		driver.warn("discarding serial telemetry: %v", err)
+	}
 	for _, routed := range events {
 		event := &sdkModels.AsyncValues{
 			DeviceName:    routed.deviceName,

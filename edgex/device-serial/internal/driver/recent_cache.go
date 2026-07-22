@@ -1,73 +1,127 @@
 package driver
 
 import (
-	"sort"
-	"sync"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
+
+	localcache "github.com/dsa04156/edge-ai-workspace/edgex/local-data-cache"
 )
 
 const (
 	recentCacheMaxAge     = 10 * time.Minute
 	recentCacheMaxSamples = 10_000
+	recentCacheMaxBytes   = 64 * 1024 * 1024
 	recentDefaultLimit    = 1_000
 )
 
-type cachedSample struct {
-	Origin    int64  `json:"origin"`
-	ValueType string `json:"valueType"`
-	Value     int32  `json:"value"`
-}
+const (
+	localDataCacheMaxAgeConfig     = "LocalDataCacheMaxAge"
+	localDataCacheMaxSamplesConfig = "LocalDataCacheMaxSamplesPerSeries"
+	localDataCacheMaxBytesConfig   = "LocalDataCacheMaxBytes"
+)
 
-type cacheKey struct {
-	deviceName   string
-	resourceName string
+type cachedSample = localcache.Sample[int32]
+
+type recentCacheConfig struct {
+	maxAge     time.Duration
+	maxSamples int
+	maxBytes   int64
 }
 
 type recentCache struct {
-	mu         sync.RWMutex
 	maxAge     time.Duration
 	maxSamples int
-	series     map[cacheKey][]cachedSample
+	maxBytes   int64
+	cache      *localcache.Cache[int32]
+}
+
+func parseRecentCacheConfig(values map[string]string) (recentCacheConfig, error) {
+	config := recentCacheConfig{
+		maxAge:     recentCacheMaxAge,
+		maxSamples: recentCacheMaxSamples,
+		maxBytes:   recentCacheMaxBytes,
+	}
+
+	if raw, found := values[localDataCacheMaxAgeConfig]; found {
+		value, err := time.ParseDuration(strings.TrimSpace(raw))
+		if err != nil || value <= 0 {
+			return recentCacheConfig{}, fmt.Errorf(
+				"%s must be a positive duration",
+				localDataCacheMaxAgeConfig,
+			)
+		}
+		config.maxAge = value
+	}
+	if raw, found := values[localDataCacheMaxSamplesConfig]; found {
+		value, err := strconv.Atoi(strings.TrimSpace(raw))
+		if err != nil || value <= 0 {
+			return recentCacheConfig{}, fmt.Errorf(
+				"%s must be a positive base-10 integer",
+				localDataCacheMaxSamplesConfig,
+			)
+		}
+		config.maxSamples = value
+	}
+	if raw, found := values[localDataCacheMaxBytesConfig]; found {
+		value, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+		if err != nil || value <= 0 {
+			return recentCacheConfig{}, fmt.Errorf(
+				"%s must be a positive base-10 integer",
+				localDataCacheMaxBytesConfig,
+			)
+		}
+		config.maxBytes = value
+	}
+	return config, nil
 }
 
 func newRecentCache(maxAge time.Duration, maxSamples int) *recentCache {
-	if maxAge <= 0 {
-		panic("recent cache max age must be positive")
-	}
-	if maxSamples <= 0 {
-		panic("recent cache max samples must be positive")
-	}
-	return &recentCache{
+	cache, err := newConfiguredRecentCache(recentCacheConfig{
 		maxAge:     maxAge,
 		maxSamples: maxSamples,
-		series:     make(map[cacheKey][]cachedSample),
+		maxBytes:   recentCacheMaxBytes,
+	}, nil)
+	if err != nil {
+		panic(err)
 	}
+	return cache
+}
+
+func newConfiguredRecentCache(
+	config recentCacheConfig,
+	observer localcache.Observer,
+) (*recentCache, error) {
+	cache, err := localcache.New[int32](localcache.Options{
+		MaxAge:              config.maxAge,
+		MaxSamplesPerSeries: config.maxSamples,
+		MaxBytes:            config.maxBytes,
+		Observer:            observer,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create local data cache: %w", err)
+	}
+	return &recentCache{
+		maxAge:     config.maxAge,
+		maxSamples: config.maxSamples,
+		maxBytes:   config.maxBytes,
+		cache:      cache,
+	}, nil
 }
 
 func (cache *recentCache) append(deviceName string, resourceName string, sample cachedSample) {
-	key := cacheKey{deviceName: deviceName, resourceName: resourceName}
-
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
-
-	samples := cache.series[key]
-	insertAt := sort.Search(len(samples), func(index int) bool {
-		return samples[index].Origin > sample.Origin
-	})
-	samples = append(samples, cachedSample{})
-	copy(samples[insertAt+1:], samples[insertAt:])
-	samples[insertAt] = sample
-
-	newestOrigin := samples[len(samples)-1].Origin
-	cutoff := newestOrigin - cache.maxAge.Nanoseconds()
-	firstRetained := sort.Search(len(samples), func(index int) bool {
-		return samples[index].Origin >= cutoff
-	})
-	samples = samples[firstRetained:]
-	if len(samples) > cache.maxSamples {
-		samples = samples[len(samples)-cache.maxSamples:]
+	if err := cache.appendChecked(deviceName, resourceName, sample); err != nil {
+		panic(err)
 	}
-	cache.series[key] = samples
+}
+
+func (cache *recentCache) appendChecked(
+	deviceName string,
+	resourceName string,
+	sample cachedSample,
+) error {
+	return cache.cache.Append(deviceName, resourceName, sample)
 }
 
 func (cache *recentCache) latest(
@@ -75,18 +129,7 @@ func (cache *recentCache) latest(
 	resourceName string,
 	now int64,
 ) (cachedSample, bool) {
-	samples := cache.query(
-		deviceName,
-		resourceName,
-		now-cache.maxAge.Nanoseconds(),
-		now,
-		1,
-		now,
-	)
-	if len(samples) == 0 {
-		return cachedSample{}, false
-	}
-	return samples[0], true
+	return cache.cache.Latest(deviceName, resourceName, now)
 }
 
 func (cache *recentCache) query(
@@ -97,42 +140,13 @@ func (cache *recentCache) query(
 	limit int,
 	now int64,
 ) []cachedSample {
-	cache.mu.RLock()
-	defer cache.mu.RUnlock()
-
-	retentionStart := now - cache.maxAge.Nanoseconds()
-	if from < retentionStart {
-		from = retentionStart
-	}
-	if from > to || limit <= 0 {
-		return []cachedSample{}
-	}
-
-	samples := cache.series[cacheKey{deviceName: deviceName, resourceName: resourceName}]
-	start := sort.Search(len(samples), func(index int) bool {
-		return samples[index].Origin >= from
-	})
-	end := sort.Search(len(samples), func(index int) bool {
-		return samples[index].Origin > to
-	})
-	if start >= end {
-		return []cachedSample{}
-	}
-	if end-start > limit {
-		start = end - limit
-	}
-
-	result := make([]cachedSample, end-start)
-	copy(result, samples[start:end])
-	return result
+	return cache.cache.Query(deviceName, resourceName, from, to, limit, now)
 }
 
 func (cache *recentCache) deleteDevice(deviceName string) {
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
-	for key := range cache.series {
-		if key.deviceName == deviceName {
-			delete(cache.series, key)
-		}
-	}
+	cache.cache.DeleteDevice(deviceName)
+}
+
+func (cache *recentCache) stats() localcache.Stats {
+	return cache.cache.Stats()
 }

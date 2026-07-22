@@ -154,6 +154,57 @@ func TestRecentCacheConcurrentReadWriteRemainsBoundedAndSorted(t *testing.T) {
 	assert.IsNonDecreasing(t, sampleOrigins(got))
 }
 
+func TestParseRecentCacheConfigUsesDefaultsAndRejectsInvalidValues(t *testing.T) {
+	config, err := parseRecentCacheConfig(nil)
+	require.NoError(t, err)
+	assert.Equal(t, recentCacheMaxAge, config.maxAge)
+	assert.Equal(t, recentCacheMaxSamples, config.maxSamples)
+	assert.Equal(t, int64(recentCacheMaxBytes), config.maxBytes)
+
+	for _, test := range []struct {
+		name   string
+		config map[string]string
+		field  string
+	}{
+		{
+			name:   "invalid age",
+			config: map[string]string{"LocalDataCacheMaxAge": "not-a-duration"},
+			field:  "LocalDataCacheMaxAge",
+		},
+		{
+			name:   "zero samples",
+			config: map[string]string{"LocalDataCacheMaxSamplesPerSeries": "0"},
+			field:  "LocalDataCacheMaxSamplesPerSeries",
+		},
+		{
+			name:   "zero bytes",
+			config: map[string]string{"LocalDataCacheMaxBytes": "0"},
+			field:  "LocalDataCacheMaxBytes",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := parseRecentCacheConfig(test.config)
+			assert.ErrorContains(t, err, test.field)
+		})
+	}
+}
+
+func TestRecentCacheReportsBoundedSlotStats(t *testing.T) {
+	cache := newRecentCache(10*time.Minute, 10)
+	cache.append("device", "resource", cachedSample{
+		Origin:    1,
+		ValueType: common.ValueTypeInt32,
+		Value:     42,
+	})
+
+	stats := cache.stats()
+	assert.Equal(t, 1, stats.Series)
+	assert.Equal(t, 1, stats.Samples)
+	assert.Equal(t, int64(recentCacheMaxBytes), stats.MaxBytes)
+	assert.Positive(t, stats.SlotBytes)
+	assert.LessOrEqual(t, stats.AllocatedBytes, stats.MaxBytes)
+}
+
 func sampleOrigins(samples []cachedSample) []int64 {
 	origins := make([]int64, len(samples))
 	for index, sample := range samples {
