@@ -49,6 +49,11 @@ def test_runner_cleans_only_its_run_scoped_pod_and_keeps_json_report():
     assert 'LATEST_REPORT="$REPORT_DIR/latest.json"' in text
 
 
+def test_generated_load_reports_are_not_tracked_as_source():
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert "/artifacts/edgex-loadtest/" in gitignore
+
+
 def test_runner_does_not_use_fixed_network_addresses_or_mutate_operating_manifests():
     text = script()
     assert "192.168." not in text

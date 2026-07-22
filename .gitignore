@@ -44,6 +44,7 @@ mqttvirtual-arm64
 .cache/
 tmp/
 *.tmp
+/artifacts/edgex-loadtest/
 actions-runner/# GitHub Actions runner - sensitive files
 actions-runner/*.tar.gz
 actions-runner/.credentials

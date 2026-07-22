@@ -334,7 +334,7 @@ func (c *HTTPClient) Count(ctx context.Context, deviceName string) (int64, error
 
 func (c *HTTPClient) Delete(ctx context.Context, deviceName string) error {
 	path := "/api/v3/event/device/name/" + url.PathEscape(deviceName)
-	return c.doJSON(ctx, http.MethodDelete, path, nil, http.StatusOK, nil)
+	return c.doJSON(ctx, http.MethodDelete, path, nil, http.StatusAccepted, nil)
 }
 
 func (c *HTTPClient) doJSON(ctx context.Context, method string, path string, payload []byte, expectedStatus int, destination any) error {

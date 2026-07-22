@@ -260,7 +260,8 @@ func TestHTTPClientCountAndDeleteUseExactDeviceRoute(t *testing.T) {
 		case http.MethodGet:
 			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":200,"totalCount":42,"events":[]}`))
 		case http.MethodDelete:
-			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":200}`))
+			w.WriteHeader(http.StatusAccepted)
+			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":202}`))
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
