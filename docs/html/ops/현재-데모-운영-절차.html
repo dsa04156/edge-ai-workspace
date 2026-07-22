@@ -90,6 +90,7 @@
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -103,6 +104,7 @@
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
@@ -139,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 11:09</span>
-            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+            <span class="badge">수정: 2026-07-22 12:25</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -475,6 +477,28 @@ kubectl get --raw \
 <p>정상 기준:</p>
 <ul><li>Serial 6개와 I2C 6개, 총 12개 가상 Device가 서로 다른 inventory 행으로 나타난다.</li><li>각 행의 <code>device_service_name</code>이 <code>device-serial-jetson</code> 또는 <code>device-sensehat-raspi</code>이고 profile과 resource가 계약과 일치한다.</li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code>다.</li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>이고 latest Reading 집합이 각 Profile 계약과 일치한다.</li><li>service demo 응답은 raw inventory와 분리된 derived 결과이며 physical source, Device Service, acceleration Device 3개, AI consumer와 node binding을 포함한다.</li><li>upstream 장애 시 HTTP 200의 <code>mode=unavailable</code>, <code>status=degraded</code>, <code>observation_error</code>를 반환하고 값을 0으로 꾸며내지 않는다.</li></ul>
 <p>Kubernetes node/workload 상태는 별도 진단이며 위 Device availability를 덮어쓰지 않는다.</p>
+<h2 id="8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</h2>
+<p>dashboard는 PostgreSQL에 직접 연결하지 않는다. 브라우저가 <code>state-aggregator</code>의 선택 Device API를 호출하고, <code>state-aggregator</code>가 중앙 EdgeX Core Data API에서 PostgreSQL-backed Event/Reading을 읽는다.</p>
+<pre data-lang="text"><code>Dashboard
+  -&gt; GET /state/devices/{device}/telemetry?window={range}&amp;limit=1000
+  -&gt; state-aggregator
+  -&gt; EdgeX Core Data API
+  -&gt; PostgreSQL</code></pre>
+<p>Core Data의 <code>GET /api/v3/event/device/name/{name}</code>에는 <code>start</code>/<code>end</code> query를 붙이지 않는다. 이 endpoint는 <code>offset</code>/<code>limit</code>만 지원하므로 <code>state-aggregator</code>가 최신 1,000 Event 이내에서 Event <code>origin</code>을 기준으로 <code>window</code>를 적용한다. 5분 결과의 가장 오래된 <code>origin</code>이 요청 시작시각보다 이전이면 정상으로 판정하지 않는다.</p>
+<p>12개 Device의 기본 30분 이력을 API에서 확인한다.</p>
+<pre data-lang="bash"><code>for name in \
+  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
+  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001 \
+  env-sensehat-temperature-01 env-sensehat-humidity-01 env-sensehat-pressure-01 \
+  imu-sensehat-compass-01 imu-sensehat-orientation-01 imu-sensehat-gyroscope-01
+do
+  kubectl get --raw \
+    &quot;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices/${name}/telemetry?window=-30m&amp;limit=1000&quot;
+done</code></pre>
+<p>정상 기준:</p>
+<ul><li>모든 응답은 배열이고 각 Reading의 <code>device_name</code>이 요청 Device와 같다.</li><li><code>source_name</code>, <code>resource_name</code>, <code>value_type</code>, <code>value</code>, <code>timestamp</code>, nanosecond <code>origin</code>과 <code>event_id</code>가 보존된다.</li><li>Serial Device 6개는 각각 계약된 <code>Int32</code> resource series로 분리된다.</li><li>Sense HAT Device 6개는 Profile별 <code>Float64</code> series로 분리되며 temperature는 2개, orientation과 gyroscope는 각각 3개 resource를 표시할 수 있다.</li><li>조회 오류나 빈 결과를 <code>/state/devices</code>의 <code>latest_readings</code>로 대체하지 않는다.</li></ul>
+<p>브라우저에서는 Assets의 Device 행을 선택해 다음을 확인한다.</p>
+<ol><li>선택 직후 기본 <code>30분</code> 이력을 조회한다.</li><li><code>5분</code>, <code>30분</code>, <code>1시간</code>, <code>24시간</code>과 <code>새로고침</code>이 선택 Device에만 적용된다.</li><li>resource별 series, 반환 Reading 수, 실제 첫/마지막 timestamp가 보인다.</li><li><code>최신 1000 events 제한</code> 문구가 보인다. 한 Event에 Reading이 여러 개면 반환 Reading 수는 1,000보다 클 수 있다.</li><li>긴 범위가 최신 1,000 Event로 잘렸을 때 요청한 전체 기간을 모두 읽었다고 해석하지 않는다.</li><li>빠르게 Device나 범위를 바꿔도 이전 요청의 늦은 응답이 현재 선택을 덮어쓰지 않는다.</li><li>조회 중·빈 결과·오류 상태가 각각 구분되고 오류가 다른 Device나 dashboard 전체를 가짜 정상값으로 바꾸지 않는다.</li></ol>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
 <ul><li>Device Service 메모리: Device/resource별 최근 10분·최대 10,000 sample, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: process memory의 최근 최대 1,000건; Pod 재시작 시 초기화, raw history 저장소가 아님</li></ul>
 <p>따라서 각 Device Service와 같은 edge node의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
@@ -496,6 +520,7 @@ kubectl get --raw \
 <li class="toc-h2"><a href="#7a-raspberry-pi-sense-hat-local-data-api">7A. Raspberry Pi Sense HAT Local Data API</a></li>
 <li class="toc-h2"><a href="#7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</a></li>
 <li class="toc-h2"><a href="#8-dashboard-api">8. dashboard API</a></li>
+<li class="toc-h2"><a href="#8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</a></li>
 <li class="toc-h2"><a href="#9-저장과-캐시-경계">9. 저장과 캐시 경계</a></li>
 <li class="toc-h2"><a href="#10-남은-장애-검증">10. 남은 장애 검증</a></li></ol></aside>
     </div>

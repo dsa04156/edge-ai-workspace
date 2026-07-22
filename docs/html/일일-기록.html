@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -103,6 +104,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
@@ -139,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-22 11:28</span>
-            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+            <span class="badge">수정: 2026-07-22 12:25</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -436,6 +438,48 @@
 <ul><li>EdgeX Core Metadata/Core Data/PostgreSQL은 raw inventory·telemetry 권위를 유지하고 AI result는 별도 derived service output으로 둔다.</li><li>첫 데모는 동적 Workflow Builder가 아니라 명시적으로 배포하는 고정 Jetson workload로 제한한다.</li><li>고정 ClusterIP/PodIP/node IP를 설정에 넣지 않고 Service FQDN만 사용한다.</li></ul>
 <h3 id="다음-작업">다음 작업</h3>
 <ul><li>실제 장치를 움직여 anomaly 상태를 발생시키고 정상 복귀까지 현장 화면으로 시연한다.</li><li>Serial 케이블과 Sense HAT 보드 분리·복구를 별도 현장 gate로 검증한다.</li><li>500ms polling보다 높은 주기가 필요한 입력은 push/stream 경로를 별도 설계한다.</li></ul>
+<h3 id="device-저장-이력-dashboard-추가-진행">Device 저장 이력 dashboard 추가 진행</h3>
+<ul><li>Assets의 Device 선택 화면을 중앙 Core Data/PostgreSQL-backed 저장 이력과 연결하고 기본 30분, 5분·1시간·24시간, 새로고침, resource별 series, 반환 Reading 수와 실제 첫/마지막 timestamp를 추가했다.</li><li>EdgeX device Event endpoint가 지원하지 않는 <code>start</code>/<code>end</code> query를 무시하는 동작을 실데이터에서 확인했다. <code>state-aggregator</code>가 최신 1,000 Event를 먼저 읽고 Event <code>origin</code>으로 요청 시간창을 적용하도록 수정했다.</li><li>AMD64 image <code>state-aggregator@sha256:c8b7f192ec88d43510baed079310e4ef62ada44affbd785c149eb29f0ddeb648</code>을 배포했고, 기능 rollout revision <code>c28ce3f7306b9f633a6d7f60f7a6cc8fe92edbf8</code>에서 Argo CD <code>Synced/Healthy/Succeeded</code>와 Pod Ready/restart 0을 확인했다.</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>12개 5분 이력</td>
+<td>PASS</td>
+<td>Serial 6개는 각각 294~295 Event/Reading, Sense HAT 6개는 각각 300 Event를 반환했고 모든 Reading <code>origin</code>이 요청 시작 이후였다.</td>
+</tr>
+<tr>
+<td>다중 resource</td>
+<td>PASS</td>
+<td>Sense HAT temperature 2개 resource는 600 Reading, orientation/gyroscope 각 3개 resource는 900 Reading으로 독립 series를 반환했다.</td>
+</tr>
+<tr>
+<td>긴 범위 상한</td>
+<td>PASS</td>
+<td>Serial temperature의 30분·1시간·24시간은 최신 1,000 Event와 약 1,016초 실제 구간, orientation은 3,000 Reading과 약 999초 실제 구간을 표시했다.</td>
+</tr>
+<tr>
+<td>browser</td>
+<td>PASS</td>
+<td>Firefox에서 Serial 5분/24시간과 Sense HAT orientation 3-series를 확인했고, 1280px·390px 가로 넘침 없음, console error/warning 0이었다.</td>
+</tr>
+<tr>
+<td>조회 권위</td>
+<td>PASS</td>
+<td>dashboard → <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로만 사용하고 dashboard/aggregator의 PostgreSQL 직접 연결은 없다.</td>
+</tr>
+<tr>
+<td>EdgeX/EdgeMesh</td>
+<td>무변경</td>
+<td><code>edgex-telemetry</code> revision <code>668e2fb57df613313b0550771c556f0386449595</code> 유지, EdgeMesh generation/observed 14와 5/5 Ready 유지.</td>
+</tr>
+</tbody></table></div>
+<h3 id="저장-이력-이슈-결정">저장 이력 이슈 / 결정</h3>
+<ul><li>24시간 버튼은 24시간 전체 보존 결과를 보장하지 않는다. 최신 1,000 Event 상한과 화면의 실제 구간을 함께 해석한다.</li><li>로컬 최근 cache는 엣지 Workflow용이고 dashboard 저장 이력은 중앙 Core Data용이라는 책임 분리를 유지한다.</li><li>오류·빈 결과는 latest Reading으로 대체하지 않으며, 늦게 끝난 이전 Device/범위 요청이 현재 선택을 덮어쓰지 않는다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

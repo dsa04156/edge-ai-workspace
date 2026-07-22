@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=reference-console-20260622"
+    refactor_link = "/static/dashboard-refactor.css?v=device-history-20260722"
     screen_link = "/static/dashboard-screen.css?v=edgex-cutover-20260714"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
@@ -165,6 +165,24 @@ def test_dashboard_refactor_upgrades_telemetry_history_chart() -> None:
     assert ".chart-latest-marker" in css
     assert ".chart-time-tick" in css
     assert "aspect-ratio: 16 / 7;" in css
+
+
+def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+    show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
+
+    assert "/static/dashboard-refactor.css?v=device-history-20260722" in html
+    assert "/static/dashboard.js?v=device-history-20260722" in html
+    assert "renderDeviceTelemetryHistory(history)" in show_device
+    assert "renderTelemetryChart(device.latest_readings" not in show_device
+    assert "void loadDeviceTelemetryHistory(device);" in js
+    assert 'target?.closest?.("[data-telemetry-window]")' in js
+    assert 'target?.closest?.("[data-telemetry-refresh]")' in js
+    assert ".telemetry-history-toolbar" in css
+    assert ".telemetry-history-state" in css
+    assert ".telemetry-history-meta" in css
 
 
 def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_assets() -> None:

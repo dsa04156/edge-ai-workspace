@@ -410,6 +410,106 @@ button {
   min-width: 0;
 }
 
+.telemetry-history-shell {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.telemetry-history-toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.telemetry-history-ranges {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.telemetry-history-ranges button,
+.telemetry-history-refresh {
+  min-height: 30px;
+  border: 1px solid var(--console-border, #c8d8df);
+  border-radius: 4px;
+  background: var(--console-control, #eef4f6);
+  color: var(--console-muted, #526879);
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.telemetry-history-ranges button[aria-pressed="true"] {
+  border-color: var(--console-green, #087f5b);
+  background: rgba(34, 197, 94, 0.16);
+  color: var(--console-green, #087f5b);
+  box-shadow: inset 0 -2px 0 var(--console-green, #087f5b);
+}
+
+.telemetry-history-refresh {
+  flex: 0 0 auto;
+}
+
+.telemetry-history-source {
+  margin: 0;
+  color: var(--console-muted, var(--ops-muted));
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-history-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.side-rail .telemetry-history-meta span {
+  min-width: 0;
+  border: 1px solid var(--console-border, #d9e6eb);
+  border-radius: 4px;
+  background: var(--console-row, #f7fafb);
+  color: var(--console-muted, var(--ops-muted));
+  padding: 6px 8px;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.side-rail .telemetry-history-meta span:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.telemetry-history-state {
+  display: grid;
+  min-height: 140px;
+  place-items: center;
+  gap: 6px;
+  border: 1px dashed var(--console-border, #d3e1e7);
+  border-radius: 8px;
+  background: var(--console-row, #f8fbfc);
+  color: var(--console-muted, var(--ops-muted));
+  padding: 18px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-history-state strong,
+.telemetry-history-state span {
+  display: block;
+}
+
+.telemetry-history-state.error {
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.telemetry-history-state.error strong {
+  color: var(--console-red, #b42318);
+}
+
 .telemetry-chart {
   display: grid;
   gap: 12px;
@@ -1345,6 +1445,20 @@ code {
 
   .telemetry-summary-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .telemetry-history-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telemetry-history-ranges {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .telemetry-history-refresh {
+    width: 100%;
   }
 
   .telemetry-chart .chart-head {
