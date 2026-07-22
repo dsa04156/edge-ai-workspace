@@ -2,6 +2,12 @@ Writable:
   LogLevel: INFO
   Reading:
     ReadingUnits: true
+  Telemetry:
+    Metrics:
+      LocalDataCacheSamples: true
+      LocalDataCacheSeries: true
+      LocalDataCacheAllocatedBytes: true
+      LocalDataCacheEvictions: true
 
 Service:
   Host: localhost
@@ -16,6 +22,11 @@ MessageBus:
   Host: edgex-messagebus
   Optional:
     ClientId: device-serial-jetson
+
+Driver:
+  LocalDataCacheMaxAge: "10m"
+  LocalDataCacheMaxSamplesPerSeries: "10000"
+  LocalDataCacheMaxBytes: "67108864"
 
 MaxConcurrentCommands: 16
 

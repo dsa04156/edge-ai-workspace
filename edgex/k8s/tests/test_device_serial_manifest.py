@@ -103,6 +103,18 @@ def test_serial_configmap_is_identical_to_canonical_sdk_resources() -> None:
         ).read_text(),
     }
     assert configmap["data"] == expected
+    configuration = yaml.safe_load(configmap["data"]["configuration.yaml"])
+    assert configuration["Driver"] == {
+        "LocalDataCacheMaxAge": "10m",
+        "LocalDataCacheMaxSamplesPerSeries": "10000",
+        "LocalDataCacheMaxBytes": "67108864",
+    }
+    assert configuration["Writable"]["Telemetry"]["Metrics"] == {
+        "LocalDataCacheSamples": True,
+        "LocalDataCacheSeries": True,
+        "LocalDataCacheAllocatedBytes": True,
+        "LocalDataCacheEvictions": True,
+    }
 
 
 def test_serial_deployment_mounts_only_virtual_device_resources() -> None:

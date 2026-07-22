@@ -60,6 +60,18 @@ def test_sensehat_configmap_matches_canonical_sdk_resources() -> None:
         ).read_text(),
     }
     assert configmaps[0]["data"] == expected
+    configuration = yaml.safe_load(configmaps[0]["data"]["configuration.yaml"])
+    assert configuration["Driver"] == {
+        "LocalDataCacheMaxAge": "10m",
+        "LocalDataCacheMaxSamplesPerSeries": "10000",
+        "LocalDataCacheMaxBytes": "67108864",
+    }
+    assert configuration["Writable"]["Telemetry"]["Metrics"] == {
+        "LocalDataCacheSamples": True,
+        "LocalDataCacheSeries": True,
+        "LocalDataCacheAllocatedBytes": True,
+        "LocalDataCacheEvictions": True,
+    }
 
 
 def test_sensehat_deployment_owns_only_exact_i2c_device_on_raspberry_pi() -> None:
