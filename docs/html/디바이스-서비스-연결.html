@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -102,6 +103,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -137,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-07-21 20:10</span>
-            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
+            <span class="badge">수정: 2026-07-22 10:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
           </div>
         </header>
         <div class="doc-body">
@@ -315,6 +317,59 @@
 <h2 id="정상-바인딩-판단">정상 바인딩 판단</h2>
 <ol><li><code>source=edgex</code>다.</li><li>profile, Device Service, protocol 필드가 비어 있지 않다.</li><li><code>admin_state</code>가 잠금 상태가 아니고 <code>operating_state=UP</code>이다.</li><li>Device Service가 실제 endpoint 연결 상태를 보고한다.</li><li>최신 Event가 존재하고 <code>telemetry_freshness=fresh</code>다.</li><li><code>latest_readings</code>가 기대한 resource와 value type을 포함한다.</li><li>필요한 consumer가 같은 device identity를 사용한다.</li></ol>
 <p>Device Service가 UP이어도 Event가 <code>stale</code> 또는 <code>no_events</code>이면 <code>degraded</code>다. 잠금 또는 DOWN 상태는 <code>unavailable</code>이다.</p>
+<h2 id="실측-센서-서비스-데모-consumer-계약">실측 센서 서비스 데모 consumer 계약</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>현재 계약</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>physical source</td>
+<td><code>arduino-001</code></td>
+</tr>
+<tr>
+<td>Device Service</td>
+<td><code>device-serial-jetson</code></td>
+</tr>
+<tr>
+<td>input Devices</td>
+<td><code>virtual-acceleration-x-001</code>, <code>virtual-acceleration-y-001</code>, <code>virtual-acceleration-z-001</code></td>
+</tr>
+<tr>
+<td>input resources</td>
+<td><code>acceleration_x_raw</code>, <code>acceleration_y_raw</code>, <code>acceleration_z_raw</code></td>
+</tr>
+<tr>
+<td>consumer</td>
+<td><code>sensor-anomaly-demo</code> Deployment, <code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>discovery</td>
+<td><code>http://device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>; 고정 ClusterIP/PodIP/node IP 없음</td>
+</tr>
+<tr>
+<td>ingest method</td>
+<td>Local Data API recent 조회, 500ms polling, 축별 cursor와 같은 <code>origin</code> frame join</td>
+</tr>
+<tr>
+<td>detector</td>
+<td><code>online-gaussian-baseline-v1</code>, warm-up 30, threshold 4.0, anomaly 2연속, clear 3연속</td>
+</tr>
+<tr>
+<td>service API</td>
+<td><code>/api/v1/status</code>, <code>/api/v1/results</code>; read-only derived output</td>
+</tr>
+<tr>
+<td>central view</td>
+<td><code>state-aggregator</code> <code>/state/service-demo</code> → dashboard panel</td>
+</tr>
+<tr>
+<td>raw authority/history</td>
+<td>EdgeX Core Metadata/Core Data/PostgreSQL; AI 결과가 raw Device를 대체하지 않음</td>
+</tr>
+</tbody></table></div>
+<p>세 축 중 하나라도 같은 <code>origin</code>에 없으면 추론 frame으로 처리하지 않는다. pending frame은 10초·1,000개로 제한하고 중복 origin은 무시한다. Local Data 호출이 3회 연속 실패하거나 최신 origin이 10초보다 오래되면 service status는 <code>degraded</code>다. 이 바인딩은 고정 서비스 Deployment의 읽기 전용 소비 계약이며 동적 Workflow Builder 실행, EdgeX metadata mutation, command publish 또는 actuator 제어를 활성화하지 않는다.</p>
 <h2 id="프로토콜별-승격-gate">프로토콜별 승격 gate</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -356,7 +411,7 @@
 </tbody></table></div>
 <p>후속 프로토콜은 profile 초안이나 과거 fixture만으로 현재 binding에 포함하지 않는다.</p>
 <h2 id="workflow-경계">workflow 경계</h2>
-<p>현재 Workflow Builder는 EdgeX Device 목록과 resource를 조회해 browser 안에서 bind/release dry-run, validation과 execution plan preview만 제공할 수 있다. 실제 Workflow Pod가 별도 실행 경로로 해당 Device Service와 같은 edge node에 배치되면 Service FQDN의 <code>/api/v3/localdata/device/name/{device}/resource/name/{resource}</code>를 사용해 최근 구간을 읽을 수 있다. 해당 Pod에는 정책 의도를 나타내는 <code>edge-ai.io/local-data-client=true</code> label을 붙인다. 현재 Flannel CNI에서는 NetworkPolicy가 강제되지 않으므로 이 label은 보안 경계가 아니다.</p>
+<p>현재 Workflow Builder는 EdgeX Device 목록과 resource를 조회해 browser 안에서 bind/release dry-run, validation과 execution plan preview만 제공할 수 있다. <code>sensor-anomaly-demo</code>는 별도 Argo CD Application으로 배치하는 고정 consumer의 첫 사례이며 Builder가 동적으로 생성한 Pod가 아니다. 같은 node의 consumer는 Service FQDN의 <code>/api/v3/localdata/device/name/{device}/resource/name/{resource}</code>를 사용해 최근 구간을 읽고 <code>edge-ai.io/local-data-client=true</code> label로 정책 의도를 표시한다. 현재 Flannel CNI에서는 NetworkPolicy가 강제되지 않으므로 이 label은 보안 경계가 아니다.</p>
 <p>이 Local Data API 구현이 Workflow Builder의 Kubernetes apply/delete/restart, EdgeX metadata mutation, command publish, actuator command, runtime migration/offloading을 활성화한 것은 아니다.</p>
         </div>
       </article>
@@ -366,6 +421,7 @@
 <li class="toc-h2"><a href="#첫-수직-슬라이스-계약">첫 수직 슬라이스 계약</a></li>
 <li class="toc-h2"><a href="#sense-hat-i2c-수직-슬라이스-계약">Sense HAT I2C 수직 슬라이스 계약</a></li>
 <li class="toc-h2"><a href="#정상-바인딩-판단">정상 바인딩 판단</a></li>
+<li class="toc-h2"><a href="#실측-센서-서비스-데모-consumer-계약">실측 센서 서비스 데모 consumer 계약</a></li>
 <li class="toc-h2"><a href="#프로토콜별-승격-gate">프로토콜별 승격 gate</a></li>
 <li class="toc-h2"><a href="#workflow-경계">workflow 경계</a></li></ol></aside>
     </div>

@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -102,6 +103,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -137,15 +139,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-21 20:20</span>
-            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
+            <span class="badge">수정: 2026-07-22 10:43</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-데모-경로">현재 데모 경로</h1>
 <p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="상태-요약">상태 요약</h2>
-<p>2026-07-21 현재 중앙 EdgeX는 <code>etri-ser0002-cgnmsb</code>에 유지되고, 기존 커스텀 edge Agent 두 개는 퇴역했다. Jetson의 <code>device-serial-jetson</code>과 Raspberry Pi의 <code>device-sensehat-raspi</code>는 정식 EdgeX Device SDK 기반이며, 실제 Serial/I2C source를 각각 한 번 읽고 기능별 가상 Device 6개씩으로 전달한다.</p>
+<p>2026-07-22 현재 중앙 EdgeX는 <code>etri-ser0002-cgnmsb</code>에 유지되고, 기존 커스텀 edge Agent 두 개는 퇴역했다. Jetson의 <code>device-serial-jetson</code>과 Raspberry Pi의 <code>device-sensehat-raspi</code>는 정식 EdgeX Device SDK 기반이며, 실제 Serial/I2C source를 각각 한 번 읽고 기능별 가상 Device 6개씩으로 전달한다. 첫 AI consumer는 같은 Jetson에 고정 배치하는 <code>sensor-anomaly-demo</code>다.</p>
 <pre data-lang="text"><code>[현재 배포]
 
 etri-ser0002-cgnmsb
@@ -167,6 +169,11 @@ edgex-edge
       ├─ 10분 / 10,000 sample memory recent cache
       ├─ latest / recent Local Data API
       └─ 최소 ingress/egress NetworkPolicy
+  ├─ sensor-anomaly-demo @ etri-dev0001-jetorn
+      ├─ acceleration X/Y/Z Local Data 500ms polling
+      ├─ 같은 origin frame join
+      ├─ online Gaussian baseline 변화 탐지
+      └─ read-only status/results API
   └─ device-sensehat-raspi @ etri-dev0003-raspi5
       ├─ /dev/i2c-1 (exact CharDevice mount)
       ├─ RTIMULib reader process 1개
@@ -182,12 +189,15 @@ KubeEdge
 <ul><li><code>edgex-edge-agent-jetson</code></li><li><code>edgex-edge-agent-sensehat</code></li><li>두 Agent의 2GiB SQLite outbox PVC</li><li>Agent contract ConfigMap과 전용 egress NetworkPolicy</li><li><code>edge-telemetry-agent</code>, <code>etri-sensehat</code>, <code>sensehat-001</code>을 재등록하던 Metadata bootstrap manifest</li></ul>
 <p>Agent 이름이 붙은 기존 Secret과 중앙 gateway 인증 설정은 중앙 구성 호환을 위해 남아 있지만 현재 Serial/I2C 경로에는 참여하지 않는다. 이 Secret이 남아 있다는 사실은 Agent가 배포되어 있다는 뜻이 아니다.</p>
 <h2 id="현재-서비스-데모-경로">현재 서비스 데모 경로</h2>
-<p>현재 수직 슬라이스는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C 두 종류다. 아래 cache 가지는 read-only Local Data API의 소비 계약이며 현재 Workflow Pod 실제 배포나 동적 실행을 뜻하지 않는다.</p>
+<p>현재 수직 슬라이스는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C 두 종류다. Jetson acceleration 세 Device에는 첫 고정 AI consumer가 연결된다. 이는 Argo CD가 관리하는 명시적 Deployment이며 Workflow Builder의 동적 실행을 뜻하지 않는다.</p>
 <pre data-lang="text"><code>Arduino sensor
   -&gt; /dev/serial/by-id/... on etri-dev0001-jetorn
   -&gt; /dev/arduino-001 in device-serial-jetson
   -&gt; resource route / 6 virtual Devices
-     +-&gt; memory recent cache -&gt; same-node Workflow Pod (read-only 계약, 실제 배포 없음)
+     +-&gt; acceleration X/Y/Z memory recent cache
+     |   -&gt; sensor-anomaly-demo @ same Jetson (500ms polling)
+     |   -&gt; origin join -&gt; online baseline score
+     |   -&gt; state-aggregator / service demo dashboard
   -&gt; Device별 EdgeX async Event / Reading
   -&gt; 중앙 internal MessageBus
   -&gt; Core Data / PostgreSQL
@@ -197,7 +207,7 @@ Sense HAT v1
   -&gt; /dev/i2c-1 on etri-dev0003-raspi5
   -&gt; RTIMULib reader in device-sensehat-raspi
   -&gt; resource group route / 6 virtual Devices
-     +-&gt; memory recent cache -&gt; same-node Workflow Pod (read-only 계약, 실제 배포 없음)
+     +-&gt; memory recent cache -&gt; same-node consumer (read-only 계약, 현재 별도 consumer 없음)
   -&gt; Device별 EdgeX async Event / Reading
   -&gt; 중앙 internal MessageBus
   -&gt; Core Data / PostgreSQL
@@ -238,8 +248,16 @@ Sense HAT v1
 <td>Device Service와 AI workload 배치·상태 관리</td>
 </tr>
 <tr>
+<td><code>sensor-anomaly-demo</code></td>
+<td>세 acceleration Device의 같은-origin raw frame을 로컬에서 읽고 변화 점수·상태를 read-only API로 제공</td>
+</tr>
+<tr>
+<td><code>state-aggregator</code></td>
+<td>EdgeX raw authority와 service demo derived result를 서로 다른 endpoint에서 failure-isolated 조회</td>
+</tr>
+<tr>
 <td>dashboard</td>
-<td>Metadata 상태와 최신 Event freshness를 통합 표시</td>
+<td>Metadata 상태와 최신 Event freshness, Jetson service demo binding/result를 구분해 표시</td>
 </tr>
 </tbody></table></div>
 <h2 id="mqtt와-messagebus-경계">MQTT와 MessageBus 경계</h2>
@@ -259,7 +277,7 @@ GET /api/v3/device/name/{deviceName}/{commandName}
 edge node 로컬 최신값/최근 구간:
 GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}/latest
 GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={n}</code></pre>
-<p>Local Data API는 최근 10분·시계열별 최대 10,000 sample의 휘발성 cache만 조회하며 중앙 history로 fallback하지 않는다. 고주기 연속 stream과 카메라 frame을 이 REST API나 Core Data GET polling으로 소비하지 않는다. 실시간 AI 입력은 Device Service의 검증된 stream 경로나 RTSP 직접 구독을 별도 설계하고, EdgeX에는 inventory, 상태, command와 필요한 Event/Reading을 남긴다.</p>
+<p>Local Data API는 최근 10분·시계열별 최대 10,000 sample의 휘발성 cache만 조회하며 중앙 history로 fallback하지 않는다. 첫 서비스 데모는 이 API를 500ms polling해 실시간에 가까운 저주기 센서 입력을 소비한다. 이는 push stream이 아니며 고주기 진동 연속 stream과 카메라 frame을 같은 REST polling으로 소비하지 않는다. 그런 입력은 Device Service의 검증된 stream 경로나 RTSP 직접 구독을 별도 설계하고, EdgeX에는 inventory, 상태, command와 필요한 Event/Reading을 남긴다.</p>
 <p>Workflow client label을 선택하는 NetworkPolicy는 manifest에 있지만 현재 테스트베드의 Flannel CNI가 이를 집행하지 않는다. Local Data API는 unauthenticated read-only endpoint이며 label 없는 Pod의 live 접근도 확인됐다. 따라서 현재 label은 보안 경계가 아니고, 실제 차단에는 정책 지원 CNI 또는 mTLS/애플리케이션 인증이 필요하다.</p>
 <h2 id="현재-완료와-미완료">현재 완료와 미완료</h2>
 <div class="table-wrap"><table>
@@ -301,6 +319,14 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 <td>Serial/I2C Device와 resource 분리, 10분·10,000 sample retention과 latest/recent 계약 live PASS; Pod 재시작 시 초기화</td>
 </tr>
 <tr>
+<td>Jetson 센서 이상 탐지 service</td>
+<td>코드·manifest·API·detector 상태 전이 테스트 PASS; 실제 증가 origin과 중앙 readback은 live rollout gate</td>
+</tr>
+<tr>
+<td>detector 의미</td>
+<td>online 통계 baseline 변화 탐지; 학습된 고장 분류기 아님. 실제 장치 움직임 anomaly 시연은 미완료</td>
+</tr>
+<tr>
 <td>SQLite outbox/offline replay</td>
 <td>없음; 중앙 단절 중 미전송 Event 재전송을 보장하지 않음</td>
 </tr>
@@ -323,7 +349,7 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 </tbody></table></div>
 <h2 id="완료-판정">완료 판정</h2>
 <p>정상 수집 경로는 다음 1, 2, 3, 5와 read-only command까지 같은 배포에서 확인했다. 완전한 장애·복구 데모를 PASS로 선언하려면 4를 실제 장치에서 추가 확인한다.</p>
-<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li></ol>
+<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li><li><code>sensor-anomaly-demo</code>와 중앙 <code>/state/service-demo</code>가 같은 세 Device identity와 증가하는 실제 origin을 반환한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태-요약">상태 요약</a></li>

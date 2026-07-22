@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -102,6 +103,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -137,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-07-21 20:15</span>
-            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
+            <span class="badge">수정: 2026-07-22 10:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
           </div>
         </header>
         <div class="doc-body">
@@ -162,11 +164,15 @@
   -&gt; dashboard / service demo view</code></pre>
 <p>RTSP frame은 이 telemetry 경로에 넣지 않고 요청 시 Workflow Pod가 직접 구독한다. 카메라 상태와 분석 결과 metadata만 canonical Event로 전달한다. MQTT는 MQTT-only 장비나 명시적 local pub/sub 요구가 실제로 확인된 뒤 별도 Protocol Adapter로 검증한다. 현재 MQTT workload는 없다. 중앙 EdgeX internal MessageBus는 stock Core runtime 내부 구성이지 물리 노드의 northbound 전송 경로가 아니다.</p>
 <p>KubeEdge는 edge node와 workload 관리에만 사용한다. MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus와 mapper direct-to-Influx는 legacy physical integration 경로이며 병행 status/control plane 또는 fallback으로 사용하지 않는다.</p>
-<p>2026-07-21 현재 기존 direct Agent/SQLite outbox/aggregate Metadata bootstrap은 퇴역했다. <code>edgex-edge</code>의 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service/Profile/Device는 실제 Event/Reading, read-only command, Local Data API와 state-aggregator/dashboard freshness까지 정상 경로를 종단간 검증했다. 다음 검증은 실제 장치 분리·복구이며, Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
+<p>2026-07-21 현재 기존 direct Agent/SQLite outbox/aggregate Metadata bootstrap은 퇴역했다. <code>edgex-edge</code>의 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service/Profile/Device는 실제 Event/Reading, read-only command, Local Data API와 state-aggregator/dashboard freshness까지 정상 경로를 종단간 검증했다.</p>
+<p>2026-07-22 첫 서비스 데모 consumer로 <code>sensor-anomaly-demo</code>를 구현했다. 같은 Jetson에서 acceleration X/Y/Z Local Data API를 500ms polling하고 같은 <code>origin</code> frame만 결합해 <code>online-gaussian-baseline-v1</code> 변화 점수를 계산한다. 중앙 <code>state-aggregator</code>와 dashboard는 이 결과와 physical source → Device Service → Device 3개 → AI consumer binding을 read-only로 표시한다. 이는 고정 Deployment이며 browser-local Workflow Builder의 동적 orchestration이나 학습된 고장 분류기 구현 완료를 뜻하지 않는다.</p>
+<p>다음 검증은 실제 증가 raw origin의 live inference/central readback, 실제 장치 움직임 anomaly 현장 시연과 장치 분리·복구다. Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
 <h2 id="현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</h2>
 <p>다음 경로는 현재 연구 방향에서 진행하지 않는다. 새 문서나 발표자료에서 현재 예정된 기능처럼 표현하지 않는다.</p>
 <ul><li>동적 workflow 분해/실행</li><li>runtime replanning</li><li>placement engine 기반 자동 재배치</li><li>cost model 기반 offloading 판단</li><li>workflow_executor 중심 orchestration</li><li>workflow_reporter 중심 stage event pipeline</li><li>agent-assisted planning layer</li><li>LLM이 전체 플랫폼 제어를 수행하는 구조</li><li>전체 플랫폼 자율 제어형 orchestration</li></ul>
 <p>위 항목들은 필요한 경우 과거 검토/실험 자료 또는 archive로만 다룬다.</p>
+<h2 id="첫-서비스-데모-완료-gate">첫 서비스 데모 완료 gate</h2>
+<ol><li><code>sensor-anomaly-demo</code>가 <code>etri-dev0001-jetorn</code>에서 Ready이고 immutable ARM64 image를 실행한다.</li><li>Service FQDN으로 <code>device-serial-jetson</code> Local Data API를 사용하며 고정 IP 경로가 없다.</li><li><code>/api/v1/status</code>를 두 번 조회할 때 세 acceleration Device identity가 같고 <code>latest.origin</code>과 <code>framesProcessed</code>가 증가한다.</li><li>model은 30 sample warm-up 뒤 <code>ready</code>이고 score가 유한하다.</li><li>중앙 <code>/state/service-demo</code>와 dashboard가 같은 derived result를 표시하고 관측 실패 때 가짜 0을 만들지 않는다.</li><li>EdgeX <code>/state/devices</code>의 세 raw Device가 계속 <code>available</code>·<code>fresh</code>이며 AI 결과가 physical inventory 권위를 대체하지 않는다.</li><li>anomaly/clear 상태 전이는 결정론적 테스트로 검증한다. 실제 장치 움직임 anomaly는 현장 시연 전까지 미완료로 남긴다.</li></ol>
 <h2 id="2차년도-설계-방향">2차년도 설계 방향</h2>
 <p>2차년도 협약 방향에서는 현재 운영 가시화 PoC를 기반으로 다음 설계를 별도 트랙으로 추진한다. 이 내용은 현재 기능 완료 주장이 아니라 설계 및 프로토타입 방향이다.</p>
 <ol><li>물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽 가상디바이스 인스턴스로 표현한다.</li><li>디바이스트윈은 raw telemetry 저장소가 아니라 상태, capability, resource, I/O, workflow binding snapshot으로 둔다.</li><li>AI 서비스를 workflow stage로 분해하고, 가상디바이스를 stage input/output 또는 실행 후보로 동적으로 연결한다.</li><li>웹페이지는 단순 dashboard가 아니라 가상디바이스 풀, twin inspector, workflow canvas, binding/validation, execution plan을 포함하는 워크플로우 통합 개발도구로 설계한다.</li><li><code>test_device.py</code> 기반 가짜 MQTT publisher는 이 방향의 가상디바이스 정의로 사용하지 않고 legacy test 경로로만 취급한다.</li></ol>
@@ -195,6 +201,7 @@
 <li class="toc-h2"><a href="#현재-산출물">현재 산출물</a></li>
 <li class="toc-h2"><a href="#현재-구현-방향">현재 구현 방향</a></li>
 <li class="toc-h2"><a href="#현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</a></li>
+<li class="toc-h2"><a href="#첫-서비스-데모-완료-gate">첫 서비스 데모 완료 gate</a></li>
 <li class="toc-h2"><a href="#2차년도-설계-방향">2차년도 설계 방향</a></li>
 <li class="toc-h2"><a href="#다음-작업-기록-runtime-resource-augmentation-scheduler-v1">다음 작업 기록: Runtime Resource Augmentation Scheduler v1</a></li>
 <li class="toc-h2"><a href="#정리-우선순위">정리 우선순위</a></li>

@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -102,6 +103,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -137,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-21 20:16</span>
-            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
+            <span class="badge">수정: 2026-07-22 10:43</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
           </div>
         </header>
         <div class="doc-body">
@@ -344,6 +346,66 @@
 </tbody></table></div>
 <h3 id="추가-이슈-다음-검증">추가 이슈 / 다음 검증</h3>
 <ul><li>Sense HAT 보드 분리·복구 현장 시연은 아직 남아 있다.</li><li>Modbus와 OPC-UA는 실제 endpoint가 없으므로 구현·실장 검증 완료로 표시하지 않는다.</li><li>EdgeX SDK의 중앙 internal MessageBus 연결은 유지하지만 물리 I2C 입력에 local MQTT broker나 Agent를 사용하지 않는다.</li></ul>
+<h2 id="2026-07-22">2026-07-22</h2>
+<h3 id="오늘-목표">오늘 목표</h3>
+<ul><li>실제 Jetson Arduino 가속도를 사용하는 첫 서비스 데모를 구현하고 디바이스-서비스-AI 연결을 대시보드에 표시한다.</li></ul>
+<h3 id="진행-내용">진행 내용</h3>
+<ul><li><code>sensor-anomaly-demo</code>를 추가해 <code>virtual-acceleration-{x,y,z}-001</code>의 Local Data API를 500ms polling하고 같은 nanosecond <code>origin</code>을 한 frame으로 결합했다.</li><li>30 sample warm-up, threshold 4.0, anomaly 2연속, clear 3연속인 <code>online-gaussian-baseline-v1</code> 변화 탐지기를 구현했다.</li><li>최근 결과 최대 1,000건, pending frame 10초·1,000건, source별 cursor와 중복 제거를 bounded memory로 구현했다.</li><li><code>/healthz</code>, <code>/readyz</code>, <code>/api/v1/status</code>, <code>/api/v1/results</code> read-only API와 Jetson Deployment/Service/NetworkPolicy/Argo CD Application을 추가했다.</li><li><code>state-aggregator</code>에 failure-isolated <code>/state/service-demo</code>를 추가하고 dashboard에 physical source → Device Service → Device 3개 → AI consumer binding, raw X/Y/Z, magnitude, score, origin과 상태를 표시했다.</li><li>실제 센서 입력이 없던 <code>edge-orch-factory-vision-inspection-ai</code> manifest를 현재 Argo CD 목록에서 제거했다. live Application 삭제는 rollout 단계에서 exact resource를 다시 확인한 뒤 수행한다.</li></ul>
+<h3 id="확인한-상태">확인한 상태</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>origin frame join</td>
+<td>PASS</td>
+<td>같은 origin의 X/Y/Z만 처리, 중복·불완전 frame TTL/capacity 테스트 통과</td>
+</tr>
+<tr>
+<td>detector</td>
+<td>PASS</td>
+<td>warm-up, anomaly 2연속, clear 3연속, anomaly baseline 제외와 정상 EWMA 테스트 통과</td>
+</tr>
+<tr>
+<td>Local Data client</td>
+<td>PASS</td>
+<td>FQDN 기본값, source identity, Int32/schema/retention/count/order와 오류 계약 테스트 통과</td>
+</tr>
+<tr>
+<td>service API/runtime</td>
+<td>PASS</td>
+<td>stale/error/degraded/recovery, bounded results와 worker lifecycle 테스트 통과</td>
+</tr>
+<tr>
+<td>state-aggregator</td>
+<td>PASS</td>
+<td>정상 normalize와 backend/schema 장애 격리 테스트 포함 전체 72개 테스트 통과</td>
+</tr>
+<tr>
+<td>dashboard panel</td>
+<td>PASS</td>
+<td>정상/anomaly/unavailable, 비가짜 0, textContent, responsive/status label JS 테스트 7개 통과</td>
+</tr>
+<tr>
+<td>ARM64 image</td>
+<td>BUILD PASS</td>
+<td><code>sensor-anomaly-demo@sha256:1b020fe8acd3562ba5fe2d5f59efa52159aea593a60dcefd8d20da159a762a43</code></td>
+</tr>
+<tr>
+<td>live rollout</td>
+<td>대기</td>
+<td>Git push와 Argo CD exact revision 동기화 뒤 실제 증가 origin/central readback을 기록할 예정</td>
+</tr>
+</tbody></table></div>
+<h3 id="이슈-리스크">이슈 / 리스크</h3>
+<ul><li>500ms REST polling은 push stream이 아니므로 고주기 진동·카메라 입력 경로로 일반화하지 않는다.</li><li>detector는 학습된 고장 분류기가 아니라 online 통계 baseline의 magnitude 변화 탐지다.</li><li>실제 장치를 움직여 anomaly를 발생시키는 현장 시연 전에는 실제 고장 검출 실증으로 표현하지 않는다.</li><li>현재 Flannel CNI에서는 NetworkPolicy label이 접근 제어 경계가 아니다.</li></ul>
+<h3 id="결정-사항">결정 사항</h3>
+<ul><li>EdgeX Core Metadata/Core Data/PostgreSQL은 raw inventory·telemetry 권위를 유지하고 AI result는 별도 derived service output으로 둔다.</li><li>첫 데모는 동적 Workflow Builder가 아니라 명시적으로 배포하는 고정 Jetson workload로 제한한다.</li><li>고정 ClusterIP/PodIP/node IP를 설정에 넣지 않고 Service FQDN만 사용한다.</li></ul>
+<h3 id="다음-작업">다음 작업</h3>
+<ul><li>state-aggregator AMD64 image를 immutable digest로 빌드한다.</li><li>Git revision을 push하고 두 Argo CD Application을 같은 exact revision에 동기화한다.</li><li>실제 증가 raw origin, local/central API 일치, dashboard asset, 기존 12개 Device freshness와 EdgeMesh 무변경을 종단 검증한다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -364,7 +426,12 @@
 <li class="toc-h3"><a href="#결정-사항">결정 사항</a></li>
 <li class="toc-h3"><a href="#다음-작업">다음 작업</a></li>
 <li class="toc-h3"><a href="#sense-hat-i2c-추가-진행">Sense HAT I2C 추가 진행</a></li>
-<li class="toc-h3"><a href="#추가-이슈-다음-검증">추가 이슈 / 다음 검증</a></li></ol></aside>
+<li class="toc-h3"><a href="#추가-이슈-다음-검증">추가 이슈 / 다음 검증</a></li>
+<li class="toc-h2"><a href="#2026-07-22">2026-07-22</a></li>
+<li class="toc-h3"><a href="#오늘-목표">오늘 목표</a></li>
+<li class="toc-h3"><a href="#진행-내용">진행 내용</a></li>
+<li class="toc-h3"><a href="#확인한-상태">확인한 상태</a></li>
+<li class="toc-h3"><a href="#이슈-리스크">이슈 / 리스크</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

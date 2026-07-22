@@ -90,6 +90,7 @@
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -102,6 +103,7 @@
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -137,23 +139,24 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-모델.md</span>
-            <span class="badge">수정: 2026-07-21 20:17</span>
-            <span class="badge">HTML 생성: 2026-07-21 20:26</span>
+            <span class="badge">수정: 2026-07-22 10:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="운영-모델">운영 모델</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>현재 시스템은 중앙 EdgeX Core·PostgreSQL과 KubeEdge 노드·워크로드 관리 기반을 유지한 채, 정식 EdgeX Device Service로 실제 Serial/I2C 장비 2종을 연결한 PoC다. 핵심은 Device Service/Profile/Device와 실제 Event/Reading을 대시보드에서 같은 identity로 해석 가능하게 만드는 것이다.</p>
+<p>현재 시스템은 중앙 EdgeX Core·PostgreSQL과 KubeEdge 노드·워크로드 관리 기반을 유지한 채, 정식 EdgeX Device Service로 실제 Serial/I2C 장비 2종을 연결하고 Jetson 실측 가속도 이상 탐지 서비스 1종을 붙인 PoC다. 핵심은 Device Service/Profile/Device와 실제 Event/Reading, 이를 소비하는 AI service를 대시보드에서 같은 identity로 해석 가능하게 만드는 것이다.</p>
 <h2 id="현재-기준">현재 기준</h2>
 <p>이 프로젝트는 동적 오케스트레이션 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C → 각 Device Service → Core Data → dashboard 수직 슬라이스와 서비스 데모를 운영 관점에서 설명 가능하게 만드는 것이다.</p>
-<ol><li>EdgeX Device Service가 실제 endpoint를 연결하고 typed Event를 만든다.</li><li>Core Data와 PostgreSQL이 Event/Reading을 저장한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li></ol>
+<ol><li>EdgeX Device Service가 실제 endpoint를 연결하고 typed Event를 만든다.</li><li>Core Data와 PostgreSQL이 Event/Reading을 저장한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li><li><code>sensor-anomaly-demo</code>는 Jetson Local Data API에서 acceleration 3축을 500ms polling하고 같은 <code>origin</code> frame의 online baseline 변화 점수를 제공한다.</li></ol>
 <p>2026-07-21 기존 custom edge Agent/SQLite outbox와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 물리 source <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 가상 Device 6개씩의 typed Event로 중앙에 저장한다. Device/resource별 최근 10분·최대 10,000 sample의 휘발성 cache와 same-node Local Data API는 제공하지만 offline replay와 durable outbox는 없다. 현재 Flannel에서는 Local Data API의 client label NetworkPolicy가 강제되지 않는다.</p>
+<p>2026-07-22 <code>sensor-anomaly-demo</code>는 <code>virtual-acceleration-{x,y,z}-001</code>을 첫 실제 service binding으로 사용한다. 결과는 raw physical Device가 아니라 derived service output이며 <code>/state/service-demo</code>로 failure-isolated 조회한다. polling은 push stream이 아니고 detector는 학습된 고장 분류기가 아니다. 실제 장치 움직임에 의한 anomaly 시연 전에는 실제 고장 검출 실증으로 표현하지 않는다.</p>
 <p>짧은 정의:</p>
 <pre data-lang="text"><code>센서 데이터와 엣지 AI 서비스를 실제로 연결하고 운영 상태를 한눈에 보여주는 시스템</code></pre>
 <h2 id="경계">경계</h2>
 <p>현재 모델은 다음을 주장하지 않는다.</p>
-<ul><li>완전 자율형 orchestration</li><li>LLM 기반 인프라 제어</li><li>dynamic offloading이 현재 데모 경로라는 주장</li><li><code>workflow_executor</code> 또는 <code>placement_engine</code>이 현재 데모 제어 컴포넌트라는 주장</li><li>runtime replanning 구현 완료</li><li>node disk backup이나 전체 downstream exactly-once가 구현됐다는 주장</li></ul>
+<ul><li>완전 자율형 orchestration</li><li>LLM 기반 인프라 제어</li><li>dynamic offloading이 현재 데모 경로라는 주장</li><li><code>workflow_executor</code> 또는 <code>placement_engine</code>이 현재 데모 제어 컴포넌트라는 주장</li><li>runtime replanning 구현 완료</li><li>고정 <code>sensor-anomaly-demo</code> Deployment가 동적 Workflow Builder 실행이라는 주장</li><li>online baseline 변화 점수가 학습된 고장 분류 결과라는 주장</li><li>node disk backup이나 전체 downstream exactly-once가 구현됐다는 주장</li></ul>
 <p>Legacy workflow, offloading, selective replanning, agent-assisted planning 자료는 <code>docs/프로젝트-범위.md</code>에서 승격하지 않는 한 과거 맥락 또는 설계 후보로만 본다.</p>
 <h2 id="운영상-의미">운영상 의미</h2>
 <p>새 문서나 기능이 현재 PoC 범위인지 판단할 때 이 페이지를 기준으로 삼는다. 아래 질문에 직접 답하면 현재 경로에 가깝다.</p>
