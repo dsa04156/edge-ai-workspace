@@ -28,6 +28,13 @@ class AxisSource:
     resource_name: str
 
 
+ACCELERATION_SOURCES: tuple[AxisSource, ...] = (
+    AxisSource("x", "virtual-acceleration-x-001", "acceleration_x_raw"),
+    AxisSource("y", "virtual-acceleration-y-001", "acceleration_y_raw"),
+    AxisSource("z", "virtual-acceleration-z-001", "acceleration_z_raw"),
+)
+
+
 class LocalDataClient:
     def __init__(
         self,
