@@ -141,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-22 12:07</span>
-            <span class="badge">HTML 생성: 2026-07-22 12:08</span>
+            <span class="badge">수정: 2026-07-22 12:25</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -284,6 +284,7 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}/late
 GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={n}</code></pre>
 <p>Local Data API는 최근 10분·시계열별 최대 10,000 sample의 휘발성 cache만 조회하며 중앙 history로 fallback하지 않는다. 첫 서비스 데모는 이 API를 500ms polling해 실시간에 가까운 저주기 센서 입력을 소비한다. 이는 push stream이 아니며 고주기 진동 연속 stream과 카메라 frame을 같은 REST polling으로 소비하지 않는다. 그런 입력은 Device Service의 검증된 stream 경로나 RTSP 직접 구독을 별도 설계하고, EdgeX에는 inventory, 상태, command와 필요한 Event/Reading을 남긴다.</p>
 <p>dashboard 저장 그래프는 이 로컬 cache가 아니라 <code>state-aggregator</code>가 중앙 Core Data API를 조회한 결과다. 기본 30분과 5분·1시간·24시간 범위를 제공하며, 최신 1,000 Event 상한 때문에 요청한 전체 범위를 모두 포함하지 않을 수 있다. 화면은 반환 Reading 수와 실제 첫/마지막 timestamp를 함께 표시하고 PostgreSQL에 직접 SQL을 실행하지 않는다.</p>
+<p>Core Data의 device Event endpoint는 시간 query를 지원하지 않으므로 <code>state-aggregator</code>가 최신 1,000 Event를 <code>offset</code>/<code>limit</code>으로 읽고 Event <code>origin</code> 기준으로 선택 범위를 거른다. 따라서 5분 조회는 실제 5분 안의 Event만 반환하고, 24시간 조회는 최신 1,000 Event가 덮는 실제 구간까지만 표시한다.</p>
 <p>Workflow client label을 선택하는 NetworkPolicy는 manifest에 있지만 현재 테스트베드의 Flannel CNI가 이를 집행하지 않는다. Local Data API는 unauthenticated read-only endpoint이며 label 없는 Pod의 live 접근도 확인됐다. 따라서 현재 label은 보안 경계가 아니고, 실제 차단에는 정책 지원 CNI 또는 mTLS/애플리케이션 인증이 필요하다.</p>
 <h2 id="현재-완료와-미완료">현재 완료와 미완료</h2>
 <div class="table-wrap"><table>

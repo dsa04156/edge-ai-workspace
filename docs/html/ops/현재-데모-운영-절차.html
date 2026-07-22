@@ -141,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 12:08</span>
-            <span class="badge">HTML 생성: 2026-07-22 12:08</span>
+            <span class="badge">수정: 2026-07-22 12:25</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -484,6 +484,7 @@ kubectl get --raw \
   -&gt; state-aggregator
   -&gt; EdgeX Core Data API
   -&gt; PostgreSQL</code></pre>
+<p>Core Data의 <code>GET /api/v3/event/device/name/{name}</code>에는 <code>start</code>/<code>end</code> query를 붙이지 않는다. 이 endpoint는 <code>offset</code>/<code>limit</code>만 지원하므로 <code>state-aggregator</code>가 최신 1,000 Event 이내에서 Event <code>origin</code>을 기준으로 <code>window</code>를 적용한다. 5분 결과의 가장 오래된 <code>origin</code>이 요청 시작시각보다 이전이면 정상으로 판정하지 않는다.</p>
 <p>12개 Device의 기본 30분 이력을 API에서 확인한다.</p>
 <pre data-lang="bash"><code>for name in \
   virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
