@@ -23,7 +23,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
     design = (ROOT / "DESIGN.md").read_text()
-    screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
+    screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
     assert "--console-bg: #020617;" in css
     assert "--console-rail: #020617;" in css

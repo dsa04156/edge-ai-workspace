@@ -1,0 +1,30 @@
+Writable:
+  LogLevel: INFO
+  Reading:
+    ReadingUnits: true
+
+Service:
+  Host: localhost
+  Port: 59910
+  StartupMsg: Jetson Arduino serial Device Service started
+
+Clients:
+  core-metadata:
+    Host: edgex-core-metadata
+
+MessageBus:
+  Host: edgex-messagebus
+  Optional:
+    ClientId: device-serial-jetson
+
+MaxConcurrentCommands: 16
+
+Device:
+  AsyncBufferSize: 16
+  ProfilesDir: /res/profiles
+  DevicesDir: /res/devices
+  Discovery:
+    Enabled: false
+    Interval: 30s
+  AutoEvents:
+    SendChangedReadingsOnly: false

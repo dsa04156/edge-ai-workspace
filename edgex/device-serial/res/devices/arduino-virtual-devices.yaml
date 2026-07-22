@@ -1,0 +1,79 @@
+deviceList:
+  - name: virtual-temperature-001
+    profileName: etri-arduino-temperature
+    description: Virtual temperature device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: temperature_raw
+  - name: virtual-light-001
+    profileName: etri-arduino-light
+    description: Virtual light device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: light_raw
+  - name: virtual-magnetic-001
+    profileName: etri-arduino-magnetic
+    description: Virtual magnetic device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: magnetic_raw
+  - name: virtual-acceleration-x-001
+    profileName: etri-arduino-acceleration-x
+    description: Virtual acceleration X device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: acceleration_x_raw
+  - name: virtual-acceleration-y-001
+    profileName: etri-arduino-acceleration-y
+    description: Virtual acceleration Y device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: acceleration_y_raw
+  - name: virtual-acceleration-z-001
+    profileName: etri-arduino-acceleration-z
+    description: Virtual acceleration Z device backed by Arduino Uno on the Jetson edge node
+    labels: [arduino, serial, jetson, virtual-device]
+    tags:
+      physicalDeviceId: arduino-001
+      nodeName: etri-dev0001-jetorn
+    protocols:
+      serial:
+        Port: /dev/arduino-001
+        BaudRate: "115200"
+        DeviceID: arduino-001
+        ResourceName: acceleration_z_raw

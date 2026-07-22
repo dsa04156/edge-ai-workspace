@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import stat
 import subprocess
@@ -13,7 +12,7 @@ import yaml
 
 K8S_DIR = Path(__file__).resolve().parents[1]
 SERVER2_OVERLAY = K8S_DIR / "overlays/testbed/server2"
-EDGE_OVERLAY = K8S_DIR / "overlays/testbed/sensor-gateways"
+EDGE_NAMESPACE_BASE = K8S_DIR / "base/edge-namespace"
 CENTRAL_DEPLOYMENTS = {
     "edgex-core-keeper",
     "edgex-core-metadata",
@@ -23,27 +22,45 @@ CENTRAL_DEPLOYMENTS = {
     "edgex-ingest-gateway",
 }
 CENTRAL_STATEFULSETS = {"edgex-postgres"}
-CENTRAL_JOBS = {"edgex-core-common-config-bootstrapper", "edgex-metadata-bootstrap"}
-EDGE_AGENTS = {
-    "edgex-edge-agent-jetson": "etri-dev0001-jetorn",
-    "edgex-edge-agent-sensehat": "etri-dev0003-raspi5",
+CENTRAL_JOBS = {"edgex-core-common-config-bootstrapper"}
+RETIRED_EDGE_AGENTS = {
+    "edgex-edge-agent-jetson",
+    "edgex-edge-agent-sensehat",
 }
 
 
-def test_operational_entrypoint_selects_https_plane_not_device_mqtt() -> None:
+def test_operational_entrypoint_retires_custom_edge_agents() -> None:
     kustomization = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert kustomization["resources"] == [
         "overlays/testbed/server2",
-        "overlays/testbed/sensor-gateways",
+        "base/edge-namespace",
+        "base/device-serial-jetson",
+        "base/device-sensehat-raspi",
     ]
 
+    resources = _render(K8S_DIR)
+    indexed = _named(resources)
+    workload_names = {item["metadata"]["name"] for item in _workloads(resources)}
+    assert ("Namespace", "edgex-edge") in indexed
+    assert not RETIRED_EDGE_AGENTS & workload_names
+    assert not {
+        name
+        for kind, name in indexed
+        if kind == "PersistentVolumeClaim"
+        and name.startswith("edgex-edge-agent-")
+    }
+    assert ("Job", "edgex-metadata-bootstrap") not in indexed
+    assert ("ConfigMap", "edgex-metadata-contract") not in indexed
+
+
+def test_operational_entrypoint_keeps_central_edgex_without_device_mqtt() -> None:
     resources = _render(K8S_DIR)
     indexed = _named(resources)
     workload_names = {item["metadata"]["name"] for item in _workloads(resources)}
     assert ("Namespace", "edgex-system") in indexed
     assert ("Namespace", "edgex-edge") in indexed
     assert CENTRAL_DEPLOYMENTS <= workload_names
-    assert set(EDGE_AGENTS) <= workload_names
+    assert not RETIRED_EDGE_AGENTS & workload_names
     assert not {name for name in workload_names if "device-mqtt" in name}
 
 
@@ -92,7 +109,7 @@ def server_resources() -> list[dict[str, Any]]:
 
 @pytest.fixture(scope="module")
 def edge_resources() -> list[dict[str, Any]]:
-    return _render(EDGE_OVERLAY)
+    return _render(EDGE_NAMESPACE_BASE)
 
 
 def _named(documents: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, Any]]:
@@ -115,9 +132,6 @@ def _workloads(documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def _pod_spec(workload: dict[str, Any]) -> dict[str, Any]:
     spec = workload["spec"]
     return spec["template"]["spec"] if "template" in spec else spec
-def _template_metadata(workload: dict[str, Any]) -> dict[str, Any]:
-    spec = workload["spec"]
-    return spec["template"]["metadata"] if "template" in spec else workload["metadata"]
 
 
 def _containers(pod_spec: dict[str, Any]) -> list[dict[str, Any]]:
@@ -234,62 +248,16 @@ def test_server2_renders_one_central_edgex_data_plane(
         }
 
 
-def test_metadata_bootstrap_registers_direct_sensehat_contract(
-    server_resources: list[dict[str, Any]],
-) -> None:
-    resources = _named(server_resources)
-    contract = json.loads(
-        resources[("ConfigMap", "edgex-metadata-contract")]["data"]["metadata-contract.json"]
-    )
-    assert contract["service"]["name"] == "edge-telemetry-agent"
-    profiles = {profile["name"]: profile for profile in contract["profiles"]}
-    assert set(profiles) == {"etri-sensehat"}
-    sensehat = profiles["etri-sensehat"]
-    assert "mqtt" not in sensehat["labels"]
-    assert {resource["name"] for resource in sensehat["deviceResources"]} == {
-        "temp_humidity", "temp_pressure", "humidity", "pressure", "compass",
-        "pitch", "roll", "yaw", "gyro_x", "gyro_y", "gyro_z",
-    }
-    devices = {device["name"]: device for device in contract["devices"]}
-    assert set(devices) == {"sensehat-001"}
-    assert devices["sensehat-001"]["profileName"] == "etri-sensehat"
-    assert devices["sensehat-001"]["operatingState"] == "UP"
-    assert devices["sensehat-001"]["protocols"] == {
-        "i2c": {"Bus": "1", "Adapter": "edge-telemetry-agent"}
-    }
-
-    job = resources[("Job", "edgex-metadata-bootstrap")]
-    assert job["metadata"]["annotations"] == {
-        "argocd.argoproj.io/hook": "Sync",
-        "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation,HookSucceeded",
-        "argocd.argoproj.io/sync-wave": "4",
-    }
-    pod = _pod_spec(job)
-    container = _container(job, "metadata-bootstrap")
-    assert container["command"] == ["python", "-m", "telemetry_plane.metadata_bootstrap"]
-    assert container["args"] == [
-        "--metadata-url", "http://edgex-core-metadata:59881",
-        "--contract", "/config/metadata-contract.json",
-        "--messagebus-host", "edgex-messagebus",
-        "--messagebus-port", "1883",
-    ]
-    assert _volume(pod, "metadata-contract")["configMap"]["name"] == "edgex-metadata-contract"
-
-
-def test_edge_overlay_contains_only_per_edge_workloads(
+def test_edge_namespace_base_contains_no_workloads(
     edge_resources: list[dict[str, Any]],
 ) -> None:
     resources = _named(edge_resources)
     workload_names = {resource["metadata"]["name"] for resource in _workloads(edge_resources)}
 
-    assert not workload_names & (CENTRAL_DEPLOYMENTS | CENTRAL_STATEFULSETS | CENTRAL_JOBS)
-    assert {name for name in workload_names if name.startswith("edgex-edge-agent-")} == set(EDGE_AGENTS)
-    assert not {
-        name
-        for name in workload_names
-        if name.startswith("edgex-core-")
-        or "postgres" in name
-        or "messagebus" in name
+    assert not workload_names
+    assert set(resources) == {
+        ("Namespace", "edgex-edge"),
+        ("NetworkPolicy", "edgex-edge-default-deny"),
     }
     assert ("Namespace", "edgex-edge") in resources
     assert all(
@@ -297,28 +265,15 @@ def test_edge_overlay_contains_only_per_edge_workloads(
         or resource["metadata"].get("namespace") == "edgex-edge"
         for resource in edge_resources
     )
-    for name, edge_id in EDGE_AGENTS.items():
-        deployment = resources[("Deployment", name)]
-        pod = _pod_spec(deployment)
-        template_metadata = _template_metadata(deployment)
-        assert deployment["metadata"]["labels"]["app.kubernetes.io/part-of"] == "edgex-telemetry-edge"
-        assert template_metadata["labels"]["app.kubernetes.io/part-of"] == "edgex-telemetry-edge"
-        assert template_metadata["labels"]["app.kubernetes.io/name"] == "edge-telemetry-agent"
-        assert template_metadata["labels"]["edge.etri.io/id"] == edge_id
-        assert pod["nodeSelector"] == {"kubernetes.io/hostname": edge_id}
 
 
-def test_only_loopback_direct_adapter_uses_host_network_and_no_host_ports(
+def test_central_workloads_do_not_use_host_network_or_host_ports(
     server_resources: list[dict[str, Any]], edge_resources: list[dict[str, Any]]
 ) -> None:
     for workload in _workloads([*server_resources, *edge_resources]):
         pod = _pod_spec(workload)
         name = workload["metadata"]["name"]
-        if name in EDGE_AGENTS:
-            assert pod.get("hostNetwork") is True
-            assert pod["dnsPolicy"] == "ClusterFirstWithHostNet"
-        else:
-            assert pod.get("hostNetwork", False) is False, name
+        assert pod.get("hostNetwork", False) is False, name
         for container in _containers(pod):
             assert all("hostPort" not in port for port in container.get("ports", []))
 
@@ -658,76 +613,6 @@ def test_gateway_uses_secret_backed_edge_auth_and_tls(
         assert set(probe) & {"httpGet", "tcpSocket", "exec", "grpc"} == {"tcpSocket"}
 
 
-def test_edge_agents_have_distinct_durable_outboxes_and_mtls(
-    edge_resources: list[dict[str, Any]],
-) -> None:
-    resources = _named(edge_resources)
-    contract = resources[("ConfigMap", "edgex-edge-agent-contract")]["data"]
-    outbox_claims: set[str] = set()
-    outbox_path = contract["OUTBOX_PATH"]
-    assert outbox_path == "/var/lib/edgex/outbox/outbox.db"
-    assert contract["GATEWAY_URL"] == (
-        "https://edgex-ingest-gateway.edgex-system.svc.cluster.local:8443"
-    )
-    assert contract["COMMAND_ENABLED"] == "false"
-    assert contract["TELEMETRY_SOURCE_MODE"] == "direct"
-    assert contract["DIRECT_ADAPTER_HOST"] == "127.0.0.1"
-    assert contract["DIRECT_ADAPTER_PORT"] == "18080"
-    assert contract["EDGE_OUTBOX_MAX_BYTES"] == "1073741824"
-    assert not set(contract) & {
-        "LOCAL_MQTT_PORT",
-        "LOCAL_MQTT_SESSION_EXPIRY_SECONDS",
-        "LOCAL_TELEMETRY_TOPIC",
-    }
-    assert int(contract["EDGE_OUTBOX_MAX_BYTES"]) < 2 * 1024**3
-    for name, edge_id in EDGE_AGENTS.items():
-        deployment = resources[("Deployment", name)]
-        assert deployment["spec"]["strategy"]["type"] == "Recreate"
-        pod = _pod_spec(deployment)
-        assert pod["nodeSelector"] == {"kubernetes.io/hostname": edge_id}
-        assert pod["hostNetwork"] is True
-        assert pod["dnsPolicy"] == "ClusterFirstWithHostNet"
-        container = _container(deployment, "telemetry-edge-agent")
-        assert container["image"] == (
-            "192.168.0.56:5000/edgex-telemetry-plane:"
-            "direct-v1-arm64-20260720@sha256:"
-            "c91842bb9431ff7c5ef03fe74f65bf9d1932b44e747682de93dec0ae5080fbac"
-        )
-        env = _env(container)
-        assert container["envFrom"] == [{"configMapRef": {"name": "edgex-edge-agent-contract"}}]
-        assert _secret_ref(env, "EDGE_AUTH_SECRET")["name"] == f"{name}-credentials"
-        assert {env[tls_name]["value"] for tls_name in (
-            "TELEMETRY_TLS_CA_FILE",
-            "TELEMETRY_TLS_CERT_FILE",
-            "TELEMETRY_TLS_KEY_FILE",
-        )} == {
-            "/run/gateway-mtls/ca.crt",
-            "/run/gateway-mtls/tls.crt",
-            "/run/gateway-mtls/tls.key",
-        }
-        assert env["EDGE_ID"]["value"] == edge_id
-        assert env["TELEMETRY_SOURCE_MODE"]["value"] == "direct"
-        assert not set(env) & {
-            "LOCAL_MQTT_HOST",
-            "LOCAL_MQTT_PORT",
-            "LOCAL_MQTT_SESSION_EXPIRY_SECONDS",
-            "LOCAL_TELEMETRY_TOPIC",
-        }
-        assert {port["name"]: port["containerPort"] for port in container["ports"]}["adapter"] == 18080
-        assert _volume(pod, "gateway-mtls")["secret"]["secretName"] == f"{name}-gateway-mtls"
-        mounts = {mount["name"]: mount for mount in container["volumeMounts"]}
-        assert mounts["gateway-mtls"]["readOnly"] is True
-        assert mounts["outbox"]["mountPath"] == outbox_path.rsplit("/", 1)[0]
-        claim = _volume(pod, "outbox")["persistentVolumeClaim"]["claimName"]
-        outbox_claims.add(claim)
-        assert ("PersistentVolumeClaim", claim) in resources
-        pvc = resources[("PersistentVolumeClaim", claim)]["spec"]
-        assert pvc["accessModes"] == ["ReadWriteOnce"]
-        assert pvc["storageClassName"] == "local-path"
-        assert pvc["resources"]["requests"]["storage"] == "2Gi"
-    assert len(outbox_claims) == len(EDGE_AGENTS)
-
-
 def test_database_and_bootstrap_ordering_is_explicit(
     server_resources: list[dict[str, Any]],
 ) -> None:
@@ -812,59 +697,13 @@ def test_network_policies_protect_both_planes(
         }]
     }]
 
-    gateway_policy = server[("NetworkPolicy", "edgex-gateway-edge-ingress")]["spec"]
-    assert gateway_policy["podSelector"] == {
-        "matchLabels": {"app.kubernetes.io/name": "edgex-ingest-gateway"}
-    }
-    assert gateway_policy["ingress"] == [{
-        "from": [{
-            "namespaceSelector": {
-                "matchLabels": {"kubernetes.io/metadata.name": "edgex-edge"}
-            },
-            "podSelector": {
-                "matchLabels": {"app.kubernetes.io/name": "edge-telemetry-agent"}
-            },
-        }],
-        "ports": [{"protocol": "TCP", "port": 8443}],
-    }]
+    assert ("NetworkPolicy", "edgex-gateway-edge-ingress") not in server
 
     assert edge[("NetworkPolicy", "edgex-edge-default-deny")]["spec"] == {
         "podSelector": {},
         "policyTypes": ["Ingress", "Egress"],
     }
-    required_flows = edge[("NetworkPolicy", "edgex-edge-agent-required-flows")]["spec"]
-    assert required_flows["podSelector"] == {
-        "matchLabels": {
-            "app.kubernetes.io/component": "telemetry-edge-agent",
-            "app.kubernetes.io/name": "edge-telemetry-agent",
-            "app.kubernetes.io/part-of": "edgex-telemetry-edge",
-        }
+    assert set(edge) == {
+        ("Namespace", "edgex-edge"),
+        ("NetworkPolicy", "edgex-edge-default-deny"),
     }
-    assert required_flows["policyTypes"] == ["Egress"]
-    assert "ingress" not in required_flows
-    assert required_flows["egress"][0] == {
-        "to": [{
-            "namespaceSelector": {
-                "matchLabels": {"kubernetes.io/metadata.name": "kube-system"}
-            },
-            "podSelector": {"matchLabels": {"k8s-app": "kube-dns"}},
-        }],
-        "ports": [
-            {"protocol": "UDP", "port": 53},
-            {"protocol": "TCP", "port": 53},
-        ],
-    }
-    assert len(required_flows["egress"]) == 2
-    assert required_flows["egress"][1] == {
-        "to": [{
-            "namespaceSelector": {
-                "matchLabels": {"kubernetes.io/metadata.name": "edgex-system"}
-            },
-            "podSelector": {
-                "matchLabels": {"app.kubernetes.io/name": "edgex-ingest-gateway"}
-            },
-        }],
-        "ports": [{"protocol": "TCP", "port": 8443}],
-    }
-    assert ("NetworkPolicy", "edgex-edge-agent-jetson-local-mqtt") not in edge
-    assert ("NetworkPolicy", "edgex-edge-agent-sensehat-local-mqtt") not in edge

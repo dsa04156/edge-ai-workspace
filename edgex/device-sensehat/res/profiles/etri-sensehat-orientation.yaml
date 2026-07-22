@@ -1,0 +1,25 @@
+apiVersion: "v2"
+name: etri-sensehat-orientation
+manufacturer: Raspberry Pi
+model: Sense HAT v1 virtual orientation source
+labels: [sensehat, i2c, raspi, virtual-device]
+description: Read-only fused orientation from the Sense HAT IMU
+
+deviceResources:
+  - name: pitch
+    description: Fused pitch normalized to 0 through 360 degrees
+    properties: {valueType: Float64, readWrite: R, units: deg}
+  - name: roll
+    description: Fused roll normalized to 0 through 360 degrees
+    properties: {valueType: Float64, readWrite: R, units: deg}
+  - name: yaw
+    description: Fused yaw normalized to 0 through 360 degrees
+    properties: {valueType: Float64, readWrite: R, units: deg}
+
+deviceCommands:
+  - name: orientation
+    readWrite: R
+    resourceOperations:
+      - deviceResource: pitch
+      - deviceResource: roll
+      - deviceResource: yaw

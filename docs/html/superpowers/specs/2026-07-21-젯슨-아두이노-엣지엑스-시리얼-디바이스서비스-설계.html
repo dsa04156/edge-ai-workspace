@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>젯슨 아두이노 EdgeX Serial Device Service 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>젯슨 아두이노 EdgeX Serial Device Service 설계</h1>
+          <p class="subtitle">etri-dev0001-jetorn에 연결된 Arduino Uno를 공식 EdgeX Go Device SDK 기반의 read-o…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.md</span>
+            <span class="badge">수정: 2026-07-21 15:59</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="젯슨-아두이노-edgex-serial-device-service-설계">젯슨 아두이노 EdgeX Serial Device Service 설계</h1>
+<h2 id="상태와-목표">상태와 목표</h2>
+<p>이 문서는 <code>etri-dev0001-jetorn</code>에 연결된 Arduino Uno를 공식 EdgeX Go Device SDK 기반의 read-only Serial Device Service로 연결하는 첫 서비스 데모 수직 슬라이스를 정의한다.</p>
+<p>완료 경로는 다음 하나다.</p>
+<pre data-lang="text"><code>Arduino Uno USB CDC
+  -&gt; Jetson /dev/serial/by-id/...
+  -&gt; device-serial-jetson
+  -&gt; EdgeX SDK AsyncValues
+  -&gt; edgex-messagebus.edgex-system.svc.cluster.local:1883
+  -&gt; Core Data -&gt; PostgreSQL
+  -&gt; state-aggregator -&gt; dashboard</code></pre>
+<p>기존 <code>edge-telemetry-agent</code>, SQLite outbox, local MQTT 변환, KubeEdge Device/Mapper 경로는 사용하지 않는다. KubeEdge는 Device Service Pod를 Jetson에 배치하고 관찰하는 역할만 가진다.</p>
+<h2 id="확인된-물리-계약">확인된 물리 계약</h2>
+<p>2026-07-21 live 진단에서 다음을 확인했다.</p>
+<ul><li>node: <code>etri-dev0001-jetorn</code></li><li>장치: Arduino Uno USB CDC ACM</li><li>vendor/product: <code>2341:0043</code></li><li>현재 장치 파일: <code>/dev/ttyACM0</code></li><li>안정 식별 경로:</li></ul>
+<p><code>/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00</code></p>
+<ul><li>baud rate: <code>115200</code></li><li>framing: UTF-8 JSON object 한 개와 CRLF 한 줄</li><li>포트를 연 직후 잘린 line이 나타날 수 있음</li></ul>
+<p>실측한 정상 payload는 다음 네 종류다.</p>
+<pre data-lang="json"><code>{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;temperature&quot;,&quot;raw&quot;:297}
+{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;light&quot;,&quot;value&quot;:304}
+{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;magnetic&quot;,&quot;value&quot;:0}
+{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;acceleration&quot;,&quot;x&quot;:298,&quot;y&quot;:266,&quot;z&quot;:278}</code></pre>
+<p>첫 line에서 <code>{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;light&quot;,&quot;v}</code>처럼 잘린 JSON과 <code>_id&quot;:&quot;arduino-001&quot;,...</code>처럼 중간부터 시작한 line도 관찰했다. 이 line은 Event로 만들지 않고 다음 newline 이후의 완전한 JSON부터 수집을 계속한다.</p>
+<h2 id="접근안-비교와-선택">접근안 비교와 선택</h2>
+<h3 id="선택-전용-privileged-device-service-pod">선택: 전용 privileged Device Service Pod</h3>
+<p>현재 KubeEdge/containerd에서는 <code>hostPath</code>로 char device를 마운트해도 비특권 컨테이너가 device cgroup에서 <code>Operation not permitted</code>로 차단된다. 노드에는 Serial/USB Device Plugin도 없다.</p>
+<p>첫 PoC는 <code>device-serial-jetson</code> 컨테이너 하나에만 <code>privileged: true</code> 예외를 둔다. 위험 범위를 줄이기 위해 다음 제한을 동시에 적용한다.</p>
+<ul><li>exact Jetson node selector와 <code>replicas: 1</code></li><li><code>Recreate</code> 배포 전략으로 Serial endpoint 단일 소유</li><li>확인된 <code>by-id</code> char device 하나만 <code>/dev/arduino-001</code>로 mount</li><li><code>hostNetwork: false</code></li><li>ServiceAccount token 자동 mount 금지</li><li>read-only root filesystem과 <code>/tmp</code> emptyDir</li><li>중앙 EdgeX와 DNS에 필요한 포트만 허용하는 NetworkPolicy</li><li>write command와 actuator 동작 없음</li></ul>
+<p>이 예외는 서비스 데모를 위한 명시적 기술부채다. 후속 hardening wave에서는 Serial Device Plugin이 <code>etri.io/arduino-uno</code> 같은 extended resource를 광고하고 Device Service가 이를 요청하도록 바꾼다.</p>
+<h3 id="보류-serial-device-plugin">보류: Serial Device Plugin</h3>
+<p>Device Plugin은 device node를 runtime에 명시적으로 할당해 비특권 Pod를 만들 수 있지만, plugin lifecycle·health·kubelet 재등록·resource scheduling까지 별도 컴포넌트를 구현해야 한다. 현재의 서비스 데모 1종 범위를 넘으므로 후속으로 둔다.</p>
+<h3 id="제외-host-systemd-서비스">제외: host systemd 서비스</h3>
+<p>systemd 서비스는 device 접근은 단순하지만 KubeEdge workload 관리와 <code>edgex/k8s</code> GitOps 단일 진입점 원칙을 깨므로 사용하지 않는다.</p>
+<h2 id="edgex-구성과-identity">EdgeX 구성과 identity</h2>
+<p>호환성은 중앙 Core와 같은 EdgeX 4.0 계열로 고정한다.</p>
+<ul><li>Go Device SDK: <code>github.com/edgexfoundry/device-sdk-go/v4 v4.0.2</code></li><li>Go toolchain: <code>1.25.x</code></li><li>Serial library: <code>go.bug.st/serial v1.8.0</code></li><li>Device Service: <code>device-serial-jetson</code></li><li>Device Profile: <code>etri-arduino-serial</code></li><li>Device: <code>arduino-001</code></li><li>protocol: <code>serial</code></li><li>Device Service HTTP port: <code>59910</code></li></ul>
+<p>Device Service는 local profile과 device 파일을 SDK preload 경로로 읽고 Core Metadata에 등록한다. Device의 protocol properties는 다음 값을 가진다.</p>
+<pre data-lang="yaml"><code>serial:
+  Port: /dev/arduino-001
+  BaudRate: &quot;115200&quot;
+  DeviceID: arduino-001</code></pre>
+<p>서비스는 다음 DNS 이름만 사용한다.</p>
+<pre data-lang="text"><code>edgex-core-keeper.edgex-system.svc.cluster.local:59890
+edgex-core-metadata.edgex-system.svc.cluster.local:59881
+edgex-messagebus.edgex-system.svc.cluster.local:1883
+device-serial-jetson.edgex-edge.svc.cluster.local:59910</code></pre>
+<p>고정 ClusterIP, PodIP, node IP를 manifest와 runtime 구성에 넣지 않는다. EdgeMesh 설정과 기존 Service label은 변경하지 않는다.</p>
+<h2 id="컴포넌트-구조">컴포넌트 구조</h2>
+<p>새 코드는 <code>edgex/device-serial/</code> 아래에서 책임별로 나눈다.</p>
+<pre data-lang="text"><code>cmd/device-serial/main.go
+  EdgeX SDK bootstrap entrypoint
+
+internal/driver/config.go
+  serial protocol properties 검증
+
+internal/driver/framer.go
+  byte stream을 최대 길이가 제한된 CRLF/LF line으로 분리
+
+internal/driver/parser.go
+  strict JSON validation과 sensor/resource mapping
+
+internal/driver/serial.go
+  serial open/read/close와 bounded reconnect loop
+
+internal/driver/driver.go
+  EdgeX ProtocolDriver lifecycle, latest cache, AsyncValues publish, read command</code></pre>
+<p>각 parser와 framer는 실제 장비 없이 단위 테스트할 수 있는 순수 로직으로 둔다. Serial opener와 clock은 인터페이스로 주입해 disconnect/reconnect와 origin을 테스트한다.</p>
+<h2 id="수집과-event-변환">수집과 Event 변환</h2>
+<p>SDK bootstrap이 끝난 뒤 <code>Driver.Start()</code>가 <code>sdk.Devices()</code>의 Serial Device를 읽고 각 Device에 reader를 하나 시작한다. runtime Device 추가·변경·삭제 callback은 해당 reader만 시작·교체·정지한다.</p>
+<p>reader는 <code>115200 8N1</code>로 port를 열고 최대 1초 read timeout을 사용한다. 받은 byte는 line framer에 넣는다. 최대 line 크기는 <code>1024</code> bytes다. newline 전 1024 bytes를 넘으면 해당 line 전체를 다음 newline까지 버린다.</p>
+<p>정상 line은 strict parser를 통과한 뒤 수신 시각의 Unix nanoseconds를 origin으로 사용한다. firmware가 단위와 source timestamp를 제공하지 않으므로 값을 섭씨, lux, tesla 또는 g로 변환하지 않는다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th><code>sensor</code></th>
+<th>Event <code>sourceName</code></th>
+<th>Reading</th>
+<th><code>valueType</code></th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>temperature</code></td>
+<td><code>temperature</code></td>
+<td><code>temperature_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>light</code></td>
+<td><code>light</code></td>
+<td><code>light_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>magnetic</code></td>
+<td><code>magnetic</code></td>
+<td><code>magnetic_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>acceleration</code></td>
+<td><code>acceleration</code></td>
+<td><code>acceleration_x_raw</code>, <code>acceleration_y_raw</code>, <code>acceleration_z_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+</tbody></table></div>
+<p>각 완전한 정상 line은 <code>sdkModels.AsyncValues</code> 하나가 된다. 동일한 값이 연속되어도 firmware sequence가 없으므로 중복으로 추정해 제거하지 않는다. SDK <code>AsyncValuesChannel</code>의 backpressure를 따르며 첫 slice에는 SQLite outbox나 자체 durable queue를 추가하지 않는다. 중앙 단절 중 sample 보존을 완료 기능으로 주장하지 않는다.</p>
+<h2 id="get과-command-경계">GET과 command 경계</h2>
+<p>driver는 device/source별 최신 정상 sample을 memory에 보관한다. Device Profile은 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code> read-only Device Command를 정의한다. Core Command GET이 <code>HandleReadCommands</code>를 호출하면 요청 resource의 최신 값과 원래 sample origin을 반환한다.</p>
+<p>아직 수신한 값이 없으면 명시적 <code>latest sample is unavailable</code> 오류를 반환한다. <code>HandleWriteCommands</code>는 항상 read-only 오류를 반환한다. Arduino firmware 변경, actuator command, desired state mutation은 이번 범위에 없다.</p>
+<h2 id="validation과-장애-동작">validation과 장애 동작</h2>
+<p>다음 입력은 Event와 latest cache에 넣지 않는다.</p>
+<ul><li>UTF-8 또는 JSON object가 아닌 line</li><li>알 수 없는 JSON field나 뒤따르는 두 번째 JSON 값</li><li><code>device_id != arduino-001</code></li><li>지원하지 않는 <code>sensor</code></li><li>sensor별 필수 field 누락 또는 다른 sensor field 혼입</li><li>boolean, string, float 또는 Int32 범위 밖의 값</li><li>최대 line 크기 초과</li></ul>
+<p>invalid sample은 port 연결 상태를 DOWN으로 바꾸지 않고 경고와 counter만 남긴다. port open/read 실패는 해당 Device를 <code>DOWN</code>으로 갱신하고 1초부터 최대 30초 bounded exponential backoff로 재연결한다. 재연결 성공 시 <code>UP</code>으로 복구한다. 프로세스 종료, Device 삭제 또는 update 시 port를 닫고 goroutine이 끝날 때까지 기다린다.</p>
+<h2 id="kubernetes와-네트워크">Kubernetes와 네트워크</h2>
+<p><code>edgex/k8s/base/device-serial-jetson/</code>을 만들고 root <code>edgex/k8s/kustomization.yaml</code>에서 포함한다.</p>
+<p>배포 리소스는 다음으로 제한한다.</p>
+<ul><li>ConfigMap: SDK config, Device Profile, Device preload 파일</li><li>Service: <code>ClusterIP</code>, port <code>59910</code>; IP를 consumer 구성에 기록하지 않음</li><li>Deployment: Jetson exact placement, privileged exception, stable char device mount</li><li>NetworkPolicy: DNS와 중앙 Keeper/Metadata/MessageBus egress, 중앙 EdgeX ingress</li></ul>
+<p>local MQTT broker, hostNetwork, PVC, Agent Secret, SQLite volume은 추가하지 않는다. 중앙 Core/PostgreSQL/MessageBus와 EdgeMesh manifest는 수정하지 않는다.</p>
+<h2 id="검증-기준">검증 기준</h2>
+<h3 id="자동-검증">자동 검증</h3>
+<ul><li>네 실측 JSON payload가 정확한 source와 Int32 Reading으로 변환된다.</li><li>partial/invalid/unknown/mixed/oversize line이 Event가 되지 않는다.</li><li>CRLF와 여러 line이 chunk 경계와 무관하게 복원된다.</li><li>연속 동일 sample도 서로 다른 origin Event로 전달된다.</li><li>fake port disconnect 뒤 bounded reconnect와 수집 재개가 동작한다.</li><li>read command는 latest value/origin을 반환하고 write command는 거절한다.</li><li>SDK callback add/update/remove가 reader를 누수 없이 관리한다.</li><li>manifest는 exact node/device, <code>Recreate</code>, privileged 예외, token 차단,</li></ul>
+<p>non-hostNetwork와 제한적 NetworkPolicy를 가진다.</p>
+<ul><li>manifest와 runtime에 Agent, local MQTT, SQLite, 고정 IP가 없다.</li><li>Kustomize render, server dry-run, 기존 EdgeX 테스트와 문서 검증이 통과한다.</li></ul>
+<h3 id="live-검증">live 검증</h3>
+<ul><li>ARM64 immutable image가 내부 registry에 push된다.</li><li>Argo CD <code>edgex-telemetry</code>가 목표 Git revision으로 <code>Synced/Healthy</code>다.</li><li>Device Service Pod가 Jetson에서 Ready이고 stable device path를 연다.</li><li>Core Metadata에 Service/Profile/Device binding이 각각 한 개 존재한다.</li><li>Core Data에서 네 source와 여섯 typed Reading을 실제 값으로 확인한다.</li><li>Core Command GET이 latest sample을 반환하고 write command는 노출되지 않는다.</li><li>state-aggregator/dashboard가 <code>arduino-001</code>, <code>device-serial-jetson</code>, profile,</li></ul>
+<p>protocol과 fresh latest Event를 표시한다.</p>
+<ul><li>중앙 Core/PostgreSQL/MessageBus와 EdgeMesh가 계속 정상이다.</li></ul>
+<h2 id="완료-경계">완료 경계</h2>
+<p>완료는 실제 Serial sample이 Core Data/PostgreSQL에 저장되고 dashboard freshness와 read-only GET까지 같은 실행에서 확인된 경우에만 주장한다. Pod Running, 장치 mount, Metadata 등록 또는 unit test만으로 물리 연동 완료를 주장하지 않는다.</p>
+<p>이 완료는 offline replay, local workflow recent API, Modbus/OPC-UA/I2C/RTSP, actuator command, Serial Device Plugin hardening 또는 동적 오프로딩 완료를 뜻하지 않는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태와-목표">상태와 목표</a></li>
+<li class="toc-h2"><a href="#확인된-물리-계약">확인된 물리 계약</a></li>
+<li class="toc-h2"><a href="#접근안-비교와-선택">접근안 비교와 선택</a></li>
+<li class="toc-h3"><a href="#선택-전용-privileged-device-service-pod">선택: 전용 privileged Device Service Pod</a></li>
+<li class="toc-h3"><a href="#보류-serial-device-plugin">보류: Serial Device Plugin</a></li>
+<li class="toc-h3"><a href="#제외-host-systemd-서비스">제외: host systemd 서비스</a></li>
+<li class="toc-h2"><a href="#edgex-구성과-identity">EdgeX 구성과 identity</a></li>
+<li class="toc-h2"><a href="#컴포넌트-구조">컴포넌트 구조</a></li>
+<li class="toc-h2"><a href="#수집과-event-변환">수집과 Event 변환</a></li>
+<li class="toc-h2"><a href="#get과-command-경계">GET과 command 경계</a></li>
+<li class="toc-h2"><a href="#validation과-장애-동작">validation과 장애 동작</a></li>
+<li class="toc-h2"><a href="#kubernetes와-네트워크">Kubernetes와 네트워크</a></li>
+<li class="toc-h2"><a href="#검증-기준">검증 기준</a></li>
+<li class="toc-h3"><a href="#자동-검증">자동 검증</a></li>
+<li class="toc-h3"><a href="#live-검증">live 검증</a></li>
+<li class="toc-h2"><a href="#완료-경계">완료 경계</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -1,0 +1,24 @@
+apiVersion: "v2"
+name: etri-arduino-acceleration-x
+manufacturer: Arduino
+model: Uno virtual acceleration X source
+labels:
+  - arduino
+  - serial
+  - jetson
+  - virtual-device
+description: Read-only virtual acceleration X device sourced from the Jetson Arduino serial connection
+
+deviceResources:
+  - name: acceleration_x_raw
+    description: Raw acceleration X-axis value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: acceleration_x
+    readWrite: R
+    resourceOperations:
+      - deviceResource: acceleration_x_raw

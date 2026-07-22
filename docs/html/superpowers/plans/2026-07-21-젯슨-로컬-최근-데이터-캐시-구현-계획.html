@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>젯슨 로컬 최근 데이터 캐시 Implementation Plan</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>젯슨 로컬 최근 데이터 캐시 Implementation Plan</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.md</span>
+            <span class="badge">수정: 2026-07-21 18:43</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="젯슨-로컬-최근-데이터-캐시-implementation-plan">젯슨 로컬 최근 데이터 캐시 Implementation Plan</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> Jetson <code>device-serial-jetson</code>이 6개 가상 디바이스의 최신값과 최근 10분 구간을 메모리에 보관하고 Workflow Pod에 Local Data API로 제공한다.</p>
+<p><strong>Architecture:</strong> Device Service driver 안에 <code>(deviceName, resourceName)</code>별 bounded recent cache를 두고 정상 파싱된 sample을 중앙 Event 발행 전에 저장한다. EdgeX Device SDK의 custom route로 latest/recent GET을 같은 <code>59910</code> 포트에 등록하며, 중앙 이력 권위는 Core Data/PostgreSQL로 유지한다.</p>
+<p><strong>Tech Stack:</strong> Go 1.25, EdgeX Device SDK v4.0.2, Echo v4, testify, Kubernetes/Kustomize, pytest, Argo CD</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>cache는 각 Device/resource별 최근 10분, 최대 10,000 sample이며 Pod 재시작 시 초기화한다.</li><li>recent 응답은 가장 최근 <code>limit</code>개를 선택한 뒤 <code>origin</code> 오름차순으로 반환한다.</li><li><code>limit</code> 기본값은 1,000이고 허용 범위는 1~10,000이다.</li><li>latest sample 부재는 404, 알려진 source의 빈 recent는 200과 빈 <code>samples</code>다.</li><li>중앙 Core Data fallback, SQLite/PVC, MQTT broker, InfluxDB를 추가하지 않는다.</li><li>기존 Service FQDN을 사용하고 fixed ClusterIP/PodIP/node IP를 manifest나 client에 기록하지 않는다.</li><li>EdgeMesh 구성을 변경하지 않는다.</li><li>Workflow Pod ingress는 <code>edge-ai.io/local-data-client=true</code> label로 제한한다.</li></ul>
+<p>---</p>
+<h3 id="task-1-동시성-안전-bounded-recent-cache">Task 1: 동시성 안전 bounded recent cache</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/internal/driver/recent_cache.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/recent_cache_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: driver가 생성하는 <code>deviceName</code>, <code>resourceName</code>, <code>origin</code>, <code>Int32 value</code></li><li>Produces: <code>newRecentCache(maxAge time.Duration, maxSamples int)</code>, <code>append</code>, <code>latest</code>, <code>query</code>, <code>deleteDevice</code></li></ul>
+<ul><li>[ ] <strong>Step 1: 격리·latest·query 실패 테스트 작성</strong></li></ul>
+<pre data-lang="go"><code>func TestRecentCacheSeparatesSourcesAndReturnsLatest(t *testing.T) {
+    cache := newRecentCache(10*time.Minute, 10_000)
+    now := int64(20 * time.Minute)
+    cache.append(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;, cachedSample{Origin: now - int64(time.Second), ValueType: common.ValueTypeInt32, Value: 283})
+    cache.append(&quot;virtual-light-001&quot;, &quot;light_raw&quot;, cachedSample{Origin: now, ValueType: common.ValueTypeInt32, Value: 700})
+
+    latest, ok := cache.latest(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;, now)
+    require.True(t, ok)
+    assert.Equal(t, int32(283), latest.Value)
+    assert.Empty(t, cache.query(&quot;virtual-temperature-001&quot;, &quot;light_raw&quot;, now-int64(10*time.Minute), now, 1000, now))
+}</code></pre>
+<ul><li>[ ] <strong>Step 2: RED 확인</strong></li></ul>
+<p>Run: <code>rtk go test ./internal/driver -run TestRecentCache -count=1</code> from <code>edgex/device-serial</code></p>
+<p>Expected: FAIL because <code>newRecentCache</code> and <code>cachedSample</code> do not exist.</p>
+<ul><li>[ ] <strong>Step 3: 최소 cache 구현</strong></li></ul>
+<pre data-lang="go"><code>const (
+    recentCacheMaxAge     = 10 * time.Minute
+    recentCacheMaxSamples = 10_000
+    recentDefaultLimit    = 1_000
+)
+
+type cachedSample struct {
+    Origin    int64  `json:&quot;origin&quot;`
+    ValueType string `json:&quot;valueType&quot;`
+    Value     int32  `json:&quot;value&quot;`
+}
+
+type cacheKey struct{ deviceName, resourceName string }
+
+type recentCache struct {
+    mu         sync.RWMutex
+    maxAge     time.Duration
+    maxSamples int
+    series     map[cacheKey][]cachedSample
+}</code></pre>
+<p><code>append</code>는 origin 순서를 유지하고 age/capacity를 적용한다. <code>latest</code>와 <code>query</code>는 현재 시각의 age cutoff를 적용한 복사본만 반환하고 <code>deleteDevice</code>는 일치 key를 모두 제거한다.</p>
+<ul><li>[ ] <strong>Step 4: 만료·capacity·limit·delete·concurrency 테스트를 추가하고 GREEN 확인</strong></li></ul>
+<pre data-lang="go"><code>func TestRecentCacheEvictsByAgeAndCapacity(t *testing.T) {
+    cache := newRecentCache(10*time.Minute, 3)
+    now := int64(20 * time.Minute)
+    origins := []int64{now - int64(10*time.Minute) - 1, now - 3, now - 2, now - 1, now}
+    for index, origin := range origins {
+        cache.append(&quot;device&quot;, &quot;resource&quot;, cachedSample{Origin: origin, ValueType: common.ValueTypeInt32, Value: int32(index)})
+    }
+    got := cache.query(&quot;device&quot;, &quot;resource&quot;, now-int64(10*time.Minute), now, 10, now)
+    require.Len(t, got, 3)
+    assert.Equal(t, []int64{now - 2, now - 1, now}, []int64{got[0].Origin, got[1].Origin, got[2].Origin})
+}
+
+func TestRecentCacheReturnsNewestLimitInAscendingOrder(t *testing.T) {
+    cache := newRecentCache(10*time.Minute, 10)
+    now := int64(20 * time.Minute)
+    for value := int32(1); value &lt;= 5; value++ {
+        cache.append(&quot;device&quot;, &quot;resource&quot;, cachedSample{Origin: now - int64(6-value), ValueType: common.ValueTypeInt32, Value: value})
+    }
+    got := cache.query(&quot;device&quot;, &quot;resource&quot;, now-10, now, 2, now)
+    require.Len(t, got, 2)
+    assert.Equal(t, []int32{4, 5}, []int32{got[0].Value, got[1].Value})
+}
+
+func TestRecentCacheDeleteDevice(t *testing.T) {
+    cache := newRecentCache(10*time.Minute, 10)
+    now := int64(20 * time.Minute)
+    cache.append(&quot;remove&quot;, &quot;resource&quot;, cachedSample{Origin: now, ValueType: common.ValueTypeInt32, Value: 1})
+    cache.append(&quot;keep&quot;, &quot;resource&quot;, cachedSample{Origin: now, ValueType: common.ValueTypeInt32, Value: 2})
+    cache.deleteDevice(&quot;remove&quot;)
+    _, removed := cache.latest(&quot;remove&quot;, &quot;resource&quot;, now)
+    kept, ok := cache.latest(&quot;keep&quot;, &quot;resource&quot;, now)
+    assert.False(t, removed)
+    require.True(t, ok)
+    assert.Equal(t, int32(2), kept.Value)
+}
+
+func TestRecentCacheConcurrentReadWrite(t *testing.T) {
+    cache := newRecentCache(10*time.Minute, 100)
+    now := int64(20 * time.Minute)
+    var wg sync.WaitGroup
+    for worker := 0; worker &lt; 8; worker++ {
+        wg.Add(1)
+        go func(offset int) {
+            defer wg.Done()
+            for index := 0; index &lt; 100; index++ {
+                origin := now + int64(offset*100+index)
+                cache.append(&quot;device&quot;, &quot;resource&quot;, cachedSample{Origin: origin, ValueType: common.ValueTypeInt32, Value: int32(index)})
+                _ = cache.query(&quot;device&quot;, &quot;resource&quot;, now-int64(time.Minute), origin, 10, origin)
+            }
+        }(worker)
+    }
+    wg.Wait()
+    assert.LessOrEqual(t, len(cache.query(&quot;device&quot;, &quot;resource&quot;, now-int64(time.Minute), now+1_000, 10_000, now+1_000)), 100)
+}</code></pre>
+<p>Run: <code>rtk go test -race ./internal/driver -run TestRecentCache -count=1</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 5: 커밋</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/device-serial/internal/driver/recent_cache.go edgex/device-serial/internal/driver/recent_cache_test.go
+rtk git commit -m &quot;feat: add bounded recent telemetry cache&quot;</code></pre>
+<h3 id="task-2-local-data-http-api">Task 2: Local Data HTTP API</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/internal/driver/local_data_api.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/local_data_api_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 1 <code>recentCache</code>, <code>cachedSample</code>, binding predicate <code>func(deviceName, resourceName string) bool</code></li><li>Produces: <code>newLocalDataAPI</code>, <code>latestRoute</code>, <code>recentRoute</code>, Echo handlers <code>latest</code>와 <code>recent</code></li></ul>
+<ul><li>[ ] <strong>Step 1: latest/recent 계약 실패 테스트 작성</strong></li></ul>
+<p>Echo test context에서 다음을 단언한다.</p>
+<pre data-lang="go"><code>func TestLocalDataAPIReturnsLatestAndRecentSamples(t *testing.T) {
+    cache := newRecentCache(recentCacheMaxAge, recentCacheMaxSamples)
+    now := int64(20 * time.Minute)
+    cache.append(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;, cachedSample{Origin: now - 2, ValueType: common.ValueTypeInt32, Value: 282})
+    cache.append(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;, cachedSample{Origin: now - 1, ValueType: common.ValueTypeInt32, Value: 283})
+    api := newLocalDataAPI(cache, func(device, resource string) bool { return device == &quot;virtual-temperature-001&quot; &amp;&amp; resource == &quot;temperature_raw&quot; })
+    api.now = func() int64 { return now }
+    // /latest는 value=283, recent는 origin 오름차순 2개를 반환한다.
+}</code></pre>
+<ul><li>[ ] <strong>Step 2: RED 확인</strong></li></ul>
+<p>Run: <code>rtk go test ./internal/driver -run TestLocalDataAPI -count=1</code> from <code>edgex/device-serial</code></p>
+<p>Expected: FAIL because <code>newLocalDataAPI</code> does not exist.</p>
+<ul><li>[ ] <strong>Step 3: route·query·응답 구현</strong></li></ul>
+<pre data-lang="go"><code>const recentRoute = &quot;/api/v3/localdata/device/name/:device/resource/name/:resource&quot;
+const latestRoute = recentRoute + &quot;/latest&quot;
+
+type localDataResponse struct {
+    APIVersion   string         `json:&quot;apiVersion&quot;`
+    StatusCode   int            `json:&quot;statusCode&quot;`
+    DeviceName   string         `json:&quot;deviceName&quot;`
+    ResourceName string         `json:&quot;resourceName&quot;`
+    Count        int            `json:&quot;count&quot;`
+    Retention    retentionInfo  `json:&quot;retention&quot;`
+    Samples      []cachedSample `json:&quot;samples&quot;`
+}
+
+type localDataErrorResponse struct {
+    APIVersion string `json:&quot;apiVersion&quot;`
+    StatusCode int    `json:&quot;statusCode&quot;`
+    Message    string `json:&quot;message&quot;`
+}</code></pre>
+<p><code>latest</code>는 known source와 non-expired latest를 확인한다. <code>recent</code>는 optional <code>from</code>, <code>to</code>, <code>limit</code>을 base-10 int64/int로 파싱하고 기본 범위를 <code>now-10m..now</code>, 기본 limit 1,000으로 설정한다.</p>
+<ul><li>[ ] <strong>Step 4: 오류 계약 테스트와 GREEN 확인</strong></li></ul>
+<pre data-lang="go"><code>func TestLocalDataAPIRecentReturnsEmptySamplesForKnownSource(t *testing.T) {
+    api := newLocalDataAPI(newRecentCache(recentCacheMaxAge, recentCacheMaxSamples), func(device, resource string) bool { return true })
+    api.now = func() int64 { return int64(20 * time.Minute) }
+    recorder := httptest.NewRecorder()
+    context := echo.New().NewContext(httptest.NewRequest(http.MethodGet, recentRoute, http.NoBody), recorder)
+    context.SetParamNames(&quot;device&quot;, &quot;resource&quot;)
+    context.SetParamValues(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;)
+    require.NoError(t, api.recent(context))
+    assert.Equal(t, http.StatusOK, recorder.Code)
+    var response localDataResponse
+    require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &amp;response))
+    assert.Empty(t, response.Samples)
+    assert.Equal(t, 0, response.Count)
+}
+
+func TestLocalDataAPIReturnsNotFoundForUnknownSourceAndMissingLatest(t *testing.T) {
+    tests := []struct {
+        name  string
+        known bool
+    }{{name: &quot;unknown source&quot;, known: false}, {name: &quot;known source without latest&quot;, known: true}}
+    for _, test := range tests {
+        t.Run(test.name, func(t *testing.T) {
+            api := newLocalDataAPI(newRecentCache(recentCacheMaxAge, recentCacheMaxSamples), func(device, resource string) bool { return test.known })
+            recorder := httptest.NewRecorder()
+            context := echo.New().NewContext(httptest.NewRequest(http.MethodGet, latestRoute, http.NoBody), recorder)
+            context.SetParamNames(&quot;device&quot;, &quot;resource&quot;)
+            context.SetParamValues(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;)
+            require.NoError(t, api.latest(context))
+            assert.Equal(t, http.StatusNotFound, recorder.Code)
+        })
+    }
+}
+
+func TestLocalDataAPIRejectsInvalidQuery(t *testing.T) {
+    for _, rawQuery := range []string{&quot;from=nope&quot;, &quot;from=2&amp;to=1&quot;, &quot;limit=0&quot;, &quot;limit=10001&quot;} {
+        t.Run(rawQuery, func(t *testing.T) {
+            api := newLocalDataAPI(newRecentCache(recentCacheMaxAge, recentCacheMaxSamples), func(device, resource string) bool { return true })
+            request := httptest.NewRequest(http.MethodGet, recentRoute+&quot;?&quot;+rawQuery, http.NoBody)
+            recorder := httptest.NewRecorder()
+            context := echo.New().NewContext(request, recorder)
+            context.SetParamNames(&quot;device&quot;, &quot;resource&quot;)
+            context.SetParamValues(&quot;virtual-temperature-001&quot;, &quot;temperature_raw&quot;)
+            require.NoError(t, api.recent(context))
+            assert.Equal(t, http.StatusBadRequest, recorder.Code)
+        })
+    }
+}</code></pre>
+<p>Run: <code>rtk go test -race ./internal/driver -run TestLocalDataAPI -count=1</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 5: 커밋</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/device-serial/internal/driver/local_data_api.go edgex/device-serial/internal/driver/local_data_api_test.go
+rtk git commit -m &quot;feat: expose local recent telemetry API&quot;</code></pre>
+<h3 id="task-3-device-service-fan-out와-custom-route-통합">Task 3: Device Service fan-out와 custom route 통합</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edgex/device-serial/internal/driver/driver.go</code></li><li>Modify: <code>edgex/device-serial/internal/driver/driver_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 1 cache와 Task 2 handlers</li><li>Produces: 같은 sample을 Core Command latest, Local Data API, AsyncValues 세 경로에서 일관되게 사용하는 Driver</li></ul>
+<ul><li>[ ] <strong>Step 1: route 등록과 6-source cache fan-out 실패 테스트 작성</strong></li></ul>
+<p><code>TestDriverStartsExistingDeviceAndStopsItWhenLocked</code>에서 <code>AddCustomRoute</code>가 <code>latestRoute</code>, <code>recentRoute</code>, <code>interfaces.Unauthenticated</code>, <code>GET</code>으로 각각 한 번 호출되는지 단언한다.</p>
+<p><code>TestDriverSharesOneReaderAndFansOutAcceleration</code>에서 <code>driver.cache.query</code>로 X/Y/Z Device가 각자 해당 resource 한 개만 갖는지 추가 단언한다.</p>
+<ul><li>[ ] <strong>Step 2: RED 확인</strong></li></ul>
+<p>Run: <code>rtk go test ./internal/driver -run &#x27;TestDriverStartsExisting|TestDriverSharesOneReader&#x27; -count=1</code> from <code>edgex/device-serial</code></p>
+<p>Expected: FAIL because routes are not registered and Driver has no recent cache integration.</p>
+<ul><li>[ ] <strong>Step 3: latest map을 cache로 통합</strong></li></ul>
+<ul><li><code>Driver.latest</code>를 <code>Driver.cache *recentCache</code>와 <code>Driver.now func() int64</code>로 교체한다.</li><li><code>handleSample</code>은 routed sample마다 cache에 <code>Int32</code> sample을 append한다.</li><li><code>HandleReadCommands</code>는 <code>cache.latest(device, resource, driver.now())</code>를 사용한다.</li><li>unchanged metadata update에서는 cache를 유지하고 LOCKED/remove/rebinding에서는 <code>cache.deleteDevice</code>를 호출한다.</li><li><code>isKnownLocalSource</code>는 active binding의 Device와 <code>ResourceName</code> 일치를 확인한다.</li></ul>
+<ul><li>[ ] <strong>Step 4: Start에서 custom route 등록</strong></li></ul>
+<pre data-lang="go"><code>if err := sdk.AddCustomRoute(latestRoute, interfaces.Unauthenticated, api.latest, http.MethodGet); err != nil {
+    return fmt.Errorf(&quot;register local latest route: %w&quot;, err)
+}
+if err := sdk.AddCustomRoute(recentRoute, interfaces.Unauthenticated, api.recent, http.MethodGet); err != nil {
+    return fmt.Errorf(&quot;register local recent route: %w&quot;, err)
+}</code></pre>
+<ul><li>[ ] <strong>Step 5: 전체 Device Service GREEN과 정적 분석</strong></li></ul>
+<p>Run: <code>rtk go test -race ./... -count=1</code> from <code>edgex/device-serial</code></p>
+<p>Run: <code>rtk go vet ./...</code> from <code>edgex/device-serial</code></p>
+<p>Expected: PASS and no race/vet diagnostics.</p>
+<ul><li>[ ] <strong>Step 6: 커밋</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/device-serial/internal/driver/driver.go edgex/device-serial/internal/driver/driver_test.go
+rtk git commit -m &quot;feat: integrate local cache with serial device service&quot;</code></pre>
+<h3 id="task-4-workflow-접근-정책과-활성-문서">Task 4: Workflow 접근 정책과 활성 문서</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edgex/k8s/tests/test_device_serial_manifest.py</code></li><li>Modify: <code>edgex/k8s/base/device-serial-jetson/workload.yaml</code></li><li>Modify: <code>docs/물리-디바이스-상태-정책.md</code></li><li>Modify: <code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li>Modify: <code>docs/디바이스-서비스-연결.md</code></li><li>Modify: <code>docs/현재-데모-경로.md</code></li><li>Modify: <code>docs/ops/현재-데모-운영-절차.md</code></li><li>Modify: <code>docs/wiki/상태와-텔레메트리.md</code></li><li>Modify: <code>docs/wiki/변경-기록.md</code></li><li>Modify: <code>docs/일일-기록.md</code></li><li>Regenerate: <code>docs/html/**</code>, <code>docs/generated/consistency-report.html</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: <code>edge-ai.io/local-data-client=true</code>, Local Data API path와 cache contract</li><li>Produces: label-gated ingress와 코드/manifest/live 근거에 맞는 한국어 운영 문서</li></ul>
+<ul><li>[ ] <strong>Step 1: NetworkPolicy RED 테스트 작성</strong></li></ul>
+<p><code>test_device_serial_manifest.py</code>에서 ingress rule 하나가 모든 namespace의 <code>edge-ai.io/local-data-client: &quot;true&quot;</code> Pod에 TCP 59910만 허용하는지 단언한다. 기존 <code>edgex-system</code> 허용 rule이 유지되고 Service에 <code>clusterIP</code> 숫자값이 명시되지 않으며 Deployment에 PVC/SQLite/MQTT 설정이 없는지도 단언한다.</p>
+<ul><li>[ ] <strong>Step 2: RED 확인</strong></li></ul>
+<p>Run: <code>rtk /home/jinuk/codex-work/jinuk/.venv-publisher/bin/python -m pytest edgex/k8s/tests/test_device_serial_manifest.py -q</code></p>
+<p>Expected: FAIL because workflow label ingress rule is absent.</p>
+<ul><li>[ ] <strong>Step 3: ingress rule 최소 구현과 GREEN 확인</strong></li></ul>
+<pre data-lang="yaml"><code>- from:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          edge-ai.io/local-data-client: &quot;true&quot;
+  ports:
+    - protocol: TCP
+      port: 59910</code></pre>
+<p>Run: <code>rtk /home/jinuk/codex-work/jinuk/.venv-publisher/bin/python -m pytest edgex/k8s/tests -q</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 4: 활성 문서와 생성 HTML 최신화</strong></li></ul>
+<p>문서에 다음을 동일하게 반영한다.</p>
+<ul><li>latest 1개 map에서 10분/10,000 sample memory cache로 변경</li><li>latest/recent Local Data API와 query/error 계약</li><li>재시작 비보존, 중앙 history와 SQLite Outbox의 책임 분리</li><li>workflow client label과 Service FQDN</li><li>중앙 Core Data/PostgreSQL, MessageBus, EdgeMesh 불변</li></ul>
+<p>Run: <code>rtk python3 tools/docs_consistency/generate_report.py</code></p>
+<p>Run: <code>rtk python3 scripts/build-docs-html.py</code></p>
+<p>Run: <code>rtk python3 -m unittest tests.test_docs_editor_server tests.test_docs_html_search tests.test_docs_consistency</code></p>
+<p>Expected: consistency PASS=7/WARN=0/FAIL=0 and all docs tests pass.</p>
+<ul><li>[ ] <strong>Step 5: 커밋</strong></li></ul>
+<pre data-lang="bash"><code>rtk git add edgex/k8s docs
+rtk git commit -m &quot;docs: describe local recent telemetry access&quot;</code></pre>
+<h3 id="task-5-arm64-이미지-gitops-배포-live-검증과-push">Task 5: ARM64 이미지, GitOps 배포, live 검증과 push</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>edgex/k8s/base/device-serial-jetson/workload.yaml</code> (immutable image digest)</li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: 검증된 Device Service source와 registry <code>192.168.0.56:5000/edgex-device-serial</code></li><li>Produces: Argo CD가 동기화한 Jetson Local Data API와 원격 branch</li></ul>
+<ul><li>[ ] <strong>Step 1: 전체 사전 검증</strong></li></ul>
+<p>Run: <code>rtk go test -race ./... -count=1</code> from <code>edgex/device-serial</code></p>
+<p>Run: <code>rtk go vet ./...</code> from <code>edgex/device-serial</code></p>
+<p>Run: <code>rtk /home/jinuk/codex-work/jinuk/.venv-publisher/bin/python -m pytest edgex/k8s/tests -q</code></p>
+<p>Run: <code>rtk /home/jinuk/codex-work/jinuk/.venv-publisher/bin/python -m pytest edge-orch/state-aggregator/tests -q</code></p>
+<p>Run: <code>rtk python3 -m unittest tests.test_docs_editor_server tests.test_docs_html_search tests.test_docs_consistency</code></p>
+<p>Run: <code>rtk kubectl kustomize edgex/k8s</code></p>
+<p>Run: <code>rtk git diff --check</code></p>
+<p>Expected: every command exits 0.</p>
+<ul><li>[ ] <strong>Step 2: ARM64 image build/push와 digest 확인</strong></li></ul>
+<p>Run from <code>edgex/device-serial</code>:</p>
+<pre data-lang="bash"><code>rtk env KO_DOCKER_REPO=192.168.0.56:5000/edgex-device-serial go run github.com/google/ko@v0.18.0 build --bare --platform=linux/arm64 --insecure-registry --sbom=none --tags=local-cache-arm64-20260721 ./cmd/device-serial</code></pre>
+<p>Expected: registry digest reference. <code>crane manifest</code>로 architecture <code>arm64</code>를 확인하고 그 immutable digest를 workload image에 기록한다.</p>
+<ul><li>[ ] <strong>Step 3: digest pin 테스트·커밋·push</strong></li></ul>
+<p>Run: <code>rtk /home/jinuk/codex-work/jinuk/.venv-publisher/bin/python -m pytest edgex/k8s/tests/test_device_serial_manifest.py -q</code></p>
+<p>Run: <code>rtk git add edgex/k8s/base/device-serial-jetson/workload.yaml</code></p>
+<p>Run: <code>rtk git commit -m &quot;build: pin local cache device service image&quot;</code></p>
+<p>Run: <code>rtk git push origin agent/retire-edge-agents</code></p>
+<p>Expected: remote branch HEAD equals local HEAD.</p>
+<ul><li>[ ] <strong>Step 4: Argo sync와 live API readback</strong></li></ul>
+<ul><li>Argo Application <code>edgex-telemetry</code> target revision을 pushed HEAD로 갱신하고 <code>Synced/Healthy</code>를 확인한다.</li><li><code>device-serial-jetson</code>이 <code>etri-dev0001-jetorn</code>에서 Ready 1/1이고 expected image digest인지 확인한다.</li><li>label이 있는 Jetson 임시 client Pod에서 6개 Device의 latest/recent API를 Service FQDN으로 호출한다.</li><li>각 응답이 한 resource만 포함하고 recent origin이 오름차순이며 count가 증가하는지 확인한다.</li><li>임시 client Pod를 삭제한다.</li></ul>
+<ul><li>[ ] <strong>Step 5: 중앙 경로와 불변조건 회귀 검증</strong></li></ul>
+<ul><li>Metadata에 6개 target Device만 있고 모두 <code>device-serial-jetson</code>, <code>UNLOCKED/UP</code>이다.</li><li>Core Data latest Event, Core Command GET, <code>/state/devices</code>가 6개 source를 계속 정상 반환한다.</li><li>no live Agent/InfluxDB/SQLite PVC/local broker이며 root render에도 없다.</li><li>EdgeMesh generation/image/Ready 수가 baseline과 동일하다.</li><li>fixed ClusterIP/PodIP/node IP route가 없다.</li></ul>
+<ul><li>[ ] <strong>Step 6: 최종 검증과 마지막 push</strong></li></ul>
+<p>Run all Task 5 Step 1 commands again after deployment/document evidence updates.</p>
+<p>Run: <code>rtk git status --short</code></p>
+<p>Run: <code>rtk git rev-parse HEAD</code></p>
+<p>Run: <code>rtk git rev-parse origin/agent/retire-edge-agents</code></p>
+<p>Expected: clean tree and identical local/remote HEAD.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h3"><a href="#task-1-동시성-안전-bounded-recent-cache">Task 1: 동시성 안전 bounded recent cache</a></li>
+<li class="toc-h3"><a href="#task-2-local-data-http-api">Task 2: Local Data HTTP API</a></li>
+<li class="toc-h3"><a href="#task-3-device-service-fan-out와-custom-route-통합">Task 3: Device Service fan-out와 custom route 통합</a></li>
+<li class="toc-h3"><a href="#task-4-workflow-접근-정책과-활성-문서">Task 4: Workflow 접근 정책과 활성 문서</a></li>
+<li class="toc-h3"><a href="#task-5-arm64-이미지-gitops-배포-live-검증과-push">Task 5: ARM64 이미지, GitOps 배포, live 검증과 push</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

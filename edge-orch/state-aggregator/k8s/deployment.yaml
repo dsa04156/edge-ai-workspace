@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator:latest
+          image: 192.168.0.56:5000/state-aggregator@sha256:4069e3a15a8acc2dda9701497089af8d788816acbc4e9a5043093ab20e8cfe04
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -33,8 +33,6 @@ spec:
               value: /app/data
             - name: INSTANCE_MAP_PATH
               value: /app/app/config/instance_map.json
-            - name: RESOURCE_PROFILE_RECORDING_MODE
-              value: disabled
             - name: EDGEX_CORE_METADATA_URL
               value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
             - name: EDGEX_CORE_DATA_URL
@@ -43,6 +41,10 @@ spec:
               value: "10"
             - name: EDGEX_EVENT_FRESH_SECONDS
               value: "90"
+            - name: SENSOR_ANOMALY_DEMO_URL
+              value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
+            - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
+              value: "2"
           volumeMounts:
             - name: state-data
               mountPath: /app/data

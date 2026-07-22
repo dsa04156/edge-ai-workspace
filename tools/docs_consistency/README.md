@@ -34,21 +34,17 @@ docs/generated/consistency-report.html
 ## 검사 대상 코드
 
 - `edge-orch/state-aggregator/app/service.py`
-- `edge-orch/state-aggregator/app/influx.py`
 - `edge-orch/state-aggregator/app/static/dashboard.js`
-- `edge-device/scripts/generate_devices.py`
-- `mappers/script/test_device.py`
 
 ## 현재 규칙
 
 1. `device_telemetry_ratio`는 telemetry configured ratio여야 한다.
 2. telemetry freshness 설명은 `telemetry_freshness_ratio` 또는 `fresh_telemetry_device_count`를 사용해야 한다.
-3. DeviceStatus freshness는 healthy 필수 조건이 아니라 status-plane 보조 신호여야 한다.
+3. DeviceStatus freshness는 현재 physical availability 권위가 아니며 EdgeX 상태/Event와 구분해야 한다.
 4. `operator_focus_count`는 degraded/unavailable device 수 + non-healthy node 수이며 workflow risk를 포함하지 않는다.
-5. act/rpi-act InfluxDB liveness row는 현재 `health` property 기준이다. `ts`는 dashboard freshness 판단용 DB push property가 아니다.
-6. dashboard `node_ready`는 Kubernetes Ready condition과 같은 값이 아니라 state-aggregator의 node_health 기반 판단값이다.
-7. InfluxDB timestamp 설명에는 `_start/_stop`, `_time`, device-level latest sample, property별 freshness 비보장 의미가 있어야 한다.
-8. workflow/offloading/placement/agent autonomous control은 현재 구현 기능처럼 표현하지 않는다. 단, read-only/dry-run 설계·시각화 도구는 실제 실행 기능이 아님을 명시하면 허용한다.
+5. dashboard `node_ready`는 Kubernetes Ready condition과 같은 값이 아니라 state-aggregator의 node_health 기반 판단값이다.
+6. Core Data telemetry freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 사용해야 한다.
+7. workflow/offloading/placement/agent autonomous control은 현재 구현 기능처럼 표현하지 않는다. 단, read-only/dry-run 설계·시각화 도구는 실제 실행 기능이 아님을 명시하면 허용한다.
 
 ## 구현 메모
 

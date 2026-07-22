@@ -28,10 +28,7 @@ DOC_FILES = [
 
 CODE_FILES = [
     "edge-orch/state-aggregator/app/service.py",
-    "edge-orch/state-aggregator/app/influx.py",
     "edge-orch/state-aggregator/app/static/dashboard.js",
-    "edge-device/scripts/generate_devices.py",
-    "mappers/script/test_device.py",
 ]
 
 
@@ -180,7 +177,7 @@ def rule_telemetry_freshness_ratio(corpus: Corpus) -> RuleResult:
 
 def rule_device_status_freshness(corpus: Corpus) -> RuleResult:
     name = "R3 DeviceStatus freshness is auxiliary, not required for healthy"
-    fix = "DeviceStatus freshness는 status-plane 관찰용 보조 신호다. telemetry-enabled device는 InfluxDB latest telemetry가 fresh하면 DeviceStatus가 stale이어도 healthy일 수 있다고 설명한다."
+    fix = "DeviceStatus freshness는 legacy status-plane 신호다. 현재 physical availability는 EdgeX Core Metadata 상태와 Core Data latest Event origin으로 판단한다고 설명한다."
     result = RuleResult(name=name, recommended_fix=fix)
     fail_patterns = [
         re.compile(r"DeviceStatus.*(healthy|정상).*필수", re.I),
@@ -218,26 +215,8 @@ def rule_operator_focus_count(corpus: Corpus) -> RuleResult:
     return result
 
 
-def rule_actuator_liveness(corpus: Corpus) -> RuleResult:
-    name = "R5 act/rpi-act InfluxDB liveness uses health property, not ts"
-    fix = "act/rpi-act의 현재 InfluxDB liveness row는 `health` property다. `ts`는 publisher payload에는 포함될 수 있지만 현재 Device manifest의 DB push property가 아니므로 dashboard freshness 기준으로 쓰지 않는다."
-    result = RuleResult(name=name, recommended_fix=fix)
-    bad = re.compile(r"(act|rpi-act|actuator).{0,120}(InfluxDB|DB|liveness|freshness).{0,120}`?ts`?|`?ts`?.{0,120}(liveness|freshness).{0,120}(act|rpi-act|actuator)", re.I)
-    allowed = re.compile(r"(아니|not|현재 .*아니|후보|payload|DB push property가 아니|dashboard freshness 기준.*않)", re.I)
-    good = re.compile(r"(act|rpi-act|actuator).{0,120}(health).{0,120}(liveness|InfluxDB|DB|freshness)|health.{0,80}liveness", re.I)
-    for file, line_no, line in iter_lines(corpus.docs):
-        ctx = window_lines(corpus.docs[file], line_no, 1, 1)
-        if bad.search(ctx) and not allowed.search(ctx):
-            result.add_finding(make_finding(name, "FAIL", file, line_no, ctx, "act/rpi-act liveness를 ts 기준으로 설명합니다.", fix))
-        elif good.search(ctx):
-            result.add_evidence(file, line_no, line)
-    add_code_evidence(result, corpus, "edge-device/scripts/generate_devices.py", r"health|db_props|pushMethod")
-    add_code_evidence(result, corpus, "mappers/script/test_device.py", r"\bts\b")
-    return result
-
-
 def rule_node_ready(corpus: Corpus) -> RuleResult:
-    name = "R6 dashboard node_ready is not identical to Kubernetes Ready"
+    name = "R5 dashboard node_ready is not identical to Kubernetes Ready"
     fix = "dashboard `node_ready`는 Kubernetes Ready condition 자체가 아니라 state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값이라고 설명한다. Kubernetes Ready는 `kubectl get nodes` 기준으로 별도 표현한다."
     result = RuleResult(name=name, recommended_fix=fix)
     for file, line_no, line in iter_lines(corpus.docs):
@@ -252,39 +231,46 @@ def rule_node_ready(corpus: Corpus) -> RuleResult:
     return result
 
 
-def rule_influx_timestamp_notes(corpus: Corpus) -> RuleResult:
-    name = "R7 InfluxDB timestamp semantics are documented"
-    fix = "InfluxDB latest 설명에는 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, `telemetry_fresh`는 device-level latest sample 기준, property별 latest freshness를 보장하지 않는다는 문구를 넣는다."
+def rule_core_data_event_origin(corpus: Corpus) -> RuleResult:
+    name = "R6 Core Data freshness uses Event origin"
+    fix = "telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다고 설명한다."
     result = RuleResult(name=name, recommended_fix=fix)
-    required = [
-        ("_start/_stop query window", re.compile(r"_start.*_stop.*(window|윈도우|조회 범위|query)", re.I)),
-        ("_time sample timestamp", re.compile(r"_time.*(sample|telemetry|timestamp|시각)", re.I)),
-        ("device-level latest sample", re.compile(r"(device-level|device별).*latest.*sample|latest sample.*device", re.I)),
-        ("not property-level freshness", re.compile(r"property별.*(보장하지|아니|not)|not.*property", re.I)),
-    ]
-    influx_topic = re.compile(r"InfluxDB|\bFlux\b|_start\b|_stop\b|_time\b", re.I)
-    timestamp_claim = re.compile(r"latest|freshness|timestamp|최신|신선도|시각", re.I)
+    source = re.compile(r"Core Data|EdgeX.*Event|Event.*EdgeX", re.I)
+    freshness = re.compile(r"latest|freshness|fresh|최신|신선도", re.I)
+    origin = re.compile(r"`?origin`?.*(sample|timestamp|시각|nanosecond|나노초)|sample.*`?origin`?", re.I)
     for file, text in corpus.docs.items():
         paragraphs = re.split(r"\n\s*\n", text)
-        claims = [paragraph for paragraph in paragraphs if influx_topic.search(paragraph) and timestamp_claim.search(paragraph)]
+        claims = [
+            paragraph
+            for paragraph in paragraphs
+            if source.search(paragraph) and freshness.search(paragraph)
+        ]
         if not claims:
             continue
-        claim_text = "\n\n".join(claims)
-        missing = [label for label, pat in required if not pat.search(claim_text)]
-        if missing:
-            first_line = text[: text.find(claims[0])].count("\n") + 1
-            result.add_finding(make_finding(name, "WARN", file, first_line, ", ".join(missing), "InfluxDB timestamp/freshness 의미 설명이 일부 빠졌습니다.", fix))
-        else:
-            for idx, line in enumerate(claim_text.splitlines(), 1):
-                if "_start" in line or "device-level latest" in line or "property별" in line:
-                    result.add_evidence(file, idx, line)
-                    break
-    add_code_evidence(result, corpus, "edge-orch/state-aggregator/app/influx.py", r"_time|last\(|latest")
+        clock = origin.search(text)
+        if clock:
+            line_no = text[: clock.start()].count("\n") + 1
+            result.add_evidence(file, line_no, window_lines(text, line_no, 0, 0))
+            continue
+        claim = claims[0]
+        first_line = text[: text.find(claim)].count("\n") + 1
+        result.add_finding(
+            make_finding(
+                name,
+                "WARN",
+                file,
+                first_line,
+                claim,
+                "Core Data freshness 설명에 Event origin sample 시각이 없습니다.",
+                fix,
+            )
+        )
+    add_code_evidence(result, corpus, "edge-orch/state-aggregator/app/service.py", r"latest_event_origin|telemetry_freshness")
     return result
 
 
 def rule_scope_current_implementation(corpus: Corpus) -> RuleResult:
-    name = "R8 workflow/offloading/placement/autonomous agent are not current implementation scope"
+    name = "R7 workflow/offloading/placement/autonomous agent are not current implementation scope"
     fix = "workflow/offloading/placement/agent autonomous control은 현재 구현 기능이 아니라 제외 범위, archive/legacy, 향후 확장 후보, 또는 read-only/dry-run 설계 도구로만 표현한다."
     result = RuleResult(name=name, recommended_fix=fix)
     risky_terms = re.compile(r"(workflow|offloading|placement|agent-assisted|autonomous|자율 제어|전역 제어|자동 배치|자동 재배치|runtime replanning)", re.I)
@@ -306,9 +292,8 @@ RULES: list[RuleFn] = [
     rule_telemetry_freshness_ratio,
     rule_device_status_freshness,
     rule_operator_focus_count,
-    rule_actuator_liveness,
     rule_node_ready,
-    rule_influx_timestamp_notes,
+    rule_core_data_event_origin,
     rule_scope_current_implementation,
 ]
 

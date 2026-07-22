@@ -84,11 +84,26 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -120,19 +135,21 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>옥동 생산성 KPI</h1>
-          <p class="subtitle">EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는…</p>
+          <p class="subtitle">&gt; 현재 실증 표본: 기존 MQTT/Agent 기반 sensehat-001 fixture는 퇴역했다. 현재 KPI 표본은 Jet…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 옥동-생산성-kpi.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 20:15</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="옥동-시나리오-생산성-kpi">옥동 시나리오 생산성 KPI</h1>
+<blockquote><p><strong>현재 실증 표본:</strong> 기존 MQTT/Agent 기반 <code>sensehat-001</code> fixture는 퇴역했다. 현재 KPI 표본은 Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C의 물리 source 2개를 기능별 가상 Device 6개씩, 총 12개로 나눈 두 수직 슬라이스이며 이를 전체 공장 성과로 외삽하지 않는다.</p></blockquote>
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는 것이 아니라, 운영자가 inventory, Device Service 연결, Core Data event freshness와 서비스 영향 범위를 빠르게 이해해 점검 시간을 줄일 수 있음을 보이는 것이다.</p>
 <pre data-lang="text"><code>EdgeX device 상태와 최신 event를 한 화면에서 보고 문제 위치를 좁히는 운영 가시화 PoC</code></pre>
+<p>이 문서의 Core Data freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 사용한다. API 조회 시각이나 Kubernetes 상태는 freshness 시계가 아니다.</p>
 <h2 id="현장-문제와-개선점">현장 문제와 개선점</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -352,13 +369,13 @@
 <td>어느 device input이 AI 서비스, 저장소, dashboard에 영향을 주는지 확인</td>
 </tr>
 </tbody></table></div>
-<p>이 지표는 device → Protocol Adapter/edge agent → HTTPS gateway → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.</p>
-<h2 id="direct-검증-fixture-kpi-해석">direct 검증 fixture KPI 해석</h2>
-<p>현재 repository 전달 범위의 교체 가능한 physical example은 <code>sensehat-001</code>이다. 다음 증거를 함께 제시한다.</p>
-<ol><li><code>source=edgex</code></li><li>profile과 논리 수집 서비스 identity</li><li><code>protocol_names</code>의 I2C</li><li>admin/operating/connection 상태</li><li>latest Core Data event timestamp와 freshness</li><li>latest temperature/humidity/pressure/orientation readings의 source/resource/value</li><li>AI/storage/dashboard consumer 관계</li></ol>
-<p>단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.</p>
+<p>이 지표는 device → EdgeX Device Service → 중앙 MessageBus → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.</p>
+<h2 id="현재-serial-i2c-표본-kpi-해석">현재 Serial/I2C 표본 KPI 해석</h2>
+<p>현재 physical source는 <code>arduino-001</code>, <code>sensehat-001</code>이고 EdgeX inventory는 Serial 6개 <code>virtual-*-001</code> Device와 환경/IMU I2C Device 6개다. 다음 증거를 함께 제시한다.</p>
+<ol><li><code>source=edgex</code></li><li>profile과 논리 수집 서비스 identity</li><li><code>protocol_names</code>의 Serial 또는 I2C</li><li>admin/operating/connection 상태</li><li>latest Core Data event timestamp와 freshness</li><li>latest Serial 및 Sense HAT 환경/IMU readings의 source/resource/value</li><li>AI/storage/dashboard consumer 관계</li></ol>
+<p>두 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개와 Sense HAT I2C 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 Modbus/OPC-UA 및 장기 가용성은 각각 별도 증거가 필요하다.</p>
 <h2 id="생산성-설명-문구">생산성 설명 문구</h2>
-<pre data-lang="text"><code>본 PoC는 EdgeX Core Metadata의 device 등록·논리 수집 서비스 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, adapter/agent, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.</code></pre>
+<pre data-lang="text"><code>본 PoC는 EdgeX Core Metadata의 device 등록·Device Service 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, Device Service, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.</code></pre>
 <p>이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.</p>
 <h2 id="protocol-wave-경계">Protocol wave 경계</h2>
 <div class="table-wrap"><table>
@@ -368,16 +385,16 @@
 </tr></thead>
 <tbody>
 <tr>
-<td>I2C <code>sensehat-001</code> direct</td>
-<td>새 image의 실제 Event와 중앙 readback 증거가 있을 때 포함</td>
+<td>Serial Arduino source / 가상 Device 6개</td>
+<td>Device별 중앙 readback과 dashboard freshness 표본에 포함</td>
+</tr>
+<tr>
+<td>I2C Sense HAT source / 가상 Device 6개</td>
+<td>Device별 중앙 readback과 dashboard freshness 표본에 포함</td>
 </tr>
 <tr>
 <td>MQTT-only 장비 adapter</td>
 <td>현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함</td>
-</tr>
-<tr>
-<td>Serial</td>
-<td>구현·현장 검증 전에는 제외</td>
 </tr>
 <tr>
 <td>Modbus</td>
@@ -392,7 +409,7 @@
 <td>구현·현장 검증 전에는 제외</td>
 </tr>
 </tbody></table></div>
-<p>후속 wave는 각각 Core Metadata identity, Protocol Adapter, durable delivery, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.</p>
+<p>후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다. 현재 Serial/I2C 경로는 outbox나 offline replay가 없으므로 durable edge buffering KPI를 주장하지 않는다.</p>
 <h2 id="현재-범위에서-말하지-않는-것">현재 범위에서 말하지 않는 것</h2>
 <ul><li>자동 device 제어 또는 자동 복구 효과</li><li>동적 workflow 실행 성능</li><li>runtime offloading 또는 자동 재배치 효과</li><li>미구현 protocol의 연결률</li><li>문서 예시만으로 입증한 live 배포 상태</li></ul>
 <p>Workflow/node 설계 화면과 운영 보조 agent는 read-only 또는 dry-run이다. EdgeX 또는 Kubernetes 리소스를 수정하지 않는다.</p>
@@ -409,7 +426,7 @@
 <li class="toc-h3"><a href="#6-core-data-freshness-비율">6. Core Data freshness 비율</a></li>
 <li class="toc-h3"><a href="#7-운영자-우선-점검-대상-수">7. 운영자 우선 점검 대상 수</a></li>
 <li class="toc-h3"><a href="#8-서비스-영향-범위">8. 서비스 영향 범위</a></li>
-<li class="toc-h2"><a href="#direct-검증-fixture-kpi-해석">direct 검증 fixture KPI 해석</a></li>
+<li class="toc-h2"><a href="#현재-serial-i2c-표본-kpi-해석">현재 Serial/I2C 표본 KPI 해석</a></li>
 <li class="toc-h2"><a href="#생산성-설명-문구">생산성 설명 문구</a></li>
 <li class="toc-h2"><a href="#protocol-wave-경계">Protocol wave 경계</a></li>
 <li class="toc-h2"><a href="#현재-범위에서-말하지-않는-것">현재 범위에서 말하지 않는 것</a></li></ol></aside>

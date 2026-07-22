@@ -84,11 +84,26 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -120,20 +135,22 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>카젠티 운영 보조 에이전트</h1>
-          <p class="subtitle">Kagenti operator assistant는 EdgeX-backed state-aggregator API를 read-onl…</p>
+          <p class="subtitle">&gt; 현재 상태: 2026-07-21 custom edge Agent와 aggregate sensehat-001 bootstrap…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 카젠티-운영-보조-에이전트.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-21 20:15</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="카젠티-운영-보조-에이전트-poc">카젠티 운영 보조 에이전트 PoC</h1>
+<blockquote><p><strong>현재 상태:</strong> 2026-07-21 custom edge Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 physical <code>arduino-001</code>, <code>sensehat-001</code>을 기능별 가상 Device 6개씩으로 분리한다. Assistant는 live API를 다시 조회해 상태를 요약하며 문서 예시값을 현재값으로 사용하지 않는다.</p></blockquote>
 <h2 id="목적">목적</h2>
 <p>Kagenti operator assistant는 EdgeX-backed <code>state-aggregator</code> API를 read-only로 조회해 한국어 운영 요약과 점검 순서를 제안한다. 자율 제어, 자동 복구 또는 배치 계층이 아니다.</p>
 <pre data-lang="text"><code>EdgeX state -&gt; state-aggregator -&gt; read-only operator summary -&gt; human operator</code></pre>
 <p>물리 디바이스 정보의 권위는 EdgeX Core Metadata와 Core Data다.</p>
+<p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산한다. Assistant는 API 조회 시각이나 Kubernetes 상태로 이 값을 보정하지 않는다.</p>
 <h2 id="현재-endpoint">현재 endpoint</h2>
 <pre data-lang="text"><code>GET /state/operator-assistant</code></pre>
 <p>참조 API:</p>
@@ -201,16 +218,16 @@ node_name</code></pre>
 <p><code>source=edgex</code>이며, profile/논리 수집 서비스/protocol/admin/operating 정보는 Core Metadata에서 온다. Event timestamp, <code>source_name</code>, <code>resource_name</code>, value는 Core Data에서 온다. <code>node_name</code>은 선택적 진단 정보다.</p>
 <h2 id="운영자-요약-예시">운영자 요약 예시</h2>
 <pre data-lang="text"><code>EdgeX 기반 read-only 운영 보조 요약입니다.
-Core Metadata 등록 device 1개 중 available device 1개,
+Core Metadata 등록 device 12개 중 available device 12개,
 우선 점검 대상 0개입니다.
 Core Data event freshness 비율은 1.0입니다.</code></pre>
 <p>수치 예시는 payload 형식 설명용이며 live 환경의 현재 수치를 주장하지 않는다.</p>
 <h2 id="focus-device-예시">Focus device 예시</h2>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;sensehat-001&quot;,
-  &quot;node_name&quot;: null,
+  &quot;name&quot;: &quot;virtual-temperature-001&quot;,
+  &quot;node_name&quot;: &quot;etri-dev0001-jetorn&quot;,
   &quot;status&quot;: &quot;degraded&quot;,
-  &quot;reason&quot;: &quot;Edge telemetry agent is UP but latest Core Data event is stale&quot;,
+  &quot;reason&quot;: &quot;EdgeX device service is UP but latest Core Data event is stale&quot;,
   &quot;admin_state&quot;: &quot;UNLOCKED&quot;,
   &quot;operating_state&quot;: &quot;UP&quot;,
   &quot;device_service_available&quot;: true,
@@ -218,17 +235,17 @@ Core Data event freshness 비율은 1.0입니다.</code></pre>
 }</code></pre>
 <p>Focus payload는 <code>/state/devices</code> 계약의 운영 판단 필드만 요약한다. 상세 조사에서는 원본 항목의 <code>source</code>, profile, 논리 수집 서비스, protocol, <code>latest_event_timestamp</code>, <code>latest_readings</code>를 함께 확인한다.</p>
 <h2 id="recommended-action-예시">Recommended action 예시</h2>
-<pre data-lang="text"><code>sensehat-001: I2C adapter, edge outbox, HTTPS gateway와 Core Data 최신 event를 순서대로 확인한다.</code></pre>
+<pre data-lang="text"><code>virtual-temperature-001: 공유 Serial endpoint, device-serial-jetson, 중앙 MessageBus와 Core Data 최신 event를 순서대로 확인한다.</code></pre>
 <p>추천 규칙:</p>
-<ul><li><code>admin_state=LOCKED</code>: Core Metadata admin 정책을 확인한다.</li><li><code>operating_state</code>가 UP이 아니거나 <code>device_service_available=false</code>: 논리 수집 서비스 등록, agent health와 physical adapter connection을 확인한다.</li><li><code>telemetry_freshness</code>가 fresh가 아님: Core Data 최신 event, profile resource, event source를 확인한다.</li><li>필요할 때에만 node/workload placement를 별도 진단한다.</li></ul>
+<ul><li><code>admin_state=LOCKED</code>: Core Metadata admin 정책을 확인한다.</li><li><code>operating_state</code>가 UP이 아니거나 <code>device_service_available=false</code>: Device Service 등록, Pod health와 physical Serial/I2C connection을 확인한다.</li><li><code>telemetry_freshness</code>가 fresh가 아님: Core Data 최신 event, profile resource, event source를 확인한다.</li><li>필요할 때에만 node/workload placement를 별도 진단한다.</li></ul>
 <p>Agent는 점검 순서를 제안할 뿐 명령을 실행하지 않는다.</p>
 <h2 id="서비스-영향-설명">서비스 영향 설명</h2>
 <p>Assistant가 설명하는 binding은 다음 흐름이다.</p>
 <pre data-lang="text"><code>EdgeX Device
-  -&gt; Protocol Adapter -&gt; edge telemetry agent / SQLite outbox
-  -&gt; HTTPS ingest gateway -&gt; Core Data / PostgreSQL
+  -&gt; protocol-specific EdgeX Device Service
+  -&gt; central internal MessageBus -&gt; Core Data / PostgreSQL
   -&gt; AI service / storage / dashboard</code></pre>
-<p>운영자는 profile, protocol, 논리 수집 서비스, adapter/agent 상태와 Core Data source/resource를 통해 어느 consumer가 영향을 받는지 확인한다. 이 관계는 workflow orchestration이나 자동 placement가 아니다.</p>
+<p>운영자는 profile, protocol, Device Service 상태와 Core Data source/resource를 통해 어느 consumer가 영향을 받는지 확인한다. 이 관계는 workflow orchestration이나 자동 placement가 아니다.</p>
 <h2 id="guardrail">Guardrail</h2>
 <p>금지 범위:</p>
 <ul><li>EdgeX Core Metadata device/profile 수정</li><li>Protocol Adapter 또는 telemetry agent 재시작·재배포</li><li>MQTT 또는 다른 protocol command 발행</li><li>Kubernetes 리소스 생성·수정·삭제</li><li>actuator 직접 제어</li><li>자동 placement/offloading/workflow 실행</li><li>LLM 기반 전역 제어</li></ul>
@@ -236,7 +253,7 @@ Core Data event freshness 비율은 1.0입니다.</code></pre>
 <ul><li>state-aggregator read-only API 조회</li><li>EdgeX KPI와 device 상태 요약</li><li>degraded/unavailable device 목록화</li><li>Core Data event freshness와 latest readings 설명</li><li>runbook 기반 점검 순서 제안</li><li>AI/storage/dashboard consumer 영향 범위 설명</li></ul>
 <p>Workflow designer와 assistant preview는 dry-run/no-mutation 경계를 유지한다.</p>
 <h2 id="현재-physical-범위">현재 physical 범위</h2>
-<p>현재 repository에 전달된 물리 경로는 loopback Protocol Adapter, direct-mode agent, SQLite outbox와 HTTPS gateway 경로다. <code>sensehat-001</code>은 교체 가능한 검증 fixture다. 새 image의 live cutover 증거가 없으면 assistant는 이를 운영 전환 완료로 요약해서는 안 된다. 현재 Jetson MQTT workload는 없으며 MQTT-only·Serial·Modbus·OPC-UA와 RTSP workflow는 future migration wave다. 각 wave는 Adapter/profile, 실제 protocol 연결, durable replay, Core Data event와 consumer 처리를 검증한 뒤 별도로 활성화한다.</p>
+<p>2026-07-21 현재 기존 loopback Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. physical <code>arduino-001</code>, <code>sensehat-001</code>은 protocol/tag source ID이며, Assistant는 Serial 6개와 직접 I2C 6개, 총 12개 Device의 Metadata, Core Data와 dashboard readback이 일치할 때만 활성 상태로 요약한다. 실제 물리 분리·복구와 이후 MQTT-only·Modbus·OPC-UA·다른 I2C 장비/RTSP wave는 각각 실제 endpoint와 consumer 처리를 검증한 뒤에만 완료로 보고한다.</p>
 <h2 id="생산성-표현">생산성 표현</h2>
 <pre data-lang="text"><code>Kagenti operator assistant는 EdgeX 기반 device identity, 논리 수집 서비스 상태와 Core Data event freshness를 read-only로 요약한다. 운영자는 전체 장치를 개별 명령으로 확인하기 전에 focus list와 추천 점검 순서로 문제 범위를 좁히고, source/resource별 최신 reading과 AI·저장소·dashboard 영향 범위를 확인할 수 있다.</code></pre>
 <p>이는 운영 점검 경로를 단순화하는 PoC 언어다. 자동 복구, live deployment 완료, 정량적 인력 절감 또는 미구현 protocol 지원을 주장하지 않는다.</p>

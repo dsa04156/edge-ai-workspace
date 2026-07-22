@@ -1,5 +1,7 @@
 # 옥동 시나리오 생산성 KPI
 
+> **현재 실증 표본:** 기존 MQTT/Agent 기반 `sensehat-001` fixture는 퇴역했다. 현재 KPI 표본은 Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C의 물리 source 2개를 기능별 가상 Device 6개씩, 총 12개로 나눈 두 수직 슬라이스이며 이를 전체 공장 성과로 외삽하지 않는다.
+
 ## 목적
 
 이 문서는 EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는 것이 아니라, 운영자가 inventory, Device Service 연결, Core Data event freshness와 서비스 영향 범위를 빠르게 이해해 점검 시간을 줄일 수 있음을 보이는 것이다.
@@ -7,6 +9,8 @@
 ```text
 EdgeX device 상태와 최신 event를 한 화면에서 보고 문제 위치를 좁히는 운영 가시화 PoC
 ```
+
+이 문서의 Core Data freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 사용한다. API 조회 시각이나 Kubernetes 상태는 freshness 시계가 아니다.
 
 ## 현장 문제와 개선점
 
@@ -97,26 +101,26 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 | 근거 | `device_service_name`, profile, protocol, Core Data source/resource, consumer relation |
 | 운영자 해석 | 어느 device input이 AI 서비스, 저장소, dashboard에 영향을 주는지 확인 |
 
-이 지표는 device → Protocol Adapter/edge agent → HTTPS gateway → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
+이 지표는 device → EdgeX Device Service → 중앙 MessageBus → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.
 
-## direct 검증 fixture KPI 해석
+## 현재 Serial/I2C 표본 KPI 해석
 
-현재 repository 전달 범위의 교체 가능한 physical example은 `sensehat-001`이다. 다음 증거를 함께 제시한다.
+현재 physical source는 `arduino-001`, `sensehat-001`이고 EdgeX inventory는 Serial 6개 `virtual-*-001` Device와 환경/IMU I2C Device 6개다. 다음 증거를 함께 제시한다.
 
 1. `source=edgex`
 2. profile과 논리 수집 서비스 identity
-3. `protocol_names`의 I2C
+3. `protocol_names`의 Serial 또는 I2C
 4. admin/operating/connection 상태
 5. latest Core Data event timestamp와 freshness
-6. latest temperature/humidity/pressure/orientation readings의 source/resource/value
+6. latest Serial 및 Sense HAT 환경/IMU readings의 source/resource/value
 7. AI/storage/dashboard consumer 관계
 
-단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.
+두 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. Jetson Serial 6개와 Sense HAT I2C 6개 가상 Device는 2026-07-21 live cutover를 확인했지만 Modbus/OPC-UA 및 장기 가용성은 각각 별도 증거가 필요하다.
 
 ## 생산성 설명 문구
 
 ```text
-본 PoC는 EdgeX Core Metadata의 device 등록·논리 수집 서비스 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, adapter/agent, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
+본 PoC는 EdgeX Core Metadata의 device 등록·Device Service 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, Device Service, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.
 ```
 
 이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.
@@ -125,14 +129,14 @@ Focus reason은 `admin_state`, `operating_state`, `connection_state`, `device_se
 
 | 범위 | KPI 포함 여부 |
 |---|---|
-| I2C `sensehat-001` direct | 새 image의 실제 Event와 중앙 readback 증거가 있을 때 포함 |
+| Serial Arduino source / 가상 Device 6개 | Device별 중앙 readback과 dashboard freshness 표본에 포함 |
+| I2C Sense HAT source / 가상 Device 6개 | Device별 중앙 readback과 dashboard freshness 표본에 포함 |
 | MQTT-only 장비 adapter | 현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함 |
-| Serial | 구현·현장 검증 전에는 제외 |
 | Modbus | 구현·현장 검증 전에는 제외 |
 | OPC-UA | 구현·현장 검증 전에는 제외 |
 | RTSP | 구현·현장 검증 전에는 제외 |
 
-후속 wave는 각각 Core Metadata identity, Protocol Adapter, durable delivery, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.
+후속 wave는 각각 Core Metadata identity, Device Service, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다. 현재 Serial/I2C 경로는 outbox나 offline replay가 없으므로 durable edge buffering KPI를 주장하지 않는다.
 
 ## 현재 범위에서 말하지 않는 것
 

@@ -32,6 +32,12 @@ from .models import (
 from .operator_assistant import degraded_operator_chat_response, operator_assistant_from_dashboard
 from .runtime_augmentation import RuntimeAugmentationState
 from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource_augmentation_state
+from .service_demo import (
+    ServiceDemoClient,
+    ServiceDemoError,
+    degraded_service_demo_state,
+)
+from .service_demo_models import ServiceDemoState
 from .service import StateAggregatorService
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
@@ -45,6 +51,10 @@ from .virtual_resources import (
 settings = Settings()
 service = StateAggregatorService(settings)
 augmentation_crds = AugmentationCrdReader()
+service_demo_client = ServiceDemoClient(
+    settings.sensor_anomaly_demo_url,
+    settings.sensor_anomaly_demo_timeout_seconds,
+)
 
 
 @asynccontextmanager
@@ -89,6 +99,14 @@ async def get_devices() -> list[DeviceState]:
     return await service.get_devices()
 
 
+@app.get("/state/service-demo", response_model=ServiceDemoState)
+async def get_service_demo() -> ServiceDemoState:
+    try:
+        return await service_demo_client.get_state()
+    except ServiceDemoError as exc:
+        return degraded_service_demo_state(exc)
+
+
 @app.get("/state/devices/{device_id}/telemetry", response_model=list[TelemetryPoint])
 async def get_device_telemetry(
     device_id: str,
@@ -108,11 +126,6 @@ async def get_dashboard() -> DashboardState:
 def _resource_observation_error_state(exc: httpx.HTTPError) -> JsonMap:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "recorded_at": None,
-        "recording_backend": "influxdb",
-        "recording_mode": service.settings.resource_profile_recording_mode,
-        "recording_interval_seconds": service.settings.resource_profile_record_interval_seconds,
-        "last_record_result": service._last_resource_record_result,
         "profile_scope": "running_service_resource_requirements",
         "observation_error": f"service resource observation unavailable: {exc.__class__.__name__}",
         "summary": {
@@ -214,11 +227,6 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
         profiles = [item for item in profiles if item.get("service") == service_name]
     return {
         "generated_at": state.get("generated_at"),
-        "recorded_at": state.get("recorded_at"),
-        "recording_backend": state.get("recording_backend"),
-        "recording_mode": state.get("recording_mode"),
-        "recording_interval_seconds": state.get("recording_interval_seconds"),
-        "last_record_result": state.get("last_record_result"),
         "profile_scope": state.get("profile_scope"),
         "summary": state.get("summary"),
         "service_resource_profiles": profiles,
@@ -275,13 +283,6 @@ async def get_device_augmentations(namespace: str = "default") -> DeviceAugmenta
 async def get_runtime_resource_augmentation(refresh: bool = False, namespace: str = "default", mode: str = "observed") -> RuntimeAugmentationState:
     query = RuntimeAugmentationQuery(refresh=refresh, namespace=namespace, mode=mode)
     return await runtime_resource_augmentation_state(service=service, crds=augmentation_crds, query=query)
-
-
-@app.post("/state/service-resource-profiles/record")
-async def record_service_resource_profiles(
-    window: str = Query(default="10m", pattern=r"^[1-9][0-9]*[smhdw]$"),
-):
-    return await service.record_service_resource_profiles(window=window)
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

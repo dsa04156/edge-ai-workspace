@@ -84,11 +84,26 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -120,18 +135,18 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>운영 진입점</h1>
-          <p class="subtitle">운영자는 현재 HTTPS 데모 운영 절차에서 시작한다. 과거 중앙 MessageBus 직접 수집 재구축 문서는 실행하지 않는다.</p>
+          <p class="subtitle">운영자는 Jetson Serial/Raspberry Pi I2C Device Service, Jetson sensor-anoma…</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-22 10:55</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="운영-진입점">운영 진입점</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>운영자는 현재 HTTPS 데모 운영 절차에서 시작한다. 과거 중앙 MessageBus 직접 수집 재구축 문서는 실행하지 않는다.</p>
+<p>운영자는 Jetson Serial/Raspberry Pi I2C Device Service, Jetson <code>sensor-anomaly-demo</code>, 중앙 EdgeX와 dashboard를 차례로 확인하는 현재 운영 절차에서 시작한다. 과거 Agent 또는 폐기된 중앙 MessageBus 재구축 문서는 실행하지 않는다.</p>
 <h2 id="현재-기준">현재 기준</h2>
 <p>운영 문서는 개념 문서와 분리한다. 실행, 검증, 장애 원인 좁히기 질문은 Ops 문서에서 시작한다.</p>
 <div class="table-wrap"><table>
@@ -141,7 +156,7 @@
 </tr></thead>
 <tbody>
 <tr>
-<td>Protocol Adapter, outbox, gateway, EdgeX Core 점검</td>
+<td>Arduino Serial·Sense HAT I2C 종단간 상태 점검</td>
 <td><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a></td>
 </tr>
 <tr>
@@ -161,13 +176,14 @@
 <td><a href="../ops/gpu-hami-런타임-운영.html">HAMi GPU runtime</a></td>
 </tr>
 </tbody></table></div>
-<p>현재 중앙 EdgeX runtime은 <code>edgex-system</code>, edge agent는 <code>edgex-edge</code>, state-aggregator는 <code>default</code> namespace에 있다. 물리 inventory, 관리 상태, telemetry는 EdgeX가 authority이며 KubeEdge node/workload 정보는 별도 진단이다.</p>
+<p>현재 중앙 EdgeX runtime은 <code>edgex-system</code>, <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 <code>sensor-anomaly-demo</code>는 <code>edgex-edge</code>, state-aggregator는 <code>default</code> namespace에 있다. 물리 inventory, 관리 상태, telemetry는 EdgeX가 authority이며 KubeEdge node/workload 정보와 AI derived result는 별도 진단이다.</p>
 <h2 id="운영자-읽기-순서">운영자 읽기 순서</h2>
 <p>라이브 데모에서는 다음 순서로 본다.</p>
-<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 loopback admission, SQLite outbox, HTTPS gateway와 Kubernetes workload 상태를 확인한다.</li><li>EdgeX Core Metadata의 Device/Profile/논리 수집 서비스와 <code>adminState</code>, <code>operatingState</code>를 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 <code>source=edgex</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>을 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
+<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 Argo, 중앙 EdgeX와 두 Device Service 상태를 확인한다.</li><li>EdgeX Core Metadata에서 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 Profile/Device 6개, 총 12개 binding을 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 읽어 세 acceleration Device, 증가하는 <code>latest.origin</code>/<code>framesProcessed</code>, <code>inputState=fresh</code>, <code>model.algorithm=online-gaussian-baseline-v1</code>을 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 기존 EdgeX device 상태와 별도 <code>/state/service-demo</code> derived 결과를 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, 서비스 데모 panel, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
 <p>KubeEdge node readiness와 workload placement는 dashboard에서 볼 수 있지만 물리 availability를 결정하지 않는다. 물리 availability는 EdgeX 관리 상태와 Core Data 최신 Event freshness로만 해석한다.</p>
 <h2 id="현재-live-판정">현재 live 판정</h2>
-<p>2026-07-14 UNO, 2026-07-15 Sense HAT canary와 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Reading·durable replay 계약의 과거 근거다. 현재 image, 중앙 server2 Core/PostgreSQL과 state-aggregator/dashboard 조회 전환은 같은 실행의 새 live evidence를 확보할 때까지 pending이다. Sense HAT publisher 교체 여부는 별도다.</p>
+<p>2026-07-21 immutable ARM64 digest로 배포한 Serial 6개와 I2C 6개, 총 12개 가상 Device revision에서 Metadata/Core Data/Core Command, Local Data API와 dashboard를 같은 실행으로 확인했다. 12개 모두 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>였고 protocol별 local cache/API 계약도 통과했다. 실제 케이블/보드 분리·복구, offline replay와 NetworkPolicy 차단은 별도 gate다.</p>
+<p>2026-07-22 서비스 데모 코드·manifest·API와 anomaly/clear 상태 전이 테스트를 완료했다. Jetson live status에서 raw origin과 processed frame 증가, 중앙 <code>/state/service-demo</code>, 실제 브라우저의 NORMAL/fresh panel과 데스크톱·모바일 반응형 표시를 확인했다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연은 별도 gate다.</p>
 <h2 id="경계">경계</h2>
 <p>Ops 문서는 operator assistant, workflow builder, 자원증강 화면이 infrastructure를 변경할 수 있는 것처럼 표현하지 않는다. 별도 승인된 control path가 생기기 전까지 이 기능은 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>

@@ -1,0 +1,24 @@
+apiVersion: "v2"
+name: etri-arduino-magnetic
+manufacturer: Arduino
+model: Uno virtual magnetic source
+labels:
+  - arduino
+  - serial
+  - jetson
+  - virtual-device
+description: Read-only virtual magnetic device sourced from the Jetson Arduino serial connection
+
+deviceResources:
+  - name: magnetic_raw
+    description: Raw magnetic sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: magnetic
+    readWrite: R
+    resourceOperations:
+      - deviceResource: magnetic_raw

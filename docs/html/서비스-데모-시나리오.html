@@ -84,11 +84,26 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -120,198 +135,106 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>서비스 데모 시나리오</h1>
-          <p class="subtitle">EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 구현 범위는 direct…</p>
+          <p class="subtitle">기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 서비스 데모는 Jetson Ardui…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-데모-시나리오.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-07-22 10:55</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="서비스-데모-시나리오">서비스 데모 시나리오</h1>
-<h2 id="목적">목적</h2>
-<p>이 문서는 EdgeX 기반 물리 디바이스 cutover를 과장 없이 시연하는 절차를 정의한다. 현재 서비스 데모의 구현 범위는 direct agent·SQLite/HTTPS 경로와 EdgeX-backed state-aggregator/dashboard다. Sense HAT <code>sensehat-001</code>은 교체 가능한 검증 fixture다.</p>
-<pre data-lang="text"><code>Sense HAT (I2C)
-  -&gt; Protocol Adapter -&gt; edge-telemetry-agent -&gt; SQLite outbox
-  -&gt; HTTPS/mTLS ingest gateway -&gt; EdgeX Core Data
-  -&gt; AI services / storage / dashboard</code></pre>
-<h2 id="대표-시나리오">대표 시나리오</h2>
-<p>대표 시나리오는 “승인된 Protocol Adapter 입력의 EdgeX 등록·local durable queue·event freshness·최신 reading과 서비스 consumer 연결을 한 화면에서 확인한다”이다.</p>
-<p>이 시나리오가 증명하는 것은 다음과 같다.</p>
-<ul><li>Core Metadata device가 물리 inventory와 상태의 권위다.</li><li>Protocol Adapter가 I2C sample을 profile에 맞는 canonical Event로 만든다.</li><li>edge agent가 SQLite commit과 HTTPS replay를 담당한다.</li><li>Core Data 최신 event가 freshness와 reading의 권위다.</li><li>AI 서비스, 저장소, dashboard가 EdgeX 경로의 consumer다.</li><li>운영자는 상태와 데이터 문제를 한 경로에서 좁힐 수 있다.</li></ul>
-<p>Live 설치·현장 배포 완료는 별도 실행 증거로만 주장한다. 이 문서와 예시 값은 배포 증거가 아니다.</p>
-<h2 id="구성-요소">구성 요소</h2>
+<h2 id="현재-상태">현재 상태</h2>
+<p>기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 서비스 데모는 <strong>Jetson Arduino Uno의 실측 acceleration X/Y/Z를 정식 EdgeX Device Service의 Local Data API로 읽고, 같은 Jetson의 <code>sensor-anomaly-demo</code>가 변화 점수를 계산해 중앙 대시보드에 디바이스-서비스-AI 연결과 결과를 표시하는 것</strong>이다. Raspberry Pi Sense HAT 직접 I2C는 전체 물리 디바이스 inventory와 telemetry 수직 슬라이스로 함께 유지하지만 첫 이상 탐지 입력은 아니다.</p>
+<p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
+<p>두 protocol의 정상 수집·저장·조회·대시보드 경로를 live 검증했다. 이상 탐지 서비스도 Jetson에서 Ready이고 두 번의 local status 조회에서 실제 raw <code>origin</code>과 <code>framesProcessed</code>가 각각 증가했으며, 중앙 <code>/state/service-demo</code>와 브라우저 dashboard readback까지 확인했다. detector의 anomaly/clear 상태 전이는 결정론적 테스트로 검증했다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연과 케이블/보드 분리·복구는 아직 남아 있으므로 실제 고장 검출 실증으로 표현하지 않는다.</p>
+<pre data-lang="text"><code>Arduino sensor
+  -&gt; Serial endpoint on etri-dev0001-jetorn
+  -&gt; custom EdgeX Serial Device Service
+  -&gt; acceleration virtual Device X/Y/Z
+  +-&gt; Local Data API -&gt; sensor-anomaly-demo @ Jetson
+  |                  -&gt; online-gaussian-baseline-v1
+  |                  -&gt; state-aggregator / dashboard
+  -&gt; Core Data Event / Reading -&gt; PostgreSQL raw history
+
+Sense HAT v1
+  -&gt; /dev/i2c-1 on etri-dev0003-raspi5
+  -&gt; custom EdgeX Sense HAT I2C Device Service
+  -&gt; environment/IMU Profile 6개 / Device 6개
+  -&gt; Core Data Event / Float64 Reading
+  -&gt; PostgreSQL / state-aggregator / dashboard</code></pre>
+<h2 id="데모가-증명해야-하는-것">데모가 증명해야 하는 것</h2>
+<ul><li>Core Metadata Device가 physical inventory와 관리 상태의 권위다.</li><li>Device Service가 실제 Serial/I2C endpoint, reader 재시작·재연결, 값 표준화와 상태를 관리한다.</li><li>Device Profile이 resource 이름, value type, 단위와 read/write 계약을 정의한다.</li><li>Core Data 최신 Event/Reading이 telemetry와 freshness의 권위다.</li><li>KubeEdge는 Device Service와 AI workload의 배치·상태만 관리한다.</li><li>dashboard가 device, profile, Device Service, protocol, 상태, 최신 reading과 consumer 연결을 한 흐름으로 보여준다.</li><li>Jetson AI consumer가 X/Y/Z의 같은 <code>origin</code>만 결합하고 실제 raw sample의 증가를 따라간다.</li><li>detector 결과는 raw telemetry와 분리된 derived service output이며 EdgeX 물리 Device를 새로 꾸며내지 않는다.</li></ul>
+<h2 id="사전-조건">사전 조건</h2>
+<ol><li>Jetson의 Arduino by-id 장치 파일과 Raspberry Pi의 <code>/dev/i2c-1</code>을 확인하고 각 Pod에 <code>/dev/arduino-001</code>, <code>/dev/i2c-1</code>로 정확히 마운트한다.</li><li>Serial은 115200 baud newline-delimited JSON, I2C는 컨테이너 내부 RTIMULib reader와 허용 field/value type을 사용한다.</li><li><code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 Profile/Device 6개 identity를 사용한다. <code>arduino-001</code>, <code>sensehat-001</code>은 물리 source ID다.</li><li>두 Device Service image를 immutable ARM64 digest로 배포한다.</li><li>중앙 EdgeX Core 서비스와 PostgreSQL이 Ready여야 한다.</li><li><code>edgex-edge</code>에는 DNS와 중앙 Keeper/Metadata/MessageBus, 중앙 command와 의도된 Workflow client를 선언하는 NetworkPolicy가 있다. 현재 Flannel CNI는 이를 강제하지 않으므로 보안 경계로 주장하지 않는다.</li><li><code>sensor-anomaly-demo</code>는 <code>etri-dev0001-jetorn</code>에 배치되고, 고정 IP가 아닌 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>을 사용한다.</li></ol>
+<p>MQTT broker는 Arduino가 MQTT-only 장비가 아닌 이상 사전 조건이 아니다.</p>
+<h2 id="시연-순서">시연 순서</h2>
+<h3 id="1-device-service-workload-확인">1. Device Service workload 확인</h3>
+<p>Jetson과 Raspberry Pi에 각 Device Service Pod가 배치되고 Ready인지 확인한다. KubeEdge node 상태는 workload 진단 정보이며 physical device availability를 단독 결정하지 않는다.</p>
+<h3 id="2-metadata-binding-확인">2. Metadata binding 확인</h3>
+<p>Core Metadata에서 다음 관계를 확인한다.</p>
+<pre data-lang="text"><code>Device Service
+  -&gt; Device Profile
+  -&gt; Device
+  -&gt; serial 또는 i2c protocol binding</code></pre>
+<p><code>adminState</code>, <code>operatingState</code>와 endpoint 연결 상태가 실제 Device Service 보고와 일치해야 한다.</p>
+<h3 id="3-실제-telemetry-확인">3. 실제 telemetry 확인</h3>
+<p>Arduino와 Sense HAT의 실제 sample을 발생시키고 Core Data에서 같은 <code>deviceName</code>의 Event/Reading을 조회한다. resource 이름과 <code>valueType</code>, 단위, timestamp가 profile과 일치해야 한다.</p>
+<h3 id="4-장애와-복구-확인">4. 장애와 복구 확인</h3>
+<p>장치 분리 또는 통신 오류 시 Device Service가 DOWN/degraded 상태와 원인을 보고하고, 장치 복구 뒤 backoff 재연결해 새 Event를 발행하는지 확인한다. 재연결 로직은 단위 테스트했지만 실제 케이블 분리 시연은 남아 있다. 현재 outbox는 없으므로 중앙 단절 중 데이터 보존을 주장하지 않는다.</p>
+<h3 id="5-dashboard-확인">5. dashboard 확인</h3>
+<p>dashboard에서 다음을 한 화면으로 확인한다.</p>
+<ul><li>Device/Profile/Device Service/protocol</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code></li><li>최신 Event 시각과 <code>telemetry_freshness</code></li><li>typed <code>latest_readings</code></li><li>관련 AI service/storage/dashboard consumer</li><li>선택적 node/workload 진단 정보</li><li>physical source <code>arduino-001</code> → <code>device-serial-jetson</code> → acceleration Device 3개 → <code>sensor-anomaly-demo</code> binding</li><li>raw X/Y/Z, magnitude, score/threshold, sample <code>origin</code>, input/model 상태</li></ul>
+<h3 id="6-jetson-로컬-이상-탐지-확인">6. Jetson 로컬 이상 탐지 확인</h3>
+<p><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 조회한다. 두 번째 조회에서 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 증가하고 <code>inputState=fresh</code>, <code>mode=live</code>, 세 acceleration Device identity가 일치해야 한다. 30개 frame warm-up 뒤 model은 <code>ready</code>가 된다.</p>
+<p>이 consumer는 Local Data API를 500ms마다 조회하는 polling 방식이다. push stream이나 고주기 연속 스트리밍으로 설명하지 않는다. algorithm은 3축 magnitude의 <code>online-gaussian-baseline-v1</code> 변화 탐지이며 학습된 고장 종류 분류기가 아니다. 두 sample 연속 threshold 이상에서 anomaly로 전이하고 세 sample 연속 정상 범위에서 clear되는 계약은 결정론적 테스트로 검증한다.</p>
+<h2 id="상태-판정">상태 판정</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>구성 요소</th>
-<th>역할</th>
+<th>조건</th>
+<th>dashboard 상태</th>
+<th>의미</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>sensehat-001</code></td>
-<td>현재 Sense HAT I2C physical demo</td>
-</tr>
-<tr>
-<td>EdgeX Core Metadata</td>
-<td>device, profile, Device Service, protocol, admin/operating state 제공</td>
-</tr>
-<tr>
-<td>Protocol Adapter / edge agent</td>
-<td>I2C 수집, Event 정규화, SQLite 보존과 replay</td>
-</tr>
-<tr>
-<td>ingest gateway / Core Data</td>
-<td>저장 확인, 최신 event와 history 제공</td>
-</tr>
-<tr>
-<td><code>edge-orch/state-aggregator/</code></td>
-<td>EdgeX 응답 정규화와 <code>/state/devices</code> 제공</td>
-</tr>
-<tr>
-<td>dashboard</td>
-<td>상태, freshness, reading, consumer 관계 가시화</td>
-</tr>
-<tr>
-<td>AI service / storage</td>
-<td>EdgeX event consumer</td>
-</tr>
-<tr>
-<td>Kubernetes node diagnostics</td>
-<td>선택적 workload placement·자원 진단</td>
-</tr>
-<tr>
-<td>workflow designer</td>
-<td>실제 변경 없는 service-stage/node dry-run preview</td>
-</tr>
-</tbody></table></div>
-<h2 id="데모-진행-순서">데모 진행 순서</h2>
-<h3 id="1-core-metadata-identity-확인">1. Core Metadata identity 확인</h3>
-<p><code>/state/devices</code>에서 canary를 찾고 다음을 확인한다.</p>
-<pre data-lang="text"><code>name = sensehat-001
-source = edgex
-profile_name is present
-device_service_name is present
-profile_name = etri-sensehat
-device_service_name = edge-telemetry-agent
-protocol_names includes i2c
-admin_state is present
-operating_state is present</code></pre>
-<p>이 단계의 inventory 기준은 EdgeX Core Metadata다.</p>
-<h3 id="2-device-service-연결-상태-확인">2. Device Service 연결 상태 확인</h3>
-<p>다음을 함께 본다.</p>
-<ul><li><code>admin_state</code></li><li><code>operating_state</code></li><li><code>connection_state</code></li><li><code>device_service_available</code></li></ul>
-<p><code>admin_state=LOCKED</code> 또는 <code>operating_state=DOWN</code>이면 unavailable이다. 상태가 UP이어도 event가 없거나 오래되면 데이터 경로는 degraded로 남는다.</p>
-<h3 id="3-core-data-event-freshness-확인">3. Core Data event freshness 확인</h3>
-<p>다음을 확인한다.</p>
-<ul><li><code>latest_event_timestamp</code></li><li><code>telemetry_freshness</code>: <code>fresh</code>, <code>stale</code>, <code>no_events</code></li><li><code>latest_readings[].source_name</code></li><li><code>latest_readings[].resource_name</code></li><li><code>latest_readings[].value_type</code>, <code>value</code>, <code>units</code>, <code>timestamp</code></li></ul>
-<p>Freshness 기준은 <code>EDGEX_EVENT_FRESH_SECONDS</code>다. 최신 event가 fresh하다는 사실은 그 event에 포함되지 않은 모든 resource도 fresh하다는 뜻이 아니다.</p>
-<h3 id="4-consumer-관계-확인">4. Consumer 관계 확인</h3>
-<p>Dashboard relation에서 다음 경로를 확인한다.</p>
-<pre data-lang="text"><code>sensehat-001
-  -&gt; I2C Protocol Adapter / edge-telemetry-agent
-  -&gt; Core Data source/readings
-  -&gt; sensor AI / storage / dashboard</code></pre>
-<p>Consumer 연결은 service binding이며 자동 workflow 실행이나 재배치를 뜻하지 않는다.</p>
-<h3 id="5-dashboard와-kpi-확인">5. Dashboard와 KPI 확인</h3>
-<ul><li><code>registered_device_count</code></li><li><code>available_device_count</code></li><li><code>degraded_device_count</code></li><li><code>unavailable_device_count</code></li><li><code>edgex_connected_device_count</code>, <code>edgex_connection_ratio</code></li><li><code>device_service_available_count</code>, <code>device_service_availability_ratio</code></li><li><code>core_data_event_device_count</code></li><li><code>fresh_core_data_event_device_count</code></li><li><code>stale_core_data_event_device_count</code></li><li><code>core_data_freshness_ratio</code></li><li><code>operator_focus_count</code></li></ul>
-<h3 id="6-선택적-node-diagnostics-확인">6. 선택적 node diagnostics 확인</h3>
-<p>AI 또는 dashboard workload의 placement와 자원 상태가 필요할 때만 node 정보를 연다. Node 상태는 물리 canary의 등록·연결·freshness 판정을 대신하지 않으며 physical availability gate가 아니다.</p>
-<h3 id="7-dry-run-구조-설명">7. Dry-run 구조 설명</h3>
-<p>Workflow designer에서는 device source와 AI/storage/dashboard stage의 target node를 preview할 수 있다. 이 동작은 dry-run이며 Kubernetes workload, EdgeX metadata, device command를 생성·수정하지 않는다.</p>
-<h2 id="정상-저하-상태-예시">정상·저하 상태 예시</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>상태</th>
-<th>표시</th>
-<th>해석</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>UP + connected + fresh event</td>
+<td>UNLOCKED + UP + connected + fresh Event</td>
 <td><code>available</code></td>
-<td>Device Service와 Core Data 경로가 관측됨</td>
+<td>수집과 저장 경로가 실제로 관측됨</td>
 </tr>
 <tr>
-<td>UP + stale event</td>
+<td>Device Service UP이지만 stale/no events</td>
 <td><code>degraded</code></td>
-<td>수집 서비스는 UP이나 event 발행 또는 장치 입력 점검 필요</td>
+<td>등록은 되었지만 데이터 경로 점검 필요</td>
 </tr>
 <tr>
-<td>UP + no event</td>
-<td><code>degraded</code></td>
-<td>profile resource와 Core Data event 경로 점검 필요</td>
-</tr>
-<tr>
-<td>LOCKED</td>
+<td>LOCKED/DOWN/disconnected</td>
 <td><code>unavailable</code></td>
-<td>Core Metadata admin 정책 점검</td>
+<td>관리 상태 또는 endpoint 연결 점검 필요</td>
 </tr>
 <tr>
-<td>DOWN/disconnected</td>
-<td><code>unavailable</code></td>
-<td>Device Service와 physical connection 점검</td>
-</tr>
-<tr>
-<td>node diagnostic unavailable</td>
-<td>별도 diagnostic</td>
-<td>물리 device 상태를 자동으로 낮추지 않음</td>
+<td>Device Service 미배포</td>
+<td><code>not_deployed</code> 또는 등록 없음</td>
+<td>배포/등록 문제, 완료 아님</td>
 </tr>
 </tbody></table></div>
-<h2 id="protocol-범위">Protocol 범위</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>protocol</th>
-<th>현재 데모 지위</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>I2C</td>
-<td><code>sensehat-001</code>은 현재 direct 경로의 교체 가능한 검증 fixture</td>
-</tr>
-<tr>
-<td>MQTT</td>
-<td>현재 workload 없음; MQTT-only 장비 검증 후에만 broker·adapter 추가</td>
-</tr>
-<tr>
-<td>Serial</td>
-<td>미구현 future migration wave</td>
-</tr>
-<tr>
-<td>Modbus</td>
-<td>미구현 future migration wave</td>
-</tr>
-<tr>
-<td>OPC-UA</td>
-<td>미구현 future migration wave</td>
-</tr>
-<tr>
-<td>RTSP</td>
-<td>Workflow Pod 직접 구독 future media wave</td>
-</tr>
-</tbody></table></div>
-<p>Future wave는 protocol별 adapter/profile, 실제 장치, event contract, freshness 및 consumer 검증을 각각 통과해야 한다. 검증 fixture 결과로 다른 protocol이 구현되었다고 주장하지 않는다.</p>
-<h2 id="생산성-향상-효과-설명">생산성 향상 효과 설명</h2>
-<ol><li>운영자가 물리 inventory, Device Service 연결, 최신 event를 서로 다른 시스템에서 수작업으로 대조하는 시간을 줄인다.</li><li>profile, protocol, admin/operating/connection, freshness를 한 화면에서 확인해 원인 후보를 좁힌다.</li><li>source/resource별 latest reading으로 AI와 저장소의 입력 영향 범위를 빠르게 설명한다.</li><li>focus list로 점검 순서를 정하되 agent나 dashboard가 직접 변경을 실행하지 않는다.</li><li>선택적 node diagnostics를 physical 상태와 분리해 잘못된 장애 판정을 줄인다.</li></ol>
-<h2 id="성공-기준">성공 기준</h2>
-<ul><li><code>/state/devices</code>에 canary가 <code>source=edgex</code>로 나타난다.</li><li>profile, logical Device Service, I2C protocol, admin/operating/connection 필드가 계약과 일치한다.</li><li>Core Data event timestamp, freshness, latest readings가 표시된다.</li><li>AI/storage/dashboard consumer 관계가 EdgeX 경로로 설명된다.</li><li>node placement는 diagnostics로만 표시된다.</li><li>Serial, Modbus, OPC-UA, RTSP가 현재 구현으로 표시되지 않는다.</li><li>모든 설계·운영 보조 기능은 read-only 또는 dry-run이며 실제 리소스를 변경하지 않는다.</li></ul>
+<h2 id="pass-기준">PASS 기준</h2>
+<ol><li>실제 Jetson Serial과 Raspberry Pi I2C endpoint 및 Device Service 연결 증거가 있다.</li><li>Device Service/Profile/Device가 정확한 관계로 등록된다.</li><li>실제 sample의 typed Event/Reading이 Core Data에서 조회된다.</li><li>장애·복구 시 상태와 새로운 Event가 기대대로 변한다.</li><li>dashboard가 같은 EdgeX device identity와 freshness를 표시한다.</li><li>문서, manifest, 테스트와 live 상태가 같은 구조를 설명한다.</li><li><code>sensor-anomaly-demo</code>가 같은 Jetson에서 실제 증가하는 세 축 raw <code>origin</code>을 처리하고 중앙 <code>/state/service-demo</code>가 같은 결과를 반환한다.</li><li>dashboard가 normal/anomaly/degraded를 텍스트로 구분하고 관측 실패 시 가짜 0 값을 표시하지 않는다.</li></ol>
+<p>현재값을 반환하는 read-only Core Command GET은 확인했다. detector의 anomaly 상태 전이는 테스트 PASS 대상이지만 실제 사람이 장치를 움직여 anomaly를 유발하는 장면은 별도 현장 시연 gate다. write command/actuator, 동적 workflow 실행, runtime migration/offloading은 이 데모의 PASS 범위가 아니다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#대표-시나리오">대표 시나리오</a></li>
-<li class="toc-h2"><a href="#구성-요소">구성 요소</a></li>
-<li class="toc-h2"><a href="#데모-진행-순서">데모 진행 순서</a></li>
-<li class="toc-h3"><a href="#1-core-metadata-identity-확인">1. Core Metadata identity 확인</a></li>
-<li class="toc-h3"><a href="#2-device-service-연결-상태-확인">2. Device Service 연결 상태 확인</a></li>
-<li class="toc-h3"><a href="#3-core-data-event-freshness-확인">3. Core Data event freshness 확인</a></li>
-<li class="toc-h3"><a href="#4-consumer-관계-확인">4. Consumer 관계 확인</a></li>
-<li class="toc-h3"><a href="#5-dashboard와-kpi-확인">5. Dashboard와 KPI 확인</a></li>
-<li class="toc-h3"><a href="#6-선택적-node-diagnostics-확인">6. 선택적 node diagnostics 확인</a></li>
-<li class="toc-h3"><a href="#7-dry-run-구조-설명">7. Dry-run 구조 설명</a></li>
-<li class="toc-h2"><a href="#정상-저하-상태-예시">정상·저하 상태 예시</a></li>
-<li class="toc-h2"><a href="#protocol-범위">Protocol 범위</a></li>
-<li class="toc-h2"><a href="#생산성-향상-효과-설명">생산성 향상 효과 설명</a></li>
-<li class="toc-h2"><a href="#성공-기준">성공 기준</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-상태">현재 상태</a></li>
+<li class="toc-h2"><a href="#데모가-증명해야-하는-것">데모가 증명해야 하는 것</a></li>
+<li class="toc-h2"><a href="#사전-조건">사전 조건</a></li>
+<li class="toc-h2"><a href="#시연-순서">시연 순서</a></li>
+<li class="toc-h3"><a href="#1-device-service-workload-확인">1. Device Service workload 확인</a></li>
+<li class="toc-h3"><a href="#2-metadata-binding-확인">2. Metadata binding 확인</a></li>
+<li class="toc-h3"><a href="#3-실제-telemetry-확인">3. 실제 telemetry 확인</a></li>
+<li class="toc-h3"><a href="#4-장애와-복구-확인">4. 장애와 복구 확인</a></li>
+<li class="toc-h3"><a href="#5-dashboard-확인">5. dashboard 확인</a></li>
+<li class="toc-h3"><a href="#6-jetson-로컬-이상-탐지-확인">6. Jetson 로컬 이상 탐지 확인</a></li>
+<li class="toc-h2"><a href="#상태-판정">상태 판정</a></li>
+<li class="toc-h2"><a href="#pass-기준">PASS 기준</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

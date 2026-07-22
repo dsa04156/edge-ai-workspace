@@ -1,0 +1,17 @@
+apiVersion: "v2"
+name: etri-sensehat-pressure
+manufacturer: Raspberry Pi
+model: Sense HAT v1 virtual pressure source
+labels: [sensehat, i2c, raspi, virtual-device]
+description: Read-only atmospheric pressure from the Sense HAT
+
+deviceResources:
+  - name: pressure
+    description: Atmospheric pressure
+    properties: {valueType: Float64, readWrite: R, units: hPa}
+
+deviceCommands:
+  - name: pressure
+    readWrite: R
+    resourceOperations:
+      - deviceResource: pressure

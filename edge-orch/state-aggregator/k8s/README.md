@@ -19,9 +19,9 @@ EdgeX is the only physical-device data plane:
   availability.
 
 The Deployment remains on `etri-ser0001-cg0msb` and reaches Core Metadata and
-Core Data through the `edgex-system` namespace ClusterIP services on ports
-`59881` and `59880`. Optional InfluxDB resource-profile recording is disabled
-until an explicit central endpoint and runtime Secret are provisioned.
+Core Data through the `edgex-system` namespace services on ports `59881` and
+`59880`. Telemetry history is read from Core Data and persisted by the central
+PostgreSQL backend; this service has no separate time-series recorder.
 Kubernetes access is retained only for node, workload, and
 augmentation-resource observation. The service account has no KubeEdge
 `Device` or `DeviceStatus` permissions, and no MapperFramework settings are
