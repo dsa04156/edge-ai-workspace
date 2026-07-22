@@ -8,6 +8,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 K8S_DIR = ROOT / "edge-orch" / "vision_stage_runner" / "k8s"
 ARGOCD_APPS = ROOT / "edge-orch-argocd" / "argocd-apps.yaml"
+SENSOR_DEMO_APP = ROOT / "edge-orch-argocd" / "sensor-anomaly-demo-app.yaml"
 
 
 def _load_yaml(path: Path) -> list[dict]:
@@ -87,17 +88,24 @@ def test_factory_vision_ai_kustomization_lists_deployment():
     assert kustomization["resources"] == ["deployment.yaml"]
 
 
-def test_factory_vision_ai_argocd_application_contract():
+def test_factory_vision_ai_is_retired_from_current_argocd_apps():
     apps = {
         doc["metadata"]["name"]: doc
         for doc in _load_yaml(ARGOCD_APPS)
         if doc.get("kind") == "Application"
     }
 
-    app = apps["edge-orch-factory-vision-inspection-ai"]
-    assert _argocd_app_path_is_valid(app["spec"]["source"]["path"])
+    assert "edge-orch-factory-vision-inspection-ai" not in apps
+
+
+def test_sensor_anomaly_demo_argocd_application_contract():
+    app = _load_yaml(SENSOR_DEMO_APP)[0]
+
+    assert app["kind"] == "Application"
+    assert app["metadata"]["name"] == "edge-orch-sensor-anomaly-demo"
+    assert app["spec"]["source"]["path"] == "edge-orch/sensor-anomaly-demo/k8s"
     assert app["spec"]["source"]["targetRevision"] == "main"
-    assert app["spec"]["destination"]["namespace"] == "default"
+    assert app["spec"]["destination"]["namespace"] == "edgex-edge"
     assert app["spec"]["syncPolicy"]["automated"] == {
         "prune": True,
         "selfHeal": True,
