@@ -11,7 +11,14 @@ function serviceDemoNumber(value, digits, suffix = "") {
 }
 
 
-function buildServiceDemoView(data = {}) {
+function serviceDemoAge(observedAt, nowMs) {
+  const observedMs = Date.parse(observedAt);
+  if (!Number.isFinite(observedMs) || !Number.isFinite(nowMs)) return "관측 불가";
+  return `${(Math.max(0, nowMs - observedMs) / 1_000).toFixed(1)} s`;
+}
+
+
+function buildServiceDemoView(data = {}, nowMs = Date.now()) {
   const binding = data.binding || {};
   const latest = data.latest || null;
   const model = data.model || null;
@@ -50,6 +57,7 @@ function buildServiceDemoView(data = {}) {
       ? `${serviceDemoText(model.algorithm)} · ${Number.isFinite(sampleCount) ? sampleCount : "관측 불가"} samples · ${serviceDemoText(data.model_state, "unknown")}`
       : "model 관측 불가",
     origin: latest ? serviceDemoText(latest.origin) : "관측 불가",
+    inputAge: latest ? serviceDemoAge(latest.observed_at, nowMs) : "관측 불가",
     frames: serviceDemoText(data.counters?.frames_processed),
     copy: "실측 raw 변화 이상 탐지 · Jetson local inference",
     error: serviceDemoText(data.observation_error || data.last_error, ""),
@@ -79,6 +87,7 @@ function renderServiceDemo(data, documentRef = document) {
   text("serviceDemoScore", view.score);
   text("serviceDemoModel", `${view.model} · ${view.copy}`);
   text("serviceDemoOrigin", view.origin);
+  text("serviceDemoInputAge", view.inputAge);
   const error = text("serviceDemoError", view.error);
   if (error) error.hidden = !view.error;
 }

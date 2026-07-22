@@ -139,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 10:43</span>
-            <span class="badge">HTML 생성: 2026-07-22 10:55</span>
+            <span class="badge">수정: 2026-07-22 11:09</span>
+            <span class="badge">HTML 생성: 2026-07-22 11:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -205,6 +205,7 @@
 </tr>
 </tbody></table></div>
 <p>EdgeMesh 리소스는 이 절차의 변경 대상이 아니다. Kubernetes <code>ClusterIP Service</code> 객체는 정상 서비스 디스커버리에 사용하지만 고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다. Device Service는 중앙 Keeper, Metadata와 MessageBus의 <code>.svc.cluster.local</code> FQDN을 사용한다.</p>
+<p>KubeEdge <code>cloudcore</code> Helm release가 설치한 <code>kubeedge/DaemonSet/edge-eclipse-mosquitto</code>는 edge node 3개에 legacy 호환 구성으로 남아 있다. 이 DaemonSet은 <code>edgex/k8s</code>나 현재 서비스 데모가 생성한 local broker가 아니며 Serial/I2C → Local Data API → AI consumer 경로에서 사용하지 않는다. 현재 데모의 MQTT 부재 판정은 <code>edgex-device-mqtt</code>, edge Agent와 데모 전용 broker/consumer가 없다는 뜻이며, KubeEdge Helm 구성 제거는 별도 작업 범위다.</p>
 <h2 id="가상-device-계약">가상 Device 계약</h2>
 <div class="table-wrap"><table>
 <thead><tr>

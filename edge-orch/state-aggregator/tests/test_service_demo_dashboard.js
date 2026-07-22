@@ -82,6 +82,23 @@ test("shows unavailable observation without inventing zero values", () => {
 });
 
 
+test("formats the latest input age from the observed timestamp", () => {
+  const view = buildServiceDemoView({
+    status: "normal",
+    input_state: "fresh",
+    latest: {
+      observed_at: "2026-07-22T10:00:00.000Z",
+      values: {x: 1, y: 2, z: 3},
+      magnitude: 3.742,
+      score: 0.5,
+    },
+    model: {threshold: 4},
+  }, Date.parse("2026-07-22T10:00:02.500Z"));
+
+  assert.equal(view.inputAge, "2.5 s");
+});
+
+
 test("renders with textContent and a non-color status label", () => {
   const ids = [
     "serviceDemoState",
@@ -97,6 +114,7 @@ test("renders with textContent and a non-color status label", () => {
     "serviceDemoScore",
     "serviceDemoModel",
     "serviceDemoOrigin",
+    "serviceDemoInputAge",
     "serviceDemoError",
   ];
   const elements = Object.fromEntries(ids.map((id) => [
@@ -118,6 +136,7 @@ test("renders with textContent and a non-color status label", () => {
     },
     latest: {
       origin: 100,
+      observed_at: "2999-01-01T00:00:00Z",
       values: {x: 1, y: 2, z: 3},
       magnitude: 3.742,
       score: 0.5,
@@ -128,6 +147,7 @@ test("renders with textContent and a non-color status label", () => {
   assert.equal(elements.serviceDemoState.textContent, "NORMAL");
   assert.equal(elements.serviceDemoState.dataset.state, "normal");
   assert.equal(elements.serviceDemoValues.textContent, "X 1 · Y 2 · Z 3");
+  assert.equal(elements.serviceDemoInputAge.textContent, "0.0 s");
   assert.equal(elements.serviceDemoError.hidden, true);
 });
 
@@ -183,12 +203,14 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
     "serviceDemoDevices", "serviceDemoValues", "serviceDemoMagnitude",
     "serviceDemoScore", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
+    "serviceDemoInputAge",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=live-sensor-20260722/);
-  assert.match(html, /service-demo\.js\?v=live-sensor-20260722/);
+  assert.match(html, /service-demo\.css\?v=live-sensor-age-20260722/);
+  assert.match(html, /service-demo\.js\?v=live-sensor-age-20260722/);
   assert.match(css, /\[data-state="anomaly"\]/);
+  assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
