@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -104,6 +105,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -141,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-07-22 12:07</span>
-            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
+            <span class="badge">수정: 2026-07-22 14:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 14:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -151,8 +153,8 @@
 <h2 id="현재-상태">현재 상태</h2>
 <p>2026-07-22 기준 중앙 <code>edgex-system</code>에는 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway가 유지된다. <code>edgex-edge</code>의 과거 커스텀 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 전용 SQLite outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역했다.</p>
 <p>현재 root render는 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>를 각각 <code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code>에 배치한다. Jetson은 Arduino Uno를 <code>/dev/arduino-001</code>에서 한 번 읽어 6개 <code>virtual-*-001</code> Device로 분리하고, Raspberry Pi는 Sense HAT v1을 <code>/dev/i2c-1</code>에서 직접 읽어 환경 3개와 IMU 3개의 가상 Device로 분리한다. 물리 source ID <code>arduino-001</code>, <code>sensehat-001</code>은 protocol/tag metadata이며 aggregate Core Metadata Device가 아니다.</p>
-<p>두 Device Service에는 Device/resource별 최근 10분·최대 10,000 sample의 휘발성 메모리 cache가 있다. Core Command는 이 cache의 최신값을 반환하고, 같은 node의 consumer는 각 Service FQDN의 Local Data API로 최신값과 최근 구간을 읽을 수 있다. Jetson에는 고정 서비스 데모 workload <code>sensor-anomaly-demo</code>가 배치되어 Arduino 가속도 X/Y/Z의 같은 <code>origin</code> sample을 500ms polling으로 묶고 <code>online-gaussian-baseline-v1</code> 변화 점수를 계산한다. <code>state-aggregator</code>는 이 결과를 <code>/state/service-demo</code>로 읽어 대시보드에 표시한다.</p>
-<p>cache는 Pod 재시작 시 초기화되며 SQLite outbox나 중앙 장애 재전송 queue가 아니다. 로컬 MQTT broker, Agent, 별도 InfluxDB와 actuator write도 없다. Local Data API client label은 현재 Flannel CNI에서 강제되는 보안 경계가 아니며 endpoint는 unauthenticated read-only다. 과거 Event는 중앙 Core Data/PostgreSQL에서 조회한다. 대시보드에서 Device를 선택하면 <code>state-aggregator</code>의 이력 API가 Core Data를 조회하며 PostgreSQL에 직접 SQL을 실행하지 않는다. 기본 30분과 5분·1시간·24시간 범위를 선택할 수 있고, 최신 1,000 Event 제한과 실제 반환 구간을 함께 표시한다. Serial과 I2C 정상 경로는 live 검증했지만 실제 장치 분리·복구, 실제 장치 움직임에 의한 anomaly 현장 시연, Modbus와 OPC-UA는 별도 검증 대상이다.</p>
+<p>두 Device Service에는 공통 제네릭 ring cache 기반의 휘발성 메모리 cache가 있다. Device/resource별 최근 10분·최대 10,000 sample을 보존하고, 각 서비스의 sample slot 할당 합계를 67,108,864 bytes(64MiB)로 제한한다. Core Command는 이 cache의 최신값을 반환하고, 같은 node의 consumer는 각 Service FQDN의 Local Data API로 최신값과 최근 구간을 읽을 수 있다. <code>/api/v3/localdata/stats</code>와 EdgeX custom metrics 네 개가 sample, series, 할당 bytes와 eviction을 노출한다. Jetson에는 고정 서비스 데모 workload <code>sensor-anomaly-demo</code>가 배치되어 Arduino 가속도 X/Y/Z의 같은 <code>origin</code> sample을 500ms polling으로 묶고 <code>online-gaussian-baseline-v1</code> 변화 점수를 계산한다. <code>state-aggregator</code>는 이 결과를 <code>/state/service-demo</code>로 읽어 대시보드에 표시한다.</p>
+<p>cache는 Pod 재시작 시 초기화되며 SQLite outbox나 중앙 장애 재전송 queue가 아니다. 64MiB는 sample ring slot만 계산한 상한이고 Go runtime·map·응답 버퍼까지 포함한 Pod 전체 메모리 상한은 아니다. 로컬 MQTT broker, Agent, 별도 InfluxDB와 actuator write도 없다. Local Data API client label은 현재 Flannel CNI에서 강제되는 보안 경계가 아니며 endpoint는 unauthenticated read-only다. 과거 Event는 중앙 Core Data/PostgreSQL에서 조회한다. 대시보드에서 Device를 선택하면 <code>state-aggregator</code>의 이력 API가 Core Data를 조회하며 PostgreSQL에 직접 SQL을 실행하지 않는다. 기본 30분과 5분·1시간·24시간 범위를 선택할 수 있고, 최신 1,000 Event 제한과 실제 반환 구간을 함께 표시한다. Serial과 I2C 정상 경로는 live 검증했지만 실제 장치 분리·복구, 실제 장치 움직임에 의한 anomaly 현장 시연, Modbus와 OPC-UA는 별도 검증 대상이다.</p>
 <h2 id="한-문장-목표">한 문장 목표</h2>
 <p>물리 장비를 EdgeX Device Service와 Device/Profile로 일관되게 추상화하고, 디바이스-서비스 연결과 실제 telemetry 상태를 대시보드에서 운영 관점으로 통합 가시화한다.</p>
 <pre data-lang="text"><code>센서 / PLC / 장비

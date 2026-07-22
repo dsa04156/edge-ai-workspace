@@ -90,6 +90,7 @@
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -104,6 +105,7 @@
 <li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -141,8 +143,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 12:25</span>
-            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
+            <span class="badge">수정: 2026-07-22 14:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 14:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -416,9 +418,13 @@ kubectl exec --namespace default local-data-check -- \
   curl --fail --silent --show-error \
   &#x27;http://device-serial-jetson.edgex-edge.svc.cluster.local:59910/api/v3/localdata/device/name/virtual-temperature-001/resource/name/temperature_raw?limit=20&#x27;
 
+kubectl exec --namespace default local-data-check -- \
+  curl --fail --silent --show-error \
+  &#x27;http://device-serial-jetson.edgex-edge.svc.cluster.local:59910/api/v3/localdata/stats&#x27;
+
 kubectl delete pod --namespace default local-data-check</code></pre>
 <p>정상 기준:</p>
-<ul><li>latest는 <code>count=1</code>이고 <code>temperature_raw</code>, <code>Int32</code>, 원본 nanosecond <code>origin</code>을 반환한다.</li><li>recent는 <code>origin</code> 오름차순이며 <code>count</code>와 <code>samples</code> 길이가 같다.</li><li><code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>이다.</li><li>알려진 source에 범위 데이터가 없으면 <code>200</code>과 빈 <code>samples</code>, latest가 없으면 <code>404</code>다.</li><li><code>limit</code>은 1~10,000이고 기본값은 1,000이다.</li></ul>
+<ul><li>latest는 <code>count=1</code>이고 <code>temperature_raw</code>, <code>Int32</code>, 원본 nanosecond <code>origin</code>을 반환한다.</li><li>recent는 <code>origin</code> 오름차순이며 <code>count</code>와 <code>samples</code> 길이가 같다.</li><li>latest/recent의 <code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>, <code>retention.maxBytes=67108864</code>이다.</li><li>stats는 <code>series=6</code>, <code>samples&gt;0</code>, <code>slotBytes&gt;0</code>, <code>allocatedBytes&lt;=67108864</code>이고 eviction 원인별 누계를 반환한다.</li><li>알려진 source에 범위 데이터가 없으면 <code>200</code>과 빈 <code>samples</code>, latest가 없으면 <code>404</code>다.</li><li><code>limit</code>은 1~10,000이고 기본값은 1,000이다.</li></ul>
 <p>다른 5개 가상 Device도 각 Profile의 resource 이름으로 같은 계약을 확인한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
 <p>주의: 현재 테스트베드의 Flannel CNI는 Kubernetes NetworkPolicy를 집행하지 않는다. 2026-07-21 실측에서 <code>edge-ai.io/local-data-client=true</code> label이 없는 기존 Pod도 이 API에 접근했다. 따라서 label은 배치·정책 의도 표식이며 현재 보안 경계가 아니다. Local Data API는 unauthenticated read-only endpoint이므로 실제 접근 차단이 필요하면 NetworkPolicy 지원 CNI 또는 mTLS/애플리케이션 인증을 먼저 적용한다.</p>
 <h2 id="7a-raspberry-pi-sense-hat-local-data-api">7A. Raspberry Pi Sense HAT Local Data API</h2>
@@ -453,8 +459,12 @@ do
     &quot;http://device-sensehat-raspi.edgex-edge.svc.cluster.local:59911/api/v3/localdata/device/name/${source%/*}/resource/name/${source#*/}/latest&quot;
 done
 
+kubectl exec --namespace default sensehat-local-data-check -- \
+  curl --fail --silent --show-error \
+  &#x27;http://device-sensehat-raspi.edgex-edge.svc.cluster.local:59911/api/v3/localdata/stats&#x27;
+
 kubectl delete pod --namespace default sensehat-local-data-check</code></pre>
-<p>정상 기준은 11개 source가 모두 유한한 <code>Float64</code> 값, 원본 nanosecond <code>origin</code>, <code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>을 반환하는 것이다. 이 조회는 고정 ClusterIP/PodIP/node IP가 아닌 Service FQDN을 사용한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
+<p>정상 기준은 11개 source가 모두 유한한 <code>Float64</code> 값, 원본 nanosecond <code>origin</code>, <code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>, <code>retention.maxBytes=67108864</code>를 반환하는 것이다. stats는 <code>series=11</code>, <code>samples&gt;0</code>, <code>slotBytes&gt;0</code>, <code>allocatedBytes&lt;=67108864</code>여야 한다. 이 조회는 고정 ClusterIP/PodIP/node IP가 아닌 Service FQDN을 사용한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
 <h2 id="7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</h2>
 <pre data-lang="bash"><code>rtk kubectl -n edgex-edge get deployment,pod,service \
   -l app.kubernetes.io/name=sensor-anomaly-demo -o wide
@@ -500,7 +510,7 @@ done</code></pre>
 <p>브라우저에서는 Assets의 Device 행을 선택해 다음을 확인한다.</p>
 <ol><li>선택 직후 기본 <code>30분</code> 이력을 조회한다.</li><li><code>5분</code>, <code>30분</code>, <code>1시간</code>, <code>24시간</code>과 <code>새로고침</code>이 선택 Device에만 적용된다.</li><li>resource별 series, 반환 Reading 수, 실제 첫/마지막 timestamp가 보인다.</li><li><code>최신 1000 events 제한</code> 문구가 보인다. 한 Event에 Reading이 여러 개면 반환 Reading 수는 1,000보다 클 수 있다.</li><li>긴 범위가 최신 1,000 Event로 잘렸을 때 요청한 전체 기간을 모두 읽었다고 해석하지 않는다.</li><li>빠르게 Device나 범위를 바꿔도 이전 요청의 늦은 응답이 현재 선택을 덮어쓰지 않는다.</li><li>조회 중·빈 결과·오류 상태가 각각 구분되고 오류가 다른 Device나 dashboard 전체를 가짜 정상값으로 바꾸지 않는다.</li></ol>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
-<ul><li>Device Service 메모리: Device/resource별 최근 10분·최대 10,000 sample, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: process memory의 최근 최대 1,000건; Pod 재시작 시 초기화, raw history 저장소가 아님</li></ul>
+<ul><li>Device Service 메모리: 공통 Go ring cache, Device/resource별 최근 10분·최대 10,000 sample, 서비스별 sample slot 합계 최대 64MiB, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; <code>/api/v3/localdata/stats</code>와 custom metrics로 관측, Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>64MiB 계산 경계: sample slot 배열만 포함; Go map/runtime/HTTP buffer는 제외되며 Pod memory limit가 전체 프로세스 상한</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: process memory의 최근 최대 1,000건; Pod 재시작 시 초기화, raw history 저장소가 아님</li></ul>
 <p>따라서 각 Device Service와 같은 edge node의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
 <h2 id="10-남은-장애-검증">10. 남은 장애 검증</h2>
 <p>Serial parser의 malformed line 복구, 공유 reader, state fan-out, 마지막 route 제거 시 close, reader backoff와 동일 Metadata update의 no-op 동작은 단위 테스트한다. Sense HAT protocol binding, resource fan-out, reader 재시작과 local cache/API도 단위 테스트하고 실제 I2C 값의 live readback을 확인한다. 실제 케이블/보드 분리 → 해당 6개 Device DOWN/degraded → 재연결 → 새 Event 발행은 현장 시연 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다. Modbus와 OPC-UA는 실제 endpoint가 없어 완료로 판정하지 않는다.</p>

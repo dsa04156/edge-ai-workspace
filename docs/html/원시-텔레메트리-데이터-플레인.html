@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
@@ -104,6 +105,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
@@ -137,18 +139,18 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>원시 텔레메트리 데이터 플레인</h1>
-          <p class="subtitle">2026-07-21 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → edge-telemet…</p>
+          <p class="subtitle">2026-07-22 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → edge-telemet…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-21 20:10</span>
-            <span class="badge">HTML 생성: 2026-07-22 12:26</span>
+            <span class="badge">수정: 2026-07-22 14:42</span>
+            <span class="badge">HTML 생성: 2026-07-22 14:42</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="edgex-device-service-기반-원시-텔레메트리-데이터-플레인">EdgeX Device Service 기반 원시 텔레메트리 데이터 플레인</h1>
 <h2 id="문서-상태">문서 상태</h2>
-<p>이 문서는 2026-07-21 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → <code>edge-telemetry-agent</code> → SQLite outbox → HTTPS gateway 경로는 운영 배포에서 제거되었으며 설계·검증 이력으로만 남는다.</p>
+<p>이 문서는 2026-07-22 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → <code>edge-telemetry-agent</code> → SQLite outbox → HTTPS gateway 경로는 운영 배포에서 제거되었으며 설계·검증 이력으로만 남는다.</p>
 <p>현재 중앙 EdgeX Core는 유지된다. Jetson의 <code>device-serial-jetson</code>은 실제 Arduino endpoint를 공유 reader 하나로 수집하고, Raspberry Pi의 <code>device-sensehat-raspi</code>는 Sense HAT v1 <code>/dev/i2c-1</code>을 직접 수집한다. 각 resource route가 6개 가상 Device identity를 만들어 총 12개 Device가 중앙 저장, read-only 조회와 dashboard freshness의 결합 key가 된다.</p>
 <h2 id="목표-권위-경로">목표 권위 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
@@ -285,8 +287,9 @@ tags:
 <p>고주기 실시간 추론은 REST polling으로 구현하지 않는다. 필요하면 Device Service/Application Service의 stream consumer 또는 장비의 native stream을 별도 데이터 계약으로 사용한다. 카메라는 RTSP를 직접 사용한다.</p>
 <p>같은 Jetson 또는 Raspberry Pi의 Workflow Pod가 짧은 입력 window를 사용할 때는 해당 Device Service의 Local Data API를 호출한다.</p>
 <pre data-lang="http"><code>GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}/latest
-GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={1..10000}</code></pre>
-<ul><li>cache key: <code>(deviceName, resourceName)</code></li><li>보존: 최근 10분, 시계열별 최대 10,000 sample</li><li>recent 기본 limit: 1,000; 가장 최근 sample을 선택한 뒤 <code>origin</code> 오름차순 반환</li><li>latest sample 없음: <code>404</code></li><li>알려진 source의 recent 결과 없음: <code>200</code>과 빈 <code>samples</code></li><li>Pod 재시작: cache 초기화</li><li>중앙 Core Data fallback: 없음</li></ul>
+GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={1..10000}
+GET /api/v3/localdata/stats</code></pre>
+<ul><li>cache key: <code>(deviceName, resourceName)</code></li><li>구현: 두 Device Service가 공유하는 제네릭 Go ring cache; 정상적인 증가 <code>origin</code> append는 O(1), 순서가 뒤섞인 입력만 안정 정렬 slow path 사용</li><li>보존: 최근 10분, 시계열별 최대 10,000 sample</li><li>전체 할당 상한: Device Service별 sample ring slot 67,108,864 bytes(64MiB); 활성 series 수에 따라 균등 quota를 다시 계산</li><li>상한 계산 범위: sample slot 배열만 포함하며 Go map, 문자열, HTTP 응답과 runtime overhead는 포함하지 않음; 컨테이너 memory limit가 프로세스 전체 hard cap 역할</li><li>recent 기본 limit: 1,000; 가장 최근 sample을 선택한 뒤 <code>origin</code> 오름차순 반환</li><li>latest sample 없음: <code>404</code></li><li>알려진 source의 recent 결과 없음: <code>200</code>과 빈 <code>samples</code></li><li>stats: <code>series</code>, <code>samples</code>, <code>slotBytes</code>, <code>allocatedBytes</code>, retention과 age/series-limit/global-rebalance eviction 누계 반환</li><li>EdgeX custom metrics: <code>LocalDataCacheSamples</code>, <code>LocalDataCacheSeries</code>, <code>LocalDataCacheAllocatedBytes</code>, <code>LocalDataCacheEvictions</code></li><li>Pod 재시작: cache 초기화</li><li>중앙 Core Data fallback: 없음</li></ul>
 <p>Workflow Pod에는 <code>edge-ai.io/local-data-client=true</code> label을 붙이고 대상 Runtime과 같은 edge node에 배치한다. 호출 주소는 고정 IP가 아니라 Serial의 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code> 또는 I2C의 <code>device-sensehat-raspi.edgex-edge.svc.cluster.local:59911</code>이다. 이 접근 계약은 현재 Workflow Builder가 Kubernetes 실행을 수행한다는 뜻이 아니다.</p>
 <p>recent cache와 장애 outbox는 다음처럼 목적을 분리한다.</p>
 <ul><li>recent cache: 같은 node의 Workflow Pod가 최신 구간을 읽는 용도</li><li>outbox: 중앙 전송 실패 중 아직 영구 저장되지 않은 Event 보존 용도</li></ul>
