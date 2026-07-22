@@ -139,8 +139,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-22 10:42</span>
-            <span class="badge">HTML 생성: 2026-07-22 10:44</span>
+            <span class="badge">수정: 2026-07-22 10:55</span>
+            <span class="badge">HTML 생성: 2026-07-22 10:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -183,7 +183,7 @@
 <p>KubeEdge node readiness와 workload placement는 dashboard에서 볼 수 있지만 물리 availability를 결정하지 않는다. 물리 availability는 EdgeX 관리 상태와 Core Data 최신 Event freshness로만 해석한다.</p>
 <h2 id="현재-live-판정">현재 live 판정</h2>
 <p>2026-07-21 immutable ARM64 digest로 배포한 Serial 6개와 I2C 6개, 총 12개 가상 Device revision에서 Metadata/Core Data/Core Command, Local Data API와 dashboard를 같은 실행으로 확인했다. 12개 모두 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>였고 protocol별 local cache/API 계약도 통과했다. 실제 케이블/보드 분리·복구, offline replay와 NetworkPolicy 차단은 별도 gate다.</p>
-<p>2026-07-22 서비스 데모 코드·manifest·API와 anomaly/clear 상태 전이 테스트는 완료했다. 실제 배포의 증가 raw origin과 중앙 readback은 rollout 뒤 같은 runbook으로 기록한다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연은 별도 gate다.</p>
+<p>2026-07-22 서비스 데모 코드·manifest·API와 anomaly/clear 상태 전이 테스트를 완료했다. Jetson live status에서 raw origin과 processed frame 증가, 중앙 <code>/state/service-demo</code>, 실제 브라우저의 NORMAL/fresh panel과 데스크톱·모바일 반응형 표시를 확인했다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연은 별도 gate다.</p>
 <h2 id="경계">경계</h2>
 <p>Ops 문서는 operator assistant, workflow builder, 자원증강 화면이 infrastructure를 변경할 수 있는 것처럼 표현하지 않는다. 별도 승인된 control path가 생기기 전까지 이 기능은 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
