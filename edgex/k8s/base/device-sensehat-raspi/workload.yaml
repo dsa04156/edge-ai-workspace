@@ -43,7 +43,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: device-sensehat-raspi
-          image: 192.168.0.56:5000/edgex-device-sensehat@sha256:13c7b672110362d4907b797ccae50aad67d968da2296783295509f99c82b836c
+          image: 192.168.0.56:5000/edgex-device-sensehat@sha256:53df28e46ae20272092bcf14cbc831b9934bbcc643c2dbf84338f76ba96cf216
           imagePullPolicy: IfNotPresent
           args:
             - -cp=keeper.http://edgex-core-keeper.edgex-system.svc.cluster.local:59890
