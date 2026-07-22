@@ -55,7 +55,7 @@ print(text[:500])
 print('... bytes=', len(text))
 PY
   else
-    echo "WARN: API not reachable. Try port-forward: kubectl -n edge-orch port-forward svc/state-aggregator 8000:80 OR kubectl -n default port-forward svc/state-aggregator 8000:8000"
+    echo "WARN: API not reachable. Try port-forward: kubectl -n default port-forward svc/state-aggregator 8000:8000"
   fi
 done
 
