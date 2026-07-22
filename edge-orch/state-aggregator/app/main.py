@@ -32,6 +32,12 @@ from .models import (
 from .operator_assistant import degraded_operator_chat_response, operator_assistant_from_dashboard
 from .runtime_augmentation import RuntimeAugmentationState
 from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource_augmentation_state
+from .service_demo import (
+    ServiceDemoClient,
+    ServiceDemoError,
+    degraded_service_demo_state,
+)
+from .service_demo_models import ServiceDemoState
 from .service import StateAggregatorService
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
@@ -45,6 +51,10 @@ from .virtual_resources import (
 settings = Settings()
 service = StateAggregatorService(settings)
 augmentation_crds = AugmentationCrdReader()
+service_demo_client = ServiceDemoClient(
+    settings.sensor_anomaly_demo_url,
+    settings.sensor_anomaly_demo_timeout_seconds,
+)
 
 
 @asynccontextmanager
@@ -87,6 +97,14 @@ async def get_nodes():
 @app.get("/state/devices", response_model=list[DeviceState])
 async def get_devices() -> list[DeviceState]:
     return await service.get_devices()
+
+
+@app.get("/state/service-demo", response_model=ServiceDemoState)
+async def get_service_demo() -> ServiceDemoState:
+    try:
+        return await service_demo_client.get_state()
+    except ServiceDemoError as exc:
+        return degraded_service_demo_state(exc)
 
 
 @app.get("/state/devices/{device_id}/telemetry", response_model=list[TelemetryPoint])

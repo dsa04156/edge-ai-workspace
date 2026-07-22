@@ -41,6 +41,10 @@ spec:
               value: "10"
             - name: EDGEX_EVENT_FRESH_SECONDS
               value: "90"
+            - name: SENSOR_ANOMALY_DEMO_URL
+              value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
+            - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
+              value: "2"
           volumeMounts:
             - name: state-data
               mountPath: /app/data

@@ -45,6 +45,17 @@ class Settings(BaseModel):
     edgex_event_fresh_seconds: int = Field(
         default_factory=lambda: int(os.getenv("EDGEX_EVENT_FRESH_SECONDS", "90"))
     )
+    sensor_anomaly_demo_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "SENSOR_ANOMALY_DEMO_URL",
+            "http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080",
+        )
+    )
+    sensor_anomaly_demo_timeout_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", "2")
+        )
+    )
     qwen_base_url: str = Field(
         default_factory=lambda: os.getenv("QWEN_BASE_URL", "http://192.168.0.5:8080/v1")
     )
