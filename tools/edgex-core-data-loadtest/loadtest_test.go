@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -302,5 +304,258 @@ func TestHTTPClientBoundsErrorBody(t *testing.T) {
 	}
 	if len(result.Err.Error()) > 70000 {
 		t.Fatalf("Store() error body is unbounded: %d bytes", len(result.Err.Error()))
+	}
+}
+
+type fakeEventClient struct {
+	mu             sync.Mutex
+	counts         map[string]int64
+	storeCalls     []Sample
+	deleted        map[string]bool
+	storeDelay     time.Duration
+	failStore      func(Sample) error
+	failCount      map[string]error
+	failDelete     map[string]error
+	active         int
+	maxActive      int
+	countOverrides map[string]int64
+}
+
+func newFakeEventClient() *fakeEventClient {
+	return &fakeEventClient{
+		counts:         make(map[string]int64),
+		deleted:        make(map[string]bool),
+		failCount:      make(map[string]error),
+		failDelete:     make(map[string]error),
+		countOverrides: make(map[string]int64),
+	}
+}
+
+func (f *fakeEventClient) Store(ctx context.Context, sample Sample) StoreResult {
+	started := time.Now()
+	f.mu.Lock()
+	f.active++
+	if f.active > f.maxActive {
+		f.maxActive = f.active
+	}
+	f.storeCalls = append(f.storeCalls, sample)
+	f.mu.Unlock()
+
+	select {
+	case <-ctx.Done():
+		f.mu.Lock()
+		f.active--
+		f.mu.Unlock()
+		return StoreResult{Latency: time.Since(started), Err: ctx.Err()}
+	case <-time.After(f.storeDelay):
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.active--
+	if f.failStore != nil {
+		if err := f.failStore(sample); err != nil {
+			return StoreResult{Latency: time.Since(started), Err: err}
+		}
+	}
+	f.counts[sample.DeviceName]++
+	return StoreResult{EventID: fmt.Sprintf("event-%d", sample.Sequence), Latency: time.Since(started)}
+}
+
+func (f *fakeEventClient) Count(_ context.Context, deviceName string) (int64, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if err := f.failCount[deviceName]; err != nil {
+		return 0, err
+	}
+	if count, ok := f.countOverrides[deviceName]; ok {
+		return count, nil
+	}
+	return f.counts[deviceName], nil
+}
+
+func (f *fakeEventClient) Delete(_ context.Context, deviceName string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if err := f.failDelete[deviceName]; err != nil {
+		return err
+	}
+	f.deleted[deviceName] = true
+	return nil
+}
+
+func fastRunnerConfig() Config {
+	cfg := validTestConfig()
+	cfg.Devices = 4
+	cfg.PerDeviceHz = 1000
+	cfg.Duration = 4 * time.Millisecond
+	cfg.Concurrency = 3
+	cfg.RequestTimeout = time.Second
+	cfg.MaxP95 = time.Second
+	cfg.MinRateRatio = 0.01
+	return cfg
+}
+
+func TestRunAttemptsExactPlanAndUsesRoundRobinDevices(t *testing.T) {
+	cfg := fastRunnerConfig()
+	client := newFakeEventClient()
+
+	report := Run(context.Background(), cfg, client)
+
+	if report.Planned != 16 || report.Attempted != 16 || report.Succeeded != 16 || report.Failed != 0 {
+		t.Fatalf("unexpected counters: %#v", report)
+	}
+	if report.Verification.Persisted != 16 || !report.Verification.Matched || report.Verification.CheckedDevices != 4 {
+		t.Fatalf("unexpected verification: %#v", report.Verification)
+	}
+	if report.Cleanup.Deleted != 4 || len(client.deleted) != 4 {
+		t.Fatalf("unexpected cleanup: report=%#v deleted=%v", report.Cleanup, client.deleted)
+	}
+	for index := 0; index < cfg.Devices; index++ {
+		deviceName := DeviceName(cfg.RunID, index)
+		if got := client.counts[deviceName]; got != 4 {
+			t.Errorf("device %s count = %d, want 4", deviceName, got)
+		}
+	}
+	if !report.Pass || len(report.Reasons) != 0 {
+		t.Fatalf("report failed: %v", report.Reasons)
+	}
+}
+
+func TestRunRespectsConcurrencyLimit(t *testing.T) {
+	cfg := fastRunnerConfig()
+	cfg.Duration = 10 * time.Millisecond
+	client := newFakeEventClient()
+	client.storeDelay = 2 * time.Millisecond
+
+	_ = Run(context.Background(), cfg, client)
+
+	if client.maxActive > cfg.Concurrency {
+		t.Fatalf("max active Stores = %d, concurrency = %d", client.maxActive, cfg.Concurrency)
+	}
+	if client.maxActive < 2 {
+		t.Fatalf("max active Stores = %d, want concurrent execution", client.maxActive)
+	}
+}
+
+func TestRunAggregatesFailuresAndReadbackMismatch(t *testing.T) {
+	cfg := fastRunnerConfig()
+	client := newFakeEventClient()
+	client.failStore = func(sample Sample) error {
+		if sample.Sequence%4 == 0 {
+			return fmt.Errorf("HTTP 503 unavailable")
+		}
+		return nil
+	}
+	mismatchDevice := DeviceName(cfg.RunID, 1)
+	client.countOverrides[mismatchDevice] = 0
+	client.failCount[DeviceName(cfg.RunID, 2)] = fmt.Errorf("count unavailable")
+	client.failDelete[DeviceName(cfg.RunID, 3)] = fmt.Errorf("delete unavailable")
+
+	report := Run(context.Background(), cfg, client)
+
+	if report.Succeeded != 12 || report.Failed != 4 || report.ErrorGroups["http-503"] != 4 {
+		t.Fatalf("unexpected failure aggregation: %#v", report)
+	}
+	if report.Verification.Matched || report.Verification.MismatchedDevices == 0 || len(report.Verification.Errors) != 1 {
+		t.Fatalf("unexpected verification: %#v", report.Verification)
+	}
+	if len(report.Cleanup.Errors) != 1 || report.Pass {
+		t.Fatalf("unexpected cleanup/pass: cleanup=%#v pass=%v", report.Cleanup, report.Pass)
+	}
+}
+
+func TestRunStopsSchedulingWhenContextIsCancelled(t *testing.T) {
+	cfg := fastRunnerConfig()
+	cfg.Duration = time.Second
+	client := newFakeEventClient()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	report := Run(ctx, cfg, client)
+
+	if report.Attempted >= report.Planned {
+		t.Fatalf("attempted %d events after cancellation, planned %d", report.Attempted, report.Planned)
+	}
+	if report.Pass {
+		t.Fatal("cancelled run unexpectedly passed")
+	}
+}
+
+func TestErrorClassIsBoundedAndStable(t *testing.T) {
+	tests := []struct {
+		err  error
+		want string
+	}{
+		{context.DeadlineExceeded, "timeout"},
+		{fmt.Errorf("POST path returned HTTP 503: unavailable"), "http-503"},
+		{fmt.Errorf("response event ID mismatch"), "response-id-mismatch"},
+		{fmt.Errorf("dial tcp: connection refused"), "transport"},
+	}
+	for _, tt := range tests {
+		if got := ErrorClass(tt.err); got != tt.want {
+			t.Errorf("ErrorClass(%q) = %q, want %q", tt.err, got, tt.want)
+		}
+	}
+}
+
+func TestParseConfigUsesScaleBaselineDefaults(t *testing.T) {
+	cfg, err := ParseConfig(nil, &bytes.Buffer{})
+	if err != nil {
+		t.Fatalf("ParseConfig() error = %v", err)
+	}
+	if cfg.Devices != 1000 || cfg.PerDeviceHz != 1 || cfg.Duration != time.Minute || cfg.Concurrency != 128 {
+		t.Fatalf("unexpected scale defaults: %#v", cfg)
+	}
+	if cfg.BaseURL != "http://edgex-core-data.edgex-system.svc.cluster.local:59880" {
+		t.Fatalf("base URL = %q", cfg.BaseURL)
+	}
+	if !cfg.Verify || !cfg.Cleanup || !runIDPattern.MatchString(cfg.RunID) {
+		t.Fatalf("unexpected safety defaults: %#v", cfg)
+	}
+}
+
+func TestRunCLIEmitsMachineReadablePassReport(t *testing.T) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	client := newFakeEventClient()
+	args := []string{
+		"--run-id=cli-test",
+		"--base-url=http://core-data.test",
+		"--devices=2",
+		"--per-device-hz=1000",
+		"--duration=2ms",
+		"--concurrency=2",
+		"--min-rate-ratio=0.01",
+	}
+
+	exitCode := RunCLI(context.Background(), args, stdout, stderr, func(Config) EventClient { return client })
+	if exitCode != 0 {
+		t.Fatalf("RunCLI() exit = %d, stderr = %q, stdout = %q", exitCode, stderr.String(), stdout.String())
+	}
+	var report Report
+	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
+		t.Fatalf("stdout is not a JSON report: %v\n%s", err, stdout.String())
+	}
+	if !report.Pass || report.RunID != "cli-test" || report.Planned != 4 || report.Succeeded != 4 {
+		t.Fatalf("unexpected report: %#v", report)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty", stderr.String())
+	}
+}
+
+func TestRunCLIRejectsInvalidConfiguration(t *testing.T) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	exitCode := RunCLI(
+		context.Background(),
+		[]string{"--run-id=Bad_ID"},
+		stdout,
+		stderr,
+		func(Config) EventClient { t.Fatal("client factory called for invalid config"); return nil },
+	)
+	if exitCode != 2 || !strings.Contains(stderr.String(), "run-id") || stdout.Len() != 0 {
+		t.Fatalf("exit=%d stdout=%q stderr=%q", exitCode, stdout.String(), stderr.String())
 	}
 }

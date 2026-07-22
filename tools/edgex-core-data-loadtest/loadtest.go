@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -14,10 +15,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 var runIDPattern = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+var httpStatusPattern = regexp.MustCompile(`HTTP ([0-9]{3})`)
 
 const (
 	loadtestServiceName = "core-data-loadtest"
@@ -93,10 +96,12 @@ type LatencyReport struct {
 }
 
 type VerificationReport struct {
-	Enabled   bool     `json:"enabled"`
-	Persisted int      `json:"persisted"`
-	Matched   bool     `json:"matched"`
-	Errors    []string `json:"errors,omitempty"`
+	Enabled           bool     `json:"enabled"`
+	CheckedDevices    int      `json:"checkedDevices"`
+	Persisted         int      `json:"persisted"`
+	Matched           bool     `json:"matched"`
+	MismatchedDevices int      `json:"mismatchedDevices"`
+	Errors            []string `json:"errors,omitempty"`
 }
 
 type CleanupReport struct {
@@ -106,6 +111,12 @@ type CleanupReport struct {
 }
 
 type Report struct {
+	RunID        string             `json:"runId"`
+	StartedAt    time.Time          `json:"startedAt"`
+	FinishedAt   time.Time          `json:"finishedAt"`
+	DeviceCount  int                `json:"deviceCount"`
+	PerDeviceHz  float64            `json:"perDeviceHz"`
+	DurationSecs float64            `json:"loadDurationSeconds"`
 	Planned      int                `json:"planned"`
 	Attempted    int                `json:"attempted"`
 	Succeeded    int                `json:"succeeded"`
@@ -114,8 +125,11 @@ type Report struct {
 	AchievedEPS  float64            `json:"achievedEventsPerSecond"`
 	ErrorRate    float64            `json:"errorRate"`
 	Latency      LatencyReport      `json:"latency"`
+	ErrorGroups  map[string]int     `json:"errorGroups,omitempty"`
 	Verification VerificationReport `json:"verification"`
 	Cleanup      CleanupReport      `json:"cleanup"`
+	Pass         bool               `json:"pass"`
+	Reasons      []string           `json:"reasons,omitempty"`
 }
 
 func Percentile(values []time.Duration, percentile float64) time.Duration {
@@ -166,6 +180,7 @@ func Evaluate(cfg Config, report Report) []string {
 
 type Sample struct {
 	DeviceName string
+	Sequence   int
 	Origin     int64
 	Value      float64
 }
@@ -353,4 +368,250 @@ func (c *HTTPClient) doJSON(ctx context.Context, method string, path string, pay
 		}
 	}
 	return nil
+}
+
+type EventClient interface {
+	Store(context.Context, Sample) StoreResult
+	Count(context.Context, string) (int64, error)
+	Delete(context.Context, string) error
+}
+
+type storeOutcome struct {
+	deviceName string
+	result     StoreResult
+}
+
+func DeviceName(runID string, index int) string {
+	return fmt.Sprintf("loadtest-%s-%04d", runID, index)
+}
+
+func Run(ctx context.Context, cfg Config, client EventClient) Report {
+	started := time.Now().UTC()
+	planned := PlannedEvents(cfg)
+	report := Report{
+		RunID:        cfg.RunID,
+		StartedAt:    started,
+		DeviceCount:  cfg.Devices,
+		PerDeviceHz:  cfg.PerDeviceHz,
+		Planned:      planned,
+		TargetEPS:    cfg.TargetEPS(),
+		ErrorGroups:  make(map[string]int),
+		Verification: VerificationReport{Enabled: cfg.Verify},
+		Cleanup:      CleanupReport{Enabled: cfg.Cleanup},
+	}
+
+	jobs := make(chan int, cfg.Concurrency*2)
+	outcomes := make(chan storeOutcome, cfg.Concurrency*2)
+	var workers sync.WaitGroup
+	for worker := 0; worker < cfg.Concurrency; worker++ {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for sequence := range jobs {
+				deviceName := DeviceName(cfg.RunID, sequence%cfg.Devices)
+				sample := Sample{
+					DeviceName: deviceName,
+					Sequence:   sequence,
+					Origin:     time.Now().UnixNano(),
+					Value:      float64(sequence%10000) / 100,
+				}
+				outcomes <- storeOutcome{deviceName: deviceName, result: client.Store(ctx, sample)}
+			}
+		}()
+	}
+
+	go func() {
+		defer close(jobs)
+		for sequence := 0; sequence < planned; sequence++ {
+			if !waitUntil(ctx, started.Add(scheduleOffset(sequence, report.TargetEPS))) {
+				return
+			}
+			select {
+			case jobs <- sequence:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	go func() {
+		workers.Wait()
+		close(outcomes)
+	}()
+
+	latencies := make([]time.Duration, 0, planned)
+	expectedByDevice := make(map[string]int, cfg.Devices)
+	for outcome := range outcomes {
+		report.Attempted++
+		if outcome.result.Err != nil {
+			report.Failed++
+			report.ErrorGroups[ErrorClass(outcome.result.Err)]++
+			continue
+		}
+		report.Succeeded++
+		expectedByDevice[outcome.deviceName]++
+		latencies = append(latencies, outcome.result.Latency)
+	}
+
+	loadFinished := time.Now().UTC()
+	report.DurationSecs = loadFinished.Sub(started).Seconds()
+	if report.DurationSecs > 0 {
+		report.AchievedEPS = float64(report.Succeeded) / report.DurationSecs
+	}
+	if report.Attempted > 0 {
+		report.ErrorRate = float64(report.Failed) / float64(report.Attempted)
+	}
+	report.Latency = summarizeLatencies(latencies)
+
+	maintenanceContext := context.Background()
+	if cfg.Verify {
+		report.Verification = verifyStoredEvents(maintenanceContext, cfg, client, expectedByDevice)
+	}
+	if cfg.Cleanup {
+		report.Cleanup = cleanupStoredEvents(maintenanceContext, cfg, client)
+	}
+	report.FinishedAt = time.Now().UTC()
+	report.Reasons = Evaluate(cfg, report)
+	report.Pass = len(report.Reasons) == 0
+	return report
+}
+
+func scheduleOffset(sequence int, eventsPerSecond float64) time.Duration {
+	if eventsPerSecond <= 0 {
+		return 0
+	}
+	return time.Duration(float64(sequence) * float64(time.Second) / eventsPerSecond)
+}
+
+func waitUntil(ctx context.Context, target time.Time) bool {
+	delay := time.Until(target)
+	if delay <= 0 {
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+			return true
+		}
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+func summarizeLatencies(values []time.Duration) LatencyReport {
+	maximum := time.Duration(0)
+	for _, value := range values {
+		if value > maximum {
+			maximum = value
+		}
+	}
+	toMilliseconds := func(value time.Duration) float64 {
+		return float64(value) / float64(time.Millisecond)
+	}
+	return LatencyReport{
+		P50Milliseconds: toMilliseconds(Percentile(values, 0.50)),
+		P95Milliseconds: toMilliseconds(Percentile(values, 0.95)),
+		P99Milliseconds: toMilliseconds(Percentile(values, 0.99)),
+		MaxMilliseconds: toMilliseconds(maximum),
+	}
+}
+
+type deviceOperationResult struct {
+	index int
+	count int64
+	err   error
+}
+
+func verifyStoredEvents(ctx context.Context, cfg Config, client EventClient, expected map[string]int) VerificationReport {
+	report := VerificationReport{Enabled: true}
+	results := parallelDeviceOperation(ctx, cfg, func(operationContext context.Context, index int) (int64, error) {
+		return client.Count(operationContext, DeviceName(cfg.RunID, index))
+	})
+	for result := range results {
+		report.CheckedDevices++
+		deviceName := DeviceName(cfg.RunID, result.index)
+		if result.err != nil {
+			report.Errors = append(report.Errors, fmt.Sprintf("%s: %v", deviceName, result.err))
+			continue
+		}
+		report.Persisted += int(result.count)
+		if result.count != int64(expected[deviceName]) {
+			report.MismatchedDevices++
+		}
+	}
+	report.Matched = len(report.Errors) == 0 && report.MismatchedDevices == 0
+	return report
+}
+
+func cleanupStoredEvents(ctx context.Context, cfg Config, client EventClient) CleanupReport {
+	report := CleanupReport{Enabled: true}
+	results := parallelDeviceOperation(ctx, cfg, func(operationContext context.Context, index int) (int64, error) {
+		return 0, client.Delete(operationContext, DeviceName(cfg.RunID, index))
+	})
+	for result := range results {
+		if result.err != nil {
+			report.Errors = append(report.Errors, fmt.Sprintf("%s: %v", DeviceName(cfg.RunID, result.index), result.err))
+			continue
+		}
+		report.Deleted++
+	}
+	return report
+}
+
+func parallelDeviceOperation(
+	ctx context.Context,
+	cfg Config,
+	operation func(context.Context, int) (int64, error),
+) <-chan deviceOperationResult {
+	results := make(chan deviceOperationResult, cfg.Concurrency)
+	indices := make(chan int, cfg.Concurrency)
+	workerCount := cfg.Concurrency
+	if cfg.Devices < workerCount {
+		workerCount = cfg.Devices
+	}
+	var workers sync.WaitGroup
+	for worker := 0; worker < workerCount; worker++ {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for index := range indices {
+				count, err := operation(ctx, index)
+				results <- deviceOperationResult{index: index, count: count, err: err}
+			}
+		}()
+	}
+	go func() {
+		for index := 0; index < cfg.Devices; index++ {
+			indices <- index
+		}
+		close(indices)
+		workers.Wait()
+		close(results)
+	}()
+	return results
+}
+
+func ErrorClass(err error) string {
+	if errors.Is(err, context.DeadlineExceeded) || strings.Contains(strings.ToLower(err.Error()), "deadline exceeded") {
+		return "timeout"
+	}
+	if match := httpStatusPattern.FindStringSubmatch(err.Error()); len(match) == 2 {
+		return "http-" + match[1]
+	}
+	lower := strings.ToLower(err.Error())
+	if strings.Contains(lower, "response event id") {
+		return "response-id-mismatch"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "cancelled"
+	}
+	if strings.Contains(lower, "dial ") || strings.Contains(lower, "connection") || strings.Contains(lower, "transport") {
+		return "transport"
+	}
+	return "other"
 }
