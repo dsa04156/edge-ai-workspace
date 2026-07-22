@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>대시보드 검증 점검표</title>
+  <title>EdgeX Core Data 1,000 디바이스 부하 검증</title>
   <link rel="stylesheet" href="../../assets/docs-site.css">
 </head>
 <body>
@@ -11,9 +11,9 @@
     <div class="topbar">
       <div class="topbar-left">
         <a href="../index.html">← 문서 홈</a>
-        <a class="edit-link" href="/__edit?file=ops/대시보드-검증.md">편집</a>
+        <a class="edit-link" href="/__edit?file=ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md">편집</a>
       </div>
-      <span>ops/대시보드-검증.md</span>
+      <span>ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -141,79 +141,169 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">운영 문서</p>
-          <h1>대시보드 검증 점검표</h1>
-          <p class="subtitle">state-aggregator가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/U…</p>
+          <h1>EdgeX Core Data 1,000 디바이스 부하 검증</h1>
+          <p class="subtitle">현재 단일 EdgeX Core Data와 PostgreSQL이 합성 가상 디바이스 Event를 어느 입력률까지 저장하는지 재현…</p>
           <div class="meta">
             <span class="badge kind">운영 문서</span>
-            <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-22 19:14</span>
+            <span class="badge">원본: ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</span>
+            <span class="badge">수정: 2026-07-22 19:09</span>
             <span class="badge">HTML 생성: 2026-07-22 19:15</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="대시보드-검증-점검표">대시보드 검증 점검표</h1>
-<h2 id="목적과-현재-경계">목적과 현재 경계</h2>
-<p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI를 read-only로 확인한다. 2026-07-21 기존 custom Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했고, 현재 검증 목표는 <strong><code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 만든 가상 Device 각 6개, 총 12개를 정확히 표시하는 것</strong>이다.</p>
-<p>물리 디바이스 inventory, 관리 상태와 telemetry의 authority는 EdgeX다. KubeEdge는 node/workload 관찰에만 사용한다.</p>
-<h2 id="api-확인">API 확인</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/summary&#x27;</code></pre>
-<p>현재 정상 기준:</p>
-<ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 aggregate <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>virtual-temperature-001</code>, <code>virtual-light-001</code>, <code>virtual-magnetic-001</code>, <code>virtual-acceleration-{x,y,z}-001</code>이 각각 독립 행이다.</li><li><code>env-sensehat-{temperature,humidity,pressure}-01</code>, <code>imu-sensehat-{compass,orientation,gyroscope}-01</code>도 각각 독립 행이다.</li><li>각 Device의 service/profile/protocol이 <code>device-serial-jetson</code>/Serial 또는 <code>device-sensehat-raspi</code>/I2C 계약과 일치한다.</li><li>총 12개 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>이고 계약된 typed latest Reading을 반환한다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li></ul>
-<p>로컬에서 strict API 계약 검증을 실행할 때는 현재 <code>default</code> namespace의 Service를 포트포워드한다.</p>
-<pre data-lang="bash"><code>kubectl -n default port-forward svc/state-aggregator 8000:8000
-python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
-<p>검증기는 현재 EdgeX 단일 권위 계약인 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>telemetry_freshness</code>와 available/degraded/unavailable·Core Data KPI를 확인한다. 퇴역한 Mapper/DeviceStatus의 <code>mapper_running</code>, <code>telemetry_enabled</code>, <code>device_status_freshness_ratio</code>는 필수 field나 physical availability 근거로 검사하지 않는다.</p>
-<h2 id="dashboard-ui-확인">Dashboard UI 확인</h2>
-<ol><li>요약 카드가 실제 <code>registered_device_count</code>와 일치한다.</li><li>device 목록이 Core Metadata 응답과 일치한다.</li><li>12개 가상 Device detail이 각 Metadata와 latest Event 값을 동일하게 표시한다.</li><li>stale/no events 상태를 fresh로 보정하지 않는다.</li><li>KubeEdge node와 workload는 별도 진단 영역에 표시한다.</li><li>aggregate <code>sensehat-001</code>이나 Agent outbox를 현재 점검 대상으로 안내하지 않고, 직접 I2C Device 6개를 현재 inventory로 표시한다.</li></ol>
-<h2 id="현재-device-service-pass-기준">현재 Device Service PASS 기준</h2>
+          <h1 id="edgex-core-data-1-000-디바이스-부하-검증">EdgeX Core Data 1,000 디바이스 부하 검증</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 현재 단일 EdgeX Core Data와 PostgreSQL이 합성 가상 디바이스 Event를 어느 입력률까지 저장하는지 재현 가능하게 확인하는 절차와 2026-07-22 실측 결과를 정리한다. 센서 수가 많다는 이유만으로 Event batch 저장이나 별도 시계열 DB를 먼저 추가하지 않고, 실제 <code>device 수 × device별 Hz</code>를 기준으로 현재 저장 경로의 한계를 측정한다.</p>
+<p>이 검증은 Core Data REST ingress부터 PostgreSQL까지의 기준선이다. 운영 정상 경로인 Device Service → 중앙 internal MessageBus → Core Data 전체 처리량을 검증한 결과가 아니며, 합성 identity를 Core Metadata Device로 등록하지 않는다.</p>
+<h2 id="구현-경계">구현 경계</h2>
+<pre data-lang="text"><code>일회성 Pod @ etri-ser0002-cgnmsb
+  -&gt; edgex-core-data.edgex-system.svc.cluster.local:59880
+  -&gt; POST /api/v3/event/{service}/{profile}/{device}/{source}
+  -&gt; Core Data / PostgreSQL
+  -&gt; GET /api/v3/event/count/device/name/{device}
+  -&gt; DELETE /api/v3/event/device/name/{device}
+  -&gt; count=0 확인</code></pre>
+<ul><li>실행기는 <code>tools/edgex-core-data-loadtest/</code>의 Go 표준 라이브러리 구현이다.</li><li><code>tools/run_edgex_core_data_loadtest.sh</code>가 amd64 정적 바이너리를 빌드해 digest 고정 BusyBox 일회성 Pod에서 실행한다.</li><li>Core Data는 고정 ClusterIP나 PodIP가 아니라 Service FQDN으로 접근한다.</li><li>Pod는 <code>etri-ser0002-cgnmsb</code>에 배치하고 ServiceAccount token, privilege escalation과 쓰기 가능한 root filesystem을 사용하지 않는다.</li><li>운영 <code>edgex/k8s</code> root render, Argo CD Application, EdgeMesh, Device/Profile/Device Service는 변경하지 않는다.</li><li>합성 이름은 <code>loadtest-{runId}-{index}</code>이고 각 Event는 <code>Float64</code> Reading 한 개와 <code>loadTestRunId</code> tag를 갖는다.</li><li>실행별 JSON은 <code>artifacts/edgex-loadtest/</code>에 남지만 운영 생성물이므로 Git에는 포함하지 않는다.</li></ul>
+<h2 id="안전한-기본-프로파일">안전한 기본 프로파일</h2>
+<p>아무 옵션 없이 실행하면 1,000개 identity가 각 1분에 한 번 Event를 보내는 저주기 기준선을 사용한다.</p>
+<pre data-lang="bash"><code>rtk bash tools/run_edgex_core_data_loadtest.sh</code></pre>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>관찰 대상</th>
-<th>authority/API</th>
-<th>PASS 기준</th>
+<th>항목</th>
+<th>기본값</th>
+<th>의미</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>inventory/state</td>
-<td>Core Metadata → <code>/state/devices</code></td>
-<td>Device/Profile/Device Service/protocol과 상태 일치</td>
+<td><code>DEVICES</code></td>
+<td><code>1000</code></td>
+<td>합성 device identity 수</td>
 </tr>
 <tr>
-<td>telemetry/freshness</td>
-<td>Core Data Event/Reading</td>
-<td>실제 sample timestamp와 typed reading 일치</td>
+<td><code>PER_DEVICE_HZ</code></td>
+<td><code>0.0166666667</code></td>
+<td>device별 약 1 Event/분</td>
 </tr>
 <tr>
-<td>physical availability</td>
-<td>state-aggregator 정규화</td>
-<td>Metadata 상태와 Event freshness 정책 일치</td>
+<td><code>DURATION</code></td>
+<td><code>60s</code></td>
+<td>부하 생성 구간</td>
 </tr>
 <tr>
-<td>node/workload</td>
-<td>Kubernetes/KubeEdge</td>
-<td>별도 진단이며 physical availability gate가 아님</td>
+<td><code>CONCURRENCY</code></td>
+<td><code>128</code></td>
+<td>POST worker 상한</td>
 </tr>
 <tr>
-<td>service binding</td>
-<td>dashboard detail</td>
-<td>같은 device identity와 consumer relation 표시</td>
+<td><code>MAINTENANCE_CONCURRENCY</code></td>
+<td><code>8</code></td>
+<td>readback·cleanup 동시성 상한</td>
+</tr>
+<tr>
+<td><code>REQUEST_TIMEOUT</code></td>
+<td><code>5s</code></td>
+<td>HTTP 요청별 제한</td>
+</tr>
+<tr>
+<td><code>MAX_ERROR_RATE</code></td>
+<td><code>0</code></td>
+<td>허용 저장 실패율</td>
+</tr>
+<tr>
+<td><code>MAX_P95</code></td>
+<td><code>1s</code></td>
+<td>허용 POST p95</td>
+</tr>
+<tr>
+<td><code>MIN_RATE_RATIO</code></td>
+<td><code>0.95</code></td>
+<td>목표 Event/s 대비 최소 달성률</td>
+</tr>
+<tr>
+<td><code>VERIFY</code></td>
+<td><code>true</code></td>
+<td>device별 전용 count API readback</td>
+</tr>
+<tr>
+<td><code>CLEANUP_EVENTS</code></td>
+<td><code>true</code></td>
+<td>합성 Event만 삭제하고 <code>count=0</code> 확인</td>
 </tr>
 </tbody></table></div>
-<h2 id="실패-시-점검-순서">실패 시 점검 순서</h2>
-<ol><li>physical endpoint와 Device Service 상태</li><li>Core Metadata binding</li><li>Core Data latest Event/Reading</li><li>state-aggregator normalization/freshness</li><li>frontend rendering</li><li>Core Metadata에 퇴역 fixture가 남았거나 frontend가 sample payload를 하드코딩하지 않았는지</li></ol>
-<p>live API와 UI를 확인하지 않고 repository 문서나 fixture만으로 PASS를 선언하지 않는다.</p>
+<p>Core Data의 일반 device Event 이력 API를 count 용도로 반복 호출하지 않는다. 검증기는 전용 <code>/api/v3/event/count/device/name/{device}</code>를 사용한다. 삭제 API의 성공 응답은 <code>202 Accepted</code>이므로 응답 수신만으로 삭제 완료를 선언하지 않고 같은 count API가 0을 반환할 때까지 제한 시간 안에서 확인한다.</p>
+<h2 id="스트레스-프로파일">스트레스 프로파일</h2>
+<p>1,000 devices × 1Hz는 현재 배포에서 OOM이 확인된 스트레스 프로파일이다. 정상 데모 중 기본 명령으로 실행하지 않는다.</p>
+<pre data-lang="bash"><code>rtk env \
+  RUN_ID=baseline-1hz-yyyymmdd \
+  DEVICES=1000 \
+  PER_DEVICE_HZ=1 \
+  DURATION=30s \
+  REQUEST_TIMEOUT=10s \
+  bash tools/run_edgex_core_data_loadtest.sh</code></pre>
+<p>실행 전후에 다음을 기록한다.</p>
+<pre data-lang="bash"><code>rtk kubectl -n edgex-system get pod \
+  -l app.kubernetes.io/name=edgex-core-data -o wide
+rtk kubectl -n edgex-system get pod edgex-postgres-0 -o wide
+rtk kubectl -n edgex-system top pod</code></pre>
+<p>10Hz나 더 높은 profile은 현재 자동 실행 범위가 아니다. 1Hz 실패 원인을 해소하고 100 → 250 → 500 → 1,000 events/s 순서의 단계별 gate를 통과한 뒤에만 확장한다.</p>
+<h2 id="pass-판정">PASS 판정</h2>
+<p>다음 조건을 모두 만족해야 저장 기준선 PASS다.</p>
+<ol><li><code>attempted == planned</code>다.</li><li><code>succeeded == planned</code>이고 Core Data가 각 POST에 <code>201 Created</code>와 동일 Event ID를 반환한다.</li><li><code>errorRate &lt;= MAX_ERROR_RATE</code>다.</li><li><code>latency.p95Ms &lt;= MAX_P95</code>다.</li><li><code>achievedEventsPerSecond &gt;= targetEventsPerSecond × MIN_RATE_RATIO</code>다.</li><li>1,000개 device의 count 합계가 성공 Event 수와 일치한다.</li><li>cleanup이 각 합성 device의 <code>count=0</code>까지 확인한다.</li><li>Core Data/PostgreSQL이 Ready이고 재시작 횟수가 증가하지 않는다.</li><li>대표 Arduino·Sense HAT 실제 Event의 <code>origin</code>이 시험 뒤에도 증가한다.</li></ol>
+<p><code>pass=true</code>만 보지 않고 Pod restart와 실제 sensor 회귀를 함께 확인한다. OOM이나 재시작이 있으면 Event 보고서가 일부 성공했더라도 운영 PASS가 아니다.</p>
+<h2 id="2026-07-22-실측-결과">2026-07-22 실측 결과</h2>
+<p>환경은 중앙 <code>etri-ser0002-cgnmsb</code>의 Core Data 1 replica와 PostgreSQL 1 replica다. Core Data resource는 request <code>50m/64Mi</code>, limit <code>300m/256Mi</code>; PostgreSQL은 request <code>100m/128Mi</code>, limit <code>500m/512Mi</code>였다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>프로파일</th>
+<th>결과</th>
+<th>저장 결과</th>
+<th>POST 지연</th>
+<th>운영 영향</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>smoke, 2 devices × 2Hz × 2s</td>
+<td>PASS</td>
+<td>8/8, 오류 0, readback 8, cleanup 2 devices</td>
+<td>p95 <code>14.83ms</code></td>
+<td>재시작 없음</td>
+</tr>
+<tr>
+<td>저주기, 1,000 × 1/60Hz × 60s</td>
+<td>PASS</td>
+<td>1,000/1,000, <code>16.678 events/s</code>, readback 1,000, cleanup 1,000</td>
+<td>p50 <code>12.84ms</code>, p95 <code>16.17ms</code>, p99 <code>17.82ms</code>, max <code>44.39ms</code></td>
+<td>합성 잔존 0, 실제 sensor origin 증가</td>
+</tr>
+<tr>
+<td>스트레스, 1,000 × 1Hz × 30s</td>
+<td>FAIL</td>
+<td>0/30,000, 오류율 1.0</td>
+<td>성공 응답 없음</td>
+<td>Core Data <code>OOMKilled</code>, exit 137, restart <code>1 → 2</code></td>
+</tr>
+</tbody></table></div>
+<p>1Hz 실패 보고서의 오류 분포는 HTTP 503 <code>9,390</code>, transport <code>13,064</code>, 기타 <code>7,546</code>이었다. worker backpressure와 요청 timeout 때문에 전체 시도 회수에는 약 375.74초가 걸렸다. PostgreSQL에는 해당 실행의 합성 Event가 남지 않았고, Core Data 자동 재시작 뒤 Arduino와 Sense HAT의 최신 Event <code>origin</code> 증가를 다시 확인했다.</p>
+<p>초기 저주기 시험에서는 검증기가 일반 Event 이력 API를 128개 동시 호출해 조회 경로를 정체시키는 도구 결함이 있었다. 최종 구현은 이를 다음처럼 수정했다.</p>
+<ul><li>저장 동시성과 검증·정리 동시성을 분리했다.</li><li>일반 이력 API 대신 전용 Event count API를 사용한다.</li><li>cleanup의 <code>202 Accepted</code> 뒤 <code>count=0</code>을 확인한다.</li><li>검증·정리 상세 오류는 각 20건까지만 JSON에 남기고 나머지는 <code>suppressedErrors</code>로 집계한다.</li><li>저장, readback과 cleanup이 같은 취소 context를 사용하므로 종료 신호 뒤 maintenance 요청을 계속 기다리지 않는다.</li><li>기본 profile을 검증된 1/60Hz로 낮췄다.</li></ul>
+<h2 id="현재-결론">현재 결론</h2>
+<ul><li>“센서 1,000개라서 Event마다 저장하면 무조건 안 된다”는 결론은 아니다. 1,000개가 분당 한 번 보내는 약 16.7 events/s는 현재 구성에서 여유 있게 통과했다.</li><li>현재 <code>300m CPU / 256Mi memory</code> Core Data 1 replica에 1,000 events/s를 바로 넣는 구성은 지원 근거가 없고 실제로 OOM 실패했다.</li><li>따라서 저장 batch나 별도 DB를 먼저 넣기 전에 실제 장비별 sampling rate, 저장 대상 resource 수와 retention을 확정해야 한다.</li><li>다음 성능 작업은 Core Data memory profile과 resource right-sizing, 100/250/500 events/s 단계별 시험, PostgreSQL index·retention 관측, Device Service → MessageBus → Core Data 전체 경로 시험 순서로 진행한다.</li><li>현재 운영 Device Service, MessageBus와 PostgreSQL 배포는 이번 기준선 도구 추가만으로 변경하지 않는다.</li></ul>
+<h2 id="장애-후-회복-확인">장애 후 회복 확인</h2>
+<p>부하 시험이 실패하면 합성 데이터 정리보다 먼저 Core Data가 Ready인지 확인한다. OOM 뒤 Deployment가 자동 복구하지 못할 때만 정확한 Core Data Pod 하나를 재생성하고, manifest·Service·EdgeMesh는 수정하지 않는다.</p>
+<p>회복 완료 조건:</p>
+<ol><li>Core Data와 PostgreSQL이 Ready다.</li><li>새 OOM/restart가 더 증가하지 않는다.</li><li><code>virtual-temperature-001</code>과 <code>env-sensehat-temperature-01</code> 최신 Event가 조회된다.</li><li>두 Event의 <code>origin</code>이 시험 전보다 증가한다.</li><li>실행 prefix의 합성 Event가 0건이다.</li></ol>
+<p>전체 현재 데모 회귀는 다음 명령으로 확인한다.</p>
+<pre data-lang="bash"><code>rtk bash tools/verify_e2e.sh</code></pre>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-현재-경계">목적과 현재 경계</a></li>
-<li class="toc-h2"><a href="#api-확인">API 확인</a></li>
-<li class="toc-h2"><a href="#dashboard-ui-확인">Dashboard UI 확인</a></li>
-<li class="toc-h2"><a href="#현재-device-service-pass-기준">현재 Device Service PASS 기준</a></li>
-<li class="toc-h2"><a href="#실패-시-점검-순서">실패 시 점검 순서</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#구현-경계">구현 경계</a></li>
+<li class="toc-h2"><a href="#안전한-기본-프로파일">안전한 기본 프로파일</a></li>
+<li class="toc-h2"><a href="#스트레스-프로파일">스트레스 프로파일</a></li>
+<li class="toc-h2"><a href="#pass-판정">PASS 판정</a></li>
+<li class="toc-h2"><a href="#2026-07-22-실측-결과">2026-07-22 실측 결과</a></li>
+<li class="toc-h2"><a href="#현재-결론">현재 결론</a></li>
+<li class="toc-h2"><a href="#장애-후-회복-확인">장애 후 회복 확인</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -69,6 +69,7 @@
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
 <li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
@@ -93,6 +94,7 @@
 <li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -108,6 +110,7 @@
 <li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -143,8 +146,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-22 16:48</span>
-            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
+            <span class="badge">수정: 2026-07-22 19:03</span>
+            <span class="badge">HTML 생성: 2026-07-22 19:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -346,6 +349,10 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 <tr>
 <td>영구 저장</td>
 <td>중앙 Core Data/PostgreSQL; 별도 InfluxDB 없음</td>
+</tr>
+<tr>
+<td>1,000-device Core Data 저장 기준선</td>
+<td>1/60Hz × 1,000은 1,000/1,000, p95 16.17ms PASS. 1Hz × 1,000은 현재 Core Data 300m/256Mi에서 OOMKilled FAIL; Device Service→MessageBus 전체 경로 시험은 별도</td>
 </tr>
 <tr>
 <td>write command/actuator</td>

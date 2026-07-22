@@ -69,6 +69,7 @@
 <li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
 <li><a href="../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
@@ -93,6 +94,7 @@
 <li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -108,6 +110,7 @@
 <li><a href="../superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -143,8 +146,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-22 16:49</span>
-            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
+            <span class="badge">수정: 2026-07-22 19:14</span>
+            <span class="badge">HTML 생성: 2026-07-22 19:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -168,6 +171,10 @@
 <ul><li>근거: immutable ARM64 image 2개, Argo CD revision <code>0a8a761bf05051178074c5d18accdaa6a1d4bc0d</code>, Jetson/Raspberry Pi Local Data API와 중앙 Core Data/dashboard/AI service readback</li><li>갱신: <code>docs/일일-기록.md</code>, <code>docs/wiki/변경-기록.md</code></li><li>메모: Serial 6 series와 Sense HAT 11 series가 각각 64MiB budget 이하에서 증가하고, 11개 I2C source·중앙 Event·AI demo 회귀가 모두 PASS였다. EdgeMesh는 generation/observed 14와 5/5 Ready로 변경하지 않았다.</li></ul>
 <h2 id="2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</h2>
 <ul><li>근거: Jetson Arduino <code>cdc_acm</code> detach/rebind, Sense HAT reader process 재시작, 중앙 MessageBus 0 replica와 Local Data/Core Data 비교</li><li>갱신: <code>docs/프로젝트-배경.md</code>, <code>docs/물리-디바이스-상태-정책.md</code>, <code>docs/단계별-추진계획.md</code>, <code>docs/현재-데모-경로.md</code>, <code>docs/문서-안내.md</code>, <code>docs/ops/현재-데모-운영-절차.md</code>, <code>docs/wiki/상태와-텔레메트리.md</code>, <code>docs/wiki/운영-진입점.md</code>, <code>docs/일일-기록.md</code>, <code>tools/verify_e2e.sh</code></li><li>메모: 두 physical source의 6개 Device 단위 <code>DOWN → UP</code>과 새 Event 재개를 확인했다. 중앙 단절 중 local ring과 AI service는 지속됐지만 Core Data는 멈췄고 복구 뒤 미전송 구간은 replay되지 않았다. 실제 케이블·보드 손분리는 현장 gate로 남긴다.</li></ul>
+<h2 id="2026-07-22-verify-core-data-1-000-device-저장-기준선">[2026-07-22] verify | Core Data 1,000-device 저장 기준선</h2>
+<ul><li>근거: <code>tools/edgex-core-data-loadtest/</code>, <code>tools/run_edgex_core_data_loadtest.sh</code>, 중앙 Core Data/PostgreSQL live 실행과 Pod 종료 상태</li><li>갱신: <code>docs/문서-안내.md</code>, <code>docs/프로젝트-범위.md</code>, <code>docs/저장소-구조.md</code>, <code>docs/현재-데모-경로.md</code>, <code>docs/단계별-추진계획.md</code>, <code>docs/ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</code>, <code>docs/wiki/지식-지도.md</code>, <code>docs/wiki/운영-진입점.md</code></li><li>메모: 1,000 × 1/60Hz는 1,000/1,000과 p95 16.17ms로 PASS했고 1,000 × 1Hz는 현재 Core Data 300m/256Mi에서 OOMKilled로 FAIL했다. 안전한 기본 profile, 전용 count API, bounded maintenance와 exact cleanup 경계를 문서화했다.</li></ul>
+<h2 id="2026-07-22-fix-dashboard-api-검증기-edgex-계약-동기화">[2026-07-22] fix | Dashboard API 검증기 EdgeX 계약 동기화</h2>
+<ul><li>근거: <code>tools/check_dashboard_api.py</code>, <code>tests/test_check_dashboard_api.py</code>, live <code>/state/dashboard</code></li><li>갱신: <code>tools/verify_e2e.sh</code>, <code>docs/ops/대시보드-검증.md</code></li><li>메모: 퇴역한 Mapper/DeviceStatus field 검사를 제거하고 현재 EdgeX Metadata/Core Data Device·KPI 계약으로 교체했다. non-healthy node는 physical <code>operator_focus_count</code>에 합치지 않으며, live 12개 Device와 virtual resource API가 strict 검사에서 PASS했다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-06-16-ingest-llm-wiki-계층-추가">[2026-06-16] ingest | LLM wiki 계층 추가</a></li>
@@ -178,7 +185,9 @@
 <li class="toc-h2"><a href="#2026-07-21-ingest-raspberry-pi-sense-hat-직접-i2c-수직-슬라이스-반영">[2026-07-21] ingest | Raspberry Pi Sense HAT 직접 I2C 수직 슬라이스 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-22-ingest-local-data-cache-v2-bounded-ring-반영">[2026-07-22] ingest | Local Data Cache v2 bounded ring 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-22-verify-local-data-cache-v2-실기기-배포-검증">[2026-07-22] verify | Local Data Cache v2 실기기 배포 검증</a></li>
-<li class="toc-h2"><a href="#2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</a></li>
+<li class="toc-h2"><a href="#2026-07-22-verify-core-data-1-000-device-저장-기준선">[2026-07-22] verify | Core Data 1,000-device 저장 기준선</a></li>
+<li class="toc-h2"><a href="#2026-07-22-fix-dashboard-api-검증기-edgex-계약-동기화">[2026-07-22] fix | Dashboard API 검증기 EdgeX 계약 동기화</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

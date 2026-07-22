@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</title>
+  <title>EdgeX Core Data 1,000 디바이스 부하검증 설계</title>
   <link rel="stylesheet" href="../../../assets/docs-site.css">
 </head>
 <body>
@@ -11,9 +11,9 @@
     <div class="topbar">
       <div class="topbar-left">
         <a href="../../index.html">← 문서 홈</a>
-        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.md">편집</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.md">편집</a>
       </div>
-      <span>superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.md</span>
+      <span>superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -141,125 +141,121 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
-          <h1>아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</h1>
-          <p class="subtitle">Jetson에 연결된 Arduino Uno의 시리얼 포트는 한 번만 열되, 수집되는 여섯 Reading을 EdgeX Core M…</p>
+          <h1>EdgeX Core Data 1,000 디바이스 부하검증 설계</h1>
+          <p class="subtitle">기본 EdgeX Core Data의 Event 단위 즉시 저장 방식을 변경하기 전에, 현재 단일 Core Data와 Postgr…</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
-            <span class="badge">원본: superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
+            <span class="badge">원본: superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.md</span>
+            <span class="badge">수정: 2026-07-22 19:14</span>
             <span class="badge">HTML 생성: 2026-07-22 19:15</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="아두이노-6개-가상-디바이스와-influxdb-제거-설계">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</h1>
-<h2 id="상태">상태</h2>
-<ul><li>승인일: 2026-07-21</li><li>구현 대상: 현재 Jetson Arduino Serial 수직 슬라이스와 <code>state-aggregator</code></li><li>배포 경로: Argo CD Application <code>edgex-telemetry</code>가 동기화하는 <code>edgex/k8s</code></li></ul>
-<h2 id="목표">목표</h2>
-<p>Jetson에 연결된 Arduino Uno의 시리얼 포트는 한 번만 열되, 수집되는 여섯 Reading을 EdgeX Core Metadata에서 서로 독립적인 가상 디바이스 여섯 개로 등록하고 Core Data Event도 각 <code>deviceName</code>으로 분리한다. 현재 운영 경로에 남은 InfluxDB manifest, client, recorder, API 계약과 UI 문구는 제거하고 영구 저장 권위는 EdgeX Core Data와 PostgreSQL로 단일화한다.</p>
+          <h1 id="edgex-core-data-1-000-디바이스-부하검증-설계">EdgeX Core Data 1,000 디바이스 부하검증 설계</h1>
+<h2 id="목적">목적</h2>
+<p>기본 EdgeX Core Data의 Event 단위 즉시 저장 방식을 변경하기 전에, 현재 단일 Core Data와 PostgreSQL이 목표 입력률을 실제로 처리하는지 재현 가능하게 측정한다. 이 검증은 물리 Device inventory를 늘리거나 운영 Device Service를 변경하지 않고, 실행별로 격리된 합성 Event를 Core Data REST ingress에 입력해 저장 경로만 측정한다.</p>
 <h2 id="범위">범위</h2>
-<h3 id="포함">포함</h3>
-<ul><li><code>device-serial-jetson</code>의 공유 시리얼 연결과 resource별 fan-out</li><li>가상 디바이스 여섯 개와 1-resource Device Profile 여섯 개</li><li>기존 <code>arduino-001</code> Device, aggregate Profile과 과거 Event 정리</li><li>InfluxDB 배포 manifest와 <code>state-aggregator</code>의 InfluxDB 코드·설정·기록 API 제거</li><li>관련 단위 테스트, manifest 테스트, 활성 문서와 생성 HTML 최신화</li><li>이미지 build/push, Git push, Argo CD 동기화와 live readback 검증</li></ul>
-<h3 id="제외">제외</h3>
-<ul><li>EdgeMesh 구성 변경</li><li>EdgeX 중앙 Core Service, MessageBus 또는 PostgreSQL 제거</li><li>MQTT broker나 edge agent 재도입</li><li>SQLite outbox 또는 로컬 최근 데이터 API 구현</li><li>Modbus, OPC-UA, I2C, RTSP adapter 구현</li><li>legacy workflow/offloading 경로의 현재 기능 승격</li></ul>
-<h2 id="선택한-구조">선택한 구조</h2>
-<pre data-lang="text"><code>Arduino Uno (`device_id=arduino-001`)
-  -&gt; /dev/arduino-001 (115200, 단일 open)
-  -&gt; device-serial-jetson
-     -&gt; temperature_raw    -&gt; virtual-temperature-001
-     -&gt; light_raw          -&gt; virtual-light-001
-     -&gt; magnetic_raw       -&gt; virtual-magnetic-001
-     -&gt; acceleration_x_raw -&gt; virtual-acceleration-x-001
-     -&gt; acceleration_y_raw -&gt; virtual-acceleration-y-001
-     -&gt; acceleration_z_raw -&gt; virtual-acceleration-z-001
-  -&gt; EdgeX internal MessageBus service FQDN
-  -&gt; Core Data
+<ul><li>1,000개의 합성 device identity를 사용한다.</li><li><code>device 수 × device별 Hz</code>로 목표 Event/s를 계산한다.</li><li>각 Event는 Float64 Reading 한 개를 포함한다.</li><li>Core Data의 HTTP <code>201 Created</code>를 PostgreSQL 커밋 완료로 계산한다.</li><li>실행별 device 이름을 사용해 저장 건수를 다시 조회한다.</li><li>성공률, 달성 Event/s, p50/p95/p99/max 응답 지연과 readback 일치 여부를 JSON으로 남긴다.</li><li>검증 후 실행별 합성 Event만 device 이름으로 삭제한다.</li><li>운영 Device/Profile/Device Service, EdgeMesh, Argo CD Application과 root Kustomization은 변경하지 않는다.</li></ul>
+<h2 id="비범위">비범위</h2>
+<ul><li>Device Service protocol 수집 성능</li><li>중앙 MessageBus publish/subscribe 처리량</li><li>NATS JetStream 전환</li><li>Core Data 다중 Event batch insert</li><li>PostgreSQL schema, partition 또는 retention 변경</li><li>Core Metadata에 합성 Device 등록</li><li>현재 대시보드의 물리 Device inventory 변경</li></ul>
+<p>이번 결과는 Core Data REST → PostgreSQL 저장 경로의 기준선이다. Device Service → MessageBus → Core Data 전체 처리량은 별도 후속 검증으로 분리한다.</p>
+<h2 id="구조">구조</h2>
+<pre data-lang="text"><code>일회성 Kubernetes Job @ etri-ser0002-cgnmsb
+  -&gt; Service FQDN: edgex-core-data.edgex-system.svc.cluster.local:59880
+  -&gt; POST /api/v3/event/{service}/{profile}/{device}/{source}
+  -&gt; EdgeX Core Data
   -&gt; PostgreSQL
-  -&gt; state-aggregator / dashboard / AI consumer</code></pre>
-<p>숨겨진 부모 EdgeX Device는 두지 않는다. <code>arduino-001</code>은 wire payload 검증과 protocol/tag metadata에만 남는 물리 source 식별자다. 여섯 EdgeX Device가 inventory, 상태, telemetry 조회의 독립 단위다.</p>
-<h2 id="edgex-metadata-계약">EdgeX Metadata 계약</h2>
+  -&gt; GET /api/v3/event/count/device/name/{device}
+  -&gt; DELETE /api/v3/event/device/name/{device}
+  -&gt; count=0 확인</code></pre>
+<p>부하 생성기는 Go 표준 라이브러리만 사용한다. 실행 스크립트는 amd64 정적 바이너리를 로컬에서 빌드하고, 이미 중앙 배포에서 사용 중인 digest 고정 BusyBox image의 일회성 Pod에 복사해 실행한다. 별도 장기 workload나 registry image를 요구하지 않으며 Pod는 결과 수집 후 제거한다.</p>
+<h2 id="입력과-기본값">입력과 기본값</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>Device name</th>
-<th>Profile name</th>
-<th>Resource</th>
-<th>Event sourceName</th>
+<th>항목</th>
+<th>기본값</th>
+<th>의미</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>virtual-temperature-001</code></td>
-<td><code>etri-arduino-temperature</code></td>
-<td><code>temperature_raw</code></td>
-<td><code>temperature</code></td>
+<td>devices</td>
+<td>1,000</td>
+<td>합성 device identity 수</td>
 </tr>
 <tr>
-<td><code>virtual-light-001</code></td>
-<td><code>etri-arduino-light</code></td>
-<td><code>light_raw</code></td>
-<td><code>light</code></td>
+<td>per-device-hz</td>
+<td>1/60</td>
+<td>device별 약 1 Event/분의 안전한 기본값</td>
 </tr>
 <tr>
-<td><code>virtual-magnetic-001</code></td>
-<td><code>etri-arduino-magnetic</code></td>
-<td><code>magnetic_raw</code></td>
-<td><code>magnetic</code></td>
+<td>duration</td>
+<td>60s</td>
+<td>측정 구간</td>
 </tr>
 <tr>
-<td><code>virtual-acceleration-x-001</code></td>
-<td><code>etri-arduino-acceleration-x</code></td>
-<td><code>acceleration_x_raw</code></td>
-<td><code>acceleration_x</code></td>
+<td>concurrency</td>
+<td>128</td>
+<td>동시 HTTP worker 수</td>
 </tr>
 <tr>
-<td><code>virtual-acceleration-y-001</code></td>
-<td><code>etri-arduino-acceleration-y</code></td>
-<td><code>acceleration_y_raw</code></td>
-<td><code>acceleration_y</code></td>
+<td>maintenance-concurrency</td>
+<td>8</td>
+<td>readback·cleanup 동시 요청 상한</td>
 </tr>
 <tr>
-<td><code>virtual-acceleration-z-001</code></td>
-<td><code>etri-arduino-acceleration-z</code></td>
-<td><code>acceleration_z_raw</code></td>
-<td><code>acceleration_z</code></td>
+<td>request-timeout</td>
+<td>5s</td>
+<td>요청별 제한</td>
+</tr>
+<tr>
+<td>max-error-rate</td>
+<td>0</td>
+<td>허용 실패율</td>
+</tr>
+<tr>
+<td>max-p95</td>
+<td>1s</td>
+<td>허용 p95 응답 지연</td>
+</tr>
+<tr>
+<td>verify</td>
+<td>true</td>
+<td>device별 전용 Event count API readback</td>
+</tr>
+<tr>
+<td>cleanup</td>
+<td>true</td>
+<td>합성 Event 삭제</td>
 </tr>
 </tbody></table></div>
-<p>각 Device는 다음 protocol property를 가진다.</p>
-<pre data-lang="yaml"><code>protocols:
-  serial:
-    Port: /dev/arduino-001
-    BaudRate: &quot;115200&quot;
-    DeviceID: arduino-001
-    ResourceName: temperature_raw</code></pre>
-<ul><li><code>DeviceID</code>는 EdgeX Device 이름이 아니라 wire payload의 물리 source ID다.</li><li><code>ResourceName</code>은 해당 가상 디바이스로 보낼 유일한 Reading이다.</li><li>같은 물리 연결 안에서 한 resource를 둘 이상의 Device에 중복 binding하지 않는다.</li><li>Device tag에는 <code>physicalDeviceId=arduino-001</code>과 <code>nodeName=etri-dev0001-jetorn</code>을 기록한다.</li></ul>
-<h2 id="device-service-런타임">Device Service 런타임</h2>
-<p>Driver는 Device별 reader 대신 <code>(Port, BaudRate, DeviceID)</code>로 식별하는 공유 connection을 관리한다. connection은 resource-to-device route를 보유한다.</p>
-<ul><li>첫 번째 UNLOCKED Device가 등록되면 reader를 하나 시작한다.</li><li>같은 connection의 나머지 Device는 기존 reader에 route만 추가한다.</li><li>Device update가 동일한 binding이면 reader를 재시작하지 않는다.</li><li>Device를 LOCKED 또는 제거하면 그 route와 latest value만 지운다.</li><li>마지막 route가 제거될 때만 시리얼 포트를 닫는다.</li><li>물리 연결의 <code>UP</code>/<code>DOWN</code> 상태는 연결에 속한 모든 UNLOCKED 가상 Device에 fan-out한다.</li><li>이미 상태가 결정된 connection에 새 Device가 붙으면 저장된 현재 상태를 즉시 반영한다.</li></ul>
-<p>시리얼 parser는 현재 strict JSON 계약을 유지한다. <code>temperature</code>, <code>light</code>, <code>magnetic</code> sample은 한 Event로, <code>acceleration</code> sample은 X/Y/Z 세 Event로 나눈다. 각 Event에는 하나의 typed <code>Int32</code> Reading만 들어간다. route가 없는 resource는 발행하지 않으며 malformed line과 다른 물리 <code>device_id</code>는 폐기한다.</p>
-<p>Core Command GET은 각 가상 Device의 최근 단일 Reading을 반환한다. write command와 discovery는 계속 지원하지 않는다.</p>
-<h2 id="influxdb-제거-계약">InfluxDB 제거 계약</h2>
-<p>현재 live cluster에는 InfluxDB workload가 없지만 저장소에는 선택적 구현이 남아 있다. 다음을 제거한다.</p>
-<ul><li>root <code>influxdb/</code>의 StatefulSet/Service/PVC/Secret 및 connectivity test manifest</li><li><code>state-aggregator/app/influx.py</code></li><li><code>state-aggregator/app/placement_recorder.py</code></li><li><code>INFLUXDB_*</code>, <code>RESOURCE_PROFILE_RECORDING_MODE</code>, 기록 interval/window 설정</li><li>scheduled/poll recorder task와 <code>/state/service-resource-profiles/record</code></li><li>API의 <code>recording_backend</code>, <code>recording_mode</code>, <code>recording_interval_seconds</code>, <code>recorded_at</code>, <code>last_record_result</code></li><li>UI의 <code>InfluxDB + result cache</code> 기본 sink 문구</li></ul>
-<p>Prometheus 기반 현재 service resource observation과 <code>/state/resource-profiles</code>, <code>/state/service-resource-profiles</code> 조회 API는 유지한다. 반환값은 관찰 시각, scope, summary와 profile 목록만 포함한다. 물리 telemetry history는 계속 EdgeX Core Data API에서 조회한다.</p>
-<p>설계 이력과 보관 문서의 과거 InfluxDB 언급은 역사적 사실로 유지할 수 있다. 활성 문서는 InfluxDB가 현재 코드·manifest·배포에 없고 Core Data/PostgreSQL이 저장 권위임을 명시한다.</p>
-<h2 id="전환-순서">전환 순서</h2>
-<ol><li>Driver의 공유 connection/fan-out 테스트를 실패 상태로 추가한다.</li><li>최소 구현으로 테스트를 통과시킨다.</li><li>여섯 Profile/Device와 Kustomize mount 계약 테스트를 추가하고 manifest를 교체한다.</li><li>InfluxDB 제거 계약 테스트를 먼저 갱신한 뒤 코드·manifest를 삭제한다.</li><li>전체 Go/Python/manifest/docs 검증을 수행한다.</li><li>새 Device Service 이미지를 build/push하고 digest로 manifest를 고정한다.</li><li>변경을 push하여 Argo CD가 배포하도록 한다.</li><li>여섯 Device와 최신 Event를 확인한 뒤 기존 <code>arduino-001</code>, <code>etri-arduino-serial</code>과 <code>arduino-001</code> 과거 Event를 정확한 이름으로 삭제한다.</li><li>여섯 Device의 Metadata, Core Data Event/Reading, Core Command GET, dashboard availability를 readback한다.</li></ol>
-<h2 id="실패와-복구">실패와 복구</h2>
-<ul><li>이미지 또는 manifest 검증 실패 시 push하지 않는다.</li><li>Argo sync 또는 새 Device 수집 실패 시 기존 중앙 Core와 EdgeMesh는 건드리지 않고 Device Service 로그·Metadata·Event 경로만 진단한다.</li><li>시리얼 연결 실패는 여섯 Device를 <code>DOWN</code>으로 반영한다.</li><li>일부 route 구성 오류는 Device Service 시작을 실패시켜 잘못된 중복/누락 inventory를 정상 상태로 노출하지 않는다.</li><li>기존 Device 삭제는 새 여섯 Device의 정상 Event readback 이후에 수행한다.</li></ul>
-<h2 id="완료-기준">완료 기준</h2>
-<ul><li>reader factory/open 횟수가 여섯 Device에 대해 1회다.</li><li>Metadata inventory에 위 여섯 Device가 있고 <code>arduino-001</code>은 없다.</li><li>각 Device의 latest Event에는 해당 resource 하나만 있다.</li><li>acceleration 한 wire sample이 X/Y/Z Device Event 세 개로 분리된다.</li><li>각 Device의 Core Command GET이 최근값을 반환한다.</li><li>dashboard가 여섯 Device를 독립 행으로 표시하고 fresh/available을 계산한다.</li><li>live cluster와 active root render에 InfluxDB workload가 없다.</li><li>active <code>state-aggregator</code> 코드와 API/UI에 InfluxDB recorder 계약이 없다.</li><li>EdgeMesh generation과 workload는 변경하지 않는다.</li><li>전체 테스트, Kustomize render, 문서 생성·링크 검사와 <code>git diff --check</code>가 통과한다.</li></ul>
+<p>부하 생성기는 목표 Event 수를 <code>round(devices × per-device-hz × durationSeconds)</code>로 계산하고, device를 round-robin으로 선택한다. 스케줄러가 뒤처지더라도 Event를 버리지 않고 worker queue backpressure를 받는다. 따라서 <code>attempted</code>와 <code>achievedEventsPerSecond</code>를 함께 보고 목표 입력률을 실제로 달성했는지 판정한다.</p>
+<h2 id="event-계약">Event 계약</h2>
+<ul><li>service name: <code>core-data-loadtest</code></li><li>profile name: <code>loadtest-profile-v1</code></li><li>source/resource name: <code>value</code></li><li>device name: <code>loadtest-{runId}-{index}</code></li><li>Event와 Reading ID: UUID v4</li><li>Event/Reading origin: 실제 생성 시각의 Unix nanoseconds</li><li>value type: <code>Float64</code></li><li>tag: <code>loadTestRunId</code></li></ul>
+<p>합성 이름은 Core Metadata에 등록하지 않는다. Core Data의 저장 성능만 측정하며, 대시보드는 Core Metadata inventory를 권위로 사용하므로 합성 Event를 물리 Device로 표시하지 않는다.</p>
+<h2 id="성공-판정">성공 판정</h2>
+<p>다음 조건을 모두 만족해야 PASS다.</p>
+<ol><li>모든 예정 Event가 시도된다.</li><li>HTTP <code>201</code> 응답 수가 예정 Event 수와 같다.</li><li>오류율이 <code>max-error-rate</code> 이하이다.</li><li>p95 지연이 <code>max-p95</code> 이하이다.</li><li>달성 Event/s가 목표의 95% 이상이다.</li><li>전용 Event count API의 device별 <code>count</code> 합계가 성공 Event 수와 같다.</li><li>readback 또는 cleanup HTTP 오류가 없다.</li></ol>
+<p>HTTP 성공은 Core Data가 <code>AddEvent</code>의 PostgreSQL 트랜잭션을 커밋한 뒤 반환한다. readback은 API 응답 성공과 저장된 실행별 건수를 독립적으로 확인한다.</p>
+<h2 id="실패와-정리">실패와 정리</h2>
+<ul><li>전송 실패는 상태 코드와 오류 종류별로 집계하되 무한 재시도하지 않는다.</li><li>context 취소 시 새 Event 생성을 중단하고 이미 queue에 들어간 요청을 회수한다.</li><li>readback과 cleanup도 같은 context 취소를 존중해 종료 신호 뒤 maintenance가 계속 대기하지 않게 한다.</li><li>검증 실패도 JSON report와 비정상 종료 코드로 남긴다.</li><li>cleanup은 <code>loadtest-{runId}-*</code>의 정확한 device 이름만 삭제하며 age 기반 광역 삭제를 사용하지 않는다. <code>202 Accepted</code> 뒤 전용 count API가 0이 될 때까지 확인한다.</li><li>readback과 cleanup 상세 오류는 각 20건까지만 남기고 나머지는 <code>suppressedErrors</code>로 집계한다.</li><li>운영 Event는 삭제하지 않는다.</li><li>일회성 Pod는 Argo CD 대상에 추가하지 않는다.</li></ul>
+<h2 id="검증-프로파일">검증 프로파일</h2>
+<ol><li>단위 테스트: Event 계약, 설정 검증, percentile, PASS/FAIL 판정, HTTP 저장/readback/cleanup을 <code>httptest.Server</code>로 검증한다.</li><li>1,000-device 저주기 기본 기준선: <code>1/60 Hz × 1,000</code>, 60초, 약 16.7 Event/s.</li><li>1,000-device 1Hz 스트레스 기준선: <code>1 Hz × 1,000</code>, 최소 30초 후 필요 시 60초.</li><li>실행 전후 Core Data/PostgreSQL Pod Ready와 재시작 횟수를 기록한다.</li></ol>
+<p>10Hz는 1Hz 결과와 저장 증가량을 확인한 후 별도 승인된 stress profile로 실행한다. 현재 첫 구현에서 자동 실행하지 않는다.</p>
+<h2 id="2026-07-22-구현-피드백">2026-07-22 구현 피드백</h2>
+<p>최종 저주기 실행은 1,000/1,000 저장, 16.678 Event/s, p95 16.17ms, device별 readback과 cleanup 모두 PASS했다. 1Hz × 1,000의 30초 실행은 현재 Core Data limit 300m CPU/256Mi memory에서 OOMKilled되어 0/30,000으로 FAIL했다. 이에 따라 도구 기본값은 저주기 profile로 고정하고 1Hz는 별도 스트레스 profile로 분리한다.</p>
+<p>초기 구현은 일반 device Event API의 <code>totalCount</code>를 readback에 사용했으나 1,000회 Event/Reading join으로 조회 경로를 정체시켰다. 최종 구현은 EdgeX 전용 <code>/api/v3/event/count/device/name/{device}</code>와 <code>count</code> 응답 필드를 사용하고, 저장 동시성과 maintenance 동시성을 분리한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태">상태</a></li>
-<li class="toc-h2"><a href="#목표">목표</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#범위">범위</a></li>
-<li class="toc-h3"><a href="#포함">포함</a></li>
-<li class="toc-h3"><a href="#제외">제외</a></li>
-<li class="toc-h2"><a href="#선택한-구조">선택한 구조</a></li>
-<li class="toc-h2"><a href="#edgex-metadata-계약">EdgeX Metadata 계약</a></li>
-<li class="toc-h2"><a href="#device-service-런타임">Device Service 런타임</a></li>
-<li class="toc-h2"><a href="#influxdb-제거-계약">InfluxDB 제거 계약</a></li>
-<li class="toc-h2"><a href="#전환-순서">전환 순서</a></li>
-<li class="toc-h2"><a href="#실패와-복구">실패와 복구</a></li>
-<li class="toc-h2"><a href="#완료-기준">완료 기준</a></li></ol></aside>
+<li class="toc-h2"><a href="#비범위">비범위</a></li>
+<li class="toc-h2"><a href="#구조">구조</a></li>
+<li class="toc-h2"><a href="#입력과-기본값">입력과 기본값</a></li>
+<li class="toc-h2"><a href="#event-계약">Event 계약</a></li>
+<li class="toc-h2"><a href="#성공-판정">성공 판정</a></li>
+<li class="toc-h2"><a href="#실패와-정리">실패와 정리</a></li>
+<li class="toc-h2"><a href="#검증-프로파일">검증 프로파일</a></li>
+<li class="toc-h2"><a href="#2026-07-22-구현-피드백">2026-07-22 구현 피드백</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

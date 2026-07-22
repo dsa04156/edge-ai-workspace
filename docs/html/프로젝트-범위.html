@@ -69,6 +69,7 @@
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
 <li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
@@ -93,6 +94,7 @@
 <li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -108,6 +110,7 @@
 <li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -143,8 +146,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-22 16:51</span>
+            <span class="badge">수정: 2026-07-22 19:03</span>
+            <span class="badge">HTML 생성: 2026-07-22 19:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -201,7 +204,7 @@
   +-&gt; bounded Local Data API -&gt; 같은 node의 고정 AI consumer
       -&gt; state-aggregator / dashboard</code></pre>
 <p>포함하는 방향:</p>
-<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>선택한 Device의 Core Data history를 <code>state-aggregator</code> API로 조회하고 요청 범위·반환 Reading 수·실제 구간을 구분해 표시하는 dashboard</li><li>같은 edge node의 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API; 현재 Flannel에서는 client label 기반 NetworkPolicy가 강제되지 않음</li><li>Jetson에서 Arduino 가속도 X/Y/Z를 실시간에 가까운 주기로 읽어 변화 점수를 계산하는 고정 <code>sensor-anomaly-demo</code> Deployment</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
+<ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>합성 identity를 사용하는 Core Data REST → PostgreSQL 1,000-device 저장 기준선 도구와 운영 절차. 운영 Metadata/Device와 root render에는 포함하지 않음</li><li>선택한 Device의 Core Data history를 <code>state-aggregator</code> API로 조회하고 요청 범위·반환 Reading 수·실제 구간을 구분해 표시하는 dashboard</li><li>같은 edge node의 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API; 현재 Flannel에서는 client label 기반 NetworkPolicy가 강제되지 않음</li><li>Jetson에서 Arduino 가속도 X/Y/Z를 실시간에 가까운 주기로 읽어 변화 점수를 계산하는 고정 <code>sensor-anomaly-demo</code> Deployment</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
 <p>KubeEdge 범위는 Kubernetes edge node와 workload 관리로 제한한다. EdgeX Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 서로 다른 관리 객체다. KubeEdge DeviceStatus, MapperFramework, <code>mqttvirtual</code>과 mapper direct-write는 legacy physical integration이며 현재 plane의 병행 경로나 fallback이 아니다.</p>
 <p>2026-07-21에 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 두 outbox PVC와 Agent 전용 Metadata bootstrap을 퇴역했다. 대신 root render는 <code>edgex-edge</code>에 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 최소 NetworkPolicy를 배포한다. 중앙 EdgeX와 ingest gateway는 유지하지만, ingest gateway는 현재 Serial/I2C Event 경로에 참여하지 않는다.</p>
 <p>1차 수직 슬라이스는 <code>etri-dev0001-jetorn</code>의 Arduino Uno다. <code>/dev/serial/by-id/...</code> CharDevice를 Pod의 <code>/dev/arduino-001</code>에 단독 마운트하고 <code>device-serial-jetson</code>이 공유 reader 1개로 읽는다. temperature, light, magnetic, acceleration X/Y/Z는 각각 1-resource Profile과 <code>virtual-*-001</code> Device로 등록되며 Core Data Event, Core Command GET과 dashboard의 독립 identity가 된다. Device Service 메모리는 Device/resource별 최근 10분·최대 10,000 sample을 보존하고 latest/recent Local Data API를 제공한다. 이 cache는 Pod 재시작 시 사라지며 durable outbox나 offline replay가 아니다.</p>
@@ -278,8 +281,8 @@
 </tr>
 <tr>
 <td>운영 도구</td>
-<td><code>kubeedge-tools/</code>, <code>docs/ops/</code></td>
-<td>KubeEdge node/workload 설치, node join, 네트워크 점검, 운영 절차</td>
+<td><code>kubeedge-tools/</code>, <code>tools/edgex-core-data-loadtest/</code>, <code>tools/run_edgex_core_data_loadtest.sh</code>, <code>docs/ops/</code></td>
+<td>KubeEdge 운영 점검과 Core Data/PostgreSQL 저장 기준선. 부하 Pod는 일회성이며 운영 render나 물리 Device inventory가 아님</td>
 </tr>
 <tr>
 <td>배포 보조</td>
