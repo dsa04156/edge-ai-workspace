@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -103,6 +104,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
@@ -139,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-21 20:15</span>
-            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+            <span class="badge">수정: 2026-07-22 12:07</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -162,7 +164,7 @@
 <p>Core Data Event에서 다음 contract를 사용한다.</p>
 <ul><li><code>deviceName</code>: inventory join key</li><li><code>sourceName</code>: telemetry source/resource</li><li><code>origin</code>: nanoseconds 단위 event 시각</li><li>typed Readings: <code>valueType</code>과 값</li></ul>
 <p>freshness 기준은 배포 설정의 EdgeX event threshold이며 최신 유효 Event의 nanosecond <code>origin</code> sample 시각에 적용한다. API 조회 시각, legacy DeviceStatus heartbeat 또는 mapper heartbeat로 대신하지 않는다. origin이 없거나 parse 불가하면 fresh로 추정하지 않고 degraded reason을 표시한다.</p>
-<p>Telemetry detail은 <code>deviceName</code>과 <code>sourceName</code>, event origin, typed readings를 보존한다. storage graph나 AI 결과는 Core Data 이후 consumer 결과로 표시하며 physical source authority를 바꾸지 않는다.</p>
+<p>Telemetry detail은 <code>deviceName</code>과 <code>sourceName</code>, event origin, typed readings를 보존한다. Device detail의 저장 그래프는 <code>state-aggregator</code>를 거쳐 Core Data API에서 읽으며 dashboard가 PostgreSQL에 직접 연결하지 않는다. storage graph나 AI 결과는 Core Data 이후 consumer 결과로 표시하며 physical source authority를 바꾸지 않는다.</p>
 <h2 id="availability-판단-순서">Availability 판단 순서</h2>
 <p>State Aggregator와 dashboard는 다음 순서를 동일하게 사용한다.</p>
 <ol><li><code>adminState=LOCKED</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=DOWN</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code> / <code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 Core Data event가 freshness threshold 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이지만 event가 없으면 <code>degraded</code> (<code>latest EdgeX event is missing</code>).</li><li><code>operatingState=UP</code>이지만 최신 event가 stale이면 <code>degraded</code> (<code>latest EdgeX event is stale</code>).</li><li>알 수 없는 state나 잘못된 event origin은 <code>degraded</code>와 구체적인 reason으로 표시한다.</li></ol>
@@ -173,11 +175,11 @@
 <p>legacy <code>device_status_freshness_ratio</code>, mapper readiness와 mapper direct-write freshness를 current physical-device KPI로 사용하지 않는다.</p>
 <h2 id="explain-panel">Explain Panel</h2>
 <p>Device 선택 시 최소 표시값은 다음과 같다.</p>
-<ul><li>overall status와 reason</li><li>Core Metadata <code>name</code>, <code>profileName</code>, <code>serviceName</code></li><li><code>adminState</code>, <code>operatingState</code></li><li>latest Event <code>sourceName</code>, origin, age/freshness</li><li>typed Readings</li><li>protocol 요약</li><li>선택적 node diagnostic</li></ul>
-<p>Explain Panel에서 EdgeX state/event 근거와 Kubernetes node/workload 근거를 섞어 하나의 physical availability reason으로 만들지 않는다.</p>
+<ul><li>overall status와 reason</li><li>Core Metadata <code>name</code>, <code>profileName</code>, <code>serviceName</code></li><li><code>adminState</code>, <code>operatingState</code></li><li>latest Event <code>sourceName</code>, origin, age/freshness</li><li>typed Readings</li><li>protocol 요약</li><li>선택적 node diagnostic</li><li>저장 이력 범위 제어(5분·30분·1시간·24시간), 새로고침, 반환 Reading 수와 실제 구간</li></ul>
+<p>Explain Panel에서 EdgeX state/event 근거와 Kubernetes node/workload 근거를 섞어 하나의 physical availability reason으로 만들지 않는다. 기본 이력 범위는 30분이고 조회 상한은 최신 1,000 Event다. 한 Event에 Reading이 여러 개면 반환 Reading 수는 1,000을 넘을 수 있다. 특히 24시간 조회는 전체 기간의 완전한 결과라고 주장하지 않고, 요청 범위·반환 수·실제 첫/마지막 timestamp와 상한을 함께 표시한다. 이력 조회 중, 빈 결과와 오류는 각각 명시하며 <code>/state/devices</code>의 <code>latest_readings</code>로 대체하지 않는다. 빠르게 Device나 범위를 바꿀 때 이전 요청의 늦은 응답은 새 선택을 덮어쓰지 않는다.</p>
 <h2 id="api-응답-필드">API 응답 필드</h2>
 <p><code>/state/devices</code>는 Core Metadata 필드, 계산된 availability/reason, latest Core Data event metadata를 포함한다. EdgeX 필드가 authoritative이며 legacy 값으로 누락을 보충하지 않는다.</p>
-<p><code>/state/devices/{device_id}/telemetry</code>는 선택 device의 최근 Core Data Events/Readings를 event origin 순서로 반환한다. typed value와 <code>deviceName</code>, <code>sourceName</code>, nanosecond <code>origin</code>을 보존한다. <code>/state/virtual-resources</code>는 자원증강형 가상디바이스를 Resource Profile 단위로 반환한다. 이 API는 가상 센서 생성 경로가 아니라 AI HAT/GPU/cache 같은 보강 실행 자원 상태 조회 경로다. 실행 인스턴스가 0개여도 registry에 있는 profile은 숨기지 않으며, 상태는 <code>configured_not_running</code>으로 표시한다.</p>
+<p><code>/state/devices/{device_id}/telemetry</code>는 <code>window</code>과 <code>limit</code> query를 받아 선택 device의 최근 Core Data Events/Readings를 event origin 순서로 반환한다. <code>window</code> 기본값은 <code>-30m</code>, <code>limit</code>은 1~1,000이고 dashboard는 1,000을 사용한다. typed value와 <code>deviceName</code>, <code>sourceName</code>, nanosecond <code>origin</code>을 보존한다. <code>/state/virtual-resources</code>는 자원증강형 가상디바이스를 Resource Profile 단위로 반환한다. 이 API는 가상 센서 생성 경로가 아니라 AI HAT/GPU/cache 같은 보강 실행 자원 상태 조회 경로다. 실행 인스턴스가 0개여도 registry에 있는 profile은 숨기지 않으며, 상태는 <code>configured_not_running</code>으로 표시한다.</p>
 <p><code>/state/dashboard</code>는 service resource observation 실패 시 dashboard 전체를 500으로 내리지 않는다. 이 경우 <code>resource_profiles.observation_error</code>에 원인을 남기고 service resource KPI만 0으로 degrade한다. <code>/state/operator-assistant</code>와 <code>/state/operator-chat</code>도 같은 degraded dashboard snapshot을 사용한다. resource observation 실패가 먼저 발생하면 chat은 Qwen 호출 전에 read-only degraded observation 응답을 반환한다.</p>
 <pre data-lang="json"><code>{
   &quot;name&quot;: &quot;virtual-temperature-001&quot;,

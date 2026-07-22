@@ -90,6 +90,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
@@ -103,6 +104,7 @@
 <li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
@@ -139,8 +141,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-21 20:15</span>
-            <span class="badge">HTML 생성: 2026-07-22 11:28</span>
+            <span class="badge">수정: 2026-07-22 12:07</span>
+            <span class="badge">HTML 생성: 2026-07-22 12:08</span>
           </div>
         </header>
         <div class="doc-body">
@@ -150,7 +152,7 @@
 <pre data-lang="text"><code>physical device -&gt; EdgeX Device Service -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
 <p>2026-07-21 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 physical <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 6개씩, 총 12개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 Arduino 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
-<ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 별도 저장소의 최신값을 다시 조회한 결과가 아니다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
+<ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 저장 이력 그래프와 구분한다.</li><li>저장 이력 그래프는 <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로를 사용하고 dashboard가 DB에 직접 연결하지 않는다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>
@@ -168,8 +170,8 @@
 <td>EdgeX 기반 물리 디바이스 상태 목록</td>
 </tr>
 <tr>
-<td><code>GET /state/devices/{device_id}/telemetry</code></td>
-<td>해당 EdgeX device의 Core Data event reading history</td>
+<td><code>GET /state/devices/{device_id}/telemetry?window=-30m&amp;limit=1000</code></td>
+<td>해당 EdgeX device의 Core Data Event/Reading history. <code>window</code>은 음수 duration, <code>limit</code>은 최대 1,000 Event</td>
 </tr>
 <tr>
 <td><code>GET /state/nodes</code></td>
@@ -293,6 +295,10 @@
 <td>event timestamp, freshness, source/resource별 최신 reading</td>
 </tr>
 <tr>
+<td>Stored History</td>
+<td>선택 Device의 5분·30분·1시간·24시간 Core Data history, 반환 Reading 수, 실제 첫/마지막 timestamp와 최신 1,000 Event 제한</td>
+</tr>
+<tr>
 <td>Device-Service Relation</td>
 <td>EdgeX Device → Device Service → AI/storage/dashboard consumer</td>
 </tr>
@@ -392,7 +398,7 @@
 </tbody></table></div>
 <p>Node KPI는 인프라 진단용으로 별도 표시하며 물리 디바이스 KPI의 분모나 availability gate로 사용하지 않는다.</p>
 <h2 id="운영자-해석-순서">운영자 해석 순서</h2>
-<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
+<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
 <p>기존 loopback Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 두 Device Service의 10분·10,000 sample 메모리 cache는 로컬 Workflow 입력용이며 재시작하면 사라진다. dashboard는 이 로컬 cache나 과거 Core Data record로 현재 연결을 보정하지 않고, 계속 Core Metadata와 최신 Core Data Event <code>origin</code>으로 상태와 freshness를 판단한다. Serial 6개와 I2C 6개 가상 Device의 Metadata, 계약된 Reading Event와 freshness를 각각 확인하고 실제 케이블/보드 분리·복구 검증은 별도 PASS 항목으로 남긴다.</p>
         </div>
