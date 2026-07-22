@@ -1,6 +1,12 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -144,5 +150,157 @@ func TestEvaluateReportsEveryFailedGate(t *testing.T) {
 		if !strings.Contains(reasons, want) {
 			t.Errorf("reasons %q missing %q", reasons, want)
 		}
+	}
+}
+
+func TestBuildEventUsesEdgeXV3Contract(t *testing.T) {
+	origin := int64(1784690000123456789)
+	sample := Sample{
+		DeviceName: "loadtest-run-20260722-0000",
+		Origin:     origin,
+		Value:      12.5,
+	}
+
+	request, err := BuildEvent("run-20260722", sample)
+	if err != nil {
+		t.Fatalf("BuildEvent() error = %v", err)
+	}
+
+	uuidV4 := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+	if request.APIVersion != "v3" || request.Event.APIVersion != "v3" {
+		t.Fatalf("unexpected API versions: request=%q event=%q", request.APIVersion, request.Event.APIVersion)
+	}
+	if !uuidV4.MatchString(request.RequestID) || !uuidV4.MatchString(request.Event.ID) {
+		t.Fatalf("request/event IDs are not UUID v4: %#v", request)
+	}
+	if request.Event.DeviceName != sample.DeviceName || request.Event.ProfileName != loadtestProfileName || request.Event.SourceName != loadtestSourceName {
+		t.Fatalf("unexpected event identity: %#v", request.Event)
+	}
+	if request.Event.Origin != origin || request.Event.Tags[loadtestRunIDTag] != "run-20260722" {
+		t.Fatalf("unexpected event origin/tags: %#v", request.Event)
+	}
+	if len(request.Event.Readings) != 1 {
+		t.Fatalf("reading count = %d, want 1", len(request.Event.Readings))
+	}
+	reading := request.Event.Readings[0]
+	if !uuidV4.MatchString(reading.ID) || reading.Origin != origin || reading.DeviceName != sample.DeviceName {
+		t.Fatalf("unexpected reading identity: %#v", reading)
+	}
+	if reading.ResourceName != loadtestSourceName || reading.ProfileName != loadtestProfileName || reading.ValueType != "Float64" || reading.Value != "12.5" {
+		t.Fatalf("unexpected reading payload: %#v", reading)
+	}
+}
+
+func TestHTTPClientStoreUsesEdgeXRouteAndReconcilesID(t *testing.T) {
+	var received AddEventRequest
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s, want POST", r.Method)
+		}
+		wantPath := "/api/v3/event/core-data-loadtest/loadtest-profile-v1/loadtest-run-20260722-0007/value"
+		if r.URL.Path != wantPath {
+			t.Errorf("path = %q, want %q", r.URL.Path, wantPath)
+		}
+		if got := r.Header.Get("Content-Type"); got != "application/json" {
+			t.Errorf("content-type = %q, want application/json", got)
+		}
+		if err := json.NewDecoder(r.Body).Decode(&received); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = fmt.Fprintf(w, `{"apiVersion":"v3","statusCode":201,"id":%q}`, received.Event.ID)
+	}))
+	defer server.Close()
+
+	cfg := validTestConfig()
+	cfg.BaseURL = server.URL
+	client := NewHTTPClient(cfg)
+	result := client.Store(context.Background(), Sample{
+		DeviceName: "loadtest-run-20260722-0007",
+		Origin:     time.Now().UnixNano(),
+		Value:      7.25,
+	})
+
+	if result.Err != nil {
+		t.Fatalf("Store() error = %v", result.Err)
+	}
+	if result.EventID == "" || result.EventID != received.Event.ID {
+		t.Fatalf("Store() event ID = %q, request ID = %q", result.EventID, received.Event.ID)
+	}
+	if result.Latency <= 0 {
+		t.Fatalf("Store() latency = %v, want positive", result.Latency)
+	}
+}
+
+func TestHTTPClientStoreRejectsMismatchedResponseID(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":201,"id":"00000000-0000-4000-8000-000000000000"}`))
+	}))
+	defer server.Close()
+
+	cfg := validTestConfig()
+	cfg.BaseURL = server.URL
+	result := NewHTTPClient(cfg).Store(context.Background(), Sample{DeviceName: "loadtest-run-20260722-0000", Origin: 1, Value: 1})
+	if result.Err == nil || !strings.Contains(result.Err.Error(), "response event ID") {
+		t.Fatalf("Store() error = %v, want response ID mismatch", result.Err)
+	}
+}
+
+func TestHTTPClientCountAndDeleteUseExactDeviceRoute(t *testing.T) {
+	requests := make([]string, 0, 2)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests = append(requests, r.Method+" "+r.URL.RequestURI())
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method {
+		case http.MethodGet:
+			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":200,"totalCount":42,"events":[]}`))
+		case http.MethodDelete:
+			_, _ = w.Write([]byte(`{"apiVersion":"v3","statusCode":200}`))
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer server.Close()
+
+	cfg := validTestConfig()
+	cfg.BaseURL = server.URL
+	client := NewHTTPClient(cfg)
+	deviceName := "loadtest-run-20260722-0999"
+
+	count, err := client.Count(context.Background(), deviceName)
+	if err != nil || count != 42 {
+		t.Fatalf("Count() = %d, %v; want 42, nil", count, err)
+	}
+	if err := client.Delete(context.Background(), deviceName); err != nil {
+		t.Fatalf("Delete() error = %v", err)
+	}
+
+	want := []string{
+		"GET /api/v3/event/device/name/loadtest-run-20260722-0999?limit=1",
+		"DELETE /api/v3/event/device/name/loadtest-run-20260722-0999",
+	}
+	if fmt.Sprint(requests) != fmt.Sprint(want) {
+		t.Fatalf("requests = %v, want %v", requests, want)
+	}
+}
+
+func TestHTTPClientBoundsErrorBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(strings.Repeat("x", 100000)))
+	}))
+	defer server.Close()
+
+	cfg := validTestConfig()
+	cfg.BaseURL = server.URL
+	result := NewHTTPClient(cfg).Store(context.Background(), Sample{DeviceName: "loadtest-run-20260722-0000", Origin: 1, Value: 1})
+	if result.Err == nil || !strings.Contains(result.Err.Error(), "503") {
+		t.Fatalf("Store() error = %v, want status 503", result.Err)
+	}
+	if len(result.Err.Error()) > 70000 {
+		t.Fatalf("Store() error body is unbounded: %d bytes", len(result.Err.Error()))
 	}
 }
