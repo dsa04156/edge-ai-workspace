@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sensor-anomaly-demo-network
+  namespace: edgex-edge
+  labels:
+    app.kubernetes.io/name: sensor-anomaly-demo
+    app.kubernetes.io/part-of: edge-ai-service-demo
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sensor-anomaly-demo
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: state-aggregator
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: device-serial-jetson
+      ports:
+        - protocol: TCP
+          port: 59910
