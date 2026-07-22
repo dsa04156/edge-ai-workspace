@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=reference-console-20260622" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-20260722" />
   </head>
   <body>
     <main class="shell">
@@ -162,6 +163,45 @@
                 </div>
               </article>
             </div>
+          </section>
+
+          <section class="panel service-demo-panel dashboard-page active" data-page="overview" aria-labelledby="serviceDemoTitle">
+            <div class="panel-head service-demo-head">
+              <div>
+                <p class="section-kicker">Live Service Demo</p>
+                <h2 id="serviceDemoTitle">Jetson Sensor Anomaly Detection</h2>
+              </div>
+              <div class="service-demo-status" aria-live="polite">
+                <span>input <strong id="serviceDemoInputState">waiting</strong></span>
+                <strong id="serviceDemoState" class="service-demo-badge" data-state="starting">STARTING</strong>
+              </div>
+            </div>
+
+            <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
+            <div class="service-demo-route" aria-label="physical source to AI consumer binding">
+              <div>
+                <span>Physical source</span>
+                <strong id="serviceDemoPhysicalSource">관측 대기</strong>
+              </div>
+              <div>
+                <span>EdgeX Device Service</span>
+                <strong id="serviceDemoDeviceService">관측 대기</strong>
+              </div>
+              <div>
+                <span>AI consumer · node</span>
+                <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
+              </div>
+            </div>
+
+            <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+            <dl class="service-demo-values">
+              <div><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+              <div><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
+              <div><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+              <div><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
+            </dl>
+            <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+            <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
           </section>
 
       <section class="layout">
@@ -439,6 +479,7 @@
     </main>
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=edgex-multisource-20260714"></script>
+    <script src="/static/service-demo.js?v=live-sensor-20260722"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
