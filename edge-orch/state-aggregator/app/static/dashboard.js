@@ -1,7 +1,20 @@
+function createDeviceTelemetryHistoryState(overrides = {}) {
+  return {
+    deviceName: null,
+    window: "-30m",
+    points: [],
+    loading: false,
+    error: null,
+    requestId: 0,
+    ...overrides,
+  };
+}
+
 const state = {
   data: null,
   refreshMs: 5000,
   selectedDeviceName: null,
+  deviceTelemetryHistory: createDeviceTelemetryHistoryState(),
   selectedNodeName: null,
   selectedNodeFilterValues: [],
   selectedTopologyService: null,
@@ -12,6 +25,14 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+const DEVICE_TELEMETRY_LIMIT = 1000;
+const DEVICE_TELEMETRY_WINDOWS = [
+  {value: "-5m", label: "5분"},
+  {value: "-30m", label: "30분"},
+  {value: "-1h", label: "1시간"},
+  {value: "-24h", label: "24시간"},
+];
 
 
 
@@ -309,7 +330,8 @@ function formatChartTime(value) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-function renderTelemetryChart(points = []) {
+function renderTelemetryChart(points = [], context = {}) {
+  const title = text(context.title, "Core Data readings");
   const numericPoints = points
     .map((point) => ({
       ...point,
@@ -321,14 +343,14 @@ function renderTelemetryChart(points = []) {
     .sort((a, b) => a.at - b.at);
 
   if (!points.length) {
-    return `<div class="telemetry-chart empty">Core Data latest readings가 없습니다.</div>`;
+    return `<div class="telemetry-chart empty">Core Data readings가 없습니다.</div>`;
   }
 
   if (!numericPoints.length) {
     const recent = points.slice(-8).reverse();
     return `
       <div class="telemetry-chart">
-        <div class="chart-head"><strong>Core Data readings</strong><span>non-numeric values</span></div>
+        <div class="chart-head"><strong>${escapeHtml(title)}</strong><span>non-numeric values</span></div>
         <ul class="telemetry-values">${recent
           .map((point) => `<li><span>${escapeHtml(formatChartTime(point.timestamp))}</span><strong>${escapeHtml(text(point.resource_name || point.source_name || point.property, "value"))}=${escapeHtml(text(point.value))}</strong></li>`)
           .join("")}</ul>
@@ -405,9 +427,9 @@ function renderTelemetryChart(points = []) {
 
   return `
     <div class="telemetry-chart">
-      <div class="chart-head"><strong>Core Data latest source readings</strong><span>${numericPoints.length} readings · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))}</span></div>
+      <div class="chart-head"><strong>${escapeHtml(title)}</strong><span>${numericPoints.length} numeric readings · ${escapeHtml(formatChartTime(numericPoints[0].timestamp))}</span></div>
       <div class="telemetry-summary-strip">${summaryCards}</div>
-      <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Core Data latest source readings chart">
+      <svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(title)} chart">
         <rect class="chart-plot-bg" x="${pad.left}" y="${pad.top}" width="${width - pad.left - pad.right}" height="${height - pad.top - pad.bottom}" rx="6" />
         ${gridlines}
         <line class="chart-axis" x1="${pad.left}" y1="${baselineY}" x2="${width - pad.right}" y2="${baselineY}" />
@@ -421,7 +443,72 @@ function renderTelemetryChart(points = []) {
   `;
 }
 
-function showDeviceExplanation(device) {
+function telemetryWindowLabel(windowValue) {
+  return DEVICE_TELEMETRY_WINDOWS.find((item) => item.value === windowValue)?.label
+    || text(windowValue, "30분");
+}
+
+function formatHistoryTimestamp(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString([], {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function renderDeviceTelemetryHistory(
+  history = createDeviceTelemetryHistoryState(),
+) {
+  const controls = DEVICE_TELEMETRY_WINDOWS
+    .map(({value, label}) => `<button type="button" data-telemetry-window="${value}" aria-pressed="${value === history.window ? "true" : "false"}">${label}</button>`)
+    .join("");
+  let body;
+
+  if (history.loading) {
+    body = `<div class="telemetry-history-state loading" role="status">Core Data 이력을 조회 중입니다.</div>`;
+  } else if (history.error) {
+    body = `<div class="telemetry-history-state error" role="status"><strong>이력 조회 실패</strong><span>${escapeHtml(history.error)}</span></div>`;
+  } else if (!history.points.length) {
+    body = `<div class="telemetry-history-state empty" role="status">선택한 범위에 저장된 이력이 없습니다.</div>`;
+  } else {
+    const timestamps = history.points
+      .map((point) => new Date(point.timestamp).getTime())
+      .filter(Number.isFinite)
+      .sort((left, right) => left - right);
+    const actualCoverage = timestamps.length
+      ? `${formatHistoryTimestamp(timestamps[0])} ~ ${formatHistoryTimestamp(timestamps.at(-1))}`
+      : "timestamp 없음";
+    body = `
+      <div class="telemetry-history-meta">
+        <span>요청 범위 ${escapeHtml(telemetryWindowLabel(history.window))}</span>
+        <span>${history.points.length} readings</span>
+        <span>실제 구간 ${escapeHtml(actualCoverage)}</span>
+        <span>최신 ${DEVICE_TELEMETRY_LIMIT} events 제한</span>
+      </div>
+      ${renderTelemetryChart(history.points, {title: "Core Data history"})}
+    `;
+  }
+
+  return `
+    <section class="telemetry-history-shell" aria-label="EdgeX Core Data telemetry history" aria-busy="${history.loading ? "true" : "false"}">
+      <div class="telemetry-history-toolbar">
+        <div class="telemetry-history-ranges" aria-label="이력 조회 범위">${controls}</div>
+        <button type="button" class="telemetry-history-refresh" data-telemetry-refresh>새로고침</button>
+      </div>
+      <p class="telemetry-history-source">EdgeX Core Data API · PostgreSQL-backed storage</p>
+      ${body}
+    </section>
+  `;
+}
+
+function showDeviceExplanation(
+  device,
+  history = state.deviceTelemetryHistory,
+) {
   const panel = $("explainPanel");
   if (!panel || !device) return;
   state.selectedDeviceName = device.name;
@@ -457,9 +544,18 @@ function showDeviceExplanation(device) {
       ["event age", timestampAge(device.latest_event_timestamp)],
       ["optional node placement", deviceNodeLabel(device)],
     ])}
-    <div id="telemetryChart">${renderTelemetryChart(device.latest_readings || [])}</div>
+    <div id="telemetryChart">${renderDeviceTelemetryHistory(history)}</div>
     ${renderDeviceReasonList(explainDeviceRules(device))}
   `;
+}
+
+function cancelDeviceTelemetryHistorySelection() {
+  const current = state.deviceTelemetryHistory;
+  state.selectedDeviceName = null;
+  state.deviceTelemetryHistory = createDeviceTelemetryHistoryState({
+    window: current.window,
+    requestId: current.requestId + 1,
+  });
 }
 
 function kpiKeysForCard(key) {
@@ -477,6 +573,7 @@ function kpiKeysForCard(key) {
 function showKpiExplanation(key) {
   const panel = $("explainPanel");
   if (!panel) return;
+  cancelDeviceTelemetryHistorySelection();
   const kpis = state.data?.kpis || {};
   const explanations = kpiKeysForCard(key).map((item) => explainKpi(item, kpis));
   panel.innerHTML = `
@@ -496,6 +593,7 @@ function showKpiExplanation(key) {
 function showIssueExplanation(index) {
   const panel = $("explainPanel");
   if (!panel) return;
+  cancelDeviceTelemetryHistorySelection();
   const alert = state.alerts[index];
   panel.innerHTML = `
     <div class="explain-header">
@@ -507,6 +605,88 @@ function showIssueExplanation(index) {
       .map((message) => `<li><p>${escapeHtml(message)}</p></li>`)
       .join("")}</ul>
   `;
+}
+
+function deviceTelemetryHistoryUrl(
+  deviceName,
+  windowValue,
+  limit = DEVICE_TELEMETRY_LIMIT,
+) {
+  return `/state/devices/${encodeURIComponent(deviceName)}/telemetry?window=${encodeURIComponent(windowValue)}&limit=${limit}`;
+}
+
+async function fetchDeviceTelemetryHistory(
+  deviceName,
+  windowValue,
+  fetchFn = fetch,
+) {
+  const response = await fetchFn(
+    deviceTelemetryHistoryUrl(deviceName, windowValue),
+    {cache: "no-store"},
+  );
+  if (!response.ok) {
+    throw new Error(`telemetry history request failed: ${response.status}`);
+  }
+  const payload = await response.json();
+  if (!Array.isArray(payload)) {
+    throw new Error("telemetry history response must be an array");
+  }
+  return payload;
+}
+
+async function loadDeviceTelemetryHistory(
+  device,
+  windowValue = "-30m",
+  fetchFn = fetch,
+  renderFn = showDeviceExplanation,
+) {
+  const requestId = state.deviceTelemetryHistory.requestId + 1;
+  state.selectedDeviceName = device.name;
+  state.deviceTelemetryHistory = createDeviceTelemetryHistoryState({
+    deviceName: device.name,
+    window: windowValue,
+    loading: true,
+    requestId,
+  });
+  renderFn(device, state.deviceTelemetryHistory);
+
+  try {
+    const points = await fetchDeviceTelemetryHistory(
+      device.name,
+      windowValue,
+      fetchFn,
+    );
+    if (
+      state.deviceTelemetryHistory.requestId !== requestId
+      || state.selectedDeviceName !== device.name
+    ) {
+      return false;
+    }
+    state.deviceTelemetryHistory = {
+      ...state.deviceTelemetryHistory,
+      points,
+      loading: false,
+      error: null,
+    };
+  } catch (error) {
+    if (
+      state.deviceTelemetryHistory.requestId !== requestId
+      || state.selectedDeviceName !== device.name
+    ) {
+      return false;
+    }
+    state.deviceTelemetryHistory = {
+      ...state.deviceTelemetryHistory,
+      points: [],
+      loading: false,
+      error: error instanceof Error
+        ? error.message
+        : "telemetry history request failed",
+    };
+  }
+
+  renderFn(device, state.deviceTelemetryHistory);
+  return true;
 }
 
 async function loadDashboard() {
@@ -1159,6 +1339,23 @@ function handleNodeFilterSelection(target) {
   return true;
 }
 
+function handleTelemetryHistoryAction(
+  target,
+  loadFn = loadDeviceTelemetryHistory,
+) {
+  const rangeTarget = target?.closest?.("[data-telemetry-window]");
+  const refreshTarget = target?.closest?.("[data-telemetry-refresh]");
+  if (!rangeTarget && !refreshTarget) return false;
+
+  const device = (state.data?.devices || [])
+    .find((item) => item.name === state.selectedDeviceName);
+  if (!device) return true;
+  const windowValue = rangeTarget?.dataset.telemetryWindow
+    || state.deviceTelemetryHistory.window;
+  void loadFn(device, windowValue);
+  return true;
+}
+
 
 function handleExplainSelection(target) {
   const explainTarget = target.closest?.("[data-explain-type]");
@@ -1167,7 +1364,7 @@ function handleExplainSelection(target) {
   if (type === "device") {
     const deviceName = explainTarget.dataset.deviceName;
     const device = (state.data?.devices || []).find((item) => item.name === deviceName);
-    showDeviceExplanation(device);
+    void loadDeviceTelemetryHistory(device);
     renderDevices(state.data?.devices || []);
     const selectedRow = Array.from(document.querySelectorAll('[data-explain-type="device"]')).find((item) => item.dataset.deviceName === deviceName);
     markSelectedExplain(selectedRow);
@@ -1184,6 +1381,7 @@ function handleExplainSelection(target) {
 
 if (typeof document !== "undefined") {
   document.addEventListener("click", (event) => {
+    if (handleTelemetryHistoryAction(event.target)) return;
     if (handleNodeFilterSelection(event.target)) return;
     handleExplainSelection(event.target);
   });
@@ -1237,6 +1435,7 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined") {
   module.exports = {
     buildDashboardAlerts,
+    cancelDeviceTelemetryHistorySelection,
     deviceFilterEmptyText,
     deviceObservationUnavailable,
     formatDashboardKpiValue,
@@ -1254,6 +1453,12 @@ if (typeof module !== "undefined") {
     cleanNodeLabel,
     nodeDisplayName,
     chatResponseMeta,
+    createDeviceTelemetryHistoryState,
+    deviceTelemetryHistoryUrl,
+    fetchDeviceTelemetryHistory,
+    handleTelemetryHistoryAction,
+    loadDeviceTelemetryHistory,
+    renderDeviceTelemetryHistory,
     submitOperatorChat,
     renderTopology,
     state,
