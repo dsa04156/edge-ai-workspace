@@ -5,6 +5,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOYMENT_PATH = ROOT / "edge-orch/state-aggregator/k8s/deployment.yaml"
+BUILD_WORKFLOW_PATH = ROOT / ".github/workflows/docker-build-push.yml"
 
 
 def _resources() -> dict[tuple[str, str], dict]:
@@ -41,3 +42,14 @@ def test_management_deployment_does_not_add_fixed_network_or_edgemesh_paths() ->
     assert "clusterIP" not in service["spec"]
     assert "edgemesh" not in manifest
     assert "podip" not in manifest
+
+
+def test_ci_deploys_state_aggregator_through_argocd_digest_override() -> None:
+    workflow = BUILD_WORKFLOW_PATH.read_text(encoding="utf-8")
+
+    assert "STATE_AGGREGATOR_IMAGE=" in workflow
+    assert "state-aggregator-build-metadata.json" in workflow
+    assert "kubectl patch application edge-orch-state-aggregator" in workflow
+    assert 'targetRevision\\\":\\\"${TARGET_REVISION}' in workflow
+    assert "argocd.argoproj.io/refresh=hard" in workflow
+    assert "kubectl set image deployment/state-aggregator" not in workflow
