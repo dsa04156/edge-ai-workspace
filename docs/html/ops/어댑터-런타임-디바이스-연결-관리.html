@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 18:25</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:26</span>
+            <span class="badge">수정: 2026-07-23 18:42</span>
+            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -374,7 +374,7 @@ unset ADMIN_TOKEN IDEMPOTENCY_KEY</code></pre>
 <ol><li>새 EdgeX Device/Profile을 등록한다. 같은 resource 이름을 써도 physical connection tuple이</li></ol>
 <p>다르면 별도 reader route가 된다.</p>
 <ol><li>manifest·catalog·planner·dashboard 테스트와 실기기 first Event를 확인한 뒤 배포한다.</li></ol>
-<p>현재 승인 Serial binding은 <code>jetson-arduino-serial-001</code>뿐이다. 실제 두 번째 장비 identity가 확정되기 전에는 dashboard에서 새 포트를 등록할 수 없는 상태가 정상이다. 기존 Device의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>를 PATCH해 새 binding으로 옮기는 작업도 차단한다. 새 물리 연결은 connection validation과 신규 Device 등록 흐름을 사용한다.</p>
+<p>현재 승인 Serial binding은 <code>jetson-arduino-serial-001</code>뿐이다. 실제 두 번째 장비 identity가 확정되기 전에는 dashboard에서 새 포트를 등록할 수 없는 상태가 정상이다. 기존 Device의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>를 PATCH해 새 binding으로 옮기는 작업도 차단한다. 새 물리 연결은 connection validation과 신규 Device 등록 흐름을 사용한다. 두 번째 장비가 현재 Arduino JSON frame과 지원 resource 계약을 따르지 않으면 이 절차만으로 연결하지 않는다. 새 parser/Adapter와 Device Profile을 실장비로 검증한 뒤 별도 <code>adapterId</code>로 catalog에 승격한다.</p>
 <h2 id="검증과-장애-점검">검증과 장애 점검</h2>
 <pre data-lang="bash"><code>kubectl logs -n edgex-edge deployment/edgex-adapter-controller
 kubectl get events -n edgex-edge --sort-by=.lastTimestamp

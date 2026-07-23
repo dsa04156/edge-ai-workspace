@@ -189,8 +189,9 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
     return {
       title: "Serial 다중 연결 방식",
       text: `현재 승인 연결 ${bindingCount}개. 같은 USB 포트의 다른 리소스는 기존 reader와 `
-        + "Device Service를 공유합니다. 두 번째 USB Serial은 고정 장치 경로를 승인 카탈로그와 "
-        + "Pod 장치 마운트에 추가하면, 별도 하드웨어 연결로 선택해 같은 Device Service에서 처리합니다.",
+        + "Device Service를 공유합니다. 두 번째 USB Serial이 같은 데이터 포맷과 리소스 계약이면 "
+        + "고정 장치 경로를 승인 카탈로그와 Pod 장치 마운트에 추가해 같은 Device Service에서 "
+        + "별도 reader로 처리합니다. 포맷이 다르면 parser와 Adapter 검증이 먼저 필요합니다.",
       status: "installed",
     };
   }

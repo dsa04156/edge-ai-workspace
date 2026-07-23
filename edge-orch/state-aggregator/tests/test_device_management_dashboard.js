@@ -307,6 +307,7 @@ test("binding values override adapter defaults and explain a second Serial endpo
   assert.match(guidance.text, /같은 USB 포트/);
   assert.match(guidance.text, /두 번째 USB Serial/);
   assert.match(guidance.text, /Pod 장치 마운트/);
+  assert.match(guidance.text, /포맷이 다르면 parser/);
 });
 
 

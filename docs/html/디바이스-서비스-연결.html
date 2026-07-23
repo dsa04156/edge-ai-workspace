@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-07-23 18:25</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:26</span>
+            <span class="badge">수정: 2026-07-23 18:42</span>
+            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -174,7 +174,7 @@
 <p>운영자는 새 장비를 연결할 때 protocol별 Pod manifest를 직접 작성하지 않는다. Dashboard <code>Device Management</code>에서 다음 계약을 함께 검증하고 적용한다.</p>
 <ol><li>Adapter Catalog의 검증 상태와 승인 hardware binding</li><li>기존 Runtime 재사용 또는 Controller 소유 Runtime 배포 plan</li><li>target KubeEdge node <code>Ready</code>와 Device Service Metadata readback</li><li>Device Profile/resource와 Device protocol binding 충돌</li><li>Profile/Device Metadata readback과 첫 Core Data Event</li></ol>
 <p>기존 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 Argo CD 소유이므로 조회·재사용만 한다. Controller가 만든 runtime만 대시보드에서 재시작할 수 있고, consumer가 0개일 때만 exact-name 확인 뒤 퇴역한다. Modbus/OPC-UA/MQTT/RTSP는 실장비와 typed telemetry 검증 전 <code>BLOCKED</code>다. 자세한 절차는 <a href="ops/어댑터-런타임-디바이스-연결-관리.html">Adapter Runtime과 Device 연결 관리</a>를 따른다.</p>
-<p>Dashboard는 protocol/Device Service를 먼저 선택한 뒤 선택 노드의 승인 hardware binding을 보여 준다. Binding은 Serial의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>, I2C의 <code>Bus</code>/<code>DeviceID</code>처럼 물리 연결을 식별하는 protocol tuple을 가진다. UI가 이 값을 read-only로 채우고 서버가 선택 binding과 다시 대조한다. 같은 Serial tuple의 여러 <code>ResourceName</code>은 reader 하나를 공유하고, 서로 다른 승인 Serial tuple은 같은 <code>device-serial-jetson</code> 안에서 별도 reader를 사용한다. Serial baud는 Device Service와 catalog가 공통으로 허용한 <code>1200</code>~<code>921600</code> 표준 allowlist 안에서 binding별로 정한다. 따라서 센서마다 Pod를 만들지 않는다.</p>
+<p>Dashboard는 protocol/Device Service를 먼저 선택한 뒤 선택 노드의 승인 hardware binding을 보여 준다. Binding은 Serial의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>, I2C의 <code>Bus</code>/<code>DeviceID</code>처럼 물리 연결을 식별하는 protocol tuple을 가진다. UI가 이 값을 read-only로 채우고 서버가 선택 binding과 다시 대조한다. 같은 Serial tuple의 여러 <code>ResourceName</code>은 reader 하나를 공유하고, 서로 다른 승인 Serial tuple은 같은 <code>device-serial-jetson</code> 안에서 별도 reader를 사용한다. Serial baud는 Device Service와 catalog가 공통으로 허용한 <code>1200</code>~<code>921600</code> 표준 allowlist 안에서 binding별로 정한다. 따라서 센서마다 Pod를 만들지 않는다. 단, 이 재사용은 같은 serial frame JSON과 지원 resource 계약일 때다. 새 장비의 wire format이나 resource가 다르면 binding만 추가하지 않고 parser, Device Profile과 Adapter 검증을 먼저 추가한다.</p>
 <p>두 번째 USB Serial을 실제로 추가할 때는 다음 항목이 같은 Git 변경에 있어야 한다.</p>
 <ol><li>host의 stable <code>/dev/serial/by-id/...</code> identity와 Pod의 고정 container path</li><li><code>device-serial-jetson</code> workload의 exact CharDevice 장치 마운트</li><li>Adapter Controller template의 hardware binding과 external runtime</li></ol>
 <p><code>hardwareBindingIds</code></p>

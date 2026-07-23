@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 18:25</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:26</span>
+            <span class="badge">수정: 2026-07-23 18:41</span>
+            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -924,6 +924,21 @@
 <td>세로 배치와 선택 종속성 확인, console error/warning 0건</td>
 </tr>
 </tbody></table></div>
+<h3 id="main-배포-검증">main 배포 검증</h3>
+<ul><li>기능 revision은 <code>406bfe5190ae48b4af72d94f01e6403f54e2f10a</code>이며 push GitHub Actions</li></ul>
+<p>run <code>29995399088</code>의 state-aggregator, Adapter Controller, Serial/Sense HAT Device Service, docs build와 Argo CD 배포 단계가 모두 성공했다.</p>
+<ul><li><code>edge-orch-state-aggregator</code>, <code>edgex-telemetry</code>, <code>docs-html</code> Application은 해당 revision</li></ul>
+<p>기준 <code>Synced/Healthy</code>다.</p>
+<ul><li>실행 image digest는 state-aggregator</li></ul>
+<p><code>sha256:390dc8f481774c94fcc6d268e60dcc3e357fe629ca8a2704310e3fc11d2b7608</code>, Adapter Controller <code>sha256:7361bbbb60dcf0816914a9d55f41f85789b28dad6b3e07320d02d0d623cebe46</code>, Serial Device Service <code>sha256:493c9ac696b025bbf25013d65db5fcae3490159fb25d9667ae9392b4a16688dd</code>다. 각 Pod는 Ready이고 restart 0이다.</p>
+<ul><li>live management API에서 Serial/I2C Runtime은 각각 <code>SERVICE_READY</code>,</li></ul>
+<p><code>hardwareBindingIds</code> 1개와 EdgeX consumer 6개를 보고했다. Modbus/OPC-UA/MQTT/RTSP는 검증 전 상태로 계속 비활성화돼 있다.</p>
+<ul><li>rollout 뒤 Jetson Serial Device 6개와 Raspberry Pi Sense HAT Device 6개의 latest</li></ul>
+<p>Event가 모두 <code>fresh/available</code>이었다. Serial reader 시작 직후 수신 중간 지점의 불완전한 line 2개는 폐기 경고로 기록됐지만 이후 정상 Event가 계속 저장됐고 Pod restart는 없었다.</p>
+<ul><li>배포된 Firefox 화면에서도 desktop/390px overflow 0, console error/warning 0건과</li></ul>
+<p>binding field read-only를 확인했다.</p>
+<ul><li>EdgeMesh는 generation/observed 14, 5/5 Ready,</li></ul>
+<p><code>kubeedge/edgemesh-agent:v1.17.0</code>으로 변하지 않았다. 고정 ClusterIP나 PodIP 경로도 추가하지 않았다.</p>
 <h3 id="남은-실기기-gate">남은 실기기 gate</h3>
 <ul><li>두 번째 USB Serial의 stable host identity, exact Pod mount와 first Event는 실제 장비가</li></ul>
 <p>연결된 뒤 검증한다.</p>
