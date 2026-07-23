@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .device_management_models import ManagementModel
 
@@ -38,6 +38,7 @@ class RuntimeObservation(ManagementModel):
     service_name: str
     target_node: str
     hardware_binding_id: str
+    hardware_binding_ids: list[str] = Field(default_factory=list)
     management_mode: Literal["external", "controller"]
     management_owner: Literal["argocd", "controller"]
     verification_state: VerificationState
@@ -47,6 +48,16 @@ class RuntimeObservation(ManagementModel):
     mutation_enabled: bool = False
     workload_name: str | None = None
     edge_x_service_observed: bool | None = None
+
+    @model_validator(mode="after")
+    def normalize_hardware_bindings(self) -> "RuntimeObservation":
+        if not self.hardware_binding_ids:
+            self.hardware_binding_ids = [self.hardware_binding_id]
+        if self.hardware_binding_id not in self.hardware_binding_ids:
+            raise ValueError("primary hardware binding must be in hardwareBindingIds")
+        if len(self.hardware_binding_ids) != len(set(self.hardware_binding_ids)):
+            raise ValueError("runtime hardware bindings must be unique")
+        return self
 
 
 class RuntimePlanReason(ManagementModel):

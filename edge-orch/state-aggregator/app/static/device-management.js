@@ -67,6 +67,14 @@ const MANAGEMENT_LABELS = {
     Broker: "브로커 주소",
     Password: "비밀번호",
   },
+  protocol: {
+    serial: "Serial / USB",
+    i2c: "I²C",
+    modbus: "Modbus",
+    opcua: "OPC-UA",
+    mqtt: "MQTT",
+    rtsp: "RTSP",
+  },
   issue: {
     reserved_tag: "시스템 관리 태그는 직접 지정할 수 없습니다.",
     system_tag_mismatch: "선택한 노드 또는 물리 소스 정보가 승인된 연결과 다릅니다.",
@@ -81,6 +89,8 @@ const MANAGEMENT_LABELS = {
     unknown_adapter: "승인 카탈로그에 없는 어댑터입니다.",
     template_unverified: "런타임 템플릿이 검증되지 않았습니다.",
     hardware_binding_not_allowed: "승인되지 않은 하드웨어 연결입니다.",
+    hardware_binding_mismatch: "선택한 연결과 프로토콜 값이 일치하지 않습니다.",
+    hardware_binding_immutable: "기존 디바이스의 물리 연결은 수정할 수 없습니다.",
     node_not_allowed: "해당 노드에 허용되지 않은 어댑터입니다.",
     node_not_ready: "대상 노드가 준비되지 않았습니다.",
     runtime_not_ready: "기존 런타임이 아직 준비되지 않았습니다.",
@@ -111,6 +121,92 @@ function adapterSupportsNode(adapter, nodeName) {
   const bindings = adapter.runtime?.hardwareBindings || [];
   if (bindings.some((binding) => binding.nodeName === nodeName)) return true;
   return bindings.length === 0 && adapter.nodeName === nodeName;
+}
+
+
+function adapterSelectionOptions(adapters = [], nodeName = "") {
+  return adapters
+    .map((adapter, index) => {
+      const enabled = adapterSupportsNode(adapter, nodeName);
+      let availability = "현재 연결 가능";
+      if (!enabled && adapter?.status === "unsupported") {
+        availability = "지원 준비 필요";
+      } else if (!enabled && adapter?.status === "unavailable") {
+        availability = "Device Service 확인 필요";
+      } else if (!enabled) {
+        availability = "이 노드에 승인된 연결 없음";
+      }
+      return {
+        adapter,
+        enabled,
+        availability,
+        reason: enabled
+          ? ""
+          : adapter?.reason || (
+            availability === "이 노드에 승인된 연결 없음"
+              ? `${nodeName || "선택 노드"}에 승인된 하드웨어 연결이 없습니다.`
+              : availability
+          ),
+        index,
+      };
+    })
+    .sort((left, right) => {
+      if (left.enabled !== right.enabled) return left.enabled ? -1 : 1;
+      return left.index - right.index;
+    });
+}
+
+
+function bindingProtocolValue(field = {}, binding = {}) {
+  const bindingProperties = binding?.protocolProperties || {};
+  if (Object.prototype.hasOwnProperty.call(bindingProperties, field.name)) {
+    return {value: bindingProperties[field.name], locked: true};
+  }
+  return {
+    value: field.const ?? field.default,
+    locked: field.const !== null && field.const !== undefined,
+  };
+}
+
+
+function adapterConnectionGuidance(adapter, bindingCount = 0) {
+  if (!adapter) {
+    return {
+      title: "프로토콜을 먼저 선택하세요",
+      text: "선택한 노드에서 검증된 Device Service와 승인된 물리 연결만 등록할 수 있습니다.",
+      status: "unavailable",
+    };
+  }
+  if (adapter.status !== "installed") {
+    return {
+      title: `${koreanLabel("protocol", adapter.protocolName, adapter.protocolName)} 연결 준비 필요`,
+      text: adapter.reason || "Device Service와 실장비 연결을 검증한 뒤 활성화할 수 있습니다.",
+      status: adapter.status || "unavailable",
+    };
+  }
+  const policy = adapter.runtime?.reusePolicy || {};
+  if (adapter.protocolName === "serial" && policy.multiDevice === true) {
+    return {
+      title: "Serial 다중 연결 방식",
+      text: `현재 승인 연결 ${bindingCount}개. 같은 USB 포트의 다른 리소스는 기존 reader와 `
+        + "Device Service를 공유합니다. 두 번째 USB Serial은 고정 장치 경로를 승인 카탈로그와 "
+        + "Pod 장치 마운트에 추가하면, 별도 하드웨어 연결로 선택해 같은 Device Service에서 처리합니다.",
+      status: "installed",
+    };
+  }
+  if (policy.multiDevice === true) {
+    return {
+      title: "한 Device Service에서 여러 디바이스 처리",
+      text: `현재 승인 연결 ${bindingCount}개. 승인된 물리 연결과 리소스를 선택하면 `
+        + `${adapter.serviceName}가 여러 EdgeX Device를 함께 관리합니다.`,
+      status: "installed",
+    };
+  }
+  return {
+    title: "Device Service 연결 방식",
+    text: "선택한 물리 연결 전용 Device Service를 사용합니다.",
+    status: "installed",
+  };
 }
 
 
@@ -671,9 +767,12 @@ function managementNodeScopes() {
 
 
 function ensureSelectedAdapterForNode() {
-  const compatible = managementState.adapters.filter(
-    (adapter) => adapterSupportsNode(adapter, managementState.selectedNodeName),
-  );
+  const compatible = adapterSelectionOptions(
+    managementState.adapters,
+    managementState.selectedNodeName,
+  )
+    .filter((option) => option.enabled)
+    .map((option) => option.adapter);
   if (!compatible.some((adapter) => adapter.adapterId === managementState.selectedAdapterId)) {
     managementState.selectedAdapterId = compatible[0]?.adapterId || "";
   }
@@ -741,22 +840,60 @@ function renderAdapterOptions(documentRef = document) {
   const select = byId("managementAdapter", documentRef);
   clearElement(select);
   const compatible = ensureSelectedAdapterForNode();
+  const options = adapterSelectionOptions(
+    managementState.adapters,
+    managementState.selectedNodeName,
+  );
   if (!compatible.length) {
     const option = documentRef.createElement("option");
     option.value = "";
-    option.textContent = "이 노드에 승인된 어댑터가 없습니다";
+    option.textContent = "현재 연결 가능한 프로토콜이 없습니다";
     select?.appendChild(option);
-    if (select) select.disabled = true;
-    return;
   }
-  if (select) select.disabled = false;
-  compatible.forEach((adapter) => {
+  if (select) select.disabled = options.length === 0;
+  const enabledGroup = documentRef.createElement("optgroup");
+  enabledGroup.label = "현재 연결 가능";
+  const pendingGroup = documentRef.createElement("optgroup");
+  pendingGroup.label = "준비 필요 · 선택 불가";
+  options.forEach(({adapter, enabled, availability, reason}) => {
     const option = documentRef.createElement("option");
     option.value = adapter.adapterId;
-    option.textContent = `${adapter.displayName} · ${koreanLabel("adapterStatus", adapter.status)}`;
-    option.selected = adapter.adapterId === managementState.selectedAdapterId;
-    select?.appendChild(option);
+    option.textContent = `${koreanLabel(
+      "protocol",
+      adapter.protocolName,
+      adapter.protocolName,
+    )} · ${adapter.displayName} · ${availability}`;
+    option.selected = enabled && adapter.adapterId === managementState.selectedAdapterId;
+    option.disabled = !enabled;
+    if (reason) option.title = reason;
+    (enabled ? enabledGroup : pendingGroup).appendChild(option);
   });
+  if (enabledGroup.children.length) select?.appendChild(enabledGroup);
+  if (pendingGroup.children.length) select?.appendChild(pendingGroup);
+}
+
+
+function selectedHardwareBinding(documentRef = document) {
+  const adapter = selectedAdapter();
+  const bindingId = byId("managementHardwareBinding", documentRef)?.value;
+  return (adapter?.runtime?.hardwareBindings || []).find(
+    (binding) => binding.bindingId === bindingId,
+  ) || null;
+}
+
+
+function renderConnectionGuidance(documentRef = document) {
+  const container = byId("managementConnectionGuidance", documentRef);
+  clearElement(container);
+  if (!container) return;
+  const adapter = selectedAdapter();
+  const bindingCount = (adapter?.runtime?.hardwareBindings || []).filter(
+    (binding) => binding.nodeName === managementState.selectedNodeName,
+  ).length;
+  const guidance = adapterConnectionGuidance(adapter, bindingCount);
+  container.dataset.status = guidance.status;
+  appendTextElement(container, "strong", "", guidance.title);
+  appendTextElement(container, "p", "", guidance.text);
 }
 
 
@@ -863,6 +1000,10 @@ function renderRuntimeInventory(documentRef = document) {
       `노드 ${runtime.targetNode || "미확인"}`,
       `${runtime.managementOwner === "argocd" ? "Argo CD" : "컨트롤러"} 소유`,
       koreanLabel("verification", runtime.verificationState || "unverified"),
+      `승인 물리 연결 ${Math.max(
+        1,
+        Number(runtime.hardwareBindingIds?.length || 0),
+      )}개`,
       `연결 디바이스 ${Number(runtime.consumers || 0)}개`,
     ].forEach((fact) => appendTextElement(facts, "span", "", fact));
 
@@ -1022,18 +1163,28 @@ function renderRuntimeSelection(documentRef = document) {
   const hasBindings = bindings.length > 0;
   if (bindingSelect) bindingSelect.disabled = !hasBindings;
   if (nodeSelect) nodeSelect.disabled = true;
+  const nextButton = byId(
+    "managementRegistrationStep1",
+    documentRef,
+  )?.querySelector("[data-management-next-step]");
+  if (nextButton) nextButton.disabled = !adapter || !hasBindings;
 
   const modeSelect = byId("managementRuntimeMode", documentRef);
+  const autoOption = modeSelect?.querySelector('option[value="auto"]');
+  const reuseOption = modeSelect?.querySelector('option[value="reuse"]');
+  if (autoOption) autoOption.textContent = "자동 · 가능하면 기존 Device Service 재사용";
+  if (reuseOption) reuseOption.textContent = "기존 Device Service만 사용";
   const deployOption = modeSelect?.querySelector('option[value="deploy"]');
   if (deployOption) {
     deployOption.disabled = adapter?.runtime?.deploymentEnabled !== true;
     deployOption.textContent = deployOption.disabled
-      ? "승인 템플릿 배포 · 현재 사용 불가"
-      : "승인 템플릿 배포";
+      ? "새 Device Service 인스턴스 배포 · 현재 사용 불가"
+      : "새 Device Service 인스턴스 배포";
   }
   if (modeSelect?.value === "deploy" && deployOption?.disabled) {
     modeSelect.value = "auto";
   }
+  renderConnectionGuidance(documentRef);
 }
 
 
@@ -1050,6 +1201,7 @@ function renderProtocolFields(documentRef = document) {
   const container = byId("managementProtocolFields", documentRef);
   clearElement(container);
   const adapter = selectedAdapter();
+  const binding = selectedHardwareBinding(documentRef);
   if (!adapter) {
     const applyButton = byId("managementApply", documentRef);
     if (applyButton) applyButton.disabled = true;
@@ -1082,9 +1234,14 @@ function renderProtocolFields(documentRef = document) {
     input.dataset.protocolField = field.name;
     input.dataset.protocolType = field.type;
     input.required = Boolean(field.required);
-    const defaultValue = field.const ?? field.default;
-    if (defaultValue !== null && defaultValue !== undefined) input.value = String(defaultValue);
-    if (field.const !== null && field.const !== undefined) input.readOnly = true;
+    const bindingValue = bindingProtocolValue(field, binding);
+    if (bindingValue.value !== null && bindingValue.value !== undefined) {
+      input.value = String(bindingValue.value);
+    }
+    if (bindingValue.locked) {
+      input.readOnly = true;
+      input.setAttribute("aria-readonly", "true");
+    }
     label.append(caption, input);
     container?.appendChild(label);
   });
@@ -1454,8 +1611,8 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   adapterSelect.addEventListener("change", () => {
     managementState.selectedAdapterId = adapterSelect.value;
     managementState.validation = null;
-    renderProtocolFields(documentRef);
     renderRuntimeSelection(documentRef);
+    renderProtocolFields(documentRef);
     renderRegistrationReview(documentRef);
     clearElement(byId("managementValidation", documentRef));
   });
@@ -1480,6 +1637,8 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("managementHardwareBinding", documentRef)?.addEventListener("change", () => {
     syncRuntimeNodeFromBinding(documentRef);
     managementState.validation = null;
+    renderProtocolFields(documentRef);
+    renderConnectionGuidance(documentRef);
     renderRegistrationReview(documentRef);
     const applyButton = byId("managementApply", documentRef);
     if (applyButton) applyButton.disabled = true;
@@ -1617,7 +1776,10 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined") {
   module.exports = {
     adapterCanApply,
+    adapterConnectionGuidance,
+    adapterSelectionOptions,
     adapterSupportsNode,
+    bindingProtocolValue,
     buildManagementNodeScopes,
     canPatchSelectedDevice,
     connectionStatusView,

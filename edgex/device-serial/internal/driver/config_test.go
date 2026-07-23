@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/models"
@@ -29,21 +30,25 @@ func TestParseSerialConfig(t *testing.T) {
 	}, config)
 }
 
-func TestParseSerialConfigAcceptsNumericBaudRate(t *testing.T) {
-	protocols := map[string]models.ProtocolProperties{
-		"serial": {
-			"Port":         "/dev/arduino-001",
-			"BaudRate":     115200,
-			"DeviceID":     "arduino-001",
-			"ResourceName": "light_raw",
-		},
+func TestParseSerialConfigAcceptsSupportedNumericBaudRates(t *testing.T) {
+	for _, baudRate := range []int{9600, 57600, 115200, 921600} {
+		t.Run(fmt.Sprintf("%d", baudRate), func(t *testing.T) {
+			protocols := map[string]models.ProtocolProperties{
+				"serial": {
+					"Port":         "/dev/arduino-001",
+					"BaudRate":     baudRate,
+					"DeviceID":     "arduino-001",
+					"ResourceName": "light_raw",
+				},
+			}
+
+			config, err := ParseSerialConfig(protocols)
+
+			require.NoError(t, err)
+			assert.Equal(t, baudRate, config.BaudRate)
+			assert.Equal(t, "light_raw", config.ResourceName)
+		})
 	}
-
-	config, err := ParseSerialConfig(protocols)
-
-	require.NoError(t, err)
-	assert.Equal(t, 115200, config.BaudRate)
-	assert.Equal(t, "light_raw", config.ResourceName)
 }
 
 func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
@@ -67,7 +72,7 @@ func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
 		{
 			name: "unsupported baud rate",
 			protocols: map[string]models.ProtocolProperties{"serial": {
-				"Port": "/dev/arduino-001", "BaudRate": "9600", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
+				"Port": "/dev/arduino-001", "BaudRate": "12345", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
 			}},
 		},
 		{

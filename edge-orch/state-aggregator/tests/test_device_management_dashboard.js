@@ -5,7 +5,10 @@ const path = require("node:path");
 
 const {
   adapterCanApply,
+  adapterConnectionGuidance,
+  adapterSelectionOptions,
   adapterSupportsNode,
+  bindingProtocolValue,
   buildManagementNodeScopes,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -208,6 +211,102 @@ test("node scope recognizes device node aliases and only matching approved bindi
     adapterSupportsNode({...adapter, status: "unsupported"}, "edge-a"),
     false,
   );
+});
+
+
+test("protocol choices stay visible while only node-ready Device Services are selectable", () => {
+  const options = adapterSelectionOptions(
+    [
+      {
+        adapterId: "serial-jetson",
+        displayName: "Jetson Arduino Serial",
+        protocolName: "serial",
+        status: "installed",
+        runtime: {
+          hardwareBindings: [{nodeName: "edge-a"}],
+        },
+      },
+      {
+        adapterId: "sensehat-raspi",
+        displayName: "Sense HAT",
+        protocolName: "i2c",
+        status: "installed",
+        runtime: {
+          hardwareBindings: [{nodeName: "edge-b"}],
+        },
+      },
+      {
+        adapterId: "modbus",
+        displayName: "Modbus",
+        protocolName: "modbus",
+        status: "unsupported",
+        reason: "실장비 검증 전",
+      },
+    ],
+    "edge-a",
+  );
+
+  assert.deepEqual(
+    options.map((option) => ({
+      adapterId: option.adapter.adapterId,
+      enabled: option.enabled,
+      availability: option.availability,
+    })),
+    [
+      {
+        adapterId: "serial-jetson",
+        enabled: true,
+        availability: "현재 연결 가능",
+      },
+      {
+        adapterId: "sensehat-raspi",
+        enabled: false,
+        availability: "이 노드에 승인된 연결 없음",
+      },
+      {
+        adapterId: "modbus",
+        enabled: false,
+        availability: "지원 준비 필요",
+      },
+    ],
+  );
+});
+
+
+test("binding values override adapter defaults and explain a second Serial endpoint", () => {
+  const binding = {
+    protocolProperties: {
+      Port: "/dev/arduino-002",
+      BaudRate: 57600,
+      DeviceID: "arduino-002",
+    },
+  };
+  assert.deepEqual(
+    bindingProtocolValue({name: "Port", default: "/dev/arduino-001"}, binding),
+    {value: "/dev/arduino-002", locked: true},
+  );
+  assert.deepEqual(
+    bindingProtocolValue({name: "ResourceName", default: "temperature_raw"}, binding),
+    {value: "temperature_raw", locked: false},
+  );
+
+  const guidance = adapterConnectionGuidance({
+    protocolName: "serial",
+    serviceName: "device-serial-jetson",
+    status: "installed",
+    runtime: {
+      reusePolicy: {
+        multiDevice: true,
+        bindingFields: ["Port", "BaudRate", "DeviceID"],
+        routeFields: ["ResourceName"],
+      },
+    },
+  }, 1);
+
+  assert.equal(guidance.title, "Serial 다중 연결 방식");
+  assert.match(guidance.text, /같은 USB 포트/);
+  assert.match(guidance.text, /두 번째 USB Serial/);
+  assert.match(guidance.text, /Pod 장치 마운트/);
 });
 
 
@@ -538,6 +637,7 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementHardwareBinding",
     "deviceOnboardingForm",
     "managementAdapter",
+    "managementConnectionGuidance",
     "managementProtocolFields",
     "managementValidation",
     "managementOperation",
@@ -561,14 +661,16 @@ test("dashboard ships an accessible session-only device management page", () => 
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=management-flow-v1-20260723/);
-  assert.match(html, /device-management\.js\?v=management-flow-v1-20260723/);
+  assert.match(html, /device-management\.css\?v=protocol-first-v2-20260723/);
+  assert.match(html, /device-management\.js\?v=protocol-first-v2-20260723/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);
   assert.match(html, /선택 노드의 런타임/);
   assert.match(html, /연결 구성 마법사/);
   assert.match(html, /새 디바이스 등록/);
+  assert.match(html, /연결 프로토콜 · Device Service/);
+  assert.match(html, /Device Service 준비 방식/);
   assert.match(html, /지원 예정 프로토콜/);
   assert.match(html, /기존 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
@@ -582,5 +684,6 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
   assert.match(javascript, /function renderManagementValidation\(/);
   assert.match(javascript, /function renderRuntimeInventory\(/);
+  assert.match(javascript, /승인 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
 });

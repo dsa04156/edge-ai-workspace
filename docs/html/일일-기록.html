@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 17:47</span>
-            <span class="badge">HTML 생성: 2026-07-23 17:48</span>
+            <span class="badge">수정: 2026-07-23 18:25</span>
+            <span class="badge">HTML 생성: 2026-07-23 18:26</span>
           </div>
         </header>
         <div class="doc-body">
@@ -871,6 +871,64 @@
 <td><code>innerWidth</code>, body/document <code>scrollWidth</code>가 모두 390이고 console error/warning 0건</td>
 </tr>
 </tbody></table></div>
+<h2 id="2026-07-23-프로토콜-우선-등록과-다중-serial-준비">2026-07-23 프로토콜 우선 등록과 다중 Serial 준비</h2>
+<ul><li>신규 등록 1단계를 protocol/Device Service → 승인 hardware binding → Device Service 준비</li></ul>
+<p>방식 순서로 바꿨다. 다른 노드의 installed Adapter와 미검증 protocol도 준비 상태는 볼 수 있지만 선택할 수 없다.</p>
+<ul><li>Hardware binding에 <code>protocolProperties</code>를 추가하고 요청 tuple을 서버에서 다시 검증한다.</li></ul>
+<p>Serial의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>와 Sense HAT의 <code>Bus</code>/<code>DeviceID</code>는 UI에서 read-only다.</p>
+<ul><li>Adapter Controller runtime이 기본 <code>hardwareBindingId</code>와 복수 소유 목록</li></ul>
+<p><code>hardwareBindingIds</code>를 함께 보고하도록 확장했다. 요청 binding이 목록에 있으면 같은 protocol runtime을 재사용한다.</p>
+<ul><li>Serial driver는 <code>(Port, BaudRate, DeviceID)</code>별 reader를 만들고 표준 baud allowlist를</li></ul>
+<p>검증한다. 서로 다른 포트와 baud를 쓰는 두 연결이 독립 reader와 Event route를 갖는 Go 테스트를 추가했다. 실제 장비 identity가 없으므로 가상의 <code>/dev/arduino-002</code> binding이나 Pod mount는 배포하지 않았다.</p>
+<h3 id="로컬-검증">로컬 검증</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>state-aggregator Python</td>
+<td>PASS</td>
+<td>Adapter binding, 선택 binding mismatch 중복 제거와 기존 관리 회귀 포함 전체 테스트 통과</td>
+</tr>
+<tr>
+<td>dashboard JavaScript</td>
+<td>PASS</td>
+<td>protocol 선택 상태, binding 값 주입, Serial 다중 연결 안내와 접근성 정적 계약 통과</td>
+</tr>
+<tr>
+<td>Adapter Controller Python</td>
+<td>PASS</td>
+<td>한 external runtime의 두 번째 승인 binding 재사용 planner 테스트와 전체 회귀 통과</td>
+</tr>
+<tr>
+<td>Serial Device Service Go</td>
+<td>PASS</td>
+<td>9600·57600·115200·921600 parse와 두 포트 독립 reader/Event route 포함 전체 테스트 통과</td>
+</tr>
+<tr>
+<td>실제 EdgeX API 연동</td>
+<td>PASS</td>
+<td>live Core Metadata를 read-only port-forward해 Serial/I2C binding <code>protocolProperties</code>와 unsupported protocol 상태 확인</td>
+</tr>
+<tr>
+<td>Firefox desktop</td>
+<td>PASS</td>
+<td>protocol 우선 순서, disabled Modbus/OPC-UA/MQTT/RTSP, read-only Serial tuple 확인</td>
+</tr>
+<tr>
+<td>Firefox 390px</td>
+<td>PASS</td>
+<td>세로 배치와 선택 종속성 확인, console error/warning 0건</td>
+</tr>
+</tbody></table></div>
+<h3 id="남은-실기기-gate">남은 실기기 gate</h3>
+<ul><li>두 번째 USB Serial의 stable host identity, exact Pod mount와 first Event는 실제 장비가</li></ul>
+<p>연결된 뒤 검증한다.</p>
+<ul><li>Modbus/OPC-UA/MQTT/RTSP는 각 Device Service, profile과 실장비 telemetry gate 전까지</li></ul>
+<p>비활성 상태를 유지한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

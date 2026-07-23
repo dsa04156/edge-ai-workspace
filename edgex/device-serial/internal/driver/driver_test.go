@@ -346,6 +346,71 @@ func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 	}
 }
 
+func TestDriverUsesIndependentReadersForTwoSerialConnections(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 2)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	require.NoError(t, driver.AddDevice(
+		"virtual-temperature-001",
+		testSerialProtocolsFor(
+			"/dev/arduino-001",
+			115200,
+			"arduino-001",
+			"temperature_raw",
+		),
+		models.AdminState(models.Unlocked),
+	))
+	require.NoError(t, driver.AddDevice(
+		"virtual-light-002",
+		testSerialProtocolsFor(
+			"/dev/arduino-002",
+			57600,
+			"arduino-002",
+			"light_raw",
+		),
+		models.AdminState(models.Unlocked),
+	))
+
+	assert.Equal(t, 2, factory.count())
+	first := factory.forPort(t, "/dev/arduino-001")
+	second := factory.forPort(t, "/dev/arduino-002")
+	require.Eventually(t, first.isRunning, time.Second, 5*time.Millisecond)
+	require.Eventually(t, second.isRunning, time.Second, 5*time.Millisecond)
+	assert.Equal(t, 115200, first.config.BaudRate)
+	assert.Equal(t, 57600, second.config.BaudRate)
+
+	first.options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "temperature",
+		Readings: []Reading{
+			{ResourceName: "temperature_raw", Value: 336},
+		},
+	}, 987654321)
+	second.options.OnSample(Sample{
+		DeviceName: "arduino-002",
+		SourceName: "light",
+		Readings: []Reading{
+			{ResourceName: "light_raw", Value: 512},
+		},
+	}, 987654322)
+
+	events := make(map[string]*sdkModels.AsyncValues, 2)
+	for range 2 {
+		event := <-asyncValues
+		events[event.DeviceName] = event
+	}
+	assert.Equal(t, int32(336), events["virtual-temperature-001"].CommandValues[0].Value)
+	assert.Equal(t, int32(512), events["virtual-light-002"].CommandValues[0].Value)
+}
+
 func TestDriverFansOutConnectionStateAndClosesAfterLastRoute(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 2)
 	sdk := newTestDeviceServiceSDK(t)
@@ -506,11 +571,25 @@ func testSerialProtocols(resourceNames ...string) map[string]models.ProtocolProp
 	if len(resourceNames) > 0 {
 		resourceName = resourceNames[0]
 	}
+	return testSerialProtocolsFor(
+		"/dev/arduino-001",
+		115200,
+		"arduino-001",
+		resourceName,
+	)
+}
+
+func testSerialProtocolsFor(
+	port string,
+	baudRate int,
+	deviceID string,
+	resourceName string,
+) map[string]models.ProtocolProperties {
 	return map[string]models.ProtocolProperties{
 		"serial": {
-			"Port":         "/dev/arduino-001",
-			"BaudRate":     "115200",
-			"DeviceID":     "arduino-001",
+			"Port":         port,
+			"BaudRate":     baudRate,
+			"DeviceID":     deviceID,
 			"ResourceName": resourceName,
 		},
 	}
@@ -546,6 +625,19 @@ func (factory *recordingReaderFactory) count() int {
 	factory.mu.Lock()
 	defer factory.mu.Unlock()
 	return len(factory.readers)
+}
+
+func (factory *recordingReaderFactory) forPort(t *testing.T, port string) *fakeManagedReader {
+	t.Helper()
+	factory.mu.Lock()
+	defer factory.mu.Unlock()
+	for _, reader := range factory.readers {
+		if reader.config.Port == port {
+			return reader
+		}
+	}
+	require.FailNow(t, "serial reader not found", "port=%s", port)
+	return nil
 }
 
 type fakeManagedReader struct {

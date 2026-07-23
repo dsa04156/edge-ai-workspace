@@ -44,6 +44,12 @@ Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
   command의 권위는 계속 EdgeX이며 Kubernetes Node 상태로 Device availability를 덮어쓰지 않는다.
 - 연결 마법사의 target node는 선택한 노드로 고정한다. 기존 Device PATCH는 해당 노드의
   Device를 명시적으로 선택한 뒤에만 활성화한다.
+- 등록 1단계는 protocol/Device Service를 먼저 선택하고, 선택 노드의 승인 hardware
+  binding과 Device Service 준비 방식을 뒤에서 선택한다. 미검증 protocol은 이유와 함께
+  표시하지만 선택할 수 없다.
+- Hardware binding의 protocol tuple은 UI가 read-only로 채우고 서버가 다시 대조한다.
+  Serial runtime은 복수 승인 `hardwareBindingIds`를 소유할 수 있어 같은 Device Service가
+  서로 다른 USB 포트를 처리한다.
 - `GET /management/adapter-runtimes`에서 기존 Argo runtime과 Controller runtime의 owner,
   phase, target node와 EdgeX consumer를 조회한다.
 - Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.

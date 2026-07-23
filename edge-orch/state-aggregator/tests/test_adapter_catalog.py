@@ -68,6 +68,11 @@ def test_catalog_separates_installed_runtime_from_deployment_verification(catalo
     ]
     assert serial.runtime.hardware_bindings[0].node_name == "etri-dev0001-jetorn"
     assert serial.runtime.hardware_bindings[0].device_path == "/dev/arduino-001"
+    assert serial.runtime.hardware_bindings[0].protocol_properties == {
+        "Port": "/dev/arduino-001",
+        "BaudRate": 115200,
+        "DeviceID": "arduino-001",
+    }
     assert serial.runtime.reuse_policy.binding_fields == [
         "Port",
         "BaudRate",
@@ -160,9 +165,9 @@ def test_serial_protocol_rejects_unknown_field(catalog):
 @pytest.mark.parametrize(
     ("overrides", "code"),
     [
-        ({"Port": "/dev/ttyUSB0"}, "constant_mismatch"),
-        ({"BaudRate": 9600}, "constant_mismatch"),
-        ({"DeviceID": "arduino-002"}, "constant_mismatch"),
+        ({"Port": "/dev/ttyUSB0"}, "hardware_binding_mismatch"),
+        ({"BaudRate": 9600}, "hardware_binding_mismatch"),
+        ({"DeviceID": "arduino-002"}, "hardware_binding_mismatch"),
         ({"ResourceName": "pressure_raw"}, "invalid_option"),
         ({"DeviceID": ""}, "empty_value"),
     ],
@@ -171,6 +176,41 @@ def test_serial_protocol_enforces_driver_constraints(catalog, overrides, code):
     errors = catalog.validate_protocol("serial-jetson", serial_protocol(**overrides))
 
     assert code in [item.code for item in errors]
+
+
+def test_serial_protocol_accepts_an_additional_approved_physical_binding(catalog):
+    serial = catalog.require("serial-jetson")
+    second = serial.runtime.hardware_bindings[0].model_copy(
+        update={
+            "binding_id": "jetson-arduino-serial-002",
+            "display_name": "Jetson Arduino USB Serial 2",
+            "device_path": "/dev/arduino-002",
+            "protocol_properties": {
+                "Port": "/dev/arduino-002",
+                "BaudRate": 57600,
+                "DeviceID": "arduino-002",
+            },
+        }
+    )
+    serial.runtime.hardware_bindings.append(second)
+    properties = serial_protocol(
+        Port="/dev/arduino-002",
+        BaudRate=57600,
+        DeviceID="arduino-002",
+    )
+
+    assert catalog.validate_protocol("serial-jetson", properties) == []
+    assert catalog.validate_hardware_binding(
+        "serial-jetson",
+        "jetson-arduino-serial-002",
+        properties,
+    ) == []
+    mismatch = catalog.validate_hardware_binding(
+        "serial-jetson",
+        "jetson-arduino-serial-001",
+        properties,
+    )
+    assert [item.code for item in mismatch] == ["hardware_binding_mismatch"]
 
 
 def test_sensehat_profile_template_is_derived_from_resource_group(catalog):

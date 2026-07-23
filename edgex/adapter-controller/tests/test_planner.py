@@ -54,6 +54,37 @@ def test_auto_reuses_ready_runtime_on_exact_node_and_binding():
     assert len(plan.plan_hash) == 64
 
 
+def test_auto_reuses_one_protocol_runtime_for_a_second_approved_binding():
+    runtime_planner = planner()
+    template = runtime_planner.catalog.require("serial-device-service-v1")
+    second = template.hardware_bindings[0].model_copy(
+        update={
+            "binding_id": "jetson-arduino-serial-002",
+            "display_name": "Jetson Arduino USB Serial 2",
+            "host_device_path": "/dev/serial/by-id/example-002",
+            "container_device_path": "/dev/arduino-002",
+        }
+    )
+    template.hardware_bindings.append(second)
+    runtime = external_serial().model_copy(
+        update={
+            "hardware_binding_ids": [
+                "jetson-arduino-serial-001",
+                "jetson-arduino-serial-002",
+            ],
+        }
+    )
+
+    plan = runtime_planner.plan(
+        request(hardwareBindingId="jetson-arduino-serial-002"),
+        [runtime],
+    )
+
+    assert plan.action == "REUSE"
+    assert plan.runtime_name == "device-serial-jetson"
+    assert plan.hardware_binding_id == "jetson-arduino-serial-002"
+
+
 def test_explicit_deploy_cannot_replace_existing_binding():
     plan = planner().plan(request(mode="deploy"), [external_serial()])
 

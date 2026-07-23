@@ -129,6 +129,29 @@ def test_catalog_rejects_duplicate_binding_identity():
         RuntimeTemplateCatalog(RuntimeCatalogDocument.model_validate(payload))
 
 
+def test_catalog_rejects_external_runtime_binding_from_another_node():
+    payload = json.loads(CATALOG_PATH.read_text())
+    serial = next(
+        template
+        for template in payload["templates"]
+        if template["adapterId"] == "serial-jetson"
+    )
+    serial["hardwareBindings"].append(
+        {
+            "bindingId": "raspi-serial-001",
+            "displayName": "Raspberry Pi Serial",
+            "nodeName": "etri-dev0002-raspi5",
+            "hostDevicePath": "/dev/serial/by-id/example",
+            "containerDevicePath": "/dev/serial-raspi-001",
+            "deviceType": "CharDevice",
+        }
+    )
+    serial["externalRuntimes"][0]["hardwareBindingIds"].append("raspi-serial-001")
+
+    with pytest.raises(ValueError, match="runtime node"):
+        RuntimeTemplateCatalog(RuntimeCatalogDocument.model_validate(payload))
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [

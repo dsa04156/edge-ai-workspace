@@ -89,7 +89,18 @@ class ExternalRuntimeDefinition(ControllerModel):
     )
     target_node: str = Field(min_length=1, max_length=253)
     hardware_binding_id: str
+    hardware_binding_ids: list[str] = Field(default_factory=list)
     management_owner: Literal["argocd"] = "argocd"
+
+    @model_validator(mode="after")
+    def normalize_hardware_bindings(self) -> "ExternalRuntimeDefinition":
+        if not self.hardware_binding_ids:
+            self.hardware_binding_ids = [self.hardware_binding_id]
+        if self.hardware_binding_id not in self.hardware_binding_ids:
+            raise ValueError("primary hardware binding must be in hardwareBindingIds")
+        if len(self.hardware_binding_ids) != len(set(self.hardware_binding_ids)):
+            raise ValueError("external runtime hardware bindings must be unique")
+        return self
 
 
 class RuntimeTemplate(ControllerModel):
@@ -131,9 +142,19 @@ class RuntimeTemplate(ControllerModel):
         if len(binding_ids) != len(set(binding_ids)):
             raise ValueError("template hardware binding IDs must be unique")
         known_bindings = set(binding_ids)
+        binding_nodes = {
+            binding.binding_id: binding.node_name for binding in self.hardware_bindings
+        }
         for runtime in self.external_runtimes:
-            if runtime.hardware_binding_id not in known_bindings:
+            if not set(runtime.hardware_binding_ids).issubset(known_bindings):
                 raise ValueError("external runtime references an unknown hardware binding")
+            if any(
+                binding_nodes[binding_id] != runtime.target_node
+                for binding_id in runtime.hardware_binding_ids
+            ):
+                raise ValueError(
+                    "external runtime hardware bindings must target the runtime node"
+                )
         return self
 
 
@@ -157,6 +178,7 @@ class RuntimeObservation(ControllerModel):
     service_name: str
     target_node: str
     hardware_binding_id: str
+    hardware_binding_ids: list[str] = Field(default_factory=list)
     management_mode: ManagementMode
     management_owner: ManagementOwner
     verification_state: VerificationState
@@ -164,6 +186,16 @@ class RuntimeObservation(ControllerModel):
     consumers: int = Field(default=0, ge=0)
     mutable: bool = False
     workload_name: str | None = None
+
+    @model_validator(mode="after")
+    def normalize_hardware_bindings(self) -> "RuntimeObservation":
+        if not self.hardware_binding_ids:
+            self.hardware_binding_ids = [self.hardware_binding_id]
+        if self.hardware_binding_id not in self.hardware_binding_ids:
+            raise ValueError("primary hardware binding must be in hardwareBindingIds")
+        if len(self.hardware_binding_ids) != len(set(self.hardware_binding_ids)):
+            raise ValueError("runtime hardware bindings must be unique")
+        return self
 
 
 class PlanReason(ControllerModel):

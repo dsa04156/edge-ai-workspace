@@ -96,6 +96,7 @@ class HardwareBinding(ManagementModel):
         default=None,
         pattern=r"^/dev/[A-Za-z0-9._/~-]+$",
     )
+    protocol_properties: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReusePolicy(ManagementModel):
@@ -156,6 +157,34 @@ class AdapterDefinition(ManagementModel):
     profile_capabilities: ProfileCapabilities | None = None
     runtime: RuntimeCapability = Field(default_factory=RuntimeCapability)
 
+    @model_validator(mode="after")
+    def enforce_binding_contract(self) -> "AdapterDefinition":
+        field_names = {item.name for item in self.fields}
+        policy = self.runtime.reuse_policy
+        policy_fields = [*policy.binding_fields, *policy.route_fields]
+        unknown = sorted(set(policy_fields) - field_names)
+        if unknown:
+            raise ValueError(
+                f"reuse policy references unknown protocol fields: {', '.join(unknown)}"
+            )
+        binding_field_set = set(policy.binding_fields)
+        binding_identities: set[tuple[tuple[str, str], ...]] = set()
+        for binding in self.runtime.hardware_bindings:
+            property_names = set(binding.protocol_properties)
+            if property_names != binding_field_set:
+                raise ValueError(
+                    f"hardware binding {binding.binding_id!r} protocol properties "
+                    "must exactly match reuse policy binding fields"
+                )
+            identity = tuple(
+                (name, repr(binding.protocol_properties[name]))
+                for name in policy.binding_fields
+            )
+            if identity in binding_identities:
+                raise ValueError("hardware binding protocol identities must be unique")
+            binding_identities.add(identity)
+        return self
+
 
 class AdapterCatalogDocument(ManagementModel):
     version: int = 1
@@ -205,6 +234,7 @@ class ProfileSelection(ManagementModel):
 
 class DeviceOnboardingRequest(ManagementModel):
     adapter_id: str
+    hardware_binding_id: str | None = Field(default=None, min_length=1, max_length=128)
     device: DeviceInput
     profile: ProfileSelection
 

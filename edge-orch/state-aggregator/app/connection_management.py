@@ -396,6 +396,7 @@ class ConnectionManagementService:
     ) -> DeviceOnboardingRequest:
         return DeviceOnboardingRequest(
             adapter_id=request.adapter_id,
+            hardware_binding_id=request.runtime.hardware_binding_id,
             device=request.device,
             profile=request.profile,
         )

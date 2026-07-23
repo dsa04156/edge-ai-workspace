@@ -143,7 +143,76 @@ class AdapterCatalog:
                         message=f"protocol field {name!r} has an invalid format",
                     )
                 )
+        binding_fields = adapter.runtime.reuse_policy.binding_fields
+        bindings = adapter.runtime.hardware_bindings
+        if binding_fields and bindings and not any(
+            all(
+                properties.get(name) == binding.protocol_properties.get(name)
+                for name in binding_fields
+            )
+            for binding in bindings
+        ):
+            issues.append(
+                ValidationIssue(
+                    code="hardware_binding_mismatch",
+                    field="device.protocolProperties",
+                    message=(
+                        "protocol binding fields do not match an approved hardware "
+                        "connection"
+                    ),
+                )
+            )
         return issues
+
+    def validate_hardware_binding(
+        self,
+        adapter_id: str,
+        binding_id: str,
+        properties: dict[str, Any],
+    ) -> list[ValidationIssue]:
+        try:
+            adapter = self.require(adapter_id)
+        except ValueError:
+            return [
+                ValidationIssue(
+                    code="unknown_adapter",
+                    field="adapterId",
+                    message=f"adapter {adapter_id!r} is not in the catalog",
+                )
+            ]
+        binding = next(
+            (
+                item
+                for item in adapter.runtime.hardware_bindings
+                if item.binding_id == binding_id
+            ),
+            None,
+        )
+        if binding is None:
+            return [
+                ValidationIssue(
+                    code="hardware_binding_not_allowed",
+                    field="hardwareBindingId",
+                    message=f"hardware binding {binding_id!r} is not approved",
+                )
+            ]
+        mismatches = [
+            name
+            for name, value in binding.protocol_properties.items()
+            if properties.get(name) != value
+        ]
+        if not mismatches:
+            return []
+        return [
+            ValidationIssue(
+                code="hardware_binding_mismatch",
+                field="device.protocolProperties",
+                message=(
+                    f"protocol fields {', '.join(mismatches)} do not match "
+                    f"hardware binding {binding_id!r}"
+                ),
+            )
+        ]
 
     def profile_template(
         self, adapter_id: str, properties: dict[str, Any]

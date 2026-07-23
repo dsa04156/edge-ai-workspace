@@ -29,6 +29,7 @@
           "workloadName": "device-serial-jetson",
           "targetNode": "etri-dev0001-jetorn",
           "hardwareBindingId": "jetson-arduino-serial-001",
+          "hardwareBindingIds": ["jetson-arduino-serial-001"],
           "managementOwner": "argocd"
         }
       ]
@@ -60,6 +61,7 @@
           "workloadName": "device-sensehat-raspi",
           "targetNode": "etri-dev0003-raspi5",
           "hardwareBindingId": "raspi5-sensehat-i2c-001",
+          "hardwareBindingIds": ["raspi5-sensehat-i2c-001"],
           "managementOwner": "argocd"
         }
       ]

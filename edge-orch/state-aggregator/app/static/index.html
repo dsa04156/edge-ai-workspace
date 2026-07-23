@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=management-flow-v1-20260723" />
+    <link rel="stylesheet" href="/static/device-management.css?v=protocol-first-v2-20260723" />
   </head>
   <body>
     <main class="shell">
@@ -478,36 +478,37 @@
                 <section id="managementRegistrationStep1" class="management-step-panel" data-management-step-panel="1" aria-labelledby="managementStep1Title">
                   <div class="management-step-head">
                     <span>1단계</span>
-                    <h4 id="managementStep1Title">연결할 런타임과 물리 장치 선택</h4>
-                    <p>선택한 노드에서 승인된 연결만 표시됩니다.</p>
+                    <h4 id="managementStep1Title">프로토콜과 물리 연결 선택</h4>
+                    <p>프로토콜을 먼저 고르면 선택 노드에서 사용할 수 있는 Device Service와 연결만 표시됩니다.</p>
                   </div>
                   <div class="management-form-grid">
-                    <label>
-                      <span>런타임 처리 방식</span>
-                      <select id="managementRuntimeMode">
-                        <option value="auto">자동 · 기존 런타임 우선 재사용</option>
-                        <option value="reuse">기존 런타임만 재사용</option>
-                        <option value="deploy">승인된 템플릿 배포</option>
-                      </select>
+                    <label class="management-field-wide">
+                      <span>연결 프로토콜 · Device Service</span>
+                      <select id="managementAdapter" required></select>
                     </label>
                     <label>
                       <span>관리 대상 KubeEdge 노드</span>
                       <select id="managementTargetNode" required></select>
                     </label>
-                    <label class="management-field-wide">
+                    <label>
                       <span>승인된 하드웨어 연결</span>
                       <select id="managementHardwareBinding" required></select>
                     </label>
                     <label class="management-field-wide">
-                      <span>프로토콜 어댑터</span>
-                      <select id="managementAdapter" required></select>
+                      <span>Device Service 준비 방식</span>
+                      <select id="managementRuntimeMode">
+                        <option value="auto">자동 · 가능하면 기존 Device Service 재사용</option>
+                        <option value="reuse">기존 Device Service만 사용</option>
+                        <option value="deploy">새 Device Service 인스턴스 배포</option>
+                      </select>
                     </label>
                   </div>
+                  <div id="managementConnectionGuidance" class="management-connection-guidance" role="status" aria-live="polite"></div>
                   <div class="management-subsection">
-                    <strong>물리 연결 정보</strong>
+                    <strong>선택한 연결의 프로토콜 값</strong>
                     <div id="managementProtocolFields" class="management-form-grid"></div>
                   </div>
-                  <p class="management-runtime-hint">노드와 디바이스 경로는 승인 카탈로그에서만 선택하며 직접 입력할 수 없습니다.</p>
+                  <p class="management-runtime-hint">노드와 장치 경로는 승인 카탈로그에서만 선택합니다. 새 물리 연결은 고정 경로와 필요한 Pod 장치 마운트를 Git 배포 경로에 먼저 등록해야 합니다.</p>
                   <div class="management-step-actions">
                     <button type="button" class="management-primary-action" data-management-next-step>다음: 디바이스 정보</button>
                   </div>
@@ -591,7 +592,7 @@
 
                   <dl class="management-review-grid">
                     <div><dt>대상 노드</dt><dd id="managementReviewNode">-</dd></div>
-                    <div><dt>어댑터</dt><dd id="managementReviewAdapter">-</dd></div>
+                    <div><dt>프로토콜 / Device Service</dt><dd id="managementReviewAdapter">-</dd></div>
                     <div><dt>하드웨어 연결</dt><dd id="managementReviewBinding">-</dd></div>
                     <div><dt>디바이스 / 프로필</dt><dd id="managementReviewDevice">-</dd></div>
                   </dl>
@@ -827,7 +828,7 @@
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=device-history-20260722"></script>
     <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
-    <script src="/static/device-management.js?v=management-flow-v1-20260723"></script>
+    <script src="/static/device-management.js?v=protocol-first-v2-20260723"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

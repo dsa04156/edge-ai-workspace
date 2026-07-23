@@ -10,7 +10,19 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/v4/models"
 )
 
-const supportedBaudRate = 115200
+var supportedBaudRates = map[int]struct{}{
+	1200:   {},
+	2400:   {},
+	4800:   {},
+	9600:   {},
+	19200:  {},
+	38400:  {},
+	57600:  {},
+	115200: {},
+	230400: {},
+	460800: {},
+	921600: {},
+}
 
 type SerialConfig struct {
 	Port         string
@@ -51,8 +63,8 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 	if err != nil {
 		return SerialConfig{}, err
 	}
-	if baudRate != supportedBaudRate {
-		return SerialConfig{}, fmt.Errorf("unsupported serial BaudRate %d; expected %d", baudRate, supportedBaudRate)
+	if _, ok := supportedBaudRates[baudRate]; !ok {
+		return SerialConfig{}, fmt.Errorf("unsupported serial BaudRate %d", baudRate)
 	}
 
 	deviceID, err := requiredString(properties, "DeviceID")

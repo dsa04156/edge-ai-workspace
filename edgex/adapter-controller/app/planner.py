@@ -78,7 +78,8 @@ class RuntimePlanner:
             (
                 item
                 for item in observations
-                if item.hardware_binding_id == request.hardware_binding_id
+                if request.hardware_binding_id in item.hardware_binding_ids
+                and item.target_node == request.target_node
             ),
             None,
         )

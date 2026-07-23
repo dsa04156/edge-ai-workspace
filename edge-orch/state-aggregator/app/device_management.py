@@ -134,6 +134,17 @@ class DeviceManagementService:
                 request.adapter_id, request.device.protocol_properties
             )
         )
+        if request.hardware_binding_id is not None:
+            for issue in self.catalog.validate_hardware_binding(
+                request.adapter_id,
+                request.hardware_binding_id,
+                request.device.protocol_properties,
+            ):
+                if not any(
+                    existing.code == issue.code and existing.field == issue.field
+                    for existing in protocol_issues
+                ):
+                    protocol_issues.append(issue)
         issues = list(protocol_issues)
         warnings: list[ValidationIssue] = []
         try:
@@ -543,6 +554,31 @@ class DeviceManagementService:
                 if protocol_issues:
                     raise ManagementValidationError(
                         ValidationResult(valid=False, issues=protocol_issues)
+                    )
+                current_protocol = (
+                    (current.get("protocols") or {}).get(adapter.protocol_name) or {}
+                )
+                changed_binding_fields = [
+                    field_name
+                    for field_name in adapter.runtime.reuse_policy.binding_fields
+                    if patch.protocol_properties.get(field_name)
+                    != current_protocol.get(field_name)
+                ]
+                if changed_binding_fields:
+                    raise ManagementValidationError(
+                        ValidationResult(
+                            valid=False,
+                            issues=[
+                                ValidationIssue(
+                                    code="hardware_binding_immutable",
+                                    field="protocolProperties",
+                                    message=(
+                                        "physical hardware binding fields cannot be changed "
+                                        f"by PATCH: {', '.join(changed_binding_fields)}"
+                                    ),
+                                )
+                            ],
+                        )
                     )
                 binding_owner = await self._protocol_binding_owner(
                     adapter,

@@ -670,6 +670,50 @@ async def test_patch_rejects_protocol_selector_incompatible_with_bound_profile(c
 
 
 @async_test
+async def test_patch_cannot_move_an_existing_device_to_another_hardware_binding(catalog):
+    serial = catalog.require("serial-jetson")
+    serial.runtime.hardware_bindings.append(
+        serial.runtime.hardware_bindings[0].model_copy(
+            update={
+                "binding_id": "jetson-arduino-serial-002",
+                "display_name": "Jetson Arduino USB Serial 2",
+                "device_path": "/dev/arduino-002",
+                "protocol_properties": {
+                    "Port": "/dev/arduino-002",
+                    "BaudRate": 57600,
+                    "DeviceID": "arduino-002",
+                },
+            }
+        )
+    )
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    created = await service.create_device(
+        onboarding_request(),
+        idempotency_key="create-before-binding-change",
+        actor="dashboard-admin",
+    )
+
+    with pytest.raises(ManagementValidationError) as captured:
+        await service.patch_device(
+            created.device_name,
+            DevicePatchRequest(
+                protocol_properties={
+                    "Port": "/dev/arduino-002",
+                    "BaudRate": 57600,
+                    "DeviceID": "arduino-002",
+                    "ResourceName": "temperature_raw",
+                }
+            ),
+            idempotency_key="patch-binding-change",
+            actor="dashboard-admin",
+        )
+
+    assert captured.value.result.issues[0].code == "hardware_binding_immutable"
+    assert metadata.devices[created.device_name]["protocols"]["serial"] == serial_protocol()
+
+
+@async_test
 async def test_readback_mismatch_is_failed_not_success(catalog):
     metadata = FakeMetadata()
     metadata.corrupt_device_readback = True
@@ -724,5 +768,22 @@ async def test_invalid_request_raises_validation_error_without_mutation(catalog)
         )
 
     assert captured.value.result.valid is False
-    assert "constant_mismatch" in [item.code for item in captured.value.result.issues]
+    assert "hardware_binding_mismatch" in [
+        item.code for item in captured.value.result.issues
+    ]
     assert not any(call.startswith("add_") for call in metadata.calls)
+
+
+@async_test
+async def test_selected_hardware_binding_mismatch_is_reported_once(catalog):
+    request = onboarding_request()
+    request.hardware_binding_id = "jetson-arduino-serial-001"
+    request.device.protocol_properties["Port"] = "/dev/ttyUSB0"
+
+    result = await service_for(catalog).validate(request, actor="viewer")
+
+    assert [
+        item.code
+        for item in result.issues
+        if item.code == "hardware_binding_mismatch"
+    ] == ["hardware_binding_mismatch"]
