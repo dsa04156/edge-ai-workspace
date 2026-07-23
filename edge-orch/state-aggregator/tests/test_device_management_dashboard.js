@@ -25,9 +25,10 @@ function response(payload, {ok = true, status = 200} = {}) {
 
 
 test("only installed runtime adapters can be applied", () => {
-  assert.equal(adapterCanApply({status: "installed"}), true);
-  assert.equal(adapterCanApply({status: "unavailable"}), false);
-  assert.equal(adapterCanApply({status: "unsupported"}), false);
+  assert.equal(adapterCanApply({status: "installed", mutationEnabled: true}), true);
+  assert.equal(adapterCanApply({status: "installed", mutationEnabled: false}), false);
+  assert.equal(adapterCanApply({status: "unavailable", mutationEnabled: true}), false);
+  assert.equal(adapterCanApply({status: "unsupported", mutationEnabled: true}), false);
   assert.equal(adapterCanApply(null), false);
 });
 
@@ -139,6 +140,10 @@ test("operation status distinguishes metadata wait, verified, and failure", () =
   assert.match(operationStatusView({status: "verified"}).detail, /Event 검증 완료/);
   assert.equal(operationStatusView({status: "failed"}).terminal, true);
   assert.match(operationStatusView({status: "failed", error: "readback mismatch"}).detail, /readback mismatch/);
+  assert.match(
+    operationStatusView({status: "waiting_for_event", error: "Core Data unavailable"}).detail,
+    /Core Data unavailable/,
+  );
 });
 
 
@@ -197,6 +202,7 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementProtocolFields",
     "managementValidation",
     "managementOperation",
+    "managementMutationMode",
     "managementAdminToken",
     "managedDeviceList",
     "devicePatchForm",
@@ -204,10 +210,13 @@ test("dashboard ships an accessible session-only device management page", () => 
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
+  assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=onboarding-20260723/);
   assert.match(html, /device-management\.js\?v=onboarding-20260723/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
+  assert.match(javascript, /function renderManagementValidation\(/);
+  assert.doesNotMatch(javascript, /function renderValidation\(/);
 });

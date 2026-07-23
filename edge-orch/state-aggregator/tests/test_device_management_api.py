@@ -29,7 +29,7 @@ def request_payload():
             "protocolProperties": {
                 "Port": "/dev/arduino-001",
                 "BaudRate": 115200,
-                "DeviceID": "arduino-002",
+                "DeviceID": "arduino-001",
                 "ResourceName": "temperature_raw",
             },
         },
@@ -138,9 +138,21 @@ def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():
 
     assert adapters.status_code == 200
     assert adapters.json()[0]["adapterId"] == "serial-jetson"
+    assert adapters.json()[0]["mutationEnabled"] is False
     assert validation.status_code == 200
     assert validation.json()["valid"] is True
     assert ("validate", "virtual-temperature-002", "viewer") in service.calls
+
+
+def test_catalog_exposes_enabled_mutation_mode_to_the_dashboard():
+    service = RecordingService()
+    with client_for(
+        service, enabled=True, token="admin-token", hmac_key="hmac"
+    ) as client:
+        response = client.get("/management/adapters")
+
+    assert response.status_code == 200
+    assert response.json()[0]["mutationEnabled"] is True
 
 
 def test_mutation_is_hidden_when_feature_flag_is_disabled():

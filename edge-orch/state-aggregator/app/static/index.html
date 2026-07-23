@@ -377,7 +377,7 @@
               <h2 id="deviceManagementTitle">Device Onboarding</h2>
             </div>
             <div class="management-head-actions">
-              <span>installed adapters only · guarded mutation</span>
+              <strong id="managementMutationMode" data-status="disabled">DRY-RUN ONLY · MUTATION DISABLED</strong>
               <button id="managementRefresh" type="button">Refresh EdgeX State</button>
             </div>
           </div>
@@ -408,7 +408,7 @@
                 </div>
                 <label>
                   <span>Admin Bearer Token</span>
-                  <input id="managementAdminToken" type="password" autocomplete="off" placeholder="required only for apply/update" />
+                  <input id="managementAdminToken" type="password" autocomplete="off" placeholder="required only for apply/update" disabled />
                 </label>
               </section>
 
@@ -561,7 +561,7 @@
                 </label>
                 <label class="management-field-wide">
                   <span>Protocol properties JSON · optional full adapter properties</span>
-                  <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-002","ResourceName":"temperature_raw"}'></textarea>
+                  <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-001","ResourceName":"temperature_raw"}'></textarea>
                 </label>
                 <label class="management-field-wide">
                   <span>Idempotency key</span>
@@ -569,7 +569,7 @@
                 </label>
               </div>
               <div class="management-buttons">
-                <button type="submit">Apply Allowlisted Update</button>
+                <button id="managementPatchApply" type="submit" disabled>Apply Allowlisted Update</button>
               </div>
             </form>
           </div>

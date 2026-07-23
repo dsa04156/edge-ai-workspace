@@ -95,6 +95,7 @@
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -111,6 +112,7 @@
 <li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -146,8 +148,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-22 19:15</span>
+            <span class="badge">수정: 2026-07-23 11:22</span>
+            <span class="badge">HTML 생성: 2026-07-23 11:32</span>
           </div>
         </header>
         <div class="doc-body">
@@ -155,7 +157,7 @@
 <h2 id="목적">목적</h2>
 <p>이 문서는 EdgeX를 물리 디바이스의 유일한 상태 권위로 사용하는 운영 dashboard 정보 구조를 정의한다. Dashboard는 Core Metadata의 등록·연결 상태와 Core Data event freshness를 함께 보여 주어 운영자가 점검 대상을 빠르게 좁히도록 돕는다.</p>
 <pre data-lang="text"><code>physical device -&gt; EdgeX Device Service -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
-<p>2026-07-21 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 physical <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 6개씩, 총 12개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 Arduino 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
+<p>2026-07-23 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 physical <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 6개씩, 총 12개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 Arduino 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
 <ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 저장 이력 그래프와 구분한다.</li><li>저장 이력 그래프는 <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로를 사용하고 dashboard가 DB에 직접 연결하지 않는다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
@@ -189,6 +191,26 @@
 <tr>
 <td><code>GET /metrics</code></td>
 <td>Prometheus scrape metric</td>
+</tr>
+<tr>
+<td><code>GET /management/adapters</code></td>
+<td>Adapter Catalog, Device Service 상태와 전역 <code>mutationEnabled</code> 조회</td>
+</tr>
+<tr>
+<td><code>POST /management/devices/validate</code></td>
+<td>Profile/Device/binding 충돌을 mutation 없이 dry-run</td>
+</tr>
+<tr>
+<td><code>POST /management/devices</code></td>
+<td>활성화된 관리자 경로에서 Profile/Device 생성과 readback</td>
+</tr>
+<tr>
+<td><code>PATCH /management/devices/{name}</code></td>
+<td>활성화된 관리자 경로에서 allowlist field만 수정</td>
+</tr>
+<tr>
+<td><code>GET /management/operations/{requestId}</code></td>
+<td>Metadata 적용과 first Event 검증 상태 조회</td>
 </tr>
 </tbody></table></div>
 <h2 id="state-devices-계약"><code>/state/devices</code> 계약</h2>
@@ -308,6 +330,10 @@
 <td>EdgeX Device → Device Service → AI/storage/dashboard consumer</td>
 </tr>
 <tr>
+<td>Device Management</td>
+<td>Adapter Catalog 상태, Device identity/endpoint/Profile form, dry-run plan, 관리자 apply와 first-Event 상태</td>
+</tr>
+<tr>
 <td>Issue / Focus</td>
 <td>locked, service down, disconnected, stale/no event 원인</td>
 </tr>
@@ -403,7 +429,9 @@
 </tbody></table></div>
 <p>Node KPI는 인프라 진단용으로 별도 표시하며 물리 디바이스 KPI의 분모나 availability gate로 사용하지 않는다.</p>
 <h2 id="운영자-해석-순서">운영자 해석 순서</h2>
-<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
+<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>새 장비 등록 시 Device Management에서 installed adapter를 선택하고 dry-run 충돌을 확인한다. mutation이 활성화된 경우에만 관리자 token과 idempotency key로 apply하고 Metadata readback과 first Event 상태를 구분해 본다.</li></ol>
+<p>Device Management의 token은 browser session memory에서만 유지하고 URL, localStorage와 sessionStorage에 저장하지 않는다. Profile/Device 삭제, command publish, adapter 자동 설치와 Kubernetes apply/restart control은 화면에 두지 않는다. 기존 Workflow Builder는 별도 화면과 browser-local state를 사용하며 onboarding operation과 결합하지 않는다. Adapter가 <code>installed</code>여도 현재 endpoint/resource route를 다른 Device가 소유하면 새 등록은 <code>protocol_binding_exists</code>다. <code>edgeAiOnboarding*</code>, <code>nodeName</code>, <code>physicalDeviceId</code>는 system tag로 보고 사용자 PATCH에서 변경하지 않는다.</p>
+<ol><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
 <p>기존 loopback Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 두 Device Service의 10분·10,000 sample 메모리 cache는 로컬 Workflow 입력용이며 재시작하면 사라진다. dashboard는 이 로컬 cache나 과거 Core Data record로 현재 연결을 보정하지 않고, 계속 Core Metadata와 최신 Core Data Event <code>origin</code>으로 상태와 freshness를 판단한다. Serial 6개와 I2C 6개 가상 Device의 Metadata, 계약된 Reading Event와 freshness를 각각 확인하고 실제 케이블/보드 분리·복구 검증은 별도 PASS 항목으로 남긴다.</p>
         </div>

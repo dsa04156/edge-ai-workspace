@@ -30,6 +30,8 @@
           "label": "Physical source ID",
           "type": "string",
           "required": true,
+          "default": "arduino-001",
+          "const": "arduino-001",
           "pattern": "^[A-Za-z0-9._~-]+$"
         },
         {

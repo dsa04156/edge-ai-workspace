@@ -169,6 +169,7 @@ class AdapterStatusView(ManagementModel):
     protocol_name: str
     node_name: str | None = None
     status: Literal["installed", "unavailable", "unsupported"]
+    mutation_enabled: bool = False
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)
     profile_capabilities: ProfileCapabilities | None = None

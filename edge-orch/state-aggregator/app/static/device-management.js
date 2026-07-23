@@ -14,7 +14,11 @@ const managementState = {
 
 
 function adapterCanApply(adapter) {
-  return Boolean(adapter && adapter.status === "installed");
+  return Boolean(
+    adapter
+    && adapter.status === "installed"
+    && adapter.mutationEnabled === true,
+  );
 }
 
 
@@ -143,7 +147,7 @@ function operationStatusView(operation = {}) {
   return {
     label: "WAITING FOR EVENT",
     tone: "waiting",
-    detail: "EdgeX Metadata 적용 완료 · 첫 Core Data Event 대기",
+    detail: operation.error || "EdgeX Metadata 적용 완료 · 첫 Core Data Event 대기",
     terminal: false,
   };
 }
@@ -257,6 +261,22 @@ function selectedAdapter() {
 }
 
 
+function renderMutationMode(documentRef = document) {
+  const enabled = managementState.adapters.some(
+    (adapter) => adapter.mutationEnabled === true,
+  );
+  const mode = byId("managementMutationMode", documentRef);
+  if (mode) {
+    mode.textContent = enabled ? "MUTATION ENABLED" : "DRY-RUN ONLY · MUTATION DISABLED";
+    mode.dataset.status = enabled ? "enabled" : "disabled";
+  }
+  const tokenInput = byId("managementAdminToken", documentRef);
+  if (tokenInput) tokenInput.disabled = !enabled;
+  const patchButton = byId("managementPatchApply", documentRef);
+  if (patchButton) patchButton.disabled = !enabled;
+}
+
+
 function renderProtocolFields(documentRef = document) {
   const container = byId("managementProtocolFields", documentRef);
   clearElement(container);
@@ -294,6 +314,8 @@ function renderProtocolFields(documentRef = document) {
   if (adapterNote) {
     adapterNote.textContent = adapterCanApply(adapter)
       ? `${adapter.serviceName}에 Profile/Device를 등록합니다.`
+      : adapter.status === "installed" && adapter.mutationEnabled !== true
+        ? `${adapter.serviceName} dry-run만 가능합니다. 관리 mutation은 비활성화되어 있습니다.`
       : adapter.reason || "현재 apply할 수 없는 adapter입니다.";
     adapterNote.dataset.status = adapter.status || "unknown";
   }
@@ -355,7 +377,7 @@ function collectOnboardingPayload(documentRef = document) {
 }
 
 
-function renderValidation(result, documentRef = document) {
+function renderManagementValidation(result, documentRef = document) {
   const container = byId("managementValidation", documentRef);
   clearElement(container);
   if (!container) return;
@@ -467,7 +489,7 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   ]);
   managementState.adapters = adapters;
   managementState.devices = devices;
-  const firstInstalled = adapters.find(adapterCanApply) || adapters[0];
+  const firstInstalled = adapters.find((adapter) => adapter.status === "installed") || adapters[0];
   managementState.selectedAdapterId = firstInstalled?.adapterId || "";
   const select = byId("managementAdapter", documentRef);
   clearElement(select);
@@ -481,6 +503,7 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   renderAdapterCatalog(documentRef);
   renderManagedDevices(documentRef);
+  renderMutationMode(documentRef);
   renderProtocolFields(documentRef);
   ensureIdempotencyInput(byId("managementIdempotencyKey", documentRef));
   ensureIdempotencyInput(byId("patchIdempotencyKey", documentRef));
@@ -509,7 +532,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     try {
       const payload = collectOnboardingPayload(documentRef);
       managementState.validation = await validateManagementDevice(payload, fetchFn);
-      renderValidation(managementState.validation, documentRef);
+      renderManagementValidation(managementState.validation, documentRef);
     } catch (error) {
       renderManagementError(error, documentRef);
     }
@@ -519,7 +542,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       const payload = collectOnboardingPayload(documentRef);
       const validation = await validateManagementDevice(payload, fetchFn);
       managementState.validation = validation;
-      renderValidation(validation, documentRef);
+      renderManagementValidation(validation, documentRef);
       if (!validation.valid) return;
       const operation = await createManagementDevice(payload, {
         token: sessionAdminToken,

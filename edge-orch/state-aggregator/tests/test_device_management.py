@@ -18,6 +18,7 @@ from app.device_management import (
     OperationNotFound,
 )
 from app.device_management_edgex import EdgeXManagementBackendError
+from app.edgex import EdgeXBackendError
 from app.device_management_models import (
     DeviceOnboardingRequest,
     DevicePatchRequest,
@@ -37,7 +38,7 @@ def async_test(function):
     return run
 
 
-def serial_protocol(device_id="arduino-002", resource_name="temperature_raw"):
+def serial_protocol(device_id="arduino-001", resource_name="temperature_raw"):
     return {
         "Port": "/dev/arduino-001",
         "BaudRate": 115200,
@@ -49,7 +50,7 @@ def serial_protocol(device_id="arduino-002", resource_name="temperature_raw"):
 def onboarding_request(
     *,
     device_name="virtual-temperature-002",
-    device_id="arduino-002",
+    device_id="arduino-001",
     profile_mode="existing",
     profile_name="etri-arduino-temperature",
 ):
@@ -186,9 +187,12 @@ class FakeEvents:
     def __init__(self):
         self.events = {}
         self.calls = []
+        self.error = None
 
     async def get_latest_event(self, device_name):
         self.calls.append(device_name)
+        if self.error is not None:
+            raise self.error
         return copy.deepcopy(self.events.get(device_name, []))
 
 
@@ -251,6 +255,61 @@ async def test_validate_rejects_missing_service_duplicate_and_profile_mismatch(c
 
 
 @async_test
+async def test_validate_rejects_protocol_binding_already_owned_by_another_device(catalog):
+    metadata = FakeMetadata()
+    metadata.devices["virtual-temperature-001"] = {
+        "name": "virtual-temperature-001",
+        "serviceName": "device-serial-jetson",
+        "profileName": "etri-arduino-temperature",
+        "protocols": {"serial": serial_protocol()},
+        "tags": {},
+    }
+
+    result = await service_for(catalog, metadata).validate(
+        onboarding_request(), actor="viewer"
+    )
+
+    assert result.valid is False
+    assert [item.code for item in result.issues].count("protocol_binding_exists") == 1
+    assert "virtual-temperature-001" in result.issues[-1].message
+
+
+@async_test
+async def test_validate_normalizes_edgex_string_protocol_values_for_binding_ownership(catalog):
+    metadata = FakeMetadata()
+    existing_protocol = serial_protocol()
+    existing_protocol["BaudRate"] = "115200"
+    metadata.devices["virtual-temperature-001"] = {
+        "name": "virtual-temperature-001",
+        "serviceName": "device-serial-jetson",
+        "profileName": "etri-arduino-temperature",
+        "protocols": {"serial": existing_protocol},
+        "tags": {},
+    }
+
+    result = await service_for(catalog, metadata).validate(
+        onboarding_request(), actor="viewer"
+    )
+
+    assert result.valid is False
+    assert [item.code for item in result.issues].count("protocol_binding_exists") == 1
+
+
+@async_test
+async def test_validate_rejects_forged_or_mismatched_system_tags(catalog):
+    request = onboarding_request()
+    request.device.tags[DEVICE_REQUEST_ID_TAG] = "forged-request"
+    request.device.tags["nodeName"] = "wrong-node"
+    request.device.tags["physicalDeviceId"] = "wrong-source"
+
+    result = await service_for(catalog).validate(request, actor="viewer")
+
+    codes = [item.code for item in result.issues]
+    assert "reserved_tag" in codes
+    assert codes.count("system_tag_mismatch") == 2
+
+
+@async_test
 async def test_create_runs_profile_device_readback_saga_and_waits_for_event(catalog):
     metadata = FakeMetadata()
     events = FakeEvents()
@@ -295,7 +354,8 @@ async def test_same_idempotency_request_reuses_result_and_changed_payload_confli
     assert second.request_id == first.request_id
     assert metadata.calls.count("add_device:virtual-temperature-002") == 1
 
-    changed = onboarding_request(device_id="arduino-003")
+    changed = onboarding_request()
+    changed.device.description = "different payload"
     with pytest.raises(IdempotencyConflict):
         await service.create_device(
             changed, idempotency_key="retry-1", actor="dashboard-admin"
@@ -352,6 +412,30 @@ async def test_operation_transitions_to_verified_when_first_event_arrives(catalo
 
 
 @async_test
+async def test_core_data_outage_keeps_applied_metadata_waiting_and_recovers(catalog):
+    metadata = FakeMetadata()
+    events = FakeEvents()
+    events.error = EdgeXBackendError("core data unavailable")
+    service = service_for(catalog, metadata, events)
+
+    operation = await service.create_device(
+        onboarding_request(), idempotency_key="event-backend-outage", actor="dashboard-admin"
+    )
+
+    assert operation.metadata_applied is True
+    assert operation.status == "waiting_for_event"
+    assert "verification unavailable" in (operation.error or "")
+    assert "virtual-temperature-002" in metadata.devices
+
+    events.error = None
+    events.events[operation.device_name] = [{"device_name": operation.device_name}]
+    refreshed = await service.get_operation(operation.request_id)
+
+    assert refreshed.status == "verified"
+    assert refreshed.error is None
+
+
+@async_test
 async def test_operation_is_reconstructed_from_reserved_tags_after_restart(catalog):
     metadata = FakeMetadata()
     events = FakeEvents()
@@ -382,8 +466,9 @@ async def test_operation_memory_store_is_bounded(catalog):
     await service.create_device(
         onboarding_request(), idempotency_key="one", actor="dashboard-admin"
     )
+    metadata.devices.clear()
     await service.create_device(
-        onboarding_request(device_name="virtual-temperature-003", device_id="arduino-003"),
+        onboarding_request(device_name="virtual-temperature-003"),
         idempotency_key="two",
         actor="dashboard-admin",
     )
@@ -404,7 +489,7 @@ async def test_patch_preserves_reserved_tags_and_changes_only_allowlist(catalog)
             "description": "updated description",
             "labels": ["line-b"],
             "tags": {"line": "B"},
-            "protocolProperties": serial_protocol(device_id="arduino-003"),
+            "protocolProperties": serial_protocol(),
             "adminState": "LOCKED",
         }
     )
@@ -421,10 +506,80 @@ async def test_patch_preserves_reserved_tags_and_changes_only_allowlist(catalog)
     assert device["description"] == "updated description"
     assert device["labels"] == ["line-b"]
     assert device["adminState"] == "LOCKED"
-    assert device["protocols"]["serial"]["DeviceID"] == "arduino-003"
+    assert device["protocols"]["serial"]["DeviceID"] == "arduino-001"
     assert device["tags"][DEVICE_REQUEST_ID_TAG] == original_tags[DEVICE_REQUEST_ID_TAG]
     assert device["tags"][DEVICE_PAYLOAD_HASH_TAG] == original_tags[DEVICE_PAYLOAD_HASH_TAG]
     assert device["tags"]["line"] == "B"
+
+
+@async_test
+async def test_patch_rejects_reserved_onboarding_tags(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    created = await service.create_device(
+        onboarding_request(), idempotency_key="create-reserved-tags", actor="dashboard-admin"
+    )
+    for tag in (
+        DEVICE_REQUEST_ID_TAG,
+        DEVICE_PAYLOAD_HASH_TAG,
+        "nodeName",
+        "physicalDeviceId",
+    ):
+        patch = DevicePatchRequest.model_validate({"tags": {tag: "forged"}})
+
+        with pytest.raises(ManagementValidationError) as captured:
+            await service.patch_device(
+                created.device_name,
+                patch,
+                idempotency_key=f"patch-reserved-tag-{tag}",
+                actor="dashboard-admin",
+            )
+
+        assert captured.value.result.issues[0].code == "reserved_tag"
+    assert metadata.calls.count(f"patch_device:{created.device_name}") == 0
+
+
+@async_test
+async def test_patch_requires_current_device_service_availability(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    created = await service.create_device(
+        onboarding_request(), idempotency_key="create-before-service-lock", actor="dashboard-admin"
+    )
+    metadata.services[0]["adminState"] = "LOCKED"
+
+    with pytest.raises(ManagementValidationError) as captured:
+        await service.patch_device(
+            created.device_name,
+            DevicePatchRequest(description="must not apply"),
+            idempotency_key="patch-locked-service",
+            actor="dashboard-admin",
+        )
+
+    assert captured.value.result.issues[0].code == "adapter_unavailable"
+    assert metadata.devices[created.device_name]["description"] != "must not apply"
+
+
+@async_test
+async def test_patch_rejects_protocol_selector_incompatible_with_bound_profile(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    created = await service.create_device(
+        onboarding_request(), idempotency_key="create-before-selector-change", actor="dashboard-admin"
+    )
+
+    with pytest.raises(ManagementValidationError) as captured:
+        await service.patch_device(
+            created.device_name,
+            DevicePatchRequest(
+                protocol_properties=serial_protocol(resource_name="light_raw")
+            ),
+            idempotency_key="patch-incompatible-selector",
+            actor="dashboard-admin",
+        )
+
+    assert captured.value.result.issues[0].code == "profile_incompatible"
+    assert metadata.devices[created.device_name]["protocols"]["serial"] == serial_protocol()
 
 
 @async_test
@@ -439,6 +594,12 @@ async def test_readback_mismatch_is_failed_not_success(catalog):
 
     assert captured.value.operation.status == "failed"
     assert "readback" in (captured.value.operation.error or "")
+
+    restarted = service_for(catalog, metadata)
+    with pytest.raises(IdempotencyConflict, match="binding"):
+        await restarted.create_device(
+            onboarding_request(), idempotency_key="bad-readback", actor="dashboard-admin"
+        )
 
 
 @async_test

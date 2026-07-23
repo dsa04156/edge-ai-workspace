@@ -29,6 +29,23 @@ body[data-dashboard-page="management"] .side-rail {
   color: var(--muted);
 }
 
+#managementMutationMode {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+#managementMutationMode[data-status="enabled"] {
+  border-color: rgba(91, 207, 155, 0.5);
+  color: #5bcf9b;
+}
+
+#managementMutationMode[data-status="disabled"] {
+  color: var(--muted);
+}
+
 .management-guardrail {
   margin: var(--space-4) 0;
   padding: var(--space-3) var(--space-4);

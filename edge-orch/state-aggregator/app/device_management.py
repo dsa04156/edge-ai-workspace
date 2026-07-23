@@ -20,10 +20,18 @@ from .device_management_models import (
     ValidationIssue,
     ValidationResult,
 )
+from .edgex import EdgeXError
 
 
 DEVICE_REQUEST_ID_TAG = "edgeAiOnboardingRequestId"
 DEVICE_PAYLOAD_HASH_TAG = "edgeAiOnboardingPayloadHash"
+ONBOARDING_OPERATION_TAGS = frozenset(
+    {DEVICE_REQUEST_ID_TAG, DEVICE_PAYLOAD_HASH_TAG}
+)
+IMMUTABLE_SYSTEM_TAGS = ONBOARDING_OPERATION_TAGS | {
+    "nodeName",
+    "physicalDeviceId",
+}
 
 audit_logger = logging.getLogger("app.device_management.audit")
 
@@ -113,11 +121,12 @@ class DeviceManagementService:
     async def validate(
         self, request: DeviceOnboardingRequest, *, actor: str = "anonymous"
     ) -> ValidationResult:
-        issues = list(
+        protocol_issues = list(
             self.catalog.validate_protocol(
                 request.adapter_id, request.device.protocol_properties
             )
         )
+        issues = list(protocol_issues)
         warnings: list[ValidationIssue] = []
         try:
             adapter = self.catalog.require(request.adapter_id)
@@ -125,6 +134,32 @@ class DeviceManagementService:
             result = ValidationResult(valid=False, issues=issues)
             self._audit_validation(request, actor, result)
             return result
+
+        for tag in sorted(set(request.device.tags) & ONBOARDING_OPERATION_TAGS):
+            issues.append(
+                ValidationIssue(
+                    code="reserved_tag",
+                    field=f"device.tags.{tag}",
+                    message="onboarding operation tags are managed by the server",
+                )
+            )
+        expected_system_tags = {
+            "nodeName": adapter.node_name,
+            "physicalDeviceId": request.device.protocol_properties.get("DeviceID"),
+        }
+        for tag, expected in expected_system_tags.items():
+            if (
+                expected is not None
+                and tag in request.device.tags
+                and request.device.tags[tag] != expected
+            ):
+                issues.append(
+                    ValidationIssue(
+                        code="system_tag_mismatch",
+                        field=f"device.tags.{tag}",
+                        message=f"{tag} must match the selected adapter endpoint",
+                    )
+                )
 
         services = await self.metadata.list_device_services()
         service = next(
@@ -151,6 +186,24 @@ class DeviceManagementService:
                     message=f"Device {request.device.name!r} already exists",
                 )
             )
+
+        if not protocol_issues:
+            binding_owner = await self._protocol_binding_owner(
+                adapter,
+                request.device.protocol_properties,
+                exclude_name=request.device.name,
+            )
+            if binding_owner is not None:
+                issues.append(
+                    ValidationIssue(
+                        code="protocol_binding_exists",
+                        field="device.protocolProperties",
+                        message=(
+                            "protocol endpoint/resource is already bound to Device "
+                            f"{binding_owner!r}"
+                        ),
+                    )
+                )
 
         template: ProfileTemplate | None = None
         if not issues or all(
@@ -249,7 +302,11 @@ class DeviceManagementService:
             existing = await self.metadata.get_device(request.device.name)
             if existing is not None:
                 recovered = await self._recover_matching_device(
-                    existing, request_id, payload_hash, actor=actor
+                    existing,
+                    request,
+                    request_id,
+                    payload_hash,
+                    actor=actor,
                 )
                 if recovered is not None:
                     self._remember(recovered)
@@ -325,7 +382,12 @@ class DeviceManagementService:
         idempotency_key: str,
         actor: str,
     ) -> ManagementOperation:
-        payload = {"name": name, "patch": patch.model_dump(by_alias=True, exclude_none=True)}
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        payload = {
+            "name": name,
+            "patch": patch.model_dump(by_alias=True, exclude_none=True),
+        }
         request_id = self._request_id(idempotency_key)
         payload_hash = self._payload_hash(payload)
         async with self._mutation_lock:
@@ -369,6 +431,47 @@ class DeviceManagementService:
                     )
                 )
 
+            services = await self.metadata.list_device_services()
+            device_service = next(
+                (
+                    item
+                    for item in services
+                    if item.get("name") == adapter.service_name
+                ),
+                None,
+            )
+            if (
+                device_service is None
+                or device_service.get("adminState") != "UNLOCKED"
+            ):
+                raise ManagementValidationError(
+                    ValidationResult(
+                        valid=False,
+                        issues=[
+                            ValidationIssue(
+                                code="adapter_unavailable",
+                                field="name",
+                                message="Device Service is not currently available in Core Metadata",
+                            )
+                        ],
+                    )
+                )
+
+            reserved_tags = sorted(set(patch.tags or {}) & IMMUTABLE_SYSTEM_TAGS)
+            if reserved_tags:
+                raise ManagementValidationError(
+                    ValidationResult(
+                        valid=False,
+                        issues=[
+                            ValidationIssue(
+                                code="reserved_tag",
+                                field=f"tags.{reserved_tags[0]}",
+                                message="onboarding operation tags are managed by the server",
+                            )
+                        ],
+                    )
+                )
+
             update: dict[str, Any] = {}
             if patch.description is not None:
                 update["description"] = patch.description
@@ -383,6 +486,48 @@ class DeviceManagementService:
                 if protocol_issues:
                     raise ManagementValidationError(
                         ValidationResult(valid=False, issues=protocol_issues)
+                    )
+                binding_owner = await self._protocol_binding_owner(
+                    adapter,
+                    patch.protocol_properties,
+                    exclude_name=name,
+                )
+                if binding_owner is not None:
+                    raise ManagementValidationError(
+                        ValidationResult(
+                            valid=False,
+                            issues=[
+                                ValidationIssue(
+                                    code="protocol_binding_exists",
+                                    field="protocolProperties",
+                                    message=(
+                                        "protocol endpoint/resource is already bound to Device "
+                                        f"{binding_owner!r}"
+                                    ),
+                                )
+                            ],
+                        )
+                    )
+                template = self.catalog.profile_template(
+                    adapter.adapter_id, patch.protocol_properties
+                )
+                profile = await self.metadata.get_profile(
+                    str(current.get("profileName") or "")
+                )
+                if profile is None or not self._profile_matches_template(
+                    profile, template
+                ):
+                    raise ManagementValidationError(
+                        ValidationResult(
+                            valid=False,
+                            issues=[
+                                ValidationIssue(
+                                    code="profile_incompatible",
+                                    field="protocolProperties",
+                                    message="protocol endpoint does not match the bound Device Profile",
+                                )
+                            ],
+                        )
                     )
                 update["protocols"] = {
                     adapter.protocol_name: deepcopy(patch.protocol_properties)
@@ -495,8 +640,13 @@ class DeviceManagementService:
         payload_hash: str | None,
     ) -> dict[str, Any]:
         tags = deepcopy(request.device.tags)
+        for tag in ONBOARDING_OPERATION_TAGS:
+            tags.pop(tag, None)
         if adapter.node_name:
-            tags.setdefault("nodeName", adapter.node_name)
+            tags["nodeName"] = adapter.node_name
+        physical_device_id = request.device.protocol_properties.get("DeviceID")
+        if isinstance(physical_device_id, str) and physical_device_id:
+            tags["physicalDeviceId"] = physical_device_id
         if request_id is not None and payload_hash is not None:
             tags[DEVICE_REQUEST_ID_TAG] = request_id
             tags[DEVICE_PAYLOAD_HASH_TAG] = payload_hash
@@ -541,15 +691,68 @@ class DeviceManagementService:
                 "Profile compensation failed for %s", name
             )
 
+    async def _protocol_binding_owner(
+        self,
+        adapter: Any,
+        protocol_properties: dict[str, Any],
+        *,
+        exclude_name: str,
+    ) -> str | None:
+        expected = self._canonical_protocol_properties(adapter, protocol_properties)
+        for device in await self.metadata.list_devices():
+            name = device.get("name")
+            if (
+                name == exclude_name
+                or device.get("serviceName") != adapter.service_name
+            ):
+                continue
+            protocols = device.get("protocols") or {}
+            observed = protocols.get(adapter.protocol_name)
+            if isinstance(observed, dict) and (
+                self._canonical_protocol_properties(adapter, observed) == expected
+            ):
+                return str(name or "unknown")
+        return None
+
+    @staticmethod
+    def _canonical_protocol_properties(
+        adapter: Any, properties: dict[str, Any]
+    ) -> dict[str, Any]:
+        field_types = {field.name: field.type for field in adapter.fields}
+        normalized: dict[str, Any] = {}
+        for name, value in properties.items():
+            if field_types.get(name) == "integer":
+                try:
+                    normalized[name] = int(value)
+                except (TypeError, ValueError):
+                    normalized[name] = value
+            elif value is None:
+                normalized[name] = None
+            else:
+                normalized[name] = str(value)
+        return normalized
+
     async def _refresh_event_status(self, operation: ManagementOperation) -> None:
-        points = await self.events.get_latest_event(operation.device_name)
+        try:
+            points = await self.events.get_latest_event(operation.device_name)
+        except EdgeXError as exc:
+            operation.first_event_verified = False
+            operation.status = "waiting_for_event"
+            operation.error = (
+                "first Event verification unavailable: "
+                f"{exc.__class__.__name__}"
+            )
+            operation.updated_at = _now()
+            return
         operation.first_event_verified = bool(points)
         operation.status = "verified" if points else "waiting_for_event"
+        operation.error = None
         operation.updated_at = _now()
 
     async def _recover_matching_device(
         self,
         device: dict[str, Any],
+        request: DeviceOnboardingRequest,
         request_id: str,
         payload_hash: str,
         *,
@@ -561,6 +764,17 @@ class DeviceManagementService:
             or tags.get(DEVICE_PAYLOAD_HASH_TAG) != payload_hash
         ):
             return None
+        adapter = self.catalog.require(request.adapter_id)
+        requested = self._device_document(
+            request,
+            adapter,
+            request_id=request_id,
+            payload_hash=payload_hash,
+        )
+        if not self._device_readback_matches(device, requested):
+            raise IdempotencyConflict(
+                "Device has matching operation tags but its binding differs from the request"
+            )
         return await self._operation_from_device(
             device,
             request_id=request_id,

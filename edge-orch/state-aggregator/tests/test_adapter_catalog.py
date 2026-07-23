@@ -22,7 +22,7 @@ def serial_protocol(**overrides):
     values = {
         "Port": "/dev/arduino-001",
         "BaudRate": 115200,
-        "DeviceID": "arduino-002",
+        "DeviceID": "arduino-001",
         "ResourceName": "temperature_raw",
     }
     values.update(overrides)
@@ -72,6 +72,7 @@ def test_serial_protocol_rejects_unknown_field(catalog):
     [
         ({"Port": "/dev/ttyUSB0"}, "constant_mismatch"),
         ({"BaudRate": 9600}, "constant_mismatch"),
+        ({"DeviceID": "arduino-002"}, "constant_mismatch"),
         ({"ResourceName": "pressure_raw"}, "invalid_option"),
         ({"DeviceID": ""}, "empty_value"),
     ],
@@ -123,7 +124,7 @@ def test_onboarding_request_accepts_camel_case_and_forbids_extra_fields():
                 "name": "virtual-temperature-002",
                 "description": "second source",
                 "labels": ["arduino"],
-                "tags": {"physicalDeviceId": "arduino-002"},
+                "tags": {"physicalDeviceId": "arduino-001"},
                 "protocolProperties": serial_protocol(),
                 "adminState": "UNLOCKED",
             },
@@ -167,7 +168,7 @@ def test_create_profile_requires_descriptive_fields_and_patch_is_allowlisted():
             "description": "updated",
             "labels": ["line-a"],
             "tags": {"line": "a"},
-            "protocolProperties": serial_protocol(DeviceID="arduino-003"),
+            "protocolProperties": serial_protocol(),
             "adminState": "LOCKED",
         }
     )

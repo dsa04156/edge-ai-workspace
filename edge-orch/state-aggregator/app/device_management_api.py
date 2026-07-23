@@ -73,7 +73,13 @@ def create_device_management_router(
     @router.get("/adapters", response_model=list[AdapterStatusView])
     async def get_adapters() -> list[AdapterStatusView]:
         try:
-            return await management_service.list_adapters()
+            adapters = await management_service.list_adapters()
+            return [
+                adapter.model_copy(
+                    update={"mutation_enabled": settings.device_management_enabled}
+                )
+                for adapter in adapters
+            ]
         except EdgeXManagementError as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,

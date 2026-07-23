@@ -95,6 +95,7 @@
 <li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -111,6 +112,7 @@
 <li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -146,8 +148,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-22 16:48</span>
-            <span class="badge">HTML 생성: 2026-07-22 19:15</span>
+            <span class="badge">수정: 2026-07-23 11:22</span>
+            <span class="badge">HTML 생성: 2026-07-23 11:32</span>
           </div>
         </header>
         <div class="doc-body">
@@ -512,6 +514,44 @@ done</code></pre>
 <ul><li>모든 응답은 배열이고 각 Reading의 <code>device_name</code>이 요청 Device와 같다.</li><li><code>source_name</code>, <code>resource_name</code>, <code>value_type</code>, <code>value</code>, <code>timestamp</code>, nanosecond <code>origin</code>과 <code>event_id</code>가 보존된다.</li><li>Serial Device 6개는 각각 계약된 <code>Int32</code> resource series로 분리된다.</li><li>Sense HAT Device 6개는 Profile별 <code>Float64</code> series로 분리되며 temperature는 2개, orientation과 gyroscope는 각각 3개 resource를 표시할 수 있다.</li><li>조회 오류나 빈 결과를 <code>/state/devices</code>의 <code>latest_readings</code>로 대체하지 않는다.</li></ul>
 <p>브라우저에서는 Assets의 Device 행을 선택해 다음을 확인한다.</p>
 <ol><li>선택 직후 기본 <code>30분</code> 이력을 조회한다.</li><li><code>5분</code>, <code>30분</code>, <code>1시간</code>, <code>24시간</code>과 <code>새로고침</code>이 선택 Device에만 적용된다.</li><li>resource별 series, 반환 Reading 수, 실제 첫/마지막 timestamp가 보인다.</li><li><code>최신 1000 events 제한</code> 문구가 보인다. 한 Event에 Reading이 여러 개면 반환 Reading 수는 1,000보다 클 수 있다.</li><li>긴 범위가 최신 1,000 Event로 잘렸을 때 요청한 전체 기간을 모두 읽었다고 해석하지 않는다.</li><li>빠르게 Device나 범위를 바꿔도 이전 요청의 늦은 응답이 현재 선택을 덮어쓰지 않는다.</li><li>조회 중·빈 결과·오류 상태가 각각 구분되고 오류가 다른 Device나 dashboard 전체를 가짜 정상값으로 바꾸지 않는다.</li></ol>
+<h2 id="8b-dashboard-device-management와-온보딩-dry-run">8B. Dashboard Device Management와 온보딩 dry-run</h2>
+<p><code>Device Management</code>는 EdgeX Core Metadata의 Device/Profile을 제한적으로 등록·수정하는 관리 화면이다. 기존 Assets와 <code>/state/*</code>는 계속 read-only이고 Workflow Builder의 browser-local dry-run과도 상태를 공유하지 않는다.</p>
+<p>기본 Deployment는 <code>DEVICE_MANAGEMENT_ENABLED=false</code>다. 다음 조회와 dry-run은 Metadata를 수정하지 않으므로 기본 상태에서 실행할 수 있다.</p>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/management/adapters&#x27;
+
+kubectl -n default port-forward service/state-aggregator 18000:8000
+
+curl --fail --silent --show-error \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{
+    &quot;adapterId&quot;:&quot;serial-jetson&quot;,
+    &quot;device&quot;:{
+      &quot;name&quot;:&quot;onboarding-dryrun-serial-001&quot;,
+      &quot;description&quot;:&quot;dry-run only&quot;,
+      &quot;labels&quot;:[&quot;serial&quot;,&quot;dry-run&quot;],
+      &quot;tags&quot;:{&quot;physicalDeviceId&quot;:&quot;arduino-001&quot;,&quot;nodeName&quot;:&quot;etri-dev0001-jetorn&quot;},
+      &quot;protocolProperties&quot;:{
+        &quot;Port&quot;:&quot;/dev/arduino-001&quot;,
+        &quot;BaudRate&quot;:115200,
+        &quot;DeviceID&quot;:&quot;arduino-001&quot;,
+        &quot;ResourceName&quot;:&quot;temperature_raw&quot;
+      },
+      &quot;adminState&quot;:&quot;UNLOCKED&quot;
+    },
+    &quot;profile&quot;:{&quot;mode&quot;:&quot;existing&quot;,&quot;name&quot;:&quot;etri-arduino-temperature&quot;}
+  }&#x27; \
+  http://127.0.0.1:18000/management/devices/validate</code></pre>
+<p>정상 기준:</p>
+<ul><li>adapter 응답의 Serial/Sense HAT I2C는 Device Service readback이 성공할 때 <code>installed</code>,</li></ul>
+<p>미실행이면 <code>unavailable</code>이며 Modbus/OPC-UA/MQTT/RTSP는 <code>unsupported</code>다.</p>
+<ul><li>기본 배포에서는 모든 adapter의 <code>mutationEnabled=false</code>이고 화면 상단에</li></ul>
+<p><code>DRY-RUN ONLY · MUTATION DISABLED</code>가 표시된다.</p>
+<ul><li>위 예시는 이미 <code>virtual-temperature-001</code>이 소유한 endpoint/resource를 다시 요청하므로</li></ul>
+<p><code>valid=false</code>와 <code>protocol_binding_exists</code>를 반환하는 것이 정상이다. dry-run은 <code>valid</code>, <code>issues</code>, <code>warnings</code>, <code>plan</code>만 반환하며 Profile이나 Device를 생성하지 않는다.</p>
+<ul><li>create/PATCH를 호출해도 <code>404</code>이고 Core Metadata에 새 객체가 생기지 않는다.</li></ul>
+<p>mutation 활성화는 <code>edge-orch/state-aggregator/k8s/README.md</code>의 Secret/TLS gate를 먼저 충족한 뒤 GitOps로 수행한다. 활성화 후에도 관리자 Bearer token과 요청별 <code>Idempotency-Key</code>가 모두 필요하다. 적용 결과는 <code>metadata_applied</code> 또는 <code>waiting_for_event</code>와 <code>verified</code>를 구분해 표시한다. 동일 key·동일 payload 재시도는 같은 operation을 복구하고, 같은 key·다른 payload는 <code>409</code>다.</p>
+<p>자동 검증에서는 live Metadata mutation을 실행하지 않는다. live canary가 필요하면 기존 12개 route와 겹치지 않는 격리된 Device Service endpoint를 먼저 마련하고 <code>onboarding-canary-*</code>처럼 정확한 prefix와 정리 대상을 사전 승인한다. 기존 12개 Device와 EdgeMesh를 변경하지 않는 별도 절차로만 수행한다.</p>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
 <ul><li>Device Service 메모리: 공통 Go ring cache, Device/resource별 최근 10분·최대 10,000 sample, 서비스별 sample slot 합계 최대 64MiB, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; <code>/api/v3/localdata/stats</code>와 custom metrics로 관측, Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>64MiB 계산 경계: sample slot 배열만 포함; Go map/runtime/HTTP buffer는 제외되며 Pod memory limit가 전체 프로세스 상한</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: process memory의 최근 최대 1,000건; Pod 재시작 시 초기화, raw history 저장소가 아님</li></ul>
 <p>따라서 각 Device Service와 같은 edge node의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
@@ -576,6 +616,7 @@ done</code></pre>
 <li class="toc-h2"><a href="#7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</a></li>
 <li class="toc-h2"><a href="#8-dashboard-api">8. dashboard API</a></li>
 <li class="toc-h2"><a href="#8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</a></li>
+<li class="toc-h2"><a href="#8b-dashboard-device-management와-온보딩-dry-run">8B. Dashboard Device Management와 온보딩 dry-run</a></li>
 <li class="toc-h2"><a href="#9-저장과-캐시-경계">9. 저장과 캐시 경계</a></li>
 <li class="toc-h2"><a href="#10-장애-복구-검증">10. 장애·복구 검증</a></li>
 <li class="toc-h3"><a href="#10-1-2026-07-22-실측-결과">10.1 2026-07-22 실측 결과</a></li>
