@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 16:18</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:43</span>
+            <span class="badge">수정: 2026-07-23 16:52</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -769,6 +769,52 @@
 <p>중복 방지는 구현돼 있다.</p>
 <ul><li>신규 Controller runtime이 아직 준비 중일 때의 connection operation 저장소는</li></ul>
 <p>state-aggregator 메모리에 있다. 현재 승인 template은 모두 <code>deploymentEnabled=false</code>라 이 경로를 운영에서 실행하지 않지만, 향후 managed template을 승격하기 전에는 CR에 connection payload reference를 남기거나 별도 영속 operation store를 추가해 GET-only 재시작 복구를 검증해야 한다.</p>
+<h2 id="2026-07-23-노드별-한국어-디바이스-관리">2026-07-23 노드별 한국어 디바이스 관리</h2>
+<h3 id="구현-범위">구현 범위</h3>
+<ul><li>공통 dashboard 제목과 메뉴, 디바이스 관리 화면, 동적 상태·오류·필드 문구를 한국어로</li></ul>
+<p>정리했다.</p>
+<ul><li><code>GET /state/nodes</code> 관측 결과와 Adapter Runtime, EdgeX Device, 승인 hardware binding을</li></ul>
+<p>결합해 노드별 관리 범위를 만든다.</p>
+<ul><li>관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·승인 binding이 실제로 참조하는</li></ul>
+<p>노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 제외한다.</p>
+<ul><li>노드를 선택하면 Runtime inventory, 승인 Adapter, hardware binding, EdgeX Device 목록을</li></ul>
+<p>함께 필터링하고 연결 마법사의 target node를 선택 노드로 고정한다.</p>
+<ul><li>기존 Device 수정은 선택 노드 안의 Device를 명시적으로 선택한 뒤에만 활성화한다.</li><li>노드 필터는 workload placement와 운영 탐색 범위이며 물리 Device의 inventory, state,</li></ul>
+<p>telemetry, command 권위는 계속 EdgeX다.</p>
+<h3 id="자동-검증">자동 검증</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>state-aggregator Python</td>
+<td>PASS</td>
+<td>상태·관리 API를 포함한 170개 테스트 통과</td>
+</tr>
+<tr>
+<td>dashboard JavaScript</td>
+<td>PASS</td>
+<td>노드 범위, cloud server 제외, Device 선택 전 PATCH 차단을 포함한 39개 테스트 통과</td>
+</tr>
+<tr>
+<td>저장소 root Python</td>
+<td>PASS</td>
+<td>dashboard·문서·배포 계약 89개 테스트 통과</td>
+</tr>
+<tr>
+<td>문서 검색</td>
+<td>PASS</td>
+<td>생성 HTML과 검색 색인 7개 테스트 통과</td>
+</tr>
+<tr>
+<td>문서 일관성</td>
+<td>PASS</td>
+<td>정책 규칙 7개 PASS, WARN 0, FAIL 0</td>
+</tr>
+</tbody></table></div>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

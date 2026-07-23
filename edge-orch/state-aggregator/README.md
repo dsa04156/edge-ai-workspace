@@ -35,6 +35,15 @@ Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-r
 
 Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
 
+- 화면 제목과 상태·오류·작업 문구는 한국어로 제공하며, 먼저 엣지 노드를 선택한 뒤
+  해당 노드의 Runtime, 승인 Adapter, EdgeX Device를 관리한다.
+- 노드 후보는 `GET /state/nodes` 관측 결과 중 `node_type=edge_*`인 노드와
+  Runtime·Device·승인 hardware binding이 실제로 참조하는 노드로 제한한다. 관계없는
+  중앙 `cloud_server` 노드는 디바이스 연결 대상으로 표시하지 않는다.
+- 노드 선택은 workload placement와 운영 탐색 범위다. 물리 inventory, state, telemetry,
+  command의 권위는 계속 EdgeX이며 Kubernetes Node 상태로 Device availability를 덮어쓰지 않는다.
+- 연결 마법사의 target node는 선택한 노드로 고정한다. 기존 Device PATCH는 해당 노드의
+  Device를 명시적으로 선택한 뒤에만 활성화한다.
 - `GET /management/adapter-runtimes`에서 기존 Argo runtime과 Controller runtime의 owner,
   phase, target node와 EdgeX consumer를 조회한다.
 - Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.
