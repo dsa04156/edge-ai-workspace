@@ -55,9 +55,12 @@ class CurrentDeviceManagementScopeTest(unittest.TestCase):
     def test_current_docs_define_bounded_edgex_device_management_scope(self):
         scope = (ROOT / "docs/프로젝트-범위.md").read_text(encoding="utf-8")
 
-        self.assertIn("Device Onboarding API", scope)
-        self.assertIn("DEVICE_MANAGEMENT_ENABLED=false", scope)
-        self.assertIn("Device 삭제", scope)
+        self.assertIn("edgex-adapter-controller", scope)
+        self.assertIn("ADAPTER_RUNTIME_MUTATION_ENABLED", scope)
+        self.assertIn("Controller가 만든 `AdapterRuntime`", scope)
+        self.assertIn("임의 image", scope)
+        self.assertIn("고정\n  ClusterIP/PodIP", scope)
+        self.assertIn("Modbus, OPC-UA, MQTT와 RTSP", scope)
         self.assertIn("Workflow Builder", scope)
 
 

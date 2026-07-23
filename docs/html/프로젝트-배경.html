@@ -78,6 +78,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -113,6 +115,7 @@
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -148,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-배경.md</span>
-            <span class="badge">수정: 2026-07-22 16:48</span>
-            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
+            <span class="badge">수정: 2026-07-23 15:27</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
           </div>
         </header>
         <div class="doc-body">
@@ -202,15 +205,16 @@
   -&gt; EdgeX Event / Reading
   -&gt; EdgeX Core Data -&gt; PostgreSQL
   -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 Device Profile은 read-only schema와 최신값 GET만 제공하며 write/actuator command는 없다.</li><li>Jetson Serial과 Raspberry Pi Sense HAT I2C Device Service는 Device/resource별 최근 10분·최대 10,000 sample을 메모리에 보관하고 같은 node의 Workflow Pod에 read-only Local Data API를 제공한다. 이 cache는 재시작 비보존이며 durable queue가 아니다. 현재 Flannel은 client label NetworkPolicy를 강제하지 않으므로 이 label을 보안 경계로 보지 않는다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>2026-07-21 기존 direct Agent 두 개, SQLite PVC와 aggregate <code>sensehat-001</code> Metadata bootstrap은 퇴역했다. 현재 <code>edgex-edge</code>에는 Jetson Arduino용 <code>device-serial-jetson</code>과 Raspberry Pi Sense HAT용 <code>device-sensehat-raspi</code>만 있다. 각 서비스는 한 물리 Serial/I2C source를 기능별 6개 가상 Device로 fan-out한다.</li></ul>
-<p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 중앙 <code>edgex-system</code> overlay, <code>edgex-edge</code> Namespace/default-deny base, Jetson Serial Device Service와 Raspberry Pi I2C Device Service를 렌더링한다. 중앙 ingest gateway는 유지하지만 현재 두 Event 경로는 Device Service → 중앙 MessageBus → Core Data/PostgreSQL이며 gateway를 사용하지 않는다.</p>
+<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 Device Profile은 read-only schema와 최신값 GET만 제공하며 write/actuator command는 없다.</li><li>Jetson Serial과 Raspberry Pi Sense HAT I2C Device Service는 Device/resource별 최근 10분·최대 10,000 sample을 메모리에 보관하고 같은 node의 Workflow Pod에 read-only Local Data API를 제공한다. 이 cache는 재시작 비보존이며 durable queue가 아니다. 현재 Flannel은 client label NetworkPolicy를 강제하지 않으므로 이 label을 보안 경계로 보지 않는다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>2026-07-21 기존 direct Agent 두 개, SQLite PVC와 aggregate <code>sensehat-001</code> Metadata</li></ul>
+<p>bootstrap은 퇴역했다. 현재 <code>edgex-edge</code>에는 Jetson Arduino용 <code>device-serial-jetson</code>, Raspberry Pi Sense HAT용 <code>device-sensehat-raspi</code>와 승인된 신규 runtime을 관리하는 <code>edgex-adapter-controller</code>가 있다. 각 Device Service는 한 물리 Serial/I2C source를 기능별 6개 가상 Device로 fan-out한다.</p>
+<p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 중앙 <code>edgex-system</code> overlay, <code>edgex-edge</code> Namespace/default-deny base, Jetson Serial Device Service, Raspberry Pi I2C Device Service, <code>AdapterRuntime</code> CRD와 namespaced Controller를 렌더링한다. 중앙 ingest gateway는 유지하지만 현재 두 Event 경로는 Device Service → 중앙 MessageBus → Core Data/PostgreSQL이며 gateway를 사용하지 않는다.</p>
 <p>과거 Sense HAT MQTT Agent/SQLite offline replay 결과는 설계·검증 이력이며 현재 배포 완료 근거가 아니다. 현재 완료 근거는 <code>device-sensehat-raspi</code>의 직접 I2C read와 6개 가상 Device의 Metadata/Core Data/Core Command/Local Data API/dashboard readback이다.</p>
 <p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 기존 canary에서 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology live cutover 완료를 자동으로 뜻하지 않는다.</p>
 <p>Serial과 Sense HAT I2C는 정상 수집뿐 아니라 2026-07-22 driver/reader 장애 복구도 live 검증했다. Jetson Arduino <code>cdc_acm</code> interface detach 시 Serial 가상 Device 6개가 <code>DOWN</code>이 됐고 rebind 약 31초 뒤 <code>UP</code>과 새 Event로 복구됐다. Sense HAT Python reader 종료 시 I2C 가상 Device 6개가 <code>DOWN</code>이 됐고 새 reader가 시작되며 약 1.3초 뒤 <code>UP</code>과 새 Event로 복구됐다. 이 검증은 kernel driver와 reader process 장애 주입이며 사람이 실제 케이블이나 보드를 분리하는 현장 시연은 별도 gate다.</p>
 <p>같은 날 중앙 MessageBus를 실제 0 replica로 중단했을 때 두 로컬 ring cache와 <code>sensor-anomaly-demo</code>는 계속 증가했지만 Core Data Event는 멈췄다. 복구 후 outage 구간은 재전송되지 않고 새 Event부터 저장돼 durable outbox/offline replay가 없다는 경계를 확인했다. Modbus와 OPC-UA, 다른 장비·주소의 추가 adapter는 profile, 실제 장비 연결과 typed telemetry 검증을 독립 wave로 통과한 뒤 승격한다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media wave다.</p>
-<p><code>state-aggregator</code>와 대시보드는 중앙 EdgeX Core Metadata/Core Data를 소비하는 현재 cutover 대상이다. Prometheus/Kubernetes 정보는 node/workload 관찰을 보조하지만 물리 디바이스 상태를 결정하지 않는다. 과거 워크플로 실행·배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
+<p><code>state-aggregator</code>와 대시보드는 중앙 EdgeX Core Metadata/Core Data를 소비하는 현재 cutover 대상이다. <code>Device Management</code>는 기존 Argo runtime을 조회·재사용하고 Controller가 Git allowlist로 만든 runtime만 배포·재시작·조건부 퇴역한다. Profile/Device 등록과 first Event도 connection operation으로 추적하지만 물리 inventory/state/telemetry 권위는 계속 EdgeX다. Prometheus/Kubernetes 정보는 node/workload 관찰과 target node Ready 검증을 보조하지만 물리 디바이스 상태를 결정하지 않는다. 과거 워크플로 실행·배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
 <h2 id="디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</h2>
-<p>EdgeX Core Metadata에 Device Profile과 Device를 사전 등록한다. Device Service는 Device의 <code>protocols</code>에 정의된 endpoint를 사용하고 profile resource에 맞는 canonical Event를 만든 뒤 EdgeX SDK async 채널로 중앙 MessageBus에 전달한다. 현재 edge durable queue는 없다. 임의의 MQTT topic이나 HTTP POST만으로 Core Metadata Device가 자동 생성되지는 않는다.</p>
+<p>EdgeX Core Metadata에 Device Profile과 Device를 등록한다. 기존 수직 슬라이스는 Git manifest bootstrap을 사용하고, 새 장비는 dashboard의 승인된 connection flow가 runtime 준비 뒤 같은 Metadata API에 등록한다. Device Service는 Device의 <code>protocols</code>에 정의된 endpoint를 사용하고 profile resource에 맞는 canonical Event를 만든 뒤 EdgeX SDK async 채널로 중앙 MessageBus에 전달한다. 현재 edge durable queue는 없다. 임의의 MQTT topic이나 HTTP POST만으로 Core Metadata Device가 자동 생성되지는 않는다.</p>
 <p>availability는 EdgeX 관리 상태와 최신 Core Data event를 다음 순서로 해석한다.</p>
 <ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>이면 <code>unavailable</code>/<code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code>/<code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 event가 freshness 기준 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이어도 event가 없거나 stale이면 <code>degraded</code>.</li></ol>
 <h2 id="과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</h2>

@@ -23,6 +23,8 @@ Dashboard는 다음 질문에 답해야 한다.
 4. 어떤 device를 먼저 점검해야 하는가?
 5. 관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?
 6. 이 device가 어떤 서비스 데모 consumer와 연결되는가?
+7. 새 장비에 재사용할 Adapter Runtime이 있는가, 없으면 승인된 node/hardware binding으로
+   배포 가능한가?
 
 `workflows[]`와 workflow KPI는 호환 또는 dry-run planning 표면일 수 있지만 current physical health나 자동 orchestration 완료의 근거가 아니다.
 
@@ -104,11 +106,18 @@ Serial과 Sense HAT I2C는 정상 경로만 지원 완료로 표시한다. 실�
 
 Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.
 
+`Device Management`는 이 경계와 분리된 승인 관리 화면이다. 운영자는 Runtime inventory,
+owner, phase와 EdgeX consumer를 확인하고, Git allowlist의 node/hardware binding만 선택해
+Runtime과 EdgeX Profile/Device 연결을 함께 validation·apply한다. state-aggregator에는
+Kubernetes 쓰기 권한이 없으며 내부 HMAC으로 Adapter Controller에 요청한다. 외부/Argo
+runtime은 재사용만 하고 Controller 소유 runtime만 재시작·조건부 퇴역한다.
+
 ## 관련 Wiki
 
 - [현재 데모 흐름](현재-데모-흐름.md)
 - [상태와 텔레메트리](상태와-텔레메트리.md)
 - [운영 모델](운영-모델.md)
+- [Adapter Runtime과 Device 연결 관리](../ops/어댑터-런타임-디바이스-연결-관리.md)
 
 ## 근거 문서
 

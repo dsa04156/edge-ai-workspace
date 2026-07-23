@@ -20,6 +20,20 @@ class AdapterCatalog:
         self._by_id = {item.adapter_id: item for item in self.adapters}
         if len(self._by_id) != len(self.adapters):
             raise ValueError("adapterId values must be unique")
+        binding_ids = [
+            binding.binding_id
+            for adapter in self.adapters
+            for binding in adapter.runtime.hardware_bindings
+        ]
+        if len(binding_ids) != len(set(binding_ids)):
+            raise ValueError("hardware binding IDs must be unique across adapters")
+        template_ids = [
+            adapter.runtime.template_id
+            for adapter in self.adapters
+            if adapter.runtime.template_id is not None
+        ]
+        if len(template_ids) != len(set(template_ids)):
+            raise ValueError("runtime template IDs must be unique across adapters")
 
     @classmethod
     def load(cls, path: Path) -> "AdapterCatalog":

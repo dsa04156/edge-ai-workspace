@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>대시보드 어댑터 런타임 관리 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>대시보드 어댑터 런타임 관리 설계</h1>
+          <p class="subtitle">운영자가 물리 장비를 연결할 때 Kubernetes manifest나 kubectl을 직접 다루지 않고 대시보드 한곳에서 다음…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.md</span>
+            <span class="badge">수정: 2026-07-23 14:40</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="대시보드-어댑터-런타임-관리-설계">대시보드 어댑터 런타임 관리 설계</h1>
+<h2 id="목적">목적</h2>
+<p>운영자가 물리 장비를 연결할 때 Kubernetes manifest나 <code>kubectl</code>을 직접 다루지 않고 대시보드 한곳에서 다음 흐름을 완료하게 한다.</p>
+<ol><li>프로토콜과 대상 edge node를 선택한다.</li><li>이미 실행 중인 EdgeX Device Service Adapter를 재사용할 수 있는지 확인한다.</li><li>재사용할 수 없으면 플랫폼이 승인한 템플릿으로 Adapter runtime을 배포한다.</li><li>EdgeX Device Profile과 Device를 등록한다.</li><li>Metadata readback과 첫 Event/Reading 수신을 확인한다.</li><li>이후 runtime 상태 확인, 재시작과 안전한 퇴역을 대시보드에서 수행한다.</li></ol>
+<p>물리 디바이스 inventory, state, telemetry와 command의 권위는 계속 EdgeX다. KubeEdge와 Kubernetes는 node와 workload만 관리하며, Adapter runtime 자체를 물리 디바이스 inventory로 간주하지 않는다.</p>
+<h2 id="현재-설계에서-바꾸는-범위">현재 설계에서 바꾸는 범위</h2>
+<p>기존 대시보드 디바이스 온보딩 MVP는 설치된 Device Service에 Device를 등록하는 데까지만 허용하고 Kubernetes workload mutation은 금지했다. 이번 기능은 다음 제한 안에서 그 경계를 확장한다.</p>
+<ul><li>대시보드가 승인된 Adapter runtime 인스턴스를 조회·재사용·배포·재시작·퇴역할 수 있다.</li><li>대시보드는 Kubernetes API에 직접 접근하지 않고 <code>state-aggregator</code> 관리 API만 호출한다.</li><li>별도 Adapter Controller만 namespaced Kubernetes workload mutation 권한을 가진다.</li><li>Controller는 Git에 등록된 allowlist 템플릿만 렌더링한다.</li><li>EdgeX Profile/Device 생성과 첫 Event 검증은 기존 온보딩 계층이 담당한다.</li><li>Workflow Builder의 browser-local dry-run 경계와 legacy orchestration 경로는 바꾸지 않는다.</li><li>EdgeMesh, KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 중앙 EdgeX Core 배포는 건드리지 않는다.</li></ul>
+<p><code>docs/프로젝트-범위.md</code>, <code>docs/저장소-구조.md</code>, <code>docs/단계별-추진계획.md</code>, <code>docs/대시보드-정보-구조.md</code>와 운영 절차에 이 범위 변경을 함께 반영한다.</p>
+<h2 id="선택한-구조">선택한 구조</h2>
+<pre data-lang="text"><code>Operator
+  -&gt; Dashboard / Device Management
+      -&gt; state-aggregator Management API
+          -&gt; Adapter Catalog
+          -&gt; Connection Onboarding Orchestrator
+              -&gt; Adapter Controller internal API
+                  -&gt; AdapterRuntime CR
+                      -&gt; Deployment / Service / Secret
+              -&gt; EdgeX Core Metadata
+                  -&gt; Device Service / Profile / Device
+              -&gt; EdgeX Core Data
+                  -&gt; first Event / Reading verification</code></pre>
+<p>Adapter Controller를 별도 서비스로 두는 이유는 <code>state-aggregator</code>의 기존 read-only Kubernetes 권한을 유지하고, workload mutation 권한과 장애 범위를 격리하기 위해서다. 브라우저가 Kubernetes credential을 가지거나 임의 manifest를 전달하는 API는 만들지 않는다.</p>
+<h3 id="선택하지-않은-방식">선택하지 않은 방식</h3>
+<ul><li><code>state-aggregator</code>에 Deployment·Service·Secret 쓰기 권한을 직접 부여하지 않는다.</li><li>대시보드가 Git commit이나 Argo CD sync를 즉석에서 생성하는 방식은 사용하지 않는다.</li></ul>
+<p>승인 템플릿 배포보다 느리고 운영 흐름에 Git credential까지 결합되기 때문이다.</p>
+<ul><li>센서 하나마다 Adapter Pod를 만들지 않는다. 같은 node와 protocol을 공유하고 Device</li></ul>
+<p>Service가 다중 endpoint를 지원하면 기존 runtime을 재사용한다.</p>
+<ul><li>여러 protocol library를 하나의 범용 Adapter Pod에 넣지 않는다.</li><li>MQTT를 공통 수집 protocol로 강제하지 않는다.</li><li>임의 container image, command, privileged 값, raw <code>hostPath</code>, <code>hostNetwork</code>, 고정</li></ul>
+<p>ClusterIP 또는 Pod IP를 요청 payload로 받지 않는다.</p>
+<ul><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>/<code>DeviceStatus</code>를 물리 inventory로 추가하지 않는다.</li></ul>
+<h2 id="운영자가-대시보드에서-관리하는-범위">운영자가 대시보드에서 관리하는 범위</h2>
+<p>대시보드는 Adapter runtime 운영의 단일 사용자 진입점이다.</p>
+<ul><li>설치된 runtime과 관리 주체 확인</li><li>protocol, target node, hardware binding별 재사용 가능 여부 확인</li><li>신규 연결 validation과 실행 plan preview</li><li>승인 템플릿 기반 runtime 배포</li><li>EdgeX Profile/Device 등록과 첫 Event 확인</li><li>controller-managed runtime 재시작</li><li>사용 중인 Device가 없는 controller-managed runtime 퇴역</li><li>실패 단계, 보상 결과와 다음 운영 조치 확인</li></ul>
+<p>플랫폼 템플릿의 이미지·권한·volume 정의를 승인하거나 새 protocol 구현을 배포 가능 상태로 승격하는 작업은 Git 검토 대상이다. 이는 runtime 인스턴스 운영과 구분한다. 운영자는 대시보드에서 승인된 템플릿만 선택할 수 있다.</p>
+<h2 id="권위와-소유권">권위와 소유권</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>대상</th>
+<th>권위</th>
+<th>설명</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 Device, Profile, resource, protocol property</td>
+<td>EdgeX Core Metadata</td>
+<td>dashboard와 controller가 별도 inventory를 만들지 않는다.</td>
+</tr>
+<tr>
+<td>latest Event/Reading과 freshness</td>
+<td>EdgeX Core Data</td>
+<td>첫 데이터 확인과 dashboard telemetry의 기준이다.</td>
+</tr>
+<tr>
+<td>Device command</td>
+<td>EdgeX Device Service/Core Command</td>
+<td>이번 기능은 actuator command를 추가하지 않는다.</td>
+</tr>
+<tr>
+<td>Adapter workload desired state</td>
+<td><code>AdapterRuntime</code> CR</td>
+<td>Controller가 생성한 runtime만 대상이다.</td>
+</tr>
+<tr>
+<td>edge node와 Pod 배치 상태</td>
+<td>Kubernetes/KubeEdge</td>
+<td>물리 Device availability의 권위로 사용하지 않는다.</td>
+</tr>
+<tr>
+<td>승인된 배포 템플릿</td>
+<td>Git의 Adapter Catalog</td>
+<td>dashboard에서 이미지나 권한을 수정할 수 없다.</td>
+</tr>
+<tr>
+<td>기존 Serial/I2C workload</td>
+<td>Argo CD</td>
+<td>조회·재사용은 가능하지만 dashboard 퇴역·재시작은 차단한다.</td>
+</tr>
+</tbody></table></div>
+<p>Controller가 생성한 리소스에는 <code>app.kubernetes.io/managed-by=edge-adapter-controller</code>, <code>edgeai.etri.re.kr/runtime=&lt;runtime-name&gt;</code> label과 <code>AdapterRuntime</code> owner reference를 부여한다. 이 표지가 없는 기존 Deployment나 Service를 Controller가 수정하거나 삭제하지 않는다.</p>
+<h2 id="adapter-catalog와-검증-상태">Adapter Catalog와 검증 상태</h2>
+<p>Catalog는 runtime image나 Kubernetes manifest를 API 요청에 싣지 않고 안정적인 <code>templateId</code>로 참조하기 위한 allowlist다.</p>
+<p>각 항목은 다음 정보를 가진다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>adapterId</code></td>
+<td>dashboard와 온보딩 API가 사용하는 protocol adapter 식별자</td>
+</tr>
+<tr>
+<td><code>protocolName</code></td>
+<td>EdgeX Device의 protocol key</td>
+</tr>
+<tr>
+<td><code>serviceNamePattern</code></td>
+<td>동적 Device Service 이름 생성 규칙</td>
+</tr>
+<tr>
+<td><code>runtimeMode</code></td>
+<td><code>external</code>, <code>managed-template</code>, <code>unavailable</code></td>
+</tr>
+<tr>
+<td><code>verificationState</code></td>
+<td><code>hardware-verified</code>, <code>template-verified</code>, <code>unverified</code></td>
+</tr>
+<tr>
+<td><code>templateId</code></td>
+<td>승인된 runtime 템플릿 버전</td>
+</tr>
+<tr>
+<td><code>supportedNodes</code></td>
+<td>허용된 node와 hardware binding alias</td>
+</tr>
+<tr>
+<td><code>connectionSchema</code></td>
+<td>Device protocol property 입력 schema</td>
+</tr>
+<tr>
+<td><code>secretSchema</code></td>
+<td>Secret로만 저장할 값의 schema</td>
+</tr>
+<tr>
+<td><code>reusePolicy</code></td>
+<td>다중 Device, endpoint 충돌과 capacity 판정 규칙</td>
+</tr>
+<tr>
+<td><code>profileCapabilities</code></td>
+<td>지원 resource/value type/read-write 제약</td>
+</tr>
+</tbody></table></div>
+<p>초기 상태는 다음과 같다.</p>
+<ul><li>Jetson Serial과 Raspberry Pi Sense HAT I2C는 실제 설치 상태를</li></ul>
+<p><code>hardware-verified</code>로 표시하고 기존 Argo CD runtime 재사용을 우선한다.</p>
+<ul><li>같은 endpoint 또는 resource route가 기존 Device에 독점 할당된 경우 runtime이 Ready여도</li></ul>
+<p><code>protocol_binding_exists</code>로 새 Device 연결을 차단한다.</p>
+<ul><li>Serial/I2C 신규 배포 템플릿은 현재 검증된 image와 고정된 hardware binding alias만</li></ul>
+<p>사용할 수 있다. 요청자가 <code>/dev/*</code> 경로를 입력할 수 없다.</p>
+<ul><li>신규 배포용 Device Service image는 runtime별 <code>serviceName</code>과 MessageBus client ID를</li></ul>
+<p>환경 설정으로 분리할 수 있어야 한다. 서비스 식별자가 binary에 고정된 기존 image는 external runtime 재사용에만 쓰고 managed-template로 승격하지 않는다.</p>
+<ul><li>Modbus, OPC-UA, MQTT, REST와 RTSP는 image, Device Profile과 실장비 검증이 끝날 때까지</li></ul>
+<p><code>unverified</code>이며 배포 버튼을 비활성화한다.</p>
+<ul><li><code>unverified</code> 항목은 필요한 검증 항목을 보여 줄 수 있지만 성공 가능한 기능으로 표현하지 않는다.</li></ul>
+<h2 id="hardware-binding">Hardware binding</h2>
+<p>raw <code>hostPath</code> 대신 Git에서 승인한 alias를 사용한다.</p>
+<pre data-lang="text"><code>jetson-arduino-serial-001
+  node: etri-dev0001-jetorn
+  devicePath: /dev/arduino-001
+  access: read-write
+
+raspi5-sensehat-i2c-001
+  node: etri-dev0003-raspi5
+  devicePath: /dev/i2c-1
+  access: read-write</code></pre>
+<p>이 path는 템플릿 내부에만 존재하고 API 응답에서는 진단 정보로만 redacted 표시한다. Controller는 요청의 <code>targetNode</code>, <code>adapterId</code>, <code>hardwareBindingId</code> 조합이 catalog와 정확히 일치할 때만 workload를 생성한다. binding이 다른 Ready runtime이나 다른 node의 runtime을 잘못 재사용하지 않는다.</p>
+<h2 id="adapterruntime-crd">AdapterRuntime CRD</h2>
+<p>API group은 <code>edgeai.etri.re.kr/v1alpha1</code>, Kind는 <code>AdapterRuntime</code>, scope는 <code>Namespaced</code>로 한다. 인스턴스 namespace는 <code>edgex-edge</code>로 제한한다.</p>
+<h3 id="spec">spec</h3>
+<pre data-lang="yaml"><code>spec:
+  templateId: serial-device-service-v1
+  adapterId: serial-jetson
+  targetNode: etri-dev0001-jetorn
+  hardwareBindingId: jetson-arduino-serial-001
+  edgeX:
+    serviceName: device-serial-jetson-02
+    messageBusHost: edgex-messagebus.edgex-system.svc.cluster.local
+    messageBusPort: 1883
+  config:
+    logLevel: INFO
+  secretRefs: {}
+  desiredState: Running
+  restartNonce: &quot;&quot;
+  requestRef:
+    requestId: &lt;HMAC-derived-id&gt;
+    payloadHash: &lt;sha256&gt;</code></pre>
+<p>사용자가 CR YAML을 제출하지 않는다. Controller가 validated request와 catalog template에서 spec을 만든다. <code>image</code>, <code>command</code>, <code>securityContext</code>, <code>volumes</code>, <code>hostNetwork</code>, <code>service.clusterIP</code>, node selector key와 message bus address는 요청에서 받을 수 없다.</p>
+<h3 id="status">status</h3>
+<pre data-lang="yaml"><code>status:
+  phase: ServiceReady
+  observedGeneration: 4
+  managementMode: controller
+  workloadRef:
+    kind: Deployment
+    name: adapter-runtime-serial-02
+  serviceRef:
+    name: adapter-runtime-serial-02
+  edgeXServiceObserved: true
+  consumers: 0
+  conditions:
+    - type: WorkloadReady
+      status: &quot;True&quot;
+      reason: MinimumReplicasAvailable
+  lastTransitionTime: &quot;2026-07-23T10:00:00Z&quot;
+  lastError:
+    code: &quot;&quot;
+    message: &quot;&quot;</code></pre>
+<p>상태 단계는 다음과 같다.</p>
+<pre data-lang="text"><code>PLANNED
+  -&gt; DEPLOYING
+  -&gt; WORKLOAD_READY
+  -&gt; SERVICE_READY
+
+DEPLOYING | WORKLOAD_READY
+  -&gt; FAILED
+
+SERVICE_READY
+  -&gt; RESTARTING
+  -&gt; SERVICE_READY
+
+SERVICE_READY | FAILED
+  -&gt; RETIRING
+  -&gt; RETIRED</code></pre>
+<p><code>SERVICE_READY</code>는 Deployment readiness만 뜻하지 않는다. EdgeX Core Metadata에서 계약된 Device Service 이름을 readback했을 때만 된다.</p>
+<h2 id="runtime-재사용-계획">Runtime 재사용 계획</h2>
+<p>Connection validation은 mutation 전에 다음 순서로 runtime plan을 만든다.</p>
+<ol><li>protocol, node, binding과 Device Service capability가 일치하는 runtime을 찾는다.</li><li><code>SERVICE_READY</code>인지 확인한다.</li><li>기존 EdgeX Devices의 protocol properties를 기준으로 endpoint/route 충돌을 확인한다.</li><li><code>reusePolicy</code>가 다중 Device를 허용하고 capacity가 남아 있으면 <code>REUSE</code>를 선택한다.</li><li>재사용할 수 없고 승인된 배포 템플릿과 빈 hardware binding이 있으면 <code>DEPLOY</code>를 선택한다.</li><li>둘 다 불가능하면 <code>BLOCKED</code>와 기계 판독 가능한 이유를 반환한다.</li></ol>
+<p>운영자는 <code>auto</code>, <code>reuse</code>, <code>deploy</code> 중 하나를 선택할 수 있다. <code>auto</code>는 위 규칙을 적용하고, 명시적 <code>reuse</code>나 <code>deploy</code>가 검증 결과와 다르면 apply 전에 차단한다. runtime 선택 결과는 execution plan에서 Device Service 이름, 대상 node, 관리 주체와 차단 이유까지 보여 준다.</p>
+<h2 id="통합-connection-온보딩-상태">통합 Connection 온보딩 상태</h2>
+<p>runtime과 EdgeX Metadata를 서로 다른 성공으로 오해하지 않도록 하나의 operation 상태로 묶는다.</p>
+<pre data-lang="text"><code>PLANNED
+  -&gt; RUNTIME_REQUESTED
+  -&gt; RUNTIME_READY
+  -&gt; PROFILE_APPLIED
+  -&gt; DEVICE_APPLIED
+  -&gt; WAITING_EVENT
+  -&gt; ACTIVE</code></pre>
+<p><code>REUSE</code> plan은 <code>RUNTIME_REQUESTED</code>를 거치지 않고 기존 runtime readback으로 <code>RUNTIME_READY</code>에 진입한다.</p>
+<ul><li><code>RUNTIME_READY</code>: Device Service workload와 EdgeX service 등록을 확인했다.</li><li><code>PROFILE_APPLIED</code>: 요청한 Profile 또는 기존 Profile을 readback했다.</li><li><code>DEVICE_APPLIED</code>: service/profile/protocol binding이 요청과 일치한다.</li><li><code>WAITING_EVENT</code>: Metadata는 성공했지만 아직 Event가 없거나 Core Data 조회가 일시 실패했다.</li><li><code>ACTIVE</code>: 해당 <code>deviceName</code>과 resource 계약에 맞는 첫 Event/Reading을 확인했다.</li><li><code>FAILED</code>: 어느 단계에서 실패했는지와 보상 결과를 함께 표시한다.</li></ul>
+<p>passive 장비의 Event timeout은 Metadata를 삭제하지 않고 <code>WAITING_EVENT</code>로 유지한다.</p>
+<h2 id="외부-management-api">외부 Management API</h2>
+<p>기존 <code>/management/devices*</code> API는 하위 호환을 위해 유지하고, dashboard 신규 wizard는 Connection API를 사용한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/management/adapter-runtimes</code></td>
+<td>외부·controller-managed runtime과 소비 Device 조회</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/management/adapter-runtimes/plan</code></td>
+<td>재사용·배포·차단 plan 생성</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/management/adapter-runtimes/{name}/restart</code></td>
+<td>controller-managed runtime 재시작</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/management/adapter-runtimes/{name}</code></td>
+<td>소비 Device가 없는 runtime 퇴역</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/management/connections/validate</code></td>
+<td>runtime과 EdgeX 변경의 통합 dry-run</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/management/connections</code></td>
+<td>승인된 통합 plan 실행</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/management/connections/operations/{requestId}</code></td>
+<td>전체 상태와 보상 결과 조회</td>
+</tr>
+</tbody></table></div>
+<p>mutation endpoint는 관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다. 퇴역은 추가로 runtime 이름을 담은 <code>X-Confirm-Runtime</code> header가 정확히 일치해야 한다.</p>
+<p>요청은 <code>adapterId</code>, <code>targetNode</code>, <code>hardwareBindingId</code>, runtime 선택 모드, Device/Profile 계약과 catalog schema에 정의된 connection value만 받는다. Kubernetes object나 image 필드는 API schema 자체에 존재하지 않는다.</p>
+<h2 id="controller-내부-api">Controller 내부 API</h2>
+<p>Controller Service는 cluster 내부 DNS로만 접근한다. <code>state-aggregator</code>만 내부 HMAC 인증으로 호출할 수 있고 browser에는 노출하지 않는다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/internal/v1/runtimes</code></td>
+<td>관리 중 CR과 승인된 외부 runtime 조회</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/internal/v1/runtimes/plan</code></td>
+<td>catalog 기반 immutable plan 생성</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/internal/v1/runtimes/{name}</code></td>
+<td>동일 request로 idempotent create/reconcile</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/internal/v1/runtimes/{name}/restart</code></td>
+<td><code>restartNonce</code> 갱신</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/internal/v1/runtimes/{name}</code></td>
+<td>dependency 확인 후 desired state를 Retired로 변경</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/healthz</code></td>
+<td>process health</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/readyz</code></td>
+<td>Kubernetes·catalog 준비 상태</td>
+</tr>
+</tbody></table></div>
+<p>Controller는 raw manifest endpoint, shell command endpoint와 arbitrary patch endpoint를 제공하지 않는다.</p>
+<h2 id="idempotency와-상태-복구">Idempotency와 상태 복구</h2>
+<p>외부 요청은 기존 온보딩 MVP와 같은 HMAC-derived <code>requestId</code>와 canonical payload hash를 사용한다.</p>
+<ul><li>같은 key와 같은 payload는 기존 operation과 CR을 반환한다.</li><li>같은 key에 다른 payload를 제출하면 <code>409 Conflict</code>다.</li><li>runtime name은 request ID와 template identity로 결정해 재시도가 새 Deployment를 만들지 않는다.</li><li><code>AdapterRuntime.spec.requestRef</code>와 EdgeX Device의 예약 tags에 request ID와 hash를 기록한다.</li><li>process memory operation store는 polling cache일 뿐 권위가 아니다.</li><li>Pod 재시작 후 CR status, EdgeX Device tags와 Core Data Event로 operation을 재구성한다.</li><li>raw idempotency key와 관리자 token은 CR, tag, log와 API 응답에 저장하지 않는다.</li></ul>
+<h2 id="실패-보상">실패 보상</h2>
+<p>Kubernetes workload와 EdgeX Metadata는 하나의 transaction이 아니므로 단계별 saga를 사용한다.</p>
+<ol><li>runtime 생성 전에 실패하면 mutation 없이 operation만 실패한다.</li><li>이번 operation이 만든 runtime이 <code>SERVICE_READY</code> 전에 실패하면 CR을 <code>FAILED</code>로 남겨</li></ol>
+<p>진단 가능하게 하고, 사용자가 retry 또는 retire를 선택하게 한다.</p>
+<ol><li>Profile 생성 뒤 Device 생성이 실패하면 이번 operation이 새로 만든 미사용 Profile만</li></ol>
+<p>exact-name으로 삭제한다.</p>
+<ol><li>Device 생성 뒤 readback이 다르면 성공으로 표시하지 않고 Device를 임의 삭제하지 않는다.</li><li>이번 operation이 만든 runtime 뒤 Metadata apply가 실패하면 consumers가 0일 때에만</li></ol>
+<p>자동 퇴역을 시도하고 보상 결과를 기록한다.</p>
+<ol><li>기존 external runtime과 다른 operation이 만든 runtime은 자동 보상으로 재시작·삭제하지 않는다.</li><li>Event timeout은 runtime, Profile 또는 Device를 되돌리지 않는다.</li></ol>
+<h2 id="재시작과-퇴역">재시작과 퇴역</h2>
+<p>재시작은 Deployment 이름을 직접 patch하지 않고 <code>AdapterRuntime.spec.restartNonce</code>를 갱신해 Controller reconciliation으로 수행한다. external/Argo-managed runtime은 대시보드에서 재시작할 수 없고 운영 진입점을 안내한다.</p>
+<p>퇴역은 다음 조건을 모두 만족할 때만 가능하다.</p>
+<ul><li><code>managementMode=controller</code></li><li>EdgeX Core Metadata에서 해당 service를 사용하는 Device가 0개</li><li>동일 hardware binding을 참조하는 진행 중 operation이 없음</li><li>관리자 인증과 exact-name 확인 header가 일치</li></ul>
+<p>Controller는 owner reference로 자신이 만든 Deployment, Service와 owned Secret만 정리한다. EdgeX Device/Profile, Argo CD resource와 사용자 제공 Secret는 삭제하지 않는다.</p>
+<h2 id="secret-처리">Secret 처리</h2>
+<ul><li>secret 값은 catalog의 <code>secretSchema</code>에 정의된 필드만 허용한다.</li><li>dashboard는 token과 secret을 URL, browser storage나 조회 가능한 form state에 지속 저장하지 않는다.</li><li>외부 TLS가 확인되지 않은 배포에서는 새 secret 값 입력을 비활성화하고 기존 Secret ref만 선택한다.</li><li>Controller는 secret 값을 redacted request로 받고 namespaced Secret에 저장한 뒤 CR에는 ref만 남긴다.</li><li>API response, audit event, exception과 Kubernetes Event에 평문을 포함하지 않는다.</li><li>사용자 제공 Secret는 owner reference를 붙이지 않으며 runtime 퇴역 때 삭제하지 않는다.</li></ul>
+<p>현재 hardware-verified Serial/I2C에는 secret 입력이 필요하지 않는다.</p>
+<h2 id="인증-기능-flag와-감사">인증, 기능 flag와 감사</h2>
+<p>기본 배포값은 다음과 같다.</p>
+<pre data-lang="text"><code>DEVICE_MANAGEMENT_ENABLED=false
+ADAPTER_RUNTIME_MANAGEMENT_ENABLED=false
+ADAPTER_RUNTIME_MUTATION_ENABLED=false</code></pre>
+<p>read-only runtime discovery는 management flag가 꺼져도 dashboard 진단에 표시할 수 있지만 모든 mutation control은 닫힌다. 활성화된 mutation은 기존 관리자 token과 별도 Controller internal HMAC key를 Kubernetes Secret에서 읽는다.</p>
+<p>감사 event에는 actor, request ID, action, runtime/template/node, EdgeX Device/Profile, redacted 변경 요약, 각 단계 상태, 보상 결과와 timestamp를 기록한다. raw secret, token, idempotency key와 전체 Kubernetes object는 기록하지 않는다.</p>
+<h2 id="최소-rbac와-네트워크">최소 RBAC와 네트워크</h2>
+<p><code>state-aggregator</code> ServiceAccount에는 기존 node/pod read 권한 외 Kubernetes write 권한을 추가하지 않는다.</p>
+<p>Adapter Controller 권한은 다음으로 제한한다.</p>
+<ul><li>cluster scope read-only: 허용 node의 존재와 label을 확인하는 <code>nodes get/list</code></li><li><code>edgex-edge</code> namespace:</li><li><code>adapterruntimes</code> get/list/watch/create/update/patch</li><li><code>adapterruntimes/status</code> get/update/patch</li><li>controller-owned <code>deployments</code>, <code>services</code>, <code>configmaps</code>, <code>secrets</code>,</li></ul>
+<p><code>networkpolicies</code> get/list/watch/create/update/patch/delete</p>
+<ul><li>readiness 진단용 <code>pods</code>, <code>events</code> get/list/watch</li></ul>
+<p>admission과 controller 코드가 <code>edgex-edge</code> 밖의 namespace, host PID/IPC, arbitrary host network와 allowlist 밖 volume을 거부한다. image, security context와 volume은 요청값이 아니라 승인 템플릿에서만 온다. 현재 hardware 접근 때문에 root 또는 privileged가 필요한 템플릿은 그 필요성과 대상 binding을 별도로 검증·표시하고, 일반 템플릿으로 확장하지 않는다. 가능한 runtime은 non-root, <code>allowPrivilegeEscalation=false</code>, capability drop과 device plugin 방식으로 승격한다.</p>
+<p>Controller Service는 고정 ClusterIP를 지정하지 않고 Kubernetes Service DNS를 사용한다. NetworkPolicy는 <code>state-aggregator</code>에서 Controller로 가는 internal API와 Controller가 Kubernetes API·EdgeX Metadata에 접근하는 경로만 허용한다. 기존 EdgeMesh 설정과 중앙 <code>edgex-messagebus</code> Service를 변경하지 않는다.</p>
+<h2 id="dashboard-화면-흐름">Dashboard 화면 흐름</h2>
+<p><code>Device Management</code> 안에 다음 두 영역을 둔다.</p>
+<h3 id="adapter-runtime">Adapter Runtime</h3>
+<ul><li>protocol, target node, EdgeX service, management owner, verification state</li><li>workload readiness와 EdgeX service readback 상태</li><li>연결된 EdgeX Device 수와 재사용 가능 여부</li><li>controller-managed runtime에만 restart/retire action</li><li>external runtime에는 <code>Argo CD 관리</code> badge와 read-only 안내</li></ul>
+<h3 id="새-디바이스-연결-wizard">새 디바이스 연결 wizard</h3>
+<ol><li>protocol과 target node를 선택한다.</li><li>hardware binding과 endpoint를 입력한다.</li><li>runtime <code>auto/reuse/deploy</code>를 선택한다.</li><li>EdgeX Device/Profile/resource 계약을 입력한다.</li><li>validation 결과와 immutable execution plan을 확인한다.</li><li>관리자 인증 후 apply한다.</li><li>runtime, Metadata, first Event의 단계별 상태를 polling한다.</li></ol>
+<p>차단 이유는 <code>runtime_unavailable</code>, <code>template_unverified</code>, <code>node_not_allowed</code>, <code>hardware_binding_in_use</code>, <code>protocol_binding_exists</code>, <code>runtime_not_ready</code>, <code>device_name_conflict</code>처럼 기계 판독 가능한 code와 운영자 설명을 함께 표시한다.</p>
+<h2 id="테스트-전략">테스트 전략</h2>
+<h3 id="단위-통합-테스트">단위·통합 테스트</h3>
+<ul><li>catalog schema, template allowlist와 verification state</li><li>raw image, command, hostPath, hostNetwork, fixed IP 입력 불가</li><li>node/hardware binding 조합과 endpoint 충돌 판정</li><li><code>REUSE</code>, <code>DEPLOY</code>, <code>BLOCKED</code> planner</li><li>external runtime mutation 차단</li><li>feature flag, 관리자 token과 internal HMAC 인증</li><li>같은 idempotency 요청 재시도와 payload 충돌</li><li>Controller CR/Deployment/Service 렌더링 golden test</li><li>readiness와 EdgeX Device Service readback 상태 전이</li><li>Profile/Device saga와 제한된 보상</li><li>consumers가 있는 runtime 퇴역 차단</li><li>secret redaction과 owner reference 구분</li><li>Controller 재시작 뒤 CR/EdgeX 기반 operation 복구</li><li>기존 dashboard, <code>/state/*</code>, <code>/management/devices*</code> 회귀</li></ul>
+<h3 id="kubernetes-검증">Kubernetes 검증</h3>
+<ul><li>CRD와 manifest schema validation</li><li><code>kubectl apply --server-side --dry-run=server</code>로 전체 manifest 확인</li><li>Controller ServiceAccount가 허용 리소스만 조작할 수 있는지 <code>kubectl auth can-i</code> 확인</li><li>임의 image/hostPath와 namespace 이탈 요청이 차단되는지 확인</li><li>임시 canary runtime이 controller-owned workload만 만들고 퇴역 시 정확히 정리되는지 확인</li></ul>
+<p>canary template은 protocol 지원 항목으로 노출하지 않는 내부 검증 전용 health runtime이다. hardware device를 mount하지 않으며 짧은 TTL과 exact-name cleanup을 사용한다. canary 성공은 Controller reconciliation 검증일 뿐 Modbus/OPC-UA/MQTT/RTSP 지원 근거가 아니다.</p>
+<h3 id="live-read-only-검증">live read-only 검증</h3>
+<ul><li>Jetson Serial runtime과 Raspberry Pi Sense HAT runtime을 external/Argo-managed로 발견한다.</li><li>EdgeX Device Service 이름, target node, hardware binding과 연결된 Device 수를 대조한다.</li><li>현재 endpoint를 선택한 reuse plan이 기존 runtime을 찾고 route 충돌 여부를 정확히 반환한다.</li><li>기존 Serial/I2C Event/Reading과 dashboard freshness가 계속 정상인지 확인한다.</li><li>EdgeMesh generation, workload와 설정을 변경하지 않았음을 전후 비교한다.</li></ul>
+<h3 id="browser-검증">Browser 검증</h3>
+<ul><li>좁은 화면과 desktop에서 runtime 목록과 wizard가 사용할 수 있다.</li><li>unverified protocol과 external runtime mutation 버튼이 비활성화된다.</li><li>admin token과 secret이 browser storage 또는 URL에 남지 않는다.</li><li>validation, apply, polling, 실패와 보상 결과가 단계별로 표시된다.</li><li>browser에서 Kubernetes API로 직접 요청하지 않는다.</li></ul>
+<h2 id="배포-순서">배포 순서</h2>
+<ol><li>범위·저장소·로드맵·운영 문서를 먼저 갱신한다.</li><li>CRD, Controller와 RBAC를 <code>edgex/k8s</code> 진입점에 추가하되 mutation flag는 끈다.</li><li><code>state-aggregator</code>에 Controller client와 read-only runtime inventory를 추가한다.</li><li>planner와 통합 Connection validation을 활성화한다.</li><li>자동·server-side dry-run과 browser 검증을 통과한다.</li><li>live Serial/I2C discovery와 reuse plan을 read-only로 확인한다.</li><li>내부 canary만 잠시 mutation 활성화해 배포·readiness·퇴역을 확인한다.</li><li>canary를 정리하고 mutation flag를 다시 기본값으로 둔다.</li><li>실제 protocol template은 실장비 검증 후 각각 승인 상태로 승격한다.</li></ol>
+<p>Argo CD는 CRD, Controller, catalog와 base workload를 배포한다. 대시보드 요청으로 생성된 <code>AdapterRuntime</code>과 그 owned workload는 Controller가 관리하며 Argo CD resource로 가장하지 않는다.</p>
+<h2 id="완료-조건">완료 조건</h2>
+<ol><li>운영자는 대시보드에서 runtime 조회, reuse/deploy plan, EdgeX onboarding과 첫 Event 상태를</li></ol>
+<p>하나의 흐름으로 확인한다.</p>
+<ol><li>기존 Serial/I2C runtime은 external/Argo-managed로 발견되고 재사용 판단에 포함된다.</li><li>controller-managed runtime만 대시보드에서 재시작·퇴역할 수 있다.</li><li>임의 image, raw hostPath, fixed ClusterIP/PodIP, arbitrary manifest와 namespace 이탈이</li></ol>
+<p>API와 Controller 양쪽에서 차단된다.</p>
+<ol><li><code>state-aggregator</code>에는 Kubernetes write RBAC가 없다.</li><li>idempotency, 상태 복구와 실패 보상이 중복 runtime/Profile/Device 생성을 막는다.</li><li>EdgeX가 physical Device 권위이며 KubeEdge Device CRD와 EdgeMesh를 변경하지 않는다.</li><li>Serial/I2C 외 protocol은 실제 검증 전까지 <code>unverified</code>이고 배포 성공으로 표현하지 않는다.</li><li>테스트, server-side dry-run, browser 검증, live read-only 검증과 안전한 canary 정리가</li></ol>
+<p>모두 근거와 함께 남는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#현재-설계에서-바꾸는-범위">현재 설계에서 바꾸는 범위</a></li>
+<li class="toc-h2"><a href="#선택한-구조">선택한 구조</a></li>
+<li class="toc-h3"><a href="#선택하지-않은-방식">선택하지 않은 방식</a></li>
+<li class="toc-h2"><a href="#운영자가-대시보드에서-관리하는-범위">운영자가 대시보드에서 관리하는 범위</a></li>
+<li class="toc-h2"><a href="#권위와-소유권">권위와 소유권</a></li>
+<li class="toc-h2"><a href="#adapter-catalog와-검증-상태">Adapter Catalog와 검증 상태</a></li>
+<li class="toc-h2"><a href="#hardware-binding">Hardware binding</a></li>
+<li class="toc-h2"><a href="#adapterruntime-crd">AdapterRuntime CRD</a></li>
+<li class="toc-h3"><a href="#spec">spec</a></li>
+<li class="toc-h3"><a href="#status">status</a></li>
+<li class="toc-h2"><a href="#runtime-재사용-계획">Runtime 재사용 계획</a></li>
+<li class="toc-h2"><a href="#통합-connection-온보딩-상태">통합 Connection 온보딩 상태</a></li>
+<li class="toc-h2"><a href="#외부-management-api">외부 Management API</a></li>
+<li class="toc-h2"><a href="#controller-내부-api">Controller 내부 API</a></li>
+<li class="toc-h2"><a href="#idempotency와-상태-복구">Idempotency와 상태 복구</a></li>
+<li class="toc-h2"><a href="#실패-보상">실패 보상</a></li>
+<li class="toc-h2"><a href="#재시작과-퇴역">재시작과 퇴역</a></li>
+<li class="toc-h2"><a href="#secret-처리">Secret 처리</a></li>
+<li class="toc-h2"><a href="#인증-기능-flag와-감사">인증, 기능 flag와 감사</a></li>
+<li class="toc-h2"><a href="#최소-rbac와-네트워크">최소 RBAC와 네트워크</a></li>
+<li class="toc-h2"><a href="#dashboard-화면-흐름">Dashboard 화면 흐름</a></li>
+<li class="toc-h3"><a href="#adapter-runtime">Adapter Runtime</a></li>
+<li class="toc-h3"><a href="#새-디바이스-연결-wizard">새 디바이스 연결 wizard</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -32,56 +32,62 @@ kustomization renders no resources and it is not managed by the active Argo CD
 applications. KubeEdge remains responsible only for Kubernetes edge nodes and
 workloads.
 
-## 제한된 Device Management
+## Adapter Runtime과 Device 연결 관리
 
-Dashboard의 `Device Management` 화면과 `/management/*` API는 EdgeX Core
-Metadata를 대체하지 않는 제한된 onboarding UI다. Adapter Catalog에서 `installed`로
-판정되고 Core Metadata에서 실행 상태가 확인된 Device Service만 dry-run 대상으로 사용한다.
-현재 catalog의 검증 완료 대상은 `device-serial-jetson`과
-`device-sensehat-raspi`이며 Modbus, OPC-UA, MQTT와 RTSP는 `unsupported`다.
-`installed`는 Device Service runtime이 존재한다는 뜻이며 빈 route가 있다는 뜻이 아니다.
-현재 Serial과 Sense HAT endpoint는 각각 `arduino-001`, `sensehat-001`로 고정되고 같은
-endpoint/resource binding을 다른 Device가 이미 사용하면 dry-run이
-`protocol_binding_exists`로 차단한다. 새 물리 source나 host device mount는 별도 Device
-Service 배포 wave가 필요하며 이 화면이 자동으로 만들지 않는다.
+Dashboard `Device Management`와 `/management/*` API는 Runtime 선택부터 EdgeX Profile/Device,
+Metadata readback과 first Event까지 하나의 connection operation으로 관리한다. EdgeX
+Core Metadata/Core Data가 계속 물리 Device 권위다.
 
-기본 Deployment는 다음처럼 명시적으로 mutation을 닫는다.
+`state-aggregator`는 browser BFF이며 Kubernetes 쓰기 권한을 갖지 않는다. 내부 HMAC으로
+`edgex-edge`의 `edgex-adapter-controller`를 호출하고, Controller만 승인된
+`AdapterRuntime`과 namespaced workload를 reconcile한다.
+
+현재 Deployment 설정:
 
 ```text
-DEVICE_MANAGEMENT_ENABLED=false
+DEVICE_MANAGEMENT_ENABLED=true
+ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true
+ADAPTER_RUNTIME_MUTATION_ENABLED=true
+ADAPTER_CONTROLLER_URL=http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080
 ADAPTER_CATALOG_PATH=/app/app/config/adapter_catalog.json
 ```
 
-이 상태에서도 adapter 조회와 `POST /management/devices/validate` dry-run은 가능하다.
-`POST /management/devices`와 `PATCH /management/devices/{name}`은 `404`를 반환하고,
-dashboard도 `DRY-RUN ONLY · MUTATION DISABLED`를 표시하며 create/PATCH control을
-비활성화한다.
+세 credential은 Git에 두지 않고 `default/edgex-adapter-management-auth` Secret에서 읽는다.
 
-운영에서 mutation을 켤 때는 먼저 외부 TLS와 접근 제어가 적용된 경로를 사용하고, Git에
-평문을 넣지 않는 Secret 관리 방식으로 서로 다른 두 값을 준비한다. Argo CD가 관리하는
-Deployment에 다음 형태의 env를 반영한다.
+- `admin-token`: dashboard 관리자 Bearer token
+- `management-hmac-key`: 외부 idempotency request ID
+- `internal-hmac-key`: Adapter Controller 요청 서명
 
-```yaml
-- name: DEVICE_MANAGEMENT_ENABLED
-  value: "true"
-- name: DEVICE_MANAGEMENT_ADMIN_TOKEN
-  valueFrom:
-    secretKeyRef:
-      name: state-aggregator-device-management
-      key: admin-token
-- name: DEVICE_MANAGEMENT_HMAC_KEY
-  valueFrom:
-    secretKeyRef:
-      name: state-aggregator-device-management
-      key: hmac-key
+Controller namespace의 같은 이름 Secret에는 동일한 `internal-hmac-key`만 둔다. 준비와
+점검은 다음 스크립트를 사용한다.
+
+```bash
+edgex/k8s/scripts/provision-adapter-management-secrets.sh
+edgex/k8s/scripts/preflight-adapter-management-secrets.sh
 ```
 
-두 Secret 값 중 하나라도 없으면 애플리케이션은 시작 단계에서 실패한다. 관리자 요청은
-Bearer token과 요청별 `Idempotency-Key`가 모두 필요하다. token은 dashboard JavaScript
-메모리에만 유지되고 URL, localStorage와 sessionStorage에는 저장하지 않는다. Device/Profile
-삭제, command publish, Device Service 자동 배포, Kubernetes 또는 EdgeMesh 변경은 제공하지
-않는다. `edgeAiOnboarding*`, `nodeName`, `physicalDeviceId` system tag는 사용자 PATCH 대상이
-아니다. live Metadata canary는 자동 테스트에 포함하지 않는다.
+기존 Secret이 있으면 provisioning은 기본적으로 회전을 거부한다. 의도적 회전은
+`--replace`와 두 Deployment 동시 rollout 절차로만 수행한다. 필요한 key가 없으면
+Kubernetes가 Pod 시작을 차단한다.
+
+현재 `device-serial-jetson`과 `device-sensehat-raspi`는 Argo CD 소유 external runtime이다.
+대시보드는 이들을 조회·재사용하지만 restart/retire하지 않는다. Controller가 만든 runtime만
+재시작할 수 있고 EdgeX consumer가 0개일 때 exact-name 확인 뒤 퇴역한다. Core Metadata
+조회 장애는 consumer 0으로 간주하지 않는다.
+
+요청 schema에는 raw manifest, image, command, privilege, hostPath, hostNetwork,
+ClusterIP/PodIP가 없다. target node와 device path는 Git의 `hardwareBindingId` allowlist로
+고정한다. KubeEdge target node가 Ready이고 Device Service가 Core Metadata에 등록된 뒤에만
+connection을 진행한다. Modbus, OPC-UA, MQTT와 RTSP는 실장비 검증 전까지 배포가
+`BLOCKED`다.
+
+관리자 mutation은 Bearer token과 요청별 `Idempotency-Key`를 모두 요구한다. token은
+dashboard JavaScript memory에만 유지되고 URL, localStorage와 sessionStorage에는 저장하지
+않는다. Profile/Device 강제 삭제, command/actuator, EdgeMesh와 KubeEdge
+Device/DeviceModel/DeviceStatus 변경은 제공하지 않는다.
+
+운영 절차는
+`docs/ops/어댑터-런타임-디바이스-연결-관리.md`를 따른다.
 
 Kubernetes manifests:
 

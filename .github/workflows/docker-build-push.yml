@@ -11,6 +11,11 @@ name: Build and Push Images to Local Registry
       - "edge-orch/workflow_executor/**"
       - "edge-orch/placement_engine/**"
       - "edge-orch/vision_stage_runner/**"
+      - "edgex/adapter-controller/**"
+      - "edgex/device-serial/**"
+      - "edgex/device-sensehat/**"
+      - "edgex/local-data-cache/**"
+      - "edgex/k8s/**"
       - "mappers/mqttvirtual/**"
       - "mappers/mapper-framework/**"
       - "docs/**"
@@ -75,6 +80,7 @@ jobs:
           set_output workflow_executor "${COMMON}|^edge-orch/workflow_executor/"
           set_output placement_engine "${COMMON}|^edge-orch/placement_engine/"
           set_output vision_stage_runner "${COMMON}|^edge-orch/vision_stage_runner/"
+          set_output adapter_stack "${COMMON}|^edgex/(adapter-controller|device-serial|device-sensehat|local-data-cache|k8s)/"
           set_output mqttvirtual "${COMMON}|^mappers/(mqttvirtual|mapper-framework)/"
           set_output docs "${COMMON}|^(docs|docs-site)/"
 
@@ -100,6 +106,45 @@ jobs:
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/state-aggregator-build-metadata.json)
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "STATE_AGGREGATOR_IMAGE=${{ env.REGISTRY }}/state-aggregator@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Build and Push edge-adapter-controller
+        if: steps.changes.outputs.adapter_stack == 'true'
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/edge-adapter-controller:latest \
+            -f edgex/adapter-controller/Dockerfile \
+            edgex/adapter-controller \
+            --metadata-file /tmp/edge-adapter-controller-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edge-adapter-controller-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "EDGE_ADAPTER_CONTROLLER_IMAGE=${{ env.REGISTRY }}/edge-adapter-controller@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Build and Push edgex-device-serial
+        if: steps.changes.outputs.adapter_stack == 'true'
+        run: |
+          docker buildx build --platform linux/arm64 \
+            -t ${{ env.REGISTRY }}/edgex-device-serial:latest \
+            -f edgex/device-serial/Dockerfile \
+            edgex \
+            --metadata-file /tmp/edgex-device-serial-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edgex-device-serial-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "EDGEX_DEVICE_SERIAL_IMAGE=${{ env.REGISTRY }}/edgex-device-serial@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Build and Push edgex-device-sensehat
+        if: steps.changes.outputs.adapter_stack == 'true'
+        run: |
+          docker buildx build --platform linux/arm64 \
+            -t ${{ env.REGISTRY }}/edgex-device-sensehat:latest \
+            -f edgex/device-sensehat/Dockerfile \
+            edgex \
+            --metadata-file /tmp/edgex-device-sensehat-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edgex-device-sensehat-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "EDGEX_DEVICE_SENSEHAT_IMAGE=${{ env.REGISTRY }}/edgex-device-sensehat@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Build and Push workflow-executor
         if: steps.changes.outputs.workflow_executor == 'true'
@@ -174,6 +219,60 @@ jobs:
             argocd.argoproj.io/refresh=hard \
             --overwrite
           kubectl rollout status deployment/docs-html -n default --timeout=180s
+
+      - name: Deploy EdgeX adapter management images through Argo CD
+        if: steps.changes.outputs.adapter_stack == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${EDGE_ADAPTER_CONTROLLER_IMAGE}"
+          test -n "${EDGEX_DEVICE_SERIAL_IMAGE}"
+          test -n "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
+          edgex/k8s/scripts/preflight-adapter-management-secrets.sh
+
+          CURRENT_IMAGES=$(kubectl get application edgex-telemetry -n argocd -o json \
+            | jq -c '.spec.source.kustomize.images // []')
+          for TARGET_IMAGE in \
+            "${EDGE_ADAPTER_CONTROLLER_IMAGE}" \
+            "${EDGEX_DEVICE_SERIAL_IMAGE}" \
+            "${EDGEX_DEVICE_SENSEHAT_IMAGE}"; do
+            TARGET_REPOSITORY=${TARGET_IMAGE%@sha256:*}
+            CURRENT_IMAGES=$(jq -c \
+              --arg repository "${TARGET_REPOSITORY}" \
+              --arg image "${TARGET_IMAGE}" \
+              '[.[] | select((sub("@sha256:[0-9a-f]+$"; "") | sub(":[^/:]+$"; "")) != $repository)] + [$image]' \
+              <<<"${CURRENT_IMAGES}")
+          done
+          PATCH=$(jq -nc \
+            --arg revision "${{ github.sha }}" \
+            --argjson images "${CURRENT_IMAGES}" \
+            '{spec:{source:{targetRevision:$revision,kustomize:{images:$images}}}}')
+          kubectl patch application edgex-telemetry -n argocd \
+            --type=merge -p "${PATCH}"
+          kubectl annotate application edgex-telemetry -n argocd \
+            argocd.argoproj.io/refresh=hard \
+            --overwrite
+
+          for attempt in $(seq 1 90); do
+            CONTROLLER_IMAGE=$(kubectl get deployment edgex-adapter-controller -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            SERIAL_IMAGE=$(kubectl get deployment device-serial-jetson -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            SENSEHAT_IMAGE=$(kubectl get deployment device-sensehat-raspi -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if [ "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}" ] \
+              && [ "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}" ] \
+              && [ "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}" ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}"
+          test "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}"
+          test "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
+          kubectl rollout status deployment/edgex-adapter-controller -n edgex-edge --timeout=180s
+          kubectl rollout status deployment/device-serial-jetson -n edgex-edge --timeout=180s
+          kubectl rollout status deployment/device-sensehat-raspi -n edgex-edge --timeout=180s
 
       - name: Deploy state-aggregator image through Argo CD
         if: steps.changes.outputs.state_aggregator == 'true'

@@ -32,6 +32,21 @@ Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-r
 `GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
 `DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
 이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
+
+Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
+
+- `GET /management/adapter-runtimes`에서 기존 Argo runtime과 Controller runtime의 owner,
+  phase, target node와 EdgeX consumer를 조회한다.
+- Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.
+- 인증된 `POST /management/connections`는 Adapter Controller를 통해 승인 runtime을
+  준비한 뒤 EdgeX Profile/Device를 등록하고 first Event까지 추적한다.
+- state-aggregator 자체는 Kubernetes 쓰기 권한이 없고, 외부/Argo runtime을
+  restart/retire하지 않는다.
+- raw manifest, 임의 image/hostPath/hostNetwork, 고정 ClusterIP/PodIP, EdgeMesh와 KubeEdge
+  Device CRD 변경은 API schema에 없다.
+
+자세한 운영 경계는
+`docs/ops/어댑터-런타임-디바이스-연결-관리.md`를 따른다.
 B. Prometheus reader
 
 Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기

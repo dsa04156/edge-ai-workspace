@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "namespace": "edgex-edge",
+  "templates": [
+    {
+      "templateId": "serial-device-service-v1",
+      "adapterId": "serial-jetson",
+      "displayName": "Jetson Arduino Serial",
+      "protocolName": "serial",
+      "verificationState": "hardware-verified",
+      "deploymentEnabled": false,
+      "image": "192.168.0.56:5000/edgex-device-serial@sha256:ddece2451dd0079483c3d7441f4ce6f393b57dea6ce338601adb407c9113db3b",
+      "servicePort": 59910,
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-arduino-serial-001",
+          "displayName": "Jetson Arduino USB Serial",
+          "nodeName": "etri-dev0001-jetorn",
+          "hostDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
+          "containerDevicePath": "/dev/arduino-001",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        }
+      ],
+      "externalRuntimes": [
+        {
+          "runtimeName": "device-serial-jetson",
+          "serviceName": "device-serial-jetson",
+          "workloadName": "device-serial-jetson",
+          "targetNode": "etri-dev0001-jetorn",
+          "hardwareBindingId": "jetson-arduino-serial-001",
+          "managementOwner": "argocd"
+        }
+      ]
+    },
+    {
+      "templateId": "sensehat-device-service-v1",
+      "adapterId": "sensehat-raspi",
+      "displayName": "Raspberry Pi Sense HAT I2C",
+      "protocolName": "i2c",
+      "verificationState": "hardware-verified",
+      "deploymentEnabled": false,
+      "image": "192.168.0.56:5000/edgex-device-sensehat@sha256:53df28e46ae20272092bcf14cbc831b9934bbcc643c2dbf84338f76ba96cf216",
+      "servicePort": 59911,
+      "hardwareBindings": [
+        {
+          "bindingId": "raspi5-sensehat-i2c-001",
+          "displayName": "Raspberry Pi Sense HAT I2C",
+          "nodeName": "etri-dev0003-raspi5",
+          "hostDevicePath": "/dev/i2c-1",
+          "containerDevicePath": "/dev/i2c-1",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        }
+      ],
+      "externalRuntimes": [
+        {
+          "runtimeName": "device-sensehat-raspi",
+          "serviceName": "device-sensehat-raspi",
+          "workloadName": "device-sensehat-raspi",
+          "targetNode": "etri-dev0003-raspi5",
+          "hardwareBindingId": "raspi5-sensehat-i2c-001",
+          "managementOwner": "argocd"
+        }
+      ]
+    },
+    {
+      "templateId": "modbus-device-service-v1",
+      "adapterId": "modbus",
+      "displayName": "Modbus",
+      "protocolName": "modbus",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59920
+    },
+    {
+      "templateId": "opcua-device-service-v1",
+      "adapterId": "opcua",
+      "displayName": "OPC-UA",
+      "protocolName": "opcua",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59921
+    },
+    {
+      "templateId": "mqtt-device-service-v1",
+      "adapterId": "mqtt",
+      "displayName": "MQTT-only Device",
+      "protocolName": "mqtt",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59922
+    },
+    {
+      "templateId": "rtsp-device-service-v1",
+      "adapterId": "rtsp",
+      "displayName": "RTSP Camera",
+      "protocolName": "rtsp",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59923
+    }
+  ]
+}

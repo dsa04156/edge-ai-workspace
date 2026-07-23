@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import logging
+import re
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -114,12 +115,19 @@ class DeviceManagementService:
                     reason=reason,
                     fields=deepcopy(adapter.fields),
                     profile_capabilities=deepcopy(adapter.profile_capabilities),
+                    runtime=deepcopy(adapter.runtime),
                 )
             )
         return result
 
     async def validate(
-        self, request: DeviceOnboardingRequest, *, actor: str = "anonymous"
+        self,
+        request: DeviceOnboardingRequest,
+        *,
+        actor: str = "anonymous",
+        service_name_override: str | None = None,
+        node_name_override: str | None = None,
+        allow_unregistered_service: bool = False,
     ) -> ValidationResult:
         protocol_issues = list(
             self.catalog.validate_protocol(
@@ -134,6 +142,14 @@ class DeviceManagementService:
             result = ValidationResult(valid=False, issues=issues)
             self._audit_validation(request, actor, result)
             return result
+        service_name = self._effective_service_name(
+            adapter,
+            service_name_override,
+        )
+        node_name = self._effective_node_name(
+            adapter,
+            node_name_override,
+        )
 
         for tag in sorted(set(request.device.tags) & ONBOARDING_OPERATION_TAGS):
             issues.append(
@@ -144,7 +160,7 @@ class DeviceManagementService:
                 )
             )
         expected_system_tags = {
-            "nodeName": adapter.node_name,
+            "nodeName": node_name,
             "physicalDeviceId": request.device.protocol_properties.get("DeviceID"),
         }
         for tag, expected in expected_system_tags.items():
@@ -163,12 +179,12 @@ class DeviceManagementService:
 
         services = await self.metadata.list_device_services()
         service = next(
-            (item for item in services if item.get("name") == adapter.service_name),
+            (item for item in services if item.get("name") == service_name),
             None,
         )
         if adapter.declared_status == "installed" and (
             service is None or service.get("adminState") != "UNLOCKED"
-        ):
+        ) and not allow_unregistered_service:
             issues.append(
                 ValidationIssue(
                     code="adapter_unavailable",
@@ -189,10 +205,11 @@ class DeviceManagementService:
 
         if not protocol_issues:
             binding_owner = await self._protocol_binding_owner(
-                adapter,
-                request.device.protocol_properties,
-                exclude_name=request.device.name,
-            )
+                        adapter,
+                        request.device.protocol_properties,
+                        exclude_name=request.device.name,
+                        service_name=service_name,
+                    )
             if binding_owner is not None:
                 issues.append(
                     ValidationIssue(
@@ -258,14 +275,21 @@ class DeviceManagementService:
                 if request.profile.mode == "create"
                 else existing_profile
             )
-            device = self._device_document(request, adapter, request_id=None, payload_hash=None)
+            device = self._device_document(
+                request,
+                adapter,
+                request_id=None,
+                payload_hash=None,
+                service_name=service_name,
+                node_name=node_name,
+            )
             mutations = ["create_device"]
             if request.profile.mode == "create":
                 mutations.insert(0, "create_profile")
             plan = {
                 "adapter": {
                     "adapterId": adapter.adapter_id,
-                    "serviceName": adapter.service_name,
+                    "serviceName": service_name,
                     "protocolName": adapter.protocol_name,
                 },
                 "profile": profile,
@@ -289,11 +313,29 @@ class DeviceManagementService:
         *,
         idempotency_key: str,
         actor: str,
+        service_name_override: str | None = None,
+        node_name_override: str | None = None,
+        request_id_override: str | None = None,
+        payload_hash_override: str | None = None,
     ) -> ManagementOperation:
         if not idempotency_key:
             raise ValueError("idempotency_key must not be empty")
-        request_id = self._request_id(idempotency_key)
-        payload_hash = self._payload_hash(request.model_dump(by_alias=True, exclude_none=True))
+        if (request_id_override is None) != (payload_hash_override is None):
+            raise ValueError(
+                "request_id_override and payload_hash_override must be provided together"
+            )
+        request_id = request_id_override or self._request_id(idempotency_key)
+        hash_payload = request.model_dump(by_alias=True, exclude_none=True)
+        if service_name_override is not None or node_name_override is not None:
+            hash_payload["_bindingOverride"] = {
+                "serviceName": service_name_override,
+                "nodeName": node_name_override,
+            }
+        payload_hash = payload_hash_override or self._payload_hash(hash_payload)
+        if re.fullmatch(r"[0-9a-f]{64}", request_id) is None:
+            raise ValueError("request ID must be a 64-character lowercase hex digest")
+        if re.fullmatch(r"[0-9a-f]{64}", payload_hash) is None:
+            raise ValueError("payload hash must be a 64-character lowercase hex digest")
         async with self._mutation_lock:
             replay = self._replay_or_conflict(request_id, payload_hash)
             if replay is not None:
@@ -307,6 +349,8 @@ class DeviceManagementService:
                     request_id,
                     payload_hash,
                     actor=actor,
+                    service_name_override=service_name_override,
+                    node_name_override=node_name_override,
                 )
                 if recovered is not None:
                     self._remember(recovered)
@@ -315,7 +359,12 @@ class DeviceManagementService:
                     f"Device {request.device.name!r} exists with a different operation"
                 )
 
-            result = await self.validate(request, actor=actor)
+            result = await self.validate(
+                request,
+                actor=actor,
+                service_name_override=service_name_override,
+                node_name_override=node_name_override,
+            )
             if not result.valid:
                 raise ManagementValidationError(result)
 
@@ -353,6 +402,14 @@ class DeviceManagementService:
                     adapter,
                     request_id=request_id,
                     payload_hash=payload_hash,
+                    service_name=self._effective_service_name(
+                        adapter,
+                        service_name_override,
+                    ),
+                    node_name=self._effective_node_name(
+                        adapter,
+                        node_name_override,
+                    ),
                 )
                 await self.metadata.add_device(device)
                 readback = await self.metadata.get_device(request.device.name)
@@ -491,6 +548,7 @@ class DeviceManagementService:
                     adapter,
                     patch.protocol_properties,
                     exclude_name=name,
+                    service_name=adapter.service_name,
                 )
                 if binding_owner is not None:
                     raise ManagementValidationError(
@@ -638,12 +696,15 @@ class DeviceManagementService:
         *,
         request_id: str | None,
         payload_hash: str | None,
+        service_name: str | None = None,
+        node_name: str | None = None,
     ) -> dict[str, Any]:
         tags = deepcopy(request.device.tags)
         for tag in ONBOARDING_OPERATION_TAGS:
             tags.pop(tag, None)
-        if adapter.node_name:
-            tags["nodeName"] = adapter.node_name
+        effective_node_name = node_name or adapter.node_name
+        if effective_node_name:
+            tags["nodeName"] = effective_node_name
         physical_device_id = request.device.protocol_properties.get("DeviceID")
         if isinstance(physical_device_id, str) and physical_device_id:
             tags["physicalDeviceId"] = physical_device_id
@@ -656,7 +717,7 @@ class DeviceManagementService:
             "adminState": request.device.admin_state,
             "operatingState": "UNKNOWN",
             "labels": list(request.device.labels),
-            "serviceName": adapter.service_name,
+            "serviceName": service_name or adapter.service_name,
             "profileName": request.profile.name,
             "protocols": {
                 adapter.protocol_name: deepcopy(request.device.protocol_properties)
@@ -697,13 +758,16 @@ class DeviceManagementService:
         protocol_properties: dict[str, Any],
         *,
         exclude_name: str,
+        service_name: str | None = None,
     ) -> str | None:
         expected = self._canonical_protocol_properties(adapter, protocol_properties)
         for device in await self.metadata.list_devices():
             name = device.get("name")
             if (
                 name == exclude_name
-                or device.get("serviceName") != adapter.service_name
+                or device.get("serviceName") != (
+                    service_name or adapter.service_name
+                )
             ):
                 continue
             protocols = device.get("protocols") or {}
@@ -757,6 +821,8 @@ class DeviceManagementService:
         payload_hash: str,
         *,
         actor: str,
+        service_name_override: str | None = None,
+        node_name_override: str | None = None,
     ) -> ManagementOperation | None:
         tags = device.get("tags") or {}
         if (
@@ -770,6 +836,14 @@ class DeviceManagementService:
             adapter,
             request_id=request_id,
             payload_hash=payload_hash,
+            service_name=self._effective_service_name(
+                adapter,
+                service_name_override,
+            ),
+            node_name=self._effective_node_name(
+                adapter,
+                node_name_override,
+            ),
         )
         if not self._device_readback_matches(device, requested):
             raise IdempotencyConflict(
@@ -829,6 +903,34 @@ class DeviceManagementService:
         return hmac.new(
             self._hmac_key, idempotency_key.encode("utf-8"), hashlib.sha256
         ).hexdigest()
+
+    @staticmethod
+    def _effective_service_name(
+        adapter: Any,
+        service_name_override: str | None,
+    ) -> str:
+        service_name = service_name_override or adapter.service_name
+        if not isinstance(service_name, str) or re.fullmatch(
+            r"[a-z0-9](?:[-a-z0-9]*[a-z0-9])?",
+            service_name,
+        ) is None or len(service_name) > 63:
+            raise ValueError("EdgeX Device Service name is invalid")
+        return service_name
+
+    @staticmethod
+    def _effective_node_name(
+        adapter: Any,
+        node_name_override: str | None,
+    ) -> str | None:
+        node_name = node_name_override or adapter.node_name
+        if node_name is None:
+            return None
+        if not isinstance(node_name, str) or len(node_name) > 253 or re.fullmatch(
+            r"[a-z0-9](?:[-a-z0-9.]*[a-z0-9])?",
+            node_name,
+        ) is None:
+            raise ValueError("KubeEdge target node name is invalid")
+        return node_name
 
     @staticmethod
     def _payload_hash(payload: dict[str, Any]) -> str:

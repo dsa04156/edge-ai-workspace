@@ -78,6 +78,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -113,6 +115,7 @@
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -144,18 +147,18 @@
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
           <h1>대시보드 화면 설계</h1>
-          <p class="subtitle">기존 Markdown 문서를 HTML로 변환한 읽기용 페이지입니다.</p>
+          <p class="subtitle">Device consumer 수를 먼저 보여 준다.</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 대시보드-화면-설계.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
+            <span class="badge">수정: 2026-07-23 15:21</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-화면-설계">대시보드 화면 설계</h1>
 <h2 id="목적">목적</h2>
-<ul><li>운영자가 디바이스, 노드, 서비스, telemetry freshness를 리소스 콘솔 흐름으로 읽게 한다.</li><li>현재 PoC 범위는 통합 운영 가시화와 read-only preview다.</li><li>화면은 실행 버튼 중심이 아니라 관측값, 판단 근거, dry-run 계획 중심으로 설계한다.</li></ul>
+<ul><li>운영자가 디바이스, 노드, 서비스, telemetry freshness를 리소스 콘솔 흐름으로 읽게 한다.</li><li>현재 PoC 범위는 통합 운영 가시화와 승인된 Adapter Runtime·EdgeX Device 연결 관리다.</li><li>화면은 관측값과 판단 근거를 먼저 보여 주고, 검증된 관리 작업만 명시적 인증 뒤 실행한다.</li></ul>
 <h2 id="전체-프레임">전체 프레임</h2>
 <ul><li>Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline.</li><li>Command bar: cluster context, global search, 마지막 갱신 시각, refresh.</li><li>Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.</li><li>Inspector rail: State Explanation, read-only Qwen assistant.</li><li>Dense scroll: 긴 목록, table, plan preview, inspector rail에만 허용.</li></ul>
 <h2 id="overview">Overview</h2>
@@ -164,10 +167,21 @@
 <ul><li>Edge Nodes와 Devices를 같은 panel 안의 list-detail 구조로 표시한다.</li><li>Service Topology는 Assets 안에 둔다. 목적은 서비스 실행이 아니라 디바이스-서비스 연결 구조 확인이다.</li></ul>
 <h2 id="ai-pipeline">AI Pipeline</h2>
 <ul><li>Summary strip으로 등록 디바이스, availability, telemetry freshness, validation 상태를 먼저 보여준다.</li><li>Palette, graph canvas, inspector를 한 작업면으로 묶는다.</li><li>Validation과 Execution Plan은 dry-run preview로만 표시한다.</li></ul>
+<h2 id="device-management">Device Management</h2>
+<ul><li>Adapter Catalog와 Runtime inventory에서 protocol, owner, phase, node, 검증 상태와 EdgeX</li></ul>
+<p>Device consumer 수를 먼저 보여 준다.</p>
+<ul><li>운영자는 runtime mode, catalog가 허용한 target node와 hardware binding만 선택할 수 있다.</li><li>validation은 <code>REUSE</code>·<code>DEPLOY</code>·<code>BLOCKED</code> runtime plan과 EdgeX Profile/Device plan을 한</li></ul>
+<p>화면에 표시하며 mutation을 수행하지 않는다.</p>
+<ul><li><code>Connect Device</code>는 관리자 token과 idempotency key가 있고 validation이 유효할 때만</li></ul>
+<p>활성화한다. 상태는 runtime, Metadata, first Event와 실패 보상을 분리해 표시한다.</p>
+<ul><li>Argo CD 소유 Runtime은 조회·재사용 전용이다. Controller가 만든 Runtime만 restart할 수</li></ul>
+<p>있고 consumer가 0개일 때만 retire할 수 있다.</p>
 <h2 id="deferred-resource-augmentation">Deferred Resource Augmentation</h2>
 <ul><li>Resource Augmentation은 기능 재구상 전까지 dashboard navigation과 active page에서 제외한다.</li><li>기존 resource augmentation JS/CSS 자산은 재설계 참고용으로 보관할 수 있지만 운영 화면에서 로드하지 않는다.</li><li>다시 노출하려면 화면 정보 구조, 책임 범위, 검증 기준을 먼저 갱신한다.</li></ul>
 <h2 id="표현-경계">표현 경계</h2>
-<ul><li>유지: observed state, read-only explanation, dry-run, preview.</li><li>금지: dashboard apply/delete/restart, MQTT command publish, actuator command, runtime migration, autonomous orchestration completed.</li><li>자원증강은 재설계 전까지 현재 dashboard 운영 기능으로 표현하지 않는다.</li></ul>
+<ul><li>유지: observed state, read-only explanation, dry-run, 승인 template 기반 관리와 명시적 상태 추적.</li><li>금지: raw Kubernetes manifest/image/hostPath 입력, 외부 runtime 변경, MQTT command publish,</li></ul>
+<p>actuator command, EdgeMesh/KubeEdge Device CRD 변경, runtime migration, autonomous orchestration completed.</p>
+<ul><li>자원증강은 재설계 전까지 현재 dashboard 운영 기능으로 표현하지 않는다.</li></ul>
 <h2 id="responsive">Responsive</h2>
 <ul><li>Desktop: dark left resource rail + compact command bar + main workspace + sticky inspector rail.</li><li>Tablet: resource rail은 가로 tab으로 접고 inspector rail을 본문 아래로 내리며, graph는 세로 stack으로 전환한다.</li><li>Mobile: resource rail은 가로 스크롤 tab으로 접히고, metric row와 panel header는 단일열로 전환한다.</li></ul>
         </div>
@@ -177,6 +191,7 @@
 <li class="toc-h2"><a href="#overview">Overview</a></li>
 <li class="toc-h2"><a href="#assets">Assets</a></li>
 <li class="toc-h2"><a href="#ai-pipeline">AI Pipeline</a></li>
+<li class="toc-h2"><a href="#device-management">Device Management</a></li>
 <li class="toc-h2"><a href="#deferred-resource-augmentation">Deferred Resource Augmentation</a></li>
 <li class="toc-h2"><a href="#표현-경계">표현 경계</a></li>
 <li class="toc-h2"><a href="#responsive">Responsive</a></li></ol></aside>

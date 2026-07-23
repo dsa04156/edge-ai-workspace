@@ -5,6 +5,17 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.adapter_runtime_models import RuntimeObservation, RuntimePlan
+from app.adapter_runtime_service import ExternalRuntimeMutationError
+from app.connection_management import (
+    ConnectionIdempotencyConflict,
+    ConnectionOperationNotFound,
+    ConnectionValidationError,
+)
+from app.connection_management_models import (
+    ConnectionOperation,
+    ConnectionValidationResult,
+)
 from app.device_management import (
     IdempotencyConflict,
     ManagementApplyError,
@@ -104,19 +115,199 @@ class RecordingService:
         return result
 
 
-def settings(*, enabled=False, token=None, hmac_key=None):
+class RecordingRuntimeService:
+    def __init__(self):
+        self.calls = []
+        self.error = None
+
+    async def list_runtimes(self):
+        self.calls.append(("list_runtimes",))
+        if self.error:
+            raise self.error
+        return [
+            RuntimeObservation(
+                runtime_name="device-serial-jetson",
+                adapter_id="serial-jetson",
+                template_id="serial-device-service-v1",
+                service_name="device-serial-jetson",
+                target_node="etri-dev0001-jetorn",
+                hardware_binding_id="jetson-arduino-serial-001",
+                management_mode="external",
+                management_owner="argocd",
+                verification_state="hardware-verified",
+                phase="SERVICE_READY",
+                consumers=6,
+                mutable=False,
+                edge_x_service_observed=True,
+            )
+        ]
+
+    async def plan_runtime(self, request):
+        self.calls.append(("plan_runtime", request.adapter_id, request.mode))
+        if self.error:
+            raise self.error
+        return RuntimePlan(
+            action="REUSE",
+            allowed=True,
+            adapter_id=request.adapter_id,
+            template_id="serial-device-service-v1",
+            runtime_name="device-serial-jetson",
+            service_name="device-serial-jetson",
+            target_node=request.target_node,
+            hardware_binding_id=request.hardware_binding_id,
+            management_mode="external",
+            verification_state="hardware-verified",
+            plan_hash="f" * 64,
+        )
+
+    async def restart_runtime(self, name, request):
+        self.calls.append(("restart_runtime", name, request.request_id))
+        if self.error:
+            raise self.error
+        result = (await self.list_runtimes())[0].model_copy(
+            update={
+                "runtime_name": name,
+                "service_name": name,
+                "management_mode": "controller",
+                "management_owner": "controller",
+                "mutable": True,
+            }
+        )
+        return result
+
+    async def retire_runtime(self, name, request):
+        self.calls.append(("retire_runtime", name, request.request_id))
+        if self.error:
+            raise self.error
+        result = (await self.list_runtimes())[0].model_copy(
+            update={
+                "runtime_name": name,
+                "service_name": name,
+                "management_mode": "controller",
+                "management_owner": "controller",
+                "phase": "RETIRED",
+                "mutable": False,
+            }
+        )
+        return result
+
+
+class RecordingConnectionService:
+    def __init__(self):
+        self.calls = []
+        self.error = None
+
+    async def validate(self, request, *, actor):
+        self.calls.append(("validate_connection", request.device.name, actor))
+        if self.error:
+            raise self.error
+        return ConnectionValidationResult(
+            valid=True,
+            runtime_plan=RuntimePlan(
+                action="REUSE",
+                allowed=True,
+                adapter_id=request.adapter_id,
+                template_id="serial-device-service-v1",
+                runtime_name="device-serial-jetson",
+                service_name="device-serial-jetson",
+                target_node=request.runtime.target_node,
+                hardware_binding_id=request.runtime.hardware_binding_id,
+                management_mode="external",
+                verification_state="hardware-verified",
+                plan_hash="f" * 64,
+            ),
+            edge_x_plan={"mutations": ["create_device"]},
+        )
+
+    async def create_connection(self, request, *, idempotency_key, actor):
+        self.calls.append(
+            (
+                "create_connection",
+                request.device.name,
+                idempotency_key,
+                actor,
+            )
+        )
+        if self.error:
+            raise self.error
+        now = datetime.now(timezone.utc)
+        return ConnectionOperation(
+            request_id="connection-request",
+            payload_hash="hidden",
+            status="WAITING_EVENT",
+            adapter_id=request.adapter_id,
+            runtime_action="REUSE",
+            runtime_name="device-serial-jetson",
+            service_name="device-serial-jetson",
+            device_name=request.device.name,
+            profile_name=request.profile.name,
+            metadata_applied=True,
+            actor=actor,
+            started_at=now,
+            updated_at=now,
+        )
+
+    async def get_operation(self, request_id):
+        self.calls.append(("get_connection", request_id))
+        if self.error:
+            raise self.error
+        result = await self.create_connection(
+            connection_request_model(),
+            idempotency_key="recovered",
+            actor="recovered",
+        )
+        result.request_id = request_id
+        result.status = "ACTIVE"
+        result.first_event_verified = True
+        return result
+
+
+def settings(
+    *,
+    enabled=False,
+    token=None,
+    hmac_key=None,
+    runtime_management=False,
+    runtime_mutation=False,
+):
     return Settings(
         device_management_enabled=enabled,
         device_management_admin_token=token,
         device_management_hmac_key=hmac_key,
+        adapter_runtime_management_enabled=runtime_management,
+        adapter_runtime_mutation_enabled=runtime_mutation,
+        adapter_controller_internal_hmac_key=(
+            "internal-hmac" if runtime_management else None
+        ),
     )
 
 
-def client_for(service, *, enabled=False, token=None, hmac_key=None):
+def client_for(
+    service,
+    *,
+    enabled=False,
+    token=None,
+    hmac_key=None,
+    runtime_management=False,
+    runtime_mutation=False,
+    runtime_service=None,
+    connection_service=None,
+):
+    if runtime_management and connection_service is None:
+        connection_service = RecordingConnectionService()
     app = FastAPI()
     app.include_router(
         create_device_management_router(
-            settings(enabled=enabled, token=token, hmac_key=hmac_key), service
+            settings(
+                enabled=enabled,
+                token=token,
+                hmac_key=hmac_key,
+                runtime_management=runtime_management,
+                runtime_mutation=runtime_mutation,
+            ),
+            service,
+            runtime_service=runtime_service,
+            connection_service=connection_service,
         )
     )
     return TestClient(app)
@@ -128,6 +319,36 @@ def admin_headers(**extra):
         "Idempotency-Key": "request-key",
         **extra,
     }
+
+
+def runtime_plan_payload():
+    return {
+        "adapterId": "serial-jetson",
+        "targetNode": "etri-dev0001-jetorn",
+        "hardwareBindingId": "jetson-arduino-serial-001",
+        "mode": "auto",
+    }
+
+
+def connection_request_payload():
+    return {
+        "adapterId": "serial-jetson",
+        "runtime": {
+            "mode": "auto",
+            "targetNode": "etri-dev0001-jetorn",
+            "hardwareBindingId": "jetson-arduino-serial-001",
+        },
+        "device": request_payload()["device"],
+        "profile": request_payload()["profile"],
+    }
+
+
+def connection_request_model():
+    from app.connection_management_models import ConnectionOnboardingRequest
+
+    return ConnectionOnboardingRequest.model_validate(
+        connection_request_payload()
+    )
 
 
 def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():
@@ -308,6 +529,180 @@ def test_delete_route_does_not_exist():
         response = client.delete("/management/devices/device-01")
 
     assert response.status_code in {404, 405}
+
+
+def test_runtime_routes_are_hidden_until_management_flag_is_enabled():
+    runtime_service = RecordingRuntimeService()
+    with client_for(
+        RecordingService(),
+        runtime_service=runtime_service,
+    ) as client:
+        response = client.get("/management/adapter-runtimes")
+
+    assert response.status_code == 404
+    assert runtime_service.calls == []
+
+
+def test_runtime_inventory_and_plan_are_read_only_when_mutation_is_disabled():
+    runtime_service = RecordingRuntimeService()
+    with client_for(
+        RecordingService(),
+        runtime_management=True,
+        runtime_service=runtime_service,
+    ) as client:
+        listed = client.get("/management/adapter-runtimes")
+        planned = client.post(
+            "/management/adapter-runtimes/plan",
+            json=runtime_plan_payload(),
+        )
+        restart = client.post(
+            "/management/adapter-runtimes/adapter-serial-02/restart",
+            headers=admin_headers(),
+        )
+
+    assert listed.status_code == 200
+    assert listed.json()[0]["managementMode"] == "external"
+    assert listed.json()[0]["mutationEnabled"] is False
+    assert planned.status_code == 200
+    assert planned.json()["action"] == "REUSE"
+    assert restart.status_code == 404
+
+
+def test_runtime_restart_and_retire_require_admin_idempotency_and_exact_confirm():
+    runtime_service = RecordingRuntimeService()
+    common = {
+        "enabled": True,
+        "token": "admin-token",
+        "hmac_key": "hmac",
+        "runtime_management": True,
+        "runtime_mutation": True,
+        "runtime_service": runtime_service,
+    }
+    with client_for(RecordingService(), **common) as client:
+        unauthorized = client.post(
+            "/management/adapter-runtimes/adapter-serial-02/restart"
+        )
+        restarted = client.post(
+            "/management/adapter-runtimes/adapter-serial-02/restart",
+            headers=admin_headers(),
+        )
+        missing_confirm = client.delete(
+            "/management/adapter-runtimes/adapter-serial-02",
+            headers=admin_headers(),
+        )
+        retired = client.delete(
+            "/management/adapter-runtimes/adapter-serial-02",
+            headers=admin_headers(
+                **{"X-Confirm-Runtime": "adapter-serial-02"}
+            ),
+        )
+
+    assert unauthorized.status_code in {400, 401}
+    assert restarted.status_code == 200
+    assert missing_confirm.status_code == 409
+    assert retired.status_code == 200
+    assert [item[0] for item in runtime_service.calls].count(
+        "restart_runtime"
+    ) == 1
+    assert [item[0] for item in runtime_service.calls].count(
+        "retire_runtime"
+    ) == 1
+
+
+def test_connection_validation_is_read_only_and_apply_uses_existing_admin_guard():
+    runtime_service = RecordingRuntimeService()
+    connection_service = RecordingConnectionService()
+    common = {
+        "runtime_management": True,
+        "runtime_mutation": True,
+        "runtime_service": runtime_service,
+        "connection_service": connection_service,
+    }
+    with client_for(
+        RecordingService(),
+        enabled=True,
+        token="admin-token",
+        hmac_key="hmac",
+        **common,
+    ) as client:
+        validated = client.post(
+            "/management/connections/validate",
+            json=connection_request_payload(),
+        )
+        applied = client.post(
+            "/management/connections",
+            json=connection_request_payload(),
+            headers=admin_headers(),
+        )
+        polled = client.get(
+            "/management/connections/operations/connection-request"
+        )
+
+    assert validated.status_code == 200
+    assert validated.json()["runtimePlan"]["action"] == "REUSE"
+    assert applied.status_code == 201
+    assert applied.json()["status"] == "WAITING_EVENT"
+    assert "payloadHash" not in applied.json()
+    assert polled.status_code == 200
+    assert polled.json()["status"] == "ACTIVE"
+
+
+def test_connection_and_runtime_domain_errors_are_mapped():
+    invalid = ConnectionValidationResult(
+        valid=False,
+        issues=[ValidationIssue(code="runtime_unavailable", message="blocked")],
+        runtime_plan=RuntimePlan(
+            action="BLOCKED",
+            allowed=False,
+            adapter_id="serial-jetson",
+            target_node="etri-dev0001-jetorn",
+            hardware_binding_id="jetson-arduino-serial-001",
+            verification_state="hardware-verified",
+            reasons=[],
+            plan_hash="f" * 64,
+        ),
+    )
+    connection_cases = [
+        (ConnectionValidationError(invalid), 422),
+        (ConnectionIdempotencyConflict("different"), 409),
+        (ConnectionOperationNotFound("missing"), 404),
+    ]
+    for error, expected in connection_cases:
+        connection_service = RecordingConnectionService()
+        connection_service.error = error
+        with client_for(
+            RecordingService(),
+            enabled=True,
+            token="admin-token",
+            hmac_key="hmac",
+            runtime_management=True,
+            runtime_mutation=True,
+            runtime_service=RecordingRuntimeService(),
+            connection_service=connection_service,
+        ) as client:
+            response = client.post(
+                "/management/connections",
+                json=connection_request_payload(),
+                headers=admin_headers(),
+            )
+        assert response.status_code == expected
+
+    runtime_service = RecordingRuntimeService()
+    runtime_service.error = ExternalRuntimeMutationError("read-only")
+    with client_for(
+        RecordingService(),
+        enabled=True,
+        token="admin-token",
+        hmac_key="hmac",
+        runtime_management=True,
+        runtime_mutation=True,
+        runtime_service=runtime_service,
+    ) as client:
+        response = client.post(
+            "/management/adapter-runtimes/device-serial-jetson/restart",
+            headers=admin_headers(),
+        )
+    assert response.status_code == 409
 
 
 def test_repository_app_registers_default_disabled_mutation_route():

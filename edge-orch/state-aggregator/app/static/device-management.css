@@ -65,6 +65,7 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-catalog,
 .management-workspace,
+.management-runtime-inventory,
 .management-existing-grid > section,
 .management-existing-grid > form,
 .management-results-grid > section,
@@ -75,6 +76,83 @@ body[data-dashboard-page="management"] .side-rail {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(11, 16, 20, 0.7);
+}
+
+.management-runtime-inventory {
+  margin-bottom: var(--space-4);
+}
+
+.management-runtime-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.management-runtime-card {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-left: 3px solid #75808a;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-runtime-card[data-phase="SERVICE_READY"] {
+  border-left-color: #5bcf9b;
+}
+
+.management-runtime-card[data-phase="DEPLOYING"],
+.management-runtime-card[data-phase="WORKLOAD_READY"],
+.management-runtime-card[data-phase="RESTARTING"] {
+  border-left-color: #f0b35b;
+}
+
+.management-runtime-card[data-phase="FAILED"],
+.management-runtime-card[data-phase="RETIRED"] {
+  border-left-color: #ee6a78;
+}
+
+.management-runtime-card-header,
+.management-runtime-actions,
+.management-runtime-facts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.management-runtime-card-header {
+  justify-content: space-between;
+}
+
+.management-runtime-card-header strong,
+.management-runtime-facts {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.management-runtime-facts {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-runtime-actions {
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.management-runtime-actions button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.management-runtime-hint {
+  margin: var(--space-3) 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .management-workspace {

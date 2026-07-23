@@ -237,6 +237,36 @@ async def test_validate_accepts_installed_service_and_matching_profile(catalog):
 
 
 @async_test
+async def test_validate_can_plan_for_pending_managed_device_service(catalog):
+    metadata = FakeMetadata()
+    metadata.services = [
+        item
+        for item in metadata.services
+        if item["name"] != "adapter-serial-02"
+    ]
+
+    result = await service_for(catalog, metadata).validate(
+        onboarding_request(),
+        actor="viewer",
+        service_name_override="adapter-serial-02",
+        allow_unregistered_service=True,
+    )
+
+    assert result.valid is True
+    assert result.plan["device"]["serviceName"] == "adapter-serial-02"
+
+    unavailable = await service_for(catalog, metadata).validate(
+        onboarding_request(),
+        actor="viewer",
+        service_name_override="adapter-serial-02",
+        allow_unregistered_service=False,
+    )
+    assert "adapter_unavailable" in {
+        item.code for item in unavailable.issues
+    }
+
+
+@async_test
 async def test_validate_rejects_missing_service_duplicate_and_profile_mismatch(catalog):
     metadata = FakeMetadata()
     metadata.services = []
@@ -336,6 +366,63 @@ async def test_create_runs_profile_device_readback_saga_and_waits_for_event(cata
         "add_device:virtual-temperature-002"
     )
     assert events.calls == ["virtual-temperature-002"]
+
+
+@async_test
+async def test_create_uses_managed_service_and_outer_connection_identity(catalog):
+    metadata = FakeMetadata()
+    metadata.services.append(
+        {
+            "name": "adapter-serial-02",
+            "adminState": "UNLOCKED",
+            "baseAddress": (
+                "http://adapter-serial-02.edgex-edge.svc.cluster.local:59910"
+            ),
+        }
+    )
+    service = service_for(catalog, metadata)
+
+    operation = await service.create_device(
+        onboarding_request(),
+        idempotency_key="derived-device-key",
+        actor="dashboard-admin",
+        service_name_override="adapter-serial-02",
+        request_id_override="a" * 64,
+        payload_hash_override="b" * 64,
+    )
+
+    device = metadata.devices["virtual-temperature-002"]
+    assert device["serviceName"] == "adapter-serial-02"
+    assert device["tags"][DEVICE_REQUEST_ID_TAG] == "a" * 64
+    assert device["tags"][DEVICE_PAYLOAD_HASH_TAG] == "b" * 64
+    assert operation.request_id == "a" * 64
+    assert operation.payload_hash == "b" * 64
+
+
+@async_test
+async def test_create_uses_runtime_target_node_for_managed_binding(catalog):
+    metadata = FakeMetadata()
+    metadata.services.append(
+        {
+            "name": "adapter-serial-02",
+            "adminState": "UNLOCKED",
+            "baseAddress": (
+                "http://adapter-serial-02.edgex-edge.svc.cluster.local:59910"
+            ),
+        }
+    )
+
+    await service_for(catalog, metadata).create_device(
+        onboarding_request(),
+        idempotency_key="managed-node-binding",
+        actor="dashboard-admin",
+        service_name_override="adapter-serial-02",
+        node_name_override="edge-node-02",
+    )
+
+    device = metadata.devices["virtual-temperature-002"]
+    assert device["serviceName"] == "adapter-serial-02"
+    assert device["tags"]["nodeName"] == "edge-node-02"
 
 
 @async_test

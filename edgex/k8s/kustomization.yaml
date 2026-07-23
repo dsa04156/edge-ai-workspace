@@ -5,3 +5,5 @@ resources:
   - base/edge-namespace
   - base/device-serial-jetson
   - base/device-sensehat-raspi
+  - crds
+  - base/adapter-controller

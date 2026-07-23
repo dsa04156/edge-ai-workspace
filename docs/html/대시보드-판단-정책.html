@@ -78,6 +78,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -113,6 +115,7 @@
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -148,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-23 10:50</span>
-            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
+            <span class="badge">수정: 2026-07-23 15:26</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
           </div>
         </header>
         <div class="doc-body">
@@ -174,8 +177,9 @@
 <p>Telemetry detail은 <code>deviceName</code>과 <code>sourceName</code>, event origin, typed readings를 보존한다. Device detail의 저장 그래프는 <code>state-aggregator</code>를 거쳐 Core Data API에서 읽으며 dashboard가 PostgreSQL에 직접 연결하지 않는다. storage graph나 AI 결과는 Core Data 이후 consumer 결과로 표시하며 physical source authority를 바꾸지 않는다.</p>
 <h2 id="device-management-판단-경계">Device Management 판단 경계</h2>
 <p>Device Management는 EdgeX 권위를 대체하지 않는 관리 UI다. Adapter Catalog의 <code>installed</code> 표시는 지원 계약이고, 실제 apply 가능 여부는 Core Metadata의 동일 <code>serviceName</code> Device Service 존재와 <code>adminState=UNLOCKED</code> readback까지 확인한다. dry-run 결과만으로 등록 완료나 protocol 지원 완료를 표시하지 않는다.</p>
-<ul><li>Profile/Device Metadata readback 성공은 <code>metadata_applied</code>다.</li><li>아직 Core Data Event가 없으면 <code>waiting_for_event</code>이며 실패나 available로 추정하지 않는다.</li><li>계약된 <code>deviceName</code> Event를 확인했을 때만 <code>verified</code>다.</li><li>validation, Metadata mutation 또는 readback 불일치는 <code>failed</code>다.</li><li><code>DEVICE_MANAGEMENT_ENABLED=false</code>에서는 create/patch control을 사용할 수 없게 표시한다.</li></ul>
-<p>관리 화면은 Device 삭제, actuator command, Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. Workflow Builder의 browser-local bind/release와 execution plan preview도 이 관리 상태와 분리하며 계속 dry-run으로 판단한다.</p>
+<ul><li>Profile/Device Metadata readback 성공은 <code>metadata_applied</code>다.</li><li>아직 Core Data Event가 없으면 <code>waiting_for_event</code>이며 실패나 available로 추정하지 않는다.</li><li>계약된 <code>deviceName</code> Event를 확인했을 때만 <code>verified</code>다.</li><li>validation, Metadata mutation 또는 readback 불일치는 <code>failed</code>다.</li><li><code>DEVICE_MANAGEMENT_ENABLED=false</code>에서는 create/patch control을 사용할 수 없게 표시한다.</li><li><code>ADAPTER_RUNTIME_MUTATION_ENABLED=false</code>에서는 runtime 배포·재시작·퇴역과 이를 요구하는</li></ul>
+<p>connection apply를 사용할 수 없게 표시한다.</p>
+<p>관리 화면은 Device 강제 삭제, actuator command, 임의 Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. 승인된 Adapter Controller 소유 runtime의 배포·재시작·조건부 퇴역만 별도 관리 경로로 제공한다. Workflow Builder의 browser-local bind/release와 execution plan preview도 이 관리 상태와 분리하며 계속 dry-run으로 판단한다.</p>
 <h2 id="availability-판단-순서">Availability 판단 순서</h2>
 <p>State Aggregator와 dashboard는 다음 순서를 동일하게 사용한다.</p>
 <ol><li><code>adminState=LOCKED</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=DOWN</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code> / <code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 Core Data event가 freshness threshold 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이지만 event가 없으면 <code>degraded</code> (<code>latest EdgeX event is missing</code>).</li><li><code>operatingState=UP</code>이지만 최신 event가 stale이면 <code>degraded</code> (<code>latest EdgeX event is stale</code>).</li><li>알 수 없는 state나 잘못된 event origin은 <code>degraded</code>와 구체적인 reason으로 표시한다.</li></ol>

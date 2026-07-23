@@ -97,6 +97,31 @@ class Settings(BaseModel):
             )
         )
     )
+    adapter_runtime_management_enabled: bool = Field(
+        default_factory=lambda: _env_bool("ADAPTER_RUNTIME_MANAGEMENT_ENABLED")
+    )
+    adapter_runtime_mutation_enabled: bool = Field(
+        default_factory=lambda: _env_bool("ADAPTER_RUNTIME_MUTATION_ENABLED")
+    )
+    adapter_controller_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "ADAPTER_CONTROLLER_URL",
+            "http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080",
+        )
+    )
+    adapter_controller_internal_hmac_key: str | None = Field(
+        default_factory=lambda: os.getenv(
+            "ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY"
+        )
+        or None
+    )
+    adapter_controller_timeout_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("ADAPTER_CONTROLLER_TIMEOUT_SECONDS", "5")
+        ),
+        gt=0,
+        le=60,
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

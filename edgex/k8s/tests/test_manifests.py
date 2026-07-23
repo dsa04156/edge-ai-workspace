@@ -36,6 +36,8 @@ def test_operational_entrypoint_retires_custom_edge_agents() -> None:
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
+        "crds",
+        "base/adapter-controller",
     ]
 
     resources = _render(K8S_DIR)
@@ -51,6 +53,8 @@ def test_operational_entrypoint_retires_custom_edge_agents() -> None:
     }
     assert ("Job", "edgex-metadata-bootstrap") not in indexed
     assert ("ConfigMap", "edgex-metadata-contract") not in indexed
+    assert ("CustomResourceDefinition", "adapterruntimes.edgeai.etri.re.kr") in indexed
+    assert ("Deployment", "edgex-adapter-controller") in indexed
 
 
 def test_operational_entrypoint_keeps_central_edgex_without_device_mqtt() -> None:

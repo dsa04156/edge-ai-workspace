@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "adapters": [
     {
       "adapterId": "serial-jetson",
@@ -8,6 +8,27 @@
       "protocolName": "serial",
       "nodeName": "etri-dev0001-jetorn",
       "declaredStatus": "installed",
+      "runtime": {
+        "mode": "external",
+        "managementOwner": "argocd",
+        "verificationState": "hardware-verified",
+        "templateId": "serial-device-service-v1",
+        "deploymentEnabled": false,
+        "hardwareBindings": [
+          {
+            "bindingId": "jetson-arduino-serial-001",
+            "displayName": "Jetson Arduino USB Serial",
+            "nodeName": "etri-dev0001-jetorn",
+            "devicePath": "/dev/arduino-001"
+          }
+        ],
+        "reusePolicy": {
+          "multiDevice": true,
+          "bindingFields": ["Port", "BaudRate", "DeviceID"],
+          "routeFields": ["ResourceName"],
+          "maxDevices": 6
+        }
+      },
       "fields": [
         {
           "name": "Port",
@@ -166,6 +187,27 @@
       "protocolName": "i2c",
       "nodeName": "etri-dev0003-raspi5",
       "declaredStatus": "installed",
+      "runtime": {
+        "mode": "external",
+        "managementOwner": "argocd",
+        "verificationState": "hardware-verified",
+        "templateId": "sensehat-device-service-v1",
+        "deploymentEnabled": false,
+        "hardwareBindings": [
+          {
+            "bindingId": "raspi5-sensehat-i2c-001",
+            "displayName": "Raspberry Pi Sense HAT I2C",
+            "nodeName": "etri-dev0003-raspi5",
+            "devicePath": "/dev/i2c-1"
+          }
+        ],
+        "reusePolicy": {
+          "multiDevice": true,
+          "bindingFields": ["Bus", "DeviceID"],
+          "routeFields": ["ResourceGroup"],
+          "maxDevices": 6
+        }
+      },
       "fields": [
         {
           "name": "Bus",
@@ -245,6 +287,12 @@
       "displayName": "Modbus",
       "protocolName": "modbus",
       "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
       "reason": "Device Service와 실제 register mapping 검증 전에는 지원하지 않습니다."
     },
     {
@@ -252,6 +300,12 @@
       "displayName": "OPC-UA",
       "protocolName": "opcua",
       "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
       "reason": "Device Service, endpoint security와 subscription recovery 검증 전에는 지원하지 않습니다."
     },
     {
@@ -259,6 +313,12 @@
       "displayName": "MQTT-only Device",
       "protocolName": "mqtt",
       "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
       "reason": "MQTT-only 장비와 Device Service 검증 전에는 broker나 adapter를 자동 배포하지 않습니다.",
       "fields": [
         {"name": "Broker", "label": "Broker URL", "type": "string", "required": true},
@@ -270,6 +330,12 @@
       "displayName": "RTSP Camera",
       "protocolName": "rtsp",
       "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
       "reason": "현재 camera frame은 Workflow Pod가 직접 구독하며 Device onboarding 대상이 아닙니다."
     }
   ]

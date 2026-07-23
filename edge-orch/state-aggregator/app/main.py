@@ -16,6 +16,9 @@ from .augmentation_crds import (
 )
 from .config import Settings
 from .adapter_catalog import AdapterCatalog
+from .adapter_controller_client import AdapterControllerClient
+from .adapter_runtime_service import AdapterRuntimeManagementService
+from .connection_management import ConnectionManagementService
 from .device_management import DeviceManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient
@@ -71,6 +74,31 @@ management_service = DeviceManagementService(
     hmac_key=settings.device_management_hmac_key or "disabled-management",
     operation_limit=settings.device_management_operation_limit,
 )
+runtime_management_service = None
+connection_management_service = None
+if settings.adapter_runtime_management_enabled:
+    if not settings.adapter_controller_internal_hmac_key:
+        raise ValueError(
+            "Adapter Controller internal HMAC key is required when runtime management is enabled"
+        )
+    adapter_controller_client = AdapterControllerClient(
+        settings.adapter_controller_url,
+        settings.adapter_controller_internal_hmac_key,
+        settings.adapter_controller_timeout_seconds,
+    )
+    runtime_management_service = AdapterRuntimeManagementService(
+        adapter_controller_client,
+        management_client,
+    )
+    connection_management_service = ConnectionManagementService(
+        runtime_management_service,
+        management_service,
+        hmac_key=(
+            settings.device_management_hmac_key
+            or settings.adapter_controller_internal_hmac_key
+        ),
+        operation_limit=settings.device_management_operation_limit,
+    )
 
 
 @asynccontextmanager
@@ -81,7 +109,14 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
-app.include_router(create_device_management_router(settings, management_service))
+app.include_router(
+    create_device_management_router(
+        settings,
+        management_service,
+        runtime_service=runtime_management_service,
+        connection_service=connection_management_service,
+    )
+)
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

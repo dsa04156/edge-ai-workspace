@@ -78,6 +78,7 @@
 <li><a href="../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -113,6 +115,7 @@
 <li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -148,13 +151,20 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-22 19:14</span>
-            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
+            <span class="badge">수정: 2026-07-23 15:26</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="위키-변경-기록">위키 변경 기록</h1>
 <p>이 파일은 append-only로 유지한다. ingest, query, lint 과정에서 wiki가 어떻게 바뀌었는지 기록한다.</p>
+<h2 id="2026-07-23-ingest-dashboard-adapter-runtime-device-연결-관리-반영">[2026-07-23] ingest | Dashboard Adapter Runtime·Device 연결 관리 반영</h2>
+<ul><li>근거: <code>edgex/adapter-controller/</code>, <code>edgex/k8s/crds/edge-ai.io_adapterruntimes.yaml</code>,</li></ul>
+<p><code>edge-orch/state-aggregator/app/*management*.py</code>, dashboard Device Management와 운영 manifest</p>
+<ul><li>갱신: <code>docs/wiki/운영-진입점.md</code>, <code>docs/wiki/지식-지도.md</code>,</li></ul>
+<p><code>docs/wiki/대시보드와-kpi.md</code>, <code>docs/wiki/운영-모델.md</code></p>
+<ul><li>메모: 새 장비 연결의 운영 진입점을 dashboard로 고정했다. Serial/I2C 기존 Argo runtime은</li></ul>
+<p>조회·재사용하고 Controller 소유 runtime만 승인 template로 배포·재시작·consumer-safe 퇴역한다. EdgeX Profile/Device와 첫 Event 확인까지 connection operation으로 추적하며 Modbus/OPC-UA/MQTT/RTSP는 실장비 검증 전 <code>BLOCKED</code>로 유지한다.</p>
 <h2 id="2026-06-16-ingest-llm-wiki-계층-추가">[2026-06-16] ingest | LLM wiki 계층 추가</h2>
 <ul><li>근거: <code>docs/시스템-구축-목표.md</code>, <code>docs/프로젝트-배경.md</code>, <code>docs/프로젝트-범위.md</code>, <code>docs/현재-데모-경로.md</code>, <code>docs/디바이스-서비스-연결.md</code>, <code>docs/대시보드-정보-구조.md</code>, <code>docs/물리-디바이스-상태-정책.md</code>, <code>docs/단계별-추진계획.md</code></li><li>갱신: <code>docs/wiki/운영-규칙.md</code>, <code>docs/wiki/지식-지도.md</code>, <code>docs/wiki/운영-모델.md</code>, <code>docs/wiki/현재-데모-흐름.md</code>, <code>docs/wiki/상태와-텔레메트리.md</code>, <code>docs/wiki/대시보드와-kpi.md</code>, <code>docs/wiki/운영-진입점.md</code>, <code>docs/wiki/2차년도-설계-트랙.md</code></li><li>메모: Active/Ops 원본문서를 유지하면서 Karpathy식 Markdown wiki 계층을 추가했다.</li></ul>
 <h2 id="2026-06-16-lint-한국어-중심-문서-정리">[2026-06-16] lint | 한국어 중심 문서 정리</h2>
@@ -179,7 +189,8 @@
 <ul><li>근거: <code>tools/check_dashboard_api.py</code>, <code>tests/test_check_dashboard_api.py</code>, live <code>/state/dashboard</code></li><li>갱신: <code>tools/verify_e2e.sh</code>, <code>docs/ops/대시보드-검증.md</code></li><li>메모: 퇴역한 Mapper/DeviceStatus field 검사를 제거하고 현재 EdgeX Metadata/Core Data Device·KPI 계약으로 교체했다. non-healthy node는 physical <code>operator_focus_count</code>에 합치지 않으며, live 12개 Device와 virtual resource API가 strict 검사에서 PASS했다.</li></ul>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-06-16-ingest-llm-wiki-계층-추가">[2026-06-16] ingest | LLM wiki 계층 추가</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-dashboard-adapter-runtime-device-연결-관리-반영">[2026-07-23] ingest | Dashboard Adapter Runtime·Device 연결 관리 반영</a></li>
+<li class="toc-h2"><a href="#2026-06-16-ingest-llm-wiki-계층-추가">[2026-06-16] ingest | LLM wiki 계층 추가</a></li>
 <li class="toc-h2"><a href="#2026-06-16-lint-한국어-중심-문서-정리">[2026-06-16] lint | 한국어 중심 문서 정리</a></li>
 <li class="toc-h2"><a href="#2026-07-21-ingest-jetson-arduino-serial-수직-슬라이스-반영">[2026-07-21] ingest | Jetson Arduino Serial 수직 슬라이스 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-21-ingest-jetson-local-data-api와-recent-cache-반영">[2026-07-21] ingest | Jetson Local Data API와 recent cache 반영</a></li>

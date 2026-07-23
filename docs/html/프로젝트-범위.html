@@ -78,6 +78,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -96,6 +97,7 @@
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
 <li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
@@ -113,6 +115,7 @@
 <li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
 <li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
 <li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -148,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-23 11:22</span>
-            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
+            <span class="badge">수정: 2026-07-23 15:27</span>
+            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
           </div>
         </header>
         <div class="doc-body">
@@ -214,10 +217,25 @@
 <p>현재 root render에는 <code>device-mqtt</code>와 edge-local broker가 없다. MQTT-only 장비가 들어오면 별도 Device Service와 프로토콜별 검증 gate를 추가한 뒤에만 배포한다. Serial과 Sense HAT I2C 정상 경로만 지원 증거가 있으며 Modbus와 OPC-UA는 profile·실장비·telemetry 검증 전까지 완료로 주장하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media 경로다.</p>
 <p>첫 서비스 데모 consumer는 <code>edge-orch/sensor-anomaly-demo/</code>다. 이 고정 Deployment는 <code>etri-dev0001-jetorn</code>에서 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>의 Local Data API를 500ms마다 조회한다. <code>virtual-acceleration-{x,y,z}-001</code>의 같은 nanosecond <code>origin</code>을 한 frame으로 결합하고, 30개 warm-up 뒤 online Gaussian baseline으로 magnitude 변화 점수를 계산한다. 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니며, 실제 장치를 움직여 anomaly가 발생하는 현장 실증은 별도 gate다.</p>
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → 세 EdgeX Device → AI consumer binding을 read-only로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
-<h3 id="제한된-device-온보딩-관리">제한된 Device 온보딩 관리</h3>
-<p><code>state-aggregator</code>의 Device Onboarding API와 대시보드 <code>Device Management</code> 화면은 설치되어 실행 중인 EdgeX Device Service에 Profile과 Device를 등록하는 제한된 Current 경로다. Adapter Catalog는 입력 form과 protocol 제약만 제공하며 inventory 권위가 아니다. Profile, Device, Device Service binding은 Core Metadata, 첫 Event와 Reading은 Core Data를 최종 readback한다.</p>
-<ul><li><code>GET /management/adapters</code>와 <code>POST /management/devices/validate</code>는 조회와 dry-run이며 Metadata를 수정하지 않는다.</li><li><code>POST /management/devices</code>와 allowlist <code>PATCH</code>는 관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다.</li><li><code>DEVICE_MANAGEMENT_ENABLED=false</code>가 기본값이고 이때 mutation endpoint는 닫혀 있다.</li><li>수정 allowlist는 description, labels, user tags, protocol properties와 <code>adminState</code>다.</li><li>Device 삭제, Profile 강제 삭제, command/actuator 실행, Device Service 자동 배포와 Kubernetes·EdgeMesh mutation은 제공하지 않는다.</li><li>Serial/I2C처럼 catalog에서 <code>installed</code>이고 Core Metadata에서 실행 상태를 확인한 adapter만 apply할 수 있다. Modbus, OPC-UA, MQTT, RTSP는 검증된 Device Service가 추가되기 전까지 <code>unsupported</code>다.</li><li>현재 Serial은 <code>/dev/arduino-001</code>, <code>115200</code>, <code>arduino-001</code>, Sense HAT은 <code>/dev/i2c-1</code>, <code>sensehat-001</code>로 endpoint가 고정된다. 같은 service/protocol endpoint와 resource route를 이미 소유한 Device가 있으면 dry-run에서 <code>protocol_binding_exists</code>로 차단한다. <code>installed</code>는 runtime이 존재한다는 뜻이지 빈 route capacity를 보장하지 않는다.</li><li>Metadata 적용과 첫 Event 검증을 분리해 Event가 아직 없는 장비는 <code>waiting_for_event</code>로 표시하고 등록 결과를 임의로 되돌리지 않는다.</li></ul>
-<p>Workflow Builder의 device/resource bind, validation과 execution plan은 계속 browser-local dry-run이다. Device Management 범위 승격이 Workflow Pod 실행, command publish, migration 또는 offloading을 활성화하지 않는다.</p>
+<h3 id="대시보드-adapter-runtime과-device-연결-관리">대시보드 Adapter Runtime과 Device 연결 관리</h3>
+<p><code>state-aggregator</code>의 <code>Device Management</code> 화면은 운영자가 Adapter Runtime과 EdgeX Device 연결을 한 흐름으로 관리하는 Current 경로다. 브라우저는 Kubernetes API에 직접 접근하지 않으며, <code>state-aggregator</code>가 내부 HMAC으로 별도 <code>edgex-adapter-controller</code>를 호출한다. Controller는 Git에서 승인한 template와 hardware binding만 <code>edgex-edge</code> namespace에 reconcile한다. Profile, Device와 Device Service binding의 권위는 Core Metadata, 첫 Event와 Reading의 권위는 Core Data에 그대로 남는다.</p>
+<ul><li>Runtime inventory, 재사용·배포 plan과 통합 connection validation은 mutation 없는 조회다.</li><li><code>POST /management/connections</code>, runtime restart/retire와 기존 Device allowlist <code>PATCH</code>는</li></ul>
+<p>관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다.</p>
+<ul><li>현재 운영 manifest는 <code>DEVICE_MANAGEMENT_ENABLED=true</code>,</li></ul>
+<p><code>ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true</code>, <code>ADAPTER_RUNTIME_MUTATION_ENABLED=true</code>로 관리 경로를 활성화하되, token과 HMAC key 세 개가 namespace별 <code>edgex-adapter-management-auth</code> Secret에 없으면 Pod가 시작하지 않는다.</p>
+<ul><li>기존 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 Argo CD 소유 external runtime이다.</li></ul>
+<p>대시보드는 상태·consumer를 조회하고 exact hardware binding으로 재사용하지만 재시작하거나 퇴역하지 않는다.</p>
+<ul><li>Controller가 만든 <code>AdapterRuntime</code>만 재시작할 수 있다. EdgeX Device consumer가 0개이고</li></ul>
+<p>exact runtime 이름 확인이 일치할 때만 퇴역한다.</p>
+<ul><li>API 요청은 <code>adapterId</code>, runtime mode, 승인된 target node/hardware binding, Device/Profile</li></ul>
+<p>계약만 받는다. 임의 image, command, privilege, raw hostPath, hostNetwork, 고정 ClusterIP/PodIP는 받지 않는다.</p>
+<ul><li>Serial/I2C template는 실장비 검증 상태와 기존 runtime을 표시하지만 현재 승인 binding을</li></ul>
+<p>Argo runtime이 점유하므로 <code>auto</code>는 재사용한다. Modbus, OPC-UA, MQTT와 RTSP는 image, profile, 실장비 검증 전까지 <code>unverified</code>/<code>BLOCKED</code>이며 배포 가능 기능으로 표시하지 않는다.</p>
+<ul><li>같은 service/protocol endpoint와 resource route를 이미 소유한 Device가 있으면</li></ul>
+<p><code>protocol_binding_exists</code>로 차단한다.</p>
+<ul><li>Connection 상태는 <code>RUNTIME_READY → DEVICE_APPLIED → WAITING_EVENT → ACTIVE</code>를 구분한다.</li></ul>
+<p>Event가 아직 없는 장비는 Metadata를 임의로 되돌리지 않는다. 신규 runtime 뒤 Metadata 적용이 실패한 경우에만 consumer 0을 확인하고 해당 runtime의 안전한 퇴역을 시도한다.</p>
+<p>KubeEdge는 target node와 workload 상태만 제공하며 <code>AdapterRuntime</code>을 물리 Device inventory로 보지 않는다. KubeEdge <code>Device</code>/<code>DeviceModel</code>/<code>DeviceStatus</code>, MapperFramework와 EdgeMesh는 이 관리 경로에서 수정하지 않는다. Workflow Builder의 device/resource bind, validation과 execution plan은 계속 browser-local dry-run이며 command publish, actuator 실행, migration 또는 offloading을 활성화하지 않는다.</p>
 <p>현재 범위의 핵심 표현:</p>
 <ul><li>서비스 데모 우선</li><li>EdgeX Device Service와 Device Profile/Device</li><li>중앙 Core Data·server2 PostgreSQL 권위</li><li>MQTT는 필요가 확인된 장비의 Device Service 검증 이후에만 배포</li><li>프로토콜별 독립 migration gate</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
 <h2 id="2차년도-설계-트랙">2차년도 설계 트랙</h2>
@@ -235,7 +253,9 @@
 <p>포함할 수 있는 범위:</p>
 <ul><li>Prometheus/Kubernetes에서 관측한 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 사용</li><li><code>AugmentationResource</code>와 <code>DeviceAugmentation</code>의 Available/Ready 상태를 scheduling 후보 필터로 사용</li><li>대상 edge workload와 보강 resource 사이의 capability matching, pressure reason, selected resource role을 status로 기록</li><li>dashboard에는 &quot;왜 증강 대상인지&quot;, &quot;어떤 자원이 선택됐는지&quot;, &quot;현재 적용/대기/불가 상태인지&quot;를 표시</li><li>실제 Kubernetes mutation은 dashboard나 버튼이 아니라 별도 scheduler/controller 정책 경로에서만 수행</li></ul>
 <p>포함하지 않는 범위:</p>
-<ul><li>수동 실행 버튼으로 임의 Job을 생성하는 흐름</li><li>고정 샘플 payload로 analyzer endpoint를 호출하는 smoke-test 실행</li><li>dashboard가 직접 Kubernetes apply/delete/restart를 수행하는 구조</li><li>runtime migration</li><li>cost model 기반 전역 최적화</li><li>legacy <code>workflow_executor</code>, <code>workflow_reporter</code>, <code>placement_engine</code>의 현행 기능 승격</li><li>agent-assisted planning 또는 LLM 기반 전역 제어</li></ul>
+<ul><li>수동 실행 버튼으로 임의 Job을 생성하는 흐름</li><li>고정 샘플 payload로 analyzer endpoint를 호출하는 smoke-test 실행</li><li>dashboard/state-aggregator가 승인 Controller를 우회해 임의 Kubernetes</li></ul>
+<p>apply/delete/restart를 수행하는 구조</p>
+<ul><li>runtime migration</li><li>cost model 기반 전역 최적화</li><li>legacy <code>workflow_executor</code>, <code>workflow_reporter</code>, <code>placement_engine</code>의 현행 기능 승격</li><li>agent-assisted planning 또는 LLM 기반 전역 제어</li></ul>
 <h2 id="현재-구현-과정에-포함되는-컴포넌트">현재 구현 과정에 포함되는 컴포넌트</h2>
 <p>현재 구현 과정에서 직접 다루는 컴포넌트는 다음과 같다.</p>
 <div class="table-wrap"><table>
@@ -248,7 +268,7 @@
 <tr>
 <td>현재 EdgeX 배포</td>
 <td><code>edgex/k8s/</code> root Kustomize</td>
-<td>중앙 Core/MessageBus/PostgreSQL/gateway와 <code>edgex-edge</code> Serial/I2C Device Service를 단일 진입점에서 배치</td>
+<td>중앙 Core/MessageBus/PostgreSQL/gateway, Serial/I2C Device Service, AdapterRuntime CRD와 Controller를 단일 진입점에서 배치</td>
 </tr>
 <tr>
 <td>현재 physical integration</td>
@@ -271,9 +291,9 @@
 <td>중앙 Core Metadata/Core Data를 inventory/latest-event와 선택 Device history authority로 소비</td>
 </tr>
 <tr>
-<td>제한된 Device 관리</td>
-<td><code>edge-orch/state-aggregator/app/device_management*.py</code></td>
-<td>installed Adapter Catalog 검증, 관리자 Profile/Device create·allowlist patch, Metadata readback과 first-Event 상태 확인. 기본 mutation 비활성화</td>
+<td>Adapter Runtime·Device 연결 관리</td>
+<td><code>edgex/adapter-controller/</code>, <code>edge-orch/state-aggregator/app/*management*.py</code></td>
+<td>승인 runtime 조회·재사용/배포와 EdgeX Profile/Device onboarding saga, 관리자 인증·idempotency·readback·first Event·실패 보상</td>
 </tr>
 <tr>
 <td>실측 센서 AI consumer</td>
@@ -353,7 +373,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#범위-분류-용어">범위 분류 용어</a></li>
 <li class="toc-h2"><a href="#현재-poc-범위">현재 PoC 범위</a></li>
-<li class="toc-h3"><a href="#제한된-device-온보딩-관리">제한된 Device 온보딩 관리</a></li>
+<li class="toc-h3"><a href="#대시보드-adapter-runtime과-device-연결-관리">대시보드 Adapter Runtime과 Device 연결 관리</a></li>
 <li class="toc-h2"><a href="#2차년도-설계-트랙">2차년도 설계 트랙</a></li>
 <li class="toc-h3"><a href="#보존-프로토타입-serial-json-virtual-device-runtime">보존 프로토타입: Serial JSON Virtual Device Runtime</a></li>
 <li class="toc-h3"><a href="#프로토타입-승격-후보-runtime-resource-augmentation-scheduler-v1">프로토타입 승격 후보: Runtime Resource Augmentation Scheduler v1</a></li>

@@ -17,21 +17,32 @@ def _resources() -> dict[tuple[str, str], dict]:
     }
 
 
-def test_device_management_is_explicitly_disabled_without_committed_secrets() -> None:
+def test_device_management_is_enabled_only_with_required_secret_refs() -> None:
     deployment = _resources()[("Deployment", "state-aggregator")]
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     environment = {item["name"]: item for item in container["env"]}
 
     assert environment["DEVICE_MANAGEMENT_ENABLED"] == {
         "name": "DEVICE_MANAGEMENT_ENABLED",
-        "value": "false",
+        "value": "true",
     }
+    assert environment["ADAPTER_RUNTIME_MANAGEMENT_ENABLED"]["value"] == "true"
+    assert environment["ADAPTER_RUNTIME_MUTATION_ENABLED"]["value"] == "true"
     assert environment["ADAPTER_CATALOG_PATH"] == {
         "name": "ADAPTER_CATALOG_PATH",
         "value": "/app/app/config/adapter_catalog.json",
     }
-    assert "DEVICE_MANAGEMENT_ADMIN_TOKEN" not in environment
-    assert "DEVICE_MANAGEMENT_HMAC_KEY" not in environment
+    expected_secret_refs = {
+        "DEVICE_MANAGEMENT_ADMIN_TOKEN": "admin-token",
+        "DEVICE_MANAGEMENT_HMAC_KEY": "management-hmac-key",
+        "ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY": "internal-hmac-key",
+    }
+    for name, key in expected_secret_refs.items():
+        assert environment[name]["valueFrom"]["secretKeyRef"] == {
+            "name": "edgex-adapter-management-auth",
+            "key": key,
+        }
+        assert "value" not in environment[name]
 
 
 def test_management_deployment_does_not_add_fixed_network_or_edgemesh_paths() -> None:
@@ -53,6 +64,18 @@ def test_ci_deploys_state_aggregator_through_argocd_digest_override() -> None:
     assert 'targetRevision\\\":\\\"${TARGET_REVISION}' in workflow
     assert "argocd.argoproj.io/refresh=hard" in workflow
     assert "kubectl set image deployment/state-aggregator" not in workflow
+
+
+def test_ci_deploys_adapter_controller_before_enabling_dashboard_management() -> None:
+    workflow = yaml.safe_load(BUILD_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    step_names = [
+        step.get("name")
+        for step in workflow["jobs"]["build-and-push"]["steps"]
+    ]
+
+    assert step_names.index(
+        "Deploy EdgeX adapter management images through Argo CD"
+    ) < step_names.index("Deploy state-aggregator image through Argo CD")
 
 
 def test_ci_skips_legacy_mqtt_mapper_deploy_when_daemonset_is_absent() -> None:

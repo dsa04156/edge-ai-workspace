@@ -84,6 +84,66 @@ class ProfileCapabilities(ManagementModel):
     templates: list[ProfileTemplate]
 
 
+class HardwareBinding(ManagementModel):
+    binding_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[a-z0-9](?:[-a-z0-9.]*[a-z0-9])?$",
+    )
+    display_name: str = Field(min_length=1, max_length=255)
+    node_name: str = Field(min_length=1, max_length=253)
+    device_path: str | None = Field(
+        default=None,
+        pattern=r"^/dev/[A-Za-z0-9._/~-]+$",
+    )
+
+
+class ReusePolicy(ManagementModel):
+    multi_device: bool = True
+    binding_fields: list[str] = Field(default_factory=list)
+    route_fields: list[str] = Field(default_factory=list)
+    max_devices: int | None = Field(default=None, ge=1, le=100000)
+
+    @model_validator(mode="after")
+    def require_unique_fields(self) -> "ReusePolicy":
+        fields = [*self.binding_fields, *self.route_fields]
+        if len(fields) != len(set(fields)):
+            raise ValueError("reuse policy fields must be unique")
+        return self
+
+
+class RuntimeCapability(ManagementModel):
+    mode: Literal["external", "managed-template", "unavailable"] = "unavailable"
+    management_owner: Literal["argocd", "controller", "none"] = "none"
+    verification_state: Literal[
+        "hardware-verified",
+        "template-verified",
+        "unverified",
+    ] = "unverified"
+    template_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+        pattern=r"^[a-z0-9](?:[-a-z0-9.]*[a-z0-9])?$",
+    )
+    deployment_enabled: bool = False
+    hardware_bindings: list[HardwareBinding] = Field(default_factory=list)
+    reuse_policy: ReusePolicy = Field(default_factory=ReusePolicy)
+
+    @model_validator(mode="after")
+    def enforce_deployment_safety(self) -> "RuntimeCapability":
+        if self.verification_state == "unverified" and self.deployment_enabled:
+            raise ValueError("unverified runtime cannot enable deployment")
+        if self.deployment_enabled and self.template_id is None:
+            raise ValueError("deployable runtime requires templateId")
+        if self.mode == "unavailable" and self.deployment_enabled:
+            raise ValueError("unavailable runtime cannot enable deployment")
+        binding_ids = [item.binding_id for item in self.hardware_bindings]
+        if len(binding_ids) != len(set(binding_ids)):
+            raise ValueError("hardware binding IDs must be unique")
+        return self
+
+
 class AdapterDefinition(ManagementModel):
     adapter_id: str
     display_name: str
@@ -94,6 +154,7 @@ class AdapterDefinition(ManagementModel):
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)
     profile_capabilities: ProfileCapabilities | None = None
+    runtime: RuntimeCapability = Field(default_factory=RuntimeCapability)
 
 
 class AdapterCatalogDocument(ManagementModel):
@@ -173,6 +234,7 @@ class AdapterStatusView(ManagementModel):
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)
     profile_capabilities: ProfileCapabilities | None = None
+    runtime: RuntimeCapability = Field(default_factory=RuntimeCapability)
 
 
 class ValidationResult(ManagementModel):

@@ -156,7 +156,11 @@ def test_state_aggregator_deployment_uses_sensor_demo_service_fqdn() -> None:
     ]
     deployment = next(item for item in resources if item["kind"] == "Deployment")
     container = deployment["spec"]["template"]["spec"]["containers"][0]
-    env = {item["name"]: item["value"] for item in container["env"]}
+    env = {
+        item["name"]: item["value"]
+        for item in container["env"]
+        if "value" in item
+    }
 
     assert env["SENSOR_ANOMALY_DEMO_URL"] == (
         "http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080"

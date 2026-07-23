@@ -65,6 +65,8 @@ def test_root_entrypoint_adds_only_the_current_serial_and_i2c_edge_workloads() -
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
+        "crds",
+        "base/adapter-controller",
     ]
 
     resources = render()

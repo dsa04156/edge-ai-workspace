@@ -1,13 +1,19 @@
 const MANAGEMENT_ADAPTERS_URL = "/management/adapters";
 const MANAGEMENT_VALIDATE_URL = "/management/devices/validate";
 const MANAGEMENT_DEVICES_URL = "/management/devices";
+const MANAGEMENT_RUNTIMES_URL = "/management/adapter-runtimes";
+const MANAGEMENT_CONNECTIONS_URL = "/management/connections";
 
 let sessionAdminToken = "";
 
 const managementState = {
   adapters: [],
+  runtimes: [],
   devices: [],
   selectedAdapterId: "",
+  runtimePlan: null,
+  runtimeLoadError: null,
+  runtimeActionKeys: new Map(),
   validation: null,
   operation: null,
 };
@@ -18,6 +24,16 @@ function adapterCanApply(adapter) {
     adapter
     && adapter.status === "installed"
     && adapter.mutationEnabled === true,
+  );
+}
+
+
+function runtimeCanMutate(runtime) {
+  return Boolean(
+    runtime
+    && runtime.managementMode === "controller"
+    && runtime.mutable === true
+    && runtime.mutationEnabled === true,
   );
 }
 
@@ -49,6 +65,25 @@ async function fetchManagementAdapters(fetchFn = fetch) {
 }
 
 
+async function fetchAdapterRuntimes(fetchFn = fetch) {
+  const response = await fetchFn(MANAGEMENT_RUNTIMES_URL, {cache: "no-store"});
+  const payload = await managementPayload(response);
+  if (!Array.isArray(payload)) throw new Error("runtime inventory response must be an array");
+  return payload;
+}
+
+
+async function planAdapterRuntime(payload, fetchFn = fetch) {
+  const response = await fetchFn(`${MANAGEMENT_RUNTIMES_URL}/plan`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
+}
+
+
 async function fetchManagedDevices(fetchFn = fetch) {
   const response = await fetchFn("/state/devices", {cache: "no-store"});
   const payload = await managementPayload(response);
@@ -59,6 +94,17 @@ async function fetchManagedDevices(fetchFn = fetch) {
 
 async function validateManagementDevice(payload, fetchFn = fetch) {
   const response = await fetchFn(MANAGEMENT_VALIDATE_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
+}
+
+
+async function validateManagementConnection(payload, fetchFn = fetch) {
+  const response = await fetchFn(`${MANAGEMENT_CONNECTIONS_URL}/validate`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(payload),
@@ -92,6 +138,58 @@ async function createManagementDevice(payload, {
 }
 
 
+async function createManagementConnection(payload, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(MANAGEMENT_CONNECTIONS_URL, {
+    method: "POST",
+    headers: guardedHeaders(token, idempotencyKey),
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
+}
+
+
+async function restartAdapterRuntime(name, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_RUNTIMES_URL}/${encodeURIComponent(name)}/restart`,
+    {
+      method: "POST",
+      headers: guardedHeaders(token, idempotencyKey),
+      cache: "no-store",
+    },
+  );
+  return managementPayload(response);
+}
+
+
+async function retireAdapterRuntime(name, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_RUNTIMES_URL}/${encodeURIComponent(name)}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...guardedHeaders(token, idempotencyKey),
+        "X-Confirm-Runtime": name,
+      },
+      cache: "no-store",
+    },
+  );
+  return managementPayload(response);
+}
+
+
 async function patchManagementDevice(name, payload, {
   token,
   idempotencyKey,
@@ -113,6 +211,15 @@ async function patchManagementDevice(name, payload, {
 async function fetchManagementOperation(requestId, fetchFn = fetch) {
   const response = await fetchFn(
     `/management/operations/${encodeURIComponent(requestId)}`,
+    {cache: "no-store"},
+  );
+  return managementPayload(response);
+}
+
+
+async function fetchConnectionOperation(requestId, fetchFn = fetch) {
+  const response = await fetchFn(
+    `${MANAGEMENT_CONNECTIONS_URL}/operations/${encodeURIComponent(requestId)}`,
     {cache: "no-store"},
   );
   return managementPayload(response);
@@ -153,6 +260,74 @@ function operationStatusView(operation = {}) {
 }
 
 
+function connectionStatusView(operation = {}) {
+  const status = String(operation.status || "PLANNED");
+  const views = {
+    PLANNED: {
+      label: "PLANNED",
+      tone: "applied",
+      detail: "검증된 실행 plan 준비",
+      terminal: false,
+    },
+    RUNTIME_REQUESTED: {
+      label: "RUNTIME REQUESTED",
+      tone: "waiting",
+      detail: "Adapter Runtime 배포와 EdgeX Device Service 등록 대기",
+      terminal: false,
+    },
+    RUNTIME_READY: {
+      label: "RUNTIME READY",
+      tone: "applied",
+      detail: "Adapter Runtime과 EdgeX Device Service readback 완료",
+      terminal: false,
+    },
+    PROFILE_APPLIED: {
+      label: "PROFILE APPLIED",
+      tone: "applied",
+      detail: "EdgeX Device Profile 적용 완료",
+      terminal: false,
+    },
+    DEVICE_APPLIED: {
+      label: "DEVICE APPLIED",
+      tone: "applied",
+      detail: "EdgeX Device binding readback 완료",
+      terminal: false,
+    },
+    WAITING_EVENT: {
+      label: "WAITING FOR EVENT",
+      tone: "waiting",
+      detail: "Metadata 적용 완료 · 첫 Core Data Event 대기",
+      terminal: false,
+    },
+    ACTIVE: {
+      label: "ACTIVE",
+      tone: "verified",
+      detail: "Runtime · Metadata · 첫 Event 검증 완료",
+      terminal: true,
+    },
+    COMPENSATING: {
+      label: "COMPENSATING",
+      tone: "waiting",
+      detail: "실패한 신규 Runtime을 안전하게 퇴역하는 중",
+      terminal: false,
+    },
+    COMPENSATED: {
+      label: "COMPENSATED",
+      tone: "failed",
+      detail: operation.compensationStatus || "실패 보상 완료",
+      terminal: true,
+    },
+    FAILED: {
+      label: "FAILED",
+      tone: "failed",
+      detail: operation.error || "연결 작업 실패",
+      terminal: true,
+    },
+  };
+  return views[status] || views.PLANNED;
+}
+
+
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -173,6 +348,21 @@ async function pollManagementOperation(requestId, {
   return latest;
 }
 
+
+async function pollConnectionOperation(requestId, {
+  fetchFn = fetch,
+  sleepFn = delay,
+  intervalMs = 2000,
+  maxAttempts = 30,
+} = {}) {
+  let latest = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    latest = await fetchConnectionOperation(requestId, fetchFn);
+    if (connectionStatusView(latest).terminal) return latest;
+    if (attempt + 1 < maxAttempts) await sleepFn(intervalMs);
+  }
+  return latest;
+}
 
 function byId(id, documentRef = document) {
   return documentRef.getElementById(id);
@@ -216,6 +406,92 @@ function renderAdapterCatalog(documentRef = document) {
         : adapter.reason || "Device Service 미검증",
     );
     container?.appendChild(card);
+  });
+}
+
+
+function renderRuntimeInventory(documentRef = document) {
+  const container = byId("managementRuntimeList", documentRef);
+  clearElement(container);
+  if (!container) return;
+  if (managementState.runtimeLoadError) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      `Adapter Runtime 상태를 읽지 못했습니다: ${managementState.runtimeLoadError.message}`,
+    );
+    return;
+  }
+  if (!managementState.runtimes.length) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      "관측된 Adapter Runtime이 없습니다.",
+    );
+    return;
+  }
+  managementState.runtimes.forEach((runtime) => {
+    const card = documentRef.createElement("article");
+    card.className = "management-runtime-card";
+    card.dataset.phase = runtime.phase || "UNKNOWN";
+
+    const header = documentRef.createElement("div");
+    header.className = "management-runtime-card-header";
+    appendTextElement(
+      header,
+      "strong",
+      "",
+      runtime.runtimeName || runtime.serviceName || "unknown-runtime",
+    );
+    appendTextElement(
+      header,
+      "span",
+      "management-status",
+      String(runtime.phase || "UNKNOWN").replaceAll("_", " "),
+    );
+
+    const service = runtime.edgeXServiceObserved === false
+      ? `${runtime.serviceName} · EdgeX 미관측`
+      : `${runtime.serviceName} · EdgeX 관측`;
+    appendTextElement(card, "small", "", service);
+
+    const facts = documentRef.createElement("div");
+    facts.className = "management-runtime-facts";
+    [
+      `${runtime.targetNode || "node unknown"}`,
+      `${runtime.managementOwner || "owner unknown"} 소유`,
+      `${runtime.verificationState || "unverified"}`,
+      `소비 Device ${Number(runtime.consumers || 0)}개`,
+    ].forEach((fact) => appendTextElement(facts, "span", "", fact));
+
+    const actions = documentRef.createElement("div");
+    actions.className = "management-runtime-actions";
+    const mutable = runtimeCanMutate(runtime);
+    const restart = documentRef.createElement("button");
+    restart.type = "button";
+    restart.textContent = "Restart";
+    restart.dataset.runtimeAction = "restart";
+    restart.dataset.runtimeName = runtime.runtimeName;
+    restart.disabled = !mutable;
+    restart.title = mutable
+      ? "컨트롤러 소유 Runtime을 재시작합니다."
+      : "외부/Argo CD 소유 Runtime은 대시보드에서 변경할 수 없습니다.";
+    const retire = documentRef.createElement("button");
+    retire.type = "button";
+    retire.textContent = "Retire";
+    retire.dataset.runtimeAction = "retire";
+    retire.dataset.runtimeName = runtime.runtimeName;
+    retire.disabled = !mutable || Number(runtime.consumers || 0) > 0;
+    retire.title = Number(runtime.consumers || 0) > 0
+      ? "연결된 EdgeX Device가 있어 퇴역할 수 없습니다."
+      : restart.title;
+    actions.append(restart, retire);
+
+    card.prepend(header);
+    card.append(facts, actions);
+    container.appendChild(card);
   });
 }
 
@@ -264,6 +540,8 @@ function selectedAdapter() {
 function renderMutationMode(documentRef = document) {
   const enabled = managementState.adapters.some(
     (adapter) => adapter.mutationEnabled === true,
+  ) || managementState.runtimes.some(
+    (runtime) => runtime.mutationEnabled === true,
   );
   const mode = byId("managementMutationMode", documentRef);
   if (mode) {
@@ -274,6 +552,57 @@ function renderMutationMode(documentRef = document) {
   if (tokenInput) tokenInput.disabled = !enabled;
   const patchButton = byId("managementPatchApply", documentRef);
   if (patchButton) patchButton.disabled = !enabled;
+}
+
+
+function renderRuntimeSelection(documentRef = document) {
+  const adapter = selectedAdapter();
+  const bindings = adapter?.runtime?.hardwareBindings || [];
+  const bindingSelect = byId("managementHardwareBinding", documentRef);
+  const nodeSelect = byId("managementTargetNode", documentRef);
+  clearElement(bindingSelect);
+  clearElement(nodeSelect);
+
+  bindings.forEach((binding) => {
+    const option = documentRef.createElement("option");
+    option.value = binding.bindingId;
+    option.textContent = binding.devicePath
+      ? `${binding.displayName} · ${binding.devicePath}`
+      : binding.displayName;
+    option.dataset.nodeName = binding.nodeName;
+    bindingSelect?.appendChild(option);
+  });
+  [...new Set(bindings.map((binding) => binding.nodeName))].forEach((nodeName) => {
+    const option = documentRef.createElement("option");
+    option.value = nodeName;
+    option.textContent = nodeName;
+    nodeSelect?.appendChild(option);
+  });
+
+  const hasBindings = bindings.length > 0;
+  if (bindingSelect) bindingSelect.disabled = !hasBindings;
+  if (nodeSelect) nodeSelect.disabled = !hasBindings;
+
+  const modeSelect = byId("managementRuntimeMode", documentRef);
+  const deployOption = modeSelect?.querySelector('option[value="deploy"]');
+  if (deployOption) {
+    deployOption.disabled = adapter?.runtime?.deploymentEnabled !== true;
+    deployOption.textContent = deployOption.disabled
+      ? "Deploy approved template · unavailable"
+      : "Deploy approved template";
+  }
+  if (modeSelect?.value === "deploy" && deployOption?.disabled) {
+    modeSelect.value = "auto";
+  }
+}
+
+
+function syncRuntimeNodeFromBinding(documentRef = document) {
+  const bindingSelect = byId("managementHardwareBinding", documentRef);
+  const selected = bindingSelect?.selectedOptions?.[0];
+  const nodeName = selected?.dataset?.nodeName;
+  const nodeSelect = byId("managementTargetNode", documentRef);
+  if (nodeName && nodeSelect) nodeSelect.value = nodeName;
 }
 
 
@@ -361,7 +690,8 @@ function collectOnboardingPayload(documentRef = document) {
   }
   const tags = {};
   if (deviceId) tags.physicalDeviceId = deviceId;
-  if (adapter.nodeName) tags.nodeName = adapter.nodeName;
+  const selectedNode = byId("managementTargetNode", documentRef)?.value || adapter.nodeName;
+  if (selectedNode) tags.nodeName = selectedNode;
   return {
     adapterId: adapter.adapterId,
     device: {
@@ -373,6 +703,19 @@ function collectOnboardingPayload(documentRef = document) {
       adminState: "UNLOCKED",
     },
     profile,
+  };
+}
+
+
+function collectConnectionPayload(documentRef = document) {
+  const payload = collectOnboardingPayload(documentRef);
+  return {
+    ...payload,
+    runtime: {
+      mode: byId("managementRuntimeMode", documentRef).value,
+      targetNode: byId("managementTargetNode", documentRef).value,
+      hardwareBindingId: byId("managementHardwareBinding", documentRef).value,
+    },
   };
 }
 
@@ -396,15 +739,44 @@ function renderManagementValidation(result, documentRef = document) {
       `${issue.field || "request"}: ${issue.message}`,
     );
   });
-  if (result?.valid) {
-    const mutations = result.plan?.mutations || [];
+  const runtimePlan = result?.runtimePlan;
+  if (runtimePlan) {
+    const reasons = runtimePlan.reasons || [];
     appendTextElement(
       container,
       "p",
       "management-plan",
-      `Plan: ${mutations.join(" → ")} → Metadata readback → first Event`,
+      `Runtime: ${runtimePlan.action} · ${runtimePlan.runtimeName || "not assigned"} · `
+        + `${runtimePlan.serviceName || "service unavailable"} · `
+        + `${runtimePlan.verificationState || "unverified"}`,
+    );
+    reasons.forEach((reason) => {
+      appendTextElement(
+        container,
+        "p",
+        "management-issue",
+        `${reason.code || "runtime"}: ${reason.message}`,
+      );
+    });
+  }
+  if (result?.valid) {
+    const plan = result.edgeXPlan || result.plan || {};
+    const mutations = plan.mutations || [];
+    appendTextElement(
+      container,
+      "p",
+      "management-plan",
+      `EdgeX: ${mutations.join(" → ") || "readback"} → first Event`,
     );
   }
+  (result?.warnings || []).forEach((warning) => {
+    appendTextElement(
+      container,
+      "p",
+      "management-warning",
+      `${warning.field || "warning"}: ${warning.message}`,
+    );
+  });
   const applyButton = byId("managementApply", documentRef);
   if (applyButton) applyButton.disabled = !(result?.valid && adapterCanApply(selectedAdapter()));
 }
@@ -414,7 +786,10 @@ function renderOperation(operation, documentRef = document) {
   const container = byId("managementOperation", documentRef);
   clearElement(container);
   if (!container || !operation) return;
-  const view = operationStatusView(operation);
+  const isConnection = /^[A-Z_]+$/.test(String(operation.status || ""));
+  const view = isConnection
+    ? connectionStatusView(operation)
+    : operationStatusView(operation);
   container.dataset.status = view.tone;
   appendTextElement(container, "strong", "", view.label);
   appendTextElement(container, "p", "", view.detail);
@@ -422,7 +797,31 @@ function renderOperation(operation, documentRef = document) {
     container,
     "small",
     "",
-    `${operation.action || "create"} · ${operation.deviceName || "device"} · request ${operation.requestId || "pending"}`,
+    isConnection
+      ? `${operation.runtimeAction || "runtime"} · ${operation.runtimeName || "runtime"} · `
+        + `${operation.deviceName || "device"} · request ${operation.requestId || "pending"}`
+      : `${operation.action || "create"} · ${operation.deviceName || "device"} · `
+        + `request ${operation.requestId || "pending"}`,
+  );
+}
+
+
+function renderRuntimeActionResult(runtime, action, documentRef = document) {
+  const container = byId("managementOperation", documentRef);
+  clearElement(container);
+  if (!container) return;
+  container.dataset.status = runtime.phase === "FAILED" ? "failed" : "applied";
+  appendTextElement(
+    container,
+    "strong",
+    "",
+    `${action.toUpperCase()} · ${runtime.phase || "REQUESTED"}`,
+  );
+  appendTextElement(
+    container,
+    "p",
+    "",
+    `${runtime.runtimeName} · ${runtime.serviceName} · ${runtime.targetNode}`,
   );
 }
 
@@ -483,12 +882,23 @@ function ensureIdempotencyInput(input) {
 
 
 async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
-  const [adapters, devices] = await Promise.all([
+  const runtimeRequest = fetchAdapterRuntimes(fetchFn)
+    .then((runtimes) => {
+      managementState.runtimeLoadError = null;
+      return runtimes;
+    })
+    .catch((error) => {
+      managementState.runtimeLoadError = error;
+      return [];
+    });
+  const [adapters, devices, runtimes] = await Promise.all([
     fetchManagementAdapters(fetchFn),
     fetchManagedDevices(fetchFn),
+    runtimeRequest,
   ]);
   managementState.adapters = adapters;
   managementState.devices = devices;
+  managementState.runtimes = runtimes;
   const firstInstalled = adapters.find((adapter) => adapter.status === "installed") || adapters[0];
   managementState.selectedAdapterId = firstInstalled?.adapterId || "";
   const select = byId("managementAdapter", documentRef);
@@ -502,8 +912,10 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
     select?.appendChild(option);
   });
   renderAdapterCatalog(documentRef);
+  renderRuntimeInventory(documentRef);
   renderManagedDevices(documentRef);
   renderMutationMode(documentRef);
+  renderRuntimeSelection(documentRef);
   renderProtocolFields(documentRef);
   ensureIdempotencyInput(byId("managementIdempotencyKey", documentRef));
   ensureIdempotencyInput(byId("patchIdempotencyKey", documentRef));
@@ -517,7 +929,19 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     managementState.selectedAdapterId = adapterSelect.value;
     managementState.validation = null;
     renderProtocolFields(documentRef);
+    renderRuntimeSelection(documentRef);
     clearElement(byId("managementValidation", documentRef));
+  });
+  byId("managementHardwareBinding", documentRef)?.addEventListener("change", () => {
+    syncRuntimeNodeFromBinding(documentRef);
+    managementState.validation = null;
+    const applyButton = byId("managementApply", documentRef);
+    if (applyButton) applyButton.disabled = true;
+  });
+  byId("managementRuntimeMode", documentRef)?.addEventListener("change", () => {
+    managementState.validation = null;
+    const applyButton = byId("managementApply", documentRef);
+    if (applyButton) applyButton.disabled = true;
   });
   byId("managementProfileMode", documentRef)?.addEventListener("change", () => {
     updateProfileMode(documentRef);
@@ -530,8 +954,9 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managementValidate", documentRef)?.addEventListener("click", async () => {
     try {
-      const payload = collectOnboardingPayload(documentRef);
-      managementState.validation = await validateManagementDevice(payload, fetchFn);
+      const payload = collectConnectionPayload(documentRef);
+      managementState.validation = await validateManagementConnection(payload, fetchFn);
+      managementState.runtimePlan = managementState.validation.runtimePlan || null;
       renderManagementValidation(managementState.validation, documentRef);
     } catch (error) {
       renderManagementError(error, documentRef);
@@ -539,12 +964,13 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managementApply", documentRef)?.addEventListener("click", async () => {
     try {
-      const payload = collectOnboardingPayload(documentRef);
-      const validation = await validateManagementDevice(payload, fetchFn);
+      const payload = collectConnectionPayload(documentRef);
+      const validation = await validateManagementConnection(payload, fetchFn);
       managementState.validation = validation;
+      managementState.runtimePlan = validation.runtimePlan || null;
       renderManagementValidation(validation, documentRef);
       if (!validation.valid) return;
-      const operation = await createManagementDevice(payload, {
+      const operation = await createManagementConnection(payload, {
         token: sessionAdminToken,
         idempotencyKey: ensureIdempotencyInput(
           byId("managementIdempotencyKey", documentRef),
@@ -553,8 +979,8 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       });
       managementState.operation = operation;
       renderOperation(operation, documentRef);
-      if (!operationStatusView(operation).terminal) {
-        managementState.operation = await pollManagementOperation(operation.requestId, {fetchFn});
+      if (!connectionStatusView(operation).terminal) {
+        managementState.operation = await pollConnectionOperation(operation.requestId, {fetchFn});
         renderOperation(managementState.operation, documentRef);
       }
     } catch (error) {
@@ -569,6 +995,42 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("managedDeviceList", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-edit-device]");
     if (button) setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
+  });
+  byId("managementRuntimeList", documentRef)?.addEventListener("click", async (event) => {
+    const button = event.target.closest?.("[data-runtime-action]");
+    if (!button || button.disabled) return;
+    const action = button.dataset.runtimeAction;
+    const name = button.dataset.runtimeName;
+    if (
+      action === "retire"
+      && typeof globalThis.confirm === "function"
+      && !globalThis.confirm(`${name} Runtime을 퇴역하시겠습니까? 이 작업은 정확한 이름 확인 후 실행됩니다.`)
+    ) {
+      return;
+    }
+    const actionKey = `${action}:${name}`;
+    if (!managementState.runtimeActionKeys.has(actionKey)) {
+      managementState.runtimeActionKeys.set(
+        actionKey,
+        `runtime-${action}-${name}-${Date.now()}`,
+      );
+    }
+    button.disabled = true;
+    try {
+      const options = {
+        token: sessionAdminToken,
+        idempotencyKey: managementState.runtimeActionKeys.get(actionKey),
+        fetchFn,
+      };
+      const runtime = action === "restart"
+        ? await restartAdapterRuntime(name, options)
+        : await retireAdapterRuntime(name, options);
+      renderRuntimeActionResult(runtime, action, documentRef);
+      await loadDeviceManagement(documentRef, fetchFn);
+    } catch (error) {
+      renderManagementError(error, documentRef);
+      button.disabled = false;
+    }
   });
   byId("devicePatchForm", documentRef)?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -601,12 +1063,22 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined") {
   module.exports = {
     adapterCanApply,
+    connectionStatusView,
+    createManagementConnection,
     createManagementDevice,
+    fetchAdapterRuntimes,
+    fetchConnectionOperation,
     fetchManagementAdapters,
     fetchManagementOperation,
     operationStatusView,
     patchManagementDevice,
+    planAdapterRuntime,
+    pollConnectionOperation,
     pollManagementOperation,
+    restartAdapterRuntime,
+    retireAdapterRuntime,
+    runtimeCanMutate,
+    validateManagementConnection,
     validateManagementDevice,
   };
 }

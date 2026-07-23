@@ -54,6 +54,96 @@ def test_catalog_uses_current_device_service_and_node_identity(catalog):
     assert sensehat.node_name == "etri-dev0003-raspi5"
 
 
+def test_catalog_separates_installed_runtime_from_deployment_verification(catalog):
+    serial = catalog.require("serial-jetson")
+    sensehat = catalog.require("sensehat-raspi")
+
+    assert serial.runtime.mode == "external"
+    assert serial.runtime.management_owner == "argocd"
+    assert serial.runtime.verification_state == "hardware-verified"
+    assert serial.runtime.template_id == "serial-device-service-v1"
+    assert serial.runtime.deployment_enabled is False
+    assert [item.binding_id for item in serial.runtime.hardware_bindings] == [
+        "jetson-arduino-serial-001"
+    ]
+    assert serial.runtime.hardware_bindings[0].node_name == "etri-dev0001-jetorn"
+    assert serial.runtime.hardware_bindings[0].device_path == "/dev/arduino-001"
+    assert serial.runtime.reuse_policy.binding_fields == [
+        "Port",
+        "BaudRate",
+        "DeviceID",
+    ]
+    assert serial.runtime.reuse_policy.route_fields == ["ResourceName"]
+
+    assert sensehat.runtime.mode == "external"
+    assert sensehat.runtime.management_owner == "argocd"
+    assert sensehat.runtime.verification_state == "hardware-verified"
+    assert sensehat.runtime.template_id == "sensehat-device-service-v1"
+    assert sensehat.runtime.deployment_enabled is False
+    assert sensehat.runtime.hardware_bindings[0].binding_id == (
+        "raspi5-sensehat-i2c-001"
+    )
+    assert sensehat.runtime.reuse_policy.route_fields == ["ResourceGroup"]
+
+
+def test_unverified_protocols_are_visible_but_never_deployable(catalog):
+    for adapter_id in ("modbus", "opcua", "mqtt", "rtsp"):
+        adapter = catalog.require(adapter_id)
+        assert adapter.runtime.mode == "unavailable"
+        assert adapter.runtime.verification_state == "unverified"
+        assert adapter.runtime.deployment_enabled is False
+        assert adapter.runtime.hardware_bindings == []
+
+
+def test_catalog_rejects_duplicate_hardware_binding_identity():
+    from app.device_management_models import AdapterCatalogDocument
+
+    payload = {
+        "version": 2,
+        "adapters": [
+            {
+                "adapterId": "first",
+                "displayName": "first",
+                "protocolName": "serial",
+                "declaredStatus": "unsupported",
+                "runtime": {
+                    "mode": "unavailable",
+                    "verificationState": "unverified",
+                    "hardwareBindings": [
+                        {
+                            "bindingId": "shared-binding",
+                            "displayName": "shared",
+                            "nodeName": "edge-01",
+                            "devicePath": "/dev/example",
+                        }
+                    ],
+                },
+            },
+            {
+                "adapterId": "second",
+                "displayName": "second",
+                "protocolName": "i2c",
+                "declaredStatus": "unsupported",
+                "runtime": {
+                    "mode": "unavailable",
+                    "verificationState": "unverified",
+                    "hardwareBindings": [
+                        {
+                            "bindingId": "shared-binding",
+                            "displayName": "shared",
+                            "nodeName": "edge-02",
+                            "devicePath": "/dev/example-2",
+                        }
+                    ],
+                },
+            },
+        ],
+    }
+
+    with pytest.raises(ValueError, match="hardware binding"):
+        AdapterCatalog(AdapterCatalogDocument.model_validate(payload))
+
+
 def test_serial_protocol_accepts_driver_supported_endpoint(catalog):
     assert catalog.validate_protocol("serial-jetson", serial_protocol()) == []
 
@@ -148,6 +238,32 @@ def test_onboarding_request_accepts_camel_case_and_forbids_extra_fields():
                 "profile": {"mode": "existing", "name": "etri-arduino-temperature"},
             }
         )
+
+
+@pytest.mark.parametrize(
+    ("unsafe_field", "value"),
+    [
+        ("image", "registry.invalid/attacker:latest"),
+        ("command", ["/bin/sh"]),
+        ("hostPath", "/dev/ttyUSB0"),
+        ("namespace", "kube-system"),
+        ("clusterIP", "10.0.0.7"),
+        ("podIP", "10.244.0.7"),
+    ],
+)
+def test_onboarding_request_cannot_inject_runtime_fields(unsafe_field, value):
+    payload = {
+        "adapterId": "serial-jetson",
+        "device": {
+            "name": "virtual-temperature-002",
+            "protocolProperties": serial_protocol(),
+        },
+        "profile": {"mode": "existing", "name": "etri-arduino-temperature"},
+        unsafe_field: value,
+    }
+
+    with pytest.raises(ValidationError, match="extra_forbidden"):
+        DeviceOnboardingRequest.model_validate(payload)
 
 
 def test_create_profile_requires_descriptive_fields_and_patch_is_allowlisted():

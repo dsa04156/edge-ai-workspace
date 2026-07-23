@@ -5,12 +5,22 @@ const path = require("node:path");
 
 const {
   adapterCanApply,
+  connectionStatusView,
+  createManagementConnection,
   createManagementDevice,
+  fetchAdapterRuntimes,
+  fetchConnectionOperation,
   fetchManagementAdapters,
   fetchManagementOperation,
   operationStatusView,
   patchManagementDevice,
+  planAdapterRuntime,
+  pollConnectionOperation,
   pollManagementOperation,
+  restartAdapterRuntime,
+  retireAdapterRuntime,
+  runtimeCanMutate,
+  validateManagementConnection,
   validateManagementDevice,
 } = require("../app/static/device-management.js");
 
@@ -47,6 +57,57 @@ test("loads adapter catalog without browser cache", async () => {
     options: {cache: "no-store"},
   });
   assert.equal(adapters[0].adapterId, "serial-jetson");
+});
+
+
+test("loads runtime inventory and plans without mutation credentials", async () => {
+  const requests = [];
+  const fetchFn = async (url, options) => {
+    requests.push({url, options});
+    if (url.endsWith("/plan")) {
+      return response({action: "REUSE", allowed: true, planHash: "a".repeat(64)});
+    }
+    return response([{runtimeName: "device-serial-jetson", managementMode: "external"}]);
+  };
+  const payload = {
+    adapterId: "serial-jetson",
+    targetNode: "etri-dev0001-jetorn",
+    hardwareBindingId: "jetson-arduino-serial-001",
+    mode: "auto",
+  };
+
+  const runtimes = await fetchAdapterRuntimes(fetchFn);
+  const plan = await planAdapterRuntime(payload, fetchFn);
+
+  assert.equal(runtimes[0].runtimeName, "device-serial-jetson");
+  assert.equal(plan.action, "REUSE");
+  assert.deepEqual(requests[0], {
+    url: "/management/adapter-runtimes",
+    options: {cache: "no-store"},
+  });
+  assert.equal(requests[1].url, "/management/adapter-runtimes/plan");
+  assert.deepEqual(requests[1].options.headers, {"Content-Type": "application/json"});
+  assert.equal("Authorization" in requests[1].options.headers, false);
+});
+
+
+test("only controller-owned enabled runtime can mutate", () => {
+  assert.equal(runtimeCanMutate({
+    managementMode: "controller",
+    mutable: true,
+    mutationEnabled: true,
+  }), true);
+  assert.equal(runtimeCanMutate({
+    managementMode: "external",
+    mutable: true,
+    mutationEnabled: true,
+  }), false);
+  assert.equal(runtimeCanMutate({
+    managementMode: "controller",
+    mutable: true,
+    mutationEnabled: false,
+  }), false);
+  assert.equal(runtimeCanMutate(null), false);
 });
 
 
@@ -89,6 +150,72 @@ test("create sends bearer and idempotency headers but never puts token in body",
   assert.equal(request.options.headers.Authorization, "Bearer admin-secret");
   assert.equal(request.options.headers["Idempotency-Key"], "retry-key");
   assert.doesNotMatch(request.options.body, /admin-secret|retry-key/);
+});
+
+
+test("connection validate is read-only and apply uses guarded headers", async () => {
+  const requests = [];
+  const payload = {
+    adapterId: "serial-jetson",
+    runtime: {
+      mode: "auto",
+      targetNode: "etri-dev0001-jetorn",
+      hardwareBindingId: "jetson-arduino-serial-001",
+    },
+    device: {name: "virtual-temperature-002"},
+    profile: {mode: "existing", name: "etri-arduino-temperature"},
+  };
+  const fetchFn = async (url, options) => {
+    requests.push({url, options});
+    return response(
+      url.endsWith("/validate")
+        ? {valid: true, runtimePlan: {action: "REUSE"}}
+        : {requestId: "connection-01", status: "WAITING_EVENT"},
+      {status: url.endsWith("/validate") ? 200 : 201},
+    );
+  };
+
+  await validateManagementConnection(payload, fetchFn);
+  await createManagementConnection(payload, {
+    token: "admin-secret",
+    idempotencyKey: "connection-key",
+    fetchFn,
+  });
+
+  assert.equal(requests[0].url, "/management/connections/validate");
+  assert.equal("Authorization" in requests[0].options.headers, false);
+  assert.equal(requests[1].url, "/management/connections");
+  assert.equal(requests[1].options.headers.Authorization, "Bearer admin-secret");
+  assert.equal(requests[1].options.headers["Idempotency-Key"], "connection-key");
+  assert.doesNotMatch(requests[1].options.body, /admin-secret|connection-key/);
+});
+
+
+test("runtime restart and retire use admin guard and exact confirmation", async () => {
+  const requests = [];
+  const fetchFn = async (url, options) => {
+    requests.push({url, options});
+    return response({runtimeName: "adapter-serial-02", phase: "SERVICE_READY"});
+  };
+
+  await restartAdapterRuntime("adapter-serial-02", {
+    token: "admin-secret",
+    idempotencyKey: "restart-key",
+    fetchFn,
+  });
+  await retireAdapterRuntime("adapter-serial-02", {
+    token: "admin-secret",
+    idempotencyKey: "retire-key",
+    fetchFn,
+  });
+
+  assert.equal(requests[0].options.method, "POST");
+  assert.equal(requests[0].options.headers.Authorization, "Bearer admin-secret");
+  assert.equal(requests[1].options.method, "DELETE");
+  assert.equal(
+    requests[1].options.headers["X-Confirm-Runtime"],
+    "adapter-serial-02",
+  );
 });
 
 
@@ -147,6 +274,61 @@ test("operation status distinguishes metadata wait, verified, and failure", () =
 });
 
 
+test("connection status separates runtime, metadata, event, and terminal states", () => {
+  assert.match(
+    connectionStatusView({status: "RUNTIME_REQUESTED"}).detail,
+    /Runtime/,
+  );
+  assert.equal(
+    connectionStatusView({status: "WAITING_EVENT"}).terminal,
+    false,
+  );
+  assert.equal(connectionStatusView({status: "ACTIVE"}).terminal, true);
+  assert.equal(connectionStatusView({status: "FAILED"}).terminal, true);
+  assert.equal(connectionStatusView({status: "COMPENSATED"}).terminal, true);
+});
+
+
+test("connection polling stops when ACTIVE", async () => {
+  const payloads = [
+    {requestId: "connection-01", status: "RUNTIME_REQUESTED"},
+    {requestId: "connection-01", status: "WAITING_EVENT"},
+    {requestId: "connection-01", status: "ACTIVE"},
+  ];
+  const urls = [];
+  const fetchFn = async (url) => {
+    urls.push(url);
+    return response(payloads.shift());
+  };
+
+  const result = await pollConnectionOperation("connection-01", {
+    fetchFn,
+    sleepFn: async () => {},
+    maxAttempts: 4,
+  });
+
+  assert.equal(result.status, "ACTIVE");
+  assert.deepEqual(urls, [
+    "/management/connections/operations/connection-01",
+    "/management/connections/operations/connection-01",
+    "/management/connections/operations/connection-01",
+  ]);
+});
+
+
+test("fetches one connection operation without cache", async () => {
+  let options = null;
+  const fetchFn = async (_url, requestOptions) => {
+    options = requestOptions;
+    return response({requestId: "connection-01", status: "ACTIVE"});
+  };
+
+  await fetchConnectionOperation("connection-01", fetchFn);
+
+  assert.deepEqual(options, {cache: "no-store"});
+});
+
+
 test("polling stops when first Event verification becomes terminal", async () => {
   const payloads = [
     {requestId: "request-01", status: "waiting_for_event"},
@@ -197,6 +379,10 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(html, /data-page="management"/);
   for (const id of [
     "managementAdapterList",
+    "managementRuntimeList",
+    "managementRuntimeMode",
+    "managementTargetNode",
+    "managementHardwareBinding",
     "deviceOnboardingForm",
     "managementAdapter",
     "managementProtocolFields",
@@ -211,12 +397,14 @@ test("dashboard ships an accessible session-only device management page", () => 
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=onboarding-20260723/);
-  assert.match(html, /device-management\.js\?v=onboarding-20260723/);
+  assert.match(html, /device-management\.css\?v=runtime-20260723/);
+  assert.match(html, /device-management\.js\?v=runtime-20260723/);
   assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /\.management-runtime-card/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
   assert.match(javascript, /function renderManagementValidation\(/);
+  assert.match(javascript, /function renderRuntimeInventory\(/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
 });
