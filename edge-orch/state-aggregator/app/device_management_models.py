@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -159,6 +160,41 @@ class DevicePatchRequest(ManagementModel):
         if not self.model_fields_set:
             raise ValueError("at least one allowlisted field is required")
         return self
+
+
+class AdapterStatusView(ManagementModel):
+    adapter_id: str
+    display_name: str
+    service_name: str | None = None
+    protocol_name: str
+    node_name: str | None = None
+    status: Literal["installed", "unavailable", "unsupported"]
+    reason: str | None = None
+    fields: list[CatalogField] = Field(default_factory=list)
+    profile_capabilities: ProfileCapabilities | None = None
+
+
+class ValidationResult(ManagementModel):
+    valid: bool
+    issues: list[ValidationIssue] = Field(default_factory=list)
+    warnings: list[ValidationIssue] = Field(default_factory=list)
+    plan: dict[str, Any] = Field(default_factory=dict)
+
+
+class ManagementOperation(ManagementModel):
+    request_id: str
+    payload_hash: str
+    action: Literal["create", "patch"]
+    device_name: str
+    profile_name: str
+    status: Literal["metadata_applied", "waiting_for_event", "verified", "failed"]
+    metadata_applied: bool = False
+    first_event_verified: bool = False
+    created_profile: bool = False
+    actor: str
+    started_at: datetime
+    updated_at: datetime
+    error: str | None = None
 
 
 def matches_pattern(pattern: str | None, value: str) -> bool:
