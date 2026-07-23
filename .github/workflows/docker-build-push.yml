@@ -95,7 +95,11 @@ jobs:
             -t ${{ env.REGISTRY }}/state-aggregator:latest \
             -f edge-orch/state-aggregator/Dockerfile \
             edge-orch/state-aggregator \
+            --metadata-file /tmp/state-aggregator-build-metadata.json \
             --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/state-aggregator-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "STATE_AGGREGATOR_IMAGE=${{ env.REGISTRY }}/state-aggregator@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Build and Push workflow-executor
         if: steps.changes.outputs.workflow_executor == 'true'
@@ -171,20 +175,25 @@ jobs:
             --overwrite
           kubectl rollout status deployment/docs-html -n default --timeout=180s
 
-      - name: Deploy state-aggregator latest image
+      - name: Deploy state-aggregator image through Argo CD
         if: steps.changes.outputs.state_aggregator == 'true'
         run: |
-          CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
-          TARGET_IMAGE=${{ env.REGISTRY }}/state-aggregator:latest
-
-          kubectl set image deployment/state-aggregator \
-            state-aggregator=${TARGET_IMAGE} \
-            -n default
-
-          if [ "${CURRENT_IMAGE}" = "${TARGET_IMAGE}" ]; then
-            kubectl rollout restart deployment/state-aggregator -n default
-          fi
-
+          test -n "${STATE_AGGREGATOR_IMAGE}"
+          TARGET_REVISION=${{ github.sha }}
+          kubectl patch application edge-orch-state-aggregator -n argocd --type=merge \
+            -p "{\"spec\":{\"source\":{\"targetRevision\":\"${TARGET_REVISION}\",\"kustomize\":{\"images\":[\"${STATE_AGGREGATOR_IMAGE}\"]}}}}"
+          kubectl annotate application edge-orch-state-aggregator -n argocd \
+            argocd.argoproj.io/refresh=hard \
+            --overwrite
+          CURRENT_IMAGE=""
+          for attempt in $(seq 1 60); do
+            CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
+            if [ "${CURRENT_IMAGE}" = "${STATE_AGGREGATOR_IMAGE}" ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "${CURRENT_IMAGE}" = "${STATE_AGGREGATOR_IMAGE}"
           kubectl rollout status deployment/state-aggregator -n default --timeout=180s
 
       - name: Deploy mqttvirtual mapper latest image
