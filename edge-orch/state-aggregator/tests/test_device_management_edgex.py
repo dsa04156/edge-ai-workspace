@@ -102,6 +102,23 @@ async def test_reads_device_and_profile_objects_from_v3_envelopes():
 
 
 @async_test
+async def test_lists_all_devices_for_reserved_tag_reconstruction():
+    async def handler(request):
+        assert request.method == "GET"
+        assert request.url.path == "/api/v3/device/all"
+        assert dict(request.url.params) == {"offset": "0", "limit": "1000"}
+        return httpx.Response(
+            200,
+            json=envelope("devices", [{"name": "device-01", "tags": {}}])
+            | {"totalCount": 1},
+        )
+
+    assert await client_for(handler).list_devices() == [
+        {"name": "device-01", "tags": {}}
+    ]
+
+
+@async_test
 async def test_add_profile_sends_official_v3_request_array():
     captured = {}
     profile = {"name": "profile-01", "deviceResources": [], "deviceCommands": []}
