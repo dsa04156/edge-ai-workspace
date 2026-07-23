@@ -183,7 +183,7 @@ class ValidationResult(ManagementModel):
 
 class ManagementOperation(ManagementModel):
     request_id: str
-    payload_hash: str
+    payload_hash: str = Field(exclude=True)
     action: Literal["create", "patch"]
     device_name: str
     profile_name: str

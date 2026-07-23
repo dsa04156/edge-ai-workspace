@@ -15,6 +15,10 @@ from .augmentation_crds import (
     DeviceAugmentationCrdState,
 )
 from .config import Settings
+from .adapter_catalog import AdapterCatalog
+from .device_management import DeviceManagementService
+from .device_management_api import create_device_management_router
+from .device_management_edgex import EdgeXManagementClient
 from .edgex import EdgeXError
 from .metrics import render_metrics
 from .models import (
@@ -55,6 +59,18 @@ service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_url,
     settings.sensor_anomaly_demo_timeout_seconds,
 )
+management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
+management_client = EdgeXManagementClient(
+    settings.edgex_core_metadata_url,
+    settings.edgex_timeout_seconds,
+)
+management_service = DeviceManagementService(
+    management_catalog,
+    management_client,
+    service.edgex,
+    hmac_key=settings.device_management_hmac_key or "disabled-management",
+    operation_limit=settings.device_management_operation_limit,
+)
 
 
 @asynccontextmanager
@@ -65,6 +81,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
+app.include_router(create_device_management_router(settings, management_service))
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
