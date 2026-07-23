@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 16:59</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:59</span>
+            <span class="badge">수정: 2026-07-23 17:01</span>
+            <span class="badge">HTML 생성: 2026-07-23 17:06</span>
           </div>
         </header>
         <div class="doc-body">
@@ -817,11 +817,11 @@
 </tbody></table></div>
 <h3 id="라이브-배포-검증">라이브 배포 검증</h3>
 <ul><li>기능 revision <code>527a59079028b74bd2159161b216c7d618a907b9</code>에 노드 범위와 수정 안전성</li></ul>
-<p>보강을 반영했고, 운영 문서 revision <code>5075f8792556bdeab4ecdd549bed6d163f6a5274</code>까지 <code>main</code>에 반영했다.</p>
-<ul><li>정상 push GitHub Actions run <code>29989511969</code>이 성공했다. 변경 감지는 state-aggregator와</li></ul>
-<p>docs만 선택했고 EdgeX Controller, Serial, Sense HAT와 legacy mapper 단계는 건너뛰었다.</p>
-<ul><li><code>edge-orch-state-aggregator</code> Application은 revision <code>5075f8792556bdeab4ecdd549bed6d163f6a5274</code>,</li></ul>
-<p><code>Synced/Healthy/Succeeded</code>이며 실행 image와 imageID는 <code>sha256:878071d728b7790fc0bc20e43c87cb73722fc1a0571acbec191376e42a0ceee7</code>로 일치했다. Pod는 Ready, restart 0이다.</p>
+<p>보강을 반영했고 운영 문서는 후속 <code>main</code> revision에 반영했다.</p>
+<ul><li>정상 push GitHub Actions run <code>29989511969</code>과 지연 처리된 run <code>29989531797</code>이 모두</li></ul>
+<p>성공했다. 변경 감지는 state-aggregator와 docs만 선택했고 EdgeX Controller, Serial, Sense HAT와 legacy mapper 단계는 건너뛰었다.</p>
+<ul><li>최종 <code>edge-orch-state-aggregator</code> Application은 기능 revision</li></ul>
+<p><code>527a59079028b74bd2159161b216c7d618a907b9</code>, <code>Synced/Healthy/Succeeded</code>이며 실행 image와 imageID는 <code>sha256:21d1ad3a27631fe49f7afd9f39a0faf58696d8d8dc797df36a75b672630703db</code>로 일치했다. Pod는 Ready, restart 0이다.</p>
 <ul><li><code>docs-html</code>은 <code>main</code>에서 <code>Synced/Healthy/Succeeded</code>다. <code>edgex-telemetry</code>는 기존 revision</li></ul>
 <p><code>14a9eecb0b4b7c227f4858c4d30cd90da3a22c08</code>을 유지했다.</p>
 <ul><li>변경 범위를 전부 선택하는 수동 <code>workflow_dispatch</code> run <code>29989262966</code>은 EdgeX 배포 단계</li></ul>
