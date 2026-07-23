@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-23 19:30</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
+            <span class="badge">수정: 2026-07-23 19:48</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -161,25 +161,24 @@
 <p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI와 별도 <code>Device Management</code> 관리 경계를 확인한다. 2026-07-21 기존 custom Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했고, 현재 관측 검증 목표는 <strong><code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 만든 가상 Device 각 6개, 총 12개를 정확히 표시하는 것</strong>이다.</p>
 <p>물리 디바이스 inventory, 관리 상태와 telemetry의 authority는 EdgeX다. KubeEdge는 node/workload 관찰에만 사용한다.</p>
 <h2 id="api-확인">API 확인</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/summary&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/management/adapters&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/management/adapter-runtimes&#x27;</code></pre>
+<p>운영 acceptance는 ClusterIP, Pod IP, <code>port-forward</code> 우회가 아니라 외부 Traefik Ingress의 <code>/aggregator</code> 경로를 사용한다. 현재 테스트베드에서는 다음처럼 LoadBalancer 주소를 읽어서 기준 URL을 만든다.</p>
+<pre data-lang="bash"><code>TRAEFIK_ADDRESS=&quot;$(kubectl get service traefik -n traefik \
+  -o jsonpath=&#x27;{.status.loadBalancer.ingress[0].ip}&#x27;)&quot;
+DASHBOARD_BASE_URL=&quot;http://${TRAEFIK_ADDRESS}/aggregator&quot;
+
+curl -fsS &quot;${DASHBOARD_BASE_URL}/state/devices&quot;
+curl -fsS &quot;${DASHBOARD_BASE_URL}/state/dashboard&quot;
+curl -fsS &quot;${DASHBOARD_BASE_URL}/state/summary&quot;
+curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapters&quot;
+curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapter-runtimes&quot;</code></pre>
 <p>현재 정상 기준:</p>
 <ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 aggregate <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>virtual-temperature-001</code>, <code>virtual-light-001</code>, <code>virtual-magnetic-001</code>, <code>virtual-acceleration-{x,y,z}-001</code>이 각각 독립 행이다.</li><li><code>env-sensehat-{temperature,humidity,pressure}-01</code>, <code>imu-sensehat-{compass,orientation,gyroscope}-01</code>도 각각 독립 행이다.</li><li>각 Device의 service/profile/protocol이 <code>device-serial-jetson</code>/Serial 또는 <code>device-sensehat-raspi</code>/I2C 계약과 일치한다.</li><li>총 12개 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>이고 계약된 typed latest Reading을 반환한다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li><li>Adapter Runtime inventory에서 기존 Serial/I2C는 <code>owner=external</code>로 관측되고 대시보드의</li></ul>
 <p>restart/retire action이 비활성화된다.</p>
 <ul><li><code>/state/devices</code>가 EdgeX tag의 <code>physical_device_id</code>와 선택적</li></ul>
 <p><code>hardware_binding_id</code>를 반환한다. 신규 connection은 두 값을 모두 보존한다.</p>
 <ul><li>Modbus/OPC-UA/MQTT/RTSP는 실장비 검증 전 <code>BLOCKED</code>이며 deploy option이 활성화되지 않는다.</li></ul>
-<p>로컬에서 strict API 계약 검증을 실행할 때는 현재 <code>default</code> namespace의 Service를 포트포워드한다.</p>
-<pre data-lang="bash"><code>kubectl -n default port-forward svc/state-aggregator 8000:8000
-python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pre>
+<p>strict API 계약 검증도 같은 Ingress 기준 URL을 사용한다.</p>
+<pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url &quot;${DASHBOARD_BASE_URL}&quot;</code></pre>
 <p>검증기는 현재 EdgeX 단일 권위 계약인 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>telemetry_freshness</code>와 available/degraded/unavailable·Core Data KPI를 확인한다. 퇴역한 Mapper/DeviceStatus의 <code>mapper_running</code>, <code>telemetry_enabled</code>, <code>device_status_freshness_ratio</code>는 필수 field나 physical availability 근거로 검사하지 않는다.</p>
 <h2 id="dashboard-ui-확인">Dashboard UI 확인</h2>
 <ol><li>요약 카드가 실제 <code>registered_device_count</code>와 일치한다.</li><li>device 목록이 Core Metadata 응답과 일치한다.</li><li>12개 가상 Device detail이 각 Metadata와 latest Event 값을 동일하게 표시한다.</li><li>stale/no events 상태를 fresh로 보정하지 않는다.</li><li>KubeEdge node와 workload는 별도 진단 영역에 표시한다.</li><li>aggregate <code>sensehat-001</code>이나 Agent outbox를 현재 점검 대상으로 안내하지 않고, 직접 I2C Device 6개를 현재 inventory로 표시한다.</li><li><code>디바이스 관리</code> 첫 영역에서 연결 등록, 장비 관측, 통신, 데이터 상태를 별도 칸으로</li></ol>
@@ -190,6 +189,11 @@ python3 tools/check_dashboard_api.py --base-url http://localhost:8000</code></pr
 <p>manifest, image, hostPath, hostNetwork, ClusterIP/PodIP 입력을 제공하지 않는다.</p>
 <ol><li>관리자 token이 없거나 validation이 유효하지 않으면 mutation 버튼이 비활성화된다.</li><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
 <p>표시된다.</p>
+<ol><li><code>/aggregator/dashboard#management</code>로 열었을 때 관리 API도</li></ol>
+<p><code>/aggregator/management/*</code>로 요청되고 200을 반환한다. root <code>/management/*</code>, ClusterIP 또는 Pod IP로 우회하지 않는다.</p>
+<ol><li>데스크톱 1440px와 모바일 390px에서 문서 가로 overflow가 없고 세 노드 전환 결과가</li></ol>
+<p>각각의 등록 연결·Device 수와 일치한다.</p>
+<p>현재 테스트베드 Ingress는 HTTP이므로 Firefox는 관리자 token 비밀번호 필드에 보안 경고를 표시한다. 읽기 전용 점검에는 token을 입력하지 않는다. 실제 운영 mutation에 token을 사용하려면 먼저 동일 Ingress에 신뢰 가능한 TLS를 적용해야 한다.</p>
 <h2 id="device-management-안전-검증">Device Management 안전 검증</h2>
 <p>실제 빈 hardware binding이 없는 현재 테스트베드에서는 기존 endpoint를 빼앗는 배포 canary를 만들지 않는다. 대신 다음을 확인한다.</p>
 <ol><li>Serial과 I2C의 runtime plan이 기존 exact runtime을 <code>REUSE</code>한다.</li><li>이미 소비 중인 endpoint/deviceName을 사용한 connection validation은 충돌을 명시하고</li></ol>

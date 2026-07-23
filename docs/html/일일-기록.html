@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 19:38</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
+            <span class="badge">수정: 2026-07-23 19:48</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -971,7 +971,7 @@
 <tr>
 <td>dashboard JavaScript</td>
 <td>PASS</td>
-<td>연결 증거·package 상태·기존 dashboard 계약 포함 46개 테스트 통과</td>
+<td>연결 증거·Ingress prefix·package 상태·기존 dashboard 계약 포함 47개 테스트 통과</td>
 </tr>
 <tr>
 <td>저장소 root Python</td>
@@ -1004,7 +1004,19 @@
 <td>Serial/I2C Runtime 각각 <code>SERVICE_READY</code>, EdgeX consumer 각각 6개, 총 12개 Device latest Event <code>fresh/available</code> 확인</td>
 </tr>
 </tbody></table></div>
-<p>생성 HTML, main push CI와 Argo CD rollout, 배포 endpoint 브라우저 검증 결과는 배포 완료 뒤 이 항목에 추가한다.</p>
+<h3 id="main-배포와-외부-ingress-검증">main 배포와 외부 Ingress 검증</h3>
+<ul><li>기능·문서 commit <code>cf0d87ffe0b29d1e31df999821e52da0e05fe596</code>의 GitHub Actions</li></ul>
+<p>run <code>30000172945</code>가 성공했다. 변경 감지는 state-aggregator와 docs만 선택했고 Adapter Controller, Serial/Sense HAT Device Service, mapper는 건너뛰었다.</p>
+<ul><li>첫 배포 브라우저 점검에서 <code>/aggregator/dashboard</code>의 새 관리 JavaScript가 root</li></ul>
+<p><code>/management/*</code>를 요청해 404가 나는 prefix 누락을 발견했다. IP를 하드코딩하지 않고 현재 page path의 <code>/aggregator</code> prefix를 관리 API에도 보존하도록 수정하고 회귀 테스트를 추가했다.</p>
+<ul><li>수정 commit <code>89529ae70bfbd2cbf4e8b921f09916211533df24</code>의 run <code>30000415210</code>도</li></ul>
+<p>성공했다. 최종 <code>edge-orch-state-aggregator</code> Application은 해당 revision에서 <code>Synced/Healthy/Succeeded</code>이고 실행 image와 Pod imageID는 <code>state-aggregator@sha256:cb333229446aaaa0e999433d4cce10d7d2ea5fdd70c9d4d0c551cc8c7a0ba134</code>, Ready <code>1/1</code>, restart <code>0</code>이다.</p>
+<ul><li>외부 Traefik <code>/aggregator</code> 경로에서 관리 API 두 개가 모두 200을 반환했다. Jetson은</li></ul>
+<p>Serial 연결 1개·Device 6개, Sense HAT 노드는 I2C 연결 1개·Device 6개가 각각 <code>detected/connected/fresh</code>로 표시됐다. AI HAT 후보 노드는 등록 연결·Device·즉시 사용 package가 모두 0개이며 자동 검색 결과로 오인할 문구가 없다.</p>
+<ul><li>배포 화면은 1440px와 390px 모두 <code>scrollWidth == innerWidth</code>였고 application console</li></ul>
+<p>error는 0건이었다. 현재 HTTP Ingress의 관리자 token 비밀번호 필드에 대한 Firefox 보안 warning 1건은 남아 있으므로 읽기 전용 검증에서는 token을 입력하지 않았고, 운영 mutation 전에는 Ingress TLS가 필요하다.</p>
+<ul><li>EdgeMesh agent는 이 작업 전후 모두 generation/observedGeneration <code>14/14</code>, Ready <code>5/5</code>로</li></ul>
+<p>유지됐다. ClusterIP/PodIP 우회, EdgeMesh 변경과 KubeEdge Device CRD 변경은 없었다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
