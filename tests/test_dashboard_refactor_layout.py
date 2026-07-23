@@ -80,7 +80,7 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "workflow"]' in nav_js
+    assert '["overview", "inventory", "workflow", "management"]' in nav_js
     assert "augmentation" not in nav_js
 
 
@@ -126,6 +126,7 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">Overview<" in html
     assert ">Assets<" in html
     assert ">AI Pipeline<" in html
+    assert ">Device Management<" in html
     assert ">Resource Augmentation<" not in html
 
 

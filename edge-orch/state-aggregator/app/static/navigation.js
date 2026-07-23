@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "workflow"];
+const DASHBOARD_PAGES = ["overview", "inventory", "workflow", "management"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");

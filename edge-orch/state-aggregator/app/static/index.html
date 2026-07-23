@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
+    <link rel="stylesheet" href="/static/device-management.css?v=onboarding-20260723" />
   </head>
   <body>
     <main class="shell">
@@ -35,6 +36,7 @@
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">Overview</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">Assets</button>
         <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI Pipeline</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">Device Management</button>
       </nav>
 
       <section class="ops-shell">
@@ -368,6 +370,211 @@
           </div>
         </section>
 
+        <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
+          <div class="panel-head management-page-head">
+            <div>
+              <p class="section-kicker">EdgeX Device Management</p>
+              <h2 id="deviceManagementTitle">Device Onboarding</h2>
+            </div>
+            <div class="management-head-actions">
+              <span>installed adapters only · guarded mutation</span>
+              <button id="managementRefresh" type="button">Refresh EdgeX State</button>
+            </div>
+          </div>
+
+          <div class="management-guardrail" role="note">
+            EdgeX Core Metadata remains the inventory authority. Device/Profile delete, command,
+            Kubernetes apply/restart, adapter auto-deploy, and EdgeMesh mutation are not provided.
+          </div>
+
+          <div class="management-layout">
+            <aside class="management-catalog" aria-labelledby="managementCatalogTitle">
+              <div class="management-section-head">
+                <div>
+                  <span>Adapter Catalog</span>
+                  <strong id="managementCatalogTitle">Runtime Capability</strong>
+                </div>
+                <small>Core Metadata Device Service readback</small>
+              </div>
+              <div id="managementAdapterList" class="management-adapter-list" aria-live="polite"></div>
+            </aside>
+
+            <div class="management-workspace">
+              <section class="management-credentials" aria-labelledby="managementCredentialTitle">
+                <div>
+                  <span>PoC administrator session</span>
+                  <strong id="managementCredentialTitle">Mutation Credential</strong>
+                  <small>Token stays only in this page's JavaScript memory.</small>
+                </div>
+                <label>
+                  <span>Admin Bearer Token</span>
+                  <input id="managementAdminToken" type="password" autocomplete="off" placeholder="required only for apply/update" />
+                </label>
+              </section>
+
+              <form id="deviceOnboardingForm" class="management-form" novalidate>
+                <div class="management-section-head">
+                  <div>
+                    <span>Registration Wizard</span>
+                    <strong>Adapter → Identity → Endpoint → Profile</strong>
+                  </div>
+                  <small id="managementAdapterNote">Adapter catalog loading</small>
+                </div>
+
+                <div class="management-form-grid">
+                  <label>
+                    <span>Adapter</span>
+                    <select id="managementAdapter" required></select>
+                  </label>
+                  <label>
+                    <span>Device name</span>
+                    <input id="managementDeviceName" type="text" required maxlength="255" placeholder="virtual-temperature-002" />
+                  </label>
+                  <label class="management-field-wide">
+                    <span>Description</span>
+                    <input id="managementDeviceDescription" type="text" maxlength="1000" placeholder="physical source and purpose" />
+                  </label>
+                  <label class="management-field-wide">
+                    <span>Labels · comma separated</span>
+                    <input id="managementDeviceLabels" type="text" placeholder="arduino, serial, virtual-device" />
+                  </label>
+                </div>
+
+                <fieldset>
+                  <legend>Protocol Endpoint</legend>
+                  <div id="managementProtocolFields" class="management-form-grid"></div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Device Profile</legend>
+                  <div class="management-form-grid">
+                    <label>
+                      <span>Profile mode</span>
+                      <select id="managementProfileMode">
+                        <option value="existing">Use existing</option>
+                        <option value="create">Create from adapter template</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Profile name</span>
+                      <input id="managementProfileName" type="text" required maxlength="255" placeholder="etri-arduino-temperature" />
+                    </label>
+                  </div>
+                  <div id="managementCreateProfileFields" class="management-form-grid" hidden>
+                    <label class="management-field-wide">
+                      <span>Profile description</span>
+                      <input id="managementProfileDescription" type="text" maxlength="1000" />
+                    </label>
+                    <label>
+                      <span>Manufacturer</span>
+                      <input id="managementProfileManufacturer" type="text" maxlength="255" />
+                    </label>
+                    <label>
+                      <span>Model</span>
+                      <input id="managementProfileModel" type="text" maxlength="255" />
+                    </label>
+                    <label class="management-field-wide">
+                      <span>Profile labels · comma separated</span>
+                      <input id="managementProfileLabels" type="text" />
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div class="management-apply-row">
+                  <label>
+                    <span>Idempotency key</span>
+                    <input id="managementIdempotencyKey" type="text" autocomplete="off" />
+                  </label>
+                  <div class="management-buttons">
+                    <button id="managementValidate" type="button">Dry-run Validation</button>
+                    <button id="managementApply" type="button" disabled>Apply to EdgeX</button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="management-results-grid">
+                <section aria-labelledby="managementValidationTitle">
+                  <div class="management-section-head">
+                    <strong id="managementValidationTitle">Validation</strong>
+                    <small>no mutation</small>
+                  </div>
+                  <div id="managementValidation" class="management-result" role="status" aria-live="polite">
+                    <p>Dry-run을 실행하면 Profile, Device와 binding 계획을 표시합니다.</p>
+                  </div>
+                </section>
+                <section aria-labelledby="managementOperationTitle">
+                  <div class="management-section-head">
+                    <strong id="managementOperationTitle">Apply / First Event</strong>
+                    <small>Metadata와 telemetry 분리</small>
+                  </div>
+                  <div id="managementOperation" class="management-result" role="status" aria-live="polite">
+                    <p>관리 mutation은 기본 비활성화 상태입니다.</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <div class="management-existing-grid">
+            <section aria-labelledby="managedDeviceTitle">
+              <div class="management-section-head">
+                <div>
+                  <span>Core Metadata Inventory</span>
+                  <strong id="managedDeviceTitle">Existing Devices</strong>
+                </div>
+                <small>select one for allowlisted update</small>
+              </div>
+              <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
+            </section>
+
+            <form id="devicePatchForm" class="management-form" aria-labelledby="devicePatchTitle">
+              <div class="management-section-head">
+                <div>
+                  <span>Allowlisted PATCH</span>
+                  <strong id="devicePatchTitle">Update Existing Device</strong>
+                </div>
+                <small>name/profile/service cannot change</small>
+              </div>
+              <div class="management-form-grid">
+                <label>
+                  <span>Device name</span>
+                  <input id="patchDeviceName" type="text" required readonly />
+                </label>
+                <label>
+                  <span>Admin state</span>
+                  <select id="patchDeviceAdminState">
+                    <option value="UNLOCKED">UNLOCKED</option>
+                    <option value="LOCKED">LOCKED</option>
+                  </select>
+                </label>
+                <label class="management-field-wide">
+                  <span>Description</span>
+                  <input id="patchDeviceDescription" type="text" maxlength="1000" />
+                </label>
+                <label class="management-field-wide">
+                  <span>Labels · comma separated</span>
+                  <input id="patchDeviceLabels" type="text" />
+                </label>
+                <label class="management-field-wide">
+                  <span>Tags JSON · optional merge</span>
+                  <textarea id="patchDeviceTags" rows="3" placeholder='{"line":"B"}'></textarea>
+                </label>
+                <label class="management-field-wide">
+                  <span>Protocol properties JSON · optional full adapter properties</span>
+                  <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-002","ResourceName":"temperature_raw"}'></textarea>
+                </label>
+                <label class="management-field-wide">
+                  <span>Idempotency key</span>
+                  <input id="patchIdempotencyKey" type="text" autocomplete="off" />
+                </label>
+              </div>
+              <div class="management-buttons">
+                <button type="submit">Apply Allowlisted Update</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <section class="panel scenario dashboard-page active" data-page="overview">
           <div class="panel-head">
             <div>
@@ -481,6 +688,7 @@
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=device-history-20260722"></script>
     <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
+    <script src="/static/device-management.js?v=onboarding-20260723"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

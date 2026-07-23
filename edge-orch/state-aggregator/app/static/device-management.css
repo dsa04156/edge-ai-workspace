@@ -1,0 +1,286 @@
+.device-management-page {
+  padding: var(--space-5);
+}
+
+body[data-dashboard-page="management"] .ops-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-dashboard-page="management"] .side-rail {
+  display: none;
+}
+
+.management-page-head,
+.management-head-actions,
+.management-section-head,
+.management-credentials,
+.management-apply-row,
+.management-buttons,
+.managed-device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.management-head-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: var(--muted);
+}
+
+.management-guardrail {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(99, 208, 230, 0.28);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: rgba(99, 208, 230, 0.07);
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.management-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.management-catalog,
+.management-workspace,
+.management-existing-grid > section,
+.management-existing-grid > form,
+.management-results-grid > section,
+.management-credentials,
+.management-form {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(11, 16, 20, 0.7);
+}
+
+.management-workspace {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.management-section-head > div,
+.management-credentials > div,
+.managed-device-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+.management-section-head span,
+.management-credentials span,
+.management-form label > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-section-head small,
+.management-credentials small,
+.managed-device-row small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.management-adapter-list,
+.managed-device-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.management-adapter-card {
+  display: grid;
+  gap: 5px;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-adapter-card[data-status="installed"] {
+  border-left: 3px solid #5bcf9b;
+}
+
+.management-adapter-card[data-status="unavailable"] {
+  border-left: 3px solid #f0b35b;
+}
+
+.management-adapter-card[data-status="unsupported"] {
+  border-left: 3px solid #75808a;
+  opacity: 0.78;
+}
+
+.management-status {
+  width: fit-content;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.management-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.management-form fieldset {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.management-form legend {
+  padding: 0 var(--space-2);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.management-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.management-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.management-form input,
+.management-form select,
+.management-form textarea,
+.management-credentials input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #0a0f13;
+  color: var(--text);
+}
+
+.management-form input[readonly] {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-field-wide {
+  grid-column: 1 / -1;
+}
+
+.management-credentials label {
+  display: grid;
+  gap: 6px;
+  width: min(420px, 100%);
+}
+
+.management-results-grid,
+.management-existing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.management-existing-grid {
+  margin-top: var(--space-4);
+}
+
+.management-result {
+  min-height: 112px;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+
+.management-result[data-status="valid"],
+.management-result[data-status="verified"] {
+  border-left: 3px solid #5bcf9b;
+}
+
+.management-result[data-status="waiting"],
+.management-result[data-status="applied"] {
+  border-left: 3px solid #f0b35b;
+}
+
+.management-result[data-status="invalid"],
+.management-result[data-status="failed"] {
+  border-left: 3px solid #ee6a78;
+}
+
+.management-result[data-status="disabled"] {
+  border-left: 3px solid #75808a;
+}
+
+.management-issue {
+  color: #ff9da7;
+}
+
+.management-plan {
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.managed-device-list {
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.managed-device-row {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.managed-device-row:last-child {
+  border-bottom: 0;
+}
+
+.management-empty {
+  color: var(--muted);
+}
+
+@media (max-width: 1000px) {
+  .management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .management-adapter-list {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .device-management-page {
+    padding: var(--space-3);
+  }
+
+  .management-page-head,
+  .management-head-actions,
+  .management-section-head,
+  .management-credentials,
+  .management-apply-row,
+  .managed-device-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .management-form-grid,
+  .management-results-grid,
+  .management-existing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-field-wide {
+    grid-column: auto;
+  }
+
+  .management-buttons {
+    flex-wrap: wrap;
+  }
+}
