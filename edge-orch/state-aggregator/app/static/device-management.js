@@ -1,9 +1,18 @@
-const MANAGEMENT_ADAPTERS_URL = "/management/adapters";
-const MANAGEMENT_VALIDATE_URL = "/management/devices/validate";
-const MANAGEMENT_DEVICES_URL = "/management/devices";
-const MANAGEMENT_RUNTIMES_URL = "/management/adapter-runtimes";
-const MANAGEMENT_CONNECTIONS_URL = "/management/connections";
-const MANAGEMENT_NODES_URL = "/state/nodes";
+function managementApiUrl(path, pathname = globalThis.location?.pathname || "") {
+  const ingressPrefix = pathname === "/aggregator"
+    || pathname.startsWith("/aggregator/")
+    ? "/aggregator"
+    : "";
+  return `${ingressPrefix}${path}`;
+}
+
+
+const MANAGEMENT_ADAPTERS_URL = managementApiUrl("/management/adapters");
+const MANAGEMENT_VALIDATE_URL = managementApiUrl("/management/devices/validate");
+const MANAGEMENT_DEVICES_URL = managementApiUrl("/management/devices");
+const MANAGEMENT_RUNTIMES_URL = managementApiUrl("/management/adapter-runtimes");
+const MANAGEMENT_CONNECTIONS_URL = managementApiUrl("/management/connections");
+const MANAGEMENT_NODES_URL = managementApiUrl("/state/nodes");
 const UNASSIGNED_NODE = "미할당 노드";
 
 let sessionAdminToken = "";
@@ -2245,6 +2254,7 @@ if (typeof module !== "undefined") {
     fetchManagementAdapters,
     fetchManagementNodes,
     fetchManagementOperation,
+    managementApiUrl,
     managementDeviceNode,
     managementTabIndexForKey,
     normalizeManagementView,

@@ -20,6 +20,7 @@ const {
   fetchManagementAdapters,
   fetchManagementNodes,
   fetchManagementOperation,
+  managementApiUrl,
   managementDeviceNode,
   managementTabIndexForKey,
   normalizeManagementView,
@@ -36,6 +37,22 @@ const {
   validateManagementConnection,
   validateManagementDevice,
 } = require("../app/static/device-management.js");
+
+
+test("management API keeps the external ingress prefix without hard-coding an IP", () => {
+  assert.equal(
+    managementApiUrl("/management/adapters", "/aggregator/dashboard"),
+    "/aggregator/management/adapters",
+  );
+  assert.equal(
+    managementApiUrl("/state/nodes", "/aggregator"),
+    "/aggregator/state/nodes",
+  );
+  assert.equal(
+    managementApiUrl("/management/adapters", "/dashboard"),
+    "/management/adapters",
+  );
+});
 
 
 function response(payload, {ok = true, status = 200} = {}) {
@@ -846,7 +863,7 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=connection-evidence-v1-20260723/);
-  assert.match(html, /device-management\.js\?v=connection-evidence-v1-20260723/);
+  assert.match(html, /device-management\.js\?v=connection-evidence-v2-20260723/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);
