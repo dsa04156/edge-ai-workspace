@@ -148,8 +148,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 11:41</span>
-            <span class="badge">HTML 생성: 2026-07-23 11:41</span>
+            <span class="badge">수정: 2026-07-23 12:00</span>
+            <span class="badge">HTML 생성: 2026-07-23 12:00</span>
           </div>
         </header>
         <div class="doc-body">
@@ -619,6 +619,8 @@
 <p>Profile-selector 불일치와 system tag 변조를 dry-run/PATCH에서 차단한다. Core Data 확인 장애는 Metadata 성공을 취소하지 않고 <code>waiting_for_event</code>로 복구 가능하게 유지한다.</p>
 <ul><li>CI가 Deployment image를 직접 바꾼 뒤 Argo CD <code>selfHeal</code>에 의해 이전 digest로 복구되는</li></ul>
 <p>경합을 제거했다. 빌드 digest와 Git SHA를 <code>edge-orch-state-aggregator</code> Application에 함께 반영하고 목표 digest 확인 후 rollout을 판정한다.</p>
+<ul><li>워크플로 파일 변경으로 legacy <code>mqttvirtual</code> 단계가 평가되더라도 실제 DaemonSet이 없으면</li></ul>
+<p>rollout만 건너뛴다. MQTT workload나 KubeEdge mapper를 새로 생성하지 않는다.</p>
 <h3 id="검증-상태">검증 상태</h3>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -640,7 +642,7 @@
 <tr>
 <td>저장소 root Python</td>
 <td>PASS</td>
-<td>문서·dashboard·배포 계약을 포함한 87개 테스트 통과</td>
+<td>문서·dashboard·배포 계약을 포함한 88개 테스트 통과</td>
 </tr>
 <tr>
 <td>EdgeX manifest 회귀</td>

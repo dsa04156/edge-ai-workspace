@@ -53,3 +53,19 @@ def test_ci_deploys_state_aggregator_through_argocd_digest_override() -> None:
     assert 'targetRevision\\\":\\\"${TARGET_REVISION}' in workflow
     assert "argocd.argoproj.io/refresh=hard" in workflow
     assert "kubectl set image deployment/state-aggregator" not in workflow
+
+
+def test_ci_skips_legacy_mqtt_mapper_deploy_when_daemonset_is_absent() -> None:
+    workflow = yaml.safe_load(BUILD_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["build-and-push"]["steps"]
+    deploy_step = next(
+        step
+        for step in steps
+        if step.get("name") == "Deploy mqttvirtual mapper latest image"
+    )
+    script = deploy_step["run"]
+
+    guard = "if ! kubectl get daemonset mqttvirtual-mapper -n default"
+    assert guard in script
+    assert script.index(guard) < script.index("CURRENT_IMAGE=")
+    assert "Legacy mqttvirtual mapper is not deployed; skipping rollout." in script

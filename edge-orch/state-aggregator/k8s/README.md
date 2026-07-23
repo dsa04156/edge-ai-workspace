@@ -99,6 +99,10 @@ digest로 함께 갱신한다. `kubectl set image`로 Deployment를 직접 변�
 CI는 Argo CD refresh 뒤 Deployment가 목표 digest를 가리키는지 확인한 다음 rollout 완료를
 기다린다.
 
+워크플로 파일 자체가 바뀌어 legacy `mqttvirtual` 단계가 평가되더라도 현재 클러스터에
+`mqttvirtual-mapper` DaemonSet이 없으면 rollout을 명시적으로 건너뛴다. 이 guard는
+DaemonSet을 생성하거나 MQTT 경로를 다시 활성화하지 않는다.
+
 Expected scrape path:
 
 ```text

@@ -199,6 +199,11 @@ jobs:
       - name: Deploy mqttvirtual mapper latest image
         if: steps.changes.outputs.mqttvirtual == 'true'
         run: |
+          if ! kubectl get daemonset mqttvirtual-mapper -n default >/dev/null 2>&1; then
+            echo "Legacy mqttvirtual mapper is not deployed; skipping rollout."
+            exit 0
+          fi
+
           CURRENT_IMAGE=$(kubectl get daemonset mqttvirtual-mapper -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="mqttvirtual")].image}')
           TARGET_IMAGE=${{ env.REGISTRY }}/mqttvirtual:latest
 
