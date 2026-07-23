@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 15:27</span>
-            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
+            <span class="badge">수정: 2026-07-23 16:01</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:02</span>
           </div>
         </header>
         <div class="doc-body">
@@ -605,8 +605,8 @@
 <p>Metadata의 실제 Device Service 상태로 <code>installed</code>/<code>unavailable</code>을 판정한다. Modbus, OPC-UA, MQTT와 RTSP는 검증 전 <code>unsupported</code>로 고정했다.</p>
 <ul><li>create는 Profile → Device → Metadata readback → first Core Data Event 확인 순서의 제한된</li></ul>
 <p>saga로 처리하고, Device 생성 전 실패 시 이번 요청이 만든 미사용 Profile만 보상 삭제한다.</p>
-<ul><li>HMAC 기반 request ID, payload hash와 예약 Device tag로 동일 요청 재시도와 Pod 재시작 뒤</li></ul>
-<p>operation 복구를 지원한다. raw idempotency key와 payload hash는 API에 노출하지 않는다.</p>
+<ul><li>HMAC 기반 request ID, payload hash와 예약 Device tag로 동일 요청 재시도와 Metadata 적용</li></ul>
+<p>이후 operation 복구를 지원한다. raw idempotency key와 payload hash는 API에 노출하지 않는다.</p>
 <ul><li>Dashboard에 별도 <code>Device Management</code> 화면을 추가해 adapter 상태, onboarding dry-run,</li></ul>
 <p>기존 Device 선택, allowlist PATCH와 <code>metadata_applied</code>/<code>waiting_for_event</code>/<code>verified</code>/<code>failed</code> 상태를 표시한다.</p>
 <h3 id="안전-경계">안전 경계</h3>
@@ -692,6 +692,79 @@
 <p>Device CRD 변경 경로는 제공하지 않는다.</p>
 <ul><li>Modbus/OPC-UA/MQTT/RTSP는 승인 image, profile과 실장비 Event 증거 전까지</li></ul>
 <p><code>unverified</code>/<code>BLOCKED</code>다.</p>
+<h3 id="adapter-runtime-관리-라이브-검증">Adapter Runtime 관리 라이브 검증</h3>
+<ul><li>기능 revision <code>fdb5b39cdfdda7a315ab66561a808eadb6c1e115</code>의 GitHub Actions run</li></ul>
+<p><code>29985731891</code>이 성공했고 <code>edgex-telemetry</code>, <code>edge-orch-state-aggregator</code>, <code>docs-html</code> Application이 모두 <code>Synced/Healthy/Succeeded</code>가 됐다.</p>
+<ul><li>검증한 immutable image는 Controller</li></ul>
+<p><code>sha256:540be3b209cbf91c4a378dffbb759f0dc3a2017ce147e4d574d329a32de07bcc</code>, Serial <code>sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda</code>, Sense HAT <code>sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38</code>, state-aggregator <code>sha256:aeb7109bf097c4dcd87fcad803b5a622b541f7c9b9a26f6988a9951582363a3a</code>다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Runtime inventory</td>
+<td>PASS</td>
+<td>Serial과 Sense HAT을 <code>SERVICE_READY</code>, <code>external</code>, <code>argocd</code>, <code>hardware-verified</code>, consumer 6개씩으로 발견</td>
+</tr>
+<tr>
+<td>Runtime mutation 경계</td>
+<td>PASS</td>
+<td>두 external runtime의 <code>mutable=false</code>; Restart/Retire 버튼 비활성화</td>
+</tr>
+<tr>
+<td>Runtime plan</td>
+<td>PASS</td>
+<td>Serial·Sense HAT <code>auto</code>는 <code>REUSE</code>; Modbus·OPC-UA·MQTT·RTSP <code>deploy</code>는 <code>template_unverified</code>로 <code>BLOCKED</code></td>
+</tr>
+<tr>
+<td>Connection validation</td>
+<td>PASS</td>
+<td>기존 Serial temperature route 재사용 시 <code>protocol_binding_exists</code>; <code>Connect Device</code> 비활성화, mutation 없음</td>
+</tr>
+<tr>
+<td>EdgeX 회귀</td>
+<td>PASS</td>
+<td>12개 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, latest Core Data Event <code>fresh</code></td>
+</tr>
+<tr>
+<td>서비스 데모 회귀</td>
+<td>PASS</td>
+<td><code>sensor-anomaly-demo</code>가 <code>mode=live</code>, input <code>fresh</code>, model <code>ready</code>, observation error 없음</td>
+</tr>
+<tr>
+<td>최소 RBAC</td>
+<td>PASS</td>
+<td>state-aggregator의 <code>edgex-edge</code> Deployment/AdapterRuntime create는 <code>no</code>; Controller는 해당 namespace만 <code>yes</code></td>
+</tr>
+<tr>
+<td>실제 workload</td>
+<td>PASS</td>
+<td>Controller, Serial, Sense HAT, state-aggregator 모두 Ready, restart 0, 기대 imageID 실행</td>
+</tr>
+<tr>
+<td>브라우저</td>
+<td>PASS</td>
+<td>Firefox desktop·390px에서 관리 화면, validation 결과와 12개 Device 확인; console error/warning 0, 390px 가로 overflow 0</td>
+</tr>
+<tr>
+<td>관리 CR canary</td>
+<td>미실행</td>
+<td>현재 승인 hardware binding은 기존 external runtime이 사용 중이며 새 격리 장비가 없어 <code>AdapterRuntime</code> 생성 없이 read-only/validation canary만 수행</td>
+</tr>
+<tr>
+<td>EdgeMesh</td>
+<td>무변경</td>
+<td>generation/observed 14, 5/5 Ready, 모든 agent restart 0, <code>kubeedge/edgemesh-agent:v1.17.0</code> 유지</td>
+</tr>
+</tbody></table></div>
+<h3 id="현재-복구-경계">현재 복구 경계</h3>
+<ul><li>EdgeX Device tag를 사용한 Metadata 적용 이후 operation 복구와 동일 payload 재요청의</li></ul>
+<p>중복 방지는 구현돼 있다.</p>
+<ul><li>신규 Controller runtime이 아직 준비 중일 때의 connection operation 저장소는</li></ul>
+<p>state-aggregator 메모리에 있다. 현재 승인 template은 모두 <code>deploymentEnabled=false</code>라 이 경로를 운영에서 실행하지 않지만, 향후 managed template을 승격하기 전에는 CR에 connection payload reference를 남기거나 별도 영속 operation store를 추가해 GET-only 재시작 복구를 검증해야 한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

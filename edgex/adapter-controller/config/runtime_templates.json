@@ -9,7 +9,7 @@
       "protocolName": "serial",
       "verificationState": "hardware-verified",
       "deploymentEnabled": false,
-      "image": "192.168.0.56:5000/edgex-device-serial@sha256:ddece2451dd0079483c3d7441f4ce6f393b57dea6ce338601adb407c9113db3b",
+      "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
       "servicePort": 59910,
       "hardwareBindings": [
         {
@@ -40,7 +40,7 @@
       "protocolName": "i2c",
       "verificationState": "hardware-verified",
       "deploymentEnabled": false,
-      "image": "192.168.0.56:5000/edgex-device-sensehat@sha256:53df28e46ae20272092bcf14cbc831b9934bbcc643c2dbf84338f76ba96cf216",
+      "image": "192.168.0.56:5000/edgex-device-sensehat@sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38",
       "servicePort": 59911,
       "hardwareBindings": [
         {

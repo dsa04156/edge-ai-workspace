@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 15:23</span>
-            <span class="badge">HTML 생성: 2026-07-23 15:37</span>
+            <span class="badge">수정: 2026-07-23 16:01</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:02</span>
           </div>
         </header>
         <div class="doc-body">
@@ -334,6 +334,13 @@ unset ADMIN_TOKEN IDEMPOTENCY_KEY</code></pre>
 </tr>
 </tbody></table></div>
 <p>같은 idempotency key와 같은 payload는 같은 operation을 반환한다. 같은 key를 다른 payload에 사용하면 <code>409</code>다.</p>
+<p>현재 복구 경계:</p>
+<ul><li>EdgeX Device tag를 사용한 Metadata 적용 이후 operation 복구와 동일 payload 재요청의</li></ul>
+<p>중복 방지는 지원한다.</p>
+<ul><li>신규 Controller runtime이 아직 준비 중인 connection operation은 state-aggregator 메모리에</li></ul>
+<p>있다. 현재 승인 template은 모두 <code>deploymentEnabled=false</code>라 live 운영 경로에서는 external runtime 재사용만 가능하다.</p>
+<ul><li>managed template을 처음 승격할 때는 CR에 connection payload reference를 남기거나 영속</li></ul>
+<p>operation store를 추가하고, state-aggregator 재시작 뒤 GET-only 복구를 별도 canary로 통과시켜야 한다.</p>
 <h2 id="재시작과-퇴역">재시작과 퇴역</h2>
 <ul><li>외부/Argo runtime은 대시보드 버튼이 비활성화된다.</li><li>Controller runtime 재시작은 CR의 <code>restartNonce</code>만 변경한다.</li><li>퇴역은 Controller runtime, EdgeX consumer 0, 관리자 인증, idempotency key와 exact runtime</li></ul>
 <p>이름 확인을 모두 요구한다.</p>
