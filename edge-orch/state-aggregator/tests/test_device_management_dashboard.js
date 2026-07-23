@@ -5,13 +5,17 @@ const path = require("node:path");
 
 const {
   adapterCanApply,
+  adapterSupportsNode,
+  buildManagementNodeScopes,
   connectionStatusView,
   createManagementConnection,
   createManagementDevice,
   fetchAdapterRuntimes,
   fetchConnectionOperation,
   fetchManagementAdapters,
+  fetchManagementNodes,
   fetchManagementOperation,
+  managementDeviceNode,
   operationStatusView,
   patchManagementDevice,
   planAdapterRuntime,
@@ -57,6 +61,116 @@ test("loads adapter catalog without browser cache", async () => {
     options: {cache: "no-store"},
   });
   assert.equal(adapters[0].adapterId, "serial-jetson");
+});
+
+
+test("loads KubeEdge node inventory without browser cache", async () => {
+  let request = null;
+  const fetchFn = async (url, options) => {
+    request = {url, options};
+    return response([{
+      hostname: "etri-dev0001-jetorn",
+      node_health: "available",
+    }]);
+  };
+
+  const nodes = await fetchManagementNodes(fetchFn);
+
+  assert.deepEqual(request, {
+    url: "/state/nodes",
+    options: {cache: "no-store"},
+  });
+  assert.equal(nodes[0].hostname, "etri-dev0001-jetorn");
+});
+
+
+test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved bindings", () => {
+  const scopes = buildManagementNodeScopes({
+    nodes: [
+      {hostname: "server2", node_health: "available"},
+      {hostname: "etri-dev0001-jetorn", node_health: "available"},
+    ],
+    runtimes: [
+      {targetNode: "etri-dev0001-jetorn"},
+      {targetNode: "etri-dev0003-raspi5"},
+    ],
+    devices: [
+      {name: "serial-01", node_name: "etri-dev0001-jetorn"},
+      {name: "sensehat-01", tags: {nodeName: "etri-dev0003-raspi5"}},
+      {name: "legacy-01"},
+    ],
+    adapters: [
+      {
+        adapterId: "serial-jetson",
+        runtime: {
+          hardwareBindings: [{nodeName: "etri-dev0001-jetorn"}],
+        },
+      },
+      {
+        adapterId: "sensehat-raspi",
+        runtime: {
+          hardwareBindings: [{nodeName: "etri-dev0003-raspi5"}],
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    scopes.map((scope) => scope.name),
+    [
+      "etri-dev0001-jetorn",
+      "etri-dev0003-raspi5",
+      "server2",
+      "미할당 노드",
+    ],
+  );
+  assert.deepEqual(
+    scopes.find((scope) => scope.name === "etri-dev0001-jetorn"),
+    {
+      name: "etri-dev0001-jetorn",
+      health: "available",
+      observed: true,
+      runtimeCount: 1,
+      deviceCount: 1,
+      adapterCount: 1,
+    },
+  );
+  assert.equal(
+    scopes.find((scope) => scope.name === "etri-dev0003-raspi5").observed,
+    false,
+  );
+  assert.equal(
+    scopes.find((scope) => scope.name === "미할당 노드").deviceCount,
+    1,
+  );
+});
+
+
+test("node scope recognizes device node aliases and only matching approved bindings", () => {
+  assert.equal(
+    managementDeviceNode({node_name: "edge-a", tags: {nodeName: "wrong"}}),
+    "edge-a",
+  );
+  assert.equal(
+    managementDeviceNode({tags: {nodeName: "edge-b"}}),
+    "edge-b",
+  );
+  assert.equal(managementDeviceNode({}), "미할당 노드");
+
+  const adapter = {
+    status: "installed",
+    runtime: {
+      hardwareBindings: [
+        {bindingId: "edge-a-serial", nodeName: "edge-a"},
+      ],
+    },
+  };
+  assert.equal(adapterSupportsNode(adapter, "edge-a"), true);
+  assert.equal(adapterSupportsNode(adapter, "edge-b"), false);
+  assert.equal(
+    adapterSupportsNode({...adapter, status: "unsupported"}, "edge-a"),
+    false,
+  );
 });
 
 
@@ -258,13 +372,13 @@ test("management errors preserve safe server detail", async () => {
 
 test("operation status distinguishes metadata wait, verified, and failure", () => {
   assert.deepEqual(operationStatusView({status: "waiting_for_event"}), {
-    label: "WAITING FOR EVENT",
+    label: "첫 이벤트 대기",
     tone: "waiting",
-    detail: "EdgeX Metadata 적용 완료 · 첫 Core Data Event 대기",
+    detail: "EdgeX 메타데이터 적용 완료 · 첫 Core Data 이벤트 대기",
     terminal: false,
   });
   assert.equal(operationStatusView({status: "verified"}).terminal, true);
-  assert.match(operationStatusView({status: "verified"}).detail, /Event 검증 완료/);
+  assert.match(operationStatusView({status: "verified"}).detail, /이벤트 검증 완료/);
   assert.equal(operationStatusView({status: "failed"}).terminal, true);
   assert.match(operationStatusView({status: "failed", error: "readback mismatch"}).detail, /readback mismatch/);
   assert.match(
@@ -277,7 +391,7 @@ test("operation status distinguishes metadata wait, verified, and failure", () =
 test("connection status separates runtime, metadata, event, and terminal states", () => {
   assert.match(
     connectionStatusView({status: "RUNTIME_REQUESTED"}).detail,
-    /Runtime/,
+    /런타임/,
   );
   assert.equal(
     connectionStatusView({status: "WAITING_EVENT"}).terminal,
@@ -378,6 +492,8 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(html, /data-dashboard-page="management"/);
   assert.match(html, /data-page="management"/);
   for (const id of [
+    "managementNodeList",
+    "managementSelectedNode",
     "managementAdapterList",
     "managementRuntimeList",
     "managementRuntimeMode",
@@ -397,9 +513,16 @@ test("dashboard ships an accessible session-only device management page", () => 
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=runtime-20260723/);
-  assert.match(html, /device-management\.js\?v=runtime-20260723/);
+  assert.match(html, /device-management\.css\?v=node-scope-ko-20260723/);
+  assert.match(html, /device-management\.js\?v=node-scope-ko-20260723/);
+  assert.match(html, />디바이스 관리</);
+  assert.match(html, /노드별 디바이스 관리/);
+  assert.match(html, /관리할 엣지 노드/);
+  assert.match(html, /선택 노드의 런타임/);
+  assert.match(html, /연결 구성 마법사/);
+  assert.match(html, /기존 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-runtime-card/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);

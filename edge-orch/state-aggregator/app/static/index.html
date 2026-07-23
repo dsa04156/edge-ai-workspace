@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Edge AI Operations Dashboard</title>
+    <title>Edge AI 통합 운영 대시보드</title>
     <meta name="description" content="디바이스 운영 대시보드 서비스 바인딩" />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
@@ -12,31 +12,31 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=runtime-20260723" />
+    <link rel="stylesheet" href="/static/device-management.css?v=node-scope-ko-20260723" />
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
-          <p class="eyebrow">EdgeX Device + Kubernetes Edge Platform</p>
-          <h1>Edge AI Operations Dashboard</h1>
-          <span class="cluster-pill">default cluster</span>
+          <p class="eyebrow">EdgeX 디바이스 + Kubernetes 엣지 플랫폼</p>
+          <h1>Edge AI 통합 운영 대시보드</h1>
+          <span class="cluster-pill">기본 클러스터</span>
         </div>
-        <label class="global-search" aria-label="Search resources">
-          <span>Search</span>
-          <input type="search" name="resourceSearch" placeholder="Search resources" autocomplete="off" />
+        <label class="global-search" aria-label="리소스 검색">
+          <span>검색</span>
+          <input type="search" name="resourceSearch" placeholder="리소스 검색" autocomplete="off" />
         </label>
         <div class="refresh">
           <span id="updatedAt">-</span>
-          <button id="refreshButton" type="button" aria-label="Refresh dashboard">Refresh</button>
+          <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
         </div>
       </header>
 
-      <nav class="main-menu" aria-label="dashboard pages">
-        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">Overview</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">Assets</button>
-        <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI Pipeline</button>
-        <button type="button" data-dashboard-page="management" aria-pressed="false">Device Management</button>
+      <nav class="main-menu" aria-label="대시보드 화면">
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">개요</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">자산</button>
+        <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">디바이스 관리</button>
       </nav>
 
       <section class="ops-shell">
@@ -373,12 +373,12 @@
         <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
           <div class="panel-head management-page-head">
             <div>
-              <p class="section-kicker">Adapter Runtime + EdgeX Device Management</p>
-              <h2 id="deviceManagementTitle">Physical Device Connection</h2>
+              <p class="section-kicker">노드 · 어댑터 런타임 · EdgeX 디바이스</p>
+              <h2 id="deviceManagementTitle">노드별 디바이스 관리</h2>
             </div>
             <div class="management-head-actions">
-              <strong id="managementMutationMode" data-status="disabled">DRY-RUN ONLY · MUTATION DISABLED</strong>
-              <button id="managementRefresh" type="button">Refresh EdgeX State</button>
+              <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
+              <button id="managementRefresh" type="button">EdgeX 상태 새로고침</button>
             </div>
           </div>
 
@@ -388,11 +388,25 @@
             임의 hostPath, 고정 ClusterIP/PodIP, KubeEdge Device CRD와 EdgeMesh 변경은 허용하지 않습니다.
           </div>
 
+          <section class="management-node-scope" aria-labelledby="managementNodeTitle">
+            <div class="management-section-head">
+              <div>
+                <span>노드 관리 범위</span>
+                <strong id="managementNodeTitle">관리할 엣지 노드</strong>
+              </div>
+              <small id="managementSelectedNode">선택된 노드 없음</small>
+            </div>
+            <p class="management-node-hint">
+              KubeEdge 노드는 런타임 배치와 운영 범위입니다. 디바이스 상태·텔레메트리·명령의 권위는 EdgeX가 유지합니다.
+            </p>
+            <div id="managementNodeList" class="management-node-list" role="group" aria-label="관리 노드 선택" aria-live="polite"></div>
+          </section>
+
           <section class="management-runtime-inventory" aria-labelledby="managementRuntimeTitle">
             <div class="management-section-head">
               <div>
-                <span>Observed Adapter Runtime Inventory</span>
-                <strong id="managementRuntimeTitle">Runtime · Device Service · Consumer</strong>
+                <span>어댑터 런타임 현황</span>
+                <strong id="managementRuntimeTitle">선택 노드의 런타임</strong>
               </div>
               <small>외부 소유 런타임은 조회·재사용만 가능</small>
             </div>
@@ -403,10 +417,10 @@
             <aside class="management-catalog" aria-labelledby="managementCatalogTitle">
               <div class="management-section-head">
                 <div>
-                  <span>Adapter Catalog</span>
-                  <strong id="managementCatalogTitle">Runtime Capability</strong>
+                  <span>프로토콜 어댑터</span>
+                  <strong id="managementCatalogTitle">선택 노드의 어댑터</strong>
                 </div>
-                <small>Core Metadata Device Service readback</small>
+                <small>EdgeX Core Metadata의 Device Service 재조회 기준</small>
               </div>
               <div id="managementAdapterList" class="management-adapter-list" aria-live="polite"></div>
             </aside>
@@ -414,42 +428,42 @@
             <div class="management-workspace">
               <section class="management-credentials" aria-labelledby="managementCredentialTitle">
                 <div>
-                  <span>PoC administrator session</span>
-                  <strong id="managementCredentialTitle">Mutation Credential</strong>
-                  <small>Token stays only in this page's JavaScript memory.</small>
+                  <span>PoC 관리자 세션</span>
+                  <strong id="managementCredentialTitle">변경 권한</strong>
+                  <small>토큰은 이 페이지의 JavaScript 메모리에만 유지됩니다.</small>
                 </div>
                 <label>
-                  <span>Admin Bearer Token</span>
-                  <input id="managementAdminToken" type="password" autocomplete="off" placeholder="required only for apply/update" disabled />
+                  <span>관리자 Bearer 토큰</span>
+                  <input id="managementAdminToken" type="password" autocomplete="off" placeholder="연결·수정 시에만 필요" disabled />
                 </label>
               </section>
 
               <form id="deviceOnboardingForm" class="management-form" novalidate>
                 <div class="management-section-head">
                   <div>
-                    <span>Connection Wizard</span>
-                    <strong>Adapter Runtime → Physical Binding → EdgeX Device</strong>
+                    <span>연결 구성 마법사</span>
+                    <strong>어댑터 런타임 → 물리 연결 → EdgeX 디바이스</strong>
                   </div>
-                  <small id="managementAdapterNote">Adapter catalog loading</small>
+                  <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
                 </div>
 
                 <fieldset>
-                  <legend>Adapter Runtime</legend>
+                  <legend>런타임 배치</legend>
                   <div class="management-form-grid">
                     <label>
-                      <span>Runtime action</span>
+                      <span>런타임 처리 방식</span>
                       <select id="managementRuntimeMode">
-                        <option value="auto">Auto · reuse first</option>
-                        <option value="reuse">Reuse existing only</option>
-                        <option value="deploy">Deploy approved template</option>
+                        <option value="auto">자동 · 기존 런타임 우선 재사용</option>
+                        <option value="reuse">기존 런타임만 재사용</option>
+                        <option value="deploy">승인된 템플릿 배포</option>
                       </select>
                     </label>
                     <label>
-                      <span>Target KubeEdge node</span>
+                      <span>관리 대상 KubeEdge 노드</span>
                       <select id="managementTargetNode" required></select>
                     </label>
                     <label class="management-field-wide">
-                      <span>Approved hardware binding</span>
+                      <span>승인된 하드웨어 연결</span>
                       <select id="managementHardwareBinding" required></select>
                     </label>
                   </div>
@@ -460,58 +474,58 @@
 
                 <div class="management-form-grid">
                   <label>
-                    <span>Adapter</span>
+                    <span>프로토콜 어댑터</span>
                     <select id="managementAdapter" required></select>
                   </label>
                   <label>
-                    <span>Device name</span>
+                    <span>디바이스 이름</span>
                     <input id="managementDeviceName" type="text" required maxlength="255" placeholder="virtual-temperature-002" />
                   </label>
                   <label class="management-field-wide">
-                    <span>Description</span>
-                    <input id="managementDeviceDescription" type="text" maxlength="1000" placeholder="physical source and purpose" />
+                    <span>설명</span>
+                    <input id="managementDeviceDescription" type="text" maxlength="1000" placeholder="물리 소스와 사용 목적" />
                   </label>
                   <label class="management-field-wide">
-                    <span>Labels · comma separated</span>
+                    <span>레이블 · 쉼표로 구분</span>
                     <input id="managementDeviceLabels" type="text" placeholder="arduino, serial, virtual-device" />
                   </label>
                 </div>
 
                 <fieldset>
-                  <legend>Protocol Endpoint</legend>
+                  <legend>물리 연결 정보</legend>
                   <div id="managementProtocolFields" class="management-form-grid"></div>
                 </fieldset>
 
                 <fieldset>
-                  <legend>Device Profile</legend>
+                  <legend>디바이스 프로필</legend>
                   <div class="management-form-grid">
                     <label>
-                      <span>Profile mode</span>
+                      <span>프로필 처리 방식</span>
                       <select id="managementProfileMode">
-                        <option value="existing">Use existing</option>
-                        <option value="create">Create from adapter template</option>
+                        <option value="existing">기존 프로필 사용</option>
+                        <option value="create">어댑터 템플릿으로 생성</option>
                       </select>
                     </label>
                     <label>
-                      <span>Profile name</span>
+                      <span>프로필 이름</span>
                       <input id="managementProfileName" type="text" required maxlength="255" placeholder="etri-arduino-temperature" />
                     </label>
                   </div>
                   <div id="managementCreateProfileFields" class="management-form-grid" hidden>
                     <label class="management-field-wide">
-                      <span>Profile description</span>
+                      <span>프로필 설명</span>
                       <input id="managementProfileDescription" type="text" maxlength="1000" />
                     </label>
                     <label>
-                      <span>Manufacturer</span>
+                      <span>제조사</span>
                       <input id="managementProfileManufacturer" type="text" maxlength="255" />
                     </label>
                     <label>
-                      <span>Model</span>
+                      <span>모델</span>
                       <input id="managementProfileModel" type="text" maxlength="255" />
                     </label>
                     <label class="management-field-wide">
-                      <span>Profile labels · comma separated</span>
+                      <span>프로필 레이블 · 쉼표로 구분</span>
                       <input id="managementProfileLabels" type="text" />
                     </label>
                   </div>
@@ -519,12 +533,12 @@
 
                 <div class="management-apply-row">
                   <label>
-                    <span>Idempotency key</span>
+                    <span>중복 요청 방지 키</span>
                     <input id="managementIdempotencyKey" type="text" autocomplete="off" />
                   </label>
                   <div class="management-buttons">
-                    <button id="managementValidate" type="button">Validate Connection</button>
-                    <button id="managementApply" type="button" disabled>Connect Device</button>
+                    <button id="managementValidate" type="button">연결 검증</button>
+                    <button id="managementApply" type="button" disabled>디바이스 연결</button>
                   </div>
                 </div>
               </form>
@@ -532,20 +546,20 @@
               <div class="management-results-grid">
                 <section aria-labelledby="managementValidationTitle">
                   <div class="management-section-head">
-                    <strong id="managementValidationTitle">Runtime + EdgeX Plan</strong>
-                    <small>no mutation</small>
+                    <strong id="managementValidationTitle">런타임 + EdgeX 실행 계획</strong>
+                    <small>변경 없음</small>
                   </div>
                   <div id="managementValidation" class="management-result" role="status" aria-live="polite">
-                    <p>검증을 실행하면 Runtime 재사용/배포와 EdgeX 등록 계획을 함께 표시합니다.</p>
+                    <p>검증을 실행하면 런타임 재사용/배포와 EdgeX 등록 계획을 함께 표시합니다.</p>
                   </div>
                 </section>
                 <section aria-labelledby="managementOperationTitle">
                   <div class="management-section-head">
-                    <strong id="managementOperationTitle">Connection / First Event</strong>
-                    <small>Runtime · Metadata · telemetry 상태 추적</small>
+                    <strong id="managementOperationTitle">연결 / 첫 이벤트</strong>
+                    <small>런타임 · 메타데이터 · 텔레메트리 상태 추적</small>
                   </div>
                   <div id="managementOperation" class="management-result" role="status" aria-live="polite">
-                    <p>관리 mutation은 기본 비활성화 상태입니다.</p>
+                    <p>관리 변경 기능은 기본 비활성화 상태입니다.</p>
                   </div>
                 </section>
               </div>
@@ -556,10 +570,10 @@
             <section aria-labelledby="managedDeviceTitle">
               <div class="management-section-head">
                 <div>
-                  <span>Core Metadata Inventory</span>
-                  <strong id="managedDeviceTitle">Existing Devices</strong>
+                  <span>Core Metadata 등록 목록</span>
+                  <strong id="managedDeviceTitle">기존 EdgeX 디바이스</strong>
                 </div>
-                <small>select one for allowlisted update</small>
+                <small>허용된 항목을 수정할 디바이스를 선택</small>
               </div>
               <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
             </section>
@@ -567,46 +581,46 @@
             <form id="devicePatchForm" class="management-form" aria-labelledby="devicePatchTitle">
               <div class="management-section-head">
                 <div>
-                  <span>Allowlisted PATCH</span>
-                  <strong id="devicePatchTitle">Update Existing Device</strong>
+                  <span>허용 항목만 수정</span>
+                  <strong id="devicePatchTitle">기존 디바이스 수정</strong>
                 </div>
-                <small>name/profile/service cannot change</small>
+                <small>이름·프로필·서비스는 변경할 수 없음</small>
               </div>
               <div class="management-form-grid">
                 <label>
-                  <span>Device name</span>
+                  <span>디바이스 이름</span>
                   <input id="patchDeviceName" type="text" required readonly />
                 </label>
                 <label>
-                  <span>Admin state</span>
+                  <span>관리 상태</span>
                   <select id="patchDeviceAdminState">
-                    <option value="UNLOCKED">UNLOCKED</option>
-                    <option value="LOCKED">LOCKED</option>
+                    <option value="UNLOCKED">잠금 해제</option>
+                    <option value="LOCKED">잠김</option>
                   </select>
                 </label>
                 <label class="management-field-wide">
-                  <span>Description</span>
+                  <span>설명</span>
                   <input id="patchDeviceDescription" type="text" maxlength="1000" />
                 </label>
                 <label class="management-field-wide">
-                  <span>Labels · comma separated</span>
+                  <span>레이블 · 쉼표로 구분</span>
                   <input id="patchDeviceLabels" type="text" />
                 </label>
                 <label class="management-field-wide">
-                  <span>Tags JSON · optional merge</span>
+                  <span>태그 JSON · 선택적 병합</span>
                   <textarea id="patchDeviceTags" rows="3" placeholder='{"line":"B"}'></textarea>
                 </label>
                 <label class="management-field-wide">
-                  <span>Protocol properties JSON · optional full adapter properties</span>
+                  <span>프로토콜 속성 JSON · 선택적 전체 어댑터 속성</span>
                   <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-001","ResourceName":"temperature_raw"}'></textarea>
                 </label>
                 <label class="management-field-wide">
-                  <span>Idempotency key</span>
+                  <span>중복 요청 방지 키</span>
                   <input id="patchIdempotencyKey" type="text" autocomplete="off" />
                 </label>
               </div>
               <div class="management-buttons">
-                <button id="managementPatchApply" type="submit" disabled>Apply Allowlisted Update</button>
+                <button id="managementPatchApply" type="submit" disabled>허용 항목 수정 적용</button>
               </div>
             </form>
           </div>
@@ -725,7 +739,7 @@
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=device-history-20260722"></script>
     <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
-    <script src="/static/device-management.js?v=runtime-20260723"></script>
+    <script src="/static/device-management.js?v=node-scope-ko-20260723"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

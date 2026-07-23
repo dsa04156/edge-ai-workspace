@@ -65,6 +65,7 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-catalog,
 .management-workspace,
+.management-node-scope,
 .management-runtime-inventory,
 .management-existing-grid > section,
 .management-existing-grid > form,
@@ -78,8 +79,95 @@ body[data-dashboard-page="management"] .side-rail {
   background: rgba(11, 16, 20, 0.7);
 }
 
+.management-node-scope,
 .management-runtime-inventory {
   margin-bottom: var(--space-4);
+}
+
+.management-node-hint {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.management-node-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.management-node-card {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-left: 3px solid #75808a;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.management-node-card:hover {
+  border-color: rgba(99, 208, 230, 0.55);
+  background: rgba(99, 208, 230, 0.07);
+}
+
+.management-node-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.management-node-card[data-selected="true"] {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(99, 208, 230, 0.11);
+  box-shadow: 0 0 0 1px rgba(99, 208, 230, 0.14);
+}
+
+.management-node-card[data-health="available"],
+.management-node-card[data-health="healthy"] {
+  border-left-color: #5bcf9b;
+}
+
+.management-node-card[data-health="degraded"] {
+  border-left-color: #f0b35b;
+}
+
+.management-node-card[data-health="unavailable"] {
+  border-left-color: #ee6a78;
+}
+
+.management-node-card-head,
+.management-node-card-facts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.management-node-card-head {
+  justify-content: space-between;
+}
+
+.management-node-card-head strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.management-node-health {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.management-node-card-facts {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .management-runtime-list {
@@ -368,6 +456,11 @@ body[data-dashboard-page="management"] .side-rail {
   .management-form-grid,
   .management-results-grid,
   .management-existing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-node-list,
+  .management-runtime-list {
     grid-template-columns: 1fr;
   }
 

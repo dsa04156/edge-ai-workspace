@@ -41,7 +41,7 @@ def test_dashboard_physical_device_contract_is_edgex_only() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert "EdgeX Device + Kubernetes Edge Platform" in html
+    assert "EdgeX 디바이스 + Kubernetes 엣지 플랫폼" in html
     assert 'data-kpi-key="core_data_freshness_ratio"' in html
     assert 'data-kpi-key="device_service_availability_ratio"' in html
     assert "device_service_name" in js
@@ -52,19 +52,21 @@ def test_dashboard_physical_device_contract_is_edgex_only() -> None:
     assert "device_status_fresh" not in js
     assert "kubeedge_state" not in js
 
-def test_dashboard_uses_consistent_english_domain_terms() -> None:
+def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     for label in (
-        ">Overview<",
-        ">Assets<",
-        ">AI Pipeline<",
+        'data-dashboard-page="overview" aria-pressed="true">개요</button>',
+        'data-dashboard-page="inventory" aria-pressed="false">자산</button>',
+        'data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>',
+        'data-dashboard-page="management" aria-pressed="false">디바이스 관리</button>',
         "AI Pipeline Builder",
+        "EdgeX",
+        "Kubernetes",
     ):
         assert label in html
 
     for old_label in (
-        ">개요<",
         ">워크플로우<",
         ">자원증강<",
         "자원증강 가상디바이스",

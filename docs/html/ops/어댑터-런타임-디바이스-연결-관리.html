@@ -147,25 +147,31 @@
         <header class="doc-header">
           <p class="eyebrow">운영 문서</p>
           <h1>어댑터 런타임과 디바이스 연결 관리</h1>
-          <p class="subtitle">운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 Device Management에서 다음 순서로 물리…</p>
+          <p class="subtitle">운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 디바이스 관리에서 다음 순서로 물리 장비 연결을 관리…</p>
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 16:01</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:19</span>
+            <span class="badge">수정: 2026-07-23 16:36</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:37</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="어댑터-런타임과-디바이스-연결-관리">어댑터 런타임과 디바이스 연결 관리</h1>
 <h2 id="목적">목적</h2>
-<p>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 <code>Device Management</code>에서 다음 순서로 물리 장비 연결을 관리하는 절차다.</p>
-<pre data-lang="text"><code>Adapter 선택
+<p>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 <code>디바이스 관리</code>에서 다음 순서로 물리 장비 연결을 관리하는 절차다.</p>
+<pre data-lang="text"><code>KubeEdge 노드 선택
+  -&gt; 선택 노드의 Runtime / EdgeX Device 확인
+  -&gt; 승인 Adapter / hardware binding 선택
   -&gt; 기존 Runtime 재사용 또는 승인 template 배포 plan
-  -&gt; target KubeEdge node / hardware binding 확인
   -&gt; EdgeX Profile / Device 등록
   -&gt; Metadata readback
   -&gt; first Event / Reading 확인</code></pre>
 <p>EdgeX Core Metadata와 Core Data가 물리 Device와 telemetry의 권위다. <code>AdapterRuntime</code>은 Device inventory가 아니라 Device Service workload의 desired state다.</p>
+<h2 id="대시보드-노드별-관리">대시보드 노드별 관리</h2>
+<p><code>디바이스 관리</code> 상단의 노드 카드는 다음 네 출처를 한 운영 범위로 합성한다.</p>
+<ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 승인 <code>hardwareBindings[].nodeName</code></li></ul>
+<p>노드를 선택하면 Runtime inventory, 승인 Adapter 목록, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 선택 노드에 승인된 hardware binding이 없는 Adapter는 연결 마법사에 나타나지 않으며 target node와 raw device path는 직접 입력할 수 없다.</p>
+<p>이 노드 범위는 workload placement와 운영 탐색을 위한 것이다. Node가 미관측이거나 NotReady여도 그 사실만으로 EdgeX Device의 <code>available</code> 상태를 강등하지 않는다. Device inventory와 <code>adminState</code>/<code>operatingState</code>는 Core Metadata, telemetry freshness와 첫 Event는 Core Data가 계속 권위다.</p>
 <h2 id="배포와-소유권">배포와 소유권</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -360,6 +366,7 @@ kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controlle
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#대시보드-노드별-관리">대시보드 노드별 관리</a></li>
 <li class="toc-h2"><a href="#배포와-소유권">배포와 소유권</a></li>
 <li class="toc-h2"><a href="#secret-준비">Secret 준비</a></li>
 <li class="toc-h2"><a href="#배포-확인">배포 확인</a></li>

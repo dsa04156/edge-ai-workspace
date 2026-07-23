@@ -38,7 +38,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "grid-area: rail;" in css
     assert 'content: "Edge AI\\AResource Console";' in css
     assert ".global-search" in css
-    assert "Search resources" in html
+    assert "리소스 검색" in html
     assert "flex: 0 0 auto;" in css
     assert "border-left: 4px solid transparent;" in css
     assert "border-left-color: var(--console-yellow);" in css
@@ -126,7 +126,7 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">Overview<" in html
     assert ">Assets<" in html
     assert ">AI Pipeline<" in html
-    assert ">Device Management<" in html
+    assert ">디바이스 관리<" in html
     assert ">Resource Augmentation<" not in html
 
 
