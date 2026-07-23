@@ -3,6 +3,8 @@ from pathlib import Path
 
 from tools.docs_consistency.rules import Corpus, rule_core_data_event_origin
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 class CoreDataEventOriginRuleTest(unittest.TestCase):
     def corpus(self, text: str) -> Corpus:
@@ -34,7 +36,6 @@ class CoreDataEventOriginRuleTest(unittest.TestCase):
 
         self.assertEqual(result.status, "PASS")
         self.assertEqual(result.findings, [])
-
     def test_one_clock_definition_covers_later_summary_claims_in_same_doc(self):
         result = rule_core_data_event_origin(
             self.corpus(
@@ -48,6 +49,16 @@ class CoreDataEventOriginRuleTest(unittest.TestCase):
 
         self.assertEqual(result.status, "PASS")
         self.assertEqual(result.findings, [])
+
+
+class CurrentDeviceManagementScopeTest(unittest.TestCase):
+    def test_current_docs_define_bounded_edgex_device_management_scope(self):
+        scope = (ROOT / "docs/프로젝트-범위.md").read_text(encoding="utf-8")
+
+        self.assertIn("Device Onboarding API", scope)
+        self.assertIn("DEVICE_MANAGEMENT_ENABLED=false", scope)
+        self.assertIn("Device 삭제", scope)
+        self.assertIn("Workflow Builder", scope)
 
 
 if __name__ == "__main__":
