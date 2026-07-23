@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 16:36</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:37</span>
+            <span class="badge">수정: 2026-07-23 16:43</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -170,7 +170,7 @@
 <h2 id="대시보드-노드별-관리">대시보드 노드별 관리</h2>
 <p><code>디바이스 관리</code> 상단의 노드 카드는 다음 네 출처를 한 운영 범위로 합성한다.</p>
 <ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 승인 <code>hardwareBindings[].nodeName</code></li></ul>
-<p>노드를 선택하면 Runtime inventory, 승인 Adapter 목록, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 선택 노드에 승인된 hardware binding이 없는 Adapter는 연결 마법사에 나타나지 않으며 target node와 raw device path는 직접 입력할 수 없다.</p>
+<p>노드를 선택하면 Runtime inventory, 승인 Adapter 목록, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 선택 노드에 승인된 hardware binding이 없는 Adapter는 연결 마법사에 나타나지 않으며 target node와 raw device path는 직접 입력할 수 없다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
 <p>이 노드 범위는 workload placement와 운영 탐색을 위한 것이다. Node가 미관측이거나 NotReady여도 그 사실만으로 EdgeX Device의 <code>available</code> 상태를 강등하지 않는다. Device inventory와 <code>adminState</code>/<code>operatingState</code>는 Core Metadata, telemetry freshness와 첫 Event는 Core Data가 계속 권위다.</p>
 <h2 id="배포와-소유권">배포와 소유권</h2>
 <div class="table-wrap"><table>

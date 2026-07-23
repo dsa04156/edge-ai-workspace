@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-23 16:36</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:37</span>
+            <span class="badge">수정: 2026-07-23 16:43</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -163,7 +163,7 @@
 <p>2026-07-23 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 physical <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 6개씩, 총 12개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 Arduino 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
 <ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 저장 이력 그래프와 구분한다.</li><li>저장 이력 그래프는 <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로를 사용하고 dashboard가 DB에 직접 연결하지 않는다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li><li><code>디바이스 관리</code>는 노드를 먼저 선택해 Runtime·승인 Adapter·EdgeX Device를 같은 운영</li></ol>
-<p>범위로 좁힌다. 이 노드 필터는 탐색·배치 범위이며 EdgeX 상태 판정을 덮어쓰지 않는다.</p>
+<p>범위로 좁힌다. <code>node_type=edge_*</code> 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 관리 카드에 표시하고, 관계없는 중앙 <code>cloud_server</code> 노드는 제외한다. 이 노드 필터는 탐색·배치 범위이며 EdgeX 상태 판정을 덮어쓰지 않는다.</p>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>

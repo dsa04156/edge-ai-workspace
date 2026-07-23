@@ -7,6 +7,7 @@ const {
   adapterCanApply,
   adapterSupportsNode,
   buildManagementNodeScopes,
+  canPatchSelectedDevice,
   connectionStatusView,
   createManagementConnection,
   createManagementDevice,
@@ -87,7 +88,11 @@ test("loads KubeEdge node inventory without browser cache", async () => {
 test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved bindings", () => {
   const scopes = buildManagementNodeScopes({
     nodes: [
-      {hostname: "server2", node_health: "available"},
+      {
+        hostname: "server2",
+        node_health: "available",
+        node_type: "cloud_server",
+      },
       {hostname: "etri-dev0001-jetorn", node_health: "available"},
     ],
     runtimes: [
@@ -120,7 +125,6 @@ test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved 
     [
       "etri-dev0001-jetorn",
       "etri-dev0003-raspi5",
-      "server2",
       "미할당 노드",
     ],
   );
@@ -143,6 +147,13 @@ test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved 
     scopes.find((scope) => scope.name === "미할당 노드").deviceCount,
     1,
   );
+});
+
+
+test("device patch stays disabled until a device in the selected node is chosen", () => {
+  assert.equal(canPatchSelectedDevice(true, "virtual-temperature-001"), true);
+  assert.equal(canPatchSelectedDevice(true, ""), false);
+  assert.equal(canPatchSelectedDevice(false, "virtual-temperature-001"), false);
 });
 
 
@@ -513,8 +524,8 @@ test("dashboard ships an accessible session-only device management page", () => 
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=node-scope-ko-20260723/);
-  assert.match(html, /device-management\.js\?v=node-scope-ko-20260723/);
+  assert.match(html, /device-management\.css\?v=node-scope-ko-v2-20260723/);
+  assert.match(html, /device-management\.js\?v=node-scope-ko-v2-20260723/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);

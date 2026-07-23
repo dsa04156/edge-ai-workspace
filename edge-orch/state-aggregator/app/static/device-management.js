@@ -15,6 +15,7 @@ const managementState = {
   devices: [],
   selectedNodeName: "",
   selectedAdapterId: "",
+  selectedPatchDeviceName: "",
   nodeLoadError: null,
   runtimePlan: null,
   runtimeLoadError: null,
@@ -118,6 +119,7 @@ function buildManagementNodeScopes({
   adapters = [],
 } = {}) {
   const scopes = new Map();
+  const eligibleNodes = new Set();
   const ensure = (name) => {
     const safeName = name || UNASSIGNED_NODE;
     if (!scopes.has(safeName)) {
@@ -139,12 +141,20 @@ function buildManagementNodeScopes({
     const scope = ensure(name);
     scope.observed = true;
     scope.health = node.node_health || node.nodeHealth || "unknown";
+    const nodeType = node.node_type || node.nodeType;
+    if (!nodeType || String(nodeType).startsWith("edge_")) {
+      eligibleNodes.add(name);
+    }
   });
   runtimes.forEach((runtime) => {
-    ensure(runtime.targetNode || runtime.target_node).runtimeCount += 1;
+    const nodeName = runtime.targetNode || runtime.target_node;
+    ensure(nodeName).runtimeCount += 1;
+    eligibleNodes.add(nodeName || UNASSIGNED_NODE);
   });
   devices.forEach((device) => {
-    ensure(managementDeviceNode(device)).deviceCount += 1;
+    const nodeName = managementDeviceNode(device);
+    ensure(nodeName).deviceCount += 1;
+    eligibleNodes.add(nodeName);
   });
   adapters.forEach((adapter) => {
     const bindingNodes = new Set(
@@ -155,14 +165,17 @@ function buildManagementNodeScopes({
     if (!bindingNodes.size && adapter.nodeName) bindingNodes.add(adapter.nodeName);
     bindingNodes.forEach((nodeName) => {
       ensure(nodeName).adapterCount += 1;
+      eligibleNodes.add(nodeName);
     });
   });
 
-  return [...scopes.values()].sort((left, right) => {
+  return [...scopes.values()]
+    .filter((scope) => eligibleNodes.has(scope.name))
+    .sort((left, right) => {
     if (left.name === UNASSIGNED_NODE) return 1;
     if (right.name === UNASSIGNED_NODE) return -1;
     return left.name.localeCompare(right.name);
-  });
+    });
 }
 
 
@@ -183,6 +196,11 @@ function adapterCanApply(adapter) {
     && adapter.status === "installed"
     && adapter.mutationEnabled === true,
   );
+}
+
+
+function canPatchSelectedDevice(mutationEnabled, selectedDeviceName) {
+  return Boolean(mutationEnabled && selectedDeviceName);
 }
 
 
@@ -837,7 +855,12 @@ function renderMutationMode(documentRef = document) {
   const tokenInput = byId("managementAdminToken", documentRef);
   if (tokenInput) tokenInput.disabled = !enabled;
   const patchButton = byId("managementPatchApply", documentRef);
-  if (patchButton) patchButton.disabled = !enabled;
+  if (patchButton) {
+    patchButton.disabled = !canPatchSelectedDevice(
+      enabled,
+      managementState.selectedPatchDeviceName,
+    );
+  }
 }
 
 
@@ -1156,10 +1179,12 @@ function updateProfileMode(documentRef = document) {
 
 function setSelectedPatchDevice(name, documentRef = document) {
   const device = managementState.devices.find((item) => item.name === name);
+  managementState.selectedPatchDeviceName = device?.name || "";
   byId("patchDeviceName", documentRef).value = name || "";
   byId("patchDeviceDescription", documentRef).value = device?.description || "";
   byId("patchDeviceAdminState", documentRef).value = device?.admin_state || "UNLOCKED";
   byId("patchDeviceLabels", documentRef).value = (device?.labels || []).join(", ");
+  renderMutationMode(documentRef);
 }
 
 
@@ -1225,6 +1250,11 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
       || {}
     ).name || "";
   }
+  const selectedPatchDevice = devices.find(
+    (device) => device.name === managementState.selectedPatchDeviceName
+      && managementDeviceNode(device) === managementState.selectedNodeName,
+  );
+  managementState.selectedPatchDeviceName = selectedPatchDevice?.name || "";
   renderManagementNodes(documentRef);
   renderAdapterOptions(documentRef);
   renderAdapterCatalog(documentRef);
@@ -1260,7 +1290,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderAdapterCatalog(documentRef);
     renderRuntimeInventory(documentRef);
     renderManagedDevices(documentRef);
-    renderMutationMode(documentRef);
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
     clearElement(byId("managementValidation", documentRef));
@@ -1399,6 +1428,7 @@ if (typeof module !== "undefined") {
     adapterCanApply,
     adapterSupportsNode,
     buildManagementNodeScopes,
+    canPatchSelectedDevice,
     connectionStatusView,
     createManagementConnection,
     createManagementDevice,
