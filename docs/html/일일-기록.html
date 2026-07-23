@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 16:01</span>
-            <span class="badge">HTML 생성: 2026-07-23 16:02</span>
+            <span class="badge">수정: 2026-07-23 16:18</span>
+            <span class="badge">HTML 생성: 2026-07-23 16:19</span>
           </div>
         </header>
         <div class="doc-body">
@@ -695,8 +695,12 @@
 <h3 id="adapter-runtime-관리-라이브-검증">Adapter Runtime 관리 라이브 검증</h3>
 <ul><li>기능 revision <code>fdb5b39cdfdda7a315ab66561a808eadb6c1e115</code>의 GitHub Actions run</li></ul>
 <p><code>29985731891</code>이 성공했고 <code>edgex-telemetry</code>, <code>edge-orch-state-aggregator</code>, <code>docs-html</code> Application이 모두 <code>Synced/Healthy/Succeeded</code>가 됐다.</p>
-<ul><li>검증한 immutable image는 Controller</li></ul>
+<ul><li>검증 다이제스트를 소스 fallback으로 고정한 revision</li></ul>
+<p><code>14a9eecb0b4b7c227f4858c4d30cd90da3a22c08</code>의 GitHub Actions run <code>29987266411</code>도 성공했고 세 Application이 해당 revision에서 <code>Synced/Healthy/Succeeded</code>가 됐다.</p>
+<ul><li>소스 fallback으로 고정한 1차 검증 image는 Controller</li></ul>
 <p><code>sha256:540be3b209cbf91c4a378dffbb759f0dc3a2017ce147e4d574d329a32de07bcc</code>, Serial <code>sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda</code>, Sense HAT <code>sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38</code>, state-aggregator <code>sha256:aeb7109bf097c4dcd87fcad803b5a622b541f7c9b9a26f6988a9951582363a3a</code>다.</p>
+<ul><li>최종 Argo image override와 실행 Pod imageID는 Controller</li></ul>
+<p><code>sha256:eb42cb1f4afbd67204e90acda391d1c35d49c0e64a7ca847d11e238890d733c3</code>, Serial <code>sha256:c237c32a2eba9bf65d3d8c4bbb4f456c1e007de4b0cf9345606ce83ca32882d6</code>, Sense HAT <code>sha256:f772cfc279d3b09a28fd13eefd23f9eadaa7989c07ea4d35871127700ec11c22</code>, state-aggregator <code>sha256:82b6499c828238ad30dba91ce0110c4f03a04bd6480ee3541182aa20244754a2</code>로 일치했다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
