@@ -32,6 +32,7 @@ ONBOARDING_OPERATION_TAGS = frozenset(
 IMMUTABLE_SYSTEM_TAGS = ONBOARDING_OPERATION_TAGS | {
     "nodeName",
     "physicalDeviceId",
+    "hardwareBindingId",
 }
 
 audit_logger = logging.getLogger("app.device_management.audit")
@@ -99,8 +100,18 @@ class DeviceManagementService:
             if status == "installed":
                 service = services.get(adapter.service_name)
                 if service is None:
-                    status = "unavailable"
-                    reason = "EdgeX Core Metadata에 Device Service가 없습니다."
+                    if (
+                        adapter.runtime.deployment_enabled
+                        and adapter.runtime.verification_state != "unverified"
+                    ):
+                        status = "installable"
+                        reason = (
+                            "검증된 Device Service 패키지를 대상 노드에 "
+                            "설치할 수 있습니다."
+                        )
+                    else:
+                        status = "unavailable"
+                        reason = "EdgeX Core Metadata에 Device Service가 없습니다."
                 elif service.get("adminState") != "UNLOCKED":
                     status = "unavailable"
                     reason = "EdgeX Device Service가 UNLOCKED 상태가 아닙니다."
@@ -173,6 +184,7 @@ class DeviceManagementService:
         expected_system_tags = {
             "nodeName": node_name,
             "physicalDeviceId": request.device.protocol_properties.get("DeviceID"),
+            "hardwareBindingId": request.hardware_binding_id,
         }
         for tag, expected in expected_system_tags.items():
             if (
@@ -744,6 +756,8 @@ class DeviceManagementService:
         physical_device_id = request.device.protocol_properties.get("DeviceID")
         if isinstance(physical_device_id, str) and physical_device_id:
             tags["physicalDeviceId"] = physical_device_id
+        if request.hardware_binding_id:
+            tags["hardwareBindingId"] = request.hardware_binding_id
         if request_id is not None and payload_hash is not None:
             tags[DEVICE_REQUEST_ID_TAG] = request_id
             tags[DEVICE_PAYLOAD_HASH_TAG] = payload_hash

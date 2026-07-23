@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 18:42</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
+            <span class="badge">수정: 2026-07-23 19:28</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
           </div>
         </header>
         <div class="doc-body">
@@ -160,23 +160,86 @@
 <h2 id="목적">목적</h2>
 <p>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 <code>디바이스 관리</code>에서 다음 순서로 물리 장비 연결을 관리하는 절차다.</p>
 <pre data-lang="text"><code>KubeEdge 노드 선택
+  -&gt; 등록 연결 / 실제 장비 관측 / 통신 / 데이터 상태 확인
   -&gt; 선택 노드의 Runtime / EdgeX Device 확인
   -&gt; protocol / Device Service 선택
-  -&gt; 승인 hardware binding / Device Service 준비 방식 선택
-  -&gt; 기존 Runtime 재사용 또는 승인 template 배포 plan
+  -&gt; 등록된 hardware binding / Device Service 준비 방식 선택
+  -&gt; 기존 Runtime 재사용 또는 검증된 template 배포 plan
   -&gt; EdgeX Profile / Device 등록
   -&gt; Metadata readback
   -&gt; first Event / Reading 확인</code></pre>
 <p>EdgeX Core Metadata와 Core Data가 물리 Device와 telemetry의 권위다. <code>AdapterRuntime</code>은 Device inventory가 아니라 Device Service workload의 desired state다.</p>
 <h2 id="대시보드-노드별-관리">대시보드 노드별 관리</h2>
 <p><code>디바이스 관리</code> 상단의 노드 카드는 다음 네 출처를 한 운영 범위로 합성한다.</p>
-<ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 승인 <code>hardwareBindings[].nodeName</code></li></ul>
-<p>노드를 선택하면 Runtime inventory, 승인 Adapter 목록, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 등록 1단계는 protocol/Device Service를 먼저 선택한다. 선택 노드에 연결 가능한 Adapter는 활성화되고, 다른 노드의 installed Adapter와 미검증 protocol은 상태와 이유를 확인할 수 있지만 비활성화된다. target node와 raw device path는 직접 입력할 수 없다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
+<ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 등록 <code>hardwareBindings[].nodeName</code></li></ul>
+<p>노드를 선택하면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 등록 1단계는 protocol/Device Service를 먼저 선택한다. 선택 노드에서 재사용하거나 설치할 수 있는 검증 package는 활성화되고, 다른 노드의 installed Adapter와 미검증 protocol은 상태와 이유를 확인할 수 있지만 비활성화된다. target node와 raw device path는 직접 입력할 수 없다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·등록 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
 <p>이 노드 범위는 workload placement와 운영 탐색을 위한 것이다. Node가 미관측이거나 NotReady여도 그 사실만으로 EdgeX Device의 <code>available</code> 상태를 강등하지 않는다. Device inventory와 <code>adminState</code>/<code>operatingState</code>는 Core Metadata, telemetry freshness와 첫 Event는 Core Data가 계속 권위다.</p>
+<h3 id="연결-등록과-실제-장비-관측">연결 등록과 실제 장비 관측</h3>
+<p><code>등록됨</code>은 Git 카탈로그에 노드와 exact 장치 경로가 허용됐다는 뜻이며 장비가 지금 꽂혀 있다는 뜻이 아니다. 대시보드는 한 카드에서 다음 네 증거를 별도로 표시한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>표시</th>
+<th>근거</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>연결 등록</td>
+<td>Adapter Catalog <code>hardwareBindings[]</code></td>
+<td>운영자가 선택할 수 있는 노드·경로·protocol tuple</td>
+</tr>
+<tr>
+<td>장비 관측</td>
+<td>EdgeX Device <code>operatingState</code>와 Device Service readback</td>
+<td><code>UP</code>이면 관측, 모든 연결 Device가 <code>DOWN</code>/<code>LOCKED</code>면 미관측, 근거가 없으면 미확인</td>
+</tr>
+<tr>
+<td>통신 상태</td>
+<td>EdgeX <code>adminState</code>/<code>operatingState</code></td>
+<td>connected, disconnected, unknown</td>
+</tr>
+<tr>
+<td>데이터 상태</td>
+<td>Core Data latest Event <code>origin</code></td>
+<td>fresh, stale, missing, unknown</td>
+</tr>
+</tbody></table></div>
+<p>신규 등록 시 서버는 EdgeX Device tag에 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 저장한다. 따라서 같은 Device Service가 여러 USB/I2C endpoint를 소유해도 정확한 물리 연결로 묶을 수 있다. 기존 Device에 <code>hardwareBindingId</code>가 없으면 현재 전환 기간에는 <code>physicalDeviceId</code>와 service/protocol을 사용하며, 둘 다 없을 때는 단일 binding인 경우에만 안전하게 묶는다.</p>
+<p>범용 <code>/dev</code> scanner나 임의 네트워크 probe는 두지 않는다. 등록되지 않은 하드웨어 후보를 자동으로 <code>발견됨</code>이라 표시하면 stable identity와 권한 경계를 우회하기 때문이다. 새 장비는 protocol별 Device Service로 실장비 통신을 검증하고 stable 경로를 Git 카탈로그와 Pod 장치 마운트에 등록한 뒤 이 화면에 들어온다.</p>
 <h3 id="화면-사용-순서">화면 사용 순서</h3>
 <p>노드를 선택한 뒤에는 한 화면에서 모든 입력을 동시에 다루지 않고 다음 세 작업 탭을 사용한다.</p>
-<ol><li><code>노드 현황</code>: 선택 노드의 Runtime, 설치된 Adapter와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>지원 예정 프로토콜</code>을 펼쳤을 때만 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 승인 hardware binding → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 관리자 token과 실행 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
+<ol><li><code>노드 현황</code>: 먼저 <code>등록 연결과 실제 장비 상태</code>에서 네 증거를 비교하고 Runtime, protocol package와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code>을 펼쳤을 때 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 관리자 token과 실행 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
 <p>노드 현황의 Device 카드에 있는 <code>수정</code>을 누르면 같은 Device가 선택된 수정 탭으로 이동한다. 노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 탭과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, 관리자 인증, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
+<h3 id="프로토콜-패키지-상태">프로토콜 패키지 상태</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>화면 상태</th>
+<th>선택 가능</th>
+<th>조건</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>재사용 가능</td>
+<td>예</td>
+<td>선택 노드의 등록 binding과 <code>UNLOCKED</code> Device Service가 있음</td>
+</tr>
+<tr>
+<td>설치 가능</td>
+<td>예</td>
+<td>등록 binding, 검증 완료 template, <code>deploymentEnabled=true</code>이고 Device Service는 아직 없음</td>
+</tr>
+<tr>
+<td>연결 등록 필요</td>
+<td>아니오</td>
+<td>package는 있으나 선택 노드의 등록 binding이 없음</td>
+</tr>
+<tr>
+<td>검증 필요</td>
+<td>아니오</td>
+<td>image/profile/protocol/실장비 검증이 완료되지 않음</td>
+</tr>
+</tbody></table></div>
+<p>현재 live catalog에서 Serial과 Sense HAT I2C는 Argo CD 소유 Runtime을 <code>재사용 가능</code>으로 표시한다. Modbus/OPC-UA/MQTT/RTSP는 <code>검증 필요</code>이며 설치 버튼이 없다. 향후 <code>설치 가능</code>으로 승격하려면 검증된 immutable image, profile, exact binding, 최소 권한 manifest와 실장비 first Event 증거를 같은 Git 변경으로 반영해야 한다.</p>
 <h2 id="배포와-소유권">배포와 소유권</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -261,7 +324,7 @@ curl --fail --silent --show-error \
   }&#x27; \
   http://127.0.0.1:18000/management/adapter-runtimes/plan</code></pre>
 <p>현재 Serial plan의 정상 결과는 기존 <code>device-serial-jetson</code>을 선택한 <code>REUSE</code>다. Sense HAT도 같은 방식으로 <code>sensehat-raspi</code>, <code>etri-dev0003-raspi5</code>, <code>raspi5-sensehat-i2c-001</code> 조합을 사용한다.</p>
-<p>External runtime은 기본 호환용 <code>hardwareBindingId</code>와 실제 소유 목록 <code>hardwareBindingIds</code>를 함께 보고한다. Planner는 요청한 binding이 이 목록에 있으면 같은 protocol runtime을 재사용한다. 현재 두 runtime은 각각 승인 binding 한 개만 소유한다.</p>
+<p>External runtime은 기본 호환용 <code>hardwareBindingId</code>와 실제 소유 목록 <code>hardwareBindingIds</code>를 함께 보고한다. Planner는 요청한 binding이 이 목록에 있으면 같은 protocol runtime을 재사용한다. 현재 두 runtime은 각각 등록 binding 한 개만 소유한다.</p>
 <p>다음 조건은 <code>BLOCKED</code>다.</p>
 <ul><li>catalog에 없는 adapter/node/hardware binding 조합</li><li>target KubeEdge node가 <code>Ready</code>가 아님</li><li>기존 runtime이 <code>SERVICE_READY</code>가 아님</li><li>이미 점유된 binding에 명시적 <code>deploy</code></li><li><code>unverified</code> protocol template</li><li>image나 hardware binding 검토가 끝나지 않아 <code>deploymentEnabled=false</code></li></ul>
 <h2 id="connection-validation">Connection validation</h2>
@@ -291,7 +354,7 @@ curl --fail --silent --show-error \
     &quot;profile&quot;:{&quot;mode&quot;:&quot;existing&quot;,&quot;name&quot;:&quot;etri-arduino-temperature&quot;}
   }&#x27; \
   http://127.0.0.1:18000/management/connections/validate</code></pre>
-<p>현재 예시는 <code>runtimePlan.action=REUSE</code>지만 이미 <code>virtual-temperature-001</code>이 같은 route를 소유하므로 전체 <code>valid=false</code>, <code>protocol_binding_exists</code>가 정상이다. 새 센서를 연결하려면 기존 Device와 충돌하지 않는 물리 endpoint/resource 계약과 승인 hardware binding을 먼저 Git catalog에 추가해야 한다. 검증을 피하려고 임의 경로나 Pod를 입력하지 않는다.</p>
+<p>현재 예시는 <code>runtimePlan.action=REUSE</code>지만 이미 <code>virtual-temperature-001</code>이 같은 route를 소유하므로 전체 <code>valid=false</code>, <code>protocol_binding_exists</code>가 정상이다. 새 센서를 연결하려면 기존 Device와 충돌하지 않는 물리 endpoint/resource 계약과 등록 hardware binding을 먼저 Git catalog에 추가해야 한다. 검증을 피하려고 임의 경로나 Pod를 입력하지 않는다.</p>
 <p>Validation은 선택한 binding의 protocol tuple도 다시 대조한다. Serial은 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>, Sense HAT은 <code>Bus</code>/<code>DeviceID</code>가 catalog 값과 다르면 <code>hardware_binding_mismatch</code>로 차단한다. UI의 read-only 속성만 신뢰하지 않는다.</p>
 <h2 id="관리자-연결-실행">관리자 연결 실행</h2>
 <p>유효한 격리 endpoint가 준비된 경우에만 실행한다. token은 shell history에 직접 쓰지 않는다.</p>
@@ -319,7 +382,7 @@ unset ADMIN_TOKEN IDEMPOTENCY_KEY</code></pre>
 <tbody>
 <tr>
 <td><code>RUNTIME_REQUESTED</code></td>
-<td>승인 runtime 배포와 Device Service 등록 대기</td>
+<td>검증된 runtime 배포와 Device Service 등록 대기</td>
 </tr>
 <tr>
 <td><code>RUNTIME_READY</code></td>
@@ -388,7 +451,9 @@ kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controlle
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#대시보드-노드별-관리">대시보드 노드별 관리</a></li>
+<li class="toc-h3"><a href="#연결-등록과-실제-장비-관측">연결 등록과 실제 장비 관측</a></li>
 <li class="toc-h3"><a href="#화면-사용-순서">화면 사용 순서</a></li>
+<li class="toc-h3"><a href="#프로토콜-패키지-상태">프로토콜 패키지 상태</a></li>
 <li class="toc-h2"><a href="#배포와-소유권">배포와 소유권</a></li>
 <li class="toc-h2"><a href="#secret-준비">Secret 준비</a></li>
 <li class="toc-h2"><a href="#배포-확인">배포 확인</a></li>

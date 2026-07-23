@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=protocol-first-v2-20260723" />
+    <link rel="stylesheet" href="/static/device-management.css?v=connection-evidence-v1-20260723" />
   </head>
   <body>
     <main class="shell">
@@ -387,7 +387,7 @@
             <details class="management-guardrail">
               <summary>운영 안전 기준</summary>
               <p>
-                EdgeX Core Metadata가 물리 디바이스 권위를 유지합니다. 승인된 런타임과 하드웨어
+                EdgeX Core Metadata가 물리 디바이스 권위를 유지합니다. 검증된 런타임과 등록된 물리
                 연결만 사용하며 임의 이미지, hostPath, 고정 ClusterIP/PodIP, KubeEdge Device
                 CRD와 EdgeMesh는 이 화면에서 변경하지 않습니다.
               </p>
@@ -417,6 +417,35 @@
             </nav>
 
             <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview">
+              <section class="management-physical-inventory" aria-labelledby="managementPhysicalTitle">
+                <div class="management-section-head">
+                  <div>
+                    <span>Connection evidence</span>
+                    <strong id="managementPhysicalTitle">등록 연결과 실제 장비 상태</strong>
+                  </div>
+                  <small>연결 등록만으로 장비가 감지됐다고 판단하지 않음</small>
+                </div>
+                <div id="managementConnectionLegend" class="management-connection-legend" aria-label="물리 연결 상태 판단 기준">
+                  <div>
+                    <span>1</span>
+                    <p><strong>연결 등록</strong><small>Git 카탈로그에 노드·장치 경로가 등록됐는지 확인</small></p>
+                  </div>
+                  <div>
+                    <span>2</span>
+                    <p><strong>장비 관측</strong><small>EdgeX Device 상태와 최신 Event를 근거로 판단</small></p>
+                  </div>
+                  <div>
+                    <span>3</span>
+                    <p><strong>통신 상태</strong><small>Device Service가 장비를 UP으로 보고하는지 확인</small></p>
+                  </div>
+                  <div>
+                    <span>4</span>
+                    <p><strong>데이터 상태</strong><small>Core Data의 최신 Event 시각으로 freshness 판단</small></p>
+                  </div>
+                </div>
+                <div id="managementPhysicalConnectionList" class="management-physical-list" aria-live="polite"></div>
+              </section>
+
               <div class="management-overview-grid">
                 <section class="management-runtime-inventory" aria-labelledby="managementRuntimeTitle">
                   <div class="management-section-head">
@@ -433,13 +462,13 @@
                   <div class="management-section-head">
                     <div>
                       <span>Device Service</span>
-                      <strong id="managementCatalogTitle">연결 가능한 어댑터</strong>
+                      <strong id="managementCatalogTitle">프로토콜 패키지</strong>
                     </div>
-                    <small>선택 노드 기준</small>
+                    <small>검증·설치·재사용 상태를 선택 노드 기준으로 표시</small>
                   </div>
                   <div id="managementAdapterList" class="management-adapter-list" aria-live="polite"></div>
                   <details class="management-secondary-adapters">
-                    <summary>지원 예정 프로토콜</summary>
+                    <summary>설치 전 확인이 필요한 프로토콜</summary>
                     <div id="managementUnsupportedAdapterList" class="management-adapter-list" aria-live="polite"></div>
                   </details>
                 </section>
@@ -463,7 +492,7 @@
                   <div>
                     <span>연결 구성 마법사</span>
                     <h3>새 디바이스 등록</h3>
-                    <p>승인된 물리 연결을 EdgeX Device로 등록하고 첫 Event까지 확인합니다.</p>
+                    <p>등록된 물리 연결을 EdgeX Device로 등록하고 첫 Event까지 확인합니다.</p>
                   </div>
                   <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
                 </div>
@@ -491,7 +520,7 @@
                       <select id="managementTargetNode" required></select>
                     </label>
                     <label>
-                      <span>승인된 하드웨어 연결</span>
+                      <span>등록된 물리 연결</span>
                       <select id="managementHardwareBinding" required></select>
                     </label>
                     <label class="management-field-wide">
@@ -508,7 +537,7 @@
                     <strong>선택한 연결의 프로토콜 값</strong>
                     <div id="managementProtocolFields" class="management-form-grid"></div>
                   </div>
-                  <p class="management-runtime-hint">노드와 장치 경로는 승인 카탈로그에서만 선택합니다. 새 물리 연결은 고정 경로와 필요한 Pod 장치 마운트를 Git 배포 경로에 먼저 등록해야 합니다.</p>
+                  <p class="management-runtime-hint">노드와 장치 경로는 Git 카탈로그에 등록된 값만 선택합니다. 등록은 실제 장비 감지를 뜻하지 않으며, 새 연결은 고정 경로와 필요한 Pod 장치 마운트를 검증한 뒤 Git 배포 경로에 추가해야 합니다.</p>
                   <div class="management-step-actions">
                     <button type="button" class="management-primary-action" data-management-next-step>다음: 디바이스 정보</button>
                   </div>
@@ -593,7 +622,7 @@
                   <dl class="management-review-grid">
                     <div><dt>대상 노드</dt><dd id="managementReviewNode">-</dd></div>
                     <div><dt>프로토콜 / Device Service</dt><dd id="managementReviewAdapter">-</dd></div>
-                    <div><dt>하드웨어 연결</dt><dd id="managementReviewBinding">-</dd></div>
+                    <div><dt>물리 연결</dt><dd id="managementReviewBinding">-</dd></div>
                     <div><dt>디바이스 / 프로필</dt><dd id="managementReviewDevice">-</dd></div>
                   </dl>
 
@@ -828,7 +857,7 @@
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=device-history-20260722"></script>
     <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
-    <script src="/static/device-management.js?v=protocol-first-v2-20260723"></script>
+    <script src="/static/device-management.js?v=connection-evidence-v1-20260723"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

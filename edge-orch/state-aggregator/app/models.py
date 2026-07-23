@@ -153,6 +153,8 @@ class DeviceState(BaseModel):
     overall_status: HealthLevel = "degraded"
     reason: str = ""
     node_name: str | None = None
+    physical_device_id: str | None = None
+    hardware_binding_id: str | None = None
 
 
 class WorkflowState(BaseModel):

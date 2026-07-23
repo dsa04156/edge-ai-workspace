@@ -502,7 +502,11 @@ def _edgex_device(
         protocol_names=["REST"],
         admin_state=admin_state,
         operating_state=operating_state,
-        tags={"nodeName": node_name} if node_name else {},
+        tags={
+            **({"nodeName": node_name} if node_name else {}),
+            "physicalDeviceId": "physical-sensor-01",
+            "hardwareBindingId": "edge-sensor-binding-01",
+        },
         node_name=node_name,
     )
 
@@ -543,6 +547,8 @@ def test_devices_endpoint_uses_edgex_inventory_and_latest_event(monkeypatch):
     assert device["profile_name"] == "temperature-profile"
     assert device["device_service_name"] == "device-rest"
     assert device["protocol_names"] == ["REST"]
+    assert device["physical_device_id"] == "physical-sensor-01"
+    assert device["hardware_binding_id"] == "edge-sensor-binding-01"
     assert device["connection_state"] == "connected"
     assert device["device_service_available"] is True
     assert device["telemetry_freshness"] == "fresh"

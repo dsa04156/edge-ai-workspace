@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-23 15:26</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
+            <span class="badge">수정: 2026-07-23 19:29</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,7 +166,9 @@
   -&gt; /state/devices, /state/dashboard, /state/summary
   -&gt; dashboard</code></pre>
 <p>Dashboard는 다음 질문에 답해야 한다.</p>
-<ol><li>EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?</li><li>관리 상태와 Device Service 연결 상태는 어떤가?</li><li>최신 Core Data Event/Reading이 freshness 기준 안에 있는가?</li><li>어떤 device를 먼저 점검해야 하는가?</li><li>관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?</li><li>이 device가 어떤 서비스 데모 consumer와 연결되는가?</li><li>새 장비에 재사용할 Adapter Runtime이 있는가, 없으면 승인된 node/hardware binding으로</li></ol>
+<ol><li>EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?</li><li>관리 상태와 Device Service 연결 상태는 어떤가?</li><li>최신 Core Data Event/Reading이 freshness 기준 안에 있는가?</li><li>어떤 device를 먼저 점검해야 하는가?</li><li>관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?</li><li>이 device가 어떤 서비스 데모 consumer와 연결되는가?</li><li>연결이 Git에 등록됐는가, 장비가 실제 관측됐는가, Device Service 통신과 최신 데이터는</li></ol>
+<p>각각 어떤 상태인가?</p>
+<ol><li>새 장비에 재사용할 Adapter Runtime이 있는가, 없으면 검증된 node/hardware binding으로</li></ol>
 <p>배포 가능한가?</p>
 <p><code>workflows[]</code>와 workflow KPI는 호환 또는 dry-run planning 표면일 수 있지만 current physical health나 자동 orchestration 완료의 근거가 아니다.</p>
 <h2 id="device-api와-explain-panel">Device API와 Explain Panel</h2>
@@ -228,6 +230,14 @@
 <tr>
 <td><code>node_name</code></td>
 <td>선택적 Kubernetes placement 진단 정보</td>
+</tr>
+<tr>
+<td><code>physical_device_id</code></td>
+<td>EdgeX tag의 물리 source identity</td>
+</tr>
+<tr>
+<td><code>hardware_binding_id</code></td>
+<td>Git 카탈로그 exact 물리 연결 identity</td>
 </tr>
 </tbody></table></div>
 <p>Explain Panel은 최소한 overall status와 reason, Profile, Device Service, protocol, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, 최신 Event 시각/age, <code>telemetry_freshness</code>, typed Readings, 선택적 <code>node_name</code>을 보여준다. node/workload 근거와 EdgeX state/event 근거를 하나의 physical availability reason으로 섞지 않는다.</p>
@@ -321,7 +331,7 @@
 <p>Serial과 Sense HAT I2C는 정상 경로만 지원 완료로 표시한다. 실제 분리·복구, Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
 <h2 id="workflow-augmentation-경계">Workflow/augmentation 경계</h2>
 <p>Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.</p>
-<p><code>Device Management</code>는 이 경계와 분리된 승인 관리 화면이다. 운영자는 Runtime inventory, owner, phase와 EdgeX consumer를 확인하고, Git allowlist의 node/hardware binding만 선택해 Runtime과 EdgeX Profile/Device 연결을 함께 validation·apply한다. state-aggregator에는 Kubernetes 쓰기 권한이 없으며 내부 HMAC으로 Adapter Controller에 요청한다. 외부/Argo runtime은 재사용만 하고 Controller 소유 runtime만 재시작·조건부 퇴역한다.</p>
+<p><code>Device Management</code>는 이 경계와 분리된 검증 관리 화면이다. 첫 영역은 Git binding 등록, EdgeX 장비 관측, Device Service 통신, Core Data 최신성을 별도 상태로 표시한다. 등록만으로 장비 감지를 추정하지 않는다. 운영자는 Runtime inventory, owner, phase와 EdgeX consumer를 확인하고, Git allowlist의 node/hardware binding만 선택해 Runtime과 EdgeX Profile/Device 연결을 함께 validation·apply한다. protocol package는 재사용 가능, 설치 가능, 연결 등록 필요, 검증 필요를 구분한다. state-aggregator에는 Kubernetes 쓰기 권한이 없으며 내부 HMAC으로 Adapter Controller에 요청한다. 외부/Argo runtime은 재사용만 하고 Controller 소유 runtime만 재시작·조건부 퇴역한다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="운영-모델.html">운영 모델</a></li><li><a href="../ops/어댑터-런타임-디바이스-연결-관리.html">Adapter Runtime과 Device 연결 관리</a></li></ul>
 <h2 id="근거-문서">근거 문서</h2>

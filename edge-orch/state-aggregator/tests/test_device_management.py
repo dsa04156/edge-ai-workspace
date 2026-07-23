@@ -20,6 +20,7 @@ from app.device_management import (
 from app.device_management_edgex import EdgeXManagementBackendError
 from app.edgex import EdgeXBackendError
 from app.device_management_models import (
+    AdapterCatalogDocument,
     DeviceOnboardingRequest,
     DevicePatchRequest,
 )
@@ -226,6 +227,26 @@ async def test_adapter_runtime_status_comes_from_core_metadata(catalog):
 
 
 @async_test
+async def test_verified_managed_template_is_installable_before_service_registration(catalog):
+    adapter = catalog.require("serial-jetson").model_copy(deep=True)
+    adapter.adapter_id = "serial-managed"
+    adapter.service_name = "device-serial-managed"
+    adapter.runtime.mode = "managed-template"
+    adapter.runtime.management_owner = "controller"
+    adapter.runtime.verification_state = "template-verified"
+    adapter.runtime.deployment_enabled = True
+    managed_catalog = AdapterCatalog(
+        AdapterCatalogDocument(version=1, adapters=[adapter])
+    )
+
+    adapters = await service_for(managed_catalog, FakeMetadata()).list_adapters()
+
+    assert len(adapters) == 1
+    assert adapters[0].status == "installable"
+    assert adapters[0].reason == "검증된 Device Service 패키지를 대상 노드에 설치할 수 있습니다."
+
+
+@async_test
 async def test_validate_accepts_installed_service_and_matching_profile(catalog):
     result = await service_for(catalog).validate(onboarding_request(), actor="viewer")
 
@@ -366,6 +387,22 @@ async def test_create_runs_profile_device_readback_saga_and_waits_for_event(cata
         "add_device:virtual-temperature-002"
     )
     assert events.calls == ["virtual-temperature-002"]
+
+
+@async_test
+async def test_connection_onboarding_persists_exact_hardware_binding_identity(catalog):
+    metadata = FakeMetadata()
+    request = onboarding_request()
+    request.hardware_binding_id = "jetson-arduino-serial-001"
+
+    await service_for(catalog, metadata).create_device(
+        request,
+        idempotency_key="create-with-binding",
+        actor="dashboard-admin",
+    )
+
+    tags = metadata.devices[request.device.name]["tags"]
+    assert tags["hardwareBindingId"] == "jetson-arduino-serial-001"
 
 
 @async_test
@@ -611,6 +648,7 @@ async def test_patch_rejects_reserved_onboarding_tags(catalog):
         DEVICE_PAYLOAD_HASH_TAG,
         "nodeName",
         "physicalDeviceId",
+        "hardwareBindingId",
     ):
         patch = DevicePatchRequest.model_validate({"tags": {tag: "forged"}})
 

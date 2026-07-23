@@ -151,14 +151,14 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-23 15:26</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
+            <span class="badge">수정: 2026-07-23 19:29</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="운영-진입점">운영 진입점</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>운영자는 Jetson Serial/Raspberry Pi I2C Device Service, Jetson <code>sensor-anomaly-demo</code>, 중앙 EdgeX와 dashboard를 차례로 확인하는 현재 운영 절차에서 시작한다. 새 장비 연결은 Kubernetes manifest를 직접 작성하지 않고 dashboard <code>Device Management</code>에서 승인된 Adapter Runtime을 선택해 처리한다. 과거 Agent 또는 폐기된 중앙 MessageBus 재구축 문서는 실행하지 않는다.</p>
+<p>운영자는 Jetson Serial/Raspberry Pi I2C Device Service, Jetson <code>sensor-anomaly-demo</code>, 중앙 EdgeX와 dashboard를 차례로 확인하는 현재 운영 절차에서 시작한다. 새 장비 연결은 Kubernetes manifest를 직접 작성하지 않고 dashboard <code>디바이스 관리</code>에서 검증된 Adapter Runtime을 선택해 처리한다. 과거 Agent 또는 폐기된 중앙 MessageBus 재구축 문서는 실행하지 않는다.</p>
 <h2 id="현재-기준">현재 기준</h2>
 <p>운영 문서는 개념 문서와 분리한다. 실행, 검증, 장애 원인 좁히기 질문은 Ops 문서에서 시작한다.</p>
 <div class="table-wrap"><table>
@@ -199,16 +199,16 @@
 <p>현재 중앙 EdgeX runtime은 <code>edgex-system</code>, <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>, <code>edgex-adapter-controller</code>와 <code>sensor-anomaly-demo</code>는 <code>edgex-edge</code>, state-aggregator는 <code>default</code> namespace에 있다. 물리 inventory, 관리 상태, telemetry는 EdgeX가 authority이며 KubeEdge node/workload 정보와 AI derived result는 별도 진단이다. <code>state-aggregator</code>는 관리 BFF일 뿐 Kubernetes 쓰기 권한이 없고, <code>edgex-adapter-controller</code>만 Git allowlist 안의 runtime을 관리한다.</p>
 <h2 id="운영자-읽기-순서">운영자 읽기 순서</h2>
 <p>라이브 데모에서는 다음 순서로 본다.</p>
-<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 Argo, 중앙 EdgeX와 두 Device Service 상태를 확인한다.</li><li>EdgeX Core Metadata에서 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 Profile/Device 6개, 총 12개 binding을 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 읽어 세 acceleration Device, 증가하는 <code>latest.origin</code>/<code>framesProcessed</code>, <code>inputState=fresh</code>, <code>model.algorithm=online-gaussian-baseline-v1</code>을 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 기존 EdgeX device 상태와 별도 <code>/state/service-demo</code> derived 결과를 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, 서비스 데모 panel, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>새 장비를 연결할 때는 <code>Device Management</code>에서 Runtime inventory와 consumer 수를 확인하고</li></ol>
-<p>승인된 node/hardware binding을 선택해 validation한다. Runtime과 EdgeX Profile/Device plan이 모두 유효할 때만 인증 후 <code>Connect Device</code>를 실행한다.</p>
-<ol><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
+<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 Argo, 중앙 EdgeX와 두 Device Service 상태를 확인한다.</li><li>EdgeX Core Metadata에서 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 Profile/Device 6개, 총 12개 binding을 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 읽어 세 acceleration Device, 증가하는 <code>latest.origin</code>/<code>framesProcessed</code>, <code>inputState=fresh</code>, <code>model.algorithm=online-gaussian-baseline-v1</code>을 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 기존 EdgeX device 상태와 별도 <code>/state/service-demo</code> derived 결과를 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, 서비스 데모 panel, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>새 장비를 연결할 때는 <code>디바이스 관리</code>에서 연결 등록, 장비 관측, 통신, 데이터 상태를</li></ol>
+<p>각각 확인한 뒤 Runtime inventory와 consumer 수를 본다. 등록된 node/hardware binding을 선택해 validation하고 Runtime과 EdgeX Profile/Device plan이 모두 유효할 때만 인증 후 <code>디바이스 연결</code>을 실행한다.</p>
+<ol><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
 <p>KubeEdge node readiness와 workload placement는 dashboard에서 볼 수 있지만 물리 availability를 결정하지 않는다. 물리 availability는 EdgeX 관리 상태와 Core Data 최신 Event freshness로만 해석한다.</p>
 <h2 id="현재-live-판정">현재 live 판정</h2>
 <p>2026-07-21 immutable ARM64 digest로 배포한 Serial 6개와 I2C 6개, 총 12개 가상 Device revision에서 Metadata/Core Data/Core Command, Local Data API와 dashboard를 같은 실행으로 확인했다. 12개 모두 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>였고 protocol별 local cache/API 계약도 통과했다. 2026-07-22 Serial USB driver detach/rebind와 Sense HAT reader 종료로 각 6개 Device의 <code>DOWN → UP</code>과 새 Event 재개도 확인했다. 실제 케이블·보드 손분리, offline replay와 NetworkPolicy 차단은 별도 gate다.</p>
 <p>2026-07-22 서비스 데모 코드·manifest·API와 anomaly/clear 상태 전이 테스트를 완료했다. Jetson live status에서 raw origin과 processed frame 증가, 중앙 <code>/state/service-demo</code>, 실제 브라우저의 NORMAL/fresh panel과 데스크톱·모바일 반응형 표시를 확인했다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연은 별도 gate다.</p>
 <p>2026-07-22 Core Data REST 기준선에서 1,000 devices × 1/60Hz는 1,000/1,000 저장과 p95 16.17ms로 PASS했다. 1,000 devices × 1Hz는 현재 300m CPU/256Mi Core Data가 OOMKilled되어 FAIL했다. 따라서 기본 운영 검증은 저주기 profile이고, 1Hz는 resource tuning과 단계별 rate gate 전까지 지원 처리량으로 보지 않는다.</p>
 <h2 id="경계">경계</h2>
-<p>승인된 control path는 dashboard <code>Device Management</code> → state-aggregator BFF → <code>edgex-adapter-controller</code>다. 이 경로는 관리자 인증과 idempotency key를 요구하고, Git allowlist의 exact node/hardware binding과 Controller 소유 workload만 관리한다. 기존 Argo runtime은 조회·재사용만 하며, EdgeX consumer가 남은 runtime은 퇴역하지 않는다.</p>
+<p>검증된 control path는 dashboard <code>디바이스 관리</code> → state-aggregator BFF → <code>edgex-adapter-controller</code>다. 이 경로는 관리자 인증과 idempotency key를 요구하고, Git allowlist의 exact node/hardware binding과 Controller 소유 workload만 관리한다. 기존 Argo runtime은 조회·재사용만 하며, EdgeX consumer가 남은 runtime은 퇴역하지 않는다.</p>
 <p>Operator assistant, Workflow Builder와 자원증강 화면은 이 control path가 아니다. 이들은 계속 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다. Dashboard나 state-aggregator가 raw manifest, 임의 image/hostPath, 고정 ClusterIP/PodIP를 받거나 Controller를 우회해 Kubernetes를 변경하는 경로는 없다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li></ul>

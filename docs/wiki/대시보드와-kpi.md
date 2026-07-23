@@ -23,7 +23,9 @@ Dashboard는 다음 질문에 답해야 한다.
 4. 어떤 device를 먼저 점검해야 하는가?
 5. 관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?
 6. 이 device가 어떤 서비스 데모 consumer와 연결되는가?
-7. 새 장비에 재사용할 Adapter Runtime이 있는가, 없으면 승인된 node/hardware binding으로
+7. 연결이 Git에 등록됐는가, 장비가 실제 관측됐는가, Device Service 통신과 최신 데이터는
+   각각 어떤 상태인가?
+8. 새 장비에 재사용할 Adapter Runtime이 있는가, 없으면 검증된 node/hardware binding으로
    배포 가능한가?
 
 `workflows[]`와 workflow KPI는 호환 또는 dry-run planning 표면일 수 있지만 current physical health나 자동 orchestration 완료의 근거가 아니다.
@@ -47,6 +49,8 @@ Dashboard는 다음 질문에 답해야 한다.
 | `latest_readings` | 최신 Event의 source/resource/value type/value/unit 정보 |
 | `telemetry_freshness` | `fresh`, `stale`, `no_events` |
 | `node_name` | 선택적 Kubernetes placement 진단 정보 |
+| `physical_device_id` | EdgeX tag의 물리 source identity |
+| `hardware_binding_id` | Git 카탈로그 exact 물리 연결 identity |
 
 Explain Panel은 최소한 overall status와 reason, Profile, Device Service, protocol, `admin_state`, `operating_state`, `connection_state`, 최신 Event 시각/age, `telemetry_freshness`, typed Readings, 선택적 `node_name`을 보여준다. node/workload 근거와 EdgeX state/event 근거를 하나의 physical availability reason으로 섞지 않는다.
 
@@ -106,9 +110,12 @@ Serial과 Sense HAT I2C는 정상 경로만 지원 완료로 표시한다. 실�
 
 Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.
 
-`Device Management`는 이 경계와 분리된 승인 관리 화면이다. 운영자는 Runtime inventory,
-owner, phase와 EdgeX consumer를 확인하고, Git allowlist의 node/hardware binding만 선택해
-Runtime과 EdgeX Profile/Device 연결을 함께 validation·apply한다. state-aggregator에는
+`Device Management`는 이 경계와 분리된 검증 관리 화면이다. 첫 영역은 Git binding 등록,
+EdgeX 장비 관측, Device Service 통신, Core Data 최신성을 별도 상태로 표시한다. 등록만으로
+장비 감지를 추정하지 않는다. 운영자는 Runtime inventory, owner, phase와 EdgeX consumer를
+확인하고, Git allowlist의 node/hardware binding만 선택해 Runtime과 EdgeX Profile/Device
+연결을 함께 validation·apply한다. protocol package는 재사용 가능, 설치 가능, 연결 등록
+필요, 검증 필요를 구분한다. state-aggregator에는
 Kubernetes 쓰기 권한이 없으며 내부 HMAC으로 Adapter Controller에 요청한다. 외부/Argo
 runtime은 재사용만 하고 Controller 소유 runtime만 재시작·조건부 퇴역한다.
 

@@ -99,6 +99,7 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-node-scope,
+.management-physical-inventory,
 .management-runtime-inventory,
 .management-catalog,
 .management-device-inventory,
@@ -166,6 +167,7 @@ body[data-dashboard-page="management"] .side-rail {
 .management-node-card:focus-visible,
 .management-view-tabs button:focus-visible,
 .management-stepper button:focus-visible,
+.management-adapter-action:focus-visible,
 .management-primary-action:focus-visible,
 .management-form button:focus-visible,
 .management-form input:focus-visible,
@@ -265,7 +267,198 @@ body[data-dashboard-page="management"] .side-rail {
 .management-overview-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  align-items: start;
   gap: 16px;
+}
+
+.management-physical-inventory {
+  margin-bottom: 16px;
+}
+
+.management-connection-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.management-connection-legend > div {
+  display: flex;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.management-connection-legend > div > span {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 1px solid rgba(99, 208, 230, 0.38);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.management-connection-legend p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  min-width: 0;
+}
+
+.management-connection-legend strong {
+  font-size: 12px;
+}
+
+.management-connection-legend small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.management-physical-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.management-physical-card {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #75808a;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-physical-card[data-presence="detected"] {
+  border-left-color: #5bcf9b;
+}
+
+.management-physical-card[data-presence="not_detected"] {
+  border-left-color: #ee6a78;
+}
+
+.management-physical-card[data-presence="unknown"] {
+  border-left-color: #f0b35b;
+}
+
+.management-physical-head,
+.management-adapter-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.management-physical-head > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.management-physical-head strong,
+.management-adapter-card-head strong {
+  overflow-wrap: anywhere;
+}
+
+.management-physical-head small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.management-protocol-pill {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(99, 208, 230, 0.32);
+  border-radius: 999px;
+  background: rgba(99, 208, 230, 0.07);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.management-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.management-evidence-cell {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(5, 9, 14, 0.52);
+}
+
+.management-evidence-cell > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.management-evidence-cell > strong {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.management-evidence-cell[data-state="registered"] > strong,
+.management-evidence-cell[data-state="detected"] > strong,
+.management-evidence-cell[data-state="connected"] > strong,
+.management-evidence-cell[data-state="fresh"] > strong {
+  color: #8be5bd;
+}
+
+.management-evidence-cell[data-state="not_detected"] > strong,
+.management-evidence-cell[data-state="disconnected"] > strong,
+.management-evidence-cell[data-state="missing"] > strong {
+  color: #ff9da7;
+}
+
+.management-evidence-cell[data-state="stale"] > strong,
+.management-evidence-cell[data-state="unknown"] > strong {
+  color: #f4c982;
+}
+
+.management-physical-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.management-physical-facts span {
+  max-width: 100%;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.management-physical-reason {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.management-physical-latest {
+  color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .management-runtime-list,
@@ -288,24 +481,53 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-runtime-card[data-phase="SERVICE_READY"],
-.management-adapter-card[data-status="installed"] {
+.management-adapter-card[data-status="reuse_ready"],
+.management-adapter-card[data-status="install_ready"] {
   border-left-color: #5bcf9b;
 }
 
 .management-runtime-card[data-phase="DEPLOYING"],
 .management-runtime-card[data-phase="WORKLOAD_READY"],
 .management-runtime-card[data-phase="RESTARTING"],
-.management-adapter-card[data-status="unavailable"] {
+.management-adapter-card[data-status="connection_required"] {
   border-left-color: #f0b35b;
 }
 
 .management-runtime-card[data-phase="FAILED"],
-.management-runtime-card[data-phase="RETIRED"] {
+.management-runtime-card[data-phase="RETIRED"],
+.management-adapter-card[data-status="verification_required"],
+.management-adapter-card[data-status="unavailable"] {
   border-left-color: #ee6a78;
 }
 
-.management-adapter-card[data-status="unsupported"] {
+.management-adapter-card[data-status="verification_required"],
+.management-adapter-card[data-status="unavailable"] {
   opacity: 0.78;
+}
+
+.management-adapter-reason {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.management-adapter-verification {
+  color: var(--muted);
+}
+
+.management-adapter-action {
+  justify-self: start;
+  margin-top: 4px;
+  border-color: rgba(99, 208, 230, 0.42);
+  background: rgba(99, 208, 230, 0.1);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.management-adapter-action:hover {
+  border-color: var(--accent);
+  background: rgba(99, 208, 230, 0.16);
 }
 
 .management-runtime-facts {
@@ -720,6 +942,14 @@ body[data-dashboard-page="management"] .side-rail {
     grid-template-columns: 1fr;
   }
 
+  .management-connection-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .management-physical-list {
+    grid-template-columns: 1fr;
+  }
+
   .managed-device-list {
     grid-template-columns: 1fr;
   }
@@ -754,8 +984,13 @@ body[data-dashboard-page="management"] .side-rail {
 
   .management-form-grid,
   .management-results-grid,
-  .management-review-grid {
+  .management-review-grid,
+  .management-connection-legend {
     grid-template-columns: 1fr;
+  }
+
+  .management-evidence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .management-stepper {

@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 18:41</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
+            <span class="badge">수정: 2026-07-23 19:38</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
           </div>
         </header>
         <div class="doc-body">
@@ -944,6 +944,67 @@
 <p>연결된 뒤 검증한다.</p>
 <ul><li>Modbus/OPC-UA/MQTT/RTSP는 각 Device Service, profile과 실장비 telemetry gate 전까지</li></ul>
 <p>비활성 상태를 유지한다.</p>
+<h2 id="2026-07-23-등록-연결-실장비-증거-분리와-프로토콜-패키지-관리">2026-07-23 등록 연결·실장비 증거 분리와 프로토콜 패키지 관리</h2>
+<ul><li><code>디바이스 관리</code> 노드 현황의 첫 영역에서 Git 카탈로그 연결 등록, EdgeX 장비 관측,</li></ul>
+<p>Device Service 통신과 Core Data 최신 Event를 네 상태로 분리했다. 연결이 등록돼 있다는 이유만으로 장비가 감지됐다고 표시하지 않는다.</p>
+<ul><li>신규 connection은 EdgeX Device system tag에 <code>hardwareBindingId</code>를 저장한다.</li></ul>
+<p><code>/state/devices</code>는 기존 <code>physicalDeviceId</code>와 함께 두 identity를 반환해 하나의 Device Service가 여러 물리 endpoint를 소유해도 정확한 연결로 묶을 수 있다.</p>
+<ul><li>protocol package는 선택 노드 기준 <code>재사용 가능</code>, <code>설치 가능</code>, <code>연결 등록 필요</code>,</li></ul>
+<p><code>검증 필요</code>로 구분한다. Core Metadata에 Device Service가 없어도 검증된 template, <code>deploymentEnabled=true</code>와 등록 binding이 모두 있으면 설치 흐름으로 진입할 수 있다.</p>
+<ul><li>현재 live catalog의 Serial/I2C는 기존 Argo CD Runtime 재사용 경로다.</li></ul>
+<p>Modbus/OPC-UA/MQTT/RTSP는 계속 미검증이며 설치 버튼을 제공하지 않는다.</p>
+<ul><li>범용 <code>/dev</code> scanner, 임의 network probe, raw image/hostPath 입력, 고정 ClusterIP/PodIP,</li></ul>
+<p>EdgeMesh와 KubeEdge Device CRD 변경은 추가하지 않았다.</p>
+<h3 id="로컬-배포-전-읽기-전용-검증">로컬·배포 전 읽기 전용 검증</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>state-aggregator Python</td>
+<td>PASS</td>
+<td>관리 상태 identity와 기존 API 회귀 포함 175개 테스트 통과</td>
+</tr>
+<tr>
+<td>dashboard JavaScript</td>
+<td>PASS</td>
+<td>연결 증거·package 상태·기존 dashboard 계약 포함 46개 테스트 통과</td>
+</tr>
+<tr>
+<td>저장소 root Python</td>
+<td>PASS</td>
+<td>dashboard·문서·배포 계약 89개 테스트 통과</td>
+</tr>
+<tr>
+<td>Adapter Controller Python</td>
+<td>PASS</td>
+<td>runtime planner/reconcile 전체 53개 테스트 통과</td>
+</tr>
+<tr>
+<td>로컬 브라우저 1440px/390px</td>
+<td>PASS</td>
+<td>Firefox 기준 가로 overflow 없음, console error/warning 0건, 등록 wizard와 노드 전환 확인</td>
+</tr>
+<tr>
+<td>노드별 연결 표현</td>
+<td>PASS</td>
+<td>Jetson Serial 1개·Device 6개, Raspberry Pi Sense HAT I2C 1개·Device 6개, AI HAT 후보 노드 등록 연결 0개를 구분해 표시</td>
+</tr>
+<tr>
+<td>미검증 protocol 차단</td>
+<td>PASS</td>
+<td>Modbus/OPC-UA/MQTT/RTSP는 <code>검증 필요</code>로 표시하고 설치 action 0개 확인</td>
+</tr>
+<tr>
+<td>현재 live API 기준선</td>
+<td>PASS</td>
+<td>Serial/I2C Runtime 각각 <code>SERVICE_READY</code>, EdgeX consumer 각각 6개, 총 12개 Device latest Event <code>fresh/available</code> 확인</td>
+</tr>
+</tbody></table></div>
+<p>생성 HTML, main push CI와 Argo CD rollout, 배포 endpoint 브라우저 검증 결과는 배포 완료 뒤 이 항목에 추가한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

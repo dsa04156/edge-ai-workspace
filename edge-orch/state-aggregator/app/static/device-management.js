@@ -30,9 +30,31 @@ const managementState = {
 const MANAGEMENT_LABELS = {
   adapterStatus: {
     installed: "설치됨",
+    installable: "설치 가능",
     unavailable: "사용 불가",
     unsupported: "미지원",
     unknown: "알 수 없음",
+  },
+  presence: {
+    detected: "장비 관측됨",
+    not_detected: "장비 미관측",
+    unknown: "관측 근거 없음",
+  },
+  communication: {
+    connected: "통신 연결",
+    disconnected: "통신 끊김",
+    unknown: "통신 미확인",
+  },
+  telemetry: {
+    fresh: "데이터 최신",
+    stale: "데이터 지연",
+    missing: "데이터 없음",
+    unknown: "데이터 미확인",
+  },
+  runtimeState: {
+    ready: "Device Service 준비",
+    not_ready: "Device Service 준비 중",
+    not_installed: "Device Service 미설치",
   },
   runtimePhase: {
     PLANNED: "배치 계획",
@@ -116,8 +138,229 @@ function managementDeviceNode(device = {}) {
 }
 
 
+function managementDevicePhysicalId(device = {}) {
+  return device.physical_device_id
+    || device.physicalDeviceId
+    || device.tags?.physicalDeviceId
+    || "";
+}
+
+
+function managementDeviceBindingId(device = {}) {
+  return device.hardware_binding_id
+    || device.hardwareBindingId
+    || device.tags?.hardwareBindingId
+    || "";
+}
+
+
+function runtimeOwnsBinding(runtime = {}, bindingId = "") {
+  const bindingIds = runtime.hardwareBindingIds
+    || runtime.hardware_binding_ids
+    || [];
+  const primary = runtime.hardwareBindingId || runtime.hardware_binding_id;
+  return Boolean(
+    bindingId
+    && (
+      bindingIds.includes(bindingId)
+      || primary === bindingId
+    )
+  );
+}
+
+
+function protocolPackageStatus(adapter, nodeName, _runtimes = []) {
+  if (!adapter || adapter.status === "unsupported"
+    || adapter.runtime?.verificationState === "unverified") {
+    return {
+      state: "verification_required",
+      action: "none",
+      label: "검증 필요",
+      reason: adapter?.reason || "Device Service와 실장비 검증이 필요합니다.",
+    };
+  }
+  const bindings = (adapter.runtime?.hardwareBindings || []).filter(
+    (binding) => binding.nodeName === nodeName,
+  );
+  if (!bindings.length) {
+    return {
+      state: "connection_required",
+      action: "none",
+      label: "연결 등록 필요",
+      reason: "이 노드에 등록된 물리 연결이 없습니다.",
+    };
+  }
+  if (
+    adapter.status === "installable"
+    && adapter.runtime?.deploymentEnabled === true
+  ) {
+    return {
+      state: "install_ready",
+      action: "install",
+      label: "설치 가능",
+      reason: "검증된 Device Service 패키지를 이 노드에 설치할 수 있습니다.",
+    };
+  }
+  if (adapter.status === "installed") {
+    return {
+      state: "reuse_ready",
+      action: "reuse",
+      label: "재사용 가능",
+      reason: "등록된 Device Service와 물리 연결을 재사용합니다.",
+    };
+  }
+  return {
+    state: "unavailable",
+    action: "none",
+    label: "사용 불가",
+    reason: adapter.reason || "Device Service 상태를 확인해야 합니다.",
+  };
+}
+
+
+function buildPhysicalConnectionObservations({
+  adapters = [],
+  runtimes = [],
+  devices = [],
+  nodeName = "",
+} = {}) {
+  const observations = [];
+  adapters.forEach((adapter) => {
+    const bindings = (adapter.runtime?.hardwareBindings || []).filter(
+      (binding) => binding.nodeName === nodeName,
+    );
+    bindings.forEach((binding) => {
+      const runtime = runtimes.find((candidate) => (
+        (candidate.targetNode || candidate.target_node) === nodeName
+        && (
+          candidate.adapterId === adapter.adapterId
+          || candidate.adapter_id === adapter.adapterId
+        )
+        && runtimeOwnsBinding(candidate, binding.bindingId)
+      )) || null;
+      const serviceNames = new Set(
+        [adapter.serviceName, runtime?.serviceName, runtime?.service_name]
+          .filter(Boolean),
+      );
+      const expectedPhysicalId = binding.protocolProperties?.DeviceID || "";
+      const adapterBindingCount = bindings.length;
+      const matchingDevices = devices.filter((device) => {
+        if (managementDeviceNode(device) !== nodeName) return false;
+        const serviceName = device.device_service_name || device.deviceServiceName;
+        if (serviceNames.size && !serviceNames.has(serviceName)) return false;
+        const protocols = device.protocol_names || device.protocolNames || [];
+        if (
+          adapter.protocolName
+          && !protocols.some(
+            (protocol) => String(protocol).toLowerCase()
+              === String(adapter.protocolName).toLowerCase(),
+          )
+        ) return false;
+        const exactBindingId = managementDeviceBindingId(device);
+        if (exactBindingId) return exactBindingId === binding.bindingId;
+        const physicalId = managementDevicePhysicalId(device);
+        if (expectedPhysicalId) return physicalId === expectedPhysicalId;
+        return adapterBindingCount === 1;
+      });
+      const connectedDevices = matchingDevices.filter((device) => (
+        String(device.admin_state || device.adminState || "").toUpperCase() !== "LOCKED"
+        && String(
+          device.operating_state || device.operatingState || "",
+        ).toUpperCase() === "UP"
+      ));
+      const disconnectedDevices = matchingDevices.filter((device) => (
+        String(device.admin_state || device.adminState || "").toUpperCase() === "LOCKED"
+        || String(
+          device.operating_state || device.operatingState || "",
+        ).toUpperCase() === "DOWN"
+      ));
+      const freshDevices = matchingDevices.filter(
+        (device) => (device.telemetry_freshness || device.telemetryFreshness) === "fresh",
+      );
+      const staleDevices = matchingDevices.filter(
+        (device) => (device.telemetry_freshness || device.telemetryFreshness) === "stale",
+      );
+      const runtimeState = runtime?.phase === "SERVICE_READY"
+        && runtime.edgeXServiceObserved !== false
+        ? "ready"
+        : runtime
+          ? "not_ready"
+          : "not_installed";
+      const communicationState = connectedDevices.length
+        ? "connected"
+        : matchingDevices.length && disconnectedDevices.length === matchingDevices.length
+          ? "disconnected"
+          : "unknown";
+      const telemetryState = freshDevices.length
+        ? "fresh"
+        : staleDevices.length
+          ? "stale"
+          : matchingDevices.length
+            ? "missing"
+            : "unknown";
+      const presenceState = freshDevices.length
+        || (runtimeState === "ready" && connectedDevices.length)
+        ? "detected"
+        : matchingDevices.length
+          && disconnectedDevices.length === matchingDevices.length
+          ? "not_detected"
+          : "unknown";
+      const timestamps = matchingDevices
+        .map((device) => (
+          device.latest_event_timestamp || device.latestEventTimestamp || ""
+        ))
+        .filter(Boolean)
+        .sort();
+      let reason = "등록되어 있지만 실제 장비 관측 증거가 없습니다.";
+      if (
+        presenceState === "detected"
+        && communicationState === "connected"
+        && telemetryState === "fresh"
+      ) {
+        reason = "Device Service 연결과 최신 Event가 모두 확인됐습니다.";
+      } else if (presenceState === "detected" && telemetryState !== "fresh") {
+        reason = "Device Service 통신은 확인됐지만 최신 Event를 확인해야 합니다.";
+      } else if (presenceState === "not_detected") {
+        reason = "EdgeX Device가 DOWN 또는 LOCKED 상태여서 물리 연결을 관측하지 못했습니다.";
+      } else if (runtimeState === "not_ready") {
+        reason = "Device Service가 준비되지 않아 장비 관측을 완료할 수 없습니다.";
+      }
+      observations.push({
+        adapterId: adapter.adapterId,
+        adapterName: adapter.displayName || adapter.adapterId,
+        protocolName: adapter.protocolName,
+        serviceName: runtime?.serviceName || runtime?.service_name || adapter.serviceName || "",
+        bindingId: binding.bindingId,
+        bindingName: binding.displayName,
+        nodeName: binding.nodeName,
+        devicePath: binding.devicePath || "",
+        physicalDeviceId: expectedPhysicalId,
+        registrationState: "registered",
+        runtimeState,
+        runtimeName: runtime?.runtimeName || runtime?.runtime_name || "",
+        presenceState,
+        communicationState,
+        telemetryState,
+        deviceCount: matchingDevices.length,
+        deviceNames: matchingDevices.map((device) => device.name).sort(),
+        latestEventTimestamp: timestamps.at(-1) || null,
+        reason,
+      });
+    });
+  });
+  return observations.sort((left, right) => (
+    left.protocolName.localeCompare(right.protocolName)
+    || left.bindingName.localeCompare(right.bindingName)
+  ));
+}
+
+
 function adapterSupportsNode(adapter, nodeName) {
-  if (!adapter || adapter.status !== "installed" || !nodeName) return false;
+  if (
+    !adapter
+    || !["installed", "installable"].includes(adapter.status)
+    || !nodeName
+  ) return false;
   const bindings = adapter.runtime?.hardwareBindings || [];
   if (bindings.some((binding) => binding.nodeName === nodeName)) return true;
   return bindings.length === 0 && adapter.nodeName === nodeName;
@@ -128,13 +371,15 @@ function adapterSelectionOptions(adapters = [], nodeName = "") {
   return adapters
     .map((adapter, index) => {
       const enabled = adapterSupportsNode(adapter, nodeName);
-      let availability = "현재 연결 가능";
+      let availability = adapter?.status === "installable"
+        ? "검증된 Device Service 설치"
+        : "기존 Device Service 재사용";
       if (!enabled && adapter?.status === "unsupported") {
         availability = "지원 준비 필요";
       } else if (!enabled && adapter?.status === "unavailable") {
         availability = "Device Service 확인 필요";
       } else if (!enabled) {
-        availability = "이 노드에 승인된 연결 없음";
+        availability = "다른 노드에만 연결 등록됨";
       }
       return {
         adapter,
@@ -143,8 +388,8 @@ function adapterSelectionOptions(adapters = [], nodeName = "") {
         reason: enabled
           ? ""
           : adapter?.reason || (
-            availability === "이 노드에 승인된 연결 없음"
-              ? `${nodeName || "선택 노드"}에 승인된 하드웨어 연결이 없습니다.`
+            availability === "다른 노드에만 연결 등록됨"
+              ? `${nodeName || "선택 노드"}에 등록된 물리 연결이 없습니다.`
               : availability
           ),
         index,
@@ -173,8 +418,16 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
   if (!adapter) {
     return {
       title: "프로토콜을 먼저 선택하세요",
-      text: "선택한 노드에서 검증된 Device Service와 승인된 물리 연결만 등록할 수 있습니다.",
+      text: "선택한 노드에서 검증된 Device Service와 등록된 물리 연결만 사용할 수 있습니다.",
       status: "unavailable",
+    };
+  }
+  if (adapter.status === "installable") {
+    return {
+      title: `${koreanLabel("protocol", adapter.protocolName, adapter.protocolName)} Device Service 설치`,
+      text: `검증된 패키지를 대상 노드에 배포한 뒤 등록된 물리 연결 ${bindingCount}개 중 하나를 `
+        + "EdgeX Device로 연결합니다. 설치 전에 임의 이미지나 장치 경로를 입력할 수 없습니다.",
+      status: "installable",
     };
   }
   if (adapter.status !== "installed") {
@@ -188,9 +441,9 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
   if (adapter.protocolName === "serial" && policy.multiDevice === true) {
     return {
       title: "Serial 다중 연결 방식",
-      text: `현재 승인 연결 ${bindingCount}개. 같은 USB 포트의 다른 리소스는 기존 reader와 `
+      text: `현재 등록 연결 ${bindingCount}개. 같은 USB 포트의 다른 리소스는 기존 reader와 `
         + "Device Service를 공유합니다. 두 번째 USB Serial이 같은 데이터 포맷과 리소스 계약이면 "
-        + "고정 장치 경로를 승인 카탈로그와 Pod 장치 마운트에 추가해 같은 Device Service에서 "
+        + "고정 장치 경로를 Git 카탈로그와 Pod 장치 마운트에 추가해 같은 Device Service에서 "
         + "별도 reader로 처리합니다. 포맷이 다르면 parser와 Adapter 검증이 먼저 필요합니다.",
       status: "installed",
     };
@@ -198,7 +451,7 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
   if (policy.multiDevice === true) {
     return {
       title: "한 Device Service에서 여러 디바이스 처리",
-      text: `현재 승인 연결 ${bindingCount}개. 승인된 물리 연결과 리소스를 선택하면 `
+      text: `현재 등록 연결 ${bindingCount}개. 등록된 물리 연결과 리소스를 선택하면 `
         + `${adapter.serviceName}가 여러 EdgeX Device를 함께 관리합니다.`,
       status: "installed",
     };
@@ -292,7 +545,7 @@ function managementIssueText(issue = {}) {
 function adapterCanApply(adapter) {
   return Boolean(
     adapter
-    && adapter.status === "installed"
+    && ["installed", "installable"].includes(adapter.status)
     && adapter.mutationEnabled === true,
   );
 }
@@ -718,7 +971,7 @@ function renderRegistrationReview(documentRef = document) {
   const values = {
     managementReviewNode: managementState.selectedNodeName || "노드 선택 전",
     managementReviewAdapter: adapter?.displayName || "어댑터 선택 전",
-    managementReviewBinding: binding?.textContent || "하드웨어 연결 선택 전",
+    managementReviewBinding: binding?.textContent || "물리 연결 선택 전",
     managementReviewDevice: `${deviceName} / ${profileName}`,
   };
   Object.entries(values).forEach(([id, value]) => {
@@ -830,7 +1083,7 @@ function renderManagementNodes(documentRef = document) {
     facts.className = "management-node-card-facts";
     appendTextElement(facts, "span", "", `런타임 ${scope.runtimeCount}개`);
     appendTextElement(facts, "span", "", `디바이스 ${scope.deviceCount}개`);
-    appendTextElement(facts, "span", "", `승인 어댑터 ${scope.adapterCount}개`);
+    appendTextElement(facts, "span", "", `프로토콜 ${scope.adapterCount}개`);
     button.append(heading, facts);
     container.appendChild(button);
   });
@@ -898,36 +1151,188 @@ function renderConnectionGuidance(documentRef = document) {
 }
 
 
+function formatManagementTimestamp(value) {
+  if (!value) return "확인되지 않음";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+
+function renderPhysicalConnections(documentRef = document) {
+  const container = byId("managementPhysicalConnectionList", documentRef);
+  clearElement(container);
+  if (!container) return;
+  const observations = buildPhysicalConnectionObservations({
+    adapters: managementState.adapters,
+    runtimes: managementState.runtimes,
+    devices: managementState.devices,
+    nodeName: managementState.selectedNodeName,
+  });
+  if (!observations.length) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      "이 노드의 Git 카탈로그에 등록된 물리 연결이 없습니다. 장비 자동 검색 결과가 아니라 등록 현황입니다.",
+    );
+    return;
+  }
+  observations.forEach((observation) => {
+    const card = documentRef.createElement("article");
+    card.className = "management-physical-card";
+    card.dataset.presence = observation.presenceState;
+    card.dataset.communication = observation.communicationState;
+    card.dataset.telemetry = observation.telemetryState;
+
+    const header = documentRef.createElement("div");
+    header.className = "management-physical-head";
+    const identity = documentRef.createElement("div");
+    appendTextElement(
+      identity,
+      "strong",
+      "",
+      observation.bindingName || observation.bindingId,
+    );
+    appendTextElement(
+      identity,
+      "small",
+      "",
+      `${observation.adapterName} · ${observation.serviceName || "Device Service 미확인"}`,
+    );
+    appendTextElement(
+      header,
+      "span",
+      "management-protocol-pill",
+      koreanLabel("protocol", observation.protocolName, observation.protocolName),
+    );
+    header.prepend(identity);
+
+    const evidence = documentRef.createElement("div");
+    evidence.className = "management-evidence-grid";
+    [
+      {
+        label: "연결 등록",
+        state: observation.registrationState,
+        value: "등록됨",
+      },
+      {
+        label: "장비 관측",
+        state: observation.presenceState,
+        value: koreanLabel("presence", observation.presenceState),
+      },
+      {
+        label: "통신 상태",
+        state: observation.communicationState,
+        value: koreanLabel("communication", observation.communicationState),
+      },
+      {
+        label: "데이터 상태",
+        state: observation.telemetryState,
+        value: koreanLabel("telemetry", observation.telemetryState),
+      },
+    ].forEach((item) => {
+      const cell = documentRef.createElement("div");
+      cell.className = "management-evidence-cell";
+      cell.dataset.state = item.state;
+      appendTextElement(cell, "span", "", item.label);
+      appendTextElement(cell, "strong", "", item.value);
+      evidence.appendChild(cell);
+    });
+
+    const facts = documentRef.createElement("div");
+    facts.className = "management-physical-facts";
+    [
+      `연결 ID ${observation.bindingId}`,
+      observation.devicePath ? `장치 경로 ${observation.devicePath}` : "",
+      observation.physicalDeviceId ? `물리 소스 ${observation.physicalDeviceId}` : "",
+      `${koreanLabel("runtimeState", observation.runtimeState)}`
+        + (observation.runtimeName ? ` · ${observation.runtimeName}` : ""),
+      `EdgeX Device ${observation.deviceCount}개`,
+    ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
+
+    appendTextElement(card, "p", "management-physical-reason", observation.reason);
+    appendTextElement(
+      card,
+      "small",
+      "management-physical-latest",
+      observation.deviceNames.length
+        ? `연결 디바이스 ${observation.deviceNames.join(", ")} · 최신 Event `
+          + formatManagementTimestamp(observation.latestEventTimestamp)
+        : "연결된 EdgeX Device와 Event가 아직 없습니다.",
+    );
+    card.prepend(header, evidence, facts);
+    container.appendChild(card);
+  });
+}
+
+
 function renderAdapterCatalog(documentRef = document) {
   const container = byId("managementAdapterList", documentRef);
   const unsupportedContainer = byId("managementUnsupportedAdapterList", documentRef);
   clearElement(container);
   clearElement(unsupportedContainer);
-  const visibleAdapters = managementState.adapters.filter(
-    (adapter) => adapter.status !== "installed"
-      || adapterSupportsNode(adapter, managementState.selectedNodeName),
-  );
   let primaryCount = 0;
-  visibleAdapters.forEach((adapter) => {
+  let secondaryCount = 0;
+  managementState.adapters.forEach((adapter) => {
+    const packageStatus = protocolPackageStatus(
+      adapter,
+      managementState.selectedNodeName,
+      managementState.runtimes,
+    );
     const card = documentRef.createElement("article");
     card.className = "management-adapter-card";
-    card.dataset.status = adapter.status;
-    appendTextElement(card, "strong", "", adapter.displayName || adapter.adapterId);
+    card.dataset.status = packageStatus.state;
+    const header = documentRef.createElement("div");
+    header.className = "management-adapter-card-head";
+    appendTextElement(header, "strong", "", adapter.displayName || adapter.adapterId);
     appendTextElement(
-      card,
+      header,
       "span",
       "management-status",
-      koreanLabel("adapterStatus", adapter.status),
+      packageStatus.label,
     );
     appendTextElement(
       card,
       "small",
       "",
       adapter.serviceName
-        ? `${adapter.serviceName} · ${adapter.protocolName}`
-        : adapter.reason || "Device Service가 검증되지 않았습니다.",
+        ? `${koreanLabel("protocol", adapter.protocolName, adapter.protocolName)} · ${adapter.serviceName}`
+        : koreanLabel("protocol", adapter.protocolName, adapter.protocolName),
     );
-    if (adapter.status === "unsupported") {
+    appendTextElement(card, "p", "management-adapter-reason", packageStatus.reason);
+    const verification = adapter.runtime?.verificationState || "unverified";
+    appendTextElement(
+      card,
+      "small",
+      "management-adapter-verification",
+      `${koreanLabel("verification", verification)} · `
+        + `${(adapter.runtime?.hardwareBindings || []).filter(
+          (binding) => binding.nodeName === managementState.selectedNodeName,
+        ).length}개 물리 연결 등록`,
+    );
+    if (packageStatus.action !== "none") {
+      const action = documentRef.createElement("button");
+      action.type = "button";
+      action.className = "management-adapter-action";
+      action.dataset.managementSelectAdapter = adapter.adapterId;
+      action.textContent = packageStatus.action === "install"
+        ? "설치하고 디바이스 등록"
+        : "이 프로토콜로 디바이스 등록";
+      card.appendChild(action);
+    }
+    card.prepend(header);
+    if (packageStatus.action === "none") {
+      secondaryCount += 1;
       unsupportedContainer?.appendChild(card);
     } else {
       primaryCount += 1;
@@ -939,7 +1344,15 @@ function renderAdapterCatalog(documentRef = document) {
       container,
       "p",
       "management-empty",
-      "선택한 노드에서 지금 연결할 수 있는 어댑터가 없습니다.",
+      "선택한 노드에서 즉시 설치하거나 재사용할 수 있는 검증 패키지가 없습니다.",
+    );
+  }
+  if (!secondaryCount && unsupportedContainer) {
+    appendTextElement(
+      unsupportedContainer,
+      "p",
+      "management-empty",
+      "추가 확인이 필요한 프로토콜이 없습니다.",
     );
   }
 }
@@ -1001,9 +1414,10 @@ function renderRuntimeInventory(documentRef = document) {
       `노드 ${runtime.targetNode || "미확인"}`,
       `${runtime.managementOwner === "argocd" ? "Argo CD" : "컨트롤러"} 소유`,
       koreanLabel("verification", runtime.verificationState || "unverified"),
-      `승인 물리 연결 ${Math.max(
-        1,
-        Number(runtime.hardwareBindingIds?.length || 0),
+      `등록 물리 연결 ${Number(
+        runtime.hardwareBindingIds?.length
+          || runtime.hardware_binding_ids?.length
+          || (runtime.hardwareBindingId || runtime.hardware_binding_id ? 1 : 0),
       )}개`,
       `연결 디바이스 ${Number(runtime.consumers || 0)}개`,
     ].forEach((fact) => appendTextElement(facts, "span", "", fact));
@@ -1144,13 +1558,25 @@ function renderRuntimeSelection(documentRef = document) {
   const nodeSelect = byId("managementTargetNode", documentRef);
   clearElement(bindingSelect);
   clearElement(nodeSelect);
+  const observations = buildPhysicalConnectionObservations({
+    adapters: managementState.adapters,
+    runtimes: managementState.runtimes,
+    devices: managementState.devices,
+    nodeName: managementState.selectedNodeName,
+  });
 
   bindings.forEach((binding) => {
     const option = documentRef.createElement("option");
     option.value = binding.bindingId;
-    option.textContent = binding.devicePath
+    const baseLabel = binding.devicePath
       ? `${binding.displayName} · ${binding.devicePath}`
       : binding.displayName;
+    const observation = observations.find(
+      (item) => item.bindingId === binding.bindingId,
+    );
+    option.textContent = observation
+      ? `${baseLabel} · ${koreanLabel("presence", observation.presenceState)}`
+      : `${baseLabel} · 관측 근거 없음`;
     option.dataset.nodeName = binding.nodeName;
     bindingSelect?.appendChild(option);
   });
@@ -1208,7 +1634,7 @@ function renderProtocolFields(documentRef = document) {
     if (applyButton) applyButton.disabled = true;
     const adapterNote = byId("managementAdapterNote", documentRef);
     if (adapterNote) {
-      adapterNote.textContent = "선택한 노드에 승인된 어댑터가 없습니다.";
+      adapterNote.textContent = "선택한 노드에 사용할 수 있는 검증 패키지가 없습니다.";
       adapterNote.dataset.status = "unavailable";
     }
     return;
@@ -1251,7 +1677,9 @@ function renderProtocolFields(documentRef = document) {
   const adapterNote = byId("managementAdapterNote", documentRef);
   if (adapterNote) {
     adapterNote.textContent = adapterCanApply(adapter)
-      ? `${adapter.serviceName}에 프로필과 디바이스를 등록합니다.`
+      ? adapter.status === "installable"
+        ? `검증된 ${adapter.serviceName} 패키지를 설치한 뒤 프로필과 디바이스를 등록합니다.`
+        : `${adapter.serviceName}에 프로필과 디바이스를 등록합니다.`
       : adapter.status === "installed" && adapter.mutationEnabled !== true
         ? `${adapter.serviceName}는 검증만 가능합니다. 관리 변경 기능이 비활성화되어 있습니다.`
       : adapter.reason || "현재 적용할 수 없는 어댑터입니다.";
@@ -1357,7 +1785,7 @@ function renderManagementValidation(result, documentRef = document) {
       "management-plan",
       `런타임: ${{
         REUSE: "기존 런타임 재사용",
-        DEPLOY: "승인 런타임 배포",
+        DEPLOY: "검증된 런타임 배포",
         BLOCKED: "실행 차단",
       }[runtimePlan.action] || runtimePlan.action} · ${runtimePlan.runtimeName || "미할당"} · `
         + `${runtimePlan.serviceName || "서비스 없음"} · `
@@ -1549,6 +1977,7 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   renderManagementNodes(documentRef);
   renderAdapterOptions(documentRef);
   renderAdapterCatalog(documentRef);
+  renderPhysicalConnections(documentRef);
   renderRuntimeInventory(documentRef);
   renderManagedDevices(documentRef);
   renderMutationMode(documentRef);
@@ -1591,6 +2020,27 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       setRegistrationStep(1, documentRef);
     });
   });
+  byId("managementOverviewPanel", documentRef)?.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-management-select-adapter]");
+    if (!button) return;
+    const adapter = managementState.adapters.find(
+      (item) => item.adapterId === button.dataset.managementSelectAdapter,
+    );
+    if (!adapter || !adapterSupportsNode(adapter, managementState.selectedNodeName)) return;
+    managementState.selectedAdapterId = adapter.adapterId;
+    managementState.validation = null;
+    renderAdapterOptions(documentRef);
+    renderRuntimeSelection(documentRef);
+    const modeSelect = byId("managementRuntimeMode", documentRef);
+    if (modeSelect) {
+      modeSelect.value = adapter.status === "installable" ? "deploy" : "reuse";
+    }
+    renderProtocolFields(documentRef);
+    renderRegistrationReview(documentRef);
+    clearElement(byId("managementValidation", documentRef));
+    setManagementView("register", documentRef);
+    setRegistrationStep(1, documentRef);
+  });
   byId("managementRegistrationStepper", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-step]");
     if (button) setRegistrationStep(button.dataset.managementStep, documentRef);
@@ -1627,6 +2077,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderManagementNodes(documentRef);
     renderAdapterOptions(documentRef);
     renderAdapterCatalog(documentRef);
+    renderPhysicalConnections(documentRef);
     renderRuntimeInventory(documentRef);
     renderManagedDevices(documentRef);
     renderRuntimeSelection(documentRef);
@@ -1689,6 +2140,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         managementState.operation = await pollConnectionOperation(operation.requestId, {fetchFn});
         renderOperation(managementState.operation, documentRef);
       }
+      await loadDeviceManagement(documentRef, fetchFn);
     } catch (error) {
       renderManagementError(error, documentRef);
     }
@@ -1756,6 +2208,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         fetchFn,
       });
       renderOperation(result, documentRef);
+      await loadDeviceManagement(documentRef, fetchFn);
     } catch (error) {
       renderManagementError(error, documentRef);
     }
@@ -1781,6 +2234,7 @@ if (typeof module !== "undefined") {
     adapterSelectionOptions,
     adapterSupportsNode,
     bindingProtocolValue,
+    buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     canPatchSelectedDevice,
     connectionStatusView,
@@ -1800,6 +2254,7 @@ if (typeof module !== "undefined") {
     planAdapterRuntime,
     pollConnectionOperation,
     pollManagementOperation,
+    protocolPackageStatus,
     restartAdapterRuntime,
     retireAdapterRuntime,
     runtimeCanMutate,

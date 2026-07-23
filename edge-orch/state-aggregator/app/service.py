@@ -344,11 +344,25 @@ class StateAggregatorService:
             latest_readings=readings,
             telemetry_freshness=freshness,
             node_name=device.node_name,
+            physical_device_id=self._identity_tag(
+                device.tags, "physicalDeviceId"
+            ),
+            hardware_binding_id=self._identity_tag(
+                device.tags, "hardwareBindingId"
+            ),
         )
         overall_status, reason = self._device_health(state)
         return state.model_copy(
             update={"overall_status": overall_status, "reason": reason}
         )
+
+    @staticmethod
+    def _identity_tag(tags: dict[str, Any], name: str) -> str | None:
+        value = tags.get(name)
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     def _device_health(self, device: DeviceState) -> tuple[str, str]:
         if device.admin_state.upper() == "LOCKED":

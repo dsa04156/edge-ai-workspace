@@ -259,7 +259,7 @@ class AdapterStatusView(ManagementModel):
     service_name: str | None = None
     protocol_name: str
     node_name: str | None = None
-    status: Literal["installed", "unavailable", "unsupported"]
+    status: Literal["installed", "installable", "unavailable", "unsupported"]
     mutation_enabled: bool = False
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)

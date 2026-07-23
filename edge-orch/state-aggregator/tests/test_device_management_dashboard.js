@@ -9,6 +9,7 @@ const {
   adapterSelectionOptions,
   adapterSupportsNode,
   bindingProtocolValue,
+  buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -28,6 +29,7 @@ const {
   planAdapterRuntime,
   pollConnectionOperation,
   pollManagementOperation,
+  protocolPackageStatus,
   restartAdapterRuntime,
   retireAdapterRuntime,
   runtimeCanMutate,
@@ -45,8 +47,10 @@ function response(payload, {ok = true, status = 200} = {}) {
 }
 
 
-test("only installed runtime adapters can be applied", () => {
+test("only mutable installed or verified installable adapters can be applied", () => {
   assert.equal(adapterCanApply({status: "installed", mutationEnabled: true}), true);
+  assert.equal(adapterCanApply({status: "installable", mutationEnabled: true}), true);
+  assert.equal(adapterCanApply({status: "installable", mutationEnabled: false}), false);
   assert.equal(adapterCanApply({status: "installed", mutationEnabled: false}), false);
   assert.equal(adapterCanApply({status: "unavailable", mutationEnabled: true}), false);
   assert.equal(adapterCanApply({status: "unsupported", mutationEnabled: true}), false);
@@ -256,12 +260,12 @@ test("protocol choices stay visible while only node-ready Device Services are se
       {
         adapterId: "serial-jetson",
         enabled: true,
-        availability: "현재 연결 가능",
+        availability: "기존 Device Service 재사용",
       },
       {
         adapterId: "sensehat-raspi",
         enabled: false,
-        availability: "이 노드에 승인된 연결 없음",
+        availability: "다른 노드에만 연결 등록됨",
       },
       {
         adapterId: "modbus",
@@ -269,6 +273,183 @@ test("protocol choices stay visible while only node-ready Device Services are se
         availability: "지원 준비 필요",
       },
     ],
+  );
+});
+
+
+test("physical connection observation separates registration, presence, communication, and data", () => {
+  const adapters = [{
+    adapterId: "serial-jetson",
+    displayName: "Jetson Arduino Serial",
+    serviceName: "device-serial-jetson",
+    protocolName: "serial",
+    status: "installed",
+    runtime: {
+      hardwareBindings: [{
+        bindingId: "jetson-arduino-serial-001",
+        displayName: "Jetson Arduino USB Serial",
+        nodeName: "edge-a",
+        devicePath: "/dev/arduino-001",
+        protocolProperties: {
+          Port: "/dev/arduino-001",
+          BaudRate: 115200,
+          DeviceID: "arduino-001",
+        },
+      }],
+    },
+  }];
+  const runtimes = [{
+    adapterId: "serial-jetson",
+    runtimeName: "device-serial-jetson",
+    serviceName: "device-serial-jetson",
+    targetNode: "edge-a",
+    hardwareBindingId: "jetson-arduino-serial-001",
+    hardwareBindingIds: ["jetson-arduino-serial-001"],
+    phase: "SERVICE_READY",
+    edgeXServiceObserved: true,
+  }];
+  const devices = [{
+    name: "virtual-temperature-001",
+    node_name: "edge-a",
+    device_service_name: "device-serial-jetson",
+    protocol_names: ["serial"],
+    physical_device_id: "arduino-001",
+    hardware_binding_id: "jetson-arduino-serial-001",
+    admin_state: "UNLOCKED",
+    operating_state: "UP",
+    telemetry_freshness: "fresh",
+    latest_event_timestamp: "2026-07-23T10:00:00Z",
+  }];
+
+  const [observed] = buildPhysicalConnectionObservations({
+    adapters,
+    runtimes,
+    devices,
+    nodeName: "edge-a",
+  });
+
+  assert.equal(observed.registrationState, "registered");
+  assert.equal(observed.presenceState, "detected");
+  assert.equal(observed.communicationState, "connected");
+  assert.equal(observed.telemetryState, "fresh");
+  assert.equal(observed.runtimeState, "ready");
+  assert.equal(observed.deviceCount, 1);
+  assert.deepEqual(observed.deviceNames, ["virtual-temperature-001"]);
+  assert.match(observed.reason, /Device Service 연결과 최신 Event/);
+});
+
+
+test("registered connection does not claim physical presence without EdgeX evidence", () => {
+  const adapters = [{
+    adapterId: "serial-jetson",
+    serviceName: "device-serial-jetson",
+    protocolName: "serial",
+    status: "installed",
+    runtime: {
+      hardwareBindings: [{
+        bindingId: "edge-a-serial",
+        displayName: "Serial candidate",
+        nodeName: "edge-a",
+        protocolProperties: {DeviceID: "sensor-01"},
+      }],
+    },
+  }];
+
+  const [unknown] = buildPhysicalConnectionObservations({
+    adapters,
+    runtimes: [],
+    devices: [],
+    nodeName: "edge-a",
+  });
+  assert.equal(unknown.registrationState, "registered");
+  assert.equal(unknown.presenceState, "unknown");
+  assert.equal(unknown.communicationState, "unknown");
+  assert.equal(unknown.telemetryState, "unknown");
+  assert.match(unknown.reason, /등록되어 있지만 실제 장비 관측 증거가 없습니다/);
+
+  const [down] = buildPhysicalConnectionObservations({
+    adapters,
+    runtimes: [{
+      adapterId: "serial-jetson",
+      runtimeName: "device-serial-jetson",
+      serviceName: "device-serial-jetson",
+      targetNode: "edge-a",
+      hardwareBindingIds: ["edge-a-serial"],
+      phase: "SERVICE_READY",
+      edgeXServiceObserved: true,
+    }],
+    devices: [{
+      name: "virtual-sensor-01",
+      node_name: "edge-a",
+      device_service_name: "device-serial-jetson",
+      protocol_names: ["serial"],
+      physical_device_id: "sensor-01",
+      operating_state: "DOWN",
+      admin_state: "UNLOCKED",
+      telemetry_freshness: "no_events",
+    }],
+    nodeName: "edge-a",
+  });
+  assert.equal(down.presenceState, "not_detected");
+  assert.equal(down.communicationState, "disconnected");
+  assert.equal(down.telemetryState, "missing");
+});
+
+
+test("protocol package state distinguishes reuse, install, connection registration, and verification", () => {
+  const reusable = {
+    adapterId: "serial",
+    status: "installed",
+    runtime: {
+      verificationState: "hardware-verified",
+      deploymentEnabled: false,
+      hardwareBindings: [{bindingId: "serial-a", nodeName: "edge-a"}],
+    },
+  };
+  const installable = {
+    adapterId: "modbus",
+    status: "installable",
+    runtime: {
+      verificationState: "template-verified",
+      deploymentEnabled: true,
+      hardwareBindings: [{bindingId: "modbus-a", nodeName: "edge-a"}],
+    },
+  };
+  const unverified = {
+    adapterId: "opcua",
+    status: "unsupported",
+    runtime: {
+      verificationState: "unverified",
+      deploymentEnabled: false,
+      hardwareBindings: [],
+    },
+  };
+
+  assert.deepEqual(
+    protocolPackageStatus(reusable, "edge-a", []),
+    {
+      state: "reuse_ready",
+      action: "reuse",
+      label: "재사용 가능",
+      reason: "등록된 Device Service와 물리 연결을 재사용합니다.",
+    },
+  );
+  assert.deepEqual(
+    protocolPackageStatus(installable, "edge-a", []),
+    {
+      state: "install_ready",
+      action: "install",
+      label: "설치 가능",
+      reason: "검증된 Device Service 패키지를 이 노드에 설치할 수 있습니다.",
+    },
+  );
+  assert.equal(
+    protocolPackageStatus(reusable, "edge-b", []).state,
+    "connection_required",
+  );
+  assert.equal(
+    protocolPackageStatus(unverified, "edge-a", []).state,
+    "verification_required",
   );
 });
 
@@ -632,6 +813,8 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementNodeList",
     "managementSelectedNode",
     "managementAdapterList",
+    "managementPhysicalConnectionList",
+    "managementConnectionLegend",
     "managementRuntimeList",
     "managementRuntimeMode",
     "managementTargetNode",
@@ -662,17 +845,20 @@ test("dashboard ships an accessible session-only device management page", () => 
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=protocol-first-v2-20260723/);
-  assert.match(html, /device-management\.js\?v=protocol-first-v2-20260723/);
+  assert.match(html, /device-management\.css\?v=connection-evidence-v1-20260723/);
+  assert.match(html, /device-management\.js\?v=connection-evidence-v1-20260723/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);
   assert.match(html, /선택 노드의 런타임/);
+  assert.match(html, /등록 연결과 실제 장비 상태/);
   assert.match(html, /연결 구성 마법사/);
   assert.match(html, /새 디바이스 등록/);
   assert.match(html, /연결 프로토콜 · Device Service/);
   assert.match(html, /Device Service 준비 방식/);
-  assert.match(html, /지원 예정 프로토콜/);
+  assert.match(html, /설치 전 확인이 필요한 프로토콜/);
+  assert.match(html, /등록된 물리 연결/);
+  assert.doesNotMatch(html, /승인된 하드웨어 연결/);
   assert.match(html, /기존 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
@@ -680,11 +866,12 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(css, /\.management-stepper/);
   assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-runtime-card/);
+  assert.match(css, /\.management-physical-card/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
   assert.match(javascript, /function renderManagementValidation\(/);
   assert.match(javascript, /function renderRuntimeInventory\(/);
-  assert.match(javascript, /승인 물리 연결/);
+  assert.match(javascript, /등록 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
 });

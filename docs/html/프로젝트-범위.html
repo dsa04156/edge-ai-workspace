@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-23 18:18</span>
-            <span class="badge">HTML 생성: 2026-07-23 18:42</span>
+            <span class="badge">수정: 2026-07-23 19:30</span>
+            <span class="badge">HTML 생성: 2026-07-23 19:38</span>
           </div>
         </header>
         <div class="doc-body">
@@ -218,27 +218,29 @@
 <p>첫 서비스 데모 consumer는 <code>edge-orch/sensor-anomaly-demo/</code>다. 이 고정 Deployment는 <code>etri-dev0001-jetorn</code>에서 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>의 Local Data API를 500ms마다 조회한다. <code>virtual-acceleration-{x,y,z}-001</code>의 같은 nanosecond <code>origin</code>을 한 frame으로 결합하고, 30개 warm-up 뒤 online Gaussian baseline으로 magnitude 변화 점수를 계산한다. 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니며, 실제 장치를 움직여 anomaly가 발생하는 현장 실증은 별도 gate다.</p>
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → 세 EdgeX Device → AI consumer binding을 read-only로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
 <h3 id="대시보드-노드별-adapter-runtime과-device-연결-관리">대시보드 노드별 Adapter Runtime과 Device 연결 관리</h3>
-<p><code>state-aggregator</code>의 <code>디바이스 관리</code> 화면은 운영자가 KubeEdge 노드를 먼저 선택하고, 그 노드의 Adapter Runtime과 EdgeX Device 연결을 한 흐름으로 관리하는 Current 경로다. <code>GET /state/nodes</code>, Runtime <code>targetNode</code>, Device <code>node_name</code>/<code>tags.nodeName</code>과 승인 hardware binding을 하나의 노드 범위로 합성하되, 이 합성은 배치·운영 탐색용이다. 브라우저는 Kubernetes API에 직접 접근하지 않으며, <code>state-aggregator</code>가 내부 HMAC으로 별도 <code>edgex-adapter-controller</code>를 호출한다. Controller는 Git에서 승인한 template와 hardware binding만 <code>edgex-edge</code> namespace에 reconcile한다. Profile, Device와 Device Service binding의 권위는 Core Metadata, 첫 Event와 Reading의 권위는 Core Data에 그대로 남는다.</p>
+<p><code>state-aggregator</code>의 <code>디바이스 관리</code> 화면은 운영자가 KubeEdge 노드를 먼저 선택하고, 그 노드의 Adapter Runtime과 EdgeX Device 연결을 한 흐름으로 관리하는 Current 경로다. <code>GET /state/nodes</code>, Runtime <code>targetNode</code>, Device <code>node_name</code>/<code>tags.nodeName</code>과 등록 hardware binding을 하나의 노드 범위로 합성하되, 이 합성은 배치·운영 탐색용이다. 브라우저는 Kubernetes API에 직접 접근하지 않으며, <code>state-aggregator</code>가 내부 HMAC으로 별도 <code>edgex-adapter-controller</code>를 호출한다. Controller는 Git에서 검증·등록한 template와 hardware binding만 <code>edgex-edge</code> namespace에 reconcile한다. Profile, Device와 Device Service binding의 권위는 Core Metadata, 첫 Event와 Reading의 권위는 Core Data에 그대로 남는다.</p>
 <ul><li>Runtime inventory, 재사용·배포 plan과 통합 connection validation은 mutation 없는 조회다.</li><li><code>POST /management/connections</code>, runtime restart/retire와 기존 Device allowlist <code>PATCH</code>는</li></ul>
 <p>관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다.</p>
 <ul><li>현재 운영 manifest는 <code>DEVICE_MANAGEMENT_ENABLED=true</code>,</li></ul>
 <p><code>ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true</code>, <code>ADAPTER_RUNTIME_MUTATION_ENABLED=true</code>로 관리 경로를 활성화하되, token과 HMAC key 세 개가 namespace별 <code>edgex-adapter-management-auth</code> Secret에 없으면 Pod가 시작하지 않는다.</p>
 <ul><li>기존 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 Argo CD 소유 external runtime이다.</li></ul>
-<p>대시보드는 상태·consumer와 runtime이 소유한 승인 hardware binding 목록을 조회한다. 요청한 binding이 목록에 있으면 같은 protocol runtime을 재사용하지만 재시작하거나 퇴역하지 않는다.</p>
+<p>대시보드는 상태·consumer와 runtime이 소유한 등록 hardware binding 목록을 조회한다. 요청한 binding이 목록에 있으면 같은 protocol runtime을 재사용하지만 재시작하거나 퇴역하지 않는다.</p>
 <ul><li>Controller가 만든 <code>AdapterRuntime</code>만 재시작할 수 있다. EdgeX Device consumer가 0개이고</li></ul>
 <p>exact runtime 이름 확인이 일치할 때만 퇴역한다.</p>
-<ul><li>노드 카드를 바꾸면 Runtime inventory, 승인 Adapter 목록, hardware binding과 기존 EdgeX</li></ul>
-<p>Device 목록이 같은 선택 노드 범위로 함께 바뀐다. 연결 마법사의 target node는 노드 카드 선택으로 고정하며 임의 입력할 수 없다.</p>
+<ul><li>노드 카드를 바꾸면 등록 연결/장비 관측/통신/데이터 증거, Runtime inventory, protocol</li></ul>
+<p>package, hardware binding과 기존 EdgeX Device 목록이 같은 선택 노드 범위로 함께 바뀐다. 연결 마법사의 target node는 노드 카드 선택으로 고정하며 임의 입력할 수 없다.</p>
 <ul><li>등록 마법사는 protocol/Device Service를 먼저 고른 뒤 hardware binding과 Runtime 준비</li></ul>
 <p>방식을 고른다. 현재 노드에서 사용할 수 없는 installed Adapter와 미검증 protocol도 선택 목록에는 이유와 함께 보이지만 비활성화된다.</p>
-<ul><li>API 요청은 <code>adapterId</code>, runtime mode, 승인된 target node/hardware binding, Device/Profile</li></ul>
+<ul><li>API 요청은 <code>adapterId</code>, runtime mode, 등록된 target node/hardware binding, Device/Profile</li></ul>
 <p>계약만 받는다. 임의 image, command, privilege, raw hostPath, hostNetwork, 고정 ClusterIP/PodIP는 받지 않는다.</p>
 <ul><li>각 hardware binding은 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code> 또는 <code>Bus</code>/<code>DeviceID</code>처럼</li></ul>
-<p><code>reusePolicy.bindingFields</code>와 정확히 일치하는 <code>protocolProperties</code>를 가진다. 서버는 요청 protocol tuple이 승인 binding과 일치하는지 다시 검증한다.</p>
-<ul><li>Serial/I2C template는 실장비 검증 상태와 기존 runtime을 표시하지만 현재 승인 binding을</li></ul>
+<p><code>reusePolicy.bindingFields</code>와 정확히 일치하는 <code>protocolProperties</code>를 가진다. 서버는 요청 protocol tuple이 등록 binding과 일치하는지 다시 검증한다.</p>
+<ul><li>Serial/I2C template는 실장비 검증 상태와 기존 runtime을 표시하지만 현재 등록 binding을</li></ul>
 <p>Argo runtime이 점유하므로 <code>auto</code>는 재사용한다. Modbus, OPC-UA, MQTT와 RTSP는 image, profile, 실장비 검증 전까지 <code>unverified</code>/<code>BLOCKED</code>이며 배포 가능 기능으로 표시하지 않는다.</p>
+<ul><li>신규 connection은 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 EdgeX Device</li></ul>
+<p>system tag로 기록한다. 연결 등록만으로 물리 장비가 감지됐다고 판단하지 않고 <code>operatingState</code>와 latest Event를 별도 증거로 표시한다.</p>
 <ul><li>Serial driver는 <code>(Port, BaudRate, DeviceID)</code>별 reader를 만들고 같은 tuple의 여러</li></ul>
-<p><code>ResourceName</code>은 reader를 공유한다. 두 번째 승인 Serial 포트도 같은 Device Service가 처리하므로 센서마다 Pod를 만들지 않는다. 다만 실제 포트를 추가할 때는 stable host identity, exact Pod 장치 마운트, 두 catalog의 binding과 external runtime <code>hardwareBindingIds</code>를 같은 Git 변경으로 등록해야 한다.</p>
+<p><code>ResourceName</code>은 reader를 공유한다. 두 번째 등록 Serial 포트도 같은 Device Service가 처리하므로 센서마다 Pod를 만들지 않는다. 다만 실제 포트를 추가할 때는 stable host identity, exact Pod 장치 마운트, 두 catalog의 binding과 external runtime <code>hardwareBindingIds</code>를 같은 Git 변경으로 등록해야 한다.</p>
 <ul><li>같은 service/protocol endpoint와 resource route를 이미 소유한 Device가 있으면</li></ul>
 <p><code>protocol_binding_exists</code>로 차단한다.</p>
 <ul><li>Connection 상태는 <code>RUNTIME_READY → DEVICE_APPLIED → WAITING_EVENT → ACTIVE</code>를 구분한다.</li></ul>
