@@ -16,6 +16,8 @@ const managementState = {
   selectedNodeName: "",
   selectedAdapterId: "",
   selectedPatchDeviceName: "",
+  activeView: "overview",
+  registrationStep: 1,
   nodeLoadError: null,
   runtimePlan: null,
   runtimeLoadError: null,
@@ -201,6 +203,37 @@ function adapterCanApply(adapter) {
 
 function canPatchSelectedDevice(mutationEnabled, selectedDeviceName) {
   return Boolean(mutationEnabled && selectedDeviceName);
+}
+
+
+function normalizeManagementView(view) {
+  return ["overview", "register", "edit"].includes(view) ? view : "overview";
+}
+
+
+function normalizeRegistrationStep(step) {
+  const parsed = Number(step);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 4 ? parsed : 1;
+}
+
+
+function managementTabIndexForKey(key, currentIndex, tabCount) {
+  if (
+    !Number.isInteger(currentIndex)
+    || currentIndex < 0
+    || !Number.isInteger(tabCount)
+    || tabCount < 1
+    || currentIndex >= tabCount
+  ) return null;
+  if (key === "Home") return 0;
+  if (key === "End") return tabCount - 1;
+  if (key === "ArrowRight" || key === "ArrowDown") {
+    return (currentIndex + 1) % tabCount;
+  }
+  if (key === "ArrowLeft" || key === "ArrowUp") {
+    return (currentIndex - 1 + tabCount) % tabCount;
+  }
+  return null;
 }
 
 
@@ -558,6 +591,71 @@ function clearElement(element) {
 }
 
 
+function renderManagementView(documentRef = document) {
+  const activeView = normalizeManagementView(managementState.activeView);
+  managementState.activeView = activeView;
+  documentRef.querySelectorAll?.("[data-management-view]").forEach((button) => {
+    const selected = button.dataset.managementView === activeView;
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+  documentRef.querySelectorAll?.("[data-management-view-panel]").forEach((panel) => {
+    const selected = panel.dataset.managementViewPanel === activeView;
+    panel.hidden = !selected;
+    panel.setAttribute("aria-hidden", String(!selected));
+  });
+}
+
+
+function setManagementView(view, documentRef = document) {
+  managementState.activeView = normalizeManagementView(view);
+  renderManagementView(documentRef);
+}
+
+
+function renderRegistrationReview(documentRef = document) {
+  const adapter = selectedAdapter();
+  const binding = byId("managementHardwareBinding", documentRef)?.selectedOptions?.[0];
+  const deviceName = byId("managementDeviceName", documentRef)?.value.trim() || "이름 입력 전";
+  const profileName = byId("managementProfileName", documentRef)?.value.trim() || "프로필 선택 전";
+  const values = {
+    managementReviewNode: managementState.selectedNodeName || "노드 선택 전",
+    managementReviewAdapter: adapter?.displayName || "어댑터 선택 전",
+    managementReviewBinding: binding?.textContent || "하드웨어 연결 선택 전",
+    managementReviewDevice: `${deviceName} / ${profileName}`,
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const element = byId(id, documentRef);
+    if (element) element.textContent = value;
+  });
+}
+
+
+function renderRegistrationStep(documentRef = document) {
+  const activeStep = normalizeRegistrationStep(managementState.registrationStep);
+  managementState.registrationStep = activeStep;
+  documentRef.querySelectorAll?.("[data-management-step]").forEach((button) => {
+    const step = normalizeRegistrationStep(button.dataset.managementStep);
+    const selected = step === activeStep;
+    button.dataset.state = step < activeStep ? "complete" : selected ? "current" : "upcoming";
+    if (selected) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  });
+  documentRef.querySelectorAll?.("[data-management-step-panel]").forEach((panel) => {
+    const selected = Number(panel.dataset.managementStepPanel) === activeStep;
+    panel.hidden = !selected;
+    panel.setAttribute("aria-hidden", String(!selected));
+  });
+  if (activeStep === 4) renderRegistrationReview(documentRef);
+}
+
+
+function setRegistrationStep(step, documentRef = document) {
+  managementState.registrationStep = normalizeRegistrationStep(step);
+  renderRegistrationStep(documentRef);
+}
+
+
 function appendTextElement(parent, tagName, className, text) {
   const element = parent.ownerDocument.createElement(tagName);
   if (className) element.className = className;
@@ -664,11 +762,14 @@ function renderAdapterOptions(documentRef = document) {
 
 function renderAdapterCatalog(documentRef = document) {
   const container = byId("managementAdapterList", documentRef);
+  const unsupportedContainer = byId("managementUnsupportedAdapterList", documentRef);
   clearElement(container);
+  clearElement(unsupportedContainer);
   const visibleAdapters = managementState.adapters.filter(
     (adapter) => adapter.status !== "installed"
       || adapterSupportsNode(adapter, managementState.selectedNodeName),
   );
+  let primaryCount = 0;
   visibleAdapters.forEach((adapter) => {
     const card = documentRef.createElement("article");
     card.className = "management-adapter-card";
@@ -688,8 +789,21 @@ function renderAdapterCatalog(documentRef = document) {
         ? `${adapter.serviceName} · ${adapter.protocolName}`
         : adapter.reason || "Device Service가 검증되지 않았습니다.",
     );
-    container?.appendChild(card);
+    if (adapter.status === "unsupported") {
+      unsupportedContainer?.appendChild(card);
+    } else {
+      primaryCount += 1;
+      container?.appendChild(card);
+    }
   });
+  if (!primaryCount && container) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      "선택한 노드에서 지금 연결할 수 있는 어댑터가 없습니다.",
+    );
+  }
 }
 
 
@@ -784,7 +898,15 @@ function renderRuntimeInventory(documentRef = document) {
 
 function renderManagedDevices(documentRef = document) {
   const container = byId("managedDeviceList", documentRef);
+  const selector = byId("managementPatchDeviceSelect", documentRef);
   clearElement(container);
+  clearElement(selector);
+  if (selector) {
+    const placeholder = documentRef.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "디바이스를 선택하세요";
+    selector.appendChild(placeholder);
+  }
   const devices = managementState.devices.filter(
     (device) => managementDeviceNode(device) === managementState.selectedNodeName,
   );
@@ -800,6 +922,13 @@ function renderManagedDevices(documentRef = document) {
     return;
   }
   devices.forEach((device) => {
+    if (selector) {
+      const option = documentRef.createElement("option");
+      option.value = device.name;
+      option.textContent = device.name;
+      option.selected = device.name === managementState.selectedPatchDeviceName;
+      selector.appendChild(option);
+    }
     const row = documentRef.createElement("article");
     row.className = "managed-device-row";
     const identity = documentRef.createElement("div");
@@ -825,7 +954,7 @@ function renderManagedDevices(documentRef = document) {
     const button = documentRef.createElement("button");
     button.type = "button";
     button.dataset.managementEditDevice = device.name;
-    button.textContent = "수정 대상으로 선택";
+    button.textContent = "수정";
     row.append(identity, button);
     container?.appendChild(row);
   });
@@ -1180,10 +1309,14 @@ function updateProfileMode(documentRef = document) {
 function setSelectedPatchDevice(name, documentRef = document) {
   const device = managementState.devices.find((item) => item.name === name);
   managementState.selectedPatchDeviceName = device?.name || "";
-  byId("patchDeviceName", documentRef).value = name || "";
+  byId("patchDeviceName", documentRef).value = device?.name || "";
   byId("patchDeviceDescription", documentRef).value = device?.description || "";
   byId("patchDeviceAdminState", documentRef).value = device?.admin_state || "UNLOCKED";
   byId("patchDeviceLabels", documentRef).value = (device?.labels || []).join(", ");
+  byId("patchDeviceTags", documentRef).value = "";
+  byId("patchDeviceProtocol", documentRef).value = "";
+  const selector = byId("managementPatchDeviceSelect", documentRef);
+  if (selector) selector.value = device?.name || "";
   renderMutationMode(documentRef);
 }
 
@@ -1265,17 +1398,65 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   renderProtocolFields(documentRef);
   ensureIdempotencyInput(byId("managementIdempotencyKey", documentRef));
   ensureIdempotencyInput(byId("patchIdempotencyKey", documentRef));
+  renderRegistrationReview(documentRef);
+  renderManagementView(documentRef);
+  renderRegistrationStep(documentRef);
 }
 
 
 function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   const adapterSelect = byId("managementAdapter", documentRef);
   if (!adapterSelect) return;
+  const managementTabs = byId("managementViewTabs", documentRef);
+  managementTabs?.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-management-view]");
+    if (button) setManagementView(button.dataset.managementView, documentRef);
+  });
+  managementTabs?.addEventListener("keydown", (event) => {
+    const button = event.target.closest?.("[data-management-view]");
+    if (!button) return;
+    const tabs = [...managementTabs.querySelectorAll("[data-management-view]")];
+    const nextIndex = managementTabIndexForKey(
+      event.key,
+      tabs.indexOf(button),
+      tabs.length,
+    );
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    setManagementView(nextTab.dataset.managementView, documentRef);
+    nextTab.focus();
+  });
+  documentRef.querySelectorAll?.("[data-management-open-register]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setManagementView("register", documentRef);
+      setRegistrationStep(1, documentRef);
+    });
+  });
+  byId("managementRegistrationStepper", documentRef)?.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-management-step]");
+    if (button) setRegistrationStep(button.dataset.managementStep, documentRef);
+  });
+  byId("deviceOnboardingForm", documentRef)?.addEventListener("click", (event) => {
+    if (event.target.closest?.("[data-management-next-step]")) {
+      setRegistrationStep(managementState.registrationStep + 1, documentRef);
+    }
+    if (event.target.closest?.("[data-management-previous-step]")) {
+      setRegistrationStep(managementState.registrationStep - 1, documentRef);
+    }
+  });
+  byId("deviceOnboardingForm", documentRef)?.addEventListener("input", () => {
+    renderRegistrationReview(documentRef);
+  });
+  byId("deviceOnboardingForm", documentRef)?.addEventListener("change", () => {
+    renderRegistrationReview(documentRef);
+  });
   adapterSelect.addEventListener("change", () => {
     managementState.selectedAdapterId = adapterSelect.value;
     managementState.validation = null;
     renderProtocolFields(documentRef);
     renderRuntimeSelection(documentRef);
+    renderRegistrationReview(documentRef);
     clearElement(byId("managementValidation", documentRef));
   });
   byId("managementNodeList", documentRef)?.addEventListener("click", (event) => {
@@ -1294,10 +1475,12 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderProtocolFields(documentRef);
     clearElement(byId("managementValidation", documentRef));
     setSelectedPatchDevice("", documentRef);
+    renderRegistrationReview(documentRef);
   });
   byId("managementHardwareBinding", documentRef)?.addEventListener("change", () => {
     syncRuntimeNodeFromBinding(documentRef);
     managementState.validation = null;
+    renderRegistrationReview(documentRef);
     const applyButton = byId("managementApply", documentRef);
     if (applyButton) applyButton.disabled = true;
   });
@@ -1357,7 +1540,13 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managedDeviceList", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-edit-device]");
-    if (button) setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
+    if (button) {
+      setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
+      setManagementView("edit", documentRef);
+    }
+  });
+  byId("managementPatchDeviceSelect", documentRef)?.addEventListener("change", (event) => {
+    setSelectedPatchDevice(event.target.value, documentRef);
   });
   byId("managementRuntimeList", documentRef)?.addEventListener("click", async (event) => {
     const button = event.target.closest?.("[data-runtime-action]");
@@ -1412,6 +1601,8 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     }
   });
   updateProfileMode(documentRef);
+  renderManagementView(documentRef);
+  renderRegistrationStep(documentRef);
   loadDeviceManagement(documentRef, fetchFn).catch((error) => {
     renderManagementError(error, documentRef);
   });
@@ -1438,6 +1629,9 @@ if (typeof module !== "undefined") {
     fetchManagementNodes,
     fetchManagementOperation,
     managementDeviceNode,
+    managementTabIndexForKey,
+    normalizeManagementView,
+    normalizeRegistrationStep,
     operationStatusView,
     patchManagementDevice,
     planAdapterRuntime,

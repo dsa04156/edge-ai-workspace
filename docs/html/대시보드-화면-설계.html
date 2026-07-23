@@ -147,12 +147,12 @@
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
           <h1>대시보드 화면 설계</h1>
-          <p class="subtitle">Device consumer 수를 먼저 보여 준다.</p>
+          <p class="subtitle">actuator command, EdgeMesh/KubeEdge Device CRD 변경, runtime migration, a…</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 대시보드-화면-설계.md</span>
-            <span class="badge">수정: 2026-07-23 15:21</span>
-            <span class="badge">HTML 생성: 2026-07-23 17:06</span>
+            <span class="badge">수정: 2026-07-23 17:48</span>
+            <span class="badge">HTML 생성: 2026-07-23 17:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -168,14 +168,7 @@
 <h2 id="ai-pipeline">AI Pipeline</h2>
 <ul><li>Summary strip으로 등록 디바이스, availability, telemetry freshness, validation 상태를 먼저 보여준다.</li><li>Palette, graph canvas, inspector를 한 작업면으로 묶는다.</li><li>Validation과 Execution Plan은 dry-run preview로만 표시한다.</li></ul>
 <h2 id="device-management">Device Management</h2>
-<ul><li>Adapter Catalog와 Runtime inventory에서 protocol, owner, phase, node, 검증 상태와 EdgeX</li></ul>
-<p>Device consumer 수를 먼저 보여 준다.</p>
-<ul><li>운영자는 runtime mode, catalog가 허용한 target node와 hardware binding만 선택할 수 있다.</li><li>validation은 <code>REUSE</code>·<code>DEPLOY</code>·<code>BLOCKED</code> runtime plan과 EdgeX Profile/Device plan을 한</li></ul>
-<p>화면에 표시하며 mutation을 수행하지 않는다.</p>
-<ul><li><code>Connect Device</code>는 관리자 token과 idempotency key가 있고 validation이 유효할 때만</li></ul>
-<p>활성화한다. 상태는 runtime, Metadata, first Event와 실패 보상을 분리해 표시한다.</p>
-<ul><li>Argo CD 소유 Runtime은 조회·재사용 전용이다. Controller가 만든 Runtime만 restart할 수</li></ul>
-<p>있고 consumer가 0개일 때만 retire할 수 있다.</p>
+<ul><li>화면 상단의 노드 선택은 세 작업 탭에서 유지되는 공통 운영 범위다. 각 노드 카드에는 관측 상태, Runtime 수, EdgeX Device 수와 승인 Adapter 수를 요약한다.</li><li>기본 <code>노드 현황</code> 탭은 Runtime, 설치된 Adapter와 기존 EdgeX Device를 먼저 보여 준다. Runtime owner/phase/consumer와 Device identity를 한눈에 확인하고, 신규 등록과 기존 수정은 별도 작업 탭으로 진입한다.</li><li><code>새 디바이스 등록</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code>의 4단계 마법사다. 현재 단계만 노출하며 마지막 단계에서 등록 요약, 관리자 token, 실행 계획과 first Event 상태를 함께 보여 준다.</li><li><code>기존 디바이스 수정</code>은 선택 노드의 Device를 먼저 선택해야 활성화한다. 이름·프로필·Device Service는 변경하지 않고 allowlist 필드만 수정한다.</li><li>설치되지 않았거나 미검증인 protocol 목록, idempotency key와 protocol properties JSON은 접힌 고급 영역에 둔다. 사용 빈도가 높은 상태 확인과 기본 등록 입력을 먼저 노출한다.</li><li>운영자는 runtime mode, catalog가 허용한 target node와 hardware binding만 선택할 수 있다.</li><li>validation은 <code>REUSE</code>·<code>DEPLOY</code>·<code>BLOCKED</code> runtime plan과 EdgeX Profile/Device plan을 마지막 등록 단계에 표시하며 mutation을 수행하지 않는다.</li><li><code>디바이스 연결</code>은 관리자 token과 idempotency key가 있고 validation이 유효할 때만 활성화한다. 상태는 runtime, Metadata, first Event와 실패 보상을 분리해 표시한다.</li><li>Argo CD 소유 Runtime은 조회·재사용 전용이다. Controller가 만든 Runtime만 restart할 수 있고 consumer가 0개일 때만 retire할 수 있다.</li></ul>
 <h2 id="deferred-resource-augmentation">Deferred Resource Augmentation</h2>
 <ul><li>Resource Augmentation은 기능 재구상 전까지 dashboard navigation과 active page에서 제외한다.</li><li>기존 resource augmentation JS/CSS 자산은 재설계 참고용으로 보관할 수 있지만 운영 화면에서 로드하지 않는다.</li><li>다시 노출하려면 화면 정보 구조, 책임 범위, 검증 기준을 먼저 갱신한다.</li></ul>
 <h2 id="표현-경계">표현 경계</h2>
@@ -183,7 +176,7 @@
 <p>actuator command, EdgeMesh/KubeEdge Device CRD 변경, runtime migration, autonomous orchestration completed.</p>
 <ul><li>자원증강은 재설계 전까지 현재 dashboard 운영 기능으로 표현하지 않는다.</li></ul>
 <h2 id="responsive">Responsive</h2>
-<ul><li>Desktop: dark left resource rail + compact command bar + main workspace + sticky inspector rail.</li><li>Tablet: resource rail은 가로 tab으로 접고 inspector rail을 본문 아래로 내리며, graph는 세로 stack으로 전환한다.</li><li>Mobile: resource rail은 가로 스크롤 tab으로 접히고, metric row와 panel header는 단일열로 전환한다.</li></ul>
+<ul><li>Desktop: dark left resource rail + compact command bar + main workspace + sticky inspector rail.</li><li>Tablet: resource rail은 가로 tab으로 접고 inspector rail을 본문 아래로 내리며, graph는 세로 stack으로 전환한다.</li><li>Mobile: resource rail은 가로 스크롤 tab으로 접히고, metric row와 panel header는 단일열로 전환한다. 노드 카드, 작업 탭과 등록 단계는 세로로 쌓이며 페이지 가로 overflow를 만들지 않는다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

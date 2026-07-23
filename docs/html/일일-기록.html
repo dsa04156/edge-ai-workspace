@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 17:01</span>
-            <span class="badge">HTML 생성: 2026-07-23 17:06</span>
+            <span class="badge">수정: 2026-07-23 17:47</span>
+            <span class="badge">HTML 생성: 2026-07-23 17:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -834,6 +834,43 @@
 <p>viewport의 <code>innerWidth</code>와 <code>scrollWidth</code>는 모두 390이고 console error/warning은 0건이다.</p>
 <ul><li>EdgeMesh는 generation/observed 14, 5/5 Ready,</li></ul>
 <p><code>kubeedge/edgemesh-agent:v1.17.0</code>으로 변하지 않았다.</p>
+<h2 id="2026-07-23-디바이스-관리-화면-가독성-개편">2026-07-23 디바이스 관리 화면 가독성 개편</h2>
+<p>노드별 관리 기능의 동작 범위는 유지하면서 한 페이지에 상태, 등록, 수정 입력이 모두 펼쳐지던 화면을 작업 중심으로 재구성했다.</p>
+<ul><li>선택 노드는 공통 운영 범위로 유지하고 <code>노드 현황</code>, <code>새 디바이스 등록</code>, <code>기존 디바이스 수정</code> 탭을 분리했다.</li><li>기본 현황에는 Runtime, 설치된 Adapter와 선택 노드의 EdgeX Device를 우선 표시한다. 미검증 protocol은 접힌 <code>지원 예정 프로토콜</code> 영역으로 이동했다.</li><li>신규 등록은 연결 선택, 디바이스 정보, 프로필, 검증 및 연결의 4단계로 나눴고 현재 단계만 표시한다. 관리자 token, idempotency와 실행 상태는 마지막 단계에서만 다룬다.</li><li>기존 수정은 Device 선택을 먼저 요구하며 protocol properties JSON은 고급 설정으로 접었다.</li><li>노드 전환 시 Jetson Serial 6개와 Raspberry Pi Sense HAT 6개 Device 선택 목록이 서로 섞이지 않고 갱신된다.</li></ul>
+<h3 id="로컬-검증">로컬 검증</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>상태</th>
+<th>근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>state-aggregator Python</td>
+<td>PASS</td>
+<td>상태·관리 API 170개 테스트 통과</td>
+</tr>
+<tr>
+<td>dashboard JavaScript</td>
+<td>PASS</td>
+<td>관리 탭·등록 단계·키보드 탐색 경계와 기존 기능을 포함한 41개 테스트 통과</td>
+</tr>
+<tr>
+<td>저장소 root Python</td>
+<td>PASS</td>
+<td>dashboard·문서·배포 계약 89개 테스트 통과</td>
+</tr>
+<tr>
+<td>Firefox desktop</td>
+<td>PASS</td>
+<td>세 작업 탭, 4단계 전환, Device 선택 전후 수정 버튼 상태와 노드별 목록 확인</td>
+</tr>
+<tr>
+<td>Firefox 390px</td>
+<td>PASS</td>
+<td><code>innerWidth</code>, body/document <code>scrollWidth</code>가 모두 390이고 console error/warning 0건</td>
+</tr>
+</tbody></table></div>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

@@ -17,6 +17,9 @@ const {
   fetchManagementNodes,
   fetchManagementOperation,
   managementDeviceNode,
+  managementTabIndexForKey,
+  normalizeManagementView,
+  normalizeRegistrationStep,
   operationStatusView,
   patchManagementDevice,
   planAdapterRuntime,
@@ -154,6 +157,29 @@ test("device patch stays disabled until a device in the selected node is chosen"
   assert.equal(canPatchSelectedDevice(true, "virtual-temperature-001"), true);
   assert.equal(canPatchSelectedDevice(true, ""), false);
   assert.equal(canPatchSelectedDevice(false, "virtual-temperature-001"), false);
+});
+
+
+test("management navigation only accepts known views and registration steps", () => {
+  assert.equal(normalizeManagementView("overview"), "overview");
+  assert.equal(normalizeManagementView("register"), "register");
+  assert.equal(normalizeManagementView("edit"), "edit");
+  assert.equal(normalizeManagementView("unknown"), "overview");
+  assert.equal(normalizeRegistrationStep(1), 1);
+  assert.equal(normalizeRegistrationStep("4"), 4);
+  assert.equal(normalizeRegistrationStep(0), 1);
+  assert.equal(normalizeRegistrationStep(9), 1);
+});
+
+
+test("management tabs support wrapped arrow and boundary keyboard navigation", () => {
+  assert.equal(managementTabIndexForKey("ArrowRight", 2, 3), 0);
+  assert.equal(managementTabIndexForKey("ArrowLeft", 0, 3), 2);
+  assert.equal(managementTabIndexForKey("Home", 2, 3), 0);
+  assert.equal(managementTabIndexForKey("End", 0, 3), 2);
+  assert.equal(managementTabIndexForKey("Enter", 1, 3), null);
+  assert.equal(managementTabIndexForKey("ArrowRight", 0, 0), null);
+  assert.equal(managementTabIndexForKey("ArrowRight", -1, 3), null);
 });
 
 
@@ -519,20 +545,36 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementAdminToken",
     "managedDeviceList",
     "devicePatchForm",
+    "managementViewTabs",
+    "managementOverviewPanel",
+    "managementRegisterPanel",
+    "managementEditPanel",
+    "managementRegistrationStepper",
+    "managementRegistrationStep1",
+    "managementRegistrationStep2",
+    "managementRegistrationStep3",
+    "managementRegistrationStep4",
+    "managementPatchDeviceSelect",
+    "managementUnsupportedAdapterList",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=node-scope-ko-v2-20260723/);
-  assert.match(html, /device-management\.js\?v=node-scope-ko-v2-20260723/);
+  assert.match(html, /device-management\.css\?v=management-flow-v1-20260723/);
+  assert.match(html, /device-management\.js\?v=management-flow-v1-20260723/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);
   assert.match(html, /선택 노드의 런타임/);
   assert.match(html, /연결 구성 마법사/);
+  assert.match(html, /새 디바이스 등록/);
+  assert.match(html, /지원 예정 프로토콜/);
   assert.match(html, /기존 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /\.management-view-tabs/);
+  assert.match(css, /\.management-stepper/);
   assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-runtime-card/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);

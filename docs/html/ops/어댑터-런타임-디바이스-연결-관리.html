@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 16:43</span>
-            <span class="badge">HTML 생성: 2026-07-23 17:06</span>
+            <span class="badge">수정: 2026-07-23 17:47</span>
+            <span class="badge">HTML 생성: 2026-07-23 17:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -172,6 +172,10 @@
 <ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 승인 <code>hardwareBindings[].nodeName</code></li></ul>
 <p>노드를 선택하면 Runtime inventory, 승인 Adapter 목록, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 선택 노드에 승인된 hardware binding이 없는 Adapter는 연결 마법사에 나타나지 않으며 target node와 raw device path는 직접 입력할 수 없다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
 <p>이 노드 범위는 workload placement와 운영 탐색을 위한 것이다. Node가 미관측이거나 NotReady여도 그 사실만으로 EdgeX Device의 <code>available</code> 상태를 강등하지 않는다. Device inventory와 <code>adminState</code>/<code>operatingState</code>는 Core Metadata, telemetry freshness와 첫 Event는 Core Data가 계속 권위다.</p>
+<h3 id="화면-사용-순서">화면 사용 순서</h3>
+<p>노드를 선택한 뒤에는 한 화면에서 모든 입력을 동시에 다루지 않고 다음 세 작업 탭을 사용한다.</p>
+<ol><li><code>노드 현황</code>: 선택 노드의 Runtime, 설치된 Adapter와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>지원 예정 프로토콜</code>을 펼쳤을 때만 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 한 번에 한 단계만 표시되며 관리자 token과 실행 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
+<p>노드 현황의 Device 카드에 있는 <code>수정</code>을 누르면 같은 Device가 선택된 수정 탭으로 이동한다. 노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 탭과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, 관리자 인증, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
 <h2 id="배포와-소유권">배포와 소유권</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -367,6 +371,7 @@ kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controlle
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#대시보드-노드별-관리">대시보드 노드별 관리</a></li>
+<li class="toc-h3"><a href="#화면-사용-순서">화면 사용 순서</a></li>
 <li class="toc-h2"><a href="#배포와-소유권">배포와 소유권</a></li>
 <li class="toc-h2"><a href="#secret-준비">Secret 준비</a></li>
 <li class="toc-h2"><a href="#배포-확인">배포 확인</a></li>

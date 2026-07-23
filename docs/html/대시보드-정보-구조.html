@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-23 16:43</span>
-            <span class="badge">HTML 생성: 2026-07-23 17:06</span>
+            <span class="badge">수정: 2026-07-23 17:46</span>
+            <span class="badge">HTML 생성: 2026-07-23 17:48</span>
           </div>
         </header>
         <div class="doc-body">
@@ -162,8 +162,7 @@
 <pre data-lang="text"><code>physical device -&gt; EdgeX Device Service -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
 <p>2026-07-23 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 physical <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 6개씩, 총 12개 가상 Device inventory/telemetry로 분리한다. 아래 payload는 Arduino 온도 Device의 API schema 예시이며 실제 판정은 live API 시각과 값을 다시 조회한다.</p>
 <h2 id="정보-구조-원칙">정보 구조 원칙</h2>
-<ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 저장 이력 그래프와 구분한다.</li><li>저장 이력 그래프는 <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로를 사용하고 dashboard가 DB에 직접 연결하지 않는다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li><li><code>디바이스 관리</code>는 노드를 먼저 선택해 Runtime·승인 Adapter·EdgeX Device를 같은 운영</li></ol>
-<p>범위로 좁힌다. <code>node_type=edge_*</code> 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 관리 카드에 표시하고, 관계없는 중앙 <code>cloud_server</code> 노드는 제외한다. 이 노드 필터는 탐색·배치 범위이며 EdgeX 상태 판정을 덮어쓰지 않는다.</p>
+<ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 저장 이력 그래프와 구분한다.</li><li>저장 이력 그래프는 <code>state-aggregator</code> → EdgeX Core Data API → PostgreSQL 경로를 사용하고 dashboard가 DB에 직접 연결하지 않는다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li><li><code>디바이스 관리</code>는 노드를 먼저 선택해 Runtime·승인 Adapter·EdgeX Device를 같은 운영 범위로 좁힌다. <code>node_type=edge_*</code> 노드와 Runtime·Device·승인 binding이 실제로 참조하는 노드만 관리 카드에 표시하고, 관계없는 중앙 <code>cloud_server</code> 노드는 제외한다. 이 노드 필터는 탐색·배치 범위이며 EdgeX 상태 판정을 덮어쓰지 않는다.</li><li>관리 화면은 노드 선택을 공통 범위로 유지하고 <code>노드 현황</code>, <code>새 디바이스 등록</code>, <code>기존 디바이스 수정</code> 작업을 서로 다른 탭으로 분리한다. 등록 입력은 4단계 중 현재 단계만 표시하고, 미검증 protocol과 고급 요청 필드는 기본적으로 접어 둔다.</li></ol>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>
@@ -363,7 +362,7 @@
 </tr>
 <tr>
 <td>디바이스 관리</td>
-<td>노드 선택 카드, 선택 노드의 Runtime owner/phase/consumer inventory, 승인 Adapter/hardware binding, 재사용/배포 plan, Device/Profile connection, first-Event와 보상 상태</td>
+<td>공통 노드 선택 카드와 <code>노드 현황</code>·<code>새 디바이스 등록</code>·<code>기존 디바이스 수정</code> 탭. 현황에는 Runtime·설치 Adapter·EdgeX Device를 요약하고, 등록은 연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결의 4단계로 진행</td>
 </tr>
 <tr>
 <td>Issue / Focus</td>
@@ -461,10 +460,8 @@
 </tbody></table></div>
 <p>Node KPI는 인프라 진단용으로 별도 표시하며 물리 디바이스 KPI의 분모나 availability gate로 사용하지 않는다.</p>
 <h2 id="운영자-해석-순서">운영자 해석 순서</h2>
-<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>새 장비 등록 시 <code>디바이스 관리</code>에서 대상 KubeEdge 노드를 먼저 선택한다. 노드 카드는</li></ol>
-<p><code>/state/nodes</code> 상태와 Runtime·Device·승인 Adapter 개수를 함께 표시한다. 선택 노드에 승인된 protocol adapter와 hardware binding만 연결 마법사에 표시하며 target node는 직접 입력하지 않는다. <code>auto</code> plan이 기존 runtime을 재사용하는지, 검증된 빈 binding에 새 runtime을 배포하는지, 또는 차단 이유가 무엇인지 확인한다. 통합 validation이 유효할 때만 관리자 token과 idempotency key로 연결하고 runtime, Metadata readback과 first Event 상태를 구분해 본다.</p>
-<p><code>디바이스 관리</code>의 token은 browser session memory에서만 유지하고 URL, localStorage와 sessionStorage에 저장하지 않는다. 외부/Argo runtime의 restart/retire 버튼은 비활성화하고, Controller 소유 runtime만 관리한다. 브라우저는 raw manifest, image, hostPath 또는 Kubernetes credential을 전달하지 않는다. Profile/Device 강제 삭제, command publish, actuator control, EdgeMesh와 KubeEdge Device CRD 변경은 제공하지 않는다. 기존 Workflow Builder는 별도 화면과 browser-local state를 사용하며 connection operation과 결합하지 않는다. Adapter가 <code>installed</code>여도 현재 endpoint/resource route를 다른 Device가 소유하면 새 등록은 <code>protocol_binding_exists</code>다. <code>edgeAiOnboarding*</code>, <code>nodeName</code>, <code>physicalDeviceId</code>는 system tag로 보고 사용자 PATCH에서 변경하지 않는다.</p>
-<ol><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
+<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>새 장비 등록 시 <code>디바이스 관리</code>에서 대상 KubeEdge 노드를 먼저 선택한다. 노드 카드는 <code>/state/nodes</code> 상태와 Runtime·Device·승인 Adapter 개수를 함께 표시한다. 선택 노드에 승인된 protocol adapter와 hardware binding만 연결 마법사에 표시하며 target node는 직접 입력하지 않는다. 기본 <code>노드 현황</code> 탭에서 Runtime, 설치된 Adapter와 기존 Device를 먼저 확인하고 <code>새 디바이스 등록</code> 탭에서 연결 선택, 디바이스 정보, 프로필, 검증 및 연결을 순서대로 진행한다. <code>auto</code> plan이 기존 runtime을 재사용하는지, 검증된 빈 binding에 새 runtime을 배포하는지, 또는 차단 이유가 무엇인지 마지막 단계에서 확인한다. 통합 validation이 유효할 때만 관리자 token과 idempotency key로 연결하고 runtime, Metadata readback과 first Event 상태를 구분해 본다. 기존 Device는 <code>기존 디바이스 수정</code> 탭에서 선택한 뒤 allowlist 필드만 변경한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
+<p><code>디바이스 관리</code>의 token은 browser session memory에서만 유지하고 URL, localStorage와 sessionStorage에 저장하지 않는다. 외부/Argo runtime의 restart/retire 버튼은 비활성화하고, Controller 소유 runtime만 관리한다. 브라우저는 raw manifest, image, hostPath 또는 Kubernetes credential을 전달하지 않는다. Profile/Device 강제 삭제, command publish, actuator control, EdgeMesh와 KubeEdge Device CRD 변경은 제공하지 않는다. 기존 Workflow Builder는 별도 화면과 browser-local state를 사용하며 connection operation과 결합하지 않는다. 미검증 Adapter 목록, idempotency key와 protocol properties JSON은 고급 영역을 열었을 때만 표시한다. 이 progressive disclosure는 표시 밀도를 줄이기 위한 UI 규칙이며 API 검증과 권한 경계를 완화하지 않는다. Adapter가 <code>installed</code>여도 현재 endpoint/resource route를 다른 Device가 소유하면 새 등록은 <code>protocol_binding_exists</code>다. <code>edgeAiOnboarding*</code>, <code>nodeName</code>, <code>physicalDeviceId</code>는 system tag로 보고 사용자 PATCH에서 변경하지 않는다.</p>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
 <p>기존 loopback Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 두 Device Service의 10분·10,000 sample 메모리 cache는 로컬 Workflow 입력용이며 재시작하면 사라진다. dashboard는 이 로컬 cache나 과거 Core Data record로 현재 연결을 보정하지 않고, 계속 Core Metadata와 최신 Core Data Event <code>origin</code>으로 상태와 freshness를 판단한다. Serial 6개와 I2C 6개 가상 Device의 Metadata, 계약된 Reading Event와 freshness를 각각 확인하고 실제 케이블/보드 분리·복구 검증은 별도 PASS 항목으로 남긴다.</p>
         </div>

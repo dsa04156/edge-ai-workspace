@@ -1,5 +1,6 @@
 .device-management-page {
-  padding: var(--space-5);
+  padding: 0;
+  overflow: hidden;
 }
 
 body[data-dashboard-page="management"] .ops-shell {
@@ -10,99 +11,143 @@ body[data-dashboard-page="management"] .side-rail {
   display: none;
 }
 
+.management-page-content {
+  display: grid;
+  gap: 20px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
 .management-page-head,
 .management-head-actions,
 .management-section-head,
+.management-runtime-card-header,
+.management-runtime-actions,
+.management-runtime-facts,
 .management-credentials,
 .management-apply-row,
 .management-buttons,
-.managed-device-row {
+.managed-device-row,
+.management-step-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: 12px;
+}
+
+.management-page-head {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.management-page-head h2,
+.management-flow-head h3,
+.management-step-head h4 {
+  margin: 0;
+}
+
+.management-page-summary,
+.management-flow-head p,
+.management-step-head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .management-head-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
-  color: var(--muted);
 }
 
 #managementMutationMode {
-  padding: 5px 8px;
+  padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
+  color: var(--muted);
   font-size: 11px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 #managementMutationMode[data-status="enabled"] {
-  border-color: rgba(91, 207, 155, 0.5);
-  color: #5bcf9b;
-}
-
-#managementMutationMode[data-status="disabled"] {
-  color: var(--muted);
+  border-color: rgba(91, 207, 155, 0.52);
+  background: rgba(91, 207, 155, 0.08);
+  color: #73ddb0;
 }
 
 .management-guardrail {
-  margin: var(--space-4) 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid rgba(99, 208, 230, 0.28);
-  border-left: 3px solid var(--accent);
+  border: 1px solid rgba(99, 208, 230, 0.24);
   border-radius: var(--radius-sm);
-  background: rgba(99, 208, 230, 0.07);
+  background: rgba(99, 208, 230, 0.05);
   color: var(--muted);
-  line-height: 1.55;
 }
 
-.management-layout {
-  display: grid;
-  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
-  gap: var(--space-4);
+.management-guardrail summary,
+.management-secondary-adapters summary,
+.management-advanced summary {
+  padding: 12px 14px;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.management-catalog,
-.management-workspace,
+.management-guardrail p {
+  margin: 0;
+  padding: 0 14px 14px;
+  line-height: 1.6;
+}
+
 .management-node-scope,
 .management-runtime-inventory,
-.management-existing-grid > section,
-.management-existing-grid > form,
-.management-results-grid > section,
-.management-credentials,
-.management-form {
+.management-catalog,
+.management-device-inventory,
+.management-registration-form,
+.management-edit-form {
   min-width: 0;
-  padding: var(--space-4);
+  padding: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(11, 16, 20, 0.7);
+  background: rgba(9, 14, 19, 0.66);
 }
 
-.management-node-scope,
-.management-runtime-inventory {
-  margin-bottom: var(--space-4);
+.management-section-head > div,
+.management-credentials > div,
+.managed-device-row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 
-.management-node-hint {
-  margin: var(--space-2) 0 0;
+.management-section-head span,
+.management-credentials span,
+.management-form label > span,
+.management-device-picker > span,
+.management-flow-head > div > span,
+.management-step-head > span {
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.55;
+}
+
+.management-section-head small,
+.management-credentials small,
+.managed-device-row small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .management-node-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .management-node-card {
   display: grid;
-  gap: var(--space-3);
+  gap: 10px;
   min-width: 0;
-  padding: var(--space-3);
+  padding: 13px 14px;
   border: 1px solid var(--line);
   border-left: 3px solid #75808a;
   border-radius: var(--radius-sm);
@@ -118,16 +163,22 @@ body[data-dashboard-page="management"] .side-rail {
   background: rgba(99, 208, 230, 0.07);
 }
 
-.management-node-card:focus-visible {
+.management-node-card:focus-visible,
+.management-view-tabs button:focus-visible,
+.management-stepper button:focus-visible,
+.management-primary-action:focus-visible,
+.management-form button:focus-visible,
+.management-form input:focus-visible,
+.management-form select:focus-visible,
+.management-form textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
 .management-node-card[data-selected="true"] {
   border-color: var(--accent);
-  border-left-color: var(--accent);
-  background: rgba(99, 208, 230, 0.11);
-  box-shadow: 0 0 0 1px rgba(99, 208, 230, 0.14);
+  background: rgba(99, 208, 230, 0.1);
+  box-shadow: 0 0 0 1px rgba(99, 208, 230, 0.12);
 }
 
 .management-node-card[data-health="available"],
@@ -147,7 +198,7 @@ body[data-dashboard-page="management"] .side-rail {
 .management-node-card-facts {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
 }
 
 .management-node-card-head {
@@ -170,31 +221,81 @@ body[data-dashboard-page="management"] .side-rail {
   font-size: 12px;
 }
 
-.management-runtime-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-3);
+.management-view-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(5, 9, 14, 0.72);
 }
 
-.management-runtime-card {
-  display: grid;
-  gap: var(--space-2);
+.management-view-tabs button {
+  flex: 1;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.management-view-tabs button:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.management-view-tabs button[aria-selected="true"] {
+  border-color: rgba(99, 208, 230, 0.34);
+  background: rgba(99, 208, 230, 0.11);
+  color: var(--text);
+}
+
+.management-view-panel {
   min-width: 0;
-  padding: var(--space-3);
+}
+
+.management-view-panel[hidden],
+.management-step-panel[hidden] {
+  display: none;
+}
+
+.management-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 16px;
+}
+
+.management-runtime-list,
+.management-adapter-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.management-runtime-card,
+.management-adapter-card {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 13px;
   border: 1px solid var(--line);
   border-left: 3px solid #75808a;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.025);
 }
 
-.management-runtime-card[data-phase="SERVICE_READY"] {
+.management-runtime-card[data-phase="SERVICE_READY"],
+.management-adapter-card[data-status="installed"] {
   border-left-color: #5bcf9b;
 }
 
 .management-runtime-card[data-phase="DEPLOYING"],
 .management-runtime-card[data-phase="WORKLOAD_READY"],
-.management-runtime-card[data-phase="RESTARTING"] {
+.management-runtime-card[data-phase="RESTARTING"],
+.management-adapter-card[data-status="unavailable"] {
   border-left-color: #f0b35b;
 }
 
@@ -203,33 +304,19 @@ body[data-dashboard-page="management"] .side-rail {
   border-left-color: #ee6a78;
 }
 
-.management-runtime-card-header,
-.management-runtime-actions,
-.management-runtime-facts {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.management-runtime-card-header {
-  justify-content: space-between;
-}
-
-.management-runtime-card-header strong,
-.management-runtime-facts {
-  min-width: 0;
-  overflow-wrap: anywhere;
+.management-adapter-card[data-status="unsupported"] {
+  opacity: 0.78;
 }
 
 .management-runtime-facts {
   flex-wrap: wrap;
+  justify-content: flex-start;
   color: var(--muted);
   font-size: 12px;
 }
 
 .management-runtime-actions {
   justify-content: flex-end;
-  margin-top: auto;
 }
 
 .management-runtime-actions button[disabled] {
@@ -237,99 +324,182 @@ body[data-dashboard-page="management"] .side-rail {
   opacity: 0.45;
 }
 
-.management-runtime-hint {
-  margin: var(--space-3) 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.management-workspace {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.management-section-head > div,
-.management-credentials > div,
-.managed-device-row > div {
-  display: grid;
-  gap: 4px;
-}
-
-.management-section-head span,
-.management-credentials span,
-.management-form label > span {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.management-section-head small,
-.management-credentials small,
-.managed-device-row small {
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
-.management-adapter-list,
-.managed-device-list {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
-.management-adapter-card {
-  display: grid;
-  gap: 5px;
-  padding: var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.management-adapter-card[data-status="installed"] {
-  border-left: 3px solid #5bcf9b;
-}
-
-.management-adapter-card[data-status="unavailable"] {
-  border-left: 3px solid #f0b35b;
-}
-
-.management-adapter-card[data-status="unsupported"] {
-  border-left: 3px solid #75808a;
-  opacity: 0.78;
-}
-
 .management-status {
   width: fit-content;
   color: var(--accent);
   font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.management-secondary-adapters {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.management-secondary-adapters summary {
+  padding: 13px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-secondary-adapters .management-adapter-list {
+  margin-top: 12px;
+}
+
+.management-device-inventory {
+  margin-top: 16px;
+}
+
+.managed-device-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.managed-device-row {
+  align-items: flex-start;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.managed-device-row button {
+  flex: 0 0 auto;
+}
+
+.management-primary-action {
+  border-color: rgba(34, 197, 94, 0.7);
+  background: #22c55e;
+  color: #06110a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.management-primary-action:hover:not([disabled]) {
+  border-color: #48db7e;
+  background: #48db7e;
+}
+
+.management-primary-action[disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.management-registration-form,
+.management-edit-form {
+  width: min(920px, 100%);
+  margin: 0 auto;
+}
+
+.management-flow-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.management-flow-head small {
+  max-width: 320px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.management-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.management-stepper button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.management-stepper button > span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+.management-stepper button[data-state="complete"] {
+  border-color: rgba(91, 207, 155, 0.32);
+  color: #8be5bd;
+}
+
+.management-stepper button[data-state="complete"] > span {
+  border-color: rgba(91, 207, 155, 0.48);
+  background: rgba(91, 207, 155, 0.1);
+  color: #8be5bd;
+}
+
+.management-stepper button[aria-current="step"] {
+  border-color: rgba(99, 208, 230, 0.52);
+  background: rgba(99, 208, 230, 0.09);
+  color: var(--text);
+}
+
+.management-stepper button[aria-current="step"] > span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #061116;
+}
+
+.management-step-panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(5, 9, 14, 0.52);
+}
+
+.management-step-head {
+  margin-bottom: 20px;
+}
+
+.management-step-head > span {
+  color: var(--accent);
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .management-form {
   display: grid;
-  gap: var(--space-4);
-}
-
-.management-form fieldset {
-  margin: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-}
-
-.management-form legend {
-  padding: 0 var(--space-2);
-  color: var(--text);
-  font-weight: 700;
+  gap: 16px;
 }
 
 .management-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: 14px;
 }
 
-.management-form label {
+.management-form label,
+.management-device-picker,
+.management-advanced label {
   display: grid;
   gap: 7px;
   min-width: 0;
@@ -338,13 +508,22 @@ body[data-dashboard-page="management"] .side-rail {
 .management-form input,
 .management-form select,
 .management-form textarea,
-.management-credentials input {
+.management-credentials input,
+.management-device-picker select,
+.management-advanced input {
   width: 100%;
   min-width: 0;
+  min-height: 42px;
+  padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: #0a0f13;
+  background: #080d12;
   color: var(--text);
+}
+
+.management-form textarea {
+  min-height: auto;
+  resize: vertical;
 }
 
 .management-form input[readonly] {
@@ -356,27 +535,104 @@ body[data-dashboard-page="management"] .side-rail {
   grid-column: 1 / -1;
 }
 
+.management-subsection {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.management-runtime-hint {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.management-step-actions {
+  justify-content: flex-end;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.management-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.management-review-grid > div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-review-grid dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.management-review-grid dd {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.management-credentials {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .management-credentials label {
   display: grid;
   gap: 6px;
-  width: min(420px, 100%);
+  width: min(390px, 100%);
 }
 
-.management-results-grid,
-.management-existing-grid {
+.management-advanced {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.management-advanced summary {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-advanced > label,
+.management-advanced > .management-form-grid {
+  margin: 0 14px 14px;
+}
+
+.management-results-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+  gap: 12px;
 }
 
-.management-existing-grid {
-  margin-top: var(--space-4);
+.management-results-grid > section {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .management-result {
-  min-height: 112px;
-  margin-top: var(--space-3);
-  padding: var(--space-3);
+  min-height: 96px;
+  margin-top: 10px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--muted);
@@ -410,18 +666,21 @@ body[data-dashboard-page="management"] .side-rail {
   color: var(--text);
 }
 
-.managed-device-list {
-  max-height: 560px;
-  overflow-y: auto;
+.management-apply-row {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
 }
 
-.managed-device-row {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--line);
+.management-edit-form {
+  gap: 20px;
 }
 
-.managed-device-row:last-child {
-  border-bottom: 0;
+.management-device-picker {
+  padding: 14px;
+  border: 1px solid rgba(99, 208, 230, 0.26);
+  border-radius: var(--radius-sm);
+  background: rgba(99, 208, 230, 0.05);
 }
 
 .management-empty {
@@ -429,18 +688,18 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 @media (max-width: 1000px) {
-  .management-layout {
+  .management-overview-grid {
     grid-template-columns: 1fr;
   }
 
-  .management-adapter-list {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  .managed-device-list {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
-  .device-management-page {
-    padding: var(--space-3);
+  .management-page-content {
+    padding: 14px;
   }
 
   .management-page-head,
@@ -448,19 +707,34 @@ body[data-dashboard-page="management"] .side-rail {
   .management-section-head,
   .management-credentials,
   .management-apply-row,
-  .managed-device-row {
+  .managed-device-row,
+  .management-flow-head {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .management-form-grid,
-  .management-results-grid,
-  .management-existing-grid {
+  .management-head-actions,
+  .management-flow-head small {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .management-view-tabs {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
-  .management-node-list,
-  .management-runtime-list {
+  .management-form-grid,
+  .management-results-grid,
+  .management-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .management-node-list {
     grid-template-columns: 1fr;
   }
 
@@ -468,7 +742,30 @@ body[data-dashboard-page="management"] .side-rail {
     grid-column: auto;
   }
 
-  .management-buttons {
+  .management-buttons,
+  .management-step-actions {
     flex-wrap: wrap;
+  }
+
+  .management-step-panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .management-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .management-stepper button {
+    min-height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-node-card,
+  .management-view-tabs button,
+  .management-stepper button {
+    transition: none;
   }
 }
