@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "adapters": [
+    {
+      "adapterId": "serial-jetson",
+      "displayName": "Jetson Arduino Serial",
+      "serviceName": "device-serial-jetson",
+      "protocolName": "serial",
+      "nodeName": "etri-dev0001-jetorn",
+      "declaredStatus": "installed",
+      "fields": [
+        {
+          "name": "Port",
+          "label": "Device path",
+          "type": "string",
+          "required": true,
+          "default": "/dev/arduino-001",
+          "const": "/dev/arduino-001"
+        },
+        {
+          "name": "BaudRate",
+          "label": "Baud rate",
+          "type": "integer",
+          "required": true,
+          "default": 115200,
+          "const": 115200
+        },
+        {
+          "name": "DeviceID",
+          "label": "Physical source ID",
+          "type": "string",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._~-]+$"
+        },
+        {
+          "name": "ResourceName",
+          "label": "Serial resource",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "temperature_raw",
+            "light_raw",
+            "magnetic_raw",
+            "acceleration_x_raw",
+            "acceleration_y_raw",
+            "acceleration_z_raw"
+          ]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceName",
+        "valueTypes": ["Int32"],
+        "readWrite": ["R"],
+        "templates": [
+          {
+            "selectorValue": "temperature_raw",
+            "deviceResources": [
+              {
+                "name": "temperature_raw",
+                "description": "Raw temperature sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "temperature",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "temperature_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "light_raw",
+            "deviceResources": [
+              {
+                "name": "light_raw",
+                "description": "Raw light sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "light",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "light_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "magnetic_raw",
+            "deviceResources": [
+              {
+                "name": "magnetic_raw",
+                "description": "Raw magnetic sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "magnetic",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "magnetic_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_x_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_x_raw",
+                "description": "Raw acceleration X sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_x",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_x_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_y_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_y_raw",
+                "description": "Raw acceleration Y sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_y",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_y_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_z_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_z_raw",
+                "description": "Raw acceleration Z sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_z",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_z_raw"}]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "adapterId": "sensehat-raspi",
+      "displayName": "Raspberry Pi Sense HAT I2C",
+      "serviceName": "device-sensehat-raspi",
+      "protocolName": "i2c",
+      "nodeName": "etri-dev0003-raspi5",
+      "declaredStatus": "installed",
+      "fields": [
+        {
+          "name": "Bus",
+          "label": "I2C bus",
+          "type": "string",
+          "required": true,
+          "default": "/dev/i2c-1",
+          "const": "/dev/i2c-1"
+        },
+        {
+          "name": "DeviceID",
+          "label": "Physical source ID",
+          "type": "string",
+          "required": true,
+          "default": "sensehat-001",
+          "const": "sensehat-001"
+        },
+        {
+          "name": "ResourceGroup",
+          "label": "Sense HAT resource group",
+          "type": "enum",
+          "required": true,
+          "options": ["temperature", "humidity", "pressure", "compass", "orientation", "gyroscope"]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceGroup",
+        "valueTypes": ["Float64"],
+        "readWrite": ["R"],
+        "templates": [
+          {
+            "selectorValue": "temperature",
+            "deviceResources": [
+              {"name": "temp_humidity", "description": "Temperature from humidity sensor", "properties": {"valueType": "Float64", "readWrite": "R", "units": "degC"}},
+              {"name": "temp_pressure", "description": "Temperature from pressure sensor", "properties": {"valueType": "Float64", "readWrite": "R", "units": "degC"}}
+            ],
+            "deviceCommands": [{"name": "temperature", "readWrite": "R", "resourceOperations": [{"deviceResource": "temp_humidity"}, {"deviceResource": "temp_pressure"}]}]
+          },
+          {
+            "selectorValue": "humidity",
+            "deviceResources": [{"name": "humidity", "description": "Relative humidity", "properties": {"valueType": "Float64", "readWrite": "R", "units": "%"}}],
+            "deviceCommands": [{"name": "humidity", "readWrite": "R", "resourceOperations": [{"deviceResource": "humidity"}]}]
+          },
+          {
+            "selectorValue": "pressure",
+            "deviceResources": [{"name": "pressure", "description": "Atmospheric pressure", "properties": {"valueType": "Float64", "readWrite": "R", "units": "hPa"}}],
+            "deviceCommands": [{"name": "pressure", "readWrite": "R", "resourceOperations": [{"deviceResource": "pressure"}]}]
+          },
+          {
+            "selectorValue": "compass",
+            "deviceResources": [{"name": "compass", "description": "Compass heading", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}}],
+            "deviceCommands": [{"name": "compass", "readWrite": "R", "resourceOperations": [{"deviceResource": "compass"}]}]
+          },
+          {
+            "selectorValue": "orientation",
+            "deviceResources": [
+              {"name": "pitch", "description": "Fused pitch", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}},
+              {"name": "roll", "description": "Fused roll", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}},
+              {"name": "yaw", "description": "Fused yaw", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}}
+            ],
+            "deviceCommands": [{"name": "orientation", "readWrite": "R", "resourceOperations": [{"deviceResource": "pitch"}, {"deviceResource": "roll"}, {"deviceResource": "yaw"}]}]
+          },
+          {
+            "selectorValue": "gyroscope",
+            "deviceResources": [
+              {"name": "gyro_x", "description": "Gyroscope X", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}},
+              {"name": "gyro_y", "description": "Gyroscope Y", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}},
+              {"name": "gyro_z", "description": "Gyroscope Z", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}}
+            ],
+            "deviceCommands": [{"name": "gyroscope", "readWrite": "R", "resourceOperations": [{"deviceResource": "gyro_x"}, {"deviceResource": "gyro_y"}, {"deviceResource": "gyro_z"}]}]
+          }
+        ]
+      }
+    },
+    {
+      "adapterId": "modbus",
+      "displayName": "Modbus",
+      "protocolName": "modbus",
+      "declaredStatus": "unsupported",
+      "reason": "Device Service와 실제 register mapping 검증 전에는 지원하지 않습니다."
+    },
+    {
+      "adapterId": "opcua",
+      "displayName": "OPC-UA",
+      "protocolName": "opcua",
+      "declaredStatus": "unsupported",
+      "reason": "Device Service, endpoint security와 subscription recovery 검증 전에는 지원하지 않습니다."
+    },
+    {
+      "adapterId": "mqtt",
+      "displayName": "MQTT-only Device",
+      "protocolName": "mqtt",
+      "declaredStatus": "unsupported",
+      "reason": "MQTT-only 장비와 Device Service 검증 전에는 broker나 adapter를 자동 배포하지 않습니다.",
+      "fields": [
+        {"name": "Broker", "label": "Broker URL", "type": "string", "required": true},
+        {"name": "Password", "label": "Password", "type": "string", "required": false, "secret": true}
+      ]
+    },
+    {
+      "adapterId": "rtsp",
+      "displayName": "RTSP Camera",
+      "protocolName": "rtsp",
+      "declaredStatus": "unsupported",
+      "reason": "현재 camera frame은 Workflow Pod가 직접 구독하며 Device onboarding 대상이 아닙니다."
+    }
+  ]
+}

@@ -7,6 +7,16 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 
+APP_CONFIG_DIR = Path(__file__).resolve().parent / "config"
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Settings(BaseModel):
     prometheus_url: str = Field(
         default_factory=lambda: os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
@@ -64,6 +74,28 @@ class Settings(BaseModel):
     )
     qwen_timeout_seconds: float = Field(
         default_factory=lambda: float(os.getenv("QWEN_TIMEOUT_SECONDS", "90"))
+    )
+    device_management_enabled: bool = Field(
+        default_factory=lambda: _env_bool("DEVICE_MANAGEMENT_ENABLED")
+    )
+    device_management_admin_token: str | None = Field(
+        default_factory=lambda: os.getenv("DEVICE_MANAGEMENT_ADMIN_TOKEN") or None
+    )
+    device_management_hmac_key: str | None = Field(
+        default_factory=lambda: os.getenv("DEVICE_MANAGEMENT_HMAC_KEY") or None
+    )
+    device_management_operation_limit: int = Field(
+        default_factory=lambda: int(os.getenv("DEVICE_MANAGEMENT_OPERATION_LIMIT", "256")),
+        ge=1,
+        le=10000,
+    )
+    adapter_catalog_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "ADAPTER_CATALOG_PATH",
+                str(APP_CONFIG_DIR / "adapter_catalog.json"),
+            )
+        )
     )
 
 
