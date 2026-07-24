@@ -168,11 +168,11 @@ def test_controller_rbac_is_namespaced_except_node_read():
     assert "edgemesh" not in rbac_text.lower()
 
 
-def test_controller_network_policy_only_exposes_internal_api_to_aggregator():
+def test_controller_network_policy_only_exposes_internal_api_to_aggregator_and_discovery():
     policy = indexed()[("NetworkPolicy", "edgex-adapter-controller")]
 
     assert policy["metadata"]["namespace"] == "edgex-edge"
-    assert policy["spec"]["policyTypes"] == ["Ingress"]
+    assert policy["spec"]["policyTypes"] == ["Ingress", "Egress"]
     ingress = policy["spec"]["ingress"]
     assert ingress == [
         {
@@ -189,7 +189,54 @@ def test_controller_network_policy_only_exposes_internal_api_to_aggregator():
                 }
             ],
             "ports": [{"protocol": "TCP", "port": 8080}],
-        }
+        },
+        {
+            "from": [
+                {
+                    "podSelector": {
+                        "matchLabels": {
+                            "app.kubernetes.io/name": "edge-device-discovery"
+                        }
+                    }
+                }
+            ],
+            "ports": [{"protocol": "TCP", "port": 8080}],
+        },
+    ]
+    assert policy["spec"]["egress"] == [
+        {
+            "to": [
+                {
+                    "namespaceSelector": {
+                        "matchLabels": {
+                            "kubernetes.io/metadata.name": "kube-system"
+                        }
+                    }
+                }
+            ],
+            "ports": [
+                {"protocol": "UDP", "port": 53},
+                {"protocol": "TCP", "port": 53},
+            ],
+        },
+        {
+            "to": [
+                {
+                    "namespaceSelector": {
+                        "matchLabels": {
+                            "kubernetes.io/metadata.name": "edgex-system"
+                        }
+                    },
+                    "podSelector": {
+                        "matchLabels": {
+                            "app.kubernetes.io/name": "edgex-core-metadata"
+                        }
+                    },
+                }
+            ],
+            "ports": [{"protocol": "TCP", "port": 59881}],
+        },
+        {"ports": [{"protocol": "TCP", "port": 443}]},
     ]
 
 

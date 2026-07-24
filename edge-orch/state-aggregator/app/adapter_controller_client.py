@@ -17,6 +17,13 @@ from .adapter_runtime_models import (
     RuntimePlan,
     RuntimePlanRequest,
 )
+from .device_discovery_models import (
+    CandidateDecisionUpdate,
+    CandidateDeleteRequest,
+    CandidateView,
+    DiscoveryInventory,
+    ManualCandidateCreate,
+)
 
 
 class AdapterControllerClientError(RuntimeError):
@@ -112,6 +119,49 @@ class AdapterControllerClient:
             extra_headers={"X-Confirm-Runtime": name},
         )
         return self._parse_model(RuntimeObservation, payload, "runtime retire")
+
+    async def list_discovery_inventory(self) -> DiscoveryInventory:
+        payload = await self._request("GET", "/internal/v1/discovery")
+        return self._parse_model(
+            DiscoveryInventory,
+            payload,
+            "device discovery inventory",
+        )
+
+    async def create_manual_candidate(
+        self,
+        request: ManualCandidateCreate,
+    ) -> CandidateView:
+        payload = await self._request(
+            "POST",
+            "/internal/v1/discovery/manual",
+            body=request.model_dump(by_alias=True, mode="json", exclude_none=True),
+        )
+        return self._parse_model(CandidateView, payload, "manual candidate")
+
+    async def update_candidate_decision(
+        self,
+        candidate_id: str,
+        request: CandidateDecisionUpdate,
+    ) -> CandidateView:
+        payload = await self._request(
+            "PATCH",
+            f"/internal/v1/discovery/{quote(candidate_id, safe='')}",
+            body=request.model_dump(by_alias=True, mode="json", exclude_none=True),
+        )
+        return self._parse_model(CandidateView, payload, "candidate decision")
+
+    async def delete_candidate(
+        self,
+        candidate_id: str,
+        request: CandidateDeleteRequest,
+    ) -> CandidateView:
+        payload = await self._request(
+            "DELETE",
+            f"/internal/v1/discovery/{quote(candidate_id, safe='')}",
+            body=request.model_dump(by_alias=True, mode="json", exclude_none=True),
+        )
+        return self._parse_model(CandidateView, payload, "candidate delete")
 
     async def _request(
         self,

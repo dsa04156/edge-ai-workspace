@@ -9,6 +9,14 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
 from .config import Settings
+from .discovery_models import (
+    CandidateDecisionUpdate,
+    CandidateDeleteRequest,
+    CandidateView,
+    DiscoveryInventory,
+    ManualCandidateCreate,
+    NodeDiscoveryReport,
+)
 from .models import (
     RuntimeActionRequest,
     RuntimeCreateRequest,
@@ -82,6 +90,13 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
 
     def require_mutation_enabled() -> None:
         if not settings.mutation_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not Found",
+            )
+
+    def require_discovery_enabled() -> None:
+        if not settings.device_discovery_enabled:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Not Found",
@@ -228,5 +243,113 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
                 detail="exact runtime confirmation is required",
             )
         return await invoke(lambda: service.retire_runtime(name, payload))
+
+    @router.get(
+        "/internal/v1/discovery",
+        response_model=DiscoveryInventory,
+    )
+    async def list_discovery_inventory(
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(service.list_discovery_inventory)
+
+    @router.post(
+        "/internal/v1/discovery/reports",
+        response_model=DiscoveryInventory,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    async def ingest_discovery_report(
+        payload: NodeDiscoveryReport,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(lambda: service.ingest_discovery_report(payload))
+
+    @router.post(
+        "/internal/v1/discovery/manual",
+        response_model=CandidateView,
+        status_code=status.HTTP_201_CREATED,
+    )
+    async def create_manual_candidate(
+        payload: ManualCandidateCreate,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(lambda: service.create_manual_candidate(payload))
+
+    @router.patch(
+        "/internal/v1/discovery/{candidate_id}",
+        response_model=CandidateView,
+    )
+    async def update_candidate_decision(
+        candidate_id: str,
+        payload: CandidateDecisionUpdate,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(
+            lambda: service.update_candidate_decision(candidate_id, payload)
+        )
+
+    @router.delete(
+        "/internal/v1/discovery/{candidate_id}",
+        response_model=CandidateView,
+    )
+    async def delete_candidate(
+        candidate_id: str,
+        payload: CandidateDeleteRequest,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(lambda: service.delete_candidate(candidate_id, payload))
 
     return router

@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=connection-evidence-v1-20260723" />
+    <link rel="stylesheet" href="/static/device-management.css?v=device-discovery-v1-20260724" />
   </head>
   <body>
     <main class="shell">
@@ -376,7 +376,7 @@
               <div>
                 <p class="section-kicker">EdgeX 디바이스 운영</p>
                 <h2 id="deviceManagementTitle">노드별 디바이스 관리</h2>
-                <p class="management-page-summary">노드를 선택한 뒤 현황 확인, 신규 등록, 기존 정보 수정을 순서대로 진행합니다.</p>
+                <p class="management-page-summary">노드에서 발견한 연결과 수동 엔드포인트를 한곳에서 검색·검토하고 EdgeX 등록까지 이어갑니다.</p>
               </div>
               <div class="management-head-actions">
                 <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
@@ -405,7 +405,10 @@
             </section>
 
             <nav id="managementViewTabs" class="management-view-tabs" role="tablist" aria-label="디바이스 관리 작업">
-              <button id="managementOverviewTab" type="button" role="tab" aria-selected="true" aria-controls="managementOverviewPanel" data-management-view="overview">
+              <button id="managementDiscoveryTab" type="button" role="tab" aria-selected="true" aria-controls="managementDiscoveryPanel" data-management-view="discovery">
+                장비 발견
+              </button>
+              <button id="managementOverviewTab" type="button" role="tab" aria-selected="false" aria-controls="managementOverviewPanel" data-management-view="overview">
                 노드 현황
               </button>
               <button id="managementRegisterTab" type="button" role="tab" aria-selected="false" aria-controls="managementRegisterPanel" data-management-view="register">
@@ -416,7 +419,77 @@
               </button>
             </nav>
 
-            <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview">
+            <section id="managementDiscoveryPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementDiscoveryTab" data-management-view-panel="discovery">
+              <section class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
+                <div class="management-discovery-head">
+                  <div>
+                    <span>승인 전 임시 후보</span>
+                    <h3 id="managementDiscoveryTitle">연결 후보 찾기</h3>
+                    <p>USB Serial과 I²C 버스는 노드에서 수동적으로 관측합니다. 네트워크 장비는 엔드포인트를 직접 추가합니다.</p>
+                  </div>
+                  <div class="management-discovery-actions">
+                    <span id="managementDiscoveryStatus" data-status="loading">탐색 상태 확인 중</span>
+                    <button id="managementOpenManualCandidate" type="button" class="management-primary-action">엔드포인트 직접 추가</button>
+                  </div>
+                </div>
+
+                <div class="management-discovery-stats" aria-label="연결 후보 요약">
+                  <article><span>현재 관측</span><strong id="managementDiscoveryPresentCount">0</strong></article>
+                  <article><span>검토 대기</span><strong id="managementDiscoveryPendingCount">0</strong></article>
+                  <article><span>등록 가능</span><strong id="managementDiscoveryReadyCount">0</strong></article>
+                  <article><span>무시됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
+                </div>
+
+                <div class="management-discovery-toolbar">
+                  <label class="management-discovery-search">
+                    <span>후보 검색</span>
+                    <input id="managementDiscoverySearch" type="search" placeholder="장비 이름, 경로, 노드, 프로토콜" />
+                  </label>
+                  <label>
+                    <span>프로토콜</span>
+                    <select id="managementDiscoveryProtocolFilter">
+                      <option value="">전체 프로토콜</option>
+                      <option value="serial">Serial / USB</option>
+                      <option value="i2c">I²C</option>
+                      <option value="mqtt">MQTT</option>
+                      <option value="modbus">Modbus</option>
+                      <option value="opcua">OPC-UA</option>
+                      <option value="rtsp">RTSP</option>
+                      <option value="rest">HTTP / REST</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>검토 상태</span>
+                    <select id="managementDiscoveryDecisionFilter">
+                      <option value="">전체 상태</option>
+                      <option value="pending">검토 대기</option>
+                      <option value="accepted">검토 승인</option>
+                      <option value="ignored">무시됨</option>
+                    </select>
+                  </label>
+                  <label class="management-discovery-toggle">
+                    <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
+                    <span>무시한 후보 표시</span>
+                  </label>
+                </div>
+
+                <section class="management-discovery-credentials" aria-labelledby="managementDiscoveryCredentialTitle">
+                  <div>
+                    <strong id="managementDiscoveryCredentialTitle">변경 권한</strong>
+                    <small>승인·무시·추가·삭제 시에만 사용하며 브라우저 메모리에만 유지합니다.</small>
+                  </div>
+                  <label>
+                    <span>관리자 Bearer 토큰</span>
+                    <input id="managementDiscoveryAdminToken" type="password" autocomplete="off" placeholder="관리 작업 전에 입력" />
+                  </label>
+                </section>
+
+                <div id="managementDiscoveryNodeHealth" class="management-discovery-node-health" aria-live="polite"></div>
+                <div id="managementDiscoveryList" class="management-discovery-list" aria-live="polite"></div>
+              </section>
+            </section>
+
+            <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview" hidden>
               <section class="management-physical-inventory" aria-labelledby="managementPhysicalTitle">
                 <div class="management-section-head">
                   <div>
@@ -485,6 +558,51 @@
                 <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
               </section>
             </section>
+
+            <dialog id="managementManualCandidateDialog" class="management-dialog" aria-labelledby="managementManualCandidateTitle">
+              <form id="managementManualCandidateForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>자동 탐색이 어려운 연결</span>
+                    <h3 id="managementManualCandidateTitle">엔드포인트 직접 추가</h3>
+                    <p>여기서는 연결 후보만 선언합니다. EdgeX 등록과 Device Service 설치는 별도 검증을 통과해야 합니다.</p>
+                  </div>
+                  <button type="button" data-management-close-dialog aria-label="닫기">닫기</button>
+                </div>
+                <div class="management-form-grid">
+                  <label>
+                    <span>대상 노드</span>
+                    <select id="managementManualNode" required></select>
+                  </label>
+                  <label>
+                    <span>프로토콜</span>
+                    <select id="managementManualProtocol" required>
+                      <option value="serial">Serial / USB</option>
+                      <option value="i2c">I²C</option>
+                      <option value="mqtt">MQTT</option>
+                      <option value="modbus">Modbus</option>
+                      <option value="opcua">OPC-UA</option>
+                      <option value="rtsp">RTSP</option>
+                      <option value="rest">HTTP / REST</option>
+                    </select>
+                  </label>
+                  <label class="management-field-wide">
+                    <span>표시 이름</span>
+                    <input id="managementManualDisplayName" type="text" maxlength="255" required placeholder="라인 1 온도 센서" />
+                  </label>
+                </div>
+                <div id="managementManualProtocolFields" class="management-form-grid management-manual-fields"></div>
+                <label class="management-field-wide management-dialog-note">
+                  <span>운영 메모</span>
+                  <textarea id="managementManualNote" maxlength="1000" rows="3" placeholder="설치 위치, 담당자, 검토할 사항"></textarea>
+                </label>
+                <div id="managementManualCandidateResult" class="management-result" role="status" aria-live="polite"></div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-dialog>취소</button>
+                  <button id="managementCreateManualCandidate" type="submit" class="management-primary-action">후보 추가</button>
+                </div>
+              </form>
+            </dialog>
 
             <section id="managementRegisterPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementRegisterTab" data-management-view-panel="register" hidden>
               <form id="deviceOnboardingForm" class="management-form management-registration-form" novalidate>
@@ -857,7 +975,7 @@
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
     <script src="/static/dashboard.js?v=device-history-20260722"></script>
     <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
-    <script src="/static/device-management.js?v=connection-evidence-v2-20260723"></script>
+    <script src="/static/device-management.js?v=device-discovery-v1-20260724"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

@@ -12,6 +12,7 @@ const MANAGEMENT_VALIDATE_URL = managementApiUrl("/management/devices/validate")
 const MANAGEMENT_DEVICES_URL = managementApiUrl("/management/devices");
 const MANAGEMENT_RUNTIMES_URL = managementApiUrl("/management/adapter-runtimes");
 const MANAGEMENT_CONNECTIONS_URL = managementApiUrl("/management/connections");
+const MANAGEMENT_DISCOVERY_URL = managementApiUrl("/management/discovery");
 const MANAGEMENT_NODES_URL = managementApiUrl("/state/nodes");
 const UNASSIGNED_NODE = "미할당 노드";
 
@@ -22,15 +23,25 @@ const managementState = {
   nodes: [],
   runtimes: [],
   devices: [],
+  discovery: {
+    nodes: [],
+    candidates: [],
+    totalCandidates: 0,
+    filteredCandidates: 0,
+    staleAfterSeconds: 90,
+  },
   selectedNodeName: "",
   selectedAdapterId: "",
   selectedPatchDeviceName: "",
-  activeView: "overview",
+  activeView: "discovery",
   registrationStep: 1,
   nodeLoadError: null,
   runtimePlan: null,
   runtimeLoadError: null,
+  discoveryLoadError: null,
   runtimeActionKeys: new Map(),
+  candidateActionKeys: new Map(),
+  manualCandidateCreateKey: "",
   validation: null,
   operation: null,
 };
@@ -105,6 +116,23 @@ const MANAGEMENT_LABELS = {
     opcua: "OPC-UA",
     mqtt: "MQTT",
     rtsp: "RTSP",
+    rest: "HTTP / REST",
+  },
+  candidateDecision: {
+    pending: "검토 대기",
+    accepted: "검토 승인",
+    ignored: "무시됨",
+  },
+  candidatePresence: {
+    present: "현재 관측",
+    stale: "오래됨",
+    declared: "수동 선언",
+  },
+  candidatePackage: {
+    "registration-ready": "EdgeX 등록 가능",
+    "binding-required": "연결 승인 필요",
+    "verification-required": "패키지 검증 필요",
+    unsupported: "패키지 없음",
   },
   issue: {
     reserved_tag: "시스템 관리 태그는 직접 지정할 수 없습니다.",
@@ -160,6 +188,28 @@ function managementDeviceBindingId(device = {}) {
     || device.hardwareBindingId
     || device.tags?.hardwareBindingId
     || "";
+}
+
+
+function candidateEndpointSummary(candidate = {}) {
+  if (candidate.devicePath) return candidate.devicePath;
+  const properties = candidate.properties || {};
+  if (candidate.protocol === "mqtt") {
+    return [properties.Broker, properties.Topic].filter(Boolean).join(" · ")
+      || candidate.transport
+      || "MQTT 엔드포인트 미확인";
+  }
+  if (candidate.protocol === "modbus") {
+    const address = properties.Host
+      ? `${properties.Host}${properties.Port ? `:${properties.Port}` : ""}`
+      : "";
+    return [properties.Mode, address, properties.UnitID !== undefined
+      ? `Unit ${properties.UnitID}`
+      : ""].filter(Boolean).join(" · ")
+      || candidate.transport
+      || "Modbus 엔드포인트 미확인";
+  }
+  return properties.Endpoint || candidate.transport || "엔드포인트 미확인";
 }
 
 
@@ -566,7 +616,9 @@ function canPatchSelectedDevice(mutationEnabled, selectedDeviceName) {
 
 
 function normalizeManagementView(view) {
-  return ["overview", "register", "edit"].includes(view) ? view : "overview";
+  return ["discovery", "overview", "register", "edit"].includes(view)
+    ? view
+    : "overview";
 }
 
 
@@ -668,6 +720,19 @@ async function fetchManagedDevices(fetchFn = fetch) {
 }
 
 
+async function fetchDiscoveryInventory(fetchFn = fetch) {
+  const response = await fetchFn(
+    `${MANAGEMENT_DISCOVERY_URL}?includeIgnored=true&limit=2000`,
+    {cache: "no-store"},
+  );
+  const payload = await managementPayload(response);
+  if (!Array.isArray(payload?.candidates) || !Array.isArray(payload?.nodes)) {
+    throw new Error("device discovery response contract is invalid");
+  }
+  return payload;
+}
+
+
 async function validateManagementDevice(payload, fetchFn = fetch) {
   const response = await fetchFn(MANAGEMENT_VALIDATE_URL, {
     method: "POST",
@@ -725,6 +790,56 @@ async function createManagementConnection(payload, {
     body: JSON.stringify(payload),
     cache: "no-store",
   });
+  return managementPayload(response);
+}
+
+
+async function createManualCandidate(payload, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(`${MANAGEMENT_DISCOVERY_URL}/manual`, {
+    method: "POST",
+    headers: guardedHeaders(token, idempotencyKey),
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
+}
+
+
+async function updateCandidateDecision(candidateId, payload, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}`,
+    {
+      method: "PATCH",
+      headers: guardedHeaders(token, idempotencyKey),
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    },
+  );
+  return managementPayload(response);
+}
+
+
+async function deleteCandidate(candidateId, {
+  token,
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}`,
+    {
+      method: "DELETE",
+      headers: guardedHeaders(token, idempotencyKey),
+      cache: "no-store",
+    },
+  );
   return managementPayload(response);
 }
 
@@ -1177,6 +1292,357 @@ function formatManagementTimestamp(value) {
 }
 
 
+function discoveryCandidatesForSelectedNode(documentRef = document) {
+  const search = byId("managementDiscoverySearch", documentRef)?.value
+    .trim()
+    .toLocaleLowerCase("ko-KR") || "";
+  const protocol = byId("managementDiscoveryProtocolFilter", documentRef)?.value || "";
+  const decision = byId("managementDiscoveryDecisionFilter", documentRef)?.value || "";
+  const includeIgnored = byId(
+    "managementDiscoveryIncludeIgnored",
+    documentRef,
+  )?.checked === true;
+  return (managementState.discovery.candidates || []).filter((candidate) => {
+    if (candidate.nodeName !== managementState.selectedNodeName) return false;
+    if (!includeIgnored && candidate.decision === "ignored") return false;
+    if (protocol && candidate.protocol !== protocol) return false;
+    if (decision && candidate.decision !== decision) return false;
+    if (!search) return true;
+    const searchable = [
+      candidate.candidateId,
+      candidate.displayName,
+      candidate.nodeName,
+      candidate.protocol,
+      candidate.transport,
+      candidate.devicePath || "",
+      candidate.note || "",
+      candidate.decisionNote || "",
+      ...Object.values(candidate.properties || {}).map(String),
+    ].join(" ").toLocaleLowerCase("ko-KR");
+    return searchable.includes(search);
+  });
+}
+
+
+function candidateRegisteredDevices(candidate = {}) {
+  const bindingId = candidate.matchedHardwareBindingId || "";
+  if (!bindingId) return [];
+  const observation = buildPhysicalConnectionObservations({
+    adapters: managementState.adapters,
+    runtimes: managementState.runtimes,
+    devices: managementState.devices,
+    nodeName: candidate.nodeName,
+  }).find(
+    (item) => item.bindingId === bindingId
+      && (!candidate.matchedAdapterId || item.adapterId === candidate.matchedAdapterId),
+  );
+  if (observation) {
+    const names = new Set(observation.deviceNames);
+    return managementState.devices.filter((device) => names.has(device.name));
+  }
+  return managementState.devices.filter(
+    (device) => managementDeviceNode(device) === candidate.nodeName
+      && managementDeviceBindingId(device) === bindingId,
+  );
+}
+
+
+function renderDiscoveryNodeHealth(documentRef = document) {
+  const container = byId("managementDiscoveryNodeHealth", documentRef);
+  clearElement(container);
+  (managementState.discovery.nodes || []).forEach((node) => {
+    const chip = appendTextElement(
+      container,
+      "span",
+      "",
+      `${node.nodeName} · ${node.presence === "online" ? "탐색 중" : "보고 지연"}`
+        + ` · 후보 ${node.candidateCount || 0}개`
+        + `${(node.scanErrors || []).length ? ` · 오류 ${node.scanErrors.length}` : ""}`,
+    );
+    chip.dataset.presence = node.presence || "stale";
+    if (node.nodeName === managementState.selectedNodeName) {
+      chip.setAttribute("aria-current", "true");
+    }
+  });
+  if (!container?.children.length) {
+    appendTextElement(
+      container,
+      "span",
+      "",
+      managementState.discoveryLoadError
+        ? "노드 탐색 상태를 불러오지 못했습니다."
+        : "아직 노드 탐색 보고가 없습니다.",
+    );
+  }
+}
+
+
+function renderDiscoveryStatus(documentRef = document) {
+  const status = byId("managementDiscoveryStatus", documentRef);
+  if (!status) return;
+  if (managementState.discoveryLoadError) {
+    status.textContent = "탐색 API 연결 실패";
+    status.dataset.status = "error";
+    return;
+  }
+  const node = (managementState.discovery.nodes || []).find(
+    (item) => item.nodeName === managementState.selectedNodeName,
+  );
+  if (!node) {
+    status.textContent = "선택 노드 탐색기 미보고";
+    status.dataset.status = "degraded";
+    return;
+  }
+  if (node.presence === "online" && !(node.scanErrors || []).length) {
+    status.textContent = `탐색 정상 · ${formatManagementTimestamp(node.lastReportAt)}`;
+    status.dataset.status = "online";
+    return;
+  }
+  status.textContent = node.presence === "online"
+    ? `일부 탐색 오류 · ${(node.scanErrors || []).length}건`
+    : `탐색 보고 지연 · ${formatManagementTimestamp(node.lastReportAt)}`;
+  status.dataset.status = "degraded";
+}
+
+
+function renderDiscoveryFeedback(message, {
+  status = "degraded",
+  documentRef = document,
+} = {}) {
+  const element = byId("managementDiscoveryStatus", documentRef);
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.status = status;
+}
+
+
+function renderDiscoveryStats(documentRef = document) {
+  const candidates = (managementState.discovery.candidates || []).filter(
+    (candidate) => candidate.nodeName === managementState.selectedNodeName,
+  );
+  const values = {
+    managementDiscoveryPresentCount: candidates.filter(
+      (candidate) => candidate.presence === "present",
+    ).length,
+    managementDiscoveryPendingCount: candidates.filter(
+      (candidate) => candidate.decision === "pending",
+    ).length,
+    managementDiscoveryReadyCount: candidates.filter(
+      (candidate) => candidate.registrationReady === true,
+    ).length,
+    managementDiscoveryIgnoredCount: candidates.filter(
+      (candidate) => candidate.decision === "ignored",
+    ).length,
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const element = byId(id, documentRef);
+    if (element) element.textContent = String(value);
+  });
+}
+
+
+function appendCandidateAction(
+  actions,
+  label,
+  action,
+  candidateId,
+  {disabled = false, title = ""} = {},
+) {
+  const button = actions.ownerDocument.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  button.dataset.candidateAction = action;
+  button.dataset.candidateId = candidateId;
+  button.disabled = disabled;
+  if (title) button.title = title;
+  actions.appendChild(button);
+  return button;
+}
+
+
+function renderDiscoveryCandidates(documentRef = document) {
+  const container = byId("managementDiscoveryList", documentRef);
+  clearElement(container);
+  const candidates = discoveryCandidatesForSelectedNode(documentRef);
+  if (!candidates.length) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      managementState.discoveryLoadError
+        ? "연결 후보를 불러오지 못했습니다. Controller와 탐색기 상태를 확인하세요."
+        : "현재 조건에 맞는 연결 후보가 없습니다. 검색 조건을 바꾸거나 엔드포인트를 직접 추가하세요.",
+    );
+    return;
+  }
+  candidates.forEach((candidate) => {
+    const registeredDevices = candidateRegisteredDevices(candidate);
+    const card = documentRef.createElement("article");
+    card.className = "management-candidate-card";
+    card.dataset.decision = candidate.decision;
+
+    const header = documentRef.createElement("div");
+    header.className = "management-candidate-head";
+    const identity = documentRef.createElement("div");
+    appendTextElement(
+      identity,
+      "strong",
+      "",
+      candidate.displayName || "이름 미확인 후보",
+    );
+    appendTextElement(
+      identity,
+      "small",
+      "",
+      `${candidate.nodeName} · ${candidateEndpointSummary(candidate)}`,
+    );
+    appendTextElement(
+      header,
+      "span",
+      "management-protocol-pill",
+      koreanLabel("protocol", candidate.protocol, candidate.protocol),
+    );
+    header.prepend(identity);
+
+    const badges = documentRef.createElement("div");
+    badges.className = "management-candidate-badges";
+    const presence = appendTextElement(
+      badges,
+      "span",
+      "",
+      koreanLabel("candidatePresence", candidate.presence, "관측 미확인"),
+    );
+    presence.dataset.tone = candidate.presence === "present" ? "present" : "stale";
+    appendTextElement(
+      badges,
+      "span",
+      "",
+      koreanLabel("candidateDecision", candidate.decision, "상태 미확인"),
+    );
+    const packageBadge = appendTextElement(
+      badges,
+      "span",
+      "",
+      koreanLabel("candidatePackage", candidate.packageState, "패키지 미확인"),
+    );
+    packageBadge.dataset.tone = candidate.registrationReady ? "ready" : "blocked";
+    if (registeredDevices.length) {
+      const registered = appendTextElement(
+        badges,
+        "span",
+        "",
+        `EdgeX 등록됨 · ${registeredDevices.length}개`,
+      );
+      registered.dataset.tone = "ready";
+    }
+
+    const facts = documentRef.createElement("div");
+    facts.className = "management-candidate-facts";
+    [
+      candidate.source === "node-scan" ? "노드 자동 관측" : "운영자 수동 입력",
+      `전송 ${candidate.transport}`,
+      candidate.matchedAdapterId ? `패키지 ${candidate.matchedAdapterId}` : "",
+      candidate.matchedHardwareBindingId
+        ? `연결 ${candidate.matchedHardwareBindingId}`
+        : "",
+      `마지막 확인 ${formatManagementTimestamp(candidate.lastSeen)}`,
+    ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
+
+    appendTextElement(
+      card,
+      "p",
+      "management-candidate-reason",
+      candidate.packageReason || "프로토콜 패키지 상태를 확인할 수 없습니다.",
+    );
+    if (candidate.evidence?.warning) {
+      appendTextElement(
+        card,
+        "p",
+        "management-candidate-warning",
+        candidate.evidence.warning,
+      );
+    }
+    if (candidate.decisionNote || candidate.note) {
+      appendTextElement(
+        card,
+        "p",
+        "management-candidate-decision-note",
+        candidate.decisionNote || candidate.note,
+      );
+    }
+
+    const actions = documentRef.createElement("div");
+    actions.className = "management-candidate-actions";
+    if (candidate.decision === "pending") {
+      appendCandidateAction(
+        actions,
+        "검토 승인",
+        "accept",
+        candidate.candidateId,
+      );
+      appendCandidateAction(
+        actions,
+        "무시",
+        "ignore",
+        candidate.candidateId,
+      );
+    } else if (candidate.decision === "ignored") {
+      appendCandidateAction(
+        actions,
+        "다시 검토",
+        "restore",
+        candidate.candidateId,
+      );
+    } else {
+      appendCandidateAction(
+        actions,
+        "승인 취소",
+        "restore",
+        candidate.candidateId,
+      );
+      if (candidate.registrationReady && !registeredDevices.length) {
+        appendCandidateAction(
+          actions,
+          "EdgeX 디바이스 등록",
+          "register",
+          candidate.candidateId,
+        );
+      } else if (!candidate.registrationReady) {
+        appendCandidateAction(
+          actions,
+          "패키지 검증 후 등록",
+          "register",
+          candidate.candidateId,
+          {
+            disabled: true,
+            title: candidate.packageReason,
+          },
+        );
+      }
+    }
+    if (candidate.source === "manual") {
+      appendCandidateAction(
+        actions,
+        "후보 삭제",
+        "delete",
+        candidate.candidateId,
+      );
+    }
+    card.prepend(header, badges, facts);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+}
+
+
+function renderDiscovery(documentRef = document) {
+  renderDiscoveryStatus(documentRef);
+  renderDiscoveryStats(documentRef);
+  renderDiscoveryNodeHealth(documentRef);
+  renderDiscoveryCandidates(documentRef);
+}
+
+
 function renderPhysicalConnections(documentRef = document) {
   const container = byId("managementPhysicalConnectionList", documentRef);
   clearElement(container);
@@ -1535,11 +2001,9 @@ function selectedAdapter() {
 
 function renderMutationMode(documentRef = document) {
   const enabled = managementState.adapters.some(
-    (adapter) => adapter.mutationEnabled === true
-      && adapterSupportsNode(adapter, managementState.selectedNodeName),
+    (adapter) => adapter.mutationEnabled === true,
   ) || managementState.runtimes.some(
-    (runtime) => runtime.mutationEnabled === true
-      && (runtime.targetNode || runtime.target_node) === managementState.selectedNodeName,
+    (runtime) => runtime.mutationEnabled === true,
   );
   const mode = byId("managementMutationMode", documentRef);
   if (mode) {
@@ -1548,6 +2012,18 @@ function renderMutationMode(documentRef = document) {
   }
   const tokenInput = byId("managementAdminToken", documentRef);
   if (tokenInput) tokenInput.disabled = !enabled;
+  const discoveryTokenInput = byId(
+    "managementDiscoveryAdminToken",
+    documentRef,
+  );
+  if (discoveryTokenInput) discoveryTokenInput.disabled = !enabled;
+  const manualButton = byId("managementOpenManualCandidate", documentRef);
+  if (manualButton) {
+    manualButton.disabled = !enabled;
+    manualButton.title = enabled
+      ? "자동 탐색이 어려운 엔드포인트를 후보로 추가합니다."
+      : "현재 변경 기능이 비활성화되어 있습니다.";
+  }
   const patchButton = byId("managementPatchApply", documentRef);
   if (patchButton) {
     patchButton.disabled = !canPatchSelectedDevice(
@@ -1931,6 +2407,187 @@ function collectPatchPayload(documentRef = document) {
 }
 
 
+const MANUAL_PROTOCOL_FIELDS = {
+  serial: [
+    {name: "DevicePath", label: "고정 장치 경로", placeholder: "/dev/serial/by-id/...", required: true},
+    {name: "BaudRate", label: "통신 속도", type: "number", value: "115200", required: true},
+  ],
+  i2c: [
+    {name: "DevicePath", label: "I²C 버스 경로", placeholder: "/dev/i2c-1", required: true},
+  ],
+  mqtt: [
+    {name: "Broker", label: "브로커 주소", placeholder: "mqtts://broker.example:8883", required: true, wide: true},
+    {name: "Topic", label: "토픽", placeholder: "factory/line-1/temperature", required: true, wide: true},
+  ],
+  modbus: [
+    {name: "Mode", label: "연결 방식", type: "select", options: [["tcp", "Modbus TCP"], ["rtu", "Modbus RTU"]], required: true},
+    {name: "Host", label: "TCP 호스트", placeholder: "plc-01.factory.local"},
+    {name: "Port", label: "TCP 포트", type: "number", value: "502"},
+    {name: "UnitID", label: "Unit ID", type: "number", value: "1", required: true},
+    {name: "DevicePath", label: "RTU 고정 장치 경로", placeholder: "/dev/serial/by-id/...", wide: true},
+    {name: "BaudRate", label: "RTU 통신 속도", type: "number", value: "115200"},
+  ],
+  opcua: [
+    {name: "Endpoint", label: "OPC-UA 엔드포인트", placeholder: "opc.tcp://plc-01.factory.local:4840", required: true, wide: true},
+  ],
+  rtsp: [
+    {name: "Endpoint", label: "RTSP URL · 자격 증명 제외", placeholder: "rtsp://camera-01.factory.local/stream", required: true, wide: true},
+  ],
+  rest: [
+    {name: "Endpoint", label: "HTTP 엔드포인트", placeholder: "https://device-01.factory.local/api/telemetry", required: true, wide: true},
+  ],
+};
+
+
+function renderManualNodeOptions(documentRef = document) {
+  const select = byId("managementManualNode", documentRef);
+  clearElement(select);
+  managementNodeScopes().forEach((scope) => {
+    const option = documentRef.createElement("option");
+    option.value = scope.name;
+    option.textContent = scope.name;
+    option.selected = scope.name === managementState.selectedNodeName;
+    select?.appendChild(option);
+  });
+}
+
+
+function renderManualProtocolFields(documentRef = document) {
+  const container = byId("managementManualProtocolFields", documentRef);
+  clearElement(container);
+  const protocol = byId("managementManualProtocol", documentRef)?.value || "serial";
+  (MANUAL_PROTOCOL_FIELDS[protocol] || []).forEach((field) => {
+    const label = documentRef.createElement("label");
+    if (field.wide) label.className = "management-field-wide";
+    appendTextElement(label, "span", "", field.label);
+    let control;
+    if (field.type === "select") {
+      control = documentRef.createElement("select");
+      (field.options || []).forEach(([value, text]) => {
+        const option = documentRef.createElement("option");
+        option.value = value;
+        option.textContent = text;
+        control.appendChild(option);
+      });
+    } else {
+      control = documentRef.createElement("input");
+      control.type = field.type || "text";
+      control.placeholder = field.placeholder || "";
+      if (field.value) control.value = field.value;
+    }
+    control.dataset.manualCandidateField = field.name;
+    control.required = field.required === true;
+    label.appendChild(control);
+    container?.appendChild(label);
+  });
+}
+
+
+function manualCandidateField(name, documentRef = document) {
+  return byId("managementManualProtocolFields", documentRef)
+    ?.querySelector(`[data-manual-candidate-field="${name}"]`)
+    ?.value
+    ?.trim() || "";
+}
+
+
+function collectManualCandidatePayload(documentRef = document) {
+  const protocol = byId("managementManualProtocol", documentRef).value;
+  const nodeName = byId("managementManualNode", documentRef).value;
+  const displayName = byId("managementManualDisplayName", documentRef).value.trim();
+  if (!nodeName || !displayName) {
+    throw new Error("대상 노드와 표시 이름을 입력하세요.");
+  }
+  const properties = {};
+  let devicePath = null;
+  let transport = protocol;
+  const putString = (name) => {
+    const value = manualCandidateField(name, documentRef);
+    if (value) properties[name] = value;
+    return value;
+  };
+  const putNumber = (name) => {
+    const value = manualCandidateField(name, documentRef);
+    if (!value) return null;
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed)) throw new Error(`${name} 값은 정수여야 합니다.`);
+    properties[name] = parsed;
+    return parsed;
+  };
+  if (protocol === "serial") {
+    devicePath = manualCandidateField("DevicePath", documentRef);
+    putNumber("BaudRate");
+    transport = "usb-serial";
+  } else if (protocol === "i2c") {
+    devicePath = manualCandidateField("DevicePath", documentRef);
+    transport = "i2c-bus";
+  } else if (protocol === "mqtt") {
+    const broker = putString("Broker");
+    putString("Topic");
+    transport = broker.split(":", 1)[0] || "mqtt";
+  } else if (protocol === "modbus") {
+    const mode = putString("Mode").toLowerCase();
+    transport = `modbus-${mode || "unknown"}`;
+    if (mode === "tcp") {
+      putString("Host");
+      putNumber("Port");
+    } else {
+      devicePath = manualCandidateField("DevicePath", documentRef);
+      putNumber("BaudRate");
+    }
+    putNumber("UnitID");
+  } else {
+    const endpoint = putString("Endpoint");
+    transport = endpoint.split(":", 1)[0] || protocol;
+  }
+  return {
+    nodeName,
+    protocol,
+    transport,
+    displayName,
+    ...(devicePath ? {devicePath} : {}),
+    properties,
+    note: byId("managementManualNote", documentRef).value.trim(),
+  };
+}
+
+
+function renderManualCandidateResult(message, {
+  status = "applied",
+  documentRef = document,
+} = {}) {
+  const container = byId("managementManualCandidateResult", documentRef);
+  clearElement(container);
+  if (!container) return;
+  container.dataset.status = status;
+  appendTextElement(container, "p", "", message);
+}
+
+
+function prefillRegistrationFromCandidate(candidate, documentRef = document) {
+  if (!candidate?.registrationReady) return false;
+  managementState.selectedNodeName = candidate.nodeName;
+  managementState.selectedAdapterId = candidate.matchedAdapterId || "";
+  managementState.validation = null;
+  renderManagementNodes(documentRef);
+  renderAdapterOptions(documentRef);
+  renderAdapterCatalog(documentRef);
+  renderRuntimeSelection(documentRef);
+  const binding = byId("managementHardwareBinding", documentRef);
+  if (binding) binding.value = candidate.matchedHardwareBindingId || "";
+  syncRuntimeNodeFromBinding(documentRef);
+  renderProtocolFields(documentRef);
+  const labels = byId("managementDeviceLabels", documentRef);
+  if (labels && !labels.value.trim()) {
+    labels.value = `${candidate.protocol}, virtual-device`;
+  }
+  renderRegistrationReview(documentRef);
+  setManagementView("register", documentRef);
+  setRegistrationStep(1, documentRef);
+  return true;
+}
+
+
 function ensureIdempotencyInput(input) {
   if (input.value.trim()) return input.value.trim();
   const value = globalThis.crypto?.randomUUID?.()
@@ -1959,16 +2616,33 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
       managementState.runtimeLoadError = error;
       return [];
     });
-  const [adapters, devices, runtimes, nodes] = await Promise.all([
+  const discoveryRequest = fetchDiscoveryInventory(fetchFn)
+    .then((inventory) => {
+      managementState.discoveryLoadError = null;
+      return inventory;
+    })
+    .catch((error) => {
+      managementState.discoveryLoadError = error;
+      return {
+        nodes: [],
+        candidates: [],
+        totalCandidates: 0,
+        filteredCandidates: 0,
+        staleAfterSeconds: 90,
+      };
+    });
+  const [adapters, devices, runtimes, nodes, discovery] = await Promise.all([
     fetchManagementAdapters(fetchFn),
     fetchManagedDevices(fetchFn),
     runtimeRequest,
     nodeRequest,
+    discoveryRequest,
   ]);
   managementState.adapters = adapters;
   managementState.nodes = nodes;
   managementState.devices = devices;
   managementState.runtimes = runtimes;
+  managementState.discovery = discovery;
   const scopes = managementNodeScopes();
   if (!scopes.some((scope) => scope.name === managementState.selectedNodeName)) {
     managementState.selectedNodeName = (
@@ -1989,9 +2663,12 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   renderPhysicalConnections(documentRef);
   renderRuntimeInventory(documentRef);
   renderManagedDevices(documentRef);
+  renderDiscovery(documentRef);
   renderMutationMode(documentRef);
   renderRuntimeSelection(documentRef);
   renderProtocolFields(documentRef);
+  renderManualNodeOptions(documentRef);
+  renderManualProtocolFields(documentRef);
   ensureIdempotencyInput(byId("managementIdempotencyKey", documentRef));
   ensureIdempotencyInput(byId("patchIdempotencyKey", documentRef));
   renderRegistrationReview(documentRef);
@@ -2003,6 +2680,15 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
 function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   const adapterSelect = byId("managementAdapter", documentRef);
   if (!adapterSelect) return;
+  const syncSessionToken = (value) => {
+    sessionAdminToken = value;
+    [
+      byId("managementAdminToken", documentRef),
+      byId("managementDiscoveryAdminToken", documentRef),
+    ].forEach((input) => {
+      if (input && input.value !== value) input.value = value;
+    });
+  };
   const managementTabs = byId("managementViewTabs", documentRef);
   managementTabs?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-view]");
@@ -2029,6 +2715,178 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       setRegistrationStep(1, documentRef);
     });
   });
+  [
+    "managementDiscoverySearch",
+    "managementDiscoveryProtocolFilter",
+    "managementDiscoveryDecisionFilter",
+    "managementDiscoveryIncludeIgnored",
+  ].forEach((id) => {
+    const input = byId(id, documentRef);
+    input?.addEventListener(
+      id === "managementDiscoverySearch" ? "input" : "change",
+      () => renderDiscoveryCandidates(documentRef),
+    );
+  });
+  byId("managementDiscoveryAdminToken", documentRef)?.addEventListener(
+    "input",
+    (event) => syncSessionToken(event.target.value),
+  );
+  const manualDialog = byId("managementManualCandidateDialog", documentRef);
+  byId("managementOpenManualCandidate", documentRef)?.addEventListener("click", () => {
+    managementState.manualCandidateCreateKey = "";
+    renderManualNodeOptions(documentRef);
+    renderManualProtocolFields(documentRef);
+    renderManualCandidateResult(
+      "비밀번호·토큰·URL 내 자격 증명은 저장할 수 없습니다.",
+      {status: "disabled", documentRef},
+    );
+    if (typeof manualDialog?.showModal === "function") manualDialog.showModal();
+    else manualDialog?.setAttribute("open", "");
+  });
+  manualDialog?.querySelectorAll("[data-management-close-dialog]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (typeof manualDialog.close === "function") manualDialog.close();
+      else manualDialog.removeAttribute("open");
+    });
+  });
+  byId("managementManualProtocol", documentRef)?.addEventListener(
+    "change",
+    () => renderManualProtocolFields(documentRef),
+  );
+  byId("managementManualCandidateForm", documentRef)?.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+      const submit = byId("managementCreateManualCandidate", documentRef);
+      try {
+        if (!sessionAdminToken.trim()) {
+          throw new Error("관리자 Bearer 토큰을 먼저 입력하세요.");
+        }
+        const payload = collectManualCandidatePayload(documentRef);
+        submit.disabled = true;
+        renderManualCandidateResult(
+          "후보를 안전하게 저장하는 중입니다.",
+          {status: "waiting", documentRef},
+        );
+        managementState.manualCandidateCreateKey = (
+          managementState.manualCandidateCreateKey
+          || globalThis.crypto?.randomUUID?.()
+          || `candidate-create-${Date.now()}`
+        );
+        await createManualCandidate(payload, {
+          token: sessionAdminToken,
+          idempotencyKey: managementState.manualCandidateCreateKey,
+          fetchFn,
+        });
+        renderManualCandidateResult(
+          "연결 후보를 추가했습니다.",
+          {status: "verified", documentRef},
+        );
+        await loadDeviceManagement(documentRef, fetchFn);
+        if (typeof manualDialog?.close === "function") manualDialog.close();
+        else manualDialog?.removeAttribute("open");
+        managementState.manualCandidateCreateKey = "";
+        byId("managementManualDisplayName", documentRef).value = "";
+        byId("managementManualNote", documentRef).value = "";
+      } catch (error) {
+        renderManualCandidateResult(
+          error?.message || "연결 후보 추가에 실패했습니다.",
+          {status: "failed", documentRef},
+        );
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    },
+  );
+  byId("managementDiscoveryList", documentRef)?.addEventListener(
+    "click",
+    async (event) => {
+      const button = event.target.closest?.("[data-candidate-action]");
+      if (!button || button.disabled) return;
+      const candidate = (managementState.discovery.candidates || []).find(
+        (item) => item.candidateId === button.dataset.candidateId,
+      );
+      if (!candidate) return;
+      const action = button.dataset.candidateAction;
+      if (action === "register") {
+        if (!prefillRegistrationFromCandidate(candidate, documentRef)) {
+          renderDiscoveryFeedback(
+            "이 후보는 아직 검증된 연결이 없어 EdgeX 등록을 시작할 수 없습니다.",
+            {status: "degraded", documentRef},
+          );
+        }
+        return;
+      }
+      if (!sessionAdminToken.trim()) {
+        renderDiscoveryFeedback(
+          "관리자 Bearer 토큰을 먼저 입력하세요.",
+          {status: "error", documentRef},
+        );
+        byId("managementDiscoveryAdminToken", documentRef)?.focus();
+        return;
+      }
+      if (
+        action === "delete"
+        && typeof globalThis.confirm === "function"
+        && !globalThis.confirm(`${candidate.displayName} 수동 후보를 삭제하시겠습니까?`)
+      ) {
+        return;
+      }
+      const decisionByAction = {
+        accept: "accepted",
+        ignore: "ignored",
+        restore: "pending",
+      };
+      const actionKey = `${action}:${candidate.candidateId}:${candidate.decision}`;
+      const idempotencyKey = managementState.candidateActionKeys.get(actionKey)
+        || globalThis.crypto?.randomUUID?.()
+        || `candidate-${action}-${Date.now()}`;
+      managementState.candidateActionKeys.set(actionKey, idempotencyKey);
+      button.disabled = true;
+      renderDiscoveryFeedback("후보 상태를 적용하는 중입니다.", {
+        status: "degraded",
+        documentRef,
+      });
+      try {
+        if (action === "delete") {
+          await deleteCandidate(candidate.candidateId, {
+            token: sessionAdminToken,
+            idempotencyKey,
+            fetchFn,
+          });
+        } else {
+          await updateCandidateDecision(
+            candidate.candidateId,
+            {
+              decision: decisionByAction[action],
+              note: {
+                accept: "대시보드에서 운영자가 연결 후보를 검토 승인했습니다.",
+                ignore: "대시보드에서 운영자가 이 후보를 무시했습니다.",
+                restore: "대시보드에서 후보를 검토 대기로 되돌렸습니다.",
+              }[action],
+            },
+            {
+              token: sessionAdminToken,
+              idempotencyKey,
+              fetchFn,
+            },
+          );
+        }
+        managementState.candidateActionKeys.delete(actionKey);
+        await loadDeviceManagement(documentRef, fetchFn);
+        renderDiscoveryFeedback("후보 상태를 반영했습니다.", {
+          status: "online",
+          documentRef,
+        });
+      } catch (error) {
+        renderDiscoveryFeedback(
+          error?.message || "후보 상태 변경에 실패했습니다.",
+          {status: "error", documentRef},
+        );
+        button.disabled = false;
+      }
+    },
+  );
   byId("managementOverviewPanel", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-select-adapter]");
     if (!button) return;
@@ -2087,10 +2945,12 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderAdapterOptions(documentRef);
     renderAdapterCatalog(documentRef);
     renderPhysicalConnections(documentRef);
+    renderDiscovery(documentRef);
     renderRuntimeInventory(documentRef);
     renderManagedDevices(documentRef);
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
+    renderManualNodeOptions(documentRef);
     clearElement(byId("managementValidation", documentRef));
     setSelectedPatchDevice("", documentRef);
     renderRegistrationReview(documentRef);
@@ -2116,7 +2976,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     if (applyButton) applyButton.disabled = true;
   });
   byId("managementAdminToken", documentRef)?.addEventListener("input", (event) => {
-    sessionAdminToken = event.target.value;
+    syncSessionToken(event.target.value);
   });
   byId("managementValidate", documentRef)?.addEventListener("click", async () => {
     try {
@@ -2245,10 +3105,14 @@ if (typeof module !== "undefined") {
     bindingProtocolValue,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
+    candidateEndpointSummary,
     canPatchSelectedDevice,
     connectionStatusView,
+    createManualCandidate,
     createManagementConnection,
     createManagementDevice,
+    deleteCandidate,
+    fetchDiscoveryInventory,
     fetchAdapterRuntimes,
     fetchConnectionOperation,
     fetchManagementAdapters,
@@ -2268,6 +3132,7 @@ if (typeof module !== "undefined") {
     restartAdapterRuntime,
     retireAdapterRuntime,
     runtimeCanMutate,
+    updateCandidateDecision,
     validateManagementConnection,
     validateManagementDevice,
   };

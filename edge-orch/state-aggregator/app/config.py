@@ -103,6 +103,11 @@ class Settings(BaseModel):
     adapter_runtime_mutation_enabled: bool = Field(
         default_factory=lambda: _env_bool("ADAPTER_RUNTIME_MUTATION_ENABLED")
     )
+    device_discovery_management_enabled: bool = Field(
+        default_factory=lambda: _env_bool(
+            "DEVICE_DISCOVERY_MANAGEMENT_ENABLED"
+        )
+    )
     adapter_controller_url: str = Field(
         default_factory=lambda: os.getenv(
             "ADAPTER_CONTROLLER_URL",

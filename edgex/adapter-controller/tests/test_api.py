@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import json
 import time
+from datetime import datetime, timezone
 
 import pytest
 from fastapi import FastAPI
@@ -106,21 +107,60 @@ class RecordingService:
         result["phase"] = "RETIRED"
         return result
 
+    def list_discovery_inventory(self):
+        self.calls.append(("list_discovery",))
+        now = datetime.now(timezone.utc).isoformat()
+        return {
+            "generatedAt": now,
+            "staleAfterSeconds": 90,
+            "nodes": [],
+            "candidates": [],
+        }
 
-def settings(*, mutation_enabled=False):
+    def ingest_discovery_report(self, report):
+        self.calls.append(("report", report.node_name, len(report.candidates)))
+        return self.list_discovery_inventory()
+
+    def create_manual_candidate(self, request):
+        self.calls.append(("manual", request.candidate.display_name))
+        now = datetime.now(timezone.utc).isoformat()
+        return {
+            "candidateId": "candidate-" + ("a" * 24),
+            "source": "manual",
+            "nodeName": request.candidate.node_name,
+            "protocol": request.candidate.protocol,
+            "transport": request.candidate.transport,
+            "displayName": request.candidate.display_name,
+            "properties": request.candidate.properties,
+            "decision": "pending",
+            "presence": "declared",
+            "firstSeen": now,
+            "lastSeen": now,
+            "updatedAt": now,
+            "packageState": "verification-required",
+            "packageReason": "검증 필요",
+            "registrationReady": False,
+        }
+
+
+def settings(*, mutation_enabled=False, discovery_enabled=False):
     return Settings(
         namespace="edgex-edge",
         internal_hmac_key=HMAC_KEY,
         mutation_enabled=mutation_enabled,
+        device_discovery_enabled=discovery_enabled,
         signature_max_age_seconds=60,
     )
 
 
-def client_for(service, *, mutation_enabled=False):
+def client_for(service, *, mutation_enabled=False, discovery_enabled=False):
     app = FastAPI()
     app.include_router(
         create_controller_router(
-            settings(mutation_enabled=mutation_enabled),
+            settings(
+                mutation_enabled=mutation_enabled,
+                discovery_enabled=discovery_enabled,
+            ),
             service,
         )
     )
@@ -292,3 +332,59 @@ def test_health_endpoints_do_not_expose_configuration():
     assert health.json() == {"status": "ok"}
     assert ready.json() == {"status": "ready"}
     assert HMAC_KEY not in health.text + ready.text
+
+
+def test_discovery_report_and_manual_candidate_require_feature_and_signed_contract():
+    service = RecordingService()
+    report = {
+        "nodeName": "etri-dev0001-jetorn",
+        "agentId": "discovery/jetson",
+        "observedAt": datetime.now(timezone.utc).isoformat(),
+        "candidates": [],
+        "scanErrors": [],
+    }
+    manual = {
+        "candidate": {
+            "nodeName": "etri-dev0001-jetorn",
+            "protocol": "mqtt",
+            "transport": "mqtts",
+            "displayName": "Line MQTT sensor",
+            "properties": {
+                "Broker": "mqtts://broker.example:8883",
+                "Topic": "factory/line/temp",
+            },
+        },
+        "requestRef": {
+            "requestId": "a" * 64,
+            "payloadHash": "b" * 64,
+        },
+    }
+    with client_for(
+        service,
+        mutation_enabled=True,
+        discovery_enabled=True,
+    ) as client:
+        inventory = request(client, "GET", "/internal/v1/discovery")
+        reported = request(
+            client,
+            "POST",
+            "/internal/v1/discovery/reports",
+            report,
+        )
+        created = request(
+            client,
+            "POST",
+            "/internal/v1/discovery/manual",
+            manual,
+        )
+
+    assert inventory.status_code == 200
+    assert reported.status_code == 202
+    assert created.status_code == 201
+    assert created.json()["protocol"] == "mqtt"
+    assert [item[0] for item in service.calls] == [
+        "list_discovery",
+        "report",
+        "list_discovery",
+        "manual",
+    ]

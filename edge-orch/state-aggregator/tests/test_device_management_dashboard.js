@@ -11,11 +11,15 @@ const {
   bindingProtocolValue,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
+  candidateEndpointSummary,
   canPatchSelectedDevice,
   connectionStatusView,
+  createManualCandidate,
   createManagementConnection,
   createManagementDevice,
+  deleteCandidate,
   fetchAdapterRuntimes,
+  fetchDiscoveryInventory,
   fetchConnectionOperation,
   fetchManagementAdapters,
   fetchManagementNodes,
@@ -34,6 +38,7 @@ const {
   restartAdapterRuntime,
   retireAdapterRuntime,
   runtimeCanMutate,
+  updateCandidateDecision,
   validateManagementConnection,
   validateManagementDevice,
 } = require("../app/static/device-management.js");
@@ -185,6 +190,7 @@ test("device patch stays disabled until a device in the selected node is chosen"
 
 
 test("management navigation only accepts known views and registration steps", () => {
+  assert.equal(normalizeManagementView("discovery"), "discovery");
   assert.equal(normalizeManagementView("overview"), "overview");
   assert.equal(normalizeManagementView("register"), "register");
   assert.equal(normalizeManagementView("edit"), "edit");
@@ -196,12 +202,108 @@ test("management navigation only accepts known views and registration steps", ()
 });
 
 
+test("discovery inventory and guarded candidate mutations use the management BFF", async () => {
+  const requests = [];
+  const fetchFn = async (url, options = {}) => {
+    requests.push({url, options});
+    if (url.includes("?includeIgnored")) {
+      return response({
+        generatedAt: "2026-07-24T10:00:00Z",
+        staleAfterSeconds: 90,
+        nodes: [],
+        candidates: [],
+      });
+    }
+    return response({
+      candidateId: "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+      source: "manual",
+      nodeName: "edge-a",
+      protocol: "mqtt",
+      transport: "mqtts",
+      displayName: "Line sensor",
+      decision: "pending",
+      presence: "declared",
+      packageState: "verification-required",
+      packageReason: "검증 필요",
+      firstSeen: "2026-07-24T10:00:00Z",
+      lastSeen: "2026-07-24T10:00:00Z",
+      updatedAt: "2026-07-24T10:00:00Z",
+    });
+  };
+
+  await fetchDiscoveryInventory(fetchFn);
+  await createManualCandidate(
+    {
+      nodeName: "edge-a",
+      protocol: "mqtt",
+      transport: "mqtts",
+      displayName: "Line sensor",
+      properties: {
+        Broker: "mqtts://broker.example:8883",
+        Topic: "factory/line/temp",
+      },
+    },
+    {token: "admin", idempotencyKey: "create-1", fetchFn},
+  );
+  await updateCandidateDecision(
+    "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+    {decision: "accepted", note: "checked"},
+    {token: "admin", idempotencyKey: "decision-1", fetchFn},
+  );
+  await deleteCandidate(
+    "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+    {token: "admin", idempotencyKey: "delete-1", fetchFn},
+  );
+
+  assert.equal(
+    requests[0].url,
+    "/management/discovery?includeIgnored=true&limit=2000",
+  );
+  assert.equal(requests[1].url, "/management/discovery/manual");
+  assert.equal(requests[1].options.headers.Authorization, "Bearer admin");
+  assert.equal(requests[1].options.headers["Idempotency-Key"], "create-1");
+  assert.equal(requests[2].options.method, "PATCH");
+  assert.equal(requests[3].options.method, "DELETE");
+});
+
+
+test("discovery candidate cards show a safe protocol endpoint summary", () => {
+  assert.equal(
+    candidateEndpointSummary({
+      protocol: "serial",
+      devicePath: "/dev/serial/by-id/usb-Arduino",
+      transport: "usb-serial",
+    }),
+    "/dev/serial/by-id/usb-Arduino",
+  );
+  assert.equal(
+    candidateEndpointSummary({
+      protocol: "mqtt",
+      transport: "mqtts",
+      properties: {
+        Broker: "mqtts://broker.example:8883",
+        Topic: "factory/line/temp",
+      },
+    }),
+    "mqtts://broker.example:8883 · factory/line/temp",
+  );
+  assert.equal(
+    candidateEndpointSummary({
+      protocol: "modbus",
+      transport: "modbus-tcp",
+      properties: {Mode: "tcp", Host: "plc-01.local", Port: 502, UnitID: 1},
+    }),
+    "tcp · plc-01.local:502 · Unit 1",
+  );
+});
+
+
 test("management tabs support wrapped arrow and boundary keyboard navigation", () => {
-  assert.equal(managementTabIndexForKey("ArrowRight", 2, 3), 0);
-  assert.equal(managementTabIndexForKey("ArrowLeft", 0, 3), 2);
-  assert.equal(managementTabIndexForKey("Home", 2, 3), 0);
-  assert.equal(managementTabIndexForKey("End", 0, 3), 2);
-  assert.equal(managementTabIndexForKey("Enter", 1, 3), null);
+  assert.equal(managementTabIndexForKey("ArrowRight", 3, 4), 0);
+  assert.equal(managementTabIndexForKey("ArrowLeft", 0, 4), 3);
+  assert.equal(managementTabIndexForKey("Home", 3, 4), 0);
+  assert.equal(managementTabIndexForKey("End", 0, 4), 3);
+  assert.equal(managementTabIndexForKey("Enter", 1, 4), null);
   assert.equal(managementTabIndexForKey("ArrowRight", 0, 0), null);
   assert.equal(managementTabIndexForKey("ArrowRight", -1, 3), null);
 });
@@ -857,16 +959,28 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementRegistrationStep4",
     "managementPatchDeviceSelect",
     "managementUnsupportedAdapterList",
+    "managementDiscoveryPanel",
+    "managementDiscoveryList",
+    "managementDiscoverySearch",
+    "managementDiscoveryProtocolFilter",
+    "managementDiscoveryDecisionFilter",
+    "managementDiscoveryAdminToken",
+    "managementOpenManualCandidate",
+    "managementManualCandidateDialog",
+    "managementManualCandidateForm",
+    "managementManualProtocolFields",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=connection-evidence-v1-20260723/);
-  assert.match(html, /device-management\.js\?v=connection-evidence-v2-20260723/);
+  assert.match(html, /device-management\.css\?v=device-discovery-v1-20260724/);
+  assert.match(html, /device-management\.js\?v=device-discovery-v1-20260724/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);
+  assert.match(html, /연결 후보 찾기/);
+  assert.match(html, /엔드포인트 직접 추가/);
   assert.match(html, /선택 노드의 런타임/);
   assert.match(html, /등록 연결과 실제 장비 상태/);
   assert.match(html, /연결 구성 마법사/);
@@ -884,11 +998,14 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-runtime-card/);
   assert.match(css, /\.management-physical-card/);
+  assert.match(css, /\.management-candidate-card/);
+  assert.match(css, /\.management-dialog/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
   assert.match(javascript, /function renderManagementValidation\(/);
   assert.match(javascript, /function renderRuntimeInventory\(/);
+  assert.match(javascript, /function renderDiscoveryCandidates\(/);
   assert.match(javascript, /등록 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
 });

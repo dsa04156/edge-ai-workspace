@@ -92,7 +92,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-23 19:29</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
+            <span class="badge">수정: 2026-07-24 14:21</span>
+            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
           </div>
         </header>
         <div class="doc-body">
@@ -208,7 +208,7 @@
 <tr>
 <td><code>edgex/k8s/kustomization.yaml</code></td>
 <td>현재 EdgeX 운영 배포 진입점</td>
-<td>중앙, 두 edge Device Service, <code>AdapterRuntime</code> CRD와 namespaced Adapter Controller를 함께 관리</td>
+<td>중앙, 두 edge Device Service, passive discovery DaemonSet, <code>AdapterRuntime</code> CRD와 namespaced Adapter Controller를 함께 관리</td>
 </tr>
 <tr>
 <td><code>edgex/k8s/base/server/</code></td>
@@ -241,9 +241,19 @@
 <td>직접 I2C/RTIMULib 수집, 6개 가상 Device fan-out, Profile/Device bootstrap, async Event와 read-only cache/API 구현</td>
 </tr>
 <tr>
+<td><code>edgex/device-discovery-agent/</code></td>
+<td>passive node discovery agent</td>
+<td>지정 edge node의 USB Serial <code>/dev/serial/by-id/*</code>와 I2C 버스 존재만 read-only로 관측해 HMAC report를 보낸다. 네트워크 probe, 장비 통신, Device 등록은 하지 않음</td>
+</tr>
+<tr>
+<td><code>edgex/k8s/base/device-discovery-agent/</code></td>
+<td>발견 Agent 운영 배포</td>
+<td>세 testbed edge node에 DaemonSet을 배치하고 read-only <code>/dev</code>, <code>/sys</code>, 최소 egress와 무권한 ServiceAccount를 사용. broad host mount는 이 고정 관측 Agent에만 한정</td>
+</tr>
+<tr>
 <td><code>edgex/adapter-controller/</code></td>
-<td>검증 Adapter Runtime controller</td>
-<td>Git allowlist template를 기준으로 runtime 재사용/배포 plan, 한 external protocol runtime의 복수 등록 <code>hardwareBindingIds</code>, <code>AdapterRuntime</code> reconciliation, EdgeX Device Service readback, 재시작과 consumer-safe 퇴역을 담당</td>
+<td>검증 Adapter Runtime controller와 후보 staging registry</td>
+<td>Git allowlist template를 기준으로 runtime 재사용/배포 plan, 한 external protocol runtime의 복수 등록 <code>hardwareBindingIds</code>, <code>AdapterRuntime</code> reconciliation, EdgeX Device Service readback, 재시작과 consumer-safe 퇴역을 담당한다. 발견 report와 수동 endpoint 후보는 제한된 ConfigMap에 별도로 보관</td>
 </tr>
 <tr>
 <td><code>edgex/k8s/crds/</code>, <code>base/adapter-controller/</code></td>
@@ -258,7 +268,7 @@
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
 <td>inventory/history API와 대시보드 관리 BFF</td>
-<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 read-only이고 <code>/management/*</code>는 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. Kubernetes 쓰기 권한은 갖지 않는다</td>
+<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 read-only이고 <code>/management/*</code>는 발견 후보 검색·검토, 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. Kubernetes 쓰기 권한은 갖지 않는다</td>
 </tr>
 <tr>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
@@ -268,10 +278,10 @@
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 대시보드</td>
-<td>EdgeX 상태/history와 서비스 데모를 표시한다. <code>디바이스 관리</code>는 KubeEdge 노드를 운영 범위로 선택한 뒤 등록 물리 연결과 실제 장비 상태를 구분하고, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, EdgeX Device, 통합 validation/apply/first-Event 상태를 관리한다</td>
+<td>EdgeX 상태/history와 서비스 데모를 표시한다. <code>디바이스 관리</code>는 발견 후보 검색·수동 endpoint 선언·승인/무시와 KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, EdgeX Device, 통합 validation/apply/first-Event 상태를 관리한다</td>
 </tr>
 </tbody></table></div>
-<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. 기존 Agent/SQLite/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT-only·Modbus·OPC-UA와 RTSP는 각각 검증 전까지 완료로 주장하지 않는다.</p>
+<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. <code>edgex-device-discovery-registry</code> ConfigMap도 승인 전 후보 staging일 뿐 inventory 객체가 아니다. 기존 Agent/SQLite/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT-only·Modbus·OPC-UA와 RTSP는 수동 후보로 선언할 수 있어도 각각 검증 전까지 설치 가능 또는 완료로 주장하지 않는다.</p>
 <h2 id="2차년도-설계-트랙-경로">2차년도 설계 트랙 경로</h2>
 <p>다음 경로는 현재 서비스 데모 기능으로 주장하지 않고, 2차년도 협약 방향에 맞춘 설계/프로토타입 후보로 관리한다.</p>
 <div class="table-wrap"><table>

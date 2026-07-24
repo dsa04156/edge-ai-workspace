@@ -12,6 +12,7 @@ name: Build and Push Images to Local Registry
       - "edge-orch/placement_engine/**"
       - "edge-orch/vision_stage_runner/**"
       - "edgex/adapter-controller/**"
+      - "edgex/device-discovery-agent/**"
       - "edgex/device-serial/**"
       - "edgex/device-sensehat/**"
       - "edgex/local-data-cache/**"
@@ -80,7 +81,7 @@ jobs:
           set_output workflow_executor "${COMMON}|^edge-orch/workflow_executor/"
           set_output placement_engine "${COMMON}|^edge-orch/placement_engine/"
           set_output vision_stage_runner "${COMMON}|^edge-orch/vision_stage_runner/"
-          set_output adapter_stack "${COMMON}|^edgex/(adapter-controller|device-serial|device-sensehat|local-data-cache|k8s)/"
+          set_output adapter_stack "${COMMON}|^edgex/(adapter-controller|device-discovery-agent|device-serial|device-sensehat|local-data-cache|k8s)/"
           set_output mqttvirtual "${COMMON}|^mappers/(mqttvirtual|mapper-framework)/"
           set_output docs "${COMMON}|^(docs|docs-site)/"
 
@@ -119,6 +120,19 @@ jobs:
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/edge-adapter-controller-build-metadata.json)
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "EDGE_ADAPTER_CONTROLLER_IMAGE=${{ env.REGISTRY }}/edge-adapter-controller@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Build and Push edge-device-discovery
+        if: steps.changes.outputs.adapter_stack == 'true'
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/edge-device-discovery:latest \
+            -f edgex/device-discovery-agent/Dockerfile \
+            edgex/device-discovery-agent \
+            --metadata-file /tmp/edge-device-discovery-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edge-device-discovery-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "EDGE_DEVICE_DISCOVERY_IMAGE=${{ env.REGISTRY }}/edge-device-discovery@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Build and Push edgex-device-serial
         if: steps.changes.outputs.adapter_stack == 'true'
@@ -226,6 +240,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${EDGE_ADAPTER_CONTROLLER_IMAGE}"
+          test -n "${EDGE_DEVICE_DISCOVERY_IMAGE}"
           test -n "${EDGEX_DEVICE_SERIAL_IMAGE}"
           test -n "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
           edgex/k8s/scripts/preflight-adapter-management-secrets.sh
@@ -234,6 +249,7 @@ jobs:
             | jq -c '.spec.source.kustomize.images // []')
           for TARGET_IMAGE in \
             "${EDGE_ADAPTER_CONTROLLER_IMAGE}" \
+            "${EDGE_DEVICE_DISCOVERY_IMAGE}" \
             "${EDGEX_DEVICE_SERIAL_IMAGE}" \
             "${EDGEX_DEVICE_SENSEHAT_IMAGE}"; do
             TARGET_REPOSITORY=${TARGET_IMAGE%@sha256:*}
@@ -256,11 +272,14 @@ jobs:
           for attempt in $(seq 1 90); do
             CONTROLLER_IMAGE=$(kubectl get deployment edgex-adapter-controller -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            DISCOVERY_IMAGE=$(kubectl get daemonset edge-device-discovery -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             SERIAL_IMAGE=$(kubectl get deployment device-serial-jetson -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             SENSEHAT_IMAGE=$(kubectl get deployment device-sensehat-raspi -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             if [ "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}" ] \
+              && [ "${DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}" ] \
               && [ "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}" ] \
               && [ "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}" ]; then
               break
@@ -268,9 +287,11 @@ jobs:
             sleep 2
           done
           test "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}"
+          test "${DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}"
           test "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}"
           test "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
           kubectl rollout status deployment/edgex-adapter-controller -n edgex-edge --timeout=180s
+          kubectl rollout status daemonset/edge-device-discovery -n edgex-edge --timeout=240s
           kubectl rollout status deployment/device-serial-jetson -n edgex-edge --timeout=180s
           kubectl rollout status deployment/device-sensehat-raspi -n edgex-edge --timeout=180s
 

@@ -26,6 +26,7 @@ class AdapterControllerService:
         reconciler: Any,
         *,
         namespace: str,
+        candidate_registry: Any | None = None,
     ) -> None:
         if namespace != "edgex-edge":
             raise ValueError("Adapter Controller is limited to edgex-edge")
@@ -35,6 +36,7 @@ class AdapterControllerService:
         self.reconciler = reconciler
         self.namespace = namespace
         self.planner = RuntimePlanner(catalog)
+        self.candidate_registry = candidate_registry
 
     def list_runtimes(self) -> list[RuntimeObservation]:
         result: list[RuntimeObservation] = []
@@ -202,6 +204,32 @@ class AdapterControllerService:
             self.reconciler.reconcile(runtime, template)
             count += 1
         return count
+
+    def list_discovery_inventory(self):
+        return self._require_candidate_registry().list_inventory()
+
+    def ingest_discovery_report(self, report):
+        return self._require_candidate_registry().ingest_report(report)
+
+    def create_manual_candidate(self, request):
+        return self._require_candidate_registry().create_manual(request)
+
+    def update_candidate_decision(self, candidate_id: str, request):
+        return self._require_candidate_registry().update_decision(
+            candidate_id,
+            request,
+        )
+
+    def delete_candidate(self, candidate_id: str, request):
+        return self._require_candidate_registry().delete_candidate(
+            candidate_id,
+            request,
+        )
+
+    def _require_candidate_registry(self):
+        if self.candidate_registry is None:
+            raise ControllerValidationError("device discovery registry is disabled")
+        return self.candidate_registry
 
     def _require_controller_runtime(self, name: str) -> dict[str, Any]:
         runtime = self.kube.get_runtime(name)

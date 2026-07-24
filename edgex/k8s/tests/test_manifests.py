@@ -29,13 +29,14 @@ RETIRED_EDGE_AGENTS = {
 }
 
 
-def test_operational_entrypoint_retires_custom_edge_agents() -> None:
+def test_operational_entrypoint_retires_telemetry_agents_and_adds_discovery() -> None:
     kustomization = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert kustomization["resources"] == [
         "overlays/testbed/server2",
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
+        "base/device-discovery-agent",
         "crds",
         "base/adapter-controller",
     ]
@@ -55,6 +56,7 @@ def test_operational_entrypoint_retires_custom_edge_agents() -> None:
     assert ("ConfigMap", "edgex-metadata-contract") not in indexed
     assert ("CustomResourceDefinition", "adapterruntimes.edgeai.etri.re.kr") in indexed
     assert ("Deployment", "edgex-adapter-controller") in indexed
+    assert ("DaemonSet", "edge-device-discovery") in indexed
 
 
 def test_operational_entrypoint_keeps_central_edgex_without_device_mqtt() -> None:

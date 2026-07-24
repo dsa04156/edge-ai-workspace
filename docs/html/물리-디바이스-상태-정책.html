@@ -92,7 +92,7 @@
 <li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 물리-디바이스-상태-정책.md</span>
-            <span class="badge">수정: 2026-07-22 16:48</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
+            <span class="badge">수정: 2026-07-24 14:22</span>
+            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
           </div>
         </header>
         <div class="doc-body">
@@ -170,6 +170,9 @@
 <ul><li><code>name</code></li><li><code>profileName</code></li><li><code>serviceName</code></li><li><code>protocols</code></li><li><code>adminState</code></li><li><code>operatingState</code></li><li><code>tags</code>와 properties의 선택적 node diagnostic/placement</li></ul>
 <p>EdgeX Device Service는 <code>protocols</code>의 endpoint를 연결하고 Device Profile에 맞는 Event/Reading을 만든다. Core Metadata의 <code>serviceName</code>은 실제 endpoint를 소유하는 Device Service여야 하며 별도 Agent를 논리 Device Service로 가장하지 않는다.</p>
 <p>Kubernetes node placement는 display-only 진단 정보다. placement 누락, Kubernetes Node NotReady, mapper Pod 상태를 물리 디바이스 availability의 gate로 사용하지 않는다.</p>
+<h3 id="발견-후보와-inventory-경계">발견 후보와 inventory 경계</h3>
+<p><code>edge-device-discovery</code>는 onboarding 편의를 위한 passive staging Agent다. USB Serial의 stable <code>/dev/serial/by-id/*</code> symlink와 <code>/dev/i2c-N</code> 버스 존재만 관측하며, 네트워크 대역 probe나 I2C address scan을 하지 않는다. report의 <code>present</code>/<code>stale</code>과 수동 endpoint의 <code>declared</code>는 후보 evidence일 뿐 Core Metadata Device, <code>operatingState</code>, Device Service 통신이나 Core Data Event가 아니다.</p>
+<p>후보는 <code>edgex-device-discovery-registry</code> ConfigMap에 제한적으로 보관하고 EdgeX inventory에 합치지 않는다. <code>accepted</code>도 검토 표시일 뿐이며 exact Git hardware binding과 검증된 Device Service package가 일치한 뒤 별도 Profile/Device registration과 first Event를 통과해야 current physical inventory/availability에 반영된다. KubeEdge Device CRD는 이 과정에 사용하지 않는다.</p>
 <h2 id="telemetry와-timestamp">Telemetry와 timestamp</h2>
 <p>Core Data Event가 physical telemetry의 원본이다. event의 다음 값을 손실 없이 사용한다.</p>
 <ul><li><code>deviceName</code>: Core Metadata Device와의 결합 key</li><li><code>sourceName</code>: Device Profile resource/source</li><li><code>origin</code>: nanoseconds 단위의 sample/event 시각</li><li>Readings: EdgeX <code>valueType</code>과 typed value</li></ul>
@@ -195,6 +198,7 @@ GET /api/v3/localdata/device/name/{device}/resource/name/{resource}?from={origin
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#권위와-경계">권위와 경계</a></li>
 <li class="toc-h2"><a href="#inventory와-state">Inventory와 state</a></li>
+<li class="toc-h3"><a href="#발견-후보와-inventory-경계">발견 후보와 inventory 경계</a></li>
 <li class="toc-h2"><a href="#telemetry와-timestamp">Telemetry와 timestamp</a></li>
 <li class="toc-h2"><a href="#availability">Availability</a></li>
 <li class="toc-h2"><a href="#명령과-상태-변경">명령과 상태 변경</a></li>

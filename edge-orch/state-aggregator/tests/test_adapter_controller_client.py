@@ -12,6 +12,11 @@ from app.adapter_controller_client import (
     AdapterControllerResponseError,
 )
 from app.adapter_runtime_models import RuntimePlanRequest
+from app.device_discovery_models import (
+    CandidateMutationRef,
+    ManualCandidateCreate,
+    ManualCandidateInput,
+)
 
 
 HMAC_KEY = "state-aggregator-controller-hmac"
@@ -151,3 +156,79 @@ def test_client_maps_backend_and_invalid_contract_without_leaking_body():
 def test_client_rejects_missing_internal_hmac_key():
     with pytest.raises(ValueError, match="HMAC"):
         AdapterControllerClient("http://controller", "")
+
+
+def test_client_signs_discovery_queries_and_manual_candidate_mutation():
+    now = "2026-07-24T10:00:00+00:00"
+
+    def candidate_payload():
+        return {
+            "candidateId": "candidate-" + ("a" * 24),
+            "source": "manual",
+            "nodeName": "etri-dev0001-jetorn",
+            "protocol": "mqtt",
+            "transport": "mqtts",
+            "displayName": "Line MQTT sensor",
+            "properties": {
+                "Broker": "mqtts://broker.example:8883",
+                "Topic": "factory/line-1/temp",
+            },
+            "decision": "pending",
+            "presence": "declared",
+            "firstSeen": now,
+            "lastSeen": now,
+            "updatedAt": now,
+            "matchedAdapterId": "mqtt",
+            "packageState": "verification-required",
+            "packageReason": "실기기 검증 필요",
+            "registrationReady": False,
+        }
+
+    def handler(request):
+        verify_signature(request)
+        if request.method == "GET":
+            assert request.url.path == "/internal/v1/discovery"
+            return httpx.Response(
+                200,
+                json={
+                    "generatedAt": now,
+                    "staleAfterSeconds": 90,
+                    "nodes": [],
+                    "candidates": [candidate_payload()],
+                },
+            )
+        assert request.url.path == "/internal/v1/discovery/manual"
+        payload = json.loads(request.content)
+        assert "requestRef" in payload
+        assert payload["candidate"]["properties"]["Topic"] == "factory/line-1/temp"
+        return httpx.Response(201, json=candidate_payload())
+
+    client = AdapterControllerClient(
+        "http://controller",
+        HMAC_KEY,
+        transport=httpx.MockTransport(handler),
+    )
+    inventory = asyncio.run(client.list_discovery_inventory())
+    created = asyncio.run(
+        client.create_manual_candidate(
+            ManualCandidateCreate(
+                candidate=ManualCandidateInput(
+                    node_name="etri-dev0001-jetorn",
+                    protocol="mqtt",
+                    transport="mqtts",
+                    display_name="Line MQTT sensor",
+                    properties={
+                        "Broker": "mqtts://broker.example:8883",
+                        "Topic": "factory/line-1/temp",
+                    },
+                ),
+                request_ref=CandidateMutationRef(
+                    request_id="b" * 64,
+                    payload_hash="c" * 64,
+                ),
+            )
+        )
+    )
+
+    assert inventory.candidates[0].source == "manual"
+    assert created.protocol == "mqtt"

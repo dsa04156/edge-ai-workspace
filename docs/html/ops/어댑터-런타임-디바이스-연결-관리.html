@@ -92,7 +92,7 @@
 <li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
@@ -151,8 +151,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-23 19:28</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
+            <span class="badge">수정: 2026-07-24 14:22</span>
+            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
           </div>
         </header>
         <div class="doc-body">
@@ -160,6 +160,9 @@
 <h2 id="목적">목적</h2>
 <p>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 <code>디바이스 관리</code>에서 다음 순서로 물리 장비 연결을 관리하는 절차다.</p>
 <pre data-lang="text"><code>KubeEdge 노드 선택
+  -&gt; passive 발견 후보 / 수동 endpoint 후보 검색
+  -&gt; 검토 대기 / 승인 / 무시
+  -&gt; exact Git binding·검증 package 일치 확인
   -&gt; 등록 연결 / 실제 장비 관측 / 통신 / 데이터 상태 확인
   -&gt; 선택 노드의 Runtime / EdgeX Device 확인
   -&gt; protocol / Device Service 선택
@@ -205,10 +208,11 @@
 </tr>
 </tbody></table></div>
 <p>신규 등록 시 서버는 EdgeX Device tag에 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 저장한다. 따라서 같은 Device Service가 여러 USB/I2C endpoint를 소유해도 정확한 물리 연결로 묶을 수 있다. 기존 Device에 <code>hardwareBindingId</code>가 없으면 현재 전환 기간에는 <code>physicalDeviceId</code>와 service/protocol을 사용하며, 둘 다 없을 때는 단일 binding인 경우에만 안전하게 묶는다.</p>
-<p>범용 <code>/dev</code> scanner나 임의 네트워크 probe는 두지 않는다. 등록되지 않은 하드웨어 후보를 자동으로 <code>발견됨</code>이라 표시하면 stable identity와 권한 경계를 우회하기 때문이다. 새 장비는 protocol별 Device Service로 실장비 통신을 검증하고 stable 경로를 Git 카탈로그와 Pod 장치 마운트에 등록한 뒤 이 화면에 들어온다.</p>
+<p>고정된 <code>edge-device-discovery</code> Agent만 read-only <code>/dev</code>, <code>/sys</code>에서 <code>/dev/serial/by-id/*</code>와 <code>/dev/i2c-N</code> 존재를 수동적으로 읽는다. I2C 버스 존재를 센서 응답으로 해석하지 않으며 네트워크 대역 probe도 하지 않는다. MQTT, Modbus, OPC-UA, RTSP, REST는 운영자가 secret 없는 endpoint 후보를 직접 선언한다.</p>
+<p>이 결과는 <code>발견 후보</code>이지 위 표의 <code>장비 관측</code>이 아니다. 후보 승인도 자동 Device 등록이나 Device Service 설치가 아니다. exact node/protocol/path가 Git catalog binding과 일치하고 package 검증이 끝났을 때만 등록 마법사로 넘긴다. 새 장비는 이후에도 protocol별 Device Service 실장비 통신, stable binding/Pod 장치 마운트, Profile/Device 등록과 first Event를 모두 통과해야 한다.</p>
 <h3 id="화면-사용-순서">화면 사용 순서</h3>
-<p>노드를 선택한 뒤에는 한 화면에서 모든 입력을 동시에 다루지 않고 다음 세 작업 탭을 사용한다.</p>
-<ol><li><code>노드 현황</code>: 먼저 <code>등록 연결과 실제 장비 상태</code>에서 네 증거를 비교하고 Runtime, protocol package와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code>을 펼쳤을 때 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 관리자 token과 실행 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
+<p>노드를 선택한 뒤에는 한 화면에서 모든 입력을 동시에 다루지 않고 다음 네 작업 탭을 사용한다.</p>
+<ol><li><code>장비 발견</code>: Agent 상태와 후보의 presence·검토·package 상태를 보고 검색/필터한다. 네트워크 endpoint는 직접 추가하고 후보를 승인·무시한다. <code>등록 가능</code> 후보만 기존 등록 마법사로 넘긴다.</li><li><code>노드 현황</code>: <code>등록 연결과 실제 장비 상태</code>에서 네 증거를 비교하고 Runtime, protocol package와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code>을 펼쳤을 때 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 관리자 token과 실행 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
 <p>노드 현황의 Device 카드에 있는 <code>수정</code>을 누르면 같은 Device가 선택된 수정 탭으로 이동한다. 노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 탭과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, 관리자 인증, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
 <h3 id="프로토콜-패키지-상태">프로토콜 패키지 상태</h3>
 <div class="table-wrap"><table>
@@ -262,10 +266,22 @@
 <td>조회·재사용만</td>
 </tr>
 <tr>
+<td><code>edge-device-discovery</code></td>
+<td><code>edgex-edge</code></td>
+<td>Argo CD</td>
+<td>지정 node에서 passive 후보 report만 전송</td>
+</tr>
+<tr>
 <td><code>edgex-adapter-controller</code></td>
 <td><code>edgex-edge</code></td>
 <td>Argo CD</td>
 <td>내부 API와 reconciliation</td>
+</tr>
+<tr>
+<td><code>edgex-device-discovery-registry</code> ConfigMap</td>
+<td><code>edgex-edge</code></td>
+<td>Adapter Controller</td>
+<td>승인 전 후보와 node report 상태의 제한된 staging 저장소</td>
 </tr>
 <tr>
 <td>Controller가 만든 <code>AdapterRuntime</code>과 workload</td>
@@ -280,7 +296,7 @@
 <td>운영자 단일 사용자 진입점</td>
 </tr>
 </tbody></table></div>
-<p>브라우저와 <code>state-aggregator</code> ServiceAccount에는 Kubernetes 쓰기 권한이 없다. Controller Role만 <code>edgex-edge</code>의 <code>AdapterRuntime</code>, Deployment, Service, ConfigMap과 NetworkPolicy를 관리한다. Cluster 범위 권한은 target node <code>get/list</code>뿐이다.</p>
+<p>브라우저와 <code>state-aggregator</code> ServiceAccount에는 Kubernetes 쓰기 권한이 없다. Controller Role만 <code>edgex-edge</code>의 <code>AdapterRuntime</code>, Deployment, Service, ConfigMap과 NetworkPolicy를 관리한다. Cluster 범위 권한은 target node <code>get/list</code>뿐이다. Discovery Agent의 ServiceAccount는 Kubernetes API token을 마운트하지 않으며 Controller Service DNS와 HMAC report API에만 접근한다.</p>
 <h2 id="secret-준비">Secret 준비</h2>
 <p>평문 token이나 HMAC key를 Git에 넣지 않는다. 최초 배포 전에 다음 스크립트를 한 번 실행한다.</p>
 <pre data-lang="bash"><code>edgex/k8s/scripts/provision-adapter-management-secrets.sh
@@ -297,13 +313,99 @@ kubectl get application edge-orch-state-aggregator -n argocd
 kubectl get crd adapterruntimes.edgeai.etri.re.kr
 kubectl get deployment,service -n edgex-edge \
   edgex-adapter-controller device-serial-jetson device-sensehat-raspi
-kubectl get adapterruntimes.edgeai.etri.re.kr -n edgex-edge</code></pre>
+kubectl get daemonset edge-device-discovery -n edgex-edge
+kubectl get adapterruntimes.edgeai.etri.re.kr -n edgex-edge
+kubectl get configmap edgex-device-discovery-registry -n edgex-edge</code></pre>
 <p>정상 기준:</p>
-<ul><li>두 Application이 <code>Synced/Healthy</code>다.</li><li>Controller와 기존 두 Device Service가 <code>Ready</code>다.</li><li>기존 Serial/I2C는 <code>AdapterRuntime</code> CR이 없어도 정상이다. Catalog의 external runtime으로</li></ul>
+<ul><li>두 Application이 <code>Synced/Healthy</code>다.</li><li>Controller, 기존 두 Device Service와 세 node의 Discovery DaemonSet이 <code>Ready</code>다.</li><li>기존 Serial/I2C는 <code>AdapterRuntime</code> CR이 없어도 정상이다. Catalog의 external runtime으로</li></ul>
 <p>발견한다.</p>
-<ul><li>Controller image와 Device Service image는 immutable digest다.</li><li>Service는 DNS discovery용 ClusterIP 객체를 사용하지만 manifest/API에 고정 ClusterIP,</li></ul>
+<ul><li>Controller, Discovery Agent와 Device Service image는 immutable digest다.</li><li>Service는 DNS discovery용 ClusterIP 객체를 사용하지만 manifest/API에 고정 ClusterIP,</li></ul>
 <p>PodIP 또는 node IP가 없다.</p>
 <ul><li>EdgeMesh resource는 이 배포에서 변경되지 않는다.</li></ul>
+<h2 id="장비-발견-후보-조회와-검토">장비 발견 후보 조회와 검토</h2>
+<p>Discovery Agent는 30초 주기로 HMAC 서명 report를 보내고 Controller는 마지막 성공 report 기준 90초를 넘긴 node와 자동 후보를 <code>stale</code>로 표시한다. registry는 후보 2,000개와 직렬화 payload 900KB 미만으로 제한하고 ConfigMap <code>resourceVersion</code>을 사용해 동시 갱신 충돌을 거부한다.</p>
+<pre data-lang="bash"><code>curl --fail --silent --show-error \
+  &#x27;http://127.0.0.1:18000/management/discovery?includeIgnored=true&amp;limit=2000&#x27;
+
+curl --fail --silent --show-error \
+  &#x27;http://127.0.0.1:18000/management/discovery?node=etri-dev0001-jetorn&amp;protocol=serial&amp;presence=present&#x27;</code></pre>
+<p>후보 상태:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>필드</th>
+<th>값</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td><code>node-scan</code></td>
+<td>stable USB Serial path 또는 I2C 버스를 Agent가 수동 관측</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code>manual</code></td>
+<td>운영자가 endpoint 후보를 선언</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td><code>present</code></td>
+<td>최근 node report에서 다시 관측</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td><code>stale</code></td>
+<td>마지막 관측이 freshness 기준을 넘김</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td><code>declared</code></td>
+<td>수동 선언이며 도달성·통신 검증 전</td>
+</tr>
+<tr>
+<td><code>decision</code></td>
+<td><code>pending</code> / <code>accepted</code> / <code>ignored</code></td>
+<td>운영자 검토 상태</td>
+</tr>
+<tr>
+<td><code>packageState</code></td>
+<td><code>registration-ready</code></td>
+<td>exact Git binding과 검증 package가 일치</td>
+</tr>
+<tr>
+<td><code>packageState</code></td>
+<td><code>binding-required</code></td>
+<td>새 hardware binding과 장치 mount 검토 필요</td>
+</tr>
+<tr>
+<td><code>packageState</code></td>
+<td><code>verification-required</code></td>
+<td>Device Service/profile/실장비 검증 필요</td>
+</tr>
+<tr>
+<td><code>packageState</code></td>
+<td><code>unsupported</code></td>
+<td>현재 catalog로 처리할 수 없음</td>
+</tr>
+</tbody></table></div>
+<p>수동 후보 생성과 검토 mutation은 관리자 Bearer token과 요청마다 고유한 <code>Idempotency-Key</code>를 요구한다. 아래 예시는 endpoint 후보만 만들며 MQTT broker나 Device Service를 설치하지 않는다.</p>
+<pre data-lang="bash"><code>curl --fail --silent --show-error \
+  -H &quot;Authorization: Bearer ${ADAPTER_ADMIN_TOKEN}&quot; \
+  -H &#x27;Idempotency-Key: discovery-manual-mqtt-001&#x27; \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{
+    &quot;nodeName&quot;:&quot;etri-dev0001-jetorn&quot;,
+    &quot;protocol&quot;:&quot;mqtt&quot;,
+    &quot;transport&quot;:&quot;mqtt&quot;,
+    &quot;displayName&quot;:&quot;라인 1 온도 MQTT 후보&quot;,
+    &quot;properties&quot;:{
+      &quot;Broker&quot;:&quot;mqtts://broker.example:8883&quot;,
+      &quot;Topic&quot;:&quot;factory/line-1/temperature&quot;
+    },
+    &quot;note&quot;:&quot;자격 증명과 실장비 검증 전&quot;
+  }&#x27; \
+  http://127.0.0.1:18000/management/discovery/manual</code></pre>
+<p>비밀번호·token·secret 성격의 property와 <code>user:password@host</code> URL은 거부한다. 자동 후보의 <code>DELETE</code>는 재관측될 수 있는 사실을 없애지 않고 <code>ignored</code>로 바꾼다. 수동 후보는 soft delete되어 기본 목록에서 제외되며 같은 idempotency 요청을 재전송해도 결과가 중복되지 않는다. 이 registry를 백업이 필요한 장기 inventory나 EdgeX/KubeEdge Device로 사용하지 않는다.</p>
 <h2 id="조회와-plan">조회와 plan</h2>
 <p>로컬 점검은 Kubernetes API Service proxy 또는 port-forward를 사용한다.</p>
 <pre data-lang="bash"><code>kubectl -n default port-forward service/state-aggregator 18000:8000
@@ -440,12 +542,13 @@ unset ADMIN_TOKEN IDEMPOTENCY_KEY</code></pre>
 <p>현재 승인 Serial binding은 <code>jetson-arduino-serial-001</code>뿐이다. 실제 두 번째 장비 identity가 확정되기 전에는 dashboard에서 새 포트를 등록할 수 없는 상태가 정상이다. 기존 Device의 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>를 PATCH해 새 binding으로 옮기는 작업도 차단한다. 새 물리 연결은 connection validation과 신규 Device 등록 흐름을 사용한다. 두 번째 장비가 현재 Arduino JSON frame과 지원 resource 계약을 따르지 않으면 이 절차만으로 연결하지 않는다. 새 parser/Adapter와 Device Profile을 실장비로 검증한 뒤 별도 <code>adapterId</code>로 catalog에 승격한다.</p>
 <h2 id="검증과-장애-점검">검증과 장애 점검</h2>
 <pre data-lang="bash"><code>kubectl logs -n edgex-edge deployment/edgex-adapter-controller
+kubectl logs -n edgex-edge daemonset/edge-device-discovery --tail=100
 kubectl get events -n edgex-edge --sort-by=.lastTimestamp
 kubectl auth can-i --as=system:serviceaccount:default:state-aggregator \
   create deployments -n edgex-edge
 kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controller \
   create deployments -n edgex-edge</code></pre>
-<p>첫 명령의 기대값은 <code>no</code>, 두 번째 기대값은 <code>yes</code>다. Controller API는 <code>state-aggregator</code> Pod에서만 NetworkPolicy ingress를 허용한다. 현재 CNI가 정책을 집행하는지는 별도 확인하며 내부 HMAC을 네트워크 정책의 대체물로 생략하지 않는다.</p>
+<p>첫 <code>auth can-i</code> 명령의 기대값은 <code>no</code>, 두 번째 기대값은 <code>yes</code>다. Controller API는 <code>state-aggregator</code> Pod와 같은 namespace의 Discovery Agent report만 NetworkPolicy ingress로 허용한다. 현재 CNI가 정책을 집행하는지는 별도 확인하며 내부 HMAC을 네트워크 정책의 대체물로 생략하지 않는다.</p>
 <p>문제가 생겨도 EdgeMesh, 고정 Service IP 또는 KubeEdge Device CRD로 우회하지 않는다.</p>
         </div>
       </article>
@@ -457,6 +560,7 @@ kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controlle
 <li class="toc-h2"><a href="#배포와-소유권">배포와 소유권</a></li>
 <li class="toc-h2"><a href="#secret-준비">Secret 준비</a></li>
 <li class="toc-h2"><a href="#배포-확인">배포 확인</a></li>
+<li class="toc-h2"><a href="#장비-발견-후보-조회와-검토">장비 발견 후보 조회와 검토</a></li>
 <li class="toc-h2"><a href="#조회와-plan">조회와 plan</a></li>
 <li class="toc-h2"><a href="#connection-validation">Connection validation</a></li>
 <li class="toc-h2"><a href="#관리자-연결-실행">관리자 연결 실행</a></li>

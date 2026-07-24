@@ -58,13 +58,14 @@ def pod_spec(deployment: dict[str, Any]) -> dict[str, Any]:
     return deployment["spec"]["template"]["spec"]
 
 
-def test_root_entrypoint_adds_only_the_current_serial_and_i2c_edge_workloads() -> None:
+def test_root_entrypoint_adds_protocol_workloads_and_read_only_discovery() -> None:
     root = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert root["resources"] == [
         "overlays/testbed/server2",
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
+        "base/device-discovery-agent",
         "crds",
         "base/adapter-controller",
     ]

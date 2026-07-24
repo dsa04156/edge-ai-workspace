@@ -40,6 +40,12 @@ spec:
               value: /app/config/runtime_templates.json
             - name: ADAPTER_RUNTIME_MUTATION_ENABLED
               value: "true"
+            - name: ADAPTER_DEVICE_DISCOVERY_ENABLED
+              value: "true"
+            - name: ADAPTER_DISCOVERY_STALE_AFTER_SECONDS
+              value: "90"
+            - name: ADAPTER_DISCOVERY_CANDIDATE_LIMIT
+              value: "2000"
             - name: ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY
               valueFrom:
                 secretKeyRef:

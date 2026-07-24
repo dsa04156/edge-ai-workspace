@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from .api import create_controller_router
 from .catalog import RuntimeTemplateCatalog
 from .config import Settings
+from .discovery import DeviceCandidateRegistry
 from .edgex import EdgeXServiceProbe
 from .kube import KubernetesGateway
 from .reconciler import RuntimeReconciler
@@ -31,12 +32,23 @@ def build_service(settings: Settings) -> AdapterControllerService:
         edgex_probe,
         namespace=settings.namespace,
     )
+    candidate_registry = (
+        DeviceCandidateRegistry(
+            catalog,
+            kube,
+            stale_after_seconds=settings.discovery_stale_after_seconds,
+            candidate_limit=settings.discovery_candidate_limit,
+        )
+        if settings.device_discovery_enabled
+        else None
+    )
     return AdapterControllerService(
         catalog,
         kube,
         edgex_probe,
         reconciler,
         namespace=settings.namespace,
+        candidate_registry=candidate_registry,
     )
 
 
@@ -66,6 +78,21 @@ class ServiceHolder:
 
     def retire_runtime(self, name, request):
         return self._require().retire_runtime(name, request)
+
+    def list_discovery_inventory(self):
+        return self._require().list_discovery_inventory()
+
+    def ingest_discovery_report(self, report):
+        return self._require().ingest_discovery_report(report)
+
+    def create_manual_candidate(self, request):
+        return self._require().create_manual_candidate(request)
+
+    def update_candidate_decision(self, candidate_id, request):
+        return self._require().update_candidate_decision(candidate_id, request)
+
+    def delete_candidate(self, candidate_id, request):
+        return self._require().delete_candidate(candidate_id, request)
 
 
 def create_app(

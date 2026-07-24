@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, Query, status
 
 from .config import Settings
 from .adapter_controller_client import (
@@ -42,6 +43,15 @@ from .device_management import (
     OperationNotFound,
 )
 from .device_management_edgex import EdgeXManagementError
+from .device_discovery_models import (
+    CandidateDecisionInput,
+    CandidateDecisionUpdate,
+    CandidateMutationRef,
+    CandidateView,
+    DiscoveryInventory,
+    DiscoveryProtocol,
+    ManualCandidateInput,
+)
 from .device_management_models import (
     AdapterStatusView,
     DeviceOnboardingRequest,
@@ -57,6 +67,7 @@ def create_device_management_router(
     *,
     runtime_service: Any | None = None,
     connection_service: Any | None = None,
+    discovery_service: Any | None = None,
 ) -> APIRouter:
     if settings.device_management_enabled:
         if not settings.device_management_admin_token:
@@ -81,6 +92,17 @@ def create_device_management_router(
     ):
         raise ValueError(
             "runtime mutation requires runtime and device management to be enabled"
+        )
+    if settings.device_discovery_management_enabled and discovery_service is None:
+        raise ValueError(
+            "device discovery service is required when discovery management is enabled"
+        )
+    if settings.device_discovery_management_enabled and not (
+        settings.adapter_runtime_management_enabled
+        and settings.device_management_enabled
+    ):
+        raise ValueError(
+            "device discovery management requires runtime and device management"
         )
 
     router = APIRouter(prefix="/management", tags=["device-management"])
@@ -125,6 +147,13 @@ def create_device_management_router(
                 detail="Not Found",
             )
 
+    def require_discovery_management() -> None:
+        if not settings.device_discovery_management_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not Found",
+            )
+
     async def require_runtime_admin(
         authorization: str | None,
     ) -> str:
@@ -157,6 +186,38 @@ def create_device_management_router(
         return RuntimeActionRequest(
             request_id=request_id,
             payload_hash=payload_hash,
+        )
+
+    def candidate_mutation_ref(
+        action: str,
+        target: str,
+        idempotency_key: str,
+        payload: dict[str, Any],
+    ) -> CandidateMutationRef:
+        hmac_key = settings.device_management_hmac_key
+        if not hmac_key:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not Found",
+            )
+        request_id = hmac.new(
+            hmac_key.encode("utf-8"),
+            idempotency_key.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        canonical = json.dumps(
+            {
+                "action": action,
+                "target": target,
+                "payload": payload,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return CandidateMutationRef(
+            request_id=request_id,
+            payload_hash=hashlib.sha256(canonical).hexdigest(),
         )
 
     def map_runtime_error(exc: Exception) -> HTTPException:
@@ -503,5 +564,169 @@ def create_device_management_router(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Connection operation state is unavailable",
             ) from exc
+
+    @router.get(
+        "/discovery",
+        response_model=DiscoveryInventory,
+    )
+    async def get_discovery_inventory(
+        q: str | None = Query(default=None, max_length=255),
+        node: str | None = Query(default=None, max_length=253),
+        protocol: DiscoveryProtocol | None = None,
+        decision: str | None = Query(
+            default=None,
+            pattern=r"^(pending|accepted|ignored)$",
+        ),
+        presence: str | None = Query(
+            default=None,
+            pattern=r"^(present|stale|declared)$",
+        ),
+        include_ignored: bool = Query(default=False, alias="includeIgnored"),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ) -> DiscoveryInventory:
+        require_discovery_management()
+        try:
+            inventory = await discovery_service.list_inventory()
+        except Exception as exc:
+            raise map_runtime_error(exc) from exc
+        total = len(inventory.candidates)
+        search = (q or "").strip().casefold()
+        candidates = []
+        for candidate in inventory.candidates:
+            if not include_ignored and candidate.decision == "ignored":
+                continue
+            if node and candidate.node_name != node:
+                continue
+            if protocol and candidate.protocol != protocol:
+                continue
+            if decision and candidate.decision != decision:
+                continue
+            if presence and candidate.presence != presence:
+                continue
+            if search:
+                searchable = " ".join(
+                    [
+                        candidate.candidate_id,
+                        candidate.display_name,
+                        candidate.node_name,
+                        candidate.protocol,
+                        candidate.transport,
+                        candidate.device_path or "",
+                        candidate.note,
+                        candidate.decision_note,
+                        *[str(value) for value in candidate.properties.values()],
+                    ]
+                ).casefold()
+                if search not in searchable:
+                    continue
+            candidates.append(candidate)
+        filtered = len(candidates)
+        return inventory.model_copy(
+            update={
+                "candidates": candidates[:limit],
+                "total_candidates": total,
+                "filtered_candidates": filtered,
+            }
+        )
+
+    @router.post(
+        "/discovery/manual",
+        response_model=CandidateView,
+        status_code=status.HTTP_201_CREATED,
+    )
+    async def create_manual_candidate(
+        candidate: ManualCandidateInput,
+        authorization: Annotated[str | None, Header()] = None,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+    ) -> CandidateView:
+        require_discovery_management()
+        await require_runtime_admin(authorization)
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        payload = candidate.model_dump(
+            by_alias=True,
+            mode="json",
+            exclude_none=True,
+        )
+        try:
+            return await discovery_service.create_manual(
+                candidate,
+                candidate_mutation_ref(
+                    "create",
+                    "manual",
+                    idempotency_key,
+                    payload,
+                ),
+            )
+        except Exception as exc:
+            raise map_runtime_error(exc) from exc
+
+    @router.patch(
+        "/discovery/{candidate_id}",
+        response_model=CandidateView,
+    )
+    async def update_candidate_decision(
+        candidate_id: str,
+        update: CandidateDecisionInput,
+        authorization: Annotated[str | None, Header()] = None,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+    ) -> CandidateView:
+        require_discovery_management()
+        await require_runtime_admin(authorization)
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        payload = update.model_dump(
+            by_alias=True,
+            mode="json",
+            exclude_none=True,
+        )
+        request = CandidateDecisionUpdate(
+            **payload,
+            request_ref=candidate_mutation_ref(
+                "decision",
+                candidate_id,
+                idempotency_key,
+                payload,
+            ),
+        )
+        try:
+            return await discovery_service.update_decision(
+                candidate_id,
+                request,
+            )
+        except Exception as exc:
+            raise map_runtime_error(exc) from exc
+
+    @router.delete(
+        "/discovery/{candidate_id}",
+        response_model=CandidateView,
+    )
+    async def delete_candidate(
+        candidate_id: str,
+        authorization: Annotated[str | None, Header()] = None,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+    ) -> CandidateView:
+        require_discovery_management()
+        await require_runtime_admin(authorization)
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        try:
+            return await discovery_service.delete_candidate(
+                candidate_id,
+                candidate_mutation_ref(
+                    "delete",
+                    candidate_id,
+                    idempotency_key,
+                    {},
+                ),
+            )
+        except Exception as exc:
+            raise map_runtime_error(exc) from exc
 
     return router

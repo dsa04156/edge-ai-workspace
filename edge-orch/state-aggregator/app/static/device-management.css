@@ -937,6 +937,369 @@ body[data-dashboard-page="management"] .side-rail {
   color: var(--muted);
 }
 
+.management-discovery-shell {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(9, 14, 19, 0.66);
+}
+
+.management-discovery-head,
+.management-discovery-actions,
+.management-discovery-credentials,
+.management-dialog-head,
+.management-dialog-actions,
+.management-candidate-head,
+.management-candidate-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.management-discovery-head > div:first-child,
+.management-dialog-head > div,
+.management-candidate-head > div,
+.management-discovery-credentials > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.management-discovery-head h3,
+.management-dialog-head h3 {
+  margin: 0;
+}
+
+.management-discovery-head p,
+.management-dialog-head p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.management-discovery-head span,
+.management-dialog-head span,
+.management-discovery-toolbar label > span,
+.management-discovery-credentials label > span,
+.management-dialog label > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-discovery-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#managementDiscoveryStatus {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+#managementDiscoveryStatus[data-status="online"] {
+  border-color: rgba(91, 207, 155, 0.45);
+  color: #8be5bd;
+}
+
+#managementDiscoveryStatus[data-status="degraded"],
+#managementDiscoveryStatus[data-status="error"] {
+  border-color: rgba(240, 179, 91, 0.45);
+  color: #f4c982;
+}
+
+.management-discovery-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.management-discovery-stats article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.management-discovery-stats span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.management-discovery-stats strong {
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.management-discovery-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.6fr) minmax(150px, 0.7fr) minmax(150px, 0.7fr) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(5, 9, 14, 0.48);
+}
+
+.management-discovery-toolbar label,
+.management-discovery-credentials label,
+.management-dialog label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.management-discovery-toolbar input,
+.management-discovery-toolbar select,
+.management-discovery-credentials input,
+.management-dialog input,
+.management-dialog select,
+.management-dialog textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(5, 9, 14, 0.82);
+  color: var(--text);
+}
+
+.management-discovery-toolbar input,
+.management-discovery-credentials input,
+.management-dialog input,
+.management-dialog textarea {
+  padding: 9px 11px;
+}
+
+.management-discovery-toolbar select,
+.management-dialog select {
+  padding: 8px 30px 8px 10px;
+}
+
+.management-discovery-toggle {
+  display: flex !important;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+.management-discovery-toggle input {
+  width: 17px;
+  min-height: 17px;
+  accent-color: var(--accent);
+}
+
+.management-discovery-credentials {
+  padding: 12px 14px;
+  border: 1px solid rgba(99, 208, 230, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(99, 208, 230, 0.04);
+}
+
+.management-discovery-credentials small {
+  color: var(--muted);
+}
+
+.management-discovery-credentials label {
+  width: min(340px, 100%);
+}
+
+.management-discovery-node-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.management-discovery-node-health span {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.management-discovery-node-health span[data-presence="online"] {
+  border-color: rgba(91, 207, 155, 0.32);
+  color: #8be5bd;
+}
+
+.management-discovery-node-health span[data-presence="stale"] {
+  border-color: rgba(240, 179, 91, 0.32);
+  color: #f4c982;
+}
+
+.management-discovery-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.management-candidate-card {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #75808a;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.management-candidate-card[data-decision="accepted"] {
+  border-left-color: #5bcf9b;
+}
+
+.management-candidate-card[data-decision="pending"] {
+  border-left-color: #f0b35b;
+}
+
+.management-candidate-card[data-decision="ignored"] {
+  border-left-color: #75808a;
+  opacity: 0.72;
+}
+
+.management-candidate-head strong,
+.management-candidate-head small {
+  overflow-wrap: anywhere;
+}
+
+.management-candidate-head small {
+  color: var(--muted);
+}
+
+.management-candidate-badges,
+.management-candidate-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.management-candidate-badges span,
+.management-candidate-facts span {
+  max-width: 100%;
+  padding: 4px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.management-candidate-badges [data-tone="ready"],
+.management-candidate-badges [data-tone="present"] {
+  border-color: rgba(91, 207, 155, 0.34);
+  color: #8be5bd;
+}
+
+.management-candidate-badges [data-tone="blocked"],
+.management-candidate-badges [data-tone="stale"] {
+  border-color: rgba(240, 179, 91, 0.34);
+  color: #f4c982;
+}
+
+.management-candidate-reason,
+.management-candidate-warning,
+.management-candidate-decision-note {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.management-candidate-warning {
+  color: #f4c982;
+}
+
+.management-candidate-decision-note {
+  color: var(--muted);
+}
+
+.management-candidate-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.management-candidate-actions button {
+  min-height: 34px;
+}
+
+.management-candidate-actions button[data-candidate-action="ignore"],
+.management-candidate-actions button[data-candidate-action="delete"] {
+  color: #ff9da7;
+}
+
+.management-dialog {
+  width: min(720px, calc(100vw - 28px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid rgba(99, 208, 230, 0.34);
+  border-radius: var(--radius);
+  background: #0a1017;
+  color: var(--text);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.52);
+}
+
+.management-dialog::backdrop {
+  background: rgba(1, 5, 9, 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.management-dialog form {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.management-dialog button {
+  white-space: nowrap;
+}
+
+.management-dialog-head {
+  align-items: flex-start;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.management-dialog-note {
+  display: grid;
+  gap: 6px;
+}
+
+.management-dialog-actions {
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.management-discovery-toolbar input:focus-visible,
+.management-discovery-toolbar select:focus-visible,
+.management-discovery-credentials input:focus-visible,
+.management-candidate-actions button:focus-visible,
+.management-dialog input:focus-visible,
+.management-dialog select:focus-visible,
+.management-dialog textarea:focus-visible,
+.management-dialog button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 @media (max-width: 1000px) {
   .management-overview-grid {
     grid-template-columns: 1fr;
@@ -953,6 +1316,10 @@ body[data-dashboard-page="management"] .side-rail {
   .managed-device-list {
     grid-template-columns: 1fr;
   }
+
+  .management-discovery-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -966,7 +1333,10 @@ body[data-dashboard-page="management"] .side-rail {
   .management-credentials,
   .management-apply-row,
   .managed-device-row,
-  .management-flow-head {
+  .management-flow-head,
+  .management-discovery-head,
+  .management-discovery-credentials,
+  .management-dialog-head {
     align-items: stretch;
     flex-direction: column;
   }
@@ -1001,6 +1371,20 @@ body[data-dashboard-page="management"] .side-rail {
     grid-template-columns: 1fr;
   }
 
+  .management-discovery-stats,
+  .management-discovery-toolbar,
+  .management-discovery-list {
+    grid-template-columns: 1fr;
+  }
+
+  .management-discovery-actions {
+    justify-content: flex-start;
+  }
+
+  .management-discovery-credentials label {
+    width: 100%;
+  }
+
   .management-field-wide {
     grid-column: auto;
   }
@@ -1028,7 +1412,8 @@ body[data-dashboard-page="management"] .side-rail {
 @media (prefers-reduced-motion: reduce) {
   .management-node-card,
   .management-view-tabs button,
-  .management-stepper button {
+  .management-stepper button,
+  .management-candidate-card {
     transition: none;
   }
 }

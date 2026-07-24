@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from typing import Any
 
@@ -12,6 +13,13 @@ from .renderer import MANAGED_BY
 GROUP = "edgeai.etri.re.kr"
 VERSION = "v1alpha1"
 PLURAL = "adapterruntimes"
+CANDIDATE_REGISTRY_NAME = "edgex-device-discovery-registry"
+CANDIDATE_REGISTRY_KEY = "registry.json"
+CANDIDATE_REGISTRY_LABELS = {
+    "app.kubernetes.io/name": "edgex-device-discovery-registry",
+    "app.kubernetes.io/part-of": "edgex-system",
+    "app.kubernetes.io/managed-by": "edgex-adapter-controller",
+}
 
 
 class KubernetesGateway:
@@ -115,6 +123,76 @@ class KubernetesGateway:
             PLURAL,
             name,
             {"status": status},
+        )
+
+    def read_candidate_registry(self) -> tuple[dict[str, Any], str | None]:
+        try:
+            config_map = self.core.read_namespaced_config_map(
+                CANDIDATE_REGISTRY_NAME,
+                self.namespace,
+            )
+        except ApiException as exc:
+            if exc.status == 404:
+                return {"version": 1, "nodes": [], "candidates": []}, None
+            raise
+        serialized = self.api_client.sanitize_for_serialization(config_map)
+        metadata = serialized.get("metadata") or {}
+        labels = metadata.get("labels") or {}
+        if any(labels.get(key) != value for key, value in CANDIDATE_REGISTRY_LABELS.items()):
+            raise ValueError("candidate registry ConfigMap has unexpected ownership labels")
+        raw = (serialized.get("data") or {}).get(CANDIDATE_REGISTRY_KEY, "")
+        if not raw:
+            return (
+                {"version": 1, "nodes": [], "candidates": []},
+                str(metadata.get("resourceVersion") or "") or None,
+            )
+        document = json.loads(raw)
+        if not isinstance(document, dict):
+            raise ValueError("candidate registry document must be an object")
+        return (
+            document,
+            str(metadata.get("resourceVersion") or "") or None,
+        )
+
+    def write_candidate_registry(
+        self,
+        document: dict[str, Any],
+        *,
+        resource_version: str | None,
+    ) -> None:
+        payload = json.dumps(
+            document,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if len(payload.encode("utf-8")) > 900_000:
+            raise ValueError("candidate registry exceeds the ConfigMap safety limit")
+        body: dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ConfigMap",
+            "metadata": {
+                "name": CANDIDATE_REGISTRY_NAME,
+                "namespace": self.namespace,
+                "labels": dict(CANDIDATE_REGISTRY_LABELS),
+            },
+            "data": {CANDIDATE_REGISTRY_KEY: payload},
+        }
+        if resource_version is None:
+            try:
+                self.core.create_namespaced_config_map(self.namespace, body)
+                return
+            except ApiException as exc:
+                if exc.status != 409:
+                    raise
+                raise ValueError(
+                    "candidate registry was created concurrently; retry the request"
+                ) from exc
+        body["metadata"]["resourceVersion"] = resource_version
+        self.core.replace_namespaced_config_map(
+            CANDIDATE_REGISTRY_NAME,
+            self.namespace,
+            body,
         )
 
     def apply_resource(self, resource: dict[str, Any]) -> None:

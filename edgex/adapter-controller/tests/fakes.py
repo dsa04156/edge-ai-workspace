@@ -18,9 +18,42 @@ class FakeKubernetesGateway:
         self.runtimes: dict[str, dict] = {}
         self.runtime_apply_calls: list[str] = []
         self.runtime_patches: list[tuple[str, dict]] = []
+        self.nodes: set[str] = {
+            "etri-dev0001-jetorn",
+            "etri-dev0002-raspi5",
+            "etri-dev0003-raspi5",
+        }
+        self.candidate_registry: dict = {
+            "version": 1,
+            "nodes": [],
+            "candidates": [],
+        }
+        self.candidate_registry_version = 0
 
     def node_ready(self, name: str) -> bool:
         return self.target_node_ready
+
+    def node_exists(self, name: str) -> bool:
+        return name in self.nodes
+
+    def read_candidate_registry(self):
+        version = (
+            str(self.candidate_registry_version)
+            if self.candidate_registry_version
+            else None
+        )
+        return deepcopy(self.candidate_registry), version
+
+    def write_candidate_registry(self, document, *, resource_version):
+        expected = (
+            str(self.candidate_registry_version)
+            if self.candidate_registry_version
+            else None
+        )
+        if resource_version != expected:
+            raise ValueError("candidate registry version conflict")
+        self.candidate_registry = deepcopy(document)
+        self.candidate_registry_version += 1
 
     def apply_resource(self, resource: dict) -> None:
         self.applied.append(deepcopy(resource))

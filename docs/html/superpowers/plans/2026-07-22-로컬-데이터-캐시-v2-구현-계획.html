@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Local Data Cache v2 Implementation Plan</title>
+  <title>로컬 데이터 캐시 v2 구현 계획</title>
   <link rel="stylesheet" href="../../../assets/docs-site.css">
 </head>
 <body>
@@ -92,7 +92,7 @@
 <li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
 <li><a href="2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
 <li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">Local Data Cache v2 Implementation Plan</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
 <li><a href="2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
 <li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
 <li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
@@ -146,17 +146,17 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
-          <h1>Local Data Cache v2 Implementation Plan</h1>
+          <h1>로컬 데이터 캐시 v2 구현 계획</h1>
           <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.md</span>
-            <span class="badge">수정: 2026-07-22 14:27</span>
-            <span class="badge">HTML 생성: 2026-07-23 19:48</span>
+            <span class="badge">수정: 2026-07-24 14:27</span>
+            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="local-data-cache-v2-implementation-plan">Local Data Cache v2 Implementation Plan</h1>
+          <h1 id="로컬-데이터-캐시-v2-구현-계획">로컬 데이터 캐시 v2 구현 계획</h1>
 <blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
 <p><strong>Goal:</strong> Serial과 Sense HAT Device Service의 최근 데이터 저장을 공통 bounded ring cache로 교체하고 64MiB 슬롯 예산과 운영 관측값을 제공한다.</p>
 <p><strong>Architecture:</strong> EdgeX SDK와 분리된 <code>edgex/local-data-cache</code> 제네릭 Go module이 series별 링버퍼, 시간·개수·전체 byte 제한과 stats를 소유한다. 각 Device Service는 얇은 타입 adapter, Driver 설정, EdgeX custom metrics와 <code>/api/v3/localdata/stats</code> route만 소유하며 중앙 AsyncValues 흐름은 유지한다.</p>

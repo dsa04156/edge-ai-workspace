@@ -57,6 +57,26 @@ class Settings(BaseModel):
             False,
         )
     )
+    device_discovery_enabled: bool = Field(
+        default_factory=lambda: _env_bool(
+            "ADAPTER_DEVICE_DISCOVERY_ENABLED",
+            False,
+        )
+    )
+    discovery_stale_after_seconds: int = Field(
+        default_factory=lambda: int(
+            os.getenv("ADAPTER_DISCOVERY_STALE_AFTER_SECONDS", "90")
+        ),
+        ge=10,
+        le=3600,
+    )
+    discovery_candidate_limit: int = Field(
+        default_factory=lambda: int(
+            os.getenv("ADAPTER_DISCOVERY_CANDIDATE_LIMIT", "2000")
+        ),
+        ge=1,
+        le=10000,
+    )
     signature_max_age_seconds: int = Field(
         default_factory=lambda: int(
             os.getenv("ADAPTER_CONTROLLER_SIGNATURE_MAX_AGE_SECONDS", "60")

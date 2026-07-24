@@ -8,6 +8,7 @@ spec:
       app.kubernetes.io/name: edgex-adapter-controller
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - namespaceSelector:
@@ -19,3 +20,33 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: edge-device-discovery
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: edgex-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: edgex-core-metadata
+      ports:
+        - protocol: TCP
+          port: 59881
+    - ports:
+        - protocol: TCP
+          port: 443

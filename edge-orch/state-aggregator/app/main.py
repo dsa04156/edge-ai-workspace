@@ -20,6 +20,7 @@ from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
 from .connection_management import ConnectionManagementService
 from .device_management import DeviceManagementService
+from .device_discovery import DeviceDiscoveryManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient
 from .edgex import EdgeXError
@@ -76,6 +77,7 @@ management_service = DeviceManagementService(
 )
 runtime_management_service = None
 connection_management_service = None
+device_discovery_management_service = None
 if settings.adapter_runtime_management_enabled:
     if not settings.adapter_controller_internal_hmac_key:
         raise ValueError(
@@ -99,6 +101,10 @@ if settings.adapter_runtime_management_enabled:
         ),
         operation_limit=settings.device_management_operation_limit,
     )
+    if settings.device_discovery_management_enabled:
+        device_discovery_management_service = DeviceDiscoveryManagementService(
+            adapter_controller_client
+        )
 
 
 @asynccontextmanager
@@ -115,6 +121,7 @@ app.include_router(
         management_service,
         runtime_service=runtime_management_service,
         connection_service=connection_management_service,
+        discovery_service=device_discovery_management_service,
     )
 )
 STATIC_DIR = Path(__file__).resolve().parent / "static"
