@@ -27,7 +27,19 @@ class FakeEdgeXAPI:
             request_body = json.loads(self.profile)[0]
             assert request_body["requestId"]
             body = request_body["profile"]
-            self.profile = body
+            self.profile = {
+                **body,
+                "apiVersion": "v3",
+                "id": "profile-id",
+                "deviceResources": [
+                    {**resource, "isHidden": False}
+                    for resource in body["deviceResources"]
+                ],
+                "deviceCommands": [
+                    {**command, "isHidden": False}
+                    for command in body["deviceCommands"]
+                ],
+            }
             return httpx.Response(
                 207,
                 json=[
@@ -73,8 +85,24 @@ def profile():
         "name": "arduino-multisensor-v1",
         "manufacturer": "Arduino",
         "model": "v1",
-        "deviceResources": [],
-        "deviceCommands": [],
+        "deviceResources": [
+            {
+                "name": "temperature_raw",
+                "properties": {
+                    "valueType": "Int32",
+                    "readWrite": "R",
+                },
+            }
+        ],
+        "deviceCommands": [
+            {
+                "name": "all-readings",
+                "readWrite": "R",
+                "resourceOperations": [
+                    {"deviceResource": "temperature_raw"}
+                ],
+            }
+        ],
     }
 
 
@@ -131,6 +159,35 @@ def test_existing_different_profile_is_rejected():
         assert "differs" in str(exc)
     else:
         raise AssertionError("mismatched existing profile was accepted")
+
+
+def test_existing_profile_with_extra_resource_is_rejected():
+    fake = FakeEdgeXAPI()
+    extra = {
+        "name": "humidity_raw",
+        "properties": {
+            "valueType": "Int32",
+            "readWrite": "R",
+        },
+        "isHidden": False,
+    }
+    fake.profile = {
+        **profile(),
+        "deviceResources": [*profile()["deviceResources"], extra],
+    }
+    client = EdgeXRegistrationClient(
+        "http://metadata",
+        "http://data",
+        metadata_transport=httpx.MockTransport(fake.metadata),
+        data_transport=httpx.MockTransport(fake.data),
+    )
+
+    try:
+        client.ensure_profile(profile())
+    except EdgeXProbeError as exc:
+        assert "differs" in str(exc)
+    else:
+        raise AssertionError("profile with an extra resource was accepted")
 
 
 def test_core_data_not_found_means_event_is_not_yet_received():

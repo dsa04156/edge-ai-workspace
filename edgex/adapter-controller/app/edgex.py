@@ -316,9 +316,49 @@ class EdgeXRegistrationClient:
             "deviceCommands",
         )
         return all(
-            deepcopy(current.get(field)) == deepcopy(expected.get(field))
+            EdgeXRegistrationClient._matches_expected_shape(
+                deepcopy(current.get(field)),
+                deepcopy(expected.get(field)),
+            )
             for field in fields
         )
+
+    @staticmethod
+    def _matches_expected_shape(current: Any, expected: Any) -> bool:
+        """Compare Catalog fields while allowing EdgeX server defaults.
+
+        Core Metadata enriches nested Device Profile resources and commands
+        with fields such as ``isHidden: false`` during persistence.  Those
+        server-owned defaults must not make an otherwise identical Catalog
+        profile fail readback.  Extra list entries remain a mismatch so a
+        profile name cannot silently alias a profile with other resources.
+        """
+        if isinstance(expected, dict):
+            return isinstance(current, dict) and all(
+                key in current
+                and EdgeXRegistrationClient._matches_expected_shape(
+                    current[key],
+                    value,
+                )
+                for key, value in expected.items()
+            )
+        if isinstance(expected, list):
+            return (
+                isinstance(current, list)
+                and len(current) == len(expected)
+                and all(
+                    EdgeXRegistrationClient._matches_expected_shape(
+                        current_item,
+                        expected_item,
+                    )
+                    for current_item, expected_item in zip(
+                        current,
+                        expected,
+                        strict=True,
+                    )
+                )
+            )
+        return current == expected
 
     @staticmethod
     def _validate_mutation_response(payload: Any) -> None:

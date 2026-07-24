@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-24 16:42</span>
-            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
+            <span class="badge">수정: 2026-07-24 17:42</span>
+            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
           </div>
         </header>
         <div class="doc-body">
@@ -237,6 +237,7 @@ PYTHONPATH=. python -m simulators.serial_arduino --behavior unsupported</code></
 <p>PTY 번호가 바뀌어도 같은 stable by-id link 이름을 사용하면 candidate ID는 같다.</p>
 <h2 id="후보-승인">후보 승인</h2>
 <p>운영자는 대시보드에서 후보의 물리 라벨, 설치 기록, node, USB serial, Catalog Profile을 확인한 후 <code>검토 승인</code>을 누른다. 승인 직후 상태는 <code>APPROVED</code>이며 최대 수 회의 10초 reconciliation 동안 다음과 같이 이동한다.</p>
+<p>승인·거절·재시도는 <code>변경 권한</code>의 관리자 Bearer 토큰이 입력된 경우에만 서버 요청을 전송한다. 토큰이 비어 있으면 브라우저가 입력란으로 이동해 필수 입력 오류를 표시하며 후보 상태를 바꾸지 않는다. 토큰은 브라우저 메모리에만 유지되고 새로고침하면 사라진다.</p>
 <pre data-lang="text"><code>APPROVED
   -&gt; SERVICE_READY
   -&gt; METADATA_REGISTERED

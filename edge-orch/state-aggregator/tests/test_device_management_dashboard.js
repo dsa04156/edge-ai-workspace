@@ -35,6 +35,7 @@ const {
   pollConnectionOperation,
   pollManagementOperation,
   protocolPackageStatus,
+  requireAdminTokenForMutation,
   restartAdapterRuntime,
   retireAdapterRuntime,
   runtimeCanMutate,
@@ -57,6 +58,31 @@ test("management API keeps the external ingress prefix without hard-coding an IP
     managementApiUrl("/management/adapters", "/dashboard"),
     "/management/adapters",
   );
+});
+
+test("missing admin token is visibly reported before a mutation request", () => {
+  const calls = [];
+  const input = {
+    setAttribute: (...args) => calls.push(["attribute", ...args]),
+    removeAttribute: (...args) => calls.push(["remove", ...args]),
+    setCustomValidity: (...args) => calls.push(["validity", ...args]),
+    scrollIntoView: (...args) => calls.push(["scroll", ...args]),
+    focus: () => calls.push(["focus"]),
+    reportValidity: () => calls.push(["report"]),
+  };
+
+  assert.equal(requireAdminTokenForMutation("", input), false);
+  assert.deepEqual(calls[0], ["attribute", "aria-invalid", "true"]);
+  assert.match(calls[1][1], /관리자 Bearer 토큰/);
+  assert.equal(calls.some(([name]) => name === "focus"), true);
+  assert.equal(calls.some(([name]) => name === "report"), true);
+
+  calls.length = 0;
+  assert.equal(requireAdminTokenForMutation("admin-token", input), true);
+  assert.deepEqual(calls, [
+    ["validity", ""],
+    ["remove", "aria-invalid"],
+  ]);
 });
 
 
@@ -975,7 +1001,9 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=device-discovery-v1-20260724/);
-  assert.match(html, /device-management\.js\?v=device-discovery-v1-20260724/);
+  assert.match(html, /id="managementDiscoveryAdminToken"[^>]+required/);
+  assert.match(html, /승인 버튼은 토큰이 입력된 경우에만 서버 요청을 전송/);
+  assert.match(html, /device-management\.js\?v=device-discovery-v2-20260724/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);

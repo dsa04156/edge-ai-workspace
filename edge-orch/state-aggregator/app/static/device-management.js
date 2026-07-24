@@ -1487,6 +1487,21 @@ function appendCandidateAction(
   return button;
 }
 
+function requireAdminTokenForMutation(token, input) {
+  if (String(token || "").trim()) {
+    input?.setCustomValidity?.("");
+    input?.removeAttribute?.("aria-invalid");
+    return true;
+  }
+  const message = "장비를 승인하려면 관리자 Bearer 토큰을 먼저 입력하세요.";
+  input?.setAttribute?.("aria-invalid", "true");
+  input?.setCustomValidity?.(message);
+  input?.scrollIntoView?.({behavior: "smooth", block: "center"});
+  input?.focus?.();
+  input?.reportValidity?.();
+  return false;
+}
+
 
 function renderDiscoveryCandidates(documentRef = document) {
   const container = byId("managementDiscoveryList", documentRef);
@@ -2781,7 +2796,11 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managementDiscoveryAdminToken", documentRef)?.addEventListener(
     "input",
-    (event) => syncSessionToken(event.target.value),
+    (event) => {
+      syncSessionToken(event.target.value);
+      event.target.setCustomValidity?.("");
+      event.target.removeAttribute?.("aria-invalid");
+    },
   );
   const manualDialog = byId("managementManualCandidateDialog", documentRef);
   byId("managementOpenManualCandidate", documentRef)?.addEventListener("click", () => {
@@ -2869,12 +2888,18 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         }
         return;
       }
-      if (!sessionAdminToken.trim()) {
+      const discoveryTokenInput = byId(
+        "managementDiscoveryAdminToken",
+        documentRef,
+      );
+      if (!requireAdminTokenForMutation(
+        sessionAdminToken,
+        discoveryTokenInput,
+      )) {
         renderDiscoveryFeedback(
-          "관리자 Bearer 토큰을 먼저 입력하세요.",
+          "승인 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요.",
           {status: "error", documentRef},
         );
-        byId("managementDiscoveryAdminToken", documentRef)?.focus();
         return;
       }
       if (
@@ -3181,6 +3206,7 @@ if (typeof module !== "undefined") {
     pollConnectionOperation,
     pollManagementOperation,
     protocolPackageStatus,
+    requireAdminTokenForMutation,
     restartAdapterRuntime,
     retireAdapterRuntime,
     runtimeCanMutate,
