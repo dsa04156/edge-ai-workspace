@@ -157,15 +157,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-24 17:42</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:29</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="프로토콜-독립형-디바이스-발견-등록-현재-구현-상태">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</h1>
 <blockquote><p>기준일: 2026-07-24 판정 기준: 실제 코드, 테스트, <code>edgex/k8s</code> render “구현”과 “실장비 운영 검증”을 구분한다.</p></blockquote>
 <h2 id="요약">요약</h2>
-<p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 실제 Jetson Arduino는 stable USB identity와 기존 Device Service Runtime이 Catalog에 등록되어 있지만, 새 aggregate Device의 운영자 승인과 live 첫 Event 시연은 자동으로 수행하지 않았다.</p>
+<p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 2026-07-24 실제 Jetson Arduino stable 후보를 운영자가 승인했고 기존 Device Service Runtime을 재사용해 aggregate Device <code>arduino-75035303230351e0d171-57fc03a907</code>의 <code>EVENT_CONFIRMED</code>와 Core Data Event까지 live 확인했다.</p>
 <p>I2C는 allowlist identity probe와 mock test까지 구현했고 Raspberry Pi 실장비 active probe는 아직 검증하지 않았다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus, OPC-UA, ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
@@ -216,7 +216,7 @@
 </tr>
 <tr>
 <td>운영자 승인·거절·재시도</td>
-<td>API와 dashboard action, audit/history</td>
+<td>API와 dashboard action, audit/history. 현재 PoC는 이 세 결정만 tokenless 설정</td>
 </tr>
 <tr>
 <td>인증 interface</td>
@@ -352,7 +352,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="실장비-검증-필요">실장비 검증 필요</h2>
-<ul><li>Jetson Arduino candidate 운영자 승인 후 aggregate EdgeX Device의 첫 live Event</li><li>USB 케이블 실제 분리·재연결과 같은 candidate ID 및 Device Service 복구</li><li>Raspberry Pi Sense HAT의 allowlist identity probe</li><li>외부 인증 운영 endpoint</li><li>신규 Controller-owned Device Service Runtime 배포와 rollback</li><li>ONVIF/Modbus/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
+<ul><li>USB 케이블 실제 분리·재연결과 같은 candidate ID 및 Device Service 복구</li><li>Raspberry Pi Sense HAT의 allowlist identity probe</li><li>외부 인증 운영 endpoint</li><li>신규 Controller-owned Device Service Runtime 배포와 rollback</li><li>ONVIF/Modbus/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
 <p>기존 <code>device-serial-jetson</code>과 센서별 6개 virtual Device의 live telemetry를 신규 aggregate 등록의 완료 증거로 대신 사용하지 않는다. 신규 candidate는 운영자 승인 전 Core Metadata에 추가되지 않는다.</p>
 <h2 id="보안-운영-주의">보안·운영 주의</h2>
 <ul><li>Controller base는 <code>ADAPTER_AUTH_MODE=external</code>로 fail-closed한다. 현재 root testbed만</li></ul>
@@ -361,7 +361,8 @@
 <p>protocol active probe 권한은 node별 최소 group/device overlay로 검토한다.</p>
 <ul><li>Controller SQLite는 1Gi RWO PVC를 사용해 단일 replica 기준이다. 다중 replica HA를</li></ul>
 <p>활성화하지 않는다.</p>
-<ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li></ul>
+<ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li><li>후보 결정 tokenless 설정은 기본값이 <code>false</code>이고 현재 PoC root 배포에서만 <code>true</code>다.</li></ul>
+<p>적용 범위는 승인·거절·재시도 PATCH뿐이며 수동 후보 추가·삭제와 다른 관리 mutation은 계속 관리자 Bearer token을 요구한다.</p>
 <h2 id="현재-자동-테스트-결과">현재 자동 테스트 결과</h2>
 <p>아래 결과는 2026-07-24 로컬 실행 기준이다. 최종 배포 전 동일 명령을 다시 실행한다.</p>
 <div class="table-wrap"><table>
@@ -394,12 +395,12 @@
 <tr>
 <td>state-aggregator Python</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>178 passed</td>
+<td>180 passed</td>
 </tr>
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>50 passed</td>
+<td>52 passed</td>
 </tr>
 <tr>
 <td>workspace 회귀</td>
@@ -428,7 +429,9 @@
 </tr>
 </tbody></table></div>
 <h2 id="다음-우선순위">다음 우선순위</h2>
-<ol><li>CI/Argo rollout 후 Controller PVC, Catalog digest와 3-node Agent 상태를 확인한다.</li><li>Jetson 후보를 대시보드에서 사람이 확인하고 승인해 live <code>EVENT_CONFIRMED</code>를 시연한다.</li><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li><li>그 다음 Modbus RTU/TCP를 allowlisted endpoint부터 구현한다.</li></ol>
+<ol><li>tokenless 후보 결정 배포 후 dashboard와 BFF에서 무인증 PATCH 및 다른 mutation의</li></ol>
+<p>인증 유지 여부를 live 확인한다.</p>
+<ol><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>USB 케이블 실제 분리·재연결로 같은 candidate ID와 Device Service 복구를 확인한다.</li><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li><li>그 다음 Modbus RTU/TCP를 allowlisted endpoint부터 구현한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#요약">요약</a></li>

@@ -53,6 +53,8 @@ spec:
               value: "true"
             - name: DEVICE_DISCOVERY_MANAGEMENT_ENABLED
               value: "true"
+            - name: DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED
+              value: "true"
             - name: ADAPTER_CONTROLLER_URL
               value: http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080
             - name: ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY

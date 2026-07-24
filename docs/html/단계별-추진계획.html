@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-07-24 16:25</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:26</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -191,8 +191,8 @@
 <p>Adapter Runtime·Device 연결 관리의 현재 완료 gate:</p>
 <ol><li>Runtime 조회와 plan이 exact adapter/node/hardware binding, KubeEdge node Ready와 EdgeX</li></ol>
 <p>Device Service readback을 함께 확인한다.</p>
-<ol><li>외부/Argo runtime은 재사용만 가능하고 Controller가 만든 runtime만 재시작·퇴역한다.</li><li>Runtime 배포 뒤 <code>SERVICE_READY</code>가 되어야 EdgeX Profile/Device mutation을 시작한다.</li><li>관리자 Bearer token, idempotency key, 내부 HMAC과 namespace별 Secret 없이는 mutation이</li></ol>
-<p>진행되지 않는다.</p>
+<ol><li>외부/Argo runtime은 재사용만 가능하고 Controller가 만든 runtime만 재시작·퇴역한다.</li><li>Runtime 배포 뒤 <code>SERVICE_READY</code>가 되어야 EdgeX Profile/Device mutation을 시작한다.</li><li>Device/connection/runtime mutation은 관리자 Bearer token, idempotency key, 내부</li></ol>
+<p>HMAC과 namespace별 Secret 없이는 진행되지 않는다. 현재 PoC의 후보 승인·거절·재시도만 명시적 설정으로 Bearer token을 생략하며 idempotency key와 내부 HMAC은 유지한다.</p>
 <ol><li>임의 image/hostPath/고정 IP/EdgeMesh/KubeEdge Device CRD 입력 경로가 없다.</li><li>Metadata readback과 first Event를 분리하고 신규 runtime 이후 실패만 consumer-safe하게</li></ol>
 <p>보상한다.</p>
 <p>2026-07-24에는 후보 staging을 프로토콜 독립형 Discovery와 Registration control plane으로 승격했다. <code>edge-device-discovery</code> DaemonSet은 중앙 Discovery Plan의 allowlist 안에서 USB Serial stable identity와 선택적 WHOAMI, I2C identity rule을 실행한다. Adapter Controller는 candidate, 상태 전이, Plan, 승인, Registration Saga와 audit를 PVC SQLite에 영속 저장하고 기존 ConfigMap은 최초 1회 import한다. Device Catalog exact match, 운영자 승인, 외부 인증, 실제 Runtime image digest, EdgeX Metadata readback과 Core Data first Event를 모두 통과해야 <code>EVENT_CONFIRMED</code>가 된다.</p>

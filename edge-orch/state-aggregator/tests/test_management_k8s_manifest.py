@@ -33,6 +33,7 @@ def test_dashboard_management_uses_internal_controller_and_secret_refs() -> None
     assert env["DEVICE_MANAGEMENT_ENABLED"]["value"] == "true"
     assert env["ADAPTER_RUNTIME_MANAGEMENT_ENABLED"]["value"] == "true"
     assert env["ADAPTER_RUNTIME_MUTATION_ENABLED"]["value"] == "true"
+    assert env["DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED"]["value"] == "true"
     assert env["ADAPTER_CONTROLLER_URL"]["value"] == (
         "http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080"
     )

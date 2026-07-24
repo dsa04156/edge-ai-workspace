@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-24 16:30</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:26</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -251,6 +251,8 @@
 <p><code>state-aggregator</code>의 <code>디바이스 관리</code> 화면은 운영자가 KubeEdge 노드를 먼저 선택하고, 그 노드의 Adapter Runtime과 EdgeX Device 연결을 한 흐름으로 관리하는 Current 경로다. <code>GET /state/nodes</code>, Runtime <code>targetNode</code>, Device <code>node_name</code>/<code>tags.nodeName</code>과 등록 hardware binding을 하나의 노드 범위로 합성하되, 이 합성은 배치·운영 탐색용이다. 브라우저는 Kubernetes API에 직접 접근하지 않으며, <code>state-aggregator</code>가 내부 HMAC으로 별도 <code>edgex-adapter-controller</code>를 호출한다. Controller는 Git에서 검증·등록한 template와 hardware binding만 <code>edgex-edge</code> namespace에 reconcile한다. Profile, Device와 Device Service binding의 권위는 Core Metadata, 첫 Event와 Reading의 권위는 Core Data에 그대로 남는다.</p>
 <ul><li>Runtime inventory, 재사용·배포 plan과 통합 connection validation은 mutation 없는 조회다.</li><li><code>POST /management/connections</code>, runtime restart/retire와 기존 Device allowlist <code>PATCH</code>는</li></ul>
 <p>관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다.</p>
+<ul><li>현재 PoC root 배포는 후보 승인·거절·재시도</li></ul>
+<p><code>PATCH /management/discovery/{candidateId}</code>에만 tokenless 예외를 명시한다. <code>Idempotency-Key</code>와 내부 HMAC은 유지하며 수동 후보 추가·삭제와 다른 mutation에는 예외를 적용하지 않는다. 설정 기본값은 token 필수다.</p>
 <ul><li>현재 운영 manifest는 <code>DEVICE_MANAGEMENT_ENABLED=true</code>,</li></ul>
 <p><code>ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true</code>, <code>ADAPTER_RUNTIME_MUTATION_ENABLED=true</code>로 관리 경로를 활성화하되, token과 HMAC key 세 개가 namespace별 <code>edgex-adapter-management-auth</code> Secret에 없으면 Pod가 시작하지 않는다.</p>
 <ul><li>기존 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 Argo CD 소유 external runtime이다.</li></ul>

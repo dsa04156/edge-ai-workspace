@@ -373,6 +373,7 @@ def settings(
     runtime_management=False,
     runtime_mutation=False,
     discovery_management=False,
+    tokenless_approval=False,
 ):
     return Settings(
         device_management_enabled=enabled,
@@ -381,6 +382,7 @@ def settings(
         adapter_runtime_management_enabled=runtime_management,
         adapter_runtime_mutation_enabled=runtime_mutation,
         device_discovery_management_enabled=discovery_management,
+        device_discovery_tokenless_approval_enabled=tokenless_approval,
         adapter_controller_internal_hmac_key=(
             "internal-hmac" if runtime_management else None
         ),
@@ -399,6 +401,7 @@ def client_for(
     connection_service=None,
     discovery_management=False,
     discovery_service=None,
+    tokenless_approval=False,
 ):
     if runtime_management and connection_service is None:
         connection_service = RecordingConnectionService()
@@ -412,6 +415,7 @@ def client_for(
                 runtime_management=runtime_management,
                 runtime_mutation=runtime_mutation,
                 discovery_management=discovery_management,
+                tokenless_approval=tokenless_approval,
             ),
             service,
             runtime_service=runtime_service,
@@ -428,6 +432,15 @@ def admin_headers(**extra):
         "Idempotency-Key": "request-key",
         **extra,
     }
+
+
+def test_tokenless_discovery_approval_is_opt_in(monkeypatch):
+    monkeypatch.delenv(
+        "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED",
+        raising=False,
+    )
+
+    assert Settings().device_discovery_tokenless_approval_enabled is False
 
 
 def runtime_plan_payload():
@@ -460,7 +473,7 @@ def connection_request_model():
     )
 
 
-def discovery_client(discovery_service):
+def discovery_client(discovery_service, *, tokenless_approval=False):
     return client_for(
         RecordingService(),
         enabled=True,
@@ -472,6 +485,7 @@ def discovery_client(discovery_service):
         connection_service=RecordingConnectionService(),
         discovery_management=True,
         discovery_service=discovery_service,
+        tokenless_approval=tokenless_approval,
     )
 
 
@@ -489,6 +503,7 @@ def test_discovery_inventory_filters_ignored_candidates_and_supports_search():
         )
 
     assert default.status_code == 200
+    assert default.json()["decisionAuthenticationRequired"] is True
     assert default.json()["totalCandidates"] == 2
     assert default.json()["filteredCandidates"] == 1
     assert default.json()["candidates"][0]["displayName"] == "Arduino USB Serial"
@@ -525,6 +540,11 @@ def test_discovery_mutations_require_admin_and_send_hashed_idempotency_identity(
             json={"decision": "accepted", "note": "현장 확인"},
             headers=admin_headers(),
         )
+        unauthorized_decision = client.patch(
+            f"/management/discovery/{candidate_id}",
+            json={"decision": "accepted", "note": "토큰 없음"},
+            headers={"Idempotency-Key": "unauthorized-decision"},
+        )
         deleted = client.delete(
             f"/management/discovery/{candidate_id}",
             headers=admin_headers(),
@@ -535,10 +555,66 @@ def test_discovery_mutations_require_admin_and_send_hashed_idempotency_identity(
     assert created.json()["presence"] == "declared"
     assert accepted.status_code == 200
     assert accepted.json()["decision"] == "accepted"
+    assert unauthorized_decision.status_code == 401
     assert deleted.status_code == 200
     mutation_calls = [item for item in discovery.calls if item[0] != "list"]
     assert [item[0] for item in mutation_calls] == ["create", "decision", "delete"]
     assert all(len(item[-1]) == 64 for item in mutation_calls)
+
+
+def test_tokenless_discovery_decisions_do_not_disable_other_admin_guards():
+    discovery = RecordingDiscoveryService()
+    candidate_id = "candidate-" + ("b" * 24)
+    manual_payload = {
+        "nodeName": "etri-dev0001-jetorn",
+        "protocol": "mqtt",
+        "transport": "mqtts",
+        "displayName": "Line MQTT sensor",
+        "properties": {
+            "Broker": "mqtts://broker.example:8883",
+            "Topic": "factory/line-1/temp",
+        },
+    }
+    idempotency = {"Idempotency-Key": "tokenless-decision"}
+    with discovery_client(discovery, tokenless_approval=True) as client:
+        inventory = client.get("/management/discovery")
+        accepted = client.patch(
+            f"/management/discovery/{candidate_id}",
+            json={"decision": "accepted", "note": "PoC 운영자 승인"},
+            headers=idempotency,
+        )
+        missing_idempotency = client.patch(
+            f"/management/discovery/{candidate_id}",
+            json={"decision": "accepted", "note": "idempotency 없음"},
+        )
+        invalid_token = client.patch(
+            f"/management/discovery/{candidate_id}",
+            json={"decision": "ignored", "note": "invalid credential"},
+            headers={
+                **idempotency,
+                "Authorization": "Bearer wrong-token",
+            },
+        )
+        manual = client.post(
+            "/management/discovery/manual",
+            json=manual_payload,
+            headers=idempotency,
+        )
+        deleted = client.delete(
+            f"/management/discovery/{candidate_id}",
+            headers=idempotency,
+        )
+
+    assert inventory.status_code == 200
+    assert inventory.json()["decisionAuthenticationRequired"] is False
+    assert accepted.status_code == 200
+    assert accepted.json()["decision"] == "accepted"
+    assert missing_idempotency.status_code == 400
+    assert invalid_token.status_code == 401
+    assert manual.status_code == 401
+    assert deleted.status_code == 401
+    mutation_calls = [item for item in discovery.calls if item[0] != "list"]
+    assert [item[0] for item in mutation_calls] == ["decision"]
 
 
 def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():

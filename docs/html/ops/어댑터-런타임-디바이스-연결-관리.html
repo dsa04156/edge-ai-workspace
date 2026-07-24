@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-24 16:30</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:26</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -414,7 +414,7 @@ curl --fail --silent --show-error \
 <td>현재 catalog로 처리할 수 없음</td>
 </tr>
 </tbody></table></div>
-<p>수동 후보 생성과 검토 mutation은 관리자 Bearer token과 요청마다 고유한 <code>Idempotency-Key</code>를 요구한다. 아래 예시는 endpoint 후보만 만들며 MQTT broker나 Device Service를 설치하지 않는다.</p>
+<p>수동 후보 생성·삭제는 관리자 Bearer token과 요청마다 고유한 <code>Idempotency-Key</code>를 요구한다. 현재 PoC root 배포는 후보 승인·거절·재시도 PATCH에만 <code>DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED=true</code> 예외를 적용하며 <code>Idempotency-Key</code>와 내부 HMAC은 유지한다. 설정 기본값은 token 필수다. 아래 예시는 endpoint 후보만 만들며 MQTT broker나 Device Service를 설치하지 않는다.</p>
 <pre data-lang="bash"><code>curl --fail --silent --show-error \
   -H &quot;Authorization: Bearer ${ADAPTER_ADMIN_TOKEN}&quot; \
   -H &#x27;Idempotency-Key: discovery-manual-mqtt-001&#x27; \

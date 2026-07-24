@@ -26,6 +26,7 @@ const managementState = {
   discovery: {
     nodes: [],
     candidates: [],
+    decisionAuthenticationRequired: true,
     totalCandidates: 0,
     filteredCandidates: 0,
     staleAfterSeconds: 90,
@@ -784,6 +785,16 @@ function guardedHeaders(token, idempotencyKey) {
   };
 }
 
+function candidateDecisionHeaders(token, idempotencyKey) {
+  const headers = {
+    "Content-Type": "application/json",
+    "Idempotency-Key": idempotencyKey,
+  };
+  const credential = String(token || "").trim();
+  if (credential) headers.Authorization = `Bearer ${credential}`;
+  return headers;
+}
+
 
 async function createManagementDevice(payload, {
   token,
@@ -839,7 +850,7 @@ async function updateCandidateDecision(candidateId, payload, {
     `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}`,
     {
       method: "PATCH",
-      headers: guardedHeaders(token, idempotencyKey),
+      headers: candidateDecisionHeaders(token, idempotencyKey),
       body: JSON.stringify(payload),
       cache: "no-store",
     },
@@ -1443,6 +1454,28 @@ function renderDiscoveryFeedback(message, {
   element.dataset.status = status;
 }
 
+function renderDiscoveryCredentialMode(documentRef = document) {
+  const authenticationRequired = (
+    managementState.discovery.decisionAuthenticationRequired !== false
+  );
+  const help = byId("managementDiscoveryCredentialHelp", documentRef);
+  const input = byId("managementDiscoveryAdminToken", documentRef);
+  if (help) {
+    help.textContent = authenticationRequired
+      ? "후보 승인·거절·재시도에는 관리자 Bearer 토큰이 필요합니다. 토큰은 브라우저 메모리에만 유지합니다."
+      : "현재 PoC에서는 후보 승인·거절·재시도에 토큰이 필요하지 않습니다. 수동 후보 추가·삭제와 다른 관리 작업은 관리자 토큰이 필요합니다.";
+  }
+  if (!input) return;
+  input.required = authenticationRequired;
+  input.placeholder = authenticationRequired
+    ? "승인 전에 필수 입력"
+    : "수동 추가·삭제 시 입력";
+  if (!authenticationRequired) {
+    input.setCustomValidity?.("");
+    input.removeAttribute?.("aria-invalid");
+  }
+}
+
 
 function renderDiscoveryStats(documentRef = document) {
   const candidates = (managementState.discovery.candidates || []).filter(
@@ -1500,6 +1533,16 @@ function requireAdminTokenForMutation(token, input) {
   input?.focus?.();
   input?.reportValidity?.();
   return false;
+}
+
+function candidateActionRequiresAdminToken(
+  action,
+  discovery = managementState.discovery,
+) {
+  return (
+    action === "delete"
+    || discovery?.decisionAuthenticationRequired !== false
+  );
 }
 
 
@@ -1702,6 +1745,7 @@ function renderDiscoveryCandidates(documentRef = document) {
 function renderDiscovery(documentRef = document) {
   renderDiscoveryStatus(documentRef);
   renderDiscoveryStats(documentRef);
+  renderDiscoveryCredentialMode(documentRef);
   renderDiscoveryNodeHealth(documentRef);
   renderDiscoveryCandidates(documentRef);
 }
@@ -2693,6 +2737,7 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
       return {
         nodes: [],
         candidates: [],
+        decisionAuthenticationRequired: true,
         totalCandidates: 0,
         filteredCandidates: 0,
         staleAfterSeconds: 90,
@@ -2892,12 +2937,21 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         "managementDiscoveryAdminToken",
         documentRef,
       );
-      if (!requireAdminTokenForMutation(
-        sessionAdminToken,
-        discoveryTokenInput,
-      )) {
+      const tokenRequired = candidateActionRequiresAdminToken(
+        action,
+        managementState.discovery,
+      );
+      if (
+        tokenRequired
+        && !requireAdminTokenForMutation(
+          sessionAdminToken,
+          discoveryTokenInput,
+        )
+      ) {
         renderDiscoveryFeedback(
-          "승인 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요.",
+          action === "delete"
+            ? "삭제 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요."
+            : "승인 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요.",
           {status: "error", documentRef},
         );
         return;
@@ -3182,6 +3236,7 @@ if (typeof module !== "undefined") {
     bindingProtocolValue,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
+    candidateActionRequiresAdminToken,
     candidateEndpointSummary,
     canPatchSelectedDevice,
     connectionStatusView,

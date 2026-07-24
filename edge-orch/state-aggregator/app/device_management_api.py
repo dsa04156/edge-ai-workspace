@@ -164,6 +164,21 @@ def create_device_management_router(
             )
         return await require_admin(authorization)
 
+    async def require_candidate_decision_authorization(
+        authorization: str | None,
+    ) -> str:
+        if not settings.adapter_runtime_mutation_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not Found",
+            )
+        if (
+            settings.device_discovery_tokenless_approval_enabled
+            and not (authorization or "").strip()
+        ):
+            return "dashboard-tokenless-operator"
+        return await require_admin(authorization)
+
     def runtime_action_request(
         action: str,
         name: str,
@@ -624,6 +639,9 @@ def create_device_management_router(
         return inventory.model_copy(
             update={
                 "candidates": candidates[:limit],
+                "decision_authentication_required": (
+                    not settings.device_discovery_tokenless_approval_enabled
+                ),
                 "total_candidates": total,
                 "filtered_candidates": filtered,
             }
@@ -677,7 +695,7 @@ def create_device_management_router(
         ] = None,
     ) -> CandidateView:
         require_discovery_management()
-        await require_runtime_admin(authorization)
+        await require_candidate_decision_authorization(authorization)
         idempotency_key = require_idempotency_key(idempotency_key_header)
         payload = update.model_dump(
             by_alias=True,

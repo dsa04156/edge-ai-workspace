@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-24 16:30</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:29</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -194,6 +194,8 @@
 <p>I2C 버스 파일 존재만으로 <code>present</code> 후보를 만들지 않는다. Plan의 allowlist 주소에서 read-only identity register가 기대값과 일치해야 한다. 수동 <code>declared</code>도 endpoint 도달성이나 자격 증명 검증을 뜻하지 않는다. 후보 승인은 Saga를 시작하지만 첫 Event를 확인하기 전에는 등록 완료나 availability로 보지 않는다. 자동 관측 후보 삭제는 재발견 가능한 사실을 지우지 않으며 등록 완료 후보는 별도 decommission 없이 삭제하지 않는다.</p>
 <ul><li>Profile/Device Metadata readback 성공은 <code>metadata_applied</code>다.</li><li>아직 Core Data Event가 없으면 <code>waiting_for_event</code>이며 실패나 available로 추정하지 않는다.</li><li>계약된 <code>deviceName</code> Event를 확인했을 때만 <code>verified</code>다.</li><li>validation, Metadata mutation 또는 readback 불일치는 <code>failed</code>다.</li><li><code>DEVICE_MANAGEMENT_ENABLED=false</code>에서는 create/patch control을 사용할 수 없게 표시한다.</li><li><code>ADAPTER_RUNTIME_MUTATION_ENABLED=false</code>에서는 runtime 배포·재시작·퇴역과 이를 요구하는</li></ul>
 <p>connection apply를 사용할 수 없게 표시한다.</p>
+<ul><li>발견 응답의 <code>decisionAuthenticationRequired=false</code>이면 후보 승인·거절·재시도는</li></ul>
+<p>Bearer token 없이 전송한다. 수동 후보 추가·삭제와 다른 관리 mutation의 token 입력 요구는 그대로 유지한다.</p>
 <p>노드 선택을 바꾸면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device와 연결 마법사의 target node가 같은 범위로 바뀐다. target node와 raw device path는 직접 입력하지 않는다. 관리 화면은 Device 강제 삭제, actuator command, 임의 Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. 검증된 Adapter Controller 소유 runtime의 배포·재시작·조건부 퇴역만 별도 관리 경로로 제공한다. Workflow Builder의 browser-local bind/release와 execution plan preview도 이 관리 상태와 분리하며 계속 dry-run으로 판단한다.</p>
 <h2 id="availability-판단-순서">Availability 판단 순서</h2>
 <p>State Aggregator와 dashboard는 다음 순서를 동일하게 사용한다.</p>

@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-24 16:49</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:26</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -356,7 +356,7 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
 <h2 id="기존-대시보드-bff-호환">기존 대시보드 BFF 호환</h2>
 <p>대시보드는 다음 기존 경로를 유지한다.</p>
 <ul><li><code>GET /management/discovery</code></li><li><code>POST /management/discovery/manual</code></li><li><code>PATCH /management/discovery/{candidateId}</code></li><li><code>DELETE /management/discovery/{candidateId}</code></li></ul>
-<p><code>accepted</code> PATCH는 승인 Saga를 시작하고 <code>FAILED</code> 후보에서는 retry로 해석한다. <code>ignored</code> PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다. 대시보드 mutation은 관리자 Bearer token과 <code>Idempotency-Key</code>를 계속 요구한다.</p>
+<p><code>accepted</code> PATCH는 승인 Saga를 시작하고 <code>FAILED</code> 후보에서는 retry로 해석한다. <code>ignored</code> PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다. <code>GET /management/discovery</code>는 <code>decisionAuthenticationRequired</code>를 반환한다. 현재 PoC manifest는 이 값을 <code>false</code>로 노출하고 후보 결정 <code>PATCH /management/discovery/{candidateId}</code>만 Bearer token 없이 허용한다. <code>Idempotency-Key</code>와 내부 HMAC은 계속 필요하다. 수동 후보 <code>POST</code>·<code>DELETE</code>, Runtime, Device와 connection mutation은 계속 관리자 Bearer token을 요구한다. 설정 기본값은 token 필수이며, 토큰리스 모드에서도 잘못된 Bearer token을 보내면 <code>401</code>이다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#접근-경계">접근 경계</a></li>

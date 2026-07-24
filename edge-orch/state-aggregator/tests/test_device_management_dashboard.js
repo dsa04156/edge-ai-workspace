@@ -11,6 +11,7 @@ const {
   bindingProtocolValue,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
+  candidateActionRequiresAdminToken,
   candidateEndpointSummary,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -83,6 +84,17 @@ test("missing admin token is visibly reported before a mutation request", () => 
     ["validity", ""],
     ["remove", "aria-invalid"],
   ]);
+});
+
+test("tokenless mode only removes the token gate from candidate decisions", () => {
+  const tokenless = {decisionAuthenticationRequired: false};
+  const protectedMode = {decisionAuthenticationRequired: true};
+
+  assert.equal(candidateActionRequiresAdminToken("accept", tokenless), false);
+  assert.equal(candidateActionRequiresAdminToken("ignore", tokenless), false);
+  assert.equal(candidateActionRequiresAdminToken("restore", tokenless), false);
+  assert.equal(candidateActionRequiresAdminToken("delete", tokenless), true);
+  assert.equal(candidateActionRequiresAdminToken("accept", protectedMode), true);
 });
 
 
@@ -290,6 +302,41 @@ test("discovery inventory and guarded candidate mutations use the management BFF
   assert.equal(requests[1].options.headers["Idempotency-Key"], "create-1");
   assert.equal(requests[2].options.method, "PATCH");
   assert.equal(requests[3].options.method, "DELETE");
+});
+
+test("tokenless candidate decisions omit the Authorization header", async () => {
+  let request = null;
+  const fetchFn = async (url, options = {}) => {
+    request = {url, options};
+    return response({
+      candidateId: "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+      source: "node-scan",
+      nodeName: "edge-a",
+      protocol: "serial",
+      transport: "usb-serial",
+      displayName: "Arduino",
+      decision: "accepted",
+      presence: "present",
+      packageState: "registration-ready",
+      packageReason: "검증 완료",
+      firstSeen: "2026-07-24T10:00:00Z",
+      lastSeen: "2026-07-24T10:00:00Z",
+      updatedAt: "2026-07-24T10:00:00Z",
+    });
+  };
+
+  await updateCandidateDecision(
+    "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+    {decision: "accepted", note: "PoC 운영자 승인"},
+    {token: "", idempotencyKey: "decision-tokenless", fetchFn},
+  );
+
+  assert.equal(request.options.method, "PATCH");
+  assert.equal(request.options.headers["Idempotency-Key"], "decision-tokenless");
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(request.options.headers, "Authorization"),
+    false,
+  );
 });
 
 
@@ -1002,8 +1049,8 @@ test("dashboard ships an accessible session-only device management page", () => 
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=device-discovery-v1-20260724/);
   assert.match(html, /id="managementDiscoveryAdminToken"[^>]+required/);
-  assert.match(html, /승인 버튼은 토큰이 입력된 경우에만 서버 요청을 전송/);
-  assert.match(html, /device-management\.js\?v=device-discovery-v2-20260724/);
+  assert.match(html, /후보 승인 정책을 서버에서 확인하는 중/);
+  assert.match(html, /device-management\.js\?v=device-discovery-v3-20260724/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);

@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-24 17:42</span>
-            <span class="badge">HTML 생성: 2026-07-24 17:42</span>
+            <span class="badge">수정: 2026-07-24 18:26</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -237,7 +237,8 @@ PYTHONPATH=. python -m simulators.serial_arduino --behavior unsupported</code></
 <p>PTY 번호가 바뀌어도 같은 stable by-id link 이름을 사용하면 candidate ID는 같다.</p>
 <h2 id="후보-승인">후보 승인</h2>
 <p>운영자는 대시보드에서 후보의 물리 라벨, 설치 기록, node, USB serial, Catalog Profile을 확인한 후 <code>검토 승인</code>을 누른다. 승인 직후 상태는 <code>APPROVED</code>이며 최대 수 회의 10초 reconciliation 동안 다음과 같이 이동한다.</p>
-<p>승인·거절·재시도는 <code>변경 권한</code>의 관리자 Bearer 토큰이 입력된 경우에만 서버 요청을 전송한다. 토큰이 비어 있으면 브라우저가 입력란으로 이동해 필수 입력 오류를 표시하며 후보 상태를 바꾸지 않는다. 토큰은 브라우저 메모리에만 유지되고 새로고침하면 사라진다.</p>
+<p>현재 PoC root 배포는 <code>DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED=true</code>를 명시해 후보 승인·거절·재시도만 관리자 Bearer 토큰 없이 허용한다. 대시보드는 <code>GET /management/discovery</code>의 <code>decisionAuthenticationRequired=false</code>를 확인한 뒤 <code>PATCH /management/discovery/{candidateId}</code> 요청에서 <code>Authorization</code> 헤더를 생략한다. <code>Idempotency-Key</code>와 내부 HMAC 검증은 계속 적용된다.</p>
+<p>이 예외는 수동 후보 추가·삭제, Runtime 재시작·퇴역, Device/connection mutation에는 적용되지 않는다. 이 작업들은 계속 관리자 Bearer 토큰이 필요하며, 토큰리스 모드에서도 잘못된 <code>Authorization</code> 헤더를 보내면 <code>401</code>이다. 설정 기본값은 <code>false</code>이므로 운영 profile에서는 명시적으로 활성화하지 않는 한 후보 결정에도 토큰이 필요하다.</p>
 <pre data-lang="text"><code>APPROVED
   -&gt; SERVICE_READY
   -&gt; METADATA_REGISTERED

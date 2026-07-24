@@ -108,6 +108,11 @@ class Settings(BaseModel):
             "DEVICE_DISCOVERY_MANAGEMENT_ENABLED"
         )
     )
+    device_discovery_tokenless_approval_enabled: bool = Field(
+        default_factory=lambda: _env_bool(
+            "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED"
+        )
+    )
     adapter_controller_url: str = Field(
         default_factory=lambda: os.getenv(
             "ADAPTER_CONTROLLER_URL",

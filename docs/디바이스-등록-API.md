@@ -276,4 +276,9 @@ GET /api/v1/discovery/events?candidateId={candidateId}&limit=200
 
 `accepted` PATCH는 승인 Saga를 시작하고 `FAILED` 후보에서는 retry로 해석한다.
 `ignored` PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다.
-대시보드 mutation은 관리자 Bearer token과 `Idempotency-Key`를 계속 요구한다.
+`GET /management/discovery`는 `decisionAuthenticationRequired`를 반환한다. 현재 PoC
+manifest는 이 값을 `false`로 노출하고 후보 결정
+`PATCH /management/discovery/{candidateId}`만 Bearer token 없이 허용한다.
+`Idempotency-Key`와 내부 HMAC은 계속 필요하다. 수동 후보 `POST`·`DELETE`, Runtime,
+Device와 connection mutation은 계속 관리자 Bearer token을 요구한다. 설정 기본값은
+token 필수이며, 토큰리스 모드에서도 잘못된 Bearer token을 보내면 `401`이다.
