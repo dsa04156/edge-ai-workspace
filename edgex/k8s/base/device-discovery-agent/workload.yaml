@@ -66,34 +66,32 @@ spec:
               value: "30"
             - name: DISCOVERY_TIMEOUT_SECONDS
               value: "8"
+            - name: DISCOVERY_HEALTH_PORT
+              value: "8081"
             - name: DISCOVERY_HOST_DEV_ROOT
               value: /host-dev
             - name: DISCOVERY_HOST_SYS_ROOT
               value: /host-sys
-            - name: DISCOVERY_HEARTBEAT_PATH
-              value: /tmp/discovery-heartbeat
+          ports:
+            - name: health
+              containerPort: 8081
+              protocol: TCP
           startupProbe:
-            exec:
-              command:
-                - python
-                - -c
-                - "from pathlib import Path; raise SystemExit(0 if Path('/tmp/discovery-heartbeat').exists() else 1)"
+            httpGet:
+              path: /healthz
+              port: health
             periodSeconds: 2
             failureThreshold: 30
           readinessProbe:
-            exec:
-              command:
-                - python
-                - -c
-                - "import time; from pathlib import Path; p=Path('/tmp/discovery-heartbeat'); raise SystemExit(0 if p.exists() and time.time()-p.stat().st_mtime < 120 else 1)"
+            httpGet:
+              path: /readyz
+              port: health
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
-            exec:
-              command:
-                - python
-                - -c
-                - "import time; from pathlib import Path; p=Path('/tmp/discovery-heartbeat'); raise SystemExit(0 if p.exists() and time.time()-p.stat().st_mtime < 180 else 1)"
+            httpGet:
+              path: /healthz
+              port: health
             periodSeconds: 20
             failureThreshold: 3
           resources:
@@ -119,8 +117,6 @@ spec:
             - name: host-sys
               mountPath: /host-sys
               readOnly: true
-            - name: tmp
-              mountPath: /tmp
       volumes:
         - name: host-dev
           hostPath:
@@ -130,8 +126,6 @@ spec:
           hostPath:
             path: /sys
             type: Directory
-        - name: tmp
-          emptyDir: {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

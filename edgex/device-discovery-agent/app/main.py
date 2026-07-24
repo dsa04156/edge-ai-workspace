@@ -6,8 +6,8 @@ import random
 import socket
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
+from .health import HealthState, start_health_server
 from .reporter import DiscoveryReportError, signed_report
 from .scanner import scan_node
 
@@ -41,14 +41,20 @@ def run() -> None:
         1.0,
         min(30.0, float(os.getenv("DISCOVERY_TIMEOUT_SECONDS", "8"))),
     )
-    agent_id = f"edge-device-discovery/{node_name}/{socket.gethostname()}"
-    heartbeat_path = Path(
-        os.getenv("DISCOVERY_HEARTBEAT_PATH", "/tmp/discovery-heartbeat")
+    health_port = max(
+        1024,
+        min(65535, int(os.getenv("DISCOVERY_HEALTH_PORT", "8081"))),
     )
+    agent_id = f"edge-device-discovery/{node_name}/{socket.gethostname()}"
+    health_state = HealthState(
+        ready_window_seconds=max(60.0, interval_seconds * 3.0),
+    )
+    start_health_server(health_state, port=health_port)
     logger.info(
-        "starting passive discovery node=%s interval=%ss",
+        "starting passive discovery node=%s interval=%ss healthPort=%s",
         node_name,
         interval_seconds,
+        health_port,
     )
     while True:
         started = time.monotonic()
@@ -73,9 +79,9 @@ def run() -> None:
                 len(candidates),
                 len(scan_errors),
             )
+            health_state.mark_report_success()
         except DiscoveryReportError as exc:
             logger.warning("%s", exc)
-        heartbeat_path.touch()
         elapsed = time.monotonic() - started
         jitter = random.uniform(0, min(3.0, interval_seconds * 0.1))
         time.sleep(max(1.0, interval_seconds + jitter - elapsed))

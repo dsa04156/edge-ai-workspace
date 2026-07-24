@@ -63,6 +63,26 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
     assert security["runAsNonRoot"] is True
     assert security["capabilities"] == {"drop": ["ALL"]}
     assert "@sha256:" in container["image"]
+    assert container["ports"] == [
+        {
+            "name": "health",
+            "containerPort": 8081,
+            "protocol": "TCP",
+        }
+    ]
+    assert container["startupProbe"]["httpGet"] == {
+        "path": "/healthz",
+        "port": "health",
+    }
+    assert container["readinessProbe"]["httpGet"] == {
+        "path": "/readyz",
+        "port": "health",
+    }
+    assert container["livenessProbe"]["httpGet"] == {
+        "path": "/healthz",
+        "port": "health",
+    }
+    assert "exec" not in container["startupProbe"]
     environment = {item["name"]: item for item in container["env"]}
     assert environment["ADAPTER_CONTROLLER_URL"]["value"] == (
         "http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080"
