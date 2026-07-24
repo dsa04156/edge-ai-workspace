@@ -6,16 +6,35 @@ import hmac
 import time
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import (
+    APIRouter,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    status,
+)
 
 from .config import Settings
 from .discovery_models import (
     CandidateDecisionUpdate,
     CandidateDeleteRequest,
+    CandidateApprovalRequest,
+    CandidatePage,
+    CandidateRejectRequest,
+    CandidateRetryRequest,
     CandidateView,
+    CandidatePresence,
+    DiscoveryAuditEvent,
     DiscoveryInventory,
+    DiscoveryPlan,
+    DiscoveryProtocol,
+    DiscoveryReconcileRequest,
+    DiscoveryState,
     ManualCandidateCreate,
     NodeDiscoveryReport,
+    RegistrationRecord,
 )
 from .models import (
     RuntimeActionRequest,
@@ -67,6 +86,7 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="valid internal request signature required",
+                headers={"X-Error-Code": "INTERNAL_SIGNATURE_INVALID"},
             )
         body = await request.body()
         body_hash = hashlib.sha256(body).hexdigest()
@@ -86,6 +106,7 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="valid internal request signature required",
+                headers={"X-Error-Code": "INTERNAL_SIGNATURE_INVALID"},
             )
 
     def require_mutation_enabled() -> None:
@@ -93,6 +114,7 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Not Found",
+                headers={"X-Error-Code": "FEATURE_DISABLED"},
             )
 
     def require_discovery_enabled() -> None:
@@ -100,6 +122,7 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Not Found",
+                headers={"X-Error-Code": "FEATURE_DISABLED"},
             )
 
     async def invoke(call: Any) -> Any:
@@ -109,21 +132,25 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(exc),
+                headers={"X-Error-Code": "RESOURCE_NOT_FOUND"},
             ) from exc
         except ControllerConflict as exc:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=str(exc),
+                headers={"X-Error-Code": "STATE_CONFLICT"},
             ) from exc
         except ControllerValidationError as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=str(exc),
+                headers={"X-Error-Code": "REQUEST_NOT_ALLOWED"},
             ) from exc
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Adapter Controller backend operation failed",
+                headers={"X-Error-Code": "BACKEND_OPERATION_FAILED"},
             ) from exc
 
     @router.get("/healthz")
@@ -133,6 +160,19 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
     @router.get("/readyz")
     async def readyz() -> dict[str, str]:
         return {"status": "ready"}
+
+    @router.get("/metrics", response_class=Response)
+    async def metrics() -> Response:
+        if not settings.device_discovery_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not Found",
+            )
+        payload = await invoke(service.discovery_metrics)
+        return Response(
+            content=payload,
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
 
     @router.get(
         "/internal/v1/runtimes",
@@ -351,5 +391,282 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
         require_discovery_enabled()
         require_mutation_enabled()
         return await invoke(lambda: service.delete_candidate(candidate_id, payload))
+
+    @router.get(
+        "/api/v1/discovery/candidates",
+        response_model=CandidatePage,
+    )
+    async def list_discovery_candidates_v1(
+        request: Request,
+        protocol: DiscoveryProtocol | None = None,
+        node_id: str | None = Query(default=None, alias="nodeId"),
+        state_filter: DiscoveryState | None = Query(
+            default=None,
+            alias="state",
+        ),
+        presence: CandidatePresence | None = None,
+        page: int = Query(default=1, ge=1),
+        page_size: int = Query(default=100, alias="pageSize", ge=1, le=500),
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        inventory = await invoke(service.list_discovery_inventory)
+        raw_candidates = (
+            inventory.candidates
+            if hasattr(inventory, "candidates")
+            else inventory.get("candidates", [])
+        )
+        candidates = [
+            item
+            if isinstance(item, CandidateView)
+            else CandidateView.model_validate(item)
+            for item in raw_candidates
+        ]
+        items = [
+            item
+            for item in candidates
+            if (protocol is None or item.protocol == protocol)
+            and (node_id is None or item.node_name == node_id)
+            and (state_filter is None or item.state == state_filter)
+            and (presence is None or item.presence == presence)
+        ]
+        start = (page - 1) * page_size
+        return CandidatePage(
+            items=items[start : start + page_size],
+            total=len(items),
+            page=page,
+            page_size=page_size,
+        )
+
+    @router.get(
+        "/api/v1/discovery/candidates/{candidate_id}",
+        response_model=CandidateView,
+    )
+    async def get_discovery_candidate_v1(
+        candidate_id: str,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(lambda: service.get_candidate(candidate_id))
+
+    @router.post(
+        "/api/v1/discovery/candidates/{candidate_id}/approve",
+        response_model=CandidateView,
+    )
+    async def approve_discovery_candidate_v1(
+        candidate_id: str,
+        payload: CandidateApprovalRequest,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(
+            lambda: service.approve_candidate(candidate_id, payload)
+        )
+
+    @router.post(
+        "/api/v1/discovery/candidates/{candidate_id}/reject",
+        response_model=CandidateView,
+    )
+    async def reject_discovery_candidate_v1(
+        candidate_id: str,
+        payload: CandidateRejectRequest,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(
+            lambda: service.reject_candidate(candidate_id, payload)
+        )
+
+    @router.post(
+        "/api/v1/discovery/candidates/{candidate_id}/retry",
+        response_model=CandidateView,
+    )
+    async def retry_discovery_candidate_v1(
+        candidate_id: str,
+        payload: CandidateRetryRequest,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(
+            lambda: service.retry_candidate(candidate_id, payload)
+        )
+
+    @router.post("/api/v1/discovery/reconcile")
+    async def reconcile_discovery_v1(
+        payload: DiscoveryReconcileRequest,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(lambda: service.reconcile_discovery(payload))
+
+    @router.get(
+        "/internal/v1/discovery/plans/{node_id}",
+        response_model=DiscoveryPlan,
+    )
+    @router.get(
+        "/api/v1/discovery/plans/{node_id}",
+        response_model=DiscoveryPlan,
+    )
+    async def get_discovery_plan_v1(
+        node_id: str,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(lambda: service.get_discovery_plan(node_id))
+
+    @router.put(
+        "/api/v1/discovery/plans/{node_id}",
+        response_model=DiscoveryPlan,
+    )
+    async def put_discovery_plan_v1(
+        node_id: str,
+        payload: DiscoveryPlan,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        return await invoke(
+            lambda: service.put_discovery_plan(node_id, payload)
+        )
+
+    @router.get(
+        "/api/v1/registrations/{candidate_id}",
+        response_model=RegistrationRecord,
+    )
+    async def get_registration_v1(
+        candidate_id: str,
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(lambda: service.get_registration(candidate_id))
+
+    @router.get("/api/v1/catalog/bindings")
+    async def list_device_bindings_v1(
+        request: Request,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(service.list_device_bindings)
+
+    @router.get(
+        "/api/v1/discovery/events",
+        response_model=list[DiscoveryAuditEvent],
+    )
+    async def list_discovery_events_v1(
+        request: Request,
+        candidate_id: str | None = Query(
+            default=None,
+            alias="candidateId",
+        ),
+        limit: int = Query(default=200, ge=1, le=2000),
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        return await invoke(
+            lambda: service.list_discovery_events(
+                candidate_id=candidate_id,
+                limit=limit,
+            )
+        )
 
     return router

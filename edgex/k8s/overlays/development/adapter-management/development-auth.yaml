@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edgex-adapter-controller
+spec:
+  template:
+    spec:
+      containers:
+        - name: edgex-adapter-controller
+          env:
+            - name: ADAPTER_AUTH_MODE
+              value: development-mock

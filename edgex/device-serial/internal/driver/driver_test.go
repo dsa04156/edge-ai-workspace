@@ -346,6 +346,108 @@ func TestDriverSharesOneReaderAndFansOutAcceleration(t *testing.T) {
 	}
 }
 
+func TestDriverRoutesAllResourcesToOneAggregatePhysicalDevice(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 8)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 123456789 }
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	require.NoError(t, driver.AddDevice(
+		"arduino-multisensor-001",
+		testSerialProtocols("*"),
+		models.AdminState(models.Unlocked),
+	))
+	assert.Equal(t, 1, factory.count())
+
+	factory.only(t).options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "acceleration",
+		Readings: []Reading{
+			{ResourceName: "acceleration_x_raw", Value: 301},
+			{ResourceName: "acceleration_y_raw", Value: 302},
+			{ResourceName: "acceleration_z_raw", Value: 303},
+		},
+	}, 123456789)
+
+	observed := make(map[string]*sdkModels.AsyncValues)
+	for range 3 {
+		event := <-asyncValues
+		assert.Equal(t, "arduino-multisensor-001", event.DeviceName)
+		require.Len(t, event.CommandValues, 1)
+		observed[event.CommandValues[0].DeviceResourceName] = event
+	}
+	assert.Len(t, observed, 3)
+
+	values, err := driver.HandleReadCommands(
+		"arduino-multisensor-001",
+		testSerialProtocols("*"),
+		[]sdkModels.CommandRequest{
+			{
+				DeviceResourceName: "acceleration_x_raw",
+				Type:               common.ValueTypeInt32,
+			},
+			{
+				DeviceResourceName: "acceleration_z_raw",
+				Type:               common.ValueTypeInt32,
+			},
+		},
+	)
+	require.NoError(t, err)
+	require.Len(t, values, 2)
+	assert.Equal(t, int32(301), values[0].Value)
+	assert.Equal(t, int32(303), values[1].Value)
+}
+
+func TestDriverFansOutToAggregateAndLegacyDeviceDuringMigration(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 4)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 123456789 }
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	require.NoError(t, driver.AddDevice(
+		"virtual-temperature-001",
+		testSerialProtocols("temperature_raw"),
+		models.AdminState(models.Unlocked),
+	))
+	require.NoError(t, driver.AddDevice(
+		"arduino-multisensor-001",
+		testSerialProtocols("*"),
+		models.AdminState(models.Unlocked),
+	))
+	assert.Equal(t, 1, factory.count())
+
+	factory.only(t).options.OnSample(Sample{
+		DeviceName: "arduino-001",
+		SourceName: "temperature",
+		Readings: []Reading{
+			{ResourceName: "temperature_raw", Value: 321},
+		},
+	}, 123456789)
+
+	observed := map[string]bool{}
+	for range 2 {
+		observed[(<-asyncValues).DeviceName] = true
+	}
+	assert.Equal(t, map[string]bool{
+		"virtual-temperature-001": true,
+		"arduino-multisensor-001": true,
+	}, observed)
+}
+
 func TestDriverUsesIndependentReadersForTwoSerialConnections(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 2)
 	sdk := newTestDeviceServiceSDK(t)

@@ -22,6 +22,17 @@ def render() -> list[dict[str, Any]]:
     return [item for item in yaml.safe_load_all(result.stdout) if item]
 
 
+def render_overlay(name: str) -> list[dict[str, Any]]:
+    path = K8S_DIR / "overlays/examples" / name
+    result = subprocess.run(
+        [os.environ.get("KUBECTL", "kubectl"), "kustomize", str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [item for item in yaml.safe_load_all(result.stdout) if item]
+
+
 def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
     resources = {
         (item["kind"], item["metadata"]["name"]): item
@@ -110,3 +121,25 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
     assert "hostnetwork: true" not in rendered
     assert "devices.devices.kubeedge.io" not in rendered
     assert "edgemesh" not in rendered
+
+
+def test_node_specific_discovery_examples_target_only_the_intended_node():
+    expected = {
+        "discovery-agent-jetson": "etri-dev0001-jetorn",
+        "discovery-agent-raspi": "etri-dev0003-raspi5",
+    }
+    for overlay, node_name in expected.items():
+        daemon = next(
+            item
+            for item in render_overlay(overlay)
+            if item["kind"] == "DaemonSet"
+        )
+        expression = daemon["spec"]["template"]["spec"]["affinity"][
+            "nodeAffinity"
+        ]["requiredDuringSchedulingIgnoredDuringExecution"][
+            "nodeSelectorTerms"
+        ][0][
+            "matchExpressions"
+        ][0]
+        assert expression["key"] == "kubernetes.io/hostname"
+        assert expression["values"] == [node_name]

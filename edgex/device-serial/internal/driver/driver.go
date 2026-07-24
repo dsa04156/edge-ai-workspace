@@ -26,6 +26,15 @@ var supportedResources = map[string]struct{}{
 	"acceleration_z_raw": {},
 }
 
+var allSupportedResources = []string{
+	"temperature_raw",
+	"light_raw",
+	"magnetic_raw",
+	"acceleration_x_raw",
+	"acceleration_y_raw",
+	"acceleration_z_raw",
+}
+
 var sourceNames = map[string]string{
 	"temperature_raw":    "temperature",
 	"light_raw":          "light",
@@ -43,10 +52,13 @@ type managedReader interface {
 type readerFactory func(config SerialConfig, options ReaderOptions) managedReader
 
 type managedConnection struct {
-	reader   managedReader
-	cancel   context.CancelFunc
-	config   SerialConfig
-	routes   map[string]string
+	reader managedReader
+	cancel context.CancelFunc
+	config SerialConfig
+	// routes maps one physical resource to consumer Device names. The bool is
+	// true for the aggregate "*" Device. During migration, one aggregate
+	// physical Device may coexist with one legacy per-resource virtual Device.
+	routes   map[string]map[string]bool
 	state    models.OperatingState
 	hasState bool
 }
@@ -242,19 +254,33 @@ func (driver *Driver) UpdateDevice(
 	key := config.key()
 	target := driver.connections[key]
 	if target != nil {
-		if routedDevice, ok := target.routes[config.ResourceName]; ok && routedDevice != deviceName {
-			driver.mu.Unlock()
-			return fmt.Errorf(
-				"serial resource %q is already routed to %q",
-				config.ResourceName,
-				routedDevice,
-			)
+		for _, resourceName := range config.resourceNames() {
+			for routedDevice, aggregate := range target.routes[resourceName] {
+				if routedDevice == deviceName {
+					continue
+				}
+				if (config.ResourceName == "*" && aggregate) ||
+					(config.ResourceName != "*" && !aggregate) {
+					driver.mu.Unlock()
+					return fmt.Errorf(
+						"serial resource %q is already routed to %q",
+						resourceName,
+						routedDevice,
+					)
+				}
+			}
 		}
 	}
 
 	current := driver.bindings[deviceName]
 	if current != nil {
-		delete(current.connection.routes, current.config.ResourceName)
+		for _, resourceName := range current.config.resourceNames() {
+			removeResourceRoute(
+				current.connection,
+				resourceName,
+				deviceName,
+			)
+		}
 		delete(driver.bindings, deviceName)
 		driver.cache.deleteDevice(deviceName)
 		if len(current.connection.routes) == 0 && current.connection != target {
@@ -268,7 +294,7 @@ func (driver *Driver) UpdateDevice(
 		target = &managedConnection{
 			cancel: readerCancel,
 			config: config,
-			routes: make(map[string]string),
+			routes: make(map[string]map[string]bool),
 		}
 		options := ReaderOptions{
 			OnSample: func(sample Sample, origin int64) {
@@ -285,7 +311,12 @@ func (driver *Driver) UpdateDevice(
 		driver.connections[key] = target
 		created = target
 	}
-	target.routes[config.ResourceName] = deviceName
+	for _, resourceName := range config.resourceNames() {
+		if target.routes[resourceName] == nil {
+			target.routes[resourceName] = make(map[string]bool)
+		}
+		target.routes[resourceName][deviceName] = config.ResourceName == "*"
+	}
 	driver.bindings[deviceName] = &deviceBinding{config: config, connection: target}
 	driver.cache.deleteDevice(deviceName)
 	if target.hasState {
@@ -424,43 +455,49 @@ func (driver *Driver) handleSample(
 		if _, ok := supportedResources[reading.ResourceName]; !ok {
 			continue
 		}
-		deviceName, ok := managed.routes[reading.ResourceName]
-		if !ok {
+		routedDevices := managed.routes[reading.ResourceName]
+		if len(routedDevices) == 0 {
 			continue
 		}
 		sourceName, ok := sourceNames[reading.ResourceName]
 		if !ok {
 			continue
 		}
-		commandValue, err := sdkModels.NewCommandValueWithOrigin(
-			reading.ResourceName,
-			common.ValueTypeInt32,
-			reading.Value,
-			origin,
-		)
-		if err != nil {
-			driver.mu.Unlock()
-			driver.warn("create async serial reading for %s/%s: %v", deviceName, reading.ResourceName, err)
-			return
-		}
-		if err := driver.cache.appendChecked(deviceName, reading.ResourceName, cachedSample{
-			Origin:    origin,
-			ValueType: common.ValueTypeInt32,
-			Value:     reading.Value,
-		}); err != nil {
-			cacheErrors = append(cacheErrors, fmt.Errorf(
-				"cache %s/%s: %w",
-				deviceName,
+		for deviceName, aggregate := range routedDevices {
+			eventSourceName := sourceName
+			if aggregate {
+				eventSourceName = reading.ResourceName
+			}
+			commandValue, err := sdkModels.NewCommandValueWithOrigin(
 				reading.ResourceName,
-				err,
-			))
-			continue
+				common.ValueTypeInt32,
+				reading.Value,
+				origin,
+			)
+			if err != nil {
+				driver.mu.Unlock()
+				driver.warn("create async serial reading for %s/%s: %v", deviceName, reading.ResourceName, err)
+				return
+			}
+			if err := driver.cache.appendChecked(deviceName, reading.ResourceName, cachedSample{
+				Origin:    origin,
+				ValueType: common.ValueTypeInt32,
+				Value:     reading.Value,
+			}); err != nil {
+				cacheErrors = append(cacheErrors, fmt.Errorf(
+					"cache %s/%s: %w",
+					deviceName,
+					reading.ResourceName,
+					err,
+				))
+				continue
+			}
+			events = append(events, routedEvent{
+				deviceName: deviceName,
+				sourceName: eventSourceName,
+				value:      commandValue,
+			})
 		}
-		events = append(events, routedEvent{
-			deviceName: deviceName,
-			sourceName: sourceName,
-			value:      commandValue,
-		})
 	}
 	async := driver.async
 	ctx := driver.ctx
@@ -496,8 +533,10 @@ func (driver *Driver) handleState(
 	}
 	deviceSet := make(map[string]struct{}, len(managed.routes))
 	if active {
-		for _, deviceName := range managed.routes {
-			deviceSet[deviceName] = struct{}{}
+		for _, routedDevices := range managed.routes {
+			for deviceName := range routedDevices {
+				deviceSet[deviceName] = struct{}{}
+			}
 		}
 	}
 	driver.mu.Unlock()
@@ -516,7 +555,13 @@ func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 	binding := driver.bindings[deviceName]
 	var unused *managedConnection
 	if binding != nil {
-		delete(binding.connection.routes, binding.config.ResourceName)
+		for _, resourceName := range binding.config.resourceNames() {
+			removeResourceRoute(
+				binding.connection,
+				resourceName,
+				deviceName,
+			)
+		}
 		delete(driver.bindings, deviceName)
 		if len(binding.connection.routes) == 0 {
 			delete(driver.connections, binding.config.key())
@@ -536,11 +581,31 @@ func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 	}
 }
 
+func removeResourceRoute(
+	connection *managedConnection,
+	resourceName string,
+	deviceName string,
+) {
+	routedDevices := connection.routes[resourceName]
+	delete(routedDevices, deviceName)
+	if len(routedDevices) == 0 {
+		delete(connection.routes, resourceName)
+	}
+}
+
 func (driver *Driver) isKnownLocalSource(deviceName string, resourceName string) bool {
 	driver.mu.RLock()
 	defer driver.mu.RUnlock()
 	binding := driver.bindings[deviceName]
-	return binding != nil && binding.config.ResourceName == resourceName && !driver.stopped
+	if binding == nil || driver.stopped {
+		return false
+	}
+	for _, known := range binding.config.resourceNames() {
+		if known == resourceName {
+			return true
+		}
+	}
+	return false
 }
 
 func (driver *Driver) warn(message string, args ...any) {

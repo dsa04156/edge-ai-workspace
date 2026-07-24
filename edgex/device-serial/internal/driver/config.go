@@ -45,6 +45,13 @@ func (config SerialConfig) key() connectionKey {
 	}
 }
 
+func (config SerialConfig) resourceNames() []string {
+	if config.ResourceName == "*" {
+		return append([]string(nil), allSupportedResources...)
+	}
+	return []string{config.ResourceName}
+}
+
 func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialConfig, error) {
 	properties, ok := protocols["serial"]
 	if !ok {
@@ -76,7 +83,12 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 	if err != nil {
 		return SerialConfig{}, err
 	}
-	if _, ok := supportedResources[resourceName]; !ok {
+	if resourceName != "*" {
+		if _, ok := supportedResources[resourceName]; !ok {
+			return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
+		}
+	}
+	if resourceName == "*" && len(allSupportedResources) == 0 {
 		return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
 	}
 

@@ -8,7 +8,11 @@ import time
 from datetime import datetime, timezone
 
 from .health import HealthState, start_health_server
-from .reporter import DiscoveryReportError, signed_report
+from .reporter import (
+    DiscoveryReportError,
+    fetch_discovery_plan,
+    signed_report,
+)
 from .scanner import scan_node
 
 
@@ -51,14 +55,25 @@ def run() -> None:
     )
     start_health_server(health_state, port=health_port)
     logger.info(
-        "starting passive discovery node=%s interval=%ss healthPort=%s",
+        "starting plan-based discovery node=%s interval=%ss healthPort=%s",
         node_name,
         interval_seconds,
         health_port,
     )
     while True:
         started = time.monotonic()
-        candidates, scan_errors = scan_node()
+        try:
+            plan = fetch_discovery_plan(
+                controller_url=controller_url,
+                hmac_key=hmac_key,
+                node_name=node_name,
+                timeout_seconds=timeout_seconds,
+            )
+            candidates, scan_errors = scan_node(plan=plan)
+        except DiscoveryReportError as exc:
+            candidates = []
+            scan_errors = [f"Discovery Plan unavailable: {exc}"]
+            logger.warning("%s", exc)
         payload = {
             "nodeName": node_name,
             "agentId": agent_id,
@@ -74,7 +89,7 @@ def run() -> None:
                 timeout_seconds=timeout_seconds,
             )
             logger.info(
-                "reported passive discovery node=%s candidates=%d scanErrors=%d",
+                "reported plan-based discovery node=%s candidates=%d scanErrors=%d",
                 node_name,
                 len(candidates),
                 len(scan_errors),

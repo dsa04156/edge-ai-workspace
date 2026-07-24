@@ -108,19 +108,6 @@ jobs:
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "STATE_AGGREGATOR_IMAGE=${{ env.REGISTRY }}/state-aggregator@${DIGEST}" >> "$GITHUB_ENV"
 
-      - name: Build and Push edge-adapter-controller
-        if: steps.changes.outputs.adapter_stack == 'true'
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            -t ${{ env.REGISTRY }}/edge-adapter-controller:latest \
-            -f edgex/adapter-controller/Dockerfile \
-            edgex/adapter-controller \
-            --metadata-file /tmp/edge-adapter-controller-build-metadata.json \
-            --push
-          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edge-adapter-controller-build-metadata.json)
-          test -n "${DIGEST}" && test "${DIGEST}" != "null"
-          echo "EDGE_ADAPTER_CONTROLLER_IMAGE=${{ env.REGISTRY }}/edge-adapter-controller@${DIGEST}" >> "$GITHUB_ENV"
-
       - name: Build and Push edge-device-discovery
         if: steps.changes.outputs.adapter_stack == 'true'
         run: |
@@ -159,6 +146,53 @@ jobs:
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/edgex-device-sensehat-build-metadata.json)
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "EDGEX_DEVICE_SENSEHAT_IMAGE=${{ env.REGISTRY }}/edgex-device-sensehat@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Resolve verified Device Service digests in controller catalogs
+        if: steps.changes.outputs.adapter_stack == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${EDGEX_DEVICE_SERIAL_IMAGE}"
+          test -n "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
+          SERIAL_REPOSITORY=${EDGEX_DEVICE_SERIAL_IMAGE%@sha256:*}
+          RUNTIME_CATALOG=$(mktemp)
+          DEVICE_CATALOG=$(mktemp)
+          jq \
+            --arg serial "${EDGEX_DEVICE_SERIAL_IMAGE}" \
+            --arg sensehat "${EDGEX_DEVICE_SENSEHAT_IMAGE}" \
+            '(.templates[] | select(.adapterId == "serial-jetson") | .image) = $serial
+             | (.templates[] | select(.adapterId == "sensehat-raspi") | .image) = $sensehat' \
+            edgex/adapter-controller/config/runtime_templates.json \
+            > "${RUNTIME_CATALOG}"
+          jq \
+            --arg serial "${EDGEX_DEVICE_SERIAL_IMAGE}" \
+            --arg repository "${SERIAL_REPOSITORY}" \
+            '.imageAllowlist = (
+               [.imageAllowlist[] | select(startswith($repository + "@") | not)]
+               + [$serial]
+             )
+             | (.bindings[]
+                | select(.adapter.runtimeAdapterId == "serial-jetson")
+                | .adapter.image) = $serial' \
+            edgex/adapter-controller/config/device_bindings.json \
+            > "${DEVICE_CATALOG}"
+          mv "${RUNTIME_CATALOG}" \
+            edgex/adapter-controller/config/runtime_templates.json
+          mv "${DEVICE_CATALOG}" \
+            edgex/adapter-controller/config/device_bindings.json
+
+      - name: Build and Push edge-adapter-controller
+        if: steps.changes.outputs.adapter_stack == 'true'
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ env.REGISTRY }}/edge-adapter-controller:latest \
+            -f edgex/adapter-controller/Dockerfile \
+            edgex/adapter-controller \
+            --metadata-file /tmp/edge-adapter-controller-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/edge-adapter-controller-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "EDGE_ADAPTER_CONTROLLER_IMAGE=${{ env.REGISTRY }}/edge-adapter-controller@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Build and Push workflow-executor
         if: steps.changes.outputs.workflow_executor == 'true'

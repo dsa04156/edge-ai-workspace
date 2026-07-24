@@ -67,6 +67,11 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
@@ -78,6 +83,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
 <li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
@@ -151,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-24 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
+            <span class="badge">수정: 2026-07-24 16:30</span>
+            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -181,11 +187,11 @@
 <ul><li><code>연결 등록</code>: Git Adapter Catalog allowlist에 있는가.</li><li><code>장비 관측</code>: 연결된 EdgeX Device가 <code>UP</code>이거나 fresh Event를 발행했는가.</li><li><code>통신 상태</code>: <code>adminState</code>/<code>operatingState</code>를 connected/disconnected/unknown으로 해석한 값.</li><li><code>데이터 상태</code>: Core Data latest Event가 fresh/stale/missing/unknown인지.</li></ul>
 <p>따라서 연결이 등록돼도 Device/Event 근거가 없으면 <code>장비 관측됨</code>으로 표시하지 않는다. 모든 연결 Device가 <code>DOWN</code> 또는 <code>LOCKED</code>면 <code>장비 미관측</code>, 근거가 불완전하면 <code>관측 근거 없음</code>이다. 발견 후보나 Kubernetes Node Ready를 이 physical presence·통신 판정으로 대신하지 않는다. 신규 연결은 <code>hardwareBindingId</code>를 EdgeX Device system tag로 보존하며 <code>physicalDeviceId</code>와 <code>nodeName</code>도 사용자 PATCH에서 바꾸지 않는다.</p>
 <p><code>장비 발견</code> 탭은 위 네 상태 앞의 onboarding staging이다.</p>
-<ul><li><code>present</code>: passive Agent의 최근 report에서 USB Serial stable path 또는 I2C 버스를 다시 봄</li><li><code>stale</code>: 후보나 node report가 설정된 기준 시간을 넘김</li><li><code>declared</code>: 운영자가 network/local endpoint 후보를 직접 선언함</li><li><code>pending</code>·<code>accepted</code>·<code>ignored</code>: 운영자의 검토 상태</li><li><code>registration-ready</code>: exact node/protocol/path가 Git hardware binding과 일치하고 package가</li></ul>
+<ul><li><code>present</code>: Plan 기반 Agent의 최근 clean report에서 USB Serial stable identity 또는 허용된 I2C chip identity를 다시 확인함</li><li><code>stale</code>: 후보나 node report가 설정된 기준 시간을 넘김</li><li><code>declared</code>: 운영자가 network/local endpoint 후보를 직접 선언함</li><li><code>DETECTED</code>·<code>IDENTIFIED</code>·<code>PENDING_APPROVAL</code>·<code>APPROVED</code>·<code>SERVICE_READY</code>·<code>METADATA_REGISTERED</code>·<code>EVENT_CONFIRMED</code>: 정상 상태 머신</li><li><code>BLOCKED</code>·<code>REJECTED</code>·<code>STALE</code>·<code>FAILED</code>: 차단·거절·분리·실패 상태</li><li><code>pending</code>·<code>accepted</code>·<code>ignored</code>: 기존 Dashboard BFF 하위 호환 decision 표현. <code>accepted</code>는 더 이상 단순 표시가 아니라 승인 또는 <code>FAILED</code> retry를 요청한다.</li><li><code>registration-ready</code>: exact node/protocol/path가 Git hardware binding과 일치하고 package가</li></ul>
 <p>검증되어 기존 등록 마법사로 넘길 수 있음</p>
 <ul><li><code>binding-required</code>·<code>verification-required</code>·<code>unsupported</code>: Git 변경이나 실장비 검증 전에는</li></ul>
 <p>등록·설치로 넘길 수 없음</p>
-<p>I2C <code>present</code>는 <code>/dev/i2c-N</code> 버스 파일 존재만 뜻하며 주소 응답이나 센서 모델을 증명하지 않는다. 수동 <code>declared</code>도 endpoint 도달성이나 자격 증명 검증을 뜻하지 않는다. 후보 승인, 무시와 삭제는 Core Metadata Device 수, <code>operatingState</code>, latest Event와 KPI를 변경하지 않는다. 자동 관측 후보 삭제는 재발견 가능한 사실을 지우는 대신 <code>ignored</code>로 표시한다.</p>
+<p>I2C 버스 파일 존재만으로 <code>present</code> 후보를 만들지 않는다. Plan의 allowlist 주소에서 read-only identity register가 기대값과 일치해야 한다. 수동 <code>declared</code>도 endpoint 도달성이나 자격 증명 검증을 뜻하지 않는다. 후보 승인은 Saga를 시작하지만 첫 Event를 확인하기 전에는 등록 완료나 availability로 보지 않는다. 자동 관측 후보 삭제는 재발견 가능한 사실을 지우지 않으며 등록 완료 후보는 별도 decommission 없이 삭제하지 않는다.</p>
 <ul><li>Profile/Device Metadata readback 성공은 <code>metadata_applied</code>다.</li><li>아직 Core Data Event가 없으면 <code>waiting_for_event</code>이며 실패나 available로 추정하지 않는다.</li><li>계약된 <code>deviceName</code> Event를 확인했을 때만 <code>verified</code>다.</li><li>validation, Metadata mutation 또는 readback 불일치는 <code>failed</code>다.</li><li><code>DEVICE_MANAGEMENT_ENABLED=false</code>에서는 create/patch control을 사용할 수 없게 표시한다.</li><li><code>ADAPTER_RUNTIME_MUTATION_ENABLED=false</code>에서는 runtime 배포·재시작·퇴역과 이를 요구하는</li></ul>
 <p>connection apply를 사용할 수 없게 표시한다.</p>
 <p>노드 선택을 바꾸면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device와 연결 마법사의 target node가 같은 범위로 바뀐다. target node와 raw device path는 직접 입력하지 않는다. 관리 화면은 Device 강제 삭제, actuator command, 임의 Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. 검증된 Adapter Controller 소유 runtime의 배포·재시작·조건부 퇴역만 별도 관리 경로로 제공한다. Workflow Builder의 browser-local bind/release와 execution plan preview도 이 관리 상태와 분리하며 계속 dry-run으로 판단한다.</p>

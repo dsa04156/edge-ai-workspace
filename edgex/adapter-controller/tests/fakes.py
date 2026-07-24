@@ -29,6 +29,7 @@ class FakeKubernetesGateway:
             "candidates": [],
         }
         self.candidate_registry_version = 0
+        self.deployment_images: dict[str, str] = {}
 
     def node_ready(self, name: str) -> bool:
         return self.target_node_ready
@@ -60,6 +61,9 @@ class FakeKubernetesGateway:
 
     def is_deployment_ready(self, namespace: str, name: str) -> bool:
         return self.deployment_ready
+
+    def deployment_image(self, namespace: str, name: str) -> str | None:
+        return self.deployment_images.get(name)
 
     def patch_runtime_status(self, namespace: str, name: str, status: dict) -> None:
         self.statuses.append((name, deepcopy(status)))

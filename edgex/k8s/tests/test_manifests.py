@@ -33,12 +33,11 @@ def test_operational_entrypoint_retires_telemetry_agents_and_adds_discovery() ->
     kustomization = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert kustomization["resources"] == [
         "overlays/testbed/server2",
+        "overlays/development/adapter-management",
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
-        "base/device-discovery-agent",
         "crds",
-        "base/adapter-controller",
     ]
 
     resources = _render(K8S_DIR)

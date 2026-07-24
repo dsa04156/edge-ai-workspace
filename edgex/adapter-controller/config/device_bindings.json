@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "imageAllowlist": [
+    "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda"
+  ],
+  "parserAllowlist": [
+    "arduino-multisensor-v1"
+  ],
+  "profileAllowlist": [
+    "arduino-multisensor-v1"
+  ],
+  "bindings": [
+    {
+      "bindingId": "jetson-arduino-multisensor-v1",
+      "protocol": "serial",
+      "match": {
+        "nodeId": "etri-dev0001-jetorn",
+        "vendorId": "2341",
+        "productId": "0043",
+        "hardwareId": "75035303230351E0D171"
+      },
+      "runtimeHardwareBindingId": "jetson-arduino-serial-001",
+      "connection": {
+        "Port": "/dev/arduino-001",
+        "BaudRate": 115200,
+        "DeviceID": "arduino-001",
+        "ResourceName": "*"
+      },
+      "adapter": {
+        "runtimeAdapterId": "serial-jetson",
+        "serviceName": "device-serial-jetson",
+        "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+        "parser": "arduino-multisensor-v1"
+      },
+      "profile": {
+        "name": "arduino-multisensor-v1",
+        "file": "profiles/arduino-multisensor-v1.json"
+      },
+      "security": {
+        "approvalRequired": true
+      },
+      "deviceNamePrefix": "arduino"
+    }
+  ]
+}

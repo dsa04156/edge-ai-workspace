@@ -114,6 +114,7 @@ const MANAGEMENT_LABELS = {
     i2c: "I²C",
     modbus: "Modbus",
     opcua: "OPC-UA",
+    onvif: "ONVIF",
     mqtt: "MQTT",
     rtsp: "RTSP",
     rest: "HTTP / REST",
@@ -133,6 +134,26 @@ const MANAGEMENT_LABELS = {
     "binding-required": "연결 승인 필요",
     "verification-required": "패키지 검증 필요",
     unsupported: "패키지 없음",
+  },
+  candidateState: {
+    DETECTED: "발견됨",
+    IDENTIFIED: "식별됨",
+    PENDING_APPROVAL: "승인 대기",
+    APPROVED: "승인됨",
+    SERVICE_READY: "서비스 준비",
+    METADATA_REGISTERED: "Metadata 등록",
+    EVENT_CONFIRMED: "첫 Event 확인",
+    BLOCKED: "차단됨",
+    REJECTED: "거절됨",
+    STALE: "연결 끊김",
+    FAILED: "등록 실패",
+  },
+  candidateAuth: {
+    not_checked: "인증 전",
+    approved: "인증 승인",
+    denied: "인증 거절",
+    unavailable: "인증 장애",
+    error: "인증 오류",
   },
   issue: {
     reserved_tag: "시스템 관리 태그는 직접 지정할 수 없습니다.",
@@ -1297,16 +1318,19 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
     .trim()
     .toLocaleLowerCase("ko-KR") || "";
   const protocol = byId("managementDiscoveryProtocolFilter", documentRef)?.value || "";
-  const decision = byId("managementDiscoveryDecisionFilter", documentRef)?.value || "";
+  const stateFilter = byId(
+    "managementDiscoveryDecisionFilter",
+    documentRef,
+  )?.value || "";
   const includeIgnored = byId(
     "managementDiscoveryIncludeIgnored",
     documentRef,
   )?.checked === true;
   return (managementState.discovery.candidates || []).filter((candidate) => {
     if (candidate.nodeName !== managementState.selectedNodeName) return false;
-    if (!includeIgnored && candidate.decision === "ignored") return false;
+    if (!includeIgnored && candidate.state === "REJECTED") return false;
     if (protocol && candidate.protocol !== protocol) return false;
-    if (decision && candidate.decision !== decision) return false;
+    if (stateFilter && candidate.state !== stateFilter) return false;
     if (!search) return true;
     const searchable = [
       candidate.candidateId,
@@ -1317,6 +1341,10 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
       candidate.devicePath || "",
       candidate.note || "",
       candidate.decisionNote || "",
+      candidate.state || "",
+      candidate.hardwareId || "",
+      candidate.model || "",
+      candidate.recommendedProfile || "",
       ...Object.values(candidate.properties || {}).map(String),
     ].join(" ").toLocaleLowerCase("ko-KR");
     return searchable.includes(search);
@@ -1425,13 +1453,13 @@ function renderDiscoveryStats(documentRef = document) {
       (candidate) => candidate.presence === "present",
     ).length,
     managementDiscoveryPendingCount: candidates.filter(
-      (candidate) => candidate.decision === "pending",
+      (candidate) => candidate.state === "PENDING_APPROVAL",
     ).length,
     managementDiscoveryReadyCount: candidates.filter(
       (candidate) => candidate.registrationReady === true,
     ).length,
     managementDiscoveryIgnoredCount: candidates.filter(
-      (candidate) => candidate.decision === "ignored",
+      (candidate) => candidate.state === "REJECTED",
     ).length,
   };
   Object.entries(values).forEach(([id, value]) => {
@@ -1517,7 +1545,13 @@ function renderDiscoveryCandidates(documentRef = document) {
       badges,
       "span",
       "",
-      koreanLabel("candidateDecision", candidate.decision, "상태 미확인"),
+      koreanLabel("candidateState", candidate.state, "상태 미확인"),
+    );
+    appendTextElement(
+      badges,
+      "span",
+      "",
+      koreanLabel("candidateAuth", candidate.authState, "인증 미확인"),
     );
     const packageBadge = appendTextElement(
       badges,
@@ -1545,6 +1579,11 @@ function renderDiscoveryCandidates(documentRef = document) {
       candidate.matchedHardwareBindingId
         ? `연결 ${candidate.matchedHardwareBindingId}`
         : "",
+      candidate.model ? `모델 ${candidate.model}` : "",
+      candidate.recommendedProfile
+        ? `프로필 ${candidate.recommendedProfile}`
+        : "",
+      candidate.hardwareId ? `하드웨어 ID ${candidate.hardwareId}` : "",
       `마지막 확인 ${formatManagementTimestamp(candidate.lastSeen)}`,
     ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
 
@@ -1554,6 +1593,14 @@ function renderDiscoveryCandidates(documentRef = document) {
       "management-candidate-reason",
       candidate.packageReason || "프로토콜 패키지 상태를 확인할 수 없습니다.",
     );
+    if (candidate.failureReason) {
+      appendTextElement(
+        card,
+        "p",
+        "management-candidate-warning",
+        candidate.failureReason,
+      );
+    }
     if (candidate.evidence?.warning) {
       appendTextElement(
         card,
@@ -1573,52 +1620,54 @@ function renderDiscoveryCandidates(documentRef = document) {
 
     const actions = documentRef.createElement("div");
     actions.className = "management-candidate-actions";
-    if (candidate.decision === "pending") {
+    if (candidate.state === "PENDING_APPROVAL") {
       appendCandidateAction(
         actions,
-        "검토 승인",
+        "장비 승인 및 등록",
         "accept",
         candidate.candidateId,
       );
       appendCandidateAction(
         actions,
-        "무시",
+        "후보 거절",
         "ignore",
         candidate.candidateId,
       );
-    } else if (candidate.decision === "ignored") {
+    } else if (candidate.state === "REJECTED") {
       appendCandidateAction(
         actions,
         "다시 검토",
         "restore",
         candidate.candidateId,
       );
-    } else {
+    } else if (candidate.state === "FAILED") {
       appendCandidateAction(
         actions,
-        "승인 취소",
-        "restore",
+        "등록 재시도",
+        "accept",
         candidate.candidateId,
       );
-      if (candidate.registrationReady && !registeredDevices.length) {
+      appendCandidateAction(
+        actions,
+        "거절",
+        "ignore",
+        candidate.candidateId,
+      );
+    } else if (candidate.state === "BLOCKED") {
+      if (["unavailable", "error"].includes(candidate.authState)) {
         appendCandidateAction(
           actions,
-          "EdgeX 디바이스 등록",
-          "register",
+          "인증 재확인",
+          "accept",
           candidate.candidateId,
-        );
-      } else if (!candidate.registrationReady) {
-        appendCandidateAction(
-          actions,
-          "패키지 검증 후 등록",
-          "register",
-          candidate.candidateId,
-          {
-            disabled: true,
-            title: candidate.packageReason,
-          },
         );
       }
+      appendCandidateAction(
+        actions,
+        "후보 거절",
+        "ignore",
+        candidate.candidateId,
+      );
     }
     if (candidate.source === "manual") {
       appendCandidateAction(
@@ -2429,6 +2478,9 @@ const MANUAL_PROTOCOL_FIELDS = {
   ],
   opcua: [
     {name: "Endpoint", label: "OPC-UA 엔드포인트", placeholder: "opc.tcp://plc-01.factory.local:4840", required: true, wide: true},
+  ],
+  onvif: [
+    {name: "Endpoint", label: "ONVIF 장비 서비스 URL · 자격 증명 제외", placeholder: "https://camera-01.factory.local/onvif/device_service", required: true, wide: true},
   ],
   rtsp: [
     {name: "Endpoint", label: "RTSP URL · 자격 증명 제외", placeholder: "rtsp://camera-01.factory.local/stream", required: true, wide: true},

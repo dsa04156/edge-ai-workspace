@@ -60,3 +60,58 @@ def signed_report(
         raise DiscoveryReportError(
             f"controller report failed: {exc.__class__.__name__}"
         ) from exc
+
+
+def fetch_discovery_plan(
+    *,
+    controller_url: str,
+    hmac_key: str,
+    node_name: str,
+    timeout_seconds: float,
+) -> dict[str, Any]:
+    path = f"/internal/v1/discovery/plans/{node_name}"
+    body = b""
+    timestamp = str(int(time.time()))
+    body_hash = hashlib.sha256(body).hexdigest()
+    canonical = f"{timestamp}\nGET\n{path}\n{body_hash}".encode("utf-8")
+    signature = hmac.new(
+        hmac_key.encode("utf-8"),
+        canonical,
+        hashlib.sha256,
+    ).hexdigest()
+    request = Request(
+        f"{controller_url.rstrip('/')}{path}",
+        method="GET",
+        headers={
+            "Accept": "application/json",
+            "X-Controller-Timestamp": timestamp,
+            "X-Controller-Signature": signature,
+        },
+    )
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:
+            payload = response.read()
+            if response.status != 200:
+                raise DiscoveryReportError(
+                    f"controller returned unexpected status {response.status}"
+                )
+    except HTTPError as exc:
+        exc.read()
+        raise DiscoveryReportError(
+            f"controller rejected Discovery Plan with status {exc.code}"
+        ) from exc
+    except (URLError, TimeoutError, OSError) as exc:
+        raise DiscoveryReportError(
+            f"controller plan request failed: {exc.__class__.__name__}"
+        ) from exc
+    try:
+        parsed = json.loads(payload)
+    except (ValueError, TypeError) as exc:
+        raise DiscoveryReportError(
+            "controller Discovery Plan response was invalid"
+        ) from exc
+    if not isinstance(parsed, dict) or parsed.get("nodeId") != node_name:
+        raise DiscoveryReportError(
+            "controller Discovery Plan did not match this node"
+        )
+    return parsed

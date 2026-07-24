@@ -301,6 +301,29 @@ class KubernetesGateway:
         generation = int(deployment.metadata.generation or 0)
         return desired > 0 and available >= desired and observed >= generation
 
+    def deployment_image(self, namespace: str, name: str) -> str | None:
+        self._require_namespace(namespace)
+        try:
+            deployment = self.apps.read_namespaced_deployment(
+                name,
+                self.namespace,
+            )
+        except ApiException as exc:
+            if exc.status == 404:
+                return None
+            raise
+        containers = list(
+            (deployment.spec.template.spec.containers or [])
+            if deployment.spec
+            and deployment.spec.template
+            and deployment.spec.template.spec
+            else []
+        )
+        if len(containers) != 1:
+            return None
+        image = str(containers[0].image or "").strip()
+        return image or None
+
     def delete_owned_resource(
         self,
         *,

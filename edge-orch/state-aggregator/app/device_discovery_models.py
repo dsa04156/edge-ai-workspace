@@ -14,6 +14,7 @@ DiscoveryProtocol = Literal[
     "mqtt",
     "modbus",
     "opcua",
+    "onvif",
     "rtsp",
     "rest",
 ]
@@ -34,6 +35,11 @@ class ManualCandidateInput(ManagementModel):
         default=None,
         pattern=r"^/dev/[A-Za-z0-9._/,:@+~-]+$",
     )
+    hardware_id: str | None = Field(default=None, min_length=1, max_length=1024)
+    vendor: str | None = Field(default=None, max_length=255)
+    model: str | None = Field(default=None, max_length=255)
+    capabilities: list[str] = Field(default_factory=list, max_length=128)
+    recommended_profile: str | None = Field(default=None, max_length=255)
     properties: dict[str, EdgeXScalar] = Field(default_factory=dict)
     note: str = Field(default="", max_length=1000)
 
@@ -64,11 +70,47 @@ class CandidateView(ManagementModel):
     transport: str
     display_name: str
     device_path: str | None = None
+    hardware_id: str = ""
+    vendor: str | None = None
+    model: str | None = None
+    firmware_version: str | None = None
+    capabilities: list[str] = Field(default_factory=list)
+    recommended_profile: str | None = None
+    match_confidence: Literal[
+        "none",
+        "partial",
+        "exact",
+        "ambiguous",
+    ] = "none"
     properties: dict[str, EdgeXScalar] = Field(default_factory=dict)
     evidence: dict[str, str] = Field(default_factory=dict)
     note: str = ""
     decision: CandidateDecision
     decision_note: str = ""
+    state: Literal[
+        "DETECTED",
+        "IDENTIFIED",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "SERVICE_READY",
+        "METADATA_REGISTERED",
+        "EVENT_CONFIRMED",
+        "BLOCKED",
+        "REJECTED",
+        "STALE",
+        "FAILED",
+    ] = "DETECTED"
+    auth_state: Literal[
+        "not_checked",
+        "approved",
+        "denied",
+        "unavailable",
+        "error",
+    ] = "not_checked"
+    failure_reason: str | None = None
+    retry_count: int = 0
+    registration_step: str | None = None
+    transition_count: int = 0
     presence: Literal["present", "stale", "declared"]
     first_seen: datetime
     last_seen: datetime

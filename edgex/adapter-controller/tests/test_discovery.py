@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -5,7 +6,7 @@ import pytest
 
 from app.api import ControllerConflict, ControllerValidationError
 from app.catalog import RuntimeTemplateCatalog
-from app.discovery import DeviceCandidateRegistry
+from app.discovery import DeviceCandidateRegistry, stable_candidate_identity
 from app.discovery_models import (
     CandidateDecisionUpdate,
     CandidateDeleteRequest,
@@ -91,6 +92,35 @@ def test_node_report_creates_stable_registration_ready_candidate(registry):
     assert kube.candidate_registry_version == 2
 
 
+def test_candidate_id_uses_node_protocol_and_stable_hardware_identity():
+    candidate_id, identity_hash = stable_candidate_identity(
+        "etri-dev0001-jetorn",
+        "serial",
+        "75035303230351E0D171",
+    )
+    expected = hashlib.sha256(
+        (
+            "etri-dev0001-jetorn|serial|"
+            "75035303230351E0D171"
+        ).encode()
+    ).hexdigest()
+
+    assert identity_hash == expected
+    assert candidate_id == f"candidate-{expected}"
+
+
+def test_discovery_report_does_not_persist_sensitive_raw_metadata(registry):
+    service, _ = registry
+    incoming = serial_report()
+    incoming.candidates[0].properties["Password"] = "must-not-persist"
+    incoming.candidates[0].evidence["accessToken"] = "must-not-persist"
+
+    candidate = service.ingest_report(incoming).candidates[0]
+
+    assert "Password" not in candidate.properties
+    assert "accessToken" not in candidate.evidence
+
+
 def test_discovered_candidate_becomes_stale_without_becoming_inventory(registry):
     service, _ = registry
     report = serial_report(datetime.now(timezone.utc) - timedelta(seconds=120))
@@ -101,6 +131,51 @@ def test_discovered_candidate_becomes_stale_without_becoming_inventory(registry)
     assert inventory.candidates[0].presence == "stale"
     assert inventory.nodes[0].presence == "stale"
     assert inventory.candidates[0].decision == "pending"
+
+
+def test_clean_disconnect_and_reconnect_keep_the_same_candidate_id(registry):
+    service, _ = registry
+    first = service.ingest_report(serial_report()).candidates[0]
+    disconnected = service.ingest_report(
+        NodeDiscoveryReport(
+            node_name="etri-dev0001-jetorn",
+            agent_id="node-discovery/etri-dev0001-jetorn",
+            observed_at=datetime.now(timezone.utc),
+            candidates=[],
+            scan_errors=[],
+        )
+    ).candidates[0]
+    reconnected = service.ingest_report(serial_report()).candidates[0]
+
+    assert disconnected.candidate_id == first.candidate_id
+    assert disconnected.state == "STALE"
+    assert disconnected.presence == "stale"
+    assert reconnected.candidate_id == first.candidate_id
+    assert reconnected.state != "STALE"
+
+
+def test_different_hardware_on_the_same_port_creates_a_new_candidate(registry):
+    service, _ = registry
+    first_report = serial_report()
+    first_report.candidates[0].hardware_id = "physical-device-a"
+    first = service.ingest_report(first_report).candidates[0]
+
+    replacement_report = serial_report()
+    replacement_report.candidates[0].hardware_key = "replacement-device"
+    replacement_report.candidates[0].hardware_id = "physical-device-b"
+    candidates = service.ingest_report(replacement_report).candidates
+
+    assert len(candidates) == 2
+    by_id = {candidate.candidate_id: candidate for candidate in candidates}
+    assert first.candidate_id in by_id
+    assert by_id[first.candidate_id].state == "STALE"
+    replacement = next(
+        candidate
+        for candidate in candidates
+        if candidate.candidate_id != first.candidate_id
+    )
+    assert replacement.hardware_id == "physical-device-b"
+    assert replacement.presence == "present"
 
 
 def test_candidate_decision_is_idempotent_and_conflicts_on_reused_request(registry):
@@ -241,3 +316,32 @@ def test_delete_of_scanned_candidate_preserves_ignore_tombstone(registry):
     assert deleted.decision == "ignored"
     assert refreshed.decision == "ignored"
     assert "삭제 대신 무시" in refreshed.decision_note
+
+
+def test_registered_candidate_cannot_be_deleted_without_decommission(registry):
+    service, _ = registry
+    candidate = service.ingest_report(serial_report()).candidates[0]
+    service.transition(
+        candidate.candidate_id,
+        "IDENTIFIED",
+        reason="test identity",
+        actor="test",
+    )
+    service.transition(
+        candidate.candidate_id,
+        "PENDING_APPROVAL",
+        reason="test approval gate",
+        actor="test",
+    )
+    service.transition(
+        candidate.candidate_id,
+        "APPROVED",
+        reason="test operator approval",
+        actor="test",
+    )
+
+    with pytest.raises(ControllerConflict, match="decommission"):
+        service.delete_candidate(
+            candidate.candidate_id,
+            CandidateDeleteRequest(request_ref=mutation_ref("d")),
+        )

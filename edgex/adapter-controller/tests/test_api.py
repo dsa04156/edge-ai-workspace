@@ -175,7 +175,10 @@ def signed_headers(method, path, payload=None, *, timestamp=None, key=HMAC_KEY):
         else b""
     )
     body_hash = hashlib.sha256(body).hexdigest()
-    canonical = f"{timestamp}\n{method.upper()}\n{path}\n{body_hash}".encode()
+    canonical_path = path.split("?", 1)[0]
+    canonical = (
+        f"{timestamp}\n{method.upper()}\n{canonical_path}\n{body_hash}"
+    ).encode()
     signature = hmac.new(key.encode(), canonical, hashlib.sha256).hexdigest()
     return {
         "X-Controller-Timestamp": timestamp,
@@ -202,6 +205,63 @@ def request(
         headers=headers,
         **kwargs,
     )
+
+
+class DiscoveryV1Service(RecordingService):
+    @staticmethod
+    def candidate():
+        now = datetime.now(timezone.utc).isoformat()
+        return {
+            "candidateId": "candidate-" + ("d" * 64),
+            "source": "node-scan",
+            "nodeName": "etri-dev0001-jetorn",
+            "protocol": "serial",
+            "transport": "usb-serial",
+            "displayName": "Arduino",
+            "devicePath": "/dev/serial/by-id/arduino",
+            "hardwareId": "arduino-001",
+            "properties": {},
+            "evidence": {},
+            "decision": "pending",
+            "state": "PENDING_APPROVAL",
+            "authState": "not_checked",
+            "presence": "present",
+            "firstSeen": now,
+            "lastSeen": now,
+            "updatedAt": now,
+            "packageState": "registration-ready",
+            "packageReason": "exact match",
+            "registrationReady": True,
+        }
+
+    def list_discovery_inventory(self):
+        payload = super().list_discovery_inventory()
+        payload["candidates"] = [self.candidate()]
+        return payload
+
+    def get_candidate(self, candidate_id):
+        self.calls.append(("get_candidate", candidate_id))
+        return self.candidate()
+
+    def approve_candidate(self, candidate_id, payload):
+        self.calls.append(("approve_candidate", candidate_id, payload.actor))
+        result = self.candidate()
+        result["state"] = "APPROVED"
+        result["decision"] = "accepted"
+        result["authState"] = "approved"
+        return result
+
+    def get_discovery_plan(self, node_id):
+        return {
+            "nodeId": node_id,
+            "serial": {"enabled": True, "allowedVidPid": ["2341:0043"]},
+        }
+
+    def list_device_bindings(self):
+        return {"version": 1, "bindings": [], "errors": []}
+
+    def list_discovery_events(self, candidate_id=None, limit=200):
+        return []
 
 
 def test_read_only_list_and_plan_require_valid_hmac():
@@ -388,3 +448,73 @@ def test_discovery_report_and_manual_candidate_require_feature_and_signed_contra
         "list_discovery",
         "manual",
     ]
+
+
+def test_discovery_v1_list_filter_pagination_and_candidate_lookup():
+    service = DiscoveryV1Service()
+    list_path = (
+        "/api/v1/discovery/candidates?"
+        "nodeId=etri-dev0001-jetorn&protocol=serial&"
+        "state=PENDING_APPROVAL&page=1&pageSize=10"
+    )
+    with client_for(
+        service,
+        mutation_enabled=True,
+        discovery_enabled=True,
+    ) as client:
+        listed = request(client, "GET", list_path)
+        candidate_id = service.candidate()["candidateId"]
+        fetched = request(
+            client,
+            "GET",
+            f"/api/v1/discovery/candidates/{candidate_id}",
+        )
+
+    assert listed.status_code == 200
+    assert listed.json()["total"] == 1
+    assert listed.json()["items"][0]["state"] == "PENDING_APPROVAL"
+    assert fetched.status_code == 200
+    assert fetched.json()["hardwareId"] == "arduino-001"
+
+
+def test_discovery_v1_approval_is_authenticated_and_typed():
+    service = DiscoveryV1Service()
+    candidate_id = service.candidate()["candidateId"]
+    path = f"/api/v1/discovery/candidates/{candidate_id}/approve"
+    payload = {
+        "actor": "operator-1",
+        "reason": "physical label verified",
+        "requestRef": {
+            "requestId": "7" * 64,
+            "payloadHash": "8" * 64,
+        },
+    }
+    with client_for(
+        service,
+        mutation_enabled=True,
+        discovery_enabled=True,
+    ) as client:
+        unsigned = client.post(path, json=payload)
+        approved = request(client, "POST", path, payload)
+
+    assert unsigned.status_code == 401
+    assert unsigned.headers["x-error-code"] == (
+        "INTERNAL_SIGNATURE_INVALID"
+    )
+    assert approved.status_code == 200
+    assert approved.json()["state"] == "APPROVED"
+    assert ("approve_candidate", candidate_id, "operator-1") in service.calls
+
+
+def test_agent_can_read_conservative_discovery_plan():
+    service = DiscoveryV1Service()
+    path = "/internal/v1/discovery/plans/etri-dev0001-jetorn"
+    with client_for(
+        service,
+        mutation_enabled=True,
+        discovery_enabled=True,
+    ) as client:
+        response = request(client, "GET", path)
+
+    assert response.status_code == 200
+    assert response.json()["serial"]["allowedVidPid"] == ["2341:0043"]

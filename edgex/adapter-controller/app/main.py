@@ -8,11 +8,15 @@ from typing import Any
 from fastapi import FastAPI
 
 from .api import create_controller_router
+from .auth import build_auth_provider
 from .catalog import RuntimeTemplateCatalog
 from .config import Settings
+from .device_catalog import DeviceBindingCatalog
 from .discovery import DeviceCandidateRegistry
-from .edgex import EdgeXServiceProbe
+from .discovery_store import SQLiteDiscoveryStore
+from .edgex import EdgeXRegistrationClient, EdgeXServiceProbe
 from .kube import KubernetesGateway
+from .registration import RegistrationCoordinator
 from .reconciler import RuntimeReconciler
 from .service import AdapterControllerService
 
@@ -22,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 def build_service(settings: Settings) -> AdapterControllerService:
     catalog = RuntimeTemplateCatalog.load(settings.catalog_path)
+    device_catalog = DeviceBindingCatalog.load(settings.device_catalog_path)
     kube = KubernetesGateway(namespace=settings.namespace)
+    store = SQLiteDiscoveryStore(settings.discovery_database_path)
     edgex_probe = EdgeXServiceProbe(
         settings.core_metadata_url,
         settings.edgex_timeout_seconds,
@@ -38,18 +44,46 @@ def build_service(settings: Settings) -> AdapterControllerService:
             kube,
             stale_after_seconds=settings.discovery_stale_after_seconds,
             candidate_limit=settings.discovery_candidate_limit,
+            store=store,
+            device_catalog=device_catalog,
+            plans_path=settings.discovery_plans_path,
         )
         if settings.device_discovery_enabled
         else None
     )
-    return AdapterControllerService(
+    service = AdapterControllerService(
         catalog,
         kube,
         edgex_probe,
         reconciler,
         namespace=settings.namespace,
         candidate_registry=candidate_registry,
+        device_catalog=device_catalog,
     )
+    if settings.device_discovery_enabled:
+        coordinator = RegistrationCoordinator(
+            registry=candidate_registry,
+            store=store,
+            device_catalog=device_catalog,
+            auth_provider=build_auth_provider(
+                mode=settings.auth_mode,
+                endpoint=settings.auth_endpoint,
+                token=settings.auth_token,
+                timeout_seconds=settings.auth_timeout_seconds,
+            ),
+            edge_x=EdgeXRegistrationClient(
+                settings.core_metadata_url,
+                settings.core_data_url,
+                settings.edgex_timeout_seconds,
+            ),
+            kube=kube,
+            runtime_service=service,
+            event_timeout_seconds=(
+                settings.registration_event_timeout_seconds
+            ),
+        )
+        service.attach_registration_coordinator(coordinator)
+    return service
 
 
 class ServiceHolder:
@@ -93,6 +127,42 @@ class ServiceHolder:
 
     def delete_candidate(self, candidate_id, request):
         return self._require().delete_candidate(candidate_id, request)
+
+    def get_candidate(self, candidate_id):
+        return self._require().get_candidate(candidate_id)
+
+    def approve_candidate(self, candidate_id, request):
+        return self._require().approve_candidate(candidate_id, request)
+
+    def reject_candidate(self, candidate_id, request):
+        return self._require().reject_candidate(candidate_id, request)
+
+    def retry_candidate(self, candidate_id, request):
+        return self._require().retry_candidate(candidate_id, request)
+
+    def reconcile_discovery(self, request):
+        return self._require().reconcile_discovery(request)
+
+    def get_discovery_plan(self, node_id):
+        return self._require().get_discovery_plan(node_id)
+
+    def put_discovery_plan(self, node_id, plan):
+        return self._require().put_discovery_plan(node_id, plan)
+
+    def get_registration(self, candidate_id):
+        return self._require().get_registration(candidate_id)
+
+    def list_discovery_events(self, candidate_id=None, limit=200):
+        return self._require().list_discovery_events(
+            candidate_id=candidate_id,
+            limit=limit,
+        )
+
+    def list_device_bindings(self):
+        return self._require().list_device_bindings()
+
+    def discovery_metrics(self):
+        return self._require().discovery_metrics()
 
 
 def create_app(

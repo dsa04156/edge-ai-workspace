@@ -47,6 +47,7 @@ class RuntimeObservation(ManagementModel):
     mutable: bool = False
     mutation_enabled: bool = False
     workload_name: str | None = None
+    image: str | None = None
     edge_x_service_observed: bool | None = None
 
     @model_validator(mode="after")

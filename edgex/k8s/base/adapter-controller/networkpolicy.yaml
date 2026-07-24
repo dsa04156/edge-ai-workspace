@@ -47,6 +47,16 @@ spec:
       ports:
         - protocol: TCP
           port: 59881
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: edgex-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: edgex-core-data
+      ports:
+        - protocol: TCP
+          port: 59880
     - ports:
         - protocol: TCP
           port: 443

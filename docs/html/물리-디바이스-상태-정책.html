@@ -67,6 +67,11 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
@@ -78,6 +83,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
 <li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
@@ -151,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 물리-디바이스-상태-정책.md</span>
-            <span class="badge">수정: 2026-07-24 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
+            <span class="badge">수정: 2026-07-24 16:28</span>
+            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -171,8 +177,8 @@
 <p>EdgeX Device Service는 <code>protocols</code>의 endpoint를 연결하고 Device Profile에 맞는 Event/Reading을 만든다. Core Metadata의 <code>serviceName</code>은 실제 endpoint를 소유하는 Device Service여야 하며 별도 Agent를 논리 Device Service로 가장하지 않는다.</p>
 <p>Kubernetes node placement는 display-only 진단 정보다. placement 누락, Kubernetes Node NotReady, mapper Pod 상태를 물리 디바이스 availability의 gate로 사용하지 않는다.</p>
 <h3 id="발견-후보와-inventory-경계">발견 후보와 inventory 경계</h3>
-<p><code>edge-device-discovery</code>는 onboarding 편의를 위한 passive staging Agent다. USB Serial의 stable <code>/dev/serial/by-id/*</code> symlink와 <code>/dev/i2c-N</code> 버스 존재만 관측하며, 네트워크 대역 probe나 I2C address scan을 하지 않는다. report의 <code>present</code>/<code>stale</code>과 수동 endpoint의 <code>declared</code>는 후보 evidence일 뿐 Core Metadata Device, <code>operatingState</code>, Device Service 통신이나 Core Data Event가 아니다.</p>
-<p>후보는 <code>edgex-device-discovery-registry</code> ConfigMap에 제한적으로 보관하고 EdgeX inventory에 합치지 않는다. <code>accepted</code>도 검토 표시일 뿐이며 exact Git hardware binding과 검증된 Device Service package가 일치한 뒤 별도 Profile/Device registration과 first Event를 통과해야 current physical inventory/availability에 반영된다. KubeEdge Device CRD는 이 과정에 사용하지 않는다.</p>
+<p><code>edge-device-discovery</code>는 onboarding staging Agent다. 중앙에서 서명된 노드별 Discovery Plan을 조회한 뒤 USB Serial stable <code>/dev/serial/by-id/*</code> identity와 허용된 I2C bus/address/chip ID만 관측한다. Serial은 Plan이 허용할 때만 <code>WHOAMI</code>/Manifest를 시도하고, I2C 버스 파일의 존재만으로 센서 후보를 만들지 않는다. 네트워크 전체 대역과 I2C 전체 주소 범위 scan은 하지 않는다. report의 <code>present</code>/<code>stale</code>은 후보 evidence일 뿐 Core Metadata Device, <code>operatingState</code>, Device Service 통신이나 Core Data Event가 아니다.</p>
+<p>후보, 상태 전이, 승인, 등록 Saga와 audit는 Adapter Controller SQLite Registry에 영속 저장하며 EdgeX inventory에 합치지 않는다. 기존 후보 ConfigMap은 최초 기동 시 migration 입력일 뿐이다. exact Catalog match가 있어도 운영자 승인과 외부 인증, 검증된 Device Service, Profile/Device Metadata readback, first Event를 모두 통과해야 current physical inventory/availability에 반영된다. KubeEdge Device CRD는 이 과정에 사용하지 않는다.</p>
 <h2 id="telemetry와-timestamp">Telemetry와 timestamp</h2>
 <p>Core Data Event가 physical telemetry의 원본이다. event의 다음 값을 손실 없이 사용한다.</p>
 <ul><li><code>deviceName</code>: Core Metadata Device와의 결합 key</li><li><code>sourceName</code>: Device Profile resource/source</li><li><code>origin</code>: nanoseconds 단위의 sample/event 시각</li><li>Readings: EdgeX <code>valueType</code>과 typed value</li></ul>

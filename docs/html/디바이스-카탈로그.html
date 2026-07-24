@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>디바이스 Binding 및 Profile Catalog</title>
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=디바이스-카탈로그.md">편집</a>
+      </div>
+      <span>디바이스-카탈로그.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="일일-기록.html">일일 기록</a></li>
+<li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">최신 기준 문서</p>
+          <h1>디바이스 Binding 및 Profile Catalog</h1>
+          <p class="subtitle">발견 API가 임의의 container image, parser, Profile, host path를 선택하지 못하게 한다. 새…</p>
+          <div class="meta">
+            <span class="badge kind">최신 기준 문서</span>
+            <span class="badge">원본: 디바이스-카탈로그.md</span>
+            <span class="badge">수정: 2026-07-24 16:22</span>
+            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="디바이스-binding-및-profile-catalog">디바이스 Binding 및 Profile Catalog</h1>
+<h2 id="목적">목적</h2>
+<p>발견 API가 임의의 container image, parser, Profile, host path를 선택하지 못하게 한다. 새 장비 지원은 Git review를 거친 Catalog와 배포 변경으로만 추가한다.</p>
+<p>현재 파일:</p>
+<pre data-lang="text"><code>edgex/adapter-controller/config/
+  device_bindings.json
+  runtime_templates.json
+  discovery_plans.json
+  profiles/
+    arduino-multisensor-v1.json</code></pre>
+<p><code>runtime_templates.json</code>은 Device Service Runtime의 배치 template이고, <code>device_bindings.json</code>은 stable hardware identity와 Runtime/Profile을 연결한다. 두 파일의 역할을 섞지 않는다.</p>
+<h2 id="device-binding-schema">Device Binding schema</h2>
+<pre data-lang="json"><code>{
+  &quot;version&quot;: 1,
+  &quot;imageAllowlist&quot;: [
+    &quot;registry.example/device-serial@sha256:&lt;64 hex&gt;&quot;
+  ],
+  &quot;parserAllowlist&quot;: [
+    &quot;arduino-multisensor-v1&quot;
+  ],
+  &quot;profileAllowlist&quot;: [
+    &quot;arduino-multisensor-v1&quot;
+  ],
+  &quot;bindings&quot;: [
+    {
+      &quot;bindingId&quot;: &quot;jetson-arduino-multisensor-v1&quot;,
+      &quot;protocol&quot;: &quot;serial&quot;,
+      &quot;match&quot;: {
+        &quot;nodeId&quot;: &quot;etri-dev0001-jetorn&quot;,
+        &quot;vendorId&quot;: &quot;2341&quot;,
+        &quot;productId&quot;: &quot;0043&quot;,
+        &quot;hardwareId&quot;: &quot;75035303230351E0D171&quot;
+      },
+      &quot;runtimeHardwareBindingId&quot;: &quot;jetson-arduino-serial-001&quot;,
+      &quot;connection&quot;: {
+        &quot;Port&quot;: &quot;/dev/arduino-001&quot;,
+        &quot;BaudRate&quot;: 115200,
+        &quot;DeviceID&quot;: &quot;arduino-001&quot;,
+        &quot;ResourceName&quot;: &quot;*&quot;
+      },
+      &quot;adapter&quot;: {
+        &quot;runtimeAdapterId&quot;: &quot;serial-jetson&quot;,
+        &quot;serviceName&quot;: &quot;device-serial-jetson&quot;,
+        &quot;image&quot;: &quot;registry.example/device-serial@sha256:&lt;64 hex&gt;&quot;,
+        &quot;parser&quot;: &quot;arduino-multisensor-v1&quot;
+      },
+      &quot;profile&quot;: {
+        &quot;name&quot;: &quot;arduino-multisensor-v1&quot;,
+        &quot;file&quot;: &quot;profiles/arduino-multisensor-v1.json&quot;
+      },
+      &quot;security&quot;: {
+        &quot;approvalRequired&quot;: true
+      },
+      &quot;deviceNamePrefix&quot;: &quot;arduino&quot;
+    }
+  ]
+}</code></pre>
+<h2 id="검증-규칙">검증 규칙</h2>
+<ul><li>image는 tag가 아니라 <code>@sha256:&lt;digest&gt;</code> 형식이어야 한다.</li><li>binding image, parser, Profile name은 각각 상위 allowlist에 있어야 한다.</li><li>Profile file은 Catalog 디렉터리 안의 JSON이어야 하며 path traversal을 허용하지 않는다.</li><li>Profile file의 <code>name</code>은 binding의 Profile name과 같아야 한다.</li><li>binding ID는 중복될 수 없다.</li><li>match에는 hardware ID, VID/PID, model, endpoint 또는 required capability 중 stable</li></ul>
+<p>조건이 하나 이상 있어야 한다.</p>
+<ul><li>여러 binding이 동시에 exact match되면 <code>ambiguous</code>로 차단한다.</li><li>active Manifest probe가 실패했거나 Manifest의 recommended Profile이 binding과 다르면</li></ul>
+<p>알려진 USB serial이라도 exact match하지 않는다.</p>
+<ul><li>invalid binding 하나는 격리해 API <code>errors</code>에 표시하고, 나머지 유효 binding은 계속</li></ul>
+<p>사용할 수 있다. Catalog 문서 전체가 깨졌으면 빈 Catalog로 기동해 모든 신규 등록을 fail-closed한다.</p>
+<p>Catalog는 Controller 시작 시 읽는다. 현재 hot reload API는 없으므로 Git 변경 배포 후 Controller rollout으로 반영한다.</p>
+<h2 id="profile-원칙">Profile 원칙</h2>
+<p>신규 Arduino/ESP32 멀티센서 장비는 물리 보드 하나를 EdgeX Device 하나로 만든다. 센서 값은 여러 <code>DeviceResource</code>로 표현한다.</p>
+<pre data-lang="text"><code>Device: arduino-&lt;stable-id&gt;
+Profile: arduino-multisensor-v1
+Resources:
+  temperature_raw
+  light_raw
+  magnetic_raw
+  acceleration_x_raw
+  acceleration_y_raw
+  acceleration_z_raw</code></pre>
+<p>Profile에는 <code>edge-adapter-controller</code> label을 넣어 Catalog 관리 Profile임을 표시한다. Device에는 <code>controllerCandidateId</code>, <code>hardwareId</code>, <code>nodeName</code>, <code>catalogBindingId</code> tag를 넣는다.</p>
+<p>카메라는 원본 RTSP frame을 Profile resource나 Core Data Event로 만들지 않는다. camera 상태, endpoint metadata, AI 결과만 별도 Profile resource 후보로 정의한다.</p>
+<h2 id="새-serial-장비-추가-절차">새 Serial 장비 추가 절차</h2>
+<ol><li>대상 노드에서 <code>/dev/serial/by-id/*</code>, VID/PID와 USB serial을 확인한다.</li><li>firmware가 지원하면 WHOAMI Manifest의 model/resource schema를 PTY 또는 실장비로</li></ol>
+<p>검증한다.</p>
+<ol><li>parser가 기존 <code>device-serial</code>로 처리 가능한지 확인한다. 새 framing이면 parser 코드와</li></ol>
+<p>단위 테스트를 먼저 추가한다.</p>
+<ol><li>한 물리 보드의 resource를 정의한 Profile JSON을 <code>config/profiles/</code>에 추가한다.</li><li><code>runtime_templates.json</code>에 exact host CharDevice와 container path binding을 추가한다.</li><li><code>device_bindings.json</code>에 stable match, Runtime binding, connection, parser, Profile과</li></ol>
+<p>immutable image를 추가한다.</p>
+<ol><li><code>discovery_plans.json</code> 또는 Plan API에서 필요한 VID/PID만 허용한다. Active Manifest</li></ol>
+<p>probe는 기존 Device Service와 포트 경쟁이 없는 검증 창에만 켠다.</p>
+<ol><li>Catalog, scanner, Device Service, Kustomize 테스트를 실행한다.</li><li>배포 후 후보가 <code>PENDING_APPROVAL</code>인지 확인한다.</li><li>운영자와 외부 인증 승인 뒤 <code>EVENT_CONFIRMED</code>까지 확인한다.</li></ol>
+<p>새 장비를 연결할 때마다 DB schema를 수정하지 않는다. Candidate, Event/Reading, Profile/Device는 generic 모델로 저장되고 장비별 schema는 Profile/Catalog가 관리한다.</p>
+<h2 id="i2c-장비-추가-절차">I2C 장비 추가 절차</h2>
+<ol><li>bus와 address를 Plan allowlist에 넣는다.</li><li>상태를 바꾸지 않는 identity register, expected chip ID, model, Profile과 capability를</li></ol>
+<p><code>identificationRules</code>에 선언한다.</p>
+<ol><li><code>MockI2CBusAdapter</code> 테스트로 허용 address만 읽는지 검증한다.</li><li>해당 Profile, Device Service image/parser와 Device Binding을 Catalog에 추가한다.</li><li>실장비 read와 첫 EdgeX Event를 검증하기 전에는 완료로 표시하지 않는다.</li></ol>
+<p>버스 <code>/dev/i2c-N</code> 존재만으로 Device Binding을 만들지 않는다.</p>
+<h2 id="mqtt-장비-추가-절차">MQTT 장비 추가 절차</h2>
+<p>현재는 자기등록 payload parser만 있고 broker subscriber와 MQTT Device Service가 없다. 다음 작업을 완료하기 전에는 binding을 운영 승격하지 않는다.</p>
+<ol><li>Secret 기반 broker TLS/auth 설정</li><li>retained <code>edge/discovery/{nodeId}/{deviceId}</code> subscriber</li><li>topic node/device 일치와 schema 검증</li><li>discovery topic과 telemetry topic 분리</li><li>MQTT Device Service parser와 Profile</li><li>중복 자기등록 idempotency, disconnect와 first Event 검증</li></ol>
+<h2 id="ci의-image-digest-정렬">CI의 image digest 정렬</h2>
+<p><code>.github/workflows/docker-build-push.yml</code>은 Device Service image를 먼저 build/push한다. 그 다음 CI 작업공간의 <code>runtime_templates.json</code>과 <code>device_bindings.json</code>을 새 digest로 해석하고 Controller image를 build한다. 따라서 배포되는 Controller Catalog와 실제 Device Service Deployment가 같은 immutable digest를 사용한다.</p>
+<p>Git의 digest는 마지막 검증 기준선으로 남고, Argo CD image override와 Controller image 내부 Catalog는 한 CI 실행에서 생성된 digest로 함께 배포된다. Saga는 실제 Deployment image readback이 Catalog digest와 다르면 <code>RUNTIME_IMAGE_NOT_VERIFIED</code>로 중단한다.</p>
+<h2 id="검증-명령">검증 명령</h2>
+<pre data-lang="bash"><code>cd edgex/adapter-controller
+PYTHONPATH=. pytest -q tests/test_device_catalog.py
+
+cd ../device-serial
+go test ./...
+
+cd ../..
+kubectl kustomize edgex/k8s &gt;/dev/null</code></pre>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#device-binding-schema">Device Binding schema</a></li>
+<li class="toc-h2"><a href="#검증-규칙">검증 규칙</a></li>
+<li class="toc-h2"><a href="#profile-원칙">Profile 원칙</a></li>
+<li class="toc-h2"><a href="#새-serial-장비-추가-절차">새 Serial 장비 추가 절차</a></li>
+<li class="toc-h2"><a href="#i2c-장비-추가-절차">I2C 장비 추가 절차</a></li>
+<li class="toc-h2"><a href="#mqtt-장비-추가-절차">MQTT 장비 추가 절차</a></li>
+<li class="toc-h2"><a href="#ci의-image-digest-정렬">CI의 image digest 정렬</a></li>
+<li class="toc-h2"><a href="#검증-명령">검증 명령</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

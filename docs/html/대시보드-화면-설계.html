@@ -67,6 +67,11 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
@@ -78,6 +83,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
 <li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
@@ -151,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 대시보드-화면-설계.md</span>
-            <span class="badge">수정: 2026-07-24 14:21</span>
-            <span class="badge">HTML 생성: 2026-07-24 14:27</span>
+            <span class="badge">수정: 2026-07-24 16:30</span>
+            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -168,7 +174,7 @@
 <h2 id="ai-pipeline">AI Pipeline</h2>
 <ul><li>Summary strip으로 등록 디바이스, availability, telemetry freshness, validation 상태를 먼저 보여준다.</li><li>Palette, graph canvas, inspector를 한 작업면으로 묶는다.</li><li>Validation과 Execution Plan은 dry-run preview로만 표시한다.</li></ul>
 <h2 id="device-management">Device Management</h2>
-<ul><li>화면 상단의 노드 선택은 네 작업 탭에서 유지되는 공통 운영 범위다. 각 노드 카드에는 관측 상태, Runtime 수, EdgeX Device 수와 등록 protocol 수를 요약한다.</li><li>기본 <code>장비 발견</code> 탭은 승인 전 임시 후보만 표시한다. 상단에서 발견 Agent online/stale와 현재 관측·검토 대기·등록 가능·무시됨 수를 요약하고, 검색어·protocol·검토 상태·무시 후보 표시로 목록을 좁힌다.</li><li>USB Serial stable path와 I2C 버스는 node report에서 표시한다. 후보 카드는 source, presence, node, protocol, path/endpoint, first/last seen, package 상태와 차단 이유를 분리한다. I2C 버스 존재를 센서 응답으로 표현하지 않는다.</li><li><code>엔드포인트 직접 추가</code> 대화상자는 node와 protocol에 따라 Serial path/baud, I2C bus, MQTT broker/topic, Modbus TCP/RTU, OPC-UA, RTSP, REST 필드만 노출한다. 이는 후보 선언이며 비밀번호·token·URL userinfo, 임의 image/hostPath/command를 받지 않는다.</li><li>후보 <code>승인</code>은 <code>accepted</code> 검토 상태만 바꾼다. exact binding과 검증 package가 일치한 <code>등록 가능</code> 후보에만 기존 등록 마법사 진입 버튼을 표시한다. 자동 관측 후보의 삭제는 무시 처리하고 수동 후보만 soft delete한다.</li><li><code>노드 현황</code> 탭의 첫 영역은 <code>등록 연결과 실제 장비 상태</code>다. 연결 등록, 장비 관측, Device Service 통신, 최신 Event 상태를 네 칸으로 나눠 보여 주며 binding이나 발견 후보만으로 장비 감지·통신 성공을 주장하지 않는다.</li><li>이어서 Runtime, protocol package와 기존 EdgeX Device를 보여 준다. Runtime owner/phase/consumer와 Device identity를 한눈에 확인하고, 신규 등록과 기존 수정은 별도 작업 탭으로 진입한다.</li><li>protocol package 카드는 선택 노드 기준 <code>재사용 가능</code>, <code>설치 가능</code>, <code>연결 등록 필요</code>, <code>검증 필요</code>를 표시한다. 설치/재사용 가능한 카드만 등록 마법사 진입 버튼을 제공하고 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code> 안에 둔다.</li><li><code>새 디바이스 등록</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code>의 4단계 마법사다. 연결 선택 안에서는 protocol/Device Service를 가장 먼저 고르고, 선택 노드의 등록 hardware binding과 Device Service 준비 방식을 뒤에서 고른다. 현재 단계만 노출하며 마지막 단계에서 등록 요약, 관리자 token, 실행 계획과 first Event 상태를 함께 보여 준다.</li><li><code>기존 디바이스 수정</code>은 선택 노드의 Device를 먼저 선택해야 활성화한다. 이름·프로필·Device Service는 변경하지 않고 allowlist 필드만 수정한다.</li><li>설치되지 않았거나 미검증인 protocol도 접힌 현황 영역에서 차단 이유를 확인할 수 있지만 선택할 수 없다. 검증된 template과 등록 binding이 모두 있는 미설치 package만 <code>설치 가능</code>으로 선택한다. idempotency key와 기존 Device의 protocol properties JSON은 접힌 고급 영역에 둔다.</li><li>운영자는 runtime mode, catalog가 허용한 target node와 hardware binding만 선택할 수 있다.</li><li>Serial 선택 시 같은 포트의 추가 resource와 두 번째 승인 USB Serial의 차이를 안내한다. binding이 제공한 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>는 read-only이고 resource route만 선택한다.</li><li>validation은 <code>REUSE</code>·<code>DEPLOY</code>·<code>BLOCKED</code> runtime plan과 EdgeX Profile/Device plan을 마지막 등록 단계에 표시하며 mutation을 수행하지 않는다.</li><li><code>디바이스 연결</code>은 관리자 token과 idempotency key가 있고 validation이 유효할 때만 활성화한다. 상태는 runtime, Metadata, first Event와 실패 보상을 분리해 표시한다.</li><li>Argo CD 소유 Runtime은 조회·재사용 전용이다. Controller가 만든 Runtime만 restart할 수 있고 consumer가 0개일 때만 retire할 수 있다.</li><li>관리자 token은 발견 후보 승인·무시·추가·삭제와 연결 mutation에만 쓰고 브라우저 메모리에만 유지한다. 검색·필터·node report 조회는 read-only다.</li></ul>
+<ul><li>화면 상단의 노드 선택은 네 작업 탭에서 유지되는 공통 운영 범위다. 각 노드 카드에는 관측 상태, Runtime 수, EdgeX Device 수와 등록 protocol 수를 요약한다.</li><li>기본 <code>장비 발견</code> 탭은 onboarding 후보만 표시한다. 상단에서 발견 Agent online/stale와 현재 관측·승인 대기·등록 완료·차단 수를 요약하고, 검색어·protocol·상태·presence로 목록을 좁힌다.</li><li>USB Serial stable identity와 검증된 I2C chip identity를 node report에서 표시한다. 후보 카드는 source, presence, node, protocol, hardware ID, model, 권장 Profile, 상태, 인증과 차단 이유를 분리한다. I2C 버스 존재만으로 후보나 센서 응답을 만들지 않는다.</li><li><code>엔드포인트 직접 추가</code> 대화상자는 node와 protocol에 따라 Serial path/baud, I2C bus, MQTT broker/topic, Modbus TCP/RTU, OPC-UA, RTSP, REST 필드만 노출한다. 이는 후보 선언이며 비밀번호·token·URL userinfo, 임의 image/hostPath/command를 받지 않는다.</li><li>후보 <code>승인</code>은 exact Catalog match와 presence를 다시 검사한 뒤 외부 인증, 검증 Runtime 재사용·배포, EdgeX Profile/Device 등록과 첫 Event 확인 Saga를 시작한다. <code>FAILED</code> 후보의 같은 동작은 retry이며, 거절은 <code>REJECTED</code>로 전이한다. 자동 관측 후보 삭제는 재발견 사실을 없애지 않고, 이미 등록된 후보는 명시적 decommission Saga 없이 삭제하지 않는다.</li><li><code>노드 현황</code> 탭의 첫 영역은 <code>등록 연결과 실제 장비 상태</code>다. 연결 등록, 장비 관측, Device Service 통신, 최신 Event 상태를 네 칸으로 나눠 보여 주며 binding이나 발견 후보만으로 장비 감지·통신 성공을 주장하지 않는다.</li><li>이어서 Runtime, protocol package와 기존 EdgeX Device를 보여 준다. Runtime owner/phase/consumer와 Device identity를 한눈에 확인하고, 신규 등록과 기존 수정은 별도 작업 탭으로 진입한다.</li><li>protocol package 카드는 선택 노드 기준 <code>재사용 가능</code>, <code>설치 가능</code>, <code>연결 등록 필요</code>, <code>검증 필요</code>를 표시한다. 설치/재사용 가능한 카드만 등록 마법사 진입 버튼을 제공하고 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code> 안에 둔다.</li><li><code>새 디바이스 등록</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code>의 4단계 마법사다. 연결 선택 안에서는 protocol/Device Service를 가장 먼저 고르고, 선택 노드의 등록 hardware binding과 Device Service 준비 방식을 뒤에서 고른다. 현재 단계만 노출하며 마지막 단계에서 등록 요약, 관리자 token, 실행 계획과 first Event 상태를 함께 보여 준다.</li><li><code>기존 디바이스 수정</code>은 선택 노드의 Device를 먼저 선택해야 활성화한다. 이름·프로필·Device Service는 변경하지 않고 allowlist 필드만 수정한다.</li><li>설치되지 않았거나 미검증인 protocol도 접힌 현황 영역에서 차단 이유를 확인할 수 있지만 선택할 수 없다. 검증된 template과 등록 binding이 모두 있는 미설치 package만 <code>설치 가능</code>으로 선택한다. idempotency key와 기존 Device의 protocol properties JSON은 접힌 고급 영역에 둔다.</li><li>운영자는 runtime mode, catalog가 허용한 target node와 hardware binding만 선택할 수 있다.</li><li>Serial 선택 시 같은 포트의 추가 resource와 두 번째 승인 USB Serial의 차이를 안내한다. binding이 제공한 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code>는 read-only이고 resource route만 선택한다.</li><li>validation은 <code>REUSE</code>·<code>DEPLOY</code>·<code>BLOCKED</code> runtime plan과 EdgeX Profile/Device plan을 마지막 등록 단계에 표시하며 mutation을 수행하지 않는다.</li><li><code>디바이스 연결</code>은 관리자 token과 idempotency key가 있고 validation이 유효할 때만 활성화한다. 상태는 runtime, Metadata, first Event와 실패 보상을 분리해 표시한다.</li><li>Argo CD 소유 Runtime은 조회·재사용 전용이다. Controller가 만든 Runtime만 restart할 수 있고 consumer가 0개일 때만 retire할 수 있다.</li><li>관리자 token은 발견 후보 승인·거절·재시도·추가·삭제와 연결 mutation에만 쓰고 브라우저 메모리에만 유지한다. 검색·필터·node report 조회는 read-only다.</li></ul>
 <h2 id="deferred-resource-augmentation">Deferred Resource Augmentation</h2>
 <ul><li>Resource Augmentation은 기능 재구상 전까지 dashboard navigation과 active page에서 제외한다.</li><li>기존 resource augmentation JS/CSS 자산은 재설계 참고용으로 보관할 수 있지만 운영 화면에서 로드하지 않는다.</li><li>다시 노출하려면 화면 정보 구조, 책임 범위, 검증 기준을 먼저 갱신한다.</li></ul>
 <h2 id="표현-경계">표현 경계</h2>

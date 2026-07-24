@@ -30,6 +30,21 @@ func TestParseSerialConfig(t *testing.T) {
 	}, config)
 }
 
+func TestParseSerialConfigAcceptsAggregateResourceWildcard(t *testing.T) {
+	config, err := ParseSerialConfig(map[string]models.ProtocolProperties{
+		"serial": {
+			"Port":         "/dev/arduino-002",
+			"BaudRate":     "115200",
+			"DeviceID":     "arduino-002",
+			"ResourceName": "*",
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "*", config.ResourceName)
+	assert.Equal(t, allSupportedResources, config.resourceNames())
+}
+
 func TestParseSerialConfigAcceptsSupportedNumericBaudRates(t *testing.T) {
 	for _, baudRate := range []int{9600, 57600, 115200, 921600} {
 		t.Run(fmt.Sprintf("%d", baudRate), func(t *testing.T) {

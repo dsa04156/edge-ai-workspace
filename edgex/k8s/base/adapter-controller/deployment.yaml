@@ -23,6 +23,8 @@ spec:
         kubernetes.io/hostname: etri-ser0002-cgnmsb
       terminationGracePeriodSeconds: 20
       securityContext:
+        fsGroup: 2001
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -38,6 +40,12 @@ spec:
               value: edgex-edge
             - name: ADAPTER_RUNTIME_CATALOG_PATH
               value: /app/config/runtime_templates.json
+            - name: DEVICE_BINDING_CATALOG_PATH
+              value: /app/config/device_bindings.json
+            - name: DISCOVERY_PLANS_PATH
+              value: /app/config/discovery_plans.json
+            - name: DISCOVERY_DATABASE_PATH
+              value: /var/lib/adapter-controller/discovery.db
             - name: ADAPTER_RUNTIME_MUTATION_ENABLED
               value: "true"
             - name: ADAPTER_DEVICE_DISCOVERY_ENABLED
@@ -53,8 +61,26 @@ spec:
                   key: internal-hmac-key
             - name: EDGEX_CORE_METADATA_URL
               value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
+            - name: EDGEX_CORE_DATA_URL
+              value: http://edgex-core-data.edgex-system.svc.cluster.local:59880
             - name: EDGEX_TIMEOUT_SECONDS
               value: "5"
+            - name: ADAPTER_AUTH_MODE
+              value: external
+            - name: ADAPTER_AUTH_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-device-approval-auth
+                  key: endpoint
+                  optional: true
+            - name: ADAPTER_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-device-approval-auth
+                  key: token
+                  optional: true
+            - name: ADAPTER_REGISTRATION_EVENT_TIMEOUT_SECONDS
+              value: "60"
             - name: ADAPTER_CONTROLLER_RECONCILE_INTERVAL_SECONDS
               value: "10"
           startupProbe:
@@ -94,9 +120,14 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: discovery-state
+              mountPath: /var/lib/adapter-controller
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: discovery-state
+          persistentVolumeClaim:
+            claimName: edgex-adapter-controller-state
 ---
 apiVersion: v1
 kind: Service
@@ -113,3 +144,17 @@ spec:
     - name: http
       port: 8080
       targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: edgex-adapter-controller-state
+  labels:
+    app.kubernetes.io/name: edgex-adapter-controller
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

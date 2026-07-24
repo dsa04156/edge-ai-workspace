@@ -1,0 +1,78 @@
+{
+  "plans": [
+    {
+      "nodeId": "etri-dev0001-jetorn",
+      "serial": {
+        "enabled": true,
+        "allowedVidPid": [
+          "2341:0043"
+        ],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false,
+        "manifestCommand": "WHOAMI",
+        "manifestTimeoutSeconds": 1.5
+      },
+      "i2c": {
+        "enabled": false,
+        "buses": [],
+        "allowedAddresses": [],
+        "activeProbeEnabled": false
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    },
+    {
+      "nodeId": "etri-dev0002-raspi5",
+      "serial": {
+        "enabled": false,
+        "allowedVidPid": [],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false
+      },
+      "i2c": {
+        "enabled": false,
+        "buses": [],
+        "allowedAddresses": [],
+        "activeProbeEnabled": false
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    },
+    {
+      "nodeId": "etri-dev0003-raspi5",
+      "serial": {
+        "enabled": false,
+        "allowedVidPid": [],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false
+      },
+      "i2c": {
+        "enabled": true,
+        "buses": [
+          1
+        ],
+        "allowedAddresses": [
+          "0x1c",
+          "0x5c",
+          "0x5f",
+          "0x6a"
+        ],
+        "activeProbeEnabled": false
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    }
+  ]
+}

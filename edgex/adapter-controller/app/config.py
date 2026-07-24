@@ -32,10 +32,40 @@ class Settings(BaseModel):
             )
         )
     )
+    device_catalog_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DEVICE_BINDING_CATALOG_PATH",
+                str(APP_DIR / "config" / "device_bindings.json"),
+            )
+        )
+    )
+    discovery_plans_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DISCOVERY_PLANS_PATH",
+                str(APP_DIR / "config" / "discovery_plans.json"),
+            )
+        )
+    )
+    discovery_database_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DISCOVERY_DATABASE_PATH",
+                "/var/lib/adapter-controller/discovery.db",
+            )
+        )
+    )
     core_metadata_url: str = Field(
         default_factory=lambda: os.getenv(
             "EDGEX_CORE_METADATA_URL",
             "http://edgex-core-metadata.edgex-system.svc.cluster.local:59881",
+        )
+    )
+    core_data_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "EDGEX_CORE_DATA_URL",
+            "http://edgex-core-data.edgex-system.svc.cluster.local:59880",
         )
     )
     edgex_timeout_seconds: float = Field(
@@ -90,4 +120,31 @@ class Settings(BaseModel):
         ),
         ge=1,
         le=300,
+    )
+    registration_event_timeout_seconds: int = Field(
+        default_factory=lambda: int(
+            os.getenv("ADAPTER_REGISTRATION_EVENT_TIMEOUT_SECONDS", "60")
+        ),
+        ge=5,
+        le=3600,
+    )
+    auth_mode: str = Field(
+        default_factory=lambda: os.getenv(
+            "ADAPTER_AUTH_MODE",
+            "external",
+        ),
+        pattern=r"^(development-mock|external)$",
+    )
+    auth_endpoint: str | None = Field(
+        default_factory=lambda: os.getenv("ADAPTER_AUTH_ENDPOINT") or None
+    )
+    auth_token: str | None = Field(
+        default_factory=lambda: os.getenv("ADAPTER_AUTH_TOKEN") or None
+    )
+    auth_timeout_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("ADAPTER_AUTH_TIMEOUT_SECONDS", "5")
+        ),
+        gt=0,
+        le=30,
     )

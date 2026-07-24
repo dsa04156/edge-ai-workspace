@@ -62,12 +62,11 @@ def test_root_entrypoint_adds_protocol_workloads_and_read_only_discovery() -> No
     root = yaml.safe_load((K8S_DIR / "kustomization.yaml").read_text())
     assert root["resources"] == [
         "overlays/testbed/server2",
+        "overlays/development/adapter-management",
         "base/edge-namespace",
         "base/device-serial-jetson",
         "base/device-sensehat-raspi",
-        "base/device-discovery-agent",
         "crds",
-        "base/adapter-controller",
     ]
 
     resources = render()
@@ -82,7 +81,11 @@ def test_root_entrypoint_adds_protocol_workloads_and_read_only_discovery() -> No
         "device-sensehat-raspi",
         "device-serial-jetson",
     ]
-    assert not [resource for resource in resources if resource["kind"] == "PersistentVolumeClaim"]
+    assert [
+        resource["metadata"]["name"]
+        for resource in resources
+        if resource["kind"] == "PersistentVolumeClaim"
+    ] == ["edgex-adapter-controller-state"]
 
 
 def test_serial_configmap_is_identical_to_canonical_sdk_resources() -> None:

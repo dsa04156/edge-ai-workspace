@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>디바이스 발견 및 등록 운영 절차</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/디바이스-발견-등록-운영.md">편집</a>
+      </div>
+      <span>ops/디바이스-발견-등록-운영.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../일일-기록.html">일일 기록</a></li>
+<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">운영 문서</p>
+          <h1>디바이스 발견 및 등록 운영 절차</h1>
+          <p class="subtitle">edge-device-discovery와 edgex-adapter-controller를 배포하고 Serial candidate를…</p>
+          <div class="meta">
+            <span class="badge kind">운영 문서</span>
+            <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
+            <span class="badge">수정: 2026-07-24 16:42</span>
+            <span class="badge">HTML 생성: 2026-07-24 16:49</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="디바이스-발견-및-등록-운영-절차">디바이스 발견 및 등록 운영 절차</h1>
+<h2 id="적용-범위">적용 범위</h2>
+<p><code>edge-device-discovery</code>와 <code>edgex-adapter-controller</code>를 배포하고 Serial candidate를 발견·승인해 첫 EdgeX Event까지 확인하는 절차다. 현재 testbed는 개발용 <code>AllowAllMockProvider</code>를 명시적으로 사용한다. 운영 환경은 외부 HTTPS 인증 endpoint와 Secret token으로 교체해야 한다.</p>
+<p>보안 기본값은 <code>edgex/k8s/base/adapter-controller</code>의 <code>external</code> fail-closed mode다. 현재 root 진입점은 <code>edgex/k8s/overlays/development/adapter-management</code>를 명시적으로 포함해 testbed에서만 <code>development-mock</code>으로 덮어쓴다. 이 개발 overlay를 운영 배포에 복사하지 않는다.</p>
+<h2 id="사전-조건">사전 조건</h2>
+<pre data-lang="bash"><code>edgex/k8s/scripts/provision-adapter-management-secrets.sh
+edgex/k8s/scripts/preflight-adapter-management-secrets.sh
+
+kubectl get node \
+  etri-dev0001-jetorn \
+  etri-dev0002-raspi5 \
+  etri-dev0003-raspi5</code></pre>
+<p>HMAC key와 관리자 token을 Git, ConfigMap, shell 출력 또는 문서에 기록하지 않는다.</p>
+<h2 id="배포">배포</h2>
+<p>운영 진입점은 <code>edgex/k8s</code>와 Argo CD <code>edgex-telemetry</code> 하나다.</p>
+<pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt;/dev/null
+kubectl kustomize edgex/k8s/base/adapter-controller &gt;/dev/null
+kubectl kustomize \
+  edgex/k8s/overlays/development/adapter-management &gt;/dev/null
+kubectl get application edgex-telemetry -n argocd
+kubectl annotate application edgex-telemetry -n argocd \
+  argocd.argoproj.io/refresh=hard --overwrite
+
+kubectl rollout status deployment/edgex-adapter-controller \
+  -n edgex-edge --timeout=180s
+kubectl rollout status daemonset/edge-device-discovery \
+  -n edgex-edge --timeout=240s
+kubectl rollout status deployment/device-serial-jetson \
+  -n edgex-edge --timeout=180s</code></pre>
+<p>확인:</p>
+<pre data-lang="bash"><code>kubectl get deployment,daemonset,pod -n edgex-edge -o wide
+kubectl get pvc edgex-adapter-controller-state -n edgex-edge
+kubectl get networkpolicy -n edgex-edge</code></pre>
+<p>정상 기준:</p>
+<ul><li>Controller와 Serial Device Service가 Ready다.</li><li>Discovery DaemonSet desired/current/ready가 대상 edge node 수와 같다.</li><li><code>edgex-adapter-controller-state</code> PVC가 <code>Bound</code>다.</li><li>Controller가 <code>/var/lib/adapter-controller/discovery.db</code>에 쓸 수 있다.</li><li>Agent는 <code>privileged</code>나 host network를 사용하지 않는다.</li><li>Controller/Agent/Device Service image가 digest 형식이다.</li><li>EdgeMesh 리소스와 고정 ClusterIP/PodIP를 변경하지 않는다.</li></ul>
+<p>Discovery Agent는 동적 serial/I2C inventory 때문에 <code>/dev</code>와 <code>/sys</code>를 read-only로 mount한다. 이 broad mount는 발견 전용 DaemonSet에만 존재하며 ServiceAccount token, privileged 권한, host network는 없다. Active Serial/I2C probe에는 host 장치 group 권한이 추가로 필요할 수 있으므로 실장비 node의 group ID를 확인한 전용 overlay 없이 무작정 권한을 넓히지 않는다.</p>
+<p>노드 하나만 대상으로 manifest를 검토할 때는 배포에 포함되지 않은 예시 overlay를 render할 수 있다.</p>
+<pre data-lang="bash"><code>kubectl kustomize \
+  edgex/k8s/overlays/examples/discovery-agent-jetson &gt;/dev/null
+kubectl kustomize \
+  edgex/k8s/overlays/examples/discovery-agent-raspi &gt;/dev/null</code></pre>
+<p>두 예시는 각각 <code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code>만 선택한다. 실제 root 배포는 하나의 DaemonSet으로 승인된 세 edge node를 관리하며 node IP를 사용하지 않는다.</p>
+<h2 id="후보와-node-상태-확인">후보와 node 상태 확인</h2>
+<p>대시보드 BFF:</p>
+<pre data-lang="bash"><code>kubectl -n default port-forward service/state-aggregator 18000:8000
+
+curl --fail --silent --show-error \
+  &#x27;http://127.0.0.1:18000/management/discovery?includeIgnored=true&amp;limit=2000&#x27;</code></pre>
+<p>대시보드 <code>디바이스 관리 → 장비 발견</code>에서 node, protocol, 상태와 검색어로 필터한다. 다음 필드를 함께 본다.</p>
+<ul><li><code>hardwareId</code>: candidate ID의 stable 근거</li><li><code>model</code>, <code>recommendedProfile</code>, <code>matchConfidence</code></li><li><code>state</code>, <code>authState</code>, <code>registrationStep</code></li><li><code>presence</code>, <code>lastSeen</code></li><li><code>packageState</code>, <code>packageReason</code></li><li><code>failureReason</code></li></ul>
+<p><code>PENDING_APPROVAL</code>이 아니거나 <code>registrationReady=false</code>인 후보는 승인하지 않는다. I2C bus 파일만 보이는 항목은 센서가 아니며 신규 Agent는 Plan 기반 실행에서 bus를 candidate로 만들지 않는다. 이전 ConfigMap에서 import된 bus 항목은 clean reconciliation 후 <code>STALE</code>이 된다.</p>
+<h2 id="discovery-plan-운영">Discovery Plan 운영</h2>
+<p>초기 Plan은 <code>edgex/adapter-controller/config/discovery_plans.json</code>에서 DB가 비어 있을 때 seed한다. 이후 SQLite 값이 권위다.</p>
+<p>보수적인 원칙:</p>
+<ul><li>사용하지 않는 protocol은 <code>enabled=false</code></li><li>Serial은 승인 VID/PID만 등록</li><li>I2C는 bus/address/identity rule을 모두 등록하고 실장비 검증 창에서만 active probe</li><li>Modbus/OPC-UA/ONVIF/MQTT는 scanner/subscriber 구현 전까지 disabled</li><li>CIDR 전체 scan을 켜지 않음</li></ul>
+<p>Plan API 요청 형식은 <code>디바이스-등록-API.md</code>를 따른다. 변경 후 최대 한 scan interval 이내에 Agent report의 candidate와 scan error를 확인한다.</p>
+<p>현재 Jetson Plan은 Device Service가 이미 같은 port를 점유하므로 <code>manifestProbeEnabled=false</code>다. Active WHOAMI를 검증할 때는 Device Service와의 동시 open/reset 가능성을 먼저 제거한 유지보수 창에서 수행한다.</p>
+<h2 id="serial-pty-시연">Serial PTY 시연</h2>
+<p>실장비 없이 Manifest, telemetry, disconnect, reconnect, invalid JSON과 timeout을 검증한다.</p>
+<pre data-lang="bash"><code>cd edgex/device-discovery-agent
+PYTHONPATH=. pytest -q tests/test_serial_plugin.py</code></pre>
+<p>수동 simulator:</p>
+<pre data-lang="bash"><code>cd edgex/device-discovery-agent
+PYTHONPATH=. python -m simulators.serial_arduino \
+  --behavior valid \
+  --link /tmp/edge-discovery-demo/serial/by-id/usb-Arduino-sim-001</code></pre>
+<p>명령은 PTY slave 경로를 출력하고 link를 만든다. 다른 terminal에서 scanner 단위 테스트나 <code>probe_serial_manifest</code>를 실행한다. <code>Ctrl-C</code>로 종료하면 link가 제거된다.</p>
+<p>오류 시연:</p>
+<pre data-lang="bash"><code>PYTHONPATH=. python -m simulators.serial_arduino --behavior invalid
+PYTHONPATH=. python -m simulators.serial_arduino --behavior silent
+PYTHONPATH=. python -m simulators.serial_arduino --behavior unsupported</code></pre>
+<ul><li><code>invalid</code>: <code>SERIAL_MANIFEST_INVALID_JSON</code></li><li><code>silent</code>: <code>SERIAL_MANIFEST_TIMEOUT</code></li><li><code>unsupported</code>: Manifest는 유효하지만 Catalog Profile mismatch로 <code>BLOCKED</code></li></ul>
+<p>PTY 번호가 바뀌어도 같은 stable by-id link 이름을 사용하면 candidate ID는 같다.</p>
+<h2 id="후보-승인">후보 승인</h2>
+<p>운영자는 대시보드에서 후보의 물리 라벨, 설치 기록, node, USB serial, Catalog Profile을 확인한 후 <code>검토 승인</code>을 누른다. 승인 직후 상태는 <code>APPROVED</code>이며 최대 수 회의 10초 reconciliation 동안 다음과 같이 이동한다.</p>
+<pre data-lang="text"><code>APPROVED
+  -&gt; SERVICE_READY
+  -&gt; METADATA_REGISTERED
+  -&gt; EVENT_CONFIRMED</code></pre>
+<p>승인을 여러 번 클릭해도 BFF의 idempotency key와 Controller SQLite 기록으로 중복 Device를 만들지 않는다. 외부 인증 장애이면 <code>BLOCKED/authState=unavailable</code>이며 <code>인증 재확인</code>을 사용한다. 명시적으로 denied된 장비는 자동 재시도하지 않는다.</p>
+<h2 id="edgex-등록과-첫-event-확인">EdgeX 등록과 첫 Event 확인</h2>
+<p>후보의 registration 응답에서 결정된 <code>deviceName</code>을 사용한다.</p>
+<pre data-lang="bash"><code>DEVICE_NAME=&#x27;arduino-&lt;stable-id&gt;-&lt;identity-hash-prefix&gt;&#x27;
+
+kubectl -n edgex-system run edgex-registration-check \
+  --rm -i --restart=Never \
+  --image=curlimages/curl:8.10.1 \
+  -- \
+  curl --fail --silent --show-error \
+  &quot;http://edgex-core-metadata:59881/api/v3/device/name/${DEVICE_NAME}&quot;
+
+kubectl -n edgex-system run edgex-event-check \
+  --rm -i --restart=Never \
+  --image=curlimages/curl:8.10.1 \
+  -- \
+  curl --fail --silent --show-error \
+  &quot;http://edgex-core-data:59880/api/v3/event/device/name/${DEVICE_NAME}?limit=1&quot;</code></pre>
+<p>Metadata만 있고 Event가 없으면 완료가 아니다. Controller가 <code>EVENT_CONFIRMED</code>로 바꾼 뒤에만 등록 완료로 판정한다.</p>
+<p>기존 6개 Arduino virtual Device를 즉시 삭제하지 않는다. 새 aggregate Device는 <code>ResourceName: &quot;*&quot;</code>를 사용하며 새 Device Service driver가 legacy route와 aggregate route로 동시에 fan-out한다. 동일 유형 route 중복은 계속 차단한다.</p>
+<h2 id="로그와-metric">로그와 metric</h2>
+<pre data-lang="bash"><code>kubectl logs -n edgex-edge deployment/edgex-adapter-controller --since=30m
+kubectl logs -n edgex-edge daemonset/edge-device-discovery --since=30m \
+  --prefix
+
+kubectl -n edgex-edge port-forward \
+  service/edgex-adapter-controller 18080:8080
+curl --fail --silent --show-error http://127.0.0.1:18080/metrics</code></pre>
+<p>주요 metric:</p>
+<ul><li><code>discovery_candidates_total</code></li><li><code>discovery_candidates_by_state</code></li><li><code>registration_attempts_total</code></li><li><code>registration_failures_total</code></li><li><code>registration_duration_seconds</code></li><li><code>discovery_plugin_errors_total</code></li><li><code>stale_candidates_total</code></li></ul>
+<p>NetworkPolicy상 <code>/metrics</code> ingress는 별도로 열지 않았으므로 운영 점검은 port-forward를 사용한다.</p>
+<h2 id="장애-코드와-조치">장애 코드와 조치</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>코드</th>
+<th>원인</th>
+<th>조치</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>CANDIDATE_DISCONNECTED</code></td>
+<td>clean scan에서 stable identity가 사라짐</td>
+<td>케이블/전원 확인, 같은 ID 재연결 확인</td>
+</tr>
+<tr>
+<td><code>SERIAL_MANIFEST_TIMEOUT</code></td>
+<td>WHOAMI 무응답</td>
+<td>baud/firmware/port 경쟁 확인</td>
+</tr>
+<tr>
+<td><code>CATALOG_AMBIGUOUS</code></td>
+<td>exact binding 여러 개</td>
+<td>Catalog 조건을 서로 배타적으로 수정</td>
+</tr>
+<tr>
+<td><code>AUTH_DENIED</code></td>
+<td>외부 인증 거절</td>
+<td>인증 시스템과 장비 신뢰 정보 검토</td>
+</tr>
+<tr>
+<td><code>AUTH_TIMEOUT</code>, <code>AUTH_UNAVAILABLE</code></td>
+<td>인증 시스템 장애</td>
+<td>복구 후 인증 재확인</td>
+</tr>
+<tr>
+<td><code>NODE_NOT_READY</code></td>
+<td>target KubeEdge node NotReady</td>
+<td>node/edgecore 상태 복구 후 retry</td>
+</tr>
+<tr>
+<td><code>RUNTIME_START_FAILED</code></td>
+<td>Device Service 미기동</td>
+<td>Pod event/log와 장치 mount 확인</td>
+</tr>
+<tr>
+<td><code>RUNTIME_IMAGE_NOT_VERIFIED</code></td>
+<td>실행 digest와 Catalog 불일치</td>
+<td>CI/Argo image override와 Catalog 정렬</td>
+</tr>
+<tr>
+<td><code>METADATA_REGISTRATION_FAILED</code></td>
+<td>Profile/Device create/readback 실패</td>
+<td>Core Metadata 응답과 기존 object 충돌 확인</td>
+</tr>
+<tr>
+<td><code>CORE_DATA_UNAVAILABLE</code></td>
+<td>Core Data 조회 실패</td>
+<td>Core Data/PostgreSQL 상태 확인</td>
+</tr>
+<tr>
+<td><code>FIRST_EVENT_TIMEOUT</code></td>
+<td>제한 시간 내 Event 없음</td>
+<td>Device Service route/parser/MessageBus 확인 후 retry</td>
+</tr>
+</tbody></table></div>
+<h2 id="rollback과-복구">rollback과 복구</h2>
+<ul><li>Saga 실패는 이번 attempt가 만든 리소스만 제거한다.</li><li>기존 Argo Runtime, 기존 Profile/Device는 제거하지 않는다.</li><li>owned Device 삭제가 실패하면 의존 Profile/Runtime 삭제도 진행하지 않는다.</li><li>rollback이 남은 상태에서는 retry를 차단한다.</li><li>PVC와 SQLite를 유지한 Pod 재시작은 진행 단계에서 안전하게 이어진다.</li><li>SQLite 데이터 삭제는 개발 환경에서만 PVC 삭제로 수행하며 candidate/audit/Saga가 모두</li></ul>
+<p>복구 불가능하게 사라진다.</p>
+<p>등록 완료 Device의 삭제/decommission은 이번 API 범위가 아니다. Candidate delete로 우회할 수 없으며 별도 ownership-aware decommission workflow를 구현하기 전에는 Core Metadata에서 수동 삭제하지 않는다.</p>
+<h2 id="전체-검증-명령">전체 검증 명령</h2>
+<pre data-lang="bash"><code>cd edgex/adapter-controller
+PYTHONPATH=. pytest -q
+
+cd ../device-discovery-agent
+PYTHONPATH=. pytest -q
+
+cd ../device-serial
+go test ./...
+
+cd ../..
+PYTHONPATH=. pytest -q edgex/k8s/tests
+
+cd edge-orch/state-aggregator
+PYTHONPATH=. pytest -q
+node --test tests/*.js</code></pre>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#적용-범위">적용 범위</a></li>
+<li class="toc-h2"><a href="#사전-조건">사전 조건</a></li>
+<li class="toc-h2"><a href="#배포">배포</a></li>
+<li class="toc-h2"><a href="#후보와-node-상태-확인">후보와 node 상태 확인</a></li>
+<li class="toc-h2"><a href="#discovery-plan-운영">Discovery Plan 운영</a></li>
+<li class="toc-h2"><a href="#serial-pty-시연">Serial PTY 시연</a></li>
+<li class="toc-h2"><a href="#후보-승인">후보 승인</a></li>
+<li class="toc-h2"><a href="#edgex-등록과-첫-event-확인">EdgeX 등록과 첫 Event 확인</a></li>
+<li class="toc-h2"><a href="#로그와-metric">로그와 metric</a></li>
+<li class="toc-h2"><a href="#장애-코드와-조치">장애 코드와 조치</a></li>
+<li class="toc-h2"><a href="#rollback과-복구">rollback과 복구</a></li>
+<li class="toc-h2"><a href="#전체-검증-명령">전체 검증 명령</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

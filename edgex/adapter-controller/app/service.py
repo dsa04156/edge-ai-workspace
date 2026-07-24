@@ -13,8 +13,14 @@ from .models import (
     RuntimePlanRequest,
     RuntimeTemplate,
 )
+from .discovery_models import (
+    CandidateApprovalRequest,
+    CandidateRejectRequest,
+    CandidateRetryRequest,
+)
 from .planner import RuntimePlanner
 from .renderer import render_adapter_runtime
+from .metrics import render_discovery_metrics
 
 
 class AdapterControllerService:
@@ -27,6 +33,8 @@ class AdapterControllerService:
         *,
         namespace: str,
         candidate_registry: Any | None = None,
+        registration_coordinator: Any | None = None,
+        device_catalog: Any | None = None,
     ) -> None:
         if namespace != "edgex-edge":
             raise ValueError("Adapter Controller is limited to edgex-edge")
@@ -37,6 +45,11 @@ class AdapterControllerService:
         self.namespace = namespace
         self.planner = RuntimePlanner(catalog)
         self.candidate_registry = candidate_registry
+        self.registration_coordinator = registration_coordinator
+        self.device_catalog = device_catalog
+
+    def attach_registration_coordinator(self, coordinator: Any) -> None:
+        self.registration_coordinator = coordinator
 
     def list_runtimes(self) -> list[RuntimeObservation]:
         result: list[RuntimeObservation] = []
@@ -79,6 +92,10 @@ class AdapterControllerService:
                         ),
                         mutable=False,
                         workload_name=runtime.workload_name,
+                        image=self.kube.deployment_image(
+                            self.namespace,
+                            runtime.workload_name,
+                        ),
                     )
                 )
         for runtime in self.kube.list_runtimes():
@@ -203,6 +220,10 @@ class AdapterControllerService:
             ] = self.edgex_probe.consumer_count(service_name)
             self.reconciler.reconcile(runtime, template)
             count += 1
+        if self.candidate_registry is not None:
+            count += self.candidate_registry.reconcile_presence()
+        if self.registration_coordinator is not None:
+            count += self.registration_coordinator.reconcile_all()
         return count
 
     def list_discovery_inventory(self):
@@ -215,6 +236,37 @@ class AdapterControllerService:
         return self._require_candidate_registry().create_manual(request)
 
     def update_candidate_decision(self, candidate_id: str, request):
+        if self.registration_coordinator is not None:
+            if request.decision == "accepted":
+                current = self._require_candidate_registry().get_stored_candidate(
+                    candidate_id
+                )
+                if current.state == "FAILED":
+                    return self.registration_coordinator.retry(
+                        candidate_id,
+                        CandidateRetryRequest(
+                            actor="dashboard-admin",
+                            reason=request.note or "등록 Saga 재시도",
+                            request_ref=request.request_ref,
+                        ),
+                    )
+                return self.registration_coordinator.approve(
+                    candidate_id,
+                    CandidateApprovalRequest(
+                        actor="dashboard-admin",
+                        reason=request.note or "운영자 승인",
+                        request_ref=request.request_ref,
+                    ),
+                )
+            if request.decision == "ignored":
+                return self.registration_coordinator.reject(
+                    candidate_id,
+                    CandidateRejectRequest(
+                        actor="dashboard-admin",
+                        reason=request.note or "운영자 거절",
+                        request_ref=request.request_ref,
+                    ),
+                )
         return self._require_candidate_registry().update_decision(
             candidate_id,
             request,
@@ -226,10 +278,87 @@ class AdapterControllerService:
             request,
         )
 
+    def get_candidate(self, candidate_id: str):
+        return self._require_candidate_registry().get_candidate(candidate_id)
+
+    def approve_candidate(self, candidate_id: str, request):
+        return self._require_registration().approve(candidate_id, request)
+
+    def reject_candidate(self, candidate_id: str, request):
+        return self._require_registration().reject(candidate_id, request)
+
+    def retry_candidate(self, candidate_id: str, request):
+        return self._require_registration().retry(candidate_id, request)
+
+    def reconcile_discovery(self, request):
+        changed = self._require_candidate_registry().reconcile_presence(
+            node_id=request.node_id,
+            protocol=request.protocol,
+        )
+        if self.registration_coordinator is not None:
+            changed += self.registration_coordinator.reconcile_all()
+        return {"reconciled": changed}
+
+    def get_discovery_plan(self, node_id: str):
+        return self._require_candidate_registry().get_plan(node_id)
+
+    def put_discovery_plan(self, node_id: str, plan):
+        if node_id != plan.node_id:
+            raise ControllerValidationError(
+                "Discovery Plan path and nodeId must match"
+            )
+        return self._require_candidate_registry().put_plan(plan)
+
+    def get_registration(self, candidate_id: str):
+        return self._require_registration().get_registration(candidate_id)
+
+    def list_discovery_events(
+        self,
+        *,
+        candidate_id: str | None = None,
+        limit: int = 200,
+    ):
+        return self._require_candidate_registry().list_events(
+            candidate_id=candidate_id,
+            limit=limit,
+        )
+
+    def list_device_bindings(self):
+        if self.device_catalog is None:
+            return {"version": 0, "bindings": [], "errors": ["catalog_disabled"]}
+        return {
+            "version": self.device_catalog.version,
+            "bindings": [
+                item.model_dump(
+                    by_alias=True,
+                    mode="json",
+                    exclude_none=True,
+                )
+                for item in self.device_catalog.bindings
+            ],
+            "errors": list(self.device_catalog.errors),
+        }
+
+    def discovery_metrics(self) -> str:
+        inventory = self._require_candidate_registry().list_inventory()
+        registrations = (
+            self.registration_coordinator.store.list_registrations()
+            if self.registration_coordinator is not None
+            else []
+        )
+        return render_discovery_metrics(inventory, registrations)
+
     def _require_candidate_registry(self):
         if self.candidate_registry is None:
             raise ControllerValidationError("device discovery registry is disabled")
         return self.candidate_registry
+
+    def _require_registration(self):
+        if self.registration_coordinator is None:
+            raise ControllerValidationError(
+                "device registration coordinator is disabled"
+            )
+        return self.registration_coordinator
 
     def _require_controller_runtime(self, name: str) -> dict[str, Any]:
         runtime = self.kube.get_runtime(name)
@@ -282,6 +411,14 @@ class AdapterControllerService:
                 (status.get("workloadRef") or {}).get("name")
                 or metadata.get("name")
                 or ""
+            ),
+            image=self.kube.deployment_image(
+                self.namespace,
+                str(
+                    (status.get("workloadRef") or {}).get("name")
+                    or metadata.get("name")
+                    or ""
+                ),
             ),
         )
 

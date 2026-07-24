@@ -1,0 +1,95 @@
+{
+  "name": "arduino-multisensor-v1",
+  "manufacturer": "Arduino",
+  "model": "arduino-multisensor-v1",
+  "labels": [
+    "arduino",
+    "serial",
+    "multisensor",
+    "physical-device",
+    "edge-adapter-controller"
+  ],
+  "description": "One physical Arduino board represented as one EdgeX Device with multiple resources",
+  "deviceResources": [
+    {
+      "name": "temperature_raw",
+      "description": "Raw temperature sensor value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    },
+    {
+      "name": "light_raw",
+      "description": "Raw light sensor value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    },
+    {
+      "name": "magnetic_raw",
+      "description": "Raw magnetic switch value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    },
+    {
+      "name": "acceleration_x_raw",
+      "description": "Raw acceleration X value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    },
+    {
+      "name": "acceleration_y_raw",
+      "description": "Raw acceleration Y value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    },
+    {
+      "name": "acceleration_z_raw",
+      "description": "Raw acceleration Z value",
+      "properties": {
+        "valueType": "Int32",
+        "readWrite": "R",
+        "units": "raw"
+      }
+    }
+  ],
+  "deviceCommands": [
+    {
+      "name": "all-readings",
+      "readWrite": "R",
+      "resourceOperations": [
+        {
+          "deviceResource": "temperature_raw"
+        },
+        {
+          "deviceResource": "light_raw"
+        },
+        {
+          "deviceResource": "magnetic_raw"
+        },
+        {
+          "deviceResource": "acceleration_x_raw"
+        },
+        {
+          "deviceResource": "acceleration_y_raw"
+        },
+        {
+          "deviceResource": "acceleration_z_raw"
+        }
+      ]
+    }
+  ]
+}

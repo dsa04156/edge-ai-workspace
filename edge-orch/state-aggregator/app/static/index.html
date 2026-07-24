@@ -459,29 +459,38 @@
                       <option value="mqtt">MQTT</option>
                       <option value="modbus">Modbus</option>
                       <option value="opcua">OPC-UA</option>
+                      <option value="onvif">ONVIF 카메라 발견</option>
                       <option value="rtsp">RTSP</option>
                       <option value="rest">HTTP / REST</option>
                     </select>
                   </label>
                   <label>
-                    <span>검토 상태</span>
+                    <span>등록 상태</span>
                     <select id="managementDiscoveryDecisionFilter">
                       <option value="">전체 상태</option>
-                      <option value="pending">검토 대기</option>
-                      <option value="accepted">검토 승인</option>
-                      <option value="ignored">무시됨</option>
+                      <option value="DETECTED">발견됨</option>
+                      <option value="IDENTIFIED">식별됨</option>
+                      <option value="PENDING_APPROVAL">승인 대기</option>
+                      <option value="APPROVED">승인됨</option>
+                      <option value="SERVICE_READY">서비스 준비</option>
+                      <option value="METADATA_REGISTERED">Metadata 등록</option>
+                      <option value="EVENT_CONFIRMED">첫 Event 확인</option>
+                      <option value="BLOCKED">차단됨</option>
+                      <option value="REJECTED">거절됨</option>
+                      <option value="STALE">연결 끊김</option>
+                      <option value="FAILED">등록 실패</option>
                     </select>
                   </label>
                   <label class="management-discovery-toggle">
                     <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
-                    <span>무시한 후보 표시</span>
+                    <span>거절한 후보 표시</span>
                   </label>
                 </div>
 
                 <section class="management-discovery-credentials" aria-labelledby="managementDiscoveryCredentialTitle">
                   <div>
                     <strong id="managementDiscoveryCredentialTitle">변경 권한</strong>
-                    <small>승인·무시·추가·삭제 시에만 사용하며 브라우저 메모리에만 유지합니다.</small>
+                    <small>승인·거절·재시도·추가·삭제 시에만 사용하며 브라우저 메모리에만 유지합니다.</small>
                   </div>
                   <label>
                     <span>관리자 Bearer 토큰</span>

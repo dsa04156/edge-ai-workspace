@@ -186,6 +186,7 @@ class RuntimeObservation(ControllerModel):
     consumers: int = Field(default=0, ge=0)
     mutable: bool = False
     workload_name: str | None = None
+    image: str | None = None
 
     @model_validator(mode="after")
     def normalize_hardware_bindings(self) -> "RuntimeObservation":
