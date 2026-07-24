@@ -276,9 +276,10 @@ GET /api/v1/discovery/events?candidateId={candidateId}&limit=200
 
 `accepted` PATCH는 승인 Saga를 시작하고 `FAILED` 후보에서는 retry로 해석한다.
 `ignored` PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다.
-`GET /management/discovery`는 `decisionAuthenticationRequired`를 반환한다. 현재 PoC
-manifest는 이 값을 `false`로 노출하고 후보 결정
-`PATCH /management/discovery/{candidateId}`만 Bearer token 없이 허용한다.
-`Idempotency-Key`와 내부 HMAC은 계속 필요하다. 수동 후보 `POST`·`DELETE`, Runtime,
-Device와 connection mutation은 계속 관리자 Bearer token을 요구한다. 설정 기본값은
-token 필수이며, 토큰리스 모드에서도 잘못된 Bearer token을 보내면 `401`이다.
+현재 PoC BFF는 운영자 Bearer token이나 `decisionAuthenticationRequired` 필드를 제공하지
+않는다. 후보 결정, 수동 후보 생성·삭제, Runtime, Device와 connection mutation은 모두
+요청별 `Idempotency-Key`를 요구하고 browser `Authorization` header 없이 동작한다.
+state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC으로 서명한다.
+외부 AuthProvider의 승인도 후보 장비 신뢰 검증 단계로 유지되지만 운영자 인증은 아니다.
+따라서 이 BFF는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도 사용자
+인증·인가를 앞단에 추가해야 한다.

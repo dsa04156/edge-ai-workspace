@@ -33,14 +33,11 @@ def test_dashboard_management_uses_internal_controller_and_secret_refs() -> None
     assert env["DEVICE_MANAGEMENT_ENABLED"]["value"] == "true"
     assert env["ADAPTER_RUNTIME_MANAGEMENT_ENABLED"]["value"] == "true"
     assert env["ADAPTER_RUNTIME_MUTATION_ENABLED"]["value"] == "true"
-    assert env["DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED"]["value"] == "true"
     assert env["ADAPTER_CONTROLLER_URL"]["value"] == (
         "http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080"
     )
-    assert env["DEVICE_MANAGEMENT_ADMIN_TOKEN"]["valueFrom"]["secretKeyRef"] == {
-        "name": "edgex-adapter-management-auth",
-        "key": "admin-token",
-    }
+    assert "DEVICE_MANAGEMENT_ADMIN_TOKEN" not in env
+    assert "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED" not in env
     assert env["DEVICE_MANAGEMENT_HMAC_KEY"]["valueFrom"]["secretKeyRef"] == {
         "name": "edgex-adapter-management-auth",
         "key": "management-hmac-key",

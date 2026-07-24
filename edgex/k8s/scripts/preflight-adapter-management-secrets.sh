@@ -25,7 +25,7 @@ check_secret() {
 }
 
 check_secret default edgex-adapter-management-auth \
-    admin-token management-hmac-key internal-hmac-key
+    management-hmac-key internal-hmac-key
 check_secret edgex-edge edgex-adapter-management-auth internal-hmac-key
 
 default_internal=$("$KUBECTL" -n default get secret edgex-adapter-management-auth \

@@ -47,10 +47,9 @@ random_hex() {
 }
 
 random_hex >"$secret_tmp/internal-hmac-key"
-random_hex >"$secret_tmp/admin-token"
 random_hex >"$secret_tmp/management-hmac-key"
 
-for key in internal-hmac-key admin-token management-hmac-key; do
+for key in internal-hmac-key management-hmac-key; do
     value=$(cat "$secret_tmp/$key")
     case "$value" in
         *[!0-9a-f]*|'')
@@ -79,7 +78,6 @@ apply_secret() {
 
 apply_secret default edgex-adapter-management-auth \
     "--from-file=internal-hmac-key=$secret_tmp/internal-hmac-key" \
-    "--from-file=admin-token=$secret_tmp/admin-token" \
     "--from-file=management-hmac-key=$secret_tmp/management-hmac-key"
 apply_secret edgex-edge edgex-adapter-management-auth \
     "--from-file=internal-hmac-key=$secret_tmp/internal-hmac-key"

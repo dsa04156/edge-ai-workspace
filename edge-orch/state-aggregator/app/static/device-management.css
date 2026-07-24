@@ -25,7 +25,6 @@ body[data-dashboard-page="management"] .side-rail {
 .management-runtime-card-header,
 .management-runtime-actions,
 .management-runtime-facts,
-.management-credentials,
 .management-apply-row,
 .management-buttons,
 .managed-device-row,
@@ -113,7 +112,6 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-section-head > div,
-.management-credentials > div,
 .managed-device-row > div {
   display: grid;
   gap: 4px;
@@ -121,7 +119,6 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-section-head span,
-.management-credentials span,
 .management-form label > span,
 .management-device-picker > span,
 .management-flow-head > div > span,
@@ -131,7 +128,6 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-section-head small,
-.management-credentials small,
 .managed-device-row small {
   color: var(--muted);
   overflow-wrap: anywhere;
@@ -730,7 +726,6 @@ body[data-dashboard-page="management"] .side-rail {
 .management-form input,
 .management-form select,
 .management-form textarea,
-.management-credentials input,
 .management-device-picker select,
 .management-advanced input {
   width: 100%;
@@ -836,19 +831,6 @@ body[data-dashboard-page="management"] .side-rail {
   font-weight: 700;
 }
 
-.management-credentials {
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.management-credentials label {
-  display: grid;
-  gap: 6px;
-  width: min(390px, 100%);
-}
-
 .management-advanced {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -949,7 +931,6 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-discovery-head,
 .management-discovery-actions,
-.management-discovery-credentials,
 .management-dialog-head,
 .management-dialog-actions,
 .management-candidate-head,
@@ -962,8 +943,7 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-discovery-head > div:first-child,
 .management-dialog-head > div,
-.management-candidate-head > div,
-.management-discovery-credentials > div {
+.management-candidate-head > div {
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -985,7 +965,6 @@ body[data-dashboard-page="management"] .side-rail {
 .management-discovery-head span,
 .management-dialog-head span,
 .management-discovery-toolbar label > span,
-.management-discovery-credentials label > span,
 .management-dialog label > span {
   color: var(--muted);
   font-size: 12px;
@@ -1055,7 +1034,6 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-discovery-toolbar label,
-.management-discovery-credentials label,
 .management-dialog label {
   display: grid;
   gap: 6px;
@@ -1064,7 +1042,6 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-discovery-toolbar input,
 .management-discovery-toolbar select,
-.management-discovery-credentials input,
 .management-dialog input,
 .management-dialog select,
 .management-dialog textarea {
@@ -1078,7 +1055,6 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-discovery-toolbar input,
-.management-discovery-credentials input,
 .management-dialog input,
 .management-dialog textarea {
   padding: 9px 11px;
@@ -1101,21 +1077,6 @@ body[data-dashboard-page="management"] .side-rail {
   width: 17px;
   min-height: 17px;
   accent-color: var(--accent);
-}
-
-.management-discovery-credentials {
-  padding: 12px 14px;
-  border: 1px solid rgba(99, 208, 230, 0.22);
-  border-radius: var(--radius-sm);
-  background: rgba(99, 208, 230, 0.04);
-}
-
-.management-discovery-credentials small {
-  color: var(--muted);
-}
-
-.management-discovery-credentials label {
-  width: min(340px, 100%);
 }
 
 .management-discovery-node-health {
@@ -1290,7 +1251,6 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-discovery-toolbar input:focus-visible,
 .management-discovery-toolbar select:focus-visible,
-.management-discovery-credentials input:focus-visible,
 .management-candidate-actions button:focus-visible,
 .management-dialog input:focus-visible,
 .management-dialog select:focus-visible,
@@ -1330,12 +1290,10 @@ body[data-dashboard-page="management"] .side-rail {
   .management-page-head,
   .management-head-actions,
   .management-section-head,
-  .management-credentials,
   .management-apply-row,
   .managed-device-row,
   .management-flow-head,
   .management-discovery-head,
-  .management-discovery-credentials,
   .management-dialog-head {
     align-items: stretch;
     flex-direction: column;
@@ -1379,10 +1337,6 @@ body[data-dashboard-page="management"] .side-rail {
 
   .management-discovery-actions {
     justify-content: flex-start;
-  }
-
-  .management-discovery-credentials label {
-    width: 100%;
   }
 
   .management-field-wide {

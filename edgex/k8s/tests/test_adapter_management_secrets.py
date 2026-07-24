@@ -18,18 +18,19 @@ def test_secret_scripts_are_shell_valid_and_never_embed_literal_values() -> None
     assert "mktemp -d" in provision
     assert "trap cleanup" in provision
     assert "--from-file=internal-hmac-key=" in provision
-    assert "--from-file=admin-token=" in provision
     assert "--from-file=management-hmac-key=" in provision
+    assert "admin-token" not in provision
     assert "--from-literal" not in provision
     assert "edgex-edge edgex-adapter-management-auth" in provision
     assert "default edgex-adapter-management-auth" in provision
     assert "preflight-adapter-management-secrets.sh" in provision
 
 
-def test_preflight_requires_shared_internal_key_and_dashboard_keys() -> None:
+def test_preflight_requires_shared_internal_key_and_management_hmac() -> None:
     source = PREFLIGHT.read_text()
 
     assert "default edgex-adapter-management-auth" in source
     assert "edgex-edge edgex-adapter-management-auth" in source
-    assert "admin-token management-hmac-key internal-hmac-key" in source
+    assert "management-hmac-key internal-hmac-key" in source
+    assert "admin-token" not in source
     assert "internal HMAC keys do not match" in source

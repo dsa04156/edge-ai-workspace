@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-23 19:48</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
+            <span class="badge">수정: 2026-07-24 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -193,13 +193,13 @@ curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapter-runtimes&quot;</code></
 <p>표시되며 미검증 package에는 설치/등록 버튼이 없다.</p>
 <ol><li>Device Management가 Runtime owner/phase/node/consumer와 등록 binding만 표시하고 raw</li></ol>
 <p>manifest, image, hostPath, hostNetwork, ClusterIP/PodIP 입력을 제공하지 않는다.</p>
-<ol><li>관리자 token이 없거나 validation이 유효하지 않으면 mutation 버튼이 비활성화된다.</li><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
+<ol><li>관리자 token 입력란이 없고, validation이 유효하지 않으면 mutation 버튼이 비활성화된다.</li><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
 <p>표시된다.</p>
 <ol><li><code>/aggregator/dashboard#management</code>로 열었을 때 관리 API도</li></ol>
 <p><code>/aggregator/management/*</code>로 요청되고 200을 반환한다. root <code>/management/*</code>, ClusterIP 또는 Pod IP로 우회하지 않는다.</p>
 <ol><li>데스크톱 1440px와 모바일 390px에서 문서 가로 overflow가 없고 세 노드 전환 결과가</li></ol>
 <p>각각의 등록 연결·Device 수와 일치한다.</p>
-<p>현재 테스트베드 Ingress는 HTTP이므로 Firefox는 관리자 token 비밀번호 필드에 보안 경고를 표시한다. 읽기 전용 점검에는 token을 입력하지 않는다. 실제 운영 mutation에 token을 사용하려면 먼저 동일 Ingress에 신뢰 가능한 TLS를 적용해야 한다.</p>
+<p>현재 테스트베드 dashboard는 관리자 credential 입력란이나 browser <code>Authorization</code> header를 사용하지 않는다. 이 상태는 인증 완료가 아니라 운영자 인증이 없는 개발 PoC다. 실제 운영 mutation을 노출하려면 신뢰 가능한 TLS와 별도 사용자 인증·인가를 Ingress 앞에 먼저 적용해야 한다.</p>
 <h2 id="device-management-안전-검증">Device Management 안전 검증</h2>
 <p>실제 빈 hardware binding이 없는 현재 테스트베드에서는 기존 endpoint를 빼앗는 배포 canary를 만들지 않는다. 대신 다음을 확인한다.</p>
 <ol><li>Serial과 I2C의 runtime plan이 기존 exact runtime을 <code>REUSE</code>한다.</li><li>이미 소비 중인 endpoint/deviceName을 사용한 connection validation은 충돌을 명시하고</li></ol>

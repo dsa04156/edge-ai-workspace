@@ -11,7 +11,6 @@ const {
   bindingProtocolValue,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
-  candidateActionRequiresAdminToken,
   candidateEndpointSummary,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -36,7 +35,6 @@ const {
   pollConnectionOperation,
   pollManagementOperation,
   protocolPackageStatus,
-  requireAdminTokenForMutation,
   restartAdapterRuntime,
   retireAdapterRuntime,
   runtimeCanMutate,
@@ -60,43 +58,6 @@ test("management API keeps the external ingress prefix without hard-coding an IP
     "/management/adapters",
   );
 });
-
-test("missing admin token is visibly reported before a mutation request", () => {
-  const calls = [];
-  const input = {
-    setAttribute: (...args) => calls.push(["attribute", ...args]),
-    removeAttribute: (...args) => calls.push(["remove", ...args]),
-    setCustomValidity: (...args) => calls.push(["validity", ...args]),
-    scrollIntoView: (...args) => calls.push(["scroll", ...args]),
-    focus: () => calls.push(["focus"]),
-    reportValidity: () => calls.push(["report"]),
-  };
-
-  assert.equal(requireAdminTokenForMutation("", input), false);
-  assert.deepEqual(calls[0], ["attribute", "aria-invalid", "true"]);
-  assert.match(calls[1][1], /관리자 Bearer 토큰/);
-  assert.equal(calls.some(([name]) => name === "focus"), true);
-  assert.equal(calls.some(([name]) => name === "report"), true);
-
-  calls.length = 0;
-  assert.equal(requireAdminTokenForMutation("admin-token", input), true);
-  assert.deepEqual(calls, [
-    ["validity", ""],
-    ["remove", "aria-invalid"],
-  ]);
-});
-
-test("tokenless mode only removes the token gate from candidate decisions", () => {
-  const tokenless = {decisionAuthenticationRequired: false};
-  const protectedMode = {decisionAuthenticationRequired: true};
-
-  assert.equal(candidateActionRequiresAdminToken("accept", tokenless), false);
-  assert.equal(candidateActionRequiresAdminToken("ignore", tokenless), false);
-  assert.equal(candidateActionRequiresAdminToken("restore", tokenless), false);
-  assert.equal(candidateActionRequiresAdminToken("delete", tokenless), true);
-  assert.equal(candidateActionRequiresAdminToken("accept", protectedMode), true);
-});
-
 
 function response(payload, {ok = true, status = 200} = {}) {
   return {
@@ -240,7 +201,7 @@ test("management navigation only accepts known views and registration steps", ()
 });
 
 
-test("discovery inventory and guarded candidate mutations use the management BFF", async () => {
+test("discovery inventory and token-free candidate mutations use the management BFF", async () => {
   const requests = [];
   const fetchFn = async (url, options = {}) => {
     requests.push({url, options});
@@ -281,16 +242,16 @@ test("discovery inventory and guarded candidate mutations use the management BFF
         Topic: "factory/line/temp",
       },
     },
-    {token: "admin", idempotencyKey: "create-1", fetchFn},
+    {idempotencyKey: "create-1", fetchFn},
   );
   await updateCandidateDecision(
     "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
     {decision: "accepted", note: "checked"},
-    {token: "admin", idempotencyKey: "decision-1", fetchFn},
+    {idempotencyKey: "decision-1", fetchFn},
   );
   await deleteCandidate(
     "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
-    {token: "admin", idempotencyKey: "delete-1", fetchFn},
+    {idempotencyKey: "delete-1", fetchFn},
   );
 
   assert.equal(
@@ -298,13 +259,13 @@ test("discovery inventory and guarded candidate mutations use the management BFF
     "/management/discovery?includeIgnored=true&limit=2000",
   );
   assert.equal(requests[1].url, "/management/discovery/manual");
-  assert.equal(requests[1].options.headers.Authorization, "Bearer admin");
+  assert.equal("Authorization" in requests[1].options.headers, false);
   assert.equal(requests[1].options.headers["Idempotency-Key"], "create-1");
   assert.equal(requests[2].options.method, "PATCH");
   assert.equal(requests[3].options.method, "DELETE");
 });
 
-test("tokenless candidate decisions omit the Authorization header", async () => {
+test("candidate decisions omit the Authorization header", async () => {
   let request = null;
   const fetchFn = async (url, options = {}) => {
     request = {url, options};
@@ -328,11 +289,11 @@ test("tokenless candidate decisions omit the Authorization header", async () => 
   await updateCandidateDecision(
     "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
     {decision: "accepted", note: "PoC 운영자 승인"},
-    {token: "", idempotencyKey: "decision-tokenless", fetchFn},
+    {idempotencyKey: "decision-request", fetchFn},
   );
 
   assert.equal(request.options.method, "PATCH");
-  assert.equal(request.options.headers["Idempotency-Key"], "decision-tokenless");
+  assert.equal(request.options.headers["Idempotency-Key"], "decision-request");
   assert.equal(
     Object.prototype.hasOwnProperty.call(request.options.headers, "Authorization"),
     false,
@@ -755,7 +716,7 @@ test("dry-run posts no authentication or mutation headers", async () => {
 });
 
 
-test("create sends bearer and idempotency headers but never puts token in body", async () => {
+test("create sends idempotency without an Authorization header", async () => {
   let request = null;
   const payload = {adapterId: "serial-jetson", device: {name: "device-01"}};
   const fetchFn = async (url, options) => {
@@ -764,20 +725,19 @@ test("create sends bearer and idempotency headers but never puts token in body",
   };
 
   const result = await createManagementDevice(payload, {
-    token: "admin-secret",
     idempotencyKey: "retry-key",
     fetchFn,
   });
 
   assert.equal(result.requestId, "request-01");
   assert.equal(request.url, "/management/devices");
-  assert.equal(request.options.headers.Authorization, "Bearer admin-secret");
+  assert.equal("Authorization" in request.options.headers, false);
   assert.equal(request.options.headers["Idempotency-Key"], "retry-key");
-  assert.doesNotMatch(request.options.body, /admin-secret|retry-key/);
+  assert.doesNotMatch(request.options.body, /retry-key/);
 });
 
 
-test("connection validate is read-only and apply uses guarded headers", async () => {
+test("connection validate is read-only and apply uses idempotency headers", async () => {
   const requests = [];
   const payload = {
     adapterId: "serial-jetson",
@@ -801,7 +761,6 @@ test("connection validate is read-only and apply uses guarded headers", async ()
 
   await validateManagementConnection(payload, fetchFn);
   await createManagementConnection(payload, {
-    token: "admin-secret",
     idempotencyKey: "connection-key",
     fetchFn,
   });
@@ -809,13 +768,13 @@ test("connection validate is read-only and apply uses guarded headers", async ()
   assert.equal(requests[0].url, "/management/connections/validate");
   assert.equal("Authorization" in requests[0].options.headers, false);
   assert.equal(requests[1].url, "/management/connections");
-  assert.equal(requests[1].options.headers.Authorization, "Bearer admin-secret");
+  assert.equal("Authorization" in requests[1].options.headers, false);
   assert.equal(requests[1].options.headers["Idempotency-Key"], "connection-key");
-  assert.doesNotMatch(requests[1].options.body, /admin-secret|connection-key/);
+  assert.doesNotMatch(requests[1].options.body, /connection-key/);
 });
 
 
-test("runtime restart and retire use admin guard and exact confirmation", async () => {
+test("runtime restart and retire use idempotency and exact confirmation", async () => {
   const requests = [];
   const fetchFn = async (url, options) => {
     requests.push({url, options});
@@ -823,18 +782,16 @@ test("runtime restart and retire use admin guard and exact confirmation", async 
   };
 
   await restartAdapterRuntime("adapter-serial-02", {
-    token: "admin-secret",
     idempotencyKey: "restart-key",
     fetchFn,
   });
   await retireAdapterRuntime("adapter-serial-02", {
-    token: "admin-secret",
     idempotencyKey: "retire-key",
     fetchFn,
   });
 
   assert.equal(requests[0].options.method, "POST");
-  assert.equal(requests[0].options.headers.Authorization, "Bearer admin-secret");
+  assert.equal("Authorization" in requests[0].options.headers, false);
   assert.equal(requests[1].options.method, "DELETE");
   assert.equal(
     requests[1].options.headers["X-Confirm-Runtime"],
@@ -843,7 +800,7 @@ test("runtime restart and retire use admin guard and exact confirmation", async 
 });
 
 
-test("patch URL-encodes device identity and uses the same guarded headers", async () => {
+test("patch URL-encodes device identity and uses idempotency headers", async () => {
   let request = null;
   const fetchFn = async (url, options) => {
     request = {url, options};
@@ -853,12 +810,12 @@ test("patch URL-encodes device identity and uses the same guarded headers", asyn
   await patchManagementDevice(
     "device / 01",
     {description: "updated"},
-    {token: "admin-secret", idempotencyKey: "patch-key", fetchFn},
+    {idempotencyKey: "patch-key", fetchFn},
   );
 
   assert.equal(request.url, "/management/devices/device%20%2F%2001");
   assert.equal(request.options.method, "PATCH");
-  assert.equal(request.options.headers.Authorization, "Bearer admin-secret");
+  assert.equal("Authorization" in request.options.headers, false);
   assert.equal(request.options.headers["Idempotency-Key"], "patch-key");
 });
 
@@ -871,7 +828,6 @@ test("management errors preserve safe server detail", async () => {
 
   await assert.rejects(
     createManagementDevice({}, {
-      token: "admin-secret",
       idempotencyKey: "retry-key",
       fetchFn,
     }),
@@ -993,7 +949,7 @@ test("fetches one operation without cache", async () => {
 });
 
 
-test("dashboard ships an accessible session-only device management page", () => {
+test("dashboard ships an accessible token-free device management page", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "app/static/device-management.css"), "utf8");
@@ -1018,7 +974,6 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementValidation",
     "managementOperation",
     "managementMutationMode",
-    "managementAdminToken",
     "managedDeviceList",
     "devicePatchForm",
     "managementViewTabs",
@@ -1037,7 +992,6 @@ test("dashboard ships an accessible session-only device management page", () => 
     "managementDiscoverySearch",
     "managementDiscoveryProtocolFilter",
     "managementDiscoveryDecisionFilter",
-    "managementDiscoveryAdminToken",
     "managementOpenManualCandidate",
     "managementManualCandidateDialog",
     "managementManualCandidateForm",
@@ -1045,12 +999,12 @@ test("dashboard ships an accessible session-only device management page", () => 
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /id="managementAdminToken"[^>]+type="password"[^>]+autocomplete="off"/);
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=device-discovery-v1-20260724/);
-  assert.match(html, /id="managementDiscoveryAdminToken"[^>]+required/);
-  assert.match(html, /후보 승인 정책을 서버에서 확인하는 중/);
-  assert.match(html, /device-management\.js\?v=device-discovery-v3-20260724/);
+  assert.match(html, /device-management\.css\?v=device-management-token-free-v1-20260724/);
+  assert.match(html, /device-management\.js\?v=device-management-token-free-v1-20260724/);
+  assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
+  assert.doesNotMatch(html, /관리자 Bearer 토큰/);
+  assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
   assert.match(html, />디바이스 관리</);
   assert.match(html, /노드별 디바이스 관리/);
   assert.match(html, /관리할 엣지 노드/);

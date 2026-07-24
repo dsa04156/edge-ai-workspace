@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-23 19:30</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
+            <span class="badge">수정: 2026-07-24 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -577,8 +577,8 @@ curl --fail --silent --show-error \
 <p><code>managementOwner=argocd</code>, <code>phase=SERVICE_READY</code>이고 대시보드 restart/retire가 비활성화된다.</p>
 <ul><li>Serial runtime plan은 exact binding의 기존 <code>device-serial-jetson</code>을 <code>REUSE</code>한다.</li><li>위 예시는 이미 <code>virtual-temperature-001</code>이 소유한 endpoint/resource를 다시 요청하므로</li></ul>
 <p><code>valid=false</code>와 <code>protocol_binding_exists</code>를 반환하는 것이 정상이다. dry-run은 <code>valid</code>, <code>issues</code>, <code>warnings</code>, <code>runtimePlan</code>, <code>edgeXPlan</code>을 반환하며 runtime/Profile/Device를 생성하지 않는다.</p>
-<ul><li>유효한 연결 실행은 관리자 Bearer token과 요청별 <code>Idempotency-Key</code>를 모두 요구한다.</li></ul>
-<p>결과는 runtime, Metadata와 first Event 상태를 분리한다.</p>
+<ul><li>유효한 연결 실행은 browser 관리자 token 없이 요청별 <code>Idempotency-Key</code>를 요구한다.</li></ul>
+<p>결과는 runtime, Metadata와 first Event 상태를 분리한다. 내부 HMAC은 BFF와 Controller 사이 요청 무결성용이며 운영자 인증이 아니므로 운영 노출 전 별도 인증·인가가 필요하다.</p>
 <ul><li>기존 12개 route, external runtime과 EdgeMesh는 자동 검증에서 변경하지 않는다. live</li></ul>
 <p>connection canary는 충돌하지 않는 실장비 endpoint와 등록 binding이 생긴 뒤 수행한다.</p>
 <h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>

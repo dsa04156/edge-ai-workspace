@@ -33,7 +33,6 @@ def test_device_management_is_enabled_only_with_required_secret_refs() -> None:
         "value": "/app/app/config/adapter_catalog.json",
     }
     expected_secret_refs = {
-        "DEVICE_MANAGEMENT_ADMIN_TOKEN": "admin-token",
         "DEVICE_MANAGEMENT_HMAC_KEY": "management-hmac-key",
         "ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY": "internal-hmac-key",
     }
@@ -43,6 +42,8 @@ def test_device_management_is_enabled_only_with_required_secret_refs() -> None:
             "key": key,
         }
         assert "value" not in environment[name]
+    assert "DEVICE_MANAGEMENT_ADMIN_TOKEN" not in environment
+    assert "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED" not in environment
 
 
 def test_management_deployment_does_not_add_fixed_network_or_edgemesh_paths() -> None:

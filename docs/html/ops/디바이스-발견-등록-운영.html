@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-24 18:26</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
+            <span class="badge">수정: 2026-07-24 18:53</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -174,7 +174,7 @@ kubectl get node \
   etri-dev0001-jetorn \
   etri-dev0002-raspi5 \
   etri-dev0003-raspi5</code></pre>
-<p>HMAC key와 관리자 token을 Git, ConfigMap, shell 출력 또는 문서에 기록하지 않는다.</p>
+<p>HMAC key와 외부 인증 credential을 Git, ConfigMap, shell 출력 또는 문서에 기록하지 않는다.</p>
 <h2 id="배포">배포</h2>
 <p>운영 진입점은 <code>edgex/k8s</code>와 Argo CD <code>edgex-telemetry</code> 하나다.</p>
 <pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt;/dev/null
@@ -237,8 +237,8 @@ PYTHONPATH=. python -m simulators.serial_arduino --behavior unsupported</code></
 <p>PTY 번호가 바뀌어도 같은 stable by-id link 이름을 사용하면 candidate ID는 같다.</p>
 <h2 id="후보-승인">후보 승인</h2>
 <p>운영자는 대시보드에서 후보의 물리 라벨, 설치 기록, node, USB serial, Catalog Profile을 확인한 후 <code>검토 승인</code>을 누른다. 승인 직후 상태는 <code>APPROVED</code>이며 최대 수 회의 10초 reconciliation 동안 다음과 같이 이동한다.</p>
-<p>현재 PoC root 배포는 <code>DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED=true</code>를 명시해 후보 승인·거절·재시도만 관리자 Bearer 토큰 없이 허용한다. 대시보드는 <code>GET /management/discovery</code>의 <code>decisionAuthenticationRequired=false</code>를 확인한 뒤 <code>PATCH /management/discovery/{candidateId}</code> 요청에서 <code>Authorization</code> 헤더를 생략한다. <code>Idempotency-Key</code>와 내부 HMAC 검증은 계속 적용된다.</p>
-<p>이 예외는 수동 후보 추가·삭제, Runtime 재시작·퇴역, Device/connection mutation에는 적용되지 않는다. 이 작업들은 계속 관리자 Bearer 토큰이 필요하며, 토큰리스 모드에서도 잘못된 <code>Authorization</code> 헤더를 보내면 <code>401</code>이다. 설정 기본값은 <code>false</code>이므로 운영 profile에서는 명시적으로 활성화하지 않는 한 후보 결정에도 토큰이 필요하다.</p>
+<p>현재 PoC 대시보드와 <code>/management/*</code> BFF에는 운영자 Bearer 토큰이 없다. 후보 승인·거절·재시도 PATCH는 browser <code>Authorization</code> header 없이 요청하고, 요청별 <code>Idempotency-Key</code>와 BFF→Controller 내부 HMAC은 계속 적용한다. 수동 후보 추가·삭제, Runtime 재시작·퇴역, Device/connection mutation도 같은 계약을 사용한다.</p>
+<p>외부 AuthProvider 승인은 후보 장비의 신뢰 검증이며 대시보드 운영자 인증이 아니다. 따라서 이 경로는 접근이 제한된 개발 테스트베드에서만 사용한다. 운영 환경에 노출하려면 Ingress 앞에 별도 사용자 인증·인가를 추가하고, 내부 HMAC을 사용자 인증으로 설명하지 않는다.</p>
 <pre data-lang="text"><code>APPROVED
   -&gt; SERVICE_READY
   -&gt; METADATA_REGISTERED

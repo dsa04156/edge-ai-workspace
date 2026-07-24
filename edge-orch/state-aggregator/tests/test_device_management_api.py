@@ -64,7 +64,7 @@ def operation(status="waiting_for_event"):
         status=status,
         metadata_applied=status != "failed",
         first_event_verified=status == "verified",
-        actor="dashboard-admin",
+        actor="dashboard-operator",
         started_at=now,
         updated_at=now,
     )
@@ -368,21 +368,17 @@ class RecordingDiscoveryService:
 def settings(
     *,
     enabled=False,
-    token=None,
     hmac_key=None,
     runtime_management=False,
     runtime_mutation=False,
     discovery_management=False,
-    tokenless_approval=False,
 ):
     return Settings(
         device_management_enabled=enabled,
-        device_management_admin_token=token,
         device_management_hmac_key=hmac_key,
         adapter_runtime_management_enabled=runtime_management,
         adapter_runtime_mutation_enabled=runtime_mutation,
         device_discovery_management_enabled=discovery_management,
-        device_discovery_tokenless_approval_enabled=tokenless_approval,
         adapter_controller_internal_hmac_key=(
             "internal-hmac" if runtime_management else None
         ),
@@ -393,7 +389,6 @@ def client_for(
     service,
     *,
     enabled=False,
-    token=None,
     hmac_key=None,
     runtime_management=False,
     runtime_mutation=False,
@@ -401,7 +396,6 @@ def client_for(
     connection_service=None,
     discovery_management=False,
     discovery_service=None,
-    tokenless_approval=False,
 ):
     if runtime_management and connection_service is None:
         connection_service = RecordingConnectionService()
@@ -410,12 +404,10 @@ def client_for(
         create_device_management_router(
             settings(
                 enabled=enabled,
-                token=token,
                 hmac_key=hmac_key,
                 runtime_management=runtime_management,
                 runtime_mutation=runtime_mutation,
                 discovery_management=discovery_management,
-                tokenless_approval=tokenless_approval,
             ),
             service,
             runtime_service=runtime_service,
@@ -426,21 +418,11 @@ def client_for(
     return TestClient(app)
 
 
-def admin_headers(**extra):
+def mutation_headers(**extra):
     return {
-        "Authorization": "Bearer admin-token",
         "Idempotency-Key": "request-key",
         **extra,
     }
-
-
-def test_tokenless_discovery_approval_is_opt_in(monkeypatch):
-    monkeypatch.delenv(
-        "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED",
-        raising=False,
-    )
-
-    assert Settings().device_discovery_tokenless_approval_enabled is False
 
 
 def runtime_plan_payload():
@@ -473,11 +455,10 @@ def connection_request_model():
     )
 
 
-def discovery_client(discovery_service, *, tokenless_approval=False):
+def discovery_client(discovery_service):
     return client_for(
         RecordingService(),
         enabled=True,
-        token="admin-token",
         hmac_key="hmac",
         runtime_management=True,
         runtime_mutation=True,
@@ -485,7 +466,6 @@ def discovery_client(discovery_service, *, tokenless_approval=False):
         connection_service=RecordingConnectionService(),
         discovery_management=True,
         discovery_service=discovery_service,
-        tokenless_approval=tokenless_approval,
     )
 
 
@@ -503,7 +483,7 @@ def test_discovery_inventory_filters_ignored_candidates_and_supports_search():
         )
 
     assert default.status_code == 200
-    assert default.json()["decisionAuthenticationRequired"] is True
+    assert "decisionAuthenticationRequired" not in default.json()
     assert default.json()["totalCandidates"] == 2
     assert default.json()["filteredCandidates"] == 1
     assert default.json()["candidates"][0]["displayName"] == "Arduino USB Serial"
@@ -512,7 +492,7 @@ def test_discovery_inventory_filters_ignored_candidates_and_supports_search():
     assert ignored.json()["candidates"][0]["decision"] == "ignored"
 
 
-def test_discovery_mutations_require_admin_and_send_hashed_idempotency_identity():
+def test_discovery_mutations_require_idempotency_and_send_hashed_identity():
     discovery = RecordingDiscoveryService()
     payload = {
         "nodeName": "etri-dev0001-jetorn",
@@ -526,95 +506,85 @@ def test_discovery_mutations_require_admin_and_send_hashed_idempotency_identity(
     }
     candidate_id = "candidate-" + ("a" * 24)
     with discovery_client(discovery) as client:
-        unauthorized = client.post(
+        missing_idempotency = client.post(
             "/management/discovery/manual",
             json=payload,
         )
         created = client.post(
             "/management/discovery/manual",
             json=payload,
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
         accepted = client.patch(
             f"/management/discovery/{candidate_id}",
             json={"decision": "accepted", "note": "현장 확인"},
-            headers=admin_headers(),
-        )
-        unauthorized_decision = client.patch(
-            f"/management/discovery/{candidate_id}",
-            json={"decision": "accepted", "note": "토큰 없음"},
-            headers={"Idempotency-Key": "unauthorized-decision"},
+            headers=mutation_headers(),
         )
         deleted = client.delete(
             f"/management/discovery/{candidate_id}",
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
 
-    assert unauthorized.status_code == 401
+    assert missing_idempotency.status_code == 400
     assert created.status_code == 201
     assert created.json()["presence"] == "declared"
     assert accepted.status_code == 200
     assert accepted.json()["decision"] == "accepted"
-    assert unauthorized_decision.status_code == 401
     assert deleted.status_code == 200
     mutation_calls = [item for item in discovery.calls if item[0] != "list"]
     assert [item[0] for item in mutation_calls] == ["create", "decision", "delete"]
     assert all(len(item[-1]) == 64 for item in mutation_calls)
 
 
-def test_tokenless_discovery_decisions_do_not_disable_other_admin_guards():
+def test_management_mutations_ignore_unrelated_authorization_header():
     discovery = RecordingDiscoveryService()
     candidate_id = "candidate-" + ("b" * 24)
-    manual_payload = {
-        "nodeName": "etri-dev0001-jetorn",
-        "protocol": "mqtt",
-        "transport": "mqtts",
-        "displayName": "Line MQTT sensor",
-        "properties": {
-            "Broker": "mqtts://broker.example:8883",
-            "Topic": "factory/line-1/temp",
-        },
+    headers = {
+        "Idempotency-Key": "decision-with-irrelevant-header",
+        "Authorization": "Bearer unrelated-client-value",
     }
-    idempotency = {"Idempotency-Key": "tokenless-decision"}
-    with discovery_client(discovery, tokenless_approval=True) as client:
+    with discovery_client(discovery) as client:
         inventory = client.get("/management/discovery")
         accepted = client.patch(
             f"/management/discovery/{candidate_id}",
             json={"decision": "accepted", "note": "PoC 운영자 승인"},
-            headers=idempotency,
+            headers=headers,
         )
         missing_idempotency = client.patch(
             f"/management/discovery/{candidate_id}",
             json={"decision": "accepted", "note": "idempotency 없음"},
         )
-        invalid_token = client.patch(
-            f"/management/discovery/{candidate_id}",
-            json={"decision": "ignored", "note": "invalid credential"},
-            headers={
-                **idempotency,
-                "Authorization": "Bearer wrong-token",
-            },
-        )
-        manual = client.post(
-            "/management/discovery/manual",
-            json=manual_payload,
-            headers=idempotency,
-        )
-        deleted = client.delete(
-            f"/management/discovery/{candidate_id}",
-            headers=idempotency,
-        )
 
     assert inventory.status_code == 200
-    assert inventory.json()["decisionAuthenticationRequired"] is False
+    assert "decisionAuthenticationRequired" not in inventory.json()
     assert accepted.status_code == 200
     assert accepted.json()["decision"] == "accepted"
     assert missing_idempotency.status_code == 400
-    assert invalid_token.status_code == 401
-    assert manual.status_code == 401
-    assert deleted.status_code == 401
     mutation_calls = [item for item in discovery.calls if item[0] != "list"]
     assert [item[0] for item in mutation_calls] == ["decision"]
+
+
+def test_management_openapi_has_no_authorization_header_parameter():
+    discovery = RecordingDiscoveryService()
+    with discovery_client(discovery) as client:
+        schema = client.get("/openapi.json").json()
+
+    mutation_paths = {
+        "/management/devices": {"post"},
+        "/management/devices/{name}": {"patch"},
+        "/management/connections": {"post"},
+        "/management/adapter-runtimes/{name}/restart": {"post"},
+        "/management/adapter-runtimes/{name}": {"delete"},
+        "/management/discovery/manual": {"post"},
+        "/management/discovery/{candidate_id}": {"patch", "delete"},
+    }
+    for path, methods in mutation_paths.items():
+        for method in methods:
+            parameters = schema["paths"][path][method].get("parameters", [])
+            assert all(
+                parameter["name"].lower() != "authorization"
+                for parameter in parameters
+            )
 
 
 def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():
@@ -633,9 +603,7 @@ def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():
 
 def test_catalog_exposes_enabled_mutation_mode_to_the_dashboard():
     service = RecordingService()
-    with client_for(
-        service, enabled=True, token="admin-token", hmac_key="hmac"
-    ) as client:
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
         response = client.get("/management/adapters")
 
     assert response.status_code == 200
@@ -646,63 +614,39 @@ def test_mutation_is_hidden_when_feature_flag_is_disabled():
     service = RecordingService()
     with client_for(service) as client:
         response = client.post(
-            "/management/devices", json=request_payload(), headers=admin_headers()
+            "/management/devices", json=request_payload(), headers=mutation_headers()
         )
 
     assert response.status_code == 404
     assert not any(call[0] == "create" for call in service.calls)
 
 
-def test_enabled_router_fails_fast_without_both_secrets():
+def test_enabled_router_fails_fast_without_hmac_key():
     service = RecordingService()
 
-    with pytest.raises(ValueError, match="admin token"):
-        client_for(service, enabled=True, hmac_key="hmac")
     with pytest.raises(ValueError, match="HMAC"):
-        client_for(service, enabled=True, token="admin-token")
+        client_for(service, enabled=True)
 
 
-@pytest.mark.parametrize(
-    ("headers", "status"),
-    [
-        ({"Idempotency-Key": "request-key"}, 401),
-        (
-            {
-                "Authorization": "Bearer wrong-token",
-                "Idempotency-Key": "request-key",
-            },
-            401,
-        ),
-        ({"Authorization": "Bearer admin-token"}, 400),
-        (
-            {
-                "Authorization": "Basic admin-token",
-                "Idempotency-Key": "request-key",
-            },
-            401,
-        ),
-    ],
-)
-def test_create_requires_bearer_admin_and_idempotency_key(headers, status):
+def test_create_requires_idempotency_key():
     service = RecordingService()
-    with client_for(
-        service, enabled=True, token="admin-token", hmac_key="hmac"
-    ) as client:
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
         response = client.post(
-            "/management/devices", json=request_payload(), headers=headers
+            "/management/devices",
+            json=request_payload(),
         )
 
-    assert response.status_code == status
+    assert response.status_code == 400
     assert not any(call[0] == "create" for call in service.calls)
 
 
-def test_admin_create_returns_operation_without_internal_payload_hash():
+def test_create_returns_operation_without_internal_payload_hash():
     service = RecordingService()
-    with client_for(
-        service, enabled=True, token="admin-token", hmac_key="hmac"
-    ) as client:
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
         response = client.post(
-            "/management/devices", json=request_payload(), headers=admin_headers()
+            "/management/devices",
+            json=request_payload(),
+            headers=mutation_headers(),
         )
 
     assert response.status_code == 201
@@ -713,7 +657,7 @@ def test_admin_create_returns_operation_without_internal_payload_hash():
         "create",
         "virtual-temperature-002",
         "request-key",
-        "dashboard-admin",
+        "dashboard-operator",
     )
 
 
@@ -729,11 +673,11 @@ def test_domain_validation_and_idempotency_conflict_are_mapped():
     for error, expected in cases:
         service = RecordingService()
         service.create_error = error
-        with client_for(
-            service, enabled=True, token="admin-token", hmac_key="hmac"
-        ) as client:
+        with client_for(service, enabled=True, hmac_key="hmac") as client:
             response = client.post(
-                "/management/devices", json=request_payload(), headers=admin_headers()
+                "/management/devices",
+                json=request_payload(),
+                headers=mutation_headers(),
             )
         assert response.status_code == expected
 
@@ -743,11 +687,11 @@ def test_apply_failure_returns_gateway_error_with_safe_operation_identity():
     service.create_error = ManagementApplyError(
         operation("failed"), RuntimeError("metadata unavailable")
     )
-    with client_for(
-        service, enabled=True, token="admin-token", hmac_key="hmac"
-    ) as client:
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
         response = client.post(
-            "/management/devices", json=request_payload(), headers=admin_headers()
+            "/management/devices",
+            json=request_payload(),
+            headers=mutation_headers(),
         )
 
     assert response.status_code == 502
@@ -758,13 +702,11 @@ def test_apply_failure_returns_gateway_error_with_safe_operation_identity():
 
 def test_patch_uses_path_identity_and_allowlisted_body():
     service = RecordingService()
-    with client_for(
-        service, enabled=True, token="admin-token", hmac_key="hmac"
-    ) as client:
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
         response = client.patch(
             "/management/devices/device-01",
             json={"description": "updated"},
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
 
     assert response.status_code == 200
@@ -774,7 +716,7 @@ def test_patch_uses_path_identity_and_allowlisted_body():
         "device-01",
         "updated",
         "request-key",
-        "dashboard-admin",
+        "dashboard-operator",
     )
 
 
@@ -823,7 +765,7 @@ def test_runtime_inventory_and_plan_are_read_only_when_mutation_is_disabled():
         )
         restart = client.post(
             "/management/adapter-runtimes/adapter-serial-02/restart",
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
 
     assert listed.status_code == 200
@@ -834,11 +776,10 @@ def test_runtime_inventory_and_plan_are_read_only_when_mutation_is_disabled():
     assert restart.status_code == 404
 
 
-def test_runtime_restart_and_retire_require_admin_idempotency_and_exact_confirm():
+def test_runtime_restart_and_retire_require_idempotency_and_exact_confirm():
     runtime_service = RecordingRuntimeService()
     common = {
         "enabled": True,
-        "token": "admin-token",
         "hmac_key": "hmac",
         "runtime_management": True,
         "runtime_mutation": True,
@@ -850,20 +791,20 @@ def test_runtime_restart_and_retire_require_admin_idempotency_and_exact_confirm(
         )
         restarted = client.post(
             "/management/adapter-runtimes/adapter-serial-02/restart",
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
         missing_confirm = client.delete(
             "/management/adapter-runtimes/adapter-serial-02",
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
         retired = client.delete(
             "/management/adapter-runtimes/adapter-serial-02",
-            headers=admin_headers(
+            headers=mutation_headers(
                 **{"X-Confirm-Runtime": "adapter-serial-02"}
             ),
         )
 
-    assert unauthorized.status_code in {400, 401}
+    assert unauthorized.status_code == 400
     assert restarted.status_code == 200
     assert missing_confirm.status_code == 409
     assert retired.status_code == 200
@@ -875,7 +816,7 @@ def test_runtime_restart_and_retire_require_admin_idempotency_and_exact_confirm(
     ) == 1
 
 
-def test_connection_validation_is_read_only_and_apply_uses_existing_admin_guard():
+def test_connection_validation_is_read_only_and_apply_requires_idempotency():
     runtime_service = RecordingRuntimeService()
     connection_service = RecordingConnectionService()
     common = {
@@ -887,7 +828,6 @@ def test_connection_validation_is_read_only_and_apply_uses_existing_admin_guard(
     with client_for(
         RecordingService(),
         enabled=True,
-        token="admin-token",
         hmac_key="hmac",
         **common,
     ) as client:
@@ -898,7 +838,7 @@ def test_connection_validation_is_read_only_and_apply_uses_existing_admin_guard(
         applied = client.post(
             "/management/connections",
             json=connection_request_payload(),
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
         polled = client.get(
             "/management/connections/operations/connection-request"
@@ -939,7 +879,6 @@ def test_connection_and_runtime_domain_errors_are_mapped():
         with client_for(
             RecordingService(),
             enabled=True,
-            token="admin-token",
             hmac_key="hmac",
             runtime_management=True,
             runtime_mutation=True,
@@ -949,7 +888,7 @@ def test_connection_and_runtime_domain_errors_are_mapped():
             response = client.post(
                 "/management/connections",
                 json=connection_request_payload(),
-                headers=admin_headers(),
+                headers=mutation_headers(),
             )
         assert response.status_code == expected
 
@@ -958,7 +897,6 @@ def test_connection_and_runtime_domain_errors_are_mapped():
     with client_for(
         RecordingService(),
         enabled=True,
-        token="admin-token",
         hmac_key="hmac",
         runtime_management=True,
         runtime_mutation=True,
@@ -966,7 +904,7 @@ def test_connection_and_runtime_domain_errors_are_mapped():
     ) as client:
         response = client.post(
             "/management/adapter-runtimes/device-serial-jetson/restart",
-            headers=admin_headers(),
+            headers=mutation_headers(),
         )
     assert response.status_code == 409
 
@@ -976,7 +914,9 @@ def test_repository_app_registers_default_disabled_mutation_route():
 
     with TestClient(app) as client:
         response = client.post(
-            "/management/devices", json=request_payload(), headers=admin_headers()
+            "/management/devices",
+            json=request_payload(),
+            headers=mutation_headers(),
         )
 
     assert response.status_code == 404

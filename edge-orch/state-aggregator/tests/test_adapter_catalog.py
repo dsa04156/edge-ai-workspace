@@ -336,13 +336,11 @@ def test_create_profile_requires_descriptive_fields_and_patch_is_allowlisted():
 
 def test_settings_keep_management_disabled_without_secrets(monkeypatch):
     monkeypatch.delenv("DEVICE_MANAGEMENT_ENABLED", raising=False)
-    monkeypatch.delenv("DEVICE_MANAGEMENT_ADMIN_TOKEN", raising=False)
     monkeypatch.delenv("DEVICE_MANAGEMENT_HMAC_KEY", raising=False)
 
     settings = Settings()
 
     assert settings.device_management_enabled is False
-    assert settings.device_management_admin_token is None
     assert settings.device_management_hmac_key is None
     assert settings.device_management_operation_limit == 256
     assert settings.adapter_catalog_path.name == "adapter_catalog.json"

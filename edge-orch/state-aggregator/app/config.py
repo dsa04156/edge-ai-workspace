@@ -78,9 +78,6 @@ class Settings(BaseModel):
     device_management_enabled: bool = Field(
         default_factory=lambda: _env_bool("DEVICE_MANAGEMENT_ENABLED")
     )
-    device_management_admin_token: str | None = Field(
-        default_factory=lambda: os.getenv("DEVICE_MANAGEMENT_ADMIN_TOKEN") or None
-    )
     device_management_hmac_key: str | None = Field(
         default_factory=lambda: os.getenv("DEVICE_MANAGEMENT_HMAC_KEY") or None
     )
@@ -106,11 +103,6 @@ class Settings(BaseModel):
     device_discovery_management_enabled: bool = Field(
         default_factory=lambda: _env_bool(
             "DEVICE_DISCOVERY_MANAGEMENT_ENABLED"
-        )
-    )
-    device_discovery_tokenless_approval_enabled: bool = Field(
-        default_factory=lambda: _env_bool(
-            "DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED"
         )
     )
     adapter_controller_url: str = Field(

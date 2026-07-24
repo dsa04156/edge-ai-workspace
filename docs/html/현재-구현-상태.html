@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-24 18:29</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
+            <span class="badge">수정: 2026-07-24 18:55</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -216,7 +216,7 @@
 </tr>
 <tr>
 <td>운영자 승인·거절·재시도</td>
-<td>API와 dashboard action, audit/history. 현재 PoC는 이 세 결정만 tokenless 설정</td>
+<td>API와 dashboard action, audit/history. 현재 PoC 관리 BFF는 browser 관리자 token을 사용하지 않음</td>
 </tr>
 <tr>
 <td>인증 interface</td>
@@ -361,8 +361,8 @@
 <p>protocol active probe 권한은 node별 최소 group/device overlay로 검토한다.</p>
 <ul><li>Controller SQLite는 1Gi RWO PVC를 사용해 단일 replica 기준이다. 다중 replica HA를</li></ul>
 <p>활성화하지 않는다.</p>
-<ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li><li>후보 결정 tokenless 설정은 기본값이 <code>false</code>이고 현재 PoC root 배포에서만 <code>true</code>다.</li></ul>
-<p>적용 범위는 승인·거절·재시도 PATCH뿐이며 수동 후보 추가·삭제와 다른 관리 mutation은 계속 관리자 Bearer token을 요구한다.</p>
+<ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li><li>현재 PoC의 <code>/management/*</code> mutation은 browser 관리자 token이나 <code>Authorization</code></li></ul>
+<p>header를 요구하지 않는다. 기능 플래그, allowlist 검증, <code>Idempotency-Key</code>와 내부 HMAC은 유지하지만 이는 운영자 인증이 아니다. 접근이 제한된 개발 테스트베드 경계이며 운영 노출 전 별도 사용자 인증·인가가 필요하다.</p>
 <h2 id="현재-자동-테스트-결과">현재 자동 테스트 결과</h2>
 <p>아래 결과는 2026-07-24 로컬 실행 기준이다. 최종 배포 전 동일 명령을 다시 실행한다.</p>
 <div class="table-wrap"><table>
@@ -395,12 +395,12 @@
 <tr>
 <td>state-aggregator Python</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>180 passed</td>
+<td>177 passed</td>
 </tr>
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>52 passed</td>
+<td>50 passed</td>
 </tr>
 <tr>
 <td>workspace 회귀</td>
@@ -429,9 +429,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="다음-우선순위">다음 우선순위</h2>
-<ol><li>tokenless 후보 결정 배포 후 dashboard와 BFF에서 무인증 PATCH 및 다른 mutation의</li></ol>
-<p>인증 유지 여부를 live 확인한다.</p>
-<ol><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>USB 케이블 실제 분리·재연결로 같은 candidate ID와 Device Service 복구를 확인한다.</li><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li><li>그 다음 Modbus RTU/TCP를 allowlisted endpoint부터 구현한다.</li></ol>
+<ol><li>관리자 token 제거 배포 후 dashboard·OpenAPI·BFF와 Secret key 정리를 live 확인한다.</li><li>운영 노출 전에 Ingress 앞의 사용자 인증·인가 방식을 별도 설계한다.</li><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>USB 케이블 실제 분리·재연결로 같은 candidate ID와 Device Service 복구를 확인한다.</li><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li><li>그 다음 Modbus RTU/TCP를 allowlisted endpoint부터 구현한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#요약">요약</a></li>

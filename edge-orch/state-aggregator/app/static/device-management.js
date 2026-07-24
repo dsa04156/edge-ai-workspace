@@ -16,8 +16,6 @@ const MANAGEMENT_DISCOVERY_URL = managementApiUrl("/management/discovery");
 const MANAGEMENT_NODES_URL = managementApiUrl("/state/nodes");
 const UNASSIGNED_NODE = "미할당 노드";
 
-let sessionAdminToken = "";
-
 const managementState = {
   adapters: [],
   nodes: [],
@@ -26,7 +24,6 @@ const managementState = {
   discovery: {
     nodes: [],
     candidates: [],
-    decisionAuthenticationRequired: true,
     totalCandidates: 0,
     filteredCandidates: 0,
     staleAfterSeconds: 90,
@@ -777,33 +774,21 @@ async function validateManagementConnection(payload, fetchFn = fetch) {
 }
 
 
-function guardedHeaders(token, idempotencyKey) {
+function mutationHeaders(idempotencyKey) {
   return {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
     "Idempotency-Key": idempotencyKey,
   };
-}
-
-function candidateDecisionHeaders(token, idempotencyKey) {
-  const headers = {
-    "Content-Type": "application/json",
-    "Idempotency-Key": idempotencyKey,
-  };
-  const credential = String(token || "").trim();
-  if (credential) headers.Authorization = `Bearer ${credential}`;
-  return headers;
 }
 
 
 async function createManagementDevice(payload, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
   const response = await fetchFn(MANAGEMENT_DEVICES_URL, {
     method: "POST",
-    headers: guardedHeaders(token, idempotencyKey),
+    headers: mutationHeaders(idempotencyKey),
     body: JSON.stringify(payload),
     cache: "no-store",
   });
@@ -812,13 +797,12 @@ async function createManagementDevice(payload, {
 
 
 async function createManagementConnection(payload, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
   const response = await fetchFn(MANAGEMENT_CONNECTIONS_URL, {
     method: "POST",
-    headers: guardedHeaders(token, idempotencyKey),
+    headers: mutationHeaders(idempotencyKey),
     body: JSON.stringify(payload),
     cache: "no-store",
   });
@@ -827,13 +811,12 @@ async function createManagementConnection(payload, {
 
 
 async function createManualCandidate(payload, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
   const response = await fetchFn(`${MANAGEMENT_DISCOVERY_URL}/manual`, {
     method: "POST",
-    headers: guardedHeaders(token, idempotencyKey),
+    headers: mutationHeaders(idempotencyKey),
     body: JSON.stringify(payload),
     cache: "no-store",
   });
@@ -842,7 +825,6 @@ async function createManualCandidate(payload, {
 
 
 async function updateCandidateDecision(candidateId, payload, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
@@ -850,7 +832,7 @@ async function updateCandidateDecision(candidateId, payload, {
     `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}`,
     {
       method: "PATCH",
-      headers: candidateDecisionHeaders(token, idempotencyKey),
+      headers: mutationHeaders(idempotencyKey),
       body: JSON.stringify(payload),
       cache: "no-store",
     },
@@ -860,7 +842,6 @@ async function updateCandidateDecision(candidateId, payload, {
 
 
 async function deleteCandidate(candidateId, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
@@ -868,7 +849,7 @@ async function deleteCandidate(candidateId, {
     `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}`,
     {
       method: "DELETE",
-      headers: guardedHeaders(token, idempotencyKey),
+      headers: mutationHeaders(idempotencyKey),
       cache: "no-store",
     },
   );
@@ -877,7 +858,6 @@ async function deleteCandidate(candidateId, {
 
 
 async function restartAdapterRuntime(name, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
@@ -885,7 +865,7 @@ async function restartAdapterRuntime(name, {
     `${MANAGEMENT_RUNTIMES_URL}/${encodeURIComponent(name)}/restart`,
     {
       method: "POST",
-      headers: guardedHeaders(token, idempotencyKey),
+      headers: mutationHeaders(idempotencyKey),
       cache: "no-store",
     },
   );
@@ -894,7 +874,6 @@ async function restartAdapterRuntime(name, {
 
 
 async function retireAdapterRuntime(name, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
@@ -903,7 +882,7 @@ async function retireAdapterRuntime(name, {
     {
       method: "DELETE",
       headers: {
-        ...guardedHeaders(token, idempotencyKey),
+        ...mutationHeaders(idempotencyKey),
         "X-Confirm-Runtime": name,
       },
       cache: "no-store",
@@ -914,7 +893,6 @@ async function retireAdapterRuntime(name, {
 
 
 async function patchManagementDevice(name, payload, {
-  token,
   idempotencyKey,
   fetchFn = fetch,
 }) {
@@ -922,7 +900,7 @@ async function patchManagementDevice(name, payload, {
     `${MANAGEMENT_DEVICES_URL}/${encodeURIComponent(name)}`,
     {
       method: "PATCH",
-      headers: guardedHeaders(token, idempotencyKey),
+      headers: mutationHeaders(idempotencyKey),
       body: JSON.stringify(payload),
       cache: "no-store",
     },
@@ -1454,29 +1432,6 @@ function renderDiscoveryFeedback(message, {
   element.dataset.status = status;
 }
 
-function renderDiscoveryCredentialMode(documentRef = document) {
-  const authenticationRequired = (
-    managementState.discovery.decisionAuthenticationRequired !== false
-  );
-  const help = byId("managementDiscoveryCredentialHelp", documentRef);
-  const input = byId("managementDiscoveryAdminToken", documentRef);
-  if (help) {
-    help.textContent = authenticationRequired
-      ? "후보 승인·거절·재시도에는 관리자 Bearer 토큰이 필요합니다. 토큰은 브라우저 메모리에만 유지합니다."
-      : "현재 PoC에서는 후보 승인·거절·재시도에 토큰이 필요하지 않습니다. 수동 후보 추가·삭제와 다른 관리 작업은 관리자 토큰이 필요합니다.";
-  }
-  if (!input) return;
-  input.required = authenticationRequired;
-  input.placeholder = authenticationRequired
-    ? "승인 전에 필수 입력"
-    : "수동 추가·삭제 시 입력";
-  if (!authenticationRequired) {
-    input.setCustomValidity?.("");
-    input.removeAttribute?.("aria-invalid");
-  }
-}
-
-
 function renderDiscoveryStats(documentRef = document) {
   const candidates = (managementState.discovery.candidates || []).filter(
     (candidate) => candidate.nodeName === managementState.selectedNodeName,
@@ -1519,32 +1474,6 @@ function appendCandidateAction(
   actions.appendChild(button);
   return button;
 }
-
-function requireAdminTokenForMutation(token, input) {
-  if (String(token || "").trim()) {
-    input?.setCustomValidity?.("");
-    input?.removeAttribute?.("aria-invalid");
-    return true;
-  }
-  const message = "장비를 승인하려면 관리자 Bearer 토큰을 먼저 입력하세요.";
-  input?.setAttribute?.("aria-invalid", "true");
-  input?.setCustomValidity?.(message);
-  input?.scrollIntoView?.({behavior: "smooth", block: "center"});
-  input?.focus?.();
-  input?.reportValidity?.();
-  return false;
-}
-
-function candidateActionRequiresAdminToken(
-  action,
-  discovery = managementState.discovery,
-) {
-  return (
-    action === "delete"
-    || discovery?.decisionAuthenticationRequired !== false
-  );
-}
-
 
 function renderDiscoveryCandidates(documentRef = document) {
   const container = byId("managementDiscoveryList", documentRef);
@@ -1745,7 +1674,6 @@ function renderDiscoveryCandidates(documentRef = document) {
 function renderDiscovery(documentRef = document) {
   renderDiscoveryStatus(documentRef);
   renderDiscoveryStats(documentRef);
-  renderDiscoveryCredentialMode(documentRef);
   renderDiscoveryNodeHealth(documentRef);
   renderDiscoveryCandidates(documentRef);
 }
@@ -2118,13 +2046,6 @@ function renderMutationMode(documentRef = document) {
     mode.textContent = enabled ? "변경 기능 활성화" : "검증 전용 · 변경 기능 비활성화";
     mode.dataset.status = enabled ? "enabled" : "disabled";
   }
-  const tokenInput = byId("managementAdminToken", documentRef);
-  if (tokenInput) tokenInput.disabled = !enabled;
-  const discoveryTokenInput = byId(
-    "managementDiscoveryAdminToken",
-    documentRef,
-  );
-  if (discoveryTokenInput) discoveryTokenInput.disabled = !enabled;
   const manualButton = byId("managementOpenManualCandidate", documentRef);
   if (manualButton) {
     manualButton.disabled = !enabled;
@@ -2737,7 +2658,6 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
       return {
         nodes: [],
         candidates: [],
-        decisionAuthenticationRequired: true,
         totalCandidates: 0,
         filteredCandidates: 0,
         staleAfterSeconds: 90,
@@ -2792,15 +2712,6 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
 function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   const adapterSelect = byId("managementAdapter", documentRef);
   if (!adapterSelect) return;
-  const syncSessionToken = (value) => {
-    sessionAdminToken = value;
-    [
-      byId("managementAdminToken", documentRef),
-      byId("managementDiscoveryAdminToken", documentRef),
-    ].forEach((input) => {
-      if (input && input.value !== value) input.value = value;
-    });
-  };
   const managementTabs = byId("managementViewTabs", documentRef);
   managementTabs?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-view]");
@@ -2839,14 +2750,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       () => renderDiscoveryCandidates(documentRef),
     );
   });
-  byId("managementDiscoveryAdminToken", documentRef)?.addEventListener(
-    "input",
-    (event) => {
-      syncSessionToken(event.target.value);
-      event.target.setCustomValidity?.("");
-      event.target.removeAttribute?.("aria-invalid");
-    },
-  );
   const manualDialog = byId("managementManualCandidateDialog", documentRef);
   byId("managementOpenManualCandidate", documentRef)?.addEventListener("click", () => {
     managementState.manualCandidateCreateKey = "";
@@ -2875,9 +2778,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       event.preventDefault();
       const submit = byId("managementCreateManualCandidate", documentRef);
       try {
-        if (!sessionAdminToken.trim()) {
-          throw new Error("관리자 Bearer 토큰을 먼저 입력하세요.");
-        }
         const payload = collectManualCandidatePayload(documentRef);
         submit.disabled = true;
         renderManualCandidateResult(
@@ -2890,7 +2790,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
           || `candidate-create-${Date.now()}`
         );
         await createManualCandidate(payload, {
-          token: sessionAdminToken,
           idempotencyKey: managementState.manualCandidateCreateKey,
           fetchFn,
         });
@@ -2933,29 +2832,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         }
         return;
       }
-      const discoveryTokenInput = byId(
-        "managementDiscoveryAdminToken",
-        documentRef,
-      );
-      const tokenRequired = candidateActionRequiresAdminToken(
-        action,
-        managementState.discovery,
-      );
-      if (
-        tokenRequired
-        && !requireAdminTokenForMutation(
-          sessionAdminToken,
-          discoveryTokenInput,
-        )
-      ) {
-        renderDiscoveryFeedback(
-          action === "delete"
-            ? "삭제 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요."
-            : "승인 요청을 보내지 않았습니다. 위 변경 권한 영역에 관리자 Bearer 토큰을 입력한 뒤 다시 누르세요.",
-          {status: "error", documentRef},
-        );
-        return;
-      }
       if (
         action === "delete"
         && typeof globalThis.confirm === "function"
@@ -2981,7 +2857,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       try {
         if (action === "delete") {
           await deleteCandidate(candidate.candidateId, {
-            token: sessionAdminToken,
             idempotencyKey,
             fetchFn,
           });
@@ -2997,7 +2872,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
               }[action],
             },
             {
-              token: sessionAdminToken,
               idempotencyKey,
               fetchFn,
             },
@@ -3106,9 +2980,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     const applyButton = byId("managementApply", documentRef);
     if (applyButton) applyButton.disabled = true;
   });
-  byId("managementAdminToken", documentRef)?.addEventListener("input", (event) => {
-    syncSessionToken(event.target.value);
-  });
   byId("managementValidate", documentRef)?.addEventListener("click", async () => {
     try {
       const payload = collectConnectionPayload(documentRef);
@@ -3128,7 +2999,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       renderManagementValidation(validation, documentRef);
       if (!validation.valid) return;
       const operation = await createManagementConnection(payload, {
-        token: sessionAdminToken,
         idempotencyKey: ensureIdempotencyInput(
           byId("managementIdempotencyKey", documentRef),
         ),
@@ -3182,7 +3052,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     button.disabled = true;
     try {
       const options = {
-        token: sessionAdminToken,
         idempotencyKey: managementState.runtimeActionKeys.get(actionKey),
         fetchFn,
       };
@@ -3201,7 +3070,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     try {
       const name = byId("patchDeviceName", documentRef).value.trim();
       const result = await patchManagementDevice(name, collectPatchPayload(documentRef), {
-        token: sessionAdminToken,
         idempotencyKey: ensureIdempotencyInput(
           byId("patchIdempotencyKey", documentRef),
         ),
@@ -3236,7 +3104,6 @@ if (typeof module !== "undefined") {
     bindingProtocolValue,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
-    candidateActionRequiresAdminToken,
     candidateEndpointSummary,
     canPatchSelectedDevice,
     connectionStatusView,
@@ -3253,6 +3120,7 @@ if (typeof module !== "undefined") {
     managementApiUrl,
     managementDeviceNode,
     managementTabIndexForKey,
+    mutationHeaders,
     normalizeManagementView,
     normalizeRegistrationStep,
     operationStatusView,
@@ -3261,7 +3129,6 @@ if (typeof module !== "undefined") {
     pollConnectionOperation,
     pollManagementOperation,
     protocolPackageStatus,
-    requireAdminTokenForMutation,
     restartAdapterRuntime,
     retireAdapterRuntime,
     runtimeCanMutate,

@@ -70,10 +70,6 @@ def create_device_management_router(
     discovery_service: Any | None = None,
 ) -> APIRouter:
     if settings.device_management_enabled:
-        if not settings.device_management_admin_token:
-            raise ValueError(
-                "device management admin token is required when management is enabled"
-            )
         if not settings.device_management_hmac_key:
             raise ValueError(
                 "device management HMAC key is required when management is enabled"
@@ -107,25 +103,10 @@ def create_device_management_router(
 
     router = APIRouter(prefix="/management", tags=["device-management"])
 
-    async def require_admin(
-        authorization: Annotated[str | None, Header()] = None,
-    ) -> str:
+    def require_management_mutation() -> str:
         if not settings.device_management_enabled:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
-        scheme, separator, credential = (authorization or "").partition(" ")
-        expected = settings.device_management_admin_token or ""
-        if (
-            separator != " "
-            or scheme.lower() != "bearer"
-            or not credential
-            or not hmac.compare_digest(credential, expected)
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="valid administrator bearer token required",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return "dashboard-admin"
+        return "dashboard-operator"
 
     def require_idempotency_key(value: str | None) -> str:
         if value is None or not value.strip():
@@ -154,30 +135,13 @@ def create_device_management_router(
                 detail="Not Found",
             )
 
-    async def require_runtime_admin(
-        authorization: str | None,
-    ) -> str:
+    def require_runtime_mutation() -> str:
         if not settings.adapter_runtime_mutation_enabled:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Not Found",
             )
-        return await require_admin(authorization)
-
-    async def require_candidate_decision_authorization(
-        authorization: str | None,
-    ) -> str:
-        if not settings.adapter_runtime_mutation_enabled:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Not Found",
-            )
-        if (
-            settings.device_discovery_tokenless_approval_enabled
-            and not (authorization or "").strip()
-        ):
-            return "dashboard-tokenless-operator"
-        return await require_admin(authorization)
+        return require_management_mutation()
 
     def runtime_action_request(
         action: str,
@@ -310,12 +274,11 @@ def create_device_management_router(
     )
     async def create_device(
         request: DeviceOnboardingRequest,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None, Header(alias="Idempotency-Key")
         ] = None,
     ) -> ManagementOperation:
-        actor = await require_admin(authorization)
+        actor = require_management_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         try:
             return await management_service.create_device(
@@ -352,12 +315,11 @@ def create_device_management_router(
     async def patch_device(
         name: str,
         patch: DevicePatchRequest,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None, Header(alias="Idempotency-Key")
         ] = None,
     ) -> ManagementOperation:
-        actor = await require_admin(authorization)
+        actor = require_management_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         try:
             return await management_service.patch_device(
@@ -447,13 +409,12 @@ def create_device_management_router(
     )
     async def restart_adapter_runtime(
         name: str,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
         ] = None,
     ) -> RuntimeObservation:
-        await require_runtime_admin(authorization)
+        require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         try:
             return await runtime_service.restart_runtime(
@@ -469,7 +430,6 @@ def create_device_management_router(
     )
     async def retire_adapter_runtime(
         name: str,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
@@ -479,7 +439,7 @@ def create_device_management_router(
             Header(alias="X-Confirm-Runtime"),
         ] = None,
     ) -> RuntimeObservation:
-        await require_runtime_admin(authorization)
+        require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         if confirm_runtime != name:
             raise HTTPException(
@@ -522,13 +482,12 @@ def create_device_management_router(
     )
     async def create_connection(
         request: ConnectionOnboardingRequest,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
         ] = None,
     ) -> ConnectionOperation:
-        actor = await require_runtime_admin(authorization)
+        actor = require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         try:
             return await connection_service.create_connection(
@@ -639,9 +598,6 @@ def create_device_management_router(
         return inventory.model_copy(
             update={
                 "candidates": candidates[:limit],
-                "decision_authentication_required": (
-                    not settings.device_discovery_tokenless_approval_enabled
-                ),
                 "total_candidates": total,
                 "filtered_candidates": filtered,
             }
@@ -654,14 +610,13 @@ def create_device_management_router(
     )
     async def create_manual_candidate(
         candidate: ManualCandidateInput,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
         ] = None,
     ) -> CandidateView:
         require_discovery_management()
-        await require_runtime_admin(authorization)
+        require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         payload = candidate.model_dump(
             by_alias=True,
@@ -688,14 +643,13 @@ def create_device_management_router(
     async def update_candidate_decision(
         candidate_id: str,
         update: CandidateDecisionInput,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
         ] = None,
     ) -> CandidateView:
         require_discovery_management()
-        await require_candidate_decision_authorization(authorization)
+        require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         payload = update.model_dump(
             by_alias=True,
@@ -725,14 +679,13 @@ def create_device_management_router(
     )
     async def delete_candidate(
         candidate_id: str,
-        authorization: Annotated[str | None, Header()] = None,
         idempotency_key_header: Annotated[
             str | None,
             Header(alias="Idempotency-Key"),
         ] = None,
     ) -> CandidateView:
         require_discovery_management()
-        await require_runtime_admin(authorization)
+        require_runtime_mutation()
         idempotency_key = require_idempotency_key(idempotency_key_header)
         try:
             return await discovery_service.delete_candidate(

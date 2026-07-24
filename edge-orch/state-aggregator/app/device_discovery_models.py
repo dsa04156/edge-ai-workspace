@@ -141,6 +141,5 @@ class DiscoveryInventory(ManagementModel):
     stale_after_seconds: int
     nodes: list[DiscoveryNodeView]
     candidates: list[CandidateView]
-    decision_authentication_required: bool = True
     total_candidates: int = Field(default=0, ge=0)
     filtered_candidates: int = Field(default=0, ge=0)

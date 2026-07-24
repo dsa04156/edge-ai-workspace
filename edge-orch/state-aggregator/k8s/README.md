@@ -52,9 +52,8 @@ ADAPTER_CONTROLLER_URL=http://edgex-adapter-controller.edgex-edge.svc.cluster.lo
 ADAPTER_CATALOG_PATH=/app/app/config/adapter_catalog.json
 ```
 
-세 credential은 Git에 두지 않고 `default/edgex-adapter-management-auth` Secret에서 읽는다.
+두 HMAC key는 Git에 두지 않고 `default/edgex-adapter-management-auth` Secret에서 읽는다.
 
-- `admin-token`: dashboard 관리자 Bearer token
 - `management-hmac-key`: 외부 idempotency request ID
 - `internal-hmac-key`: Adapter Controller 요청 서명
 
@@ -81,9 +80,10 @@ ClusterIP/PodIP가 없다. target node와 device path는 Git의 `hardwareBinding
 connection을 진행한다. Modbus, OPC-UA, MQTT와 RTSP는 실장비 검증 전까지 배포가
 `BLOCKED`다.
 
-관리자 mutation은 Bearer token과 요청별 `Idempotency-Key`를 모두 요구한다. token은
-dashboard JavaScript memory에만 유지되고 URL, localStorage와 sessionStorage에는 저장하지
-않는다. Profile/Device 강제 삭제, command/actuator, EdgeMesh와 KubeEdge
+관리 mutation은 browser 관리자 token이나 `Authorization` header를 사용하지 않고 요청별
+`Idempotency-Key`를 요구한다. BFF→Controller 내부 HMAC은 유지되지만 사용자 인증이
+아니다. 따라서 현재 경로는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도
+사용자 인증·인가가 필요하다. Profile/Device 강제 삭제, command/actuator, EdgeMesh와 KubeEdge
 Device/DeviceModel/DeviceStatus 변경은 제공하지 않는다.
 
 운영 절차는

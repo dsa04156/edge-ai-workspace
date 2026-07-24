@@ -37,11 +37,6 @@ spec:
               value: /app/app/config/adapter_catalog.json
             - name: DEVICE_MANAGEMENT_ENABLED
               value: "true"
-            - name: DEVICE_MANAGEMENT_ADMIN_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: edgex-adapter-management-auth
-                  key: admin-token
             - name: DEVICE_MANAGEMENT_HMAC_KEY
               valueFrom:
                 secretKeyRef:
@@ -52,8 +47,6 @@ spec:
             - name: ADAPTER_RUNTIME_MUTATION_ENABLED
               value: "true"
             - name: DEVICE_DISCOVERY_MANAGEMENT_ENABLED
-              value: "true"
-            - name: DEVICE_DISCOVERY_TOKENLESS_APPROVAL_ENABLED
               value: "true"
             - name: ADAPTER_CONTROLLER_URL
               value: http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080

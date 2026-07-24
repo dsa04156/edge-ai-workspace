@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-24 18:26</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:30</span>
+            <span class="badge">수정: 2026-07-24 18:52</span>
+            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
           </div>
         </header>
         <div class="doc-body">
@@ -250,11 +250,11 @@
 <h3 id="대시보드-노드별-adapter-runtime과-device-연결-관리">대시보드 노드별 Adapter Runtime과 Device 연결 관리</h3>
 <p><code>state-aggregator</code>의 <code>디바이스 관리</code> 화면은 운영자가 KubeEdge 노드를 먼저 선택하고, 그 노드의 Adapter Runtime과 EdgeX Device 연결을 한 흐름으로 관리하는 Current 경로다. <code>GET /state/nodes</code>, Runtime <code>targetNode</code>, Device <code>node_name</code>/<code>tags.nodeName</code>과 등록 hardware binding을 하나의 노드 범위로 합성하되, 이 합성은 배치·운영 탐색용이다. 브라우저는 Kubernetes API에 직접 접근하지 않으며, <code>state-aggregator</code>가 내부 HMAC으로 별도 <code>edgex-adapter-controller</code>를 호출한다. Controller는 Git에서 검증·등록한 template와 hardware binding만 <code>edgex-edge</code> namespace에 reconcile한다. Profile, Device와 Device Service binding의 권위는 Core Metadata, 첫 Event와 Reading의 권위는 Core Data에 그대로 남는다.</p>
 <ul><li>Runtime inventory, 재사용·배포 plan과 통합 connection validation은 mutation 없는 조회다.</li><li><code>POST /management/connections</code>, runtime restart/retire와 기존 Device allowlist <code>PATCH</code>는</li></ul>
-<p>관리자 Bearer token과 <code>Idempotency-Key</code>를 요구한다.</p>
-<ul><li>현재 PoC root 배포는 후보 승인·거절·재시도</li></ul>
-<p><code>PATCH /management/discovery/{candidateId}</code>에만 tokenless 예외를 명시한다. <code>Idempotency-Key</code>와 내부 HMAC은 유지하며 수동 후보 추가·삭제와 다른 mutation에는 예외를 적용하지 않는다. 설정 기본값은 token 필수다.</p>
+<p>요청별 <code>Idempotency-Key</code>를 요구한다. 후보 승인·거절·재시도와 수동 후보 추가·삭제도 같은 규칙을 사용하며 브라우저용 <code>Authorization</code> header나 관리자 token은 없다.</p>
 <ul><li>현재 운영 manifest는 <code>DEVICE_MANAGEMENT_ENABLED=true</code>,</li></ul>
-<p><code>ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true</code>, <code>ADAPTER_RUNTIME_MUTATION_ENABLED=true</code>로 관리 경로를 활성화하되, token과 HMAC key 세 개가 namespace별 <code>edgex-adapter-management-auth</code> Secret에 없으면 Pod가 시작하지 않는다.</p>
+<p><code>ADAPTER_RUNTIME_MANAGEMENT_ENABLED=true</code>, <code>ADAPTER_RUNTIME_MUTATION_ENABLED=true</code>로 관리 경로를 활성화한다. <code>management-hmac-key</code>와 namespace 사이에 공유하는 <code>internal-hmac-key</code>가 <code>edgex-adapter-management-auth</code> Secret에 없으면 Pod가 시작하지 않는다.</p>
+<ul><li>state-aggregator와 Adapter Controller 사이의 내부 HMAC, 후보 등록 Saga의 외부</li></ul>
+<p>AuthProvider는 유지한다. 전자는 서비스 요청 무결성, 후자는 장비 신뢰 검증이며 둘 다 대시보드 운영자 인증을 대신하지 않는다. 현재 무인증 관리 BFF는 접근이 제한된 개발 테스트베드 경계이며 운영 노출 전 별도 사용자 인증·인가가 필요하다.</p>
 <ul><li>기존 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 Argo CD 소유 external runtime이다.</li></ul>
 <p>대시보드는 상태·consumer와 runtime이 소유한 등록 hardware binding 목록을 조회한다. 요청한 binding이 목록에 있으면 같은 protocol runtime을 재사용하지만 재시작하거나 퇴역하지 않는다.</p>
 <ul><li>Controller가 만든 <code>AdapterRuntime</code>만 재시작할 수 있다. EdgeX Device consumer가 0개이고</li></ul>
