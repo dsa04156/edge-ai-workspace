@@ -182,6 +182,9 @@ def test_retired_runtime_can_be_reactivated_by_a_new_idempotent_request():
     created = create_managed_runtime(controller)
     retired = controller.retire_runtime(created.runtime_name, action_request())
     assert retired.phase == "RETIRED"
+    kube.runtimes[created.runtime_name]["spec"]["edgeX"][
+        "serviceName"
+    ] = "legacy-service-name"
 
     plan = controller.plan(plan_request())
     retry = create_request(plan.plan_hash)
@@ -193,6 +196,9 @@ def test_retired_runtime_can_be_reactivated_by_a_new_idempotent_request():
     assert reactivated.phase == "SERVICE_READY"
     assert replay.phase == "SERVICE_READY"
     assert kube.runtimes[created.runtime_name]["spec"]["desiredState"] == "Running"
+    assert kube.runtimes[created.runtime_name]["spec"]["edgeX"][
+        "serviceName"
+    ] == plan.service_name
     assert kube.runtimes[created.runtime_name]["spec"]["requestRef"] == (
         retry.request_ref.model_dump(by_alias=True)
     )

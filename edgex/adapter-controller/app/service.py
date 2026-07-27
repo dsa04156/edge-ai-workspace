@@ -158,6 +158,10 @@ class AdapterControllerService:
                 {
                     "desiredState": "Running",
                     "restartNonce": "",
+                    "edgeX": {
+                        **dict(existing_spec.get("edgeX") or {}),
+                        "serviceName": plan.service_name,
+                    },
                     "requestRef": request.request_ref.model_dump(
                         by_alias=True
                     ),

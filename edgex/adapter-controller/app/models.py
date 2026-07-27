@@ -166,6 +166,12 @@ class RuntimeTemplate(ControllerModel):
     deployment_enabled: bool = False
     image: str | None = None
     service_port: int = Field(ge=1024, le=65535)
+    edge_x_service_base_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+        pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$",
+    )
     hardware_bindings: list[HardwareBindingTemplate] = Field(default_factory=list)
     external_runtimes: list[ExternalRuntimeDefinition] = Field(default_factory=list)
     network_egress: list[RuntimeNetworkEgress] = Field(default_factory=list)
@@ -203,6 +209,22 @@ class RuntimeTemplate(ControllerModel):
                     "external runtime hardware bindings must target the runtime node"
                 )
         return self
+
+    def edge_x_service_instance(self, runtime_name: str) -> str | None:
+        if self.edge_x_service_base_name is None:
+            return None
+        instance = runtime_name.rsplit("-", 1)[-1]
+        if re.fullmatch(r"[a-z0-9]{10}", instance) is None:
+            raise ValueError(
+                "EdgeX instance runtime name must end with a 10-character ID"
+            )
+        return instance
+
+    def edge_x_service_identity(self, runtime_name: str) -> str:
+        instance = self.edge_x_service_instance(runtime_name)
+        if instance is None:
+            return runtime_name
+        return f"{self.edge_x_service_base_name}_{instance}"
 
 
 class RuntimeCatalogDocument(ControllerModel):

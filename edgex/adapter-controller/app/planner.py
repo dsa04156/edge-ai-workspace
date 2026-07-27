@@ -131,7 +131,7 @@ class RuntimePlanner:
             action="DEPLOY",
             allowed=True,
             runtime_name=identity,
-            service_name=identity,
+            service_name=template.edge_x_service_identity(identity),
             management_mode="controller",
         )
 

@@ -158,7 +158,9 @@ def test_template_verified_official_modbus_plans_development_deployment():
     assert plan.allowed is True
     assert plan.verification_state == "template-verified"
     assert plan.runtime_name.startswith("adapter-modbus-")
-    assert plan.service_name == plan.runtime_name
+    assert plan.service_name == (
+        "device-modbus_" + plan.runtime_name.rsplit("-", 1)[-1]
+    )
 
 
 def test_unknown_modbus_binding_remains_blocked():

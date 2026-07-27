@@ -60,6 +60,7 @@ def test_catalog_enables_only_the_pinned_official_modbus_simulator_path(catalog)
         "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:"
         "db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
     )
+    assert template.edge_x_service_base_name == "device-modbus"
     assert [item.binding_id for item in template.hardware_bindings] == [
         "jetson-modbus-tcp-simulator-001"
     ]

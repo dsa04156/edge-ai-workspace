@@ -75,6 +75,7 @@
       "deploymentEnabled": true,
       "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",
       "servicePort": 59920,
+      "edgeXServiceBaseName": "device-modbus",
       "hardwareBindings": [
         {
           "bindingId": "jetson-modbus-tcp-simulator-001",

@@ -128,7 +128,7 @@ class FakeModbusRuntimeService:
             adapter_id="modbus",
             template_id="modbus-device-service-v1",
             runtime_name="adapter-modbus-1234567890",
-            service_name="adapter-modbus-1234567890",
+            service_name="device-modbus_1234567890",
             target_node=request.target_node,
             hardware_binding_id=request.hardware_binding_id,
             management_mode="controller",
@@ -142,7 +142,7 @@ class FakeModbusRuntimeService:
             runtime_name=name,
             adapter_id="modbus",
             template_id="modbus-device-service-v1",
-            service_name=name,
+            service_name="device-modbus_1234567890",
             target_node="etri-dev0001-jetorn",
             hardware_binding_id="jetson-modbus-tcp-simulator-001",
             hardware_binding_ids=["jetson-modbus-tcp-simulator-001"],
@@ -491,7 +491,7 @@ def test_manual_modbus_candidate_runs_approval_to_first_event_saga(tmp_path):
         "EVENT_CONFIRMED"
     )
     assert edge_x.profiles == ["edgeai-modbus-temperature-v1"]
-    assert edge_x.devices[0]["serviceName"] == "adapter-modbus-1234567890"
+    assert edge_x.devices[0]["serviceName"] == "device-modbus_1234567890"
     assert edge_x.devices[0]["protocols"]["modbus-tcp"]["Port"] == 1502
     assert edge_x.devices[0]["autoEvents"][0]["sourceName"] == "temperature"
 

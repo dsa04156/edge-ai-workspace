@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from app.catalog import RuntimeTemplateCatalog
 from app.models import (
     RuntimeApplyRequest,
     RuntimeNetworkEgress,
@@ -232,3 +235,59 @@ def test_renderer_adds_only_catalog_approved_protocol_egress():
         ],
         "ports": [{"protocol": "TCP", "port": 1502}],
     }
+
+
+def test_official_edgex_runtime_uses_sdk_instance_service_identity():
+    template = RuntimeTemplateCatalog.load(
+        (
+            Path(__file__).resolve().parents[1]
+            / "config"
+            / "runtime_templates.json"
+        )
+    ).require("modbus-device-service-v1")
+    name = "adapter-modbus-6a19a499ed"
+    plan = RuntimePlan(
+        action="DEPLOY",
+        allowed=True,
+        adapter_id="modbus",
+        template_id="modbus-device-service-v1",
+        runtime_name=name,
+        service_name="device-modbus_6a19a499ed",
+        target_node="etri-dev0001-jetorn",
+        hardware_binding_id="jetson-modbus-tcp-simulator-001",
+        management_mode="controller",
+        verification_state="template-verified",
+        plan_hash="e" * 64,
+    )
+    resource = render_adapter_runtime(
+        plan,
+        template,
+        RuntimeApplyRequest(
+            request_id="f" * 64,
+            payload_hash="1" * 64,
+            plan_hash="e" * 64,
+        ),
+        namespace="edgex-edge",
+    )
+    resource["metadata"]["uid"] = "modbus-runtime-uid"
+
+    resources = render_runtime_workload(
+        resource,
+        template,
+        namespace="edgex-edge",
+    )
+    deployment = next(
+        item for item in resources if item["kind"] == "Deployment"
+    )
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    env = {
+        item["name"]: item["value"]
+        for item in container["env"]
+        if "value" in item
+    }
+
+    assert "-i=6a19a499ed" in container["args"]
+    assert env["EDGEX_SERVICE_NAME"] == "device-modbus_6a19a499ed"
+    assert env["SERVICE_HOST"] == (
+        "adapter-modbus-6a19a499ed.edgex-edge.svc.cluster.local"
+    )

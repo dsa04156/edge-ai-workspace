@@ -33,6 +33,8 @@ def render_adapter_runtime(
         raise ValueError("runtime plan adapter does not match the catalog")
     if not plan.runtime_name or not plan.service_name:
         raise ValueError("DEPLOY plan requires runtime and service identity")
+    if plan.service_name != template.edge_x_service_identity(plan.runtime_name):
+        raise ValueError("EdgeX service identity does not match the catalog")
     if not template.deployment_enabled:
         raise ValueError("runtime template is not deployment-enabled")
 
@@ -104,8 +106,8 @@ def render_runtime_workload(
 
     edge_x = spec.get("edgeX") or {}
     service_name = str(edge_x.get("serviceName") or "")
-    if service_name != name:
-        raise ValueError("runtime and EdgeX service identity must match")
+    if service_name != template.edge_x_service_identity(name):
+        raise ValueError("runtime EdgeX service identity does not match the catalog")
     if edge_x.get("messageBusHost") != MESSAGEBUS_HOST:
         raise ValueError("message bus host is not the approved service DNS")
     if edge_x.get("messageBusPort") != 1883:
@@ -135,7 +137,7 @@ def render_runtime_workload(
         else {}
     )
     configuration = _configuration_yaml(
-        service_name=service_name,
+        service_name=name,
         service_port=template.service_port,
     )
     config_map = {
@@ -208,20 +210,24 @@ def render_runtime_workload(
             "runAsUser": 65532,
             "runAsGroup": 65532,
         }
+    container_args = [
+        f"-cp=keeper.http://{CORE_KEEPER_HOST}:59890",
+        "-cd=/res",
+    ]
+    service_instance = template.edge_x_service_instance(name)
+    if service_instance is not None:
+        container_args.append(f"-i={service_instance}")
     container = {
         "name": "device-service",
         "image": template.image,
         "imagePullPolicy": "IfNotPresent",
-        "args": [
-            f"-cp=keeper.http://{CORE_KEEPER_HOST}:59890",
-            "-cd=/res",
-        ],
+        "args": container_args,
         "env": [
             {"name": "EDGEX_SERVICE_NAME", "value": service_name},
             {"name": "EDGEX_SECURITY_SECRET_STORE", "value": "false"},
             {
                 "name": "SERVICE_HOST",
-                "value": f"{service_name}.{namespace}.svc.cluster.local",
+                "value": f"{name}.{namespace}.svc.cluster.local",
             },
             {"name": "SERVICE_PORT", "value": str(template.service_port)},
             {"name": "SERVICE_SERVERBINDADDR", "value": "0.0.0.0"},

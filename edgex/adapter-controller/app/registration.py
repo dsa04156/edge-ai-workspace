@@ -456,6 +456,9 @@ class RegistrationCoordinator:
                         f"{exc.__class__.__name__}"
                     ),
                 )
+            if runtime is not None and runtime.phase == "RETIRED":
+                registration.created_runtime = False
+                runtime = None
             if runtime is not None:
                 registration.created_runtime = True
                 if runtime.phase == "FAILED":
