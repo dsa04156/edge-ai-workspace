@@ -432,15 +432,60 @@ class RegistrationCoordinator:
                 message="verified Catalog binding changed after approval",
             )
         binding = match.binding
-        try:
-            plan = self.runtime_service.plan(
-                RuntimePlanRequest(
-                    adapter_id=binding.adapter.runtime_adapter_id,
-                    target_node=candidate.node_name,
-                    hardware_binding_id=binding.runtime_hardware_binding_id,
-                    mode="auto",
+        runtime = None
+        if registration.runtime_name and registration.step in {
+            "RUNTIME_REQUESTED",
+            "WAITING_FOR_RUNTIME",
+        }:
+            try:
+                runtime = next(
+                    (
+                        item
+                        for item in self.runtime_service.list_runtimes()
+                        if item.runtime_name == registration.runtime_name
+                    ),
+                    None,
                 )
-            )
+            except Exception as exc:
+                return self._fail_runtime_stage(
+                    candidate,
+                    registration,
+                    code="RUNTIME_READ_FAILED",
+                    message=(
+                        "Runtime readback failed: "
+                        f"{exc.__class__.__name__}"
+                    ),
+                )
+            if runtime is not None:
+                registration.created_runtime = True
+                if runtime.phase == "FAILED":
+                    return self._fail_runtime_stage(
+                        candidate,
+                        registration,
+                        code="RUNTIME_START_FAILED",
+                        message="Device Service Runtime entered FAILED",
+                    )
+                if runtime.phase != "SERVICE_READY":
+                    registration.step = "WAITING_FOR_RUNTIME"
+                    self._set_candidate_step(
+                        candidate.candidate_id,
+                        registration.step,
+                    )
+                    registration.updated_at = _now()
+                    return self.store.put_registration(registration)
+        try:
+            plan = None
+            if runtime is None:
+                plan = self.runtime_service.plan(
+                    RuntimePlanRequest(
+                        adapter_id=binding.adapter.runtime_adapter_id,
+                        target_node=candidate.node_name,
+                        hardware_binding_id=(
+                            binding.runtime_hardware_binding_id
+                        ),
+                        mode="auto",
+                    )
+                )
         except Exception as exc:
             return self._fail_runtime_stage(
                 candidate,
@@ -448,7 +493,9 @@ class RegistrationCoordinator:
                 code="RUNTIME_PLAN_FAILED",
                 message=f"Runtime planning failed: {exc.__class__.__name__}",
             )
-        if not plan.allowed or plan.action == "BLOCKED":
+        if plan is not None and (
+            not plan.allowed or plan.action == "BLOCKED"
+        ):
             reason = (
                 plan.reasons[0].code
                 if plan.reasons
@@ -460,13 +507,15 @@ class RegistrationCoordinator:
                 code="RUNTIME_PLAN_BLOCKED",
                 message=f"Runtime plan was blocked: {reason}",
             )
-        registration.runtime_name = plan.runtime_name
-        registration.service_name = plan.service_name
-        registration.binding_id = binding.binding_id
-        registration.step = "RUNTIME_REQUESTED"
-        self._set_candidate_step(candidate.candidate_id, registration.step)
-        registration.updated_at = _now()
-        if plan.action == "DEPLOY":
+        if plan is not None:
+            registration.runtime_name = plan.runtime_name
+            registration.service_name = plan.service_name
+            registration.binding_id = binding.binding_id
+            registration.step = "RUNTIME_REQUESTED"
+            self._set_candidate_step(candidate.candidate_id, registration.step)
+            registration.updated_at = _now()
+            self.store.put_registration(registration)
+        if plan is not None and plan.action == "DEPLOY":
             try:
                 request_id = _sha(
                     f"{candidate.candidate_id}|runtime|{registration.attempt}"
@@ -492,6 +541,8 @@ class RegistrationCoordinator:
                     ),
                 )
                 registration.created_runtime = True
+                registration.updated_at = _now()
+                self.store.put_registration(registration)
                 if runtime.phase == "FAILED":
                     return self._fail_runtime_stage(
                         candidate,
@@ -508,7 +559,7 @@ class RegistrationCoordinator:
                     code="RUNTIME_START_FAILED",
                     message=f"Device Service startup failed: {exc.__class__.__name__}",
                 )
-        else:
+        elif plan is not None:
             try:
                 runtime = next(
                     (

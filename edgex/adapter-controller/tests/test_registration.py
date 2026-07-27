@@ -158,6 +158,34 @@ class FakeModbusRuntimeService:
         self.retired.append(name)
 
 
+class FakeDelayedModbusRuntimeService(FakeModbusRuntimeService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.plan_calls = 0
+        self.apply_calls = 0
+        self.list_calls = 0
+
+    def plan(self, request):
+        self.plan_calls += 1
+        if self.plan_calls > 1:
+            raise AssertionError("an already requested Runtime was replanned")
+        return super().plan(request)
+
+    def apply_runtime(self, name, request):
+        self.apply_calls += 1
+        runtime = super().apply_runtime(name, request)
+        return runtime.model_copy(update={"phase": "DEPLOYING"})
+
+    def list_runtimes(self):
+        self.list_calls += 1
+        runtime = super().apply_runtime(
+            "adapter-modbus-1234567890",
+            None,
+        )
+        phase = "DEPLOYING" if self.list_calls == 1 else "SERVICE_READY"
+        return [runtime.model_copy(update={"phase": phase})]
+
+
 class FakeEdgeX:
     def __init__(
         self,
@@ -466,6 +494,78 @@ def test_manual_modbus_candidate_runs_approval_to_first_event_saga(tmp_path):
     assert edge_x.devices[0]["serviceName"] == "adapter-modbus-1234567890"
     assert edge_x.devices[0]["protocols"]["modbus-tcp"]["Port"] == 1502
     assert edge_x.devices[0]["autoEvents"][0]["sourceName"] == "temperature"
+
+
+def test_created_runtime_is_observed_until_ready_without_replanning(tmp_path):
+    kube = FakeKubernetesGateway(target_node_ready=True)
+    store = SQLiteDiscoveryStore(tmp_path / "discovery.db")
+    runtime_catalog = RuntimeTemplateCatalog.load(
+        BASE / "config" / "runtime_templates.json"
+    )
+    device_catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    registry = DeviceCandidateRegistry(
+        runtime_catalog,
+        kube,
+        store=store,
+        device_catalog=device_catalog,
+    )
+    candidate = registry.create_manual(
+        ManualCandidateCreate(
+            candidate=ManualCandidateInput(
+                node_name="etri-dev0001-jetorn",
+                protocol="modbus",
+                transport="modbus-tcp",
+                display_name="EdgeX Modbus TCP simulator",
+                properties={
+                    "Mode": "tcp",
+                    "Host": (
+                        "edge-modbus-simulator.edgex-edge.svc.cluster.local"
+                    ),
+                    "Port": 1502,
+                    "UnitID": 1,
+                },
+            ),
+            request_ref=CandidateMutationRef(
+                request_id="8" * 64,
+                payload_hash="9" * 64,
+            ),
+        )
+    )
+    runtime = FakeDelayedModbusRuntimeService()
+    coordinator = RegistrationCoordinator(
+        registry=registry,
+        store=store,
+        device_catalog=device_catalog,
+        auth_provider=AllowAllMockProvider(),
+        edge_x=FakeEdgeX(event_received=True),
+        kube=kube,
+        runtime_service=runtime,
+        event_timeout_seconds=10,
+    )
+    coordinator.approve(
+        candidate.candidate_id,
+        CandidateApprovalRequest(
+            actor="operator-1",
+            reason="development simulator endpoint verified",
+            request_ref=CandidateMutationRef(
+                request_id="a" * 64,
+                payload_hash="b" * 64,
+            ),
+        ),
+    )
+
+    first = coordinator.reconcile_candidate(candidate.candidate_id)
+    waiting = coordinator.reconcile_candidate(candidate.candidate_id)
+    ready = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert first.step == "RUNTIME_REQUESTED"
+    assert waiting.step == "WAITING_FOR_RUNTIME"
+    assert ready.status == "SERVICE_READY"
+    assert runtime.plan_calls == 1
+    assert runtime.apply_calls == 1
+    assert runtime.list_calls == 2
 
 
 def test_auth_denial_blocks_before_edgex_registration(tmp_path):
