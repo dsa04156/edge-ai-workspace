@@ -239,6 +239,7 @@ class StateAggregatorService:
             ],
             "temperature": 0.2,
             "max_tokens": 700,
+            "chat_template_kwargs": {"enable_thinking": False},
         }
         endpoint = f"{self.settings.qwen_base_url.rstrip('/')}/chat/completions"
         try:

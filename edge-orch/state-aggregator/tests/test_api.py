@@ -487,6 +487,7 @@ def test_operator_chat_posts_openai_compatible_payload(monkeypatch):
     assert calls[0]["json"]["messages"][0]["role"] == "system"
     assert "read-only" in calls[0]["json"]["messages"][0]["content"]
     assert "Never expose chain-of-thought" in calls[0]["json"]["messages"][0]["content"]
+    assert calls[0]["json"]["chat_template_kwargs"] == {"enable_thinking": False}
 
 
 def test_operator_chat_extracts_final_answer_without_reasoning():
