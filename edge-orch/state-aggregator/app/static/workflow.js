@@ -12,11 +12,18 @@ function bindWorkflowEvents() {
     workflowState.selectedNodeId = currentWorkflow().nodes[0]?.id || "";
     workflowState.linkFromNodeId = "";
     renderWorkflow();
+    setWorkflowStatus(`${currentWorkflow().name} 초안을 열었습니다.`, "success");
   });
   workflowEl("startWorkflowLink")?.addEventListener("click", () => {
     workflowState.linkFromNodeId = selectedWorkflowNode()?.id || "";
     workflowEl("workflowLinkHint").textContent = workflowState.linkFromNodeId ? "연결할 target node를 클릭하세요." : "먼저 node를 선택하세요.";
     renderGraph();
+    setWorkflowStatus(
+      workflowState.linkFromNodeId
+        ? "연결할 대상 단계를 클릭하세요."
+        : "연결을 시작할 단계를 먼저 선택하세요.",
+      workflowState.linkFromNodeId ? "waiting" : "warning",
+    );
   });
   workflowEl("removeWorkflowLink")?.addEventListener("click", removeSelectedLink);
   workflowEl("removeWorkflowNode")?.addEventListener("click", removeSelectedNode);
@@ -46,6 +53,7 @@ function bindWorkflowEvents() {
       workflowState.selectedFilter = button.getAttribute("data-device-filter") || "all";
       document.querySelectorAll("[data-device-filter]").forEach((item) => item.classList.toggle("active", item === button));
       renderTargetPool();
+      setWorkflowStatus(`${button.textContent.trim()} 필터를 적용했습니다.`, "success");
     });
   });
   bindGraphEvents();
@@ -55,6 +63,8 @@ function bindWorkflowEvents() {
     workflowState.selectedTargetId = button.getAttribute("data-target-id") || "";
     renderTargetPool();
     renderInspector();
+    const target = selectedWorkflowTarget();
+    setWorkflowStatus(`${target?.displayName || "대상"}을(를) 선택했습니다.`, "success");
   });
 }
 
@@ -92,7 +102,10 @@ function bindGraphEvents() {
 }
 
 function showWorkflowError(error) {
-  workflowEl("workflowStatus").textContent = error instanceof Error ? error.message : "workflow API error";
+  setWorkflowStatus(
+    error instanceof Error ? error.message : "워크플로우 API 요청에 실패했습니다.",
+    "error",
+  );
   renderWorkflow();
 }
 

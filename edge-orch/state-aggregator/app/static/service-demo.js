@@ -125,9 +125,5 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
     refreshServiceDemo();
     window.setInterval(refreshServiceDemo, 5_000);
-    document.getElementById("refreshButton")?.addEventListener(
-      "click",
-      () => refreshServiceDemo(),
-    );
   });
 }

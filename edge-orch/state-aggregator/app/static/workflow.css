@@ -620,3 +620,36 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+#workflowStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--console-border, #334155);
+  border-left-width: 3px;
+  border-radius: 4px;
+  color: var(--console-muted, #cbd5e1);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+#workflowStatus[data-status="waiting"] {
+  border-left-color: #38bdf8;
+  color: #bae6fd;
+}
+
+#workflowStatus[data-status="success"] {
+  border-left-color: #34d399;
+  color: #a7f3d0;
+}
+
+#workflowStatus[data-status="warning"] {
+  border-left-color: #fbbf24;
+  color: #fde68a;
+}
+
+#workflowStatus[data-status="error"] {
+  border-left-color: #fb7185;
+  color: #fecdd3;
+}

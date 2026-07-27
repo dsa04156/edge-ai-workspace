@@ -26,6 +26,7 @@ const {
   fetchManagementOperation,
   managementApiUrl,
   managementDeviceNode,
+  managementPayload,
   managementTabIndexForKey,
   normalizeManagementView,
   normalizeRegistrationStep,
@@ -835,6 +836,21 @@ test("management errors preserve safe server detail", async () => {
   );
 });
 
+test("validation errors identify the invalid request fields", async () => {
+  await assert.rejects(
+    managementPayload(response(
+      {
+        detail: [
+          {loc: ["body", "device", "name"], msg: "Field required", type: "missing"},
+          {loc: ["body", "profile", "name"], msg: "Field required", type: "missing"},
+        ],
+      },
+      {ok: false, status: 422},
+    )),
+    /device\.name: Field required · profile\.name: Field required/,
+  );
+});
+
 
 test("operation status distinguishes metadata wait, verified, and failure", () => {
   assert.deepEqual(operationStatusView({status: "waiting_for_event"}), {
@@ -973,6 +989,9 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementProtocolFields",
     "managementValidation",
     "managementOperation",
+    "managementActionFeedback",
+    "managementRegistrationFeedback",
+    "managementPatchResult",
     "managementMutationMode",
     "managedDeviceList",
     "devicePatchForm",
@@ -1000,8 +1019,8 @@ test("dashboard ships an accessible token-free device management page", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=device-management-token-free-v1-20260724/);
-  assert.match(html, /device-management\.js\?v=device-management-token-free-v1-20260724/);
+  assert.match(html, /device-management\.css\?v=interaction-feedback-20260727/);
+  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1033,6 +1052,9 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
   assert.match(javascript, /function renderManagementValidation\(/);
+  assert.match(javascript, /function validateRegistrationThrough\(/);
+  assert.match(javascript, /function renderManagementActionFeedback\(/);
+  assert.match(javascript, /function renderPatchResult\(/);
   assert.match(javascript, /function renderRuntimeInventory\(/);
   assert.match(javascript, /function renderDiscoveryCandidates\(/);
   assert.match(javascript, /등록 물리 연결/);

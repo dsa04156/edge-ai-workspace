@@ -8,7 +8,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     refactor_link = "/static/dashboard-refactor.css?v=device-history-20260722"
-    screen_link = "/static/dashboard-screen.css?v=edgex-cutover-20260714"
+    screen_link = "/static/dashboard-screen.css?v=interaction-feedback-20260727"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -175,7 +175,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=device-history-20260722" in html
-    assert "/static/dashboard.js?v=device-history-20260722" in html
+    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

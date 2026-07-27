@@ -208,7 +208,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /service-demo\.css\?v=live-sensor-age-20260722/);
-  assert.match(html, /service-demo\.js\?v=live-sensor-age-20260722/);
+  assert.match(html, /service-demo\.js\?v=interaction-feedback-20260727/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);

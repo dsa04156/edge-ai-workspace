@@ -3,10 +3,43 @@ const assert = require("node:assert/strict");
 
 const {
   buildDashboardAlerts,
+  buildGlobalSearchResults,
   deviceFilterEmptyText,
   deviceObservationUnavailable,
   formatDashboardKpiValue,
 } = require("../app/static/dashboard.js");
+
+test("global search returns matching nodes, devices, and services", () => {
+  const data = {
+    nodes: [{hostname: "factory-edge-01", node_type: "edge_device"}],
+    devices: [{
+      name: "virtual-temperature-001",
+      profile_name: "temperature-v1",
+      device_service_name: "device-serial",
+      protocol_names: ["serial"],
+      node_name: "factory-edge-01",
+    }],
+    resource_profiles: {
+      service_resource_profiles: [{
+        namespace: "edgex-system",
+        service: "edgex-core-data",
+        pod_count: 1,
+        nodes: ["server2"],
+        containers: [{pod: "core-data-0", container: "core-data", node: "server2"}],
+      }],
+    },
+  };
+
+  assert.deepEqual(
+    buildGlobalSearchResults("factory-edge", data).map((item) => item.kind),
+    ["node", "device"],
+  );
+  assert.deepEqual(
+    buildGlobalSearchResults("core-data", data).map((item) => item.id),
+    ["edgex-system/edgex-core-data"],
+  );
+  assert.deepEqual(buildGlobalSearchResults("", data), []);
+});
 
 test("shows EdgeX observation failure instead of empty inventory", () => {
   const data = {

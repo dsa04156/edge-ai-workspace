@@ -34,6 +34,69 @@ const DEVICE_TELEMETRY_WINDOWS = [
   {value: "-24h", label: "24시간"},
 ];
 
+function buildGlobalSearchResults(query, data = {}, limit = 10) {
+  const normalized = String(query || "").trim().toLocaleLowerCase();
+  if (!normalized) return [];
+  const includesQuery = (...values) => values
+    .flat()
+    .filter((value) => value !== null && value !== undefined)
+    .some((value) => String(value).toLocaleLowerCase().includes(normalized));
+  const results = [];
+
+  (data.nodes || []).forEach((node, index) => {
+    const name = nodeDisplayName(node, index);
+    if (includesQuery(name, node.hostname, node.name, node.node_name, node.node_type)) {
+      results.push({
+        kind: "node",
+        id: name,
+        label: name,
+        detail: `노드 · ${text(node.node_type, "유형 미확인")}`,
+        index,
+      });
+    }
+  });
+  (data.devices || []).forEach((device) => {
+    if (includesQuery(
+      device.name,
+      device.profile_name,
+      device.device_service_name,
+      device.protocol_names,
+      device.node_name,
+    )) {
+      results.push({
+        kind: "device",
+        id: device.name,
+        label: device.name,
+        detail: `디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
+      });
+    }
+  });
+  const profiles = data.resource_profiles?.service_resource_profiles || [];
+  const seenServices = new Set();
+  profiles.forEach((profile) => {
+    const id = `${text(profile.namespace, "default")}/${text(profile.service, "unknown")}`;
+    if (seenServices.has(id) || !includesQuery(
+      id,
+      profile.namespace,
+      profile.service,
+      profile.nodes,
+      (profile.containers || []).flatMap((container) => [
+        container.pod,
+        container.container,
+        container.node,
+      ]),
+    )) return;
+    seenServices.add(id);
+    results.push({
+      kind: "service",
+      id,
+      label: id,
+      detail: `서비스 · ${text(profile.pod_count, 0)}개 Pod`,
+    });
+  });
+  return results.slice(0, Math.max(1, Number(limit) || 10));
+}
+
 
 
 function pct(value) {
@@ -696,6 +759,112 @@ async function loadDashboard() {
   render();
 }
 
+function setAsyncButtonState(button, {
+  busy = false,
+  label = "",
+  success = false,
+} = {}) {
+  if (!button) return;
+  if (!button.dataset.defaultLabel) button.dataset.defaultLabel = button.textContent.trim();
+  button.disabled = busy;
+  button.setAttribute("aria-busy", String(busy));
+  button.dataset.state = success ? "success" : busy ? "busy" : "ready";
+  button.textContent = label || button.dataset.defaultLabel;
+}
+
+async function refreshDashboardNow() {
+  const button = $("refreshButton");
+  setAsyncButtonState(button, {busy: true, label: "새로고침 중…"});
+  try {
+    const requests = [loadDashboard()];
+    if (typeof globalThis.refreshServiceDemo === "function") {
+      requests.push(globalThis.refreshServiceDemo());
+    }
+    await Promise.all(requests);
+    setAsyncButtonState(button, {label: "새로고침 완료", success: true});
+    globalThis.setTimeout?.(
+      () => setAsyncButtonState(button),
+      1200,
+    );
+  } catch (error) {
+    setAsyncButtonState(button, {label: "새로고침 실패"});
+    if ($("alertList")) {
+      $("alertList").innerHTML = `<article class="item alert high"><strong>${escapeHtml(error.message)}</strong></article>`;
+    }
+    globalThis.setTimeout?.(
+      () => setAsyncButtonState(button),
+      2000,
+    );
+  }
+}
+
+function renderGlobalSearch(query = $("globalResourceSearch")?.value || "") {
+  const input = $("globalResourceSearch");
+  const status = $("globalSearchStatus");
+  const container = $("globalSearchResults");
+  if (!input || !status || !container) return [];
+  const normalized = String(query || "").trim();
+  const results = buildGlobalSearchResults(normalized, state.data || {});
+  input.setAttribute("aria-expanded", String(Boolean(normalized)));
+  container.hidden = !normalized;
+  if (!normalized) {
+    status.textContent = "";
+    container.replaceChildren();
+    return [];
+  }
+  status.textContent = results.length ? `${results.length}건` : "검색 결과 없음";
+  container.innerHTML = results.length
+    ? results.map((result, index) => `
+        <button
+          type="button"
+          role="option"
+          class="global-search-result"
+          data-global-result-kind="${escapeHtml(result.kind)}"
+          data-global-result-id="${escapeHtml(result.id)}"
+          data-global-result-index="${escapeHtml(result.index ?? "")}"
+          ${index === 0 ? 'data-global-first-result="true"' : ""}
+        >
+          <span>${escapeHtml({node: "NODE", device: "DEVICE", service: "SERVICE"}[result.kind] || result.kind)}</span>
+          <strong>${escapeHtml(result.label)}</strong>
+          <small>${escapeHtml(result.detail)}</small>
+        </button>
+      `).join("")
+    : `<p class="global-search-empty">일치하는 노드·디바이스·서비스가 없습니다.</p>`;
+  return results;
+}
+
+function openGlobalSearchResult(target) {
+  const button = target?.closest?.("[data-global-result-kind]");
+  if (!button) return false;
+  const kind = button.dataset.globalResultKind;
+  const id = button.dataset.globalResultId;
+  if (typeof globalThis.showDashboardPage === "function") {
+    globalThis.showDashboardPage("inventory");
+  }
+  if (globalThis.location && globalThis.location.hash !== "#inventory") {
+    globalThis.location.hash = "inventory";
+  }
+  if (kind === "node") {
+    applyNodeDeviceFilter(id, button.dataset.globalResultIndex);
+  } else if (kind === "device") {
+    const device = (state.data?.devices || []).find((item) => item.name === id);
+    if (device) {
+      void loadDeviceTelemetryHistory(device);
+      renderDevices(state.data?.devices || []);
+    }
+  } else if (kind === "service") {
+    state.selectedTopologyService = id;
+    renderTopology(state.data?.resource_profiles || {}, state.data?.kpis || {});
+  }
+  const input = $("globalResourceSearch");
+  const container = $("globalSearchResults");
+  if (input) input.value = "";
+  if (container) container.hidden = true;
+  if (input) input.setAttribute("aria-expanded", "false");
+  setText("globalSearchStatus", `${id} 열기 완료`);
+  return true;
+}
+
 function renderChatTranscript() {
   const transcript = $("chatTranscript");
   if (!transcript) return;
@@ -818,6 +987,7 @@ function render() {
   renderOverviewVisuals(data, kpis, devices);
   renderKpiCatalog(kpis, deviceObservationFailed);
   renderNodeMetricMatrix(nodes);
+  if ($("globalResourceSearch")?.value.trim()) renderGlobalSearch();
   renderResourceProfiles(resourceState, kpis);
   renderScenario(devices, kpis);
 
@@ -1400,10 +1570,38 @@ if (typeof document !== "undefined" && $("clearNodeFilter")) {
 }
 
 if (typeof document !== "undefined" && $("refreshButton")) {
-  $("refreshButton").addEventListener("click", () => {
-    loadDashboard().catch((error) => {
-      $("alertList").innerHTML = `<article class="item alert high"><strong>${escapeHtml(error.message)}</strong></article>`;
-    });
+  $("refreshButton").addEventListener("click", refreshDashboardNow);
+}
+
+if (typeof document !== "undefined" && $("globalResourceSearch")) {
+  $("globalResourceSearch").addEventListener("input", (event) => {
+    renderGlobalSearch(event.target.value);
+  });
+  $("globalResourceSearch").addEventListener("focus", (event) => {
+    if (event.target.value.trim()) renderGlobalSearch(event.target.value);
+  });
+  $("globalResourceSearch").addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.currentTarget.value = "";
+      renderGlobalSearch("");
+      return;
+    }
+    if (event.key === "Enter") {
+      const first = $("globalSearchResults")?.querySelector("[data-global-first-result]");
+      if (first) {
+        event.preventDefault();
+        openGlobalSearchResult(first);
+      }
+    }
+  });
+  $("globalSearchResults")?.addEventListener("click", (event) => {
+    openGlobalSearchResult(event.target);
+  });
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".global-search")) return;
+    const results = $("globalSearchResults");
+    if (results) results.hidden = true;
+    $("globalResourceSearch")?.setAttribute("aria-expanded", "false");
   });
 }
 
@@ -1453,12 +1651,15 @@ if (typeof module !== "undefined") {
     cleanNodeLabel,
     nodeDisplayName,
     chatResponseMeta,
+    buildGlobalSearchResults,
     createDeviceTelemetryHistoryState,
     deviceTelemetryHistoryUrl,
     fetchDeviceTelemetryHistory,
     handleTelemetryHistoryAction,
     loadDeviceTelemetryHistory,
     renderDeviceTelemetryHistory,
+    renderGlobalSearch,
+    refreshDashboardNow,
     submitOperatorChat,
     renderTopology,
     state,

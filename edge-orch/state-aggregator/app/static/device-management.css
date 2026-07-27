@@ -1371,3 +1371,67 @@ body[data-dashboard-page="management"] .side-rail {
     transition: none;
   }
 }
+
+.management-action-feedback,
+.management-inline-feedback {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--console-border-strong, #334155);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: var(--console-panel-2, #111827);
+  color: var(--console-muted, #cbd5e1);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.management-action-feedback {
+  margin: 12px 0 16px;
+}
+
+.management-inline-feedback {
+  margin: 12px 0;
+}
+
+.management-action-feedback[data-status="waiting"],
+.management-inline-feedback[data-status="waiting"] {
+  border-left-color: #38bdf8;
+  color: #bae6fd;
+}
+
+.management-action-feedback[data-status="success"],
+.management-action-feedback[data-status="verified"],
+.management-inline-feedback[data-status="success"],
+.management-inline-feedback[data-status="verified"] {
+  border-left-color: #34d399;
+  color: #a7f3d0;
+}
+
+.management-action-feedback[data-status="warning"],
+.management-inline-feedback[data-status="warning"] {
+  border-left-color: #fbbf24;
+  color: #fde68a;
+}
+
+.management-action-feedback[data-status="failed"],
+.management-action-feedback[data-status="error"],
+.management-inline-feedback[data-status="failed"],
+.management-inline-feedback[data-status="error"] {
+  border-left-color: #fb7185;
+  color: #fecdd3;
+}
+
+.management-action-reason {
+  display: block;
+  margin-top: 8px;
+  color: var(--console-muted, #cbd5e1);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.management-runtime-actions button:disabled {
+  border-style: dashed;
+}

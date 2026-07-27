@@ -486,6 +486,42 @@ def test_operator_chat_posts_openai_compatible_payload(monkeypatch):
     assert calls[0]["json"]["model"] == "qwen3.6-35b"
     assert calls[0]["json"]["messages"][0]["role"] == "system"
     assert "read-only" in calls[0]["json"]["messages"][0]["content"]
+    assert "Never expose chain-of-thought" in calls[0]["json"]["messages"][0]["content"]
+
+
+def test_operator_chat_extracts_final_answer_without_reasoning():
+    aggregator = StateAggregatorService(Settings())
+    payload = {
+        "choices": [{
+            "message": {
+                "content": (
+                    "Here's a thinking process:\n"
+                    "1. Analyze the dashboard.\n"
+                    "2. Compare the constraints.\n"
+                    "3. **Draft:**\n"
+                    "현재 장비 이벤트는 최신 상태입니다. Core Data 시각을 먼저 확인하세요.\n"
+                    "4. **Check against constraints:** read only"
+                ),
+                "reasoning_content": "private chain of thought",
+            },
+        }],
+    }
+
+    answer = aggregator._extract_chat_answer(payload)
+
+    assert answer == "현재 장비 이벤트는 최신 상태입니다. Core Data 시각을 먼저 확인하세요."
+    assert "thinking process" not in answer
+    assert "private chain" not in answer
+
+
+def test_operator_chat_does_not_fallback_to_reasoning_content():
+    aggregator = StateAggregatorService(Settings())
+
+    answer = aggregator._extract_chat_answer({
+        "choices": [{"message": {"content": "", "reasoning_content": "private reasoning"}}],
+    })
+
+    assert answer == ""
 
 
 def _edgex_device(

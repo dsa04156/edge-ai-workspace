@@ -42,6 +42,7 @@ const managementState = {
   manualCandidateCreateKey: "",
   validation: null,
   operation: null,
+  patchBaseline: null,
 };
 
 
@@ -686,9 +687,17 @@ async function managementPayload(response) {
   }
   if (response.ok) return payload;
   const detail = payload?.detail;
-  const message = typeof detail === "string"
-    ? detail
-    : detail?.message || detail?.error || `management request failed (${response.status})`;
+  const detailMessage = Array.isArray(detail)
+    ? detail.map((item) => {
+      const location = Array.isArray(item?.loc)
+        ? item.loc.filter((part) => part !== "body").join(".")
+        : "";
+      return `${location ? `${location}: ` : ""}${item?.msg || item?.message || item?.type || "요청 값 오류"}`;
+    }).join(" · ")
+    : typeof detail === "string"
+      ? detail
+      : detail?.message || detail?.error || "";
+  const message = detailMessage || `관리 요청에 실패했습니다. (HTTP ${response.status})`;
   const error = new Error(message);
   error.status = response.status;
   error.detail = detail;
@@ -1072,6 +1081,113 @@ function byId(id, documentRef = document) {
 
 function clearElement(element) {
   if (element) element.replaceChildren();
+}
+
+function renderManagementActionFeedback(message, {
+  status = "ready",
+  documentRef = document,
+} = {}) {
+  const element = byId("managementActionFeedback", documentRef);
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.status = status;
+}
+
+
+function renderRegistrationFeedback(message, {
+  status = "ready",
+  documentRef = document,
+} = {}) {
+  const element = byId("managementRegistrationFeedback", documentRef);
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.status = status;
+}
+
+
+function renderPatchResult(message, {
+  status = "ready",
+  documentRef = document,
+} = {}) {
+  const element = byId("managementPatchResult", documentRef);
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.status = status;
+}
+
+
+function setManagementButtonBusy(button, busy, busyLabel = "처리 중…") {
+  if (!button) return;
+  if (!button.dataset.defaultLabel) button.dataset.defaultLabel = button.textContent.trim();
+  button.disabled = busy;
+  button.setAttribute("aria-busy", String(busy));
+  button.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+}
+
+
+function registrationStepIssue(step, documentRef = document) {
+  if (step === 1) {
+    const fields = [
+      ["managementAdapter", "프로토콜과 Device Service를 선택하세요."],
+      ["managementHardwareBinding", "등록된 물리 연결을 선택하세요."],
+      ["managementTargetNode", "대상 노드를 확인하세요."],
+    ];
+    for (const [id, message] of fields) {
+      const field = byId(id, documentRef);
+      if (!field || !String(field.value || "").trim()) return {field, message};
+    }
+    const requiredProtocolField = [...(documentRef.querySelectorAll?.("[data-protocol-field][required]") || [])]
+      .find((field) => !String(field.value || "").trim());
+    if (requiredProtocolField) {
+      return {field: requiredProtocolField, message: "선택한 물리 연결의 필수 프로토콜 값을 입력하세요."};
+    }
+  }
+  if (step === 2) {
+    const field = byId("managementDeviceName", documentRef);
+    if (!field?.value.trim()) return {field, message: "고유한 EdgeX 디바이스 이름을 입력하세요."};
+  }
+  if (step === 3) {
+    const field = byId("managementProfileName", documentRef);
+    if (!field?.value.trim()) return {field, message: "EdgeX 디바이스 프로필 이름을 입력하세요."};
+  }
+  return null;
+}
+
+
+function validateRegistrationThrough(targetStep, documentRef = document) {
+  const lastStep = Math.min(3, Math.max(0, Number(targetStep) - 1));
+  for (let step = 1; step <= lastStep; step += 1) {
+    const issue = registrationStepIssue(step, documentRef);
+    if (!issue) continue;
+    managementState.registrationStep = step;
+    renderRegistrationStep(documentRef);
+    renderRegistrationFeedback(issue.message, {status: "error", documentRef});
+    renderManagementActionFeedback(`등록 ${step}단계를 확인하세요: ${issue.message}`, {
+      status: "error",
+      documentRef,
+    });
+    issue.field?.focus?.();
+    issue.field?.reportValidity?.();
+    return false;
+  }
+  return true;
+}
+
+
+function setRegistrationStepGuarded(step, documentRef = document) {
+  const targetStep = normalizeRegistrationStep(step);
+  if (
+    targetStep > managementState.registrationStep
+    && !validateRegistrationThrough(targetStep, documentRef)
+  ) return false;
+  setRegistrationStep(targetStep, documentRef);
+  renderRegistrationFeedback(
+    targetStep === 4
+      ? "필수 항목 입력을 확인했습니다. 연결 검증을 실행하세요."
+      : `${targetStep}단계로 이동했습니다.`,
+    {status: "success", documentRef},
+  );
+  return true;
 }
 
 
@@ -1958,6 +2074,20 @@ function renderRuntimeInventory(documentRef = document) {
 
     card.prepend(header);
     card.append(facts, actions);
+    if (!mutable || Number(runtime.consumers || 0) > 0) {
+      const externallyOwned = runtime.managementMode !== "controller"
+        || runtime.managementOwner === "argocd";
+      appendTextElement(
+        card,
+        "p",
+        "management-action-reason",
+        !mutable
+          ? externallyOwned
+            ? "이 런타임은 Argo CD 또는 외부 배포 소유이므로 대시보드에서 재시작·퇴역할 수 없습니다."
+            : "런타임 변경 기능이 비활성화되어 있어 대시보드에서 재시작·퇴역할 수 없습니다."
+          : `연결된 EdgeX 디바이스 ${Number(runtime.consumers || 0)}개를 먼저 해제해야 퇴역할 수 있습니다.`,
+      );
+    }
     container.appendChild(card);
   });
 }
@@ -2035,12 +2165,41 @@ function selectedAdapter() {
 }
 
 
-function renderMutationMode(documentRef = document) {
-  const enabled = managementState.adapters.some(
+function mutationModeEnabled() {
+  return managementState.adapters.some(
     (adapter) => adapter.mutationEnabled === true,
   ) || managementState.runtimes.some(
     (runtime) => runtime.mutationEnabled === true,
   );
+}
+
+
+function patchFormSnapshot(documentRef = document) {
+  return JSON.stringify({
+    name: byId("patchDeviceName", documentRef)?.value || "",
+    description: byId("patchDeviceDescription", documentRef)?.value || "",
+    adminState: byId("patchDeviceAdminState", documentRef)?.value || "",
+    labels: byId("patchDeviceLabels", documentRef)?.value || "",
+    tags: byId("patchDeviceTags", documentRef)?.value || "",
+    protocol: byId("patchDeviceProtocol", documentRef)?.value || "",
+  });
+}
+
+
+function updatePatchDirtyState(documentRef = document) {
+  const enabled = mutationModeEnabled();
+  const selected = Boolean(managementState.selectedPatchDeviceName);
+  const dirty = selected
+    && managementState.patchBaseline !== null
+    && patchFormSnapshot(documentRef) !== managementState.patchBaseline;
+  const patchButton = byId("managementPatchApply", documentRef);
+  if (patchButton) patchButton.disabled = !(enabled && selected && dirty);
+  return dirty;
+}
+
+
+function renderMutationMode(documentRef = document) {
+  const enabled = mutationModeEnabled();
   const mode = byId("managementMutationMode", documentRef);
   if (mode) {
     mode.textContent = enabled ? "변경 기능 활성화" : "검증 전용 · 변경 기능 비활성화";
@@ -2053,13 +2212,7 @@ function renderMutationMode(documentRef = document) {
       ? "자동 탐색이 어려운 엔드포인트를 후보로 추가합니다."
       : "현재 변경 기능이 비활성화되어 있습니다.";
   }
-  const patchButton = byId("managementPatchApply", documentRef);
-  if (patchButton) {
-    patchButton.disabled = !canPatchSelectedDevice(
-      enabled,
-      managementState.selectedPatchDeviceName,
-    );
-  }
+  updatePatchDirtyState(documentRef);
 }
 
 
@@ -2336,6 +2489,16 @@ function renderManagementValidation(result, documentRef = document) {
   });
   const applyButton = byId("managementApply", documentRef);
   if (applyButton) applyButton.disabled = !(result?.valid && adapterCanApply(selectedAdapter()));
+  renderRegistrationFeedback(
+    result?.valid
+      ? "연결 검증을 통과했습니다. 실행 계획을 확인한 뒤 디바이스 연결을 누르세요."
+      : "연결 검증에 실패했습니다. 실행 계획의 오류 항목을 수정하세요.",
+    {status: result?.valid ? "success" : "error", documentRef},
+  );
+  renderManagementActionFeedback(
+    result?.valid ? "디바이스 연결 검증 완료" : "디바이스 연결 검증 실패",
+    {status: result?.valid ? "success" : "error", documentRef},
+  );
 }
 
 
@@ -2360,6 +2523,13 @@ function renderOperation(operation, documentRef = document) {
       : `${operation.action || "생성"} · ${operation.deviceName || "디바이스"} · `
         + `요청 ${operation.requestId || "대기 중"}`,
   );
+  renderManagementActionFeedback(
+    `${view.label}: ${view.detail}`,
+    {
+      status: view.tone === "failed" ? "error" : view.terminal ? "success" : "waiting",
+      documentRef,
+    },
+  );
 }
 
 
@@ -2381,6 +2551,13 @@ function renderRuntimeActionResult(runtime, action, documentRef = document) {
     "",
     `${runtime.runtimeName} · ${runtime.serviceName} · ${runtime.targetNode}`,
   );
+  renderManagementActionFeedback(
+    `${action === "restart" ? "재시작" : "퇴역"} 요청 결과: ${koreanLabel("runtimePhase", runtime.phase || "UNKNOWN")}`,
+    {
+      status: runtime.phase === "FAILED" ? "error" : "success",
+      documentRef,
+    },
+  );
 }
 
 
@@ -2396,6 +2573,13 @@ function renderManagementError(error, documentRef = document) {
     error?.status === 404 ? "변경 기능 비활성화" : "관리 요청 실패",
   );
   appendTextElement(container, "p", "", error?.message || "관리 요청에 실패했습니다.");
+  renderManagementActionFeedback(
+    error?.message || "관리 요청에 실패했습니다.",
+    {
+      status: error?.status === 404 ? "warning" : "error",
+      documentRef,
+    },
+  );
 }
 
 
@@ -2417,7 +2601,14 @@ function setSelectedPatchDevice(name, documentRef = document) {
   byId("patchDeviceProtocol", documentRef).value = "";
   const selector = byId("managementPatchDeviceSelect", documentRef);
   if (selector) selector.value = device?.name || "";
+  managementState.patchBaseline = device ? patchFormSnapshot(documentRef) : null;
   renderMutationMode(documentRef);
+  renderPatchResult(
+    device
+      ? `${device.name}의 현재 값을 불러왔습니다. 값을 변경하면 적용 버튼이 활성화됩니다.`
+      : "수정할 디바이스를 선택하세요.",
+    {status: device ? "success" : "ready", documentRef},
+  );
 }
 
 
@@ -2715,7 +2906,13 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   const managementTabs = byId("managementViewTabs", documentRef);
   managementTabs?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-view]");
-    if (button) setManagementView(button.dataset.managementView, documentRef);
+    if (button) {
+      setManagementView(button.dataset.managementView, documentRef);
+      renderManagementActionFeedback(`${button.textContent.trim()} 화면을 열었습니다.`, {
+        status: "success",
+        documentRef,
+      });
+    }
   });
   managementTabs?.addEventListener("keydown", (event) => {
     const button = event.target.closest?.("[data-management-view]");
@@ -2730,12 +2927,20 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     event.preventDefault();
     const nextTab = tabs[nextIndex];
     setManagementView(nextTab.dataset.managementView, documentRef);
+    renderManagementActionFeedback(`${nextTab.textContent.trim()} 화면을 열었습니다.`, {
+      status: "success",
+      documentRef,
+    });
     nextTab.focus();
   });
   documentRef.querySelectorAll?.("[data-management-open-register]").forEach((button) => {
     button.addEventListener("click", () => {
       setManagementView("register", documentRef);
       setRegistrationStep(1, documentRef);
+      renderManagementActionFeedback("새 디바이스 등록 화면을 열었습니다.", {
+        status: "success",
+        documentRef,
+      });
     });
   });
   [
@@ -2761,6 +2966,10 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     );
     if (typeof manualDialog?.showModal === "function") manualDialog.showModal();
     else manualDialog?.setAttribute("open", "");
+    renderManagementActionFeedback("엔드포인트 직접 추가 창을 열었습니다.", {
+      status: "success",
+      documentRef,
+    });
   });
   manualDialog?.querySelectorAll("[data-management-close-dialog]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -2777,9 +2986,22 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     async (event) => {
       event.preventDefault();
       const submit = byId("managementCreateManualCandidate", documentRef);
+      const form = event.currentTarget;
       try {
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          renderManualCandidateResult(
+            "필수 항목을 모두 입력한 뒤 다시 시도하세요.",
+            {status: "failed", documentRef},
+          );
+          renderManagementActionFeedback("연결 후보의 필수 항목을 확인하세요.", {
+            status: "error",
+            documentRef,
+          });
+          return;
+        }
         const payload = collectManualCandidatePayload(documentRef);
-        submit.disabled = true;
+        setManagementButtonBusy(submit, true, "추가 중…");
         renderManualCandidateResult(
           "후보를 안전하게 저장하는 중입니다.",
           {status: "waiting", documentRef},
@@ -2797,6 +3019,10 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
           "연결 후보를 추가했습니다.",
           {status: "verified", documentRef},
         );
+        renderManagementActionFeedback(`${payload.displayName} 연결 후보를 추가했습니다.`, {
+          status: "success",
+          documentRef,
+        });
         await loadDeviceManagement(documentRef, fetchFn);
         if (typeof manualDialog?.close === "function") manualDialog.close();
         else manualDialog?.removeAttribute("open");
@@ -2808,8 +3034,12 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
           error?.message || "연결 후보 추가에 실패했습니다.",
           {status: "failed", documentRef},
         );
+        renderManagementActionFeedback(
+          error?.message || "연결 후보 추가에 실패했습니다.",
+          {status: "error", documentRef},
+        );
       } finally {
-        if (submit) submit.disabled = false;
+        setManagementButtonBusy(submit, false);
       }
     },
   );
@@ -2829,6 +3059,15 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
             "이 후보는 아직 검증된 연결이 없어 EdgeX 등록을 시작할 수 없습니다.",
             {status: "degraded", documentRef},
           );
+          renderManagementActionFeedback("후보 등록을 시작할 수 없습니다. 검증된 연결 여부를 확인하세요.", {
+            status: "warning",
+            documentRef,
+          });
+        } else {
+          renderManagementActionFeedback(`${candidate.displayName} 등록 화면을 준비했습니다.`, {
+            status: "success",
+            documentRef,
+          });
         }
         return;
       }
@@ -2850,6 +3089,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         || `candidate-${action}-${Date.now()}`;
       managementState.candidateActionKeys.set(actionKey, idempotencyKey);
       button.disabled = true;
+      button.setAttribute("aria-busy", "true");
       renderDiscoveryFeedback("후보 상태를 적용하는 중입니다.", {
         status: "degraded",
         documentRef,
@@ -2883,12 +3123,21 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
           status: "online",
           documentRef,
         });
+        renderManagementActionFeedback(`${candidate.displayName} 후보 상태를 반영했습니다.`, {
+          status: "success",
+          documentRef,
+        });
       } catch (error) {
         renderDiscoveryFeedback(
           error?.message || "후보 상태 변경에 실패했습니다.",
           {status: "error", documentRef},
         );
+        renderManagementActionFeedback(
+          error?.message || "후보 상태 변경에 실패했습니다.",
+          {status: "error", documentRef},
+        );
         button.disabled = false;
+        button.setAttribute("aria-busy", "false");
       }
     },
   );
@@ -2915,14 +3164,18 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managementRegistrationStepper", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-step]");
-    if (button) setRegistrationStep(button.dataset.managementStep, documentRef);
+    if (button) setRegistrationStepGuarded(button.dataset.managementStep, documentRef);
   });
   byId("deviceOnboardingForm", documentRef)?.addEventListener("click", (event) => {
     if (event.target.closest?.("[data-management-next-step]")) {
-      setRegistrationStep(managementState.registrationStep + 1, documentRef);
+      setRegistrationStepGuarded(managementState.registrationStep + 1, documentRef);
     }
     if (event.target.closest?.("[data-management-previous-step]")) {
       setRegistrationStep(managementState.registrationStep - 1, documentRef);
+      renderRegistrationFeedback(`${managementState.registrationStep}단계로 돌아갔습니다.`, {
+        status: "success",
+        documentRef,
+      });
     }
   });
   byId("deviceOnboardingForm", documentRef)?.addEventListener("input", () => {
@@ -2934,10 +3187,20 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   adapterSelect.addEventListener("change", () => {
     managementState.selectedAdapterId = adapterSelect.value;
     managementState.validation = null;
+    managementState.operation = null;
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
     renderRegistrationReview(documentRef);
-    clearElement(byId("managementValidation", documentRef));
+    const validation = byId("managementValidation", documentRef);
+    clearElement(validation);
+    if (validation) appendTextElement(validation, "p", "", "연결 검증을 실행하면 등록 계획을 표시합니다.");
+    const operation = byId("managementOperation", documentRef);
+    clearElement(operation);
+    if (operation) appendTextElement(operation, "p", "", "아직 연결 작업을 실행하지 않았습니다.");
+    renderRegistrationFeedback("프로토콜 패키지를 선택했습니다. 물리 연결 값을 확인하세요.", {
+      status: "success",
+      documentRef,
+    });
   });
   byId("managementNodeList", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-node]");
@@ -2959,6 +3222,10 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     clearElement(byId("managementValidation", documentRef));
     setSelectedPatchDevice("", documentRef);
     renderRegistrationReview(documentRef);
+    renderManagementActionFeedback(`${managementState.selectedNodeName} 노드를 선택했습니다.`, {
+      status: "success",
+      documentRef,
+    });
   });
   byId("managementHardwareBinding", documentRef)?.addEventListener("change", () => {
     syncRuntimeNodeFromBinding(documentRef);
@@ -2968,6 +3235,10 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderRegistrationReview(documentRef);
     const applyButton = byId("managementApply", documentRef);
     if (applyButton) applyButton.disabled = true;
+    renderRegistrationFeedback("물리 연결을 변경했습니다. 다시 검증해야 합니다.", {
+      status: "warning",
+      documentRef,
+    });
   });
   byId("managementRuntimeMode", documentRef)?.addEventListener("change", () => {
     managementState.validation = null;
@@ -2981,17 +3252,48 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     if (applyButton) applyButton.disabled = true;
   });
   byId("managementValidate", documentRef)?.addEventListener("click", async () => {
+    const button = byId("managementValidate", documentRef);
     try {
+      if (!validateRegistrationThrough(4, documentRef)) return;
+      setManagementButtonBusy(button, true, "검증 중…");
+      renderRegistrationFeedback("연결 계획을 검증하는 중입니다.", {
+        status: "waiting",
+        documentRef,
+      });
+      renderManagementActionFeedback("디바이스 연결 계획 검증 중…", {
+        status: "waiting",
+        documentRef,
+      });
+      const operation = byId("managementOperation", documentRef);
+      clearElement(operation);
+      if (operation) appendTextElement(operation, "p", "", "검증 완료 후 연결 작업을 실행할 수 있습니다.");
       const payload = collectConnectionPayload(documentRef);
       managementState.validation = await validateManagementConnection(payload, fetchFn);
       managementState.runtimePlan = managementState.validation.runtimePlan || null;
       renderManagementValidation(managementState.validation, documentRef);
     } catch (error) {
       renderManagementError(error, documentRef);
+      renderRegistrationFeedback(error?.message || "연결 검증에 실패했습니다.", {
+        status: "error",
+        documentRef,
+      });
+    } finally {
+      setManagementButtonBusy(button, false);
     }
   });
   byId("managementApply", documentRef)?.addEventListener("click", async () => {
+    const button = byId("managementApply", documentRef);
     try {
+      if (!validateRegistrationThrough(4, documentRef)) return;
+      setManagementButtonBusy(button, true, "연결 중…");
+      renderRegistrationFeedback("런타임과 EdgeX 등록 상태를 확인하는 중입니다.", {
+        status: "waiting",
+        documentRef,
+      });
+      renderManagementActionFeedback("디바이스 연결 작업을 시작했습니다.", {
+        status: "waiting",
+        documentRef,
+      });
       const payload = collectConnectionPayload(documentRef);
       const validation = await validateManagementConnection(payload, fetchFn);
       managementState.validation = validation;
@@ -3011,14 +3313,41 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         renderOperation(managementState.operation, documentRef);
       }
       await loadDeviceManagement(documentRef, fetchFn);
+      renderRegistrationFeedback("디바이스 연결 작업 결과를 확인했습니다.", {
+        status: connectionStatusView(managementState.operation).terminal ? "success" : "waiting",
+        documentRef,
+      });
     } catch (error) {
       renderManagementError(error, documentRef);
+      renderRegistrationFeedback(error?.message || "디바이스 연결에 실패했습니다.", {
+        status: "error",
+        documentRef,
+      });
+    } finally {
+      setManagementButtonBusy(button, false);
+      if (managementState.validation) {
+        button.disabled = !(managementState.validation.valid && adapterCanApply(selectedAdapter()));
+      }
     }
   });
   byId("managementRefresh", documentRef)?.addEventListener("click", () => {
-    loadDeviceManagement(documentRef, fetchFn).catch((error) => {
-      renderManagementError(error, documentRef);
+    const button = byId("managementRefresh", documentRef);
+    setManagementButtonBusy(button, true, "새로고침 중…");
+    renderManagementActionFeedback("디바이스 관리 상태를 새로고침하는 중입니다.", {
+      status: "waiting",
+      documentRef,
     });
+    loadDeviceManagement(documentRef, fetchFn)
+      .then(() => {
+        renderManagementActionFeedback("디바이스 관리 상태를 새로고침했습니다.", {
+          status: "success",
+          documentRef,
+        });
+      })
+      .catch((error) => {
+        renderManagementError(error, documentRef);
+      })
+      .finally(() => setManagementButtonBusy(button, false));
   });
   byId("managedDeviceList", documentRef)?.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-management-edit-device]");
@@ -3029,6 +3358,24 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   byId("managementPatchDeviceSelect", documentRef)?.addEventListener("change", (event) => {
     setSelectedPatchDevice(event.target.value, documentRef);
+  });
+  byId("devicePatchForm", documentRef)?.addEventListener("input", () => {
+    const dirty = updatePatchDirtyState(documentRef);
+    if (dirty) {
+      renderPatchResult("변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.", {
+        status: "warning",
+        documentRef,
+      });
+    }
+  });
+  byId("devicePatchForm", documentRef)?.addEventListener("change", () => {
+    const dirty = updatePatchDirtyState(documentRef);
+    if (dirty) {
+      renderPatchResult("변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.", {
+        status: "warning",
+        documentRef,
+      });
+    }
   });
   byId("managementRuntimeList", documentRef)?.addEventListener("click", async (event) => {
     const button = event.target.closest?.("[data-runtime-action]");
@@ -3049,7 +3396,15 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         `runtime-${action}-${name}-${Date.now()}`,
       );
     }
-    button.disabled = true;
+    setManagementButtonBusy(
+      button,
+      true,
+      action === "restart" ? "재시작 중…" : "퇴역 중…",
+    );
+    renderManagementActionFeedback(`${name} 런타임 ${action === "restart" ? "재시작" : "퇴역"} 요청 중…`, {
+      status: "waiting",
+      documentRef,
+    });
     try {
       const options = {
         idempotencyKey: managementState.runtimeActionKeys.get(actionKey),
@@ -3062,13 +3417,34 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       await loadDeviceManagement(documentRef, fetchFn);
     } catch (error) {
       renderManagementError(error, documentRef);
-      button.disabled = false;
+      setManagementButtonBusy(button, false);
     }
   });
   byId("devicePatchForm", documentRef)?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const button = byId("managementPatchApply", documentRef);
     try {
       const name = byId("patchDeviceName", documentRef).value.trim();
+      if (!name) {
+        renderPatchResult("수정할 디바이스를 먼저 선택하세요.", {
+          status: "error",
+          documentRef,
+        });
+        return;
+      }
+      if (!updatePatchDirtyState(documentRef)) {
+        renderPatchResult("변경된 값이 없습니다.", {status: "warning", documentRef});
+        return;
+      }
+      setManagementButtonBusy(button, true, "적용 중…");
+      renderPatchResult(`${name} 변경 사항을 적용하는 중입니다.`, {
+        status: "waiting",
+        documentRef,
+      });
+      renderManagementActionFeedback(`${name} 디바이스 변경 요청 중…`, {
+        status: "waiting",
+        documentRef,
+      });
       const result = await patchManagementDevice(name, collectPatchPayload(documentRef), {
         idempotencyKey: ensureIdempotencyInput(
           byId("patchIdempotencyKey", documentRef),
@@ -3077,8 +3453,20 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       });
       renderOperation(result, documentRef);
       await loadDeviceManagement(documentRef, fetchFn);
+      setSelectedPatchDevice(name, documentRef);
+      renderPatchResult(`${name} 변경 사항을 적용했습니다.`, {
+        status: "success",
+        documentRef,
+      });
     } catch (error) {
       renderManagementError(error, documentRef);
+      renderPatchResult(error?.message || "디바이스 변경에 실패했습니다.", {
+        status: "error",
+        documentRef,
+      });
+    } finally {
+      setManagementButtonBusy(button, false);
+      updatePatchDirtyState(documentRef);
     }
   });
   updateProfileMode(documentRef);
@@ -3119,6 +3507,7 @@ if (typeof module !== "undefined") {
     fetchManagementOperation,
     managementApiUrl,
     managementDeviceNode,
+    managementPayload,
     managementTabIndexForKey,
     mutationHeaders,
     normalizeManagementView,

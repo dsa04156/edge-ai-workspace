@@ -274,6 +274,8 @@ class StateAggregatorService:
         return (
             "You are a read-only Korean operator assistant for an EdgeX physical-device and Kubernetes workload dashboard. "
             "Answer in Korean unless the user asks otherwise. Do not claim you can execute commands. "
+            "Return only the concise operator-facing final answer. Never expose chain-of-thought, hidden reasoning, "
+            "drafting notes, self-critique, or a 'thinking process'. "
             "Do not suggest Kubernetes apply/delete/rollout, MQTT command publishing, actuator control, dynamic offloading, "
             "or agent-assisted planning as actions. Only explain current dashboard signals and safe inspection order.\n\n"
             f"Dashboard summary: {assistant.summary_ko}\n"
@@ -293,16 +295,51 @@ class StateAggregatorService:
         if isinstance(message, dict):
             content = message.get("content")
             if isinstance(content, str):
-                content = content.strip()
+                content = self._sanitize_operator_chat_answer(content)
                 if content:
                     return content
-            reasoning = message.get("reasoning_content")
-            if isinstance(reasoning, str):
-                reasoning = reasoning.strip()
-                if reasoning:
-                    return reasoning
         text = first.get("text")
-        return text.strip() if isinstance(text, str) else ""
+        return self._sanitize_operator_chat_answer(text) if isinstance(text, str) else ""
+
+    def _sanitize_operator_chat_answer(self, answer: str) -> str:
+        sanitized = re.sub(
+            r"<think\b[^>]*>.*?</think>",
+            "",
+            answer,
+            flags=re.IGNORECASE | re.DOTALL,
+        ).strip()
+        if not sanitized:
+            return ""
+
+        final_match = re.search(
+            r"(?:^|\n)\s*(?:\d+[.)]\s*)?(?:\*\*)?(?:final answer|final response|최종 답변)\s*:?(?:\*\*)?\s*:?\s*",
+            sanitized,
+            flags=re.IGNORECASE,
+        )
+        draft_match = re.search(
+            r"(?:^|\n)\s*(?:\d+[.)]\s*)?(?:\*\*)?draft\s*:?(?:\*\*)?\s*:?\s*",
+            sanitized,
+            flags=re.IGNORECASE,
+        )
+        answer_match = final_match or draft_match
+        if answer_match:
+            sanitized = sanitized[answer_match.end():]
+            next_section = re.search(
+                r"\n\s*\d+[.)]\s*(?:\*\*)?(?:check|critique|analysis|reasoning|검토|점검)(?:\*\*)?",
+                sanitized,
+                flags=re.IGNORECASE,
+            )
+            if next_section:
+                sanitized = sanitized[:next_section.start()]
+            return sanitized.strip()
+
+        if re.match(
+            r"^\s*(?:here(?:'s| is)\s+)?(?:a\s+)?(?:thinking process|analysis|reasoning|chain[- ]of[- ]thought)\b",
+            sanitized,
+            flags=re.IGNORECASE,
+        ):
+            return ""
+        return sanitized
 
     def _normalize_edgex_device(
         self, device: EdgeXDevice, readings: list[TelemetryPoint]

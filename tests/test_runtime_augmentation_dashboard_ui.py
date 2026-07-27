@@ -97,7 +97,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=device-history-20260722" in html
+    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
 
 
 def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
@@ -105,7 +105,7 @@ def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=device-history-20260722" in html
+    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
     assert "service:" in render_devices
@@ -119,10 +119,10 @@ def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> No
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
 
-    assert "/static/workflow.css?v=ai-pipeline-compact-20260622" in html
+    assert "/static/workflow.css?v=interaction-feedback-20260727" in html
     assert "/static/workflow-state.js?v=edgex-cutover-20260714" in html
     assert "/static/workflow-render-panels.js?v=terminology-cleanup-20260622" in html
-    assert "/static/workflow-actions.js?v=terminology-cleanup-20260622" in html
+    assert "/static/workflow-actions.js?v=interaction-feedback-20260727" in html
     assert "factory-vision-inspection-pipeline" in state_js
     for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
         assert f'label: "{label}"' in state_js

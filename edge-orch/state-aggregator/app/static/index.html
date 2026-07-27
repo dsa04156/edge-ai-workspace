@@ -12,12 +12,12 @@
     />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
     <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
-    <link rel="stylesheet" href="/static/workflow.css?v=ai-pipeline-compact-20260622" />
+    <link rel="stylesheet" href="/static/workflow.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
-    <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
+    <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=device-management-token-free-v1-20260724" />
+    <link rel="stylesheet" href="/static/device-management.css?v=interaction-feedback-20260727" />
   </head>
   <body>
     <main class="shell">
@@ -27,10 +27,20 @@
           <h1>Edge AI 통합 운영 대시보드</h1>
           <span class="cluster-pill">기본 클러스터</span>
         </div>
-        <label class="global-search" aria-label="리소스 검색">
-          <span>검색</span>
-          <input type="search" name="resourceSearch" placeholder="리소스 검색" autocomplete="off" />
-        </label>
+        <div class="global-search" role="search" aria-label="리소스 검색">
+          <label for="globalResourceSearch">검색</label>
+          <input
+            id="globalResourceSearch"
+            type="search"
+            name="resourceSearch"
+            placeholder="노드·디바이스·서비스 검색"
+            autocomplete="off"
+            aria-controls="globalSearchResults"
+            aria-expanded="false"
+          />
+          <span id="globalSearchStatus" class="global-search-status" aria-live="polite"></span>
+          <div id="globalSearchResults" class="global-search-results" role="listbox" hidden></div>
+        </div>
         <div class="refresh">
           <span id="updatedAt">-</span>
           <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
@@ -260,7 +270,7 @@
             </div>
             <div class="workflow-actions">
               <span class="workflow-scope">EdgeX devices · Core Data event freshness · dry-run</span>
-              <span id="workflowStatus">device list pending</span>
+              <span id="workflowStatus" role="status" aria-live="polite" data-status="waiting">device list pending</span>
               <button id="workflowRefresh" type="button">Refresh Devices</button>
             </div>
           </div>
@@ -423,6 +433,16 @@
                 기존 디바이스 수정
               </button>
             </nav>
+
+            <div
+              id="managementActionFeedback"
+              class="management-action-feedback"
+              role="status"
+              aria-live="polite"
+              data-status="ready"
+            >
+              버튼을 누르면 진행 상태와 결과가 여기에 표시됩니다.
+            </div>
 
             <section id="managementDiscoveryPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementDiscoveryTab" data-management-view-panel="discovery">
               <section class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
@@ -624,6 +644,16 @@
                   <li><button type="button" data-management-step="3"><span>3</span>프로필</button></li>
                   <li><button type="button" data-management-step="4"><span>4</span>검증 및 연결</button></li>
                 </ol>
+
+                <div
+                  id="managementRegistrationFeedback"
+                  class="management-inline-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-status="ready"
+                >
+                  현재 단계의 필수 항목을 입력한 뒤 다음 단계로 이동하세요.
+                </div>
 
                 <section id="managementRegistrationStep1" class="management-step-panel" data-management-step-panel="1" aria-labelledby="managementStep1Title">
                   <div class="management-step-head">
@@ -844,6 +874,16 @@
                   </div>
                 </details>
 
+                <div
+                  id="managementPatchResult"
+                  class="management-inline-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-status="ready"
+                >
+                  디바이스를 선택하고 값을 변경하면 적용할 수 있습니다.
+                </div>
+
                 <div class="management-apply-row">
                   <small>선택한 노드의 EdgeX Device만 수정할 수 있습니다.</small>
                   <button id="managementPatchApply" type="submit" class="management-primary-action" disabled>변경 내용 적용</button>
@@ -964,13 +1004,13 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
-    <script src="/static/dashboard.js?v=device-history-20260722"></script>
-    <script src="/static/service-demo.js?v=live-sensor-age-20260722"></script>
-    <script src="/static/device-management.js?v=device-management-token-free-v1-20260724"></script>
+    <script src="/static/dashboard.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/device-management.js?v=interaction-feedback-20260727"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow-actions.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow.js?v=ai-pipeline-compact-20260622"></script>
+    <script src="/static/workflow-actions.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/workflow.js?v=interaction-feedback-20260727"></script>
   </body>
 </html>
