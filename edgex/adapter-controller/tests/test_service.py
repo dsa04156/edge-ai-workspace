@@ -177,6 +177,29 @@ def test_retire_checks_edgex_consumers_and_action_payload():
     ]
 
 
+def test_retired_runtime_can_be_reactivated_by_a_new_idempotent_request():
+    controller, kube, probe = service()
+    created = create_managed_runtime(controller)
+    retired = controller.retire_runtime(created.runtime_name, action_request())
+    assert retired.phase == "RETIRED"
+
+    plan = controller.plan(plan_request())
+    retry = create_request(plan.plan_hash)
+    retry.request_ref.request_id = "1" * 64
+    retry.request_ref.payload_hash = "2" * 64
+    reactivated = controller.apply_runtime(created.runtime_name, retry)
+    replay = controller.apply_runtime(created.runtime_name, retry)
+
+    assert reactivated.phase == "SERVICE_READY"
+    assert replay.phase == "SERVICE_READY"
+    assert kube.runtimes[created.runtime_name]["spec"]["desiredState"] == "Running"
+    assert kube.runtimes[created.runtime_name]["spec"]["requestRef"] == (
+        retry.request_ref.model_dump(by_alias=True)
+    )
+    assert kube.runtimes[created.runtime_name]["spec"]["actionRef"] is None
+    assert probe.ready is True
+
+
 def test_list_external_runtime_uses_both_workload_and_edgex_readback(tmp_path):
     from pathlib import Path
 

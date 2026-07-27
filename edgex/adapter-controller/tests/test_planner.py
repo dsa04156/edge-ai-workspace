@@ -100,6 +100,35 @@ def test_unready_existing_runtime_blocks_duplicate_deploy():
     assert [item.code for item in plan.reasons] == ["runtime_not_ready"]
 
 
+def test_retired_runtime_does_not_block_a_new_deployment_attempt():
+    modbus = RuntimePlanRequest(
+        adapter_id="modbus",
+        target_node="etri-dev0001-jetorn",
+        hardware_binding_id="jetson-modbus-tcp-simulator-001",
+        mode="auto",
+    )
+    retired = RuntimeObservation(
+        runtime_name="adapter-modbus-6a19a499ed",
+        adapter_id="modbus",
+        template_id="modbus-device-service-v1",
+        service_name="adapter-modbus-6a19a499ed",
+        target_node="etri-dev0001-jetorn",
+        hardware_binding_id="jetson-modbus-tcp-simulator-001",
+        management_mode="controller",
+        management_owner="controller",
+        verification_state="template-verified",
+        phase="RETIRED",
+        consumers=0,
+        mutable=False,
+    )
+
+    plan = planner().plan(modbus, [retired])
+
+    assert plan.action == "DEPLOY"
+    assert plan.allowed is True
+    assert plan.runtime_name == retired.runtime_name
+
+
 def test_explicit_reuse_blocks_when_no_runtime_exists():
     plan = planner().plan(request(mode="reuse"), [])
 

@@ -80,6 +80,7 @@ class RuntimePlanner:
                 for item in observations
                 if request.hardware_binding_id in item.hardware_binding_ids
                 and item.target_node == request.target_node
+                and item.phase != "RETIRED"
             ),
             None,
         )

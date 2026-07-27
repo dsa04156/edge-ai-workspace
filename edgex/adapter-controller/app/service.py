@@ -116,13 +116,15 @@ class AdapterControllerService:
     ) -> RuntimeObservation:
         existing = self.kube.get_runtime(name)
         if existing is not None:
-            request_ref = (existing.get("spec") or {}).get("requestRef") or {}
+            existing_spec = existing.get("spec") or {}
+            request_ref = existing_spec.get("requestRef") or {}
             expected = request.request_ref.model_dump(by_alias=True)
-            if request_ref != expected:
+            if request_ref == expected:
+                return self._reconcile_and_observe(existing)
+            if existing_spec.get("desiredState") != "Retired":
                 raise ControllerConflict(
                     "runtime exists from a different idempotent request"
                 )
-            return self._reconcile_and_observe(existing)
 
         plan = self.plan(request.plan)
         if request.request_ref.plan_hash != plan.plan_hash:
@@ -136,6 +138,33 @@ class AdapterControllerService:
             raise ControllerValidationError(
                 "runtime name does not match the immutable deployment plan"
             )
+        if existing is not None:
+            existing_spec = existing.get("spec") or {}
+            immutable_fields = {
+                "templateId": plan.template_id,
+                "adapterId": plan.adapter_id,
+                "targetNode": plan.target_node,
+                "hardwareBindingId": plan.hardware_binding_id,
+            }
+            if any(
+                existing_spec.get(field) != value
+                for field, value in immutable_fields.items()
+            ):
+                raise ControllerConflict(
+                    "retired runtime identity does not match the deployment plan"
+                )
+            persisted = self.kube.patch_runtime_spec(
+                name,
+                {
+                    "desiredState": "Running",
+                    "restartNonce": "",
+                    "requestRef": request.request_ref.model_dump(
+                        by_alias=True
+                    ),
+                    "actionRef": None,
+                },
+            )
+            return self._reconcile_and_observe(persisted)
         template = self.catalog.require(str(plan.template_id))
         resource = render_adapter_runtime(
             plan,
