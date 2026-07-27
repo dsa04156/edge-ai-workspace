@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-24 16:38</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
+            <span class="badge">수정: 2026-07-27 16:40</span>
+            <span class="badge">HTML 생성: 2026-07-27 16:47</span>
           </div>
         </header>
         <div class="doc-body">
@@ -277,6 +277,11 @@
 <td>stable hardware identity와 immutable image/parser/Profile allowlist를 연결. API에서 임의 image 추가 불가</td>
 </tr>
 <tr>
+<td><code>edgex/k8s/base/modbus-simulator/</code>, <code>edgex/k8s/overlays/development/modbus-simulator/</code></td>
+<td>공식 Modbus Device Service 개발 검증 fixture</td>
+<td>root 운영 render 밖에서 read-only Modbus TCP endpoint를 제공. 수동 exact binding과 승인 Saga 자동 테스트용이며 실제 PLC 지원 근거가 아님</td>
+</tr>
+<tr>
 <td><code>edgex/adapter-controller/config/discovery_plans.json</code></td>
 <td>초기 node Discovery Plan</td>
 <td>DB에 Plan이 없는 node만 보수적 기본값으로 seed</td>
@@ -307,7 +312,7 @@
 <td>EdgeX 상태/history와 서비스 데모를 표시한다. <code>디바이스 관리</code>는 발견 후보 검색·수동 endpoint 선언·승인/무시와 KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, EdgeX Device, 통합 validation/apply/first-Event 상태를 관리한다</td>
 </tr>
 </tbody></table></div>
-<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT 자기등록은 schema parser까지만 있고 subscriber는 없으며 Modbus·OPC-UA·ONVIF는 discovery 미구현이다. RTSP는 별도 media 경로다.</p>
+<p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT 자기등록은 schema parser까지만 있고 subscriber는 없다. Modbus는 자동 discovery 없이 수동 개발 simulator endpoint용 공식 Device Service 등록 경로만 구현됐고, OPC-UA·ONVIF discovery는 미구현이다. RTSP는 별도 media 경로다.</p>
 <h2 id="2차년도-설계-트랙-경로">2차년도 설계 트랙 경로</h2>
 <p>다음 경로는 현재 서비스 데모 기능으로 주장하지 않고, 2차년도 협약 방향에 맞춘 설계/프로토타입 후보로 관리한다.</p>
 <div class="table-wrap"><table>

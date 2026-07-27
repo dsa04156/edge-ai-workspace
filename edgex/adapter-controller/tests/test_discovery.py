@@ -6,6 +6,7 @@ import pytest
 
 from app.api import ControllerConflict, ControllerValidationError
 from app.catalog import RuntimeTemplateCatalog
+from app.device_catalog import DeviceBindingCatalog
 from app.discovery import DeviceCandidateRegistry, stable_candidate_identity
 from app.discovery_models import (
     CandidateDecisionUpdate,
@@ -24,6 +25,11 @@ CATALOG_PATH = (
     Path(__file__).resolve().parents[1]
     / "config"
     / "runtime_templates.json"
+)
+DEVICE_CATALOG_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "config"
+    / "device_bindings.json"
 )
 
 
@@ -247,6 +253,49 @@ def test_manual_mqtt_candidate_rejects_secrets_and_can_be_deleted(registry):
     assert created.package_state == "verification-required"
     assert deleted.candidate_id == created.candidate_id
     assert service.list_inventory().candidates == []
+
+
+def test_manual_modbus_simulator_candidate_is_normalized_and_exactly_matched():
+    kube = FakeKubernetesGateway()
+    service = DeviceCandidateRegistry(
+        RuntimeTemplateCatalog.load(CATALOG_PATH),
+        kube,
+        candidate_limit=10,
+        device_catalog=DeviceBindingCatalog.load(DEVICE_CATALOG_PATH),
+    )
+
+    created = service.create_manual(
+        ManualCandidateCreate(
+            candidate=ManualCandidateInput(
+                node_name="etri-dev0001-jetorn",
+                protocol="modbus",
+                transport="modbus-tcp",
+                display_name="EdgeX Modbus TCP simulator",
+                properties={
+                    "Mode": "TCP",
+                    "Host": (
+                        "edge-modbus-simulator.edgex-edge.svc.cluster.local"
+                    ),
+                    "Port": "1502",
+                    "UnitID": "1",
+                },
+            ),
+            request_ref=mutation_ref("8"),
+        )
+    )
+
+    assert created.state == "PENDING_APPROVAL"
+    assert created.registration_ready is True
+    assert created.matched_adapter_id == "modbus"
+    assert created.matched_hardware_binding_id == (
+        "jetson-modbus-tcp-simulator-001"
+    )
+    assert created.properties == {
+        "Mode": "tcp",
+        "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+        "Port": 1502,
+        "UnitID": 1,
+    }
 
 
 def test_manual_candidate_identity_ignores_display_metadata_and_rejects_url_credentials(

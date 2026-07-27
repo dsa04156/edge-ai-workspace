@@ -30,6 +30,10 @@ class DeviceMatchRule(ControllerModel):
     model: str | None = Field(default=None, max_length=255)
     endpoint: str | None = Field(default=None, max_length=1024)
     required_capabilities: list[str] = Field(default_factory=list, max_length=128)
+    properties: dict[str, str | int | float | bool] = Field(
+        default_factory=dict,
+        max_length=32,
+    )
 
     @model_validator(mode="after")
     def require_stable_match_field(self) -> "DeviceMatchRule":
@@ -41,6 +45,7 @@ class DeviceMatchRule(ControllerModel):
                 self.model,
                 self.endpoint,
                 self.required_capabilities,
+                self.properties,
             )
         ):
             raise ValueError("device binding requires a stable match field")
@@ -48,6 +53,8 @@ class DeviceMatchRule(ControllerModel):
             set(self.required_capabilities)
         ):
             raise ValueError("required capabilities must be unique")
+        if any(not key or len(key) > 128 for key in self.properties):
+            raise ValueError("match property names are invalid")
         return self
 
 
@@ -88,6 +95,16 @@ class DeviceSecurityPolicy(ControllerModel):
     approval_required: bool = True
 
 
+class DeviceAutoEvent(ControllerModel):
+    source_name: str = Field(min_length=1, max_length=255)
+    interval: str = Field(
+        min_length=2,
+        max_length=32,
+        pattern=r"^[1-9][0-9]*(?:ms|s|m|h)$",
+    )
+    on_change: bool = False
+
+
 class DeviceBinding(ControllerModel):
     binding_id: str = Field(
         min_length=1,
@@ -104,6 +121,17 @@ class DeviceBinding(ControllerModel):
     connection: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )
+    connection_property_map: dict[str, str] = Field(
+        default_factory=dict,
+        max_length=32,
+    )
+    edge_x_protocol: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$",
+    )
+    auto_events: list[DeviceAutoEvent] = Field(default_factory=list, max_length=64)
     adapter: DeviceAdapterReference
     profile: DeviceProfileReference
     security: DeviceSecurityPolicy = Field(
@@ -115,6 +143,28 @@ class DeviceBinding(ControllerModel):
         max_length=40,
         pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$",
     )
+
+    @model_validator(mode="after")
+    def validate_protocol_mapping(self) -> "DeviceBinding":
+        if any(
+            not target
+            or not source
+            or len(target) > 128
+            or len(source) > 128
+            for target, source in self.connection_property_map.items()
+        ):
+            raise ValueError("connectionPropertyMap contains an invalid field")
+        if self.protocol == "modbus" and self.edge_x_protocol not in {
+            "modbus-tcp",
+            "modbus-rtu",
+        }:
+            raise ValueError(
+                "Modbus binding requires edgeXProtocol modbus-tcp or modbus-rtu"
+            )
+        source_names = [item.source_name for item in self.auto_events]
+        if len(source_names) != len(set(source_names)):
+            raise ValueError("autoEvent source names must be unique")
+        return self
 
 
 class DeviceCatalogDocument(ControllerModel):
@@ -293,6 +343,11 @@ class DeviceBindingCatalog:
         if rule.model is not None and candidate.model != rule.model:
             return False
         if rule.endpoint is not None and candidate.device_path != rule.endpoint:
+            return False
+        if any(
+            candidate.properties.get(name) != value
+            for name, value in rule.properties.items()
+        ):
             return False
         if not set(rule.required_capabilities).issubset(
             set(candidate.capabilities)

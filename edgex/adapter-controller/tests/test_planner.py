@@ -115,7 +115,24 @@ def test_auto_blocks_when_matching_template_is_not_yet_deployable():
     assert plan.verification_state == "hardware-verified"
 
 
-def test_unverified_protocol_never_plans_deployment():
+def test_template_verified_official_modbus_plans_development_deployment():
+    modbus = RuntimePlanRequest(
+        adapter_id="modbus",
+        target_node="etri-dev0001-jetorn",
+        hardware_binding_id="jetson-modbus-tcp-simulator-001",
+        mode="auto",
+    )
+
+    plan = planner().plan(modbus, [])
+
+    assert plan.action == "DEPLOY"
+    assert plan.allowed is True
+    assert plan.verification_state == "template-verified"
+    assert plan.runtime_name.startswith("adapter-modbus-")
+    assert plan.service_name == plan.runtime_name
+
+
+def test_unknown_modbus_binding_remains_blocked():
     modbus = RuntimePlanRequest(
         adapter_id="modbus",
         target_node="etri-dev0001-jetorn",
@@ -126,8 +143,9 @@ def test_unverified_protocol_never_plans_deployment():
     plan = planner().plan(modbus, [])
 
     assert plan.action == "BLOCKED"
-    assert [item.code for item in plan.reasons] == ["template_unverified"]
-    assert plan.verification_state == "unverified"
+    assert [item.code for item in plan.reasons] == [
+        "hardware_binding_not_allowed"
+    ]
 
 
 def test_wrong_node_binding_pair_is_blocked():

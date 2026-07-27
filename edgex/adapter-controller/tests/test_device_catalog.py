@@ -27,6 +27,29 @@ def candidate() -> StoredCandidate:
     )
 
 
+def modbus_candidate() -> StoredCandidate:
+    now = datetime.now(timezone.utc)
+    return StoredCandidate(
+        candidate_id="candidate-" + "d" * 64,
+        identity_hash="d" * 64,
+        source="manual",
+        node_name="etri-dev0001-jetorn",
+        protocol="modbus",
+        transport="modbus-tcp",
+        display_name="Modbus TCP simulator",
+        hardware_id="simulator-endpoint-001",
+        properties={
+            "Mode": "tcp",
+            "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+            "Port": 1502,
+            "UnitID": 1,
+        },
+        first_seen=now,
+        last_seen=now,
+        updated_at=now,
+    )
+
+
 def test_device_catalog_exact_match_and_allowlists():
     catalog = DeviceBindingCatalog.load(
         BASE / "config" / "device_bindings.json"
@@ -38,6 +61,31 @@ def test_device_catalog_exact_match_and_allowlists():
     assert match.confidence == "exact"
     assert match.binding.profile.name == "arduino-multisensor-v1"
     assert catalog.profile_document(match.binding)["deviceResources"]
+
+
+def test_device_catalog_exactly_matches_official_modbus_simulator_binding():
+    catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+
+    match = catalog.match(modbus_candidate())
+
+    assert catalog.errors == []
+    assert match.confidence == "exact"
+    assert match.binding.binding_id == "jetson-modbus-tcp-simulator-v1"
+    assert match.binding.edge_x_protocol == "modbus-tcp"
+    assert match.binding.connection_property_map == {
+        "Address": "Host",
+        "Port": "Port",
+        "UnitID": "UnitID",
+    }
+    assert match.binding.auto_events[0].source_name == "temperature"
+    profile = catalog.profile_document(match.binding)
+    assert profile["deviceResources"][0]["attributes"] == {
+        "primaryTable": "HOLDING_REGISTERS",
+        "startingAddress": 0,
+        "rawType": "Int16",
+    }
 
 
 def test_manifest_profile_mismatch_blocks_known_usb_identity():
@@ -74,13 +122,8 @@ def test_device_catalog_blocks_ambiguous_exact_match(tmp_path):
     )
     profile_dir = tmp_path / "profiles"
     profile_dir.mkdir()
-    profile = (
-        BASE
-        / "config"
-        / "profiles"
-        / "arduino-multisensor-v1.json"
-    )
-    (profile_dir / profile.name).write_text(profile.read_text())
+    for profile in (BASE / "config" / "profiles").glob("*.json"):
+        (profile_dir / profile.name).write_text(profile.read_text())
     duplicate = dict(source["bindings"][0])
     duplicate["bindingId"] = "duplicate-binding"
     source["bindings"].append(duplicate)
@@ -99,13 +142,8 @@ def test_invalid_binding_is_quarantined_without_killing_catalog(tmp_path):
     )
     profile_dir = tmp_path / "profiles"
     profile_dir.mkdir()
-    profile = (
-        BASE
-        / "config"
-        / "profiles"
-        / "arduino-multisensor-v1.json"
-    )
-    (profile_dir / profile.name).write_text(profile.read_text())
+    for profile in (BASE / "config" / "profiles").glob("*.json"):
+        (profile_dir / profile.name).write_text(profile.read_text())
     invalid = dict(source["bindings"][0])
     invalid["bindingId"] = "invalid-image"
     invalid["adapter"] = dict(invalid["adapter"])
@@ -116,6 +154,6 @@ def test_invalid_binding_is_quarantined_without_killing_catalog(tmp_path):
 
     catalog = DeviceBindingCatalog.load(path)
 
-    assert len(catalog.bindings) == 1
+    assert len(catalog.bindings) == len(source["bindings"]) - 1
     assert len(catalog.errors) == 1
     assert "invalid-image" in catalog.errors[0]

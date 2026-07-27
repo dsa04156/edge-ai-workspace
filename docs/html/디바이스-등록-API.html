@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-24 18:53</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
+            <span class="badge">수정: 2026-07-27 16:45</span>
+            <span class="badge">HTML 생성: 2026-07-27 16:47</span>
           </div>
         </header>
         <div class="doc-body">
@@ -243,6 +243,30 @@ canonical =
 }</code></pre>
 <h3 id="단건">단건</h3>
 <pre data-lang="http"><code>GET /api/v1/discovery/candidates/{candidateId}</code></pre>
+<h3 id="수동-modbus-개발-후보-선언">수동 Modbus 개발 후보 선언</h3>
+<p>브라우저는 <code>POST /management/discovery/manual</code> BFF를 사용하고, BFF는 다음 내부 API를 HMAC으로 호출한다.</p>
+<pre data-lang="http"><code>POST /internal/v1/discovery/manual
+Content-Type: application/json
+
+{
+  &quot;candidate&quot;: {
+    &quot;nodeName&quot;: &quot;etri-dev0001-jetorn&quot;,
+    &quot;protocol&quot;: &quot;modbus&quot;,
+    &quot;transport&quot;: &quot;modbus-tcp&quot;,
+    &quot;displayName&quot;: &quot;EdgeX Modbus TCP simulator&quot;,
+    &quot;properties&quot;: {
+      &quot;Mode&quot;: &quot;tcp&quot;,
+      &quot;Host&quot;: &quot;edge-modbus-simulator.edgex-edge.svc.cluster.local&quot;,
+      &quot;Port&quot;: 1502,
+      &quot;UnitID&quot;: 1
+    }
+  },
+  &quot;requestRef&quot;: {
+    &quot;requestId&quot;: &quot;&lt;64 lowercase hex&gt;&quot;,
+    &quot;payloadHash&quot;: &quot;&lt;64 lowercase hex&gt;&quot;
+  }
+}</code></pre>
+<p>서버는 <code>Mode</code>, <code>Port</code>, <code>UnitID</code>를 정규화하고 node/protocol/endpoint property로 stable candidate ID를 만든다. 현재 Git Catalog와 위 값이 정확히 일치할 때만 <code>PENDING_APPROVAL</code>과 <code>registrationReady=true</code>가 된다. 다른 host/port/unit ID와 실제 PLC endpoint는 검증된 별도 binding이 없으므로 <code>BLOCKED</code>다. 이 API는 네트워크를 scan하지 않고, 비밀번호·token·URL userinfo가 있는 property는 거부한다.</p>
 <h3 id="승인">승인</h3>
 <pre data-lang="http"><code>POST /api/v1/discovery/candidates/{candidateId}/approve
 Content-Type: application/json
@@ -363,6 +387,7 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
 <li class="toc-h2"><a href="#candidate-api">Candidate API</a></li>
 <li class="toc-h3"><a href="#목록">목록</a></li>
 <li class="toc-h3"><a href="#단건">단건</a></li>
+<li class="toc-h3"><a href="#수동-modbus-개발-후보-선언">수동 Modbus 개발 후보 선언</a></li>
 <li class="toc-h3"><a href="#승인">승인</a></li>
 <li class="toc-h3"><a href="#거절">거절</a></li>
 <li class="toc-h3"><a href="#등록-재시도">등록 재시도</a></li>

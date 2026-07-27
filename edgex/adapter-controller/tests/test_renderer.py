@@ -1,4 +1,9 @@
-from app.models import RuntimeApplyRequest, RuntimePlan, RuntimeTemplate
+from app.models import (
+    RuntimeApplyRequest,
+    RuntimeNetworkEgress,
+    RuntimePlan,
+    RuntimeTemplate,
+)
 from app.renderer import render_adapter_runtime, render_runtime_workload
 
 
@@ -186,3 +191,44 @@ def test_restart_nonce_only_changes_controller_owned_pod_template_annotation():
     assert restarted_deployment["spec"]["template"]["metadata"]["annotations"][
         "edgeai.etri.re.kr/restart-nonce"
     ] == "restart-01"
+
+
+def test_renderer_adds_only_catalog_approved_protocol_egress():
+    template = deployable_template().model_copy(
+        update={
+            "network_egress": [
+                RuntimeNetworkEgress(
+                    namespace="edgex-edge",
+                    pod_selector={
+                        "app.kubernetes.io/name": "edge-modbus-simulator"
+                    },
+                    ports=[1502],
+                )
+            ]
+        }
+    )
+
+    resources = render_runtime_workload(
+        runtime_cr(),
+        template,
+        namespace="edgex-edge",
+    )
+    policy = next(item for item in resources if item["kind"] == "NetworkPolicy")
+
+    assert policy["spec"]["egress"][-1] == {
+        "to": [
+            {
+                "namespaceSelector": {
+                    "matchLabels": {
+                        "kubernetes.io/metadata.name": "edgex-edge"
+                    }
+                },
+                "podSelector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/name": "edge-modbus-simulator"
+                    }
+                },
+            }
+        ],
+        "ports": [{"protocol": "TCP", "port": 1502}],
+    }

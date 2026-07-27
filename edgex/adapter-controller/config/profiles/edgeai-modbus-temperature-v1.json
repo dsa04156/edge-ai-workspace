@@ -1,0 +1,41 @@
+{
+  "name": "edgeai-modbus-temperature-v1",
+  "manufacturer": "ETRI",
+  "model": "edgeai-modbus-tcp-simulator-v1",
+  "labels": [
+    "modbus",
+    "modbus-tcp",
+    "simulator",
+    "read-only",
+    "edge-adapter-controller"
+  ],
+  "description": "Development-only read-only temperature profile for validating the official EdgeX device-modbus service",
+  "deviceResources": [
+    {
+      "name": "temperature",
+      "description": "Simulated temperature stored as signed tenths of a degree Celsius",
+      "attributes": {
+        "primaryTable": "HOLDING_REGISTERS",
+        "startingAddress": 0,
+        "rawType": "Int16"
+      },
+      "properties": {
+        "valueType": "Float32",
+        "readWrite": "R",
+        "scale": 0.1,
+        "units": "degC"
+      }
+    }
+  ],
+  "deviceCommands": [
+    {
+      "name": "temperature",
+      "readWrite": "R",
+      "resourceOperations": [
+        {
+          "deviceResource": "temperature"
+        }
+      ]
+    }
+  ]
+}

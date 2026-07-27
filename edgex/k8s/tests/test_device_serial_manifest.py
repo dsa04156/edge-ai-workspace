@@ -307,11 +307,31 @@ def test_serial_network_policies_limit_both_namespace_boundaries() -> None:
                         "matchLabels": {"kubernetes.io/metadata.name": "edgex-edge"}
                     },
                     "podSelector": {
+                        "matchExpressions": [
+                            {
+                                "key": "app.kubernetes.io/name",
+                                "operator": "In",
+                                "values": [
+                                    "device-serial-jetson",
+                                    "device-sensehat-raspi",
+                                ],
+                            }
+                        ]
+                    },
+                },
+                {
+                    "namespaceSelector": {
+                        "matchLabels": {"kubernetes.io/metadata.name": "edgex-edge"}
+                    },
+                    "podSelector": {
                         "matchLabels": {
-                            "app.kubernetes.io/name": "device-serial-jetson"
+                            "app.kubernetes.io/managed-by": (
+                                "edge-adapter-controller"
+                            ),
+                            "app.kubernetes.io/part-of": "edgex-system",
                         }
                     },
-                }
+                },
             ],
             "ports": [
                 {"protocol": "TCP", "port": 59890},

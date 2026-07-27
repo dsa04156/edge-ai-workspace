@@ -638,7 +638,7 @@ class DeviceCandidateRegistry:
             if match.confidence == "exact" and match.binding is not None:
                 return (
                     match.binding.adapter.runtime_adapter_id,
-                    match.binding.binding_id,
+                    match.binding.runtime_hardware_binding_id,
                     "registration-ready",
                     "stable identity, Profile, parser와 검증 이미지가 정확히 일치합니다.",
                 )
@@ -751,9 +751,15 @@ class DeviceCandidateRegistry:
             self._require_string(properties, "Topic")
         elif protocol == "modbus":
             mode = str(properties.get("Mode") or "").casefold()
+            properties["Mode"] = mode
             if mode == "tcp":
-                self._require_string(properties, "Host")
-                self._require_integer(properties, "Port", minimum=1, maximum=65535)
+                properties["Host"] = self._require_string(properties, "Host")
+                properties["Port"] = self._require_integer(
+                    properties,
+                    "Port",
+                    minimum=1,
+                    maximum=65535,
+                )
             elif mode == "rtu":
                 if not candidate.device_path or not candidate.device_path.startswith(
                     "/dev/serial/by-id/"
@@ -761,7 +767,7 @@ class DeviceCandidateRegistry:
                     raise ControllerValidationError(
                         "Modbus RTU requires a stable /dev/serial/by-id path"
                     )
-                self._require_integer(
+                properties["BaudRate"] = self._require_integer(
                     properties,
                     "BaudRate",
                     minimum=1200,
@@ -769,7 +775,12 @@ class DeviceCandidateRegistry:
                 )
             else:
                 raise ControllerValidationError("Modbus Mode must be tcp or rtu")
-            self._require_integer(properties, "UnitID", minimum=0, maximum=247)
+            properties["UnitID"] = self._require_integer(
+                properties,
+                "UnitID",
+                minimum=0,
+                maximum=247,
+            )
         elif protocol == "opcua":
             self._require_url(properties, "Endpoint", {"opc.tcp"})
         elif protocol == "onvif":

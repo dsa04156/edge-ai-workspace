@@ -69,11 +69,31 @@
     {
       "templateId": "modbus-device-service-v1",
       "adapterId": "modbus",
-      "displayName": "Modbus",
+      "displayName": "EdgeX Modbus TCP 4.0.2 (development simulator)",
       "protocolName": "modbus",
-      "verificationState": "unverified",
-      "deploymentEnabled": false,
-      "servicePort": 59920
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
+      "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",
+      "servicePort": 59920,
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-modbus-tcp-simulator-001",
+          "displayName": "Jetson Modbus TCP development simulator",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        }
+      ],
+      "networkEgress": [
+        {
+          "namespace": "edgex-edge",
+          "podSelector": {
+            "app.kubernetes.io/name": "edge-modbus-simulator"
+          },
+          "ports": [
+            1502
+          ]
+        }
+      ]
     },
     {
       "templateId": "opcua-device-service-v1",

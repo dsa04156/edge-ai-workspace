@@ -1,13 +1,16 @@
 {
   "version": 1,
   "imageAllowlist": [
-    "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda"
+    "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+    "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
   ],
   "parserAllowlist": [
-    "arduino-multisensor-v1"
+    "arduino-multisensor-v1",
+    "edgex-device-modbus-v4.0.2"
   ],
   "profileAllowlist": [
-    "arduino-multisensor-v1"
+    "arduino-multisensor-v1",
+    "edgeai-modbus-temperature-v1"
   ],
   "bindings": [
     {
@@ -40,6 +43,51 @@
         "approvalRequired": true
       },
       "deviceNamePrefix": "arduino"
+    },
+    {
+      "bindingId": "jetson-modbus-tcp-simulator-v1",
+      "protocol": "modbus",
+      "match": {
+        "nodeId": "etri-dev0001-jetorn",
+        "properties": {
+          "Mode": "tcp",
+          "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+          "Port": 1502,
+          "UnitID": 1
+        }
+      },
+      "runtimeHardwareBindingId": "jetson-modbus-tcp-simulator-001",
+      "connection": {
+        "Timeout": 5,
+        "IdleTimeout": 5
+      },
+      "connectionPropertyMap": {
+        "Address": "Host",
+        "Port": "Port",
+        "UnitID": "UnitID"
+      },
+      "edgeXProtocol": "modbus-tcp",
+      "autoEvents": [
+        {
+          "sourceName": "temperature",
+          "interval": "1s",
+          "onChange": false
+        }
+      ],
+      "adapter": {
+        "runtimeAdapterId": "modbus",
+        "serviceName": "device-modbus",
+        "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",
+        "parser": "edgex-device-modbus-v4.0.2"
+      },
+      "profile": {
+        "name": "edgeai-modbus-temperature-v1",
+        "file": "profiles/edgeai-modbus-temperature-v1.json"
+      },
+      "security": {
+        "approvalRequired": true
+      },
+      "deviceNamePrefix": "modbus-sim"
     }
   ]
 }

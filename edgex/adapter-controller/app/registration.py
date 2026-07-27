@@ -823,6 +823,21 @@ class RegistrationCoordinator:
         binding: DeviceBinding,
         registration: RegistrationRecord,
     ) -> dict[str, Any]:
+        connection = deepcopy(binding.connection)
+        for target_name, source_name in binding.connection_property_map.items():
+            if source_name == "$devicePath":
+                value = candidate.device_path
+            else:
+                value = candidate.properties.get(source_name)
+            if value is None or value == "":
+                raise ValueError(
+                    f"candidate is missing connection source {source_name!r}"
+                )
+            connection[target_name] = value
+        protocol_name = binding.edge_x_protocol or candidate.protocol
+        service_name = str(registration.service_name or "")
+        if not service_name:
+            raise ValueError("registration is missing the resolved Device Service name")
         return {
             "name": registration.device_name,
             "description": (
@@ -836,11 +851,15 @@ class RegistrationCoordinator:
                 "discovery-approved",
                 candidate.protocol,
             ],
-            "serviceName": binding.adapter.service_name,
+            "serviceName": service_name,
             "profileName": binding.profile.name,
             "protocols": {
-                candidate.protocol: deepcopy(binding.connection)
+                protocol_name: connection
             },
+            "autoEvents": [
+                item.model_dump(by_alias=True)
+                for item in binding.auto_events
+            ],
             "tags": {
                 "controllerCandidateId": candidate.candidate_id,
                 "hardwareId": candidate.hardware_id,

@@ -89,6 +89,41 @@ query:
 GET /api/v1/discovery/candidates/{candidateId}
 ```
 
+### 수동 Modbus 개발 후보 선언
+
+브라우저는 `POST /management/discovery/manual` BFF를 사용하고, BFF는 다음 내부 API를
+HMAC으로 호출한다.
+
+```http
+POST /internal/v1/discovery/manual
+Content-Type: application/json
+
+{
+  "candidate": {
+    "nodeName": "etri-dev0001-jetorn",
+    "protocol": "modbus",
+    "transport": "modbus-tcp",
+    "displayName": "EdgeX Modbus TCP simulator",
+    "properties": {
+      "Mode": "tcp",
+      "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+      "Port": 1502,
+      "UnitID": 1
+    }
+  },
+  "requestRef": {
+    "requestId": "<64 lowercase hex>",
+    "payloadHash": "<64 lowercase hex>"
+  }
+}
+```
+
+서버는 `Mode`, `Port`, `UnitID`를 정규화하고 node/protocol/endpoint property로 stable
+candidate ID를 만든다. 현재 Git Catalog와 위 값이 정확히 일치할 때만
+`PENDING_APPROVAL`과 `registrationReady=true`가 된다. 다른 host/port/unit ID와 실제 PLC
+endpoint는 검증된 별도 binding이 없으므로 `BLOCKED`다. 이 API는 네트워크를 scan하지 않고,
+비밀번호·token·URL userinfo가 있는 property는 거부한다.
+
 ### 승인
 
 ```http

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import re
 from typing import Literal
 
@@ -103,6 +104,51 @@ class ExternalRuntimeDefinition(ControllerModel):
         return self
 
 
+class RuntimeNetworkEgress(ControllerModel):
+    namespace: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=63,
+        pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$",
+    )
+    pod_selector: dict[str, str] = Field(default_factory=dict, max_length=16)
+    cidr: str | None = Field(default=None, max_length=64)
+    ports: list[int] = Field(min_length=1, max_length=16)
+
+    @model_validator(mode="after")
+    def enforce_bounded_destination(self) -> "RuntimeNetworkEgress":
+        selector_mode = self.namespace is not None or bool(self.pod_selector)
+        cidr_mode = self.cidr is not None
+        if selector_mode == cidr_mode:
+            raise ValueError(
+                "runtime egress must use either namespace/pod selector or CIDR"
+            )
+        if selector_mode and (
+            self.namespace is None or not self.pod_selector
+        ):
+            raise ValueError(
+                "runtime selector egress requires namespace and podSelector"
+            )
+        if any(
+            not key
+            or not value
+            or len(key) > 253
+            or len(value) > 253
+            for key, value in self.pod_selector.items()
+        ):
+            raise ValueError("runtime egress podSelector is invalid")
+        if cidr_mode:
+            network = ipaddress.ip_network(str(self.cidr), strict=False)
+            if network.prefixlen == 0:
+                raise ValueError("runtime egress cannot allow the entire Internet")
+            self.cidr = str(network)
+        if len(self.ports) != len(set(self.ports)):
+            raise ValueError("runtime egress ports must be unique")
+        if any(port < 1 or port > 65535 for port in self.ports):
+            raise ValueError("runtime egress port is outside 1..65535")
+        return self
+
+
 class RuntimeTemplate(ControllerModel):
     template_id: str = Field(
         min_length=1,
@@ -122,6 +168,7 @@ class RuntimeTemplate(ControllerModel):
     service_port: int = Field(ge=1024, le=65535)
     hardware_bindings: list[HardwareBindingTemplate] = Field(default_factory=list)
     external_runtimes: list[ExternalRuntimeDefinition] = Field(default_factory=list)
+    network_egress: list[RuntimeNetworkEgress] = Field(default_factory=list)
     hidden: bool = False
 
     @model_validator(mode="after")

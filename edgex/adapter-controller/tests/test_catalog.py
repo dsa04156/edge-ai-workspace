@@ -39,7 +39,6 @@ def test_catalog_records_external_hardware_verified_runtimes(catalog):
 
 def test_catalog_marks_unverified_protocol_templates_non_deployable(catalog):
     for template_id in (
-        "modbus-device-service-v1",
         "opcua-device-service-v1",
         "mqtt-device-service-v1",
         "rtsp-device-service-v1",
@@ -49,6 +48,24 @@ def test_catalog_marks_unverified_protocol_templates_non_deployable(catalog):
         assert template.deployment_enabled is False
         assert template.image is None
         assert template.hardware_bindings == []
+
+
+def test_catalog_enables_only_the_pinned_official_modbus_simulator_path(catalog):
+    template = catalog.require("modbus-device-service-v1")
+
+    assert template.adapter_id == "modbus"
+    assert template.verification_state == "template-verified"
+    assert template.deployment_enabled is True
+    assert template.image == (
+        "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:"
+        "db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
+    )
+    assert [item.binding_id for item in template.hardware_bindings] == [
+        "jetson-modbus-tcp-simulator-001"
+    ]
+    assert template.hardware_bindings[0].host_device_path is None
+    assert template.network_egress[0].namespace == "edgex-edge"
+    assert template.network_egress[0].ports == [1502]
 
 
 def test_catalog_rejects_mutable_or_unpinned_deployable_image(tmp_path):

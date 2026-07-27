@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-카탈로그.md</span>
-            <span class="badge">수정: 2026-07-24 16:22</span>
-            <span class="badge">HTML 생성: 2026-07-24 18:55</span>
+            <span class="badge">수정: 2026-07-27 16:47</span>
+            <span class="badge">HTML 생성: 2026-07-27 16:47</span>
           </div>
         </header>
         <div class="doc-body">
@@ -171,8 +171,23 @@
   runtime_templates.json
   discovery_plans.json
   profiles/
-    arduino-multisensor-v1.json</code></pre>
+    arduino-multisensor-v1.json
+    edgeai-modbus-temperature-v1.json</code></pre>
 <p><code>runtime_templates.json</code>은 Device Service Runtime의 배치 template이고, <code>device_bindings.json</code>은 stable hardware identity와 Runtime/Profile을 연결한다. 두 파일의 역할을 섞지 않는다.</p>
+<h2 id="runtime-network-egress">Runtime network egress</h2>
+<p>Controller가 만든 Runtime은 기본적으로 DNS와 중앙 EdgeX Keeper/Metadata/MessageBus에만 접근한다. TCP 기반 물리 endpoint가 추가로 필요하면 <code>runtime_templates.json</code>의 검토된 template에만 목적지를 선언한다.</p>
+<pre data-lang="json"><code>{
+  &quot;networkEgress&quot;: [
+    {
+      &quot;namespace&quot;: &quot;edgex-edge&quot;,
+      &quot;podSelector&quot;: {
+        &quot;app.kubernetes.io/name&quot;: &quot;edge-modbus-simulator&quot;
+      },
+      &quot;ports&quot;: [1502]
+    }
+  ]
+}</code></pre>
+<p>selector 목적지는 <code>namespace</code>와 <code>podSelector</code>를 함께 사용한다. 실제 외부 PLC는 <code>cidr</code>와 허용 TCP port를 사용하며 selector 방식과 섞지 않는다. <code>/0</code>, 빈 selector, 중복·범위 밖 port는 Catalog 로딩에서 거부한다. candidate API의 Host 값이 NetworkPolicy를 직접 확장하지 않으며, endpoint와 egress는 둘 다 Git Catalog 변경을 거쳐야 한다.</p>
 <h2 id="device-binding-schema">Device Binding schema</h2>
 <pre data-lang="json"><code>{
   &quot;version&quot;: 1,
@@ -222,7 +237,13 @@
 <h2 id="검증-규칙">검증 규칙</h2>
 <ul><li>image는 tag가 아니라 <code>@sha256:&lt;digest&gt;</code> 형식이어야 한다.</li><li>binding image, parser, Profile name은 각각 상위 allowlist에 있어야 한다.</li><li>Profile file은 Catalog 디렉터리 안의 JSON이어야 하며 path traversal을 허용하지 않는다.</li><li>Profile file의 <code>name</code>은 binding의 Profile name과 같아야 한다.</li><li>binding ID는 중복될 수 없다.</li><li>match에는 hardware ID, VID/PID, model, endpoint 또는 required capability 중 stable</li></ul>
 <p>조건이 하나 이상 있어야 한다.</p>
-<ul><li>여러 binding이 동시에 exact match되면 <code>ambiguous</code>로 차단한다.</li><li>active Manifest probe가 실패했거나 Manifest의 recommended Profile이 binding과 다르면</li></ul>
+<ul><li><code>match.properties</code>는 수동 선언된 endpoint의 mode, host, port, unit ID처럼 Git에서</li></ul>
+<p>승인한 exact property 조합만 매칭한다.</p>
+<ul><li><code>edgeXProtocol</code>은 공통 후보 protocol과 EdgeX Device protocol key가 다를 때 사용한다.</li></ul>
+<p>예를 들어 후보 <code>modbus</code>는 Device 등록 시 <code>modbus-tcp</code> 또는 <code>modbus-rtu</code>가 된다.</p>
+<ul><li><code>connectionPropertyMap</code>은 후보 property를 EdgeX protocol property로 명시적으로</li></ul>
+<p>옮긴다. 요청 값으로 임의 key를 추가하지 않는다.</p>
+<ul><li><code>autoEvents</code>는 Git Catalog가 승인한 source와 interval만 Device에 추가한다.</li><li>여러 binding이 동시에 exact match되면 <code>ambiguous</code>로 차단한다.</li><li>active Manifest probe가 실패했거나 Manifest의 recommended Profile이 binding과 다르면</li></ul>
 <p>알려진 USB serial이라도 exact match하지 않는다.</p>
 <ul><li>invalid binding 하나는 격리해 API <code>errors</code>에 표시하고, 나머지 유효 binding은 계속</li></ul>
 <p>사용할 수 있다. Catalog 문서 전체가 깨졌으면 빈 Catalog로 기동해 모든 신규 등록을 fail-closed한다.</p>
@@ -256,6 +277,12 @@ Resources:
 <p><code>identificationRules</code>에 선언한다.</p>
 <ol><li><code>MockI2CBusAdapter</code> 테스트로 허용 address만 읽는지 검증한다.</li><li>해당 Profile, Device Service image/parser와 Device Binding을 Catalog에 추가한다.</li><li>실장비 read와 첫 EdgeX Event를 검증하기 전에는 완료로 표시하지 않는다.</li></ol>
 <p>버스 <code>/dev/i2c-N</code> 존재만으로 Device Binding을 만들지 않는다.</p>
+<h2 id="modbus-장비-추가-절차">Modbus 장비 추가 절차</h2>
+<p>현재 구현된 범위는 공식 EdgeX <code>device-modbus:4.0.2</code>와 개발 simulator를 연결하는 <code>template-verified</code> 경로다. 자동 network scan과 실제 PLC 지원은 아직 없다.</p>
+<ol><li>개발 fixture를 기본 운영 render와 분리해 배포한다.</li><li>대시보드에서 node <code>etri-dev0001-jetorn</code>, protocol <code>modbus</code>, mode <code>tcp</code>,</li></ol>
+<p>host <code>edge-modbus-simulator.edgex-edge.svc.cluster.local</code>, port <code>1502</code>, unit ID <code>1</code>로 후보를 선언한다.</p>
+<ol><li>exact <code>match.properties</code>가 일치한 후보만 <code>PENDING_APPROVAL</code>로 이동한다.</li><li>승인 후 Controller가 digest 고정 공식 Device Service Runtime을 배포한다.</li><li>Runtime이 Core Metadata에 나타난 뒤 read-only temperature Profile과 Device를 등록한다.</li><li>1초 AutoEvent가 Core Data에 도착한 뒤에만 <code>EVENT_CONFIRMED</code>로 완료한다.</li></ol>
+<p>실제 PLC를 추가할 때는 simulator binding을 수정하지 않고 별도 binding/Profile을 만든다. 장비 문서의 register table, starting address, raw type, scale, byte/word swap을 검토하고 endpoint/CIDR egress도 Git allowlist에 추가한다. 실제 Event와 재연결을 확인하기 전에는 <code>hardware-verified</code>로 승격하지 않는다.</p>
 <h2 id="mqtt-장비-추가-절차">MQTT 장비 추가 절차</h2>
 <p>현재는 자기등록 payload parser만 있고 broker subscriber와 MQTT Device Service가 없다. 다음 작업을 완료하기 전에는 binding을 운영 승격하지 않는다.</p>
 <ol><li>Secret 기반 broker TLS/auth 설정</li><li>retained <code>edge/discovery/{nodeId}/{deviceId}</code> subscriber</li><li>topic node/device 일치와 schema 검증</li><li>discovery topic과 telemetry topic 분리</li><li>MQTT Device Service parser와 Profile</li><li>중복 자기등록 idempotency, disconnect와 first Event 검증</li></ol>
@@ -270,15 +297,19 @@ cd ../device-serial
 go test ./...
 
 cd ../..
-kubectl kustomize edgex/k8s &gt;/dev/null</code></pre>
+kubectl kustomize edgex/k8s &gt;/dev/null
+kubectl kustomize \
+  edgex/k8s/overlays/development/modbus-simulator &gt;/dev/null</code></pre>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#runtime-network-egress">Runtime network egress</a></li>
 <li class="toc-h2"><a href="#device-binding-schema">Device Binding schema</a></li>
 <li class="toc-h2"><a href="#검증-규칙">검증 규칙</a></li>
 <li class="toc-h2"><a href="#profile-원칙">Profile 원칙</a></li>
 <li class="toc-h2"><a href="#새-serial-장비-추가-절차">새 Serial 장비 추가 절차</a></li>
 <li class="toc-h2"><a href="#i2c-장비-추가-절차">I2C 장비 추가 절차</a></li>
+<li class="toc-h2"><a href="#modbus-장비-추가-절차">Modbus 장비 추가 절차</a></li>
 <li class="toc-h2"><a href="#mqtt-장비-추가-절차">MQTT 장비 추가 절차</a></li>
 <li class="toc-h2"><a href="#ci의-image-digest-정렬">CI의 image digest 정렬</a></li>
 <li class="toc-h2"><a href="#검증-명령">검증 명령</a></li></ol></aside>

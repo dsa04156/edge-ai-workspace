@@ -56,10 +56,10 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     for label in (
-        'data-dashboard-page="overview" aria-pressed="true">개요</button>',
-        'data-dashboard-page="inventory" aria-pressed="false">자산</button>',
+        'data-dashboard-page="overview" aria-pressed="true">운영 현황</button>',
+        'data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>',
         'data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>',
-        'data-dashboard-page="management" aria-pressed="false">디바이스 관리</button>',
+        'data-dashboard-page="management" aria-pressed="false">장비 연결</button>',
         "AI Pipeline Builder",
         "EdgeX",
         "Kubernetes",
@@ -97,7 +97,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
+    assert "/static/dashboard.js?v=simple-dashboard-20260727" in html
 
 
 def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
@@ -105,7 +105,7 @@ def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
+    assert "/static/dashboard.js?v=simple-dashboard-20260727" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
     assert "service:" in render_devices

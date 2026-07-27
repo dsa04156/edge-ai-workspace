@@ -123,10 +123,10 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
 def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ">Overview<" in html
-    assert ">Assets<" in html
-    assert ">AI Pipeline<" in html
-    assert ">디바이스 관리<" in html
+    assert ">운영 현황<" in html
+    assert ">등록 디바이스<" in html
+    assert ">AI 파이프라인<" in html
+    assert ">장비 연결<" in html
     assert ">Resource Augmentation<" not in html
 
 
@@ -175,7 +175,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=device-history-20260722" in html
-    assert "/static/dashboard.js?v=interaction-feedback-20260727" in html
+    assert "/static/dashboard.js?v=simple-dashboard-20260727" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

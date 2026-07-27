@@ -11,6 +11,8 @@ from app.discovery_models import (
     CandidateMutationRef,
     CandidateRetryRequest,
     DiscoveryObservation,
+    ManualCandidateCreate,
+    ManualCandidateInput,
     NodeDiscoveryReport,
 )
 from app.discovery_store import SQLiteDiscoveryStore
@@ -24,6 +26,10 @@ BASE = Path(__file__).resolve().parents[1]
 SERIAL_IMAGE = (
     "192.168.0.56:5000/edgex-device-serial@"
     "sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda"
+)
+MODBUS_IMAGE = (
+    "docker.io/edgexfoundry/device-modbus:4.0.2@"
+    "sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
 )
 
 
@@ -109,6 +115,47 @@ class FakeDeployRuntimeService(FakeRuntimeService):
             consumers=0,
             image=self.image,
         )
+
+
+class FakeModbusRuntimeService:
+    def __init__(self) -> None:
+        self.retired: list[str] = []
+
+    def plan(self, request):
+        return RuntimePlan(
+            action="DEPLOY",
+            allowed=True,
+            adapter_id="modbus",
+            template_id="modbus-device-service-v1",
+            runtime_name="adapter-modbus-1234567890",
+            service_name="adapter-modbus-1234567890",
+            target_node=request.target_node,
+            hardware_binding_id=request.hardware_binding_id,
+            management_mode="controller",
+            verification_state="template-verified",
+            reasons=[],
+            plan_hash="e" * 64,
+        )
+
+    def apply_runtime(self, name, request):
+        return RuntimeObservation(
+            runtime_name=name,
+            adapter_id="modbus",
+            template_id="modbus-device-service-v1",
+            service_name=name,
+            target_node="etri-dev0001-jetorn",
+            hardware_binding_id="jetson-modbus-tcp-simulator-001",
+            hardware_binding_ids=["jetson-modbus-tcp-simulator-001"],
+            management_mode="controller",
+            management_owner="controller",
+            verification_state="template-verified",
+            phase="SERVICE_READY",
+            consumers=0,
+            image=MODBUS_IMAGE,
+        )
+
+    def retire_runtime(self, name, request):
+        self.retired.append(name)
 
 
 class FakeEdgeX:
@@ -294,6 +341,131 @@ def test_device_name_keeps_a_hash_suffix_when_hardware_slugs_share_a_prefix(
     assert second.endswith("-" + "2" * 10)
     assert len(first) <= 63
     assert len(second) <= 63
+
+
+def test_modbus_device_uses_runtime_service_protocol_mapping_and_auto_event(
+    tmp_path,
+):
+    device_catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    binding = device_catalog.get("jetson-modbus-tcp-simulator-v1")
+    candidate = SimpleNamespace(
+        protocol="modbus",
+        model="edgeai-modbus-tcp-simulator-v1",
+        node_name="etri-dev0001-jetorn",
+        candidate_id="candidate-" + "a" * 64,
+        hardware_id="modbus-simulator-001",
+        properties={
+            "Mode": "tcp",
+            "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+            "Port": 1502,
+            "UnitID": 1,
+        },
+    )
+    registration = SimpleNamespace(
+        device_name="modbus-sim-001",
+        service_name="adapter-modbus-1234567890",
+    )
+
+    document = RegistrationCoordinator._device_document(
+        candidate,
+        binding,
+        registration,
+    )
+
+    assert document["serviceName"] == "adapter-modbus-1234567890"
+    assert document["protocols"] == {
+        "modbus-tcp": {
+            "Address": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+            "Port": 1502,
+            "UnitID": 1,
+            "Timeout": 5,
+            "IdleTimeout": 5,
+        }
+    }
+    assert document["autoEvents"] == [
+        {
+            "sourceName": "temperature",
+            "interval": "1s",
+            "onChange": False,
+        }
+    ]
+
+
+def test_manual_modbus_candidate_runs_approval_to_first_event_saga(tmp_path):
+    kube = FakeKubernetesGateway(target_node_ready=True)
+    store = SQLiteDiscoveryStore(tmp_path / "discovery.db")
+    runtime_catalog = RuntimeTemplateCatalog.load(
+        BASE / "config" / "runtime_templates.json"
+    )
+    device_catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    registry = DeviceCandidateRegistry(
+        runtime_catalog,
+        kube,
+        store=store,
+        device_catalog=device_catalog,
+    )
+    candidate = registry.create_manual(
+        ManualCandidateCreate(
+            candidate=ManualCandidateInput(
+                node_name="etri-dev0001-jetorn",
+                protocol="modbus",
+                transport="modbus-tcp",
+                display_name="EdgeX Modbus TCP simulator",
+                properties={
+                    "Mode": "tcp",
+                    "Host": (
+                        "edge-modbus-simulator.edgex-edge.svc.cluster.local"
+                    ),
+                    "Port": 1502,
+                    "UnitID": 1,
+                },
+            ),
+            request_ref=CandidateMutationRef(
+                request_id="4" * 64,
+                payload_hash="5" * 64,
+            ),
+        )
+    )
+    edge_x = FakeEdgeX(event_received=True)
+    coordinator = RegistrationCoordinator(
+        registry=registry,
+        store=store,
+        device_catalog=device_catalog,
+        auth_provider=AllowAllMockProvider(),
+        edge_x=edge_x,
+        kube=kube,
+        runtime_service=FakeModbusRuntimeService(),
+        event_timeout_seconds=10,
+    )
+
+    assert candidate.state == "PENDING_APPROVAL"
+    coordinator.approve(
+        candidate.candidate_id,
+        CandidateApprovalRequest(
+            actor="operator-1",
+            reason="development simulator endpoint verified",
+            request_ref=CandidateMutationRef(
+                request_id="6" * 64,
+                payload_hash="7" * 64,
+            ),
+        ),
+    )
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    registration = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert registration.status == "EVENT_CONFIRMED"
+    assert registry.get_candidate(candidate.candidate_id).state == (
+        "EVENT_CONFIRMED"
+    )
+    assert edge_x.profiles == ["edgeai-modbus-temperature-v1"]
+    assert edge_x.devices[0]["serviceName"] == "adapter-modbus-1234567890"
+    assert edge_x.devices[0]["protocols"]["modbus-tcp"]["Port"] == 1502
+    assert edge_x.devices[0]["autoEvents"][0]["sourceName"] == "temperature"
 
 
 def test_auth_denial_blocks_before_edgex_registration(tmp_path):

@@ -366,6 +366,37 @@ def render_runtime_workload(
                         {"protocol": "TCP", "port": 1883},
                     ],
                 },
+                *[
+                    {
+                        "to": [
+                            (
+                                {
+                                    "namespaceSelector": {
+                                        "matchLabels": {
+                                            "kubernetes.io/metadata.name": (
+                                                rule.namespace
+                                            ),
+                                        }
+                                    },
+                                    "podSelector": {
+                                        "matchLabels": rule.pod_selector,
+                                    },
+                                }
+                                if rule.cidr is None
+                                else {
+                                    "ipBlock": {
+                                        "cidr": rule.cidr,
+                                    }
+                                }
+                            )
+                        ],
+                        "ports": [
+                            {"protocol": "TCP", "port": port}
+                            for port in rule.ports
+                        ],
+                    }
+                    for rule in template.network_egress
+                ],
             ],
         },
     }
