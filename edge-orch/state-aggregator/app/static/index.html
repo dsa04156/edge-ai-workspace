@@ -430,11 +430,11 @@
             </section>
 
             <nav id="managementViewTabs" class="management-view-tabs" role="tablist" aria-label="디바이스 관리 작업">
-              <button id="managementDiscoveryTab" type="button" role="tab" aria-selected="true" aria-controls="managementDiscoveryPanel" data-management-view="discovery">
-                발견된 장비
-              </button>
-              <button id="managementOverviewTab" type="button" role="tab" aria-selected="false" aria-controls="managementOverviewPanel" data-management-view="overview">
+              <button id="managementOverviewTab" type="button" role="tab" aria-selected="true" aria-controls="managementOverviewPanel" data-management-view="overview">
                 등록 현황
+              </button>
+              <button id="managementDiscoveryTab" type="button" role="tab" aria-selected="false" aria-controls="managementDiscoveryPanel" data-management-view="discovery">
+                발견된 장비
               </button>
               <button id="managementRegisterTab" type="button" role="tab" aria-selected="false" aria-controls="managementRegisterPanel" data-management-view="register">
                 직접 등록
@@ -455,7 +455,7 @@
               버튼을 누르면 진행 상태와 결과가 여기에 표시됩니다.
             </div>
 
-            <section id="managementDiscoveryPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementDiscoveryTab" data-management-view-panel="discovery">
+            <section id="managementDiscoveryPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementDiscoveryTab" data-management-view-panel="discovery" hidden>
               <section class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
                 <div class="management-discovery-head">
                   <div>
@@ -536,7 +536,7 @@
               </section>
             </section>
 
-            <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview" hidden>
+            <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview">
               <section class="management-physical-inventory" aria-labelledby="managementDeviceServiceTitle">
                 <div class="management-section-head">
                   <div>
@@ -984,7 +984,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=unified-device-service-20260727"></script>
+    <script src="/static/device-management.js?v=registration-first-20260727"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

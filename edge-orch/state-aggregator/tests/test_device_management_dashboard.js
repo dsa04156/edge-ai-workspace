@@ -304,6 +304,38 @@ test("management navigation only accepts known views and registration steps", ()
 });
 
 
+test("registration overview is the first and default management view", () => {
+  const root = path.resolve(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
+  const javascript = fs.readFileSync(
+    path.join(root, "app/static/device-management.js"),
+    "utf8",
+  );
+  const overviewTabIndex = html.indexOf('id="managementOverviewTab"');
+  const discoveryTabIndex = html.indexOf('id="managementDiscoveryTab"');
+
+  assert.ok(overviewTabIndex >= 0);
+  assert.ok(discoveryTabIndex > overviewTabIndex);
+  assert.match(
+    html,
+    /id="managementOverviewTab"[^>]+aria-selected="true"/,
+  );
+  assert.match(
+    html,
+    /id="managementDiscoveryTab"[^>]+aria-selected="false"/,
+  );
+  assert.match(
+    html,
+    /id="managementDiscoveryPanel"[^>]+data-management-view-panel="discovery" hidden/,
+  );
+  assert.match(
+    html,
+    /id="managementOverviewPanel"[^>]+data-management-view-panel="overview">/,
+  );
+  assert.match(javascript, /activeView: "overview"/);
+});
+
+
 test("discovery inventory and token-free candidate mutations use the management BFF", async () => {
   const requests = [];
   const fetchFn = async (url, options = {}) => {
@@ -1281,7 +1313,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
   assert.match(html, /device-management\.css\?v=unified-device-service-20260727/);
-  assert.match(html, /device-management\.js\?v=unified-device-service-20260727/);
+  assert.match(html, /device-management\.js\?v=registration-first-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);

@@ -31,7 +31,7 @@ const managementState = {
   selectedNodeName: "",
   selectedAdapterId: "",
   selectedPatchDeviceName: "",
-  activeView: "discovery",
+  activeView: "overview",
   registrationStep: 1,
   nodeLoadError: null,
   runtimePlan: null,
