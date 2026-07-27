@@ -39,6 +39,7 @@ const {
   pollConnectionOperation,
   pollManagementOperation,
   preferredManagementNode,
+  physicalObservationStatus,
   protocolPackageStatus,
   restartAdapterRuntime,
   retireAdapterRuntime,
@@ -577,6 +578,30 @@ test("physical connection observation separates registration, presence, communic
   assert.equal(observed.deviceCount, 1);
   assert.deepEqual(observed.deviceNames, ["virtual-temperature-001"]);
   assert.match(observed.reason, /Device Service 연결과 최신 Event/);
+});
+
+test("physical connection card condenses healthy and degraded evidence", () => {
+  assert.deepEqual(physicalObservationStatus({
+    registrationState: "registered",
+    presenceState: "detected",
+    communicationState: "connected",
+    telemetryState: "fresh",
+    runtimeState: "ready",
+  }), {state: "healthy", label: "정상"});
+  assert.deepEqual(physicalObservationStatus({
+    registrationState: "registered",
+    presenceState: "detected",
+    communicationState: "connected",
+    telemetryState: "stale",
+    runtimeState: "ready",
+  }), {state: "warning", label: "데이터 지연"});
+  assert.deepEqual(physicalObservationStatus({
+    registrationState: "registered",
+    presenceState: "not_detected",
+    communicationState: "disconnected",
+    telemetryState: "missing",
+    runtimeState: "ready",
+  }), {state: "error", label: "연결 끊김"});
 });
 
 
@@ -1135,8 +1160,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=concise-dashboard-20260727/);
-  assert.match(html, /device-management\.css\?v=simple-dashboard-20260727/);
-  assert.match(html, /device-management\.js\?v=simple-dashboard-20260727/);
+  assert.match(html, /device-management\.css\?v=compact-device-card-20260727/);
+  assert.match(html, /device-management\.js\?v=compact-device-card-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1163,6 +1188,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-runtime-card/);
   assert.match(css, /\.management-physical-card/);
+  assert.match(css, /\.management-physical-summary/);
+  assert.match(css, /\.management-physical-details/);
   assert.match(css, /\.management-candidate-card/);
   assert.match(css, /\.management-discovery-filters/);
   assert.match(css, /\.management-dialog/);

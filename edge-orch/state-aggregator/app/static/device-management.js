@@ -433,6 +433,33 @@ function buildPhysicalConnectionObservations({
   ));
 }
 
+function physicalObservationStatus(observation = {}) {
+  if (observation.registrationState !== "registered") {
+    return {state: "warning", label: "등록 확인"};
+  }
+  if (
+    observation.presenceState === "not_detected"
+    || observation.communicationState === "disconnected"
+  ) {
+    return {state: "error", label: "연결 끊김"};
+  }
+  if (observation.telemetryState === "missing") {
+    return {state: "error", label: "데이터 없음"};
+  }
+  if (observation.telemetryState === "stale") {
+    return {state: "warning", label: "데이터 지연"};
+  }
+  if (
+    observation.runtimeState !== "ready"
+    || observation.presenceState !== "detected"
+    || observation.communicationState !== "connected"
+    || observation.telemetryState !== "fresh"
+  ) {
+    return {state: "warning", label: "확인 필요"};
+  }
+  return {state: "healthy", label: "정상"};
+}
+
 
 function adapterSupportsNode(adapter, nodeName) {
   if (
@@ -1893,7 +1920,7 @@ function renderPhysicalConnections(documentRef = document) {
       identity,
       "small",
       "",
-      `${observation.adapterName} · ${observation.serviceName || "Device Service 미확인"}`,
+      observation.serviceName || "Device Service 미확인",
     );
     appendTextElement(
       header,
@@ -1902,6 +1929,31 @@ function renderPhysicalConnections(documentRef = document) {
       koreanLabel("protocol", observation.protocolName, observation.protocolName),
     );
     header.prepend(identity);
+
+    const compactStatus = physicalObservationStatus(observation);
+    const summary = documentRef.createElement("div");
+    summary.className = "management-physical-summary";
+    const overall = appendTextElement(
+      summary,
+      "strong",
+      "management-physical-overall",
+      compactStatus.label,
+    );
+    overall.dataset.state = compactStatus.state;
+    appendTextElement(
+      summary,
+      "small",
+      "management-physical-compact-latest",
+      observation.latestEventTimestamp
+        ? `최신 ${formatManagementTimestamp(observation.latestEventTimestamp)}`
+        : "최신 데이터 없음",
+    );
+
+    const details = documentRef.createElement("details");
+    details.className = "management-physical-details";
+    appendTextElement(details, "summary", "", "세부정보");
+    const detailBody = documentRef.createElement("div");
+    detailBody.className = "management-physical-detail-body";
 
     const evidence = documentRef.createElement("div");
     evidence.className = "management-evidence-grid";
@@ -1946,9 +1998,9 @@ function renderPhysicalConnections(documentRef = document) {
       `EdgeX Device ${observation.deviceCount}개`,
     ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
 
-    appendTextElement(card, "p", "management-physical-reason", observation.reason);
+    appendTextElement(detailBody, "p", "management-physical-reason", observation.reason);
     appendTextElement(
-      card,
+      detailBody,
       "small",
       "management-physical-latest",
       observation.deviceNames.length
@@ -1956,7 +2008,9 @@ function renderPhysicalConnections(documentRef = document) {
           + formatManagementTimestamp(observation.latestEventTimestamp)
         : "연결된 EdgeX Device와 Event가 아직 없습니다.",
     );
-    card.prepend(header, evidence, facts);
+    detailBody.prepend(evidence, facts);
+    details.appendChild(detailBody);
+    card.append(header, summary, details);
     container.appendChild(card);
   });
 }
@@ -3664,6 +3718,7 @@ if (typeof module !== "undefined") {
     pollConnectionOperation,
     pollManagementOperation,
     preferredManagementNode,
+    physicalObservationStatus,
     protocolPackageStatus,
     restartAdapterRuntime,
     retireAdapterRuntime,

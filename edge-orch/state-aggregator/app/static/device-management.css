@@ -384,6 +384,72 @@ body[data-dashboard-page="management"] .side-rail {
   white-space: nowrap;
 }
 
+.management-physical-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.management-physical-overall {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.management-physical-overall[data-state="healthy"] {
+  border-color: rgba(91, 207, 155, 0.34);
+  background: rgba(91, 207, 155, 0.08);
+  color: #8be5bd;
+}
+
+.management-physical-overall[data-state="warning"] {
+  border-color: rgba(240, 179, 91, 0.34);
+  background: rgba(240, 179, 91, 0.08);
+  color: #f4c982;
+}
+
+.management-physical-overall[data-state="error"] {
+  border-color: rgba(238, 106, 120, 0.34);
+  background: rgba(238, 106, 120, 0.08);
+  color: #ff9da7;
+}
+
+.management-physical-compact-latest {
+  min-width: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.management-physical-details {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.management-physical-details > summary {
+  width: max-content;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.management-physical-details > summary:hover,
+.management-physical-details > summary:focus-visible {
+  color: var(--text);
+}
+
+.management-physical-detail-body {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .management-evidence-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
