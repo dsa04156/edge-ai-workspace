@@ -320,7 +320,7 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-physical-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   margin-top: 14px;
 }
@@ -477,6 +477,7 @@ body[data-dashboard-page="management"] .side-rail {
   font-size: 11px;
 }
 
+.management-evidence-cell[data-state="ready"] > strong,
 .management-evidence-cell[data-state="registered"] > strong,
 .management-evidence-cell[data-state="detected"] > strong,
 .management-evidence-cell[data-state="connected"] > strong,
@@ -601,6 +602,15 @@ body[data-dashboard-page="management"] .side-rail {
 
 .management-runtime-actions {
   justify-content: flex-end;
+}
+
+.management-runtime-actions button:not([disabled]) {
+  cursor: pointer;
+}
+
+.management-runtime-actions button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .management-runtime-actions button[disabled] {

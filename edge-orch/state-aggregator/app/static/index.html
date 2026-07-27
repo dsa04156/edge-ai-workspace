@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=compact-device-card-20260727" />
+    <link rel="stylesheet" href="/static/device-management.css?v=unified-device-service-20260727" />
     <link rel="stylesheet" href="/static/simple-mode.css?v=compact-connection-view-20260727" />
   </head>
   <body data-view-mode="simple">
@@ -523,6 +523,10 @@
                         <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
                         <span>거절한 후보 표시</span>
                       </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryShowRegistered" type="checkbox" />
+                        <span>등록 완료 후보 표시</span>
+                      </label>
                     </div>
                   </details>
                 </div>
@@ -533,62 +537,16 @@
             </section>
 
             <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview" hidden>
-              <section class="management-physical-inventory" aria-labelledby="managementPhysicalTitle">
+              <section class="management-physical-inventory" aria-labelledby="managementDeviceServiceTitle">
                 <div class="management-section-head">
                   <div>
-                    <span>Connection evidence</span>
-                    <strong id="managementPhysicalTitle">물리 연결</strong>
+                    <span>EdgeX Device Service</span>
+                    <strong id="managementDeviceServiceTitle">Device Service</strong>
                   </div>
-                  <small>연결 등록만으로 장비가 감지됐다고 판단하지 않음</small>
+                  <small>프로토콜별 운영 단위를 한 번만 표시</small>
                 </div>
-                <div id="managementConnectionLegend" class="management-connection-legend" aria-label="물리 연결 상태 판단 기준">
-                  <div>
-                    <span>1</span>
-                    <p><strong>연결 등록</strong><small>Git 카탈로그에 노드·장치 경로가 등록됐는지 확인</small></p>
-                  </div>
-                  <div>
-                    <span>2</span>
-                    <p><strong>장비 관측</strong><small>EdgeX Device 상태와 최신 Event를 근거로 판단</small></p>
-                  </div>
-                  <div>
-                    <span>3</span>
-                    <p><strong>통신 상태</strong><small>Device Service가 장비를 UP으로 보고하는지 확인</small></p>
-                  </div>
-                  <div>
-                    <span>4</span>
-                    <p><strong>데이터 상태</strong><small>Core Data의 최신 Event 시각으로 freshness 판단</small></p>
-                  </div>
-                </div>
-                <div id="managementPhysicalConnectionList" class="management-physical-list" aria-live="polite"></div>
+                <div id="managementDeviceServiceList" class="management-physical-list" aria-live="polite"></div>
               </section>
-
-              <div class="management-overview-grid">
-                <section class="management-runtime-inventory" aria-labelledby="managementRuntimeTitle">
-                  <div class="management-section-head">
-                    <div>
-                      <span>Runtime</span>
-                      <strong id="managementRuntimeTitle">선택 노드의 런타임</strong>
-                    </div>
-                    <small>외부 소유 런타임은 조회·재사용만 가능</small>
-                  </div>
-                  <div id="managementRuntimeList" class="management-runtime-list" aria-live="polite"></div>
-                </section>
-
-                <section class="management-catalog" aria-labelledby="managementCatalogTitle">
-                  <div class="management-section-head">
-                    <div>
-                      <span>Device Service</span>
-                      <strong id="managementCatalogTitle">프로토콜 패키지</strong>
-                    </div>
-                    <small>검증·설치·재사용 상태를 선택 노드 기준으로 표시</small>
-                  </div>
-                  <div id="managementAdapterList" class="management-adapter-list" aria-live="polite"></div>
-                  <details class="management-secondary-adapters">
-                    <summary>설치 전 확인이 필요한 프로토콜</summary>
-                    <div id="managementUnsupportedAdapterList" class="management-adapter-list" aria-live="polite"></div>
-                  </details>
-                </section>
-              </div>
 
               <section class="management-device-inventory" aria-labelledby="managedDeviceTitle">
                 <div class="management-section-head">
@@ -1026,7 +984,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=compact-connection-view-20260727"></script>
+    <script src="/static/device-management.js?v=unified-device-service-20260727"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

@@ -9,6 +9,7 @@ const {
   adapterSelectionOptions,
   adapterSupportsNode,
   bindingProtocolValue,
+  buildDeviceServiceObservations,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateEndpointSummary,
@@ -207,7 +208,7 @@ test("prefers a node with a live discovery report for the first management view"
 });
 
 
-test("hides stale and rejected discovery noise until explicitly requested", () => {
+test("hides completed, stale, and rejected discovery noise until requested", () => {
   assert.equal(
     candidateVisibleInDefaultList({presence: "present", state: "DETECTED"}),
     true,
@@ -231,6 +232,19 @@ test("hides stale and rejected discovery noise until explicitly requested", () =
     candidateVisibleInDefaultList(
       {presence: "present", state: "REJECTED"},
       {includeIgnored: true},
+    ),
+    true,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList(
+      {presence: "present", state: "EVENT_CONFIRMED"},
+    ),
+    false,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList(
+      {presence: "present", state: "EVENT_CONFIRMED"},
+      {showRegistered: true},
     ),
     true,
   );
@@ -578,6 +592,115 @@ test("physical connection observation separates registration, presence, communic
   assert.equal(observed.deviceCount, 1);
   assert.deepEqual(observed.deviceNames, ["virtual-temperature-001"]);
   assert.match(observed.reason, /Device Service 연결과 최신 Event/);
+});
+
+test("device service inventory merges runtime, adapter, and physical bindings into one row", () => {
+  const adapters = [{
+    adapterId: "serial-jetson",
+    displayName: "Jetson Arduino Serial",
+    serviceName: "device-serial-jetson",
+    protocolName: "serial",
+    runtime: {
+      verificationState: "hardware-verified",
+      hardwareBindings: [
+        {
+          bindingId: "serial-a",
+          displayName: "Arduino A",
+          nodeName: "edge-a",
+          devicePath: "/dev/arduino-a",
+          protocolProperties: {DeviceID: "arduino-a"},
+        },
+        {
+          bindingId: "serial-b",
+          displayName: "Arduino B",
+          nodeName: "edge-a",
+          devicePath: "/dev/arduino-b",
+          protocolProperties: {DeviceID: "arduino-b"},
+        },
+      ],
+    },
+  }];
+  const runtimes = [{
+    adapterId: "serial-jetson",
+    runtimeName: "device-serial-jetson",
+    serviceName: "device-serial-jetson",
+    targetNode: "edge-a",
+    hardwareBindingIds: ["serial-a", "serial-b"],
+    phase: "SERVICE_READY",
+    edgeXServiceObserved: true,
+    managementOwner: "argocd",
+    verificationState: "hardware-verified",
+  }];
+  const devices = ["a", "b"].map((suffix) => ({
+    name: `virtual-temperature-${suffix}`,
+    node_name: "edge-a",
+    device_service_name: "device-serial-jetson",
+    protocol_names: ["serial"],
+    physical_device_id: `arduino-${suffix}`,
+    hardware_binding_id: `serial-${suffix}`,
+    admin_state: "UNLOCKED",
+    operating_state: "UP",
+    connection_state: "connected",
+    device_service_available: true,
+    telemetry_freshness: "fresh",
+    latest_event_timestamp: `2026-07-23T10:00:0${suffix === "a" ? 1 : 2}Z`,
+  }));
+
+  const services = buildDeviceServiceObservations({
+    adapters,
+    runtimes,
+    devices,
+    nodeName: "edge-a",
+  });
+
+  assert.equal(services.length, 1);
+  assert.equal(services[0].serviceName, "device-serial-jetson");
+  assert.equal(services[0].runtimeName, "device-serial-jetson");
+  assert.equal(services[0].deviceCount, 2);
+  assert.deepEqual(services[0].bindingIds, ["serial-a", "serial-b"]);
+  assert.deepEqual(services[0].status, {state: "healthy", label: "정상"});
+});
+
+test("device service inventory includes a controller runtime without legacy adapter binding", () => {
+  const [service] = buildDeviceServiceObservations({
+    adapters: [{
+      adapterId: "modbus",
+      displayName: "Modbus",
+      serviceName: null,
+      protocolName: "modbus",
+      runtime: {hardwareBindings: []},
+    }],
+    runtimes: [{
+      adapterId: "modbus",
+      runtimeName: "adapter-modbus-1234",
+      serviceName: "device-modbus_1234",
+      targetNode: "edge-a",
+      hardwareBindingId: "modbus-a",
+      phase: "SERVICE_READY",
+      edgeXServiceObserved: true,
+      managementOwner: "controller",
+      verificationState: "template-verified",
+    }],
+    devices: [{
+      name: "motor-temperature-01",
+      node_name: "edge-a",
+      device_service_name: "device-modbus_1234",
+      protocol_names: ["modbus-tcp"],
+      admin_state: "UNLOCKED",
+      operating_state: "UNKNOWN",
+      connection_state: "unknown",
+      device_service_available: false,
+      telemetry_freshness: "fresh",
+      latest_event_timestamp: "2026-07-23T10:00:00Z",
+    }],
+    nodeName: "edge-a",
+  });
+
+  assert.equal(service.serviceName, "device-modbus_1234");
+  assert.equal(service.runtimeName, "adapter-modbus-1234");
+  assert.equal(service.runtimeState, "ready");
+  assert.equal(service.telemetryState, "fresh");
+  assert.deepEqual(service.status, {state: "warning", label: "확인 필요"});
 });
 
 test("physical connection card condenses healthy and degraded evidence", () => {
@@ -1113,10 +1236,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   for (const id of [
     "managementNodeList",
     "managementSelectedNode",
-    "managementAdapterList",
-    "managementPhysicalConnectionList",
-    "managementConnectionLegend",
-    "managementRuntimeList",
+    "managementDeviceServiceList",
     "managementRuntimeMode",
     "managementTargetNode",
     "managementHardwareBinding",
@@ -1142,13 +1262,13 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementRegistrationStep3",
     "managementRegistrationStep4",
     "managementPatchDeviceSelect",
-    "managementUnsupportedAdapterList",
     "managementDiscoveryPanel",
     "managementDiscoveryList",
     "managementDiscoverySearch",
     "managementDiscoveryProtocolFilter",
     "managementDiscoveryDecisionFilter",
     "managementDiscoveryShowStale",
+    "managementDiscoveryShowRegistered",
     "managementOpenManualCandidate",
     "managementManualCandidateDialog",
     "managementManualCandidateForm",
@@ -1160,8 +1280,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
-  assert.match(html, /device-management\.css\?v=compact-device-card-20260727/);
-  assert.match(html, /device-management\.js\?v=compact-connection-view-20260727/);
+  assert.match(html, /device-management\.css\?v=unified-device-service-20260727/);
+  assert.match(html, /device-management\.js\?v=unified-device-service-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1171,13 +1291,14 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementDiscoveryTitle">장비 후보</);
   assert.match(html, /id="managementOpenManualCandidate"[^>]*>직접 추가</);
   assert.match(html, /service-demo-value-detail/);
-  assert.match(html, /선택 노드의 런타임/);
-  assert.match(html, /물리 연결/);
+  assert.match(html, /id="managementDeviceServiceTitle">Device Service</);
+  assert.match(html, /프로토콜별 운영 단위를 한 번만 표시/);
+  assert.doesNotMatch(html, /선택 노드의 런타임/);
+  assert.doesNotMatch(html, /id="managementCatalogTitle">프로토콜 패키지/);
   assert.match(html, /연결 구성 마법사/);
   assert.match(html, /새 디바이스 등록/);
   assert.match(html, /연결 프로토콜 · Device Service/);
   assert.match(html, /Device Service 준비 방식/);
-  assert.match(html, /설치 전 확인이 필요한 프로토콜/);
   assert.match(html, /등록된 물리 연결/);
   assert.doesNotMatch(html, /승인된 하드웨어 연결/);
   assert.match(html, /기존 EdgeX 디바이스/);
@@ -1186,7 +1307,6 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(css, /\.management-view-tabs/);
   assert.match(css, /\.management-stepper/);
   assert.match(css, /\.management-node-card/);
-  assert.match(css, /\.management-runtime-card/);
   assert.match(css, /\.management-physical-card/);
   assert.match(css, /\.management-physical-summary/);
   assert.match(css, /\.management-physical-details/);
@@ -1200,7 +1320,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(javascript, /function validateRegistrationThrough\(/);
   assert.match(javascript, /function renderManagementActionFeedback\(/);
   assert.match(javascript, /function renderPatchResult\(/);
-  assert.match(javascript, /function renderRuntimeInventory\(/);
+  assert.match(javascript, /function renderDeviceServiceInventory\(/);
+  assert.match(javascript, /function buildDeviceServiceObservations\(/);
   assert.match(javascript, /function renderDiscoveryCandidates\(/);
   assert.match(javascript, /등록 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);

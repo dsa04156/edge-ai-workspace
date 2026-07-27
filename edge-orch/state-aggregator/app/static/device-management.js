@@ -433,6 +433,211 @@ function buildPhysicalConnectionObservations({
   ));
 }
 
+function buildDeviceServiceObservations({
+  adapters = [],
+  runtimes = [],
+  devices = [],
+  nodeName = "",
+} = {}) {
+  const nodeDevices = devices.filter(
+    (device) => managementDeviceNode(device) === nodeName,
+  );
+  const physicalConnections = buildPhysicalConnectionObservations({
+    adapters,
+    runtimes,
+    devices,
+    nodeName,
+  });
+  const groups = new Map();
+
+  runtimes
+    .filter(
+      (runtime) => (runtime.targetNode || runtime.target_node) === nodeName,
+    )
+    .forEach((runtime) => {
+      const serviceName = runtime.serviceName
+        || runtime.service_name
+        || runtime.runtimeName
+        || runtime.runtime_name;
+      if (!serviceName || groups.has(serviceName)) return;
+      groups.set(serviceName, {runtime, serviceName});
+    });
+
+  physicalConnections.forEach((connection) => {
+    const serviceName = connection.serviceName
+      || connection.runtimeName
+      || connection.adapterId;
+    if (!serviceName) return;
+    if (!groups.has(serviceName)) groups.set(serviceName, {serviceName});
+  });
+
+  nodeDevices.forEach((device) => {
+    const serviceName = device.device_service_name || device.deviceServiceName;
+    if (serviceName && !groups.has(serviceName)) {
+      groups.set(serviceName, {serviceName});
+    }
+  });
+
+  return [...groups.values()].map(({runtime = null, serviceName}) => {
+    const runtimeName = runtime?.runtimeName || runtime?.runtime_name || "";
+    const adapterId = runtime?.adapterId
+      || runtime?.adapter_id
+      || physicalConnections.find(
+        (connection) => connection.serviceName === serviceName,
+      )?.adapterId
+      || "";
+    const adapter = adapters.find(
+      (candidate) => candidate.adapterId === adapterId,
+    ) || adapters.find(
+      (candidate) => candidate.serviceName === serviceName,
+    ) || null;
+    const bindingIds = new Set([
+      ...(runtime?.hardwareBindingIds || runtime?.hardware_binding_ids || []),
+      runtime?.hardwareBindingId || runtime?.hardware_binding_id || "",
+    ].filter(Boolean));
+    const connections = physicalConnections.filter((connection) => (
+      connection.serviceName === serviceName
+      || (runtimeName && connection.runtimeName === runtimeName)
+      || (connection.adapterId === adapterId && bindingIds.has(connection.bindingId))
+    ));
+    connections.forEach((connection) => bindingIds.add(connection.bindingId));
+
+    const serviceDevices = nodeDevices.filter(
+      (device) => (
+        device.device_service_name || device.deviceServiceName
+      ) === serviceName,
+    );
+    const connectedDevices = serviceDevices.filter((device) => (
+      String(device.admin_state || device.adminState || "").toUpperCase() !== "LOCKED"
+      && (
+        String(
+          device.operating_state || device.operatingState || "",
+        ).toUpperCase() === "UP"
+        || String(
+          device.connection_state || device.connectionState || "",
+        ).toLowerCase() === "connected"
+      )
+    ));
+    const disconnectedDevices = serviceDevices.filter((device) => (
+      String(device.admin_state || device.adminState || "").toUpperCase() === "LOCKED"
+      || String(
+        device.operating_state || device.operatingState || "",
+      ).toUpperCase() === "DOWN"
+      || String(
+        device.connection_state || device.connectionState || "",
+      ).toLowerCase() === "disconnected"
+    ));
+    const freshDevices = serviceDevices.filter(
+      (device) => (device.telemetry_freshness || device.telemetryFreshness) === "fresh",
+    );
+    const staleDevices = serviceDevices.filter(
+      (device) => (device.telemetry_freshness || device.telemetryFreshness) === "stale",
+    );
+    const runtimeState = runtime?.phase === "SERVICE_READY"
+      && runtime.edgeXServiceObserved !== false
+      ? "ready"
+      : runtime
+        ? "not_ready"
+        : "not_installed";
+    const registrationState = runtime?.edgeXServiceObserved === true
+      || serviceDevices.some(
+        (device) => (
+          device.device_service_available === true
+          || device.deviceServiceAvailable === true
+        ),
+      )
+      ? "registered"
+      : "unknown";
+    const communicationState = connectedDevices.length
+      ? "connected"
+      : serviceDevices.length
+        && disconnectedDevices.length === serviceDevices.length
+        ? "disconnected"
+        : "unknown";
+    const telemetryState = freshDevices.length
+      ? "fresh"
+      : staleDevices.length
+        ? "stale"
+        : serviceDevices.length
+          ? "missing"
+          : "unknown";
+    const presenceState = freshDevices.length || connectedDevices.length
+      ? "detected"
+      : serviceDevices.length
+        && disconnectedDevices.length === serviceDevices.length
+        ? "not_detected"
+        : "unknown";
+    const timestamps = serviceDevices
+      .map((device) => (
+        device.latest_event_timestamp || device.latestEventTimestamp || ""
+      ))
+      .filter(Boolean)
+      .sort();
+    const protocolName = adapter?.protocolName
+      || serviceDevices.flatMap(
+        (device) => device.protocol_names || device.protocolNames || [],
+      )[0]
+      || adapterId
+      || "unknown";
+    const status = physicalObservationStatus({
+      registrationState,
+      runtimeState,
+      presenceState,
+      communicationState,
+      telemetryState,
+    });
+    let reason = "Device Service 상태를 확인해야 합니다.";
+    if (status.state === "healthy") {
+      reason = "Device Service 통신과 최신 Event가 확인됐습니다.";
+    } else if (runtimeState !== "ready") {
+      reason = "Device Service가 아직 준비되지 않았습니다.";
+    } else if (telemetryState === "fresh" && communicationState === "unknown") {
+      reason = "최신 Event는 수신 중이며 장비 통신 상태는 확인이 필요합니다.";
+    } else if (telemetryState === "stale") {
+      reason = "마지막 Event가 freshness 기준을 벗어났습니다.";
+    } else if (telemetryState === "missing") {
+      reason = "등록된 디바이스에서 Event가 수신되지 않았습니다.";
+    } else if (communicationState === "disconnected") {
+      reason = "Device Service가 장비 연결 끊김을 보고했습니다.";
+    }
+
+    return {
+      adapterId,
+      adapterName: adapter?.displayName || adapterId || serviceName,
+      protocolName,
+      serviceName,
+      runtimeName,
+      nodeName,
+      runtimeState,
+      runtimePhase: runtime?.phase || "UNKNOWN",
+      registrationState,
+      presenceState,
+      communicationState,
+      telemetryState,
+      status,
+      reason,
+      deviceCount: serviceDevices.length,
+      deviceNames: serviceDevices.map((device) => device.name).sort(),
+      latestEventTimestamp: timestamps.at(-1) || null,
+      bindingIds: [...bindingIds].sort(),
+      bindingNames: connections.map((connection) => connection.bindingName).filter(Boolean),
+      devicePaths: connections.map((connection) => connection.devicePath).filter(Boolean),
+      physicalDeviceIds: connections
+        .map((connection) => connection.physicalDeviceId)
+        .filter(Boolean),
+      managementOwner: runtime?.managementOwner || runtime?.management_owner || "",
+      verificationState: runtime?.verificationState
+        || runtime?.verification_state
+        || adapter?.runtime?.verificationState
+        || "unverified",
+      runtime,
+    };
+  }).sort((left, right) => (
+    left.protocolName.localeCompare(right.protocolName)
+    || left.serviceName.localeCompare(right.serviceName)
+  ));
+}
+
 function physicalObservationStatus(observation = {}) {
   if (observation.registrationState !== "registered") {
     return {state: "warning", label: "등록 확인"};
@@ -1481,8 +1686,10 @@ function formatManagementTimestamp(value) {
 function candidateVisibleInDefaultList(candidate = {}, {
   includeIgnored = false,
   showStale = false,
+  showRegistered = false,
 } = {}) {
   if (!includeIgnored && candidate.state === "REJECTED") return false;
+  if (!showRegistered && candidate.state === "EVENT_CONFIRMED") return false;
   if (
     !showStale
     && (candidate.presence === "stale" || candidate.state === "STALE")
@@ -1508,9 +1715,16 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
     "managementDiscoveryShowStale",
     documentRef,
   )?.checked === true;
+  const showRegistered = byId(
+    "managementDiscoveryShowRegistered",
+    documentRef,
+  )?.checked === true || stateFilter === "EVENT_CONFIRMED";
   return (managementState.discovery.candidates || []).filter((candidate) => {
     if (candidate.nodeName !== managementState.selectedNodeName) return false;
-    if (!candidateVisibleInDefaultList(candidate, {includeIgnored, showStale})) {
+    if (!candidateVisibleInDefaultList(
+      candidate,
+      {includeIgnored, showStale, showRegistered},
+    )) {
       return false;
     }
     if (protocol && candidate.protocol !== protocol) return false;
@@ -1639,7 +1853,10 @@ function renderDiscoveryStats(documentRef = document) {
       (candidate) => candidate.state === "PENDING_APPROVAL",
     ).length,
     managementDiscoveryReadyCount: candidates.filter(
-      (candidate) => candidate.registrationReady === true,
+      (candidate) => (
+        candidate.registrationReady === true
+        && candidate.state !== "EVENT_CONFIRMED"
+      ),
     ).length,
     managementDiscoveryIgnoredCount: candidates.filter(
       (candidate) => candidate.state === "REJECTED",
@@ -1682,6 +1899,13 @@ function renderDiscoveryCandidates(documentRef = document) {
       (candidate) => candidate.nodeName === managementState.selectedNodeName
         && (candidate.presence === "stale" || candidate.state === "STALE"),
     );
+    const registeredHidden = byId(
+      "managementDiscoveryShowRegistered",
+      documentRef,
+    )?.checked !== true && (managementState.discovery.candidates || []).some(
+      (candidate) => candidate.nodeName === managementState.selectedNodeName
+        && candidate.state === "EVENT_CONFIRMED",
+    );
     appendTextElement(
       container,
       "p",
@@ -1690,6 +1914,8 @@ function renderDiscoveryCandidates(documentRef = document) {
         ? "연결 후보를 불러오지 못했습니다. Controller와 탐색기 상태를 확인하세요."
         : staleHidden
           ? "현재 연결된 후보가 없습니다. 이전 관측 기록은 검색·표시 조건에서 ‘오래된 후보 표시’를 켜면 확인할 수 있습니다."
+          : registeredHidden
+            ? "등록 대기 후보가 없습니다. 등록 완료 장비는 ‘등록 현황’에서 확인할 수 있습니다."
           : "현재 조건에 맞는 연결 후보가 없습니다. 검색 조건을 바꾸거나 엔드포인트를 직접 추가하세요.",
     );
     return;
@@ -1883,11 +2109,11 @@ function renderDiscovery(documentRef = document) {
 }
 
 
-function renderPhysicalConnections(documentRef = document) {
-  const container = byId("managementPhysicalConnectionList", documentRef);
+function renderDeviceServiceInventory(documentRef = document) {
+  const container = byId("managementDeviceServiceList", documentRef);
   clearElement(container);
   if (!container) return;
-  const observations = buildPhysicalConnectionObservations({
+  const observations = buildDeviceServiceObservations({
     adapters: managementState.adapters,
     runtimes: managementState.runtimes,
     devices: managementState.devices,
@@ -1898,7 +2124,7 @@ function renderPhysicalConnections(documentRef = document) {
       container,
       "p",
       "management-empty",
-      "이 노드의 Git 카탈로그에 등록된 물리 연결이 없습니다. 장비 자동 검색 결과가 아니라 등록 현황입니다.",
+      "이 노드에서 실행 중이거나 EdgeX에 등록된 Device Service가 없습니다.",
     );
     return;
   }
@@ -1916,32 +2142,35 @@ function renderPhysicalConnections(documentRef = document) {
       identity,
       "strong",
       "",
-      observation.bindingName || observation.bindingId,
+      koreanLabel(
+        "protocol",
+        observation.protocolName,
+        observation.adapterName || observation.serviceName,
+      ),
     );
     appendTextElement(
       identity,
       "small",
       "",
-      observation.serviceName || "Device Service 미확인",
+      observation.serviceName,
     );
     appendTextElement(
       header,
       "span",
       "management-protocol-pill",
-      koreanLabel("protocol", observation.protocolName, observation.protocolName),
+      koreanLabel("runtimePhase", observation.runtimePhase, "상태 미확인"),
     );
     header.prepend(identity);
 
-    const compactStatus = physicalObservationStatus(observation);
     const summary = documentRef.createElement("div");
     summary.className = "management-physical-summary";
     const overall = appendTextElement(
       summary,
       "strong",
       "management-physical-overall",
-      compactStatus.label,
+      observation.status.label,
     );
-    overall.dataset.state = compactStatus.state;
+    overall.dataset.state = observation.status.state;
     appendTextElement(
       summary,
       "small",
@@ -1961,14 +2190,14 @@ function renderPhysicalConnections(documentRef = document) {
     evidence.className = "management-evidence-grid";
     [
       {
-        label: "연결 등록",
-        state: observation.registrationState,
-        value: "등록됨",
+        label: "Device Service",
+        state: observation.runtimeState,
+        value: koreanLabel("runtimeState", observation.runtimeState),
       },
       {
-        label: "장비 관측",
-        state: observation.presenceState,
-        value: koreanLabel("presence", observation.presenceState),
+        label: "EdgeX 등록",
+        state: observation.registrationState,
+        value: observation.registrationState === "registered" ? "등록 확인" : "등록 미확인",
       },
       {
         label: "통신 상태",
@@ -1992,12 +2221,23 @@ function renderPhysicalConnections(documentRef = document) {
     const facts = documentRef.createElement("div");
     facts.className = "management-physical-facts";
     [
-      `연결 ID ${observation.bindingId}`,
-      observation.devicePath ? `장치 경로 ${observation.devicePath}` : "",
-      observation.physicalDeviceId ? `물리 소스 ${observation.physicalDeviceId}` : "",
-      `${koreanLabel("runtimeState", observation.runtimeState)}`
-        + (observation.runtimeName ? ` · ${observation.runtimeName}` : ""),
+      `노드 ${observation.nodeName}`,
       `EdgeX Device ${observation.deviceCount}개`,
+      observation.bindingIds.length
+        ? `물리 연결 ${observation.bindingIds.length}개`
+        : "물리 연결 정보 없음",
+      observation.managementOwner
+        ? `${observation.managementOwner === "argocd" ? "Argo CD" : "Controller"} 관리`
+        : "",
+      koreanLabel("verification", observation.verificationState),
+      observation.runtimeName && observation.runtimeName !== observation.serviceName
+        ? `내부 Runtime ${observation.runtimeName}`
+        : "",
+      ...observation.bindingIds.map((bindingId) => `연결 ID ${bindingId}`),
+      ...observation.devicePaths.map((devicePath) => `장치 경로 ${devicePath}`),
+      ...observation.physicalDeviceIds.map(
+        (physicalDeviceId) => `물리 소스 ${physicalDeviceId}`,
+      ),
     ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
 
     appendTextElement(detailBody, "p", "management-physical-reason", observation.reason);
@@ -2011,6 +2251,30 @@ function renderPhysicalConnections(documentRef = document) {
         : "연결된 EdgeX Device와 Event가 아직 없습니다.",
     );
     detailBody.prepend(evidence, facts);
+
+    const runtime = observation.runtime;
+    if (runtime && runtimeCanMutate(runtime)) {
+      const actions = documentRef.createElement("div");
+      actions.className = "management-runtime-actions";
+      const restart = documentRef.createElement("button");
+      restart.type = "button";
+      restart.textContent = "재시작";
+      restart.dataset.runtimeAction = "restart";
+      restart.dataset.runtimeName = observation.runtimeName;
+      restart.title = "이 Device Service Runtime을 재시작합니다.";
+      const retire = documentRef.createElement("button");
+      retire.type = "button";
+      retire.textContent = "퇴역";
+      retire.dataset.runtimeAction = "retire";
+      retire.dataset.runtimeName = observation.runtimeName;
+      retire.disabled = observation.deviceCount > 0;
+      retire.title = retire.disabled
+        ? "연결된 EdgeX Device를 먼저 해제해야 합니다."
+        : "이 Device Service Runtime을 퇴역합니다.";
+      actions.append(restart, retire);
+      detailBody.appendChild(actions);
+    }
+
     details.appendChild(detailBody);
     card.append(header, summary, details);
     container.appendChild(card);
@@ -2995,7 +3259,6 @@ function prefillRegistrationFromCandidate(candidate, documentRef = document) {
   managementState.validation = null;
   renderManagementNodes(documentRef);
   renderAdapterOptions(documentRef);
-  renderAdapterCatalog(documentRef);
   renderRuntimeSelection(documentRef);
   const binding = byId("managementHardwareBinding", documentRef);
   if (binding) binding.value = candidate.matchedHardwareBindingId || "";
@@ -3081,9 +3344,7 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   managementState.selectedPatchDeviceName = selectedPatchDevice?.name || "";
   renderManagementNodes(documentRef);
   renderAdapterOptions(documentRef);
-  renderAdapterCatalog(documentRef);
-  renderPhysicalConnections(documentRef);
-  renderRuntimeInventory(documentRef);
+  renderDeviceServiceInventory(documentRef);
   renderManagedDevices(documentRef);
   renderDiscovery(documentRef);
   renderMutationMode(documentRef);
@@ -3155,6 +3416,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     "managementDiscoveryDecisionFilter",
     "managementDiscoveryShowStale",
     "managementDiscoveryIncludeIgnored",
+    "managementDiscoveryShowRegistered",
   ].forEach((id) => {
     const input = byId(id, documentRef);
     input?.addEventListener(
@@ -3422,10 +3684,8 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     managementState.runtimePlan = null;
     renderManagementNodes(documentRef);
     renderAdapterOptions(documentRef);
-    renderAdapterCatalog(documentRef);
-    renderPhysicalConnections(documentRef);
+    renderDeviceServiceInventory(documentRef);
     renderDiscovery(documentRef);
-    renderRuntimeInventory(documentRef);
     renderManagedDevices(documentRef);
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
@@ -3582,7 +3842,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("devicePatchForm", documentRef)?.addEventListener("change", () => {
     renderPatchDirtyState(documentRef);
   });
-  byId("managementRuntimeList", documentRef)?.addEventListener("click", async (event) => {
+  byId("managementDeviceServiceList", documentRef)?.addEventListener("click", async (event) => {
     const button = event.target.closest?.("[data-runtime-action]");
     if (!button || button.disabled) return;
     const action = button.dataset.runtimeAction;
@@ -3695,6 +3955,7 @@ if (typeof module !== "undefined") {
     adapterSelectionOptions,
     adapterSupportsNode,
     bindingProtocolValue,
+    buildDeviceServiceObservations,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     candidateEndpointSummary,
