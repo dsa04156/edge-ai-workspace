@@ -77,6 +77,10 @@ def test_adapter_runtime_crd_is_namespaced_structural_and_has_status():
                 assert_no_forbidden_additional_properties(child)
 
     assert_no_forbidden_additional_properties(schema)
+    service_name_schema = spec["properties"]["edgeX"]["properties"]["serviceName"]
+    service_name_pattern = service_name_schema["pattern"]
+    assert re.fullmatch(service_name_pattern, "device-modbus_6a19a499ed")
+    assert not re.fullmatch(service_name_pattern, "Device-Modbus")
 
 
 def test_controller_deployment_is_feature_gated_and_secret_authenticated():
