@@ -1128,12 +1128,14 @@ function clearElement(element) {
 
 function renderManagementActionFeedback(message, {
   status = "ready",
+  kind = "operation",
   documentRef = document,
 } = {}) {
   const element = byId("managementActionFeedback", documentRef);
   if (!element) return;
   element.textContent = message;
   element.dataset.status = status;
+  element.dataset.kind = kind;
 }
 
 
@@ -3107,6 +3109,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       setManagementView(button.dataset.managementView, documentRef);
       renderManagementActionFeedback(`${button.textContent.trim()} 화면을 열었습니다.`, {
         status: "success",
+        kind: "navigation",
         documentRef,
       });
     }
@@ -3130,6 +3133,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     setManagementView(nextTab.dataset.managementView, documentRef);
     renderManagementActionFeedback(`${nextTab.textContent.trim()} 화면을 열었습니다.`, {
       status: "success",
+      kind: "navigation",
       documentRef,
     });
     nextTab.focus();
@@ -3140,6 +3144,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       setRegistrationStep(1, documentRef);
       renderManagementActionFeedback("새 디바이스 등록 화면을 열었습니다.", {
         status: "success",
+        kind: "navigation",
         documentRef,
       });
     });
@@ -3170,6 +3175,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     else manualDialog?.setAttribute("open", "");
     renderManagementActionFeedback("엔드포인트 직접 추가 창을 열었습니다.", {
       status: "success",
+      kind: "navigation",
       documentRef,
     });
   });
@@ -3268,6 +3274,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         } else {
           renderManagementActionFeedback(`${candidate.displayName} 등록 화면을 준비했습니다.`, {
             status: "success",
+            kind: "navigation",
             documentRef,
           });
         }
@@ -3428,6 +3435,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderRegistrationReview(documentRef);
     renderManagementActionFeedback(`${managementState.selectedNodeName} 노드를 선택했습니다.`, {
       status: "success",
+      kind: "navigation",
       documentRef,
     });
   });

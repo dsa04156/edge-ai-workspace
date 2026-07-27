@@ -1159,9 +1159,9 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
-  assert.match(html, /simple-mode\.css\?v=concise-dashboard-20260727/);
+  assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
   assert.match(html, /device-management\.css\?v=compact-device-card-20260727/);
-  assert.match(html, /device-management\.js\?v=compact-device-card-20260727/);
+  assert.match(html, /device-management\.js\?v=compact-connection-view-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1172,7 +1172,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementOpenManualCandidate"[^>]*>직접 추가</);
   assert.match(html, /service-demo-value-detail/);
   assert.match(html, /선택 노드의 런타임/);
-  assert.match(html, /등록 연결과 실제 장비 상태/);
+  assert.match(html, /물리 연결/);
   assert.match(html, /연결 구성 마법사/);
   assert.match(html, /새 디바이스 등록/);
   assert.match(html, /연결 프로토콜 · Device Service/);
@@ -1207,6 +1207,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(simpleCss, /body\[data-view-mode="simple"\] \.dashboard-detail/);
   assert.match(simpleCss, /body\[data-view-mode="simple"\] \.management-node-card-facts/);
   assert.match(simpleCss, /body\[data-view-mode="simple"\] \.management-page-summary/);
+  assert.match(simpleCss, /\.management-action-feedback\[data-kind="navigation"\]/);
+  assert.match(simpleCss, /\.management-connection-legend/);
   assert.match(simpleCss, /body\[data-view-mode="simple"\] \.service-demo-route/);
   assert.match(simpleCss, /body\[data-view-mode="simple"\] \.service-demo-value-detail/);
   assert.match(simpleCss, /body\[data-view-mode="simple"\] #updatedAt/);

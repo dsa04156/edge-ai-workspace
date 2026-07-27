@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=compact-device-card-20260727" />
-    <link rel="stylesheet" href="/static/simple-mode.css?v=concise-dashboard-20260727" />
+    <link rel="stylesheet" href="/static/simple-mode.css?v=compact-connection-view-20260727" />
   </head>
   <body data-view-mode="simple">
     <main class="shell">
@@ -450,6 +450,7 @@
               role="status"
               aria-live="polite"
               data-status="ready"
+              data-kind="idle"
             >
               버튼을 누르면 진행 상태와 결과가 여기에 표시됩니다.
             </div>
@@ -536,7 +537,7 @@
                 <div class="management-section-head">
                   <div>
                     <span>Connection evidence</span>
-                    <strong id="managementPhysicalTitle">등록 연결과 실제 장비 상태</strong>
+                    <strong id="managementPhysicalTitle">물리 연결</strong>
                   </div>
                   <small>연결 등록만으로 장비가 감지됐다고 판단하지 않음</small>
                 </div>
@@ -1025,7 +1026,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=compact-device-card-20260727"></script>
+    <script src="/static/device-management.js?v=compact-connection-view-20260727"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
