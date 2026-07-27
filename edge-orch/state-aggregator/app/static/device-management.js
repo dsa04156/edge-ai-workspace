@@ -2198,6 +2198,38 @@ function updatePatchDirtyState(documentRef = document) {
 }
 
 
+function patchDirtyFeedback(dirty, selected = true) {
+  if (!selected) {
+    return {
+      message: "디바이스를 선택하고 값을 변경하면 적용할 수 있습니다.",
+      status: "ready",
+    };
+  }
+  if (dirty) {
+    return {
+      message: "변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.",
+      status: "warning",
+    };
+  }
+  return {
+    message: "현재 저장된 값과 같습니다. 변경할 항목을 수정하세요.",
+    status: "ready",
+  };
+}
+
+
+function renderPatchDirtyState(documentRef = document) {
+  const selected = Boolean(managementState.selectedPatchDeviceName);
+  const dirty = updatePatchDirtyState(documentRef);
+  const feedback = patchDirtyFeedback(dirty, selected);
+  renderPatchResult(feedback.message, {
+    status: feedback.status,
+    documentRef,
+  });
+  return dirty;
+}
+
+
 function renderMutationMode(documentRef = document) {
   const enabled = mutationModeEnabled();
   const mode = byId("managementMutationMode", documentRef);
@@ -3360,22 +3392,10 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     setSelectedPatchDevice(event.target.value, documentRef);
   });
   byId("devicePatchForm", documentRef)?.addEventListener("input", () => {
-    const dirty = updatePatchDirtyState(documentRef);
-    if (dirty) {
-      renderPatchResult("변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.", {
-        status: "warning",
-        documentRef,
-      });
-    }
+    renderPatchDirtyState(documentRef);
   });
   byId("devicePatchForm", documentRef)?.addEventListener("change", () => {
-    const dirty = updatePatchDirtyState(documentRef);
-    if (dirty) {
-      renderPatchResult("변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.", {
-        status: "warning",
-        documentRef,
-      });
-    }
+    renderPatchDirtyState(documentRef);
   });
   byId("managementRuntimeList", documentRef)?.addEventListener("click", async (event) => {
     const button = event.target.closest?.("[data-runtime-action]");
@@ -3514,6 +3534,7 @@ if (typeof module !== "undefined") {
     normalizeRegistrationStep,
     operationStatusView,
     patchManagementDevice,
+    patchDirtyFeedback,
     planAdapterRuntime,
     pollConnectionOperation,
     pollManagementOperation,

@@ -32,6 +32,7 @@ const {
   normalizeRegistrationStep,
   operationStatusView,
   patchManagementDevice,
+  patchDirtyFeedback,
   planAdapterRuntime,
   pollConnectionOperation,
   pollManagementOperation,
@@ -186,6 +187,22 @@ test("device patch stays disabled until a device in the selected node is chosen"
   assert.equal(canPatchSelectedDevice(true, "virtual-temperature-001"), true);
   assert.equal(canPatchSelectedDevice(true, ""), false);
   assert.equal(canPatchSelectedDevice(false, "virtual-temperature-001"), false);
+});
+
+
+test("device patch feedback clears the dirty warning after values are restored", () => {
+  assert.deepEqual(patchDirtyFeedback(true), {
+    message: "변경 사항이 있습니다. 적용 버튼을 눌러 저장하세요.",
+    status: "warning",
+  });
+  assert.deepEqual(patchDirtyFeedback(false), {
+    message: "현재 저장된 값과 같습니다. 변경할 항목을 수정하세요.",
+    status: "ready",
+  });
+  assert.deepEqual(patchDirtyFeedback(false, false), {
+    message: "디바이스를 선택하고 값을 변경하면 적용할 수 있습니다.",
+    status: "ready",
+  });
 });
 
 
@@ -1020,7 +1037,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   }
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=interaction-feedback-20260727/);
-  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727/);
+  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727b/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
