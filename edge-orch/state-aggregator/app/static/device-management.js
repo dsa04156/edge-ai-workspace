@@ -1038,6 +1038,22 @@ function connectionStatusView(operation = {}) {
 }
 
 
+function connectionApplyButtonView(validation = null, operation = null, adapterApplicable = false) {
+  if (operation?.status === "ACTIVE") {
+    return {
+      disabled: true,
+      label: "연결 완료",
+      title: "EdgeX 등록과 첫 Event 검증이 완료되었습니다. 다른 연결을 등록하려면 입력값을 변경하세요.",
+    };
+  }
+  return {
+    disabled: !(validation?.valid && adapterApplicable),
+    label: "디바이스 연결",
+    title: "",
+  };
+}
+
+
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -2520,7 +2536,16 @@ function renderManagementValidation(result, documentRef = document) {
     );
   });
   const applyButton = byId("managementApply", documentRef);
-  if (applyButton) applyButton.disabled = !(result?.valid && adapterCanApply(selectedAdapter()));
+  if (applyButton) {
+    const view = connectionApplyButtonView(
+      result,
+      managementState.operation,
+      adapterCanApply(selectedAdapter()),
+    );
+    applyButton.disabled = view.disabled;
+    applyButton.textContent = view.label;
+    applyButton.title = view.title;
+  }
   renderRegistrationFeedback(
     result?.valid
       ? "연결 검증을 통과했습니다. 실행 계획을 확인한 뒤 디바이스 연결을 누르세요."
@@ -2562,6 +2587,51 @@ function renderOperation(operation, documentRef = document) {
       documentRef,
     },
   );
+  const applyButton = byId("managementApply", documentRef);
+  if (applyButton && isConnection) {
+    const buttonView = connectionApplyButtonView(
+      managementState.validation,
+      operation,
+      adapterCanApply(selectedAdapter()),
+    );
+    applyButton.disabled = buttonView.disabled;
+    applyButton.textContent = buttonView.label;
+    applyButton.title = buttonView.title;
+  }
+}
+
+
+function resetCompletedConnectionForFormEdit(target, documentRef = document) {
+  if (managementState.operation?.status !== "ACTIVE") return false;
+  managementState.operation = null;
+  managementState.validation = null;
+  managementState.runtimePlan = null;
+  if (target?.id !== "managementIdempotencyKey") {
+    const idempotencyInput = byId("managementIdempotencyKey", documentRef);
+    if (idempotencyInput) idempotencyInput.value = "";
+  }
+  const operation = byId("managementOperation", documentRef);
+  clearElement(operation);
+  if (operation) {
+    appendTextElement(
+      operation,
+      "p",
+      "",
+      "입력 내용이 변경되었습니다. 연결 검증을 다시 실행하세요.",
+    );
+  }
+  const applyButton = byId("managementApply", documentRef);
+  if (applyButton) {
+    const view = connectionApplyButtonView(
+      null,
+      null,
+      adapterCanApply(selectedAdapter()),
+    );
+    applyButton.disabled = view.disabled;
+    applyButton.textContent = view.label;
+    applyButton.title = view.title;
+  }
+  return true;
 }
 
 
@@ -3210,10 +3280,12 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       });
     }
   });
-  byId("deviceOnboardingForm", documentRef)?.addEventListener("input", () => {
+  byId("deviceOnboardingForm", documentRef)?.addEventListener("input", (event) => {
+    resetCompletedConnectionForFormEdit(event.target, documentRef);
     renderRegistrationReview(documentRef);
   });
-  byId("deviceOnboardingForm", documentRef)?.addEventListener("change", () => {
+  byId("deviceOnboardingForm", documentRef)?.addEventListener("change", (event) => {
+    resetCompletedConnectionForFormEdit(event.target, documentRef);
     renderRegistrationReview(documentRef);
   });
   adapterSelect.addEventListener("change", () => {
@@ -3357,9 +3429,14 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       });
     } finally {
       setManagementButtonBusy(button, false);
-      if (managementState.validation) {
-        button.disabled = !(managementState.validation.valid && adapterCanApply(selectedAdapter()));
-      }
+      const view = connectionApplyButtonView(
+        managementState.validation,
+        managementState.operation,
+        adapterCanApply(selectedAdapter()),
+      );
+      button.disabled = view.disabled;
+      button.textContent = view.label;
+      button.title = view.title;
     }
   });
   byId("managementRefresh", documentRef)?.addEventListener("click", () => {
@@ -3515,6 +3592,7 @@ if (typeof module !== "undefined") {
     candidateEndpointSummary,
     canPatchSelectedDevice,
     connectionStatusView,
+    connectionApplyButtonView,
     createManualCandidate,
     createManagementConnection,
     createManagementDevice,

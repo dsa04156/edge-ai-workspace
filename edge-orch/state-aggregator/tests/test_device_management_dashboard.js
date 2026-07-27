@@ -12,6 +12,7 @@ const {
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateEndpointSummary,
+  connectionApplyButtonView,
   canPatchSelectedDevice,
   connectionStatusView,
   createManualCandidate,
@@ -902,6 +903,30 @@ test("connection status separates runtime, metadata, event, and terminal states"
 });
 
 
+test("completed registration disables duplicate apply until the form changes", () => {
+  assert.deepEqual(
+    connectionApplyButtonView(
+      {valid: true},
+      {status: "ACTIVE"},
+      true,
+    ),
+    {
+      disabled: true,
+      label: "연결 완료",
+      title: "EdgeX 등록과 첫 Event 검증이 완료되었습니다. 다른 연결을 등록하려면 입력값을 변경하세요.",
+    },
+  );
+  assert.deepEqual(
+    connectionApplyButtonView({valid: true}, null, true),
+    {
+      disabled: false,
+      label: "디바이스 연결",
+      title: "",
+    },
+  );
+});
+
+
 test("connection polling stops when ACTIVE", async () => {
   const payloads = [
     {requestId: "connection-01", status: "RUNTIME_REQUESTED"},
@@ -1037,7 +1062,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   }
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /device-management\.css\?v=interaction-feedback-20260727/);
-  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727b/);
+  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727c/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
