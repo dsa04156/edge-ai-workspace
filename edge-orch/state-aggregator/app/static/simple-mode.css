@@ -4,6 +4,36 @@ body[data-view-mode="simple"] .side-rail {
   display: none !important;
 }
 
+body[data-view-mode="simple"] .topbar .eyebrow,
+body[data-view-mode="simple"] .cluster-pill,
+body[data-view-mode="simple"] .global-search > label,
+body[data-view-mode="simple"] #updatedAt,
+body[data-view-mode="simple"] .management-page-head .section-kicker,
+body[data-view-mode="simple"] .management-page-summary,
+body[data-view-mode="simple"] .management-section-head > div > span,
+body[data-view-mode="simple"] .management-section-head > small,
+body[data-view-mode="simple"] .management-discovery-head > div:first-child > span,
+body[data-view-mode="simple"] .management-discovery-head p,
+body[data-view-mode="simple"] .management-action-feedback[data-status="ready"],
+body[data-view-mode="simple"] .service-demo-head .section-kicker,
+body[data-view-mode="simple"] .service-demo-status > span,
+body[data-view-mode="simple"] .service-demo-flow,
+body[data-view-mode="simple"] .service-demo-route,
+body[data-view-mode="simple"] .service-demo-devices,
+body[data-view-mode="simple"] .service-demo-model,
+body[data-view-mode="simple"] .service-demo-value-detail {
+  display: none;
+}
+
+body[data-view-mode="simple"] .main-menu::after {
+  content: none;
+}
+
+body[data-view-mode="simple"] .cluster-context,
+body[data-view-mode="simple"] .global-search {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 body[data-view-mode="simple"] .ops-shell {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -32,6 +62,10 @@ body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
 body[data-view-mode="simple"] .management-page-content {
   gap: 14px;
   width: min(1040px, 100%);
+}
+
+body[data-view-mode="simple"] .service-demo-values {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 body[data-view-mode="simple"] .management-guardrail,
@@ -76,11 +110,6 @@ body[data-view-mode="simple"] .management-candidate-card {
   padding: 12px;
 }
 
-body[data-view-mode="simple"] .management-page-summary,
-body[data-view-mode="simple"] .management-discovery-head p {
-  max-width: 680px;
-}
-
 @media (max-width: 1180px) {
   body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -95,6 +124,7 @@ body[data-view-mode="simple"] .management-discovery-head p {
   body[data-view-mode="simple"] .management-node-list,
   body[data-view-mode="simple"] .management-view-tabs,
   body[data-view-mode="simple"] .management-discovery-stats,
+  body[data-view-mode="simple"] .service-demo-values,
   body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
     grid-template-columns: 1fr;
   }

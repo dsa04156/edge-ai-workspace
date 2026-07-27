@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=simple-dashboard-20260727" />
-    <link rel="stylesheet" href="/static/simple-mode.css?v=simple-dashboard-20260727" />
+    <link rel="stylesheet" href="/static/simple-mode.css?v=concise-dashboard-20260727" />
   </head>
   <body data-view-mode="simple">
     <main class="shell">
@@ -222,11 +222,11 @@
 
             <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
             <dl class="service-demo-values">
-              <div><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
-              <div><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
-              <div><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
-              <div><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
-              <div><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+              <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+              <div class="service-demo-value-primary"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
+              <div class="service-demo-value-primary"><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+              <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
+              <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
             </dl>
             <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
             <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
@@ -400,12 +400,12 @@
             <div class="panel-head management-page-head">
               <div>
                 <p class="section-kicker">EdgeX 디바이스 운영</p>
-                <h2 id="deviceManagementTitle">장비 연결 관리</h2>
+                <h2 id="deviceManagementTitle">장비 연결</h2>
                 <p class="management-page-summary">노드를 고르고 발견된 장비를 확인한 뒤 EdgeX에 등록합니다.</p>
               </div>
               <div class="management-head-actions">
                 <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
-                <button id="managementRefresh" type="button">상태 새로고침</button>
+                <button id="managementRefresh" type="button">새로고침</button>
               </div>
             </div>
 
@@ -422,7 +422,7 @@
               <div class="management-section-head">
                 <div>
                   <span>1. 운영 범위 선택</span>
-                  <strong id="managementNodeTitle">관리할 엣지 노드</strong>
+                  <strong id="managementNodeTitle">노드 선택</strong>
                 </div>
                 <small id="managementSelectedNode">선택된 노드 없음</small>
               </div>
@@ -459,12 +459,12 @@
                 <div class="management-discovery-head">
                   <div>
                     <span>승인 전 임시 후보</span>
-                    <h3 id="managementDiscoveryTitle">연결 후보 찾기</h3>
+                    <h3 id="managementDiscoveryTitle">장비 후보</h3>
                     <p>USB Serial과 I²C 버스는 노드에서 수동적으로 관측합니다. 네트워크 장비는 엔드포인트를 직접 추가합니다.</p>
                   </div>
                   <div class="management-discovery-actions">
                     <span id="managementDiscoveryStatus" data-status="loading">탐색 상태 확인 중</span>
-                    <button id="managementOpenManualCandidate" type="button" class="management-primary-action">엔드포인트 직접 추가</button>
+                    <button id="managementOpenManualCandidate" type="button" class="management-primary-action">직접 추가</button>
                   </div>
                 </div>
 
