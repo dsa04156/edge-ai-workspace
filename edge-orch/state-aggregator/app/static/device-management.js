@@ -1285,6 +1285,23 @@ function managementNodeScopes() {
   return buildManagementNodeScopes(managementState);
 }
 
+function preferredManagementNode(scopes = [], discoveryNodes = []) {
+  const onlineNodes = new Set(
+    discoveryNodes
+      .filter((node) => node.presence === "online")
+      .map((node) => node.nodeName),
+  );
+  return (
+    scopes.find((scope) => onlineNodes.has(scope.name) && scope.runtimeCount > 0)
+    || scopes.find((scope) => onlineNodes.has(scope.name) && scope.adapterCount > 0)
+    || scopes.find((scope) => onlineNodes.has(scope.name))
+    || scopes.find((scope) => scope.runtimeCount > 0)
+    || scopes.find((scope) => scope.adapterCount > 0)
+    || scopes[0]
+    || null
+  );
+}
+
 
 function ensureSelectedAdapterForNode() {
   const compatible = adapterSelectionOptions(
@@ -1306,10 +1323,9 @@ function renderManagementNodes(documentRef = document) {
   clearElement(container);
   const scopes = managementNodeScopes();
   if (!managementState.selectedNodeName && scopes.length) {
-    managementState.selectedNodeName = (
-      scopes.find((scope) => scope.runtimeCount > 0)
-      || scopes.find((scope) => scope.adapterCount > 0)
-      || scopes[0]
+    managementState.selectedNodeName = preferredManagementNode(
+      scopes,
+      managementState.discovery.nodes,
     ).name;
   }
   if (selected) {
@@ -1433,6 +1449,18 @@ function formatManagementTimestamp(value) {
   });
 }
 
+function candidateVisibleInDefaultList(candidate = {}, {
+  includeIgnored = false,
+  showStale = false,
+} = {}) {
+  if (!includeIgnored && candidate.state === "REJECTED") return false;
+  if (
+    !showStale
+    && (candidate.presence === "stale" || candidate.state === "STALE")
+  ) return false;
+  return true;
+}
+
 
 function discoveryCandidatesForSelectedNode(documentRef = document) {
   const search = byId("managementDiscoverySearch", documentRef)?.value
@@ -1447,9 +1475,15 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
     "managementDiscoveryIncludeIgnored",
     documentRef,
   )?.checked === true;
+  const showStale = byId(
+    "managementDiscoveryShowStale",
+    documentRef,
+  )?.checked === true;
   return (managementState.discovery.candidates || []).filter((candidate) => {
     if (candidate.nodeName !== managementState.selectedNodeName) return false;
-    if (!includeIgnored && candidate.state === "REJECTED") return false;
+    if (!candidateVisibleInDefaultList(candidate, {includeIgnored, showStale})) {
+      return false;
+    }
     if (protocol && candidate.protocol !== protocol) return false;
     if (stateFilter && candidate.state !== stateFilter) return false;
     if (!search) return true;
@@ -1612,13 +1646,22 @@ function renderDiscoveryCandidates(documentRef = document) {
   clearElement(container);
   const candidates = discoveryCandidatesForSelectedNode(documentRef);
   if (!candidates.length) {
+    const staleHidden = byId(
+      "managementDiscoveryShowStale",
+      documentRef,
+    )?.checked !== true && (managementState.discovery.candidates || []).some(
+      (candidate) => candidate.nodeName === managementState.selectedNodeName
+        && (candidate.presence === "stale" || candidate.state === "STALE"),
+    );
     appendTextElement(
       container,
       "p",
       "management-empty",
       managementState.discoveryLoadError
         ? "연결 후보를 불러오지 못했습니다. Controller와 탐색기 상태를 확인하세요."
-        : "현재 조건에 맞는 연결 후보가 없습니다. 검색 조건을 바꾸거나 엔드포인트를 직접 추가하세요.",
+        : staleHidden
+          ? "현재 연결된 후보가 없습니다. 이전 관측 기록은 검색·표시 조건에서 ‘오래된 후보 표시’를 켜면 확인할 수 있습니다."
+          : "현재 조건에 맞는 연결 후보가 없습니다. 검색 조건을 바꾸거나 엔드포인트를 직접 추가하세요.",
     );
     return;
   }
@@ -2970,12 +3013,10 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
   managementState.discovery = discovery;
   const scopes = managementNodeScopes();
   if (!scopes.some((scope) => scope.name === managementState.selectedNodeName)) {
-    managementState.selectedNodeName = (
-      scopes.find((scope) => scope.runtimeCount > 0)
-      || scopes.find((scope) => scope.adapterCount > 0)
-      || scopes[0]
-      || {}
-    ).name || "";
+    managementState.selectedNodeName = preferredManagementNode(
+      scopes,
+      managementState.discovery.nodes,
+    )?.name || "";
   }
   const selectedPatchDevice = devices.find(
     (device) => device.name === managementState.selectedPatchDeviceName
@@ -3019,7 +3060,11 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   managementTabs?.addEventListener("keydown", (event) => {
     const button = event.target.closest?.("[data-management-view]");
     if (!button) return;
-    const tabs = [...managementTabs.querySelectorAll("[data-management-view]")];
+    const tabs = [...managementTabs.querySelectorAll("[data-management-view]")]
+      .filter(
+        (tab) => typeof globalThis.getComputedStyle !== "function"
+          || globalThis.getComputedStyle(tab).display !== "none",
+      );
     const nextIndex = managementTabIndexForKey(
       event.key,
       tabs.indexOf(button),
@@ -3049,6 +3094,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     "managementDiscoverySearch",
     "managementDiscoveryProtocolFilter",
     "managementDiscoveryDecisionFilter",
+    "managementDiscoveryShowStale",
     "managementDiscoveryIncludeIgnored",
   ].forEach((id) => {
     const input = byId(id, documentRef);
@@ -3590,6 +3636,7 @@ if (typeof module !== "undefined") {
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     candidateEndpointSummary,
+    candidateVisibleInDefaultList,
     canPatchSelectedDevice,
     connectionStatusView,
     connectionApplyButtonView,
@@ -3616,6 +3663,7 @@ if (typeof module !== "undefined") {
     planAdapterRuntime,
     pollConnectionOperation,
     pollManagementOperation,
+    preferredManagementNode,
     protocolPackageStatus,
     restartAdapterRuntime,
     retireAdapterRuntime,

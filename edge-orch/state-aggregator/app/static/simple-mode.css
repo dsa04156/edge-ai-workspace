@@ -1,0 +1,117 @@
+body[data-view-mode="simple"] .dashboard-detail,
+body[data-view-mode="simple"] .dashboard-page.active.dashboard-detail,
+body[data-view-mode="simple"] .side-rail {
+  display: none !important;
+}
+
+body[data-view-mode="simple"] .ops-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-view-mode="simple"] .ops-main {
+  grid-column: 1 / -1;
+}
+
+body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.view-mode-toggle {
+  border-color: var(--console-border-strong) !important;
+  background: var(--console-panel-2) !important;
+  color: var(--console-text) !important;
+  -webkit-text-fill-color: var(--console-text) !important;
+}
+
+.view-mode-toggle[aria-pressed="true"] {
+  border-color: var(--console-blue) !important;
+  color: var(--console-blue) !important;
+  -webkit-text-fill-color: var(--console-blue) !important;
+}
+
+body[data-view-mode="simple"] .management-page-content {
+  gap: 14px;
+  width: min(1040px, 100%);
+}
+
+body[data-view-mode="simple"] .management-guardrail,
+body[data-view-mode="simple"] .management-detail-tab,
+body[data-view-mode="simple"] .management-detail-stat,
+body[data-view-mode="simple"] .management-node-card-facts,
+body[data-view-mode="simple"] .management-discovery-node-health,
+body[data-view-mode="simple"] .management-candidate-facts,
+body[data-view-mode="simple"] .management-candidate-decision-note {
+  display: none;
+}
+
+body[data-view-mode="simple"] .management-node-scope {
+  padding: 14px;
+}
+
+body[data-view-mode="simple"] .management-node-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+body[data-view-mode="simple"] .management-node-card {
+  gap: 4px;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+body[data-view-mode="simple"] .management-view-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body[data-view-mode="simple"] .management-discovery-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body[data-view-mode="simple"] .management-discovery-list {
+  grid-template-columns: 1fr;
+}
+
+body[data-view-mode="simple"] .management-candidate-card {
+  gap: 8px;
+  padding: 12px;
+}
+
+body[data-view-mode="simple"] .management-page-summary,
+body[data-view-mode="simple"] .management-discovery-head p {
+  max-width: 680px;
+}
+
+@media (max-width: 1180px) {
+  body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .refresh {
+    flex-wrap: wrap;
+  }
+
+  body[data-view-mode="simple"] .management-node-list,
+  body[data-view-mode="simple"] .management-view-tabs,
+  body[data-view-mode="simple"] .management-discovery-stats,
+  body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .refresh {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .refresh #updatedAt {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-mode-toggle {
+    transition: none;
+  }
+}

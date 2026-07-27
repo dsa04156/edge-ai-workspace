@@ -17,9 +17,10 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=interaction-feedback-20260727" />
+    <link rel="stylesheet" href="/static/device-management.css?v=simple-dashboard-20260727" />
+    <link rel="stylesheet" href="/static/simple-mode.css?v=simple-dashboard-20260727" />
   </head>
-  <body>
+  <body data-view-mode="simple">
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
@@ -43,63 +44,72 @@
         </div>
         <div class="refresh">
           <span id="updatedAt">-</span>
+          <button
+            id="dashboardViewModeToggle"
+            class="view-mode-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-label="대시보드 전체 보기로 전환"
+          >
+            전체 보기
+          </button>
           <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
         </div>
       </header>
 
       <nav class="main-menu" aria-label="대시보드 화면">
-        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">개요</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">자산</button>
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>
         <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>
-        <button type="button" data-dashboard-page="management" aria-pressed="false">디바이스 관리</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 연결</button>
       </nav>
 
       <section class="ops-shell">
         <div class="ops-main">
           <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="platform summary">
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="Active Nodes details">
-              <span class="metric-label">Active Nodes</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="가동 노드 설명 보기">
+              <span class="metric-label">가동 노드</span>
               <strong id="activeNodeCount">0</strong>
-              <span id="nodeRatio">0%</span>
+              <span id="nodeRatio">0% 온라인</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices details">
-              <span class="metric-label">Registered Devices</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="등록 디바이스 설명 보기">
+              <span class="metric-label">등록 디바이스</span>
               <strong id="deviceCount">0</strong>
-              <span id="deviceHealthRatio">0% service available · 0 data available</span>
+              <span id="deviceHealthRatio">0% 서비스 사용 가능 · 0개 데이터 사용 가능</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="Core Data Freshness details">
-              <span class="metric-label">EdgeX Core Data</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="최신 데이터 설명 보기">
+              <span class="metric-label">최신 데이터</span>
               <strong id="telemetryFreshnessRatio">0%</strong>
-              <span id="telemetryFreshnessCaption">0 fresh</span>
+              <span id="telemetryFreshnessCaption">0/0개 최신 Event</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
+            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
               <span class="metric-label">Service Profiles</span>
               <strong id="resourceProfileCount">0</strong>
               <span id="placementFitCaption">0 pods · 0 missing spec</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
+            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
               <span class="metric-label">Service Pod CPU</span>
               <strong id="serviceCpuUsage">0</strong>
               <span id="serviceCpuUsageCaption">0 core request</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
+            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
               <span class="metric-label">Service Pod Memory</span>
               <strong id="serviceMemoryUsage">0</strong>
               <span id="serviceMemoryUsageCaption">0 MiB request</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
+            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
               <span class="metric-label">Pod Usage Coverage</span>
               <strong id="usageCoverageRatio">0%</strong>
               <span id="usageCoverageCaption">0/0 containers observed</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="Device Service Availability 설명 보기">
-              <span class="metric-label">Device Service Available</span>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="수집 서비스 상태 설명 보기">
+              <span class="metric-label">수집 서비스</span>
               <strong id="serviceBindingRatio">0%</strong>
-              <span id="serviceBindingCaption">0/0 devices available</span>
+              <span id="serviceBindingCaption">0/0개 디바이스 연결</span>
             </article>
           </section>
 
-          <section class="panel overview-visuals dashboard-page active" data-page="overview" aria-label="observability metrics">
+          <section class="panel overview-visuals dashboard-page active dashboard-detail" data-page="overview" aria-label="observability metrics">
             <div class="panel-head">
               <div>
                 <p class="section-kicker">Observed Metrics</p>
@@ -185,8 +195,8 @@
           <section class="panel service-demo-panel dashboard-page active" data-page="overview" aria-labelledby="serviceDemoTitle">
             <div class="panel-head service-demo-head">
               <div>
-                <p class="section-kicker">Live Service Demo</p>
-                <h2 id="serviceDemoTitle">Jetson Sensor Anomaly Detection</h2>
+                <p class="section-kicker">실시간 서비스 데모</p>
+                <h2 id="serviceDemoTitle">Jetson 센서 이상 탐지</h2>
               </div>
               <div class="service-demo-status" aria-live="polite">
                 <span>input <strong id="serviceDemoInputState">waiting</strong></span>
@@ -390,8 +400,8 @@
             <div class="panel-head management-page-head">
               <div>
                 <p class="section-kicker">EdgeX 디바이스 운영</p>
-                <h2 id="deviceManagementTitle">노드별 디바이스 관리</h2>
-                <p class="management-page-summary">노드에서 발견한 연결과 수동 엔드포인트를 한곳에서 검색·검토하고 EdgeX 등록까지 이어갑니다.</p>
+                <h2 id="deviceManagementTitle">장비 연결 관리</h2>
+                <p class="management-page-summary">노드를 고르고 발견된 장비를 확인한 뒤 EdgeX에 등록합니다.</p>
               </div>
               <div class="management-head-actions">
                 <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
@@ -421,16 +431,16 @@
 
             <nav id="managementViewTabs" class="management-view-tabs" role="tablist" aria-label="디바이스 관리 작업">
               <button id="managementDiscoveryTab" type="button" role="tab" aria-selected="true" aria-controls="managementDiscoveryPanel" data-management-view="discovery">
-                장비 발견
+                발견된 장비
               </button>
               <button id="managementOverviewTab" type="button" role="tab" aria-selected="false" aria-controls="managementOverviewPanel" data-management-view="overview">
-                노드 현황
+                등록 현황
               </button>
               <button id="managementRegisterTab" type="button" role="tab" aria-selected="false" aria-controls="managementRegisterPanel" data-management-view="register">
-                새 디바이스 등록
+                직접 등록
               </button>
-              <button id="managementEditTab" type="button" role="tab" aria-selected="false" aria-controls="managementEditPanel" data-management-view="edit">
-                기존 디바이스 수정
+              <button id="managementEditTab" class="management-detail-tab" type="button" role="tab" aria-selected="false" aria-controls="managementEditPanel" data-management-view="edit">
+                설정 수정
               </button>
             </nav>
 
@@ -462,7 +472,7 @@
                   <article><span>현재 관측</span><strong id="managementDiscoveryPresentCount">0</strong></article>
                   <article><span>검토 대기</span><strong id="managementDiscoveryPendingCount">0</strong></article>
                   <article><span>등록 가능</span><strong id="managementDiscoveryReadyCount">0</strong></article>
-                  <article><span>무시됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
+                  <article class="management-detail-stat"><span>무시됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
                 </div>
 
                 <div class="management-discovery-toolbar">
@@ -470,41 +480,50 @@
                     <span>후보 검색</span>
                     <input id="managementDiscoverySearch" type="search" placeholder="장비 이름, 경로, 노드, 프로토콜" />
                   </label>
-                  <label>
-                    <span>프로토콜</span>
-                    <select id="managementDiscoveryProtocolFilter">
-                      <option value="">전체 프로토콜</option>
-                      <option value="serial">Serial / USB</option>
-                      <option value="i2c">I²C</option>
-                      <option value="mqtt">MQTT</option>
-                      <option value="modbus">Modbus</option>
-                      <option value="opcua">OPC-UA</option>
-                      <option value="onvif">ONVIF 카메라 발견</option>
-                      <option value="rtsp">RTSP</option>
-                      <option value="rest">HTTP / REST</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>등록 상태</span>
-                    <select id="managementDiscoveryDecisionFilter">
-                      <option value="">전체 상태</option>
-                      <option value="DETECTED">발견됨</option>
-                      <option value="IDENTIFIED">식별됨</option>
-                      <option value="PENDING_APPROVAL">승인 대기</option>
-                      <option value="APPROVED">승인됨</option>
-                      <option value="SERVICE_READY">서비스 준비</option>
-                      <option value="METADATA_REGISTERED">Metadata 등록</option>
-                      <option value="EVENT_CONFIRMED">첫 Event 확인</option>
-                      <option value="BLOCKED">차단됨</option>
-                      <option value="REJECTED">거절됨</option>
-                      <option value="STALE">연결 끊김</option>
-                      <option value="FAILED">등록 실패</option>
-                    </select>
-                  </label>
-                  <label class="management-discovery-toggle">
-                    <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
-                    <span>거절한 후보 표시</span>
-                  </label>
+                  <details class="management-discovery-filters">
+                    <summary>검색·표시 조건</summary>
+                    <div class="management-discovery-filter-grid">
+                      <label>
+                        <span>프로토콜</span>
+                        <select id="managementDiscoveryProtocolFilter">
+                          <option value="">전체 프로토콜</option>
+                          <option value="serial">Serial / USB</option>
+                          <option value="i2c">I²C</option>
+                          <option value="mqtt">MQTT</option>
+                          <option value="modbus">Modbus</option>
+                          <option value="opcua">OPC-UA</option>
+                          <option value="onvif">ONVIF 카메라 발견</option>
+                          <option value="rtsp">RTSP</option>
+                          <option value="rest">HTTP / REST</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>등록 상태</span>
+                        <select id="managementDiscoveryDecisionFilter">
+                          <option value="">전체 상태</option>
+                          <option value="DETECTED">발견됨</option>
+                          <option value="IDENTIFIED">식별됨</option>
+                          <option value="PENDING_APPROVAL">승인 대기</option>
+                          <option value="APPROVED">승인됨</option>
+                          <option value="SERVICE_READY">서비스 준비</option>
+                          <option value="METADATA_REGISTERED">Metadata 등록</option>
+                          <option value="EVENT_CONFIRMED">첫 Event 확인</option>
+                          <option value="BLOCKED">차단됨</option>
+                          <option value="REJECTED">거절됨</option>
+                          <option value="STALE">연결 끊김</option>
+                          <option value="FAILED">등록 실패</option>
+                        </select>
+                      </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryShowStale" type="checkbox" />
+                        <span>오래된 후보 표시</span>
+                      </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
+                        <span>거절한 후보 표시</span>
+                      </label>
+                    </div>
+                  </details>
                 </div>
 
                 <div id="managementDiscoveryNodeHealth" class="management-discovery-node-health" aria-live="polite"></div>
@@ -893,7 +912,7 @@
           </div>
         </section>
 
-        <section class="panel scenario dashboard-page active" data-page="overview">
+        <section class="panel scenario dashboard-page active dashboard-detail" data-page="overview">
           <div class="panel-head">
             <div>
               <p class="section-kicker">Overview</p>
@@ -916,7 +935,7 @@
             </div>
           </div>
         </section>
-        <section class="overview-ops-grid dashboard-page active" data-page="overview" aria-label="collected operations metrics">
+        <section class="overview-ops-grid dashboard-page active dashboard-detail" data-page="overview" aria-label="collected operations metrics">
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -1003,10 +1022,10 @@
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
-    <script src="/static/dashboard.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
+    <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=interaction-feedback-20260727c"></script>
+    <script src="/static/device-management.js?v=simple-dashboard-20260727"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

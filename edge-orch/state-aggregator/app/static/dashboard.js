@@ -967,11 +967,11 @@ function render() {
   const sampledContainers = Math.round(profiledContainers * ratio(kpis.service_resource_usage_coverage_ratio));
   setText("updatedAt", `갱신 ${new Date(data.generated_at).toLocaleString()}`);
   setText("activeNodeCount", text(kpis.active_node_count, 0));
-  setText("nodeRatio", `${pct(kpis.node_online_ratio)} online`);
+  setText("nodeRatio", `${pct(kpis.node_online_ratio)} 온라인`);
   setText("deviceCount", deviceObservationFailed ? "관측 불가" : text(kpis.registered_device_count, 0));
-  setText("deviceHealthRatio", deviceObservationFailed ? "EdgeX Core Metadata 연결 필요" : `${pct(kpis.device_service_availability_ratio)} service available · ${text(kpis.available_device_count, 0)} data available`);
+  setText("deviceHealthRatio", deviceObservationFailed ? "EdgeX Core Metadata 연결 필요" : `${pct(kpis.device_service_availability_ratio)} 서비스 사용 가능 · ${text(kpis.available_device_count, 0)}개 데이터 사용 가능`);
   setText("telemetryFreshnessRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.core_data_freshness_ratio));
-  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 Core Data event fresh`);
+  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 최신 Event`);
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
   setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)}개 pod · ${text(kpis.service_resource_partially_declared_profile_count, 0)}개 spec 누락`);
   setText("serviceCpuUsage", threeDecimal(kpis.service_resource_current_cpu_usage_cores));
@@ -981,7 +981,7 @@ function render() {
   setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
-  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX device 관측 불가" : `${boundDevices}/${registeredDevices}개 device 연결`);
+  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
   setText("assetCount", deviceObservationFailed ? `${nodes.length} node assets · EdgeX 관측 불가` : `${nodes.length + devices.length} assets`);
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);

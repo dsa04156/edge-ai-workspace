@@ -12,6 +12,7 @@ const {
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateEndpointSummary,
+  candidateVisibleInDefaultList,
   connectionApplyButtonView,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -37,6 +38,7 @@ const {
   planAdapterRuntime,
   pollConnectionOperation,
   pollManagementOperation,
+  preferredManagementNode,
   protocolPackageStatus,
   restartAdapterRuntime,
   retireAdapterRuntime,
@@ -45,6 +47,10 @@ const {
   validateManagementConnection,
   validateManagementDevice,
 } = require("../app/static/device-management.js");
+const {
+  dashboardViewModeButtonCopy,
+  normalizeDashboardViewMode,
+} = require("../app/static/navigation.js");
 
 
 test("management API keeps the external ingress prefix without hard-coding an IP", () => {
@@ -181,6 +187,69 @@ test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved 
     scopes.find((scope) => scope.name === "미할당 노드").deviceCount,
     1,
   );
+});
+
+
+test("prefers a node with a live discovery report for the first management view", () => {
+  const scopes = [
+    {name: "jetson", runtimeCount: 1, adapterCount: 1},
+    {name: "raspi", runtimeCount: 1, adapterCount: 1},
+  ];
+  assert.equal(
+    preferredManagementNode(scopes, [
+      {nodeName: "jetson", presence: "stale"},
+      {nodeName: "raspi", presence: "online"},
+    ]).name,
+    "raspi",
+  );
+  assert.equal(preferredManagementNode(scopes, []).name, "jetson");
+});
+
+
+test("hides stale and rejected discovery noise until explicitly requested", () => {
+  assert.equal(
+    candidateVisibleInDefaultList({presence: "present", state: "DETECTED"}),
+    true,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList({presence: "stale", state: "STALE"}),
+    false,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList(
+      {presence: "stale", state: "STALE"},
+      {showStale: true},
+    ),
+    true,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList({presence: "present", state: "REJECTED"}),
+    false,
+  );
+  assert.equal(
+    candidateVisibleInDefaultList(
+      {presence: "present", state: "REJECTED"},
+      {includeIgnored: true},
+    ),
+    true,
+  );
+});
+
+
+test("dashboard view mode defaults to simple and exposes clear toggle copy", () => {
+  assert.equal(normalizeDashboardViewMode(), "simple");
+  assert.equal(normalizeDashboardViewMode("unexpected"), "simple");
+  assert.equal(normalizeDashboardViewMode("detailed"), "detailed");
+  assert.deepEqual(dashboardViewModeButtonCopy("simple"), {
+    label: "전체 보기",
+    ariaLabel: "대시보드 전체 보기로 전환",
+    pressed: false,
+  });
+  assert.deepEqual(dashboardViewModeButtonCopy("detailed"), {
+    label: "간편 보기",
+    ariaLabel: "대시보드 간편 보기로 전환",
+    pressed: true,
+  });
 });
 
 
@@ -1011,6 +1080,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "app/static/device-management.css"), "utf8");
+  const simpleCss = fs.readFileSync(path.join(root, "app/static/simple-mode.css"), "utf8");
   const javascript = fs.readFileSync(path.join(root, "app/static/device-management.js"), "utf8");
 
   assert.match(html, /data-dashboard-page="management"/);
@@ -1053,6 +1123,7 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementDiscoverySearch",
     "managementDiscoveryProtocolFilter",
     "managementDiscoveryDecisionFilter",
+    "managementDiscoveryShowStale",
     "managementOpenManualCandidate",
     "managementManualCandidateDialog",
     "managementManualCandidateForm",
@@ -1061,13 +1132,16 @@ test("dashboard ships an accessible token-free device management page", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /device-management\.css\?v=interaction-feedback-20260727/);
-  assert.match(html, /device-management\.js\?v=interaction-feedback-20260727c/);
+  assert.match(html, /<body data-view-mode="simple">/);
+  assert.match(html, /id="dashboardViewModeToggle"/);
+  assert.match(html, /simple-mode\.css\?v=simple-dashboard-20260727/);
+  assert.match(html, /device-management\.css\?v=simple-dashboard-20260727/);
+  assert.match(html, /device-management\.js\?v=simple-dashboard-20260727/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
-  assert.match(html, />디바이스 관리</);
-  assert.match(html, /노드별 디바이스 관리/);
+  assert.match(html, />장비 연결</);
+  assert.match(html, /장비 연결 관리/);
   assert.match(html, /관리할 엣지 노드/);
   assert.match(html, /연결 후보 찾기/);
   assert.match(html, /엔드포인트 직접 추가/);
@@ -1089,6 +1163,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(css, /\.management-runtime-card/);
   assert.match(css, /\.management-physical-card/);
   assert.match(css, /\.management-candidate-card/);
+  assert.match(css, /\.management-discovery-filters/);
   assert.match(css, /\.management-dialog/);
   assert.match(css, /body\[data-dashboard-page="management"\] \.side-rail/);
   assert.doesNotMatch(javascript, /localStorage|sessionStorage/);
@@ -1101,4 +1176,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(javascript, /function renderDiscoveryCandidates\(/);
   assert.match(javascript, /등록 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
+  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.dashboard-detail/);
+  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.management-node-card-facts/);
+  assert.match(simpleCss, /@media \(max-width: 760px\)/);
+  assert.match(simpleCss, /@media \(prefers-reduced-motion: reduce\)/);
 });
