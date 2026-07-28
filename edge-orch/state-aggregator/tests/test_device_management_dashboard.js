@@ -13,6 +13,7 @@ const {
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateEndpointSummary,
+  candidateRegistrationStatusView,
   candidateVisibleInDefaultList,
   connectionApplyButtonView,
   canPatchSelectedDevice,
@@ -38,6 +39,7 @@ const {
   patchManagementDevice,
   patchDirtyFeedback,
   planAdapterRuntime,
+  pollCandidateRegistration,
   pollConnectionOperation,
   pollManagementOperation,
   preferredManagementNode,
@@ -458,6 +460,69 @@ test("candidate decisions omit the Authorization header", async () => {
     Object.prototype.hasOwnProperty.call(request.options.headers, "Authorization"),
     false,
   );
+});
+
+
+test("candidate approval status explains automatic install and EdgeX registration", () => {
+  assert.deepEqual(
+    candidateRegistrationStatusView({state: "APPROVED"}),
+    {
+      label: "Device Service 설치 시작",
+      status: "waiting",
+      active: true,
+      terminal: false,
+    },
+  );
+  assert.equal(
+    candidateRegistrationStatusView({state: "METADATA_REGISTERED"}).label,
+    "EdgeX 등록 완료 · 첫 Event 확인 중",
+  );
+  assert.deepEqual(
+    candidateRegistrationStatusView({state: "EVENT_CONFIRMED"}),
+    {
+      label: "자동 설치·등록 완료",
+      status: "success",
+      active: false,
+      terminal: true,
+    },
+  );
+});
+
+
+test("candidate registration polling follows install through first Event", async () => {
+  const states = ["APPROVED", "SERVICE_READY", "METADATA_REGISTERED", "EVENT_CONFIRMED"];
+  const updates = [];
+  let requestCount = 0;
+  const fetchFn = async () => {
+    const state = states[Math.min(requestCount, states.length - 1)];
+    requestCount += 1;
+    return response({
+      nodes: [],
+      candidates: [{
+        candidateId: "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+        state,
+      }],
+      totalCandidates: 1,
+      filteredCandidates: 1,
+      staleAfterSeconds: 90,
+    });
+  };
+
+  const result = await pollCandidateRegistration(
+    "candidate-aaaaaaaaaaaaaaaaaaaaaaaa",
+    {
+      fetchFn,
+      sleepFn: async () => {},
+      intervalMs: 0,
+      maxAttempts: 5,
+      onUpdate: ({candidate}) => updates.push(candidate.state),
+    },
+  );
+
+  assert.equal(result.candidate.state, "EVENT_CONFIRMED");
+  assert.equal(result.timedOut, false);
+  assert.deepEqual(updates, states);
+  assert.equal(requestCount, 4);
 });
 
 
@@ -1377,7 +1442,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
   assert.match(html, /device-management\.css\?v=fixture-separation-20260728/);
-  assert.match(html, /device-management\.js\?v=fixture-separation-20260728/);
+  assert.match(html, /device-management\.js\?v=auto-install-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);

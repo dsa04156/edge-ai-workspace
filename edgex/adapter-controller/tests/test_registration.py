@@ -8,6 +8,7 @@ from app.device_catalog import DeviceBindingCatalog
 from app.discovery import DeviceCandidateRegistry
 from app.discovery_models import (
     CandidateApprovalRequest,
+    CandidateDecisionUpdate,
     CandidateMutationRef,
     CandidateRetryRequest,
     DiscoveryObservation,
@@ -18,6 +19,7 @@ from app.discovery_models import (
 from app.discovery_store import SQLiteDiscoveryStore
 from app.models import RuntimeObservation, RuntimePlan
 from app.registration import RegistrationCoordinator
+from app.service import AdapterControllerService
 
 from fakes import FakeKubernetesGateway
 
@@ -471,21 +473,30 @@ def test_manual_modbus_candidate_runs_approval_to_first_event_saga(tmp_path):
     )
 
     assert candidate.state == "PENDING_APPROVAL"
-    coordinator.approve(
+    controller = AdapterControllerService(
+        runtime_catalog,
+        kube,
+        None,
+        None,
+        namespace="edgex-edge",
+        candidate_registry=registry,
+        registration_coordinator=coordinator,
+        device_catalog=device_catalog,
+    )
+    completed = controller.update_candidate_decision(
         candidate.candidate_id,
-        CandidateApprovalRequest(
-            actor="operator-1",
-            reason="development simulator endpoint verified",
+        CandidateDecisionUpdate(
+            decision="accepted",
+            note="development simulator endpoint verified",
             request_ref=CandidateMutationRef(
                 request_id="6" * 64,
                 payload_hash="7" * 64,
             ),
         ),
     )
-    coordinator.reconcile_candidate(candidate.candidate_id)
-    coordinator.reconcile_candidate(candidate.candidate_id)
-    registration = coordinator.reconcile_candidate(candidate.candidate_id)
+    registration = coordinator.get_registration(candidate.candidate_id)
 
+    assert completed.state == "EVENT_CONFIRMED"
     assert registration.status == "EVENT_CONFIRMED"
     assert registry.get_candidate(candidate.candidate_id).state == (
         "EVENT_CONFIRMED"
@@ -544,11 +555,21 @@ def test_created_runtime_is_observed_until_ready_without_replanning(tmp_path):
         runtime_service=runtime,
         event_timeout_seconds=10,
     )
-    coordinator.approve(
+    controller = AdapterControllerService(
+        runtime_catalog,
+        kube,
+        None,
+        None,
+        namespace="edgex-edge",
+        candidate_registry=registry,
+        registration_coordinator=coordinator,
+        device_catalog=device_catalog,
+    )
+    started = controller.update_candidate_decision(
         candidate.candidate_id,
-        CandidateApprovalRequest(
-            actor="operator-1",
-            reason="development simulator endpoint verified",
+        CandidateDecisionUpdate(
+            decision="accepted",
+            note="development simulator endpoint verified",
             request_ref=CandidateMutationRef(
                 request_id="a" * 64,
                 payload_hash="b" * 64,
@@ -556,10 +577,11 @@ def test_created_runtime_is_observed_until_ready_without_replanning(tmp_path):
         ),
     )
 
-    first = coordinator.reconcile_candidate(candidate.candidate_id)
+    first = coordinator.get_registration(candidate.candidate_id)
     waiting = coordinator.reconcile_candidate(candidate.candidate_id)
     ready = coordinator.reconcile_candidate(candidate.candidate_id)
 
+    assert started.state == "APPROVED"
     assert first.step == "RUNTIME_REQUESTED"
     assert waiting.step == "WAITING_FOR_RUNTIME"
     assert ready.status == "SERVICE_READY"

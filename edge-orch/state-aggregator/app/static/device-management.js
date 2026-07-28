@@ -1361,6 +1361,93 @@ async function pollConnectionOperation(requestId, {
   return latest;
 }
 
+
+function candidateRegistrationStatusView(candidate = {}) {
+  const state = String(candidate.state || "");
+  const views = {
+    APPROVED: {
+      label: "Device Service 설치 시작",
+      status: "waiting",
+      active: true,
+      terminal: false,
+    },
+    SERVICE_READY: {
+      label: "Device Service 준비 완료 · EdgeX 등록 중",
+      status: "waiting",
+      active: true,
+      terminal: false,
+    },
+    METADATA_REGISTERED: {
+      label: "EdgeX 등록 완료 · 첫 Event 확인 중",
+      status: "waiting",
+      active: true,
+      terminal: false,
+    },
+    EVENT_CONFIRMED: {
+      label: "자동 설치·등록 완료",
+      status: "success",
+      active: false,
+      terminal: true,
+    },
+    FAILED: {
+      label: candidate.failureReason || "자동 설치·등록 실패",
+      status: "error",
+      active: false,
+      terminal: true,
+    },
+    BLOCKED: {
+      label: candidate.failureReason || "등록 차단",
+      status: "error",
+      active: false,
+      terminal: true,
+    },
+    REJECTED: {
+      label: "후보 거절",
+      status: "warning",
+      active: false,
+      terminal: true,
+    },
+    STALE: {
+      label: "장비 연결 끊김",
+      status: "warning",
+      active: false,
+      terminal: true,
+    },
+  };
+  return views[state] || {
+    label: koreanLabel("candidateState", state, "등록 상태 확인 필요"),
+    status: "warning",
+    active: false,
+    terminal: false,
+  };
+}
+
+
+async function pollCandidateRegistration(candidateId, {
+  fetchFn = fetch,
+  sleepFn = delay,
+  intervalMs = 2000,
+  maxAttempts = 45,
+  onUpdate = () => {},
+} = {}) {
+  let candidate = null;
+  let inventory = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    inventory = await fetchDiscoveryInventory(fetchFn);
+    candidate = inventory.candidates.find(
+      (item) => item.candidateId === candidateId,
+    ) || null;
+    if (!candidate) return {candidate, inventory, timedOut: false};
+    const view = candidateRegistrationStatusView(candidate);
+    onUpdate({candidate, inventory, view});
+    if (view.terminal || !view.active) {
+      return {candidate, inventory, timedOut: false};
+    }
+    if (attempt + 1 < maxAttempts) await sleepFn(intervalMs);
+  }
+  return {candidate, inventory, timedOut: true};
+}
+
 function byId(id, documentRef = document) {
   return documentRef.getElementById(id);
 }
@@ -2085,12 +2172,26 @@ function renderDiscoveryCandidates(documentRef = document) {
     const actions = documentRef.createElement("div");
     actions.className = "management-candidate-actions";
     if (candidate.state === "PENDING_APPROVAL") {
-      appendCandidateAction(
-        actions,
-        "장비 승인 및 등록",
-        "accept",
-        candidate.candidateId,
-      );
+      if (candidate.registrationReady === true) {
+        appendCandidateAction(
+          actions,
+          "승인하고 자동 설치·등록",
+          "accept",
+          candidate.candidateId,
+        );
+      } else {
+        appendCandidateAction(
+          actions,
+          "검증 패키지 등록 후 가능",
+          "accept",
+          candidate.candidateId,
+          {
+            disabled: true,
+            title: candidate.packageReason
+              || "검증된 Device Service 패키지가 필요합니다.",
+          },
+        );
+      }
       appendCandidateAction(
         actions,
         "후보 거절",
@@ -3686,13 +3787,14 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         documentRef,
       });
       try {
+        let changedCandidate = null;
         if (action === "delete") {
           await deleteCandidate(candidate.candidateId, {
             idempotencyKey,
             fetchFn,
           });
         } else {
-          await updateCandidateDecision(
+          changedCandidate = await updateCandidateDecision(
             candidate.candidateId,
             {
               decision: decisionByAction[action],
@@ -3709,15 +3811,61 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
           );
         }
         managementState.candidateActionKeys.delete(actionKey);
+        if (
+          action === "accept"
+          && candidateRegistrationStatusView(changedCandidate).active
+        ) {
+          const initialView = candidateRegistrationStatusView(changedCandidate);
+          renderDiscoveryFeedback(initialView.label, {
+            status: "degraded",
+            documentRef,
+          });
+          renderManagementActionFeedback(initialView.label, {
+            status: "waiting",
+            documentRef,
+          });
+          const polled = await pollCandidateRegistration(
+            candidate.candidateId,
+            {
+              fetchFn,
+              onUpdate: ({inventory, view}) => {
+                managementState.discovery = inventory;
+                renderDiscovery(documentRef);
+                renderDiscoveryFeedback(view.label, {
+                  status: view.status === "success" ? "online" : "degraded",
+                  documentRef,
+                });
+                renderManagementActionFeedback(view.label, {
+                  status: view.status,
+                  documentRef,
+                });
+              },
+            },
+          );
+          changedCandidate = polled.candidate || changedCandidate;
+        }
         await loadDeviceManagement(documentRef, fetchFn);
-        renderDiscoveryFeedback("후보 상태를 반영했습니다.", {
-          status: "online",
-          documentRef,
-        });
-        renderManagementActionFeedback(`${candidate.displayName} 후보 상태를 반영했습니다.`, {
-          status: "success",
-          documentRef,
-        });
+        const finalView = action === "accept"
+          ? candidateRegistrationStatusView(changedCandidate)
+          : null;
+        renderDiscoveryFeedback(
+          finalView?.label || "후보 상태를 반영했습니다.",
+          {
+            status: finalView?.status === "error"
+              ? "error"
+              : finalView?.status === "success"
+                ? "online"
+                : "degraded",
+            documentRef,
+          },
+        );
+        renderManagementActionFeedback(
+          finalView?.label || `${candidate.displayName} 후보 상태를 반영했습니다.`,
+          {
+            status: finalView?.status || "success",
+            documentRef,
+          },
+        );
       } catch (error) {
         renderDiscoveryFeedback(
           error?.message || "후보 상태 변경에 실패했습니다.",
@@ -4079,6 +4227,7 @@ if (typeof module !== "undefined") {
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     candidateEndpointSummary,
+    candidateRegistrationStatusView,
     candidateVisibleInDefaultList,
     canPatchSelectedDevice,
     connectionStatusView,
@@ -4105,6 +4254,7 @@ if (typeof module !== "undefined") {
     patchManagementDevice,
     patchDirtyFeedback,
     planAdapterRuntime,
+    pollCandidateRegistration,
     pollConnectionOperation,
     pollManagementOperation,
     preferredManagementNode,

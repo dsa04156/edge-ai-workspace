@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import logging
 from typing import Any
 
 from .api import ControllerConflict, ControllerNotFound, ControllerValidationError
@@ -21,6 +22,9 @@ from .discovery_models import (
 from .planner import RuntimePlanner
 from .renderer import render_adapter_runtime
 from .metrics import render_discovery_metrics
+
+
+logger = logging.getLogger(__name__)
 
 
 class AdapterControllerService:
@@ -276,7 +280,7 @@ class AdapterControllerService:
                     candidate_id
                 )
                 if current.state == "FAILED":
-                    return self.registration_coordinator.retry(
+                    approved = self.registration_coordinator.retry(
                         candidate_id,
                         CandidateRetryRequest(
                             actor="dashboard-admin",
@@ -284,13 +288,18 @@ class AdapterControllerService:
                             request_ref=request.request_ref,
                         ),
                     )
-                return self.registration_coordinator.approve(
+                else:
+                    approved = self.registration_coordinator.approve(
+                        candidate_id,
+                        CandidateApprovalRequest(
+                            actor="dashboard-admin",
+                            reason=request.note or "운영자 승인",
+                            request_ref=request.request_ref,
+                        ),
+                    )
+                return self._start_registration_immediately(
                     candidate_id,
-                    CandidateApprovalRequest(
-                        actor="dashboard-admin",
-                        reason=request.note or "운영자 승인",
-                        request_ref=request.request_ref,
-                    ),
+                    approved,
                 )
             if request.decision == "ignored":
                 return self.registration_coordinator.reject(
@@ -305,6 +314,31 @@ class AdapterControllerService:
             candidate_id,
             request,
         )
+
+    def _start_registration_immediately(self, candidate_id: str, candidate):
+        current = candidate
+        for _ in range(3):
+            if current.state not in {
+                "APPROVED",
+                "SERVICE_READY",
+                "METADATA_REGISTERED",
+            }:
+                break
+            previous_state = current.state
+            try:
+                self.registration_coordinator.reconcile_candidate(candidate_id)
+            except Exception:
+                logger.exception(
+                    "immediate registration start failed candidateId=%s "
+                    "currentState=%s; background reconciliation will retry",
+                    candidate_id,
+                    previous_state,
+                )
+                break
+            current = self._require_candidate_registry().get_candidate(candidate_id)
+            if current.state == previous_state:
+                break
+        return current
 
     def delete_candidate(self, candidate_id: str, request):
         return self._require_candidate_registry().delete_candidate(
