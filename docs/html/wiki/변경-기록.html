@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-28 16:29</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
+            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -212,6 +212,13 @@
 <p><code>edgex/adapter-controller/config/discovery_plans.json</code>, <code>edgex/adapter-controller/config/device_bindings.json</code>, Argo CD revision <code>46703f7dc2dc35192d6bf7cf344682add6337c19</code>과 live candidate/EdgeX readback</p>
 <ul><li>갱신: 디바이스 발견·등록 최신 기준/운영 문서와 생성 HTML</li><li>메모: dev0003 bus 1에서 Sense HAT v1의 네 read-only chip identity를 하나의</li></ul>
 <p>fingerprint로 확인했다. 토큰 없는 운영자 승인 뒤 기존 Argo Runtime, Profile과 대표 Device를 소유권 변경 없이 재사용하고 승인 이후 첫 Event로 <code>EVENT_CONFIRMED</code>를 확인했다. 일반 Discovery는 계속 비권한이며 I2C 전용 Pod만 exact <code>/dev/i2c-1</code>에 제한된 privileged device-cgroup 예외를 사용한다.</p>
+<h2 id="2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</h2>
+<ul><li>근거: <code>edgex/adapter-controller/app/discovery.py</code>, commit <code>8e54e8b</code>,</li></ul>
+<p>Adapter Controller 124개 테스트와 dev0003 Sense HAT live decommission/readback</p>
+<ul><li>갱신: 등록 연결 해제 뒤에도 물리 장비가 계속 관측되면 같은 candidate ID를</li></ul>
+<p><code>PENDING_APPROVAL</code>로 복구하고 운영자 승인과 첫 Event gate를 다시 요구</p>
+<ul><li>메모: 후보 <code>candidate-f0829ddd...</code>가 다음 30초 report에서 같은 ID로 복귀했고 재승인</li></ul>
+<p>뒤 <code>EVENT_CONFIRMED</code>가 됐다. 전후 EdgeX Device 13개와 Sense HAT Device 6개는 동일해 <code>reuse-existing</code> 리소스가 삭제되거나 중복 생성되지 않았다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
@@ -228,7 +235,8 @@
 <li class="toc-h2"><a href="#2026-07-22-verify-core-data-1-000-device-저장-기준선">[2026-07-22] verify | Core Data 1,000-device 저장 기준선</a></li>
 <li class="toc-h2"><a href="#2026-07-22-fix-dashboard-api-검증기-edgex-계약-동기화">[2026-07-22] fix | Dashboard API 검증기 EdgeX 계약 동기화</a></li>
 <li class="toc-h2"><a href="#2026-07-23-ingest-등록-연결-실장비-증거와-프로토콜-패키지-상태-분리">[2026-07-23] ingest | 등록 연결·실장비 증거와 프로토콜 패키지 상태 분리</a></li>
-<li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li>
+<li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

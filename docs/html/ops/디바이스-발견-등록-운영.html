@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-28 16:28</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
+            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -412,6 +412,8 @@ curl --fail --silent --show-error http://127.0.0.1:18080/metrics</code></pre>
 <ul><li>Saga 실패는 이번 attempt가 만든 리소스만 제거한다.</li><li>기존 Argo Runtime, 기존 Profile/Device는 제거하지 않는다.</li><li>owned Device 삭제가 실패하면 의존 Profile/Runtime 삭제도 진행하지 않는다.</li><li>rollback이 남은 상태에서는 retry를 차단한다.</li><li>PVC와 SQLite를 유지한 Pod 재시작은 진행 단계에서 안전하게 이어진다.</li><li>SQLite 데이터 삭제는 개발 환경에서만 PVC 삭제로 수행하며 candidate/audit/Saga가 모두</li></ul>
 <p>복구 불가능하게 사라진다.</p>
 <p>등록 완료 candidate는 일반 <code>DELETE</code>로 지울 수 없고, 대시보드의 명시적 decommission 경로가 exact candidate 확인값과 사유를 요구한다. Controller가 이번 Saga에서 만든 Device/Profile/Runtime만 정리하며 <code>reuse-existing</code>으로 검증한 Sense HAT Runtime/Profile/ Device는 삭제하지 않는다. Core Metadata에서 수동 삭제해 이 소유권 검사를 우회하지 않는다.</p>
+<p>decommission한 장비가 물리적으로 계속 연결돼 있으면 다음 Discovery Agent report에서 같은 stable candidate ID가 다시 <code>PENDING_APPROVAL</code>로 나타난다. 이는 자동 재등록이 아니므로 운영자가 다시 승인해야 하고 첫 Event를 새로 확인해야 한다. 장비를 후보 목록에서 계속 제외하려면 등록 연결을 퇴역시킨 뒤 재발견 후보를 <code>무시</code> 처리한다.</p>
+<p>2026-07-28 Sense HAT live 검증에서는 후보 <code>candidate-f0829ddd...</code>를 decommission한 뒤 30초 이내 같은 ID와 <code>presence=present</code>로 재탐색됐고, 재승인 뒤 <code>EVENT_CONFIRMED</code>로 복귀했다. 전후 EdgeX Device는 13개, Sense HAT Device는 6개로 동일했다.</p>
 <h2 id="전체-검증-명령">전체 검증 명령</h2>
 <pre data-lang="bash"><code>cd edgex/adapter-controller
 PYTHONPATH=. pytest -q

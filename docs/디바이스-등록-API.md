@@ -320,9 +320,13 @@ GET /api/v1/discovery/events?candidateId={candidateId}&limit=200
 - `POST /management/discovery/manual`
 - `PATCH /management/discovery/{candidateId}`
 - `DELETE /management/discovery/{candidateId}`
+- `POST /management/discovery/{candidateId}/decommission`
 
 `accepted` PATCH는 승인 Saga를 시작하고 `FAILED` 후보에서는 retry로 해석한다.
 `ignored` PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다.
+decommission은 `X-Confirm-Candidate`의 exact candidate ID와 사유를 요구하며 Controller가
+소유한 리소스만 정리한다. node-scan 장비가 계속 연결돼 있으면 다음 report에서 같은
+candidate ID가 `PENDING_APPROVAL`로 다시 나타나고, 자동 재등록하지 않는다.
 현재 PoC BFF는 운영자 Bearer token이나 `decisionAuthenticationRequired` 필드를 제공하지
 않는다. 후보 결정, 수동 후보 생성·삭제, Runtime, Device와 connection mutation은 모두
 요청별 `Idempotency-Key`를 요구하고 browser `Authorization` header 없이 동작한다.

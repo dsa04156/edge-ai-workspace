@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-28 16:27</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
+            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,7 +166,7 @@
 <blockquote><p>기준일: 2026-07-28 판정 기준: 실제 코드, 테스트, <code>edgex/k8s</code> render “구현”과 “실장비 운영 검증”을 구분한다.</p></blockquote>
 <h2 id="요약">요약</h2>
 <p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 2026-07-24 실제 Jetson Arduino stable 후보를 운영자가 승인했고 기존 Device Service Runtime을 재사용해 aggregate Device <code>arduino-75035303230351e0d171-57fc03a907</code>의 <code>EVENT_CONFIRMED</code>와 Core Data Event까지 live 확인했다.</p>
-<p>I2C는 allowlist bus/address와 여러 read-only identity register를 하나의 물리 보드 identity로 묶는 composite probe까지 구현했다. 2026-07-28 <code>etri-dev0003-raspi5</code>의 Sense HAT v1에서 <code>0x1c=0x3d</code>, <code>0x5c=0xbd</code>, <code>0x5f=0xbc</code>, <code>0x6a=0x68</code>을 확인해 후보를 승인했고, 기존 <code>device-sensehat-raspi</code>, Profile <code>etri-sensehat-gyroscope</code>, Device <code>imu-sensehat-gyroscope-01</code>을 재사용한 뒤 신규 Core Data Event로 <code>EVENT_CONFIRMED</code>까지 live 검증했다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 이는 개발 simulator 수직 경로의 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
+<p>I2C는 allowlist bus/address와 여러 read-only identity register를 하나의 물리 보드 identity로 묶는 composite probe까지 구현했다. 2026-07-28 <code>etri-dev0003-raspi5</code>의 Sense HAT v1에서 <code>0x1c=0x3d</code>, <code>0x5c=0xbd</code>, <code>0x5f=0xbc</code>, <code>0x6a=0x68</code>을 확인해 후보를 승인했고, 기존 <code>device-sensehat-raspi</code>, Profile <code>etri-sensehat-gyroscope</code>, Device <code>imu-sensehat-gyroscope-01</code>을 재사용한 뒤 신규 Core Data Event로 <code>EVENT_CONFIRMED</code>까지 live 검증했다. 이어서 등록 연결을 decommission하고 다음 30초 탐색 주기에 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 자동 복귀하는지 확인했으며, 재승인 뒤 다시 <code>EVENT_CONFIRMED</code>가 됐다. 기존 EdgeX Device 13개와 Sense HAT Device 6개는 삭제되거나 중복 생성되지 않았다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 이는 개발 simulator 수직 경로의 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -283,6 +283,10 @@
 <td>후보 <code>candidate-f0829ddd...</code> 승인, Runtime/Profile/Device 생성 없이 기존 6개 Device 유지, 대표 Device의 승인 이후 Event로 완료 확인</td>
 </tr>
 <tr>
+<td>decommission 뒤 자동 재탐색</td>
+<td>등록 연결 해제 뒤 같은 stable candidate ID가 다음 node report에서 <code>PENDING_APPROVAL</code>로 복귀하고 재승인 후 <code>EVENT_CONFIRMED</code>; <code>reuse-existing</code> 리소스 수 불변</td>
+</tr>
+<tr>
 <td>등록 완료 operating state</td>
 <td>첫 Event 뒤 Device를 <code>UP</code>으로 idempotent 갱신하고 Metadata readback이 성공해야 <code>EVENT_CONFIRMED</code> 처리</td>
 </tr>
@@ -332,8 +336,8 @@
 </tr>
 <tr>
 <td>decommission</td>
-<td>삭제 차단과 rollback만 제공</td>
-<td>등록 완료 Device의 ownership-aware 명시적 퇴역 Saga</td>
+<td>ownership-aware 명시적 퇴역, 연결된 node-scan 후보의 자동 재탐색과 재승인 live 검증</td>
+<td>Controller가 실제 생성한 Runtime/Profile/Device의 실환경 퇴역·재생성 검증</td>
 </tr>
 </tbody></table></div>
 <h2 id="미구현">미구현</h2>

@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-28 16:29</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
+            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -381,8 +381,8 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
 <p>발견, 상태 전이, 승인, 거절, 차단, Plan 변경과 실패 원인을 최신순으로 반환한다.</p>
 <h2 id="기존-대시보드-bff-호환">기존 대시보드 BFF 호환</h2>
 <p>대시보드는 다음 기존 경로를 유지한다.</p>
-<ul><li><code>GET /management/discovery</code></li><li><code>POST /management/discovery/manual</code></li><li><code>PATCH /management/discovery/{candidateId}</code></li><li><code>DELETE /management/discovery/{candidateId}</code></li></ul>
-<p><code>accepted</code> PATCH는 승인 Saga를 시작하고 <code>FAILED</code> 후보에서는 retry로 해석한다. <code>ignored</code> PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다. 현재 PoC BFF는 운영자 Bearer token이나 <code>decisionAuthenticationRequired</code> 필드를 제공하지 않는다. 후보 결정, 수동 후보 생성·삭제, Runtime, Device와 connection mutation은 모두 요청별 <code>Idempotency-Key</code>를 요구하고 browser <code>Authorization</code> header 없이 동작한다. state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC으로 서명한다. 외부 AuthProvider의 승인도 후보 장비 신뢰 검증 단계로 유지되지만 운영자 인증은 아니다. 따라서 이 BFF는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도 사용자 인증·인가를 앞단에 추가해야 한다.</p>
+<ul><li><code>GET /management/discovery</code></li><li><code>POST /management/discovery/manual</code></li><li><code>PATCH /management/discovery/{candidateId}</code></li><li><code>DELETE /management/discovery/{candidateId}</code></li><li><code>POST /management/discovery/{candidateId}/decommission</code></li></ul>
+<p><code>accepted</code> PATCH는 승인 Saga를 시작하고 <code>FAILED</code> 후보에서는 retry로 해석한다. <code>ignored</code> PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다. decommission은 <code>X-Confirm-Candidate</code>의 exact candidate ID와 사유를 요구하며 Controller가 소유한 리소스만 정리한다. node-scan 장비가 계속 연결돼 있으면 다음 report에서 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 다시 나타나고, 자동 재등록하지 않는다. 현재 PoC BFF는 운영자 Bearer token이나 <code>decisionAuthenticationRequired</code> 필드를 제공하지 않는다. 후보 결정, 수동 후보 생성·삭제, Runtime, Device와 connection mutation은 모두 요청별 <code>Idempotency-Key</code>를 요구하고 browser <code>Authorization</code> header 없이 동작한다. state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC으로 서명한다. 외부 AuthProvider의 승인도 후보 장비 신뢰 검증 단계로 유지되지만 운영자 인증은 아니다. 따라서 이 BFF는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도 사용자 인증·인가를 앞단에 추가해야 한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#접근-경계">접근 경계</a></li>

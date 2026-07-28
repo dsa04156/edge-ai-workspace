@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-발견-아키텍처.md</span>
-            <span class="badge">수정: 2026-07-28 16:27</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
+            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
           </div>
         </header>
         <div class="doc-body">
@@ -291,6 +291,7 @@ FAILED에서 명시적 retry                  -&gt; APPROVED</code></pre>
 <ol><li>Event가 확인된 경우에만 <code>EVENT_CONFIRMED</code>로 완료한다.</li></ol>
 <p>각 단계는 SQLite에 저장되어 Controller 재시작 후 이어진다. 요청 ID와 payload hash도 영속 저장하므로 같은 승인 요청을 반복해도 Runtime, Profile 또는 Device를 중복 생성하지 않는다.</p>
 <p>timeout이나 실패 시 이번 Saga가 만든 Device, 사용되지 않는 Profile, Controller 소유 Runtime만 역순으로 정리한다. 기존 Argo Runtime, 기존 Profile, 기존 Device와 <code>reuse-existing</code>으로 검증한 리소스는 삭제하지 않는다. Device ownership은 <code>tags.controllerCandidateId</code>, Profile은 <code>edge-adapter-controller</code> label, Kubernetes 리소스는 controller label과 owner reference로 구분한다.</p>
+<p>등록 연결을 decommission하면 위 소유권 규칙에 따라 리소스를 정리하고 candidate를 일단 숨긴다. 물리 장비가 계속 연결돼 node-local Agent가 같은 stable hardware identity를 다시 보고하면 같은 candidate ID를 <code>DETECTED → IDENTIFIED → PENDING_APPROVAL</code>로 복구한다. 재발견은 자동이지만 재등록은 자동이 아니며 운영자 승인과 첫 Event gate를 다시 거친다. 자동 관측 후보의 일반 삭제는 이 흐름과 다르게 <code>ignored</code> 처리되어 반복 표시를 막는다.</p>
 <h2 id="프로토콜별-discovery-정책">프로토콜별 Discovery 정책</h2>
 <div class="table-wrap"><table>
 <thead><tr>
