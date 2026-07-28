@@ -131,7 +131,7 @@ const MANAGEMENT_LABELS = {
   },
   candidatePackage: {
     "registration-ready": "EdgeX 등록 가능",
-    "binding-required": "연결 승인 필요",
+    "binding-required": "연결 설정 필요",
     "verification-required": "패키지 검증 필요",
     unsupported: "패키지 없음",
   },
@@ -2155,6 +2155,50 @@ function appendCandidateAction(
   return button;
 }
 
+function candidateActionItems(candidate = {}) {
+  const actions = [];
+  if (candidate.state === "PENDING_APPROVAL") {
+    if (candidate.registrationReady === true) {
+      actions.push({
+        label: "승인하고 자동 설치·등록",
+        action: "accept",
+      });
+    } else {
+      actions.push({
+        label: "연결 설정",
+        action: "configure",
+        title: candidate.packageReason
+          || "검증된 Device Service와 물리 연결 설정이 필요합니다.",
+      });
+    }
+    actions.push({label: "후보 거절", action: "ignore"});
+  } else if (candidate.state === "REJECTED") {
+    actions.push({label: "다시 검토", action: "restore"});
+  } else if (candidate.state === "FAILED") {
+    actions.push({label: "등록 재시도", action: "accept"});
+    actions.push({label: "거절", action: "ignore"});
+  } else if (candidate.state === "BLOCKED") {
+    if (["unavailable", "error"].includes(candidate.authState)) {
+      actions.push({label: "인증 재확인", action: "accept"});
+    } else if (
+      ["binding-required", "verification-required", "unsupported"]
+        .includes(candidate.packageState)
+    ) {
+      actions.push({
+        label: "연결 설정",
+        action: "configure",
+        title: candidate.packageReason
+          || "검증된 Device Service와 물리 연결 설정이 필요합니다.",
+      });
+    }
+    actions.push({label: "후보 거절", action: "ignore"});
+  }
+  if (candidate.source === "manual") {
+    actions.push({label: "후보 삭제", action: "delete"});
+  }
+  return actions;
+}
+
 function renderDiscoveryCandidates(documentRef = document) {
   const container = byId("managementDiscoveryList", documentRef);
   clearElement(container);
@@ -2335,77 +2379,18 @@ function renderDiscoveryCandidates(documentRef = document) {
 
     const actions = documentRef.createElement("div");
     actions.className = "management-candidate-actions";
-    if (candidate.state === "PENDING_APPROVAL") {
-      if (candidate.registrationReady === true) {
-        appendCandidateAction(
-          actions,
-          "승인하고 자동 설치·등록",
-          "accept",
-          candidate.candidateId,
-        );
-      } else {
-        appendCandidateAction(
-          actions,
-          "검증 패키지 등록 후 가능",
-          "accept",
-          candidate.candidateId,
-          {
-            disabled: true,
-            title: candidate.packageReason
-              || "검증된 Device Service 패키지가 필요합니다.",
-          },
-        );
-      }
+    candidateActionItems(candidate).forEach((item) => {
       appendCandidateAction(
         actions,
-        "후보 거절",
-        "ignore",
+        item.label,
+        item.action,
         candidate.candidateId,
+        {
+          disabled: item.disabled,
+          title: item.title,
+        },
       );
-    } else if (candidate.state === "REJECTED") {
-      appendCandidateAction(
-        actions,
-        "다시 검토",
-        "restore",
-        candidate.candidateId,
-      );
-    } else if (candidate.state === "FAILED") {
-      appendCandidateAction(
-        actions,
-        "등록 재시도",
-        "accept",
-        candidate.candidateId,
-      );
-      appendCandidateAction(
-        actions,
-        "거절",
-        "ignore",
-        candidate.candidateId,
-      );
-    } else if (candidate.state === "BLOCKED") {
-      if (["unavailable", "error"].includes(candidate.authState)) {
-        appendCandidateAction(
-          actions,
-          "인증 재확인",
-          "accept",
-          candidate.candidateId,
-        );
-      }
-      appendCandidateAction(
-        actions,
-        "후보 거절",
-        "ignore",
-        candidate.candidateId,
-      );
-    }
-    if (candidate.source === "manual") {
-      appendCandidateAction(
-        actions,
-        "후보 삭제",
-        "delete",
-        candidate.candidateId,
-      );
-    }
+    });
     card.prepend(header, badges, facts);
     card.appendChild(actions);
     container.appendChild(card);
@@ -3655,8 +3640,13 @@ function renderManualCandidateResult(message, {
 }
 
 
-function prefillRegistrationFromCandidate(candidate, documentRef = document) {
-  if (!candidate?.registrationReady) return false;
+function prefillRegistrationFromCandidate(
+  candidate,
+  documentRef = document,
+  {allowBlocked = false} = {},
+) {
+  if (!candidate?.nodeName) return false;
+  if (!candidate.registrationReady && !allowBlocked) return false;
   managementState.selectedNodeName = candidate.nodeName;
   managementState.selectedAdapterId = candidate.matchedAdapterId || "";
   managementState.validation = null;
@@ -3674,6 +3664,13 @@ function prefillRegistrationFromCandidate(candidate, documentRef = document) {
   renderRegistrationReview(documentRef);
   setManagementView("register", documentRef);
   setRegistrationStep(1, documentRef);
+  if (!candidate.registrationReady) {
+    renderRegistrationFeedback(
+      candidate.packageReason
+        || "검증된 Profile과 물리 연결을 먼저 등록해야 합니다.",
+      {status: "warning", documentRef},
+    );
+  }
   return true;
 }
 
@@ -3923,6 +3920,28 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       );
       if (!candidate) return;
       const action = button.dataset.candidateAction;
+      if (action === "configure") {
+        if (!prefillRegistrationFromCandidate(
+          candidate,
+          documentRef,
+          {allowBlocked: true},
+        )) {
+          renderManagementActionFeedback("연결 설정 화면을 열 수 없습니다.", {
+            status: "warning",
+            documentRef,
+          });
+        } else {
+          renderManagementActionFeedback(
+            `${candidate.displayName} 연결 설정을 확인하세요.`,
+            {
+              status: "warning",
+              kind: "navigation",
+              documentRef,
+            },
+          );
+        }
+        return;
+      }
       if (action === "register") {
         if (!prefillRegistrationFromCandidate(candidate, documentRef)) {
           renderDiscoveryFeedback(
@@ -4555,6 +4574,7 @@ if (typeof module !== "undefined") {
     buildDeviceServiceObservations,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
+    candidateActionItems,
     candidateEndpointSummary,
     candidateRegistrationStatusView,
     candidateVisibleInDefaultList,

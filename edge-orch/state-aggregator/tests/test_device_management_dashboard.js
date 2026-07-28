@@ -12,6 +12,7 @@ const {
   buildDeviceServiceObservations,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
+  candidateActionItems,
   candidateEndpointSummary,
   candidateRegistrationStatusView,
   candidateVisibleInDefaultList,
@@ -532,6 +533,40 @@ test("candidate approval status explains automatic install and EdgeX registratio
       active: false,
       terminal: true,
     },
+  );
+});
+
+test("blocked discovery candidates offer connection setup instead of only rejection", () => {
+  assert.deepEqual(
+    candidateActionItems({
+      state: "BLOCKED",
+      authState: "not_checked",
+      packageState: "binding-required",
+      packageReason: "stable identity와 Profile의 exact match가 필요합니다.",
+      source: "node-scan",
+    }),
+    [
+      {
+        label: "연결 설정",
+        action: "configure",
+        title: "stable identity와 Profile의 exact match가 필요합니다.",
+      },
+      {label: "후보 거절", action: "ignore"},
+    ],
+  );
+});
+
+test("ready discovery candidates keep the explicit approval action", () => {
+  assert.deepEqual(
+    candidateActionItems({
+      state: "PENDING_APPROVAL",
+      registrationReady: true,
+      source: "node-scan",
+    }),
+    [
+      {label: "승인하고 자동 설치·등록", action: "accept"},
+      {label: "후보 거절", action: "ignore"},
+    ],
   );
 });
 

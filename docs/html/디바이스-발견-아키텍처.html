@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-발견-아키텍처.md</span>
-            <span class="badge">수정: 2026-07-28 16:49</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
+            <span class="badge">수정: 2026-07-28 17:16</span>
+            <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,11 +166,12 @@
 <blockquote><p>기준일: 2026-07-28 상태: Current 구현 기준 요구사항 원문: <code>프로토콜-독립형-디바이스-발견-등록-요구사항.md</code></p></blockquote>
 <h2 id="목적">목적</h2>
 <p>물리 장비를 자동으로 발견하는 것과 그 장비를 신뢰해 EdgeX에 등록하는 것을 분리한다. 노드 로컬 Agent는 후보 증거만 수집하고, 중앙 Adapter Controller가 Git Catalog, 운영자 승인, 외부 인증, Runtime 상태, EdgeX Metadata readback과 첫 Core Data Event를 차례로 확인한다.</p>
-<pre data-lang="text"><code>USB Serial / I2C / 허용된 endpoint
-  -&gt; 일반 edge-device-discovery DaemonSet
-  -&gt; node/device 한정 edge-device-discovery-i2c DaemonSet
+<pre data-lang="text"><code>USB Serial
+  -&gt; 모든 대상 edge node의 일반 edge-device-discovery DaemonSet (serial scope)
+허용된 I2C identity
+  -&gt; node/device 한정 edge-device-discovery-i2c DaemonSet (i2c scope)
   -&gt; 공통 DiscoveryObservation
-  -&gt; HMAC report
+  -&gt; scannedProtocols가 명시된 HMAC report
   -&gt; edgex-adapter-controller
      -&gt; SQLite candidate / Plan / Saga / audit
      -&gt; Device Binding Catalog exact match
@@ -247,7 +248,9 @@
 </tbody></table></div>
 <h2 id="중앙과-엣지의-책임-경계">중앙과 엣지의 책임 경계</h2>
 <h3 id="엣지-노드">엣지 노드</h3>
-<ul><li><code>/dev/serial/by-id/*</code>와 Plan에 허용된 VID/PID를 reconciliation한다.</li><li>Active Manifest probe가 켜진 경우에만 Serial endpoint를 열고 WHOAMI를 보낸다.</li><li>I2C는 Plan의 bus/address/identity rule만 읽는다. 여러 칩으로 구성된 보드는 모든</li></ul>
+<ul><li><code>/dev/serial/by-id/*</code>와 Plan에 허용된 VID/PID를 reconciliation한다.</li><li>VID/PID allowlist가 비어 있는 passive Plan은 stable USB metadata 후보만 보고하며</li></ul>
+<p>endpoint를 열거나 등록 가능 상태로 승격하지 않는다.</p>
+<ul><li>Active Manifest probe가 켜진 경우에만 Serial endpoint를 열고 WHOAMI를 보낸다.</li><li>I2C는 Plan의 bus/address/identity rule만 읽는다. 여러 칩으로 구성된 보드는 모든</li></ul>
 <p>identity check가 일치할 때 하나의 composite 후보를 만든다. 버스 파일이나 일부 칩만으로 센서 후보를 만들지 않는다.</p>
 <ul><li>발견 Agent는 telemetry를 지속 수집하거나 EdgeX Device를 생성하지 않는다.</li><li>승인 후 실제 통신과 Event 생성은 EdgeX Device Service가 담당한다.</li></ul>
 <p>현재 custom Serial/I2C Device Service에는 재사용할 native discovery 구현이 없어 얇은 노드 플러그인을 사용한다. 이후 공식 Device Service가 같은 identity와 allowlist 정책을 만족하는 native discovery를 제공하면 Agent가 중복 probe하지 않고 해당 결과를 공통 Observation으로 변환하는 쪽을 우선한다.</p>
@@ -260,6 +263,7 @@
 <p>신규 candidate ID는 다음 식의 전체 SHA-256이다.</p>
 <pre data-lang="text"><code>candidate- + SHA-256(nodeId + &quot;|&quot; + protocol + &quot;|&quot; + stableHardwareId)</code></pre>
 <p>Serial은 USB serial number를 우선하고, 없으면 <code>/dev/serial/by-id</code>의 stable 이름을 사용한다. WHOAMI 응답의 논리 <code>deviceId</code>는 <code>ManifestDeviceID</code> 속성으로 보존하되 USB hardware identity를 덮어쓰지 않는다. 따라서 <code>/dev/ttyACM0</code> 번호나 PTY 번호가 바뀌어도 같은 candidate ID를 유지한다.</p>
+<p>하나의 node에 Serial Agent와 I2C Agent가 함께 실행될 수 있다. 각 report는 <code>scannedProtocols</code>를 포함하며 Controller는 그 protocol 범위에서 사라진 candidate만 <code>STALE</code> 처리한다. scope가 없는 구형 report는 하위 호환을 위해 기존 node 전체 reconciliation으로 처리한다. report scope 밖의 candidate를 포함한 요청은 validation에서 거부한다.</p>
 <p>I2C는 node, bus, model과 검증된 chip identity fingerprint를 stable hardware ID에 포함한다. Sense HAT v1은 bus 1의 네 read-only WHO_AM_I 값 <code>1c3d-5cbd-5fbc-6a68</code>을 하나의 fingerprint로 사용한다. 하나라도 없거나 값이 다르면 후보를 만들지 않는다.</p>
 <p>기존 ConfigMap의 24자리 candidate ID는 최초 SQLite 기동 때 한 번 import해 하위 호환한다. 이후 신규 후보는 전체 64자리 hash를 사용한다.</p>
 <h2 id="상태-머신">상태 머신</h2>
@@ -302,8 +306,8 @@ FAILED에서 명시적 retry                  -&gt; APPROVED</code></pre>
 <tbody>
 <tr>
 <td>Serial/USB</td>
-<td>구현 완료, PTY 검증</td>
-<td>stable by-id inventory, VID/PID allowlist, 선택적 WHOAMI/Manifest</td>
+<td>구현 완료, PTY·dev0003 passive 실장비 검증</td>
+<td>stable by-id inventory, 선택적 VID/PID allowlist와 WHOAMI/Manifest. exact binding 없는 장비는 <code>BLOCKED</code></td>
 </tr>
 <tr>
 <td>I2C</td>
@@ -402,8 +406,8 @@ FAILED에서 명시적 retry                  -&gt; APPROVED</code></pre>
 <p>기록하지 않는다.</p>
 <ul><li>base Controller는 <code>ADAPTER_AUTH_MODE=external</code>이고 HTTPS endpoint/token을 Secret에서</li></ul>
 <p>읽으며 설정이 없으면 fail-closed한다. 현재 root testbed만 <code>overlays/development/adapter-management</code>에서 <code>development-mock</code>을 명시한다.</p>
-<ul><li>Controller는 <code>edgex-edge</code> namespace 리소스와 cluster node <code>get/list</code>만 접근한다.</li><li>일반 Discovery DaemonSet은 dev0001/dev0002에서 non-privileged, read-only <code>/dev</code>와</li></ul>
-<p><code>/sys</code>로 동작한다. dev0003의 I2C 전용 DaemonSet만 container device cgroup 제약 때문에 <code>privileged</code> 예외를 사용하며, non-root UID/GID와 exact <code>/dev/i2c-1</code> CharDevice, testbed host의 i2c group 988로 범위를 제한한다.</p>
+<ul><li>Controller는 <code>edgex-edge</code> namespace 리소스와 cluster node <code>get/list</code>만 접근한다.</li><li>일반 Serial Discovery DaemonSet은 dev0001/dev0002/dev0003에서 non-privileged,</li></ul>
+<p>read-only <code>/dev</code>와 <code>/sys</code>로 동작한다. dev0003의 I2C 전용 DaemonSet만 container device cgroup 제약 때문에 <code>privileged</code> 예외를 사용하며, non-root UID/GID와 exact <code>/dev/i2c-1</code> CharDevice, testbed host의 i2c group 988로 범위를 제한한다.</p>
 <ul><li>EdgeMesh 또는 고정 ClusterIP/PodIP를 변경하지 않는다. Service DNS를 사용한다.</li><li>상태 전이 audit와 등록 reconciliation 로그는 candidate/node/protocol, 전후 상태,</li></ul>
 <p>registration step, duration과 error code를 구조화된 JSON으로 남긴다.</p>
         </div>

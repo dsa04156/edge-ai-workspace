@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-28 16:49</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
+            <span class="badge">수정: 2026-07-28 17:23</span>
+            <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,7 +166,8 @@
 <blockquote><p>기준일: 2026-07-28 판정 기준: 실제 코드, 테스트, <code>edgex/k8s</code> render “구현”과 “실장비 운영 검증”을 구분한다.</p></blockquote>
 <h2 id="요약">요약</h2>
 <p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 2026-07-24 실제 Jetson Arduino stable 후보를 운영자가 승인했고 기존 Device Service Runtime을 재사용해 aggregate Device <code>arduino-75035303230351e0d171-57fc03a907</code>의 <code>EVENT_CONFIRMED</code>와 Core Data Event까지 live 확인했다.</p>
-<p>I2C는 allowlist bus/address와 여러 read-only identity register를 하나의 물리 보드 identity로 묶는 composite probe까지 구현했다. 2026-07-28 <code>etri-dev0003-raspi5</code>의 Sense HAT v1에서 <code>0x1c=0x3d</code>, <code>0x5c=0xbd</code>, <code>0x5f=0xbc</code>, <code>0x6a=0x68</code>을 확인해 후보를 승인했고, 기존 <code>device-sensehat-raspi</code>, Profile <code>etri-sensehat-gyroscope</code>, Device <code>imu-sensehat-gyroscope-01</code>을 재사용한 뒤 신규 Core Data Event로 <code>EVENT_CONFIRMED</code>까지 live 검증했다. 이어서 등록 연결을 decommission하고 다음 30초 탐색 주기에 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 자동 복귀하는지 확인했으며, 재승인 뒤 다시 <code>EVENT_CONFIRMED</code>가 됐다. 기존 EdgeX Device 13개와 Sense HAT Device 6개는 삭제되거나 중복 생성되지 않았다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 이는 개발 simulator 수직 경로의 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
+<p>I2C는 allowlist bus/address와 여러 read-only identity register를 하나의 물리 보드 identity로 묶는 composite probe까지 구현했다. 2026-07-28 <code>etri-dev0003-raspi5</code>의 Sense HAT v1에서 <code>0x1c=0x3d</code>, <code>0x5c=0xbd</code>, <code>0x5f=0xbc</code>, <code>0x6a=0x68</code>을 확인해 후보를 승인했고, 기존 <code>device-sensehat-raspi</code>, Profile <code>etri-sensehat-gyroscope</code>, Device <code>imu-sensehat-gyroscope-01</code>을 재사용한 뒤 신규 Core Data Event로 <code>EVENT_CONFIRMED</code>까지 live 검증했다. 이어서 등록 연결을 decommission하고 다음 30초 탐색 주기에 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 자동 복귀하는지 확인했으며, 재승인 뒤 다시 <code>EVENT_CONFIRMED</code>가 됐다. 기존 EdgeX Device 13개와 Sense HAT Device 6개는 삭제되거나 중복 생성되지 않았다.</p>
+<p>같은 날 일반 Discovery DaemonSet의 Serial-only passive inventory를 dev0003까지 확장했다. Raspberry Pi에 연결된 CH340 계열 USB Serial 장비를 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>(VID/PID <code>1a86:7523</code>)에서 후보 <code>candidate-fb7190f...</code>로 반복 관측했다. 검증된 Raspberry Pi Serial hardware binding과 Profile이 없으므로 후보는 의도대로 <code>BLOCKED</code>, <code>binding-required</code>, <code>registrationReady=false</code>이며 EdgeX Device나 Runtime은 생성하지 않았다. Serial Agent와 I2C Agent가 같은 node를 보고해도 서로의 후보를 <code>STALE</code> 처리하지 않도록 report에 <code>scannedProtocols</code> scope를 추가했고, Sense HAT 후보는 계속 <code>EVENT_CONFIRMED</code>를 유지했다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 이는 개발 simulator 수직 경로의 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -209,6 +210,14 @@
 <tr>
 <td>PTY Arduino simulator</td>
 <td>valid/invalid/silent/unsupported, telemetry와 재연결</td>
+</tr>
+<tr>
+<td>protocol-scoped reconciliation</td>
+<td>report의 <code>scannedProtocols</code> 범위 안에서만 missing candidate를 <code>STALE</code> 처리해 같은 node의 Serial/I2C Agent 병행</td>
+</tr>
+<tr>
+<td>Raspberry Pi passive Serial live discovery</td>
+<td>dev0003 CH340 <code>1a86:7523</code> 후보 반복 report, exact binding 부재로 <code>BLOCKED</code> 유지</td>
 </tr>
 <tr>
 <td>Sense HAT I2C composite discovery</td>
@@ -385,13 +394,15 @@
 </tr>
 </tbody></table></div>
 <h2 id="실장비-검증-필요">실장비 검증 필요</h2>
-<ul><li>USB 케이블 실제 분리·재연결과 같은 candidate ID 및 Device Service 복구</li><li>Sense HAT 보드의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 외 I2C 장비의 identity rule과 실장비 Event</li><li>외부 인증 운영 endpoint</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>Modbus 개발 fixture의 강제 장애와 ownership-aware rollback</li><li>ONVIF/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
+<ul><li>dev0003 CH340 USB Serial의 실제 분리·재연결과 같은 candidate ID 복구</li><li>dev0003 CH340 장비의 Manifest/parser/Profile, exact device mount와 Device Service</li></ul>
+<p>telemetry 검증</p>
+<ul><li>Sense HAT 보드의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 외 I2C 장비의 identity rule과 실장비 Event</li><li>외부 인증 운영 endpoint</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>Modbus 개발 fixture의 강제 장애와 ownership-aware rollback</li><li>ONVIF/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
 <p>기존 <code>device-serial-jetson</code>과 센서별 6개 virtual Device의 live telemetry를 신규 aggregate 등록의 완료 증거로 대신 사용하지 않는다. 신규 candidate는 운영자 승인 전 Core Metadata에 추가되지 않는다.</p>
 <h2 id="보안-운영-주의">보안·운영 주의</h2>
 <ul><li>Controller base는 <code>ADAPTER_AUTH_MODE=external</code>로 fail-closed한다. 현재 root testbed만</li></ul>
 <p><code>overlays/development/adapter-management</code>에서 <code>development-mock</code>을 적용하며 운영 profile이 아니다.</p>
-<ul><li>Catalog API는 read-only이며 임의 image 실행 API가 없다.</li><li>일반 <code>edge-device-discovery</code>는 dev0001/dev0002에서 비권한 상태로 read-only <code>/dev</code>,</li></ul>
-<p><code>/sys</code> inventory만 수행한다. dev0003의 <code>edge-device-discovery-i2c</code>는 container device cgroup 때문에 <code>privileged</code> 예외가 필요하지만 non-root UID/GID, exact <code>/dev/i2c-1</code> CharDevice 하나와 보조 group 988만 사용한다. 이 값은 현재 testbed host 권한에 종속되며 다른 노드에 그대로 복사하지 않는다.</p>
+<ul><li>Catalog API는 read-only이며 임의 image 실행 API가 없다.</li><li>일반 <code>edge-device-discovery</code>는 dev0001/dev0002/dev0003에서 비권한 상태로 read-only</li></ul>
+<p><code>/dev</code>, <code>/sys</code> Serial inventory만 수행한다. dev0003의 <code>edge-device-discovery-i2c</code>는 container device cgroup 때문에 <code>privileged</code> 예외가 필요하지만 non-root UID/GID, exact <code>/dev/i2c-1</code> CharDevice 하나와 보조 group 988만 사용한다. 이 값은 현재 testbed host 권한에 종속되며 다른 노드에 그대로 복사하지 않는다.</p>
 <ul><li>Controller SQLite는 1Gi RWO PVC를 사용해 단일 replica 기준이다. 다중 replica HA를</li></ul>
 <p>활성화하지 않는다.</p>
 <ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li><li>현재 PoC의 <code>/management/*</code> mutation은 browser 관리자 token이나 <code>Authorization</code></li></ul>
@@ -408,12 +419,12 @@
 <tr>
 <td>Adapter Controller</td>
 <td><code>cd edgex/adapter-controller &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>124 passed</td>
+<td>128 passed</td>
 </tr>
 <tr>
 <td>Discovery Agent</td>
 <td><code>cd edgex/device-discovery-agent &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>14 passed</td>
+<td>17 passed</td>
 </tr>
 <tr>
 <td>Serial Device Service</td>
@@ -438,7 +449,7 @@
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>69 passed</td>
+<td>71 passed</td>
 </tr>
 <tr>
 <td>workspace 회귀</td>
@@ -467,7 +478,9 @@
 </tr>
 </tbody></table></div>
 <h2 id="다음-우선순위">다음 우선순위</h2>
-<ol><li>운영 노출 전에 Ingress 앞의 사용자 인증·인가 방식을 별도 설계한다.</li><li>USB 케이블과 Sense HAT 보드 실제 분리·재연결로 같은 candidate ID와 Device Service</li></ol>
+<ol><li>운영 노출 전에 Ingress 앞의 사용자 인증·인가 방식을 별도 설계한다.</li><li>dev0003 CH340 USB Serial에 맞는 Manifest/parser/Profile, exact mount와 검증 Runtime</li></ol>
+<p>binding을 Git Catalog에 추가한 뒤 승인부터 첫 Event까지 확인한다.</p>
+<ol><li>USB 케이블과 Sense HAT 보드 실제 분리·재연결로 같은 candidate ID와 Device Service</li></ol>
 <p>복구를 확인한다.</p>
 <ol><li>개발 Modbus Runtime을 강제 실패시켜 Controller ownership 기반 rollback과 retry를 live</li></ol>
 <p>검증한다.</p>

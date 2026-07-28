@@ -40,10 +40,10 @@
 
 - 물리 디바이스는 EdgeX Core Metadata의 Device Profile과 Device로 사전 등록한다.
 - EdgeX Device Service가 MQTT/Serial/Modbus/OPC-UA/RTSP endpoint의 연결, 표준화, 상태와 지원 command를 독점 관리한다.
-- `edge-device-discovery`는 지정된 edge node에서 USB Serial의 `/dev/serial/by-id/*`와 I2C 버스 존재만 수동적으로 관측한다. 발견 후보는 승인 전 임시 정보이며 EdgeX inventory, Device Service 통신 성공 또는 센서 응답 근거가 아니다.
+- 일반 `edge-device-discovery`는 지정된 모든 edge node에서 USB Serial의 `/dev/serial/by-id/*`를 수동적으로 관측한다. dev0003의 별도 I2C Agent만 allowlist bus/address와 read-only chip identity를 확인한다. 발견 후보는 승인 전 임시 정보이며 EdgeX inventory, Device Service 통신 성공 또는 센서 응답 근거가 아니다.
 - MQTT/Modbus/OPC-UA/RTSP/REST 네트워크 endpoint는 광역 probe하지 않고 대시보드에서 후보로 직접 선언한다. 후보에는 비밀번호, token, URL userinfo와 임의 image/command/hostPath를 저장하지 않는다.
 - 발견 후보의 `accepted`는 검토 상태일 뿐 자동 Device 등록이나 workload 배포가 아니다. exact node/protocol/path가 검증된 Git Adapter Catalog binding과 일치한 후보만 기존 EdgeX 등록 마법사로 넘길 수 있다.
-- 발견 후보는 `edgex-device-discovery-registry` ConfigMap에 제한적으로 보관한다. 이 ConfigMap은 staging registry일 뿐 KubeEdge Device CRD나 물리 inventory authority가 아니며 최종 Device/Profile/state/Event 권위는 계속 EdgeX다.
+- 발견 후보, 상태 이력, 승인과 등록 Saga는 Adapter Controller의 PVC SQLite에 보관한다. 기존 `edgex-device-discovery-registry` ConfigMap은 최초 기동의 1회 migration 입력일 뿐 권위 저장소가 아니며 최종 Device/Profile/state/Event 권위는 계속 EdgeX다.
 - 발견 DaemonSet의 read-only `/dev`, `/sys` host mount는 고정된 수동 관측 agent에만 허용한다. 이 예외를 Device Service workload나 UI 입력형 hostPath로 확장하지 않는다.
 - KubeEdge는 edge node와 workload 관리에만 사용한다.
 - 중앙 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway는 server2에 한 세트만 배치한다.

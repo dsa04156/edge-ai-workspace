@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-28 16:49</span>
-            <span class="badge">HTML 생성: 2026-07-28 16:49</span>
+            <span class="badge">수정: 2026-07-28 17:23</span>
+            <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
         <div class="doc-body">
@@ -219,6 +219,13 @@
 <p><code>PENDING_APPROVAL</code>로 복구하고 운영자 승인과 첫 Event gate를 다시 요구</p>
 <ul><li>메모: 후보 <code>candidate-f0829ddd...</code>가 다음 30초 report에서 같은 ID로 복귀했고 재승인</li></ul>
 <p>뒤 <code>EVENT_CONFIRMED</code>가 됐다. 전후 EdgeX Device 13개와 Sense HAT Device 6개는 동일해 <code>reuse-existing</code> 리소스가 삭제되거나 중복 생성되지 않았다.</p>
+<h2 id="2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</h2>
+<ul><li>근거: commit <code>dbde4e9</code>, Argo CD revision</li></ul>
+<p><code>dbde4e9ebe7b09b5ce57589c151e570131e00ed9</code>, dev0003 Agent log와 <code>/management/discovery</code> live readback</p>
+<ul><li>갱신: 세 edge node에 일반 Serial Discovery를 배치하고 report에</li></ul>
+<p><code>scannedProtocols</code> 범위를 추가했다.</p>
+<ul><li>메모: dev0003에서 CH340 <code>1a86:7523</code>,</li></ul>
+<p><code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code> 후보를 반복 관측했다. 검증 binding/Profile이 없어 <code>BLOCKED</code>, <code>binding-required</code>로 유지했으며 기존 Sense HAT 후보는 <code>EVENT_CONFIRMED</code>를 유지했다. 장비 발견을 자동 신뢰·등록으로 승격하지 않았다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
@@ -236,7 +243,8 @@
 <li class="toc-h2"><a href="#2026-07-22-fix-dashboard-api-검증기-edgex-계약-동기화">[2026-07-22] fix | Dashboard API 검증기 EdgeX 계약 동기화</a></li>
 <li class="toc-h2"><a href="#2026-07-23-ingest-등록-연결-실장비-증거와-프로토콜-패키지-상태-분리">[2026-07-23] ingest | 등록 연결·실장비 증거와 프로토콜 패키지 상태 분리</a></li>
 <li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li>
-<li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li>
+<li class="toc-h2"><a href="#2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>
