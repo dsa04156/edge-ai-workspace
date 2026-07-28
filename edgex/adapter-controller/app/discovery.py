@@ -385,9 +385,36 @@ class DeviceCandidateRegistry:
             )
             if existing is not None:
                 if existing.deleted_at is not None:
+                    if existing.state != "STALE":
+                        transition_candidate(
+                            existing,
+                            "STALE",
+                            reason=(
+                                "decommissioned candidate was explicitly "
+                                "declared again"
+                            ),
+                            actor="dashboard",
+                            occurred_at=now,
+                        )
+                    transition_candidate(
+                        existing,
+                        "DETECTED",
+                        reason=(
+                            "operator explicitly re-declared the stable "
+                            "hardware identity"
+                        ),
+                        actor="dashboard",
+                        occurred_at=now,
+                    )
                     existing.deleted_at = None
                     existing.decision = "pending"
                     existing.decision_note = ""
+                    existing.auth_state = "not_checked"
+                    existing.failure_reason = None
+                    existing.retry_count = 0
+                    existing.registration_step = None
+                    existing.matched_binding_id = None
+                    existing.match_confidence = "none"
                     existing.transport = candidate.transport
                     existing.display_name = candidate.display_name
                     existing.device_path = candidate.device_path

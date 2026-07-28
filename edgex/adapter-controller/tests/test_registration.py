@@ -400,6 +400,61 @@ def test_decommission_removes_only_saga_owned_resources_and_hides_candidate(
         for item in registry.list_inventory().candidates
     )
 
+    redeclared = registry.create_manual(
+        ManualCandidateCreate(
+            candidate=ManualCandidateInput(
+                node_name="etri-dev0001-jetorn",
+                protocol="serial",
+                transport="usb-serial",
+                display_name="Arduino",
+                device_path=(
+                    "/dev/serial/by-id/"
+                    "usb-Arduino__www.arduino.cc__0043_"
+                    "75035303230351E0D171-if00"
+                ),
+                hardware_id="75035303230351E0D171",
+                vendor="Arduino",
+                properties={
+                    "VendorID": "2341",
+                    "ProductID": "0043",
+                    "BaudRate": 115200,
+                },
+            ),
+            request_ref=CandidateMutationRef(
+                request_id="7" * 64,
+                payload_hash="8" * 64,
+            ),
+        )
+    )
+
+    assert redeclared.candidate_id == candidate.candidate_id
+    assert redeclared.state == "PENDING_APPROVAL"
+    assert redeclared.auth_state == "not_checked"
+    assert redeclared.registration_step is None
+    assert redeclared.registration_ready is True
+
+    approved_again = coordinator.approve(
+        candidate.candidate_id,
+        approval().model_copy(
+            update={
+                "request_ref": CandidateMutationRef(
+                    request_id="9" * 64,
+                    payload_hash="a" * 64,
+                )
+            }
+        ),
+    )
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    registered_again = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert approved_again.state == "APPROVED"
+    assert registered_again.status == "EVENT_CONFIRMED"
+    assert (
+        registry.get_candidate(candidate.candidate_id).state
+        == "EVENT_CONFIRMED"
+    )
+
 
 def test_first_event_waits_for_operating_state_readback_then_retries(tmp_path):
     edge_x = FakeEdgeX(operating_state_failure=True)
