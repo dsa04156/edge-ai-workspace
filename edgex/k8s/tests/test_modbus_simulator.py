@@ -16,7 +16,7 @@ SIMULATOR_DIR = (
 K8S_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SIMULATOR_DIR))
 
-from server import ModbusTCPServer, RegisterBank  # noqa: E402
+from server import ModbusTCPServer, RegisterBank, parse_unit_ids  # noqa: E402
 
 
 def render(path: Path) -> list[dict]:
@@ -59,7 +59,7 @@ def request_register(
 def running_server() -> tuple[ModbusTCPServer, threading.Thread]:
     server = ModbusTCPServer(
         ("127.0.0.1", 0),
-        unit_id=1,
+        unit_ids={1, 2},
         registers=RegisterBank(temperature_provider=lambda: 235),
     )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -93,7 +93,7 @@ def test_rejects_unsupported_function_and_range() -> None:
     assert illegal_address == b"\x83\x02"
 
 
-def test_rejects_wrong_unit_id() -> None:
+def test_serves_a_second_virtual_sensor_unit() -> None:
     server, thread = running_server()
     try:
         payload = request_register(server.server_address, unit_id=2)
@@ -102,7 +102,31 @@ def test_rejects_wrong_unit_id() -> None:
         server.server_close()
         thread.join(timeout=2)
 
+    assert payload == b"\x03\x02\x00\xeb"
+
+
+def test_rejects_wrong_unit_id() -> None:
+    server, thread = running_server()
+    try:
+        payload = request_register(server.server_address, unit_id=3)
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
     assert payload == b"\x83\x0b"
+
+
+def test_parses_validated_unit_id_list() -> None:
+    assert parse_unit_ids("1, 2,2") == {1, 2}
+
+    for invalid in ("", "1,invalid", "248"):
+        try:
+            parse_unit_ids(invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"{invalid!r} must be rejected")
 
 
 def test_development_overlay_is_node_pinned_and_non_privileged() -> None:
@@ -127,6 +151,7 @@ def test_development_overlay_is_node_pinned_and_non_privileged() -> None:
     )
     assert container["securityContext"]["privileged"] is False
     assert container["securityContext"]["readOnlyRootFilesystem"] is True
+    assert {"name": "MODBUS_UNIT_IDS", "value": "1,2"} in container["env"]
     assert "clusterIP" not in service["spec"]
     assert service["spec"]["ports"] == [
         {"name": "modbus-tcp", "port": 1502, "targetPort": "modbus-tcp"}

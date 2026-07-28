@@ -83,6 +83,12 @@
           "displayName": "Jetson Modbus TCP development simulator",
           "nodeName": "etri-dev0001-jetorn",
           "requiresPrivileged": false
+        },
+        {
+          "bindingId": "jetson-modbus-tcp-virtual-sensor-002",
+          "displayName": "Jetson Modbus TCP virtual temperature sensor 002",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
         }
       ],
       "networkEgress": [

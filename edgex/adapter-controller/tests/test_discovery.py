@@ -298,6 +298,43 @@ def test_manual_modbus_simulator_candidate_is_normalized_and_exactly_matched():
     }
 
 
+def test_manual_virtual_modbus_sensor_is_ready_for_operator_approval():
+    kube = FakeKubernetesGateway()
+    service = DeviceCandidateRegistry(
+        RuntimeTemplateCatalog.load(CATALOG_PATH),
+        kube,
+        candidate_limit=10,
+        device_catalog=DeviceBindingCatalog.load(DEVICE_CATALOG_PATH),
+    )
+
+    created = service.create_manual(
+        ManualCandidateCreate(
+            candidate=ManualCandidateInput(
+                node_name="etri-dev0001-jetorn",
+                protocol="modbus",
+                transport="modbus-tcp",
+                display_name="Virtual temperature sensor 002",
+                properties={
+                    "Mode": "tcp",
+                    "Host": (
+                        "edge-modbus-simulator.edgex-edge.svc.cluster.local"
+                    ),
+                    "Port": 1502,
+                    "UnitID": 2,
+                },
+            ),
+            request_ref=mutation_ref("9"),
+        )
+    )
+
+    assert created.state == "PENDING_APPROVAL"
+    assert created.registration_ready is True
+    assert created.matched_hardware_binding_id == (
+        "jetson-modbus-tcp-virtual-sensor-002"
+    )
+    assert created.recommended_profile == "edgeai-modbus-temperature-v1"
+
+
 def test_manual_candidate_identity_ignores_display_metadata_and_rejects_url_credentials(
     registry,
 ):

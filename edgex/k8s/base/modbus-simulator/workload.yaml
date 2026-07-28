@@ -51,8 +51,8 @@ spec:
           env:
             - name: MODBUS_LISTEN_PORT
               value: "1502"
-            - name: MODBUS_UNIT_ID
-              value: "1"
+            - name: MODBUS_UNIT_IDS
+              value: "1,2"
           ports:
             - name: modbus-tcp
               containerPort: 1502

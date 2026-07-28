@@ -64,7 +64,7 @@ class ModbusTCPHandler(socketserver.BaseRequestHandler):
 
     def _dispatch(self, unit_id: int, pdu: bytes) -> bytes:
         function = pdu[0]
-        if unit_id != self.server.unit_id:
+        if unit_id not in self.server.unit_ids:
             return bytes((function | 0x80, 0x0B))
         if function not in (0x03, 0x04):
             return bytes((function | 0x80, 0x01))
@@ -110,20 +110,47 @@ class ModbusTCPServer(socketserver.ThreadingTCPServer):
         address: tuple[str, int],
         *,
         unit_id: int = 1,
+        unit_ids: set[int] | None = None,
         registers: RegisterBank | None = None,
     ) -> None:
-        if unit_id < 0 or unit_id > 247:
-            raise ValueError("unit_id must be between 0 and 247")
-        self.unit_id = unit_id
+        configured_unit_ids = set(unit_ids or {unit_id})
+        if not configured_unit_ids:
+            raise ValueError("at least one unit ID is required")
+        if any(item < 0 or item > 247 for item in configured_unit_ids):
+            raise ValueError("unit IDs must be between 0 and 247")
+        self.unit_ids = frozenset(configured_unit_ids)
         self.registers = registers or RegisterBank()
         super().__init__(address, ModbusTCPHandler)
+
+
+def parse_unit_ids(value: str) -> set[int]:
+    try:
+        unit_ids = {
+            int(item.strip())
+            for item in value.split(",")
+            if item.strip()
+        }
+    except ValueError as exc:
+        raise ValueError(
+            "MODBUS_UNIT_IDS must be a comma-separated integer list"
+        ) from exc
+    if not unit_ids:
+        raise ValueError("MODBUS_UNIT_IDS must contain at least one unit ID")
+    if any(item < 0 or item > 247 for item in unit_ids):
+        raise ValueError("MODBUS_UNIT_IDS values must be between 0 and 247")
+    return unit_ids
 
 
 def main() -> None:
     host = os.getenv("MODBUS_LISTEN_HOST", "0.0.0.0")
     port = int(os.getenv("MODBUS_LISTEN_PORT", "1502"))
-    unit_id = int(os.getenv("MODBUS_UNIT_ID", "1"))
-    server = ModbusTCPServer((host, port), unit_id=unit_id)
+    configured_unit_ids = os.getenv("MODBUS_UNIT_IDS", "").strip()
+    unit_ids = (
+        parse_unit_ids(configured_unit_ids)
+        if configured_unit_ids
+        else {int(os.getenv("MODBUS_UNIT_ID", "1"))}
+    )
+    server = ModbusTCPServer((host, port), unit_ids=unit_ids)
     stopped = threading.Event()
 
     def stop(_signum: int, _frame: object) -> None:
