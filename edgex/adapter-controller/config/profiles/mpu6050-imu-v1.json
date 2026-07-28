@@ -9,7 +9,7 @@
     "serial",
     "edge-ai-web-managed"
   ],
-  "description": "MPU6050 six-axis IMU values received from an approved Arduino USB Serial bridge",
+  "description": "MPU6050 six-axis IMU values received from an approved USB Serial sensor bridge",
   "deviceResources": [
     {
       "name": "acceleration_x",

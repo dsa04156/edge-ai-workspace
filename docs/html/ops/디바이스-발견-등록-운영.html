@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-28 19:45</span>
-            <span class="badge">HTML 생성: 2026-07-28 19:45</span>
+            <span class="badge">수정: 2026-07-28 20:28</span>
+            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -242,10 +242,40 @@ state: BLOCKED
 presence: present
 packageState: binding-required
 registrationReady: false</code></pre>
-<p>이 상태는 발견 성공이면서 당시 등록 차단 성공이었다. 이후 MPU6050 6축 IMU용 exact binding <code>raspi5-mpu6050-serial-v1</code>, <code>mpu6050-imu-v1</code> Profile/parser와 검증 Runtime template을 추가했다. 새 Catalog가 배포되고 다음 discovery report가 도착하면 동일 후보는 <code>PENDING_APPROVAL</code>, <code>registrationReady=true</code>가 되어야 한다. Profile 생성만으로 이 전이가 일어나지는 않으며 Profile과 hardware binding/parser/runtime 계약이 모두 exact match해야 한다.</p>
-<p>실장비 보드는 먼저 <code>edgex/device-serial/examples/mpu6050_json/mpu6050_json.ino</code>를 flash하고 115200 baud에서 다음 필드를 포함한 JSON-line을 출력해야 한다.</p>
+<p>이 상태는 발견 성공이면서 당시 등록 차단 성공이었다. 이후 MPU6050 6축 IMU용 exact binding <code>raspi5-mpu6050-serial-v1</code>, <code>mpu6050-imu-v1</code> Profile/parser와 검증 Runtime template을 추가했다. 새 Catalog 반영 뒤 동일 후보는 <code>PENDING_APPROVAL</code>, <code>registrationReady=true</code>가 됐고 실제 승인 Saga도 실행했다. 당시 Serial telemetry가 없어 첫 Event timeout으로 <code>FAILED</code>가 됐으며 Controller가 자신이 만든 동적 Runtime을 rollback했다. Profile 생성만으로 이 오류가 해결되지는 않는다.</p>
+<p>실장비는 CH340 bridge를 쓰는 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별했다. <code>edgex/device-serial/examples/mpu6050_json/mpu6050_json.ino</code>를 <code>esp32:esp32@3.3.11</code>로 compile·flash했고 hash 검증과 115200 baud 상태 출력을 확인했다. 센서가 없을 때 출력은 다음과 같다.</p>
+<pre data-lang="json"><code>{&quot;type&quot;:&quot;status&quot;,&quot;device_id&quot;:&quot;mpu6050-001&quot;,&quot;status&quot;:&quot;sensor_not_found&quot;,&quot;who_am_i_0x68&quot;:null,&quot;who_am_i_0x69&quot;:null}</code></pre>
+<p>이 상태 JSON은 진단용이며 <code>mpu6050-imu-v1</code> Event가 아니다. ESP32 pin pair 진단과 Raspberry Pi bus 1 read에서 <code>0x68</code>, <code>0x69</code> 모두 ACK가 없었으므로 다음 실물 배선을 확인한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>ESP32</th>
+<th>MPU6050/GY-521</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>3V3</code></td>
+<td><code>VCC</code></td>
+</tr>
+<tr>
+<td><code>GND</code></td>
+<td><code>GND</code></td>
+</tr>
+<tr>
+<td><code>GPIO21</code></td>
+<td><code>SDA</code></td>
+</tr>
+<tr>
+<td><code>GPIO22</code></td>
+<td><code>SCL</code></td>
+</tr>
+<tr>
+<td><code>GND</code></td>
+<td><code>AD0</code> (<code>0x68</code>)</td>
+</tr>
+</tbody></table></div>
+<p>운영 firmware는 1초마다 센서를 다시 탐색하므로 배선 복구 뒤 재부팅 없이 다음 필드를 포함한 JSON-line으로 전환해야 한다.</p>
 <pre data-lang="json"><code>{&quot;device_id&quot;:&quot;mpu6050-001&quot;,&quot;sensor&quot;:&quot;imu&quot;,&quot;acceleration_x&quot;:0.1,&quot;acceleration_y&quot;:0.2,&quot;acceleration_z&quot;:9.8,&quot;gyro_x&quot;:0.01,&quot;gyro_y&quot;:0.02,&quot;gyro_z&quot;:0.03}</code></pre>
-<p>승인 후 Controller가 만든 Runtime Pod가 Ready가 되고 Core Data 첫 Event가 도착한 뒤에만 <code>EVENT_CONFIRMED</code>다. 출력이 없으면 <code>FIRST_EVENT_TIMEOUT</code>이며 Profile을 다시 만드는 것으로 해결되지 않는다. USB serial number가 없는 동일 CH340 장비를 여러 대 연결할 계획이면 현재 by-id 이름만으로 충분히 구분되는지 먼저 검증하고, 구분되지 않으면 포트 topology 등 검토된 stable identity 규칙을 추가한다.</p>
+<p>6축 JSON을 먼저 확인한 다음 candidate의 retry를 실행한다. Controller가 만든 Runtime Pod가 Ready가 되고 Core Data 첫 Event가 도착한 뒤에만 <code>EVENT_CONFIRMED</code>다. 출력이 없으면 다시 <code>FIRST_EVENT_TIMEOUT</code>이다. USB serial number가 없는 동일 CH340 장비를 여러 대 연결할 계획이면 현재 by-id 이름만으로 충분히 구분되는지 먼저 검증하고, 구분되지 않으면 포트 topology 등 검토된 stable identity 규칙을 추가한다.</p>
 <p>같은 dev0003에서 일반 Agent는 <code>DISCOVERY_PROTOCOLS=serial</code>, I2C 전용 Agent는 <code>DISCOVERY_PROTOCOLS=i2c</code>로 보고한다. Controller는 report의 <code>scannedProtocols</code> 범위에서만 missing candidate를 <code>STALE</code> 처리한다. Serial 후보가 갱신될 때 Sense HAT 후보가 <code>EVENT_CONFIRMED</code>, <code>present</code>를 유지하는지 함께 확인한다.</p>
 <h2 id="sense-hat-i2c-실장비-시연">Sense HAT I2C 실장비 시연</h2>
 <p>현재 dev0003 Plan은 bus 1과 주소 <code>0x1c</code>, <code>0x5c</code>, <code>0x5f</code>, <code>0x6a</code>만 허용한다. 각 주소의 read-only register <code>0x0f</code>가 각각 <code>0x3d</code>, <code>0xbd</code>, <code>0xbc</code>, <code>0x68</code>일 때만 <code>raspberry-pi-sense-hat-v1</code> 후보 하나를 만든다.</p>

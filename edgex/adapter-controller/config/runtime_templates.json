@@ -23,7 +23,7 @@
         },
         {
           "bindingId": "raspi5-mpu6050-serial-001",
-          "displayName": "Raspberry Pi MPU6050 USB Serial",
+          "displayName": "Raspberry Pi ESP32 MPU6050 USB Serial",
           "nodeName": "etri-dev0003-raspi5",
           "hostDevicePath": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
           "containerDevicePath": "/dev/mpu6050-001",

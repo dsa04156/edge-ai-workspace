@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-28 19:45</span>
-            <span class="badge">HTML 생성: 2026-07-28 19:45</span>
+            <span class="badge">수정: 2026-07-28 20:27</span>
+            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -225,7 +225,7 @@
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → 세 EdgeX Device → AI consumer binding을 read-only로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
 <h3 id="노드-장비-발견과-등록-후보-관리">노드 장비 발견과 등록 후보 관리</h3>
 <p>일반 <code>edge-device-discovery</code>와 I2C 전용 <code>edge-device-discovery-i2c</code> DaemonSet은 지정 edge node에서 중앙의 보수적인 Discovery Plan을 30초마다 읽는다. Serial은 stable <code>/dev/serial/by-id/*</code>, 승인 VID/PID와 USB serial을 관측하고, Plan에서 명시했을 때만 WHOAMI Manifest를 probe한다. I2C는 허용 bus/address와 읽기 전용 identity register rule이 모두 있을 때만 센서 후보를 만든다. Sense HAT처럼 여러 chip으로 구성된 보드는 모든 identity가 일치할 때 하나의 composite 후보를 만든다. <code>/dev/i2c-N</code> 버스 파일 자체는 신규 후보가 아니다. 네트워크 대역 scan은 기본 비활성이고 현재 Modbus/OPC-UA/ONVIF scanner와 MQTT subscriber는 구현되지 않았다.</p>
-<p>일반 Agent는 dev0001/dev0002/dev0003에서 <code>serial</code> scope로 동작하고, dev0003의 I2C 전용 Agent는 <code>i2c</code> scope로 동작한다. report의 <code>scannedProtocols</code> 범위 안에서만 사라진 후보를 <code>STALE</code> 처리하므로 같은 node의 두 Agent가 서로의 후보 상태를 덮어쓰지 않는다. 2026-07-28 dev0003에서 CH340 USB Serial <code>1a86:7523</code>을 passive 후보로 live 관측했다. 이 장비를 MPU6050 6축 IMU로 연결하기 위한 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser와 Controller 배포 template은 구현했다. 배포 뒤 exact match 후보는 <code>PENDING_APPROVAL</code>로 승격할 수 있지만, 보드 firmware가 규정 JSON-line을 출력하고 승인 Saga가 신규 Core Data Event를 확인하기 전까지 Device Service 통신 완료 근거로 사용하지 않는다.</p>
+<p>일반 Agent는 dev0001/dev0002/dev0003에서 <code>serial</code> scope로 동작하고, dev0003의 I2C 전용 Agent는 <code>i2c</code> scope로 동작한다. report의 <code>scannedProtocols</code> 범위 안에서만 사라진 후보를 <code>STALE</code> 처리하므로 같은 node의 두 Agent가 서로의 후보 상태를 덮어쓰지 않는다. 2026-07-28 dev0003에서 CH340 USB Serial <code>1a86:7523</code>을 passive 후보로 live 관측했다. 이 장비를 MPU6050 6축 IMU로 연결하기 위한 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser와 Controller 배포 template은 구현했다. 배포 뒤 exact match 후보 승인과 동적 Runtime 배포까지 실행했지만 Serial telemetry가 없어 첫 Event timeout으로 rollback됐다. 보드는 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별했고 운영 firmware compile·flash와 115200 baud 상태 JSON까지 확인했다. 다만 MPU6050 주소 <code>0x68</code>, <code>0x69</code>가 I2C ACK하지 않아 6축 JSON과 Core Data Event는 아직 없다. 실물 전원·SDA·SCL 배선 복구, 후보 retry와 신규 Core Data Event 확인 전까지 Device Service 통신 완료 근거로 사용하지 않는다.</p>
 <pre data-lang="text"><code>edge node의 Plan 제한 관측
   -&gt; HMAC 서명 report
   -&gt; edgex-adapter-controller

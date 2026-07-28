@@ -7,12 +7,17 @@ constexpr uint8_t kAddressSecondary = 0x69;
 constexpr uint8_t kWhoAmIRegister = 0x75;
 constexpr uint8_t kPowerManagementRegister = 0x6B;
 constexpr uint8_t kFirstMeasurementRegister = 0x3B;
+#if defined(ARDUINO_ARCH_ESP32)
+constexpr uint8_t kSdaPin = 21;
+constexpr uint8_t kSclPin = 22;
+#endif
 constexpr float kGravity = 9.80665F;
 constexpr float kDegreesToRadians = 0.017453292519943295F;
 constexpr unsigned long kSampleIntervalMs = 100;
 
 uint8_t sensorAddress = 0;
 unsigned long lastSampleAt = 0;
+unsigned long lastProbeAt = 0;
 
 bool readRegisters(uint8_t address, uint8_t firstRegister, uint8_t *buffer, size_t length) {
   Wire.beginTransmission(address);
@@ -42,15 +47,50 @@ bool identify(uint8_t address) {
       && (identity == kAddressPrimary || identity == kAddressSecondary);
 }
 
+bool selectSensor() {
+  if (identify(kAddressPrimary)) {
+    sensorAddress = kAddressPrimary;
+  } else if (identify(kAddressSecondary)) {
+    sensorAddress = kAddressSecondary;
+  } else {
+    sensorAddress = 0;
+    return false;
+  }
+  if (!writeRegister(sensorAddress, kPowerManagementRegister, 0x00)) {
+    sensorAddress = 0;
+    return false;
+  }
+  delay(100);
+  return true;
+}
+
+void printIdentity(uint8_t address) {
+  uint8_t identity = 0;
+  if (!readRegisters(address, kWhoAmIRegister, &identity, 1)) {
+    Serial.print(F("null"));
+    return;
+  }
+  Serial.print(identity);
+}
+
+void emitProbeFailure() {
+  Serial.print(F("{\"type\":\"status\",\"device_id\":\"mpu6050-001\","));
+  Serial.print(F("\"status\":\"sensor_not_found\",\"who_am_i_0x68\":"));
+  printIdentity(kAddressPrimary);
+  Serial.print(F(",\"who_am_i_0x69\":"));
+  printIdentity(kAddressSecondary);
+  Serial.println(F("}"));
+}
+
 int16_t signedWord(const uint8_t *buffer, size_t offset) {
   return static_cast<int16_t>(
       (static_cast<uint16_t>(buffer[offset]) << 8) | buffer[offset + 1]);
 }
 
-void emitTelemetry() {
+bool emitTelemetry() {
   uint8_t measurement[14];
   if (!readRegisters(sensorAddress, kFirstMeasurementRegister, measurement, sizeof(measurement))) {
-    return;
+    return false;
   }
 
   const float accelerationX = signedWord(measurement, 0) / 16384.0F * kGravity;
@@ -74,34 +114,39 @@ void emitTelemetry() {
   Serial.print(F(",\"gyro_z\":"));
   Serial.print(gyroZ, 6);
   Serial.println(F("}"));
+  return true;
 }
 
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
+#if defined(ARDUINO_ARCH_ESP32)
+  Wire.begin(kSdaPin, kSclPin);
+#else
   Wire.begin();
-
-  if (identify(kAddressPrimary)) {
-    sensorAddress = kAddressPrimary;
-  } else if (identify(kAddressSecondary)) {
-    sensorAddress = kAddressSecondary;
-  }
-  if (sensorAddress != 0) {
-    writeRegister(sensorAddress, kPowerManagementRegister, 0x00);
-    delay(100);
-  }
+#endif
+  delay(250);
+  selectSensor();
 }
 
 void loop() {
+  const unsigned long now = millis();
   if (sensorAddress == 0) {
-    delay(1000);
+    if (now - lastProbeAt >= 1000) {
+      lastProbeAt = now;
+      if (!selectSensor()) {
+        emitProbeFailure();
+      }
+    }
     return;
   }
-  const unsigned long now = millis();
   if (now - lastSampleAt < kSampleIntervalMs) {
     return;
   }
   lastSampleAt = now;
-  emitTelemetry();
+  if (!emitTelemetry()) {
+    sensorAddress = 0;
+    lastProbeAt = now;
+  }
 }
