@@ -1591,9 +1591,9 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
-  assert.match(html, /simple-mode\.css\?v=device-management-unified-20260728/);
-  assert.match(html, /device-management\.css\?v=device-management-unified-20260728/);
-  assert.match(html, /device-management\.js\?v=device-management-unified-20260728/);
+  assert.match(html, /simple-mode\.css\?v=device-management-unified-v2-20260728/);
+  assert.match(html, /device-management\.css\?v=device-management-unified-v2-20260728/);
+  assert.match(html, /device-management\.js\?v=device-management-unified-v2-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1617,6 +1617,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /검증용 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /#managementOverviewPanel:not\(\[hidden\]\)/);
   assert.match(css, /\.managed-device-actions/);
   assert.match(css, /\.management-stepper/);
   assert.match(css, /\.management-node-card/);

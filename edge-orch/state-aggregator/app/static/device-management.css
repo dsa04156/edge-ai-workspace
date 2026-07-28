@@ -229,7 +229,7 @@ body[data-dashboard-page="management"] .side-rail {
   display: none;
 }
 
-#managementOverviewPanel {
+#managementOverviewPanel:not([hidden]) {
   display: grid;
   gap: 16px;
 }
