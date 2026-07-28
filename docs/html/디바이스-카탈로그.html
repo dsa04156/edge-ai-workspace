@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-카탈로그.md</span>
-            <span class="badge">수정: 2026-07-27 16:47</span>
-            <span class="badge">HTML 생성: 2026-07-27 16:47</span>
+            <span class="badge">수정: 2026-07-28 12:03</span>
+            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
           </div>
         </header>
         <div class="doc-body">
@@ -278,10 +278,11 @@ Resources:
 <ol><li><code>MockI2CBusAdapter</code> 테스트로 허용 address만 읽는지 검증한다.</li><li>해당 Profile, Device Service image/parser와 Device Binding을 Catalog에 추가한다.</li><li>실장비 read와 첫 EdgeX Event를 검증하기 전에는 완료로 표시하지 않는다.</li></ol>
 <p>버스 <code>/dev/i2c-N</code> 존재만으로 Device Binding을 만들지 않는다.</p>
 <h2 id="modbus-장비-추가-절차">Modbus 장비 추가 절차</h2>
-<p>현재 구현된 범위는 공식 EdgeX <code>device-modbus:4.0.2</code>와 개발 simulator를 연결하는 <code>template-verified</code> 경로다. 자동 network scan과 실제 PLC 지원은 아직 없다.</p>
+<p>현재 구현된 범위는 공식 EdgeX <code>device-modbus:4.0.2</code>와 개발 simulator를 연결하는 <code>template-verified</code> 경로다. simulator는 Unit 1과 Unit 2를 제공하고 각 Unit은 서로 다른 exact hardware binding으로 등록된다. 자동 network scan과 실제 PLC 지원은 아직 없다.</p>
 <ol><li>개발 fixture를 기본 운영 render와 분리해 배포한다.</li><li>대시보드에서 node <code>etri-dev0001-jetorn</code>, protocol <code>modbus</code>, mode <code>tcp</code>,</li></ol>
-<p>host <code>edge-modbus-simulator.edgex-edge.svc.cluster.local</code>, port <code>1502</code>, unit ID <code>1</code>로 후보를 선언한다.</p>
+<p>host <code>edge-modbus-simulator.edgex-edge.svc.cluster.local</code>, port <code>1502</code>, unit ID <code>1</code> 또는 <code>2</code>로 후보를 선언한다.</p>
 <ol><li>exact <code>match.properties</code>가 일치한 후보만 <code>PENDING_APPROVAL</code>로 이동한다.</li><li>승인 후 Controller가 digest 고정 공식 Device Service Runtime을 배포한다.</li><li>Runtime이 Core Metadata에 나타난 뒤 read-only temperature Profile과 Device를 등록한다.</li><li>1초 AutoEvent가 Core Data에 도착한 뒤에만 <code>EVENT_CONFIRMED</code>로 완료한다.</li></ol>
+<p>Unit 2는 두 번째 가상 온도 센서 등록과 중복 격리를 검증하기 위한 fixture다. 2026-07-28 Unit 2 후보 승인부터 Controller-owned Runtime, Metadata Device, 첫 Event와 dashboard <code>available</code>까지 확인했다. Unit 번호만 바꾼 임의 후보는 Catalog exact match를 통과하지 못한다.</p>
 <p>실제 PLC를 추가할 때는 simulator binding을 수정하지 않고 별도 binding/Profile을 만든다. 장비 문서의 register table, starting address, raw type, scale, byte/word swap을 검토하고 endpoint/CIDR egress도 Git allowlist에 추가한다. 실제 Event와 재연결을 확인하기 전에는 <code>hardware-verified</code>로 승격하지 않는다.</p>
 <h2 id="mqtt-장비-추가-절차">MQTT 장비 추가 절차</h2>
 <p>현재는 자기등록 payload parser만 있고 broker subscriber와 MQTT Device Service가 없다. 다음 작업을 완료하기 전에는 binding을 운영 승격하지 않는다.</p>

@@ -153,20 +153,20 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</h1>
-          <p class="subtitle">&gt; 기준일: 2026-07-27 &gt; 판정 기준: 실제 코드, 테스트, edgex/k8s render &gt; “구현”과 “실장비 운영…</p>
+          <p class="subtitle">&gt; 기준일: 2026-07-28 &gt; 판정 기준: 실제 코드, 테스트, edgex/k8s render &gt; “구현”과 “실장비 운영…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-27 16:42</span>
-            <span class="badge">HTML 생성: 2026-07-27 16:47</span>
+            <span class="badge">수정: 2026-07-28 12:03</span>
+            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="프로토콜-독립형-디바이스-발견-등록-현재-구현-상태">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</h1>
-<blockquote><p>기준일: 2026-07-27 판정 기준: 실제 코드, 테스트, <code>edgex/k8s</code> render “구현”과 “실장비 운영 검증”을 구분한다.</p></blockquote>
+<blockquote><p>기준일: 2026-07-28 판정 기준: 실제 코드, 테스트, <code>edgex/k8s</code> render “구현”과 “실장비 운영 검증”을 구분한다.</p></blockquote>
 <h2 id="요약">요약</h2>
 <p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 2026-07-24 실제 Jetson Arduino stable 후보를 운영자가 승인했고 기존 Device Service Runtime을 재사용해 aggregate Device <code>arduino-75035303230351e0d171-57fc03a907</code>의 <code>EVENT_CONFIRMED</code>와 Core Data Event까지 live 확인했다.</p>
-<p>I2C는 allowlist identity probe와 mock test까지 구현했고 Raspberry Pi 실장비 active probe는 아직 검증하지 않았다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 이 경로는 자동 테스트를 통과했지만 아직 live cluster Event를 확인하지 않았으므로 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
+<p>I2C는 allowlist identity probe와 mock test까지 구현했고 Raspberry Pi 실장비 active probe는 아직 검증하지 않았다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 이는 개발 simulator 수직 경로의 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -270,6 +270,14 @@
 <td>Modbus TCP simulator</td>
 <td>stdlib read-only FC03/FC04 서버, 잘못된 function/address/unit 처리와 개발 Kustomize overlay</td>
 </tr>
+<tr>
+<td>Modbus 개발 fixture live 등록</td>
+<td>Unit 2 후보 <code>candidate-91e032158c...</code> 승인, Runtime <code>adapter-modbus-a22b09287e</code>, Device <code>virtual-temperature-54535762444ac76f7907e44c6ab33d18-91e032158c</code>, 첫 Event와 대시보드 <code>available</code> 확인</td>
+</tr>
+<tr>
+<td>등록 완료 operating state</td>
+<td>첫 Event 뒤 Device를 <code>UP</code>으로 idempotent 갱신하고 Metadata readback이 성공해야 <code>EVENT_CONFIRMED</code> 처리</td>
+</tr>
 </tbody></table></div>
 <h2 id="부분-구현">부분 구현</h2>
 <div class="table-wrap"><table>
@@ -301,8 +309,8 @@
 </tr>
 <tr>
 <td>Modbus TCP</td>
-<td>공식 Device Service와 개발 simulator용 allowlisted endpoint, Profile, AutoEvent, NetworkPolicy, approval-to-Event fake 통합 테스트</td>
-<td>개발 overlay live Event, 실제 PLC register map·망 allowlist·장애복구</td>
+<td>공식 Device Service와 개발 simulator Unit 1·2 allowlisted endpoint, Profile, AutoEvent, NetworkPolicy, approval-to-Event live 검증</td>
+<td>실제 PLC register map·망 allowlist·분리·재연결·장애복구</td>
 </tr>
 <tr>
 <td>Serial active Manifest</td>
@@ -365,7 +373,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="실장비-검증-필요">실장비 검증 필요</h2>
-<ul><li>USB 케이블 실제 분리·재연결과 같은 candidate ID 및 Device Service 복구</li><li>Raspberry Pi Sense HAT의 allowlist identity probe</li><li>외부 인증 운영 endpoint</li><li>공식 Modbus Controller-owned Runtime의 live 배포, Core Data 첫 Event와 rollback</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>ONVIF/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
+<ul><li>USB 케이블 실제 분리·재연결과 같은 candidate ID 및 Device Service 복구</li><li>Raspberry Pi Sense HAT의 allowlist identity probe</li><li>외부 인증 운영 endpoint</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>Modbus 개발 fixture의 강제 장애와 ownership-aware rollback</li><li>ONVIF/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
 <p>기존 <code>device-serial-jetson</code>과 센서별 6개 virtual Device의 live telemetry를 신규 aggregate 등록의 완료 증거로 대신 사용하지 않는다. 신규 candidate는 운영자 승인 전 Core Metadata에 추가되지 않는다.</p>
 <h2 id="보안-운영-주의">보안·운영 주의</h2>
 <ul><li>Controller base는 <code>ADAPTER_AUTH_MODE=external</code>로 fail-closed한다. 현재 root testbed만</li></ul>
@@ -377,7 +385,7 @@
 <ul><li>SQLite PVC를 삭제하면 candidate, 전이 이력, 승인, Saga와 audit를 복구할 수 없다.</li><li>Service는 ClusterIP 객체와 DNS를 사용하지만 고정 ClusterIP 우회는 없다.</li><li>EdgeMesh manifest는 수정하지 않았다.</li><li>현재 PoC의 <code>/management/*</code> mutation은 browser 관리자 token이나 <code>Authorization</code></li></ul>
 <p>header를 요구하지 않는다. 기능 플래그, allowlist 검증, <code>Idempotency-Key</code>와 내부 HMAC은 유지하지만 이는 운영자 인증이 아니다. 접근이 제한된 개발 테스트베드 경계이며 운영 노출 전 별도 사용자 인증·인가가 필요하다.</p>
 <h2 id="현재-자동-테스트-결과">현재 자동 테스트 결과</h2>
-<p>아래 결과는 2026-07-24 로컬 실행 기준이다. 최종 배포 전 동일 명령을 다시 실행한다.</p>
+<p>변경 경로는 2026-07-28에 다시 실행했다. 그 외 행은 2026-07-24 회귀 결과다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>영역</th>
@@ -388,7 +396,7 @@
 <tr>
 <td>Adapter Controller</td>
 <td><code>cd edgex/adapter-controller &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>106 passed</td>
+<td>113 passed</td>
 </tr>
 <tr>
 <td>Discovery Agent</td>
@@ -408,7 +416,7 @@
 <tr>
 <td>EdgeX Kustomize/manifests</td>
 <td><code>PYTHONPATH=. pytest -q edgex/k8s/tests</code></td>
-<td>128 passed</td>
+<td>130 passed</td>
 </tr>
 <tr>
 <td>state-aggregator Python</td>
@@ -447,8 +455,8 @@
 </tr>
 </tbody></table></div>
 <h2 id="다음-우선순위">다음 우선순위</h2>
-<ol><li>관리자 token 제거 배포 후 dashboard·OpenAPI·BFF와 Secret key 정리를 live 확인한다.</li><li>운영 노출 전에 Ingress 앞의 사용자 인증·인가 방식을 별도 설계한다.</li><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>USB 케이블 실제 분리·재연결로 같은 candidate ID와 Device Service 복구를 확인한다.</li><li>개발 Modbus overlay에서 공식 Device Service → MessageBus → Core Data 첫 Event를 live</li></ol>
-<p>확인하고 실패 rollback을 검증한다.</p>
+<ol><li>관리자 token 제거 배포 후 dashboard·OpenAPI·BFF와 Secret key 정리를 live 확인한다.</li><li>운영 노출 전에 Ingress 앞의 사용자 인증·인가 방식을 별도 설계한다.</li><li>Sense HAT chip ID 규칙을 확인해 Raspberry Pi I2C Plan과 Catalog를 승격한다.</li><li>USB 케이블 실제 분리·재연결로 같은 candidate ID와 Device Service 복구를 확인한다.</li><li>개발 Modbus Runtime을 강제 실패시켜 Controller ownership 기반 rollback과 retry를 live</li></ol>
+<p>검증한다.</p>
 <ol><li>실제 PLC endpoint와 register map을 별도 Catalog binding으로 추가한다. simulator 검증을</li></ol>
 <p>실장비 검증으로 대체하지 않는다.</p>
 <ol><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li></ol>
