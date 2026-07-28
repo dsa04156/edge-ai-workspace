@@ -30,6 +30,7 @@ const managementState = {
   },
   selectedNodeName: "",
   selectedAdapterId: "",
+  registrationCandidateContext: null,
   selectedPatchDeviceName: "",
   activeView: "overview",
   registrationStep: 1,
@@ -1784,6 +1785,17 @@ function renderManagementNodes(documentRef = document) {
 function renderAdapterOptions(documentRef = document) {
   const select = byId("managementAdapter", documentRef);
   clearElement(select);
+  const setupLock = candidateSetupLock(managementState.registrationCandidateContext);
+  if (setupLock) {
+    managementState.selectedAdapterId = "";
+    const option = documentRef.createElement("option");
+    option.value = "";
+    option.textContent = setupLock.label;
+    option.selected = true;
+    select?.appendChild(option);
+    if (select) select.disabled = true;
+    return;
+  }
   const compatible = ensureSelectedAdapterForNode();
   const options = adapterSelectionOptions(
     managementState.adapters,
@@ -1831,6 +1843,18 @@ function renderConnectionGuidance(documentRef = document) {
   const container = byId("managementConnectionGuidance", documentRef);
   clearElement(container);
   if (!container) return;
+  const setupLock = candidateSetupLock(managementState.registrationCandidateContext);
+  if (setupLock) {
+    container.dataset.status = "unavailable";
+    appendTextElement(container, "strong", "", setupLock.title);
+    appendTextElement(
+      container,
+      "p",
+      "",
+      `${setupLock.text} 해당 후보와 무관한 프로토콜은 자동 선택하지 않습니다.`,
+    );
+    return;
+  }
   const adapter = selectedAdapter();
   const bindingCount = (adapter?.runtime?.hardwareBindings || []).filter(
     (binding) => binding.nodeName === managementState.selectedNodeName,
@@ -2197,6 +2221,21 @@ function candidateActionItems(candidate = {}) {
     actions.push({label: "후보 삭제", action: "delete"});
   }
   return actions;
+}
+
+function candidateSetupLock(candidate = null) {
+  if (!candidate || candidate.registrationReady === true) return null;
+  const protocolLabel = koreanLabel(
+    "protocol",
+    candidate.protocol,
+    candidate.protocol || "프로토콜 미확인",
+  );
+  return {
+    label: `${protocolLabel} 후보 · Profile/연결 카탈로그 필요`,
+    title: `${protocolLabel} 연결 준비 필요`,
+    text: candidate.packageReason
+      || "stable identity와 검증된 Device Profile의 exact match가 필요합니다.",
+  };
 }
 
 function renderDiscoveryCandidates(documentRef = document) {
@@ -3100,7 +3139,9 @@ function renderProtocolFields(documentRef = document) {
     if (applyButton) applyButton.disabled = true;
     const adapterNote = byId("managementAdapterNote", documentRef);
     if (adapterNote) {
-      adapterNote.textContent = "선택한 노드에 사용할 수 있는 검증 패키지가 없습니다.";
+      const setupLock = candidateSetupLock(managementState.registrationCandidateContext);
+      adapterNote.textContent = setupLock?.text
+        || "선택한 노드에 사용할 수 있는 검증 패키지가 없습니다.";
       adapterNote.dataset.status = "unavailable";
     }
     return;
@@ -3648,6 +3689,7 @@ function prefillRegistrationFromCandidate(
   if (!candidate?.nodeName) return false;
   if (!candidate.registrationReady && !allowBlocked) return false;
   managementState.selectedNodeName = candidate.nodeName;
+  managementState.registrationCandidateContext = candidate;
   managementState.selectedAdapterId = candidate.matchedAdapterId || "";
   managementState.validation = null;
   renderManagementNodes(documentRef);
@@ -3775,6 +3817,12 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   });
   documentRef.querySelectorAll?.("[data-management-open-register]").forEach((button) => {
     button.addEventListener("click", () => {
+      managementState.registrationCandidateContext = null;
+      managementState.selectedAdapterId = "";
+      renderAdapterOptions(documentRef);
+      renderRuntimeSelection(documentRef);
+      renderProtocolFields(documentRef);
+      renderRegistrationReview(documentRef);
       setManagementView("register", documentRef);
       setRegistrationStep(1, documentRef);
       renderManagementActionFeedback("새 디바이스 등록 화면을 열었습니다.", {
@@ -4085,6 +4133,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       (item) => item.adapterId === button.dataset.managementSelectAdapter,
     );
     if (!adapter || !adapterSupportsNode(adapter, managementState.selectedNodeName)) return;
+    managementState.registrationCandidateContext = null;
     managementState.selectedAdapterId = adapter.adapterId;
     managementState.validation = null;
     renderAdapterOptions(documentRef);
@@ -4124,6 +4173,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderRegistrationReview(documentRef);
   });
   adapterSelect.addEventListener("change", () => {
+    managementState.registrationCandidateContext = null;
     managementState.selectedAdapterId = adapterSelect.value;
     managementState.validation = null;
     managementState.operation = null;
@@ -4145,6 +4195,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     const button = event.target.closest?.("[data-management-node]");
     if (!button) return;
     managementState.selectedNodeName = button.dataset.managementNode;
+    managementState.registrationCandidateContext = null;
     managementState.selectedAdapterId = "";
     managementState.validation = null;
     managementState.runtimePlan = null;
@@ -4575,6 +4626,7 @@ if (typeof module !== "undefined") {
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     candidateActionItems,
+    candidateSetupLock,
     candidateEndpointSummary,
     candidateRegistrationStatusView,
     candidateVisibleInDefaultList,

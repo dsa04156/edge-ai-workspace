@@ -13,6 +13,7 @@ const {
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateActionItems,
+  candidateSetupLock,
   candidateEndpointSummary,
   candidateRegistrationStatusView,
   candidateVisibleInDefaultList,
@@ -553,6 +554,25 @@ test("blocked discovery candidates offer connection setup instead of only reject
       },
       {label: "후보 거절", action: "ignore"},
     ],
+  );
+});
+
+test("blocked candidate setup preserves its protocol instead of selecting an unrelated adapter", () => {
+  assert.deepEqual(
+    candidateSetupLock({
+      protocol: "serial",
+      registrationReady: false,
+      packageReason: "stable identity와 Profile의 exact match가 필요합니다.",
+    }),
+    {
+      label: "Serial / USB 후보 · Profile/연결 카탈로그 필요",
+      title: "Serial / USB 연결 준비 필요",
+      text: "stable identity와 Profile의 exact match가 필요합니다.",
+    },
+  );
+  assert.equal(
+    candidateSetupLock({protocol: "serial", registrationReady: true}),
+    null,
   );
 });
 
