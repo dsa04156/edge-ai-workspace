@@ -388,6 +388,9 @@ class StateAggregatorService:
             hardware_binding_id=self._identity_tag(
                 device.tags, "hardwareBindingId"
             ),
+            controller_candidate_id=self._identity_tag(
+                device.tags, "controllerCandidateId"
+            ),
         )
         overall_status, reason = self._device_health(state)
         return state.model_copy(

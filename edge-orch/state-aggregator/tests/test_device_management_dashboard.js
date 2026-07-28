@@ -26,6 +26,7 @@ const {
   decommissionCandidate,
   deleteCandidate,
   deleteManagementDevice,
+  deviceDeleteTargetView,
   devicePurpose,
   fetchAdapterRuntimes,
   fetchDiscoveryInventory,
@@ -879,6 +880,68 @@ test("device service inventory includes a controller runtime without legacy adap
   assert.deepEqual(service.status, {state: "warning", label: "확인 필요"});
 });
 
+test("device service inventory omits retired runtimes without registered devices", () => {
+  const services = buildDeviceServiceObservations({
+    adapters: [{
+      adapterId: "modbus",
+      serviceName: null,
+      protocolName: "modbus",
+      runtime: {
+        hardwareBindings: [{
+          bindingId: "modbus-a",
+          displayName: "Modbus fixture",
+          nodeName: "edge-a",
+        }],
+      },
+    }],
+    runtimes: [{
+      adapterId: "modbus",
+      runtimeName: "adapter-modbus-retired",
+      serviceName: "device-modbus_retired",
+      targetNode: "edge-a",
+      hardwareBindingId: "modbus-a",
+      phase: "RETIRED",
+      purpose: "development-fixture",
+    }],
+    devices: [],
+    nodeName: "edge-a",
+  });
+
+  assert.deepEqual(services, []);
+});
+
+test("device deletion only decommissions an exact controller candidate owner", () => {
+  const candidate = {
+    candidateId: `candidate-${"a".repeat(64)}`,
+    state: "EVENT_CONFIRMED",
+  };
+  const devices = [
+    {
+      name: "legacy-temperature",
+      device_service_name: "device-serial",
+    },
+    {
+      name: "aggregate-arduino",
+      device_service_name: "device-serial",
+      controller_candidate_id: candidate.candidateId,
+    },
+  ];
+
+  const legacy = deviceDeleteTargetView("legacy-temperature", {
+    devices,
+    candidates: [candidate],
+  });
+  const owned = deviceDeleteTargetView("aggregate-arduino", {
+    devices,
+    candidates: [candidate],
+  });
+
+  assert.equal(legacy.candidate, null);
+  assert.equal(legacy.title, "EdgeX 디바이스 삭제");
+  assert.equal(owned.candidate.candidateId, candidate.candidateId);
+  assert.equal(owned.title, "등록 연결 전체 삭제");
+});
+
 test("runtime purpose explicitly separates operational hardware from fixtures", () => {
   assert.equal(runtimePurpose({purpose: "operational"}), "operational");
   assert.equal(
@@ -1546,7 +1609,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
   assert.match(html, /device-management\.css\?v=device-crud-20260728/);
-  assert.match(html, /device-management\.js\?v=device-crud-20260728/);
+  assert.match(html, /device-management\.js\?v=device-crud-safe-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);

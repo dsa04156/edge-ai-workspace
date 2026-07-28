@@ -155,6 +155,7 @@ class DeviceState(BaseModel):
     node_name: str | None = None
     physical_device_id: str | None = None
     hardware_binding_id: str | None = None
+    controller_candidate_id: str | None = None
 
 
 class WorkflowState(BaseModel):

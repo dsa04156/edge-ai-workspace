@@ -543,6 +543,7 @@ def _edgex_device(
             **({"nodeName": node_name} if node_name else {}),
             "physicalDeviceId": "physical-sensor-01",
             "hardwareBindingId": "edge-sensor-binding-01",
+            "controllerCandidateId": "candidate-" + ("a" * 64),
         },
         node_name=node_name,
     )
@@ -586,6 +587,7 @@ def test_devices_endpoint_uses_edgex_inventory_and_latest_event(monkeypatch):
     assert device["protocol_names"] == ["REST"]
     assert device["physical_device_id"] == "physical-sensor-01"
     assert device["hardware_binding_id"] == "edge-sensor-binding-01"
+    assert device["controller_candidate_id"] == "candidate-" + ("a" * 64)
     assert device["connection_state"] == "connected"
     assert device["device_service_available"] is True
     assert device["telemetry_freshness"] == "fresh"

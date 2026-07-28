@@ -460,18 +460,21 @@ function buildDeviceServiceObservations({
   devices = [],
   nodeName = "",
 } = {}) {
+  const activeRuntimes = runtimes.filter(
+    (runtime) => String(runtime.phase || "").toUpperCase() !== "RETIRED",
+  );
   const nodeDevices = devices.filter(
     (device) => managementDeviceNode(device) === nodeName,
   );
   const physicalConnections = buildPhysicalConnectionObservations({
     adapters,
-    runtimes,
+    runtimes: activeRuntimes,
     devices,
     nodeName,
   });
   const groups = new Map();
 
-  runtimes
+  activeRuntimes
     .filter(
       (runtime) => (runtime.targetNode || runtime.target_node) === nodeName,
     )
@@ -485,6 +488,7 @@ function buildDeviceServiceObservations({
     });
 
   physicalConnections.forEach((connection) => {
+    if (!connection.runtimeName && connection.deviceCount === 0) return;
     const serviceName = connection.serviceName
       || connection.runtimeName
       || connection.adapterId;
@@ -2019,25 +2023,34 @@ function candidateRegisteredDevices(candidate = {}) {
   );
 }
 
-function registeredCandidateForDevice(deviceName = "") {
+function registeredCandidateForDevice(
+  deviceName = "",
+  {
+    devices = managementState.devices,
+    candidates = managementState.discovery.candidates,
+  } = {},
+) {
   if (!deviceName) return null;
-  return (managementState.discovery.candidates || []).find(
-    (candidate) => [
+  const device = (devices || []).find((item) => item.name === deviceName);
+  const candidateId = device?.controller_candidate_id
+    || device?.controllerCandidateId
+    || "";
+  if (!candidateId) return null;
+  return (candidates || []).find(
+    (candidate) => candidate.candidateId === candidateId
+      && [
       "APPROVED",
       "SERVICE_READY",
       "METADATA_REGISTERED",
       "EVENT_CONFIRMED",
       "FAILED",
-    ].includes(candidate.state)
-      && candidateRegisteredDevices(candidate).some(
-        (device) => device.name === deviceName,
-      ),
+    ].includes(candidate.state),
   ) || null;
 }
 
 
-function deviceDeleteTargetView(deviceName = "") {
-  const candidate = registeredCandidateForDevice(deviceName);
+function deviceDeleteTargetView(deviceName = "", inventory = {}) {
+  const candidate = registeredCandidateForDevice(deviceName, inventory);
   return {
     candidate,
     title: candidate ? "등록 연결 전체 삭제" : "EdgeX 디바이스 삭제",
