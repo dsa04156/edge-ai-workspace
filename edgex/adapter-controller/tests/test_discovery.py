@@ -160,6 +160,69 @@ def test_clean_disconnect_and_reconnect_keep_the_same_candidate_id(registry):
     assert reconnected.state != "STALE"
 
 
+def test_protocol_scoped_reports_do_not_disconnect_other_protocols(registry):
+    service, _ = registry
+    scoped_serial = serial_report().model_copy(
+        update={"scanned_protocols": ["serial"]}
+    )
+    serial = service.ingest_report(scoped_serial).candidates[0]
+    i2c_report = NodeDiscoveryReport(
+        node_name="etri-dev0001-jetorn",
+        agent_id="node-discovery/i2c",
+        observed_at=datetime.now(timezone.utc),
+        scanned_protocols=["i2c"],
+        candidates=[
+            DiscoveryObservation(
+                hardware_key="i2c:test-sensor",
+                hardware_id="bus-1-test-sensor-001",
+                protocol="i2c",
+                transport="i2c",
+                display_name="Test I2C sensor",
+                device_path="/dev/i2c-1",
+            )
+        ],
+        scan_errors=[],
+    )
+    after_i2c = service.ingest_report(i2c_report)
+    by_protocol = {item.protocol: item for item in after_i2c.candidates}
+
+    assert by_protocol["serial"].state != "STALE"
+    assert by_protocol["i2c"].state != "STALE"
+    assert after_i2c.nodes[0].candidate_count == 2
+
+    disconnected = service.ingest_report(
+        NodeDiscoveryReport(
+            node_name="etri-dev0001-jetorn",
+            agent_id="node-discovery/serial",
+            observed_at=datetime.now(timezone.utc),
+            scanned_protocols=["serial"],
+            candidates=[],
+            scan_errors=[],
+        )
+    )
+    by_protocol = {item.protocol: item for item in disconnected.candidates}
+
+    assert by_protocol["serial"].candidate_id == serial.candidate_id
+    assert by_protocol["serial"].state == "STALE"
+    assert by_protocol["i2c"].state != "STALE"
+    assert disconnected.nodes[0].candidate_count == 1
+
+
+def test_report_scope_rejects_candidate_from_another_protocol():
+    incoming = serial_report()
+    payload = incoming.model_dump(
+        by_alias=True,
+        mode="json",
+    )
+    payload["scannedProtocols"] = ["i2c"]
+
+    with pytest.raises(
+        ValueError,
+        match="candidate protocol must be included",
+    ):
+        NodeDiscoveryReport.model_validate(payload)
+
+
 def test_different_hardware_on_the_same_port_creates_a_new_candidate(registry):
     service, _ = registry
     first_report = serial_report()

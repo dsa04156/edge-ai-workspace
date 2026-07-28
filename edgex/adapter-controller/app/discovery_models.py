@@ -100,6 +100,11 @@ class NodeDiscoveryReport(ControllerModel):
     node_name: str = Field(min_length=1, max_length=253)
     agent_id: str = Field(min_length=1, max_length=255)
     observed_at: datetime
+    scanned_protocols: list[DiscoveryProtocol] | None = Field(
+        default=None,
+        min_length=1,
+        max_length=8,
+    )
     candidates: list[DiscoveryObservation] = Field(max_length=512)
     scan_errors: list[str] = Field(default_factory=list, max_length=32)
 
@@ -114,6 +119,19 @@ class NodeDiscoveryReport(ControllerModel):
         if any(len(value) > 1024 for value in values):
             raise ValueError("scan error is too long")
         return values
+
+    @model_validator(mode="after")
+    def require_candidates_inside_report_scope(self) -> "NodeDiscoveryReport":
+        if self.scanned_protocols is None:
+            return self
+        if len(self.scanned_protocols) != len(set(self.scanned_protocols)):
+            raise ValueError("scannedProtocols must be unique")
+        scope = set(self.scanned_protocols)
+        if any(item.protocol not in scope for item in self.candidates):
+            raise ValueError(
+                "candidate protocol must be included in scannedProtocols"
+            )
+        return self
 
 
 class ManualCandidateInput(ControllerModel):

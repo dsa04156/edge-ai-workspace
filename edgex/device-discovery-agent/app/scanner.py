@@ -201,6 +201,7 @@ def scan_node(
     sys_root: Path | None = None,
     plan: dict[str, Any] | None = None,
     i2c_adapter: I2CBusAdapter | None = None,
+    protocols: set[str] | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     active_dev_root = dev_root or Path(
         os.getenv("DISCOVERY_HOST_DEV_ROOT", "/host-dev")
@@ -208,17 +209,27 @@ def scan_node(
     active_sys_root = sys_root or Path(
         os.getenv("DISCOVERY_HOST_SYS_ROOT", "/host-sys")
     )
+    scan_serial_enabled = protocols is None or "serial" in protocols
+    scan_i2c_enabled = protocols is None or "i2c" in protocols
     serial_plan = None if plan is None else dict(plan.get("serial") or {})
     i2c_plan = None if plan is None else dict(plan.get("i2c") or {})
-    serial, serial_errors = scan_serial(
-        active_dev_root,
-        active_sys_root,
-        serial_plan,
+    serial, serial_errors = (
+        scan_serial(
+            active_dev_root,
+            active_sys_root,
+            serial_plan,
+        )
+        if scan_serial_enabled
+        else ([], [])
     )
-    i2c, i2c_errors = scan_i2c(
-        active_dev_root,
-        i2c_plan,
-        adapter=i2c_adapter,
+    i2c, i2c_errors = (
+        scan_i2c(
+            active_dev_root,
+            i2c_plan,
+            adapter=i2c_adapter,
+        )
+        if scan_i2c_enabled
+        else ([], [])
     )
     extension_errors: list[str] = []
     if plan is not None:
@@ -234,10 +245,15 @@ def scan_node(
             "onvif": dict(plan.get("onvif") or {}),
         }
         for protocol, plugin in EXTENSION_PLUGINS.items():
+            if protocols is not None and protocol not in protocols:
+                continue
             extension_errors.extend(
                 plugin.discover(extension_plans[protocol]).errors
             )
-        if bool((plan.get("mqtt") or {}).get("enabled")):
+        if (
+            (protocols is None or "mqtt" in protocols)
+            and bool((plan.get("mqtt") or {}).get("enabled"))
+        ):
             extension_errors.append(
                 "MQTT self-registration schema is implemented but no "
                 "verified broker subscription is configured"

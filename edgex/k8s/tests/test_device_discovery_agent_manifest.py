@@ -58,6 +58,7 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         "values": [
             "etri-dev0001-jetorn",
             "etri-dev0002-raspi5",
+            "etri-dev0003-raspi5",
         ],
     }
     assert {
@@ -106,6 +107,7 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         "name": "edgex-adapter-management-auth",
         "key": "internal-hmac-key",
     }
+    assert environment["DISCOVERY_PROTOCOLS"]["value"] == "serial"
     i2c_pod = i2c_daemon["spec"]["template"]["spec"]
     i2c_container = i2c_pod["containers"][0]
     assert i2c_pod["nodeSelector"] == {
@@ -136,6 +138,10 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         }
     ]
     assert i2c_container["image"] == container["image"]
+    i2c_environment = {
+        item["name"]: item for item in i2c_container["env"]
+    }
+    assert i2c_environment["DISCOVERY_PROTOCOLS"]["value"] == "i2c"
     assert policy["spec"]["policyTypes"] == ["Egress"]
     assert policy["spec"]["podSelector"]["matchLabels"] == {
         "app.kubernetes.io/component": "device-discovery"

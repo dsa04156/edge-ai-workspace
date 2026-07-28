@@ -45,6 +45,7 @@ spec:
                     values:
                       - etri-dev0001-jetorn
                       - etri-dev0002-raspi5
+                      - etri-dev0003-raspi5
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -70,6 +71,8 @@ spec:
               value: "8"
             - name: DISCOVERY_HEALTH_PORT
               value: "8081"
+            - name: DISCOVERY_PROTOCOLS
+              value: serial
             - name: DISCOVERY_HOST_DEV_ROOT
               value: /host-dev
             - name: DISCOVERY_HOST_SYS_ROOT
@@ -187,6 +190,8 @@ spec:
               value: "8"
             - name: DISCOVERY_HEALTH_PORT
               value: "8081"
+            - name: DISCOVERY_PROTOCOLS
+              value: i2c
             - name: DISCOVERY_HOST_DEV_ROOT
               value: /host-dev
             - name: DISCOVERY_HOST_SYS_ROOT

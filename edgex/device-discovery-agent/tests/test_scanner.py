@@ -36,3 +36,30 @@ def test_scanner_reports_only_stable_serial_paths_and_i2c_buses(tmp_path: Path):
     i2c = candidates[0]
     assert i2c["devicePath"] == "/dev/i2c-1"
     assert i2c["evidence"]["probeMode"] == "passive"
+
+
+def test_scanner_protocol_scope_keeps_parallel_agents_independent(
+    tmp_path: Path,
+):
+    dev_root = tmp_path / "dev"
+    sys_root = tmp_path / "sys"
+    by_id = dev_root / "serial" / "by-id"
+    by_id.mkdir(parents=True)
+    (dev_root / "ttyACM0").touch()
+    (dev_root / "i2c-1").touch()
+    (by_id / "usb-Arduino-passive").symlink_to(Path("../../ttyACM0"))
+
+    serial, serial_errors = scan_node(
+        dev_root=dev_root,
+        sys_root=sys_root,
+        protocols={"serial"},
+    )
+    i2c, i2c_errors = scan_node(
+        dev_root=dev_root,
+        sys_root=sys_root,
+        protocols={"i2c"},
+    )
+
+    assert serial_errors == i2c_errors == []
+    assert [item["protocol"] for item in serial] == ["serial"]
+    assert [item["protocol"] for item in i2c] == ["i2c"]

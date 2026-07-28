@@ -133,6 +133,24 @@ def test_device_catalog_exact_match_and_allowlists():
     assert catalog.profile_document(match.binding)["deviceResources"]
 
 
+def test_unverified_raspberry_serial_is_discovered_but_not_exactly_matched():
+    catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    raspberry_uno = candidate().model_copy(
+        update={
+            "node_name": "etri-dev0003-raspi5",
+            "hardware_id": "new-raspberry-uno",
+        }
+    )
+
+    match = catalog.match(raspberry_uno)
+
+    assert match.confidence == "partial"
+    assert match.binding is None
+    assert "stable identity" in match.reason
+
+
 def test_device_catalog_exactly_matches_official_modbus_simulator_binding():
     catalog = DeviceBindingCatalog.load(
         BASE / "config" / "device_bindings.json"

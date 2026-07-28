@@ -27,8 +27,9 @@
     },
     {
       "nodeId": "etri-dev0002-raspi5",
+      "version": 2,
       "serial": {
-        "enabled": false,
+        "enabled": true,
         "allowedVidPid": [],
         "baudRates": [
           115200
@@ -48,9 +49,9 @@
     },
     {
       "nodeId": "etri-dev0003-raspi5",
-      "version": 2,
+      "version": 3,
       "serial": {
-        "enabled": false,
+        "enabled": true,
         "allowedVidPid": [],
         "baudRates": [
           115200

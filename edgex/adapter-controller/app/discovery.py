@@ -170,6 +170,11 @@ class DeviceCandidateRegistry:
             document, resource_version = self._read_registry()
             registry = CandidateRegistryDocument.model_validate(document)
             candidates = {item.candidate_id: item for item in registry.candidates}
+            scanned_protocols = (
+                None
+                if report.scanned_protocols is None
+                else set(report.scanned_protocols)
+            )
             observed_candidate_ids: set[str] = set()
             for observed in report.candidates:
                 hardware_id = (
@@ -349,6 +354,10 @@ class DeviceCandidateRegistry:
                     if (
                         candidate.source != "node-scan"
                         or candidate.node_name != report.node_name
+                        or (
+                            scanned_protocols is not None
+                            and candidate.protocol not in scanned_protocols
+                        )
                         or candidate.candidate_id in observed_candidate_ids
                         or candidate.deleted_at is not None
                         or candidate.state == "STALE"
@@ -383,7 +392,16 @@ class DeviceCandidateRegistry:
                 node_name=report.node_name,
                 agent_id=report.agent_id,
                 last_report_at=report.observed_at,
-                candidate_count=len(report.candidates),
+                candidate_count=sum(
+                    1
+                    for candidate in candidates.values()
+                    if candidate.node_name == report.node_name
+                    and candidate.deleted_at is None
+                    and candidate.state != "STALE"
+                    and (
+                        now - candidate.last_seen
+                    ).total_seconds() <= self.stale_after_seconds
+                ),
                 scan_errors=report.scan_errors,
             )
             nodes = {

@@ -103,3 +103,23 @@ def test_newer_git_plan_seeds_over_an_older_persisted_plan(tmp_path):
     assert seeded is not None
     assert seeded.version == 2
     assert seeded.i2c.active_probe_enabled is True
+
+
+def test_raspberry_serial_seed_plans_are_passive_inventory_only():
+    payload = json.loads(
+        (BASE / "config" / "discovery_plans.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    plans = {
+        item["nodeId"]: DiscoveryPlan.model_validate(item)
+        for item in payload["plans"]
+    }
+
+    for node_id in {"etri-dev0002-raspi5", "etri-dev0003-raspi5"}:
+        serial = plans[node_id].serial
+        assert serial.enabled is True
+        assert serial.allowed_vid_pid == []
+        assert serial.manifest_probe_enabled is False
+    assert plans["etri-dev0002-raspi5"].version == 2
+    assert plans["etri-dev0003-raspi5"].version == 3
