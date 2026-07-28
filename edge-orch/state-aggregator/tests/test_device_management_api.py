@@ -17,6 +17,8 @@ from app.connection_management_models import (
     ConnectionValidationResult,
 )
 from app.device_management import (
+    DeviceProfileApplyError,
+    DeviceProfileValidationError,
     IdempotencyConflict,
     ManagementApplyError,
     ManagementValidationError,
@@ -30,6 +32,9 @@ from app.device_discovery_models import (
 )
 from app.device_management_models import (
     AdapterStatusView,
+    DeviceProfileApplyResult,
+    DeviceProfileSummary,
+    DeviceProfileValidationResult,
     ManagementOperation,
     ValidationIssue,
     ValidationResult,
@@ -50,6 +55,24 @@ def request_payload():
             },
         },
         "profile": {"mode": "existing", "name": "etri-arduino-temperature"},
+    }
+
+
+def profile_payload():
+    return {
+        "name": "web-temperature-v1",
+        "description": "웹에서 검증한 온도 Profile",
+        "manufacturer": "Example",
+        "model": "temperature-v1",
+        "labels": ["serial", "temperature"],
+        "resources": [
+            {
+                "name": "temperature",
+                "description": "Temperature reading",
+                "valueType": "Float64",
+                "units": "Cel",
+            }
+        ],
     }
 
 
@@ -77,6 +100,7 @@ class RecordingService:
         self.patch_error = None
         self.delete_error = None
         self.operation_error = None
+        self.profile_error = None
 
     async def list_adapters(self):
         self.calls.append(("list_adapters",))
@@ -90,6 +114,53 @@ class RecordingService:
                 status="installed",
             )
         ]
+
+    async def list_profiles(self):
+        self.calls.append(("list_profiles",))
+        return [
+            DeviceProfileSummary(
+                name="web-temperature-v1",
+                manufacturer="Example",
+                model="temperature-v1",
+                resource_count=1,
+            )
+        ]
+
+    async def validate_profile(self, request, *, actor):
+        self.calls.append(("validate_profile", request.name, actor))
+        return DeviceProfileValidationResult(
+            valid=True,
+            profile={
+                "name": request.name,
+                "deviceResources": [
+                    {
+                        "name": item.name,
+                        "properties": {
+                            "valueType": item.value_type,
+                            "readWrite": "R",
+                            "units": item.units,
+                        },
+                    }
+                    for item in request.resources
+                ],
+            },
+        )
+
+    async def create_profile(self, request, *, idempotency_key, actor):
+        self.calls.append(
+            ("create_profile", request.name, idempotency_key, actor)
+        )
+        if self.profile_error:
+            raise self.profile_error
+        validation = await self.validate_profile(request, actor=actor)
+        return DeviceProfileApplyResult(
+            request_id="b" * 64,
+            payload_hash="a" * 64,
+            name=request.name,
+            created=True,
+            status="created",
+            profile=validation.profile,
+        )
 
     async def validate(self, request, *, actor):
         self.calls.append(("validate", request.device.name, actor))
@@ -629,6 +700,7 @@ def test_management_openapi_has_no_authorization_header_parameter():
         schema = client.get("/openapi.json").json()
 
     mutation_paths = {
+        "/management/profiles": {"post"},
         "/management/devices": {"post"},
         "/management/devices/{name}": {"patch", "delete"},
         "/management/connections": {"post"},
@@ -659,6 +731,81 @@ def test_read_only_catalog_and_validation_work_while_mutation_is_disabled():
     assert validation.status_code == 200
     assert validation.json()["valid"] is True
     assert ("validate", "virtual-temperature-002", "viewer") in service.calls
+
+
+def test_profile_inventory_validation_and_creation_use_the_management_bff():
+    service = RecordingService()
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
+        profiles = client.get("/management/profiles")
+        validation = client.post(
+            "/management/profiles/validate",
+            json=profile_payload(),
+        )
+        missing_key = client.post(
+            "/management/profiles",
+            json=profile_payload(),
+        )
+        created = client.post(
+            "/management/profiles",
+            json=profile_payload(),
+            headers=mutation_headers(),
+        )
+
+    assert profiles.status_code == 200
+    assert profiles.json()[0] == {
+        "name": "web-temperature-v1",
+        "description": "",
+        "manufacturer": "Example",
+        "model": "temperature-v1",
+        "labels": [],
+        "resourceCount": 1,
+    }
+    assert validation.status_code == 200
+    assert validation.json()["valid"] is True
+    assert missing_key.status_code == 400
+    assert created.status_code == 201
+    assert created.json()["created"] is True
+    assert created.json()["profile"]["deviceResources"][0]["properties"][
+        "readWrite"
+    ] == "R"
+    assert (
+        "create_profile",
+        "web-temperature-v1",
+        "request-key",
+        "dashboard-operator",
+    ) in service.calls
+
+
+def test_profile_create_maps_validation_and_backend_failures():
+    invalid = DeviceProfileValidationResult(
+        valid=False,
+        issues=[
+            ValidationIssue(
+                code="profile_name_conflict",
+                message="duplicate",
+            )
+        ],
+    )
+    cases = [
+        (DeviceProfileValidationError(invalid), 422),
+        (
+            DeviceProfileApplyError(
+                "web-temperature-v1",
+                RuntimeError("metadata unavailable"),
+            ),
+            502,
+        ),
+    ]
+    for error, expected in cases:
+        service = RecordingService()
+        service.profile_error = error
+        with client_for(service, enabled=True, hmac_key="hmac") as client:
+            response = client.post(
+                "/management/profiles",
+                json=profile_payload(),
+                headers=mutation_headers(),
+            )
+        assert response.status_code == expected
 
 
 def test_catalog_exposes_enabled_mutation_mode_to_the_dashboard():

@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-28 17:23</span>
+            <span class="badge">수정: 2026-07-28 18:42</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -226,6 +226,13 @@
 <p><code>scannedProtocols</code> 범위를 추가했다.</p>
 <ul><li>메모: dev0003에서 CH340 <code>1a86:7523</code>,</li></ul>
 <p><code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code> 후보를 반복 관측했다. 검증 binding/Profile이 없어 <code>BLOCKED</code>, <code>binding-required</code>로 유지했으며 기존 Sense HAT 후보는 <code>EVENT_CONFIRMED</code>를 유지했다. 장비 발견을 자동 신뢰·등록으로 승격하지 않았다.</p>
+<h2 id="2026-07-28-ingest-대시보드-device-profile-편집-검증-추가">[2026-07-28] ingest | 대시보드 Device Profile 편집·검증 추가</h2>
+<ul><li>근거: <code>edge-orch/state-aggregator/app/device_management*.py</code>,</li></ul>
+<p><code>edge-orch/state-aggregator/app/static/device-management.*</code>, Core Metadata readback 계약과 state-aggregator Python/JavaScript 테스트</p>
+<ul><li>갱신: Device Profile 목록·검증·idempotent 생성 BFF와 한국어 Profile 편집</li></ul>
+<p>대화상자를 추가했다. 읽기 전용 resource를 최대 64개 입력하고 동일 이름의 다른 계약은 차단하며 동일 계약은 재사용한다.</p>
+<ul><li>메모: 후보의 model/capability는 type을 추측하지 않는 초안으로만 사용한다. Profile</li></ul>
+<p>생성은 parser, Device Service image, raw device path, Catalog binding, Device, command 또는 후보 승인을 자동 생성하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
@@ -244,7 +251,8 @@
 <li class="toc-h2"><a href="#2026-07-23-ingest-등록-연결-실장비-증거와-프로토콜-패키지-상태-분리">[2026-07-23] ingest | 등록 연결·실장비 증거와 프로토콜 패키지 상태 분리</a></li>
 <li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li>
 <li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li>
-<li class="toc-h2"><a href="#2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</a></li>
+<li class="toc-h2"><a href="#2026-07-28-ingest-대시보드-device-profile-편집-검증-추가">[2026-07-28] ingest | 대시보드 Device Profile 편집·검증 추가</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

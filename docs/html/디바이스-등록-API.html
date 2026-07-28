@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-28 16:49</span>
+            <span class="badge">수정: 2026-07-28 18:42</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -383,6 +383,56 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
 <p>대시보드는 다음 기존 경로를 유지한다.</p>
 <ul><li><code>GET /management/discovery</code></li><li><code>POST /management/discovery/manual</code></li><li><code>PATCH /management/discovery/{candidateId}</code></li><li><code>DELETE /management/discovery/{candidateId}</code></li><li><code>POST /management/discovery/{candidateId}/decommission</code></li></ul>
 <p><code>accepted</code> PATCH는 승인 Saga를 시작하고 <code>FAILED</code> 후보에서는 retry로 해석한다. <code>ignored</code> PATCH는 reject다. 등록된 후보는 별도 decommission workflow 없이 삭제할 수 없다. decommission은 <code>X-Confirm-Candidate</code>의 exact candidate ID와 사유를 요구하며 Controller가 소유한 리소스만 정리한다. node-scan 장비가 계속 연결돼 있으면 다음 report에서 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 다시 나타나고, 자동 재등록하지 않는다. 현재 PoC BFF는 운영자 Bearer token이나 <code>decisionAuthenticationRequired</code> 필드를 제공하지 않는다. 후보 결정, 수동 후보 생성·삭제, Runtime, Device와 connection mutation은 모두 요청별 <code>Idempotency-Key</code>를 요구하고 browser <code>Authorization</code> header 없이 동작한다. state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC으로 서명한다. 외부 AuthProvider의 승인도 후보 장비 신뢰 검증 단계로 유지되지만 운영자 인증은 아니다. 따라서 이 BFF는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도 사용자 인증·인가를 앞단에 추가해야 한다.</p>
+<h2 id="대시보드-device-profile-bff">대시보드 Device Profile BFF</h2>
+<p>대시보드의 <code>프로필 만들기</code>는 Adapter Controller가 아니라 <code>state-aggregator</code>가 Core Metadata와 직접 통신하는 다음 BFF를 사용한다. 브라우저 <code>Authorization</code> header는 사용하지 않으며 생성 요청만 <code>Idempotency-Key</code>를 요구한다.</p>
+<h3 id="profile-목록">Profile 목록</h3>
+<pre data-lang="http"><code>GET /management/profiles</code></pre>
+<p>Core Metadata Profile의 이름, 설명, 제조사, 모델, label과 resource 수를 이름순으로 반환한다.</p>
+<h3 id="profile-검증">Profile 검증</h3>
+<pre data-lang="http"><code>POST /management/profiles/validate
+Content-Type: application/json
+
+{
+  &quot;name&quot;: &quot;arduino-environment-v1&quot;,
+  &quot;description&quot;: &quot;Arduino 환경 센서 읽기 계약&quot;,
+  &quot;manufacturer&quot;: &quot;Arduino&quot;,
+  &quot;model&quot;: &quot;uno-environment-v1&quot;,
+  &quot;labels&quot;: [&quot;serial&quot;, &quot;environment&quot;],
+  &quot;resources&quot;: [
+    {
+      &quot;name&quot;: &quot;temperature&quot;,
+      &quot;valueType&quot;: &quot;Float64&quot;,
+      &quot;units&quot;: &quot;Cel&quot;,
+      &quot;description&quot;: &quot;온도&quot;
+    },
+    {
+      &quot;name&quot;: &quot;humidity&quot;,
+      &quot;valueType&quot;: &quot;Float64&quot;,
+      &quot;units&quot;: &quot;percent&quot;,
+      &quot;description&quot;: &quot;상대 습도&quot;
+    }
+  ]
+}</code></pre>
+<p>허용 value type은 <code>Bool</code>, signed/unsigned <code>Int8</code>~<code>Int64</code>, <code>Float32</code>, <code>Float64</code>, <code>String</code>이다. resource는 1~64개이며 이름은 Profile 안에서 고유해야 한다. 이 API는 mutation을 수행하지 않는다. 같은 이름의 Profile이 다른 resource 계약으로 존재하면 <code>valid=false</code>, <code>profile_name_conflict</code>를 반환한다. 동일 계약이면 재사용 warning을 반환한다.</p>
+<h3 id="profile-생성">Profile 생성</h3>
+<pre data-lang="http"><code>POST /management/profiles
+Idempotency-Key: profile-create-&lt;unique-request&gt;
+Content-Type: application/json
+
+{same payload as validation}</code></pre>
+<p>서버는 모든 resource를 <code>readWrite=R</code>로 만들고 <code>edge-ai-web-managed</code> label을 추가한다. 생성 뒤 Core Metadata readback의 이름·설명·제조사·모델과 resource <code>name/valueType/readWrite/units</code> 계약을 다시 비교한다. readback이 다르면 이번 요청이 새로 만든 Profile만 rollback한다. 기존 Profile은 삭제하지 않는다.</p>
+<p>대표 응답:</p>
+<pre data-lang="json"><code>{
+  &quot;requestId&quot;: &quot;&lt;64 lowercase hex&gt;&quot;,
+  &quot;payloadHash&quot;: &quot;&lt;64 lowercase hex&gt;&quot;,
+  &quot;name&quot;: &quot;arduino-environment-v1&quot;,
+  &quot;created&quot;: true,
+  &quot;status&quot;: &quot;created&quot;,
+  &quot;profile&quot;: {
+    &quot;name&quot;: &quot;arduino-environment-v1&quot;
+  }
+}</code></pre>
+<p><code>status=existing</code>은 동일 계약의 기존 Profile을 재사용했다는 뜻이다. Profile 생성은 parser, Device Service image, raw device path, Catalog binding, Device와 command를 생성하지 않는다. 따라서 발견 후보의 승인 조건은 그대로이며 Profile만 만든 후보를 <code>registration-ready</code>로 간주하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#접근-경계">접근 경계</a></li>
@@ -401,7 +451,11 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
 <li class="toc-h3"><a href="#등록-진행-조회">등록 진행 조회</a></li>
 <li class="toc-h3"><a href="#catalog-조회">Catalog 조회</a></li>
 <li class="toc-h3"><a href="#audit-조회">audit 조회</a></li>
-<li class="toc-h2"><a href="#기존-대시보드-bff-호환">기존 대시보드 BFF 호환</a></li></ol></aside>
+<li class="toc-h2"><a href="#기존-대시보드-bff-호환">기존 대시보드 BFF 호환</a></li>
+<li class="toc-h2"><a href="#대시보드-device-profile-bff">대시보드 Device Profile BFF</a></li>
+<li class="toc-h3"><a href="#profile-목록">Profile 목록</a></li>
+<li class="toc-h3"><a href="#profile-검증">Profile 검증</a></li>
+<li class="toc-h3"><a href="#profile-생성">Profile 생성</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

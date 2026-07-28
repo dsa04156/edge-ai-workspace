@@ -13,6 +13,7 @@ const MANAGEMENT_DEVICES_URL = managementApiUrl("/management/devices");
 const MANAGEMENT_RUNTIMES_URL = managementApiUrl("/management/adapter-runtimes");
 const MANAGEMENT_CONNECTIONS_URL = managementApiUrl("/management/connections");
 const MANAGEMENT_DISCOVERY_URL = managementApiUrl("/management/discovery");
+const MANAGEMENT_PROFILES_URL = managementApiUrl("/management/profiles");
 const MANAGEMENT_NODES_URL = managementApiUrl("/state/nodes");
 const UNASSIGNED_NODE = "미할당 노드";
 
@@ -41,6 +42,10 @@ const managementState = {
   runtimeActionKeys: new Map(),
   candidateActionKeys: new Map(),
   manualCandidateCreateKey: "",
+  profiles: [],
+  profileCandidateContext: null,
+  profileValidationFingerprint: "",
+  profileCreateKey: "",
   deviceDeleteKey: "",
   validation: null,
   operation: null,
@@ -178,6 +183,10 @@ const MANAGEMENT_LABELS = {
     hardware_binding_in_use: "하드웨어 연결을 다른 런타임이 사용 중입니다.",
     runtime_not_found: "재사용할 런타임을 찾을 수 없습니다.",
     template_not_deployable: "현재 배포할 수 없는 런타임 템플릿입니다.",
+    profile_binding_required: "Profile 생성 후에도 검증된 parser와 물리 연결 매칭이 필요합니다.",
+    profile_units_missing: "단위가 비어 있습니다. 원시값이면 raw를 입력하세요.",
+    profile_exists_identical: "동일한 Device Profile이 이미 있어 기존 Profile을 재사용합니다.",
+    profile_name_conflict: "같은 이름의 Device Profile이 다른 리소스 계약으로 이미 등록되어 있습니다.",
   },
   mutation: {
     create_profile: "프로필 생성",
@@ -978,6 +987,16 @@ async function fetchManagementNodes(fetchFn = fetch) {
 }
 
 
+async function fetchManagementProfiles(fetchFn = fetch) {
+  const response = await fetchFn(MANAGEMENT_PROFILES_URL, {cache: "no-store"});
+  const payload = await managementPayload(response);
+  if (!Array.isArray(payload)) {
+    throw new Error("Device Profile 목록 응답 형식이 올바르지 않습니다.");
+  }
+  return payload;
+}
+
+
 async function fetchAdapterRuntimes(fetchFn = fetch) {
   const response = await fetchFn(MANAGEMENT_RUNTIMES_URL, {cache: "no-store"});
   const payload = await managementPayload(response);
@@ -1040,11 +1059,36 @@ async function validateManagementConnection(payload, fetchFn = fetch) {
 }
 
 
+async function validateManagementProfile(payload, fetchFn = fetch) {
+  const response = await fetchFn(`${MANAGEMENT_PROFILES_URL}/validate`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
+}
+
+
 function mutationHeaders(idempotencyKey) {
   return {
     "Content-Type": "application/json",
     "Idempotency-Key": idempotencyKey,
   };
+}
+
+
+async function createManagementProfile(payload, {
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(MANAGEMENT_PROFILES_URL, {
+    method: "POST",
+    headers: mutationHeaders(idempotencyKey),
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  return managementPayload(response);
 }
 
 
@@ -1853,6 +1897,18 @@ function renderConnectionGuidance(documentRef = document) {
       "",
       `${setupLock.text} 해당 후보와 무관한 프로토콜은 자동 선택하지 않습니다.`,
     );
+    const profileButton = documentRef.createElement("button");
+    profileButton.type = "button";
+    profileButton.className = "management-guidance-action";
+    profileButton.dataset.managementOpenProfileForCandidate = (
+      managementState.registrationCandidateContext?.candidateId || ""
+    );
+    profileButton.textContent = "이 후보의 Device Profile 만들기";
+    profileButton.disabled = !mutationModeEnabled();
+    profileButton.title = profileButton.disabled
+      ? "현재 변경 기능이 비활성화되어 있습니다."
+      : "후보의 모델과 리소스를 Profile 초안에 반영합니다.";
+    container.appendChild(profileButton);
     return;
   }
   const adapter = selectedAdapter();
@@ -3044,6 +3100,13 @@ function renderMutationMode(documentRef = document) {
       ? "자동 탐색이 어려운 엔드포인트를 후보로 추가합니다."
       : "현재 변경 기능이 비활성화되어 있습니다.";
   }
+  const profileButton = byId("managementOpenProfileDialog", documentRef);
+  if (profileButton) {
+    profileButton.disabled = !enabled;
+    profileButton.title = enabled
+      ? "EdgeX Device Profile을 검증하고 Core Metadata에 등록합니다."
+      : "현재 변경 기능이 비활성화되어 있습니다.";
+  }
   const deleteButton = byId("managementDeleteDevice", documentRef);
   if (deleteButton) {
     deleteButton.disabled = !(
@@ -3213,6 +3276,380 @@ function commaList(value) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+
+const PROFILE_VALUE_TYPES = [
+  "Bool",
+  "Int8",
+  "Int16",
+  "Int32",
+  "Int64",
+  "Uint8",
+  "Uint16",
+  "Uint32",
+  "Uint64",
+  "Float32",
+  "Float64",
+  "String",
+];
+
+
+function profileSafeName(value = "") {
+  return String(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9._~-]+/g, "-")
+    .replace(/^[._~-]+|[._~-]+$/g, "")
+    .toLowerCase();
+}
+
+
+function profileDraftFromCandidate(candidate = null) {
+  if (!candidate) {
+    return {
+      name: "",
+      description: "",
+      manufacturer: "",
+      model: "",
+      labels: [],
+      resources: [{
+        name: "",
+        valueType: "",
+        units: "",
+        description: "",
+      }],
+    };
+  }
+  const sourceName = candidate.recommendedProfile
+    || candidate.model
+    || candidate.displayName
+    || "";
+  const safeName = profileSafeName(sourceName);
+  const name = safeName && !/-v\d+$/i.test(safeName)
+    ? `${safeName}-v1`
+    : safeName;
+  const capabilities = [...new Set(candidate.capabilities || [])]
+    .map((capability) => ({
+      name: profileSafeName(capability),
+      valueType: "",
+      units: "",
+      description: `${capability} 측정값`,
+    }))
+    .filter((resource) => resource.name);
+  return {
+    name,
+    description: candidate.displayName
+      ? `${candidate.displayName}에서 수집하는 읽기 전용 데이터 계약`
+      : "",
+    manufacturer: candidate.vendor || "",
+    model: candidate.model || "",
+    labels: [...new Set([
+      candidate.protocol,
+      ...(candidate.capabilities || []),
+    ].filter(Boolean))],
+    resources: capabilities.length
+      ? capabilities
+      : [{
+        name: "",
+        valueType: "",
+        units: "",
+        description: "",
+      }],
+  };
+}
+
+
+function profileResourceField(documentRef, {
+  label,
+  datasetName,
+  value = "",
+  placeholder = "",
+  required = false,
+  maxLength = 255,
+  pattern = "",
+  selectOptions = null,
+}) {
+  const wrapper = documentRef.createElement("label");
+  appendTextElement(wrapper, "span", "", label);
+  let control;
+  if (selectOptions) {
+    control = documentRef.createElement("select");
+    const placeholderOption = documentRef.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = "자료형 선택";
+    control.appendChild(placeholderOption);
+    selectOptions.forEach((optionValue) => {
+      const option = documentRef.createElement("option");
+      option.value = optionValue;
+      option.textContent = optionValue;
+      option.selected = optionValue === value;
+      control.appendChild(option);
+    });
+  } else {
+    control = documentRef.createElement("input");
+    control.type = "text";
+    control.value = value;
+    control.placeholder = placeholder;
+    control.maxLength = maxLength;
+    if (pattern) control.pattern = pattern;
+  }
+  control.dataset[datasetName] = "";
+  control.required = required;
+  wrapper.appendChild(control);
+  return wrapper;
+}
+
+
+function renumberProfileResourceRows(documentRef = document) {
+  const rows = [
+    ...(byId("managementProfileResourceRows", documentRef)
+      ?.querySelectorAll(".management-profile-resource-row") || []),
+  ];
+  rows.forEach((row, index) => {
+    const legend = row.querySelector("legend");
+    if (legend) legend.textContent = `리소스 ${index + 1}`;
+    const remove = row.querySelector(".management-profile-resource-remove");
+    if (remove) {
+      remove.disabled = rows.length === 1;
+      remove.title = rows.length === 1
+        ? "Profile에는 리소스가 하나 이상 필요합니다."
+        : "이 리소스를 제거합니다.";
+    }
+  });
+  const add = byId("managementAddProfileResource", documentRef);
+  if (add) {
+    add.disabled = rows.length >= 64;
+    add.title = rows.length >= 64
+      ? "Profile 하나에는 최대 64개 리소스를 등록할 수 있습니다."
+      : "읽기 전용 리소스를 추가합니다.";
+  }
+}
+
+
+function addProfileResourceRow(
+  documentRef = document,
+  resource = {},
+) {
+  const container = byId("managementProfileResourceRows", documentRef);
+  if (!container) return null;
+  const row = documentRef.createElement("fieldset");
+  row.className = "management-profile-resource-row";
+  row.appendChild(documentRef.createElement("legend"));
+  row.append(
+    profileResourceField(documentRef, {
+      label: "리소스 이름",
+      datasetName: "profileResourceName",
+      value: resource.name || "",
+      placeholder: "temperature",
+      required: true,
+      pattern: "[A-Za-z0-9._~-]+",
+    }),
+    profileResourceField(documentRef, {
+      label: "자료형",
+      datasetName: "profileResourceType",
+      value: resource.valueType || "",
+      required: true,
+      selectOptions: PROFILE_VALUE_TYPES,
+    }),
+    profileResourceField(documentRef, {
+      label: "단위",
+      datasetName: "profileResourceUnits",
+      value: resource.units || "",
+      placeholder: "Cel, percent, raw",
+      maxLength: 64,
+    }),
+    profileResourceField(documentRef, {
+      label: "설명",
+      datasetName: "profileResourceDescription",
+      value: resource.description || "",
+      placeholder: "센서 측정값",
+      maxLength: 1000,
+    }),
+  );
+  const remove = documentRef.createElement("button");
+  remove.type = "button";
+  remove.className = "management-profile-resource-remove";
+  remove.textContent = "제거";
+  row.appendChild(remove);
+  container.appendChild(row);
+  renumberProfileResourceRows(documentRef);
+  return row;
+}
+
+
+function collectProfilePayload(documentRef = document) {
+  const resources = [
+    ...(byId("managementProfileResourceRows", documentRef)
+      ?.querySelectorAll(".management-profile-resource-row") || []),
+  ].map((row) => ({
+    name: row.querySelector("[data-profile-resource-name]")?.value.trim() || "",
+    valueType: row.querySelector("[data-profile-resource-type]")?.value || "",
+    units: row.querySelector("[data-profile-resource-units]")?.value.trim() || "",
+    description: row
+      .querySelector("[data-profile-resource-description]")
+      ?.value.trim() || "",
+  }));
+  return {
+    name: byId("managementNewProfileName", documentRef)?.value.trim() || "",
+    description: byId(
+      "managementNewProfileDescription",
+      documentRef,
+    )?.value.trim() || "",
+    manufacturer: byId(
+      "managementNewProfileManufacturer",
+      documentRef,
+    )?.value.trim() || "",
+    model: byId("managementNewProfileModel", documentRef)?.value.trim() || "",
+    labels: commaList(
+      byId("managementNewProfileLabels", documentRef)?.value || "",
+    ),
+    resources,
+  };
+}
+
+
+function profilePayloadFingerprint(payload = {}) {
+  return JSON.stringify(payload);
+}
+
+
+function renderProfileInventory(profiles = [], {
+  error = "",
+  documentRef = document,
+} = {}) {
+  const container = byId("managementProfileInventory", documentRef);
+  if (!container) return;
+  if (error) {
+    container.textContent = error;
+    container.dataset.status = "error";
+    return;
+  }
+  delete container.dataset.status;
+  if (!profiles.length) {
+    container.textContent = "등록된 Device Profile이 없습니다.";
+    return;
+  }
+  const names = profiles.slice(0, 5).map((profile) => profile.name).join(", ");
+  container.textContent = `등록 Profile ${profiles.length}개 · ${names}`
+    + (profiles.length > 5 ? ` 외 ${profiles.length - 5}개` : "");
+}
+
+
+function renderProfileResult(result, {
+  documentRef = document,
+} = {}) {
+  const container = byId("managementProfileResult", documentRef);
+  clearElement(container);
+  if (!container) return;
+  if (result?.status === "created" || result?.status === "existing") {
+    container.dataset.status = "verified";
+    appendTextElement(
+      container,
+      "strong",
+      "",
+      result.status === "created"
+        ? `Profile 생성 완료 · ${result.name}`
+        : `기존 Profile 재사용 · ${result.name}`,
+    );
+    appendTextElement(
+      container,
+      "p",
+      "",
+      "이제 검증된 parser와 물리 연결 카탈로그를 별도로 매칭해야 합니다.",
+    );
+    return;
+  }
+  container.dataset.status = result?.valid ? "verified" : "failed";
+  appendTextElement(
+    container,
+    "strong",
+    "",
+    result?.valid ? "Profile 검증 통과" : "Profile 검증 실패",
+  );
+  const count = result?.profile?.deviceResources?.length || 0;
+  appendTextElement(
+    container,
+    "p",
+    "",
+    result?.valid
+      ? `읽기 전용 리소스 ${count}개를 Core Metadata에 등록할 수 있습니다.`
+      : "아래 오류를 수정한 뒤 다시 검증하세요.",
+  );
+  (result?.issues || []).forEach((issue) => {
+    appendTextElement(
+      container,
+      "p",
+      "management-issue",
+      managementIssueText(issue),
+    );
+  });
+  (result?.warnings || []).forEach((warning) => {
+    appendTextElement(
+      container,
+      "p",
+      "management-warning",
+      managementIssueText(warning),
+    );
+  });
+}
+
+
+function invalidateProfileValidation({
+  message = "내용이 변경되었습니다. Profile을 다시 검증하세요.",
+  documentRef = document,
+} = {}) {
+  managementState.profileValidationFingerprint = "";
+  managementState.profileCreateKey = "";
+  const create = byId("managementCreateProfile", documentRef);
+  if (create) create.disabled = true;
+  const result = byId("managementProfileResult", documentRef);
+  if (result && message) {
+    result.textContent = message;
+    result.dataset.status = "waiting";
+  }
+}
+
+
+async function openProfileDialog(
+  candidate = null,
+  documentRef = document,
+  fetchFn = fetch,
+) {
+  const dialog = byId("managementProfileDialog", documentRef);
+  const form = byId("managementProfileForm", documentRef);
+  form?.reset();
+  managementState.profileCandidateContext = candidate;
+  managementState.profileValidationFingerprint = "";
+  managementState.profileCreateKey = "";
+  const draft = profileDraftFromCandidate(candidate);
+  byId("managementNewProfileName", documentRef).value = draft.name;
+  byId("managementNewProfileDescription", documentRef).value = draft.description;
+  byId("managementNewProfileManufacturer", documentRef).value = draft.manufacturer;
+  byId("managementNewProfileModel", documentRef).value = draft.model;
+  byId("managementNewProfileLabels", documentRef).value = draft.labels.join(", ");
+  clearElement(byId("managementProfileResourceRows", documentRef));
+  draft.resources.forEach((resource) => addProfileResourceRow(documentRef, resource));
+  invalidateProfileValidation({
+    message: candidate
+      ? "후보 정보를 초안에 반영했습니다. 자료형과 단위를 확인한 뒤 검증하세요."
+      : "필수 항목을 입력한 뒤 먼저 검증하세요.",
+    documentRef,
+  });
+  renderProfileInventory([], {documentRef});
+  const inventory = byId("managementProfileInventory", documentRef);
+  if (inventory) inventory.textContent = "등록된 Profile을 확인하는 중입니다.";
+  if (typeof dialog?.showModal === "function") dialog.showModal();
+  else dialog?.setAttribute("open", "");
+  try {
+    managementState.profiles = await fetchManagementProfiles(fetchFn);
+    renderProfileInventory(managementState.profiles, {documentRef});
+  } catch (error) {
+    renderProfileInventory([], {
+      error: error?.message || "등록된 Profile을 불러오지 못했습니다.",
+      documentRef,
+    });
+  }
 }
 
 
@@ -3870,6 +4307,212 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     },
   );
   const manualDialog = byId("managementManualCandidateDialog", documentRef);
+  const profileDialog = byId("managementProfileDialog", documentRef);
+  const openProfileEditor = (candidate = null) => {
+    openProfileDialog(candidate, documentRef, fetchFn);
+    renderManagementActionFeedback(
+      candidate
+        ? `${candidate.displayName} 후보의 Profile 초안을 열었습니다.`
+        : "Device Profile 만들기 화면을 열었습니다.",
+      {
+        status: "success",
+        kind: "navigation",
+        documentRef,
+      },
+    );
+  };
+  byId("managementOpenProfileDialog", documentRef)?.addEventListener(
+    "click",
+    () => openProfileEditor(),
+  );
+  byId("managementConnectionGuidance", documentRef)?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest?.(
+        "[data-management-open-profile-for-candidate]",
+      );
+      if (!button || button.disabled) return;
+      const candidate = (managementState.discovery.candidates || []).find(
+        (item) => item.candidateId
+          === button.dataset.managementOpenProfileForCandidate,
+      ) || managementState.registrationCandidateContext;
+      openProfileEditor(candidate || null);
+    },
+  );
+  profileDialog
+    ?.querySelectorAll("[data-management-close-profile]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        managementState.profileCandidateContext = null;
+        managementState.profileValidationFingerprint = "";
+        managementState.profileCreateKey = "";
+        if (typeof profileDialog.close === "function") profileDialog.close();
+        else profileDialog.removeAttribute("open");
+      });
+    });
+  byId("managementAddProfileResource", documentRef)?.addEventListener(
+    "click",
+    () => {
+      addProfileResourceRow(documentRef);
+      invalidateProfileValidation({documentRef});
+      const rows = byId("managementProfileResourceRows", documentRef);
+      rows?.lastElementChild
+        ?.querySelector("[data-profile-resource-name]")
+        ?.focus();
+    },
+  );
+  byId("managementProfileResourceRows", documentRef)?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest?.(
+        ".management-profile-resource-remove",
+      );
+      if (!button || button.disabled) return;
+      button.closest(".management-profile-resource-row")?.remove();
+      renumberProfileResourceRows(documentRef);
+      invalidateProfileValidation({documentRef});
+    },
+  );
+  ["input", "change"].forEach((eventName) => {
+    byId("managementProfileForm", documentRef)?.addEventListener(
+      eventName,
+      (event) => {
+        if (event.target.closest?.(".management-dialog-actions")) return;
+        invalidateProfileValidation({documentRef});
+      },
+    );
+  });
+  byId("managementValidateProfile", documentRef)?.addEventListener(
+    "click",
+    async () => {
+      const form = byId("managementProfileForm", documentRef);
+      const button = byId("managementValidateProfile", documentRef);
+      const create = byId("managementCreateProfile", documentRef);
+      if (!form?.checkValidity()) {
+        form?.reportValidity();
+        renderProfileResult({
+          valid: false,
+          issues: [{
+            message: "필수 항목과 리소스 이름·자료형을 모두 입력하세요.",
+          }],
+        }, {documentRef});
+        return;
+      }
+      const payload = collectProfilePayload(documentRef);
+      try {
+        setManagementButtonBusy(button, true, "검증 중…");
+        const result = byId("managementProfileResult", documentRef);
+        if (result) {
+          result.textContent = "Profile 계약을 검증하는 중입니다.";
+          result.dataset.status = "waiting";
+        }
+        const validation = await validateManagementProfile(payload, fetchFn);
+        renderProfileResult(validation, {documentRef});
+        managementState.profileValidationFingerprint = validation.valid
+          ? profilePayloadFingerprint(payload)
+          : "";
+        managementState.profileCreateKey = "";
+        if (create) {
+          create.disabled = !(validation.valid && mutationModeEnabled());
+        }
+      } catch (error) {
+        managementState.profileValidationFingerprint = "";
+        managementState.profileCreateKey = "";
+        if (create) create.disabled = true;
+        renderProfileResult({
+          valid: false,
+          issues: [{
+            message: error?.message || "Profile 검증에 실패했습니다.",
+          }],
+        }, {documentRef});
+      } finally {
+        setManagementButtonBusy(button, false);
+      }
+    },
+  );
+  byId("managementProfileForm", documentRef)?.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const submit = byId("managementCreateProfile", documentRef);
+      const payload = collectProfilePayload(documentRef);
+      const fingerprint = profilePayloadFingerprint(payload);
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        renderProfileResult({
+          valid: false,
+          issues: [{message: "필수 항목을 모두 입력하세요."}],
+        }, {documentRef});
+        return;
+      }
+      if (
+        !managementState.profileValidationFingerprint
+        || managementState.profileValidationFingerprint !== fingerprint
+      ) {
+        submit.disabled = true;
+        renderProfileResult({
+          valid: false,
+          issues: [{message: "입력 내용이 변경되었습니다. 다시 검증하세요."}],
+        }, {documentRef});
+        return;
+      }
+      let retryEnabled = false;
+      try {
+        setManagementButtonBusy(submit, true, "생성 중…");
+        const result = byId("managementProfileResult", documentRef);
+        if (result) {
+          result.textContent = "EdgeX Core Metadata에 Profile을 등록하는 중입니다.";
+          result.dataset.status = "waiting";
+        }
+        managementState.profileCreateKey = (
+          managementState.profileCreateKey
+          || globalThis.crypto?.randomUUID?.()
+          || `profile-create-${Date.now()}`
+        );
+        const applied = await createManagementProfile(payload, {
+          idempotencyKey: managementState.profileCreateKey,
+          fetchFn,
+        });
+        renderProfileResult(applied, {documentRef});
+        managementState.profileValidationFingerprint = "";
+        managementState.profiles = await fetchManagementProfiles(fetchFn);
+        renderProfileInventory(managementState.profiles, {documentRef});
+        if (managementState.activeView === "register") {
+          const mode = byId("managementProfileMode", documentRef);
+          const name = byId("managementProfileName", documentRef);
+          if (mode) mode.value = "existing";
+          if (name) name.value = applied.name;
+          updateProfileMode(documentRef);
+          renderRegistrationReview(documentRef);
+        }
+        renderManagementActionFeedback(
+          applied.status === "created"
+            ? `${applied.name} Device Profile을 생성했습니다.`
+            : `${applied.name} 기존 Device Profile을 재사용합니다.`,
+          {status: "success", documentRef},
+        );
+      } catch (error) {
+        retryEnabled = (
+          managementState.profileValidationFingerprint === fingerprint
+          && mutationModeEnabled()
+        );
+        renderProfileResult({
+          valid: false,
+          issues: [{
+            message: error?.message || "Device Profile 생성에 실패했습니다.",
+          }],
+        }, {documentRef});
+        renderManagementActionFeedback(
+          error?.message || "Device Profile 생성에 실패했습니다.",
+          {status: "error", documentRef},
+        );
+      } finally {
+        setManagementButtonBusy(submit, false);
+        submit.disabled = !retryEnabled;
+      }
+    },
+  );
   byId("managementOpenManualCandidate", documentRef)?.addEventListener("click", () => {
     managementState.manualCandidateCreateKey = "";
     renderManualNodeOptions(documentRef);
@@ -4635,6 +5278,7 @@ if (typeof module !== "undefined") {
     canPatchSelectedDevice,
     connectionStatusView,
     connectionApplyButtonView,
+    createManagementProfile,
     createManualCandidate,
     createManagementConnection,
     createManagementDevice,
@@ -4649,6 +5293,7 @@ if (typeof module !== "undefined") {
     fetchManagementAdapters,
     fetchManagementNodes,
     fetchManagementOperation,
+    fetchManagementProfiles,
     managementApiUrl,
     managementDeviceNode,
     managementPayload,
@@ -4664,6 +5309,9 @@ if (typeof module !== "undefined") {
     pollManagementOperation,
     preferredManagementNode,
     physicalObservationStatus,
+    profileDraftFromCandidate,
+    profilePayloadFingerprint,
+    profileSafeName,
     protocolPackageStatus,
     restartAdapterRuntime,
     retireAdapterRuntime,
@@ -4672,5 +5320,6 @@ if (typeof module !== "undefined") {
     updateCandidateDecision,
     validateManagementConnection,
     validateManagementDevice,
+    validateManagementProfile,
   };
 }

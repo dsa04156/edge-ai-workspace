@@ -16,6 +16,10 @@ from .device_management_models import (
     AdapterStatusView,
     DeviceOnboardingRequest,
     DevicePatchRequest,
+    DeviceProfileApplyResult,
+    DeviceProfileCreateRequest,
+    DeviceProfileSummary,
+    DeviceProfileValidationResult,
     ManagementOperation,
     ProfileTemplate,
     ValidationIssue,
@@ -63,6 +67,19 @@ class ManagementApplyError(DeviceManagementError):
         super().__init__(operation.error or "device management apply failed")
 
 
+class DeviceProfileValidationError(DeviceManagementError):
+    def __init__(self, result: DeviceProfileValidationResult) -> None:
+        self.result = result
+        super().__init__("Device Profile validation failed")
+
+
+class DeviceProfileApplyError(DeviceManagementError):
+    def __init__(self, profile_name: str, cause: Exception) -> None:
+        self.profile_name = profile_name
+        self.cause = cause
+        super().__init__(f"Device Profile {profile_name!r} apply failed")
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -87,6 +104,10 @@ class DeviceManagementService:
         self._hmac_key = hmac_key.encode("utf-8")
         self._operation_limit = operation_limit
         self._operations: OrderedDict[str, ManagementOperation] = OrderedDict()
+        self._profile_requests: OrderedDict[
+            str,
+            tuple[str, DeviceProfileApplyResult],
+        ] = OrderedDict()
         self._mutation_lock = asyncio.Lock()
 
     async def list_adapters(self) -> list[AdapterStatusView]:
@@ -130,6 +151,168 @@ class DeviceManagementService:
                 )
             )
         return result
+
+    async def list_profiles(self) -> list[DeviceProfileSummary]:
+        profiles = await self.metadata.list_profiles()
+        result: list[DeviceProfileSummary] = []
+        for profile in profiles:
+            resources = profile.get("deviceResources")
+            labels = profile.get("labels")
+            result.append(
+                DeviceProfileSummary(
+                    name=str(profile.get("name") or ""),
+                    description=str(profile.get("description") or ""),
+                    manufacturer=str(profile.get("manufacturer") or ""),
+                    model=str(profile.get("model") or ""),
+                    labels=[
+                        str(item)
+                        for item in labels
+                        if isinstance(item, str)
+                    ] if isinstance(labels, list) else [],
+                    resource_count=len(resources)
+                    if isinstance(resources, list)
+                    else 0,
+                )
+            )
+        return sorted(result, key=lambda item: item.name.casefold())
+
+    async def validate_profile(
+        self,
+        request: DeviceProfileCreateRequest,
+        *,
+        actor: str = "anonymous",
+    ) -> DeviceProfileValidationResult:
+        profile = self._device_profile_document(request)
+        issues: list[ValidationIssue] = []
+        warnings = [
+            ValidationIssue(
+                code="profile_binding_required",
+                field="profile",
+                message=(
+                    "Profile 생성은 parser 또는 물리 연결을 자동으로 승인하지 않습니다."
+                ),
+            )
+        ]
+        for index, resource in enumerate(request.resources):
+            if not resource.units:
+                warnings.append(
+                    ValidationIssue(
+                        code="profile_units_missing",
+                        field=f"resources.{index}.units",
+                        message=(
+                            f"{resource.name} 단위가 비어 있습니다. "
+                            "원시값이면 raw를 명시하세요."
+                        ),
+                    )
+                )
+        existing = await self.metadata.get_profile(request.name)
+        if existing is not None:
+            if self._device_profile_matches(existing, profile):
+                warnings.append(
+                    ValidationIssue(
+                        code="profile_exists_identical",
+                        field="name",
+                        message="동일한 Device Profile이 이미 등록되어 재사용됩니다.",
+                    )
+                )
+            else:
+                issues.append(
+                    ValidationIssue(
+                        code="profile_name_conflict",
+                        field="name",
+                        message=(
+                            "같은 이름의 Device Profile이 다른 리소스 계약으로 "
+                            "이미 등록되어 있습니다."
+                        ),
+                    )
+                )
+        result = DeviceProfileValidationResult(
+            valid=not issues,
+            issues=issues,
+            warnings=warnings,
+            profile=profile,
+        )
+        self._audit_profile_validation(request, actor, result)
+        return result
+
+    async def create_profile(
+        self,
+        request: DeviceProfileCreateRequest,
+        *,
+        idempotency_key: str,
+        actor: str,
+    ) -> DeviceProfileApplyResult:
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        request_id = self._request_id(f"profile:{idempotency_key}")
+        payload_hash = self._payload_hash(
+            request.model_dump(by_alias=True, mode="json")
+        )
+        async with self._mutation_lock:
+            previous = self._profile_requests.get(request_id)
+            if previous is not None:
+                previous_hash, previous_result = previous
+                if previous_hash != payload_hash:
+                    raise IdempotencyConflict(
+                        "the idempotency key was already used with a different profile"
+                    )
+                self._profile_requests.move_to_end(request_id)
+                return previous_result.model_copy(deep=True)
+            validation = await self.validate_profile(request, actor=actor)
+            if not validation.valid:
+                raise DeviceProfileValidationError(validation)
+            profile = validation.profile
+            existing = await self.metadata.get_profile(request.name)
+            created = False
+            try:
+                if existing is None:
+                    await self.metadata.add_profile(profile)
+                    created = True
+                readback = await self.metadata.get_profile(request.name)
+                if (
+                    readback is None
+                    or not self._device_profile_matches(readback, profile)
+                ):
+                    if created:
+                        try:
+                            await self.metadata.delete_profile(request.name)
+                        except Exception:
+                            audit_logger.exception(
+                                "Device Profile rollback failed",
+                                extra={"profileName": request.name},
+                            )
+                    raise ValueError("Device Profile readback did not match")
+            except Exception as exc:
+                self._audit_profile_apply(
+                    request,
+                    actor=actor,
+                    request_id=request_id,
+                    payload_hash=payload_hash,
+                    created=created,
+                    status="failed",
+                )
+                raise DeviceProfileApplyError(request.name, exc) from exc
+            result = DeviceProfileApplyResult(
+                request_id=request_id,
+                payload_hash=payload_hash,
+                name=request.name,
+                created=created,
+                status="created" if created else "existing",
+                profile=readback,
+            )
+            self._profile_requests[request_id] = (payload_hash, result)
+            self._profile_requests.move_to_end(request_id)
+            while len(self._profile_requests) > self._operation_limit:
+                self._profile_requests.popitem(last=False)
+            self._audit_profile_apply(
+                request,
+                actor=actor,
+                request_id=request_id,
+                payload_hash=payload_hash,
+                created=created,
+                status=result.status,
+            )
+            return result
 
     async def validate(
         self,
@@ -800,6 +983,77 @@ class DeviceManagementService:
         }
 
     @staticmethod
+    def _device_profile_document(
+        request: DeviceProfileCreateRequest,
+    ) -> dict[str, Any]:
+        labels = list(request.labels)
+        if "edge-ai-web-managed" not in labels:
+            labels.append("edge-ai-web-managed")
+        return {
+            "name": request.name,
+            "description": request.description,
+            "manufacturer": request.manufacturer,
+            "model": request.model,
+            "labels": labels,
+            "deviceResources": [
+                {
+                    "name": resource.name,
+                    "description": resource.description,
+                    "isHidden": False,
+                    "properties": {
+                        "valueType": resource.value_type,
+                        "readWrite": "R",
+                        "units": resource.units,
+                    },
+                }
+                for resource in request.resources
+            ],
+            "deviceCommands": [],
+        }
+
+    @staticmethod
+    def _device_profile_matches(
+        current: dict[str, Any],
+        expected: dict[str, Any],
+    ) -> bool:
+        for field in ("name", "description", "manufacturer", "model"):
+            if str(current.get(field) or "") != str(expected.get(field) or ""):
+                return False
+        current_labels = {
+            str(item)
+            for item in current.get("labels") or []
+            if isinstance(item, str)
+        }
+        if not set(expected.get("labels") or []).issubset(current_labels):
+            return False
+
+        def resource_contract(profile: dict[str, Any]) -> dict[str, tuple[str, str, str]]:
+            result: dict[str, tuple[str, str, str]] = {}
+            resources = profile.get("deviceResources")
+            if not isinstance(resources, list):
+                return result
+            for resource in resources:
+                if not isinstance(resource, dict):
+                    return {}
+                name = resource.get("name")
+                properties = resource.get("properties")
+                if not isinstance(name, str) or not isinstance(properties, dict):
+                    return {}
+                if name in result:
+                    return {}
+                result[name] = (
+                    str(properties.get("valueType") or ""),
+                    str(properties.get("readWrite") or ""),
+                    str(properties.get("units") or ""),
+                )
+            return result
+
+        expected_contract = resource_contract(expected)
+        return bool(expected_contract) and (
+            resource_contract(current) == expected_contract
+        )
+
+    @staticmethod
     def _profile_matches_template(
         profile: dict[str, Any], template: ProfileTemplate
     ) -> bool:
@@ -1088,6 +1342,49 @@ class DeviceManagementService:
             "targetProfile": request.profile.name,
             "status": "valid" if result.valid else "invalid",
             "issueCodes": [item.code for item in result.issues],
+            "timestamp": _now().isoformat(),
+        }
+        audit_logger.info(json.dumps(event, ensure_ascii=False, sort_keys=True))
+
+    @staticmethod
+    def _audit_profile_validation(
+        request: DeviceProfileCreateRequest,
+        actor: str,
+        result: DeviceProfileValidationResult,
+    ) -> None:
+        event = {
+            "eventType": "device_profile_management_audit",
+            "requestId": None,
+            "actor": actor,
+            "action": "validate_profile",
+            "targetProfile": request.name,
+            "status": "valid" if result.valid else "invalid",
+            "issueCodes": [item.code for item in result.issues],
+            "warningCodes": [item.code for item in result.warnings],
+            "timestamp": _now().isoformat(),
+        }
+        audit_logger.info(json.dumps(event, ensure_ascii=False, sort_keys=True))
+
+    @staticmethod
+    def _audit_profile_apply(
+        request: DeviceProfileCreateRequest,
+        *,
+        actor: str,
+        request_id: str,
+        payload_hash: str,
+        created: bool,
+        status: str,
+    ) -> None:
+        event = {
+            "eventType": "device_profile_management_audit",
+            "requestId": request_id,
+            "payloadHash": payload_hash,
+            "actor": actor,
+            "action": "create_profile",
+            "targetProfile": request.name,
+            "resourceCount": len(request.resources),
+            "created": created,
+            "status": status,
             "timestamp": _now().isoformat(),
         }
         audit_logger.info(json.dumps(event, ensure_ascii=False, sort_keys=True))

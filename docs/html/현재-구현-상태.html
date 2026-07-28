@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-28 17:23</span>
+            <span class="badge">수정: 2026-07-28 18:42</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -272,6 +272,10 @@
 <td>한글 state/auth/failure/model/Profile과 승인·거절·retry</td>
 </tr>
 <tr>
+<td>웹 Device Profile 편집</td>
+<td>Core Metadata Profile 목록, 읽기 전용 resource 반복 입력, mutation-free 검증, 이름 충돌 차단, 동일 계약 재사용, idempotent 생성과 readback. 후보 capability는 type을 추측하지 않는 초안만 제공</td>
+</tr>
+<tr>
 <td>CI digest 정렬</td>
 <td>Device Service build 후 Catalog 해석, 실제 image readback gate</td>
 </tr>
@@ -373,8 +377,8 @@
 <td>구현하지 않음</td>
 </tr>
 <tr>
-<td>자동 Device Profile 초안 생성</td>
-<td>구현하지 않음</td>
+<td>임의 telemetry에서 schema/value type/units를 추론하는 자동 Device Profile 생성</td>
+<td>구현하지 않음. 웹 편집기의 후보 초안은 model/capability 이름만 채우며 운영자 검토가 필요</td>
 </tr>
 <tr>
 <td>운영자 승인 없는 자동 등록</td>
@@ -444,12 +448,12 @@
 <tr>
 <td>state-aggregator Python</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>184 passed</td>
+<td>190 passed</td>
 </tr>
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>71 passed</td>
+<td>74 passed</td>
 </tr>
 <tr>
 <td>workspace 회귀</td>

@@ -68,6 +68,38 @@ async def test_lists_device_services_from_v3_envelope():
 
 
 @async_test
+async def test_lists_device_profiles_from_v3_envelope():
+    async def handler(request):
+        assert request.method == "GET"
+        assert request.url.path == "/api/v3/deviceprofile/all"
+        assert dict(request.url.params) == {"offset": "0", "limit": "1000"}
+        return httpx.Response(
+            200,
+            json=envelope(
+                "profiles",
+                [
+                    {
+                        "name": "web-temperature-v1",
+                        "deviceResources": [
+                            {
+                                "name": "temperature",
+                                "properties": {
+                                    "valueType": "Float64",
+                                    "readWrite": "R",
+                                },
+                            }
+                        ],
+                    }
+                ],
+            ),
+        )
+
+    profiles = await client_for(handler).list_profiles()
+
+    assert profiles[0]["name"] == "web-temperature-v1"
+
+
+@async_test
 async def test_single_device_and_profile_return_none_only_for_http_404():
     async def handler(request):
         assert escaped_path(request) in {

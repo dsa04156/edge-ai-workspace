@@ -68,6 +68,14 @@ class EdgeXManagementClient:
             return None
         return self._envelope_object(payload, "profile")
 
+    async def list_profiles(self) -> list[dict[str, Any]]:
+        payload = await self._request(
+            "GET",
+            "/api/v3/deviceprofile/all",
+            params={"offset": 0, "limit": 1000},
+        )
+        return self._envelope_list(payload, "profiles")
+
     async def list_devices_by_profile(self, name: str) -> list[dict[str, Any]]:
         payload = await self._request(
             "GET",

@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=device-management-unified-v2-20260728" />
+    <link rel="stylesheet" href="/static/device-management.css?v=device-profile-editor-v1-20260728" />
     <link rel="stylesheet" href="/static/simple-mode.css?v=device-management-unified-v2-20260728" />
   </head>
   <body data-view-mode="simple">
@@ -447,7 +447,10 @@
                     <span>Core Metadata</span>
                     <strong id="managedDeviceTitle">등록 장비</strong>
                   </div>
-                  <button type="button" class="management-primary-action" data-management-open-register>새 장비 추가</button>
+                  <div class="management-buttons">
+                    <button id="managementOpenProfileDialog" type="button">프로필 만들기</button>
+                    <button type="button" class="management-primary-action" data-management-open-register>새 장비 추가</button>
+                  </div>
                 </div>
                 <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
                 <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
@@ -603,6 +606,69 @@
                 <div class="management-dialog-actions">
                   <button type="button" data-management-close-dialog>취소</button>
                   <button id="managementCreateManualCandidate" type="submit" class="management-primary-action">후보 추가</button>
+                </div>
+              </form>
+            </dialog>
+
+            <dialog id="managementProfileDialog" class="management-dialog management-profile-dialog" aria-labelledby="managementProfileDialogTitle">
+              <form id="managementProfileForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>EdgeX Core Metadata</span>
+                    <h3 id="managementProfileDialogTitle">Device Profile 만들기</h3>
+                    <p>센서 데이터의 이름·자료형·단위를 정의합니다. Profile은 연결 parser나 장비 승인을 대신하지 않습니다.</p>
+                  </div>
+                  <button type="button" data-management-close-profile aria-label="Device Profile 만들기 닫기">닫기</button>
+                </div>
+
+                <div id="managementProfileInventory" class="management-profile-inventory" role="status" aria-live="polite">
+                  등록된 Profile을 확인하는 중입니다.
+                </div>
+
+                <div class="management-form-grid">
+                  <label>
+                    <span>Profile 이름</span>
+                    <input id="managementNewProfileName" type="text" required maxlength="255" pattern="[A-Za-z0-9._~-]+" placeholder="factory-temperature-v1" />
+                  </label>
+                  <label>
+                    <span>제조사</span>
+                    <input id="managementNewProfileManufacturer" type="text" required maxlength="255" placeholder="Arduino" />
+                  </label>
+                  <label>
+                    <span>모델</span>
+                    <input id="managementNewProfileModel" type="text" required maxlength="255" placeholder="uno-temperature-v1" />
+                  </label>
+                  <label>
+                    <span>레이블 · 쉼표로 구분</span>
+                    <input id="managementNewProfileLabels" type="text" maxlength="1000" placeholder="serial, temperature" />
+                  </label>
+                  <label class="management-field-wide">
+                    <span>설명</span>
+                    <input id="managementNewProfileDescription" type="text" required maxlength="1000" placeholder="라인 온도 센서의 읽기 전용 데이터 계약" />
+                  </label>
+                </div>
+
+                <section class="management-profile-resource-section" aria-labelledby="managementProfileResourcesTitle">
+                  <div class="management-section-head">
+                    <div>
+                      <span>읽기 전용 리소스</span>
+                      <strong id="managementProfileResourcesTitle">센서 데이터 항목</strong>
+                    </div>
+                    <button id="managementAddProfileResource" type="button">리소스 추가</button>
+                  </div>
+                  <div id="managementProfileResourceRows" class="management-profile-resource-rows"></div>
+                </section>
+
+                <p class="management-profile-safety-note">
+                  command, parser, Device Service 이미지와 장치 경로는 이 화면에서 만들거나 변경하지 않습니다.
+                </p>
+                <div id="managementProfileResult" class="management-result" role="status" aria-live="polite">
+                  필수 항목을 입력한 뒤 먼저 검증하세요.
+                </div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-profile>취소</button>
+                  <button id="managementValidateProfile" type="button">Profile 검증</button>
+                  <button id="managementCreateProfile" type="submit" class="management-primary-action" disabled>Profile 생성</button>
                 </div>
               </form>
             </dialog>
@@ -1023,7 +1089,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=device-management-unified-v2-20260728"></script>
+    <script src="/static/device-management.js?v=device-profile-editor-v1-20260728"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

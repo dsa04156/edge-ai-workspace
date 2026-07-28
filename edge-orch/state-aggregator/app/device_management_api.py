@@ -37,6 +37,8 @@ from .connection_management_models import (
     ConnectionValidationResult,
 )
 from .device_management import (
+    DeviceProfileApplyError,
+    DeviceProfileValidationError,
     IdempotencyConflict,
     ManagementApplyError,
     ManagementValidationError,
@@ -57,6 +59,10 @@ from .device_management_models import (
     AdapterStatusView,
     DeviceOnboardingRequest,
     DevicePatchRequest,
+    DeviceProfileApplyResult,
+    DeviceProfileCreateRequest,
+    DeviceProfileSummary,
+    DeviceProfileValidationResult,
     ManagementOperation,
     ValidationResult,
 )
@@ -256,6 +262,78 @@ def create_device_management_router(
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="EdgeX adapter state is unavailable",
+            ) from exc
+
+    @router.get("/profiles", response_model=list[DeviceProfileSummary])
+    async def get_profiles() -> list[DeviceProfileSummary]:
+        try:
+            return await management_service.list_profiles()
+        except EdgeXManagementError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="EdgeX Device Profile 목록을 조회할 수 없습니다.",
+            ) from exc
+
+    @router.post(
+        "/profiles/validate",
+        response_model=DeviceProfileValidationResult,
+    )
+    async def validate_profile(
+        request: DeviceProfileCreateRequest,
+    ) -> DeviceProfileValidationResult:
+        try:
+            return await management_service.validate_profile(
+                request,
+                actor="viewer",
+            )
+        except EdgeXManagementError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="EdgeX Device Profile 검증 상태를 조회할 수 없습니다.",
+            ) from exc
+
+    @router.post(
+        "/profiles",
+        response_model=DeviceProfileApplyResult,
+        status_code=status.HTTP_201_CREATED,
+    )
+    async def create_profile(
+        request: DeviceProfileCreateRequest,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+    ) -> DeviceProfileApplyResult:
+        actor = require_management_mutation()
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        try:
+            return await management_service.create_profile(
+                request,
+                idempotency_key=idempotency_key,
+                actor=actor,
+            )
+        except DeviceProfileValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=exc.result.model_dump(by_alias=True),
+            ) from exc
+        except IdempotencyConflict as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(exc),
+            ) from exc
+        except DeviceProfileApplyError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail={
+                    "profileName": exc.profile_name,
+                    "message": "EdgeX Device Profile 생성 또는 재조회에 실패했습니다.",
+                },
+            ) from exc
+        except EdgeXManagementError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="EdgeX Metadata backend is unavailable",
             ) from exc
 
     @router.post("/devices/validate", response_model=ValidationResult)

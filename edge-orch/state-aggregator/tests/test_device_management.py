@@ -12,6 +12,7 @@ from app.device_management import (
     DEVICE_PAYLOAD_HASH_TAG,
     DEVICE_REQUEST_ID_TAG,
     DeviceManagementService,
+    DeviceProfileValidationError,
     IdempotencyConflict,
     ManagementApplyError,
     ManagementValidationError,
@@ -23,6 +24,7 @@ from app.device_management_models import (
     AdapterCatalogDocument,
     DeviceOnboardingRequest,
     DevicePatchRequest,
+    DeviceProfileCreateRequest,
 )
 
 
@@ -155,6 +157,10 @@ class FakeMetadata:
         self.calls.append(f"get_profile:{name}")
         return copy.deepcopy(self.profiles.get(name))
 
+    async def list_profiles(self):
+        self.calls.append("list_profiles")
+        return copy.deepcopy(list(self.profiles.values()))
+
     async def list_devices_by_profile(self, name):
         self.calls.append(f"list_by_profile:{name}")
         return [
@@ -216,6 +222,31 @@ def service_for(catalog, metadata=None, events=None, *, limit=256):
     )
 
 
+def profile_request(
+    *,
+    name="web-temperature-v1",
+    resources=None,
+):
+    return DeviceProfileCreateRequest.model_validate(
+        {
+            "name": name,
+            "description": "웹에서 검증한 온도 Profile",
+            "manufacturer": "Example",
+            "model": "temperature-v1",
+            "labels": ["serial", "temperature"],
+            "resources": resources
+            or [
+                {
+                    "name": "temperature",
+                    "description": "Temperature reading",
+                    "valueType": "Float64",
+                    "units": "Cel",
+                }
+            ],
+        }
+    )
+
+
 @async_test
 async def test_adapter_runtime_status_comes_from_core_metadata(catalog):
     metadata = FakeMetadata()
@@ -228,6 +259,105 @@ async def test_adapter_runtime_status_comes_from_core_metadata(catalog):
     assert statuses["serial-jetson"] == "unavailable"
     assert statuses["sensehat-raspi"] == "unavailable"
     assert statuses["modbus"] == "unsupported"
+
+
+@async_test
+async def test_web_profile_validation_and_creation_are_read_only_and_idempotent(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    request = profile_request()
+
+    validation = await service.validate_profile(request, actor="viewer")
+    created = await service.create_profile(
+        request,
+        idempotency_key="profile-create-01",
+        actor="dashboard-operator",
+    )
+    replay = await service.create_profile(
+        request,
+        idempotency_key="profile-create-01",
+        actor="dashboard-operator",
+    )
+    profiles = await service.list_profiles()
+
+    assert validation.valid is True
+    assert [item.code for item in validation.warnings] == [
+        "profile_binding_required"
+    ]
+    assert created.created is True
+    assert created.status == "created"
+    assert replay == created
+    assert created.profile["deviceCommands"] == []
+    assert created.profile["deviceResources"][0]["properties"] == {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "Cel",
+    }
+    assert "edge-ai-web-managed" in created.profile["labels"]
+    assert [item.name for item in profiles] == [
+        "etri-arduino-temperature",
+        "web-temperature-v1",
+    ]
+
+
+@async_test
+async def test_web_profile_rejects_name_conflict_and_idempotency_reuse(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    request = profile_request()
+    await service.create_profile(
+        request,
+        idempotency_key="profile-create-02",
+        actor="dashboard-operator",
+    )
+
+    changed = profile_request(
+        resources=[
+            {
+                "name": "temperature",
+                "valueType": "Int32",
+                "units": "raw",
+            }
+        ]
+    )
+    validation = await service.validate_profile(changed, actor="viewer")
+
+    assert validation.valid is False
+    assert validation.issues[0].code == "profile_name_conflict"
+    with pytest.raises(IdempotencyConflict):
+        await service.create_profile(
+            changed,
+            idempotency_key="profile-create-02",
+            actor="dashboard-operator",
+        )
+    with pytest.raises(DeviceProfileValidationError):
+        await service.create_profile(
+            changed,
+            idempotency_key="profile-create-03",
+            actor="dashboard-operator",
+        )
+
+
+@async_test
+async def test_web_profile_warns_when_units_are_not_declared(catalog):
+    result = await service_for(catalog).validate_profile(
+        profile_request(
+            resources=[
+                {
+                    "name": "raw_value",
+                    "valueType": "Int32",
+                    "units": "",
+                }
+            ]
+        ),
+        actor="viewer",
+    )
+
+    assert result.valid is True
+    assert [item.code for item in result.warnings] == [
+        "profile_binding_required",
+        "profile_units_missing",
+    ]
 
 
 @async_test

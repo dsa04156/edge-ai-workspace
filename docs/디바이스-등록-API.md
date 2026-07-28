@@ -334,3 +334,88 @@ state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC
 외부 AuthProvider의 승인도 후보 장비 신뢰 검증 단계로 유지되지만 운영자 인증은 아니다.
 따라서 이 BFF는 접근이 제한된 개발 테스트베드용이며 운영 노출 전 별도 사용자
 인증·인가를 앞단에 추가해야 한다.
+
+## 대시보드 Device Profile BFF
+
+대시보드의 `프로필 만들기`는 Adapter Controller가 아니라 `state-aggregator`가
+Core Metadata와 직접 통신하는 다음 BFF를 사용한다. 브라우저 `Authorization` header는
+사용하지 않으며 생성 요청만 `Idempotency-Key`를 요구한다.
+
+### Profile 목록
+
+```http
+GET /management/profiles
+```
+
+Core Metadata Profile의 이름, 설명, 제조사, 모델, label과 resource 수를 이름순으로
+반환한다.
+
+### Profile 검증
+
+```http
+POST /management/profiles/validate
+Content-Type: application/json
+
+{
+  "name": "arduino-environment-v1",
+  "description": "Arduino 환경 센서 읽기 계약",
+  "manufacturer": "Arduino",
+  "model": "uno-environment-v1",
+  "labels": ["serial", "environment"],
+  "resources": [
+    {
+      "name": "temperature",
+      "valueType": "Float64",
+      "units": "Cel",
+      "description": "온도"
+    },
+    {
+      "name": "humidity",
+      "valueType": "Float64",
+      "units": "percent",
+      "description": "상대 습도"
+    }
+  ]
+}
+```
+
+허용 value type은 `Bool`, signed/unsigned `Int8`~`Int64`, `Float32`,
+`Float64`, `String`이다. resource는 1~64개이며 이름은 Profile 안에서 고유해야 한다.
+이 API는 mutation을 수행하지 않는다. 같은 이름의 Profile이 다른 resource 계약으로
+존재하면 `valid=false`, `profile_name_conflict`를 반환한다. 동일 계약이면 재사용
+warning을 반환한다.
+
+### Profile 생성
+
+```http
+POST /management/profiles
+Idempotency-Key: profile-create-<unique-request>
+Content-Type: application/json
+
+{same payload as validation}
+```
+
+서버는 모든 resource를 `readWrite=R`로 만들고 `edge-ai-web-managed` label을 추가한다.
+생성 뒤 Core Metadata readback의 이름·설명·제조사·모델과 resource
+`name/valueType/readWrite/units` 계약을 다시 비교한다. readback이 다르면 이번 요청이
+새로 만든 Profile만 rollback한다. 기존 Profile은 삭제하지 않는다.
+
+대표 응답:
+
+```json
+{
+  "requestId": "<64 lowercase hex>",
+  "payloadHash": "<64 lowercase hex>",
+  "name": "arduino-environment-v1",
+  "created": true,
+  "status": "created",
+  "profile": {
+    "name": "arduino-environment-v1"
+  }
+}
+```
+
+`status=existing`은 동일 계약의 기존 Profile을 재사용했다는 뜻이다. Profile 생성은
+parser, Device Service image, raw device path, Catalog binding, Device와 command를
+생성하지 않는다. 따라서 발견 후보의 승인 조건은 그대로이며 Profile만 만든 후보를
+`registration-ready`로 간주하지 않는다.

@@ -232,6 +232,89 @@ class ProfileSelection(ManagementModel):
         return self
 
 
+class DeviceProfileResourceInput(ManagementModel):
+    name: str = Field(
+        min_length=1,
+        max_length=255,
+        pattern=r"^[A-Za-z0-9._~-]+$",
+    )
+    description: str = Field(default="", max_length=1000)
+    value_type: Literal[
+        "Bool",
+        "Int8",
+        "Int16",
+        "Int32",
+        "Int64",
+        "Uint8",
+        "Uint16",
+        "Uint32",
+        "Uint64",
+        "Float32",
+        "Float64",
+        "String",
+    ]
+    units: str = Field(default="", max_length=64)
+
+
+class DeviceProfileCreateRequest(ManagementModel):
+    name: str = Field(
+        min_length=1,
+        max_length=255,
+        pattern=r"^[A-Za-z0-9._~-]+$",
+    )
+    description: str = Field(min_length=1, max_length=1000)
+    manufacturer: str = Field(min_length=1, max_length=255)
+    model: str = Field(min_length=1, max_length=255)
+    labels: list[str] = Field(default_factory=list, max_length=32)
+    resources: list[DeviceProfileResourceInput] = Field(
+        min_length=1,
+        max_length=64,
+    )
+
+    @model_validator(mode="after")
+    def validate_profile_contract(self) -> "DeviceProfileCreateRequest":
+        resource_names = [item.name for item in self.resources]
+        if len(resource_names) != len(set(resource_names)):
+            raise ValueError("Device Profile resource names must be unique")
+        if len(self.labels) != len(set(self.labels)):
+            raise ValueError("Device Profile labels must be unique")
+        if any(
+            not label
+            or label != label.strip()
+            or len(label) > 64
+            for label in self.labels
+        ):
+            raise ValueError(
+                "Device Profile labels must be trimmed strings up to 64 characters"
+            )
+        return self
+
+
+class DeviceProfileSummary(ManagementModel):
+    name: str
+    description: str = ""
+    manufacturer: str = ""
+    model: str = ""
+    labels: list[str] = Field(default_factory=list)
+    resource_count: int = Field(default=0, ge=0)
+
+
+class DeviceProfileValidationResult(ManagementModel):
+    valid: bool
+    issues: list[ValidationIssue] = Field(default_factory=list)
+    warnings: list[ValidationIssue] = Field(default_factory=list)
+    profile: dict[str, Any] = Field(default_factory=dict)
+
+
+class DeviceProfileApplyResult(ManagementModel):
+    request_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    payload_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    name: str
+    created: bool
+    status: Literal["created", "existing"]
+    profile: dict[str, Any]
+
+
 class DeviceOnboardingRequest(ManagementModel):
     adapter_id: str
     hardware_binding_id: str | None = Field(default=None, min_length=1, max_length=128)

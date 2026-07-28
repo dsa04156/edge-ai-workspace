@@ -22,6 +22,7 @@ const {
   connectionApplyButtonView,
   canPatchSelectedDevice,
   connectionStatusView,
+  createManagementProfile,
   createManualCandidate,
   createManagementConnection,
   createManagementDevice,
@@ -36,6 +37,7 @@ const {
   fetchManagementAdapters,
   fetchManagementNodes,
   fetchManagementOperation,
+  fetchManagementProfiles,
   managementApiUrl,
   managementDeviceNode,
   managementPayload,
@@ -50,6 +52,9 @@ const {
   pollManagementOperation,
   preferredManagementNode,
   physicalObservationStatus,
+  profileDraftFromCandidate,
+  profilePayloadFingerprint,
+  profileSafeName,
   protocolPackageStatus,
   restartAdapterRuntime,
   retireAdapterRuntime,
@@ -58,6 +63,7 @@ const {
   updateCandidateDecision,
   validateManagementConnection,
   validateManagementDevice,
+  validateManagementProfile,
 } = require("../app/static/device-management.js");
 const {
   dashboardViewModeButtonCopy,
@@ -134,6 +140,100 @@ test("loads KubeEdge node inventory without browser cache", async () => {
     options: {cache: "no-store"},
   });
   assert.equal(nodes[0].hostname, "etri-dev0001-jetorn");
+});
+
+
+test("lists, validates, and creates Device Profiles through the token-free BFF", async () => {
+  const requests = [];
+  const profile = {
+    name: "arduino-multisensor-v1",
+    description: "Arduino multisensor",
+    manufacturer: "Arduino",
+    model: "uno-r4",
+    labels: ["serial"],
+    resources: [{
+      name: "temperature",
+      valueType: "Float64",
+      units: "Cel",
+      description: "Temperature",
+    }],
+  };
+  const fetchFn = async (url, options = {}) => {
+    requests.push({url, options});
+    if (options.method === "POST" && url.endsWith("/validate")) {
+      return response({
+        valid: true,
+        issues: [],
+        warnings: [],
+        profile: {deviceResources: [{}]},
+      });
+    }
+    if (options.method === "POST") {
+      return response({
+        requestId: "a".repeat(64),
+        payloadHash: "b".repeat(64),
+        name: profile.name,
+        created: true,
+        status: "created",
+        profile: {name: profile.name},
+      }, {status: 201});
+    }
+    return response([{
+      name: profile.name,
+      resourceCount: 1,
+    }]);
+  };
+
+  const profiles = await fetchManagementProfiles(fetchFn);
+  const validation = await validateManagementProfile(profile, fetchFn);
+  const applied = await createManagementProfile(profile, {
+    idempotencyKey: "profile-create-1",
+    fetchFn,
+  });
+
+  assert.equal(profiles[0].name, profile.name);
+  assert.equal(validation.valid, true);
+  assert.equal(applied.status, "created");
+  assert.deepEqual(requests[0], {
+    url: "/management/profiles",
+    options: {cache: "no-store"},
+  });
+  assert.equal(requests[1].url, "/management/profiles/validate");
+  assert.equal(requests[1].options.method, "POST");
+  assert.equal(requests[2].url, "/management/profiles");
+  assert.equal(requests[2].options.headers["Idempotency-Key"], "profile-create-1");
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      requests[2].options.headers,
+      "Authorization",
+    ),
+    false,
+  );
+});
+
+
+test("candidate Profile draft preserves identity hints but does not guess data types", () => {
+  assert.equal(profileSafeName(" Arduino UNO / Temp "), "arduino-uno-temp");
+  const draft = profileDraftFromCandidate({
+    displayName: "UNO 환경 센서",
+    protocol: "serial",
+    vendor: "Arduino",
+    model: "uno-multisensor",
+    capabilities: ["temperature", "humidity", "temperature"],
+  });
+
+  assert.equal(draft.name, "uno-multisensor-v1");
+  assert.equal(draft.manufacturer, "Arduino");
+  assert.equal(draft.model, "uno-multisensor");
+  assert.deepEqual(
+    draft.resources.map((resource) => resource.name),
+    ["temperature", "humidity"],
+  );
+  assert.ok(draft.resources.every((resource) => resource.valueType === ""));
+  assert.notEqual(
+    profilePayloadFingerprint({...draft, model: "uno-multisensor-v2"}),
+    profilePayloadFingerprint(draft),
+  );
 });
 
 
@@ -407,6 +507,13 @@ test("device management uses one overview instead of separate menu tabs", () => 
   );
   assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
   assert.match(html, /data-management-return-overview>등록 현황으로</);
+  assert.match(html, /id="managementOpenProfileDialog"[^>]*>프로필 만들기</);
+  assert.match(html, /id="managementProfileDialog"/);
+  assert.match(html, /id="managementProfileResourceRows"/);
+  assert.match(
+    html,
+    /command, parser, Device Service 이미지와 장치 경로는 이 화면에서 만들거나 변경하지 않습니다/,
+  );
   assert.match(javascript, /activeView: "overview"/);
   assert.match(javascript, /deleteButton\.dataset\.managementDeleteDevice/);
 });
@@ -1647,8 +1754,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=device-management-unified-v2-20260728/);
-  assert.match(html, /device-management\.css\?v=device-management-unified-v2-20260728/);
-  assert.match(html, /device-management\.js\?v=device-management-unified-v2-20260728/);
+  assert.match(html, /device-management\.css\?v=device-profile-editor-v1-20260728/);
+  assert.match(html, /device-management\.js\?v=device-profile-editor-v1-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
