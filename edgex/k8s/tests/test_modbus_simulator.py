@@ -59,7 +59,7 @@ def request_register(
 def running_server() -> tuple[ModbusTCPServer, threading.Thread]:
     server = ModbusTCPServer(
         ("127.0.0.1", 0),
-        unit_ids={1, 2},
+        unit_ids={1, 2, 3},
         registers=RegisterBank(temperature_provider=lambda: 235),
     )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -105,10 +105,22 @@ def test_serves_a_second_virtual_sensor_unit() -> None:
     assert payload == b"\x03\x02\x00\xeb"
 
 
-def test_rejects_wrong_unit_id() -> None:
+def test_serves_a_third_virtual_sensor_unit() -> None:
     server, thread = running_server()
     try:
         payload = request_register(server.server_address, unit_id=3)
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+    assert payload == b"\x03\x02\x00\xeb"
+
+
+def test_rejects_wrong_unit_id() -> None:
+    server, thread = running_server()
+    try:
+        payload = request_register(server.server_address, unit_id=4)
     finally:
         server.shutdown()
         server.server_close()
@@ -118,7 +130,7 @@ def test_rejects_wrong_unit_id() -> None:
 
 
 def test_parses_validated_unit_id_list() -> None:
-    assert parse_unit_ids("1, 2,2") == {1, 2}
+    assert parse_unit_ids("1, 2,3,2") == {1, 2, 3}
 
     for invalid in ("", "1,invalid", "248"):
         try:
@@ -151,7 +163,7 @@ def test_development_overlay_is_node_pinned_and_non_privileged() -> None:
     )
     assert container["securityContext"]["privileged"] is False
     assert container["securityContext"]["readOnlyRootFilesystem"] is True
-    assert {"name": "MODBUS_UNIT_IDS", "value": "1,2"} in container["env"]
+    assert {"name": "MODBUS_UNIT_IDS", "value": "1,2,3"} in container["env"]
     assert "clusterIP" not in service["spec"]
     assert service["spec"]["ports"] == [
         {"name": "modbus-tcp", "port": 1502, "targetPort": "modbus-tcp"}

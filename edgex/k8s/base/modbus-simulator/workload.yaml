@@ -52,7 +52,7 @@ spec:
             - name: MODBUS_LISTEN_PORT
               value: "1502"
             - name: MODBUS_UNIT_IDS
-              value: "1,2"
+              value: "1,2,3"
           ports:
             - name: modbus-tcp
               containerPort: 1502

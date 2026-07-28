@@ -67,6 +67,23 @@ def virtual_modbus_candidate() -> StoredCandidate:
     )
 
 
+def third_virtual_modbus_candidate() -> StoredCandidate:
+    return virtual_modbus_candidate().model_copy(
+        update={
+            "candidate_id": "candidate-" + "f" * 64,
+            "identity_hash": "f" * 64,
+            "display_name": "Virtual temperature sensor 003",
+            "hardware_id": "simulator-endpoint-003",
+            "properties": {
+                "Mode": "tcp",
+                "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+                "Port": 1502,
+                "UnitID": 3,
+            },
+        }
+    )
+
+
 def test_device_catalog_exact_match_and_allowlists():
     catalog = DeviceBindingCatalog.load(
         BASE / "config" / "device_bindings.json"
@@ -119,6 +136,24 @@ def test_device_catalog_exactly_matches_second_virtual_modbus_sensor():
     )
     assert match.binding.runtime_hardware_binding_id == (
         "jetson-modbus-tcp-virtual-sensor-002"
+    )
+    assert match.binding.device_name_prefix == "virtual-temperature"
+
+
+def test_device_catalog_exactly_matches_third_virtual_modbus_sensor():
+    catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+
+    match = catalog.match(third_virtual_modbus_candidate())
+
+    assert catalog.errors == []
+    assert match.confidence == "exact"
+    assert match.binding.binding_id == (
+        "jetson-modbus-tcp-virtual-temperature-003-v1"
+    )
+    assert match.binding.runtime_hardware_binding_id == (
+        "jetson-modbus-tcp-virtual-sensor-003"
     )
     assert match.binding.device_name_prefix == "virtual-temperature"
 

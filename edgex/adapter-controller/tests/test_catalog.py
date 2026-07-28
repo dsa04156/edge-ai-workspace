@@ -66,6 +66,7 @@ def test_catalog_enables_only_the_pinned_official_modbus_simulator_path(catalog)
     assert [item.binding_id for item in template.hardware_bindings] == [
         "jetson-modbus-tcp-simulator-001",
         "jetson-modbus-tcp-virtual-sensor-002",
+        "jetson-modbus-tcp-virtual-sensor-003",
     ]
     assert template.hardware_bindings[0].host_device_path is None
     assert template.network_egress[0].namespace == "edgex-edge"

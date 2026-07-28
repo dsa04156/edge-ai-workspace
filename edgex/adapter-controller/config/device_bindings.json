@@ -133,6 +133,51 @@
         "approvalRequired": true
       },
       "deviceNamePrefix": "virtual-temperature"
+    },
+    {
+      "bindingId": "jetson-modbus-tcp-virtual-temperature-003-v1",
+      "protocol": "modbus",
+      "match": {
+        "nodeId": "etri-dev0001-jetorn",
+        "properties": {
+          "Mode": "tcp",
+          "Host": "edge-modbus-simulator.edgex-edge.svc.cluster.local",
+          "Port": 1502,
+          "UnitID": 3
+        }
+      },
+      "runtimeHardwareBindingId": "jetson-modbus-tcp-virtual-sensor-003",
+      "connection": {
+        "Timeout": 5,
+        "IdleTimeout": 5
+      },
+      "connectionPropertyMap": {
+        "Address": "Host",
+        "Port": "Port",
+        "UnitID": "UnitID"
+      },
+      "edgeXProtocol": "modbus-tcp",
+      "autoEvents": [
+        {
+          "sourceName": "temperature",
+          "interval": "1s",
+          "onChange": false
+        }
+      ],
+      "adapter": {
+        "runtimeAdapterId": "modbus",
+        "serviceName": "device-modbus",
+        "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",
+        "parser": "edgex-device-modbus-v4.0.2"
+      },
+      "profile": {
+        "name": "edgeai-modbus-temperature-v1",
+        "file": "profiles/edgeai-modbus-temperature-v1.json"
+      },
+      "security": {
+        "approvalRequired": true
+      },
+      "deviceNamePrefix": "virtual-temperature"
     }
   ]
 }
