@@ -3443,7 +3443,7 @@ function addProfileResourceRow(
       value: resource.name || "",
       placeholder: "temperature",
       required: true,
-      pattern: "[A-Za-z0-9._~-]+",
+      pattern: "[A-Za-z0-9._~\\-]+",
     }),
     profileResourceField(documentRef, {
       label: "자료형",

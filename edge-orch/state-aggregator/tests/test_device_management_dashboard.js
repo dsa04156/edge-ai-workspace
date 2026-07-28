@@ -510,6 +510,8 @@ test("device management uses one overview instead of separate menu tabs", () => 
   assert.match(html, /id="managementOpenProfileDialog"[^>]*>프로필 만들기</);
   assert.match(html, /id="managementProfileDialog"/);
   assert.match(html, /id="managementProfileResourceRows"/);
+  assert.match(html, /pattern="\[A-Za-z0-9\._~\\-\]\+"/);
+  assert.match(javascript, /pattern: "\[A-Za-z0-9\._~\\\\-\]\+"/);
   assert.match(
     html,
     /command, parser, Device Service 이미지와 장치 경로는 이 화면에서 만들거나 변경하지 않습니다/,
@@ -1754,8 +1756,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=device-management-unified-v2-20260728/);
-  assert.match(html, /device-management\.css\?v=device-profile-editor-v1-20260728/);
-  assert.match(html, /device-management\.js\?v=device-profile-editor-v1-20260728/);
+  assert.match(html, /device-management\.css\?v=device-profile-editor-v2-20260728/);
+  assert.match(html, /device-management\.js\?v=device-profile-editor-v2-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
