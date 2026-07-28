@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-28 18:42</span>
+            <span class="badge">수정: 2026-07-28 19:14</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -273,7 +273,7 @@
 <ul><li>신규 connection은 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 EdgeX Device</li></ul>
 <p>system tag로 기록한다. 연결 등록만으로 물리 장비가 감지됐다고 판단하지 않고 <code>operatingState</code>와 latest Event를 별도 증거로 표시한다.</p>
 <ul><li>웹 Device Profile 편집기는 Core Metadata Profile 목록과 읽기 전용 DeviceResource</li></ul>
-<p>계약의 사전 검증·idempotent 생성·readback을 제공한다. 동일 이름의 다른 계약은 차단하고 동일 계약은 재사용한다. 후보 model/capability 초안에서 value type과 units를 추측하지 않으며 parser, Device Service image, raw device path, Catalog binding, Device와 command를 생성하지 않는다.</p>
+<p>계약의 사전 검증·idempotent 생성·readback을 제공한다. 동일 이름의 다른 계약은 차단하고 동일 계약은 재사용한다. 웹 생성 Profile은 등록 현황에 즉시 표시하고 전체 목록은 <code>장비 연결</code> 단계에서 선택한다. 후보 model/capability 초안에서 value type과 units를 추측하지 않으며 parser, Device Service image, raw device path, Catalog binding, Device와 command를 생성하지 않는다.</p>
 <ul><li>Serial driver는 <code>(Port, BaudRate, DeviceID)</code>별 reader를 만들고 같은 tuple의 여러</li></ul>
 <p><code>ResourceName</code>은 reader를 공유한다. 두 번째 등록 Serial 포트도 같은 Device Service가 처리하므로 센서마다 Pod를 만들지 않는다. 다만 실제 포트를 추가할 때는 stable host identity, exact Pod 장치 마운트, 두 catalog의 binding과 external runtime <code>hardwareBindingIds</code>를 같은 Git 변경으로 등록해야 한다.</p>
 <ul><li>같은 service/protocol endpoint와 resource route를 이미 소유한 Device가 있으면</li></ul>

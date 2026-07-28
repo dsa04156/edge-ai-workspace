@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-28 18:42</span>
+            <span class="badge">수정: 2026-07-28 19:14</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -219,12 +219,18 @@
 <p>고정된 <code>edge-device-discovery</code> Agent만 read-only <code>/dev</code>, <code>/sys</code>에서 중앙 Discovery Plan이 허용한 stable Serial identity와 I2C identity rule을 확인한다. I2C 버스 존재만으로 센서 후보를 만들지 않으며 네트워크 대역 scan은 수행하지 않는다. MQTT는 자기등록 schema parser까지만 있고 subscriber가 없으며 Modbus, OPC-UA, ONVIF scanner는 미구현이다.</p>
 <p>이 결과는 <code>발견 후보</code>이지 위 표의 <code>장비 관측</code>이 아니다. exact Device Catalog match 뒤 운영자가 승인하면 Controller가 외부 인증, 검증 Runtime 재사용/배포, 실제 image digest, Profile/Device 등록과 readback, first Event를 하나의 영속 Saga로 진행한다. <code>EVENT_CONFIRMED</code> 이전은 등록 완료가 아니다.</p>
 <h3 id="화면-사용-순서">화면 사용 순서</h3>
-<p>노드를 선택한 뒤에는 한 화면에서 모든 입력을 동시에 다루지 않고 다음 네 작업 탭을 사용한다.</p>
-<ol><li><code>장비 발견</code>: Agent 상태와 후보의 presence·상태·인증·package를 검색/필터한다.</li></ol>
-<p><code>PENDING_APPROVAL</code>의 <code>등록 가능</code> 후보를 승인하면 영속 Registration Saga가 시작된다. 미지원 후보는 거절하고, 인증/backend 실패는 원인을 확인한 뒤 허용된 상태에서 재시도한다.</p>
-<ol><li><code>노드 현황</code>: <code>등록 연결과 실제 장비 상태</code>에서 네 증거를 비교하고 Runtime, protocol package와 기존 EdgeX Device를 확인한다. 미검증 protocol은 <code>설치 전 확인이 필요한 프로토콜</code>을 펼쳤을 때 표시된다.</li><li><code>새 디바이스 등록</code>: <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 실행 계획과 결과는 마지막 단계에 있다.</li><li><code>기존 디바이스 수정</code>: 선택 노드의 Device를 목록에서 먼저 고른 뒤 설명, label, <code>adminState</code> 등 허용된 항목만 수정한다. protocol properties JSON은 고급 설정에 있다.</li></ol>
-<p>노드 현황의 Device 카드에 있는 <code>수정</code>을 누르면 같은 Device가 선택된 수정 탭으로 이동한다. 노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 탭과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
-<p>등록 현황의 <code>프로필 만들기</code>는 Profile만 별도로 준비할 때 사용한다.</p>
+<p>노드를 선택하면 기본 <code>등록 현황</code>에 다음 순서로 필요한 정보와 동작을 모은다.</p>
+<ol><li><code>등록 장비</code>: 기존 EdgeX Device를 먼저 확인한다. 새 연결의 주 동작은 <code>장비 연결</code></li></ol>
+<p>하나이며 Device 카드의 <code>수정</code>은 선택한 Device의 수정 화면으로 이동한다.</p>
+<ol><li><code>디바이스 프로필</code>: 웹에서 생성한 Profile을 즉시 확인하고 <code>프로필 생성</code>으로</li></ol>
+<p>읽기 전용 resource 계약을 추가한다. 기존 Profile까지 포함한 전체 목록은 장비 연결 3단계의 선택 상자에서 제공한다.</p>
+<ol><li><code>연결 대기</code>: Agent 상태와 후보의 presence·상태·인증·package를 검색/필터한다.</li></ol>
+<p><code>PENDING_APPROVAL</code>의 <code>등록 가능</code> 후보를 승인하면 영속 Registration Saga가 시작된다. 자동 탐색에 나오지 않는 endpoint만 접힌 <code>직접 후보 등록</code>으로 선언한다.</p>
+<ol><li><code>수집 서비스</code>: 등록 연결과 실제 장비 상태의 증거, Runtime, protocol package와</li></ol>
+<p>기존 EdgeX Device를 확인한다. 미검증 protocol은 설치 전 확인 영역에서만 표시된다.</p>
+<p><code>장비 연결</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 실행 계획과 결과는 마지막 단계에 있다. 기존 디바이스 수정에서는 설명, label, <code>adminState</code> 등 허용된 항목만 바꿀 수 있고 protocol properties JSON은 고급 설정에 있다.</p>
+<p>노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 화면 전환과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
+<p>등록 현황의 <code>프로필 생성</code>은 Profile만 별도로 준비할 때 사용한다.</p>
 <ol><li>이름, 제조사, 모델과 설명을 입력한다.</li><li>각 읽기 resource의 고유 이름, EdgeX value type, 단위와 설명을 입력한다.</li><li><code>Profile 검증</code>으로 같은 이름의 충돌과 resource 계약을 확인한다.</li><li>검증 이후 입력을 바꾸지 않은 상태에서만 <code>Profile 생성</code>을 실행한다.</li><li>기존 동일 계약이면 새 Profile을 만들지 않고 재사용한다.</li></ol>
 <p>후보 화면에서 연 Profile은 model과 capability 이름만 초안으로 채운다. value type과 units는 장비 문서·Manifest·parser 계약을 확인해 운영자가 입력한다. Profile을 생성해도 검증된 parser, immutable Device Service image와 exact hardware binding은 자동으로 추가되지 않으므로 후보 승인 가능 상태가 바로 바뀌지 않는 것이 정상이다.</p>
 <h3 id="프로토콜-패키지-상태">프로토콜 패키지 상태</h3>

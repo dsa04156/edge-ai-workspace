@@ -55,6 +55,7 @@ const {
   profileDraftFromCandidate,
   profilePayloadFingerprint,
   profileSafeName,
+  profileSelectionGroups,
   protocolPackageStatus,
   restartAdapterRuntime,
   retireAdapterRuntime,
@@ -234,6 +235,33 @@ test("candidate Profile draft preserves identity hints but does not guess data t
     profilePayloadFingerprint({...draft, model: "uno-multisensor-v2"}),
     profilePayloadFingerprint(draft),
   );
+});
+
+
+test("web-created Profiles are visible before stock Profiles", () => {
+  const profiles = [
+    {
+      name: "stock-temperature",
+      labels: ["serial"],
+      model: "stock-v1",
+      resourceCount: 1,
+    },
+    {
+      name: "mpu6050-imu-v1",
+      labels: ["imu", "edge-ai-web-managed"],
+      model: "MPU-6050",
+      resourceCount: 6,
+    },
+  ];
+
+  const groups = profileSelectionGroups(profiles);
+
+  assert.deepEqual(groups.managed.map((profile) => profile.name), [
+    "mpu6050-imu-v1",
+  ]);
+  assert.deepEqual(groups.existing.map((profile) => profile.name), [
+    "stock-temperature",
+  ]);
 });
 
 
@@ -507,9 +535,25 @@ test("device management uses one overview instead of separate menu tabs", () => 
   );
   assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
   assert.match(html, /data-management-return-overview>등록 현황으로</);
-  assert.match(html, /id="managementOpenProfileDialog"[^>]*>프로필 만들기</);
+  assert.match(html, /id="managementProfileLibraryTitle">디바이스 프로필</);
+  assert.match(html, /id="managementProfileLibraryList"/);
+  assert.match(html, /id="managementOpenProfileDialog"[\s\S]*?프로필 생성/);
+  assert.ok(
+    html.indexOf('id="managedDeviceTitle"')
+      < html.indexOf('id="managementProfileLibraryTitle"'),
+  );
   assert.match(html, /id="managementProfileDialog"/);
   assert.match(html, /id="managementProfileResourceRows"/);
+  assert.match(html, /id="managementProfileName" required>/);
+  assert.match(html, /id="managementOpenProfileFromRegistration"/);
+  assert.equal((html.match(/data-management-open-register/g) || []).length, 1);
+  assert.doesNotMatch(html, />새 장비 추가</);
+  assert.doesNotMatch(html, />장비 추가</);
+  assert.match(html, />장비 연결</);
+  assert.match(
+    html,
+    /id="managementOpenManualCandidate"[^>]*>[\s\S]*?직접 후보 등록/,
+  );
   assert.match(html, /pattern="\[A-Za-z0-9\._~\\-\]\+"/);
   assert.match(javascript, /pattern: "\[A-Za-z0-9\._~\\\\-\]\+"/);
   assert.match(
@@ -1722,6 +1766,12 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementFixtureDeviceSection",
     "managementFixtureDeviceList",
     "managementFixtureDeviceCount",
+    "managementProfileLibraryList",
+    "managementProfileLibraryCount",
+    "managementOpenProfileDialog",
+    "managementOpenProfileFromRegistration",
+    "managementProfileName",
+    "managementProfileSelectionHint",
     "devicePatchForm",
     "managementOverviewPanel",
     "managementRegisterPanel",
@@ -1756,8 +1806,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=device-management-unified-v2-20260728/);
-  assert.match(html, /device-management\.css\?v=device-profile-editor-v2-20260728/);
-  assert.match(html, /device-management\.js\?v=device-profile-editor-v2-20260728/);
+  assert.match(html, /device-management\.css\?v=device-profile-library-v3-20260728/);
+  assert.match(html, /device-management\.js\?v=device-profile-library-v3-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1765,14 +1815,19 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="deviceManagementTitle">장비 관리</);
   assert.match(html, /id="managementNodeTitle">노드 선택</);
   assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
-  assert.match(html, /id="managementOpenManualCandidate"[^>]*>장비 추가</);
+  assert.match(
+    html,
+    /id="managementOpenManualCandidate"[^>]*>[\s\S]*?직접 후보 등록/,
+  );
   assert.match(html, /service-demo-value-detail/);
   assert.match(html, /id="managementDeviceServiceTitle">수집 서비스</);
   assert.match(html, /실제 장비가 아닌 개발·연동 시험용 시뮬레이터/);
   assert.doesNotMatch(html, /선택 노드의 런타임/);
   assert.doesNotMatch(html, /id="managementCatalogTitle">프로토콜 패키지/);
   assert.match(html, /연결 구성 마법사/);
-  assert.match(html, /새 장비 추가/);
+  assert.match(html, /id="managementRegisterTitle">장비 연결/);
+  assert.match(html, /id="managementProfileLibraryTitle">디바이스 프로필/);
+  assert.match(html, /id="managementProfileName" required>/);
   assert.match(html, /연결 프로토콜 · Device Service/);
   assert.match(html, /Device Service 준비 방식/);
   assert.match(html, /등록된 물리 연결/);

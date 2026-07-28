@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-28 18:42</span>
+            <span class="badge">수정: 2026-07-28 19:14</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -233,6 +233,13 @@
 <p>대화상자를 추가했다. 읽기 전용 resource를 최대 64개 입력하고 동일 이름의 다른 계약은 차단하며 동일 계약은 재사용한다.</p>
 <ul><li>메모: 후보의 model/capability는 type을 추측하지 않는 초안으로만 사용한다. Profile</li></ul>
 <p>생성은 parser, Device Service image, raw device path, Catalog binding, Device, command 또는 후보 승인을 자동 생성하지 않는다.</p>
+<h2 id="2026-07-28-fix-장비-관리-진입점과-profile-선택-단순화">[2026-07-28] fix | 장비 관리 진입점과 Profile 선택 단순화</h2>
+<ul><li>근거: <code>edge-orch/state-aggregator/app/static/device-management.*</code>,</li></ul>
+<p><code>edge-orch/state-aggregator/app/static/index.html</code>, dashboard JavaScript 테스트</p>
+<ul><li>갱신: 등록 장비를 첫 영역으로 유지하고 새 연결 주 동작을 <code>장비 연결</code> 하나로 통합했다.</li></ul>
+<p>웹 생성 Profile은 등록 현황에 즉시 표시하며 전체 Profile은 연결 3단계의 선택 목록으로 제공한다. 수동 후보 입력은 자동 탐색 보조 영역의 <code>직접 후보 등록</code>으로 접었다.</p>
+<ul><li>메모: Profile 생성은 parser, Device Service image, hardware binding 또는 장비 등록을</li></ul>
+<p>자동 생성하지 않는 기존 검증 경계를 유지한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
@@ -252,7 +259,8 @@
 <li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li>
 <li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li>
 <li class="toc-h2"><a href="#2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</a></li>
-<li class="toc-h2"><a href="#2026-07-28-ingest-대시보드-device-profile-편집-검증-추가">[2026-07-28] ingest | 대시보드 Device Profile 편집·검증 추가</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-28-ingest-대시보드-device-profile-편집-검증-추가">[2026-07-28] ingest | 대시보드 Device Profile 편집·검증 추가</a></li>
+<li class="toc-h2"><a href="#2026-07-28-fix-장비-관리-진입점과-profile-선택-단순화">[2026-07-28] fix | 장비 관리 진입점과 Profile 선택 단순화</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

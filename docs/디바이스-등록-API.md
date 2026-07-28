@@ -337,7 +337,7 @@ state-aggregator가 Adapter Controller로 보내는 내부 요청은 계속 HMAC
 
 ## 대시보드 Device Profile BFF
 
-대시보드의 `프로필 만들기`는 Adapter Controller가 아니라 `state-aggregator`가
+대시보드의 `디바이스 프로필` 영역과 `프로필 생성` 대화상자는 Adapter Controller가 아니라 `state-aggregator`가
 Core Metadata와 직접 통신하는 다음 BFF를 사용한다. 브라우저 `Authorization` header는
 사용하지 않으며 생성 요청만 `Idempotency-Key`를 요구한다.
 
@@ -348,7 +348,8 @@ GET /management/profiles
 ```
 
 Core Metadata Profile의 이름, 설명, 제조사, 모델, label과 resource 수를 이름순으로
-반환한다.
+반환한다. 웹에서 생성한 Profile은 등록 현황의 프로필 영역에 즉시 표시하며, 전체
+Profile은 `장비 연결` 3단계 선택 목록에 제공한다.
 
 ### Profile 검증
 

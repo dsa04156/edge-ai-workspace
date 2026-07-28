@@ -101,6 +101,7 @@ body[data-dashboard-page="management"] .side-rail {
 .management-physical-inventory,
 .management-runtime-inventory,
 .management-catalog,
+.management-profile-library,
 .management-device-inventory,
 .management-registration-form,
 .management-edit-form {
@@ -690,6 +691,51 @@ body[data-dashboard-page="management"] .side-rail {
   margin-top: 0;
 }
 
+.management-profile-library-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.management-profile-card {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid rgba(99, 208, 230, 0.28);
+  border-left: 3px solid #63d0e6;
+  border-radius: var(--radius-sm);
+  background: rgba(99, 208, 230, 0.045);
+}
+
+.management-profile-card strong,
+.management-profile-card span,
+.management-profile-card small {
+  overflow-wrap: anywhere;
+}
+
+.management-profile-card span,
+.management-profile-card small,
+.management-profile-library-note {
+  color: var(--muted);
+}
+
+.management-profile-card span {
+  font-size: 12px;
+}
+
+.management-profile-card small,
+.management-profile-library-note {
+  font-size: 11px;
+}
+
+.management-profile-library-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 2px 1px;
+}
+
 .managed-device-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1139,6 +1185,49 @@ body[data-dashboard-page="management"] .side-rail {
 .management-discovery-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.management-manual-candidate-access {
+  border-top: 1px solid var(--line);
+}
+
+.management-manual-candidate-access summary {
+  padding-top: 13px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.management-manual-candidate-access > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.management-manual-candidate-access p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#managementProfileSelectionHint {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#managementProfileSelectionHint[data-status="selected"] {
+  color: #8be5bd;
+}
+
+#managementProfileSelectionHint[data-status="error"] {
+  color: #ffadb6;
 }
 
 #managementDiscoveryStatus {
@@ -1674,6 +1763,11 @@ body[data-dashboard-page="management"] .side-rail {
     justify-content: flex-start;
   }
 
+  .management-manual-candidate-access > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .management-field-wide {
     grid-column: auto;
   }
@@ -1693,6 +1787,10 @@ body[data-dashboard-page="management"] .side-rail {
 
   .managed-device-actions button {
     flex: 1 1 120px;
+  }
+
+  .management-profile-library-list {
+    grid-template-columns: 1fr;
   }
 
   .management-step-panel {

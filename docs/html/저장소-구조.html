@@ -157,7 +157,7 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-28 18:42</span>
+            <span class="badge">수정: 2026-07-28 19:14</span>
             <span class="badge">HTML 생성: 2026-07-28 17:24</span>
           </div>
         </header>
@@ -309,7 +309,7 @@
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 대시보드</td>
-<td>EdgeX 상태/history와 서비스 데모를 표시한다. <code>디바이스 관리</code>는 발견 후보 검색·수동 endpoint 선언·승인/무시와 KubeEdge 노드 범위 선택, 읽기 전용 Device Profile 웹 편집·검증, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, EdgeX Device, 통합 validation/apply/first-Event 상태를 관리한다</td>
+<td>EdgeX 상태/history와 서비스 데모를 표시한다. <code>디바이스 관리</code>는 등록 장비를 먼저 보여 주고 <code>장비 연결</code> 하나를 신규 연결 진입점으로 사용한다. 웹 생성 Device Profile의 즉시 표시·전체 Profile 선택, 발견 후보 검색·승인/무시, 접힌 수동 endpoint 선언, KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, 통합 validation/apply/first-Event 상태를 관리한다</td>
 </tr>
 </tbody></table></div>
 <p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT 자기등록은 schema parser까지만 있고 subscriber는 없다. Modbus는 자동 discovery 없이 Git에 등록한 개발 simulator Unit 1·2 endpoint용 공식 Device Service 등록·Event 경로만 구현됐고, OPC-UA·ONVIF discovery는 미구현이다. RTSP는 별도 media 경로다.</p>
