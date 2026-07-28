@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-카탈로그.md</span>
-            <span class="badge">수정: 2026-07-28 12:03</span>
-            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
+            <span class="badge">수정: 2026-07-28 16:29</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
           </div>
         </header>
         <div class="doc-body">
@@ -172,7 +172,8 @@
   discovery_plans.json
   profiles/
     arduino-multisensor-v1.json
-    edgeai-modbus-temperature-v1.json</code></pre>
+    edgeai-modbus-temperature-v1.json
+    etri-sensehat-gyroscope.json</code></pre>
 <p><code>runtime_templates.json</code>은 Device Service Runtime의 배치 template이고, <code>device_bindings.json</code>은 stable hardware identity와 Runtime/Profile을 연결한다. 두 파일의 역할을 섞지 않는다.</p>
 <h2 id="runtime-network-egress">Runtime network egress</h2>
 <p>Controller가 만든 Runtime은 기본적으로 DNS와 중앙 EdgeX Keeper/Metadata/MessageBus에만 접근한다. TCP 기반 물리 endpoint가 추가로 필요하면 <code>runtime_templates.json</code>의 검토된 template에만 목적지를 선언한다.</p>
@@ -230,6 +231,7 @@
       &quot;security&quot;: {
         &quot;approvalRequired&quot;: true
       },
+      &quot;registrationMode&quot;: &quot;create-or-reuse&quot;,
       &quot;deviceNamePrefix&quot;: &quot;arduino&quot;
     }
   ]
@@ -243,7 +245,9 @@
 <p>예를 들어 후보 <code>modbus</code>는 Device 등록 시 <code>modbus-tcp</code> 또는 <code>modbus-rtu</code>가 된다.</p>
 <ul><li><code>connectionPropertyMap</code>은 후보 property를 EdgeX protocol property로 명시적으로</li></ul>
 <p>옮긴다. 요청 값으로 임의 key를 추가하지 않는다.</p>
-<ul><li><code>autoEvents</code>는 Git Catalog가 승인한 source와 interval만 Device에 추가한다.</li><li>여러 binding이 동시에 exact match되면 <code>ambiguous</code>로 차단한다.</li><li>active Manifest probe가 실패했거나 Manifest의 recommended Profile이 binding과 다르면</li></ul>
+<ul><li><code>autoEvents</code>는 Git Catalog가 승인한 source와 interval만 Device에 추가한다.</li><li><code>registrationMode</code> 기본값은 <code>create-or-reuse</code>다. <code>reuse-existing</code>은</li></ul>
+<p><code>existingDeviceName</code>과 검증할 <code>existingDeviceTags</code>를 모두 요구하고, 기존 Profile과 Device의 service/profile/protocol/tag subset이 일치할 때만 통과한다.</p>
+<ul><li>여러 binding이 동시에 exact match되면 <code>ambiguous</code>로 차단한다.</li><li>active Manifest probe가 실패했거나 Manifest의 recommended Profile이 binding과 다르면</li></ul>
 <p>알려진 USB serial이라도 exact match하지 않는다.</p>
 <ul><li>invalid binding 하나는 격리해 API <code>errors</code>에 표시하고, 나머지 유효 binding은 계속</li></ul>
 <p>사용할 수 있다. Catalog 문서 전체가 깨졌으면 빈 Catalog로 기동해 모든 신규 등록을 fail-closed한다.</p>
@@ -274,9 +278,10 @@ Resources:
 <p>새 장비를 연결할 때마다 DB schema를 수정하지 않는다. Candidate, Event/Reading, Profile/Device는 generic 모델로 저장되고 장비별 schema는 Profile/Catalog가 관리한다.</p>
 <h2 id="i2c-장비-추가-절차">I2C 장비 추가 절차</h2>
 <ol><li>bus와 address를 Plan allowlist에 넣는다.</li><li>상태를 바꾸지 않는 identity register, expected chip ID, model, Profile과 capability를</li></ol>
-<p><code>identificationRules</code>에 선언한다.</p>
+<p><code>identificationRules</code>에 선언한다. 여러 chip이 한 물리 보드를 구성하면 <code>identities</code> 배열로 모두 선언해 하나의 composite fingerprint를 만든다.</p>
 <ol><li><code>MockI2CBusAdapter</code> 테스트로 허용 address만 읽는지 검증한다.</li><li>해당 Profile, Device Service image/parser와 Device Binding을 Catalog에 추가한다.</li><li>실장비 read와 첫 EdgeX Event를 검증하기 전에는 완료로 표시하지 않는다.</li></ol>
 <p>버스 <code>/dev/i2c-N</code> 존재만으로 Device Binding을 만들지 않는다.</p>
+<p>현재 Sense HAT v1 binding은 dev0003 bus 1의 네 chip ID <code>1c3d-5cbd-5fbc-6a68</code>을 exact match한다. 이미 Argo CD가 관리하는 <code>device-sensehat-raspi</code>와 기능별 Device 6개가 있으므로 <code>registrationMode: reuse-existing</code>, 대표 Device <code>imu-sensehat-gyroscope-01</code>을 사용한다. 승인 Saga는 기존 Profile/Device 계약을 readback하고 승인 이후 첫 Event만 확인하며 해당 리소스의 소유권을 취하거나 중복 Device를 만들지 않는다.</p>
 <h2 id="modbus-장비-추가-절차">Modbus 장비 추가 절차</h2>
 <p>현재 구현된 범위는 공식 EdgeX <code>device-modbus:4.0.2</code>와 개발 simulator를 연결하는 <code>template-verified</code> 경로다. simulator는 Unit 1과 Unit 2를 제공하고 각 Unit은 서로 다른 exact hardware binding으로 등록된다. 자동 network scan과 실제 PLC 지원은 아직 없다.</p>
 <ol><li>개발 fixture를 기본 운영 render와 분리해 배포한다.</li><li>대시보드에서 node <code>etri-dev0001-jetorn</code>, protocol <code>modbus</code>, mode <code>tcp</code>,</li></ol>

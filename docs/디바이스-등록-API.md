@@ -252,7 +252,13 @@ PUT /api/v1/discovery/plans/etri-dev0001-jetorn
 ```
 
 서버가 저장 시 version과 `updatedAt`을 갱신한다. Plan은 PVC의 SQLite에 남아 재시작 후
-복구된다. 기본 파일은 해당 node의 Plan이 DB에 없을 때만 seed한다.
+복구된다. 기본 파일은 해당 node의 Plan이 없거나 파일의 version이 저장된 version보다
+높을 때만 seed/upgrade한다. 같거나 낮은 파일 version은 운영 중 저장된 Plan을 덮어쓰지
+않는다.
+
+Sense HAT v1처럼 여러 I2C chip이 한 물리 장비를 구성하면 한 rule의 `identities`에
+허용 address/register/expected 값을 모두 선언한다. 모든 check가 일치해야 후보 하나를
+만들며 일부만 일치하면 후보를 만들지 않는다.
 
 ## Registration과 audit
 
@@ -282,6 +288,12 @@ GET /api/v1/registrations/{candidateId}
   "eventDeadline": "2026-07-24T00:01:00Z"
 }
 ```
+
+`reuse-existing` Catalog binding의 응답은 `createdRuntime`, `createdProfile`,
+`createdDevice`가 모두 `false`일 수 있다. 이는 등록을 생략했다는 뜻이 아니라 기존
+Runtime/Profile/Device의 실제 image와 Metadata shape를 검증했고, `eventNotBefore` 이후
+첫 Event까지 확인한다는 뜻이다. decommission이나 rollback도 이 기존 리소스를 삭제하지
+않는다.
 
 ### Catalog 조회
 

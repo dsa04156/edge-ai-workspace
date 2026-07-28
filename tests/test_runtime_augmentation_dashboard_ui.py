@@ -59,7 +59,7 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
         'data-dashboard-page="overview" aria-pressed="true">운영 현황</button>',
         'data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>',
         'data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>',
-        'data-dashboard-page="management" aria-pressed="false">장비 연결</button>',
+        'data-dashboard-page="management" aria-pressed="false">장비 관리</button>',
         "AI Pipeline Builder",
         "EdgeX",
         "Kubernetes",

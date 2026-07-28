@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-23 19:30</span>
-            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
+            <span class="badge">수정: 2026-07-28 16:29</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
           </div>
         </header>
         <div class="doc-body">
@@ -207,6 +207,11 @@
 <p><code>docs/대시보드-판단-정책.md</code>, <code>docs/대시보드-정보-구조.md</code>, <code>docs/대시보드-화면-설계.md</code>, <code>docs/ops/어댑터-런타임-디바이스-연결-관리.md</code>, <code>docs/wiki/대시보드와-kpi.md</code>, <code>docs/wiki/운영-진입점.md</code></p>
 <ul><li>메모: Git binding 등록, EdgeX 장비 관측, Device Service 통신과 Core Data 최신성을</li></ul>
 <p>분리했다. 신규 Device에 <code>hardwareBindingId</code>를 보존하고 protocol package를 재사용 가능, 설치 가능, 연결 등록 필요, 검증 필요로 표시한다. 범용 scanner나 미검증 package 설치 경로는 추가하지 않았다.</p>
+<h2 id="2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</h2>
+<ul><li>근거: <code>edgex/device-discovery-agent/app/i2c_plugin.py</code>,</li></ul>
+<p><code>edgex/adapter-controller/config/discovery_plans.json</code>, <code>edgex/adapter-controller/config/device_bindings.json</code>, Argo CD revision <code>46703f7dc2dc35192d6bf7cf344682add6337c19</code>과 live candidate/EdgeX readback</p>
+<ul><li>갱신: 디바이스 발견·등록 최신 기준/운영 문서와 생성 HTML</li><li>메모: dev0003 bus 1에서 Sense HAT v1의 네 read-only chip identity를 하나의</li></ul>
+<p>fingerprint로 확인했다. 토큰 없는 운영자 승인 뒤 기존 Argo Runtime, Profile과 대표 Device를 소유권 변경 없이 재사용하고 승인 이후 첫 Event로 <code>EVENT_CONFIRMED</code>를 확인했다. 일반 Discovery는 계속 비권한이며 I2C 전용 Pod만 exact <code>/dev/i2c-1</code>에 제한된 privileged device-cgroup 예외를 사용한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
@@ -222,7 +227,8 @@
 <li class="toc-h2"><a href="#2026-07-22-verify-device-service-장애-복구와-중앙-유실-경계-검증">[2026-07-22] verify | Device Service 장애 복구와 중앙 유실 경계 검증</a></li>
 <li class="toc-h2"><a href="#2026-07-22-verify-core-data-1-000-device-저장-기준선">[2026-07-22] verify | Core Data 1,000-device 저장 기준선</a></li>
 <li class="toc-h2"><a href="#2026-07-22-fix-dashboard-api-검증기-edgex-계약-동기화">[2026-07-22] fix | Dashboard API 검증기 EdgeX 계약 동기화</a></li>
-<li class="toc-h2"><a href="#2026-07-23-ingest-등록-연결-실장비-증거와-프로토콜-패키지-상태-분리">[2026-07-23] ingest | 등록 연결·실장비 증거와 프로토콜 패키지 상태 분리</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-23-ingest-등록-연결-실장비-증거와-프로토콜-패키지-상태-분리">[2026-07-23] ingest | 등록 연결·실장비 증거와 프로토콜 패키지 상태 분리</a></li>
+<li class="toc-h2"><a href="#2026-07-28-verify-sense-hat-i2c-능동-발견-승인-e2e">[2026-07-28] verify | Sense HAT I2C 능동 발견·승인 E2E</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

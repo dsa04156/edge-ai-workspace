@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-27 16:45</span>
-            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
+            <span class="badge">수정: 2026-07-28 16:29</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
           </div>
         </header>
         <div class="doc-body">
@@ -350,7 +350,8 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
   },
   &quot;version&quot;: 1
 }</code></pre>
-<p>서버가 저장 시 version과 <code>updatedAt</code>을 갱신한다. Plan은 PVC의 SQLite에 남아 재시작 후 복구된다. 기본 파일은 해당 node의 Plan이 DB에 없을 때만 seed한다.</p>
+<p>서버가 저장 시 version과 <code>updatedAt</code>을 갱신한다. Plan은 PVC의 SQLite에 남아 재시작 후 복구된다. 기본 파일은 해당 node의 Plan이 없거나 파일의 version이 저장된 version보다 높을 때만 seed/upgrade한다. 같거나 낮은 파일 version은 운영 중 저장된 Plan을 덮어쓰지 않는다.</p>
+<p>Sense HAT v1처럼 여러 I2C chip이 한 물리 장비를 구성하면 한 rule의 <code>identities</code>에 허용 address/register/expected 값을 모두 선언한다. 모든 check가 일치해야 후보 하나를 만들며 일부만 일치하면 후보를 만들지 않는다.</p>
 <h2 id="registration과-audit">Registration과 audit</h2>
 <h3 id="등록-진행-조회">등록 진행 조회</h3>
 <pre data-lang="http"><code>GET /api/v1/registrations/{candidateId}</code></pre>
@@ -371,6 +372,7 @@ GET /internal/v1/discovery/plans/{nodeId}</code></pre>
   &quot;eventNotBefore&quot;: &quot;2026-07-24T00:00:00Z&quot;,
   &quot;eventDeadline&quot;: &quot;2026-07-24T00:01:00Z&quot;
 }</code></pre>
+<p><code>reuse-existing</code> Catalog binding의 응답은 <code>createdRuntime</code>, <code>createdProfile</code>, <code>createdDevice</code>가 모두 <code>false</code>일 수 있다. 이는 등록을 생략했다는 뜻이 아니라 기존 Runtime/Profile/Device의 실제 image와 Metadata shape를 검증했고, <code>eventNotBefore</code> 이후 첫 Event까지 확인한다는 뜻이다. decommission이나 rollback도 이 기존 리소스를 삭제하지 않는다.</p>
 <h3 id="catalog-조회">Catalog 조회</h3>
 <pre data-lang="http"><code>GET /api/v1/catalog/bindings</code></pre>
 <p>유효한 binding과 격리된 invalid binding 오류를 함께 반환한다. API로 새 image를 추가하는 기능은 없다.</p>

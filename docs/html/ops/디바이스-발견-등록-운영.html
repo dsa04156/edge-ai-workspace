@@ -153,18 +153,18 @@
         <header class="doc-header">
           <p class="eyebrow">운영 문서</p>
           <h1>디바이스 발견 및 등록 운영 절차</h1>
-          <p class="subtitle">edge-device-discovery와 edgex-adapter-controller를 배포하고 Serial candidate를…</p>
+          <p class="subtitle">일반 edge-device-discovery, I2C 전용 edge-device-discovery-i2c와 edgex-adapt…</p>
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/디바이스-발견-등록-운영.md</span>
-            <span class="badge">수정: 2026-07-28 12:03</span>
-            <span class="badge">HTML 생성: 2026-07-28 12:03</span>
+            <span class="badge">수정: 2026-07-28 16:28</span>
+            <span class="badge">HTML 생성: 2026-07-28 16:29</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="디바이스-발견-및-등록-운영-절차">디바이스 발견 및 등록 운영 절차</h1>
 <h2 id="적용-범위">적용 범위</h2>
-<p><code>edge-device-discovery</code>와 <code>edgex-adapter-controller</code>를 배포하고 Serial candidate를 발견·승인해 첫 EdgeX Event까지 확인하는 절차다. 현재 testbed는 개발용 <code>AllowAllMockProvider</code>를 명시적으로 사용한다. 운영 환경은 외부 HTTPS 인증 endpoint와 Secret token으로 교체해야 한다.</p>
+<p>일반 <code>edge-device-discovery</code>, I2C 전용 <code>edge-device-discovery-i2c</code>와 <code>edgex-adapter-controller</code>를 배포하고 Serial/I2C candidate를 발견·승인해 첫 EdgeX Event까지 확인하는 절차다. 현재 testbed는 개발용 <code>AllowAllMockProvider</code>를 명시적으로 사용한다. 운영 환경은 외부 HTTPS 인증 endpoint와 Secret token으로 교체해야 한다.</p>
 <p>보안 기본값은 <code>edgex/k8s/base/adapter-controller</code>의 <code>external</code> fail-closed mode다. 현재 root 진입점은 <code>edgex/k8s/overlays/development/adapter-management</code>를 명시적으로 포함해 testbed에서만 <code>development-mock</code>으로 덮어쓴다. 이 개발 overlay를 운영 배포에 복사하지 않는다.</p>
 <h2 id="사전-조건">사전 조건</h2>
 <pre data-lang="bash"><code>edgex/k8s/scripts/provision-adapter-management-secrets.sh
@@ -189,6 +189,8 @@ kubectl rollout status deployment/edgex-adapter-controller \
   -n edgex-edge --timeout=180s
 kubectl rollout status daemonset/edge-device-discovery \
   -n edgex-edge --timeout=240s
+kubectl rollout status daemonset/edge-device-discovery-i2c \
+  -n edgex-edge --timeout=240s
 kubectl rollout status deployment/device-serial-jetson \
   -n edgex-edge --timeout=180s</code></pre>
 <p>확인:</p>
@@ -196,14 +198,19 @@ kubectl rollout status deployment/device-serial-jetson \
 kubectl get pvc edgex-adapter-controller-state -n edgex-edge
 kubectl get networkpolicy -n edgex-edge</code></pre>
 <p>정상 기준:</p>
-<ul><li>Controller와 Serial Device Service가 Ready다.</li><li>Discovery DaemonSet desired/current/ready가 대상 edge node 수와 같다.</li><li><code>edgex-adapter-controller-state</code> PVC가 <code>Bound</code>다.</li><li>Controller가 <code>/var/lib/adapter-controller/discovery.db</code>에 쓸 수 있다.</li><li>Agent는 <code>privileged</code>나 host network를 사용하지 않는다.</li><li>Controller/Agent/Device Service image가 digest 형식이다.</li><li>EdgeMesh 리소스와 고정 ClusterIP/PodIP를 변경하지 않는다.</li></ul>
-<p>Discovery Agent는 동적 serial/I2C inventory 때문에 <code>/dev</code>와 <code>/sys</code>를 read-only로 mount한다. 이 broad mount는 발견 전용 DaemonSet에만 존재하며 ServiceAccount token, privileged 권한, host network는 없다. Active Serial/I2C probe에는 host 장치 group 권한이 추가로 필요할 수 있으므로 실장비 node의 group ID를 확인한 전용 overlay 없이 무작정 권한을 넓히지 않는다.</p>
+<ul><li>Controller와 Serial Device Service가 Ready다.</li><li>일반 Discovery DaemonSet은 dev0001/dev0002에서 2/2 Ready이고, I2C 전용</li></ul>
+<p>DaemonSet은 dev0003에서 1/1 Ready다.</p>
+<ul><li><code>edgex-adapter-controller-state</code> PVC가 <code>Bound</code>다.</li><li>Controller가 <code>/var/lib/adapter-controller/discovery.db</code>에 쓸 수 있다.</li><li>일반 Agent는 <code>privileged</code>와 host network를 사용하지 않는다. I2C 전용 Agent만 아래의</li></ul>
+<p>제한적 예외를 사용한다.</p>
+<ul><li>Controller/Agent/Device Service image가 digest 형식이다.</li><li>EdgeMesh 리소스와 고정 ClusterIP/PodIP를 변경하지 않는다.</li></ul>
+<p>일반 Discovery Agent는 동적 Serial inventory 때문에 <code>/dev</code>와 <code>/sys</code>를 read-only로 mount한다. 이 broad mount는 dev0001/dev0002의 발견 전용 DaemonSet에만 존재하며 ServiceAccount token, privileged 권한과 host network는 없다.</p>
+<p>dev0003의 I2C 전용 Agent는 <code>/dev/i2c-1</code>만 exact CharDevice로 mount한다. Kubernetes hostPath만으로는 해당 character device가 container device cgroup에 추가되지 않아 실측상 <code>EPERM</code>이 발생했으므로, 현재 testbed에서는 <code>privileged: true</code>를 예외로 사용한다. 컨테이너는 계속 non-root UID/GID 2002, read-only root filesystem, supplemental group 988로 실행한다. 988은 dev0003 host의 현재 i2c group ID이므로 다른 노드에서는 실제 group을 확인해 manifest/overlay를 검토하고, <code>/dev</code> 전체 mount나 root 실행으로 넓히지 않는다.</p>
 <p>노드 하나만 대상으로 manifest를 검토할 때는 배포에 포함되지 않은 예시 overlay를 render할 수 있다.</p>
 <pre data-lang="bash"><code>kubectl kustomize \
   edgex/k8s/overlays/examples/discovery-agent-jetson &gt;/dev/null
 kubectl kustomize \
   edgex/k8s/overlays/examples/discovery-agent-raspi &gt;/dev/null</code></pre>
-<p>두 예시는 각각 <code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code>만 선택한다. 실제 root 배포는 하나의 DaemonSet으로 승인된 세 edge node를 관리하며 node IP를 사용하지 않는다.</p>
+<p>두 예시는 각각 <code>etri-dev0001-jetorn</code>의 일반 Discovery와 <code>etri-dev0003-raspi5</code>의 I2C 전용 Discovery만 남긴다. 실제 root 배포도 node name으로 일반 DaemonSet 2개 node와 I2C 전용 DaemonSet 1개 node를 선택하며 node IP를 사용하지 않는다.</p>
 <h2 id="후보와-node-상태-확인">후보와 node 상태 확인</h2>
 <p>대시보드 BFF:</p>
 <pre data-lang="bash"><code>kubectl -n default port-forward service/state-aggregator 18000:8000
@@ -214,11 +221,25 @@ curl --fail --silent --show-error \
 <ul><li><code>hardwareId</code>: candidate ID의 stable 근거</li><li><code>model</code>, <code>recommendedProfile</code>, <code>matchConfidence</code></li><li><code>state</code>, <code>authState</code>, <code>registrationStep</code></li><li><code>presence</code>, <code>lastSeen</code></li><li><code>packageState</code>, <code>packageReason</code></li><li><code>failureReason</code></li></ul>
 <p><code>PENDING_APPROVAL</code>이 아니거나 <code>registrationReady=false</code>인 후보는 승인하지 않는다. I2C bus 파일만 보이는 항목은 센서가 아니며 신규 Agent는 Plan 기반 실행에서 bus를 candidate로 만들지 않는다. 이전 ConfigMap에서 import된 bus 항목은 clean reconciliation 후 <code>STALE</code>이 된다.</p>
 <h2 id="discovery-plan-운영">Discovery Plan 운영</h2>
-<p>초기 Plan은 <code>edgex/adapter-controller/config/discovery_plans.json</code>에서 DB가 비어 있을 때 seed한다. 이후 SQLite 값이 권위다.</p>
+<p>초기 Plan은 <code>edgex/adapter-controller/config/discovery_plans.json</code>에서 node Plan이 없을 때 seed한다. Git seed의 version이 SQLite의 현재 version보다 높으면 새 검증 계약으로 업그레이드하고, 같거나 낮으면 SQLite 값을 유지한다.</p>
 <p>보수적인 원칙:</p>
 <ul><li>사용하지 않는 protocol은 <code>enabled=false</code></li><li>Serial은 승인 VID/PID만 등록</li><li>I2C는 bus/address/identity rule을 모두 등록하고 실장비 검증 창에서만 active probe</li><li>Modbus/OPC-UA/ONVIF/MQTT는 scanner/subscriber 구현 전까지 disabled</li><li>CIDR 전체 scan을 켜지 않음</li></ul>
 <p>Plan API 요청 형식은 <code>디바이스-등록-API.md</code>를 따른다. 변경 후 최대 한 scan interval 이내에 Agent report의 candidate와 scan error를 확인한다.</p>
 <p>현재 Jetson Plan은 Device Service가 이미 같은 port를 점유하므로 <code>manifestProbeEnabled=false</code>다. Active WHOAMI를 검증할 때는 Device Service와의 동시 open/reset 가능성을 먼저 제거한 유지보수 창에서 수행한다.</p>
+<h2 id="sense-hat-i2c-실장비-시연">Sense HAT I2C 실장비 시연</h2>
+<p>현재 dev0003 Plan은 bus 1과 주소 <code>0x1c</code>, <code>0x5c</code>, <code>0x5f</code>, <code>0x6a</code>만 허용한다. 각 주소의 read-only register <code>0x0f</code>가 각각 <code>0x3d</code>, <code>0xbd</code>, <code>0xbc</code>, <code>0x68</code>일 때만 <code>raspberry-pi-sense-hat-v1</code> 후보 하나를 만든다.</p>
+<pre data-lang="bash"><code>kubectl logs -n edgex-edge \
+  daemonset/edge-device-discovery-i2c --since=5m --prefix</code></pre>
+<p>정상 로그는 scan마다 <code>candidates=1 scanErrors=0</code>이다. 대시보드에서는 다음 evidence를 확인한다.</p>
+<pre data-lang="text"><code>nodeName: etri-dev0003-raspi5
+devicePath: /dev/i2c-1
+model: raspberry-pi-sense-hat-v1
+IdentityFingerprint: 1c3d-5cbd-5fbc-6a68
+recommendedProfile: etri-sensehat-gyroscope
+state: PENDING_APPROVAL
+registrationReady: true</code></pre>
+<p>승인하면 기존 Argo Runtime <code>device-sensehat-raspi</code>, 기존 Profile과 대표 Device <code>imu-sensehat-gyroscope-01</code>을 검증·재사용한다. 이번 Saga가 새로 만들지 않았으므로 <code>createdRuntime</code>, <code>createdProfile</code>, <code>createdDevice</code>는 모두 <code>false</code>여야 한다. Metadata 검증 시각 이후 대표 Device의 새 Event가 도착한 뒤에만 <code>EVENT_CONFIRMED</code>가 된다. 기존 Sense HAT Device 6개 수가 늘어나면 중복 등록으로 보고 조사한다.</p>
+<p>2026-07-28 live 실행에서는 이전 ConfigMap에서 import된 bus 1 후보 ID가 같은 endpoint 후보로 이어져 <code>candidate-f0829ddd...</code>를 유지했다. 신규 DB에서는 stable hardware ID로 전체 SHA-256 candidate ID를 만든다. 특정 candidate ID를 시연 입력으로 하드코딩하지 않는다.</p>
 <h2 id="serial-pty-시연">Serial PTY 시연</h2>
 <p>실장비 없이 Manifest, telemetry, disconnect, reconnect, invalid JSON과 timeout을 검증한다.</p>
 <pre data-lang="bash"><code>cd edgex/device-discovery-agent
@@ -314,6 +335,8 @@ kubectl -n edgex-system run edgex-event-check \
 <pre data-lang="bash"><code>kubectl logs -n edgex-edge deployment/edgex-adapter-controller --since=30m
 kubectl logs -n edgex-edge daemonset/edge-device-discovery --since=30m \
   --prefix
+kubectl logs -n edgex-edge daemonset/edge-device-discovery-i2c --since=30m \
+  --prefix
 
 kubectl -n edgex-edge port-forward \
   service/edgex-adapter-controller 18080:8080
@@ -388,7 +411,7 @@ curl --fail --silent --show-error http://127.0.0.1:18080/metrics</code></pre>
 <h2 id="rollback과-복구">rollback과 복구</h2>
 <ul><li>Saga 실패는 이번 attempt가 만든 리소스만 제거한다.</li><li>기존 Argo Runtime, 기존 Profile/Device는 제거하지 않는다.</li><li>owned Device 삭제가 실패하면 의존 Profile/Runtime 삭제도 진행하지 않는다.</li><li>rollback이 남은 상태에서는 retry를 차단한다.</li><li>PVC와 SQLite를 유지한 Pod 재시작은 진행 단계에서 안전하게 이어진다.</li><li>SQLite 데이터 삭제는 개발 환경에서만 PVC 삭제로 수행하며 candidate/audit/Saga가 모두</li></ul>
 <p>복구 불가능하게 사라진다.</p>
-<p>등록 완료 Device의 삭제/decommission은 이번 API 범위가 아니다. Candidate delete로 우회할 수 없으며 별도 ownership-aware decommission workflow를 구현하기 전에는 Core Metadata에서 수동 삭제하지 않는다.</p>
+<p>등록 완료 candidate는 일반 <code>DELETE</code>로 지울 수 없고, 대시보드의 명시적 decommission 경로가 exact candidate 확인값과 사유를 요구한다. Controller가 이번 Saga에서 만든 Device/Profile/Runtime만 정리하며 <code>reuse-existing</code>으로 검증한 Sense HAT Runtime/Profile/ Device는 삭제하지 않는다. Core Metadata에서 수동 삭제해 이 소유권 검사를 우회하지 않는다.</p>
 <h2 id="전체-검증-명령">전체 검증 명령</h2>
 <pre data-lang="bash"><code>cd edgex/adapter-controller
 PYTHONPATH=. pytest -q
@@ -412,6 +435,7 @@ node --test tests/*.js</code></pre>
 <li class="toc-h2"><a href="#배포">배포</a></li>
 <li class="toc-h2"><a href="#후보와-node-상태-확인">후보와 node 상태 확인</a></li>
 <li class="toc-h2"><a href="#discovery-plan-운영">Discovery Plan 운영</a></li>
+<li class="toc-h2"><a href="#sense-hat-i2c-실장비-시연">Sense HAT I2C 실장비 시연</a></li>
 <li class="toc-h2"><a href="#serial-pty-시연">Serial PTY 시연</a></li>
 <li class="toc-h2"><a href="#공식-modbus-device-service-개발-시연">공식 Modbus Device Service 개발 시연</a></li>
 <li class="toc-h2"><a href="#후보-승인">후보 승인</a></li>

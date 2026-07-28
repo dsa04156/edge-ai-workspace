@@ -126,7 +126,7 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">운영 현황<" in html
     assert ">등록 디바이스<" in html
     assert ">AI 파이프라인<" in html
-    assert ">장비 연결<" in html
+    assert ">장비 관리<" in html
     assert ">Resource Augmentation<" not in html
 
 
