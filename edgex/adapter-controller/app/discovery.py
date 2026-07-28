@@ -247,6 +247,39 @@ class DeviceCandidateRegistry:
                         message="node-local discovery reported a new candidate",
                     )
                     continue
+                rediscovered_after_decommission = existing.deleted_at is not None
+                if rediscovered_after_decommission:
+                    if existing.state != "STALE":
+                        transition_candidate(
+                            existing,
+                            "STALE",
+                            reason=(
+                                "decommissioned candidate remained physically "
+                                "connected"
+                            ),
+                            actor=report.agent_id,
+                            occurred_at=now,
+                        )
+                    transition_candidate(
+                        existing,
+                        "DETECTED",
+                        reason=(
+                            "stable hardware identity was automatically "
+                            "discovered again"
+                        ),
+                        actor=report.agent_id,
+                        occurred_at=now,
+                    )
+                    existing.deleted_at = None
+                    existing.decision = "pending"
+                    existing.decision_note = ""
+                    existing.auth_state = "not_checked"
+                    existing.failure_reason = None
+                    existing.retry_count = 0
+                    existing.registration_step = None
+                    existing.matched_binding_id = None
+                    existing.match_confidence = "none"
+                    existing.last_action_ref = None
                 observed_candidate_ids.add(existing.candidate_id)
                 if existing.state == "STALE":
                     try:
@@ -295,6 +328,20 @@ class DeviceCandidateRegistry:
                     self._classify_candidate(
                         existing,
                         actor="adapter-controller",
+                    )
+                if rediscovered_after_decommission:
+                    self._audit(
+                        "candidate.rediscovered",
+                        existing,
+                        actor=report.agent_id,
+                        message=(
+                            "decommissioned stable hardware identity was "
+                            "observed again"
+                        ),
+                        details={
+                            "currentState": "DETECTED",
+                            "nextState": existing.state,
+                        },
                     )
 
             if not report.scan_errors:

@@ -524,6 +524,34 @@ def test_sense_hat_reuses_existing_runtime_profile_device_and_confirms_event(
     assert edge_x.deleted_devices == []
     assert edge_x.deleted_profiles == []
 
+    rediscovered = registry.ingest_report(sense_hat_report()).candidates
+    assert len(rediscovered) == 1
+    assert rediscovered[0].candidate_id == candidate.candidate_id
+    assert rediscovered[0].state == "PENDING_APPROVAL"
+    assert rediscovered[0].decision == "pending"
+    assert rediscovered[0].auth_state == "not_checked"
+    assert rediscovered[0].registration_step is None
+
+    coordinator.approve(
+        candidate.candidate_id,
+        approval().model_copy(
+            update={
+                "request_ref": CandidateMutationRef(
+                    request_id="7" * 64,
+                    payload_hash="8" * 64,
+                )
+            }
+        ),
+    )
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    registered_again = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert registered_again.status == "EVENT_CONFIRMED"
+    assert registered_again.created_runtime is False
+    assert registered_again.created_profile is False
+    assert registered_again.created_device is False
+
 
 def test_decommission_removes_only_saga_owned_resources_and_hides_candidate(
     tmp_path,
