@@ -583,7 +583,7 @@ test("protocol choices stay visible while only node-ready Device Services are se
       {
         adapterId: "modbus",
         enabled: false,
-        availability: "지원 준비 필요",
+        availability: "현재 미지원",
       },
     ],
   );

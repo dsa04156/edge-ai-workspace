@@ -707,7 +707,7 @@ function adapterSelectionOptions(adapters = [], nodeName = "") {
         ? "검증된 Device Service 설치"
         : "기존 Device Service 재사용";
       if (!enabled && adapter?.status === "unsupported") {
-        availability = "지원 준비 필요";
+        availability = "현재 미지원";
       } else if (!enabled && adapter?.status === "unavailable") {
         availability = "Device Service 확인 필요";
       } else if (!enabled) {
@@ -1674,7 +1674,7 @@ function renderAdapterOptions(documentRef = document) {
   const enabledGroup = documentRef.createElement("optgroup");
   enabledGroup.label = "현재 연결 가능";
   const pendingGroup = documentRef.createElement("optgroup");
-  pendingGroup.label = "준비 필요 · 선택 불가";
+  pendingGroup.label = "현재 사용 불가";
   options.forEach(({adapter, enabled, availability, reason}) => {
     const option = documentRef.createElement("option");
     option.value = adapter.adapterId;
