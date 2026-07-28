@@ -701,16 +701,13 @@ function adapterSupportsNode(adapter, nodeName) {
 
 function adapterSelectionOptions(adapters = [], nodeName = "") {
   return adapters
+    .filter((adapter) => ["installed", "installable"].includes(adapter?.status))
     .map((adapter, index) => {
       const enabled = adapterSupportsNode(adapter, nodeName);
       let availability = adapter?.status === "installable"
         ? "검증된 Device Service 설치"
         : "기존 Device Service 재사용";
-      if (!enabled && adapter?.status === "unsupported") {
-        availability = "현재 미지원";
-      } else if (!enabled && adapter?.status === "unavailable") {
-        availability = "Device Service 확인 필요";
-      } else if (!enabled) {
+      if (!enabled) {
         availability = "다른 노드에만 연결 등록됨";
       }
       return {
@@ -1674,7 +1671,7 @@ function renderAdapterOptions(documentRef = document) {
   const enabledGroup = documentRef.createElement("optgroup");
   enabledGroup.label = "현재 연결 가능";
   const pendingGroup = documentRef.createElement("optgroup");
-  pendingGroup.label = "현재 사용 불가";
+  pendingGroup.label = "다른 노드에서 사용 가능";
   options.forEach(({adapter, enabled, availability, reason}) => {
     const option = documentRef.createElement("option");
     option.value = adapter.adapterId;

@@ -531,7 +531,7 @@ test("node scope recognizes device node aliases and only matching approved bindi
 });
 
 
-test("protocol choices stay visible while only node-ready Device Services are selectable", () => {
+test("protocol choices only show supported Device Services and enable node-ready bindings", () => {
   const options = adapterSelectionOptions(
     [
       {
@@ -559,6 +559,13 @@ test("protocol choices stay visible while only node-ready Device Services are se
         status: "unsupported",
         reason: "실장비 검증 전",
       },
+      {
+        adapterId: "opcua",
+        displayName: "OPC-UA",
+        protocolName: "opcua",
+        status: "unavailable",
+        reason: "Device Service 상태 확인 필요",
+      },
     ],
     "edge-a",
   );
@@ -579,11 +586,6 @@ test("protocol choices stay visible while only node-ready Device Services are se
         adapterId: "sensehat-raspi",
         enabled: false,
         availability: "다른 노드에만 연결 등록됨",
-      },
-      {
-        adapterId: "modbus",
-        enabled: false,
-        availability: "현재 미지원",
       },
     ],
   );
