@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=fixture-separation-20260728" />
+    <link rel="stylesheet" href="/static/device-management.css?v=device-crud-20260728" />
     <link rel="stylesheet" href="/static/simple-mode.css?v=compact-connection-view-20260727" />
   </head>
   <body data-view-mode="simple">
@@ -886,7 +886,39 @@
                   <small>선택한 노드의 EdgeX Device만 수정할 수 있습니다.</small>
                   <button id="managementPatchApply" type="submit" class="management-primary-action" disabled>변경 내용 적용</button>
                 </div>
+
+                <section class="management-danger-zone" aria-labelledby="managementDeleteDeviceTitle">
+                  <div>
+                    <strong id="managementDeleteDeviceTitle">디바이스 삭제</strong>
+                    <p>EdgeX Device를 삭제합니다. Controller가 등록한 장비는 연결 Runtime도 함께 정리합니다.</p>
+                  </div>
+                  <button id="managementDeleteDevice" type="button" class="management-danger-action" disabled>삭제…</button>
+                </section>
               </form>
+
+              <dialog id="managementDeleteDeviceDialog" class="management-dialog management-delete-dialog" aria-labelledby="managementDeleteDialogTitle">
+                <form id="managementDeleteDeviceForm" method="dialog" novalidate>
+                  <div class="management-dialog-head">
+                    <div>
+                      <span>되돌릴 수 없는 작업</span>
+                      <h3 id="managementDeleteDialogTitle">디바이스 삭제 확인</h3>
+                      <p id="managementDeleteDialogSummary">삭제할 디바이스를 확인하세요.</p>
+                    </div>
+                    <button type="button" data-management-close-delete-dialog aria-label="삭제 창 닫기">닫기</button>
+                  </div>
+                  <label class="management-field-wide">
+                    <span>확인을 위해 디바이스 이름을 정확히 입력</span>
+                    <input id="managementDeleteDeviceConfirm" type="text" autocomplete="off" required />
+                  </label>
+                  <div id="managementDeleteDeviceResult" class="management-inline-feedback" role="status" aria-live="polite" data-status="warning">
+                    정확한 이름을 입력해야 삭제할 수 있습니다.
+                  </div>
+                  <div class="management-dialog-actions">
+                    <button type="button" data-management-close-delete-dialog>취소</button>
+                    <button id="managementConfirmDeleteDevice" type="submit" class="management-danger-action" disabled>영구 삭제</button>
+                  </div>
+                </form>
+              </dialog>
             </section>
           </div>
         </section>
@@ -1004,7 +1036,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=auto-install-20260728"></script>
+    <script src="/static/device-management.js?v=device-crud-20260728"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

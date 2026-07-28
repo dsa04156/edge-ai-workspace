@@ -23,7 +23,9 @@ const {
   createManualCandidate,
   createManagementConnection,
   createManagementDevice,
+  decommissionCandidate,
   deleteCandidate,
+  deleteManagementDevice,
   devicePurpose,
   fetchAdapterRuntimes,
   fetchDiscoveryInventory,
@@ -1176,6 +1178,45 @@ test("create sends idempotency without an Authorization header", async () => {
 });
 
 
+test("device delete and candidate decommission require exact confirmation headers", async () => {
+  const requests = [];
+  const fetchFn = async (url, options) => {
+    requests.push({url, options});
+    return response({status: "verified", action: "delete"});
+  };
+  const candidateId = `candidate-${"a".repeat(24)}`;
+
+  await deleteManagementDevice("device 01", {
+    idempotencyKey: "device-delete-key",
+    fetchFn,
+  });
+  await decommissionCandidate(candidateId, {
+    idempotencyKey: "candidate-delete-key",
+    reason: "fixture cleanup",
+    fetchFn,
+  });
+
+  assert.equal(requests[0].url, "/management/devices/device%2001");
+  assert.equal(requests[0].options.method, "DELETE");
+  assert.equal(requests[0].options.headers["X-Confirm-Device"], "device 01");
+  assert.equal(requests[0].options.headers["Idempotency-Key"], "device-delete-key");
+  assert.equal(
+    requests[1].url,
+    `/management/discovery/${candidateId}/decommission`,
+  );
+  assert.equal(requests[1].options.method, "POST");
+  assert.equal(
+    requests[1].options.headers["X-Confirm-Candidate"],
+    candidateId,
+  );
+  assert.deepEqual(
+    JSON.parse(requests[1].options.body),
+    {reason: "fixture cleanup"},
+  );
+  assert.equal("Authorization" in requests[1].options.headers, false);
+});
+
+
 test("connection validate is read-only and apply uses idempotency headers", async () => {
   const requests = [];
   const payload = {
@@ -1299,6 +1340,15 @@ test("operation status distinguishes metadata wait, verified, and failure", () =
   });
   assert.equal(operationStatusView({status: "verified"}).terminal, true);
   assert.match(operationStatusView({status: "verified"}).detail, /이벤트 검증 완료/);
+  assert.deepEqual(
+    operationStatusView({status: "verified", action: "delete"}),
+    {
+      label: "삭제 완료",
+      tone: "verified",
+      detail: "EdgeX Core Metadata 재조회에서 디바이스 삭제를 확인했습니다.",
+      terminal: true,
+    },
+  );
   assert.equal(operationStatusView({status: "failed"}).terminal, true);
   assert.match(operationStatusView({status: "failed", error: "readback mismatch"}).detail, /readback mismatch/);
   assert.match(
@@ -1471,6 +1521,10 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementRegistrationStep3",
     "managementRegistrationStep4",
     "managementPatchDeviceSelect",
+    "managementDeleteDevice",
+    "managementDeleteDeviceDialog",
+    "managementDeleteDeviceConfirm",
+    "managementConfirmDeleteDevice",
     "managementDiscoveryPanel",
     "managementDiscoveryList",
     "managementDiscoverySearch",
@@ -1491,8 +1545,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
-  assert.match(html, /device-management\.css\?v=fixture-separation-20260728/);
-  assert.match(html, /device-management\.js\?v=auto-install-20260728/);
+  assert.match(html, /device-management\.css\?v=device-crud-20260728/);
+  assert.match(html, /device-management\.js\?v=device-crud-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);

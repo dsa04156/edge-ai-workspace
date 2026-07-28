@@ -101,6 +101,13 @@ class EdgeXManagementClient:
         )
         self._mutation_responses(payload, require_id=False)
 
+    async def delete_device(self, name: str) -> None:
+        payload = await self._request(
+            "DELETE",
+            f"/api/v3/device/name/{quote(name, safe='')}",
+        )
+        self._validate_base(payload, "device delete response")
+
     async def delete_profile(self, name: str) -> None:
         payload = await self._request(
             "DELETE",

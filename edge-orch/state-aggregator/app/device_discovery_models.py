@@ -62,6 +62,19 @@ class CandidateDeleteRequest(ManagementModel):
     request_ref: CandidateMutationRef
 
 
+class CandidateDecommissionInput(ManagementModel):
+    reason: str = Field(
+        default="운영자가 등록 연결과 Controller 소유 리소스를 삭제했습니다.",
+        min_length=1,
+        max_length=1000,
+    )
+
+
+class CandidateDecommissionUpdate(CandidateDecommissionInput):
+    actor: str = Field(min_length=1, max_length=255)
+    request_ref: CandidateMutationRef
+
+
 class CandidateView(ManagementModel):
     candidate_id: str
     source: Literal["node-scan", "manual"]

@@ -251,6 +251,15 @@ class DiscoveryV1Service(RecordingService):
         result["authState"] = "approved"
         return result
 
+    def decommission_candidate(self, candidate_id, payload):
+        self.calls.append(
+            ("decommission_candidate", candidate_id, payload.actor, payload.reason)
+        )
+        result = self.candidate()
+        result["state"] = "REJECTED"
+        result["decision"] = "ignored"
+        return result
+
     def get_discovery_plan(self, node_id):
         return {
             "nodeId": node_id,
@@ -504,6 +513,43 @@ def test_discovery_v1_approval_is_authenticated_and_typed():
     assert approved.status_code == 200
     assert approved.json()["state"] == "APPROVED"
     assert ("approve_candidate", candidate_id, "operator-1") in service.calls
+
+
+def test_internal_decommission_requires_exact_candidate_confirmation():
+    service = DiscoveryV1Service()
+    candidate_id = service.candidate()["candidateId"]
+    path = f"/internal/v1/discovery/{candidate_id}/decommission"
+    payload = {
+        "actor": "operator-1",
+        "reason": "development fixture cleanup",
+        "requestRef": {
+            "requestId": "9" * 64,
+            "payloadHash": "a" * 64,
+        },
+    }
+    with client_for(
+        service,
+        mutation_enabled=True,
+        discovery_enabled=True,
+    ) as client:
+        missing = request(client, "POST", path, payload)
+        decommissioned = request(
+            client,
+            "POST",
+            path,
+            payload,
+            headers_override={"X-Confirm-Candidate": candidate_id},
+        )
+
+    assert missing.status_code == 409
+    assert decommissioned.status_code == 200
+    assert decommissioned.json()["decision"] == "ignored"
+    assert (
+        "decommission_candidate",
+        candidate_id,
+        "operator-1",
+        "development fixture cleanup",
+    ) in service.calls
 
 
 def test_agent_can_read_conservative_discovery_plan():

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .device_discovery_models import (
+    CandidateDecommissionUpdate,
     CandidateDecisionUpdate,
     CandidateDeleteRequest,
     CandidateMutationRef,
@@ -48,4 +49,21 @@ class DeviceDiscoveryManagementService:
         return await self.controller.delete_candidate(
             candidate_id,
             CandidateDeleteRequest(request_ref=request_ref),
+        )
+
+    async def decommission_candidate(
+        self,
+        candidate_id: str,
+        *,
+        reason: str,
+        actor: str,
+        request_ref: CandidateMutationRef,
+    ) -> CandidateView:
+        return await self.controller.decommission_candidate(
+            candidate_id,
+            CandidateDecommissionUpdate(
+                actor=actor,
+                reason=reason,
+                request_ref=request_ref,
+            ),
         )

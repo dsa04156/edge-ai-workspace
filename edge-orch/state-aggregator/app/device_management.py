@@ -673,6 +673,87 @@ class DeviceManagementService:
                 self._audit_operation(operation, idempotency_key=idempotency_key)
                 raise ManagementApplyError(operation, exc) from exc
 
+    async def delete_device(
+        self,
+        name: str,
+        *,
+        idempotency_key: str,
+        actor: str,
+    ) -> ManagementOperation:
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        payload = {"name": name, "action": "delete"}
+        request_id = self._request_id(idempotency_key)
+        payload_hash = self._payload_hash(payload)
+        async with self._mutation_lock:
+            replay = self._replay_or_conflict(request_id, payload_hash)
+            if replay is not None:
+                return replay
+            current = await self.metadata.get_device(name)
+            started_at = _now()
+            if current is None:
+                operation = ManagementOperation(
+                    request_id=request_id,
+                    payload_hash=payload_hash,
+                    action="delete",
+                    device_name=name,
+                    profile_name="",
+                    status="verified",
+                    metadata_applied=True,
+                    actor=actor,
+                    started_at=started_at,
+                    updated_at=started_at,
+                )
+                self._remember(operation)
+                self._audit_operation(operation, idempotency_key=idempotency_key)
+                return operation
+            candidate_id = str(
+                (current.get("tags") or {}).get("controllerCandidateId") or ""
+            )
+            if candidate_id:
+                raise ManagementValidationError(
+                    ValidationResult(
+                        valid=False,
+                        issues=[
+                            ValidationIssue(
+                                code="candidate_decommission_required",
+                                field="name",
+                                message=(
+                                    "Controller가 등록한 Device는 후보 폐기 API로 "
+                                    "Device와 Runtime을 함께 삭제해야 합니다."
+                                ),
+                            )
+                        ],
+                    )
+                )
+            operation = ManagementOperation(
+                request_id=request_id,
+                payload_hash=payload_hash,
+                action="delete",
+                device_name=name,
+                profile_name=str(current.get("profileName") or ""),
+                status="verified",
+                actor=actor,
+                started_at=started_at,
+                updated_at=started_at,
+            )
+            try:
+                await self.metadata.delete_device(name)
+                if await self.metadata.get_device(name) is not None:
+                    raise ValueError("Device delete readback still returned the Device")
+                operation.metadata_applied = True
+                operation.updated_at = _now()
+                self._remember(operation)
+                self._audit_operation(operation, idempotency_key=idempotency_key)
+                return operation
+            except Exception as exc:
+                operation.status = "failed"
+                operation.error = f"{exc.__class__.__name__}: {exc}"
+                operation.updated_at = _now()
+                self._remember(operation)
+                self._audit_operation(operation, idempotency_key=idempotency_key)
+                raise ManagementApplyError(operation, exc) from exc
+
     async def get_operation(self, request_id: str) -> ManagementOperation:
         operation = self._operations.get(request_id)
         if operation is not None:

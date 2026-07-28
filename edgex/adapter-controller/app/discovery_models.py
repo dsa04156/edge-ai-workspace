@@ -155,8 +155,14 @@ class CandidateDeleteRequest(ControllerModel):
     request_ref: CandidateMutationRef
 
 
+class CandidateDecommissionRequest(ControllerModel):
+    actor: str = Field(min_length=1, max_length=255)
+    reason: str = Field(min_length=1, max_length=1000)
+    request_ref: CandidateMutationRef
+
+
 class CandidateActionRef(ControllerModel):
-    action: Literal["create", "decision", "delete"]
+    action: Literal["create", "decision", "delete", "decommission"]
     request_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     payload_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
 

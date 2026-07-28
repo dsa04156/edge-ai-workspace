@@ -14,6 +14,7 @@ from .api import ControllerConflict, ControllerValidationError
 from .device_catalog import DeviceBinding, DeviceBindingCatalog
 from .discovery_models import (
     CandidateApprovalRequest,
+    CandidateDecommissionRequest,
     CandidateRejectRequest,
     CandidateRetryRequest,
     CandidateView,
@@ -301,6 +302,49 @@ class RegistrationCoordinator:
                 "candidate has no registration Saga"
             )
         return registration
+
+    def decommission(
+        self,
+        candidate_id: str,
+        request: CandidateDecommissionRequest,
+    ) -> CandidateView:
+        with self._lock:
+            replay = self._get_replay(
+                f"decommission:{candidate_id}",
+                request,
+            )
+            if replay is not None:
+                return CandidateView.model_validate(replay)
+            candidate = self.registry.get_stored_candidate(candidate_id)
+            if candidate.state not in {
+                "APPROVED",
+                "SERVICE_READY",
+                "METADATA_REGISTERED",
+                "EVENT_CONFIRMED",
+                "FAILED",
+            }:
+                raise ControllerConflict(
+                    f"candidate in state {candidate.state} cannot be decommissioned"
+                )
+            registration = self.get_registration(candidate_id)
+            rollback_errors = self._rollback(registration)
+            registration.updated_at = _now()
+            self.store.put_registration(registration)
+            if rollback_errors:
+                raise ControllerValidationError(
+                    "owned-resource decommission failed: "
+                    + ", ".join(rollback_errors)
+                )
+            deleted = self.registry.decommission_candidate(
+                candidate_id,
+                request,
+            )
+            self._remember_response(
+                f"decommission:{candidate_id}",
+                request,
+                deleted,
+            )
+            return deleted
 
     def reconcile_all(self) -> int:
         with self._lock:

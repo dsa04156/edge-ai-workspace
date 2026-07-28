@@ -13,6 +13,7 @@ from app.adapter_controller_client import (
 )
 from app.adapter_runtime_models import RuntimePlanRequest
 from app.device_discovery_models import (
+    CandidateDecommissionUpdate,
     CandidateMutationRef,
     ManualCandidateCreate,
     ManualCandidateInput,
@@ -234,3 +235,58 @@ def test_client_signs_discovery_queries_and_manual_candidate_mutation():
 
     assert inventory.candidates[0].source == "manual"
     assert created.protocol == "mqtt"
+
+
+def test_client_decommission_requires_exact_candidate_header():
+    now = "2026-07-24T10:00:00+00:00"
+    candidate_id = "candidate-" + ("d" * 24)
+
+    def handler(request):
+        verify_signature(request)
+        assert request.method == "POST"
+        assert request.url.path == (
+            f"/internal/v1/discovery/{candidate_id}/decommission"
+        )
+        assert request.headers["X-Confirm-Candidate"] == candidate_id
+        payload = json.loads(request.content)
+        assert payload["reason"] == "fixture cleanup"
+        return httpx.Response(
+            200,
+            json={
+                "candidateId": candidate_id,
+                "source": "manual",
+                "nodeName": "etri-dev0001-jetorn",
+                "protocol": "modbus",
+                "transport": "modbus-tcp",
+                "displayName": "fixture",
+                "decision": "accepted",
+                "state": "EVENT_CONFIRMED",
+                "presence": "declared",
+                "firstSeen": now,
+                "lastSeen": now,
+                "updatedAt": now,
+                "packageState": "registration-ready",
+                "packageReason": "verified",
+                "registrationReady": True,
+            },
+        )
+
+    result = asyncio.run(
+        AdapterControllerClient(
+            "http://controller",
+            HMAC_KEY,
+            transport=httpx.MockTransport(handler),
+        ).decommission_candidate(
+            candidate_id,
+            CandidateDecommissionUpdate(
+                actor="dashboard-operator",
+                reason="fixture cleanup",
+                request_ref=CandidateMutationRef(
+                    request_id="e" * 64,
+                    payload_hash="f" * 64,
+                ),
+            ),
+        )
+    )
+
+    assert result.state == "EVENT_CONFIRMED"

@@ -128,6 +128,9 @@ class ServiceHolder:
     def delete_candidate(self, candidate_id, request):
         return self._require().delete_candidate(candidate_id, request)
 
+    def decommission_candidate(self, candidate_id, request):
+        return self._require().decommission_candidate(candidate_id, request)
+
     def get_candidate(self, candidate_id):
         return self._require().get_candidate(candidate_id)
 

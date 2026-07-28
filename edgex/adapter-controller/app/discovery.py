@@ -16,6 +16,7 @@ from .device_catalog import DeviceBindingCatalog
 from .discovery_models import (
     CandidateActionRef,
     CandidateDecisionUpdate,
+    CandidateDecommissionRequest,
     CandidateDeleteRequest,
     CandidatePackageState,
     CandidateRegistryDocument,
@@ -553,6 +554,60 @@ class DeviceCandidateRegistry:
                 resource_version=resource_version,
             )
             return deleted_view
+
+    def decommission_candidate(
+        self,
+        candidate_id: str,
+        request: CandidateDecommissionRequest,
+    ) -> CandidateView:
+        now = _now()
+        with self._lock:
+            registry, resource_version, candidate = self._require_candidate(candidate_id)
+            if candidate.state not in {
+                "APPROVED",
+                "SERVICE_READY",
+                "METADATA_REGISTERED",
+                "EVENT_CONFIRMED",
+                "FAILED",
+            }:
+                raise ControllerConflict(
+                    "only a registered or failed registration candidate can be "
+                    "decommissioned"
+                )
+            replay = self._assert_replay(
+                candidate.last_action_ref,
+                action="decommission",
+                request_id=request.request_ref.request_id,
+                payload_hash=request.request_ref.payload_hash,
+                allow_missing=True,
+            )
+            if replay:
+                return self._candidate_view(candidate, now=now)
+            candidate.deleted_at = now
+            candidate.updated_at = now
+            candidate.decision = "ignored"
+            candidate.decision_note = request.reason
+            candidate.last_action_ref = CandidateActionRef(
+                action="decommission",
+                request_id=request.request_ref.request_id,
+                payload_hash=request.request_ref.payload_hash,
+            )
+            self._write_registry(
+                registry,
+                resource_version=resource_version,
+            )
+            self._audit(
+                "candidate.decommissioned",
+                candidate,
+                actor=request.actor,
+                message=request.reason,
+                details={
+                    "currentState": candidate.state,
+                    "nextState": candidate.state,
+                    "resourcesRemoved": True,
+                },
+            )
+            return self._candidate_view(candidate, now=now)
 
     def _require_candidate(
         self,

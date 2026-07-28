@@ -19,6 +19,7 @@ from fastapi import (
 from .config import Settings
 from .discovery_models import (
     CandidateDecisionUpdate,
+    CandidateDecommissionRequest,
     CandidateDeleteRequest,
     CandidateApprovalRequest,
     CandidatePage,
@@ -391,6 +392,39 @@ def create_controller_router(settings: Settings, service: Any) -> APIRouter:
         require_discovery_enabled()
         require_mutation_enabled()
         return await invoke(lambda: service.delete_candidate(candidate_id, payload))
+
+    @router.post(
+        "/internal/v1/discovery/{candidate_id}/decommission",
+        response_model=CandidateView,
+    )
+    async def decommission_candidate(
+        candidate_id: str,
+        payload: CandidateDecommissionRequest,
+        request: Request,
+        confirm_candidate: Annotated[
+            str | None,
+            Header(alias="X-Confirm-Candidate"),
+        ] = None,
+        timestamp_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Timestamp"),
+        ] = None,
+        signature_header: Annotated[
+            str | None,
+            Header(alias="X-Controller-Signature"),
+        ] = None,
+    ) -> Any:
+        await require_signature(request, timestamp_header, signature_header)
+        require_discovery_enabled()
+        require_mutation_enabled()
+        if confirm_candidate != candidate_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="exact candidate confirmation is required",
+            )
+        return await invoke(
+            lambda: service.decommission_candidate(candidate_id, payload)
+        )
 
     @router.get(
         "/api/v1/discovery/candidates",

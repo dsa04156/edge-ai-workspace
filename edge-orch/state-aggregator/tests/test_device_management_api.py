@@ -75,6 +75,7 @@ class RecordingService:
         self.calls = []
         self.create_error = None
         self.patch_error = None
+        self.delete_error = None
         self.operation_error = None
 
     async def list_adapters(self):
@@ -109,6 +110,15 @@ class RecordingService:
             raise self.patch_error
         result = operation("verified")
         result.action = "patch"
+        return result
+
+    async def delete_device(self, name, *, idempotency_key, actor):
+        self.calls.append(("delete", name, idempotency_key, actor))
+        if self.delete_error:
+            raise self.delete_error
+        result = operation("verified")
+        result.action = "delete"
+        result.device_name = name
         return result
 
     async def get_operation(self, request_id):
@@ -364,6 +374,27 @@ class RecordingDiscoveryService:
         self.calls.append(("delete", candidate_id, request_ref.request_id))
         return self.candidate(candidate_id=candidate_id)
 
+    async def decommission_candidate(
+        self,
+        candidate_id,
+        *,
+        reason,
+        actor,
+        request_ref,
+    ):
+        self.calls.append(
+            (
+                "decommission",
+                candidate_id,
+                reason,
+                actor,
+                request_ref.request_id,
+            )
+        )
+        return self.candidate(candidate_id=candidate_id).model_copy(
+            update={"state": "EVENT_CONFIRMED", "decision": "accepted"}
+        )
+
 
 def settings(
     *,
@@ -564,6 +595,34 @@ def test_management_mutations_ignore_unrelated_authorization_header():
     assert [item[0] for item in mutation_calls] == ["decision"]
 
 
+def test_candidate_decommission_requires_exact_confirmation():
+    discovery = RecordingDiscoveryService()
+    candidate_id = "candidate-" + ("c" * 24)
+    with discovery_client(discovery) as client:
+        missing_confirmation = client.post(
+            f"/management/discovery/{candidate_id}/decommission",
+            json={"reason": "fixture cleanup"},
+            headers=mutation_headers(),
+        )
+        removed = client.post(
+            f"/management/discovery/{candidate_id}/decommission",
+            json={"reason": "fixture cleanup"},
+            headers={
+                **mutation_headers(),
+                "X-Confirm-Candidate": candidate_id,
+            },
+        )
+
+    assert missing_confirmation.status_code == 409
+    assert removed.status_code == 200
+    assert discovery.calls[-1][0:4] == (
+        "decommission",
+        candidate_id,
+        "fixture cleanup",
+        "dashboard-operator",
+    )
+
+
 def test_management_openapi_has_no_authorization_header_parameter():
     discovery = RecordingDiscoveryService()
     with discovery_client(discovery) as client:
@@ -571,12 +630,13 @@ def test_management_openapi_has_no_authorization_header_parameter():
 
     mutation_paths = {
         "/management/devices": {"post"},
-        "/management/devices/{name}": {"patch"},
+        "/management/devices/{name}": {"patch", "delete"},
         "/management/connections": {"post"},
         "/management/adapter-runtimes/{name}/restart": {"post"},
         "/management/adapter-runtimes/{name}": {"delete"},
         "/management/discovery/manual": {"post"},
         "/management/discovery/{candidate_id}": {"patch", "delete"},
+        "/management/discovery/{candidate_id}/decommission": {"post"},
     }
     for path, methods in mutation_paths.items():
         for method in methods:
@@ -732,11 +792,30 @@ def test_operation_poll_and_unknown_operation_mapping():
     assert missing.status_code == 404
 
 
-def test_delete_route_does_not_exist():
-    with client_for(RecordingService()) as client:
-        response = client.delete("/management/devices/device-01")
+def test_delete_requires_exact_confirmation_and_is_idempotent():
+    service = RecordingService()
+    with client_for(service, enabled=True, hmac_key="hmac") as client:
+        missing_confirmation = client.delete(
+            "/management/devices/device-01",
+            headers=mutation_headers(),
+        )
+        deleted = client.delete(
+            "/management/devices/device-01",
+            headers={
+                **mutation_headers(),
+                "X-Confirm-Device": "device-01",
+            },
+        )
 
-    assert response.status_code in {404, 405}
+    assert missing_confirmation.status_code == 409
+    assert deleted.status_code == 200
+    assert deleted.json()["action"] == "delete"
+    assert service.calls[-1] == (
+        "delete",
+        "device-01",
+        "request-key",
+        "dashboard-operator",
+    )
 
 
 def test_runtime_routes_are_hidden_until_management_flag_is_enabled():

@@ -44,6 +44,7 @@ from .device_management import (
 )
 from .device_management_edgex import EdgeXManagementError
 from .device_discovery_models import (
+    CandidateDecommissionInput,
     CandidateDecisionInput,
     CandidateDecisionUpdate,
     CandidateMutationRef,
@@ -345,6 +346,56 @@ def create_device_management_router(
                     "requestId": exc.operation.request_id,
                     "status": exc.operation.status,
                     "message": "EdgeX Metadata patch failed",
+                },
+            ) from exc
+        except EdgeXManagementError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="EdgeX Metadata backend is unavailable",
+            ) from exc
+
+    @router.delete("/devices/{name}", response_model=ManagementOperation)
+    async def delete_device(
+        name: str,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+        confirm_device: Annotated[
+            str | None,
+            Header(alias="X-Confirm-Device"),
+        ] = None,
+    ) -> ManagementOperation:
+        actor = require_management_mutation()
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        if confirm_device != name:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="exact device confirmation is required",
+            )
+        try:
+            return await management_service.delete_device(
+                name,
+                idempotency_key=idempotency_key,
+                actor=actor,
+            )
+        except ManagementValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=exc.result.model_dump(by_alias=True),
+            ) from exc
+        except IdempotencyConflict as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(exc),
+            ) from exc
+        except ManagementApplyError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail={
+                    "requestId": exc.operation.request_id,
+                    "status": exc.operation.status,
+                    "message": "EdgeX Metadata delete failed",
                 },
             ) from exc
         except EdgeXManagementError as exc:
@@ -695,6 +746,49 @@ def create_device_management_router(
                     candidate_id,
                     idempotency_key,
                     {},
+                ),
+            )
+        except Exception as exc:
+            raise map_runtime_error(exc) from exc
+
+    @router.post(
+        "/discovery/{candidate_id}/decommission",
+        response_model=CandidateView,
+    )
+    async def decommission_candidate(
+        candidate_id: str,
+        decommission: CandidateDecommissionInput,
+        idempotency_key_header: Annotated[
+            str | None,
+            Header(alias="Idempotency-Key"),
+        ] = None,
+        confirm_candidate: Annotated[
+            str | None,
+            Header(alias="X-Confirm-Candidate"),
+        ] = None,
+    ) -> CandidateView:
+        actor = require_runtime_mutation()
+        idempotency_key = require_idempotency_key(idempotency_key_header)
+        if confirm_candidate != candidate_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="exact candidate confirmation is required",
+            )
+        payload = decommission.model_dump(
+            by_alias=True,
+            mode="json",
+            exclude_none=True,
+        )
+        try:
+            return await discovery_service.decommission_candidate(
+                candidate_id,
+                reason=decommission.reason,
+                actor=actor,
+                request_ref=candidate_mutation_ref(
+                    "decommission",
+                    candidate_id,
+                    idempotency_key,
+                    payload,
                 ),
             )
         except Exception as exc:

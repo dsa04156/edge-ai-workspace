@@ -346,6 +346,12 @@ class AdapterControllerService:
             request,
         )
 
+    def decommission_candidate(self, candidate_id: str, request):
+        return self._require_registration().decommission(
+            candidate_id,
+            request,
+        )
+
     def get_candidate(self, candidate_id: str):
         return self._require_candidate_registry().get_candidate(candidate_id)
 

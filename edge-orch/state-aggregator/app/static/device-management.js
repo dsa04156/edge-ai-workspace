@@ -40,6 +40,7 @@ const managementState = {
   runtimeActionKeys: new Map(),
   candidateActionKeys: new Map(),
   manualCandidateCreateKey: "",
+  deviceDeleteKey: "",
   validation: null,
   operation: null,
   patchBaseline: null,
@@ -1136,6 +1137,26 @@ async function deleteCandidate(candidateId, {
   return managementPayload(response);
 }
 
+async function decommissionCandidate(candidateId, {
+  idempotencyKey,
+  reason,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_DISCOVERY_URL}/${encodeURIComponent(candidateId)}/decommission`,
+    {
+      method: "POST",
+      headers: {
+        ...mutationHeaders(idempotencyKey),
+        "X-Confirm-Candidate": candidateId,
+      },
+      body: JSON.stringify({reason}),
+      cache: "no-store",
+    },
+  );
+  return managementPayload(response);
+}
+
 
 async function restartAdapterRuntime(name, {
   idempotencyKey,
@@ -1188,6 +1209,24 @@ async function patchManagementDevice(name, payload, {
   return managementPayload(response);
 }
 
+async function deleteManagementDevice(name, {
+  idempotencyKey,
+  fetchFn = fetch,
+}) {
+  const response = await fetchFn(
+    `${MANAGEMENT_DEVICES_URL}/${encodeURIComponent(name)}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...mutationHeaders(idempotencyKey),
+        "X-Confirm-Device": name,
+      },
+      cache: "no-store",
+    },
+  );
+  return managementPayload(response);
+}
+
 
 async function fetchManagementOperation(requestId, fetchFn = fetch) {
   const response = await fetchFn(
@@ -1209,6 +1248,14 @@ async function fetchConnectionOperation(requestId, fetchFn = fetch) {
 
 function operationStatusView(operation = {}) {
   if (operation.status === "verified") {
+    if (operation.action === "delete") {
+      return {
+        label: "삭제 완료",
+        tone: "verified",
+        detail: "EdgeX Core Metadata 재조회에서 디바이스 삭제를 확인했습니다.",
+        terminal: true,
+      };
+    }
     return {
       label: "검증 완료",
       tone: "verified",
@@ -1486,6 +1533,16 @@ function renderPatchResult(message, {
   documentRef = document,
 } = {}) {
   const element = byId("managementPatchResult", documentRef);
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.status = status;
+}
+
+function renderDeleteDeviceResult(message, {
+  status = "warning",
+  documentRef = document,
+} = {}) {
+  const element = byId("managementDeleteDeviceResult", documentRef);
   if (!element) return;
   element.textContent = message;
   element.dataset.status = status;
@@ -1960,6 +2017,34 @@ function candidateRegisteredDevices(candidate = {}) {
     (device) => managementDeviceNode(device) === candidate.nodeName
       && managementDeviceBindingId(device) === bindingId,
   );
+}
+
+function registeredCandidateForDevice(deviceName = "") {
+  if (!deviceName) return null;
+  return (managementState.discovery.candidates || []).find(
+    (candidate) => [
+      "APPROVED",
+      "SERVICE_READY",
+      "METADATA_REGISTERED",
+      "EVENT_CONFIRMED",
+      "FAILED",
+    ].includes(candidate.state)
+      && candidateRegisteredDevices(candidate).some(
+        (device) => device.name === deviceName,
+      ),
+  ) || null;
+}
+
+
+function deviceDeleteTargetView(deviceName = "") {
+  const candidate = registeredCandidateForDevice(deviceName);
+  return {
+    candidate,
+    title: candidate ? "등록 연결 전체 삭제" : "EdgeX 디바이스 삭제",
+    summary: candidate
+      ? `${deviceName}과 Controller가 만든 Device Service Runtime을 함께 삭제합니다. Device Profile은 다른 장비가 사용하면 유지됩니다.`
+      : `${deviceName}을 EdgeX Core Metadata에서 삭제합니다. Device Profile과 Device Service는 유지됩니다.`,
+  };
 }
 
 
@@ -2929,6 +3014,12 @@ function renderMutationMode(documentRef = document) {
     manualButton.title = enabled
       ? "자동 탐색이 어려운 엔드포인트를 후보로 추가합니다."
       : "현재 변경 기능이 비활성화되어 있습니다.";
+  }
+  const deleteButton = byId("managementDeleteDevice", documentRef);
+  if (deleteButton) {
+    deleteButton.disabled = !(
+      enabled && managementState.selectedPatchDeviceName
+    );
   }
   updatePatchDirtyState(documentRef);
 }
@@ -4203,12 +4294,14 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       })
       .finally(() => setManagementButtonBusy(button, false));
   });
-  byId("managedDeviceList", documentRef)?.addEventListener("click", (event) => {
-    const button = event.target.closest?.("[data-management-edit-device]");
-    if (button) {
-      setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
-      setManagementView("edit", documentRef);
-    }
+  ["managedDeviceList", "managementFixtureDeviceList"].forEach((id) => {
+    byId(id, documentRef)?.addEventListener("click", (event) => {
+      const button = event.target.closest?.("[data-management-edit-device]");
+      if (button) {
+        setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
+        setManagementView("edit", documentRef);
+      }
+    });
   });
   byId("managementPatchDeviceSelect", documentRef)?.addEventListener("change", (event) => {
     setSelectedPatchDevice(event.target.value, documentRef);
@@ -4219,6 +4312,133 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("devicePatchForm", documentRef)?.addEventListener("change", () => {
     renderPatchDirtyState(documentRef);
   });
+  const deleteDeviceDialog = byId(
+    "managementDeleteDeviceDialog",
+    documentRef,
+  );
+  byId("managementDeleteDevice", documentRef)?.addEventListener(
+    "click",
+    () => {
+      const name = managementState.selectedPatchDeviceName;
+      if (!name) {
+        renderPatchResult("삭제할 디바이스를 먼저 선택하세요.", {
+          status: "error",
+          documentRef,
+        });
+        return;
+      }
+      const view = deviceDeleteTargetView(name);
+      deleteDeviceDialog.dataset.deviceName = name;
+      byId("managementDeleteDialogTitle", documentRef).textContent = view.title;
+      byId("managementDeleteDialogSummary", documentRef).textContent = view.summary;
+      const confirmInput = byId("managementDeleteDeviceConfirm", documentRef);
+      confirmInput.value = "";
+      confirmInput.placeholder = name;
+      byId("managementConfirmDeleteDevice", documentRef).disabled = true;
+      managementState.deviceDeleteKey = "";
+      renderDeleteDeviceResult(
+        `확인을 위해 ${name}을(를) 정확히 입력하세요.`,
+        {status: "warning", documentRef},
+      );
+      if (typeof deleteDeviceDialog?.showModal === "function") {
+        deleteDeviceDialog.showModal();
+      } else {
+        deleteDeviceDialog?.setAttribute("open", "");
+      }
+      confirmInput.focus();
+    },
+  );
+  deleteDeviceDialog
+    ?.querySelectorAll("[data-management-close-delete-dialog]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        managementState.deviceDeleteKey = "";
+        if (typeof deleteDeviceDialog.close === "function") {
+          deleteDeviceDialog.close();
+        } else {
+          deleteDeviceDialog.removeAttribute("open");
+        }
+      });
+    });
+  byId("managementDeleteDeviceConfirm", documentRef)?.addEventListener(
+    "input",
+    (event) => {
+      const exact = event.target.value
+        === (deleteDeviceDialog?.dataset.deviceName || "");
+      byId("managementConfirmDeleteDevice", documentRef).disabled = !exact;
+      renderDeleteDeviceResult(
+        exact
+          ? "이름이 일치합니다. 삭제하면 되돌릴 수 없습니다."
+          : "디바이스 이름이 정확히 일치해야 합니다.",
+        {status: exact ? "warning" : "error", documentRef},
+      );
+    },
+  );
+  byId("managementDeleteDeviceForm", documentRef)?.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+      const name = deleteDeviceDialog?.dataset.deviceName || "";
+      const confirmInput = byId("managementDeleteDeviceConfirm", documentRef);
+      const submit = byId("managementConfirmDeleteDevice", documentRef);
+      if (!name || confirmInput.value !== name) {
+        renderDeleteDeviceResult("디바이스 이름이 일치하지 않습니다.", {
+          status: "error",
+          documentRef,
+        });
+        return;
+      }
+      try {
+        setManagementButtonBusy(submit, true, "삭제 중…");
+        renderDeleteDeviceResult(`${name} 삭제를 진행 중입니다.`, {
+          status: "waiting",
+          documentRef,
+        });
+        renderManagementActionFeedback(`${name} 삭제 요청 중…`, {
+          status: "waiting",
+          documentRef,
+        });
+        managementState.deviceDeleteKey = (
+          managementState.deviceDeleteKey
+          || globalThis.crypto?.randomUUID?.()
+          || `device-delete-${Date.now()}`
+        );
+        const candidate = registeredCandidateForDevice(name);
+        if (candidate) {
+          await decommissionCandidate(candidate.candidateId, {
+            idempotencyKey: managementState.deviceDeleteKey,
+            reason: `대시보드에서 ${name} 등록 연결을 삭제했습니다.`,
+            fetchFn,
+          });
+        } else {
+          await deleteManagementDevice(name, {
+            idempotencyKey: managementState.deviceDeleteKey,
+            fetchFn,
+          });
+        }
+        await loadDeviceManagement(documentRef, fetchFn);
+        setSelectedPatchDevice("", documentRef);
+        renderManagementActionFeedback(`${name} 삭제를 확인했습니다.`, {
+          status: "success",
+          documentRef,
+        });
+        if (typeof deleteDeviceDialog.close === "function") {
+          deleteDeviceDialog.close();
+        } else {
+          deleteDeviceDialog.removeAttribute("open");
+        }
+      } catch (error) {
+        renderDeleteDeviceResult(
+          error?.message || "디바이스 삭제에 실패했습니다.",
+          {status: "error", documentRef},
+        );
+        renderManagementError(error, documentRef);
+      } finally {
+        setManagementButtonBusy(submit, false);
+        submit.disabled = confirmInput.value !== name;
+      }
+    },
+  );
   byId("managementDeviceServiceList", documentRef)?.addEventListener("click", async (event) => {
     const button = event.target.closest?.("[data-runtime-action]");
     if (!button || button.disabled) return;
@@ -4346,7 +4566,10 @@ if (typeof module !== "undefined") {
     createManualCandidate,
     createManagementConnection,
     createManagementDevice,
+    decommissionCandidate,
     deleteCandidate,
+    deleteManagementDevice,
+    deviceDeleteTargetView,
     devicePurpose,
     fetchDiscoveryInventory,
     fetchAdapterRuntimes,

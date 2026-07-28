@@ -179,6 +179,10 @@ class FakeMetadata:
         self.calls.append(f"patch_device:{name}")
         self.devices[name].update(copy.deepcopy(patch))
 
+    async def delete_device(self, name):
+        self.calls.append(f"delete_device:{name}")
+        self.devices.pop(name, None)
+
     async def delete_profile(self, name):
         self.calls.append(f"delete_profile:{name}")
         self.profiles.pop(name, None)
@@ -634,6 +638,61 @@ async def test_patch_preserves_reserved_tags_and_changes_only_allowlist(catalog)
     assert device["tags"][DEVICE_REQUEST_ID_TAG] == original_tags[DEVICE_REQUEST_ID_TAG]
     assert device["tags"][DEVICE_PAYLOAD_HASH_TAG] == original_tags[DEVICE_PAYLOAD_HASH_TAG]
     assert device["tags"]["line"] == "B"
+
+
+@async_test
+async def test_delete_device_is_idempotent_and_verified_by_readback(catalog):
+    metadata = FakeMetadata()
+    service = service_for(catalog, metadata)
+    created = await service.create_device(
+        onboarding_request(),
+        idempotency_key="create-before-delete",
+        actor="dashboard-admin",
+    )
+
+    deleted = await service.delete_device(
+        created.device_name,
+        idempotency_key="delete-1",
+        actor="dashboard-admin",
+    )
+    replay = await service.delete_device(
+        created.device_name,
+        idempotency_key="delete-1",
+        actor="dashboard-admin",
+    )
+
+    assert deleted.action == replay.action == "delete"
+    assert deleted.status == replay.status == "verified"
+    assert created.device_name not in metadata.devices
+    assert metadata.calls.count(f"delete_device:{created.device_name}") == 1
+
+
+@async_test
+async def test_delete_requires_candidate_decommission_for_controller_owned_device(
+    catalog,
+):
+    metadata = FakeMetadata()
+    request = onboarding_request()
+    device = {
+        "name": request.device.name,
+        "profileName": request.profile.name,
+        "serviceName": "device-serial-jetson",
+        "protocols": {"serial": serial_protocol()},
+        "tags": {"controllerCandidateId": "candidate-" + "a" * 64},
+    }
+    metadata.devices[request.device.name] = device
+
+    with pytest.raises(ManagementValidationError) as captured:
+        await service_for(catalog, metadata).delete_device(
+            request.device.name,
+            idempotency_key="delete-controller-owned",
+            actor="dashboard-admin",
+        )
+
+    assert captured.value.result.issues[0].code == (
+        "candidate_decommission_required"
+    )
+    assert request.device.name in metadata.devices
 
 
 @async_test

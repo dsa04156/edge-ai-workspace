@@ -8,6 +8,7 @@ from app.device_catalog import DeviceBindingCatalog
 from app.discovery import DeviceCandidateRegistry
 from app.discovery_models import (
     CandidateApprovalRequest,
+    CandidateDecommissionRequest,
     CandidateDecisionUpdate,
     CandidateMutationRef,
     CandidateRetryRequest,
@@ -301,6 +302,17 @@ def approval() -> CandidateApprovalRequest:
     )
 
 
+def decommission() -> CandidateDecommissionRequest:
+    return CandidateDecommissionRequest(
+        actor="operator-1",
+        reason="development fixture cleanup",
+        request_ref=CandidateMutationRef(
+            request_id="5" * 64,
+            payload_hash="6" * 64,
+        ),
+    )
+
+
 def components(tmp_path, *, auth=None, edge_x=None, runtime=None, timeout=60):
     kube = FakeKubernetesGateway(target_node_ready=True)
     store = SQLiteDiscoveryStore(tmp_path / "discovery.db")
@@ -351,6 +363,41 @@ def test_approval_to_first_event_is_idempotent_end_to_end(tmp_path):
     ]
     assert coordinator.edge_x.devices[0]["tags"]["controllerCandidateId"] == (
         candidate.candidate_id
+    )
+
+
+def test_decommission_removes_only_saga_owned_resources_and_hides_candidate(
+    tmp_path,
+):
+    edge_x = FakeEdgeX()
+    runtime = FakeDeployRuntimeService()
+    registry, _, coordinator, candidate = components(
+        tmp_path,
+        edge_x=edge_x,
+        runtime=runtime,
+    )
+    coordinator.approve(candidate.candidate_id, approval())
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    completed = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    removed = coordinator.decommission(
+        candidate.candidate_id,
+        decommission(),
+    )
+    replay = coordinator.decommission(
+        candidate.candidate_id,
+        decommission(),
+    )
+
+    assert completed.status == "EVENT_CONFIRMED"
+    assert removed.candidate_id == replay.candidate_id == candidate.candidate_id
+    assert edge_x.deleted_devices == [completed.device_name]
+    assert edge_x.deleted_profiles == [completed.profile_name]
+    assert runtime.retired == [completed.runtime_name]
+    assert all(
+        item.candidate_id != candidate.candidate_id
+        for item in registry.list_inventory().candidates
     )
 
 

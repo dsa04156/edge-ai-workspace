@@ -1454,6 +1454,49 @@ body[data-dashboard-page="management"] .side-rail {
   border-top: 1px solid var(--line);
 }
 
+.management-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.42);
+  border-radius: var(--radius-sm);
+  background: rgba(127, 29, 29, 0.12);
+}
+
+.management-danger-zone p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-danger-action {
+  min-height: 36px;
+  border-color: rgba(248, 113, 113, 0.62);
+  background: rgba(153, 27, 27, 0.72);
+  color: #fff7f7;
+  cursor: pointer;
+}
+
+.management-danger-action:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.9);
+}
+
+.management-danger-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.management-delete-dialog {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.management-delete-dialog #managementDeleteDialogTitle {
+  color: #fecaca;
+}
+
 .management-discovery-toolbar input:focus-visible,
 .management-discovery-toolbar select:focus-visible,
 .management-candidate-actions button:focus-visible,
@@ -1499,7 +1542,8 @@ body[data-dashboard-page="management"] .side-rail {
   .managed-device-row,
   .management-flow-head,
   .management-discovery-head,
-  .management-dialog-head {
+  .management-dialog-head,
+  .management-danger-zone {
     align-items: stretch;
     flex-direction: column;
   }

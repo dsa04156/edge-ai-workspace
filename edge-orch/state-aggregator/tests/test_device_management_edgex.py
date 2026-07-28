@@ -192,6 +192,23 @@ async def test_patch_device_sends_only_name_and_allowlisted_patch():
 
 
 @async_test
+async def test_delete_device_uses_exact_encoded_name():
+    captured = {}
+
+    async def handler(request):
+        captured["method"] = request.method
+        captured["path"] = escaped_path(request)
+        return httpx.Response(200, json=envelope(status=200))
+
+    await client_for(handler).delete_device("device 01")
+
+    assert captured == {
+        "method": "DELETE",
+        "path": "/api/v3/device/name/device%2001",
+    }
+
+
+@async_test
 async def test_lists_devices_by_profile_and_deletes_exact_profile_name():
     calls = []
 

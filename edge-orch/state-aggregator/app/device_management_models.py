@@ -277,7 +277,7 @@ class ValidationResult(ManagementModel):
 class ManagementOperation(ManagementModel):
     request_id: str
     payload_hash: str = Field(exclude=True)
-    action: Literal["create", "patch"]
+    action: Literal["create", "patch", "delete"]
     device_name: str
     profile_name: str
     status: Literal["metadata_applied", "waiting_for_event", "verified", "failed"]

@@ -18,6 +18,7 @@ from .adapter_runtime_models import (
     RuntimePlanRequest,
 )
 from .device_discovery_models import (
+    CandidateDecommissionUpdate,
     CandidateDecisionUpdate,
     CandidateDeleteRequest,
     CandidateView,
@@ -162,6 +163,30 @@ class AdapterControllerClient:
             body=request.model_dump(by_alias=True, mode="json", exclude_none=True),
         )
         return self._parse_model(CandidateView, payload, "candidate delete")
+
+    async def decommission_candidate(
+        self,
+        candidate_id: str,
+        request: CandidateDecommissionUpdate,
+    ) -> CandidateView:
+        payload = await self._request(
+            "POST",
+            (
+                f"/internal/v1/discovery/"
+                f"{quote(candidate_id, safe='')}/decommission"
+            ),
+            body=request.model_dump(
+                by_alias=True,
+                mode="json",
+                exclude_none=True,
+            ),
+            extra_headers={"X-Confirm-Candidate": candidate_id},
+        )
+        return self._parse_model(
+            CandidateView,
+            payload,
+            "candidate decommission",
+        )
 
     async def _request(
         self,
