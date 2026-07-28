@@ -71,6 +71,7 @@
       "adapterId": "modbus",
       "displayName": "EdgeX Modbus TCP 4.0.2 (development simulator)",
       "protocolName": "modbus",
+      "purpose": "development-fixture",
       "verificationState": "template-verified",
       "deploymentEnabled": true,
       "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",

@@ -12,6 +12,7 @@ VerificationState = Literal[
     "template-verified",
     "unverified",
 ]
+RuntimePurpose = Literal["operational", "development-fixture"]
 RuntimePhase = Literal[
     "PLANNED",
     "DEPLOYING",
@@ -41,6 +42,7 @@ class RuntimeObservation(ManagementModel):
     hardware_binding_ids: list[str] = Field(default_factory=list)
     management_mode: Literal["external", "controller"]
     management_owner: Literal["argocd", "controller"]
+    purpose: RuntimePurpose = "operational"
     verification_state: VerificationState
     phase: RuntimePhase
     consumers: int = Field(default=0, ge=0)

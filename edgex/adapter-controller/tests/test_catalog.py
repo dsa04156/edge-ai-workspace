@@ -23,6 +23,7 @@ def test_catalog_records_external_hardware_verified_runtimes(catalog):
     sensehat = catalog.require("sensehat-device-service-v1")
 
     assert serial.adapter_id == "serial-jetson"
+    assert serial.purpose == "operational"
     assert serial.verification_state == "hardware-verified"
     assert serial.deployment_enabled is False
     assert "@sha256:" in serial.image
@@ -54,6 +55,7 @@ def test_catalog_enables_only_the_pinned_official_modbus_simulator_path(catalog)
     template = catalog.require("modbus-device-service-v1")
 
     assert template.adapter_id == "modbus"
+    assert template.purpose == "development-fixture"
     assert template.verification_state == "template-verified"
     assert template.deployment_enabled is True
     assert template.image == (

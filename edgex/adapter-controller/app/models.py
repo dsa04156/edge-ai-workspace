@@ -27,6 +27,7 @@ VerificationState = Literal[
 ]
 ManagementMode = Literal["external", "controller"]
 ManagementOwner = Literal["argocd", "controller"]
+RuntimePurpose = Literal["operational", "development-fixture"]
 RuntimePhase = Literal[
     "PLANNED",
     "DEPLOYING",
@@ -162,6 +163,7 @@ class RuntimeTemplate(ControllerModel):
     )
     display_name: str = Field(min_length=1, max_length=255)
     protocol_name: str = Field(min_length=1, max_length=128)
+    purpose: RuntimePurpose = "operational"
     verification_state: VerificationState
     deployment_enabled: bool = False
     image: str | None = None
@@ -250,6 +252,7 @@ class RuntimeObservation(ControllerModel):
     hardware_binding_ids: list[str] = Field(default_factory=list)
     management_mode: ManagementMode
     management_owner: ManagementOwner
+    purpose: RuntimePurpose = "operational"
     verification_state: VerificationState
     phase: RuntimePhase
     consumers: int = Field(default=0, ge=0)

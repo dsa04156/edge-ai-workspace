@@ -32,6 +32,7 @@ def runtime_payload():
         "hardwareBindingId": "jetson-arduino-serial-001",
         "managementMode": "external",
         "managementOwner": "argocd",
+        "purpose": "operational",
         "verificationState": "hardware-verified",
         "phase": "SERVICE_READY",
         "consumers": 6,
@@ -72,6 +73,7 @@ def test_client_signs_list_and_parses_strict_runtime_response():
 
     assert result[0].runtime_name == "device-serial-jetson"
     assert result[0].management_mode == "external"
+    assert result[0].purpose == "operational"
 
 
 def test_client_sends_only_allowlisted_plan_fields():

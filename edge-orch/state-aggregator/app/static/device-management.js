@@ -247,6 +247,26 @@ function runtimeOwnsBinding(runtime = {}, bindingId = "") {
   );
 }
 
+function runtimePurpose(runtime = {}) {
+  return (
+    runtime.purpose === "development-fixture"
+    || runtime.runtimePurpose === "development-fixture"
+    || runtime.runtime_purpose === "development-fixture"
+  )
+    ? "development-fixture"
+    : "operational";
+}
+
+function devicePurpose(device = {}, runtimes = []) {
+  const serviceName = device.device_service_name || device.deviceServiceName || "";
+  const runtime = runtimes.find(
+    (candidate) => (
+      candidate.serviceName || candidate.service_name || ""
+    ) === serviceName,
+  );
+  return runtimePurpose(runtime || {});
+}
+
 
 function protocolPackageStatus(adapter, nodeName, _runtimes = []) {
   if (!adapter || adapter.status === "unsupported"
@@ -626,6 +646,7 @@ function buildDeviceServiceObservations({
         .map((connection) => connection.physicalDeviceId)
         .filter(Boolean),
       managementOwner: runtime?.managementOwner || runtime?.management_owner || "",
+      purpose: runtimePurpose(runtime || {}),
       verificationState: runtime?.verificationState
         || runtime?.verification_state
         || adapter?.runtime?.verificationState
@@ -792,6 +813,8 @@ function buildManagementNodeScopes({
         observed: false,
         runtimeCount: 0,
         deviceCount: 0,
+        fixtureRuntimeCount: 0,
+        fixtureDeviceCount: 0,
         adapterCount: 0,
       });
     }
@@ -809,14 +832,33 @@ function buildManagementNodeScopes({
       eligibleNodes.add(name);
     }
   });
+  const servicePurposes = new Map(
+    runtimes
+      .map((runtime) => [
+        runtime.serviceName || runtime.service_name || "",
+        runtimePurpose(runtime),
+      ])
+      .filter(([serviceName]) => serviceName),
+  );
   runtimes.forEach((runtime) => {
     const nodeName = runtime.targetNode || runtime.target_node;
-    ensure(nodeName).runtimeCount += 1;
+    const scope = ensure(nodeName);
+    if (runtimePurpose(runtime) === "development-fixture") {
+      scope.fixtureRuntimeCount += 1;
+    } else {
+      scope.runtimeCount += 1;
+    }
     eligibleNodes.add(nodeName || UNASSIGNED_NODE);
   });
   devices.forEach((device) => {
     const nodeName = managementDeviceNode(device);
-    ensure(nodeName).deviceCount += 1;
+    const serviceName = device.device_service_name || device.deviceServiceName || "";
+    const scope = ensure(nodeName);
+    if (servicePurposes.get(serviceName) === "development-fixture") {
+      scope.fixtureDeviceCount += 1;
+    } else {
+      scope.deviceCount += 1;
+    }
     eligibleNodes.add(nodeName);
   });
   adapters.forEach((adapter) => {
@@ -1597,8 +1639,16 @@ function renderManagementNodes(documentRef = document) {
     );
     const facts = documentRef.createElement("span");
     facts.className = "management-node-card-facts";
-    appendTextElement(facts, "span", "", `런타임 ${scope.runtimeCount}개`);
-    appendTextElement(facts, "span", "", `디바이스 ${scope.deviceCount}개`);
+    appendTextElement(facts, "span", "", `현장 서비스 ${scope.runtimeCount}개`);
+    appendTextElement(facts, "span", "", `현장 디바이스 ${scope.deviceCount}개`);
+    if (scope.fixtureRuntimeCount || scope.fixtureDeviceCount) {
+      appendTextElement(
+        facts,
+        "span",
+        "",
+        `검증용 ${scope.fixtureRuntimeCount}서비스 · ${scope.fixtureDeviceCount}디바이스`,
+      );
+    }
     appendTextElement(facts, "span", "", `프로토콜 ${scope.adapterCount}개`);
     button.append(heading, facts);
     container.appendChild(button);
@@ -2111,7 +2161,11 @@ function renderDiscovery(documentRef = document) {
 
 function renderDeviceServiceInventory(documentRef = document) {
   const container = byId("managementDeviceServiceList", documentRef);
+  const fixtureContainer = byId("managementFixtureServiceList", documentRef);
+  const fixtureSection = byId("managementFixtureServiceSection", documentRef);
+  const fixtureCount = byId("managementFixtureServiceCount", documentRef);
   clearElement(container);
+  clearElement(fixtureContainer);
   if (!container) return;
   const observations = buildDeviceServiceObservations({
     adapters: managementState.adapters,
@@ -2119,6 +2173,14 @@ function renderDeviceServiceInventory(documentRef = document) {
     devices: managementState.devices,
     nodeName: managementState.selectedNodeName,
   });
+  const operationalObservations = observations.filter(
+    (observation) => observation.purpose !== "development-fixture",
+  );
+  const fixtureObservations = observations.filter(
+    (observation) => observation.purpose === "development-fixture",
+  );
+  if (fixtureSection) fixtureSection.hidden = fixtureObservations.length === 0;
+  if (fixtureCount) fixtureCount.textContent = `${fixtureObservations.length}개`;
   if (!observations.length) {
     appendTextElement(
       container,
@@ -2128,9 +2190,22 @@ function renderDeviceServiceInventory(documentRef = document) {
     );
     return;
   }
+  if (!operationalObservations.length) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      "이 노드에 등록된 실장비 Device Service가 없습니다.",
+    );
+  }
   observations.forEach((observation) => {
+    const targetContainer = observation.purpose === "development-fixture"
+      ? fixtureContainer
+      : container;
+    if (!targetContainer) return;
     const card = documentRef.createElement("article");
     card.className = "management-physical-card";
+    card.dataset.purpose = observation.purpose;
     card.dataset.presence = observation.presenceState;
     card.dataset.communication = observation.communicationState;
     card.dataset.telemetry = observation.telemetryState;
@@ -2154,13 +2229,23 @@ function renderDeviceServiceInventory(documentRef = document) {
       "",
       observation.serviceName,
     );
+    const headerStatus = documentRef.createElement("div");
+    headerStatus.className = "management-physical-head-status";
+    if (observation.purpose === "development-fixture") {
+      appendTextElement(
+        headerStatus,
+        "span",
+        "management-purpose-pill",
+        "개발용 시뮬레이터",
+      );
+    }
     appendTextElement(
-      header,
+      headerStatus,
       "span",
       "management-protocol-pill",
       koreanLabel("runtimePhase", observation.runtimePhase, "상태 미확인"),
     );
-    header.prepend(identity);
+    header.append(identity, headerStatus);
 
     const summary = documentRef.createElement("div");
     summary.className = "management-physical-summary";
@@ -2224,8 +2309,9 @@ function renderDeviceServiceInventory(documentRef = document) {
       `노드 ${observation.nodeName}`,
       `EdgeX Device ${observation.deviceCount}개`,
       observation.bindingIds.length
-        ? `물리 연결 ${observation.bindingIds.length}개`
-        : "물리 연결 정보 없음",
+        ? `${observation.purpose === "development-fixture" ? "검증 연결" : "물리 연결"} `
+          + `${observation.bindingIds.length}개`
+        : `${observation.purpose === "development-fixture" ? "검증" : "물리"} 연결 정보 없음`,
       observation.managementOwner
         ? `${observation.managementOwner === "argocd" ? "Argo CD" : "Controller"} 관리`
         : "",
@@ -2240,7 +2326,14 @@ function renderDeviceServiceInventory(documentRef = document) {
       ),
     ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
 
-    appendTextElement(detailBody, "p", "management-physical-reason", observation.reason);
+    appendTextElement(
+      detailBody,
+      "p",
+      "management-physical-reason",
+      observation.purpose === "development-fixture"
+        ? `실장비 연결이 아닌 개발 검증용 데이터입니다. ${observation.reason}`
+        : observation.reason,
+    );
     appendTextElement(
       detailBody,
       "small",
@@ -2277,7 +2370,7 @@ function renderDeviceServiceInventory(documentRef = document) {
 
     details.appendChild(detailBody);
     card.append(header, summary, details);
-    container.appendChild(card);
+    targetContainer.appendChild(card);
   });
 }
 
@@ -2474,8 +2567,12 @@ function renderRuntimeInventory(documentRef = document) {
 
 function renderManagedDevices(documentRef = document) {
   const container = byId("managedDeviceList", documentRef);
+  const fixtureContainer = byId("managementFixtureDeviceList", documentRef);
+  const fixtureSection = byId("managementFixtureDeviceSection", documentRef);
+  const fixtureCount = byId("managementFixtureDeviceCount", documentRef);
   const selector = byId("managementPatchDeviceSelect", documentRef);
   clearElement(container);
+  clearElement(fixtureContainer);
   clearElement(selector);
   if (selector) {
     const placeholder = documentRef.createElement("option");
@@ -2486,6 +2583,14 @@ function renderManagedDevices(documentRef = document) {
   const devices = managementState.devices.filter(
     (device) => managementDeviceNode(device) === managementState.selectedNodeName,
   );
+  const operationalDevices = devices.filter(
+    (device) => devicePurpose(device, managementState.runtimes) !== "development-fixture",
+  );
+  const fixtureDevices = devices.filter(
+    (device) => devicePurpose(device, managementState.runtimes) === "development-fixture",
+  );
+  if (fixtureSection) fixtureSection.hidden = fixtureDevices.length === 0;
+  if (fixtureCount) fixtureCount.textContent = `${fixtureDevices.length}개`;
   if (!devices.length) {
     if (container) {
       appendTextElement(
@@ -2497,18 +2602,36 @@ function renderManagedDevices(documentRef = document) {
     }
     return;
   }
+  if (!operationalDevices.length && container) {
+    appendTextElement(
+      container,
+      "p",
+      "management-empty",
+      "선택한 노드에 등록된 실장비 EdgeX 디바이스가 없습니다.",
+    );
+  }
   devices.forEach((device) => {
+    const purpose = devicePurpose(device, managementState.runtimes);
+    const targetContainer = purpose === "development-fixture"
+      ? fixtureContainer
+      : container;
     if (selector) {
       const option = documentRef.createElement("option");
       option.value = device.name;
-      option.textContent = device.name;
+      option.textContent = purpose === "development-fixture"
+        ? `검증용 · ${device.name}`
+        : device.name;
       option.selected = device.name === managementState.selectedPatchDeviceName;
       selector.appendChild(option);
     }
     const row = documentRef.createElement("article");
     row.className = "managed-device-row";
+    row.dataset.purpose = purpose;
     const identity = documentRef.createElement("div");
     appendTextElement(identity, "strong", "", device.name || "이름 미확인 디바이스");
+    if (purpose === "development-fixture") {
+      appendTextElement(identity, "small", "management-fixture-label", "개발용 시뮬레이터");
+    }
     appendTextElement(
       identity,
       "small",
@@ -2532,7 +2655,7 @@ function renderManagedDevices(documentRef = document) {
     button.dataset.managementEditDevice = device.name;
     button.textContent = "수정";
     row.append(identity, button);
-    container?.appendChild(row);
+    targetContainer?.appendChild(row);
   });
 }
 
@@ -3967,6 +4090,7 @@ if (typeof module !== "undefined") {
     createManagementConnection,
     createManagementDevice,
     deleteCandidate,
+    devicePurpose,
     fetchDiscoveryInventory,
     fetchAdapterRuntimes,
     fetchConnectionOperation,
@@ -3992,6 +4116,7 @@ if (typeof module !== "undefined") {
     restartAdapterRuntime,
     retireAdapterRuntime,
     runtimeCanMutate,
+    runtimePurpose,
     updateCandidateDecision,
     validateManagementConnection,
     validateManagementDevice,

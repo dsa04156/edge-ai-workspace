@@ -21,6 +21,7 @@ const {
   createManagementConnection,
   createManagementDevice,
   deleteCandidate,
+  devicePurpose,
   fetchAdapterRuntimes,
   fetchDiscoveryInventory,
   fetchConnectionOperation,
@@ -45,6 +46,7 @@ const {
   restartAdapterRuntime,
   retireAdapterRuntime,
   runtimeCanMutate,
+  runtimePurpose,
   updateCandidateDecision,
   validateManagementConnection,
   validateManagementDevice,
@@ -138,11 +140,32 @@ test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved 
       {hostname: "etri-dev0001-jetorn", node_health: "available"},
     ],
     runtimes: [
-      {targetNode: "etri-dev0001-jetorn"},
-      {targetNode: "etri-dev0003-raspi5"},
+      {
+        targetNode: "etri-dev0001-jetorn",
+        serviceName: "device-serial-jetson",
+        purpose: "operational",
+      },
+      {
+        targetNode: "etri-dev0001-jetorn",
+        serviceName: "device-modbus_test",
+        purpose: "development-fixture",
+      },
+      {
+        targetNode: "etri-dev0003-raspi5",
+        serviceName: "device-sensehat-raspi",
+      },
     ],
     devices: [
-      {name: "serial-01", node_name: "etri-dev0001-jetorn"},
+      {
+        name: "serial-01",
+        node_name: "etri-dev0001-jetorn",
+        device_service_name: "device-serial-jetson",
+      },
+      {
+        name: "modbus-sim-01",
+        node_name: "etri-dev0001-jetorn",
+        device_service_name: "device-modbus_test",
+      },
       {name: "sensehat-01", tags: {nodeName: "etri-dev0003-raspi5"}},
       {name: "legacy-01"},
     ],
@@ -178,6 +201,8 @@ test("builds node scopes from Kubernetes nodes, runtimes, devices, and approved 
       observed: true,
       runtimeCount: 1,
       deviceCount: 1,
+      fixtureRuntimeCount: 1,
+      fixtureDeviceCount: 1,
       adapterCount: 1,
     },
   );
@@ -711,6 +736,7 @@ test("device service inventory includes a controller runtime without legacy adap
       phase: "SERVICE_READY",
       edgeXServiceObserved: true,
       managementOwner: "controller",
+      purpose: "development-fixture",
       verificationState: "template-verified",
     }],
     devices: [{
@@ -730,9 +756,39 @@ test("device service inventory includes a controller runtime without legacy adap
 
   assert.equal(service.serviceName, "device-modbus_1234");
   assert.equal(service.runtimeName, "adapter-modbus-1234");
+  assert.equal(service.purpose, "development-fixture");
   assert.equal(service.runtimeState, "ready");
   assert.equal(service.telemetryState, "fresh");
   assert.deepEqual(service.status, {state: "warning", label: "확인 필요"});
+});
+
+test("runtime purpose explicitly separates operational hardware from fixtures", () => {
+  assert.equal(runtimePurpose({purpose: "operational"}), "operational");
+  assert.equal(
+    runtimePurpose({purpose: "development-fixture"}),
+    "development-fixture",
+  );
+  assert.equal(runtimePurpose({}), "operational");
+  assert.equal(
+    devicePurpose(
+      {device_service_name: "device-modbus_test"},
+      [{
+        serviceName: "device-modbus_test",
+        purpose: "development-fixture",
+      }],
+    ),
+    "development-fixture",
+  );
+  assert.equal(
+    devicePurpose(
+      {device_service_name: "device-serial-jetson"},
+      [{
+        serviceName: "device-serial-jetson",
+        purpose: "operational",
+      }],
+    ),
+    "operational",
+  );
 });
 
 test("physical connection card condenses healthy and degraded evidence", () => {
@@ -1269,6 +1325,9 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementNodeList",
     "managementSelectedNode",
     "managementDeviceServiceList",
+    "managementFixtureServiceSection",
+    "managementFixtureServiceList",
+    "managementFixtureServiceCount",
     "managementRuntimeMode",
     "managementTargetNode",
     "managementHardwareBinding",
@@ -1283,6 +1342,9 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementPatchResult",
     "managementMutationMode",
     "managedDeviceList",
+    "managementFixtureDeviceSection",
+    "managementFixtureDeviceList",
+    "managementFixtureDeviceCount",
     "devicePatchForm",
     "managementViewTabs",
     "managementOverviewPanel",
@@ -1312,8 +1374,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
   assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
-  assert.match(html, /device-management\.css\?v=unified-device-service-20260727/);
-  assert.match(html, /device-management\.js\?v=registration-first-20260727/);
+  assert.match(html, /device-management\.css\?v=fixture-separation-20260728/);
+  assert.match(html, /device-management\.js\?v=fixture-separation-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1323,8 +1385,9 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementDiscoveryTitle">장비 후보</);
   assert.match(html, /id="managementOpenManualCandidate"[^>]*>직접 추가</);
   assert.match(html, /service-demo-value-detail/);
-  assert.match(html, /id="managementDeviceServiceTitle">Device Service</);
-  assert.match(html, /프로토콜별 운영 단위를 한 번만 표시/);
+  assert.match(html, /id="managementDeviceServiceTitle">현장 Device Service</);
+  assert.match(html, /실장비 연결 기준 · 시뮬레이터 제외/);
+  assert.match(html, /실제 PLC나 센서가 아닌 개발·연동 시험용 시뮬레이터/);
   assert.doesNotMatch(html, /선택 노드의 런타임/);
   assert.doesNotMatch(html, /id="managementCatalogTitle">프로토콜 패키지/);
   assert.match(html, /연결 구성 마법사/);
@@ -1333,7 +1396,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /Device Service 준비 방식/);
   assert.match(html, /등록된 물리 연결/);
   assert.doesNotMatch(html, /승인된 하드웨어 연결/);
-  assert.match(html, /기존 EdgeX 디바이스/);
+  assert.match(html, /현장 EdgeX 디바이스/);
+  assert.match(html, /검증용 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /\.management-view-tabs/);
@@ -1342,6 +1406,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(css, /\.management-physical-card/);
   assert.match(css, /\.management-physical-summary/);
   assert.match(css, /\.management-physical-details/);
+  assert.match(css, /\.management-fixture-section/);
+  assert.match(css, /data-purpose="development-fixture"/);
   assert.match(css, /\.management-candidate-card/);
   assert.match(css, /\.management-discovery-filters/);
   assert.match(css, /\.management-dialog/);

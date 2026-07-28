@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=unified-device-service-20260727" />
+    <link rel="stylesheet" href="/static/device-management.css?v=fixture-separation-20260728" />
     <link rel="stylesheet" href="/static/simple-mode.css?v=compact-connection-view-20260727" />
   </head>
   <body data-view-mode="simple">
@@ -541,22 +541,38 @@
                 <div class="management-section-head">
                   <div>
                     <span>EdgeX Device Service</span>
-                    <strong id="managementDeviceServiceTitle">Device Service</strong>
+                    <strong id="managementDeviceServiceTitle">현장 Device Service</strong>
                   </div>
-                  <small>프로토콜별 운영 단위를 한 번만 표시</small>
+                  <small>실장비 연결 기준 · 시뮬레이터 제외</small>
                 </div>
                 <div id="managementDeviceServiceList" class="management-physical-list" aria-live="polite"></div>
+                <details id="managementFixtureServiceSection" class="management-fixture-section" hidden>
+                  <summary>
+                    검증용 연결
+                    <span id="managementFixtureServiceCount">0개</span>
+                  </summary>
+                  <p>실제 PLC나 센서가 아닌 개발·연동 시험용 시뮬레이터입니다.</p>
+                  <div id="managementFixtureServiceList" class="management-physical-list" aria-live="polite"></div>
+                </details>
               </section>
 
               <section class="management-device-inventory" aria-labelledby="managedDeviceTitle">
                 <div class="management-section-head">
                   <div>
                     <span>Core Metadata</span>
-                    <strong id="managedDeviceTitle">기존 EdgeX 디바이스</strong>
+                    <strong id="managedDeviceTitle">현장 EdgeX 디바이스</strong>
                   </div>
                   <button type="button" class="management-primary-action" data-management-open-register>새 디바이스 등록</button>
                 </div>
                 <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
+                <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
+                  <summary>
+                    검증용 EdgeX 디바이스
+                    <span id="managementFixtureDeviceCount">0개</span>
+                  </summary>
+                  <p>시뮬레이터에서 생성한 Event를 확인하기 위한 개발용 등록입니다.</p>
+                  <div id="managementFixtureDeviceList" class="managed-device-list" aria-live="polite"></div>
+                </details>
               </section>
             </section>
 
@@ -984,7 +1000,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=registration-first-20260727"></script>
+    <script src="/static/device-management.js?v=fixture-separation-20260728"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

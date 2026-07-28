@@ -85,6 +85,7 @@ class AdapterControllerService:
                         hardware_binding_ids=runtime.hardware_binding_ids,
                         management_mode="external",
                         management_owner="argocd",
+                        purpose=template.purpose,
                         verification_state=template.verification_state,
                         phase=phase,
                         consumers=self.edgex_probe.consumer_count(
@@ -436,6 +437,7 @@ class AdapterControllerService:
             hardware_binding_ids=[str(spec.get("hardwareBindingId") or "")],
             management_mode="controller",
             management_owner="controller",
+            purpose=template.purpose,
             verification_state=template.verification_state,
             phase=str(status.get("phase") or "PLANNED"),
             consumers=consumers,
