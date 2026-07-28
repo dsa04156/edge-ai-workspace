@@ -219,6 +219,38 @@ class EdgeXRegistrationClient:
                 continue
         return False
 
+    def ensure_device_operating_up(self, device_name: str) -> bool:
+        current = self.get_device(device_name)
+        if current is None:
+            raise EdgeXProbeError(
+                "cannot update operating state for a missing EdgeX Device"
+            )
+        if current.get("operatingState") == "UP":
+            return False
+        response = self._request(
+            "PATCH",
+            self.metadata_url,
+            "/api/v3/device",
+            json_body=[
+                {
+                    "apiVersion": "v3",
+                    "requestId": str(uuid4()),
+                    "device": {
+                        "name": device_name,
+                        "operatingState": "UP",
+                    },
+                }
+            ],
+            expected={200, 207},
+        )
+        self._validate_mutation_response(response)
+        readback = self.get_device(device_name)
+        if readback is None or readback.get("operatingState") != "UP":
+            raise EdgeXProbeError(
+                "Device operating state readback verification failed"
+            )
+        return True
+
     def delete_owned_device(
         self,
         name: str,

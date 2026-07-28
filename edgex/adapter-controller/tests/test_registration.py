@@ -196,13 +196,16 @@ class FakeEdgeX:
         profile_failure: bool = False,
         profile_created: bool = True,
         device_created: bool = True,
+        operating_state_failure: bool = False,
     ) -> None:
         self.event_received = event_received
         self.profile_failure = profile_failure
         self.profile_created = profile_created
         self.device_created = device_created
+        self.operating_state_failure = operating_state_failure
         self.profiles: list[str] = []
         self.devices: list[dict] = []
+        self.operating_up_devices: list[str] = []
         self.deleted_devices: list[str] = []
         self.deleted_profiles: list[str] = []
 
@@ -218,6 +221,12 @@ class FakeEdgeX:
 
     def first_event_received(self, device_name, *, not_before_ns=None):
         return self.event_received
+
+    def ensure_device_operating_up(self, device_name):
+        if self.operating_state_failure:
+            raise RuntimeError("metadata state update unavailable")
+        self.operating_up_devices.append(device_name)
+        return True
 
     def delete_owned_device(self, name, *, candidate_id):
         self.deleted_devices.append(name)
@@ -337,9 +346,38 @@ def test_approval_to_first_event_is_idempotent_end_to_end(tmp_path):
     assert registration.status == "EVENT_CONFIRMED"
     assert len(coordinator.edge_x.profiles) == 1
     assert len(coordinator.edge_x.devices) == 1
+    assert coordinator.edge_x.operating_up_devices == [
+        registration.device_name
+    ]
     assert coordinator.edge_x.devices[0]["tags"]["controllerCandidateId"] == (
         candidate.candidate_id
     )
+
+
+def test_first_event_waits_for_operating_state_readback_then_retries(tmp_path):
+    edge_x = FakeEdgeX(operating_state_failure=True)
+    registry, _, coordinator, candidate = components(
+        tmp_path,
+        edge_x=edge_x,
+    )
+
+    coordinator.approve(candidate.candidate_id, approval())
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    waiting = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert waiting.status == "METADATA_REGISTERED"
+    assert waiting.step == "SETTING_DEVICE_UP"
+    assert waiting.last_error_code == "DEVICE_STATE_UPDATE_PENDING"
+    assert registry.get_candidate(candidate.candidate_id).state == (
+        "METADATA_REGISTERED"
+    )
+
+    edge_x.operating_state_failure = False
+    completed = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert completed.status == "EVENT_CONFIRMED"
+    assert edge_x.operating_up_devices == [completed.device_name]
 
 
 def test_device_name_keeps_a_hash_suffix_when_hardware_slugs_share_a_prefix(

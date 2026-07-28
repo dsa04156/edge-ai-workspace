@@ -71,6 +71,22 @@ class FakeEdgeXAPI:
                     }
                 ],
             )
+        if request.method == "PATCH" and path == "/api/v3/device":
+            request_body = json.loads(request.read())[0]
+            assert request_body["requestId"]
+            update = request_body["device"]
+            assert self.device is not None
+            assert update["name"] == self.device["name"]
+            self.device = {**self.device, **update}
+            return httpx.Response(
+                207,
+                json=[
+                    {
+                        "apiVersion": "v3",
+                        "statusCode": 200,
+                    }
+                ],
+            )
         return httpx.Response(404)
 
     def data(self, request: httpx.Request) -> httpx.Response:
@@ -112,6 +128,7 @@ def device():
         "serviceName": "device-serial",
         "profileName": "arduino-multisensor-v1",
         "adminState": "UNLOCKED",
+        "operatingState": "UNKNOWN",
         "protocols": {"serial": {"Port": "/dev/arduino-001"}},
         "tags": {"controllerCandidateId": "candidate-1"},
     }
@@ -141,6 +158,9 @@ def test_metadata_registration_is_idempotent_and_event_is_separate_gate():
         "arduino-001",
         not_before_ns=101,
     ) is True
+    assert client.ensure_device_operating_up("arduino-001") is True
+    assert fake.device["operatingState"] == "UP"
+    assert client.ensure_device_operating_up("arduino-001") is False
 
 
 def test_existing_different_profile_is_rejected():

@@ -735,10 +735,30 @@ class RegistrationCoordinator:
             registration.updated_at = _now()
             return self.store.put_registration(registration)
         if confirmed:
+            try:
+                self.edge_x.ensure_device_operating_up(
+                    str(registration.device_name)
+                )
+            except Exception as exc:
+                registration.step = "SETTING_DEVICE_UP"
+                self._set_candidate_step(
+                    candidate.candidate_id,
+                    registration.step,
+                )
+                registration.last_error_code = "DEVICE_STATE_UPDATE_PENDING"
+                registration.last_error = (
+                    "First Event was observed, but EdgeX operatingState=UP "
+                    f"readback is pending: {exc.__class__.__name__}"
+                )
+                registration.updated_at = _now()
+                return self.store.put_registration(registration)
             self.registry.transition(
                 candidate.candidate_id,
                 "EVENT_CONFIRMED",
-                reason="first Core Data Event was observed",
+                reason=(
+                    "first Core Data Event and operatingState=UP "
+                    "readback were verified"
+                ),
                 actor="registration-saga",
             )
             now = _now()
