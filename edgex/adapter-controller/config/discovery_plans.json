@@ -48,6 +48,7 @@
     },
     {
       "nodeId": "etri-dev0003-raspi5",
+      "version": 2,
       "serial": {
         "enabled": false,
         "allowedVidPid": [],
@@ -67,7 +68,43 @@
           "0x5f",
           "0x6a"
         ],
-        "activeProbeEnabled": false
+        "activeProbeEnabled": true,
+        "identificationRules": [
+          {
+            "identities": [
+              {
+                "address": "0x1c",
+                "register": "0x0f",
+                "expected": "0x3d"
+              },
+              {
+                "address": "0x5c",
+                "register": "0x0f",
+                "expected": "0xbd"
+              },
+              {
+                "address": "0x5f",
+                "register": "0x0f",
+                "expected": "0xbc"
+              },
+              {
+                "address": "0x6a",
+                "register": "0x0f",
+                "expected": "0x68"
+              }
+            ],
+            "model": "raspberry-pi-sense-hat-v1",
+            "profile": "etri-sensehat-gyroscope",
+            "capabilities": [
+              "temperature",
+              "humidity",
+              "pressure",
+              "compass",
+              "orientation",
+              "gyroscope"
+            ]
+          }
+        ]
       },
       "mqtt": {
         "enabled": false,

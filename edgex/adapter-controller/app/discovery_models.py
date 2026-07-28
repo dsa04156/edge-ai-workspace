@@ -332,16 +332,75 @@ class SerialDiscoveryPlan(ControllerModel):
         return values
 
 
-class I2CIdentificationRule(ControllerModel):
+class I2CRegisterIdentity(ControllerModel):
     address: str = Field(pattern=r"^0x[0-9a-fA-F]{2}$")
     identity_register: str = Field(
         alias="register",
         pattern=r"^0x[0-9a-fA-F]{2}$",
     )
     expected: str = Field(pattern=r"^0x[0-9a-fA-F]{2}$")
+
+
+class I2CIdentificationRule(ControllerModel):
+    address: str | None = Field(
+        default=None,
+        pattern=r"^0x[0-9a-fA-F]{2}$",
+    )
+    identity_register: str | None = Field(
+        default=None,
+        alias="register",
+        pattern=r"^0x[0-9a-fA-F]{2}$",
+    )
+    expected: str | None = Field(
+        default=None,
+        pattern=r"^0x[0-9a-fA-F]{2}$",
+    )
+    identities: list[I2CRegisterIdentity] = Field(
+        default_factory=list,
+        max_length=16,
+    )
     model: str = Field(min_length=1, max_length=255)
     profile: str = Field(min_length=1, max_length=255)
     capabilities: list[str] = Field(default_factory=list, max_length=128)
+
+    @model_validator(mode="after")
+    def require_one_identity_mode(self) -> "I2CIdentificationRule":
+        singular = (
+            self.address,
+            self.identity_register,
+            self.expected,
+        )
+        has_any_singular = any(value is not None for value in singular)
+        has_all_singular = all(value is not None for value in singular)
+        if self.identities and has_any_singular:
+            raise ValueError(
+                "I2C rule must use either one register identity or identities"
+            )
+        if not self.identities and not has_all_singular:
+            raise ValueError(
+                "I2C rule requires address/register/expected or identities"
+            )
+        identity_keys = [
+            (
+                identity.address.casefold(),
+                identity.identity_register.casefold(),
+            )
+            for identity in self.identity_checks()
+        ]
+        if len(identity_keys) != len(set(identity_keys)):
+            raise ValueError("I2C identity checks must be unique")
+        return self
+
+    def identity_checks(self) -> list[I2CRegisterIdentity]:
+        if self.identities:
+            return list(self.identities)
+        return [
+            I2CRegisterIdentity(
+                address=str(self.address),
+                register=str(self.identity_register),
+                expected=str(self.expected),
+            )
+        ]
 
 
 class I2CDiscoveryPlan(ControllerModel):
@@ -374,6 +433,32 @@ class I2CDiscoveryPlan(ControllerModel):
             ):
                 raise ValueError("I2C addresses must use 0xNN notation")
         return [value.casefold() for value in values]
+
+    @model_validator(mode="after")
+    def validate_active_probe_contract(self) -> "I2CDiscoveryPlan":
+        if not self.active_probe_enabled:
+            return self
+        if not self.enabled:
+            raise ValueError("active I2C probe requires i2c.enabled=true")
+        if not self.buses:
+            raise ValueError("active I2C probe requires an allowlisted bus")
+        if not self.allowed_addresses:
+            raise ValueError(
+                "active I2C probe requires allowlisted addresses"
+            )
+        if not self.identification_rules:
+            raise ValueError(
+                "active I2C probe requires identification rules"
+            )
+        allowed = set(self.allowed_addresses)
+        for rule in self.identification_rules:
+            for identity in rule.identity_checks():
+                if identity.address.casefold() not in allowed:
+                    raise ValueError(
+                        "I2C identification rule references a non-allowlisted "
+                        "address"
+                    )
+        return self
 
 
 class ModbusDiscoveryPlan(ControllerModel):

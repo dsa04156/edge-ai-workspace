@@ -163,6 +163,64 @@ def test_metadata_registration_is_idempotent_and_event_is_separate_gate():
     assert client.ensure_device_operating_up("arduino-001") is False
 
 
+def test_reuse_existing_verifies_profile_device_and_allows_extra_server_tags():
+    fake = FakeEdgeXAPI()
+    fake.profile = {
+        **profile(),
+        "apiVersion": "v3",
+        "deviceResources": [
+            {**resource, "isHidden": False}
+            for resource in profile()["deviceResources"]
+        ],
+        "deviceCommands": [
+            {**command, "isHidden": False}
+            for command in profile()["deviceCommands"]
+        ],
+    }
+    expected = device()
+    fake.device = {
+        **expected,
+        "tags": {
+            **expected["tags"],
+            "edgeAiOnboardingRequestId": "request-1",
+        },
+    }
+    client = EdgeXRegistrationClient(
+        "http://metadata",
+        "http://data",
+        metadata_transport=httpx.MockTransport(fake.metadata),
+        data_transport=httpx.MockTransport(fake.data),
+    )
+
+    client.verify_existing_profile(profile())
+    client.verify_existing_device(expected)
+
+
+def test_reuse_existing_rejects_a_missing_or_different_device():
+    fake = FakeEdgeXAPI()
+    client = EdgeXRegistrationClient(
+        "http://metadata",
+        "http://data",
+        metadata_transport=httpx.MockTransport(fake.metadata),
+        data_transport=httpx.MockTransport(fake.data),
+    )
+
+    try:
+        client.verify_existing_device(device())
+    except EdgeXProbeError as exc:
+        assert "was not found" in str(exc)
+    else:
+        raise AssertionError("missing existing Device was accepted")
+
+    fake.device = {**device(), "serviceName": "wrong-service"}
+    try:
+        client.verify_existing_device(device())
+    except EdgeXProbeError as exc:
+        assert "differs" in str(exc)
+    else:
+        raise AssertionError("mismatched existing Device was accepted")
+
+
 def test_existing_different_profile_is_rejected():
     fake = FakeEdgeXAPI()
     fake.profile = {**profile(), "model": "different"}

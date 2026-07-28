@@ -39,6 +39,9 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         for item in render()
     }
     daemon = resources[("DaemonSet", "edge-device-discovery")]
+    i2c_daemon = resources[
+        ("DaemonSet", "edge-device-discovery-i2c")
+    ]
     account = resources[("ServiceAccount", "edge-device-discovery")]
     policy = resources[("NetworkPolicy", "edge-device-discovery-egress")]
     pod = daemon["spec"]["template"]["spec"]
@@ -55,7 +58,6 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         "values": [
             "etri-dev0001-jetorn",
             "etri-dev0002-raspi5",
-            "etri-dev0003-raspi5",
         ],
     }
     assert {
@@ -104,7 +106,40 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
         "name": "edgex-adapter-management-auth",
         "key": "internal-hmac-key",
     }
+    i2c_pod = i2c_daemon["spec"]["template"]["spec"]
+    i2c_container = i2c_pod["containers"][0]
+    assert i2c_pod["nodeSelector"] == {
+        "kubernetes.io/hostname": "etri-dev0003-raspi5"
+    }
+    assert i2c_pod["securityContext"]["supplementalGroups"] == [988]
+    assert i2c_container["securityContext"] == {
+        "privileged": True,
+        "allowPrivilegeEscalation": True,
+        "readOnlyRootFilesystem": True,
+        "runAsNonRoot": True,
+        "runAsUser": 2002,
+        "runAsGroup": 2002,
+    }
+    assert i2c_container["volumeMounts"] == [
+        {
+            "name": "sensehat-i2c",
+            "mountPath": "/host-dev/i2c-1",
+        }
+    ]
+    assert i2c_pod["volumes"] == [
+        {
+            "name": "sensehat-i2c",
+            "hostPath": {
+                "path": "/dev/i2c-1",
+                "type": "CharDevice",
+            },
+        }
+    ]
+    assert i2c_container["image"] == container["image"]
     assert policy["spec"]["policyTypes"] == ["Egress"]
+    assert policy["spec"]["podSelector"]["matchLabels"] == {
+        "app.kubernetes.io/component": "device-discovery"
+    }
     assert policy["spec"]["egress"][1] == {
         "to": [
             {
@@ -125,21 +160,32 @@ def test_discovery_daemon_is_read_only_scoped_and_secret_authenticated():
 
 def test_node_specific_discovery_examples_target_only_the_intended_node():
     expected = {
-        "discovery-agent-jetson": "etri-dev0001-jetorn",
-        "discovery-agent-raspi": "etri-dev0003-raspi5",
+        "discovery-agent-jetson": (
+            "edge-device-discovery",
+            "etri-dev0001-jetorn",
+        ),
+        "discovery-agent-raspi": (
+            "edge-device-discovery-i2c",
+            "etri-dev0003-raspi5",
+        ),
     }
-    for overlay, node_name in expected.items():
-        daemon = next(
+    for overlay, (daemon_name, node_name) in expected.items():
+        daemons = [
             item
             for item in render_overlay(overlay)
             if item["kind"] == "DaemonSet"
-        )
-        expression = daemon["spec"]["template"]["spec"]["affinity"][
-            "nodeAffinity"
-        ]["requiredDuringSchedulingIgnoredDuringExecution"][
-            "nodeSelectorTerms"
-        ][0][
-            "matchExpressions"
-        ][0]
-        assert expression["key"] == "kubernetes.io/hostname"
-        assert expression["values"] == [node_name]
+        ]
+        assert [item["metadata"]["name"] for item in daemons] == [
+            daemon_name
+        ]
+        pod = daemons[0]["spec"]["template"]["spec"]
+        if daemon_name == "edge-device-discovery":
+            expression = pod["affinity"]["nodeAffinity"][
+                "requiredDuringSchedulingIgnoredDuringExecution"
+            ]["nodeSelectorTerms"][0]["matchExpressions"][0]
+            assert expression["key"] == "kubernetes.io/hostname"
+            assert expression["values"] == [node_name]
+        else:
+            assert pod["nodeSelector"] == {
+                "kubernetes.io/hostname": node_name
+            }

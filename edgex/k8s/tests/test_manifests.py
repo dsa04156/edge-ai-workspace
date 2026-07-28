@@ -56,6 +56,7 @@ def test_operational_entrypoint_retires_telemetry_agents_and_adds_discovery() ->
     assert ("CustomResourceDefinition", "adapterruntimes.edgeai.etri.re.kr") in indexed
     assert ("Deployment", "edgex-adapter-controller") in indexed
     assert ("DaemonSet", "edge-device-discovery") in indexed
+    assert ("DaemonSet", "edge-device-discovery-i2c") in indexed
 
 
 def test_operational_entrypoint_keeps_central_edgex_without_device_mqtt() -> None:
@@ -295,6 +296,21 @@ def test_workloads_use_immutable_images_and_hardened_runtime_settings(
             assert container["resources"].get("requests")
             assert container["resources"].get("limits")
             security = container["securityContext"]
+            is_i2c_discovery_probe = (
+                workload["kind"] == "DaemonSet"
+                and workload["metadata"]["name"]
+                == "edge-device-discovery-i2c"
+            )
+            if is_i2c_discovery_probe:
+                assert security == {
+                    "privileged": True,
+                    "allowPrivilegeEscalation": True,
+                    "readOnlyRootFilesystem": True,
+                    "runAsNonRoot": True,
+                    "runAsUser": 2002,
+                    "runAsGroup": 2002,
+                }
+                continue
             assert security["allowPrivilegeEscalation"] is False
             assert security["capabilities"]["drop"] == ["ALL"]
             is_postgres_volume_init = (

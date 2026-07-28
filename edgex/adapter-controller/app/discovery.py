@@ -1227,7 +1227,8 @@ class DeviceCandidateRegistry:
                 plan = DiscoveryPlan.model_validate(raw_plan)
             except ValueError:
                 continue
-            if self.store.get_plan(plan.node_id) is None:
+            current = self.store.get_plan(plan.node_id)
+            if current is None or plan.version > current.version:
                 self.store.put_plan(
                     plan.model_copy(update={"updated_at": _now()})
                 )

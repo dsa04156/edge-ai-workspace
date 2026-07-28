@@ -125,6 +125,20 @@ class EdgeXRegistrationClient:
             raise EdgeXProbeError("Device Profile readback verification failed")
         return True
 
+    def verify_existing_profile(self, profile: dict) -> None:
+        name = str(profile.get("name") or "")
+        if not name:
+            raise EdgeXProbeError("Device Profile name is required")
+        current = self.get_profile(name)
+        if current is None:
+            raise EdgeXProbeError(
+                "required existing EdgeX Device Profile was not found"
+            )
+        if not self._profile_matches(current, profile):
+            raise EdgeXProbeError(
+                "existing EdgeX Device Profile differs from the Catalog"
+            )
+
     def ensure_device(self, device: dict) -> bool:
         name = str(device.get("name") or "")
         if not name:
@@ -154,6 +168,34 @@ class EdgeXRegistrationClient:
         if readback is None or not self._device_matches(readback, device):
             raise EdgeXProbeError("Device readback verification failed")
         return True
+
+    def verify_existing_device(self, device: dict) -> None:
+        name = str(device.get("name") or "")
+        if not name:
+            raise EdgeXProbeError("Device name is required")
+        current = self.get_device(name)
+        if current is None:
+            raise EdgeXProbeError(
+                "required existing EdgeX Device was not found"
+            )
+        fields = (
+            "name",
+            "serviceName",
+            "profileName",
+            "adminState",
+            "protocols",
+            "tags",
+        )
+        if not all(
+            self._matches_expected_shape(
+                deepcopy(current.get(field)),
+                deepcopy(device.get(field)),
+            )
+            for field in fields
+        ):
+            raise EdgeXProbeError(
+                "existing EdgeX Device differs from the Catalog binding"
+            )
 
     def get_profile(self, name: str) -> dict | None:
         payload = self._request(

@@ -34,6 +34,10 @@ MODBUS_IMAGE = (
     "docker.io/edgexfoundry/device-modbus:4.0.2@"
     "sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
 )
+SENSEHAT_IMAGE = (
+    "192.168.0.56:5000/edgex-device-sensehat@"
+    "sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38"
+)
 
 
 class FakeRuntimeService:
@@ -161,6 +165,43 @@ class FakeModbusRuntimeService:
         self.retired.append(name)
 
 
+class FakeSenseHatRuntimeService:
+    def plan(self, request):
+        return RuntimePlan(
+            action="REUSE",
+            allowed=True,
+            adapter_id="sensehat-raspi",
+            template_id="sensehat-device-service-v1",
+            runtime_name="device-sensehat-raspi",
+            service_name="device-sensehat-raspi",
+            target_node=request.target_node,
+            hardware_binding_id=request.hardware_binding_id,
+            management_mode="external",
+            verification_state="hardware-verified",
+            reasons=[],
+            plan_hash="c" * 64,
+        )
+
+    def list_runtimes(self):
+        return [
+            RuntimeObservation(
+                runtime_name="device-sensehat-raspi",
+                adapter_id="sensehat-raspi",
+                template_id="sensehat-device-service-v1",
+                service_name="device-sensehat-raspi",
+                target_node="etri-dev0003-raspi5",
+                hardware_binding_id="raspi5-sensehat-i2c-001",
+                hardware_binding_ids=["raspi5-sensehat-i2c-001"],
+                management_mode="external",
+                management_owner="argocd",
+                verification_state="hardware-verified",
+                phase="SERVICE_READY",
+                consumers=6,
+                image=SENSEHAT_IMAGE,
+            )
+        ]
+
+
 class FakeDelayedModbusRuntimeService(FakeModbusRuntimeService):
     def __init__(self) -> None:
         super().__init__()
@@ -236,6 +277,25 @@ class FakeEdgeX:
         self.deleted_profiles.append(name)
 
 
+class FakeReuseEdgeX(FakeEdgeX):
+    def __init__(self) -> None:
+        super().__init__(profile_created=False, device_created=False)
+        self.verified_profiles: list[str] = []
+        self.verified_devices: list[dict] = []
+
+    def verify_existing_profile(self, profile):
+        self.verified_profiles.append(profile["name"])
+
+    def verify_existing_device(self, device):
+        self.verified_devices.append(device)
+
+    def ensure_profile(self, profile):
+        raise AssertionError("reuse-existing must not create a Profile")
+
+    def ensure_device(self, device):
+        raise AssertionError("reuse-existing must not create a Device")
+
+
 class DenyAuth:
     def approve(self, candidate, *, actor, reason):
         return AuthDecision(
@@ -286,6 +346,49 @@ def report() -> NodeDiscoveryReport:
                 vendor="Arduino",
                 properties={"VendorID": "2341", "ProductID": "0043"},
                 evidence={"stablePath": "udev-by-id"},
+            )
+        ],
+    )
+
+
+def sense_hat_report() -> NodeDiscoveryReport:
+    return NodeDiscoveryReport(
+        node_name="etri-dev0003-raspi5",
+        agent_id="discovery/i2c-test",
+        observed_at=datetime.now(timezone.utc),
+        candidates=[
+            DiscoveryObservation(
+                hardware_key=(
+                    "i2c:1:raspberry-pi-sense-hat-v1:"
+                    "1c3d-5cbd-5fbc-6a68"
+                ),
+                hardware_id=(
+                    "bus-1-raspberry-pi-sense-hat-v1-"
+                    "1c3d-5cbd-5fbc-6a68"
+                ),
+                protocol="i2c",
+                transport="i2c",
+                display_name="raspberry-pi-sense-hat-v1",
+                device_path="/dev/i2c-1",
+                model="raspberry-pi-sense-hat-v1",
+                capabilities=[
+                    "temperature",
+                    "humidity",
+                    "pressure",
+                    "compass",
+                    "orientation",
+                    "gyroscope",
+                ],
+                recommended_profile="etri-sensehat-gyroscope",
+                match_confidence="exact",
+                properties={
+                    "BusNumber": 1,
+                    "IdentityFingerprint": "1c3d-5cbd-5fbc-6a68",
+                    "IdentityCount": 4,
+                },
+                evidence={
+                    "probeMode": "allowlist-read-only-register",
+                },
             )
         ],
     )
@@ -364,6 +467,62 @@ def test_approval_to_first_event_is_idempotent_end_to_end(tmp_path):
     assert coordinator.edge_x.devices[0]["tags"]["controllerCandidateId"] == (
         candidate.candidate_id
     )
+
+
+def test_sense_hat_reuses_existing_runtime_profile_device_and_confirms_event(
+    tmp_path,
+):
+    kube = FakeKubernetesGateway(target_node_ready=True)
+    store = SQLiteDiscoveryStore(tmp_path / "discovery.db")
+    runtime_catalog = RuntimeTemplateCatalog.load(
+        BASE / "config" / "runtime_templates.json"
+    )
+    device_catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    registry = DeviceCandidateRegistry(
+        runtime_catalog,
+        kube,
+        store=store,
+        device_catalog=device_catalog,
+    )
+    candidate = registry.ingest_report(sense_hat_report()).candidates[0]
+    rediscovered = registry.ingest_report(sense_hat_report()).candidates
+    assert len(rediscovered) == 1
+    assert rediscovered[0].candidate_id == candidate.candidate_id
+    edge_x = FakeReuseEdgeX()
+    coordinator = RegistrationCoordinator(
+        registry=registry,
+        store=store,
+        device_catalog=device_catalog,
+        auth_provider=AllowAllMockProvider(),
+        edge_x=edge_x,
+        kube=kube,
+        runtime_service=FakeSenseHatRuntimeService(),
+    )
+
+    assert candidate.state == "PENDING_APPROVAL"
+    coordinator.approve(candidate.candidate_id, approval())
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    completed = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert completed.status == "EVENT_CONFIRMED"
+    assert completed.runtime_name == "device-sensehat-raspi"
+    assert completed.profile_name == "etri-sensehat-gyroscope"
+    assert completed.device_name == "imu-sensehat-gyroscope-01"
+    assert completed.created_runtime is False
+    assert completed.created_profile is False
+    assert completed.created_device is False
+    assert edge_x.verified_profiles == ["etri-sensehat-gyroscope"]
+    assert edge_x.verified_devices[0]["tags"] == {
+        "physicalDeviceId": "sensehat-001",
+        "nodeName": "etri-dev0003-raspi5",
+        "hardwareBindingId": "raspi5-sensehat-i2c-001",
+    }
+    coordinator.decommission(candidate.candidate_id, decommission())
+    assert edge_x.deleted_devices == []
+    assert edge_x.deleted_profiles == []
 
 
 def test_decommission_removes_only_saga_owned_resources_and_hides_candidate(

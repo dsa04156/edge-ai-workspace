@@ -17,3 +17,14 @@ patches:
         path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
         value:
           - etri-dev0001-jetorn
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: edge-device-discovery-i2c
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: edge-device-discovery-i2c

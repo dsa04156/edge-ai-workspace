@@ -81,37 +81,72 @@ def identify_i2c_devices(
     candidates: list[dict[str, Any]] = []
     errors: list[str] = []
     for rule in rules:
-        address = int(str(rule["address"]), 16)
-        if address not in allowed_addresses:
-            continue
-        register = int(str(rule["register"]), 16)
-        expected = int(str(rule["expected"]), 16)
-        try:
-            observed = adapter.read_identity_register(
-                bus_path,
-                address=address,
-                register=register,
+        model = str(rule["model"])
+        raw_identities = list(rule.get("identities") or [])
+        identities = raw_identities or [
+            {
+                "address": rule["address"],
+                "register": rule["register"],
+                "expected": rule["expected"],
+            }
+        ]
+        checks = [
+            (
+                int(str(identity["address"]), 16),
+                int(str(identity["register"]), 16),
+                int(str(identity["expected"]), 16),
             )
-        except I2CProbeError as exc:
-            errors.append(
-                f"I2C 0x{address:02x} identification failed: {exc}"
-            )
+            for identity in identities
+        ]
+        if any(
+            address not in allowed_addresses
+            for address, _, _ in checks
+        ):
             continue
-        if observed != expected:
+        observed_identities: list[tuple[int, int, int]] = []
+        matched = True
+        for address, register, expected in checks:
+            try:
+                observed = adapter.read_identity_register(
+                    bus_path,
+                    address=address,
+                    register=register,
+                )
+            except I2CProbeError as exc:
+                errors.append(
+                    f"I2C {model} 0x{address:02x} identification failed: "
+                    f"{exc}"
+                )
+                matched = False
+                break
+            if observed != expected:
+                errors.append(
+                    f"I2C {model} 0x{address:02x} identity mismatch: "
+                    f"expected 0x{expected:02x}, observed 0x{observed:02x}"
+                )
+                matched = False
+                break
+            observed_identities.append((address, register, observed))
+        if not matched:
             continue
         bus = bus_path.name.removeprefix("i2c-")
-        model = str(rule["model"])
         profile = str(rule["profile"])
         capabilities = list(rule.get("capabilities") or [])
+        fingerprint = "-".join(
+            f"{address:02x}{observed:02x}"
+            for address, _, observed in observed_identities
+        )
+        identity_registers = ",".join(
+            f"0x{address:02x}/0x{register:02x}=0x{observed:02x}"
+            for address, register, observed in observed_identities
+        )
         candidates.append(
             {
                 "hardwareKey": (
-                    f"i2c:{bus}:0x{address:02x}:"
-                    f"{model}:0x{observed:02x}"
+                    f"i2c:{bus}:{model}:{fingerprint}"
                 ),
                 "hardwareId": (
-                    f"bus-{bus}-address-0x{address:02x}-"
-                    f"chip-0x{observed:02x}"
+                    f"bus-{bus}-{model}-{fingerprint}"
                 ),
                 "protocol": "i2c",
                 "transport": "i2c",
@@ -123,13 +158,13 @@ def identify_i2c_devices(
                 "matchConfidence": "exact",
                 "properties": {
                     "BusNumber": int(bus),
-                    "Address": f"0x{address:02x}",
-                    "ChipID": f"0x{observed:02x}",
+                    "IdentityFingerprint": fingerprint,
+                    "IdentityCount": len(observed_identities),
                 },
                 "evidence": {
                     "scope": "i2c-device",
                     "probeMode": "allowlist-read-only-register",
-                    "identityRegister": f"0x{register:02x}",
+                    "identityRegisters": identity_registers,
                 },
             }
         )

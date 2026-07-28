@@ -137,6 +137,18 @@ class DeviceBinding(ControllerModel):
     security: DeviceSecurityPolicy = Field(
         default_factory=DeviceSecurityPolicy
     )
+    registration_mode: Literal["create-or-reuse", "reuse-existing"] = (
+        "create-or-reuse"
+    )
+    existing_device_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=255,
+    )
+    existing_device_tags: dict[str, str | int | float | bool] = Field(
+        default_factory=dict,
+        max_length=32,
+    )
     device_name_prefix: str = Field(
         default="physical",
         min_length=1,
@@ -164,6 +176,19 @@ class DeviceBinding(ControllerModel):
         source_names = [item.source_name for item in self.auto_events]
         if len(source_names) != len(set(source_names)):
             raise ValueError("autoEvent source names must be unique")
+        if self.registration_mode == "reuse-existing":
+            if not self.existing_device_name:
+                raise ValueError(
+                    "reuse-existing binding requires existingDeviceName"
+                )
+            if not self.existing_device_tags:
+                raise ValueError(
+                    "reuse-existing binding requires expected Device tags"
+                )
+        elif self.existing_device_name or self.existing_device_tags:
+            raise ValueError(
+                "existing Device fields require registrationMode=reuse-existing"
+            )
         return self
 
 

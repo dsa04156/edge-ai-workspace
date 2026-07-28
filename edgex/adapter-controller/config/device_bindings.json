@@ -2,14 +2,17 @@
   "version": 1,
   "imageAllowlist": [
     "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+    "192.168.0.56:5000/edgex-device-sensehat@sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38",
     "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
   ],
   "parserAllowlist": [
     "arduino-multisensor-v1",
+    "raspberry-pi-sense-hat-v1",
     "edgex-device-modbus-v4.0.2"
   ],
   "profileAllowlist": [
     "arduino-multisensor-v1",
+    "etri-sensehat-gyroscope",
     "edgeai-modbus-temperature-v1"
   ],
   "bindings": [
@@ -43,6 +46,53 @@
         "approvalRequired": true
       },
       "deviceNamePrefix": "arduino"
+    },
+    {
+      "bindingId": "raspi5-sense-hat-v1",
+      "protocol": "i2c",
+      "match": {
+        "nodeId": "etri-dev0003-raspi5",
+        "model": "raspberry-pi-sense-hat-v1",
+        "endpoint": "/dev/i2c-1",
+        "requiredCapabilities": [
+          "temperature",
+          "humidity",
+          "pressure",
+          "compass",
+          "orientation",
+          "gyroscope"
+        ],
+        "properties": {
+          "IdentityFingerprint": "1c3d-5cbd-5fbc-6a68"
+        }
+      },
+      "runtimeHardwareBindingId": "raspi5-sensehat-i2c-001",
+      "connection": {
+        "Bus": "/dev/i2c-1",
+        "DeviceID": "sensehat-001",
+        "ResourceGroup": "gyroscope"
+      },
+      "adapter": {
+        "runtimeAdapterId": "sensehat-raspi",
+        "serviceName": "device-sensehat-raspi",
+        "image": "192.168.0.56:5000/edgex-device-sensehat@sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38",
+        "parser": "raspberry-pi-sense-hat-v1"
+      },
+      "profile": {
+        "name": "etri-sensehat-gyroscope",
+        "file": "profiles/etri-sensehat-gyroscope.json"
+      },
+      "security": {
+        "approvalRequired": true
+      },
+      "registrationMode": "reuse-existing",
+      "existingDeviceName": "imu-sensehat-gyroscope-01",
+      "existingDeviceTags": {
+        "physicalDeviceId": "sensehat-001",
+        "nodeName": "etri-dev0003-raspi5",
+        "hardwareBindingId": "raspi5-sensehat-i2c-001"
+      },
+      "deviceNamePrefix": "sensehat"
     },
     {
       "bindingId": "jetson-modbus-tcp-simulator-v1",

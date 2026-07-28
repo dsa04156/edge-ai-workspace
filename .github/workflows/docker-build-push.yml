@@ -155,6 +155,7 @@ jobs:
           test -n "${EDGEX_DEVICE_SERIAL_IMAGE}"
           test -n "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
           SERIAL_REPOSITORY=${EDGEX_DEVICE_SERIAL_IMAGE%@sha256:*}
+          SENSEHAT_REPOSITORY=${EDGEX_DEVICE_SENSEHAT_IMAGE%@sha256:*}
           RUNTIME_CATALOG=$(mktemp)
           DEVICE_CATALOG=$(mktemp)
           jq \
@@ -166,14 +167,21 @@ jobs:
             > "${RUNTIME_CATALOG}"
           jq \
             --arg serial "${EDGEX_DEVICE_SERIAL_IMAGE}" \
-            --arg repository "${SERIAL_REPOSITORY}" \
+            --arg serial_repository "${SERIAL_REPOSITORY}" \
+            --arg sensehat "${EDGEX_DEVICE_SENSEHAT_IMAGE}" \
+            --arg sensehat_repository "${SENSEHAT_REPOSITORY}" \
             '.imageAllowlist = (
-               [.imageAllowlist[] | select(startswith($repository + "@") | not)]
-               + [$serial]
+               [.imageAllowlist[]
+                | select(startswith($serial_repository + "@") | not)
+                | select(startswith($sensehat_repository + "@") | not)]
+               + [$serial, $sensehat]
              )
              | (.bindings[]
                 | select(.adapter.runtimeAdapterId == "serial-jetson")
-                | .adapter.image) = $serial' \
+                | .adapter.image) = $serial
+             | (.bindings[]
+                | select(.adapter.runtimeAdapterId == "sensehat-raspi")
+                | .adapter.image) = $sensehat' \
             edgex/adapter-controller/config/device_bindings.json \
             > "${DEVICE_CATALOG}"
           mv "${RUNTIME_CATALOG}" \
@@ -308,12 +316,15 @@ jobs:
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             DISCOVERY_IMAGE=$(kubectl get daemonset edge-device-discovery -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            I2C_DISCOVERY_IMAGE=$(kubectl get daemonset edge-device-discovery-i2c -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             SERIAL_IMAGE=$(kubectl get deployment device-serial-jetson -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             SENSEHAT_IMAGE=$(kubectl get deployment device-sensehat-raspi -n edgex-edge \
               -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             if [ "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}" ] \
               && [ "${DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}" ] \
+              && [ "${I2C_DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}" ] \
               && [ "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}" ] \
               && [ "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}" ]; then
               break
@@ -322,10 +333,12 @@ jobs:
           done
           test "${CONTROLLER_IMAGE}" = "${EDGE_ADAPTER_CONTROLLER_IMAGE}"
           test "${DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}"
+          test "${I2C_DISCOVERY_IMAGE}" = "${EDGE_DEVICE_DISCOVERY_IMAGE}"
           test "${SERIAL_IMAGE}" = "${EDGEX_DEVICE_SERIAL_IMAGE}"
           test "${SENSEHAT_IMAGE}" = "${EDGEX_DEVICE_SENSEHAT_IMAGE}"
           kubectl rollout status deployment/edgex-adapter-controller -n edgex-edge --timeout=180s
           kubectl rollout status daemonset/edge-device-discovery -n edgex-edge --timeout=240s
+          kubectl rollout status daemonset/edge-device-discovery-i2c -n edgex-edge --timeout=240s
           kubectl rollout status deployment/device-serial-jetson -n edgex-edge --timeout=180s
           kubectl rollout status deployment/device-sensehat-raspi -n edgex-edge --timeout=180s
 

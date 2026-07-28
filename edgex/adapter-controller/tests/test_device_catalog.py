@@ -50,6 +50,42 @@ def modbus_candidate() -> StoredCandidate:
     )
 
 
+def sense_hat_candidate() -> StoredCandidate:
+    now = datetime.now(timezone.utc)
+    return StoredCandidate(
+        candidate_id="candidate-" + "b" * 64,
+        identity_hash="b" * 64,
+        source="node-scan",
+        node_name="etri-dev0003-raspi5",
+        protocol="i2c",
+        transport="i2c",
+        display_name="raspberry-pi-sense-hat-v1",
+        device_path="/dev/i2c-1",
+        hardware_id=(
+            "bus-1-raspberry-pi-sense-hat-v1-"
+            "1c3d-5cbd-5fbc-6a68"
+        ),
+        model="raspberry-pi-sense-hat-v1",
+        capabilities=[
+            "temperature",
+            "humidity",
+            "pressure",
+            "compass",
+            "orientation",
+            "gyroscope",
+        ],
+        recommended_profile="etri-sensehat-gyroscope",
+        properties={
+            "BusNumber": 1,
+            "IdentityFingerprint": "1c3d-5cbd-5fbc-6a68",
+            "IdentityCount": 4,
+        },
+        first_seen=now,
+        last_seen=now,
+        updated_at=now,
+    )
+
+
 def virtual_modbus_candidate() -> StoredCandidate:
     return modbus_candidate().model_copy(
         update={
@@ -120,6 +156,26 @@ def test_device_catalog_exactly_matches_official_modbus_simulator_binding():
         "startingAddress": 0,
         "rawType": "Int16",
     }
+
+
+def test_device_catalog_exactly_matches_composite_sense_hat_identity():
+    catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+
+    match = catalog.match(sense_hat_candidate())
+
+    assert catalog.errors == []
+    assert match.confidence == "exact"
+    assert match.binding.binding_id == "raspi5-sense-hat-v1"
+    assert match.binding.registration_mode == "reuse-existing"
+    assert match.binding.existing_device_name == (
+        "imu-sensehat-gyroscope-01"
+    )
+    assert match.binding.runtime_hardware_binding_id == (
+        "raspi5-sensehat-i2c-001"
+    )
+    assert catalog.profile_document(match.binding)["deviceResources"]
 
 
 def test_device_catalog_exactly_matches_second_virtual_modbus_sensor():

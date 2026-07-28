@@ -17,6 +17,12 @@ def test_adapter_images_have_reproducible_build_entries() -> None:
     assert "Build and Push edgex-device-serial" in source
     assert "Build and Push edgex-device-sensehat" in source
     assert "--metadata-file /tmp/edge-adapter-controller-build-metadata.json" in source
+    assert "SENSEHAT_REPOSITORY=" in source
+    assert 'select(.adapter.runtimeAdapterId == "sensehat-raspi")' in source
+    assert (
+        "rollout status daemonset/edge-device-discovery-i2c"
+        in source
+    )
     assert "Deploy EdgeX adapter management images through Argo CD" in source
 
 

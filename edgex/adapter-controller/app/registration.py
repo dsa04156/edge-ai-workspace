@@ -690,7 +690,13 @@ class RegistrationCoordinator:
         registration.profile_name = binding.profile.name
         registration.device_name = self._device_name(candidate, binding)
         try:
-            registration.created_profile = self.edge_x.ensure_profile(profile)
+            if binding.registration_mode == "reuse-existing":
+                self.edge_x.verify_existing_profile(profile)
+                registration.created_profile = False
+            else:
+                registration.created_profile = self.edge_x.ensure_profile(
+                    profile
+                )
             registration.step = "PROFILE_READY"
             self._set_candidate_step(candidate.candidate_id, registration.step)
             registration.updated_at = _now()
@@ -700,7 +706,13 @@ class RegistrationCoordinator:
                 binding,
                 registration,
             )
-            registration.created_device = self.edge_x.ensure_device(device)
+            if binding.registration_mode == "reuse-existing":
+                self.edge_x.verify_existing_device(device)
+                registration.created_device = False
+            else:
+                registration.created_device = self.edge_x.ensure_device(
+                    device
+                )
             registration.step = "DEVICE_READBACK_VERIFIED"
             self._set_candidate_step(candidate.candidate_id, registration.step)
             registration.updated_at = _now()
@@ -915,6 +927,8 @@ class RegistrationCoordinator:
 
     @staticmethod
     def _device_name(candidate: Any, binding: DeviceBinding) -> str:
+        if binding.registration_mode == "reuse-existing":
+            return str(binding.existing_device_name)
         stable = re.sub(
             r"[^a-z0-9-]+",
             "-",
@@ -956,6 +970,15 @@ class RegistrationCoordinator:
         service_name = str(registration.service_name or "")
         if not service_name:
             raise ValueError("registration is missing the resolved Device Service name")
+        if binding.registration_mode == "reuse-existing":
+            tags = deepcopy(binding.existing_device_tags)
+        else:
+            tags = {
+                "controllerCandidateId": candidate.candidate_id,
+                "hardwareId": candidate.hardware_id,
+                "nodeName": candidate.node_name,
+                "catalogBindingId": binding.binding_id,
+            }
         return {
             "name": registration.device_name,
             "description": (
@@ -978,12 +1001,7 @@ class RegistrationCoordinator:
                 item.model_dump(by_alias=True)
                 for item in binding.auto_events
             ],
-            "tags": {
-                "controllerCandidateId": candidate.candidate_id,
-                "hardwareId": candidate.hardware_id,
-                "nodeName": candidate.node_name,
-                "catalogBindingId": binding.binding_id,
-            },
+            "tags": tags,
             "properties": {},
         }
 
