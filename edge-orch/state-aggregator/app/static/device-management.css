@@ -1214,6 +1214,30 @@ body[data-dashboard-page="management"] .side-rail {
   padding: 0 12px 12px;
 }
 
+.management-discovery-filter-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(5, 9, 14, 0.4);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.management-discovery-filter-feedback[data-hidden="true"] {
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #f8cf8b;
+}
+
+.management-discovery-filter-feedback button {
+  flex: 0 0 auto;
+  min-height: 32px;
+}
+
 .management-discovery-toolbar label,
 .management-dialog label {
   display: grid;

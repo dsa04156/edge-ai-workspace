@@ -1832,27 +1832,83 @@ function candidateVisibleInDefaultList(candidate = {}, {
 }
 
 
+function normalizeDiscoverySearchTerm(value = "") {
+  return String(value)
+    .normalize("NFKC")
+    .toLocaleLowerCase("ko-KR")
+    .replace(/[\s_-]+/g, "");
+}
+
+
+function discoveryFilterStatusView({
+  total = 0,
+  visible = 0,
+  search = "",
+  protocol = "",
+  stateFilter = "",
+  includeIgnored = false,
+  showStale = false,
+  showRegistered = false,
+} = {}) {
+  const active = Boolean(
+    String(search).trim()
+    || protocol
+    || stateFilter
+    || includeIgnored
+    || showStale
+    || showRegistered,
+  );
+  const hidden = Math.max(0, Number(total) - Number(visible));
+  return {
+    active,
+    hidden,
+    resetDisabled: !active,
+    label: active
+      ? `${total}개 중 ${visible}개 표시`
+        + (hidden ? ` · 검색 조건으로 ${hidden}개 숨김` : "")
+      : `${visible}개 후보 표시`,
+  };
+}
+
+
+function discoveryFilterInputs(documentRef = document) {
+  return {
+    search: byId("managementDiscoverySearch", documentRef)?.value.trim() || "",
+    protocol: byId(
+      "managementDiscoveryProtocolFilter",
+      documentRef,
+    )?.value || "",
+    stateFilter: byId(
+      "managementDiscoveryDecisionFilter",
+      documentRef,
+    )?.value || "",
+    includeIgnored: byId(
+      "managementDiscoveryIncludeIgnored",
+      documentRef,
+    )?.checked === true,
+    showStale: byId(
+      "managementDiscoveryShowStale",
+      documentRef,
+    )?.checked === true,
+    showRegistered: byId(
+      "managementDiscoveryShowRegistered",
+      documentRef,
+    )?.checked === true,
+  };
+}
+
+
 function discoveryCandidatesForSelectedNode(documentRef = document) {
-  const search = byId("managementDiscoverySearch", documentRef)?.value
-    .trim()
-    .toLocaleLowerCase("ko-KR") || "";
-  const protocol = byId("managementDiscoveryProtocolFilter", documentRef)?.value || "";
-  const stateFilter = byId(
-    "managementDiscoveryDecisionFilter",
-    documentRef,
-  )?.value || "";
-  const includeIgnored = byId(
-    "managementDiscoveryIncludeIgnored",
-    documentRef,
-  )?.checked === true;
-  const showStale = byId(
-    "managementDiscoveryShowStale",
-    documentRef,
-  )?.checked === true;
-  const showRegistered = byId(
-    "managementDiscoveryShowRegistered",
-    documentRef,
-  )?.checked === true || stateFilter === "EVENT_CONFIRMED";
+  const {
+    search,
+    protocol,
+    stateFilter,
+    includeIgnored,
+    showStale,
+    showRegistered: requestedRegistered,
+  } = discoveryFilterInputs(documentRef);
+  const normalizedSearch = normalizeDiscoverySearchTerm(search);
+  const showRegistered = requestedRegistered || stateFilter === "EVENT_CONFIRMED";
   return (managementState.discovery.candidates || []).filter((candidate) => {
     if (candidate.nodeName !== managementState.selectedNodeName) return false;
     if (!candidateVisibleInDefaultList(
@@ -1863,7 +1919,7 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
     }
     if (protocol && candidate.protocol !== protocol) return false;
     if (stateFilter && candidate.state !== stateFilter) return false;
-    if (!search) return true;
+    if (!normalizedSearch) return true;
     const searchable = [
       candidate.candidateId,
       candidate.displayName,
@@ -1878,8 +1934,8 @@ function discoveryCandidatesForSelectedNode(documentRef = document) {
       candidate.model || "",
       candidate.recommendedProfile || "",
       ...Object.values(candidate.properties || {}).map(String),
-    ].join(" ").toLocaleLowerCase("ko-KR");
-    return searchable.includes(search);
+    ].join(" ");
+    return normalizeDiscoverySearchTerm(searchable).includes(normalizedSearch);
   });
 }
 
@@ -2024,7 +2080,35 @@ function appendCandidateAction(
 function renderDiscoveryCandidates(documentRef = document) {
   const container = byId("managementDiscoveryList", documentRef);
   clearElement(container);
+  const filterInputs = discoveryFilterInputs(documentRef);
+  const defaultCandidates = (managementState.discovery.candidates || []).filter(
+    (candidate) => candidate.nodeName === managementState.selectedNodeName
+      && candidateVisibleInDefaultList(candidate, {
+        includeIgnored: filterInputs.includeIgnored,
+        showStale: filterInputs.showStale,
+        showRegistered: filterInputs.showRegistered
+          || filterInputs.stateFilter === "EVENT_CONFIRMED",
+      }),
+  );
   const candidates = discoveryCandidatesForSelectedNode(documentRef);
+  const filterView = discoveryFilterStatusView({
+    total: defaultCandidates.length,
+    visible: candidates.length,
+    search: filterInputs.search,
+    protocol: filterInputs.protocol,
+    stateFilter: filterInputs.stateFilter,
+    includeIgnored: filterInputs.includeIgnored,
+    showStale: filterInputs.showStale,
+    showRegistered: filterInputs.showRegistered,
+  });
+  const filterStatus = byId("managementDiscoveryFilterStatus", documentRef);
+  const resetFilters = byId("managementDiscoveryResetFilters", documentRef);
+  if (filterStatus) filterStatus.textContent = filterView.label;
+  if (resetFilters) resetFilters.disabled = filterView.resetDisabled;
+  filterStatus?.parentElement?.setAttribute(
+    "data-hidden",
+    filterView.hidden > 0 ? "true" : "false",
+  );
   if (!candidates.length) {
     const staleHidden = byId(
       "managementDiscoveryShowStale",
@@ -2046,7 +2130,9 @@ function renderDiscoveryCandidates(documentRef = document) {
       "management-empty",
       managementState.discoveryLoadError
         ? "연결 후보를 불러오지 못했습니다. Controller와 탐색기 상태를 확인하세요."
-        : staleHidden
+        : filterView.active && defaultCandidates.length
+          ? `${defaultCandidates.length}개 후보가 검색 조건에 가려져 있습니다. ‘검색 조건 초기화’를 누르세요.`
+          : staleHidden
           ? "현재 연결된 후보가 없습니다. 이전 관측 기록은 검색·표시 조건에서 ‘오래된 후보 표시’를 켜면 확인할 수 있습니다."
           : registeredHidden
             ? "등록 대기 후보가 없습니다. 등록 완료 장비는 ‘등록 현황’에서 확인할 수 있습니다."
@@ -3645,6 +3731,29 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       () => renderDiscoveryCandidates(documentRef),
     );
   });
+  byId("managementDiscoveryResetFilters", documentRef)?.addEventListener(
+    "click",
+    () => {
+      [
+        "managementDiscoverySearch",
+        "managementDiscoveryProtocolFilter",
+        "managementDiscoveryDecisionFilter",
+      ].forEach((id) => {
+        const input = byId(id, documentRef);
+        if (input) input.value = "";
+      });
+      [
+        "managementDiscoveryShowStale",
+        "managementDiscoveryIncludeIgnored",
+        "managementDiscoveryShowRegistered",
+      ].forEach((id) => {
+        const input = byId(id, documentRef);
+        if (input) input.checked = false;
+      });
+      renderDiscoveryCandidates(documentRef);
+      byId("managementDiscoverySearch", documentRef)?.focus();
+    },
+  );
   const manualDialog = byId("managementManualCandidateDialog", documentRef);
   byId("managementOpenManualCandidate", documentRef)?.addEventListener("click", () => {
     managementState.manualCandidateCreateKey = "";
@@ -4229,6 +4338,8 @@ if (typeof module !== "undefined") {
     candidateEndpointSummary,
     candidateRegistrationStatusView,
     candidateVisibleInDefaultList,
+    discoveryFilterStatusView,
+    normalizeDiscoverySearchTerm,
     canPatchSelectedDevice,
     connectionStatusView,
     connectionApplyButtonView,

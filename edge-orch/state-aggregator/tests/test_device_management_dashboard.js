@@ -15,6 +15,8 @@ const {
   candidateEndpointSummary,
   candidateRegistrationStatusView,
   candidateVisibleInDefaultList,
+  discoveryFilterStatusView,
+  normalizeDiscoverySearchTerm,
   connectionApplyButtonView,
   canPatchSelectedDevice,
   connectionStatusView,
@@ -274,6 +276,52 @@ test("hides completed, stale, and rejected discovery noise until requested", () 
       {showRegistered: true},
     ),
     true,
+  );
+});
+
+
+test("candidate search ignores spacing and separators in device names", () => {
+  assert.equal(
+    normalizeDiscoverySearchTerm("가상 온도 센서 003"),
+    normalizeDiscoverySearchTerm("가상온도센서-003"),
+  );
+  assert.equal(
+    normalizeDiscoverySearchTerm("Modbus_TCP"),
+    "modbustcp",
+  );
+});
+
+
+test("discovery filter status explains hidden candidates and reset state", () => {
+  assert.deepEqual(
+    discoveryFilterStatusView({
+      total: 1,
+      visible: 0,
+      search: "가상온도센서004",
+    }),
+    {
+      active: true,
+      hidden: 1,
+      resetDisabled: false,
+      label: "1개 중 0개 표시 · 검색 조건으로 1개 숨김",
+    },
+  );
+  assert.deepEqual(
+    discoveryFilterStatusView({total: 1, visible: 1}),
+    {
+      active: false,
+      hidden: 0,
+      resetDisabled: true,
+      label: "1개 후보 표시",
+    },
+  );
+  assert.equal(
+    discoveryFilterStatusView({
+      total: 2,
+      visible: 2,
+      showRegistered: true,
+    }).resetDisabled,
+    false,
   );
 });
 
@@ -1428,6 +1476,8 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementDiscoverySearch",
     "managementDiscoveryProtocolFilter",
     "managementDiscoveryDecisionFilter",
+    "managementDiscoveryFilterStatus",
+    "managementDiscoveryResetFilters",
     "managementDiscoveryShowStale",
     "managementDiscoveryShowRegistered",
     "managementOpenManualCandidate",
