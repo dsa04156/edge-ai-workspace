@@ -17,8 +17,8 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=device-crud-20260728" />
-    <link rel="stylesheet" href="/static/simple-mode.css?v=compact-connection-view-20260727" />
+    <link rel="stylesheet" href="/static/device-management.css?v=device-management-unified-20260728" />
+    <link rel="stylesheet" href="/static/simple-mode.css?v=device-management-unified-20260728" />
   </head>
   <body data-view-mode="simple">
     <main class="shell">
@@ -61,7 +61,7 @@
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>
         <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>
-        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 연결</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
       </nav>
 
       <section class="ops-shell">
@@ -400,8 +400,8 @@
             <div class="panel-head management-page-head">
               <div>
                 <p class="section-kicker">EdgeX 디바이스 운영</p>
-                <h2 id="deviceManagementTitle">장비 연결</h2>
-                <p class="management-page-summary">노드를 고르고 발견된 장비를 확인한 뒤 EdgeX에 등록합니다.</p>
+                <h2 id="deviceManagementTitle">장비 관리</h2>
+                <p class="management-page-summary">등록 장비와 연결 대기를 한 화면에서 관리합니다.</p>
               </div>
               <div class="management-head-actions">
                 <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
@@ -429,21 +429,6 @@
               <div id="managementNodeList" class="management-node-list" role="group" aria-label="관리 노드 선택" aria-live="polite"></div>
             </section>
 
-            <nav id="managementViewTabs" class="management-view-tabs" role="tablist" aria-label="디바이스 관리 작업">
-              <button id="managementOverviewTab" type="button" role="tab" aria-selected="true" aria-controls="managementOverviewPanel" data-management-view="overview">
-                등록 현황
-              </button>
-              <button id="managementDiscoveryTab" type="button" role="tab" aria-selected="false" aria-controls="managementDiscoveryPanel" data-management-view="discovery">
-                발견된 장비
-              </button>
-              <button id="managementRegisterTab" type="button" role="tab" aria-selected="false" aria-controls="managementRegisterPanel" data-management-view="register">
-                직접 등록
-              </button>
-              <button id="managementEditTab" class="management-detail-tab" type="button" role="tab" aria-selected="false" aria-controls="managementEditPanel" data-management-view="edit">
-                설정 수정
-              </button>
-            </nav>
-
             <div
               id="managementActionFeedback"
               class="management-action-feedback"
@@ -455,34 +440,52 @@
               버튼을 누르면 진행 상태와 결과가 여기에 표시됩니다.
             </div>
 
-            <section id="managementDiscoveryPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementDiscoveryTab" data-management-view-panel="discovery" hidden>
-              <section class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
+            <section id="managementOverviewPanel" class="management-view-panel" aria-label="등록 현황" data-management-view-panel="overview">
+              <section class="management-device-inventory" aria-labelledby="managedDeviceTitle">
+                <div class="management-section-head">
+                  <div>
+                    <span>Core Metadata</span>
+                    <strong id="managedDeviceTitle">등록 장비</strong>
+                  </div>
+                  <button type="button" class="management-primary-action" data-management-open-register>새 장비 추가</button>
+                </div>
+                <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
+                <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
+                  <summary>
+                    검증용 EdgeX 디바이스
+                    <span id="managementFixtureDeviceCount">0개</span>
+                  </summary>
+                  <p>시뮬레이터에서 생성한 Event를 확인하기 위한 개발용 등록입니다.</p>
+                  <div id="managementFixtureDeviceList" class="managed-device-list" aria-live="polite"></div>
+                </details>
+              </section>
+
+              <section id="managementDiscoveryPanel" class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
                 <div class="management-discovery-head">
                   <div>
-                    <span>승인 전 임시 후보</span>
-                    <h3 id="managementDiscoveryTitle">장비 후보</h3>
-                    <p>USB Serial과 I²C 버스는 노드에서 수동적으로 관측합니다. 네트워크 장비는 엔드포인트를 직접 추가합니다.</p>
+                    <span>승인 전 후보</span>
+                    <h3 id="managementDiscoveryTitle">연결 대기</h3>
                   </div>
                   <div class="management-discovery-actions">
                     <span id="managementDiscoveryStatus" data-status="loading">탐색 상태 확인 중</span>
-                    <button id="managementOpenManualCandidate" type="button" class="management-primary-action">직접 추가</button>
+                    <button id="managementOpenManualCandidate" type="button" class="management-primary-action">장비 추가</button>
                   </div>
                 </div>
 
                 <div class="management-discovery-stats" aria-label="연결 후보 요약">
-                  <article><span>현재 관측</span><strong id="managementDiscoveryPresentCount">0</strong></article>
-                  <article><span>검토 대기</span><strong id="managementDiscoveryPendingCount">0</strong></article>
+                  <article><span>관측</span><strong id="managementDiscoveryPresentCount">0</strong></article>
+                  <article><span>승인 대기</span><strong id="managementDiscoveryPendingCount">0</strong></article>
                   <article><span>등록 가능</span><strong id="managementDiscoveryReadyCount">0</strong></article>
-                  <article class="management-detail-stat"><span>무시됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
+                  <article class="management-detail-stat"><span>거절됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
                 </div>
 
                 <div class="management-discovery-toolbar">
                   <label class="management-discovery-search">
                     <span>후보 검색</span>
-                    <input id="managementDiscoverySearch" type="search" placeholder="장비 이름, 경로, 노드, 프로토콜" />
+                    <input id="managementDiscoverySearch" type="search" placeholder="이름, 경로, 프로토콜" />
                   </label>
                   <details class="management-discovery-filters">
-                    <summary>검색·표시 조건</summary>
+                    <summary>필터</summary>
                     <div class="management-discovery-filter-grid">
                       <label>
                         <span>프로토콜</span>
@@ -517,37 +520,35 @@
                       </label>
                       <label class="management-discovery-toggle">
                         <input id="managementDiscoveryShowStale" type="checkbox" />
-                        <span>오래된 후보 표시</span>
+                        <span>오래된 후보</span>
                       </label>
                       <label class="management-discovery-toggle">
                         <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
-                        <span>거절한 후보 표시</span>
+                        <span>거절한 후보</span>
                       </label>
                       <label class="management-discovery-toggle">
                         <input id="managementDiscoveryShowRegistered" type="checkbox" />
-                        <span>등록 완료 후보 표시</span>
+                        <span>등록 완료 후보</span>
                       </label>
                     </div>
                   </details>
                 </div>
                 <div class="management-discovery-filter-feedback" aria-live="polite">
                   <span id="managementDiscoveryFilterStatus">전체 후보를 표시하고 있습니다.</span>
-                  <button id="managementDiscoveryResetFilters" type="button">검색 조건 초기화</button>
+                  <button id="managementDiscoveryResetFilters" type="button">필터 초기화</button>
                 </div>
 
                 <div id="managementDiscoveryNodeHealth" class="management-discovery-node-health" aria-live="polite"></div>
                 <div id="managementDiscoveryList" class="management-discovery-list" aria-live="polite"></div>
               </section>
-            </section>
 
-            <section id="managementOverviewPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementOverviewTab" data-management-view-panel="overview">
               <section class="management-physical-inventory" aria-labelledby="managementDeviceServiceTitle">
                 <div class="management-section-head">
                   <div>
                     <span>EdgeX Device Service</span>
-                    <strong id="managementDeviceServiceTitle">현장 Device Service</strong>
+                    <strong id="managementDeviceServiceTitle">수집 서비스</strong>
                   </div>
-                  <small>실장비 연결 기준 · 시뮬레이터 제외</small>
+                  <small>선택 노드</small>
                 </div>
                 <div id="managementDeviceServiceList" class="management-physical-list" aria-live="polite"></div>
                 <details id="managementFixtureServiceSection" class="management-fixture-section" hidden>
@@ -555,27 +556,8 @@
                     검증용 연결
                     <span id="managementFixtureServiceCount">0개</span>
                   </summary>
-                  <p>실제 PLC나 센서가 아닌 개발·연동 시험용 시뮬레이터입니다.</p>
+                  <p>실제 장비가 아닌 개발·연동 시험용 시뮬레이터입니다.</p>
                   <div id="managementFixtureServiceList" class="management-physical-list" aria-live="polite"></div>
-                </details>
-              </section>
-
-              <section class="management-device-inventory" aria-labelledby="managedDeviceTitle">
-                <div class="management-section-head">
-                  <div>
-                    <span>Core Metadata</span>
-                    <strong id="managedDeviceTitle">현장 EdgeX 디바이스</strong>
-                  </div>
-                  <button type="button" class="management-primary-action" data-management-open-register>새 디바이스 등록</button>
-                </div>
-                <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
-                <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
-                  <summary>
-                    검증용 EdgeX 디바이스
-                    <span id="managementFixtureDeviceCount">0개</span>
-                  </summary>
-                  <p>시뮬레이터에서 생성한 Event를 확인하기 위한 개발용 등록입니다.</p>
-                  <div id="managementFixtureDeviceList" class="managed-device-list" aria-live="polite"></div>
                 </details>
               </section>
             </section>
@@ -625,15 +607,18 @@
               </form>
             </dialog>
 
-            <section id="managementRegisterPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementRegisterTab" data-management-view-panel="register" hidden>
+            <section id="managementRegisterPanel" class="management-view-panel" aria-labelledby="managementRegisterTitle" data-management-view-panel="register" hidden>
               <form id="deviceOnboardingForm" class="management-form management-registration-form" novalidate>
                 <div class="management-flow-head">
                   <div>
                     <span>연결 구성 마법사</span>
-                    <h3>새 디바이스 등록</h3>
+                    <h3 id="managementRegisterTitle">새 장비 추가</h3>
                     <p>등록된 물리 연결을 EdgeX Device로 등록하고 첫 Event까지 확인합니다.</p>
                   </div>
-                  <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
+                  <div class="management-flow-actions">
+                    <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
+                    <button type="button" data-management-return-overview>등록 현황으로</button>
+                  </div>
                 </div>
 
                 <ol id="managementRegistrationStepper" class="management-stepper" aria-label="등록 단계">
@@ -815,7 +800,7 @@
               </form>
             </section>
 
-            <section id="managementEditPanel" class="management-view-panel" role="tabpanel" aria-labelledby="managementEditTab" data-management-view-panel="edit" hidden>
+            <section id="managementEditPanel" class="management-view-panel" aria-labelledby="devicePatchTitle" data-management-view-panel="edit" hidden>
               <form id="devicePatchForm" class="management-form management-edit-form" aria-labelledby="devicePatchTitle">
                 <div class="management-flow-head">
                   <div>
@@ -823,6 +808,7 @@
                     <h3 id="devicePatchTitle">기존 디바이스 수정</h3>
                     <p>이름·프로필·Device Service는 변경할 수 없습니다.</p>
                   </div>
+                  <button type="button" data-management-return-overview>등록 현황으로</button>
                 </div>
 
                 <label class="management-device-picker">
@@ -896,30 +882,31 @@
                 </section>
               </form>
 
-              <dialog id="managementDeleteDeviceDialog" class="management-dialog management-delete-dialog" aria-labelledby="managementDeleteDialogTitle">
-                <form id="managementDeleteDeviceForm" method="dialog" novalidate>
-                  <div class="management-dialog-head">
-                    <div>
-                      <span>되돌릴 수 없는 작업</span>
-                      <h3 id="managementDeleteDialogTitle">디바이스 삭제 확인</h3>
-                      <p id="managementDeleteDialogSummary">삭제할 디바이스를 확인하세요.</p>
-                    </div>
-                    <button type="button" data-management-close-delete-dialog aria-label="삭제 창 닫기">닫기</button>
-                  </div>
-                  <label class="management-field-wide">
-                    <span>확인을 위해 디바이스 이름을 정확히 입력</span>
-                    <input id="managementDeleteDeviceConfirm" type="text" autocomplete="off" required />
-                  </label>
-                  <div id="managementDeleteDeviceResult" class="management-inline-feedback" role="status" aria-live="polite" data-status="warning">
-                    정확한 이름을 입력해야 삭제할 수 있습니다.
-                  </div>
-                  <div class="management-dialog-actions">
-                    <button type="button" data-management-close-delete-dialog>취소</button>
-                    <button id="managementConfirmDeleteDevice" type="submit" class="management-danger-action" disabled>영구 삭제</button>
-                  </div>
-                </form>
-              </dialog>
             </section>
+
+            <dialog id="managementDeleteDeviceDialog" class="management-dialog management-delete-dialog" aria-labelledby="managementDeleteDialogTitle">
+              <form id="managementDeleteDeviceForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>되돌릴 수 없는 작업</span>
+                    <h3 id="managementDeleteDialogTitle">디바이스 삭제 확인</h3>
+                    <p id="managementDeleteDialogSummary">삭제할 디바이스를 확인하세요.</p>
+                  </div>
+                  <button type="button" data-management-close-delete-dialog aria-label="삭제 창 닫기">닫기</button>
+                </div>
+                <label class="management-field-wide">
+                  <span>확인을 위해 디바이스 이름을 정확히 입력</span>
+                  <input id="managementDeleteDeviceConfirm" type="text" autocomplete="off" required />
+                </label>
+                <div id="managementDeleteDeviceResult" class="management-inline-feedback" role="status" aria-live="polite" data-status="warning">
+                  정확한 이름을 입력해야 삭제할 수 있습니다.
+                </div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-delete-dialog>취소</button>
+                  <button id="managementConfirmDeleteDevice" type="submit" class="management-danger-action" disabled>영구 삭제</button>
+                </div>
+              </form>
+            </dialog>
           </div>
         </section>
 
@@ -1036,7 +1023,7 @@
     <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
     <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=device-crud-safe-20260728"></script>
+    <script src="/static/device-management.js?v=device-management-unified-20260728"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

@@ -37,7 +37,6 @@ const {
   managementApiUrl,
   managementDeviceNode,
   managementPayload,
-  managementTabIndexForKey,
   normalizeManagementView,
   normalizeRegistrationStep,
   operationStatusView,
@@ -370,7 +369,7 @@ test("device patch feedback clears the dirty warning after values are restored",
 
 
 test("management navigation only accepts known views and registration steps", () => {
-  assert.equal(normalizeManagementView("discovery"), "discovery");
+  assert.equal(normalizeManagementView("discovery"), "overview");
   assert.equal(normalizeManagementView("overview"), "overview");
   assert.equal(normalizeManagementView("register"), "register");
   assert.equal(normalizeManagementView("edit"), "edit");
@@ -382,35 +381,32 @@ test("management navigation only accepts known views and registration steps", ()
 });
 
 
-test("registration overview is the first and default management view", () => {
+test("device management uses one overview instead of separate menu tabs", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const javascript = fs.readFileSync(
     path.join(root, "app/static/device-management.js"),
     "utf8",
   );
-  const overviewTabIndex = html.indexOf('id="managementOverviewTab"');
-  const discoveryTabIndex = html.indexOf('id="managementDiscoveryTab"');
+  const overviewIndex = html.indexOf('id="managementOverviewPanel"');
+  const deviceInventoryIndex = html.indexOf('id="managedDeviceTitle"');
+  const discoveryIndex = html.indexOf('id="managementDiscoveryPanel"');
 
-  assert.ok(overviewTabIndex >= 0);
-  assert.ok(discoveryTabIndex > overviewTabIndex);
+  assert.ok(overviewIndex >= 0);
+  assert.ok(deviceInventoryIndex > overviewIndex);
+  assert.ok(discoveryIndex > deviceInventoryIndex);
+  assert.doesNotMatch(html, /id="managementViewTabs"/);
+  assert.doesNotMatch(html, /id="managementDiscoveryTab"/);
+  assert.doesNotMatch(html, /id="managementRegisterTab"/);
+  assert.doesNotMatch(html, /id="managementEditTab"/);
   assert.match(
     html,
-    /id="managementOverviewTab"[^>]+aria-selected="true"/,
+    /id="managementOverviewPanel"[^>]+aria-label="등록 현황"[^>]+data-management-view-panel="overview">/,
   );
-  assert.match(
-    html,
-    /id="managementDiscoveryTab"[^>]+aria-selected="false"/,
-  );
-  assert.match(
-    html,
-    /id="managementDiscoveryPanel"[^>]+data-management-view-panel="discovery" hidden/,
-  );
-  assert.match(
-    html,
-    /id="managementOverviewPanel"[^>]+data-management-view-panel="overview">/,
-  );
+  assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
+  assert.match(html, /data-management-return-overview>등록 현황으로</);
   assert.match(javascript, /activeView: "overview"/);
+  assert.match(javascript, /deleteButton\.dataset\.managementDeleteDevice/);
 });
 
 
@@ -605,17 +601,6 @@ test("discovery candidate cards show a safe protocol endpoint summary", () => {
     }),
     "tcp · plc-01.local:502 · Unit 1",
   );
-});
-
-
-test("management tabs support wrapped arrow and boundary keyboard navigation", () => {
-  assert.equal(managementTabIndexForKey("ArrowRight", 3, 4), 0);
-  assert.equal(managementTabIndexForKey("ArrowLeft", 0, 4), 3);
-  assert.equal(managementTabIndexForKey("Home", 3, 4), 0);
-  assert.equal(managementTabIndexForKey("End", 0, 4), 3);
-  assert.equal(managementTabIndexForKey("Enter", 1, 4), null);
-  assert.equal(managementTabIndexForKey("ArrowRight", 0, 0), null);
-  assert.equal(managementTabIndexForKey("ArrowRight", -1, 3), null);
 });
 
 
@@ -1574,7 +1559,6 @@ test("dashboard ships an accessible token-free device management page", () => {
     "managementFixtureDeviceList",
     "managementFixtureDeviceCount",
     "devicePatchForm",
-    "managementViewTabs",
     "managementOverviewPanel",
     "managementRegisterPanel",
     "managementEditPanel",
@@ -1607,34 +1591,33 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
   assert.match(html, /<body data-view-mode="simple">/);
   assert.match(html, /id="dashboardViewModeToggle"/);
-  assert.match(html, /simple-mode\.css\?v=compact-connection-view-20260727/);
-  assert.match(html, /device-management\.css\?v=device-crud-20260728/);
-  assert.match(html, /device-management\.js\?v=device-crud-safe-20260728/);
+  assert.match(html, /simple-mode\.css\?v=device-management-unified-20260728/);
+  assert.match(html, /device-management\.css\?v=device-management-unified-20260728/);
+  assert.match(html, /device-management\.js\?v=device-management-unified-20260728/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
-  assert.match(html, />장비 연결</);
-  assert.match(html, /id="deviceManagementTitle">장비 연결</);
+  assert.match(html, />장비 관리</);
+  assert.match(html, /id="deviceManagementTitle">장비 관리</);
   assert.match(html, /id="managementNodeTitle">노드 선택</);
-  assert.match(html, /id="managementDiscoveryTitle">장비 후보</);
-  assert.match(html, /id="managementOpenManualCandidate"[^>]*>직접 추가</);
+  assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
+  assert.match(html, /id="managementOpenManualCandidate"[^>]*>장비 추가</);
   assert.match(html, /service-demo-value-detail/);
-  assert.match(html, /id="managementDeviceServiceTitle">현장 Device Service</);
-  assert.match(html, /실장비 연결 기준 · 시뮬레이터 제외/);
-  assert.match(html, /실제 PLC나 센서가 아닌 개발·연동 시험용 시뮬레이터/);
+  assert.match(html, /id="managementDeviceServiceTitle">수집 서비스</);
+  assert.match(html, /실제 장비가 아닌 개발·연동 시험용 시뮬레이터/);
   assert.doesNotMatch(html, /선택 노드의 런타임/);
   assert.doesNotMatch(html, /id="managementCatalogTitle">프로토콜 패키지/);
   assert.match(html, /연결 구성 마법사/);
-  assert.match(html, /새 디바이스 등록/);
+  assert.match(html, /새 장비 추가/);
   assert.match(html, /연결 프로토콜 · Device Service/);
   assert.match(html, /Device Service 준비 방식/);
   assert.match(html, /등록된 물리 연결/);
   assert.doesNotMatch(html, /승인된 하드웨어 연결/);
-  assert.match(html, /현장 EdgeX 디바이스/);
+  assert.match(html, /id="managedDeviceTitle">등록 장비/);
   assert.match(html, /검증용 EdgeX 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /\.management-view-tabs/);
+  assert.match(css, /\.managed-device-actions/);
   assert.match(css, /\.management-stepper/);
   assert.match(css, /\.management-node-card/);
   assert.match(css, /\.management-physical-card/);

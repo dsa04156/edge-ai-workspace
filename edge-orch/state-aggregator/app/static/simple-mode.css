@@ -95,10 +95,6 @@ body[data-view-mode="simple"] .management-node-card {
   padding: 10px 12px;
 }
 
-body[data-view-mode="simple"] .management-view-tabs {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 body[data-view-mode="simple"] .management-discovery-stats {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -124,7 +120,6 @@ body[data-view-mode="simple"] .management-candidate-card {
   }
 
   body[data-view-mode="simple"] .management-node-list,
-  body[data-view-mode="simple"] .management-view-tabs,
   body[data-view-mode="simple"] .management-discovery-stats,
   body[data-view-mode="simple"] .service-demo-values,
   body[data-view-mode="simple"] .kpi-grid.dashboard-page.active {

@@ -161,7 +161,8 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-node-card:focus-visible,
-.management-view-tabs button:focus-visible,
+.managed-device-actions button:focus-visible,
+[data-management-return-overview]:focus-visible,
 .management-stepper button:focus-visible,
 .management-adapter-action:focus-visible,
 .management-primary-action:focus-visible,
@@ -219,38 +220,6 @@ body[data-dashboard-page="management"] .side-rail {
   font-size: 12px;
 }
 
-.management-view-tabs {
-  display: flex;
-  gap: 6px;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(5, 9, 14, 0.72);
-}
-
-.management-view-tabs button {
-  flex: 1;
-  min-height: 42px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
-}
-
-.management-view-tabs button:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.management-view-tabs button[aria-selected="true"] {
-  border-color: rgba(99, 208, 230, 0.34);
-  background: rgba(99, 208, 230, 0.11);
-  color: var(--text);
-}
-
 .management-view-panel {
   min-width: 0;
 }
@@ -258,6 +227,11 @@ body[data-dashboard-page="management"] .side-rail {
 .management-view-panel[hidden],
 .management-step-panel[hidden] {
   display: none;
+}
+
+#managementOverviewPanel {
+  display: grid;
+  gap: 16px;
 }
 
 .management-overview-grid {
@@ -268,7 +242,7 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-physical-inventory {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .management-connection-legend {
@@ -713,7 +687,7 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-device-inventory {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .managed-device-list {
@@ -744,6 +718,28 @@ body[data-dashboard-page="management"] .side-rail {
 
 .managed-device-row button {
   flex: 0 0 auto;
+}
+
+.managed-device-actions,
+.management-flow-actions {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px !important;
+}
+
+.managed-device-actions .management-danger-action {
+  min-height: 34px;
+  padding-inline: 11px;
+}
+
+.management-flow-actions {
+  flex-wrap: wrap;
+  max-width: 420px;
+}
+
+.management-flow-actions small {
+  flex: 1 1 220px;
 }
 
 .management-primary-action {
@@ -1554,11 +1550,6 @@ body[data-dashboard-page="management"] .side-rail {
     text-align: left;
   }
 
-  .management-view-tabs {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
   .management-form-grid,
   .management-results-grid,
   .management-review-grid,
@@ -1597,8 +1588,20 @@ body[data-dashboard-page="management"] .side-rail {
   }
 
   .management-buttons,
-  .management-step-actions {
+  .management-step-actions,
+  .managed-device-actions,
+  .management-flow-actions {
     flex-wrap: wrap;
+  }
+
+  .managed-device-actions,
+  .management-flow-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .managed-device-actions button {
+    flex: 1 1 120px;
   }
 
   .management-step-panel {
@@ -1618,7 +1621,6 @@ body[data-dashboard-page="management"] .side-rail {
 
 @media (prefers-reduced-motion: reduce) {
   .management-node-card,
-  .management-view-tabs button,
   .management-stepper button,
   .management-candidate-card {
     transition: none;

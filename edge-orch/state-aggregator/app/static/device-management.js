@@ -912,7 +912,7 @@ function canPatchSelectedDevice(mutationEnabled, selectedDeviceName) {
 
 
 function normalizeManagementView(view) {
-  return ["discovery", "overview", "register", "edit"].includes(view)
+  return ["overview", "register", "edit"].includes(view)
     ? view
     : "overview";
 }
@@ -921,26 +921,6 @@ function normalizeManagementView(view) {
 function normalizeRegistrationStep(step) {
   const parsed = Number(step);
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 4 ? parsed : 1;
-}
-
-
-function managementTabIndexForKey(key, currentIndex, tabCount) {
-  if (
-    !Number.isInteger(currentIndex)
-    || currentIndex < 0
-    || !Number.isInteger(tabCount)
-    || tabCount < 1
-    || currentIndex >= tabCount
-  ) return null;
-  if (key === "Home") return 0;
-  if (key === "End") return tabCount - 1;
-  if (key === "ArrowRight" || key === "ArrowDown") {
-    return (currentIndex + 1) % tabCount;
-  }
-  if (key === "ArrowLeft" || key === "ArrowUp") {
-    return (currentIndex - 1 + tabCount) % tabCount;
-  }
-  return null;
 }
 
 
@@ -2932,11 +2912,23 @@ function renderManagedDevices(documentRef = document) {
           no_events: "없음",
         }[device.telemetry_freshness] || "미확인"}`,
     );
-    const button = documentRef.createElement("button");
-    button.type = "button";
-    button.dataset.managementEditDevice = device.name;
-    button.textContent = "수정";
-    row.append(identity, button);
+    const actions = documentRef.createElement("div");
+    actions.className = "managed-device-actions";
+    const editButton = documentRef.createElement("button");
+    editButton.type = "button";
+    editButton.dataset.managementEditDevice = device.name;
+    editButton.textContent = "수정";
+    const deleteButton = documentRef.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "management-danger-action";
+    deleteButton.dataset.managementDeleteDevice = device.name;
+    deleteButton.textContent = "삭제";
+    deleteButton.disabled = !mutationModeEnabled();
+    deleteButton.title = deleteButton.disabled
+      ? "현재 변경 기능이 비활성화되어 있습니다."
+      : `${device.name} 삭제 확인창을 엽니다.`;
+    actions.append(editButton, deleteButton);
+    row.append(identity, actions);
     targetContainer?.appendChild(row);
   });
 }
@@ -3774,41 +3766,15 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
 function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   const adapterSelect = byId("managementAdapter", documentRef);
   if (!adapterSelect) return;
-  const managementTabs = byId("managementViewTabs", documentRef);
-  managementTabs?.addEventListener("click", (event) => {
-    const button = event.target.closest?.("[data-management-view]");
-    if (button) {
-      setManagementView(button.dataset.managementView, documentRef);
-      renderManagementActionFeedback(`${button.textContent.trim()} 화면을 열었습니다.`, {
+  documentRef.querySelectorAll?.("[data-management-return-overview]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setManagementView("overview", documentRef);
+      renderManagementActionFeedback("등록 현황으로 돌아왔습니다.", {
         status: "success",
         kind: "navigation",
         documentRef,
       });
-    }
-  });
-  managementTabs?.addEventListener("keydown", (event) => {
-    const button = event.target.closest?.("[data-management-view]");
-    if (!button) return;
-    const tabs = [...managementTabs.querySelectorAll("[data-management-view]")]
-      .filter(
-        (tab) => typeof globalThis.getComputedStyle !== "function"
-          || globalThis.getComputedStyle(tab).display !== "none",
-      );
-    const nextIndex = managementTabIndexForKey(
-      event.key,
-      tabs.indexOf(button),
-      tabs.length,
-    );
-    if (nextIndex === null) return;
-    event.preventDefault();
-    const nextTab = tabs[nextIndex];
-    setManagementView(nextTab.dataset.managementView, documentRef);
-    renderManagementActionFeedback(`${nextTab.textContent.trim()} 화면을 열었습니다.`, {
-      status: "success",
-      kind: "navigation",
-      documentRef,
     });
-    nextTab.focus();
   });
   documentRef.querySelectorAll?.("[data-management-open-register]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -4307,11 +4273,53 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
       })
       .finally(() => setManagementButtonBusy(button, false));
   });
+  const deleteDeviceDialog = byId(
+    "managementDeleteDeviceDialog",
+    documentRef,
+  );
+  const openDeleteDeviceDialog = (name) => {
+    if (!name) {
+      renderManagementActionFeedback("삭제할 디바이스를 먼저 선택하세요.", {
+        status: "error",
+        documentRef,
+      });
+      return false;
+    }
+    const view = deviceDeleteTargetView(name);
+    deleteDeviceDialog.dataset.deviceName = name;
+    byId("managementDeleteDialogTitle", documentRef).textContent = view.title;
+    byId("managementDeleteDialogSummary", documentRef).textContent = view.summary;
+    const confirmInput = byId("managementDeleteDeviceConfirm", documentRef);
+    confirmInput.value = "";
+    confirmInput.placeholder = name;
+    byId("managementConfirmDeleteDevice", documentRef).disabled = true;
+    managementState.deviceDeleteKey = "";
+    renderDeleteDeviceResult(
+      `확인을 위해 ${name}을(를) 정확히 입력하세요.`,
+      {status: "warning", documentRef},
+    );
+    if (typeof deleteDeviceDialog?.showModal === "function") {
+      deleteDeviceDialog.showModal();
+    } else {
+      deleteDeviceDialog?.setAttribute("open", "");
+    }
+    confirmInput.focus();
+    return true;
+  };
   ["managedDeviceList", "managementFixtureDeviceList"].forEach((id) => {
     byId(id, documentRef)?.addEventListener("click", (event) => {
-      const button = event.target.closest?.("[data-management-edit-device]");
-      if (button) {
-        setSelectedPatchDevice(button.dataset.managementEditDevice, documentRef);
+      const deleteButton = event.target.closest?.("[data-management-delete-device]");
+      if (deleteButton && !deleteButton.disabled) {
+        setSelectedPatchDevice(
+          deleteButton.dataset.managementDeleteDevice,
+          documentRef,
+        );
+        openDeleteDeviceDialog(deleteButton.dataset.managementDeleteDevice);
+        return;
+      }
+      const editButton = event.target.closest?.("[data-management-edit-device]");
+      if (editButton) {
+        setSelectedPatchDevice(editButton.dataset.managementEditDevice, documentRef);
         setManagementView("edit", documentRef);
       }
     });
@@ -4325,10 +4333,6 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("devicePatchForm", documentRef)?.addEventListener("change", () => {
     renderPatchDirtyState(documentRef);
   });
-  const deleteDeviceDialog = byId(
-    "managementDeleteDeviceDialog",
-    documentRef,
-  );
   byId("managementDeleteDevice", documentRef)?.addEventListener(
     "click",
     () => {
@@ -4340,25 +4344,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         });
         return;
       }
-      const view = deviceDeleteTargetView(name);
-      deleteDeviceDialog.dataset.deviceName = name;
-      byId("managementDeleteDialogTitle", documentRef).textContent = view.title;
-      byId("managementDeleteDialogSummary", documentRef).textContent = view.summary;
-      const confirmInput = byId("managementDeleteDeviceConfirm", documentRef);
-      confirmInput.value = "";
-      confirmInput.placeholder = name;
-      byId("managementConfirmDeleteDevice", documentRef).disabled = true;
-      managementState.deviceDeleteKey = "";
-      renderDeleteDeviceResult(
-        `확인을 위해 ${name}을(를) 정확히 입력하세요.`,
-        {status: "warning", documentRef},
-      );
-      if (typeof deleteDeviceDialog?.showModal === "function") {
-        deleteDeviceDialog.showModal();
-      } else {
-        deleteDeviceDialog?.setAttribute("open", "");
-      }
-      confirmInput.focus();
+      openDeleteDeviceDialog(name);
     },
   );
   deleteDeviceDialog
@@ -4431,6 +4417,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
         }
         await loadDeviceManagement(documentRef, fetchFn);
         setSelectedPatchDevice("", documentRef);
+        setManagementView("overview", documentRef);
         renderManagementActionFeedback(`${name} 삭제를 확인했습니다.`, {
           status: "success",
           documentRef,
@@ -4593,7 +4580,6 @@ if (typeof module !== "undefined") {
     managementApiUrl,
     managementDeviceNode,
     managementPayload,
-    managementTabIndexForKey,
     mutationHeaders,
     normalizeManagementView,
     normalizeRegistrationStep,
