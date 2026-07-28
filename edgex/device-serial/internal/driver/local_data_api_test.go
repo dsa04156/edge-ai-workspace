@@ -47,7 +47,8 @@ func TestLocalDataAPIReturnsLatestAndRecentSamples(t *testing.T) {
 	assert.Equal(t, "temperature_raw", latest.ResourceName)
 	assert.Equal(t, 1, latest.Count)
 	require.Len(t, latest.Samples, 1)
-	assert.Equal(t, int32(283), latest.Samples[0].Value)
+	assert.Equal(t, common.ValueTypeInt32, latest.Samples[0].ValueType)
+	assert.Equal(t, float64(283), latest.Samples[0].Value)
 	assert.Equal(t, "10m0s", latest.Retention.MaxAge)
 	assert.Equal(t, 10_000, latest.Retention.MaxSamples)
 	assert.Equal(t, int64(recentCacheMaxBytes), latest.Retention.MaxBytes)
@@ -64,6 +65,34 @@ func TestLocalDataAPIReturnsLatestAndRecentSamples(t *testing.T) {
 	assert.Equal(t, 2, recent.Count)
 	require.Len(t, recent.Samples, 2)
 	assert.Equal(t, []int64{now - 2, now - 1}, sampleOrigins(recent.Samples))
+}
+
+func TestLocalDataAPIReturnsFloat64Samples(t *testing.T) {
+	cache := newRecentCache(recentCacheMaxAge, recentCacheMaxSamples)
+	now := int64(20 * time.Minute)
+	cache.append("mpu6050-imu-001", "acceleration_z", cachedSample{
+		Origin:    now,
+		ValueType: common.ValueTypeFloat64,
+		Value:     9.80665,
+	})
+	api := newLocalDataAPI(cache, func(deviceName string, resourceName string) bool {
+		return deviceName == "mpu6050-imu-001" && resourceName == "acceleration_z"
+	})
+	api.now = func() int64 { return now }
+
+	recorder := executeLocalDataRequest(
+		t,
+		api.latest,
+		latestRoute,
+		"mpu6050-imu-001",
+		"acceleration_z",
+	)
+
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	response := decodeLocalDataResponse(t, recorder)
+	require.Len(t, response.Samples, 1)
+	assert.Equal(t, common.ValueTypeFloat64, response.Samples[0].ValueType)
+	assert.InDelta(t, 9.80665, response.Samples[0].Value, 0.000001)
 }
 
 func TestLocalDataAPIStatsReportsAllocationAndEvictions(t *testing.T) {
@@ -187,8 +216,8 @@ func TestLocalDataAPIRecentDefaultsToNewestThousandSamples(t *testing.T) {
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	response := decodeLocalDataResponse(t, recorder)
 	require.Len(t, response.Samples, recentDefaultLimit)
-	assert.Equal(t, int32(1), response.Samples[0].Value)
-	assert.Equal(t, int32(1_000), response.Samples[len(response.Samples)-1].Value)
+	assert.Equal(t, float64(1), response.Samples[0].Value)
+	assert.Equal(t, float64(1_000), response.Samples[len(response.Samples)-1].Value)
 }
 
 func TestLocalDataAPIRejectsInvalidRecentQuery(t *testing.T) {

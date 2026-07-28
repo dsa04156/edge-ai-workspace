@@ -37,6 +37,7 @@ def request_payload():
                     "Port": "/dev/arduino-001",
                     "BaudRate": 115200,
                     "DeviceID": "arduino-001",
+                    "Parser": "arduino-multisensor-v1",
                     "ResourceName": "temperature_raw",
                 },
             },

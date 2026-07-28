@@ -7,11 +7,13 @@
   ],
   "parserAllowlist": [
     "arduino-multisensor-v1",
+    "mpu6050-imu-v1",
     "raspberry-pi-sense-hat-v1",
     "edgex-device-modbus-v4.0.2"
   ],
   "profileAllowlist": [
     "arduino-multisensor-v1",
+    "mpu6050-imu-v1",
     "etri-sensehat-gyroscope",
     "edgeai-modbus-temperature-v1"
   ],
@@ -46,6 +48,38 @@
         "approvalRequired": true
       },
       "deviceNamePrefix": "arduino"
+    },
+    {
+      "bindingId": "raspi5-mpu6050-serial-v1",
+      "protocol": "serial",
+      "match": {
+        "nodeId": "etri-dev0003-raspi5",
+        "vendorId": "1a86",
+        "productId": "7523",
+        "hardwareId": "usb-1a86_USB_Serial-if00-port0"
+      },
+      "runtimeHardwareBindingId": "raspi5-mpu6050-serial-001",
+      "connection": {
+        "Port": "/dev/mpu6050-001",
+        "BaudRate": 115200,
+        "DeviceID": "mpu6050-001",
+        "Parser": "mpu6050-imu-v1",
+        "ResourceName": "*"
+      },
+      "adapter": {
+        "runtimeAdapterId": "serial-jetson",
+        "serviceName": "device-serial-raspi",
+        "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+        "parser": "mpu6050-imu-v1"
+      },
+      "profile": {
+        "name": "mpu6050-imu-v1",
+        "file": "profiles/mpu6050-imu-v1.json"
+      },
+      "security": {
+        "approvalRequired": true
+      },
+      "deviceNamePrefix": "mpu6050"
     },
     {
       "bindingId": "raspi5-sense-hat-v1",

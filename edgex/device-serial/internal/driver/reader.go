@@ -182,7 +182,11 @@ func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
 		if count > 0 {
 			receivedBytes = true
 			for _, line := range framer.Push(buffer[:count]) {
-				sample, parseErr := ParseLine(line, reader.config.DeviceID)
+				sample, parseErr := ParseLineWithParser(
+					line,
+					reader.config.DeviceID,
+					reader.config.Parser,
+				)
 				if parseErr != nil {
 					reader.onInvalidLine(parseErr)
 					continue

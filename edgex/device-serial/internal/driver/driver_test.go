@@ -75,6 +75,80 @@ func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 	assert.Equal(t, int64(987654321), cached.Origin)
 }
 
+func TestDriverPublishesAndCachesMPU6050Float64Readings(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 8)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	driver.now = func() int64 { return 987654321 }
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+
+	protocols := testMPU6050Protocols("*")
+	require.NoError(t, driver.AddDevice(
+		"mpu6050-imu-001",
+		protocols,
+		models.AdminState(models.Unlocked),
+	))
+	managed := factory.only(t)
+	require.Equal(t, mpu6050SerialParser, managed.config.Parser)
+
+	acceleration := 9.80665
+	gyro := -0.0125
+	managed.options.OnSample(Sample{
+		DeviceName: "mpu6050-001",
+		SourceName: "imu",
+		Readings: []Reading{
+			{ResourceName: "acceleration_z", FloatValue: &acceleration},
+			{ResourceName: "gyro_y", FloatValue: &gyro},
+		},
+	}, 987654321)
+
+	events := map[string]*sdkModels.AsyncValues{}
+	for range 2 {
+		event := <-asyncValues
+		events[event.CommandValues[0].DeviceResourceName] = event
+	}
+	for resourceName, expected := range map[string]float64{
+		"acceleration_z": acceleration,
+		"gyro_y":         gyro,
+	} {
+		event := events[resourceName]
+		require.NotNil(t, event)
+		assert.Equal(t, "mpu6050-imu-001", event.DeviceName)
+		assert.Equal(t, resourceName, event.SourceName)
+		require.Len(t, event.CommandValues, 1)
+		assert.Equal(t, common.ValueTypeFloat64, event.CommandValues[0].Type)
+		assert.InDelta(t, expected, event.CommandValues[0].Value, 0.000001)
+	}
+
+	values, err := driver.HandleReadCommands(
+		"mpu6050-imu-001",
+		protocols,
+		[]sdkModels.CommandRequest{{
+			DeviceResourceName: "acceleration_z",
+			Type:               common.ValueTypeFloat64,
+		}},
+	)
+	require.NoError(t, err)
+	require.Len(t, values, 1)
+	assert.Equal(t, common.ValueTypeFloat64, values[0].Type)
+	assert.InDelta(t, acceleration, values[0].Value, 0.000001)
+
+	cached, ok := driver.cache.latest(
+		"mpu6050-imu-001",
+		"acceleration_z",
+		driver.now(),
+	)
+	require.True(t, ok)
+	assert.Equal(t, common.ValueTypeFloat64, cached.ValueType)
+	assert.InDelta(t, acceleration, cached.Value, 0.000001)
+}
+
 func TestDriverRejectsReadBeforeFirstSampleAndAllWrites(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
 	sdk := newTestDeviceServiceSDK(t)
@@ -692,6 +766,18 @@ func testSerialProtocolsFor(
 			"Port":         port,
 			"BaudRate":     baudRate,
 			"DeviceID":     deviceID,
+			"ResourceName": resourceName,
+		},
+	}
+}
+
+func testMPU6050Protocols(resourceName string) map[string]models.ProtocolProperties {
+	return map[string]models.ProtocolProperties{
+		"serial": {
+			"Port":         "/dev/mpu6050-001",
+			"BaudRate":     115200,
+			"DeviceID":     "mpu6050-001",
+			"Parser":       mpu6050SerialParser,
 			"ResourceName": resourceName,
 		},
 	}

@@ -28,6 +28,7 @@ type SerialConfig struct {
 	Port         string
 	BaudRate     int
 	DeviceID     string
+	Parser       string
 	ResourceName string
 }
 
@@ -35,6 +36,7 @@ type connectionKey struct {
 	port     string
 	baudRate int
 	deviceID string
+	parser   string
 }
 
 func (config SerialConfig) key() connectionKey {
@@ -42,12 +44,14 @@ func (config SerialConfig) key() connectionKey {
 		port:     config.Port,
 		baudRate: config.BaudRate,
 		deviceID: config.DeviceID,
+		parser:   config.Parser,
 	}
 }
 
 func (config SerialConfig) resourceNames() []string {
+	parser := normalizedSerialParser(config.Parser)
 	if config.ResourceName == "*" {
-		return append([]string(nil), allSupportedResources...)
+		return append([]string(nil), serialParserResourceOrder[parser]...)
 	}
 	return []string{config.ResourceName}
 }
@@ -79,16 +83,32 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 		return SerialConfig{}, err
 	}
 
+	parser := defaultSerialParser
+	if _, found := properties["Parser"]; found {
+		parser, err = requiredString(properties, "Parser")
+		if err != nil {
+			return SerialConfig{}, err
+		}
+	}
+	resourceSpecs, ok := serialParserResources[parser]
+	if !ok {
+		return SerialConfig{}, fmt.Errorf("unsupported serial Parser %q", parser)
+	}
+
 	resourceName, err := requiredString(properties, "ResourceName")
 	if err != nil {
 		return SerialConfig{}, err
 	}
 	if resourceName != "*" {
-		if _, ok := supportedResources[resourceName]; !ok {
-			return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
+		if _, ok := resourceSpecs[resourceName]; !ok {
+			return SerialConfig{}, fmt.Errorf(
+				"unsupported serial ResourceName %q for Parser %q",
+				resourceName,
+				parser,
+			)
 		}
 	}
-	if resourceName == "*" && len(allSupportedResources) == 0 {
+	if resourceName == "*" && len(serialParserResourceOrder[parser]) == 0 {
 		return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
 	}
 
@@ -96,6 +116,7 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 		Port:         port,
 		BaudRate:     baudRate,
 		DeviceID:     deviceID,
+		Parser:       parser,
 		ResourceName: resourceName,
 	}, nil
 }

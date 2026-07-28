@@ -26,6 +26,7 @@ func TestParseSerialConfig(t *testing.T) {
 		Port:         "/dev/arduino-001",
 		BaudRate:     115200,
 		DeviceID:     "arduino-001",
+		Parser:       defaultSerialParser,
 		ResourceName: "temperature_raw",
 	}, config)
 }
@@ -42,7 +43,31 @@ func TestParseSerialConfigAcceptsAggregateResourceWildcard(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, "*", config.ResourceName)
+	assert.Equal(t, defaultSerialParser, config.Parser)
 	assert.Equal(t, allSupportedResources, config.resourceNames())
+}
+
+func TestParseSerialConfigAcceptsMPU6050Parser(t *testing.T) {
+	config, err := ParseSerialConfig(map[string]models.ProtocolProperties{
+		"serial": {
+			"Port":         "/dev/mpu6050-001",
+			"BaudRate":     115200,
+			"DeviceID":     "mpu6050-001",
+			"Parser":       mpu6050SerialParser,
+			"ResourceName": "*",
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, mpu6050SerialParser, config.Parser)
+	assert.Equal(t, []string{
+		"acceleration_x",
+		"acceleration_y",
+		"acceleration_z",
+		"gyro_x",
+		"gyro_y",
+		"gyro_z",
+	}, config.resourceNames())
 }
 
 func TestParseSerialConfigAcceptsSupportedNumericBaudRates(t *testing.T) {
@@ -112,6 +137,18 @@ func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
 			name: "unsupported resource name",
 			protocols: map[string]models.ProtocolProperties{"serial": {
 				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "pressure_raw",
+			}},
+		},
+		{
+			name: "unsupported parser",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001", "Parser": "unknown", "ResourceName": "*",
+			}},
+		},
+		{
+			name: "resource not supported by selected parser",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001", "Parser": mpu6050SerialParser, "ResourceName": "temperature_raw",
 			}},
 		},
 		{

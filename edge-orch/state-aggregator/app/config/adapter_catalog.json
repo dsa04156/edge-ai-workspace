@@ -3,17 +3,17 @@
   "adapters": [
     {
       "adapterId": "serial-jetson",
-      "displayName": "Jetson Arduino Serial",
+      "displayName": "Arduino USB Serial",
       "serviceName": "device-serial-jetson",
       "protocolName": "serial",
       "nodeName": "etri-dev0001-jetorn",
       "declaredStatus": "installed",
       "runtime": {
-        "mode": "external",
-        "managementOwner": "argocd",
-        "verificationState": "hardware-verified",
+        "mode": "managed-template",
+        "managementOwner": "controller",
+        "verificationState": "template-verified",
         "templateId": "serial-device-service-v1",
-        "deploymentEnabled": false,
+        "deploymentEnabled": true,
         "hardwareBindings": [
           {
             "bindingId": "jetson-arduino-serial-001",
@@ -23,15 +23,28 @@
             "protocolProperties": {
               "Port": "/dev/arduino-001",
               "BaudRate": 115200,
-              "DeviceID": "arduino-001"
+              "DeviceID": "arduino-001",
+              "Parser": "arduino-multisensor-v1"
+            }
+          },
+          {
+            "bindingId": "raspi5-mpu6050-serial-001",
+            "displayName": "Raspberry Pi MPU6050 USB Serial",
+            "nodeName": "etri-dev0003-raspi5",
+            "devicePath": "/dev/mpu6050-001",
+            "protocolProperties": {
+              "Port": "/dev/mpu6050-001",
+              "BaudRate": 115200,
+              "DeviceID": "mpu6050-001",
+              "Parser": "mpu6050-imu-v1"
             }
           }
         ],
         "reusePolicy": {
           "multiDevice": true,
-          "bindingFields": ["Port", "BaudRate", "DeviceID"],
+          "bindingFields": ["Port", "BaudRate", "DeviceID", "Parser"],
           "routeFields": ["ResourceName"],
-          "maxDevices": 6
+          "maxDevices": 12
         }
       },
       "fields": [
@@ -71,6 +84,17 @@
           "pattern": "^[A-Za-z0-9._~-]+$"
         },
         {
+          "name": "Parser",
+          "label": "Telemetry parser",
+          "type": "enum",
+          "required": true,
+          "default": "arduino-multisensor-v1",
+          "options": [
+            "arduino-multisensor-v1",
+            "mpu6050-imu-v1"
+          ]
+        },
+        {
           "name": "ResourceName",
           "label": "Serial resource",
           "type": "enum",
@@ -87,7 +111,7 @@
       ],
       "profileCapabilities": {
         "selectorField": "ResourceName",
-        "valueTypes": ["Int32"],
+        "valueTypes": ["Int32", "Float64"],
         "readWrite": ["R"],
         "templates": [
           {

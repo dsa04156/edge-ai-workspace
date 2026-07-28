@@ -5,10 +5,10 @@
     {
       "templateId": "serial-device-service-v1",
       "adapterId": "serial-jetson",
-      "displayName": "Jetson Arduino Serial",
+      "displayName": "Arduino USB Serial",
       "protocolName": "serial",
-      "verificationState": "hardware-verified",
-      "deploymentEnabled": false,
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
       "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
       "servicePort": 59910,
       "hardwareBindings": [
@@ -18,6 +18,15 @@
           "nodeName": "etri-dev0001-jetorn",
           "hostDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
           "containerDevicePath": "/dev/arduino-001",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        },
+        {
+          "bindingId": "raspi5-mpu6050-serial-001",
+          "displayName": "Raspberry Pi MPU6050 USB Serial",
+          "nodeName": "etri-dev0003-raspi5",
+          "hostDevicePath": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+          "containerDevicePath": "/dev/mpu6050-001",
           "deviceType": "CharDevice",
           "requiresPrivileged": true
         }

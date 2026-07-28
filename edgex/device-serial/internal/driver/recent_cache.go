@@ -2,11 +2,13 @@ package driver
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
 
 	localcache "github.com/dsa04156/edge-ai-workspace/edgex/local-data-cache"
+	"github.com/edgexfoundry/go-mod-core-contracts/v4/common"
 )
 
 const (
@@ -22,7 +24,7 @@ const (
 	localDataCacheMaxBytesConfig   = "LocalDataCacheMaxBytes"
 )
 
-type cachedSample = localcache.Sample[int32]
+type cachedSample = localcache.Sample[any]
 
 type recentCacheConfig struct {
 	maxAge     time.Duration
@@ -34,7 +36,7 @@ type recentCache struct {
 	maxAge     time.Duration
 	maxSamples int
 	maxBytes   int64
-	cache      *localcache.Cache[int32]
+	cache      *localcache.Cache[any]
 }
 
 func parseRecentCacheConfig(values map[string]string) (recentCacheConfig, error) {
@@ -93,7 +95,7 @@ func newConfiguredRecentCache(
 	config recentCacheConfig,
 	observer localcache.Observer,
 ) (*recentCache, error) {
-	cache, err := localcache.New[int32](localcache.Options{
+	cache, err := localcache.New[any](localcache.Options{
 		MaxAge:              config.maxAge,
 		MaxSamplesPerSeries: config.maxSamples,
 		MaxBytes:            config.maxBytes,
@@ -121,7 +123,11 @@ func (cache *recentCache) appendChecked(
 	resourceName string,
 	sample cachedSample,
 ) error {
-	return cache.cache.Append(deviceName, resourceName, sample)
+	normalized, err := normalizeCachedSample(sample)
+	if err != nil {
+		return err
+	}
+	return cache.cache.Append(deviceName, resourceName, normalized)
 }
 
 func (cache *recentCache) latest(
@@ -149,4 +155,71 @@ func (cache *recentCache) deleteDevice(deviceName string) {
 
 func (cache *recentCache) stats() localcache.Stats {
 	return cache.cache.Stats()
+}
+
+func normalizeCachedSample(sample cachedSample) (cachedSample, error) {
+	switch sample.ValueType {
+	case common.ValueTypeInt32:
+		value, err := cachedInt32(sample.Value)
+		if err != nil {
+			return cachedSample{}, err
+		}
+		sample.Value = value
+	case common.ValueTypeFloat64:
+		value, err := cachedFloat64(sample.Value)
+		if err != nil {
+			return cachedSample{}, err
+		}
+		sample.Value = value
+	default:
+		return cachedSample{}, fmt.Errorf(
+			"unsupported cached value type %q",
+			sample.ValueType,
+		)
+	}
+	return sample, nil
+}
+
+func cachedInt32(value any) (int32, error) {
+	switch typed := value.(type) {
+	case int32:
+		return typed, nil
+	case int:
+		if typed < math.MinInt32 || typed > math.MaxInt32 {
+			break
+		}
+		return int32(typed), nil
+	case int64:
+		if typed < math.MinInt32 || typed > math.MaxInt32 {
+			break
+		}
+		return int32(typed), nil
+	case float64:
+		if typed < math.MinInt32 || typed > math.MaxInt32 || typed != math.Trunc(typed) {
+			break
+		}
+		return int32(typed), nil
+	}
+	return 0, fmt.Errorf("cached Int32 value has incompatible type %T", value)
+}
+
+func cachedFloat64(value any) (float64, error) {
+	switch typed := value.(type) {
+	case float64:
+		if !math.IsNaN(typed) && !math.IsInf(typed, 0) {
+			return typed, nil
+		}
+	case float32:
+		value := float64(typed)
+		if !math.IsNaN(value) && !math.IsInf(value, 0) {
+			return value, nil
+		}
+	case int:
+		return float64(typed), nil
+	case int32:
+		return float64(typed), nil
+	case int64:
+		return float64(typed), nil
+	}
+	return 0, fmt.Errorf("cached Float64 value has incompatible type %T", value)
 }

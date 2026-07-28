@@ -17,14 +17,10 @@ import (
 
 var _ interfaces.ProtocolDriver = (*Driver)(nil)
 
-var supportedResources = map[string]struct{}{
-	"temperature_raw":    {},
-	"light_raw":          {},
-	"magnetic_raw":       {},
-	"acceleration_x_raw": {},
-	"acceleration_y_raw": {},
-	"acceleration_z_raw": {},
-}
+const (
+	defaultSerialParser = "arduino-multisensor-v1"
+	mpu6050SerialParser = "mpu6050-imu-v1"
+)
 
 var allSupportedResources = []string{
 	"temperature_raw",
@@ -35,13 +31,81 @@ var allSupportedResources = []string{
 	"acceleration_z_raw",
 }
 
-var sourceNames = map[string]string{
-	"temperature_raw":    "temperature",
-	"light_raw":          "light",
-	"magnetic_raw":       "magnetic",
-	"acceleration_x_raw": "acceleration_x",
-	"acceleration_y_raw": "acceleration_y",
-	"acceleration_z_raw": "acceleration_z",
+type serialResourceSpec struct {
+	ValueType  string
+	SourceName string
+}
+
+var serialParserResourceOrder = map[string][]string{
+	defaultSerialParser: allSupportedResources,
+	mpu6050SerialParser: {
+		"acceleration_x",
+		"acceleration_y",
+		"acceleration_z",
+		"gyro_x",
+		"gyro_y",
+		"gyro_z",
+	},
+}
+
+var serialParserResources = map[string]map[string]serialResourceSpec{
+	defaultSerialParser: {
+		"temperature_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "temperature",
+		},
+		"light_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "light",
+		},
+		"magnetic_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "magnetic",
+		},
+		"acceleration_x_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "acceleration_x",
+		},
+		"acceleration_y_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "acceleration_y",
+		},
+		"acceleration_z_raw": {
+			ValueType: common.ValueTypeInt32, SourceName: "acceleration_z",
+		},
+	},
+	mpu6050SerialParser: {
+		"acceleration_x": {
+			ValueType: common.ValueTypeFloat64, SourceName: "acceleration_x",
+		},
+		"acceleration_y": {
+			ValueType: common.ValueTypeFloat64, SourceName: "acceleration_y",
+		},
+		"acceleration_z": {
+			ValueType: common.ValueTypeFloat64, SourceName: "acceleration_z",
+		},
+		"gyro_x": {
+			ValueType: common.ValueTypeFloat64, SourceName: "gyro_x",
+		},
+		"gyro_y": {
+			ValueType: common.ValueTypeFloat64, SourceName: "gyro_y",
+		},
+		"gyro_z": {
+			ValueType: common.ValueTypeFloat64, SourceName: "gyro_z",
+		},
+	},
+}
+
+var supportedResources = func() map[string]struct{} {
+	resources := make(map[string]struct{})
+	for _, parserResources := range serialParserResources {
+		for name := range parserResources {
+			resources[name] = struct{}{}
+		}
+	}
+	return resources
+}()
+
+func normalizedSerialParser(parser string) string {
+	if parser == "" {
+		return defaultSerialParser
+	}
+	return parser
 }
 
 type managedReader interface {
@@ -359,19 +423,36 @@ func (driver *Driver) HandleReadCommands(
 	if len(requests) == 0 {
 		return nil, errors.New("at least one read request is required")
 	}
+	config, err := validateDeviceConfig(deviceName, protocols)
+	if err != nil {
+		return nil, err
+	}
+	resourceSpecs := serialParserResources[normalizedSerialParser(config.Parser)]
 
 	now := driver.now()
 	values := make([]cachedSample, len(requests))
 	for index, request := range requests {
-		if request.Type != common.ValueTypeInt32 {
-			return nil, fmt.Errorf("resource %q must use %s", request.DeviceResourceName, common.ValueTypeInt32)
-		}
-		if _, ok := supportedResources[request.DeviceResourceName]; !ok {
+		spec, ok := resourceSpecs[request.DeviceResourceName]
+		if !ok {
 			return nil, fmt.Errorf("unsupported serial resource %q", request.DeviceResourceName)
+		}
+		if request.Type != spec.ValueType {
+			return nil, fmt.Errorf(
+				"resource %q must use %s",
+				request.DeviceResourceName,
+				spec.ValueType,
+			)
 		}
 		latest, ok := driver.cache.latest(deviceName, request.DeviceResourceName, now)
 		if !ok {
 			return nil, fmt.Errorf("no recent reading for %s/%s", deviceName, request.DeviceResourceName)
+		}
+		if latest.ValueType != spec.ValueType {
+			return nil, fmt.Errorf(
+				"cached resource %q has unexpected type %s",
+				request.DeviceResourceName,
+				latest.ValueType,
+			)
 		}
 		values[index] = latest
 	}
@@ -380,7 +461,7 @@ func (driver *Driver) HandleReadCommands(
 	for index, request := range requests {
 		commandValue, err := sdkModels.NewCommandValueWithOrigin(
 			request.DeviceResourceName,
-			common.ValueTypeInt32,
+			values[index].ValueType,
 			values[index].Value,
 			values[index].Origin,
 		)
@@ -451,27 +532,30 @@ func (driver *Driver) handleSample(
 		driver.mu.Unlock()
 		return
 	}
+	resourceSpecs := serialParserResources[normalizedSerialParser(managed.config.Parser)]
 	for _, reading := range sample.Readings {
-		if _, ok := supportedResources[reading.ResourceName]; !ok {
+		spec, ok := resourceSpecs[reading.ResourceName]
+		if !ok {
 			continue
 		}
 		routedDevices := managed.routes[reading.ResourceName]
 		if len(routedDevices) == 0 {
 			continue
 		}
-		sourceName, ok := sourceNames[reading.ResourceName]
-		if !ok {
+		value, err := reading.typedValue(spec.ValueType)
+		if err != nil {
+			cacheErrors = append(cacheErrors, err)
 			continue
 		}
 		for deviceName, aggregate := range routedDevices {
-			eventSourceName := sourceName
+			eventSourceName := spec.SourceName
 			if aggregate {
 				eventSourceName = reading.ResourceName
 			}
 			commandValue, err := sdkModels.NewCommandValueWithOrigin(
 				reading.ResourceName,
-				common.ValueTypeInt32,
-				reading.Value,
+				spec.ValueType,
+				value,
 				origin,
 			)
 			if err != nil {
@@ -481,8 +565,8 @@ func (driver *Driver) handleSample(
 			}
 			if err := driver.cache.appendChecked(deviceName, reading.ResourceName, cachedSample{
 				Origin:    origin,
-				ValueType: common.ValueTypeInt32,
-				Value:     reading.Value,
+				ValueType: spec.ValueType,
+				Value:     value,
 			}); err != nil {
 				cacheErrors = append(cacheErrors, fmt.Errorf(
 					"cache %s/%s: %w",

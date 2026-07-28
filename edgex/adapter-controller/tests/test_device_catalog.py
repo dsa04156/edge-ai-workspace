@@ -27,6 +27,30 @@ def candidate() -> StoredCandidate:
     )
 
 
+def mpu6050_candidate() -> StoredCandidate:
+    now = datetime.now(timezone.utc)
+    return StoredCandidate(
+        candidate_id="candidate-" + "a" * 64,
+        identity_hash="a" * 64,
+        source="node-scan",
+        node_name="etri-dev0003-raspi5",
+        protocol="serial",
+        transport="usb-serial",
+        display_name="USB Serial",
+        device_path="/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+        hardware_id="usb-1a86_USB_Serial-if00-port0",
+        properties={
+            "VendorID": "1a86",
+            "ProductID": "7523",
+            "Product": "USB Serial",
+            "KernelDevice": "ttyUSB0",
+        },
+        first_seen=now,
+        last_seen=now,
+        updated_at=now,
+    )
+
+
 def modbus_candidate() -> StoredCandidate:
     now = datetime.now(timezone.utc)
     return StoredCandidate(
@@ -149,6 +173,39 @@ def test_unverified_raspberry_serial_is_discovered_but_not_exactly_matched():
     assert match.confidence == "partial"
     assert match.binding is None
     assert "stable identity" in match.reason
+
+
+def test_device_catalog_exactly_matches_approved_raspberry_mpu6050_bridge():
+    catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+
+    match = catalog.match(mpu6050_candidate())
+
+    assert catalog.errors == []
+    assert match.confidence == "exact"
+    assert match.binding.binding_id == "raspi5-mpu6050-serial-v1"
+    assert match.binding.runtime_hardware_binding_id == (
+        "raspi5-mpu6050-serial-001"
+    )
+    assert match.binding.adapter.parser == "mpu6050-imu-v1"
+    assert match.binding.connection == {
+        "Port": "/dev/mpu6050-001",
+        "BaudRate": 115200,
+        "DeviceID": "mpu6050-001",
+        "Parser": "mpu6050-imu-v1",
+        "ResourceName": "*",
+    }
+    profile = catalog.profile_document(match.binding)
+    assert profile["name"] == "mpu6050-imu-v1"
+    assert [item["name"] for item in profile["deviceResources"]] == [
+        "acceleration_x",
+        "acceleration_y",
+        "acceleration_z",
+        "gyro_x",
+        "gyro_y",
+        "gyro_z",
+    ]
 
 
 def test_device_catalog_exactly_matches_official_modbus_simulator_binding():

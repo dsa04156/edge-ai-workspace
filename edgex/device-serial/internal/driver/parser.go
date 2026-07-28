@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 )
 
 type Reading struct {
 	ResourceName string
 	Value        int32
+	FloatValue   *float64
 }
 
 type Sample struct {
@@ -31,6 +33,25 @@ type wireSample struct {
 }
 
 func ParseLine(line []byte, expectedDevice string) (Sample, error) {
+	return ParseLineWithParser(line, expectedDevice, defaultSerialParser)
+}
+
+func ParseLineWithParser(
+	line []byte,
+	expectedDevice string,
+	parser string,
+) (Sample, error) {
+	switch normalizedSerialParser(parser) {
+	case defaultSerialParser:
+		return parseArduinoMultisensorLine(line, expectedDevice)
+	case mpu6050SerialParser:
+		return parseMPU6050Line(line, expectedDevice)
+	default:
+		return Sample{}, fmt.Errorf("unsupported serial parser %q", parser)
+	}
+}
+
+func parseArduinoMultisensorLine(line []byte, expectedDevice string) (Sample, error) {
 	decoder := json.NewDecoder(bytes.NewReader(line))
 	decoder.DisallowUnknownFields()
 	var wire wireSample
@@ -53,6 +74,83 @@ func ParseLine(line []byte, expectedDevice string) (Sample, error) {
 		SourceName: wire.Sensor,
 		Readings:   readings,
 	}, nil
+}
+
+type mpu6050WireSample struct {
+	DeviceID      string   `json:"device_id"`
+	Sensor        string   `json:"sensor"`
+	AccelerationX *float64 `json:"acceleration_x"`
+	AccelerationY *float64 `json:"acceleration_y"`
+	AccelerationZ *float64 `json:"acceleration_z"`
+	GyroX         *float64 `json:"gyro_x"`
+	GyroY         *float64 `json:"gyro_y"`
+	GyroZ         *float64 `json:"gyro_z"`
+}
+
+func parseMPU6050Line(line []byte, expectedDevice string) (Sample, error) {
+	decoder := json.NewDecoder(bytes.NewReader(line))
+	decoder.DisallowUnknownFields()
+	var wire mpu6050WireSample
+	if err := decoder.Decode(&wire); err != nil {
+		return Sample{}, fmt.Errorf("invalid MPU6050 serial JSON: %w", err)
+	}
+	if err := ensureJSONEOF(decoder); err != nil {
+		return Sample{}, err
+	}
+	if wire.DeviceID != expectedDevice {
+		return Sample{}, fmt.Errorf("unexpected device_id %q", wire.DeviceID)
+	}
+	if wire.Sensor != "imu" {
+		return Sample{}, fmt.Errorf("MPU6050 sensor must be %q", "imu")
+	}
+
+	values := []struct {
+		name  string
+		value *float64
+	}{
+		{name: "acceleration_x", value: wire.AccelerationX},
+		{name: "acceleration_y", value: wire.AccelerationY},
+		{name: "acceleration_z", value: wire.AccelerationZ},
+		{name: "gyro_x", value: wire.GyroX},
+		{name: "gyro_y", value: wire.GyroY},
+		{name: "gyro_z", value: wire.GyroZ},
+	}
+	readings := make([]Reading, 0, len(values))
+	for _, item := range values {
+		if item.value == nil {
+			return Sample{}, fmt.Errorf("%s is required", item.name)
+		}
+		if math.IsNaN(*item.value) || math.IsInf(*item.value, 0) {
+			return Sample{}, fmt.Errorf("%s must be finite", item.name)
+		}
+		value := *item.value
+		readings = append(readings, Reading{
+			ResourceName: item.name,
+			FloatValue:   &value,
+		})
+	}
+	return Sample{
+		DeviceName: wire.DeviceID,
+		SourceName: wire.Sensor,
+		Readings:   readings,
+	}, nil
+}
+
+func (reading Reading) typedValue(valueType string) (any, error) {
+	switch valueType {
+	case "Int32":
+		if reading.FloatValue != nil {
+			return nil, fmt.Errorf("%s contains a floating-point value", reading.ResourceName)
+		}
+		return reading.Value, nil
+	case "Float64":
+		if reading.FloatValue == nil {
+			return nil, fmt.Errorf("%s does not contain a Float64 value", reading.ResourceName)
+		}
+		return *reading.FloatValue, nil
+	default:
+		return nil, fmt.Errorf("unsupported serial value type %q", valueType)
+	}
 }
 
 func ensureJSONEOF(decoder *json.Decoder) error {

@@ -73,7 +73,10 @@ func TestRecentCacheReturnsNewestLimitInAscendingOrder(t *testing.T) {
 
 	got := cache.query("device", "resource", now-10, now, 2, now)
 	require.Len(t, got, 2)
-	assert.Equal(t, []int32{4, 5}, []int32{got[0].Value, got[1].Value})
+	assert.Equal(t, []int32{4, 5}, []int32{
+		got[0].Value.(int32),
+		got[1].Value.(int32),
+	})
 	assert.Less(t, got[0].Origin, got[1].Origin)
 }
 

@@ -100,6 +100,23 @@ def test_unready_existing_runtime_blocks_duplicate_deploy():
     assert [item.code for item in plan.reasons] == ["runtime_not_ready"]
 
 
+def test_auto_deploys_approved_raspberry_mpu6050_serial_binding():
+    plan = planner().plan(
+        request(
+            targetNode="etri-dev0003-raspi5",
+            hardwareBindingId="raspi5-mpu6050-serial-001",
+        ),
+        [],
+    )
+
+    assert plan.action == "DEPLOY"
+    assert plan.allowed is True
+    assert plan.runtime_name.startswith("adapter-serial-jetson-")
+    assert plan.service_name == plan.runtime_name
+    assert plan.management_mode == "controller"
+    assert plan.verification_state == "template-verified"
+
+
 def test_retired_runtime_does_not_block_a_new_deployment_attempt():
     modbus = RuntimePlanRequest(
         adapter_id="modbus",
@@ -137,7 +154,15 @@ def test_explicit_reuse_blocks_when_no_runtime_exists():
 
 
 def test_auto_blocks_when_matching_template_is_not_yet_deployable():
-    plan = planner().plan(request(), [])
+    plan = planner().plan(
+        RuntimePlanRequest(
+            adapter_id="sensehat-raspi",
+            target_node="etri-dev0003-raspi5",
+            hardware_binding_id="raspi5-sensehat-i2c-001",
+            mode="auto",
+        ),
+        [],
+    )
 
     assert plan.action == "BLOCKED"
     assert [item.code for item in plan.reasons] == ["template_not_deployable"]

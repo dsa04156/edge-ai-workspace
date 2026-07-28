@@ -46,6 +46,7 @@ def serial_protocol(device_id="arduino-001", resource_name="temperature_raw"):
         "Port": "/dev/arduino-001",
         "BaudRate": 115200,
         "DeviceID": device_id,
+        "Parser": "arduino-multisensor-v1",
         "ResourceName": resource_name,
     }
 
@@ -909,6 +910,7 @@ async def test_patch_cannot_move_an_existing_device_to_another_hardware_binding(
                     "Port": "/dev/arduino-002",
                     "BaudRate": 57600,
                     "DeviceID": "arduino-002",
+                    "Parser": "arduino-multisensor-v1",
                 },
             }
         )
@@ -926,10 +928,11 @@ async def test_patch_cannot_move_an_existing_device_to_another_hardware_binding(
             created.device_name,
             DevicePatchRequest(
                 protocol_properties={
-                    "Port": "/dev/arduino-002",
-                    "BaudRate": 57600,
-                    "DeviceID": "arduino-002",
-                    "ResourceName": "temperature_raw",
+                        "Port": "/dev/arduino-002",
+                        "BaudRate": 57600,
+                        "DeviceID": "arduino-002",
+                        "Parser": "arduino-multisensor-v1",
+                        "ResourceName": "temperature_raw",
                 }
             ),
             idempotency_key="patch-binding-change",

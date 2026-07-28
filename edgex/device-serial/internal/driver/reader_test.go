@@ -69,6 +69,47 @@ func TestReaderDropsInvalidLineAndEmitsFollowingSample(t *testing.T) {
 	assert.Equal(t, time.Second, port.readTimeout())
 }
 
+func TestReaderUsesConfiguredMPU6050Parser(t *testing.T) {
+	port := newScriptedPort(readResult{data: []byte(
+		`{"device_id":"mpu6050-001","sensor":"imu",` +
+			`"acceleration_x":0.1,"acceleration_y":0.2,` +
+			`"acceleration_z":9.8,"gyro_x":0.01,` +
+			`"gyro_y":0.02,"gyro_z":0.03}` + "\n",
+	)})
+	samples := make(chan Sample, 1)
+	reader := NewReader(SerialConfig{
+		Port:     "/dev/mpu6050-001",
+		BaudRate: 115200,
+		DeviceID: "mpu6050-001",
+		Parser:   mpu6050SerialParser,
+	}, ReaderOptions{
+		Open:     func(string, int) (Port, error) { return port, nil },
+		OnSample: func(sample Sample, _ int64) { samples <- sample },
+	})
+
+	done := make(chan struct{})
+	go func() {
+		reader.Run(context.Background())
+		close(done)
+	}()
+
+	require.Eventually(t, func() bool { return len(samples) == 1 }, time.Second, 5*time.Millisecond)
+	require.NoError(t, reader.Close())
+	require.Eventually(t, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	}, time.Second, 5*time.Millisecond)
+
+	sample := <-samples
+	assert.Equal(t, "imu", sample.SourceName)
+	require.Len(t, sample.Readings, 6)
+	assert.InDelta(t, 9.8, *sample.Readings[2].FloatValue, 0.000001)
+}
+
 func TestReaderMarksDownAndRetriesOpenWithBackoff(t *testing.T) {
 	port := newScriptedPort(readResult{data: []byte(
 		`{"device_id":"arduino-001","sensor":"magnetic","value":0}` + "\n",

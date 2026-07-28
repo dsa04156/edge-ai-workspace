@@ -23,6 +23,7 @@ def serial_protocol(**overrides):
         "Port": "/dev/arduino-001",
         "BaudRate": 115200,
         "DeviceID": "arduino-001",
+        "Parser": "arduino-multisensor-v1",
         "ResourceName": "temperature_raw",
     }
     values.update(overrides)
@@ -54,17 +55,18 @@ def test_catalog_uses_current_device_service_and_node_identity(catalog):
     assert sensehat.node_name == "etri-dev0003-raspi5"
 
 
-def test_catalog_separates_installed_runtime_from_deployment_verification(catalog):
+def test_catalog_exposes_serial_reuse_and_approved_deployment_bindings(catalog):
     serial = catalog.require("serial-jetson")
     sensehat = catalog.require("sensehat-raspi")
 
-    assert serial.runtime.mode == "external"
-    assert serial.runtime.management_owner == "argocd"
-    assert serial.runtime.verification_state == "hardware-verified"
+    assert serial.runtime.mode == "managed-template"
+    assert serial.runtime.management_owner == "controller"
+    assert serial.runtime.verification_state == "template-verified"
     assert serial.runtime.template_id == "serial-device-service-v1"
-    assert serial.runtime.deployment_enabled is False
+    assert serial.runtime.deployment_enabled is True
     assert [item.binding_id for item in serial.runtime.hardware_bindings] == [
-        "jetson-arduino-serial-001"
+        "jetson-arduino-serial-001",
+        "raspi5-mpu6050-serial-001",
     ]
     assert serial.runtime.hardware_bindings[0].node_name == "etri-dev0001-jetorn"
     assert serial.runtime.hardware_bindings[0].device_path == "/dev/arduino-001"
@@ -72,11 +74,20 @@ def test_catalog_separates_installed_runtime_from_deployment_verification(catalo
         "Port": "/dev/arduino-001",
         "BaudRate": 115200,
         "DeviceID": "arduino-001",
+        "Parser": "arduino-multisensor-v1",
+    }
+    assert serial.runtime.hardware_bindings[1].node_name == "etri-dev0003-raspi5"
+    assert serial.runtime.hardware_bindings[1].protocol_properties == {
+        "Port": "/dev/mpu6050-001",
+        "BaudRate": 115200,
+        "DeviceID": "mpu6050-001",
+        "Parser": "mpu6050-imu-v1",
     }
     assert serial.runtime.reuse_policy.binding_fields == [
         "Port",
         "BaudRate",
         "DeviceID",
+        "Parser",
     ]
     assert serial.runtime.reuse_policy.route_fields == ["ResourceName"]
 
@@ -189,6 +200,7 @@ def test_serial_protocol_accepts_an_additional_approved_physical_binding(catalog
                 "Port": "/dev/arduino-002",
                 "BaudRate": 57600,
                 "DeviceID": "arduino-002",
+                "Parser": "arduino-multisensor-v1",
             },
         }
     )

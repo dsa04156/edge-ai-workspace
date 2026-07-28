@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-카탈로그.md</span>
-            <span class="badge">수정: 2026-07-28 17:22</span>
-            <span class="badge">HTML 생성: 2026-07-28 17:24</span>
+            <span class="badge">수정: 2026-07-28 19:45</span>
+            <span class="badge">HTML 생성: 2026-07-28 19:45</span>
           </div>
         </header>
         <div class="doc-body">
@@ -276,7 +276,8 @@ Resources:
 <p>probe는 기존 Device Service와 포트 경쟁이 없는 검증 창에만 켠다.</p>
 <ol><li>Catalog, scanner, Device Service, Kustomize 테스트를 실행한다.</li><li>배포 후 후보가 <code>PENDING_APPROVAL</code>인지 확인한다.</li><li>운영자와 외부 인증 승인 뒤 <code>EVENT_CONFIRMED</code>까지 확인한다.</li></ol>
 <p>새 장비를 연결할 때마다 DB schema를 수정하지 않는다. Candidate, Event/Reading, Profile/Device는 generic 모델로 저장되고 장비별 schema는 Profile/Catalog가 관리한다.</p>
-<p>2026-07-28 dev0003에서 발견된 CH340 <code>1a86:7523</code>은 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>까지 passive 확인했지만 USB serial number, Manifest, parser/Profile과 Raspberry Pi Runtime binding 검증이 없다. 따라서 <code>serial-jetson</code> protocol package가 알려져 있어도 exact hardware binding은 매칭하지 않고 <code>binding-required</code>로 유지한다. 이 항목을 기존 Jetson binding에 억지로 추가하지 말고 위 10단계를 거쳐 별도 검증 binding으로 승격한다.</p>
+<p>2026-07-28 dev0003에서 발견된 CH340 <code>1a86:7523</code>은 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>까지 passive 확인했다. 이 장비에는 별도 exact binding <code>raspi5-mpu6050-serial-v1</code>을 사용한다. binding은 node, VID/PID, stable by-id hardware ID를 함께 매칭하고, 검증 template의 exact CharDevice를 <code>/dev/mpu6050-001</code>로 마운트한다. 연결 계약은 <code>Port</code>, <code>BaudRate</code>, <code>DeviceID</code>, <code>Parser=mpu6050-imu-v1</code>, <code>ResourceName=*</code>이며 Profile은 <code>config/profiles/mpu6050-imu-v1.json</code>이다.</p>
+<p>이 Catalog 등록은 장비 신뢰와 telemetry 완료를 뜻하지 않는다. USB serial number가 없는 CH340의 stable identity 한계를 운영자가 검토하고, 보드 firmware가 예제의 6축 JSON-line을 출력하며 승인 뒤 첫 Event까지 확인해야 한다. 기존 Jetson binding의 parser나 mount를 재사용해 완료로 판정하지 않는다.</p>
 <h2 id="i2c-장비-추가-절차">I2C 장비 추가 절차</h2>
 <ol><li>bus와 address를 Plan allowlist에 넣는다.</li><li>상태를 바꾸지 않는 identity register, expected chip ID, model, Profile과 capability를</li></ol>
 <p><code>identificationRules</code>에 선언한다. 여러 chip이 한 물리 보드를 구성하면 <code>identities</code> 배열로 모두 선언해 하나의 composite fingerprint를 만든다.</p>

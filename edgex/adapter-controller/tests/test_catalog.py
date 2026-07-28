@@ -18,16 +18,26 @@ def catalog() -> RuntimeTemplateCatalog:
     return RuntimeTemplateCatalog.load(CATALOG_PATH)
 
 
-def test_catalog_records_external_hardware_verified_runtimes(catalog):
+def test_catalog_records_serial_deploy_path_and_external_runtime(catalog):
     serial = catalog.require("serial-device-service-v1")
     sensehat = catalog.require("sensehat-device-service-v1")
 
     assert serial.adapter_id == "serial-jetson"
     assert serial.purpose == "operational"
-    assert serial.verification_state == "hardware-verified"
-    assert serial.deployment_enabled is False
+    assert serial.verification_state == "template-verified"
+    assert serial.deployment_enabled is True
     assert "@sha256:" in serial.image
-    assert serial.hardware_bindings[0].binding_id == "jetson-arduino-serial-001"
+    assert [item.binding_id for item in serial.hardware_bindings] == [
+        "jetson-arduino-serial-001",
+        "raspi5-mpu6050-serial-001",
+    ]
+    assert serial.hardware_bindings[1].node_name == "etri-dev0003-raspi5"
+    assert serial.hardware_bindings[1].host_device_path == (
+        "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+    )
+    assert serial.hardware_bindings[1].container_device_path == (
+        "/dev/mpu6050-001"
+    )
     assert serial.external_runtimes[0].service_name == "device-serial-jetson"
     assert serial.external_runtimes[0].management_owner == "argocd"
 

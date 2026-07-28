@@ -124,6 +124,55 @@ class FakeDeployRuntimeService(FakeRuntimeService):
         )
 
 
+class FakeMPU6050RuntimeService:
+    def __init__(self) -> None:
+        self.retired: list[str] = []
+
+    def plan(self, request):
+        return RuntimePlan(
+            action="DEPLOY",
+            allowed=True,
+            adapter_id="serial-jetson",
+            template_id="serial-device-service-v1",
+            runtime_name="adapter-serial-jetson-a1b2c3d4e5",
+            service_name="adapter-serial-jetson-a1b2c3d4e5",
+            target_node=request.target_node,
+            hardware_binding_id=request.hardware_binding_id,
+            management_mode="controller",
+            verification_state="template-verified",
+            reasons=[],
+            plan_hash="9" * 64,
+        )
+
+    def apply_runtime(self, name, request):
+        return RuntimeObservation(
+            runtime_name=name,
+            adapter_id="serial-jetson",
+            template_id="serial-device-service-v1",
+            service_name="adapter-serial-jetson-a1b2c3d4e5",
+            target_node="etri-dev0003-raspi5",
+            hardware_binding_id="raspi5-mpu6050-serial-001",
+            hardware_binding_ids=["raspi5-mpu6050-serial-001"],
+            management_mode="controller",
+            management_owner="controller",
+            verification_state="template-verified",
+            phase="SERVICE_READY",
+            consumers=0,
+            image=SERIAL_IMAGE,
+        )
+
+    def list_runtimes(self):
+        return [
+            self.apply_runtime(
+                "adapter-serial-jetson-a1b2c3d4e5",
+                None,
+            )
+        ]
+
+    def retire_runtime(self, name, request):
+        self.retired.append(name)
+
+
 class FakeModbusRuntimeService:
     def __init__(self) -> None:
         self.retired: list[str] = []
@@ -394,6 +443,34 @@ def sense_hat_report() -> NodeDiscoveryReport:
     )
 
 
+def mpu6050_report() -> NodeDiscoveryReport:
+    return NodeDiscoveryReport(
+        node_name="etri-dev0003-raspi5",
+        agent_id="discovery/serial-test",
+        observed_at=datetime.now(timezone.utc),
+        candidates=[
+            DiscoveryObservation(
+                hardware_key="usb-1a86_USB_Serial-if00-port0",
+                hardware_id="usb-1a86_USB_Serial-if00-port0",
+                protocol="serial",
+                transport="usb-serial",
+                display_name="USB Serial",
+                device_path=(
+                    "/dev/serial/by-id/"
+                    "usb-1a86_USB_Serial-if00-port0"
+                ),
+                properties={
+                    "VendorID": "1a86",
+                    "ProductID": "7523",
+                    "Product": "USB Serial",
+                    "KernelDevice": "ttyUSB0",
+                },
+                evidence={"stablePath": "udev-by-id"},
+            )
+        ],
+    )
+
+
 def approval() -> CandidateApprovalRequest:
     return CandidateApprovalRequest(
         actor="operator-1",
@@ -467,6 +544,63 @@ def test_approval_to_first_event_is_idempotent_end_to_end(tmp_path):
     assert coordinator.edge_x.devices[0]["tags"]["controllerCandidateId"] == (
         candidate.candidate_id
     )
+
+
+def test_raspberry_mpu6050_approval_deploys_runtime_and_registers_six_axis_device(
+    tmp_path,
+):
+    kube = FakeKubernetesGateway(target_node_ready=True)
+    store = SQLiteDiscoveryStore(tmp_path / "discovery.db")
+    runtime_catalog = RuntimeTemplateCatalog.load(
+        BASE / "config" / "runtime_templates.json"
+    )
+    device_catalog = DeviceBindingCatalog.load(
+        BASE / "config" / "device_bindings.json"
+    )
+    registry = DeviceCandidateRegistry(
+        runtime_catalog,
+        kube,
+        store=store,
+        device_catalog=device_catalog,
+    )
+    candidate = registry.ingest_report(mpu6050_report()).candidates[0]
+    edge_x = FakeEdgeX()
+    coordinator = RegistrationCoordinator(
+        registry=registry,
+        store=store,
+        device_catalog=device_catalog,
+        auth_provider=AllowAllMockProvider(),
+        edge_x=edge_x,
+        kube=kube,
+        runtime_service=FakeMPU6050RuntimeService(),
+    )
+
+    assert candidate.state == "PENDING_APPROVAL"
+    assert candidate.registration_ready is True
+    assert candidate.recommended_profile == "mpu6050-imu-v1"
+    assert candidate.matched_hardware_binding_id == (
+        "raspi5-mpu6050-serial-001"
+    )
+
+    coordinator.approve(candidate.candidate_id, approval())
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    coordinator.reconcile_candidate(candidate.candidate_id)
+    completed = coordinator.reconcile_candidate(candidate.candidate_id)
+
+    assert completed.status == "EVENT_CONFIRMED"
+    assert completed.runtime_name == "adapter-serial-jetson-a1b2c3d4e5"
+    assert completed.service_name == "adapter-serial-jetson-a1b2c3d4e5"
+    assert completed.profile_name == "mpu6050-imu-v1"
+    assert completed.created_runtime is True
+    assert edge_x.profiles == ["mpu6050-imu-v1"]
+    assert len(edge_x.devices) == 1
+    assert edge_x.devices[0]["protocols"]["serial"] == {
+        "Port": "/dev/mpu6050-001",
+        "BaudRate": 115200,
+        "DeviceID": "mpu6050-001",
+        "Parser": "mpu6050-imu-v1",
+        "ResourceName": "*",
+    }
 
 
 def test_sense_hat_reuses_existing_runtime_profile_device_and_confirms_event(

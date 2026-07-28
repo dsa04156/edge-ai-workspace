@@ -718,7 +718,7 @@ test("blocked candidate setup preserves its protocol instead of selecting an unr
       packageReason: "stable identity와 Profile의 exact match가 필요합니다.",
     }),
     {
-      label: "Serial / USB 후보 · Profile/연결 카탈로그 필요",
+      label: "Serial / USB 후보 · 프로필과 물리 연결 규칙 필요",
       title: "Serial / USB 연결 준비 필요",
       text: "stable identity와 Profile의 exact match가 필요합니다.",
     },

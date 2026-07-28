@@ -1904,11 +1904,11 @@ function renderConnectionGuidance(documentRef = document) {
     profileButton.dataset.managementOpenProfileForCandidate = (
       managementState.registrationCandidateContext?.candidateId || ""
     );
-    profileButton.textContent = "이 후보의 Device Profile 만들기";
+    profileButton.textContent = "프로필 초안 만들기";
     profileButton.disabled = !mutationModeEnabled();
     profileButton.title = profileButton.disabled
       ? "현재 변경 기능이 비활성화되어 있습니다."
-      : "후보의 모델과 리소스를 Profile 초안에 반영합니다.";
+      : "프로필 초안을 만듭니다. 프로필 생성만으로 물리 연결이 승인되지는 않습니다.";
     container.appendChild(profileButton);
     return;
   }
@@ -2288,10 +2288,10 @@ function candidateSetupLock(candidate = null) {
     candidate.protocol || "프로토콜 미확인",
   );
   return {
-    label: `${protocolLabel} 후보 · Profile/연결 카탈로그 필요`,
+    label: `${protocolLabel} 후보 · 프로필과 물리 연결 규칙 필요`,
     title: `${protocolLabel} 연결 준비 필요`,
     text: candidate.packageReason
-      || "stable identity와 검증된 Device Profile의 exact match가 필요합니다.",
+      || "stable identity와 검증된 Device Profile·물리 연결 규칙의 exact match가 필요합니다.",
   };
 }
 
@@ -4280,6 +4280,10 @@ function prefillRegistrationFromCandidate(
   if (binding) binding.value = candidate.matchedHardwareBindingId || "";
   syncRuntimeNodeFromBinding(documentRef);
   renderProtocolFields(documentRef);
+  renderRegistrationProfileOptions(
+    documentRef,
+    candidate.recommendedProfile || "",
+  );
   const labels = byId("managementDeviceLabels", documentRef);
   if (labels && !labels.value.trim()) {
     labels.value = `${candidate.protocol}, virtual-device`;
