@@ -1135,7 +1135,7 @@ test("device deletion only decommissions an exact controller candidate owner", (
   });
 
   assert.equal(legacy.candidate, null);
-  assert.equal(legacy.title, "EdgeX 디바이스 삭제");
+  assert.equal(legacy.title, "센서 디바이스 삭제");
   assert.equal(owned.candidate.candidateId, candidate.candidateId);
   assert.equal(owned.title, "등록 연결 전체 삭제");
 });
@@ -1877,7 +1877,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(html, /data-view-mode=/);
   assert.doesNotMatch(html, /dashboardViewModeToggle/);
   assert.doesNotMatch(html, /simple-mode\.css/);
-  assert.match(html, /dashboard-responsive\.css\?v=no-overlap-20260730/);
+  assert.match(html, /dashboard-responsive\.css\?v=sensor-inventory-table-20260730/);
+  assert.match(html, /operations-dashboard\.css\?v=sensor-inventory-table-20260730/);
   assert.match(html, /device-management\.css\?v=physical-device-groups-20260730/);
   assert.match(html, /device-management\.js\?v=physical-device-groups-20260730/);
   assert.match(html, /class="metric-details"/);
@@ -1909,7 +1910,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /등록된 물리 연결/);
   assert.doesNotMatch(html, /승인된 하드웨어 연결/);
   assert.match(html, /id="managedDeviceTitle">등록 장비/);
-  assert.match(html, /검증용 EdgeX 디바이스/);
+  assert.match(html, /검증용 센서 디바이스/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /#managementOverviewPanel:not\(\[hidden\]\)/);

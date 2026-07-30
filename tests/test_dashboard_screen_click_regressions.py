@@ -99,22 +99,18 @@ def test_dashboard_screen_uses_a_hidden_responsive_context_drawer() -> None:
     assert "width: 100vw !important;" in css
 
 
-def test_registered_device_cards_do_not_collapse_or_clip_at_scale() -> None:
+def test_sensor_device_table_does_not_collapse_or_clip_at_scale() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    css = (
-        ROOT / "edge-orch/state-aggregator/app/static/dashboard-responsive.css"
-    ).read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/operations-dashboard.css").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert 'aria-label="등록 EdgeX 디바이스 목록"' in html
-    assert ".assets .asset-split" in css
-    assert "grid-template-columns: minmax(0, 1fr) !important;" in css
-    assert ".assets .asset-scroll" in css
+    assert 'aria-label="센서 디바이스 목록"' in html
+    assert 'class="sensor-device-table"' in html
+    assert ".sensor-table-shell" in css
     assert "max-height: none;" in css
     assert "#deviceList" in css
-    assert "repeat(auto-fill, minmax(min(100%, 285px), 1fr))" in css
-    assert ".assets .device-row" in css
+    assert ".sensor-device-row" in css
+    assert 'grid-template-areas:' in css
     assert "overflow: visible;" in css
-    assert ".device-card-facts" in css
-    assert ".device-card-footer" in css
-    assert 'aria-expanded="${isSelected && isContextDetailPanelOpen()' in js
+    assert ".sensor-device-name" in css
+    assert 'aria-expanded="${isSelected && contextPanelOpen' in js

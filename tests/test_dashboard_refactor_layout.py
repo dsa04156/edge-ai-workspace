@@ -117,7 +117,7 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     assert ">운영 현황<" in html
-    assert ">등록 디바이스<" in html
+    assert ">센서 디바이스<" in html
     assert ">장비 관리<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
@@ -169,7 +169,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
-    assert "/static/dashboard.js?v=inventory-cards-20260730" in html
+    assert "/static/dashboard.js?v=sensor-inventory-table-20260730" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js
@@ -188,7 +188,7 @@ def test_context_drawer_groups_explain_panel_with_collapsed_chat_and_keeps_topol
     ).read_text()
 
     assets_index = html.index('class="panel assets dashboard-page"')
-    topology_index = html.index('class="panel topology-panel dashboard-page"')
+    topology_index = html.index('class="panel topology-panel')
     side_rail_index = html.index('class="side-rail')
     explain_index = html.index('class="panel explain-panel operator-context-panel"')
     chat_index = html.index('class="panel operator-chat"')

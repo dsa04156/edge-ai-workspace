@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-30 16:59</span>
-            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
+            <span class="badge">수정: 2026-07-30 17:53</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:54</span>
           </div>
         </header>
         <div class="doc-body">
@@ -176,6 +176,9 @@
 <p>Core Metadata의 다음 필드를 device 응답과 detail에 표시한다.</p>
 <ul><li><code>name</code></li><li><code>profileName</code></li><li><code>serviceName</code></li><li><code>protocols</code> (secret은 마스킹)</li><li><code>adminState</code></li><li><code>operatingState</code></li><li><code>tags</code>/properties의 선택적 node diagnostic</li></ul>
 <p>Core Metadata에 없는 KubeEdge Device를 current physical inventory에 합치지 않는다. optional node diagnostic이 없는 것은 inventory 또는 availability 오류가 아니다.</p>
+<p>사용자 화면에서는 EdgeX 구현 객체를 뜻하는 목록 이름을 <code>센서 디바이스</code>로 표시한다. 이 용어 변경은 권위나 API 계약을 바꾸지 않으며 각 행은 계속 Core Metadata Device 한 개다. 기본 목록은 대규모 inventory에서도 훑기 쉽도록 다음 네 열만 제공한다.</p>
+<ul><li>이름</li><li>상태(<code>Available</code>, <code>Degraded</code>, <code>Unavailable</code>)</li><li>최신 Event 경과 시간</li><li><code>상세보기</code></li></ul>
+<p>노드 선택은 목록을 좁히는 필터일 뿐 availability gate가 아니다. Profile, Device Service, protocol, admin/operating state, node diagnostic과 Core Data 저장 이력은 <code>상세보기</code> 패널에서 확인한다. 상태는 색만으로 전달하지 않고 텍스트를 함께 표시한다.</p>
 <h2 id="telemetry와-freshness">Telemetry와 freshness</h2>
 <p>Core Data Event에서 다음 contract를 사용한다.</p>
 <ul><li><code>deviceName</code>: inventory join key</li><li><code>sourceName</code>: telemetry source/resource</li><li><code>origin</code>: nanoseconds 단위 event 시각</li><li>typed Readings: <code>valueType</code>과 값</li></ul>

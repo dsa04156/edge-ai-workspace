@@ -17,13 +17,14 @@
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
-    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=no-overlap-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=sensor-inventory-table-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=sensor-inventory-table-20260730" />
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
-          <p class="eyebrow">EdgeX 디바이스 + Kubernetes 엣지 플랫폼</p>
+          <p class="eyebrow">센서 · 엣지 노드 · AI 서비스</p>
           <h1>Edge AI 통합 운영 대시보드</h1>
           <span class="cluster-pill">기본 클러스터</span>
         </div>
@@ -49,36 +50,50 @@
 
       <nav class="main-menu" aria-label="대시보드 화면">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">센서 디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
       </nav>
 
       <section class="ops-shell">
         <div class="ops-main">
+          <section class="overview-heading dashboard-page active" data-page="overview" aria-labelledby="overviewTitle">
+            <div>
+              <p class="section-kicker">실시간 운영</p>
+              <h2 id="overviewTitle">운영 현황</h2>
+              <p>센서 데이터 수집과 AI 서비스 상태를 한눈에 확인합니다.</p>
+            </div>
+            <strong id="overviewFleetStatus" class="overview-fleet-status" data-status="unknown">관측 중</strong>
+          </section>
+
           <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="platform summary">
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="센서 디바이스 설명 보기">
+              <span class="metric-label">센서 디바이스</span>
+              <strong id="deviceCount">0</strong>
+              <span id="deviceHealthRatio">0개 Available</span>
+            </article>
+            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="최신 데이터 설명 보기">
+              <span class="metric-label">최신 이벤트</span>
+              <strong id="telemetryFreshnessRatio">0%</strong>
+              <span id="telemetryFreshnessCaption">0/0개 Fresh</span>
+            </article>
             <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="가동 노드 설명 보기">
-              <span class="metric-label">가동 노드</span>
+              <span class="metric-label">엣지 노드</span>
               <strong id="activeNodeCount">0</strong>
               <span id="nodeRatio">0% 온라인</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="등록 디바이스 설명 보기">
-              <span class="metric-label">등록 디바이스</span>
-              <strong id="deviceCount">0</strong>
-              <span id="deviceHealthRatio">0% 서비스 사용 가능 · 0개 데이터 사용 가능</span>
+            <article class="metric metric-attention" aria-label="확인이 필요한 운영 항목">
+              <span class="metric-label">확인 필요</span>
+              <strong id="attentionCount">0</strong>
+              <span id="attentionCaption">정상 운영</span>
             </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="최신 데이터 설명 보기">
-              <span class="metric-label">최신 데이터</span>
-              <strong id="telemetryFreshnessRatio">0%</strong>
-              <span id="telemetryFreshnessCaption">0/0개 최신 Event</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="수집 서비스 상태 설명 보기">
-              <span class="metric-label">수집 서비스</span>
-              <strong id="serviceBindingRatio">0%</strong>
-              <span id="serviceBindingCaption">0/0개 디바이스 연결</span>
-            </article>
-            <details class="metric-details">
+            <details class="metric-details" hidden>
               <summary>기술 운영 지표 4개 보기</summary>
               <div class="metric-details-grid">
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="수집 서비스 상태 설명 보기">
+                  <span class="metric-label">수집 서비스</span>
+                  <strong id="serviceBindingRatio">0%</strong>
+                  <span id="serviceBindingCaption">0/0개 센서 연결</span>
+                </article>
                 <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
                   <span class="metric-label">Service Profiles</span>
                   <strong id="resourceProfileCount">0</strong>
@@ -103,7 +118,7 @@
             </details>
           </section>
 
-          <details class="panel overview-visuals dashboard-page active dashboard-disclosure" data-page="overview" aria-label="observability metrics">
+          <details class="panel overview-visuals dashboard-page active dashboard-disclosure" data-page="overview" aria-label="observability metrics" hidden>
             <summary>상세 상태 지표</summary>
             <div class="panel-head">
               <div>
@@ -112,7 +127,7 @@
               </div>
               <div class="panel-head-meta">
                 <span id="overviewMetricScope">node aggregation pending</span>
-                <span id="overviewHealthCaption">status aggregation pending</span>
+                <span id="overviewHealthCaptionLegacy">status aggregation pending</span>
               </div>
             </div>
             <div class="overview-visual-grid">
@@ -187,7 +202,8 @@
             </div>
           </details>
 
-          <section class="panel service-demo-panel dashboard-page active" data-page="overview" aria-labelledby="serviceDemoTitle">
+          <div class="overview-primary dashboard-page active" data-page="overview">
+          <section class="panel service-demo-panel" aria-labelledby="serviceDemoTitle">
             <div class="panel-head service-demo-head">
               <div>
                 <p class="section-kicker">실시간 서비스 데모</p>
@@ -213,7 +229,7 @@
                   <strong id="serviceDemoPhysicalSource">관측 대기</strong>
                 </div>
                 <div>
-                  <span>EdgeX Device Service</span>
+                  <span>수집 서비스</span>
                   <strong id="serviceDemoDeviceService">관측 대기</strong>
                 </div>
                 <div>
@@ -230,37 +246,51 @@
             </details>
             <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
           </section>
+          <section class="panel overview-attention-panel" aria-labelledby="overviewAttentionTitle">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">운영 알림</p>
+                <h2 id="overviewAttentionTitle">확인할 항목</h2>
+              </div>
+              <span id="overviewHealthCaption">센서 상태 집계 중</span>
+            </div>
+            <div id="overviewAlertList" class="overview-alert-list" aria-live="polite"></div>
+          </section>
+          </div>
 
       <section class="layout">
         <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">등록 자산</p>
-              <h2>등록 디바이스</h2>
+              <p class="section-kicker">센서 인벤토리</p>
+              <h2>센서 디바이스</h2>
             </div>
-            <span id="assetCount">노드 0개 · 디바이스 0개</span>
+            <span id="assetCount">센서 0개</span>
           </div>
-          <div class="split asset-split">
-            <div class="asset-column">
-              <div class="asset-column-head">
-                <h3>엣지 노드</h3>
-              </div>
-              <div id="nodeList" class="stack asset-scroll" aria-label="엣지 노드 목록"></div>
-            </div>
-            <div class="asset-column">
-              <div class="asset-column-head">
-                <h3>EdgeX 디바이스</h3>
-                <div class="device-filter-bar">
-                  <span id="deviceFilterLabel" hidden>등록 디바이스</span>
-                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>전체 노드 보기</button>
-                </div>
-              </div>
-              <div id="deviceList" class="stack asset-scroll" aria-label="등록 EdgeX 디바이스 목록"></div>
-            </div>
+          <div class="sensor-inventory-toolbar">
+            <label for="nodeFilterSelect">노드</label>
+            <select id="nodeFilterSelect" aria-label="센서 디바이스 노드 필터">
+              <option value="">모든 노드</option>
+            </select>
+            <span id="deviceFilterLabel">전체 센서</span>
+          </div>
+          <div class="sensor-table-shell" role="region" aria-label="센서 디바이스 목록" tabindex="0">
+            <table class="sensor-device-table">
+              <thead>
+                <tr>
+                  <th scope="col">이름</th>
+                  <th scope="col">상태</th>
+                  <th scope="col">최신 이벤트</th>
+                  <th scope="col"><span class="sr-only">상세정보</span></th>
+                </tr>
+              </thead>
+              <tbody id="deviceList"></tbody>
+            </table>
           </div>
         </section>
 
-        <section class="panel topology-panel dashboard-page" data-page="inventory">
+        <details class="panel topology-panel dashboard-page dashboard-disclosure" data-page="inventory">
+          <summary>서비스 연결 구조</summary>
           <div class="panel-head">
             <div>
               <p class="section-kicker">Service Binding</p>
@@ -269,13 +299,13 @@
             <span>click service for pod/resource details · read-only</span>
           </div>
           <div id="topologyMap" class="topology-map"></div>
-        </section>
+        </details>
 
         <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
           <div class="management-page-content">
             <div class="panel-head management-page-head">
               <div>
-                <p class="section-kicker">EdgeX 디바이스 운영</p>
+                <p class="section-kicker">센서 디바이스 운영</p>
                 <h2 id="deviceManagementTitle">장비 관리</h2>
                 <p class="management-page-summary">등록 장비와 연결 대기를 한 화면에서 관리합니다.</p>
               </div>
@@ -331,7 +361,7 @@
                 <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
                 <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
                   <summary>
-                    검증용 EdgeX 디바이스
+                    검증용 센서 디바이스
                     <span id="managementFixtureDeviceCount">0개</span>
                   </summary>
                   <p>시뮬레이터에서 생성한 Event를 확인하기 위한 개발용 등록입니다.</p>
@@ -456,7 +486,7 @@
               <section class="management-physical-inventory" aria-labelledby="managementDeviceServiceTitle">
                 <div class="management-section-head">
                   <div>
-                    <span>EdgeX Device Service</span>
+                    <span>수집 서비스</span>
                     <strong id="managementDeviceServiceTitle">수집 서비스</strong>
                   </div>
                   <small>선택 노드</small>
@@ -587,7 +617,7 @@
                   <div>
                     <span>연결 구성 마법사</span>
                     <h3 id="managementRegisterTitle">장비 연결</h3>
-                    <p>등록된 물리 연결을 EdgeX Device로 등록하고 첫 Event까지 확인합니다.</p>
+                    <p>등록된 물리 연결을 센서 디바이스로 등록하고 첫 이벤트까지 확인합니다.</p>
                   </div>
                   <div class="management-flow-actions">
                     <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
@@ -655,7 +685,7 @@
                   <div class="management-step-head">
                     <span>2단계</span>
                     <h4 id="managementStep2Title">워크플로우에서 사용할 디바이스 이름 입력</h4>
-                    <p>물리 프로토콜과 분리된 고유한 EdgeX Device 이름을 사용합니다.</p>
+                    <p>물리 프로토콜과 분리된 고유한 센서 디바이스 이름을 사용합니다.</p>
                   </div>
                   <div class="management-form-grid">
                     <label>
@@ -830,14 +860,14 @@
                 </div>
 
                 <div class="management-apply-row">
-                  <small>선택한 노드의 EdgeX Device만 수정할 수 있습니다.</small>
+                  <small>선택한 노드의 센서 디바이스만 수정할 수 있습니다.</small>
                   <button id="managementPatchApply" type="submit" class="management-primary-action" disabled>변경 내용 적용</button>
                 </div>
 
                 <section class="management-danger-zone" aria-labelledby="managementDeleteDeviceTitle">
                   <div>
                     <strong id="managementDeleteDeviceTitle">디바이스 삭제</strong>
-                    <p>EdgeX Device를 삭제합니다. Controller가 등록한 장비는 연결 Runtime도 함께 정리합니다.</p>
+                    <p>센서 디바이스를 삭제합니다. Controller가 등록한 장비는 연결 Runtime도 함께 정리합니다.</p>
                   </div>
                   <button id="managementDeleteDevice" type="button" class="management-danger-action" disabled>삭제…</button>
                 </section>
@@ -871,7 +901,7 @@
           </div>
         </section>
 
-        <details class="panel scenario dashboard-page active dashboard-disclosure" data-page="overview">
+        <details class="panel scenario dashboard-page active dashboard-disclosure" data-page="overview" hidden>
           <summary>운영 판단 기준</summary>
           <div class="panel-head">
             <div>
@@ -896,7 +926,7 @@
           </div>
         </details>
         <details class="overview-ops-grid dashboard-page active dashboard-disclosure" data-page="overview" aria-label="collected operations metrics">
-          <summary>수집 지표 자세히 보기</summary>
+          <summary>플랫폼 기술 지표</summary>
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -933,7 +963,7 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">EdgeX Device Signals</p>
+                <p class="section-kicker">센서 이벤트</p>
                 <h2>Latest Core Data Events</h2>
               </div>
               <span>Core Data freshness basis</span>
@@ -1008,7 +1038,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
-    <script src="/static/dashboard.js?v=inventory-cards-20260730"></script>
+    <script src="/static/dashboard.js?v=sensor-inventory-table-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
   </body>

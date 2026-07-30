@@ -24,8 +24,8 @@
 ## 워크플로우 기능 경계
 
 `state-aggregator` dashboard의 AI Pipeline/Workflow Builder 화면과 browser-local
-device/resource 샘플 미리보기는 제거했다. 현재 대시보드는 운영 현황, 등록 디바이스,
-고정 서비스 데모와 장비 관리만 제공한다.
+device/resource 샘플 미리보기는 제거했다. 현재 대시보드는 `운영 현황`,
+`센서 디바이스`, `장비 관리`와 고정 서비스 데모만 제공한다.
 
 `POST /workflow-event`와 `/state/workflows*`는 과거 이벤트 연동 호환 경로이며 현재
 대시보드 실행 기능이 아니다. workflow stage 구성, 실행 계획, Kubernetes workload 생성,

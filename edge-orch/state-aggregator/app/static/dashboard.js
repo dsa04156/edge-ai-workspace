@@ -67,7 +67,7 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
         kind: "device",
         id: device.name,
         label: device.name,
-        detail: `디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
+        detail: `센서 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
       });
     }
   });
@@ -154,6 +154,17 @@ function timestampAge(value) {
   return `${minutes}분 ${seconds % 60}초 전`;
 }
 
+function sensorDeviceStatusLabel(device) {
+  const labels = {
+    available: "Available",
+    degraded: "Degraded",
+    unavailable: "Unavailable",
+    unknown: "Unknown",
+  };
+  const status = deviceStatus(device);
+  return labels[status] || "Unknown";
+}
+
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
@@ -221,7 +232,7 @@ function deviceReason(device) {
   if (device?.reason) return device.reason;
   const status = deviceStatus(device);
   if (status === "unavailable") return `${text(device?.admin_state, "UNKNOWN")} / ${text(device?.operating_state, "UNKNOWN")} · ${text(device?.connection_state, "unknown")}`;
-  if (status === "available") return "EdgeX Device Service가 연결되어 있고 최신 Core Data 이벤트가 fresh입니다.";
+  if (status === "available") return "수집 서비스가 연결되어 있고 최신 이벤트가 fresh입니다.";
   if (text(device?.operating_state, "UNKNOWN").toUpperCase() === "UNKNOWN" || device?.connection_state === "unknown") return "EdgeX operating/connection state를 확인할 수 없습니다.";
   return `Core Data event freshness: ${text(device?.telemetry_freshness, "no_events")}`;
 }
@@ -259,13 +270,13 @@ function filteredDevices(devices = []) {
 
 function renderDeviceFilterSummary(totalCount, visibleCount) {
   const label = $("deviceFilterLabel");
-  const clear = $("clearNodeFilter");
   if (label) {
     const parts = [];
     if (state.selectedNodeName) parts.push(`노드 ${state.selectedNodeName}`);
-    label.textContent = parts.length ? `${visibleCount}/${totalCount}개 · ${parts.join(" / ")}` : "등록 디바이스";
+    label.textContent = parts.length
+      ? `${visibleCount}/${totalCount}개 · ${parts.join(" / ")}`
+      : `전체 ${totalCount}개`;
   }
-  if (clear) clear.hidden = !state.selectedNodeName;
 }
 
 
@@ -279,15 +290,15 @@ function refreshSelectedNodeFilterValues(nodes = []) {
 
 function explainDeviceRules(device) {
   const rules = [{
-    id: "EdgeX Owner",
+    id: "수집 서비스",
     title: `${text(device.device_service_name, "unknown service")} · ${text(device.profile_name, "unknown profile")}`,
-    text: `이 source는 EdgeX Device Service ${text(device.device_service_name, "unknown")}가 profile ${text(device.profile_name, "unknown")} 및 protocol ${Array.isArray(device.protocol_names) && device.protocol_names.length ? device.protocol_names.join(", ") : "unknown"}로 소유합니다. Core Data sourceName: ${[...new Set((device.latest_readings || []).map((reading) => reading.source_name).filter(Boolean))].join(", ") || "event 없음"}.`,
+    text: `수집 서비스 ${text(device.device_service_name, "unknown")}가 센서 프로필 ${text(device.profile_name, "unknown")}과 ${Array.isArray(device.protocol_names) && device.protocol_names.length ? device.protocol_names.join(", ") : "unknown"} 프로토콜로 데이터를 수집합니다.`,
   }];
   const status = deviceStatus(device);
   if (status === "available") {
-    rules.push({ id: "Available", title: "service connected and event fresh", text: "operatingState=UP이고 EdgeX Device Service가 연결되어 있으며 최신 Core Data event가 freshness 기준을 만족합니다." });
+    rules.push({ id: "Available", title: "수집 정상", text: "동작 상태가 UP이고 수집 서비스와 최신 이벤트가 freshness 기준을 만족합니다." });
   } else if (status === "unavailable") {
-    rules.push({ id: "Unavailable", title: "device locked or disconnected", text: "adminState=LOCKED, operatingState=DOWN 또는 connectionState=disconnected 상태입니다. EdgeX Device Service와 장치 연결을 확인합니다." });
+    rules.push({ id: "Unavailable", title: "센서 연결 확인", text: "관리 상태가 LOCKED이거나 동작 상태가 DOWN 또는 연결이 끊긴 상태입니다. 수집 서비스와 장치 연결을 확인합니다." });
   } else if (device.telemetry_freshness === "stale") {
     rules.push({ id: "Event Stale", title: "latest Core Data event is stale", text: "EdgeX Core Data의 최신 event가 freshness 기준을 벗어나 degraded로 표시됩니다." });
   } else if (device.telemetry_freshness === "no_events") {
@@ -305,7 +316,7 @@ const KPI_EXPLANATIONS = {
   degraded_device_count: "EdgeX source가 UP이지만 event가 없거나 stale이거나 state가 unknown인 device 수입니다.",
   unavailable_device_count: "adminState=LOCKED 또는 operatingState=DOWN인 device 수입니다.",
   edgex_connected_device_count: "EdgeX connection_state가 connected인 device 수입니다.",
-  edgex_connection_ratio: "connected EdgeX device 수 / 전체 registered device 수입니다.",
+  edgex_connection_ratio: "연결된 센서 디바이스 수 / 전체 등록 센서 수입니다.",
   edgex_operating_up_count: "Core Metadata operatingState=UP device 수입니다.",
   edgex_operating_down_count: "Core Metadata operatingState=DOWN device 수입니다.",
   edgex_operating_unknown_count: "operatingState가 UP/DOWN이 아닌 device 수입니다.",
@@ -349,7 +360,7 @@ function issueExplanation(alert) {
   }
   const device = alert.device || {};
   const messages = [];
-  if (device.connection_state === "disconnected") messages.push(`EdgeX Device Service ${text(device.device_service_name, "unknown")}와 source 연결을 확인합니다.`);
+  if (device.connection_state === "disconnected") messages.push(`수집 서비스 ${text(device.device_service_name, "unknown")}와 센서 연결을 확인합니다.`);
   if (device.telemetry_freshness === "stale") messages.push("EdgeX Core Data 최신 event가 stale입니다. Device Service의 event 발행 경로를 확인합니다.");
   if (device.telemetry_freshness === "no_events") messages.push("EdgeX Core Data event가 없습니다. profile의 device resource와 sourceName을 확인합니다.");
   if (!messages.length) messages.push(deviceReason(device));
@@ -557,12 +568,12 @@ function renderDeviceTelemetryHistory(
   }
 
   return `
-    <section class="telemetry-history-shell" aria-label="EdgeX Core Data telemetry history" aria-busy="${history.loading ? "true" : "false"}">
+    <section class="telemetry-history-shell" aria-label="센서 이벤트 저장 이력" aria-busy="${history.loading ? "true" : "false"}">
       <div class="telemetry-history-toolbar">
         <div class="telemetry-history-ranges" aria-label="이력 조회 범위">${controls}</div>
         <button type="button" class="telemetry-history-refresh" data-telemetry-refresh>새로고침</button>
       </div>
-      <p class="telemetry-history-source">EdgeX Core Data API · PostgreSQL-backed storage</p>
+      <p class="telemetry-history-source">저장 이력 · Core Data</p>
       ${body}
     </section>
   `;
@@ -575,37 +586,34 @@ function showDeviceExplanation(
   const panel = $("explainPanel");
   if (!panel || !device) return;
   state.selectedDeviceName = device.name;
-  const status = deviceStatus(device);
   panel.innerHTML = `
     <div class="explain-header">
-      <span class="explain-badge">EdgeX Device</span>
+      <span class="explain-badge">센서 디바이스</span>
       <strong>${escapeHtml(displayValue(device.name))}</strong>
     </div>
     <div class="explain-status-strip">
       <div>
-        <span>Status</span>
-        <strong>${escapeHtml(status)}</strong>
+        <span>상태</span>
+        <strong>${escapeHtml(sensorDeviceStatusLabel(device))}</strong>
       </div>
       <div>
-        <span>Connection</span>
+        <span>연결</span>
         <strong>${escapeHtml(text(device.connection_state, "unknown"))}</strong>
       </div>
       <div>
-        <span>Event freshness</span>
+        <span>최신 이벤트</span>
         <strong>${escapeHtml(text(device.telemetry_freshness, "no_events"))}</strong>
       </div>
     </div>
     ${renderDeviceFactList([
-      ["source", device.source],
-      ["EdgeX Device Service", device.device_service_name],
-      ["Device Service available", boolText(device.device_service_available)],
-      ["profile", device.profile_name],
-      ["protocols", Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : null],
-      ["admin / operating", `${text(device.admin_state, "UNKNOWN")} / ${text(device.operating_state, "UNKNOWN")}`],
-      ["Core Data sourceName", [...new Set((device.latest_readings || []).map((reading) => reading.source_name).filter(Boolean))].join(", ") || "event 없음"],
-      ["latest Core Data event", device.latest_event_timestamp || "event 없음"],
-      ["event age", timestampAge(device.latest_event_timestamp)],
-      ["optional node placement", deviceNodeLabel(device)],
+      ["수집 서비스", device.device_service_name],
+      ["센서 프로필", device.profile_name],
+      ["프로토콜", Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : null],
+      ["관리 / 동작 상태", `${text(device.admin_state, "UNKNOWN")} / ${text(device.operating_state, "UNKNOWN")}`],
+      ["데이터 항목", [...new Set((device.latest_readings || []).map((reading) => reading.source_name).filter(Boolean))].join(", ") || "이벤트 없음"],
+      ["최신 이벤트 시각", device.latest_event_timestamp || "이벤트 없음"],
+      ["이벤트 경과", timestampAge(device.latest_event_timestamp)],
+      ["배치 노드", deviceNodeLabel(device)],
     ])}
     <div id="telemetryChart">${renderDeviceTelemetryHistory(history)}</div>
     ${renderDeviceReasonList(explainDeviceRules(device))}
@@ -955,7 +963,7 @@ function render() {
   const deviceObservationFailed = deviceObservationUnavailable(data);
   const deviceObservationError = text(
     data.device_observation_error,
-    "EdgeX device 관측 불가",
+    "센서 디바이스 관측 불가",
   );
   const telemetryEnabled = Number(kpis.registered_device_count) || devices.length;
   const freshTelemetry = Number(kpis.fresh_core_data_event_device_count) || devices.filter((device) => device.telemetry_freshness === "fresh").length;
@@ -969,9 +977,14 @@ function render() {
   setText("activeNodeCount", text(kpis.active_node_count, 0));
   setText("nodeRatio", `${pct(kpis.node_online_ratio)} 온라인`);
   setText("deviceCount", deviceObservationFailed ? "관측 불가" : text(kpis.registered_device_count, 0));
-  setText("deviceHealthRatio", deviceObservationFailed ? "EdgeX Core Metadata 연결 필요" : `${pct(kpis.device_service_availability_ratio)} 서비스 사용 가능 · ${text(kpis.available_device_count, 0)}개 데이터 사용 가능`);
+  setText(
+    "deviceHealthRatio",
+    deviceObservationFailed
+      ? "센서 관측 연결 필요"
+      : `${text(kpis.available_device_count, 0)}/${registeredDevices}개 Available`,
+  );
   setText("telemetryFreshnessRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.core_data_freshness_ratio));
-  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 최신 Event`);
+  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 Fresh`);
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
   setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)}개 pod · ${text(kpis.service_resource_partially_declared_profile_count, 0)}개 spec 누락`);
   setText("serviceCpuUsage", threeDecimal(kpis.service_resource_current_cpu_usage_cores));
@@ -981,12 +994,12 @@ function render() {
   setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
-  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
+  setText("serviceBindingCaption", deviceObservationFailed ? "센서 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 센서 연결`);
   setText(
     "assetCount",
     deviceObservationFailed
-      ? `노드 ${nodes.length}개 · 디바이스 관측 불가`
-      : `노드 ${nodes.length}개 · 디바이스 ${devices.length}개`,
+      ? "센서 관측 불가"
+      : `센서 ${devices.length}개 · Available ${text(kpis.available_device_count, 0)}개`,
   );
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
@@ -1033,8 +1046,25 @@ function renderOverviewVisuals(data, kpis, devices) {
         unknown: unknown / statusTotal,
       });
   setText("overallHealthPercent", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
-  setText("overviewMetricScope", `${nodeScope} · Kubernetes/Prometheus nodes · EdgeX devices`);
-  setText("overviewHealthCaption", deviceObservationFailed ? "EdgeX device 관측 불가 · node 상태는 계속 표시합니다." : `${available}/${total}개 device 사용 가능 · ${degraded + unavailable}개 주의 필요`);
+  setText("overviewMetricScope", `${nodeScope} · 엣지 노드 · 센서 디바이스`);
+  setText(
+    "overviewHealthCaption",
+    deviceObservationFailed
+      ? "센서 상태를 가져오지 못했습니다."
+      : `${available}/${total}개 Available`,
+  );
+  const fleetStatus = $("overviewFleetStatus");
+  if (fleetStatus) {
+    const stateView = deviceObservationFailed
+      ? {label: "관측 불가", status: "unknown"}
+      : unavailable > 0
+        ? {label: "장애 확인", status: "unavailable"}
+        : degraded + unknown > 0
+          ? {label: "확인 필요", status: "degraded"}
+          : {label: "정상 운영", status: "available"};
+    fleetStatus.textContent = stateView.label;
+    fleetStatus.dataset.status = stateView.status;
+  }
   setText("nodeOnlineValue", pct(nodeRatioValue));
   setText("deviceAvailableValue", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
   setText("telemetryFreshValue", deviceObservationFailed ? "관측 불가" : pct(telemetryRatio));
@@ -1082,7 +1112,7 @@ function formatDashboardKpiValue(key, value, deviceObservationFailed = false) {
 function kpiCategory(key) {
   if (key.startsWith("service_resource")) return "서비스 리소스";
   if (key.includes("core_data") || key.includes("event")) return "EdgeX Event";
-  if (key.includes("device_service") || key.includes("edgex")) return "EdgeX Device";
+  if (key.includes("device_service") || key.includes("edgex")) return "센서 디바이스";
   if (key.includes("device")) return "디바이스";
   if (key.includes("node")) return "노드";
   if (key.includes("workflow") || key.includes("sla")) return "Workflow";
@@ -1154,34 +1184,15 @@ function renderNodeMetricMatrix(nodes = []) {
 
 function renderNodes(nodes) {
   refreshSelectedNodeFilterValues(nodes);
-  $("nodeList").innerHTML = nodes.length
-    ? nodes
-        .map((node, index) => {
-          const cpu = Math.round((node.raw_metrics?.cpu_utilization || 0) * 100);
-          const mem = Math.round((node.raw_metrics?.memory_usage_ratio || 0) * 100);
-          const gpuValue = node.raw_metrics?.gpu_utilization;
-          const gpu = gpuValue === null || gpuValue === undefined ? null : Math.round(gpuValue * 100);
-          const gpuMeta = gpu === null ? "" : `<span>gpu ${gpu}%</span>`;
-          const displayName = nodeDisplayName(node, index);
-          const mappingMeta = isRawInstance(node.hostname) ? `<span>hostname 매핑 대기</span>` : "";
-          return `
-            <article class="item node-card ${state.selectedNodeName === displayName ? "selected" : ""}" data-node-filter="${escapeHtml(displayName)}" data-node-index="${index}" tabindex="0" role="button" aria-label="${escapeHtml(displayName)} node device filter">
-              <div class="item-title">
-                <strong class="node-name">${escapeHtml(displayName)}</strong>
-                ${statusPill(node.node_health)}
-              </div>
-              <div class="meta">
-                <span>${escapeHtml(text(node.node_type, "node"))}</span>
-                <span>cpu ${cpu}%</span>
-                <span>mem ${mem}%</span>
-                ${gpuMeta}
-                ${mappingMeta}
-              </div>
-            </article>
-          `;
-        })
-        .join("")
-    : `<div class="empty">아직 node 상태가 없습니다.</div>`;
+  const select = $("nodeFilterSelect");
+  if (!select) return;
+  const options = nodes.map((node, index) => {
+    const displayName = nodeDisplayName(node, index);
+    const status = text(node.node_health, "unknown");
+    return `<option value="${escapeHtml(displayName)}" data-node-index="${index}">${escapeHtml(displayName)} · ${escapeHtml(status)}</option>`;
+  }).join("");
+  select.innerHTML = `<option value="">모든 노드</option>${options}`;
+  select.value = state.selectedNodeName || "";
 }
 
 function deviceObservationUnavailable(data = state.data) {
@@ -1189,65 +1200,63 @@ function deviceObservationUnavailable(data = state.data) {
 }
 
 function deviceFilterEmptyText(data = state.data) {
-  if (deviceObservationUnavailable(data)) return "EdgeX device 관측 불가";
-  if (state.selectedNodeName) return `${state.selectedNodeName}에 맞는 EdgeX device가 없습니다.`;
-  return "EdgeX Core Metadata device가 없습니다.";
+  if (deviceObservationUnavailable(data)) return "센서 디바이스 관측 불가";
+  if (state.selectedNodeName) return `${state.selectedNodeName}에 등록된 센서가 없습니다.`;
+  return "등록된 센서 디바이스가 없습니다.";
+}
+
+function renderSensorDeviceRows(
+  devices = [],
+  selectedDeviceName = null,
+  contextPanelOpen = false,
+) {
+  return devices.map((device) => {
+    const status = deviceStatus(device);
+    const statusLabel = sensorDeviceStatusLabel(device);
+    const isSelected = selectedDeviceName === device.name;
+    const eventTimestamp = text(device.latest_event_timestamp, "");
+    return `
+      <tr class="sensor-device-row ${isSelected ? "selected" : ""}" data-device-row="${escapeHtml(device.name)}">
+        <td class="sensor-device-name-cell" data-label="이름">
+          <strong class="sensor-device-name" title="${escapeHtml(device.name)}">${escapeHtml(device.name)}</strong>
+        </td>
+        <td data-label="상태">
+          <span class="sensor-status sensor-status-${escapeHtml(status)}" aria-label="상태 ${escapeHtml(statusLabel)}">
+            <span class="sensor-status-dot" aria-hidden="true"></span>
+            <span class="sensor-status-label">${escapeHtml(statusLabel)}</span>
+          </span>
+        </td>
+        <td class="sensor-event-cell" data-label="최신 이벤트">
+          <time datetime="${escapeHtml(eventTimestamp)}">${escapeHtml(timestampAge(device.latest_event_timestamp))}</time>
+        </td>
+        <td class="sensor-device-action-cell">
+          <button
+            type="button"
+            class="sensor-detail-button explainable"
+            data-explain-type="device"
+            data-device-name="${escapeHtml(device.name)}"
+            aria-label="${escapeHtml(device.name)} 상세정보 보기"
+            aria-controls="contextDetailPanel"
+            aria-expanded="${isSelected && contextPanelOpen ? "true" : "false"}"
+          >상세보기</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function renderDevices(devices, data = state.data) {
   const visibleDevices = filteredDevices(devices);
+  const list = $("deviceList");
   renderDeviceFilterSummary(devices.length, visibleDevices.length);
-  $("deviceList").innerHTML = visibleDevices.length
-    ? visibleDevices
-        .map((device) => {
-          const isSelected = state.selectedDeviceName === device.name;
-          const protocols = Array.isArray(device.protocol_names)
-            ? device.protocol_names.join(", ")
-            : "unknown";
-          const freshness = text(device.telemetry_freshness, "no_events");
-          const freshnessClass = freshness === "fresh"
-            ? "freshness-fresh"
-            : "freshness-other";
-          return `
-            <article
-              class="item device-row explainable ${isSelected ? "selected" : ""}"
-              data-explain-type="device"
-              data-device-name="${escapeHtml(device.name)}"
-              tabindex="0"
-              role="button"
-              aria-label="${escapeHtml(device.name)} 상세정보 보기"
-              aria-controls="contextDetailPanel"
-              aria-expanded="${isSelected && isContextDetailPanelOpen() ? "true" : "false"}"
-            >
-              <div class="item-title">
-                <strong>${escapeHtml(device.name)}</strong>
-                <div class="item-pills">${statusPill(deviceStatus(device))}${renderConnectionBadge(device)}</div>
-              </div>
-              <dl class="device-card-facts">
-                <div>
-                  <dt>프로토콜</dt>
-                  <dd>${escapeHtml(protocols)}</dd>
-                </div>
-                <div>
-                  <dt>수집 서비스</dt>
-                  <dd>${escapeHtml(text(device.device_service_name, "unknown"))}</dd>
-                </div>
-                <div>
-                  <dt>배치 노드</dt>
-                  <dd>${escapeHtml(deviceNodeLabel(device))}</dd>
-                </div>
-              </dl>
-              <div class="device-card-footer">
-                <span class="device-card-event ${freshnessClass}">
-                  최신 이벤트 ${escapeHtml(timestampAge(device.latest_event_timestamp))}
-                </span>
-                <span class="device-card-action">상세 보기 <span aria-hidden="true">→</span></span>
-              </div>
-            </article>
-          `;
-        })
-        .join("")
-    : `<div class="empty">${escapeHtml(deviceFilterEmptyText(data))}</div>`;
+  if (!list) return;
+  list.innerHTML = visibleDevices.length
+    ? renderSensorDeviceRows(
+        visibleDevices,
+        state.selectedDeviceName,
+        isContextDetailPanelOpen(),
+      )
+    : `<tr class="sensor-device-empty"><td colspan="4">${escapeHtml(deviceFilterEmptyText(data))}</td></tr>`;
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -1441,7 +1450,7 @@ function buildDashboardAlerts(data = {}) {
     alerts.push({
       kind: "source",
       level: "high",
-      title: "EdgeX device observation unavailable",
+      title: "센서 디바이스 관측 불가",
       text: data.device_observation_error,
     });
   }
@@ -1479,7 +1488,50 @@ function buildDashboardAlerts(data = {}) {
 
 function renderAlerts(data) {
   state.alerts = buildDashboardAlerts(data);
-  $("alertList").innerHTML = state.alerts.length
+  const attentionCount = state.alerts.length;
+  setText("attentionCount", attentionCount);
+  setText(
+    "attentionCaption",
+    attentionCount ? `${attentionCount}개 항목 확인` : "정상 운영",
+  );
+  const attentionMetric = $("attentionCount")?.closest?.(".metric");
+  if (attentionMetric) {
+    attentionMetric.dataset.status = attentionCount ? "attention" : "available";
+  }
+
+  const overviewList = $("overviewAlertList");
+  if (overviewList) {
+    overviewList.innerHTML = attentionCount
+      ? state.alerts.slice(0, 6).map((alert, index) => `
+          <button
+            type="button"
+            class="overview-alert-row overview-alert-${escapeHtml(alert.level)} explainable"
+            data-explain-type="issue"
+            data-alert-index="${index}"
+            aria-label="${escapeHtml(alert.title)} 상세정보 보기"
+          >
+            <span class="overview-alert-indicator" aria-hidden="true"></span>
+            <span class="overview-alert-copy">
+              <strong>${escapeHtml(alert.title)}</strong>
+              <small>${escapeHtml(alert.text)}</small>
+            </span>
+            <span class="overview-alert-action">상세보기</span>
+          </button>
+        `).join("")
+      : `
+        <div class="overview-all-clear">
+          <span class="overview-all-clear-mark" aria-hidden="true"></span>
+          <div>
+            <strong>모든 센서가 정상입니다.</strong>
+            <span>연결 상태와 최신 이벤트가 기준을 충족합니다.</span>
+          </div>
+        </div>
+      `;
+  }
+
+  const hiddenList = $("alertList");
+  if (!hiddenList) return;
+  hiddenList.innerHTML = state.alerts.length
     ? state.alerts
         .map((alert, index) => `<article class="item alert ${escapeHtml(alert.level)} explainable" data-explain-type="issue" data-alert-index="${index}" tabindex="0" role="button" aria-label="Issue 설명 보기"><strong>${escapeHtml(alert.text)}</strong></article>`)
         .join("")
@@ -1508,7 +1560,7 @@ function renderScenario(devices, kpis) {
               ${statusPill(deviceStatus(device))}
             </div>
             <div class="meta">
-              <span>EdgeX Device Service: ${escapeHtml(text(device.device_service_name, "unknown"))}</span>
+              <span>수집 서비스: ${escapeHtml(text(device.device_service_name, "unknown"))}</span>
               <span>Profile: ${escapeHtml(text(device.profile_name, "unknown"))}</span>
               <span>Protocols: ${escapeHtml(Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "unknown")}</span>
               <span>Connection: ${escapeHtml(text(device.connection_state, "unknown"))}</span>
@@ -1586,7 +1638,10 @@ function closeContextDetailPanel(
   panel.setAttribute("aria-hidden", "true");
   if (backdrop) backdrop.hidden = true;
   documentRef.body?.classList.remove("context-detail-open");
-  if (state.selectedDeviceName) cancelDeviceTelemetryHistorySelection();
+  if (state.selectedDeviceName) {
+    cancelDeviceTelemetryHistorySelection();
+    renderDevices(state.data?.devices || []);
+  }
   markSelectedExplain(null, documentRef);
   if (restoreFocus && restoreTarget?.isConnected) {
     restoreTarget.focus?.({preventScroll: true});
@@ -1671,8 +1726,13 @@ if (typeof document !== "undefined") {
   });
 }
 
-if (typeof document !== "undefined" && $("clearNodeFilter")) {
-  $("clearNodeFilter").addEventListener("click", () => applyNodeDeviceFilter(null));
+if (typeof document !== "undefined" && $("nodeFilterSelect")) {
+  $("nodeFilterSelect").addEventListener("change", (event) => {
+    const option = event.currentTarget.selectedOptions?.[0];
+    const nodeName = event.currentTarget.value || null;
+    const nodeIndex = nodeName ? option?.dataset?.nodeIndex : null;
+    applyNodeDeviceFilter(nodeName, nodeIndex);
+  });
 }
 
 if (typeof document !== "undefined" && $("refreshButton")) {
@@ -1766,8 +1826,10 @@ if (typeof module !== "undefined") {
     openContextDetailPanel,
     closeContextDetailPanel,
     renderDeviceTelemetryHistory,
+    renderSensorDeviceRows,
     renderGlobalSearch,
     refreshDashboardNow,
+    sensorDeviceStatusLabel,
     submitOperatorChat,
     renderTopology,
     state,

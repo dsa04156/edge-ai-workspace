@@ -547,7 +547,7 @@ function buildPhysicalConnectionObservations({
       } else if (presenceState === "detected" && telemetryState !== "fresh") {
         reason = "Device Service 통신은 확인됐지만 최신 Event를 확인해야 합니다.";
       } else if (presenceState === "not_detected") {
-        reason = "EdgeX Device가 DOWN 또는 LOCKED 상태여서 물리 연결을 관측하지 못했습니다.";
+        reason = "센서 디바이스가 DOWN 또는 LOCKED 상태여서 물리 연결을 관측하지 못했습니다.";
       } else if (runtimeState === "not_ready") {
         reason = "Device Service가 준비되지 않아 장비 관측을 완료할 수 없습니다.";
       }
@@ -886,7 +886,7 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
     return {
       title: `${koreanLabel("protocol", adapter.protocolName, adapter.protocolName)} Device Service 설치`,
       text: `검증된 패키지를 대상 노드에 배포한 뒤 등록된 물리 연결 ${bindingCount}개 중 하나를 `
-        + "EdgeX Device로 연결합니다. 설치 전에 임의 이미지나 장치 경로를 입력할 수 없습니다.",
+        + "센서 디바이스로 연결합니다. 설치 전에 임의 이미지나 장치 경로를 입력할 수 없습니다.",
       status: "installable",
     };
   }
@@ -912,7 +912,7 @@ function adapterConnectionGuidance(adapter, bindingCount = 0) {
     return {
       title: "한 Device Service에서 여러 디바이스 처리",
       text: `현재 등록 연결 ${bindingCount}개. 등록된 물리 연결과 리소스를 선택하면 `
-        + `${adapter.serviceName}가 여러 EdgeX Device를 함께 관리합니다.`,
+        + `${adapter.serviceName}가 여러 센서 디바이스를 함께 관리합니다.`,
       status: "installed",
     };
   }
@@ -1457,13 +1457,13 @@ function connectionStatusView(operation = {}) {
     PROFILE_APPLIED: {
       label: "프로필 적용 완료",
       tone: "applied",
-      detail: "EdgeX 디바이스 프로필 적용 완료",
+      detail: "센서 프로필 적용 완료",
       terminal: false,
     },
     DEVICE_APPLIED: {
       label: "디바이스 적용 완료",
       tone: "applied",
-      detail: "EdgeX 디바이스 연결 재조회 완료",
+      detail: "센서 디바이스 연결 재조회 완료",
       terminal: false,
     },
     WAITING_EVENT: {
@@ -1722,11 +1722,11 @@ function registrationStepIssue(step, documentRef = document) {
   }
   if (step === 2) {
     const field = byId("managementDeviceName", documentRef);
-    if (!field?.value.trim()) return {field, message: "고유한 EdgeX 디바이스 이름을 입력하세요."};
+    if (!field?.value.trim()) return {field, message: "고유한 센서 디바이스 이름을 입력하세요."};
   }
   if (step === 3) {
     const field = byId("managementProfileName", documentRef);
-    if (!field?.value.trim()) return {field, message: "EdgeX 디바이스 프로필 이름을 입력하세요."};
+    if (!field?.value.trim()) return {field, message: "센서 프로필 이름을 입력하세요."};
   }
   return null;
 }
@@ -2232,7 +2232,7 @@ function deviceDeleteTargetView(deviceName = "", inventory = {}) {
   const candidate = registeredCandidateForDevice(deviceName, inventory);
   return {
     candidate,
-    title: candidate ? "등록 연결 전체 삭제" : "EdgeX 디바이스 삭제",
+    title: candidate ? "등록 연결 전체 삭제" : "센서 디바이스 삭제",
     summary: candidate
       ? `${deviceName}과 Controller가 만든 Device Service Runtime을 함께 삭제합니다. Device Profile은 다른 장비가 사용하면 유지됩니다.`
       : `${deviceName}을 EdgeX Core Metadata에서 삭제합니다. Device Profile과 Device Service는 유지됩니다.`,
@@ -2784,7 +2784,7 @@ function renderDeviceServiceInventory(documentRef = document) {
     facts.className = "management-physical-facts";
     [
       `노드 ${observation.nodeName}`,
-      `EdgeX Device ${observation.deviceCount}개`,
+      `센서 디바이스 ${observation.deviceCount}개`,
       observation.bindingIds.length
         ? `${observation.purpose === "development-fixture" ? "검증 연결" : "물리 연결"} `
           + `${observation.bindingIds.length}개`
@@ -2818,7 +2818,7 @@ function renderDeviceServiceInventory(documentRef = document) {
       observation.deviceNames.length
         ? `연결 디바이스 ${observation.deviceNames.join(", ")} · 최신 Event `
           + formatManagementTimestamp(observation.latestEventTimestamp)
-        : "연결된 EdgeX Device와 Event가 아직 없습니다.",
+        : "연결된 센서 디바이스와 이벤트가 아직 없습니다.",
     );
     detailBody.prepend(evidence, facts);
 
@@ -2839,7 +2839,7 @@ function renderDeviceServiceInventory(documentRef = document) {
       retire.dataset.runtimeName = observation.runtimeName;
       retire.disabled = observation.deviceCount > 0;
       retire.title = retire.disabled
-        ? "연결된 EdgeX Device를 먼저 해제해야 합니다."
+        ? "연결된 센서 디바이스를 먼저 해제해야 합니다."
         : "이 Device Service Runtime을 퇴역합니다.";
       actions.append(restart, retire);
       detailBody.appendChild(actions);
@@ -3017,7 +3017,7 @@ function renderRuntimeInventory(documentRef = document) {
     retire.dataset.runtimeName = runtime.runtimeName;
     retire.disabled = !mutable || Number(runtime.consumers || 0) > 0;
     retire.title = Number(runtime.consumers || 0) > 0
-      ? "연결된 EdgeX 디바이스가 있어 퇴역할 수 없습니다."
+      ? "연결된 센서 디바이스가 있어 퇴역할 수 없습니다."
       : restart.title;
     actions.append(restart, retire);
 
@@ -3034,7 +3034,7 @@ function renderRuntimeInventory(documentRef = document) {
           ? externallyOwned
             ? "이 런타임은 Argo CD 또는 외부 배포 소유이므로 대시보드에서 재시작·퇴역할 수 없습니다."
             : "런타임 변경 기능이 비활성화되어 있어 대시보드에서 재시작·퇴역할 수 없습니다."
-          : `연결된 EdgeX 디바이스 ${Number(runtime.consumers || 0)}개를 먼저 해제해야 퇴역할 수 있습니다.`,
+          : `연결된 센서 디바이스 ${Number(runtime.consumers || 0)}개를 먼저 해제해야 퇴역할 수 있습니다.`,
       );
     }
     container.appendChild(card);
@@ -3080,7 +3080,7 @@ function renderManagedDevices(documentRef = document) {
         container,
         "p",
         "management-empty",
-        "선택한 노드에 등록된 EdgeX 디바이스가 없습니다.",
+        "선택한 노드에 등록된 센서 디바이스가 없습니다.",
       );
     }
     return;
@@ -3090,7 +3090,7 @@ function renderManagedDevices(documentRef = document) {
       container,
       "p",
       "management-empty",
-      "선택한 노드에 등록된 실장비 EdgeX 디바이스가 없습니다.",
+      "선택한 노드에 등록된 실장비 센서 디바이스가 없습니다.",
     );
   }
 
@@ -3151,14 +3151,14 @@ function renderManagedDevices(documentRef = document) {
       card,
       "p",
       "managed-device-group-summary",
-      `EdgeX Device ${group.devices.length}개`
+      `센서 디바이스 ${group.devices.length}개`
         + ` · 최근 데이터 ${formatManagementTimestamp(group.latestEventTimestamp)}`,
     );
 
     const details = documentRef.createElement("details");
     details.className = "managed-device-group-details";
     const summary = documentRef.createElement("summary");
-    summary.textContent = `EdgeX Device ${group.devices.length}개 보기`;
+    summary.textContent = `센서 디바이스 ${group.devices.length}개 보기`;
     const rows = documentRef.createElement("div");
     rows.className = "managed-device-group-rows";
     group.devices.forEach((device) => {
@@ -3305,7 +3305,7 @@ function renderMutationMode(documentRef = document) {
   documentRef.querySelectorAll?.("[data-management-open-profile]").forEach((profileButton) => {
     profileButton.disabled = !enabled;
     profileButton.title = enabled
-      ? "EdgeX Device Profile을 검증하고 Core Metadata에 등록합니다."
+      ? "센서 프로필을 검증하고 Core Metadata에 등록합니다."
       : "현재 변경 기능이 비활성화되어 있습니다.";
   });
   const deleteButton = byId("managementDeleteDevice", documentRef);
