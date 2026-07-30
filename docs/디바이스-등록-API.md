@@ -420,3 +420,72 @@ Content-Type: application/json
 parser, Device Service image, raw device path, Catalog binding, Device와 command를
 생성하지 않는다. 따라서 발견 후보의 승인 조건은 그대로이며 Profile만 만든 후보를
 `registration-ready`로 간주하지 않는다.
+
+## 대시보드 통합 연결 BFF
+
+대시보드의 보이는 신규 등록 진입점은 `장비 연결` 하나다. 사용자가 마지막
+`검증하고 연결`을 누르면 브라우저가 같은 payload로 다음 두 API를 순서대로 호출한다.
+
+```http
+POST /management/connections/validate
+POST /management/connections
+Idempotency-Key: connection-<unique-request>
+```
+
+첫 API는 mutation 없이 Runtime plan과 EdgeX 변경을 검증한다. 검증이 성공한 경우에만 두
+번째 API가 기존 Device Service 재사용 또는 검증 template 배포, Profile/Device readback과
+first Event 확인을 시작한다. 브라우저에는 `reuse`/`deploy` 선택을 노출하지 않고
+`runtime.mode=auto`를 사용한다.
+
+MQTT 개발 package의 대표 요청은 다음과 같다.
+
+```json
+{
+  "adapterId": "mqtt",
+  "runtime": {
+    "mode": "auto",
+    "targetNode": "etri-dev0001-jetorn",
+    "hardwareBindingId": "jetson-mqtt-network-001",
+    "settings": {
+      "Broker": "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+      "IncomingTopic": "incoming/data/#",
+      "Qos": 0
+    }
+  },
+  "device": {
+    "name": "mqtt-temperature-sim-001",
+    "description": "MQTT 개발 온도 센서",
+    "labels": ["mqtt", "temperature", "development-fixture"],
+    "tags": {"nodeName": "etri-dev0001-jetorn"},
+    "protocolProperties": {
+      "CommandTopic": "command/mqtt-temperature-sim-001",
+      "ResourceName": "temperature"
+    },
+    "adminState": "UNLOCKED"
+  },
+  "profile": {
+    "mode": "create",
+    "name": "edgeai-mqtt-temperature-v1",
+    "description": "검증된 EdgeX MQTT Device Service의 읽기 전용 온도 데이터",
+    "manufacturer": "ETRI",
+    "model": "edgeai-mqtt-temperature-v1",
+    "labels": ["mqtt", "temperature", "read-only", "edge-ai-web-managed"]
+  }
+}
+```
+
+`runtime.settings`는 adapter별 Catalog schema를 따르며 Controller가 다시 검증한다.
+알 수 없는 key, Secret 성격의 이름, URL userinfo, 허용하지 않은 scheme/host/CIDR,
+topic pattern과 QoS는 `422`로 거부한다. 설정을 정규화한 hash가 같은 Runtime만 재사용하므로
+다른 broker를 기존 Device Service에 잘못 연결하지 않는다.
+
+작업 상태는 다음 API로 조회한다.
+
+```http
+GET /management/connections/operations/{requestId}
+```
+
+정상 순서는 `RUNTIME_REQUESTED → RUNTIME_READY → PROFILE_APPLIED →
+DEVICE_APPLIED → WAITING_EVENT → ACTIVE`다. `ACTIVE`는 Core Metadata 등록만이 아니라
+첫 Core Data Event까지 확인했다는 뜻이다. 연결 가능한 범위는 Catalog에 검증 package가
+있는 protocol뿐이며, API가 임의 image나 새로운 driver를 생성하지 않는다.

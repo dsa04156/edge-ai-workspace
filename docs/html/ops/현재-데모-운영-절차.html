@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-30 17:00</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:39</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -574,7 +574,7 @@ curl --fail --silent --show-error \
   http://127.0.0.1:18000/management/connections/validate</code></pre>
 <p>정상 기준:</p>
 <ul><li>adapter 응답의 Serial/Sense HAT I2C는 Device Service readback이 성공할 때 <code>installed</code>다.</li></ul>
-<p>Device Service가 없더라도 검증된 managed template과 <code>deploymentEnabled=true</code>이면 <code>installable</code>, 그 외에는 <code>unavailable</code>이다. Modbus/OPC-UA/MQTT/RTSP는 현재 <code>unsupported</code>다.</p>
+<p>Device Service가 없더라도 검증된 managed template과 <code>deploymentEnabled=true</code>이면 <code>installable</code>, 그 외에는 <code>unavailable</code>이다. MQTT 개발 package는 검증 Runtime이 없으면 <code>installable</code>이고, Modbus는 exact simulator binding에 한정한다. 실제 PLC, 운영 MQTT TLS/auth, OPC-UA와 RTSP는 <code>unsupported</code> 또는 <code>unavailable</code>이다.</p>
 <ul><li>runtime inventory의 Serial/I2C는 <code>managementMode=external</code>,</li></ul>
 <p><code>managementOwner=argocd</code>, <code>phase=SERVICE_READY</code>이고 대시보드 restart/retire가 비활성화된다.</p>
 <ul><li>Serial runtime plan은 exact binding의 기존 <code>device-serial-jetson</code>을 <code>REUSE</code>한다.</li><li>위 예시는 이미 <code>virtual-temperature-001</code>이 소유한 endpoint/resource를 다시 요청하므로</li></ul>

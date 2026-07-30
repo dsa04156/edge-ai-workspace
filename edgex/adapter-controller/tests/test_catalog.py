@@ -51,7 +51,6 @@ def test_catalog_records_serial_deploy_path_and_external_runtime(catalog):
 def test_catalog_marks_unverified_protocol_templates_non_deployable(catalog):
     for template_id in (
         "opcua-device-service-v1",
-        "mqtt-device-service-v1",
         "rtsp-device-service-v1",
     ):
         template = catalog.require(template_id)
@@ -59,6 +58,33 @@ def test_catalog_marks_unverified_protocol_templates_non_deployable(catalog):
         assert template.deployment_enabled is False
         assert template.image is None
         assert template.hardware_bindings == []
+
+
+def test_catalog_enables_pinned_official_mqtt_development_path(catalog):
+    template = catalog.require("mqtt-device-service-v1")
+
+    assert template.adapter_id == "mqtt"
+    assert template.purpose == "development-fixture"
+    assert template.verification_state == "template-verified"
+    assert template.deployment_enabled is True
+    assert template.image == (
+        "docker.io/edgexfoundry/device-mqtt:4.0.2@sha256:"
+        "940180e788d70219f489f4ed8b6bdfdce12fd0546005b7e2f899c555e529ed49"
+    )
+    assert template.edge_x_service_base_name == "device-mqtt"
+    assert template.runtime_config_renderer == "mqtt-broker-v1"
+    assert [item.name for item in template.runtime_settings] == [
+        "Broker",
+        "IncomingTopic",
+        "Qos",
+    ]
+    assert {
+        item.node_name for item in template.hardware_bindings
+    } == {
+        "etri-dev0001-jetorn",
+        "etri-dev0002-raspi5",
+        "etri-dev0003-raspi5",
+    }
 
 
 def test_catalog_enables_only_the_pinned_official_modbus_simulator_path(catalog):

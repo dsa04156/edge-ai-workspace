@@ -13,6 +13,7 @@ from .models import (
     RuntimePlanRequest,
     RuntimeTemplate,
 )
+from .runtime_settings import normalize_runtime_settings, runtime_settings_hash
 
 
 class RuntimePlanner:
@@ -43,6 +44,19 @@ class RuntimePlanner:
                 code="template_unverified",
                 message="실장비와 Device Service 검증 전에는 배포할 수 없습니다.",
             )
+        try:
+            normalized_settings = normalize_runtime_settings(
+                template,
+                request.settings,
+            )
+        except ValueError as exc:
+            return self._blocked(
+                request,
+                template=template,
+                code="runtime_settings_invalid",
+                message=str(exc),
+            )
+        settings_hash = runtime_settings_hash(normalized_settings)
 
         binding = next(
             (
@@ -80,6 +94,7 @@ class RuntimePlanner:
                 for item in observations
                 if request.hardware_binding_id in item.hardware_binding_ids
                 and item.target_node == request.target_node
+                and item.settings_hash == settings_hash
                 and item.phase != "RETIRED"
             ),
             None,
@@ -107,6 +122,7 @@ class RuntimePlanner:
                 runtime_name=existing.runtime_name,
                 service_name=existing.service_name,
                 management_mode=existing.management_mode,
+                settings_hash=settings_hash,
             )
 
         if request.mode == "reuse":
@@ -133,6 +149,7 @@ class RuntimePlanner:
             runtime_name=identity,
             service_name=template.edge_x_service_identity(identity),
             management_mode="controller",
+            settings_hash=settings_hash,
         )
 
     def _blocked(
@@ -161,6 +178,7 @@ class RuntimePlanner:
         runtime_name: str | None = None,
         service_name: str | None = None,
         management_mode: str | None = None,
+        settings_hash: str | None = None,
         reasons: list[PlanReason] | None = None,
     ) -> RuntimePlan:
         payload = {
@@ -176,6 +194,7 @@ class RuntimePlanner:
             "verificationState": (
                 template.verification_state if template else "unverified"
             ),
+            "settingsHash": settings_hash,
             "reasons": [
                 item.model_dump(by_alias=True)
                 for item in (reasons or [])
@@ -199,11 +218,16 @@ class RuntimePlanner:
         template: RuntimeTemplate,
         request: RuntimePlanRequest,
     ) -> str:
+        normalized_settings = normalize_runtime_settings(template, request.settings)
+        settings_hash = runtime_settings_hash(normalized_settings)
+        identity_source = (
+            f"{template.template_id}\0{request.target_node}\0"
+            f"{request.hardware_binding_id}"
+        )
+        if settings_hash is not None:
+            identity_source = f"{identity_source}\0{settings_hash}"
         digest = hashlib.sha256(
-            (
-                f"{template.template_id}\0{request.target_node}\0"
-                f"{request.hardware_binding_id}"
-            ).encode("utf-8")
+            identity_source.encode("utf-8")
         ).hexdigest()[:10]
         prefix = re.sub(r"[^a-z0-9-]+", "-", request.adapter_id).strip("-")
         prefix = prefix[:40].rstrip("-")

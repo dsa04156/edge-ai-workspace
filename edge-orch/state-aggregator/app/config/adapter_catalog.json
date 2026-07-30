@@ -351,19 +351,135 @@
     },
     {
       "adapterId": "mqtt",
-      "displayName": "MQTT-only Device",
+      "displayName": "MQTT",
+      "serviceName": "device-mqtt",
       "protocolName": "mqtt",
-      "declaredStatus": "unsupported",
+      "declaredStatus": "installed",
       "runtime": {
-        "mode": "unavailable",
-        "managementOwner": "none",
-        "verificationState": "unverified",
-        "deploymentEnabled": false
+        "mode": "managed-template",
+        "managementOwner": "controller",
+        "verificationState": "template-verified",
+        "templateId": "mqtt-device-service-v1",
+        "deploymentEnabled": true,
+        "hardwareBindings": [
+          {
+            "bindingId": "jetson-mqtt-network-001",
+            "displayName": "Jetson MQTT 네트워크 연결",
+            "nodeName": "etri-dev0001-jetorn",
+            "protocolProperties": {}
+          },
+          {
+            "bindingId": "raspi5-dev0002-mqtt-network-001",
+            "displayName": "Raspberry Pi dev0002 MQTT 네트워크 연결",
+            "nodeName": "etri-dev0002-raspi5",
+            "protocolProperties": {}
+          },
+          {
+            "bindingId": "raspi5-dev0003-mqtt-network-001",
+            "displayName": "Raspberry Pi dev0003 MQTT 네트워크 연결",
+            "nodeName": "etri-dev0003-raspi5",
+            "protocolProperties": {}
+          }
+        ],
+      "reusePolicy": {
+        "multiDevice": true,
+        "bindingFields": [],
+        "routeFields": [
+          "CommandTopic",
+          "ResourceName"
+        ],
+          "maxDevices": 1000
+        }
       },
-      "reason": "MQTT-only 장비와 Device Service 검증 전에는 broker나 adapter를 자동 배포하지 않습니다.",
       "fields": [
-        {"name": "Broker", "label": "Broker URL", "type": "string", "required": true},
-        {"name": "Password", "label": "Password", "type": "string", "required": false, "secret": true}
+        {
+          "name": "Broker",
+          "label": "MQTT 브로커 주소",
+          "type": "string",
+          "scope": "runtime",
+          "required": true,
+          "default": "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+          "pattern": "^mqtt://[A-Za-z0-9._:-]+(?::[0-9]{1,5})?$"
+        },
+        {
+          "name": "IncomingTopic",
+          "label": "수신 토픽",
+          "type": "string",
+          "scope": "runtime",
+          "required": true,
+          "default": "incoming/data/#",
+          "pattern": "^incoming/data/(?:[A-Za-z0-9._~-]+/)?#$"
+        },
+        {
+          "name": "Qos",
+          "label": "MQTT QoS",
+          "type": "integer",
+          "scope": "runtime",
+          "required": true,
+          "default": 0,
+          "options": [0, 1, 2]
+        },
+      {
+        "name": "CommandTopic",
+        "label": "명령 토픽",
+        "type": "string",
+        "scope": "device",
+        "required": true,
+        "default": "command/mqtt-temperature-sim-001",
+        "pattern": "^command/[A-Za-z0-9._~/-]+$"
+      },
+      {
+        "name": "ResourceName",
+          "label": "센서 리소스",
+          "type": "enum",
+          "scope": "device",
+          "required": true,
+          "default": "temperature",
+          "options": [
+            "temperature"
+          ]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceName",
+        "valueTypes": [
+          "Float64"
+        ],
+        "readWrite": [
+          "R"
+        ],
+        "templates": [
+          {
+            "selectorValue": "temperature",
+            "deviceResources": [
+              {
+                "name": "temperature",
+                "description": "MQTT temperature reading",
+                "properties": {
+                  "valueType": "Float64",
+                  "readWrite": "R",
+                  "units": "degC"
+                }
+              }
+            ],
+            "deviceCommands": []
+          }
+        ]
+      },
+      "bundledProfiles": [
+        {
+          "name": "edgeai-mqtt-temperature-v1",
+          "selectorValue": "temperature",
+          "description": "Read-only temperature data received through the verified EdgeX MQTT Device Service",
+          "manufacturer": "ETRI",
+          "model": "edgeai-mqtt-temperature-v1",
+          "labels": [
+            "mqtt",
+            "temperature",
+            "read-only",
+            "edge-ai-web-managed"
+          ]
+        }
       ]
     },
     {

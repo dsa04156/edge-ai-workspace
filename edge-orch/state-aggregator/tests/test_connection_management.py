@@ -140,6 +140,10 @@ class FakeDeviceManagement:
         self.calls = []
         self.operations = {}
 
+    def validate_runtime_settings(self, adapter_id, settings):
+        self.calls.append(("validate_runtime_settings", adapter_id, settings))
+        return []
+
     async def validate(
         self,
         request,

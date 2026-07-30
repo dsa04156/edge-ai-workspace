@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-28 19:14</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:38</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,8 +166,8 @@
 <h2 id="목적">목적</h2>
 <p>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 <code>디바이스 관리</code>에서 다음 순서로 물리 장비 연결을 관리하는 절차다.</p>
 <pre data-lang="text"><code>KubeEdge 노드 선택
-  -&gt; Discovery Plan 기반 후보 / 수동 endpoint 후보 검색
-  -&gt; 검토 대기 / 승인 / 거절
+  -&gt; 검증 protocol package와 등록 연결 선택
+  -&gt; protocol별 Runtime/Device 설정 입력
   -&gt; exact Git binding·검증 package 일치 확인
   -&gt; 기존 Runtime 재사용 또는 검증된 template 배포 plan
   -&gt; EdgeX Profile / Device 등록
@@ -175,15 +175,14 @@
   -&gt; first Event / Reading 확인
   -&gt; 등록 연결 / 실제 장비 관측 / 통신 / 데이터 상태 확인
 
-기존 사전 등록 장비의 수동 관리
-  -&gt; 선택 노드의 Runtime / EdgeX Device 확인
-  -&gt; protocol / Device Service / hardware binding 선택
-  -&gt; 기존 connection validation / apply</code></pre>
+Discovery Plan 기반 자동 후보
+  -&gt; 검토 대기 / 승인 / 거절
+  -&gt; 동일한 Runtime / Metadata / first Event 검증 Saga</code></pre>
 <p>EdgeX Core Metadata와 Core Data가 물리 Device와 telemetry의 권위다. <code>AdapterRuntime</code>은 Device inventory가 아니라 Device Service workload의 desired state다.</p>
 <h2 id="대시보드-노드별-관리">대시보드 노드별 관리</h2>
 <p><code>디바이스 관리</code> 상단의 노드 카드는 다음 네 출처를 한 운영 범위로 합성한다.</p>
 <ul><li><code>GET /state/nodes</code>의 KubeEdge/Kubernetes 노드 관측 상태</li><li>Adapter Runtime의 <code>targetNode</code></li><li>EdgeX Device 응답의 <code>node_name</code> 또는 Metadata <code>tags.nodeName</code></li><li>Git Adapter Catalog의 등록 <code>hardwareBindings[].nodeName</code></li></ul>
-<p>노드를 선택하면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 등록 1단계는 protocol/Device Service를 먼저 선택한다. 선택 노드에서 재사용하거나 설치할 수 있는 검증 package는 활성화되고, 다른 노드의 installed Adapter와 미검증 protocol은 상태와 이유를 확인할 수 있지만 비활성화된다. target node와 raw device path는 직접 입력할 수 없다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·등록 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
+<p>노드를 선택하면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device 목록과 연결 마법사의 target node가 함께 바뀐다. 등록 1단계는 protocol/Device Service를 먼저 선택한다. 선택 노드에서 재사용하거나 설치할 수 있는 검증 package는 활성화되고, 다른 노드의 installed Adapter와 미검증 protocol은 상태와 이유를 확인할 수 있지만 비활성화된다. target node와 raw device path는 직접 입력할 수 없다. MQTT처럼 network endpoint를 사용하는 package는 Catalog가 선언한 Runtime field로 주소를 입력하고 서버가 scheme, host/CIDR와 port를 allowlist로 다시 검증한다. 관리 카드에는 <code>node_type=edge_*</code>인 노드와 Runtime·Device·등록 binding이 실제로 참조하는 노드만 표시한다. 관계없는 중앙 <code>cloud_server</code> 노드는 디바이스 연결 대상에 섞지 않는다.</p>
 <p>이 노드 범위는 workload placement와 운영 탐색을 위한 것이다. Node가 미관측이거나 NotReady여도 그 사실만으로 EdgeX Device의 <code>available</code> 상태를 강등하지 않는다. Device inventory와 <code>adminState</code>/<code>operatingState</code>는 Core Metadata, telemetry freshness와 첫 Event는 Core Data가 계속 권위다.</p>
 <h3 id="연결-등록과-실제-장비-관측">연결 등록과 실제 장비 관측</h3>
 <p><code>등록됨</code>은 Git 카탈로그에 노드와 exact 장치 경로가 허용됐다는 뜻이며 장비가 지금 꽂혀 있다는 뜻이 아니다. 대시보드는 한 카드에서 다음 네 증거를 별도로 표시한다.</p>
@@ -216,7 +215,7 @@
 </tr>
 </tbody></table></div>
 <p>신규 등록 시 서버는 EdgeX Device tag에 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 저장한다. 따라서 같은 Device Service가 여러 USB/I2C endpoint를 소유해도 정확한 물리 연결로 묶을 수 있다. 기존 Device에 <code>hardwareBindingId</code>가 없으면 현재 전환 기간에는 <code>physicalDeviceId</code>와 service/protocol을 사용하며, 둘 다 없을 때는 단일 binding인 경우에만 안전하게 묶는다.</p>
-<p>고정된 <code>edge-device-discovery</code> Agent만 read-only <code>/dev</code>, <code>/sys</code>에서 중앙 Discovery Plan이 허용한 stable Serial identity와 I2C identity rule을 확인한다. I2C 버스 존재만으로 센서 후보를 만들지 않으며 네트워크 대역 scan은 수행하지 않는다. MQTT는 자기등록 schema parser까지만 있고 subscriber가 없으며 Modbus, OPC-UA, ONVIF scanner는 미구현이다.</p>
+<p>고정된 <code>edge-device-discovery</code> Agent만 read-only <code>/dev</code>, <code>/sys</code>에서 중앙 Discovery Plan이 허용한 stable Serial identity와 I2C identity rule을 확인한다. I2C 버스 존재만으로 센서 후보를 만들지 않으며 네트워크 대역 scan은 수행하지 않는다. MQTT는 자기등록 schema parser까지만 있고 subscriber가 없으며 Modbus, OPC-UA, ONVIF scanner는 미구현이다. MQTT 웹 연결은 discovery가 아니라 운영자가 허용 broker와 Device 정보를 선언하는 connection 경로다.</p>
 <p>이 결과는 <code>발견 후보</code>이지 위 표의 <code>장비 관측</code>이 아니다. exact Device Catalog match 뒤 운영자가 승인하면 Controller가 외부 인증, 검증 Runtime 재사용/배포, 실제 image digest, Profile/Device 등록과 readback, first Event를 하나의 영속 Saga로 진행한다. <code>EVENT_CONFIRMED</code> 이전은 등록 완료가 아니다.</p>
 <h3 id="화면-사용-순서">화면 사용 순서</h3>
 <p>노드를 선택하면 기본 <code>등록 현황</code>에 다음 순서로 필요한 정보와 동작을 모은다.</p>
@@ -225,10 +224,10 @@
 <ol><li><code>디바이스 프로필</code>: 웹에서 생성한 Profile을 즉시 확인하고 <code>프로필 생성</code>으로</li></ol>
 <p>읽기 전용 resource 계약을 추가한다. 기존 Profile까지 포함한 전체 목록은 장비 연결 3단계의 선택 상자에서 제공한다.</p>
 <ol><li><code>연결 대기</code>: Agent 상태와 후보의 presence·상태·인증·package를 검색/필터한다.</li></ol>
-<p><code>PENDING_APPROVAL</code>의 <code>등록 가능</code> 후보를 승인하면 영속 Registration Saga가 시작된다. 자동 탐색에 나오지 않는 endpoint만 접힌 <code>직접 후보 등록</code>으로 선언한다.</p>
+<p><code>PENDING_APPROVAL</code>의 <code>등록 가능</code> 후보를 승인하면 영속 Registration Saga가 시작된다. 과거 직접 후보 등록 UI는 숨겼으며 신규 네트워크 endpoint도 <code>장비 연결</code>에서 처리한다.</p>
 <ol><li><code>수집 서비스</code>: 등록 연결과 실제 장비 상태의 증거, Runtime, protocol package와</li></ol>
 <p>기존 EdgeX Device를 확인한다. 미검증 protocol은 설치 전 확인 영역에서만 표시된다.</p>
-<p><code>장비 연결</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → Device Service 준비 방식 순서로 선택한다. 한 번에 한 단계만 표시되며 실행 계획과 결과는 마지막 단계에 있다. 기존 디바이스 수정에서는 설명, label, <code>adminState</code> 등 허용된 항목만 바꿀 수 있고 protocol properties JSON은 고급 설정에 있다.</p>
+<p><code>장비 연결</code>은 <code>연결 선택 → 디바이스 정보 → 프로필 → 검증 및 연결</code> 순서로 진행한다. 연결 선택 안에서는 protocol/Device Service → 등록된 물리 연결 → protocol별 Runtime/Device 설정 순서로 입력한다. Runtime 준비 방식은 <code>auto</code>로 고정하며 사용자가 재사용/배포를 고르지 않는다. 한 번에 한 단계만 표시되고 마지막 <code>검증하고 연결</code> 한 번이 mutation-free validation을 먼저 실행한 뒤 성공한 동일 payload로 Runtime, Metadata와 first Event Saga를 계속한다. 기존 디바이스 수정에서는 설명, label, <code>adminState</code> 등 허용된 항목만 바꿀 수 있고 protocol properties JSON은 고급 설정에 있다.</p>
 <p>노드를 바꾸면 이전 수정 대상은 해제되고 새 노드의 Runtime·Adapter·Device 목록이 함께 갱신된다. 화면 전환과 단계 분리는 입력 밀도를 줄이기 위한 UI 흐름이며 validation, idempotency와 EdgeX authority 규칙은 그대로 적용된다.</p>
 <p>등록 현황의 <code>프로필 생성</code>은 Profile만 별도로 준비할 때 사용한다.</p>
 <ol><li>이름, 제조사, 모델과 설명을 입력한다.</li><li>각 읽기 resource의 고유 이름, EdgeX value type, 단위와 설명을 입력한다.</li><li><code>Profile 검증</code>으로 같은 이름의 충돌과 resource 계약을 확인한다.</li><li>검증 이후 입력을 바꾸지 않은 상태에서만 <code>Profile 생성</code>을 실행한다.</li><li>기존 동일 계약이면 새 Profile을 만들지 않고 재사용한다.</li></ol>
@@ -262,7 +261,7 @@
 <td>image/profile/protocol/실장비 검증이 완료되지 않음</td>
 </tr>
 </tbody></table></div>
-<p>현재 live catalog에서 Serial과 Sense HAT I2C는 Argo CD 소유 Runtime을 <code>재사용 가능</code>으로 표시한다. Modbus/OPC-UA/MQTT/RTSP는 <code>검증 필요</code>이며 설치 버튼이 없다. 향후 <code>설치 가능</code>으로 승격하려면 검증된 immutable image, profile, exact binding, 최소 권한 manifest와 실장비 first Event 증거를 같은 Git 변경으로 반영해야 한다.</p>
+<p>현재 live catalog에서 Serial과 Sense HAT I2C는 Argo CD 소유 Runtime을 <code>재사용 가능</code>으로 표시한다. MQTT 개발 package는 노드별 network binding과 허용 Runtime 설정, 공식 immutable image와 bundled Profile이 있어 Runtime이 없으면 <code>설치 가능</code>이다. Modbus는 exact 개발 simulator binding에서만 설치 가능하고 일반 PLC endpoint는 차단한다. OPC-UA/RTSP는 <code>검증 필요</code>이며 설치할 수 없다. 새 package를 <code>설치 가능</code>으로 승격하려면 검증된 immutable image, profile, exact binding 또는 제한된 network binding, 최소 권한 manifest와 first Event 증거를 같은 Git 변경으로 반영해야 한다.</p>
 <h2 id="배포와-소유권">배포와 소유권</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -283,6 +282,12 @@
 <td><code>edgex-edge</code></td>
 <td>Argo CD</td>
 <td>조회·재사용만</td>
+</tr>
+<tr>
+<td>요청 시 생성되는 <code>adapter-mqtt-*</code></td>
+<td><code>edgex-edge</code></td>
+<td>Adapter Controller</td>
+<td>동일 settings hash면 재사용, 없으면 공식 검증 template 배포</td>
 </tr>
 <tr>
 <td><code>edge-device-discovery</code></td>
@@ -421,7 +426,7 @@ curl --fail --silent --show-error \
 <td>현재 catalog로 처리할 수 없음</td>
 </tr>
 </tbody></table></div>
-<p>수동 후보 생성·삭제와 후보 승인·거절·재시도는 browser 관리자 token 없이 요청마다 고유한 <code>Idempotency-Key</code>를 요구한다. state-aggregator가 Adapter Controller로 보내는 내부 요청에는 HMAC을 유지한다. 아래 예시는 endpoint 후보만 만들며 MQTT broker나 Device Service를 설치하지 않는다.</p>
+<p>수동 후보 생성·삭제와 후보 승인·거절·재시도는 browser 관리자 token 없이 요청마다 고유한 <code>Idempotency-Key</code>를 요구한다. state-aggregator가 Adapter Controller로 보내는 내부 요청에는 HMAC을 유지한다. 아래 API는 과거 호환용 endpoint 후보만 만들며 MQTT broker나 Device Service를 설치하지 않는다. 현재 대시보드에는 이 직접 후보 화면을 노출하지 않고 <code>장비 연결</code>을 사용한다.</p>
 <pre data-lang="bash"><code>curl --fail --silent --show-error \
   -H &#x27;Idempotency-Key: discovery-manual-mqtt-001&#x27; \
   -H &#x27;Content-Type: application/json&#x27; \
@@ -461,6 +466,48 @@ curl --fail --silent --show-error \
   }&#x27; \
   http://127.0.0.1:18000/management/adapter-runtimes/plan</code></pre>
 <p>현재 Serial plan의 정상 결과는 기존 <code>device-serial-jetson</code>을 선택한 <code>REUSE</code>다. Sense HAT도 같은 방식으로 <code>sensehat-raspi</code>, <code>etri-dev0003-raspi5</code>, <code>raspi5-sensehat-i2c-001</code> 조합을 사용한다.</p>
+<h3 id="mqtt-개발-웹-연결-준비">MQTT 개발 웹 연결 준비</h3>
+<p>broker/publisher fixture는 root 운영 render에 없으므로 검증할 때만 별도로 배포한다.</p>
+<pre data-lang="bash"><code>kubectl apply -k edgex/k8s/overlays/development/mqtt-simulator
+kubectl rollout status -n edgex-edge deployment/edge-mqtt-simulator
+kubectl rollout status -n edgex-edge deployment/edge-mqtt-temperature-publisher</code></pre>
+<p>대시보드 <code>장비 연결</code>에서 Jetson과 <code>MQTT</code>를 선택하면 다음 필드를 입력한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>필드</th>
+<th>개발값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Device Service</td>
+<td>Broker</td>
+<td><code>mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883</code></td>
+</tr>
+<tr>
+<td>Device Service</td>
+<td>IncomingTopic</td>
+<td><code>incoming/data/#</code></td>
+</tr>
+<tr>
+<td>Device Service</td>
+<td>Qos</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td>센서 디바이스</td>
+<td>CommandTopic</td>
+<td><code>command/mqtt-temperature-sim-001</code></td>
+</tr>
+<tr>
+<td>센서 디바이스</td>
+<td>ResourceName</td>
+<td><code>temperature</code></td>
+</tr>
+</tbody></table></div>
+<p>Device 이름은 publisher topic과 같은 <code>mqtt-temperature-sim-001</code>을 사용하고 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 선택한다. 마지막 <code>검증하고 연결</code>은 공식 <code>device-mqtt</code> Runtime이 없으면 배포하고, Profile/Device 등록과 첫 Event를 확인한다. fixture 제거는 검증이 끝난 뒤에만 수행한다.</p>
+<pre data-lang="bash"><code>kubectl delete -k edgex/k8s/overlays/development/mqtt-simulator</code></pre>
+<p>이 fixture는 anonymous plaintext broker이므로 운영 broker 예시가 아니다.</p>
 <p>Profile 생성 API는 검증과 생성을 분리한다. 아래 payload는 예시이므로 실제 센서의 resource/value type/units 계약으로 바꾼다.</p>
 <pre data-lang="bash"><code>PROFILE_PAYLOAD=&#x27;{
   &quot;name&quot;:&quot;factory-temperature-v1&quot;,
@@ -577,7 +624,7 @@ unset IDEMPOTENCY_KEY</code></pre>
 <ul><li>EdgeX Device tag를 사용한 Metadata 적용 이후 operation 복구와 동일 payload 재요청의</li></ul>
 <p>중복 방지는 지원한다.</p>
 <ul><li>신규 Controller runtime이 아직 준비 중인 connection operation은 state-aggregator 메모리에</li></ul>
-<p>있다. 현재 승인 template은 모두 <code>deploymentEnabled=false</code>라 live 운영 경로에서는 external runtime 재사용만 가능하다.</p>
+<p>있다. MQTT와 exact Modbus 개발 template는 <code>deploymentEnabled=true</code>이므로 state-aggregator 재시작 시 진행 중 operation을 자동 복구하지 못하는 제한이 적용된다.</p>
 <ul><li>managed template을 처음 승격할 때는 CR에 connection payload reference를 남기거나 영속</li></ul>
 <p>operation store를 추가하고, state-aggregator 재시작 뒤 GET-only 복구를 별도 canary로 통과시켜야 한다.</p>
 <h2 id="재시작과-퇴역">재시작과 퇴역</h2>
@@ -586,7 +633,7 @@ unset IDEMPOTENCY_KEY</code></pre>
 <ul><li>EdgeX Core Metadata를 조회할 수 없으면 consumer를 0으로 가정하지 않고 퇴역을 차단한다.</li><li>Controller label과 <code>AdapterRuntime</code> owner reference가 다른 리소스는 수정·삭제하지 않는다.</li></ul>
 <h2 id="새-protocol과-장비-승격-순서">새 protocol과 장비 승격 순서</h2>
 <ol><li>물리 endpoint와 protocol security/재연결 요구를 확정한다.</li><li>EdgeX Device Profile, resource, value type, read/write와 command 계약을 만든다.</li><li>protocol별 Device Service를 구현하고 실장비 Event/Reading을 검증한다.</li><li>immutable image digest와 runtime별 Device Service/MessageBus identity를 검증한다.</li><li>target node와 raw device path를 <code>hardwareBindingId</code>로 Git allowlist에 등록한다.</li><li>template 검토 뒤 <code>verificationState</code>와 <code>deploymentEnabled</code>를 승격한다.</li><li>대시보드 validation과 격리 canary로 첫 Event까지 확인한다.</li></ol>
-<p>Modbus, OPC-UA, MQTT와 RTSP는 이 절차를 통과하기 전까지 <code>unverified</code>다. MQTT를 공통 중간 protocol로 강제하거나 protocol마다 센서 한 개당 Pod를 만드는 방식은 사용하지 않는다.</p>
+<p>현재 이 절차를 통과한 범위는 Serial/I2C 기존 Runtime, exact Modbus simulator와 MQTT 개발 package다. 실제 PLC, 운영 MQTT TLS/auth, OPC-UA와 RTSP는 별도 승격 전까지 <code>unverified</code>다. MQTT를 공통 중간 protocol로 강제하거나 protocol마다 센서 한 개당 Pod를 만드는 방식은 사용하지 않는다.</p>
 <h2 id="두-번째-usb-serial-추가">두 번째 USB Serial 추가</h2>
 <p><code>device-serial-jetson</code> driver는 <code>(Port, BaudRate, DeviceID)</code>별 reader를 만든다. 같은 tuple의 여러 <code>ResourceName</code>은 reader 하나를 공유하고, 다른 tuple은 같은 Device Service process에서 별도 reader를 사용한다. 따라서 두 번째 USB 장비를 위해 Device Service Pod를 하나 더 만들 필요는 없다. 다만 Pod가 두 장치를 실제로 볼 수 있도록 다음 절차를 모두 수행한다.</p>
 <ol><li>Jetson에서 두 번째 장비의 stable <code>/dev/serial/by-id/...</code>를 확인한다.</li><li>충돌하지 않는 container path와 binding ID를 정한다. 예시는 설명용이며 실기기 확인 전</li></ol>
@@ -623,6 +670,7 @@ kubectl auth can-i --as=system:serviceaccount:edgex-edge:edgex-adapter-controlle
 <li class="toc-h2"><a href="#배포-확인">배포 확인</a></li>
 <li class="toc-h2"><a href="#장비-발견-후보-조회와-검토">장비 발견 후보 조회와 검토</a></li>
 <li class="toc-h2"><a href="#조회와-plan">조회와 plan</a></li>
+<li class="toc-h3"><a href="#mqtt-개발-웹-연결-준비">MQTT 개발 웹 연결 준비</a></li>
 <li class="toc-h2"><a href="#connection-validation">Connection validation</a></li>
 <li class="toc-h2"><a href="#연결-실행">연결 실행</a></li>
 <li class="toc-h2"><a href="#재시작과-퇴역">재시작과 퇴역</a></li>

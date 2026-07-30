@@ -30,6 +30,10 @@ class RuntimePlanRequest(ManagementModel):
     target_node: str = Field(min_length=1, max_length=253)
     hardware_binding_id: str = Field(min_length=1, max_length=128)
     mode: Literal["auto", "reuse", "deploy"] = "auto"
+    settings: dict[str, str | int | float | bool] = Field(
+        default_factory=dict,
+        max_length=32,
+    )
 
 
 class RuntimeObservation(ManagementModel):
@@ -51,6 +55,10 @@ class RuntimeObservation(ManagementModel):
     workload_name: str | None = None
     image: str | None = None
     edge_x_service_observed: bool | None = None
+    settings_hash: str | None = Field(
+        default=None,
+        pattern=r"^[0-9a-f]{64}$",
+    )
 
     @model_validator(mode="after")
     def normalize_hardware_bindings(self) -> "RuntimeObservation":
@@ -80,6 +88,10 @@ class RuntimePlan(ManagementModel):
     management_mode: Literal["external", "controller"] | None = None
     verification_state: VerificationState
     reasons: list[RuntimePlanReason] = Field(default_factory=list)
+    settings_hash: str | None = Field(
+        default=None,
+        pattern=r"^[0-9a-f]{64}$",
+    )
     plan_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 

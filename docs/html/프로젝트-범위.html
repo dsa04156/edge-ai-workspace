@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-30 19:45</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:35</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -222,7 +222,7 @@
 <p>2026-07-21에 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 두 outbox PVC와 Agent 전용 Metadata bootstrap을 퇴역했다. 대신 root render는 <code>edgex-edge</code>에 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 최소 NetworkPolicy를 배포한다. 중앙 EdgeX와 ingest gateway는 유지하지만, ingest gateway는 현재 Serial/I2C Event 경로에 참여하지 않는다.</p>
 <p>1차 수직 슬라이스는 <code>etri-dev0001-jetorn</code>의 Arduino Uno다. <code>/dev/serial/by-id/...</code> CharDevice를 Pod의 <code>/dev/arduino-001</code>에 단독 마운트하고 <code>device-serial-jetson</code>이 공유 reader 1개로 읽는다. temperature, light, magnetic, acceleration X/Y/Z는 각각 1-resource Profile과 <code>virtual-*-001</code> Device로 등록되며 Core Data Event, Core Command GET과 dashboard의 독립 identity가 된다. Device Service 메모리는 Device/resource별 최근 10분·최대 10,000 sample을 보존하고 latest/recent Local Data API를 제공한다. 이 cache는 Pod 재시작 시 사라지며 durable outbox나 offline replay가 아니다.</p>
 <p>두 번째 수직 슬라이스는 <code>etri-dev0003-raspi5</code>의 Sense HAT v1이다. <code>device-sensehat-raspi</code>가 exact <code>/dev/i2c-1</code> CharDevice를 직접 소유하고 RTIMULib reader를 내부 protocol module로 실행한다. temperature, humidity, pressure, compass, orientation, gyroscope는 Profile/Device 6개로 등록되고 총 11개 <code>Float64</code> resource를 제공한다. physical <code>sensehat-001</code>은 protocol/tag source ID이며 aggregate EdgeX Device가 아니다. 동일한 10분·10,000 sample recent cache, Local Data API와 read-only command 계약을 사용한다.</p>
-<p>현재 root render에는 <code>device-mqtt</code>와 edge-local broker가 없다. MQTT-only 장비가 들어오면 별도 Device Service와 프로토콜별 검증 gate를 추가한 뒤에만 배포한다. Serial과 Sense HAT I2C 정상 경로는 live 지원 증거가 있다. Modbus는 root render 밖의 개발 simulator overlay, digest 고정 공식 <code>device-modbus:4.0.2</code>, read-only Profile과 Git에 등록한 Unit 1·2 exact binding에 한해 수동 endpoint 승인부터 Core Data 첫 Event까지 과거 live 검증했다. 검증용 Controller Runtime은 현재 퇴역했으며 이 증거는 개발 fixture의 수직 경로만 확인하고 자동 discovery나 실제 PLC 지원을 뜻하지 않는다. OPC-UA도 profile·실장비·telemetry 검증 전까지 완료로 주장하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media 경로다.</p>
+<p>현재 root render에는 고정 <code>device-mqtt</code>와 edge-local broker가 없다. 대신 공식 <code>device-mqtt:4.0.2</code> immutable image, 노드별 network binding, 허용 broker 주소와 topic/QoS 설정, 읽기 전용 온도 Profile을 묶은 개발용 managed template가 있다. 대시보드 연결 실행 시 기존 Runtime이 없으면 Controller가 이 template를 대상 노드에 동적으로 배포한다. broker/publisher simulator는 root 밖의 <code>edgex/k8s/overlays/development/mqtt-simulator</code> 선택적 fixture다. 이는 웹 등록 경로와 Core Data first Event를 검증하기 위한 개발 계약이며 운영 TLS/인증 broker나 임의 MQTT payload 지원 완료를 뜻하지 않는다. Serial과 Sense HAT I2C 정상 경로는 live 지원 증거가 있다. Modbus는 root render 밖의 개발 simulator overlay, digest 고정 공식 <code>device-modbus:4.0.2</code>, read-only Profile과 Git에 등록한 Unit 1·2 exact binding에 한해 수동 endpoint 승인부터 Core Data 첫 Event까지 과거 live 검증했다. 검증용 Controller Runtime은 현재 퇴역했으며 이 증거는 개발 fixture의 수직 경로만 확인하고 자동 discovery나 실제 PLC 지원을 뜻하지 않는다. OPC-UA도 profile·실장비·telemetry 검증 전까지 완료로 주장하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media 경로다.</p>
 <p>첫 서비스 데모 consumer는 <code>edge-orch/sensor-anomaly-demo/</code>다. 이 고정 Deployment는 <code>etri-dev0001-jetorn</code>에서 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>의 Local Data API를 500ms마다 조회한다. <code>virtual-acceleration-{x,y,z}-001</code>의 같은 nanosecond <code>origin</code>을 한 frame으로 결합하고, 30개 warm-up 뒤 online Gaussian baseline으로 magnitude 변화 점수를 계산한다. 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니며, 실제 장치를 움직여 anomaly가 발생하는 현장 실증은 별도 gate다.</p>
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → 세 EdgeX Device → AI consumer binding을 read-only로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
 <h3 id="노드-장비-발견과-등록-후보-관리">노드 장비 발견과 등록 후보 관리</h3>
@@ -264,14 +264,16 @@
 <p>exact runtime 이름 확인이 일치할 때만 퇴역한다.</p>
 <ul><li>노드 카드를 바꾸면 등록 연결/장비 관측/통신/데이터 증거, Runtime inventory, protocol</li></ul>
 <p>package, hardware binding과 기존 EdgeX Device 목록이 같은 선택 노드 범위로 함께 바뀐다. 연결 마법사의 target node는 노드 카드 선택으로 고정하며 임의 입력할 수 없다.</p>
-<ul><li>등록 마법사는 protocol/Device Service를 먼저 고른 뒤 hardware binding과 Runtime 준비</li></ul>
-<p>방식을 고른다. 현재 노드에서 사용할 수 없는 installed Adapter와 미검증 protocol도 선택 목록에는 이유와 함께 보이지만 비활성화된다.</p>
+<ul><li>등록 마법사는 protocol/Device Service를 먼저 고른 뒤 hardware binding과 protocol별</li></ul>
+<p>Runtime/Device 설정을 입력한다. Runtime 준비 방식은 <code>auto</code>로 고정해 기존 인스턴스를 재사용하고 없으면 검증 template만 배포한다. 현재 노드에서 사용할 수 없는 installed Adapter와 미검증 protocol도 선택 목록에는 이유와 함께 보이지만 비활성화된다.</p>
 <ul><li>API 요청은 <code>adapterId</code>, runtime mode, 등록된 target node/hardware binding, Device/Profile</li></ul>
 <p>계약만 받는다. 임의 image, command, privilege, raw hostPath, hostNetwork, 고정 ClusterIP/PodIP는 받지 않는다.</p>
 <ul><li>각 hardware binding은 <code>Port</code>/<code>BaudRate</code>/<code>DeviceID</code> 또는 <code>Bus</code>/<code>DeviceID</code>처럼</li></ul>
 <p><code>reusePolicy.bindingFields</code>와 정확히 일치하는 <code>protocolProperties</code>를 가진다. 서버는 요청 protocol tuple이 등록 binding과 일치하는지 다시 검증한다.</p>
 <ul><li>Serial/I2C template는 실장비 검증 상태와 기존 runtime을 표시하지만 현재 등록 binding을</li></ul>
-<p>Argo runtime이 점유하므로 <code>auto</code>는 재사용한다. Modbus, OPC-UA, MQTT와 RTSP는 image, profile, 실장비 검증 전까지 일반 endpoint를 <code>unverified</code>/<code>BLOCKED</code>로 표시한다. 단, 개발 simulator와 정확히 일치하는 Modbus TCP binding만 공식 image/Profile 검증을 거친 <code>template-verified</code> 경로로 Controller 배포가 허용된다.</p>
+<p>Argo runtime이 점유하므로 <code>auto</code>는 재사용한다. Modbus, OPC-UA, MQTT와 RTSP는 image, profile, 실장비 검증 전까지 일반 endpoint를 <code>unverified</code>/<code>BLOCKED</code>로 표시한다. 단, 개발 simulator와 정확히 일치하는 Modbus TCP binding만 공식 image/Profile 검증을 거친 <code>template-verified</code> 경로로 Controller 배포가 허용된다. MQTT는 별도 scanner 없이 노드별 network binding과 runtime setting allowlist를 사용하며, 공식 image와 bundled temperature Profile을 묶은 개발용 <code>template-verified</code> 경로만 Controller 배포가 허용된다.</p>
+<ul><li>마지막 단계의 <code>검증하고 연결</code>은 먼저 mutation-free validation을 실행하고 성공한 동일</li></ul>
+<p>payload로 Runtime 준비, Profile/Device readback과 first Event 확인을 계속한다. 임의 image, hostPath 또는 Catalog 밖 endpoint를 실행하는 단축 경로는 없다.</p>
 <ul><li>신규 connection은 <code>hardwareBindingId</code>, <code>physicalDeviceId</code>, <code>nodeName</code>을 EdgeX Device</li></ul>
 <p>system tag로 기록한다. 연결 등록만으로 물리 장비가 감지됐다고 판단하지 않고 <code>operatingState</code>와 latest Event를 별도 증거로 표시한다.</p>
 <ul><li>웹 Device Profile 편집기는 Core Metadata Profile 목록과 읽기 전용 DeviceResource</li></ul>
@@ -284,7 +286,7 @@
 <p>Event가 아직 없는 장비는 Metadata를 임의로 되돌리지 않는다. 신규 runtime 뒤 Metadata 적용이 실패한 경우에만 consumer 0을 확인하고 해당 runtime의 안전한 퇴역을 시도한다.</p>
 <p>KubeEdge는 target node와 workload 상태만 제공하며 <code>AdapterRuntime</code>을 물리 Device inventory로 보지 않는다. KubeEdge <code>Device</code>/<code>DeviceModel</code>/<code>DeviceStatus</code>, MapperFramework와 EdgeMesh는 이 관리 경로에서 수정하지 않는다. 2026-07-30 대시보드의 AI Pipeline/Workflow Builder와 전용 <code>POST /state/device-source-bindings/sample</code> API를 제거했다. Device Service의 휘발성 recent cache와 Local Data API는 고정 <code>sensor-anomaly-demo</code> 및 향후 같은 노드 consumer를 위해 유지하지만 state-aggregator가 이를 workflow 입력 프록시로 제공하지 않는다. workflow stage 구성·실행, command publish, actuator 실행, migration과 offloading은 현재 범위가 아니다.</p>
 <p>현재 범위의 핵심 표현:</p>
-<ul><li>서비스 데모 우선</li><li>EdgeX Device Service와 Device Profile/Device</li><li>중앙 Core Data·server2 PostgreSQL 권위</li><li>MQTT는 필요가 확인된 장비의 Device Service 검증 이후에만 배포</li><li>프로토콜별 독립 migration gate</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
+<ul><li>서비스 데모 우선</li><li>EdgeX Device Service와 Device Profile/Device</li><li>중앙 Core Data·server2 PostgreSQL 권위</li><li>MQTT는 검증 package가 있는 연결만 웹 등록 시 필요에 따라 Device Service 배포</li><li>프로토콜별 독립 migration gate</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
 <h2 id="2차년도-설계-트랙">2차년도 설계 트랙</h2>
 <p>2차년도 협약 방향에서는 현재 PoC의 운영 가시화 기반 위에 다음 구조를 설계 대상으로 둔다. 이 항목은 현재 구현 완료 기능이 아니라 설계 및 프로토타입 승격 대상이다.</p>
 <ul><li>물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽 소프트웨어 인스턴스로 표현하는 가상디바이스</li><li>물리/가상디바이스의 상태, capability, resource, I/O, workflow binding을 관리하는 디바이스트윈</li><li>AI 서비스를 stage 단위로 구성하고 가상디바이스를 동적으로 연결하는 워크플로우</li><li>컨테이너 기반 워크플로우 통합 개발도구와 validation/실행 계획 UI</li><li>가상디바이스/엣지 상태 기반 워크로드 스케줄링과 자원 재배치 정책</li></ul>
@@ -315,7 +317,12 @@
 <tr>
 <td>현재 EdgeX 배포</td>
 <td><code>edgex/k8s/</code> root Kustomize</td>
-<td>중앙 Core/MessageBus/PostgreSQL/gateway, Serial/I2C Device Service, Plan 기반 discovery DaemonSet, AdapterRuntime CRD와 Controller/PVC를 단일 진입점에서 배치</td>
+<td>중앙 Core/MessageBus/PostgreSQL/gateway, Serial/I2C Device Service, Plan 기반 discovery DaemonSet, AdapterRuntime CRD와 Controller/PVC를 단일 진입점에서 배치. MQTT broker/publisher 개발 fixture는 root에 포함하지 않음</td>
+</tr>
+<tr>
+<td>MQTT 웹 등록 개발 fixture</td>
+<td><code>edgex/k8s/base/mqtt-simulator/</code>, <code>edgex/k8s/overlays/development/mqtt-simulator/</code></td>
+<td>선택 배포하는 anonymous 개발 broker와 고정 온도 publisher. 웹 등록 시 Controller가 공식 <code>device-mqtt</code> Runtime/Profile/Device를 준비하고 first Event를 확인하는 수직 경로 검증용</td>
 </tr>
 <tr>
 <td>현재 physical integration</td>

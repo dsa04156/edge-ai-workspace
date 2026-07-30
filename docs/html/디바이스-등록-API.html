@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 디바이스-등록-API.md</span>
-            <span class="badge">수정: 2026-07-28 19:14</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:36</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -433,6 +433,49 @@ Content-Type: application/json
   }
 }</code></pre>
 <p><code>status=existing</code>은 동일 계약의 기존 Profile을 재사용했다는 뜻이다. Profile 생성은 parser, Device Service image, raw device path, Catalog binding, Device와 command를 생성하지 않는다. 따라서 발견 후보의 승인 조건은 그대로이며 Profile만 만든 후보를 <code>registration-ready</code>로 간주하지 않는다.</p>
+<h2 id="대시보드-통합-연결-bff">대시보드 통합 연결 BFF</h2>
+<p>대시보드의 보이는 신규 등록 진입점은 <code>장비 연결</code> 하나다. 사용자가 마지막 <code>검증하고 연결</code>을 누르면 브라우저가 같은 payload로 다음 두 API를 순서대로 호출한다.</p>
+<pre data-lang="http"><code>POST /management/connections/validate
+POST /management/connections
+Idempotency-Key: connection-&lt;unique-request&gt;</code></pre>
+<p>첫 API는 mutation 없이 Runtime plan과 EdgeX 변경을 검증한다. 검증이 성공한 경우에만 두 번째 API가 기존 Device Service 재사용 또는 검증 template 배포, Profile/Device readback과 first Event 확인을 시작한다. 브라우저에는 <code>reuse</code>/<code>deploy</code> 선택을 노출하지 않고 <code>runtime.mode=auto</code>를 사용한다.</p>
+<p>MQTT 개발 package의 대표 요청은 다음과 같다.</p>
+<pre data-lang="json"><code>{
+  &quot;adapterId&quot;: &quot;mqtt&quot;,
+  &quot;runtime&quot;: {
+    &quot;mode&quot;: &quot;auto&quot;,
+    &quot;targetNode&quot;: &quot;etri-dev0001-jetorn&quot;,
+    &quot;hardwareBindingId&quot;: &quot;jetson-mqtt-network-001&quot;,
+    &quot;settings&quot;: {
+      &quot;Broker&quot;: &quot;mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883&quot;,
+      &quot;IncomingTopic&quot;: &quot;incoming/data/#&quot;,
+      &quot;Qos&quot;: 0
+    }
+  },
+  &quot;device&quot;: {
+    &quot;name&quot;: &quot;mqtt-temperature-sim-001&quot;,
+    &quot;description&quot;: &quot;MQTT 개발 온도 센서&quot;,
+    &quot;labels&quot;: [&quot;mqtt&quot;, &quot;temperature&quot;, &quot;development-fixture&quot;],
+    &quot;tags&quot;: {&quot;nodeName&quot;: &quot;etri-dev0001-jetorn&quot;},
+    &quot;protocolProperties&quot;: {
+      &quot;CommandTopic&quot;: &quot;command/mqtt-temperature-sim-001&quot;,
+      &quot;ResourceName&quot;: &quot;temperature&quot;
+    },
+    &quot;adminState&quot;: &quot;UNLOCKED&quot;
+  },
+  &quot;profile&quot;: {
+    &quot;mode&quot;: &quot;create&quot;,
+    &quot;name&quot;: &quot;edgeai-mqtt-temperature-v1&quot;,
+    &quot;description&quot;: &quot;검증된 EdgeX MQTT Device Service의 읽기 전용 온도 데이터&quot;,
+    &quot;manufacturer&quot;: &quot;ETRI&quot;,
+    &quot;model&quot;: &quot;edgeai-mqtt-temperature-v1&quot;,
+    &quot;labels&quot;: [&quot;mqtt&quot;, &quot;temperature&quot;, &quot;read-only&quot;, &quot;edge-ai-web-managed&quot;]
+  }
+}</code></pre>
+<p><code>runtime.settings</code>는 adapter별 Catalog schema를 따르며 Controller가 다시 검증한다. 알 수 없는 key, Secret 성격의 이름, URL userinfo, 허용하지 않은 scheme/host/CIDR, topic pattern과 QoS는 <code>422</code>로 거부한다. 설정을 정규화한 hash가 같은 Runtime만 재사용하므로 다른 broker를 기존 Device Service에 잘못 연결하지 않는다.</p>
+<p>작업 상태는 다음 API로 조회한다.</p>
+<pre data-lang="http"><code>GET /management/connections/operations/{requestId}</code></pre>
+<p>정상 순서는 <code>RUNTIME_REQUESTED → RUNTIME_READY → PROFILE_APPLIED → DEVICE_APPLIED → WAITING_EVENT → ACTIVE</code>다. <code>ACTIVE</code>는 Core Metadata 등록만이 아니라 첫 Core Data Event까지 확인했다는 뜻이다. 연결 가능한 범위는 Catalog에 검증 package가 있는 protocol뿐이며, API가 임의 image나 새로운 driver를 생성하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#접근-경계">접근 경계</a></li>
@@ -455,7 +498,8 @@ Content-Type: application/json
 <li class="toc-h2"><a href="#대시보드-device-profile-bff">대시보드 Device Profile BFF</a></li>
 <li class="toc-h3"><a href="#profile-목록">Profile 목록</a></li>
 <li class="toc-h3"><a href="#profile-검증">Profile 검증</a></li>
-<li class="toc-h3"><a href="#profile-생성">Profile 생성</a></li></ol></aside>
+<li class="toc-h3"><a href="#profile-생성">Profile 생성</a></li>
+<li class="toc-h2"><a href="#대시보드-통합-연결-bff">대시보드 통합 연결 BFF</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

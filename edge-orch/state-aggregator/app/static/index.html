@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
+    <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
   </head>
@@ -537,7 +537,7 @@
 
                 <div id="managementDiscoveryNodeHealth" class="management-discovery-node-health" aria-live="polite"></div>
                 <div id="managementDiscoveryList" class="management-discovery-list" aria-live="polite"></div>
-                <details class="management-manual-candidate-access">
+                <details class="management-manual-candidate-access" hidden aria-hidden="true">
                   <summary>자동 탐색에 장비가 나오지 않나요?</summary>
                   <div>
                     <p>허용된 물리 경로나 네트워크 엔드포인트를 탐색 후보로 직접 등록합니다.</p>
@@ -574,7 +574,7 @@
                   <div>
                     <span>자동 탐색 보완</span>
                     <h3 id="managementManualCandidateTitle">탐색 후보 직접 등록</h3>
-                    <p>여기서는 연결 후보만 선언합니다. EdgeX 등록과 Device Service 설치는 별도 검증을 통과해야 합니다.</p>
+                    <p>이 이전 호환 화면은 탐색 증거만 저장합니다. 실제 연결은 장비 연결 마법사를 사용합니다.</p>
                   </div>
                   <button type="button" data-management-close-dialog aria-label="닫기">닫기</button>
                 </div>
@@ -682,7 +682,7 @@
                   <div>
                     <span>연결 구성 마법사</span>
                     <h3 id="managementRegisterTitle">장비 연결</h3>
-                    <p>등록된 물리 연결을 센서 디바이스로 등록하고 첫 이벤트까지 확인합니다.</p>
+                    <p>프로토콜 연결 정보를 입력하면 Device Service 준비, EdgeX 등록, 첫 이벤트 확인까지 한 번에 처리합니다.</p>
                   </div>
                   <div class="management-flow-actions">
                     <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
@@ -710,37 +710,34 @@
                 <section id="managementRegistrationStep1" class="management-step-panel" data-management-step-panel="1" aria-labelledby="managementStep1Title">
                   <div class="management-step-head">
                     <span>1단계</span>
-                    <h4 id="managementStep1Title">프로토콜과 물리 연결 선택</h4>
-                    <p>프로토콜을 먼저 고르면 선택 노드에서 사용할 수 있는 Device Service와 연결만 표시됩니다.</p>
+                    <h4 id="managementStep1Title">프로토콜과 연결 정보 입력</h4>
+                    <p>선택한 노드에서 검증된 프로토콜 패키지만 표시하며, 네트워크 주소와 장비 매핑값도 여기서 입력합니다.</p>
                   </div>
                   <div class="management-form-grid">
                     <label class="management-field-wide">
-                      <span>연결 프로토콜 · Device Service</span>
+                      <span>프로토콜 패키지</span>
                       <select id="managementAdapter" required></select>
                     </label>
                     <label>
-                      <span>관리 대상 KubeEdge 노드</span>
+                      <span>대상 엣지 노드</span>
                       <select id="managementTargetNode" required></select>
                     </label>
                     <label>
-                      <span>등록된 물리 연결</span>
+                      <span>연결 대상</span>
                       <select id="managementHardwareBinding" required></select>
                     </label>
-                    <label class="management-field-wide">
-                      <span>Device Service 준비 방식</span>
-                      <select id="managementRuntimeMode">
-                        <option value="auto">자동 · 가능하면 기존 Device Service 재사용</option>
-                        <option value="reuse">기존 Device Service만 사용</option>
-                        <option value="deploy">새 Device Service 인스턴스 배포</option>
-                      </select>
-                    </label>
+                  </div>
+                  <input id="managementRuntimeMode" type="hidden" value="auto" />
+                  <div class="management-automation-summary" role="status">
+                    <strong>Device Service 자동 처리</strong>
+                    <span>사용 가능한 인스턴스는 재사용하고, 없으면 검증된 패키지만 대상 노드에 설치합니다.</span>
                   </div>
                   <div id="managementConnectionGuidance" class="management-connection-guidance" role="status" aria-live="polite"></div>
                   <div class="management-subsection">
-                    <strong>선택한 연결의 프로토콜 값</strong>
-                    <div id="managementProtocolFields" class="management-form-grid"></div>
+                    <strong>연결 설정</strong>
+                    <div id="managementProtocolFields" class="management-protocol-groups"></div>
                   </div>
-                  <p class="management-runtime-hint">노드와 장치 경로는 Git 카탈로그에 등록된 값만 선택합니다. 등록은 실제 장비 감지를 뜻하지 않으며, 새 연결은 고정 경로와 필요한 Pod 장치 마운트를 검증한 뒤 Git 배포 경로에 추가해야 합니다.</p>
+                  <p class="management-runtime-hint">USB·I²C 경로는 노드에서 탐색되고, MQTT 같은 네트워크 주소는 이 화면에서 입력합니다. 임의 컨테이너 이미지는 실행하지 않으며 검증된 프로토콜 패키지만 자동 설치합니다.</p>
                   <div class="management-step-actions">
                     <button type="button" class="management-primary-action" data-management-next-step>다음: 디바이스 정보</button>
                   </div>
@@ -776,7 +773,7 @@
                   <div class="management-step-head">
                     <span>3단계</span>
                     <h4 id="managementStep3Title">디바이스 프로필 선택</h4>
-                    <p>Core Metadata에 실제 등록된 프로필 중 하나를 선택합니다.</p>
+                    <p>프로토콜 패키지의 기본 프로필은 연결할 때 자동 등록됩니다. 필요한 경우 기존 프로필을 선택할 수 있습니다.</p>
                   </div>
                   <div class="management-form-grid">
                     <label class="management-field-wide">
@@ -806,7 +803,7 @@
                   <div class="management-step-head">
                     <span>4단계</span>
                     <h4 id="managementStep4Title">등록 내용 검증 및 연결</h4>
-                    <p>실제 변경 전에 런타임 재사용과 EdgeX 등록 계획을 확인합니다.</p>
+                    <p>버튼 한 번으로 계획을 검증하고, Device Service 준비부터 첫 이벤트 확인까지 실행합니다.</p>
                   </div>
 
                   <dl class="management-review-grid">
@@ -848,8 +845,7 @@
                   <div class="management-apply-row">
                     <button type="button" data-management-previous-step>이전</button>
                     <div class="management-buttons">
-                      <button id="managementValidate" type="button">연결 검증</button>
-                      <button id="managementApply" type="button" class="management-primary-action" disabled>디바이스 연결</button>
+                      <button id="managementApply" type="button" class="management-primary-action">검증하고 연결</button>
                     </div>
                   </div>
                 </section>
@@ -1105,6 +1101,6 @@
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
     <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
+    <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
   </body>
 </html>

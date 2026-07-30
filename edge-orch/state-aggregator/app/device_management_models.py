@@ -30,6 +30,7 @@ class CatalogField(ManagementModel):
     const: Any | None = None
     options: list[Any] = Field(default_factory=list)
     pattern: str | None = None
+    scope: Literal["device", "runtime"] = "device"
 
 
 class DeviceResourceProperties(ManagementModel):
@@ -82,6 +83,19 @@ class ProfileCapabilities(ManagementModel):
     value_types: list[str]
     read_write: list[Literal["R", "W", "RW"]]
     templates: list[ProfileTemplate]
+
+
+class BundledProfile(ManagementModel):
+    name: str = Field(
+        min_length=1,
+        max_length=255,
+        pattern=r"^[A-Za-z0-9._~-]+$",
+    )
+    selector_value: str = Field(min_length=1, max_length=255)
+    description: str = Field(min_length=1, max_length=1000)
+    manufacturer: str = Field(min_length=1, max_length=255)
+    model: str = Field(min_length=1, max_length=255)
+    labels: list[str] = Field(default_factory=list, max_length=32)
 
 
 class HardwareBinding(ManagementModel):
@@ -155,11 +169,14 @@ class AdapterDefinition(ManagementModel):
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)
     profile_capabilities: ProfileCapabilities | None = None
+    bundled_profiles: list[BundledProfile] = Field(default_factory=list)
     runtime: RuntimeCapability = Field(default_factory=RuntimeCapability)
 
     @model_validator(mode="after")
     def enforce_binding_contract(self) -> "AdapterDefinition":
-        field_names = {item.name for item in self.fields}
+        field_names = {
+            item.name for item in self.fields if item.scope == "device"
+        }
         policy = self.runtime.reuse_policy
         policy_fields = [*policy.binding_fields, *policy.route_fields]
         unknown = sorted(set(policy_fields) - field_names)
@@ -168,7 +185,9 @@ class AdapterDefinition(ManagementModel):
                 f"reuse policy references unknown protocol fields: {', '.join(unknown)}"
             )
         binding_field_set = set(policy.binding_fields)
-        binding_identities: set[tuple[tuple[str, str], ...]] = set()
+        binding_identities: set[
+            tuple[str, tuple[tuple[str, str], ...]]
+        ] = set()
         for binding in self.runtime.hardware_bindings:
             property_names = set(binding.protocol_properties)
             if property_names != binding_field_set:
@@ -176,13 +195,34 @@ class AdapterDefinition(ManagementModel):
                     f"hardware binding {binding.binding_id!r} protocol properties "
                     "must exactly match reuse policy binding fields"
                 )
-            identity = tuple(
-                (name, repr(binding.protocol_properties[name]))
-                for name in policy.binding_fields
+            identity = (
+                binding.node_name,
+                tuple(
+                    (name, repr(binding.protocol_properties[name]))
+                    for name in policy.binding_fields
+                ),
             )
             if identity in binding_identities:
                 raise ValueError("hardware binding protocol identities must be unique")
             binding_identities.add(identity)
+        if self.bundled_profiles and self.profile_capabilities is None:
+            raise ValueError(
+                "bundled profiles require profileCapabilities"
+            )
+        profile_names = [item.name for item in self.bundled_profiles]
+        if len(profile_names) != len(set(profile_names)):
+            raise ValueError("bundled profile names must be unique")
+        selector_values = {
+            item.selector_value
+            for item in (self.profile_capabilities.templates if self.profile_capabilities else [])
+        }
+        if any(
+            item.selector_value not in selector_values
+            for item in self.bundled_profiles
+        ):
+            raise ValueError(
+                "bundled profile selectorValue has no profile template"
+            )
         return self
 
 
@@ -347,6 +387,7 @@ class AdapterStatusView(ManagementModel):
     reason: str | None = None
     fields: list[CatalogField] = Field(default_factory=list)
     profile_capabilities: ProfileCapabilities | None = None
+    bundled_profiles: list[BundledProfile] = Field(default_factory=list)
     runtime: RuntimeCapability = Field(default_factory=RuntimeCapability)
 
 

@@ -1509,10 +1509,19 @@ function connectionApplyButtonView(validation = null, operation = null, adapterA
       title: "EdgeX 등록과 첫 Event 검증이 완료되었습니다. 다른 연결을 등록하려면 입력값을 변경하세요.",
     };
   }
+  if (operation?.status === "FAILED" || operation?.status === "COMPENSATED") {
+    return {
+      disabled: !adapterApplicable,
+      label: "연결 재시도",
+      title: "입력값을 다시 검증한 뒤 연결을 재시도합니다.",
+    };
+  }
   return {
-    disabled: !(validation?.valid && adapterApplicable),
-    label: "디바이스 연결",
-    title: "",
+    disabled: !adapterApplicable,
+    label: validation?.valid ? "연결 실행" : "검증하고 연결",
+    title: adapterApplicable
+      ? "검증, Device Service 준비, EdgeX 등록, 첫 Event 확인을 순서대로 실행합니다."
+      : "선택한 프로토콜 패키지는 현재 연결할 수 없습니다.",
   };
 }
 
@@ -3410,41 +3419,83 @@ function renderProtocolFields(documentRef = document) {
     }
     return;
   }
-  (adapter.fields || []).forEach((field) => {
-    const label = documentRef.createElement("label");
-    const caption = documentRef.createElement("span");
-    caption.textContent = MANAGEMENT_LABELS.protocolField[field.name]
-      || field.label
-      || field.name;
-    let input;
-    if (field.type === "enum") {
-      input = documentRef.createElement("select");
-      (field.options || []).forEach((value) => {
-        const option = documentRef.createElement("option");
-        option.value = String(value);
-        option.textContent = String(value);
-        input.appendChild(option);
-      });
-    } else {
-      input = documentRef.createElement("input");
-      input.type = field.type === "integer" ? "number" : "text";
-    }
-    input.dataset.protocolField = field.name;
-    input.dataset.protocolType = field.type;
-    input.required = Boolean(field.required);
-    const bindingValue = bindingProtocolValue(field, binding);
-    if (bindingValue.value !== null && bindingValue.value !== undefined) {
-      input.value = String(bindingValue.value);
-    }
-    if (bindingValue.locked) {
-      input.readOnly = true;
-      input.setAttribute("aria-readonly", "true");
-    }
-    label.append(caption, input);
-    container?.appendChild(label);
+  [
+    {
+      scope: "runtime",
+      legend: "Device Service 연결",
+      description: "브로커·엔드포인트처럼 Device Service 인스턴스가 공유하는 설정입니다.",
+    },
+    {
+      scope: "device",
+      legend: "센서 디바이스 매핑",
+      description: "이 장비의 식별자, 리소스, 토픽 같은 EdgeX Device 설정입니다.",
+    },
+  ].forEach(({scope, legend, description}) => {
+    const fields = (adapter.fields || []).filter(
+      (field) => (field.scope || "device") === scope,
+    );
+    if (!fields.length) return;
+    const fieldset = documentRef.createElement("fieldset");
+    fieldset.className = "management-protocol-fieldset";
+    appendTextElement(fieldset, "legend", "", legend);
+    appendTextElement(fieldset, "p", "", description);
+    const grid = documentRef.createElement("div");
+    grid.className = "management-form-grid";
+    fields.forEach((field) => {
+      const label = documentRef.createElement("label");
+      if (["Broker", "IncomingTopic", "CommandTopic"].includes(field.name)) {
+        label.className = "management-field-wide";
+      }
+      const caption = documentRef.createElement("span");
+      caption.textContent = MANAGEMENT_LABELS.protocolField[field.name]
+        || field.label
+        || field.name;
+      let input;
+      if (field.type === "enum") {
+        input = documentRef.createElement("select");
+        (field.options || []).forEach((value) => {
+          const option = documentRef.createElement("option");
+          option.value = String(value);
+          option.textContent = String(value);
+          input.appendChild(option);
+        });
+      } else {
+        input = documentRef.createElement("input");
+        input.type = field.type === "integer" ? "number" : "text";
+      }
+      input.dataset.protocolField = field.name;
+      input.dataset.protocolType = field.type;
+      input.dataset.protocolScope = field.scope || "device";
+      input.required = Boolean(field.required);
+      if (["Broker", "IncomingTopic", "CommandTopic"].includes(field.name)) {
+        input.autocomplete = "off";
+        input.spellcheck = false;
+      }
+      const bindingValue = bindingProtocolValue(field, binding);
+      if (bindingValue.value !== null && bindingValue.value !== undefined) {
+        input.value = String(bindingValue.value);
+      }
+      if (bindingValue.locked) {
+        input.readOnly = true;
+        input.setAttribute("aria-readonly", "true");
+      }
+      label.append(caption, input);
+      grid.appendChild(label);
+    });
+    fieldset.appendChild(grid);
+    container?.appendChild(fieldset);
   });
   const applyButton = byId("managementApply", documentRef);
-  if (applyButton) applyButton.disabled = true;
+  if (applyButton) {
+    const view = connectionApplyButtonView(
+      managementState.validation,
+      managementState.operation,
+      adapterCanApply(adapter),
+    );
+    applyButton.disabled = view.disabled;
+    applyButton.textContent = view.label;
+    applyButton.title = view.title;
+  }
   const adapterNote = byId("managementAdapterNote", documentRef);
   if (adapterNote) {
     adapterNote.textContent = adapterCanApply(adapter)
@@ -3461,7 +3512,9 @@ function renderProtocolFields(documentRef = document) {
 
 function collectProtocolProperties(documentRef = document) {
   const properties = {};
-  documentRef.querySelectorAll("[data-protocol-field]").forEach((input) => {
+  documentRef.querySelectorAll(
+    '[data-protocol-field][data-protocol-scope="device"]',
+  ).forEach((input) => {
     const name = input.dataset.protocolField;
     const value = input.dataset.protocolType === "integer"
       ? Number.parseInt(input.value, 10)
@@ -3469,6 +3522,21 @@ function collectProtocolProperties(documentRef = document) {
     properties[name] = value;
   });
   return properties;
+}
+
+
+function collectRuntimeSettings(documentRef = document) {
+  const settings = {};
+  documentRef.querySelectorAll(
+    '[data-protocol-field][data-protocol-scope="runtime"]',
+  ).forEach((input) => {
+    const name = input.dataset.protocolField;
+    const value = input.dataset.protocolType === "integer"
+      ? Number.parseInt(input.value, 10)
+      : input.value.trim();
+    settings[name] = value;
+  });
+  return settings;
 }
 
 
@@ -3747,6 +3815,14 @@ function renderProfileSelectionHint(documentRef = document) {
   const selected = managementState.profiles.find(
     (profile) => profile.name === select?.value,
   );
+  const bundled = (selectedAdapter()?.bundledProfiles || []).find(
+    (profile) => profile.name === select?.value,
+  );
+  if (!selected && bundled) {
+    hint.textContent = `${bundled.manufacturer} · ${bundled.model} · 연결 시 검증된 기본 프로필 자동 등록`;
+    hint.dataset.status = "selected";
+    return;
+  }
   if (!selected) {
     hint.textContent = managementState.profiles.length
       ? "등록할 디바이스 프로필을 선택하세요."
@@ -3770,6 +3846,12 @@ function renderRegistrationProfileOptions(
   if (!select) return;
   const previous = preferredName || select.value;
   const groups = profileSelectionGroups(managementState.profiles);
+  const adapter = selectedAdapter();
+  const bundledProfiles = (adapter?.bundledProfiles || []).filter(
+    (profile) => !managementState.profiles.some(
+      (existing) => existing.name === profile.name,
+    ),
+  );
   clearElement(select);
 
   const placeholder = documentRef.createElement("option");
@@ -3778,6 +3860,18 @@ function renderRegistrationProfileOptions(
     ? "프로필 목록을 불러오지 못했습니다"
     : "디바이스 프로필 선택";
   select.appendChild(placeholder);
+
+  if (bundledProfiles.length) {
+    const group = documentRef.createElement("optgroup");
+    group.label = "프로토콜 패키지 기본 프로필";
+    bundledProfiles.forEach((profile) => {
+      const option = documentRef.createElement("option");
+      option.value = profile.name;
+      option.textContent = `${profile.name} · 연결 시 자동 등록`;
+      group.appendChild(option);
+    });
+    select.appendChild(group);
+  }
 
   [
     ["웹에서 만든 프로필", groups.managed],
@@ -3795,11 +3889,17 @@ function renderRegistrationProfileOptions(
     select.appendChild(group);
   });
 
-  if (managementState.profiles.some((profile) => profile.name === previous)) {
+  if (
+    managementState.profiles.some((profile) => profile.name === previous)
+    || bundledProfiles.some((profile) => profile.name === previous)
+  ) {
     select.value = previous;
+  } else if (bundledProfiles.length === 1) {
+    select.value = bundledProfiles[0].name;
   }
   select.disabled = Boolean(
-    managementState.profileLoadError || !managementState.profiles.length,
+    managementState.profileLoadError
+    || (!managementState.profiles.length && !bundledProfiles.length),
   );
   renderProfileSelectionHint(documentRef);
 }
@@ -4017,10 +4117,26 @@ function collectOnboardingPayload(documentRef = document) {
   if (!adapter) throw new Error("프로토콜 어댑터를 선택하세요.");
   const protocolProperties = collectProtocolProperties(documentRef);
   const deviceId = protocolProperties.DeviceID || "";
-  const profile = {
-    mode: "existing",
-    name: byId("managementProfileName", documentRef).value.trim(),
-  };
+  const profileName = byId("managementProfileName", documentRef).value.trim();
+  const bundledProfile = (adapter.bundledProfiles || []).find(
+    (item) => item.name === profileName,
+  );
+  const profileExists = managementState.profiles.some(
+    (item) => item.name === profileName,
+  );
+  const profile = bundledProfile && !profileExists
+    ? {
+      mode: "create",
+      name: bundledProfile.name,
+      description: bundledProfile.description,
+      manufacturer: bundledProfile.manufacturer,
+      model: bundledProfile.model,
+      labels: bundledProfile.labels || [],
+    }
+    : {
+      mode: "existing",
+      name: profileName,
+    };
   const tags = {};
   if (deviceId) tags.physicalDeviceId = deviceId;
   const selectedNode = byId("managementTargetNode", documentRef)?.value || adapter.nodeName;
@@ -4042,12 +4158,23 @@ function collectOnboardingPayload(documentRef = document) {
 
 function collectConnectionPayload(documentRef = document) {
   const payload = collectOnboardingPayload(documentRef);
+  return connectionOnboardingPayload(payload, {
+    mode: byId("managementRuntimeMode", documentRef).value,
+    targetNode: byId("managementTargetNode", documentRef).value,
+    hardwareBindingId: byId("managementHardwareBinding", documentRef).value,
+    settings: collectRuntimeSettings(documentRef),
+  });
+}
+
+
+function connectionOnboardingPayload(payload, runtime) {
   return {
     ...payload,
     runtime: {
-      mode: byId("managementRuntimeMode", documentRef).value,
-      targetNode: byId("managementTargetNode", documentRef).value,
-      hardwareBindingId: byId("managementHardwareBinding", documentRef).value,
+      mode: runtime.mode,
+      targetNode: runtime.targetNode,
+      hardwareBindingId: runtime.hardwareBindingId,
+      settings: {...(runtime.settings || {})},
     },
   };
 }
@@ -4129,7 +4256,7 @@ function renderManagementValidation(result, documentRef = document) {
   }
   renderRegistrationFeedback(
     result?.valid
-      ? "연결 검증을 통과했습니다. 실행 계획을 확인한 뒤 디바이스 연결을 누르세요."
+      ? "연결 검증을 통과했습니다. Device Service와 EdgeX 등록을 계속 진행합니다."
       : "연결 검증에 실패했습니다. 실행 계획의 오류 항목을 수정하세요.",
     {status: result?.valid ? "success" : "error", documentRef},
   );
@@ -5147,10 +5274,9 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderAdapterOptions(documentRef);
     renderRuntimeSelection(documentRef);
     const modeSelect = byId("managementRuntimeMode", documentRef);
-    if (modeSelect) {
-      modeSelect.value = adapter.status === "installable" ? "deploy" : "reuse";
-    }
+    if (modeSelect) modeSelect.value = "auto";
     renderProtocolFields(documentRef);
+    renderRegistrationProfileOptions(documentRef);
     renderRegistrationReview(documentRef);
     clearElement(byId("managementValidation", documentRef));
     setManagementView("register", documentRef);
@@ -5187,6 +5313,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     managementState.operation = null;
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
+    renderRegistrationProfileOptions(documentRef);
     renderRegistrationReview(documentRef);
     const validation = byId("managementValidation", documentRef);
     clearElement(validation);
@@ -5214,6 +5341,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderManagedDevices(documentRef);
     renderRuntimeSelection(documentRef);
     renderProtocolFields(documentRef);
+    renderRegistrationProfileOptions(documentRef);
     renderManualNodeOptions(documentRef);
     clearElement(byId("managementValidation", documentRef));
     setSelectedPatchDevice("", documentRef);
@@ -5231,7 +5359,16 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
     renderConnectionGuidance(documentRef);
     renderRegistrationReview(documentRef);
     const applyButton = byId("managementApply", documentRef);
-    if (applyButton) applyButton.disabled = true;
+    if (applyButton) {
+      const view = connectionApplyButtonView(
+        null,
+        null,
+        adapterCanApply(selectedAdapter()),
+      );
+      applyButton.disabled = view.disabled;
+      applyButton.textContent = view.label;
+      applyButton.title = view.title;
+    }
     renderRegistrationFeedback("물리 연결을 변경했습니다. 다시 검증해야 합니다.", {
       status: "warning",
       documentRef,
@@ -5240,14 +5377,32 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
   byId("managementRuntimeMode", documentRef)?.addEventListener("change", () => {
     managementState.validation = null;
     const applyButton = byId("managementApply", documentRef);
-    if (applyButton) applyButton.disabled = true;
+    if (applyButton) {
+      const view = connectionApplyButtonView(
+        null,
+        null,
+        adapterCanApply(selectedAdapter()),
+      );
+      applyButton.disabled = view.disabled;
+      applyButton.textContent = view.label;
+      applyButton.title = view.title;
+    }
   });
   byId("managementProfileName", documentRef)?.addEventListener("change", () => {
     managementState.validation = null;
     renderProfileSelectionHint(documentRef);
     renderRegistrationReview(documentRef);
     const applyButton = byId("managementApply", documentRef);
-    if (applyButton) applyButton.disabled = true;
+    if (applyButton) {
+      const view = connectionApplyButtonView(
+        null,
+        null,
+        adapterCanApply(selectedAdapter()),
+      );
+      applyButton.disabled = view.disabled;
+      applyButton.textContent = view.label;
+      applyButton.title = view.title;
+    }
     renderRegistrationFeedback("프로필을 선택했습니다. 연결 호환성을 검증하세요.", {
       status: "ready",
       documentRef,
@@ -5648,6 +5803,7 @@ if (typeof module !== "undefined") {
     canPatchSelectedDevice,
     connectionStatusView,
     connectionApplyButtonView,
+    connectionOnboardingPayload,
     createManagementProfile,
     createManualCandidate,
     createManagementConnection,

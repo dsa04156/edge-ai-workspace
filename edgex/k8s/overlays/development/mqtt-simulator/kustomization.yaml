@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../base/mqtt-simulator
+
+patches:
+  - target:
+      kind: Deployment
+      name: edge-mqtt-simulator
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: etri-dev0001-jetorn
+  - target:
+      kind: Deployment
+      name: edge-mqtt-temperature-publisher
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: etri-dev0001-jetorn

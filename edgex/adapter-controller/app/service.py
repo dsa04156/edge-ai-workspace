@@ -167,6 +167,8 @@ class AdapterControllerService:
                         **dict(existing_spec.get("edgeX") or {}),
                         "serviceName": plan.service_name,
                     },
+                    "runtimeSettings": request.plan.settings,
+                    "settingsHash": plan.settings_hash,
                     "requestRef": request.request_ref.model_dump(
                         by_alias=True
                     ),
@@ -180,6 +182,7 @@ class AdapterControllerService:
             template,
             request.request_ref,
             namespace=self.namespace,
+            runtime_settings=request.plan.settings,
         )
         persisted = self.kube.apply_runtime(resource)
         return self._reconcile_and_observe(persisted)
@@ -495,6 +498,7 @@ class AdapterControllerService:
                     or ""
                 ),
             ),
+            settings_hash=spec.get("settingsHash"),
         )
 
     @staticmethod

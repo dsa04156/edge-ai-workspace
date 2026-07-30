@@ -1047,6 +1047,58 @@ body[data-dashboard-page="management"] .side-rail {
   background: rgba(255, 255, 255, 0.018);
 }
 
+.management-automation-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(91, 207, 155, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(91, 207, 155, 0.055);
+}
+
+.management-automation-summary strong {
+  flex: 0 0 auto;
+  color: #8be5bd;
+  font-size: 13px;
+}
+
+.management-automation-summary span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.management-protocol-groups {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.management-protocol-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.management-protocol-fieldset legend {
+  padding: 0 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.management-protocol-fieldset > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .management-runtime-hint {
   margin: 14px 0 0;
   color: var(--muted);
@@ -1838,6 +1890,10 @@ body[data-dashboard-page="management"] .side-rail {
   .management-flow-head small {
     justify-content: flex-start;
     text-align: left;
+  }
+
+  .management-automation-summary {
+    flex-direction: column;
   }
 
   .management-form-grid,

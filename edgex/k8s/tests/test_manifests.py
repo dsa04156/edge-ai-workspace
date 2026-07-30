@@ -70,6 +70,32 @@ def test_operational_entrypoint_keeps_central_edgex_without_device_mqtt() -> Non
     assert not {name for name in workload_names if "device-mqtt" in name}
 
 
+def test_mqtt_development_fixture_is_pinned_and_node_scoped() -> None:
+    resources = _named(
+        _render(K8S_DIR / "overlays/development/mqtt-simulator")
+    )
+    broker = resources[("Deployment", "edge-mqtt-simulator")]
+    publisher = resources[("Deployment", "edge-mqtt-temperature-publisher")]
+    service = resources[("Service", "edge-mqtt-simulator")]
+
+    assert service["spec"]["type"] == "ClusterIP"
+    for workload in (broker, publisher):
+        pod = _pod_spec(workload)
+        container = _container(workload)
+        assert pod["nodeSelector"] == {
+            "kubernetes.io/hostname": "etri-dev0001-jetorn"
+        }
+        assert container["image"] == (
+            "eclipse-mosquitto:2.0.22@sha256:"
+            "212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c"
+        )
+        assert container["securityContext"]["privileged"] is False
+        assert container["securityContext"]["readOnlyRootFilesystem"] is True
+    assert "incoming/data/mqtt-temperature-sim-001/temperature" in (
+        publisher["spec"]["template"]["spec"]["containers"][0]["args"][0]
+    )
+
+
 def test_obsolete_single_namespace_mqtt_stack_is_removed() -> None:
     obsolete_paths = [
         "namespace.yaml",

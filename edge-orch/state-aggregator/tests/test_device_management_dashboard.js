@@ -21,6 +21,7 @@ const {
   discoveryFilterStatusView,
   normalizeDiscoverySearchTerm,
   connectionApplyButtonView,
+  connectionOnboardingPayload,
   canPatchSelectedDevice,
   connectionStatusView,
   createManagementProfile,
@@ -542,7 +543,7 @@ test("device management uses one overview instead of separate menu tabs", () => 
   assert.match(html, />장비 연결</);
   assert.match(
     html,
-    /id="managementOpenManualCandidate"[^>]*>[\s\S]*?직접 후보 등록/,
+    /class="management-manual-candidate-access" hidden aria-hidden="true"/,
   );
   assert.match(html, /pattern="\[A-Za-z0-9\._~\\-\]\+"/);
   assert.match(javascript, /pattern: "\[A-Za-z0-9\._~\\\\-\]\+"/);
@@ -1578,6 +1579,47 @@ test("connection validate is read-only and apply uses idempotency headers", asyn
 });
 
 
+test("web connection payload carries protocol runtime settings to the controller", () => {
+  const payload = connectionOnboardingPayload(
+    {
+      adapterId: "mqtt",
+      device: {
+        name: "mqtt-temperature-sim-001",
+        protocolProperties: {
+          CommandTopic: "command/mqtt-temperature-sim-001",
+          ResourceName: "temperature",
+        },
+      },
+      profile: {mode: "create", name: "edgeai-mqtt-temperature-v1"},
+    },
+    {
+      mode: "auto",
+      targetNode: "etri-dev0001-jetorn",
+      hardwareBindingId: "jetson-mqtt-network-001",
+      settings: {
+        Broker: "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+        IncomingTopic: "incoming/data/#",
+        Qos: 0,
+      },
+    },
+  );
+
+  assert.deepEqual(payload.runtime, {
+    mode: "auto",
+    targetNode: "etri-dev0001-jetorn",
+    hardwareBindingId: "jetson-mqtt-network-001",
+    settings: {
+      Broker: "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+      IncomingTopic: "incoming/data/#",
+      Qos: 0,
+    },
+  });
+  assert.equal(payload.device.protocolProperties.CommandTopic, (
+    "command/mqtt-temperature-sim-001"
+  ));
+});
+
+
 test("runtime restart and retire use idempotency and exact confirmation", async () => {
   const requests = [];
   const fetchFn = async (url, options) => {
@@ -1714,8 +1756,16 @@ test("completed registration disables duplicate apply until the form changes", (
     connectionApplyButtonView({valid: true}, null, true),
     {
       disabled: false,
-      label: "디바이스 연결",
-      title: "",
+      label: "연결 실행",
+      title: "검증, Device Service 준비, EdgeX 등록, 첫 Event 확인을 순서대로 실행합니다.",
+    },
+  );
+  assert.deepEqual(
+    connectionApplyButtonView(null, null, true),
+    {
+      disabled: false,
+      label: "검증하고 연결",
+      title: "검증, Device Service 준비, EdgeX 등록, 첫 Event 확인을 순서대로 실행합니다.",
     },
   );
 });
@@ -1879,8 +1929,8 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(html, /simple-mode\.css/);
   assert.match(html, /dashboard-responsive\.css\?v=device-taxonomy-20260730/);
   assert.match(html, /operations-dashboard\.css\?v=infrastructure-observability-20260730/);
-  assert.match(html, /device-management\.css\?v=physical-device-groups-20260730/);
-  assert.match(html, /device-management\.js\?v=physical-device-groups-20260730/);
+  assert.match(html, /device-management\.css\?v=web-connection-flow-20260730/);
+  assert.match(html, /device-management\.js\?v=web-connection-flow-20260730/);
   assert.match(html, /class="metric-details"/);
   assert.match(html, /class="service-demo-details"/);
   assert.match(html, /id="contextDetailPanel"/);
@@ -1894,7 +1944,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementDiscoveryTitle">연결 대기</);
   assert.match(
     html,
-    /id="managementOpenManualCandidate"[^>]*>[\s\S]*?직접 후보 등록/,
+    /class="management-manual-candidate-access" hidden aria-hidden="true"/,
   );
   assert.match(html, /service-demo-value-detail/);
   assert.match(html, /id="managementDeviceServiceTitle">수집 서비스</);
@@ -1905,9 +1955,11 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(html, /id="managementRegisterTitle">장비 연결/);
   assert.match(html, /id="managementProfileLibraryTitle">디바이스 프로필/);
   assert.match(html, /id="managementProfileName" required>/);
-  assert.match(html, /연결 프로토콜 · Device Service/);
-  assert.match(html, /Device Service 준비 방식/);
-  assert.match(html, /등록된 물리 연결/);
+  assert.match(html, /프로토콜 패키지/);
+  assert.match(html, /Device Service 자동 처리/);
+  assert.match(html, /id="managementRuntimeMode" type="hidden" value="auto"/);
+  assert.match(html, /네트워크 주소는 이 화면에서 입력/);
+  assert.doesNotMatch(html, /id="managementValidate"/);
   assert.doesNotMatch(html, /승인된 하드웨어 연결/);
   assert.match(html, /id="managedDeviceTitle">등록 장비/);
   assert.match(html, /검증용 센서 디바이스/);

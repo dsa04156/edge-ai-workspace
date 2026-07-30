@@ -110,6 +110,13 @@ class DeviceManagementService:
         ] = OrderedDict()
         self._mutation_lock = asyncio.Lock()
 
+    def validate_runtime_settings(
+        self,
+        adapter_id: str,
+        settings: dict[str, Any],
+    ) -> list[ValidationIssue]:
+        return self.catalog.validate_runtime_settings(adapter_id, settings)
+
     async def list_adapters(self) -> list[AdapterStatusView]:
         services = {
             item.get("name"): item for item in await self.metadata.list_device_services()
@@ -147,6 +154,7 @@ class DeviceManagementService:
                     reason=reason,
                     fields=deepcopy(adapter.fields),
                     profile_capabilities=deepcopy(adapter.profile_capabilities),
+                    bundled_profiles=deepcopy(adapter.bundled_profiles),
                     runtime=deepcopy(adapter.runtime),
                 )
             )

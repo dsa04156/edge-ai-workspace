@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-모델.md</span>
-            <span class="badge">수정: 2026-07-23 15:26</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:40</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -169,6 +169,8 @@
 <p>이 프로젝트는 동적 오케스트레이션 전체를 먼저 완성하는 단계가 아니다. 현재 우선순위는 Jetson Arduino Serial과 Raspberry Pi Sense HAT 직접 I2C → 각 Device Service → Core Data → dashboard 수직 슬라이스와 서비스 데모를 운영 관점에서 설명 가능하게 만드는 것이다.</p>
 <ol><li>EdgeX Device Service가 실제 endpoint를 연결하고 typed Event를 만든다.</li><li>Core Data와 PostgreSQL이 Event/Reading을 저장한다.</li><li>중앙 EdgeX Core Metadata와 Core Data가 inventory·schema·telemetry 권위를 가진다.</li><li>KubeEdge는 엣지 노드와 워크로드만 관리한다.</li><li><code>state-aggregator</code>와 대시보드가 디바이스·서비스·노드·KPI를 함께 보여준다.</li><li><code>sensor-anomaly-demo</code>는 Jetson Local Data API에서 acceleration 3축을 500ms polling하고 같은 <code>origin</code> frame의 online baseline 변화 점수를 제공한다.</li><li>새 장비 연결은 dashboard <code>Device Management</code>가 승인된 Adapter Runtime 재사용/배포와</li></ol>
 <p>EdgeX Profile/Device 등록, 첫 Event 확인을 하나의 operation으로 추적한다.</p>
+<ol><li>검증 protocol package는 웹에서 Runtime/Device 설정을 받고, 기존 Device Service가</li></ol>
+<p>없으면 Controller가 공식 immutable image만 배포한다. 현재 신규 설치 예시는 MQTT 개발 package이며 운영 TLS/auth broker는 별도 승격 대상이다.</p>
 <p>2026-07-21 기존 custom edge Agent/SQLite outbox와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>는 물리 source <code>arduino-001</code>, <code>sensehat-001</code>을 각각 한 번 읽고 기능별 가상 Device 6개씩의 typed Event로 중앙에 저장한다. Device/resource별 최근 10분·최대 10,000 sample의 휘발성 cache와 same-node Local Data API는 제공하지만 offline replay와 durable outbox는 없다. 현재 Flannel에서는 Local Data API의 client label NetworkPolicy가 강제되지 않는다.</p>
 <p>2026-07-22 <code>sensor-anomaly-demo</code>는 <code>virtual-acceleration-{x,y,z}-001</code>을 첫 실제 service binding으로 사용한다. 결과는 raw physical Device가 아니라 derived service output이며 <code>/state/service-demo</code>로 failure-isolated 조회한다. polling은 push stream이 아니고 detector는 학습된 고장 분류기가 아니다. 실제 장치 움직임에 의한 anomaly 시연 전에는 실제 고장 검출 실증으로 표현하지 않는다.</p>
 <p>2026-07-23 Adapter Runtime 관리는 dashboard → state-aggregator BFF → <code>edgex-adapter-controller</code> 경로로 제한했다. Controller는 Git allowlist의 image, target node와 hardware binding만 사용하고, 기존 Argo Serial/I2C runtime은 조회·재사용한다. Controller가 만든 runtime만 재시작·consumer-safe 퇴역할 수 있다. 물리 inventory/state/telemetry 권위는 계속 EdgeX이고 KubeEdge Device CRD나 EdgeMesh를 변경하지 않는다.</p>

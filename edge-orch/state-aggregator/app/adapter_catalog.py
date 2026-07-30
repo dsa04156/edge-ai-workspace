@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,11 @@ from .device_management_models import (
     ProfileTemplate,
     ValidationIssue,
     matches_pattern,
+)
+
+_SECRET_FIELD_NAME = re.compile(
+    r"(?:password|passwd|token|secret|credential|privatekey)",
+    re.IGNORECASE,
 )
 
 
@@ -68,14 +74,61 @@ class AdapterCatalog:
                 )
             ]
 
-        fields = {field.name: field for field in adapter.fields}
+        fields = {
+            field.name: field
+            for field in adapter.fields
+            if field.scope == "device"
+        }
+        issues = self._validate_fields(fields, properties, prefix="protocol")
+        issues.extend(
+            self._validate_hardware_binding_fields(adapter, properties)
+        )
+        return issues
+
+    def validate_runtime_settings(
+        self,
+        adapter_id: str,
+        settings: dict[str, Any],
+    ) -> list[ValidationIssue]:
+        try:
+            adapter = self.require(adapter_id)
+        except ValueError:
+            return [
+                ValidationIssue(
+                    code="unknown_adapter",
+                    field="adapterId",
+                    message=f"adapter {adapter_id!r} is not in the catalog",
+                )
+            ]
+        if adapter.declared_status != "installed":
+            return [
+                ValidationIssue(
+                    code="unsupported_adapter",
+                    field="adapterId",
+                    message=adapter.reason or f"adapter {adapter_id!r} is unsupported",
+                )
+            ]
+        fields = {
+            field.name: field
+            for field in adapter.fields
+            if field.scope == "runtime"
+        }
+        return self._validate_fields(fields, settings, prefix="runtime")
+
+    @staticmethod
+    def _validate_fields(
+        fields: dict[str, Any],
+        properties: dict[str, Any],
+        *,
+        prefix: str,
+    ) -> list[ValidationIssue]:
         issues: list[ValidationIssue] = []
         for name in sorted(set(properties) - set(fields)):
             issues.append(
                 ValidationIssue(
-                    code="unknown_protocol_field",
+                    code=f"unknown_{prefix}_field",
                     field=name,
-                    message=f"protocol field {name!r} is not allowed",
+                    message=f"{prefix} field {name!r} is not allowed",
                 )
             )
         for name, field in fields.items():
@@ -85,7 +138,7 @@ class AdapterCatalog:
                         ValidationIssue(
                             code="required_field",
                             field=name,
-                            message=f"protocol field {name!r} is required",
+                            message=f"{prefix} field {name!r} is required",
                         )
                     )
                 continue
@@ -95,7 +148,7 @@ class AdapterCatalog:
                     ValidationIssue(
                         code="empty_value",
                         field=name,
-                        message=f"protocol field {name!r} must not be empty",
+                        message=f"{prefix} field {name!r} must not be empty",
                     )
                 )
                 continue
@@ -106,16 +159,27 @@ class AdapterCatalog:
                     ValidationIssue(
                         code="invalid_type",
                         field=name,
-                        message=f"protocol field {name!r} must be an integer",
+                        message=f"{prefix} field {name!r} must be an integer",
                     )
                 )
                 continue
-            if field.type in {"string", "enum"} and not isinstance(value, str):
+            if field.type == "string" and not isinstance(value, str):
                 issues.append(
                     ValidationIssue(
                         code="invalid_type",
                         field=name,
-                        message=f"protocol field {name!r} must be a string",
+                        message=f"{prefix} field {name!r} must be a string",
+                    )
+                )
+                continue
+            if field.type == "enum" and (
+                value is None or isinstance(value, (dict, list))
+            ):
+                issues.append(
+                    ValidationIssue(
+                        code="invalid_type",
+                        field=name,
+                        message=f"{prefix} field {name!r} must be a scalar value",
                     )
                 )
                 continue
@@ -124,7 +188,7 @@ class AdapterCatalog:
                     ValidationIssue(
                         code="constant_mismatch",
                         field=name,
-                        message=f"protocol field {name!r} must equal the installed endpoint value",
+                        message=f"{prefix} field {name!r} must equal the installed endpoint value",
                     )
                 )
             if field.options and value not in field.options:
@@ -132,7 +196,7 @@ class AdapterCatalog:
                     ValidationIssue(
                         code="invalid_option",
                         field=name,
-                        message=f"protocol field {name!r} is not a supported option",
+                        message=f"{prefix} field {name!r} is not a supported option",
                     )
                 )
             if isinstance(value, str) and not matches_pattern(field.pattern, value):
@@ -140,9 +204,17 @@ class AdapterCatalog:
                     ValidationIssue(
                         code="pattern_mismatch",
                         field=name,
-                        message=f"protocol field {name!r} has an invalid format",
+                        message=f"{prefix} field {name!r} has an invalid format",
                     )
                 )
+        return issues
+
+    def _validate_hardware_binding_fields(
+        self,
+        adapter: Any,
+        properties: dict[str, Any],
+    ) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
         binding_fields = adapter.runtime.reuse_policy.binding_fields
         bindings = adapter.runtime.hardware_bindings
         if binding_fields and bindings and not any(
@@ -239,6 +311,10 @@ class AdapterCatalog:
         adapter = self.require(adapter_id)
         secret_fields = {field.name for field in adapter.fields if field.secret}
         return {
-            name: "***" if name in secret_fields else value
+            name: (
+                "***"
+                if name in secret_fields or _SECRET_FIELD_NAME.search(name)
+                else value
+            )
             for name, value in properties.items()
         }

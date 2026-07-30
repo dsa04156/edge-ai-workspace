@@ -77,10 +77,13 @@ class AdapterControllerClient:
             ) from exc
 
     async def plan_runtime(self, request: RuntimePlanRequest) -> RuntimePlan:
+        body = request.model_dump(by_alias=True, exclude_none=True)
+        if not request.settings:
+            body.pop("settings", None)
         payload = await self._request(
             "POST",
             "/internal/v1/runtimes/plan",
-            body=request.model_dump(by_alias=True, exclude_none=True),
+            body=body,
         )
         return self._parse_model(RuntimePlan, payload, "runtime plan")
 
@@ -89,10 +92,13 @@ class AdapterControllerClient:
         name: str,
         request: RuntimeCreateRequest,
     ) -> RuntimeObservation:
+        body = request.model_dump(by_alias=True, exclude_none=True)
+        if not request.plan.settings:
+            body.get("plan", {}).pop("settings", None)
         payload = await self._request(
             "PUT",
             f"/internal/v1/runtimes/{quote(name, safe='')}",
-            body=request.model_dump(by_alias=True, exclude_none=True),
+            body=body,
         )
         return self._parse_model(RuntimeObservation, payload, "runtime apply")
 

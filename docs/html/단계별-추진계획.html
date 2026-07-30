@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-07-30 16:59</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:39</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -188,7 +188,7 @@
 <p>2026-07-30 대시보드의 AI Pipeline/Workflow Builder와 전용 <code>POST /state/device-source-bindings/sample</code> API를 제거했다. 실행 기능이 없는 browser-local 미리보기가 현재 운영 기능처럼 보이는 혼선을 없애기 위한 정리다. Device Service의 Local Data API와 ring cache는 고정 <code>sensor-anomaly-demo</code>가 같은 노드에서 직접 읽는 데이터 경로로 유지한다. Workflow 실행, Kubernetes mutation, EdgeX metadata mutation과 command는 계속 현재 범위에서 제외한다.</p>
 <p>실제 증가 raw origin의 live inference/central readback과 browser panel은 통과했다. 2026-07-22 Serial USB driver detach/rebind와 Sense HAT reader process 종료로 두 Device Service의 <code>DOWN → UP</code>, 새 local origin과 중앙 Event 재개도 확인했다. 중앙 MessageBus 중단 중 local ring과 AI service는 계속 동작했지만 미전송 Event는 복구 후 replay되지 않았다. 다음 현장 검증은 실제 장치 움직임 anomaly와 케이블·보드 손분리 시연이다. Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
 <p>2026-07-22에는 중앙 Core Data REST → PostgreSQL 저장 기준선을 추가했다. 1,000개 합성 identity가 각 1분에 한 번 보내는 약 16.7 events/s는 1,000/1,000 저장과 p95 16.17ms로 통과했다. 반면 1,000개 × 1Hz는 현재 Core Data resource limit 300m CPU/256Mi memory에서 OOMKilled로 실패했다. 따라서 “1,000개”라는 inventory 수만으로 batch 저장을 먼저 도입하지 않고 실제 device별 Hz와 resource 수를 산정한다. 다음 저장 성능 gate는 100/250/500 events/s 단계별 시험, Core Data memory profile·right-sizing, PostgreSQL retention/index 관측, Device Service → MessageBus → Core Data 전체 경로 시험 순서다. 1Hz는 이 gate 전까지 운영 지원 처리량으로 주장하지 않는다.</p>
-<p>2026-07-23에는 <code>Device Management</code>를 Adapter Runtime과 EdgeX Device 연결 관리 경로로 승격했다. <code>state-aggregator</code>는 브라우저용 BFF와 connection saga를 담당하고 Kubernetes 쓰기 권한은 갖지 않는다. 별도 <code>edgex-adapter-controller</code>가 <code>edgex-edge</code> namespace의 <code>AdapterRuntime</code> CR, Deployment, Service, ConfigMap과 NetworkPolicy만 관리한다. 현재 Serial/I2C Argo runtime은 조회·재사용만 하며, 신규 배포는 Git allowlist의 검증 완료 template와 빈 hardware binding이 있을 때만 허용한다. Modbus/OPC-UA/MQTT/RTSP는 여전히 미검증이다. 이 기능은 Workflow Builder, runtime migration 또는 동적 offloading을 구현한 것이 아니다.</p>
+<p>2026-07-23에는 <code>Device Management</code>를 Adapter Runtime과 EdgeX Device 연결 관리 경로로 승격했다. <code>state-aggregator</code>는 브라우저용 BFF와 connection saga를 담당하고 Kubernetes 쓰기 권한은 갖지 않는다. 별도 <code>edgex-adapter-controller</code>가 <code>edgex-edge</code> namespace의 <code>AdapterRuntime</code> CR, Deployment, Service, ConfigMap과 NetworkPolicy만 관리한다. 현재 Serial/I2C Argo runtime은 조회·재사용만 하며, 신규 배포는 Git allowlist의 검증 완료 template와 빈 hardware binding이 있을 때만 허용한다. MQTT는 공식 immutable <code>device-mqtt:4.0.2</code>, 제한된 network binding/runtime setting과 bundled 온도 Profile을 묶은 개발 package로 웹 연결 자동화 범위에 승격했다. Modbus는 exact simulator binding만 개발 검증됐고 실제 PLC, 운영 MQTT TLS/auth, OPC-UA와 RTSP는 여전히 미검증이다. 이 기능은 Workflow Builder, runtime migration 또는 동적 offloading을 구현한 것이 아니다.</p>
 <p>Adapter Runtime·Device 연결 관리의 현재 완료 gate:</p>
 <ol><li>Runtime 조회와 plan이 exact adapter/node/hardware binding, KubeEdge node Ready와 EdgeX</li></ol>
 <p>Device Service readback을 함께 확인한다.</p>
@@ -202,8 +202,8 @@
 <p>자동 테스트한다.</p>
 <ol><li>I2C는 allowlist bus/address의 단일·복합 identity register와 mock test가 있고 bus</li></ol>
 <p>파일만으로 candidate를 만들지 않는다. 2026-07-28 dev0003 Sense HAT v1의 네 chip identity, 후보 승인, 기존 Runtime/Profile/Device 재사용과 신규 first Event를 live 검증했다. 다른 I2C 모델은 별도 gate다.</p>
-<ol><li>MQTT는 자기등록 schema parser까지만 구현했고 subscriber는 없다.</li></ol>
-<p>Modbus/OPC-UA/ONVIF는 <code>not implemented</code>를 명시하며 가짜 후보를 반환하지 않는다.</p>
+<ol><li>MQTT discovery는 자기등록 schema parser까지만 구현했고 subscriber는 없다. 별도의</li></ol>
+<p>웹 connection 경로는 운영자가 허용 broker와 Device 정보를 입력해 검증된 Device Service/Profile/Device/first Event를 처리한다. Modbus/OPC-UA/ONVIF scanner는 <code>not implemented</code>를 명시하며 가짜 후보를 반환하지 않는다.</p>
 <ol><li><code>present</code>/<code>stale</code>/<code>declared</code>는 후보 evidence이며 EdgeX Device inventory,</li></ol>
 <p><code>operatingState</code>, 통신 성공과 first Event를 대신하지 않는다.</p>
 <ol><li>상태 머신은 <code>DETECTED</code>부터 <code>EVENT_CONFIRMED</code>까지 임의 점프를 거부하고 실패·인증</li></ol>

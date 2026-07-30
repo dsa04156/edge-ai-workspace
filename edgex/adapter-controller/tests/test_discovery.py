@@ -313,7 +313,7 @@ def test_manual_mqtt_candidate_rejects_secrets_and_can_be_deleted(registry):
 
     assert created.source == "manual"
     assert created.presence == "declared"
-    assert created.package_state == "verification-required"
+    assert created.package_state == "binding-required"
     assert deleted.candidate_id == created.candidate_id
     assert service.list_inventory().candidates == []
 

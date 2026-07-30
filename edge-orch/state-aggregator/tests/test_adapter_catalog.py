@@ -38,7 +38,7 @@ def test_catalog_exposes_only_live_validated_adapters_as_installed(catalog):
         "sensehat-raspi": "installed",
         "modbus": "unsupported",
         "opcua": "unsupported",
-        "mqtt": "unsupported",
+        "mqtt": "installed",
         "rtsp": "unsupported",
     }
 
@@ -103,12 +103,51 @@ def test_catalog_exposes_serial_reuse_and_approved_deployment_bindings(catalog):
 
 
 def test_unverified_protocols_are_visible_but_never_deployable(catalog):
-    for adapter_id in ("modbus", "opcua", "mqtt", "rtsp"):
+    for adapter_id in ("modbus", "opcua", "rtsp"):
         adapter = catalog.require(adapter_id)
         assert adapter.runtime.mode == "unavailable"
         assert adapter.runtime.verification_state == "unverified"
         assert adapter.runtime.deployment_enabled is False
         assert adapter.runtime.hardware_bindings == []
+
+
+def test_mqtt_is_a_web_configurable_verified_runtime(catalog):
+    adapter = catalog.require("mqtt")
+
+    assert adapter.runtime.mode == "managed-template"
+    assert adapter.runtime.verification_state == "template-verified"
+    assert adapter.runtime.deployment_enabled is True
+    assert {
+        field.name for field in adapter.fields if field.scope == "runtime"
+    } == {"Broker", "IncomingTopic", "Qos"}
+    assert {
+        field.name for field in adapter.fields if field.scope == "device"
+    } == {"CommandTopic", "ResourceName"}
+    assert catalog.validate_runtime_settings(
+        "mqtt",
+        {
+            "Broker": "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+            "IncomingTopic": "incoming/data/#",
+            "Qos": 0,
+        },
+    ) == []
+    assert catalog.validate_protocol(
+        "mqtt",
+        {
+            "CommandTopic": "command/mqtt-temperature-sim-001",
+            "ResourceName": "temperature",
+        },
+    ) == []
+    profile = catalog.profile_template(
+        "mqtt",
+        {
+            "CommandTopic": "command/mqtt-temperature-sim-001",
+            "ResourceName": "temperature",
+        },
+    )
+    assert [resource.name for resource in profile.device_resources] == [
+        "temperature"
+    ]
 
 
 def test_catalog_rejects_duplicate_hardware_binding_identity():
@@ -245,11 +284,11 @@ def test_sensehat_profile_template_is_derived_from_resource_group(catalog):
 
 
 def test_unsupported_adapter_cannot_validate_or_build_profile(catalog):
-    errors = catalog.validate_protocol("mqtt", {})
+    errors = catalog.validate_protocol("opcua", {})
 
     assert [item.code for item in errors] == ["unsupported_adapter"]
     with pytest.raises(ValueError, match="unsupported"):
-        catalog.profile_template("mqtt", {})
+        catalog.profile_template("opcua", {})
 
 
 def test_catalog_redacts_fields_marked_secret(catalog):

@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-07-30 14:35</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:42</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -167,7 +167,7 @@
 <h2 id="요약">요약</h2>
 <p>Serial은 PTY 후보 발견부터 승인, 검증 Runtime 재사용, EdgeX Profile/Device idempotent 등록, Core Data 첫 Event 확인까지 자동화된 코드와 fake backend 통합 테스트가 있다. 2026-07-24 실제 Jetson Arduino stable 후보를 운영자가 승인했고 기존 Device Service Runtime을 재사용해 aggregate Device <code>arduino-75035303230351e0d171-57fc03a907</code>의 <code>EVENT_CONFIRMED</code>와 Core Data Event까지 live 확인했다.</p>
 <p>I2C는 allowlist bus/address와 여러 read-only identity register를 하나의 물리 보드 identity로 묶는 composite probe까지 구현했다. 2026-07-28 <code>etri-dev0003-raspi5</code>의 Sense HAT v1에서 <code>0x1c=0x3d</code>, <code>0x5c=0xbd</code>, <code>0x5f=0xbc</code>, <code>0x6a=0x68</code>을 확인해 후보를 승인했고, 기존 <code>device-sensehat-raspi</code>, Profile <code>etri-sensehat-gyroscope</code>, Device <code>imu-sensehat-gyroscope-01</code>을 재사용한 뒤 신규 Core Data Event로 <code>EVENT_CONFIRMED</code>까지 live 검증했다. 이어서 등록 연결을 decommission하고 다음 30초 탐색 주기에 같은 candidate ID가 <code>PENDING_APPROVAL</code>로 자동 복귀하는지 확인했으며, 재승인 뒤 다시 <code>EVENT_CONFIRMED</code>가 됐다. 기존 EdgeX Device 13개와 Sense HAT Device 6개는 삭제되거나 중복 생성되지 않았다.</p>
-<p>같은 날 일반 Discovery DaemonSet의 Serial-only passive inventory를 dev0003까지 확장했다. Raspberry Pi에 연결된 CH340 계열 USB Serial 장비를 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>(VID/PID <code>1a86:7523</code>)에서 후보 <code>candidate-fb7190f...</code>로 반복 관측했다. 이후 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser, Controller 배포 template과 MPU6050 6축 Float64 JSON-line 처리를 구현했다. exact 후보 승인부터 Runtime, Profile/Device, first Event까지의 fake backend 통합 테스트는 통과했다. live 승인도 실행했지만 당시 Serial telemetry가 없어 첫 Event timeout으로 <code>FAILED</code>가 됐고 Controller가 자신이 만든 동적 Runtime을 rollback했다. 이후 보드를 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별하고 운영 firmware를 compile·flash해 115200 baud 상태 JSON까지 확인했다. firmware는 MPU6050을 1초마다 재탐색하지만 ESP32의 일반 I2C pin pair와 Raspberry Pi bus 1에서 <code>0x68</code>, <code>0x69</code> 모두 ACK가 없었다. 2026-07-30 MPU6050 실물을 분리했고 후보는 <code>STALE</code>/<code>ignored</code> 감사 이력으로 정리했으며 동적 Runtime은 없는 상태다. Profile/parser/template과 자동 테스트는 재연결 실험을 위한 dormant 지원 코드로 남기되 현재 연결 장비나 완료된 telemetry 경로로 표시하지 않는다. Serial Agent와 I2C Agent가 같은 node를 보고해도 서로의 후보를 <code>STALE</code> 처리하지 않도록 report에 <code>scannedProtocols</code> scope를 추가했고, Sense HAT 후보는 계속 <code>EVENT_CONFIRMED</code>를 유지했다. MQTT는 자기등록 schema parser까지만 구현했으며 subscriber가 없다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 개발용 Modbus endpoint simulator Deployment는 root 운영 render 밖에 남아 있지만 해당 Controller Device Service Runtime은 검증 뒤 퇴역했으며 현재 live EdgeX inventory에는 포함되지 않는다. 이는 개발 simulator 수직 경로의 과거 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
+<p>같은 날 일반 Discovery DaemonSet의 Serial-only passive inventory를 dev0003까지 확장했다. Raspberry Pi에 연결된 CH340 계열 USB Serial 장비를 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>(VID/PID <code>1a86:7523</code>)에서 후보 <code>candidate-fb7190f...</code>로 반복 관측했다. 이후 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser, Controller 배포 template과 MPU6050 6축 Float64 JSON-line 처리를 구현했다. exact 후보 승인부터 Runtime, Profile/Device, first Event까지의 fake backend 통합 테스트는 통과했다. live 승인도 실행했지만 당시 Serial telemetry가 없어 첫 Event timeout으로 <code>FAILED</code>가 됐고 Controller가 자신이 만든 동적 Runtime을 rollback했다. 이후 보드를 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별하고 운영 firmware를 compile·flash해 115200 baud 상태 JSON까지 확인했다. firmware는 MPU6050을 1초마다 재탐색하지만 ESP32의 일반 I2C pin pair와 Raspberry Pi bus 1에서 <code>0x68</code>, <code>0x69</code> 모두 ACK가 없었다. 2026-07-30 MPU6050 실물을 분리했고 후보는 <code>STALE</code>/<code>ignored</code> 감사 이력으로 정리했으며 동적 Runtime은 없는 상태다. Profile/parser/template과 자동 테스트는 재연결 실험을 위한 dormant 지원 코드로 남기되 현재 연결 장비나 완료된 telemetry 경로로 표시하지 않는다. Serial Agent와 I2C Agent가 같은 node를 보고해도 서로의 후보를 <code>STALE</code> 처리하지 않도록 report에 <code>scannedProtocols</code> scope를 추가했고, Sense HAT 후보는 계속 <code>EVENT_CONFIRMED</code>를 유지했다. MQTT 자기등록 subscriber는 아직 없다. 대신 공식 <code>device-mqtt:4.0.2</code> immutable image, 노드별 network binding, allowlist broker/topic/QoS Runtime 설정, Device command topic/resource와 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 묶은 개발용 웹 연결 package를 구현했다. 대시보드의 <code>검증하고 연결</code> 한 번으로 validation, Runtime 재사용/배포, Profile/Device readback과 first Event 확인을 진행한다. anonymous broker/publisher는 root 운영 render 밖의 선택적 development fixture다. 이 경로는 자동 테스트와 manifest render를 통과했으며 실제 클러스터 연결 검증은 아래 실장비/환경 검증 항목에 별도로 표시한다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 개발용 Modbus endpoint simulator Deployment는 root 운영 render 밖에 남아 있지만 해당 Controller Device Service Runtime은 검증 뒤 퇴역했으며 현재 live EdgeX inventory에는 포함되지 않는다. 이는 개발 simulator 수직 경로의 과거 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <p>대시보드는 전역 <code>간편 보기</code>/<code>전체 보기</code> 토글을 제거했다. 기본 화면에는 핵심 상태만 두고 기술 KPI, 서비스 연결 근거, 후보 세부정보와 개별 EdgeX Device는 클릭해 펼친다. 등록 목록은 live Core Metadata의 13개 Device identity를 유지하면서 <code>arduino-001</code>과 <code>sensehat-001</code> 물리 source별 카드로 묶는다. 375px, 768px, 1024px 실제 브라우저 viewport에서 문서 가로 overflow와 잘린 텍스트가 없음을 확인했다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
@@ -305,6 +305,18 @@
 <td>stdlib read-only FC03/FC04 서버, 잘못된 function/address/unit 처리와 개발 Kustomize overlay</td>
 </tr>
 <tr>
+<td>MQTT 웹 연결 package</td>
+<td>digest 고정 공식 <code>device-mqtt:4.0.2</code>, 노드별 network binding, broker URL/topic/QoS Runtime schema, settings hash 기반 재사용 격리, bundled 읽기 전용 온도 Profile, Controller renderer와 connection BFF 전달</td>
+</tr>
+<tr>
+<td>MQTT 개발 fixture</td>
+<td>root 운영 render 밖의 Mosquitto broker와 1초 온도 publisher overlay, non-privileged/read-only root와 Jetson node-scoped manifest</td>
+</tr>
+<tr>
+<td>단일 웹 연결 실행</td>
+<td>Runtime mode를 <code>auto</code>로 숨기고 <code>검증하고 연결</code> 한 번으로 validation 성공 뒤 connection Saga를 이어서 실행. protocol Runtime 설정과 Device 설정을 분리 표시</td>
+</tr>
+<tr>
 <td>Modbus 개발 fixture live 등록</td>
 <td>Unit 2 후보 <code>candidate-91e032158c...</code> 승인, Runtime <code>adapter-modbus-a22b09287e</code>, Device <code>virtual-temperature-54535762444ac76f7907e44c6ab33d18-91e032158c</code>, 첫 Event와 대시보드 <code>available</code> 확인</td>
 </tr>
@@ -337,7 +349,12 @@
 <tr>
 <td>MQTT discovery</td>
 <td>topic/payload/retained evidence parser</td>
-<td>TLS broker subscriber, retained 수신, telemetry Device Service</td>
+<td>TLS broker subscriber와 retained 자기등록 수신. 현재 웹 연결은 운영자가 broker/device 정보를 선언하는 별도 경로</td>
+</tr>
+<tr>
+<td>MQTT 웹 연결</td>
+<td>공식 Device Service 개발 package와 simulator 자동 테스트</td>
+<td>실제 클러스터 Runtime 배포, bundled Profile/Device와 first Event; 운영 TLS/auth broker는 별도 검증</td>
 </tr>
 <tr>
 <td>외부 인증</td>
@@ -395,8 +412,8 @@
 <td>구현하지 않음</td>
 </tr>
 <tr>
-<td>MQTT broker subscriber</td>
-<td>구현하지 않음</td>
+<td>MQTT discovery broker subscriber</td>
+<td>구현하지 않음. 웹에서 선언한 broker의 telemetry 수신 Device Service와 별개</td>
 </tr>
 <tr>
 <td>임의 telemetry에서 schema/value type/units를 추론하는 자동 Device Profile 생성</td>
@@ -422,7 +439,9 @@
 <h2 id="실장비-검증-필요">실장비 검증 필요</h2>
 <ul><li>MPU6050을 다시 범위에 넣는 경우에만 ESP32 <code>3V3/GND/GPIO21(SDA)/GPIO22(SCL)</code> 연결,</li></ul>
 <p><code>0x68</code> 또는 <code>0x69</code> ACK, 6축 JSON-line, exact device mount, Device Service telemetry와 first Event를 처음부터 다시 검증</p>
-<ul><li>dev0003 CH340 USB Serial의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 보드의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 외 I2C 장비의 identity rule과 실장비 Event</li><li>외부 인증 운영 endpoint</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>Modbus 개발 fixture의 강제 장애와 ownership-aware rollback</li><li>ONVIF/OPC-UA/MQTT 실장비는 구현 후 별도 검증</li></ul>
+<ul><li>dev0003 CH340 USB Serial의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 보드의 실제 분리·재연결과 같은 candidate ID 복구</li><li>Sense HAT 외 I2C 장비의 identity rule과 실장비 Event</li><li>외부 인증 운영 endpoint</li><li>실제 PLC의 Modbus TCP/RTU register map과 연결·재연결</li><li>Modbus 개발 fixture의 강제 장애와 ownership-aware rollback</li><li>MQTT 개발 simulator의 웹 연결부터 Controller Runtime·Profile/Device·first Event를</li></ul>
+<p>live 검증하고, 운영 TLS/auth MQTT 장비는 별도 Catalog package로 검증</p>
+<ul><li>ONVIF/OPC-UA 실장비는 구현 후 별도 검증</li></ul>
 <p>기존 <code>device-serial-jetson</code>과 센서별 6개 virtual Device의 live telemetry를 신규 aggregate 등록의 완료 증거로 대신 사용하지 않는다. 신규 candidate는 운영자 승인 전 Core Metadata에 추가되지 않는다.</p>
 <h2 id="보안-운영-주의">보안·운영 주의</h2>
 <ul><li>Controller base는 <code>ADAPTER_AUTH_MODE=external</code>로 fail-closed한다. 현재 root testbed만</li></ul>
@@ -445,7 +464,7 @@
 <tr>
 <td>Adapter Controller</td>
 <td><code>cd edgex/adapter-controller &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>132 passed</td>
+<td>141 passed</td>
 </tr>
 <tr>
 <td>Discovery Agent</td>
@@ -465,17 +484,17 @@
 <tr>
 <td>EdgeX Kustomize/manifests</td>
 <td><code>PYTHONPATH=. pytest -q edgex/k8s/tests</code></td>
-<td>131 passed</td>
+<td>132 passed</td>
 </tr>
 <tr>
 <td>state-aggregator Python</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>190 passed</td>
+<td>193 passed</td>
 </tr>
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>76 passed</td>
+<td>86 passed</td>
 </tr>
 <tr>
 <td>dev0003 ESP32 firmware</td>
@@ -485,7 +504,7 @@
 <tr>
 <td>workspace 회귀</td>
 <td><code>PYTHONPATH=. pytest -q tests</code></td>
-<td>89 passed</td>
+<td>87 passed</td>
 </tr>
 <tr>
 <td>센서 이상탐지 데모</td>
@@ -515,7 +534,9 @@
 <p>검증한다.</p>
 <ol><li>실제 PLC endpoint와 register map을 별도 Catalog binding으로 추가한다. simulator 검증을</li></ol>
 <p>실장비 검증으로 대체하지 않는다.</p>
-<ol><li>MQTT가 실제 요구될 때 TLS self-registration subscriber와 Device Service를 구현한다.</li><li>MPU6050은 다시 실장비 범위에 넣기로 결정한 경우에만 dormant Catalog/Profile 경로를</li></ol>
+<ol><li>MQTT 개발 웹 연결을 live canary로 통과시킨 뒤, 실제 요구가 있는 broker의 TLS/auth,</li></ol>
+<p>topic ACL과 payload Profile을 별도 package로 추가한다. 자기등록이 필요하면 retained discovery subscriber를 별도 구현한다.</p>
+<ol><li>MPU6050은 다시 실장비 범위에 넣기로 결정한 경우에만 dormant Catalog/Profile 경로를</li></ol>
 <p>활성 검증 대상으로 승격한다.</p>
         </div>
       </article>

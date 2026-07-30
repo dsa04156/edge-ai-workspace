@@ -18,6 +18,10 @@ class RuntimeSelection(ManagementModel):
     mode: Literal["auto", "reuse", "deploy"] = "auto"
     target_node: str = Field(min_length=1, max_length=253)
     hardware_binding_id: str = Field(min_length=1, max_length=128)
+    settings: dict[str, str | int | float | bool] = Field(
+        default_factory=dict,
+        max_length=32,
+    )
 
 
 class ConnectionOnboardingRequest(ManagementModel):

@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from typing import Any
+from urllib.parse import urlsplit
 
 from .models import RuntimeApplyRequest, RuntimePlan, RuntimeTemplate
+from .runtime_settings import (
+    normalize_runtime_settings,
+    render_runtime_environment,
+    runtime_settings_hash,
+)
 
 
 API_VERSION = "edgeai.etri.re.kr/v1alpha1"
@@ -20,6 +27,7 @@ def render_adapter_runtime(
     request: RuntimeApplyRequest,
     *,
     namespace: str,
+    runtime_settings: dict[str, str | int | float | bool] | None = None,
 ) -> dict[str, Any]:
     if namespace != "edgex-edge":
         raise ValueError("AdapterRuntime namespace must be edgex-edge")
@@ -37,6 +45,12 @@ def render_adapter_runtime(
         raise ValueError("EdgeX service identity does not match the catalog")
     if not template.deployment_enabled:
         raise ValueError("runtime template is not deployment-enabled")
+    normalized_settings = normalize_runtime_settings(
+        template,
+        runtime_settings or {},
+    )
+    if plan.settings_hash != runtime_settings_hash(normalized_settings):
+        raise ValueError("runtime settings do not match the deployment plan")
 
     labels = _labels(plan.runtime_name, template.adapter_id)
     return {
@@ -53,6 +67,16 @@ def render_adapter_runtime(
             "adapterId": template.adapter_id,
             "targetNode": plan.target_node,
             "hardwareBindingId": plan.hardware_binding_id,
+            **(
+                {"runtimeSettings": normalized_settings}
+                if normalized_settings
+                else {}
+            ),
+            **(
+                {"settingsHash": plan.settings_hash}
+                if plan.settings_hash is not None
+                else {}
+            ),
             "edgeX": {
                 "serviceName": plan.service_name,
                 "messageBusHost": MESSAGEBUS_HOST,
@@ -112,6 +136,12 @@ def render_runtime_workload(
         raise ValueError("message bus host is not the approved service DNS")
     if edge_x.get("messageBusPort") != 1883:
         raise ValueError("message bus port is not approved")
+    runtime_settings = normalize_runtime_settings(
+        template,
+        dict(spec.get("runtimeSettings") or {}),
+    )
+    if spec.get("settingsHash") != runtime_settings_hash(runtime_settings):
+        raise ValueError("AdapterRuntime settings hash does not match")
 
     labels = _labels(name, template.adapter_id)
     owner_references = [
@@ -139,6 +169,8 @@ def render_runtime_workload(
     configuration = _configuration_yaml(
         service_name=name,
         service_port=template.service_port,
+        template=template,
+        runtime_settings=runtime_settings,
     )
     config_map = {
         "apiVersion": "v1",
@@ -234,6 +266,11 @@ def render_runtime_workload(
             {"name": "CLIENTS_CORE_METADATA_HOST", "value": CORE_METADATA_HOST},
             {"name": "MESSAGEBUS_HOST", "value": MESSAGEBUS_HOST},
             {"name": "MESSAGEBUS_OPTIONAL_CLIENTID", "value": service_name},
+            *render_runtime_environment(
+                template,
+                runtime_settings,
+                service_name=service_name,
+            ),
         ],
         "ports": [
             {
@@ -426,8 +463,14 @@ def _selector_labels(runtime_name: str) -> dict[str, str]:
     }
 
 
-def _configuration_yaml(*, service_name: str, service_port: int) -> str:
-    return (
+def _configuration_yaml(
+    *,
+    service_name: str,
+    service_port: int,
+    template: RuntimeTemplate,
+    runtime_settings: dict[str, Any],
+) -> str:
+    base = (
         "Writable:\n"
         "  LogLevel: INFO\n"
         "  Reading:\n"
@@ -451,4 +494,27 @@ def _configuration_yaml(*, service_name: str, service_port: int) -> str:
         "    Interval: 30s\n"
         "  AutoEvents:\n"
         "    SendChangedReadingsOnly: false\n"
+    )
+    if template.runtime_config_renderer != "mqtt-broker-v1":
+        return base
+    broker = urlsplit(str(runtime_settings["Broker"]))
+    return (
+        base
+        + "MQTTBrokerInfo:\n"
+        + "  Schema: tcp\n"
+        + f"  Host: {json.dumps(broker.hostname)}\n"
+        + f"  Port: {broker.port or 1883}\n"
+        + f"  Qos: {runtime_settings['Qos']}\n"
+        + "  KeepAlive: 3600\n"
+        + f"  ClientId: {json.dumps(service_name)}\n"
+        + "  CredentialsRetryTime: 120\n"
+        + "  CredentialsRetryWait: 1\n"
+        + "  ConnEstablishingRetry: 10\n"
+        + "  ConnRetryWaitTime: 5\n"
+        + "  AuthMode: none\n"
+        + "  CredentialsName: credentials\n"
+        + f"  IncomingTopic: {json.dumps(runtime_settings['IncomingTopic'])}\n"
+        + '  ResponseTopic: "command/response/#"\n'
+        + "  Writable:\n"
+        + "    ResponseFetchInterval: 500\n"
     )

@@ -130,11 +130,87 @@
     {
       "templateId": "mqtt-device-service-v1",
       "adapterId": "mqtt",
-      "displayName": "MQTT-only Device",
+      "displayName": "EdgeX MQTT 4.0.2",
       "protocolName": "mqtt",
-      "verificationState": "unverified",
-      "deploymentEnabled": false,
-      "servicePort": 59922
+      "purpose": "development-fixture",
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
+      "image": "docker.io/edgexfoundry/device-mqtt:4.0.2@sha256:940180e788d70219f489f4ed8b6bdfdce12fd0546005b7e2f899c555e529ed49",
+      "servicePort": 59922,
+      "edgeXServiceBaseName": "device-mqtt",
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-mqtt-network-001",
+          "displayName": "Jetson MQTT network endpoint",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "raspi5-dev0002-mqtt-network-001",
+          "displayName": "Raspberry Pi dev0002 MQTT network endpoint",
+          "nodeName": "etri-dev0002-raspi5",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "raspi5-dev0003-mqtt-network-001",
+          "displayName": "Raspberry Pi dev0003 MQTT network endpoint",
+          "nodeName": "etri-dev0003-raspi5",
+          "requiresPrivileged": false
+        }
+      ],
+      "runtimeConfigRenderer": "mqtt-broker-v1",
+      "runtimeSettings": [
+        {
+          "name": "Broker",
+          "type": "url",
+          "required": true,
+          "allowedSchemes": [
+            "mqtt"
+          ],
+          "allowedHosts": [
+            "edge-mqtt-simulator.edgex-edge.svc.cluster.local"
+          ],
+          "allowedCidrs": [
+            "192.168.0.0/24"
+          ],
+          "defaultPort": 1883
+        },
+        {
+          "name": "IncomingTopic",
+          "type": "string",
+          "required": true,
+          "default": "incoming/data/#",
+          "pattern": "^incoming/data/(?:[A-Za-z0-9._~-]+/)?#$"
+        },
+        {
+          "name": "Qos",
+          "type": "enum",
+          "required": true,
+          "default": 0,
+          "options": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "networkEgress": [
+        {
+          "namespace": "edgex-edge",
+          "podSelector": {
+            "app.kubernetes.io/name": "edge-mqtt-simulator"
+          },
+          "ports": [
+            1883
+          ]
+        },
+        {
+          "cidr": "192.168.0.0/24",
+          "ports": [
+            1883
+          ]
+        }
+      ]
     },
     {
       "templateId": "rtsp-device-service-v1",

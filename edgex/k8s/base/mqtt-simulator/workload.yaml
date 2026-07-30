@@ -1,0 +1,228 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-mqtt-simulator
+  labels:
+    app.kubernetes.io/name: edge-mqtt-simulator
+    app.kubernetes.io/part-of: edgex-system
+    app.kubernetes.io/component: development-fixture
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: edge-mqtt-simulator
+  ports:
+    - name: mqtt
+      port: 1883
+      targetPort: mqtt
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-mqtt-simulator
+  labels:
+    app.kubernetes.io/name: edge-mqtt-simulator
+    app.kubernetes.io/part-of: edgex-system
+    app.kubernetes.io/component: development-fixture
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edge-mqtt-simulator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edge-mqtt-simulator
+        app.kubernetes.io/part-of: edgex-system
+        app.kubernetes.io/component: development-fixture
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: broker
+          image: eclipse-mosquitto:2.0.22@sha256:212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c
+          imagePullPolicy: IfNotPresent
+          args:
+            - /usr/sbin/mosquitto
+            - -c
+            - /mosquitto/config/mosquitto.conf
+          ports:
+            - name: mqtt
+              containerPort: 1883
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: mqtt
+            periodSeconds: 1
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: mqtt
+            periodSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: mqtt
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1883
+            runAsGroup: 1883
+          volumeMounts:
+            - name: broker-config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+              readOnly: true
+            - name: broker-data
+              mountPath: /mosquitto/data
+            - name: broker-log
+              mountPath: /mosquitto/log
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: broker-config
+          configMap:
+            name: edge-mqtt-simulator-config
+        - name: broker-data
+          emptyDir: {}
+        - name: broker-log
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-mqtt-temperature-publisher
+  labels:
+    app.kubernetes.io/name: edge-mqtt-temperature-publisher
+    app.kubernetes.io/part-of: edgex-system
+    app.kubernetes.io/component: development-fixture
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edge-mqtt-temperature-publisher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edge-mqtt-temperature-publisher
+        app.kubernetes.io/part-of: edgex-system
+        app.kubernetes.io/component: development-fixture
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: publisher
+          image: eclipse-mosquitto:2.0.22@sha256:212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              value=20
+              while true; do
+                value=$((value + 1))
+                if [ "${value}" -gt 29 ]; then value=20; fi
+                mosquitto_pub \
+                  -h edge-mqtt-simulator.edgex-edge.svc.cluster.local \
+                  -p 1883 \
+                  -t incoming/data/mqtt-temperature-sim-001/temperature \
+                  -m "${value}.5"
+                sleep 1
+              done
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1883
+            runAsGroup: 1883
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: edge-mqtt-simulator
+  labels:
+    app.kubernetes.io/name: edge-mqtt-simulator
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: edge-mqtt-simulator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              edgeai.etri.re.kr/adapter: mqtt
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: edge-mqtt-temperature-publisher
+      ports:
+        - protocol: TCP
+          port: 1883
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: edge-mqtt-temperature-publisher
+  labels:
+    app.kubernetes.io/name: edge-mqtt-temperature-publisher
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: edge-mqtt-temperature-publisher
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: edge-mqtt-simulator
+      ports:
+        - protocol: TCP
+          port: 1883

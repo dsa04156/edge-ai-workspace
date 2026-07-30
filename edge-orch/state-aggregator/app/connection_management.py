@@ -82,6 +82,12 @@ class ConnectionManagementService:
         runtime_request = self._runtime_request(request)
         runtime_plan = await self.runtime_service.plan_runtime(runtime_request)
         issues: list[ValidationIssue] = []
+        issues.extend(
+            self.device_management.validate_runtime_settings(
+                request.adapter_id,
+                request.runtime.settings,
+            )
+        )
         if not runtime_plan.allowed:
             issues.extend(
                 ValidationIssue(
@@ -101,7 +107,7 @@ class ConnectionManagementService:
         )
         issues.extend(device_result.issues)
         result = ConnectionValidationResult(
-            valid=runtime_plan.allowed and device_result.valid,
+            valid=runtime_plan.allowed and device_result.valid and not issues,
             issues=issues,
             warnings=device_result.warnings,
             runtime_plan=runtime_plan,
@@ -388,6 +394,7 @@ class ConnectionManagementService:
             target_node=request.runtime.target_node,
             hardware_binding_id=request.runtime.hardware_binding_id,
             mode=request.runtime.mode,
+            settings=request.runtime.settings,
         )
 
     @staticmethod

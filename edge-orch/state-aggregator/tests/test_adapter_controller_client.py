@@ -123,6 +123,63 @@ def test_client_sends_only_allowlisted_plan_fields():
     assert result.plan_hash == "a" * 64
 
 
+def test_client_forwards_allowlisted_mqtt_runtime_settings():
+    settings_hash = "b" * 64
+
+    def handler(request):
+        verify_signature(request)
+        payload = json.loads(request.content)
+        assert payload["settings"] == {
+            "Broker": (
+                "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883"
+            ),
+            "IncomingTopic": "incoming/data/#",
+            "Qos": 0,
+        }
+        return httpx.Response(
+            200,
+            json={
+                "action": "DEPLOY",
+                "allowed": True,
+                "adapterId": "mqtt",
+                "templateId": "mqtt-device-service-v1",
+                "runtimeName": "adapter-mqtt-0123456789",
+                "serviceName": "device-mqtt_0123456789",
+                "targetNode": "etri-dev0001-jetorn",
+                "hardwareBindingId": "jetson-mqtt-network-001",
+                "managementMode": "controller",
+                "verificationState": "template-verified",
+                "settingsHash": settings_hash,
+                "reasons": [],
+                "planHash": "a" * 64,
+            },
+        )
+
+    client = AdapterControllerClient(
+        "http://controller",
+        HMAC_KEY,
+        transport=httpx.MockTransport(handler),
+    )
+    request = RuntimePlanRequest(
+        adapter_id="mqtt",
+        target_node="etri-dev0001-jetorn",
+        hardware_binding_id="jetson-mqtt-network-001",
+        mode="auto",
+        settings={
+            "Broker": (
+                "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883"
+            ),
+            "IncomingTopic": "incoming/data/#",
+            "Qos": 0,
+        },
+    )
+
+    result = asyncio.run(client.plan_runtime(request))
+
+    assert result.action == "DEPLOY"
+    assert result.settings_hash == settings_hash
+
+
 def test_client_maps_backend_and_invalid_contract_without_leaking_body():
     cases = [
         (

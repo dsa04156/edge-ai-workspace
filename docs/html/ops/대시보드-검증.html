@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-30 17:00</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
+            <span class="badge">수정: 2026-07-30 20:39</span>
+            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
           </div>
         </header>
         <div class="doc-body">
@@ -182,18 +182,21 @@ curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapter-runtimes&quot;</code></
 <p>restart/retire action이 비활성화된다.</p>
 <ul><li><code>/state/devices</code>가 EdgeX tag의 <code>physical_device_id</code>와 선택적</li></ul>
 <p><code>hardware_binding_id</code>를 반환한다. 신규 connection은 두 값을 모두 보존한다.</p>
-<ul><li>Modbus 개발 simulator Runtime은 퇴역 상태이고 root 운영 render에 없으며, OPC-UA/MQTT/RTSP는 실장비 검증 전 일반 endpoint 배포가 활성화되지 않는다.</li></ul>
+<ul><li>Modbus 개발 simulator Runtime은 퇴역 상태이고 root 운영 render에 없다. MQTT는 개발용</li></ul>
+<p>검증 package만 설치 가능하며 root render에 broker나 고정 Device Service가 없다. 운영 MQTT TLS/auth, OPC-UA와 RTSP 일반 endpoint 배포는 활성화되지 않는다.</p>
 <p>strict API 계약 검증도 같은 Ingress 기준 URL을 사용한다.</p>
 <pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url &quot;${DASHBOARD_BASE_URL}&quot;</code></pre>
 <p>검증기는 현재 EdgeX 단일 권위 계약인 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>telemetry_freshness</code>와 available/degraded/unavailable·Core Data KPI를 확인한다. 퇴역한 Mapper/DeviceStatus의 <code>mapper_running</code>, <code>telemetry_enabled</code>, <code>device_status_freshness_ratio</code>는 필수 field나 physical availability 근거로 검사하지 않는다.</p>
 <h2 id="dashboard-ui-확인">Dashboard UI 확인</h2>
 <ol><li>요약 카드가 실제 <code>registered_device_count</code>와 일치한다.</li><li>device 목록이 Core Metadata 응답과 일치한다.</li><li>12개 가상 Device detail이 각 Metadata와 latest Event 값을 동일하게 표시한다.</li><li>stale/no events 상태를 fresh로 보정하지 않는다.</li><li>KubeEdge node와 workload는 별도 진단 영역에 표시한다.</li><li>aggregate <code>sensehat-001</code>이나 Agent outbox를 현재 점검 대상으로 안내하지 않고, 직접 I2C Device 6개를 현재 inventory로 표시한다.</li><li><code>디바이스 관리</code> 첫 영역에서 연결 등록, 장비 관측, 통신, 데이터 상태를 별도 칸으로</li></ol>
 <p>표시하고 등록만으로 장비 관측을 주장하지 않는다.</p>
-<ol><li>protocol package가 Serial/I2C는 <code>재사용 가능</code>, Modbus/OPC-UA/MQTT/RTSP는 <code>검증 필요</code>로</li></ol>
-<p>표시되며 미검증 package에는 설치/등록 버튼이 없다.</p>
+<ol><li>protocol package가 Serial/I2C는 <code>재사용 가능</code>, MQTT 개발 package는 Runtime이 없으면</li></ol>
+<p><code>설치 가능</code>, Modbus는 exact simulator binding에서만 설치 가능으로 표시된다. OPC-UA/RTSP와 일반 미검증 endpoint에는 설치/등록 버튼이 없다.</p>
 <ol><li>Device Management가 Runtime owner/phase/node/consumer와 등록 binding만 표시하고 raw</li></ol>
 <p>manifest, image, hostPath, hostNetwork, ClusterIP/PodIP 입력을 제공하지 않는다.</p>
-<ol><li>관리자 token 입력란이 없고, validation이 유효하지 않으면 mutation 버튼이 비활성화된다.</li><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
+<ol><li>관리자 token 입력란이 없고, <code>검증하고 연결</code>은 validation 실패 시 mutation을</li></ol>
+<p>수행하지 않는다. Runtime mode 선택은 노출하지 않고 <code>auto</code> plan만 사용한다.</p>
+<ol><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
 <p>표시된다.</p>
 <ol><li><code>/aggregator/dashboard#management</code>로 열었을 때 관리 API도</li></ol>
 <p><code>/aggregator/management/*</code>로 요청되고 200을 반환한다. root <code>/management/*</code>, ClusterIP 또는 Pod IP로 우회하지 않는다.</p>
