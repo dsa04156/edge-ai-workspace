@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-07-30 16:22</span>
-            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
+            <span class="badge">수정: 2026-07-30 16:59</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -280,8 +280,7 @@
 <p><code>protocol_binding_exists</code>로 차단한다.</p>
 <ul><li>Connection 상태는 <code>RUNTIME_READY → DEVICE_APPLIED → WAITING_EVENT → ACTIVE</code>를 구분한다.</li></ul>
 <p>Event가 아직 없는 장비는 Metadata를 임의로 되돌리지 않는다. 신규 runtime 뒤 Metadata 적용이 실패한 경우에만 consumer 0을 확인하고 해당 runtime의 안전한 퇴역을 시도한다.</p>
-<p>KubeEdge는 target node와 workload 상태만 제공하며 <code>AdapterRuntime</code>을 물리 Device inventory로 보지 않는다. KubeEdge <code>Device</code>/<code>DeviceModel</code>/<code>DeviceStatus</code>, MapperFramework와 EdgeMesh는 이 관리 경로에서 수정하지 않는다. Workflow Builder의 device/resource bind, validation과 execution plan은 계속 browser-local dry-run이다. 다만 바인딩이 실제로 읽을 수 있는지 확인하기 위한 읽기 전용 <code>POST /state/device-source-bindings/sample</code>은 현재 범위에 포함한다. 이 API는 Core Metadata Device/Profile에서 device와 resource를 다시 확인하고 Git의 <code>device_source_catalog.json</code>에 등록된 Device Service만 Local Data API로 조회한다. 화면이나 요청 본문으로 임의 URL을 전달할 수 없다.</p>
-<p>샘플 조회의 <code>local_latest</code>와 <code>local_window</code>는 Device Service의 휘발성 recent cache, <code>history</code>는 중앙 Core Data를 사용한다. 중앙 BFF의 샘플 조회는 낮은 빈도의 운영자 검증이고, 실제 edge Workflow Pod의 로컬 입력 경로는 같은 노드에서 Device Service FQDN을 직접 사용하는 것으로 유지한다. 샘플 조회가 Workflow Pod 생성·실행, command publish, actuator 실행, migration 또는 offloading을 활성화하지 않는다.</p>
+<p>KubeEdge는 target node와 workload 상태만 제공하며 <code>AdapterRuntime</code>을 물리 Device inventory로 보지 않는다. KubeEdge <code>Device</code>/<code>DeviceModel</code>/<code>DeviceStatus</code>, MapperFramework와 EdgeMesh는 이 관리 경로에서 수정하지 않는다. 2026-07-30 대시보드의 AI Pipeline/Workflow Builder와 전용 <code>POST /state/device-source-bindings/sample</code> API를 제거했다. Device Service의 휘발성 recent cache와 Local Data API는 고정 <code>sensor-anomaly-demo</code> 및 향후 같은 노드 consumer를 위해 유지하지만 state-aggregator가 이를 workflow 입력 프록시로 제공하지 않는다. workflow stage 구성·실행, command publish, actuator 실행, migration과 offloading은 현재 범위가 아니다.</p>
 <p>현재 범위의 핵심 표현:</p>
 <ul><li>서비스 데모 우선</li><li>EdgeX Device Service와 Device Profile/Device</li><li>중앙 Core Data·server2 PostgreSQL 권위</li><li>MQTT는 필요가 확인된 장비의 Device Service 검증 이후에만 배포</li><li>프로토콜별 독립 migration gate</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
 <h2 id="2차년도-설계-트랙">2차년도 설계 트랙</h2>
@@ -354,7 +353,7 @@
 <tr>
 <td>대시보드</td>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
-<td>EdgeX device/state/telemetry와 운영 KPI 가시화. live Core Metadata 13개 identity는 그대로 집계하고 등록 목록은 Arduino·Sense HAT 물리 source 카드로 묶어 개별 Device를 펼친다. 전역 보기 모드 없이 클릭형 상세정보, 선택형 Core Data history, 워크플로우 바인딩의 로컬 최신값·최근 구간·중앙 이력 샘플 미리보기, Jetson 서비스 데모와 375/768/1024px 반응형 화면을 제공</td>
+<td>EdgeX device/state/telemetry와 운영 KPI 가시화. live Core Metadata identity를 집계하고 등록 목록은 물리 source 카드로 묶어 개별 Device를 펼친다. 운영 현황, 등록 디바이스, 장비 관리의 세 화면과 클릭형 상세정보, 선택형 Core Data history, Jetson 서비스 데모 및 375/768/1024px 반응형 화면을 제공. AI Pipeline/Workflow Builder는 현재 제거됨</td>
 </tr>
 <tr>
 <td>GPU runtime 보조</td>

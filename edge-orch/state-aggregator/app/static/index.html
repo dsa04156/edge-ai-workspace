@@ -11,11 +11,10 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M18 32h28M32 18v28' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
-    <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
-    <link rel="stylesheet" href="/static/workflow.css?v=interaction-feedback-20260727" />
+    <link rel="stylesheet" href="/static/navigation.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
-    <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=no-overlap-20260730" />
@@ -51,7 +50,6 @@
       <nav class="main-menu" aria-label="대시보드 화면">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>
-        <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
       </nav>
 
@@ -271,129 +269,6 @@
             <span>click service for pod/resource details · read-only</span>
           </div>
           <div id="topologyMap" class="topology-map"></div>
-        </section>
-
-        <section class="panel workflow-workbench dashboard-page" data-page="workflow" aria-labelledby="workflowWorkbenchTitle">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">AI Pipeline</p>
-              <h2 id="workflowWorkbenchTitle">AI Pipeline Builder</h2>
-            </div>
-            <div class="workflow-actions">
-              <span class="workflow-scope">EdgeX 디바이스 · 로컬 최근값/중앙 이력 · 읽기 전용 미리보기</span>
-              <span id="workflowStatus" role="status" aria-live="polite" data-status="waiting">디바이스 목록 대기</span>
-              <button id="workflowRefresh" type="button">디바이스 새로고침</button>
-            </div>
-          </div>
-
-          <div class="workflow-summary" aria-label="device workflow summary">
-            <div>
-              <span>EdgeX Devices</span>
-              <strong id="workflowDeviceTotalCount">0</strong>
-            </div>
-            <div>
-              <span>Available</span>
-              <strong id="workflowDeviceAvailableCount">0</strong>
-            </div>
-            <div>
-              <span>Fresh Events</span>
-              <strong id="workflowFreshTelemetryCount">0</strong>
-            </div>
-            <div>
-              <span>AI HAT Resource</span>
-              <strong id="workflowAiHatCount">0</strong>
-            </div>
-            <div>
-              <span>Bound Nodes</span>
-              <strong id="workflowBoundCount">0</strong>
-            </div>
-            <div>
-              <span>Validation</span>
-              <strong id="workflowValidationSummary">WAIT</strong>
-            </div>
-          </div>
-
-          <div class="workflow-builder-bar" aria-label="workflow builder controls">
-            <label>
-              <span>Pipeline</span>
-              <select id="workflowSelector" name="workflowSelector"></select>
-            </label>
-            <label>
-              <span>New Pipeline</span>
-              <input id="workflowNameInput" name="workflowName" type="text" maxlength="40" placeholder="factory-vision-inspection" />
-            </label>
-            <button id="createWorkflow" type="button">Create</button>
-          </div>
-
-          <div class="workflow-studio" aria-label="n8n style workflow studio">
-            <aside class="workflow-palette">
-              <div class="inspector-head">
-                <span>Node Palette</span>
-              </div>
-              <div id="workflowNodePalette" class="workflow-node-palette" aria-label="workflow node palette"></div>
-              <div class="workflow-toolbar" aria-label="device source filters">
-                <button type="button" data-device-filter="all" class="active">All</button>
-                <button type="button" data-device-filter="telemetry">EdgeX Sources</button>
-                <button type="button" data-device-filter="fresh">Fresh Event</button>
-                <button type="button" data-device-filter="stale">Stale/No Event</button>
-                <button type="button" data-device-filter="sensehat">Sense HAT</button>
-                <button type="button" data-device-filter="aihat">AI HAT</button>
-              </div>
-              <div id="deviceSourcePool" class="device-source-pool" aria-label="registered device source pool"></div>
-            </aside>
-
-            <section class="workflow-canvas-shell">
-              <div class="workflow-graph-actions" aria-label="workflow graph actions">
-                <div class="workflow-action-cluster">
-                  <button id="startWorkflowLink" type="button">Start Link</button>
-                  <button id="removeWorkflowLink" type="button">Remove Link</button>
-                  <button id="removeWorkflowNode" type="button">Remove Node</button>
-                </div>
-                <div class="workflow-action-cluster workflow-zoom-controls" aria-label="canvas zoom controls">
-                  <button id="workflowAutoLayout" type="button">Auto Layout</button>
-                  <button id="workflowZoomOut" type="button" aria-label="Zoom canvas out">−</button>
-                  <button id="workflowZoomReset" type="button">100%</button>
-                  <button id="workflowZoomIn" type="button" aria-label="Zoom canvas in">+</button>
-                </div>
-                <span id="workflowLinkHint">Select a node, click Start Link, then click another node.</span>
-              </div>
-              <div id="workflowGraphCanvas" class="workflow-graph-canvas" aria-label="workflow graph canvas">
-                <svg id="workflowGraphEdges" class="workflow-graph-edges" aria-hidden="true"></svg>
-                <div id="workflowGraphNodes" class="workflow-graph-nodes"></div>
-              </div>
-            </section>
-
-            <aside class="workflow-inspector" aria-live="polite">
-              <div class="inspector-head">
-                <span>Inspector</span>
-                <div class="inspector-actions">
-                  <button id="bindWorkflowDevice" type="button">Bind</button>
-                  <button id="releaseWorkflowDevice" type="button">Release</button>
-                  <button id="readLatestWorkflowDevice" type="button">샘플 조회</button>
-                </div>
-              </div>
-              <div id="workflowBindingInspector" class="workflow-binding-inspector">
-                <div class="workflow-empty">Select a node to inspect EdgeX identity, source binding, and Core Data event freshness.</div>
-              </div>
-            </aside>
-          </div>
-
-          <div class="workflow-bottom-grid">
-            <section class="workflow-validation-panel" aria-labelledby="workflowValidationTitle">
-              <div class="inspector-head">
-                <span id="workflowValidationTitle">Validation</span>
-                <strong id="workflowValidationBadge">WAIT</strong>
-              </div>
-              <ul id="workflowValidationList" class="workflow-validation-list"></ul>
-            </section>
-            <section class="workflow-plan-panel" aria-labelledby="workflowPlanTitle">
-              <div class="inspector-head">
-                <span id="workflowPlanTitle">Execution Plan</span>
-                <strong>Preview</strong>
-              </div>
-              <pre id="workflowExecutionPlan" class="workflow-plan-preview"></pre>
-            </section>
-          </div>
         </section>
 
         <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
@@ -1132,14 +1007,9 @@
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=single-dashboard-20260730"></script>
+    <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
     <script src="/static/dashboard.js?v=inventory-cards-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
-    <script src="/static/workflow-state.js?v=device-source-binding-20260730"></script>
-    <script src="/static/workflow-render.js?v=device-source-binding-20260730"></script>
-    <script src="/static/workflow-render-panels.js?v=device-source-binding-20260730"></script>
-    <script src="/static/workflow-actions.js?v=device-source-binding-20260730"></script>
-    <script src="/static/workflow.js?v=device-source-binding-20260730"></script>
   </body>
 </html>

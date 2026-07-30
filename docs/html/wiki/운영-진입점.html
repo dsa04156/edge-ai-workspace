@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-30 14:07</span>
-            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
+            <span class="badge">수정: 2026-07-30 17:00</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -217,7 +217,7 @@
 <p>2026-07-22 Core Data REST 기준선에서 1,000 devices × 1/60Hz는 1,000/1,000 저장과 p95 16.17ms로 PASS했다. 1,000 devices × 1Hz는 현재 300m CPU/256Mi Core Data가 OOMKilled되어 FAIL했다. 따라서 기본 운영 검증은 저주기 profile이고, 1Hz는 resource tuning과 단계별 rate gate 전까지 지원 처리량으로 보지 않는다.</p>
 <h2 id="경계">경계</h2>
 <p>검증된 control path는 dashboard <code>디바이스 관리</code> → state-aggregator BFF → <code>edgex-adapter-controller</code>다. 이 경로는 관리자 인증과 idempotency key를 요구하고, Git allowlist의 exact node/hardware binding과 Controller 소유 workload만 관리한다. 기존 Argo runtime은 조회·재사용만 하며, EdgeX consumer가 남은 runtime은 퇴역하지 않는다.</p>
-<p>Operator assistant, Workflow Builder와 자원증강 화면은 이 control path가 아니다. 이들은 계속 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다. Dashboard나 state-aggregator가 raw manifest, 임의 image/hostPath, 고정 ClusterIP/PodIP를 받거나 Controller를 우회해 Kubernetes를 변경하는 경로는 없다.</p>
+<p>Operator assistant는 이 control path가 아니며 read-only 요약과 troubleshooting 안내로 제한한다. AI Pipeline/Workflow Builder와 자원증강 화면은 현재 dashboard에서 제거됐다. Dashboard나 state-aggregator가 raw manifest, 임의 image/hostPath, 고정 ClusterIP/PodIP를 받거나 Controller를 우회해 Kubernetes를 변경하는 경로는 없다.</p>
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li></ul>
 <h2 id="근거-운영-절차">근거 운영 절차</h2>

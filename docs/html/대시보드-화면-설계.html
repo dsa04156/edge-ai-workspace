@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 대시보드-화면-설계.md</span>
-            <span class="badge">수정: 2026-07-30 15:41</span>
-            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
+            <span class="badge">수정: 2026-07-30 16:59</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -167,7 +167,7 @@
 <ul><li>운영자가 디바이스, 노드, 서비스, telemetry freshness를 리소스 콘솔 흐름으로 읽게 한다.</li><li>현재 PoC 범위는 통합 운영 가시화와 검증된 Adapter Runtime·EdgeX Device 연결 관리다.</li><li>화면은 관측값과 판단 근거를 먼저 보여 주고, 검증된 관리 작업만 idempotency와 서버</li></ul>
 <p>검증을 거쳐 실행한다.</p>
 <h2 id="전체-프레임">전체 프레임</h2>
-<ul><li>Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline.</li><li>Command bar: cluster context, global search, 마지막 갱신 시각, refresh.</li><li>Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.</li><li>Context detail layer: 선택한 디바이스·지표의 판단 근거와 read-only Qwen assistant를</li></ul>
+<ul><li>Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, 운영 현황, 등록 디바이스, 장비 관리.</li><li>Command bar: cluster context, global search, 마지막 갱신 시각, refresh.</li><li>Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.</li><li>Context detail layer: 선택한 디바이스·지표의 판단 근거와 read-only Qwen assistant를</li></ul>
 <p>배경과 구분된 상세 레이어에 표시한다.</p>
 <ul><li>Dense scroll: table, plan preview와 상세 레이어 내부에만 허용한다. 등록 디바이스</li></ul>
 <p>목록은 내부 고정 높이 scroll을 사용하지 않고 페이지 흐름을 따른다.</p>
@@ -185,8 +185,8 @@
 <ul><li>상세 레이어의 header, 상태 설명, 운영 도우미는 고정 grid row에 끼워 넣지 않고</li></ul>
 <p>자연 높이의 단일 flex flow로 쌓는다. viewport 높이는 바깥 상세 레이어가 스크롤로 처리하며 내부 section끼리 겹치거나 내용을 잘라서는 안 된다.</p>
 <ul><li>Service Topology는 Assets 안에 둔다. 목적은 서비스 실행이 아니라 디바이스-서비스 연결 구조 확인이다.</li></ul>
-<h2 id="ai-pipeline">AI Pipeline</h2>
-<ul><li>Summary strip으로 등록 디바이스, availability, telemetry freshness, validation 상태를 먼저 보여준다.</li><li>Palette, graph canvas, inspector를 한 작업면으로 묶는다.</li><li>Validation과 Execution Plan은 dry-run preview로만 표시한다.</li></ul>
+<h2 id="제거된-ai-pipeline">제거된 AI Pipeline</h2>
+<ul><li>현재 대시보드에는 Workflow Builder, graph canvas, validation과 execution-plan preview가 없다.</li><li>다시 도입할 경우 별도 범위 문서, 실행 책임, 검증 기준과 runtime control plane을 먼저 정의한다.</li></ul>
 <h2 id="device-management">Device Management</h2>
 <ul><li>화면 상단의 노드 선택은 등록 현황과 장비 연결·수정 화면에서 유지되는 공통 운영 범위다. 각 노드 카드에는 관측 상태, Runtime 수, EdgeX Device 수와 등록 protocol 수를 요약한다.</li><li>기본 <code>등록 현황</code>은 <code>등록 장비</code>를 가장 먼저 보여 주고 <code>디바이스 프로필</code>, 승인 전 <code>연결 대기</code>, <code>수집 서비스</code>를 한 흐름으로 이어서 표시한다. 장비를 새로 연결하는 주 동작은 <code>장비 연결</code> 하나만 둔다.</li><li><code>연결 대기</code>는 onboarding 후보만 표시한다. 발견 Agent online/stale와 현재 관측·승인 대기·등록 완료·차단 수를 요약하고, 검색어·protocol·상태·presence로 목록을 좁힌다.</li><li>USB Serial stable identity와 검증된 I2C chip identity를 node report에서 표시한다. 후보 카드는 source, presence, node, protocol, hardware ID, model, 권장 Profile, 상태, 인증과 차단 이유를 분리한다. I2C 버스 존재만으로 후보나 센서 응답을 만들지 않는다.</li><li>exact binding이 없는 <code>BLOCKED</code> 후보에는 거절만 두지 않고 <code>연결 설정</code>을 제공한다.</li></ul>
 <p>선택 시 해당 node와 후보 protocol, 차단 사유를 유지해서 보여 주며 관계없는 protocol을 기본 선택하지 않는다. Git Catalog에 검증된 Profile·hardware binding이 생기기 전에는 승인·배포를 허용하지 않는다.</p>
@@ -214,7 +214,7 @@
 <li class="toc-h2"><a href="#전체-프레임">전체 프레임</a></li>
 <li class="toc-h2"><a href="#overview">Overview</a></li>
 <li class="toc-h2"><a href="#등록-디바이스">등록 디바이스</a></li>
-<li class="toc-h2"><a href="#ai-pipeline">AI Pipeline</a></li>
+<li class="toc-h2"><a href="#제거된-ai-pipeline">제거된 AI Pipeline</a></li>
 <li class="toc-h2"><a href="#device-management">Device Management</a></li>
 <li class="toc-h2"><a href="#deferred-resource-augmentation">Deferred Resource Augmentation</a></li>
 <li class="toc-h2"><a href="#표현-경계">표현 경계</a></li>

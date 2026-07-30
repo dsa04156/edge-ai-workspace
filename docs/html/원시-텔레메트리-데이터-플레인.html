@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-30 14:07</span>
-            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
+            <span class="badge">수정: 2026-07-30 17:00</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -304,7 +304,7 @@ tags:
 GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from={origin_ns}&amp;to={origin_ns}&amp;limit={1..10000}
 GET /api/v3/localdata/stats</code></pre>
 <ul><li>cache key: <code>(deviceName, resourceName)</code></li><li>구현: 두 Device Service가 공유하는 제네릭 Go ring cache; 정상적인 증가 <code>origin</code> append는 O(1), 순서가 뒤섞인 입력만 안정 정렬 slow path 사용</li><li>보존: 최근 10분, 시계열별 최대 10,000 sample</li><li>전체 할당 상한: Device Service별 sample ring slot 67,108,864 bytes(64MiB); 활성 series 수에 따라 균등 quota를 다시 계산</li><li>상한 계산 범위: sample slot 배열만 포함하며 Go map, 문자열, HTTP 응답과 runtime overhead는 포함하지 않음; 컨테이너 memory limit가 프로세스 전체 hard cap 역할</li><li>recent 기본 limit: 1,000; 가장 최근 sample을 선택한 뒤 <code>origin</code> 오름차순 반환</li><li>latest sample 없음: <code>404</code></li><li>알려진 source의 recent 결과 없음: <code>200</code>과 빈 <code>samples</code></li><li>stats: <code>series</code>, <code>samples</code>, <code>slotBytes</code>, <code>allocatedBytes</code>, retention과 age/series-limit/global-rebalance eviction 누계 반환</li><li>EdgeX custom metrics: <code>LocalDataCacheSamples</code>, <code>LocalDataCacheSeries</code>, <code>LocalDataCacheAllocatedBytes</code>, <code>LocalDataCacheEvictions</code></li><li>Pod 재시작: cache 초기화</li><li>중앙 Core Data fallback: 없음</li></ul>
-<p>Workflow Pod에는 <code>edge-ai.io/local-data-client=true</code> label을 붙이고 대상 Runtime과 같은 edge node에 배치한다. 호출 주소는 고정 IP가 아니라 Serial의 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code> 또는 I2C의 <code>device-sensehat-raspi.edgex-edge.svc.cluster.local:59911</code>이다. 이 접근 계약은 현재 Workflow Builder가 Kubernetes 실행을 수행한다는 뜻이 아니다.</p>
+<p>현재 고정 <code>sensor-anomaly-demo</code>처럼 같은 노드에서 Local Data를 소비하는 workload에는 <code>edge-ai.io/local-data-client=true</code> label을 붙인다. 호출 주소는 고정 IP가 아니라 Serial의 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code> 또는 I2C의 <code>device-sensehat-raspi.edgex-edge.svc.cluster.local:59911</code>이다. AI Pipeline/Workflow Builder는 dashboard에서 제거됐으며 Kubernetes 실행을 수행하지 않는다.</p>
 <p>recent cache와 장애 outbox는 다음처럼 목적을 분리한다.</p>
 <ul><li>recent cache: 같은 node의 Workflow Pod가 최신 구간을 읽는 용도</li><li>outbox: 중앙 전송 실패 중 아직 영구 저장되지 않은 Event 보존 용도</li></ul>
 <p>현재 두 Device Service에는 recent cache와 Local Data API가 있지만 SQLite outbox와 offline replay는 없다. 따라서 중앙 연결 장애 중 이미 파싱한 sample을 로컬 Workflow가 cache 보존 범위 안에서 읽을 수는 있어도, 미전송 Event의 재전송이나 데이터 무손실을 보장하지 않는다. 과거 Agent의 SQLite 구현을 정식 Device Service 기능으로 간주하거나 재배포하지 않는다.</p>

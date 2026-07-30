@@ -94,7 +94,7 @@ button {
   top: 88px;
   z-index: 24;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 0 0 14px;
   padding: 8px;
@@ -556,7 +556,7 @@ button {
 
 .telemetry-summary-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 

@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=device-history-20260722"
-    screen_link = "/static/dashboard-screen.css?v=interaction-feedback-20260727"
+    refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
+    screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -57,8 +57,6 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "position: sticky;" in css
     assert "top: 86px;" in css
     assert "color: var(--console-ink) !important;" in css
-    assert ".workflow-graph-canvas" in css
-    assert "workflow-graph-canvas" in html
     assert "overflow-wrap: normal;" in css
     assert "@media (max-width: 1180px)" in css
     assert "@media (max-width: 900px)" in css
@@ -80,7 +78,8 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "workflow", "management"]' in nav_js
+    assert '["overview", "inventory", "management"]' in nav_js
+    assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 
 
@@ -98,14 +97,9 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
         ".device-row .item-title strong",
         ".topo-service",
         ".topo-pod-pill",
-        ".workflow-template",
         ".device-card",
-        ".workflow-node span",
         ".inspector-title strong",
-        ".workflow-source-list",
         ".validation-item",
-        ".workflow-plan-preview",
-        ".workflow-graph-canvas::before",
         ".pod-placement-card",
     ]
 
@@ -113,7 +107,6 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
         assert selector in css
 
     assert "background: var(--console-row) !important;" in css
-    assert ".workflow-edge-label" in css
     assert "fill: var(--console-muted) !important;" in css
     assert "stroke: var(--console-control) !important;" in css
     assert ".status.available" in css
@@ -125,8 +118,9 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
 
     assert ">운영 현황<" in html
     assert ">등록 디바이스<" in html
-    assert ">AI 파이프라인<" in html
     assert ">장비 관리<" in html
+    assert ">AI 파이프라인<" not in html
+    assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
 
 
@@ -174,7 +168,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
-    assert "/static/dashboard-refactor.css?v=device-history-20260722" in html
+    assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
     assert "/static/dashboard.js?v=inventory-cards-20260730" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
@@ -212,46 +206,6 @@ def test_context_drawer_groups_explain_panel_with_collapsed_chat_and_keeps_topol
     assert ".topo-node-lane" in css
     assert "#contextDetailPanel[hidden]" in responsive_css
     assert "position: fixed !important;" in responsive_css
-
-
-def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
-
-    assert "grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);" in css
-    assert ".workflow-palette" in css
-    assert ".workflow-canvas-shell" in css
-    assert ".workflow-inspector" in css
-    assert "grid-column: 1 / -1 !important;" in css
-    assert ".workflow-binding-inspector" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));" in css
-
-
-def test_workflow_cards_handle_long_pipeline_labels_without_overlap() -> None:
-    css = (
-        (ROOT / "edge-orch/state-aggregator/app/static/workflow.css").read_text()
-        + (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
-    )
-
-    assert "width: 160px;" in css
-    assert "min-height: 118px;" in css
-    assert "-webkit-line-clamp: 2;" in css
-    assert ".workflow-node small" in css
-    assert ".workflow-message-text" in css
-    assert "overflow-wrap: anywhere;" in css
-    assert "text-overflow: ellipsis;" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));" in css
-
-
-def test_workflow_canvas_uses_three_column_compact_layout() -> None:
-    js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-render-panels.js").read_text()
-    actions_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-actions.js").read_text()
-
-    assert "canvas.clientWidth < 980" in js
-    assert "index % 3" in js
-    assert "index / 3" in js
-    assert "index * 190" in js
-    assert "Math.min(workflowState.canvasScale, 0.96)" in js
-    assert "(workflow.nodes.length % 3)" in actions_js
 
 
 def test_operator_explain_panel_avoids_nested_scroll() -> None:

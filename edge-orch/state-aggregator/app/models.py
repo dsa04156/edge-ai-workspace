@@ -156,11 +156,6 @@ class DeviceState(BaseModel):
     physical_device_id: str | None = None
     hardware_binding_id: str | None = None
     controller_candidate_id: str | None = None
-    source_read_modes: list[
-        Literal["local_latest", "local_window", "history"]
-    ] = Field(default_factory=lambda: ["history"])
-
-
 class WorkflowState(BaseModel):
     workflow_id: str
     workflow_type: str | None = None

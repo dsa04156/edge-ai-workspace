@@ -592,9 +592,17 @@ def test_devices_endpoint_uses_edgex_inventory_and_latest_event(monkeypatch):
     assert device["device_service_available"] is True
     assert device["telemetry_freshness"] == "fresh"
     assert device["latest_readings"][0]["resource_name"] == "Temperature"
-    assert device["source_read_modes"] == ["history"]
+    assert "source_read_modes" not in device
     assert device["overall_status"] == "available"
     assert "Core Data event is fresh" in device["reason"]
+
+
+def test_ai_pipeline_sample_api_is_removed():
+    with TestClient(app) as client:
+        response = client.post("/state/device-source-bindings/sample", json={})
+
+    assert response.status_code == 404
+    assert "/state/device-source-bindings/sample" not in app.openapi()["paths"]
 
 
 @pytest.mark.parametrize(

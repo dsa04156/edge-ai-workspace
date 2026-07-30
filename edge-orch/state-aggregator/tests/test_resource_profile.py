@@ -162,6 +162,4 @@ def test_influx_modules_and_ui_contract_are_removed():
 
     assert not (app_dir / "influx.py").exists()
     assert not (app_dir / "placement_recorder.py").exists()
-    workflow_panels = (app_dir / "static" / "workflow-render-panels.js").read_text()
-    assert "InfluxDB" not in workflow_panels
-    assert "EdgeX Core Data / PostgreSQL" in workflow_panels
+    assert not (app_dir / "static" / "workflow-render-panels.js").exists()

@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/현재-데모-흐름.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
+            <span class="badge">수정: 2026-07-30 17:00</span>
+            <span class="badge">HTML 생성: 2026-07-30 17:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -228,7 +228,7 @@ Sense HAT v1
 <p>다음 항목은 현재 배포나 fallback이 아니다.</p>
 <ul><li><code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code></li><li>Agent SQLite outbox와 HTTPS persisted-ACK edge 경로</li><li><code>edge-telemetry-agent</code>라는 논리 Device Service와 <code>sensehat-001</code> bootstrap</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework</li><li><code>mqttvirtual</code>, mapper direct-write, legacy command/heartbeat topic</li></ul>
 <h2 id="workflow-경계">workflow 경계</h2>
-<p>Workflow Builder는 현재 browser 상태 안에서 stage 구성, device/resource bind/release dry-run, validation과 execution-plan preview만 제공한다. Kubernetes apply/delete/restart, EdgeX mutation, command publish, actuator 제어와 runtime offloading은 수행하지 않는다.</p>
+<p>AI Pipeline/Workflow Builder는 현재 dashboard에서 제거됐다. 고정 <code>sensor-anomaly-demo</code>만 같은 노드의 Device Service Local Data API를 직접 읽으며, Kubernetes apply/delete/restart, EdgeX mutation, command publish, actuator 제어와 runtime offloading을 수행하지 않는다.</p>
 <h2 id="관련-문서">관련 문서</h2>
 <ul><li><a href="../현재-데모-경로.html">현재 데모 경로</a></li><li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li><li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 절차</a></li></ul>
         </div>

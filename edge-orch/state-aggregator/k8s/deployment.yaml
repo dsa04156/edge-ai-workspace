@@ -14,7 +14,6 @@ spec:
     metadata:
       labels:
         app: state-aggregator
-        edge-ai.io/local-data-client: "true"
     spec:
       serviceAccountName: state-aggregator
       nodeSelector:
@@ -36,10 +35,6 @@ spec:
               value: /app/app/config/instance_map.json
             - name: ADAPTER_CATALOG_PATH
               value: /app/app/config/adapter_catalog.json
-            - name: DEVICE_SOURCE_CATALOG_PATH
-              value: /app/app/config/device_source_catalog.json
-            - name: DEVICE_SOURCE_TIMEOUT_SECONDS
-              value: "3"
             - name: DEVICE_MANAGEMENT_ENABLED
               value: "true"
             - name: DEVICE_MANAGEMENT_HMAC_KEY

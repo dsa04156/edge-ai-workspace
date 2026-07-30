@@ -57,15 +57,15 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
     for label in (
         'data-dashboard-page="overview" aria-pressed="true">운영 현황</button>',
         'data-dashboard-page="inventory" aria-pressed="false">등록 디바이스</button>',
-        'data-dashboard-page="workflow" aria-pressed="false">AI 파이프라인</button>',
         'data-dashboard-page="management" aria-pressed="false">장비 관리</button>',
-        "AI Pipeline Builder",
         "EdgeX",
         "Kubernetes",
     ):
         assert label in html
 
     for old_label in (
+        ">AI 파이프라인<",
+        "AI Pipeline Builder",
         ">워크플로우<",
         ">자원증강<",
         "자원증강 가상디바이스",
@@ -117,22 +117,21 @@ def test_inventory_device_rows_use_compact_progressive_disclosure_cards() -> Non
     assert "profile:" not in render_devices
 
 
-def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:
+def test_ai_pipeline_builder_surface_and_assets_are_removed() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
+    static_dir = ROOT / "edge-orch/state-aggregator/app/static"
 
-    assert "/static/workflow.css?v=interaction-feedback-20260727" in html
-    assert "/static/workflow-state.js?v=device-source-binding-20260730" in html
-    assert "/static/workflow-render-panels.js?v=device-source-binding-20260730" in html
-    assert "/static/workflow-actions.js?v=device-source-binding-20260730" in html
-    assert "factory-vision-inspection-pipeline" in state_js
-    for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
-        assert f'label: "{label}"' in state_js
-    assert "Collect Device Data" in state_js
-    assert "Normalize Feature Window" in state_js
-    assert "Run Defect Inference" in state_js
-    assert "Format Inspection Event" in state_js
-    assert "Persist Result Cache" in state_js
-    assert "Publish Dashboard Signal" in state_js
-    assert "AI Service" not in state_js
-    assert "ai-service" not in state_js
+    assert 'data-dashboard-page="workflow"' not in html
+    assert 'data-page="workflow"' not in html
+    assert "AI 파이프라인" not in html
+    assert "AI Pipeline Builder" not in html
+    for asset in (
+        "workflow.css",
+        "workflow-state.js",
+        "workflow-render.js",
+        "workflow-render-panels.js",
+        "workflow-actions.js",
+        "workflow.js",
+    ):
+        assert f"/static/{asset}" not in html
+        assert not (static_dir / asset).exists()

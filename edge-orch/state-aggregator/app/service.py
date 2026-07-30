@@ -9,7 +9,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .config import Settings, load_instance_map
-from .device_source import DeviceSourceCatalog
 from .edgex import EdgeXClient
 from .models import (
     CostModelState,
@@ -45,9 +44,6 @@ class StateAggregatorService:
             settings.edgex_core_metadata_url,
             settings.edgex_core_data_url,
             settings.edgex_timeout_seconds,
-        )
-        self.device_source_catalog = DeviceSourceCatalog.load(
-            settings.device_source_catalog_path
         )
         self._service_resource_profiles: list[dict[str, Any]] = []
         self.kube = KubeClient()
@@ -394,9 +390,6 @@ class StateAggregatorService:
             ),
             controller_candidate_id=self._identity_tag(
                 device.tags, "controllerCandidateId"
-            ),
-            source_read_modes=self.device_source_catalog.read_modes_for(
-                device.device_service_name
             ),
         )
         overall_status, reason = self._device_health(state)

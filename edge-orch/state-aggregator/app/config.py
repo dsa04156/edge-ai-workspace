@@ -94,21 +94,6 @@ class Settings(BaseModel):
             )
         )
     )
-    device_source_catalog_path: Path = Field(
-        default_factory=lambda: Path(
-            os.getenv(
-                "DEVICE_SOURCE_CATALOG_PATH",
-                str(APP_CONFIG_DIR / "device_source_catalog.json"),
-            )
-        )
-    )
-    device_source_timeout_seconds: float = Field(
-        default_factory=lambda: float(
-            os.getenv("DEVICE_SOURCE_TIMEOUT_SECONDS", "3")
-        ),
-        gt=0,
-        le=30,
-    )
     adapter_runtime_management_enabled: bool = Field(
         default_factory=lambda: _env_bool("ADAPTER_RUNTIME_MANAGEMENT_ENABLED")
     )
