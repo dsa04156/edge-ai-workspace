@@ -104,12 +104,14 @@ def test_sensor_device_table_does_not_collapse_or_clip_at_scale() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/operations-dashboard.css").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert 'aria-label="센서 디바이스 목록"' in html
+    assert 'aria-label="디바이스 목록"' in html
+    assert 'id="inventoryTitle">센서 디바이스<' in html
     assert 'class="sensor-device-table"' in html
     assert ".sensor-table-shell" in css
     assert "max-height: none;" in css
     assert "#deviceList" in css
     assert ".sensor-device-row" in css
+    assert ".resource-category-tabs" in css
     assert 'grid-template-areas:' in css
     assert "overflow: visible;" in css
     assert ".sensor-device-name" in css

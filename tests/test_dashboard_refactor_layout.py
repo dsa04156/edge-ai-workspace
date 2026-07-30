@@ -66,7 +66,9 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
     assert "Resource rail" in design
     assert "Resource Augmentation" not in html
-    assert "Deferred Resource Augmentation" in screen_design
+    assert "가상 디바이스 표시 경계" in screen_design
+    assert "동적 Workflow" in screen_design
+    assert "읽기 전용" in screen_design
     assert "dark left resource rail" in screen_design
 
 
@@ -117,7 +119,7 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     assert ">운영 현황<" in html
-    assert ">센서 디바이스<" in html
+    assert ">디바이스<" in html
     assert ">장비 관리<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
@@ -169,7 +171,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
-    assert "/static/dashboard.js?v=sensor-inventory-table-20260730" in html
+    assert "/static/dashboard.js?v=device-taxonomy-20260730" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

@@ -13,6 +13,8 @@ function createDeviceTelemetryHistoryState(overrides = {}) {
 const state = {
   data: null,
   refreshMs: 5000,
+  selectedResourceCategory: "sensor",
+  selectedResourceId: null,
   selectedDeviceName: null,
   deviceTelemetryHistory: createDeviceTelemetryHistoryState(),
   selectedNodeName: null,
@@ -34,6 +36,140 @@ const DEVICE_TELEMETRY_WINDOWS = [
   {value: "-24h", label: "24시간"},
 ];
 
+const RESOURCE_CATEGORY_VIEWS = {
+  server: {
+    label: "엣지 AI 서버",
+    countId: "serverCategoryCount",
+    latestLabel: "최신 관측",
+    emptyLabel: "관측된 엣지 AI 서버가 없습니다.",
+  },
+  physical: {
+    label: "물리 디바이스",
+    countId: "physicalCategoryCount",
+    latestLabel: "최신 관측",
+    emptyLabel: "관측된 물리 디바이스가 없습니다.",
+  },
+  virtual: {
+    label: "가상 디바이스",
+    countId: "virtualCategoryCount",
+    latestLabel: "최신 관측",
+    emptyLabel: "등록된 가상 디바이스가 없습니다.",
+  },
+  sensor: {
+    label: "센서 디바이스",
+    countId: "sensorCategoryCount",
+    latestLabel: "최신 이벤트",
+    emptyLabel: "등록된 센서 디바이스가 없습니다.",
+  },
+};
+
+function resourceCategoryView(category = "sensor") {
+  return RESOURCE_CATEGORY_VIEWS[category] || RESOURCE_CATEGORY_VIEWS.sensor;
+}
+
+function isServerNode(node = {}) {
+  return ["cloud_server", "server"].includes(
+    text(node.node_type, "").toLowerCase(),
+  );
+}
+
+function resourceAvailabilityStatus(value) {
+  const normalized = text(value, "unknown").toLowerCase();
+  if (["healthy", "available", "idle", "allocated"].includes(normalized)) {
+    return "available";
+  }
+  if (["degraded", "partially_available", "configured_not_running"].includes(normalized)) {
+    return "degraded";
+  }
+  if (["unavailable", "down", "failed"].includes(normalized)) {
+    return "unavailable";
+  }
+  return "unknown";
+}
+
+function resourceStatusLabel(status) {
+  return {
+    available: "Available",
+    degraded: "Degraded",
+    unavailable: "Unavailable",
+    unknown: "Unknown",
+  }[status] || "Unknown";
+}
+
+function normalizeNodeResourceItem(node, index, kind) {
+  const name = nodeDisplayName(node, index);
+  const status = resourceAvailabilityStatus(node.node_health);
+  return {
+    id: name,
+    name,
+    kind,
+    status,
+    statusLabel: resourceStatusLabel(status),
+    observedAt: node.collected_at,
+    nodeName: name,
+    raw: node,
+  };
+}
+
+function normalizeVirtualResourceItem(resource, generatedAt) {
+  const status = resourceAvailabilityStatus(resource.status);
+  return {
+    id: text(resource.id),
+    name: text(resource.display_name, resource.id),
+    kind: "virtual",
+    status,
+    statusLabel: resourceStatusLabel(status),
+    observedAt: generatedAt,
+    nodeName: text(resource.node, ""),
+    raw: resource,
+  };
+}
+
+function normalizeSensorResourceItem(device) {
+  const status = deviceStatus(device);
+  return {
+    id: text(device.name),
+    name: text(device.name),
+    kind: "sensor",
+    status,
+    statusLabel: resourceStatusLabel(status),
+    observedAt: device.latest_event_timestamp,
+    nodeName: deviceNodeLabel(device),
+    raw: device,
+  };
+}
+
+function sortResourceItems(items = []) {
+  const rank = {available: 0, degraded: 1, unknown: 2, unavailable: 3};
+  return [...items].sort((left, right) => (
+    (rank[left.status] ?? 2) - (rank[right.status] ?? 2)
+    || text(left.name, "").localeCompare(text(right.name, ""))
+  ));
+}
+
+function resourceCategoryItems(data = {}, category = "sensor") {
+  let items = [];
+  if (category === "server" || category === "physical") {
+    items = (data.nodes || [])
+      .map((node, index) => ({node, index}))
+      .filter(({node}) => (
+        category === "server" ? isServerNode(node) : !isServerNode(node)
+      ))
+      .map(({node, index}) => normalizeNodeResourceItem(node, index, category));
+  } else if (category === "virtual") {
+    const virtualState = data.virtual_resources || {};
+    items = (virtualState.resources || []).map(
+      (resource) => normalizeVirtualResourceItem(
+        resource,
+        virtualState.generated_at || data.generated_at,
+      ),
+    );
+  } else {
+    items = (data.devices || []).map(normalizeSensorResourceItem);
+  }
+  return sortResourceItems(items);
+}
+
 function buildGlobalSearchResults(query, data = {}, limit = 10) {
   const normalized = String(query || "").trim().toLocaleLowerCase();
   if (!normalized) return [];
@@ -50,7 +186,8 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
         kind: "node",
         id: name,
         label: name,
-        detail: `노드 · ${text(node.node_type, "유형 미확인")}`,
+        category: isServerNode(node) ? "server" : "physical",
+        detail: isServerNode(node) ? "엣지 AI 서버" : "물리 디바이스",
         index,
       });
     }
@@ -68,6 +205,23 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
         id: device.name,
         label: device.name,
         detail: `센서 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
+      });
+    }
+  });
+  (data.virtual_resources?.resources || []).forEach((resource) => {
+    if (includesQuery(
+      resource.id,
+      resource.display_name,
+      resource.node,
+      resource.resource_type,
+      resource.capabilities,
+    )) {
+      results.push({
+        kind: "virtual",
+        id: resource.id,
+        label: text(resource.display_name, resource.id),
+        category: "virtual",
+        detail: `가상 디바이스 · ${text(resource.resource_type, "유형 미확인")}`,
       });
     }
   });
@@ -620,6 +774,76 @@ function showDeviceExplanation(
   `;
 }
 
+function showResourceExplanation(item) {
+  const panel = $("explainPanel");
+  if (!panel || !item) return;
+  if (item.kind === "sensor") {
+    state.selectedResourceId = null;
+    showDeviceExplanation(item.raw);
+    return;
+  }
+
+  state.selectedDeviceName = null;
+  state.selectedResourceId = item.id;
+  const view = resourceCategoryView(item.kind);
+  const raw = item.raw || {};
+  const metrics = raw.raw_metrics || {};
+  const statusStrip = item.kind === "virtual"
+    ? [
+        ["상태", item.statusLabel],
+        ["실행 인스턴스", text(raw.observed_instances, 0)],
+        ["가용 인스턴스", text(raw.free_instances, 0)],
+      ]
+    : [
+        ["상태", item.statusLabel],
+        ["분류", view.label],
+        ["최신 관측", timestampAge(item.observedAt)],
+      ];
+  const facts = item.kind === "virtual"
+    ? [
+        ["리소스 ID", raw.id],
+        ["배치 노드", raw.node],
+        ["리소스 유형", raw.resource_type],
+        ["필요 / 관측 인스턴스", `${text(raw.desired_instances, 0)} / ${text(raw.observed_instances, 0)}`],
+        ["가용 / 할당 인스턴스", `${text(raw.free_instances, 0)} / ${text(raw.allocated_instances, 0)}`],
+        ["기능", (raw.capabilities || []).join(", ") || "등록 없음"],
+        ["지원 단계", (raw.supported_stage_types || []).join(", ") || "등록 없음"],
+        ["최신 관측 시각", item.observedAt || "관측 없음"],
+      ]
+    : [
+        ["호스트 이름", raw.hostname || item.name],
+        ["디바이스 분류", view.label],
+        ["CPU 사용률", pct(metrics.cpu_utilization)],
+        ["메모리 사용률", pct(metrics.memory_usage_ratio)],
+        ["GPU 사용률", metrics.gpu_utilization === null || metrics.gpu_utilization === undefined ? "N/A" : pct(metrics.gpu_utilization)],
+        ["Compute / Memory / Network 압력", `${text(raw.compute_pressure, "unknown")} / ${text(raw.memory_pressure, "unknown")} / ${text(raw.network_pressure, "unknown")}`],
+        ["최신 관측 시각", item.observedAt || "관측 없음"],
+      ];
+  const reason = item.kind === "virtual"
+    ? text(raw.twin?.status_reason, `가상 디바이스 상태는 ${text(raw.status, "unknown")}입니다.`)
+    : `Prometheus와 Kubernetes 노드 관측 결과가 ${text(raw.node_health, "unknown")}입니다.`;
+
+  panel.innerHTML = `
+    <div class="explain-header">
+      <span class="explain-badge">${escapeHtml(view.label)}</span>
+      <strong>${escapeHtml(item.name)}</strong>
+    </div>
+    <div class="explain-status-strip">
+      ${statusStrip.map(([label, value]) => `
+        <div>
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(displayValue(value))}</strong>
+        </div>
+      `).join("")}
+    </div>
+    ${renderDeviceFactList(facts)}
+    ${renderDeviceReasonList([{
+      title: "상태 근거",
+      text: reason,
+    }])}
+  `;
+}
+
 function cancelDeviceTelemetryHistorySelection() {
   const current = state.deviceTelemetryHistory;
   state.selectedDeviceName = null;
@@ -627,6 +851,18 @@ function cancelDeviceTelemetryHistorySelection() {
     window: current.window,
     requestId: current.requestId + 1,
   });
+}
+
+function selectResourceCategory(category, {render = true} = {}) {
+  if (!RESOURCE_CATEGORY_VIEWS[category]) return false;
+  if (isContextDetailPanelOpen()) {
+    closeContextDetailPanel({restoreFocus: false});
+  }
+  state.selectedResourceCategory = category;
+  state.selectedResourceId = null;
+  cancelDeviceTelemetryHistorySelection();
+  if (render) renderDevices(state.data?.devices || [], state.data);
+  return true;
 }
 
 function kpiKeysForCard(key) {
@@ -760,10 +996,34 @@ async function loadDeviceTelemetryHistory(
   return true;
 }
 
+async function fetchVirtualResourceState(fetchFn = fetch) {
+  const response = await fetchFn("/state/virtual-resources", {cache: "no-store"});
+  if (!response.ok) {
+    throw new Error(`virtual resource api failed: ${response.status}`);
+  }
+  const payload = await response.json();
+  if (!payload || !Array.isArray(payload.resources)) {
+    throw new Error("virtual resource response contract is invalid");
+  }
+  return payload;
+}
+
 async function loadDashboard() {
-  const response = await fetch("/state/dashboard", { cache: "no-store" });
+  const [response, virtualResult] = await Promise.all([
+    fetch("/state/dashboard", { cache: "no-store" }),
+    fetchVirtualResourceState()
+      .then((value) => ({value, error: null}))
+      .catch((error) => ({
+        value: {resources: []},
+        error: error instanceof Error ? error.message : "virtual resource observation failed",
+      })),
+  ]);
   if (!response.ok) throw new Error(`dashboard api failed: ${response.status}`);
-  state.data = await response.json();
+  state.data = {
+    ...(await response.json()),
+    virtual_resources: virtualResult.value,
+    virtual_resource_observation_error: virtualResult.error,
+  };
   render();
 }
 
@@ -830,9 +1090,10 @@ function renderGlobalSearch(query = $("globalResourceSearch")?.value || "") {
           data-global-result-kind="${escapeHtml(result.kind)}"
           data-global-result-id="${escapeHtml(result.id)}"
           data-global-result-index="${escapeHtml(result.index ?? "")}"
+          data-global-result-category="${escapeHtml(result.category ?? "")}"
           ${index === 0 ? 'data-global-first-result="true"' : ""}
         >
-          <span>${escapeHtml({node: "NODE", device: "DEVICE", service: "SERVICE"}[result.kind] || result.kind)}</span>
+          <span>${escapeHtml({node: "NODE", device: "SENSOR", virtual: "VIRTUAL", service: "SERVICE"}[result.kind] || result.kind)}</span>
           <strong>${escapeHtml(result.label)}</strong>
           <small>${escapeHtml(result.detail)}</small>
         </button>
@@ -852,13 +1113,30 @@ function openGlobalSearchResult(target) {
   if (globalThis.location && globalThis.location.hash !== "#inventory") {
     globalThis.location.hash = "inventory";
   }
-  if (kind === "node") {
-    applyNodeDeviceFilter(id, button.dataset.globalResultIndex);
-  } else if (kind === "device") {
-    const device = (state.data?.devices || []).find((item) => item.name === id);
-    if (device) {
-      void loadDeviceTelemetryHistory(device);
+  if (kind === "node" || kind === "device" || kind === "virtual") {
+    const category = kind === "node"
+      ? button.dataset.globalResultCategory || "physical"
+      : kind === "device" ? "sensor" : "virtual";
+    selectResourceCategory(category, {render: false});
+    state.selectedNodeName = null;
+    state.selectedNodeFilterValues = [];
+    const item = resourceCategoryItems(state.data || {}, category)
+      .find((resource) => resource.id === id);
+    if (item) {
+      if (item.kind === "sensor") {
+        void loadDeviceTelemetryHistory(item.raw);
+      } else {
+        showResourceExplanation(item);
+      }
       renderDevices(state.data?.devices || []);
+      const trigger = Array.from(
+        document.querySelectorAll('[data-resource-id]'),
+      ).find((candidate) => (
+        candidate.dataset.resourceKind === category
+        && candidate.dataset.resourceId === id
+      ));
+      markSelectedExplain(trigger);
+      openContextDetailPanel(trigger);
     }
   } else if (kind === "service") {
     state.selectedTopologyService = id;
@@ -959,32 +1237,45 @@ function render() {
   const kpis = data.kpis || {};
   const devices = data.devices || [];
   const nodes = data.nodes || [];
+  const serverItems = resourceCategoryItems(data, "server");
+  const physicalItems = resourceCategoryItems(data, "physical");
+  const virtualItems = resourceCategoryItems(data, "virtual");
+  const sensorItems = resourceCategoryItems(data, "sensor");
   const resourceState = data.resource_profiles || {};
   const deviceObservationFailed = deviceObservationUnavailable(data);
   const deviceObservationError = text(
     data.device_observation_error,
     "센서 디바이스 관측 불가",
   );
-  const telemetryEnabled = Number(kpis.registered_device_count) || devices.length;
-  const freshTelemetry = Number(kpis.fresh_core_data_event_device_count) || devices.filter((device) => device.telemetry_freshness === "fresh").length;
   const unavailableDevices = devices.filter((device) => deviceStatus(device) === "unavailable").length;
   const degradedDevices = devices.filter((device) => deviceStatus(device) === "degraded").length;
   const boundDevices = Number(kpis.device_service_available_count) || 0;
   const registeredDevices = Number(kpis.registered_device_count) || devices.length;
   const profiledContainers = Number(kpis.service_resource_profile_container_count) || 0;
   const sampledContainers = Math.round(profiledContainers * ratio(kpis.service_resource_usage_coverage_ratio));
+  const availableCount = (items) => items.filter((item) => item.status === "available").length;
   setText("updatedAt", `갱신 ${new Date(data.generated_at).toLocaleString()}`);
-  setText("activeNodeCount", text(kpis.active_node_count, 0));
-  setText("nodeRatio", `${pct(kpis.node_online_ratio)} 온라인`);
-  setText("deviceCount", deviceObservationFailed ? "관측 불가" : text(kpis.registered_device_count, 0));
+  setText("edgeAiServerCount", serverItems.length);
+  setText("edgeAiServerHealth", `${availableCount(serverItems)}/${serverItems.length}개 Available`);
+  setText("physicalDeviceCount", physicalItems.length);
+  setText("physicalDeviceHealth", `${availableCount(physicalItems)}/${physicalItems.length}개 Available`);
   setText(
-    "deviceHealthRatio",
-    deviceObservationFailed
-      ? "센서 관측 연결 필요"
-      : `${text(kpis.available_device_count, 0)}/${registeredDevices}개 Available`,
+    "virtualDeviceCount",
+    data.virtual_resource_observation_error ? "관측 불가" : virtualItems.length,
   );
-  setText("telemetryFreshnessRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.core_data_freshness_ratio));
-  setText("telemetryFreshnessCaption", deviceObservationFailed ? deviceObservationError : `${freshTelemetry}/${telemetryEnabled}개 Fresh`);
+  setText(
+    "virtualDeviceHealth",
+    data.virtual_resource_observation_error
+      ? data.virtual_resource_observation_error
+      : `${availableCount(virtualItems)}/${virtualItems.length}개 Available`,
+  );
+  setText("sensorDeviceCount", deviceObservationFailed ? "관측 불가" : sensorItems.length);
+  setText(
+    "sensorDeviceHealth",
+    deviceObservationFailed
+      ? deviceObservationError
+      : `${availableCount(sensorItems)}/${sensorItems.length}개 Available`,
+  );
   setText("resourceProfileCount", text(kpis.service_resource_profile_count, 0));
   setText("placementFitCaption", `${text(kpis.service_resource_profile_pod_count, 0)}개 pod · ${text(kpis.service_resource_partially_declared_profile_count, 0)}개 spec 누락`);
   setText("serviceCpuUsage", threeDecimal(kpis.service_resource_current_cpu_usage_cores));
@@ -995,12 +1286,6 @@ function render() {
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
   setText("serviceBindingCaption", deviceObservationFailed ? "센서 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 센서 연결`);
-  setText(
-    "assetCount",
-    deviceObservationFailed
-      ? "센서 관측 불가"
-      : `센서 ${devices.length}개 · Available ${text(kpis.available_device_count, 0)}개`,
-  );
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderKpiCatalog(kpis, deviceObservationFailed);
@@ -1017,11 +1302,14 @@ function render() {
 
 function renderOverviewVisuals(data, kpis, devices) {
   const nodes = data?.nodes || [];
-  const deviceObservationFailed = deviceObservationUnavailable(data);
-  const total = devices.length || 0;
-  const available = devices.filter((device) => isOperationalDevice(device)).length;
-  const degraded = devices.filter((device) => deviceStatus(device) === "degraded").length;
-  const unavailable = devices.filter((device) => deviceStatus(device) === "unavailable").length;
+  const deviceObservationFailed = deviceObservationUnavailable(data)
+    || Boolean(data?.virtual_resource_observation_error);
+  const resourceItems = Object.keys(RESOURCE_CATEGORY_VIEWS)
+    .flatMap((category) => resourceCategoryItems(data, category));
+  const total = resourceItems.length || 0;
+  const available = resourceItems.filter((item) => item.status === "available").length;
+  const degraded = resourceItems.filter((item) => item.status === "degraded").length;
+  const unavailable = resourceItems.filter((item) => item.status === "unavailable").length;
   const unknown = Math.max(0, total - available - degraded - unavailable);
   const deviceRatio = total ? available / total : ratio(kpis.device_service_availability_ratio);
   const telemetryRatio = ratio(kpis.core_data_freshness_ratio);
@@ -1046,7 +1334,7 @@ function renderOverviewVisuals(data, kpis, devices) {
         unknown: unknown / statusTotal,
       });
   setText("overallHealthPercent", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
-  setText("overviewMetricScope", `${nodeScope} · 엣지 노드 · 센서 디바이스`);
+  setText("overviewMetricScope", `${nodeScope} · 서버 · 물리 · 가상 · 센서 디바이스`);
   setText(
     "overviewHealthCaption",
     deviceObservationFailed
@@ -1199,43 +1487,90 @@ function deviceObservationUnavailable(data = state.data) {
   return Boolean(data?.device_observation_error);
 }
 
-function deviceFilterEmptyText(data = state.data) {
-  if (deviceObservationUnavailable(data)) return "센서 디바이스 관측 불가";
-  if (state.selectedNodeName) return `${state.selectedNodeName}에 등록된 센서가 없습니다.`;
-  return "등록된 센서 디바이스가 없습니다.";
+function resourceCategoryObservationError(
+  data = state.data,
+  category = state.selectedResourceCategory,
+) {
+  if (category === "sensor") return data?.device_observation_error || "";
+  if (category === "virtual") {
+    return data?.virtual_resource_observation_error
+      || data?.virtual_resources?.observation_error
+      || "";
+  }
+  return "";
 }
 
-function renderSensorDeviceRows(
-  devices = [],
-  selectedDeviceName = null,
-  contextPanelOpen = false,
+function deviceFilterEmptyText(
+  data = state.data,
+  category = state.selectedResourceCategory,
 ) {
-  return devices.map((device) => {
-    const status = deviceStatus(device);
-    const statusLabel = sensorDeviceStatusLabel(device);
-    const isSelected = selectedDeviceName === device.name;
-    const eventTimestamp = text(device.latest_event_timestamp, "");
+  const error = resourceCategoryObservationError(data, category);
+  if (error) return `${resourceCategoryView(category).label} 관측 불가`;
+  if (state.selectedNodeName) {
+    return `${state.selectedNodeName}에 해당하는 ${resourceCategoryView(category).label}가 없습니다.`;
+  }
+  return resourceCategoryView(category).emptyLabel;
+}
+
+function resourceItemMatchesNodeFilter(item) {
+  if (!state.selectedNodeName) return true;
+  const labels = [
+    text(item?.nodeName, "").trim(),
+    cleanNodeLabel(item?.nodeName, ""),
+  ].filter(Boolean);
+  return labels.some((label) => state.selectedNodeFilterValues.includes(label));
+}
+
+function renderResourceCategoryTabs(data = state.data || {}) {
+  Object.keys(RESOURCE_CATEGORY_VIEWS).forEach((category) => {
+    const count = resourceCategoryItems(data, category).length;
+    setText(resourceCategoryView(category).countId, count);
+    const button = typeof document !== "undefined"
+      ? document.querySelector?.(`[data-resource-category="${category}"]`)
+      : null;
+    if (!button) return;
+    const selected = category === state.selectedResourceCategory;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function renderResourceInventoryRows(
+  items = [],
+  {
+    category = state.selectedResourceCategory,
+    selectedResourceId = null,
+    contextPanelOpen = false,
+  } = {},
+) {
+  const latestLabel = resourceCategoryView(category).latestLabel;
+  return items.map((item) => {
+    const isSelected = selectedResourceId === item.id;
+    const observedAt = text(item.observedAt, "");
+    const isSensor = item.kind === "sensor";
     return `
-      <tr class="sensor-device-row ${isSelected ? "selected" : ""}" data-device-row="${escapeHtml(device.name)}">
+      <tr class="sensor-device-row resource-inventory-row ${isSelected ? "selected" : ""}" data-resource-row="${escapeHtml(item.id)}">
         <td class="sensor-device-name-cell" data-label="이름">
-          <strong class="sensor-device-name" title="${escapeHtml(device.name)}">${escapeHtml(device.name)}</strong>
+          <strong class="sensor-device-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong>
         </td>
         <td data-label="상태">
-          <span class="sensor-status sensor-status-${escapeHtml(status)}" aria-label="상태 ${escapeHtml(statusLabel)}">
+          <span class="sensor-status sensor-status-${escapeHtml(item.status)}" aria-label="상태 ${escapeHtml(item.statusLabel)}">
             <span class="sensor-status-dot" aria-hidden="true"></span>
-            <span class="sensor-status-label">${escapeHtml(statusLabel)}</span>
+            <span class="sensor-status-label">${escapeHtml(item.statusLabel)}</span>
           </span>
         </td>
-        <td class="sensor-event-cell" data-label="최신 이벤트">
-          <time datetime="${escapeHtml(eventTimestamp)}">${escapeHtml(timestampAge(device.latest_event_timestamp))}</time>
+        <td class="sensor-event-cell" data-label="${escapeHtml(latestLabel)}">
+          <time datetime="${escapeHtml(observedAt)}">${escapeHtml(timestampAge(item.observedAt))}</time>
         </td>
         <td class="sensor-device-action-cell">
           <button
             type="button"
             class="sensor-detail-button explainable"
-            data-explain-type="device"
-            data-device-name="${escapeHtml(device.name)}"
-            aria-label="${escapeHtml(device.name)} 상세정보 보기"
+            data-explain-type="${isSensor ? "device" : "resource"}"
+            ${isSensor ? `data-device-name="${escapeHtml(item.id)}"` : ""}
+            data-resource-kind="${escapeHtml(item.kind)}"
+            data-resource-id="${escapeHtml(item.id)}"
+            aria-label="${escapeHtml(item.name)} 상세정보 보기"
             aria-controls="contextDetailPanel"
             aria-expanded="${isSelected && contextPanelOpen ? "true" : "false"}"
           >상세보기</button>
@@ -1245,18 +1580,58 @@ function renderSensorDeviceRows(
   }).join("");
 }
 
+function renderSensorDeviceRows(
+  devices = [],
+  selectedDeviceName = null,
+  contextPanelOpen = false,
+) {
+  return renderResourceInventoryRows(
+    devices.map(normalizeSensorResourceItem),
+    {
+      category: "sensor",
+      selectedResourceId: selectedDeviceName,
+      contextPanelOpen,
+    },
+  );
+}
+
 function renderDevices(devices, data = state.data) {
-  const visibleDevices = filteredDevices(devices);
+  const dashboardData = data || {devices: devices || []};
+  const category = state.selectedResourceCategory;
+  const view = resourceCategoryView(category);
+  const items = resourceCategoryItems(dashboardData, category);
+  const visibleItems = items.filter(resourceItemMatchesNodeFilter);
   const list = $("deviceList");
-  renderDeviceFilterSummary(devices.length, visibleDevices.length);
+  renderResourceCategoryTabs(dashboardData);
+  renderDeviceFilterSummary(items.length, visibleItems.length);
+  setText("inventoryTitle", view.label);
+  setText("inventoryLatestHeading", view.latestLabel);
+  setText(
+    "assetCount",
+    resourceCategoryObservationError(dashboardData, category)
+      ? "관측 불가"
+      : `${items.length}개 · Available ${items.filter((item) => item.status === "available").length}개`,
+  );
+  const tableShell = typeof document !== "undefined"
+    ? document.querySelector?.(".sensor-table-shell")
+    : null;
+  if (tableShell) tableShell.setAttribute("aria-label", `${view.label} 목록`);
+  const topology = $("sensorTopologyPanel");
+  if (topology) topology.hidden = category !== "sensor";
   if (!list) return;
-  list.innerHTML = visibleDevices.length
-    ? renderSensorDeviceRows(
-        visibleDevices,
-        state.selectedDeviceName,
-        isContextDetailPanelOpen(),
+  const selectedId = category === "sensor"
+    ? state.selectedDeviceName
+    : state.selectedResourceId;
+  list.innerHTML = visibleItems.length
+    ? renderResourceInventoryRows(
+        visibleItems,
+        {
+          category,
+          selectedResourceId: selectedId,
+          contextPanelOpen: isContextDetailPanelOpen(),
+        },
       )
-    : `<tr class="sensor-device-empty"><td colspan="4">${escapeHtml(deviceFilterEmptyText(data))}</td></tr>`;
+    : `<tr class="sensor-device-empty"><td colspan="4">${escapeHtml(deviceFilterEmptyText(dashboardData, category))}</td></tr>`;
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -1607,10 +1982,12 @@ function resolveContextDetailTrigger(documentRef = document) {
   if (contextDetailTrigger?.isConnected) return contextDetailTrigger;
   const type = contextDetailTrigger?.dataset?.explainType;
   const deviceName = contextDetailTrigger?.dataset?.deviceName;
+  const resourceId = contextDetailTrigger?.dataset?.resourceId;
   return Array.from(documentRef.querySelectorAll?.("[data-explain-type]") || [])
     .find((item) => (
       item.dataset.explainType === type
       && (!deviceName || item.dataset.deviceName === deviceName)
+      && (!resourceId || item.dataset.resourceId === resourceId)
     )) || null;
 }
 
@@ -1640,8 +2017,9 @@ function closeContextDetailPanel(
   documentRef.body?.classList.remove("context-detail-open");
   if (state.selectedDeviceName) {
     cancelDeviceTelemetryHistorySelection();
-    renderDevices(state.data?.devices || []);
   }
+  state.selectedResourceId = null;
+  renderDevices(state.data?.devices || [], state.data);
   markSelectedExplain(null, documentRef);
   if (restoreFocus && restoreTarget?.isConnected) {
     restoreTarget.focus?.({preventScroll: true});
@@ -1687,6 +2065,21 @@ function handleExplainSelection(target) {
     const selectedRow = Array.from(document.querySelectorAll('[data-explain-type="device"]')).find((item) => item.dataset.deviceName === deviceName);
     markSelectedExplain(selectedRow);
   }
+  if (type === "resource") {
+    const category = explainTarget.dataset.resourceKind;
+    const resourceId = explainTarget.dataset.resourceId;
+    const item = resourceCategoryItems(state.data || {}, category)
+      .find((resource) => resource.id === resourceId);
+    if (!item) return;
+    showResourceExplanation(item);
+    renderDevices(state.data?.devices || [], state.data);
+    const selectedRow = Array.from(document.querySelectorAll('[data-explain-type="resource"]'))
+      .find((row) => (
+        row.dataset.resourceKind === category
+        && row.dataset.resourceId === resourceId
+      ));
+    markSelectedExplain(selectedRow);
+  }
   if (type === "kpi") {
     showKpiExplanation(explainTarget.dataset.kpiKey);
     markSelectedExplain(explainTarget);
@@ -1702,6 +2095,22 @@ function handleExplainSelection(target) {
 
 if (typeof document !== "undefined") {
   document.addEventListener("click", (event) => {
+    const categoryTarget = event.target.closest?.("[data-resource-category]");
+    if (categoryTarget) {
+      selectResourceCategory(categoryTarget.dataset.resourceCategory);
+      return;
+    }
+    const categoryLink = event.target.closest?.("[data-resource-category-link]");
+    if (categoryLink) {
+      selectResourceCategory(categoryLink.dataset.resourceCategoryLink);
+      if (typeof globalThis.showDashboardPage === "function") {
+        globalThis.showDashboardPage("inventory");
+      }
+      if (globalThis.location && globalThis.location.hash !== "#inventory") {
+        globalThis.location.hash = "inventory";
+      }
+      return;
+    }
     if (handleTelemetryHistoryAction(event.target)) return;
     if (handleNodeFilterSelection(event.target)) return;
     handleExplainSelection(event.target);
@@ -1821,15 +2230,21 @@ if (typeof module !== "undefined") {
     createDeviceTelemetryHistoryState,
     deviceTelemetryHistoryUrl,
     fetchDeviceTelemetryHistory,
+    fetchVirtualResourceState,
     handleTelemetryHistoryAction,
     loadDeviceTelemetryHistory,
     openContextDetailPanel,
     closeContextDetailPanel,
     renderDeviceTelemetryHistory,
+    renderResourceInventoryRows,
     renderSensorDeviceRows,
     renderGlobalSearch,
     refreshDashboardNow,
     sensorDeviceStatusLabel,
+    resourceCategoryItems,
+    resourceCategoryView,
+    resourceAvailabilityStatus,
+    selectResourceCategory,
     submitOperatorChat,
     renderTopology,
     state,

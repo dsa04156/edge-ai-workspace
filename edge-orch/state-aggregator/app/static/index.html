@@ -17,8 +17,8 @@
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
-    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=sensor-inventory-table-20260730" />
-    <link rel="stylesheet" href="/static/operations-dashboard.css?v=sensor-inventory-table-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=device-taxonomy-20260730" />
   </head>
   <body>
     <main class="shell">
@@ -50,7 +50,7 @@
 
       <nav class="main-menu" aria-label="대시보드 화면">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">센서 디바이스</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
       </nav>
 
@@ -65,27 +65,27 @@
             <strong id="overviewFleetStatus" class="overview-fleet-status" data-status="unknown">관측 중</strong>
           </section>
 
-          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="platform summary">
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="센서 디바이스 설명 보기">
+          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="리소스 분류 요약">
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="server" aria-label="엣지 AI 서버 목록 열기">
+              <span class="metric-label">엣지 AI 서버</span>
+              <strong id="edgeAiServerCount">0</strong>
+              <span id="edgeAiServerHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="physical" aria-label="물리 디바이스 목록 열기">
+              <span class="metric-label">물리 디바이스</span>
+              <strong id="physicalDeviceCount">0</strong>
+              <span id="physicalDeviceHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="virtual" aria-label="가상 디바이스 목록 열기">
+              <span class="metric-label">가상 디바이스</span>
+              <strong id="virtualDeviceCount">0</strong>
+              <span id="virtualDeviceHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="sensor" aria-label="센서 디바이스 목록 열기">
               <span class="metric-label">센서 디바이스</span>
-              <strong id="deviceCount">0</strong>
-              <span id="deviceHealthRatio">0개 Available</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="최신 데이터 설명 보기">
-              <span class="metric-label">최신 이벤트</span>
-              <strong id="telemetryFreshnessRatio">0%</strong>
-              <span id="telemetryFreshnessCaption">0/0개 Fresh</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="가동 노드 설명 보기">
-              <span class="metric-label">엣지 노드</span>
-              <strong id="activeNodeCount">0</strong>
-              <span id="nodeRatio">0% 온라인</span>
-            </article>
-            <article class="metric metric-attention" aria-label="확인이 필요한 운영 항목">
-              <span class="metric-label">확인 필요</span>
-              <strong id="attentionCount">0</strong>
-              <span id="attentionCaption">정상 운영</span>
-            </article>
+              <strong id="sensorDeviceCount">0</strong>
+              <span id="sensorDeviceHealth">0개 Available</span>
+            </button>
             <details class="metric-details" hidden>
               <summary>기술 운영 지표 4개 보기</summary>
               <div class="metric-details-grid">
@@ -262,25 +262,43 @@
         <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">센서 인벤토리</p>
-              <h2>센서 디바이스</h2>
+              <p class="section-kicker">디바이스 인벤토리</p>
+              <h2 id="inventoryTitle">센서 디바이스</h2>
             </div>
-            <span id="assetCount">센서 0개</span>
+            <span id="assetCount">0개</span>
+          </div>
+          <div class="resource-category-tabs" role="group" aria-label="디바이스 분류">
+            <button type="button" data-resource-category="server" aria-pressed="false">
+              <span>엣지 AI 서버</span>
+              <strong id="serverCategoryCount">0</strong>
+            </button>
+            <button type="button" data-resource-category="physical" aria-pressed="false">
+              <span>물리 디바이스</span>
+              <strong id="physicalCategoryCount">0</strong>
+            </button>
+            <button type="button" data-resource-category="virtual" aria-pressed="false">
+              <span>가상 디바이스</span>
+              <strong id="virtualCategoryCount">0</strong>
+            </button>
+            <button class="active" type="button" data-resource-category="sensor" aria-pressed="true">
+              <span>센서 디바이스</span>
+              <strong id="sensorCategoryCount">0</strong>
+            </button>
           </div>
           <div class="sensor-inventory-toolbar">
             <label for="nodeFilterSelect">노드</label>
-            <select id="nodeFilterSelect" aria-label="센서 디바이스 노드 필터">
+            <select id="nodeFilterSelect" aria-label="디바이스 노드 필터">
               <option value="">모든 노드</option>
             </select>
-            <span id="deviceFilterLabel">전체 센서</span>
+            <span id="deviceFilterLabel">전체 0개</span>
           </div>
-          <div class="sensor-table-shell" role="region" aria-label="센서 디바이스 목록" tabindex="0">
+          <div class="sensor-table-shell" role="region" aria-label="디바이스 목록" tabindex="0">
             <table class="sensor-device-table">
               <thead>
                 <tr>
                   <th scope="col">이름</th>
                   <th scope="col">상태</th>
-                  <th scope="col">최신 이벤트</th>
+                  <th id="inventoryLatestHeading" scope="col">최신 이벤트</th>
                   <th scope="col"><span class="sr-only">상세정보</span></th>
                 </tr>
               </thead>
@@ -289,7 +307,7 @@
           </div>
         </section>
 
-        <details class="panel topology-panel dashboard-page dashboard-disclosure" data-page="inventory">
+        <details id="sensorTopologyPanel" class="panel topology-panel dashboard-page dashboard-disclosure" data-page="inventory">
           <summary>서비스 연결 구조</summary>
           <div class="panel-head">
             <div>
@@ -1038,7 +1056,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
-    <script src="/static/dashboard.js?v=sensor-inventory-table-20260730"></script>
+    <script src="/static/dashboard.js?v=device-taxonomy-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
   </body>

@@ -89,12 +89,16 @@
   align-items: flex-start !important;
   flex-direction: column;
   justify-content: flex-start;
+  width: 100%;
   min-height: 112px !important;
   padding: 16px 18px !important;
   border: 1px solid var(--console-border, var(--line)) !important;
   border-radius: 6px !important;
+  color: var(--console-text, var(--text));
   background: var(--console-panel, #111827) !important;
   box-shadow: none !important;
+  font: inherit;
+  text-align: left;
 }
 
 .kpi-grid > .metric::before,
@@ -126,6 +130,10 @@
   border-color: var(--console-border-strong, #475569) !important;
   background: var(--console-panel-raised, #162033) !important;
   transform: none !important;
+}
+
+.resource-category-kpi {
+  cursor: pointer;
 }
 
 .kpi-grid > .metric:focus-visible {
@@ -288,6 +296,72 @@
 
 .assets {
   overflow: hidden;
+}
+
+.resource-category-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid var(--console-border, var(--line));
+  border-radius: 5px;
+  background: var(--console-border, var(--line));
+}
+
+.resource-category-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  color: var(--console-muted, var(--muted));
+  background: var(--console-bg-elevated, #0d1624);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.resource-category-tabs button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-category-tabs button strong {
+  flex: 0 0 auto;
+  min-width: 24px;
+  color: var(--console-text, var(--text));
+  font-size: 12px;
+  text-align: right;
+}
+
+.resource-category-tabs button:hover {
+  color: var(--console-text, var(--text));
+  background: var(--console-panel-raised, #162033);
+  transform: none;
+}
+
+.resource-category-tabs button.active,
+.resource-category-tabs button[aria-pressed="true"] {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.09);
+  box-shadow: inset 0 -2px #22c55e;
+}
+
+.resource-category-tabs button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--console-accent, #22c55e);
+  outline-offset: -2px;
 }
 
 .sensor-inventory-toolbar {
@@ -459,6 +533,10 @@
   background: #ef4444;
 }
 
+.sensor-status-unknown {
+  color: #94a3b8;
+}
+
 .sensor-event-cell time {
   color: var(--console-muted, var(--muted));
   font-size: 12px;
@@ -542,6 +620,10 @@
   margin-bottom: 16px;
 }
 
+#sensorTopologyPanel[hidden] {
+  display: none !important;
+}
+
 @media (max-width: 1060px) {
   .kpi-grid.dashboard-page.active {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -578,6 +660,10 @@
 
   .overview-primary .service-demo-values {
     grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .resource-category-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sensor-inventory-toolbar {
@@ -685,7 +771,8 @@
 @media (prefers-reduced-motion: reduce) {
   .sensor-device-row,
   .overview-alert-row,
-  .sensor-detail-button {
+  .sensor-detail-button,
+  .resource-category-tabs button {
     transition: none !important;
   }
 }

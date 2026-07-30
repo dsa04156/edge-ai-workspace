@@ -26,9 +26,11 @@ def test_inventory_uses_concise_korean_operator_labels() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert ">센서 인벤토리<" in html
-    assert ">센서 디바이스<" in html
-    assert ">엣지 노드<" in html
+    assert ">디바이스 인벤토리<" in html
+    assert "엣지 AI 서버" in html
+    assert "물리 디바이스" in html
+    assert "가상 디바이스" in html
+    assert "센서 디바이스" in html
     assert ">EdgeX 디바이스<" not in html
     assert 'id="deviceFilterLabel"' in html
     assert "`전체 ${totalCount}개`" in js
@@ -41,7 +43,8 @@ def test_dashboard_physical_device_contract_is_edgex_only() -> None:
 
     assert "센서 · 엣지 노드 · AI 서비스" in html
     assert "EdgeX Core Metadata가 물리 디바이스 권위를 유지합니다." in html
-    assert 'data-kpi-key="core_data_freshness_ratio"' in html
+    assert 'data-resource-category="sensor"' in html
+    assert 'id="sensorDeviceCount"' in html
     assert 'data-kpi-key="device_service_availability_ratio"' in html
     assert "device_service_name" in js
     assert "profile_name" in js
@@ -56,7 +59,7 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
 
     for label in (
         'data-dashboard-page="overview" aria-pressed="true">운영 현황</button>',
-        'data-dashboard-page="inventory" aria-pressed="false">센서 디바이스</button>',
+        'data-dashboard-page="inventory" aria-pressed="false">디바이스</button>',
         'data-dashboard-page="management" aria-pressed="false">장비 관리</button>',
         "EdgeX",
         "Kubernetes",
@@ -95,7 +98,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=sensor-inventory-table-20260730" in html
+    assert "/static/dashboard.js?v=device-taxonomy-20260730" in html
 
 
 def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> None:
@@ -103,14 +106,14 @@ def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> Non
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=sensor-inventory-table-20260730" in html
+    assert "/static/dashboard.js?v=device-taxonomy-20260730" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
-    assert "renderSensorDeviceRows" in render_devices
+    assert "renderResourceInventoryRows" in render_devices
     assert 'class="sensor-device-empty"' in render_devices
-    render_rows = js[js.index("function renderSensorDeviceRows") : js.index("function renderDevices")]
+    render_rows = js[js.index("function renderResourceInventoryRows") : js.index("function renderDevices")]
     assert 'class="sensor-device-row' in render_rows
-    assert 'data-label="최신 이벤트"' in render_rows
+    assert 'data-label="${escapeHtml(latestLabel)}"' in render_rows
     assert ">상세보기</button>" in render_rows
     assert 'aria-controls="contextDetailPanel"' in render_rows
     assert "profile:" not in render_devices

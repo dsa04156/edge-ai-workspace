@@ -2,7 +2,9 @@
 
 ## 한 줄 요약
 
-Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신 Event freshness를 같은 physical-device 판단으로 보여주고, Kubernetes/KubeEdge node·workload는 별도 진단 정보로 보여주는 운영 화면이다.
+Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신 Event
+freshness를 같은 센서 디바이스 판단으로 보여 주고, Kubernetes/KubeEdge node·workload와
+자원증강형 가상 디바이스를 별도 운영 객체로 보여 주는 화면이다.
 
 ## 현재 dashboard 모델
 
@@ -14,6 +16,13 @@ EdgeX Core Metadata + Core Data
   -> /state/devices, /state/dashboard, /state/summary
   -> dashboard
 ```
+
+`디바이스` 화면은 권위가 다른 객체를 네 분류로 나눈다.
+
+- `엣지 AI 서버`: `/state/nodes`의 중앙 서버
+- `물리 디바이스`: `/state/nodes`의 Jetson·Raspberry Pi 엣지 노드
+- `가상 디바이스`: `/state/virtual-resources`의 읽기 전용 논리 자원
+- `센서 디바이스`: `/state/devices`의 EdgeX Core Metadata Device
 
 Dashboard는 다음 질문에 답해야 한다.
 
@@ -32,7 +41,7 @@ Dashboard는 다음 질문에 답해야 한다.
 
 ## Device API와 Explain Panel
 
-`/state/devices`의 EdgeX physical-device contract는 다음 필드를 사용한다.
+`/state/devices`의 EdgeX 센서 디바이스 contract는 다음 필드를 사용한다.
 
 | 필드 | 의미 |
 |---|---|
@@ -54,9 +63,9 @@ Dashboard는 다음 질문에 답해야 한다.
 
 Explain Panel은 최소한 overall status와 reason, Profile, Device Service, protocol, `admin_state`, `operating_state`, `connection_state`, 최신 Event 시각/age, `telemetry_freshness`, typed Readings, 선택적 `node_name`을 보여준다. node/workload 근거와 EdgeX state/event 근거를 하나의 physical availability reason으로 섞지 않는다.
 
-## Physical availability 판단
+## 센서 디바이스 availability 판단
 
-Physical availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한다.
+센서 디바이스 availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한다.
 
 | 결과 | 판단 |
 |---|---|
@@ -68,7 +77,7 @@ Physical availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한�
 
 ## KPI
 
-Physical-device KPI의 분모는 Core Metadata inventory다.
+센서 디바이스 KPI의 분모는 Core Metadata inventory다.
 
 | KPI | 의미 |
 |---|---|
@@ -83,9 +92,9 @@ Physical-device KPI의 분모는 Core Metadata inventory다.
 | `core_data_event_device_count` | Core Data Event가 있는 device 수 |
 | `fresh_core_data_event_device_count`, `stale_core_data_event_device_count` | fresh/stale 최신 Core Data Event device 수 |
 | `core_data_freshness_ratio` | fresh 최신 Core Data Event device 수 / registered device 수 |
-| `operator_focus_count` | degraded + unavailable physical device 수 |
+| `operator_focus_count` | degraded + unavailable 센서 디바이스 수 |
 
-`active_node_count`와 `node_online_ratio`는 node/workload 관찰용 별도 KPI다. `sla_risk_workflow_count`는 workflow dry-run/compatibility 영역이며 physical-device KPI나 `operator_focus_count`에 포함하지 않는다.
+`active_node_count`와 `node_online_ratio`는 서버·물리 디바이스 관찰용 별도 KPI다. `sla_risk_workflow_count`는 workflow dry-run/compatibility 영역이며 센서 디바이스 KPI나 `operator_focus_count`에 포함하지 않는다.
 
 ## 제외한 health 입력
 

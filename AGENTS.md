@@ -25,7 +25,14 @@
 
 `state-aggregator` dashboard의 AI Pipeline/Workflow Builder 화면과 browser-local
 device/resource 샘플 미리보기는 제거했다. 현재 대시보드는 `운영 현황`,
-`센서 디바이스`, `장비 관리`와 고정 서비스 데모만 제공한다.
+`디바이스`, `장비 관리`와 고정 서비스 데모만 제공한다. `디바이스` 화면은 운영 객체를
+`엣지 AI 서버`, `물리 디바이스`, `가상 디바이스`, `센서 디바이스` 네 분류로 나누고
+모두 이름·상태·최신 관측 또는 이벤트·상세보기의 동일한 목록 패턴으로 표시한다.
+
+대시보드 용어에서 `물리 디바이스`는 Jetson·Raspberry Pi 같은 현장 엣지 노드이고,
+`센서 디바이스`는 EdgeX Core Metadata의 Device다. `가상 디바이스`는
+`/state/virtual-resources`가 반환하는 AI HAT·GPU·cache 등의 논리 자원이며 EdgeX 센서
+inventory나 실행 가능한 Workflow를 뜻하지 않는다.
 
 `POST /workflow-event`와 `/state/workflows*`는 과거 이벤트 연동 호환 경로이며 현재
 대시보드 실행 기능이 아니다. workflow stage 구성, 실행 계획, Kubernetes workload 생성,

@@ -157,20 +157,22 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-30 14:07</span>
-            <span class="badge">HTML 생성: 2026-07-30 17:54</span>
+            <span class="badge">수정: 2026-07-30 18:59</span>
+            <span class="badge">HTML 생성: 2026-07-30 18:59</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드와-kpi-모델">대시보드와 KPI 모델</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신 Event freshness를 같은 physical-device 판단으로 보여주고, Kubernetes/KubeEdge node·workload는 별도 진단 정보로 보여주는 운영 화면이다.</p>
+<p>Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신 Event freshness를 같은 센서 디바이스 판단으로 보여 주고, Kubernetes/KubeEdge node·workload와 자원증강형 가상 디바이스를 별도 운영 객체로 보여 주는 화면이다.</p>
 <h2 id="현재-dashboard-모델">현재 dashboard 모델</h2>
 <p><code>state-aggregator</code>의 EdgeX-backed API가 dashboard 입력이다.</p>
 <pre data-lang="text"><code>EdgeX Core Metadata + Core Data
   -&gt; state-aggregator
   -&gt; /state/devices, /state/dashboard, /state/summary
   -&gt; dashboard</code></pre>
+<p><code>디바이스</code> 화면은 권위가 다른 객체를 네 분류로 나눈다.</p>
+<ul><li><code>엣지 AI 서버</code>: <code>/state/nodes</code>의 중앙 서버</li><li><code>물리 디바이스</code>: <code>/state/nodes</code>의 Jetson·Raspberry Pi 엣지 노드</li><li><code>가상 디바이스</code>: <code>/state/virtual-resources</code>의 읽기 전용 논리 자원</li><li><code>센서 디바이스</code>: <code>/state/devices</code>의 EdgeX Core Metadata Device</li></ul>
 <p>Dashboard는 다음 질문에 답해야 한다.</p>
 <ol><li>EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?</li><li>관리 상태와 Device Service 연결 상태는 어떤가?</li><li>최신 Core Data Event/Reading이 freshness 기준 안에 있는가?</li><li>어떤 device를 먼저 점검해야 하는가?</li><li>관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?</li><li>이 device가 어떤 서비스 데모 consumer와 연결되는가?</li><li>연결이 Git에 등록됐는가, 장비가 실제 관측됐는가, Device Service 통신과 최신 데이터는</li></ol>
 <p>각각 어떤 상태인가?</p>
@@ -178,7 +180,7 @@
 <p>배포 가능한가?</p>
 <p><code>workflows[]</code>와 workflow KPI는 호환 또는 dry-run planning 표면일 수 있지만 current physical health나 자동 orchestration 완료의 근거가 아니다.</p>
 <h2 id="device-api와-explain-panel">Device API와 Explain Panel</h2>
-<p><code>/state/devices</code>의 EdgeX physical-device contract는 다음 필드를 사용한다.</p>
+<p><code>/state/devices</code>의 EdgeX 센서 디바이스 contract는 다음 필드를 사용한다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>필드</th>
@@ -247,8 +249,8 @@
 </tr>
 </tbody></table></div>
 <p>Explain Panel은 최소한 overall status와 reason, Profile, Device Service, protocol, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, 최신 Event 시각/age, <code>telemetry_freshness</code>, typed Readings, 선택적 <code>node_name</code>을 보여준다. node/workload 근거와 EdgeX state/event 근거를 하나의 physical availability reason으로 섞지 않는다.</p>
-<h2 id="physical-availability-판단">Physical availability 판단</h2>
-<p>Physical availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한다.</p>
+<h2 id="센서-디바이스-availability-판단">센서 디바이스 availability 판단</h2>
+<p>센서 디바이스 availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>결과</th>
@@ -270,7 +272,7 @@
 </tbody></table></div>
 <p><code>device_service_available</code>은 Device Service 상태를 빠르게 보이는 보조 field이며 단독으로 <code>available</code>을 뜻하지 않는다. <code>node_name</code>, Kubernetes Node Ready, workload 상태는 service execution/placement 진단에는 중요하지만 위 physical availability의 gate가 아니다.</p>
 <h2 id="kpi">KPI</h2>
-<p>Physical-device KPI의 분모는 Core Metadata inventory다.</p>
+<p>센서 디바이스 KPI의 분모는 Core Metadata inventory다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>KPI</th>
@@ -323,10 +325,10 @@
 </tr>
 <tr>
 <td><code>operator_focus_count</code></td>
-<td>degraded + unavailable physical device 수</td>
+<td>degraded + unavailable 센서 디바이스 수</td>
 </tr>
 </tbody></table></div>
-<p><code>active_node_count</code>와 <code>node_online_ratio</code>는 node/workload 관찰용 별도 KPI다. <code>sla_risk_workflow_count</code>는 workflow dry-run/compatibility 영역이며 physical-device KPI나 <code>operator_focus_count</code>에 포함하지 않는다.</p>
+<p><code>active_node_count</code>와 <code>node_online_ratio</code>는 서버·물리 디바이스 관찰용 별도 KPI다. <code>sla_risk_workflow_count</code>는 workflow dry-run/compatibility 영역이며 센서 디바이스 KPI나 <code>operator_focus_count</code>에 포함하지 않는다.</p>
 <h2 id="제외한-health-입력">제외한 health 입력</h2>
 <p>다음은 current physical health, availability, KPI의 입력이나 fallback이 아니다.</p>
 <ul><li>KubeEdge <code>DeviceStatus</code>와 DeviceStatus freshness</li><li>MapperFramework 또는 mapper readiness</li><li>mapper direct-write latest sample</li><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>, <code>mqttvirtual</code>, legacy mapper heartbeat</li></ul>
@@ -347,7 +349,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
 <li class="toc-h2"><a href="#현재-dashboard-모델">현재 dashboard 모델</a></li>
 <li class="toc-h2"><a href="#device-api와-explain-panel">Device API와 Explain Panel</a></li>
-<li class="toc-h2"><a href="#physical-availability-판단">Physical availability 판단</a></li>
+<li class="toc-h2"><a href="#센서-디바이스-availability-판단">센서 디바이스 availability 판단</a></li>
 <li class="toc-h2"><a href="#kpi">KPI</a></li>
 <li class="toc-h2"><a href="#제외한-health-입력">제외한 health 입력</a></li>
 <li class="toc-h2"><a href="#direct-전달-상태">direct 전달 상태</a></li>
