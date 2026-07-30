@@ -423,6 +423,19 @@ async def test_validate_can_plan_for_pending_managed_device_service(catalog):
 
 
 @async_test
+async def test_validate_accepts_edgex_instance_service_name(catalog):
+    result = await service_for(catalog).validate(
+        onboarding_request(),
+        actor="viewer",
+        service_name_override="device-mqtt_0123456789",
+        allow_unregistered_service=True,
+    )
+
+    assert result.valid is True
+    assert result.plan["device"]["serviceName"] == "device-mqtt_0123456789"
+
+
+@async_test
 async def test_validate_rejects_missing_service_duplicate_and_profile_mismatch(catalog):
     metadata = FakeMetadata()
     metadata.services = []

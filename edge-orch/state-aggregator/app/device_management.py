@@ -1304,7 +1304,7 @@ class DeviceManagementService:
     ) -> str:
         service_name = service_name_override or adapter.service_name
         if not isinstance(service_name, str) or re.fullmatch(
-            r"[a-z0-9](?:[-a-z0-9]*[a-z0-9])?",
+            r"[a-z0-9](?:[-_a-z0-9]*[a-z0-9])?",
             service_name,
         ) is None or len(service_name) > 63:
             raise ValueError("EdgeX Device Service name is invalid")
