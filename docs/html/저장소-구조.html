@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-30 18:58</span>
-            <span class="badge">HTML 생성: 2026-07-30 18:59</span>
+            <span class="badge">수정: 2026-07-30 19:25</span>
+            <span class="badge">HTML 생성: 2026-07-30 19:25</span>
           </div>
         </header>
         <div class="doc-body">
@@ -309,7 +309,7 @@
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 대시보드</td>
-<td>운영 현황, 디바이스, 장비 관리의 세 화면에서 EdgeX 상태/history와 고정 서비스 데모를 표시한다. 운영 현황은 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스의 수와 상태, 핵심 조치 항목을 먼저 보여 주고 플랫폼 기술 지표는 접어 둔다. 디바이스 화면은 <code>/state/nodes</code>, <code>/state/virtual-resources</code>, <code>/state/devices</code>를 네 분류의 이름·상태·최신 관측 또는 Event·상세보기 목록으로 표시한다. 센서의 Profile/Device Service/protocol/Core Data history와 노드·가상 자원 관측값은 상세 패널에서 제공한다. AI Pipeline/Workflow Builder는 제거했다. <code>장비 관리</code>는 Core Metadata identity를 물리 source별 카드로 묶고 개별 EdgeX Device를 카드 상세에 보존한다. <code>장비 연결</code> 하나를 신규 연결 진입점으로 사용하며 웹 생성 Device Profile의 즉시 표시·전체 Profile 선택, 발견 후보 검색·승인/무시, 접힌 수동 endpoint 선언, KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, 통합 validation/apply/first-Event 상태를 관리한다. 375/768/1024px 반응형 회귀를 확인한다</td>
+<td>운영 현황, 디바이스, 장비 관리의 세 화면에서 EdgeX 상태/history와 고정 서비스 데모를 표시한다. 운영 현황은 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스의 수와 상태 다음에 Prometheus/Kubernetes 기반 현재 서버 CPU·메모리·GPU·pressure와 핵심 조치 항목을 먼저 보여 준다. 누락 metric은 <code>N/A</code>이며 과거 시계열이나 Grafana embed는 구현하지 않았다. 고정 서비스 데모와 플랫폼 기술 지표는 접어 둔다. 디바이스 화면은 <code>/state/nodes</code>, <code>/state/virtual-resources</code>, <code>/state/devices</code>를 네 분류의 이름·상태·최신 관측 또는 Event·상세보기 목록으로 표시한다. 센서의 Profile/Device Service/protocol/Core Data history와 노드·가상 자원 관측값은 상세 패널에서 제공한다. AI Pipeline/Workflow Builder는 제거했다. <code>장비 관리</code>는 Core Metadata identity를 물리 source별 카드로 묶고 개별 EdgeX Device를 카드 상세에 보존한다. <code>장비 연결</code> 하나를 신규 연결 진입점으로 사용하며 웹 생성 Device Profile의 즉시 표시·전체 Profile 선택, 발견 후보 검색·승인/무시, 접힌 수동 endpoint 선언, KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, 통합 validation/apply/first-Event 상태를 관리한다. 375/768/1024/1440px 반응형 회귀를 확인한다</td>
 </tr>
 </tbody></table></div>
 <p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT 자기등록은 schema parser까지만 있고 subscriber는 없다. Modbus는 자동 discovery 없이 Git에 등록한 개발 simulator Unit 1·2 endpoint용 공식 Device Service 등록·Event 경로를 과거 검증했지만 Controller Runtime은 현재 퇴역 상태다. OPC-UA·ONVIF discovery는 미구현이고 RTSP는 별도 media 경로다.</p>

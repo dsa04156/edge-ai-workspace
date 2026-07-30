@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-30 18:59</span>
-            <span class="badge">HTML 생성: 2026-07-30 18:59</span>
+            <span class="badge">수정: 2026-07-30 19:25</span>
+            <span class="badge">HTML 생성: 2026-07-30 19:25</span>
           </div>
         </header>
         <div class="doc-body">
@@ -173,6 +173,7 @@
   -&gt; dashboard</code></pre>
 <p><code>디바이스</code> 화면은 권위가 다른 객체를 네 분류로 나눈다.</p>
 <ul><li><code>엣지 AI 서버</code>: <code>/state/nodes</code>의 중앙 서버</li><li><code>물리 디바이스</code>: <code>/state/nodes</code>의 Jetson·Raspberry Pi 엣지 노드</li><li><code>가상 디바이스</code>: <code>/state/virtual-resources</code>의 읽기 전용 논리 자원</li><li><code>센서 디바이스</code>: <code>/state/devices</code>의 EdgeX Core Metadata Device</li></ul>
+<p><code>운영 현황</code>은 이 네 분류의 수와 가용 상태 다음에 중앙 서버 상태를 먼저 보여 준다. <code>/state/dashboard</code>의 node snapshot을 사용해 평균 CPU·메모리, GPU 관측 대수, pressure 주의 대수와 서버별 현재 meter를 표시한다. 이 값은 Prometheus/Kubernetes의 현재 관측이며 과거 시계열이나 Grafana embed가 아니다. 고정 서비스 데모는 접힌 보조 영역에서 확인한다.</p>
 <p>Dashboard는 다음 질문에 답해야 한다.</p>
 <ol><li>EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?</li><li>관리 상태와 Device Service 연결 상태는 어떤가?</li><li>최신 Core Data Event/Reading이 freshness 기준 안에 있는가?</li><li>어떤 device를 먼저 점검해야 하는가?</li><li>관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?</li><li>이 device가 어떤 서비스 데모 consumer와 연결되는가?</li><li>연결이 Git에 등록됐는가, 장비가 실제 관측됐는가, Device Service 통신과 최신 데이터는</li></ol>
 <p>각각 어떤 상태인가?</p>

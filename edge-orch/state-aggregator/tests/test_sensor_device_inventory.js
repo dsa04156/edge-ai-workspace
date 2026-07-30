@@ -7,8 +7,10 @@ const {
   resourceCategoryItems,
   resourceCategoryView,
   renderResourceInventoryRows,
+  renderServerStatusRows,
   renderSensorDeviceRows,
   sensorDeviceStatusLabel,
+  serverOverviewModel,
 } = require("../app/static/dashboard.js");
 
 const root = path.resolve(__dirname, "..");
@@ -132,4 +134,103 @@ test("provides concise Korean labels for each resource category", () => {
   assert.equal(resourceCategoryView("sensor").label, "센서 디바이스");
   assert.equal(resourceCategoryView("sensor").latestLabel, "최신 이벤트");
   assert.equal(resourceCategoryView("server").latestLabel, "최신 관측");
+});
+
+test("builds an honest server observability summary from current node metrics", () => {
+  const data = {
+    nodes: [
+      {
+        hostname: "etri-ser0001",
+        node_type: "cloud_server",
+        node_health: "healthy",
+        collected_at: "2099-01-01T00:00:00Z",
+        raw_metrics: {
+          cpu_utilization: 0.2,
+          memory_usage_ratio: 0.4,
+          gpu_utilization: 0.5,
+        },
+        compute_pressure: "low",
+        memory_pressure: "low",
+        network_pressure: "low",
+      },
+      {
+        hostname: "etri-ser0002",
+        node_type: "server",
+        node_health: "degraded",
+        collected_at: "2099-01-01T00:00:01Z",
+        raw_metrics: {
+          cpu_utilization: 0.4,
+          memory_usage_ratio: 0.6,
+        },
+        compute_pressure: "medium",
+        memory_pressure: "low",
+        network_pressure: "low",
+      },
+      {
+        hostname: "etri-dev0001",
+        node_type: "edge_ai_device",
+        node_health: "healthy",
+        raw_metrics: {
+          cpu_utilization: 0.9,
+          memory_usage_ratio: 0.9,
+        },
+      },
+    ],
+  };
+
+  const model = serverOverviewModel(data);
+
+  assert.equal(model.total, 2);
+  assert.equal(model.available, 1);
+  assert.ok(Math.abs(model.averageCpu - 0.3) < 1e-9);
+  assert.equal(model.averageMemory, 0.5);
+  assert.equal(model.gpuObserved, 1);
+  assert.equal(model.pressureAttention, 1);
+  assert.equal(model.latestObservedAt, "2099-01-01T00:00:01.000Z");
+});
+
+test("renders Grafana-style server rows without inventing missing GPU values", () => {
+  const markup = renderServerStatusRows([
+    {
+      id: "etri-ser0001",
+      name: "etri-ser0001",
+      kind: "server",
+      status: "available",
+      statusLabel: "Available",
+      observedAt: "2099-01-01T00:00:00Z",
+      raw: {
+        raw_metrics: {
+          cpu_utilization: 0.2,
+          memory_usage_ratio: 0.4,
+        },
+        compute_pressure: "low",
+        memory_pressure: "low",
+        network_pressure: "low",
+      },
+    },
+  ]);
+
+  assert.match(markup, /etri-ser0001/);
+  assert.match(markup, /Available/);
+  assert.match(markup, /role="progressbar"/);
+  assert.match(markup, />20%</);
+  assert.match(markup, />40%</);
+  assert.match(markup, />N\/A</);
+  assert.match(markup, /aria-valuetext="관측 불가"/);
+  assert.doesNotMatch(markup, /서비스 데모|Jetson 센서 이상 탐지/);
+});
+
+test("places server observability before the collapsed service demo", () => {
+  const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
+
+  assert.ok(html.indexOf('id="serverOverviewTitle"') < html.indexOf('id="serviceDemoTitle"'));
+  assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
+  assert.match(html, /id="serverStatusList"/);
+  assert.match(html, /<details class="panel service-demo-panel overview-service-demo/);
+  assert.doesNotMatch(
+    html,
+    /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
+  );
+  assert.match(html, /dashboard\.js\?v=server-observability-20260730/);
+  assert.match(html, /operations-dashboard\.css\?v=server-observability-20260730/);
 });

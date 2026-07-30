@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
-    <link rel="stylesheet" href="/static/operations-dashboard.css?v=device-taxonomy-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=server-observability-20260730" />
   </head>
   <body>
     <main class="shell">
@@ -60,7 +60,7 @@
             <div>
               <p class="section-kicker">실시간 운영</p>
               <h2 id="overviewTitle">운영 현황</h2>
-              <p>센서 데이터 수집과 AI 서비스 상태를 한눈에 확인합니다.</p>
+              <p>서버 자원과 디바이스 수집 상태를 한눈에 확인합니다.</p>
             </div>
             <strong id="overviewFleetStatus" class="overview-fleet-status" data-status="unknown">관측 중</strong>
           </section>
@@ -203,48 +203,25 @@
           </details>
 
           <div class="overview-primary dashboard-page active" data-page="overview">
-          <section class="panel service-demo-panel" aria-labelledby="serviceDemoTitle">
-            <div class="panel-head service-demo-head">
+          <section class="panel server-observability-panel" aria-labelledby="serverOverviewTitle">
+            <div class="panel-head server-observability-head">
               <div>
-                <p class="section-kicker">실시간 서비스 데모</p>
-                <h2 id="serviceDemoTitle">Jetson 센서 이상 탐지</h2>
+                <p class="section-kicker">인프라 관측</p>
+                <h2 id="serverOverviewTitle">서버 상태</h2>
               </div>
-              <div class="service-demo-status" aria-live="polite">
-                <span>input <strong id="serviceDemoInputState">waiting</strong></span>
-                <strong id="serviceDemoState" class="service-demo-badge" data-state="starting">STARTING</strong>
+              <div class="server-observability-actions">
+                <span id="serverOverviewAvailability" aria-live="polite">관측 중</span>
+                <button type="button" data-resource-category-link="server">서버 목록</button>
               </div>
             </div>
-
-            <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
-            <dl class="service-demo-values">
-              <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
-              <div class="service-demo-value-primary"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
-              <div class="service-demo-value-primary"><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+            <dl class="server-observability-summary" aria-label="서버 자원 요약">
+              <div><dt>평균 CPU</dt><dd id="serverOverviewCpu">관측 대기</dd></div>
+              <div><dt>평균 메모리</dt><dd id="serverOverviewMemory">관측 대기</dd></div>
+              <div><dt>GPU 관측</dt><dd id="serverOverviewGpu">관측 대기</dd></div>
+              <div><dt>압력 주의</dt><dd id="serverOverviewPressure">관측 대기</dd></div>
             </dl>
-            <details class="service-demo-details">
-              <summary>연결·모델 상세정보</summary>
-              <div class="service-demo-route" aria-label="physical source to AI consumer binding">
-                <div>
-                  <span>Physical source</span>
-                  <strong id="serviceDemoPhysicalSource">관측 대기</strong>
-                </div>
-                <div>
-                  <span>수집 서비스</span>
-                  <strong id="serviceDemoDeviceService">관측 대기</strong>
-                </div>
-                <div>
-                  <span>AI consumer · node</span>
-                  <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
-                </div>
-              </div>
-              <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
-              <dl class="service-demo-values service-demo-detail-values">
-                <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
-                <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
-              </dl>
-              <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
-            </details>
-            <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
+            <div id="serverStatusList" class="server-status-list" aria-live="polite"></div>
+            <p id="serverOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
           <section class="panel overview-attention-panel" aria-labelledby="overviewAttentionTitle">
             <div class="panel-head">
@@ -257,6 +234,51 @@
             <div id="overviewAlertList" class="overview-alert-list" aria-live="polite"></div>
           </section>
           </div>
+
+          <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle">
+            <summary class="overview-service-demo-summary">
+              <span>
+                <span class="section-kicker">서비스 데모</span>
+                <strong id="serviceDemoTitle">Jetson 센서 이상 탐지</strong>
+              </span>
+              <span class="service-demo-status" aria-live="polite">
+                <span>input <strong id="serviceDemoInputState">waiting</strong></span>
+                <strong id="serviceDemoState" class="service-demo-badge" data-state="starting">STARTING</strong>
+              </span>
+            </summary>
+            <div class="overview-service-demo-body">
+              <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
+              <dl class="service-demo-values">
+                <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+              </dl>
+              <details class="service-demo-details">
+                <summary>연결·모델 상세정보</summary>
+                <div class="service-demo-route" aria-label="physical source to AI consumer binding">
+                  <div>
+                    <span>Physical source</span>
+                    <strong id="serviceDemoPhysicalSource">관측 대기</strong>
+                  </div>
+                  <div>
+                    <span>수집 서비스</span>
+                    <strong id="serviceDemoDeviceService">관측 대기</strong>
+                  </div>
+                  <div>
+                    <span>AI consumer · node</span>
+                    <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
+                  </div>
+                </div>
+                <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+                <dl class="service-demo-values service-demo-detail-values">
+                  <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                </dl>
+                <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+              </details>
+              <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
+            </div>
+          </details>
 
       <section class="layout">
         <section class="panel assets dashboard-page" data-page="inventory">
@@ -1056,7 +1078,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
-    <script src="/static/dashboard.js?v=device-taxonomy-20260730"></script>
+    <script src="/static/dashboard.js?v=server-observability-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
   </body>

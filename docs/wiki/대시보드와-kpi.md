@@ -24,6 +24,12 @@ EdgeX Core Metadata + Core Data
 - `가상 디바이스`: `/state/virtual-resources`의 읽기 전용 논리 자원
 - `센서 디바이스`: `/state/devices`의 EdgeX Core Metadata Device
 
+`운영 현황`은 이 네 분류의 수와 가용 상태 다음에 중앙 서버 상태를 먼저 보여 준다.
+`/state/dashboard`의 node snapshot을 사용해 평균 CPU·메모리, GPU 관측 대수,
+pressure 주의 대수와 서버별 현재 meter를 표시한다. 이 값은
+Prometheus/Kubernetes의 현재 관측이며 과거 시계열이나 Grafana embed가 아니다.
+고정 서비스 데모는 접힌 보조 영역에서 확인한다.
+
 Dashboard는 다음 질문에 답해야 한다.
 
 1. EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?

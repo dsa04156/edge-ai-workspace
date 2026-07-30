@@ -1288,6 +1288,7 @@ function render() {
   setText("serviceBindingCaption", deviceObservationFailed ? "센서 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 센서 연결`);
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
+  renderServerOverview(data);
   renderKpiCatalog(kpis, deviceObservationFailed);
   renderNodeMetricMatrix(nodes);
   if ($("globalResourceSearch")?.value.trim()) renderGlobalSearch();
@@ -1427,6 +1428,137 @@ function renderKpiCatalog(kpis = {}, deviceObservationFailed = false) {
         `)
         .join("")
     : `<div class="empty">KPI payload가 없습니다.</div>`;
+}
+
+function observedNodeMetric(node = {}, key) {
+  const metrics = node.raw_metrics || {};
+  if (!Object.prototype.hasOwnProperty.call(metrics, key)) return null;
+  const value = Number(metrics[key]);
+  return Number.isFinite(value) ? ratio(value) : null;
+}
+
+function serverPressureNeedsAttention(node = {}) {
+  return [
+    node.compute_pressure,
+    node.memory_pressure,
+    node.network_pressure,
+  ].some((value) => ["medium", "high"].includes(text(value, "").toLowerCase()));
+}
+
+function serverOverviewModel(data = {}) {
+  const items = resourceCategoryItems(data, "server");
+  const average = (key) => {
+    const values = items
+      .map((item) => observedNodeMetric(item.raw, key))
+      .filter((value) => value !== null);
+    return values.length
+      ? values.reduce((sum, value) => sum + value, 0) / values.length
+      : null;
+  };
+  const observedTimes = items
+    .map((item) => new Date(item.observedAt).getTime())
+    .filter(Number.isFinite);
+  return {
+    items,
+    total: items.length,
+    available: items.filter((item) => item.status === "available").length,
+    averageCpu: average("cpu_utilization"),
+    averageMemory: average("memory_usage_ratio"),
+    gpuObserved: items.filter(
+      (item) => observedNodeMetric(item.raw, "gpu_utilization") !== null,
+    ).length,
+    pressureAttention: items.filter(
+      (item) => serverPressureNeedsAttention(item.raw),
+    ).length,
+    latestObservedAt: observedTimes.length
+      ? new Date(Math.max(...observedTimes)).toISOString()
+      : null,
+  };
+}
+
+function renderServerMetric(label, value, serverName) {
+  const percentage = value === null ? null : Math.round(value * 100);
+  const ariaValue = percentage === null
+    ? 'aria-valuetext="관측 불가"'
+    : `aria-valuenow="${percentage}"`;
+  return `
+    <div class="server-status-metric">
+      <span>${escapeHtml(label)}</span>
+      <strong>${percentage === null ? "N/A" : `${percentage}%`}</strong>
+      <div
+        class="server-status-meter ${percentage === null ? "unobserved" : ""}"
+        role="progressbar"
+        aria-label="${escapeHtml(serverName)} ${escapeHtml(label)} 사용률"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        ${ariaValue}
+      ><i style="width:${percentage === null ? 0 : percentage}%"></i></div>
+    </div>
+  `;
+}
+
+function renderServerStatusRows(items = []) {
+  if (!items.length) {
+    return `<div class="server-status-empty">관측된 엣지 AI 서버가 없습니다.</div>`;
+  }
+  return items.map((item) => {
+    const raw = item.raw || {};
+    const cpu = observedNodeMetric(raw, "cpu_utilization");
+    const memory = observedNodeMetric(raw, "memory_usage_ratio");
+    const gpu = observedNodeMetric(raw, "gpu_utilization");
+    const pressure = [
+      text(raw.compute_pressure, "unknown"),
+      text(raw.memory_pressure, "unknown"),
+      text(raw.network_pressure, "unknown"),
+    ].join(" / ");
+    return `
+      <article class="server-status-row" data-status="${escapeHtml(item.status)}">
+        <div class="server-status-identity">
+          <span class="server-status-label">
+            <i aria-hidden="true"></i>${escapeHtml(item.statusLabel)}
+          </span>
+          <strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong>
+          <small>${escapeHtml(timestampAge(item.observedAt).replace("이벤트 없음", "관측 없음"))}</small>
+        </div>
+        ${renderServerMetric("CPU", cpu, item.name)}
+        ${renderServerMetric("메모리", memory, item.name)}
+        ${renderServerMetric("GPU", gpu, item.name)}
+        <div class="server-status-pressure">
+          <span>C / M / N 압력</span>
+          <strong aria-label="Compute, Memory, Network 압력 ${escapeHtml(pressure)}">${escapeHtml(pressure)}</strong>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderServerOverview(data = {}) {
+  const model = serverOverviewModel(data);
+  setText(
+    "serverOverviewAvailability",
+    model.total
+      ? `${model.available}/${model.total}대 Available`
+      : "서버 관측 없음",
+  );
+  setText(
+    "serverOverviewCpu",
+    model.averageCpu === null ? "N/A" : pct(model.averageCpu),
+  );
+  setText(
+    "serverOverviewMemory",
+    model.averageMemory === null ? "N/A" : pct(model.averageMemory),
+  );
+  setText("serverOverviewGpu", `${model.gpuObserved}/${model.total}대`);
+  setText("serverOverviewPressure", `${model.pressureAttention}대`);
+  setText(
+    "serverOverviewObservedAt",
+    model.latestObservedAt
+      ? `현재 관측값 · ${timestampAge(model.latestObservedAt)} · Prometheus / Kubernetes`
+      : "관측 없음 · Prometheus / Kubernetes",
+  );
+  const list = $("serverStatusList");
+  if (list) list.innerHTML = renderServerStatusRows(model.items);
+  return model;
 }
 
 function renderNodeMetricMatrix(nodes = []) {
@@ -2237,6 +2369,8 @@ if (typeof module !== "undefined") {
     closeContextDetailPanel,
     renderDeviceTelemetryHistory,
     renderResourceInventoryRows,
+    renderServerOverview,
+    renderServerStatusRows,
     renderSensorDeviceRows,
     renderGlobalSearch,
     refreshDashboardNow,
@@ -2244,6 +2378,7 @@ if (typeof module !== "undefined") {
     resourceCategoryItems,
     resourceCategoryView,
     resourceAvailabilityStatus,
+    serverOverviewModel,
     selectResourceCategory,
     submitOperatorChat,
     renderTopology,
