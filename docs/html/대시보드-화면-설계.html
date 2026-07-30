@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 대시보드-화면-설계.md</span>
-            <span class="badge">수정: 2026-07-28 19:14</span>
-            <span class="badge">HTML 생성: 2026-07-30 14:11</span>
+            <span class="badge">수정: 2026-07-30 15:41</span>
+            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
           </div>
         </header>
         <div class="doc-body">
@@ -167,11 +167,24 @@
 <ul><li>운영자가 디바이스, 노드, 서비스, telemetry freshness를 리소스 콘솔 흐름으로 읽게 한다.</li><li>현재 PoC 범위는 통합 운영 가시화와 검증된 Adapter Runtime·EdgeX Device 연결 관리다.</li><li>화면은 관측값과 판단 근거를 먼저 보여 주고, 검증된 관리 작업만 idempotency와 서버</li></ul>
 <p>검증을 거쳐 실행한다.</p>
 <h2 id="전체-프레임">전체 프레임</h2>
-<ul><li>Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline.</li><li>Command bar: cluster context, global search, 마지막 갱신 시각, refresh.</li><li>Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.</li><li>Inspector rail: State Explanation, read-only Qwen assistant.</li><li>Dense scroll: 긴 목록, table, plan preview, inspector rail에만 허용.</li></ul>
+<ul><li>Resource rail: 검은 좌측 레일, Edge AI Resource Console identity, Overview, Assets, AI Pipeline.</li><li>Command bar: cluster context, global search, 마지막 갱신 시각, refresh.</li><li>Workspace: 현재 선택된 page만 표시하며 카드형 장식 대신 resource row와 flat panel로 구성한다.</li><li>Context detail layer: 선택한 디바이스·지표의 판단 근거와 read-only Qwen assistant를</li></ul>
+<p>배경과 구분된 상세 레이어에 표시한다.</p>
+<ul><li>Dense scroll: table, plan preview와 상세 레이어 내부에만 허용한다. 등록 디바이스</li></ul>
+<p>목록은 내부 고정 높이 scroll을 사용하지 않고 페이지 흐름을 따른다.</p>
 <h2 id="overview">Overview</h2>
 <ul><li>Metric rows: node, device, telemetry, service resource, pod usage, binding.</li><li>Current State Visualization: health ring, metric bars, status distribution, resource snapshot.</li><li>Operations evidence: KPI catalog, node pressure, service profiles, latest sensor state.</li></ul>
-<h2 id="assets">Assets</h2>
-<ul><li>Edge Nodes와 Devices를 같은 panel 안의 list-detail 구조로 표시한다.</li><li>Service Topology는 Assets 안에 둔다. 목적은 서비스 실행이 아니라 디바이스-서비스 연결 구조 확인이다.</li></ul>
+<h2 id="등록-디바이스">등록 디바이스</h2>
+<ul><li>엣지 노드는 상단의 노드 필터 그리드, EdgeX 디바이스는 그 아래의 전체 폭 카드</li></ul>
+<p>그리드로 표시한다. 노드와 디바이스를 좁은 좌우 열로 나누지 않는다.</p>
+<ul><li>디바이스 카드는 이름, availability/connection, protocol, Device Service, 선택적</li></ul>
+<p>node placement와 최신 Event 시각만 요약한다. Profile, admin/operating state, sourceName, Core Data 이력과 판단 근거는 <code>상세 보기</code>에서 확인한다.</p>
+<ul><li>디바이스 수가 늘어나도 카드를 고정 높이 목록 안에 압축하지 않는다. desktop은</li></ul>
+<p>auto-fill 3열, tablet은 2열, mobile은 1열을 기준으로 하며 technical ID는 카드 안에서 줄바꿈한다.</p>
+<ul><li>카드 전체를 mouse/touch/keyboard로 선택할 수 있고 <code>aria-expanded</code>로 상세 레이어</li></ul>
+<p>상태를 노출한다. 상세 레이어는 close, 바깥 영역 click, Escape로 닫고 원래 카드로 focus를 돌려준다.</p>
+<ul><li>상세 레이어의 header, 상태 설명, 운영 도우미는 고정 grid row에 끼워 넣지 않고</li></ul>
+<p>자연 높이의 단일 flex flow로 쌓는다. viewport 높이는 바깥 상세 레이어가 스크롤로 처리하며 내부 section끼리 겹치거나 내용을 잘라서는 안 된다.</p>
+<ul><li>Service Topology는 Assets 안에 둔다. 목적은 서비스 실행이 아니라 디바이스-서비스 연결 구조 확인이다.</li></ul>
 <h2 id="ai-pipeline">AI Pipeline</h2>
 <ul><li>Summary strip으로 등록 디바이스, availability, telemetry freshness, validation 상태를 먼저 보여준다.</li><li>Palette, graph canvas, inspector를 한 작업면으로 묶는다.</li><li>Validation과 Execution Plan은 dry-run preview로만 표시한다.</li></ul>
 <h2 id="device-management">Device Management</h2>
@@ -190,13 +203,17 @@
 <p>actuator command, EdgeMesh/KubeEdge Device CRD 변경, runtime migration, autonomous orchestration completed.</p>
 <ul><li>자원증강은 재설계 전까지 현재 dashboard 운영 기능으로 표현하지 않는다.</li></ul>
 <h2 id="responsive">Responsive</h2>
-<ul><li>Desktop: dark left resource rail + compact command bar + main workspace + sticky inspector rail.</li><li>Tablet: resource rail은 가로 tab으로 접고 inspector rail을 본문 아래로 내리며, graph는 세로 stack으로 전환한다.</li><li>Mobile: resource rail은 가로 스크롤 tab으로 접히고, metric row와 panel header는 단일열로 전환한다. 노드 카드, 작업 탭과 등록 단계, Profile resource 편집 행은 세로로 쌓이며 페이지 가로 overflow를 만들지 않는다.</li><li>발견 후보 toolbar와 요약 카드는 tablet에서 2열, mobile에서 1열로 전환한다. 수동 endpoint 대화상자는 viewport 안에서 세로 스크롤하고 action은 키보드 focus 순서를 유지한다.</li></ul>
+<ul><li>Desktop: dark left resource rail + compact command bar + main workspace로 구성하고,</li></ul>
+<p>선택 항목 상세정보는 최대 720px의 modal side sheet로 표시한다.</p>
+<ul><li>Tablet: resource rail은 가로 tab으로 접고 graph는 세로 stack으로 전환한다.</li><li>Mobile: resource rail은 가로 스크롤 tab으로 접히고, metric row와 panel header는 단일열로 전환한다. 노드 카드, 작업 탭과 등록 단계, Profile resource 편집 행은 세로로 쌓이며 페이지 가로 overflow를 만들지 않는다.</li><li>등록 디바이스는 tablet 2열, mobile 1열로 전환한다. 760px 이하에서 상세정보는</li></ul>
+<p>전체 viewport를 사용하고 body scroll을 잠그며, 상세정보 자체만 세로로 scroll한다.</p>
+<ul><li>발견 후보 toolbar와 요약 카드는 tablet에서 2열, mobile에서 1열로 전환한다. 수동 endpoint 대화상자는 viewport 안에서 세로 스크롤하고 action은 키보드 focus 순서를 유지한다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#전체-프레임">전체 프레임</a></li>
 <li class="toc-h2"><a href="#overview">Overview</a></li>
-<li class="toc-h2"><a href="#assets">Assets</a></li>
+<li class="toc-h2"><a href="#등록-디바이스">등록 디바이스</a></li>
 <li class="toc-h2"><a href="#ai-pipeline">AI Pipeline</a></li>
 <li class="toc-h2"><a href="#device-management">Device Management</a></li>
 <li class="toc-h2"><a href="#deferred-resource-augmentation">Deferred Resource Augmentation</a></li>

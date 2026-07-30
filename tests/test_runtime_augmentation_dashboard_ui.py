@@ -122,13 +122,13 @@ def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> No
     state_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-state.js").read_text()
 
     assert "/static/workflow.css?v=interaction-feedback-20260727" in html
-    assert "/static/workflow-state.js?v=edgex-cutover-20260714" in html
-    assert "/static/workflow-render-panels.js?v=terminology-cleanup-20260622" in html
-    assert "/static/workflow-actions.js?v=interaction-feedback-20260727" in html
+    assert "/static/workflow-state.js?v=device-source-binding-20260730" in html
+    assert "/static/workflow-render-panels.js?v=device-source-binding-20260730" in html
+    assert "/static/workflow-actions.js?v=device-source-binding-20260730" in html
     assert "factory-vision-inspection-pipeline" in state_js
     for label in ("Collect", "Preprocess", "Inference", "Postprocess", "Store & Observe", "Dashboard"):
         assert f'label: "{label}"' in state_js
-    assert "Collect EdgeX Event" in state_js
+    assert "Collect Device Data" in state_js
     assert "Normalize Feature Window" in state_js
     assert "Run Defect Inference" in state_js
     assert "Format Inspection Event" in state_js

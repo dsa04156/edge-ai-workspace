@@ -34,6 +34,8 @@ function buildValidation() {
     if ((node.type === "device_source" || node.type === "ai_inference") && !target) results.push({ level: "FAIL", rule: "binding", message: `${node.label} node에 대상이 없습니다.` });
     if (!target) continue;
     if (!nodeAcceptsTarget(node, target)) results.push({ level: "FAIL", rule: "capability", message: `${node.label}와 ${target.displayName} 역할이 맞지 않습니다.` });
+    if (node.type === "device_source" && !resolvedWorkflowResource(node, target)) results.push({ level: "FAIL", rule: "resource", message: `${node.label}에 읽을 Device Profile resource가 없습니다.` });
+    if (node.type === "device_source" && !sourceReadModesForTarget(target).includes(node.config.readMode || "history")) results.push({ level: "FAIL", rule: "read-mode", message: `${target.displayName}에서 ${DEVICE_SOURCE_MODE_LABELS[node.config.readMode] || node.config.readMode} 방식을 사용할 수 없습니다.` });
     if (node.type === "device_source" && !target.eventFresh) results.push({ level: "WARN", rule: "freshness", message: `${target.displayName} 최신 Core Data event가 ${target.eventFreshness} 상태입니다.` });
     if (target.kind === "device" && target.connectionState !== "connected") results.push({ level: target.connectionState === "disconnected" ? "FAIL" : "WARN", rule: "connection", message: `${target.displayName} EdgeX connection state가 ${target.connectionState}입니다.` });
     if (target.kind === "device" && (!target.profileName || !target.serviceName)) results.push({ level: "FAIL", rule: "edgex-identity", message: `${target.displayName} EdgeX profile 또는 Device Service identity가 없습니다.` });
@@ -50,7 +52,7 @@ function buildExecutionPlan() {
     workflow_name: workflow.name,
     mode: "dry-run",
     mutation: "none",
-    source_api: ["/state/devices"],
+    source_api: ["/state/devices", "/state/device-source-bindings/sample"],
     graph: {
       nodes: workflow.nodes.map((node) => {
         const target = targetById(node.targetId);
@@ -67,7 +69,14 @@ function buildExecutionPlan() {
           edgex_device_service: target?.kind === "device" ? target.serviceName : null,
           edgex_protocols: target?.kind === "device" ? target.protocolNames : null,
           source_names: target?.kind === "device" ? target.sourceNames : null,
-          resource_name: target?.kind === "device" && node.config.property !== "auto" ? node.config.property || null : null,
+          resource_name: target?.kind === "device" ? resolvedWorkflowResource(node, target) || null : null,
+          read_mode: target?.kind === "device" ? node.config.readMode || "history" : null,
+          read_path: target?.kind !== "device"
+            ? null
+            : (node.config.readMode || "history").startsWith("local_")
+              ? "same-node Device Service Local Data API"
+              : "central EdgeX Core Data",
+          sample_preview_api: target?.kind === "device" ? "/state/device-source-bindings/sample" : null,
           node_placement: target?.nodeName || null,
           admin_state: target?.kind === "device" ? target.adminState : null,
           operating_state: target?.kind === "device" ? target.operatingState : null,

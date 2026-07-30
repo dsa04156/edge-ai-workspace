@@ -592,6 +592,7 @@ def test_devices_endpoint_uses_edgex_inventory_and_latest_event(monkeypatch):
     assert device["device_service_available"] is True
     assert device["telemetry_freshness"] == "fresh"
     assert device["latest_readings"][0]["resource_name"] == "Temperature"
+    assert device["source_read_modes"] == ["history"]
     assert device["overall_status"] == "available"
     assert "Core Data event is fresh" in device["reason"]
 

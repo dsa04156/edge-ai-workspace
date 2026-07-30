@@ -23,6 +23,11 @@ from .device_management import DeviceManagementService
 from .device_discovery import DeviceDiscoveryManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient
+from .device_source import DeviceSourceBindingError, DeviceSourceBindingService
+from .device_source_models import (
+    DeviceSourceBindingRequest,
+    DeviceSourceSampleResponse,
+)
 from .edgex import EdgeXError
 from .metrics import render_metrics
 from .models import (
@@ -67,6 +72,12 @@ management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
     settings.edgex_core_metadata_url,
     settings.edgex_timeout_seconds,
+)
+device_source_binding_service = DeviceSourceBindingService(
+    service.device_source_catalog,
+    management_client,
+    service.edgex,
+    settings.device_source_timeout_seconds,
 )
 management_service = DeviceManagementService(
     management_catalog,
@@ -175,6 +186,22 @@ async def get_device_telemetry(
     return await service.get_device_telemetry_history(
         device_id=device_id, window=window, limit=limit
     )
+
+
+@app.post(
+    "/state/device-source-bindings/sample",
+    response_model=DeviceSourceSampleResponse,
+)
+async def sample_device_source_binding(
+    request: DeviceSourceBindingRequest,
+) -> DeviceSourceSampleResponse:
+    try:
+        return await device_source_binding_service.sample(request)
+    except DeviceSourceBindingError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail={"code": exc.code, "message": str(exc)},
+        ) from exc
 
 
 @app.get("/state/dashboard", response_model=DashboardState)

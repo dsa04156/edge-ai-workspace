@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-30 14:06</span>
-            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
+            <span class="badge">수정: 2026-07-30 16:22</span>
+            <span class="badge">HTML 생성: 2026-07-30 16:23</span>
           </div>
         </header>
         <div class="doc-body">
@@ -299,7 +299,7 @@
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
 <td>inventory/history API와 대시보드 관리 BFF</td>
-<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 read-only이고 <code>/management/*</code>는 발견 후보 검색·검토, 읽기 전용 Device Profile 계약의 목록·검증·idempotent 생성/readback, 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. Kubernetes 쓰기 권한은 갖지 않는다</td>
+<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 read-only이며 <code>device_source_catalog.json</code>에 등록된 Device Service에 한해 로컬 최신값·최근 구간 또는 중앙 이력 샘플을 검증한다. <code>/management/*</code>는 발견 후보 검색·검토, 읽기 전용 Device Profile 계약의 목록·검증·idempotent 생성/readback, 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. Kubernetes 쓰기 권한은 갖지 않는다</td>
 </tr>
 <tr>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
@@ -309,7 +309,7 @@
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 대시보드</td>
-<td>EdgeX 상태/history와 서비스 데모를 표시한다. 전역 <code>간편 보기</code>/<code>전체 보기</code> 모드 없이 핵심 상태를 먼저 보여 주고 기술 지표와 근거는 클릭해 펼친다. <code>디바이스 관리</code>는 Core Metadata identity를 물리 source별 카드로 묶고 개별 EdgeX Device를 카드 상세에 보존한다. <code>장비 연결</code> 하나를 신규 연결 진입점으로 사용하며 웹 생성 Device Profile의 즉시 표시·전체 Profile 선택, 발견 후보 검색·승인/무시, 접힌 수동 endpoint 선언, KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, 통합 validation/apply/first-Event 상태를 관리한다. 375/768/1024px 반응형 회귀를 확인한다</td>
+<td>EdgeX 상태/history와 서비스 데모를 표시한다. 전역 <code>간편 보기</code>/<code>전체 보기</code> 모드 없이 핵심 상태를 먼저 보여 주고 기술 지표와 근거는 클릭해 펼친다. Workflow Builder는 브라우저 dry-run을 유지하면서 선택 device/resource의 <code>local_latest</code>, <code>local_window</code>, <code>history</code> 샘플만 읽기 전용으로 미리 본다. <code>디바이스 관리</code>는 Core Metadata identity를 물리 source별 카드로 묶고 개별 EdgeX Device를 카드 상세에 보존한다. <code>장비 연결</code> 하나를 신규 연결 진입점으로 사용하며 웹 생성 Device Profile의 즉시 표시·전체 Profile 선택, 발견 후보 검색·승인/무시, 접힌 수동 endpoint 선언, KubeEdge 노드 범위 선택, 등록 물리 연결과 실제 장비 상태 구분, protocol package의 재사용/설치/차단 상태, runtime owner/phase/consumer, 통합 validation/apply/first-Event 상태를 관리한다. 375/768/1024px 반응형 회귀를 확인한다</td>
 </tr>
 </tbody></table></div>
 <p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 MQTT 입력 workload는 없다. MQTT 자기등록은 schema parser까지만 있고 subscriber는 없다. Modbus는 자동 discovery 없이 Git에 등록한 개발 simulator Unit 1·2 endpoint용 공식 Device Service 등록·Event 경로를 과거 검증했지만 Controller Runtime은 현재 퇴역 상태다. OPC-UA·ONVIF discovery는 미구현이고 RTSP는 별도 media 경로다.</p>

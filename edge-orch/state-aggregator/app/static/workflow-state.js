@@ -3,7 +3,7 @@ const NODE_H = 118;
 const AI_HAT_NODE = "etri-dev0002-raspi5";
 
 const NODE_TEMPLATES = [
-  { type: "device_source", label: "Collect", caption: "EdgeX Core Data event intake", data: "typed readings" },
+  { type: "device_source", label: "Collect", caption: "Device Service recent data or Core Data history", data: "typed readings" },
   { type: "transform", label: "Preprocess", caption: "normalize, window, feature extraction", data: "feature tensor" },
   { type: "ai_inference", label: "Inference", caption: "edge model execution", data: "prediction" },
   { type: "postprocess", label: "Postprocess", caption: "threshold, score, event shaping", data: "inspection event" },
@@ -11,6 +11,12 @@ const NODE_TEMPLATES = [
   { type: "dashboard_event", label: "Dashboard", caption: "operator signal and review", data: "operator signal" },
   { type: "condition", label: "Quality Gate", caption: "optional freshness/threshold branch", data: "branch decision" },
 ];
+
+const DEVICE_SOURCE_MODE_LABELS = {
+  local_latest: "로컬 최신값",
+  local_window: "로컬 최근 구간",
+  history: "중앙 저장 이력",
+};
 
 const workflowState = {
   targets: [],
@@ -20,7 +26,7 @@ const workflowState = {
       id: "factory-vision-inspection-pipeline",
       name: "factory-vision-inspection-pipeline",
       nodes: [
-        { id: "collect-1", label: "Collect EdgeX Event", type: "device_source", x: 40, y: 72, targetId: "", config: { window: "-30m", property: "auto" } },
+        { id: "collect-1", label: "Collect Device Data", type: "device_source", x: 40, y: 72, targetId: "", config: { readMode: "local_window", window: "-10s", property: "auto" } },
         { id: "preprocess-1", label: "Normalize Feature Window", type: "transform", x: 236, y: 72, targetId: "", config: { method: "normalize-window" } },
         { id: "inference-1", label: "Run Defect Inference", type: "ai_inference", x: 432, y: 72, targetId: `resource:${AI_HAT_NODE}:ai-hat`, config: { model: "factory-vision-inspection-lite", accelerator: "ai-hat" } },
         { id: "postprocess-1", label: "Format Inspection Event", type: "postprocess", x: 40, y: 242, targetId: "", config: { threshold: "0.82", output: "defect-score" } },
@@ -89,6 +95,24 @@ function selectedWorkflowTarget() {
   return targetById(workflowState.selectedTargetId);
 }
 
+function sourceReadModesForTarget(target) {
+  const modes = Array.isArray(target?.sourceReadModes) ? target.sourceReadModes : ["history"];
+  return [...new Set(modes.filter((mode) => DEVICE_SOURCE_MODE_LABELS[mode]))];
+}
+
+function preferredSourceReadMode(target) {
+  const modes = sourceReadModesForTarget(target);
+  if (modes.includes("local_window")) return "local_window";
+  if (modes.includes("local_latest")) return "local_latest";
+  return "history";
+}
+
+function resolvedWorkflowResource(node, target) {
+  if (!node || !target || target.kind !== "device") return "";
+  if (node.config.property && node.config.property !== "auto") return node.config.property;
+  return target.properties[0] || "";
+}
+
 
 function targetFromDevice(device) {
   const nodeName = device.node_name || "";
@@ -109,6 +133,7 @@ function targetFromDevice(device) {
     protocol: Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "-",
     properties,
     sourceNames: [...new Set(readings.map((reading) => reading.source_name).filter(Boolean))],
+    sourceReadModes: Array.isArray(device.source_read_modes) && device.source_read_modes.length ? device.source_read_modes : ["history"],
     latestReadings: readings,
     eventFresh: device.telemetry_freshness === "fresh",
     eventFreshness: device.telemetry_freshness || "no_events",

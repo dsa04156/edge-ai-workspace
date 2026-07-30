@@ -26,6 +26,11 @@ GET /state/summary
 현재 workflow UI는 Kubernetes 또는 EdgeX metadata/state/command를 변경하지 않는다.
 등록된 EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Core Data Event/Reading
 history는 `GET /state/devices/{device_id}/telemetry`로 확인한다.
+선택한 Device/Profile resource의 입력 계약은
+`POST /state/device-source-bindings/sample`로 읽기 전용 검증한다. `local_latest`와
+`local_window`는 Git의 `app/config/device_source_catalog.json`에 등록된 Device Service
+Local Data API만 사용하고 `history`는 중앙 Core Data를 사용한다. 이 API는 임의 endpoint를
+받지 않으며 Workflow Pod를 생성하거나 command를 실행하지 않는다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,

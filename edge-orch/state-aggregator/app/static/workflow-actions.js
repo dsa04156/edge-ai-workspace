@@ -65,7 +65,7 @@ function autoLayoutWorkflow() {
 }
 
 function defaultNodeConfig(type) {
-  if (type === "device_source") return { window: "-30m", property: "auto" };
+  if (type === "device_source") return { readMode: "local_window", window: "-10s", property: "auto" };
   if (type === "condition") return { metric: "event_fresh", operator: "equals", value: "true" };
   if (type === "ai_inference") return { model: "anomaly-lite", accelerator: "ai-hat" };
   if (type === "postprocess") return { threshold: "0.82", output: "defect-score" };
@@ -141,7 +141,12 @@ function bindSelectedTargetToNode() {
     return;
   }
   node.targetId = target.id;
-  if (node.type === "device_source" && target.properties.length && node.config.property === "auto") node.config.property = target.properties[0];
+  if (node.type === "device_source") {
+    if (target.properties.length && node.config.property === "auto") node.config.property = target.properties[0];
+    if (!sourceReadModesForTarget(target).includes(node.config.readMode)) {
+      node.config.readMode = preferredSourceReadMode(target);
+    }
+  }
   renderWorkflow();
   setWorkflowStatus(`${target.displayName}을(를) ${node.label}에 연결했습니다. 브라우저 dry-run입니다.`, "success");
 }
@@ -165,7 +170,18 @@ function updateSelectedNodeConfig(field, value) {
   const node = selectedWorkflowNode();
   if (!node) return;
   if (field === "label") node.label = value;
-  else if (field === "targetId") node.targetId = value;
+  else if (field === "targetId") {
+    node.targetId = value;
+    const target = targetById(value);
+    if (node.type === "device_source" && target) {
+      if (!sourceReadModesForTarget(target).includes(node.config.readMode)) {
+        node.config.readMode = preferredSourceReadMode(target);
+      }
+      if (!target.properties.includes(node.config.property)) {
+        node.config.property = target.properties[0] || "auto";
+      }
+    }
+  }
   else node.config[field] = value;
   renderWorkflow();
 }
@@ -175,7 +191,12 @@ function autoBindDefaults() {
   const aiTarget = targetById(`resource:${AI_HAT_NODE}:ai-hat`);
   for (const workflow of workflowState.workflows) {
     for (const node of workflow.nodes) {
-      if (node.type === "device_source" && !node.targetId && sourceTarget) node.targetId = sourceTarget.id;
+      if (node.type === "device_source" && !node.targetId && sourceTarget) {
+        node.targetId = sourceTarget.id;
+        if (!sourceReadModesForTarget(sourceTarget).includes(node.config.readMode)) {
+          node.config.readMode = preferredSourceReadMode(sourceTarget);
+        }
+      }
       if (node.type === "ai_inference" && !node.targetId && aiTarget) node.targetId = aiTarget.id;
     }
   }
@@ -183,9 +204,27 @@ function autoBindDefaults() {
 }
 
 async function fetchJson(path) {
-  const response = await fetch(path, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+  const response = await fetch(path, { headers: { Accept: "application/json" }, cache: "no-store" });
+  if (!response.ok) throw await workflowHttpError(path, response);
   return response.json();
+}
+
+async function postWorkflowJson(path, payload) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw await workflowHttpError(path, response);
+  return response.json();
+}
+
+async function workflowHttpError(path, response) {
+  const payload = await response.json().catch(() => null);
+  const detail = payload?.detail;
+  const message = typeof detail === "string" ? detail : detail?.message;
+  return new Error(message || `${path} HTTP ${response.status}`);
 }
 
 async function loadWorkflowDevices() {
@@ -214,14 +253,35 @@ async function readLatestWorkflowDevice() {
     return;
   }
   const node = selectedWorkflowNode();
-  const windowValue = node?.config.window || "-30m";
+  if (!node || node.type !== "device_source") {
+    setWorkflowStatus("수집 단계를 선택한 뒤 샘플을 조회하세요.", "warning");
+    return;
+  }
+  const resourceName = resolvedWorkflowResource(node, target);
+  if (!resourceName) {
+    setWorkflowStatus("조회할 Device Profile 리소스를 선택하세요.", "warning");
+    return;
+  }
+  const readMode = node.config.readMode || preferredSourceReadMode(target);
+  if (!sourceReadModesForTarget(target).includes(readMode)) {
+    setWorkflowStatus(`${target.name}은(는) ${DEVICE_SOURCE_MODE_LABELS[readMode] || readMode} 조회를 지원하지 않습니다.`, "error");
+    return;
+  }
+  const windowValue = node.config.window || "-10s";
   const button = workflowEl("readLatestWorkflowDevice");
   setWorkflowButtonBusy(button, true, "읽는 중…");
-  setWorkflowStatus(`${target.name} 최신 데이터를 읽는 중입니다.`, "waiting");
+  setWorkflowStatus(`${target.name}.${resourceName} 샘플을 읽는 중입니다.`, "waiting");
   try {
-    const payload = await fetchJson(`/state/devices/${encodeURIComponent(target.name)}/telemetry?window=${encodeURIComponent(windowValue)}&limit=10`);
-    renderInspector(Array.isArray(payload) ? payload : []);
-    setWorkflowStatus(`${target.name} 샘플 ${Array.isArray(payload) ? payload.length : 0}개를 읽었습니다.`, "success");
+    const payload = await postWorkflowJson("/state/device-source-bindings/sample", {
+      deviceName: target.name,
+      resourceName,
+      readMode,
+      window: windowValue,
+      limit: readMode === "local_latest" ? 1 : 100,
+    });
+    renderInspector(payload);
+    const count = Array.isArray(payload?.samples) ? payload.samples.length : 0;
+    setWorkflowStatus(`${DEVICE_SOURCE_MODE_LABELS[readMode]} 샘플 ${count}개를 읽었습니다. 실행은 하지 않았습니다.`, "success");
   } finally {
     setWorkflowButtonBusy(button, false);
   }

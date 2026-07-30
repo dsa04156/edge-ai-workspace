@@ -280,9 +280,9 @@
               <h2 id="workflowWorkbenchTitle">AI Pipeline Builder</h2>
             </div>
             <div class="workflow-actions">
-              <span class="workflow-scope">EdgeX devices · Core Data event freshness · dry-run</span>
-              <span id="workflowStatus" role="status" aria-live="polite" data-status="waiting">device list pending</span>
-              <button id="workflowRefresh" type="button">Refresh Devices</button>
+              <span class="workflow-scope">EdgeX 디바이스 · 로컬 최근값/중앙 이력 · 읽기 전용 미리보기</span>
+              <span id="workflowStatus" role="status" aria-live="polite" data-status="waiting">디바이스 목록 대기</span>
+              <button id="workflowRefresh" type="button">디바이스 새로고침</button>
             </div>
           </div>
 
@@ -369,7 +369,7 @@
                 <div class="inspector-actions">
                   <button id="bindWorkflowDevice" type="button">Bind</button>
                   <button id="releaseWorkflowDevice" type="button">Release</button>
-                  <button id="readLatestWorkflowDevice" type="button">Read Latest Event</button>
+                  <button id="readLatestWorkflowDevice" type="button">샘플 조회</button>
                 </div>
               </div>
               <div id="workflowBindingInspector" class="workflow-binding-inspector">
@@ -1136,10 +1136,10 @@
     <script src="/static/dashboard.js?v=inventory-cards-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
-    <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
-    <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
-    <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow-actions.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/workflow.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/workflow-state.js?v=device-source-binding-20260730"></script>
+    <script src="/static/workflow-render.js?v=device-source-binding-20260730"></script>
+    <script src="/static/workflow-render-panels.js?v=device-source-binding-20260730"></script>
+    <script src="/static/workflow-actions.js?v=device-source-binding-20260730"></script>
+    <script src="/static/workflow.js?v=device-source-binding-20260730"></script>
   </body>
 </html>
