@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-30 14:08</span>
-            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
+            <span class="badge">수정: 2026-07-30 14:35</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:35</span>
           </div>
         </header>
         <div class="doc-body">
@@ -170,7 +170,7 @@
 <ul><li>갱신: <code>docs/문서-안내.md</code>, <code>docs/프로젝트-범위.md</code>, <code>docs/저장소-구조.md</code>,</li></ul>
 <p><code>docs/현재-구현-상태.md</code>, <code>docs/대시보드-정보-구조.md</code>, <code>docs/대시보드-판단-정책.md</code>, 관련 Ops·Wiki 문서</p>
 <ul><li>메모: 전역 간편/전체 보기 모드를 제거하고 핵심 상태는 기본 화면, 기술 근거는 카드</li></ul>
-<p>상세이나 선택 항목 drawer로 제공한다. live 13개 EdgeX identity는 API/KPI에서 유지하고 관리 목록에서는 Arduino와 Sense HAT 두 물리 source로 그룹화한다. 분리된 MPU6050은 <code>STALE</code>, 활성 Runtime 없음으로 기록하고 Modbus simulator Runtime은 현재 퇴역 상태로 구분했다.</p>
+<p>상세이나 선택 항목 drawer로 제공한다. live 13개 EdgeX identity는 API/KPI에서 유지하고 관리 목록에서는 Arduino와 Sense HAT 두 물리 source로 그룹화한다. 분리된 MPU6050은 <code>STALE</code>/<code>ignored</code> 감사 이력으로 정리했고 활성 Runtime은 없다. 개발용 Modbus endpoint simulator Deployment는 남아 있지만 Controller가 만들었던 Modbus Device Service Runtime은 퇴역한 상태로 구분했다.</p>
 <h2 id="2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</h2>
 <ul><li>근거: <code>edge-orch/state-aggregator/app/config/adapter_catalog.json</code>,</li></ul>
 <p><code>edge-orch/state-aggregator/app/static/device-management.js</code>, <code>edgex/adapter-controller/app/models.py</code>, <code>edgex/adapter-controller/app/planner.py</code></p>
