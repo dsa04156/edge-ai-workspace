@@ -74,13 +74,7 @@ spec:
                 runtimeSettings:
                   type: object
                   maxProperties: 32
-                  additionalProperties:
-                    anyOf:
-                      - type: string
-                        maxLength: 2048
-                      - type: integer
-                      - type: number
-                      - type: boolean
+                  x-kubernetes-preserve-unknown-fields: true
                   default: {}
                 settingsHash:
                   type: string
