@@ -141,9 +141,9 @@
   inset: 16px 16px 16px auto !important;
   z-index: 100 !important;
   grid-column: auto !important;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) !important;
-  align-content: start;
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   width: min(720px, calc(100vw - 32px)) !important;
   min-width: 0 !important;
@@ -158,6 +158,11 @@
   box-shadow: 0 24px 72px rgba(0, 0, 0, 0.58);
 }
 
+#contextDetailPanel > * {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
 .context-drawer-head {
   position: sticky;
   top: -12px;
@@ -170,6 +175,19 @@
   padding: 12px 2px;
   border-bottom: 1px solid var(--console-border, var(--line));
   background: var(--console-bg, #08101a);
+}
+
+#contextDetailPanel .context-drawer-head,
+#contextDetailPanel .operator-context-panel,
+#contextDetailPanel .explain-content,
+#contextDetailPanel .context-assistant-details {
+  height: auto !important;
+  max-height: none !important;
+}
+
+#contextDetailPanel .operator-context-panel,
+#contextDetailPanel .explain-content {
+  overflow: visible !important;
 }
 
 .context-drawer-head strong {

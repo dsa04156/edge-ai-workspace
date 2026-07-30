@@ -87,6 +87,12 @@ def test_dashboard_screen_uses_a_hidden_responsive_context_drawer() -> None:
     assert "width: min(720px, calc(100vw - 32px)) !important;" in css
     assert "max-height: calc(100dvh - 32px) !important;" in css
     assert "z-index: 100 !important;" in css
+    assert "display: flex !important;" in css
+    assert "flex-direction: column;" in css
+    assert "#contextDetailPanel > *" in css
+    assert "flex: 0 0 auto;" in css
+    assert "#contextDetailPanel .operator-context-panel" in css
+    assert "overflow: visible !important;" in css
     assert ".context-detail-backdrop" in css
     assert "body.context-detail-open" in css
     assert "@media (max-width: 760px)" in css

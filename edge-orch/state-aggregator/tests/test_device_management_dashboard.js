@@ -1877,7 +1877,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(html, /data-view-mode=/);
   assert.doesNotMatch(html, /dashboardViewModeToggle/);
   assert.doesNotMatch(html, /simple-mode\.css/);
-  assert.match(html, /dashboard-responsive\.css\?v=inventory-cards-20260730/);
+  assert.match(html, /dashboard-responsive\.css\?v=no-overlap-20260730/);
   assert.match(html, /device-management\.css\?v=physical-device-groups-20260730/);
   assert.match(html, /device-management\.js\?v=physical-device-groups-20260730/);
   assert.match(html, /class="metric-details"/);
