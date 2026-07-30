@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/어댑터-런타임-디바이스-연결-관리.md</span>
-            <span class="badge">수정: 2026-07-30 20:38</span>
-            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
+            <span class="badge">수정: 2026-07-30 21:13</span>
+            <span class="badge">HTML 생성: 2026-07-30 21:13</span>
           </div>
         </header>
         <div class="doc-body">
@@ -505,7 +505,7 @@ kubectl rollout status -n edgex-edge deployment/edge-mqtt-temperature-publisher<
 <td><code>temperature</code></td>
 </tr>
 </tbody></table></div>
-<p>Device 이름은 publisher topic과 같은 <code>mqtt-temperature-sim-001</code>을 사용하고 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 선택한다. 마지막 <code>검증하고 연결</code>은 공식 <code>device-mqtt</code> Runtime이 없으면 배포하고, Profile/Device 등록과 첫 Event를 확인한다. fixture 제거는 검증이 끝난 뒤에만 수행한다.</p>
+<p>Device 이름은 publisher topic과 같은 <code>mqtt-temperature-sim-001</code>을 사용하고 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 선택한다. 마지막 <code>검증하고 연결</code>은 공식 <code>device-mqtt</code> Runtime이 없으면 배포하고, Profile/Device 등록과 첫 Event를 확인한다. first Event가 확인되면 Device <code>operatingState</code>를 <code>UP</code>으로 갱신하고 Core Metadata readback까지 성공해야 <code>ACTIVE</code>가 된다. 2026-07-30 실제 클러스터에서 <code>adapter-mqtt-978887c832</code> / <code>mqtt-temperature-sim-001</code> 조합으로 이 전체 경로를 확인했다. fixture 제거는 검증이 끝난 뒤에만 수행한다.</p>
 <pre data-lang="bash"><code>kubectl delete -k edgex/k8s/overlays/development/mqtt-simulator</code></pre>
 <p>이 fixture는 anonymous plaintext broker이므로 운영 broker 예시가 아니다.</p>
 <p>Profile 생성 API는 검증과 생성을 분리한다. 아래 payload는 예시이므로 실제 센서의 resource/value type/units 계약으로 바꾼다.</p>

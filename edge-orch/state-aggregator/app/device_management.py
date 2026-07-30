@@ -25,6 +25,7 @@ from .device_management_models import (
     ValidationIssue,
     ValidationResult,
 )
+from .device_management_edgex import EdgeXManagementError
 from .edgex import EdgeXError
 
 
@@ -1202,9 +1203,40 @@ class DeviceManagementService:
             operation.updated_at = _now()
             return
         operation.first_event_verified = bool(points)
-        operation.status = "verified" if points else "waiting_for_event"
+        if not points:
+            operation.status = "waiting_for_event"
+            operation.error = None
+            operation.updated_at = _now()
+            return
+        try:
+            await self._confirm_device_operating_up(operation.device_name)
+        except (EdgeXManagementError, ValueError) as exc:
+            operation.status = "waiting_for_event"
+            operation.error = (
+                "first Event confirmed but operatingState readback is unavailable: "
+                f"{exc.__class__.__name__}"
+            )
+            operation.updated_at = _now()
+            return
+        operation.status = "verified"
         operation.error = None
         operation.updated_at = _now()
+
+    async def _confirm_device_operating_up(self, device_name: str) -> None:
+        device = await self.metadata.get_device(device_name)
+        if device is None:
+            raise ValueError("Device disappeared before operatingState confirmation")
+        if str(device.get("operatingState") or "").upper() != "UP":
+            await self.metadata.patch_device(
+                device_name,
+                {"operatingState": "UP"},
+            )
+            device = await self.metadata.get_device(device_name)
+        if (
+            device is None
+            or str(device.get("operatingState") or "").upper() != "UP"
+        ):
+            raise ValueError("Device operatingState readback did not become UP")
 
     async def _recover_matching_device(
         self,

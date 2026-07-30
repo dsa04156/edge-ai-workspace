@@ -137,6 +137,7 @@ class FakeMetadata:
         self.devices = {}
         self.calls = []
         self.fail_add_device = False
+        self.fail_patch_device = False
         self.corrupt_device_readback = False
 
     async def list_device_services(self):
@@ -184,6 +185,8 @@ class FakeMetadata:
 
     async def patch_device(self, name, patch):
         self.calls.append(f"patch_device:{name}")
+        if self.fail_patch_device:
+            raise EdgeXManagementBackendError("device patch failed")
         self.devices[name].update(copy.deepcopy(patch))
 
     async def delete_device(self, name):
@@ -670,8 +673,9 @@ async def test_device_failure_never_deletes_existing_profile(catalog):
 
 @async_test
 async def test_operation_transitions_to_verified_when_first_event_arrives(catalog):
+    metadata = FakeMetadata()
     events = FakeEvents()
-    service = service_for(catalog, events=events)
+    service = service_for(catalog, metadata=metadata, events=events)
     operation = await service.create_device(
         onboarding_request(), idempotency_key="event-later", actor="dashboard-admin"
     )
@@ -681,6 +685,34 @@ async def test_operation_transitions_to_verified_when_first_event_arrives(catalo
 
     assert refreshed.status == "verified"
     assert refreshed.first_event_verified is True
+    assert metadata.devices[operation.device_name]["operatingState"] == "UP"
+    assert f"patch_device:{operation.device_name}" in metadata.calls
+
+
+@async_test
+async def test_first_event_waits_until_operating_state_readback_succeeds(catalog):
+    metadata = FakeMetadata()
+    events = FakeEvents()
+    service = service_for(catalog, metadata=metadata, events=events)
+    operation = await service.create_device(
+        onboarding_request(),
+        idempotency_key="event-state-readback",
+        actor="dashboard-admin",
+    )
+    events.events[operation.device_name] = [{"device_name": operation.device_name}]
+    metadata.fail_patch_device = True
+
+    waiting = await service.get_operation(operation.request_id)
+
+    assert waiting.status == "waiting_for_event"
+    assert waiting.first_event_verified is True
+    assert "operatingState readback is unavailable" in (waiting.error or "")
+
+    metadata.fail_patch_device = False
+    verified = await service.get_operation(operation.request_id)
+
+    assert verified.status == "verified"
+    assert metadata.devices[operation.device_name]["operatingState"] == "UP"
 
 
 @async_test

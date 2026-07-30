@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-07-30 20:43</span>
-            <span class="badge">HTML 생성: 2026-07-30 20:43</span>
+            <span class="badge">수정: 2026-07-30 21:13</span>
+            <span class="badge">HTML 생성: 2026-07-30 21:13</span>
           </div>
         </header>
         <div class="doc-body">
@@ -254,6 +254,13 @@
 <p>웹 생성 Profile은 등록 현황에 즉시 표시하며 전체 Profile은 연결 3단계의 선택 목록으로 제공한다. 수동 후보 입력은 자동 탐색 보조 영역의 <code>직접 후보 등록</code>으로 접었다.</p>
 <ul><li>메모: Profile 생성은 parser, Device Service image, hardware binding 또는 장비 등록을</li></ul>
 <p>자동 생성하지 않는 기존 검증 경계를 유지한다.</p>
+<h2 id="2026-07-30-verify-mqtt-웹-연결-전체-경로-실클러스터-검증">[2026-07-30] verify | MQTT 웹 연결 전체 경로 실클러스터 검증</h2>
+<ul><li>근거: commits <code>bbcdc0f</code>, <code>95b3842</code>, <code>c753edf</code>,</li></ul>
+<p>Runtime <code>adapter-mqtt-978887c832</code>, EdgeX Profile/Device/Core Data readback과 connection operation <code>ACTIVE</code></p>
+<ul><li>갱신: 검증된 protocol package의 Runtime 설정을 웹에서 입력하고</li></ul>
+<p><code>검증하고 연결</code> 한 번으로 Device Service 배포, Profile/Device 등록, first Event와 <code>operatingState=UP</code> readback까지 수행하도록 연결 Saga를 보강했다.</p>
+<ul><li>메모: Jetson의 선택적 Mosquitto fixture에서</li></ul>
+<p><code>mqtt-temperature-sim-001/temperature</code> Float64 Event를 확인했다. 이 결과는 anonymous 개발 broker 검증이며 운영 TLS/auth broker나 MQTT retained discovery subscriber 지원을 뜻하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-30-ingest-웹-단일-연결과-mqtt-개발-package-반영">[2026-07-30] ingest | 웹 단일 연결과 MQTT 개발 package 반영</a></li>
@@ -276,7 +283,8 @@
 <li class="toc-h2"><a href="#2026-07-28-fix-decommission-장비-stable-id-자동-재탐색">[2026-07-28] fix | decommission 장비 stable ID 자동 재탐색</a></li>
 <li class="toc-h2"><a href="#2026-07-28-verify-raspberry-pi-usb-serial-passive-discovery-활성화">[2026-07-28] verify | Raspberry Pi USB Serial passive discovery 활성화</a></li>
 <li class="toc-h2"><a href="#2026-07-28-ingest-대시보드-device-profile-편집-검증-추가">[2026-07-28] ingest | 대시보드 Device Profile 편집·검증 추가</a></li>
-<li class="toc-h2"><a href="#2026-07-28-fix-장비-관리-진입점과-profile-선택-단순화">[2026-07-28] fix | 장비 관리 진입점과 Profile 선택 단순화</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-07-28-fix-장비-관리-진입점과-profile-선택-단순화">[2026-07-28] fix | 장비 관리 진입점과 Profile 선택 단순화</a></li>
+<li class="toc-h2"><a href="#2026-07-30-verify-mqtt-웹-연결-전체-경로-실클러스터-검증">[2026-07-30] verify | MQTT 웹 연결 전체 경로 실클러스터 검증</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>
