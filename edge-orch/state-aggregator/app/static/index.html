@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
-    <link rel="stylesheet" href="/static/operations-dashboard.css?v=server-observability-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
   </head>
   <body>
     <main class="shell">
@@ -234,6 +234,31 @@
             <div id="overviewAlertList" class="overview-alert-list" aria-live="polite"></div>
           </section>
           </div>
+
+          <section
+            class="panel server-observability-panel physical-device-observability-panel dashboard-page active"
+            data-page="overview"
+            aria-labelledby="physicalDeviceOverviewTitle"
+          >
+            <div class="panel-head server-observability-head">
+              <div>
+                <p class="section-kicker">현장 노드</p>
+                <h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태</h2>
+              </div>
+              <div class="server-observability-actions">
+                <span id="physicalDeviceOverviewAvailability" aria-live="polite">관측 중</span>
+                <button type="button" data-resource-category-link="physical">물리 디바이스 목록</button>
+              </div>
+            </div>
+            <dl class="server-observability-summary" aria-label="물리 디바이스 자원 요약">
+              <div><dt>평균 CPU</dt><dd id="physicalDeviceOverviewCpu">관측 대기</dd></div>
+              <div><dt>평균 메모리</dt><dd id="physicalDeviceOverviewMemory">관측 대기</dd></div>
+              <div><dt>GPU 관측</dt><dd id="physicalDeviceOverviewGpu">관측 대기</dd></div>
+              <div><dt>압력 주의</dt><dd id="physicalDeviceOverviewPressure">관측 대기</dd></div>
+            </dl>
+            <div id="physicalDeviceStatusList" class="server-status-list" aria-live="polite"></div>
+            <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
+          </section>
 
           <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle">
             <summary class="overview-service-demo-summary">
@@ -1078,7 +1103,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
-    <script src="/static/dashboard.js?v=server-observability-20260730"></script>
+    <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
   </body>

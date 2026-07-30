@@ -1289,6 +1289,7 @@ function render() {
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderServerOverview(data);
+  renderPhysicalDeviceOverview(data);
   renderKpiCatalog(kpis, deviceObservationFailed);
   renderNodeMetricMatrix(nodes);
   if ($("globalResourceSearch")?.value.trim()) renderGlobalSearch();
@@ -1445,8 +1446,8 @@ function serverPressureNeedsAttention(node = {}) {
   ].some((value) => ["medium", "high"].includes(text(value, "").toLowerCase()));
 }
 
-function serverOverviewModel(data = {}) {
-  const items = resourceCategoryItems(data, "server");
+function nodeOverviewModel(data = {}, category = "server") {
+  const items = resourceCategoryItems(data, category);
   const average = (key) => {
     const values = items
       .map((item) => observedNodeMetric(item.raw, key))
@@ -1476,6 +1477,14 @@ function serverOverviewModel(data = {}) {
   };
 }
 
+function serverOverviewModel(data = {}) {
+  return nodeOverviewModel(data, "server");
+}
+
+function physicalDeviceOverviewModel(data = {}) {
+  return nodeOverviewModel(data, "physical");
+}
+
 function renderServerMetric(label, value, serverName) {
   const percentage = value === null ? null : Math.round(value * 100);
   const ariaValue = percentage === null
@@ -1497,9 +1506,21 @@ function renderServerMetric(label, value, serverName) {
   `;
 }
 
-function renderServerStatusRows(items = []) {
+function physicalNodeTypeLabel(node = {}) {
+  return {
+    edge_ai_device: "AI 엣지 노드",
+    edge_light_device: "경량 엣지 노드",
+    edge_device: "엣지 노드",
+  }[text(node.node_type, "").toLowerCase()] || "물리 노드";
+}
+
+function renderNodeStatusRows(items = [], options = {}) {
+  const {
+    emptyLabel = "관측된 노드가 없습니다.",
+    showNodeType = false,
+  } = options;
   if (!items.length) {
-    return `<div class="server-status-empty">관측된 엣지 AI 서버가 없습니다.</div>`;
+    return `<div class="server-status-empty">${escapeHtml(emptyLabel)}</div>`;
   }
   return items.map((item) => {
     const raw = item.raw || {};
@@ -1511,14 +1532,18 @@ function renderServerStatusRows(items = []) {
       text(raw.memory_pressure, "unknown"),
       text(raw.network_pressure, "unknown"),
     ].join(" / ");
+    const observedAge = timestampAge(item.observedAt).replace("이벤트 없음", "관측 없음");
+    const observationLabel = showNodeType
+      ? `${physicalNodeTypeLabel(raw)} · ${observedAge}`
+      : observedAge;
     return `
-      <article class="server-status-row" data-status="${escapeHtml(item.status)}">
+      <article class="server-status-row ${item.kind === "physical" ? "physical-device-status-row" : ""}" data-status="${escapeHtml(item.status)}">
         <div class="server-status-identity">
           <span class="server-status-label">
             <i aria-hidden="true"></i>${escapeHtml(item.statusLabel)}
           </span>
           <strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong>
-          <small>${escapeHtml(timestampAge(item.observedAt).replace("이벤트 없음", "관측 없음"))}</small>
+          <small>${escapeHtml(observationLabel)}</small>
         </div>
         ${renderServerMetric("CPU", cpu, item.name)}
         ${renderServerMetric("메모리", memory, item.name)}
@@ -1530,6 +1555,19 @@ function renderServerStatusRows(items = []) {
       </article>
     `;
   }).join("");
+}
+
+function renderServerStatusRows(items = []) {
+  return renderNodeStatusRows(items, {
+    emptyLabel: "관측된 엣지 AI 서버가 없습니다.",
+  });
+}
+
+function renderPhysicalDeviceStatusRows(items = []) {
+  return renderNodeStatusRows(items, {
+    emptyLabel: "관측된 물리 디바이스가 없습니다.",
+    showNodeType: true,
+  });
 }
 
 function renderServerOverview(data = {}) {
@@ -1558,6 +1596,35 @@ function renderServerOverview(data = {}) {
   );
   const list = $("serverStatusList");
   if (list) list.innerHTML = renderServerStatusRows(model.items);
+  return model;
+}
+
+function renderPhysicalDeviceOverview(data = {}) {
+  const model = physicalDeviceOverviewModel(data);
+  setText(
+    "physicalDeviceOverviewAvailability",
+    model.total
+      ? `${model.available}/${model.total}대 Available`
+      : "물리 디바이스 관측 없음",
+  );
+  setText(
+    "physicalDeviceOverviewCpu",
+    model.averageCpu === null ? "N/A" : pct(model.averageCpu),
+  );
+  setText(
+    "physicalDeviceOverviewMemory",
+    model.averageMemory === null ? "N/A" : pct(model.averageMemory),
+  );
+  setText("physicalDeviceOverviewGpu", `${model.gpuObserved}/${model.total}대`);
+  setText("physicalDeviceOverviewPressure", `${model.pressureAttention}대`);
+  setText(
+    "physicalDeviceOverviewObservedAt",
+    model.latestObservedAt
+      ? `현재 관측값 · ${timestampAge(model.latestObservedAt)} · Prometheus / Kubernetes`
+      : "관측 없음 · Prometheus / Kubernetes",
+  );
+  const list = $("physicalDeviceStatusList");
+  if (list) list.innerHTML = renderPhysicalDeviceStatusRows(model.items);
   return model;
 }
 
@@ -2369,6 +2436,8 @@ if (typeof module !== "undefined") {
     closeContextDetailPanel,
     renderDeviceTelemetryHistory,
     renderResourceInventoryRows,
+    renderPhysicalDeviceOverview,
+    renderPhysicalDeviceStatusRows,
     renderServerOverview,
     renderServerStatusRows,
     renderSensorDeviceRows,
@@ -2378,6 +2447,7 @@ if (typeof module !== "undefined") {
     resourceCategoryItems,
     resourceCategoryView,
     resourceAvailabilityStatus,
+    physicalDeviceOverviewModel,
     serverOverviewModel,
     selectResourceCategory,
     submitOperatorChat,

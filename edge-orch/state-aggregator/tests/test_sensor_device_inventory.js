@@ -6,6 +6,8 @@ const path = require("node:path");
 const {
   resourceCategoryItems,
   resourceCategoryView,
+  physicalDeviceOverviewModel,
+  renderPhysicalDeviceStatusRows,
   renderResourceInventoryRows,
   renderServerStatusRows,
   renderSensorDeviceRows,
@@ -220,17 +222,84 @@ test("renders Grafana-style server rows without inventing missing GPU values", (
   assert.doesNotMatch(markup, /서비스 데모|Jetson 센서 이상 탐지/);
 });
 
-test("places server observability before the collapsed service demo", () => {
+test("builds physical device status separately from server status", () => {
+  const data = {
+    nodes: [
+      {
+        hostname: "etri-ser0001",
+        node_type: "cloud_server",
+        node_health: "healthy",
+        collected_at: "2099-01-01T00:00:00Z",
+        raw_metrics: {
+          cpu_utilization: 0.1,
+          memory_usage_ratio: 0.2,
+        },
+      },
+      {
+        hostname: "etri-dev0001-jetorn",
+        node_type: "edge_ai_device",
+        node_health: "healthy",
+        collected_at: "2099-01-01T00:00:01Z",
+        raw_metrics: {
+          cpu_utilization: 0.3,
+          memory_usage_ratio: 0.5,
+          gpu_utilization: 0.6,
+        },
+        compute_pressure: "low",
+        memory_pressure: "low",
+        network_pressure: "low",
+      },
+      {
+        hostname: "etri-dev0003-raspi5",
+        node_type: "edge_light_device",
+        node_health: "degraded",
+        collected_at: "2099-01-01T00:00:02Z",
+        raw_metrics: {
+          cpu_utilization: 0.5,
+          memory_usage_ratio: 0.7,
+        },
+        compute_pressure: "medium",
+        memory_pressure: "low",
+        network_pressure: "low",
+      },
+    ],
+  };
+
+  const model = physicalDeviceOverviewModel(data);
+  const markup = renderPhysicalDeviceStatusRows(model.items);
+
+  assert.equal(model.total, 2);
+  assert.equal(model.available, 1);
+  assert.equal(model.averageCpu, 0.4);
+  assert.equal(model.averageMemory, 0.6);
+  assert.equal(model.gpuObserved, 1);
+  assert.equal(model.pressureAttention, 1);
+  assert.match(markup, /etri-dev0001-jetorn/);
+  assert.match(markup, /AI 엣지 노드/);
+  assert.match(markup, /etri-dev0003-raspi5/);
+  assert.match(markup, /경량 엣지 노드/);
+  assert.doesNotMatch(markup, /etri-ser0001/);
+});
+
+test("places server and physical observability before the collapsed service demo", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
 
-  assert.ok(html.indexOf('id="serverOverviewTitle"') < html.indexOf('id="serviceDemoTitle"'));
+  const serverIndex = html.indexOf('id="serverOverviewTitle"');
+  const physicalIndex = html.indexOf('id="physicalDeviceOverviewTitle"');
+  const serviceDemoIndex = html.indexOf('id="serviceDemoTitle"');
+
+  assert.ok(serverIndex < physicalIndex);
+  assert.ok(physicalIndex < serviceDemoIndex);
   assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
   assert.match(html, /id="serverStatusList"/);
+  assert.match(html, /<h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태<\/h2>/);
+  assert.match(html, /id="physicalDeviceStatusList"/);
+  assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
   assert.match(html, /<details class="panel service-demo-panel overview-service-demo/);
   assert.doesNotMatch(
     html,
     /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
   );
-  assert.match(html, /dashboard\.js\?v=server-observability-20260730/);
-  assert.match(html, /operations-dashboard\.css\?v=server-observability-20260730/);
+  assert.match(html, /dashboard\.js\?v=infrastructure-observability-20260730/);
+  assert.match(html, /operations-dashboard\.css\?v=infrastructure-observability-20260730/);
 });

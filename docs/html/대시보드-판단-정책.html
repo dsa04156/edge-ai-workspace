@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-30 19:25</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:25</span>
+            <span class="badge">수정: 2026-07-30 19:45</span>
+            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -206,7 +206,7 @@
 <td>EdgeX Core Metadata Device</td>
 </tr>
 </tbody></table></div>
-<p><code>운영 현황</code>의 서버 상태 패널은 <code>/state/dashboard</code>에 포함된 동일 node snapshot을 사용한다. <code>node_type=cloud_server|server</code>만 집계하고 평균 CPU·메모리, GPU metric이 실제로 존재하는 서버 수, compute/memory/network pressure 주의 서버 수와 서버별 현재 meter를 표시한다. metric이 없으면 0으로 추정하지 않고 <code>N/A</code>로 표시한다. 현재 API에는 대시보드용 시계열 contract가 없으므로 과거 추세 그래프나 Grafana 연동 상태를 만들지 않는다. 고정 서비스 데모는 이 운영 판단보다 아래의 접힌 보조 영역이다.</p>
+<p><code>운영 현황</code>의 서버 상태와 물리 디바이스 상태 패널은 <code>/state/dashboard</code>에 포함된 동일 node snapshot을 사용한다. 서버는 <code>node_type=cloud_server|server</code>, 물리 디바이스는 나머지 Jetson·Raspberry Pi 엣지 노드로 분리한다. 각 패널은 평균 CPU·메모리, GPU metric이 실제로 존재하는 노드 수, compute/memory/network pressure 주의 노드 수와 노드별 현재 meter를 표시한다. metric이 없으면 0으로 추정하지 않고 <code>N/A</code>로 표시한다. 현재 API에는 대시보드용 시계열 contract가 없으므로 과거 추세 그래프나 Grafana 연동 상태를 만들지 않는다. 고정 서비스 데모는 이 운영 판단보다 아래의 접힌 보조 영역이다.</p>
 <p>따라서 화면의 <code>물리 디바이스</code>는 센서 inventory가 아니라 KubeEdge/Kubernetes에서 관측한 현장 엣지 노드를 뜻한다. 센서·PLC endpoint의 권위는 계속 EdgeX이며 <code>센서 디바이스</code> 한 행이 Core Metadata Device 한 개다. 네 분류 모두 대규모 inventory에서 훑기 쉽도록 다음 네 열만 제공한다.</p>
 <ul><li>이름</li><li>상태(<code>Available</code>, <code>Degraded</code>, <code>Unavailable</code>)</li><li>최신 관측 경과 시간. 센서 디바이스는 최신 Core Data Event 경과 시간</li><li><code>상세보기</code></li></ul>
 <p>노드 선택은 목록을 좁히는 필터일 뿐 availability gate가 아니다. Profile, Device Service, protocol, admin/operating state, node diagnostic과 Core Data 저장 이력은 <code>상세보기</code> 패널에서 확인한다. 상태는 색만으로 전달하지 않고 텍스트를 함께 표시한다.</p>

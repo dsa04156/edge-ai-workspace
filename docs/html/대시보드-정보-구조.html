@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-30 19:25</span>
-            <span class="badge">HTML 생성: 2026-07-30 19:25</span>
+            <span class="badge">수정: 2026-07-30 19:45</span>
+            <span class="badge">HTML 생성: 2026-07-30 19:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -175,7 +175,7 @@
 <ol><li>후보 승인은 exact Catalog match와 presence를 재검증한 뒤 외부 인증, 검증 Runtime, Metadata readback과 첫 Event를 순서대로 실행한다. 첫 Event 확인 전에는 등록 완료로 표시하지 않는다.</li><li>노드 현황은 연결 등록, 실제 장비 관측, Device Service 통신과 Core Data 최신성을 네 상태로 분리한다. Git binding이나 발견 후보만으로 물리 장비가 통신 중이라고 추정하지 않는다.</li><li>관리 화면은 노드 선택을 공통 범위로 유지한다. 기본 등록 현황에는 <code>등록 장비</code>, <code>디바이스 프로필</code>, <code>연결 대기</code>, <code>수집 서비스</code>를 순서대로 표시하고, <code>장비 연결</code>과 <code>기존 디바이스 수정</code>만 별도 화면으로 전환한다. 등록 입력은 4단계 중 현재 단계만 표시한다. 1단계에서는 protocol/Device Service를 먼저 고르고 등록된 물리 연결과 Device Service 준비 방식을 뒤에서 선택한다.</li><li>protocol package는 <code>재사용 가능</code>, <code>설치 가능</code>, <code>연결 등록 필요</code>, <code>검증 필요</code>를 구분한다. 검증된 template과 exact binding이 없으면 설치할 수 없고 raw path 직접 입력이나 미검증 Adapter 활성화로 이어지지 않는다.</li><li>Device Profile은 대시보드 BFF에서 목록 조회, mutation 없는 검증, idempotent 생성을</li></ol>
 <p>제공한다. 웹에서 생성한 Profile은 등록 현황에 즉시 표시하고, 전체 Profile은 장비 연결 단계의 선택 목록에 넣는다. 웹 생성 Profile은 읽기 전용 DeviceResource만 허용하며 command, parser, Device Service image와 hardware binding을 함께 만들지 않는다. 후보 capability는 편집 초안일 뿐 value type·units의 자동 추론 근거가 아니다.</p>
 <ol><li>대시보드 전체에 <code>간편 보기</code>와 <code>전체 보기</code>를 따로 두지 않는다. <code>운영 현황</code>에는</li></ol>
-<p><code>엣지 AI 서버</code>, <code>물리 디바이스</code>, <code>가상 디바이스</code>, <code>센서 디바이스</code>의 수와 상태, 현재 서버 자원 관측과 조치 항목을 먼저 표시한다. 서버 관측은 <code>/state/dashboard</code>의 node snapshot에서 평균 CPU·메모리, GPU 관측 대수, pressure 주의 대수와 서버별 현재 meter를 만든다. 누락 metric은 <code>N/A</code>로 표시하고 과거 시계열을 추정하지 않는다. 고정 서비스 데모는 접힌 보조 영역으로 둔다. 플랫폼 기술 지표와 서비스 연결 구조는 필요할 때만 펼친다.</p>
+<p><code>엣지 AI 서버</code>, <code>물리 디바이스</code>, <code>가상 디바이스</code>, <code>센서 디바이스</code>의 수와 상태, 현재 서버·물리 디바이스 자원 관측과 조치 항목을 먼저 표시한다. 두 패널은 <code>/state/dashboard</code>의 node snapshot을 <code>node_type</code>으로 분리해 평균 CPU·메모리, GPU 관측 대수, pressure 주의 대수와 노드별 현재 meter를 만든다. 누락 metric은 <code>N/A</code>로 표시하고 과거 시계열을 추정하지 않는다. 고정 서비스 데모는 접힌 보조 영역으로 둔다. 플랫폼 기술 지표와 서비스 연결 구조는 필요할 때만 펼친다.</p>
 <ol><li><code>디바이스</code> 메뉴는 네 분류 모두 반복 카드가 아니라 이름·상태·최신 관측 또는</li></ol>
 <p>Event·상세보기의 목록을 사용한다. 센서 Profile, Device Service, protocol, 상태 근거와 저장 이력, 노드 자원 관측값과 가상 자원 상태는 선택 행의 상세 패널에서 확인한다.</p>
 <ol><li>375px, 768px, 1024px viewport에서 문서 전체의 가로 overflow와 잘린 텍스트가 없어야</li></ol>
@@ -393,7 +393,7 @@
 <tbody>
 <tr>
 <td>운영 현황</td>
-<td>전체 상태, 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스 수와 가용 상태, Prometheus/Kubernetes 기반 현재 서버 자원 meter와 조치 항목. 고정 서비스 데모는 접힌 보조 영역</td>
+<td>전체 상태, 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스 수와 가용 상태, Prometheus/Kubernetes 기반 현재 서버·물리 디바이스 자원 meter와 조치 항목. 고정 서비스 데모는 접힌 보조 영역</td>
 </tr>
 <tr>
 <td>디바이스 인벤토리</td>

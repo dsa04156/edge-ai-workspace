@@ -166,6 +166,10 @@
   flex-direction: column;
 }
 
+.physical-device-observability-panel {
+  margin: 16px 0 0;
+}
+
 .server-observability-head {
   align-items: center;
 }
