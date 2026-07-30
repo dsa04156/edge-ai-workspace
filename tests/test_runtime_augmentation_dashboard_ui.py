@@ -22,19 +22,18 @@ def test_resource_augmentation_dashboard_surface_is_removed_for_redesign() -> No
     assert 'id="augmentationNodeCanvas"' not in html
 
 
-def test_dashboard_uses_english_assets_label_instead_of_korean_asset_copy() -> None:
+def test_inventory_uses_concise_korean_operator_labels() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert ">Assets<" in html
-    assert "Asset Inventory" in html
-    assert ">Edge Nodes<" in html
-    assert ">Devices<" in html
-    assert "Registered Assets" in html
+    assert ">등록 자산<" in html
+    assert ">등록 디바이스<" in html
+    assert ">엣지 노드<" in html
+    assert ">EdgeX 디바이스<" in html
+    assert "등록 디바이스" in html
     assert 'id="deviceFilterLabel" hidden' in html
-    assert "개 자산" not in js
-    assert "자산 현황" not in html
-    assert "등록 자산" not in html
+    assert "노드 ${nodes.length}개 · 디바이스 ${devices.length}개" in js
+    assert "전체 노드 보기" in html
 
 
 def test_dashboard_physical_device_contract_is_edgex_only() -> None:
@@ -97,22 +96,25 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=context-drawer-20260730" in html
+    assert "/static/dashboard.js?v=inventory-cards-20260730" in html
 
 
-def test_inventory_device_rows_are_not_gray_metadata_chip_lists() -> None:
+def test_inventory_device_rows_use_compact_progressive_disclosure_cards() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=context-drawer-20260730" in html
+    assert "/static/dashboard.js?v=inventory-cards-20260730" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
-    assert "service:" in render_devices
-    assert "profile:" in render_devices
-    assert "protocol:" in render_devices
-    assert "Core Data event:" in render_devices
-    assert "node placement:" in render_devices
+    assert 'class="device-card-facts"' in render_devices
+    assert "<dt>프로토콜</dt>" in render_devices
+    assert "<dt>수집 서비스</dt>" in render_devices
+    assert "<dt>배치 노드</dt>" in render_devices
+    assert "최신 이벤트" in render_devices
+    assert "상세 보기" in render_devices
+    assert 'aria-controls="contextDetailPanel"' in render_devices
+    assert "profile:" not in render_devices
 
 
 def test_workflow_defaults_to_ai_pipeline_stages_without_ai_service_node() -> None:

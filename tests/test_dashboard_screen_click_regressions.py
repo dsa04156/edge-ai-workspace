@@ -75,14 +75,40 @@ def test_dashboard_screen_uses_a_hidden_responsive_context_drawer() -> None:
     assert '<section class="ops-shell">' in html
     assert '<div class="ops-main">' in html
     assert 'id="contextDetailPanel"' in html
+    assert 'id="contextDetailBackdrop"' in html
+    assert 'role="dialog"' in html
+    assert 'aria-modal="true"' in html
     assert 'class="side-rail t-panel-reveal"' in html
     assert 'aria-hidden="true"' in html
     assert 'id="contextDetailClose"' in html
     assert 'id="contextDetailPanel"' in html.split("</main>", 1)[0]
     assert "#contextDetailPanel[hidden]" in css
     assert "position: fixed !important;" in css
-    assert "width: min(440px, 100vw) !important;" in css
-    assert "height: 100dvh !important;" in css
+    assert "width: min(720px, calc(100vw - 32px)) !important;" in css
+    assert "max-height: calc(100dvh - 32px) !important;" in css
     assert "z-index: 100 !important;" in css
+    assert ".context-detail-backdrop" in css
+    assert "body.context-detail-open" in css
     assert "@media (max-width: 760px)" in css
     assert "width: 100vw !important;" in css
+
+
+def test_registered_device_cards_do_not_collapse_or_clip_at_scale() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    css = (
+        ROOT / "edge-orch/state-aggregator/app/static/dashboard-responsive.css"
+    ).read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+
+    assert 'aria-label="등록 EdgeX 디바이스 목록"' in html
+    assert ".assets .asset-split" in css
+    assert "grid-template-columns: minmax(0, 1fr) !important;" in css
+    assert ".assets .asset-scroll" in css
+    assert "max-height: none;" in css
+    assert "#deviceList" in css
+    assert "repeat(auto-fill, minmax(min(100%, 285px), 1fr))" in css
+    assert ".assets .device-row" in css
+    assert "overflow: visible;" in css
+    assert ".device-card-facts" in css
+    assert ".device-card-footer" in css
+    assert 'aria-expanded="${isSelected && isContextDetailPanelOpen()' in js

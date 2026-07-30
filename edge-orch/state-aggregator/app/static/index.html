@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
     <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
-    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=progressive-details-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=inventory-cards-20260730" />
   </head>
   <body>
     <main class="shell">
@@ -237,27 +237,27 @@
         <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">Assets</p>
-              <h2>Asset Inventory</h2>
+              <p class="section-kicker">등록 자산</p>
+              <h2>등록 디바이스</h2>
             </div>
-            <span id="assetCount">0 assets</span>
+            <span id="assetCount">노드 0개 · 디바이스 0개</span>
           </div>
           <div class="split asset-split">
             <div class="asset-column">
               <div class="asset-column-head">
-                <h3>Edge Nodes</h3>
+                <h3>엣지 노드</h3>
               </div>
-              <div id="nodeList" class="stack asset-scroll" aria-label="Edge node cards"></div>
+              <div id="nodeList" class="stack asset-scroll" aria-label="엣지 노드 목록"></div>
             </div>
             <div class="asset-column">
               <div class="asset-column-head">
-                <h3>Devices</h3>
+                <h3>EdgeX 디바이스</h3>
                 <div class="device-filter-bar">
-                  <span id="deviceFilterLabel" hidden>Registered Assets</span>
-                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>Clear Filter</button>
+                  <span id="deviceFilterLabel" hidden>등록 디바이스</span>
+                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>전체 노드 보기</button>
                 </div>
               </div>
-              <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
+              <div id="deviceList" class="stack asset-scroll" aria-label="등록 EdgeX 디바이스 목록"></div>
             </div>
           </div>
         </section>
@@ -1069,11 +1069,22 @@
         <div id="alertList" hidden></div>
       </section>
         </div>
+        <button
+          id="contextDetailBackdrop"
+          class="context-detail-backdrop"
+          type="button"
+          tabindex="-1"
+          aria-label="상세정보 닫기"
+          hidden
+        ></button>
         <aside
           id="contextDetailPanel"
           class="side-rail t-panel-reveal"
+          role="dialog"
+          aria-modal="true"
           aria-label="선택 항목 상세정보"
           aria-hidden="true"
+          tabindex="-1"
           hidden
         >
           <div class="context-drawer-head">
@@ -1122,7 +1133,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=single-dashboard-20260730"></script>
-    <script src="/static/dashboard.js?v=context-drawer-20260730"></script>
+    <script src="/static/dashboard.js?v=inventory-cards-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>

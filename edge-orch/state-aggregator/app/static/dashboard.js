@@ -262,8 +262,8 @@ function renderDeviceFilterSummary(totalCount, visibleCount) {
   const clear = $("clearNodeFilter");
   if (label) {
     const parts = [];
-    if (state.selectedNodeName) parts.push(`node ${state.selectedNodeName}`);
-    label.textContent = parts.length ? `${visibleCount}/${totalCount} - ${parts.join(" / ")}` : "EdgeX Devices";
+    if (state.selectedNodeName) parts.push(`노드 ${state.selectedNodeName}`);
+    label.textContent = parts.length ? `${visibleCount}/${totalCount}개 · ${parts.join(" / ")}` : "등록 디바이스";
   }
   if (clear) clear.hidden = !state.selectedNodeName;
 }
@@ -982,7 +982,12 @@ function render() {
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
   setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
-  setText("assetCount", deviceObservationFailed ? `${nodes.length} node assets · EdgeX 관측 불가` : `${nodes.length + devices.length} assets`);
+  setText(
+    "assetCount",
+    deviceObservationFailed
+      ? `노드 ${nodes.length}개 · 디바이스 관측 불가`
+      : `노드 ${nodes.length}개 · 디바이스 ${devices.length}개`,
+  );
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderKpiCatalog(kpis, deviceObservationFailed);
@@ -1194,21 +1199,53 @@ function renderDevices(devices, data = state.data) {
   renderDeviceFilterSummary(devices.length, visibleDevices.length);
   $("deviceList").innerHTML = visibleDevices.length
     ? visibleDevices
-        .map((device) => `
-          <article class="item device-row explainable ${state.selectedDeviceName === device.name ? "selected" : ""}" data-explain-type="device" data-device-name="${escapeHtml(device.name)}" tabindex="0" role="button" aria-label="${escapeHtml(device.name)} 설명 보기">
-            <div class="item-title">
-              <strong>${escapeHtml(device.name)}</strong>
-              <div class="item-pills">${statusPill(deviceStatus(device))}${renderConnectionBadge(device)}</div>
-            </div>
-            <div class="meta">
-              <span>service: ${escapeHtml(text(device.device_service_name, "unknown"))}</span>
-              <span>profile: ${escapeHtml(text(device.profile_name, "unknown"))}</span>
-              <span>protocol: ${escapeHtml(Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : "unknown")}</span>
-              <span>Core Data event: ${escapeHtml(timestampAge(device.latest_event_timestamp))} · ${escapeHtml(text(device.telemetry_freshness, "no_events"))}</span>
-              <span>node placement: ${escapeHtml(deviceNodeLabel(device))}</span>
-            </div>
-          </article>
-        `)
+        .map((device) => {
+          const isSelected = state.selectedDeviceName === device.name;
+          const protocols = Array.isArray(device.protocol_names)
+            ? device.protocol_names.join(", ")
+            : "unknown";
+          const freshness = text(device.telemetry_freshness, "no_events");
+          const freshnessClass = freshness === "fresh"
+            ? "freshness-fresh"
+            : "freshness-other";
+          return `
+            <article
+              class="item device-row explainable ${isSelected ? "selected" : ""}"
+              data-explain-type="device"
+              data-device-name="${escapeHtml(device.name)}"
+              tabindex="0"
+              role="button"
+              aria-label="${escapeHtml(device.name)} 상세정보 보기"
+              aria-controls="contextDetailPanel"
+              aria-expanded="${isSelected && isContextDetailPanelOpen() ? "true" : "false"}"
+            >
+              <div class="item-title">
+                <strong>${escapeHtml(device.name)}</strong>
+                <div class="item-pills">${statusPill(deviceStatus(device))}${renderConnectionBadge(device)}</div>
+              </div>
+              <dl class="device-card-facts">
+                <div>
+                  <dt>프로토콜</dt>
+                  <dd>${escapeHtml(protocols)}</dd>
+                </div>
+                <div>
+                  <dt>수집 서비스</dt>
+                  <dd>${escapeHtml(text(device.device_service_name, "unknown"))}</dd>
+                </div>
+                <div>
+                  <dt>배치 노드</dt>
+                  <dd>${escapeHtml(deviceNodeLabel(device))}</dd>
+                </div>
+              </dl>
+              <div class="device-card-footer">
+                <span class="device-card-event ${freshnessClass}">
+                  최신 이벤트 ${escapeHtml(timestampAge(device.latest_event_timestamp))}
+                </span>
+                <span class="device-card-action">상세 보기 <span aria-hidden="true">→</span></span>
+              </div>
+            </article>
+          `;
+        })
         .join("")
     : `<div class="empty">${escapeHtml(deviceFilterEmptyText(data))}</div>`;
 }
@@ -1496,21 +1533,45 @@ function applyNodeDeviceFilter(nodeName, nodeIndex = null) {
 
 
 
-function markSelectedExplain(target) {
-  if (typeof document === "undefined" || !target) return;
-  document.querySelectorAll(".explainable.selected").forEach((item) => item.classList.remove("selected"));
+function markSelectedExplain(target, documentRef = document) {
+  if (!documentRef?.querySelectorAll) return;
+  documentRef.querySelectorAll(".explainable").forEach((item) => {
+    item.classList.remove("selected");
+    item.setAttribute("aria-expanded", "false");
+  });
+  if (!target) return;
   target.classList.add("selected");
+  target.setAttribute("aria-expanded", "true");
 }
 
 let contextDetailTrigger = null;
 
+function isContextDetailPanelOpen(documentRef = document) {
+  const panel = documentRef?.getElementById?.("contextDetailPanel");
+  return Boolean(panel && !panel.hidden);
+}
+
+function resolveContextDetailTrigger(documentRef = document) {
+  if (contextDetailTrigger?.isConnected) return contextDetailTrigger;
+  const type = contextDetailTrigger?.dataset?.explainType;
+  const deviceName = contextDetailTrigger?.dataset?.deviceName;
+  return Array.from(documentRef.querySelectorAll?.("[data-explain-type]") || [])
+    .find((item) => (
+      item.dataset.explainType === type
+      && (!deviceName || item.dataset.deviceName === deviceName)
+    )) || null;
+}
+
 function openContextDetailPanel(trigger = null, documentRef = document) {
   const panel = documentRef.getElementById("contextDetailPanel");
+  const backdrop = documentRef.getElementById("contextDetailBackdrop");
   if (!panel) return false;
   contextDetailTrigger = trigger;
   panel.hidden = false;
   panel.setAttribute("aria-hidden", "false");
+  if (backdrop) backdrop.hidden = false;
   documentRef.body?.classList.add("context-detail-open");
+  documentRef.getElementById("contextDetailClose")?.focus?.({preventScroll: true});
   return true;
 }
 
@@ -1518,12 +1579,17 @@ function closeContextDetailPanel(
   {restoreFocus = true, documentRef = document} = {},
 ) {
   const panel = documentRef.getElementById("contextDetailPanel");
+  const backdrop = documentRef.getElementById("contextDetailBackdrop");
   if (!panel || panel.hidden) return false;
+  const restoreTarget = resolveContextDetailTrigger(documentRef);
   panel.hidden = true;
   panel.setAttribute("aria-hidden", "true");
+  if (backdrop) backdrop.hidden = true;
   documentRef.body?.classList.remove("context-detail-open");
-  if (restoreFocus && contextDetailTrigger?.isConnected) {
-    contextDetailTrigger.focus?.({preventScroll: true});
+  if (state.selectedDeviceName) cancelDeviceTelemetryHistorySelection();
+  markSelectedExplain(null, documentRef);
+  if (restoreFocus && restoreTarget?.isConnected) {
+    restoreTarget.focus?.({preventScroll: true});
   }
   contextDetailTrigger = null;
   return true;
@@ -1598,6 +1664,9 @@ if (typeof document !== "undefined") {
     handleExplainSelection(target);
   });
   $("contextDetailClose")?.addEventListener("click", () => {
+    closeContextDetailPanel();
+  });
+  $("contextDetailBackdrop")?.addEventListener("click", () => {
     closeContextDetailPanel();
   });
 }
