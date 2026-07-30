@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-23 19:29</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
@@ -332,7 +332,7 @@
 <ul><li>KubeEdge <code>DeviceStatus</code>와 DeviceStatus freshness</li><li>MapperFramework 또는 mapper readiness</li><li>mapper direct-write latest sample</li><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>, <code>mqttvirtual</code>, legacy mapper heartbeat</li></ul>
 <p>Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.</p>
 <h2 id="direct-전달-상태">direct 전달 상태</h2>
-<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, Serial/I2C Device Service namespace는 <code>edgex-edge</code>다. physical input <code>arduino-001</code>, <code>sensehat-001</code>은 EdgeX inventory에서 기능별 가상 Device 6개씩으로 분리되고 dashboard는 총 12개 행의 상태와 계약된 Reading을 표시한다.</p>
+<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, Serial/I2C Device Service namespace는 <code>edgex-edge</code>다. physical input <code>arduino-001</code>, <code>sensehat-001</code>의 기존 기능별 Device 12개와 승인 Saga의 Arduino aggregate 전환 Device 1개, 총 13개 identity를 API/KPI에서 집계한다. <code>장비 관리</code> 목록은 이 identity를 두 물리 source 카드로 묶고 개별 상태와 Reading은 카드 상세에서 표시한다.</p>
 <p>2026-07-21 Jetson Serial, Raspberry Pi 직접 I2C Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT 기반 Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.</p>
 <p>Serial과 Sense HAT I2C는 정상 경로만 지원 완료로 표시한다. 실제 분리·복구, Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
 <h2 id="workflow-augmentation-경계">Workflow/augmentation 경계</h2>

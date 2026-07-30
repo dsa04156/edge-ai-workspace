@@ -11,6 +11,7 @@ from app.discovery_models import (
     CandidateDecommissionRequest,
     CandidateDecisionUpdate,
     CandidateMutationRef,
+    CandidateRejectRequest,
     CandidateRetryRequest,
     DiscoveryObservation,
     ManualCandidateCreate,
@@ -492,6 +493,16 @@ def decommission() -> CandidateDecommissionRequest:
         ),
     )
 
+def rejection() -> CandidateRejectRequest:
+    return CandidateRejectRequest(
+        actor="operator-1",
+        reason="physical device was intentionally disconnected",
+        request_ref=CandidateMutationRef(
+            request_id="7" * 64,
+            payload_hash="8" * 64,
+        ),
+    )
+
 
 def components(tmp_path, *, auth=None, edge_x=None, runtime=None, timeout=60):
     kube = FakeKubernetesGateway(target_node_ready=True)
@@ -520,6 +531,22 @@ def components(tmp_path, *, auth=None, edge_x=None, runtime=None, timeout=60):
         event_timeout_seconds=timeout,
     )
     return registry, store, coordinator, candidate
+
+
+def test_stale_candidate_can_be_rejected_after_physical_removal(tmp_path):
+    registry, _, coordinator, candidate = components(tmp_path)
+    registry.transition(
+        candidate.candidate_id,
+        "STALE",
+        reason="physical device disappeared",
+        actor="discovery/test",
+    )
+
+    rejected = coordinator.reject(candidate.candidate_id, rejection())
+
+    assert rejected.state == "REJECTED"
+    assert rejected.decision == "ignored"
+    assert rejected.decision_note == "physical device was intentionally disconnected"
 
 
 def test_approval_to_first_event_is_idempotent_end_to_end(tmp_path):

@@ -157,14 +157,14 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-07-24 18:53</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-검증-점검표">대시보드 검증 점검표</h1>
 <h2 id="목적과-현재-경계">목적과 현재 경계</h2>
-<p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI와 별도 <code>Device Management</code> 관리 경계를 확인한다. 2026-07-21 기존 custom Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했고, 현재 관측 검증 목표는 <strong><code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>가 만든 가상 Device 각 6개, 총 12개를 정확히 표시하는 것</strong>이다.</p>
+<p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI와 별도 <code>Device Management</code> 관리 경계를 확인한다. 2026-07-21 기존 custom Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 2026-07-30 현재 관측 검증 목표는 <strong>기존 Serial 6개, Sense HAT I2C 6개와 승인 Saga의 Arduino aggregate 1개, 총 13개 EdgeX Device identity를 정확히 집계하면서 등록 목록에서는 두 물리 source로 묶는 것</strong>이다.</p>
 <p>물리 디바이스 inventory, 관리 상태와 telemetry의 authority는 EdgeX다. KubeEdge는 node/workload 관찰에만 사용한다.</p>
 <h2 id="api-확인">API 확인</h2>
 <p>운영 acceptance는 ClusterIP, Pod IP, <code>port-forward</code> 우회가 아니라 외부 Traefik Ingress의 <code>/aggregator</code> 경로를 사용한다. 현재 테스트베드에서는 다음처럼 LoadBalancer 주소를 읽어서 기준 URL을 만든다.</p>
@@ -178,11 +178,11 @@ curl -fsS &quot;${DASHBOARD_BASE_URL}/state/summary&quot;
 curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapters&quot;
 curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapter-runtimes&quot;</code></pre>
 <p>현재 정상 기준:</p>
-<ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 aggregate <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>virtual-temperature-001</code>, <code>virtual-light-001</code>, <code>virtual-magnetic-001</code>, <code>virtual-acceleration-{x,y,z}-001</code>이 각각 독립 행이다.</li><li><code>env-sensehat-{temperature,humidity,pressure}-01</code>, <code>imu-sensehat-{compass,orientation,gyroscope}-01</code>도 각각 독립 행이다.</li><li>각 Device의 service/profile/protocol이 <code>device-serial-jetson</code>/Serial 또는 <code>device-sensehat-raspi</code>/I2C 계약과 일치한다.</li><li>총 12개 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>이고 계약된 typed latest Reading을 반환한다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li><li>Adapter Runtime inventory에서 기존 Serial/I2C는 <code>owner=external</code>로 관측되고 대시보드의</li></ul>
+<ul><li>source가 EdgeX Core Metadata/Core Data다.</li><li>삭제한 aggregate <code>sensehat-001</code>/<code>edge-telemetry-agent</code>가 live inventory로 남지 않는다.</li><li><code>virtual-temperature-001</code>, <code>virtual-light-001</code>, <code>virtual-magnetic-001</code>, <code>virtual-acceleration-{x,y,z}-001</code>이 각각 독립 행이다.</li><li><code>env-sensehat-{temperature,humidity,pressure}-01</code>, <code>imu-sensehat-{compass,orientation,gyroscope}-01</code>도 각각 독립 행이다.</li><li>각 Device의 service/profile/protocol이 <code>device-serial-jetson</code>/Serial 또는 <code>device-sensehat-raspi</code>/I2C 계약과 일치한다.</li><li>총 13개 Device가 <code>UNLOCKED</code>, <code>UP</code>, <code>connected</code>, <code>available</code>, <code>fresh</code>이고 계약된 typed latest Reading을 반환한다.</li><li><code>arduino-multisensor-v1</code> Profile의 승인 Saga Device는 기존 resource별 6개 Device를 삭제하지 않고 함께 유지된다. 물리 source <code>arduino-001</code>은 대시보드 그룹 key이며 exact Device 이름으로 가정하지 않는다.</li><li>과거 Event가 남아 있어도 Metadata에 없는 device를 <code>available</code>로 부활시키지 않는다.</li><li>node/workload 상태를 physical device availability로 합치지 않는다.</li><li>workflow builder는 browser-local dry-run/preview 경계를 넘지 않는다.</li><li>Adapter Runtime inventory에서 기존 Serial/I2C는 <code>owner=external</code>로 관측되고 대시보드의</li></ul>
 <p>restart/retire action이 비활성화된다.</p>
 <ul><li><code>/state/devices</code>가 EdgeX tag의 <code>physical_device_id</code>와 선택적</li></ul>
 <p><code>hardware_binding_id</code>를 반환한다. 신규 connection은 두 값을 모두 보존한다.</p>
-<ul><li>Modbus/OPC-UA/MQTT/RTSP는 실장비 검증 전 <code>BLOCKED</code>이며 deploy option이 활성화되지 않는다.</li></ul>
+<ul><li>Modbus 개발 simulator Runtime은 퇴역 상태이고 root 운영 render에 없으며, OPC-UA/MQTT/RTSP는 실장비 검증 전 일반 endpoint 배포가 활성화되지 않는다.</li></ul>
 <p>strict API 계약 검증도 같은 Ingress 기준 URL을 사용한다.</p>
 <pre data-lang="bash"><code>python3 tools/check_dashboard_api.py --base-url &quot;${DASHBOARD_BASE_URL}&quot;</code></pre>
 <p>검증기는 현재 EdgeX 단일 권위 계약인 <code>profile_name</code>, <code>device_service_name</code>, <code>protocol_names</code>, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>telemetry_freshness</code>와 available/degraded/unavailable·Core Data KPI를 확인한다. 퇴역한 Mapper/DeviceStatus의 <code>mapper_running</code>, <code>telemetry_enabled</code>, <code>device_status_freshness_ratio</code>는 필수 field나 physical availability 근거로 검사하지 않는다.</p>

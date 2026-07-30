@@ -279,6 +279,121 @@ function devicePurpose(device = {}, runtimes = []) {
   return runtimePurpose(runtime || {});
 }
 
+function managementDevicePhysicalSource(device = {}, {
+  candidates = [],
+  adapters = [],
+} = {}) {
+  const explicit = managementDevicePhysicalId(device);
+  if (explicit) return explicit;
+
+  const candidateId = device.controller_candidate_id
+    || device.controllerCandidateId
+    || "";
+  const candidate = candidates.find(
+    (item) => item.candidateId === candidateId
+      || item.candidate_id === candidateId,
+  );
+  if (!candidate) return "";
+
+  const adapterId = candidate.matchedAdapterId
+    || candidate.matched_adapter_id
+    || "";
+  const bindingId = candidate.matchedHardwareBindingId
+    || candidate.matched_hardware_binding_id
+    || "";
+  const adapter = adapters.find(
+    (item) => item.adapterId === adapterId
+      || item.adapter_id === adapterId,
+  );
+  const binding = (adapter?.runtime?.hardwareBindings || []).find(
+    (item) => item.bindingId === bindingId
+      || item.binding_id === bindingId,
+  );
+  return binding?.protocolProperties?.DeviceID
+    || binding?.protocol_properties?.DeviceID
+    || "";
+}
+
+function buildManagedDeviceGroups({
+  devices = [],
+  candidates = [],
+  adapters = [],
+  runtimes = [],
+} = {}) {
+  const groups = new Map();
+  devices.forEach((device) => {
+    const nodeName = managementDeviceNode(device);
+    const physicalSource = managementDevicePhysicalSource(device, {
+      candidates,
+      adapters,
+    });
+    const purpose = devicePurpose(device, runtimes);
+    const key = [
+      purpose,
+      nodeName,
+      physicalSource || `device:${device.name || "unknown"}`,
+    ].join("|");
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        nodeName,
+        physicalSource: physicalSource || device.name || "물리 소스 미확인",
+        purpose,
+        devices: [],
+      });
+    }
+    groups.get(key).devices.push(device);
+  });
+
+  return [...groups.values()].map((group) => {
+    const serviceNames = [...new Set(
+      group.devices
+        .map((device) => device.device_service_name || device.deviceServiceName)
+        .filter(Boolean),
+    )].sort();
+    const protocolNames = [...new Set(
+      group.devices.flatMap(
+        (device) => device.protocol_names || device.protocolNames || [],
+      ),
+    )].sort();
+    const latestEventTimestamp = group.devices
+      .map((device) => (
+        device.latest_event_timestamp || device.latestEventTimestamp || ""
+      ))
+      .filter(Boolean)
+      .sort()
+      .at(-1) || null;
+    const status = group.devices.every(
+      (device) => (
+        (device.overall_status || device.overallStatus) === "available"
+        && (device.telemetry_freshness || device.telemetryFreshness) === "fresh"
+      ),
+    )
+      ? {state: "healthy", label: "정상"}
+      : group.devices.some(
+        (device) => (
+          (device.overall_status || device.overallStatus) === "unavailable"
+          || (device.connection_state || device.connectionState) === "disconnected"
+        ),
+      )
+        ? {state: "error", label: "연결 확인"}
+        : {state: "warning", label: "상태 확인"};
+    return {
+      ...group,
+      serviceNames,
+      protocolNames,
+      latestEventTimestamp,
+      status,
+      devices: [...group.devices].sort(
+        (left, right) => String(left.name).localeCompare(String(right.name)),
+      ),
+    };
+  }).sort((left, right) => (
+    left.purpose.localeCompare(right.purpose)
+    || left.physicalSource.localeCompare(right.physicalSource)
+  ));
+}
+
 
 function protocolPackageStatus(adapter, nodeName, _runtimes = []) {
   if (!adapter || adapter.status === "unsupported"
@@ -1944,7 +2059,10 @@ function candidateVisibleInDefaultList(candidate = {}, {
   showStale = false,
   showRegistered = false,
 } = {}) {
-  if (!includeIgnored && candidate.state === "REJECTED") return false;
+  if (
+    !includeIgnored
+    && (candidate.state === "REJECTED" || candidate.decision === "ignored")
+  ) return false;
   if (!showRegistered && candidate.state === "EVENT_CONFIRMED") return false;
   if (
     !showStale
@@ -2273,6 +2391,15 @@ function candidateActionItems(candidate = {}) {
       });
     }
     actions.push({label: "후보 거절", action: "ignore"});
+  } else if (
+    candidate.state === "STALE"
+    && candidate.decision !== "ignored"
+  ) {
+    actions.push({
+      label: "이력으로 정리",
+      action: "ignore",
+      title: "분리된 장비 후보를 운영 목록에서 숨기고 감사 이력으로 보존합니다.",
+    });
   }
   if (candidate.source === "manual") {
     actions.push({label: "후보 삭제", action: "delete"});
@@ -2442,15 +2569,21 @@ function renderDiscoveryCandidates(documentRef = document) {
       `마지막 확인 ${formatManagementTimestamp(candidate.lastSeen)}`,
     ].filter(Boolean).forEach((fact) => appendTextElement(facts, "span", "", fact));
 
+    const details = documentRef.createElement("details");
+    details.className = "management-candidate-details";
+    appendTextElement(details, "summary", "", "후보 상세정보");
+    const detailBody = documentRef.createElement("div");
+    detailBody.className = "management-candidate-detail-body";
+    detailBody.appendChild(facts);
     appendTextElement(
-      card,
+      detailBody,
       "p",
       "management-candidate-reason",
       candidate.packageReason || "프로토콜 패키지 상태를 확인할 수 없습니다.",
     );
     if (candidate.failureReason) {
       appendTextElement(
-        card,
+        detailBody,
         "p",
         "management-candidate-warning",
         candidate.failureReason,
@@ -2458,7 +2591,7 @@ function renderDiscoveryCandidates(documentRef = document) {
     }
     if (candidate.evidence?.warning) {
       appendTextElement(
-        card,
+        detailBody,
         "p",
         "management-candidate-warning",
         candidate.evidence.warning,
@@ -2466,12 +2599,13 @@ function renderDiscoveryCandidates(documentRef = document) {
     }
     if (candidate.decisionNote || candidate.note) {
       appendTextElement(
-        card,
+        detailBody,
         "p",
         "management-candidate-decision-note",
         candidate.decisionNote || candidate.note,
       );
     }
+    details.appendChild(detailBody);
 
     const actions = documentRef.createElement("div");
     actions.className = "management-candidate-actions";
@@ -2487,8 +2621,8 @@ function renderDiscoveryCandidates(documentRef = document) {
         },
       );
     });
-    card.prepend(header, badges, facts);
-    card.appendChild(actions);
+    card.prepend(header, badges);
+    card.append(details, actions);
     container.appendChild(card);
   });
 }
@@ -2926,14 +3060,20 @@ function renderManagedDevices(documentRef = document) {
   const devices = managementState.devices.filter(
     (device) => managementDeviceNode(device) === managementState.selectedNodeName,
   );
-  const operationalDevices = devices.filter(
-    (device) => devicePurpose(device, managementState.runtimes) !== "development-fixture",
+  const groups = buildManagedDeviceGroups({
+    devices,
+    candidates: managementState.discovery.candidates,
+    adapters: managementState.adapters,
+    runtimes: managementState.runtimes,
+  });
+  const operationalGroups = groups.filter(
+    (group) => group.purpose !== "development-fixture",
   );
-  const fixtureDevices = devices.filter(
-    (device) => devicePurpose(device, managementState.runtimes) === "development-fixture",
+  const fixtureGroups = groups.filter(
+    (group) => group.purpose === "development-fixture",
   );
-  if (fixtureSection) fixtureSection.hidden = fixtureDevices.length === 0;
-  if (fixtureCount) fixtureCount.textContent = `${fixtureDevices.length}개`;
+  if (fixtureSection) fixtureSection.hidden = fixtureGroups.length === 0;
+  if (fixtureCount) fixtureCount.textContent = `${fixtureGroups.length}개`;
   if (!devices.length) {
     if (container) {
       appendTextElement(
@@ -2945,7 +3085,7 @@ function renderManagedDevices(documentRef = document) {
     }
     return;
   }
-  if (!operationalDevices.length && container) {
+  if (!operationalGroups.length && container) {
     appendTextElement(
       container,
       "p",
@@ -2953,64 +3093,125 @@ function renderManagedDevices(documentRef = document) {
       "선택한 노드에 등록된 실장비 EdgeX 디바이스가 없습니다.",
     );
   }
+
   devices.forEach((device) => {
-    const purpose = devicePurpose(device, managementState.runtimes);
-    const targetContainer = purpose === "development-fixture"
-      ? fixtureContainer
-      : container;
     if (selector) {
       const option = documentRef.createElement("option");
       option.value = device.name;
-      option.textContent = purpose === "development-fixture"
+      option.textContent = devicePurpose(
+        device,
+        managementState.runtimes,
+      ) === "development-fixture"
         ? `검증용 · ${device.name}`
         : device.name;
       option.selected = device.name === managementState.selectedPatchDeviceName;
       selector.appendChild(option);
     }
-    const row = documentRef.createElement("article");
-    row.className = "managed-device-row";
-    row.dataset.purpose = purpose;
+  });
+
+  groups.forEach((group) => {
+    const targetContainer = group.purpose === "development-fixture"
+      ? fixtureContainer
+      : container;
+    const card = documentRef.createElement("article");
+    card.className = "managed-device-group";
+    card.dataset.purpose = group.purpose;
+
+    const header = documentRef.createElement("div");
+    header.className = "managed-device-group-head";
     const identity = documentRef.createElement("div");
-    appendTextElement(identity, "strong", "", device.name || "이름 미확인 디바이스");
-    if (purpose === "development-fixture") {
-      appendTextElement(identity, "small", "management-fixture-label", "개발용 시뮬레이터");
+    appendTextElement(identity, "strong", "", group.physicalSource);
+    if (group.purpose === "development-fixture") {
+      appendTextElement(
+        identity,
+        "small",
+        "management-fixture-label",
+        "개발용 시뮬레이터",
+      );
     }
+    const protocolLabel = group.protocolNames.map(
+      (protocol) => koreanLabel("protocol", protocol, protocol),
+    ).join(", ") || "프로토콜 미확인";
     appendTextElement(
       identity,
       "small",
       "",
-      `${device.profile_name || "프로필 미확인"} · ${device.device_service_name || "서비스 미확인"}`,
+      `${protocolLabel} · ${group.serviceNames.join(", ") || "서비스 미확인"}`,
     );
+    const status = appendTextElement(
+      header,
+      "span",
+      "management-status",
+      group.status.label,
+    );
+    status.dataset.status = group.status.state;
+    header.prepend(identity);
+
     appendTextElement(
-      identity,
-      "small",
-      "",
-      `관리 상태 ${device.admin_state === "LOCKED" ? "잠김" : "잠금 해제"}`
-        + ` · 동작 상태 ${device.operating_state === "UP" ? "정상" : device.operating_state || "미확인"}`
-        + ` · 이벤트 ${{
-          fresh: "최신",
-          stale: "지연",
-          no_events: "없음",
-        }[device.telemetry_freshness] || "미확인"}`,
+      card,
+      "p",
+      "managed-device-group-summary",
+      `EdgeX Device ${group.devices.length}개`
+        + ` · 최근 데이터 ${formatManagementTimestamp(group.latestEventTimestamp)}`,
     );
-    const actions = documentRef.createElement("div");
-    actions.className = "managed-device-actions";
-    const editButton = documentRef.createElement("button");
-    editButton.type = "button";
-    editButton.dataset.managementEditDevice = device.name;
-    editButton.textContent = "수정";
-    const deleteButton = documentRef.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "management-danger-action";
-    deleteButton.dataset.managementDeleteDevice = device.name;
-    deleteButton.textContent = "삭제";
-    deleteButton.disabled = !mutationModeEnabled();
-    deleteButton.title = deleteButton.disabled
-      ? "현재 변경 기능이 비활성화되어 있습니다."
-      : `${device.name} 삭제 확인창을 엽니다.`;
-    actions.append(editButton, deleteButton);
-    row.append(identity, actions);
-    targetContainer?.appendChild(row);
+
+    const details = documentRef.createElement("details");
+    details.className = "managed-device-group-details";
+    const summary = documentRef.createElement("summary");
+    summary.textContent = `EdgeX Device ${group.devices.length}개 보기`;
+    const rows = documentRef.createElement("div");
+    rows.className = "managed-device-group-rows";
+    group.devices.forEach((device) => {
+      const row = documentRef.createElement("article");
+      row.className = "managed-device-row";
+      row.dataset.purpose = group.purpose;
+      const rowIdentity = documentRef.createElement("div");
+      appendTextElement(
+        rowIdentity,
+        "strong",
+        "",
+        device.name || "이름 미확인 디바이스",
+      );
+      appendTextElement(
+        rowIdentity,
+        "small",
+        "",
+        device.profile_name || "프로필 미확인",
+      );
+      appendTextElement(
+        rowIdentity,
+        "small",
+        "",
+        `동작 ${device.operating_state === "UP" ? "정상" : device.operating_state || "미확인"}`
+          + ` · 데이터 ${{
+            fresh: "최신",
+            stale: "지연",
+            no_events: "없음",
+          }[device.telemetry_freshness] || "미확인"}`,
+      );
+      const actions = documentRef.createElement("div");
+      actions.className = "managed-device-actions";
+      const editButton = documentRef.createElement("button");
+      editButton.type = "button";
+      editButton.dataset.managementEditDevice = device.name;
+      editButton.textContent = "수정";
+      const deleteButton = documentRef.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "management-danger-action";
+      deleteButton.dataset.managementDeleteDevice = device.name;
+      deleteButton.textContent = "삭제";
+      deleteButton.disabled = !mutationModeEnabled();
+      deleteButton.title = deleteButton.disabled
+        ? "현재 변경 기능이 비활성화되어 있습니다."
+        : `${device.name} 삭제 확인창을 엽니다.`;
+      actions.append(editButton, deleteButton);
+      row.append(rowIdentity, actions);
+      rows.appendChild(row);
+    });
+    details.append(summary, rows);
+    card.prepend(header);
+    card.appendChild(details);
+    targetContainer?.appendChild(card);
   });
 }
 
@@ -5434,6 +5635,7 @@ if (typeof module !== "undefined") {
     adapterSupportsNode,
     bindingProtocolValue,
     buildDeviceServiceObservations,
+    buildManagedDeviceGroups,
     buildPhysicalConnectionObservations,
     buildManagementNodeScopes,
     candidateActionItems,

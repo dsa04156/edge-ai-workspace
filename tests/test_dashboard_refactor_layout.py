@@ -175,7 +175,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=device-history-20260722" in html
-    assert "/static/dashboard.js?v=simple-dashboard-20260727" in html
+    assert "/static/dashboard.js?v=context-drawer-20260730" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js
@@ -186,9 +186,12 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     assert ".telemetry-history-meta" in css
 
 
-def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_assets() -> None:
+def test_context_drawer_groups_explain_panel_with_collapsed_chat_and_keeps_topology_in_assets() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+    responsive_css = (
+        ROOT / "edge-orch/state-aggregator/app/static/dashboard-responsive.css"
+    ).read_text()
 
     assets_index = html.index('class="panel assets dashboard-page"')
     topology_index = html.index('class="panel topology-panel dashboard-page"')
@@ -199,12 +202,16 @@ def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_asse
     assert assets_index < topology_index < side_rail_index < explain_index < chat_index
     assert html.count('id="explainPanel"') == 1
     assert html.index('id="explainPanel"') > side_rail_index
-    assert 'aria-label="sticky operator assistance"' in html
+    assert 'id="contextDetailPanel"' in html
+    assert 'aria-label="선택 항목 상세정보"' in html
+    assert 'class="context-assistant-details"' in html
     assert "Service Topology" in html
     assert ".operator-context-panel" in css
     assert ".topology-panel" in css
     assert ".topo-service-flow" in css
     assert ".topo-node-lane" in css
+    assert "#contextDetailPanel[hidden]" in responsive_css
+    assert "position: fixed !important;" in responsive_css
 
 
 def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None:

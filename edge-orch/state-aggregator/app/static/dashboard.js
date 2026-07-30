@@ -1502,6 +1502,33 @@ function markSelectedExplain(target) {
   target.classList.add("selected");
 }
 
+let contextDetailTrigger = null;
+
+function openContextDetailPanel(trigger = null, documentRef = document) {
+  const panel = documentRef.getElementById("contextDetailPanel");
+  if (!panel) return false;
+  contextDetailTrigger = trigger;
+  panel.hidden = false;
+  panel.setAttribute("aria-hidden", "false");
+  documentRef.body?.classList.add("context-detail-open");
+  return true;
+}
+
+function closeContextDetailPanel(
+  {restoreFocus = true, documentRef = document} = {},
+) {
+  const panel = documentRef.getElementById("contextDetailPanel");
+  if (!panel || panel.hidden) return false;
+  panel.hidden = true;
+  panel.setAttribute("aria-hidden", "true");
+  documentRef.body?.classList.remove("context-detail-open");
+  if (restoreFocus && contextDetailTrigger?.isConnected) {
+    contextDetailTrigger.focus?.({preventScroll: true});
+  }
+  contextDetailTrigger = null;
+  return true;
+}
+
 function handleNodeFilterSelection(target) {
   const nodeTarget = target.closest?.("[data-node-filter]");
   if (!nodeTarget) return false;
@@ -1547,6 +1574,9 @@ function handleExplainSelection(target) {
     showIssueExplanation(Number(explainTarget.dataset.alertIndex));
     markSelectedExplain(explainTarget);
   }
+  openContextDetailPanel(
+    document.querySelector(".explainable.selected") || explainTarget,
+  );
 }
 
 if (typeof document !== "undefined") {
@@ -1556,12 +1586,19 @@ if (typeof document !== "undefined") {
     handleExplainSelection(event.target);
   });
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && closeContextDetailPanel()) {
+      event.preventDefault();
+      return;
+    }
     if (event.key !== "Enter" && event.key !== " ") return;
     const target = event.target?.closest?.("[data-explain-type], [data-node-filter]");
     if (!target) return;
     event.preventDefault();
     if (handleNodeFilterSelection(target)) return;
     handleExplainSelection(target);
+  });
+  $("contextDetailClose")?.addEventListener("click", () => {
+    closeContextDetailPanel();
   });
 }
 
@@ -1657,6 +1694,8 @@ if (typeof module !== "undefined") {
     fetchDeviceTelemetryHistory,
     handleTelemetryHistoryAction,
     loadDeviceTelemetryHistory,
+    openContextDetailPanel,
+    closeContextDetailPanel,
     renderDeviceTelemetryHistory,
     renderGlobalSearch,
     refreshDashboardNow,

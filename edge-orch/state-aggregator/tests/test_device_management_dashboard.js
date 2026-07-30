@@ -10,6 +10,7 @@ const {
   adapterSupportsNode,
   bindingProtocolValue,
   buildDeviceServiceObservations,
+  buildManagedDeviceGroups,
   buildPhysicalConnectionObservations,
   buildManagementNodeScopes,
   candidateActionItems,
@@ -66,10 +67,6 @@ const {
   validateManagementDevice,
   validateManagementProfile,
 } = require("../app/static/device-management.js");
-const {
-  dashboardViewModeButtonCopy,
-  normalizeDashboardViewMode,
-} = require("../app/static/navigation.js");
 
 
 test("management API keeps the external ingress prefix without hard-coding an IP", () => {
@@ -390,6 +387,16 @@ test("hides completed, stale, and rejected discovery noise until requested", () 
     false,
   );
   assert.equal(
+    candidateVisibleInDefaultList({
+      presence: "stale",
+      state: "STALE",
+      decision: "ignored",
+    }, {
+      showStale: true,
+    }),
+    false,
+  );
+  assert.equal(
     candidateVisibleInDefaultList(
       {presence: "present", state: "REJECTED"},
       {includeIgnored: true},
@@ -455,23 +462,6 @@ test("discovery filter status explains hidden candidates and reset state", () =>
     }).resetDisabled,
     false,
   );
-});
-
-
-test("dashboard view mode defaults to simple and exposes clear toggle copy", () => {
-  assert.equal(normalizeDashboardViewMode(), "simple");
-  assert.equal(normalizeDashboardViewMode("unexpected"), "simple");
-  assert.equal(normalizeDashboardViewMode("detailed"), "detailed");
-  assert.deepEqual(dashboardViewModeButtonCopy("simple"), {
-    label: "전체 보기",
-    ariaLabel: "대시보드 전체 보기로 전환",
-    pressed: false,
-  });
-  assert.deepEqual(dashboardViewModeButtonCopy("detailed"), {
-    label: "간편 보기",
-    ariaLabel: "대시보드 간편 보기로 전환",
-    pressed: true,
-  });
 });
 
 
@@ -707,6 +697,21 @@ test("blocked discovery candidates offer connection setup instead of only reject
       },
       {label: "후보 거절", action: "ignore"},
     ],
+  );
+});
+
+test("disconnected accepted candidates can be moved to audit history", () => {
+  assert.deepEqual(
+    candidateActionItems({
+      state: "STALE",
+      decision: "accepted",
+      source: "node-scan",
+    }),
+    [{
+      label: "이력으로 정리",
+      action: "ignore",
+      title: "분리된 장비 후보를 운영 목록에서 숨기고 감사 이력으로 보존합니다.",
+    }],
   );
 });
 
@@ -1162,6 +1167,69 @@ test("runtime purpose explicitly separates operational hardware from fixtures", 
     ),
     "operational",
   );
+});
+
+test("registered devices are grouped by physical source without hiding EdgeX identities", () => {
+  const candidateId = `candidate-${"a".repeat(64)}`;
+  const groups = buildManagedDeviceGroups({
+    devices: [
+      {
+        name: "virtual-temperature-001",
+        node_name: "edge-a",
+        physical_device_id: "arduino-001",
+        device_service_name: "device-serial",
+        protocol_names: ["serial"],
+        overall_status: "available",
+        telemetry_freshness: "fresh",
+        latest_event_timestamp: "2026-07-30T01:00:00Z",
+      },
+      {
+        name: "arduino-aggregate",
+        node_name: "edge-a",
+        controller_candidate_id: candidateId,
+        device_service_name: "device-serial",
+        protocol_names: ["serial"],
+        overall_status: "available",
+        telemetry_freshness: "fresh",
+        latest_event_timestamp: "2026-07-30T01:00:01Z",
+      },
+      {
+        name: "sensehat-temperature",
+        node_name: "edge-a",
+        physical_device_id: "sensehat-001",
+        device_service_name: "device-sensehat",
+        protocol_names: ["i2c"],
+        overall_status: "available",
+        telemetry_freshness: "fresh",
+      },
+    ],
+    candidates: [{
+      candidateId,
+      matchedAdapterId: "serial",
+      matchedHardwareBindingId: "arduino-binding",
+    }],
+    adapters: [{
+      adapterId: "serial",
+      runtime: {
+        hardwareBindings: [{
+          bindingId: "arduino-binding",
+          protocolProperties: {DeviceID: "arduino-001"},
+        }],
+      },
+    }],
+    runtimes: [],
+  });
+
+  assert.equal(groups.length, 2);
+  const arduino = groups.find(
+    (group) => group.physicalSource === "arduino-001",
+  );
+  assert.deepEqual(
+    arduino.devices.map((device) => device.name),
+    ["arduino-aggregate", "virtual-temperature-001"],
+  );
+  assert.equal(arduino.status.label, "정상");
+  assert.equal(arduino.latestEventTimestamp, "2026-07-30T01:00:01Z");
 });
 
 test("physical connection card condenses healthy and degraded evidence", () => {
@@ -1737,7 +1805,10 @@ test("dashboard ships an accessible token-free device management page", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "app/static/device-management.css"), "utf8");
-  const simpleCss = fs.readFileSync(path.join(root, "app/static/simple-mode.css"), "utf8");
+  const responsiveCss = fs.readFileSync(
+    path.join(root, "app/static/dashboard-responsive.css"),
+    "utf8",
+  );
   const javascript = fs.readFileSync(path.join(root, "app/static/device-management.js"), "utf8");
 
   assert.match(html, /data-dashboard-page="management"/);
@@ -1803,11 +1874,16 @@ test("dashboard ships an accessible token-free device management page", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /id="managementPatchApply"[^>]+disabled/);
-  assert.match(html, /<body data-view-mode="simple">/);
-  assert.match(html, /id="dashboardViewModeToggle"/);
-  assert.match(html, /simple-mode\.css\?v=device-management-unified-v2-20260728/);
-  assert.match(html, /device-management\.css\?v=device-profile-library-v3-20260728/);
-  assert.match(html, /device-management\.js\?v=device-profile-library-v3-20260728/);
+  assert.doesNotMatch(html, /data-view-mode=/);
+  assert.doesNotMatch(html, /dashboardViewModeToggle/);
+  assert.doesNotMatch(html, /simple-mode\.css/);
+  assert.match(html, /dashboard-responsive\.css\?v=progressive-details-20260730/);
+  assert.match(html, /device-management\.css\?v=physical-device-groups-20260730/);
+  assert.match(html, /device-management\.js\?v=physical-device-groups-20260730/);
+  assert.match(html, /class="metric-details"/);
+  assert.match(html, /class="service-demo-details"/);
+  assert.match(html, /id="contextDetailPanel"/);
+  assert.match(html, /id="contextDetailClose"/);
   assert.doesNotMatch(html, /managementAdminToken|managementDiscoveryAdminToken/);
   assert.doesNotMatch(html, /관리자 Bearer 토큰/);
   assert.doesNotMatch(javascript, /Authorization\s*:\s*`Bearer/);
@@ -1860,14 +1936,11 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.match(javascript, /function renderDiscoveryCandidates\(/);
   assert.match(javascript, /등록 물리 연결/);
   assert.doesNotMatch(javascript, /function renderValidation\(/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.dashboard-detail/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.management-node-card-facts/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.management-page-summary/);
-  assert.match(simpleCss, /\.management-action-feedback\[data-kind="navigation"\]/);
-  assert.match(simpleCss, /\.management-connection-legend/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.service-demo-route/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] \.service-demo-value-detail/);
-  assert.match(simpleCss, /body\[data-view-mode="simple"\] #updatedAt/);
-  assert.match(simpleCss, /@media \(max-width: 760px\)/);
-  assert.match(simpleCss, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(javascript, /management-candidate-details/);
+  assert.match(responsiveCss, /\.metric-details-grid/);
+  assert.match(responsiveCss, /#contextDetailPanel\[hidden\]/);
+  assert.match(responsiveCss, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(responsiveCss, /@media \(max-width: 760px\)/);
+  assert.match(responsiveCss, /@media \(max-width: 520px\)/);
+  assert.match(responsiveCss, /@media \(prefers-reduced-motion: reduce\)/);
 });

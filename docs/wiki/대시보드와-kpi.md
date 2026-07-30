@@ -100,7 +100,7 @@ Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. n
 
 ## direct 전달 상태
 
-현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, Serial/I2C Device Service namespace는 `edgex-edge`다. physical input `arduino-001`, `sensehat-001`은 EdgeX inventory에서 기능별 가상 Device 6개씩으로 분리되고 dashboard는 총 12개 행의 상태와 계약된 Reading을 표시한다.
+현재 운영 배포 진입점은 root `edgex/k8s/kustomization.yaml`이다. 중앙 namespace는 `edgex-system`, Serial/I2C Device Service namespace는 `edgex-edge`다. physical input `arduino-001`, `sensehat-001`의 기존 기능별 Device 12개와 승인 Saga의 Arduino aggregate 전환 Device 1개, 총 13개 identity를 API/KPI에서 집계한다. `장비 관리` 목록은 이 identity를 두 물리 source 카드로 묶고 개별 상태와 Reading은 카드 상세에서 표시한다.
 
 2026-07-21 Jetson Serial, Raspberry Pi 직접 I2C Device Service, 중앙 server2 Core/PostgreSQL과 대시보드 조회를 같은 실행에서 확인했다. 과거 MQTT 기반 Sense HAT/HTTPS-outbox 증거는 보관 이력이며 현재 경로의 durable replay 근거가 아니다.
 

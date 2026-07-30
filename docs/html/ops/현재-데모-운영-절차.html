@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-24 18:53</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
@@ -499,9 +499,11 @@ kubectl get --raw \
 kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo&#x27;</code></pre>
 <p>정상 기준:</p>
-<ul><li>Serial 6개와 I2C 6개, 총 12개 가상 Device가 서로 다른 inventory 행으로 나타난다.</li><li>각 행의 <code>device_service_name</code>이 <code>device-serial-jetson</code> 또는 <code>device-sensehat-raspi</code>이고 profile과 resource가 계약과 일치한다.</li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code>다.</li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>이고 latest Reading 집합이 각 Profile 계약과 일치한다.</li><li>service demo 응답은 raw inventory와 분리된 derived 결과이며 physical source, Device Service, acceleration Device 3개, AI consumer와 node binding을 포함한다.</li><li>upstream 장애 시 HTTP 200의 <code>mode=unavailable</code>, <code>status=degraded</code>, <code>observation_error</code>를 반환하고 값을 0으로 꾸며내지 않는다.</li></ul>
+<ul><li>API에는 기존 Serial 6개, I2C 6개와 승인 Saga의 Arduino aggregate 1개, 총 13개</li></ul>
+<p>EdgeX Device identity가 나타난다. 대시보드 <code>장비 관리</code>의 등록 목록은 이를 물리 <code>arduino-001</code>, <code>sensehat-001</code> 카드로 묶고 개별 Device는 카드 상세에서 보여 준다.</p>
+<ul><li>각 행의 <code>device_service_name</code>이 <code>device-serial-jetson</code> 또는 <code>device-sensehat-raspi</code>이고 profile과 resource가 계약과 일치한다.</li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code>다.</li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>이고 latest Reading 집합이 각 Profile 계약과 일치한다.</li><li>service demo 응답은 raw inventory와 분리된 derived 결과이며 physical source, Device Service, acceleration Device 3개, AI consumer와 node binding을 포함한다.</li><li>upstream 장애 시 HTTP 200의 <code>mode=unavailable</code>, <code>status=degraded</code>, <code>observation_error</code>를 반환하고 값을 0으로 꾸며내지 않는다.</li></ul>
 <p>Kubernetes node/workload 상태는 별도 진단이며 위 Device availability를 덮어쓰지 않는다.</p>
-<h2 id="8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</h2>
+<h2 id="8a-edgex-device-저장-이력과-dashboard-그래프">8A. EdgeX Device 저장 이력과 dashboard 그래프</h2>
 <p>dashboard는 PostgreSQL에 직접 연결하지 않는다. 브라우저가 <code>state-aggregator</code>의 선택 Device API를 호출하고, <code>state-aggregator</code>가 중앙 EdgeX Core Data API에서 PostgreSQL-backed Event/Reading을 읽는다.</p>
 <pre data-lang="text"><code>Dashboard
   -&gt; GET /state/devices/{device}/telemetry?window={range}&amp;limit=1000
@@ -644,7 +646,7 @@ curl --fail --silent --show-error \
 <li class="toc-h2"><a href="#7a-raspberry-pi-sense-hat-local-data-api">7A. Raspberry Pi Sense HAT Local Data API</a></li>
 <li class="toc-h2"><a href="#7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</a></li>
 <li class="toc-h2"><a href="#8-dashboard-api">8. dashboard API</a></li>
-<li class="toc-h2"><a href="#8a-12개-device-저장-이력과-dashboard-그래프">8A. 12개 Device 저장 이력과 dashboard 그래프</a></li>
+<li class="toc-h2"><a href="#8a-edgex-device-저장-이력과-dashboard-그래프">8A. EdgeX Device 저장 이력과 dashboard 그래프</a></li>
 <li class="toc-h2"><a href="#8b-dashboard-adapter-runtime과-device-연결-관리">8B. Dashboard Adapter Runtime과 Device 연결 관리</a></li>
 <li class="toc-h2"><a href="#9-저장과-캐시-경계">9. 저장과 캐시 경계</a></li>
 <li class="toc-h2"><a href="#10-장애-복구-검증">10. 장애·복구 검증</a></li>

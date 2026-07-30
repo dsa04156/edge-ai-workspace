@@ -17,10 +17,10 @@
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=device-history-20260722" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=interaction-feedback-20260727" />
     <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
-    <link rel="stylesheet" href="/static/device-management.css?v=device-profile-library-v3-20260728" />
-    <link rel="stylesheet" href="/static/simple-mode.css?v=device-management-unified-v2-20260728" />
+    <link rel="stylesheet" href="/static/device-management.css?v=physical-device-groups-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=progressive-details-20260730" />
   </head>
-  <body data-view-mode="simple">
+  <body>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
@@ -44,15 +44,6 @@
         </div>
         <div class="refresh">
           <span id="updatedAt">-</span>
-          <button
-            id="dashboardViewModeToggle"
-            class="view-mode-toggle"
-            type="button"
-            aria-pressed="false"
-            aria-label="대시보드 전체 보기로 전환"
-          >
-            전체 보기
-          </button>
           <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
         </div>
       </header>
@@ -82,34 +73,40 @@
               <strong id="telemetryFreshnessRatio">0%</strong>
               <span id="telemetryFreshnessCaption">0/0개 최신 Event</span>
             </article>
-            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
-              <span class="metric-label">Service Profiles</span>
-              <strong id="resourceProfileCount">0</strong>
-              <span id="placementFitCaption">0 pods · 0 missing spec</span>
-            </article>
-            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
-              <span class="metric-label">Service Pod CPU</span>
-              <strong id="serviceCpuUsage">0</strong>
-              <span id="serviceCpuUsageCaption">0 core request</span>
-            </article>
-            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
-              <span class="metric-label">Service Pod Memory</span>
-              <strong id="serviceMemoryUsage">0</strong>
-              <span id="serviceMemoryUsageCaption">0 MiB request</span>
-            </article>
-            <article class="metric explainable dashboard-detail" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
-              <span class="metric-label">Pod Usage Coverage</span>
-              <strong id="usageCoverageRatio">0%</strong>
-              <span id="usageCoverageCaption">0/0 containers observed</span>
-            </article>
             <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="수집 서비스 상태 설명 보기">
               <span class="metric-label">수집 서비스</span>
               <strong id="serviceBindingRatio">0%</strong>
               <span id="serviceBindingCaption">0/0개 디바이스 연결</span>
             </article>
+            <details class="metric-details">
+              <summary>기술 운영 지표 4개 보기</summary>
+              <div class="metric-details-grid">
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
+                  <span class="metric-label">Service Profiles</span>
+                  <strong id="resourceProfileCount">0</strong>
+                  <span id="placementFitCaption">0 pods · 0 missing spec</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
+                  <span class="metric-label">Service Pod CPU</span>
+                  <strong id="serviceCpuUsage">0</strong>
+                  <span id="serviceCpuUsageCaption">0 core request</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
+                  <span class="metric-label">Service Pod Memory</span>
+                  <strong id="serviceMemoryUsage">0</strong>
+                  <span id="serviceMemoryUsageCaption">0 MiB request</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
+                  <span class="metric-label">Pod Usage Coverage</span>
+                  <strong id="usageCoverageRatio">0%</strong>
+                  <span id="usageCoverageCaption">0/0 containers observed</span>
+                </article>
+              </div>
+            </details>
           </section>
 
-          <section class="panel overview-visuals dashboard-page active dashboard-detail" data-page="overview" aria-label="observability metrics">
+          <details class="panel overview-visuals dashboard-page active dashboard-disclosure" data-page="overview" aria-label="observability metrics">
+            <summary>상세 상태 지표</summary>
             <div class="panel-head">
               <div>
                 <p class="section-kicker">Observed Metrics</p>
@@ -190,7 +187,7 @@
                 </div>
               </article>
             </div>
-          </section>
+          </details>
 
           <section class="panel service-demo-panel dashboard-page active" data-page="overview" aria-labelledby="serviceDemoTitle">
             <div class="panel-head service-demo-head">
@@ -205,30 +202,34 @@
             </div>
 
             <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
-            <div class="service-demo-route" aria-label="physical source to AI consumer binding">
-              <div>
-                <span>Physical source</span>
-                <strong id="serviceDemoPhysicalSource">관측 대기</strong>
-              </div>
-              <div>
-                <span>EdgeX Device Service</span>
-                <strong id="serviceDemoDeviceService">관측 대기</strong>
-              </div>
-              <div>
-                <span>AI consumer · node</span>
-                <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
-              </div>
-            </div>
-
-            <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
             <dl class="service-demo-values">
               <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
               <div class="service-demo-value-primary"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
               <div class="service-demo-value-primary"><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
-              <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
-              <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
             </dl>
-            <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+            <details class="service-demo-details">
+              <summary>연결·모델 상세정보</summary>
+              <div class="service-demo-route" aria-label="physical source to AI consumer binding">
+                <div>
+                  <span>Physical source</span>
+                  <strong id="serviceDemoPhysicalSource">관측 대기</strong>
+                </div>
+                <div>
+                  <span>EdgeX Device Service</span>
+                  <strong id="serviceDemoDeviceService">관측 대기</strong>
+                </div>
+                <div>
+                  <span>AI consumer · node</span>
+                  <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
+                </div>
+              </div>
+              <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+              <dl class="service-demo-values service-demo-detail-values">
+                <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
+                <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+              </dl>
+              <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+            </details>
             <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
           </section>
 
@@ -446,6 +447,7 @@
                   <div>
                     <span>Core Metadata</span>
                     <strong id="managedDeviceTitle">등록 장비</strong>
+                    <small>물리 장비별로 묶어 표시합니다.</small>
                   </div>
                   <div class="management-buttons">
                     <button type="button" class="management-primary-action" data-management-open-register>장비 연결</button>
@@ -994,7 +996,8 @@
           </div>
         </section>
 
-        <section class="panel scenario dashboard-page active dashboard-detail" data-page="overview">
+        <details class="panel scenario dashboard-page active dashboard-disclosure" data-page="overview">
+          <summary>운영 판단 기준</summary>
           <div class="panel-head">
             <div>
               <p class="section-kicker">Overview</p>
@@ -1016,8 +1019,9 @@
               <strong id="handlingKpi">visible</strong>
             </div>
           </div>
-        </section>
-        <section class="overview-ops-grid dashboard-page active dashboard-detail" data-page="overview" aria-label="collected operations metrics">
+        </details>
+        <details class="overview-ops-grid dashboard-page active dashboard-disclosure" data-page="overview" aria-label="collected operations metrics">
+          <summary>수집 지표 자세히 보기</summary>
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -1061,53 +1065,66 @@
             </div>
             <div id="deviceStatusList" class="device-status-list"></div>
           </section>
-        </section>
+        </details>
         <div id="alertList" hidden></div>
       </section>
         </div>
-        <aside class="side-rail t-panel-reveal" aria-label="sticky operator assistance">
+        <aside
+          id="contextDetailPanel"
+          class="side-rail t-panel-reveal"
+          aria-label="선택 항목 상세정보"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="context-drawer-head">
+            <strong>상세정보</strong>
+            <button id="contextDetailClose" type="button" aria-label="상세정보 닫기">닫기</button>
+          </div>
           <section class="panel explain-panel operator-context-panel" aria-live="polite">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">State Explanation</p>
-                <h2>Context Panel</h2>
+                <p class="section-kicker">상태 설명</p>
+                <h2>선택 항목</h2>
               </div>
-              <span>Operator context</span>
+              <span>판단 근거</span>
             </div>
             <div id="explainPanel" class="explain-content">
-              <div class="empty">Select a Device, KPI, or Service to inspect the status reason.</div>
+              <div class="empty">디바이스, 지표 또는 서비스를 선택하면 판단 근거를 표시합니다.</div>
             </div>
           </section>
-          <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
-            <div class="panel-head">
-              <div>
-                <p class="section-kicker">Read-only Qwen</p>
-                <h2 id="operatorChatTitle">Operator Assistant</h2>
+          <details class="context-assistant-details">
+            <summary>운영 도우미</summary>
+            <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
+              <div class="panel-head">
+                <div>
+                  <p class="section-kicker">읽기 전용 Qwen</p>
+                  <h2 id="operatorChatTitle">운영 도우미</h2>
+                </div>
+                <span>관측 결과 설명 전용</span>
               </div>
-              <span>observed summary only</span>
-            </div>
-            <div class="chat-guardrail">
-              Qwen explains the current dashboard signals only. It does not mutate EdgeX devices, Kubernetes workloads, actuators, or pipeline state.
-            </div>
-            <div id="chatTranscript" class="chat-transcript" aria-live="polite">
-              <div class="chat-empty">Ask about status reasons, inspection order, or KPI meaning.</div>
-            </div>
-            <form id="operatorChatForm" class="chat-form">
-              <label for="operatorChatInput">Operator Question</label>
-              <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="Example: how should I read degraded devices first?"></textarea>
-              <div class="chat-actions">
-                <span id="chatStatus">read-only mode</span>
-                <button id="operatorChatSubmit" type="submit">Ask Qwen</button>
+              <div class="chat-guardrail">
+                현재 대시보드 관측값만 설명하며 EdgeX, Kubernetes, 장비와 파이프라인 상태는 변경하지 않습니다.
               </div>
-            </form>
-          </section>
+              <div id="chatTranscript" class="chat-transcript" aria-live="polite">
+                <div class="chat-empty">상태 원인, 점검 순서 또는 지표 의미를 질문하세요.</div>
+              </div>
+              <form id="operatorChatForm" class="chat-form">
+                <label for="operatorChatInput">질문</label>
+                <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="예: 성능이 저하된 디바이스를 어떤 순서로 확인해야 하나요?"></textarea>
+                <div class="chat-actions">
+                  <span id="chatStatus">읽기 전용</span>
+                  <button id="operatorChatSubmit" type="submit">질문 보내기</button>
+                </div>
+              </form>
+            </section>
+          </details>
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=simple-dashboard-20260727"></script>
-    <script src="/static/dashboard.js?v=simple-dashboard-20260727"></script>
+    <script src="/static/navigation.js?v=single-dashboard-20260730"></script>
+    <script src="/static/dashboard.js?v=context-drawer-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
-    <script src="/static/device-management.js?v=device-profile-library-v3-20260728"></script>
+    <script src="/static/device-management.js?v=physical-device-groups-20260730"></script>
     <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
     <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>

@@ -1,0 +1,348 @@
+.ops-shell {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.ops-main {
+  grid-column: 1 / -1;
+}
+
+.ops-main,
+.layout,
+.dashboard-page,
+.panel,
+.metric,
+.management-page-content,
+.management-view-panel,
+.management-section-head,
+.managed-device-group,
+.management-candidate-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.panel :where(h1, h2, h3, h4, p, span, strong, small, dt, dd),
+.metric :where(span, strong),
+.management-page-content :where(h2, h3, h4, p, span, strong, small, label) {
+  overflow-wrap: anywhere;
+}
+
+.kpi-grid.dashboard-page.active {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-details {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border: 1px solid var(--console-border, var(--line));
+  border-radius: 4px;
+  background: var(--console-panel, rgba(9, 14, 19, 0.66));
+}
+
+.metric-details > summary,
+.dashboard-disclosure > summary,
+.service-demo-details > summary {
+  min-height: 42px;
+  padding: 11px 14px;
+  color: var(--console-muted, var(--muted));
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.metric-details > summary:hover,
+.dashboard-disclosure > summary:hover,
+.service-demo-details > summary:hover {
+  color: var(--console-text, var(--text));
+}
+
+.metric-details > summary:focus-visible,
+.dashboard-disclosure > summary:focus-visible,
+.service-demo-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.metric-details-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.dashboard-disclosure {
+  min-width: 0;
+}
+
+.dashboard-disclosure:not([open]) {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+}
+
+.dashboard-disclosure > summary {
+  border-bottom: 0;
+}
+
+.dashboard-disclosure[open] > summary {
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--console-border, var(--line));
+}
+
+.overview-ops-grid.dashboard-disclosure > summary {
+  grid-column: 1 / -1;
+  border: 1px solid var(--console-border, var(--line));
+  border-radius: 4px;
+  background: var(--console-panel, rgba(9, 14, 19, 0.66));
+}
+
+.service-demo-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--console-border, var(--line));
+}
+
+.service-demo-details > summary {
+  padding-inline: 0;
+}
+
+.service-demo-details[open] > summary {
+  margin-bottom: 12px;
+}
+
+.service-demo-detail-values {
+  margin-top: 10px;
+}
+
+#contextDetailPanel[hidden] {
+  display: none !important;
+}
+
+#contextDetailPanel {
+  position: fixed !important;
+  inset: 0 0 0 auto !important;
+  z-index: 100 !important;
+  grid-column: auto !important;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: start;
+  gap: 12px;
+  width: min(440px, 100vw) !important;
+  min-width: 0 !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding: 12px !important;
+  overflow-y: auto !important;
+  border-left: 1px solid var(--console-border-strong, var(--line));
+  background: var(--console-bg, #08101a);
+  box-shadow: -18px 0 44px rgba(0, 0, 0, 0.42);
+}
+
+.context-drawer-head {
+  position: sticky;
+  top: -12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--console-border, var(--line));
+  background: var(--console-bg, #08101a);
+}
+
+.context-drawer-head strong {
+  overflow-wrap: anywhere;
+}
+
+.context-drawer-head button {
+  flex: 0 0 auto;
+}
+
+.context-assistant-details {
+  min-width: 0;
+  border: 1px solid var(--console-border, var(--line));
+  border-radius: 4px;
+  background: var(--console-panel, #111827);
+}
+
+.context-assistant-details > summary {
+  min-height: 42px;
+  padding: 11px 12px;
+  color: var(--console-muted, var(--muted));
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.context-assistant-details > summary:hover,
+.context-assistant-details > summary:focus-visible {
+  color: var(--console-text, var(--text));
+}
+
+.context-assistant-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.context-assistant-details .operator-chat {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--console-border, var(--line));
+  border-radius: 0;
+}
+
+@media (max-width: 1180px) {
+  .kpi-grid.dashboard-page.active,
+  .metric-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .cluster-context,
+  .global-search {
+    min-width: 0;
+  }
+
+  .refresh {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .panel-head,
+  .service-demo-head,
+  .management-page-head,
+  .management-section-head {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .kpi-grid.dashboard-page.active,
+  .metric-details-grid,
+  .service-demo-values,
+  .service-demo-route,
+  .overview-ops-grid.dashboard-page.active {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .topbar,
+  .ops-shell {
+    padding-inline: 10px;
+  }
+
+  .panel,
+  .device-management-page,
+  .management-page-content,
+  .management-node-scope,
+  .management-device-inventory,
+  .management-profile-library,
+  .management-discovery-shell {
+    max-width: 100%;
+  }
+
+  .management-physical-head,
+  .management-candidate-head,
+  .management-candidate-actions,
+  .service-demo-status {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .management-physical-head-status {
+    justify-content: flex-start;
+  }
+
+  .management-physical-compact-latest {
+    text-align: left;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #contextDetailPanel {
+    width: 100vw !important;
+    border-left: 0;
+  }
+
+  body.context-detail-open {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 520px) {
+  .main-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .main-menu button {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .global-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .global-search > label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .refresh {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .refresh #updatedAt {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .management-page-content {
+    padding: 10px;
+  }
+
+  .management-node-scope,
+  .management-device-inventory,
+  .management-profile-library,
+  .management-discovery-shell {
+    padding: 12px;
+  }
+
+  .management-evidence-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #contextDetailPanel,
+  .metric-details,
+  .dashboard-disclosure,
+  .service-demo-details {
+    scroll-behavior: auto;
+  }
+}

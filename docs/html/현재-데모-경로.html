@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-22 19:03</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
@@ -247,7 +247,7 @@ Sense HAT v1
 </tr>
 <tr>
 <td>Device</td>
-<td>Serial 6개와 Sense HAT environment/IMU 6개의 가상 identity와 물리 source binding</td>
+<td>기존 Serial 6개, Sense HAT environment/IMU 6개와 승인 Saga의 Arduino aggregate 1개 identity 및 물리 source binding</td>
 </tr>
 <tr>
 <td>Core Metadata</td>
@@ -259,7 +259,7 @@ Sense HAT v1
 </tr>
 <tr>
 <td>Core Command</td>
-<td>총 12개 가상 Device의 read-only GET을 담당 Device Service로 전달</td>
+<td>등록 Device의 read-only GET을 담당 Device Service로 전달</td>
 </tr>
 <tr>
 <td>KubeEdge</td>
@@ -323,7 +323,7 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 </tr>
 <tr>
 <td>Device Profile/Device 등록</td>
-<td>Serial 6개 + I2C 6개, 총 12개 Device가 live Metadata에서 <code>UNLOCKED</code>, <code>UP</code></td>
+<td>기존 Serial 6개 + I2C 6개 + Arduino aggregate 전환 Device 1개, 총 13개가 live Metadata에서 <code>UNLOCKED</code>, <code>UP</code></td>
 </tr>
 <tr>
 <td>Core Data 실제 sensor Event/Reading</td>
@@ -331,11 +331,11 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 </tr>
 <tr>
 <td>dashboard device freshness</td>
-<td>총 12개 모두 <code>available</code>, <code>connected</code>, <code>fresh</code> PASS</td>
+<td>총 13개 identity 모두 <code>available</code>, <code>connected</code>, <code>fresh</code> PASS; 관리 목록은 두 물리 source로 그룹화</td>
 </tr>
 <tr>
 <td>read-only command</td>
-<td>Device별 command 총 12개 GET live PASS</td>
+<td>기존 resource별 12개 Device command GET live PASS</td>
 </tr>
 <tr>
 <td>local cache/API</td>

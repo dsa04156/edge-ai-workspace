@@ -201,6 +201,7 @@ class RegistrationCoordinator:
             "PENDING_APPROVAL",
             "BLOCKED",
             "FAILED",
+            "STALE",
         }:
             view = self.registry.transition(
                 candidate_id,

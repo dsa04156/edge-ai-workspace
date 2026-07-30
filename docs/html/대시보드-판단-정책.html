@@ -157,8 +157,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-24 18:52</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
@@ -186,7 +186,7 @@
 <p>물리 연결 카드는 다음 상태를 합치지 않는다.</p>
 <ul><li><code>연결 등록</code>: Git Adapter Catalog allowlist에 있는가.</li><li><code>장비 관측</code>: 연결된 EdgeX Device가 <code>UP</code>이거나 fresh Event를 발행했는가.</li><li><code>통신 상태</code>: <code>adminState</code>/<code>operatingState</code>를 connected/disconnected/unknown으로 해석한 값.</li><li><code>데이터 상태</code>: Core Data latest Event가 fresh/stale/missing/unknown인지.</li></ul>
 <p>따라서 연결이 등록돼도 Device/Event 근거가 없으면 <code>장비 관측됨</code>으로 표시하지 않는다. 모든 연결 Device가 <code>DOWN</code> 또는 <code>LOCKED</code>면 <code>장비 미관측</code>, 근거가 불완전하면 <code>관측 근거 없음</code>이다. 발견 후보나 Kubernetes Node Ready를 이 physical presence·통신 판정으로 대신하지 않는다. 신규 연결은 <code>hardwareBindingId</code>를 EdgeX Device system tag로 보존하며 <code>physicalDeviceId</code>와 <code>nodeName</code>도 사용자 PATCH에서 바꾸지 않는다.</p>
-<p><code>장비 발견</code> 탭은 위 네 상태 앞의 onboarding staging이다.</p>
+<p><code>장비 관리</code>의 <code>연결 대기</code> 영역은 위 네 상태 앞의 onboarding staging이다.</p>
 <ul><li><code>present</code>: Plan 기반 Agent의 최근 clean report에서 USB Serial stable identity 또는 허용된 I2C chip identity를 다시 확인함</li><li><code>stale</code>: 후보나 node report가 설정된 기준 시간을 넘김</li><li><code>declared</code>: 운영자가 network/local endpoint 후보를 직접 선언함</li><li><code>DETECTED</code>·<code>IDENTIFIED</code>·<code>PENDING_APPROVAL</code>·<code>APPROVED</code>·<code>SERVICE_READY</code>·<code>METADATA_REGISTERED</code>·<code>EVENT_CONFIRMED</code>: 정상 상태 머신</li><li><code>BLOCKED</code>·<code>REJECTED</code>·<code>STALE</code>·<code>FAILED</code>: 차단·거절·분리·실패 상태</li><li><code>pending</code>·<code>accepted</code>·<code>ignored</code>: 기존 Dashboard BFF 하위 호환 decision 표현. <code>accepted</code>는 더 이상 단순 표시가 아니라 승인 또는 <code>FAILED</code> retry를 요청한다.</li><li><code>registration-ready</code>: exact node/protocol/path가 Git hardware binding과 일치하고 package가</li></ul>
 <p>검증되어 기존 등록 마법사로 넘길 수 있음</p>
 <ul><li><code>binding-required</code>·<code>verification-required</code>·<code>unsupported</code>: Git 변경이나 실장비 검증 전에는</li></ul>
@@ -239,7 +239,7 @@
   &quot;reason&quot;: &quot;EdgeX device service is UP and latest Core Data event is fresh&quot;
 }</code></pre>
 <h2 id="전달-범위-해석">전달 범위 해석</h2>
-<p>2026-07-21 기존 Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. dashboard/aggregator는 중앙 Metadata와 Core Data를 authority로 유지하고 Serial 6개와 직접 I2C 6개, 총 12개 가상 Device를 독립 inventory와 최신 Reading으로 표시한다. 각 행의 freshness는 해당 Device latest Event <code>origin</code>으로 계산한다.</p>
+<p>2026-07-21 기존 Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 2026-07-30 dashboard/aggregator는 중앙 Metadata와 Core Data를 authority로 유지하고 기존 Serial 6개, 직접 I2C 6개와 승인 Saga의 Arduino aggregate 1개, 총 13개 EdgeX identity를 집계한다. <code>디바이스 관리</code>의 기본 등록 목록은 이를 <code>arduino-001</code>, <code>sensehat-001</code> 물리 source 카드로 묶고 개별 identity는 카드 상세에서 표시한다. 각 Device freshness는 해당 latest Event <code>origin</code>으로 계산한다.</p>
 <p>Modbus, OPC-UA와 다른 I2C 장비·주소는 각각 독립 adapter wave다. RTSP는 frame을 Workflow Pod가 직접 구독하는 별도 media wave다. 해당 adapter/profile, 실제 장비 연결, typed telemetry, dashboard consumer와 실제 배포를 검증하기 전에는 지원 완료 protocol로 표시하지 않는다. 현재 Serial/Sense HAT I2C 정상 경로의 성공을 다른 protocol이나 장애복구 완료 근거로 사용하지 않는다.</p>
         </div>
       </article>

@@ -157,15 +157,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 원시-텔레메트리-데이터-플레인.md</span>
-            <span class="badge">수정: 2026-07-22 14:42</span>
-            <span class="badge">HTML 생성: 2026-07-28 20:30</span>
+            <span class="badge">수정: 2026-07-30 14:07</span>
+            <span class="badge">HTML 생성: 2026-07-30 14:10</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="edgex-device-service-기반-원시-텔레메트리-데이터-플레인">EdgeX Device Service 기반 원시 텔레메트리 데이터 플레인</h1>
 <h2 id="문서-상태">문서 상태</h2>
 <p>이 문서는 2026-07-22 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → <code>edge-telemetry-agent</code> → SQLite outbox → HTTPS gateway 경로는 운영 배포에서 제거되었으며 설계·검증 이력으로만 남는다.</p>
-<p>현재 중앙 EdgeX Core는 유지된다. Jetson의 <code>device-serial-jetson</code>은 실제 Arduino endpoint를 공유 reader 하나로 수집하고, Raspberry Pi의 <code>device-sensehat-raspi</code>는 Sense HAT v1 <code>/dev/i2c-1</code>을 직접 수집한다. 각 resource route가 6개 가상 Device identity를 만들어 총 12개 Device가 중앙 저장, read-only 조회와 dashboard freshness의 결합 key가 된다.</p>
+<p>현재 중앙 EdgeX Core는 유지된다. Jetson의 <code>device-serial-jetson</code>은 실제 Arduino endpoint를 공유 reader 하나로 수집하고, Raspberry Pi의 <code>device-sensehat-raspi</code>는 Sense HAT v1 <code>/dev/i2c-1</code>을 직접 수집한다. 각 기존 resource route가 6개씩의 가상 Device identity를 만들고, 승인 Saga의 Arduino aggregate 전환 Device 1개도 Core Metadata에 유지되어 2026-07-30 live inventory는 총 13개다. 중앙 저장·read-only 조회·freshness는 계속 각 EdgeX Device identity를 key로 사용하고, 대시보드 관리 목록에서만 physical source로 그룹화한다.</p>
 <h2 id="목표-권위-경로">목표 권위 경로</h2>
 <pre data-lang="text"><code>물리 센서 / PLC / 장비
   -&gt; 프로토콜별 EdgeX Device Service

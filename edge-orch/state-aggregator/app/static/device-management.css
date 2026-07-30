@@ -27,6 +27,7 @@ body[data-dashboard-page="management"] .side-rail {
 .management-runtime-facts,
 .management-apply-row,
 .management-buttons,
+.managed-device-group-head,
 .managed-device-row,
 .management-step-actions {
   display: flex;
@@ -113,6 +114,7 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-section-head > div,
+.managed-device-group-head > div,
 .managed-device-row > div {
   display: grid;
   gap: 4px;
@@ -129,6 +131,7 @@ body[data-dashboard-page="management"] .side-rail {
 }
 
 .management-section-head small,
+.managed-device-group-head small,
 .managed-device-row small {
   color: var(--muted);
   overflow-wrap: anywhere;
@@ -743,13 +746,95 @@ body[data-dashboard-page="management"] .side-rail {
   margin-top: 14px;
 }
 
-.managed-device-row {
-  align-items: flex-start;
+.managed-device-group {
   min-width: 0;
-  padding: 13px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.managed-device-group[data-purpose="development-fixture"] {
+  border-left: 3px solid #f0b35b;
+  background: rgba(240, 179, 91, 0.035);
+}
+
+.managed-device-group-head {
+  align-items: flex-start;
+}
+
+.managed-device-group-head strong,
+.managed-device-group-head small {
+  overflow-wrap: anywhere;
+}
+
+.managed-device-group-head .management-status {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.managed-device-group-head .management-status[data-status="healthy"] {
+  border-color: rgba(91, 207, 155, 0.45);
+  background: rgba(91, 207, 155, 0.08);
+  color: #73ddb0;
+}
+
+.managed-device-group-head .management-status[data-status="warning"] {
+  border-color: rgba(240, 179, 91, 0.45);
+  background: rgba(240, 179, 91, 0.08);
+  color: #f4c982;
+}
+
+.managed-device-group-head .management-status[data-status="error"] {
+  border-color: rgba(240, 109, 109, 0.48);
+  background: rgba(240, 109, 109, 0.08);
+  color: #ff9696;
+}
+
+.managed-device-group-summary {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.managed-device-group-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.managed-device-group-details > summary {
+  padding: 11px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.managed-device-group-details > summary:hover {
+  color: var(--accent);
+}
+
+.managed-device-group-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.managed-device-group-rows {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.managed-device-row {
+  align-items: flex-start;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .managed-device-row[data-purpose="development-fixture"] {
@@ -1474,6 +1559,38 @@ body[data-dashboard-page="management"] .side-rail {
   color: #f4c982;
 }
 
+.management-candidate-details {
+  min-width: 0;
+  border-top: 1px solid var(--line);
+}
+
+.management-candidate-details > summary {
+  width: max-content;
+  max-width: 100%;
+  padding-top: 9px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.management-candidate-details > summary:hover,
+.management-candidate-details > summary:focus-visible {
+  color: var(--text);
+}
+
+.management-candidate-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.management-candidate-detail-body {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding-top: 10px;
+}
+
 .management-candidate-reason,
 .management-candidate-warning,
 .management-candidate-decision-note {
@@ -1707,6 +1824,7 @@ body[data-dashboard-page="management"] .side-rail {
   .management-head-actions,
   .management-section-head,
   .management-apply-row,
+  .managed-device-group-head,
   .managed-device-row,
   .management-flow-head,
   .management-discovery-head,

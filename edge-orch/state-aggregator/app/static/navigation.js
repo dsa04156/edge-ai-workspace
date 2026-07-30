@@ -1,62 +1,4 @@
 const DASHBOARD_PAGES = ["overview", "inventory", "workflow", "management"];
-const DASHBOARD_VIEW_MODE_KEY = "edge-ai-dashboard-view-mode";
-
-function normalizeDashboardViewMode(mode) {
-  return mode === "detailed" ? "detailed" : "simple";
-}
-
-function dashboardViewModeButtonCopy(mode) {
-  const detailed = normalizeDashboardViewMode(mode) === "detailed";
-  return {
-    label: detailed ? "간편 보기" : "전체 보기",
-    ariaLabel: detailed
-      ? "대시보드 간편 보기로 전환"
-      : "대시보드 전체 보기로 전환",
-    pressed: detailed,
-  };
-}
-
-function storedDashboardViewMode() {
-  try {
-    return normalizeDashboardViewMode(globalThis.localStorage?.getItem(
-      DASHBOARD_VIEW_MODE_KEY,
-    ));
-  } catch (_error) {
-    return "simple";
-  }
-}
-
-function setDashboardViewMode(mode, {persist = true} = {}) {
-  const nextMode = normalizeDashboardViewMode(mode);
-  document.body.dataset.viewMode = nextMode;
-  const button = document.getElementById("dashboardViewModeToggle");
-  const copy = dashboardViewModeButtonCopy(nextMode);
-  if (button) {
-    button.textContent = copy.label;
-    button.setAttribute("aria-label", copy.ariaLabel);
-    button.setAttribute("aria-pressed", String(copy.pressed));
-    button.title = copy.ariaLabel;
-  }
-  if (persist) {
-    try {
-      globalThis.localStorage?.setItem(DASHBOARD_VIEW_MODE_KEY, nextMode);
-    } catch (_error) {
-      // Storage can be disabled without blocking dashboard use.
-    }
-  }
-  return nextMode;
-}
-
-function bindDashboardViewMode() {
-  setDashboardViewMode(storedDashboardViewMode(), {persist: false});
-  document.getElementById("dashboardViewModeToggle")?.addEventListener(
-    "click",
-    () => {
-      const current = normalizeDashboardViewMode(document.body.dataset.viewMode);
-      setDashboardViewMode(current === "simple" ? "detailed" : "simple");
-    },
-  );
-}
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -92,13 +34,5 @@ function bindDashboardNavigation() {
 }
 
 if (typeof document !== "undefined") {
-  bindDashboardViewMode();
   bindDashboardNavigation();
-}
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    dashboardViewModeButtonCopy,
-    normalizeDashboardViewMode,
-  };
 }
