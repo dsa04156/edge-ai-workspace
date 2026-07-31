@@ -34,6 +34,10 @@ dry-run 실행 계획만 제공한다. 캔버스에는 pan·zoom·fit view·미�
 localStorage 밖으로 초안을 저장하지 않고 Kubernetes, EdgeX, command와 workload를
 변경하지 않는다. 고정 `sensor-anomaly-demo`는 같은 edge node에서 Device Service Local
 Data API를 직접 읽으며 state-aggregator가 데이터 프록시 역할을 하지 않는다.
+`예시 불러오기`는 이 고정 데모의 가속도 X/Y/Z → 벡터 크기 → 온라인 이상 점수 →
+대시보드 계약을 캔버스에 만들고, 현재 세 축 EdgeX Device가 같은 Jetson에 있으면
+읽기 전용 입력과 처리 노드를 자동 바인딩한다. 이는 새 workload를 배포하거나
+고정 데모를 실행하는 동작이 아니다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,

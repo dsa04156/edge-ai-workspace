@@ -239,6 +239,65 @@
     };
   }
 
+  function createSensorAnomalyExampleDesign() {
+    const sensorX = makeNode("sensor", "sensor-x", 32, 32);
+    const sensorY = makeNode("sensor", "sensor-y", 32, 244);
+    const sensorZ = makeNode("sensor", "sensor-z", 32, 456);
+    const vector = makeNode("preprocess", "vector-magnitude", 332, 244);
+    const inference = makeNode("inference", "anomaly-inference", 624, 244);
+    const output = makeNode("output", "dashboard-output", 900, 244);
+    return {
+      version: DESIGN_VERSION,
+      id: "sensor-anomaly-demo-example",
+      name: "설비 진동 이상 감지",
+      description: "실측 가속도 X/Y/Z를 결합해 이상 점수를 계산하는 설계 예시",
+      nodes: [
+        {
+          ...sensorX,
+          title: "가속도 X",
+          config: {...sensorX.config, sourceMode: "local_recent"},
+        },
+        {
+          ...sensorY,
+          title: "가속도 Y",
+          config: {...sensorY.config, sourceMode: "local_recent"},
+        },
+        {
+          ...sensorZ,
+          title: "가속도 Z",
+          config: {...sensorZ.config, sourceMode: "local_recent"},
+        },
+        {
+          ...vector,
+          title: "3축 벡터 크기",
+          config: {...vector.config, operation: "vector_magnitude"},
+        },
+        {
+          ...inference,
+          title: "온라인 이상 점수",
+          config: {
+            ...inference.config,
+            algorithm: "online-gaussian-baseline-v1",
+            threshold: 4,
+          },
+        },
+        {
+          ...output,
+          title: "대시보드 결과",
+          config: {...output.config, destination: "dashboard"},
+        },
+      ],
+      edges: [
+        {id: "edge-x-vector", from: "sensor-x", to: "vector-magnitude"},
+        {id: "edge-y-vector", from: "sensor-y", to: "vector-magnitude"},
+        {id: "edge-z-vector", from: "sensor-z", to: "vector-magnitude"},
+        {id: "edge-vector-inference", from: "vector-magnitude", to: "anomaly-inference"},
+        {id: "edge-inference-output", from: "anomaly-inference", to: "dashboard-output"},
+      ],
+      updatedAt: null,
+    };
+  }
+
   function normalizeNode(rawNode, index) {
     const type = String(rawNode?.type || "");
     const definition = nodeDefinition(type);
@@ -766,6 +825,7 @@
     compatibleTypes,
     connectNodes,
     createDefaultDesign,
+    createSensorAnomalyExampleDesign,
     nodeDefinition,
     nodeInputType,
     nodeOutputType,

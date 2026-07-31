@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-설계-캔버스.md</span>
-            <span class="badge">수정: 2026-07-31 16:38</span>
-            <span class="badge">HTML 생성: 2026-07-31 16:40</span>
+            <span class="badge">수정: 2026-07-31 17:00</span>
+            <span class="badge">HTML 생성: 2026-07-31 17:00</span>
           </div>
         </header>
         <div class="doc-body">
@@ -167,6 +167,11 @@
 <h2 id="목적">목적</h2>
 <p><code>state-aggregator</code> 대시보드의 <code>서비스 설계</code>는 현재 EdgeX 센서 입력을 전처리·추론·결과 단계에 연결하고 실행 전에 계약을 확인하는 브라우저 기반 설계 프로토타입이다.</p>
 <p>이 화면은 Kubernetes workload를 만들거나 EdgeX Metadata를 변경하는 실행 도구가 아니다. 현재 서비스 데모인 <code>sensor-anomaly-demo</code>를 동적 workflow로 대체하지도 않는다.</p>
+<p>상단 <code>예시 불러오기</code>는 현재 고정 배포된 <code>sensor-anomaly-demo</code>의 입력·처리 계약을 캔버스에서 검토할 수 있게 불러온다.</p>
+<pre data-lang="text"><code>가속도 X ─┐
+가속도 Y ─┼─&gt; 3축 벡터 크기 -&gt; 온라인 이상 점수 -&gt; 대시보드 결과
+가속도 Z ─┘</code></pre>
+<p>현재 EdgeX inventory에 <code>virtual-acceleration-x/y/z-001</code>과 각 numeric resource가 있고 세 Device가 같은 물리 노드에 연결되어 있으면 세 입력과 처리 노드를 해당 Jetson에 자동 바인딩한다. 한 축이라도 없으면 빈 입력을 꾸며내지 않고 설계 검증 오류로 남긴다. 이는 실제 Deployment를 새로 만들거나 기존 데모를 실행하는 버튼이 아니다.</p>
 <h2 id="현재-데이터-경계">현재 데이터 경계</h2>
 <pre data-lang="text"><code>EdgeX Core Metadata
   ├─ Device --------------------------┐

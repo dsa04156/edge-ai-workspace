@@ -11,6 +11,7 @@ const {
   canonicalDataType,
   connectNodes,
   createDefaultDesign,
+  createSensorAnomalyExampleDesign,
   removeNode,
   resourcesForDevice,
   updateNode,
@@ -19,6 +20,8 @@ const {
 } = require("../app/static/service-designer-model.js");
 const {
   STORAGE_KEY,
+  accelerationAxisBindingCandidates,
+  bindSensorAnomalyExample,
   fetchDesignerProfiles,
   loadStoredDesign,
   saveStoredDesign,
@@ -99,6 +102,32 @@ function boundDesign({sourceMode = "local_recent"} = {}) {
     },
   });
   return design;
+}
+
+function accelerationInventory() {
+  const axes = ["x", "y", "z"];
+  return {
+    devices: axes.map((axis) => ({
+      name: `virtual-acceleration-${axis}-001`,
+      profile_name: `etri-arduino-acceleration-${axis}`,
+      node_name: "etri-dev0001-jetorn",
+      overall_status: "available",
+      telemetry_freshness: "fresh",
+      latest_readings: [],
+    })),
+    profiles: axes.map((axis) => ({
+      name: `etri-arduino-acceleration-${axis}`,
+      resources: [{
+        name: `acceleration_${axis}_raw`,
+        value_type: "Int32",
+        units: "raw",
+      }],
+    })),
+    nodes: [
+      {hostname: "etri-dev0001-jetorn"},
+      {hostname: "etri-ser0002-cgnmsb", node_type: "server"},
+    ],
+  };
 }
 
 test("uses EdgeX Device Profile resources even before a latest Event exists", () => {
@@ -234,6 +263,81 @@ test("selects a live numeric EdgeX resource instead of a hard-coded source", () 
 
   assert.equal(candidate.device.name, "virtual-temperature-001");
   assert.equal(candidate.resource.name, "Temperature");
+});
+
+test("builds the real three-axis anomaly demo as a six-stage example", () => {
+  const design = createSensorAnomalyExampleDesign();
+
+  assert.equal(design.name, "설비 진동 이상 감지");
+  assert.deepEqual(
+    design.nodes.map((node) => node.type),
+    ["sensor", "sensor", "sensor", "preprocess", "inference", "output"],
+  );
+  assert.equal(design.edges.length, 5);
+  assert.equal(
+    design.nodes.find((node) => node.id === "vector-magnitude").config.operation,
+    "vector_magnitude",
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "anomaly-inference").config.algorithm,
+    "online-gaussian-baseline-v1",
+  );
+});
+
+test("binds the anomaly example to all three live Jetson acceleration sources", () => {
+  const current = accelerationInventory();
+  const candidates = accelerationAxisBindingCandidates(current);
+  const bound = bindSensorAnomalyExample(
+    createSensorAnomalyExampleDesign(),
+    current,
+  );
+
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(candidates).map(([axis, candidate]) => [
+      axis,
+      `${candidate.device.name}/${candidate.resource.name}`,
+    ])),
+    {
+      x: "virtual-acceleration-x-001/acceleration_x_raw",
+      y: "virtual-acceleration-y-001/acceleration_y_raw",
+      z: "virtual-acceleration-z-001/acceleration_z_raw",
+    },
+  );
+  assert.deepEqual(bound.boundAxes, ["x", "y", "z"]);
+  assert.equal(bound.sourceNode, "etri-dev0001-jetorn");
+  assert.equal(
+    bound.design.nodes.find((node) => node.id === "vector-magnitude")
+      .config.targetNode,
+    "etri-dev0001-jetorn",
+  );
+  assert.equal(
+    bound.design.nodes.find((node) => node.id === "anomaly-inference")
+      .config.targetNode,
+    "etri-dev0001-jetorn",
+  );
+  assert.equal(validateDesign(bound.design, current).valid, true);
+});
+
+test("does not invent a missing acceleration axis", () => {
+  const current = accelerationInventory();
+  current.devices = current.devices.filter(
+    (device) => device.name !== "virtual-acceleration-z-001",
+  );
+  current.profiles = current.profiles.filter(
+    (profile) => profile.name !== "etri-arduino-acceleration-z",
+  );
+  const bound = bindSensorAnomalyExample(
+    createSensorAnomalyExampleDesign(),
+    current,
+  );
+
+  assert.deepEqual(bound.boundAxes, ["x", "y"]);
+  assert.equal(bound.sourceNode, "");
+  assert.equal(
+    bound.design.nodes.find((node) => node.id === "sensor-z").config.deviceName,
+    "",
+  );
+  assert.equal(validateDesign(bound.design, current).valid, false);
 });
 
 test("loads and saves only the versioned browser-local draft", () => {
@@ -431,6 +535,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
   assert.match(html, /서비스 카탈로그/);
+  assert.match(html, /id="serviceDesignerReset"[\s\S]*?>예시 불러오기</);
   assert.match(html, /id="serviceDesignerCatalogState"/);
   assert.match(html, /빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);

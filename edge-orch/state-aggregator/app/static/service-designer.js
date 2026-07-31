@@ -5,7 +5,9 @@
   const DRAG_ACTIVATION_PX = 3;
   const DRAG_CLICK_SUPPRESSION_MS = 600;
   const state = {
-    design: model ? model.createDefaultDesign() : null,
+    design: model
+      ? model.createSensorAnomalyExampleDesign()
+      : null,
     inventory: {devices: [], profiles: [], nodes: []},
     selectedNodeId: null,
     inspectorOpen: false,
@@ -125,6 +127,143 @@
     return null;
   }
 
+  function normalizedIdentity(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function accelerationAxisBindingCandidates(inventory = {}) {
+    const axes = ["x", "y", "z"];
+    const profiles = inventory.profiles || [];
+    const candidates = Object.fromEntries(axes.map((axis) => [axis, []]));
+    (inventory.devices || []).forEach((device) => {
+      if (!device.node_name) return;
+      model.resourcesForDevice(device, profiles).forEach((resource) => {
+        if (model.canonicalDataType(resource.valueType) !== "number") return;
+        const deviceIdentity = normalizedIdentity(
+          `${device.name} ${device.profile_name}`,
+        );
+        const resourceIdentity = normalizedIdentity(resource.name);
+        axes.forEach((axis) => {
+          const axisIdentity = `acceleration${axis}`;
+          if (
+            !resourceIdentity.includes(axisIdentity)
+            && !deviceIdentity.includes(axisIdentity)
+          ) {
+            return;
+          }
+          let score = 0;
+          if (resourceIdentity === `${axisIdentity}raw`) score += 100;
+          else if (resourceIdentity.includes(axisIdentity)) score += 70;
+          if (deviceIdentity.includes(`virtual${axisIdentity}`)) score += 40;
+          else if (deviceIdentity.includes(axisIdentity)) score += 20;
+          if (device.overall_status === "available") score += 10;
+          if (device.telemetry_freshness === "fresh") score += 5;
+          candidates[axis].push({axis, device, resource, score});
+        });
+      });
+    });
+    Object.values(candidates).forEach((items) => {
+      items.sort((left, right) => (
+        right.score - left.score
+        || String(left.device.name).localeCompare(String(right.device.name))
+        || String(left.resource.name).localeCompare(String(right.resource.name))
+      ));
+    });
+    const commonNodes = [...new Set(candidates.x.map((item) => item.device.node_name))]
+      .filter((node) => axes.every(
+        (axis) => candidates[axis].some((item) => item.device.node_name === node),
+      ));
+    const preferredNode = commonNodes
+      .map((node) => ({
+        node,
+        score: axes.reduce(
+          (total, axis) => total + candidates[axis]
+            .find((item) => item.device.node_name === node).score,
+          0,
+        ),
+      }))
+      .sort((left, right) => (
+        right.score - left.score || left.node.localeCompare(right.node)
+      ))[0]?.node;
+    return Object.fromEntries(axes.map((axis) => [
+      axis,
+      candidates[axis].find(
+        (item) => !preferredNode || item.device.node_name === preferredNode,
+      ) || null,
+    ]));
+  }
+
+  function bindSensorAnomalyExample(design, inventory = {}) {
+    const axisNodeIds = {
+      x: "sensor-x",
+      y: "sensor-y",
+      z: "sensor-z",
+    };
+    const isExample = Object.values(axisNodeIds).every(
+      (id) => design.nodes.some((node) => node.id === id),
+    );
+    if (!isExample) {
+      return {
+        design,
+        boundAxes: [],
+        configuredAxes: [],
+        sourceNode: "",
+        isExample: false,
+      };
+    }
+    const matches = accelerationAxisBindingCandidates(inventory);
+    let next = design;
+    const boundAxes = [];
+    Object.entries(axisNodeIds).forEach(([axis, nodeId]) => {
+      const node = next.nodes.find((item) => item.id === nodeId);
+      const match = matches[axis];
+      if (!node || node.config.deviceName || !match) return;
+      next = model.updateNode(next, nodeId, {
+        config: {
+          deviceName: match.device.name,
+          resourceName: match.resource.name,
+          sourceMode: "local_recent",
+        },
+      });
+      boundAxes.push(axis);
+    });
+    const sensors = Object.values(axisNodeIds)
+      .map((id) => next.nodes.find((node) => node.id === id))
+      .filter(Boolean);
+    const sourceNodes = new Set(sensors.map((sensor) => (
+      (inventory.devices || []).find(
+        (device) => device.name === sensor.config.deviceName,
+      )?.node_name || ""
+    )).filter(Boolean));
+    const allBound = sensors.length === 3 && sensors.every(
+      (sensor) => sensor.config.deviceName && sensor.config.resourceName,
+    );
+    const configuredAxes = Object.entries(axisNodeIds)
+      .filter(([, id]) => {
+        const sensor = next.nodes.find((node) => node.id === id);
+        return sensor?.config.deviceName && sensor?.config.resourceName;
+      })
+      .map(([axis]) => axis);
+    const sourceNode = allBound && sourceNodes.size === 1
+      ? [...sourceNodes][0]
+      : "";
+    if (sourceNode) {
+      next = model.updateNode(next, "vector-magnitude", {
+        config: {targetNode: sourceNode},
+      });
+      next = model.updateNode(next, "anomaly-inference", {
+        config: {targetNode: sourceNode},
+      });
+    }
+    return {
+      design: next,
+      boundAxes,
+      configuredAxes,
+      sourceNode,
+      isExample: true,
+    };
+  }
+
   function serverNodeName(nodes = []) {
     const server = nodes.find((node) => (
       ["cloud_server", "server"].includes(String(node.node_type || "").toLowerCase())
@@ -140,6 +279,25 @@
       || !state.design
     ) {
       return false;
+    }
+    const exampleBinding = bindSensorAnomalyExample(
+      state.design,
+      state.inventory,
+    );
+    if (
+      exampleBinding.isExample
+      && (exampleBinding.boundAxes.length || exampleBinding.sourceNode)
+    ) {
+      state.design = exampleBinding.design;
+      state.liveBindingSeeded = Boolean(exampleBinding.sourceNode);
+      state.dirty = true;
+      setFeedback(
+        state.liveBindingSeeded
+          ? "가속도 X/Y/Z를 Jetson 실측 입력에 연결했습니다."
+          : `가속도 입력 ${exampleBinding.configuredAxes.length}/3개를 연결했습니다.`,
+        state.liveBindingSeeded ? "success" : "ready",
+      );
+      return true;
     }
     const sensor = state.design.nodes.find((node) => node.type === "sensor");
     if (!sensor || sensor.config.deviceName) return false;
@@ -178,6 +336,21 @@
       "success",
     );
     return true;
+  }
+
+  function loadSensorAnomalyExample(documentRef = document) {
+    state.design = model.createSensorAnomalyExampleDesign();
+    state.selectedNodeId = null;
+    state.inspectorOpen = false;
+    state.pendingFromId = null;
+    state.lastValidation = null;
+    state.loadedFromStorage = false;
+    state.liveBindingSeeded = false;
+    markDirty("가속도 이상 감지 예시 서비스를 불러왔습니다.", documentRef);
+    maybeSeedLiveBinding();
+    state.viewportInitialized = false;
+    renderAll(documentRef);
+    scheduleCanvasFit(documentRef);
   }
 
   function setFeedback(message, feedbackState = "ready", documentRef = document) {
@@ -1592,18 +1765,7 @@
       }
     });
     el("serviceDesignerReset", documentRef)?.addEventListener("click", () => {
-      state.design = model.createDefaultDesign();
-      state.selectedNodeId = null;
-      state.inspectorOpen = false;
-      state.pendingFromId = null;
-      state.lastValidation = null;
-      state.loadedFromStorage = false;
-      state.liveBindingSeeded = false;
-      maybeSeedLiveBinding();
-      markDirty("현재 EdgeX 정보로 기본 설계를 다시 만들었습니다.", documentRef);
-      state.viewportInitialized = false;
-      renderAll(documentRef);
-      scheduleCanvasFit(documentRef);
+      loadSensorAnomalyExample(documentRef);
     });
     documentRef.addEventListener("keydown", (event) => {
       if (moveSelectedNodeByKeyboard(event, documentRef)) return;
@@ -1692,6 +1854,8 @@
       STORAGE_KEY,
       escapeHtml,
       fetchDesignerProfiles,
+      accelerationAxisBindingCandidates,
+      bindSensorAnomalyExample,
       loadStoredDesign,
       nodeSummary,
       saveStoredDesign,
