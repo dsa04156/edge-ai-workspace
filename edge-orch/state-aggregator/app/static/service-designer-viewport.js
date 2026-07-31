@@ -69,21 +69,18 @@
       {offset: 0, rank: 1},
       {offset: movingSize, rank: 1},
     ];
-    const targetAnchors = movingAnchors;
     const candidates = [];
     nodes.forEach((node) => {
       const targetCoordinate = finite(node?.[axis]);
-      targetAnchors.forEach((target) => {
-        movingAnchors.forEach((moving) => {
-          const guide = targetCoordinate + target.offset;
-          const delta = guide - (coordinate + moving.offset);
-          if (Math.abs(delta) > tolerance) return;
-          candidates.push({
-            coordinate: coordinate + delta,
-            delta,
-            guide,
-            rank: moving.rank + target.rank,
-          });
+      movingAnchors.forEach((anchor) => {
+        const guide = targetCoordinate + anchor.offset;
+        const delta = guide - (coordinate + anchor.offset);
+        if (Math.abs(delta) > tolerance) return;
+        candidates.push({
+          coordinate: coordinate + delta,
+          delta,
+          guide,
+          rank: anchor.rank,
         });
       });
     });

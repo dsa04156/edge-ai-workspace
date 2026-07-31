@@ -293,6 +293,18 @@ test("aligns node anchors to peers and reports visible guide coordinates", () =>
   assert.ok(Number.isFinite(aligned.guides.horizontal));
 });
 
+test("does not snap a node center to an unrelated peer edge", () => {
+  const placed = snapNodePosition(
+    {x: 221, y: 220},
+    [{id: "peer", x: 330, y: 120}],
+    "moving",
+    {tolerance: 10},
+  );
+
+  assert.equal(placed.x, 216);
+  assert.equal(placed.guides.vertical, null);
+});
+
 test("constrains Shift drags to one axis and nudges nodes by keyboard", () => {
   assert.deepEqual(
     constrainNodePosition({x: 48, y: 128}, {x: 138, y: 162}),
