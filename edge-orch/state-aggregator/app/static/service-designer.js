@@ -984,6 +984,8 @@
       startY: Number(node.y),
       x: Number(node.x),
       y: Number(node.y),
+      dropX: Number(node.x),
+      dropY: Number(node.y),
       pointerId: event.pointerId,
       moved: false,
     };
@@ -1030,23 +1032,34 @@
       },
       event.shiftKey,
     );
-    const placement = viewportModel.snapNodePosition(
+    const directPlacement = viewportModel.snapNodePosition(
+      constrained,
+      state.design.nodes,
+      state.dragging.nodeId,
+      {snap: false},
+    );
+    const dropPlacement = viewportModel.snapNodePosition(
       constrained,
       state.design.nodes,
       state.dragging.nodeId,
       {
         snap: !event.altKey,
+        // Pointer movement stays one-to-one with the node. Matching peer
+        // anchors are applied only when the pointer is released.
+        grid: false,
         tolerance: viewportModel.SNAP_TOLERANCE / zoom,
         lockX: constrained.lockedAxis === "vertical",
         lockY: constrained.lockedAxis === "horizontal",
       },
     );
-    const {x, y} = placement;
+    const {x, y} = directPlacement;
     state.dragging.x = x;
     state.dragging.y = y;
+    state.dragging.dropX = dropPlacement.x;
+    state.dragging.dropY = dropPlacement.y;
     state.dragging.nodeElement.style.left = `${x}px`;
     state.dragging.nodeElement.style.top = `${y}px`;
-    renderDragGuides(placement.guides, documentRef);
+    renderDragGuides(dropPlacement.guides, documentRef);
     const node = state.design.nodes.find((item) => item.id === state.dragging.nodeId);
     if (node) {
       const previousX = node.x;
@@ -1098,8 +1111,10 @@
       }
       return false;
     }
-    const x = Math.round(drag.x * 100) / 100;
-    const y = Math.round(drag.y * 100) / 100;
+    const x = Math.round(drag.dropX * 100) / 100;
+    const y = Math.round(drag.dropY * 100) / 100;
+    drag.nodeElement.style.left = `${x}px`;
+    drag.nodeElement.style.top = `${y}px`;
     state.suppressNodeClickId = drag.nodeId;
     root.setTimeout?.(() => {
       if (state.suppressNodeClickId === drag.nodeId) {

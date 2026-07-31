@@ -263,8 +263,14 @@ test("pans, centers, and reports the visible world rectangle", () => {
   assert.equal(Math.round(visible.y + visible.height / 2), 350);
 });
 
-test("snaps dragged nodes to the canvas grid and allows Alt-style free placement", () => {
+test("supports optional grid snapping and smooth pointer placement", () => {
   const snapped = snapNodePosition({x: 53, y: 61}, [], "sensor-1");
+  const smooth = snapNodePosition(
+    {x: 53, y: 61},
+    [],
+    "sensor-1",
+    {grid: false},
+  );
   const free = snapNodePosition(
     {x: 53, y: 61},
     [],
@@ -276,6 +282,7 @@ test("snaps dragged nodes to the canvas grid and allows Alt-style free placement
     {x: snapped.x, y: snapped.y},
     {x: 2 * GRID_SIZE, y: 3 * GRID_SIZE},
   );
+  assert.deepEqual({x: smooth.x, y: smooth.y}, {x: 53, y: 61});
   assert.deepEqual({x: free.x, y: free.y}, {x: 53, y: 61});
 });
 
@@ -355,7 +362,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
-  assert.match(html, /박스 전체 드래그 · Shift 한 축 고정 · Alt 자유 배치/);
+  assert.match(html, /박스가 커서를 따라 이동 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
@@ -367,6 +374,11 @@ test("dashboard exposes one scoped service design page without an execution acti
     ui,
     /startDrag\(event, dragNode\.dataset\.designerNode, documentRef\)/,
   );
+  assert.match(ui, /const directPlacement = viewportModel\.snapNodePosition\(/);
+  assert.match(ui, /\{snap:\s*false\},/);
+  assert.match(ui, /const dropPlacement = viewportModel\.snapNodePosition\(/);
+  assert.match(ui, /snap:\s*!event\.altKey,\s*[\s\S]*?grid:\s*false,/);
+  assert.match(ui, /state\.dragging\.dropX = dropPlacement\.x/);
   assert.match(
     css,
     /\.service-designer-node\s*\{[^}]*cursor:\s*grab;[^}]*touch-action:\s*none;/s,

@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-설계-캔버스.md</span>
-            <span class="badge">수정: 2026-07-31 14:54</span>
-            <span class="badge">HTML 생성: 2026-07-31 14:55</span>
+            <span class="badge">수정: 2026-07-31 15:05</span>
+            <span class="badge">HTML 생성: 2026-07-31 15:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -225,7 +225,7 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 </tbody></table></div>
 <p>단계 추가는 검색 가능한 왼쪽 패널에서 수행하고, 캔버스의 출력 포트와 입력 포트를 차례로 눌러 연결한다. 삭제·입출력 포트를 제외한 단계 박스 전체를 드래그해 배치하며 연결선을 두 번 누르면 삭제한다. 선택한 단계의 설정은 캔버스 위 오른쪽 패널에서 변경하고 닫을 수 있다.</p>
 <p>캔버스는 고정 크기 작업 좌표계와 별도 viewport를 사용한다.</p>
-<ul><li><code>전체 보기</code>와 가운데 <code>◎</code> 버튼: 현재 graph를 보이는 영역에 맞춤</li><li><code>−</code>/<code>＋</code>와 마우스 휠: 캔버스 중심 또는 pointer 위치 기준 확대·축소</li><li>빈 배경 드래그: 캔버스 이동</li><li>미니맵: 전체 graph와 현재 보이는 구간 확인, 선택 위치로 이동</li><li><code>단계</code> 버튼: 단계 패널 열기·닫기</li><li>단계 선택: 현재 배율을 유지하면서 설정 패널에 가리지 않도록 선택 노드만 이동</li><li>단계 박스 전체 드래그: 삭제·입출력 포트를 제외한 표면을 5px 이상 이동할 때 위치 변경을 시작하고 24px grid 또는 다른 단계의 모서리·중앙 정렬선에 맞춤</li><li><code>Shift</code>+드래그: 처음 위치를 기준으로 가로 또는 세로 한 축에 고정</li><li><code>Alt</code>+드래그: grid와 정렬선 snap 없이 자유 배치</li><li>방향키: 선택 단계를 1px 이동, <code>Shift</code>+방향키는 24px 이동</li></ul>
+<ul><li><code>전체 보기</code>와 가운데 <code>◎</code> 버튼: 현재 graph를 보이는 영역에 맞춤</li><li><code>−</code>/<code>＋</code>와 마우스 휠: 캔버스 중심 또는 pointer 위치 기준 확대·축소</li><li>빈 배경 드래그: 캔버스 이동</li><li>미니맵: 전체 graph와 현재 보이는 구간 확인, 선택 위치로 이동</li><li><code>단계</code> 버튼: 단계 패널 열기·닫기</li><li>단계 선택: 현재 배율을 유지하면서 설정 패널에 가리지 않도록 선택 노드만 이동</li><li>단계 박스 전체 드래그: 삭제·입출력 포트를 제외한 표면을 5px 이상 이동하면 박스가 pointer를 1:1로 따라가며, 다른 단계의 같은 모서리·중앙에 가까우면 정렬선을 미리 표시하고 놓을 때만 해당 선에 맞춤</li><li><code>Shift</code>+드래그: 처음 위치를 기준으로 가로 또는 세로 한 축에 고정</li><li><code>Alt</code>+드래그: 정렬선 snap 없이 완전히 자유롭게 배치</li><li>방향키: 선택 단계를 1px 이동, <code>Shift</code>+방향키는 24px 이동</li></ul>
 <p>드래그가 끝난 뒤 발생하는 click은 다시 선택 동작으로 처리하지 않으므로 viewport가 자동 이동하거나 단계가 화면에서 튀지 않는다. 정렬선은 드래그 중에만 표시한다.</p>
 <p>브라우저 너비가 좁으면 단계 패널과 설정 패널은 캔버스 위 overlay로 열리며 문서나 캔버스에 별도 가로 scrollbar를 만들지 않는다. 작은 화면의 <code>전체 보기</code>는 흐름 전체를 확인하는 overview이므로 세부 편집 시 확대·이동 또는 미니맵을 사용한다.</p>
 <h2 id="데이터-접근-방식">데이터 접근 방식</h2>
@@ -261,7 +261,7 @@ node --check edge-orch/state-aggregator/app/static/service-designer-viewport.js
 node --check edge-orch/state-aggregator/app/static/service-designer.js
 node --test edge-orch/state-aggregator/tests/test_service_designer.js
 python -m pytest -q edge-orch/state-aggregator/tests/test_api.py</code></pre>
-<p>브라우저 회귀는 390, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, grid snap·정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 전후 viewport 고정, 단계/설정 패널, 추가·삭제·검증·저장이 실제로 반응하는지 확인한다.</p>
+<p>브라우저 회귀는 390, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 전후 viewport 고정, 단계/설정 패널, 추가·삭제·검증·저장이 실제로 반응하는지 확인한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
