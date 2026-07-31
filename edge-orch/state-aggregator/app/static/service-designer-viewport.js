@@ -25,18 +25,80 @@
     return Math.max(minimum, Math.min(maximum, finite(value, minimum)));
   }
 
-  function clampNodePosition(position = {}, margin = 16) {
+  function clampNodePosition(position = {}, margin = 16, size = {}) {
     const safeMargin = Math.max(0, finite(margin, 16));
+    const nodeWidth = Math.max(1, finite(size.width, NODE_WIDTH));
+    const nodeHeight = Math.max(1, finite(size.height, NODE_HEIGHT));
     return {
       x: clamp(
         position.x,
         safeMargin,
-        CANVAS_WIDTH - NODE_WIDTH - safeMargin,
+        CANVAS_WIDTH - nodeWidth - safeMargin,
       ),
       y: clamp(
         position.y,
         safeMargin,
-        CANVAS_HEIGHT - NODE_HEIGHT - safeMargin,
+        CANVAS_HEIGHT - nodeHeight - safeMargin,
+      ),
+    };
+  }
+
+  function clampNodeToViewport(
+    position = {},
+    viewport = {},
+    viewportWidth = 0,
+    viewportHeight = 0,
+    options = {},
+  ) {
+    const current = normalizeViewport(viewport);
+    const width = Math.max(1, finite(viewportWidth, 1));
+    const height = Math.max(1, finite(viewportHeight, 1));
+    const padding = Math.max(0, finite(options.padding, 12));
+    const margin = Math.max(0, finite(options.margin, 16));
+    const nodeWidth = Math.max(1, finite(options.nodeWidth, NODE_WIDTH));
+    const nodeHeight = Math.max(1, finite(options.nodeHeight, NODE_HEIGHT));
+    const leftInset = Math.max(0, finite(options.leftInset));
+    const rightInset = Math.max(0, finite(options.rightInset));
+    const topInset = Math.max(0, finite(options.topInset));
+    const bottomInset = Math.max(0, finite(options.bottomInset));
+    const canvasBounds = {
+      minX: margin,
+      maxX: CANVAS_WIDTH - nodeWidth - margin,
+      minY: margin,
+      maxY: CANVAS_HEIGHT - nodeHeight - margin,
+    };
+    const visibleBounds = {
+      minX: (leftInset + padding - current.x) / current.zoom,
+      maxX: (
+        width - rightInset - padding - current.x
+      ) / current.zoom - nodeWidth,
+      minY: (topInset + padding - current.y) / current.zoom,
+      maxY: (
+        height - bottomInset - padding - current.y
+      ) / current.zoom - nodeHeight,
+    };
+
+    function clampAxis(value, canvasMinimum, canvasMaximum, visibleMinimum, visibleMaximum) {
+      const minimum = Math.max(canvasMinimum, visibleMinimum);
+      const maximum = Math.min(canvasMaximum, visibleMaximum);
+      if (minimum <= maximum) return clamp(value, minimum, maximum);
+      return clamp(value, canvasMinimum, canvasMaximum);
+    }
+
+    return {
+      x: clampAxis(
+        position.x,
+        canvasBounds.minX,
+        canvasBounds.maxX,
+        visibleBounds.minX,
+        visibleBounds.maxX,
+      ),
+      y: clampAxis(
+        position.y,
+        canvasBounds.minY,
+        canvasBounds.maxY,
+        visibleBounds.minY,
+        visibleBounds.maxY,
       ),
     };
   }
@@ -133,7 +195,14 @@
           ? Math.round(raw.y / GRID_SIZE) * GRID_SIZE
           : raw.y;
     }
-    const clamped = clampNodePosition({x, y}, options.margin);
+    const clamped = clampNodePosition(
+      {x, y},
+      options.margin,
+      {
+        width: options.nodeWidth,
+        height: options.nodeHeight,
+      },
+    );
     return {
       ...clamped,
       guides: {
@@ -347,6 +416,7 @@
     SNAP_TOLERANCE,
     centerOnWorldPoint,
     clampNodePosition,
+    clampNodeToViewport,
     constrainNodePosition,
     ensureWorldRectVisible,
     fitViewport,

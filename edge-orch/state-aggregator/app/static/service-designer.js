@@ -2,6 +2,7 @@
   const model = root?.ServiceDesignerModel;
   const viewportModel = root?.ServiceDesignerViewport;
   const STORAGE_KEY = "edge-ai-service-design-v1";
+  const DRAG_ACTIVATION_PX = 3;
   const state = {
     design: model ? model.createDefaultDesign() : null,
     inventory: {devices: [], profiles: [], nodes: []},
@@ -23,6 +24,8 @@
     paletteOpen: true,
     resizeFrame: null,
     resizeObserver: null,
+    edgeElements: new Map(),
+    miniMapNodeElements: new Map(),
   };
 
   function el(id, documentRef = document) {
@@ -205,6 +208,7 @@
     nodes.innerHTML = state.design.nodes.map((node) => `
       <rect
         class="service-designer-minimap-node${node.id === state.selectedNodeId ? " selected" : ""}"
+        data-designer-minimap-node="${escapeHtml(node.id)}"
         x="${Number(node.x)}"
         y="${Number(node.y)}"
         width="${viewportModel.NODE_WIDTH}"
@@ -212,6 +216,10 @@
         rx="18"
       ></rect>
     `).join("");
+    state.miniMapNodeElements = new Map(
+      [...nodes.querySelectorAll("[data-designer-minimap-node]")]
+        .map((node) => [node.dataset.designerMinimapNode, node]),
+    );
     const visible = viewportModel.visibleWorldRect(
       state.viewport,
       canvasViewport.clientWidth,
@@ -522,7 +530,12 @@
         const path = edgePath(from, to);
         const selected = state.selectedEdgeId === edge.id;
         return `
-          <g class="service-designer-edge-group" data-designer-edge="${escapeHtml(edge.id)}">
+          <g
+            class="service-designer-edge-group"
+            data-designer-edge="${escapeHtml(edge.id)}"
+            data-designer-from="${escapeHtml(edge.from)}"
+            data-designer-to="${escapeHtml(edge.to)}"
+          >
             <path class="service-designer-edge-path${selected ? " selected" : ""}" d="${path.d}" marker-end="url(#serviceDesignerArrow)"></path>
             <path
               class="service-designer-edge-target"
@@ -535,6 +548,10 @@
         `;
       }).join("")}
     `;
+    state.edgeElements = new Map(
+      [...container.querySelectorAll("[data-designer-edge]")]
+        .map((edge) => [edge.dataset.designerEdge, edge]),
+    );
   }
 
   function renderSensorInspector(node) {
@@ -951,6 +968,61 @@
     }
   }
 
+  function updateDraggedEdges(drag) {
+    if (!drag || !state.design) return;
+    const nodes = Object.fromEntries(
+      state.design.nodes.map((node) => [
+        node.id,
+        node.id === drag.nodeId
+          ? {...node, x: drag.x, y: drag.y}
+          : node,
+      ]),
+    );
+    state.design.edges.forEach((edge) => {
+      if (edge.from !== drag.nodeId && edge.to !== drag.nodeId) return;
+      const group = state.edgeElements.get(edge.id);
+      const from = nodes[edge.from];
+      const to = nodes[edge.to];
+      if (!group || !from || !to) return;
+      const path = edgePath(from, to);
+      group.querySelectorAll("path").forEach((element) => {
+        element.setAttribute("d", path.d);
+      });
+      const label = group.querySelector(".service-designer-edge-label");
+      label?.setAttribute("x", String(path.labelX));
+      label?.setAttribute("y", String(path.labelY));
+    });
+  }
+
+  function updateDraggedMiniMapNode(drag) {
+    const node = drag && state.miniMapNodeElements.get(drag.nodeId);
+    if (!node) return;
+    node.setAttribute("x", String(drag.x));
+    node.setAttribute("y", String(drag.y));
+  }
+
+  function scheduleDragAuxiliaryRender(documentRef = document) {
+    const drag = state.dragging;
+    if (!drag || drag.renderFrame !== null) return;
+    const render = () => {
+      drag.renderFrame = null;
+      if (state.dragging !== drag) return;
+      updateDraggedEdges(drag, documentRef);
+      updateDraggedMiniMapNode(drag, documentRef);
+    };
+    if (root?.requestAnimationFrame) {
+      drag.renderFrame = root.requestAnimationFrame(render);
+      return;
+    }
+    render();
+  }
+
+  function cancelDragAuxiliaryRender(drag) {
+    if (!drag || drag.renderFrame === null) return;
+    root?.cancelAnimationFrame?.(drag.renderFrame);
+    drag.renderFrame = null;
+  }
+
   function selectNodeForDrag(nodeId, nodeElement, documentRef = document) {
     state.selectedNodeId = nodeId;
     state.selectedEdgeId = null;
@@ -960,9 +1032,16 @@
         element.dataset.designerNode === nodeId,
       );
     });
-    renderEdges(documentRef);
-    renderInspector(documentRef);
-    renderMiniMap(documentRef);
+    documentRef.querySelectorAll(".service-designer-edge-path.selected")
+      .forEach((element) => element.classList.remove("selected"));
+    documentRef.querySelectorAll(".service-designer-edge-label")
+      .forEach((element) => element.remove());
+    state.miniMapNodeElements.forEach((element, id) => {
+      element.classList.toggle("selected", id === nodeId);
+    });
+    const inspector = el("serviceDesignerInspector", documentRef);
+    inspector?.classList.remove("is-open");
+    inspector?.setAttribute("aria-hidden", "true");
     try {
       nodeElement.focus({preventScroll: true});
     } catch (_error) {
@@ -986,10 +1065,12 @@
       y: Number(node.y),
       dropX: Number(node.x),
       dropY: Number(node.y),
+      nodeWidth: Math.max(1, nodeElement.offsetWidth || viewportModel.NODE_WIDTH),
+      nodeHeight: Math.max(1, nodeElement.offsetHeight || viewportModel.NODE_HEIGHT),
       pointerId: event.pointerId,
       moved: false,
+      renderFrame: null,
     };
-    selectNodeForDrag(nodeId, nodeElement, documentRef);
     try {
       nodeElement.setPointerCapture?.(event.pointerId);
     } catch (_error) {
@@ -1012,12 +1093,17 @@
     const deltaClientY = event.clientY - state.dragging.startClientY;
     if (
       !state.dragging.moved
-      && Math.hypot(deltaClientX, deltaClientY) < 5
+      && Math.hypot(deltaClientX, deltaClientY) < DRAG_ACTIVATION_PX
     ) {
       return false;
     }
     if (!state.dragging.moved) {
       state.dragging.moved = true;
+      selectNodeForDrag(
+        state.dragging.nodeId,
+        state.dragging.nodeElement,
+        documentRef,
+      );
       state.dragging.nodeElement.classList.add("is-dragging");
       el("serviceDesignerCanvasViewport", documentRef)?.classList.add(
         "is-node-dragging",
@@ -1032,13 +1118,34 @@
       },
       event.shiftKey,
     );
-    const directPlacement = viewportModel.snapNodePosition(
-      constrained,
-      state.design.nodes,
-      state.dragging.nodeId,
-      {snap: false},
+    const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!canvasViewport) return false;
+    const canvasBounds = canvasViewport.getBoundingClientRect();
+    const browserWidth = Math.max(
+      1,
+      Number(root?.innerWidth) || canvasBounds.right,
     );
-    const dropPlacement = viewportModel.snapNodePosition(
+    const browserHeight = Math.max(
+      1,
+      Number(root?.innerHeight) || canvasBounds.bottom,
+    );
+    const placementOptions = {
+      padding: 12,
+      nodeWidth: state.dragging.nodeWidth,
+      nodeHeight: state.dragging.nodeHeight,
+      leftInset: Math.max(0, -canvasBounds.left),
+      rightInset: Math.max(0, canvasBounds.right - browserWidth),
+      topInset: Math.max(0, -canvasBounds.top),
+      bottomInset: Math.max(0, canvasBounds.bottom - browserHeight),
+    };
+    const directPlacement = viewportModel.clampNodeToViewport(
+      constrained,
+      state.viewport,
+      canvasViewport.clientWidth,
+      canvasViewport.clientHeight,
+      placementOptions,
+    );
+    const snappedDropPlacement = viewportModel.snapNodePosition(
       constrained,
       state.design.nodes,
       state.dragging.nodeId,
@@ -1050,27 +1157,33 @@
         tolerance: viewportModel.SNAP_TOLERANCE / zoom,
         lockX: constrained.lockedAxis === "vertical",
         lockY: constrained.lockedAxis === "horizontal",
+        nodeWidth: state.dragging.nodeWidth,
+        nodeHeight: state.dragging.nodeHeight,
       },
     );
+    const dropPlacement = viewportModel.clampNodeToViewport(
+      snappedDropPlacement,
+      state.viewport,
+      canvasViewport.clientWidth,
+      canvasViewport.clientHeight,
+      placementOptions,
+    );
+    const guides = {
+      vertical: dropPlacement.x === snappedDropPlacement.x
+        ? snappedDropPlacement.guides.vertical
+        : null,
+      horizontal: dropPlacement.y === snappedDropPlacement.y
+        ? snappedDropPlacement.guides.horizontal
+        : null,
+    };
     const {x, y} = directPlacement;
     state.dragging.x = x;
     state.dragging.y = y;
     state.dragging.dropX = dropPlacement.x;
     state.dragging.dropY = dropPlacement.y;
-    state.dragging.nodeElement.style.left = `${x}px`;
-    state.dragging.nodeElement.style.top = `${y}px`;
-    renderDragGuides(dropPlacement.guides, documentRef);
-    const node = state.design.nodes.find((item) => item.id === state.dragging.nodeId);
-    if (node) {
-      const previousX = node.x;
-      const previousY = node.y;
-      node.x = x;
-      node.y = y;
-      renderEdges(documentRef);
-      renderMiniMap(documentRef);
-      node.x = previousX;
-      node.y = previousY;
-    }
+    state.dragging.nodeElement.style.transform = `translate3d(${x - state.dragging.startX}px, ${y - state.dragging.startY}px, 0)`;
+    renderDragGuides(guides, documentRef);
+    scheduleDragAuxiliaryRender(documentRef);
     event.preventDefault();
     return true;
   }
@@ -1089,8 +1202,10 @@
     ) {
       return false;
     }
+    cancelDragAuxiliaryRender(drag);
     state.dragging = null;
     drag.nodeElement.classList.remove("is-dragging");
+    drag.nodeElement.style.transform = "";
     el("serviceDesignerCanvasViewport", documentRef)?.classList.remove(
       "is-node-dragging",
     );
@@ -1121,7 +1236,11 @@
         state.suppressNodeClickId = null;
       }
     }, 0);
-    if (x === drag.startX && y === drag.startY) return true;
+    if (x === drag.startX && y === drag.startY) {
+      renderEdges(documentRef);
+      renderMiniMap(documentRef);
+      return true;
+    }
     state.design = model.updateNode(state.design, drag.nodeId, {x, y});
     markDirty("단계 위치를 변경했습니다.", documentRef);
     renderEdges(documentRef);

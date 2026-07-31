@@ -28,6 +28,7 @@ const {
   MIN_ZOOM,
   centerOnWorldPoint,
   clampNodePosition,
+  clampNodeToViewport,
   constrainNodePosition,
   ensureWorldRectVisible,
   fitViewport,
@@ -286,6 +287,29 @@ test("supports optional grid snapping and smooth pointer placement", () => {
   assert.deepEqual({x: free.x, y: free.y}, {x: 53, y: 61});
 });
 
+test("keeps the complete node inside the currently visible canvas viewport", () => {
+  const viewport = {x: -300, y: -100, zoom: 1.6};
+  const nodeSize = {nodeWidth: 218, nodeHeight: 161};
+  const placed = clampNodeToViewport(
+    {x: 900, y: 500},
+    viewport,
+    958,
+    453,
+    {...nodeSize, padding: 12},
+  );
+  const screen = {
+    left: viewport.x + placed.x * viewport.zoom,
+    right: viewport.x + (placed.x + nodeSize.nodeWidth) * viewport.zoom,
+    top: viewport.y + placed.y * viewport.zoom,
+    bottom: viewport.y + (placed.y + nodeSize.nodeHeight) * viewport.zoom,
+  };
+
+  assert.ok(screen.left >= 12);
+  assert.ok(screen.right <= 958 - 12);
+  assert.ok(screen.top >= 12);
+  assert.ok(screen.bottom <= 453 - 12);
+});
+
 test("aligns node anchors to peers and reports visible guide coordinates", () => {
   const aligned = snapNodePosition(
     {x: 237, y: 117},
@@ -362,7 +386,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
-  assert.match(html, /박스가 커서를 따라 이동 · 놓을 때 정렬 · Alt 정렬 해제/);
+  assert.match(html, /빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
@@ -374,14 +398,28 @@ test("dashboard exposes one scoped service design page without an execution acti
     ui,
     /startDrag\(event, dragNode\.dataset\.designerNode, documentRef\)/,
   );
-  assert.match(ui, /const directPlacement = viewportModel\.snapNodePosition\(/);
-  assert.match(ui, /\{snap:\s*false\},/);
-  assert.match(ui, /const dropPlacement = viewportModel\.snapNodePosition\(/);
+  assert.match(ui, /const DRAG_ACTIVATION_PX = 3/);
+  assert.match(ui, /const directPlacement = viewportModel\.clampNodeToViewport\(/);
+  assert.match(ui, /leftInset:\s*Math\.max\(0,\s*-canvasBounds\.left\)/);
+  assert.match(ui, /rightInset:\s*Math\.max\(0,\s*canvasBounds\.right - browserWidth\)/);
+  assert.match(ui, /const snappedDropPlacement = viewportModel\.snapNodePosition\(/);
   assert.match(ui, /snap:\s*!event\.altKey,\s*[\s\S]*?grid:\s*false,/);
   assert.match(ui, /state\.dragging\.dropX = dropPlacement\.x/);
+  assert.match(ui, /style\.transform = `translate3d\(/);
+  assert.match(ui, /scheduleDragAuxiliaryRender\(documentRef\)/);
+  const moveDragSource = ui.slice(
+    ui.indexOf("function moveDrag"),
+    ui.indexOf("function finishDrag"),
+  );
+  assert.doesNotMatch(moveDragSource, /renderEdges\(/);
+  assert.doesNotMatch(moveDragSource, /renderMiniMap\(/);
   assert.match(
     css,
     /\.service-designer-node\s*\{[^}]*cursor:\s*grab;[^}]*touch-action:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.service-designer-node\.is-dragging\s*\{[^}]*will-change:\s*transform;/s,
   );
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);
