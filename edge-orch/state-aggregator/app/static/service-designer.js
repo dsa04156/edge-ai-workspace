@@ -3,6 +3,7 @@
   const viewportModel = root?.ServiceDesignerViewport;
   const STORAGE_KEY = "edge-ai-service-design-v1";
   const DRAG_ACTIVATION_PX = 3;
+  const DRAG_CLICK_SUPPRESSION_MS = 600;
   const state = {
     design: model ? model.createDefaultDesign() : null,
     inventory: {devices: [], profiles: [], nodes: []},
@@ -16,6 +17,7 @@
     dirty: false,
     dragging: null,
     suppressNodeClickId: null,
+    suppressNodeClickUntil: 0,
     panning: null,
     viewport: viewportModel
       ? viewportModel.normalizeViewport()
@@ -1231,11 +1233,16 @@
     drag.nodeElement.style.left = `${x}px`;
     drag.nodeElement.style.top = `${y}px`;
     state.suppressNodeClickId = drag.nodeId;
+    state.suppressNodeClickUntil = Date.now() + DRAG_CLICK_SUPPRESSION_MS;
     root.setTimeout?.(() => {
-      if (state.suppressNodeClickId === drag.nodeId) {
+      if (
+        state.suppressNodeClickId === drag.nodeId
+        && Date.now() >= state.suppressNodeClickUntil
+      ) {
         state.suppressNodeClickId = null;
+        state.suppressNodeClickUntil = 0;
       }
-    }, 0);
+    }, DRAG_CLICK_SUPPRESSION_MS);
     if (x === drag.startX && y === drag.startY) {
       renderEdges(documentRef);
       renderMiniMap(documentRef);
@@ -1294,11 +1301,17 @@
       if (
         suppressedNode
         && state.suppressNodeClickId === suppressedNode.dataset.designerNode
+        && Date.now() <= state.suppressNodeClickUntil
       ) {
         state.suppressNodeClickId = null;
+        state.suppressNodeClickUntil = 0;
         event.preventDefault();
         event.stopPropagation();
         return;
+      }
+      if (Date.now() > state.suppressNodeClickUntil) {
+        state.suppressNodeClickId = null;
+        state.suppressNodeClickUntil = 0;
       }
       const addButton = event.target.closest?.("[data-designer-add]");
       if (addButton) {

@@ -399,6 +399,11 @@ test("dashboard exposes one scoped service design page without an execution acti
     /startDrag\(event, dragNode\.dataset\.designerNode, documentRef\)/,
   );
   assert.match(ui, /const DRAG_ACTIVATION_PX = 3/);
+  assert.match(ui, /const DRAG_CLICK_SUPPRESSION_MS = 600/);
+  assert.match(
+    ui,
+    /state\.suppressNodeClickUntil = Date\.now\(\) \+ DRAG_CLICK_SUPPRESSION_MS/,
+  );
   assert.match(ui, /const directPlacement = viewportModel\.clampNodeToViewport\(/);
   assert.match(ui, /leftInset:\s*Math\.max\(0,\s*-canvasBounds\.left\)/);
   assert.match(ui, /rightInset:\s*Math\.max\(0,\s*canvasBounds\.right - browserWidth\)/);
