@@ -344,6 +344,8 @@ test("dashboard exposes one scoped service design page without an execution acti
     root,
     "app/static/service-designer-viewport.js",
   );
+  const ui = fs.readFileSync(uiPath, "utf8");
+  const css = fs.readFileSync(cssPath, "utf8");
 
   assert.match(html, /data-dashboard-page="designer"/);
   assert.match(html, /data-page="designer"/);
@@ -353,10 +355,22 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
-  assert.match(html, /Shift 한 축 고정 · Alt 자유 배치/);
+  assert.match(html, /박스 전체 드래그 · Shift 한 축 고정 · Alt 자유 배치/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
+  assert.match(
+    ui,
+    /const dragNode = event\.target\.closest\?\.\("\[data-designer-node\]"\)/,
+  );
+  assert.match(
+    ui,
+    /startDrag\(event, dragNode\.dataset\.designerNode, documentRef\)/,
+  );
+  assert.match(
+    css,
+    /\.service-designer-node\s*\{[^}]*cursor:\s*grab;[^}]*touch-action:\s*none;/s,
+  );
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);
   assert.equal(fs.existsSync(viewportPath), true);

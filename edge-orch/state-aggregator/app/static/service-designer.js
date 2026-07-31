@@ -1227,9 +1227,9 @@
     });
 
     documentRef.addEventListener("pointerdown", (event) => {
-      const handle = event.target.closest?.("[data-designer-drag]");
-      if (handle) {
-        startDrag(event, handle.dataset.designerDrag, documentRef);
+      const dragNode = event.target.closest?.("[data-designer-node]");
+      if (dragNode) {
+        startDrag(event, dragNode.dataset.designerNode, documentRef);
         return;
       }
       startCanvasPan(event, documentRef);

@@ -500,6 +500,9 @@ body[data-dashboard-page="designer"] .layout {
   background: #0f1a2c;
   color: var(--console-text);
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.26);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
 
 .service-designer-node[data-node-type="sensor"] {
@@ -537,6 +540,10 @@ body[data-dashboard-page="designer"] .layout {
   cursor: grabbing;
 }
 
+.service-designer-node.is-dragging .service-designer-node-body {
+  cursor: grabbing;
+}
+
 .service-designer-node[data-validity="error"] {
   --node-accent: #f87171;
 }
@@ -551,7 +558,7 @@ body[data-dashboard-page="designer"] .layout {
   border-bottom: 1px solid var(--console-border);
   border-radius: 6px 6px 0 0;
   background: rgba(15, 23, 42, 0.78);
-  cursor: grab;
+  cursor: inherit;
   user-select: none;
   touch-action: none;
 }
@@ -588,6 +595,7 @@ body[data-dashboard-page="designer"] .layout {
 .service-designer-node-body {
   min-height: 75px;
   padding: 9px 11px 11px;
+  cursor: inherit;
 }
 
 .service-designer-node-body p {
