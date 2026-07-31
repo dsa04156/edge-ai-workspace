@@ -5,6 +5,8 @@ const path = require("node:path");
 
 const {
   addNode,
+  addServiceNode,
+  buildServiceCatalog,
   buildExecutionPlan,
   canonicalDataType,
   connectNodes,
@@ -171,6 +173,48 @@ test("adds unique stages and builds a deterministic dry-run plan", () => {
   );
   assert.match(plan.stages[0].detail, /virtual-temperature-001/);
   assert.match(plan.stages[0].detail, /엣지 최근 데이터/);
+});
+
+test("lists concrete workflow services and reports real EdgeX input availability", () => {
+  const catalog = buildServiceCatalog(inventory());
+
+  assert.equal(catalog.length, 9);
+  assert.deepEqual(
+    [...new Set(catalog.map((service) => service.category))],
+    ["input", "preprocess", "inference", "output"],
+  );
+  assert.deepEqual(
+    catalog.filter((service) => service.category === "input").map((service) => ({
+      id: service.id,
+      enabled: service.enabled,
+      badge: service.badge,
+    })),
+    [
+      {id: "edgex-local-recent", enabled: true, badge: "입력 1"},
+      {id: "edgex-core-history", enabled: true, badge: "입력 1"},
+    ],
+  );
+  assert.equal(
+    catalog.find((service) => service.id === "inference-online-gaussian").badge,
+    "설계용",
+  );
+  assert.equal(
+    buildServiceCatalog({devices: [], profiles: [], nodes: []})[0].enabled,
+    false,
+  );
+});
+
+test("adds a catalog service with its exact operation contract", () => {
+  const design = addServiceNode(createDefaultDesign(), "preprocess-rolling-mean");
+  const added = design.nodes[design.nodes.length - 1];
+
+  assert.equal(added.type, "preprocess");
+  assert.equal(added.title, "이동 평균");
+  assert.equal(added.config.operation, "rolling_mean");
+  assert.throws(
+    () => addServiceNode(design, "arbitrary-container"),
+    /지원하지 않는 서비스/,
+  );
 });
 
 test("selects a live numeric EdgeX resource instead of a hard-coded source", () => {
@@ -386,6 +430,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
+  assert.match(html, /서비스 카탈로그/);
+  assert.match(html, /id="serviceDesignerCatalogState"/);
   assert.match(html, /빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
@@ -400,6 +446,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   );
   assert.match(ui, /const DRAG_ACTIVATION_PX = 3/);
   assert.match(ui, /const DRAG_CLICK_SUPPRESSION_MS = 600/);
+  assert.match(ui, /data-designer-service/);
+  assert.match(ui, /model\.addServiceNode\(state\.design, serviceId\)/);
   assert.match(
     ui,
     /state\.suppressNodeClickUntil = Date\.now\(\) \+ DRAG_CLICK_SUPPRESSION_MS/,

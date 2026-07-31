@@ -781,6 +781,69 @@
     target.textContent = `센서 ${state.inventory.devices.length}개 · 노드 ${state.inventory.nodes.length}개${profileSuffix}`;
   }
 
+  function renderServiceCatalog(documentRef = document) {
+    const container = el("serviceDesignerPaletteList", documentRef);
+    const catalogState = el("serviceDesignerCatalogState", documentRef);
+    if (!container || !model?.buildServiceCatalog) return;
+    const query = (
+      el("serviceDesignerPaletteSearch", documentRef)?.value || ""
+    ).trim().toLowerCase();
+    const catalog = model.buildServiceCatalog(state.inventory);
+    const categoryLabels = new Map(
+      (model.SERVICE_CATEGORIES || []).map((category) => [category.id, category.label]),
+    );
+    const matches = catalog.filter((service) => {
+      const categoryLabel = categoryLabels.get(service.category) || "";
+      return !query || `${service.label} ${service.description} ${categoryLabel}`
+        .toLowerCase()
+        .includes(query);
+    });
+    const sourceCount = Math.max(
+      0,
+      ...catalog
+        .filter((service) => service.category === "input")
+        .map((service) => service.eligibleCount || 0),
+    );
+    if (catalogState) {
+      catalogState.textContent = query
+        ? `${matches.length}/${catalog.length}개 서비스`
+        : `${catalog.length}개 서비스 · EdgeX 입력 ${sourceCount}개`;
+    }
+    if (!matches.length) {
+      container.innerHTML = '<p class="service-designer-empty">검색 결과가 없습니다.</p>';
+      return;
+    }
+    container.innerHTML = (model.SERVICE_CATEGORIES || []).map((category) => {
+      const services = matches.filter((service) => service.category === category.id);
+      if (!services.length) return "";
+      return `
+        <section class="service-designer-service-group" aria-labelledby="serviceCatalog-${escapeHtml(category.id)}">
+          <div class="service-designer-service-group-head">
+            <h3 id="serviceCatalog-${escapeHtml(category.id)}">${escapeHtml(category.label)}</h3>
+            <span>${services.length}</span>
+          </div>
+          <div class="service-designer-service-items">
+            ${services.map((service) => `
+              <button
+                type="button"
+                data-designer-service="${escapeHtml(service.id)}"
+                data-service-state="${escapeHtml(service.availability)}"
+                aria-label="${escapeHtml(service.label)} 서비스 추가"
+                ${service.enabled ? "" : 'disabled aria-disabled="true" title="현재 선택 가능한 EdgeX 입력이 없습니다."'}
+              >
+                <span class="service-designer-service-title">
+                  <strong>${escapeHtml(service.label)}</strong>
+                  <small>${escapeHtml(service.badge)}</small>
+                </span>
+                <span>${escapeHtml(service.description)}</span>
+              </button>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }).join("");
+  }
+
   function renderAll(documentRef = document) {
     if (!state.initialized || !state.design) return;
     if (state.dragging) {
@@ -793,6 +856,7 @@
       nameInput.value = state.design.name;
     }
     renderInventoryState(documentRef);
+    renderServiceCatalog(documentRef);
     renderNodes(documentRef);
     renderEdges(documentRef);
     renderInspector(documentRef);
@@ -1333,13 +1397,33 @@
         state.suppressNodeClickId = null;
         state.suppressNodeClickUntil = 0;
       }
-      const addButton = event.target.closest?.("[data-designer-add]");
-      if (addButton) {
-        state.design = model.addNode(state.design, addButton.dataset.designerAdd);
+      const serviceButton = event.target.closest?.("[data-designer-service]");
+      if (serviceButton) {
+        if (serviceButton.disabled) return;
+        const serviceId = serviceButton.dataset.designerService;
+        state.design = model.addServiceNode(state.design, serviceId);
         const added = state.design.nodes[state.design.nodes.length - 1];
+        if (added.type === "sensor") {
+          const service = model.serviceDefinition(serviceId);
+          const candidateInventory = service?.inputKind === "local"
+            ? {
+              ...state.inventory,
+              devices: state.inventory.devices.filter((device) => device.node_name),
+            }
+            : state.inventory;
+          const candidate = sourceBindingCandidate(candidateInventory);
+          if (candidate) {
+            state.design = model.updateNode(state.design, added.id, {
+              config: {
+                deviceName: candidate.device.name,
+                resourceName: candidate.resource.name,
+              },
+            });
+          }
+        }
         state.selectedNodeId = added.id;
         state.inspectorOpen = true;
-        markDirty(`${added.title} 단계를 추가했습니다.`, documentRef);
+        markDirty(`${added.title} 서비스를 추가했습니다.`, documentRef);
         renderAll(documentRef);
         if (root.matchMedia?.("(max-width: 860px)").matches) {
           setPaletteOpen(false, documentRef);
@@ -1492,12 +1576,7 @@
     });
     el("serviceDesignerPaletteSearch", documentRef)?.addEventListener(
       "input",
-      (event) => {
-        const query = event.target.value.trim().toLowerCase();
-        documentRef.querySelectorAll("[data-designer-add]").forEach((button) => {
-          button.hidden = Boolean(query) && !button.textContent.toLowerCase().includes(query);
-        });
-      },
+      () => renderServiceCatalog(documentRef),
     );
     el("serviceDesignerValidate", documentRef)?.addEventListener(
       "click",

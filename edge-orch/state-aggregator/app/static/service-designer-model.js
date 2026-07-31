@@ -104,6 +104,88 @@
       outputType: "boolean",
     },
   };
+  const SERVICE_CATEGORIES = [
+    {id: "input", label: "데이터 입력"},
+    {id: "preprocess", label: "전처리"},
+    {id: "inference", label: "AI 추론"},
+    {id: "output", label: "결과"},
+  ];
+  const SERVICE_TEMPLATES = [
+    {
+      id: "edgex-local-recent",
+      category: "input",
+      type: "sensor",
+      label: "엣지 최근 데이터",
+      description: "Device Service Local Data API",
+      config: {sourceMode: "local_recent"},
+      inputKind: "local",
+    },
+    {
+      id: "edgex-core-history",
+      category: "input",
+      type: "sensor",
+      label: "중앙 저장 데이터",
+      description: "EdgeX Core Data Event / Reading",
+      config: {sourceMode: "core_history"},
+      inputKind: "history",
+    },
+    {
+      id: "preprocess-passthrough",
+      category: "preprocess",
+      type: "preprocess",
+      label: "그대로 전달",
+      description: "입력값 변경 없이 전달",
+      config: {operation: "passthrough"},
+    },
+    {
+      id: "preprocess-standardize",
+      category: "preprocess",
+      type: "preprocess",
+      label: "표준화",
+      description: "수치 입력 정규화",
+      config: {operation: "standardize"},
+    },
+    {
+      id: "preprocess-rolling-mean",
+      category: "preprocess",
+      type: "preprocess",
+      label: "이동 평균",
+      description: "최근 구간 평균 계산",
+      config: {operation: "rolling_mean"},
+    },
+    {
+      id: "preprocess-vector-magnitude",
+      category: "preprocess",
+      type: "preprocess",
+      label: "벡터 크기",
+      description: "3축 수치 입력 결합",
+      config: {operation: "vector_magnitude"},
+    },
+    {
+      id: "inference-online-gaussian",
+      category: "inference",
+      type: "inference",
+      label: "온라인 이상 점수",
+      description: "Gaussian baseline v1",
+      config: {algorithm: "online-gaussian-baseline-v1"},
+    },
+    {
+      id: "inference-threshold",
+      category: "inference",
+      type: "inference",
+      label: "임계값 판정",
+      description: "Threshold rule v1",
+      config: {algorithm: "threshold-rule-v1"},
+    },
+    {
+      id: "dashboard-output",
+      category: "output",
+      type: "output",
+      label: "대시보드 결과",
+      description: "분석 결과 표시",
+      config: {destination: "dashboard"},
+    },
+  ];
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -117,6 +199,10 @@
 
   function nodeDefinition(type) {
     return NODE_DEFINITIONS[type] || null;
+  }
+
+  function serviceDefinition(serviceId) {
+    return SERVICE_TEMPLATES.find((service) => service.id === serviceId) || null;
   }
 
   function makeNode(type, id, x, y) {
@@ -233,6 +319,17 @@
     return next;
   }
 
+  function addServiceNode(design, serviceId) {
+    const service = serviceDefinition(serviceId);
+    if (!service) throw new Error(`지원하지 않는 서비스입니다: ${serviceId}`);
+    const next = addNode(design, service.type);
+    const added = next.nodes[next.nodes.length - 1];
+    return updateNode(next, added.id, {
+      title: service.label,
+      config: clone(service.config),
+    });
+  }
+
   function removeNode(design, nodeId) {
     const next = normalizeDesign(design);
     next.nodes = next.nodes.filter((node) => node.id !== nodeId);
@@ -296,6 +393,38 @@
       });
     });
     return [...byName.values()].sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  function buildServiceCatalog(inventory = {}) {
+    const devices = Array.isArray(inventory.devices) ? inventory.devices : [];
+    const profiles = Array.isArray(inventory.profiles) ? inventory.profiles : [];
+    const devicesWithResources = devices.filter(
+      (device) => resourcesForDevice(device, profiles).length > 0,
+    );
+    const localDevices = devicesWithResources.filter(
+      (device) => Boolean(device.node_name),
+    );
+    return SERVICE_TEMPLATES.map((service) => {
+      if (service.category !== "input") {
+        return {
+          ...clone(service),
+          enabled: true,
+          availability: "design",
+          badge: "설계용",
+          eligibleCount: null,
+        };
+      }
+      const eligibleCount = service.inputKind === "local"
+        ? localDevices.length
+        : devicesWithResources.length;
+      return {
+        ...clone(service),
+        enabled: eligibleCount > 0,
+        availability: eligibleCount > 0 ? "available" : "unavailable",
+        badge: eligibleCount > 0 ? `입력 ${eligibleCount}` : "입력 없음",
+        eligibleCount,
+      };
+    });
   }
 
   function sourceResource(node, inventory = {}) {
@@ -626,8 +755,12 @@
     INFERENCE_ALGORITHMS,
     NODE_DEFINITIONS,
     PREPROCESS_OPERATIONS,
+    SERVICE_CATEGORIES,
+    SERVICE_TEMPLATES,
     SOURCE_MODES,
     addNode,
+    addServiceNode,
+    buildServiceCatalog,
     buildExecutionPlan,
     canonicalDataType,
     compatibleTypes,
@@ -640,6 +773,7 @@
     removeEdge,
     removeNode,
     resourcesForDevice,
+    serviceDefinition,
     sourceResource,
     topologicalOrder,
     updateNode,
