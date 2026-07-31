@@ -14,6 +14,7 @@
     liveBindingSeeded: false,
     dirty: false,
     dragging: null,
+    suppressNodeClickId: null,
     panning: null,
     viewport: viewportModel
       ? viewportModel.normalizeViewport()
@@ -935,6 +936,40 @@
     }
   }
 
+  function renderDragGuides(guides = {}, documentRef = document) {
+    const vertical = el("serviceDesignerGuideVertical", documentRef);
+    const horizontal = el("serviceDesignerGuideHorizontal", documentRef);
+    if (vertical) {
+      const visible = Number.isFinite(guides.vertical);
+      vertical.hidden = !visible;
+      if (visible) vertical.style.left = `${guides.vertical}px`;
+    }
+    if (horizontal) {
+      const visible = Number.isFinite(guides.horizontal);
+      horizontal.hidden = !visible;
+      if (visible) horizontal.style.top = `${guides.horizontal}px`;
+    }
+  }
+
+  function selectNodeForDrag(nodeId, nodeElement, documentRef = document) {
+    state.selectedNodeId = nodeId;
+    state.selectedEdgeId = null;
+    documentRef.querySelectorAll("[data-designer-node]").forEach((element) => {
+      element.classList.toggle(
+        "selected",
+        element.dataset.designerNode === nodeId,
+      );
+    });
+    renderEdges(documentRef);
+    renderInspector(documentRef);
+    renderMiniMap(documentRef);
+    try {
+      nodeElement.focus({preventScroll: true});
+    } catch (_error) {
+      nodeElement.focus?.();
+    }
+  }
+
   function startDrag(event, nodeId, documentRef = document) {
     if (event.button !== 0 || event.target.closest?.("button")) return;
     const node = state.design.nodes.find((item) => item.id === nodeId);
@@ -949,59 +984,188 @@
       startY: Number(node.y),
       x: Number(node.x),
       y: Number(node.y),
+      pointerId: event.pointerId,
+      moved: false,
     };
-    selectNode(nodeId, documentRef, false);
+    selectNodeForDrag(nodeId, nodeElement, documentRef);
+    try {
+      nodeElement.setPointerCapture?.(event.pointerId);
+    } catch (_error) {
+      // Pointer capture is an enhancement; window listeners remain the fallback.
+    }
     event.preventDefault();
   }
 
-  function moveDrag(event) {
-    if (!state.dragging) return;
+  function moveDrag(event, documentRef = document) {
+    if (
+      !state.dragging
+      || (
+        Number.isFinite(state.dragging.pointerId)
+        && event.pointerId !== state.dragging.pointerId
+      )
+    ) {
+      return false;
+    }
+    const deltaClientX = event.clientX - state.dragging.startClientX;
+    const deltaClientY = event.clientY - state.dragging.startClientY;
+    if (
+      !state.dragging.moved
+      && Math.hypot(deltaClientX, deltaClientY) < 5
+    ) {
+      return false;
+    }
+    if (!state.dragging.moved) {
+      state.dragging.moved = true;
+      state.dragging.nodeElement.classList.add("is-dragging");
+      el("serviceDesignerCanvasViewport", documentRef)?.classList.add(
+        "is-node-dragging",
+      );
+    }
     const zoom = Math.max(0.01, Number(state.viewport.zoom) || 1);
-    const x = Math.max(
-      16,
-      Math.min(
-        viewportModel.CANVAS_WIDTH - viewportModel.NODE_WIDTH - 16,
-        state.dragging.startX
-          + (event.clientX - state.dragging.startClientX) / zoom,
-      ),
+    const constrained = viewportModel.constrainNodePosition(
+      {x: state.dragging.startX, y: state.dragging.startY},
+      {
+        x: state.dragging.startX + deltaClientX / zoom,
+        y: state.dragging.startY + deltaClientY / zoom,
+      },
+      event.shiftKey,
     );
-    const y = Math.max(
-      16,
-      Math.min(
-        viewportModel.CANVAS_HEIGHT - viewportModel.NODE_HEIGHT - 16,
-        state.dragging.startY
-          + (event.clientY - state.dragging.startClientY) / zoom,
-      ),
+    const placement = viewportModel.snapNodePosition(
+      constrained,
+      state.design.nodes,
+      state.dragging.nodeId,
+      {
+        snap: !event.altKey,
+        tolerance: viewportModel.SNAP_TOLERANCE / zoom,
+        lockX: constrained.lockedAxis === "vertical",
+        lockY: constrained.lockedAxis === "horizontal",
+      },
     );
+    const {x, y} = placement;
     state.dragging.x = x;
     state.dragging.y = y;
     state.dragging.nodeElement.style.left = `${x}px`;
     state.dragging.nodeElement.style.top = `${y}px`;
+    renderDragGuides(placement.guides, documentRef);
     const node = state.design.nodes.find((item) => item.id === state.dragging.nodeId);
     if (node) {
       const previousX = node.x;
       const previousY = node.y;
       node.x = x;
       node.y = y;
-      renderEdges();
-      renderMiniMap();
+      renderEdges(documentRef);
+      renderMiniMap(documentRef);
       node.x = previousX;
       node.y = previousY;
     }
     event.preventDefault();
+    return true;
   }
 
-  function finishDrag(documentRef = document) {
-    if (!state.dragging) return;
-    const {nodeId, x, y} = state.dragging;
+  function finishDrag(
+    event,
+    documentRef = document,
+    cancelled = false,
+  ) {
+    if (!state.dragging) return false;
+    const drag = state.dragging;
+    if (
+      Number.isFinite(drag.pointerId)
+      && Number.isFinite(event?.pointerId)
+      && event.pointerId !== drag.pointerId
+    ) {
+      return false;
+    }
     state.dragging = null;
-    state.design = model.updateNode(state.design, nodeId, {x, y});
+    drag.nodeElement.classList.remove("is-dragging");
+    el("serviceDesignerCanvasViewport", documentRef)?.classList.remove(
+      "is-node-dragging",
+    );
+    renderDragGuides({}, documentRef);
+    try {
+      if (drag.nodeElement.hasPointerCapture?.(drag.pointerId)) {
+        drag.nodeElement.releasePointerCapture(drag.pointerId);
+      }
+    } catch (_error) {
+      // The browser may already have released capture on pointercancel.
+    }
+    if (!drag.moved || cancelled) {
+      drag.nodeElement.style.left = `${drag.startX}px`;
+      drag.nodeElement.style.top = `${drag.startY}px`;
+      if (drag.moved) {
+        renderEdges(documentRef);
+        renderMiniMap(documentRef);
+      }
+      return false;
+    }
+    const x = Math.round(drag.x * 100) / 100;
+    const y = Math.round(drag.y * 100) / 100;
+    state.suppressNodeClickId = drag.nodeId;
+    root.setTimeout?.(() => {
+      if (state.suppressNodeClickId === drag.nodeId) {
+        state.suppressNodeClickId = null;
+      }
+    }, 0);
+    if (x === drag.startX && y === drag.startY) return true;
+    state.design = model.updateNode(state.design, drag.nodeId, {x, y});
     markDirty("단계 위치를 변경했습니다.", documentRef);
-    renderAll(documentRef);
+    renderEdges(documentRef);
+    renderMiniMap(documentRef);
+    event?.preventDefault?.();
+    return true;
+  }
+
+  function moveSelectedNodeByKeyboard(event, documentRef = document) {
+    if (
+      !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
+      || !state.selectedNodeId
+      || event.target.matches?.("input, select, textarea, button")
+      || event.target.isContentEditable
+      || !event.target.closest?.(".service-designer-page")
+    ) {
+      return false;
+    }
+    const node = state.design.nodes.find(
+      (item) => item.id === state.selectedNodeId,
+    );
+    if (!node) return false;
+    const next = viewportModel.nudgeNodePosition(
+      node,
+      event.key,
+      event.shiftKey,
+    );
+    event.preventDefault();
+    if (next.x === node.x && next.y === node.y) return true;
+    state.design = model.updateNode(state.design, node.id, next);
+    const nodeElement = [...documentRef.querySelectorAll("[data-designer-node]")]
+      .find((element) => element.dataset.designerNode === node.id);
+    if (nodeElement) {
+      nodeElement.style.left = `${next.x}px`;
+      nodeElement.style.top = `${next.y}px`;
+    }
+    markDirty(
+      event.shiftKey
+        ? "단계를 그리드 한 칸 이동했습니다."
+        : "단계를 미세 이동했습니다.",
+      documentRef,
+    );
+    renderEdges(documentRef);
+    renderMiniMap(documentRef);
+    return true;
   }
 
   function bindEvents(documentRef = document) {
     documentRef.addEventListener("click", (event) => {
+      const suppressedNode = event.target.closest?.("[data-designer-node]");
+      if (
+        suppressedNode
+        && state.suppressNodeClickId === suppressedNode.dataset.designerNode
+      ) {
+        state.suppressNodeClickId = null;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       const addButton = event.target.closest?.("[data-designer-add]");
       if (addButton) {
         state.design = model.addNode(state.design, addButton.dataset.designerAdd);
@@ -1071,15 +1235,15 @@
       startCanvasPan(event, documentRef);
     });
     root.addEventListener("pointermove", (event) => {
-      if (!moveCanvasPan(event, documentRef)) moveDrag(event);
+      if (!moveCanvasPan(event, documentRef)) moveDrag(event, documentRef);
     });
-    root.addEventListener("pointerup", () => {
+    root.addEventListener("pointerup", (event) => {
       finishCanvasPan(documentRef);
-      finishDrag(documentRef);
+      finishDrag(event, documentRef);
     });
-    root.addEventListener("pointercancel", () => {
+    root.addEventListener("pointercancel", (event) => {
       finishCanvasPan(documentRef);
-      finishDrag(documentRef);
+      finishDrag(event, documentRef, true);
     });
 
     el("serviceDesignerCanvasViewport", documentRef)?.addEventListener(
@@ -1190,6 +1354,7 @@
       scheduleCanvasFit(documentRef);
     });
     documentRef.addEventListener("keydown", (event) => {
+      if (moveSelectedNodeByKeyboard(event, documentRef)) return;
       if (event.key === "Escape" && state.pendingFromId) {
         state.pendingFromId = null;
         setFeedback("연결 선택을 취소했습니다.", "ready", documentRef);

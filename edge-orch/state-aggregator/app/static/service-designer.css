@@ -411,6 +411,10 @@ body[data-dashboard-page="designer"] .layout {
   cursor: grabbing;
 }
 
+.service-designer-canvas-viewport.is-node-dragging {
+  cursor: default;
+}
+
 .service-designer-canvas {
   position: absolute;
   top: 0;
@@ -430,6 +434,26 @@ body[data-dashboard-page="designer"] .layout {
 .service-designer-edges {
   pointer-events: none;
   overflow: visible;
+}
+
+.service-designer-alignment-guide {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  background: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.16);
+}
+
+.service-designer-alignment-guide.vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.service-designer-alignment-guide.horizontal {
+  right: 0;
+  left: 0;
+  height: 1px;
 }
 
 .service-designer-edge-path {
@@ -498,6 +522,19 @@ body[data-dashboard-page="designer"] .layout {
   border-color: var(--node-accent);
   outline: 2px solid color-mix(in srgb, var(--node-accent) 28%, transparent);
   box-shadow: 0 14px 32px rgba(2, 6, 23, 0.42);
+}
+
+.service-designer-node.is-dragging {
+  z-index: 6;
+  cursor: grabbing;
+  box-shadow:
+    0 18px 42px rgba(2, 6, 23, 0.58),
+    0 0 0 2px color-mix(in srgb, var(--node-accent) 36%, transparent);
+  will-change: left, top;
+}
+
+.service-designer-node.is-dragging .service-designer-node-head {
+  cursor: grabbing;
 }
 
 .service-designer-node[data-validity="error"] {

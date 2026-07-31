@@ -13,6 +13,8 @@
   const NODE_HEIGHT = 156;
   const MIN_ZOOM = 0.32;
   const MAX_ZOOM = 1.6;
+  const GRID_SIZE = 24;
+  const SNAP_TOLERANCE = 8;
 
   function finite(value, fallback = 0) {
     const number = Number(value);
@@ -21,6 +23,142 @@
 
   function clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, finite(value, minimum)));
+  }
+
+  function clampNodePosition(position = {}, margin = 16) {
+    const safeMargin = Math.max(0, finite(margin, 16));
+    return {
+      x: clamp(
+        position.x,
+        safeMargin,
+        CANVAS_WIDTH - NODE_WIDTH - safeMargin,
+      ),
+      y: clamp(
+        position.y,
+        safeMargin,
+        CANVAS_HEIGHT - NODE_HEIGHT - safeMargin,
+      ),
+    };
+  }
+
+  function constrainNodePosition(start = {}, position = {}, enabled = true) {
+    const origin = {
+      x: finite(start.x),
+      y: finite(start.y),
+    };
+    const next = {
+      x: finite(position.x, origin.x),
+      y: finite(position.y, origin.y),
+    };
+    if (!enabled) return {...next, lockedAxis: null};
+    if (Math.abs(next.x - origin.x) >= Math.abs(next.y - origin.y)) {
+      return {x: next.x, y: origin.y, lockedAxis: "horizontal"};
+    }
+    return {x: origin.x, y: next.y, lockedAxis: "vertical"};
+  }
+
+  function nearestAlignment(
+    coordinate,
+    movingSize,
+    nodes,
+    axis,
+    tolerance,
+  ) {
+    const movingAnchors = [
+      {offset: movingSize / 2, rank: 0},
+      {offset: 0, rank: 1},
+      {offset: movingSize, rank: 1},
+    ];
+    const targetAnchors = movingAnchors;
+    const candidates = [];
+    nodes.forEach((node) => {
+      const targetCoordinate = finite(node?.[axis]);
+      targetAnchors.forEach((target) => {
+        movingAnchors.forEach((moving) => {
+          const guide = targetCoordinate + target.offset;
+          const delta = guide - (coordinate + moving.offset);
+          if (Math.abs(delta) > tolerance) return;
+          candidates.push({
+            coordinate: coordinate + delta,
+            delta,
+            guide,
+            rank: moving.rank + target.rank,
+          });
+        });
+      });
+    });
+    candidates.sort((left, right) => (
+      Math.abs(left.delta) - Math.abs(right.delta)
+      || left.rank - right.rank
+      || left.guide - right.guide
+    ));
+    return candidates[0] || null;
+  }
+
+  function snapNodePosition(
+    position = {},
+    nodes = [],
+    movingNodeId = "",
+    options = {},
+  ) {
+    const raw = {
+      x: finite(position.x),
+      y: finite(position.y),
+    };
+    const snapEnabled = options.snap !== false;
+    const gridEnabled = snapEnabled && options.grid !== false;
+    const guidesEnabled = snapEnabled && options.guides !== false;
+    const tolerance = Math.max(
+      0,
+      finite(options.tolerance, SNAP_TOLERANCE),
+    );
+    const peers = nodes.filter((node) => String(node?.id) !== String(movingNodeId));
+    const alignmentX = guidesEnabled && !options.lockX
+      ? nearestAlignment(raw.x, NODE_WIDTH, peers, "x", tolerance)
+      : null;
+    const alignmentY = guidesEnabled && !options.lockY
+      ? nearestAlignment(raw.y, NODE_HEIGHT, peers, "y", tolerance)
+      : null;
+    let x = raw.x;
+    let y = raw.y;
+
+    if (!options.lockX) {
+      x = alignmentX
+        ? alignmentX.coordinate
+        : gridEnabled
+          ? Math.round(raw.x / GRID_SIZE) * GRID_SIZE
+          : raw.x;
+    }
+    if (!options.lockY) {
+      y = alignmentY
+        ? alignmentY.coordinate
+        : gridEnabled
+          ? Math.round(raw.y / GRID_SIZE) * GRID_SIZE
+          : raw.y;
+    }
+    const clamped = clampNodePosition({x, y}, options.margin);
+    return {
+      ...clamped,
+      guides: {
+        vertical: alignmentX && clamped.x === x ? alignmentX.guide : null,
+        horizontal: alignmentY && clamped.y === y ? alignmentY.guide : null,
+      },
+    };
+  }
+
+  function nudgeNodePosition(position = {}, key = "", accelerated = false) {
+    const step = accelerated ? GRID_SIZE : 1;
+    const delta = {
+      ArrowLeft: {x: -step, y: 0},
+      ArrowRight: {x: step, y: 0},
+      ArrowUp: {x: 0, y: -step},
+      ArrowDown: {x: 0, y: step},
+    }[key];
+    if (!delta) return clampNodePosition(position);
+    return clampNodePosition({
+      x: finite(position.x) + delta.x,
+      y: finite(position.y) + delta.y,
+    });
   }
 
   function normalizeViewport(viewport = {}) {
@@ -204,16 +342,22 @@
   return {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    GRID_SIZE,
     MAX_ZOOM,
     MIN_ZOOM,
     NODE_HEIGHT,
     NODE_WIDTH,
+    SNAP_TOLERANCE,
     centerOnWorldPoint,
+    clampNodePosition,
+    constrainNodePosition,
     ensureWorldRectVisible,
     fitViewport,
     graphBounds,
+    nudgeNodePosition,
     normalizeViewport,
     panViewport,
+    snapNodePosition,
     visibleWorldRect,
     zoomAtPoint,
   };

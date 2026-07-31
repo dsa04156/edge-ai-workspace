@@ -23,13 +23,18 @@ const {
   sourceBindingCandidate,
 } = require("../app/static/service-designer.js");
 const {
+  GRID_SIZE,
   MAX_ZOOM,
   MIN_ZOOM,
   centerOnWorldPoint,
+  clampNodePosition,
+  constrainNodePosition,
   ensureWorldRectVisible,
   fitViewport,
   graphBounds,
+  nudgeNodePosition,
   panViewport,
+  snapNodePosition,
   visibleWorldRect,
   zoomAtPoint,
 } = require("../app/static/service-designer-viewport.js");
@@ -258,6 +263,52 @@ test("pans, centers, and reports the visible world rectangle", () => {
   assert.equal(Math.round(visible.y + visible.height / 2), 350);
 });
 
+test("snaps dragged nodes to the canvas grid and allows Alt-style free placement", () => {
+  const snapped = snapNodePosition({x: 53, y: 61}, [], "sensor-1");
+  const free = snapNodePosition(
+    {x: 53, y: 61},
+    [],
+    "sensor-1",
+    {snap: false},
+  );
+
+  assert.deepEqual(
+    {x: snapped.x, y: snapped.y},
+    {x: 2 * GRID_SIZE, y: 3 * GRID_SIZE},
+  );
+  assert.deepEqual({x: free.x, y: free.y}, {x: 53, y: 61});
+});
+
+test("aligns node anchors to peers and reports visible guide coordinates", () => {
+  const aligned = snapNodePosition(
+    {x: 237, y: 117},
+    [{id: "peer", x: 240, y: 120}],
+    "moving",
+    {grid: false},
+  );
+
+  assert.equal(aligned.x, 240);
+  assert.equal(aligned.y, 120);
+  assert.ok(Number.isFinite(aligned.guides.vertical));
+  assert.ok(Number.isFinite(aligned.guides.horizontal));
+});
+
+test("constrains Shift drags to one axis and nudges nodes by keyboard", () => {
+  assert.deepEqual(
+    constrainNodePosition({x: 48, y: 128}, {x: 138, y: 162}),
+    {x: 138, y: 128, lockedAxis: "horizontal"},
+  );
+  assert.deepEqual(
+    constrainNodePosition({x: 48, y: 128}, {x: 60, y: 210}),
+    {x: 48, y: 210, lockedAxis: "vertical"},
+  );
+  assert.deepEqual(
+    nudgeNodePosition({x: 48, y: 128}, "ArrowRight", true),
+    {x: 48 + GRID_SIZE, y: 128},
+  );
+  assert.deepEqual(clampNodePosition({x: -20, y: 900}), {x: 16, y: 528});
+});
+
 test("reveals a selected node beside the inspector without changing zoom", () => {
   const current = {x: 40, y: 20, zoom: 0.8};
   const revealed = ensureWorldRectVisible(
@@ -289,6 +340,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerValidation"/);
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
+  assert.match(html, /id="serviceDesignerGuideVertical"/);
+  assert.match(html, /Shift 한 축 고정 · Alt 자유 배치/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
