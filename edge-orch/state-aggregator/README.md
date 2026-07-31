@@ -23,11 +23,15 @@ GET /state/workflows
 GET /state/workflow/{workflow_id}
 GET /state/summary
 
-현재 dashboard의 AI Pipeline/Workflow Builder 화면은 제거했다. 등록된 EdgeX Core
-Metadata Device는 `GET /state/devices`로 조회하고, Core Data Event/Reading history는
-`GET /state/devices/{device_id}/telemetry`로 확인한다. 고정 `sensor-anomaly-demo`는
-같은 edge node에서 Device Service Local Data API를 직접 읽으며 state-aggregator가
-데이터 프록시 역할을 하지 않는다.
+과거 dashboard의 AI Pipeline/Workflow Builder와 샘플 실행 API는 제거했다. 등록된
+EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Device Profile의 안전한
+resource 계약은 `GET /state/device-profiles`, Core Data Event/Reading history는
+`GET /state/devices/{device_id}/telemetry`로 확인한다. 대시보드의 새 `서비스 설계`는
+이 read-only 계약을 사용해 browser-local 단계 구성, 포트 연결, 타입·배치 validation과
+dry-run 실행 계획만 제공한다. localStorage 밖으로 초안을 저장하지 않고 Kubernetes,
+EdgeX, command와 workload를 변경하지 않는다. 고정 `sensor-anomaly-demo`는 같은 edge
+node에서 Device Service Local Data API를 직접 읽으며 state-aggregator가 데이터
+프록시 역할을 하지 않는다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,

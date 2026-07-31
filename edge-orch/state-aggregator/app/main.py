@@ -22,12 +22,14 @@ from .connection_management import ConnectionManagementService
 from .device_management import DeviceManagementService
 from .device_discovery import DeviceDiscoveryManagementService
 from .device_management_api import create_device_management_router
-from .device_management_edgex import EdgeXManagementClient
+from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
 from .edgex import EdgeXError
 from .metrics import render_metrics
 from .models import (
     CostModelState,
     DashboardState,
+    DeviceProfileContract,
+    DeviceResourceContract,
     DeviceState,
     OperatorAssistantState,
     OperatorChatRequest,
@@ -156,6 +158,79 @@ async def get_nodes():
 @app.get("/state/devices", response_model=list[DeviceState])
 async def get_devices() -> list[DeviceState]:
     return await service.get_devices()
+
+
+def _device_profile_contract(profile: JsonMap) -> DeviceProfileContract:
+    resources: list[DeviceResourceContract] = []
+    raw_resources = profile.get("deviceResources")
+    if isinstance(raw_resources, list):
+        for raw_resource in raw_resources:
+            if not isinstance(raw_resource, dict):
+                continue
+            name = raw_resource.get("name")
+            if not isinstance(name, str) or not name.strip():
+                continue
+            properties = raw_resource.get("properties")
+            if not isinstance(properties, dict):
+                properties = {}
+            value_type = properties.get("valueType")
+            read_write = properties.get("readWrite")
+            units = properties.get("units")
+            resources.append(
+                DeviceResourceContract(
+                    name=name.strip(),
+                    description=(
+                        str(raw_resource.get("description")).strip() or None
+                        if raw_resource.get("description") is not None
+                        else None
+                    ),
+                    value_type=(
+                        value_type.strip()
+                        if isinstance(value_type, str) and value_type.strip()
+                        else "Unknown"
+                    ),
+                    read_write=(
+                        read_write.strip()
+                        if isinstance(read_write, str) and read_write.strip()
+                        else "R"
+                    ),
+                    units=(
+                        units.strip()
+                        if isinstance(units, str) and units.strip()
+                        else None
+                    ),
+                )
+            )
+    labels = profile.get("labels")
+    return DeviceProfileContract(
+        name=str(profile.get("name") or "").strip(),
+        description=str(profile.get("description") or "").strip() or None,
+        manufacturer=str(profile.get("manufacturer") or "").strip() or None,
+        model=str(profile.get("model") or "").strip() or None,
+        labels=(
+            [item.strip() for item in labels if isinstance(item, str) and item.strip()]
+            if isinstance(labels, list)
+            else []
+        ),
+        resources=resources,
+    )
+
+
+@app.get("/state/device-profiles", response_model=list[DeviceProfileContract])
+async def get_device_profiles() -> list[DeviceProfileContract]:
+    try:
+        profiles = await management_client.list_profiles()
+    except EdgeXManagementError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="EdgeX Device Profile 계약을 조회할 수 없습니다.",
+        ) from exc
+    contracts = [
+        _device_profile_contract(profile)
+        for profile in profiles
+        if isinstance(profile, dict) and str(profile.get("name") or "").strip()
+    ]
+    return sorted(contracts, key=lambda profile: profile.name.casefold())
 
 
 @app.get("/state/service-demo", response_model=ServiceDemoState)

@@ -70,6 +70,7 @@
 <li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -157,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 2차년도-가상디바이스-워크플로-설계.md</span>
-            <span class="badge">수정: 2026-07-30 17:00</span>
-            <span class="badge">HTML 생성: 2026-07-30 21:13</span>
+            <span class="badge">수정: 2026-07-31 10:43</span>
+            <span class="badge">HTML 생성: 2026-07-31 10:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -226,7 +227,7 @@ Future Virtual Device and Workflow Layer
   -&gt; does not replace or duplicate EdgeX physical authority</code></pre>
 <p>PostgreSQL persists Core Data Event/Reading. 현재 Serial/I2C Device Service에는 각각 10분·10,000 sample memory recent cache와 Local Data API가 있지만 edge SQLite outbox나 offline replay는 없다. A mapper direct-to-storage path is not current telemetry authority. Physical freshness is calculated from the latest valid Core Data Event <code>origin</code>, not from query time, Kubernetes heartbeat, or legacy <code>DeviceStatus</code> timestamps.</p>
 <h2 id="현재-poc-workflow-source-모델">현재 PoC Workflow Source 모델</h2>
-<p>현재 dashboard의 workflow builder는 제거됐다. <code>state-aggregator</code>가 제공하는 EdgeX Core Metadata Device와 Core Data latest Event freshness read-only view는 운영 현황과 등록 디바이스 화면에서 사용하며, Kubernetes node/workload 정보는 별도 placement 진단으로만 결합한다.</p>
+<p>2026-07-30에는 실제 실행처럼 보이던 과거 workflow builder를 제거했다. 2026-07-31에는 이를 복구하지 않고 <code>서비스 설계</code> 캔버스를 별도 2차년도 프로토타입으로 추가했다. <code>state-aggregator</code>가 제공하는 EdgeX Core Metadata Device, Device Profile resource와 Core Data latest Event freshness read-only view를 입력 선택과 validation에 사용하며, Kubernetes node/workload 정보는 단계 배치 검증에만 결합한다.</p>
 <p>현재 physical source API 표현은 EdgeX 필드를 보존한다.</p>
 <pre data-lang="yaml"><code>name: virtual-temperature-001
 profileName: etri-arduino-temperature
@@ -260,6 +261,10 @@ latestEvent:
 <tr>
 <td><code>GET /state/devices</code></td>
 <td>Core Metadata Device inventory/state와 Core Data latest Event freshness 조회</td>
+</tr>
+<tr>
+<td><code>GET /state/device-profiles</code></td>
+<td>Core Metadata Device Profile의 안전한 읽기 전용 DeviceResource 계약 조회</td>
 </tr>
 <tr>
 <td><code>GET /state/devices/{device_id}/telemetry</code></td>
@@ -355,7 +360,7 @@ latestEvent:
     -&gt; alert/event output
   dashboard sink
     -&gt; operator view</code></pre>
-<p>현재 dashboard에는 workflow UI가 없다. Kubernetes apply/delete/restart, EdgeX metadata/state mutation, Device Service command, actuator command, runtime migration/offloading도 실행하지 않는다.</p>
+<p>현재 dashboard의 <code>서비스 설계</code>는 센서 입력·전처리·추론·결과 노드 추가·이동·삭제, 포트 연결, 속성 편집, 타입·DAG·node 배치 validation, dry-run 실행 계획과 browser-local 초안 저장까지만 제공한다. Kubernetes apply/delete/restart, EdgeX metadata/state mutation, Device Service command, actuator command, runtime migration/offloading은 실행하지 않는다.</p>
 <p>후속 구현에서 검토할 항목은 다음과 같다.</p>
 <ul><li>virtual-device instance를 workflow stage에 bind하는 registry 계약</li><li>EdgeX input source를 stage 입력으로 참조하는 방법</li><li>stage를 실행할 node/container 후보와 자원 요구량</li><li>stale/error 상태의 validation 및 명시적 operator 승인 정책</li></ul>
 <p>이를 현재 동적 orchestration 또는 자동 failover 완성 기능으로 표현하지 않는다.</p>
@@ -456,7 +461,7 @@ latestEvent:
 <tr>
 <td>Workflow Builder</td>
 <td>stage 구성과 virtual-device 연결</td>
-<td>현재 dashboard 구현 제거, 후속 재설계 필요</td>
+<td>실제 EdgeX Device/Profile 입력 기반 browser-local 캔버스와 validation·dry-run만 구현</td>
 </tr>
 <tr>
 <td>Workflow Runtime</td>
@@ -473,7 +478,7 @@ latestEvent:
 <h2 id="단계별-진행안">단계별 진행안</h2>
 <h3 id="1단계-edgex-등록-device-기반-source-pool">1단계: EdgeX 등록 Device 기반 source pool</h3>
 <p>현재 전달 범위:</p>
-<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 source 조회와 browser-local workflow preview</li><li>Jetson physical <code>arduino-001</code> 공유 Serial reader와 6개 가상 Device 수집·저장·dashboard 수직 슬라이스</li><li>Raspberry Pi physical <code>sensehat-001</code> 직접 I2C reader와 환경/IMU 6개 가상 Device 수집·저장·dashboard 수직 슬라이스</li><li>필요성이 검증된 MQTT-only 장비용 별도 adapter 후보(현재 workload 없음)</li></ul>
+<ul><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices</code></li><li><code>state-aggregator</code>의 EdgeX-backed <code>GET /state/devices/{device_id}/telemetry</code></li><li>dashboard의 실제 EdgeX Device/Profile resource 선택과 browser-local service design validation·dry-run</li><li>Jetson physical <code>arduino-001</code> 공유 Serial reader와 6개 가상 Device 수집·저장·dashboard 수직 슬라이스</li><li>Raspberry Pi physical <code>sensehat-001</code> 직접 I2C reader와 환경/IMU 6개 가상 Device 수집·저장·dashboard 수직 슬라이스</li><li>필요성이 검증된 MQTT-only 장비용 별도 adapter 후보(현재 workload 없음)</li></ul>
 <p>live deployment/cutover 여부는 배포 환경에서 별도로 확인한다.</p>
 <h3 id="2단계-protocol-migration-waves">2단계: protocol migration waves</h3>
 <p>Serial/I2C의 남은 물리 분리·복구 검증과 Modbus, OPC-UA, RTSP workflow별로 다음 gate를 독립적으로 통과한다. Sense HAT I2C 정상 경로 성공을 다른 I2C 장비·주소의 지원 근거로 확장하지 않는다.</p>

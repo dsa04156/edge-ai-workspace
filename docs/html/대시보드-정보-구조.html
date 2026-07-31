@@ -70,6 +70,7 @@
 <li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -157,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-30 20:38</span>
-            <span class="badge">HTML 생성: 2026-07-30 21:13</span>
+            <span class="badge">수정: 2026-07-31 10:44</span>
+            <span class="badge">HTML 생성: 2026-07-31 10:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -182,6 +183,8 @@
 <p>한다. 표·캔버스처럼 내부 스크롤이 필요한 요소만 자체 scroll container를 사용한다.</p>
 <ol><li>화면 분류의 권위는 다음과 같다.</li></ol>
 <ul><li><code>엣지 AI 서버</code>: <code>/state/nodes</code>에서 <code>node_type=cloud_server|server</code></li><li><code>물리 디바이스</code>: <code>/state/nodes</code>의 나머지 Jetson·Raspberry Pi 엣지 노드</li><li><code>가상 디바이스</code>: <code>/state/virtual-resources</code>의 자원증강형 논리 자원</li><li><code>센서 디바이스</code>: <code>/state/devices</code>의 EdgeX Core Metadata Device</li></ul>
+<ol><li><code>서비스 설계</code>는 <code>/state/devices</code>와 <code>/state/device-profiles</code>의 실제 EdgeX</li></ol>
+<p>Device/DeviceResource를 입력으로 사용한다. 브라우저 localStorage 초안, 단계·포트, 타입·DAG·node 배치 validation과 dry-run 계획만 제공하고 운영 상태 판정, Kubernetes/EdgeX mutation과 실제 workload 실행에는 참여하지 않는다.</p>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>
@@ -197,6 +200,10 @@
 <tr>
 <td><code>GET /state/devices</code></td>
 <td>EdgeX 기반 센서 디바이스 상태 목록</td>
+</tr>
+<tr>
+<td><code>GET /state/device-profiles</code></td>
+<td>서비스 설계용 Device Profile/DeviceResource 읽기 전용 계약. resource protocol <code>attributes</code> 제외</td>
 </tr>
 <tr>
 <td><code>GET /state/devices/{device_id}/telemetry?window=-30m&amp;limit=1000</code></td>
@@ -428,6 +435,10 @@
 <td>공통 노드 선택 뒤 <code>등록 장비</code>를 물리 source별 카드로 먼저 표시하고 카드 안에서 개별 EdgeX Device를 펼친다. 그 뒤 <code>디바이스 프로필</code>, 연결 대기 후보와 수집 서비스를 이어서 표시한다. 보이는 신규 등록 동작은 <code>장비 연결</code> 하나이며 과거 직접 후보 등록 UI는 숨긴다. 후보의 근거·failure·binding은 <code>후보 상세정보</code>를 열어 확인하고 검색·필터·승인/무시를 수행한다. <code>프로필 생성</code> 결과는 등록 현황에 즉시 표시되고 package bundled Profile과 전체 기존 Profile은 장비 연결 3단계에서 선택한다. 장비 연결은 protocol package/노드/연결 설정 → 디바이스 정보 → 프로필 → <code>검증하고 연결</code> 순서로 진행하며 마지막 버튼이 Runtime 준비, EdgeX 등록과 first Event를 이어서 처리</td>
 </tr>
 <tr>
+<td>서비스 설계</td>
+<td>실제 EdgeX 센서 디바이스/DeviceResource 선택, 전처리·추론·결과 단계 추가·이동·삭제, 포트 연결, 속성 inspector, 타입·순환·배치 validation과 dry-run 실행 계획. 초안은 브라우저에만 저장하며 배포·실행 버튼 없음</td>
+</tr>
+<tr>
 <td>Issue / Focus</td>
 <td>locked, service down, disconnected, stale/no event 원인</td>
 </tr>
@@ -526,7 +537,7 @@
 <ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>Device를 선택해 저장 이력의 요청 범위, 반환 Reading 수, 실제 구간과 resource별 series를 확인한다.</li><li>새 장비를 다룰 때 <code>디바이스 관리</code>에서 대상 KubeEdge 노드를 먼저 선택한다. 기본 등록 현황의 <code>연결 대기</code>에서 node report online/stale, 후보의 presence·상태·인증·Catalog match를 확인한다. USB Serial은 stable identity와 선택적 Manifest로, I2C는 Plan의 bus/address 및 read-only chip ID 규칙으로 후보를 식별한다. 네트워크 protocol은 기본 비활성화하며 임의 CIDR scan을 하지 않는다. 후보는 운영자 승인과 외부 인증, Runtime/Profile/Device 검증, 첫 Event 확인을 모두 통과해야 등록 완료가 된다.</li><li>등록 현황의 물리 장비 카드를 선택해 등록 연결과 실제 장비 상태의 네 증거, Runtime,</li></ol>
 <p>protocol package와 개별 EdgeX Device를 펼쳐 확인한다. <code>장비 연결</code> 1단계는 protocol/Device Service를 먼저 고르고, 그 결과에 종속된 등록 hardware binding과 protocol별 Runtime/Device 설정을 입력한다. target node와 binding의 <code>Port</code>/<code>Bus</code>/<code>DeviceID</code> 값은 직접 입력하지 않는다. <code>auto</code> plan이 기존 runtime을 재사용하는지, 검증된 빈 binding에 새 runtime을 배포하는지, 또는 차단 이유가 무엇인지 마지막 단계에서 확인한다. <code>검증하고 연결</code>이 통합 validation을 먼저 수행하고 유효할 때만 요청별 idempotency key로 연결하고 runtime, Metadata readback과 first Event 상태를 구분해 본다. 기존 Device는 펼친 개별 Device 행의 수정 동작으로 들어가 allowlist 필드만 변경한다.</p>
 <ol><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
-<p><code>디바이스 관리</code>는 browser 관리자 token과 <code>Authorization</code> header를 사용하지 않는다. 외부/Argo runtime의 restart/retire 버튼은 비활성화하고, Controller 소유 runtime만 관리한다. 브라우저는 raw manifest, image, hostPath 또는 Kubernetes credential을 전달하지 않는다. Profile/Device 강제 삭제, command publish, actuator control, EdgeMesh와 KubeEdge Device CRD 변경은 제공하지 않는다. AI Pipeline/Workflow Builder와 전용 샘플 미리보기 API는 제거했다. 현재 메뉴는 <code>운영 현황</code>, <code>디바이스</code>, <code>장비 관리</code> 세 화면이며, 실제 edge consumer는 같은 노드의 Device Service Local Data API를 직접 사용한다. 미검증 Adapter는 protocol 선택 목록과 접힌 현황 영역에서 상태를 확인할 수 있지만 비활성화된다. MQTT는 개발용 검증 package 범위에서만 활성화되고 운영 TLS/auth broker나 임의 payload를 지원한다고 표시하지 않는다. idempotency key와 기존 Device의 protocol properties JSON은 고급 영역을 열었을 때만 표시한다. 이 progressive disclosure는 표시 밀도를 줄이기 위한 UI 규칙이며 API 검증과 권한 경계를 완화하지 않는다. 현재 BFF 자체에는 운영자 인증·인가가 없으며 <code>Idempotency-Key</code>와 내부 HMAC도 사용자 인증 수단이 아니다. 따라서 이 mutation 경로는 접근이 제한된 개발 테스트베드에서만 사용하고, 운영 노출 전 Ingress 앞의 별도 인증·인가 계층을 추가한다. 웹 Profile 생성도 같은 경계를 따른다. 서버가 <code>edge-ai-web-managed</code> label을 추가하고 Core Metadata readback을 확인하지만, 이 label은 검증된 parser/image/binding의 대체 증거가 아니다. 발견 후보의 비밀번호·token·URL userinfo는 서버에서 거부한다. 발견 목록과 상태 이력은 Adapter Controller의 SQLite Registry에 영속 저장하는 onboarding staging 자료이며 Core Metadata Device 수, availability와 physical-device KPI 분모에 넣지 않는다. 기존 <code>edgex-device-discovery-registry</code> ConfigMap이 있으면 최초 기동 때 한 번만 migration 입력으로 읽고 이후 권위 저장소로 사용하지 않는다. Adapter가 <code>installed</code>여도 현재 endpoint/resource route를 다른 Device가 소유하면 새 등록은 <code>protocol_binding_exists</code>다. <code>edgeAiOnboarding*</code>, <code>nodeName</code>, <code>physicalDeviceId</code>는 system tag로 보고 사용자 PATCH에서 변경하지 않는다. 새 connection으로 생성한 Device의 <code>hardwareBindingId</code>도 system tag이며 같은 규칙을 적용한다.</p>
+<p><code>디바이스 관리</code>는 browser 관리자 token과 <code>Authorization</code> header를 사용하지 않는다. 외부/Argo runtime의 restart/retire 버튼은 비활성화하고, Controller 소유 runtime만 관리한다. 브라우저는 raw manifest, image, hostPath 또는 Kubernetes credential을 전달하지 않는다. Profile/Device 강제 삭제, command publish, actuator control, EdgeMesh와 KubeEdge Device CRD 변경은 제공하지 않는다. 과거 AI Pipeline/Workflow Builder와 전용 샘플 미리보기 API는 제거했다. 현재 메뉴는 <code>운영 현황</code>, <code>디바이스</code>, <code>장비 관리</code>, <code>서비스 설계</code> 네 화면이다. <code>서비스 설계</code>는 EdgeX read-only 계약의 browser-local validation·dry-run이고 실제 edge consumer는 같은 노드의 Device Service Local Data API를 직접 사용한다. 미검증 Adapter는 protocol 선택 목록과 접힌 현황 영역에서 상태를 확인할 수 있지만 비활성화된다. MQTT는 개발용 검증 package 범위에서만 활성화되고 운영 TLS/auth broker나 임의 payload를 지원한다고 표시하지 않는다. idempotency key와 기존 Device의 protocol properties JSON은 고급 영역을 열었을 때만 표시한다. 이 progressive disclosure는 표시 밀도를 줄이기 위한 UI 규칙이며 API 검증과 권한 경계를 완화하지 않는다. 현재 BFF 자체에는 운영자 인증·인가가 없으며 <code>Idempotency-Key</code>와 내부 HMAC도 사용자 인증 수단이 아니다. 따라서 이 mutation 경로는 접근이 제한된 개발 테스트베드에서만 사용하고, 운영 노출 전 Ingress 앞의 별도 인증·인가 계층을 추가한다. 웹 Profile 생성도 같은 경계를 따른다. 서버가 <code>edge-ai-web-managed</code> label을 추가하고 Core Metadata readback을 확인하지만, 이 label은 검증된 parser/image/binding의 대체 증거가 아니다. 발견 후보의 비밀번호·token·URL userinfo는 서버에서 거부한다. 발견 목록과 상태 이력은 Adapter Controller의 SQLite Registry에 영속 저장하는 onboarding staging 자료이며 Core Metadata Device 수, availability와 physical-device KPI 분모에 넣지 않는다. 기존 <code>edgex-device-discovery-registry</code> ConfigMap이 있으면 최초 기동 때 한 번만 migration 입력으로 읽고 이후 권위 저장소로 사용하지 않는다. Adapter가 <code>installed</code>여도 현재 endpoint/resource route를 다른 Device가 소유하면 새 등록은 <code>protocol_binding_exists</code>다. <code>edgeAiOnboarding*</code>, <code>nodeName</code>, <code>physicalDeviceId</code>는 system tag로 보고 사용자 PATCH에서 변경하지 않는다. 새 connection으로 생성한 Device의 <code>hardwareBindingId</code>도 system tag이며 같은 규칙을 적용한다.</p>
 <h2 id="현재-cutover-범위">현재 cutover 범위</h2>
 <p>기존 loopback Agent/SQLite/HTTPS edge 경로와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 두 Device Service의 10분·10,000 sample 메모리 cache는 로컬 Workflow 입력용이며 재시작하면 사라진다. dashboard는 이 로컬 cache나 과거 Core Data record로 현재 연결을 보정하지 않고, 계속 Core Metadata와 최신 Core Data Event <code>origin</code>으로 상태와 freshness를 판단한다. Serial 6개와 I2C 6개 가상 Device의 Metadata, 계약된 Reading Event와 freshness를 각각 확인하고 실제 케이블/보드 분리·복구 검증은 별도 PASS 항목으로 남긴다.</p>
         </div>

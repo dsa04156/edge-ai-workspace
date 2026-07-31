@@ -1024,6 +1024,10 @@ async function loadDashboard() {
     virtual_resources: virtualResult.value,
     virtual_resource_observation_error: virtualResult.error,
   };
+  globalThis.edgeDashboardData = state.data;
+  if (typeof globalThis.updateServiceDesignerInventory === "function") {
+    globalThis.updateServiceDesignerInventory(state.data);
+  }
   render();
 }
 
@@ -1047,6 +1051,13 @@ async function refreshDashboardNow() {
     const requests = [loadDashboard()];
     if (typeof globalThis.refreshServiceDemo === "function") {
       requests.push(globalThis.refreshServiceDemo());
+    }
+    if (
+      typeof document !== "undefined"
+      && document.body?.dataset.dashboardPage === "designer"
+      && typeof globalThis.refreshServiceDesignerProfiles === "function"
+    ) {
+      requests.push(globalThis.refreshServiceDesignerProfiles());
     }
     await Promise.all(requests);
     setAsyncButtonState(button, {label: "새로고침 완료", success: true});

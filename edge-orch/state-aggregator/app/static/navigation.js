@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "management"];
+const DASHBOARD_PAGES = ["overview", "inventory", "management", "designer"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -16,6 +16,12 @@ function showDashboardPage(page) {
     section.classList.toggle("active", section.dataset.page === nextPage);
   });
   document.body.dataset.dashboardPage = nextPage;
+  if (
+    nextPage === "designer"
+    && typeof globalThis.onServiceDesignerVisible === "function"
+  ) {
+    globalThis.onServiceDesignerVisible();
+  }
 }
 
 function bindDashboardNavigation() {

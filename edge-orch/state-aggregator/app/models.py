@@ -125,6 +125,23 @@ class EdgeXDevice(BaseModel):
     node_name: str | None = None
 
 
+class DeviceResourceContract(BaseModel):
+    name: str
+    description: str | None = None
+    value_type: str
+    read_write: str = "R"
+    units: str | None = None
+
+
+class DeviceProfileContract(BaseModel):
+    name: str
+    description: str | None = None
+    manufacturer: str | None = None
+    model: str | None = None
+    labels: list[str] = Field(default_factory=list)
+    resources: list[DeviceResourceContract] = Field(default_factory=list)
+
+
 class TelemetryPoint(BaseModel):
     device_name: str
     source_name: str
@@ -156,6 +173,8 @@ class DeviceState(BaseModel):
     physical_device_id: str | None = None
     hardware_binding_id: str | None = None
     controller_candidate_id: str | None = None
+
+
 class WorkflowState(BaseModel):
     workflow_id: str
     workflow_type: str | None = None

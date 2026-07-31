@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
+    <link rel="stylesheet" href="/static/service-designer.css?v=edgex-design-dry-run-20260731" />
   </head>
   <body>
     <main class="shell">
@@ -52,6 +53,7 @@
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
+        <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
       <section class="ops-shell">
@@ -365,6 +367,155 @@
           </div>
           <div id="topologyMap" class="topology-map"></div>
         </details>
+
+        <section
+          class="panel service-designer-page dashboard-page"
+          data-page="designer"
+          aria-labelledby="serviceDesignerTitle"
+        >
+          <div class="service-designer-head">
+            <div>
+              <p class="section-kicker">EdgeX 입력 · 실행 전 검증</p>
+              <h2 id="serviceDesignerTitle">서비스 설계</h2>
+              <p>등록된 센서 디바이스를 전처리·추론 단계에 연결합니다.</p>
+            </div>
+            <div class="service-designer-state">
+              <strong id="serviceDesignerDraftState" data-state="draft">초안</strong>
+              <span id="serviceDesignerInventoryState">EdgeX 정보 확인 중</span>
+            </div>
+          </div>
+
+          <div class="service-designer-toolbar">
+            <label for="serviceDesignerName">
+              <span>서비스 이름</span>
+              <input id="serviceDesignerName" type="text" maxlength="120" autocomplete="off" />
+            </label>
+            <div class="service-designer-actions">
+              <button id="serviceDesignerReset" type="button">기본 설계</button>
+              <button id="serviceDesignerSave" type="button">이 브라우저에 저장</button>
+              <button id="serviceDesignerValidate" class="service-designer-primary" type="button">설계 검증</button>
+            </div>
+          </div>
+          <div
+            id="serviceDesignerFeedback"
+            class="service-designer-feedback"
+            role="status"
+            aria-live="polite"
+            data-state="ready"
+          >
+            단계를 선택해 설정하거나 포트를 눌러 연결하세요.
+          </div>
+
+          <div class="service-designer-workbench">
+            <aside class="service-designer-palette" aria-labelledby="serviceDesignerPaletteTitle">
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>단계</span>
+                  <strong id="serviceDesignerPaletteTitle">추가</strong>
+                </div>
+              </div>
+              <label class="service-designer-search" for="serviceDesignerPaletteSearch">
+                <span class="sr-only">단계 검색</span>
+                <input
+                  id="serviceDesignerPaletteSearch"
+                  type="search"
+                  placeholder="단계 검색"
+                  autocomplete="off"
+                />
+              </label>
+              <div id="serviceDesignerPaletteList" class="service-designer-palette-list">
+                <button type="button" data-designer-add="sensor">
+                  <strong>센서 입력</strong>
+                  <span>EdgeX Device / Resource</span>
+                </button>
+                <button type="button" data-designer-add="preprocess">
+                  <strong>전처리</strong>
+                  <span>표준화 · 이동 평균 · 벡터</span>
+                </button>
+                <button type="button" data-designer-add="inference">
+                  <strong>추론</strong>
+                  <span>이상 점수 · 임계값</span>
+                </button>
+                <button type="button" data-designer-add="output">
+                  <strong>결과</strong>
+                  <span>대시보드 출력</span>
+                </button>
+              </div>
+            </aside>
+
+            <section class="service-designer-canvas-pane" aria-labelledby="serviceDesignerCanvasTitle">
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>캔버스</span>
+                  <strong id="serviceDesignerCanvasTitle">서비스 흐름</strong>
+                </div>
+                <small id="serviceDesignerConnectHint">출력 포트 → 입력 포트</small>
+              </div>
+              <div
+                id="serviceDesignerCanvasViewport"
+                class="service-designer-canvas-viewport"
+                role="region"
+                aria-label="서비스 설계 캔버스"
+                tabindex="0"
+              >
+                <div id="serviceDesignerCanvas" class="service-designer-canvas">
+                  <svg
+                    id="serviceDesignerEdges"
+                    class="service-designer-edges"
+                    width="1120"
+                    height="700"
+                    viewBox="0 0 1120 700"
+                    aria-hidden="true"
+                  ></svg>
+                  <div id="serviceDesignerNodes" class="service-designer-nodes"></div>
+                </div>
+              </div>
+            </section>
+
+            <aside
+              id="serviceDesignerInspector"
+              class="service-designer-inspector"
+              aria-labelledby="serviceDesignerInspectorTitle"
+            >
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>설정</span>
+                  <strong id="serviceDesignerInspectorTitle">단계 선택</strong>
+                </div>
+              </div>
+              <div id="serviceDesignerInspectorBody" class="service-designer-inspector-body">
+                <p class="service-designer-empty">캔버스에서 단계를 선택하세요.</p>
+              </div>
+            </aside>
+          </div>
+
+          <div class="service-designer-review-grid">
+            <section class="service-designer-review" aria-labelledby="serviceDesignerValidationTitle">
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>검증</span>
+                  <strong id="serviceDesignerValidationTitle">설계 점검</strong>
+                </div>
+                <small id="serviceDesignerValidationSummary">검증 전</small>
+              </div>
+              <div id="serviceDesignerValidation" class="service-designer-validation" aria-live="polite">
+                <p class="service-designer-empty">설계 검증을 누르면 연결과 배치를 확인합니다.</p>
+              </div>
+            </section>
+            <section class="service-designer-review" aria-labelledby="serviceDesignerPlanTitle">
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>Dry-run</span>
+                  <strong id="serviceDesignerPlanTitle">실행 계획 미리보기</strong>
+                </div>
+                <small>배포·실행 없음</small>
+              </div>
+              <ol id="serviceDesignerPlan" class="service-designer-plan">
+                <li class="service-designer-empty">검증된 설계의 단계 순서를 표시합니다.</li>
+              </ol>
+            </section>
+          </div>
+        </section>
 
         <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
           <div class="management-page-content">
@@ -1102,5 +1253,7 @@
     <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
     <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
+    <script src="/static/service-designer-model.js?v=edgex-design-dry-run-20260731"></script>
+    <script src="/static/service-designer.js?v=edgex-design-dry-run-20260731"></script>
   </body>
 </html>

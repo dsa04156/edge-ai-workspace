@@ -1,0 +1,225 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const {
+  addNode,
+  buildExecutionPlan,
+  canonicalDataType,
+  connectNodes,
+  createDefaultDesign,
+  removeNode,
+  resourcesForDevice,
+  updateNode,
+  validateDesign,
+  wouldCreateCycle,
+} = require("../app/static/service-designer-model.js");
+const {
+  STORAGE_KEY,
+  fetchDesignerProfiles,
+  loadStoredDesign,
+  saveStoredDesign,
+  sourceBindingCandidate,
+} = require("../app/static/service-designer.js");
+
+const root = path.resolve(__dirname, "..");
+
+function inventory() {
+  return {
+    devices: [
+      {
+        name: "virtual-temperature-001",
+        profile_name: "temperature-v1",
+        node_name: "etri-dev0001-jetorn",
+        overall_status: "available",
+        telemetry_freshness: "fresh",
+        latest_readings: [],
+      },
+    ],
+    profiles: [
+      {
+        name: "temperature-v1",
+        resources: [
+          {
+            name: "Temperature",
+            value_type: "Float64",
+            units: "Cel",
+          },
+        ],
+      },
+    ],
+    nodes: [
+      {hostname: "etri-dev0001-jetorn"},
+      {hostname: "etri-ser0002-cgnmsb"},
+    ],
+  };
+}
+
+function boundDesign({sourceMode = "local_recent"} = {}) {
+  let design = createDefaultDesign();
+  design = updateNode(design, "sensor-1", {
+    config: {
+      deviceName: "virtual-temperature-001",
+      resourceName: "Temperature",
+      sourceMode,
+    },
+  });
+  design = updateNode(design, "preprocess-1", {
+    config: {
+      operation: "standardize",
+      targetNode: sourceMode === "local_recent"
+        ? "etri-dev0001-jetorn"
+        : "etri-ser0002-cgnmsb",
+    },
+  });
+  design = updateNode(design, "inference-1", {
+    config: {
+      algorithm: "online-gaussian-baseline-v1",
+      targetNode: "etri-ser0002-cgnmsb",
+    },
+  });
+  return design;
+}
+
+test("uses EdgeX Device Profile resources even before a latest Event exists", () => {
+  const current = inventory();
+  const resources = resourcesForDevice(current.devices[0], current.profiles);
+
+  assert.deepEqual(resources, [{
+    name: "Temperature",
+    valueType: "Float64",
+    units: "Cel",
+    source: "profile",
+  }]);
+  assert.equal(canonicalDataType(resources[0].valueType), "number");
+});
+
+test("validates an edge-local sensor-to-service design against current inventory", () => {
+  const result = validateDesign(boundDesign(), inventory());
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.warnings, []);
+});
+
+test("requires the first consumer of Local Data API to stay on the source node", () => {
+  const design = updateNode(boundDesign(), "preprocess-1", {
+    config: {targetNode: "etri-ser0002-cgnmsb"},
+  });
+  const result = validateDesign(design, inventory());
+
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((issue) => issue.code === "local_node_mismatch"));
+});
+
+test("blocks cycles, duplicate edges, incompatible ports, and missing bindings", () => {
+  const current = inventory();
+  const design = boundDesign();
+
+  assert.equal(wouldCreateCycle(design, "inference-1", "preprocess-1"), true);
+  assert.match(
+    connectNodes(design, "inference-1", "preprocess-1", current).error,
+    /순환/,
+  );
+  assert.match(
+    connectNodes(design, "sensor-1", "preprocess-1", current).error,
+    /이미 연결/,
+  );
+  assert.equal(validateDesign(createDefaultDesign(), current).valid, false);
+});
+
+test("removes a stage and all of its incident edges", () => {
+  const design = removeNode(boundDesign(), "preprocess-1");
+
+  assert.equal(design.nodes.some((node) => node.id === "preprocess-1"), false);
+  assert.equal(
+    design.edges.some((edge) => (
+      edge.from === "preprocess-1" || edge.to === "preprocess-1"
+    )),
+    false,
+  );
+});
+
+test("adds unique stages and builds a deterministic dry-run plan", () => {
+  const design = addNode(boundDesign({sourceMode: "core_history"}), "preprocess");
+  assert.equal(new Set(design.nodes.map((node) => node.id)).size, design.nodes.length);
+
+  const plan = buildExecutionPlan(boundDesign(), inventory());
+  assert.equal(plan.mode, "dry-run");
+  assert.equal(plan.valid, true);
+  assert.deepEqual(
+    plan.stages.map((stage) => stage.type),
+    ["sensor", "preprocess", "inference", "output"],
+  );
+  assert.match(plan.stages[0].detail, /virtual-temperature-001/);
+  assert.match(plan.stages[0].detail, /엣지 최근 데이터/);
+});
+
+test("selects a live numeric EdgeX resource instead of a hard-coded source", () => {
+  const current = inventory();
+  current.devices.unshift({
+    name: "stale-string-device",
+    profile_name: "string-v1",
+    overall_status: "degraded",
+    telemetry_freshness: "stale",
+    latest_readings: [{
+      resource_name: "Status",
+      value_type: "String",
+    }],
+  });
+
+  const candidate = sourceBindingCandidate(current);
+
+  assert.equal(candidate.device.name, "virtual-temperature-001");
+  assert.equal(candidate.resource.name, "Temperature");
+});
+
+test("loads and saves only the versioned browser-local draft", () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+  };
+
+  assert.equal(loadStoredDesign(storage), null);
+  assert.equal(saveStoredDesign(boundDesign(), storage), true);
+  assert.ok(values.has(STORAGE_KEY));
+  assert.equal(loadStoredDesign(storage).name, "센서 이상 탐지 서비스");
+
+  values.set(STORAGE_KEY, JSON.stringify({version: 999, nodes: []}));
+  assert.equal(loadStoredDesign(storage), null);
+});
+
+test("fetches Device Profile contracts from the read-only state endpoint", async () => {
+  let request = null;
+  const profiles = await fetchDesignerProfiles(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => [{name: "temperature-v1", resources: []}],
+    };
+  });
+
+  assert.deepEqual(request, {
+    url: "/state/device-profiles",
+    options: {cache: "no-store"},
+  });
+  assert.equal(profiles[0].name, "temperature-v1");
+});
+
+test("dashboard exposes one scoped service design page without an execution action", () => {
+  const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
+  const cssPath = path.join(root, "app/static/service-designer.css");
+  const uiPath = path.join(root, "app/static/service-designer.js");
+
+  assert.match(html, /data-dashboard-page="designer"/);
+  assert.match(html, /data-page="designer"/);
+  assert.match(html, /id="serviceDesignerCanvas"/);
+  assert.match(html, /id="serviceDesignerInspector"/);
+  assert.match(html, /id="serviceDesignerValidation"/);
+  assert.match(html, /실행 계획 미리보기/);
+  assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
+  assert.equal(fs.existsSync(cssPath), true);
+  assert.equal(fs.existsSync(uiPath), true);
+});

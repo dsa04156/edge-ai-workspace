@@ -5,7 +5,7 @@ import pytest
 import httpx
 from fastapi.testclient import TestClient
 
-from app.main import app, service
+from app.main import app, management_client, service
 from app.config import Settings
 from app.service import StateAggregatorService
 from app.edgex import EdgeXBackendError
@@ -603,6 +603,59 @@ def test_ai_pipeline_sample_api_is_removed():
 
     assert response.status_code == 404
     assert "/state/device-source-bindings/sample" not in app.openapi()["paths"]
+
+
+def test_device_profile_contract_endpoint_exposes_safe_edgex_resources(monkeypatch):
+    async def fake_profiles():
+        return [
+            {
+                "name": "temperature-v1",
+                "description": "Temperature sensor",
+                "manufacturer": "ETRI",
+                "model": "temp-01",
+                "labels": ["serial", "sensor"],
+                "deviceResources": [
+                    {
+                        "name": "Temperature",
+                        "description": "Current temperature",
+                        "attributes": {"register": "secret-internal-address"},
+                        "properties": {
+                            "valueType": "Float64",
+                            "readWrite": "R",
+                            "units": "Cel",
+                        },
+                    }
+                ],
+            }
+        ]
+
+    monkeypatch.setattr(management_client, "list_profiles", fake_profiles)
+
+    with TestClient(app) as client:
+        response = client.get("/state/device-profiles")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload == [
+        {
+            "name": "temperature-v1",
+            "description": "Temperature sensor",
+            "manufacturer": "ETRI",
+            "model": "temp-01",
+            "labels": ["serial", "sensor"],
+            "resources": [
+                {
+                    "name": "Temperature",
+                    "description": "Current temperature",
+                    "value_type": "Float64",
+                    "read_write": "R",
+                    "units": "Cel",
+                }
+            ],
+        }
+    ]
+    assert "attributes" not in response.text
+    assert "secret-internal-address" not in response.text
 
 
 @pytest.mark.parametrize(

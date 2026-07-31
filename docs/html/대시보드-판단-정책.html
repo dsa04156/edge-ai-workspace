@@ -70,6 +70,7 @@
 <li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -157,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-30 19:45</span>
-            <span class="badge">HTML 생성: 2026-07-30 21:13</span>
+            <span class="badge">수정: 2026-07-31 10:42</span>
+            <span class="badge">HTML 생성: 2026-07-31 10:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -230,7 +231,7 @@
 <p>connection apply를 사용할 수 없게 표시한다.</p>
 <ul><li>후보 승인·거절·재시도, 수동 후보 추가·삭제와 다른 관리 mutation은 모두 browser</li></ul>
 <p><code>Authorization</code> header 없이 전송한다. 각 요청은 기능 플래그, 서버 검증과 <code>Idempotency-Key</code>를 적용하며 내부 Controller 호출은 HMAC으로 서명한다. 이 값들은 운영자 인증이 아니므로 현재 PoC의 제한된 접근 경계를 운영 보안으로 간주하지 않는다.</p>
-<p>노드 선택을 바꾸면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device와 연결 마법사의 target node가 같은 범위로 바뀐다. target node와 raw device path는 직접 입력하지 않는다. 관리 화면은 Device 강제 삭제, actuator command, 임의 Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. 검증된 Adapter Controller 소유 runtime의 배포·재시작·조건부 퇴역만 별도 관리 경로로 제공한다. AI Pipeline/Workflow Builder와 전용 Device/resource 샘플 미리보기는 제거했으며, 대시보드 상태 판단은 EdgeX inventory, 최신 Event와 고정 서비스 데모 결과만 사용한다. Local Data API는 같은 노드의 고정 consumer가 직접 읽는다.</p>
+<p>노드 선택을 바꾸면 물리 연결 증거, Runtime inventory, protocol package, 기존 EdgeX Device와 연결 마법사의 target node가 같은 범위로 바뀐다. target node와 raw device path는 직접 입력하지 않는다. 관리 화면은 Device 강제 삭제, actuator command, 임의 Kubernetes workload와 EdgeMesh 상태 변경을 제공하지 않는다. 검증된 Adapter Controller 소유 runtime의 배포·재시작·조건부 퇴역만 별도 관리 경로로 제공한다. 과거 AI Pipeline/Workflow Builder와 전용 Device/resource 샘플 미리보기 API는 제거했다. 새 <code>서비스 설계</code> 화면은 EdgeX inventory와 Profile resource를 읽어 브라우저 안에서 DAG·타입·배치 validation과 dry-run 계획만 제공하며, 그 설계 상태를 운영 availability나 workload 실행 상태로 사용하지 않는다. 대시보드 상태 판단은 EdgeX inventory, 최신 Event와 고정 서비스 데모 결과만 사용한다. Local Data API는 같은 노드의 고정 consumer가 직접 읽는다.</p>
 <h2 id="availability-판단-순서">Availability 판단 순서</h2>
 <p>State Aggregator와 dashboard는 다음 순서를 동일하게 사용한다.</p>
 <ol><li><code>adminState=LOCKED</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=DOWN</code>이면 <code>unavailable</code> / <code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code> / <code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 Core Data event가 freshness threshold 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이지만 event가 없으면 <code>degraded</code> (<code>latest EdgeX event is missing</code>).</li><li><code>operatingState=UP</code>이지만 최신 event가 stale이면 <code>degraded</code> (<code>latest EdgeX event is stale</code>).</li><li>알 수 없는 state나 잘못된 event origin은 <code>degraded</code>와 구체적인 reason으로 표시한다.</li></ol>
@@ -246,6 +247,7 @@
 <h2 id="api-응답-필드">API 응답 필드</h2>
 <p><code>/state/devices</code>는 Core Metadata 필드, 계산된 availability/reason, latest Core Data event metadata를 포함한다. EdgeX 필드가 authoritative이며 legacy 값으로 누락을 보충하지 않는다.</p>
 <p><code>/state/devices/{device_id}/telemetry</code>는 <code>window</code>과 <code>limit</code> query를 받아 선택 device의 최근 Core Data Events/Readings를 event origin 순서로 반환한다. <code>window</code> 기본값은 <code>-30m</code>, <code>limit</code>은 1~1,000이고 dashboard는 1,000을 사용한다. typed value와 <code>deviceName</code>, <code>sourceName</code>, nanosecond <code>origin</code>을 보존한다.</p>
+<p><code>/state/device-profiles</code>는 서비스 설계 입력 선택을 위해 Core Metadata Device Profile의 읽기 전용 resource 계약을 반환한다. <code>name</code>, <code>description</code>, <code>manufacturer</code>, <code>model</code>, <code>labels</code>와 resource의 <code>name</code>, <code>valueType</code>, <code>readWrite</code>, <code>units</code>만 포함하고 protocol address 성격의 <code>attributes</code>는 노출하지 않는다.</p>
 <p>EdgeX v3의 <code>GET /api/v3/event/device/name/{name}</code>는 <code>offset</code>과 <code>limit</code>만 지원한다. <code>state-aggregator</code>는 이 API에서 선택 Device의 최신 1,000 Event 이내를 읽은 뒤 요청 <code>window</code>를 Event <code>origin</code>에 적용하고, 통과한 Event의 Reading만 펼쳐 반환한다. 지원되지 않는 <code>start</code>/<code>end</code> query가 Core Data에서 적용된다고 가정하지 않으며, 이 처리도 PostgreSQL 직접 조회나 별도 저장소를 만들지 않는다.</p>
 <p><code>/state/virtual-resources</code>는 자원증강형 가상디바이스를 Resource Profile 단위로 반환한다. 이 API는 가상 센서 생성 경로가 아니라 AI HAT/GPU/cache 같은 보강 실행 자원 상태 조회 경로다. 실행 인스턴스가 0개여도 registry에 있는 profile은 숨기지 않으며, 상태는 <code>configured_not_running</code>으로 표시한다.</p>
 <p><code>/state/dashboard</code>는 service resource observation 실패 시 dashboard 전체를 500으로 내리지 않는다. 이 경우 <code>resource_profiles.observation_error</code>에 원인을 남기고 service resource KPI만 0으로 degrade한다. <code>/state/operator-assistant</code>와 <code>/state/operator-chat</code>도 같은 degraded dashboard snapshot을 사용한다. resource observation 실패가 먼저 발생하면 chat은 Qwen 호출 전에 read-only degraded observation 응답을 반환한다.</p>
