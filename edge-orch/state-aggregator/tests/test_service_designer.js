@@ -404,6 +404,16 @@ test("dashboard exposes one scoped service design page without an execution acti
     ui,
     /state\.suppressNodeClickUntil = Date\.now\(\) \+ DRAG_CLICK_SUPPRESSION_MS/,
   );
+  assert.match(
+    ui,
+    /if \(state\.dragging\) \{\s*state\.pendingFullRender = true;\s*return;/,
+  );
+  assert.match(ui, /const node = state\.inspectorOpen/);
+  assert.match(
+    ui,
+    /function selectNodeForDrag[\s\S]*?state\.inspectorOpen = false;/,
+  );
+  assert.match(ui, /flushPendingFullRender\(documentRef\)/);
   assert.match(ui, /const directPlacement = viewportModel\.clampNodeToViewport\(/);
   assert.match(ui, /leftInset:\s*Math\.max\(0,\s*-canvasBounds\.left\)/);
   assert.match(ui, /rightInset:\s*Math\.max\(0,\s*canvasBounds\.right - browserWidth\)/);

@@ -8,6 +8,7 @@
     design: model ? model.createDefaultDesign() : null,
     inventory: {devices: [], profiles: [], nodes: []},
     selectedNodeId: null,
+    inspectorOpen: false,
     pendingFromId: null,
     selectedEdgeId: null,
     lastValidation: null,
@@ -28,6 +29,7 @@
     resizeObserver: null,
     edgeElements: new Map(),
     miniMapNodeElements: new Map(),
+    pendingFullRender: false,
   };
 
   function el(id, documentRef = document) {
@@ -676,9 +678,9 @@
     const title = el("serviceDesignerInspectorTitle", documentRef);
     const body = el("serviceDesignerInspectorBody", documentRef);
     if (!inspector || !title || !body || !state.design) return;
-    const node = state.design.nodes.find(
-      (item) => item.id === state.selectedNodeId,
-    );
+    const node = state.inspectorOpen
+      ? state.design.nodes.find((item) => item.id === state.selectedNodeId)
+      : null;
     inspector.classList.toggle("is-open", Boolean(node));
     inspector.setAttribute("aria-hidden", String(!node));
     if (!node) {
@@ -781,6 +783,11 @@
 
   function renderAll(documentRef = document) {
     if (!state.initialized || !state.design) return;
+    if (state.dragging) {
+      state.pendingFullRender = true;
+      return;
+    }
+    state.pendingFullRender = false;
     const nameInput = el("serviceDesignerName", documentRef);
     if (nameInput && nameInput.value !== state.design.name) {
       nameInput.value = state.design.name;
@@ -805,6 +812,7 @@
   ) {
     if (!state.design.nodes.some((node) => node.id === nodeId)) return;
     state.selectedNodeId = nodeId;
+    state.inspectorOpen = true;
     state.selectedEdgeId = null;
     renderNodes(documentRef);
     renderEdges(documentRef);
@@ -1025,8 +1033,16 @@
     drag.renderFrame = null;
   }
 
+  function flushPendingFullRender(documentRef = document) {
+    if (!state.pendingFullRender) return false;
+    state.pendingFullRender = false;
+    renderAll(documentRef);
+    return true;
+  }
+
   function selectNodeForDrag(nodeId, nodeElement, documentRef = document) {
     state.selectedNodeId = nodeId;
+    state.inspectorOpen = false;
     state.selectedEdgeId = null;
     documentRef.querySelectorAll("[data-designer-node]").forEach((element) => {
       element.classList.toggle(
@@ -1222,7 +1238,7 @@
     if (!drag.moved || cancelled) {
       drag.nodeElement.style.left = `${drag.startX}px`;
       drag.nodeElement.style.top = `${drag.startY}px`;
-      if (drag.moved) {
+      if (!flushPendingFullRender(documentRef) && drag.moved) {
         renderEdges(documentRef);
         renderMiniMap(documentRef);
       }
@@ -1244,14 +1260,18 @@
       }
     }, DRAG_CLICK_SUPPRESSION_MS);
     if (x === drag.startX && y === drag.startY) {
-      renderEdges(documentRef);
-      renderMiniMap(documentRef);
+      if (!flushPendingFullRender(documentRef)) {
+        renderEdges(documentRef);
+        renderMiniMap(documentRef);
+      }
       return true;
     }
     state.design = model.updateNode(state.design, drag.nodeId, {x, y});
     markDirty("단계 위치를 변경했습니다.", documentRef);
-    renderEdges(documentRef);
-    renderMiniMap(documentRef);
+    if (!flushPendingFullRender(documentRef)) {
+      renderEdges(documentRef);
+      renderMiniMap(documentRef);
+    }
     event?.preventDefault?.();
     return true;
   }
@@ -1318,6 +1338,7 @@
         state.design = model.addNode(state.design, addButton.dataset.designerAdd);
         const added = state.design.nodes[state.design.nodes.length - 1];
         state.selectedNodeId = added.id;
+        state.inspectorOpen = true;
         markDirty(`${added.title} 단계를 추가했습니다.`, documentRef);
         renderAll(documentRef);
         if (root.matchMedia?.("(max-width: 860px)").matches) {
@@ -1330,7 +1351,10 @@
       if (deleteButton) {
         const nodeId = deleteButton.dataset.designerDelete;
         state.design = model.removeNode(state.design, nodeId);
-        if (state.selectedNodeId === nodeId) state.selectedNodeId = null;
+        if (state.selectedNodeId === nodeId) {
+          state.selectedNodeId = null;
+          state.inspectorOpen = false;
+        }
         if (state.pendingFromId === nodeId) state.pendingFromId = null;
         markDirty("단계를 삭제했습니다.", documentRef);
         renderAll(documentRef);
@@ -1410,6 +1434,7 @@
       "click",
       () => {
         state.selectedNodeId = null;
+        state.inspectorOpen = false;
         renderNodes(documentRef);
         renderInspector(documentRef);
         renderMiniMap(documentRef);
@@ -1490,6 +1515,7 @@
     el("serviceDesignerReset", documentRef)?.addEventListener("click", () => {
       state.design = model.createDefaultDesign();
       state.selectedNodeId = null;
+      state.inspectorOpen = false;
       state.pendingFromId = null;
       state.lastValidation = null;
       state.loadedFromStorage = false;
@@ -1508,6 +1534,7 @@
         renderNodes(documentRef);
       } else if (event.key === "Escape" && state.selectedNodeId) {
         state.selectedNodeId = null;
+        state.inspectorOpen = false;
         renderNodes(documentRef);
         renderInspector(documentRef);
         renderMiniMap(documentRef);
@@ -1523,6 +1550,7 @@
         const nodeId = state.selectedNodeId;
         state.design = model.removeNode(state.design, nodeId);
         state.selectedNodeId = null;
+        state.inspectorOpen = false;
         markDirty("단계를 삭제했습니다.", documentRef);
         renderAll(documentRef);
       }
