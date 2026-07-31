@@ -21,30 +21,25 @@
 5. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
 6. 동적 워크플로우, 오프로딩, agent-assisted planning은 후속 고도화로 둔다.
 
-## 워크플로우 기능 경계
+## Workflow Builder Prototype 경계
 
-`state-aggregator` dashboard의 AI Pipeline/Workflow Builder 화면과 browser-local
-device/resource 샘플 미리보기는 제거했다. 현재 대시보드는 `운영 현황`,
-`디바이스`, `장비 관리`와 고정 서비스 데모만 제공한다. `디바이스` 화면은 운영 객체를
-`엣지 AI 서버`, `물리 디바이스`, `가상 디바이스`, `센서 디바이스` 네 분류로 나누고
-모두 이름·상태·최신 관측 또는 이벤트·상세보기의 동일한 목록 패턴으로 표시한다.
-`운영 현황`의 주 패널은 Prometheus/Kubernetes의 현재 서버·물리 디바이스 노드 관측값과
-확인할 항목이며, 고정 서비스 데모는 접힌 보조 영역으로 둔다. 두 노드 패널은 각각
-CPU·메모리·GPU·pressure의 현재 snapshot만 표시한다. 시계열 저장소를 연결하기 전에는
-과거 추세 그래프나 Grafana 연동을 구현된 것처럼 표시하지 않는다.
+`state-aggregator` dashboard 안에 workflow stage, device/source binding, validation,
+execution plan을 보여주는 화면이 있더라도 이를 현재 PoC의 동적 오케스트레이션 완성
+기능으로 설명하지 않는다.
 
-대시보드 용어에서 `물리 디바이스`는 Jetson·Raspberry Pi 같은 현장 엣지 노드이고,
-`센서 디바이스`는 EdgeX Core Metadata의 Device다. `가상 디바이스`는
-`/state/virtual-resources`가 반환하는 AI HAT·GPU·cache 등의 논리 자원이며 EdgeX 센서
-inventory나 실행 가능한 Workflow를 뜻하지 않는다.
+현재 허용되는 범위는 다음으로 제한한다.
 
-`POST /workflow-event`와 `/state/workflows*`는 과거 이벤트 연동 호환 경로이며 현재
-대시보드 실행 기능이 아니다. workflow stage 구성, 실행 계획, Kubernetes workload 생성,
-EdgeX mutation, command, actuator 제어와 runtime migration/offloading을 현재 기능으로
-설명하지 않는다.
+- EdgeX Core Metadata에 등록된 `Device` 목록과 Device Service 관리 상태 조회
+- EdgeX Core Data latest Event/Reading 기준 source freshness 확인
+- 물리 온디바이스, 데이터 source, resource profile 매핑 확인
+- 브라우저 상태 안에서만 동작하는 workflow stage 구성과 device/resource
+  bind/release dry-run
+- 실행 전 validation과 execution plan preview
+- Kubernetes apply/delete/restart, EdgeX metadata/state mutation, command publish,
+  actuator command, runtime migration/offloading 실행 없음
 
-워크플로우 UI나 실행 기능을 다시 도입하려면 먼저 `docs/프로젝트-범위.md`,
-`docs/저장소-구조.md`, `docs/단계별-추진계획.md`에 범위, 검증 기준과 운영 책임을 명시한다.
+이 기능을 현재 운영 기능으로 승격하려면 먼저 `docs/프로젝트-범위.md`,
+`docs/저장소-구조.md`, `docs/단계별-추진계획.md`에 범위, 검증 기준, 운영 책임을 명시한다.
 
 ## 구현 규칙
 

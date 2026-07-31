@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-07-31 10:43</span>
-            <span class="badge">HTML 생성: 2026-07-31 10:46</span>
+            <span class="badge">수정: 2026-07-31 11:56</span>
+            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -318,9 +318,9 @@
 <td>운영 현황, 디바이스, 장비 관리에서 EdgeX 상태/history와 고정 서비스 데모를 표시한다. <code>서비스 설계</code>는 <code>/state/dashboard</code> Device/node와 <code>/state/device-profiles</code> DeviceResource 계약을 사용해 브라우저 안에서 센서 입력·전처리·추론·결과 단계, 포트 연결, 타입·배치 validation, dry-run 실행 계획을 제공한다. 초안은 localStorage에만 저장하며 Kubernetes/EdgeX mutation, command와 실제 workload 실행은 없다. 과거 standalone Workflow Designer를 현행 실행기로 승격하지 않는다. 375/768/1024/1440px 반응형 회귀를 확인한다</td>
 </tr>
 <tr>
-<td><code>edge-orch/state-aggregator/app/static/service-designer-model.js</code>, <code>service-designer.js</code></td>
+<td><code>edge-orch/state-aggregator/app/static/service-designer-model.js</code>, <code>service-designer-viewport.js</code>, <code>service-designer.js</code></td>
 <td>서비스 설계 구현</td>
-<td>전자는 EdgeX 타입 매핑, DAG·배치 validation과 dry-run 계획을 담당하고 후자는 캔버스·inspector·브라우저 초안 저장을 담당한다. 실제 실행 control plane이 아니다</td>
+<td>model은 EdgeX 타입 매핑, DAG·배치 validation과 dry-run 계획을 담당한다. viewport는 pan·zoom·fit view·선택 노드 노출·미니맵 좌표 계산을 담당하고 UI controller는 캔버스·inspector·브라우저 초안 저장을 담당한다. 실제 실행 control plane이 아니다</td>
 </tr>
 </tbody></table></div>
 <p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 root render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 고정 MQTT 입력 workload나 broker는 없다. MQTT 자기등록 subscriber는 없지만 웹에서 허용 broker 설정을 선언하면 Controller가 검증된 공식 <code>device-mqtt</code>를 필요할 때 배포하는 개발 경로가 있다. broker/publisher fixture는 별도 development overlay다. Modbus는 자동 discovery 없이 Git에 등록한 개발 simulator Unit 1·2 endpoint용 공식 Device Service 등록·Event 경로를 과거 검증했지만 Controller Runtime은 현재 퇴역 상태다. OPC-UA·ONVIF discovery는 미구현이고 RTSP는 별도 media 경로다.</p>

@@ -22,6 +22,17 @@ const {
   saveStoredDesign,
   sourceBindingCandidate,
 } = require("../app/static/service-designer.js");
+const {
+  MAX_ZOOM,
+  MIN_ZOOM,
+  centerOnWorldPoint,
+  ensureWorldRectVisible,
+  fitViewport,
+  graphBounds,
+  panViewport,
+  visibleWorldRect,
+  zoomAtPoint,
+} = require("../app/static/service-designer-viewport.js");
 
 const root = path.resolve(__dirname, "..");
 
@@ -208,18 +219,80 @@ test("fetches Device Profile contracts from the read-only state endpoint", async
   assert.equal(profiles[0].name, "temperature-v1");
 });
 
+test("fits the complete default graph inside the visible canvas", () => {
+  const design = createDefaultDesign();
+  const bounds = graphBounds(design.nodes);
+  const viewport = fitViewport(design.nodes, 920, 560, {padding: 44});
+
+  assert.ok(viewport.zoom >= MIN_ZOOM);
+  assert.ok(viewport.zoom <= MAX_ZOOM);
+  assert.ok(viewport.x + bounds.left * viewport.zoom >= 43);
+  assert.ok(viewport.y + bounds.top * viewport.zoom >= 43);
+  assert.ok(viewport.x + bounds.right * viewport.zoom <= 877);
+  assert.ok(viewport.y + bounds.bottom * viewport.zoom <= 517);
+});
+
+test("keeps the world point under the pointer while zooming", () => {
+  const current = {x: 80, y: 40, zoom: 0.8};
+  const pointer = {x: 320, y: 220};
+  const before = {
+    x: (pointer.x - current.x) / current.zoom,
+    y: (pointer.y - current.y) / current.zoom,
+  };
+  const next = zoomAtPoint(current, pointer.x, pointer.y, 1.25);
+  const after = {
+    x: (pointer.x - next.x) / next.zoom,
+    y: (pointer.y - next.y) / next.zoom,
+  };
+
+  assert.deepEqual(after, before);
+});
+
+test("pans, centers, and reports the visible world rectangle", () => {
+  const panned = panViewport({x: 10, y: 20, zoom: 0.5}, 35, -5);
+  assert.deepEqual(panned, {x: 45, y: 15, zoom: 0.5});
+
+  const centered = centerOnWorldPoint(panned, 560, 350, 800, 500);
+  const visible = visibleWorldRect(centered, 800, 500);
+  assert.equal(Math.round(visible.x + visible.width / 2), 560);
+  assert.equal(Math.round(visible.y + visible.height / 2), 350);
+});
+
+test("reveals a selected node beside the inspector without changing zoom", () => {
+  const current = {x: 40, y: 20, zoom: 0.8};
+  const revealed = ensureWorldRectVisible(
+    current,
+    {x: 860, y: 240, width: 218, height: 156},
+    920,
+    540,
+    {padding: 36, rightInset: 350},
+  );
+
+  assert.equal(revealed.zoom, current.zoom);
+  assert.ok(revealed.x < current.x);
+  assert.ok(revealed.x + (860 + 218) * revealed.zoom <= 920 - 350 - 36);
+});
+
 test("dashboard exposes one scoped service design page without an execution action", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const cssPath = path.join(root, "app/static/service-designer.css");
   const uiPath = path.join(root, "app/static/service-designer.js");
+  const viewportPath = path.join(
+    root,
+    "app/static/service-designer-viewport.js",
+  );
 
   assert.match(html, /data-dashboard-page="designer"/);
   assert.match(html, /data-page="designer"/);
   assert.match(html, /id="serviceDesignerCanvas"/);
   assert.match(html, /id="serviceDesignerInspector"/);
   assert.match(html, /id="serviceDesignerValidation"/);
+  assert.match(html, /id="serviceDesignerFitView"/);
+  assert.match(html, /id="serviceDesignerMiniMap"/);
+  assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);
+  assert.equal(fs.existsSync(viewportPath), true);
 });

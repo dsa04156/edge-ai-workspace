@@ -1,5 +1,6 @@
 (function initServiceDesigner(root) {
   const model = root?.ServiceDesignerModel;
+  const viewportModel = root?.ServiceDesignerViewport;
   const STORAGE_KEY = "edge-ai-service-design-v1";
   const state = {
     design: model ? model.createDefaultDesign() : null,
@@ -13,6 +14,14 @@
     liveBindingSeeded: false,
     dirty: false,
     dragging: null,
+    panning: null,
+    viewport: viewportModel
+      ? viewportModel.normalizeViewport()
+      : {x: 0, y: 0, zoom: 1},
+    viewportInitialized: false,
+    paletteOpen: true,
+    resizeFrame: null,
+    resizeObserver: null,
   };
 
   function el(id, documentRef = document) {
@@ -185,6 +194,233 @@
     setFeedback(message, "ready", documentRef);
   }
 
+  function renderMiniMap(documentRef = document) {
+    if (!viewportModel || !state.design) return;
+    const map = el("serviceDesignerMiniMap", documentRef);
+    const nodes = el("serviceDesignerMiniMapNodes", documentRef);
+    const viewportRect = el("serviceDesignerMiniMapViewport", documentRef);
+    const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!map || !nodes || !viewportRect || !canvasViewport) return;
+    nodes.innerHTML = state.design.nodes.map((node) => `
+      <rect
+        class="service-designer-minimap-node${node.id === state.selectedNodeId ? " selected" : ""}"
+        x="${Number(node.x)}"
+        y="${Number(node.y)}"
+        width="${viewportModel.NODE_WIDTH}"
+        height="${viewportModel.NODE_HEIGHT}"
+        rx="18"
+      ></rect>
+    `).join("");
+    const visible = viewportModel.visibleWorldRect(
+      state.viewport,
+      canvasViewport.clientWidth,
+      canvasViewport.clientHeight,
+    );
+    const left = Math.max(0, visible.x);
+    const top = Math.max(0, visible.y);
+    const right = Math.min(
+      viewportModel.CANVAS_WIDTH,
+      visible.x + visible.width,
+    );
+    const bottom = Math.min(
+      viewportModel.CANVAS_HEIGHT,
+      visible.y + visible.height,
+    );
+    viewportRect.setAttribute("x", String(left));
+    viewportRect.setAttribute("y", String(top));
+    viewportRect.setAttribute("width", String(Math.max(0, right - left)));
+    viewportRect.setAttribute("height", String(Math.max(0, bottom - top)));
+  }
+
+  function applyCanvasViewport(documentRef = document) {
+    if (!viewportModel) return;
+    const canvas = el("serviceDesignerCanvas", documentRef);
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    const zoomLabel = el("serviceDesignerZoomLevel", documentRef);
+    if (!canvas || !viewport) return;
+    state.viewport = viewportModel.normalizeViewport(state.viewport);
+    canvas.style.transform = `translate(${state.viewport.x}px, ${state.viewport.y}px) scale(${state.viewport.zoom})`;
+    viewport.style.setProperty(
+      "--canvas-grid-size",
+      `${24 * state.viewport.zoom}px`,
+    );
+    viewport.style.setProperty("--canvas-grid-x", `${state.viewport.x}px`);
+    viewport.style.setProperty("--canvas-grid-y", `${state.viewport.y}px`);
+    if (zoomLabel) {
+      zoomLabel.textContent = `${Math.round(state.viewport.zoom * 100)}%`;
+    }
+    renderMiniMap(documentRef);
+  }
+
+  function fitCanvas(documentRef = document) {
+    if (!viewportModel || !state.design) return false;
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!viewport || viewport.clientWidth < 80 || viewport.clientHeight < 80) {
+      return false;
+    }
+    const inspector = el("serviceDesignerInspector", documentRef);
+    const rightInset = inspector?.classList.contains("is-open")
+      && viewport.clientWidth >= 720
+      ? Math.min(350, viewport.clientWidth * 0.38)
+      : 0;
+    state.viewport = viewportModel.fitViewport(
+      state.design.nodes,
+      viewport.clientWidth,
+      viewport.clientHeight,
+      {
+        padding: viewport.clientWidth < 520 ? 24 : 44,
+        rightInset,
+      },
+    );
+    state.viewportInitialized = true;
+    applyCanvasViewport(documentRef);
+    return true;
+  }
+
+  function scheduleCanvasFit(documentRef = document) {
+    if (!root?.requestAnimationFrame) return;
+    if (state.resizeFrame) root.cancelAnimationFrame?.(state.resizeFrame);
+    state.resizeFrame = root.requestAnimationFrame(() => {
+      state.resizeFrame = null;
+      fitCanvas(documentRef);
+    });
+  }
+
+  function revealCanvasNode(nodeId, documentRef = document) {
+    if (!viewportModel || !state.design) return false;
+    const node = state.design.nodes.find((item) => item.id === nodeId);
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!node || !viewport) return false;
+    const inspector = el("serviceDesignerInspector", documentRef);
+    const rightInset = inspector?.classList.contains("is-open")
+      && viewport.clientWidth >= 720
+      ? Math.min(350, viewport.clientWidth * 0.38)
+      : 0;
+    state.viewport = viewportModel.ensureWorldRectVisible(
+      state.viewport,
+      {
+        x: node.x,
+        y: node.y,
+        width: viewportModel.NODE_WIDTH,
+        height: viewportModel.NODE_HEIGHT,
+      },
+      viewport.clientWidth,
+      viewport.clientHeight,
+      {
+        padding: viewport.clientWidth < 520 ? 20 : 36,
+        rightInset,
+      },
+    );
+    applyCanvasViewport(documentRef);
+    return true;
+  }
+
+  function setPaletteOpen(open, documentRef = document) {
+    state.paletteOpen = Boolean(open);
+    const workbench = el("serviceDesignerWorkbench", documentRef);
+    const toggle = el("serviceDesignerPaletteToggle", documentRef);
+    workbench?.classList.toggle("palette-open", state.paletteOpen);
+    toggle?.setAttribute("aria-expanded", String(state.paletteOpen));
+    scheduleCanvasFit(documentRef);
+  }
+
+  function zoomCanvasBy(delta, documentRef = document) {
+    if (!viewportModel) return;
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!viewport) return;
+    const nextZoom = state.viewport.zoom * delta;
+    state.viewport = viewportModel.zoomAtPoint(
+      state.viewport,
+      viewport.clientWidth / 2,
+      viewport.clientHeight / 2,
+      nextZoom,
+    );
+    state.viewportInitialized = true;
+    applyCanvasViewport(documentRef);
+  }
+
+  function centerCanvasFromMiniMap(event, documentRef = document) {
+    if (!viewportModel) return;
+    const map = el("serviceDesignerMiniMap", documentRef);
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!map || !viewport) return;
+    const bounds = map.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    const worldX = (
+      (event.clientX - bounds.left) / bounds.width
+    ) * viewportModel.CANVAS_WIDTH;
+    const worldY = (
+      (event.clientY - bounds.top) / bounds.height
+    ) * viewportModel.CANVAS_HEIGHT;
+    state.viewport = viewportModel.centerOnWorldPoint(
+      state.viewport,
+      worldX,
+      worldY,
+      viewport.clientWidth,
+      viewport.clientHeight,
+    );
+    state.viewportInitialized = true;
+    applyCanvasViewport(documentRef);
+  }
+
+  function startCanvasPan(event, documentRef = document) {
+    if (!viewportModel || ![0, 1].includes(event.button)) return;
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!viewport || !event.target.closest?.("#serviceDesignerCanvasViewport")) {
+      return;
+    }
+    const interactive = event.target.closest?.(
+      "[data-designer-node], [data-designer-remove-edge], button, input, select, textarea",
+    );
+    if (event.button === 0 && interactive) return;
+    state.panning = {
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startViewport: {...state.viewport},
+    };
+    viewport.classList.add("is-panning");
+    event.preventDefault();
+  }
+
+  function moveCanvasPan(event, documentRef = document) {
+    if (!state.panning || !viewportModel) return false;
+    state.viewport = viewportModel.panViewport(
+      state.panning.startViewport,
+      event.clientX - state.panning.startClientX,
+      event.clientY - state.panning.startClientY,
+    );
+    state.viewportInitialized = true;
+    applyCanvasViewport(documentRef);
+    event.preventDefault();
+    return true;
+  }
+
+  function finishCanvasPan(documentRef = document) {
+    if (!state.panning) return false;
+    state.panning = null;
+    el("serviceDesignerCanvasViewport", documentRef)?.classList.remove(
+      "is-panning",
+    );
+    return true;
+  }
+
+  function handleCanvasWheel(event, documentRef = document) {
+    if (!viewportModel) return;
+    const viewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!viewport) return;
+    const bounds = viewport.getBoundingClientRect();
+    const factor = Math.exp(-event.deltaY * 0.0014);
+    state.viewport = viewportModel.zoomAtPoint(
+      state.viewport,
+      event.clientX - bounds.left,
+      event.clientY - bounds.top,
+      state.viewport.zoom * factor,
+    );
+    state.viewportInitialized = true;
+    applyCanvasViewport(documentRef);
+    event.preventDefault();
+  }
+
   function optionMarkup(value, label, selectedValue, disabled = false) {
     return `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(label)}</option>`;
   }
@@ -207,6 +443,7 @@
         <article
           class="service-designer-node${selected ? " selected" : ""}"
           data-designer-node="${escapeHtml(node.id)}"
+          data-node-type="${escapeHtml(node.type)}"
           data-validity="${errorNodeIds.has(node.id) ? "error" : "ready"}"
           style="left:${Number(node.x)}px;top:${Number(node.y)}px"
           tabindex="0"
@@ -415,12 +652,15 @@
   }
 
   function renderInspector(documentRef = document) {
+    const inspector = el("serviceDesignerInspector", documentRef);
     const title = el("serviceDesignerInspectorTitle", documentRef);
     const body = el("serviceDesignerInspectorBody", documentRef);
-    if (!title || !body || !state.design) return;
+    if (!inspector || !title || !body || !state.design) return;
     const node = state.design.nodes.find(
       (item) => item.id === state.selectedNodeId,
     );
+    inspector.classList.toggle("is-open", Boolean(node));
+    inspector.setAttribute("aria-hidden", String(!node));
     if (!node) {
       title.textContent = "단계 선택";
       body.innerHTML = '<p class="service-designer-empty">캔버스에서 단계를 선택하세요.</p>';
@@ -531,15 +771,26 @@
     renderInspector(documentRef);
     renderValidation(documentRef);
     renderPlan(documentRef);
+    if (state.viewportInitialized) {
+      applyCanvasViewport(documentRef);
+    } else {
+      scheduleCanvasFit(documentRef);
+    }
   }
 
-  function selectNode(nodeId, documentRef = document) {
+  function selectNode(
+    nodeId,
+    documentRef = document,
+    fitForInspector = true,
+  ) {
     if (!state.design.nodes.some((node) => node.id === nodeId)) return;
     state.selectedNodeId = nodeId;
     state.selectedEdgeId = null;
     renderNodes(documentRef);
     renderEdges(documentRef);
     renderInspector(documentRef);
+    renderMiniMap(documentRef);
+    if (fitForInspector) revealCanvasNode(nodeId, documentRef);
   }
 
   function handleOutputPort(nodeId, documentRef = document) {
@@ -606,6 +857,8 @@
 
   function validateCurrentDesign(documentRef = document) {
     state.lastValidation = model.validateDesign(state.design, state.inventory);
+    const reviewPanel = el("serviceDesignerReviewPanel", documentRef);
+    if (reviewPanel) reviewPanel.open = true;
     const valid = state.lastValidation.valid;
     setDraftState(valid ? "검증됨" : "수정 필요", valid ? "valid" : "invalid", documentRef);
     setFeedback(
@@ -697,19 +950,28 @@
       x: Number(node.x),
       y: Number(node.y),
     };
-    selectNode(nodeId, documentRef);
+    selectNode(nodeId, documentRef, false);
     event.preventDefault();
   }
 
   function moveDrag(event) {
     if (!state.dragging) return;
+    const zoom = Math.max(0.01, Number(state.viewport.zoom) || 1);
     const x = Math.max(
       16,
-      Math.min(886, state.dragging.startX + event.clientX - state.dragging.startClientX),
+      Math.min(
+        viewportModel.CANVAS_WIDTH - viewportModel.NODE_WIDTH - 16,
+        state.dragging.startX
+          + (event.clientX - state.dragging.startClientX) / zoom,
+      ),
     );
     const y = Math.max(
       16,
-      Math.min(550, state.dragging.startY + event.clientY - state.dragging.startClientY),
+      Math.min(
+        viewportModel.CANVAS_HEIGHT - viewportModel.NODE_HEIGHT - 16,
+        state.dragging.startY
+          + (event.clientY - state.dragging.startClientY) / zoom,
+      ),
     );
     state.dragging.x = x;
     state.dragging.y = y;
@@ -722,6 +984,7 @@
       node.x = x;
       node.y = y;
       renderEdges();
+      renderMiniMap();
       node.x = previousX;
       node.y = previousY;
     }
@@ -746,6 +1009,10 @@
         state.selectedNodeId = added.id;
         markDirty(`${added.title} 단계를 추가했습니다.`, documentRef);
         renderAll(documentRef);
+        if (root.matchMedia?.("(max-width: 860px)").matches) {
+          setPaletteOpen(false, documentRef);
+        }
+        scheduleCanvasFit(documentRef);
         return;
       }
       const deleteButton = event.target.closest?.("[data-designer-delete]");
@@ -756,6 +1023,7 @@
         if (state.pendingFromId === nodeId) state.pendingFromId = null;
         markDirty("단계를 삭제했습니다.", documentRef);
         renderAll(documentRef);
+        scheduleCanvasFit(documentRef);
         return;
       }
       const outputPort = event.target.closest?.("[data-designer-output]");
@@ -796,11 +1064,76 @@
 
     documentRef.addEventListener("pointerdown", (event) => {
       const handle = event.target.closest?.("[data-designer-drag]");
-      if (handle) startDrag(event, handle.dataset.designerDrag, documentRef);
+      if (handle) {
+        startDrag(event, handle.dataset.designerDrag, documentRef);
+        return;
+      }
+      startCanvasPan(event, documentRef);
     });
-    root.addEventListener("pointermove", moveDrag);
-    root.addEventListener("pointerup", () => finishDrag(documentRef));
-    root.addEventListener("pointercancel", () => finishDrag(documentRef));
+    root.addEventListener("pointermove", (event) => {
+      if (!moveCanvasPan(event, documentRef)) moveDrag(event);
+    });
+    root.addEventListener("pointerup", () => {
+      finishCanvasPan(documentRef);
+      finishDrag(documentRef);
+    });
+    root.addEventListener("pointercancel", () => {
+      finishCanvasPan(documentRef);
+      finishDrag(documentRef);
+    });
+
+    el("serviceDesignerCanvasViewport", documentRef)?.addEventListener(
+      "wheel",
+      (event) => handleCanvasWheel(event, documentRef),
+      {passive: false},
+    );
+    el("serviceDesignerPaletteToggle", documentRef)?.addEventListener(
+      "click",
+      () => setPaletteOpen(!state.paletteOpen, documentRef),
+    );
+    el("serviceDesignerPaletteClose", documentRef)?.addEventListener(
+      "click",
+      () => setPaletteOpen(false, documentRef),
+    );
+    el("serviceDesignerInspectorClose", documentRef)?.addEventListener(
+      "click",
+      () => {
+        state.selectedNodeId = null;
+        renderNodes(documentRef);
+        renderInspector(documentRef);
+        renderMiniMap(documentRef);
+        scheduleCanvasFit(documentRef);
+      },
+    );
+    el("serviceDesignerFitView", documentRef)?.addEventListener(
+      "click",
+      () => fitCanvas(documentRef),
+    );
+    el("serviceDesignerZoomReset", documentRef)?.addEventListener(
+      "click",
+      () => fitCanvas(documentRef),
+    );
+    el("serviceDesignerZoomIn", documentRef)?.addEventListener(
+      "click",
+      () => zoomCanvasBy(1.2, documentRef),
+    );
+    el("serviceDesignerZoomOut", documentRef)?.addEventListener(
+      "click",
+      () => zoomCanvasBy(1 / 1.2, documentRef),
+    );
+    el("serviceDesignerMiniMap", documentRef)?.addEventListener(
+      "click",
+      (event) => centerCanvasFromMiniMap(event, documentRef),
+    );
+    el("serviceDesignerMiniMap", documentRef)?.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          fitCanvas(documentRef);
+        }
+      },
+    );
 
     el("serviceDesignerInspectorBody", documentRef)?.addEventListener(
       "change",
@@ -852,13 +1185,21 @@
       state.liveBindingSeeded = false;
       maybeSeedLiveBinding();
       markDirty("현재 EdgeX 정보로 기본 설계를 다시 만들었습니다.", documentRef);
+      state.viewportInitialized = false;
       renderAll(documentRef);
+      scheduleCanvasFit(documentRef);
     });
     documentRef.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && state.pendingFromId) {
         state.pendingFromId = null;
         setFeedback("연결 선택을 취소했습니다.", "ready", documentRef);
         renderNodes(documentRef);
+      } else if (event.key === "Escape" && state.selectedNodeId) {
+        state.selectedNodeId = null;
+        renderNodes(documentRef);
+        renderInspector(documentRef);
+        renderMiniMap(documentRef);
+        scheduleCanvasFit(documentRef);
       }
       if (
         (event.key === "Delete" || event.key === "Backspace")
@@ -877,7 +1218,7 @@
   }
 
   async function boot(documentRef = document) {
-    if (!model || state.initialized) return;
+    if (!model || !viewportModel || state.initialized) return;
     const stored = loadStoredDesign();
     if (stored) {
       state.design = stored;
@@ -886,6 +1227,17 @@
     }
     state.initialized = true;
     bindEvents(documentRef);
+    state.paletteOpen = !root.matchMedia?.("(max-width: 860px)").matches;
+    setPaletteOpen(state.paletteOpen, documentRef);
+    const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (canvasViewport && root.ResizeObserver) {
+      state.resizeObserver = new root.ResizeObserver(() => {
+        if (documentRef.body?.dataset.dashboardPage === "designer") {
+          scheduleCanvasFit(documentRef);
+        }
+      });
+      state.resizeObserver.observe(canvasViewport);
+    }
     if (root.edgeDashboardData) {
       updateInventory(root.edgeDashboardData, documentRef);
     }
@@ -902,7 +1254,14 @@
   root.refreshServiceDesignerProfiles = () => refreshProfiles(root.fetch);
   root.onServiceDesignerVisible = () => {
     renderAll();
-    root.requestAnimationFrame?.(() => renderEdges());
+    root.requestAnimationFrame?.(() => {
+      renderEdges();
+      if (state.viewportInitialized) {
+        applyCanvasViewport();
+      } else {
+        fitCanvas();
+      }
+    });
   };
 
   if (typeof document !== "undefined") {
