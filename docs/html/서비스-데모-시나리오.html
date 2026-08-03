@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-데모-시나리오.md</span>
-            <span class="badge">수정: 2026-08-03 11:44</span>
-            <span class="badge">HTML 생성: 2026-08-03 11:46</span>
+            <span class="badge">수정: 2026-08-03 14:29</span>
+            <span class="badge">HTML 생성: 2026-08-03 14:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -211,7 +211,7 @@ Sense HAT v1
 <h3 id="6-jetson-로컬-이상-탐지-확인">6. Jetson 로컬 이상 탐지 확인</h3>
 <p><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 조회한다. 두 번째 조회에서 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 증가하고 <code>inputState=fresh</code>, <code>mode=live</code>, acceleration Device 3개와 temperature Device 1개 identity가 일치해야 한다. 두 feature detector가 각각 30개 sample warm-up을 마친 뒤 model은 <code>ready</code>가 된다.</p>
 <p>이 consumer는 Local Data API를 500ms마다 조회하는 polling 방식이다. push stream이나 고주기 연속 스트리밍으로 설명하지 않는다. 진동 최근 20개 sample은 RMS·Peak·Kurtosis, 온도 최근 10개 sample은 평균·표준편차·변화량을 계산한다. 각 branch의 최대 z-score를 <code>weighted-multi-sensor-feature-score-v1</code>이 기본 0.7/0.3으로 결합한다. 학습된 고장 종류 분류기가 아니다. 종합 점수가 두 sample 연속 threshold 이상이면 anomaly로 전이하고 세 sample 연속 정상 범위면 clear되는 계약은 결정론적 테스트로 검증한다.</p>
-<p>2026-08-03에는 소스·API/BFF·dashboard와 자동 테스트까지만 완료했다. 이 복합 점수 revision의 immutable image build·rollout, 실제 Arduino 온도/가속도 증가 readback과 물리 anomaly 시연은 아직 PASS로 기록하지 않는다. 2026-07-22의 3축 magnitude live 결과는 이전 revision의 증거다.</p>
+<p>2026-08-03에는 <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>과 <code>state-aggregator@sha256:da38d9c2b8059b03a985c305cbd3886e142348a21979ad86b8acbe9f8278dca8</code>을 배포했다. Jetson Pod는 Ready/restart 0이었고 기동 직후 <code>contextSamplesProcessed=605</code>, <code>framesProcessed=605</code>, <code>unalignedFramesDropped=0</code>을 확인했다. 이어진 두 status 조회에서 frame <code>621 → 623</code>, origin <code>1785734602955557669 → 1785734604991104923</code>, 온도 정렬 차이 약 11~12ms가 관측됐다. 중앙 <code>/state/service-demo</code>와 외부 dashboard는 같은 네 Device binding, 진동·온도 개별 점수와 종합 점수를 반환했고 브라우저 console error/warning은 0이었다. 실제 장치를 움직여 anomaly를 유발하는 물리 시연은 아직 PASS로 기록하지 않는다.</p>
 <h2 id="상태-판정">상태 판정</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -242,7 +242,7 @@ Sense HAT v1
 </tr>
 </tbody></table></div>
 <h2 id="pass-기준">PASS 기준</h2>
-<ol><li>실제 Jetson Serial과 Raspberry Pi I2C endpoint 및 Device Service 연결 증거가 있다.</li><li>Device Service/Profile/Device가 정확한 관계로 등록된다.</li><li>실제 sample의 typed Event/Reading이 Core Data에서 조회된다.</li><li>장애·복구 시 상태와 새로운 Event가 기대대로 변한다.</li><li>dashboard가 같은 EdgeX device identity와 freshness를 표시한다.</li><li>문서, manifest, 테스트와 live 상태가 같은 구조를 설명한다.</li><li>새 image 배포 후 <code>sensor-anomaly-demo</code>가 같은 Jetson에서 실제 증가하는 세 축 raw와 2초 이내 temperature를 처리하고 중앙 <code>/state/service-demo</code>가 같은 개별/종합 점수를 반환한다.</li><li>dashboard가 normal/anomaly/degraded를 텍스트로 구분하고 관측 실패 시 가짜 0 값을 표시하지 않는다.</li></ol>
+<ol><li>실제 Jetson Serial과 Raspberry Pi I2C endpoint 및 Device Service 연결 증거가 있다.</li><li>Device Service/Profile/Device가 정확한 관계로 등록된다.</li><li>실제 sample의 typed Event/Reading이 Core Data에서 조회된다.</li><li>장애·복구 시 상태와 새로운 Event가 기대대로 변한다.</li><li>dashboard가 같은 EdgeX device identity와 freshness를 표시한다.</li><li>문서, manifest, 테스트와 live 상태가 같은 구조를 설명한다.</li><li>배포된 <code>sensor-anomaly-demo</code>가 같은 Jetson에서 실제 증가하는 세 축 raw와 2초 이내 temperature를 처리하고 중앙 <code>/state/service-demo</code>가 같은 개별/종합 점수를 반환한다.</li><li>dashboard가 normal/anomaly/degraded를 텍스트로 구분하고 관측 실패 시 가짜 0 값을 표시하지 않는다.</li></ol>
 <p>현재값을 반환하는 read-only Core Command GET은 확인했다. detector의 anomaly 상태 전이는 테스트 PASS 대상이지만 실제 사람이 장치를 움직여 anomaly를 유발하는 장면은 별도 현장 시연 gate다. write command/actuator, 동적 workflow 실행, runtime migration/offloading은 이 데모의 PASS 범위가 아니다.</p>
         </div>
       </article>

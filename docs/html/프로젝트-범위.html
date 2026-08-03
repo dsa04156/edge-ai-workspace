@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-03 11:45</span>
-            <span class="badge">HTML 생성: 2026-08-03 11:46</span>
+            <span class="badge">수정: 2026-08-03 14:29</span>
+            <span class="badge">HTML 생성: 2026-08-03 14:30</span>
           </div>
         </header>
         <div class="doc-body">
@@ -225,7 +225,7 @@
 <p>두 번째 수직 슬라이스는 <code>etri-dev0003-raspi5</code>의 Sense HAT v1이다. <code>device-sensehat-raspi</code>가 exact <code>/dev/i2c-1</code> CharDevice를 직접 소유하고 RTIMULib reader를 내부 protocol module로 실행한다. temperature, humidity, pressure, compass, orientation, gyroscope는 Profile/Device 6개로 등록되고 총 11개 <code>Float64</code> resource를 제공한다. physical <code>sensehat-001</code>은 protocol/tag source ID이며 aggregate EdgeX Device가 아니다. 동일한 10분·10,000 sample recent cache, Local Data API와 read-only command 계약을 사용한다.</p>
 <p>현재 root render에는 고정 <code>device-mqtt</code>와 edge-local broker가 없다. 대신 공식 <code>device-mqtt:4.0.2</code> immutable image, 노드별 network binding, 허용 broker 주소와 topic/QoS 설정, 읽기 전용 온도 Profile을 묶은 개발용 managed template가 있다. 대시보드 연결 실행 시 기존 Runtime이 없으면 Controller가 이 template를 대상 노드에 동적으로 배포한다. broker/publisher simulator는 root 밖의 <code>edgex/k8s/overlays/development/mqtt-simulator</code> 선택적 fixture다. 이는 웹 등록 경로와 Core Data first Event를 검증하기 위한 개발 계약이며 운영 TLS/인증 broker나 임의 MQTT payload 지원 완료를 뜻하지 않는다. Serial과 Sense HAT I2C 정상 경로는 live 지원 증거가 있다. Modbus는 root render 밖의 개발 simulator overlay, digest 고정 공식 <code>device-modbus:4.0.2</code>, read-only Profile과 Git에 등록한 Unit 1·2 exact binding에 한해 수동 endpoint 승인부터 Core Data 첫 Event까지 과거 live 검증했다. 검증용 Controller Runtime은 현재 퇴역했으며 이 증거는 개발 fixture의 수직 경로만 확인하고 자동 discovery나 실제 PLC 지원을 뜻하지 않는다. OPC-UA도 profile·실장비·telemetry 검증 전까지 완료로 주장하지 않는다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media 경로다.</p>
 <p>첫 서비스 데모 consumer는 <code>edge-orch/sensor-anomaly-demo/</code>다. 2026-08-03 소스 구현은 <code>etri-dev0001-jetorn</code>에서 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>의 Local Data API를 500ms마다 조회한다. <code>virtual-acceleration-{x,y,z}-001</code>의 같은 nanosecond <code>origin</code>을 먼저 한 frame으로 결합하고, 별도 Serial 메시지인 <code>virtual-temperature-001</code>은 2초 이내의 가장 가까운 sample만 연결한다. 보간하거나 누락값을 만들지 않으며 시간 범위 안의 온도가 없으면 해당 frame의 종합 점수를 계산하지 않는다.</p>
-<p>가속도 최근 20개에서는 RMS·Peak·Kurtosis, 온도 최근 10개에서는 평균·표준편차·변화량을 만든다. 두 feature branch는 각각 30개 warm-up의 online Gaussian baseline 점수를 계산하고 기본 가중치 <code>진동 0.7 + 온도 0.3</code>으로 종합한다. 종합 점수가 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니다. 새 소스와 API/BFF/dashboard 계약은 자동 테스트를 통과했지만 immutable image build·rollout과 실장비 live readback은 아직 별도 배포 gate다. 2026-07-22의 기존 3축 magnitude live 증거를 새 복합 점수 배포 증거로 재사용하지 않는다.</p>
+<p>가속도 최근 20개에서는 RMS·Peak·Kurtosis, 온도 최근 10개에서는 평균·표준편차·변화량을 만든다. 두 feature branch는 각각 30개 warm-up의 online Gaussian baseline 점수를 계산하고 기본 가중치 <code>진동 0.7 + 온도 0.3</code>으로 종합한다. 종합 점수가 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니다. 2026-08-03에는 ARM64 image <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>을 Jetson에 배포해 Ready/restart 0을 확인했다. 기동 직후 temperature 605개와 acceleration frame 605개를 정렬해 누락 0이었고, 이어진 두 status 조회에서 frame <code>621 → 623</code>, origin <code>1785734602955557669 → 1785734604991104923</code>, 온도 정렬 차이 약 11~12ms를 확인했다. 중앙 BFF와 외부 dashboard도 같은 개별·종합 점수를 반환했다. 실제 장치를 움직여 anomaly를 유발하는 현장 시연은 여전히 별도 gate다.</p>
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → EdgeX Device 4개 → AI consumer binding을 read-only로 표시한다. 구형 3축 응답도 선택 field 없이 계속 읽을 수 있고, 새 응답에서는 진동·온도 개별 점수, 종합 점수, 온도 정렬 차이를 추가로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
 <p>2026-07-31에는 제거된 과거 AI Pipeline과 분리된 <code>서비스 설계</code> 캔버스를 2차년도 설계 트랙 프로토타입으로 대시보드에 추가했다. 이 화면은 <code>/state/dashboard</code>의 EdgeX Device와 <code>/state/device-profiles</code>의 안전한 DeviceResource 계약을 센서 입력으로 사용하고, 브라우저 안에서 단계 추가·이동·연결, 속성 편집, 검색 가능한 13종 서비스 카탈로그, 타입·배치 validation과 dry-run 실행 계획 미리보기만 수행한다. EdgeX 입력은 실제 선택 가능한 Device 수를 표시하고 나머지는 <code>설계용</code>으로 구분한다. 초안은 브라우저 <code>localStorage</code>에만 저장한다. Kubernetes/EdgeX mutation, command, workload 실행, migration과 offloading은 없다.</p>
 <h3 id="노드-장비-발견과-등록-후보-관리">노드 장비 발견과 등록 후보 관리</h3>
@@ -360,7 +360,7 @@
 <tr>
 <td>실측 센서 AI consumer</td>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
-<td>Jetson Local Data API의 가속도 3축을 origin으로 결합하고 비동기 온도를 제한 시간 안에서 정렬해 진동·온도 feature 점수와 가중 종합 점수를 read-only API로 제공. 새 image rollout/live 검증은 별도 gate</td>
+<td>Jetson Local Data API의 가속도 3축을 origin으로 결합하고 비동기 온도를 제한 시간 안에서 정렬해 진동·온도 feature 점수와 가중 종합 점수를 read-only API로 제공. 2026-08-03 immutable ARM64 image rollout, 실제 증가 origin/frame, 중앙 BFF와 browser readback PASS</td>
 </tr>
 <tr>
 <td>대시보드</td>

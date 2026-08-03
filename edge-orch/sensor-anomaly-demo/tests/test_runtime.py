@@ -88,6 +88,46 @@ def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> No
     assert client.calls[7][1] == origin - 9_999_999
 
 
+def test_runtime_recovers_pending_acceleration_when_temperature_arrives_late() -> None:
+    origin = 2_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [],
+        }
+    )
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origin + 100))
+    waiting = runtime.status(now_ns=origin + 100)
+
+    assert waiting.latest is None
+    assert waiting.input_state == "waiting"
+    assert waiting.counters.frames_processed == 0
+
+    client.rows["temperature"] = [
+        AxisSample(origin - 10_000_000, "Int32", 301)
+    ]
+    asyncio.run(runtime.poll_once(now_ns=origin + 200))
+    recovered = runtime.status(now_ns=origin + 200)
+
+    assert recovered.mode == "live"
+    assert recovered.input_state == "fresh"
+    assert recovered.latest is not None
+    assert recovered.latest.origin == origin
+    assert recovered.latest.temperature_features is not None
+    assert recovered.latest.temperature_features.raw == 301
+    assert recovered.latest.temperature_features.alignment_lag_ms == 10.0
+    assert recovered.counters.frames_processed == 1
+    assert recovered.counters.unaligned_frames_dropped == 0
+
+
 def test_runtime_marks_stale_input_degraded_without_discarding_latest() -> None:
     origin = 1_000_000_000
     client = FakeLocalDataClient(
