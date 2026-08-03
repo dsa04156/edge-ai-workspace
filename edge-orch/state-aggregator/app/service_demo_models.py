@@ -281,6 +281,27 @@ class ServiceDemoAlertState(BaseModel):
     observation_error: str | None = None
 
 
+class DeployedServiceInputBinding(BaseModel):
+    stage_id: str = Field(min_length=1)
+    device_name: str = Field(min_length=1)
+    resource_name: str = Field(min_length=1)
+
+
+class DeployedServiceDesignContract(BaseModel):
+    contract_id: Literal["sensor-anomaly-demo-v1"]
+    source_mode: Literal["local_recent"] = "local_recent"
+    pipeline_algorithm: str = Field(min_length=1)
+    vibration_algorithm: str = Field(min_length=1)
+    temperature_algorithm: str = Field(min_length=1)
+    vibration_window_samples: int = Field(ge=2)
+    temperature_window_samples: int = Field(ge=2)
+    warmup_samples: int = Field(ge=1)
+    threshold: float = Field(gt=0)
+    vibration_weight: float = Field(ge=0)
+    temperature_weight: float = Field(ge=0)
+    inputs: list[DeployedServiceInputBinding] = Field(default_factory=list)
+
+
 class DeployedServiceItem(BaseModel):
     service_id: str
     display_name: str
@@ -299,6 +320,7 @@ class DeployedServiceItem(BaseModel):
     model_version: str | None = None
     latest_observed_at: datetime | None = None
     observation_error: str | None = None
+    design_contract: DeployedServiceDesignContract | None = None
 
 
 class DeployedServiceState(BaseModel):

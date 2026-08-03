@@ -91,6 +91,11 @@ body[data-dashboard-page="designer"] .layout {
   color: #86efac;
 }
 
+.service-designer-state strong[data-state="deployed"] {
+  border-color: rgba(56, 189, 248, 0.65);
+  color: #7dd3fc;
+}
+
 .service-designer-state strong[data-state="invalid"] {
   border-color: rgba(248, 113, 113, 0.65);
   color: #fca5a5;
@@ -149,11 +154,40 @@ body[data-dashboard-page="designer"] .layout {
 
 .service-designer-deployed-item {
   display: grid;
-  grid-template-columns: minmax(180px, 1.15fr) minmax(0, 3fr);
+  grid-template-columns: minmax(180px, 1.15fr) minmax(0, 3fr) auto;
   align-items: center;
   gap: 16px;
   min-width: 0;
   padding: 10px 12px;
+}
+
+.service-designer-deployed-item.selected {
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: inset 3px 0 0 var(--console-blue);
+}
+
+.service-designer-deployed-action {
+  min-width: 84px;
+  min-height: 36px;
+  border: 1px solid var(--console-border-strong);
+  border-radius: 4px;
+  padding: 0 11px;
+  background: var(--console-control);
+  color: var(--console-text);
+  cursor: pointer;
+}
+
+.service-designer-deployed-action:hover:not(:disabled),
+.service-designer-deployed-action[aria-pressed="true"] {
+  border-color: var(--console-blue);
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
+}
+
+.service-designer-deployed-action:disabled {
+  color: var(--console-dim);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .service-designer-deployed-item + .service-designer-deployed-item {
@@ -269,6 +303,15 @@ body[data-dashboard-page="designer"] .layout {
   padding: 0 10px;
 }
 
+.service-designer-toolbar input[readonly],
+.service-designer-inspector-body[data-mode="deployed"] input,
+.service-designer-inspector-body[data-mode="deployed"] select {
+  border-color: var(--console-border);
+  color: var(--console-muted);
+  cursor: default;
+  opacity: 1;
+}
+
 .service-designer-actions {
   flex: 0 1 auto;
   justify-content: flex-end;
@@ -277,6 +320,7 @@ body[data-dashboard-page="designer"] .layout {
 }
 
 .service-designer-actions button,
+.service-designer-deployed-action,
 .service-designer-palette-list button,
 .service-designer-node-delete,
 .service-designer-panel-close,
@@ -292,6 +336,19 @@ body[data-dashboard-page="designer"] .layout {
     border-color 160ms ease,
     background-color 160ms ease,
     color 160ms ease;
+}
+
+.service-designer-actions button[hidden] {
+  display: none;
+}
+
+.service-designer-actions button:focus-visible,
+.service-designer-deployed-action:focus-visible,
+.service-designer-palette-list button:focus-visible,
+.service-designer-node:focus-visible,
+.service-designer-tool-button:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
 }
 
 .service-designer-actions button:hover,
@@ -347,6 +404,16 @@ body[data-dashboard-page="designer"] .layout {
 
 .service-designer-workbench:not(.palette-open) {
   grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.service-designer-workbench[data-design-mode="deployed"] {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.service-designer-workbench[data-design-mode="deployed"] .service-designer-palette {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
 }
 
 .service-designer-palette,
@@ -699,6 +766,11 @@ body[data-dashboard-page="designer"] .layout {
   cursor: pointer;
 }
 
+.service-designer-edge-target.is-read-only {
+  pointer-events: none;
+  cursor: default;
+}
+
 .service-designer-edge-group {
   pointer-events: all;
 }
@@ -727,6 +799,11 @@ body[data-dashboard-page="designer"] .layout {
   cursor: grab;
   user-select: none;
   touch-action: none;
+}
+
+.service-designer-node.is-read-only {
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .service-designer-node[data-node-type="sensor"] {
@@ -1001,6 +1078,17 @@ body[data-dashboard-page="designer"] .layout {
   overflow: auto;
 }
 
+.service-designer-read-only-note {
+  margin: 0;
+  border: 1px solid rgba(56, 189, 248, 0.36);
+  border-radius: 4px;
+  padding: 9px 10px;
+  background: rgba(56, 189, 248, 0.08);
+  color: #bae6fd;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .service-designer-field {
   display: grid;
   gap: 6px;
@@ -1273,8 +1361,16 @@ button.service-designer-issue {
     gap: 9px;
   }
 
+  .service-designer-deployed-action {
+    justify-self: start;
+  }
+
   .service-designer-deployed-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-designer-deployed-action {
+    width: 100%;
   }
 
   .service-designer-state,

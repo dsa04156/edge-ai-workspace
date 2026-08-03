@@ -11,6 +11,7 @@ const {
   canonicalDataType,
   connectNodes,
   createDefaultDesign,
+  createDeployedServiceDesign,
   createMultiSensorScoreExampleDesign,
   createSensorAnomalyExampleDesign,
   removeNode,
@@ -22,6 +23,7 @@ const {
 const {
   STORAGE_KEY,
   accelerationAxisBindingCandidates,
+  bindDeployedServiceDesign,
   bindMultiSensorScoreExample,
   bindSensorAnomalyExample,
   contextSourceBindingCandidate,
@@ -154,6 +156,40 @@ function multiSensorInventory() {
     }],
   });
   return current;
+}
+
+function deployedSensorAnomalyService() {
+  return {
+    service_id: "sensor-anomaly-demo",
+    display_name: "센서 이상 탐지",
+    node: "etri-dev0001-jetorn",
+    model_version: "baseline-1.0.0",
+    input_devices: [
+      "virtual-acceleration-x-001",
+      "virtual-acceleration-y-001",
+      "virtual-acceleration-z-001",
+      "virtual-temperature-001",
+    ],
+    design_contract: {
+      contract_id: "sensor-anomaly-demo-v1",
+      source_mode: "local_recent",
+      pipeline_algorithm: "weighted-multi-sensor-feature-score-v1",
+      vibration_algorithm: "online-vibration-feature-gaussian-v1",
+      temperature_algorithm: "online-temperature-feature-gaussian-v1",
+      vibration_window_samples: 20,
+      temperature_window_samples: 10,
+      warmup_samples: 30,
+      threshold: 4,
+      vibration_weight: 0.7,
+      temperature_weight: 0.3,
+      inputs: [
+        {stage_id: "sensor-x", device_name: "virtual-acceleration-x-001", resource_name: "acceleration_x_raw"},
+        {stage_id: "sensor-y", device_name: "virtual-acceleration-y-001", resource_name: "acceleration_y_raw"},
+        {stage_id: "sensor-z", device_name: "virtual-acceleration-z-001", resource_name: "acceleration_z_raw"},
+        {stage_id: "sensor-context", device_name: "virtual-temperature-001", resource_name: "temperature_raw"},
+      ],
+    },
+  };
 }
 
 test("uses EdgeX Device Profile resources even before a latest Event exists", () => {
@@ -432,6 +468,48 @@ test("binds three acceleration axes and a same-node temperature source", () => {
   assert.equal(validateDesign(bound.design, current).valid, true);
 });
 
+test("builds and binds the selected deployed service from its versioned contract", () => {
+  const service = deployedSensorAnomalyService();
+  const design = createDeployedServiceDesign(service);
+  const bound = bindDeployedServiceDesign(design, service, multiSensorInventory());
+
+  assert.equal(design.id, "deployed-sensor-anomaly-demo");
+  assert.equal(design.nodes.length, 10);
+  assert.equal(design.edges.length, 9);
+  assert.equal(
+    design.nodes.find((node) => node.id === "sensor-x").config.deviceName,
+    "virtual-acceleration-x-001",
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "vibration-features").config.windowSize,
+    20,
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "context-features").config.windowSize,
+    10,
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "vibration-score").config.algorithm,
+    "online-vibration-feature-gaussian-v1",
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "context-score").config.algorithm,
+    "online-temperature-feature-gaussian-v1",
+  );
+  assert.deepEqual(
+    design.nodes.find((node) => node.id === "score-fusion").config.weights,
+    {"vibration-score": 0.7, "context-score": 0.3},
+  );
+  assert.equal(bound.configuredInputs.length, 4);
+  assert.equal(validateDesign(bound.design, multiSensorInventory()).valid, true);
+  assert.equal(
+    createDeployedServiceDesign({...service, model_version: null})
+      .nodes.find((node) => node.id === "vibration-score").config.modelVersion,
+    "",
+  );
+  assert.equal(createDeployedServiceDesign({design_contract: null}), null);
+});
+
 test("requires all three vibration axes and at least two valid score weights", () => {
   const current = multiSensorInventory();
   const bound = bindMultiSensorScoreExample(
@@ -519,6 +597,7 @@ test("fetches and labels the current deployed service inventory", async () => {
           input_devices: ["x", "y", "z", "temperature"],
           node: "etri-dev0001-jetorn",
           model_version: "baseline-1.0.0",
+          design_contract: deployedSensorAnomalyService().design_contract,
         }],
       }),
     };
@@ -533,6 +612,7 @@ test("fetches and labels the current deployed service inventory", async () => {
   assert.equal(view.inputLabel, "데이터 최신");
   assert.equal(view.modelLabel, "모델 준비");
   assert.equal(view.inputCount, 4);
+  assert.equal(view.designAvailable, true);
 });
 
 test("fits the complete default graph inside the visible canvas", () => {
@@ -698,7 +778,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerGuideVertical"/);
   assert.match(html, /현재 실행 서비스/);
   assert.match(html, /id="serviceDesignerDeployedList"/);
-  assert.match(html, /실제 배포 상태 · 읽기 전용/);
+  assert.match(html, /서비스 선택 · 실제 배포 상태/);
+  assert.match(html, /id="serviceDesignerReturnDraft"/);
   assert.match(html, /설계 블록/);
   assert.match(html, /id="serviceDesignerReset"[\s\S]*?>3축 데모</);
   assert.match(html, /id="serviceDesignerMultiSensorExample"[\s\S]*?>복합 점수 예시</);
@@ -720,6 +801,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(ui, /data-designer-service/);
   assert.match(ui, /fetchFn\("\/state\/services", \{cache: "no-store"\}\)/);
   assert.match(ui, /renderDeployedServices/);
+  assert.match(ui, /data-deployed-service-design/);
+  assert.match(ui, /openDeployedServiceDesign/);
   assert.match(ui, /model\.addServiceNode\(state\.design, serviceId\)/);
   assert.match(
     ui,
@@ -759,6 +842,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   );
   assert.match(css, /\.service-designer-node\[data-node-type="fusion"\]/);
   assert.match(css, /\.service-designer-deployed-item/);
+  assert.match(css, /\.service-designer-deployed-item\.selected/);
+  assert.match(css, /\.service-designer-deployed-action:focus-visible/);
   assert.match(css, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);

@@ -11,6 +11,9 @@
     inventory: {devices: [], profiles: [], nodes: []},
     deployedServices: [],
     deployedServicesError: "",
+    selectedDeployedServiceId: null,
+    designMode: "draft",
+    draftSnapshot: null,
     selectedNodeId: null,
     inspectorOpen: false,
     pendingFromId: null,
@@ -49,6 +52,24 @@
       .replaceAll("'", "&#039;");
   }
 
+  function isDeployedDesignView() {
+    return state.designMode === "deployed";
+  }
+
+  function cloneDesign(design) {
+    return JSON.parse(JSON.stringify(design));
+  }
+
+  function focusDeployedServiceAction(serviceId, documentRef = document) {
+    const button = [...documentRef.querySelectorAll("[data-deployed-service-design]")]
+      .find((item) => item.dataset.deployedServiceDesign === serviceId);
+    try {
+      button?.focus({preventScroll: true});
+    } catch (_error) {
+      button?.focus?.();
+    }
+  }
+
   function loadStoredDesign(storage = root?.localStorage) {
     if (!model || !storage) return null;
     try {
@@ -85,7 +106,11 @@
         (item) => item.name === node.config.deviceName,
       );
       const resource = model.sourceResource(node, inventory);
-      if (!device) return "디바이스를 선택하세요";
+      if (!device) {
+        return node.config.deviceName
+          ? `${node.config.deviceName} · ${node.config.resourceName || "리소스 확인 필요"} · 관측 확인 필요`
+          : "디바이스를 선택하세요";
+      }
       if (!resource) return `${device.name} · 리소스 선택 필요`;
       return `${device.name} · ${resource.name}`;
     }
@@ -424,6 +449,123 @@
     };
   }
 
+  function bindDeployedServiceDesign(design, service = {}, inventory = {}) {
+    const allowedDevices = new Set(
+      Array.isArray(service.input_devices) ? service.input_devices : [],
+    );
+    const scopedInventory = allowedDevices.size
+      ? {
+        ...inventory,
+        devices: (inventory.devices || []).filter(
+          (device) => allowedDevices.has(device.name),
+        ),
+      }
+      : inventory;
+    return bindMultiSensorScoreExample(design, scopedInventory);
+  }
+
+  function rebuildActiveDeployedServiceDesign() {
+    if (!isDeployedDesignView()) return false;
+    const service = state.deployedServices.find(
+      (item) => item.service_id === state.selectedDeployedServiceId,
+    );
+    const design = service && model.createDeployedServiceDesign?.(service);
+    if (!service || !design) return false;
+    state.design = bindDeployedServiceDesign(
+      design,
+      service,
+      state.inventory,
+    ).design;
+    state.selectedNodeId = state.design.nodes.some(
+      (node) => node.id === state.selectedNodeId,
+    ) ? state.selectedNodeId : null;
+    if (!state.selectedNodeId) state.inspectorOpen = false;
+    state.pendingFromId = null;
+    state.selectedEdgeId = null;
+    state.lastValidation = null;
+    state.dirty = false;
+    return true;
+  }
+
+  function openDeployedServiceDesign(serviceId, documentRef = document) {
+    const service = state.deployedServices.find(
+      (item) => item.service_id === serviceId,
+    );
+    const design = service && model.createDeployedServiceDesign?.(service);
+    if (!service || !design) {
+      setFeedback(
+        "이 서비스는 표시할 수 있는 검증된 설계 계약이 없습니다.",
+        "error",
+        documentRef,
+      );
+      return false;
+    }
+    if (!isDeployedDesignView()) {
+      const badge = el("serviceDesignerDraftState", documentRef);
+      state.draftSnapshot = {
+        design: cloneDesign(state.design),
+        dirty: state.dirty,
+        loadedFromStorage: state.loadedFromStorage,
+        liveBindingSeeded: state.liveBindingSeeded,
+        lastValidation: state.lastValidation,
+        selectedNodeId: state.selectedNodeId,
+        inspectorOpen: state.inspectorOpen,
+        badgeLabel: badge?.textContent || "초안",
+        badgeState: badge?.dataset.state || "draft",
+      };
+    }
+    state.designMode = "deployed";
+    state.selectedDeployedServiceId = serviceId;
+    state.design = design;
+    state.selectedNodeId = null;
+    state.inspectorOpen = false;
+    rebuildActiveDeployedServiceDesign();
+    state.viewportInitialized = false;
+    state.paletteOpen = false;
+    renderAll(documentRef);
+    setDraftState("운영 설계", "deployed", documentRef);
+    setFeedback(
+      `${service.display_name || service.service_id}의 실제 고정 배포 계약을 읽기 전용으로 표시합니다.`,
+      "success",
+      documentRef,
+    );
+    focusDeployedServiceAction(serviceId, documentRef);
+    scheduleCanvasFit(documentRef);
+    return true;
+  }
+
+  function returnToDraft(documentRef = document) {
+    if (!isDeployedDesignView()) return false;
+    const snapshot = state.draftSnapshot;
+    const previousServiceId = state.selectedDeployedServiceId;
+    state.designMode = "draft";
+    state.selectedDeployedServiceId = null;
+    state.design = snapshot?.design
+      ? cloneDesign(snapshot.design)
+      : loadStoredDesign() || model.createSensorAnomalyExampleDesign();
+    state.dirty = snapshot?.dirty ?? false;
+    state.loadedFromStorage = snapshot?.loadedFromStorage ?? false;
+    state.liveBindingSeeded = snapshot?.liveBindingSeeded ?? false;
+    state.lastValidation = snapshot?.lastValidation ?? null;
+    state.selectedNodeId = snapshot?.selectedNodeId ?? null;
+    state.inspectorOpen = snapshot?.inspectorOpen ?? false;
+    state.pendingFromId = null;
+    state.selectedEdgeId = null;
+    state.draftSnapshot = null;
+    state.viewportInitialized = false;
+    state.paletteOpen = !root.matchMedia?.("(max-width: 860px)").matches;
+    renderAll(documentRef);
+    setDraftState(
+      snapshot?.badgeLabel || (state.dirty ? "초안" : "저장됨"),
+      snapshot?.badgeState || (state.dirty ? "draft" : "saved"),
+      documentRef,
+    );
+    setFeedback("편집 중이던 서비스 초안으로 돌아왔습니다.", "ready", documentRef);
+    focusDeployedServiceAction(previousServiceId, documentRef);
+    scheduleCanvasFit(documentRef);
+    return true;
+  }
+
   function serverNodeName(nodes = []) {
     const server = nodes.find((node) => (
       ["cloud_server", "server"].includes(String(node.node_type || "").toLowerCase())
@@ -518,6 +660,7 @@
   }
 
   function loadSensorAnomalyExample(documentRef = document) {
+    if (isDeployedDesignView()) return;
     state.design = model.createSensorAnomalyExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -533,6 +676,7 @@
   }
 
   function loadMultiSensorScoreExample(documentRef = document) {
+    if (isDeployedDesignView()) return;
     state.design = model.createMultiSensorScoreExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -562,6 +706,7 @@
   }
 
   function markDirty(message = "설계가 변경되었습니다.", documentRef = document) {
+    if (isDeployedDesignView()) return;
     state.dirty = true;
     state.lastValidation = null;
     state.selectedEdgeId = null;
@@ -696,7 +841,7 @@
   }
 
   function setPaletteOpen(open, documentRef = document) {
-    state.paletteOpen = Boolean(open);
+    state.paletteOpen = isDeployedDesignView() ? false : Boolean(open);
     const workbench = el("serviceDesignerWorkbench", documentRef);
     const toggle = el("serviceDesignerPaletteToggle", documentRef);
     workbench?.classList.toggle("palette-open", state.paletteOpen);
@@ -813,6 +958,7 @@
         .map((issue) => issue.nodeId)
         .filter(Boolean),
     );
+    const readOnly = isDeployedDesignView();
     container.innerHTML = state.design.nodes.map((node) => {
       const definition = model.nodeDefinition(node.type);
       const selected = state.selectedNodeId === node.id;
@@ -821,15 +967,16 @@
       const inputType = model.nodeInputType(node);
       return `
         <article
-          class="service-designer-node${selected ? " selected" : ""}"
+          class="service-designer-node${selected ? " selected" : ""}${readOnly ? " is-read-only" : ""}"
           data-designer-node="${escapeHtml(node.id)}"
           data-node-type="${escapeHtml(node.type)}"
           data-validity="${errorNodeIds.has(node.id) ? "error" : "ready"}"
           style="left:${Number(node.x)}px;top:${Number(node.y)}px"
           tabindex="0"
+          aria-readonly="${readOnly ? "true" : "false"}"
           aria-label="${escapeHtml(`${node.title}: ${nodeSummary(node)}`)}"
         >
-          ${definition.acceptsInput ? `
+          ${definition.acceptsInput && !readOnly ? `
             <button
               class="service-designer-port input"
               type="button"
@@ -843,18 +990,20 @@
               <span>${escapeHtml(definition.shortLabel)}</span>
               <strong>${escapeHtml(node.title)}</strong>
             </div>
-            <button
-              class="service-designer-node-delete"
-              type="button"
-              data-designer-delete="${escapeHtml(node.id)}"
-              aria-label="${escapeHtml(`${node.title} 단계 삭제`)}"
-            >삭제</button>
+            ${readOnly ? "" : `
+              <button
+                class="service-designer-node-delete"
+                type="button"
+                data-designer-delete="${escapeHtml(node.id)}"
+                aria-label="${escapeHtml(`${node.title} 단계 삭제`)}"
+              >삭제</button>
+            `}
           </div>
           <div class="service-designer-node-body">
             <p>${escapeHtml(nodeSummary(node))}</p>
             <small>${escapeHtml(definition.description)}</small>
           </div>
-          ${definition.providesOutput ? `
+          ${definition.providesOutput && !readOnly ? `
             <button
               class="service-designer-port output${pending ? " pending" : ""}"
               type="button"
@@ -885,6 +1034,7 @@
   function renderEdges(documentRef = document) {
     const container = el("serviceDesignerEdges", documentRef);
     if (!container || !state.design) return;
+    const readOnly = isDeployedDesignView();
     const nodes = Object.fromEntries(
       state.design.nodes.map((node) => [node.id, node]),
     );
@@ -909,10 +1059,9 @@
           >
             <path class="service-designer-edge-path${selected ? " selected" : ""}" d="${path.d}" marker-end="url(#serviceDesignerArrow)"></path>
             <path
-              class="service-designer-edge-target"
+              class="service-designer-edge-target${readOnly ? " is-read-only" : ""}"
               d="${path.d}"
-              data-designer-remove-edge="${escapeHtml(edge.id)}"
-              aria-label="연결 삭제"
+              ${readOnly ? "" : `data-designer-remove-edge="${escapeHtml(edge.id)}" aria-label="연결 삭제"`}
             ></path>
             ${selected ? `<text class="service-designer-edge-label" x="${path.labelX}" y="${path.labelY}">클릭하여 삭제</text>` : ""}
           </g>
@@ -939,11 +1088,21 @@
     const resource = resources.find(
       (item) => item.name === node.config.resourceName,
     );
+    const configuredResource = resource || (node.config.resourceName
+      ? {name: node.config.resourceName, valueType: "Unknown", units: null}
+      : null);
     return `
       <label class="service-designer-field">
         <span>센서 디바이스</span>
         <select data-designer-config="deviceName">
           ${optionMarkup("", "선택", node.config.deviceName)}
+          ${node.config.deviceName && !selectedDevice
+            ? optionMarkup(
+              node.config.deviceName,
+              `${node.config.deviceName} · 관측 확인 필요`,
+              node.config.deviceName,
+            )
+            : ""}
           ${devices.map((device) => optionMarkup(
             device.name,
             `${device.name} · ${device.overall_status || "unknown"}`,
@@ -955,6 +1114,13 @@
         <span>DeviceResource</span>
         <select data-designer-config="resourceName"${selectedDevice ? "" : " disabled"}>
           ${optionMarkup("", "선택", node.config.resourceName)}
+          ${node.config.resourceName && !resource
+            ? optionMarkup(
+              node.config.resourceName,
+              `${node.config.resourceName} · 계약`,
+              node.config.resourceName,
+            )
+            : ""}
           ${resources.map((item) => optionMarkup(
             item.name,
             `${item.name} · ${item.valueType}${item.units ? ` · ${item.units}` : ""}`,
@@ -972,10 +1138,10 @@
         <small>${escapeHtml(model.SOURCE_MODES[node.config.sourceMode]?.description || "")}</small>
       </label>
       <p class="service-designer-binding-status">
-        <strong>${escapeHtml(selectedDevice?.name || "바인딩 없음")}</strong>
+        <strong>${escapeHtml(selectedDevice?.name || node.config.deviceName || "바인딩 없음")}</strong>
         <span>노드 ${escapeHtml(selectedDevice?.node_name || "미확인")}</span>
         <span>Profile ${escapeHtml(selectedDevice?.profile_name || "미확인")}</span>
-        <span>출력 ${escapeHtml(model.canonicalDataType(resource?.valueType))}</span>
+        <span>출력 ${escapeHtml(model.canonicalDataType(configuredResource?.valueType))}</span>
       </p>
     `;
   }
@@ -984,8 +1150,14 @@
     const nodes = [...state.inventory.nodes].sort(
       (left, right) => nodeName(left).localeCompare(nodeName(right)),
     );
+    const nodeNames = new Set(nodes.map((node) => nodeName(node)));
     return [
       optionMarkup("", "선택", selectedValue),
+      ...(
+        selectedValue && !nodeNames.has(selectedValue)
+          ? [optionMarkup(selectedValue, `${selectedValue} · 배포 계약`, selectedValue)]
+          : []
+      ),
       ...nodes.map((node) => {
         const name = nodeName(node);
         const health = node.node_health || "unknown";
@@ -1018,6 +1190,16 @@
   }
 
   function renderInferenceInspector(node) {
+    const deployedDetails = node.config.warmupSamples ? `
+      <label class="service-designer-field">
+        <span>워밍업 표본</span>
+        <input type="number" value="${escapeHtml(node.config.warmupSamples)}" />
+      </label>
+      <label class="service-designer-field">
+        <span>모델 버전</span>
+        <input type="text" value="${escapeHtml(node.config.modelVersion || "확인 필요")}" />
+      </label>
+    ` : "";
     return `
       <label class="service-designer-field">
         <span>추론 방식</span>
@@ -1037,6 +1219,7 @@
         <span>임계값</span>
         <input data-designer-config="threshold" data-designer-number type="number" step="0.1" min="0" value="${escapeHtml(node.config.threshold ?? 4)}" />
       </label>
+      ${deployedDetails}
     `;
   }
 
@@ -1070,6 +1253,12 @@
         </div>
       `
       : "";
+    const pipeline = node.config.pipelineAlgorithm ? `
+      <label class="service-designer-field">
+        <span>파이프라인</span>
+        <input type="text" value="${escapeHtml(node.config.pipelineAlgorithm)}" />
+      </label>
+    ` : "";
     return `
       <label class="service-designer-field">
         <span>결합 방식</span>
@@ -1094,6 +1283,7 @@
         </select>
         <small>${escapeHtml(model.FUSION_MISSING_POLICIES[node.config.missingPolicy]?.description || "")}</small>
       </label>
+      ${pipeline}
       ${weightedInputs}
     `;
   }
@@ -1136,7 +1326,18 @@
         </label>
       `;
     }
-    body.innerHTML = `${common}${fields}`;
+    const readOnly = isDeployedDesignView();
+    body.innerHTML = `${readOnly ? `
+      <p class="service-designer-read-only-note">
+        현재 배포 계약입니다. 설정을 변경하려면 초안으로 돌아가세요.
+      </p>
+    ` : ""}${common}${fields}`;
+    body.dataset.mode = readOnly ? "deployed" : "draft";
+    if (readOnly) {
+      body.querySelectorAll("input, select, textarea, button").forEach((control) => {
+        control.disabled = true;
+      });
+    }
   }
 
   function renderValidation(documentRef = document) {
@@ -1241,6 +1442,7 @@
       inputCount: inputDevices.length,
       node: String(service.node || "배치 확인 필요"),
       modelVersion: String(service.model_version || "버전 확인 필요"),
+      designAvailable: Boolean(model.createDeployedServiceDesign?.(service)),
     };
   }
 
@@ -1260,8 +1462,14 @@
     }
     container.innerHTML = state.deployedServices.map((service) => {
       const view = deployedServiceView(service);
+      const selected = state.selectedDeployedServiceId === service.service_id;
       return `
-        <article class="service-designer-deployed-item" data-service-status="${escapeHtml(view.status)}" role="listitem">
+        <article
+          class="service-designer-deployed-item${selected ? " selected" : ""}"
+          data-service-status="${escapeHtml(view.status)}"
+          data-selected="${selected ? "true" : "false"}"
+          role="listitem"
+        >
           <div class="service-designer-deployed-identity">
             <strong>${escapeHtml(service.display_name || service.service_id)}</strong>
             <span>${escapeHtml(service.service_id)}</span>
@@ -1275,6 +1483,13 @@
             <div><dt>입력</dt><dd>${view.inputCount}개</dd></div>
             <div><dt>모델</dt><dd>${escapeHtml(view.modelVersion)}</dd></div>
           </dl>
+          <button
+            class="service-designer-deployed-action"
+            type="button"
+            data-deployed-service-design="${escapeHtml(service.service_id)}"
+            aria-pressed="${selected ? "true" : "false"}"
+            ${view.designAvailable ? "" : 'disabled aria-disabled="true" title="검증된 설계 계약이 없습니다."'}
+          >${view.designAvailable ? (selected ? "보고 있음" : "설계 보기") : "설계 없음"}</button>
         </article>
       `;
     }).join("");
@@ -1288,6 +1503,7 @@
       el("serviceDesignerPaletteSearch", documentRef)?.value || ""
     ).trim().toLowerCase();
     const catalog = model.buildServiceCatalog(state.inventory);
+    const readOnly = isDeployedDesignView();
     const categoryLabels = new Map(
       (model.SERVICE_CATEGORIES || []).map((category) => [category.id, category.label]),
     );
@@ -1328,7 +1544,7 @@
                 data-designer-service="${escapeHtml(service.id)}"
                 data-service-state="${escapeHtml(service.availability)}"
                 aria-label="${escapeHtml(service.label)} 서비스 추가"
-                ${service.enabled ? "" : 'disabled aria-disabled="true" title="현재 선택 가능한 EdgeX 입력이 없습니다."'}
+                ${service.enabled && !readOnly ? "" : `disabled aria-disabled="true" title="${readOnly ? "운영 설계는 읽기 전용입니다." : "현재 선택 가능한 EdgeX 입력이 없습니다."}"`}
               >
                 <span class="service-designer-service-title">
                   <strong>${escapeHtml(service.label)}</strong>
@@ -1343,6 +1559,58 @@
     }).join("");
   }
 
+  function renderDesignModeControls(documentRef = document) {
+    const readOnly = isDeployedDesignView();
+    const nameInput = el("serviceDesignerName", documentRef);
+    const returnButton = el("serviceDesignerReturnDraft", documentRef);
+    const draftButtons = [
+      el("serviceDesignerReset", documentRef),
+      el("serviceDesignerMultiSensorExample", documentRef),
+      el("serviceDesignerSave", documentRef),
+    ].filter(Boolean);
+    const paletteToggle = el("serviceDesignerPaletteToggle", documentRef);
+    const paletteClose = el("serviceDesignerPaletteClose", documentRef);
+    const paletteSearch = el("serviceDesignerPaletteSearch", documentRef);
+    const validateButton = el("serviceDesignerValidate", documentRef);
+    const connectHint = el("serviceDesignerConnectHint", documentRef);
+    const canvasStatus = el("serviceDesignerCanvasStatus", documentRef);
+    const workbench = el("serviceDesignerWorkbench", documentRef);
+    if (nameInput) {
+      nameInput.readOnly = readOnly;
+      nameInput.setAttribute("aria-readonly", String(readOnly));
+    }
+    if (returnButton) returnButton.hidden = !readOnly;
+    draftButtons.forEach((button) => {
+      button.hidden = readOnly;
+      button.disabled = readOnly;
+    });
+    if (paletteToggle) paletteToggle.disabled = readOnly;
+    if (paletteClose) paletteClose.disabled = readOnly;
+    if (paletteSearch) paletteSearch.disabled = readOnly;
+    if (validateButton) {
+      validateButton.textContent = readOnly ? "계약 검증" : "설계 검증";
+    }
+    if (connectHint) {
+      connectHint.textContent = readOnly
+        ? "단계를 선택하면 실제 설정을 확인할 수 있습니다."
+        : "출력 포트 → 입력 포트";
+    }
+    if (canvasStatus) {
+      canvasStatus.textContent = readOnly
+        ? "읽기 전용 · 단계를 선택해 배포 설정 확인"
+        : "빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제";
+    }
+    if (readOnly) {
+      state.paletteOpen = false;
+      setDraftState("운영 설계", "deployed", documentRef);
+    }
+    if (workbench) {
+      workbench.dataset.designMode = readOnly ? "deployed" : "draft";
+      workbench.classList.toggle("palette-open", state.paletteOpen);
+    }
+    paletteToggle?.setAttribute("aria-expanded", String(state.paletteOpen));
+  }
+
   function renderAll(documentRef = document) {
     if (!state.initialized || !state.design) return;
     if (state.dragging) {
@@ -1354,6 +1622,7 @@
     if (nameInput && nameInput.value !== state.design.name) {
       nameInput.value = state.design.name;
     }
+    renderDesignModeControls(documentRef);
     renderInventoryState(documentRef);
     renderDeployedServices(documentRef);
     renderServiceCatalog(documentRef);
@@ -1386,6 +1655,7 @@
   }
 
   function handleOutputPort(nodeId, documentRef = document) {
+    if (isDeployedDesignView()) return;
     state.pendingFromId = state.pendingFromId === nodeId ? null : nodeId;
     if (state.pendingFromId) {
       const node = state.design.nodes.find((item) => item.id === nodeId);
@@ -1401,6 +1671,7 @@
   }
 
   function handleInputPort(nodeId, documentRef = document) {
+    if (isDeployedDesignView()) return;
     if (!state.pendingFromId) {
       setFeedback("먼저 연결할 출력 포트를 누르세요.", "error", documentRef);
       return;
@@ -1422,6 +1693,7 @@
   }
 
   function handleConfigChange(target, documentRef = document) {
+    if (isDeployedDesignView()) return;
     const node = state.design.nodes.find(
       (item) => item.id === state.selectedNodeId,
     );
@@ -1465,7 +1737,11 @@
     const reviewPanel = el("serviceDesignerReviewPanel", documentRef);
     if (reviewPanel) reviewPanel.open = true;
     const valid = state.lastValidation.valid;
-    setDraftState(valid ? "검증됨" : "수정 필요", valid ? "valid" : "invalid", documentRef);
+    setDraftState(
+      isDeployedDesignView() ? "운영 설계" : valid ? "검증됨" : "수정 필요",
+      isDeployedDesignView() ? "deployed" : valid ? "valid" : "invalid",
+      documentRef,
+    );
     setFeedback(
       valid
         ? state.lastValidation.warnings.length
@@ -1484,7 +1760,8 @@
   function updateInventory(data = {}, documentRef = document) {
     state.inventory.devices = Array.isArray(data.devices) ? data.devices : [];
     state.inventory.nodes = Array.isArray(data.nodes) ? data.nodes : [];
-    maybeSeedLiveBinding();
+    if (isDeployedDesignView()) rebuildActiveDeployedServiceDesign();
+    else maybeSeedLiveBinding();
     renderAll(documentRef);
   }
 
@@ -1516,7 +1793,17 @@
     try {
       state.deployedServices = await fetchDesignerServices(fetchFn);
       state.deployedServicesError = "";
-      renderDeployedServices(documentRef);
+      if (isDeployedDesignView()) {
+        if (rebuildActiveDeployedServiceDesign()) renderAll(documentRef);
+        else {
+          returnToDraft(documentRef);
+          setFeedback(
+            "선택한 서비스의 설계 계약이 더 이상 제공되지 않습니다.",
+            "error",
+            documentRef,
+          );
+        }
+      } else renderDeployedServices(documentRef);
       return true;
     } catch (error) {
       state.deployedServices = [];
@@ -1534,7 +1821,8 @@
   ) {
     try {
       state.inventory.profiles = await fetchDesignerProfiles(fetchFn);
-      maybeSeedLiveBinding();
+      if (isDeployedDesignView()) rebuildActiveDeployedServiceDesign();
+      else maybeSeedLiveBinding();
       renderAll(documentRef);
       return true;
     } catch (error) {
@@ -1673,7 +1961,11 @@
   }
 
   function startDrag(event, nodeId, documentRef = document) {
-    if (event.button !== 0 || event.target.closest?.("button")) return;
+    if (
+      isDeployedDesignView()
+      || event.button !== 0
+      || event.target.closest?.("button")
+    ) return;
     const node = state.design.nodes.find((item) => item.id === nodeId);
     const nodeElement = event.target.closest?.("[data-designer-node]");
     if (!node || !nodeElement) return;
@@ -1883,6 +2175,8 @@
 
   function moveSelectedNodeByKeyboard(event, documentRef = document) {
     if (
+      isDeployedDesignView()
+      ||
       !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
       || !state.selectedNodeId
       || event.target.matches?.("input, select, textarea, button")
@@ -1938,9 +2232,20 @@
         state.suppressNodeClickId = null;
         state.suppressNodeClickUntil = 0;
       }
+      const deployedDesignButton = event.target.closest?.(
+        "[data-deployed-service-design]",
+      );
+      if (deployedDesignButton) {
+        if (deployedDesignButton.disabled) return;
+        openDeployedServiceDesign(
+          deployedDesignButton.dataset.deployedServiceDesign,
+          documentRef,
+        );
+        return;
+      }
       const serviceButton = event.target.closest?.("[data-designer-service]");
       if (serviceButton) {
-        if (serviceButton.disabled) return;
+        if (serviceButton.disabled || isDeployedDesignView()) return;
         const serviceId = serviceButton.dataset.designerService;
         state.design = model.addServiceNode(state.design, serviceId);
         const added = state.design.nodes[state.design.nodes.length - 1];
@@ -1974,6 +2279,7 @@
       }
       const deleteButton = event.target.closest?.("[data-designer-delete]");
       if (deleteButton) {
+        if (isDeployedDesignView()) return;
         const nodeId = deleteButton.dataset.designerDelete;
         state.design = model.removeNode(state.design, nodeId);
         if (state.selectedNodeId === nodeId) {
@@ -1998,6 +2304,7 @@
       }
       const edgeTarget = event.target.closest?.("[data-designer-remove-edge]");
       if (edgeTarget) {
+        if (isDeployedDesignView()) return;
         const edgeId = edgeTarget.dataset.designerRemoveEdge;
         if (state.selectedEdgeId !== edgeId) {
           state.selectedEdgeId = edgeId;
@@ -2109,6 +2416,7 @@
       },
     );
     el("serviceDesignerName", documentRef)?.addEventListener("input", (event) => {
+      if (isDeployedDesignView()) return;
       state.design = {
         ...state.design,
         name: event.target.value,
@@ -2124,6 +2432,7 @@
       () => validateCurrentDesign(documentRef),
     );
     el("serviceDesignerSave", documentRef)?.addEventListener("click", () => {
+      if (isDeployedDesignView()) return;
       try {
         saveStoredDesign(state.design);
         setDraftState("저장됨", "saved", documentRef);
@@ -2138,6 +2447,10 @@
     el("serviceDesignerMultiSensorExample", documentRef)?.addEventListener(
       "click",
       () => loadMultiSensorScoreExample(documentRef),
+    );
+    el("serviceDesignerReturnDraft", documentRef)?.addEventListener(
+      "click",
+      () => returnToDraft(documentRef),
     );
     documentRef.addEventListener("keydown", (event) => {
       if (moveSelectedNodeByKeyboard(event, documentRef)) return;
@@ -2155,6 +2468,7 @@
       }
       if (
         (event.key === "Delete" || event.key === "Backspace")
+        && !isDeployedDesignView()
         && state.selectedNodeId
         && !event.target.matches("input, select, textarea")
         && event.target.closest?.(".service-designer-page")
@@ -2229,6 +2543,7 @@
       escapeHtml,
       fetchDesignerProfiles,
       accelerationAxisBindingCandidates,
+      bindDeployedServiceDesign,
       bindMultiSensorScoreExample,
       bindSensorAnomalyExample,
       contextSourceBindingCandidate,

@@ -136,6 +136,16 @@
       inputType: "feature_vector",
       outputType: "number",
     },
+    "online-vibration-feature-gaussian-v1": {
+      label: "진동 특징 Gaussian 점수",
+      inputType: "feature_vector",
+      outputType: "number",
+    },
+    "online-temperature-feature-gaussian-v1": {
+      label: "온도 특징 Gaussian 점수",
+      inputType: "feature_vector",
+      outputType: "number",
+    },
   };
   const FUSION_METHODS = {
     weighted_average: {
@@ -475,6 +485,111 @@
       ],
       updatedAt: null,
     };
+  }
+
+  function createDeployedServiceDesign(service = {}) {
+    const contract = service.design_contract;
+    if (contract?.contract_id !== "sensor-anomaly-demo-v1") return null;
+    const targetNode = String(service.node || "");
+    const modelVersion = String(service.model_version || "");
+    const inputBindings = new Map(
+      (Array.isArray(contract.inputs) ? contract.inputs : []).map(
+        (binding) => [String(binding.stage_id || ""), binding],
+      ),
+    );
+    const design = createMultiSensorScoreExampleDesign();
+    return normalizeDesign({
+      ...design,
+      id: `deployed-${String(service.service_id || "sensor-anomaly-demo")}`,
+      name: String(service.display_name || "센서 이상 탐지"),
+      description: "현재 배포된 고정 서비스의 읽기 전용 설계 계약",
+      nodes: design.nodes.map((node) => {
+        if (["sensor-x", "sensor-y", "sensor-z", "sensor-context"].includes(node.id)) {
+          const binding = inputBindings.get(node.id) || {};
+          return {
+            ...node,
+            title: node.id === "sensor-context" ? "온도" : node.title,
+            config: {
+              ...node.config,
+              deviceName: String(binding.device_name || ""),
+              resourceName: String(binding.resource_name || ""),
+              sourceMode: contract.source_mode || "local_recent",
+            },
+          };
+        }
+        if (node.id === "vibration-features") {
+          return {
+            ...node,
+            title: "진동 특징 (RMS·Peak·Kurtosis)",
+            config: {
+              ...node.config,
+              operation: "vibration_features",
+              windowSize: Number(contract.vibration_window_samples),
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "context-features") {
+          return {
+            ...node,
+            title: "온도 특징 (평균·표준편차·변화량)",
+            config: {
+              ...node.config,
+              operation: "window_features",
+              windowSize: Number(contract.temperature_window_samples),
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "vibration-score") {
+          return {
+            ...node,
+            title: "진동 이상 점수",
+            config: {
+              ...node.config,
+              algorithm: String(contract.vibration_algorithm),
+              threshold: Number(contract.threshold),
+              warmupSamples: Number(contract.warmup_samples),
+              modelVersion,
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "context-score") {
+          return {
+            ...node,
+            title: "온도 이상 점수",
+            config: {
+              ...node.config,
+              algorithm: String(contract.temperature_algorithm),
+              threshold: Number(contract.threshold),
+              warmupSamples: Number(contract.warmup_samples),
+              modelVersion,
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "score-fusion") {
+          return {
+            ...node,
+            title: "종합 이상 점수",
+            config: {
+              ...node.config,
+              method: "weighted_average",
+              missingPolicy: "wait_all",
+              pipelineAlgorithm: String(contract.pipeline_algorithm),
+              targetNode,
+              weights: {
+                "vibration-score": Number(contract.vibration_weight),
+                "context-score": Number(contract.temperature_weight),
+              },
+            },
+          };
+        }
+        return node;
+      }),
+      updatedAt: null,
+    });
   }
 
   function normalizeNode(rawNode, index) {
@@ -1081,6 +1196,7 @@
     compatibleTypes,
     connectNodes,
     createDefaultDesign,
+    createDeployedServiceDesign,
     createMultiSensorScoreExampleDesign,
     createSensorAnomalyExampleDesign,
     nodeDefinition,

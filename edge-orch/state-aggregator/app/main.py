@@ -57,6 +57,7 @@ from .service_demo import (
     degraded_service_demo_state,
 )
 from .service_demo_models import (
+    DeployedServiceDesignContract,
     DeployedServiceItem,
     DeployedServiceState,
     ServiceDemoAlertState,
@@ -259,6 +260,57 @@ def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
     model_version = demo.model.version if demo.model is not None else None
     if model_version is None and demo.latest is not None:
         model_version = demo.latest.model_version
+    vibration_model = demo.model.components.get("vibration") if demo.model else None
+    temperature_model = demo.model.components.get("temperature") if demo.model else None
+    weights = demo.model.weights if demo.model else None
+    design_contract = DeployedServiceDesignContract(
+        contract_id="sensor-anomaly-demo-v1",
+        pipeline_algorithm=(
+            demo.model.algorithm
+            if demo.model is not None
+            else "weighted-multi-sensor-feature-score-v1"
+        ),
+        vibration_algorithm=(
+            vibration_model.algorithm
+            if vibration_model is not None
+            else "online-vibration-feature-gaussian-v1"
+        ),
+        temperature_algorithm=(
+            temperature_model.algorithm
+            if temperature_model is not None
+            else "online-temperature-feature-gaussian-v1"
+        ),
+        # These window sizes are part of the versioned fixed workload contract.
+        # A changed deployment must publish a new contract version here.
+        vibration_window_samples=20,
+        temperature_window_samples=10,
+        warmup_samples=demo.model.warmup_samples if demo.model is not None else 30,
+        threshold=demo.model.threshold if demo.model is not None else 4.0,
+        vibration_weight=weights.vibration if weights is not None else 0.7,
+        temperature_weight=weights.temperature if weights is not None else 0.3,
+        inputs=[
+            {
+                "stage_id": "sensor-x",
+                "device_name": "virtual-acceleration-x-001",
+                "resource_name": "acceleration_x_raw",
+            },
+            {
+                "stage_id": "sensor-y",
+                "device_name": "virtual-acceleration-y-001",
+                "resource_name": "acceleration_y_raw",
+            },
+            {
+                "stage_id": "sensor-z",
+                "device_name": "virtual-acceleration-z-001",
+                "resource_name": "acceleration_z_raw",
+            },
+            {
+                "stage_id": "sensor-context",
+                "device_name": "virtual-temperature-001",
+                "resource_name": "temperature_raw",
+            },
+        ],
+    )
     return DeployedServiceState(
         generated_at=datetime.now(timezone.utc),
         services=[
@@ -279,6 +331,7 @@ def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
                     demo.latest.observed_at if demo.latest is not None else None
                 ),
                 observation_error=demo.observation_error,
+                design_contract=design_contract,
             )
         ],
     )

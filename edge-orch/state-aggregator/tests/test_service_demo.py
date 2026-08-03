@@ -258,6 +258,7 @@ def test_service_demo_route_returns_degraded_snapshot_on_upstream_failure(
     assert service["service_id"] == "sensor-anomaly-demo"
     assert service["status"] == "degraded"
     assert service["mode"] == "unavailable"
+    assert service["design_contract"]["contract_id"] == "sensor-anomaly-demo-v1"
 
 
 def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
@@ -293,6 +294,41 @@ def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
     assert len(service["input_devices"]) == 4
     assert service["model_version"] == "baseline-1.0.0"
     assert service["latest_observed_at"] == "2026-07-22T10:00:00Z"
+    assert service["design_contract"] == {
+        "contract_id": "sensor-anomaly-demo-v1",
+        "source_mode": "local_recent",
+        "pipeline_algorithm": "weighted-multi-sensor-feature-score-v1",
+        "vibration_algorithm": "online-vibration-feature-gaussian-v1",
+        "temperature_algorithm": "online-temperature-feature-gaussian-v1",
+        "vibration_window_samples": 20,
+        "temperature_window_samples": 10,
+        "warmup_samples": 30,
+        "threshold": 4.0,
+        "vibration_weight": 0.7,
+        "temperature_weight": 0.3,
+        "inputs": [
+            {
+                "stage_id": "sensor-x",
+                "device_name": "virtual-acceleration-x-001",
+                "resource_name": "acceleration_x_raw",
+            },
+            {
+                "stage_id": "sensor-y",
+                "device_name": "virtual-acceleration-y-001",
+                "resource_name": "acceleration_y_raw",
+            },
+            {
+                "stage_id": "sensor-z",
+                "device_name": "virtual-acceleration-z-001",
+                "resource_name": "acceleration_z_raw",
+            },
+            {
+                "stage_id": "sensor-context",
+                "device_name": "virtual-temperature-001",
+                "resource_name": "temperature_raw",
+            },
+        ],
+    }
 
 
 def test_result_and_alert_routes_isolate_upstream_failure(monkeypatch) -> None:
