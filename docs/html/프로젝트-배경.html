@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-배경.md</span>
-            <span class="badge">수정: 2026-07-23 15:27</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 16:26</span>
+            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -167,6 +167,9 @@
 <h2 id="한-줄-정의">한 줄 정의</h2>
 <p>현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제로 연결하고 이를 대시보드에서 가시화하며 현장 생산성 향상 효과를 설명 가능한 서비스 데모로 만드는 단계다.</p>
 <p>현재 단계에서는 이 기반을 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화 중심으로 정리한다.</p>
+<h2 id="2차년도-옥동-추진-기준">2차년도 옥동 추진 기준</h2>
+<p>2차년도 보고 본문은 <code>docs/단계별-추진계획.md</code>를 따른다. 2026년 7월 29일 옥동 현장회의 결과에 따라 신규 장비 의존 서비스보다 현재 확보된 PLC·MES·센서 데이터를 활용할 수 있는 생산품질 양품·불량 판별과 메인·보조 유압펌프 및 모터 이상감지 서비스 2종을 우선 추진한다.</p>
+<p>현재 테스트베드의 고정 센서 이상탐지 데모는 데이터 수집·배포·가시화 기술 기준선이다. 이를 옥동 서비스 2종의 모델과 데이터 연계가 이미 구현된 것으로 해석하지 않는다.</p>
 <h2 id="대상-환경">대상 환경</h2>
 <ul><li>x86 엣지 AI 서버</li><li>Jetson 엣지 AI 디바이스</li><li>Raspberry Pi 5 엣지 디바이스</li><li>물리 센서 디바이스</li><li>가상 디바이스 / 디바이스트윈</li></ul>
 <p>현재 테스트베드 노드:</p>
@@ -203,7 +206,7 @@
 <td>Sense HAT I2C input source</td>
 </tr>
 </tbody></table></div>
-<h2 id="현재-우선순위">현재 우선순위</h2>
+<h2 id="현재-구현-우선순위">현재 구현 우선순위</h2>
 <ol><li>서비스 데모 1종을 먼저 완성한다.</li><li>디바이스 등록/관리 체계를 정리한다.</li><li>디바이스-서비스 바인딩 구조를 구현한다.</li><li>통합 대시보드에서 디바이스, 노드, 서비스, 상태, KPI를 함께 보이게 한다.</li><li>옥동 시나리오의 생산성 향상 효과를 설명 가능한 지표로 정리한다.</li><li>현재 문서와 데모에서는 workflow/offloading/agent-assisted planning 계열을 현행 연구 방향과 분리된 과거 검토/보관 경로로 둔다.</li></ol>
 <h2 id="현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</h2>
 <p>물리 디바이스 통합의 권위 경로는 다음 하나뿐이다.</p>
@@ -235,8 +238,9 @@ factory/devices/{device-name}/heartbeat</code></pre>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
+<li class="toc-h2"><a href="#2차년도-옥동-추진-기준">2차년도 옥동 추진 기준</a></li>
 <li class="toc-h2"><a href="#대상-환경">대상 환경</a></li>
-<li class="toc-h2"><a href="#현재-우선순위">현재 우선순위</a></li>
+<li class="toc-h2"><a href="#현재-구현-우선순위">현재 구현 우선순위</a></li>
 <li class="toc-h2"><a href="#현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</a></li>
 <li class="toc-h2"><a href="#디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</a></li>
 <li class="toc-h2"><a href="#과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</a></li></ol></aside>

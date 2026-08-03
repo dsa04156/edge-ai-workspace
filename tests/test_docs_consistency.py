@@ -64,5 +64,41 @@ class CurrentDeviceManagementScopeTest(unittest.TestCase):
         self.assertIn("Workflow Builder", scope)
 
 
+class SecondYearOkdongPlanTest(unittest.TestCase):
+    def test_report_body_stays_concise_and_separates_technical_appendices(self):
+        plan = (ROOT / "docs/단계별-추진계획.md").read_text(encoding="utf-8")
+
+        self.assertTrue(
+            plan.startswith("# 2026년도 2차년도 옥동 PoC 추진계획(안)\n")
+        )
+        self.assertLessEqual(len(plan.splitlines()), 140)
+        for section in (
+            "## 1. 추진 배경",
+            "## 2. 추진 목표",
+            "## 3. 주요 추진내용",
+            "## 4. 월별 추진계획",
+            "## 5. 기관별 역할",
+            "## 6. 주요 산출물",
+            "## 7. 최종 추진 방향",
+        ):
+            self.assertIn(section, plan)
+        for required in (
+            "2026년 7월 29일 옥동 현장회의",
+            "센서·MES 데이터 기반 생산품질 양품·불량 판별",
+            "메인·보조 유압펌프 및 모터 이상 감지",
+            "[현재 데모 운영 절차](ops/현재-데모-운영-절차.md)",
+            "[대시보드 정보 구조](대시보드-정보-구조.md)",
+            "현재 구현 완료\n> 상태를 뜻하지 않는다",
+        ):
+            self.assertIn(required, plan)
+        for technical_detail in (
+            "AdapterRuntime",
+            "EVENT_CONFIRMED",
+            "online-gaussian-baseline",
+            "Runtime Resource Augmentation Scheduler",
+        ):
+            self.assertNotIn(technical_detail, plan)
+
+
 if __name__ == "__main__":
     unittest.main()

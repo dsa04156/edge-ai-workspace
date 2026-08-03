@@ -10,16 +10,21 @@
 - `docs/프로젝트-배경.md`: 과제 배경, 현재 목표, PoC 방향
 - `docs/물리-디바이스-상태-정책.md`: EdgeX 물리 디바이스 상태와 telemetry 정책
 - `docs/대시보드-판단-정책.md`: 대시보드 상태 판단 기준
-- `docs/단계별-추진계획.md`: 동적 오프로딩, agent-assisted planning 후속 계획
+- `docs/단계별-추진계획.md`: 2026년도 2차년도 옥동 PoC 목표, 일정, 기관별 역할과 산출물
 
 ## 현재 우선순위
 
-1. 서비스 데모 1종을 먼저 완성한다.
-2. EdgeX Device Profile/Device 등록과 Device Service 연동을 안정화한다.
-3. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
-4. 물리 디바이스 inventory, state, telemetry, command의 권위는 EdgeX로 단일화한다.
-5. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
-6. 동적 워크플로우, 오프로딩, agent-assisted planning은 후속 고도화로 둔다.
+1. 옥동 PLC·MES·센서 데이터 접근범위와 생산품질 판별, 유압펌프·모터 이상감지 서비스
+   2종의 입력·출력 계약을 확정한다.
+2. 현재 고정 센서 서비스 데모는 데이터 수집·배포·상태 가시화의 기술 기준선으로
+   유지하되, 옥동 AI 서비스 2종을 이미 구현한 것으로 대체 설명하지 않는다.
+3. EdgeX Device Profile/Device 등록과 Device Service 연동을 안정화한다.
+4. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
+5. 물리 디바이스 inventory, state, telemetry, command의 권위는 EdgeX로 단일화한다.
+6. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
+7. 워크플로우 실행, 엣지·서버 작업 분산, 장애 저장·재전송은 2차년도 구축 목표로
+   단계별 구현·검증하며, 현재 dry-run 화면이나 기존 legacy 코드를 완료 기능으로
+   설명하지 않는다. agent-assisted planning은 별도 후속 고도화로 둔다.
 
 ## Workflow Builder Prototype 경계
 

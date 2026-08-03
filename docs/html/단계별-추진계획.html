@@ -154,119 +154,169 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>단계별 추진계획</h1>
-          <p class="subtitle">현재 단계는 서비스 데모와 통합 운영 가시화가 우선이다.</p>
+          <p class="subtitle">&gt; 보고서 본문용 추진계획이다. 아래 내용은 2차년도 목표이며 현재 구현 완료 &gt; 상태를 뜻하지 않는다. 세부 데이터 항목, 기…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-08-03 15:01</span>
-            <span class="badge">HTML 생성: 2026-08-03 15:02</span>
+            <span class="badge">수정: 2026-08-03 16:24</span>
+            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="단계별-추진계획">단계별 추진계획</h1>
-<h2 id="현재-단계">현재 단계</h2>
-<p>현재 단계는 서비스 데모와 통합 운영 가시화가 우선이다.</p>
-<p>목표:</p>
-<ol><li>디바이스가 실제로 등록되고 관리되는지 보인다.</li><li>디바이스와 서비스가 실제로 연결되는지 보인다.</li><li>전체 관계와 상태가 대시보드에서 보인다.</li><li>옥동 시나리오 등 현장 적용 효과를 생산성 언어로 설명한다.</li><li>새 물리 장비 후보의 발견·검색·검토와 승인된 Adapter Runtime, EdgeX Profile/Device</li></ol>
-<p>등록을 분리해 대시보드에서 운영한다.</p>
-<p>현재 데모 운영 경로는 <code>state-aggregator</code> 중심으로 단순화한다. 워크플로우 실행기, placement engine, workflow reporter, 동적 offloading 계열은 현행 연구 방향과 데모 경로에서 제외한다.</p>
-<h2 id="현재-산출물">현재 산출물</h2>
-<p>즉시 필요한 산출물:</p>
-<ol><li>서비스 데모 시나리오 정의서</li><li>디바이스 등록/관리 절차서</li><li>디바이스-서비스 바인딩 명세</li><li>통합 대시보드 정보 구조 정의서</li><li>옥동 시나리오 생산성 KPI 정의서 (<code>옥동-생산성-kpi.md</code>)</li></ol>
-<p>그 다음 정리 산출물:</p>
-<ol><li>현재 PoC 범위 정의서</li><li>레포 구조와 컴포넌트 역할표</li><li>현재 데모 실행/점검 runbook</li><li>운영 상태 판단 기준과 troubleshooting guide</li><li>실공장 적용성 설명 자료</li></ol>
-<h2 id="현재-구현-방향">현재 구현 방향</h2>
-<p>물리 디바이스 연동은 다음 권위 경로로 교체한다.</p>
-<pre data-lang="text"><code>physical I2C / Serial / Modbus / OPC-UA device
-  -&gt; protocol-specific EdgeX Device Service
-  -&gt; EdgeX Event / Reading -&gt; central Core Data
-  -&gt; AI services / storage / state-aggregator
-  -&gt; dashboard / service demo view</code></pre>
-<p>RTSP frame은 이 telemetry 경로에 넣지 않고 요청 시 Workflow Pod가 직접 구독한다. 카메라 상태와 분석 결과 metadata만 canonical Event로 전달한다. MQTT는 MQTT-only 장비나 명시적 local pub/sub 요구가 실제로 확인된 뒤 별도 Protocol Adapter로 검증한다. 현재 MQTT workload는 없다. 중앙 EdgeX internal MessageBus는 stock Core runtime 내부 구성이지 물리 노드의 northbound 전송 경로가 아니다.</p>
-<p>KubeEdge는 edge node와 workload 관리에만 사용한다. MapperFramework, <code>mqttvirtual</code>, KubeEdge Device/DeviceStatus와 mapper direct-to-Influx는 legacy physical integration 경로이며 병행 status/control plane 또는 fallback으로 사용하지 않는다.</p>
-<p>2026-07-21 현재 기존 direct Agent/SQLite outbox/aggregate Metadata bootstrap은 퇴역했다. <code>edgex-edge</code>의 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service/Profile/Device는 실제 Event/Reading, read-only command, Local Data API와 state-aggregator/dashboard freshness까지 정상 경로를 종단간 검증했다.</p>
-<p>2026-08-03 <code>sensor-anomaly-demo</code>를 복합 센서 consumer로 확장했다. 같은 Jetson에서 acceleration X/Y/Z Local Data API를 500ms polling하고 같은 <code>origin</code> frame만 결합한 뒤, 2초 이내의 가장 가까운 temperature sample을 정렬한다. 진동·온도 feature 점수와 0.7/0.3 가중 종합 점수를 계산하고 중앙 <code>state-aggregator</code>와 dashboard가 physical source → Device Service → Device 4개 → AI consumer binding을 read-only로 표시한다. 이는 고정 Deployment이며 동적 workflow orchestration이나 학습된 고장 분류기 구현 완료를 뜻하지 않는다.</p>
-<p>2026-07-30 대시보드의 AI Pipeline/Workflow Builder와 전용 <code>POST /state/device-source-bindings/sample</code> API를 제거했다. 실행 기능이 없는 browser-local 미리보기가 현재 운영 기능처럼 보이는 혼선을 없애기 위한 정리다. Device Service의 Local Data API와 ring cache는 고정 <code>sensor-anomaly-demo</code>가 같은 노드에서 직접 읽는 데이터 경로로 유지한다. Workflow 실행, Kubernetes mutation, EdgeX metadata mutation과 command는 계속 현재 범위에서 제외한다.</p>
-<p>2026-07-31에는 이 legacy 화면과 분리된 <code>서비스 설계</code> 캔버스를 2차년도 설계 트랙 프로토타입으로 추가했다. <code>/state/dashboard</code>의 실제 EdgeX Device와 <code>/state/device-profiles</code>의 DeviceResource 계약을 센서 입력으로 사용하고, 포트 연결, 검색 가능한 13종 서비스 카탈로그(EdgeX 입력 2, 전처리 6, 추론 3, 점수 결합 1, 결과 1)와 입력 가능 수, 단계 속성, 타입·DAG·노드 배치 validation과 dry-run 계획만 브라우저에서 제공한다. <code>local_recent</code> 설계는 첫 처리 단계가 source node와 같은지도 확인한다. 초안은 localStorage에만 저장하며 실행·배포·EdgeX mutation API는 추가하지 않았다.</p>
-<p>실제 증가 raw origin의 live inference/central readback과 browser panel은 통과했다. 2026-07-22 Serial USB driver detach/rebind와 Sense HAT reader process 종료로 두 Device Service의 <code>DOWN → UP</code>, 새 local origin과 중앙 Event 재개도 확인했다. 중앙 MessageBus 중단 중 local ring과 AI service는 계속 동작했지만 미전송 Event는 복구 후 replay되지 않았다. 다음 현장 검증은 실제 장치 움직임 anomaly와 케이블·보드 손분리 시연이다. Modbus, OPC-UA, 다른 I2C 장비·주소와 RTSP workflow는 protocol별 migration gate 전까지 완료로 주장하지 않는다.</p>
-<p>2026-08-03에는 이 두 현장 gate를 read-only API로 판정하고 JSON 증거를 남기는 <code>tools/verify_sensor_service_demo.py</code>를 추가했다. 짧은 live smoke에서 정상·fresh 기준선과 증가 origin/frame은 확인했지만 실제 anomaly와 실제 USB 분리 상태는 발생하지 않았으므로 두 현장 gate는 아직 PASS가 아니다.</p>
-<p>2026-07-22에는 중앙 Core Data REST → PostgreSQL 저장 기준선을 추가했다. 1,000개 합성 identity가 각 1분에 한 번 보내는 약 16.7 events/s는 1,000/1,000 저장과 p95 16.17ms로 통과했다. 반면 1,000개 × 1Hz는 현재 Core Data resource limit 300m CPU/256Mi memory에서 OOMKilled로 실패했다. 따라서 “1,000개”라는 inventory 수만으로 batch 저장을 먼저 도입하지 않고 실제 device별 Hz와 resource 수를 산정한다. 다음 저장 성능 gate는 100/250/500 events/s 단계별 시험, Core Data memory profile·right-sizing, PostgreSQL retention/index 관측, Device Service → MessageBus → Core Data 전체 경로 시험 순서다. 1Hz는 이 gate 전까지 운영 지원 처리량으로 주장하지 않는다.</p>
-<p>2026-07-23에는 <code>Device Management</code>를 Adapter Runtime과 EdgeX Device 연결 관리 경로로 승격했다. <code>state-aggregator</code>는 브라우저용 BFF와 connection saga를 담당하고 Kubernetes 쓰기 권한은 갖지 않는다. 별도 <code>edgex-adapter-controller</code>가 <code>edgex-edge</code> namespace의 <code>AdapterRuntime</code> CR, Deployment, Service, ConfigMap과 NetworkPolicy만 관리한다. 현재 Serial/I2C Argo runtime은 조회·재사용만 하며, 신규 배포는 Git allowlist의 검증 완료 template와 빈 hardware binding이 있을 때만 허용한다. MQTT는 공식 immutable <code>device-mqtt:4.0.2</code>, 제한된 network binding/runtime setting과 bundled 온도 Profile을 묶은 개발 package로 웹 연결 자동화 범위에 승격했다. Modbus는 exact simulator binding만 개발 검증됐고 실제 PLC, 운영 MQTT TLS/auth, OPC-UA와 RTSP는 여전히 미검증이다. 이 기능은 Workflow Builder, runtime migration 또는 동적 offloading을 구현한 것이 아니다.</p>
-<p>Adapter Runtime·Device 연결 관리의 현재 완료 gate:</p>
-<ol><li>Runtime 조회와 plan이 exact adapter/node/hardware binding, KubeEdge node Ready와 EdgeX</li></ol>
-<p>Device Service readback을 함께 확인한다.</p>
-<ol><li>외부/Argo runtime은 재사용만 가능하고 Controller가 만든 runtime만 재시작·퇴역한다.</li><li>Runtime 배포 뒤 <code>SERVICE_READY</code>가 되어야 EdgeX Profile/Device mutation을 시작한다.</li><li>Device/connection/runtime 및 후보 mutation은 browser 관리자 token 없이</li></ol>
-<p>idempotency key, 내부 HMAC과 namespace별 Secret을 사용한다. 내부 HMAC은 state-aggregator와 Controller 사이 요청 무결성용이며 운영자 인증이 아니다. 현재 무인증 BFF는 접근이 제한된 개발 테스트베드 경계로 두고 운영 노출 전 별도 인증·인가를 추가한다.</p>
-<ol><li>임의 image/hostPath/고정 IP/EdgeMesh/KubeEdge Device CRD 입력 경로가 없다.</li><li>Metadata readback과 first Event를 분리하고 신규 runtime 이후 실패만 consumer-safe하게</li></ol>
-<p>보상한다.</p>
-<p>2026-07-24에는 후보 staging을 프로토콜 독립형 Discovery와 Registration control plane으로 승격했다. <code>edge-device-discovery</code> DaemonSet은 중앙 Discovery Plan의 allowlist 안에서 USB Serial stable identity와 선택적 WHOAMI, I2C identity rule을 실행한다. Adapter Controller는 candidate, 상태 전이, Plan, 승인, Registration Saga와 audit를 PVC SQLite에 영속 저장하고 기존 ConfigMap은 최초 1회 import한다. Device Catalog exact match, 운영자 승인, 외부 인증, 실제 Runtime image digest, EdgeX Metadata readback과 Core Data first Event를 모두 통과해야 <code>EVENT_CONFIRMED</code>가 된다.</p>
-<p>장비 발견 후보 관리의 현재 완료 gate:</p>
-<ol><li>Serial은 stable ID, PTY Manifest/telemetry, invalid/timeout, disconnect/reconnect를</li></ol>
-<p>자동 테스트한다.</p>
-<ol><li>I2C는 allowlist bus/address의 단일·복합 identity register와 mock test가 있고 bus</li></ol>
-<p>파일만으로 candidate를 만들지 않는다. 2026-07-28 dev0003 Sense HAT v1의 네 chip identity, 후보 승인, 기존 Runtime/Profile/Device 재사용과 신규 first Event를 live 검증했다. 다른 I2C 모델은 별도 gate다.</p>
-<ol><li>MQTT discovery는 자기등록 schema parser까지만 구현했고 subscriber는 없다. 별도의</li></ol>
-<p>웹 connection 경로는 운영자가 허용 broker와 Device 정보를 입력해 검증된 Device Service/Profile/Device/first Event를 처리한다. Modbus/OPC-UA/ONVIF scanner는 <code>not implemented</code>를 명시하며 가짜 후보를 반환하지 않는다.</p>
-<ol><li><code>present</code>/<code>stale</code>/<code>declared</code>는 후보 evidence이며 EdgeX Device inventory,</li></ol>
-<p><code>operatingState</code>, 통신 성공과 first Event를 대신하지 않는다.</p>
-<ol><li>상태 머신은 <code>DETECTED</code>부터 <code>EVENT_CONFIRMED</code>까지 임의 점프를 거부하고 실패·인증</li></ol>
-<p>차단·재시도와 이력을 저장한다.</p>
-<ol><li>승인 전에는 EdgeX Profile/Device를 만들지 않으며, 승인 후 실제 first Event까지</li></ol>
-<p>확인한다.</p>
-<ol><li>Saga는 Controller가 이번 attempt에서 만든 리소스만 rollback하고 기존 Runtime/Profile/</li></ol>
-<p>Device를 보존한다.</p>
-<ol><li>후보 registry는 KubeEdge Device CRD나 장기 telemetry inventory가 아니다. 최종</li></ol>
-<p>Profile/Device, state와 Event authority는 EdgeX에 남는다.</p>
-<ol><li>UI/API에는 임의 image, command, privileged 설정, 입력형 hostPath, 고정 IP와 EdgeMesh</li></ol>
-<p>변경 경로가 없다.</p>
-<p>Sense HAT 능동 탐색은 일반 Agent의 권한을 넓히지 않고 별도 node-scoped DaemonSet으로 분리했다. 일반 Agent는 dev0001/dev0002/dev0003에서 non-privileged read-only Serial inventory를 유지한다. dev0003의 Serial/I2C report는 <code>scannedProtocols</code>로 분리해 한 Agent가 다른 protocol 후보를 <code>STALE</code> 처리하지 않는다. dev0003 CH340 USB Serial은 passive 후보로 확인했지만 exact Catalog binding이 없어 <code>BLOCKED</code>로 유지한다. I2C 전용 Agent는 container device cgroup 제약 때문에 dev0003의 exact <code>/dev/i2c-1</code>에만 privileged 예외를 사용하며 non-root와 host i2c group을 함께 적용한다. 대시보드나 API가 이 권한·hostPath를 동적으로 바꾸는 경로는 없다.</p>
-<p>다음 protocol 확장 순서는 실장비 endpoint 확보 → Device Profile/resource 계약 → Device Service image 검증 → hardware binding allowlist → template 검토 → 대시보드 배포 승격이다. 센서가 들어올 때마다 임의 Pod manifest를 화면에 입력하는 방식은 사용하지 않는다.</p>
-<h2 id="현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</h2>
-<p>다음 경로는 현재 연구 방향에서 진행하지 않는다. 새 문서나 발표자료에서 현재 예정된 기능처럼 표현하지 않는다.</p>
-<ul><li>동적 workflow 분해/실행</li><li>runtime replanning</li><li>placement engine 기반 자동 재배치</li><li>cost model 기반 offloading 판단</li><li>workflow_executor 중심 orchestration</li><li>workflow_reporter 중심 stage event pipeline</li><li>agent-assisted planning layer</li><li>LLM이 전체 플랫폼 제어를 수행하는 구조</li><li>전체 플랫폼 자율 제어형 orchestration</li></ul>
-<p>위 항목들은 필요한 경우 과거 검토/실험 자료 또는 archive로만 다룬다.</p>
-<h2 id="첫-서비스-데모-완료-gate">첫 서비스 데모 완료 gate</h2>
-<ol><li><code>sensor-anomaly-demo</code>가 <code>etri-dev0001-jetorn</code>에서 Ready이고 immutable ARM64 image를 실행한다.</li><li>Service FQDN으로 <code>device-serial-jetson</code> Local Data API를 사용하며 고정 IP 경로가 없다.</li><li><code>/api/v1/status</code>를 두 번 조회할 때 acceleration X/Y/Z의 identity가 같고 temperature가</li></ol>
-<p>2초 이내로 정렬되며 <code>latest.origin</code>과 <code>framesProcessed</code>가 증가한다.</p>
-<ol><li>vibration/temperature model은 warm-up 뒤 <code>ready</code>이고 두 component score와 0.7/0.3</li></ol>
-<p>weighted score가 유한하다.</p>
-<ol><li>중앙 <code>/state/service-demo</code>와 dashboard가 같은 derived result를 표시하고 관측 실패 때 가짜 0을 만들지 않는다.</li><li>EdgeX <code>/state/devices</code>의 네 input Device가 계속 <code>available</code>·<code>fresh</code>이며 AI 결과가 physical</li></ol>
-<p>inventory 권위를 대체하지 않는다.</p>
-<ol><li>anomaly/clear 상태 전이는 결정론적 테스트로 검증한다. 실제 장치 움직임 anomaly와</li></ol>
-<p>USB 분리·복구는 <code>tools/verify_sensor_service_demo.py</code>가 PASS 증거를 남길 때까지 현장 미완료로 남긴다.</p>
-<h2 id="2차년도-설계-방향">2차년도 설계 방향</h2>
-<p>2차년도 협약 방향에서는 현재 운영 가시화 PoC를 기반으로 다음 설계를 별도 트랙으로 추진한다. 이 내용은 현재 기능 완료 주장이 아니라 설계 및 프로토타입 방향이다.</p>
-<ol><li>물리 온디바이스의 기능, 상태, 자원, 입출력을 엣지 AI 서버 쪽 가상디바이스 인스턴스로 표현한다.</li><li>디바이스트윈은 raw telemetry 저장소가 아니라 상태, capability, resource, I/O, workflow binding snapshot으로 둔다.</li><li>AI 서비스를 workflow stage로 분해하고, 가상디바이스를 stage input/output 또는 실행 후보로 동적으로 연결한다.</li><li>웹페이지는 단순 dashboard가 아니라 가상디바이스 풀, twin inspector, workflow canvas, binding/validation, execution plan을 포함하는 워크플로우 통합 개발도구로 설계한다.</li><li><code>test_device.py</code> 기반 가짜 MQTT publisher는 이 방향의 가상디바이스 정의로 사용하지 않고 legacy test 경로로만 취급한다.</li></ol>
-<p>기준 문서:</p>
-<ul><li><code>2차년도-가상디바이스-워크플로-설계.md</code></li><li><code>(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code></li></ul>
-<h2 id="다음-작업-기록-runtime-resource-augmentation-scheduler-v1">다음 작업 기록: Runtime Resource Augmentation Scheduler v1</h2>
-<p>기록일: 2026-06-19</p>
-<p>현재 완료된 것은 자원증강 리소스의 등록, 상태 집계, dashboard 가시화, dry-run/validation 중심의 실행 계획 확인이다. <code>AugmentationResource</code>와 <code>DeviceAugmentation</code> 상태가 Ready/Available로 보이고, state-aggregator API와 dashboard에서 이를 확인할 수 있다. 다만 이 상태는 실제 AI workload offloading이나 runtime migration이 이미 동작한다는 뜻은 아니다.</p>
-<p>다음 구현 후보는 <code>Runtime Resource Augmentation Scheduler v1</code>이다. 목표는 버튼으로 임의 Job을 만드는 것이 아니라, 이미 수집 중인 pod/service 사용량과 <code>AugmentationResource</code>/<code>DeviceAugmentation</code> 상태를 결합해 자원증강이 필요한 workload와 선택 가능한 보강 resource를 자동으로 판단하는 최소 경로를 검증하는 것이다.</p>
-<p>범위:</p>
-<ol><li><code>state-aggregator</code>가 관측 중인 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 정규화한다.</li><li>대상 workload, target edge device, 필요한 capability를 <code>DeviceAugmentation</code>과 연결한다.</li><li><code>AugmentationResource</code> 후보 중 Available/Ready, endpointReady, capability 조건을 만족하는 자원을 선택한다.</li><li>scheduler policy는 v1에서 threshold/rule 기반으로 시작하고, cost model 기반 전역 최적화는 후속으로 둔다.</li><li>결과는 실행 artifact가 아니라 <code>recommendation/status</code>로 노출한다: pressure reason, selected resource, confidence, apply state.</li><li>dashboard는 수동 실행 버튼이 아니라 현재 부하, 증강 필요성, 선택 자원, 적용 상태를 보여준다.</li></ol>
-<p>검증 기준:</p>
-<ol><li>pod/service usage snapshot이 특정 workload와 resource profile에 매핑된다.</li><li>resource pressure가 있을 때만 증강 recommendation이 생성된다.</li><li><code>AugmentationResource</code>가 Available/Ready가 아니면 selected resource로 사용하지 않는다.</li><li>dashboard에서 recommendation의 근거와 선택 자원이 설명 가능하게 보인다.</li><li>기존 DeviceStatus/raw telemetry 분리 정책을 깨지 않는다.</li><li>dashboard/API가 직접 Kubernetes workload mutation을 수행하지 않는다.</li></ol>
-<p>명시적으로 제외하는 것:</p>
-<ul><li>버튼 클릭마다 Kubernetes Job을 생성하는 방식</li><li>고정 vibration sample 또는 dummy payload를 analyzer로 보내는 smoke-test 실행</li><li>placement engine 기반 자동 재배치</li><li>runtime migration</li><li>cost model 기반 offloading 최적화</li><li>legacy <code>workflow_executor</code>/<code>placement_engine</code>의 무조건 승격</li><li>LLM 또는 agent가 전체 플랫폼 제어를 수행하는 구조</li></ul>
-<h2 id="정리-우선순위">정리 우선순위</h2>
-<ol><li>현재 PoC 범위와 제외 범위를 문서화한다.</li><li>현재 데모 경로와 관련 컴포넌트를 명확히 표시한다.</li><li>디바이스-서비스 바인딩 명세를 작성한다.</li><li>서비스 데모 시나리오를 작성한다.</li><li>대시보드에서 보여줄 정보 구조와 KPI를 정리한다.</li><li>기존 workflow/offloading/agent-planning 문서는 현재 경로와 분리한다.</li></ol>
-<h2 id="문서-표현-원칙">문서 표현 원칙</h2>
-<p>유지할 표현:</p>
-<ul><li>서비스 데모 우선</li><li>디바이스-서비스 연결 구조</li><li>통합 운영 가시화</li><li>실공장 기반 PoC</li><li>현장 적용성</li><li>생산성 향상 효과</li><li>단계적 구현</li></ul>
-<p>피할 표현:</p>
-<ul><li>전체 플랫폼 자율 제어형 orchestration을 실증 완료처럼 보이게 하는 표현</li><li>LLM 기반 전역 제어를 현재 기능처럼 보이게 하는 표현</li><li>동적 workflow 실행이 이미 완료된 것처럼 보이는 표현</li><li>offloading 고도화가 다음 확정 단계인 것처럼 보이는 표현</li><li>agent-assisted planning이 현재 연구 방향인 것처럼 보이는 표현</li><li>고도화 기능이 이미 실증 완료된 것처럼 보이는 표현</li></ul>
+          <h1 id="2026년도-2차년도-옥동-poc-추진계획-안">2026년도 2차년도 옥동 PoC 추진계획(안)</h1>
+<blockquote><p>이 문서는 보고서 본문용 추진계획이다. 아래 내용은 2차년도 목표이며 현재 구현 완료 상태를 뜻하지 않는다. 세부 데이터 항목, 기술 설계, 장애 시나리오, 화면 목록과 실제 검증 결과는 문서 하단의 별첨 기준 문서에서 관리한다.</p></blockquote>
+<h2 id="1-추진-배경">1. 추진 배경</h2>
+<p>2차년도에는 대규모 혼합 디바이스 제어·관리 플랫폼의 요소기술을 개발하고 프로토타입을 구축한다.</p>
+<p>2026년 7월 29일 옥동 현장회의 결과, 신규 장비가 필요한 서비스보다 현재 확보된 PLC·MES·센서 데이터를 활용할 수 있는 서비스를 우선 추진하기로 하였다.</p>
+<p>우선 실증 대상은 다음과 같다.</p>
+<ul><li>센서·MES 데이터 기반 생산품질 양품·불량 판별</li><li>메인·보조 유압펌프 및 모터 이상 감지</li></ul>
+<p>두 서비스는 개별 AI 모델 개발에 그치지 않고, 플랫폼의 데이터 수집·서비스 배포·장애복구 기능을 검증하는 대표 PoC 시나리오로 활용한다.</p>
+<h2 id="2-추진-목표">2. 추진 목표</h2>
+<p>옥동 현장의 PLC·MES·센서 데이터를 엣지 AI 플랫폼과 연계하고, 우선 서비스 2종을 대상으로 다음 기능이 통합된 PoC 프로토타입을 구축한다.</p>
+<ul><li>현장 데이터 실시간 수집 및 통합</li><li>AI 서비스 컨테이너 배포 및 실행</li><li>엣지 디바이스와 서버 간 작업 분산</li><li>결과 저장, 조회 및 이상 알림</li><li>통신·서비스 장애 시 저장, 재전송 및 복구</li><li>디바이스와 서비스 상태 통합 모니터링</li></ul>
+<h2 id="3-주요-추진내용">3. 주요 추진내용</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>주요 내용</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>현장 연계</td>
+<td>디바이스·센서 목록, 데이터 항목, 수집주기 및 연결방식 정의</td>
+</tr>
+<tr>
+<td>데이터 통합</td>
+<td>PLC·MES·센서·품질 데이터의 공통 타임스탬프 및 생산 건 연결</td>
+</tr>
+<tr>
+<td>AI 서비스</td>
+<td>생산품질 판별 및 펌프·모터 이상감지 서비스 컨테이너화</td>
+</tr>
+<tr>
+<td>워크플로우</td>
+<td>수집 → 전처리 → 추론 → 저장 → 알림으로 이어지는 실행 흐름 구축</td>
+</tr>
+<tr>
+<td>엣지·서버 분산</td>
+<td>디바이스 자원과 서비스 요구조건에 따른 배치 및 오프로딩 검토</td>
+</tr>
+<tr>
+<td>장애 대응</td>
+<td>통신 단절 시 로컬 저장·재전송, 서비스 실패 시 재실행·재배포</td>
+</tr>
+<tr>
+<td>가상 디바이스</td>
+<td>실제 장비 미확보 구간의 데이터 생성, 장애 및 다중 디바이스 시험</td>
+</tr>
+<tr>
+<td>통합 화면</td>
+<td>센서 상태, AI 결과, 알림 이력 및 서비스 운영상태 제공</td>
+</tr>
+</tbody></table></div>
+<p>안전 모니터링, 화재 감지, 금형번호 OCR 및 2D·3D 스캐너 기반 품질검사는 장비와 데이터가 확보되는 일정에 따라 후속 추진한다.</p>
+<h2 id="4-월별-추진계획">4. 월별 추진계획</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>기간</th>
+<th>주요 추진내용</th>
+<th>산출물</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>8월</td>
+<td>서비스 범위, 디바이스 구성 및 데이터 접근방식 확정</td>
+<td>PoC 범위 정의서, 아키텍처 초안</td>
+</tr>
+<tr>
+<td>9월</td>
+<td>PLC·MES·센서 데이터 수집 및 직접 전송 검증</td>
+<td>데이터 명세서, 수집 인터페이스</td>
+</tr>
+<tr>
+<td>10월</td>
+<td>AI 서비스 컨테이너화 및 워크플로우 연동</td>
+<td>AI 서비스 프로토타입, API 명세</td>
+</tr>
+<tr>
+<td>11월</td>
+<td>엣지·서버 배치, 장애복구 및 가상 디바이스 시험</td>
+<td>장애·분산실행 시험결과</td>
+</tr>
+<tr>
+<td>12월</td>
+<td>데이터 수집부터 화면 표시까지 통합 PoC 검증</td>
+<td>통합 PoC, 시험결과서</td>
+</tr>
+</tbody></table></div>
+<h2 id="5-기관별-역할">5. 기관별 역할</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>기관</th>
+<th>주요 역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>ETRI</td>
+<td>전체 플랫폼 아키텍처, 미들웨어, 디바이스 관리 및 장애 대응 구조</td>
+</tr>
+<tr>
+<td>KPST</td>
+<td>워크플로우 통합도구, 데이터 전송, 생산품질 판별 및 대시보드</td>
+</tr>
+<tr>
+<td>옥동</td>
+<td>PLC·MES·센서·품질 데이터와 현장 시험환경 제공</td>
+</tr>
+<tr>
+<td>경북대학교</td>
+<td>유압펌프·모터 이상감지 AI 모델 개발</td>
+</tr>
+<tr>
+<td>청주대학교</td>
+<td>PoC 시나리오 및 생산조건·품질 상관관계 분석 지원</td>
+</tr>
+<tr>
+<td>TTA</td>
+<td>단위기술과 통합환경 성능·안정성 검증</td>
+</tr>
+<tr>
+<td>KCIA</td>
+<td>기관 간 일정 및 협의체 운영</td>
+</tr>
+</tbody></table></div>
+<h2 id="6-주요-산출물">6. 주요 산출물</h2>
+<ul><li>옥동 PoC 시스템 및 서비스 설계서</li><li>현장 디바이스·데이터 명세서</li><li>데이터 수집 미들웨어 프로토타입</li><li>AI 서비스 2종 프로토타입</li><li>AI 서비스 배포·관리 워크플로우 프로토타입</li><li>물리·가상 디바이스 관리 및 장애복구 기능</li><li>통합 모니터링 화면</li><li>단위 및 통합 시험결과서</li></ul>
+<h2 id="7-최종-추진-방향">7. 최종 추진 방향</h2>
+<p>2026년도 2차년도에는 옥동의 PLC·MES·센서 데이터를 기반으로 생산품질 판별과 유압펌프·모터 이상감지 서비스를 우선 구현한다.</p>
+<p>이를 통해 데이터 수집, AI 서비스 배포, 엣지·서버 작업 분산, 결과 저장, 알림 및 장애복구 기능이 연결된 대규모 혼합 디바이스 제어·관리 플랫폼 프로토타입을 구축하고 검증한다.</p>
+<h2 id="별첨-기준-문서">별첨 기준 문서</h2>
+<p>보고서 본문에는 위 추진계획만 유지하고 세부사항은 다음 문서에서 관리한다.</p>
+<ul><li>현장·테스트베드 데이터 경로와 저장 경계:</li></ul>
+<p><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></p>
+<ul><li>물리 디바이스와 서비스 연결 명세:</li></ul>
+<p><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></p>
+<ul><li>가상 디바이스·디바이스트윈·워크플로 기술 설계:</li></ul>
+<p><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></p>
+<ul><li>장애·복구 시나리오와 운영 검증:</li></ul>
+<p><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></p>
+<ul><li>통합 화면의 정보 구조와 상태 판단:</li></ul>
+<p><a href="대시보드-정보-구조.html">대시보드 정보 구조</a>, <a href="대시보드-판단-정책.html">대시보드 판단 정책</a></p>
+<ul><li>구현 완료·부분 구현·미구현 구분:</li></ul>
+<p><a href="현재-구현-상태.html">현재 구현 상태</a></p>
+<ul><li>현장 생산성 지표 정의:</li></ul>
+<p><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></p>
+<p>옥동 PLC·MES·품질 데이터의 실제 항목, 접근 권한, 생산 건 식별자와 수집주기는 8월 현장 협의 결과로 확정하며, 현재 테스트베드의 Arduino·Sense HAT 명세를 옥동 데이터 명세로 대체하지 않는다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-단계">현재 단계</a></li>
-<li class="toc-h2"><a href="#현재-산출물">현재 산출물</a></li>
-<li class="toc-h2"><a href="#현재-구현-방향">현재 구현 방향</a></li>
-<li class="toc-h2"><a href="#현재-범위에서-제외하는-경로">현재 범위에서 제외하는 경로</a></li>
-<li class="toc-h2"><a href="#첫-서비스-데모-완료-gate">첫 서비스 데모 완료 gate</a></li>
-<li class="toc-h2"><a href="#2차년도-설계-방향">2차년도 설계 방향</a></li>
-<li class="toc-h2"><a href="#다음-작업-기록-runtime-resource-augmentation-scheduler-v1">다음 작업 기록: Runtime Resource Augmentation Scheduler v1</a></li>
-<li class="toc-h2"><a href="#정리-우선순위">정리 우선순위</a></li>
-<li class="toc-h2"><a href="#문서-표현-원칙">문서 표현 원칙</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-추진-배경">1. 추진 배경</a></li>
+<li class="toc-h2"><a href="#2-추진-목표">2. 추진 목표</a></li>
+<li class="toc-h2"><a href="#3-주요-추진내용">3. 주요 추진내용</a></li>
+<li class="toc-h2"><a href="#4-월별-추진계획">4. 월별 추진계획</a></li>
+<li class="toc-h2"><a href="#5-기관별-역할">5. 기관별 역할</a></li>
+<li class="toc-h2"><a href="#6-주요-산출물">6. 주요 산출물</a></li>
+<li class="toc-h2"><a href="#7-최종-추진-방향">7. 최종 추진 방향</a></li>
+<li class="toc-h2"><a href="#별첨-기준-문서">별첨 기준 문서</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

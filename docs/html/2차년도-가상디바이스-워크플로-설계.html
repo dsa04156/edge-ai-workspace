@@ -154,18 +154,18 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>2차년도 가상디바이스·워크플로 설계</h1>
-          <p class="subtitle">2차년도 협약 방향에 맞춘 확장 설계다. 기준 문서는 docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모…</p>
+          <p class="subtitle">docs/단계별-추진계획.md의 별첨 기술 설계다. 2차년도 옥동 PoC는 현재 확보된 PLC·MES·센서 데이터를 활용한 생산…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 2차년도-가상디바이스-워크플로-설계.md</span>
-            <span class="badge">수정: 2026-07-31 10:43</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 16:26</span>
+            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="2차년도-가상디바이스-디바이스트윈-워크플로-설계">2차년도 가상디바이스·디바이스트윈·워크플로 설계</h1>
 <h2 id="목적과-적용-경계">목적과 적용 경계</h2>
-<p>이 문서는 2차년도 협약 방향에 맞춘 확장 설계다. 기준 문서는 <code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code>다.</p>
+<p>이 문서는 <code>docs/단계별-추진계획.md</code>의 별첨 기술 설계다. 2차년도 옥동 PoC는 현재 확보된 PLC·MES·센서 데이터를 활용한 생산품질 양품·불량 판별과 메인·보조 유압펌프 및 모터 이상감지 서비스 2종을 우선한다. 본 문서는 두 서비스를 지원하는 가상디바이스, 디바이스트윈과 워크플로우 구조를 상세화하며 보고서 본문의 목표·일정·역할을 반복하지 않는다. 협약 방향 원문은 <code>docs/(2차년도협약용) 연구개발계획서-엣지 컴퓨팅 시스템을 위한 대규모 혼합 디바이스 제어·관리 플랫폼 개발_0415.pdf</code>다.</p>
 <p>현재 PoC에서 가상 Device inventory, state, telemetry, command 권위는 EdgeX로 단일화한다. KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, <code>mqttvirtual</code>, MapperFramework와 mapper direct-to-storage 실험은 legacy/reference 경로이며 현재 status/control plane, 병행 plane 또는 EdgeX fallback이 아니다. KubeEdge/Kubernetes node와 workload 정보는 placement/resource 진단에는 사용할 수 있다.</p>
 <p>2026-07-21 현재 중앙 EdgeX는 유지되고 custom edge Agent/SQLite outbox 배포와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 공식 EdgeX Device SDK 기반 서비스가 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C source를 각각 한 번 읽고 기능별 가상 Device 6개씩, 총 12개로 분리한다. 물리 <code>arduino-001</code>, <code>sensehat-001</code>은 protocol/tag source ID일 뿐 Core Metadata Device가 아니다. Agent 관련 예시는 과거 baseline을 설명하는 설계 이력이며 현재 배포 계약이 아니다.</p>
 <h2 id="핵심-정의">핵심 정의</h2>

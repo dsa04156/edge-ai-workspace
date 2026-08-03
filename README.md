@@ -6,6 +6,7 @@ KubeEdge의 edge node/workload 관리와 EdgeX의 물리 Device/Profile/Event �
 현재 구현과 운영 경계는 다음 문서부터 확인한다.
 
 - [문서 안내](docs/문서-안내.md)
+- [2026년도 2차년도 옥동 PoC 추진계획](docs/단계별-추진계획.md)
 - [프로젝트 범위](docs/프로젝트-범위.md)
 - [디바이스 발견 및 등록 아키텍처](docs/디바이스-발견-아키텍처.md)
 - [디바이스 발견 및 등록 API](docs/디바이스-등록-API.md)

@@ -158,13 +158,14 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-08-03 15:01</span>
-            <span class="badge">HTML 생성: 2026-08-03 15:02</span>
+            <span class="badge">수정: 2026-08-03 16:25</span>
+            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-안내">문서 안내</h1>
 <p>이 디렉터리는 EdgeX 기반 물리 디바이스 관리와 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 PoC 문서의 단일 진입점이다. 처음 읽을 때는 <code>wiki/지식-지도.md</code>에서 목적에 맞는 최신 기준 문서를 찾는다.</p>
+<p>2차년도 보고 본문은 <code>단계별-추진계획.md</code>다. 옥동 PLC·MES·센서 데이터를 활용한 생산품질 판별과 유압펌프·모터 이상감지 서비스 2종, 월별 일정, 기관별 역할과 산출물만 간결하게 정리한다. 데이터 항목, 장애 시나리오, 화면 목록과 구현 증거는 연결된 별첨 기준 문서에서 관리하며 계획 목표를 현재 완료 상태로 해석하지 않는다.</p>
 <h2 id="현재-상태">현재 상태</h2>
 <p>2026-08-03 기준 중앙 <code>edgex-system</code>에는 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway가 유지된다. <code>edgex-edge</code>의 과거 커스텀 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 전용 SQLite outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역했다.</p>
 <p>현재 root render는 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code>를 각각 <code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code>에 배치한다. Jetson은 Arduino Uno를 <code>/dev/arduino-001</code>에서 한 번 읽어 기존 6개 <code>virtual-*-001</code> Device로 fan-out하고 승인 Saga에서 만든 aggregate Arduino Device 1개도 전환 identity로 유지한다. Raspberry Pi는 Sense HAT v1을 <code>/dev/i2c-1</code>에서 직접 읽어 환경 3개와 IMU 3개의 가상 Device로 분리한다. live Core Metadata의 총 13개 Device는 그대로 보존한다. 대시보드 <code>디바이스</code> 화면의 <code>센서 디바이스</code> 분류는 13개 identity를 이름·Available 상태·최신 Event·상세보기 열의 목록으로 표시하고, <code>장비 관리</code> 화면만 <code>arduino-001</code>, <code>sensehat-001</code> 두 물리 source 카드로 묶어 연결 작업을 제공한다.</p>
@@ -207,71 +208,76 @@ KubeEdge
 </tr>
 <tr>
 <td>2</td>
+<td><code>단계별-추진계획.md</code></td>
+<td>2차년도 옥동 PoC 목표, 일정, 역할과 산출물의 보고 본문</td>
+</tr>
+<tr>
+<td>3</td>
 <td><code>프로젝트-범위.md</code></td>
 <td>현재 범위와 제외 범위의 최우선 기준</td>
 </tr>
 <tr>
-<td>3</td>
+<td>4</td>
 <td><code>원시-텔레메트리-데이터-플레인.md</code></td>
 <td>현재 Serial/I2C Device Service 데이터 경로와 프로토콜 경계</td>
 </tr>
 <tr>
-<td>4</td>
+<td>5</td>
 <td><code>저장소-구조.md</code></td>
 <td>현재·후속·레거시·보관 코드 경계</td>
 </tr>
 <tr>
-<td>5</td>
+<td>6</td>
 <td><code>현재-데모-경로.md</code></td>
 <td>Arduino Serial과 Sense HAT I2C부터 dashboard까지의 현재 수직 슬라이스</td>
 </tr>
 <tr>
-<td>6</td>
+<td>7</td>
 <td><code>서비스-데모-시나리오.md</code></td>
 <td>Jetson 실측 가속도 이상 탐지 데모와 PASS 경계</td>
 </tr>
 <tr>
-<td>7</td>
+<td>8</td>
 <td><code>ops/현재-데모-운영-절차.md</code></td>
 <td>현재 배포·Metadata·Event·로컬 추론·dashboard 검증</td>
 </tr>
 <tr>
-<td>8</td>
+<td>9</td>
 <td><code>ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</code></td>
 <td>1,000-device 중앙 저장 기준선, 안전한 실행 profile과 실측 한계</td>
 </tr>
 <tr>
-<td>9</td>
+<td>10</td>
 <td><code>ops/어댑터-런타임-디바이스-연결-관리.md</code></td>
 <td>대시보드 Runtime/Device 관리, Secret, 상태, 안전 경계와 protocol 승격 절차</td>
 </tr>
 <tr>
-<td>10</td>
+<td>11</td>
 <td><code>디바이스-발견-아키텍처.md</code></td>
 <td>후보 발견, 상태 머신, 승인 Saga와 중앙/엣지 책임 경계</td>
 </tr>
 <tr>
-<td>11</td>
+<td>12</td>
 <td><code>디바이스-등록-API.md</code></td>
 <td>HMAC API, 승인·거절·재시도, Plan, audit 계약</td>
 </tr>
 <tr>
-<td>12</td>
+<td>13</td>
 <td><code>디바이스-카탈로그.md</code></td>
 <td>검증 image/parser/Profile allowlist와 새 장비 추가 절차</td>
 </tr>
 <tr>
-<td>13</td>
+<td>14</td>
 <td><code>현재-구현-상태.md</code></td>
 <td>완료·부분·미구현·실장비 검증 필요 범위</td>
 </tr>
 <tr>
-<td>14</td>
+<td>15</td>
 <td><code>ops/디바이스-발견-등록-운영.md</code></td>
 <td>배포, PTY 시연, 승인, 장애와 rollback 절차</td>
 </tr>
 <tr>
-<td>15</td>
+<td>16</td>
 <td><code>서비스-설계-캔버스.md</code></td>
 <td>EdgeX 센서 입력 기반 캔버스, validation, dry-run과 실행 제외 경계</td>
 </tr>

@@ -154,38 +154,43 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>2차년도 설계 트랙</h1>
-          <p class="subtitle">2차년도 설계 트랙은 현재 운영 가시화 PoC 위에 가상디바이스, 디바이스트윈, workflow 설계를 얹는 방향이다. 이는 설…</p>
+          <p class="subtitle">2차년도는 옥동 PLC·MES·센서 데이터를 활용한 생산품질 판별과 유압펌프·모터 이상감지 서비스 2종을 중심으로 데이터 수집,…</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/2차년도-설계-트랙.md</span>
-            <span class="badge">수정: 2026-07-31 10:43</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 16:26</span>
+            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="2차년도-설계-트랙">2차년도 설계 트랙</h1>
 <h2 id="한-줄-요약">한 줄 요약</h2>
-<p>2차년도 설계 트랙은 현재 운영 가시화 PoC 위에 가상디바이스, 디바이스트윈, workflow 설계를 얹는 방향이다. 이는 설계와 prototype 방향이지, dynamic workflow/offloading 구현 완료 주장이 아니다.</p>
+<p>2차년도는 옥동 PLC·MES·센서 데이터를 활용한 생산품질 판별과 유압펌프·모터 이상감지 서비스 2종을 중심으로 데이터 수집, AI 서비스 배포, 작업 분산, 장애복구와 통합 모니터링을 연결하는 PoC 프로토타입 구축 단계다. 이는 추진 목표이며 현재 workflow/offloading 구현 완료 주장이 아니다.</p>
+<h2 id="공식-추진-기준">공식 추진 기준</h2>
+<p>보고서 본문은 <a href="../단계별-추진계획.html">2026년도 2차년도 옥동 PoC 추진계획</a>을 따른다.</p>
+<ul><li>8월: 서비스 범위, 디바이스 구성과 데이터 접근방식 확정</li><li>9월: PLC·MES·센서 데이터 수집과 직접 전송 검증</li><li>10월: AI 서비스 2종 컨테이너화와 워크플로우 연동</li><li>11월: 엣지·서버 배치, 장애복구와 가상 디바이스 시험</li><li>12월: 데이터 수집부터 화면 표시까지 통합 PoC 검증</li></ul>
+<p>세부 데이터 필드, 장애별 처리와 화면 목록은 본문에 반복하지 않고 연결된 기술·운영 문서에서 관리한다.</p>
 <h2 id="현재-기준">현재 기준</h2>
 <p>현재 PoC는 아래 운영 기반을 만든다.</p>
 <ul><li>등록된 device</li><li>node assignment</li><li>telemetry/status 분리</li><li>상태 통합</li><li>dashboard 가시화</li><li>service-demo binding</li></ul>
 <p>2026-07-31 <code>서비스 설계</code> 캔버스는 이 트랙의 첫 browser-local 프로토타입이다. 실제 EdgeX Device/Profile resource 선택, 단계 연결, 타입·배치 validation과 dry-run 계획만 제공하며 서버 workflow registry나 runtime execution은 없다.</p>
-<p>2차년도 트랙은 이 기반 위에서 아래를 설계한다.</p>
-<ul><li>물리 on-device 기능, 상태, 자원, I/O를 표현하는 가상디바이스</li><li>capability, resource, I/O, state, workflow binding snapshot을 관리하는 디바이스트윈</li><li>stage 기반 AI service workflow</li><li>validation과 execution-plan UI</li><li>후속 prototype 대상인 scheduling/resource placement 정책</li></ul>
+<p>2차년도 트랙은 이 기반 위에서 우선 서비스 2종을 실행하기 위한 아래 요소를 설계한다.</p>
+<ul><li>PLC·MES·센서·품질 데이터의 공통 타임스탬프와 생산 건 연결</li><li>생산품질 판별 및 펌프·모터 이상감지 서비스 컨테이너</li><li>물리 on-device 기능, 상태, 자원, I/O를 표현하는 가상디바이스</li><li>capability, resource, I/O, state, workflow binding snapshot을 관리하는 디바이스트윈</li><li>수집 → 전처리 → 추론 → 저장 → 알림의 stage 기반 AI service workflow</li><li>validation과 execution-plan UI</li><li>엣지·서버 작업 분산과 장애 저장·재전송·복구 정책</li></ul>
 <h2 id="경계">경계</h2>
 <p>2차년도 가상디바이스는 legacy <code>test_device.py</code> fake MQTT publisher 의미와 다르다. 아래 legacy 경로를 현재 기능으로 조용히 승격하지 않는다.</p>
 <ul><li><code>edge-orch/workflow_executor/</code></li><li><code>edge-orch/workflow_reporter/</code></li><li><code>edge-orch/placement_engine/</code></li><li><code>workflow/</code></li><li>selective replanning 또는 offloading archive 자료</li></ul>
 <p>legacy 구현을 재사용하려면 먼저 <code>docs/프로젝트-범위.md</code>와 <code>docs/저장소-구조.md</code>에 승격 근거를 남긴다.</p>
 <h2 id="운영상-의미">운영상 의미</h2>
 <p>제안서나 보고서에서는 아래처럼 쓴다.</p>
-<ul><li>2차년도 작업은 단계적 설계/prototype 트랙으로 설명한다.</li><li>현재 dashboard 주장은 service demo visibility에 묶어 둔다.</li><li>LLM이나 agent가 전체 플랫폼을 제어한다고 쓰지 않는다.</li><li>workflow design/dry-run planning과 실제 runtime execution을 구분한다.</li></ul>
+<ul><li>2차년도 작업은 단계적 설계/prototype 트랙으로 설명한다.</li><li>우선 서비스는 생산품질 판별과 유압펌프·모터 이상감지 2종으로 명시한다.</li><li>현재 dashboard 주장은 service demo visibility에 묶어 둔다.</li><li>LLM이나 agent가 전체 플랫폼을 제어한다고 쓰지 않는다.</li><li>workflow design/dry-run planning과 실제 runtime execution을 구분한다.</li></ul>
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="운영-모델.html">운영 모델</a></li><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li><li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li></ul>
 <h2 id="근거-문서">근거 문서</h2>
-<ul><li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로우 설계</a></li><li><a href="../프로젝트-범위.html">프로젝트 범위</a></li><li><a href="../저장소-구조.html">레포 구조</a></li><li><a href="../단계별-추진계획.html">로드맵</a></li></ul>
+<ul><li><a href="../단계별-추진계획.html">2026년도 2차년도 옥동 PoC 추진계획</a></li><li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로우 설계</a></li><li><a href="../프로젝트-범위.html">프로젝트 범위</a></li><li><a href="../저장소-구조.html">레포 구조</a></li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
+<li class="toc-h2"><a href="#공식-추진-기준">공식 추진 기준</a></li>
 <li class="toc-h2"><a href="#현재-기준">현재 기준</a></li>
 <li class="toc-h2"><a href="#경계">경계</a></li>
 <li class="toc-h2"><a href="#운영상-의미">운영상 의미</a></li>
