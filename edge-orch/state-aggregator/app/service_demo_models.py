@@ -40,6 +40,33 @@ class UpstreamSource(UpstreamModel):
     devices: list[str]
 
 
+class UpstreamComponentScores(UpstreamModel):
+    vibration: float = Field(ge=0)
+    temperature: float = Field(ge=0)
+
+
+class UpstreamScoreWeights(UpstreamModel):
+    vibration: float = Field(ge=0)
+    temperature: float = Field(ge=0)
+
+
+class UpstreamVibrationFeatures(UpstreamModel):
+    rms: float
+    peak: float
+    kurtosis: float
+    sample_count: int = Field(ge=1)
+
+
+class UpstreamTemperatureFeatures(UpstreamModel):
+    origin: int = Field(gt=0)
+    raw: int
+    mean: float
+    stddev: float = Field(ge=0)
+    delta: float
+    sample_count: int = Field(ge=1)
+    alignment_lag_ms: float = Field(ge=0)
+
+
 class UpstreamLatest(UpstreamModel):
     origin: int = Field(gt=0)
     observed_at: datetime
@@ -47,16 +74,32 @@ class UpstreamLatest(UpstreamModel):
     magnitude: float
     score: float = Field(ge=0)
     anomaly: bool
+    component_scores: UpstreamComponentScores | None = None
+    weights: UpstreamScoreWeights | None = None
+    vibration_features: UpstreamVibrationFeatures | None = None
+    temperature_features: UpstreamTemperatureFeatures | None = None
+
+
+class UpstreamFeatureModel(UpstreamModel):
+    algorithm: str = Field(min_length=1)
+    sample_count: int = Field(ge=0)
+    warmup_samples: int = Field(ge=1)
+    threshold: float = Field(gt=0)
+    feature_means: dict[str, float] = Field(default_factory=dict)
+    feature_stddevs: dict[str, float] = Field(default_factory=dict)
+    stddev_floors: dict[str, float] = Field(default_factory=dict)
 
 
 class UpstreamDetectorModel(UpstreamModel):
-    algorithm: Literal["online-gaussian-baseline-v1"]
+    algorithm: str = Field(min_length=1)
     sample_count: int = Field(ge=0)
     warmup_samples: int = Field(ge=1)
     threshold: float = Field(gt=0)
     baseline_mean: float
     baseline_stddev: float = Field(ge=0)
     stddev_floor: float = Field(gt=0)
+    components: dict[str, UpstreamFeatureModel] = Field(default_factory=dict)
+    weights: UpstreamScoreWeights | None = None
 
 
 class UpstreamCounters(UpstreamModel):
@@ -64,6 +107,8 @@ class UpstreamCounters(UpstreamModel):
     duplicates_ignored: int = Field(ge=0)
     incomplete_frames_dropped: int = Field(ge=0)
     input_errors: int = Field(ge=0)
+    context_samples_processed: int = Field(default=0, ge=0)
+    unaligned_frames_dropped: int = Field(default=0, ge=0)
 
 
 class UpstreamServiceStatus(UpstreamModel):
@@ -101,6 +146,47 @@ class ServiceDemoLatest(BaseModel):
     magnitude: float
     score: float
     anomaly: bool
+    component_scores: "ServiceDemoComponentScores | None" = None
+    weights: "ServiceDemoScoreWeights | None" = None
+    vibration_features: "ServiceDemoVibrationFeatures | None" = None
+    temperature_features: "ServiceDemoTemperatureFeatures | None" = None
+
+
+class ServiceDemoComponentScores(BaseModel):
+    vibration: float
+    temperature: float
+
+
+class ServiceDemoScoreWeights(BaseModel):
+    vibration: float
+    temperature: float
+
+
+class ServiceDemoVibrationFeatures(BaseModel):
+    rms: float
+    peak: float
+    kurtosis: float
+    sample_count: int
+
+
+class ServiceDemoTemperatureFeatures(BaseModel):
+    origin: int
+    raw: int
+    mean: float
+    stddev: float
+    delta: float
+    sample_count: int
+    alignment_lag_ms: float
+
+
+class ServiceDemoFeatureModel(BaseModel):
+    algorithm: str
+    sample_count: int
+    warmup_samples: int
+    threshold: float
+    feature_means: dict[str, float] = Field(default_factory=dict)
+    feature_stddevs: dict[str, float] = Field(default_factory=dict)
+    stddev_floors: dict[str, float] = Field(default_factory=dict)
 
 
 class ServiceDemoModel(BaseModel):
@@ -111,6 +197,8 @@ class ServiceDemoModel(BaseModel):
     baseline_mean: float
     baseline_stddev: float
     stddev_floor: float
+    components: dict[str, ServiceDemoFeatureModel] = Field(default_factory=dict)
+    weights: ServiceDemoScoreWeights | None = None
 
 
 class ServiceDemoCounters(BaseModel):
@@ -118,6 +206,8 @@ class ServiceDemoCounters(BaseModel):
     duplicates_ignored: int = 0
     incomplete_frames_dropped: int = 0
     input_errors: int = 0
+    context_samples_processed: int = 0
+    unaligned_frames_dropped: int = 0
 
 
 class ServiceDemoState(BaseModel):

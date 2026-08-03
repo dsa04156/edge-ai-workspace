@@ -601,6 +601,10 @@ body[data-dashboard-page="designer"] .layout {
   --node-accent: #fbbf24;
 }
 
+.service-designer-node[data-node-type="fusion"] {
+  --node-accent: #fb7185;
+}
+
 .service-designer-node[data-node-type="output"] {
   --node-accent: #22c55e;
 }
@@ -896,6 +900,55 @@ body[data-dashboard-page="designer"] .layout {
 
 .service-designer-binding-status strong {
   color: var(--console-text);
+}
+
+.service-designer-weight-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--console-border);
+  border-radius: 4px;
+  background: var(--console-control);
+}
+
+.service-designer-weight-list > span {
+  color: var(--console-muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.service-designer-weight-list label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.service-designer-weight-list label span {
+  overflow: hidden;
+  color: var(--console-text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-designer-weight-list input {
+  width: 100%;
+  height: 34px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid var(--console-border-strong);
+  border-radius: 4px;
+  background: #0b1628;
+  color: var(--console-text);
+}
+
+.service-designer-weight-list small {
+  color: var(--console-dim);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .service-designer-empty {

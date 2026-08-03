@@ -33,6 +33,7 @@ def live_payload() -> dict:
                 "virtual-acceleration-x-001",
                 "virtual-acceleration-y-001",
                 "virtual-acceleration-z-001",
+                "virtual-temperature-001",
             ],
         },
         "latest": {
@@ -42,21 +43,61 @@ def live_payload() -> dict:
             "magnitude": 5.0,
             "score": 0.25,
             "anomaly": False,
+            "componentScores": {"vibration": 0.2, "temperature": 0.366667},
+            "weights": {"vibration": 0.7, "temperature": 0.3},
+            "vibrationFeatures": {
+                "rms": 5.1,
+                "peak": 6.0,
+                "kurtosis": 2.8,
+                "sampleCount": 20,
+            },
+            "temperatureFeatures": {
+                "origin": 999_000_000,
+                "raw": 300,
+                "mean": 298.5,
+                "stddev": 1.2,
+                "delta": 2.0,
+                "sampleCount": 10,
+                "alignmentLagMs": 1.0,
+            },
         },
         "model": {
-            "algorithm": "online-gaussian-baseline-v1",
+            "algorithm": "weighted-multi-sensor-feature-score-v1",
             "sampleCount": 30,
             "warmupSamples": 30,
             "threshold": 4.0,
             "baselineMean": 5.0,
             "baselineStddev": 1.0,
             "stddevFloor": 1.0,
+            "components": {
+                "vibration": {
+                    "algorithm": "online-vibration-feature-gaussian-v1",
+                    "sampleCount": 30,
+                    "warmupSamples": 30,
+                    "threshold": 4.0,
+                    "featureMeans": {"rms": 5.0},
+                    "featureStddevs": {"rms": 1.0},
+                    "stddevFloors": {"rms": 1.0},
+                },
+                "temperature": {
+                    "algorithm": "online-temperature-feature-gaussian-v1",
+                    "sampleCount": 30,
+                    "warmupSamples": 30,
+                    "threshold": 4.0,
+                    "featureMeans": {"mean": 298.0},
+                    "featureStddevs": {"mean": 1.0},
+                    "stddevFloors": {"mean": 1.0},
+                },
+            },
+            "weights": {"vibration": 0.7, "temperature": 0.3},
         },
         "counters": {
             "framesProcessed": 30,
             "duplicatesIgnored": 0,
             "incompleteFramesDropped": 0,
             "inputErrors": 0,
+            "contextSamplesProcessed": 30,
+            "unalignedFramesDropped": 0,
         },
         "lastError": None,
     }
@@ -81,6 +122,14 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.binding.consumer == "sensor-anomaly-demo"
     assert state.binding.node == "etri-dev0001-jetorn"
     assert state.latest is not None and state.latest.origin == 1_000_000_000
+    assert state.latest.component_scores is not None
+    assert state.latest.component_scores.vibration == 0.2
+    assert state.latest.temperature_features is not None
+    assert state.latest.temperature_features.raw == 300
+    assert state.model is not None
+    assert state.model.algorithm == "weighted-multi-sensor-feature-score-v1"
+    assert set(state.model.components) == {"vibration", "temperature"}
+    assert state.counters.context_samples_processed == 30
     assert state.observation_error is None
 
 

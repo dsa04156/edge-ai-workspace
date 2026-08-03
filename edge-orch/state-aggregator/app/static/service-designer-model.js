@@ -55,6 +55,19 @@
         threshold: 4,
       },
     },
+    fusion: {
+      label: "점수 결합",
+      shortLabel: "결합",
+      description: "센서별 숫자 점수를 하나의 종합 점수로 결합합니다.",
+      acceptsInput: true,
+      providesOutput: true,
+      defaultConfig: {
+        method: "weighted_average",
+        targetNode: "",
+        missingPolicy: "wait_all",
+        weights: {},
+      },
+    },
     output: {
       label: "결과",
       shortLabel: "출력",
@@ -89,7 +102,22 @@
       label: "벡터 크기",
       inputType: "number",
       outputType: "number",
+      minInputs: 3,
       maxInputs: 3,
+    },
+    vibration_features: {
+      label: "진동 특징 추출",
+      inputType: "number",
+      outputType: "feature_vector",
+      minInputs: 3,
+      maxInputs: 3,
+    },
+    window_features: {
+      label: "구간 특징 추출",
+      inputType: "number",
+      outputType: "feature_vector",
+      minInputs: 1,
+      maxInputs: 1,
     },
   };
   const INFERENCE_ALGORITHMS = {
@@ -103,11 +131,43 @@
       inputType: "number",
       outputType: "boolean",
     },
+    "sensor-feature-score-v1": {
+      label: "센서 이상 점수",
+      inputType: "feature_vector",
+      outputType: "number",
+    },
+  };
+  const FUSION_METHODS = {
+    weighted_average: {
+      label: "가중 평균",
+      inputType: "number",
+      outputType: "number",
+      minInputs: 2,
+      maxInputs: 8,
+    },
+    maximum: {
+      label: "최댓값",
+      inputType: "number",
+      outputType: "number",
+      minInputs: 2,
+      maxInputs: 8,
+    },
+  };
+  const FUSION_MISSING_POLICIES = {
+    wait_all: {
+      label: "모든 점수 대기",
+      description: "같은 시간 구간의 점수가 모두 준비된 경우에만 결합합니다.",
+    },
+    drop_window: {
+      label: "불완전 구간 제외",
+      description: "한 점수라도 없으면 해당 시간 구간을 계산하지 않습니다.",
+    },
   };
   const SERVICE_CATEGORIES = [
     {id: "input", label: "데이터 입력"},
     {id: "preprocess", label: "전처리"},
     {id: "inference", label: "AI 추론"},
+    {id: "fusion", label: "점수 결합"},
     {id: "output", label: "결과"},
   ];
   const SERVICE_TEMPLATES = [
@@ -162,6 +222,22 @@
       config: {operation: "vector_magnitude"},
     },
     {
+      id: "preprocess-vibration-features",
+      category: "preprocess",
+      type: "preprocess",
+      label: "진동 특징 추출",
+      description: "3축 구간의 RMS·Peak·Kurtosis 계약",
+      config: {operation: "vibration_features", windowSize: 30},
+    },
+    {
+      id: "preprocess-window-features",
+      category: "preprocess",
+      type: "preprocess",
+      label: "구간 특징 추출",
+      description: "단일 센서 구간의 평균·표준편차·변화량 계약",
+      config: {operation: "window_features", windowSize: 30},
+    },
+    {
       id: "inference-online-gaussian",
       category: "inference",
       type: "inference",
@@ -176,6 +252,22 @@
       label: "임계값 판정",
       description: "Threshold rule v1",
       config: {algorithm: "threshold-rule-v1"},
+    },
+    {
+      id: "inference-sensor-feature-score",
+      category: "inference",
+      type: "inference",
+      label: "센서 이상 점수",
+      description: "구간 특징을 0~1 점수로 변환하는 설계 계약",
+      config: {algorithm: "sensor-feature-score-v1", threshold: 0.8},
+    },
+    {
+      id: "fusion-weighted-score",
+      category: "fusion",
+      type: "fusion",
+      label: "점수 결합",
+      description: "센서별 점수를 가중 평균으로 결합",
+      config: {method: "weighted_average", missingPolicy: "wait_all"},
     },
     {
       id: "dashboard-output",
@@ -293,6 +385,93 @@
         {id: "edge-z-vector", from: "sensor-z", to: "vector-magnitude"},
         {id: "edge-vector-inference", from: "vector-magnitude", to: "anomaly-inference"},
         {id: "edge-inference-output", from: "anomaly-inference", to: "dashboard-output"},
+      ],
+      updatedAt: null,
+    };
+  }
+
+  function createMultiSensorScoreExampleDesign() {
+    const sensorX = makeNode("sensor", "sensor-x", 16, 16);
+    const sensorY = makeNode("sensor", "sensor-y", 16, 170);
+    const sensorZ = makeNode("sensor", "sensor-z", 16, 324);
+    const context = makeNode("sensor", "sensor-context", 16, 520);
+    const vibrationFeatures = makeNode("preprocess", "vibration-features", 245, 170);
+    const contextFeatures = makeNode("preprocess", "context-features", 245, 500);
+    const vibrationScore = makeNode("inference", "vibration-score", 474, 170);
+    const contextScore = makeNode("inference", "context-score", 474, 500);
+    const fusion = makeNode("fusion", "score-fusion", 703, 310);
+    const output = makeNode("output", "dashboard-output", 892, 310);
+    return {
+      version: DESIGN_VERSION,
+      id: "multi-sensor-score-example",
+      name: "설비 복합 이상 점수",
+      description: "3축 진동과 보조 센서의 구간별 점수를 계산한 뒤 종합 점수로 결합하는 설계 예시",
+      nodes: [
+        {...sensorX, title: "가속도 X"},
+        {...sensorY, title: "가속도 Y"},
+        {...sensorZ, title: "가속도 Z"},
+        {...context, title: "보조 센서"},
+        {
+          ...vibrationFeatures,
+          title: "진동 특징",
+          config: {
+            ...vibrationFeatures.config,
+            operation: "vibration_features",
+            windowSize: 30,
+          },
+        },
+        {
+          ...contextFeatures,
+          title: "보조 센서 특징",
+          config: {
+            ...contextFeatures.config,
+            operation: "window_features",
+            windowSize: 30,
+          },
+        },
+        {
+          ...vibrationScore,
+          title: "진동 점수",
+          config: {
+            ...vibrationScore.config,
+            algorithm: "sensor-feature-score-v1",
+            threshold: 0.8,
+          },
+        },
+        {
+          ...contextScore,
+          title: "보조 센서 점수",
+          config: {
+            ...contextScore.config,
+            algorithm: "sensor-feature-score-v1",
+            threshold: 0.8,
+          },
+        },
+        {
+          ...fusion,
+          title: "종합 점수",
+          config: {
+            ...fusion.config,
+            method: "weighted_average",
+            missingPolicy: "wait_all",
+            weights: {
+              "vibration-score": 0.7,
+              "context-score": 0.3,
+            },
+          },
+        },
+        {...output, title: "대시보드 결과"},
+      ],
+      edges: [
+        {id: "edge-x-features", from: "sensor-x", to: "vibration-features"},
+        {id: "edge-y-features", from: "sensor-y", to: "vibration-features"},
+        {id: "edge-z-features", from: "sensor-z", to: "vibration-features"},
+        {id: "edge-context-features", from: "sensor-context", to: "context-features"},
+        {id: "edge-vibration-score", from: "vibration-features", to: "vibration-score"},
+        {id: "edge-context-score", from: "context-features", to: "context-score"},
+        {id: "edge-vibration-fusion", from: "vibration-score", to: "score-fusion"},
+        {id: "edge-context-fusion", from: "context-score", to: "score-fusion"},
+        {id: "edge-fusion-output", from: "score-fusion", to: "dashboard-output"},
       ],
       updatedAt: null,
     };
@@ -510,6 +689,12 @@
         || INFERENCE_ALGORITHMS["online-gaussian-baseline-v1"]
       ).outputType;
     }
+    if (node.type === "fusion") {
+      return (
+        FUSION_METHODS[node.config.method]
+        || FUSION_METHODS.weighted_average
+      ).outputType;
+    }
     return "none";
   }
 
@@ -525,6 +710,12 @@
       return (
         INFERENCE_ALGORITHMS[node.config.algorithm]
         || INFERENCE_ALGORITHMS["online-gaussian-baseline-v1"]
+      ).inputType;
+    }
+    if (node.type === "fusion") {
+      return (
+        FUSION_METHODS[node.config.method]
+        || FUSION_METHODS.weighted_average
       ).inputType;
     }
     if (node.type === "output") return "any";
@@ -566,6 +757,40 @@
         PREPROCESS_OPERATIONS[node.config.operation]
         || PREPROCESS_OPERATIONS.passthrough
       ).maxInputs;
+    }
+    if (node.type === "inference") {
+      return (
+        INFERENCE_ALGORITHMS[node.config.algorithm]
+        || INFERENCE_ALGORITHMS["online-gaussian-baseline-v1"]
+      ).maxInputs || 1;
+    }
+    if (node.type === "fusion") {
+      return (
+        FUSION_METHODS[node.config.method]
+        || FUSION_METHODS.weighted_average
+      ).maxInputs;
+    }
+    return nodeDefinition(node.type)?.acceptsInput ? 1 : 0;
+  }
+
+  function minInputsForNode(node) {
+    if (node.type === "preprocess") {
+      return (
+        PREPROCESS_OPERATIONS[node.config.operation]
+        || PREPROCESS_OPERATIONS.passthrough
+      ).minInputs || 1;
+    }
+    if (node.type === "inference") {
+      return (
+        INFERENCE_ALGORITHMS[node.config.algorithm]
+        || INFERENCE_ALGORITHMS["online-gaussian-baseline-v1"]
+      ).minInputs || 1;
+    }
+    if (node.type === "fusion") {
+      return (
+        FUSION_METHODS[node.config.method]
+        || FUSION_METHODS.weighted_average
+      ).minInputs;
     }
     return nodeDefinition(node.type)?.acceptsInput ? 1 : 0;
   }
@@ -667,6 +892,13 @@
       if (incoming.length > maxInputsForNode(node)) {
         addError("too_many_inputs", `${node.title} 단계의 입력 수가 허용 범위를 넘었습니다.`, node.id);
       }
+      if (incoming.length > 0 && incoming.length < minInputsForNode(node)) {
+        addError(
+          "too_few_inputs",
+          `${node.title} 단계에는 입력 ${minInputsForNode(node)}개가 필요합니다.`,
+          node.id,
+        );
+      }
       if (node.type === "sensor") {
         const device = (inventory.devices || [])
           .find((item) => item.name === node.config.deviceName);
@@ -683,22 +915,22 @@
         if (!SOURCE_MODES[node.config.sourceMode]) {
           addError("source_mode_invalid", "지원되는 데이터 접근 방식을 선택하세요.", node.id);
         }
-        if (device?.overall_status !== "available") {
+        if (device && device.overall_status !== "available") {
           addWarning(
             "device_not_available",
-            `${device?.name || node.config.deviceName} 상태가 Available이 아닙니다.`,
+            `${device.name} 상태가 Available이 아닙니다.`,
             node.id,
           );
         }
-        if (device?.telemetry_freshness !== "fresh") {
+        if (device && device.telemetry_freshness !== "fresh") {
           addWarning(
             "telemetry_not_fresh",
-            `${device?.name || node.config.deviceName}의 최신 Event가 fresh가 아닙니다.`,
+            `${device.name}의 최신 Event가 fresh가 아닙니다.`,
             node.id,
           );
         }
-        if (node.config.sourceMode === "local_recent") {
-          if (!device?.node_name) {
+        if (node.config.sourceMode === "local_recent" && device) {
+          if (!device.node_name) {
             addError(
               "source_node_missing",
               "엣지 최근 데이터는 디바이스의 물리 노드 정보가 필요합니다.",
@@ -722,7 +954,7 @@
           }
         }
       }
-      if (["preprocess", "inference"].includes(node.type)) {
+      if (["preprocess", "inference", "fusion"].includes(node.type)) {
         if (!node.config.targetNode) {
           addError("target_node_required", `${node.title} 실행 노드를 선택하세요.`, node.id);
         } else if (
@@ -734,6 +966,25 @@
           ))
         ) {
           addError("target_node_missing", `${node.config.targetNode} 노드를 찾을 수 없습니다.`, node.id);
+        }
+      }
+      if (node.type === "fusion") {
+        const method = FUSION_METHODS[node.config.method];
+        if (!method) {
+          addError("fusion_method_invalid", "지원되는 점수 결합 방식을 선택하세요.", node.id);
+        }
+        if (!FUSION_MISSING_POLICIES[node.config.missingPolicy]) {
+          addError("fusion_missing_policy_invalid", "지원되는 누락 점수 처리 방식을 선택하세요.", node.id);
+        }
+        if (method && node.config.method === "weighted_average" && incoming.length) {
+          const weights = incoming.map((edge) => (
+            node.config.weights?.[edge.from] ?? 1
+          ));
+          if (weights.some((weight) => !Number.isFinite(Number(weight)) || Number(weight) < 0)) {
+            addError("fusion_weight_invalid", "점수 가중치는 0 이상의 숫자여야 합니다.", node.id);
+          } else if (weights.reduce((sum, weight) => sum + Number(weight), 0) <= 0) {
+            addError("fusion_weight_total_invalid", "점수 가중치 합은 0보다 커야 합니다.", node.id);
+          }
         }
       }
     });
@@ -780,6 +1031,9 @@
     if (node.type === "inference") {
       return `${INFERENCE_ALGORITHMS[node.config.algorithm]?.label || node.config.algorithm} · ${node.config.targetNode || "노드 미선택"}`;
     }
+    if (node.type === "fusion") {
+      return `${FUSION_METHODS[node.config.method]?.label || node.config.method} · ${node.config.targetNode || "노드 미선택"}`;
+    }
     if (node.type === "output") return "대시보드 결과";
     return "";
   }
@@ -811,6 +1065,8 @@
 
   return {
     DESIGN_VERSION,
+    FUSION_METHODS,
+    FUSION_MISSING_POLICIES,
     INFERENCE_ALGORITHMS,
     NODE_DEFINITIONS,
     PREPROCESS_OPERATIONS,
@@ -825,6 +1081,7 @@
     compatibleTypes,
     connectNodes,
     createDefaultDesign,
+    createMultiSensorScoreExampleDesign,
     createSensorAnomalyExampleDesign,
     nodeDefinition,
     nodeInputType,

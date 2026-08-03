@@ -158,8 +158,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-데모-경로.md</span>
-            <span class="badge">수정: 2026-07-30 17:00</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 11:44</span>
+            <span class="badge">HTML 생성: 2026-08-03 11:46</span>
           </div>
         </header>
         <div class="doc-body">
@@ -208,14 +208,15 @@ KubeEdge
 <ul><li><code>edgex-edge-agent-jetson</code></li><li><code>edgex-edge-agent-sensehat</code></li><li>두 Agent의 2GiB SQLite outbox PVC</li><li>Agent contract ConfigMap과 전용 egress NetworkPolicy</li><li><code>edge-telemetry-agent</code>, <code>etri-sensehat</code>, <code>sensehat-001</code>을 재등록하던 Metadata bootstrap manifest</li></ul>
 <p>Agent 이름이 붙은 기존 Secret과 중앙 gateway 인증 설정은 중앙 구성 호환을 위해 남아 있지만 현재 Serial/I2C 경로에는 참여하지 않는다. 이 Secret이 남아 있다는 사실은 Agent가 배포되어 있다는 뜻이 아니다.</p>
 <h2 id="현재-서비스-데모-경로">현재 서비스 데모 경로</h2>
-<p>현재 수직 슬라이스는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C 두 종류다. Jetson acceleration 세 Device에는 첫 고정 AI consumer가 연결된다. 이는 Argo CD가 관리하는 명시적 Deployment이며 Workflow Builder의 동적 실행을 뜻하지 않는다.</p>
+<p>현재 수직 슬라이스는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C 두 종류다. Jetson acceleration 세 Device와 temperature Device에는 첫 고정 AI consumer 소스가 연결된다. 이는 Argo CD가 관리하는 명시적 Deployment이며 Workflow Builder의 동적 실행을 뜻하지 않는다. 2026-08-03 복합 점수 소스 revision의 새 image rollout과 live 검증은 별도 gate다.</p>
 <pre data-lang="text"><code>Arduino sensor
   -&gt; /dev/serial/by-id/... on etri-dev0001-jetorn
   -&gt; /dev/arduino-001 in device-serial-jetson
   -&gt; resource route / 6 virtual Devices
-     +-&gt; acceleration X/Y/Z memory recent cache
+     +-&gt; acceleration X/Y/Z + temperature memory recent cache
      |   -&gt; sensor-anomaly-demo @ same Jetson (500ms polling)
-     |   -&gt; origin join -&gt; online baseline score
+     |   -&gt; X/Y/Z same-origin join -&gt; nearest temperature within 2 s
+     |   -&gt; vibration/temperature feature score -&gt; weighted score
      |   -&gt; state-aggregator / service demo dashboard
   -&gt; Device별 EdgeX async Event / Reading
   -&gt; 중앙 internal MessageBus
@@ -268,7 +269,7 @@ Sense HAT v1
 </tr>
 <tr>
 <td><code>sensor-anomaly-demo</code></td>
-<td>세 acceleration Device의 같은-origin raw frame을 로컬에서 읽고 변화 점수·상태를 read-only API로 제공</td>
+<td>세 acceleration Device의 same-origin frame과 2초 이내 temperature를 로컬에서 읽고 진동·온도 개별 점수와 가중 종합 상태를 read-only API로 제공</td>
 </tr>
 <tr>
 <td><code>state-aggregator</code></td>
@@ -385,7 +386,7 @@ GET /api/v3/localdata/device/name/{deviceName}/resource/name/{resourceName}?from
 </tbody></table></div>
 <h2 id="완료-판정">완료 판정</h2>
 <p>정상 수집 경로와 driver/reader 장애 복구는 다음 1~5와 read-only command까지 같은 배포에서 확인했다. 실제 케이블·보드 손분리를 포함한 현장 장애·복구 데모를 PASS로 선언하려면 4의 물리 조작 시연을 추가 확인한다.</p>
-<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다. 현재는 driver/reader 장애 주입까지 PASS이고 실제 케이블·보드 손분리는 별도 현장 gate다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li><li><code>sensor-anomaly-demo</code>와 중앙 <code>/state/service-demo</code>가 같은 세 Device identity와 증가하는 실제 origin을 반환한다.</li></ol>
+<ol><li>Device Service Pod가 지정 edge node에서 Ready다.</li><li>Core Metadata에 Device Service/Profile/Device가 의도한 이름과 protocol로 존재한다.</li><li>실제 Arduino와 Sense HAT sample이 typed Event/Reading으로 Core Data에 저장된다.</li><li>연결 단절·복구 시 Device Service 상태와 재연결 동작이 검증된다. 현재는 driver/reader 장애 주입까지 PASS이고 실제 케이블·보드 손분리는 별도 현장 gate다.</li><li>dashboard가 같은 device identity, 상태와 최신 Event freshness를 표시한다.</li><li>command가 범위에 포함되면 read-only와 write/actuator를 구분하고 허용 목록과 실패 동작까지 별도로 검증한다.</li><li>새 복합 점수 image 배포 후 <code>sensor-anomaly-demo</code>와 중앙 <code>/state/service-demo</code>가 같은 Device 4개 identity, 증가하는 acceleration origin과 정렬된 temperature origin을 반환한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태-요약">상태 요약</a></li>

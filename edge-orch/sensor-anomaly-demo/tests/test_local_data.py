@@ -8,7 +8,9 @@ from app.local_data import (
     LocalDataClient,
     LocalDataResponseError,
     LocalDataUnavailable,
+    TEMPERATURE_SOURCE,
 )
+from app.models import AxisSample
 
 
 SOURCE = AxisSource(
@@ -69,6 +71,47 @@ def test_client_uses_source_identity_and_origin_cursor() -> None:
 
     assert rows[0].origin == 150
     assert rows[0].value == 7
+
+
+def test_client_reads_temperature_context_through_the_same_local_data_contract() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith(
+            "/api/v3/localdata/device/name/virtual-temperature-001/"
+            "resource/name/temperature_raw"
+        )
+        return httpx.Response(
+            200,
+            json={
+                "apiVersion": "v3",
+                "statusCode": 200,
+                "deviceName": TEMPERATURE_SOURCE.device_name,
+                "resourceName": TEMPERATURE_SOURCE.resource_name,
+                "count": 1,
+                "retention": {"maxAge": "10m0s", "maxSamples": 10_000},
+                "samples": [
+                    {"origin": 150, "valueType": "Int32", "value": 300}
+                ],
+            },
+        )
+
+    async def run() -> list:
+        client = LocalDataClient(
+            "http://device.test:59910",
+            timeout_seconds=2.0,
+            transport=httpx.MockTransport(handler),
+        )
+        try:
+            return await client.fetch(
+                TEMPERATURE_SOURCE,
+                from_origin=None,
+                to_origin=200,
+            )
+        finally:
+            await client.close()
+
+    rows = asyncio.run(run())
+
+    assert rows == [AxisSample(origin=150, value_type="Int32", value=300)]
 
 
 @pytest.mark.parametrize(

@@ -27,11 +27,35 @@ class AxisSource:
     device_name: str
     resource_name: str
 
+    @property
+    def key(self) -> str:
+        return self.axis
+
+
+@dataclass(frozen=True)
+class ScalarSource:
+    name: str
+    device_name: str
+    resource_name: str
+
+    @property
+    def key(self) -> str:
+        return self.name
+
+
+LocalDataSource = AxisSource | ScalarSource
+
 
 ACCELERATION_SOURCES: tuple[AxisSource, ...] = (
     AxisSource("x", "virtual-acceleration-x-001", "acceleration_x_raw"),
     AxisSource("y", "virtual-acceleration-y-001", "acceleration_y_raw"),
     AxisSource("z", "virtual-acceleration-z-001", "acceleration_z_raw"),
+)
+
+TEMPERATURE_SOURCE = ScalarSource(
+    "temperature",
+    "virtual-temperature-001",
+    "temperature_raw",
 )
 
 
@@ -52,7 +76,7 @@ class LocalDataClient:
 
     async def fetch(
         self,
-        source: AxisSource,
+        source: LocalDataSource,
         from_origin: int | None,
         to_origin: int,
     ) -> list[AxisSample]:
@@ -81,7 +105,7 @@ class LocalDataClient:
     @staticmethod
     def _validated_samples(
         response: httpx.Response,
-        source: AxisSource,
+        source: LocalDataSource,
     ) -> list[AxisSample]:
         try:
             payload: Any = response.json()

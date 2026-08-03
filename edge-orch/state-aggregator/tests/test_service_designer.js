@@ -11,6 +11,7 @@ const {
   canonicalDataType,
   connectNodes,
   createDefaultDesign,
+  createMultiSensorScoreExampleDesign,
   createSensorAnomalyExampleDesign,
   removeNode,
   resourcesForDevice,
@@ -21,7 +22,9 @@ const {
 const {
   STORAGE_KEY,
   accelerationAxisBindingCandidates,
+  bindMultiSensorScoreExample,
   bindSensorAnomalyExample,
+  contextSourceBindingCandidate,
   fetchDesignerProfiles,
   loadStoredDesign,
   saveStoredDesign,
@@ -130,6 +133,27 @@ function accelerationInventory() {
   };
 }
 
+function multiSensorInventory() {
+  const current = accelerationInventory();
+  current.devices.push({
+    name: "virtual-temperature-001",
+    profile_name: "etri-arduino-temperature",
+    node_name: "etri-dev0001-jetorn",
+    overall_status: "available",
+    telemetry_freshness: "fresh",
+    latest_readings: [],
+  });
+  current.profiles.push({
+    name: "etri-arduino-temperature",
+    resources: [{
+      name: "temperature_raw",
+      value_type: "Int32",
+      units: "raw",
+    }],
+  });
+  return current;
+}
+
 test("uses EdgeX Device Profile resources even before a latest Event exists", () => {
   const current = inventory();
   const resources = resourcesForDevice(current.devices[0], current.profiles);
@@ -207,10 +231,10 @@ test("adds unique stages and builds a deterministic dry-run plan", () => {
 test("lists concrete workflow services and reports real EdgeX input availability", () => {
   const catalog = buildServiceCatalog(inventory());
 
-  assert.equal(catalog.length, 9);
+  assert.equal(catalog.length, 13);
   assert.deepEqual(
     [...new Set(catalog.map((service) => service.category))],
-    ["input", "preprocess", "inference", "output"],
+    ["input", "preprocess", "inference", "fusion", "output"],
   );
   assert.deepEqual(
     catalog.filter((service) => service.category === "input").map((service) => ({
@@ -338,6 +362,110 @@ test("does not invent a missing acceleration axis", () => {
     "",
   );
   assert.equal(validateDesign(bound.design, current).valid, false);
+});
+
+test("builds a multi-sensor score example with explicit feature and fusion stages", () => {
+  const design = createMultiSensorScoreExampleDesign();
+
+  assert.equal(design.name, "설비 복합 이상 점수");
+  assert.deepEqual(
+    design.nodes.map((node) => node.type),
+    [
+      "sensor",
+      "sensor",
+      "sensor",
+      "sensor",
+      "preprocess",
+      "preprocess",
+      "inference",
+      "inference",
+      "fusion",
+      "output",
+    ],
+  );
+  assert.equal(design.edges.length, 9);
+  assert.equal(
+    design.nodes.find((node) => node.id === "vibration-features").config.operation,
+    "vibration_features",
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "score-fusion").config.method,
+    "weighted_average",
+  );
+});
+
+test("binds three acceleration axes and a same-node temperature source", () => {
+  const current = multiSensorInventory();
+  const context = contextSourceBindingCandidate(current, {
+    preferredNode: "etri-dev0001-jetorn",
+    excludedDeviceNames: current.devices
+      .filter((device) => device.name.includes("acceleration"))
+      .map((device) => device.name),
+  });
+  const bound = bindMultiSensorScoreExample(
+    createMultiSensorScoreExampleDesign(),
+    current,
+  );
+
+  assert.equal(context.device.name, "virtual-temperature-001");
+  assert.equal(context.resource.name, "temperature_raw");
+  assert.equal(bound.sourceNode, "etri-dev0001-jetorn");
+  assert.equal(bound.configuredInputs.length, 4);
+  assert.equal(
+    bound.design.nodes.find((node) => node.id === "sensor-context").config.deviceName,
+    "virtual-temperature-001",
+  );
+  [
+    "vibration-features",
+    "context-features",
+    "vibration-score",
+    "context-score",
+    "score-fusion",
+  ].forEach((nodeId) => {
+    assert.equal(
+      bound.design.nodes.find((node) => node.id === nodeId).config.targetNode,
+      "etri-dev0001-jetorn",
+    );
+  });
+  assert.equal(validateDesign(bound.design, current).valid, true);
+});
+
+test("requires all three vibration axes and at least two valid score weights", () => {
+  const current = multiSensorInventory();
+  const bound = bindMultiSensorScoreExample(
+    createMultiSensorScoreExampleDesign(),
+    current,
+  ).design;
+  const missingAxis = {
+    ...bound,
+    edges: bound.edges.filter((edge) => edge.id !== "edge-z-features"),
+  };
+  const missingAxisResult = validateDesign(missingAxis, current);
+  assert.ok(missingAxisResult.errors.some(
+    (issue) => issue.code === "too_few_inputs" && issue.nodeId === "vibration-features",
+  ));
+
+  const invalidWeights = updateNode(bound, "score-fusion", {
+    config: {
+      weights: {"vibration-score": 0, "context-score": 0},
+    },
+  });
+  assert.ok(validateDesign(invalidWeights, current).errors.some(
+    (issue) => issue.code === "fusion_weight_total_invalid",
+  ));
+});
+
+test("does not cascade runtime warnings from an unbound multi-sensor input", () => {
+  const result = validateDesign(
+    createMultiSensorScoreExampleDesign(),
+    {devices: [], profiles: [], nodes: []},
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.errors.some((issue) => issue.code === "source_node_missing"),
+    false,
+  );
 });
 
 test("loads and saves only the versioned browser-local draft", () => {
@@ -535,7 +663,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
   assert.match(html, /서비스 카탈로그/);
-  assert.match(html, /id="serviceDesignerReset"[\s\S]*?>예시 불러오기</);
+  assert.match(html, /id="serviceDesignerReset"[\s\S]*?>3축 데모</);
+  assert.match(html, /id="serviceDesignerMultiSensorExample"[\s\S]*?>복합 점수 예시</);
   assert.match(html, /id="serviceDesignerCatalogState"/);
   assert.match(html, /빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);
@@ -589,6 +718,7 @@ test("dashboard exposes one scoped service design page without an execution acti
     css,
     /\.service-designer-node\.is-dragging\s*\{[^}]*will-change:\s*transform;/s,
   );
+  assert.match(css, /\.service-designer-node\[data-node-type="fusion"\]/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);
   assert.equal(fs.existsSync(viewportPath), true);

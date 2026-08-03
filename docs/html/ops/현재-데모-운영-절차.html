@@ -158,14 +158,14 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-07-30 20:39</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 11:45</span>
+            <span class="badge">HTML 생성: 2026-08-03 11:46</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-서비스-데모-운영-절차">현재 서비스 데모 운영 절차</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 Jetson Arduino Uno의 Serial 경로와 Raspberry Pi Sense HAT v1의 직접 I2C 경로가 각각 EdgeX Device Service → 기능별 가상 Device 6개 → 중앙 MessageBus/Core Data/PostgreSQL → state-aggregator/dashboard로 이어지는 현재 정상 경로를 점검한다. 또한 Jetson acceleration X/Y/Z Local Data → <code>sensor-anomaly-demo</code> → <code>/state/service-demo</code> → dashboard로 이어지는 첫 실측 AI 서비스 데모를 검증한다. 기존 Agent, SQLite outbox, aggregate Sense HAT bootstrap, edge-local MQTT broker와 InfluxDB workload는 현재 경로가 아니다.</p>
+<p>이 문서는 Jetson Arduino Uno의 Serial 경로와 Raspberry Pi Sense HAT v1의 직접 I2C 경로가 각각 EdgeX Device Service → 기능별 가상 Device 6개 → 중앙 MessageBus/Core Data/PostgreSQL → state-aggregator/dashboard로 이어지는 현재 정상 경로를 점검한다. 또한 Jetson acceleration X/Y/Z와 temperature Local Data → <code>sensor-anomaly-demo</code> → <code>/state/service-demo</code> → dashboard로 이어지는 고정 AI 서비스 데모를 검증한다. 기존 Agent, SQLite outbox, aggregate Sense HAT bootstrap, edge-local MQTT broker와 InfluxDB workload는 현재 경로가 아니다.</p>
 <p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="배치-기준">배치 기준</h2>
 <div class="table-wrap"><table>
@@ -490,8 +490,9 @@ rtk kubectl -n edgex-edge exec deploy/sensor-anomaly-demo -- \
 rtk kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo&#x27;</code></pre>
 <p>2초 이상 간격으로 local status를 두 번 읽어 다음을 함께 확인한다.</p>
-<ul><li><code>mode=live</code>, <code>inputState=fresh</code>, <code>modelState=ready</code></li><li>source devices가 <code>virtual-acceleration-x-001</code>, <code>virtual-acceleration-y-001</code>, <code>virtual-acceleration-z-001</code>과 정확히 일치</li><li>두 번째 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 첫 번째보다 큼</li><li><code>latest.values</code>가 실제 <code>Int32</code> raw X/Y/Z이고 <code>magnitude</code>, <code>score</code>가 유한함</li><li><code>model.algorithm=online-gaussian-baseline-v1</code>, <code>warmupSamples=30</code>, <code>threshold=4.0</code></li><li>중앙 <code>/state/service-demo</code>가 <code>mode=live</code>, 같은 binding/result를 반환하고 <code>observation_error=null</code></li></ul>
-<p>서비스는 세 Local Data source를 500ms마다 조회한다. 이는 push stream이 아니다. 같은 nanosecond <code>origin</code>이 모두 모인 frame만 계산하며 10초보다 오래된 입력, 3회 연속 조회 실패는 <code>degraded</code>다. anomaly/clear 전이는 자동 테스트로 검증하지만 실제 장치를 움직여 anomaly를 만드는 현장 시연 전에는 실제 고장 검출 실증으로 판정하지 않는다.</p>
+<ul><li><code>mode=live</code>, <code>inputState=fresh</code>, <code>modelState=ready</code></li><li>source devices가 <code>virtual-acceleration-x-001</code>, <code>virtual-acceleration-y-001</code>, <code>virtual-acceleration-z-001</code>, <code>virtual-temperature-001</code>과 정확히 일치</li><li>두 번째 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 첫 번째보다 큼</li><li><code>latest.values</code>가 실제 <code>Int32</code> raw X/Y/Z이고 <code>magnitude</code>, <code>componentScores.vibration</code>, <code>componentScores.temperature</code>, 종합 <code>score</code>가 유한함</li><li><code>latest.temperatureFeatures.origin</code>이 실제 온도 sample이고 <code>alignmentLagMs&lt;=2000</code>, <code>weights</code>가 기본 <code>0.7/0.3</code>임</li><li><code>model.algorithm=weighted-multi-sensor-feature-score-v1</code>, <code>warmupSamples=30</code>, <code>threshold=4.0</code></li><li>중앙 <code>/state/service-demo</code>가 <code>mode=live</code>, 같은 binding/result를 반환하고 <code>observation_error=null</code></li></ul>
+<p>서비스는 네 Local Data source를 500ms마다 조회한다. 이는 push stream이 아니다. X/Y/Z는 같은 nanosecond <code>origin</code>이 모두 모인 frame만 사용하고, 온도는 2초 이내 가장 가까운 sample만 연결한다. 온도가 없으면 해당 종합 점수를 계산하지 않는다. 10초보다 오래된 입력, 3회 연속 조회 실패는 <code>degraded</code>다. anomaly/clear 전이는 자동 테스트로 검증하지만 실제 장치를 움직여 anomaly를 만드는 현장 시연 전에는 실제 고장 검출 실증으로 판정하지 않는다.</p>
+<blockquote><p>배포 gate: 2026-08-03 복합 점수는 소스·manifest 환경값·API/BFF/dashboard와 자동 테스트가 완료된 상태다. 아래 새 응답 계약은 <code>sensor-anomaly-demo</code> ARM64 image를 새 digest로 build/push하고 Argo rollout한 뒤 live PASS로 기록한다. 기존 manifest의 이전 digest나 2026-07-22 3축 magnitude 결과를 새 revision의 배포 증거로 사용하지 않는다.</p></blockquote>
 <h2 id="8-dashboard-api">8. dashboard API</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
@@ -611,7 +612,7 @@ curl --fail --silent --show-error \
 </tr>
 <tr>
 <td>중앙 MessageBus 0 replica</td>
-<td>Serial ring <code>1878 → 2094</code>, Sense HAT ring <code>3234 → 3641</code>; <code>sensor-anomaly-demo</code>는 <code>live/fresh</code>; 두 Core Data count는 고정</td>
+<td>Serial ring <code>1878 → 2094</code>, Sense HAT ring <code>3234 → 3641</code>; 당시 3축 <code>sensor-anomaly-demo</code>는 <code>live/fresh</code>; 두 Core Data count는 고정</td>
 <td>broker 복구 후 각 Device는 새 Event 1건부터 재개; Serial 약 128.213초, I2C 약 128.010초 저장 공백</td>
 <td>local continuity PASS, offline replay 없음</td>
 </tr>
@@ -631,7 +632,7 @@ curl --fail --silent --show-error \
 <p>재검증 후에는 다음 read-only 진입점으로 전체 상태를 다시 확인한다.</p>
 <pre data-lang="bash"><code>rtk bash tools/verify_e2e.sh</code></pre>
 <p>이 결과는 실제 케이블·보드 손분리 현장 시연을 대체하지 않는다. 실제 손분리 → 해당 6개 Device <code>DOWN</code>/dashboard degraded → 재연결 → 새 Event 발행은 현장 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다. Modbus와 OPC-UA는 실제 endpoint가 없어 완료로 판정하지 않는다.</p>
-<p><code>sensor-anomaly-demo</code>는 실제 증가 raw origin과 로컬 inference/중앙 readback을 배포 gate로 검증한다. detector anomaly/clear 전이는 결정론적 테스트 대상이고 실제 장치 움직임 anomaly는 별도 현장 시연 gate다. 이 고정 Deployment를 동적 workflow 실행, runtime migration 또는 offloading 완료로 설명하지 않는다.</p>
+<p><code>sensor-anomaly-demo</code> 복합 점수 revision은 실제 증가 acceleration/temperature origin, <code>alignmentLagMs&lt;=2000</code>, 개별·종합 점수와 중앙 readback을 배포 gate로 검증한다. detector anomaly/clear 전이는 결정론적 테스트 대상이고 실제 장치 움직임 anomaly는 별도 현장 시연 gate다. 이 고정 Deployment를 동적 workflow 실행, runtime migration 또는 offloading 완료로 설명하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

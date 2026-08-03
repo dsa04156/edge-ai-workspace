@@ -154,26 +154,29 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>서비스 데모 시나리오</h1>
-          <p class="subtitle">기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 서비스 데모는 Jetson Ardui…</p>
+          <p class="subtitle">기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 소스의 서비스 데모는 Jetson A…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-데모-시나리오.md</span>
-            <span class="badge">수정: 2026-07-22 14:22</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 11:44</span>
+            <span class="badge">HTML 생성: 2026-08-03 11:46</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="서비스-데모-시나리오">서비스 데모 시나리오</h1>
 <h2 id="현재-상태">현재 상태</h2>
-<p>기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 서비스 데모는 <strong>Jetson Arduino Uno의 실측 acceleration X/Y/Z를 정식 EdgeX Device Service의 Local Data API로 읽고, 같은 Jetson의 <code>sensor-anomaly-demo</code>가 변화 점수를 계산해 중앙 대시보드에 디바이스-서비스-AI 연결과 결과를 표시하는 것</strong>이다. Raspberry Pi Sense HAT 직접 I2C는 전체 물리 디바이스 inventory와 telemetry 수직 슬라이스로 함께 유지하지만 첫 이상 탐지 입력은 아니다.</p>
+<p>기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 소스의 서비스 데모는 <strong>Jetson Arduino Uno의 실측 acceleration X/Y/Z와 temperature를 정식 EdgeX Device Service의 Local Data API로 읽고, 같은 Jetson의 <code>sensor-anomaly-demo</code>가 시간 정렬된 진동·온도 개별 점수와 종합 점수를 계산해 중앙 대시보드에 디바이스-서비스-AI 연결과 결과를 표시하는 것</strong>이다. Raspberry Pi Sense HAT 직접 I2C는 전체 물리 디바이스 inventory와 telemetry 수직 슬라이스로 함께 유지하지만 첫 이상 탐지 입력은 아니다.</p>
 <p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <p>두 protocol의 정상 수집·저장·조회·대시보드 경로를 live 검증했다. 이상 탐지 서비스도 Jetson에서 Ready이고 두 번의 local status 조회에서 실제 raw <code>origin</code>과 <code>framesProcessed</code>가 각각 증가했으며, 중앙 <code>/state/service-demo</code>와 브라우저 dashboard readback까지 확인했다. detector의 anomaly/clear 상태 전이는 결정론적 테스트로 검증했다. 실제 장치를 움직여 anomaly를 발생시키는 현장 시연과 케이블/보드 분리·복구는 아직 남아 있으므로 실제 고장 검출 실증으로 표현하지 않는다.</p>
 <pre data-lang="text"><code>Arduino sensor
   -&gt; Serial endpoint on etri-dev0001-jetorn
   -&gt; custom EdgeX Serial Device Service
-  -&gt; acceleration virtual Device X/Y/Z
+  -&gt; acceleration virtual Device X/Y/Z + temperature virtual Device
   +-&gt; Local Data API -&gt; sensor-anomaly-demo @ Jetson
-  |                  -&gt; online-gaussian-baseline-v1
+  |                  -&gt; same-origin acceleration join
+  |                  -&gt; nearest temperature within 2 s, no interpolation
+  |                  -&gt; vibration/temperature feature baselines
+  |                  -&gt; weighted score 0.7 / 0.3
   |                  -&gt; state-aggregator / dashboard
   -&gt; Core Data Event / Reading -&gt; PostgreSQL raw history
 
@@ -184,7 +187,7 @@ Sense HAT v1
   -&gt; Core Data Event / Float64 Reading
   -&gt; PostgreSQL / state-aggregator / dashboard</code></pre>
 <h2 id="데모가-증명해야-하는-것">데모가 증명해야 하는 것</h2>
-<ul><li>Core Metadata Device가 physical inventory와 관리 상태의 권위다.</li><li>Device Service가 실제 Serial/I2C endpoint, reader 재시작·재연결, 값 표준화와 상태를 관리한다.</li><li>Device Profile이 resource 이름, value type, 단위와 read/write 계약을 정의한다.</li><li>Core Data 최신 Event/Reading이 telemetry와 freshness의 권위다.</li><li>KubeEdge는 Device Service와 AI workload의 배치·상태만 관리한다.</li><li>dashboard가 device, profile, Device Service, protocol, 상태, 최신 reading과 consumer 연결을 한 흐름으로 보여준다.</li><li>Jetson AI consumer가 X/Y/Z의 같은 <code>origin</code>만 결합하고 실제 raw sample의 증가를 따라간다.</li><li>detector 결과는 raw telemetry와 분리된 derived service output이며 EdgeX 물리 Device를 새로 꾸며내지 않는다.</li></ul>
+<ul><li>Core Metadata Device가 physical inventory와 관리 상태의 권위다.</li><li>Device Service가 실제 Serial/I2C endpoint, reader 재시작·재연결, 값 표준화와 상태를 관리한다.</li><li>Device Profile이 resource 이름, value type, 단위와 read/write 계약을 정의한다.</li><li>Core Data 최신 Event/Reading이 telemetry와 freshness의 권위다.</li><li>KubeEdge는 Device Service와 AI workload의 배치·상태만 관리한다.</li><li>dashboard가 device, profile, Device Service, protocol, 상태, 최신 reading과 consumer 연결을 한 흐름으로 보여준다.</li><li>Jetson AI consumer가 X/Y/Z의 같은 <code>origin</code>만 결합하고 별도 temperature message는 2초 이내 가장 가까운 sample만 사용한다.</li><li>온도 입력이 시간 범위 밖이거나 없으면 값을 꾸며내지 않고 해당 acceleration frame의 종합 점수를 계산하지 않는다.</li><li>detector 결과는 raw telemetry와 분리된 derived service output이며 EdgeX 물리 Device를 새로 꾸며내지 않는다.</li></ul>
 <h2 id="사전-조건">사전 조건</h2>
 <ol><li>Jetson의 Arduino by-id 장치 파일과 Raspberry Pi의 <code>/dev/i2c-1</code>을 확인하고 각 Pod에 <code>/dev/arduino-001</code>, <code>/dev/i2c-1</code>로 정확히 마운트한다.</li><li>Serial은 115200 baud newline-delimited JSON, I2C는 컨테이너 내부 RTIMULib reader와 허용 field/value type을 사용한다.</li><li><code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 Profile/Device 6개 identity를 사용한다. <code>arduino-001</code>, <code>sensehat-001</code>은 물리 source ID다.</li><li>두 Device Service image를 immutable ARM64 digest로 배포한다.</li><li>중앙 EdgeX Core 서비스와 PostgreSQL이 Ready여야 한다.</li><li><code>edgex-edge</code>에는 DNS와 중앙 Keeper/Metadata/MessageBus, 중앙 command와 의도된 Workflow client를 선언하는 NetworkPolicy가 있다. 현재 Flannel CNI는 이를 강제하지 않으므로 보안 경계로 주장하지 않는다.</li><li><code>sensor-anomaly-demo</code>는 <code>etri-dev0001-jetorn</code>에 배치되고, 고정 IP가 아닌 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>을 사용한다.</li></ol>
 <p>MQTT broker는 Arduino가 MQTT-only 장비가 아닌 이상 사전 조건이 아니다.</p>
@@ -204,10 +207,11 @@ Sense HAT v1
 <p>장치 분리 또는 통신 오류 시 Device Service가 DOWN/degraded 상태와 원인을 보고하고, 장치 복구 뒤 backoff 재연결해 새 Event를 발행하는지 확인한다. 재연결 로직은 단위 테스트했지만 실제 케이블 분리 시연은 남아 있다. 현재 outbox는 없으므로 중앙 단절 중 데이터 보존을 주장하지 않는다.</p>
 <h3 id="5-dashboard-확인">5. dashboard 확인</h3>
 <p>dashboard에서 다음을 한 화면으로 확인한다.</p>
-<ul><li>Device/Profile/Device Service/protocol</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code></li><li>최신 Event 시각과 <code>telemetry_freshness</code></li><li>typed <code>latest_readings</code></li><li>관련 AI service/storage/dashboard consumer</li><li>선택적 node/workload 진단 정보</li><li>physical source <code>arduino-001</code> → <code>device-serial-jetson</code> → acceleration Device 3개 → <code>sensor-anomaly-demo</code> binding</li><li>raw X/Y/Z, magnitude, score/threshold, sample <code>origin</code>, input/model 상태</li></ul>
+<ul><li>Device/Profile/Device Service/protocol</li><li><code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code></li><li>최신 Event 시각과 <code>telemetry_freshness</code></li><li>typed <code>latest_readings</code></li><li>관련 AI service/storage/dashboard consumer</li><li>선택적 node/workload 진단 정보</li><li>physical source <code>arduino-001</code> → <code>device-serial-jetson</code> → acceleration Device 3개 + temperature Device 1개 → <code>sensor-anomaly-demo</code> binding</li><li>raw X/Y/Z, 진동 점수, 온도 점수, 종합 score/threshold, 온도 정렬 차이, sample <code>origin</code>, input/model 상태</li></ul>
 <h3 id="6-jetson-로컬-이상-탐지-확인">6. Jetson 로컬 이상 탐지 확인</h3>
-<p><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 조회한다. 두 번째 조회에서 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 증가하고 <code>inputState=fresh</code>, <code>mode=live</code>, 세 acceleration Device identity가 일치해야 한다. 30개 frame warm-up 뒤 model은 <code>ready</code>가 된다.</p>
-<p>이 consumer는 Local Data API를 500ms마다 조회하는 polling 방식이다. push stream이나 고주기 연속 스트리밍으로 설명하지 않는다. algorithm은 3축 magnitude의 <code>online-gaussian-baseline-v1</code> 변화 탐지이며 학습된 고장 종류 분류기가 아니다. 두 sample 연속 threshold 이상에서 anomaly로 전이하고 세 sample 연속 정상 범위에서 clear되는 계약은 결정론적 테스트로 검증한다.</p>
+<p><code>sensor-anomaly-demo</code>의 <code>/api/v1/status</code>를 두 번 조회한다. 두 번째 조회에서 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 증가하고 <code>inputState=fresh</code>, <code>mode=live</code>, acceleration Device 3개와 temperature Device 1개 identity가 일치해야 한다. 두 feature detector가 각각 30개 sample warm-up을 마친 뒤 model은 <code>ready</code>가 된다.</p>
+<p>이 consumer는 Local Data API를 500ms마다 조회하는 polling 방식이다. push stream이나 고주기 연속 스트리밍으로 설명하지 않는다. 진동 최근 20개 sample은 RMS·Peak·Kurtosis, 온도 최근 10개 sample은 평균·표준편차·변화량을 계산한다. 각 branch의 최대 z-score를 <code>weighted-multi-sensor-feature-score-v1</code>이 기본 0.7/0.3으로 결합한다. 학습된 고장 종류 분류기가 아니다. 종합 점수가 두 sample 연속 threshold 이상이면 anomaly로 전이하고 세 sample 연속 정상 범위면 clear되는 계약은 결정론적 테스트로 검증한다.</p>
+<p>2026-08-03에는 소스·API/BFF·dashboard와 자동 테스트까지만 완료했다. 이 복합 점수 revision의 immutable image build·rollout, 실제 Arduino 온도/가속도 증가 readback과 물리 anomaly 시연은 아직 PASS로 기록하지 않는다. 2026-07-22의 3축 magnitude live 결과는 이전 revision의 증거다.</p>
 <h2 id="상태-판정">상태 판정</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -238,7 +242,7 @@ Sense HAT v1
 </tr>
 </tbody></table></div>
 <h2 id="pass-기준">PASS 기준</h2>
-<ol><li>실제 Jetson Serial과 Raspberry Pi I2C endpoint 및 Device Service 연결 증거가 있다.</li><li>Device Service/Profile/Device가 정확한 관계로 등록된다.</li><li>실제 sample의 typed Event/Reading이 Core Data에서 조회된다.</li><li>장애·복구 시 상태와 새로운 Event가 기대대로 변한다.</li><li>dashboard가 같은 EdgeX device identity와 freshness를 표시한다.</li><li>문서, manifest, 테스트와 live 상태가 같은 구조를 설명한다.</li><li><code>sensor-anomaly-demo</code>가 같은 Jetson에서 실제 증가하는 세 축 raw <code>origin</code>을 처리하고 중앙 <code>/state/service-demo</code>가 같은 결과를 반환한다.</li><li>dashboard가 normal/anomaly/degraded를 텍스트로 구분하고 관측 실패 시 가짜 0 값을 표시하지 않는다.</li></ol>
+<ol><li>실제 Jetson Serial과 Raspberry Pi I2C endpoint 및 Device Service 연결 증거가 있다.</li><li>Device Service/Profile/Device가 정확한 관계로 등록된다.</li><li>실제 sample의 typed Event/Reading이 Core Data에서 조회된다.</li><li>장애·복구 시 상태와 새로운 Event가 기대대로 변한다.</li><li>dashboard가 같은 EdgeX device identity와 freshness를 표시한다.</li><li>문서, manifest, 테스트와 live 상태가 같은 구조를 설명한다.</li><li>새 image 배포 후 <code>sensor-anomaly-demo</code>가 같은 Jetson에서 실제 증가하는 세 축 raw와 2초 이내 temperature를 처리하고 중앙 <code>/state/service-demo</code>가 같은 개별/종합 점수를 반환한다.</li><li>dashboard가 normal/anomaly/degraded를 텍스트로 구분하고 관측 실패 시 가짜 0 값을 표시하지 않는다.</li></ol>
 <p>현재값을 반환하는 read-only Core Command GET은 확인했다. detector의 anomaly 상태 전이는 테스트 PASS 대상이지만 실제 사람이 장치를 움직여 anomaly를 유발하는 장면은 별도 현장 시연 gate다. write command/actuator, 동적 workflow 실행, runtime migration/offloading은 이 데모의 PASS 범위가 아니다.</p>
         </div>
       </article>

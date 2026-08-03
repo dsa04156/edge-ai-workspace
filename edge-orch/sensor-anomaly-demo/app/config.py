@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+from typing import Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 DEFAULT_LOCAL_DATA_BASE_URL = (
@@ -27,6 +28,21 @@ class Settings(BaseModel):
     recent_result_limit: int = Field(default=1_000, ge=1, le=1_000)
     pending_ttl_seconds: float = Field(default=10.0, gt=0)
     max_pending_frames: int = Field(default=1_000, ge=1, le=10_000)
+    context_max_skew_seconds: float = Field(default=2.0, gt=0)
+    vibration_window_samples: int = Field(default=20, ge=2, le=1_000)
+    temperature_window_samples: int = Field(default=10, ge=2, le=1_000)
+    vibration_weight: float = Field(default=0.7, ge=0)
+    temperature_weight: float = Field(default=0.3, ge=0)
+
+    @model_validator(mode="after")
+    def validate_multi_sensor_settings(self) -> Self:
+        if self.vibration_weight + self.temperature_weight <= 0:
+            raise ValueError("at least one score weight must be positive")
+        if self.context_max_skew_seconds > self.pending_ttl_seconds:
+            raise ValueError(
+                "context_max_skew_seconds must not exceed pending_ttl_seconds"
+            )
+        return self
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -47,4 +63,15 @@ class Settings(BaseModel):
             recent_result_limit=int(os.getenv("RECENT_RESULT_LIMIT", "1000")),
             pending_ttl_seconds=float(os.getenv("PENDING_TTL_SECONDS", "10")),
             max_pending_frames=int(os.getenv("MAX_PENDING_FRAMES", "1000")),
+            context_max_skew_seconds=float(
+                os.getenv("CONTEXT_MAX_SKEW_SECONDS", "2")
+            ),
+            vibration_window_samples=int(
+                os.getenv("VIBRATION_WINDOW_SAMPLES", "20")
+            ),
+            temperature_window_samples=int(
+                os.getenv("TEMPERATURE_WINDOW_SAMPLES", "10")
+            ),
+            vibration_weight=float(os.getenv("VIBRATION_WEIGHT", "0.7")),
+            temperature_weight=float(os.getenv("TEMPERATURE_WEIGHT", "0.3")),
         )

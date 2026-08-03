@@ -54,6 +54,11 @@ def test_demo_workload_is_edge_local_read_only_and_bounded() -> None:
     )
     assert env["POLL_INTERVAL_SECONDS"] == "0.5"
     assert env["INPUT_STALE_SECONDS"] == "10"
+    assert env["CONTEXT_MAX_SKEW_SECONDS"] == "2"
+    assert env["VIBRATION_WINDOW_SAMPLES"] == "20"
+    assert env["TEMPERATURE_WINDOW_SAMPLES"] == "10"
+    assert env["VIBRATION_WEIGHT"] == "0.7"
+    assert env["TEMPERATURE_WEIGHT"] == "0.3"
     assert pod["spec"]["automountServiceAccountToken"] is False
     assert pod["spec"].get("hostNetwork") is not True
     assert container["securityContext"]["runAsNonRoot"] is True

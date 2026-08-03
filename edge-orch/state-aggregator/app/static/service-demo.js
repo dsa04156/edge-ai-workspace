@@ -22,6 +22,8 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
   const binding = data.binding || {};
   const latest = data.latest || null;
   const model = data.model || null;
+  const componentScores = latest?.component_scores || null;
+  const temperatureFeatures = latest?.temperature_features || null;
   const allowedTones = new Set(["starting", "warming_up", "normal", "anomaly", "degraded"]);
   const status = allowedTones.has(data.status) ? data.status : "degraded";
   const physicalSource = serviceDemoText(binding.physical_source);
@@ -50,8 +52,17 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
       ? `X ${serviceDemoText(values.x)} · Y ${serviceDemoText(values.y)} · Z ${serviceDemoText(values.z)}`
       : "관측 불가",
     magnitude: latest ? serviceDemoNumber(latest.magnitude, 3, " raw") : "관측 불가",
+    vibrationScore: latest
+      ? serviceDemoNumber(componentScores?.vibration ?? latest.score, 2)
+      : "관측 불가",
+    temperatureScore: componentScores
+      ? serviceDemoNumber(componentScores.temperature, 2)
+      : "관측 불가",
     score: latest && model
       ? `${serviceDemoNumber(latest.score, 2)} / ${serviceDemoNumber(model.threshold, 2)}`
+      : "관측 불가",
+    temperatureContext: temperatureFeatures
+      ? `raw ${serviceDemoText(temperatureFeatures.raw)} · 정렬 ${serviceDemoNumber(temperatureFeatures.alignment_lag_ms, 1, " ms")}`
       : "관측 불가",
     model: model
       ? `${serviceDemoText(model.algorithm)} · ${Number.isFinite(sampleCount) ? sampleCount : "관측 불가"} samples · ${serviceDemoText(data.model_state, "unknown")}`
@@ -59,7 +70,9 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
     origin: latest ? serviceDemoText(latest.origin) : "관측 불가",
     inputAge: latest ? serviceDemoAge(latest.observed_at, nowMs) : "관측 불가",
     frames: serviceDemoText(data.counters?.frames_processed),
-    copy: "실측 raw 변화 이상 탐지 · Jetson local inference",
+    copy: componentScores && temperatureFeatures
+      ? "진동·온도 복합 이상 점수 · Jetson local inference"
+      : "3축 진동 이상 점수 · Jetson local inference",
     error: serviceDemoText(data.observation_error || data.last_error, ""),
   };
 }
@@ -84,7 +97,10 @@ function renderServiceDemo(data, documentRef = document) {
   text("serviceDemoDevices", view.devices);
   text("serviceDemoValues", view.values);
   text("serviceDemoMagnitude", view.magnitude);
+  text("serviceDemoVibrationScore", view.vibrationScore);
+  text("serviceDemoTemperatureScore", view.temperatureScore);
   text("serviceDemoScore", view.score);
+  text("serviceDemoTemperatureContext", view.temperatureContext);
   text("serviceDemoModel", `${view.model} · ${view.copy}`);
   text("serviceDemoOrigin", view.origin);
   text("serviceDemoInputAge", view.inputAge);

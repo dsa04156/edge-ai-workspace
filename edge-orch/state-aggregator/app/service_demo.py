@@ -8,18 +8,23 @@ from pydantic import ValidationError
 from .service_demo_models import (
     ServiceDemoAxisValues,
     ServiceDemoBinding,
+    ServiceDemoComponentScores,
     ServiceDemoCounters,
     ServiceDemoLatest,
     ServiceDemoModel,
+    ServiceDemoScoreWeights,
     ServiceDemoState,
+    ServiceDemoTemperatureFeatures,
+    ServiceDemoVibrationFeatures,
     UpstreamServiceStatus,
 )
 
 
-ACCELERATION_DEVICES = [
+DEMO_INPUT_DEVICES = [
     "virtual-acceleration-x-001",
     "virtual-acceleration-y-001",
     "virtual-acceleration-z-001",
+    "virtual-temperature-001",
 ]
 
 
@@ -86,6 +91,34 @@ class ServiceDemoClient:
                 magnitude=upstream.latest.magnitude,
                 score=upstream.latest.score,
                 anomaly=upstream.latest.anomaly,
+                component_scores=(
+                    ServiceDemoComponentScores(
+                        **upstream.latest.component_scores.model_dump()
+                    )
+                    if upstream.latest.component_scores is not None
+                    else None
+                ),
+                weights=(
+                    ServiceDemoScoreWeights(
+                        **upstream.latest.weights.model_dump()
+                    )
+                    if upstream.latest.weights is not None
+                    else None
+                ),
+                vibration_features=(
+                    ServiceDemoVibrationFeatures(
+                        **upstream.latest.vibration_features.model_dump()
+                    )
+                    if upstream.latest.vibration_features is not None
+                    else None
+                ),
+                temperature_features=(
+                    ServiceDemoTemperatureFeatures(
+                        **upstream.latest.temperature_features.model_dump()
+                    )
+                    if upstream.latest.temperature_features is not None
+                    else None
+                ),
             )
         return ServiceDemoState(
             generated_at=datetime.now(timezone.utc),
@@ -112,7 +145,7 @@ def degraded_service_demo_state(exc: Exception) -> ServiceDemoState:
         status="degraded",
         input_state="error",
         model_state="unavailable",
-        binding=ServiceDemoBinding(devices=ACCELERATION_DEVICES),
+        binding=ServiceDemoBinding(devices=DEMO_INPUT_DEVICES),
         counters=ServiceDemoCounters(),
         observation_error=(
             f"sensor anomaly demo unavailable: {exc.__class__.__name__}"

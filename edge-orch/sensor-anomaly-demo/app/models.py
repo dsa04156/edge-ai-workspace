@@ -48,6 +48,58 @@ class InferenceResult:
 
 
 @dataclass(frozen=True)
+class VibrationFeatures:
+    origin: int
+    rms: float
+    peak: float
+    kurtosis: float
+    sample_count: int
+
+    def values(self) -> dict[str, float]:
+        return {
+            "rms": self.rms,
+            "peak": self.peak,
+            "kurtosis": self.kurtosis,
+        }
+
+
+@dataclass(frozen=True)
+class TemperatureFeatures:
+    origin: int
+    raw: int
+    mean: float
+    stddev: float
+    delta: float
+    sample_count: int
+
+    def values(self) -> dict[str, float]:
+        return {
+            "mean": self.mean,
+            "stddev": self.stddev,
+            "delta": self.delta,
+        }
+
+
+@dataclass(frozen=True)
+class FeatureInferenceResult:
+    origin: int
+    score: float
+    anomaly: bool
+    status: DetectionStatus
+
+
+@dataclass(frozen=True)
+class FeatureModelSnapshot:
+    algorithm: str
+    sample_count: int
+    warmup_samples: int
+    threshold: float
+    feature_means: dict[str, float]
+    feature_stddevs: dict[str, float]
+    stddev_floors: dict[str, float]
+
+
+@dataclass(frozen=True)
 class ModelSnapshot:
     algorithm: str
     sample_count: int
@@ -86,6 +138,47 @@ class LatestObservation(ApiModel):
     magnitude: float
     score: float
     anomaly: bool
+    component_scores: "ComponentScores | None" = None
+    weights: "ScoreWeights | None" = None
+    vibration_features: "VibrationFeatureObservation | None" = None
+    temperature_features: "TemperatureFeatureObservation | None" = None
+
+
+class ComponentScores(ApiModel):
+    vibration: float = Field(ge=0)
+    temperature: float = Field(ge=0)
+
+
+class ScoreWeights(ApiModel):
+    vibration: float = Field(ge=0)
+    temperature: float = Field(ge=0)
+
+
+class VibrationFeatureObservation(ApiModel):
+    rms: float
+    peak: float
+    kurtosis: float
+    sample_count: int = Field(ge=1)
+
+
+class TemperatureFeatureObservation(ApiModel):
+    origin: int = Field(gt=0)
+    raw: int
+    mean: float
+    stddev: float = Field(ge=0)
+    delta: float
+    sample_count: int = Field(ge=1)
+    alignment_lag_ms: float = Field(ge=0)
+
+
+class FeatureModelObservation(ApiModel):
+    algorithm: str
+    sample_count: int = Field(ge=0)
+    warmup_samples: int = Field(ge=1)
+    threshold: float = Field(gt=0)
+    feature_means: dict[str, float] = Field(default_factory=dict)
+    feature_stddevs: dict[str, float] = Field(default_factory=dict)
+    stddev_floors: dict[str, float] = Field(default_factory=dict)
 
 
 class ModelObservation(ApiModel):
@@ -96,6 +189,8 @@ class ModelObservation(ApiModel):
     baseline_mean: float
     baseline_stddev: float
     stddev_floor: float
+    components: dict[str, FeatureModelObservation] = Field(default_factory=dict)
+    weights: ScoreWeights | None = None
 
 
 class RuntimeCounters(ApiModel):
@@ -103,6 +198,8 @@ class RuntimeCounters(ApiModel):
     duplicates_ignored: int = 0
     incomplete_frames_dropped: int = 0
     input_errors: int = 0
+    context_samples_processed: int = 0
+    unaligned_frames_dropped: int = 0
 
 
 class ServiceStatus(ApiModel):

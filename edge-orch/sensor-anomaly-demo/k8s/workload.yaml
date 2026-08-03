@@ -46,7 +46,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-demo
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:1b020fe8acd3562ba5fe2d5f59efa52159aea593a60dcefd8d20da159a762a43
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:8bbd5aa47e41dc2adba028ba8daf7d6cf3c7274ed3851a4afe338d0e9396259e
           imagePullPolicy: IfNotPresent
           env:
             - name: LOCAL_DATA_BASE_URL
@@ -75,6 +75,16 @@ spec:
               value: "10"
             - name: MAX_PENDING_FRAMES
               value: "1000"
+            - name: CONTEXT_MAX_SKEW_SECONDS
+              value: "2"
+            - name: VIBRATION_WINDOW_SAMPLES
+              value: "20"
+            - name: TEMPERATURE_WINDOW_SAMPLES
+              value: "10"
+            - name: VIBRATION_WEIGHT
+              value: "0.7"
+            - name: TEMPERATURE_WEIGHT
+              value: "0.3"
           ports:
             - name: http
               containerPort: 8080

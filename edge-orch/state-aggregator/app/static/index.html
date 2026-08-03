@@ -15,11 +15,11 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=live-sensor-age-20260722" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=multi-sensor-score-20260803" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
-    <link rel="stylesheet" href="/static/service-designer.css?v=service-catalog-v8-20260731" />
+    <link rel="stylesheet" href="/static/service-designer.css?v=multi-sensor-score-v10-20260803" />
   </head>
   <body>
     <main class="shell">
@@ -277,8 +277,9 @@
               <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
               <dl class="service-demo-values">
                 <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>Score / threshold</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>진동 점수</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>온도 점수</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>종합 / 임계값</dt><dd id="serviceDemoScore">관측 대기</dd></div>
               </dl>
               <details class="service-demo-details">
                 <summary>연결·모델 상세정보</summary>
@@ -298,6 +299,8 @@
                 </div>
                 <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
                 <dl class="service-demo-values service-demo-detail-values">
+                  <div class="service-demo-value-detail"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>온도 입력</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
                   <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
                   <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
                 </dl>
@@ -377,7 +380,7 @@
             <div>
               <p class="section-kicker">EdgeX 입력 · 실행 전 검증</p>
               <h2 id="serviceDesignerTitle">서비스 설계</h2>
-              <p>등록된 센서 디바이스를 전처리·추론 단계에 연결합니다.</p>
+              <p>등록된 센서 입력을 특징·센서 점수·종합 점수 단계에 연결합니다.</p>
             </div>
             <div class="service-designer-state">
               <strong id="serviceDesignerDraftState" data-state="draft">초안</strong>
@@ -395,7 +398,12 @@
                 id="serviceDesignerReset"
                 type="button"
                 title="가속도 이상 감지 예시 서비스 불러오기"
-              >예시 불러오기</button>
+              >3축 데모</button>
+              <button
+                id="serviceDesignerMultiSensorExample"
+                type="button"
+                title="3축 진동과 보조 센서 점수를 결합하는 설계 예시 불러오기"
+              >복합 점수 예시</button>
               <button id="serviceDesignerSave" type="button">이 브라우저에 저장</button>
               <button id="serviceDesignerValidate" class="service-designer-primary" type="button">설계 검증</button>
             </div>
@@ -1320,10 +1328,10 @@
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
     <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
-    <script src="/static/service-demo.js?v=interaction-feedback-20260727"></script>
+    <script src="/static/service-demo.js?v=multi-sensor-score-20260803"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
-    <script src="/static/service-designer-model.js?v=anomaly-example-v9-20260731"></script>
+    <script src="/static/service-designer-model.js?v=multi-sensor-score-v10-20260803"></script>
     <script src="/static/service-designer-viewport.js?v=bounded-fast-drag-v7-20260731"></script>
-    <script src="/static/service-designer.js?v=anomaly-example-v9-20260731"></script>
+    <script src="/static/service-designer.js?v=multi-sensor-score-v10-20260803"></script>
   </body>
 </html>

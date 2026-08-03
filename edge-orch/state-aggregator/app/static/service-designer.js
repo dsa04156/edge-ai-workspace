@@ -95,6 +95,10 @@
       const algorithm = model.INFERENCE_ALGORITHMS[node.config.algorithm];
       return `${algorithm?.label || "추론 미선택"} · ${node.config.targetNode || "노드 미선택"}`;
     }
+    if (node.type === "fusion") {
+      const method = model.FUSION_METHODS[node.config.method];
+      return `${method?.label || "결합 방식 미선택"} · ${node.config.targetNode || "노드 미선택"}`;
+    }
     return "대시보드 결과";
   }
 
@@ -193,15 +197,55 @@
     ]));
   }
 
+  function contextSourceBindingCandidate(
+    inventory = {},
+    {preferredNode = "", excludedDeviceNames = []} = {},
+  ) {
+    const excluded = new Set(excludedDeviceNames);
+    const preferredResources = [
+      "temperature",
+      "current",
+      "pressure",
+      "humidity",
+      "rpm",
+    ];
+    const candidates = [];
+    (inventory.devices || []).forEach((device) => {
+      if (excluded.has(device.name)) return;
+      if (preferredNode && device.node_name !== preferredNode) return;
+      model.resourcesForDevice(device, inventory.profiles || []).forEach((resource) => {
+        if (model.canonicalDataType(resource.valueType) !== "number") return;
+        const identity = normalizedIdentity(
+          `${device.name} ${device.profile_name} ${resource.name}`,
+        );
+        if (identity.includes("acceleration")) return;
+        const preferredIndex = preferredResources.findIndex(
+          (keyword) => identity.includes(keyword),
+        );
+        let score = preferredIndex >= 0 ? 100 - preferredIndex * 10 : 10;
+        if (device.overall_status === "available") score += 5;
+        if (device.telemetry_freshness === "fresh") score += 3;
+        candidates.push({device, resource, score});
+      });
+    });
+    return candidates.sort((left, right) => (
+      right.score - left.score
+      || String(left.device.name).localeCompare(String(right.device.name))
+      || String(left.resource.name).localeCompare(String(right.resource.name))
+    ))[0] || null;
+  }
+
   function bindSensorAnomalyExample(design, inventory = {}) {
     const axisNodeIds = {
       x: "sensor-x",
       y: "sensor-y",
       z: "sensor-z",
     };
-    const isExample = Object.values(axisNodeIds).every(
-      (id) => design.nodes.some((node) => node.id === id),
-    );
+    const isExample = [
+      ...Object.values(axisNodeIds),
+      "vector-magnitude",
+      "anomaly-inference",
+    ].every((id) => design.nodes.some((node) => node.id === id));
     if (!isExample) {
       return {
         design,
@@ -264,6 +308,120 @@
     };
   }
 
+  function bindMultiSensorScoreExample(design, inventory = {}) {
+    const axisNodeIds = {
+      x: "sensor-x",
+      y: "sensor-y",
+      z: "sensor-z",
+    };
+    const requiredIds = [
+      ...Object.values(axisNodeIds),
+      "sensor-context",
+      "vibration-features",
+      "context-features",
+      "vibration-score",
+      "context-score",
+      "score-fusion",
+    ];
+    const isExample = requiredIds.every(
+      (id) => design.nodes.some((node) => node.id === id),
+    );
+    if (!isExample) {
+      return {
+        design,
+        boundInputs: [],
+        configuredInputs: [],
+        sourceNode: "",
+        isExample: false,
+      };
+    }
+    const matches = accelerationAxisBindingCandidates(inventory);
+    let next = design;
+    const boundInputs = [];
+    Object.entries(axisNodeIds).forEach(([axis, nodeId]) => {
+      const node = next.nodes.find((item) => item.id === nodeId);
+      const match = matches[axis];
+      if (!node || node.config.deviceName || !match) return;
+      next = model.updateNode(next, nodeId, {
+        config: {
+          deviceName: match.device.name,
+          resourceName: match.resource.name,
+          sourceMode: "local_recent",
+        },
+      });
+      boundInputs.push(axis);
+    });
+    const axisSensors = Object.values(axisNodeIds)
+      .map((id) => next.nodes.find((node) => node.id === id))
+      .filter(Boolean);
+    const axisSourceNodes = new Set(axisSensors.map((sensor) => (
+      (inventory.devices || []).find(
+        (device) => device.name === sensor.config.deviceName,
+      )?.node_name || ""
+    )).filter(Boolean));
+    const axesBound = axisSensors.length === 3 && axisSensors.every(
+      (sensor) => sensor.config.deviceName && sensor.config.resourceName,
+    );
+    const preferredNode = axesBound && axisSourceNodes.size === 1
+      ? [...axisSourceNodes][0]
+      : "";
+    const contextNode = next.nodes.find((node) => node.id === "sensor-context");
+    if (contextNode && !contextNode.config.deviceName) {
+      const contextMatch = contextSourceBindingCandidate(inventory, {
+        preferredNode,
+        excludedDeviceNames: axisSensors.map((sensor) => sensor.config.deviceName),
+      });
+      if (contextMatch) {
+        next = model.updateNode(next, contextNode.id, {
+          title: contextMatch.resource.name.toLowerCase().includes("temperature")
+            ? "온도"
+            : "보조 센서",
+          config: {
+            deviceName: contextMatch.device.name,
+            resourceName: contextMatch.resource.name,
+            sourceMode: contextMatch.device.node_name ? "local_recent" : "core_history",
+          },
+        });
+        boundInputs.push("context");
+      }
+    }
+    const sensorIds = [...Object.values(axisNodeIds), "sensor-context"];
+    const sensors = sensorIds.map(
+      (id) => next.nodes.find((node) => node.id === id),
+    ).filter(Boolean);
+    const configuredInputs = sensors
+      .filter((sensor) => sensor.config.deviceName && sensor.config.resourceName)
+      .map((sensor) => sensor.id);
+    const sourceNodes = new Set(sensors.map((sensor) => (
+      (inventory.devices || []).find(
+        (device) => device.name === sensor.config.deviceName,
+      )?.node_name || ""
+    )).filter(Boolean));
+    const sourceNode = configuredInputs.length === 4 && sourceNodes.size === 1
+      ? [...sourceNodes][0]
+      : "";
+    if (sourceNode) {
+      [
+        "vibration-features",
+        "context-features",
+        "vibration-score",
+        "context-score",
+        "score-fusion",
+      ].forEach((nodeId) => {
+        next = model.updateNode(next, nodeId, {
+          config: {targetNode: sourceNode},
+        });
+      });
+    }
+    return {
+      design: next,
+      boundInputs,
+      configuredInputs,
+      sourceNode,
+      isExample: true,
+    };
+  }
+
   function serverNodeName(nodes = []) {
     const server = nodes.find((node) => (
       ["cloud_server", "server"].includes(String(node.node_type || "").toLowerCase())
@@ -280,15 +438,34 @@
     ) {
       return false;
     }
+    const multiSensorBinding = bindMultiSensorScoreExample(
+      state.design,
+      state.inventory,
+    );
+    if (multiSensorBinding.isExample) {
+      state.design = multiSensorBinding.design;
+      if (!multiSensorBinding.boundInputs.length && !multiSensorBinding.sourceNode) {
+        return false;
+      }
+      state.liveBindingSeeded = Boolean(multiSensorBinding.sourceNode);
+      state.dirty = true;
+      setFeedback(
+        state.liveBindingSeeded
+          ? "가속도 X/Y/Z와 보조 센서를 같은 엣지 노드 입력에 연결했습니다."
+          : `복합 점수 입력 ${multiSensorBinding.configuredInputs.length}/4개를 연결했습니다.`,
+        state.liveBindingSeeded ? "success" : "ready",
+      );
+      return true;
+    }
     const exampleBinding = bindSensorAnomalyExample(
       state.design,
       state.inventory,
     );
-    if (
-      exampleBinding.isExample
-      && (exampleBinding.boundAxes.length || exampleBinding.sourceNode)
-    ) {
+    if (exampleBinding.isExample) {
       state.design = exampleBinding.design;
+      if (!exampleBinding.boundAxes.length && !exampleBinding.sourceNode) {
+        return false;
+      }
       state.liveBindingSeeded = Boolean(exampleBinding.sourceNode);
       state.dirty = true;
       setFeedback(
@@ -347,6 +524,21 @@
     state.loadedFromStorage = false;
     state.liveBindingSeeded = false;
     markDirty("가속도 이상 감지 예시 서비스를 불러왔습니다.", documentRef);
+    maybeSeedLiveBinding();
+    state.viewportInitialized = false;
+    renderAll(documentRef);
+    scheduleCanvasFit(documentRef);
+  }
+
+  function loadMultiSensorScoreExample(documentRef = document) {
+    state.design = model.createMultiSensorScoreExampleDesign();
+    state.selectedNodeId = null;
+    state.inspectorOpen = false;
+    state.pendingFromId = null;
+    state.lastValidation = null;
+    state.loadedFromStorage = false;
+    state.liveBindingSeeded = false;
+    markDirty("복합 센서 점수 예시를 불러왔습니다.", documentRef);
     maybeSeedLiveBinding();
     state.viewportInitialized = false;
     renderAll(documentRef);
@@ -846,6 +1038,64 @@
     `;
   }
 
+  function renderFusionInspector(node) {
+    const incoming = state.design.edges
+      .filter((edge) => edge.to === node.id)
+      .map((edge) => ({
+        ...edge,
+        source: state.design.nodes.find((item) => item.id === edge.from),
+      }));
+    const weights = node.config.weights && typeof node.config.weights === "object"
+      ? node.config.weights
+      : {};
+    const weightedInputs = node.config.method === "weighted_average"
+      ? `
+        <div class="service-designer-weight-list">
+          <span>입력별 가중치</span>
+          ${incoming.length ? incoming.map((edge) => `
+            <label>
+              <span>${escapeHtml(edge.source?.title || edge.from)}</span>
+              <input
+                data-designer-fusion-weight="${escapeHtml(edge.from)}"
+                data-designer-number
+                type="number"
+                min="0"
+                step="0.1"
+                value="${escapeHtml(weights[edge.from] ?? 1)}"
+              />
+            </label>
+          `).join("") : "<small>점수 출력을 연결하면 가중치를 설정할 수 있습니다.</small>"}
+        </div>
+      `
+      : "";
+    return `
+      <label class="service-designer-field">
+        <span>결합 방식</span>
+        <select data-designer-config="method">
+          ${Object.entries(model.FUSION_METHODS).map(([value, item]) => (
+            optionMarkup(value, item.label, node.config.method)
+          )).join("")}
+        </select>
+      </label>
+      <label class="service-designer-field">
+        <span>실행 노드</span>
+        <select data-designer-config="targetNode">
+          ${targetNodeOptions(node.config.targetNode)}
+        </select>
+      </label>
+      <label class="service-designer-field">
+        <span>누락 점수 처리</span>
+        <select data-designer-config="missingPolicy">
+          ${Object.entries(model.FUSION_MISSING_POLICIES).map(([value, item]) => (
+            optionMarkup(value, item.label, node.config.missingPolicy)
+          )).join("")}
+        </select>
+        <small>${escapeHtml(model.FUSION_MISSING_POLICIES[node.config.missingPolicy]?.description || "")}</small>
+      </label>
+      ${weightedInputs}
+    `;
+  }
+
   function renderInspector(documentRef = document) {
     const inspector = el("serviceDesignerInspector", documentRef);
     const title = el("serviceDesignerInspectorTitle", documentRef);
@@ -872,6 +1122,7 @@
     if (node.type === "sensor") fields = renderSensorInspector(node);
     if (node.type === "preprocess") fields = renderPreprocessInspector(node);
     if (node.type === "inference") fields = renderInferenceInspector(node);
+    if (node.type === "fusion") fields = renderFusionInspector(node);
     if (node.type === "output") {
       fields = `
         <label class="service-designer-field">
@@ -1105,6 +1356,19 @@
       });
       markDirty("단계 이름을 변경했습니다.", documentRef);
       renderNodes(documentRef);
+      return;
+    }
+    const fusionWeightSource = target.dataset.designerFusionWeight;
+    if (fusionWeightSource) {
+      const weights = node.config.weights && typeof node.config.weights === "object"
+        ? {...node.config.weights}
+        : {};
+      weights[fusionWeightSource] = Number(target.value);
+      state.design = model.updateNode(state.design, node.id, {
+        config: {weights},
+      });
+      markDirty("점수 가중치를 변경했습니다.", documentRef);
+      renderAll(documentRef);
       return;
     }
     const key = target.dataset.designerConfig;
@@ -1767,6 +2031,10 @@
     el("serviceDesignerReset", documentRef)?.addEventListener("click", () => {
       loadSensorAnomalyExample(documentRef);
     });
+    el("serviceDesignerMultiSensorExample", documentRef)?.addEventListener(
+      "click",
+      () => loadMultiSensorScoreExample(documentRef),
+    );
     documentRef.addEventListener("keydown", (event) => {
       if (moveSelectedNodeByKeyboard(event, documentRef)) return;
       if (event.key === "Escape" && state.pendingFromId) {
@@ -1855,7 +2123,9 @@
       escapeHtml,
       fetchDesignerProfiles,
       accelerationAxisBindingCandidates,
+      bindMultiSensorScoreExample,
       bindSensorAnomalyExample,
+      contextSourceBindingCandidate,
       loadStoredDesign,
       nodeSummary,
       saveStoredDesign,

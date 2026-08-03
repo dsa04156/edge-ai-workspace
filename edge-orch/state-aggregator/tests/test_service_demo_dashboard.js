@@ -33,6 +33,11 @@ test("builds an honest live device-to-consumer anomaly view", () => {
       magnitude: 3.742,
       score: 5.1,
       anomaly: true,
+      component_scores: {vibration: 6.0, temperature: 3.0},
+      temperature_features: {
+        raw: 301,
+        alignment_lag_ms: 12.5,
+      },
     },
     model: {
       algorithm: "online-gaussian-baseline-v1",
@@ -49,9 +54,12 @@ test("builds an honest live device-to-consumer anomaly view", () => {
   assert.equal(view.flow, "arduino-001 → device-serial-jetson → sensor-anomaly-demo");
   assert.equal(view.values, "X 1 · Y 2 · Z 3");
   assert.equal(view.magnitude, "3.742 raw");
+  assert.equal(view.vibrationScore, "6.00");
+  assert.equal(view.temperatureScore, "3.00");
   assert.equal(view.score, "5.10 / 4.00");
+  assert.equal(view.temperatureContext, "raw 301 · 정렬 12.5 ms");
   assert.equal(view.model, "online-gaussian-baseline-v1 · 40 samples · ready");
-  assert.equal(view.copy, "실측 raw 변화 이상 탐지 · Jetson local inference");
+  assert.equal(view.copy, "진동·온도 복합 이상 점수 · Jetson local inference");
   assert.equal(view.error, "");
 });
 
@@ -76,7 +84,10 @@ test("shows unavailable observation without inventing zero values", () => {
   assert.equal(view.tone, "degraded");
   assert.equal(view.values, "관측 불가");
   assert.equal(view.magnitude, "관측 불가");
+  assert.equal(view.vibrationScore, "관측 불가");
+  assert.equal(view.temperatureScore, "관측 불가");
   assert.equal(view.score, "관측 불가");
+  assert.equal(view.temperatureContext, "관측 불가");
   assert.equal(view.model, "model 관측 불가");
   assert.match(view.error, /ConnectTimeout/);
 });
@@ -96,6 +107,9 @@ test("formats the latest input age from the observed timestamp", () => {
   }, Date.parse("2026-07-22T10:00:02.500Z"));
 
   assert.equal(view.inputAge, "2.5 s");
+  assert.equal(view.vibrationScore, "0.50");
+  assert.equal(view.temperatureScore, "관측 불가");
+  assert.equal(view.copy, "3축 진동 이상 점수 · Jetson local inference");
 });
 
 
@@ -111,7 +125,10 @@ test("renders with textContent and a non-color status label", () => {
     "serviceDemoDevices",
     "serviceDemoValues",
     "serviceDemoMagnitude",
+    "serviceDemoVibrationScore",
+    "serviceDemoTemperatureScore",
     "serviceDemoScore",
+    "serviceDemoTemperatureContext",
     "serviceDemoModel",
     "serviceDemoOrigin",
     "serviceDemoInputAge",
@@ -140,6 +157,8 @@ test("renders with textContent and a non-color status label", () => {
       values: {x: 1, y: 2, z: 3},
       magnitude: 3.742,
       score: 0.5,
+      component_scores: {vibration: 0.4, temperature: 0.7},
+      temperature_features: {raw: 300, alignment_lag_ms: 8},
     },
     model: {algorithm: "online-gaussian-baseline-v1", sample_count: 30, threshold: 4},
   }, documentRef);
@@ -147,6 +166,9 @@ test("renders with textContent and a non-color status label", () => {
   assert.equal(elements.serviceDemoState.textContent, "NORMAL");
   assert.equal(elements.serviceDemoState.dataset.state, "normal");
   assert.equal(elements.serviceDemoValues.textContent, "X 1 · Y 2 · Z 3");
+  assert.equal(elements.serviceDemoVibrationScore.textContent, "0.40");
+  assert.equal(elements.serviceDemoTemperatureScore.textContent, "0.70");
+  assert.equal(elements.serviceDemoTemperatureContext.textContent, "raw 300 · 정렬 8.0 ms");
   assert.equal(elements.serviceDemoInputAge.textContent, "0.0 s");
   assert.equal(elements.serviceDemoError.hidden, true);
 });
@@ -157,7 +179,9 @@ test("refreshes from the failure-isolated service demo endpoint", async () => {
     "serviceDemoState", "serviceDemoInputState", "serviceDemoFlow",
     "serviceDemoPhysicalSource", "serviceDemoDeviceService", "serviceDemoConsumer",
     "serviceDemoNode", "serviceDemoDevices", "serviceDemoValues",
-    "serviceDemoMagnitude", "serviceDemoScore", "serviceDemoModel",
+    "serviceDemoMagnitude", "serviceDemoVibrationScore",
+    "serviceDemoTemperatureScore", "serviceDemoScore",
+    "serviceDemoTemperatureContext", "serviceDemoModel",
     "serviceDemoOrigin", "serviceDemoError",
   ];
   const elements = Object.fromEntries(ids.map((id) => [
@@ -202,13 +226,14 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
     "serviceDemoDevices", "serviceDemoValues", "serviceDemoMagnitude",
-    "serviceDemoScore", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
+    "serviceDemoVibrationScore", "serviceDemoTemperatureScore", "serviceDemoScore",
+    "serviceDemoTemperatureContext", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
     "serviceDemoInputAge",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=live-sensor-age-20260722/);
-  assert.match(html, /service-demo\.js\?v=interaction-feedback-20260727/);
+  assert.match(html, /service-demo\.css\?v=multi-sensor-score-20260803/);
+  assert.match(html, /service-demo\.js\?v=multi-sensor-score-20260803/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
