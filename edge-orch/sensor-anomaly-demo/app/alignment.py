@@ -49,7 +49,7 @@ class TemporalAligner:
         for frame in frames:
             self._pending.setdefault(frame.origin, (frame, now_ns))
 
-        self._evict(now_ns)
+        self._evict_pending(now_ns)
         aligned: list[AlignedSensorFrame] = []
         for origin in sorted(self._pending):
             context = self._nearest_context(origin)
@@ -59,7 +59,8 @@ class TemporalAligner:
             aligned.append(
                 AlignedSensorFrame(acceleration=frame, temperature=context)
             )
-        self._evict(now_ns)
+        self._evict_pending(now_ns)
+        self._evict_contexts(now_ns)
         return aligned
 
     @property
@@ -83,7 +84,7 @@ class TemporalAligner:
             ),
         )
 
-    def _evict(self, now_ns: int) -> None:
+    def _evict_pending(self, now_ns: int) -> None:
         cutoff = now_ns - self.pending_ttl_ns
         expired = [
             origin
@@ -96,6 +97,7 @@ class TemporalAligner:
             self._pending.pop(origin, None)
             self.counters.unaligned_frames_dropped += 1
 
+    def _evict_contexts(self, now_ns: int) -> None:
         context_cutoff = now_ns - self.pending_ttl_ns - self.max_skew_ns
         for origin in list(self._contexts):
             if origin < context_cutoff:
