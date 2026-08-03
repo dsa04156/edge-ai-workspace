@@ -4,14 +4,13 @@ from pathlib import Path
 import httpx
 import pytest
 import yaml
-from fastapi.testclient import TestClient
-
 from app import main
 from app.service_demo import (
     ServiceDemoBackendError,
     ServiceDemoClient,
     ServiceDemoResponseError,
 )
+from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -242,6 +241,7 @@ def test_service_demo_route_returns_degraded_snapshot_on_upstream_failure(
 
     with TestClient(main.app) as client:
         response = client.get("/state/service-demo")
+        services_response = client.get("/state/services")
 
     assert response.status_code == 200
     payload = response.json()
@@ -253,6 +253,46 @@ def test_service_demo_route_returns_degraded_snapshot_on_upstream_failure(
     assert payload["observation_error"] == (
         "sensor anomaly demo unavailable: ServiceDemoBackendError"
     )
+    assert services_response.status_code == 200
+    service = services_response.json()["services"][0]
+    assert service["service_id"] == "sensor-anomaly-demo"
+    assert service["status"] == "degraded"
+    assert service["mode"] == "unavailable"
+
+
+def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=live_payload())
+
+    observed = asyncio.run(
+        ServiceDemoClient(
+            "http://sensor-anomaly-demo.test",
+            timeout_seconds=2,
+            transport=httpx.MockTransport(handler),
+        ).get_state()
+    )
+
+    class StaticClient:
+        async def get_state(self):
+            return observed
+
+    monkeypatch.setattr(main, "service_demo_client", StaticClient(), raising=False)
+
+    with TestClient(main.app) as client:
+        response = client.get("/state/services")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["services"]) == 1
+    service = payload["services"][0]
+    assert service["display_name"] == "센서 이상 탐지"
+    assert service["lifecycle"] == "deployed"
+    assert service["execution_mode"] == "fixed"
+    assert service["status"] == "normal"
+    assert service["node"] == "etri-dev0001-jetorn"
+    assert len(service["input_devices"]) == 4
+    assert service["model_version"] == "baseline-1.0.0"
+    assert service["latest_observed_at"] == "2026-07-22T10:00:00Z"
 
 
 def test_result_and_alert_routes_isolate_upstream_failure(monkeypatch) -> None:

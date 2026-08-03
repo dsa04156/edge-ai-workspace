@@ -279,3 +279,28 @@ class ServiceDemoAlertState(BaseModel):
     count: int = Field(ge=0)
     alerts: list[ServiceDemoAlertTransition] = Field(default_factory=list)
     observation_error: str | None = None
+
+
+class DeployedServiceItem(BaseModel):
+    service_id: str
+    display_name: str
+    description: str
+    category: Literal["ai_inference"] = "ai_inference"
+    lifecycle: Literal["deployed"] = "deployed"
+    execution_mode: Literal["fixed"] = "fixed"
+    mode: Literal["live", "unavailable"]
+    status: ServiceDemoStatus
+    input_state: str
+    model_state: str
+    node: str
+    physical_source: str
+    device_service: str
+    input_devices: list[str] = Field(default_factory=list)
+    model_version: str | None = None
+    latest_observed_at: datetime | None = None
+    observation_error: str | None = None
+
+
+class DeployedServiceState(BaseModel):
+    generated_at: datetime
+    services: list[DeployedServiceItem] = Field(default_factory=list)

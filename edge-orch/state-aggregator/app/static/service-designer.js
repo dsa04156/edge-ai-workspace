@@ -9,6 +9,8 @@
       ? model.createSensorAnomalyExampleDesign()
       : null,
     inventory: {devices: [], profiles: [], nodes: []},
+    deployedServices: [],
+    deployedServicesError: "",
     selectedNodeId: null,
     inspectorOpen: false,
     pendingFromId: null,
@@ -1205,6 +1207,79 @@
     target.textContent = `센서 ${state.inventory.devices.length}개 · 노드 ${state.inventory.nodes.length}개${profileSuffix}`;
   }
 
+  const SERVICE_STATUS_LABELS = {
+    starting: "시작 중",
+    warming_up: "준비 중",
+    normal: "정상",
+    anomaly: "이상 감지",
+    degraded: "점검 필요",
+  };
+  const SERVICE_INPUT_LABELS = {
+    waiting: "입력 대기",
+    fresh: "데이터 최신",
+    stale: "데이터 지연",
+    error: "입력 오류",
+  };
+  const SERVICE_MODEL_LABELS = {
+    warming_up: "모델 준비 중",
+    ready: "모델 준비",
+    unavailable: "모델 확인 불가",
+  };
+
+  function deployedServiceView(service = {}) {
+    const status = Object.hasOwn(SERVICE_STATUS_LABELS, service.status)
+      ? service.status
+      : "degraded";
+    const inputDevices = Array.isArray(service.input_devices)
+      ? service.input_devices
+      : [];
+    return {
+      status,
+      statusLabel: SERVICE_STATUS_LABELS[status],
+      inputLabel: SERVICE_INPUT_LABELS[service.input_state] || "입력 확인 필요",
+      modelLabel: SERVICE_MODEL_LABELS[service.model_state] || "모델 확인 필요",
+      inputCount: inputDevices.length,
+      node: String(service.node || "배치 확인 필요"),
+      modelVersion: String(service.model_version || "버전 확인 필요"),
+    };
+  }
+
+  function renderDeployedServices(documentRef = document) {
+    const container = el("serviceDesignerDeployedList", documentRef);
+    const count = el("serviceDesignerDeployedCount", documentRef);
+    if (!container || !count) return;
+    if (state.deployedServicesError) {
+      count.textContent = "조회 실패";
+      container.innerHTML = `<p class="service-designer-empty">${escapeHtml(state.deployedServicesError)}</p>`;
+      return;
+    }
+    count.textContent = `${state.deployedServices.length}개`;
+    if (!state.deployedServices.length) {
+      container.innerHTML = '<p class="service-designer-empty">현재 등록된 실행 서비스가 없습니다.</p>';
+      return;
+    }
+    container.innerHTML = state.deployedServices.map((service) => {
+      const view = deployedServiceView(service);
+      return `
+        <article class="service-designer-deployed-item" data-service-status="${escapeHtml(view.status)}" role="listitem">
+          <div class="service-designer-deployed-identity">
+            <strong>${escapeHtml(service.display_name || service.service_id)}</strong>
+            <span>${escapeHtml(service.service_id)}</span>
+          </div>
+          <dl class="service-designer-deployed-facts">
+            <div>
+              <dt>상태</dt>
+              <dd><b>${escapeHtml(view.statusLabel)}</b><small>${escapeHtml(view.inputLabel)} · ${escapeHtml(view.modelLabel)}</small></dd>
+            </div>
+            <div><dt>배치 노드</dt><dd>${escapeHtml(view.node)}</dd></div>
+            <div><dt>입력</dt><dd>${view.inputCount}개</dd></div>
+            <div><dt>모델</dt><dd>${escapeHtml(view.modelVersion)}</dd></div>
+          </dl>
+        </article>
+      `;
+    }).join("");
+  }
+
   function renderServiceCatalog(documentRef = document) {
     const container = el("serviceDesignerPaletteList", documentRef);
     const catalogState = el("serviceDesignerCatalogState", documentRef);
@@ -1230,8 +1305,8 @@
     );
     if (catalogState) {
       catalogState.textContent = query
-        ? `${matches.length}/${catalog.length}개 서비스`
-        : `${catalog.length}개 서비스 · EdgeX 입력 ${sourceCount}개`;
+        ? `${matches.length}/${catalog.length}개 블록`
+        : `${catalog.length}개 블록 · EdgeX 입력 ${sourceCount}개`;
     }
     if (!matches.length) {
       container.innerHTML = '<p class="service-designer-empty">검색 결과가 없습니다.</p>';
@@ -1280,6 +1355,7 @@
       nameInput.value = state.design.name;
     }
     renderInventoryState(documentRef);
+    renderDeployedServices(documentRef);
     renderServiceCatalog(documentRef);
     renderNodes(documentRef);
     renderEdges(documentRef);
@@ -1422,6 +1498,34 @@
       throw new Error("Device Profile 응답 형식이 올바르지 않습니다.");
     }
     return payload;
+  }
+
+  async function fetchDesignerServices(fetchFn = fetch) {
+    const response = await fetchFn("/state/services", {cache: "no-store"});
+    if (!response.ok) {
+      throw new Error(`실행 서비스 API 오류 (${response.status})`);
+    }
+    const payload = await response.json();
+    if (!payload || !Array.isArray(payload.services)) {
+      throw new Error("실행 서비스 응답 형식이 올바르지 않습니다.");
+    }
+    return payload.services;
+  }
+
+  async function refreshDeployedServices(fetchFn = fetch, documentRef = document) {
+    try {
+      state.deployedServices = await fetchDesignerServices(fetchFn);
+      state.deployedServicesError = "";
+      renderDeployedServices(documentRef);
+      return true;
+    } catch (error) {
+      state.deployedServices = [];
+      state.deployedServicesError = error instanceof Error
+        ? error.message
+        : "실행 서비스 목록을 조회하지 못했습니다.";
+      renderDeployedServices(documentRef);
+      return false;
+    }
   }
 
   async function refreshProfiles(
@@ -2093,6 +2197,7 @@
     renderAll(documentRef);
     await Promise.all([
       refreshProfiles(root.fetch, documentRef),
+      refreshDeployedServices(root.fetch, documentRef),
       root.edgeDashboardData
         ? Promise.resolve(true)
         : refreshInventory(root.fetch, documentRef),
@@ -2103,6 +2208,7 @@
   root.refreshServiceDesignerProfiles = () => refreshProfiles(root.fetch);
   root.onServiceDesignerVisible = () => {
     renderAll();
+    void refreshDeployedServices(root.fetch);
     root.requestAnimationFrame?.(() => {
       renderEdges();
       if (state.viewportInitialized) {
@@ -2126,6 +2232,8 @@
       bindMultiSensorScoreExample,
       bindSensorAnomalyExample,
       contextSourceBindingCandidate,
+      deployedServiceView,
+      fetchDesignerServices,
       loadStoredDesign,
       nodeSummary,
       saveStoredDesign,

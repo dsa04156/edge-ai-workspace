@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-08-03 17:07</span>
-            <span class="badge">HTML 생성: 2026-08-03 17:39</span>
+            <span class="badge">수정: 2026-08-03 18:03</span>
+            <span class="badge">HTML 생성: 2026-08-03 18:03</span>
           </div>
         </header>
         <div class="doc-body">
@@ -184,8 +184,8 @@
 <p>한다. 표·캔버스처럼 내부 스크롤이 필요한 요소만 자체 scroll container를 사용한다.</p>
 <ol><li>화면 분류의 권위는 다음과 같다.</li></ol>
 <ul><li><code>엣지 AI 서버</code>: <code>/state/nodes</code>에서 <code>node_type=cloud_server|server</code></li><li><code>물리 디바이스</code>: <code>/state/nodes</code>의 나머지 Jetson·Raspberry Pi 엣지 노드</li><li><code>가상 디바이스</code>: <code>/state/virtual-resources</code>의 자원증강형 논리 자원</li><li><code>센서 디바이스</code>: <code>/state/devices</code>의 EdgeX Core Metadata Device</li></ul>
-<ol><li><code>서비스 설계</code>는 <code>/state/devices</code>와 <code>/state/device-profiles</code>의 실제 EdgeX</li></ol>
-<p>Device/DeviceResource를 입력으로 사용한다. 왼쪽의 검색 가능한 서비스 카탈로그는 EdgeX 입력 2종, 전처리 4종, 추론 2종과 결과 1종을 보여 주며 실제 입력 가능 수와 <code>설계용</code> 계약을 구분한다. 브라우저 localStorage 초안, 단계·포트, 타입·DAG·node 배치 validation과 dry-run 계획만 제공하고 운영 상태 판정, Kubernetes/EdgeX mutation과 실제 workload 실행에는 참여하지 않는다.</p>
+<ol><li><code>서비스 설계</code> 상단은 <code>/state/services</code>의 현재 운영 서비스와 실제 관측 상태를</li></ol>
+<p>읽기 전용 목록으로 표시한다. 왼쪽의 <code>설계 블록</code>은 <code>/state/devices</code>와 <code>/state/device-profiles</code>의 실제 EdgeX Device/DeviceResource를 입력으로 사용한다. EdgeX 입력 2종, 전처리 6종, 추론 3종, 점수 결합 1종과 결과 1종의 13개 블록을 보여 주며 실제 입력 가능 수와 <code>설계용</code> 계약을 구분한다. 브라우저 localStorage 초안, 단계·포트, 타입·DAG·node 배치 validation과 dry-run 계획만 제공하고 운영 상태 판정, Kubernetes/EdgeX mutation과 실제 workload 실행에는 참여하지 않는다.</p>
 <p>Telemetry freshness 시계는 EdgeX Core Data latest Event의 nanosecond <code>origin</code> sample 시각이다. API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <h2 id="주요-api">주요 API</h2>
 <div class="table-wrap"><table>
@@ -205,6 +205,10 @@
 <tr>
 <td><code>GET /state/device-profiles</code></td>
 <td>서비스 설계용 Device Profile/DeviceResource 읽기 전용 계약. resource protocol <code>attributes</code> 제외</td>
+</tr>
+<tr>
+<td><code>GET /state/services</code></td>
+<td>현재 운영 배포 대상으로 관리하는 서비스 목록과 상태·입력·모델·배치 노드 관측. 현재 <code>sensor-anomaly-demo</code> 1개</td>
 </tr>
 <tr>
 <td><code>GET /state/devices/{device_id}/telemetry?window=-30m&amp;limit=1000</code></td>
@@ -441,7 +445,7 @@
 </tr>
 <tr>
 <td>서비스 설계</td>
-<td>실제 EdgeX 센서 디바이스/DeviceResource 선택, 검색 가능한 9종 서비스 카탈로그와 입력 가능 수, 전처리·추론·결과 preset 단계 추가·이동·삭제, 포트 연결, 속성 inspector, 타입·순환·배치 validation과 dry-run 실행 계획. 초안은 브라우저에만 저장하며 배포·실행 버튼 없음</td>
+<td>상단의 현재 실행 서비스 읽기 전용 목록, 실제 EdgeX 센서 디바이스/DeviceResource 선택, 검색 가능한 13종 설계 블록과 입력 가능 수, 전처리·추론·점수 결합·결과 preset 단계 추가·이동·삭제, 포트 연결, 속성 inspector, 타입·순환·배치 validation과 dry-run 실행 계획. 초안은 브라우저에만 저장하며 배포·실행 버튼 없음</td>
 </tr>
 <tr>
 <td>Issue / Focus</td>

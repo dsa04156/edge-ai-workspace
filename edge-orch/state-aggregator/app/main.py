@@ -9,18 +9,18 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
+from .adapter_catalog import AdapterCatalog
+from .adapter_controller_client import AdapterControllerClient
+from .adapter_runtime_service import AdapterRuntimeManagementService
 from .augmentation_crds import (
     AugmentationCrdReader,
     AugmentationResourceCrdState,
     DeviceAugmentationCrdState,
 )
 from .config import Settings
-from .adapter_catalog import AdapterCatalog
-from .adapter_controller_client import AdapterControllerClient
-from .adapter_runtime_service import AdapterRuntimeManagementService
 from .connection_management import ConnectionManagementService
-from .device_management import DeviceManagementService
 from .device_discovery import DeviceDiscoveryManagementService
+from .device_management import DeviceManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
 from .edgex import EdgeXError
@@ -39,9 +39,16 @@ from .models import (
     WorkflowEvent,
     WorkflowState,
 )
-from .operator_assistant import degraded_operator_chat_response, operator_assistant_from_dashboard
+from .operator_assistant import (
+    degraded_operator_chat_response,
+    operator_assistant_from_dashboard,
+)
 from .runtime_augmentation import RuntimeAugmentationState
-from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource_augmentation_state
+from .runtime_augmentation_api import (
+    RuntimeAugmentationQuery,
+    runtime_resource_augmentation_state,
+)
+from .service import StateAggregatorService
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -50,11 +57,12 @@ from .service_demo import (
     degraded_service_demo_state,
 )
 from .service_demo_models import (
+    DeployedServiceItem,
+    DeployedServiceState,
     ServiceDemoAlertState,
     ServiceDemoResultState,
     ServiceDemoState,
 )
-from .service import StateAggregatorService
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
     JsonMap,
@@ -245,6 +253,40 @@ async def get_service_demo() -> ServiceDemoState:
         return await service_demo_client.get_state()
     except ServiceDemoError as exc:
         return degraded_service_demo_state(exc)
+
+
+def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
+    model_version = demo.model.version if demo.model is not None else None
+    if model_version is None and demo.latest is not None:
+        model_version = demo.latest.model_version
+    return DeployedServiceState(
+        generated_at=datetime.now(timezone.utc),
+        services=[
+            DeployedServiceItem(
+                service_id="sensor-anomaly-demo",
+                display_name="센서 이상 탐지",
+                description="테스트베드 가속도 3축·온도 기반 기준선 서비스",
+                mode=demo.mode,
+                status=demo.status,
+                input_state=demo.input_state,
+                model_state=demo.model_state,
+                node=demo.binding.node,
+                physical_source=demo.binding.physical_source,
+                device_service=demo.binding.device_service,
+                input_devices=demo.binding.devices,
+                model_version=model_version,
+                latest_observed_at=(
+                    demo.latest.observed_at if demo.latest is not None else None
+                ),
+                observation_error=demo.observation_error,
+            )
+        ],
+    )
+
+
+@app.get("/state/services", response_model=DeployedServiceState)
+async def get_deployed_services() -> DeployedServiceState:
+    return _deployed_service_state(await get_service_demo())
 
 
 @app.get("/state/service-demo/results", response_model=ServiceDemoResultState)

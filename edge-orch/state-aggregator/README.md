@@ -27,7 +27,8 @@ GET /state/summary
 EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Device Profile의 안전한
 resource 계약은 `GET /state/device-profiles`, Core Data Event/Reading history는
 `GET /state/devices/{device_id}/telemetry`로 확인한다. 대시보드의 새 `서비스 설계`는
-이 read-only 계약을 사용해 browser-local 단계 구성, 포트 연결, 타입·배치 validation과
+`GET /state/services`의 현재 운영 서비스 목록을 상단에 별도로 표시하고, Device/Profile
+read-only 계약을 사용해 browser-local 단계 구성, 포트 연결, 타입·배치 validation과
 dry-run 실행 계획만 제공한다. 캔버스에는 pan·zoom·fit view·미니맵, 24px grid와
 정렬선 snap, `Shift` 축 고정·`Alt` 자유 이동, 접을 수 있는 단계/설정 패널이 있으며
 드롭 뒤 viewport를 다시 이동하거나 문서·캔버스의 가로 scrollbar에 의존하지 않는다.

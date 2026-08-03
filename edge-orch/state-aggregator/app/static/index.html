@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
-    <link rel="stylesheet" href="/static/service-designer.css?v=multi-sensor-score-v10-20260803" />
+    <link rel="stylesheet" href="/static/service-designer.css?v=deployed-service-list-v11-20260803" />
   </head>
   <body>
     <main class="shell">
@@ -392,6 +392,22 @@
             </div>
           </div>
 
+          <section
+            class="service-designer-service-inventory"
+            aria-labelledby="serviceDesignerDeployedTitle"
+          >
+            <div class="service-designer-service-inventory-head">
+              <div>
+                <span>실제 배포 상태 · 읽기 전용</span>
+                <strong id="serviceDesignerDeployedTitle">현재 실행 서비스</strong>
+              </div>
+              <b id="serviceDesignerDeployedCount" role="status" aria-live="polite">확인 중</b>
+            </div>
+            <div id="serviceDesignerDeployedList" class="service-designer-deployed-list" role="list">
+              <p class="service-designer-empty">실행 서비스를 확인하고 있습니다.</p>
+            </div>
+          </section>
+
           <div class="service-designer-toolbar">
             <label for="serviceDesignerName">
               <span>서비스 이름</span>
@@ -430,22 +446,22 @@
             >
               <div class="service-designer-pane-head">
                 <div>
-                  <span>서비스 구성</span>
-                  <strong id="serviceDesignerPaletteTitle">서비스 카탈로그</strong>
+                  <span>캔버스 구성</span>
+                  <strong id="serviceDesignerPaletteTitle">설계 블록</strong>
                 </div>
                 <button
                   id="serviceDesignerPaletteClose"
                   class="service-designer-panel-close"
                   type="button"
-                  aria-label="서비스 카탈로그 닫기"
+                  aria-label="설계 블록 닫기"
                 >닫기</button>
               </div>
               <label class="service-designer-search" for="serviceDesignerPaletteSearch">
-                <span class="sr-only">서비스 검색</span>
+                <span class="sr-only">설계 블록 검색</span>
                 <input
                   id="serviceDesignerPaletteSearch"
                   type="search"
-                  placeholder="서비스 검색"
+                  placeholder="설계 블록 검색"
                   autocomplete="off"
                 />
               </label>
@@ -454,9 +470,9 @@
                 class="service-designer-catalog-state"
                 role="status"
                 aria-live="polite"
-              >서비스 확인 중</p>
+              >설계 블록 확인 중</p>
               <div id="serviceDesignerPaletteList" class="service-designer-palette-list">
-                <p class="service-designer-empty">서비스 확인 중</p>
+                <p class="service-designer-empty">설계 블록 확인 중</p>
               </div>
             </aside>
 
@@ -471,7 +487,7 @@
                     aria-expanded="true"
                   >
                     <span aria-hidden="true">+</span>
-                    서비스
+                    블록
                   </button>
                   <div>
                     <strong id="serviceDesignerCanvasTitle">서비스 흐름</strong>
@@ -1336,6 +1352,6 @@
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=multi-sensor-score-v10-20260803"></script>
     <script src="/static/service-designer-viewport.js?v=bounded-fast-drag-v7-20260731"></script>
-    <script src="/static/service-designer.js?v=multi-sensor-score-v10-20260803"></script>
+    <script src="/static/service-designer.js?v=deployed-service-list-v11-20260803"></script>
   </body>
 </html>

@@ -25,6 +25,8 @@ const {
   bindMultiSensorScoreExample,
   bindSensorAnomalyExample,
   contextSourceBindingCandidate,
+  deployedServiceView,
+  fetchDesignerServices,
   fetchDesignerProfiles,
   loadStoredDesign,
   saveStoredDesign,
@@ -501,6 +503,38 @@ test("fetches Device Profile contracts from the read-only state endpoint", async
   assert.equal(profiles[0].name, "temperature-v1");
 });
 
+test("fetches and labels the current deployed service inventory", async () => {
+  let request = null;
+  const services = await fetchDesignerServices(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => ({
+        services: [{
+          service_id: "sensor-anomaly-demo",
+          display_name: "센서 이상 탐지",
+          status: "normal",
+          input_state: "fresh",
+          model_state: "ready",
+          input_devices: ["x", "y", "z", "temperature"],
+          node: "etri-dev0001-jetorn",
+          model_version: "baseline-1.0.0",
+        }],
+      }),
+    };
+  });
+
+  assert.deepEqual(request, {
+    url: "/state/services",
+    options: {cache: "no-store"},
+  });
+  const view = deployedServiceView(services[0]);
+  assert.equal(view.statusLabel, "정상");
+  assert.equal(view.inputLabel, "데이터 최신");
+  assert.equal(view.modelLabel, "모델 준비");
+  assert.equal(view.inputCount, 4);
+});
+
 test("fits the complete default graph inside the visible canvas", () => {
   const design = createDefaultDesign();
   const bounds = graphBounds(design.nodes);
@@ -662,7 +696,10 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
-  assert.match(html, /서비스 카탈로그/);
+  assert.match(html, /현재 실행 서비스/);
+  assert.match(html, /id="serviceDesignerDeployedList"/);
+  assert.match(html, /실제 배포 상태 · 읽기 전용/);
+  assert.match(html, /설계 블록/);
   assert.match(html, /id="serviceDesignerReset"[\s\S]*?>3축 데모</);
   assert.match(html, /id="serviceDesignerMultiSensorExample"[\s\S]*?>복합 점수 예시</);
   assert.match(html, /id="serviceDesignerCatalogState"/);
@@ -681,6 +718,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(ui, /const DRAG_ACTIVATION_PX = 3/);
   assert.match(ui, /const DRAG_CLICK_SUPPRESSION_MS = 600/);
   assert.match(ui, /data-designer-service/);
+  assert.match(ui, /fetchFn\("\/state\/services", \{cache: "no-store"\}\)/);
+  assert.match(ui, /renderDeployedServices/);
   assert.match(ui, /model\.addServiceNode\(state\.design, serviceId\)/);
   assert.match(
     ui,
@@ -719,6 +758,8 @@ test("dashboard exposes one scoped service design page without an execution acti
     /\.service-designer-node\.is-dragging\s*\{[^}]*will-change:\s*transform;/s,
   );
   assert.match(css, /\.service-designer-node\[data-node-type="fusion"\]/);
+  assert.match(css, /\.service-designer-deployed-item/);
+  assert.match(css, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);
   assert.equal(fs.existsSync(viewportPath), true);

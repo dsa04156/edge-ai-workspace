@@ -96,6 +96,146 @@ body[data-dashboard-page="designer"] .layout {
   color: #fca5a5;
 }
 
+.service-designer-service-inventory {
+  min-width: 0;
+  padding: 12px 20px 14px;
+  border-bottom: 1px solid var(--console-border);
+  background: var(--console-command);
+}
+
+.service-designer-service-inventory-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 9px;
+}
+
+.service-designer-service-inventory-head span,
+.service-designer-service-inventory-head strong {
+  display: block;
+}
+
+.service-designer-service-inventory-head span {
+  margin-bottom: 3px;
+  color: var(--console-dim);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.service-designer-service-inventory-head strong {
+  color: var(--console-text);
+  font-size: 14px;
+}
+
+.service-designer-service-inventory-head > b {
+  flex: 0 0 auto;
+  border: 1px solid var(--console-border-strong);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--console-muted);
+  font-size: 10px;
+}
+
+.service-designer-deployed-list {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--console-border);
+  border-radius: 5px;
+  background: var(--console-panel);
+}
+
+.service-designer-deployed-item {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.15fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.service-designer-deployed-item + .service-designer-deployed-item {
+  border-top: 1px solid var(--console-border);
+}
+
+.service-designer-deployed-identity,
+.service-designer-deployed-identity strong,
+.service-designer-deployed-identity span,
+.service-designer-deployed-facts,
+.service-designer-deployed-facts div,
+.service-designer-deployed-facts dt,
+.service-designer-deployed-facts dd,
+.service-designer-deployed-facts small {
+  min-width: 0;
+}
+
+.service-designer-deployed-identity strong,
+.service-designer-deployed-identity span,
+.service-designer-deployed-facts small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.service-designer-deployed-identity strong {
+  margin-bottom: 3px;
+  color: var(--console-text);
+  font-size: 13px;
+}
+
+.service-designer-deployed-identity span {
+  color: var(--console-dim);
+  font-family: "Fira Code", monospace;
+  font-size: 10px;
+}
+
+.service-designer-deployed-facts {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.15fr) minmax(150px, 1.45fr) minmax(72px, 0.6fr) minmax(130px, 1fr);
+  gap: 12px;
+  margin: 0;
+}
+
+.service-designer-deployed-facts dt {
+  margin-bottom: 3px;
+  color: var(--console-dim);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.service-designer-deployed-facts dd {
+  margin: 0;
+  color: var(--console-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.service-designer-deployed-facts dd b {
+  color: var(--console-text);
+  font-size: 11px;
+}
+
+.service-designer-deployed-facts small {
+  margin-top: 2px;
+  color: var(--console-dim);
+  font-size: 9px;
+}
+
+.service-designer-deployed-item[data-service-status="normal"] .service-designer-deployed-facts dd b {
+  color: #86efac;
+}
+
+.service-designer-deployed-item[data-service-status="anomaly"] .service-designer-deployed-facts dd b,
+.service-designer-deployed-item[data-service-status="degraded"] .service-designer-deployed-facts dd b {
+  color: #fca5a5;
+}
+
+.service-designer-deployed-item[data-service-status="starting"] .service-designer-deployed-facts dd b,
+.service-designer-deployed-item[data-service-status="warming_up"] .service-designer-deployed-facts dd b {
+  color: #fcd34d;
+}
+
 .service-designer-toolbar {
   justify-content: space-between;
   gap: 14px;
@@ -1128,6 +1268,15 @@ button.service-designer-issue {
     flex-direction: column;
   }
 
+  .service-designer-deployed-item {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .service-designer-deployed-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .service-designer-state,
   .service-designer-actions {
     justify-content: flex-start;
@@ -1182,8 +1331,14 @@ button.service-designer-issue {
 
 @media (max-width: 520px) {
   .service-designer-head,
-  .service-designer-toolbar {
+  .service-designer-toolbar,
+  .service-designer-service-inventory {
     padding-inline: 13px;
+  }
+
+  .service-designer-deployed-facts {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .service-designer-actions {
