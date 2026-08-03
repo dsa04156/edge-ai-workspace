@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-08-03 17:12</span>
-            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
+            <span class="badge">수정: 2026-08-03 17:39</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:40</span>
           </div>
         </header>
         <div class="doc-body">
@@ -502,6 +502,7 @@ rtk kubectl get --raw \
 <p>서비스는 네 Local Data source를 500ms마다 조회한다. 이는 push stream이 아니다. X/Y/Z는 같은 nanosecond <code>origin</code>이 모두 모인 frame만 사용하고, 온도는 2초 이내 가장 가까운 sample만 연결한다. 온도가 없으면 해당 종합 점수를 계산하지 않는다. 10초보다 오래된 입력, 3회 연속 조회 실패는 <code>degraded</code>다. anomaly/clear 전이는 자동 테스트로 검증하지만 실제 장치를 움직여 anomaly를 만드는 현장 시연 전에는 실제 고장 검출 실증으로 판정하지 않는다.</p>
 <p>결과와 alert transition은 <code>/var/lib/sensor-anomaly-demo/results.db</code>에 origin 기준으로 idempotent 저장한다. 이 SQLite는 AI 파생 결과 전용이며 EdgeX Core Data/PostgreSQL의 원시 Event를 대체하지 않는다. Pod 삭제·재생성 뒤 동일 PVC에서 결과 건수와 최신 origin을 다시 읽어야 재시작 복구 PASS다. PVC 삭제, node 손실, 중앙 HA와 원시 Event offline replay는 이 검증에 포함되지 않는다.</p>
 <blockquote><p>2026-08-03 live PASS: <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>을 Jetson에 rollout해 Ready/restart 0을 확인했다. 기동 직후 temperature 605개와 acceleration frame 605개가 누락 0으로 정렬됐고, 두 status 조회에서 frame <code>621 → 623</code>, origin <code>1785734602955557669 → 1785734604991104923</code>, 온도 정렬 차이 약 11~12ms를 확인했다. CI가 같은 기능 revision에서 빌드한 <code>state-aggregator@sha256:e2a85cb3f776905405b93c2ea5aa4356260d130723142bff77580829b1df6140</code>의 내부 BFF와 외부 dashboard도 같은 네 source, 개별·종합 점수와 <code>observation_error=null</code>을 반환했다. 실제 장치 움직임 anomaly는 별도 현장 gate다.</p></blockquote>
+<blockquote><p>2026-08-03 persistence live PASS: commit <code>849f10f3eefa9c719bb18c5a8de16687f115e98e</code>, Actions run <code>30796771024</code>의 <code>sensor-anomaly-demo@sha256:9f0736a1c6b6eda612a3dd4257ff526d483c2f45cb5d94c52a66f61214232796</code>을 Jetson에 배포했다. <code>sensor-anomaly-demo-state</code> 1Gi RWO PVC는 <code>Bound</code>였고 재시작 전 결과 172건과 origin <code>1785746192559462095</code>를 기록했다. Deployment를 재시작한 새 Pod에서 같은 origin이 1건으로 재조회됐으며 결과는 217건으로 계속 증가했다. health/readiness, <code>live/fresh/ready</code>, <code>okdong.pump-motor.telemetry/v1</code>, <code>baseline-1.0.0</code>, 중앙 결과·알림 BFF를 함께 확인했다. 현재 실제 anomaly가 없어 live alert 이력은 빈 배열이며 이를 성공 이벤트로 꾸미지 않는다.</p></blockquote>
 <h2 id="8-dashboard-api">8. dashboard API</h2>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;

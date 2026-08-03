@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: 일일-기록.md</span>
-            <span class="badge">수정: 2026-07-23 19:48</span>
-            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
+            <span class="badge">수정: 2026-08-03 17:39</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:40</span>
           </div>
         </header>
         <div class="doc-body">
@@ -1025,6 +1025,17 @@
 <p>error는 0건이었다. 현재 HTTP Ingress의 관리자 token 비밀번호 필드에 대한 Firefox 보안 warning 1건은 남아 있으므로 읽기 전용 검증에서는 token을 입력하지 않았고, 운영 mutation 전에는 Ingress TLS가 필요하다.</p>
 <ul><li>EdgeMesh agent는 이 작업 전후 모두 generation/observedGeneration <code>14/14</code>, Ready <code>5/5</code>로</li></ul>
 <p>유지됐다. ClusterIP/PodIP 우회, EdgeMesh 변경과 KubeEdge Device CRD 변경은 없었다.</p>
+<h2 id="2026-08-03-옥동-펌프-모터-결과-저장-재시작-복구">2026-08-03 옥동 펌프·모터 결과 저장·재시작 복구</h2>
+<ul><li>commit <code>849f10f3eefa9c719bb18c5a8de16687f115e98e</code>의 GitHub Actions run</li></ul>
+<p><code>30796771024</code>가 이미지 빌드와 Argo CD 배포까지 성공했다.</p>
+<ul><li><code>edge-orch-sensor-anomaly-demo</code>, <code>edge-orch-state-aggregator</code>, <code>docs-html</code>은 같은</li></ul>
+<p>revision에서 <code>Synced/Healthy</code>다.</p>
+<ul><li>Jetson 실행 이미지는</li></ul>
+<p><code>sensor-anomaly-demo@sha256:9f0736a1c6b6eda612a3dd4257ff526d483c2f45cb5d94c52a66f61214232796</code>, BFF는 <code>state-aggregator@sha256:47d1114d7da1d25c03691928eb7728060afa6ae09d3c86967c093d82fdb06676</code>다.</p>
+<ul><li><code>sensor-anomaly-demo-state</code> 1Gi RWO PVC는 <code>Bound</code>다. 재시작 전 SQLite 결과 172건과</li></ul>
+<p>origin <code>1785746192559462095</code>를 기록했고, 새 Pod에서 동일 origin을 다시 조회한 뒤 결과가 217건으로 증가했다.</p>
+<ul><li>local health/readiness와 <code>live/fresh/ready</code>, 결과·알림·계약 API, 중앙 BFF 두 경로,</li></ul>
+<p>새 문서 HTML HTTP 200을 확인했다. 실제 anomaly가 없어 alert 이력은 0건이다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

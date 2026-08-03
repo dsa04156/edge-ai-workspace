@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-08-03 17:06</span>
-            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
+            <span class="badge">수정: 2026-08-03 17:39</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:39</span>
           </div>
         </header>
         <div class="doc-body">
@@ -275,6 +275,13 @@
 <p><code>docs/프로젝트-범위.md</code>, <code>docs/시스템-구축-목표.md</code>, <code>docs/저장소-구조.md</code>, <code>docs/문서-안내.md</code>, <code>docs/wiki/2차년도-설계-트랙.md</code>, <code>docs/wiki/지식-지도.md</code></p>
 <ul><li>메모: 보고 본문에는 생산품질 판별과 유압펌프·모터 이상감지 서비스 2종, 월별 일정,</li></ul>
 <p>기관별 역할과 산출물만 남겼다. 데이터 항목, 장애 시나리오, 화면 목록과 구현 증거는 기존 별첨 기술·운영 문서로 연결했으며 계획 목표와 현재 완료 상태를 분리했다.</p>
+<h2 id="2026-08-03-ingest-옥동-펌프-모터-결과-영속화-수직-경로">[2026-08-03] ingest | 옥동 펌프·모터 결과 영속화 수직 경로</h2>
+<ul><li>근거: commit <code>849f10f</code>, Actions run <code>30796771024</code>, Jetson</li></ul>
+<p><code>sensor-anomaly-demo@sha256:9f0736a1c6b6eda612a3dd4257ff526d483c2f45cb5d94c52a66f61214232796</code></p>
+<ul><li>갱신: versioned 옥동 데이터 계약, JSONL simulator/replay, model adapter,</li></ul>
+<p>application-owned SQLite 결과·알림 저장, 결과 BFF와 dashboard 알림 요약, 1Gi RWO PVC</p>
+<ul><li>메모: 재시작 전 결과 172건과 특정 origin을 기록하고 새 Pod에서 동일 origin 재조회와</li></ul>
+<p>217건 증가를 확인했다. 원시 telemetry 권위는 계속 EdgeX이며 중앙 HA 결과 저장과 실제 장치 anomaly는 완료 범위가 아니다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-08-03-ingest-옥동-데이터-계약-replay-ai-결과-저장-기준선">[2026-08-03] ingest | 옥동 데이터 계약·Replay·AI 결과 저장 기준선</a></li>
