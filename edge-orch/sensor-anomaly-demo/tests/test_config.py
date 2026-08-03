@@ -19,6 +19,13 @@ def test_settings_load_documented_defaults(monkeypatch) -> None:
         "TEMPERATURE_WINDOW_SAMPLES",
         "VIBRATION_WEIGHT",
         "TEMPERATURE_WEIGHT",
+        "MODEL_BACKEND",
+        "MODEL_VERSION",
+        "SERVICE_DEVICE_ID",
+        "SERVICE_ASSET_ID",
+        "SERVICE_NODE_ID",
+        "RESULT_DB_PATH",
+        "RESULT_RETENTION_ROWS",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -39,6 +46,13 @@ def test_settings_load_documented_defaults(monkeypatch) -> None:
     assert settings.temperature_window_samples == 10
     assert settings.vibration_weight == 0.7
     assert settings.temperature_weight == 0.3
+    assert settings.model_backend == "online-baseline"
+    assert settings.model_version == "baseline-1.0.0"
+    assert settings.service_device_id == "arduino-001"
+    assert settings.service_asset_id == "arduino-001"
+    assert settings.service_node_id == "etri-dev0001-jetorn"
+    assert settings.result_db_path == "/tmp/sensor-anomaly-demo/results.db"
+    assert settings.result_retention_rows == 100_000
 
 
 def test_settings_reject_zero_total_weight_and_impossible_alignment_ttl() -> None:

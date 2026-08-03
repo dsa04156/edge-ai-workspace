@@ -71,6 +71,7 @@
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
 <li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -158,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-07-31 10:42</span>
-            <span class="badge">HTML 생성: 2026-07-31 11:57</span>
+            <span class="badge">수정: 2026-08-03 17:07</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -216,6 +217,7 @@
 <ul><li><code>deviceName</code>: inventory join key</li><li><code>sourceName</code>: telemetry source/resource</li><li><code>origin</code>: nanoseconds 단위 event 시각</li><li>typed Readings: <code>valueType</code>과 값</li></ul>
 <p>freshness 기준은 배포 설정의 EdgeX event threshold이며 최신 유효 Event의 nanosecond <code>origin</code> sample 시각에 적용한다. API 조회 시각, legacy DeviceStatus heartbeat 또는 mapper heartbeat로 대신하지 않는다. origin이 없거나 parse 불가하면 fresh로 추정하지 않고 degraded reason을 표시한다.</p>
 <p>Telemetry detail은 <code>deviceName</code>과 <code>sourceName</code>, event origin, typed readings를 보존한다. Device detail의 저장 그래프는 <code>state-aggregator</code>를 거쳐 Core Data API에서 읽으며 dashboard가 PostgreSQL에 직접 연결하지 않는다. storage graph나 AI 결과는 Core Data 이후 consumer 결과로 표시하며 physical source authority를 바꾸지 않는다.</p>
+<p><code>sensor-anomaly-demo</code>의 SQLite 결과와 발생·복귀 alert transition도 파생 consumer 결과다. AI alert 유무로 EdgeX Device의 <code>available</code>/<code>degraded</code>/<code>unavailable</code>을 덮어쓰지 않는다.</p>
 <h2 id="노드별-디바이스-관리-판단-경계">노드별 디바이스 관리 판단 경계</h2>
 <p><code>디바이스 관리</code>는 EdgeX 권위를 대체하지 않는 관리 UI다. 화면의 노드 카드는 <code>/state/nodes</code>, Runtime <code>targetNode</code>, Device <code>node_name</code>과 등록 hardware binding을 묶는 운영 범위 선택기다. 노드 상태가 비정상이거나 미관측이어도 그 사실만으로 EdgeX Device의 availability를 변경하지 않는다. Adapter Catalog의 <code>installed</code> 표시는 지원 계약이고, 실제 apply 가능 여부는 선택 노드의 등록 hardware binding, package 검증 상태, Core Metadata의 동일 <code>serviceName</code> Device Service 존재 또는 검증된 배포 plan, <code>adminState=UNLOCKED</code> readback까지 확인한다. dry-run 결과만으로 등록 완료나 protocol 지원 완료를 표시하지 않는다.</p>
 <p>물리 연결 카드는 다음 상태를 합치지 않는다.</p>

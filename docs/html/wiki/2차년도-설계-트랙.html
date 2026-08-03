@@ -71,6 +71,7 @@
 <li><a href="../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
 <li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -158,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/2차년도-설계-트랙.md</span>
-            <span class="badge">수정: 2026-08-03 16:26</span>
-            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
+            <span class="badge">수정: 2026-08-03 17:06</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -174,6 +175,7 @@
 <p>현재 PoC는 아래 운영 기반을 만든다.</p>
 <ul><li>등록된 device</li><li>node assignment</li><li>telemetry/status 분리</li><li>상태 통합</li><li>dashboard 가시화</li><li>service-demo binding</li></ul>
 <p>2026-07-31 <code>서비스 설계</code> 캔버스는 이 트랙의 첫 browser-local 프로토타입이다. 실제 EdgeX Device/Profile resource 선택, 단계 연결, 타입·배치 validation과 dry-run 계획만 제공하며 서버 workflow registry나 runtime execution은 없다.</p>
+<p>2026-08-03에는 <a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a>의 첫 코드 기준선을 추가했다. 서비스 2종의 versioned schema, 펌프 simulator/replay, model adapter와 SQLite/PVC 결과·알림 저장이 범위다. 이는 실제 옥동 field mapping, 생산품질 모델, 중앙 HA 저장 또는 workflow 실행 완료를 뜻하지 않는다.</p>
 <p>2차년도 트랙은 이 기반 위에서 우선 서비스 2종을 실행하기 위한 아래 요소를 설계한다.</p>
 <ul><li>PLC·MES·센서·품질 데이터의 공통 타임스탬프와 생산 건 연결</li><li>생산품질 판별 및 펌프·모터 이상감지 서비스 컨테이너</li><li>물리 on-device 기능, 상태, 자원, I/O를 표현하는 가상디바이스</li><li>capability, resource, I/O, state, workflow binding snapshot을 관리하는 디바이스트윈</li><li>수집 → 전처리 → 추론 → 저장 → 알림의 stage 기반 AI service workflow</li><li>validation과 execution-plan UI</li><li>엣지·서버 작업 분산과 장애 저장·재전송·복구 정책</li></ul>
 <h2 id="경계">경계</h2>
@@ -186,7 +188,7 @@
 <h2 id="관련-wiki">관련 Wiki</h2>
 <ul><li><a href="운영-모델.html">운영 모델</a></li><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li><li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li></ul>
 <h2 id="근거-문서">근거 문서</h2>
-<ul><li><a href="../단계별-추진계획.html">2026년도 2차년도 옥동 PoC 추진계획</a></li><li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로우 설계</a></li><li><a href="../프로젝트-범위.html">프로젝트 범위</a></li><li><a href="../저장소-구조.html">레포 구조</a></li></ul>
+<ul><li><a href="../단계별-추진계획.html">2026년도 2차년도 옥동 PoC 추진계획</a></li><li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로우 설계</a></li><li><a href="../프로젝트-범위.html">프로젝트 범위</a></li><li><a href="../저장소-구조.html">레포 구조</a></li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>

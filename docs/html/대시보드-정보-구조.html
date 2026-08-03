@@ -71,6 +71,7 @@
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
 <li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -158,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-31 16:39</span>
-            <span class="badge">HTML 생성: 2026-07-31 16:40</span>
+            <span class="badge">수정: 2026-08-03 17:07</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -400,7 +401,7 @@
 <tbody>
 <tr>
 <td>운영 현황</td>
-<td>전체 상태, 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스 수와 가용 상태, Prometheus/Kubernetes 기반 현재 서버·물리 디바이스 자원 meter와 조치 항목. 고정 서비스 데모는 접힌 보조 영역</td>
+<td>전체 상태, 엣지 AI 서버·물리 디바이스·가상 디바이스·센서 디바이스 수와 가용 상태, Prometheus/Kubernetes 기반 현재 서버·물리 디바이스 자원 meter와 조치 항목. 고정 서비스 데모는 접힌 보조 영역이며 model version과 최근 발생·복귀 알림 이력을 함께 표시</td>
 </tr>
 <tr>
 <td>디바이스 인벤토리</td>
@@ -425,6 +426,10 @@
 <tr>
 <td>Stored History</td>
 <td>선택 Device의 5분·30분·1시간·24시간 Core Data history, 반환 Reading 수, 실제 첫/마지막 timestamp와 최신 1,000 Event 제한</td>
+</tr>
+<tr>
+<td>AI Result / Alert</td>
+<td><code>/state/service-demo/results</code>, <code>/state/service-demo/alerts</code>로 조회한 application-owned 파생 결과와 이상 발생·정상 복귀 이력. EdgeX 원시 Event 이력과 구분</td>
 </tr>
 <tr>
 <td>Device-Service Relation</td>

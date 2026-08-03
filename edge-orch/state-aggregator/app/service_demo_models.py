@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 ServiceDemoStatus = Literal[
     "starting",
     "warming_up",
@@ -29,9 +28,9 @@ class UpstreamModel(BaseModel):
 
 
 class UpstreamAxisValues(UpstreamModel):
-    x: int
-    y: int
-    z: int
+    x: int | float
+    y: int | float
+    z: int | float
 
 
 class UpstreamSource(UpstreamModel):
@@ -59,7 +58,7 @@ class UpstreamVibrationFeatures(UpstreamModel):
 
 class UpstreamTemperatureFeatures(UpstreamModel):
     origin: int = Field(gt=0)
-    raw: int
+    raw: int | float
     mean: float
     stddev: float = Field(ge=0)
     delta: float
@@ -74,6 +73,8 @@ class UpstreamLatest(UpstreamModel):
     magnitude: float
     score: float = Field(ge=0)
     anomaly: bool
+    model_version: str = "baseline-1.0.0"
+    input_contract: str = "okdong.pump-motor.telemetry/v1"
     component_scores: UpstreamComponentScores | None = None
     weights: UpstreamScoreWeights | None = None
     vibration_features: UpstreamVibrationFeatures | None = None
@@ -92,6 +93,7 @@ class UpstreamFeatureModel(UpstreamModel):
 
 class UpstreamDetectorModel(UpstreamModel):
     algorithm: str = Field(min_length=1)
+    version: str = "baseline-1.0.0"
     sample_count: int = Field(ge=0)
     warmup_samples: int = Field(ge=1)
     threshold: float = Field(gt=0)
@@ -125,6 +127,30 @@ class UpstreamServiceStatus(UpstreamModel):
     last_error: str | None = None
 
 
+class UpstreamResultEnvelope(UpstreamModel):
+    api_version: Literal["v1"]
+    count: int = Field(ge=0)
+    results: list[UpstreamLatest]
+
+
+class UpstreamAlertTransition(UpstreamModel):
+    alert_id: str
+    transition: Literal["opened", "cleared"]
+    status: Literal["open", "closed"]
+    origin: int = Field(gt=0)
+    observed_at: datetime
+    asset_id: str
+    score: float = Field(ge=0)
+    model_version: str
+    message: str
+
+
+class UpstreamAlertEnvelope(UpstreamModel):
+    api_version: Literal["v1"]
+    count: int = Field(ge=0)
+    alerts: list[UpstreamAlertTransition]
+
+
 class ServiceDemoBinding(BaseModel):
     physical_source: str = "arduino-001"
     device_service: str = "device-serial-jetson"
@@ -134,9 +160,9 @@ class ServiceDemoBinding(BaseModel):
 
 
 class ServiceDemoAxisValues(BaseModel):
-    x: int
-    y: int
-    z: int
+    x: int | float
+    y: int | float
+    z: int | float
 
 
 class ServiceDemoLatest(BaseModel):
@@ -146,10 +172,12 @@ class ServiceDemoLatest(BaseModel):
     magnitude: float
     score: float
     anomaly: bool
-    component_scores: "ServiceDemoComponentScores | None" = None
-    weights: "ServiceDemoScoreWeights | None" = None
-    vibration_features: "ServiceDemoVibrationFeatures | None" = None
-    temperature_features: "ServiceDemoTemperatureFeatures | None" = None
+    model_version: str = "baseline-1.0.0"
+    input_contract: str = "okdong.pump-motor.telemetry/v1"
+    component_scores: ServiceDemoComponentScores | None = None
+    weights: ServiceDemoScoreWeights | None = None
+    vibration_features: ServiceDemoVibrationFeatures | None = None
+    temperature_features: ServiceDemoTemperatureFeatures | None = None
 
 
 class ServiceDemoComponentScores(BaseModel):
@@ -171,7 +199,7 @@ class ServiceDemoVibrationFeatures(BaseModel):
 
 class ServiceDemoTemperatureFeatures(BaseModel):
     origin: int
-    raw: int
+    raw: int | float
     mean: float
     stddev: float
     delta: float
@@ -191,6 +219,7 @@ class ServiceDemoFeatureModel(BaseModel):
 
 class ServiceDemoModel(BaseModel):
     algorithm: str
+    version: str = "baseline-1.0.0"
     sample_count: int
     warmup_samples: int
     threshold: float
@@ -221,4 +250,32 @@ class ServiceDemoState(BaseModel):
     model: ServiceDemoModel | None = None
     counters: ServiceDemoCounters = Field(default_factory=ServiceDemoCounters)
     last_error: str | None = None
+    observation_error: str | None = None
+
+
+class ServiceDemoResultState(BaseModel):
+    generated_at: datetime
+    mode: Literal["live", "unavailable"]
+    count: int = Field(ge=0)
+    results: list[ServiceDemoLatest] = Field(default_factory=list)
+    observation_error: str | None = None
+
+
+class ServiceDemoAlertTransition(BaseModel):
+    alert_id: str
+    transition: Literal["opened", "cleared"]
+    status: Literal["open", "closed"]
+    origin: int
+    observed_at: datetime
+    asset_id: str
+    score: float
+    model_version: str
+    message: str
+
+
+class ServiceDemoAlertState(BaseModel):
+    generated_at: datetime
+    mode: Literal["live", "unavailable"]
+    count: int = Field(ge=0)
+    alerts: list[ServiceDemoAlertTransition] = Field(default_factory=list)
     observation_error: str | None = None

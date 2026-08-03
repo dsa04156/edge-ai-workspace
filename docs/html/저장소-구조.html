@@ -71,6 +71,7 @@
 <li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
 <li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -158,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-08-03 16:25</span>
-            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
+            <span class="badge">수정: 2026-08-03 17:05</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -305,12 +306,12 @@
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
 <td>inventory/history API와 대시보드 관리 BFF</td>
-<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 inventory, 최신 상태, 중앙 이력과 고정 서비스 데모를 read-only로 제공한다. <code>/management/*</code>는 발견 후보 검색·검토, 읽기 전용 Device Profile 계약의 목록·검증·idempotent 생성/readback, 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. 프로토콜별 Runtime 설정과 bundled Profile도 Catalog 계약으로 전달하되 Kubernetes 쓰기 권한은 갖지 않는다</td>
+<td>중앙 Core Metadata/Core Data를 authority로 소비한다. <code>/state/*</code>는 inventory, 최신 상태, 중앙 이력과 고정 서비스 데모 상태·영속 결과·알림을 read-only로 제공한다. <code>/management/*</code>는 발견 후보 검색·검토, 읽기 전용 Device Profile 계약의 목록·검증·idempotent 생성/readback, 연결 등록/장비 관측/통신/데이터 증거, runtime inventory/plan과 검증 connection saga, 기존 Device allowlist patch를 제공한다. 프로토콜별 Runtime 설정과 bundled Profile도 Catalog 계약으로 전달하되 Kubernetes 쓰기 권한은 갖지 않는다</td>
 </tr>
 <tr>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
-<td>Jetson 실측 센서 서비스 데모</td>
-<td>Arduino 가속도 3축 Local Data를 origin으로 결합하고 온도를 제한 시간 안에서 정렬해 진동·온도 feature 점수와 가중 종합 결과를 read-only API로 제공. 2026-08-03 immutable ARM64 rollout과 실제 입력/BFF/browser readback PASS</td>
+<td>Jetson 실측 센서 서비스 데모와 옥동 입력 기준선</td>
+<td>Arduino 가속도 3축 Local Data를 origin으로 결합하고 온도를 제한 시간 안에서 정렬한다. 옥동 서비스 2종의 versioned schema, pump JSONL simulator/replay, 교체 가능한 model adapter, SQLite 결과·알림 이력과 1Gi RWO PVC를 포함한다. 현재 모델은 통계 기준선이며 생산품질 실행 서비스와 중앙 HA 결과 저장은 미구현</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
@@ -337,6 +338,11 @@
 <td><code>docs/단계별-추진계획.md</code></td>
 <td>2026년도 2차년도 옥동 PoC 보고 본문</td>
 <td>생산품질 판별과 유압펌프·모터 이상감지 서비스 2종, 월별 일정, 기관별 역할과 산출물만 간결하게 유지하고 기술 세부는 별첨 문서로 연결</td>
+</tr>
+<tr>
+<td><code>docs/옥동-데이터-계약.md</code></td>
+<td>AI 서비스 입출력·Replay·결과 저장 별첨</td>
+<td>실제 현장 tag를 임의로 확정하지 않고 versioned schema, simulator, model adapter, 결과·알림 API와 남은 현장 입력을 구분</td>
 </tr>
 <tr>
 <td><code>docs/2차년도-가상디바이스-워크플로-설계.md</code></td>

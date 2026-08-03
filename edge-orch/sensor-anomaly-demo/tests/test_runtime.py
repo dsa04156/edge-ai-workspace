@@ -10,6 +10,7 @@ from app.local_data import (
 )
 from app.models import AxisSample
 from app.runtime import AnomalyRuntime
+from app.storage import ResultStore
 
 
 class FakeLocalDataClient:
@@ -76,6 +77,7 @@ def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> No
     assert first.mode == "live"
     assert first.latest is not None
     assert first.latest.origin == origin
+    assert int(first.latest.observed_at.timestamp() * 1_000_000_000) == origin
     assert first.latest.values.model_dump() == {"x": 3, "y": 4, "z": 0}
     assert first.latest.magnitude == 5.0
     assert first.latest.component_scores is not None
@@ -111,9 +113,7 @@ def test_runtime_recovers_pending_acceleration_when_temperature_arrives_late() -
     assert waiting.input_state == "waiting"
     assert waiting.counters.frames_processed == 0
 
-    client.rows["temperature"] = [
-        AxisSample(origin - 10_000_000, "Int32", 301)
-    ]
+    client.rows["temperature"] = [AxisSample(origin - 10_000_000, "Int32", 301)]
     asyncio.run(runtime.poll_once(now_ns=origin + 200))
     recovered = runtime.status(now_ns=origin + 200)
 
@@ -202,7 +202,10 @@ def test_runtime_keeps_bounded_recent_results_in_origin_order() -> None:
     origins = [1_000_000_000, 1_000_000_001, 1_000_000_002]
     client = FakeLocalDataClient(
         {
-            axis: [AxisSample(origin, "Int32", index + 1) for index, origin in enumerate(origins)]
+            axis: [
+                AxisSample(origin, "Int32", index + 1)
+                for index, origin in enumerate(origins)
+            ]
             for axis in ("x", "y", "z")
         }
         | {
@@ -245,7 +248,9 @@ def test_runtime_start_and_stop_manage_polling_worker_and_client() -> None:
     assert len(client.calls) >= 4
 
 
-def test_runtime_fuses_vibration_and_temperature_scores_with_configured_weights() -> None:
+def test_runtime_fuses_vibration_and_temperature_scores_with_configured_weights() -> (
+    None
+):
     first_origin = 10_000_000_000
     second_origin = first_origin + 1_000_000_000
     client = FakeLocalDataClient(
@@ -299,7 +304,9 @@ def test_runtime_fuses_vibration_and_temperature_scores_with_configured_weights(
     assert set(state.model.components) == {"vibration", "temperature"}
 
 
-def test_runtime_does_not_calculate_when_temperature_is_outside_alignment_window() -> None:
+def test_runtime_does_not_calculate_when_temperature_is_outside_alignment_window() -> (
+    None
+):
     origin = 10_000_000_000
     client = FakeLocalDataClient(
         {
@@ -327,3 +334,35 @@ def test_runtime_does_not_calculate_when_temperature_is_outside_alignment_window
     assert state.latest is None
     assert state.counters.unaligned_frames_dropped == 1
     assert state.last_error == "1 acceleration frame(s) lacked temperature context"
+
+
+def test_runtime_does_not_publish_a_result_before_sqlite_commit(monkeypatch) -> None:
+    origin = 12_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    store = ResultStore(":memory:", retention_rows=10)
+
+    def fail_commit(*_, **__) -> None:
+        raise RuntimeError("sqlite unavailable")
+
+    monkeypatch.setattr(store, "record_result", fail_commit)
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        result_store=store,
+    )
+
+    with pytest.raises(RuntimeError, match="sqlite unavailable"):
+        asyncio.run(runtime.poll_once(now_ns=origin + 100))
+
+    state = runtime.status(now_ns=origin + 100)
+    assert state.latest is None
+    assert state.counters.frames_processed == 0
+    asyncio.run(runtime.stop())

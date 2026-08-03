@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, Field, model_validator
-
 
 DEFAULT_LOCAL_DATA_BASE_URL = (
     "http://device-serial-jetson.edgex-edge.svc.cluster.local:59910"
@@ -33,6 +32,20 @@ class Settings(BaseModel):
     temperature_window_samples: int = Field(default=10, ge=2, le=1_000)
     vibration_weight: float = Field(default=0.7, ge=0)
     temperature_weight: float = Field(default=0.3, ge=0)
+    model_backend: Literal["online-baseline"] = "online-baseline"
+    model_version: str = Field(default="baseline-1.0.0", min_length=1, max_length=64)
+    service_device_id: str = Field(default="arduino-001", min_length=1, max_length=128)
+    service_asset_id: str = Field(default="arduino-001", min_length=1, max_length=128)
+    service_node_id: str = Field(
+        default="etri-dev0001-jetorn",
+        min_length=1,
+        max_length=128,
+    )
+    result_db_path: str = Field(
+        default="/tmp/sensor-anomaly-demo/results.db",
+        min_length=1,
+    )
+    result_retention_rows: int = Field(default=100_000, ge=1, le=10_000_000)
 
     @model_validator(mode="after")
     def validate_multi_sensor_settings(self) -> Self:
@@ -45,7 +58,7 @@ class Settings(BaseModel):
         return self
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         return cls(
             local_data_base_url=os.getenv(
                 "LOCAL_DATA_BASE_URL",
@@ -63,15 +76,24 @@ class Settings(BaseModel):
             recent_result_limit=int(os.getenv("RECENT_RESULT_LIMIT", "1000")),
             pending_ttl_seconds=float(os.getenv("PENDING_TTL_SECONDS", "10")),
             max_pending_frames=int(os.getenv("MAX_PENDING_FRAMES", "1000")),
-            context_max_skew_seconds=float(
-                os.getenv("CONTEXT_MAX_SKEW_SECONDS", "2")
-            ),
-            vibration_window_samples=int(
-                os.getenv("VIBRATION_WINDOW_SAMPLES", "20")
-            ),
+            context_max_skew_seconds=float(os.getenv("CONTEXT_MAX_SKEW_SECONDS", "2")),
+            vibration_window_samples=int(os.getenv("VIBRATION_WINDOW_SAMPLES", "20")),
             temperature_window_samples=int(
                 os.getenv("TEMPERATURE_WINDOW_SAMPLES", "10")
             ),
             vibration_weight=float(os.getenv("VIBRATION_WEIGHT", "0.7")),
             temperature_weight=float(os.getenv("TEMPERATURE_WEIGHT", "0.3")),
+            model_backend=os.getenv("MODEL_BACKEND", "online-baseline"),
+            model_version=os.getenv("MODEL_VERSION", "baseline-1.0.0"),
+            service_device_id=os.getenv("SERVICE_DEVICE_ID", "arduino-001"),
+            service_asset_id=os.getenv("SERVICE_ASSET_ID", "arduino-001"),
+            service_node_id=os.getenv(
+                "SERVICE_NODE_ID",
+                "etri-dev0001-jetorn",
+            ),
+            result_db_path=os.getenv(
+                "RESULT_DB_PATH",
+                "/tmp/sensor-anomaly-demo/results.db",
+            ),
+            result_retention_rows=int(os.getenv("RESULT_RETENTION_ROWS", "100000")),
         )

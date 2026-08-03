@@ -9,12 +9,7 @@ from typing import Protocol
 
 from .alignment import TemporalAligner
 from .config import Settings
-from .feature_detector import (
-    FeatureDetectorConfig,
-    OnlineFeatureDetector,
-    ScoreLatch,
-)
-from .features import SlidingFeatureExtractor
+from .contracts import Measurement, PumpMotorSignals, PumpMotorTelemetry
 from .joiner import FrameJoiner
 from .local_data import (
     ACCELERATION_SOURCES,
@@ -24,13 +19,15 @@ from .local_data import (
     LocalDataSource,
     ScalarSource,
 )
+from .model_adapter import PumpModelAdapter, build_model_adapter
 from .models import (
+    AccelerationFrame,
+    AlertTransition,
     AxisSample,
     AxisValues,
     ComponentScores,
-    FeatureInferenceResult,
-    FeatureModelSnapshot,
     FeatureModelObservation,
+    FeatureModelSnapshot,
     LatestObservation,
     ModelObservation,
     RuntimeCounters,
@@ -38,14 +35,9 @@ from .models import (
     ServiceStatus,
     SourceIdentity,
     TemperatureFeatureObservation,
-    TemperatureFeatures,
     VibrationFeatureObservation,
 )
-
-
-PIPELINE_ALGORITHM = "weighted-multi-sensor-feature-score-v1"
-VIBRATION_ALGORITHM = "online-vibration-feature-gaussian-v1"
-TEMPERATURE_ALGORITHM = "online-temperature-feature-gaussian-v1"
+from .storage import ResultStore
 
 
 class LocalDataReader(Protocol):
@@ -66,6 +58,8 @@ class AnomalyRuntime:
         client: LocalDataReader,
         sources: tuple[AxisSource, ...] = ACCELERATION_SOURCES,
         context_source: ScalarSource = TEMPERATURE_SOURCE,
+        model_adapter: PumpModelAdapter | None = None,
+        result_store: ResultStore | None = None,
     ) -> None:
         self.settings = settings
         self.client = client
@@ -81,47 +75,17 @@ class AnomalyRuntime:
             pending_ttl_ns=int(settings.pending_ttl_seconds * 1_000_000_000),
             max_pending=settings.max_pending_frames,
         )
-        self.extractor = SlidingFeatureExtractor(
-            vibration_window_samples=settings.vibration_window_samples,
-            temperature_window_samples=settings.temperature_window_samples,
-        )
-        shared_detector = {
-            "warmup_samples": settings.warmup_samples,
-            "threshold": settings.anomaly_threshold,
-            "stddev_floor": settings.stddev_floor,
-            "anomaly_streak": settings.anomaly_streak,
-            "clear_streak": settings.clear_streak,
-            "ewma_alpha": settings.ewma_alpha,
-        }
-        self.vibration_detector = OnlineFeatureDetector(
-            FeatureDetectorConfig(
-                algorithm=VIBRATION_ALGORITHM,
-                feature_names=("rms", "peak", "kurtosis"),
-                stddev_floor_overrides={"kurtosis": 0.1},
-                **shared_detector,
-            )
-        )
-        self.temperature_detector = OnlineFeatureDetector(
-            FeatureDetectorConfig(
-                algorithm=TEMPERATURE_ALGORITHM,
-                feature_names=("mean", "stddev", "delta"),
-                stddev_floor_overrides={"stddev": 0.1, "delta": 0.1},
-                **shared_detector,
-            )
-        )
-        self.score_latch = ScoreLatch(
-            threshold=settings.anomaly_threshold,
-            anomaly_streak=settings.anomaly_streak,
-            clear_streak=settings.clear_streak,
-        )
+        self.model_adapter = model_adapter or build_model_adapter(settings)
         self._cursors: dict[str, int | None] = {
             source.key: None for source in self._all_sources
         }
-        self._temperature_results: dict[
-            int, tuple[TemperatureFeatures, FeatureInferenceResult]
-        ] = {}
+        self.result_store = result_store or ResultStore(
+            ":memory:",
+            settings.recent_result_limit,
+        )
         self._results: deque[LatestObservation] = deque(
-            maxlen=settings.recent_result_limit
+            self.result_store.results(settings.recent_result_limit),
+            maxlen=settings.recent_result_limit,
         )
         self._frames_processed = 0
         self._context_samples_processed = 0
@@ -132,6 +96,7 @@ class AnomalyRuntime:
         self._stop = asyncio.Event()
         self._task: asyncio.Task[None] | None = None
         self._client_closed = False
+        self._store_closed = False
 
     async def start(self) -> None:
         if self._task is not None and not self._task.done():
@@ -148,6 +113,9 @@ class AnomalyRuntime:
         if not self._client_closed:
             await self.client.close()
             self._client_closed = True
+        if not self._store_closed:
+            self.result_store.close()
+            self._store_closed = True
 
     @property
     def worker_started(self) -> bool:
@@ -201,81 +169,75 @@ class AnomalyRuntime:
             current,
         )
         for row in aligned:
-            temperature_state = self._temperature_results.get(
-                row.temperature.origin
+            model_input = self._model_input(row.acceleration, row.temperature)
+            validated_frame = AccelerationFrame(
+                origin=row.acceleration.origin,
+                x=model_input.signals.acceleration_x.value,
+                y=model_input.signals.acceleration_y.value,
+                z=model_input.signals.acceleration_z.value,
             )
-            if temperature_state is None:
+            decision = self.model_adapter.infer(
+                validated_frame,
+                row.temperature.origin,
+            )
+            if decision is None:
                 continue
-            temperature_features, temperature_result = temperature_state
-            vibration_features = self.extractor.add_vibration(row.acceleration)
-            vibration_result = self.vibration_detector.process(
-                row.acceleration.origin,
-                vibration_features.values(),
+            observation = LatestObservation(
+                origin=row.acceleration.origin,
+                observed_at=datetime.fromtimestamp(
+                    row.acceleration.origin / 1_000_000_000,
+                    timezone.utc,
+                ),
+                values=AxisValues(
+                    x=model_input.signals.acceleration_x.value,
+                    y=model_input.signals.acceleration_y.value,
+                    z=model_input.signals.acceleration_z.value,
+                ),
+                magnitude=round(
+                    math.sqrt(
+                        model_input.signals.acceleration_x.value**2
+                        + model_input.signals.acceleration_y.value**2
+                        + model_input.signals.acceleration_z.value**2
+                    ),
+                    6,
+                ),
+                score=decision.score,
+                anomaly=decision.status == "anomaly",
+                model_version=self.model_adapter.version,
+                component_scores=ComponentScores(
+                    vibration=decision.vibration_score,
+                    temperature=decision.temperature_score,
+                ),
+                weights=self._weights(),
+                vibration_features=VibrationFeatureObservation(
+                    rms=decision.vibration_features.rms,
+                    peak=decision.vibration_features.peak,
+                    kurtosis=decision.vibration_features.kurtosis,
+                    sample_count=decision.vibration_features.sample_count,
+                ),
+                temperature_features=TemperatureFeatureObservation(
+                    origin=decision.temperature_features.origin,
+                    raw=decision.temperature_features.raw,
+                    mean=decision.temperature_features.mean,
+                    stddev=decision.temperature_features.stddev,
+                    delta=decision.temperature_features.delta,
+                    sample_count=decision.temperature_features.sample_count,
+                    alignment_lag_ms=round(
+                        abs(
+                            row.acceleration.origin
+                            - decision.temperature_features.origin
+                        )
+                        / 1_000_000,
+                        3,
+                    ),
+                ),
+                input_contract=model_input.schema_version,
             )
-            ready = (
-                vibration_result.status != "warming_up"
-                and temperature_result.status != "warming_up"
+            self.result_store.record_result(
+                observation,
+                asset_id=self.settings.service_asset_id,
             )
-            score = (
-                self._fused_score(
-                    vibration_result.score,
-                    temperature_result.score,
-                )
-                if ready
-                else 0.0
-            )
-            detection_status = self.score_latch.process(score, ready)
-            self._results.append(
-                LatestObservation(
-                    origin=row.acceleration.origin,
-                    observed_at=datetime.fromtimestamp(
-                        current / 1_000_000_000,
-                        timezone.utc,
-                    ),
-                    values=AxisValues(
-                        x=row.acceleration.x,
-                        y=row.acceleration.y,
-                        z=row.acceleration.z,
-                    ),
-                    magnitude=round(
-                        math.sqrt(
-                            row.acceleration.x**2
-                            + row.acceleration.y**2
-                            + row.acceleration.z**2
-                        ),
-                        6,
-                    ),
-                    score=round(score, 6),
-                    anomaly=detection_status == "anomaly",
-                    component_scores=ComponentScores(
-                        vibration=vibration_result.score,
-                        temperature=temperature_result.score,
-                    ),
-                    weights=self._weights(),
-                    vibration_features=VibrationFeatureObservation(
-                        rms=vibration_features.rms,
-                        peak=vibration_features.peak,
-                        kurtosis=vibration_features.kurtosis,
-                        sample_count=vibration_features.sample_count,
-                    ),
-                    temperature_features=TemperatureFeatureObservation(
-                        origin=temperature_features.origin,
-                        raw=temperature_features.raw,
-                        mean=temperature_features.mean,
-                        stddev=temperature_features.stddev,
-                        delta=temperature_features.delta,
-                        sample_count=temperature_features.sample_count,
-                        alignment_lag_ms=round(
-                            abs(
-                                row.acceleration.origin
-                                - temperature_features.origin
-                            )
-                            / 1_000_000,
-                            3,
-                        ),
-                    ),
-                )
-            )
+            self._results.append(observation)
             self._frames_processed += 1
 
         drop_count = self.aligner.counters.unaligned_frames_dropped
@@ -295,17 +257,14 @@ class AnomalyRuntime:
     def status(self, now_ns: int | None = None) -> ServiceStatus:
         current = time.time_ns() if now_ns is None else now_ns
         latest = self._results[-1] if self._results else None
-        vibration_snapshot = self.vibration_detector.snapshot()
-        temperature_snapshot = self.temperature_detector.snapshot()
+        vibration_snapshot, temperature_snapshot = self.model_adapter.snapshots()
         drop_count = self.aligner.counters.unaligned_frames_dropped
         sample_count = min(
             vibration_snapshot.sample_count,
             temperature_snapshot.sample_count,
         )
         model_state = (
-            "ready"
-            if sample_count >= self.settings.warmup_samples
-            else "warming_up"
+            "ready" if sample_count >= self.settings.warmup_samples else "warming_up"
         )
         if self._consecutive_failed_polls >= 3:
             runtime_status = "degraded"
@@ -323,7 +282,9 @@ class AnomalyRuntime:
             runtime_status = (
                 "warming_up"
                 if model_state == "warming_up"
-                else "anomaly" if latest.anomaly else "normal"
+                else "anomaly"
+                if latest.anomaly
+                else "normal"
             )
 
         return ServiceStatus(
@@ -335,7 +296,8 @@ class AnomalyRuntime:
             ),
             latest=latest,
             model=ModelObservation(
-                algorithm=PIPELINE_ALGORITHM,
+                algorithm=self.model_adapter.algorithm,
+                version=self.model_adapter.version,
                 sample_count=sample_count,
                 warmup_samples=self.settings.warmup_samples,
                 threshold=self.settings.anomaly_threshold,
@@ -361,38 +323,73 @@ class AnomalyRuntime:
             last_error=self._last_error,
         )
 
-    def results(self, limit: int) -> list[LatestObservation]:
-        if limit < 1 or limit > 1_000:
-            raise ValueError("limit must be from 1 through 1000")
-        return list(self._results)[-limit:]
+    def results(
+        self,
+        limit: int,
+        *,
+        anomaly: bool | None = None,
+        from_origin: int | None = None,
+        to_origin: int | None = None,
+    ) -> list[LatestObservation]:
+        return self.result_store.results(
+            limit,
+            anomaly=anomaly,
+            from_origin=from_origin,
+            to_origin=to_origin,
+        )
+
+    def alerts(
+        self,
+        limit: int,
+        *,
+        status: str | None = None,
+    ) -> list[AlertTransition]:
+        return self.result_store.alerts(limit, status=status)
+
+    def storage_status(self):
+        return self.result_store.status()
 
     def _process_temperatures(self, samples: list[AxisSample]) -> None:
         for sample in samples:
-            features = self.extractor.add_temperature(sample)
-            result = self.temperature_detector.process(
-                sample.origin,
-                features.values(),
-            )
-            self._temperature_results[sample.origin] = (features, result)
+            self.model_adapter.ingest_temperature(sample)
             self._context_samples_processed += 1
-        excess = len(self._temperature_results) - self.settings.max_pending_frames
-        if excess > 0:
-            for origin in sorted(self._temperature_results)[:excess]:
-                self._temperature_results.pop(origin, None)
-
-    def _fused_score(self, vibration: float, temperature: float) -> float:
-        total_weight = (
-            self.settings.vibration_weight + self.settings.temperature_weight
-        )
-        return (
-            self.settings.vibration_weight * vibration
-            + self.settings.temperature_weight * temperature
-        ) / total_weight
+        self.model_adapter.trim_temperature_state(self.settings.max_pending_frames)
 
     def _weights(self) -> ScoreWeights:
         return ScoreWeights(
             vibration=self.settings.vibration_weight,
             temperature=self.settings.temperature_weight,
+        )
+
+    def _model_input(
+        self,
+        acceleration: AccelerationFrame,
+        temperature: AxisSample,
+    ) -> PumpMotorTelemetry:
+        observed_at = datetime.fromtimestamp(
+            acceleration.origin / 1_000_000_000,
+            timezone.utc,
+        )
+        return PumpMotorTelemetry(
+            event_id=(
+                f"live-{self.settings.service_node_id}-"
+                f"{self.settings.service_device_id}-{acceleration.origin}"
+            ),
+            source_type="sensor",
+            device_id=self.settings.service_device_id,
+            asset_id=self.settings.service_asset_id,
+            node_id=self.settings.service_node_id,
+            observed_at=observed_at,
+            signals=PumpMotorSignals(
+                acceleration_x=Measurement(value=float(acceleration.x)),
+                acceleration_y=Measurement(value=float(acceleration.y)),
+                acceleration_z=Measurement(value=float(acceleration.z)),
+                temperature=Measurement(value=float(temperature.value)),
+            ),
+            attributes={
+                "accelerationOrigin": str(acceleration.origin),
+                "temperatureOrigin": str(temperature.origin),
+            },
         )
 
     @staticmethod
@@ -427,5 +424,10 @@ def build_runtime(settings: Settings) -> AnomalyRuntime:
         client=LocalDataClient(
             settings.local_data_base_url,
             settings.http_timeout_seconds,
+        ),
+        model_adapter=build_model_adapter(settings),
+        result_store=ResultStore(
+            settings.result_db_path,
+            settings.result_retention_rows,
         ),
     )

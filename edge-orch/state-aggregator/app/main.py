@@ -45,9 +45,15 @@ from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
+    degraded_service_demo_alerts,
+    degraded_service_demo_results,
     degraded_service_demo_state,
 )
-from .service_demo_models import ServiceDemoState
+from .service_demo_models import (
+    ServiceDemoAlertState,
+    ServiceDemoResultState,
+    ServiceDemoState,
+)
 from .service import StateAggregatorService
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
@@ -239,6 +245,30 @@ async def get_service_demo() -> ServiceDemoState:
         return await service_demo_client.get_state()
     except ServiceDemoError as exc:
         return degraded_service_demo_state(exc)
+
+
+@app.get("/state/service-demo/results", response_model=ServiceDemoResultState)
+async def get_service_demo_results(
+    limit: int = Query(default=100, ge=1, le=1_000),
+    anomaly: bool | None = Query(default=None),
+) -> ServiceDemoResultState:
+    try:
+        return await service_demo_client.get_results(
+            limit=limit,
+            anomaly=anomaly,
+        )
+    except ServiceDemoError as exc:
+        return degraded_service_demo_results(exc)
+
+
+@app.get("/state/service-demo/alerts", response_model=ServiceDemoAlertState)
+async def get_service_demo_alerts(
+    limit: int = Query(default=20, ge=1, le=100),
+) -> ServiceDemoAlertState:
+    try:
+        return await service_demo_client.get_alerts(limit=limit)
+    except ServiceDemoError as exc:
+        return degraded_service_demo_alerts(exc)
 
 
 @app.get("/state/devices/{device_id}/telemetry", response_model=list[TelemetryPoint])

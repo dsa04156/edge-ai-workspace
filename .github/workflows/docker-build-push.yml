@@ -8,6 +8,7 @@ name: Build and Push Images to Local Registry
       - ".github/workflows/docker-build-push.yml"
       - ".github/buildkitd.toml"
       - "edge-orch/state-aggregator/**"
+      - "edge-orch/sensor-anomaly-demo/**"
       - "edge-orch/workflow_executor/**"
       - "edge-orch/placement_engine/**"
       - "edge-orch/vision_stage_runner/**"
@@ -78,6 +79,7 @@ jobs:
 
           COMMON='^(\.github/workflows/docker-build-push\.yml|\.github/buildkitd\.toml)$'
           set_output state_aggregator "${COMMON}|^edge-orch/state-aggregator/"
+          set_output sensor_anomaly_demo "${COMMON}|^edge-orch/sensor-anomaly-demo/"
           set_output workflow_executor "${COMMON}|^edge-orch/workflow_executor/"
           set_output placement_engine "${COMMON}|^edge-orch/placement_engine/"
           set_output vision_stage_runner "${COMMON}|^edge-orch/vision_stage_runner/"
@@ -107,6 +109,19 @@ jobs:
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/state-aggregator-build-metadata.json)
           test -n "${DIGEST}" && test "${DIGEST}" != "null"
           echo "STATE_AGGREGATOR_IMAGE=${{ env.REGISTRY }}/state-aggregator@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Build and Push sensor-anomaly-demo
+        if: steps.changes.outputs.sensor_anomaly_demo == 'true'
+        run: |
+          docker buildx build --platform linux/arm64 \
+            -t ${{ env.REGISTRY }}/sensor-anomaly-demo:latest \
+            -f edge-orch/sensor-anomaly-demo/Dockerfile \
+            edge-orch/sensor-anomaly-demo \
+            --metadata-file /tmp/sensor-anomaly-demo-build-metadata.json \
+            --push
+          DIGEST=$(jq -r '."containerimage.digest"' /tmp/sensor-anomaly-demo-build-metadata.json)
+          test -n "${DIGEST}" && test "${DIGEST}" != "null"
+          echo "SENSOR_ANOMALY_DEMO_IMAGE=${{ env.REGISTRY }}/sensor-anomaly-demo@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Build and Push edge-device-discovery
         if: steps.changes.outputs.adapter_stack == 'true'
@@ -362,6 +377,28 @@ jobs:
           done
           test "${CURRENT_IMAGE}" = "${STATE_AGGREGATOR_IMAGE}"
           kubectl rollout status deployment/state-aggregator -n default --timeout=180s
+
+      - name: Deploy sensor-anomaly-demo image through Argo CD
+        if: steps.changes.outputs.sensor_anomaly_demo == 'true'
+        run: |
+          test -n "${SENSOR_ANOMALY_DEMO_IMAGE}"
+          TARGET_REVISION=${{ github.sha }}
+          kubectl patch application edge-orch-sensor-anomaly-demo -n argocd --type=merge \
+            -p "{\"spec\":{\"source\":{\"targetRevision\":\"${TARGET_REVISION}\",\"kustomize\":{\"images\":[\"${SENSOR_ANOMALY_DEMO_IMAGE}\"]}}}}"
+          kubectl annotate application edge-orch-sensor-anomaly-demo -n argocd \
+            argocd.argoproj.io/refresh=hard \
+            --overwrite
+          CURRENT_IMAGE=""
+          for attempt in $(seq 1 90); do
+            CURRENT_IMAGE=$(kubectl get deployment sensor-anomaly-demo -n edgex-edge \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if [ "${CURRENT_IMAGE}" = "${SENSOR_ANOMALY_DEMO_IMAGE}" ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "${CURRENT_IMAGE}" = "${SENSOR_ANOMALY_DEMO_IMAGE}"
+          kubectl rollout status deployment/sensor-anomaly-demo -n edgex-edge --timeout=240s
 
       - name: Deploy mqttvirtual mapper latest image
         if: steps.changes.outputs.mqttvirtual == 'true'

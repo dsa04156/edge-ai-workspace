@@ -71,6 +71,7 @@
 <li><a href="../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
 <li><a href="../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
 <li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
 <li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
@@ -158,13 +159,20 @@
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/변경-기록.md</span>
-            <span class="badge">수정: 2026-08-03 16:26</span>
-            <span class="badge">HTML 생성: 2026-08-03 16:28</span>
+            <span class="badge">수정: 2026-08-03 17:06</span>
+            <span class="badge">HTML 생성: 2026-08-03 17:15</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="위키-변경-기록">위키 변경 기록</h1>
 <p>이 파일은 append-only로 유지한다. ingest, query, lint 과정에서 wiki가 어떻게 바뀌었는지 기록한다.</p>
+<h2 id="2026-08-03-ingest-옥동-데이터-계약-replay-ai-결과-저장-기준선">[2026-08-03] ingest | 옥동 데이터 계약·Replay·AI 결과 저장 기준선</h2>
+<ul><li>근거: <code>edge-orch/sensor-anomaly-demo/app/contracts.py</code>, <code>replay.py</code>,</li></ul>
+<p><code>model_adapter.py</code>, <code>storage.py</code>, PVC manifest, <code>state-aggregator</code> 결과·알림 BFF와 테스트</p>
+<ul><li>갱신: <code>docs/옥동-데이터-계약.md</code>, <code>docs/문서-안내.md</code>, <code>docs/프로젝트-범위.md</code>,</li></ul>
+<p><code>docs/저장소-구조.md</code>, <code>docs/현재-구현-상태.md</code>, 지식 지도</p>
+<ul><li>메모: 옥동 현장 field를 임의로 고정하지 않고 서비스 2종의 versioned schema를 만들었다.</li></ul>
+<p>펌프 JSONL Replay는 기존 Local Data 계약으로 흘러가며 파생 결과와 발생·복귀 알림은 EdgeX 원시 저장소와 분리된 SQLite/PVC에 idempotent하게 저장한다. 현재 모델은 통계 기준선이고 생산품질 실행, 중앙 HA 결과 저장과 원시 telemetry offline replay는 미구현이다.</p>
 <h2 id="2026-07-30-ingest-웹-단일-연결과-mqtt-개발-package-반영">[2026-07-30] ingest | 웹 단일 연결과 MQTT 개발 package 반영</h2>
 <ul><li>근거: <code>edge-orch/state-aggregator/app/config/adapter_catalog.json</code>,</li></ul>
 <p><code>app/static/device-management.js</code>, <code>edgex/adapter-controller/app/runtime_settings.py</code>, <code>config/runtime_templates.json</code>, MQTT simulator development overlay와 자동 테스트</p>
@@ -269,7 +277,8 @@
 <p>기관별 역할과 산출물만 남겼다. 데이터 항목, 장애 시나리오, 화면 목록과 구현 증거는 기존 별첨 기술·운영 문서로 연결했으며 계획 목표와 현재 완료 상태를 분리했다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-07-30-ingest-웹-단일-연결과-mqtt-개발-package-반영">[2026-07-30] ingest | 웹 단일 연결과 MQTT 개발 package 반영</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-08-03-ingest-옥동-데이터-계약-replay-ai-결과-저장-기준선">[2026-08-03] ingest | 옥동 데이터 계약·Replay·AI 결과 저장 기준선</a></li>
+<li class="toc-h2"><a href="#2026-07-30-ingest-웹-단일-연결과-mqtt-개발-package-반영">[2026-07-30] ingest | 웹 단일 연결과 MQTT 개발 package 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-30-ingest-물리-장비-그룹과-클릭형-상세정보-ui-반영">[2026-07-30] ingest | 물리 장비 그룹과 클릭형 상세정보 UI 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-23-ingest-프로토콜-우선-등록과-다중-serial-binding-계약-반영">[2026-07-23] ingest | 프로토콜 우선 등록과 다중 Serial binding 계약 반영</a></li>
 <li class="toc-h2"><a href="#2026-07-23-ingest-dashboard-adapter-runtime-device-연결-관리-반영">[2026-07-23] ingest | Dashboard Adapter Runtime·Device 연결 관리 반영</a></li>

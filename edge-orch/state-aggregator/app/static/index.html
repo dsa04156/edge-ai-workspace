@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=multi-sensor-score-20260803" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=persistent-alerts-20260803" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
@@ -305,6 +305,10 @@
                   <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
                 </dl>
                 <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+                <dl class="service-demo-alert-summary" aria-label="이상 알림 이력">
+                  <div><dt>알림 이력</dt><dd id="serviceDemoAlertCount">관측 대기</dd></div>
+                  <div><dt>최근 전환</dt><dd id="serviceDemoAlertLatest">관측 대기</dd></div>
+                </dl>
               </details>
               <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
             </div>
@@ -1328,7 +1332,7 @@
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
     <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
-    <script src="/static/service-demo.js?v=multi-sensor-score-20260803"></script>
+    <script src="/static/service-demo.js?v=persistent-alerts-20260803"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=multi-sensor-score-v10-20260803"></script>
     <script src="/static/service-designer-viewport.js?v=bounded-fast-drag-v7-20260731"></script>

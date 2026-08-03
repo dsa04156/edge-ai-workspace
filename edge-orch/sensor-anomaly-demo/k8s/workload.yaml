@@ -42,6 +42,8 @@ spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 15
       securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -85,6 +87,22 @@ spec:
               value: "0.7"
             - name: TEMPERATURE_WEIGHT
               value: "0.3"
+            - name: MODEL_BACKEND
+              value: online-baseline
+            - name: MODEL_VERSION
+              value: baseline-1.0.0
+            - name: SERVICE_DEVICE_ID
+              value: arduino-001
+            - name: SERVICE_ASSET_ID
+              value: arduino-001
+            - name: SERVICE_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: RESULT_DB_PATH
+              value: /var/lib/sensor-anomaly-demo/results.db
+            - name: RESULT_RETENTION_ROWS
+              value: "100000"
           ports:
             - name: http
               containerPort: 8080
@@ -126,6 +144,11 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: state
+              mountPath: /var/lib/sensor-anomaly-demo
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: state
+          persistentVolumeClaim:
+            claimName: sensor-anomaly-demo-state

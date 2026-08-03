@@ -4,9 +4,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  buildServiceDemoAlertView,
   buildServiceDemoView,
   refreshServiceDemo,
+  refreshServiceDemoAlerts,
   renderServiceDemo,
+  renderServiceDemoAlerts,
 } = require("../app/static/service-demo.js");
 
 
@@ -215,6 +218,44 @@ test("refreshes from the failure-isolated service demo endpoint", async () => {
 });
 
 
+test("renders persisted alert transitions without injecting markup", async () => {
+  const view = buildServiceDemoAlertView({
+    mode: "live",
+    count: 2,
+    alerts: [{
+      transition: "cleared",
+      status: "closed",
+      score: 0.25,
+      observed_at: "2026-08-03T10:00:00Z",
+    }],
+  });
+  assert.equal(view.count, "2건");
+  assert.match(view.latest, /정상 복귀 · 점수 0\.25/);
+
+  const elements = {
+    serviceDemoAlertCount: {textContent: ""},
+    serviceDemoAlertLatest: {textContent: ""},
+  };
+  const documentRef = {getElementById: (id) => elements[id]};
+  renderServiceDemoAlerts({mode: "live", count: 0, alerts: []}, documentRef);
+  assert.equal(elements.serviceDemoAlertCount.textContent, "0건");
+  assert.equal(elements.serviceDemoAlertLatest.textContent, "알림 없음");
+
+  let request = null;
+  await refreshServiceDemoAlerts(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => ({mode: "live", count: 0, alerts: []}),
+    };
+  }, documentRef);
+  assert.deepEqual(request, {
+    url: "/state/service-demo/alerts?limit=10",
+    options: {cache: "no-store"},
+  });
+});
+
+
 test("dashboard ships a responsive accessible live demo panel", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
@@ -229,14 +270,16 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoVibrationScore", "serviceDemoTemperatureScore", "serviceDemoScore",
     "serviceDemoTemperatureContext", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
     "serviceDemoInputAge",
+    "serviceDemoAlertCount", "serviceDemoAlertLatest",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=multi-sensor-score-20260803/);
-  assert.match(html, /service-demo\.js\?v=multi-sensor-score-20260803/);
+  assert.match(html, /service-demo\.css\?v=persistent-alerts-20260803/);
+  assert.match(html, /service-demo\.js\?v=persistent-alerts-20260803/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /\.service-demo-alert-summary/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

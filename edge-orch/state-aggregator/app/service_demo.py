@@ -1,24 +1,30 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 import httpx
 from pydantic import ValidationError
 
 from .service_demo_models import (
+    ServiceDemoAlertState,
+    ServiceDemoAlertTransition,
     ServiceDemoAxisValues,
     ServiceDemoBinding,
     ServiceDemoComponentScores,
     ServiceDemoCounters,
     ServiceDemoLatest,
     ServiceDemoModel,
+    ServiceDemoResultState,
     ServiceDemoScoreWeights,
     ServiceDemoState,
     ServiceDemoTemperatureFeatures,
     ServiceDemoVibrationFeatures,
+    UpstreamAlertEnvelope,
+    UpstreamLatest,
+    UpstreamResultEnvelope,
     UpstreamServiceStatus,
 )
-
 
 DEMO_INPUT_DEVICES = [
     "virtual-acceleration-x-001",
@@ -53,21 +59,7 @@ class ServiceDemoClient:
         self.transport = transport
 
     async def get_state(self) -> ServiceDemoState:
-        try:
-            async with httpx.AsyncClient(
-                timeout=self.timeout_seconds,
-                transport=self.transport,
-            ) as client:
-                response = await client.get(f"{self.base_url}/api/v1/status")
-                response.raise_for_status()
-        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
-            raise ServiceDemoBackendError("sensor anomaly demo request failed") from exc
-        try:
-            payload = response.json()
-        except ValueError as exc:
-            raise ServiceDemoResponseError(
-                "sensor anomaly demo returned invalid JSON"
-            ) from exc
+        payload = await self._request("/api/v1/status")
         try:
             upstream = UpstreamServiceStatus.model_validate(payload)
         except ValidationError as exc:
@@ -76,50 +68,79 @@ class ServiceDemoClient:
             ) from exc
         return self._normalize(upstream)
 
+    async def get_results(
+        self,
+        *,
+        limit: int,
+        anomaly: bool | None = None,
+    ) -> ServiceDemoResultState:
+        parameters: dict[str, Any] = {"limit": limit}
+        if anomaly is not None:
+            parameters["anomaly"] = str(anomaly).lower()
+        payload = await self._request("/api/v1/results", params=parameters)
+        try:
+            upstream = UpstreamResultEnvelope.model_validate(payload)
+        except ValidationError as exc:
+            raise ServiceDemoResponseError(
+                "sensor anomaly result response failed validation"
+            ) from exc
+        return ServiceDemoResultState(
+            generated_at=datetime.now(timezone.utc),
+            mode="live",
+            count=upstream.count,
+            results=[self._latest(row) for row in upstream.results],
+        )
+
+    async def get_alerts(self, *, limit: int) -> ServiceDemoAlertState:
+        payload = await self._request("/api/v1/alerts", params={"limit": limit})
+        try:
+            upstream = UpstreamAlertEnvelope.model_validate(payload)
+        except ValidationError as exc:
+            raise ServiceDemoResponseError(
+                "sensor anomaly alert response failed validation"
+            ) from exc
+        return ServiceDemoAlertState(
+            generated_at=datetime.now(timezone.utc),
+            mode="live",
+            count=upstream.count,
+            alerts=[
+                ServiceDemoAlertTransition(**row.model_dump())
+                for row in upstream.alerts
+            ],
+        )
+
+    async def _request(
+        self,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+    ) -> Any:
+        try:
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.get(
+                    f"{self.base_url}{path}",
+                    params=params,
+                )
+                response.raise_for_status()
+        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
+            raise ServiceDemoBackendError("sensor anomaly demo request failed") from exc
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise ServiceDemoResponseError(
+                "sensor anomaly demo returned invalid JSON"
+            ) from exc
+
     @staticmethod
     def _normalize(upstream: UpstreamServiceStatus) -> ServiceDemoState:
-        latest = None
-        if upstream.latest is not None:
-            latest = ServiceDemoLatest(
-                origin=upstream.latest.origin,
-                observed_at=upstream.latest.observed_at,
-                values=ServiceDemoAxisValues(
-                    x=upstream.latest.values.x,
-                    y=upstream.latest.values.y,
-                    z=upstream.latest.values.z,
-                ),
-                magnitude=upstream.latest.magnitude,
-                score=upstream.latest.score,
-                anomaly=upstream.latest.anomaly,
-                component_scores=(
-                    ServiceDemoComponentScores(
-                        **upstream.latest.component_scores.model_dump()
-                    )
-                    if upstream.latest.component_scores is not None
-                    else None
-                ),
-                weights=(
-                    ServiceDemoScoreWeights(
-                        **upstream.latest.weights.model_dump()
-                    )
-                    if upstream.latest.weights is not None
-                    else None
-                ),
-                vibration_features=(
-                    ServiceDemoVibrationFeatures(
-                        **upstream.latest.vibration_features.model_dump()
-                    )
-                    if upstream.latest.vibration_features is not None
-                    else None
-                ),
-                temperature_features=(
-                    ServiceDemoTemperatureFeatures(
-                        **upstream.latest.temperature_features.model_dump()
-                    )
-                    if upstream.latest.temperature_features is not None
-                    else None
-                ),
-            )
+        latest = (
+            ServiceDemoClient._latest(upstream.latest)
+            if upstream.latest is not None
+            else None
+        )
         return ServiceDemoState(
             generated_at=datetime.now(timezone.utc),
             mode="live",
@@ -137,6 +158,45 @@ class ServiceDemoClient:
             last_error=upstream.last_error,
         )
 
+    @staticmethod
+    def _latest(upstream: UpstreamLatest) -> ServiceDemoLatest:
+        return ServiceDemoLatest(
+            origin=upstream.origin,
+            observed_at=upstream.observed_at,
+            values=ServiceDemoAxisValues(
+                x=upstream.values.x,
+                y=upstream.values.y,
+                z=upstream.values.z,
+            ),
+            magnitude=upstream.magnitude,
+            score=upstream.score,
+            anomaly=upstream.anomaly,
+            model_version=upstream.model_version,
+            input_contract=upstream.input_contract,
+            component_scores=(
+                ServiceDemoComponentScores(**upstream.component_scores.model_dump())
+                if upstream.component_scores is not None
+                else None
+            ),
+            weights=(
+                ServiceDemoScoreWeights(**upstream.weights.model_dump())
+                if upstream.weights is not None
+                else None
+            ),
+            vibration_features=(
+                ServiceDemoVibrationFeatures(**upstream.vibration_features.model_dump())
+                if upstream.vibration_features is not None
+                else None
+            ),
+            temperature_features=(
+                ServiceDemoTemperatureFeatures(
+                    **upstream.temperature_features.model_dump()
+                )
+                if upstream.temperature_features is not None
+                else None
+            ),
+        )
+
 
 def degraded_service_demo_state(exc: Exception) -> ServiceDemoState:
     return ServiceDemoState(
@@ -149,5 +209,27 @@ def degraded_service_demo_state(exc: Exception) -> ServiceDemoState:
         counters=ServiceDemoCounters(),
         observation_error=(
             f"sensor anomaly demo unavailable: {exc.__class__.__name__}"
+        ),
+    )
+
+
+def degraded_service_demo_results(exc: Exception) -> ServiceDemoResultState:
+    return ServiceDemoResultState(
+        generated_at=datetime.now(timezone.utc),
+        mode="unavailable",
+        count=0,
+        observation_error=(
+            f"sensor anomaly results unavailable: {exc.__class__.__name__}"
+        ),
+    )
+
+
+def degraded_service_demo_alerts(exc: Exception) -> ServiceDemoAlertState:
+    return ServiceDemoAlertState(
+        generated_at=datetime.now(timezone.utc),
+        mode="unavailable",
+        count=0,
+        observation_error=(
+            f"sensor anomaly alerts unavailable: {exc.__class__.__name__}"
         ),
     )

@@ -4,14 +4,13 @@ import httpx
 import pytest
 
 from app.local_data import (
+    TEMPERATURE_SOURCE,
     AxisSource,
     LocalDataClient,
     LocalDataResponseError,
     LocalDataUnavailable,
-    TEMPERATURE_SOURCE,
 )
 from app.models import AxisSample
-
 
 SOURCE = AxisSource(
     axis="x",
@@ -50,9 +49,7 @@ def test_client_uses_source_identity_and_origin_cursor() -> None:
                 "resourceName": SOURCE.resource_name,
                 "count": 1,
                 "retention": {"maxAge": "10m0s", "maxSamples": 10_000},
-                "samples": [
-                    {"origin": 150, "valueType": "Int32", "value": 7}
-                ],
+                "samples": [{"origin": 150, "valueType": "Int32", "value": 7}],
             },
         )
 
@@ -73,7 +70,9 @@ def test_client_uses_source_identity_and_origin_cursor() -> None:
     assert rows[0].value == 7
 
 
-def test_client_reads_temperature_context_through_the_same_local_data_contract() -> None:
+def test_client_reads_temperature_context_through_the_same_local_data_contract() -> (
+    None
+):
     async def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path.endswith(
             "/api/v3/localdata/device/name/virtual-temperature-001/"
@@ -88,9 +87,7 @@ def test_client_reads_temperature_context_through_the_same_local_data_contract()
                 "resourceName": TEMPERATURE_SOURCE.resource_name,
                 "count": 1,
                 "retention": {"maxAge": "10m0s", "maxSamples": 10_000},
-                "samples": [
-                    {"origin": 150, "valueType": "Int32", "value": 300}
-                ],
+                "samples": [{"origin": 150, "valueType": "Int32", "value": 300}],
             },
         )
 
@@ -114,6 +111,29 @@ def test_client_reads_temperature_context_through_the_same_local_data_contract()
     assert rows == [AxisSample(origin=150, value_type="Int32", value=300)]
 
 
+def test_client_accepts_finite_float64_for_replay_and_future_sensor_profiles() -> None:
+    payload = valid_payload()
+    payload["samples"] = [{"origin": 150, "valueType": "Float64", "value": 7.25}]
+
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=payload)
+
+    async def run() -> list:
+        client = LocalDataClient(
+            "http://device.test:59910",
+            timeout_seconds=2.0,
+            transport=httpx.MockTransport(handler),
+        )
+        try:
+            return await client.fetch(SOURCE, from_origin=None, to_origin=200)
+        finally:
+            await client.close()
+
+    assert asyncio.run(run()) == [
+        AxisSample(origin=150, value_type="Float64", value=7.25)
+    ]
+
+
 @pytest.mark.parametrize(
     "change",
     [
@@ -123,7 +143,7 @@ def test_client_reads_temperature_context_through_the_same_local_data_contract()
         {"resourceName": "wrong-resource"},
         {"count": 2},
         {"retention": {"maxAge": "10m0s", "maxSamples": 0}},
-        {"samples": [{"origin": 150, "valueType": "Float64", "value": 7.0}]},
+        {"samples": [{"origin": 150, "valueType": "String", "value": "7"}]},
         {"samples": [{"origin": 0, "valueType": "Int32", "value": 7}]},
         {"samples": [{"origin": 150, "valueType": "Int32", "value": True}]},
     ],

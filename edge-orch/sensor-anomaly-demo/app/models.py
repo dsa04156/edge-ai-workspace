@@ -6,8 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 AxisName = Literal["x", "y", "z"]
+NumericValue = int | float
 DetectionStatus = Literal["warming_up", "normal", "anomaly"]
 RuntimeStatus = Literal["starting", "warming_up", "normal", "anomaly", "degraded"]
 InputState = Literal["waiting", "fresh", "stale", "error"]
@@ -18,15 +18,15 @@ RuntimeModelState = Literal["warming_up", "ready"]
 class AxisSample:
     origin: int
     value_type: str
-    value: int
+    value: NumericValue
 
 
 @dataclass(frozen=True)
 class AccelerationFrame:
     origin: int
-    x: int
-    y: int
-    z: int
+    x: NumericValue
+    y: NumericValue
+    z: NumericValue
 
 
 @dataclass
@@ -66,7 +66,7 @@ class VibrationFeatures:
 @dataclass(frozen=True)
 class TemperatureFeatures:
     origin: int
-    raw: int
+    raw: NumericValue
     mean: float
     stddev: float
     delta: float
@@ -120,9 +120,9 @@ class ApiModel(BaseModel):
 
 
 class AxisValues(ApiModel):
-    x: int
-    y: int
-    z: int
+    x: NumericValue
+    y: NumericValue
+    z: NumericValue
 
 
 class SourceIdentity(ApiModel):
@@ -138,10 +138,12 @@ class LatestObservation(ApiModel):
     magnitude: float
     score: float
     anomaly: bool
-    component_scores: "ComponentScores | None" = None
-    weights: "ScoreWeights | None" = None
-    vibration_features: "VibrationFeatureObservation | None" = None
-    temperature_features: "TemperatureFeatureObservation | None" = None
+    model_version: str = "baseline-1.0.0"
+    input_contract: str = "okdong.pump-motor.telemetry/v1"
+    component_scores: ComponentScores | None = None
+    weights: ScoreWeights | None = None
+    vibration_features: VibrationFeatureObservation | None = None
+    temperature_features: TemperatureFeatureObservation | None = None
 
 
 class ComponentScores(ApiModel):
@@ -163,7 +165,7 @@ class VibrationFeatureObservation(ApiModel):
 
 class TemperatureFeatureObservation(ApiModel):
     origin: int = Field(gt=0)
-    raw: int
+    raw: NumericValue
     mean: float
     stddev: float = Field(ge=0)
     delta: float
@@ -183,6 +185,7 @@ class FeatureModelObservation(ApiModel):
 
 class ModelObservation(ApiModel):
     algorithm: str
+    version: str = "baseline-1.0.0"
     sample_count: int
     warmup_samples: int
     threshold: float
@@ -220,3 +223,31 @@ class ResultEnvelope(ApiModel):
     api_version: Literal["v1"] = "v1"
     count: int
     results: list[LatestObservation]
+
+
+class AlertTransition(ApiModel):
+    alert_id: str
+    transition: Literal["opened", "cleared"]
+    status: Literal["open", "closed"]
+    origin: int = Field(gt=0)
+    observed_at: datetime
+    asset_id: str
+    score: float = Field(ge=0)
+    model_version: str
+    message: str
+
+
+class AlertEnvelope(ApiModel):
+    api_version: Literal["v1"] = "v1"
+    count: int
+    alerts: list[AlertTransition]
+
+
+class StorageStatus(ApiModel):
+    api_version: Literal["v1"] = "v1"
+    backend: Literal["sqlite"] = "sqlite"
+    durable: bool
+    result_count: int = Field(ge=0)
+    alert_event_count: int = Field(ge=0)
+    open_alert_count: int = Field(ge=0)
+    retention_rows: int = Field(ge=1)
