@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-설계-캔버스.md</span>
-            <span class="badge">수정: 2026-08-03 18:32</span>
-            <span class="badge">HTML 생성: 2026-08-03 18:34</span>
+            <span class="badge">수정: 2026-08-03 18:52</span>
+            <span class="badge">HTML 생성: 2026-08-03 18:53</span>
           </div>
         </header>
         <div class="doc-body">
@@ -185,7 +185,7 @@
                                       v
 state-aggregator read-only API -&gt; 서비스 설계 캔버스
                                       |
-                                      +-&gt; 브라우저 localStorage 초안
+                                      +-&gt; 브라우저 localStorage 일반·서비스별 초안
                                       +-&gt; validation
                                       +-&gt; dry-run 실행 계획 미리보기</code></pre>
 <p>사용 API:</p>
@@ -209,15 +209,15 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 </tr>
 </tbody></table></div>
 <p><code>/state/device-profiles</code>는 resource <code>name</code>, <code>valueType</code>, <code>readWrite</code>, <code>units</code>만 노출한다. protocol address나 DeviceResource <code>attributes</code>는 브라우저 설계 입력으로 전달하지 않는다.</p>
-<h2 id="운영-서비스-설계-보기">운영 서비스 설계 보기</h2>
-<p>현재 <code>sensor-anomaly-demo</code> 행의 <code>설계 보기</code>를 누르면 <code>design_contract.contract_id=sensor-anomaly-demo-v1</code>을 다음 10개 단계와 9개 연결로 재구성한다.</p>
+<h2 id="운영-서비스-설계-편집">운영 서비스 설계 편집</h2>
+<p>현재 <code>sensor-anomaly-demo</code> 행의 <code>설계 편집</code>을 누르면 <code>design_contract.contract_id=sensor-anomaly-demo-v1</code>을 다음 10개 단계와 9개 연결로 재구성해 브라우저 편집 초안으로 복사한다.</p>
 <pre data-lang="text"><code>가속도 X/Y/Z -&gt; 진동 특징(20 sample) -&gt; 진동 점수 ─┐
 온도 --------&gt; 구간 특징(10 sample) -&gt; 온도 점수 ─┼-&gt; 0.7/0.3 결합 -&gt; 결과
                                                     ┘</code></pre>
-<p>설정 패널에서는 입력 Device/DeviceResource, <code>local_recent</code>, 알고리즘 이름, window, warm-up, threshold, model version, 결합 방식과 가중치를 확인한다. 이 값은 화면이 실행 Pod를 역추론한 결과가 아니라 고정 workload가 <code>/state/services</code>로 공개한 versioned 계약이다. 계약 형식이 바뀌면 새 contract ID와 별도 renderer가 필요하다.</p>
-<p>운영 설계 모드는 읽기 전용이다. 단계 추가·삭제·이동, 포트 연결, 설정 변경, 이름 변경과 브라우저 저장을 허용하지 않는다. <code>설계 검증</code>은 현재 EdgeX inventory에 대한 읽기 전용 확인만 수행하며 실행을 요청하지 않는다. 운영 설계를 열기 전의 초안은 메모리에 보존하고 <code>초안으로 돌아가기</code>를 누르면 선택 단계와 변경 상태까지 복구한다. 지원하는 <code>design_contract</code>가 없는 서비스는 임의 단계나 연결을 생성하지 않고 설계 정보가 없다고 표시한다.</p>
+<p>설정 패널에서는 입력 Device/DeviceResource, <code>local_recent</code>, 알고리즘 이름, window, warm-up, threshold, model version, 결합 방식과 가중치를 수정한다. 단계 추가·삭제·이동, 포트 연결 변경과 서비스·단계 이름 변경도 일반 초안과 동일하게 동작한다. 이 값은 화면이 실행 Pod를 역추론한 결과가 아니라 고정 workload가 <code>/state/services</code>로 공개한 versioned 계약이다. 계약 형식이 바뀌면 새 contract ID와 별도 renderer가 필요하다.</p>
+<p>이 편집은 실제 운영 Deployment를 직접 수정하지 않는다. <code>설계 검증</code>은 현재 EdgeX inventory에 대한 확인과 dry-run 계획만 만들며 실행을 요청하지 않는다. <code>이 브라우저에 저장</code>은 서비스 ID와 contract ID가 일치하는 별도 localStorage 키에 저장한다. 운영 설계를 열기 전의 일반 초안은 보존하고 <code>기존 초안으로 돌아가기</code>를 누르면 선택 단계와 변경 상태까지 복구한다. 서비스 초안도 유지되어 다시 열 때 <code>편집 계속</code>으로 이어진다. <code>원본으로 초기화</code>는 해당 서비스의 저장 초안을 지우고 현재 versioned 계약에서 다시 구성한다. 지원하는 <code>design_contract</code>가 없는 서비스는 임의 단계나 연결을 생성하지 않고 설계 정보가 없다고 표시한다. inventory, 서비스 상태와 Profile의 주기적 갱신은 사용자가 편집 중인 graph를 다시 만들거나 덮어쓰지 않는다.</p>
 <h2 id="실행-서비스와-설계-블록-구분">실행 서비스와 설계 블록 구분</h2>
-<p>화면 상단 <code>현재 실행 서비스</code>는 <code>/state/services</code>의 read-only 운영 목록이다. 현재는 Argo CD로 별도 배포되는 고정 <code>sensor-anomaly-demo</code> 1개를 표시하며, 이름·상태·배치 노드· 입력 Device 수·모델 버전과 <code>설계 보기</code> 동작을 제공한다. 선택한 행은 명확한 선택 상태와 <code>보고 있음</code>을 표시한다. upstream이 응답하지 않아도 항목을 제거하지 않고 <code>점검 필요</code>와 관측 오류 상태를 유지하며, 고정 versioned 계약의 구조는 계속 확인할 수 있다.</p>
+<p>화면 상단 <code>현재 실행 서비스</code>는 <code>/state/services</code>의 read-only 운영 목록이다. 현재는 Argo CD로 별도 배포되는 고정 <code>sensor-anomaly-demo</code> 1개를 표시하며, 이름·상태·배치 노드· 입력 Device 수·모델 버전과 <code>설계 편집</code> 동작을 제공한다. 선택한 행은 <code>편집 중</code>, 보존된 초안이 있는 행은 <code>편집 계속</code>을 표시한다. upstream이 응답하지 않아도 항목을 제거하지 않고 <code>점검 필요</code>와 관측 오류 상태를 유지하며, 이미 연 편집 초안을 자동으로 버리지 않는다.</p>
 <p>왼쪽 <code>설계 블록</code> 13개는 실행 중인 Pod 목록이 아니다. 브라우저 안에서 데이터 입력, 전처리, 추론, 점수 결합과 결과 단계를 구성하는 allowlist preset이다. 따라서 운영 서비스 개수와 설계 블록 개수를 합치거나 같은 의미로 표시하지 않는다.</p>
 <h2 id="설계-블록과-단계">설계 블록과 단계</h2>
 <p>왼쪽 패널은 현재 설계에서 사용할 수 있는 블록 계약을 카테고리별로 표시한다.</p>
@@ -300,7 +300,9 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 <ul><li>센서 입력, 추론, 결과 단계 존재</li><li>모든 입력·출력 포트 연결</li><li>순환 연결 차단</li><li>단계별 최대 입력 수</li><li>진동 특징은 숫자 입력 정확히 3개, 점수 결합은 숫자 점수 최소 2개</li><li>가중 평균의 입력별 가중치가 0 이상이고 전체 합이 0보다 큰지 확인</li><li>EdgeX Device와 DeviceResource의 현재 존재 여부</li><li>Device Profile <code>valueType</code>과 다음 단계 입력 타입의 호환성</li><li>전처리·추론 대상 node 존재 여부</li><li><code>local_recent</code> 첫 처리 단계와 물리 source node 일치</li><li>모든 센서 입력에서 결과 단계까지 도달 가능 여부</li></ul>
 <p>Device가 <code>Available</code>이 아니거나 최신 Core Data Event가 <code>fresh</code>가 아니면 오류로 가장하지 않고 주의 항목으로 표시한다. 설계 자체가 올바르더라도 실제 runtime health를 대신하지 않는다.</p>
 <h2 id="초안-저장">초안 저장</h2>
-<p><code>이 브라우저에 저장</code>은 versioned JSON을 브라우저 <code>localStorage</code>의 <code>edge-ai-service-design-v1</code> 키에 저장한다. 서버 DB, Git, EdgeX, Kubernetes에는 쓰지 않는다. 브라우저나 origin이 바뀌면 초안이 공유되지 않는다.</p>
+<p><code>이 브라우저에 저장</code>은 versioned JSON을 브라우저 <code>localStorage</code>에 저장한다.</p>
+<ul><li>일반 초안: <code>edge-ai-service-design-v1</code></li><li>운영 서비스 기반 초안: <code>edge-ai-service-draft-v1:{encoded-service-id}</code></li></ul>
+<p>서비스 초안에는 service ID와 원본 contract ID를 함께 기록한다. 현재 계약 ID와 다르면 오래된 저장 초안을 불러오지 않는다. 서버 DB, Git, EdgeX, Kubernetes에는 쓰지 않는다. 브라우저나 origin이 바뀌면 초안이 공유되지 않으며 실제 배포 변경이나 승인 이력도 아니다.</p>
 <h2 id="현재-미지원">현재 미지원</h2>
 <ul><li>설계 서버 저장과 사용자별 버전 관리</li><li>실제 Workflow Pod 생성·삭제·재시작</li><li>컨테이너 image, command, hostPath 입력</li><li>EdgeX Profile/Device 생성·수정</li><li>actuator command</li><li>runtime migration, placement, offloading</li><li>카메라 RTSP 실행 경로</li><li>캔버스의 임의 graph를 구간별 timestamp 정렬·특징 추출·종합 점수 runtime으로 변환하는 실행 기능</li><li>설계 결과의 운영 실행 이력</li></ul>
 <h2 id="화면-설계-근거">화면 설계 근거</h2>
@@ -322,12 +324,12 @@ node --check edge-orch/state-aggregator/app/static/service-designer-viewport.js
 node --check edge-orch/state-aggregator/app/static/service-designer.js
 node --test edge-orch/state-aggregator/tests/test_service_designer.js
 python -m pytest -q edge-orch/state-aggregator/tests/test_api.py</code></pre>
-<p>브라우저 회귀는 390, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 확대 상태에서 화면 네 경계 밖으로 박스가 빠지지 않는지, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 전후 viewport 고정, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스 선택 시 10개 단계의 읽기 전용 설계와 정확한 입력·window·알고리즘·가중치가 표시되는지, 초안 복귀 시 기존 graph와 변경 상태가 보존되는지 확인한다.</p>
+<p>브라우저 회귀는 390, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 확대 상태에서 화면 네 경계 밖으로 박스가 빠지지 않는지, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 전후 viewport 고정, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스의 <code>설계 편집</code> 선택 시 10개 단계와 정확한 입력·window·알고리즘·가중치가 표시되고 블록·연결·설정을 수정할 수 있는지 확인한다. 서비스 상태·inventory·Profile 자동 갱신 뒤에도 수정값이 유지되는지, <code>기존 초안으로 돌아가기</code> 후 일반 graph와 변경 상태가 복원되는지, <code>편집 계속</code>에서 서비스 수정값이 유지되는지, <code>원본으로 초기화</code>가 계약값으로 되돌리는지도 확인한다. 확인한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
 <li class="toc-h2"><a href="#현재-데이터-경계">현재 데이터 경계</a></li>
-<li class="toc-h2"><a href="#운영-서비스-설계-보기">운영 서비스 설계 보기</a></li>
+<li class="toc-h2"><a href="#운영-서비스-설계-편집">운영 서비스 설계 편집</a></li>
 <li class="toc-h2"><a href="#실행-서비스와-설계-블록-구분">실행 서비스와 설계 블록 구분</a></li>
 <li class="toc-h2"><a href="#설계-블록과-단계">설계 블록과 단계</a></li>
 <li class="toc-h2"><a href="#데이터-접근-방식">데이터 접근 방식</a></li>

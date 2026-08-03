@@ -21,6 +21,7 @@ const {
   wouldCreateCycle,
 } = require("../app/static/service-designer-model.js");
 const {
+  SERVICE_DRAFT_STORAGE_PREFIX,
   STORAGE_KEY,
   accelerationAxisBindingCandidates,
   bindDeployedServiceDesign,
@@ -31,7 +32,10 @@ const {
   fetchDesignerServices,
   fetchDesignerProfiles,
   loadStoredDesign,
+  loadStoredServiceDraft,
   saveStoredDesign,
+  saveStoredServiceDraft,
+  serviceDraftStorageKey,
   sourceBindingCandidate,
 } = require("../app/static/service-designer.js");
 const {
@@ -508,6 +512,18 @@ test("builds and binds the selected deployed service from its versioned contract
     "",
   );
   assert.equal(createDeployedServiceDesign({design_contract: null}), null);
+
+  const edited = updateNode(design, "vibration-features", {
+    config: {windowSize: 40},
+  });
+  assert.equal(
+    edited.nodes.find((node) => node.id === "vibration-features").config.windowSize,
+    40,
+  );
+  assert.equal(
+    design.nodes.find((node) => node.id === "vibration-features").config.windowSize,
+    20,
+  );
 });
 
 test("requires all three vibration axes and at least two valid score weights", () => {
@@ -562,6 +578,38 @@ test("loads and saves only the versioned browser-local draft", () => {
 
   values.set(STORAGE_KEY, JSON.stringify({version: 999, nodes: []}));
   assert.equal(loadStoredDesign(storage), null);
+});
+
+test("stores service edits separately and rejects a stale contract draft", () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+  };
+  const service = deployedSensorAnomalyService();
+  const design = updateNode(
+    createDeployedServiceDesign(service),
+    "vibration-features",
+    {config: {windowSize: 40}},
+  );
+
+  assert.equal(saveStoredServiceDraft(service, design, storage), true);
+  assert.equal(
+    serviceDraftStorageKey(service.service_id),
+    `${SERVICE_DRAFT_STORAGE_PREFIX}sensor-anomaly-demo`,
+  );
+  assert.equal(
+    loadStoredServiceDraft(service, storage).design.nodes
+      .find((node) => node.id === "vibration-features").config.windowSize,
+    40,
+  );
+  assert.equal(
+    loadStoredServiceDraft({
+      ...service,
+      design_contract: {...service.design_contract, contract_id: "future-v2"},
+    }, storage),
+    null,
+  );
 });
 
 test("fetches Device Profile contracts from the read-only state endpoint", async () => {
@@ -780,6 +828,9 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerDeployedList"/);
   assert.match(html, /서비스 선택 · 실제 배포 상태/);
   assert.match(html, /id="serviceDesignerReturnDraft"/);
+  assert.match(html, /id="serviceDesignerReloadService"/);
+  assert.match(html, /기존 초안으로 돌아가기/);
+  assert.match(html, /원본으로 초기화/);
   assert.match(html, /설계 블록/);
   assert.match(html, /id="serviceDesignerReset"[\s\S]*?>3축 데모</);
   assert.match(html, /id="serviceDesignerMultiSensorExample"[\s\S]*?>복합 점수 예시</);
@@ -802,7 +853,13 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(ui, /fetchFn\("\/state\/services", \{cache: "no-store"\}\)/);
   assert.match(ui, /renderDeployedServices/);
   assert.match(ui, /data-deployed-service-design/);
-  assert.match(ui, /openDeployedServiceDesign/);
+  assert.match(ui, /editDeployedServiceDesign/);
+  assert.match(ui, /서비스 초안 · 변경됨/);
+  assert.match(ui, /편집 중/);
+  assert.match(ui, /편집 계속/);
+  assert.match(ui, /설계 편집/);
+  assert.doesNotMatch(ui, /보고 있음/);
+  assert.doesNotMatch(ui, /isDeployedDesignView/);
   assert.match(ui, /model\.addServiceNode\(state\.design, serviceId\)/);
   assert.match(
     ui,
@@ -844,6 +901,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(css, /\.service-designer-deployed-item/);
   assert.match(css, /\.service-designer-deployed-item\.selected/);
   assert.match(css, /\.service-designer-deployed-action:focus-visible/);
+  assert.match(css, /\.service-designer-service-draft-note/);
   assert.match(css, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);

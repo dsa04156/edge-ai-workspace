@@ -2,6 +2,7 @@
   const model = root?.ServiceDesignerModel;
   const viewportModel = root?.ServiceDesignerViewport;
   const STORAGE_KEY = "edge-ai-service-design-v1";
+  const SERVICE_DRAFT_STORAGE_PREFIX = "edge-ai-service-draft-v1:";
   const DRAG_ACTIVATION_PX = 3;
   const DRAG_CLICK_SUPPRESSION_MS = 600;
   const state = {
@@ -14,6 +15,7 @@
     selectedDeployedServiceId: null,
     designMode: "draft",
     draftSnapshot: null,
+    serviceDraftCache: {},
     selectedNodeId: null,
     inspectorOpen: false,
     pendingFromId: null,
@@ -52,8 +54,8 @@
       .replaceAll("'", "&#039;");
   }
 
-  function isDeployedDesignView() {
-    return state.designMode === "deployed";
+  function isServiceDraftView() {
+    return state.designMode === "service-draft";
   }
 
   function cloneDesign(design) {
@@ -93,6 +95,65 @@
     state.design = saved;
     state.dirty = false;
     return true;
+  }
+
+  function serviceDraftStorageKey(serviceId) {
+    return `${SERVICE_DRAFT_STORAGE_PREFIX}${encodeURIComponent(String(serviceId || ""))}`;
+  }
+
+  function loadStoredServiceDraft(service = {}, storage = root?.localStorage) {
+    if (!model || !storage || !service.service_id) return null;
+    try {
+      const raw = storage.getItem(serviceDraftStorageKey(service.service_id));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (
+        parsed?.version !== model.DESIGN_VERSION
+        || parsed?.serviceId !== service.service_id
+        || parsed?.contractId !== service.design_contract?.contract_id
+      ) {
+        return null;
+      }
+      return {
+        ...parsed,
+        design: model.normalizeDesign(parsed.design),
+      };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function saveStoredServiceDraft(
+    service,
+    design,
+    storage = root?.localStorage,
+  ) {
+    if (!storage || !service?.service_id) return false;
+    const updatedAt = new Date().toISOString();
+    const saved = {
+      version: model.DESIGN_VERSION,
+      serviceId: service.service_id,
+      contractId: service.design_contract?.contract_id || "",
+      updatedAt,
+      design: {
+        ...model.normalizeDesign(design),
+        updatedAt,
+      },
+    };
+    storage.setItem(serviceDraftStorageKey(service.service_id), JSON.stringify(saved));
+    state.design = saved.design;
+    state.dirty = false;
+    return true;
+  }
+
+  function removeStoredServiceDraft(serviceId, storage = root?.localStorage) {
+    if (!storage || !serviceId) return false;
+    try {
+      storage.removeItem(serviceDraftStorageKey(serviceId));
+      return true;
+    } catch (_error) {
+      return false;
+    }
   }
 
   function nodeName(node = {}) {
@@ -464,43 +525,74 @@
     return bindMultiSensorScoreExample(design, scopedInventory);
   }
 
-  function rebuildActiveDeployedServiceDesign() {
-    if (!isDeployedDesignView()) return false;
-    const service = state.deployedServices.find(
-      (item) => item.service_id === state.selectedDeployedServiceId,
-    );
-    const design = service && model.createDeployedServiceDesign?.(service);
-    if (!service || !design) return false;
-    state.design = bindDeployedServiceDesign(
-      design,
-      service,
-      state.inventory,
-    ).design;
-    state.selectedNodeId = state.design.nodes.some(
-      (node) => node.id === state.selectedNodeId,
-    ) ? state.selectedNodeId : null;
-    if (!state.selectedNodeId) state.inspectorOpen = false;
-    state.pendingFromId = null;
-    state.selectedEdgeId = null;
-    state.lastValidation = null;
-    state.dirty = false;
-    return true;
-  }
-
-  function openDeployedServiceDesign(serviceId, documentRef = document) {
+  function buildServiceDraft(serviceId) {
     const service = state.deployedServices.find(
       (item) => item.service_id === serviceId,
     );
     const design = service && model.createDeployedServiceDesign?.(service);
+    if (!service || !design) return null;
+    return bindDeployedServiceDesign(
+      design,
+      service,
+      state.inventory,
+    ).design;
+  }
+
+  function cacheActiveServiceDraft() {
+    if (!isServiceDraftView() || !state.selectedDeployedServiceId) return;
+    state.serviceDraftCache[state.selectedDeployedServiceId] = {
+      design: cloneDesign(state.design),
+      dirty: state.dirty,
+      lastValidation: state.lastValidation,
+      selectedNodeId: state.selectedNodeId,
+      inspectorOpen: state.inspectorOpen,
+    };
+  }
+
+  function resetActiveServiceDraft(documentRef = document) {
+    if (!isServiceDraftView()) return false;
+    const serviceId = state.selectedDeployedServiceId;
+    const design = buildServiceDraft(serviceId);
+    if (!design) {
+      setFeedback("서비스 원본 설계 계약을 다시 불러오지 못했습니다.", "error", documentRef);
+      return false;
+    }
+    state.design = design;
+    state.selectedNodeId = null;
+    state.inspectorOpen = false;
+    state.pendingFromId = null;
+    state.selectedEdgeId = null;
+    state.lastValidation = null;
+    state.dirty = false;
+    delete state.serviceDraftCache[serviceId];
+    removeStoredServiceDraft(serviceId);
+    state.viewportInitialized = false;
+    renderAll(documentRef);
+    setDraftState("서비스 초안", "service-draft", documentRef);
+    setFeedback("현재 배포 설계를 편집 초안으로 다시 불러왔습니다.", "ready", documentRef);
+    scheduleCanvasFit(documentRef);
+    return true;
+  }
+
+  function editDeployedServiceDesign(serviceId, documentRef = document) {
+    const service = state.deployedServices.find(
+      (item) => item.service_id === serviceId,
+    );
+    const design = buildServiceDraft(serviceId);
     if (!service || !design) {
       setFeedback(
-        "이 서비스는 표시할 수 있는 검증된 설계 계약이 없습니다.",
+        "이 서비스는 편집할 수 있는 검증된 설계 계약이 없습니다.",
         "error",
         documentRef,
       );
       return false;
     }
-    if (!isDeployedDesignView()) {
+    if (isServiceDraftView() && state.selectedDeployedServiceId === serviceId) {
+      setFeedback("이 서비스 설계를 이미 편집하고 있습니다.", "ready", documentRef);
+      focusDeployedServiceAction(serviceId, documentRef);
+      return true;
+    }
+    if (!isServiceDraftView()) {
       const badge = el("serviceDesignerDraftState", documentRef);
       state.draftSnapshot = {
         design: cloneDesign(state.design),
@@ -513,19 +605,30 @@
         badgeLabel: badge?.textContent || "초안",
         badgeState: badge?.dataset.state || "draft",
       };
-    }
-    state.designMode = "deployed";
+    } else cacheActiveServiceDraft();
+    const cached = state.serviceDraftCache[serviceId];
+    const stored = cached ? null : loadStoredServiceDraft(service);
+    state.designMode = "service-draft";
     state.selectedDeployedServiceId = serviceId;
-    state.design = design;
-    state.selectedNodeId = null;
-    state.inspectorOpen = false;
-    rebuildActiveDeployedServiceDesign();
+    state.design = cached?.design
+      ? cloneDesign(cached.design)
+      : stored?.design
+        ? cloneDesign(stored.design)
+        : design;
+    state.dirty = cached?.dirty ?? false;
+    state.lastValidation = cached?.lastValidation ?? null;
+    state.selectedNodeId = cached?.selectedNodeId ?? null;
+    state.inspectorOpen = cached?.inspectorOpen ?? false;
+    state.pendingFromId = null;
+    state.selectedEdgeId = null;
     state.viewportInitialized = false;
-    state.paletteOpen = false;
+    state.paletteOpen = !root.matchMedia?.("(max-width: 860px)").matches;
     renderAll(documentRef);
-    setDraftState("운영 설계", "deployed", documentRef);
+    setDraftState("서비스 초안", "service-draft", documentRef);
     setFeedback(
-      `${service.display_name || service.service_id}의 실제 고정 배포 계약을 읽기 전용으로 표시합니다.`,
+      cached || stored
+        ? `${service.display_name || service.service_id} 편집 초안을 이어서 엽니다.`
+        : `${service.display_name || service.service_id} 원본을 편집 가능한 초안으로 불러왔습니다. 실제 배포에는 반영되지 않습니다.`,
       "success",
       documentRef,
     );
@@ -534,8 +637,9 @@
     return true;
   }
 
-  function returnToDraft(documentRef = document) {
-    if (!isDeployedDesignView()) return false;
+  function returnToPreviousDraft(documentRef = document) {
+    if (!isServiceDraftView()) return false;
+    cacheActiveServiceDraft();
     const snapshot = state.draftSnapshot;
     const previousServiceId = state.selectedDeployedServiceId;
     state.designMode = "draft";
@@ -551,7 +655,6 @@
     state.inspectorOpen = snapshot?.inspectorOpen ?? false;
     state.pendingFromId = null;
     state.selectedEdgeId = null;
-    state.draftSnapshot = null;
     state.viewportInitialized = false;
     state.paletteOpen = !root.matchMedia?.("(max-width: 860px)").matches;
     renderAll(documentRef);
@@ -560,7 +663,7 @@
       snapshot?.badgeState || (state.dirty ? "draft" : "saved"),
       documentRef,
     );
-    setFeedback("편집 중이던 서비스 초안으로 돌아왔습니다.", "ready", documentRef);
+    setFeedback("기존 브라우저 초안으로 돌아왔습니다. 서비스 편집 내용도 유지됩니다.", "ready", documentRef);
     focusDeployedServiceAction(previousServiceId, documentRef);
     scheduleCanvasFit(documentRef);
     return true;
@@ -660,7 +763,7 @@
   }
 
   function loadSensorAnomalyExample(documentRef = document) {
-    if (isDeployedDesignView()) return;
+    if (isServiceDraftView()) return;
     state.design = model.createSensorAnomalyExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -676,7 +779,7 @@
   }
 
   function loadMultiSensorScoreExample(documentRef = document) {
-    if (isDeployedDesignView()) return;
+    if (isServiceDraftView()) return;
     state.design = model.createMultiSensorScoreExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -706,11 +809,14 @@
   }
 
   function markDirty(message = "설계가 변경되었습니다.", documentRef = document) {
-    if (isDeployedDesignView()) return;
     state.dirty = true;
     state.lastValidation = null;
     state.selectedEdgeId = null;
-    setDraftState("초안", "draft", documentRef);
+    setDraftState(
+      isServiceDraftView() ? "서비스 초안 · 변경됨" : "초안",
+      isServiceDraftView() ? "service-draft" : "draft",
+      documentRef,
+    );
     setFeedback(message, "ready", documentRef);
   }
 
@@ -841,7 +947,7 @@
   }
 
   function setPaletteOpen(open, documentRef = document) {
-    state.paletteOpen = isDeployedDesignView() ? false : Boolean(open);
+    state.paletteOpen = Boolean(open);
     const workbench = el("serviceDesignerWorkbench", documentRef);
     const toggle = el("serviceDesignerPaletteToggle", documentRef);
     workbench?.classList.toggle("palette-open", state.paletteOpen);
@@ -958,7 +1064,6 @@
         .map((issue) => issue.nodeId)
         .filter(Boolean),
     );
-    const readOnly = isDeployedDesignView();
     container.innerHTML = state.design.nodes.map((node) => {
       const definition = model.nodeDefinition(node.type);
       const selected = state.selectedNodeId === node.id;
@@ -967,16 +1072,16 @@
       const inputType = model.nodeInputType(node);
       return `
         <article
-          class="service-designer-node${selected ? " selected" : ""}${readOnly ? " is-read-only" : ""}"
+          class="service-designer-node${selected ? " selected" : ""}"
           data-designer-node="${escapeHtml(node.id)}"
           data-node-type="${escapeHtml(node.type)}"
           data-validity="${errorNodeIds.has(node.id) ? "error" : "ready"}"
           style="left:${Number(node.x)}px;top:${Number(node.y)}px"
           tabindex="0"
-          aria-readonly="${readOnly ? "true" : "false"}"
+          aria-readonly="false"
           aria-label="${escapeHtml(`${node.title}: ${nodeSummary(node)}`)}"
         >
-          ${definition.acceptsInput && !readOnly ? `
+          ${definition.acceptsInput ? `
             <button
               class="service-designer-port input"
               type="button"
@@ -990,20 +1095,18 @@
               <span>${escapeHtml(definition.shortLabel)}</span>
               <strong>${escapeHtml(node.title)}</strong>
             </div>
-            ${readOnly ? "" : `
-              <button
-                class="service-designer-node-delete"
-                type="button"
-                data-designer-delete="${escapeHtml(node.id)}"
-                aria-label="${escapeHtml(`${node.title} 단계 삭제`)}"
-              >삭제</button>
-            `}
+            <button
+              class="service-designer-node-delete"
+              type="button"
+              data-designer-delete="${escapeHtml(node.id)}"
+              aria-label="${escapeHtml(`${node.title} 단계 삭제`)}"
+            >삭제</button>
           </div>
           <div class="service-designer-node-body">
             <p>${escapeHtml(nodeSummary(node))}</p>
             <small>${escapeHtml(definition.description)}</small>
           </div>
-          ${definition.providesOutput && !readOnly ? `
+          ${definition.providesOutput ? `
             <button
               class="service-designer-port output${pending ? " pending" : ""}"
               type="button"
@@ -1034,7 +1137,6 @@
   function renderEdges(documentRef = document) {
     const container = el("serviceDesignerEdges", documentRef);
     if (!container || !state.design) return;
-    const readOnly = isDeployedDesignView();
     const nodes = Object.fromEntries(
       state.design.nodes.map((node) => [node.id, node]),
     );
@@ -1059,9 +1161,10 @@
           >
             <path class="service-designer-edge-path${selected ? " selected" : ""}" d="${path.d}" marker-end="url(#serviceDesignerArrow)"></path>
             <path
-              class="service-designer-edge-target${readOnly ? " is-read-only" : ""}"
+              class="service-designer-edge-target"
               d="${path.d}"
-              ${readOnly ? "" : `data-designer-remove-edge="${escapeHtml(edge.id)}" aria-label="연결 삭제"`}
+              data-designer-remove-edge="${escapeHtml(edge.id)}"
+              aria-label="연결 삭제"
             ></path>
             ${selected ? `<text class="service-designer-edge-label" x="${path.labelX}" y="${path.labelY}">클릭하여 삭제</text>` : ""}
           </g>
@@ -1326,18 +1429,16 @@
         </label>
       `;
     }
-    const readOnly = isDeployedDesignView();
-    body.innerHTML = `${readOnly ? `
-      <p class="service-designer-read-only-note">
-        현재 배포 계약입니다. 설정을 변경하려면 초안으로 돌아가세요.
+    const sourceService = state.deployedServices.find(
+      (service) => service.service_id === state.selectedDeployedServiceId,
+    );
+    body.innerHTML = `${isServiceDraftView() ? `
+      <p class="service-designer-service-draft-note">
+        <strong>${escapeHtml(sourceService?.display_name || sourceService?.service_id || "서비스")}</strong>
+        원본에서 복사한 편집 초안입니다. 변경은 실제 배포에 반영되지 않습니다.
       </p>
     ` : ""}${common}${fields}`;
-    body.dataset.mode = readOnly ? "deployed" : "draft";
-    if (readOnly) {
-      body.querySelectorAll("input, select, textarea, button").forEach((control) => {
-        control.disabled = true;
-      });
-    }
+    body.dataset.mode = isServiceDraftView() ? "service-draft" : "draft";
   }
 
   function renderValidation(documentRef = document) {
@@ -1462,7 +1563,12 @@
     }
     container.innerHTML = state.deployedServices.map((service) => {
       const view = deployedServiceView(service);
-      const selected = state.selectedDeployedServiceId === service.service_id;
+      const selected = isServiceDraftView()
+        && state.selectedDeployedServiceId === service.service_id;
+      const cached = Boolean(
+        state.serviceDraftCache[service.service_id]
+        || loadStoredServiceDraft(service),
+      );
       return `
         <article
           class="service-designer-deployed-item${selected ? " selected" : ""}"
@@ -1489,7 +1595,7 @@
             data-deployed-service-design="${escapeHtml(service.service_id)}"
             aria-pressed="${selected ? "true" : "false"}"
             ${view.designAvailable ? "" : 'disabled aria-disabled="true" title="검증된 설계 계약이 없습니다."'}
-          >${view.designAvailable ? (selected ? "보고 있음" : "설계 보기") : "설계 없음"}</button>
+          >${view.designAvailable ? (selected ? "편집 중" : cached ? "편집 계속" : "설계 편집") : "설계 없음"}</button>
         </article>
       `;
     }).join("");
@@ -1503,7 +1609,6 @@
       el("serviceDesignerPaletteSearch", documentRef)?.value || ""
     ).trim().toLowerCase();
     const catalog = model.buildServiceCatalog(state.inventory);
-    const readOnly = isDeployedDesignView();
     const categoryLabels = new Map(
       (model.SERVICE_CATEGORIES || []).map((category) => [category.id, category.label]),
     );
@@ -1544,7 +1649,7 @@
                 data-designer-service="${escapeHtml(service.id)}"
                 data-service-state="${escapeHtml(service.availability)}"
                 aria-label="${escapeHtml(service.label)} 서비스 추가"
-                ${service.enabled && !readOnly ? "" : `disabled aria-disabled="true" title="${readOnly ? "운영 설계는 읽기 전용입니다." : "현재 선택 가능한 EdgeX 입력이 없습니다."}"`}
+                ${service.enabled ? "" : 'disabled aria-disabled="true" title="현재 선택 가능한 EdgeX 입력이 없습니다."'}
               >
                 <span class="service-designer-service-title">
                   <strong>${escapeHtml(service.label)}</strong>
@@ -1560,13 +1665,13 @@
   }
 
   function renderDesignModeControls(documentRef = document) {
-    const readOnly = isDeployedDesignView();
+    const serviceDraft = isServiceDraftView();
     const nameInput = el("serviceDesignerName", documentRef);
     const returnButton = el("serviceDesignerReturnDraft", documentRef);
-    const draftButtons = [
+    const reloadButton = el("serviceDesignerReloadService", documentRef);
+    const exampleButtons = [
       el("serviceDesignerReset", documentRef),
       el("serviceDesignerMultiSensorExample", documentRef),
-      el("serviceDesignerSave", documentRef),
     ].filter(Boolean);
     const paletteToggle = el("serviceDesignerPaletteToggle", documentRef);
     const paletteClose = el("serviceDesignerPaletteClose", documentRef);
@@ -1576,36 +1681,31 @@
     const canvasStatus = el("serviceDesignerCanvasStatus", documentRef);
     const workbench = el("serviceDesignerWorkbench", documentRef);
     if (nameInput) {
-      nameInput.readOnly = readOnly;
-      nameInput.setAttribute("aria-readonly", String(readOnly));
+      nameInput.readOnly = false;
+      nameInput.setAttribute("aria-readonly", "false");
     }
-    if (returnButton) returnButton.hidden = !readOnly;
-    draftButtons.forEach((button) => {
-      button.hidden = readOnly;
-      button.disabled = readOnly;
+    if (returnButton) returnButton.hidden = !serviceDraft;
+    if (reloadButton) reloadButton.hidden = !serviceDraft;
+    exampleButtons.forEach((button) => {
+      button.hidden = serviceDraft;
+      button.disabled = serviceDraft;
     });
-    if (paletteToggle) paletteToggle.disabled = readOnly;
-    if (paletteClose) paletteClose.disabled = readOnly;
-    if (paletteSearch) paletteSearch.disabled = readOnly;
+    if (paletteToggle) paletteToggle.disabled = false;
+    if (paletteClose) paletteClose.disabled = false;
+    if (paletteSearch) paletteSearch.disabled = false;
     if (validateButton) {
-      validateButton.textContent = readOnly ? "계약 검증" : "설계 검증";
+      validateButton.textContent = "설계 검증";
     }
     if (connectHint) {
-      connectHint.textContent = readOnly
-        ? "단계를 선택하면 실제 설정을 확인할 수 있습니다."
-        : "출력 포트 → 입력 포트";
+      connectHint.textContent = "출력 포트 → 입력 포트";
     }
     if (canvasStatus) {
-      canvasStatus.textContent = readOnly
-        ? "읽기 전용 · 단계를 선택해 배포 설정 확인"
+      canvasStatus.textContent = serviceDraft
+        ? "서비스 원본 기반 편집 초안 · 실제 배포 미반영"
         : "빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제";
     }
-    if (readOnly) {
-      state.paletteOpen = false;
-      setDraftState("운영 설계", "deployed", documentRef);
-    }
     if (workbench) {
-      workbench.dataset.designMode = readOnly ? "deployed" : "draft";
+      workbench.dataset.designMode = serviceDraft ? "service-draft" : "draft";
       workbench.classList.toggle("palette-open", state.paletteOpen);
     }
     paletteToggle?.setAttribute("aria-expanded", String(state.paletteOpen));
@@ -1655,7 +1755,6 @@
   }
 
   function handleOutputPort(nodeId, documentRef = document) {
-    if (isDeployedDesignView()) return;
     state.pendingFromId = state.pendingFromId === nodeId ? null : nodeId;
     if (state.pendingFromId) {
       const node = state.design.nodes.find((item) => item.id === nodeId);
@@ -1671,7 +1770,6 @@
   }
 
   function handleInputPort(nodeId, documentRef = document) {
-    if (isDeployedDesignView()) return;
     if (!state.pendingFromId) {
       setFeedback("먼저 연결할 출력 포트를 누르세요.", "error", documentRef);
       return;
@@ -1693,7 +1791,6 @@
   }
 
   function handleConfigChange(target, documentRef = document) {
-    if (isDeployedDesignView()) return;
     const node = state.design.nodes.find(
       (item) => item.id === state.selectedNodeId,
     );
@@ -1738,8 +1835,12 @@
     if (reviewPanel) reviewPanel.open = true;
     const valid = state.lastValidation.valid;
     setDraftState(
-      isDeployedDesignView() ? "운영 설계" : valid ? "검증됨" : "수정 필요",
-      isDeployedDesignView() ? "deployed" : valid ? "valid" : "invalid",
+      isServiceDraftView() && valid
+        ? "서비스 초안 · 검증됨"
+        : valid
+          ? "검증됨"
+          : "수정 필요",
+      valid ? "valid" : "invalid",
       documentRef,
     );
     setFeedback(
@@ -1760,8 +1861,7 @@
   function updateInventory(data = {}, documentRef = document) {
     state.inventory.devices = Array.isArray(data.devices) ? data.devices : [];
     state.inventory.nodes = Array.isArray(data.nodes) ? data.nodes : [];
-    if (isDeployedDesignView()) rebuildActiveDeployedServiceDesign();
-    else maybeSeedLiveBinding();
+    if (!isServiceDraftView()) maybeSeedLiveBinding();
     renderAll(documentRef);
   }
 
@@ -1793,17 +1893,7 @@
     try {
       state.deployedServices = await fetchDesignerServices(fetchFn);
       state.deployedServicesError = "";
-      if (isDeployedDesignView()) {
-        if (rebuildActiveDeployedServiceDesign()) renderAll(documentRef);
-        else {
-          returnToDraft(documentRef);
-          setFeedback(
-            "선택한 서비스의 설계 계약이 더 이상 제공되지 않습니다.",
-            "error",
-            documentRef,
-          );
-        }
-      } else renderDeployedServices(documentRef);
+      renderDeployedServices(documentRef);
       return true;
     } catch (error) {
       state.deployedServices = [];
@@ -1821,8 +1911,7 @@
   ) {
     try {
       state.inventory.profiles = await fetchDesignerProfiles(fetchFn);
-      if (isDeployedDesignView()) rebuildActiveDeployedServiceDesign();
-      else maybeSeedLiveBinding();
+      if (!isServiceDraftView()) maybeSeedLiveBinding();
       renderAll(documentRef);
       return true;
     } catch (error) {
@@ -1962,8 +2051,7 @@
 
   function startDrag(event, nodeId, documentRef = document) {
     if (
-      isDeployedDesignView()
-      || event.button !== 0
+      event.button !== 0
       || event.target.closest?.("button")
     ) return;
     const node = state.design.nodes.find((item) => item.id === nodeId);
@@ -2175,8 +2263,6 @@
 
   function moveSelectedNodeByKeyboard(event, documentRef = document) {
     if (
-      isDeployedDesignView()
-      ||
       !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
       || !state.selectedNodeId
       || event.target.matches?.("input, select, textarea, button")
@@ -2237,7 +2323,7 @@
       );
       if (deployedDesignButton) {
         if (deployedDesignButton.disabled) return;
-        openDeployedServiceDesign(
+        editDeployedServiceDesign(
           deployedDesignButton.dataset.deployedServiceDesign,
           documentRef,
         );
@@ -2245,7 +2331,7 @@
       }
       const serviceButton = event.target.closest?.("[data-designer-service]");
       if (serviceButton) {
-        if (serviceButton.disabled || isDeployedDesignView()) return;
+        if (serviceButton.disabled) return;
         const serviceId = serviceButton.dataset.designerService;
         state.design = model.addServiceNode(state.design, serviceId);
         const added = state.design.nodes[state.design.nodes.length - 1];
@@ -2279,7 +2365,6 @@
       }
       const deleteButton = event.target.closest?.("[data-designer-delete]");
       if (deleteButton) {
-        if (isDeployedDesignView()) return;
         const nodeId = deleteButton.dataset.designerDelete;
         state.design = model.removeNode(state.design, nodeId);
         if (state.selectedNodeId === nodeId) {
@@ -2304,7 +2389,6 @@
       }
       const edgeTarget = event.target.closest?.("[data-designer-remove-edge]");
       if (edgeTarget) {
-        if (isDeployedDesignView()) return;
         const edgeId = edgeTarget.dataset.designerRemoveEdge;
         if (state.selectedEdgeId !== edgeId) {
           state.selectedEdgeId = edgeId;
@@ -2416,7 +2500,6 @@
       },
     );
     el("serviceDesignerName", documentRef)?.addEventListener("input", (event) => {
-      if (isDeployedDesignView()) return;
       state.design = {
         ...state.design,
         name: event.target.value,
@@ -2432,11 +2515,27 @@
       () => validateCurrentDesign(documentRef),
     );
     el("serviceDesignerSave", documentRef)?.addEventListener("click", () => {
-      if (isDeployedDesignView()) return;
       try {
-        saveStoredDesign(state.design);
-        setDraftState("저장됨", "saved", documentRef);
-        setFeedback("현재 초안을 이 브라우저에 저장했습니다.", "success", documentRef);
+        if (isServiceDraftView()) {
+          const service = state.deployedServices.find(
+            (item) => item.service_id === state.selectedDeployedServiceId,
+          );
+          if (!saveStoredServiceDraft(service, state.design)) {
+            throw new Error("service draft storage unavailable");
+          }
+        } else saveStoredDesign(state.design);
+        setDraftState(
+          isServiceDraftView() ? "서비스 초안 · 저장됨" : "저장됨",
+          isServiceDraftView() ? "service-draft" : "saved",
+          documentRef,
+        );
+        setFeedback(
+          isServiceDraftView()
+            ? "서비스 편집 초안을 이 브라우저에 저장했습니다. 실제 배포에는 반영되지 않습니다."
+            : "현재 초안을 이 브라우저에 저장했습니다.",
+          "success",
+          documentRef,
+        );
       } catch (_error) {
         setFeedback("브라우저 저장소에 초안을 저장하지 못했습니다.", "error", documentRef);
       }
@@ -2450,7 +2549,11 @@
     );
     el("serviceDesignerReturnDraft", documentRef)?.addEventListener(
       "click",
-      () => returnToDraft(documentRef),
+      () => returnToPreviousDraft(documentRef),
+    );
+    el("serviceDesignerReloadService", documentRef)?.addEventListener(
+      "click",
+      () => resetActiveServiceDraft(documentRef),
     );
     documentRef.addEventListener("keydown", (event) => {
       if (moveSelectedNodeByKeyboard(event, documentRef)) return;
@@ -2468,7 +2571,6 @@
       }
       if (
         (event.key === "Delete" || event.key === "Backspace")
-        && !isDeployedDesignView()
         && state.selectedNodeId
         && !event.target.matches("input, select, textarea")
         && event.target.closest?.(".service-designer-page")
@@ -2539,6 +2641,7 @@
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = {
+      SERVICE_DRAFT_STORAGE_PREFIX,
       STORAGE_KEY,
       escapeHtml,
       fetchDesignerProfiles,
@@ -2550,8 +2653,11 @@
       deployedServiceView,
       fetchDesignerServices,
       loadStoredDesign,
+      loadStoredServiceDraft,
       nodeSummary,
       saveStoredDesign,
+      saveStoredServiceDraft,
+      serviceDraftStorageKey,
       sourceBindingCandidate,
       state,
       updateInventory,

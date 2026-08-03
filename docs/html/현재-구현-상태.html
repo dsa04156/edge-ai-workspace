@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-08-03 18:34</span>
-            <span class="badge">HTML 생성: 2026-08-03 18:34</span>
+            <span class="badge">수정: 2026-08-03 18:53</span>
+            <span class="badge">HTML 생성: 2026-08-03 18:53</span>
           </div>
         </header>
         <div class="doc-body">
@@ -175,7 +175,7 @@
 <p>같은 날 일반 Discovery DaemonSet의 Serial-only passive inventory를 dev0003까지 확장했다. Raspberry Pi에 연결된 CH340 계열 USB Serial 장비를 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>(VID/PID <code>1a86:7523</code>)에서 후보 <code>candidate-fb7190f...</code>로 반복 관측했다. 이후 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser, Controller 배포 template과 MPU6050 6축 Float64 JSON-line 처리를 구현했다. exact 후보 승인부터 Runtime, Profile/Device, first Event까지의 fake backend 통합 테스트는 통과했다. live 승인도 실행했지만 당시 Serial telemetry가 없어 첫 Event timeout으로 <code>FAILED</code>가 됐고 Controller가 자신이 만든 동적 Runtime을 rollback했다. 이후 보드를 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별하고 운영 firmware를 compile·flash해 115200 baud 상태 JSON까지 확인했다. firmware는 MPU6050을 1초마다 재탐색하지만 ESP32의 일반 I2C pin pair와 Raspberry Pi bus 1에서 <code>0x68</code>, <code>0x69</code> 모두 ACK가 없었다. 2026-07-30 MPU6050 실물을 분리했고 후보는 <code>STALE</code>/<code>ignored</code> 감사 이력으로 정리했으며 동적 Runtime은 없는 상태다. Profile/parser/template과 자동 테스트는 재연결 실험을 위한 dormant 지원 코드로 남기되 현재 연결 장비나 완료된 telemetry 경로로 표시하지 않는다. Serial Agent와 I2C Agent가 같은 node를 보고해도 서로의 후보를 <code>STALE</code> 처리하지 않도록 report에 <code>scannedProtocols</code> scope를 추가했고, Sense HAT 후보는 계속 <code>EVENT_CONFIRMED</code>를 유지했다. MQTT 자기등록 subscriber는 아직 없다. 대신 공식 <code>device-mqtt:4.0.2</code> immutable image, 노드별 network binding, allowlist broker/topic/QoS Runtime 설정, Device command topic/resource와 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 묶은 개발용 웹 연결 package를 구현했다. 대시보드의 <code>검증하고 연결</code> 한 번으로 validation, Runtime 재사용/배포, Profile/Device readback과 first Event 확인을 진행한다. anonymous broker/publisher는 root 운영 render 밖의 선택적 development fixture다. 이 경로는 자동 테스트와 manifest render뿐 아니라 2026-07-30 실제 클러스터 웹 canary도 통과했다. Jetson에 <code>adapter-mqtt-978887c832</code>를 배포하고 <code>mqtt-temperature-sim-001</code> Device와 <code>edgeai-mqtt-temperature-v1</code> Profile을 등록한 뒤 Core Data의 <code>temperature</code> Float64 Event와 <code>ACTIVE</code> operation을 확인했다. 첫 Event 뒤 <code>operatingState=UP</code> Metadata readback까지 성공해야 연결 완료로 판정한다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 개발용 Modbus endpoint simulator Deployment는 root 운영 render 밖에 남아 있지만 해당 Controller Device Service Runtime은 검증 뒤 퇴역했으며 현재 live EdgeX inventory에는 포함되지 않는다. 이는 개발 simulator 수직 경로의 과거 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <p>대시보드는 전역 <code>간편 보기</code>/<code>전체 보기</code> 토글을 제거했다. 기본 화면에는 핵심 상태만 두고 기술 KPI, 서비스 연결 근거, 후보 세부정보와 개별 EdgeX Device는 클릭해 펼친다. 등록 목록은 기본 운영 경로의 Core Metadata 13개 Device identity를 유지하면서 <code>arduino-001</code>과 <code>sensehat-001</code> 물리 source별 카드로 묶는다. 375px, 768px, 1024px 실제 브라우저 viewport와 MQTT 연결 마법사의 1440px viewport에서 문서 가로 overflow와 잘린 텍스트가 없음을 확인했다.</p>
 <p><code>서비스 설계</code> 캔버스는 실제 <code>/state/dashboard</code> Device/node와 <code>/state/device-profiles</code> DeviceResource 계약을 읽어 센서 입력·전처리·추론·결과 단계를 구성한다. 상단의 <code>현재 실행 서비스</code>는 <code>/state/services</code>를 읽어 고정 <code>sensor-anomaly-demo</code> 1개의 상태, 입력 상태, 모델 상태, 배치 노드와 입력 수를 표시한다. 서비스 응답 장애도 목록에서 숨기지 않고 <code>점검 필요</code>로 표시한다. 왼쪽은 EdgeX 입력 2종, 전처리 6종, 추론 3종, 점수 결합 1종과 결과 1종을 검색하는 13종 설계 블록이며 EdgeX 입력 가능 Device 수와 실행되지 않는 <code>설계용</code> 계약을 구분한다. 단계 이동·추가·삭제, 포트 연결, 속성 편집, DAG·타입·노드 배치 validation, dry-run 실행 계획과 versioned localStorage 초안을 구현했다. 중앙 캔버스는 pan·zoom, fit view, 미니맵, 24px grid·정렬선 snap, <code>Shift</code> 축 고정·<code>Alt</code> 자유 이동과 방향키 미세 이동을 제공한다. 드롭 뒤 viewport를 다시 이동하지 않으며 390/768/1024/1440px에서 문서·캔버스 가로 overflow가 없음을 브라우저로 확인했다. 이는 브라우저 설계 프로토타입이며 서버 저장, Kubernetes/EdgeX mutation과 실제 Workflow 실행은 미구현이다.</p>
-<p><code>/state/services</code>에는 고정 workload의 <code>sensor-anomaly-demo-v1</code> 설계 계약을 추가했다. 서비스 행의 <code>설계 보기</code>는 가속도 X/Y/Z와 온도 입력, 두 feature branch, 두 점수, 0.7/0.3 결합과 결과를 10개 단계로 읽기 전용 표시한다. 입력 Device/DeviceResource, 알고리즘, 20/10 sample window, warm-up, threshold와 model version을 inspector에서 확인할 수 있다. 운영 설계를 보는 동안 초안은 보존되며 복귀 후 기존 graph와 변경 상태가 복원된다. 지원하지 않는 계약은 임의 graph로 표시하지 않는다.</p>
+<p><code>/state/services</code>에는 고정 workload의 <code>sensor-anomaly-demo-v1</code> 설계 계약을 추가했다. 서비스 행의 <code>설계 편집</code>은 가속도 X/Y/Z와 온도 입력, 두 feature branch, 두 점수, 0.7/0.3 결합과 결과를 10개 단계의 브라우저 편집 초안으로 복사한다. 입력 Device/DeviceResource, 알고리즘, 20/10 sample window, warm-up, threshold와 model version을 inspector에서 수정할 수 있고 단계·연결·이름도 편집한다. 기존 일반 초안과 서비스별 초안은 분리 보존하며 <code>편집 중</code>·<code>편집 계속</code>, <code>기존 초안으로 돌아가기</code>, <code>원본으로 초기화</code> 상태를 제공한다. 주기적 inventory/service/Profile 갱신은 편집 중 graph를 덮어쓰지 않는다. 지원하지 않는 계약은 임의 graph로 표시하지 않는다.</p>
 <h2 id="구현-완료">구현 완료</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -369,7 +369,7 @@
 </tr>
 <tr>
 <td>운영 서비스 목록과 EdgeX 기반 서비스 설계 캔버스</td>
-<td><code>/state/services</code>의 실제 운영 서비스 목록·장애 격리 상태와 <code>sensor-anomaly-demo-v1</code>의 입력·알고리즘·window·가중치 계약을 10단계 읽기 전용 graph로 표시한다. 실제 Device/Profile resource 선택, 검색 가능한 13종 초안 설계 블록과 입력 가능 수, 연산 preset 단계 추가·이동·삭제, 포트 연결, pan·zoom·fit view·미니맵, grid·정렬선 snap, Shift/Alt/방향키 이동, 순환·타입·존재·local node validation, dry-run 계획과 browser-local 저장을 제공한다. 운영 설계 선택 전 초안을 보존·복구하고 미지원 계약은 추정하지 않는다. 실행·배포 API 없음</td>
+<td><code>/state/services</code>의 실제 운영 서비스 목록·장애 격리 상태와 <code>sensor-anomaly-demo-v1</code>의 입력·알고리즘·window·가중치 계약을 10단계 브라우저 편집 초안으로 복사한다. 실제 Device/Profile resource 선택, 검색 가능한 13종 설계 블록과 입력 가능 수, 연산 preset 단계 추가·이동·삭제, 포트 연결, pan·zoom·fit view·미니맵, grid·정렬선 snap, Shift/Alt/방향키 이동, 순환·타입·존재·local node validation, dry-run 계획과 일반·서비스별 browser-local 저장을 제공한다. 기존 초안 복귀, 원본 초기화와 자동 갱신 중 편집 보존을 제공하고 미지원 계약은 추정하지 않는다. 실행·배포 API 없음</td>
 </tr>
 </tbody></table></div>
 <h2 id="부분-구현">부분 구현</h2>
@@ -432,7 +432,7 @@
 </tr>
 <tr>
 <td>서비스 설계</td>
-<td>운영 서비스의 versioned 읽기 전용 설계와 EdgeX 입력 바인딩, browser-local DAG와 validation·계획 미리보기</td>
+<td>운영 서비스 versioned 계약 기반의 서비스별 브라우저 편집 초안, EdgeX 입력 바인딩, DAG validation과 계획 미리보기</td>
 <td>일반화된 서버 영속 설계 Registry, 승인 모델, runtime compiler/controller와 실행 이력</td>
 </tr>
 </tbody></table></div>
@@ -550,7 +550,7 @@
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>117 passed</td>
+<td>118 passed</td>
 </tr>
 <tr>
 <td>dev0003 ESP32 firmware</td>

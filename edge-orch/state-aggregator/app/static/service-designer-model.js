@@ -502,7 +502,7 @@
       ...design,
       id: `deployed-${String(service.service_id || "sensor-anomaly-demo")}`,
       name: String(service.display_name || "센서 이상 탐지"),
-      description: "현재 배포된 고정 서비스의 읽기 전용 설계 계약",
+      description: "현재 배포된 고정 서비스 계약에서 만든 편집 초안",
       nodes: design.nodes.map((node) => {
         if (["sensor-x", "sensor-y", "sensor-z", "sensor-context"].includes(node.id)) {
           const binding = inputBindings.get(node.id) || {};

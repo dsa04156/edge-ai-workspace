@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-08-03 18:32</span>
-            <span class="badge">HTML 생성: 2026-08-03 18:34</span>
+            <span class="badge">수정: 2026-08-03 18:51</span>
+            <span class="badge">HTML 생성: 2026-08-03 18:53</span>
           </div>
         </header>
         <div class="doc-body">
@@ -316,12 +316,12 @@
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
 <td>운영 대시보드와 서비스 설계 프로토타입</td>
-<td>운영 현황, 디바이스, 장비 관리에서 EdgeX 상태/history와 고정 서비스 데모를 표시한다. <code>서비스 설계</code>는 <code>/state/services</code>의 실제 운영 서비스 목록과 선택한 지원 서비스의 versioned 설계 계약을 읽기 전용 graph로 표시한다. <code>/state/dashboard</code> Device/node와 <code>/state/device-profiles</code> DeviceResource 계약을 사용한 browser 초안에서는 검색 가능한 13종 설계 블록, 센서 입력·전처리·추론·점수 결합·결과 단계, 포트 연결, 타입·배치 validation, dry-run 실행 계획을 제공한다. 초안은 localStorage에만 저장하며 Kubernetes/EdgeX mutation, command와 실제 workload 실행은 없다. 과거 standalone Workflow Designer를 현행 실행기로 승격하지 않는다. 375/768/1024/1440px 반응형 회귀를 확인한다</td>
+<td>운영 현황, 디바이스, 장비 관리에서 EdgeX 상태/history와 고정 서비스 데모를 표시한다. <code>서비스 설계</code>는 <code>/state/services</code>의 실제 운영 서비스 목록과 선택한 지원 서비스의 versioned 설계 계약을 브라우저 편집 초안으로 복사한다. <code>/state/dashboard</code> Device/node와 <code>/state/device-profiles</code> DeviceResource 계약을 사용해 검색 가능한 13종 설계 블록, 센서 입력·전처리·추론·점수 결합·결과 단계, 포트 연결, 타입·배치 validation, dry-run 실행 계획을 제공한다. 일반 초안과 서비스별 초안은 localStorage에 분리 저장하며 Kubernetes/EdgeX mutation, command와 실제 workload 실행은 없다. 과거 standalone Workflow Designer를 현행 실행기로 승격하지 않는다. 375/768/1024/1440px 반응형 회귀를 확인한다</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/app/static/service-designer-model.js</code>, <code>service-designer-viewport.js</code>, <code>service-designer.js</code></td>
 <td>서비스 설계 구현</td>
-<td>model은 13개 allowlist 설계 preset과 <code>sensor-anomaly-demo-v1</code> 운영 설계 factory, EdgeX 입력 가능 수, 타입 매핑, DAG·배치 validation과 dry-run 계획을 담당한다. UI controller는 <code>/state/services</code> 목록의 선택·읽기 전용 운영 graph·초안 복귀와 현재 가속도 X/Y/Z 및 같은 Jetson의 보조 numeric Device 바인딩을 담당하며, viewport는 pan·zoom·fit view·선택 노드 노출·미니맵 좌표, grid/정렬선 snap과 축 고정 계산을 담당한다. 지원 계약이 없는 서비스를 추정해 표시하지 않는다. 초안의 블록 검색·추가, pointer drag·keyboard 이동, 캔버스·inspector·브라우저 저장까지만 제공하고 실제 실행 control plane은 아니다</td>
+<td>model은 13개 allowlist 설계 preset과 <code>sensor-anomaly-demo-v1</code> 원본 설계 factory, EdgeX 입력 가능 수, 타입 매핑, DAG·배치 validation과 dry-run 계획을 담당한다. UI controller는 <code>/state/services</code> 목록에서 <code>설계 편집</code>·<code>편집 중</code>·<code>편집 계속</code> 상태, 서비스별 편집 초안·일반 초안 복귀·원본 초기화와 현재 가속도 X/Y/Z 및 같은 Jetson의 보조 numeric Device 바인딩을 담당하며, viewport는 pan·zoom·fit view·선택 노드 노출·미니맵 좌표, grid/정렬선 snap과 축 고정 계산을 담당한다. 지원 계약이 없는 서비스를 추정해 표시하지 않는다. 블록 검색·추가·삭제, 포트 변경, pointer drag·keyboard 이동, inspector 편집과 브라우저 저장까지만 제공하고 실제 실행 control plane은 아니다</td>
 </tr>
 </tbody></table></div>
 <p>EdgeX Core Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. Discovery SQLite도 승인 전 후보와 등록 진행을 위한 control-plane 저장소일 뿐 물리 Device inventory가 아니다. 기존 telemetry Agent/SQLite outbox/HTTPS 수직 슬라이스와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 현재 root render에는 Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service가 있고 고정 MQTT 입력 workload나 broker는 없다. MQTT 자기등록 subscriber는 없지만 웹에서 허용 broker 설정을 선언하면 Controller가 검증된 공식 <code>device-mqtt</code>를 필요할 때 배포하는 개발 경로가 있다. broker/publisher fixture는 별도 development overlay다. Modbus는 자동 discovery 없이 Git에 등록한 개발 simulator Unit 1·2 endpoint용 공식 Device Service 등록·Event 경로를 과거 검증했지만 Controller Runtime은 현재 퇴역 상태다. OPC-UA·ONVIF discovery는 미구현이고 RTSP는 별도 media 경로다.</p>
