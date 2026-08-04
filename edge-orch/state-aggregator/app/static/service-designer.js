@@ -1528,6 +1528,83 @@
     unavailable: "모델 확인 불가",
   };
 
+  function conciseFlowTitle(value) {
+    return String(value || "")
+      .replace(/\s*\([^)]*\)\s*/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function summarizeFlowTitles(nodes, fallback, limit = 3) {
+    const titles = (Array.isArray(nodes) ? nodes : [])
+      .map((node) => conciseFlowTitle(node?.title))
+      .filter(Boolean);
+    if (!titles.length) return fallback;
+    if (titles.length <= limit) return titles.join(" · ");
+    return `${titles.slice(0, limit).join(" · ")} 외 ${titles.length - limit}개`;
+  }
+
+  function summarizeSensorInputs(nodes, fallback) {
+    const titles = (Array.isArray(nodes) ? nodes : [])
+      .map((node) => conciseFlowTitle(node?.title))
+      .filter(Boolean);
+    const accelerationAxes = ["X", "Y", "Z"].filter((axis) =>
+      titles.some((title) => title === `가속도 ${axis}`),
+    );
+    if (accelerationAxes.length !== 3) {
+      return summarizeFlowTitles(nodes, fallback, 4);
+    }
+    const remaining = titles.filter((title) => !/^가속도 [XYZ]$/.test(title));
+    return ["가속도 3축", ...remaining].join(" + ");
+  }
+
+  function deployedServiceFlow(service = {}) {
+    const design = model.createDeployedServiceDesign?.(service);
+    const nodes = Array.isArray(design?.nodes) ? design.nodes : [];
+    const byType = (type) => nodes.filter((node) => node.type === type);
+    const sources = byType("sensor");
+    const preprocessors = byType("preprocess");
+    const inference = byType("inference");
+    const fusion = byType("fusion");
+    const outputs = byType("output");
+    const inputCount = Array.isArray(service.input_devices)
+      ? service.input_devices.length
+      : sources.length;
+    const analysisStages = [...inference, ...fusion];
+    const hasFusion = fusion.length > 0;
+
+    return [
+      {
+        kind: "input",
+        label: "입력",
+        title: summarizeSensorInputs(sources, inputCount ? `센서 ${inputCount}개` : "입력 확인 필요"),
+        detail: inputCount ? `${inputCount}개 센서` : "입력 없음",
+      },
+      {
+        kind: "process",
+        label: "전처리",
+        title: summarizeFlowTitles(preprocessors, design ? "전처리 없음" : "설계 계약 확인 필요", 2),
+        detail: preprocessors.length ? `${preprocessors.length}개 처리 단계` : "단계 미확인",
+      },
+      {
+        kind: "analysis",
+        label: "AI 분석",
+        title: hasFusion
+          ? "이상 점수 결합"
+          : summarizeFlowTitles(analysisStages, "모델 확인 필요", 2),
+        detail: service.model_version
+          ? `모델 ${String(service.model_version)}`
+          : `${analysisStages.length}개 분석 단계`,
+      },
+      {
+        kind: "output",
+        label: "결과",
+        title: summarizeFlowTitles(outputs, "결과 확인 필요", 1),
+        detail: outputs.length ? "운영 화면에 표시" : "출력 미확인",
+      },
+    ];
+  }
+
   function deployedServiceView(service = {}) {
     const status = Object.hasOwn(SERVICE_STATUS_LABELS, service.status)
       ? service.status
@@ -1543,6 +1620,10 @@
       inputCount: inputDevices.length,
       node: String(service.node || "배치 확인 필요"),
       modelVersion: String(service.model_version || "버전 확인 필요"),
+      description: String(service.description || "서비스 설명이 등록되지 않았습니다."),
+      physicalSource: String(service.physical_source || "물리 소스 확인 필요"),
+      deviceService: String(service.device_service || "Device Service 확인 필요"),
+      flow: deployedServiceFlow(service),
       designAvailable: Boolean(model.createDeployedServiceDesign?.(service)),
     };
   }
@@ -1576,26 +1657,43 @@
           data-selected="${selected ? "true" : "false"}"
           role="listitem"
         >
-          <div class="service-designer-deployed-identity">
-            <strong>${escapeHtml(service.display_name || service.service_id)}</strong>
-            <span>${escapeHtml(service.service_id)}</span>
-          </div>
-          <dl class="service-designer-deployed-facts">
-            <div>
-              <dt>상태</dt>
-              <dd><b>${escapeHtml(view.statusLabel)}</b><small>${escapeHtml(view.inputLabel)} · ${escapeHtml(view.modelLabel)}</small></dd>
+          <div class="service-designer-deployed-top">
+            <div class="service-designer-deployed-identity">
+              <div class="service-designer-deployed-title-line">
+                <strong>${escapeHtml(service.display_name || service.service_id)}</strong>
+                <span class="service-designer-service-status" data-status="${escapeHtml(view.status)}">
+                  <i aria-hidden="true"></i>${escapeHtml(view.statusLabel)}
+                </span>
+              </div>
+              <p>${escapeHtml(view.description)}</p>
+              <span>${escapeHtml(service.service_id)}</span>
             </div>
-            <div><dt>배치 노드</dt><dd>${escapeHtml(view.node)}</dd></div>
-            <div><dt>입력</dt><dd>${view.inputCount}개</dd></div>
-            <div><dt>모델</dt><dd>${escapeHtml(view.modelVersion)}</dd></div>
-          </dl>
-          <button
-            class="service-designer-deployed-action"
-            type="button"
-            data-deployed-service-design="${escapeHtml(service.service_id)}"
-            aria-pressed="${selected ? "true" : "false"}"
-            ${view.designAvailable ? "" : 'disabled aria-disabled="true" title="검증된 설계 계약이 없습니다."'}
-          >${view.designAvailable ? (selected ? "편집 중" : cached ? "편집 계속" : "설계 편집") : "설계 없음"}</button>
+            <button
+              class="service-designer-deployed-action"
+              type="button"
+              data-deployed-service-design="${escapeHtml(service.service_id)}"
+              aria-pressed="${selected ? "true" : "false"}"
+              ${view.designAvailable ? "" : 'disabled aria-disabled="true" title="검증된 설계 계약이 없습니다."'}
+            >${view.designAvailable ? (selected ? "편집 중" : cached ? "편집 계속" : "설계 편집") : "설계 없음"}</button>
+          </div>
+          <div class="service-designer-service-flow" role="list" aria-label="${escapeHtml(service.display_name || service.service_id)} 데이터 흐름">
+            ${view.flow.map((stage, index) => `
+              ${index ? '<span class="service-designer-flow-arrow" aria-hidden="true">→</span>' : ""}
+              <div class="service-designer-flow-stage" data-stage="${escapeHtml(stage.kind)}" role="listitem">
+                <span class="service-designer-flow-step" aria-hidden="true">${index + 1}</span>
+                <div>
+                  <small>${escapeHtml(stage.label)}</small>
+                  <strong>${escapeHtml(stage.title)}</strong>
+                  <span>${escapeHtml(stage.detail)}</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="service-designer-deployed-meta" aria-label="서비스 실행 정보">
+            <span><b>실행 위치</b>${escapeHtml(view.node)}</span>
+            <span><b>수집 경로</b>${escapeHtml(view.physicalSource)} → ${escapeHtml(view.deviceService)}</span>
+            <span><b>현재 상태</b>${escapeHtml(view.inputLabel)} · ${escapeHtml(view.modelLabel)}</span>
+          </div>
         </article>
       `;
     }).join("");
@@ -2650,6 +2748,7 @@
       bindMultiSensorScoreExample,
       bindSensorAnomalyExample,
       contextSourceBindingCandidate,
+      deployedServiceFlow,
       deployedServiceView,
       fetchDesignerServices,
       loadStoredDesign,

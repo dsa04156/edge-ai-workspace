@@ -28,6 +28,7 @@ const {
   bindMultiSensorScoreExample,
   bindSensorAnomalyExample,
   contextSourceBindingCandidate,
+  deployedServiceFlow,
   deployedServiceView,
   fetchDesignerServices,
   fetchDesignerProfiles,
@@ -166,7 +167,10 @@ function deployedSensorAnomalyService() {
   return {
     service_id: "sensor-anomaly-demo",
     display_name: "센서 이상 탐지",
+    description: "테스트베드 가속도 3축·온도 기반 기준선 서비스",
     node: "etri-dev0001-jetorn",
+    physical_source: "arduino-001",
+    device_service: "device-serial-jetson",
     model_version: "baseline-1.0.0",
     input_devices: [
       "virtual-acceleration-x-001",
@@ -526,6 +530,25 @@ test("builds and binds the selected deployed service from its versioned contract
   );
 });
 
+test("summarizes a deployed service as an input-to-result flow", () => {
+  const flow = deployedServiceFlow(deployedSensorAnomalyService());
+
+  assert.deepEqual(flow.map((stage) => stage.label), [
+    "입력",
+    "전처리",
+    "AI 분석",
+    "결과",
+  ]);
+  assert.deepEqual(flow.map((stage) => stage.title), [
+    "가속도 3축 + 온도",
+    "진동 특징 · 온도 특징",
+    "이상 점수 결합",
+    "대시보드 결과",
+  ]);
+  assert.equal(flow[0].detail, "4개 센서");
+  assert.equal(flow[2].detail, "모델 baseline-1.0.0");
+});
+
 test("requires all three vibration axes and at least two valid score weights", () => {
   const current = multiSensorInventory();
   const bound = bindMultiSensorScoreExample(
@@ -660,6 +683,8 @@ test("fetches and labels the current deployed service inventory", async () => {
   assert.equal(view.inputLabel, "데이터 최신");
   assert.equal(view.modelLabel, "모델 준비");
   assert.equal(view.inputCount, 4);
+  assert.equal(view.flow[0].title, "가속도 3축 + 온도");
+  assert.equal(view.flow[2].title, "이상 점수 결합");
   assert.equal(view.designAvailable, true);
 });
 
@@ -826,7 +851,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerGuideVertical"/);
   assert.match(html, /현재 실행 서비스/);
   assert.match(html, /id="serviceDesignerDeployedList"/);
-  assert.match(html, /서비스 선택 · 실제 배포 상태/);
+  assert.match(html, /실제 배포 상태 · 데이터 흐름/);
   assert.match(html, /id="serviceDesignerReturnDraft"/);
   assert.match(html, /id="serviceDesignerReloadService"/);
   assert.match(html, /기존 초안으로 돌아가기/);
@@ -901,6 +926,9 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(css, /\.service-designer-deployed-item/);
   assert.match(css, /\.service-designer-deployed-item\.selected/);
   assert.match(css, /\.service-designer-deployed-action:focus-visible/);
+  assert.match(css, /\.service-designer-service-flow/);
+  assert.match(css, /\.service-designer-flow-stage\[data-stage="analysis"\]/);
+  assert.match(css, /@media \(max-width: 680px\)/);
   assert.match(css, /\.service-designer-service-draft-note/);
   assert.match(css, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.equal(fs.existsSync(cssPath), true);
