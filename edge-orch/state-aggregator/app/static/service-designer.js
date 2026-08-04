@@ -5,6 +5,24 @@
   const SERVICE_DRAFT_STORAGE_PREFIX = "edge-ai-service-draft-v1:";
   const DRAG_ACTIVATION_PX = 3;
   const DRAG_CLICK_SUPPRESSION_MS = 600;
+  const INPUT_TELEMETRY_WINDOW = "-5m";
+  const INPUT_TELEMETRY_LIMIT = 300;
+  const INPUT_TELEMETRY_CACHE_MS = 15000;
+
+  function createInputTelemetryPreview(overrides = {}) {
+    return {
+      key: "",
+      nodeId: "",
+      deviceName: "",
+      resourceName: "",
+      status: "idle",
+      summary: null,
+      error: "",
+      loadedAt: 0,
+      ...overrides,
+    };
+  }
+
   const state = {
     design: model
       ? model.createSensorAnomalyExampleDesign()
@@ -40,6 +58,8 @@
     miniMapNodeElements: new Map(),
     miniMapBounds: null,
     pendingFullRender: false,
+    inputTelemetryPreview: createInputTelemetryPreview(),
+    inputTelemetryRequestId: 0,
   };
 
   function el(id, documentRef = document) {
@@ -53,6 +73,77 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+  }
+
+  function designerTelemetryUrl(
+    deviceName,
+    windowValue = INPUT_TELEMETRY_WINDOW,
+    limit = INPUT_TELEMETRY_LIMIT,
+  ) {
+    const safeLimit = Math.max(1, Math.min(1000, Number(limit) || INPUT_TELEMETRY_LIMIT));
+    return `/state/devices/${encodeURIComponent(String(deviceName || ""))}/telemetry?window=${encodeURIComponent(windowValue)}&limit=${safeLimit}`;
+  }
+
+  async function fetchDesignerTelemetry(
+    deviceName,
+    windowValue = INPUT_TELEMETRY_WINDOW,
+    fetchFn = root?.fetch,
+    limit = INPUT_TELEMETRY_LIMIT,
+  ) {
+    if (!deviceName) throw new Error("센서 디바이스를 먼저 선택하세요.");
+    if (typeof fetchFn !== "function") throw new Error("Telemetry 조회 기능을 사용할 수 없습니다.");
+    const response = await fetchFn(
+      designerTelemetryUrl(deviceName, windowValue, limit),
+      {cache: "no-store"},
+    );
+    if (!response.ok) {
+      throw new Error(`Telemetry API 오류 (${response.status})`);
+    }
+    const payload = await response.json();
+    if (!Array.isArray(payload)) {
+      throw new Error("Telemetry 응답 형식이 올바르지 않습니다.");
+    }
+    return payload;
+  }
+
+  function telemetryPointTimestampMs(point = {}) {
+    const parsed = Date.parse(String(point.timestamp || ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function summarizeDesignerTelemetry(points = [], resourceName = "") {
+    const wanted = String(resourceName || "").trim().toLowerCase();
+    const ordered = (Array.isArray(points) ? points : [])
+      .filter((point) => {
+        if (!wanted) return true;
+        return [point?.resource_name, point?.source_name]
+          .some((value) => String(value || "").trim().toLowerCase() === wanted);
+      })
+      .map((point) => ({point, timestampMs: telemetryPointTimestampMs(point)}))
+      .filter((item) => Number.isFinite(item.timestampMs))
+      .sort((left, right) => left.timestampMs - right.timestampMs);
+    const intervals = ordered
+      .slice(1)
+      .map((item, index) => item.timestampMs - ordered[index].timestampMs)
+      .filter((interval) => interval > 0)
+      .sort((left, right) => left - right);
+    let medianIntervalMs = null;
+    if (intervals.length) {
+      const middle = Math.floor(intervals.length / 2);
+      medianIntervalMs = intervals.length % 2
+        ? intervals[middle]
+        : (intervals[middle - 1] + intervals[middle]) / 2;
+    }
+    const normalizedPoints = ordered.map((item) => item.point);
+    return {
+      points: normalizedPoints,
+      sampleCount: normalizedPoints.length,
+      firstTimestamp: normalizedPoints[0]?.timestamp || null,
+      lastTimestamp: normalizedPoints.at(-1)?.timestamp || null,
+      medianIntervalMs,
+      latest: normalizedPoints.at(-1) || null,
+      recent: normalizedPoints.slice(-5).reverse(),
+    };
   }
 
   function isServiceDraftView() {
@@ -765,6 +856,7 @@
 
   function loadSensorAnomalyExample(documentRef = document) {
     if (isServiceDraftView()) return;
+    resetInputTelemetryPreview();
     state.design = model.createSensorAnomalyExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -781,6 +873,7 @@
 
   function loadMultiSensorScoreExample(documentRef = document) {
     if (isServiceDraftView()) return;
+    resetInputTelemetryPreview();
     state.design = model.createMultiSensorScoreExampleDesign();
     state.selectedNodeId = null;
     state.inspectorOpen = false;
@@ -1184,6 +1277,260 @@
     );
   }
 
+  function inputTelemetryPreviewKey(node = {}) {
+    return [node.id, node.config?.deviceName, node.config?.resourceName]
+      .map((value) => String(value || ""))
+      .join("|");
+  }
+
+  function resetInputTelemetryPreview() {
+    state.inputTelemetryRequestId += 1;
+    state.inputTelemetryPreview = createInputTelemetryPreview();
+  }
+
+  function formatTelemetryValue(value, units = "") {
+    let display = value;
+    if (value && typeof value === "object") {
+      try {
+        display = JSON.stringify(value);
+      } catch (_error) {
+        display = String(value);
+      }
+    }
+    const normalized = String(display ?? "-");
+    const concise = normalized.length > 72
+      ? `${normalized.slice(0, 69)}...`
+      : normalized;
+    return units ? `${concise} ${units}` : concise;
+  }
+
+  function formatTelemetryTimestamp(value) {
+    const timestamp = Date.parse(String(value || ""));
+    if (!Number.isFinite(timestamp)) return "시각 없음";
+    return new Intl.DateTimeFormat("ko-KR", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date(timestamp));
+  }
+
+  function telemetryAgeLabel(value, now = Date.now()) {
+    const timestamp = Date.parse(String(value || ""));
+    if (!Number.isFinite(timestamp)) return "시각 없음";
+    const elapsedMs = now - timestamp;
+    if (elapsedMs < -5000) {
+      return `현재보다 ${Math.round(Math.abs(elapsedMs) / 1000)}초 빠름`;
+    }
+    const seconds = Math.max(0, Math.floor(elapsedMs / 1000));
+    if (seconds < 5) return "방금";
+    if (seconds < 60) return `${seconds}초 전`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    return hours < 24 ? `${hours}시간 전` : `${Math.floor(hours / 24)}일 전`;
+  }
+
+  function formatTelemetryInterval(value) {
+    const milliseconds = Number(value);
+    if (!Number.isFinite(milliseconds) || milliseconds <= 0) return "계산 불가";
+    if (milliseconds < 1000) return `${Math.round(milliseconds)}ms`;
+    if (milliseconds < 60000) {
+      const seconds = milliseconds / 1000;
+      return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}초`;
+    }
+    const minutes = milliseconds / 60000;
+    return `${Number.isInteger(minutes) ? minutes : minutes.toFixed(1)}분`;
+  }
+
+  function telemetryFreshnessView(device = {}) {
+    const freshness = String(device.telemetry_freshness || "").toLowerCase();
+    if (freshness === "fresh") {
+      return {state: "fresh", label: "데이터 최신", detail: "실행 입력으로 사용할 수 있습니다."};
+    }
+    if (freshness === "stale") {
+      return {state: "stale", label: "데이터 지연", detail: "최신 Event가 오래되어 실행 계획을 차단합니다."};
+    }
+    if (freshness === "no_events") {
+      return {state: "missing", label: "데이터 없음", detail: "저장된 Event가 없어 실행 계획을 차단합니다."};
+    }
+    return {state: "unknown", label: "상태 확인 필요", detail: "최신 Event 상태를 확인하지 못했습니다."};
+  }
+
+  function renderInputTelemetryPreview(
+    node,
+    selectedDevice,
+    configuredResource,
+    preview = state.inputTelemetryPreview,
+  ) {
+    const deviceName = node.config.deviceName || "";
+    const resourceName = node.config.resourceName || "";
+    const configured = Boolean(deviceName && resourceName);
+    const key = inputTelemetryPreviewKey(node);
+    const activePreview = preview.key === key
+      ? preview
+      : createInputTelemetryPreview();
+    const immediate = summarizeDesignerTelemetry(
+      selectedDevice?.latest_readings || [],
+      resourceName,
+    );
+    const summary = activePreview.summary || immediate;
+    const latest = summary.latest;
+    const units = latest?.units || configuredResource?.units || "";
+    const freshness = selectedDevice
+      ? telemetryFreshnessView(selectedDevice)
+      : {state: "unknown", label: "바인딩 필요", detail: "센서 디바이스와 리소스를 선택하세요."};
+    let statusState = freshness.state;
+    let statusLabel = freshness.label;
+    let statusDetail = freshness.detail;
+    if (configured && activePreview.status === "loading") {
+      statusState = "loading";
+      statusLabel = "최근 데이터 조회 중";
+      statusDetail = "EdgeX Core Data에서 선택 리소스의 최근 5분을 읽고 있습니다.";
+    } else if (configured && activePreview.status === "error") {
+      statusState = "error";
+      statusLabel = "조회 실패";
+      statusDetail = activePreview.error;
+    } else if (configured && activePreview.status === "ready" && !summary.sampleCount) {
+      statusState = "missing";
+      statusLabel = "최근 5분 데이터 없음";
+      statusDetail = "선택 리소스와 일치하는 Reading이 없습니다.";
+    }
+    const latestTimestamp = latest?.timestamp || selectedDevice?.latest_event_timestamp;
+    const recentMarkup = summary.recent.length
+      ? summary.recent.map((point) => `
+        <li>
+          <strong>${escapeHtml(formatTelemetryValue(point.value, point.units || units))}</strong>
+          <time datetime="${escapeHtml(point.timestamp)}">${escapeHtml(formatTelemetryTimestamp(point.timestamp))}</time>
+        </li>
+      `).join("")
+      : '<li class="service-designer-input-empty">표시할 Reading이 없습니다.</li>';
+    return `
+      <section class="service-designer-input-preview" data-designer-telemetry-preview aria-label="실제 입력 데이터">
+        <header class="service-designer-input-preview-head">
+          <span>
+            <small>실제 입력 데이터</small>
+            <strong>최근 5분 · EdgeX Core Data</strong>
+          </span>
+          <button
+            type="button"
+            data-designer-telemetry-refresh
+            ${configured && activePreview.status !== "loading" ? "" : "disabled"}
+            aria-label="선택 센서의 실제 입력 데이터 새로고침"
+          >새로고침</button>
+        </header>
+        <p class="service-designer-input-state" data-state="${escapeHtml(statusState)}" role="status" aria-live="polite">
+          <strong>${escapeHtml(statusLabel)}</strong>
+          <span>${escapeHtml(statusDetail)}</span>
+        </p>
+        <dl class="service-designer-input-summary">
+          <div>
+            <dt>최신값</dt>
+            <dd>${escapeHtml(latest ? formatTelemetryValue(latest.value, units) : "-")}</dd>
+          </div>
+          <div>
+            <dt>최신 시각</dt>
+            <dd>${escapeHtml(latestTimestamp ? telemetryAgeLabel(latestTimestamp) : "-")}</dd>
+          </div>
+          <div>
+            <dt>조회 표본</dt>
+            <dd>${summary.sampleCount}개</dd>
+          </div>
+          <div>
+            <dt>수집 간격 중앙값</dt>
+            <dd>${escapeHtml(formatTelemetryInterval(summary.medianIntervalMs))}</dd>
+          </div>
+        </dl>
+        <div class="service-designer-input-recent">
+          <span>최근 Reading</span>
+          <ol>${recentMarkup}</ol>
+        </div>
+        <small class="service-designer-input-note">읽기 전용 미리보기입니다. 이 화면에서 장비 명령이나 배포를 실행하지 않습니다.</small>
+      </section>
+    `;
+  }
+
+  async function loadInputTelemetryPreview(
+    nodeId,
+    fetchFn = root?.fetch,
+    documentRef = document,
+    {force = false} = {},
+  ) {
+    const node = state.design?.nodes.find((item) => item.id === nodeId);
+    if (
+      !node
+      || node.type !== "sensor"
+      || !node.config.deviceName
+      || !node.config.resourceName
+    ) {
+      resetInputTelemetryPreview();
+      renderInspector(documentRef);
+      return null;
+    }
+    const key = inputTelemetryPreviewKey(node);
+    const current = state.inputTelemetryPreview;
+    const cacheFresh = Date.now() - current.loadedAt < INPUT_TELEMETRY_CACHE_MS;
+    if (current.key === key && current.status === "loading") return current.summary;
+    if (
+      !force
+      && current.key === key
+      && ["ready", "error"].includes(current.status)
+      && cacheFresh
+    ) {
+      return current.summary;
+    }
+    const requestId = state.inputTelemetryRequestId + 1;
+    state.inputTelemetryRequestId = requestId;
+    state.inputTelemetryPreview = createInputTelemetryPreview({
+      key,
+      nodeId,
+      deviceName: node.config.deviceName,
+      resourceName: node.config.resourceName,
+      status: "loading",
+      summary: current.key === key ? current.summary : null,
+    });
+    renderInspector(documentRef);
+    try {
+      const points = await fetchDesignerTelemetry(
+        node.config.deviceName,
+        INPUT_TELEMETRY_WINDOW,
+        fetchFn,
+        INPUT_TELEMETRY_LIMIT,
+      );
+      if (requestId !== state.inputTelemetryRequestId) return null;
+      const selected = state.design?.nodes.find((item) => item.id === nodeId);
+      if (!selected || inputTelemetryPreviewKey(selected) !== key) return null;
+      const summary = summarizeDesignerTelemetry(points, node.config.resourceName);
+      state.inputTelemetryPreview = createInputTelemetryPreview({
+        key,
+        nodeId,
+        deviceName: node.config.deviceName,
+        resourceName: node.config.resourceName,
+        status: "ready",
+        summary,
+        loadedAt: Date.now(),
+      });
+      renderInspector(documentRef);
+      return summary;
+    } catch (error) {
+      if (requestId !== state.inputTelemetryRequestId) return null;
+      state.inputTelemetryPreview = createInputTelemetryPreview({
+        key,
+        nodeId,
+        deviceName: node.config.deviceName,
+        resourceName: node.config.resourceName,
+        status: "error",
+        summary: current.key === key ? current.summary : null,
+        error: error instanceof Error ? error.message : "Telemetry를 조회하지 못했습니다.",
+        loadedAt: Date.now(),
+      });
+      renderInspector(documentRef);
+      return null;
+    }
+  }
+
   function renderSensorInspector(node) {
     const devices = [...state.inventory.devices].sort(
       (left, right) => String(left.name).localeCompare(String(right.name)),
@@ -1253,6 +1600,7 @@
         <span>Profile ${escapeHtml(selectedDevice?.profile_name || "미확인")}</span>
         <span>출력 ${escapeHtml(model.canonicalDataType(configuredResource?.valueType))}</span>
       </p>
+      ${renderInputTelemetryPreview(node, selectedDevice, configuredResource)}
     `;
   }
 
@@ -1495,7 +1843,29 @@
       return;
     }
     const plan = model.buildExecutionPlan(state.design, state.inventory);
-    container.innerHTML = plan.stages.map((stage) => `
+    const gate = `
+      <li class="service-designer-plan-gate" data-state="${plan.valid ? "ready" : "blocked"}">
+        <b aria-hidden="true">${plan.valid ? "OK" : "!"}</b>
+        <span>
+          <strong>${plan.valid ? "Dry-run 준비" : "실행 계획 차단"}</strong>
+          <small>${plan.valid
+            ? "검증을 통과했습니다. 아래 순서는 읽기 전용 미리보기입니다."
+            : `오류 ${plan.errors.length}건을 해결해야 실행 계획을 사용할 수 있습니다.`}</small>
+        </span>
+        <small>${plan.valid ? "PREVIEW" : "BLOCKED"}</small>
+      </li>
+    `;
+    const blockers = plan.valid ? "" : plan.errors.slice(0, 5).map((issue) => `
+      <li class="service-designer-plan-blocker">
+        <b aria-hidden="true">!</b>
+        <span>
+          <strong>${escapeHtml(issue.code)}</strong>
+          <small>${escapeHtml(issue.message)}</small>
+        </span>
+        <small>차단</small>
+      </li>
+    `).join("");
+    const stages = plan.stages.map((stage) => `
       <li>
         <b>${stage.order}</b>
         <span>
@@ -1505,6 +1875,7 @@
         <small>${escapeHtml(stage.outputType === "none" ? "result" : stage.outputType)}</small>
       </li>
     `).join("");
+    container.innerHTML = `${gate}${blockers}${stages}`;
   }
 
   function renderInventoryState(documentRef = document) {
@@ -1807,7 +2178,7 @@
     if (canvasStatus) {
       canvasStatus.textContent = serviceDraft
         ? "서비스 원본 기반 편집 초안 · 실제 배포 미반영"
-        : "빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제";
+        : "자유 드래그 · 가장자리 자동 이동 · 놓을 때 정렬 · Alt 정렬 해제";
     }
     if (workbench) {
       workbench.dataset.designMode = serviceDraft ? "service-draft" : "draft";
@@ -1836,6 +2207,16 @@
     renderInspector(documentRef);
     renderValidation(documentRef);
     renderPlan(documentRef);
+    const selected = state.inspectorOpen
+      ? state.design.nodes.find((node) => node.id === state.selectedNodeId)
+      : null;
+    if (
+      selected?.type === "sensor"
+      && selected.config.deviceName
+      && selected.config.resourceName
+    ) {
+      void loadInputTelemetryPreview(selected.id, root?.fetch, documentRef);
+    }
     if (state.viewportInitialized) {
       applyCanvasViewport(documentRef);
     } else {
@@ -1849,6 +2230,7 @@
     fitForInspector = true,
   ) {
     if (!state.design.nodes.some((node) => node.id === nodeId)) return;
+    if (state.selectedNodeId !== nodeId) resetInputTelemetryPreview();
     state.selectedNodeId = nodeId;
     state.inspectorOpen = true;
     state.selectedEdgeId = null;
@@ -1856,6 +2238,14 @@
     renderEdges(documentRef);
     renderInspector(documentRef);
     renderMiniMap(documentRef);
+    const selected = state.design.nodes.find((node) => node.id === nodeId);
+    if (
+      selected?.type === "sensor"
+      && selected.config.deviceName
+      && selected.config.resourceName
+    ) {
+      void loadInputTelemetryPreview(nodeId, root?.fetch, documentRef);
+    }
     if (fitForInspector) revealCanvasNode(nodeId, documentRef);
   }
 
@@ -1930,6 +2320,9 @@
     const config = {[key]: value};
     if (key === "deviceName") config.resourceName = "";
     state.design = model.updateNode(state.design, node.id, {config});
+    if (key === "deviceName" || key === "resourceName") {
+      resetInputTelemetryPreview();
+    }
     markDirty("단계 설정을 변경했습니다.", documentRef);
     renderAll(documentRef);
   }
@@ -1963,10 +2356,25 @@
     return state.lastValidation;
   }
 
+  function revalidateReviewedDesign(documentRef = document) {
+    if (!state.lastValidation) return null;
+    state.lastValidation = model.validateDesign(state.design, state.inventory);
+    const valid = state.lastValidation.valid;
+    setDraftState(
+      valid
+        ? isServiceDraftView() ? "서비스 초안 · 검증됨" : "검증됨"
+        : "입력 변경 · 수정 필요",
+      valid ? "valid" : "invalid",
+      documentRef,
+    );
+    return state.lastValidation;
+  }
+
   function updateInventory(data = {}, documentRef = document) {
     state.inventory.devices = Array.isArray(data.devices) ? data.devices : [];
     state.inventory.nodes = Array.isArray(data.nodes) ? data.nodes : [];
     if (!isServiceDraftView()) maybeSeedLiveBinding();
+    revalidateReviewedDesign(documentRef);
     renderAll(documentRef);
   }
 
@@ -2017,6 +2425,7 @@
     try {
       state.inventory.profiles = await fetchDesignerProfiles(fetchFn);
       if (!isServiceDraftView()) maybeSeedLiveBinding();
+      revalidateReviewedDesign(documentRef);
       renderAll(documentRef);
       return true;
     } catch (error) {
@@ -2463,6 +2872,19 @@
         state.suppressNodeClickId = null;
         state.suppressNodeClickUntil = 0;
       }
+      const telemetryRefresh = event.target.closest?.(
+        "[data-designer-telemetry-refresh]",
+      );
+      if (telemetryRefresh) {
+        if (telemetryRefresh.disabled || !state.selectedNodeId) return;
+        void loadInputTelemetryPreview(
+          state.selectedNodeId,
+          root?.fetch,
+          documentRef,
+          {force: true},
+        );
+        return;
+      }
       const deployedDesignButton = event.target.closest?.(
         "[data-deployed-service-design]",
       );
@@ -2513,6 +2935,7 @@
         const nodeId = deleteButton.dataset.designerDelete;
         state.design = model.removeNode(state.design, nodeId);
         if (state.selectedNodeId === nodeId) {
+          resetInputTelemetryPreview();
           state.selectedNodeId = null;
           state.inspectorOpen = false;
         }
@@ -2594,6 +3017,7 @@
     el("serviceDesignerInspectorClose", documentRef)?.addEventListener(
       "click",
       () => {
+        resetInputTelemetryPreview();
         state.selectedNodeId = null;
         state.inspectorOpen = false;
         renderNodes(documentRef);
@@ -2707,6 +3131,7 @@
         setFeedback("연결 선택을 취소했습니다.", "ready", documentRef);
         renderNodes(documentRef);
       } else if (event.key === "Escape" && state.selectedNodeId) {
+        resetInputTelemetryPreview();
         state.selectedNodeId = null;
         state.inspectorOpen = false;
         renderNodes(documentRef);
@@ -2722,6 +3147,7 @@
       ) {
         event.preventDefault();
         const nodeId = state.selectedNodeId;
+        resetInputTelemetryPreview();
         state.design = model.removeNode(state.design, nodeId);
         state.selectedNodeId = null;
         state.inspectorOpen = false;
@@ -2786,10 +3212,16 @@
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = {
+      INPUT_TELEMETRY_LIMIT,
+      INPUT_TELEMETRY_WINDOW,
       SERVICE_DRAFT_STORAGE_PREFIX,
       STORAGE_KEY,
       escapeHtml,
+      designerTelemetryUrl,
+      fetchDesignerTelemetry,
       fetchDesignerProfiles,
+      formatTelemetryInterval,
+      formatTelemetryValue,
       accelerationAxisBindingCandidates,
       bindDeployedServiceDesign,
       bindMultiSensorScoreExample,
@@ -2801,11 +3233,15 @@
       loadStoredDesign,
       loadStoredServiceDraft,
       nodeSummary,
+      renderInputTelemetryPreview,
       saveStoredDesign,
       saveStoredServiceDraft,
       serviceDraftStorageKey,
       sourceBindingCandidate,
       state,
+      summarizeDesignerTelemetry,
+      telemetryAgeLabel,
+      telemetryPointTimestampMs,
       updateInventory,
     };
   }

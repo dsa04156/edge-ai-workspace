@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  LIVE_INPUT_ALIGNMENT_TOLERANCE_MS,
   addNode,
   addServiceNode,
   buildServiceCatalog,
@@ -14,6 +15,7 @@ const {
   createDeployedServiceDesign,
   createMultiSensorScoreExampleDesign,
   createSensorAnomalyExampleDesign,
+  deviceLatestTimestampMs,
   removeNode,
   resourcesForDevice,
   updateNode,
@@ -21,6 +23,8 @@ const {
   wouldCreateCycle,
 } = require("../app/static/service-designer-model.js");
 const {
+  INPUT_TELEMETRY_LIMIT,
+  INPUT_TELEMETRY_WINDOW,
   SERVICE_DRAFT_STORAGE_PREFIX,
   STORAGE_KEY,
   accelerationAxisBindingCandidates,
@@ -30,14 +34,19 @@ const {
   contextSourceBindingCandidate,
   deployedServiceFlow,
   deployedServiceView,
+  designerTelemetryUrl,
+  fetchDesignerTelemetry,
   fetchDesignerServices,
   fetchDesignerProfiles,
   loadStoredDesign,
   loadStoredServiceDraft,
+  renderInputTelemetryPreview,
   saveStoredDesign,
   saveStoredServiceDraft,
   serviceDraftStorageKey,
   sourceBindingCandidate,
+  summarizeDesignerTelemetry,
+  telemetryAgeLabel,
 } = require("../app/static/service-designer.js");
 const {
   GRID_SIZE,
@@ -221,6 +230,68 @@ test("validates an edge-local sensor-to-service design against current inventory
   assert.equal(result.valid, true);
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.warnings, []);
+});
+
+test("blocks a service input when EdgeX has no Event or only stale telemetry", () => {
+  const noEvents = inventory();
+  noEvents.devices[0].telemetry_freshness = "no_events";
+  const missingResult = validateDesign(boundDesign(), noEvents);
+
+  assert.equal(missingResult.valid, false);
+  assert.ok(missingResult.errors.some((issue) => issue.code === "telemetry_missing"));
+
+  const stale = inventory();
+  stale.devices[0].telemetry_freshness = "stale";
+  const staleResult = validateDesign(boundDesign(), stale);
+
+  assert.equal(staleResult.valid, false);
+  assert.ok(staleResult.errors.some((issue) => issue.code === "telemetry_stale"));
+});
+
+test("blocks direct live multi-inputs across nodes or outside the time alignment window", () => {
+  const current = accelerationInventory();
+  const baseTime = Date.parse("2026-08-04T02:00:00.000Z");
+  current.devices.forEach((device, index) => {
+    device.latest_event_timestamp = new Date(baseTime + index * 500).toISOString();
+  });
+  const bound = bindSensorAnomalyExample(
+    createSensorAnomalyExampleDesign(),
+    current,
+  ).design;
+
+  current.devices[2].node_name = "etri-dev0003-raspi5";
+  const nodeResult = validateDesign(bound, current);
+  assert.ok(nodeResult.errors.some(
+    (issue) => issue.code === "multi_input_node_mismatch",
+  ));
+
+  current.devices[2].node_name = "etri-dev0001-jetorn";
+  current.devices[2].latest_event_timestamp = new Date(
+    baseTime + LIVE_INPUT_ALIGNMENT_TOLERANCE_MS + 1,
+  ).toISOString();
+  const skewResult = validateDesign(bound, current);
+  assert.ok(skewResult.errors.some(
+    (issue) => issue.code === "multi_input_time_skew",
+  ));
+});
+
+test("uses the newest valid Event or Reading timestamp for alignment", () => {
+  const device = {
+    latest_event_timestamp: "2026-08-04T02:00:00.000Z",
+    latest_readings: [
+      {resource_name: "Temperature", timestamp: "2026-08-04T02:00:01.000Z"},
+      {resource_name: "Pressure", timestamp: "2026-08-04T02:00:02.000Z"},
+      {resource_name: "Temperature", timestamp: "invalid"},
+    ],
+  };
+  assert.equal(
+    deviceLatestTimestampMs(device),
+    Date.parse("2026-08-04T02:00:02.000Z"),
+  );
+  assert.equal(
+    deviceLatestTimestampMs(device, "temperature"),
+    Date.parse("2026-08-04T02:00:01.000Z"),
+  );
 });
 
 test("requires the first consumer of Local Data API to stay on the source node", () => {
@@ -654,6 +725,97 @@ test("fetches Device Profile contracts from the read-only state endpoint", async
   assert.equal(profiles[0].name, "temperature-v1");
 });
 
+test("fetches the selected EdgeX input history through the read-only telemetry API", async () => {
+  let request = null;
+  const points = await fetchDesignerTelemetry(
+    "virtual temperature/001",
+    INPUT_TELEMETRY_WINDOW,
+    async (url, options) => {
+      request = {url, options};
+      return {
+        ok: true,
+        json: async () => [{
+          resource_name: "Temperature",
+          timestamp: "2026-08-04T02:00:00.000Z",
+          value: 24.5,
+        }],
+      };
+    },
+    INPUT_TELEMETRY_LIMIT,
+  );
+
+  assert.deepEqual(request, {
+    url: "/state/devices/virtual%20temperature%2F001/telemetry?window=-5m&limit=300",
+    options: {cache: "no-store"},
+  });
+  assert.equal(
+    designerTelemetryUrl("device-1", "-10m", 5000),
+    "/state/devices/device-1/telemetry?window=-10m&limit=1000",
+  );
+  assert.equal(points.length, 1);
+});
+
+test("summarizes only the selected resource and computes its median collection interval", () => {
+  const points = [
+    {resource_name: "Other", timestamp: "2026-08-04T02:00:00.500Z", value: 99},
+    {resource_name: "Temperature", timestamp: "2026-08-04T02:00:03.000Z", value: 23},
+    {source_name: "temperature", timestamp: "2026-08-04T02:00:00.000Z", value: 21},
+    {resource_name: "TEMPERATURE", timestamp: "2026-08-04T02:00:01.000Z", value: 22},
+    {resource_name: "Temperature", timestamp: "invalid", value: 100},
+  ];
+  const summary = summarizeDesignerTelemetry(points, "Temperature");
+
+  assert.equal(summary.sampleCount, 3);
+  assert.equal(summary.latest.value, 23);
+  assert.deepEqual(summary.recent.map((point) => point.value), [23, 22, 21]);
+  assert.equal(summary.medianIntervalMs, 1500);
+  assert.equal(
+    telemetryAgeLabel("2026-08-04T02:00:00.000Z", Date.parse("2026-08-04T02:00:30.000Z")),
+    "30초 전",
+  );
+});
+
+test("renders an accessible read-only preview of the actual selected input", () => {
+  const node = boundDesign().nodes.find((item) => item.id === "sensor-1");
+  const current = inventory();
+  const summary = summarizeDesignerTelemetry([
+    {
+      resource_name: "Temperature",
+      source_name: "Temperature",
+      timestamp: new Date(Date.now() - 2000).toISOString(),
+      value: 24.5,
+      units: "Cel",
+    },
+    {
+      resource_name: "Temperature",
+      source_name: "Temperature",
+      timestamp: new Date(Date.now() - 1000).toISOString(),
+      value: 24.7,
+      units: "Cel",
+    },
+  ], "Temperature");
+  const markup = renderInputTelemetryPreview(
+    node,
+    current.devices[0],
+    resourcesForDevice(current.devices[0], current.profiles)[0],
+    {
+      key: `${node.id}|virtual-temperature-001|Temperature`,
+      status: "ready",
+      summary,
+      error: "",
+    },
+  );
+
+  assert.match(markup, /실제 입력 데이터/);
+  assert.match(markup, /최근 5분 · EdgeX Core Data/);
+  assert.match(markup, /role="status" aria-live="polite"/);
+  assert.match(markup, /24\.7 Cel/);
+  assert.match(markup, /수집 간격 중앙값/);
+  assert.match(markup, /1초/);
+  assert.match(markup, /data-designer-telemetry-refresh/);
+  assert.match(markup, /읽기 전용 미리보기/);
+});
+
 test("fetches and labels the current deployed service inventory", async () => {
   let request = null;
   const services = await fetchDesignerServices(async (url, options) => {
@@ -915,6 +1077,10 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(ui, /const DRAG_CLICK_SUPPRESSION_MS = 600/);
   assert.match(ui, /data-designer-service/);
   assert.match(ui, /fetchFn\("\/state\/services", \{cache: "no-store"\}\)/);
+  assert.match(ui, /\/state\/devices\/\$\{encodeURIComponent/);
+  assert.match(ui, /data-designer-telemetry-refresh/);
+  assert.match(ui, /실행 계획 차단/);
+  assert.match(ui, /BLOCKED/);
   assert.match(ui, /renderDeployedServices/);
   assert.match(ui, /data-deployed-service-design/);
   assert.match(ui, /editDeployedServiceDesign/);
@@ -970,6 +1136,10 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(css, /\.service-designer-flow-stage\[data-stage="analysis"\]/);
   assert.match(css, /@media \(max-width: 680px\)/);
   assert.match(css, /\.service-designer-service-draft-note/);
+  assert.match(css, /\.service-designer-input-preview/);
+  assert.match(css, /\.service-designer-input-state\[data-state="error"\]/);
+  assert.match(css, /\.service-designer-plan-gate/);
+  assert.match(css, /\.service-designer-plan-blocker/);
   assert.match(css, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.equal(fs.existsSync(cssPath), true);
   assert.equal(fs.existsSync(uiPath), true);

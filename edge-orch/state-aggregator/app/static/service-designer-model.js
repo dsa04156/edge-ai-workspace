@@ -8,6 +8,7 @@
   }
 }(typeof globalThis !== "undefined" ? globalThis : this, () => {
   const DESIGN_VERSION = 1;
+  const LIVE_INPUT_ALIGNMENT_TOLERANCE_MS = 2000;
   const SOURCE_MODES = {
     local_recent: {
       label: "엣지 최근 데이터",
@@ -722,6 +723,32 @@
     return "any";
   }
 
+  function timestampMilliseconds(value) {
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    const parsed = Date.parse(String(value || ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function deviceLatestTimestampMs(device = {}, resourceName = "") {
+    const wanted = String(resourceName || "").trim().toLowerCase();
+    const matchingReadings = (Array.isArray(device.latest_readings)
+      ? device.latest_readings
+      : []
+    ).filter((reading) => (
+      !wanted
+      || [reading?.resource_name, reading?.source_name]
+        .some((value) => String(value || "").trim().toLowerCase() === wanted)
+    ));
+    const timestamps = [
+      ...matchingReadings.map((reading) => reading.timestamp),
+      ...(matchingReadings.length ? [] : [device.latest_event_timestamp]),
+    ]
+      .map(timestampMilliseconds)
+      .filter(Number.isFinite);
+    return timestamps.length ? Math.max(...timestamps) : null;
+  }
+
   function resourcesForDevice(device, profiles = []) {
     if (!device) return [];
     const profile = profiles.find((item) => item.name === device.profile_name);
@@ -1037,10 +1064,23 @@
             node.id,
           );
         }
-        if (device && device.telemetry_freshness !== "fresh") {
+        const freshness = String(device?.telemetry_freshness || "").toLowerCase();
+        if (device && freshness === "no_events") {
+          addError(
+            "telemetry_missing",
+            `${device.name}에 저장된 Event가 없어 입력을 실행할 수 없습니다.`,
+            node.id,
+          );
+        } else if (device && freshness === "stale") {
+          addError(
+            "telemetry_stale",
+            `${device.name}의 최신 Event가 오래되어 입력을 실행할 수 없습니다.`,
+            node.id,
+          );
+        } else if (device && freshness && freshness !== "fresh") {
           addWarning(
-            "telemetry_not_fresh",
-            `${device.name}의 최신 Event가 fresh가 아닙니다.`,
+            "telemetry_unverified",
+            `${device.name}의 최신 Event 상태를 확인할 수 없습니다.`,
             node.id,
           );
         }
@@ -1101,6 +1141,49 @@
             addError("fusion_weight_total_invalid", "점수 가중치 합은 0보다 커야 합니다.", node.id);
           }
         }
+      }
+    });
+
+    design.nodes.forEach((target) => {
+      const directLiveInputs = incomingEdges(design, target.id)
+        .map((edge) => design.nodes.find((node) => node.id === edge.from))
+        .filter((node) => (
+          node?.type === "sensor"
+          && node.config.sourceMode === "local_recent"
+        ));
+      if (directLiveInputs.length < 2) return;
+      const bindings = directLiveInputs
+        .map((node) => ({
+          node,
+          device: (inventory.devices || []).find(
+            (device) => device.name === node.config.deviceName,
+          ),
+        }))
+        .filter((binding) => binding.device);
+      if (bindings.length !== directLiveInputs.length) return;
+      const sourceNodes = new Set(
+        bindings.map(({device}) => device.node_name).filter(Boolean),
+      );
+      if (sourceNodes.size > 1) {
+        addError(
+          "multi_input_node_mismatch",
+          `${target.title}의 엣지 최근 입력이 여러 물리 노드(${[...sourceNodes].join(", ")})에 걸쳐 있습니다.`,
+          target.id,
+        );
+      }
+      const timestamps = bindings
+        .map(({node, device}) => (
+          deviceLatestTimestampMs(device, node.config.resourceName)
+        ))
+        .filter(Number.isFinite);
+      if (timestamps.length !== bindings.length) return;
+      const skew = Math.max(...timestamps) - Math.min(...timestamps);
+      if (skew > LIVE_INPUT_ALIGNMENT_TOLERANCE_MS) {
+        addError(
+          "multi_input_time_skew",
+          `${target.title} 입력의 최신 Event 시각 차이 ${Math.round(skew)}ms가 허용 범위 ${LIVE_INPUT_ALIGNMENT_TOLERANCE_MS}ms를 넘습니다.`,
+          target.id,
+        );
       }
     });
 
@@ -1180,6 +1263,7 @@
 
   return {
     DESIGN_VERSION,
+    LIVE_INPUT_ALIGNMENT_TOLERANCE_MS,
     FUSION_METHODS,
     FUSION_MISSING_POLICIES,
     INFERENCE_ALGORITHMS,
@@ -1199,6 +1283,7 @@
     createDeployedServiceDesign,
     createMultiSensorScoreExampleDesign,
     createSensorAnomalyExampleDesign,
+    deviceLatestTimestampMs,
     nodeDefinition,
     nodeInputType,
     nodeOutputType,

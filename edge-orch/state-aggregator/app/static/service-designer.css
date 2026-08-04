@@ -1244,6 +1244,217 @@ body[data-dashboard-page="designer"] .layout {
   color: var(--console-text);
 }
 
+.service-designer-input-preview {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--console-border-strong);
+  border-radius: 5px;
+  background: #081326;
+}
+
+.service-designer-input-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.service-designer-input-preview-head > span,
+.service-designer-input-preview-head small,
+.service-designer-input-preview-head strong {
+  display: block;
+  min-width: 0;
+}
+
+.service-designer-input-preview-head small {
+  margin-bottom: 2px;
+  color: var(--console-blue);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-designer-input-preview-head strong {
+  color: var(--console-text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.service-designer-input-preview-head button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--console-border-strong);
+  border-radius: 4px;
+  background: var(--console-control);
+  color: var(--console-text);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.service-designer-input-preview-head button:hover:not(:disabled) {
+  border-color: var(--console-blue);
+  color: #e0f2fe;
+}
+
+.service-designer-input-preview-head button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.service-designer-input-preview-head button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.service-designer-input-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 8px 9px;
+  border-left: 3px solid #64748b;
+  background: rgba(100, 116, 139, 0.1);
+  color: var(--console-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.service-designer-input-state strong,
+.service-designer-input-state span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.service-designer-input-state strong {
+  color: var(--console-text);
+  white-space: nowrap;
+}
+
+.service-designer-input-state[data-state="fresh"] {
+  border-left-color: #34d399;
+  background: rgba(16, 185, 129, 0.09);
+}
+
+.service-designer-input-state[data-state="loading"] {
+  border-left-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.09);
+}
+
+.service-designer-input-state[data-state="stale"] {
+  border-left-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.09);
+}
+
+.service-designer-input-state[data-state="missing"],
+.service-designer-input-state[data-state="error"] {
+  border-left-color: #f87171;
+  background: rgba(248, 113, 113, 0.09);
+}
+
+.service-designer-input-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--console-border);
+  border-radius: 4px;
+  background: var(--console-border);
+}
+
+.service-designer-input-summary > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  background: var(--console-control);
+}
+
+.service-designer-input-summary dt {
+  color: var(--console-dim);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.service-designer-input-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--console-text);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.service-designer-input-recent {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.service-designer-input-recent > span {
+  color: var(--console-muted);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.service-designer-input-recent ol {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--console-border);
+  border-radius: 4px;
+  background: var(--console-border);
+  list-style: none;
+}
+
+.service-designer-input-recent li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 8px;
+  background: var(--console-control);
+  font-size: 10px;
+}
+
+.service-designer-input-recent li strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--console-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-designer-input-recent li time {
+  color: var(--console-dim);
+  white-space: nowrap;
+}
+
+.service-designer-input-recent .service-designer-input-empty {
+  display: block;
+  color: var(--console-dim);
+  line-height: 1.45;
+}
+
+.service-designer-input-note {
+  color: var(--console-dim);
+  font-size: 9px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .service-designer-weight-list {
   display: grid;
   gap: 8px;
@@ -1445,6 +1656,33 @@ button.service-designer-issue {
   font-size: 10px;
 }
 
+.service-designer-plan li.service-designer-plan-gate {
+  border-color: rgba(52, 211, 153, 0.34);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.service-designer-plan li.service-designer-plan-gate[data-state="blocked"] {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.service-designer-plan-gate[data-state="ready"] b {
+  border-color: rgba(52, 211, 153, 0.55);
+  color: #6ee7b7;
+  font-size: 8px;
+}
+
+.service-designer-plan-gate[data-state="blocked"] b,
+.service-designer-plan-blocker b {
+  border-color: rgba(248, 113, 113, 0.55);
+  color: #fca5a5;
+}
+
+.service-designer-plan li.service-designer-plan-blocker {
+  border-color: rgba(248, 113, 113, 0.25);
+  background: rgba(127, 29, 29, 0.09);
+}
+
 @media (max-width: 1100px) {
   .service-designer-workbench {
     grid-template-columns: 176px minmax(0, 1fr);
@@ -1606,6 +1844,23 @@ button.service-designer-issue {
 
   .service-designer-inspector {
     width: calc(100% - 18px);
+  }
+
+  .service-designer-input-preview-head {
+    align-items: stretch;
+  }
+
+  .service-designer-input-state {
+    grid-template-columns: 1fr;
+  }
+
+  .service-designer-input-recent li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .service-designer-input-recent li time {
+    white-space: normal;
   }
 
   .service-designer-canvas-help {
