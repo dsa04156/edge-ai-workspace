@@ -171,7 +171,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
-    assert "/static/dashboard.js?v=infrastructure-observability-20260730" in html
+    assert "/static/dashboard.js?v=unified-device-inventory-v2-20260804" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

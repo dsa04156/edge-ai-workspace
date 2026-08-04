@@ -44,13 +44,15 @@ const {
   MAX_ZOOM,
   MIN_ZOOM,
   centerOnWorldPoint,
-  clampNodePosition,
-  clampNodeToViewport,
   constrainNodePosition,
+  dragAutoPanDelta,
+  dragNodePosition,
   ensureWorldRectVisible,
   fitViewport,
   graphBounds,
+  miniMapBounds,
   nudgeNodePosition,
+  normalizeNodePosition,
   panViewport,
   snapNodePosition,
   visibleWorldRect,
@@ -701,6 +703,21 @@ test("fits the complete default graph inside the visible canvas", () => {
   assert.ok(viewport.y + bounds.bottom * viewport.zoom <= 517);
 });
 
+test("fits freely positioned distant nodes back inside the visible canvas", () => {
+  const nodes = [
+    {id: "near", x: 32, y: 32},
+    {id: "far", x: 3310, y: 32},
+  ];
+  const bounds = graphBounds(nodes);
+  const viewport = fitViewport(nodes, 762, 453, {padding: 44});
+
+  assert.ok(viewport.zoom >= MIN_ZOOM);
+  assert.ok(viewport.x + bounds.left * viewport.zoom >= 43);
+  assert.ok(viewport.y + bounds.top * viewport.zoom >= 43);
+  assert.ok(viewport.x + bounds.right * viewport.zoom <= 719);
+  assert.ok(viewport.y + bounds.bottom * viewport.zoom <= 410);
+});
+
 test("keeps the world point under the pointer while zooming", () => {
   const current = {x: 80, y: 40, zoom: 0.8};
   const pointer = {x: 320, y: 220};
@@ -750,27 +767,46 @@ test("supports optional grid snapping and smooth pointer placement", () => {
   assert.deepEqual({x: free.x, y: free.y}, {x: 53, y: 61});
 });
 
-test("keeps the complete node inside the currently visible canvas viewport", () => {
-  const viewport = {x: -300, y: -100, zoom: 1.6};
-  const nodeSize = {nodeWidth: 218, nodeHeight: 161};
-  const placed = clampNodeToViewport(
-    {x: 900, y: 500},
-    viewport,
-    958,
-    453,
-    {...nodeSize, padding: 12},
+test("auto-pans at canvas edges without clamping the dragged node to the viewport", () => {
+  assert.deepEqual(
+    dragAutoPanDelta(
+      {x: 810, y: 250},
+      {left: 0, top: 0, right: 800, bottom: 500},
+    ),
+    {x: -14, y: 0},
   );
-  const screen = {
-    left: viewport.x + placed.x * viewport.zoom,
-    right: viewport.x + (placed.x + nodeSize.nodeWidth) * viewport.zoom,
-    top: viewport.y + placed.y * viewport.zoom,
-    bottom: viewport.y + (placed.y + nodeSize.nodeHeight) * viewport.zoom,
-  };
+  assert.deepEqual(
+    dragAutoPanDelta(
+      {x: 400, y: 250},
+      {left: 0, top: 0, right: 800, bottom: 500},
+    ),
+    {x: 0, y: 0},
+  );
+  assert.deepEqual(
+    dragNodePosition(
+      {x: 100, y: 80},
+      {x: 200, y: 200},
+      {x: 760, y: 200},
+      {x: 0, y: 0, zoom: 1},
+      {x: -28, y: 0, zoom: 1},
+    ),
+    {x: 688, y: 80},
+  );
+});
 
-  assert.ok(screen.left >= 12);
-  assert.ok(screen.right <= 958 - 12);
-  assert.ok(screen.top >= 12);
-  assert.ok(screen.bottom <= 453 - 12);
+test("keeps free-position nodes visible in the dynamic minimap bounds", () => {
+  const free = normalizeNodePosition({x: -240, y: 980});
+  const snapped = snapNodePosition(free, [], "moving", {snap: false});
+  const bounds = miniMapBounds(
+    [{id: "moving", ...snapped}],
+    {x: 400, y: 200, width: 800, height: 500},
+    40,
+  );
+
+  assert.deepEqual({x: snapped.x, y: snapped.y}, free);
+  assert.ok(bounds.left < -240);
+  assert.ok(bounds.bottom > 980 + 156);
+  assert.ok(bounds.right > 1200);
 });
 
 test("aligns node anchors to peers and reports visible guide coordinates", () => {
@@ -812,7 +848,10 @@ test("constrains Shift drags to one axis and nudges nodes by keyboard", () => {
     nudgeNodePosition({x: 48, y: 128}, "ArrowRight", true),
     {x: 48 + GRID_SIZE, y: 128},
   );
-  assert.deepEqual(clampNodePosition({x: -20, y: 900}), {x: 16, y: 528});
+  assert.deepEqual(
+    nudgeNodePosition({x: -20, y: 900}, "ArrowLeft"),
+    {x: -21, y: 900},
+  );
 });
 
 test("reveals a selected node beside the inspector without changing zoom", () => {
@@ -860,7 +899,7 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerReset"[\s\S]*?>3축 데모</);
   assert.match(html, /id="serviceDesignerMultiSensorExample"[\s\S]*?>복합 점수 예시</);
   assert.match(html, /id="serviceDesignerCatalogState"/);
-  assert.match(html, /빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제/);
+  assert.match(html, /자유 드래그 · 가장자리 자동 이동 · 놓을 때 정렬 · Alt 정렬 해제/);
   assert.match(html, /service-designer-viewport\.js/);
   assert.match(html, /실행 계획 미리보기/);
   assert.doesNotMatch(html, /id="serviceDesignerExecute"/);
@@ -900,12 +939,13 @@ test("dashboard exposes one scoped service design page without an execution acti
     /function selectNodeForDrag[\s\S]*?state\.inspectorOpen = false;/,
   );
   assert.match(ui, /flushPendingFullRender\(documentRef\)/);
-  assert.match(ui, /const directPlacement = viewportModel\.clampNodeToViewport\(/);
-  assert.match(ui, /leftInset:\s*Math\.max\(0,\s*-canvasBounds\.left\)/);
-  assert.match(ui, /rightInset:\s*Math\.max\(0,\s*canvasBounds\.right - browserWidth\)/);
-  assert.match(ui, /const snappedDropPlacement = viewportModel\.snapNodePosition\(/);
-  assert.match(ui, /snap:\s*!event\.altKey,\s*[\s\S]*?grid:\s*false,/);
-  assert.match(ui, /state\.dragging\.dropX = dropPlacement\.x/);
+  assert.doesNotMatch(ui, /clampNodeToViewport/);
+  assert.match(ui, /viewportModel\.dragAutoPanDelta\(/);
+  assert.match(ui, /viewportModel\.dragNodePosition\(/);
+  assert.match(ui, /function scheduleDragAutoPan/);
+  assert.match(ui, /const dropPlacement = viewportModel\.snapNodePosition\(/);
+  assert.match(ui, /snap:\s*!altKey,\s*[\s\S]*?grid:\s*false,/);
+  assert.match(ui, /drag\.dropX = dropPlacement\.x/);
   assert.match(ui, /style\.transform = `translate3d\(/);
   assert.match(ui, /scheduleDragAuxiliaryRender\(documentRef\)/);
   const moveDragSource = ui.slice(

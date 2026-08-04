@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-04 10:23</span>
-            <span class="badge">HTML 생성: 2026-08-04 10:26</span>
+            <span class="badge">수정: 2026-08-04 11:55</span>
+            <span class="badge">HTML 생성: 2026-08-04 11:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -218,7 +218,7 @@
       -&gt; state-aggregator / dashboard</code></pre>
 <p>포함하는 방향:</p>
 <ul><li>Jetson과 Raspberry Pi에서 실제 protocol endpoint를 소유하는 EdgeX Device Service</li><li>Device SDK 기반 protocol 연결, 재연결, resource 표준화, 상태와 지원 command</li><li><code>etri-ser0002-cgnmsb</code>에 한 세트만 배치하는 ingest gateway, EdgeX Core Keeper, Core Metadata, Core Command, 내부 MessageBus, Core Data, PostgreSQL</li><li>EdgeX Core Metadata Device/Profile 기반 inventory·schema·관리 상태</li><li>Core Data Event/Reading 기반 typed telemetry와 freshness</li><li>합성 identity를 사용하는 Core Data REST → PostgreSQL 1,000-device 저장 기준선 도구와 운영 절차. 운영 Metadata/Device와 root render에는 포함하지 않음</li><li>선택한 Device의 Core Data history를 <code>state-aggregator</code> API로 조회하고 요청 범위·반환 Reading 수·실제 구간을 구분해 표시하는 dashboard</li><li>같은 edge node의 Workflow Pod가 사용하는 bounded memory recent cache와 read-only Local Data API; 현재 Flannel에서는 client label 기반 NetworkPolicy가 강제되지 않음</li><li>Jetson에서 Arduino 가속도 X/Y/Z와 온도를 실시간에 가까운 주기로 읽어 시간 정렬하고 진동·온도 개별 점수와 종합 점수를 계산하는 고정 <code>sensor-anomaly-demo</code> 소스 구현. versioned 입력 계약, 개발용 Replay, model adapter와 application-owned SQLite 결과·알림 저장 포함</li><li>Jetson, Raspberry Pi, x86 서버가 함께 있는 mixed-device 환경</li><li>Prometheus/Kubernetes 기반 node/workload 상태 수집</li><li>디바이스와 AI 서비스·storage·dashboard의 연결 구조</li><li>서비스 데모 시나리오와 생산성 향상 효과 설명</li></ul>
-<p>대시보드의 <code>디바이스</code> 메뉴는 운영 객체를 네 분류로 표시한다. <code>엣지 AI 서버</code>와 <code>물리 디바이스</code>는 <code>/state/nodes</code>를 <code>node_type</code>으로 나눈 중앙 서버와 Jetson·Raspberry Pi 엣지 노드다. <code>가상 디바이스</code>는 <code>/state/virtual-resources</code>의 자원증강형 논리 자원이고, <code>센서 디바이스</code>는 <code>/state/devices</code>의 EdgeX Core Metadata Device다. 이 화면 분류는 EdgeX 센서 상태 권위나 KubeEdge workload 관리 경계를 바꾸지 않으며 가상 자원 표시를 동적 Workflow 실행 기능으로 승격하지 않는다.</p>
+<p>대시보드의 <code>디바이스</code> 메뉴는 운영 객체를 네 분류로 표시한다. <code>엣지 AI 서버</code>와 <code>물리 디바이스</code>는 <code>/state/nodes</code>를 <code>node_type</code>으로 나눈 중앙 서버와 Jetson·Raspberry Pi 엣지 노드다. <code>가상 디바이스</code>는 <code>/state/virtual-resources</code>의 자원증강형 논리 자원이고, <code>센서 디바이스</code>는 <code>/state/devices</code>의 EdgeX Core Metadata Device다. 이 화면 분류는 EdgeX 센서 상태 권위나 KubeEdge workload 관리 경계를 바꾸지 않으며 가상 자원 표시를 동적 Workflow 실행 기능으로 승격하지 않는다. 네 분류는 전환 탭으로 숨기지 않고 한 화면의 네 연속 목록으로 모두 표시하며, 공통 노드 필터가 네 목록에 함께 적용된다.</p>
 <p><code>운영 현황</code>은 네 분류의 수와 가용 상태 다음에 중앙 서버와 물리 디바이스 노드 관측을 우선한다. Prometheus/Kubernetes 기반 node snapshot을 두 분류로 나눠 평균 CPU·메모리, GPU 관측 대수, pressure 주의 대수와 노드별 현재 meter를 표시하고, 누락 metric은 <code>N/A</code>로 둔다. 대시보드용 시계열 contract나 Grafana embed는 현재 범위가 아니다. 고정 <code>sensor-anomaly-demo</code> 결과는 접힌 보조 영역에서 확인한다.</p>
 <p>KubeEdge 범위는 Kubernetes edge node와 workload 관리로 제한한다. EdgeX Metadata의 Device/Device Profile은 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 서로 다른 관리 객체다. KubeEdge DeviceStatus, MapperFramework, <code>mqttvirtual</code>과 mapper direct-write는 legacy physical integration이며 현재 plane의 병행 경로나 fallback이 아니다.</p>
 <p>2026-07-21에 <code>edgex-edge-agent-jetson</code>, <code>edgex-edge-agent-sensehat</code>, 두 outbox PVC와 Agent 전용 Metadata bootstrap을 퇴역했다. 대신 root render는 <code>edgex-edge</code>에 공식 EdgeX Device SDK 기반 <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>와 각 최소 NetworkPolicy를 배포한다. 중앙 EdgeX와 ingest gateway는 유지하지만, ingest gateway는 현재 Serial/I2C Event 경로에 참여하지 않는다.</p>
@@ -370,7 +370,7 @@
 <tr>
 <td>대시보드</td>
 <td><code>edge-orch/state-aggregator/app/static/</code></td>
-<td>EdgeX device/state/telemetry와 운영 KPI 가시화. 운영 현황은 네 운영 분류의 수와 상태 다음에 Prometheus/Kubernetes 기반 현재 서버·물리 디바이스 자원 meter와 확인할 항목을 우선 표시하며, 고정 서비스 데모는 접힌 보조 영역에 둔다. 디바이스 화면은 네 분류를 동일한 목록으로 제공하고 장비 관리는 물리 source 카드 단위 연결 작업을 유지한다. <code>서비스 설계</code> 상단은 <code>/state/services</code>의 실제 운영 서비스를 입력→전처리→AI 분석→결과 흐름과 실행·수집 정보로 요약하고, 선택한 지원 서비스의 versioned 설계 계약을 브라우저 편집 초안으로 복사한다. 왼쪽은 실제 EdgeX Device/DeviceResource 선택과 검색 가능한 13종 설계 블록을 제공한다. 서비스별 localStorage 저장, 단계 구성, validation과 dry-run 계획 미리보기만 제공하는 2차년도 프로토타입이며 실행·배포 기능이 아니다. 375/768/1024/1440px 반응형 화면을 제공한다</td>
+<td>EdgeX device/state/telemetry와 운영 KPI 가시화. 운영 현황은 네 운영 분류의 수와 상태 다음에 Prometheus/Kubernetes 기반 현재 서버·물리 디바이스 자원 meter와 확인할 항목을 우선 표시하며, 고정 서비스 데모는 접힌 보조 영역에 둔다. 디바이스 화면은 탭 전환 없이 네 분류를 한 화면의 연속 목록으로 제공하고 공통 노드 필터를 적용하며, 장비 관리는 물리 source 카드 단위 연결 작업을 유지한다. <code>서비스 설계</code> 상단은 <code>/state/services</code>의 실제 운영 서비스를 입력→전처리→AI 분석→결과 흐름과 실행·수집 정보로 요약하고, 선택한 지원 서비스의 versioned 설계 계약을 브라우저 편집 초안으로 복사한다. 왼쪽은 실제 EdgeX Device/DeviceResource 선택과 검색 가능한 13종 설계 블록을 제공한다. 서비스별 localStorage 저장, 단계 구성, validation과 dry-run 계획 미리보기만 제공하는 2차년도 프로토타입이며 실행·배포 기능이 아니다. 캔버스 단계는 기준 작업 영역 밖에도 자유 배치할 수 있고 가장자리 자동 이동, 동적 미니맵과 전체 보기 복구를 제공한다. 375/768/1024/1440px 반응형 화면을 제공한다</td>
 </tr>
 <tr>
 <td>GPU runtime 보조</td>

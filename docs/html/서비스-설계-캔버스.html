@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-설계-캔버스.md</span>
-            <span class="badge">수정: 2026-08-04 10:24</span>
-            <span class="badge">HTML 생성: 2026-08-04 10:26</span>
+            <span class="badge">수정: 2026-08-04 11:56</span>
+            <span class="badge">HTML 생성: 2026-08-04 11:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -284,11 +284,11 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 </tr>
 </tbody></table></div>
 <p>단계 추가는 검색 가능한 왼쪽 패널에서 수행하고, 캔버스의 출력 포트와 입력 포트를 차례로 눌러 연결한다. 삭제·입출력 포트를 제외한 단계 박스 전체를 드래그해 배치하며 연결선을 두 번 누르면 삭제한다. 선택한 단계의 설정은 캔버스 위 오른쪽 패널에서 변경하고 닫을 수 있다.</p>
-<p>캔버스는 고정 크기 작업 좌표계와 별도 viewport를 사용한다.</p>
-<ul><li><code>전체 보기</code>와 가운데 <code>◎</code> 버튼: 현재 graph를 보이는 영역에 맞춤</li><li><code>−</code>/<code>＋</code>와 마우스 휠: 캔버스 중심 또는 pointer 위치 기준 확대·축소</li><li>빈 배경 드래그: 캔버스 이동</li><li>미니맵: 전체 graph와 현재 보이는 구간 확인, 선택 위치로 이동</li><li><code>블록</code> 버튼: 설계 블록 패널 열기·닫기</li><li>단계 선택: 현재 배율을 유지하면서 설정 패널에 가리지 않도록 선택 노드만 이동</li><li>단계 박스 전체 드래그: 삭제·입출력 포트를 제외한 표면을 3px 이상 이동하면 박스가 pointer를 1:1로 따라가며, 확대·이동 상태에서도 박스 전체를 현재 보이는 캔버스 안에 유지</li><li>정렬: 다른 단계의 같은 모서리·중앙에 가까우면 정렬선을 미리 표시하고 놓을 때만 해당 선에 맞춤</li><li><code>Shift</code>+드래그: 처음 위치를 기준으로 가로 또는 세로 한 축에 고정</li><li><code>Alt</code>+드래그: 정렬선 snap 없이 완전히 자유롭게 배치</li><li>방향키: 선택 단계를 1px 이동, <code>Shift</code>+방향키는 24px 이동</li></ul>
+<p>캔버스는 1120×700 기준 작업 영역과 별도 viewport를 사용하지만 단계 좌표를 이 기준 영역 안으로 제한하지 않는다.</p>
+<ul><li><code>전체 보기</code>와 가운데 <code>◎</code> 버튼: 현재 graph를 보이는 영역에 맞춤</li><li><code>−</code>/<code>＋</code>와 마우스 휠: 캔버스 중심 또는 pointer 위치 기준 확대·축소</li><li>빈 배경 드래그: 캔버스 이동</li><li>미니맵: 기준 영역 밖 단계까지 포함해 동적으로 전체 graph와 현재 보이는 구간 확인, 선택 위치로 이동</li><li><code>블록</code> 버튼: 설계 블록 패널 열기·닫기</li><li>단계 선택: 현재 배율을 유지하면서 설정 패널에 가리지 않도록 선택 노드만 이동</li><li>단계 박스 전체 드래그: 삭제·입출력 포트를 제외한 표면을 3px 이상 이동하면 박스가 pointer를 1:1로 따라가며 현재 viewport나 기준 작업 영역 밖에도 자유 배치</li><li>가장자리 자동 이동: 드래그 pointer가 viewport 가장자리 56px 안에 들어오면 해당 방향으로 viewport를 계속 이동</li><li>정렬: 다른 단계의 같은 모서리·중앙에 가까우면 정렬선을 미리 표시하고 놓을 때만 해당 선에 맞춤</li><li><code>Shift</code>+드래그: 처음 위치를 기준으로 가로 또는 세로 한 축에 고정</li><li><code>Alt</code>+드래그: 정렬선 snap 없이 완전히 자유롭게 배치</li><li>방향키: 선택 단계를 1px 이동, <code>Shift</code>+방향키는 24px 이동</li></ul>
 <p>드래그가 끝난 뒤 발생하는 click은 다시 선택 동작으로 처리하지 않으므로 viewport가 자동 이동하거나 단계가 화면에서 튀지 않는다. 설정 패널은 드래그 도중 열지 않고 단계를 누를 때만 연다. 정렬선은 드래그 중에만 표시한다.</p>
 <p>드래그 중 박스는 <code>translate3d</code>로 즉시 반영한다. 연결선 전체와 미니맵 전체를 매 <code>pointermove</code>마다 다시 만들지 않고, 이동한 단계에 연결된 선과 미니맵 사각형만 animation frame 단위로 갱신한다. 전체 graph 반영은 놓는 순간 한 번 수행한다. EdgeX inventory나 Device Profile 응답이 드래그 도중 도착해도 상태만 보관하고 캔버스 전체 갱신은 놓은 뒤 한 번 수행하므로 포인터 캡처와 이동 위치를 유지한다.</p>
-<p>브라우저 너비가 좁으면 설계 블록과 설정 패널은 캔버스 위 overlay로 열리며 문서나 캔버스에 별도 가로 scrollbar를 만들지 않는다. 작은 화면의 <code>전체 보기</code>는 흐름 전체를 확인하는 overview이므로 세부 편집 시 확대·이동 또는 미니맵을 사용한다.</p>
+<p><code>전체 보기</code>는 멀리 배치한 단계까지 포함해 graph 전체를 다시 viewport 안에 맞추므로 자유 배치 뒤에도 미니맵과 함께 복구 경로가 된다. 브라우저 너비가 좁으면 설계 블록과 설정 패널은 캔버스 위 overlay로 열리며 문서나 캔버스에 별도 가로 scrollbar를 만들지 않는다. 작은 화면의 <code>전체 보기</code>는 흐름 전체를 확인하는 overview이므로 세부 편집 시 확대·이동 또는 미니맵을 사용한다.</p>
 <h2 id="데이터-접근-방식">데이터 접근 방식</h2>
 <h3 id="엣지-최근-데이터">엣지 최근 데이터</h3>
 <p><code>local_recent</code> 설계는 같은 물리 노드의 Device Service Local Data API와 bounded memory cache를 사용하는 경로다. 실제 실행 경로를 아직 만들지는 않지만, 설계 검증은 첫 처리 단계가 해당 Device의 <code>node_name</code>과 같은지 확인한다.</p>
@@ -324,7 +324,7 @@ node --check edge-orch/state-aggregator/app/static/service-designer-viewport.js
 node --check edge-orch/state-aggregator/app/static/service-designer.js
 node --test edge-orch/state-aggregator/tests/test_service_designer.js
 python -m pytest -q edge-orch/state-aggregator/tests/test_api.py</code></pre>
-<p>브라우저 회귀는 375, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 현재 실행 서비스의 4단계 요약이 넓은 화면에서는 가로로, 680px 이하에서는 세로로 순서를 유지하고 상태·실행 위치·수집 경로가 잘리지 않는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 확대 상태에서 화면 네 경계 밖으로 박스가 빠지지 않는지, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 전후 viewport 고정, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스의 <code>설계 편집</code> 선택 시 10개 단계와 정확한 입력·window·알고리즘·가중치가 표시되고 블록·연결·설정을 수정할 수 있는지 확인한다. 서비스 상태·inventory·Profile 자동 갱신 뒤에도 수정값이 유지되는지, <code>기존 초안으로 돌아가기</code> 후 일반 graph와 변경 상태가 복원되는지, <code>편집 계속</code>에서 서비스 수정값이 유지되는지, <code>원본으로 초기화</code>가 계약값으로 되돌리는지도 확인한다. 확인한다.</p>
+<p>브라우저 회귀는 375, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 현재 실행 서비스의 4단계 요약이 넓은 화면에서는 가로로, 680px 이하에서는 세로로 순서를 유지하고 상태·실행 위치·수집 경로가 잘리지 않는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 화면 가장자리 자동 이동과 기준 영역 밖 자유 좌표, 멀리 배치한 단계의 동적 미니맵 표시와 <code>전체 보기</code> 복구, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 뒤 추가 viewport 이동 부재, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스의 <code>설계 편집</code> 선택 시 10개 단계와 정확한 입력·window·알고리즘·가중치가 표시되고 블록·연결·설정을 수정할 수 있는지 확인한다. 서비스 상태·inventory·Profile 자동 갱신 뒤에도 수정값이 유지되는지, <code>기존 초안으로 돌아가기</code> 후 일반 graph와 변경 상태가 복원되는지, <code>편집 계속</code>에서 서비스 수정값이 유지되는지, <code>원본으로 초기화</code>가 계약값으로 되돌리는지도 확인한다. 확인한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>

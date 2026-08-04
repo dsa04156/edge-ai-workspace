@@ -43,7 +43,8 @@ def test_dashboard_physical_device_contract_is_edgex_only() -> None:
 
     assert "센서 · 엣지 노드 · AI 서비스" in html
     assert "EdgeX Core Metadata가 물리 디바이스 권위를 유지합니다." in html
-    assert 'data-resource-category="sensor"' in html
+    assert 'id="resourceInventorySections"' in html
+    assert 'data-resource-category-section="${escapeHtml(category)}"' in js
     assert 'id="sensorDeviceCount"' in html
     assert 'data-kpi-key="device_service_availability_ratio"' in html
     assert "device_service_name" in js
@@ -98,7 +99,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=infrastructure-observability-20260730" in html
+    assert "/static/dashboard.js?v=unified-device-inventory-v2-20260804" in html
 
 
 def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> None:
@@ -106,11 +107,16 @@ def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> Non
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=infrastructure-observability-20260730" in html
+    assert "/static/dashboard.js?v=unified-device-inventory-v2-20260804" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
-    assert "renderResourceInventoryRows" in render_devices
-    assert 'class="sensor-device-empty"' in render_devices
+    assert "RESOURCE_CATEGORY_ORDER.map" in render_devices
+    assert "renderResourceInventorySection" in render_devices
+    render_section = js[
+        js.index("function renderResourceInventorySection") : js.index("function renderSensorDeviceRows")
+    ]
+    assert "renderResourceInventoryRows" in render_section
+    assert 'class="sensor-device-empty"' in render_section
     render_rows = js[js.index("function renderResourceInventoryRows") : js.index("function renderDevices")]
     assert 'class="sensor-device-row' in render_rows
     assert 'data-label="${escapeHtml(latestLabel)}"' in render_rows

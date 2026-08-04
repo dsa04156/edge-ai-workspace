@@ -8,6 +8,7 @@ const {
   resourceCategoryView,
   physicalDeviceOverviewModel,
   renderPhysicalDeviceStatusRows,
+  renderResourceInventorySection,
   renderResourceInventoryRows,
   renderServerStatusRows,
   renderSensorDeviceRows,
@@ -41,7 +42,7 @@ test("maps all sensor availability states to operator labels", () => {
   assert.equal(sensorDeviceStatusLabel({overall_status: "unexpected"}), "Degraded");
 });
 
-test("dashboard exposes sensor language and table-first inventory structure", () => {
+test("dashboard exposes all device categories in one continuous inventory", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(
     path.join(root, "app/static/operations-dashboard.css"),
@@ -49,17 +50,48 @@ test("dashboard exposes sensor language and table-first inventory structure", ()
   );
 
   assert.match(html, />디바이스</);
-  assert.match(html, /data-resource-category="server"[^>]*>[\s\S]*엣지 AI 서버/);
-  assert.match(html, /data-resource-category="physical"[^>]*>[\s\S]*물리 디바이스/);
-  assert.match(html, /data-resource-category="virtual"[^>]*>[\s\S]*가상 디바이스/);
-  assert.match(html, /data-resource-category="sensor"[^>]*>[\s\S]*센서 디바이스/);
-  assert.match(html, /class="sensor-device-table"/);
-  assert.match(html, /<th scope="col">이름<\/th>/);
-  assert.match(html, /<th scope="col">상태<\/th>/);
-  assert.match(html, /<th id="inventoryLatestHeading" scope="col">최신 이벤트<\/th>/);
+  assert.match(html, /<h2 id="inventoryTitle">전체 디바이스<\/h2>/);
+  assert.match(html, /id="resourceInventorySections"/);
+  assert.match(html, /서버, 현장 엣지 노드, 가상 자원과 EdgeX 센서를 한 화면에서 확인합니다/);
+  assert.doesNotMatch(html, /class="resource-category-tabs"/);
+  assert.doesNotMatch(html, /data-resource-category="server"/);
   assert.doesNotMatch(html, /EdgeX 디바이스/);
-  assert.match(css, /#deviceList\s*\{\s*display: table-row-group !important;/);
+  assert.match(css, /\.resource-inventory-sections/);
+  assert.match(css, /\.resource-inventory-section/);
+  assert.match(css, /\.resource-inventory-body\s*\{\s*display: table-row-group !important;/);
   assert.match(css, /@media \(max-width: 680px\)/);
+});
+
+test("renders the four categories as simultaneous concise tables", () => {
+  const categoryItems = {
+    server: "etri-ser0001",
+    physical: "etri-dev0001",
+    virtual: "vd-gpu-001",
+    sensor: "virtual-temperature-001",
+  };
+  const markup = Object.entries(categoryItems).map(([category, name]) => (
+    renderResourceInventorySection({
+      category,
+      items: [{
+        id: name,
+        name,
+        kind: category,
+        status: "available",
+        statusLabel: "Available",
+        observedAt: "2099-01-01T00:00:00Z",
+      }],
+    })
+  )).join("");
+
+  assert.match(markup, /id="resourceInventory-server"/);
+  assert.match(markup, />엣지 AI 서버<\/h3>/);
+  assert.match(markup, /id="resourceInventory-physical"/);
+  assert.match(markup, />물리 디바이스<\/h3>/);
+  assert.match(markup, /id="resourceInventory-virtual"/);
+  assert.match(markup, />가상 디바이스<\/h3>/);
+  assert.match(markup, /id="resourceInventory-sensor"/);
+  assert.match(markup, />센서 디바이스<\/h3>/);
+  assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 4);
 });
 
 test("classifies dashboard resources into four explicit operator categories", () => {
@@ -300,6 +332,6 @@ test("places server and physical observability before the collapsed service demo
     html,
     /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
   );
-  assert.match(html, /dashboard\.js\?v=infrastructure-observability-20260730/);
-  assert.match(html, /operations-dashboard\.css\?v=infrastructure-observability-20260730/);
+  assert.match(html, /dashboard\.js\?v=unified-device-inventory-v2-20260804/);
+  assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);
 });

@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/static/service-demo.css?v=persistent-alerts-20260803" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
-    <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=service-flow-v14-20260804" />
   </head>
   <body>
@@ -319,28 +319,13 @@
           <div class="panel-head">
             <div>
               <p class="section-kicker">디바이스 인벤토리</p>
-              <h2 id="inventoryTitle">센서 디바이스</h2>
+              <h2 id="inventoryTitle">전체 디바이스</h2>
             </div>
             <span id="assetCount">0개</span>
           </div>
-          <div class="resource-category-tabs" role="group" aria-label="디바이스 분류">
-            <button type="button" data-resource-category="server" aria-pressed="false">
-              <span>엣지 AI 서버</span>
-              <strong id="serverCategoryCount">0</strong>
-            </button>
-            <button type="button" data-resource-category="physical" aria-pressed="false">
-              <span>물리 디바이스</span>
-              <strong id="physicalCategoryCount">0</strong>
-            </button>
-            <button type="button" data-resource-category="virtual" aria-pressed="false">
-              <span>가상 디바이스</span>
-              <strong id="virtualCategoryCount">0</strong>
-            </button>
-            <button class="active" type="button" data-resource-category="sensor" aria-pressed="true">
-              <span>센서 디바이스</span>
-              <strong id="sensorCategoryCount">0</strong>
-            </button>
-          </div>
+          <p class="resource-inventory-intro">
+            서버, 현장 엣지 노드, 가상 자원과 EdgeX 센서를 한 화면에서 확인합니다.
+          </p>
           <div class="sensor-inventory-toolbar">
             <label for="nodeFilterSelect">노드</label>
             <select id="nodeFilterSelect" aria-label="디바이스 노드 필터">
@@ -348,18 +333,13 @@
             </select>
             <span id="deviceFilterLabel">전체 0개</span>
           </div>
-          <div class="sensor-table-shell" role="region" aria-label="디바이스 목록" tabindex="0">
-            <table class="sensor-device-table">
-              <thead>
-                <tr>
-                  <th scope="col">이름</th>
-                  <th scope="col">상태</th>
-                  <th id="inventoryLatestHeading" scope="col">최신 이벤트</th>
-                  <th scope="col"><span class="sr-only">상세정보</span></th>
-                </tr>
-              </thead>
-              <tbody id="deviceList"></tbody>
-            </table>
+          <div
+            id="resourceInventorySections"
+            class="resource-inventory-sections"
+            aria-label="전체 디바이스 목록"
+            aria-live="polite"
+          >
+            <p class="empty">디바이스 목록을 확인하는 중입니다.</p>
           </div>
         </section>
 
@@ -551,6 +531,7 @@
                   <svg
                     id="serviceDesignerMiniMap"
                     viewBox="0 0 1120 700"
+                    preserveAspectRatio="none"
                     role="button"
                     tabindex="0"
                     aria-label="미니맵을 눌러 캔버스 이동"
@@ -561,7 +542,7 @@
                 </div>
               </div>
               <p id="serviceDesignerCanvasStatus" class="service-designer-canvas-help">
-                빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제
+                자유 드래그 · 가장자리 자동 이동 · 놓을 때 정렬 · Alt 정렬 해제
               </p>
             </section>
 
@@ -1357,11 +1338,11 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
-    <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
+    <script src="/static/dashboard.js?v=unified-device-inventory-v2-20260804"></script>
     <script src="/static/service-demo.js?v=persistent-alerts-20260803"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=editable-design-contract-v12-20260803"></script>
-    <script src="/static/service-designer-viewport.js?v=bounded-fast-drag-v7-20260731"></script>
-    <script src="/static/service-designer.js?v=service-flow-v14-20260804"></script>
+    <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
+    <script src="/static/service-designer.js?v=free-canvas-v15-20260804"></script>
   </body>
 </html>

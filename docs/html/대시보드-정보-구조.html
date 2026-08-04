@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-08-04 10:24</span>
-            <span class="badge">HTML 생성: 2026-08-04 10:26</span>
+            <span class="badge">수정: 2026-08-04 11:55</span>
+            <span class="badge">HTML 생성: 2026-08-04 11:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -179,7 +179,7 @@
 <ol><li>대시보드 전체에 <code>간편 보기</code>와 <code>전체 보기</code>를 따로 두지 않는다. <code>운영 현황</code>에는</li></ol>
 <p><code>엣지 AI 서버</code>, <code>물리 디바이스</code>, <code>가상 디바이스</code>, <code>센서 디바이스</code>의 수와 상태, 현재 서버·물리 디바이스 자원 관측과 조치 항목을 먼저 표시한다. 두 패널은 <code>/state/dashboard</code>의 node snapshot을 <code>node_type</code>으로 분리해 평균 CPU·메모리, GPU 관측 대수, pressure 주의 대수와 노드별 현재 meter를 만든다. 누락 metric은 <code>N/A</code>로 표시하고 과거 시계열을 추정하지 않는다. 고정 서비스 데모는 접힌 보조 영역으로 둔다. 플랫폼 기술 지표와 서비스 연결 구조는 필요할 때만 펼친다.</p>
 <ol><li><code>디바이스</code> 메뉴는 네 분류 모두 반복 카드가 아니라 이름·상태·최신 관측 또는</li></ol>
-<p>Event·상세보기의 목록을 사용한다. 센서 Profile, Device Service, protocol, 상태 근거와 저장 이력, 노드 자원 관측값과 가상 자원 상태는 선택 행의 상세 패널에서 확인한다.</p>
+<p>Event·상세보기의 목록을 사용한다. 분류 탭으로 하나씩 숨기지 않고 네 목록을 같은 화면에 연속 표시하며 공통 노드 필터를 적용한다. 센서 Profile, Device Service, protocol, 상태 근거와 저장 이력, 노드 자원 관측값과 가상 자원 상태는 선택 행의 상세 패널에서 확인한다.</p>
 <ol><li>375px, 768px, 1024px viewport에서 문서 전체의 가로 overflow와 잘린 텍스트가 없어야</li></ol>
 <p>한다. 표·캔버스처럼 내부 스크롤이 필요한 요소만 자체 scroll container를 사용한다.</p>
 <ol><li>화면 분류의 권위는 다음과 같다.</li></ol>
@@ -409,7 +409,7 @@
 </tr>
 <tr>
 <td>디바이스 인벤토리</td>
-<td>네 분류를 전환하며 이름, Available/Degraded/Unavailable/Unknown, 최신 관측 또는 Event 경과 시간, 상세보기를 동일한 목록 구조로 제공. 노드 필터 제공</td>
+<td>네 분류를 탭 전환 없이 한 화면의 연속 영역으로 모두 표시하며 이름, Available/Degraded/Unavailable/Unknown, 최신 관측 또는 Event 경과 시간, 상세보기를 동일한 목록 구조로 제공. 공통 노드 필터 제공</td>
 </tr>
 <tr>
 <td>센서 상세정보</td>

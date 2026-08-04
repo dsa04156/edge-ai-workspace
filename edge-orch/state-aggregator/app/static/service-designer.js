@@ -38,6 +38,7 @@
     resizeObserver: null,
     edgeElements: new Map(),
     miniMapNodeElements: new Map(),
+    miniMapBounds: null,
     pendingFullRender: false,
   };
 
@@ -827,6 +828,21 @@
     const viewportRect = el("serviceDesignerMiniMapViewport", documentRef);
     const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
     if (!map || !nodes || !viewportRect || !canvasViewport) return;
+    const visible = viewportModel.visibleWorldRect(
+      state.viewport,
+      canvasViewport.clientWidth,
+      canvasViewport.clientHeight,
+    );
+    const worldBounds = viewportModel.miniMapBounds(
+      state.design.nodes,
+      visible,
+    );
+    state.miniMapBounds = worldBounds;
+    map.setAttribute(
+      "viewBox",
+      `${worldBounds.left} ${worldBounds.top} ${worldBounds.width} ${worldBounds.height}`,
+    );
+    map.setAttribute("preserveAspectRatio", "none");
     nodes.innerHTML = state.design.nodes.map((node) => `
       <rect
         class="service-designer-minimap-node${node.id === state.selectedNodeId ? " selected" : ""}"
@@ -842,25 +858,10 @@
       [...nodes.querySelectorAll("[data-designer-minimap-node]")]
         .map((node) => [node.dataset.designerMinimapNode, node]),
     );
-    const visible = viewportModel.visibleWorldRect(
-      state.viewport,
-      canvasViewport.clientWidth,
-      canvasViewport.clientHeight,
-    );
-    const left = Math.max(0, visible.x);
-    const top = Math.max(0, visible.y);
-    const right = Math.min(
-      viewportModel.CANVAS_WIDTH,
-      visible.x + visible.width,
-    );
-    const bottom = Math.min(
-      viewportModel.CANVAS_HEIGHT,
-      visible.y + visible.height,
-    );
-    viewportRect.setAttribute("x", String(left));
-    viewportRect.setAttribute("y", String(top));
-    viewportRect.setAttribute("width", String(Math.max(0, right - left)));
-    viewportRect.setAttribute("height", String(Math.max(0, bottom - top)));
+    viewportRect.setAttribute("x", String(visible.x));
+    viewportRect.setAttribute("y", String(visible.y));
+    viewportRect.setAttribute("width", String(visible.width));
+    viewportRect.setAttribute("height", String(visible.height));
   }
 
   function applyCanvasViewport(documentRef = document) {
@@ -977,12 +978,18 @@
     if (!map || !viewport) return;
     const bounds = map.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
-    const worldX = (
+    const worldBounds = state.miniMapBounds || {
+      left: 0,
+      top: 0,
+      width: viewportModel.CANVAS_WIDTH,
+      height: viewportModel.CANVAS_HEIGHT,
+    };
+    const worldX = worldBounds.left + (
       (event.clientX - bounds.left) / bounds.width
-    ) * viewportModel.CANVAS_WIDTH;
-    const worldY = (
+    ) * worldBounds.width;
+    const worldY = worldBounds.top + (
       (event.clientY - bounds.top) / bounds.height
-    ) * viewportModel.CANVAS_HEIGHT;
+    ) * worldBounds.height;
     state.viewport = viewportModel.centerOnWorldPoint(
       state.viewport,
       worldX,
@@ -2171,6 +2178,12 @@
       pointerId: event.pointerId,
       moved: false,
       renderFrame: null,
+      autoPanFrame: null,
+      startViewport: {...state.viewport},
+      pointerClientX: event.clientX,
+      pointerClientY: event.clientY,
+      shiftKey: false,
+      altKey: false,
     };
     try {
       nodeElement.setPointerCapture?.(event.pointerId);
@@ -2178,6 +2191,104 @@
       // Pointer capture is an enhancement; window listeners remain the fallback.
     }
     event.preventDefault();
+  }
+
+  function cancelDragAutoPan(drag) {
+    if (!drag || drag.autoPanFrame === null) return;
+    root?.cancelAnimationFrame?.(drag.autoPanFrame);
+    drag.autoPanFrame = null;
+  }
+
+  function updateDragPlacement(
+    clientX,
+    clientY,
+    shiftKey,
+    altKey,
+    documentRef = document,
+    autoPan = true,
+  ) {
+    const drag = state.dragging;
+    const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
+    if (!drag || !canvasViewport) return {x: 0, y: 0};
+    drag.pointerClientX = clientX;
+    drag.pointerClientY = clientY;
+    drag.shiftKey = Boolean(shiftKey);
+    drag.altKey = Boolean(altKey);
+
+    const canvasBounds = canvasViewport.getBoundingClientRect();
+    const panDelta = autoPan
+      ? viewportModel.dragAutoPanDelta(
+          {x: clientX, y: clientY},
+          canvasBounds,
+        )
+      : {x: 0, y: 0};
+    if (panDelta.x || panDelta.y) {
+      state.viewport = viewportModel.panViewport(
+        state.viewport,
+        panDelta.x,
+        panDelta.y,
+      );
+      state.viewportInitialized = true;
+      applyCanvasViewport(documentRef);
+    }
+
+    const freePosition = viewportModel.dragNodePosition(
+      {x: drag.startX, y: drag.startY},
+      {x: drag.startClientX, y: drag.startClientY},
+      {x: clientX, y: clientY},
+      drag.startViewport,
+      state.viewport,
+    );
+    const constrained = viewportModel.constrainNodePosition(
+      {x: drag.startX, y: drag.startY},
+      freePosition,
+      shiftKey,
+    );
+    const zoom = Math.max(0.01, Number(state.viewport.zoom) || 1);
+    const dropPlacement = viewportModel.snapNodePosition(
+      constrained,
+      state.design.nodes,
+      drag.nodeId,
+      {
+        snap: !altKey,
+        // Pointer movement stays one-to-one with the node. Matching peer
+        // anchors are applied only when the pointer is released.
+        grid: false,
+        tolerance: viewportModel.SNAP_TOLERANCE / zoom,
+        lockX: constrained.lockedAxis === "vertical",
+        lockY: constrained.lockedAxis === "horizontal",
+        nodeWidth: drag.nodeWidth,
+        nodeHeight: drag.nodeHeight,
+      },
+    );
+    drag.x = constrained.x;
+    drag.y = constrained.y;
+    drag.dropX = dropPlacement.x;
+    drag.dropY = dropPlacement.y;
+    drag.nodeElement.style.transform = `translate3d(${drag.x - drag.startX}px, ${drag.y - drag.startY}px, 0)`;
+    renderDragGuides(dropPlacement.guides, documentRef);
+    scheduleDragAuxiliaryRender(documentRef);
+    return panDelta;
+  }
+
+  function scheduleDragAutoPan(documentRef = document) {
+    const drag = state.dragging;
+    if (!drag || drag.autoPanFrame !== null || !root?.requestAnimationFrame) {
+      return;
+    }
+    drag.autoPanFrame = root.requestAnimationFrame(() => {
+      drag.autoPanFrame = null;
+      if (state.dragging !== drag || !drag.moved) return;
+      const panDelta = updateDragPlacement(
+        drag.pointerClientX,
+        drag.pointerClientY,
+        drag.shiftKey,
+        drag.altKey,
+        documentRef,
+        true,
+      );
+      if (panDelta.x || panDelta.y) scheduleDragAutoPan(documentRef);
+    });
   }
 
   function moveDrag(event, documentRef = document) {
@@ -2210,81 +2321,15 @@
         "is-node-dragging",
       );
     }
-    const zoom = Math.max(0.01, Number(state.viewport.zoom) || 1);
-    const constrained = viewportModel.constrainNodePosition(
-      {x: state.dragging.startX, y: state.dragging.startY},
-      {
-        x: state.dragging.startX + deltaClientX / zoom,
-        y: state.dragging.startY + deltaClientY / zoom,
-      },
+    const panDelta = updateDragPlacement(
+      event.clientX,
+      event.clientY,
       event.shiftKey,
+      event.altKey,
+      documentRef,
+      true,
     );
-    const canvasViewport = el("serviceDesignerCanvasViewport", documentRef);
-    if (!canvasViewport) return false;
-    const canvasBounds = canvasViewport.getBoundingClientRect();
-    const browserWidth = Math.max(
-      1,
-      Number(root?.innerWidth) || canvasBounds.right,
-    );
-    const browserHeight = Math.max(
-      1,
-      Number(root?.innerHeight) || canvasBounds.bottom,
-    );
-    const placementOptions = {
-      padding: 12,
-      nodeWidth: state.dragging.nodeWidth,
-      nodeHeight: state.dragging.nodeHeight,
-      leftInset: Math.max(0, -canvasBounds.left),
-      rightInset: Math.max(0, canvasBounds.right - browserWidth),
-      topInset: Math.max(0, -canvasBounds.top),
-      bottomInset: Math.max(0, canvasBounds.bottom - browserHeight),
-    };
-    const directPlacement = viewportModel.clampNodeToViewport(
-      constrained,
-      state.viewport,
-      canvasViewport.clientWidth,
-      canvasViewport.clientHeight,
-      placementOptions,
-    );
-    const snappedDropPlacement = viewportModel.snapNodePosition(
-      constrained,
-      state.design.nodes,
-      state.dragging.nodeId,
-      {
-        snap: !event.altKey,
-        // Pointer movement stays one-to-one with the node. Matching peer
-        // anchors are applied only when the pointer is released.
-        grid: false,
-        tolerance: viewportModel.SNAP_TOLERANCE / zoom,
-        lockX: constrained.lockedAxis === "vertical",
-        lockY: constrained.lockedAxis === "horizontal",
-        nodeWidth: state.dragging.nodeWidth,
-        nodeHeight: state.dragging.nodeHeight,
-      },
-    );
-    const dropPlacement = viewportModel.clampNodeToViewport(
-      snappedDropPlacement,
-      state.viewport,
-      canvasViewport.clientWidth,
-      canvasViewport.clientHeight,
-      placementOptions,
-    );
-    const guides = {
-      vertical: dropPlacement.x === snappedDropPlacement.x
-        ? snappedDropPlacement.guides.vertical
-        : null,
-      horizontal: dropPlacement.y === snappedDropPlacement.y
-        ? snappedDropPlacement.guides.horizontal
-        : null,
-    };
-    const {x, y} = directPlacement;
-    state.dragging.x = x;
-    state.dragging.y = y;
-    state.dragging.dropX = dropPlacement.x;
-    state.dragging.dropY = dropPlacement.y;
-    state.dragging.nodeElement.style.transform = `translate3d(${x - state.dragging.startX}px, ${y - state.dragging.startY}px, 0)`;
-    renderDragGuides(guides, documentRef);
-    scheduleDragAuxiliaryRender(documentRef);
+    if (panDelta.x || panDelta.y) scheduleDragAutoPan(documentRef);
     event.preventDefault();
     return true;
   }
@@ -2304,6 +2349,7 @@
       return false;
     }
     cancelDragAuxiliaryRender(drag);
+    cancelDragAutoPan(drag);
     state.dragging = null;
     drag.nodeElement.classList.remove("is-dragging");
     drag.nodeElement.style.transform = "";
@@ -2395,6 +2441,7 @@
     );
     renderEdges(documentRef);
     renderMiniMap(documentRef);
+    revealCanvasNode(node.id, documentRef);
     return true;
   }
 

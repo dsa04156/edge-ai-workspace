@@ -255,12 +255,6 @@ body.context-detail-open {
   align-items: stretch;
 }
 
-#deviceList {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr));
-  grid-auto-rows: 1fr;
-  align-items: stretch;
-}
-
 .assets .device-row {
   display: flex;
   flex-direction: column;

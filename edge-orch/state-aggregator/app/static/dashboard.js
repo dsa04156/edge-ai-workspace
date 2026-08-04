@@ -62,6 +62,7 @@ const RESOURCE_CATEGORY_VIEWS = {
     emptyLabel: "등록된 센서 디바이스가 없습니다.",
   },
 };
+const RESOURCE_CATEGORY_ORDER = ["server", "physical", "virtual", "sensor"];
 
 function resourceCategoryView(category = "sensor") {
   return RESOURCE_CATEGORY_VIEWS[category] || RESOURCE_CATEGORY_VIEWS.sensor;
@@ -865,6 +866,16 @@ function selectResourceCategory(category, {render = true} = {}) {
   return true;
 }
 
+function scrollResourceCategoryIntoView(category) {
+  if (!RESOURCE_CATEGORY_VIEWS[category] || typeof document === "undefined") {
+    return false;
+  }
+  const section = document.getElementById(`resourceInventory-${category}`);
+  if (!section) return false;
+  section.scrollIntoView({block: "start"});
+  return true;
+}
+
 function kpiKeysForCard(key) {
   const groups = {
     registered_device_count: ["registered_device_count", "available_device_count"],
@@ -1140,6 +1151,7 @@ function openGlobalSearchResult(target) {
         showResourceExplanation(item);
       }
       renderDevices(state.data?.devices || []);
+      scrollResourceCategoryIntoView(category);
       const trigger = Array.from(
         document.querySelectorAll('[data-resource-id]'),
       ).find((candidate) => (
@@ -1731,20 +1743,6 @@ function resourceItemMatchesNodeFilter(item) {
   return labels.some((label) => state.selectedNodeFilterValues.includes(label));
 }
 
-function renderResourceCategoryTabs(data = state.data || {}) {
-  Object.keys(RESOURCE_CATEGORY_VIEWS).forEach((category) => {
-    const count = resourceCategoryItems(data, category).length;
-    setText(resourceCategoryView(category).countId, count);
-    const button = typeof document !== "undefined"
-      ? document.querySelector?.(`[data-resource-category="${category}"]`)
-      : null;
-    if (!button) return;
-    const selected = category === state.selectedResourceCategory;
-    button.classList.toggle("active", selected);
-    button.setAttribute("aria-pressed", String(selected));
-  });
-}
-
 function renderResourceInventoryRows(
   items = [],
   {
@@ -1790,6 +1788,70 @@ function renderResourceInventoryRows(
   }).join("");
 }
 
+function renderResourceInventorySection({
+  category,
+  items = [],
+  visibleItems = items,
+  selectedResourceId = null,
+  contextPanelOpen = false,
+  observationError = "",
+  filtered = false,
+} = {}) {
+  const view = resourceCategoryView(category);
+  const available = visibleItems.filter(
+    (item) => item.status === "available",
+  ).length;
+  const summary = observationError
+    ? "관측 불가"
+    : filtered
+      ? `${visibleItems.length}/${items.length}개 · Available ${available}개`
+      : `${items.length}개 · Available ${available}개`;
+  const emptyText = observationError
+    ? `${view.label} 관측 불가`
+    : filtered && state.selectedNodeName
+      ? `${state.selectedNodeName}에 해당하는 ${view.label}가 없습니다.`
+      : view.emptyLabel;
+  const rows = visibleItems.length
+    ? renderResourceInventoryRows(
+        visibleItems,
+        {
+          category,
+          selectedResourceId,
+          contextPanelOpen,
+        },
+      )
+    : `<tr class="sensor-device-empty"><td colspan="4">${escapeHtml(emptyText)}</td></tr>`;
+  return `
+    <section
+      id="resourceInventory-${escapeHtml(category)}"
+      class="resource-inventory-section"
+      data-resource-category-section="${escapeHtml(category)}"
+      aria-labelledby="resourceInventoryTitle-${escapeHtml(category)}"
+    >
+      <div class="resource-inventory-section-head">
+        <div>
+          <span>${escapeHtml(category === "sensor" ? "EdgeX inventory" : "운영 자원")}</span>
+          <h3 id="resourceInventoryTitle-${escapeHtml(category)}">${escapeHtml(view.label)}</h3>
+        </div>
+        <strong>${escapeHtml(summary)}</strong>
+      </div>
+      <div class="sensor-table-shell" role="region" aria-label="${escapeHtml(view.label)} 목록" tabindex="0">
+        <table class="sensor-device-table">
+          <thead>
+            <tr>
+              <th scope="col">이름</th>
+              <th scope="col">상태</th>
+              <th scope="col">${escapeHtml(view.latestLabel)}</th>
+              <th scope="col"><span class="sr-only">상세정보</span></th>
+            </tr>
+          </thead>
+          <tbody class="resource-inventory-body" data-resource-category-list="${escapeHtml(category)}">${rows}</tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
 function renderSensorDeviceRows(
   devices = [],
   selectedDeviceName = null,
@@ -1807,41 +1869,49 @@ function renderSensorDeviceRows(
 
 function renderDevices(devices, data = state.data) {
   const dashboardData = data || {devices: devices || []};
-  const category = state.selectedResourceCategory;
-  const view = resourceCategoryView(category);
-  const items = resourceCategoryItems(dashboardData, category);
-  const visibleItems = items.filter(resourceItemMatchesNodeFilter);
-  const list = $("deviceList");
-  renderResourceCategoryTabs(dashboardData);
-  renderDeviceFilterSummary(items.length, visibleItems.length);
-  setText("inventoryTitle", view.label);
-  setText("inventoryLatestHeading", view.latestLabel);
+  const inventories = RESOURCE_CATEGORY_ORDER.map((category) => {
+    const items = resourceCategoryItems(dashboardData, category);
+    return {
+      category,
+      items,
+      visibleItems: items.filter(resourceItemMatchesNodeFilter),
+    };
+  });
+  const total = inventories.reduce((sum, inventory) => sum + inventory.items.length, 0);
+  const visibleTotal = inventories.reduce(
+    (sum, inventory) => sum + inventory.visibleItems.length,
+    0,
+  );
+  const available = inventories.reduce(
+    (sum, inventory) => sum + inventory.visibleItems.filter(
+      (item) => item.status === "available",
+    ).length,
+    0,
+  );
+  const list = $("resourceInventorySections");
+  renderDeviceFilterSummary(total, visibleTotal);
+  setText("inventoryTitle", "전체 디바이스");
   setText(
     "assetCount",
-    resourceCategoryObservationError(dashboardData, category)
-      ? "관측 불가"
-      : `${items.length}개 · Available ${items.filter((item) => item.status === "available").length}개`,
+    `${visibleTotal}개 · Available ${available}개`,
   );
-  const tableShell = typeof document !== "undefined"
-    ? document.querySelector?.(".sensor-table-shell")
-    : null;
-  if (tableShell) tableShell.setAttribute("aria-label", `${view.label} 목록`);
   const topology = $("sensorTopologyPanel");
-  if (topology) topology.hidden = category !== "sensor";
+  if (topology) topology.hidden = false;
   if (!list) return;
-  const selectedId = category === "sensor"
-    ? state.selectedDeviceName
-    : state.selectedResourceId;
-  list.innerHTML = visibleItems.length
-    ? renderResourceInventoryRows(
-        visibleItems,
-        {
-          category,
-          selectedResourceId: selectedId,
-          contextPanelOpen: isContextDetailPanelOpen(),
-        },
-      )
-    : `<tr class="sensor-device-empty"><td colspan="4">${escapeHtml(deviceFilterEmptyText(dashboardData, category))}</td></tr>`;
+  list.innerHTML = inventories.map((inventory) => renderResourceInventorySection({
+    ...inventory,
+    selectedResourceId: inventory.category === "sensor"
+      ? state.selectedDeviceName
+      : state.selectedResourceCategory === inventory.category
+        ? state.selectedResourceId
+        : null,
+    contextPanelOpen: isContextDetailPanelOpen(),
+    observationError: resourceCategoryObservationError(
+      dashboardData,
+      inventory.category,
+    ),
+    filtered: Boolean(state.selectedNodeName),
+  })).join("");
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -2268,6 +2338,7 @@ function handleExplainSelection(target) {
   if (!explainTarget) return;
   const type = explainTarget.dataset.explainType;
   if (type === "device") {
+    state.selectedResourceCategory = "sensor";
     const deviceName = explainTarget.dataset.deviceName;
     const device = (state.data?.devices || []).find((item) => item.name === deviceName);
     void loadDeviceTelemetryHistory(device);
@@ -2277,6 +2348,7 @@ function handleExplainSelection(target) {
   }
   if (type === "resource") {
     const category = explainTarget.dataset.resourceKind;
+    state.selectedResourceCategory = category;
     const resourceId = explainTarget.dataset.resourceId;
     const item = resourceCategoryItems(state.data || {}, category)
       .find((resource) => resource.id === resourceId);
@@ -2312,13 +2384,17 @@ if (typeof document !== "undefined") {
     }
     const categoryLink = event.target.closest?.("[data-resource-category-link]");
     if (categoryLink) {
-      selectResourceCategory(categoryLink.dataset.resourceCategoryLink);
+      const category = categoryLink.dataset.resourceCategoryLink;
+      selectResourceCategory(category);
       if (typeof globalThis.showDashboardPage === "function") {
         globalThis.showDashboardPage("inventory");
       }
       if (globalThis.location && globalThis.location.hash !== "#inventory") {
         globalThis.location.hash = "inventory";
       }
+      globalThis.requestAnimationFrame?.(() => {
+        scrollResourceCategoryIntoView(category);
+      });
       return;
     }
     if (handleTelemetryHistoryAction(event.target)) return;
@@ -2447,6 +2523,7 @@ if (typeof module !== "undefined") {
     closeContextDetailPanel,
     renderDeviceTelemetryHistory,
     renderResourceInventoryRows,
+    renderResourceInventorySection,
     renderPhysicalDeviceOverview,
     renderPhysicalDeviceStatusRows,
     renderServerOverview,
@@ -2461,6 +2538,7 @@ if (typeof module !== "undefined") {
     physicalDeviceOverviewModel,
     serverOverviewModel,
     selectResourceCategory,
+    scrollResourceCategoryIntoView,
     submitOperatorChat,
     renderTopology,
     state,
