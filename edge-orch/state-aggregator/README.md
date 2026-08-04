@@ -81,6 +81,7 @@ Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기
 
 node up/down
 CPU utilization
+logical CPU count
 memory usage ratio
 load average
 network rx/tx rate
@@ -110,6 +111,9 @@ app/config/instance_map.json
 D. normalized state 생성
 
 node raw metric을 다음 상태로 변환
+
+`compute_pressure`는 CPU 사용률과 `load average / logical CPU count` 중 큰 값을 사용한다.
+CPU 수를 관측하지 못하면 임의의 코어 수를 가정하지 않고 CPU 사용률만 사용한다.
 
 compute_pressure: low / medium / high
 memory_pressure: low / medium / high

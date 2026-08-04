@@ -87,6 +87,7 @@ class NodeRawMetrics(BaseModel):
     node_type: str | None = None
     up: float = 0.0
     cpu_utilization: float = 0.0
+    cpu_logical_cores: float | None = None
     memory_usage_ratio: float = 0.0
     load_average: float = 0.0
     network_rx_rate: float = 0.0

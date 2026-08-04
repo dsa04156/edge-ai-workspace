@@ -14,7 +14,18 @@ def _pressure_from_value(value: float, medium: float, high: float) -> str:
 
 
 def normalize_node_state(raw: NodeRawMetrics) -> NodeState:
-    compute_signal = max(raw.cpu_utilization, raw.load_average / 4.0)
+    cpu_logical_cores = raw.cpu_logical_cores
+    if cpu_logical_cores is not None and cpu_logical_cores <= 0:
+        cpu_logical_cores = None
+    load_per_cpu_ratio = (
+        raw.load_average / cpu_logical_cores
+        if cpu_logical_cores is not None
+        else None
+    )
+    compute_signal = max(
+        raw.cpu_utilization,
+        load_per_cpu_ratio if load_per_cpu_ratio is not None else 0.0,
+    )
     network_total = raw.network_rx_rate + raw.network_tx_rate
 
     compute_pressure = _pressure_from_value(compute_signal, medium=0.60, high=0.85)
@@ -36,6 +47,9 @@ def normalize_node_state(raw: NodeRawMetrics) -> NodeState:
         "network_rx_rate": raw.network_rx_rate,
         "network_tx_rate": raw.network_tx_rate,
     }
+    if cpu_logical_cores is not None:
+        raw_metrics["cpu_logical_cores"] = cpu_logical_cores
+        raw_metrics["load_per_cpu_ratio"] = load_per_cpu_ratio
     for key in (
         "gpu_utilization",
         "gpu_memory_used_mib",

@@ -332,6 +332,6 @@ test("places server and physical observability before the collapsed service demo
     html,
     /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
   );
-  assert.match(html, /dashboard\.js\?v=unified-device-inventory-v2-20260804/);
+  assert.match(html, /dashboard\.js\?v=cpu-aware-pressure-v3-20260804/);
   assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);
 });

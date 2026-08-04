@@ -99,7 +99,7 @@ def test_device_explanation_panel_omits_command_hints() -> None:
     assert "explain-facts" in js
     assert "renderDeviceReasonList" in js
     assert "explain-reasons" in js
-    assert "/static/dashboard.js?v=unified-device-inventory-v2-20260804" in html
+    assert "/static/dashboard.js?v=cpu-aware-pressure-v3-20260804" in html
 
 
 def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> None:
@@ -107,7 +107,7 @@ def test_inventory_device_rows_use_compact_progressive_disclosure_table() -> Non
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
     render_devices = js[js.index("function renderDevices") : js.index("function renderResourceProfiles")]
 
-    assert "/static/dashboard.js?v=unified-device-inventory-v2-20260804" in html
+    assert "/static/dashboard.js?v=cpu-aware-pressure-v3-20260804" in html
     assert "publisher:" not in render_devices
     assert "mapper:" not in render_devices
     assert "RESOURCE_CATEGORY_ORDER.map" in render_devices

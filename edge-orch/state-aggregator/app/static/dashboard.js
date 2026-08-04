@@ -1681,7 +1681,7 @@ function renderNodeMetricMatrix(nodes = []) {
               <div class="node-metric-row"><span>Memory</span><strong>${pct(memory)}</strong><div class="metric-bar"><i style="width:${pct(memory)}"></i></div></div>
               <div class="node-metric-row"><span>GPU</span><strong>${gpu === null ? "N/A" : pct(gpu)}</strong><div class="metric-bar muted-bar"><i style="width:${gpu === null ? "0%" : pct(gpu)}"></i></div></div>
               <div class="node-metric-foot">
-                <span>load ${escapeHtml(threeDecimal(metrics.load_average))}</span>
+                <span>load ${escapeHtml(threeDecimal(metrics.load_average))}${Number(metrics.cpu_logical_cores) > 0 ? ` / ${escapeHtml(Math.round(Number(metrics.cpu_logical_cores)))} CPU` : ""}</span>
                 <span>rx ${escapeHtml(oneDecimal(networkRx / 1024))} KiB/s</span>
                 <span>tx ${escapeHtml(oneDecimal(networkTx / 1024))} KiB/s</span>
               </div>

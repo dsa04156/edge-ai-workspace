@@ -112,6 +112,44 @@ def render_metrics(
     )
     lines.extend(
         _metric_lines(
+            "edge_orch_node_cpu_logical_cores",
+            "gauge",
+            "Logical CPU count used to normalize node load average.",
+            [
+                (
+                    {
+                        "hostname": node.hostname,
+                        "instance": node.instance,
+                        "node_type": node.node_type,
+                    },
+                    node.raw_metrics["cpu_logical_cores"],
+                )
+                for node in node_states
+                if "cpu_logical_cores" in node.raw_metrics
+            ],
+        )
+    )
+    lines.extend(
+        _metric_lines(
+            "edge_orch_node_load_per_cpu_ratio",
+            "gauge",
+            "Node load average divided by observed logical CPU count.",
+            [
+                (
+                    {
+                        "hostname": node.hostname,
+                        "instance": node.instance,
+                        "node_type": node.node_type,
+                    },
+                    node.raw_metrics["load_per_cpu_ratio"],
+                )
+                for node in node_states
+                if "load_per_cpu_ratio" in node.raw_metrics
+            ],
+        )
+    )
+    lines.extend(
+        _metric_lines(
             "edge_orch_node_network_rx_rate_bytes_per_second",
             "gauge",
             "Latest node network receive rate collected by state aggregator.",

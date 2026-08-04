@@ -25,6 +25,50 @@ def test_normalize_node_state_marks_high_pressure_and_degraded():
     assert state.node_health == "degraded"
 
 
+def test_normalize_node_state_scales_load_average_by_observed_cpu_count():
+    raw = NodeRawMetrics(
+        instance="192.168.0.56:9100",
+        hostname="etri-ser0001-cg0msb",
+        node_type="cloud_server",
+        up=1.0,
+        cpu_utilization=0.234,
+        cpu_logical_cores=24,
+        memory_usage_ratio=0.13,
+        load_average=15.13,
+        network_rx_rate=500_000,
+        network_tx_rate=700_000,
+        collected_at=datetime.now(timezone.utc),
+    )
+
+    state = normalize_node_state(raw)
+
+    assert state.compute_pressure == "medium"
+    assert state.node_health == "healthy"
+    assert state.raw_metrics["cpu_logical_cores"] == 24
+    assert state.raw_metrics["load_per_cpu_ratio"] == 15.13 / 24
+
+
+def test_normalize_node_state_does_not_assume_core_count_when_metric_is_missing():
+    raw = NodeRawMetrics(
+        instance="192.168.0.99:9100",
+        hostname="unknown-core-count",
+        up=1.0,
+        cpu_utilization=0.2,
+        memory_usage_ratio=0.2,
+        load_average=12.0,
+        network_rx_rate=100,
+        network_tx_rate=100,
+        collected_at=datetime.now(timezone.utc),
+    )
+
+    state = normalize_node_state(raw)
+
+    assert state.compute_pressure == "low"
+    assert state.node_health == "healthy"
+    assert "cpu_logical_cores" not in state.raw_metrics
+    assert "load_per_cpu_ratio" not in state.raw_metrics
+
+
 def test_normalize_workflow_tracks_migrations_and_risk():
     event_time = datetime.now(timezone.utc)
     first = WorkflowEvent(

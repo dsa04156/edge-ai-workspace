@@ -22,8 +22,10 @@ def test_metrics_exposes_node_and_workflow_gauges():
             raw_metrics={
                 "up": 1.0,
                 "cpu_utilization": 0.91,
+                "cpu_logical_cores": 24.0,
                 "memory_usage_ratio": 0.42,
                 "load_average": 2.1,
+                "load_per_cpu_ratio": 0.0875,
                 "network_rx_rate": 1000.0,
                 "network_tx_rate": 800.0,
             },
@@ -62,6 +64,14 @@ def test_metrics_exposes_node_and_workflow_gauges():
     assert (
         'edge_orch_node_cpu_utilization_ratio{hostname="etri-ser0001-CG0MSB",'
         'instance="192.168.0.56:9100",node_type="cloud_server"} 0.91'
+    ) in body
+    assert (
+        'edge_orch_node_cpu_logical_cores{hostname="etri-ser0001-CG0MSB",'
+        'instance="192.168.0.56:9100",node_type="cloud_server"} 24.0'
+    ) in body
+    assert (
+        'edge_orch_node_load_per_cpu_ratio{hostname="etri-ser0001-CG0MSB",'
+        'instance="192.168.0.56:9100",node_type="cloud_server"} 0.0875'
     ) in body
     assert (
         'edge_orch_node_health{hostname="etri-ser0001-CG0MSB",instance="192.168.0.56:9100",'
