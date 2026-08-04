@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
-    <link rel="stylesheet" href="/static/service-designer.css?v=input-preview-v15-20260804" />
+    <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
   </head>
   <body>
     <main class="shell">
@@ -415,7 +415,7 @@
                 title="3축 진동과 보조 센서 점수를 결합하는 설계 예시 불러오기"
               >복합 점수 예시</button>
               <button id="serviceDesignerSave" type="button">이 브라우저에 저장</button>
-              <button id="serviceDesignerValidate" class="service-designer-primary" type="button">설계 검증</button>
+              <button id="serviceDesignerValidate" class="service-designer-primary" type="button">입력·설계 검증</button>
             </div>
           </div>
           <div
@@ -577,6 +577,25 @@
               </span>
               <b id="serviceDesignerValidationSummary">검증 전</b>
             </summary>
+            <section
+              class="service-designer-input-readiness-panel"
+              aria-labelledby="serviceDesignerInputReadinessTitle"
+            >
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>Preflight</span>
+                  <strong id="serviceDesignerInputReadinessTitle">입력 준비 상태</strong>
+                </div>
+                <small id="serviceDesignerInputReadinessSummary">점검 전</small>
+              </div>
+              <div
+                id="serviceDesignerInputReadiness"
+                class="service-designer-input-readiness"
+                aria-live="polite"
+              >
+                <p class="service-designer-empty">입력·설계 검증을 누르면 모든 센서 입력을 함께 확인합니다.</p>
+              </div>
+            </section>
             <div class="service-designer-review-grid">
               <section class="service-designer-review" aria-labelledby="serviceDesignerValidationTitle">
                 <div class="service-designer-pane-head">
@@ -1341,8 +1360,8 @@
     <script src="/static/dashboard.js?v=unified-device-inventory-v2-20260804"></script>
     <script src="/static/service-demo.js?v=persistent-alerts-20260803"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
-    <script src="/static/service-designer-model.js?v=input-readiness-v13-20260804"></script>
+    <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
-    <script src="/static/service-designer.js?v=input-preview-v16-20260804"></script>
+    <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
   </body>
 </html>

@@ -23,6 +23,20 @@
     };
   }
 
+  function createInputReadiness(overrides = {}) {
+    return {
+      status: "idle",
+      rows: [],
+      errors: [],
+      warnings: [],
+      readyCount: 0,
+      maxSkewMs: null,
+      telemetryByNodeId: {},
+      checkedAt: 0,
+      ...overrides,
+    };
+  }
+
   const state = {
     design: model
       ? model.createSensorAnomalyExampleDesign()
@@ -60,6 +74,8 @@
     pendingFullRender: false,
     inputTelemetryPreview: createInputTelemetryPreview(),
     inputTelemetryRequestId: 0,
+    inputReadiness: createInputReadiness(),
+    inputReadinessRequestId: 0,
   };
 
   function el(id, documentRef = document) {
@@ -143,6 +159,203 @@
       medianIntervalMs,
       latest: normalizedPoints.at(-1) || null,
       recent: normalizedPoints.slice(-5).reverse(),
+    };
+  }
+
+  function inputLatestTimestamp(device = {}, resourceName = "", summary = null) {
+    if (summary?.lastTimestamp) return summary.lastTimestamp;
+    const wanted = String(resourceName || "").trim().toLowerCase();
+    const matching = (device.latest_readings || [])
+      .filter((reading) => (
+        [reading?.resource_name, reading?.source_name]
+          .some((value) => String(value || "").trim().toLowerCase() === wanted)
+      ))
+      .map((reading) => ({reading, timestamp: telemetryPointTimestampMs(reading)}))
+      .filter((item) => Number.isFinite(item.timestamp))
+      .sort((left, right) => right.timestamp - left.timestamp)[0];
+    return matching?.reading?.timestamp || device.latest_event_timestamp || null;
+  }
+
+  function buildDesignInputReadiness(
+    design,
+    inventory = {},
+    telemetryByNodeId = {},
+  ) {
+    const sensorNodes = (design?.nodes || []).filter((node) => node.type === "sensor");
+    const errors = [];
+    const warnings = [];
+    const rows = sensorNodes.map((node) => {
+      const device = (inventory.devices || [])
+        .find((item) => item.name === node.config.deviceName);
+      const resource = device ? model.sourceResource(node, inventory) : null;
+      const telemetry = telemetryByNodeId[node.id] || {status: "idle"};
+      const summary = telemetry.summary || null;
+      const requiredSamples = Math.max(
+        1,
+        Number(model.sensorWindowRequirement?.(design, node.id)) || 1,
+      );
+      const sampleCount = Number(summary?.sampleCount) || 0;
+      const freshness = String(device?.telemetry_freshness || "").toLowerCase();
+      const latestTimestamp = inputLatestTimestamp(
+        device,
+        node.config.resourceName,
+        summary,
+      );
+      let status = "pending";
+      let statusLabel = "점검 전";
+      let reason = "입력·설계 검증을 실행하세요.";
+
+      if (!node.config.deviceName || !node.config.resourceName || !device || !resource) {
+        status = "blocked";
+        statusLabel = "바인딩 필요";
+        reason = "EdgeX Device와 DeviceResource를 먼저 확인하세요.";
+      } else if (telemetry.status === "error") {
+        status = "blocked";
+        statusLabel = "조회 실패";
+        reason = telemetry.error || "최근 입력 데이터를 읽지 못했습니다.";
+        errors.push({
+          code: "input_history_unavailable",
+          message: `${node.title}의 최근 입력 데이터를 확인하지 못했습니다: ${reason}`,
+          nodeId: node.id,
+        });
+      } else if (telemetry.status === "ready") {
+        if (freshness === "no_events") {
+          status = "blocked";
+          statusLabel = "데이터 없음";
+          reason = "EdgeX Core Data에 저장된 Event가 없습니다.";
+        } else if (freshness === "stale") {
+          status = "blocked";
+          statusLabel = "데이터 지연";
+          reason = "최신 Event가 freshness 기준을 넘었습니다.";
+        } else if (requiredSamples > INPUT_TELEMETRY_LIMIT) {
+          status = "blocked";
+          statusLabel = "검증 범위 초과";
+          reason = `필요 ${requiredSamples}개가 현재 점검 한도 ${INPUT_TELEMETRY_LIMIT}개를 넘습니다.`;
+          errors.push({
+            code: "input_window_unverifiable",
+            message: `${node.title}의 필요 표본 ${requiredSamples}개가 입력 점검 한도 ${INPUT_TELEMETRY_LIMIT}개를 넘습니다.`,
+            nodeId: node.id,
+          });
+        } else if (sampleCount < requiredSamples) {
+          status = "blocked";
+          statusLabel = "표본 부족";
+          reason = `최근 5분 표본 ${sampleCount}개 / 필요 ${requiredSamples}개`;
+          errors.push({
+            code: "input_sample_shortfall",
+            message: `${node.title}의 최근 표본이 ${sampleCount}개로 필요 윈도우 ${requiredSamples}개보다 적습니다.`,
+            nodeId: node.id,
+          });
+        } else if (freshness !== "fresh") {
+          status = "warning";
+          statusLabel = "최신성 확인 필요";
+          reason = "표본은 충분하지만 freshness 상태를 확인해야 합니다.";
+          warnings.push({
+            code: "input_freshness_unverified",
+            message: `${node.title}의 표본은 충분하지만 freshness 상태를 확인하지 못했습니다.`,
+            nodeId: node.id,
+          });
+        } else {
+          status = "ready";
+          statusLabel = "준비";
+          reason = `최근 5분 표본 ${sampleCount}개 / 필요 ${requiredSamples}개`;
+        }
+      }
+
+      return {
+        nodeId: node.id,
+        title: node.title,
+        deviceName: node.config.deviceName || "미선택",
+        resourceName: node.config.resourceName || "미선택",
+        sourceMode: node.config.sourceMode,
+        nodeName: device?.node_name || "미확인",
+        status,
+        statusLabel,
+        reason,
+        sampleCount,
+        requiredSamples,
+        medianIntervalMs: summary?.medianIntervalMs ?? null,
+        latestTimestamp,
+        latest: summary?.latest || null,
+        units: summary?.latest?.units || resource?.units || "",
+        telemetryStatus: telemetry.status,
+      };
+    });
+
+    let maxSkewMs = null;
+    (design?.nodes || []).forEach((target) => {
+      const sourceIds = (design?.edges || [])
+        .filter((edge) => edge.to === target.id)
+        .map((edge) => (design.nodes || []).find((node) => node.id === edge.from))
+        .filter((node) => node?.type === "sensor" && node.config.sourceMode === "local_recent")
+        .map((node) => node.id);
+      if (sourceIds.length < 2) return;
+      const sourceRows = sourceIds
+        .map((nodeId) => rows.find((row) => row.nodeId === nodeId))
+        .filter(Boolean);
+      const timestamps = sourceRows
+        .map((row) => Date.parse(String(row.latestTimestamp || "")))
+        .filter(Number.isFinite);
+      if (timestamps.length !== sourceRows.length) return;
+      const skew = Math.max(...timestamps) - Math.min(...timestamps);
+      maxSkewMs = Math.max(maxSkewMs || 0, skew);
+      if (skew <= model.LIVE_INPUT_ALIGNMENT_TOLERANCE_MS) return;
+      errors.push({
+        code: "input_history_time_skew",
+        message: `${target.title}의 최근 입력 시각 차이 ${Math.round(skew)}ms가 허용 범위 ${model.LIVE_INPUT_ALIGNMENT_TOLERANCE_MS}ms를 넘습니다.`,
+        nodeId: target.id,
+      });
+      sourceRows.forEach((row) => {
+        row.status = "blocked";
+        row.statusLabel = "시각 불일치";
+        row.reason = `묶인 입력의 최신 시각 차이 ${Math.round(skew)}ms`;
+      });
+    });
+
+    const readyCount = rows.filter((row) => row.status === "ready").length;
+    const status = !rows.length || rows.some((row) => row.status === "blocked")
+      ? "blocked"
+      : rows.some((row) => row.status !== "ready")
+        ? "warning"
+        : "ready";
+    return {
+      status,
+      rows,
+      errors,
+      warnings,
+      readyCount,
+      maxSkewMs,
+      telemetryByNodeId,
+    };
+  }
+
+  function mergeValidationWithInputReadiness(validation, readiness) {
+    const baseErrors = [...(validation?.errors || [])];
+    const baseWarnings = [...(validation?.warnings || [])];
+    const seen = new Set(
+      [...baseErrors, ...baseWarnings]
+        .map((issue) => `${issue.code}|${issue.nodeId || ""}`),
+    );
+    const append = (target, issues) => {
+      (issues || []).forEach((issue) => {
+        if (
+          issue.code === "input_history_time_skew"
+          && baseErrors.some((existing) => (
+            existing.code === "multi_input_time_skew"
+            && existing.nodeId === issue.nodeId
+          ))
+        ) return;
+        const key = `${issue.code}|${issue.nodeId || ""}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        target.push(issue);
+      });
+    };
+    append(baseErrors, readiness?.errors);
+    append(baseWarnings, readiness?.warnings);
+    return {
+      valid: baseErrors.length === 0,
+      errors: baseErrors,
+      warnings: baseWarnings,
     };
   }
 
@@ -636,6 +849,7 @@
       design: cloneDesign(state.design),
       dirty: state.dirty,
       lastValidation: state.lastValidation,
+      inputReadiness: cloneDesign(state.inputReadiness),
       selectedNodeId: state.selectedNodeId,
       inspectorOpen: state.inspectorOpen,
     };
@@ -655,6 +869,7 @@
     state.pendingFromId = null;
     state.selectedEdgeId = null;
     state.lastValidation = null;
+    resetInputReadiness();
     state.dirty = false;
     delete state.serviceDraftCache[serviceId];
     removeStoredServiceDraft(serviceId);
@@ -692,12 +907,14 @@
         loadedFromStorage: state.loadedFromStorage,
         liveBindingSeeded: state.liveBindingSeeded,
         lastValidation: state.lastValidation,
+        inputReadiness: cloneDesign(state.inputReadiness),
         selectedNodeId: state.selectedNodeId,
         inspectorOpen: state.inspectorOpen,
         badgeLabel: badge?.textContent || "초안",
         badgeState: badge?.dataset.state || "draft",
       };
     } else cacheActiveServiceDraft();
+    state.inputReadinessRequestId += 1;
     const cached = state.serviceDraftCache[serviceId];
     const stored = cached ? null : loadStoredServiceDraft(service);
     state.designMode = "service-draft";
@@ -709,6 +926,9 @@
         : design;
     state.dirty = cached?.dirty ?? false;
     state.lastValidation = cached?.lastValidation ?? null;
+    state.inputReadiness = cached?.inputReadiness
+      ? cloneDesign(cached.inputReadiness)
+      : createInputReadiness();
     state.selectedNodeId = cached?.selectedNodeId ?? null;
     state.inspectorOpen = cached?.inspectorOpen ?? false;
     state.pendingFromId = null;
@@ -734,6 +954,7 @@
     cacheActiveServiceDraft();
     const snapshot = state.draftSnapshot;
     const previousServiceId = state.selectedDeployedServiceId;
+    state.inputReadinessRequestId += 1;
     state.designMode = "draft";
     state.selectedDeployedServiceId = null;
     state.design = snapshot?.design
@@ -743,6 +964,9 @@
     state.loadedFromStorage = snapshot?.loadedFromStorage ?? false;
     state.liveBindingSeeded = snapshot?.liveBindingSeeded ?? false;
     state.lastValidation = snapshot?.lastValidation ?? null;
+    state.inputReadiness = snapshot?.inputReadiness
+      ? cloneDesign(snapshot.inputReadiness)
+      : createInputReadiness();
     state.selectedNodeId = snapshot?.selectedNodeId ?? null;
     state.inspectorOpen = snapshot?.inspectorOpen ?? false;
     state.pendingFromId = null;
@@ -905,6 +1129,7 @@
   function markDirty(message = "설계가 변경되었습니다.", documentRef = document) {
     state.dirty = true;
     state.lastValidation = null;
+    resetInputReadiness();
     state.selectedEdgeId = null;
     setDraftState(
       isServiceDraftView() ? "서비스 초안 · 변경됨" : "초안",
@@ -1288,6 +1513,11 @@
     state.inputTelemetryPreview = createInputTelemetryPreview();
   }
 
+  function resetInputReadiness() {
+    state.inputReadinessRequestId += 1;
+    state.inputReadiness = createInputReadiness();
+  }
+
   function formatTelemetryValue(value, units = "") {
     let display = value;
     if (value && typeof value === "object") {
@@ -1529,6 +1759,79 @@
       renderInspector(documentRef);
       return null;
     }
+  }
+
+  async function loadDesignInputReadiness(
+    fetchFn = root?.fetch,
+    documentRef = document,
+  ) {
+    const requestId = state.inputReadinessRequestId + 1;
+    state.inputReadinessRequestId = requestId;
+    const loading = buildDesignInputReadiness(state.design, state.inventory, {});
+    state.inputReadiness = createInputReadiness({
+      ...loading,
+      status: "loading",
+    });
+    renderInputReadiness(documentRef);
+    renderDesignModeControls(documentRef);
+
+    const sensorNodes = (state.design?.nodes || [])
+      .filter((node) => node.type === "sensor");
+    const deviceNames = [...new Set(
+      sensorNodes
+        .filter((node) => node.config.deviceName && node.config.resourceName)
+        .map((node) => node.config.deviceName),
+    )];
+    const byDevice = {};
+    await Promise.all(deviceNames.map(async (deviceName) => {
+      try {
+        byDevice[deviceName] = {
+          status: "ready",
+          points: await fetchDesignerTelemetry(
+            deviceName,
+            INPUT_TELEMETRY_WINDOW,
+            fetchFn,
+            INPUT_TELEMETRY_LIMIT,
+          ),
+        };
+      } catch (error) {
+        byDevice[deviceName] = {
+          status: "error",
+          error: error instanceof Error
+            ? error.message
+            : "Telemetry를 조회하지 못했습니다.",
+        };
+      }
+    }));
+    if (requestId !== state.inputReadinessRequestId) return null;
+
+    const telemetryByNodeId = Object.fromEntries(sensorNodes.map((node) => {
+      if (!node.config.deviceName || !node.config.resourceName) {
+        return [node.id, {status: "skipped"}];
+      }
+      const result = byDevice[node.config.deviceName] || {
+        status: "error",
+        error: "Telemetry 응답이 없습니다.",
+      };
+      if (result.status !== "ready") return [node.id, result];
+      const {points: _points, ...summary} = summarizeDesignerTelemetry(
+        result.points,
+        node.config.resourceName,
+      );
+      return [node.id, {status: "ready", summary}];
+    }));
+    const readiness = buildDesignInputReadiness(
+      state.design,
+      state.inventory,
+      telemetryByNodeId,
+    );
+    state.inputReadiness = createInputReadiness({
+      ...readiness,
+      checkedAt: Date.now(),
+    });
+    renderInputReadiness(documentRef);
+    renderDesignModeControls(documentRef);
+    return state.inputReadiness;
   }
 
   function renderSensorInspector(node) {
@@ -1796,6 +2099,95 @@
     body.dataset.mode = isServiceDraftView() ? "service-draft" : "draft";
   }
 
+  function renderInputReadiness(documentRef = document) {
+    const container = el("serviceDesignerInputReadiness", documentRef);
+    const summaryTarget = el("serviceDesignerInputReadinessSummary", documentRef);
+    if (!container || !summaryTarget) return;
+    const readiness = state.inputReadiness;
+    if (readiness.status === "idle") {
+      summaryTarget.textContent = "점검 전";
+      container.innerHTML = '<p class="service-designer-empty">입력·설계 검증을 누르면 모든 센서 입력의 최근 표본과 필요한 윈도우를 함께 확인합니다.</p>';
+      return;
+    }
+    if (readiness.status === "loading") {
+      summaryTarget.textContent = "점검 중";
+      container.innerHTML = `
+        <p class="service-designer-input-readiness-loading" role="status">
+          <span aria-hidden="true"></span>
+          EdgeX Core Data에서 서비스 입력 ${readiness.rows.length}개를 확인하고 있습니다.
+        </p>
+      `;
+      return;
+    }
+
+    const total = readiness.rows.length;
+    const blockedCount = readiness.rows.filter((row) => row.status === "blocked").length;
+    const warningCount = readiness.rows.filter((row) => row.status === "warning").length;
+    const stateLabel = readiness.status === "ready"
+      ? "모든 입력 준비"
+      : readiness.status === "blocked"
+        ? "입력 준비 차단"
+        : "입력 확인 필요";
+    const stateCode = readiness.status === "ready"
+      ? "READY"
+      : readiness.status === "blocked"
+        ? "BLOCKED"
+        : "CHECK";
+    summaryTarget.textContent = readiness.status === "ready"
+      ? `${readiness.readyCount}/${total} 준비`
+      : `${readiness.readyCount}/${total} 준비 · 차단 ${blockedCount}`;
+    const checkedLabel = readiness.checkedAt
+      ? telemetryAgeLabel(new Date(readiness.checkedAt).toISOString())
+      : "시각 없음";
+    const skewLabel = Number.isFinite(readiness.maxSkewMs)
+      ? ` · 최대 입력 시각 차이 ${Math.round(readiness.maxSkewMs)}ms`
+      : "";
+    const rows = readiness.rows.map((row) => {
+      const latestValue = row.latest
+        ? formatTelemetryValue(row.latest.value, row.latest.units || row.units)
+        : "-";
+      return `
+        <li class="service-designer-input-readiness-row" data-state="${escapeHtml(row.status)}">
+          <div class="service-designer-input-readiness-identity">
+            <strong>${escapeHtml(row.title)}</strong>
+            <span>${escapeHtml(row.deviceName)} / ${escapeHtml(row.resourceName)}</span>
+          </div>
+          <div class="service-designer-input-readiness-cell">
+            <small>물리 노드</small>
+            <span>${escapeHtml(row.nodeName)}</span>
+          </div>
+          <div class="service-designer-input-readiness-cell">
+            <small>최신값</small>
+            <strong>${escapeHtml(latestValue)}</strong>
+            <span>${escapeHtml(row.latestTimestamp ? telemetryAgeLabel(row.latestTimestamp) : "시각 없음")}</span>
+          </div>
+          <div class="service-designer-input-readiness-cell">
+            <small>관측 증거</small>
+            <strong>${row.sampleCount} / ${row.requiredSamples}개</strong>
+            <span>${escapeHtml(formatTelemetryInterval(row.medianIntervalMs))}</span>
+          </div>
+          <div class="service-designer-input-readiness-result">
+            <strong>${escapeHtml(row.statusLabel)}</strong>
+            <span>${escapeHtml(row.reason)}</span>
+          </div>
+        </li>
+      `;
+    }).join("");
+    container.innerHTML = `
+      <div class="service-designer-input-readiness-gate" data-state="${escapeHtml(readiness.status)}">
+        <span>
+          <strong>${escapeHtml(stateLabel)}</strong>
+          <small>${readiness.readyCount}/${total}개 준비 · 차단 ${blockedCount} · 확인 ${warningCount}${escapeHtml(skewLabel)}</small>
+        </span>
+        <b>${escapeHtml(stateCode)}</b>
+      </div>
+      <ol class="service-designer-input-readiness-list">${rows}</ol>
+      <p class="service-designer-input-readiness-note">
+        ${escapeHtml(checkedLabel)} 점검 · 최근 5분 Core Data를 읽은 실행 전 증거입니다. local_recent Runtime이나 Workflow를 실행하지 않습니다.
+      </p>
+    `;
+  }
+
   function renderValidation(documentRef = document) {
     const container = el("serviceDesignerValidation", documentRef);
     const summary = el("serviceDesignerValidationSummary", documentRef);
@@ -1843,19 +2235,21 @@
       return;
     }
     const plan = model.buildExecutionPlan(state.design, state.inventory);
+    const effectiveErrors = state.lastValidation.errors || [];
+    const planReady = plan.valid && state.lastValidation.valid;
     const gate = `
-      <li class="service-designer-plan-gate" data-state="${plan.valid ? "ready" : "blocked"}">
-        <b aria-hidden="true">${plan.valid ? "OK" : "!"}</b>
+      <li class="service-designer-plan-gate" data-state="${planReady ? "ready" : "blocked"}">
+        <b aria-hidden="true">${planReady ? "OK" : "!"}</b>
         <span>
-          <strong>${plan.valid ? "Dry-run 준비" : "실행 계획 차단"}</strong>
-          <small>${plan.valid
+          <strong>${planReady ? "Dry-run 준비" : "실행 계획 차단"}</strong>
+          <small>${planReady
             ? "검증을 통과했습니다. 아래 순서는 읽기 전용 미리보기입니다."
-            : `오류 ${plan.errors.length}건을 해결해야 실행 계획을 사용할 수 있습니다.`}</small>
+            : `오류 ${effectiveErrors.length}건을 해결해야 실행 계획을 사용할 수 있습니다.`}</small>
         </span>
-        <small>${plan.valid ? "PREVIEW" : "BLOCKED"}</small>
+        <small>${planReady ? "PREVIEW" : "BLOCKED"}</small>
       </li>
     `;
-    const blockers = plan.valid ? "" : plan.errors.slice(0, 5).map((issue) => `
+    const blockers = planReady ? "" : effectiveErrors.slice(0, 5).map((issue) => `
       <li class="service-designer-plan-blocker">
         <b aria-hidden="true">!</b>
         <span>
@@ -2170,7 +2564,12 @@
     if (paletteClose) paletteClose.disabled = false;
     if (paletteSearch) paletteSearch.disabled = false;
     if (validateButton) {
-      validateButton.textContent = "설계 검증";
+      const checkingInputs = state.inputReadiness.status === "loading";
+      validateButton.textContent = checkingInputs
+        ? "입력 점검 중..."
+        : "입력·설계 검증";
+      validateButton.disabled = checkingInputs;
+      validateButton.setAttribute("aria-busy", String(checkingInputs));
     }
     if (connectHint) {
       connectHint.textContent = "출력 포트 → 입력 포트";
@@ -2205,6 +2604,7 @@
     renderNodes(documentRef);
     renderEdges(documentRef);
     renderInspector(documentRef);
+    renderInputReadiness(documentRef);
     renderValidation(documentRef);
     renderPlan(documentRef);
     const selected = state.inspectorOpen
@@ -2327,10 +2727,20 @@
     renderAll(documentRef);
   }
 
-  function validateCurrentDesign(documentRef = document) {
-    state.lastValidation = model.validateDesign(state.design, state.inventory);
+  async function validateCurrentDesign(documentRef = document) {
     const reviewPanel = el("serviceDesignerReviewPanel", documentRef);
     if (reviewPanel) reviewPanel.open = true;
+    setFeedback(
+      "모든 센서 입력의 최근 표본과 설계 계약을 확인하고 있습니다.",
+      "ready",
+      documentRef,
+    );
+    const readiness = await loadDesignInputReadiness(root?.fetch, documentRef);
+    if (!readiness) return null;
+    state.lastValidation = mergeValidationWithInputReadiness(
+      model.validateDesign(state.design, state.inventory),
+      readiness,
+    );
     const valid = state.lastValidation.valid;
     setDraftState(
       isServiceDraftView() && valid
@@ -2358,7 +2768,23 @@
 
   function revalidateReviewedDesign(documentRef = document) {
     if (!state.lastValidation) return null;
-    state.lastValidation = model.validateDesign(state.design, state.inventory);
+    let readiness = state.inputReadiness;
+    if (!["idle", "loading"].includes(readiness.status)) {
+      const refreshed = buildDesignInputReadiness(
+        state.design,
+        state.inventory,
+        readiness.telemetryByNodeId,
+      );
+      readiness = createInputReadiness({
+        ...refreshed,
+        checkedAt: state.inputReadiness.checkedAt,
+      });
+      state.inputReadiness = readiness;
+    }
+    state.lastValidation = mergeValidationWithInputReadiness(
+      model.validateDesign(state.design, state.inventory),
+      readiness,
+    );
     const valid = state.lastValidation.valid;
     setDraftState(
       valid
@@ -3081,7 +3507,7 @@
     );
     el("serviceDesignerValidate", documentRef)?.addEventListener(
       "click",
-      () => validateCurrentDesign(documentRef),
+      () => void validateCurrentDesign(documentRef),
     );
     el("serviceDesignerSave", documentRef)?.addEventListener("click", () => {
       try {
@@ -3226,12 +3652,16 @@
       bindDeployedServiceDesign,
       bindMultiSensorScoreExample,
       bindSensorAnomalyExample,
+      buildDesignInputReadiness,
       contextSourceBindingCandidate,
+      createInputReadiness,
       deployedServiceFlow,
       deployedServiceView,
       fetchDesignerServices,
       loadStoredDesign,
       loadStoredServiceDraft,
+      loadDesignInputReadiness,
+      mergeValidationWithInputReadiness,
       nodeSummary,
       renderInputTelemetryPreview,
       saveStoredDesign,

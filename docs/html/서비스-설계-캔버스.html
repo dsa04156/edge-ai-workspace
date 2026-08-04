@@ -159,8 +159,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 서비스-설계-캔버스.md</span>
-            <span class="badge">수정: 2026-08-04 13:17</span>
-            <span class="badge">HTML 생성: 2026-08-04 13:19</span>
+            <span class="badge">수정: 2026-08-04 13:51</span>
+            <span class="badge">HTML 생성: 2026-08-04 13:51</span>
           </div>
         </header>
         <div class="doc-body">
@@ -187,6 +187,7 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
                                       |
                                       +-&gt; 브라우저 localStorage 일반·서비스별 초안
                                       +-&gt; 선택 입력의 최근 Reading 미리보기
+                                      +-&gt; 전체 입력 준비도 사전 점검
                                       +-&gt; validation
                                       +-&gt; dry-run 실행 계획 미리보기</code></pre>
 <p>사용 API:</p>
@@ -210,7 +211,7 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 </tr>
 <tr>
 <td><code>GET /state/devices/{device_id}/telemetry?window=-5m&amp;limit=300</code></td>
-<td>설정 패널에서 선택한 DeviceResource의 최근 Core Data Reading 미리보기</td>
+<td>선택 입력 미리보기와 전체 입력 준비도 사전 점검에 쓰는 최근 Core Data Reading</td>
 </tr>
 </tbody></table></div>
 <p><code>/state/device-profiles</code>는 resource <code>name</code>, <code>valueType</code>, <code>readWrite</code>, <code>units</code>만 노출한다. protocol address나 DeviceResource <code>attributes</code>는 브라우저 설계 입력으로 전달하지 않는다.</p>
@@ -220,7 +221,7 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 온도 --------&gt; 구간 특징(10 sample) -&gt; 온도 점수 ─┼-&gt; 0.7/0.3 결합 -&gt; 결과
                                                     ┘</code></pre>
 <p>설정 패널에서는 입력 Device/DeviceResource, <code>local_recent</code>, 알고리즘 이름, window, warm-up, threshold, model version, 결합 방식과 가중치를 수정한다. 단계 추가·삭제·이동, 포트 연결 변경과 서비스·단계 이름 변경도 일반 초안과 동일하게 동작한다. 이 값은 화면이 실행 Pod를 역추론한 결과가 아니라 고정 workload가 <code>/state/services</code>로 공개한 versioned 계약이다. 계약 형식이 바뀌면 새 contract ID와 별도 renderer가 필요하다.</p>
-<p>이 편집은 실제 운영 Deployment를 직접 수정하지 않는다. <code>설계 검증</code>은 현재 EdgeX inventory에 대한 확인과 dry-run 계획만 만들며 실행을 요청하지 않는다. <code>이 브라우저에 저장</code>은 서비스 ID와 contract ID가 일치하는 별도 localStorage 키에 저장한다. 운영 설계를 열기 전의 일반 초안은 보존하고 <code>기존 초안으로 돌아가기</code>를 누르면 선택 단계와 변경 상태까지 복구한다. 서비스 초안도 유지되어 다시 열 때 <code>편집 계속</code>으로 이어진다. <code>원본으로 초기화</code>는 해당 서비스의 저장 초안을 지우고 현재 versioned 계약에서 다시 구성한다. 지원하는 <code>design_contract</code>가 없는 서비스는 임의 단계나 연결을 생성하지 않고 설계 정보가 없다고 표시한다. inventory, 서비스 상태와 Profile의 주기적 갱신은 사용자가 편집 중인 graph를 다시 만들거나 덮어쓰지 않는다.</p>
+<p>이 편집은 실제 운영 Deployment를 직접 수정하지 않는다. <code>입력·설계 검증</code>은 현재 EdgeX inventory에 대한 확인과 dry-run 계획만 만들며 실행을 요청하지 않는다. <code>이 브라우저에 저장</code>은 서비스 ID와 contract ID가 일치하는 별도 localStorage 키에 저장한다. 운영 설계를 열기 전의 일반 초안은 보존하고 <code>기존 초안으로 돌아가기</code>를 누르면 선택 단계와 변경 상태까지 복구한다. 서비스 초안도 유지되어 다시 열 때 <code>편집 계속</code>으로 이어진다. <code>원본으로 초기화</code>는 해당 서비스의 저장 초안을 지우고 현재 versioned 계약에서 다시 구성한다. 지원하는 <code>design_contract</code>가 없는 서비스는 임의 단계나 연결을 생성하지 않고 설계 정보가 없다고 표시한다. inventory, 서비스 상태와 Profile의 주기적 갱신은 사용자가 편집 중인 graph를 다시 만들거나 덮어쓰지 않는다.</p>
 <h2 id="실행-서비스와-설계-블록-구분">실행 서비스와 설계 블록 구분</h2>
 <p>화면 상단 <code>현재 실행 서비스</code>는 <code>/state/services</code>의 read-only 운영 목록이다. 현재는 Argo CD로 별도 배포되는 고정 <code>sensor-anomaly-demo</code> 1개를 표시한다. 이름·상태 다음에는 <code>가속도 3축 + 온도 → 진동·온도 특징 → 이상 점수 결합 → 대시보드 결과</code>를 4단계로 요약하고, 실행 노드, 물리 소스 → Device Service 수집 경로와 입력·모델 상태를 보조정보로 제공한다. 이 흐름은 <code>sensor-anomaly-demo-v1</code> 계약의 단계에서 만들며 실행 Pod를 역추론하지 않는다. <code>설계 편집</code>을 누르면 상세 10단계 초안으로 이어진다. 선택한 행은 <code>편집 중</code>, 보존된 초안이 있는 행은 <code>편집 계속</code>을 표시한다. upstream이 응답하지 않아도 항목을 제거하지 않고 <code>점검 필요</code>와 관측 오류 상태를 유지하며, 이미 연 편집 초안을 자동으로 버리지 않는다.</p>
 <p>왼쪽 <code>설계 블록</code> 13개는 실행 중인 Pod 목록이 아니다. 브라우저 안에서 데이터 입력, 전처리, 추론, 점수 결합과 결과 단계를 구성하는 allowlist preset이다. 따라서 운영 서비스 개수와 설계 블록 개수를 합치거나 같은 의미로 표시하지 않는다.</p>
@@ -290,6 +291,11 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 </tbody></table></div>
 <p>단계 추가는 검색 가능한 왼쪽 패널에서 수행하고, 캔버스의 출력 포트와 입력 포트를 차례로 눌러 연결한다. 삭제·입출력 포트를 제외한 단계 박스 전체를 드래그해 배치하며 연결선을 두 번 누르면 삭제한다. 선택한 단계의 설정은 캔버스 위 오른쪽 패널에서 변경하고 닫을 수 있다.</p>
 <p>센서 입력을 선택하면 설정 패널의 <code>실제 입력 데이터</code>가 선택 Device의 최근 5분 Core Data history를 읽고 해당 DeviceResource와 이름이 일치하는 Reading만 표시한다. 최신값, 최신 시각, 조회 표본 수, 양수 timestamp 간격의 중앙값과 최근 5개 Reading을 보여 준다. 요청은 최대 300 Event page로 제한하고 같은 입력은 15초 동안 재사용하며, <code>새로고침</code>으로 즉시 다시 읽을 수 있다. 이는 입력 계약을 확인하는 read-only 미리보기이며 Local Data API 실행, PostgreSQL 직접 조회, 장비 명령 또는 Workflow 실행이 아니다.</p>
+<h2 id="전체-입력-준비도-사전-점검">전체 입력 준비도 사전 점검</h2>
+<p><code>입력·설계 검증</code>을 누르면 설정 패널에서 선택한 한 입력만 보지 않고 graph의 모든 센서 입력을 함께 점검한다. 같은 Device를 여러 resource가 공유하면 최근 5분 Core Data 이력은 Device마다 한 번만 요청하고, 각 resource에 해당하는 Reading을 따로 요약한다.</p>
+<p>입력별 필요 표본 수는 해당 입력에서 시작해 처음 만나는 window 전처리 단계의 설정으로 계산한다. 현재 <code>sensor-anomaly-demo-v1</code>은 가속도 X/Y/Z 각각 20개, 온도 10개가 필요하다. 단순 전달·표준화·벡터 크기처럼 자체 window를 갖지 않는 경로는 최소 1개를 요구한다. 필요 window가 현재 조회 상한 300개를 넘으면 확인할 수 없는 설계로 차단한다.</p>
+<p>결과 영역은 전체 <code>READY</code>/<code>BLOCKED</code>, 준비 입력 수, 차단·주의 수, 입력 간 최대 최신 시각 차이를 먼저 보여 준다. 각 입력 행에는 단계명, Device/Resource, 배치 노드, 최신값과 경과 시간, <code>관측 표본/필요 표본</code>, 수집 간격 중앙값과 판정 이유를 표시한다. 이력 조회 실패, 표본 부족, Profile resource 불일치와 같은 처리 단계로 들어가는 <code>local_recent</code> 입력의 실제 Reading 최신 시각 차이 2초 초과는 dry-run 계획도 함께 차단한다. 개별 요청이 진행되는 동안 검증 버튼은 중복 실행되지 않으며, 오래 걸린 이전 응답이 새 설계 결과를 덮어쓰지 않는다.</p>
+<p>이 사전 점검은 중앙 Core Data에 영구 저장된 최근 이력을 사용한 읽기 전용 증거다. 향후 Workflow가 <code>local_recent</code>를 실행할 때 사용할 Device Service 메모리 cache나 Runtime health를 직접 확인하거나 데이터를 실행 Pod에 전달하지 않는다.</p>
 <p>캔버스는 1120×700 기준 작업 영역과 별도 viewport를 사용하지만 단계 좌표를 이 기준 영역 안으로 제한하지 않는다.</p>
 <ul><li><code>전체 보기</code>와 가운데 <code>◎</code> 버튼: 현재 graph를 보이는 영역에 맞춤</li><li><code>−</code>/<code>＋</code>와 마우스 휠: 캔버스 중심 또는 pointer 위치 기준 확대·축소</li><li>빈 배경 드래그: 캔버스 이동</li><li>미니맵: 기준 영역 밖 단계까지 포함해 동적으로 전체 graph와 현재 보이는 구간 확인, 선택 위치로 이동</li><li><code>블록</code> 버튼: 설계 블록 패널 열기·닫기</li><li>단계 선택: 현재 배율을 유지하면서 설정 패널에 가리지 않도록 선택 노드만 이동</li><li>단계 박스 전체 드래그: 삭제·입출력 포트를 제외한 표면을 3px 이상 이동하면 박스가 pointer를 1:1로 따라가며 현재 viewport나 기준 작업 영역 밖에도 자유 배치</li><li>가장자리 자동 이동: 드래그 pointer가 viewport 가장자리 56px 안에 들어오면 해당 방향으로 viewport를 계속 이동</li><li>정렬: 다른 단계의 같은 모서리·중앙에 가까우면 정렬선을 미리 표시하고 놓을 때만 해당 선에 맞춤</li><li><code>Shift</code>+드래그: 처음 위치를 기준으로 가로 또는 세로 한 축에 고정</li><li><code>Alt</code>+드래그: 정렬선 snap 없이 완전히 자유롭게 배치</li><li>방향키: 선택 단계를 1px 이동, <code>Shift</code>+방향키는 24px 이동</li></ul>
 <p>드래그가 끝난 뒤 발생하는 click은 다시 선택 동작으로 처리하지 않으므로 viewport가 자동 이동하거나 단계가 화면에서 튀지 않는다. 설정 패널은 드래그 도중 열지 않고 단계를 누를 때만 연다. 정렬선은 드래그 중에만 표시한다.</p>
@@ -302,8 +308,8 @@ state-aggregator read-only API -&gt; 서비스 설계 캔버스
 <h3 id="중앙-저장-데이터">중앙 저장 데이터</h3>
 <p><code>core_history</code> 설계는 중앙 EdgeX Core Data/PostgreSQL의 Event/Reading을 사용하는 경로다. 캔버스는 선택 입력의 최근 5분을 <code>state-aggregator</code>의 read-only history API로 미리 볼 수 있지만, 조회 결과를 Workflow 입력으로 실행하거나 PostgreSQL에 직접 연결하지 않는다.</p>
 <h2 id="검증-규칙">검증 규칙</h2>
-<p><code>설계 검증</code>은 최소 다음을 확인한다.</p>
-<ul><li>센서 입력, 추론, 결과 단계 존재</li><li>모든 입력·출력 포트 연결</li><li>순환 연결 차단</li><li>단계별 최대 입력 수</li><li>진동 특징은 숫자 입력 정확히 3개, 점수 결합은 숫자 점수 최소 2개</li><li>가중 평균의 입력별 가중치가 0 이상이고 전체 합이 0보다 큰지 확인</li><li>EdgeX Device와 DeviceResource의 현재 존재 여부</li><li>Device Profile <code>valueType</code>과 다음 단계 입력 타입의 호환성</li><li>전처리·추론 대상 node 존재 여부</li><li><code>local_recent</code> 첫 처리 단계와 물리 source node 일치</li><li><code>local_recent</code> 입력 여러 개가 같은 단계로 들어오면 같은 물리 node인지 확인</li><li>위 다중 입력의 resource별 최신 Event 시각 차이가 2초 이내인지 확인</li><li>저장 Event 없음과 stale 최신 Event를 실행 계획 차단 오류로 처리</li><li>모든 센서 입력에서 결과 단계까지 도달 가능 여부</li></ul>
+<p><code>입력·설계 검증</code>은 최소 다음을 확인한다.</p>
+<ul><li>센서 입력, 추론, 결과 단계 존재</li><li>모든 입력·출력 포트 연결</li><li>순환 연결 차단</li><li>단계별 최대 입력 수</li><li>진동 특징은 숫자 입력 정확히 3개, 점수 결합은 숫자 점수 최소 2개</li><li>가중 평균의 입력별 가중치가 0 이상이고 전체 합이 0보다 큰지 확인</li><li>EdgeX Device와 DeviceResource의 현재 존재 여부</li><li>Device Profile <code>valueType</code>과 다음 단계 입력 타입의 호환성</li><li>전처리·추론 대상 node 존재 여부</li><li><code>local_recent</code> 첫 처리 단계와 물리 source node 일치</li><li><code>local_recent</code> 입력 여러 개가 같은 단계로 들어오면 같은 물리 node인지 확인</li><li>위 다중 입력의 resource별 최신 Event 시각 차이가 2초 이내인지 확인</li><li>모든 센서 입력의 최근 5분 Core Data 이력 조회 성공 여부</li><li>각 입력 경로의 첫 window 전처리에 필요한 표본 수 충족 여부</li><li>필요 표본 수가 현재 300 Event 점검 상한 안인지 확인</li><li>저장 Event 없음과 stale 최신 Event를 실행 계획 차단 오류로 처리</li><li>모든 센서 입력에서 결과 단계까지 도달 가능 여부</li></ul>
 <p>Device가 <code>Available</code>이 아니면 별도 주의 항목으로 표시한다. freshness를 확인할 수 없을 때도 주의로 남긴다. <code>no_events</code>와 <code>stale</code>은 실제 입력 준비가 되지 않은 상태이므로 dry-run 계획을 <code>BLOCKED</code>로 표시한다. 이전에 검증한 설계는 inventory/Profile 갱신 시 같은 규칙으로 자동 재검증한다. 이 검증은 실제 runtime health check나 실행 성공을 대신하지 않는다.</p>
 <h2 id="초안-저장">초안 저장</h2>
 <p><code>이 브라우저에 저장</code>은 versioned JSON을 브라우저 <code>localStorage</code>에 저장한다.</p>
@@ -330,7 +336,7 @@ node --check edge-orch/state-aggregator/app/static/service-designer-viewport.js
 node --check edge-orch/state-aggregator/app/static/service-designer.js
 node --test edge-orch/state-aggregator/tests/test_service_designer.js
 python -m pytest -q edge-orch/state-aggregator/tests/test_api.py</code></pre>
-<p>브라우저 회귀는 375, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 현재 실행 서비스의 4단계 요약이 넓은 화면에서는 가로로, 680px 이하에서는 세로로 순서를 유지하고 상태·실행 위치·수집 경로가 잘리지 않는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 화면 가장자리 자동 이동과 기준 영역 밖 자유 좌표, 멀리 배치한 단계의 동적 미니맵 표시와 <code>전체 보기</code> 복구, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 뒤 추가 viewport 이동 부재, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스의 <code>설계 편집</code> 선택 시 10개 단계와 정확한 입력·window·알고리즘·가중치가 표시되고 블록·연결·설정을 수정할 수 있는지 확인한다. 서비스 상태·inventory·Profile 자동 갱신 뒤에도 수정값이 유지되는지, <code>기존 초안으로 돌아가기</code> 후 일반 graph와 변경 상태가 복원되는지, <code>편집 계속</code>에서 서비스 수정값이 유지되는지, <code>원본으로 초기화</code>가 계약값으로 되돌리는지도 확인한다. 센서 입력 선택 시 최근 5분 Reading, 최신값·표본 수·수집 간격 중앙값과 새로고침 상태가 표시되는지, Event 없음·stale·다중 입력 node 불일치·2초 초과 시각 차이가 검증 오류와 실행 계획 <code>BLOCKED</code> 사유로 함께 표시되는지도 확인한다.</p>
+<p>브라우저 회귀는 375, 768, 1024, 1440px에서 문서와 캔버스의 가로 overflow가 없는지, 현재 실행 서비스의 4단계 요약이 넓은 화면에서는 가로로, 680px 이하에서는 세로로 순서를 유지하고 상태·실행 위치·수집 경로가 잘리지 않는지, 전체 보기·확대·축소·배경 이동·미니맵·단계 이동, pointer와 박스의 1:1 이동 궤적, 화면 가장자리 자동 이동과 기준 영역 밖 자유 좌표, 멀리 배치한 단계의 동적 미니맵 표시와 <code>전체 보기</code> 복구, 정렬선·<code>Shift</code> 축 고정·<code>Alt</code> 자유 배치, 드롭 뒤 추가 viewport 이동 부재, 드래그 중 전체 SVG 재생성 여부, 블록 검색·목록 상태·설정 패널, 블록 추가 시 정확한 연산 preset, 추가·삭제·검증·저장이 실제로 반응하는지, 운영 서비스의 <code>설계 편집</code> 선택 시 10개 단계와 정확한 입력·window·알고리즘·가중치가 표시되고 블록·연결·설정을 수정할 수 있는지 확인한다. 서비스 상태·inventory·Profile 자동 갱신 뒤에도 수정값이 유지되는지, <code>기존 초안으로 돌아가기</code> 후 일반 graph와 변경 상태가 복원되는지, <code>편집 계속</code>에서 서비스 수정값이 유지되는지, <code>원본으로 초기화</code>가 계약값으로 되돌리는지도 확인한다. 센서 입력 선택 시 최근 5분 Reading, 최신값·표본 수·수집 간격 중앙값과 새로고침 상태가 표시되는지, Event 없음·stale·다중 입력 node 불일치·2초 초과 시각 차이가 검증 오류와 실행 계획 <code>BLOCKED</code> 사유로 함께 표시되는지도 확인한다. 전체 입력 사전 점검은 정상 서비스 계약에서 4/4 입력의 가속도 20개·온도 10개 window 충족과 <code>READY</code>를 표시하는지, 한 입력의 이력을 비웠을 때 3/4·표본 부족·<code>BLOCKED</code>로 바뀌는지도 확인한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
@@ -338,6 +344,7 @@ python -m pytest -q edge-orch/state-aggregator/tests/test_api.py</code></pre>
 <li class="toc-h2"><a href="#운영-서비스-설계-편집">운영 서비스 설계 편집</a></li>
 <li class="toc-h2"><a href="#실행-서비스와-설계-블록-구분">실행 서비스와 설계 블록 구분</a></li>
 <li class="toc-h2"><a href="#설계-블록과-단계">설계 블록과 단계</a></li>
+<li class="toc-h2"><a href="#전체-입력-준비도-사전-점검">전체 입력 준비도 사전 점검</a></li>
 <li class="toc-h2"><a href="#데이터-접근-방식">데이터 접근 방식</a></li>
 <li class="toc-h3"><a href="#엣지-최근-데이터">엣지 최근 데이터</a></li>
 <li class="toc-h3"><a href="#중앙-저장-데이터">중앙 저장 데이터</a></li>

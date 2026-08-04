@@ -18,6 +18,7 @@ const {
   deviceLatestTimestampMs,
   removeNode,
   resourcesForDevice,
+  sensorWindowRequirement,
   updateNode,
   validateDesign,
   wouldCreateCycle,
@@ -31,6 +32,7 @@ const {
   bindDeployedServiceDesign,
   bindMultiSensorScoreExample,
   bindSensorAnomalyExample,
+  buildDesignInputReadiness,
   contextSourceBindingCandidate,
   deployedServiceFlow,
   deployedServiceView,
@@ -40,6 +42,7 @@ const {
   fetchDesignerProfiles,
   loadStoredDesign,
   loadStoredServiceDraft,
+  mergeValidationWithInputReadiness,
   renderInputTelemetryPreview,
   saveStoredDesign,
   saveStoredServiceDraft,
@@ -775,6 +778,119 @@ test("summarizes only the selected resource and computes its median collection i
   );
 });
 
+test("derives each sensor input requirement from the first windowed processing stage", () => {
+  const design = createDeployedServiceDesign(deployedSensorAnomalyService());
+
+  assert.equal(sensorWindowRequirement(design, "sensor-x"), 20);
+  assert.equal(sensorWindowRequirement(design, "sensor-y"), 20);
+  assert.equal(sensorWindowRequirement(design, "sensor-z"), 20);
+  assert.equal(sensorWindowRequirement(design, "sensor-context"), 10);
+  assert.equal(sensorWindowRequirement(boundDesign(), "sensor-1"), 1);
+  assert.equal(sensorWindowRequirement(design, "missing"), 1);
+});
+
+test("checks every bound input against its actual sample window before dry-run", () => {
+  const design = createDeployedServiceDesign(deployedSensorAnomalyService());
+  const current = multiSensorInventory();
+  const baseTime = Date.parse("2026-08-04T02:00:00.000Z");
+  const telemetryByNodeId = Object.fromEntries(
+    design.nodes.filter((node) => node.type === "sensor").map((node) => {
+      const required = sensorWindowRequirement(design, node.id);
+      const points = Array.from({length: required}, (_, index) => ({
+        resource_name: node.config.resourceName,
+        timestamp: new Date(baseTime + index * 1000).toISOString(),
+        value: index,
+        units: "raw",
+      }));
+      return [node.id, {
+        status: "ready",
+        summary: summarizeDesignerTelemetry(points, node.config.resourceName),
+      }];
+    }),
+  );
+  const readiness = buildDesignInputReadiness(
+    design,
+    current,
+    telemetryByNodeId,
+  );
+
+  assert.equal(readiness.status, "ready");
+  assert.equal(readiness.readyCount, 4);
+  assert.deepEqual(readiness.errors, []);
+  assert.deepEqual(
+    readiness.rows.map((row) => [row.nodeId, row.sampleCount, row.requiredSamples]),
+    [
+      ["sensor-x", 20, 20],
+      ["sensor-y", 20, 20],
+      ["sensor-z", 20, 20],
+      ["sensor-context", 10, 10],
+    ],
+  );
+
+  const shortPoints = telemetryByNodeId["sensor-x"].summary.points.slice(1);
+  telemetryByNodeId["sensor-x"] = {
+    status: "ready",
+    summary: summarizeDesignerTelemetry(shortPoints, "acceleration_x_raw"),
+  };
+  const blocked = buildDesignInputReadiness(
+    design,
+    current,
+    telemetryByNodeId,
+  );
+  const combined = mergeValidationWithInputReadiness(
+    validateDesign(design, current),
+    blocked,
+  );
+
+  assert.equal(blocked.status, "blocked");
+  assert.ok(blocked.errors.some((issue) => issue.code === "input_sample_shortfall"));
+  assert.equal(combined.valid, false);
+  assert.ok(combined.errors.some((issue) => issue.code === "input_sample_shortfall"));
+});
+
+test("blocks unreadable history and actual multi-input timestamp skew", () => {
+  const design = createDeployedServiceDesign(deployedSensorAnomalyService());
+  const current = multiSensorInventory();
+  const baseTime = Date.parse("2026-08-04T02:00:00.000Z");
+  const telemetryByNodeId = Object.fromEntries(
+    design.nodes.filter((node) => node.type === "sensor").map((node) => {
+      const required = sensorWindowRequirement(design, node.id);
+      const offset = node.id === "sensor-z"
+        ? LIVE_INPUT_ALIGNMENT_TOLERANCE_MS + 1
+        : 0;
+      const points = Array.from({length: required}, (_, index) => ({
+        resource_name: node.config.resourceName,
+        timestamp: new Date(baseTime + offset + index * 1000).toISOString(),
+        value: index,
+      }));
+      return [node.id, {
+        status: "ready",
+        summary: summarizeDesignerTelemetry(points, node.config.resourceName),
+      }];
+    }),
+  );
+  telemetryByNodeId["sensor-context"] = {
+    status: "error",
+    error: "Core Data timeout",
+  };
+  const readiness = buildDesignInputReadiness(
+    design,
+    current,
+    telemetryByNodeId,
+  );
+
+  assert.equal(readiness.status, "blocked");
+  assert.ok(readiness.errors.some(
+    (issue) => issue.code === "input_history_unavailable",
+  ));
+  assert.ok(readiness.errors.some(
+    (issue) => issue.code === "input_history_time_skew",
+  ));
+  assert.ok(readiness.rows.some(
+    (row) => row.nodeId === "sensor-z" && row.statusLabel === "시각 불일치",
+  ));
+});
+
 test("renders an accessible read-only preview of the actual selected input", () => {
   const node = boundDesign().nodes.find((item) => item.id === "sensor-1");
   const current = inventory();
@@ -1047,6 +1163,9 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(html, /id="serviceDesignerCanvas"/);
   assert.match(html, /id="serviceDesignerInspector"/);
   assert.match(html, /id="serviceDesignerValidation"/);
+  assert.match(html, /id="serviceDesignerInputReadiness"/);
+  assert.match(html, /id="serviceDesignerInputReadinessSummary"/);
+  assert.match(html, /입력·설계 검증/);
   assert.match(html, /id="serviceDesignerFitView"/);
   assert.match(html, /id="serviceDesignerMiniMap"/);
   assert.match(html, /id="serviceDesignerGuideVertical"/);
@@ -1079,6 +1198,10 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(ui, /fetchFn\("\/state\/services", \{cache: "no-store"\}\)/);
   assert.match(ui, /\/state\/devices\/\$\{encodeURIComponent/);
   assert.match(ui, /data-designer-telemetry-refresh/);
+  assert.match(ui, /function buildDesignInputReadiness/);
+  assert.match(ui, /input_sample_shortfall/);
+  assert.match(ui, /input_history_unavailable/);
+  assert.match(ui, /loadDesignInputReadiness/);
   assert.match(ui, /실행 계획 차단/);
   assert.match(ui, /BLOCKED/);
   assert.match(ui, /renderDeployedServices/);
@@ -1137,6 +1260,8 @@ test("dashboard exposes one scoped service design page without an execution acti
   assert.match(css, /@media \(max-width: 680px\)/);
   assert.match(css, /\.service-designer-service-draft-note/);
   assert.match(css, /\.service-designer-input-preview/);
+  assert.match(css, /\.service-designer-input-readiness-gate/);
+  assert.match(css, /\.service-designer-input-readiness-row/);
   assert.match(css, /\.service-designer-input-state\[data-state="error"\]/);
   assert.match(css, /\.service-designer-plan-gate/);
   assert.match(css, /\.service-designer-plan-blocker/);

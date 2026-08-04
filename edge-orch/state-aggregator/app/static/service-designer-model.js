@@ -121,6 +121,11 @@
       maxInputs: 1,
     },
   };
+  const WINDOWED_PREPROCESS_OPERATIONS = new Set([
+    "rolling_mean",
+    "vibration_features",
+    "window_features",
+  ]);
   const INFERENCE_ALGORITHMS = {
     "online-gaussian-baseline-v1": {
       label: "온라인 이상 점수",
@@ -875,6 +880,32 @@
       .map((edge) => edge.to);
   }
 
+  function sensorWindowRequirement(rawDesign, sensorNodeId) {
+    const design = normalizeDesign(rawDesign);
+    const sensor = design.nodes.find((node) => node.id === sensorNodeId);
+    if (!sensor || sensor.type !== "sensor") return 1;
+    const pending = [...outgoingIds(design, sensorNodeId)];
+    const visited = new Set([sensorNodeId]);
+    const requirements = [];
+    while (pending.length) {
+      const nodeId = pending.shift();
+      if (visited.has(nodeId)) continue;
+      visited.add(nodeId);
+      const node = design.nodes.find((item) => item.id === nodeId);
+      if (!node) continue;
+      if (
+        node.type === "preprocess"
+        && WINDOWED_PREPROCESS_OPERATIONS.has(node.config.operation)
+      ) {
+        const requested = Math.floor(Number(node.config.windowSize));
+        requirements.push(Number.isFinite(requested) && requested > 0 ? requested : 1);
+        continue;
+      }
+      pending.push(...outgoingIds(design, nodeId));
+    }
+    return requirements.length ? Math.max(...requirements) : 1;
+  }
+
   function incomingEdges(design, nodeId) {
     return (design.edges || []).filter((edge) => edge.to === nodeId);
   }
@@ -1291,6 +1322,7 @@
     removeEdge,
     removeNode,
     resourcesForDevice,
+    sensorWindowRequirement,
     serviceDefinition,
     sourceResource,
     topologicalOrder,
