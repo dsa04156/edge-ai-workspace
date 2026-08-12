@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="../../ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="../specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="../specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="edgex-core-data-1-000-디바이스-부하검증-implementation-plan">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> 현재 EdgeX Core Data의 Event 단위 PostgreSQL 저장 경로를 1,000개 합성 device와 지정 입력률로 재현하고 자동 판정하는 일회성 부하검증 도구를 만든다.</p>
+<p><strong>Architecture:</strong> Go 표준 라이브러리 CLI가 rate-limited Core Data REST Event를 보내고 HTTP commit 응답, latency, device별 readback과 cleanup을 측정한다. shell runner가 amd64 정적 바이너리를 빌드해 server2 고정 일회성 Kubernetes Pod에서 실행하며 운영 Kustomization과 EdgeMesh는 변경하지 않는다.</p>
+<p><strong>Tech Stack:</strong> Go 1.22 standard library, EdgeX Core Data v3 REST API, Bash, Kubernetes Pod, pytest runner contract tests</p>
+<p><strong>Implementation Status (2026-07-22):</strong> 완료. 최종 운영 기준과 실측 PASS/FAIL은 <code>docs/ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</code>를 따른다. 초기 계획의 1Hz 기본값은 live OOM 결과에 따라 1/60Hz 안전 기본값과 별도 1Hz 스트레스 profile로 변경했다.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>물리 inventory/state/telemetry/command의 권위는 EdgeX다.</li><li>합성 Device를 Core Metadata에 등록하지 않는다.</li><li>고정 ClusterIP, PodIP 또는 node IP를 사용하지 않고 Service FQDN을 사용한다.</li><li>EdgeMesh와 Argo CD Application을 변경하지 않는다.</li><li>root <code>edgex/k8s/kustomization.yaml</code>에 부하 Pod를 추가하지 않는다.</li><li>합성 Event cleanup은 실행별 정확한 device 이름에만 수행한다.</li><li>기본 EdgeX Core Data 저장 구현은 변경하지 않는다.</li></ul>
+<p>---</p>
+<h3 id="task-1-부하검증-도메인과-판정">Task 1: 부하검증 도메인과 판정</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>tools/edgex-core-data-loadtest/go.mod</code></li><li>Create: <code>tools/edgex-core-data-loadtest/loadtest.go</code></li><li>Create: <code>tools/edgex-core-data-loadtest/loadtest_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Produces: <code>Config.Validate() error</code>, <code>PlannedEvents(Config) int</code>, <code>Percentile([]time.Duration, float64) time.Duration</code>, <code>Evaluate(Config, Report) []string</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Write failing tests for config, event count, percentile and threshold evaluation</strong></li></ul>
+<pre data-lang="go"><code>func TestPlannedEvents(t *testing.T) {
+    cfg := Config{Devices: 1000, PerDeviceHz: 1, Duration: time.Minute}
+    if got := PlannedEvents(cfg); got != 60000 { t.Fatalf(&quot;got %d&quot;, got) }
+}</code></pre>
+<ul><li>[ ] <strong>Step 2: Run the focused test and confirm it fails because the symbols do not exist</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./...</code></p>
+<p>Expected: FAIL with undefined <code>Config</code> or <code>PlannedEvents</code>.</p>
+<ul><li>[ ] <strong>Step 3: Implement the minimal domain types and deterministic calculations</strong></li></ul>
+<p>Implement validated positive device/rate/duration/concurrency/timeouts, nearest-rank percentiles, error rate, target-rate 95% floor, p95 and verification mismatch reasons.</p>
+<ul><li>[ ] <strong>Step 4: Run focused tests</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./...</code></p>
+<p>Expected: PASS.</p>
+<h3 id="task-2-edgex-http-event-readback-and-cleanup-client">Task 2: EdgeX HTTP Event, readback and cleanup client</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>tools/edgex-core-data-loadtest/loadtest.go</code></li><li>Modify: <code>tools/edgex-core-data-loadtest/loadtest_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Produces: <code>NewHTTPClient(Config) *HTTPClient</code>, <code>HTTPClient.Store(context.Context, Sample) Result</code>, <code>HTTPClient.Count(context.Context, string) (int64, error)</code>, <code>HTTPClient.Delete(context.Context, string) error</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Write failing <code>httptest.Server</code> tests</strong></li></ul>
+<p>Verify the POST path, EdgeX v3 AddEventRequest JSON, UUID fields, Float64 Reading, <code>201</code> response ID reconciliation, device count decoding and exact device DELETE path.</p>
+<ul><li>[ ] <strong>Step 2: Run tests and confirm expected missing-method failures</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./... -run &#x27;TestHTTPClient|TestBuildEvent&#x27;</code></p>
+<p>Expected: FAIL because the client does not exist.</p>
+<ul><li>[ ] <strong>Step 3: Implement the standard-library HTTP client</strong></li></ul>
+<p>Use a pooled <code>http.Transport</code>, per-request context timeout, <code>url.PathEscape</code>, JSON content type and bounded response-body reads. Treat only <code>201</code> as Store success, use the dedicated count endpoint&#x27;s <code>200</code>/<code>count</code> response, accept DELETE <code>202</code>, wait for <code>count=0</code>, and require the returned Event ID to match.</p>
+<ul><li>[ ] <strong>Step 4: Run the client tests</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./...</code></p>
+<p>Expected: PASS.</p>
+<h3 id="task-3-rate-limited-runner-and-json-report-cli">Task 3: Rate-limited runner and JSON report CLI</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>tools/edgex-core-data-loadtest/loadtest.go</code></li><li>Modify: <code>tools/edgex-core-data-loadtest/loadtest_test.go</code></li><li>Create: <code>tools/edgex-core-data-loadtest/main.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Produces: <code>Run(context.Context, Config, Client) Report</code> and a CLI whose exit code is zero only for a PASS report</li></ul>
+<ul><li>[ ] <strong>Step 1: Write failing runner tests with an in-memory client</strong></li></ul>
+<p>Test exact attempt count, round-robin device distribution, bounded concurrency, failed Store aggregation, readback mismatch, cleanup invocation and cancellation.</p>
+<ul><li>[ ] <strong>Step 2: Run tests and verify expected runner failures</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./... -run &#x27;TestRun&#x27;</code></p>
+<p>Expected: FAIL because <code>Run</code> is missing.</p>
+<ul><li>[ ] <strong>Step 3: Implement scheduler, worker pool, metrics and CLI flags</strong></li></ul>
+<p>The scheduler computes each target send time from the run start instead of accumulating ticker drift. The report includes run ID, timestamps, target/achieved rate, attempted/succeeded/failed, error groups, p50/p95/p99/max, readback, cleanup and PASS reasons.</p>
+<ul><li>[ ] <strong>Step 4: Run tests and build</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test ./... &amp;&amp; go build -o /tmp/edgex-core-data-loadtest .</code></p>
+<p>Expected: PASS and exit 0.</p>
+<h3 id="task-4-일회성-kubernetes-실행-경로">Task 4: 일회성 Kubernetes 실행 경로</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>tools/run_edgex_core_data_loadtest.sh</code></li><li>Create: <code>tests/test_edgex_core_data_loadtest_runner.py</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Go files from <code>tools/edgex-core-data-loadtest</code></li><li>Produces: execution-specific Pod and <code>artifacts/edgex-loadtest/&lt;generated-run-id&gt;.json</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Write failing runner contract tests</strong></li></ul>
+<p>Assert the safe default 1,000 devices × 1/60Hz, Service FQDN, server2 node selector, automount disabled, digest-pinned BusyBox, no fixed IP, no EdgeMesh mutation and cleanup trap.</p>
+<ul><li>[ ] <strong>Step 2: Run the contract test and confirm failure because the script is absent</strong></li></ul>
+<p>Run: <code>python3 -m pytest tests/test_edgex_core_data_loadtest_runner.py -q</code></p>
+<p>Expected: FAIL with missing script.</p>
+<ul><li>[ ] <strong>Step 3: Implement the runner</strong></li></ul>
+<p>Build a static linux/amd64 binary in a temporary directory, apply a run-scoped unprivileged Pod with an <code>emptyDir</code>, copy the binary into that volume, execute it, collect the JSON report, preserve failure diagnostics and delete only the run-scoped Pod unless <code>KEEP_RESOURCES=1</code>.</p>
+<ul><li>[ ] <strong>Step 4: Run contract and shell syntax tests</strong></li></ul>
+<p>Run: <code>python3 -m pytest tests/test_edgex_core_data_loadtest_runner.py -q &amp;&amp; bash -n tools/run_edgex_core_data_loadtest.sh</code></p>
+<p>Expected: PASS.</p>
+<h3 id="task-5-운영-문서와-live-검증">Task 5: 운영 문서와 live 검증</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>docs/ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</code></li><li>Modify: <code>docs/현재-데모-경로.md</code></li><li>Modify: <code>docs/단계별-추진계획.md</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: runner JSON report and Kubernetes status</li><li>Produces: repeatable runbook, measured baseline and explicit scope boundary</li></ul>
+<ul><li>[ ] <strong>Step 1: Document the isolated REST storage baseline and commands</strong></li></ul>
+<p>Include low-rate and 1Hz profiles, PASS thresholds, report location, cleanup behavior and the fact that MessageBus/Device Service throughput is not measured.</p>
+<ul><li>[ ] <strong>Step 2: Run repository and module verification</strong></li></ul>
+<p>Run: <code>cd tools/edgex-core-data-loadtest &amp;&amp; go test -race ./... &amp;&amp; go vet ./... &amp;&amp; go build .</code></p>
+<p>Run: <code>python3 -m pytest tests/test_edgex_core_data_loadtest_runner.py tests/test_docs_consistency.py -q</code></p>
+<p>Expected: all PASS.</p>
+<ul><li>[ ] <strong>Step 3: Execute live low-rate and 1Hz profiles</strong></li></ul>
+<p>Run: <code>DEVICES=1000 PER_DEVICE_HZ=0.0166666667 DURATION=60s tools/run_edgex_core_data_loadtest.sh</code></p>
+<p>Run: <code>DEVICES=1000 PER_DEVICE_HZ=1 DURATION=30s tools/run_edgex_core_data_loadtest.sh</code></p>
+<p>Expected: report is collected for both runs; low-rate PASS and 1Hz OOM FAIL are recorded from measured output rather than assumed.</p>
+<ul><li>[ ] <strong>Step 4: Verify live workload recovery and synthetic-data cleanup</strong></li></ul>
+<p>Run: <code>kubectl -n edgex-system get pod -l &#x27;app.kubernetes.io/name in (edgex-core-data,edgex-postgres)&#x27; -o wide</code></p>
+<p>Run: <code>RUN_ID=$(python3 -c &#x27;import json,sys; print(json.load(open(sys.argv[1]))[&quot;runId&quot;])&#x27; artifacts/edgex-loadtest/latest.json); kubectl get --raw &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/loadtest-${RUN_ID}-0000?limit=1&quot;</code></p>
+<p>Expected: Core Data/PostgreSQL Ready; cleaned test device returns zero events or not found while physical Device Events continue increasing.</p>
+<ul><li>[ ] <strong>Step 5: Commit and push main only after fresh verification</strong></li></ul>
+<p>Run: <code>git status --short &amp;&amp; git diff --check &amp;&amp; git add &lt;scoped-files&gt; &amp;&amp; git commit -m &quot;test: add EdgeX Core Data scale baseline&quot; &amp;&amp; git push origin main</code></p>
+<p>Expected: commit succeeds and <code>origin/main</code> equals local <code>HEAD</code>.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h3"><a href="#task-1-부하검증-도메인과-판정">Task 1: 부하검증 도메인과 판정</a></li>
+<li class="toc-h3"><a href="#task-2-edgex-http-event-readback-and-cleanup-client">Task 2: EdgeX HTTP Event, readback and cleanup client</a></li>
+<li class="toc-h3"><a href="#task-3-rate-limited-runner-and-json-report-cli">Task 3: Rate-limited runner and JSON report CLI</a></li>
+<li class="toc-h3"><a href="#task-4-일회성-kubernetes-실행-경로">Task 4: 일회성 Kubernetes 실행 경로</a></li>
+<li class="toc-h3"><a href="#task-5-운영-문서와-live-검증">Task 5: 운영 문서와 live 검증</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

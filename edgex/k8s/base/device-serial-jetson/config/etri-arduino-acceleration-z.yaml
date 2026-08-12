@@ -1,0 +1,24 @@
+apiVersion: "v2"
+name: etri-arduino-acceleration-z
+manufacturer: Arduino
+model: Uno virtual acceleration Z source
+labels:
+  - arduino
+  - serial
+  - jetson
+  - virtual-device
+description: Read-only virtual acceleration Z device sourced from the Jetson Arduino serial connection
+
+deviceResources:
+  - name: acceleration_z_raw
+    description: Raw acceleration Z-axis value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: acceleration_z
+    readWrite: R
+    resourceOperations:
+      - deviceResource: acceleration_z_raw

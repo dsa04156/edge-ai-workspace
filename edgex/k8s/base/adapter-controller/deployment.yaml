@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edgex-adapter-controller
+  labels:
+    app.kubernetes.io/name: edgex-adapter-controller
+    app.kubernetes.io/part-of: edgex-system
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edgex-adapter-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edgex-adapter-controller
+        app.kubernetes.io/part-of: edgex-system
+    spec:
+      serviceAccountName: edgex-adapter-controller
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0002-cgnmsb
+      terminationGracePeriodSeconds: 20
+      securityContext:
+        fsGroup: 2001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: edgex-adapter-controller
+          image: 192.168.0.56:5000/edge-adapter-controller@sha256:540be3b209cbf91c4a378dffbb759f0dc3a2017ce147e4d574d329a32de07bcc
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: ADAPTER_CONTROLLER_NAMESPACE
+              value: edgex-edge
+            - name: ADAPTER_RUNTIME_CATALOG_PATH
+              value: /app/config/runtime_templates.json
+            - name: DEVICE_BINDING_CATALOG_PATH
+              value: /app/config/device_bindings.json
+            - name: DISCOVERY_PLANS_PATH
+              value: /app/config/discovery_plans.json
+            - name: DISCOVERY_DATABASE_PATH
+              value: /var/lib/adapter-controller/discovery.db
+            - name: ADAPTER_RUNTIME_MUTATION_ENABLED
+              value: "true"
+            - name: ADAPTER_DEVICE_DISCOVERY_ENABLED
+              value: "true"
+            - name: ADAPTER_DISCOVERY_STALE_AFTER_SECONDS
+              value: "90"
+            - name: ADAPTER_DISCOVERY_CANDIDATE_LIMIT
+              value: "2000"
+            - name: ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: internal-hmac-key
+            - name: EDGEX_CORE_METADATA_URL
+              value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
+            - name: EDGEX_CORE_DATA_URL
+              value: http://edgex-core-data.edgex-system.svc.cluster.local:59880
+            - name: EDGEX_TIMEOUT_SECONDS
+              value: "5"
+            - name: ADAPTER_AUTH_MODE
+              value: external
+            - name: ADAPTER_AUTH_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-device-approval-auth
+                  key: endpoint
+                  optional: true
+            - name: ADAPTER_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-device-approval-auth
+                  key: token
+                  optional: true
+            - name: ADAPTER_REGISTRATION_EVENT_TIMEOUT_SECONDS
+              value: "60"
+            - name: ADAPTER_CONTROLLER_RECONCILE_INTERVAL_SECONDS
+              value: "10"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 2001
+            runAsGroup: 2001
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: discovery-state
+              mountPath: /var/lib/adapter-controller
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: discovery-state
+          persistentVolumeClaim:
+            claimName: edgex-adapter-controller-state
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edgex-adapter-controller
+  labels:
+    app.kubernetes.io/name: edgex-adapter-controller
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: edgex-adapter-controller
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: edgex-adapter-controller-state
+  labels:
+    app.kubernetes.io/name: edgex-adapter-controller
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

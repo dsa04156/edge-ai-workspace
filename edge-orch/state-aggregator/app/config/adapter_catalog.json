@@ -1,0 +1,499 @@
+{
+  "version": 3,
+  "adapters": [
+    {
+      "adapterId": "serial-jetson",
+      "displayName": "Arduino USB Serial",
+      "serviceName": "device-serial-jetson",
+      "protocolName": "serial",
+      "nodeName": "etri-dev0001-jetorn",
+      "declaredStatus": "installed",
+      "runtime": {
+        "mode": "managed-template",
+        "managementOwner": "controller",
+        "verificationState": "template-verified",
+        "templateId": "serial-device-service-v1",
+        "deploymentEnabled": true,
+        "hardwareBindings": [
+          {
+            "bindingId": "jetson-arduino-serial-001",
+            "displayName": "Jetson Arduino USB Serial",
+            "nodeName": "etri-dev0001-jetorn",
+            "devicePath": "/dev/arduino-001",
+            "protocolProperties": {
+              "Port": "/dev/arduino-001",
+              "BaudRate": 115200,
+              "DeviceID": "arduino-001",
+              "Parser": "arduino-multisensor-v1"
+            }
+          },
+          {
+            "bindingId": "raspi5-mpu6050-serial-001",
+            "displayName": "Raspberry Pi ESP32 MPU6050 USB Serial",
+            "nodeName": "etri-dev0003-raspi5",
+            "devicePath": "/dev/mpu6050-001",
+            "protocolProperties": {
+              "Port": "/dev/mpu6050-001",
+              "BaudRate": 115200,
+              "DeviceID": "mpu6050-001",
+              "Parser": "mpu6050-imu-v1"
+            }
+          }
+        ],
+        "reusePolicy": {
+          "multiDevice": true,
+          "bindingFields": ["Port", "BaudRate", "DeviceID", "Parser"],
+          "routeFields": ["ResourceName"],
+          "maxDevices": 12
+        }
+      },
+      "fields": [
+        {
+          "name": "Port",
+          "label": "Device path",
+          "type": "string",
+          "required": true,
+          "default": "/dev/arduino-001"
+        },
+        {
+          "name": "BaudRate",
+          "label": "Baud rate",
+          "type": "integer",
+          "required": true,
+          "default": 115200,
+          "options": [
+            1200,
+            2400,
+            4800,
+            9600,
+            19200,
+            38400,
+            57600,
+            115200,
+            230400,
+            460800,
+            921600
+          ]
+        },
+        {
+          "name": "DeviceID",
+          "label": "Physical source ID",
+          "type": "string",
+          "required": true,
+          "default": "arduino-001",
+          "pattern": "^[A-Za-z0-9._~-]+$"
+        },
+        {
+          "name": "Parser",
+          "label": "Telemetry parser",
+          "type": "enum",
+          "required": true,
+          "default": "arduino-multisensor-v1",
+          "options": [
+            "arduino-multisensor-v1",
+            "mpu6050-imu-v1"
+          ]
+        },
+        {
+          "name": "ResourceName",
+          "label": "Serial resource",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "temperature_raw",
+            "light_raw",
+            "magnetic_raw",
+            "acceleration_x_raw",
+            "acceleration_y_raw",
+            "acceleration_z_raw"
+          ]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceName",
+        "valueTypes": ["Int32", "Float64"],
+        "readWrite": ["R"],
+        "templates": [
+          {
+            "selectorValue": "temperature_raw",
+            "deviceResources": [
+              {
+                "name": "temperature_raw",
+                "description": "Raw temperature sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "temperature",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "temperature_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "light_raw",
+            "deviceResources": [
+              {
+                "name": "light_raw",
+                "description": "Raw light sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "light",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "light_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "magnetic_raw",
+            "deviceResources": [
+              {
+                "name": "magnetic_raw",
+                "description": "Raw magnetic sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "magnetic",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "magnetic_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_x_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_x_raw",
+                "description": "Raw acceleration X sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_x",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_x_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_y_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_y_raw",
+                "description": "Raw acceleration Y sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_y",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_y_raw"}]
+              }
+            ]
+          },
+          {
+            "selectorValue": "acceleration_z_raw",
+            "deviceResources": [
+              {
+                "name": "acceleration_z_raw",
+                "description": "Raw acceleration Z sensor value",
+                "properties": {"valueType": "Int32", "readWrite": "R", "units": "raw"}
+              }
+            ],
+            "deviceCommands": [
+              {
+                "name": "acceleration_z",
+                "readWrite": "R",
+                "resourceOperations": [{"deviceResource": "acceleration_z_raw"}]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "adapterId": "sensehat-raspi",
+      "displayName": "Raspberry Pi Sense HAT I2C",
+      "serviceName": "device-sensehat-raspi",
+      "protocolName": "i2c",
+      "nodeName": "etri-dev0003-raspi5",
+      "declaredStatus": "installed",
+      "runtime": {
+        "mode": "external",
+        "managementOwner": "argocd",
+        "verificationState": "hardware-verified",
+        "templateId": "sensehat-device-service-v1",
+        "deploymentEnabled": false,
+        "hardwareBindings": [
+          {
+            "bindingId": "raspi5-sensehat-i2c-001",
+            "displayName": "Raspberry Pi Sense HAT I2C",
+            "nodeName": "etri-dev0003-raspi5",
+            "devicePath": "/dev/i2c-1",
+            "protocolProperties": {
+              "Bus": "/dev/i2c-1",
+              "DeviceID": "sensehat-001"
+            }
+          }
+        ],
+        "reusePolicy": {
+          "multiDevice": true,
+          "bindingFields": ["Bus", "DeviceID"],
+          "routeFields": ["ResourceGroup"],
+          "maxDevices": 6
+        }
+      },
+      "fields": [
+        {
+          "name": "Bus",
+          "label": "I2C bus",
+          "type": "string",
+          "required": true,
+          "default": "/dev/i2c-1"
+        },
+        {
+          "name": "DeviceID",
+          "label": "Physical source ID",
+          "type": "string",
+          "required": true,
+          "default": "sensehat-001"
+        },
+        {
+          "name": "ResourceGroup",
+          "label": "Sense HAT resource group",
+          "type": "enum",
+          "required": true,
+          "options": ["temperature", "humidity", "pressure", "compass", "orientation", "gyroscope"]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceGroup",
+        "valueTypes": ["Float64"],
+        "readWrite": ["R"],
+        "templates": [
+          {
+            "selectorValue": "temperature",
+            "deviceResources": [
+              {"name": "temp_humidity", "description": "Temperature from humidity sensor", "properties": {"valueType": "Float64", "readWrite": "R", "units": "degC"}},
+              {"name": "temp_pressure", "description": "Temperature from pressure sensor", "properties": {"valueType": "Float64", "readWrite": "R", "units": "degC"}}
+            ],
+            "deviceCommands": [{"name": "temperature", "readWrite": "R", "resourceOperations": [{"deviceResource": "temp_humidity"}, {"deviceResource": "temp_pressure"}]}]
+          },
+          {
+            "selectorValue": "humidity",
+            "deviceResources": [{"name": "humidity", "description": "Relative humidity", "properties": {"valueType": "Float64", "readWrite": "R", "units": "%"}}],
+            "deviceCommands": [{"name": "humidity", "readWrite": "R", "resourceOperations": [{"deviceResource": "humidity"}]}]
+          },
+          {
+            "selectorValue": "pressure",
+            "deviceResources": [{"name": "pressure", "description": "Atmospheric pressure", "properties": {"valueType": "Float64", "readWrite": "R", "units": "hPa"}}],
+            "deviceCommands": [{"name": "pressure", "readWrite": "R", "resourceOperations": [{"deviceResource": "pressure"}]}]
+          },
+          {
+            "selectorValue": "compass",
+            "deviceResources": [{"name": "compass", "description": "Compass heading", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}}],
+            "deviceCommands": [{"name": "compass", "readWrite": "R", "resourceOperations": [{"deviceResource": "compass"}]}]
+          },
+          {
+            "selectorValue": "orientation",
+            "deviceResources": [
+              {"name": "pitch", "description": "Fused pitch", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}},
+              {"name": "roll", "description": "Fused roll", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}},
+              {"name": "yaw", "description": "Fused yaw", "properties": {"valueType": "Float64", "readWrite": "R", "units": "deg"}}
+            ],
+            "deviceCommands": [{"name": "orientation", "readWrite": "R", "resourceOperations": [{"deviceResource": "pitch"}, {"deviceResource": "roll"}, {"deviceResource": "yaw"}]}]
+          },
+          {
+            "selectorValue": "gyroscope",
+            "deviceResources": [
+              {"name": "gyro_x", "description": "Gyroscope X", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}},
+              {"name": "gyro_y", "description": "Gyroscope Y", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}},
+              {"name": "gyro_z", "description": "Gyroscope Z", "properties": {"valueType": "Float64", "readWrite": "R", "units": "rad/s"}}
+            ],
+            "deviceCommands": [{"name": "gyroscope", "readWrite": "R", "resourceOperations": [{"deviceResource": "gyro_x"}, {"deviceResource": "gyro_y"}, {"deviceResource": "gyro_z"}]}]
+          }
+        ]
+      }
+    },
+    {
+      "adapterId": "modbus",
+      "displayName": "Modbus",
+      "protocolName": "modbus",
+      "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
+      "reason": "Device Service와 실제 register mapping 검증 전에는 지원하지 않습니다."
+    },
+    {
+      "adapterId": "opcua",
+      "displayName": "OPC-UA",
+      "protocolName": "opcua",
+      "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
+      "reason": "Device Service, endpoint security와 subscription recovery 검증 전에는 지원하지 않습니다."
+    },
+    {
+      "adapterId": "mqtt",
+      "displayName": "MQTT",
+      "serviceName": "device-mqtt",
+      "protocolName": "mqtt",
+      "declaredStatus": "installed",
+      "runtime": {
+        "mode": "managed-template",
+        "managementOwner": "controller",
+        "verificationState": "template-verified",
+        "templateId": "mqtt-device-service-v1",
+        "deploymentEnabled": true,
+        "hardwareBindings": [
+          {
+            "bindingId": "jetson-mqtt-network-001",
+            "displayName": "Jetson MQTT 네트워크 연결",
+            "nodeName": "etri-dev0001-jetorn",
+            "protocolProperties": {}
+          },
+          {
+            "bindingId": "raspi5-dev0002-mqtt-network-001",
+            "displayName": "Raspberry Pi dev0002 MQTT 네트워크 연결",
+            "nodeName": "etri-dev0002-raspi5",
+            "protocolProperties": {}
+          },
+          {
+            "bindingId": "raspi5-dev0003-mqtt-network-001",
+            "displayName": "Raspberry Pi dev0003 MQTT 네트워크 연결",
+            "nodeName": "etri-dev0003-raspi5",
+            "protocolProperties": {}
+          }
+        ],
+      "reusePolicy": {
+        "multiDevice": true,
+        "bindingFields": [],
+        "routeFields": [
+          "CommandTopic",
+          "ResourceName"
+        ],
+          "maxDevices": 1000
+        }
+      },
+      "fields": [
+        {
+          "name": "Broker",
+          "label": "MQTT 브로커 주소",
+          "type": "string",
+          "scope": "runtime",
+          "required": true,
+          "default": "mqtt://edge-mqtt-simulator.edgex-edge.svc.cluster.local:1883",
+          "pattern": "^mqtt://[A-Za-z0-9._:-]+(?::[0-9]{1,5})?$"
+        },
+        {
+          "name": "IncomingTopic",
+          "label": "수신 토픽",
+          "type": "string",
+          "scope": "runtime",
+          "required": true,
+          "default": "incoming/data/#",
+          "pattern": "^incoming/data/(?:[A-Za-z0-9._~-]+/)?#$"
+        },
+        {
+          "name": "Qos",
+          "label": "MQTT QoS",
+          "type": "integer",
+          "scope": "runtime",
+          "required": true,
+          "default": 0,
+          "options": [0, 1, 2]
+        },
+      {
+        "name": "CommandTopic",
+        "label": "명령 토픽",
+        "type": "string",
+        "scope": "device",
+        "required": true,
+        "default": "command/mqtt-temperature-sim-001",
+        "pattern": "^command/[A-Za-z0-9._~/-]+$"
+      },
+      {
+        "name": "ResourceName",
+          "label": "센서 리소스",
+          "type": "enum",
+          "scope": "device",
+          "required": true,
+          "default": "temperature",
+          "options": [
+            "temperature"
+          ]
+        }
+      ],
+      "profileCapabilities": {
+        "selectorField": "ResourceName",
+        "valueTypes": [
+          "Float64"
+        ],
+        "readWrite": [
+          "R"
+        ],
+        "templates": [
+          {
+            "selectorValue": "temperature",
+            "deviceResources": [
+              {
+                "name": "temperature",
+                "description": "MQTT temperature reading",
+                "properties": {
+                  "valueType": "Float64",
+                  "readWrite": "R",
+                  "units": "degC"
+                }
+              }
+            ],
+            "deviceCommands": []
+          }
+        ]
+      },
+      "bundledProfiles": [
+        {
+          "name": "edgeai-mqtt-temperature-v1",
+          "selectorValue": "temperature",
+          "description": "Read-only temperature data received through the verified EdgeX MQTT Device Service",
+          "manufacturer": "ETRI",
+          "model": "edgeai-mqtt-temperature-v1",
+          "labels": [
+            "mqtt",
+            "temperature",
+            "read-only",
+            "edge-ai-web-managed"
+          ]
+        }
+      ]
+    },
+    {
+      "adapterId": "rtsp",
+      "displayName": "RTSP Camera",
+      "protocolName": "rtsp",
+      "declaredStatus": "unsupported",
+      "runtime": {
+        "mode": "unavailable",
+        "managementOwner": "none",
+        "verificationState": "unverified",
+        "deploymentEnabled": false
+      },
+      "reason": "현재 camera frame은 Workflow Pod가 직접 구독하며 Device onboarding 대상이 아닙니다."
+    }
+  ]
+}

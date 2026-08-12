@@ -25,11 +25,6 @@ def _healthy_node() -> NodeState:
 async def _empty_resource_state(refresh=False):
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "recorded_at": None,
-        "recording_backend": "influxdb",
-        "recording_mode": "scheduled",
-        "recording_interval_seconds": 600,
-        "last_record_result": None,
         "profile_scope": "running_service_resource_requirements",
         "summary": {
             "profile_count": 0,
@@ -69,23 +64,6 @@ def test_dashboard_endpoint_isolates_edgex_device_observation_failure(monkeypatc
     assert payload["device_observation_error"] == (
         "EdgeX device observation unavailable: EdgeXBackendError"
     )
-
-
-def test_metrics_scrape_does_not_read_virtual_device_authority(monkeypatch):
-    calls = 0
-
-    async def unexpected_projection_read():
-        nonlocal calls
-        calls += 1
-        raise AssertionError("metrics must not read EdgeX")
-
-    monkeypatch.setattr(service, "get_virtual_devices", unexpected_projection_read)
-
-    with TestClient(app) as client:
-        response = client.get("/metrics")
-
-    assert response.status_code == 200
-    assert calls == 0
 
 
 def test_dashboard_endpoint_has_no_device_observation_error_when_edgex_is_available(

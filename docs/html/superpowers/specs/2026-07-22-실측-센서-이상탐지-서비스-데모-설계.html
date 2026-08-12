@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>실측 센서 이상 탐지 서비스 데모 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="../../ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>실측 센서 이상 탐지 서비스 데모 설계</h1>
+          <p class="subtitle">현재 검증된 Serial 수집 경로를 실제 AI 서비스 consumer까지 연결한다. 데모는 Arduino의 가속도 X/Y/Z…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="실측-센서-이상-탐지-서비스-데모-설계">실측 센서 이상 탐지 서비스 데모 설계</h1>
+<h2 id="상태">상태</h2>
+<ul><li>진행 결정일: 2026-07-22</li><li>입력 장비: <code>etri-dev0001-jetorn</code>에 연결된 Arduino Uno</li><li>입력 가상 디바이스: <code>virtual-acceleration-{x,y,z}-001</code></li><li>배포 대상: Jetson의 고정 서비스 데모 workload</li><li>결정 근거: 별도 학습 모델 artifact가 없으므로 실제 센서 데이터 기반 온라인 통계 모델을 첫 데모로 선택한다.</li></ul>
+<h2 id="목표">목표</h2>
+<p>현재 검증된 Serial 수집 경로를 실제 AI 서비스 consumer까지 연결한다. 데모는 Arduino의 가속도 X/Y/Z raw Reading을 Jetson에서 직접 읽고, 전처리와 경량 이상 탐지를 실행한 뒤, 그 결과와 디바이스-서비스 연결 관계를 중앙 dashboard에서 관측할 수 있어야 한다.</p>
+<p>이 데모가 증명하는 범위는 다음과 같다.</p>
+<ol><li>실제 물리 입력이 EdgeX Device Service에서 세 개 가상 Device로 표준화된다.</li><li>같은 Jetson의 AI 서비스가 Local Data API로 최근 입력을 읽는다.</li><li>AI 서비스가 세 축을 하나의 sample로 정렬하고 명시적인 모델로 상태를 판정한다.</li><li>중앙 dashboard가 입력 Device, AI consumer, 최신 추론 결과와 장애 상태를 한 흐름으로 보여준다.</li><li>KubeEdge/Argo CD가 AI workload의 배치와 실행 상태를 관리한다.</li></ol>
+<p>완전한 동적 workflow 실행, 모델 registry, actuator 제어, runtime migration이나 offloading은 이 첫 서비스 데모의 완료 주장에 포함하지 않는다.</p>
+<h2 id="현재-사실과-제약">현재 사실과 제약</h2>
+<ul><li><code>device-serial-jetson</code>은 실제 <code>/dev/arduino-001</code>을 한 번 읽고 가속도 세 축을 같은</li></ul>
+<p>nanosecond <code>origin</code>으로 fan-out한다.</p>
+<ul><li>각 가상 Device에는 최근 10분·최대 10,000 sample의 휘발성 cache와 read-only Local</li></ul>
+<p>Data API가 있다.</p>
+<ul><li>중앙 EdgeX Core Data/PostgreSQL은 원시 Event/Reading의 장기 권위다.</li><li>현재 저장소의 <code>vision_stage_runner</code>는 실제 camera/model 입력 없이 workflow ID에서</li></ul>
+<p>결정론적 가짜 결과를 만드는 샘플이다. 현재 서비스 데모 근거로 사용할 수 없다.</p>
+<ul><li>외부에서 제공된 학습 모델, label 또는 정상/불량 dataset이 없다.</li><li>Arduino 값은 <code>Int32</code> raw 값이며 물리 단위로 보정된 가속도라고 단정하지 않는다.</li><li>현재 Flannel CNI는 NetworkPolicy를 집행하지 않는다. client label과 policy는 의도</li></ul>
+<p>선언이며 실제 인증·인가 경계가 아니다.</p>
+<h2 id="접근-방식-비교">접근 방식 비교</h2>
+<h3 id="채택-jetson-local-data-api-증분-조회">채택: Jetson Local Data API 증분 조회</h3>
+<p>AI 서비스가 500ms 간격으로 세 축 recent API를 조회하고 마지막 처리 <code>origin</code> 이후의 sample만 결합한다.</p>
+<ul><li>이미 구현·검증된 local recent cache를 재사용한다.</li><li>원시 데이터가 중앙 서버를 왕복하지 않아 edge-local 전처리/추론을 증명한다.</li><li>별도 MQTT broker나 MessageBus consumer를 추가하지 않는다.</li><li>Device Service 변경 없이 bounded service demo를 완성할 수 있다.</li><li>엄밀한 push stream이 아니라 준실시간 polling이라는 사실을 API와 문서에 표시한다.</li></ul>
+<h3 id="제외-device-service-sse-grpc-stream-추가">제외: Device Service SSE/gRPC stream 추가</h3>
+<p>push latency에는 유리하지만 Device Service의 public contract, connection lifecycle, backpressure와 재연결 정책까지 새로 검증해야 한다. 고주기 stream 요구가 확인되기 전에는 첫 데모 범위를 불필요하게 넓힌다.</p>
+<h3 id="제외-중앙-edgex-messagebus-구독">제외: 중앙 EdgeX MessageBus 구독</h3>
+<p>Application Service가 중앙 MessageBus를 구독하면 stream 처리는 쉬워지지만, 추론 입력이 Jetson local path가 아니라 중앙 round-trip에 종속된다. 이번 데모의 edge-local 처리 목표와 맞지 않는다.</p>
+<h2 id="전체-구조">전체 구조</h2>
+<pre data-lang="text"><code>Arduino Uno
+  -&gt; /dev/arduino-001
+  -&gt; device-serial-jetson
+     -&gt; virtual-acceleration-x-001 / acceleration_x_raw
+     -&gt; virtual-acceleration-y-001 / acceleration_y_raw
+     -&gt; virtual-acceleration-z-001 / acceleration_z_raw
+     -&gt; Device Service memory recent cache
+        -&gt; Local Data API
+           -&gt; sensor-anomaly-demo @ etri-dev0001-jetorn
+              -&gt; origin join / deduplicate
+              -&gt; vector magnitude
+              -&gt; online baseline model
+              -&gt; normal / anomaly / degraded result
+              -&gt; read-only demo API
+                 -&gt; state-aggregator
+                    -&gt; service demo dashboard
+
+같은 raw sample
+  -&gt; EdgeX MessageBus -&gt; Core Data -&gt; PostgreSQL</code></pre>
+<p>원시 telemetry의 inventory, state와 history 권위는 계속 EdgeX다. 이상 탐지 결과는 물리 Device telemetry가 아니라 AI 서비스의 파생 결과이므로 이번 범위에서는 새로운 EdgeX Device로 등록하지 않는다. dashboard는 세 입력 Device에 <code>sensor-anomaly-demo</code> consumer를 연결해 표시한다.</p>
+<h2 id="sensor-anomaly-demo-책임"><code>sensor-anomaly-demo</code> 책임</h2>
+<p>새 서비스는 다음 모듈을 분리한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모듈</th>
+<th>책임</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Local Data client</td>
+<td>세 Service FQDN API 증분 조회, timeout와 오류 정규화</td>
+</tr>
+<tr>
+<td>Frame joiner</td>
+<td>같은 <code>origin</code>의 X/Y/Z를 하나의 frame으로 결합, 중복·불완전 frame 제거</td>
+</tr>
+<tr>
+<td>Feature extractor</td>
+<td><code>sqrt(x^2 + y^2 + z^2)</code> raw magnitude 계산</td>
+</tr>
+<tr>
+<td>Online detector</td>
+<td>초기 baseline 학습, score와 anomaly 상태 계산</td>
+</tr>
+<tr>
+<td>Result store</td>
+<td>최근 결과를 bounded memory ring으로 보존</td>
+</tr>
+<tr>
+<td>HTTP API</td>
+<td>health, current state, recent result를 read-only로 제공</td>
+</tr>
+</tbody></table></div>
+<p>프로세스는 입력 장치 파일을 직접 열지 않는다. Serial endpoint의 유일 소유자는 계속 <code>device-serial-jetson</code>이다.</p>
+<h2 id="입력과-frame-결합">입력과 frame 결합</h2>
+<p>각 source는 다음 경로를 사용한다.</p>
+<pre data-lang="text"><code>GET http://device-serial-jetson.edgex-edge.svc.cluster.local:59910
+    /api/v3/localdata/device/name/{device}/resource/name/{resource}
+    ?from={last_origin_plus_one}&amp;to={now_ns}&amp;limit=1000</code></pre>
+<p>매 polling cycle에서 세 응답을 <code>origin</code>으로 inner join한다. 세 축이 모두 있는 frame만 모델 입력으로 사용한다. 같은 <code>origin</code>을 다시 받아도 한 번만 처리한다. 한 축이 일시적으로 늦으면 작은 pending map에 보관하되, 10초가 지나거나 1,000개를 넘은 불완전 frame은 버린다. 서비스 시작 시 최근 API의 최신 구간부터 읽으며 중앙 history로 fallback하지 않는다.</p>
+<p>Local Data API가 반환한 <code>valueType</code>은 <code>Int32</code>여야 한다. 잘못된 type, JSON, source identity, 비정상적으로 큰 응답은 모델에 넣지 않고 입력 오류 계수에 반영한다.</p>
+<h2 id="온라인-이상-탐지-모델">온라인 이상 탐지 모델</h2>
+<p>외부 학습 dataset이 없으므로 magnitude의 정상 기준을 현장에서 자동 학습하는 단변량 온라인 Gaussian baseline을 사용한다. 이는 학습된 분류 모델이나 고장 원인 진단 모델로 표현하지 않고, <strong>raw 가속도 변화 이상 탐지</strong>로 표시한다.</p>
+<ol><li>시작 후 완전한 frame 30개를 <code>warming_up</code> baseline으로 수집한다.</li><li>baseline의 평균과 분산은 Welford 알고리즘으로 계산한다.</li><li>warm-up 뒤 각 frame의 score를 다음과 같이 계산한다.</li></ol>
+<pre data-lang="text"><code>score = abs(magnitude - baseline_mean) / max(baseline_stddev, stddev_floor)</code></pre>
+<ol><li><code>score &gt;= 4.0</code>이 2회 연속이면 <code>anomaly</code>, threshold 미만이 3회 연속이면 <code>normal</code>로</li></ol>
+<p>복귀한다.</p>
+<ol><li>normal sample만 EWMA(<code>alpha=0.05</code>)로 baseline을 천천히 갱신한다. anomaly sample은</li></ol>
+<p>baseline 오염을 막기 위해 학습에서 제외한다.</p>
+<ol><li>최근 완전한 frame이 10초 이상 없거나 upstream 조회가 연속 실패하면 <code>degraded</code>다.</li></ol>
+<p>threshold, warm-up count, stddev floor, poll interval과 stale interval은 환경변수로 설정할 수 있지만 dashboard 응답에 effective configuration을 함께 노출한다. 운영자가 threshold를 알 수 없는 black box 결과는 만들지 않는다.</p>
+<h2 id="서비스-api-계약">서비스 API 계약</h2>
+<h3 id="상태">상태</h3>
+<pre data-lang="text"><code>GET /api/v1/status</code></pre>
+<p>대표 응답은 다음과 같다.</p>
+<pre data-lang="json"><code>{
+  &quot;apiVersion&quot;: &quot;v1&quot;,
+  &quot;service&quot;: &quot;sensor-anomaly-demo&quot;,
+  &quot;mode&quot;: &quot;live&quot;,
+  &quot;status&quot;: &quot;normal&quot;,
+  &quot;inputState&quot;: &quot;fresh&quot;,
+  &quot;modelState&quot;: &quot;ready&quot;,
+  &quot;source&quot;: {
+    &quot;physicalSource&quot;: &quot;arduino-001&quot;,
+    &quot;deviceService&quot;: &quot;device-serial-jetson&quot;,
+    &quot;devices&quot;: [
+      &quot;virtual-acceleration-x-001&quot;,
+      &quot;virtual-acceleration-y-001&quot;,
+      &quot;virtual-acceleration-z-001&quot;
+    ]
+  },
+  &quot;latest&quot;: {
+    &quot;origin&quot;: 1784600000000000000,
+    &quot;observedAt&quot;: &quot;2026-07-22T10:00:00Z&quot;,
+    &quot;values&quot;: {&quot;x&quot;: 12, &quot;y&quot;: -3, &quot;z&quot;: 1012},
+    &quot;magnitude&quot;: 1012.075,
+    &quot;score&quot;: 0.42,
+    &quot;anomaly&quot;: false
+  },
+  &quot;model&quot;: {
+    &quot;algorithm&quot;: &quot;online-gaussian-baseline-v1&quot;,
+    &quot;sampleCount&quot;: 84,
+    &quot;warmupSamples&quot;: 30,
+    &quot;threshold&quot;: 4.0,
+    &quot;baselineMean&quot;: 1011.8,
+    &quot;baselineStddev&quot;: 2.4
+  },
+  &quot;counters&quot;: {
+    &quot;framesProcessed&quot;: 84,
+    &quot;duplicatesIgnored&quot;: 2,
+    &quot;incompleteFramesDropped&quot;: 0,
+    &quot;inputErrors&quot;: 0
+  },
+  &quot;lastError&quot;: null
+}</code></pre>
+<p><code>status</code> 값은 <code>starting</code>, <code>warming_up</code>, <code>normal</code>, <code>anomaly</code>, <code>degraded</code> 중 하나다. <code>mode=live</code>는 fixture나 합성 입력이 아님을 나타낸다.</p>
+<h3 id="최근-결과">최근 결과</h3>
+<pre data-lang="text"><code>GET /api/v1/results?limit={1..1000}</code></pre>
+<p>최근 최대 1,000개 결과를 <code>origin</code> 오름차순으로 반환한다. 이는 재시작 비보존의 UI용 최근 결과이며 중앙 원시 history를 대체하지 않는다.</p>
+<h3 id="kubernetes-probe">Kubernetes probe</h3>
+<ul><li><code>GET /healthz</code>: 프로세스 event loop가 동작하면 <code>200</code></li><li><code>GET /readyz</code>: 설정을 읽고 polling worker가 시작됐으면 <code>200</code></li></ul>
+<p>물리 입력이 stale인 경우에도 Pod를 무한 재시작하지 않도록 readiness와 input state를 분리한다. upstream 장애는 <code>/api/v1/status</code>의 <code>degraded</code>로 표현한다.</p>
+<p>API는 read-only다. 합성 anomaly 주입, EdgeX state mutation, calibration reset과 actuator command endpoint를 현재 운영 데모에 넣지 않는다.</p>
+<h2 id="state-aggregator와-dashboard">state-aggregator와 dashboard</h2>
+<p><code>state-aggregator</code>는 다음 Service FQDN을 timeout이 있는 read-only client로 조회한다.</p>
+<pre data-lang="text"><code>http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080</code></pre>
+<p>새 endpoint <code>GET /state/service-demo</code>는 AI 서비스 응답을 dashboard schema로 정규화한다. AI 서비스가 없거나 timeout이면 dashboard 전체를 실패시키지 않고 <code>degraded</code> snapshot과 관측 오류를 반환한다.</p>
+<p>dashboard에는 다음 정보를 한 패널에 표시한다.</p>
+<ul><li>실제 physical source와 세 EdgeX 가상 Device</li><li>Device Service와 <code>serial</code> protocol</li><li>AI service Pod/node와 consumer binding</li><li>warm-up/normal/anomaly/degraded 상태</li><li>최신 X/Y/Z raw 값, magnitude, score, threshold와 sample origin</li><li>baseline sample 수와 최근 input age</li><li>local inference와 중앙 raw history의 역할 분리</li></ul>
+<p>기존 <code>/state/devices</code>의 authority와 freshness 계산은 바꾸지 않는다. 서비스 데모 panel은 기존 12개 Device 목록과 별도 파생 관측값이다.</p>
+<h2 id="배포와-네트워크">배포와 네트워크</h2>
+<ul><li>코드 경로: <code>edge-orch/sensor-anomaly-demo/</code></li><li>배포 경로: 같은 디렉터리의 <code>k8s/</code></li><li>namespace: <code>edgex-edge</code></li><li>node selector: <code>kubernetes.io/hostname=etri-dev0001-jetorn</code></li><li>Pod label: <code>edge-ai.io/local-data-client=true</code></li><li>image: ARM64 build 후 사설 registry immutable digest</li><li>runtime input과 dashboard 연결은 Service FQDN만 사용한다.</li><li>manifest에 fixed ClusterIP, PodIP 또는 node IP를 데이터 경로로 기록하지 않는다.</li><li><code>hostNetwork</code>, local MQTT broker, InfluxDB, PVC를 추가하지 않는다.</li><li>EdgeMesh manifest, image와 설정을 수정하지 않는다.</li></ul>
+<p>AI service egress와 Device Service ingress NetworkPolicy에는 DNS와 TCP 59910/8080의 의도만 선언한다. 현재 Flannel의 미집행 한계를 문서와 dashboard 운영 절차에 유지한다.</p>
+<p>Argo CD에는 새 서비스용 Application을 추가한다. 실제 입력/모델이 없는 <code>edge-orch-factory-vision-inspection-ai</code> Application은 현재 운영 데모에서 제거하고, <code>vision_stage_runner</code> 코드는 이력 비교 자료로 남기되 완료 기능으로 설명하지 않는다.</p>
+<h2 id="오류와-복구">오류와 복구</h2>
+<ul><li>HTTP timeout, DNS 실패와 non-2xx는 bounded backoff 후 재시도하고 <code>inputErrors</code>를 올린다.</li><li>일부 축만 반환되면 이전 축을 최신 frame에 섞지 않는다.</li><li>origin 역행/중복은 무시하고 counter에 반영한다.</li><li>입력 stale 또는 연속 오류에서 마지막 정상 결과는 보존하되 <code>status=degraded</code>와</li></ul>
+<p><code>lastError</code>를 반드시 함께 반환한다.</p>
+<ul><li>Local Data API 복구 후 새 완전 frame부터 자동 처리한다.</li><li>프로세스 재시작 시 result와 baseline은 초기화되고 다시 <code>warming_up</code>한다.</li><li>state-aggregator client 장애는 기존 device/dashboard API를 중단시키지 않는다.</li></ul>
+<h2 id="구현-경계">구현 경계</h2>
+<h3 id="포함">포함</h3>
+<ul><li>실제 Serial 가속도 세 축 Local Data API client</li><li>origin join, deduplication과 bounded pending frame</li><li>명시적 온라인 baseline 모델과 hysteresis</li><li>read-only status/recent API와 metrics-ready counters</li><li>Jetson ARM64 image와 KubeEdge workload manifest</li><li>state-aggregator API와 dashboard 서비스 데모 panel</li><li>Argo CD 배포, 기존 가짜 vision demo 운영 Application 퇴역</li><li>코드·manifest·dashboard·문서 단위/통합/E2E 검증</li></ul>
+<h3 id="제외">제외</h3>
+<ul><li>학습 dataset 기반 분류/딥러닝 모델이라는 주장</li><li>fault type/root-cause 분류</li><li>자동 actuator command</li><li>동적 Workflow Pod 생성/삭제/재배치</li><li>SSE/gRPC stream과 camera RTSP</li><li>Modbus/OPC-UA/MQTT adapter 추가</li><li>SQLite outbox, 별도 InfluxDB, 결과 장기 저장</li><li>EdgeMesh 변경</li><li>물리 케이블을 사람이 분리해야 하는 현장 장애 시연 자동화</li></ul>
+<h2 id="테스트-전략">테스트 전략</h2>
+<ol><li>Local Data fixture server로 cursor, timeout, type 오류와 재연결을 검증한다.</li><li>Frame joiner에서 같은 origin 결합, 누락 축, 중복, 역행, pending eviction을 검증한다.</li><li>detector에서 warm-up, 분산 floor, 정상 EWMA, 2회 anomaly 진입, 3회 정상 복귀와</li></ol>
+<p>anomaly baseline 제외를 검증한다.</p>
+<ol><li>API에서 모든 상태 schema, recent limit/error와 probe 동작을 검증한다.</li><li>state-aggregator에서 정상 응답, timeout/degraded 격리와 기존 <code>/state/devices</code> 회귀를 검증한다.</li><li>dashboard DOM 테스트에서 source→Device Service→AI consumer→result 관계와 오류 표시를 검증한다.</li><li>Kustomize 테스트에서 node, namespace, labels, probe, resource limit, FQDN, NetworkPolicy,</li></ol>
+<p>fixed runtime IP/broker/InfluxDB/PVC/hostNetwork 부재를 검증한다.</p>
+<ol><li>ARM64 image를 build/push하고 manifest를 digest로 고정한다.</li><li>Argo sync 뒤 Jetson Pod 배치, 증가하는 실제 <code>origin</code>, <code>mode=live</code>, model warm-up과</li></ol>
+<p>score 계산, state-aggregator endpoint와 dashboard 표시를 같은 revision에서 확인한다.</p>
+<ol><li>중앙 EdgeX 12개 Device, Core Data freshness, Core Command와 기존 dashboard가 계속</li></ol>
+<p>정상인지 회귀 확인하고 EdgeMesh generation/image가 바뀌지 않았음을 확인한다.</p>
+<p>실제 장치를 움직여 anomaly 상태가 발생하는 현장 시연은 운영 runbook의 물리 단계로 둔다. 소프트웨어 완료 증거는 실측 정상 입력 E2E, detector anomaly branch의 결정론적 테스트와 상태 전이 API 테스트를 함께 사용하며 이를 실제 고장 검출 실증으로 과장하지 않는다.</p>
+<h2 id="완료-기준">완료 기준</h2>
+<ul><li>Jetson의 새 Pod가 세 가상 Device의 실제 증가하는 origin을 처리한다.</li><li>한 결과에 같은 origin의 X/Y/Z만 결합되며 중복/누락 sample을 현재값처럼 꾸미지 않는다.</li><li>모델의 algorithm, baseline, score, threshold와 상태 전이 근거를 API에서 확인할 수 있다.</li><li>dashboard가 실제 Device 3개, Device Service, Jetson AI consumer와 최신 결과를 한 흐름으로 표시한다.</li><li>AI 서비스 장애가 기존 EdgeX device dashboard를 실패시키지 않는다.</li><li>기존 가짜 vision demo 운영 Application이 남아 현재 데모로 오인되지 않는다.</li><li>raw Event/Reading의 권위는 중앙 EdgeX/PostgreSQL로 유지된다.</li><li>local broker, InfluxDB, Agent, fixed runtime IP 또는 EdgeMesh 변경이 없다.</li><li>테스트, ARM64 image, Kustomize render, Argo sync, live API/dashboard readback과 활성 문서가</li></ul>
+<p>같은 revision과 구조를 증명한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태">상태</a></li>
+<li class="toc-h2"><a href="#목표">목표</a></li>
+<li class="toc-h2"><a href="#현재-사실과-제약">현재 사실과 제약</a></li>
+<li class="toc-h2"><a href="#접근-방식-비교">접근 방식 비교</a></li>
+<li class="toc-h3"><a href="#채택-jetson-local-data-api-증분-조회">채택: Jetson Local Data API 증분 조회</a></li>
+<li class="toc-h3"><a href="#제외-device-service-sse-grpc-stream-추가">제외: Device Service SSE/gRPC stream 추가</a></li>
+<li class="toc-h3"><a href="#제외-중앙-edgex-messagebus-구독">제외: 중앙 EdgeX MessageBus 구독</a></li>
+<li class="toc-h2"><a href="#전체-구조">전체 구조</a></li>
+<li class="toc-h2"><a href="#sensor-anomaly-demo-책임">sensor-anomaly-demo 책임</a></li>
+<li class="toc-h2"><a href="#입력과-frame-결합">입력과 frame 결합</a></li>
+<li class="toc-h2"><a href="#온라인-이상-탐지-모델">온라인 이상 탐지 모델</a></li>
+<li class="toc-h2"><a href="#서비스-api-계약">서비스 API 계약</a></li>
+<li class="toc-h3"><a href="#상태">상태</a></li>
+<li class="toc-h3"><a href="#최근-결과">최근 결과</a></li>
+<li class="toc-h3"><a href="#kubernetes-probe">Kubernetes probe</a></li>
+<li class="toc-h2"><a href="#state-aggregator와-dashboard">state-aggregator와 dashboard</a></li>
+<li class="toc-h2"><a href="#배포와-네트워크">배포와 네트워크</a></li>
+<li class="toc-h2"><a href="#오류와-복구">오류와 복구</a></li>
+<li class="toc-h2"><a href="#구현-경계">구현 경계</a></li>
+<li class="toc-h3"><a href="#포함">포함</a></li>
+<li class="toc-h3"><a href="#제외">제외</a></li>
+<li class="toc-h2"><a href="#테스트-전략">테스트 전략</a></li>
+<li class="toc-h2"><a href="#완료-기준">완료 기준</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

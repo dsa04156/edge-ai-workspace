@@ -23,41 +23,65 @@ GET /state/workflows
 GET /state/workflow/{workflow_id}
 GET /state/summary
 
-현재 workflow UI는 Kubernetes 또는 EdgeX metadata/state/command를 변경하지 않는다.
-등록된 EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Core Data Event/Reading
-history는 `GET /state/devices/{device_id}/telemetry`로 확인한다.
+과거 dashboard의 AI Pipeline/Workflow Builder와 샘플 실행 API는 제거했다. 등록된
+EdgeX Core Metadata Device는 `GET /state/devices`로 조회하고, Device Profile의 안전한
+resource 계약은 `GET /state/device-profiles`, Core Data Event/Reading history는
+`GET /state/devices/{device_id}/telemetry`로 확인한다. 대시보드의 새 `서비스 설계`는
+`GET /state/services`의 현재 운영 서비스 목록을 상단에 별도로 표시하고, Device/Profile
+read-only 계약을 사용해 browser-local 단계 구성, 포트 연결, 타입·배치 validation과
+dry-run 실행 계획만 제공한다. 캔버스에는 pan·zoom·fit view·미니맵, 24px grid와
+정렬선 snap, `Shift` 축 고정·`Alt` 자유 이동, 접을 수 있는 단계/설정 패널이 있으며
+드롭 뒤 viewport를 다시 이동하거나 문서·캔버스의 가로 scrollbar에 의존하지 않는다.
+localStorage 밖으로 초안을 저장하지 않고 Kubernetes, EdgeX, command와 workload를
+변경하지 않는다. 고정 `sensor-anomaly-demo`는 같은 edge node에서 Device Service Local
+Data API를 직접 읽으며 state-aggregator가 데이터 프록시 역할을 하지 않는다.
+`예시 불러오기`는 이 고정 데모의 가속도 X/Y/Z → 벡터 크기 → 온라인 이상 점수 →
+대시보드 계약을 캔버스에 만들고, 현재 세 축 EdgeX Device가 같은 Jetson에 있으면
+읽기 전용 입력과 처리 노드를 자동 바인딩한다. 이는 새 workload를 배포하거나
+고정 데모를 실행하는 동작이 아니다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
 `GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
 `DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
 이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
-가상 디바이스 projection은 기본 비활성 상태이며 EdgeX Core Metadata의 Device/Profile과
-Core Data Event/Reading만 권위 원본으로 읽는다. projection은 telemetry를 저장하거나
-fallback으로 사용하지 않는다. 이후 활성화되는 조회는 하나의 고정 관측 시각을 기준으로
-newest-first 페이지와 Device별 Event/prior-probe 상한을 적용하며, 상한 전에 증거를
-확정하지 못하면 `history_truncated`로 표시한다. Event ID, Event origin, Reading origin,
-profile/device/source/resource identity는 별도로 보존한다. EdgeX 404는 요청 작업별
-not-found 의미를 유지하고, 401/403, 429/5xx, transport, malformed response는 각각
-operation, safe identity, status, retryability를 가진 typed authority error로 구분한다.
-Projection API and observer behavior remain read-only; resolver and metrics state never become authority.
-Projection routes are implemented behind `VIRTUAL_DEVICE_PROJECTION_ENABLED=false` and
-return `404 {"detail":{"code":"projection_not_active",...}}` by default. Local or test
-enablement requires `VIRTUAL_DEVICE_BINDINGS_PATH` and validates the strict binding document
-before readiness; invalid, unreadable, missing, or production-empty documents fail startup.
-`eventQuery` 값은 binding 문서가 요구하는 의미상 상한이고 환경 설정은 운영상 하드 상한이다.
-실제 조회 예산은 각 항목의 더 작은 값(`min(binding, environment)`)으로 고정되며 revision은
-binding의 의미를 식별하고 환경 하드 상한은 별도 운영 설정으로 취급한다.
-Enabled list/detail reads are current EdgeX authority reads, never observer-cache fallback.
-`/metrics` consumes only bounded status-only observation metadata and never triggers EdgeX
-requests. Deployment, ingress, access policy, MQTT/runtime promotion, and live activation
-remain deferred.
+
+Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
+
+- 화면 제목과 상태·오류·작업 문구는 한국어로 제공하며, 먼저 엣지 노드를 선택한 뒤
+  해당 노드의 Runtime, 승인 Adapter, EdgeX Device를 관리한다.
+- 노드 후보는 `GET /state/nodes` 관측 결과 중 `node_type=edge_*`인 노드와
+  Runtime·Device·승인 hardware binding이 실제로 참조하는 노드로 제한한다. 관계없는
+  중앙 `cloud_server` 노드는 디바이스 연결 대상으로 표시하지 않는다.
+- 노드 선택은 workload placement와 운영 탐색 범위다. 물리 inventory, state, telemetry,
+  command의 권위는 계속 EdgeX이며 Kubernetes Node 상태로 Device availability를 덮어쓰지 않는다.
+- 연결 마법사의 target node는 선택한 노드로 고정한다. 기존 Device PATCH는 해당 노드의
+  Device를 명시적으로 선택한 뒤에만 활성화한다.
+- 등록 1단계는 protocol/Device Service를 먼저 선택하고, 선택 노드의 승인 hardware
+  binding과 Device Service 준비 방식을 뒤에서 선택한다. 미검증 protocol은 이유와 함께
+  표시하지만 선택할 수 없다.
+- Hardware binding의 protocol tuple은 UI가 read-only로 채우고 서버가 다시 대조한다.
+  Serial runtime은 복수 승인 `hardwareBindingIds`를 소유할 수 있어 같은 Device Service가
+  서로 다른 USB 포트를 처리한다.
+- `GET /management/adapter-runtimes`에서 기존 Argo runtime과 Controller runtime의 owner,
+  phase, target node와 EdgeX consumer를 조회한다.
+- Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.
+- 인증된 `POST /management/connections`는 Adapter Controller를 통해 승인 runtime을
+  준비한 뒤 EdgeX Profile/Device를 등록하고 first Event까지 추적한다.
+- state-aggregator 자체는 Kubernetes 쓰기 권한이 없고, 외부/Argo runtime을
+  restart/retire하지 않는다.
+- raw manifest, 임의 image/hostPath/hostNetwork, 고정 ClusterIP/PodIP, EdgeMesh와 KubeEdge
+  Device CRD 변경은 API schema에 없다.
+
+자세한 운영 경계는
+`docs/ops/어댑터-런타임-디바이스-연결-관리.md`를 따른다.
 B. Prometheus reader
 
 Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기
 
 node up/down
 CPU utilization
+logical CPU count
 memory usage ratio
 load average
 network rx/tx rate
@@ -87,6 +111,9 @@ app/config/instance_map.json
 D. normalized state 생성
 
 node raw metric을 다음 상태로 변환
+
+`compute_pressure`는 CPU 사용률과 `load average / logical CPU count` 중 큰 값을 사용한다.
+CPU 수를 관측하지 못하면 임의의 코어 수를 가정하지 않고 CPU 사용률만 사용한다.
 
 compute_pressure: low / medium / high
 memory_pressure: low / medium / high

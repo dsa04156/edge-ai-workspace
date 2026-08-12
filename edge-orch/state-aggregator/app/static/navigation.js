@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "resource-pool", "management", "designer"];
+const DASHBOARD_PAGES = ["overview", "inventory", "management", "designer"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -21,18 +21,6 @@ function showDashboardPage(page) {
     && typeof globalThis.onServiceDesignerVisible === "function"
   ) {
     globalThis.onServiceDesignerVisible();
-  }
-  if (
-    nextPage === "management"
-    && typeof globalThis.onDeviceManagementVisible === "function"
-  ) {
-    globalThis.onDeviceManagementVisible();
-  }
-  if (
-    nextPage === "overview"
-    && typeof globalThis.onServiceDemoVisible === "function"
-  ) {
-    globalThis.onServiceDemoVisible();
   }
 }
 

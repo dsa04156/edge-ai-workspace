@@ -33,8 +33,30 @@ spec:
               value: /app/data
             - name: INSTANCE_MAP_PATH
               value: /app/app/config/instance_map.json
-            - name: RESOURCE_PROFILE_RECORDING_MODE
-              value: disabled
+            - name: ADAPTER_CATALOG_PATH
+              value: /app/app/config/adapter_catalog.json
+            - name: DEVICE_MANAGEMENT_ENABLED
+              value: "true"
+            - name: DEVICE_MANAGEMENT_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: management-hmac-key
+            - name: ADAPTER_RUNTIME_MANAGEMENT_ENABLED
+              value: "true"
+            - name: ADAPTER_RUNTIME_MUTATION_ENABLED
+              value: "true"
+            - name: DEVICE_DISCOVERY_MANAGEMENT_ENABLED
+              value: "true"
+            - name: ADAPTER_CONTROLLER_URL
+              value: http://edgex-adapter-controller.edgex-edge.svc.cluster.local:8080
+            - name: ADAPTER_CONTROLLER_INTERNAL_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: internal-hmac-key
+            - name: ADAPTER_CONTROLLER_TIMEOUT_SECONDS
+              value: "5"
             - name: EDGEX_CORE_METADATA_URL
               value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
             - name: EDGEX_CORE_DATA_URL
@@ -43,12 +65,10 @@ spec:
               value: "10"
             - name: EDGEX_EVENT_FRESH_SECONDS
               value: "90"
-            - name: EDGEX_EVENT_QUERY_CONCURRENCY
-              value: "1"
-            - name: EDGEX_DEVICE_SNAPSHOT_TTL_SECONDS
-              value: "10"
-            - name: EDGEX_DEVICE_ERROR_BACKOFF_SECONDS
-              value: "30"
+            - name: SENSOR_ANOMALY_DEMO_URL
+              value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
+            - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
+              value: "2"
           volumeMounts:
             - name: state-data
               mountPath: /app/data

@@ -1,0 +1,11 @@
+defaultBaseImage: 192.168.0.56:5000/edgex-device-sensehat-base@sha256:aaddfeadce5777fd57a0ef67c2adff10e72fd444d8c41dd9c344f706c5d7ceef
+defaultPlatforms:
+  - linux/arm64
+builds:
+  - id: device-sensehat
+    main: ./cmd/device-sensehat
+    flags:
+      - -trimpath
+    ldflags:
+      - -s
+      - -w

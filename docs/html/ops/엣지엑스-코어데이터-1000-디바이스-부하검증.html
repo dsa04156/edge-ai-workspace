@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EdgeX Core Data 1,000 디바이스 부하 검증</title>
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md">편집</a>
+      </div>
+      <span>ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../일일-기록.html">일일 기록</a></li>
+<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">운영 문서</p>
+          <h1>EdgeX Core Data 1,000 디바이스 부하 검증</h1>
+          <p class="subtitle">현재 단일 EdgeX Core Data와 PostgreSQL이 합성 가상 디바이스 Event를 어느 입력률까지 저장하는지 재현…</p>
+          <div class="meta">
+            <span class="badge kind">운영 문서</span>
+            <span class="badge">원본: ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="edgex-core-data-1-000-디바이스-부하-검증">EdgeX Core Data 1,000 디바이스 부하 검증</h1>
+<h2 id="목적">목적</h2>
+<p>이 문서는 현재 단일 EdgeX Core Data와 PostgreSQL이 합성 가상 디바이스 Event를 어느 입력률까지 저장하는지 재현 가능하게 확인하는 절차와 2026-07-22 실측 결과를 정리한다. 센서 수가 많다는 이유만으로 Event batch 저장이나 별도 시계열 DB를 먼저 추가하지 않고, 실제 <code>device 수 × device별 Hz</code>를 기준으로 현재 저장 경로의 한계를 측정한다.</p>
+<p>이 검증은 Core Data REST ingress부터 PostgreSQL까지의 기준선이다. 운영 정상 경로인 Device Service → 중앙 internal MessageBus → Core Data 전체 처리량을 검증한 결과가 아니며, 합성 identity를 Core Metadata Device로 등록하지 않는다.</p>
+<h2 id="구현-경계">구현 경계</h2>
+<pre data-lang="text"><code>일회성 Pod @ etri-ser0002-cgnmsb
+  -&gt; edgex-core-data.edgex-system.svc.cluster.local:59880
+  -&gt; POST /api/v3/event/{service}/{profile}/{device}/{source}
+  -&gt; Core Data / PostgreSQL
+  -&gt; GET /api/v3/event/count/device/name/{device}
+  -&gt; DELETE /api/v3/event/device/name/{device}
+  -&gt; count=0 확인</code></pre>
+<ul><li>실행기는 <code>tools/edgex-core-data-loadtest/</code>의 Go 표준 라이브러리 구현이다.</li><li><code>tools/run_edgex_core_data_loadtest.sh</code>가 amd64 정적 바이너리를 빌드해 digest 고정 BusyBox 일회성 Pod에서 실행한다.</li><li>Core Data는 고정 ClusterIP나 PodIP가 아니라 Service FQDN으로 접근한다.</li><li>Pod는 <code>etri-ser0002-cgnmsb</code>에 배치하고 ServiceAccount token, privilege escalation과 쓰기 가능한 root filesystem을 사용하지 않는다.</li><li>운영 <code>edgex/k8s</code> root render, Argo CD Application, EdgeMesh, Device/Profile/Device Service는 변경하지 않는다.</li><li>합성 이름은 <code>loadtest-{runId}-{index}</code>이고 각 Event는 <code>Float64</code> Reading 한 개와 <code>loadTestRunId</code> tag를 갖는다.</li><li>실행별 JSON은 <code>artifacts/edgex-loadtest/</code>에 남지만 운영 생성물이므로 Git에는 포함하지 않는다.</li></ul>
+<h2 id="안전한-기본-프로파일">안전한 기본 프로파일</h2>
+<p>아무 옵션 없이 실행하면 1,000개 identity가 각 1분에 한 번 Event를 보내는 저주기 기준선을 사용한다.</p>
+<pre data-lang="bash"><code>rtk bash tools/run_edgex_core_data_loadtest.sh</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>기본값</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>DEVICES</code></td>
+<td><code>1000</code></td>
+<td>합성 device identity 수</td>
+</tr>
+<tr>
+<td><code>PER_DEVICE_HZ</code></td>
+<td><code>0.0166666667</code></td>
+<td>device별 약 1 Event/분</td>
+</tr>
+<tr>
+<td><code>DURATION</code></td>
+<td><code>60s</code></td>
+<td>부하 생성 구간</td>
+</tr>
+<tr>
+<td><code>CONCURRENCY</code></td>
+<td><code>128</code></td>
+<td>POST worker 상한</td>
+</tr>
+<tr>
+<td><code>MAINTENANCE_CONCURRENCY</code></td>
+<td><code>8</code></td>
+<td>readback·cleanup 동시성 상한</td>
+</tr>
+<tr>
+<td><code>REQUEST_TIMEOUT</code></td>
+<td><code>5s</code></td>
+<td>HTTP 요청별 제한</td>
+</tr>
+<tr>
+<td><code>MAX_ERROR_RATE</code></td>
+<td><code>0</code></td>
+<td>허용 저장 실패율</td>
+</tr>
+<tr>
+<td><code>MAX_P95</code></td>
+<td><code>1s</code></td>
+<td>허용 POST p95</td>
+</tr>
+<tr>
+<td><code>MIN_RATE_RATIO</code></td>
+<td><code>0.95</code></td>
+<td>목표 Event/s 대비 최소 달성률</td>
+</tr>
+<tr>
+<td><code>VERIFY</code></td>
+<td><code>true</code></td>
+<td>device별 전용 count API readback</td>
+</tr>
+<tr>
+<td><code>CLEANUP_EVENTS</code></td>
+<td><code>true</code></td>
+<td>합성 Event만 삭제하고 <code>count=0</code> 확인</td>
+</tr>
+</tbody></table></div>
+<p>Core Data의 일반 device Event 이력 API를 count 용도로 반복 호출하지 않는다. 검증기는 전용 <code>/api/v3/event/count/device/name/{device}</code>를 사용한다. 삭제 API의 성공 응답은 <code>202 Accepted</code>이므로 응답 수신만으로 삭제 완료를 선언하지 않고 같은 count API가 0을 반환할 때까지 제한 시간 안에서 확인한다.</p>
+<h2 id="스트레스-프로파일">스트레스 프로파일</h2>
+<p>1,000 devices × 1Hz는 현재 배포에서 OOM이 확인된 스트레스 프로파일이다. 정상 데모 중 기본 명령으로 실행하지 않는다.</p>
+<pre data-lang="bash"><code>rtk env \
+  RUN_ID=baseline-1hz-yyyymmdd \
+  DEVICES=1000 \
+  PER_DEVICE_HZ=1 \
+  DURATION=30s \
+  REQUEST_TIMEOUT=10s \
+  bash tools/run_edgex_core_data_loadtest.sh</code></pre>
+<p>실행 전후에 다음을 기록한다.</p>
+<pre data-lang="bash"><code>rtk kubectl -n edgex-system get pod \
+  -l app.kubernetes.io/name=edgex-core-data -o wide
+rtk kubectl -n edgex-system get pod edgex-postgres-0 -o wide
+rtk kubectl -n edgex-system top pod</code></pre>
+<p>10Hz나 더 높은 profile은 현재 자동 실행 범위가 아니다. 1Hz 실패 원인을 해소하고 100 → 250 → 500 → 1,000 events/s 순서의 단계별 gate를 통과한 뒤에만 확장한다.</p>
+<h2 id="pass-판정">PASS 판정</h2>
+<p>다음 조건을 모두 만족해야 저장 기준선 PASS다.</p>
+<ol><li><code>attempted == planned</code>다.</li><li><code>succeeded == planned</code>이고 Core Data가 각 POST에 <code>201 Created</code>와 동일 Event ID를 반환한다.</li><li><code>errorRate &lt;= MAX_ERROR_RATE</code>다.</li><li><code>latency.p95Ms &lt;= MAX_P95</code>다.</li><li><code>achievedEventsPerSecond &gt;= targetEventsPerSecond × MIN_RATE_RATIO</code>다.</li><li>1,000개 device의 count 합계가 성공 Event 수와 일치한다.</li><li>cleanup이 각 합성 device의 <code>count=0</code>까지 확인한다.</li><li>Core Data/PostgreSQL이 Ready이고 재시작 횟수가 증가하지 않는다.</li><li>대표 Arduino·Sense HAT 실제 Event의 <code>origin</code>이 시험 뒤에도 증가한다.</li></ol>
+<p><code>pass=true</code>만 보지 않고 Pod restart와 실제 sensor 회귀를 함께 확인한다. OOM이나 재시작이 있으면 Event 보고서가 일부 성공했더라도 운영 PASS가 아니다.</p>
+<h2 id="2026-07-22-실측-결과">2026-07-22 실측 결과</h2>
+<p>환경은 중앙 <code>etri-ser0002-cgnmsb</code>의 Core Data 1 replica와 PostgreSQL 1 replica다. Core Data resource는 request <code>50m/64Mi</code>, limit <code>300m/256Mi</code>; PostgreSQL은 request <code>100m/128Mi</code>, limit <code>500m/512Mi</code>였다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>프로파일</th>
+<th>결과</th>
+<th>저장 결과</th>
+<th>POST 지연</th>
+<th>운영 영향</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>smoke, 2 devices × 2Hz × 2s</td>
+<td>PASS</td>
+<td>8/8, 오류 0, readback 8, cleanup 2 devices</td>
+<td>p95 <code>14.83ms</code></td>
+<td>재시작 없음</td>
+</tr>
+<tr>
+<td>저주기, 1,000 × 1/60Hz × 60s</td>
+<td>PASS</td>
+<td>1,000/1,000, <code>16.678 events/s</code>, readback 1,000, cleanup 1,000</td>
+<td>p50 <code>12.84ms</code>, p95 <code>16.17ms</code>, p99 <code>17.82ms</code>, max <code>44.39ms</code></td>
+<td>합성 잔존 0, 실제 sensor origin 증가</td>
+</tr>
+<tr>
+<td>스트레스, 1,000 × 1Hz × 30s</td>
+<td>FAIL</td>
+<td>0/30,000, 오류율 1.0</td>
+<td>성공 응답 없음</td>
+<td>Core Data <code>OOMKilled</code>, exit 137, restart <code>1 → 2</code></td>
+</tr>
+</tbody></table></div>
+<p>1Hz 실패 보고서의 오류 분포는 HTTP 503 <code>9,390</code>, transport <code>13,064</code>, 기타 <code>7,546</code>이었다. worker backpressure와 요청 timeout 때문에 전체 시도 회수에는 약 375.74초가 걸렸다. PostgreSQL에는 해당 실행의 합성 Event가 남지 않았고, Core Data 자동 재시작 뒤 Arduino와 Sense HAT의 최신 Event <code>origin</code> 증가를 다시 확인했다.</p>
+<p>초기 저주기 시험에서는 검증기가 일반 Event 이력 API를 128개 동시 호출해 조회 경로를 정체시키는 도구 결함이 있었다. 최종 구현은 이를 다음처럼 수정했다.</p>
+<ul><li>저장 동시성과 검증·정리 동시성을 분리했다.</li><li>일반 이력 API 대신 전용 Event count API를 사용한다.</li><li>cleanup의 <code>202 Accepted</code> 뒤 <code>count=0</code>을 확인한다.</li><li>검증·정리 상세 오류는 각 20건까지만 JSON에 남기고 나머지는 <code>suppressedErrors</code>로 집계한다.</li><li>저장, readback과 cleanup이 같은 취소 context를 사용하므로 종료 신호 뒤 maintenance 요청을 계속 기다리지 않는다.</li><li>기본 profile을 검증된 1/60Hz로 낮췄다.</li></ul>
+<h2 id="현재-결론">현재 결론</h2>
+<ul><li>“센서 1,000개라서 Event마다 저장하면 무조건 안 된다”는 결론은 아니다. 1,000개가 분당 한 번 보내는 약 16.7 events/s는 현재 구성에서 여유 있게 통과했다.</li><li>현재 <code>300m CPU / 256Mi memory</code> Core Data 1 replica에 1,000 events/s를 바로 넣는 구성은 지원 근거가 없고 실제로 OOM 실패했다.</li><li>따라서 저장 batch나 별도 DB를 먼저 넣기 전에 실제 장비별 sampling rate, 저장 대상 resource 수와 retention을 확정해야 한다.</li><li>다음 성능 작업은 Core Data memory profile과 resource right-sizing, 100/250/500 events/s 단계별 시험, PostgreSQL index·retention 관측, Device Service → MessageBus → Core Data 전체 경로 시험 순서로 진행한다.</li><li>현재 운영 Device Service, MessageBus와 PostgreSQL 배포는 이번 기준선 도구 추가만으로 변경하지 않는다.</li></ul>
+<h2 id="장애-후-회복-확인">장애 후 회복 확인</h2>
+<p>부하 시험이 실패하면 합성 데이터 정리보다 먼저 Core Data가 Ready인지 확인한다. OOM 뒤 Deployment가 자동 복구하지 못할 때만 정확한 Core Data Pod 하나를 재생성하고, manifest·Service·EdgeMesh는 수정하지 않는다.</p>
+<p>회복 완료 조건:</p>
+<ol><li>Core Data와 PostgreSQL이 Ready다.</li><li>새 OOM/restart가 더 증가하지 않는다.</li><li><code>virtual-temperature-001</code>과 <code>env-sensehat-temperature-01</code> 최신 Event가 조회된다.</li><li>두 Event의 <code>origin</code>이 시험 전보다 증가한다.</li><li>실행 prefix의 합성 Event가 0건이다.</li></ol>
+<p>전체 현재 데모 회귀는 다음 명령으로 확인한다.</p>
+<pre data-lang="bash"><code>rtk bash tools/verify_e2e.sh</code></pre>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#구현-경계">구현 경계</a></li>
+<li class="toc-h2"><a href="#안전한-기본-프로파일">안전한 기본 프로파일</a></li>
+<li class="toc-h2"><a href="#스트레스-프로파일">스트레스 프로파일</a></li>
+<li class="toc-h2"><a href="#pass-판정">PASS 판정</a></li>
+<li class="toc-h2"><a href="#2026-07-22-실측-결과">2026-07-22 실측 결과</a></li>
+<li class="toc-h2"><a href="#현재-결론">현재 결론</a></li>
+<li class="toc-h2"><a href="#장애-후-회복-확인">장애 후 회복 확인</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

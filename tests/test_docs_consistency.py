@@ -1,51 +1,49 @@
 import unittest
 from pathlib import Path
 
-from tools.docs_consistency.rules import Corpus, rule_influx_timestamp_notes
+from tools.docs_consistency.rules import Corpus, rule_core_data_event_origin
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
-class InfluxTimestampRuleTest(unittest.TestCase):
+class CoreDataEventOriginRuleTest(unittest.TestCase):
     def corpus(self, text: str) -> Corpus:
         return Corpus(root=Path("."), docs={"docs/example.md": text}, code={})
 
-    def test_ignores_docs_that_do_not_describe_influx_timestamp_semantics(self):
-        result = rule_influx_timestamp_notes(
+    def test_ignores_docs_that_do_not_claim_telemetry_freshness(self):
+        result = rule_core_data_event_origin(
+            self.corpus("EdgeX Core Metadata에서 Device inventory를 조회한다.")
+        )
+
+        self.assertEqual(result.status, "PASS")
+        self.assertEqual(result.findings, [])
+
+    def test_warns_when_core_data_freshness_omits_event_origin(self):
+        result = rule_core_data_event_origin(
             self.corpus("EdgeX Core Data latest Event로 telemetry freshness를 판단한다.")
-        )
-
-        self.assertEqual(result.status, "PASS")
-        self.assertEqual(result.findings, [])
-
-    def test_does_not_treat_latest_event_timestamp_as_flux_time_column(self):
-        result = rule_influx_timestamp_notes(
-            self.corpus("EdgeX `latest_event_timestamp`로 telemetry freshness를 판단한다.")
-        )
-
-        self.assertEqual(result.status, "PASS")
-        self.assertEqual(result.findings, [])
-
-    def test_ignores_influx_legacy_path_without_latest_claim(self):
-        result = rule_influx_timestamp_notes(
-            self.corpus("mapper가 InfluxDB로 직접 쓰는 경로는 legacy다.")
-        )
-
-        self.assertEqual(result.status, "PASS")
-        self.assertEqual(result.findings, [])
-
-    def test_warns_when_influx_latest_claim_omits_timestamp_semantics(self):
-        result = rule_influx_timestamp_notes(
-            self.corpus("InfluxDB latest telemetry를 dashboard freshness에 사용한다.")
         )
 
         self.assertEqual(result.status, "WARN")
         self.assertEqual(len(result.findings), 1)
 
-    def test_accepts_complete_influx_timestamp_semantics(self):
-        result = rule_influx_timestamp_notes(
+    def test_accepts_core_data_event_origin_as_freshness_clock(self):
+        result = rule_core_data_event_origin(
             self.corpus(
-                "InfluxDB latest telemetry에서 `_start`와 `_stop`은 Flux query window이고, "
-                "`_time`은 실제 sample timestamp다. device-level latest sample 기준이며 "
-                "property별 freshness를 보장하지 않는다."
+                "EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용해 "
+                "telemetry freshness를 판단한다. API 조회 시각으로 대체하지 않는다."
+            )
+        )
+
+        self.assertEqual(result.status, "PASS")
+        self.assertEqual(result.findings, [])
+    def test_one_clock_definition_covers_later_summary_claims_in_same_doc(self):
+        result = rule_core_data_event_origin(
+            self.corpus(
+                "EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용해 "
+                "telemetry freshness를 판단한다.\n\n"
+                "| KPI | 의미 |\n"
+                "|---|---|\n"
+                "| freshness | Core Data latest Event가 fresh인 Device 수 |"
             )
         )
 
@@ -53,40 +51,53 @@ class InfluxTimestampRuleTest(unittest.TestCase):
         self.assertEqual(result.findings, [])
 
 
-class DocumentClassificationTest(unittest.TestCase):
-    root = Path(__file__).resolve().parents[1]
-    docs = root / "docs"
+class CurrentDeviceManagementScopeTest(unittest.TestCase):
+    def test_current_docs_define_bounded_edgex_device_management_scope(self):
+        scope = (ROOT / "docs/프로젝트-범위.md").read_text(encoding="utf-8")
 
-    def test_archive_sources_have_current_scope_guard(self):
-        files = sorted((self.docs / "archive").rglob("*.md"))
-        self.assertTrue(files)
-        for path in files:
-            head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
-            self.assertIn("상태:", head, path.as_posix())
-            self.assertIn("현재 PoC", head, path.as_posix())
+        self.assertIn("edgex-adapter-controller", scope)
+        self.assertIn("ADAPTER_RUNTIME_MUTATION_ENABLED", scope)
+        self.assertIn("Controller가 만든 `AdapterRuntime`", scope)
+        self.assertIn("임의 image", scope)
+        self.assertIn("고정\n  ClusterIP/PodIP", scope)
+        self.assertIn("Modbus, OPC-UA, MQTT와 RTSP", scope)
+        self.assertIn("Workflow Builder", scope)
 
-    def test_design_history_sources_have_status(self):
-        paths = sorted((self.docs / "superpowers").rglob("*.md"))
-        paths.extend(
-            self.docs / name
-            for name in (
-                "대시보드-화면-설계.md",
-                "일일-기록.md",
-                "자원-증강-가상디바이스-대시보드.md",
-                "런타임-자원-증강-데모-워크플로.md",
-            )
+
+class SecondYearOkdongPlanTest(unittest.TestCase):
+    def test_report_body_stays_concise_and_separates_technical_appendices(self):
+        plan = (ROOT / "docs/단계별-추진계획.md").read_text(encoding="utf-8")
+
+        self.assertTrue(
+            plan.startswith("# 2026년도 2차년도 옥동 PoC 추진계획(안)\n")
         )
-        for path in paths:
-            head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:14])
-            self.assertIn("상태:", head, path.as_posix())
-            self.assertIn("설계 이력", head, path.as_posix())
-
-    def test_document_inventory_is_linked_from_entry_points(self):
-        inventory = self.docs / "문서-분류-목록.md"
-        self.assertTrue(inventory.exists())
-        for name in ("문서-안내.md", "문서-정리-계획.md", "프로젝트-범위.md", "저장소-구조.md"):
-            text = (self.docs / name).read_text(encoding="utf-8")
-            self.assertIn("문서-분류-목록.md", text, name)
+        self.assertLessEqual(len(plan.splitlines()), 140)
+        for section in (
+            "## 1. 추진 배경",
+            "## 2. 추진 목표",
+            "## 3. 주요 추진내용",
+            "## 4. 월별 추진계획",
+            "## 5. 기관별 역할",
+            "## 6. 주요 산출물",
+            "## 7. 최종 추진 방향",
+        ):
+            self.assertIn(section, plan)
+        for required in (
+            "2026년 7월 29일 옥동 현장회의",
+            "센서·MES 데이터 기반 생산품질 양품·불량 판별",
+            "메인·보조 유압펌프 및 모터 이상 감지",
+            "[현재 데모 운영 절차](ops/현재-데모-운영-절차.md)",
+            "[대시보드 정보 구조](대시보드-정보-구조.md)",
+            "현재 구현 완료\n> 상태를 뜻하지 않는다",
+        ):
+            self.assertIn(required, plan)
+        for technical_detail in (
+            "AdapterRuntime",
+            "EVENT_CONFIRMED",
+            "online-gaussian-baseline",
+            "Runtime Resource Augmentation Scheduler",
+        ):
+            self.assertNotIn(technical_detail, plan)
 
 
 if __name__ == "__main__":

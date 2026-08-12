@@ -10,6 +10,7 @@ from .models import NodeRawMetrics
 PROMETHEUS_QUERIES = {
     "up": 'up{job="node-exporter"}',
     "cpu_utilization": '1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))',
+    "cpu_logical_cores": 'count by(instance) (node_cpu_seconds_total{mode="idle"})',
     "memory_usage_ratio": '1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)',
     "load_average": "node_load1",
     "network_rx_rate": 'sum by(instance) (rate(node_network_receive_bytes_total{device!="lo"}[5m]))',
@@ -77,6 +78,7 @@ class PrometheusClient:
                     node_type=mapping.get("node_type"),
                     up=values.get("up", 0.0),
                     cpu_utilization=values.get("cpu_utilization", 0.0),
+                    cpu_logical_cores=values.get("cpu_logical_cores"),
                     memory_usage_ratio=values.get("memory_usage_ratio", 0.0),
                     load_average=values.get("load_average", 0.0),
                     network_rx_rate=values.get("network_rx_rate", 0.0),

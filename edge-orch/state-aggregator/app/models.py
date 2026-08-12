@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 PressureLevel = Literal["low", "medium", "high"]
@@ -87,6 +87,7 @@ class NodeRawMetrics(BaseModel):
     node_type: str | None = None
     up: float = 0.0
     cpu_utilization: float = 0.0
+    cpu_logical_cores: float | None = None
     memory_usage_ratio: float = 0.0
     load_average: float = 0.0
     network_rx_rate: float = 0.0
@@ -124,15 +125,22 @@ class EdgeXDevice(BaseModel):
     properties: dict[str, Any] = Field(default_factory=dict)
     node_name: str | None = None
 
-class EdgeXDeviceResource(BaseModel):
+
+class DeviceResourceContract(BaseModel):
     name: str
+    description: str | None = None
+    value_type: str
+    read_write: str = "R"
+    units: str | None = None
 
 
-class EdgeXDeviceProfile(BaseModel):
+class DeviceProfileContract(BaseModel):
     name: str
-    device_resources: list[EdgeXDeviceResource] = Field(default_factory=list)
-
-
+    description: str | None = None
+    manufacturer: str | None = None
+    model: str | None = None
+    labels: list[str] = Field(default_factory=list)
+    resources: list[DeviceResourceContract] = Field(default_factory=list)
 
 
 class TelemetryPoint(BaseModel):
@@ -143,20 +151,8 @@ class TelemetryPoint(BaseModel):
     value: str | float | int | bool | dict[str, Any] | list[Any] | None
     timestamp: datetime
     origin: int
-    event_origin: int | None = None
-    reading_origin: int | None = None
-    profile_name: str | None = None
     event_id: str | None = None
     units: str | None = None
-class EventHistoryPage(BaseModel):
-    total_count: int
-    events: list[TelemetryPoint] = Field(default_factory=list)
-    history_truncated: bool = False
-    pages_scanned: int = 0
-    events_scanned: int = 0
-    prior_probe_events: list[TelemetryPoint] = Field(default_factory=list)
-    uncertain_source_resources: list[tuple[str, str]] = Field(default_factory=list)
-
 
 
 class DeviceState(BaseModel):
@@ -172,10 +168,12 @@ class DeviceState(BaseModel):
     latest_event_timestamp: datetime | None = None
     latest_readings: list[TelemetryPoint] = Field(default_factory=list)
     telemetry_freshness: Literal["fresh", "stale", "no_events"] = "no_events"
-    telemetry_observation_error: str | None = None
     overall_status: HealthLevel = "degraded"
     reason: str = ""
     node_name: str | None = None
+    physical_device_id: str | None = None
+    hardware_binding_id: str | None = None
+    controller_candidate_id: str | None = None
 
 
 class WorkflowState(BaseModel):
@@ -243,111 +241,3 @@ class DashboardState(BaseModel):
     kpis: dict[str, Any]
     resource_profiles: dict[str, Any] = Field(default_factory=dict)
     device_observation_error: str | None = None
-class StrictProjectionModel(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        frozen=True,
-        populate_by_name=True,
-        strict=True,
-    )
-
-
-class OriginalEventRef(StrictProjectionModel):
-    event_id: str
-    event_origin: int
-    reading_origin: int
-    device_name: str
-    profile_name: str
-    source_name: str
-    resource_name: str
-
-
-class ProjectionError(StrictProjectionModel):
-    code: str
-    upstream: str | None = None
-    operation: str | None = None
-    identity: str | None = Field(default=None, max_length=128)
-    retryable: bool = False
-    status_code: int | None = Field(default=None, ge=100, le=599)
-
-
-class ProjectionObservation(StrictProjectionModel):
-    config_revision: str
-    completed_at: datetime
-    last_success_at: datetime | None = None
-    binding_ready: dict[str, bool] = Field(default_factory=dict)
-    capability_ready: dict[str, dict[str, bool]] = Field(default_factory=dict)
-    input_fresh: dict[str, dict[str, dict[str, bool]]] = Field(default_factory=dict)
-    reason_codes: list[str] = Field(default_factory=list)
-    error_class: str | None = None
-
-
-class VirtualDeviceInput(StrictProjectionModel):
-    input_id: str
-    capability_field: str
-    required: bool
-    ready: bool = False
-    selected_source_name: str | None = None
-    selected_resource_name: str | None = None
-    value_type: str | None = None
-    value: str | float | int | bool | dict[str, Any] | list[Any] | None = None
-    units: str | None = None
-    observed_at: datetime | None = None
-    original_event_ref: OriginalEventRef | None = None
-
-
-class VirtualDeviceCapability(StrictProjectionModel):
-    id: str
-    inputs: list[VirtualDeviceInput] = Field(default_factory=list)
-
-
-class PhysicalDeviceReference(StrictProjectionModel):
-    name: str
-    expected_profile_name: str
-
-    actual_profile_name: str | None = None
-    device_service_name: str | None = None
-    admin_state: str | None = None
-    operating_state: str | None = None
-    node_name: str | None = None
-    profile_resolved: bool = False
-
-class AiInputFieldMap(StrictProjectionModel):
-    input_id: str
-    ai_field: str
-
-
-class WorkloadReference(StrictProjectionModel):
-    namespace: str
-    kind: str
-    name: str
-
-
-class AiServiceReference(StrictProjectionModel):
-    service_id: str
-    input_contract: str
-    binding_mode: Literal["declarative_read_only"]
-    input_field_map: list[AiInputFieldMap] = Field(default_factory=list)
-    workload_ref: WorkloadReference | None = None
-
-
-class VirtualDeviceView(StrictProjectionModel):
-    id: str
-    binding_status: Literal["ready", "degraded", "unresolved"]
-    reason_codes: list[str] = Field(default_factory=list)
-    warnings: list[str] = Field(default_factory=list)
-    config_revision: str
-    history_truncated: bool = False
-    physical_device_ref: PhysicalDeviceReference
-    capabilities: list[VirtualDeviceCapability] = Field(default_factory=list)
-    ai_service_ref: AiServiceReference
-
-
-class VirtualDeviceCollection(StrictProjectionModel):
-    projection_enabled: bool = True
-    generated_at: datetime
-    observation_time: datetime
-    config_revision: str
-    history_truncated: bool = False
-    items: list[VirtualDeviceView] = Field(default_factory=list)
-    observation_error: ProjectionError | None = None

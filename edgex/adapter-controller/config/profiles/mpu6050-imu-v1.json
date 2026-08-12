@@ -1,0 +1,64 @@
+{
+  "name": "mpu6050-imu-v1",
+  "manufacturer": "InvenSense",
+  "model": "MPU-6050",
+  "labels": [
+    "imu",
+    "mpu6050",
+    "six-axis",
+    "serial",
+    "edge-ai-web-managed"
+  ],
+  "description": "MPU6050 six-axis IMU values received from an approved USB Serial sensor bridge",
+  "deviceResources": [
+    {
+      "name": "acceleration_x",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "m/s2"
+      }
+    },
+    {
+      "name": "acceleration_y",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "m/s2"
+      }
+    },
+    {
+      "name": "acceleration_z",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "m/s2"
+      }
+    },
+    {
+      "name": "gyro_x",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    },
+    {
+      "name": "gyro_y",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    },
+    {
+      "name": "gyro_z",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    }
+  ],
+  "deviceCommands": []
+}

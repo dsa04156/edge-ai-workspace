@@ -8,6 +8,7 @@
   }
 }(typeof globalThis !== "undefined" ? globalThis : this, () => {
   const DESIGN_VERSION = 1;
+  const LIVE_INPUT_ALIGNMENT_TOLERANCE_MS = 2000;
   const SOURCE_MODES = {
     local_recent: {
       label: "엣지 최근 데이터",
@@ -120,6 +121,11 @@
       maxInputs: 1,
     },
   };
+  const WINDOWED_PREPROCESS_OPERATIONS = new Set([
+    "rolling_mean",
+    "vibration_features",
+    "window_features",
+  ]);
   const INFERENCE_ALGORITHMS = {
     "online-gaussian-baseline-v1": {
       label: "온라인 이상 점수",
@@ -133,6 +139,16 @@
     },
     "sensor-feature-score-v1": {
       label: "센서 이상 점수",
+      inputType: "feature_vector",
+      outputType: "number",
+    },
+    "online-vibration-feature-gaussian-v1": {
+      label: "진동 특징 Gaussian 점수",
+      inputType: "feature_vector",
+      outputType: "number",
+    },
+    "online-temperature-feature-gaussian-v1": {
+      label: "온도 특징 Gaussian 점수",
       inputType: "feature_vector",
       outputType: "number",
     },
@@ -477,6 +493,111 @@
     };
   }
 
+  function createDeployedServiceDesign(service = {}) {
+    const contract = service.design_contract;
+    if (contract?.contract_id !== "sensor-anomaly-demo-v1") return null;
+    const targetNode = String(service.node || "");
+    const modelVersion = String(service.model_version || "");
+    const inputBindings = new Map(
+      (Array.isArray(contract.inputs) ? contract.inputs : []).map(
+        (binding) => [String(binding.stage_id || ""), binding],
+      ),
+    );
+    const design = createMultiSensorScoreExampleDesign();
+    return normalizeDesign({
+      ...design,
+      id: `deployed-${String(service.service_id || "sensor-anomaly-demo")}`,
+      name: String(service.display_name || "센서 이상 탐지"),
+      description: "현재 배포된 고정 서비스 계약에서 만든 편집 초안",
+      nodes: design.nodes.map((node) => {
+        if (["sensor-x", "sensor-y", "sensor-z", "sensor-context"].includes(node.id)) {
+          const binding = inputBindings.get(node.id) || {};
+          return {
+            ...node,
+            title: node.id === "sensor-context" ? "온도" : node.title,
+            config: {
+              ...node.config,
+              deviceName: String(binding.device_name || ""),
+              resourceName: String(binding.resource_name || ""),
+              sourceMode: contract.source_mode || "local_recent",
+            },
+          };
+        }
+        if (node.id === "vibration-features") {
+          return {
+            ...node,
+            title: "진동 특징 (RMS·Peak·Kurtosis)",
+            config: {
+              ...node.config,
+              operation: "vibration_features",
+              windowSize: Number(contract.vibration_window_samples),
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "context-features") {
+          return {
+            ...node,
+            title: "온도 특징 (평균·표준편차·변화량)",
+            config: {
+              ...node.config,
+              operation: "window_features",
+              windowSize: Number(contract.temperature_window_samples),
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "vibration-score") {
+          return {
+            ...node,
+            title: "진동 이상 점수",
+            config: {
+              ...node.config,
+              algorithm: String(contract.vibration_algorithm),
+              threshold: Number(contract.threshold),
+              warmupSamples: Number(contract.warmup_samples),
+              modelVersion,
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "context-score") {
+          return {
+            ...node,
+            title: "온도 이상 점수",
+            config: {
+              ...node.config,
+              algorithm: String(contract.temperature_algorithm),
+              threshold: Number(contract.threshold),
+              warmupSamples: Number(contract.warmup_samples),
+              modelVersion,
+              targetNode,
+            },
+          };
+        }
+        if (node.id === "score-fusion") {
+          return {
+            ...node,
+            title: "종합 이상 점수",
+            config: {
+              ...node.config,
+              method: "weighted_average",
+              missingPolicy: "wait_all",
+              pipelineAlgorithm: String(contract.pipeline_algorithm),
+              targetNode,
+              weights: {
+                "vibration-score": Number(contract.vibration_weight),
+                "context-score": Number(contract.temperature_weight),
+              },
+            },
+          };
+        }
+        return node;
+      }),
+      updatedAt: null,
+    });
+  }
+
   function normalizeNode(rawNode, index) {
     const type = String(rawNode?.type || "");
     const definition = nodeDefinition(type);
@@ -607,6 +728,32 @@
     return "any";
   }
 
+  function timestampMilliseconds(value) {
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    const parsed = Date.parse(String(value || ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function deviceLatestTimestampMs(device = {}, resourceName = "") {
+    const wanted = String(resourceName || "").trim().toLowerCase();
+    const matchingReadings = (Array.isArray(device.latest_readings)
+      ? device.latest_readings
+      : []
+    ).filter((reading) => (
+      !wanted
+      || [reading?.resource_name, reading?.source_name]
+        .some((value) => String(value || "").trim().toLowerCase() === wanted)
+    ));
+    const timestamps = [
+      ...matchingReadings.map((reading) => reading.timestamp),
+      ...(matchingReadings.length ? [] : [device.latest_event_timestamp]),
+    ]
+      .map(timestampMilliseconds)
+      .filter(Number.isFinite);
+    return timestamps.length ? Math.max(...timestamps) : null;
+  }
+
   function resourcesForDevice(device, profiles = []) {
     if (!device) return [];
     const profile = profiles.find((item) => item.name === device.profile_name);
@@ -731,6 +878,32 @@
     return (design.edges || [])
       .filter((edge) => edge.from === nodeId)
       .map((edge) => edge.to);
+  }
+
+  function sensorWindowRequirement(rawDesign, sensorNodeId) {
+    const design = normalizeDesign(rawDesign);
+    const sensor = design.nodes.find((node) => node.id === sensorNodeId);
+    if (!sensor || sensor.type !== "sensor") return 1;
+    const pending = [...outgoingIds(design, sensorNodeId)];
+    const visited = new Set([sensorNodeId]);
+    const requirements = [];
+    while (pending.length) {
+      const nodeId = pending.shift();
+      if (visited.has(nodeId)) continue;
+      visited.add(nodeId);
+      const node = design.nodes.find((item) => item.id === nodeId);
+      if (!node) continue;
+      if (
+        node.type === "preprocess"
+        && WINDOWED_PREPROCESS_OPERATIONS.has(node.config.operation)
+      ) {
+        const requested = Math.floor(Number(node.config.windowSize));
+        requirements.push(Number.isFinite(requested) && requested > 0 ? requested : 1);
+        continue;
+      }
+      pending.push(...outgoingIds(design, nodeId));
+    }
+    return requirements.length ? Math.max(...requirements) : 1;
   }
 
   function incomingEdges(design, nodeId) {
@@ -922,10 +1095,23 @@
             node.id,
           );
         }
-        if (device && device.telemetry_freshness !== "fresh") {
+        const freshness = String(device?.telemetry_freshness || "").toLowerCase();
+        if (device && freshness === "no_events") {
+          addError(
+            "telemetry_missing",
+            `${device.name}에 저장된 Event가 없어 입력을 실행할 수 없습니다.`,
+            node.id,
+          );
+        } else if (device && freshness === "stale") {
+          addError(
+            "telemetry_stale",
+            `${device.name}의 최신 Event가 오래되어 입력을 실행할 수 없습니다.`,
+            node.id,
+          );
+        } else if (device && freshness && freshness !== "fresh") {
           addWarning(
-            "telemetry_not_fresh",
-            `${device.name}의 최신 Event가 fresh가 아닙니다.`,
+            "telemetry_unverified",
+            `${device.name}의 최신 Event 상태를 확인할 수 없습니다.`,
             node.id,
           );
         }
@@ -986,6 +1172,49 @@
             addError("fusion_weight_total_invalid", "점수 가중치 합은 0보다 커야 합니다.", node.id);
           }
         }
+      }
+    });
+
+    design.nodes.forEach((target) => {
+      const directLiveInputs = incomingEdges(design, target.id)
+        .map((edge) => design.nodes.find((node) => node.id === edge.from))
+        .filter((node) => (
+          node?.type === "sensor"
+          && node.config.sourceMode === "local_recent"
+        ));
+      if (directLiveInputs.length < 2) return;
+      const bindings = directLiveInputs
+        .map((node) => ({
+          node,
+          device: (inventory.devices || []).find(
+            (device) => device.name === node.config.deviceName,
+          ),
+        }))
+        .filter((binding) => binding.device);
+      if (bindings.length !== directLiveInputs.length) return;
+      const sourceNodes = new Set(
+        bindings.map(({device}) => device.node_name).filter(Boolean),
+      );
+      if (sourceNodes.size > 1) {
+        addError(
+          "multi_input_node_mismatch",
+          `${target.title}의 엣지 최근 입력이 여러 물리 노드(${[...sourceNodes].join(", ")})에 걸쳐 있습니다.`,
+          target.id,
+        );
+      }
+      const timestamps = bindings
+        .map(({node, device}) => (
+          deviceLatestTimestampMs(device, node.config.resourceName)
+        ))
+        .filter(Number.isFinite);
+      if (timestamps.length !== bindings.length) return;
+      const skew = Math.max(...timestamps) - Math.min(...timestamps);
+      if (skew > LIVE_INPUT_ALIGNMENT_TOLERANCE_MS) {
+        addError(
+          "multi_input_time_skew",
+          `${target.title} 입력의 최신 Event 시각 차이 ${Math.round(skew)}ms가 허용 범위 ${LIVE_INPUT_ALIGNMENT_TOLERANCE_MS}ms를 넘습니다.`,
+          target.id,
+        );
       }
     });
 
@@ -1065,6 +1294,7 @@
 
   return {
     DESIGN_VERSION,
+    LIVE_INPUT_ALIGNMENT_TOLERANCE_MS,
     FUSION_METHODS,
     FUSION_MISSING_POLICIES,
     INFERENCE_ALGORITHMS,
@@ -1081,8 +1311,10 @@
     compatibleTypes,
     connectNodes,
     createDefaultDesign,
+    createDeployedServiceDesign,
     createMultiSensorScoreExampleDesign,
     createSensorAnomalyExampleDesign,
+    deviceLatestTimestampMs,
     nodeDefinition,
     nodeInputType,
     nodeOutputType,
@@ -1090,6 +1322,7 @@
     removeEdge,
     removeNode,
     resourcesForDevice,
+    sensorWindowRequirement,
     serviceDefinition,
     sourceResource,
     topologicalOrder,

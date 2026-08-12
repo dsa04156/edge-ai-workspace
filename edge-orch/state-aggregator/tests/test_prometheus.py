@@ -1,6 +1,11 @@
 import asyncio
 
-from app.prometheus import PrometheusClient, SERVICE_USAGE_QUERIES, SERVICE_USAGE_PROFILE_QUERIES
+from app.prometheus import (
+    PROMETHEUS_QUERIES,
+    PrometheusClient,
+    SERVICE_USAGE_PROFILE_QUERIES,
+    SERVICE_USAGE_QUERIES,
+)
 
 
 class FakeResponse:
@@ -29,6 +34,10 @@ class FakeAsyncClient:
         if query == 'up{job="node-exporter"}':
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9100"}, "value": [0, "1"]},
+            ])
+        if query == PROMETHEUS_QUERIES["cpu_logical_cores"]:
+            return FakeResponse([
+                {"metric": {"instance": "192.168.0.3:9100"}, "value": [0, "6"]},
             ])
         if query == "DCGM_FI_DEV_GPU_UTIL":
             return FakeResponse([
@@ -71,6 +80,7 @@ def test_collect_node_metrics_merges_dcgm_gpu_metrics_by_node_ip(monkeypatch):
     item = items[0]
     assert item.hostname == "etri-dev0001-jetorn"
     assert item.up == 1.0
+    assert item.cpu_logical_cores == 6.0
     assert item.gpu_utilization == 0.47
     assert item.gpu_memory_used_mib == 2048.0
     assert item.gpu_memory_total_mib == 8192.0
@@ -88,6 +98,10 @@ def test_collect_node_metrics_merges_dcgm_pod_ip_with_node_exporter(monkeypatch)
             if query == 'up{job="node-exporter"}':
                 return FakeResponse([
                     {"metric": {"instance": "192.168.0.56:9100"}, "value": [0, "1"]},
+                ])
+            if query == PROMETHEUS_QUERIES["cpu_logical_cores"]:
+                return FakeResponse([
+                    {"metric": {"instance": "192.168.0.56:9100"}, "value": [0, "24"]},
                 ])
             if query == "DCGM_FI_DEV_GPU_UTIL":
                 return FakeResponse([
@@ -114,6 +128,7 @@ def test_collect_node_metrics_merges_dcgm_pod_ip_with_node_exporter(monkeypatch)
     assert item.instance == "192.168.0.56:9100"
     assert item.hostname == "etri-ser0001-cg0msb"
     assert item.up == 1.0
+    assert item.cpu_logical_cores == 24.0
     assert item.gpu_utilization == 0.33
 
 

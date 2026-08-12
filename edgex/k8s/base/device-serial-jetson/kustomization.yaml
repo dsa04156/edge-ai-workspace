@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: edgex-edge
+resources:
+  - workload.yaml
+configMapGenerator:
+  - name: device-serial-jetson-config
+    files:
+      - configuration.yaml=config/configuration.yaml
+      - etri-arduino-temperature.yaml=config/etri-arduino-temperature.yaml
+      - etri-arduino-light.yaml=config/etri-arduino-light.yaml
+      - etri-arduino-magnetic.yaml=config/etri-arduino-magnetic.yaml
+      - etri-arduino-acceleration-x.yaml=config/etri-arduino-acceleration-x.yaml
+      - etri-arduino-acceleration-y.yaml=config/etri-arduino-acceleration-y.yaml
+      - etri-arduino-acceleration-z.yaml=config/etri-arduino-acceleration-z.yaml
+      - arduino-virtual-devices.yaml=config/arduino-virtual-devices.yaml
+generatorOptions:
+  labels:
+    app.kubernetes.io/name: device-serial-jetson
+    app.kubernetes.io/part-of: edgex-system

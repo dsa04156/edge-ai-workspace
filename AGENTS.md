@@ -10,51 +10,68 @@
 - `docs/프로젝트-배경.md`: 과제 배경, 현재 목표, PoC 방향
 - `docs/물리-디바이스-상태-정책.md`: EdgeX 물리 디바이스 상태와 telemetry 정책
 - `docs/대시보드-판단-정책.md`: 대시보드 상태 판단 기준
-- `docs/단계별-추진계획.md`: 동적 오프로딩, agent-assisted planning 후속 계획
+- `docs/단계별-추진계획.md`: 2026년도 2차년도 옥동 PoC 목표, 일정, 기관별 역할과 산출물
 
 ## 현재 우선순위
 
-1. 서비스 데모 1종을 먼저 완성한다.
-2. EdgeX Device Profile/Device 등록과 Protocol Adapter/Telemetry Agent 연동을 안정화한다.
-3. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
-4. 물리 디바이스 inventory, state, telemetry, command의 권위는 EdgeX로 단일화한다.
-5. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
-6. 동적 워크플로우, 오프로딩, agent-assisted planning은 후속 고도화로 둔다.
+1. 옥동 PLC·MES·센서 데이터 접근범위와 생산품질 판별, 유압펌프·모터 이상감지 서비스
+   2종의 입력·출력 계약을 확정한다.
+2. 현재 고정 센서 서비스 데모는 데이터 수집·배포·상태 가시화의 기술 기준선으로
+   유지하되, 옥동 AI 서비스 2종을 이미 구현한 것으로 대체 설명하지 않는다.
+3. EdgeX Device Profile/Device 등록과 Device Service 연동을 안정화한다.
+4. 디바이스-서비스 연결 구조를 대시보드에서 보이게 한다.
+5. 물리 디바이스 inventory, state, telemetry, command의 권위는 EdgeX로 단일화한다.
+6. MapperFramework와 KubeEdge Device/DeviceStatus는 물리 연동의 legacy 경로로 두고 병행 plane이나 fallback으로 사용하지 않는다.
+7. 워크플로우 실행, 엣지·서버 작업 분산, 장애 저장·재전송은 2차년도 구축 목표로
+   단계별 구현·검증하며, 현재 dry-run 화면이나 기존 legacy 코드를 완료 기능으로
+   설명하지 않는다. agent-assisted planning은 별도 후속 고도화로 둔다.
 
 ## Workflow Builder Prototype 경계
 
-`state-aggregator` dashboard 안에 workflow stage, device/source binding, validation, execution plan을 보여주는 화면이 있더라도 이를 현재 PoC의 동적 오케스트레이션 완성 기능으로 설명하지 않는다.
+`state-aggregator` dashboard 안에 workflow stage, device/source binding, validation,
+execution plan을 보여주는 화면이 있더라도 이를 현재 PoC의 동적 오케스트레이션 완성
+기능으로 설명하지 않는다.
 
 현재 허용되는 범위는 다음으로 제한한다.
 
 - EdgeX Core Metadata에 등록된 `Device` 목록과 Device Service 관리 상태 조회
 - EdgeX Core Data latest Event/Reading 기준 source freshness 확인
 - 물리 온디바이스, 데이터 source, resource profile 매핑 확인
-- 브라우저 상태 안에서만 동작하는 workflow stage 구성과 device/resource bind/release dry-run
+- 브라우저 상태 안에서만 동작하는 workflow stage 구성과 device/resource
+  bind/release dry-run
 - 실행 전 validation과 execution plan preview
-- Kubernetes apply/delete/restart, EdgeX metadata/state mutation, command publish, actuator command, runtime migration/offloading 실행 없음
+- Kubernetes apply/delete/restart, EdgeX metadata/state mutation, command publish,
+  actuator command, runtime migration/offloading 실행 없음
 
-이 기능을 현재 운영 기능으로 승격하려면 먼저 `docs/프로젝트-범위.md`, `docs/저장소-구조.md`, `docs/단계별-추진계획.md`에 범위, 검증 기준, 운영 책임을 명시한다.
+이 기능을 현재 운영 기능으로 승격하려면 먼저 `docs/프로젝트-범위.md`,
+`docs/저장소-구조.md`, `docs/단계별-추진계획.md`에 범위, 검증 기준, 운영 책임을 명시한다.
 
 ## 구현 규칙
 
-- 물리 디바이스 inventory와 schema는 중앙 EdgeX Core Metadata의 Device Profile과 Device를 권위로 사용한다.
-- 실제 프로토콜 연결과 표준화는 물리 노드의 Protocol Adapter가 담당하고, canonical EdgeX v3 Event를 `edge-telemetry-agent`에 전달한다.
-- `edge-telemetry-agent`는 Event를 SQLite outbox에 먼저 commit하고 HTTPS/mTLS로 중앙 `edgex-ingest-gateway`에 재전송한다. gateway는 Core Data REST의 영구 저장 응답 뒤에만 persisted ACK를 반환한다.
+- 물리 디바이스는 EdgeX Core Metadata의 Device Profile과 Device로 사전 등록한다.
+- EdgeX Device Service가 MQTT/Serial/Modbus/OPC-UA/RTSP endpoint의 연결, 표준화, 상태와 지원 command를 독점 관리한다.
+- 일반 `edge-device-discovery`는 지정된 모든 edge node에서 USB Serial의 `/dev/serial/by-id/*`를 수동적으로 관측한다. dev0003의 별도 I2C Agent만 allowlist bus/address와 read-only chip identity를 확인한다. 발견 후보는 승인 전 임시 정보이며 EdgeX inventory, Device Service 통신 성공 또는 센서 응답 근거가 아니다.
+- MQTT/Modbus/OPC-UA/RTSP/REST 네트워크 endpoint는 광역 probe하지 않고 대시보드에서 후보로 직접 선언한다. 후보에는 비밀번호, token, URL userinfo와 임의 image/command/hostPath를 저장하지 않는다.
+- 발견 후보의 `accepted`는 검토 상태일 뿐 자동 Device 등록이나 workload 배포가 아니다. exact node/protocol/path가 검증된 Git Adapter Catalog binding과 일치한 후보만 기존 EdgeX 등록 마법사로 넘길 수 있다.
+- 발견 후보, 상태 이력, 승인과 등록 Saga는 Adapter Controller의 PVC SQLite에 보관한다. 기존 `edgex-device-discovery-registry` ConfigMap은 최초 기동의 1회 migration 입력일 뿐 권위 저장소가 아니며 최종 Device/Profile/state/Event 권위는 계속 EdgeX다.
+- 발견 DaemonSet의 read-only `/dev`, `/sys` host mount는 고정된 수동 관측 agent에만 허용한다. 이 예외를 Device Service workload나 UI 입력형 hostPath로 확장하지 않는다.
+- KubeEdge는 edge node와 workload 관리에만 사용한다.
 - 중앙 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus, PostgreSQL과 ingest gateway는 server2에 한 세트만 배치한다.
-- 중앙 내부 MessageBus는 stock EdgeX Core의 중앙 런타임/후속 consumer용이다. 센서에서 서버로 보내는 전송 경로나 엣지 장애 버퍼가 아니다.
-- MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요한 노드에만 둔다. Modbus, OPC-UA, Serial, I2C 직접 adapter와 HTTPS northbound에는 MQTT를 요구하지 않는다.
-- 현재 root render의 edge workload는 `etri-dev0003-raspi5`의 direct-mode agent 1개뿐이다. `sensehat-001`과 host publisher는 교체 가능한 검증 fixture이며 아키텍처의 고정 계약이나 완료 기준이 아니다.
-- 현재 배포에는 MQTT-mode agent, `device-mqtt`, edge-local broker가 없다. MQTT-only 장비가 들어오면 별도 Protocol Adapter와 검증 gate를 추가한 뒤에만 배포한다.
-- RTSP frame은 agent/Core Data로 운반하지 않고 요청 시 Workflow Pod가 직접 구독한다. 상태·결과 metadata만 telemetry Event로 전달할 수 있다.
-- 현재 command 실행은 비활성이다. command, actuator mutation, runtime migration/offloading은 별도 승인과 검증 전까지 완료로 주장하지 않는다.
+- 중앙 내부 `edgex-messagebus`는 ClusterIP로 분리하며 고정 ClusterIP/PodIP/node IP를 데이터 경로에 사용하지 않는다.
+- MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요한 노드에만 둔다. Modbus, OPC-UA, Serial, I2C 직접 Device Service에는 MQTT를 요구하지 않는다.
+- `edgex-edge`에는 공식 EdgeX Device SDK 기반 `device-serial-jetson`이 배포되어 `etri-dev0001-jetorn`의 Arduino를 직접 수집한다. 이전 `edgex-edge-agent-*`, outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역 상태다.
+- 현재 검증된 첫 수직 슬라이스는 `arduino-001` / `etri-arduino-serial` / `device-serial-jetson`이며 Serial 정상 수집, 중앙 Core Data 저장, read-only command 조회와 dashboard freshness까지 같은 identity로 연결한다.
+- RTSP frame은 Core Data로 운반하지 않고 요청 시 Workflow Pod가 직접 구독한다. 상태·분석 결과 metadata만 EdgeX Event로 전달할 수 있다.
+- Device Profile의 read-only command GET은 현재값 조회에 사용한다. write command, actuator mutation, runtime migration/offloading은 별도 승인과 검증 전까지 비활성이다.
 - KubeEdge는 엣지 노드와 워크로드 관리에만 사용하며 KubeEdge Device/DeviceModel/DeviceStatus를 물리 디바이스 권위나 병행 plane으로 사용하지 않는다.
-- root `edgex/k8s/kustomization.yaml`이 현재 운영 배포 진입점이다.
-- `edgex/telemetry-plane/`, `edgex/k8s/base/`와 `edgex/k8s/overlays/testbed/`는 현재 HTTPS telemetry plane의 구현·배포 경로다.
-- 운영 namespace는 중앙 `edgex-system`과 물리 노드 agent용 `edgex-edge`로 분리한다.
+- EdgeX 운영 배포의 단일 진입점은 root `edgex/k8s/kustomization.yaml`이며 Argo CD Application `edgex-telemetry`가 동기화한다.
+- `edgex/telemetry-plane/`의 edge Agent 코드는 운영 경로가 아니다. 중앙 ingest gateway는 유지되지만 현재 Serial Device Service 데이터 경로에는 참여하지 않는다.
+- 운영 namespace는 중앙 `edgex-system`과 물리 노드 Device Service용 `edgex-edge`로 분리한다.
 - `mappers/mqttvirtual/`, mapper direct-to-Influx, `command`/`heartbeat` topic은 legacy test/integration 경로이며 fallback이 아니다.
-- 대시보드의 물리 디바이스 availability는 중앙 EdgeX `adminState`, `operatingState`, Core Data 최신 Event freshness로 판단한다.
-- Kubernetes node placement는 물리 디바이스 availability gate가 아닌 선택적 진단 정보다.
+- 대시보드 분류상 물리 디바이스 노드 availability는 Kubernetes/KubeEdge와 Prometheus
+  node snapshot으로 판단한다.
+- 센서 디바이스 availability는 중앙 EdgeX `adminState`, `operatingState`, Core Data
+  최신 Event freshness로 판단하며 Kubernetes node placement를 gate로 사용하지 않는다.
 
 
 ## Legacy / Archive Boundary

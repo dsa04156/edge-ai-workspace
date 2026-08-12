@@ -1,0 +1,41 @@
+Writable:
+  LogLevel: INFO
+  Reading:
+    ReadingUnits: true
+  Telemetry:
+    Metrics:
+      LocalDataCacheSamples: true
+      LocalDataCacheSeries: true
+      LocalDataCacheAllocatedBytes: true
+      LocalDataCacheEvictions: true
+
+Service:
+  Host: localhost
+  Port: 59911
+  StartupMsg: Raspberry Pi Sense HAT I2C Device Service started
+
+Clients:
+  core-metadata:
+    Host: edgex-core-metadata
+
+MessageBus:
+  Host: edgex-messagebus
+  Optional:
+    ClientId: device-sensehat-raspi
+
+Driver:
+  LocalDataCacheMaxAge: "10m"
+  LocalDataCacheMaxSamplesPerSeries: "10000"
+  LocalDataCacheMaxBytes: "67108864"
+
+MaxConcurrentCommands: 16
+
+Device:
+  AsyncBufferSize: 32
+  ProfilesDir: /res/profiles
+  DevicesDir: /res/devices
+  Discovery:
+    Enabled: false
+    Interval: 30s
+  AutoEvents:
+    SendChangedReadingsOnly: false

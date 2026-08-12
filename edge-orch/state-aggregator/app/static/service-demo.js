@@ -109,6 +109,32 @@ function renderServiceDemo(data, documentRef = document) {
 }
 
 
+function buildServiceDemoAlertView(data = {}) {
+  const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+  const latest = alerts[0] || null;
+  const count = Number(data.count);
+  const observedAt = latest?.observed_at ? Date.parse(latest.observed_at) : NaN;
+  const transition = latest?.transition === "opened" ? "이상 발생"
+    : latest?.transition === "cleared" ? "정상 복귀" : "관측 대기";
+  return {
+    count: Number.isFinite(count) ? `${count}건` : "관측 불가",
+    latest: latest
+      ? `${transition} · 점수 ${serviceDemoNumber(latest.score, 2)}${Number.isFinite(observedAt) ? ` · ${new Date(observedAt).toLocaleString("ko-KR")}` : ""}`
+      : data.mode === "live" ? "알림 없음" : "관측 불가",
+    error: serviceDemoText(data.observation_error, ""),
+  };
+}
+
+
+function renderServiceDemoAlerts(data, documentRef = document) {
+  const view = buildServiceDemoAlertView(data);
+  const count = documentRef.getElementById("serviceDemoAlertCount");
+  const latest = documentRef.getElementById("serviceDemoAlertLatest");
+  if (count) count.textContent = view.count;
+  if (latest) latest.textContent = view.error || view.latest;
+}
+
+
 async function refreshServiceDemo(fetchFn = fetch, documentRef = document) {
   try {
     const response = await fetchFn("/state/service-demo", {cache: "no-store"});
@@ -133,17 +159,38 @@ async function refreshServiceDemo(fetchFn = fetch, documentRef = document) {
 }
 
 
+async function refreshServiceDemoAlerts(fetchFn = fetch, documentRef = document) {
+  try {
+    const response = await fetchFn("/state/service-demo/alerts?limit=10", {cache: "no-store"});
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    renderServiceDemoAlerts(await response.json(), documentRef);
+  } catch (error) {
+    renderServiceDemoAlerts({
+      mode: "unavailable",
+      count: 0,
+      alerts: [],
+      observation_error: `alert fetch failed: ${error?.name || "Error"}`,
+    }, documentRef);
+  }
+}
+
+
 if (typeof module !== "undefined") {
-  module.exports = {buildServiceDemoView, refreshServiceDemo, renderServiceDemo};
+  module.exports = {
+    buildServiceDemoAlertView,
+    buildServiceDemoView,
+    refreshServiceDemo,
+    refreshServiceDemoAlerts,
+    renderServiceDemo,
+    renderServiceDemoAlerts,
+  };
 }
 
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
-    const refreshWhenVisible = () => {
-      if (document.body.dataset.dashboardPage === "overview") refreshServiceDemo();
-    };
-    globalThis.onServiceDemoVisible = refreshWhenVisible;
-    refreshWhenVisible();
-    window.setInterval(refreshWhenVisible, 5_000);
+    refreshServiceDemo();
+    refreshServiceDemoAlerts();
+    window.setInterval(refreshServiceDemo, 5_000);
+    window.setInterval(refreshServiceDemoAlerts, 5_000);
   });
 }

@@ -52,7 +52,6 @@ const managementState = {
   operation: null,
   patchBaseline: null,
 };
-let managementInitialized = false;
 
 
 const MANAGEMENT_LABELS = {
@@ -4733,10 +4732,8 @@ async function loadDeviceManagement(documentRef = document, fetchFn = fetch) {
 
 
 function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
-  if (managementInitialized) return;
   const adapterSelect = byId("managementAdapter", documentRef);
   if (!adapterSelect) return;
-  managementInitialized = true;
   documentRef.querySelectorAll?.("[data-management-return-overview]").forEach((button) => {
     button.addEventListener("click", () => {
       setManagementView("overview", documentRef);
@@ -5781,8 +5778,7 @@ function initializeDeviceManagement(documentRef = document, fetchFn = fetch) {
 
 
 if (typeof document !== "undefined") {
-  globalThis.onDeviceManagementVisible = () => initializeDeviceManagement();
-  if (document.body?.dataset.dashboardPage === "management") initializeDeviceManagement();
+  initializeDeviceManagement();
 }
 
 

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>대시보드 어댑터 런타임 관리 구현 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="../../ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="../specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="../specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>대시보드 어댑터 런타임 관리 구현 계획</h1>
+          <p class="subtitle">&gt; 실행 기준: 각 작업은 실패 테스트를 먼저 확인하고 최소 구현으로 통과시킨 뒤 관련 회귀 &gt; 테스트를 실행한다. 기존 Edg…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="대시보드-어댑터-런타임-관리-구현-계획">대시보드 어댑터 런타임 관리 구현 계획</h1>
+<blockquote><p><strong>실행 기준:</strong> 각 작업은 실패 테스트를 먼저 확인하고 최소 구현으로 통과시킨 뒤 관련 회귀 테스트를 실행한다. 기존 EdgeMesh와 KubeEdge Device CRD는 어떤 단계에서도 변경하지 않는다.</p></blockquote>
+<p><strong>목표:</strong> 대시보드에서 기존 EdgeX Device Service runtime을 발견·재사용하거나 승인된 template로 KubeEdge node에 배포하고, EdgeX Profile/Device 등록과 첫 Event 검증까지 하나의 operation으로 관리한다.</p>
+<p><strong>구조:</strong> <code>state-aggregator</code>는 browser-facing BFF와 EdgeX saga를 담당한다. 별도 <code>adapter-controller</code>가 allowlist template와 <code>AdapterRuntime</code> CR을 reconcile하고 Kubernetes write 권한을 독점한다. EdgeX는 물리 Device 권위이며 CR은 workload desired state만 표현한다.</p>
+<p><strong>기술:</strong> Python 3.12, FastAPI, Pydantic v2, Kubernetes Python client, pytest, Node test runner, Kubernetes CRD/RBAC/Kustomize, Go Device SDK, Playwright.</p>
+<p>---</p>
+<h2 id="작업-1-catalog에-runtime-capability와-검증-상태-추가">작업 1: Catalog에 runtime capability와 검증 상태 추가</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>edge-orch/state-aggregator/app/device_management_models.py</code></li><li>수정: <code>edge-orch/state-aggregator/app/adapter_catalog.py</code></li><li>수정: <code>edge-orch/state-aggregator/app/config/adapter_catalog.json</code></li><li>테스트: <code>edge-orch/state-aggregator/tests/test_adapter_catalog.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>Serial/I2C가 <code>external</code>, <code>hardware-verified</code>와 고정 hardware binding을 노출하는 테스트를</li></ol>
+<p>추가한다.</p>
+<ol><li>Modbus/OPC-UA/MQTT/RTSP가 <code>unverified</code>, <code>deploymentEnabled=false</code>인지 검증한다.</li><li>raw image, hostPath, service port를 onboarding 요청 모델이 받을 수 없음을 검증한다.</li><li>테스트 실패를 확인한다.</li><li><code>RuntimeCapability</code>, <code>HardwareBinding</code>, <code>ReusePolicy</code> 모델과 catalog validation을 구현한다.</li><li>catalog가 중복 binding/template identity를 거부하게 한다.</li><li>Adapter Catalog 테스트 전체를 실행한다.</li></ol>
+<h2 id="작업-2-device-service-runtime별-식별자-지원">작업 2: Device Service runtime별 식별자 지원</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>edgex/device-serial/cmd/device-serial/main.go</code></li><li>수정: <code>edgex/device-sensehat/cmd/device-sensehat/main.go</code></li><li>추가: <code>edgex/device-serial/cmd/device-serial/main_test.go</code></li><li>추가: <code>edgex/device-sensehat/cmd/device-sensehat/main_test.go</code></li><li>추가: <code>edgex/device-serial/Dockerfile</code></li><li>추가: <code>edgex/device-sensehat/Dockerfile</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>기본 service name 유지, 유효한 <code>EDGEX_SERVICE_NAME</code> override, 빈 값 fallback과 잘못된</li></ol>
+<p>식별자 거부 테스트를 먼저 작성한다.</p>
+<ol><li><code>go test ./...</code> 실패를 확인한다.</li><li>공통 규칙으로 service identity를 읽어 <code>startup.Bootstrap</code>에 전달한다.</li><li>MessageBus client ID와 Service host/port는 Kubernetes env override를 쓰도록 runtime</li></ol>
+<p>template 계약에 고정한다.</p>
+<ol><li>reproducible multi-stage Dockerfile을 추가하고 non-runtime build asset이 포함되지 않게 한다.</li><li>두 Device Service의 Go 테스트를 실행한다.</li></ol>
+<h2 id="작업-3-adapter-controller-domain과-allowlist-planner">작업 3: Adapter Controller domain과 allowlist planner</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edgex/adapter-controller/app/__init__.py</code></li><li>추가: <code>edgex/adapter-controller/app/models.py</code></li><li>추가: <code>edgex/adapter-controller/app/catalog.py</code></li><li>추가: <code>edgex/adapter-controller/app/planner.py</code></li><li>추가: <code>edgex/adapter-controller/config/runtime_templates.json</code></li><li>추가: <code>edgex/adapter-controller/tests/test_catalog.py</code></li><li>추가: <code>edgex/adapter-controller/tests/test_planner.py</code></li><li>추가: <code>edgex/adapter-controller/requirements.txt</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>template ID, pinned digest, node/binding allowlist와 external runtime schema 테스트를 추가한다.</li><li><code>REUSE</code>, <code>DEPLOY</code>, <code>BLOCKED</code> plan과</li></ol>
+<p><code>template_unverified</code>/<code>hardware_binding_in_use</code>/<code>runtime_not_ready</code> 이유 테스트를 추가한다.</p>
+<ol><li>임의 image, command, raw hostPath, namespace, fixed IP 필드가 request validation에서</li></ol>
+<p>거부되는 테스트를 추가한다.</p>
+<ol><li>실패를 확인한 뒤 immutable Pydantic 모델과 planner를 구현한다.</li><li>Serial/I2C external runtime과 managed template identity가 일치하는지 repository-level</li></ol>
+<p>cross-check를 추가한다.</p>
+<h2 id="작업-4-kubernetes-renderer와-reconciliation">작업 4: Kubernetes renderer와 reconciliation</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edgex/adapter-controller/app/kube.py</code></li><li>추가: <code>edgex/adapter-controller/app/renderer.py</code></li><li>추가: <code>edgex/adapter-controller/app/reconciler.py</code></li><li>추가: <code>edgex/adapter-controller/tests/fakes.py</code></li><li>추가: <code>edgex/adapter-controller/tests/test_renderer.py</code></li><li>추가: <code>edgex/adapter-controller/tests/test_reconciler.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>승인 template가 CR, ConfigMap, Deployment, Service와 NetworkPolicy로만 렌더링되는 golden</li></ol>
+<p>test를 작성한다.</p>
+<ol><li>owner reference, managed-by label, target node, immutable image, generated service DNS,</li></ol>
+<p>no fixed ClusterIP/PodIP와 template-pinned device mount를 검증한다.</p>
+<ol><li>allowlist 밖 binding과 namespace, 요청에서 주입한 runtime field가 거부되는 테스트를 추가한다.</li><li>CR status의 <code>DEPLOYING -&gt; WORKLOAD_READY -&gt; SERVICE_READY</code>, <code>FAILED</code>,</li></ol>
+<p><code>RESTARTING</code>, <code>RETIRING -&gt; RETIRED</code> 전이를 테스트한다.</p>
+<ol><li>fake Kubernetes gateway로 create-or-patch idempotency와 exact-owned cleanup을 테스트한다.</li><li>renderer, gateway와 reconciler를 구현한다.</li></ol>
+<h2 id="작업-5-controller-내부-api와-인증">작업 5: Controller 내부 API와 인증</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edgex/adapter-controller/app/config.py</code></li><li>추가: <code>edgex/adapter-controller/app/service.py</code></li><li>추가: <code>edgex/adapter-controller/app/main.py</code></li><li>추가: <code>edgex/adapter-controller/tests/test_api.py</code></li><li>추가: <code>edgex/adapter-controller/Dockerfile</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>read-only list/plan, guarded idempotent PUT, restart와 retire API 테스트를 작성한다.</li><li>mutation flag off, missing/invalid HMAC, payload replay/conflict와 external runtime mutation</li></ol>
+<p>차단 테스트를 추가한다.</p>
+<ol><li>consumers가 0이 아니거나 exact confirm이 없을 때 retire가 실패하는 테스트를 추가한다.</li><li>safe error 응답에서 Secret, payload hash와 Kubernetes object가 노출되지 않는지 검증한다.</li><li>FastAPI service와 constant-time internal HMAC 인증을 구현한다.</li><li>background reconciliation은 startup에 시작하고 shutdown에 안전하게 종료한다.</li></ol>
+<h2 id="작업-6-crd-controller-배포-최소-rbac">작업 6: CRD, Controller 배포, 최소 RBAC</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edgex/k8s/crds/edgeai.etri.re.kr_adapterruntimes.yaml</code></li><li>추가: <code>edgex/k8s/crds/kustomization.yaml</code></li><li>추가: <code>edgex/k8s/base/adapter-controller/deployment.yaml</code></li><li>추가: <code>edgex/k8s/base/adapter-controller/rbac.yaml</code></li><li>추가: <code>edgex/k8s/base/adapter-controller/networkpolicy.yaml</code></li><li>추가: <code>edgex/k8s/base/adapter-controller/kustomization.yaml</code></li><li>수정: <code>edgex/k8s/kustomization.yaml</code></li><li>테스트: <code>edgex/k8s/tests/test_adapter_controller_manifest.py</code></li><li>테스트: <code>edgex/k8s/tests/test_manifests.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>CRD structural schema, status subresource와 namespace scope 테스트를 추가한다.</li><li>Controller 기본 mutation flag false, Secret-backed internal key, probes/resources/digest image를</li></ol>
+<p>검증한다.</p>
+<ol><li>state-aggregator에는 write verb가 없고 Controller Role만 <code>edgex-edge</code>의 허용 리소스를</li></ol>
+<p>조작하는지 검증한다.</p>
+<ol><li>ClusterRole은 node get/list만 허용하고 EdgeMesh/KubeEdge Device resource가 없는지 검증한다.</li><li>NetworkPolicy의 state-aggregator ingress와 EdgeX/Kubernetes API egress를 검증한다.</li><li>manifest를 구현하고 <code>kubectl kustomize edgex/k8s</code>를 렌더링한다.</li></ol>
+<h2 id="작업-7-state-aggregator-controller-client와-runtime-inventory">작업 7: state-aggregator Controller client와 runtime inventory</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edge-orch/state-aggregator/app/adapter_runtime_models.py</code></li><li>추가: <code>edge-orch/state-aggregator/app/adapter_controller_client.py</code></li><li>추가: <code>edge-orch/state-aggregator/app/adapter_runtime_service.py</code></li><li>수정: <code>edge-orch/state-aggregator/app/config.py</code></li><li>수정: <code>edge-orch/state-aggregator/app/main.py</code></li><li>추가: <code>edge-orch/state-aggregator/tests/test_adapter_controller_client.py</code></li><li>추가: <code>edge-orch/state-aggregator/tests/test_adapter_runtime_service.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>Controller envelope parsing, timeout/invalid response와 secret-safe error mapping을 테스트한다.</li><li>catalog, Controller runtime과 EdgeX Device Service/Device를 합쳐 consumer 수와 management</li></ol>
+<p>owner를 만드는 테스트를 추가한다.</p>
+<ol><li>external Serial/I2C runtime은 조회·reuse 대상이지만 restart/retire 불가인지 검증한다.</li><li>runtime management/mutation flag 기본 false와 내부 key 필수 조건을 테스트한다.</li><li>HTTP client, inventory service와 application wiring을 구현한다.</li></ol>
+<h2 id="작업-8-통합-connection-planner와-saga">작업 8: 통합 Connection planner와 saga</h2>
+<p><strong>파일</strong></p>
+<ul><li>추가: <code>edge-orch/state-aggregator/app/connection_management_models.py</code></li><li>추가: <code>edge-orch/state-aggregator/app/connection_management.py</code></li><li>수정: <code>edge-orch/state-aggregator/app/device_management.py</code></li><li>추가: <code>edge-orch/state-aggregator/tests/test_connection_management.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li><code>auto/reuse/deploy</code> validation과 immutable execution plan을 테스트한다.</li><li>external runtime reuse가 Device onboarding으로 이어지는 순서를 테스트한다.</li><li>deploy plan이 Controller <code>SERVICE_READY</code> readback 후에만 Profile/Device mutation을 시작하는지</li></ol>
+<p>테스트한다.</p>
+<ol><li>상태 전이 `PLANNED -&gt; RUNTIME_* -&gt; PROFILE_APPLIED -&gt; DEVICE_APPLIED -&gt;</li></ol>
+<p>WAITING_EVENT -&gt; ACTIVE`를 검증한다.</p>
+<ol><li>같은 idempotency key replay, 다른 payload conflict와 CR/EdgeX tag 기반 복구를 테스트한다.</li><li>runtime 생성 뒤 Metadata 실패, Profile 생성 뒤 Device 실패와 Event timeout 보상 규칙을</li></ol>
+<p>테스트한다.</p>
+<ol><li>기존 <code>DeviceManagementService</code>의 Profile/Device apply를 재사용 가능한 경계로 분리하고</li></ol>
+<p>Connection saga를 구현한다.</p>
+<h2 id="작업-9-외부-management-api">작업 9: 외부 Management API</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>edge-orch/state-aggregator/app/device_management_api.py</code></li><li>수정: <code>edge-orch/state-aggregator/tests/test_device_management_api.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>runtime list/plan, connection validate/apply/poll API 계약을 테스트한다.</li><li>restart/retire의 관리자 token, idempotency key와 exact-name confirm을 검증한다.</li><li>runtime management와 device management flag 조합별 404/401/409/422/502 mapping을 테스트한다.</li><li>기존 <code>/management/devices*</code> API 회귀를 확인한다.</li><li>API route와 safe error mapping을 구현한다.</li></ol>
+<h2 id="작업-10-대시보드-runtime-관리와-통합-wizard">작업 10: 대시보드 Runtime 관리와 통합 wizard</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>edge-orch/state-aggregator/app/static/index.html</code></li><li>수정: <code>edge-orch/state-aggregator/app/static/device-management.js</code></li><li>수정: <code>edge-orch/state-aggregator/app/static/device-management.css</code></li><li>수정: <code>edge-orch/state-aggregator/tests/test_device_management_dashboard.js</code></li><li>테스트: <code>tests/test_dashboard_screen_click_regressions.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>runtime card, owner/verification badge, consumer 수와 reuse/deploy/blocked plan 렌더링 테스트를</li></ol>
+<p>추가한다.</p>
+<ol><li>external runtime의 restart/retire와 unverified protocol deploy 버튼이 disabled인지 검증한다.</li><li>통합 wizard request, admin/idempotency header, connection polling과 단계 표시를 테스트한다.</li><li>token/secret이 localStorage, sessionStorage, URL, DOM data attribute에 남지 않는지 검증한다.</li><li>DOM 생성은 <code>textContent</code>를 사용하고 browser가 Kubernetes API를 직접 호출하지 않게 한다.</li><li>responsive HTML/CSS/JS를 구현하고 Node 테스트를 실행한다.</li></ol>
+<h2 id="작업-11-ci-이미지와-argo-cd-배포-연결">작업 11: CI 이미지와 Argo CD 배포 연결</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>.github/workflows/docker-build-push.yml</code></li><li>수정: <code>edge-orch/state-aggregator/k8s/deployment.yaml</code></li><li>수정: <code>edge-orch/state-aggregator/k8s/kustomization.yaml</code></li><li>추가 또는 수정: <code>edge-orch/state-aggregator/k8s/networkpolicy.yaml</code></li><li>테스트: <code>tests/test_state_aggregator_device_management_deployment.py</code></li><li>테스트: <code>edgex/k8s/tests/test_adapter_controller_manifest.py</code></li></ul>
+<p><strong>TDD</strong></p>
+<ol><li>Controller와 변경된 Device Service image build가 path filter에 포함되는지 테스트한다.</li><li>digest-pinned image만 runtime template 승인값으로 들어가는지 검증한다.</li><li>state-aggregator가 Controller Service DNS와 Secret-backed internal key를 사용하고 Kubernetes</li></ol>
+<p>write RBAC를 얻지 않는지 검증한다.</p>
+<ol><li>Argo CD <code>edgex-telemetry</code>와 <code>edge-orch-state-aggregator</code>가 각각 자기 배포만 갱신하는 workflow를</li></ol>
+<p>구현한다.</p>
+<ol><li>mutation flag 기본 false를 유지한다.</li></ol>
+<h2 id="작업-12-범위-운영-문서와-생성-html">작업 12: 범위·운영 문서와 생성 HTML</h2>
+<p><strong>파일</strong></p>
+<ul><li>수정: <code>docs/프로젝트-범위.md</code></li><li>수정: <code>docs/저장소-구조.md</code></li><li>수정: <code>docs/단계별-추진계획.md</code></li><li>수정: <code>docs/대시보드-정보-구조.md</code></li><li>수정: <code>docs/디바이스-서비스-연결.md</code></li><li>수정: <code>docs/ops/현재-데모-운영-절차.md</code></li><li>추가: <code>docs/ops/대시보드-어댑터-런타임-운영.md</code></li><li>수정: <code>docs/문서-안내.md</code></li><li>생성: <code>docs/generated/*</code>, <code>docs-site/*</code></li></ul>
+<p><strong>검증</strong></p>
+<ol><li>현재 기능과 <code>unverified</code> protocol을 명확히 구분한다.</li><li>dashboard 운영 흐름, flag/Secret 활성화, rollback, retry와 retire 절차를 기록한다.</li><li>EdgeX authority, KubeEdge workload-only, no EdgeMesh/no KubeEdge Device CRD를 명시한다.</li><li>문서 링크와 코드/manifest 사실을 consistency test로 확인한다.</li><li><code>scripts/build-docs-html.py</code>로 생성 HTML을 갱신하고 문서 테스트를 실행한다.</li></ol>
+<h2 id="작업-13-전체-검증-live-canary-main-배포">작업 13: 전체 검증, live canary, main 배포</h2>
+<p><strong>자동 검증</strong></p>
+<ol><li>Controller Python, state-aggregator Python/Node, EdgeX Go와 repository Python 테스트를 실행한다.</li><li><code>git diff --check</code>, Kustomize render와 manifest security test를 실행한다.</li><li>Kubernetes server-side dry-run으로 CRD/Controller 전체를 검증한다.</li><li>Playwright로 desktop/mobile runtime 목록, wizard validation과 disabled action을 캡처·검증한다.</li></ol>
+<p><strong>live 검증</strong></p>
+<ol><li>현재 Serial/I2C Deployment, EdgeX Device Service, 12개 Device와 latest Event 기준값을 기록한다.</li><li>runtime inventory가 두 external runtime과 consumer mapping을 정확히 반환하는지 확인한다.</li><li>동일 endpoint reuse plan이 runtime은 발견하되 이미 사용 중인 route를 정확히 차단하는지 확인한다.</li><li>hidden controller canary를 exact-name/TTL로 생성해 readiness, restart와 retire cleanup을 확인한다.</li><li>canary 외 Deployment/Service/Secret/NetworkPolicy와 EdgeX Device/Profile이 변하지 않았는지 확인한다.</li><li>EdgeMesh generation/observed generation과 Ready pod가 전후 동일한지 확인한다.</li></ol>
+<p><strong>배포</strong></p>
+<ol><li>변경을 의미 단위로 main에 직접 commit한다.</li><li>origin/main에 push한다.</li><li>GitHub Actions가 image build와 digest update를 완료했는지 확인한다.</li><li>Argo CD <code>edgex-telemetry</code>와 <code>edge-orch-state-aggregator</code>가 목표 revision에서</li></ol>
+<p><code>Synced/Healthy</code>인지 확인한다.</p>
+<ol><li>live dashboard API와 첫 Event 회귀를 다시 확인한다.</li></ol>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#작업-1-catalog에-runtime-capability와-검증-상태-추가">작업 1: Catalog에 runtime capability와 검증 상태 추가</a></li>
+<li class="toc-h2"><a href="#작업-2-device-service-runtime별-식별자-지원">작업 2: Device Service runtime별 식별자 지원</a></li>
+<li class="toc-h2"><a href="#작업-3-adapter-controller-domain과-allowlist-planner">작업 3: Adapter Controller domain과 allowlist planner</a></li>
+<li class="toc-h2"><a href="#작업-4-kubernetes-renderer와-reconciliation">작업 4: Kubernetes renderer와 reconciliation</a></li>
+<li class="toc-h2"><a href="#작업-5-controller-내부-api와-인증">작업 5: Controller 내부 API와 인증</a></li>
+<li class="toc-h2"><a href="#작업-6-crd-controller-배포-최소-rbac">작업 6: CRD, Controller 배포, 최소 RBAC</a></li>
+<li class="toc-h2"><a href="#작업-7-state-aggregator-controller-client와-runtime-inventory">작업 7: state-aggregator Controller client와 runtime inventory</a></li>
+<li class="toc-h2"><a href="#작업-8-통합-connection-planner와-saga">작업 8: 통합 Connection planner와 saga</a></li>
+<li class="toc-h2"><a href="#작업-9-외부-management-api">작업 9: 외부 Management API</a></li>
+<li class="toc-h2"><a href="#작업-10-대시보드-runtime-관리와-통합-wizard">작업 10: 대시보드 Runtime 관리와 통합 wizard</a></li>
+<li class="toc-h2"><a href="#작업-11-ci-이미지와-argo-cd-배포-연결">작업 11: CI 이미지와 Argo CD 배포 연결</a></li>
+<li class="toc-h2"><a href="#작업-12-범위-운영-문서와-생성-html">작업 12: 범위·운영 문서와 생성 HTML</a></li>
+<li class="toc-h2"><a href="#작업-13-전체-검증-live-canary-main-배포">작업 13: 전체 검증, live canary, main 배포</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

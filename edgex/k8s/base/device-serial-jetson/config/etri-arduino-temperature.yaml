@@ -1,0 +1,24 @@
+apiVersion: "v2"
+name: etri-arduino-temperature
+manufacturer: Arduino
+model: Uno virtual temperature source
+labels:
+  - arduino
+  - serial
+  - jetson
+  - virtual-device
+description: Read-only virtual temperature device sourced from the Jetson Arduino serial connection
+
+deviceResources:
+  - name: temperature_raw
+    description: Raw temperature sensor value
+    properties:
+      valueType: Int32
+      readWrite: R
+      units: raw
+
+deviceCommands:
+  - name: temperature
+    readWrite: R
+    resourceOperations:
+      - deviceResource: temperature_raw

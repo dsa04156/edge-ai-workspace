@@ -66,9 +66,9 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
     assert "Resource rail" in design
     assert "Resource Augmentation" not in html
-    assert "dry-run 계획 중심" in screen_design
-    assert "Validation과 Execution Plan은 dry-run preview" in screen_design
-    assert "read-only explanation" in screen_design
+    assert "가상 디바이스 표시 경계" in screen_design
+    assert "동적 Workflow" in screen_design
+    assert "읽기 전용" in screen_design
     assert "dark left resource rail" in screen_design
 
 
@@ -80,7 +80,7 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "resource-pool", "management", "designer"]' in nav_js
+    assert '["overview", "inventory", "management", "designer"]' in nav_js
     assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 
@@ -121,30 +121,9 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">운영 현황<" in html
     assert ">디바이스<" in html
     assert ">장비 관리<" in html
-    assert ">자원 풀<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
-
-
-def test_dashboard_resource_pool_is_read_only_and_responsive() -> None:
-    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    css = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.css").read_text()
-    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.js").read_text()
-
-    assert 'data-page="resource-pool"' in html
-    assert 'id="resourcePoolSearch"' in html
-    assert 'id="resourcePoolVerified"' in html
-    assert 'class="resource-pool-chain"' in html
-    assert "읽기 전용" in html
-    assert "apply · command · offloading 없음" in html
-    assert 'fetchFn("/state/resource-pool"' in js
-    assert 'fetchFn("/state/resource-pool/plan"' not in js
-    assert "Kubernetes apply" not in js
-    assert "@media (max-width: 1050px)" in css
-    assert "@media (max-width: 700px)" in css
-    assert ".resource-pool-chain { overflow-x: auto;" in css
-    assert ".resource-pool-row { grid-template-columns: 1fr;" in css
 
 
 def test_dashboard_screen_copy_omits_removed_augmentation_preview() -> None:
@@ -192,7 +171,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
-    assert "/static/dashboard.js?v=infrastructure-observability-20260730" in html
+    assert "/static/dashboard.js?v=cpu-aware-pressure-v3-20260804" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

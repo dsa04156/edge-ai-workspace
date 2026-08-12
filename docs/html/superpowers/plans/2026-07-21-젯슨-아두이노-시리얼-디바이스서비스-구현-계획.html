@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>젯슨 Arduino Serial Device Service 구현 계획</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.md">편집</a>
+      </div>
+      <span>superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="../../ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="../specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="../specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="../specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="../specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="../specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="../specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>젯슨 Arduino Serial Device Service 구현 계획</h1>
+          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="젯슨-arduino-serial-device-service-구현-계획">젯슨 Arduino Serial Device Service 구현 계획</h1>
+<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> Jetson의 실제 Arduino Uno JSON line을 공식 EdgeX Go Device SDK로 수집해 Core Metadata, Core Data/PostgreSQL, Core Command GET과 대시보드까지 연결한다.</p>
+<p><strong>Architecture:</strong> <code>device-serial-jetson</code>은 Serial byte stream을 bounded line framer와 strict parser로 해석하고 SDK <code>AsyncValuesChannel</code>에 typed Reading을 전달한다. Device Service는 <code>edgex-edge</code>의 단일 privileged 예외 Pod로 Jetson의 stable Arduino char device만 mount하며, 중앙 Keeper/Metadata/MessageBus에는 EdgeMesh가 제공하는 Kubernetes FQDN으로만 연결한다.</p>
+<p><strong>Tech Stack:</strong> Go 1.25.x, EdgeX <code>device-sdk-go/v4 v4.0.2</code>, <code>go.bug.st/serial v1.8.0</code>, ko v0.18.0, Kubernetes/Kustomize, pytest, Argo CD</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul><li>Device Service/Profile/Device 이름은 각각 <code>device-serial-jetson</code>, <code>etri-arduino-serial</code>, <code>arduino-001</code>이다.</li><li>Serial endpoint는 <code>/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00</code>, container path는 <code>/dev/arduino-001</code>, baud는 <code>115200</code>이다.</li><li>Event source는 <code>temperature</code>, <code>light</code>, <code>magnetic</code>, <code>acceleration</code>; Reading은 <code>temperature_raw</code>, <code>light_raw</code>, <code>magnetic_raw</code>, <code>acceleration_x_raw</code>, <code>acceleration_y_raw</code>, <code>acceleration_z_raw</code>의 <code>Int32</code>다.</li><li>Device Service만 <code>privileged: true</code> 예외를 가지며 exact node/device, <code>Recreate</code>, token 차단, read-only root filesystem, non-hostNetwork와 제한 NetworkPolicy를 동시에 적용한다.</li><li>중앙 연결은 <code>*.edgex-system.svc.cluster.local</code> FQDN만 사용하고 고정 ClusterIP, PodIP, node IP를 구성에 넣지 않는다.</li><li>기존 Agent, local MQTT broker, SQLite/PVC, KubeEdge Device/Mapper, EdgeMesh 설정은 추가·수정하지 않는다.</li><li>write/actuator command, offline replay, local workflow API, 다른 protocol은 범위 밖이다.</li><li>구현 기준 문서는 <code>docs/superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.md</code>다.</li></ul>
+<p>---</p>
+<h3 id="task-1-strict-payload-parser와-bounded-line-framer">Task 1: Strict payload parser와 bounded line framer</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/go.mod</code></li><li>Create: <code>edgex/device-serial/internal/driver/parser.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/parser_test.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/framer.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/framer_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Arduino UTF-8 JSON CRLF/LF byte stream과 expected device name <code>arduino-001</code></li><li>Produces: <code>ParseLine(line []byte, expectedDevice string) (Sample, error)</code>, <code>NewLineFramer(maxBytes int) *LineFramer</code>, <code>(*LineFramer).Push(chunk []byte) [][]byte</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Go module과 실패하는 parser tests를 작성한다</strong></li></ul>
+<pre data-lang="go"><code>module github.com/dsa04156/edge-ai-workspace/edgex/device-serial
+
+go 1.25.0
+
+require (
+    github.com/edgexfoundry/device-sdk-go/v4 v4.0.2
+    github.com/edgexfoundry/go-mod-core-contracts/v4 v4.0.3
+    go.bug.st/serial v1.8.0
+)</code></pre>
+<pre data-lang="go"><code>func TestParseLineMapsMeasuredPayloads(t *testing.T) {
+    tests := []struct {
+        line, source string
+        values       []Reading
+    }{
+        {`{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;temperature&quot;,&quot;raw&quot;:297}`, &quot;temperature&quot;, []Reading{{&quot;temperature_raw&quot;, 297}}},
+        {`{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;light&quot;,&quot;value&quot;:304}`, &quot;light&quot;, []Reading{{&quot;light_raw&quot;, 304}}},
+        {`{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;magnetic&quot;,&quot;value&quot;:0}`, &quot;magnetic&quot;, []Reading{{&quot;magnetic_raw&quot;, 0}}},
+        {`{&quot;device_id&quot;:&quot;arduino-001&quot;,&quot;sensor&quot;:&quot;acceleration&quot;,&quot;x&quot;:298,&quot;y&quot;:266,&quot;z&quot;:278}`, &quot;acceleration&quot;, []Reading{{&quot;acceleration_x_raw&quot;, 298}, {&quot;acceleration_y_raw&quot;, 266}, {&quot;acceleration_z_raw&quot;, 278}}},
+    }
+    for _, tt := range tests {
+        got, err := ParseLine([]byte(tt.line), &quot;arduino-001&quot;)
+        require.NoError(t, err)
+        assert.Equal(t, tt.source, got.SourceName)
+        assert.Equal(t, tt.values, got.Readings)
+    }
+}</code></pre>
+<ul><li>[ ] <strong>Step 2: parser test가 symbol 부재로 RED인지 확인한다</strong></li></ul>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestParseLine -v</code></p>
+<p>Expected: FAIL because <code>ParseLine</code>, <code>Sample</code>, <code>Reading</code> are undefined.</p>
+<ul><li>[ ] <strong>Step 3: strict parser 최소 구현을 작성한다</strong></li></ul>
+<pre data-lang="go"><code>type Reading struct {
+    ResourceName string
+    Value        int32
+}
+
+type Sample struct {
+    DeviceName string
+    SourceName string
+    Readings   []Reading
+}
+
+func ParseLine(line []byte, expectedDevice string) (Sample, error) {
+    decoder := json.NewDecoder(bytes.NewReader(line))
+    decoder.DisallowUnknownFields()
+    decoder.UseNumber()
+    var wire wireSample
+    if err := decoder.Decode(&amp;wire); err != nil { return Sample{}, fmt.Errorf(&quot;invalid serial JSON: %w&quot;, err) }
+    if err := ensureEOF(decoder); err != nil { return Sample{}, err }
+    if wire.DeviceID != expectedDevice { return Sample{}, fmt.Errorf(&quot;unexpected device_id %q&quot;, wire.DeviceID) }
+    return wire.toSample()
+}</code></pre>
+<p><code>wireSample.toSample()</code>은 sensor별 허용 field 집합을 정확히 검사하고 <code>json.Number.Int64()</code>와 Int32 범위 검사를 통과한 값만 반환한다.</p>
+<ul><li>[ ] <strong>Step 4: invalid payload tests를 추가하고 RED를 확인한다</strong></li></ul>
+<p>테이블에 partial JSON, suffix JSON, unknown field, 잘못된 device/sensor, float/string/bool, 누락 field, sensor field 혼입, Int32 overflow를 넣고 각 입력이 error인지 검증한다.</p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run &#x27;TestParseLineRejects&#x27; -v</code></p>
+<p>Expected: FAIL until all strict validation branches exist.</p>
+<ul><li>[ ] <strong>Step 5: validation을 완성하고 parser tests를 GREEN으로 만든다</strong></li></ul>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestParseLine -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 6: 실패하는 framer tests를 작성한다</strong></li></ul>
+<pre data-lang="go"><code>func TestLineFramerReassemblesCRLFAcrossChunks(t *testing.T) {
+    framer := NewLineFramer(32)
+    assert.Empty(t, framer.Push([]byte(&quot;first\r&quot;)))
+    assert.Equal(t, [][]byte{[]byte(&quot;first&quot;), []byte(&quot;second&quot;)}, framer.Push([]byte(&quot;\nsecond\n&quot;)))
+}
+
+func TestLineFramerDropsWholeOversizeLineAndRecovers(t *testing.T) {
+    framer := NewLineFramer(5)
+    assert.Empty(t, framer.Push([]byte(&quot;123456&quot;)))
+    assert.Equal(t, [][]byte{[]byte(&quot;ok&quot;)}, framer.Push([]byte(&quot;789\nok\n&quot;)))
+}</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestLineFramer -v</code></p>
+<p>Expected: FAIL because <code>LineFramer</code> does not exist.</p>
+<ul><li>[ ] <strong>Step 7: bounded framer를 구현하고 전체 package test를 GREEN으로 만든다</strong></li></ul>
+<p><code>Push</code>는 newline 전 <code>maxBytes</code> 초과 시 <code>discarding=true</code>로 바꾸고 다음 newline까지 버린다. 정상 line은 trailing CR 하나를 제거하며 빈 line은 반환하지 않는다.</p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 8: Task 1을 커밋한다</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/device-serial/go.mod edgex/device-serial/internal/driver
+git commit -m &quot;feat: parse Arduino serial telemetry&quot;</code></pre>
+<h3 id="task-2-serial-protocol-config와-reconnect-reader">Task 2: Serial protocol config와 reconnect reader</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/internal/driver/config.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/config_test.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/reader.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/reader_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: EdgeX <code>models.Device.Protocols[&quot;serial&quot;]</code>, <code>PortOpener</code>, <code>Clock</code>, <code>SampleSink</code></li><li>Produces: <code>ParseSerialConfig(protocols) (SerialConfig, error)</code>, <code>NewReader(...) *Reader</code>, <code>(*Reader).Run(context.Context)</code>, <code>(*Reader).Close()</code></li></ul>
+<ul><li>[ ] <strong>Step 1: Serial protocol validation tests를 RED로 작성한다</strong></li></ul>
+<pre data-lang="go"><code>func TestParseSerialConfig(t *testing.T) {
+    protocols := map[string]models.ProtocolProperties{&quot;serial&quot;: {
+        &quot;Port&quot;: &quot;/dev/arduino-001&quot;, &quot;BaudRate&quot;: &quot;115200&quot;, &quot;DeviceID&quot;: &quot;arduino-001&quot;,
+    }}
+    got, err := ParseSerialConfig(protocols)
+    require.NoError(t, err)
+    assert.Equal(t, SerialConfig{Port: &quot;/dev/arduino-001&quot;, BaudRate: 115200, DeviceID: &quot;arduino-001&quot;}, got)
+}</code></pre>
+<p>잘못된 protocol name, 상대 path, 빈 DeviceID, 숫자가 아닌 baud, <code>115200</code> 외 baud를 각각 거절하는 table test도 먼저 작성한다.</p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestParseSerialConfig -v</code></p>
+<p>Expected: FAIL because config symbols are undefined.</p>
+<ul><li>[ ] <strong>Step 2: SerialConfig parser를 구현하고 GREEN으로 만든다</strong></li></ul>
+<pre data-lang="go"><code>type SerialConfig struct { Port string; BaudRate int; DeviceID string }
+
+func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialConfig, error) {
+    properties, ok := protocols[&quot;serial&quot;]
+    if !ok { return SerialConfig{}, errors.New(&quot;serial protocol is required&quot;) }
+    // require exact absolute Port, BaudRate=115200 and non-empty DeviceID
+}</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestParseSerialConfig -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 3: fake port로 disconnect/reconnect reader test를 RED로 작성한다</strong></li></ul>
+<p><code>Port</code>는 <code>Read([]byte) (int,error)</code>, <code>SetReadTimeout(time.Duration) error</code>, <code>Close() error</code>를 가진다. <code>PortOpener</code>는 첫 호출에서 error, 둘째 호출에서 정상 payload를 주는 fake를 사용한다. fake clock은 실제 sleep 없이 backoff <code>1s</code>, <code>2s</code> 호출을 기록한다.</p>
+<pre data-lang="go"><code>func TestReaderReconnectsAndEmitsCompleteSamples(t *testing.T) {
+    // opener: fail once, then return chunked valid CRLF payload
+    // sink: capture Sample and origin
+    // assert open attempts == 2, first delay == time.Second, one mapped sample emitted
+}</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestReader -v</code></p>
+<p>Expected: FAIL because <code>Reader</code> is undefined.</p>
+<ul><li>[ ] <strong>Step 4: reader의 최소 reconnect loop를 구현한다</strong></li></ul>
+<pre data-lang="go"><code>type PortOpener func(path string, baudRate int) (Port, error)
+type SampleSink func(Sample, int64)
+
+type Reader struct {
+    config SerialConfig
+    open PortOpener
+    now func() time.Time
+    wait func(context.Context, time.Duration) bool
+    sink SampleSink
+    state func(models.OperatingState)
+}</code></pre>
+<p>open/read error는 <code>DOWN</code>, 성공 open은 <code>UP</code>을 sink와 분리된 callback으로 보고한다. backoff는 <code>1s, 2s, 4s, 8s, 16s, 30s</code>에서 cap하고, 정상 byte를 받으면 1초로 reset한다. invalid line은 log/counter 대상으로만 반환하고 reconnect를 유발하지 않는다.</p>
+<ul><li>[ ] <strong>Step 5: stop/oversize/invalid recovery tests를 추가해 RED→GREEN을 확인한다</strong></li></ul>
+<p><code>Close()</code>가 현재 port를 닫고 blocked read를 끝내는지, oversize/partial JSON 뒤 정상 sample이 전달되는지, 같은 정상 line 두 개가 둘 다 전달되는지 검증한다.</p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestReader -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 6: 실제 serial library adapter를 추가하고 전체 test를 실행한다</strong></li></ul>
+<pre data-lang="go"><code>func OpenSerial(path string, baudRate int) (Port, error) {
+    port, err := serial.Open(path, &amp;serial.Mode{BaudRate: baudRate, DataBits: 8, Parity: serial.NoParity, StopBits: serial.OneStopBit})
+    if err != nil { return nil, err }
+    if err := port.SetReadTimeout(time.Second); err != nil { _ = port.Close(); return nil, err }
+    return port, nil
+}</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./...</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 7: Task 2를 커밋한다</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/device-serial/internal/driver
+git commit -m &quot;feat: read Arduino serial stream&quot;</code></pre>
+<h3 id="task-3-edgex-protocoldriver와-read-only-get">Task 3: EdgeX ProtocolDriver와 read-only GET</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/internal/driver/driver.go</code></li><li>Create: <code>edgex/device-serial/internal/driver/driver_test.go</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: <code>interfaces.DeviceServiceSDK</code>, <code>Reader</code>, parsed <code>Sample</code></li><li>Produces: full EdgeX <code>interfaces.ProtocolDriver</code>; async Event publish and latest read cache</li></ul>
+<ul><li>[ ] <strong>Step 1: async mapping과 latest cache tests를 RED로 작성한다</strong></li></ul>
+<pre data-lang="go"><code>func TestAcceptSamplePublishesAsyncValuesAndCachesLatest(t *testing.T) {
+    async := make(chan *sdkModels.AsyncValues, 1)
+    d := newDriverForTest(async, fixedClock(123))
+    d.acceptSample(Sample{DeviceName: &quot;arduino-001&quot;, SourceName: &quot;light&quot;, Readings: []Reading{{&quot;light_raw&quot;, 304}}}, 123)
+    got := &lt;-async
+    assert.Equal(t, &quot;arduino-001&quot;, got.DeviceName)
+    assert.Equal(t, &quot;light&quot;, got.SourceName)
+    require.Len(t, got.CommandValues, 1)
+    assert.Equal(t, int64(123), got.CommandValues[0].Origin)
+}</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run TestAcceptSample -v</code></p>
+<p>Expected: FAIL because <code>Driver</code> is undefined.</p>
+<ul><li>[ ] <strong>Step 2: Driver constructor, cache와 AsyncValues 변환을 구현한다</strong></li></ul>
+<p>각 <code>Reading</code>은 <code>sdkModels.NewCommandValueWithOrigin(resource, common.ValueTypeInt32, value, origin)</code>으로 변환한다. channel send는 driver context 취소도 관찰한다.</p>
+<ul><li>[ ] <strong>Step 3: read/write command tests를 RED로 작성한다</strong></li></ul>
+<p><code>HandleReadCommands</code>가 acceleration 세 resource를 같은 sample origin으로 반환하고, 미수신 resource는 <code>latest sample is unavailable</code>, <code>HandleWriteCommands</code>는 <code>read-only device service</code> 오류를 반환하는지 검증한다.</p>
+<ul><li>[ ] <strong>Step 4: command behavior를 구현하고 GREEN으로 만든다</strong></li></ul>
+<pre data-lang="go"><code>func (d *Driver) HandleReadCommands(deviceName string, _ map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest) ([]*sdkModels.CommandValue, error)
+func (d *Driver) HandleWriteCommands(string, map[string]models.ProtocolProperties, []sdkModels.CommandRequest, []*sdkModels.CommandValue) error</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./internal/driver -run &#x27;TestHandle(Read|Write)Commands&#x27; -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 5: lifecycle callback tests를 RED로 작성한다</strong></li></ul>
+<p><code>Start()</code>가 SDK cache의 한 Device에 reader 하나만 만들고, duplicate add가 reader를 늘리지 않으며, update는 기존 reader를 닫고 새 config로 교체하고, remove/stop은 goroutine을 모두 종료하는지 fake reader factory로 검증한다.</p>
+<ul><li>[ ] <strong>Step 6: ProtocolDriver lifecycle를 구현한다</strong></li></ul>
+<p><code>Initialize</code>는 logger, SDK, async channel을 저장한다. <code>Start</code>는 <code>sdk.Devices()</code>를 순회한다. <code>ValidateDevice</code>는 <code>ParseSerialConfig</code>를 호출한다. <code>Discover</code>는 disabled error를 반환한다. compile-time assertion을 추가한다.</p>
+<pre data-lang="go"><code>var _ interfaces.ProtocolDriver = (*Driver)(nil)</code></pre>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./...</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 7: Task 3을 커밋한다</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/device-serial/internal/driver
+git commit -m &quot;feat: integrate serial driver with EdgeX SDK&quot;</code></pre>
+<h3 id="task-4-edgex-service-resources와-daemonless-arm64-image">Task 4: EdgeX service resources와 daemonless ARM64 image</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/device-serial/cmd/device-serial/main.go</code></li><li>Create: <code>edgex/device-serial/res/configuration.yaml</code></li><li>Create: <code>edgex/device-serial/res/profiles/etri-arduino-serial.yaml</code></li><li>Create: <code>edgex/device-serial/res/devices/arduino-001.yaml</code></li><li>Create: <code>edgex/device-serial/.ko.yaml</code></li><li>Generate: <code>edgex/device-serial/go.sum</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Driver, EdgeX common config in Core Keeper, Go 1.25 호환 ko v0.18.0</li><li>Produces: runnable service binary and <code>192.168.0.56:5000/edgex-device-serial@sha256:...</code> ARM64 image</li></ul>
+<ul><li>[ ] <strong>Step 1: resource contract tests를 먼저 작성해 RED를 확인한다</strong></li></ul>
+<p><code>driver_test.go</code> 또는 새 <code>resources_test.go</code>가 profile의 정확한 six resources/four read-only commands와 Device identity/protocol을 YAML decode해 검사한다.</p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./... -run TestResourceFiles -v</code></p>
+<p>Expected: FAIL because resource files do not exist.</p>
+<ul><li>[ ] <strong>Step 2: main과 EdgeX preload resources를 작성한다</strong></li></ul>
+<pre data-lang="go"><code>func main() {
+    startup.Bootstrap(&quot;device-serial-jetson&quot;, &quot;0.1.0&quot;, driver.New())
+}</code></pre>
+<p><code>configuration.yaml</code>은 <code>Service.Port: 59910</code>, <code>Device.AsyncBufferSize: 16</code>, profiles/devices directory, discovery disabled, <code>MessageBus.Optional.ClientId: device-serial-jetson</code>을 가진다. Device에는 autoEvents를 넣지 않아 async Event와 중복 수집하지 않는다.</p>
+<ul><li>[ ] <strong>Step 3: profile/device resource tests를 GREEN으로 만든다</strong></li></ul>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test ./... -run TestResourceFiles -v</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 4: dependencies를 고정하고 전체 Go 검증을 수행한다</strong></li></ul>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go mod tidy</code></p>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; gofmt -w cmd internal &amp;&amp; go test -race ./... &amp;&amp; go vet ./...</code></p>
+<p>Expected: tests and vet PASS.</p>
+<ul><li>[ ] <strong>Step 5: reproducible ko base를 고정한다</strong></li></ul>
+<p><code>.ko.yaml</code>:</p>
+<pre data-lang="yaml"><code>defaultBaseImage: gcr.io/distroless/static-debian12:nonroot@sha256:f5b485ea962d9bd1186b2f6b3a061191539b905b82ec395de78cbfae51f20e35
+defaultPlatforms:
+  - linux/arm64
+builds:
+  - id: device-serial
+    main: ./cmd/device-serial
+    flags: [-trimpath]
+    ldflags: [-s, -w]</code></pre>
+<ul><li>[ ] <strong>Step 6: Docker daemon 없이 ARM64 image를 build/push한다</strong></li></ul>
+<p>Run from <code>edgex/device-serial</code>:</p>
+<pre data-lang="bash"><code>KO_DOCKER_REPO=192.168.0.56:5000/edgex-device-serial \
+go run github.com/google/ko@v0.18.0 build --bare \
+  --platform=linux/arm64 --insecure-registry --sbom=none \
+  --tags=serial-v1-arm64-20260721 ./cmd/device-serial</code></pre>
+<p>Expected: stdout is an immutable <code>192.168.0.56:5000/edgex-device-serial@sha256:</code> reference whose digest suffix is exactly 64 lowercase hexadecimal characters.</p>
+<ul><li>[ ] <strong>Step 7: registry manifest가 ARM64이고 immutable digest인지 확인한다</strong></li></ul>
+<p>Run:</p>
+<pre data-lang="bash"><code>image_digest=$(go run github.com/google/go-containerregistry/cmd/crane@v0.21.7 \
+  digest --insecure 192.168.0.56:5000/edgex-device-serial:serial-v1-arm64-20260721)
+image_ref=&quot;192.168.0.56:5000/edgex-device-serial@${image_digest}&quot;
+go run github.com/google/go-containerregistry/cmd/crane@v0.21.7 \
+  manifest --insecure &quot;$image_ref&quot; | jq -e &#x27;.config.digest and .layers[0].digest&#x27;</code></pre>
+<p>Expected: exit 0. Save the exact ko stdout reference for Task 5 manifest; do not guess or use the mutable tag.</p>
+<ul><li>[ ] <strong>Step 8: Task 4를 커밋한다</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/device-serial
+git commit -m &quot;build: package EdgeX serial device service&quot;</code></pre>
+<h3 id="task-5-kustomize-배포와-보안-예외-tests">Task 5: Kustomize 배포와 보안 예외 tests</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Create: <code>edgex/k8s/base/device-serial-jetson/kustomization.yaml</code></li><li>Create: <code>edgex/k8s/base/device-serial-jetson/config/configuration.yaml</code></li><li>Create: <code>edgex/k8s/base/device-serial-jetson/config/etri-arduino-serial.yaml</code></li><li>Create: <code>edgex/k8s/base/device-serial-jetson/config/arduino-001.yaml</code></li><li>Create: <code>edgex/k8s/base/device-serial-jetson/workload.yaml</code></li><li>Create: <code>edgex/k8s/base/server/device-service-network.yaml</code></li><li>Modify: <code>edgex/k8s/kustomization.yaml</code></li><li>Modify: <code>edgex/k8s/base/server/kustomization.yaml</code></li><li>Modify: <code>edgex/k8s/tests/test_manifests.py</code></li><li>Modify: <code>edgex/k8s/tests/test_central_messagebus_topology.py</code></li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 4 immutable image digest and resource files</li><li>Produces: root Kustomize render with one Jetson Device Service and unchanged central EdgeX/EdgeMesh</li></ul>
+<ul><li>[ ] <strong>Step 1: manifest tests를 RED로 작성한다</strong></li></ul>
+<p>새 tests는 다음을 정확히 요구한다.</p>
+<pre data-lang="python"><code>assert root_kustomization[&quot;resources&quot;] == [
+    &quot;overlays/testbed/server2&quot;, &quot;base/edge-namespace&quot;, &quot;base/device-serial-jetson&quot;
+]
+assert deployment[&quot;spec&quot;][&quot;strategy&quot;][&quot;type&quot;] == &quot;Recreate&quot;
+assert pod[&quot;nodeSelector&quot;] == {&quot;kubernetes.io/hostname&quot;: &quot;etri-dev0001-jetorn&quot;}
+assert pod[&quot;automountServiceAccountToken&quot;] is False
+assert pod.get(&quot;hostNetwork&quot;, False) is False
+assert container[&quot;securityContext&quot;][&quot;privileged&quot;] is True
+assert volume[&quot;hostPath&quot;] == {&quot;path&quot;: STABLE_ARDUINO_PATH, &quot;type&quot;: &quot;CharDevice&quot;}</code></pre>
+<p>ConfigMap의 SDK config/profile/device, FQDN env, 양쪽 NetworkPolicy DNS와 중앙 세 port, PVC/Agent/MQTT 부재도 검사한다. Kustomize load restriction 때문에 배포 base 안에 둔 세 config 파일은 <code>edgex/device-serial/res</code>의 canonical 파일과 byte-for-byte 같아야 한다. 기존 blanket hardening test는 <code>device-serial-jetson</code> 하나에서만 privileged/allowPrivilegeEscalation 예외를 허용하고 다른 workload는 기존 assertion을 유지한다.</p>
+<p>Run: <code>edgex/telemetry-plane/.venv/bin/pytest edgex/k8s/tests/test_manifests.py edgex/k8s/tests/test_central_messagebus_topology.py -q</code></p>
+<p>Expected: FAIL because Device Service resources are absent.</p>
+<ul><li>[ ] <strong>Step 2: ConfigMap과 kustomization을 구현한다</strong></li></ul>
+<p><code>configMapGenerator</code>는 같은 base의 <code>config/</code> 아래에 복사한 세 resource 파일을 stable key로 포함하고 name suffix hash를 유지한다. Deployment는 ConfigMap key를 <code>/res/configuration.yaml</code>, <code>/res/profiles/etri-arduino-serial.yaml</code>, <code>/res/devices/arduino-001.yaml</code>로 projection한다. Python manifest test가 이 사본과 Task 4 canonical resource의 byte equality를 보장한다.</p>
+<ul><li>[ ] <strong>Step 3: Service/Deployment를 구현한다</strong></li></ul>
+<p>container args와 env의 핵심 값은 다음이다.</p>
+<pre data-lang="yaml"><code>args:
+  - -cp=keeper.http://edgex-core-keeper.edgex-system.svc.cluster.local:59890
+  - -cd=/res
+env:
+  - {name: EDGEX_SECURITY_SECRET_STORE, value: &quot;false&quot;}
+  - {name: SERVICE_HOST, value: device-serial-jetson.edgex-edge.svc.cluster.local}
+  - {name: SERVICE_SERVERBINDADDR, value: 0.0.0.0}
+  - {name: CLIENTS_CORE_METADATA_HOST, value: edgex-core-metadata.edgex-system.svc.cluster.local}
+  - {name: MESSAGEBUS_HOST, value: edgex-messagebus.edgex-system.svc.cluster.local}</code></pre>
+<p>Keeper는 common/private configuration provider로 사용한다. 중앙 서비스가 registry에 등록한 namespace-local short host를 edge namespace에서 재사용하지 않도록 <code>--registry</code>는 활성화하지 않고 Metadata/MessageBus FQDN override를 사용한다.</p>
+<p>image는 Task 4의 exact digest를 사용한다. probe는 <code>/api/v3/ping:59910</code>, Service는 <code>ClusterIP:59910</code>이다.</p>
+<ul><li>[ ] <strong>Step 4: NetworkPolicy를 구현한다</strong></li></ul>
+<p>Device Service selector에 대해 kube-system DNS TCP/UDP 53, edgex-system Keeper 59890, Metadata 59881, MessageBus 1883 egress만 허용한다. edge ingress는 edgex-system namespace에서 59910만 허용한다. 중앙 <code>device-service-network.yaml</code>은 <code>edgex-edge</code> namespace의 <code>device-serial-jetson</code> Pod에서 오는 트래픽만 골라 Keeper/Metadata/MessageBus Pod의 같은 세 port에 허용해 기존 중앙 default-deny를 유지한다.</p>
+<ul><li>[ ] <strong>Step 5: targeted tests와 render를 GREEN으로 만든다</strong></li></ul>
+<p>Run: <code>edgex/telemetry-plane/.venv/bin/pytest edgex/k8s/tests/test_manifests.py edgex/k8s/tests/test_central_messagebus_topology.py -q</code></p>
+<p>Run: <code>kubectl kustomize edgex/k8s &gt;/dev/null</code></p>
+<p>Expected: PASS.</p>
+<ul><li>[ ] <strong>Step 6: 전체 manifest suite와 server dry-run을 실행한다</strong></li></ul>
+<p>Run: <code>edgex/telemetry-plane/.venv/bin/pytest edgex/k8s/tests -q</code></p>
+<p>Run: <code>kubectl kustomize edgex/k8s | kubectl apply --dry-run=server -f -</code></p>
+<p>Expected: all tests PASS and every object is accepted.</p>
+<ul><li>[ ] <strong>Step 7: Task 5를 커밋한다</strong></li></ul>
+<pre data-lang="bash"><code>git add edgex/k8s
+git commit -m &quot;feat: deploy Jetson EdgeX serial device service&quot;</code></pre>
+<h3 id="task-6-gitops-배포와-live-edgex-e2e">Task 6: GitOps 배포와 live EdgeX E2E</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify only if live evidence exposes a tested defect: Task 1-5 source/test files</li><li>No EdgeMesh manifest changes</li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: pushed Git commit and immutable ARM64 image</li><li>Produces: live Profile/Device/Service, actual Events, Core Command GET and dashboard freshness</li></ul>
+<ul><li>[ ] <strong>Step 1: branch를 push하고 remote SHA를 확인한다</strong></li></ul>
+<p>Run: <code>git push origin agent/retire-edge-agents</code></p>
+<p>Run: <code>test &quot;$(git rev-parse HEAD)&quot; = &quot;$(git rev-parse origin/agent/retire-edge-agents)&quot;</code></p>
+<p>Expected: exit 0.</p>
+<ul><li>[ ] <strong>Step 2: Argo Application을 exact commit으로 갱신한다</strong></li></ul>
+<p><code>spec.source.targetRevision</code>만 <code>git rev-parse HEAD</code>의 40자 SHA로 patch하고 hard refresh annotation을 추가한다. EdgeMesh Application/DaemonSet은 patch/restart하지 않는다.</p>
+<ul><li>[ ] <strong>Step 3: Argo와 Pod readiness를 확인한다</strong></li></ul>
+<p>Argo가 exact revision에서 <code>Synced/Healthy/Succeeded</code>, <code>device-serial-jetson</code> Pod가 <code>etri-dev0001-jetorn</code>에서 Ready인지 확인한다. 실패 시 systematic-debugging 절차로 DNS→Keeper→Metadata→MessageBus→device open 경계를 순서대로 조사한다.</p>
+<ul><li>[ ] <strong>Step 4: Core Metadata binding을 검증한다</strong></li></ul>
+<p>Kubernetes Service proxy로 다음 객체를 조회한다.</p>
+<pre data-lang="text"><code>/api/v3/deviceservice/name/device-serial-jetson
+/api/v3/deviceprofile/name/etri-arduino-serial
+/api/v3/device/name/arduino-001</code></pre>
+<p>각 identity, protocol, <code>UNLOCKED</code>, <code>UP</code>과 service/profile binding을 확인한다.</p>
+<ul><li>[ ] <strong>Step 5: 실제 Core Data Event를 correlation해 검증한다</strong></li></ul>
+<p><code>/api/v3/event/device/name/arduino-001?limit=20</code>을 poll해 네 source와 여섯 resource/valueType/origin을 확인한다. 합성 Event를 POST하지 않고 actual serial values만 증거로 사용한다.</p>
+<ul><li>[ ] <strong>Step 6: Core Command GET과 write 부재를 검증한다</strong></li></ul>
+<p>Core Command Service proxy에서 <code>GET /api/v3/device/name/arduino-001/temperature</code>와 <code>acceleration</code>을 호출해 latest values와 origin을 확인한다. Profile/API에 set command가 없음을 확인하고 write request는 보내지 않는다.</p>
+<ul><li>[ ] <strong>Step 7: dashboard와 기존 중앙/EdgeMesh를 검증한다</strong></li></ul>
+<p><code>/state/devices</code>, <code>/state/dashboard</code>, selected telemetry API에서 EdgeX identity와 fresh event를 확인한다. 중앙 Core/PostgreSQL/MessageBus Pod는 Running이고 EdgeMesh DaemonSet은 기존 generation에서 <code>5/5</code> Ready여야 한다.</p>
+<ul><li>[ ] <strong>Step 8: live defect가 있으면 failing test부터 추가해 수정한다</strong></li></ul>
+<p>재현 test RED→최소 수정→전체 GREEN→새 immutable image digest→manifest patch→commit/push→Argo exact revision 순서를 반복한다. live-only 임시 patch를 완료 상태로 남기지 않는다.</p>
+<h3 id="task-7-활성-문서와-생성-html-최신화">Task 7: 활성 문서와 생성 HTML 최신화</h3>
+<p><strong>Files:</strong></p>
+<ul><li>Modify: <code>AGENTS.md</code></li><li>Modify: <code>docs/현재-데모-경로.md</code></li><li>Modify: <code>docs/서비스-데모-시나리오.md</code></li><li>Modify: <code>docs/디바이스-서비스-연결.md</code></li><li>Modify: <code>docs/원시-텔레메트리-데이터-플레인.md</code></li><li>Modify: <code>docs/물리-디바이스-상태-정책.md</code></li><li>Modify: <code>docs/대시보드-판단-정책.md</code></li><li>Modify: <code>docs/프로젝트-배경.md</code></li><li>Modify: <code>docs/프로젝트-범위.md</code></li><li>Modify: <code>docs/저장소-구조.md</code></li><li>Modify: relevant <code>docs/wiki/*.md</code></li><li>Regenerate: <code>docs/html/**</code>, search index and consistency output</li></ul>
+<p><strong>Interfaces:</strong></p>
+<ul><li>Consumes: Task 6 actual live evidence</li><li>Produces: code/deployment/live state와 일치하는 Korean active docs and generated site</li></ul>
+<ul><li>[ ] <strong>Step 1: docs-refresh-ko skill 기준으로 active docs의 pending 표현을 찾는다</strong></li></ul>
+<p><code>Agent</code>, <code>다음 구현</code>, <code>미배포</code>, <code>Device Service가 아직 없음</code>, old MQTT route를 active fact로 표현하는 문장을 검색해 current/live/history 경계를 분류한다.</p>
+<ul><li>[ ] <strong>Step 2: active docs를 실제 완료 범위로 갱신한다</strong></li></ul>
+<p>Device Service/Profile/Device identity, privileged PoC exception, actual raw resources, MessageBus FQDN route, Core Command read-only GET, no offline replay와 protocol별 미완료 경계를 일관되게 반영한다.</p>
+<ul><li>[ ] <strong>Step 3: 운영 절차와 KPI evidence를 갱신한다</strong></li></ul>
+<p>Metadata/Core Data/Core Command/dashboard 조회 명령과 expected evidence를 기록한다. privileged 예외와 Device Plugin hardening을 roadmap 후속으로 명시한다.</p>
+<ul><li>[ ] <strong>Step 4: docs HTML을 재생성하고 문서 tests를 실행한다</strong></li></ul>
+<p>Run: <code>python3 scripts/build-docs-html.py</code></p>
+<p>Run: <code>python3 -m unittest tests.test_docs_html_search</code></p>
+<p>Expected: generator succeeds and all tests PASS.</p>
+<ul><li>[ ] <strong>Step 5: 전체 최종 검증을 실행한다</strong></li></ul>
+<p>Run: <code>cd edgex/device-serial &amp;&amp; go test -race ./... &amp;&amp; go vet ./...</code></p>
+<p>Run: <code>edgex/telemetry-plane/.venv/bin/pytest edgex/k8s/tests -q</code></p>
+<p>Run: <code>python3 -m unittest tests.test_docs_html_search</code></p>
+<p>Run: <code>kubectl kustomize edgex/k8s | kubectl apply --dry-run=server -f -</code></p>
+<p>Run: <code>git diff --check</code></p>
+<p>Expected: all commands exit 0.</p>
+<ul><li>[ ] <strong>Step 6: docs와 최종 evidence를 커밋·push한다</strong></li></ul>
+<pre data-lang="bash"><code>git add AGENTS.md docs tests edgex
+git commit -m &quot;docs: document live Arduino EdgeX integration&quot;
+git push origin agent/retire-edge-agents</code></pre>
+<ul><li>[ ] <strong>Step 7: final remote/live 일치를 확인한다</strong></li></ul>
+<p>remote SHA, Argo target/sync revision, image digest, Metadata counts, latest Event, GET result, dashboard freshness와 EdgeMesh <code>5/5</code>를 한 번 더 읽어 최종 보고 근거로 남긴다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#global-constraints">Global Constraints</a></li>
+<li class="toc-h3"><a href="#task-1-strict-payload-parser와-bounded-line-framer">Task 1: Strict payload parser와 bounded line framer</a></li>
+<li class="toc-h3"><a href="#task-2-serial-protocol-config와-reconnect-reader">Task 2: Serial protocol config와 reconnect reader</a></li>
+<li class="toc-h3"><a href="#task-3-edgex-protocoldriver와-read-only-get">Task 3: EdgeX ProtocolDriver와 read-only GET</a></li>
+<li class="toc-h3"><a href="#task-4-edgex-service-resources와-daemonless-arm64-image">Task 4: EdgeX service resources와 daemonless ARM64 image</a></li>
+<li class="toc-h3"><a href="#task-5-kustomize-배포와-보안-예외-tests">Task 5: Kustomize 배포와 보안 예외 tests</a></li>
+<li class="toc-h3"><a href="#task-6-gitops-배포와-live-edgex-e2e">Task 6: GitOps 배포와 live EdgeX E2E</a></li>
+<li class="toc-h3"><a href="#task-7-활성-문서와-생성-html-최신화">Task 7: 활성 문서와 생성 HTML 최신화</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

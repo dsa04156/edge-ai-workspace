@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: device-serial-jetson
+  labels:
+    app.kubernetes.io/name: device-serial-jetson
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: device-serial-jetson
+  ports:
+    - name: http
+      port: 59910
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: device-serial-jetson
+  labels:
+    app.kubernetes.io/name: device-serial-jetson
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: device-serial-jetson
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: device-serial-jetson
+        app.kubernetes.io/part-of: edgex-system
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: etri-dev0001-jetorn
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: device-serial-jetson
+          image: 192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda
+          imagePullPolicy: IfNotPresent
+          args:
+            - -cp=keeper.http://edgex-core-keeper.edgex-system.svc.cluster.local:59890
+            - -cd=/res
+          env:
+            - name: EDGEX_SECURITY_SECRET_STORE
+              value: "false"
+            - name: SERVICE_HOST
+              value: device-serial-jetson.edgex-edge.svc.cluster.local
+            - name: SERVICE_SERVERBINDADDR
+              value: 0.0.0.0
+            - name: CLIENTS_CORE_METADATA_HOST
+              value: edgex-core-metadata.edgex-system.svc.cluster.local
+            - name: MESSAGEBUS_HOST
+              value: edgex-messagebus.edgex-system.svc.cluster.local
+          ports:
+            - name: http
+              containerPort: 59910
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /api/v3/ping
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/v3/ping
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v3/ping
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: true
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: service-config
+              mountPath: /res
+              readOnly: true
+            - name: arduino-serial
+              mountPath: /dev/arduino-001
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: service-config
+          configMap:
+            name: device-serial-jetson-config
+            items:
+              - key: configuration.yaml
+                path: configuration.yaml
+              - key: etri-arduino-temperature.yaml
+                path: profiles/etri-arduino-temperature.yaml
+              - key: etri-arduino-light.yaml
+                path: profiles/etri-arduino-light.yaml
+              - key: etri-arduino-magnetic.yaml
+                path: profiles/etri-arduino-magnetic.yaml
+              - key: etri-arduino-acceleration-x.yaml
+                path: profiles/etri-arduino-acceleration-x.yaml
+              - key: etri-arduino-acceleration-y.yaml
+                path: profiles/etri-arduino-acceleration-y.yaml
+              - key: etri-arduino-acceleration-z.yaml
+                path: profiles/etri-arduino-acceleration-z.yaml
+              - key: arduino-virtual-devices.yaml
+                path: devices/arduino-virtual-devices.yaml
+        - name: arduino-serial
+          hostPath:
+            path: /dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00
+            type: CharDevice
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: device-serial-jetson-egress
+  labels:
+    app.kubernetes.io/name: device-serial-jetson
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: device-serial-jetson
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: edgex-system
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - edgex-core-keeper
+                  - edgex-core-metadata
+                  - edgex-messagebus
+      ports:
+        - protocol: TCP
+          port: 59890
+        - protocol: TCP
+          port: 59881
+        - protocol: TCP
+          port: 1883
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: device-serial-jetson-ingress
+  labels:
+    app.kubernetes.io/name: device-serial-jetson
+    app.kubernetes.io/part-of: edgex-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: device-serial-jetson
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: edgex-system
+      ports:
+        - protocol: TCP
+          port: 59910
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              edge-ai.io/local-data-client: "true"
+      ports:
+        - protocol: TCP
+          port: 59910

@@ -1,0 +1,116 @@
+{
+  "plans": [
+    {
+      "nodeId": "etri-dev0001-jetorn",
+      "serial": {
+        "enabled": true,
+        "allowedVidPid": [
+          "2341:0043"
+        ],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false,
+        "manifestCommand": "WHOAMI",
+        "manifestTimeoutSeconds": 1.5
+      },
+      "i2c": {
+        "enabled": false,
+        "buses": [],
+        "allowedAddresses": [],
+        "activeProbeEnabled": false
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    },
+    {
+      "nodeId": "etri-dev0002-raspi5",
+      "version": 2,
+      "serial": {
+        "enabled": true,
+        "allowedVidPid": [],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false
+      },
+      "i2c": {
+        "enabled": false,
+        "buses": [],
+        "allowedAddresses": [],
+        "activeProbeEnabled": false
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    },
+    {
+      "nodeId": "etri-dev0003-raspi5",
+      "version": 3,
+      "serial": {
+        "enabled": true,
+        "allowedVidPid": [],
+        "baudRates": [
+          115200
+        ],
+        "manifestProbeEnabled": false
+      },
+      "i2c": {
+        "enabled": true,
+        "buses": [
+          1
+        ],
+        "allowedAddresses": [
+          "0x1c",
+          "0x5c",
+          "0x5f",
+          "0x6a"
+        ],
+        "activeProbeEnabled": true,
+        "identificationRules": [
+          {
+            "identities": [
+              {
+                "address": "0x1c",
+                "register": "0x0f",
+                "expected": "0x3d"
+              },
+              {
+                "address": "0x5c",
+                "register": "0x0f",
+                "expected": "0xbd"
+              },
+              {
+                "address": "0x5f",
+                "register": "0x0f",
+                "expected": "0xbc"
+              },
+              {
+                "address": "0x6a",
+                "register": "0x0f",
+                "expected": "0x68"
+              }
+            ],
+            "model": "raspberry-pi-sense-hat-v1",
+            "profile": "etri-sensehat-gyroscope",
+            "capabilities": [
+              "temperature",
+              "humidity",
+              "pressure",
+              "compass",
+              "orientation",
+              "gyroscope"
+            ]
+          }
+        ]
+      },
+      "mqtt": {
+        "enabled": false,
+        "discoveryTopic": "edge/discovery/+/+"
+      }
+    }
+  ]
+}

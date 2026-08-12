@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "namespace": "edgex-edge",
+  "templates": [
+    {
+      "templateId": "serial-device-service-v1",
+      "adapterId": "serial-jetson",
+      "displayName": "Arduino USB Serial",
+      "protocolName": "serial",
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
+      "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+      "servicePort": 59910,
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-arduino-serial-001",
+          "displayName": "Jetson Arduino USB Serial",
+          "nodeName": "etri-dev0001-jetorn",
+          "hostDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
+          "containerDevicePath": "/dev/arduino-001",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        },
+        {
+          "bindingId": "raspi5-mpu6050-serial-001",
+          "displayName": "Raspberry Pi ESP32 MPU6050 USB Serial",
+          "nodeName": "etri-dev0003-raspi5",
+          "hostDevicePath": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+          "containerDevicePath": "/dev/mpu6050-001",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        }
+      ],
+      "externalRuntimes": [
+        {
+          "runtimeName": "device-serial-jetson",
+          "serviceName": "device-serial-jetson",
+          "workloadName": "device-serial-jetson",
+          "targetNode": "etri-dev0001-jetorn",
+          "hardwareBindingId": "jetson-arduino-serial-001",
+          "hardwareBindingIds": ["jetson-arduino-serial-001"],
+          "managementOwner": "argocd"
+        }
+      ]
+    },
+    {
+      "templateId": "sensehat-device-service-v1",
+      "adapterId": "sensehat-raspi",
+      "displayName": "Raspberry Pi Sense HAT I2C",
+      "protocolName": "i2c",
+      "verificationState": "hardware-verified",
+      "deploymentEnabled": false,
+      "image": "192.168.0.56:5000/edgex-device-sensehat@sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38",
+      "servicePort": 59911,
+      "hardwareBindings": [
+        {
+          "bindingId": "raspi5-sensehat-i2c-001",
+          "displayName": "Raspberry Pi Sense HAT I2C",
+          "nodeName": "etri-dev0003-raspi5",
+          "hostDevicePath": "/dev/i2c-1",
+          "containerDevicePath": "/dev/i2c-1",
+          "deviceType": "CharDevice",
+          "requiresPrivileged": true
+        }
+      ],
+      "externalRuntimes": [
+        {
+          "runtimeName": "device-sensehat-raspi",
+          "serviceName": "device-sensehat-raspi",
+          "workloadName": "device-sensehat-raspi",
+          "targetNode": "etri-dev0003-raspi5",
+          "hardwareBindingId": "raspi5-sensehat-i2c-001",
+          "hardwareBindingIds": ["raspi5-sensehat-i2c-001"],
+          "managementOwner": "argocd"
+        }
+      ]
+    },
+    {
+      "templateId": "modbus-device-service-v1",
+      "adapterId": "modbus",
+      "displayName": "EdgeX Modbus TCP 4.0.2 (development simulator)",
+      "protocolName": "modbus",
+      "purpose": "development-fixture",
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
+      "image": "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9",
+      "servicePort": 59920,
+      "edgeXServiceBaseName": "device-modbus",
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-modbus-tcp-simulator-001",
+          "displayName": "Jetson Modbus TCP development simulator",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "jetson-modbus-tcp-virtual-sensor-002",
+          "displayName": "Jetson Modbus TCP virtual temperature sensor 002",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "jetson-modbus-tcp-virtual-sensor-003",
+          "displayName": "Jetson Modbus TCP virtual temperature sensor 003",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        }
+      ],
+      "networkEgress": [
+        {
+          "namespace": "edgex-edge",
+          "podSelector": {
+            "app.kubernetes.io/name": "edge-modbus-simulator"
+          },
+          "ports": [
+            1502
+          ]
+        }
+      ]
+    },
+    {
+      "templateId": "opcua-device-service-v1",
+      "adapterId": "opcua",
+      "displayName": "OPC-UA",
+      "protocolName": "opcua",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59921
+    },
+    {
+      "templateId": "mqtt-device-service-v1",
+      "adapterId": "mqtt",
+      "displayName": "EdgeX MQTT 4.0.2",
+      "protocolName": "mqtt",
+      "purpose": "development-fixture",
+      "verificationState": "template-verified",
+      "deploymentEnabled": true,
+      "image": "docker.io/edgexfoundry/device-mqtt:4.0.2@sha256:940180e788d70219f489f4ed8b6bdfdce12fd0546005b7e2f899c555e529ed49",
+      "servicePort": 59922,
+      "edgeXServiceBaseName": "device-mqtt",
+      "hardwareBindings": [
+        {
+          "bindingId": "jetson-mqtt-network-001",
+          "displayName": "Jetson MQTT network endpoint",
+          "nodeName": "etri-dev0001-jetorn",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "raspi5-dev0002-mqtt-network-001",
+          "displayName": "Raspberry Pi dev0002 MQTT network endpoint",
+          "nodeName": "etri-dev0002-raspi5",
+          "requiresPrivileged": false
+        },
+        {
+          "bindingId": "raspi5-dev0003-mqtt-network-001",
+          "displayName": "Raspberry Pi dev0003 MQTT network endpoint",
+          "nodeName": "etri-dev0003-raspi5",
+          "requiresPrivileged": false
+        }
+      ],
+      "runtimeConfigRenderer": "mqtt-broker-v1",
+      "runtimeSettings": [
+        {
+          "name": "Broker",
+          "type": "url",
+          "required": true,
+          "allowedSchemes": [
+            "mqtt"
+          ],
+          "allowedHosts": [
+            "edge-mqtt-simulator.edgex-edge.svc.cluster.local"
+          ],
+          "allowedCidrs": [
+            "192.168.0.0/24"
+          ],
+          "defaultPort": 1883
+        },
+        {
+          "name": "IncomingTopic",
+          "type": "string",
+          "required": true,
+          "default": "incoming/data/#",
+          "pattern": "^incoming/data/(?:[A-Za-z0-9._~-]+/)?#$"
+        },
+        {
+          "name": "Qos",
+          "type": "enum",
+          "required": true,
+          "default": 0,
+          "options": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "networkEgress": [
+        {
+          "namespace": "edgex-edge",
+          "podSelector": {
+            "app.kubernetes.io/name": "edge-mqtt-simulator"
+          },
+          "ports": [
+            1883
+          ]
+        },
+        {
+          "cidr": "192.168.0.0/24",
+          "ports": [
+            1883
+          ]
+        }
+      ]
+    },
+    {
+      "templateId": "rtsp-device-service-v1",
+      "adapterId": "rtsp",
+      "displayName": "RTSP Camera",
+      "protocolName": "rtsp",
+      "verificationState": "unverified",
+      "deploymentEnabled": false,
+      "servicePort": 59923
+    }
+  ]
+}

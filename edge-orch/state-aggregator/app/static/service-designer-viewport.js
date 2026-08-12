@@ -11,10 +11,14 @@
   const CANVAS_HEIGHT = 700;
   const NODE_WIDTH = 218;
   const NODE_HEIGHT = 156;
-  const MIN_ZOOM = 0.32;
+  // A free canvas can spread nodes well beyond the initial 1120×700 guide.
+  // Keep enough zoom-out range for "전체 보기" to recover those nodes.
+  const MIN_ZOOM = 0.12;
   const MAX_ZOOM = 1.6;
   const GRID_SIZE = 24;
   const SNAP_TOLERANCE = 8;
+  const AUTO_PAN_EDGE = 56;
+  const AUTO_PAN_MAX_SPEED = 14;
 
   function finite(value, fallback = 0) {
     const number = Number(value);
@@ -25,81 +29,60 @@
     return Math.max(minimum, Math.min(maximum, finite(value, minimum)));
   }
 
-  function clampNodePosition(position = {}, margin = 16, size = {}) {
-    const safeMargin = Math.max(0, finite(margin, 16));
-    const nodeWidth = Math.max(1, finite(size.width, NODE_WIDTH));
-    const nodeHeight = Math.max(1, finite(size.height, NODE_HEIGHT));
+  function normalizeNodePosition(position = {}, fallback = {}) {
     return {
-      x: clamp(
-        position.x,
-        safeMargin,
-        CANVAS_WIDTH - nodeWidth - safeMargin,
-      ),
-      y: clamp(
-        position.y,
-        safeMargin,
-        CANVAS_HEIGHT - nodeHeight - safeMargin,
-      ),
+      x: finite(position.x, finite(fallback.x)),
+      y: finite(position.y, finite(fallback.y)),
     };
   }
 
-  function clampNodeToViewport(
-    position = {},
+  function dragNodePosition(
+    start = {},
+    startPointer = {},
+    pointer = {},
+    startViewport = {},
     viewport = {},
-    viewportWidth = 0,
-    viewportHeight = 0,
-    options = {},
   ) {
+    const origin = normalizeNodePosition(start);
+    const initial = normalizeViewport(startViewport);
     const current = normalizeViewport(viewport);
-    const width = Math.max(1, finite(viewportWidth, 1));
-    const height = Math.max(1, finite(viewportHeight, 1));
-    const padding = Math.max(0, finite(options.padding, 12));
-    const margin = Math.max(0, finite(options.margin, 16));
-    const nodeWidth = Math.max(1, finite(options.nodeWidth, NODE_WIDTH));
-    const nodeHeight = Math.max(1, finite(options.nodeHeight, NODE_HEIGHT));
-    const leftInset = Math.max(0, finite(options.leftInset));
-    const rightInset = Math.max(0, finite(options.rightInset));
-    const topInset = Math.max(0, finite(options.topInset));
-    const bottomInset = Math.max(0, finite(options.bottomInset));
-    const canvasBounds = {
-      minX: margin,
-      maxX: CANVAS_WIDTH - nodeWidth - margin,
-      minY: margin,
-      maxY: CANVAS_HEIGHT - nodeHeight - margin,
+    return {
+      x: origin.x + (
+        finite(pointer.x) - finite(startPointer.x)
+        - (current.x - initial.x)
+      ) / current.zoom,
+      y: origin.y + (
+        finite(pointer.y) - finite(startPointer.y)
+        - (current.y - initial.y)
+      ) / current.zoom,
     };
-    const visibleBounds = {
-      minX: (leftInset + padding - current.x) / current.zoom,
-      maxX: (
-        width - rightInset - padding - current.x
-      ) / current.zoom - nodeWidth,
-      minY: (topInset + padding - current.y) / current.zoom,
-      maxY: (
-        height - bottomInset - padding - current.y
-      ) / current.zoom - nodeHeight,
-    };
+  }
 
-    function clampAxis(value, canvasMinimum, canvasMaximum, visibleMinimum, visibleMaximum) {
-      const minimum = Math.max(canvasMinimum, visibleMinimum);
-      const maximum = Math.min(canvasMaximum, visibleMaximum);
-      if (minimum <= maximum) return clamp(value, minimum, maximum);
-      return clamp(value, canvasMinimum, canvasMaximum);
+  function dragAutoPanDelta(pointer = {}, bounds = {}, options = {}) {
+    const edge = Math.max(1, finite(options.edge, AUTO_PAN_EDGE));
+    const maxSpeed = Math.max(
+      0,
+      finite(options.maxSpeed, AUTO_PAN_MAX_SPEED),
+    );
+    const left = finite(bounds.left);
+    const top = finite(bounds.top);
+    const right = finite(bounds.right, left);
+    const bottom = finite(bounds.bottom, top);
+    if (right <= left || bottom <= top || !maxSpeed) return {x: 0, y: 0};
+
+    function axis(value, minimum, maximum) {
+      if (value < minimum + edge) {
+        return maxSpeed * clamp((minimum + edge - value) / edge, 0, 1);
+      }
+      if (value > maximum - edge) {
+        return -maxSpeed * clamp((value - (maximum - edge)) / edge, 0, 1);
+      }
+      return 0;
     }
 
     return {
-      x: clampAxis(
-        position.x,
-        canvasBounds.minX,
-        canvasBounds.maxX,
-        visibleBounds.minX,
-        visibleBounds.maxX,
-      ),
-      y: clampAxis(
-        position.y,
-        canvasBounds.minY,
-        canvasBounds.maxY,
-        visibleBounds.minY,
-        visibleBounds.maxY,
-      ),
+      x: axis(finite(pointer.x), left, right),
+      y: axis(finite(pointer.y), top, bottom),
     };
   }
 
@@ -195,19 +178,12 @@
           ? Math.round(raw.y / GRID_SIZE) * GRID_SIZE
           : raw.y;
     }
-    const clamped = clampNodePosition(
-      {x, y},
-      options.margin,
-      {
-        width: options.nodeWidth,
-        height: options.nodeHeight,
-      },
-    );
+    const placed = normalizeNodePosition({x, y}, raw);
     return {
-      ...clamped,
+      ...placed,
       guides: {
-        vertical: alignmentX && clamped.x === x ? alignmentX.guide : null,
-        horizontal: alignmentY && clamped.y === y ? alignmentY.guide : null,
+        vertical: alignmentX && placed.x === x ? alignmentX.guide : null,
+        horizontal: alignmentY && placed.y === y ? alignmentY.guide : null,
       },
     };
   }
@@ -220,8 +196,8 @@
       ArrowUp: {x: 0, y: -step},
       ArrowDown: {x: 0, y: step},
     }[key];
-    if (!delta) return clampNodePosition(position);
-    return clampNodePosition({
+    if (!delta) return normalizeNodePosition(position);
+    return normalizeNodePosition({
       x: finite(position.x) + delta.x,
       y: finite(position.y) + delta.y,
     });
@@ -337,6 +313,29 @@
     };
   }
 
+  function miniMapBounds(nodes = [], visibleRect = {}, padding = 80) {
+    const graph = graphBounds(nodes);
+    const visible = {
+      left: finite(visibleRect.x),
+      top: finite(visibleRect.y),
+      right: finite(visibleRect.x) + Math.max(1, finite(visibleRect.width, 1)),
+      bottom: finite(visibleRect.y) + Math.max(1, finite(visibleRect.height, 1)),
+    };
+    const safePadding = Math.max(0, finite(padding, 80));
+    const left = Math.min(graph.left, visible.left) - safePadding;
+    const top = Math.min(graph.top, visible.top) - safePadding;
+    const right = Math.max(graph.right, visible.right) + safePadding;
+    const bottom = Math.max(graph.bottom, visible.bottom) + safePadding;
+    return {
+      left,
+      top,
+      right,
+      bottom,
+      width: Math.max(1, right - left),
+      height: Math.max(1, bottom - top),
+    };
+  }
+
   function centerOnWorldPoint(
     viewport,
     worldX,
@@ -408,6 +407,8 @@
   return {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    AUTO_PAN_EDGE,
+    AUTO_PAN_MAX_SPEED,
     GRID_SIZE,
     MAX_ZOOM,
     MIN_ZOOM,
@@ -415,13 +416,15 @@
     NODE_WIDTH,
     SNAP_TOLERANCE,
     centerOnWorldPoint,
-    clampNodePosition,
-    clampNodeToViewport,
     constrainNodePosition,
+    dragAutoPanDelta,
+    dragNodePosition,
     ensureWorldRectVisible,
     fitViewport,
     graphBounds,
     nudgeNodePosition,
+    normalizeNodePosition,
+    miniMapBounds,
     normalizeViewport,
     panViewport,
     snapNodePosition,

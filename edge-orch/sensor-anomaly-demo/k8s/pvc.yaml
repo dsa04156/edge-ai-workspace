@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sensor-anomaly-demo-state
+  namespace: edgex-edge
+  labels:
+    app.kubernetes.io/name: sensor-anomaly-demo
+    app.kubernetes.io/part-of: edge-ai-service-demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

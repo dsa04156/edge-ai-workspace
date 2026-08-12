@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>센서 이력 그래프 연결 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li><a href="../../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
+<li><a href="../../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
+<li><a href="../../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
+<li><a href="../../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
+<li><a href="../../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li><a href="../../ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
+<li><a href="../../ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
+<li><a href="../plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
+<li><a href="../plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
+<li><a href="2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
+<li><a href="2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
+<li><a href="2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
+<li><a href="2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
+<li><a href="2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
+<li><a href="2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
+<li><a href="2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
+<li><a href="2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>센서 이력 그래프 연결 설계</h1>
+          <p class="subtitle">대시보드에서 EdgeX Device를 선택했을 때 최신 Event의 Reading 몇 개가 아니라 중앙 EdgeX Core Da…</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.md</span>
+            <span class="badge">수정: 2026-08-12 13:13</span>
+            <span class="badge">HTML 생성: 2026-08-12 13:14</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="센서-이력-그래프-연결-설계">센서 이력 그래프 연결 설계</h1>
+<h2 id="목적">목적</h2>
+<p>대시보드에서 EdgeX Device를 선택했을 때 최신 Event의 Reading 몇 개가 아니라 중앙 EdgeX Core Data에 저장된 해당 Device의 실제 시계열 이력을 조회해 그래프로 표시한다. 대상은 Jetson Serial 가상 Device 6개와 Raspberry Pi Sense HAT 가상 Device 6개, 총 12개다.</p>
+<h2 id="현재-문제">현재 문제</h2>
+<p><code>state-aggregator</code>에는 이미 다음 이력 API가 있다.</p>
+<pre data-lang="text"><code>GET /state/devices/{deviceName}/telemetry?window=-30m&amp;limit=1000</code></pre>
+<p>이 API는 EdgeX Core Data의 Device Event API를 호출하며 Core Data의 영속 저장소는 PostgreSQL이다. 그러나 현재 Device 선택 패널은 <code>/state/dashboard</code>에 포함된 <code>latest_readings</code>만 <code>renderTelemetryChart()</code>에 넘긴다. 따라서 여러 시각의 값을 잇는 시계열 그래프가 아니라 최신 Event의 resource들을 한 화면에 배치하는 수준이다.</p>
+<h2 id="선택한-접근">선택한 접근</h2>
+<p>브라우저는 Device 선택 시 기존 <code>state-aggregator</code> 이력 API를 호출한다.</p>
+<pre data-lang="text"><code>Device 선택
+  → state-aggregator /state/devices/{name}/telemetry
+  → EdgeX Core Data /api/v3/event/device/name/{name}
+  → PostgreSQL
+  → TelemetryPoint[]
+  → resource별 시계열 그래프</code></pre>
+<p>브라우저와 <code>state-aggregator</code>는 PostgreSQL에 직접 SQL 연결하지 않는다. EdgeX Device 이름, Event/Reading schema, timestamp와 데이터 권위를 Core Data API 경계에서 유지한다.</p>
+<p>검토한 다른 접근은 사용하지 않는다.</p>
+<ul><li>브라우저의 PostgreSQL 직접 연결: 자격증명 노출과 EdgeX 데이터 계약 우회 때문에 제외한다.</li><li>12개 Device 이력 전체 선로딩: 초기 부하와 불필요한 Core Data 조회 때문에 제외한다.</li></ul>
+<h2 id="사용자-동작">사용자 동작</h2>
+<ol><li>운영자가 Device 목록에서 하나를 선택한다.</li><li>설명 패널은 즉시 Device metadata와 이력 로딩 상태를 표시한다.</li><li>기본 범위 <code>30분</code>, 최대 <code>1000</code> EdgeX Event를 조회한다.</li><li>응답 Reading을 <code>source_name.resource_name</code> series로 그룹화하고 timestamp 오름차순으로</li></ol>
+<p>그래프에 표시한다.</p>
+<ol><li>운영자는 <code>5분</code>, <code>30분</code>, <code>1시간</code>, <code>24시간</code> 범위를 선택하거나 같은 범위를 새로고침한다.</li><li>선택 또는 범위가 바뀌면 새 요청을 시작하며, 늦게 도착한 이전 요청은 현재 패널을</li></ol>
+<p>덮어쓰지 않는다.</p>
+<p>범위는 Core Data 조회의 <code>start</code> 경계다. <code>limit=1000</code>은 반환 Event 상한이므로 고주기 Device의 긴 범위가 모든 Event를 보장한다는 표현은 하지 않는다. UI에는 요청 범위, 반환 Reading 수와 실제 첫/마지막 timestamp를 함께 표시한다.</p>
+<h2 id="상태와-오류-처리">상태와 오류 처리</h2>
+<ul><li><code>loading</code>: 선택한 Device와 범위를 유지한 채 이력 조회 중임을 표시한다.</li><li><code>ready</code>: 숫자 Reading을 resource별 series로 그린다.</li><li><code>empty</code>: Core Data가 빈 배열을 반환했음을 명시한다. 최신값을 과거 이력처럼 대체하지 않는다.</li><li><code>error</code>: HTTP 실패나 비배열 응답을 표시하고 새로고침 동작을 제공한다.</li><li><code>stale response</code>: request sequence가 현재 선택과 다르면 결과와 오류를 모두 폐기한다.</li></ul>
+<p>AI 서비스 장애나 특정 Device 이력 조회 실패는 <code>/state/dashboard</code>, 다른 Device 목록과 기존 서비스 데모 패널을 실패시키지 않는다.</p>
+<h2 id="구현-경계">구현 경계</h2>
+<p>변경 대상은 다음과 같다.</p>
+<ul><li><code>edge-orch/state-aggregator/app/static/dashboard.js</code>: 이력 URL, fetch 계약, 선택 상태,</li></ul>
+<p>경합 방지, 범위 동작과 history chart 렌더링</p>
+<ul><li><code>edge-orch/state-aggregator/app/static/dashboard-refactor.css</code>: 범위 control과 상태 UI</li><li><code>edge-orch/state-aggregator/app/static/index.html</code>: JS/CSS cache-bust version</li><li><code>edge-orch/state-aggregator/tests/test_device_telemetry_history.js</code>: 프론트 동작 테스트</li><li>기존 Python dashboard 정적 회귀 테스트와 운영 문서</li></ul>
+<p>기존 backend 이력 endpoint와 EdgeX client는 이미 live 데이터로 동작하므로 schema 변경이나 직접 DB client를 추가하지 않는다.</p>
+<h2 id="테스트와-완료-기준">테스트와 완료 기준</h2>
+<ul><li>URL은 Device 이름과 window를 안전하게 encode하고 <code>limit=1000</code>을 사용한다.</li><li>정상 응답, 빈 배열, HTTP 오류, 잘못된 payload를 구분한다.</li><li>빠른 Device 전환에서 이전 응답이 새 선택을 덮어쓰지 않는다.</li><li>선택 패널은 <code>latest_readings</code>가 아니라 history state로 그래프를 그린다.</li><li>네 범위와 새로고침 control이 키보드 접근 가능한 button으로 제공된다.</li><li>Serial 단일-resource Device와 Sense HAT 다중-resource Device 모두 live Core Data</li></ul>
+<p>이력을 표시한다.</p>
+<ul><li>기존 Python, JavaScript, EdgeX manifest, docs 테스트가 모두 통과한다.</li><li>새 state-aggregator image를 immutable digest로 배포하고 Argo CD가 exact Git SHA에서</li></ul>
+<p><code>Synced/Healthy</code>다.</p>
+<ul><li>실제 Firefox desktop/mobile에서 이력 그래프, 범위 전환, 빈 공간/겹침과 console 오류를</li></ul>
+<p>확인한다.</p>
+<h2 id="비범위">비범위</h2>
+<ul><li>PostgreSQL 직접 SQL 조회</li><li>전체 이력 export와 무제한 pagination</li><li>서버측 장기 구간 downsampling</li><li>그래프 데이터의 별도 Redis/브라우저 영속 cache</li><li>InfluxDB 추가</li><li>EdgeMesh, EdgeX Device Service와 physical device mapping 변경</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#현재-문제">현재 문제</a></li>
+<li class="toc-h2"><a href="#선택한-접근">선택한 접근</a></li>
+<li class="toc-h2"><a href="#사용자-동작">사용자 동작</a></li>
+<li class="toc-h2"><a href="#상태와-오류-처리">상태와 오류 처리</a></li>
+<li class="toc-h2"><a href="#구현-경계">구현 경계</a></li>
+<li class="toc-h2"><a href="#테스트와-완료-기준">테스트와 완료 기준</a></li>
+<li class="toc-h2"><a href="#비범위">비범위</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{
+  "name": "etri-sensehat-gyroscope",
+  "manufacturer": "Raspberry Pi",
+  "model": "Sense HAT v1 virtual gyroscope source",
+  "labels": [
+    "sensehat",
+    "i2c",
+    "raspi",
+    "virtual-device"
+  ],
+  "description": "Read-only gyroscope axes from the Sense HAT IMU",
+  "deviceResources": [
+    {
+      "name": "gyro_x",
+      "description": "Gyroscope X axis",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    },
+    {
+      "name": "gyro_y",
+      "description": "Gyroscope Y axis",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    },
+    {
+      "name": "gyro_z",
+      "description": "Gyroscope Z axis",
+      "properties": {
+        "valueType": "Float64",
+        "readWrite": "R",
+        "units": "rad/s"
+      }
+    }
+  ],
+  "deviceCommands": [
+    {
+      "name": "gyroscope",
+      "readWrite": "R",
+      "resourceOperations": [
+        {
+          "deviceResource": "gyro_x"
+        },
+        {
+          "deviceResource": "gyro_y"
+        },
+        {
+          "deviceResource": "gyro_z"
+        }
+      ]
+    }
+  ]
+}
