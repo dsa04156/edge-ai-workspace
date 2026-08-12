@@ -39,6 +39,10 @@ Data API를 직접 읽으며 state-aggregator가 데이터 프록시 역할을 �
 대시보드 계약을 캔버스에 만들고, 현재 세 축 EdgeX Device가 같은 Jetson에 있으면
 읽기 전용 입력과 처리 노드를 자동 바인딩한다. 이는 새 workload를 배포하거나
 고정 데모를 실행하는 동작이 아니다.
+`GET /state/resource-pool`은 현재 `/state/devices`의 EdgeX Device/Core Data freshness,
+Kubernetes 노드·workload 관측과 고정 서비스 카탈로그를 읽기 전용으로 합성한다.
+`POST /state/resource-pool/plan`은 호환성과 연결 순서만 검증하는 비영속 dry-run이며,
+EdgeX mutation, Kubernetes apply/restart, command 또는 runtime offloading을 수행하지 않는다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,

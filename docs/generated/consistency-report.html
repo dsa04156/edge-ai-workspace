@@ -58,7 +58,7 @@
 <body>
   <main>
     <h1>Docs-Code Consistency Report</h1>
-    <p class="subtitle">Generated at 2026-08-12 13:14:01 KST · Overall <span class="badge warn">WARN</span></p>
+    <p class="subtitle">Generated at 2026-08-12 13:22:45 KST · Overall <span class="badge warn">WARN</span></p>
 
     <h2>1. Summary</h2>
     <div class="summary-grid">
@@ -127,7 +127,7 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:794: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:190: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> DeviceStatus freshness는 legacy status-plane 신호다. 현재 physical availability는 EdgeX Core Metadata 상태와 Core Data latest Event origin으로 판단한다고 설명한다.</div>
             </section>
@@ -141,7 +141,7 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:781: focus_devices = []</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:177: focus_devices = []</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> `operator_focus_count`는 degraded/unavailable device 수 + non-healthy node 수로 설명한다. workflow/SLA risk는 현재 데모 범위 count에서 제외한다.</div>
             </section>
@@ -155,7 +155,7 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:977: online_nodes = [node for node in nodes if node.node_health != &quot;unavailable&quot;]</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:428: online_nodes = [node for node in nodes if node.node_health != &quot;unavailable&quot;]</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> dashboard `node_ready`는 Kubernetes Ready condition 자체가 아니라 state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값이라고 설명한다. Kubernetes Ready는 `kubectl get nodes` 기준으로 별도 표현한다.</div>
             </section>
@@ -204,7 +204,7 @@
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:100: 물리 telemetry 최신성은 Core Data Event `origin`을 사용한다. optional InfluxDB resource-profile recording을 physical telemetry 저장소로 설명하지 않는다. InfluxDB latest 설명이 필요한 경우 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, 최신성은 device-level latest sample 기준이며 property별 freshness를…</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/카젠티-운영-보조-에이전트.md:15: Core Data telemetry freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 계산한다. Assistant는 API 조회 시각이나 Kubernetes 상태로 이 값을 보정하지 않는다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/ops/현재-데모-운영-절차.md:7: Core Data telemetry freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:794: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:190: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다고 설명한다.</div>
             </section>

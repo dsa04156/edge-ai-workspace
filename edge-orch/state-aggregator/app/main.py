@@ -43,6 +43,15 @@ from .operator_assistant import (
     degraded_operator_chat_response,
     operator_assistant_from_dashboard,
 )
+from .resource_pool import (
+    PoolCategory,
+    PoolStatus,
+    ResourcePoolPlan,
+    ResourcePoolPlanRequest,
+    ResourcePoolState,
+    build_resource_pool_plan,
+    build_resource_pool_state,
+)
 from .runtime_augmentation import RuntimeAugmentationState
 from .runtime_augmentation_api import (
     RuntimeAugmentationQuery,
@@ -526,6 +535,77 @@ async def get_virtual_resource(resource_id: str, refresh: bool = False) -> Virtu
 async def get_virtual_resource_twin(resource_id: str, refresh: bool = False) -> VirtualResourceTwin:
     resource = await get_virtual_resource(resource_id=resource_id, refresh=refresh)
     return resource.twin
+
+
+async def _resource_pool_state(
+    *,
+    refresh: bool = False,
+    search: str | None = None,
+    category: PoolCategory | None = None,
+    status: PoolStatus | None = None,
+) -> ResourcePoolState:
+    observation_errors: list[str] = []
+    try:
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        observation_errors.append(
+            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
+        )
+
+    service_observations: dict[str, PoolStatus] = {}
+    service_bindings: dict[str, list[str]] = {}
+    try:
+        demo_state = await service_demo_client.get_state()
+        service_bindings["sensor-anomaly-demo"] = demo_state.binding.devices
+        service_observations["sensor-anomaly-demo"] = (
+            "ready"
+            if demo_state.mode == "live"
+            and demo_state.input_state == "fresh"
+            and demo_state.model_state == "ready"
+            else "degraded"
+        )
+    except ServiceDemoError as exc:
+        service_observations["sensor-anomaly-demo"] = "unavailable"
+        observation_errors.append(
+            f"AI service observation unavailable: {exc.__class__.__name__}"
+        )
+
+    virtual_resources = await _virtual_resource_state(refresh=refresh)
+    return build_resource_pool_state(
+        devices=devices,
+        virtual_resources=virtual_resources,
+        nodes=service.get_nodes(),
+        service_observations=service_observations,
+        service_bindings=service_bindings,
+        observation_errors=observation_errors,
+        search=search,
+        category=category,
+        status=status,
+    )
+
+
+@app.get("/state/resource-pool", response_model=ResourcePoolState)
+async def get_resource_pool(
+    refresh: bool = False,
+    q: str | None = Query(default=None, max_length=120),
+    category: PoolCategory | None = None,
+    status: PoolStatus | None = None,
+) -> ResourcePoolState:
+    return await _resource_pool_state(
+        refresh=refresh,
+        search=q,
+        category=category,
+        status=status,
+    )
+
+
+@app.post("/state/resource-pool/plan", response_model=ResourcePoolPlan)
+async def preview_resource_pool_plan(
+    request: ResourcePoolPlanRequest,
+) -> ResourcePoolPlan:
+    state = await _resource_pool_state()
+    return build_resource_pool_plan(request, state)
 
 
 @app.get("/state/augmentation-resources", response_model=AugmentationResourceCrdState)

@@ -192,7 +192,7 @@ def test_virtual_resources_endpoint_returns_resource_profiles_with_observed_inst
             "service_resource_profiles": [
                 {
                     "namespace": "edge-ai",
-                    "service": "gpu-inference",
+                    "service": "gpu-inference-jetson-gpu-lite",
                     "pod_count": 1,
                     "nodes": ["etri-ser0002-cgnmsb"],
                     "pods_by_node": {"etri-ser0002-cgnmsb": 1},
@@ -294,6 +294,52 @@ def test_virtual_resources_endpoint_scopes_instances_to_registry_node(monkeypatc
     jetson_gpu = next(item for item in payload["resources"] if item["id"] == "vd-jetson-gpu-lite")
     assert [item["pod"] for item in server_gpu["instances"]] == ["gpu-server-abc"]
     assert [item["pod"] for item in jetson_gpu["instances"]] == ["gpu-jetson-abc"]
+
+
+def test_virtual_resources_do_not_treat_unrelated_pods_on_resource_node_as_instances(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "namespace": "edgex-system",
+                    "service": "core-data",
+                    "pod_count": 1,
+                    "nodes": ["etri-ser0002-cgnmsb"],
+                    "containers": [
+                        {
+                            "pod": "edgex-core-data-abc",
+                            "container": "core-data",
+                            "node": "etri-ser0002-cgnmsb",
+                        }
+                    ],
+                }
+            ]
+        }
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {
+        "etri-ser0002-cgnmsb": NodeState(
+            hostname="etri-ser0002-cgnmsb",
+            instance="192.168.0.5:9100",
+            node_type="server",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+
+    assert response.status_code == 200
+    resources = response.json()["resources"]
+    server_gpu = next(item for item in resources if item["id"] == "vd-x86-gpu-inference")
+    storage = next(item for item in resources if item["id"] == "vd-storage-cache")
+    assert server_gpu["observed_instances"] == 0
+    assert storage["observed_instances"] == 0
 
 
 def test_virtual_resources_endpoint_keeps_registry_when_observation_fails(monkeypatch):

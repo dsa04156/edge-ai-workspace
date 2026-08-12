@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>문서 안내</title>
+  <title>자원 풀</title>
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
@@ -11,9 +11,9 @@
     <div class="topbar">
       <div class="topbar-left">
         <a href="index.html">← 문서 홈</a>
-        <a class="edit-link" href="/__edit?file=문서-안내.md">편집</a>
+        <a class="edit-link" href="/__edit?file=자원-풀.md">편집</a>
       </div>
-      <span>문서-안내.md</span>
+      <span>자원-풀.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -159,87 +159,114 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
-          <h1>문서 안내</h1>
-          <p class="subtitle">이 디렉터리는 옥동 2차년도 PoC의 현재 구현, 운영 절차, 설계 이력을 분리해 관리한다. 문서가 길어도 먼저 아래 순서로 읽…</p>
+          <h1>자원 풀</h1>
+          <p class="subtitle">자원 풀은 서비스에 필요한 센서 데이터, 컴퓨팅 자원과 AI 서비스를 한 화면에서 찾고 호환성을 검증하는 현재 PoC의 통합 운…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
-            <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-08-12 13:16</span>
+            <span class="badge">원본: 자원-풀.md</span>
+            <span class="badge">수정: 2026-08-12 13:22</span>
             <span class="badge">HTML 생성: 2026-08-12 13:22</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="문서-안내">문서 안내</h1>
-<p>이 디렉터리는 옥동 2차년도 PoC의 현재 구현, 운영 절차, 설계 이력을 분리해 관리한다. 문서가 길어도 먼저 아래 순서로 읽는다.</p>
-<h2 id="가장-먼저-읽을-문서">가장 먼저 읽을 문서</h2>
-<ol><li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li><li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li><li><a href="프로젝트-범위.html">프로젝트 범위</a></li><li><a href="현재-데모-경로.html">현재 데모 경로</a></li><li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li><li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li></ol>
-<p>질문별 요약은 <a href="wiki/지식-지도.html">지식 지도</a>를 사용한다. 과거 실험은 최신 문서의 근거가 아니라 <code>docs/archive/</code>와 <code>docs/superpowers/</code>에서만 확인한다.</p>
-<h2 id="문서가-답해야-하는-질문">문서가 답해야 하는 질문</h2>
-<ul><li>어떤 PLC·MES·센서가 어떤 EdgeX Device/Profile에 연결됐는가?</li><li>Event가 엣지 outbox와 중앙 Core Data에 저장됐는가?</li><li>품질 판별·펌프/모터 이상감지 서비스가 어떤 입력과 모델을 사용하는가?</li><li>결과·알림·KPI를 어디서 조회하는가?</li><li>장애가 Protocol Adapter, outbox, gateway, Core Data, AI consumer 중 어디에서 발생했는가?</li><li>현재 구현과 2차년도 설계, 과거 workflow 실험을 어떻게 구분하는가?</li></ul>
-<h2 id="권위-데이터-흐름">권위 데이터 흐름</h2>
-<pre data-lang="text"><code>물리 센서 / PLC / 카메라
-  -&gt; Protocol Adapter
-  -&gt; canonical EdgeX Event
-  -&gt; edge-telemetry-agent / SQLite WAL outbox
-  -&gt; HTTPS/mTLS ingest gateway
-  -&gt; EdgeX Core Data / PostgreSQL
-  -&gt; 품질 판별·이상감지 서비스 / state-aggregator / dashboard
-
-KubeEdge/Kubernetes
-  -&gt; 엣지 노드·워크로드 배치와 운영 진단</code></pre>
-<h2 id="문서-묶음">문서 묶음</h2>
+          <h1 id="자원-풀">자원 풀</h1>
+<h2 id="목적">목적</h2>
+<p><code>자원 풀</code>은 서비스에 필요한 센서 데이터, 컴퓨팅 자원과 AI 서비스를 한 화면에서 찾고 호환성을 검증하는 현재 PoC의 통합 운영 화면이다. 자원 정보를 새 데이터베이스에 복제하지 않고 각 권위 시스템의 현재 관측을 <code>state-aggregator</code>에서 읽기 전용으로 합성한다.</p>
+<h2 id="권위와-데이터-소스">권위와 데이터 소스</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>묶음</th>
-<th>시작 문서</th>
-<th>포함 내용</th>
+<th>자원 분류</th>
+<th>권위</th>
+<th>자원 풀 입력</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>최신 기준</td>
-<td><code>2차년도-ETRI-실행계획.md</code>, <code>프로젝트-범위.md</code></td>
-<td>목표·책임·완료 기준</td>
+<td>센서·데이터</td>
+<td>EdgeX Core Metadata / Core Data</td>
+<td><code>/state/devices</code>의 Device/Profile, latest Reading, freshness와 capability</td>
 </tr>
 <tr>
-<td>데이터 플레인</td>
-<td><code>원시-텔레메트리-데이터-플레인.md</code>, <code>디바이스-서비스-연결.md</code></td>
-<td>수집·저장·프로필</td>
+<td>컴퓨팅 노드</td>
+<td>Kubernetes/KubeEdge</td>
+<td><code>/state/nodes</code>의 node health와 pressure</td>
 </tr>
 <tr>
-<td>운영</td>
-<td><code>ops/현재-데모-운영-절차.md</code>, <code>ops/대시보드-검증.md</code></td>
-<td>실행·장애·검증</td>
+<td>컴퓨팅·가속기</td>
+<td>Kubernetes workload 관측</td>
+<td><code>/state/virtual-resources</code>의 desired/observed/free instance와 capability</td>
 </tr>
 <tr>
-<td>화면·KPI</td>
-<td><code>대시보드-정보-구조.md</code>, <code>대시보드-판단-정책.md</code>, <code>옥동-생산성-kpi.md</code></td>
-<td>운영자 해석</td>
+<td>AI 서비스</td>
+<td>코드와 함께 배포하는 서비스 카탈로그</td>
+<td>현재 검증된 고정 <code>sensor-anomaly-demo</code> 계약과 workload reference</td>
 </tr>
 <tr>
-<td>설계 이력</td>
-<td><code>2차년도-가상디바이스-워크플로-설계.md</code>, <code>superpowers/</code></td>
-<td>후속 설계와 과거 계획</td>
-</tr>
-<tr>
-<td>보관</td>
-<td><code>archive/</code></td>
-<td>과거 연구·통합 기록</td>
+<td>사용 중인 연결</td>
+<td>서비스 데모의 읽기 전용 입력 계약</td>
+<td>EdgeX Device → AI input contract 관계</td>
 </tr>
 </tbody></table></div>
-<h2 id="현재-구현의-사실과-한계">현재 구현의 사실과 한계</h2>
-<ul><li>root 배포 진입점은 <code>edgex/k8s/kustomization.yaml</code>이다.</li><li>중앙 EdgeX Core 서비스와 PostgreSQL은 서버 노드에 배치된다.</li><li>edge agent는 direct 입력, SQLite outbox, HTTPS/mTLS 업로드 계약을 가진다.</li><li><code>state-aggregator</code>의 physical inventory·telemetry authority는 EdgeX Core Metadata/Core Data다.</li><li>dashboard workflow 화면은 현재 browser-local dry-run/preview다.</li><li>모든 protocol, discovery/controller, AI 서비스, live cutover는 실제 endpoint와 테스트 증거가 있을 때만 완료로 표시한다.</li></ul>
-<h2 id="생성-html-확인">생성 HTML 확인</h2>
-<pre data-lang="bash"><code>python3 scripts/build-docs-html.py
-python3 tools/docs_consistency/generate_report.py</code></pre>
-<p><code>docs/html/</code>은 로컬 생성물이며 라이브 웹 배포와 다르다. 원본 Markdown을 먼저 수정하고 HTML을 다시 생성한다.</p>
+<p>자원 풀의 <code>service_catalog</code>는 물리 디바이스 inventory나 실행 상태의 권위가 아니다. 서비스의 표시명, 입력 capability 조건과 고정 workload reference만 제공한다. 물리 Device/Profile/Event 권위는 EdgeX, 노드와 workload 상태 권위는 Kubernetes/KubeEdge에 남는다.</p>
+<h2 id="사용자-흐름">사용자 흐름</h2>
+<pre data-lang="text"><code>AI 서비스 선택
+  -&gt; 이름·노드·capability 검색 및 상태 필터
+  -&gt; 센서 데이터와 선택적 컴퓨팅 자원 선택
+  -&gt; 입력 capability·ready 상태·실행 요구사항 검증
+  -&gt; 비영속 Lease 미리보기와 연결 계획 확인</code></pre>
+<p>현재 서비스가 고정 Deployment를 이미 사용할 때는 새 컴퓨팅 예약을 요구하지 않고 <code>not_required</code>로 표시한다. 센서 입력을 직접 고르지 않으면 <code>ready</code> 상태이며 서비스 입력 capability 조건을 만족하는 첫 자원을 결정론적으로 추천한다. 사용 불가·stale·계약 불일치 자원을 직접 선택하면 계획을 차단하고 이유를 표시한다.</p>
+<h2 id="api-계약">API 계약</h2>
+<h3 id="get-state-resource-pool"><code>GET /state/resource-pool</code></h3>
+<p>다음 선택 필터를 지원한다.</p>
+<ul><li><code>q</code>: ID, 이름, 설명, node와 capability 부분 검색</li><li><code>category</code>: <code>data</code>, <code>compute</code>, <code>service</code></li><li><code>status</code>: <code>ready</code>, <code>degraded</code>, <code>unavailable</code>, <code>configured</code></li><li><code>refresh</code>: service resource observation 갱신 요청</li></ul>
+<p>응답은 <code>mode=read_only</code>, <code>reservation_mode=dry_run</code>, 전체·표시 자원 요약, 자원 목록, 현재 연결과 관측 오류를 분리해 반환한다. 한 권위 소스가 실패해도 다른 분류를 빈 값으로 위장하지 않고 가능한 자원과 <code>observation_errors</code>를 함께 반환한다.</p>
+<h3 id="post-state-resource-pool-plan"><code>POST /state/resource-pool/plan</code></h3>
+<p>요청은 <code>service_id</code>, 선택적 <code>data_resource_id</code>, <code>compute_resource_id</code>만 받는다. 응답은 다음을 포함한다.</p>
+<ul><li>선택 또는 추천된 서비스·센서 데이터·컴퓨팅 자원</li><li>서비스 계약, 센서 입력, 컴퓨팅, 변경 안전 경계별 <code>pass</code>/<code>fail</code>/<code>not_required</code></li><li>호환될 때만 생성하는 15분 <code>lease_preview</code></li><li>검증 순서와 차단 사유</li><li>권위와 mutation 금지 guardrail</li></ul>
+<p><code>lease_preview.persisted</code>는 항상 <code>false</code>다. 이 POST는 상태를 저장하지 않으며 실제 자원 점유, Kubernetes apply/delete/restart, EdgeX metadata/state mutation, command publish, runtime 이동이나 offloading을 수행하지 않는다.</p>
+<h2 id="화면-상태">화면 상태</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>표시 상태</th>
+<th>의미</th>
+<th>선택 가능 여부</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>사용 가능</td>
+<td>센서 입력 ready 또는 node/resource가 현재 사용 가능</td>
+<td>가능</td>
+</tr>
+<tr>
+<td>확인 필요</td>
+<td>입력 degraded, node pressure/상태 저하 또는 자원이 모두 할당됨</td>
+<td>불가</td>
+</tr>
+<tr>
+<td>구성됨</td>
+<td>registry·서비스 계약은 있으나 runtime instance가 관측되지 않음</td>
+<td>서비스만 선택 가능</td>
+</tr>
+<tr>
+<td>사용 불가</td>
+<td>EdgeX 입력 unresolved, node unavailable 또는 AI 서비스 관측 실패</td>
+<td>센서·컴퓨팅은 불가, 서비스는 차단 사유 확인 가능</td>
+</tr>
+</tbody></table></div>
+<p>화면은 375px, 768px, 1024px, 1440px에서 전체 문서 가로 overflow 없이 동작해야 한다. 모바일에서는 요약, 단계, 서비스, 자원, 계획과 현재 연결이 한 열로 배치된다. 자원 카드의 이름·설명·capability는 긴 식별자에서도 줄바꿈되며 색상 외에 상태 문자열을 함께 표시한다.</p>
+<h2 id="현재-완료-기준">현재 완료 기준</h2>
+<ol><li>센서·데이터는 <code>/state/devices</code>의 EdgeX 원본 identity와 available/degraded/unavailable, Core Data freshness를 자원 풀 상태로 투영한다.</li><li>컴퓨팅은 <code>/state/nodes</code>와 <code>/state/virtual-resources</code>의 관측값을 사용하고 가짜 용량을 만들지 않는다.</li><li>서비스 카탈로그는 현재 검증된 고정 서비스와 설계 템플릿을 명시적으로 구분한다.</li><li>검색, category/status 필터와 선택 상태가 함께 동작한다.</li><li>호환 계획은 required capability와 자원 상태를 검증하고 실패 이유를 반환한다.</li><li>Lease는 비영속 미리보기이며 API 호출 전후 권위 시스템과 workload를 변경하지 않는다.</li><li>한 데이터 소스가 실패해도 다른 분류와 오류 원인을 함께 표시한다.</li><li>자동 테스트와 실제 브라우저에서 375/768/1024/1440px, keyboard focus, console error와</li></ol>
+<p>전체 문서 가로 overflow를 검증한다.</p>
+<p>실제 예약·반납, workload 배포, 자동 연결과 runtime offloading은 별도 승인, 인증·인가, 영속 Lease 소유권, 충돌 제어, 보상 처리와 운영 검증을 갖춘 뒤에만 후속 범위로 승격한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#가장-먼저-읽을-문서">가장 먼저 읽을 문서</a></li>
-<li class="toc-h2"><a href="#문서가-답해야-하는-질문">문서가 답해야 하는 질문</a></li>
-<li class="toc-h2"><a href="#권위-데이터-흐름">권위 데이터 흐름</a></li>
-<li class="toc-h2"><a href="#문서-묶음">문서 묶음</a></li>
-<li class="toc-h2"><a href="#현재-구현의-사실과-한계">현재 구현의 사실과 한계</a></li>
-<li class="toc-h2"><a href="#생성-html-확인">생성 HTML 확인</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
+<li class="toc-h2"><a href="#권위와-데이터-소스">권위와 데이터 소스</a></li>
+<li class="toc-h2"><a href="#사용자-흐름">사용자 흐름</a></li>
+<li class="toc-h2"><a href="#api-계약">API 계약</a></li>
+<li class="toc-h3"><a href="#get-state-resource-pool">GET /state/resource-pool</a></li>
+<li class="toc-h3"><a href="#post-state-resource-pool-plan">POST /state/resource-pool/plan</a></li>
+<li class="toc-h2"><a href="#화면-상태">화면 상태</a></li>
+<li class="toc-h2"><a href="#현재-완료-기준">현재 완료 기준</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

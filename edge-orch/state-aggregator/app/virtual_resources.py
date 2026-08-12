@@ -152,7 +152,12 @@ def _build_resource_profile(
 
 def _profile_matches(profile: JsonMap, registry: VirtualResourceRegistryEntry) -> bool:
     haystack = " ".join(_profile_terms(profile)).casefold()
-    return registry.node.casefold() in haystack or any(keyword.casefold() in haystack for keyword in registry.keywords)
+    # A node identifies where a resource may run; it does not identify the
+    # resource itself. Matching on the node alone made every running Pod on a
+    # GPU/AI node look like another accelerator instance. Require an explicit
+    # workload/resource keyword and use the node only to scope matched
+    # containers in ``_containers_for_registry``.
+    return any(keyword.casefold() in haystack for keyword in registry.keywords)
 
 
 def _profile_terms(profile: JsonMap) -> list[str]:
