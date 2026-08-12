@@ -168,6 +168,35 @@ kubectl -n kubeedge delete pod -l k8s-app=kubeedge
 kubectl -n kubeedge rollout status deploy/cloudcore --timeout=180s
 ```
 
+### v1.23.1 metrics stream 오류 보정
+
+KubeEdge v1.23 계열 CloudCore는 정상적인 edge metrics stream 종료를 오류로 반환해
+`Failed to get metrics ... find edge peer done` 로그를 반복할 수 있다. 또한 일부 정상 종료
+경로에서 API server connection 정리가 누락될 수 있다. 이 저장소는 v1.23.1 소스 기준
+패치와 재현 가능한 빌드 스크립트를 제공한다.
+
+```bash
+cd kubeedge-tools
+sudo -E ./build-cloudcore-metrics-fix.sh
+```
+
+기본 출력 이미지는 `192.168.0.56:5000/cloudcore:v1.23.1-metricsfix.1`이다. 빌드 시
+`cloud/pkg/cloudstream` 단위 테스트를 먼저 통과해야 이미지를 빌드하고 레지스트리에
+push한다. 운영 배포에는 tag 대신 push 결과의 digest를 고정한다.
+
+```bash
+kubectl -n kubeedge patch deploy/cloudcore --type='json' \
+  -p='[{"op":"remove","path":"/spec/strategy/rollingUpdate"}]' || true
+kubectl -n kubeedge patch deploy/cloudcore \
+  -p='{"spec":{"strategy":{"type":"Recreate"}}}'
+kubectl -n kubeedge set image deploy/cloudcore \
+  cloudcore=192.168.0.56:5000/cloudcore@sha256:474b4495c2b69a1c0556436c53a06458977fe7fd7b2e25471e84b042e55e77d4
+kubectl -n kubeedge rollout status deploy/cloudcore --timeout=180s
+```
+
+`Recreate`는 hostNetwork/hostPort를 쓰는 단일 CloudCore의 rolling update 포트 충돌을
+피하기 위한 운영 조건이다.
+
 cloudcore를 control-plane node에 고정해야 할 때는 아래 패치를 적용한다.
 
 ```bash
