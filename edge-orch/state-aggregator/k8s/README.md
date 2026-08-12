@@ -41,6 +41,13 @@ Kubernetes manifests:
 Apply these manifests through the directory kustomization (or the
 `edge-orch-state-aggregator` Argo CD application).
 
+`main` CI 배포는 빌드 결과의 immutable digest를 읽고 Argo CD Application의
+`spec.source.targetRevision`을 해당 Git SHA로, `spec.source.kustomize.images`를 해당
+digest로 함께 갱신한다. `kubectl set image`로 Deployment를 직접 변경하면 Argo CD
+`selfHeal`이 Git에 기록된 image로 되돌릴 수 있으므로 운영 배포 경로로 사용하지 않는다.
+CI는 Argo CD refresh 뒤 Deployment가 목표 digest를 가리키는지 확인한 다음 rollout 완료를
+기다린다.
+
 Expected scrape path:
 
 ```text
