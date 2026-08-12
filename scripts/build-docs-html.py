@@ -41,6 +41,8 @@ WIKI_ORDER = [
 
 ACTIVE_ORDER = [
     "문서-안내.md",
+    "문서-분류-목록.md",
+    "2차년도-ETRI-실행계획.md",
     "시스템-구축-목표.md",
     "프로젝트-배경.md",
     "프로젝트-범위.md",
@@ -75,6 +77,8 @@ OPS_ORDER = [
 
 DISPLAY_TITLES = {
     "문서-안내.md": "문서 안내",
+    "문서-분류-목록.md": "문서 전체 분류 목록",
+    "2차년도-ETRI-실행계획.md": "2026년도 2차년도 ETRI 실행계획",
     "시스템-구축-목표.md": "시스템 구축 목표",
     "문서-정리-계획.md": "문서 정리 계획",
     "프로젝트-배경.md": "프로젝트 배경",
@@ -496,6 +500,14 @@ def archive_banner(rel: str) -> str:
 </aside>"""
 
 
+def history_banner(rel: str) -> str:
+    return f"""<aside class=\"history-banner\" aria-label=\"설계 이력 안내\">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>{html.escape(rel)}</code>
+</aside>"""
+
+
 def sidebar(files: list[Path], current: Path) -> str:
     chunks = ['<nav class="sidebar" aria-label="문서 목록">', '<h2>문서 목록</h2>', '<ul>']
     last = None
@@ -551,10 +563,12 @@ def render_doc(md: Path, files: list[Path]) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     body = render_markdown(text, out_path, md)
     is_archive = rel.startswith("archive/")
+    is_history = filter_of(rel) == "history"
     kind = group_of(rel)
     desc = short_desc(first_paragraph(text))
     page_class = "doc archive" if is_archive else "doc"
     archive_note = f"        {archive_banner(rel)}\n" if is_archive else ""
+    history_note = f"        {history_banner(rel)}\n" if is_history else ""
     html_text = f'''<!doctype html>
 <html lang="ko">
 <head>
@@ -587,7 +601,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
             <span class="badge">HTML 생성: {html.escape(generated_at())}</span>
           </div>
         </header>
-{archive_note}        <div class="doc-body">
+{archive_note}{history_note}        <div class="doc-body">
           {body}
         </div>
       </article>

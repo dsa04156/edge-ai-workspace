@@ -50,6 +50,8 @@
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -86,11 +90,13 @@
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -122,91 +128,108 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>프로젝트 배경</h1>
-          <p class="subtitle">현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제…</p>
+          <p class="subtitle">이 저장소는 옥동 현장의 PLC·MES·센서 데이터를 EdgeX 기반 데이터 플레인과 KubeEdge 기반 엣지 노드 운영에 연…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-배경.md</span>
-            <span class="badge">수정: 2026-07-21 09:58</span>
-            <span class="badge">HTML 생성: 2026-07-21 09:58</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="프로젝트-배경">프로젝트 배경</h1>
 <h2 id="한-줄-정의">한 줄 정의</h2>
-<p>현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제로 연결하고 이를 대시보드에서 가시화하며 현장 생산성 향상 효과를 설명 가능한 서비스 데모로 만드는 단계다.</p>
-<p>현재 단계에서는 이 기반을 서비스 데모, 디바이스-서비스 연결 구조, 통합 운영 가시화 중심으로 정리한다.</p>
+<p>이 저장소는 옥동 현장의 PLC·MES·센서 데이터를 EdgeX 기반 데이터 플레인과 KubeEdge 기반 엣지 노드 운영에 연결하고, 생산품질 판별·유압펌프/모터 이상감지 PoC를 운영 화면에서 확인하기 위한 혼합 디바이스 엣지 AI 플랫폼이다.</p>
+<p>현재 우선순위는 전체 동적 오케스트레이션을 한 번에 완성하는 것이 아니라, 수집→저장→상태 해석→서비스 데모라는 수직 슬라이스를 실제 근거와 함께 안정화하는 것이다.</p>
 <h2 id="대상-환경">대상 환경</h2>
-<ul><li>x86 엣지 AI 서버</li><li>Jetson 엣지 AI 디바이스</li><li>Raspberry Pi 5 엣지 디바이스</li><li>물리 센서 디바이스</li><li>가상 디바이스 / 디바이스트윈</li></ul>
-<p>현재 테스트베드 노드:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>예시 역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>중앙 엣지 AI 서버</td>
+<td>EdgeX Core, PostgreSQL, ingest gateway, state-aggregator, AI consumer</td>
+</tr>
+<tr>
+<td>Jetson 노드</td>
+<td>현장 adapter와 엣지 workload 대상</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>I2C 센서와 경량 workload 대상</td>
+</tr>
+<tr>
+<td>물리 장비</td>
+<td>PLC, 센서, 모터·펌프, 카메라</td>
+</tr>
+<tr>
+<td>가상 장비</td>
+<td>simulator/replay와 후속 virtual-device abstraction</td>
+</tr>
+</tbody></table></div>
+<p>현재 checkout의 대표 노드 예시는 다음과 같다. 노드명은 manifest 설정값이지 코드에 박힌 물리 장비 식별자가 아니다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>구분</th>
 <th>hostname</th>
-<th>역할</th>
+<th>현재 의미</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>서버 1</td>
-<td><code>etri-ser0001-cg0msb</code></td>
-<td>control-plane / 운영 서버</td>
-</tr>
-<tr>
-<td>서버 2</td>
+<td>중앙 서버</td>
 <td><code>etri-ser0002-cgnmsb</code></td>
-<td>worker / 추론 서버</td>
+<td>중앙 EdgeX stack과 gateway 배치 대상</td>
 </tr>
 <tr>
 <td>Jetson</td>
 <td><code>etri-dev0001-jetorn</code></td>
-<td>edge AI device</td>
-</tr>
-<tr>
-<td>Raspberry Pi 5</td>
-<td><code>etri-dev0002-raspi5</code></td>
-<td>AI HAT resource 후보</td>
+<td>edge agent/adapter 배치 예시</td>
 </tr>
 <tr>
 <td>Raspberry Pi 5</td>
 <td><code>etri-dev0003-raspi5</code></td>
-<td>Sense HAT I2C input source</td>
+<td>Sense HAT 입력 fixture 배치 예시</td>
 </tr>
 </tbody></table></div>
-<h2 id="현재-우선순위">현재 우선순위</h2>
-<ol><li>서비스 데모 1종을 먼저 완성한다.</li><li>디바이스 등록/관리 체계를 정리한다.</li><li>디바이스-서비스 바인딩 구조를 구현한다.</li><li>통합 대시보드에서 디바이스, 노드, 서비스, 상태, KPI를 함께 보이게 한다.</li><li>옥동 시나리오의 생산성 향상 효과를 설명 가능한 지표로 정리한다.</li><li>현재 문서와 데모에서는 workflow/offloading/agent-assisted planning 계열을 현행 연구 방향과 분리된 과거 검토/보관 경로로 둔다.</li></ol>
-<h2 id="현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</h2>
-<p>물리 디바이스 통합의 권위 경로는 다음 하나뿐이다.</p>
-<pre data-lang="text"><code>물리 센서 / PLC / 장비
-  -&gt; Jetson 또는 Raspberry Pi의 Protocol Adapter
-  -&gt; edge-telemetry-agent -&gt; SQLite outbox
+<h2 id="2026년도-2차년도-목표">2026년도 2차년도 목표</h2>
+<p>옥동 PoC의 우선 서비스는 다음 두 가지다.</p>
+<ol><li>PLC·MES·센서 데이터를 이용한 생산품질 양품·불량 판별</li><li>메인·보조 유압펌프 및 모터의 이상 감지</li></ol>
+<p>ETRI가 책임지는 플랫폼 증거는 실시간 수집, 표준 Event, 장애 버퍼·재전송, AI 서비스 입력 계약, 엣지·서버 배치 검토, 통합 상태·알림 화면, 단위·통합 시험이다. 목표·월별 산출물·완료 gate는 <a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a>을 기준으로 한다.</p>
+<h2 id="현재-권위-데이터-경로">현재 권위 데이터 경로</h2>
+<pre data-lang="text"><code>물리 센서·PLC·장비
+  -&gt; Protocol Adapter
+  -&gt; canonical EdgeX v3 Event
+  -&gt; edge-telemetry-agent / SQLite WAL outbox
   -&gt; HTTPS/mTLS ingest gateway
-  -&gt; EdgeX Core Data -&gt; PostgreSQL
-  -&gt; Application Service / AI consumer / state-aggregator / dashboard</code></pre>
-<ul><li>Core Metadata가 물리 디바이스 inventory·schema·관리 상태의 원본이다.</li><li>Core Data Event가 telemetry와 freshness의 원본이다.</li><li>현재 command 실행은 비활성이고 Device Profile은 read-only schema를 제공한다.</li><li>KubeEdge는 Kubernetes edge node와 workload의 등록·배치·상태 관찰에만 사용한다.</li><li>중앙 ingest gateway, Core Keeper, Metadata, Data, Command, internal MessageBus, PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다.</li><li>현재 canonical Event live 검증 fixture는 <code>etri-dev0003-raspi5</code>의 direct agent와 <code>sensehat-001</code>이다. root render에는 별도로 <code>etri-dev0001-jetorn</code>의 direct Jetson agent와 SQLite PVC가 포함되지만 아직 Arduino Serial adapter나 Metadata Device는 연결하지 않는다. Jetson MQTT agent와 edge-local broker는 현재 EdgeX 배포에 없다.</li></ul>
-<p>현재 root <code>edgex/k8s/kustomization.yaml</code>은 중앙 <code>edgex-system</code> overlay와 edge <code>edgex-edge</code> agent overlay를 렌더링한다. <code>edgex/telemetry-plane/</code>, HTTPS ingest gateway, edge telemetry agent, SQLite outbox와 <code>edgex/k8s/base/</code> overlays가 현재 구현·배포 경로다.</p>
-<p>1차 Sense HAT 수직 슬라이스는 SQLite offline replay를 포함한다. 중앙 gateway 또는 네트워크 장애 중 Event를 보존하고 Core Data persisted ACK를 확인한 뒤에만 outbox에서 삭제한다.</p>
-<p>2026-07-14 UNO 네 source와 2026-07-15 Sense HAT 여섯 source의 typed Event/Reading을 기존 canary에서 확인했다. 이 증거는 장비·profile·Reading 계약의 근거이며 중앙 server2 topology live cutover 완료를 자동으로 뜻하지 않는다.</p>
-<p>Serial, Modbus, OPC-UA와 추가 I2C 장비는 목표 아키텍처에 포함되지만 아직 완료로 주장하지 않는다. 각 프로토콜은 해당 adapter, profile, 실제 장비 연결과 typed telemetry 검증을 독립 wave로 통과한 뒤 승격한다. RTSP frame은 Workflow Pod가 직접 구독하는 별도 media wave다.</p>
-<p><code>state-aggregator</code>와 대시보드는 중앙 EdgeX Core Metadata/Core Data를 소비하는 현재 cutover 대상이다. Prometheus/Kubernetes 정보는 node/workload 관찰을 보조하지만 물리 디바이스 상태를 결정하지 않는다. 과거 워크플로 실행·배치 실험 컴포넌트는 현행 대시보드와 데모 운영 경로에서 제외한다.</p>
-<h2 id="디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</h2>
-<p>EdgeX Core Metadata에 Device Profile과 Device를 사전 등록한다. Protocol Adapter는 Device의 <code>protocols</code>에 정의된 endpoint를 사용하고 profile resource에 맞는 canonical Event를 만든다. agent는 Event를 durable queue에 수용하고 중앙 전달을 담당한다. 임의의 MQTT topic이나 HTTP POST만으로 Core Metadata Device가 자동 생성되지는 않는다.</p>
-<p>availability는 EdgeX 관리 상태와 최신 Core Data event를 다음 순서로 해석한다.</p>
-<ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>이면 <code>unavailable</code>/<code>disconnected</code>.</li><li><code>operatingState=UNKNOWN</code>이면 <code>degraded</code>/<code>unknown</code>.</li><li><code>operatingState=UP</code>이고 최신 event가 freshness 기준 안이면 <code>available</code>.</li><li><code>operatingState=UP</code>이어도 event가 없거나 stale이면 <code>degraded</code>.</li></ol>
-<h2 id="과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</h2>
-<p>과거 canary 입력은 다음 canonical topic을 사용했다.</p>
-<pre data-lang="text"><code>factory/devices/{device-name}/telemetry</code></pre>
-<p>이 Jetson MQTT agent는 현재 root render와 live EdgeX Metadata에서 제거되었다. MQTT-only 장비나 local pub/sub 요구가 확인되면 별도 Protocol Adapter와 broker를 독립 검증한 뒤에만 새 운영 경로로 추가한다.</p>
-<p><code>mappers/script/test_device.py</code>, <code>mappers/mqttvirtual/</code>, KubeEdge <code>DeviceModel</code>/<code>Device</code>/<code>DeviceStatus</code>, mapper의 direct-to-Influx 경로와 다음 topic 규칙은 legacy physical integration/test 경로다.</p>
-<pre data-lang="text"><code>factory/devices/{device-name}/command
-factory/devices/{device-name}/heartbeat</code></pre>
-<p>이 legacy 경로는 현재 EdgeX status/control plane과 병행해서 실행하거나 fallback으로 사용하지 않는다. 과거 데이터나 manifest는 마이그레이션 비교 자료일 수 있지만 Core Metadata inventory, Core Data telemetry와 별도 승인된 Adapter/command 경로보다 우선하지 않는다.</p>
+  -&gt; EdgeX Core Data / PostgreSQL
+  -&gt; state-aggregator / dashboard / AI consumer
+
+Kubernetes/KubeEdge
+  -&gt; 엣지 노드·워크로드 배치와 자원 진단</code></pre>
+<ul><li>Device/Profile, <code>adminState</code>, <code>operatingState</code>의 권위는 중앙 EdgeX Core Metadata다.</li><li>Event/Reading과 freshness의 권위는 중앙 EdgeX Core Data와 PostgreSQL이다.</li><li>edge agent의 SQLite는 중앙 영구 저장 전 장애 버퍼다. 장기 telemetry 저장소나 inventory registry가 아니다.</li><li>중앙 MessageBus는 EdgeX Core 내부 runtime이다. 센서에서 서버로 보내는 northbound 경로나 edge 장애 버퍼가 아니다.</li><li>MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요할 때만 별도 검증 후 추가한다.</li><li>KubeEdge Device/DeviceModel/DeviceStatus와 MapperFramework는 legacy/reference이며 EdgeX와 병행 authority나 fallback이 아니다.</li></ul>
+<h2 id="현재-checkout에서-확인되는-범위">현재 checkout에서 확인되는 범위</h2>
+<ul><li>root 배포 진입점은 <code>edgex/k8s/kustomization.yaml</code>이다.</li><li>중앙 서버 manifest는 Core Keeper/Metadata/Data/Command, 내부 MessageBus, PostgreSQL, ingest gateway를 묶는다.</li><li>edge overlay는 direct-mode agent, SQLite outbox PVC, mTLS/edge-auth Secret과 노드 배치를 정의한다.</li><li><code>metadata-contract.json</code>의 대표 fixture는 <code>sensehat-001</code>/<code>etri-sensehat</code>이다.</li><li><code>state-aggregator</code>는 Core Metadata inventory와 Core Data latest Event를 결합해 <code>/state/devices</code>, <code>/state/dashboard</code>, <code>/state/summary</code>를 제공한다.</li><li>dashboard workflow는 stage/binding validation과 execution-plan preview를 브라우저 안에서만 수행한다.</li></ul>
+<p>이 범위는 “모든 프로토콜, AI 모델, 자동 등록, runtime migration이 완료됐다”는 뜻이 아니다. 실제 endpoint, profile, typed Event, 장애 시험과 live 증거가 없는 항목은 후속 범위로 표시한다.</p>
+<h2 id="등록-상태-판정-원칙">등록·상태 판정 원칙</h2>
+<p>물리 장비는 임의 포트나 topic만으로 Core Metadata에 자동 생성하지 않는다. Device Profile과 Protocol Adapter 계약을 확인하고 등록한다. availability는 다음 순서로 계산한다.</p>
+<ol><li><code>adminState=LOCKED</code> 또는 <code>operatingState=DOWN</code>이면 <code>unavailable</code>.</li><li>운영 상태가 <code>UNKNOWN</code>이면 <code>degraded</code>.</li><li><code>UP</code>이어도 최신 Core Data Event가 없거나 stale이면 <code>degraded</code>.</li><li>잠기지 않았고 <code>UP</code>이며 최신 Event가 fresh일 때만 <code>available</code>.</li></ol>
+<p>상세 규칙은 <a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a>과 <a href="대시보드-판단-정책.html">대시보드 판단 정책</a>을 따른다.</p>
+<h2 id="후속-범위와-제외">후속 범위와 제외</h2>
+<p>후속 단계에서 Serial·I2C 외 Modbus·OPC-UA·MQTT·ONVIF/RTSP를 각각 adapter/profile/실제 endpoint/typed telemetry/consumer 증거로 승격한다. RTSP 원본 frame은 Core Data에 저장하지 않고 요청 시 Workflow Pod가 직접 구독한다.</p>
+<p>다음은 현재 완료로 표현하지 않는다.</p>
+<ul><li>운영자 승인 없는 자동 등록</li><li>임의 container image 실행</li><li>네트워크 전체 자동 스캔</li><li>dashboard에서 Kubernetes/EdgeX mutation 또는 actuator command</li><li>dynamic workflow execution, offloading, runtime migration, LLM 전역 제어</li></ul>
+<p>과거 구현과 연구 자료는 <code>docs/superpowers/</code>와 <code>docs/archive/</code>에 보존하며, 현재 기능의 근거로 승격하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-정의">한 줄 정의</a></li>
 <li class="toc-h2"><a href="#대상-환경">대상 환경</a></li>
-<li class="toc-h2"><a href="#현재-우선순위">현재 우선순위</a></li>
-<li class="toc-h2"><a href="#현재-아키텍처와-구현-상태">현재 아키텍처와 구현 상태</a></li>
-<li class="toc-h2"><a href="#디바이스-등록과-상태-전략">디바이스 등록과 상태 전략</a></li>
-<li class="toc-h2"><a href="#과거-mqtt-canary와-현재-경계">과거 MQTT canary와 현재 경계</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026년도-2차년도-목표">2026년도 2차년도 목표</a></li>
+<li class="toc-h2"><a href="#현재-권위-데이터-경로">현재 권위 데이터 경로</a></li>
+<li class="toc-h2"><a href="#현재-checkout에서-확인되는-범위">현재 checkout에서 확인되는 범위</a></li>
+<li class="toc-h2"><a href="#등록-상태-판정-원칙">등록·상태 판정 원칙</a></li>
+<li class="toc-h2"><a href="#후속-범위와-제외">후속 범위와 제외</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

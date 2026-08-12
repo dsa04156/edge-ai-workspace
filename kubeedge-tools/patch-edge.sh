@@ -19,6 +19,8 @@ function patch_edgecore_config() {
 		sed -i -E "s#(^[[:space:]]*remoteImageEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
 		sed -i -E "s#(^[[:space:]]*remoteRuntimeEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
 		sed -i -E "s#(^[[:space:]]*runtimeType:[[:space:]]*).*#\\1remote#" "$cfg" || true
+		sed -i -E "s#(^[[:space:]]*containerRuntimeEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
+		sed -i -E "s#(^[[:space:]]*imageServiceEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
 
 		# metaServer.enable: false -> true (edge flannel/메타서버 경로 사용)
 		awk '

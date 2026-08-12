@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    refactor_link = "/static/dashboard-refactor.css?v=reference-console-20260622"
-    screen_link = "/static/dashboard-screen.css?v=edgex-cutover-20260714"
+    refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
+    screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -23,7 +23,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
     design = (ROOT / "DESIGN.md").read_text()
-    screen_design = (ROOT / "docs/dashboard-screen-design.md").read_text()
+    screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
     assert "--console-bg: #020617;" in css
     assert "--console-rail: #020617;" in css
@@ -38,7 +38,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "grid-area: rail;" in css
     assert 'content: "Edge AI\\AResource Console";' in css
     assert ".global-search" in css
-    assert "Search resources" in html
+    assert "리소스 검색" in html
     assert "flex: 0 0 auto;" in css
     assert "border-left: 4px solid transparent;" in css
     assert "border-left-color: var(--console-yellow);" in css
@@ -57,8 +57,6 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "position: sticky;" in css
     assert "top: 86px;" in css
     assert "color: var(--console-ink) !important;" in css
-    assert ".workflow-graph-canvas" in css
-    assert "workflow-graph-canvas" in html
     assert "overflow-wrap: normal;" in css
     assert "@media (max-width: 1180px)" in css
     assert "@media (max-width: 900px)" in css
@@ -68,7 +66,9 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
     assert "Resource rail" in design
     assert "Resource Augmentation" not in html
-    assert "Deferred Resource Augmentation" in screen_design
+    assert "dry-run 계획 중심" in screen_design
+    assert "Validation과 Execution Plan은 dry-run preview" in screen_design
+    assert "read-only explanation" in screen_design
     assert "dark left resource rail" in screen_design
 
 
@@ -80,7 +80,8 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "workflow"]' in nav_js
+    assert '["overview", "inventory", "resource-pool", "management", "designer"]' in nav_js
+    assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 
 
@@ -98,14 +99,9 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
         ".device-row .item-title strong",
         ".topo-service",
         ".topo-pod-pill",
-        ".workflow-template",
         ".device-card",
-        ".workflow-node span",
         ".inspector-title strong",
-        ".workflow-source-list",
         ".validation-item",
-        ".workflow-plan-preview",
-        ".workflow-graph-canvas::before",
         ".pod-placement-card",
     ]
 
@@ -113,7 +109,6 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
         assert selector in css
 
     assert "background: var(--console-row) !important;" in css
-    assert ".workflow-edge-label" in css
     assert "fill: var(--console-muted) !important;" in css
     assert "stroke: var(--console-control) !important;" in css
     assert ".status.available" in css
@@ -123,10 +118,33 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
 def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ">Overview<" in html
-    assert ">Assets<" in html
-    assert ">AI Pipeline<" in html
+    assert ">운영 현황<" in html
+    assert ">디바이스<" in html
+    assert ">장비 관리<" in html
+    assert ">자원 풀<" in html
+    assert ">AI 파이프라인<" not in html
+    assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
+
+
+def test_dashboard_resource_pool_is_read_only_and_responsive() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.css").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.js").read_text()
+
+    assert 'data-page="resource-pool"' in html
+    assert 'id="resourcePoolSearch"' in html
+    assert 'id="resourcePoolVerified"' in html
+    assert 'class="resource-pool-chain"' in html
+    assert "읽기 전용" in html
+    assert "apply · command · offloading 없음" in html
+    assert 'fetchFn("/state/resource-pool"' in js
+    assert 'fetchFn("/state/resource-pool/plan"' not in js
+    assert "Kubernetes apply" not in js
+    assert "@media (max-width: 1050px)" in css
+    assert "@media (max-width: 700px)" in css
+    assert ".resource-pool-chain { overflow-x: auto;" in css
+    assert ".resource-pool-row { grid-template-columns: 1fr;" in css
 
 
 def test_dashboard_screen_copy_omits_removed_augmentation_preview() -> None:
@@ -167,12 +185,33 @@ def test_dashboard_refactor_upgrades_telemetry_history_chart() -> None:
     assert "aspect-ratio: 16 / 7;" in css
 
 
-def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_assets() -> None:
+def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+    show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
+
+    assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
+    assert "/static/dashboard.js?v=infrastructure-observability-20260730" in html
+    assert "renderDeviceTelemetryHistory(history)" in show_device
+    assert "renderTelemetryChart(device.latest_readings" not in show_device
+    assert "void loadDeviceTelemetryHistory(device);" in js
+    assert 'target?.closest?.("[data-telemetry-window]")' in js
+    assert 'target?.closest?.("[data-telemetry-refresh]")' in js
+    assert ".telemetry-history-toolbar" in css
+    assert ".telemetry-history-state" in css
+    assert ".telemetry-history-meta" in css
+
+
+def test_context_drawer_groups_explain_panel_with_collapsed_chat_and_keeps_topology_in_assets() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
+    responsive_css = (
+        ROOT / "edge-orch/state-aggregator/app/static/dashboard-responsive.css"
+    ).read_text()
 
     assets_index = html.index('class="panel assets dashboard-page"')
-    topology_index = html.index('class="panel topology-panel dashboard-page"')
+    topology_index = html.index('class="panel topology-panel')
     side_rail_index = html.index('class="side-rail')
     explain_index = html.index('class="panel explain-panel operator-context-panel"')
     chat_index = html.index('class="panel operator-chat"')
@@ -180,52 +219,16 @@ def test_operator_rail_groups_explain_panel_with_chat_and_keeps_topology_in_asse
     assert assets_index < topology_index < side_rail_index < explain_index < chat_index
     assert html.count('id="explainPanel"') == 1
     assert html.index('id="explainPanel"') > side_rail_index
-    assert 'aria-label="sticky operator assistance"' in html
+    assert 'id="contextDetailPanel"' in html
+    assert 'aria-label="선택 항목 상세정보"' in html
+    assert 'class="context-assistant-details"' in html
     assert "Service Topology" in html
     assert ".operator-context-panel" in css
     assert ".topology-panel" in css
     assert ".topo-service-flow" in css
     assert ".topo-node-lane" in css
-
-
-def test_dashboard_refactor_keeps_workflow_canvas_as_primary_workspace() -> None:
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
-
-    assert "grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);" in css
-    assert ".workflow-palette" in css
-    assert ".workflow-canvas-shell" in css
-    assert ".workflow-inspector" in css
-    assert "grid-column: 1 / -1 !important;" in css
-    assert ".workflow-binding-inspector" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));" in css
-
-
-def test_workflow_cards_handle_long_pipeline_labels_without_overlap() -> None:
-    css = (
-        (ROOT / "edge-orch/state-aggregator/app/static/workflow.css").read_text()
-        + (ROOT / "edge-orch/state-aggregator/app/static/dashboard-refactor.css").read_text()
-    )
-
-    assert "width: 160px;" in css
-    assert "min-height: 118px;" in css
-    assert "-webkit-line-clamp: 2;" in css
-    assert ".workflow-node small" in css
-    assert ".workflow-message-text" in css
-    assert "overflow-wrap: anywhere;" in css
-    assert "text-overflow: ellipsis;" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));" in css
-
-
-def test_workflow_canvas_uses_three_column_compact_layout() -> None:
-    js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-render-panels.js").read_text()
-    actions_js = (ROOT / "edge-orch/state-aggregator/app/static/workflow-actions.js").read_text()
-
-    assert "canvas.clientWidth < 980" in js
-    assert "index % 3" in js
-    assert "index / 3" in js
-    assert "index * 190" in js
-    assert "Math.min(workflowState.canvasScale, 0.96)" in js
-    assert "(workflow.nodes.length % 3)" in actions_js
+    assert "#contextDetailPanel[hidden]" in responsive_css
+    assert "position: fixed !important;" in responsive_css
 
 
 def test_operator_explain_panel_avoids_nested_scroll() -> None:

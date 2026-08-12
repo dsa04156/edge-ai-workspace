@@ -106,20 +106,26 @@ function renderGraph() {
   const canvas = workflowEl("workflowGraphCanvas");
   const compact = canvas && canvas.clientWidth < 980;
   const vertical = canvas && canvas.clientWidth < 430;
+  const stacked = window.innerWidth <= 600;
   const scale = compact ? Math.min(workflowState.canvasScale, 0.96) : workflowState.canvasScale;
   workflowState.renderedCanvasScale = scale;
   canvas.classList.toggle("workflow-vertical", Boolean(vertical));
+  const compactColumns = vertical
+    ? 1
+    : Math.max(2, Math.min(3, Math.floor((canvas.clientWidth - 64) / 200)));
   const visualNodes = workflow.nodes.map((node, index) => {
     if (!compact) return node;
     if (vertical) return { ...node, x: 40, y: 56 + index * 190 };
     return {
       ...node,
-      x: 32 + (index % 3) * 196,
-      y: 52 + Math.floor(index / 3) * 170,
+      x: 32 + (index % compactColumns) * 196,
+      y: 52 + Math.floor(index / compactColumns) * 170,
     };
   });
-  const maxX = Math.max(vertical ? 260 : compact ? 660 : 720, ...visualNodes.map((node) => node.x + NODE_W + 72));
-  const maxY = Math.max(vertical ? 1320 : compact ? 460 : 460, ...visualNodes.map((node) => node.y + NODE_H + 96));
+  const compactWidth = compactColumns === 2 ? 470 : 660;
+  const maxX = Math.max(vertical ? 260 : compact ? compactWidth : 720, ...visualNodes.map((node) => node.x + NODE_W + 72));
+  const visualMaxY = stacked ? 0 : Math.max(...visualNodes.map((node) => node.y + NODE_H + 96));
+  const maxY = Math.max(stacked ? 460 : vertical ? 1320 : compact ? 460 : 460, visualMaxY);
   canvas.style.setProperty("--workflow-scale", String(scale));
   edgeRoot.setAttribute("viewBox", `0 0 ${maxX} ${maxY}`);
   edgeRoot.style.width = `${maxX * scale}px`;

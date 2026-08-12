@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>가상디바이스 Runtime과 중앙 EdgeX 설계</title>
+  <link rel="stylesheet" href="../../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../../index.html">← 문서 홈</a>
+        <a class="edit-link" href="/__edit?file=superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.md">편집</a>
+      </div>
+      <span>superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.md</span>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="wiki">위키</button>
+      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="history">설계 이력</button>
+      <button type="button" data-search-filter="archive">보관</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">위키</li>
+<li><a href="../../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
+<li><a href="../../wiki/운영-규칙.html">위키 운영 규칙</a></li>
+<li><a href="../../wiki/변경-기록.html">위키 변경 기록</a></li>
+<li><a href="../../wiki/운영-모델.html">운영 모델</a></li>
+<li><a href="../../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
+<li><a href="../../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
+<li><a href="../../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
+<li><a href="../../wiki/운영-진입점.html">운영 진입점</a></li>
+<li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
+<li class="group">최신 기준 문서</li>
+<li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
+<li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
+<li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
+<li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
+<li><a href="../../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
+<li><a href="../../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li><a href="../../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
+<li><a href="../../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
+<li><a href="../../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
+<li><a href="../../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
+<li><a href="../../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
+<li><a href="../../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
+<li><a href="../../현재-데모-경로.html">현재 데모 경로</a></li>
+<li><a href="../../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
+<li class="group">운영 문서</li>
+<li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="../../ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="../../ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
+<li><a href="../../ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li><a href="../../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
+<li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
+<li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
+<li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
+<li class="group">설계 이력</li>
+<li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
+<li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
+<li><a href="../plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
+<li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
+<li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
+<li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
+<li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
+<li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
+<li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
+<li><a href="../../일일-기록.html">일일 기록</a></li>
+<li><a href="../../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
+<li class="group">보관 문서</li>
+<li><a href="../../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
+<li><a href="../../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
+<li><a href="../../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
+<li><a href="../../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
+<li><a href="../../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
+<li><a href="../../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
+<li><a href="../../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
+<li><a href="../../archive/integration/통합-문서.html">통합 문서</a></li>
+<li><a href="../../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
+<li><a href="../../archive/integration/통합-요약.html">통합 문서 요약</a></li>
+<li><a href="../../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
+<li><a href="../../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
+<li><a href="../../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
+<li><a href="../../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
+<li><a href="../../archive/research/논문-전략.html">논문 전략</a></li>
+<li><a href="../../archive/research/연구-주제.html">연구 주제 정리</a></li>
+<li><a href="../../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
+<li><a href="../../archive/research/투고처-전략.html">투고처 전략</a></li>
+<li><a href="../../archive/research/평가-계획.html">평가 계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">설계 이력</p>
+          <h1>가상디바이스 Runtime과 중앙 EdgeX 설계</h1>
+          <p class="subtitle">&gt; 상태: 사용자 확정 설계. 구현 완료 여부는 코드, 테스트, 배포 manifest와 live</p>
+          <div class="meta">
+            <span class="badge kind">설계 이력</span>
+            <span class="badge">원본: superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.md</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
+          </div>
+        </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.md</code>
+</aside>
+        <div class="doc-body">
+          <h1 id="가상디바이스-runtime과-중앙-edgex-설계">가상디바이스 Runtime과 중앙 EdgeX 설계</h1>
+<h2 id="상태와-목적">상태와 목적</h2>
+<blockquote><p>상태: 사용자 확정 설계. 구현 완료 여부는 코드, 테스트, 배포 manifest와 live</p></blockquote>
+<blockquote><p>분류: 설계 이력. 현재 운영 기능의 완료 근거가 아니다. 검증으로 판단한다.</p></blockquote>
+<p>이 문서는 수집 서비스를 단순 전송 Agent가 아니라 <strong>가상디바이스 구현체</strong>로 정의한다. 물리 프로토콜, 데이터의 실제 생성 위치, 저장 위치와 시뮬레이션 여부를 Workflow에서 감추고, 모든 입력을 <code>deviceName</code>, <code>resourceName</code>, <code>accessMode</code>로 동일하게 바인딩하는 것이 목적이다.</p>
+<p>이 설계는 기존 <code>2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.md</code>의 단방향 Agent 중심 구조를 대체한다. 중앙 EdgeX 배치와 PostgreSQL 권위는 유지하고 엣지 수집 계층의 역할과 Workflow 입력 계약을 바로잡는다.</p>
+<h2 id="핵심-정의">핵심 정의</h2>
+<p>가상디바이스는 실제 하드웨어 존재 여부와 관계없이 Workflow가 동일한 방식으로 데이터를 읽고 명령할 수 있는 추상화된 디바이스다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>정의</th>
+<th>예시</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 디바이스</td>
+<td>실제 센서, PLC, 카메라, Jetson과 프로토콜 endpoint</td>
+<td>Arduino, Modbus PLC, RTSP camera</td>
+</tr>
+<tr>
+<td>수집 서비스</td>
+<td>물리 또는 논리 source를 읽고 표준화하는 container runtime</td>
+<td>Serial Runtime, replay Runtime, simulator Runtime</td>
+</tr>
+<tr>
+<td>가상디바이스 인스턴스</td>
+<td>수집 서비스가 제공하며 EdgeX Device로 등록되는 Workflow-facing source</td>
+<td><code>virtual-arduino-001</code>, <code>virtual-history-replay-001</code></td>
+</tr>
+<tr>
+<td>Device Profile</td>
+<td>resource 형과 지원 command를 고정하는 계약</td>
+<td><code>etri-virtual-arduino</code></td>
+</tr>
+<tr>
+<td>Workflow source</td>
+<td>가상디바이스의 resource와 접근 방식을 참조하는 stage 입력</td>
+<td><code>virtual-arduino-001/temperature_raw</code></td>
+</tr>
+</tbody></table></div>
+<p>EdgeX 공식 <code>device-virtual</code>의 무작위 테스트 장치를 사용한다는 의미가 아니다. 이 프로젝트의 가상디바이스는 실제 물리 endpoint, 과거 데이터 또는 simulator를 같은 Device/Profile/I/O 계약으로 노출하는 프로젝트 도메인 객체다.</p>
+<h2 id="목표-배치">목표 배치</h2>
+<pre data-lang="text"><code>[물리 디바이스 / Edge Node]
+
+센서 · PLC · 카메라
+        ↓
+가상디바이스 Runtime
+- Modbus / OPC-UA / Serial 수집
+- 표준 EdgeX Event 생성
+- resource별 latest snapshot
+- bounded recent cache
+- SQLite Outbox
+- GET / stream / command adapter
+        ↓ HTTPS/mTLS
+
+요청 시 Workflow Pod
+- current/recent/live → local Runtime
+- camera frame → RTSP 직접 연결
+- history → 중앙 EdgeX 조회
+
+[Edge AI 서버]
+
+API Gateway / Ingest Gateway
+        ↓
+EdgeX Core Metadata
+EdgeX Core Data ─── PostgreSQL
+EdgeX Core Command
+EdgeX MessageBus
+Core Keeper
+Application Service
+Optional Historical Backend (InfluxDB 등)
+        ↓
+Workflow Orchestrator
+DeviceTwin
+Dashboard</code></pre>
+<p>EdgeX Core, 내부 MessageBus와 PostgreSQL은 <code>etri-ser0002-cgnmsb</code>에 한 세트만 배치한다. Jetson과 Raspberry Pi에는 전체 EdgeX Core를 복제하지 않는다. 각 edge node에는 물리 또는 논리 source를 소유하는 가상디바이스 Runtime만 배치한다.</p>
+<p>중앙 <code>edgex-messagebus</code>는 중앙 EdgeX 내부 통신용이다. 물리 프로토콜, edge-local Workflow handoff 또는 SQLite 장애 버퍼 역할을 하지 않는다. 고정 ClusterIP, PodIP, node IP를 구성에 넣지 않고 기존 Service DNS와 EdgeMesh 설정을 변경하지 않는다.</p>
+<h2 id="edgex-객체-매핑">EdgeX 객체 매핑</h2>
+<p>Kubernetes Pod와 EdgeX Device를 같은 객체로 취급하지 않는다. 문서와 API에서는 다음 관계를 명시한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>실행/관리 객체</th>
+<th>EdgeX 표현</th>
+<th>역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>수집 Runtime Deployment/Pod</td>
+<td>Device Service</td>
+<td>adapter, cache, API, Event와 command 실행 주체</td>
+</tr>
+<tr>
+<td>가상디바이스 인스턴스</td>
+<td>Device</td>
+<td>Workflow가 선택하는 <code>deviceName</code></td>
+</tr>
+<tr>
+<td>가상디바이스 형</td>
+<td>Device Profile</td>
+<td>resource와 command schema</td>
+</tr>
+<tr>
+<td>수집 sample</td>
+<td>Event / Reading</td>
+<td><code>deviceName</code>에 귀속되는 typed data</td>
+</tr>
+</tbody></table></div>
+<p>한 Runtime Pod가 여러 가상디바이스 인스턴스를 관리할 수 있다. 반대로 Pod 이름을 그대로 Workflow source ID로 사용하지 않는다. Pod가 재시작돼도 <code>deviceName</code>과 Profile 계약은 유지돼야 한다.</p>
+<p>첫 Arduino vertical slice는 다음 identity를 사용한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Device Service</td>
+<td><code>virtual-device-runtime-jetson</code></td>
+</tr>
+<tr>
+<td>Device Profile</td>
+<td><code>etri-virtual-arduino</code></td>
+</tr>
+<tr>
+<td>Device</td>
+<td><code>virtual-arduino-001</code></td>
+</tr>
+<tr>
+<td>physical reference</td>
+<td><code>arduino-001</code></td>
+</tr>
+<tr>
+<td>node</td>
+<td><code>etri-dev0001-jetorn</code></td>
+</tr>
+</tbody></table></div>
+<p>Core Metadata Device의 <code>properties</code> 또는 <code>tags</code>에는 최소한 다음 정보를 기록한다.</p>
+<pre data-lang="yaml"><code>kind: virtual-device
+physicalRef: arduino-001
+nodeName: etri-dev0001-jetorn
+runtimeId: virtual-device-runtime-jetson
+accessModes:
+  - current
+  - recent
+  - history</code></pre>
+<p><code>live</code>는 local stream 구현과 저지연 검증을 통과한 Runtime에만 추가한다. Metadata에 광고한 access mode는 실제 API와 반드시 일치해야 한다.</p>
+<p>Serial 경로, baud rate와 encoding은 <code>protocols.serial</code>에 기록한다. 인증서, password, RTSP credential 같은 secret 값은 Metadata에 평문으로 넣지 않고 Secret reference만 기록한다.</p>
+<h2 id="가상디바이스-runtime-책임">가상디바이스 Runtime 책임</h2>
+<p>Runtime은 다음 책임을 한 경계에서 제공한다.</p>
+<ol><li>하나 이상의 protocol adapter를 통해 source를 독점 연결한다.</li><li>원본 sample을 Device Profile의 typed resource로 표준화한다.</li><li>resource별 latest snapshot과 bounded recent cache를 갱신한다.</li><li>Event를 SQLite Outbox에 먼저 commit한다.</li><li>HTTPS/mTLS로 중앙 ingest gateway에 재전송한다.</li><li>local Workflow에 current/recent/live API를 제공한다.</li><li>지원 command를 adapter로 실행하고 결과를 반환한다.</li><li>연결 상태, 데이터 freshness, invalid sample과 outbox 상태를 진단한다.</li></ol>
+<p>첫 구현은 Runtime 하나를 단일 Pod로 배치하되 내부 코드는 다음 모듈 경계를 유지한다.</p>
+<pre data-lang="text"><code>VirtualDeviceRuntime
+├─ ProtocolAdapter
+│  └─ Serial / Modbus / OPC-UA / I2C
+├─ DataNormalizer
+│  └─ deviceName / resourceName / valueType / value / origin
+├─ LatestSnapshotRepository
+├─ RecentCacheRepository
+├─ OutboxRepository
+├─ LocalDataAPI
+├─ UplinkClient
+└─ CommandAdapter</code></pre>
+<p><code>LatestSnapshotRepository</code>, <code>RecentCacheRepository</code>와 <code>OutboxRepository</code>는 서로 다른 수명주기와 삭제 정책을 가진다. 하나의 SQLite 파일을 재사용할 수는 있지만 table, transaction과 repository API를 분리한다. Local Data API는 repository 구현을 외부에 노출하지 않는다.</p>
+<p>Runtime은 여러 프로토콜 구현을 하나의 거대한 조건문으로 합치지 않는다. 공통 Runtime 계약 아래 Serial, Modbus, OPC-UA, replay와 simulator adapter를 독립적으로 구현하고 검증한다. 한 protocol 성공을 다른 protocol 지원 완료 근거로 사용하지 않는다.</p>
+<p>현재 <code>edge-telemetry-agent</code>의 canonical Event validation, SQLite outbox, gateway client, heartbeat와 command bridge는 Runtime 내부 공통 모듈로 재사용할 수 있다. 최종 배포에서 별도 Agent Pod와 Runtime Pod가 같은 데이터를 연쇄 전달하는 구조는 만들지 않는다.</p>
+<h2 id="표준-데이터-접근-계약">표준 데이터 접근 계약</h2>
+<p>Workflow는 물리 프로토콜이나 저장소 URL 대신 다음 source binding만 사용한다.</p>
+<pre data-lang="yaml"><code>collection:
+  deviceName: virtual-arduino-001
+  resourceNames:
+    - acceleration_x_raw
+    - acceleration_y_raw
+    - acceleration_z_raw
+  accessMode: history
+  window: 10m
+  limit: 300</code></pre>
+<p>지원 접근 방식은 다음처럼 구분한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th><code>accessMode</code></th>
+<th>의미</th>
+<th>실제 데이터 경로</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>current</code></td>
+<td>현재 resource snapshot을 한 번 읽음</td>
+<td>Runtime latest cache 또는 EdgeX Core Command GET</td>
+</tr>
+<tr>
+<td><code>recent</code></td>
+<td>edge에 남아 있는 제한된 최근 window 조회</td>
+<td>Runtime recent API</td>
+</tr>
+<tr>
+<td><code>history</code></td>
+<td>중앙에 저장된 Event/Reading 조회</td>
+<td>EdgeX Core Data GET</td>
+</tr>
+<tr>
+<td><code>live</code></td>
+<td>배치 이후 들어오는 sample을 연속 소비</td>
+<td>Runtime local stream</td>
+</tr>
+</tbody></table></div>
+<p>저장된 Event의 기준 조회는 다음 EdgeX Core Data 경로다.</p>
+<pre data-lang="text"><code>GET /api/v3/event/device/name/{deviceName}?offset=0&amp;limit=20</code></pre>
+<p>시간 window가 필요한 Workflow는 중앙 read model의 기존 facade를 사용할 수 있다.</p>
+<pre data-lang="text"><code>GET /state/devices/{deviceName}/telemetry?window=-10m&amp;limit=300</code></pre>
+<p>현재값을 EdgeX command plane으로 읽을 때는 Profile의 read command를 사용한다.</p>
+<pre data-lang="text"><code>GET /api/v3/device/name/{deviceName}/{commandName}</code></pre>
+<p>Arduino처럼 비동기 Serial sample을 계속 보내는 장비는 GET 시마다 장치를 다시 읽지 않는다. Runtime이 마지막으로 검증한 snapshot과 <code>origin</code>, quality/freshness를 반환한다. 아직 유효 sample이 없거나 freshness 정책을 넘겼으면 가짜 기본값을 반환하지 않고 명시적 unavailable/stale 오류를 반환한다.</p>
+<p>local recent/live API는 모든 Runtime이 동일한 wire envelope를 사용한다. Workflow는 SQLite 파일을 직접 mount하거나 Runtime 내부 table을 조회하지 않는다. live consumer가 없을 때는 구독자 수가 0일 뿐 중앙 수집과 outbox flush는 계속된다.</p>
+<h2 id="event와-resource-계약">Event와 resource 계약</h2>
+<p>가상디바이스가 중앙에 올리는 Event의 <code>deviceName</code>은 물리 ID가 아니라 Workflow가 바인딩하는 가상디바이스 이름이다. 물리 ID는 Event tag 또는 Metadata의 <code>physicalRef</code>로 추적한다.</p>
+<p>Arduino 첫 slice는 다음 resource를 사용한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>source</th>
+<th>Reading</th>
+<th><code>valueType</code></th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>temperature</code></td>
+<td><code>temperature_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>light</code></td>
+<td><code>light_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>magnetic</code></td>
+<td><code>magnetic_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+<tr>
+<td><code>acceleration</code></td>
+<td><code>acceleration_x_raw</code>, <code>acceleration_y_raw</code>, <code>acceleration_z_raw</code></td>
+<td><code>Int32</code></td>
+</tr>
+</tbody></table></div>
+<p>Firmware가 단위나 source timestamp를 제공하지 않으므로 값을 임의로 Celsius, lux, tesla 또는 g로 변환하지 않는다. Event <code>origin</code>은 Runtime이 완전한 Serial line을 받은 시각의 Unix nanoseconds다.</p>
+<p>Profile은 resource 단건 읽기와 <code>acceleration</code>, <code>telemetry</code> 같은 read-only grouping command를 제공한다. Arduino 첫 slice에는 쓰기 가능한 actuator command를 추가하지 않는다.</p>
+<h2 id="저장-경계">저장 경계</h2>
+<p>edge에 전체 이력을 복제하지 않는다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>저장소</th>
+<th>데이터</th>
+<th>수명</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>latest snapshot</td>
+<td>resource별 마지막 정상값</td>
+<td>새 값으로 교체</td>
+</tr>
+<tr>
+<td>recent cache</td>
+<td>Workflow의 짧은 window 조회용</td>
+<td>시간과 byte 상한으로 삭제</td>
+</tr>
+<tr>
+<td>SQLite Outbox</td>
+<td>아직 중앙 persisted ACK를 받지 못한 Event</td>
+<td>ACK 뒤 삭제</td>
+</tr>
+<tr>
+<td>Workflow workspace</td>
+<td>실행에 stage-in한 과거 dataset</td>
+<td>Workflow 종료 뒤 삭제</td>
+</tr>
+<tr>
+<td>PostgreSQL/Core Data</td>
+<td>가상디바이스 전체 운영 이력</td>
+<td>중앙 retention 정책</td>
+</tr>
+<tr>
+<td>선택적 InfluxDB</td>
+<td>고주기 시계열 분석용 export 사본</td>
+<td>Application Service와 별도 retention 정책</td>
+</tr>
+</tbody></table></div>
+<p>latest/recent와 outbox는 역할과 삭제 조건이 다르므로 같은 SQLite 파일을 사용하더라도 별도 table과 repository 경계를 가진다. Outbox ACK 삭제가 recent 조회 결과를 바꾸거나, recent retention이 미전송 Event를 삭제해서는 안 된다.</p>
+<p>Workflow가 local cache보다 오래된 window를 요구하면 중앙 Core Data에서 필요한 범위만 조회하거나 실행 전에 stage-in한다. 중앙 연결이 없고 필요한 범위도 local에 없으면 validation에서 실행 불가로 판단한다. 전체 중앙 이력을 edge에 미리 복제하지 않는다.</p>
+<p>현재 live 배포의 영구 저장 권위는 Core Data/PostgreSQL이다. InfluxDB가 필요한 경우 Application Service가 typed Event를 별도 시계열 backend로 export하고, Workflow는 Historical Data API를 통해 backend 차이를 감춘다. InfluxDB를 현재 배포 또는 첫 Arduino slice의 필수 구성으로 간주하지 않는다.</p>
+<h2 id="workflow-동작">Workflow 동작</h2>
+<p>Workflow Orchestrator는 Core Metadata의 Device/Profile과 가상디바이스 properties를 조회해 source 후보를 만든다. Workflow의 수집 stage는 protocol driver가 아니라 가상디바이스 client다.</p>
+<pre data-lang="text"><code>Virtual Device selection
+  -&gt; access mode와 window validation
+  -&gt; Runtime/central endpoint resolution
+  -&gt; KubeEdge placement
+  -&gt; collection
+  -&gt; preprocess
+  -&gt; inference
+  -&gt; postprocess/control</code></pre>
+<p>첫 실행 slice에서는 저장된 <code>history</code> GET과 <code>current</code> GET을 우선 검증한다. <code>live</code>는 실제 저지연 Workflow 요구가 있는 Profile에만 명시적으로 활성화한다. 모든 디바이스에 항상 stream endpoint나 local broker를 강제하지 않는다.</p>
+<p>같은 Profile/resource 계약을 만족하면 Workflow는 다음 source를 교체할 수 있다.</p>
+<ul><li><code>virtual-temp-001</code>: 실제 Modbus 센서 Runtime</li><li><code>virtual-temp-replay-001</code>: 과거 DB replay Runtime</li><li><code>virtual-temp-sim-001</code>: simulator Runtime</li></ul>
+<p>replay와 simulator는 별도 <code>deviceName</code>을 사용해 실제 장비 Event 이력을 오염시키지 않는다. Profile compatibility가 맞지 않으면 이름이 비슷해도 bind를 거부한다.</p>
+<h2 id="카메라-경계">카메라 경계</h2>
+<p><code>virtual-camera-001</code>도 Metadata, 상태, capability와 command 관점에서는 가상디바이스다. 그러나 raw frame을 Core Data Event, SQLite Outbox 또는 일반 JSON stream에 넣지 않는다.</p>
+<ul><li>camera metadata/status/command: 가상디바이스와 EdgeX 계약</li><li>frame input: Workflow Pod가 RTSP/GStreamer로 직접 구독</li><li>inference result: 별도 typed Event로 중앙 EdgeX에 저장</li><li>영상 보관: 명시된 clip/object-storage 정책이 있을 때만 수행</li></ul>
+<h2 id="명령-경계">명령 경계</h2>
+<p>Core Command는 가상디바이스의 표준 command entry point다. 중앙 command gateway는 대상 Runtime으로 요청을 전달하고 Runtime은 Profile과 allowlist에 선언된 command만 adapter로 실행한다.</p>
+<p>명령은 telemetry Outbox에 넣지 않는다. 만료된 명령을 연결 복구 후 뒤늦게 실행하지 않으며, timeout·TTL·idempotency와 terminal result를 명시한다. actuator write는 read-only Arduino slice와 분리된 승인 및 live 검증 뒤에만 활성화한다.</p>
+<h2 id="상태와-권위">상태와 권위</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>정보</th>
+<th>권위</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>가상디바이스 inventory/schema</td>
+<td>EdgeX Core Metadata Device/Profile</td>
+</tr>
+<tr>
+<td>현재 연결과 latest freshness</td>
+<td>Runtime 진단 + Core Metadata operating state</td>
+</tr>
+<tr>
+<td>저장된 telemetry</td>
+<td>EdgeX Core Data/PostgreSQL</td>
+</tr>
+<tr>
+<td>중앙 command API</td>
+<td>EdgeX Core Command</td>
+</tr>
+<tr>
+<td>미전송 복구 queue</td>
+<td>edge SQLite Outbox</td>
+</tr>
+<tr>
+<td>workflow binding/execution</td>
+<td>Workflow Orchestrator</td>
+</tr>
+<tr>
+<td>derived twin snapshot</td>
+<td>DeviceTwin</td>
+</tr>
+</tbody></table></div>
+<p>DeviceTwin은 raw Event를 다시 전부 저장하지 않는다. <code>physicalRef</code>, capability, 현재 binding, derived status와 last error를 참조하는 관리 snapshot이다.</p>
+<h2 id="장애-동작">장애 동작</h2>
+<ul><li>중앙 연결 장애: current/recent/live local access는 계속되고 Event는 Outbox에 보존된다.</li><li>Runtime 재시작: latest/recent의 보존 정책에 따라 복구하며 outbox는 PVC에서 재전송한다.</li><li>물리 endpoint 장애: stale snapshot을 정상 current로 반환하지 않고 상태와 오류를 노출한다.</li><li>Workflow 장애: Runtime과 중앙 전송을 중단하지 않는다.</li><li>history backend 장애: local current/recent로 자동 의미 변경하지 않고 history unavailable을 반환한다.</li><li>outbox full: 기존 미전송 Event를 조용히 삭제하지 않고 rejection과 오류를 기록한다.</li></ul>
+<h2 id="현재-구조에서의-전환">현재 구조에서의 전환</h2>
+<p>현재 live cluster는 중앙 EdgeX Core와 edge별 custom telemetry Agent로 구성되어 있다. 목표 구조로 전환할 때 다음 순서를 지킨다.</p>
+<ol><li>중앙 EdgeX Core, MessageBus, PostgreSQL, gateway와 EdgeMesh를 변경하지 않는다.</li><li>기존 Agent 공통 기능을 가상디바이스 Runtime library로 분리한다.</li><li>Arduino Serial adapter와 latest/recent/read command를 Runtime에 추가한다.</li><li><code>virtual-arduino-001</code> Profile/Device/Device Service를 멱등 등록한다.</li><li>Core Data stored GET과 current GET을 검증한다.</li><li>Workflow builder source를 physical fixture가 아닌 가상디바이스 Device/resource에 bind한다.</li><li>같은 live 증거가 확보된 뒤 Jetson Agent Deployment를 Runtime Deployment로 교체한다.</li></ol>
+<p>Sense HAT과 과거 MQTT workload는 별도 migration wave다. Arduino 성공을 이유로 함께 변경하거나 지원 완료로 표시하지 않는다.</p>
+<h2 id="기존-중앙-edgex-변경-경계">기존 중앙 EdgeX 변경 경계</h2>
+<p>기존 <code>edgex-system</code> Core 서비스를 삭제하거나 재설치하지 않는다. Core Data, Core Metadata, Core Command, Core Keeper, 중앙 MessageBus와 PostgreSQL의 image, Deployment, Service와 저장 schema는 현재 구성을 유지한다. EdgeMesh 설정도 변경하지 않는다.</p>
+<p>필요한 변경은 중앙 EdgeX 자체 재구축이 아니라 다음 통합 데이터와 설정이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>대상</th>
+<th>필요한 변경</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Core Metadata</td>
+<td>Runtime Device Service, Device Profile, virtual Device 멱등 등록</td>
+</tr>
+<tr>
+<td>Ingest Gateway</td>
+<td>새 service/profile/device allowlist와 canonical Event admission</td>
+</tr>
+<tr>
+<td>Core Data</td>
+<td>변경 없음. 기존 Event 저장과 device-name GET 재사용</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>변경 없음. 기존 Core Data persistence 재사용</td>
+</tr>
+<tr>
+<td>Core Command</td>
+<td>Core binary 변경 없음. Profile command와 Runtime endpoint routing 추가</td>
+</tr>
+<tr>
+<td>Application/read model</td>
+<td>Workflow용 virtual-device/resource/accessMode 조회 모델 추가</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>physical reference와 virtual device/service binding 표시</td>
+</tr>
+</tbody></table></div>
+<p>중앙 command를 사용하지 않는 첫 stored-data GET까지는 Core Command routing 변경도 필수 조건이 아니다. <code>current</code> read command와 actuator command를 활성화할 때 기존 HTTPS command bridge의 target mapping과 allowlist를 Runtime 단위로 확장한다.</p>
+<p>edge 쪽에서는 <code>edgex-edge-agent-jetson</code>을 즉시 삭제하지 않는다. 새 Runtime이 실제 Serial Event, GET, outbox replay와 dashboard source binding을 통과한 뒤 같은 기능을 인수하고 Deployment를 교체한다. <code>edgex-edge-agent-sensehat</code>은 별도 migration 전까지 유지한다.</p>
+<h2 id="자동-검증-기준">자동 검증 기준</h2>
+<ul><li>Metadata contract에 Device Service/Profile/Device가 정확히 한 번 존재한다.</li><li><code>deviceName=virtual-arduino-001</code>인 typed Event가 Core Data에 저장된다.</li><li>Core Data device-name GET이 limit와 시간 범위를 지킨다.</li><li>current GET이 마지막 정상 sample의 값, origin과 freshness를 반환한다.</li><li>sample 없는 상태, stale 상태와 endpoint 오류가 명시적으로 실패한다.</li><li>recent cache와 outbox retention/ACK가 서로 간섭하지 않는다.</li><li>Workflow binding은 Profile/resource/accessMode/window를 검증한다.</li><li>replay/simulator deviceName이 실제 source 이력을 오염시키지 않는다.</li><li>local consumer가 없어도 중앙 전송과 outbox flush가 정상이다.</li><li>Workflow 종료가 Runtime의 물리 연결을 닫지 않는다.</li><li>카메라 frame이 Core Data/SQLite JSON Event에 들어가지 않는다.</li><li>Kustomize render에 고정 ClusterIP, PodIP, node IP가 없다.</li><li>기존 Sense HAT과 중앙 EdgeX 테스트가 회귀하지 않는다.</li></ul>
+<h2 id="live-검증-기준">Live 검증 기준</h2>
+<ul><li>Runtime Pod가 <code>etri-dev0001-jetorn</code>에서 실제 Arduino Serial을 독점 연결한다.</li><li>Core Metadata에서 <code>virtual-arduino-001</code>과 Profile/Service binding을 조회할 수 있다.</li><li>Core Data device-name GET에서 네 source와 여섯 raw Reading을 실제 값으로 읽는다.</li><li>current GET이 같은 시점의 latest snapshot을 반환한다.</li><li>중앙 단절 동안 local current/recent가 동작하고 outbox가 증가한다.</li><li>복구 뒤 Event가 FIFO로 전송되고 persisted ACK 뒤 outbox가 감소한다.</li><li>Workflow preview가 virtual device/resource/window를 source로 표시한다.</li><li>중앙 Core/PostgreSQL, 기존 Sense HAT과 EdgeMesh Pod가 변경 없이 정상이다.</li></ul>
+<h2 id="완료-경계">완료 경계</h2>
+<p>첫 완료는 <code>virtual-arduino-001</code>의 등록, 실제 Serial Event, Core Data GET, current GET, outbox replay와 Workflow source binding까지의 수직 slice다. Runtime Pod가 Ready거나 Metadata에 Device만 보이는 것으로 완료를 주장하지 않는다.</p>
+<p>다음 항목은 별도 검증 전까지 완료 범위가 아니다.</p>
+<ul><li>Modbus/OPC-UA adapter</li><li>actuator write command</li><li>RTSP inference Workflow 실행</li><li>replay/simulator Runtime</li><li>범용 live stream broker</li><li>동적 Workflow 실행과 stage-level offloading</li><li>전체 가상디바이스 registry/twin 자동화</li></ul>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태와-목적">상태와 목적</a></li>
+<li class="toc-h2"><a href="#핵심-정의">핵심 정의</a></li>
+<li class="toc-h2"><a href="#목표-배치">목표 배치</a></li>
+<li class="toc-h2"><a href="#edgex-객체-매핑">EdgeX 객체 매핑</a></li>
+<li class="toc-h2"><a href="#가상디바이스-runtime-책임">가상디바이스 Runtime 책임</a></li>
+<li class="toc-h2"><a href="#표준-데이터-접근-계약">표준 데이터 접근 계약</a></li>
+<li class="toc-h2"><a href="#event와-resource-계약">Event와 resource 계약</a></li>
+<li class="toc-h2"><a href="#저장-경계">저장 경계</a></li>
+<li class="toc-h2"><a href="#workflow-동작">Workflow 동작</a></li>
+<li class="toc-h2"><a href="#카메라-경계">카메라 경계</a></li>
+<li class="toc-h2"><a href="#명령-경계">명령 경계</a></li>
+<li class="toc-h2"><a href="#상태와-권위">상태와 권위</a></li>
+<li class="toc-h2"><a href="#장애-동작">장애 동작</a></li>
+<li class="toc-h2"><a href="#현재-구조에서의-전환">현재 구조에서의 전환</a></li>
+<li class="toc-h2"><a href="#기존-중앙-edgex-변경-경계">기존 중앙 EdgeX 변경 경계</a></li>
+<li class="toc-h2"><a href="#자동-검증-기준">자동 검증 기준</a></li>
+<li class="toc-h2"><a href="#live-검증-기준">Live 검증 기준</a></li>
+<li class="toc-h2"><a href="#완료-경계">완료 경계</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

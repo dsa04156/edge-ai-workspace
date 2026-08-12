@@ -66,22 +66,53 @@ def test_dashboard_screen_collapses_mid_width_layout_before_cards_overlap() -> N
     assert ".kpi-catalog-row strong" in css
 
 
-def test_dashboard_screen_keeps_side_rail_inside_ops_shell_grid() -> None:
+def test_dashboard_screen_uses_a_hidden_responsive_context_drawer() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
-    final_guard_start = css.rfind("\n.ops-shell > .side-rail {\n")
-    final_guard_end = css.find("\n@media (max-width: 1360px)", final_guard_start)
-    final_guard = css[final_guard_start:final_guard_end]
+    css = (
+        ROOT / "edge-orch/state-aggregator/app/static/dashboard-responsive.css"
+    ).read_text()
 
     assert '<section class="ops-shell">' in html
     assert '<div class="ops-main">' in html
-    assert '<aside class="side-rail t-panel-reveal"' in html
-    assert '<div id="alertList" hidden></div>\n      </section>\n        </div>\n        <aside class="side-rail t-panel-reveal"' in html
-    assert '<aside class="side-rail t-panel-reveal"' in html.split("</main>", 1)[0]
-    assert "right: auto !important;" in css
-    assert "left: auto !important;" in css
-    assert "width: auto !important;" in css
-    assert "height: auto !important;" in css
-    assert "z-index: auto !important;" in final_guard
-    assert "right: auto !important;" in final_guard
-    assert "grid-column: 2 !important;" in final_guard
+    assert 'id="contextDetailPanel"' in html
+    assert 'id="contextDetailBackdrop"' in html
+    assert 'role="dialog"' in html
+    assert 'aria-modal="true"' in html
+    assert 'class="side-rail t-panel-reveal"' in html
+    assert 'aria-hidden="true"' in html
+    assert 'id="contextDetailClose"' in html
+    assert 'id="contextDetailPanel"' in html.split("</main>", 1)[0]
+    assert "#contextDetailPanel[hidden]" in css
+    assert "position: fixed !important;" in css
+    assert "width: min(720px, calc(100vw - 32px)) !important;" in css
+    assert "max-height: calc(100dvh - 32px) !important;" in css
+    assert "z-index: 100 !important;" in css
+    assert "display: flex !important;" in css
+    assert "flex-direction: column;" in css
+    assert "#contextDetailPanel > *" in css
+    assert "flex: 0 0 auto;" in css
+    assert "#contextDetailPanel .operator-context-panel" in css
+    assert "overflow: visible !important;" in css
+    assert ".context-detail-backdrop" in css
+    assert "body.context-detail-open" in css
+    assert "@media (max-width: 760px)" in css
+    assert "width: 100vw !important;" in css
+
+
+def test_sensor_device_table_does_not_collapse_or_clip_at_scale() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/operations-dashboard.css").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
+
+    assert 'aria-label="디바이스 목록"' in html
+    assert 'id="inventoryTitle">센서 디바이스<' in html
+    assert 'class="sensor-device-table"' in html
+    assert ".sensor-table-shell" in css
+    assert "max-height: none;" in css
+    assert "#deviceList" in css
+    assert ".sensor-device-row" in css
+    assert ".resource-category-tabs" in css
+    assert 'grid-template-areas:' in css
+    assert "overflow: visible;" in css
+    assert ".sensor-device-name" in css
+    assert 'aria-expanded="${isSelected && contextPanelOpen' in js

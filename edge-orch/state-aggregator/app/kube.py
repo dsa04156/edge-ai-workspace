@@ -104,6 +104,8 @@ class KubeClient:
             logger.exception("Failed to list running pods for service resource profiling")
             return []
 
+        endpoint_pods = self._ready_endpoint_pods()
+
         results: list[dict[str, Any]] = []
         for pod in pods.items:
             metadata = pod.metadata
@@ -120,6 +122,8 @@ class KubeClient:
                     "node": spec.node_name,
                     "phase": status.phase,
                     "labels": labels,
+                    "ready": self._pod_ready(status),
+                    "endpoint_ready": (metadata.namespace, metadata.name) in endpoint_pods,
                     "containers": [
                         {
                             "name": container.name,
@@ -131,6 +135,33 @@ class KubeClient:
                 }
             )
         return results
+
+    def _ready_endpoint_pods(self) -> set[tuple[str, str]]:
+        """Return Pods backed by at least one ready Kubernetes Service endpoint."""
+        try:
+            endpoints = self.v1.list_endpoints_for_all_namespaces()
+        except Exception:
+            logger.exception("Failed to list service endpoints for runtime evidence")
+            return set()
+
+        ready_pods: set[tuple[str, str]] = set()
+        for endpoint in endpoints.items:
+            namespace = endpoint.metadata.namespace if endpoint.metadata is not None else None
+            if not namespace:
+                continue
+            for subset in endpoint.subsets or []:
+                for address in subset.addresses or []:
+                    target = address.target_ref
+                    if target is not None and target.kind == "Pod" and target.name:
+                        ready_pods.add((namespace, target.name))
+        return ready_pods
+
+    @staticmethod
+    def _pod_ready(status: client.V1PodStatus) -> bool:
+        return any(
+            condition.type == "Ready" and condition.status == "True"
+            for condition in (status.conditions or [])
+        )
 
     def _workload_name(self, pod: client.V1Pod) -> str:
         metadata = pod.metadata

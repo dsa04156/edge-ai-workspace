@@ -70,6 +70,12 @@ Platform endpoint는 compute node와 분리한다.
 - State Aggregator
 - Dashboard
 
+### Experimental Dynamic Workflow Lab
+
+기존 workflow designer 안에 분리된 실험 영역으로 표시한다. 선택된 example workflow를 기준으로 Current State, Generated Workflow Proposal, Placement Plan, Dry-run Validation 네 가지 read-only/dry-run 패널만 렌더링한다.
+
+경계: experimental, read-only, dry-run only. Kubernetes apply/delete/restart, MQTT command publish, actuator command, Device CR mutation, runtime migration/offloading execution, autonomous platform control은 수행하지 않는다. Production dashboard나 `state-aggregator` 정적 UI와도 분리한다.
+
 ## 데이터 모델
 
 workflow example은 다음 구조를 포함한다.

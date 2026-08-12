@@ -43,6 +43,12 @@ spec:
               value: "10"
             - name: EDGEX_EVENT_FRESH_SECONDS
               value: "90"
+            - name: EDGEX_EVENT_QUERY_CONCURRENCY
+              value: "1"
+            - name: EDGEX_DEVICE_SNAPSHOT_TTL_SECONDS
+              value: "10"
+            - name: EDGEX_DEVICE_ERROR_BACKOFF_SECONDS
+              value: "30"
           volumeMounts:
             - name: state-data
               mountPath: /app/data

@@ -11,7 +11,7 @@ RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
         resource_type="ai-hat",
         stage_type="ai_inference",
         capabilities=["lightweight_inference"],
-        keywords=["aihat", "ai-hat", "npu"],
+        runtime_selector={"edge-ai.io/augmentation-resource": "vd-aihat-inference"},
     ),
     VirtualResourceRegistryEntry(
         id="vd-x86-gpu-inference",
@@ -20,7 +20,7 @@ RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
         resource_type="gpu",
         stage_type="ai_inference",
         capabilities=["gpu_inference", "anomaly_model"],
-        keywords=["gpu", "inference", "vision", "anomaly"],
+        runtime_selector={"edge-ai.io/augmentation-resource": "vd-x86-gpu-inference"},
     ),
     VirtualResourceRegistryEntry(
         id="vd-jetson-gpu-lite",
@@ -29,7 +29,7 @@ RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
         resource_type="gpu-lite",
         stage_type="preprocess/inference",
         capabilities=["edge_preprocess", "gpu_lite_inference"],
-        keywords=["jetson", "gpu-lite", "edge-ai"],
+        runtime_selector={"edge-ai.io/augmentation-resource": "vd-jetson-gpu-lite"},
     ),
     VirtualResourceRegistryEntry(
         id="vd-storage-cache",
@@ -38,6 +38,6 @@ RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
         resource_type="storage/cache",
         stage_type="result_cache",
         capabilities=["result_cache", "window_storage"],
-        keywords=["cache", "storage", "redis", "minio", "bucket"],
+        runtime_selector={"edge-ai.io/augmentation-resource": "vd-storage-cache"},
     ),
 )

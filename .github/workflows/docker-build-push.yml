@@ -177,6 +177,12 @@ jobs:
           CURRENT_IMAGE=$(kubectl get deployment state-aggregator -n default -o jsonpath='{.spec.template.spec.containers[?(@.name=="state-aggregator")].image}')
           TARGET_IMAGE=${{ env.REGISTRY }}/state-aggregator:latest
 
+          kubectl create configmap state-aggregator-dashboard-screen-css \
+            -n default \
+            --from-file=dashboard-screen.css=edge-orch/state-aggregator/app/static/dashboard-screen.css \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
           kubectl set image deployment/state-aggregator \
             state-aggregator=${TARGET_IMAGE} \
             -n default
@@ -202,6 +208,7 @@ jobs:
           fi
 
           kubectl rollout status daemonset/mqttvirtual-mapper -n default --timeout=180s
+
 
       # - name: Deploy Ollama qwen3 and edge-agent
       #   if: steps.changes.outputs.edge_agent == 'true'

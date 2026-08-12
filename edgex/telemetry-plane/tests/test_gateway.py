@@ -440,6 +440,23 @@ def test_gateway_offloads_blocking_inbox_work_without_changing_persistence_ackno
         "edge_id": "edge-a", "event_id": "threadpool-boundary", "status": "persisted", "deduplicated": True,
     }
     assert core.events == [edge_event("threadpool-boundary")]
+def test_gateway_preserves_event_and_reading_provenance_without_rewriting():
+    core = CoreData()
+    app = gateway_app(MemoryInbox(), core, edge_auth_secrets={"edge-a": "secret"})
+    event = edge_event("provenance")
+    event["origin"] = 10
+    event["readings"][0]["origin"] = 11
+
+    assert ingest(app, "edge-a", event).status_code == 201
+    persisted = core.events[0]
+
+    assert persisted["id"] == "provenance"
+    assert persisted["profileName"] == "camera"
+    assert persisted["deviceName"] == "camera-1"
+    assert persisted["sourceName"] == "camera-1"
+    assert persisted["origin"] == 10
+    assert persisted["readings"][0]["resourceName"] == "image"
+    assert persisted["readings"][0]["origin"] == 11
 
 def test_gateway_allows_same_event_id_from_another_authenticated_edge():
     core = CoreData()

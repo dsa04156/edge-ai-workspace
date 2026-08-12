@@ -3,80 +3,78 @@ from __future__ import annotations
 
 import argparse
 import json
-import socket
 import sys
 import time
-from typing import Dict, Iterable, Tuple
+import uuid
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Tuple
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
-from sense_hat import SenseHat
+if TYPE_CHECKING:
+    from sense_hat import SenseHat
 
 
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 1883
+DEFAULT_AGENT_URL = "http://127.0.0.1:18080/v1/events"
 DEFAULT_NODE = "etri-dev0003-raspi5"
 DEFAULT_ALIAS = "sensehat-001"
+DEFAULT_PROFILE = "etri-sensehat"
 
 
-def _mqtt_utf8(value: str) -> bytes:
-    encoded = value.encode("utf-8")
-    return len(encoded).to_bytes(2, "big") + encoded
+class DirectAgentPublisher:
+    """Posts canonical EdgeX Events to the loopback telemetry-agent adapter."""
 
-
-def _remaining_length(length: int) -> bytes:
-    encoded = bytearray()
-    while True:
-        digit = length % 128
-        length //= 128
-        if length > 0:
-            digit |= 0x80
-        encoded.append(digit)
-        if length == 0:
-            return bytes(encoded)
-
-
-def _read_exact(sock: socket.socket, size: int) -> bytes:
-    chunks = bytearray()
-    while len(chunks) < size:
-        chunk = sock.recv(size - len(chunks))
-        if not chunk:
-            raise ConnectionError("MQTT broker closed the connection")
-        chunks.extend(chunk)
-    return bytes(chunks)
-
-
-class SimpleMqttPublisher:
-    def __init__(self, host: str, port: int, client_id: str, timeout: float = 5.0) -> None:
-        self.host = host
-        self.port = port
-        self.client_id = client_id
+    def __init__(
+        self,
+        endpoint: str,
+        *,
+        edge_id: str,
+        timeout: float = 5.0,
+        opener: Callable[..., Any] = urlopen,
+    ) -> None:
+        parsed = urlparse(endpoint)
+        if (
+            parsed.scheme != "http"
+            or parsed.hostname not in {"127.0.0.1", "::1", "localhost"}
+            or parsed.path != "/v1/events"
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("agent URL must be the loopback HTTP /v1/events endpoint")
+        self.endpoint = endpoint
+        self.edge_id = edge_id
         self.timeout = timeout
+        self.opener = opener
 
-    def __enter__(self) -> "SimpleMqttPublisher":
-        self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
-        self.sock.settimeout(self.timeout)
-        variable_header = _mqtt_utf8("MQTT") + bytes([4, 2]) + (30).to_bytes(2, "big")
-        payload = _mqtt_utf8(self.client_id)
-        packet = bytes([0x10]) + _remaining_length(len(variable_header) + len(payload)) + variable_header + payload
-        self.sock.sendall(packet)
-        response = _read_exact(self.sock, 4)
-        if response != b"\x20\x02\x00\x00":
-            raise ConnectionError(f"unexpected MQTT CONNACK: {response!r}")
-        return self
-
-    def __exit__(self, *_: object) -> None:
+    def publish(self, event: Dict[str, object]) -> Dict[str, object]:
+        event_id = event.get("id")
+        body = json.dumps(event, separators=(",", ":"), ensure_ascii=True).encode()
+        request = Request(
+            self.endpoint,
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
         try:
-            self.sock.sendall(b"\xe0\x00")
-        finally:
-            self.sock.close()
+            with self.opener(request, timeout=self.timeout) as response:
+                status = response.status
+                ack = json.loads(response.read())
+        except (OSError, ValueError) as error:
+            raise RuntimeError(f"telemetry agent did not acknowledge event {event_id!r}") from error
+        if (
+            status != 202
+            or not isinstance(ack, dict)
+            or ack.get("status") != "queued"
+            or ack.get("edge_id") != self.edge_id
+            or ack.get("event_id") != event_id
+            or not isinstance(ack.get("deduplicated"), bool)
+        ):
+            raise RuntimeError(f"telemetry agent returned an invalid acknowledgement for event {event_id!r}")
+        return ack
 
-    def publish(self, topic: str, payload: Dict[str, object]) -> None:
-        message = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-        variable_header = _mqtt_utf8(topic)
-        packet = bytes([0x30]) + _remaining_length(len(variable_header) + len(message)) + variable_header + message
-        self.sock.sendall(packet)
 
-
-def read_sensehat(sense: SenseHat) -> Dict[str, float]:
+def read_sensehat(sense: "SenseHat") -> Dict[str, float]:
     orientation = sense.get_orientation()
     gyro = sense.get_gyroscope_raw()
     return {
@@ -94,33 +92,65 @@ def read_sensehat(sense: SenseHat) -> Dict[str, float]:
     }
 
 
-def topic_payloads(prefix: str, readings: Dict[str, float]) -> Iterable[Tuple[str, Dict[str, float]]]:
-    yield f"{prefix}/temperature", {
+def source_payloads(readings: Dict[str, float]) -> Iterable[Tuple[str, Dict[str, float]]]:
+    yield "temperature", {
         "temp_humidity": readings["temp_humidity"],
         "temp_pressure": readings["temp_pressure"],
     }
-    yield f"{prefix}/humidity", {"humidity": readings["humidity"]}
-    yield f"{prefix}/pressure", {"pressure": readings["pressure"]}
-    yield f"{prefix}/compass", {"compass": readings["compass"]}
-    yield f"{prefix}/orientation", {
+    yield "humidity", {"humidity": readings["humidity"]}
+    yield "pressure", {"pressure": readings["pressure"]}
+    yield "compass", {"compass": readings["compass"]}
+    yield "orientation", {
         "pitch": readings["pitch"],
         "roll": readings["roll"],
         "yaw": readings["yaw"],
     }
-    yield f"{prefix}/gyroscope", {
+    yield "gyroscope", {
         "gyro_x": readings["gyro_x"],
         "gyro_y": readings["gyro_y"],
         "gyro_z": readings["gyro_z"],
     }
 
 
+def build_edgex_events(
+    readings: Dict[str, float],
+    *,
+    node: str,
+    alias: str,
+    profile: str = DEFAULT_PROFILE,
+    origin: int | None = None,
+) -> Iterable[Dict[str, object]]:
+    observed_at = time.time_ns() if origin is None else origin
+    for source_name, values in source_payloads(readings):
+        yield {
+            "apiVersion": "v3",
+            "id": str(uuid.uuid4()),
+            "deviceName": alias,
+            "profileName": profile,
+            "sourceName": source_name,
+            "origin": observed_at,
+            "tags": {"edge_node_id": node, "source_adapter": "i2c"},
+            "readings": [
+                {
+                    "deviceName": alias,
+                    "profileName": profile,
+                    "resourceName": resource_name,
+                    "valueType": "Float64",
+                    "value": value,
+                    "origin": observed_at,
+                }
+                for resource_name, value in values.items()
+            ],
+        }
+
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Publish Sense HAT readings to mqttvirtual topics")
-    parser.add_argument("--host", default=DEFAULT_HOST)
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    parser = argparse.ArgumentParser(description="Queue Sense HAT readings through the local telemetry agent")
+    parser.add_argument("--agent-url", default=DEFAULT_AGENT_URL)
     parser.add_argument("--node", default=DEFAULT_NODE)
     parser.add_argument("--alias", default=DEFAULT_ALIAS)
-    parser.add_argument("--client-id", default="sensehat-publisher-dev0003")
+    parser.add_argument("--profile", default=DEFAULT_PROFILE)
+    parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument("--interval", type=float, default=1.0)
     parser.add_argument("--once", action="store_true")
     return parser.parse_args()
@@ -128,15 +158,39 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    from sense_hat import SenseHat
+
     sense = SenseHat()
-    prefix = f"etri/{args.node}/{args.alias}"
+    publisher = DirectAgentPublisher(
+        args.agent_url,
+        edge_id=args.node,
+        timeout=args.timeout,
+    )
 
     while True:
         readings = read_sensehat(sense)
-        with SimpleMqttPublisher(args.host, args.port, args.client_id) as mqtt:
-            for topic, payload in topic_payloads(prefix, readings):
-                mqtt.publish(topic, payload)
-                print(json.dumps({"topic": topic, "payload": payload}, ensure_ascii=True), flush=True)
+        events = list(build_edgex_events(
+            readings,
+            node=args.node,
+            alias=args.alias,
+            profile=args.profile,
+        ))
+        for event in events:
+            while True:
+                try:
+                    ack = publisher.publish(event)
+                except Exception as error:
+                    if args.once:
+                        raise
+                    print(f"sensehat publisher retry: {error}", file=sys.stderr, flush=True)
+                    time.sleep(args.interval)
+                    continue
+                print(json.dumps({
+                    "event_id": event["id"],
+                    "source": event["sourceName"],
+                    "deduplicated": ack["deduplicated"],
+                }, ensure_ascii=True), flush=True)
+                break
         if args.once:
             return 0
         time.sleep(args.interval)

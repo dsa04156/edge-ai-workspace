@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "workflow"];
+const DASHBOARD_PAGES = ["overview", "inventory", "resource-pool", "management", "designer"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -16,6 +16,24 @@ function showDashboardPage(page) {
     section.classList.toggle("active", section.dataset.page === nextPage);
   });
   document.body.dataset.dashboardPage = nextPage;
+  if (
+    nextPage === "designer"
+    && typeof globalThis.onServiceDesignerVisible === "function"
+  ) {
+    globalThis.onServiceDesignerVisible();
+  }
+  if (
+    nextPage === "management"
+    && typeof globalThis.onDeviceManagementVisible === "function"
+  ) {
+    globalThis.onDeviceManagementVisible();
+  }
+  if (
+    nextPage === "overview"
+    && typeof globalThis.onServiceDemoVisible === "function"
+  ) {
+    globalThis.onServiceDemoVisible();
+  }
 }
 
 function bindDashboardNavigation() {

@@ -115,9 +115,13 @@ def build_service_resource_profiles(
 
                 container_rows.append(
                     {
+                        "namespace": namespace,
                         "pod": pod.get("name"),
                         "container": container.get("name"),
                         "node": pod.get("node"),
+                        "labels": dict(pod.get("labels") or {}),
+                        "pod_ready": bool(pod.get("ready")),
+                        "endpoint_ready": bool(pod.get("endpoint_ready")),
                         "requests": {
                             "cpu_cores": _round_or_none(cpu_request),
                             "memory_mib": _round_or_none(memory_request),

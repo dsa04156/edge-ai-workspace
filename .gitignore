@@ -1,6 +1,15 @@
 # Excluded workspace
 Platform-Service/
 .worktrees/
+.gjc/
+.playwright-cli/
+.venv-publisher/
+.omo/
+
+# Local verification artifacts
+output/
+artifacts/
+test-results/
 
 # Logs
 *.log

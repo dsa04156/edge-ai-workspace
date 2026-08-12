@@ -53,5 +53,41 @@ class InfluxTimestampRuleTest(unittest.TestCase):
         self.assertEqual(result.findings, [])
 
 
+class DocumentClassificationTest(unittest.TestCase):
+    root = Path(__file__).resolve().parents[1]
+    docs = root / "docs"
+
+    def test_archive_sources_have_current_scope_guard(self):
+        files = sorted((self.docs / "archive").rglob("*.md"))
+        self.assertTrue(files)
+        for path in files:
+            head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+            self.assertIn("상태:", head, path.as_posix())
+            self.assertIn("현재 PoC", head, path.as_posix())
+
+    def test_design_history_sources_have_status(self):
+        paths = sorted((self.docs / "superpowers").rglob("*.md"))
+        paths.extend(
+            self.docs / name
+            for name in (
+                "대시보드-화면-설계.md",
+                "일일-기록.md",
+                "자원-증강-가상디바이스-대시보드.md",
+                "런타임-자원-증강-데모-워크플로.md",
+            )
+        )
+        for path in paths:
+            head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:14])
+            self.assertIn("상태:", head, path.as_posix())
+            self.assertIn("설계 이력", head, path.as_posix())
+
+    def test_document_inventory_is_linked_from_entry_points(self):
+        inventory = self.docs / "문서-분류-목록.md"
+        self.assertTrue(inventory.exists())
+        for name in ("문서-안내.md", "문서-정리-계획.md", "프로젝트-범위.md", "저장소-구조.md"):
+            text = (self.docs / name).read_text(encoding="utf-8")
+            self.assertIn("문서-분류-목록.md", text, name)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -3,13 +3,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 
 import httpx
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Callable
 
 from .config import Settings, load_instance_map
-from .edgex import EdgeXClient
+from .edgex import EdgeXClient, EdgeXError, EdgeXNotFoundError
 from .models import (
     CostModelState,
     DashboardState,
@@ -23,6 +24,10 @@ from .models import (
     TelemetryPoint,
     WorkflowEvent,
     WorkflowState,
+    ProjectionError,
+    ProjectionObservation,
+    VirtualDeviceCollection,
+    VirtualDeviceView,
 )
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
 from .placement_recorder import InfluxResourceProfileRecorder
@@ -30,18 +35,32 @@ from .prometheus import PrometheusClient
 from .resource_profile import build_service_resource_profiles, summarize_service_resource_profiles
 from .storage import StateStore
 from .kube import KubeClient
+from .virtual_device_bindings import (
+    VirtualDeviceBindingConfig,
+    VirtualDeviceInstance,
+    config_revision,
+)
+from .virtual_device_resolver import resolve_virtual_device
 
 logger = logging.getLogger(__name__)
 
 
 class StateAggregatorService:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        edgex: EdgeXClient | None = None,
+        bindings: VirtualDeviceBindingConfig | None = None,
+        clock: Callable[[], datetime] | None = None,
+        monotonic: Callable[[], float] | None = None,
+    ) -> None:
         self.settings = settings
         # Keep fallback instance map for now, but it will be overridden by KubeClient
         self.instance_map = load_instance_map(settings.instance_map_path)
         self.store = StateStore(settings.data_dir)
         self.prometheus = PrometheusClient(settings.prometheus_url, self.instance_map)
-        self.edgex = EdgeXClient(
+        self.edgex = edgex or EdgeXClient(
             settings.edgex_core_metadata_url,
             settings.edgex_core_data_url,
             settings.edgex_timeout_seconds,
@@ -58,17 +77,47 @@ class StateAggregatorService:
         self.kube = KubeClient()
         self._poller_task: asyncio.Task | None = None
         self._resource_profile_recorder_task: asyncio.Task | None = None
+        self.bindings = bindings
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
+        self._monotonic = monotonic or time.monotonic
+        self._edgex_event_query_semaphore = asyncio.Semaphore(
+            settings.edgex_event_query_concurrency
+        )
+        self._device_snapshot_lock = asyncio.Lock()
+        self._device_snapshot: tuple[DeviceState, ...] | None = None
+        self._device_snapshot_expires_at = 0.0
+        self._device_snapshot_last_success_at: datetime | None = None
+        self._device_snapshot_last_duration_seconds: float | None = None
+        self._device_snapshot_refresh_count = 0
+        self._device_snapshot_refresh_failure_count = 0
+        self._device_snapshot_error: EdgeXError | None = None
+        self._device_snapshot_error_expires_at = 0.0
+        self._projection_observation: ProjectionObservation | None = None
+        self._projection_observer_task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._poller_task is None:
+            self.invalidate_device_snapshot()
             self._poller_task = asyncio.create_task(self._poll_prometheus())
         if self.settings.resource_profile_recording_mode == "scheduled" and self._resource_profile_recorder_task is None:
             self._resource_profile_recorder_task = asyncio.create_task(self._record_resource_profiles_periodically())
+        if (
+            self.settings.virtual_device_projection_enabled
+            and self.bindings is not None
+            and self._projection_observer_task is None
+        ):
+            self._projection_observer_task = asyncio.create_task(
+                self._observe_virtual_devices()
+            )
 
     async def stop(self) -> None:
         tasks = [
             task
-            for task in (self._poller_task, self._resource_profile_recorder_task)
+            for task in (
+                self._poller_task,
+                self._resource_profile_recorder_task,
+                self._projection_observer_task,
+            )
             if task is not None
         ]
         for task in tasks:
@@ -80,6 +129,14 @@ class StateAggregatorService:
                 pass
         self._poller_task = None
         self._resource_profile_recorder_task = None
+        self._projection_observer_task = None
+        self.invalidate_device_snapshot()
+
+    def invalidate_device_snapshot(self) -> None:
+        self._device_snapshot = None
+        self._device_snapshot_expires_at = 0.0
+        self._device_snapshot_error = None
+        self._device_snapshot_error_expires_at = 0.0
 
     async def _poll_prometheus(self) -> None:
         while True:
@@ -96,6 +153,10 @@ class StateAggregatorService:
                 await self.record_service_resource_profiles(window=self.settings.resource_profile_window)
             except Exception:
                 logger.exception("Failed to record scheduled service resource profile snapshot")
+    async def _observe_virtual_devices(self) -> None:
+        while True:
+            await self.record_virtual_device_observation()
+            await asyncio.sleep(self.settings.virtual_device_observer_interval_seconds)
 
 
     async def refresh_nodes(self) -> list[NodeState]:
@@ -207,15 +268,495 @@ class StateAggregatorService:
         start = datetime.now(timezone.utc) - timedelta(seconds=seconds)
         return await self.edgex.get_event_history(device_id, limit=limit, start=start)
 
-    async def get_devices(self) -> list[DeviceState]:
+    async def _resolve_virtual_device_instances(
+        self, instances: list, *, observation_time: datetime, revision: str
+    ) -> VirtualDeviceCollection:
         inventory = await self.edgex.get_devices()
-        latest_events = await asyncio.gather(
-            *(self.edgex.get_latest_source_readings(device.name) for device in inventory)
-        )
-        return [
-            self._normalize_edgex_device(device, readings)
-            for device, readings in zip(inventory, latest_events)
+        by_name = {device.name: device for device in inventory}
+        configured = [
+            (instance, by_name.get(instance.physical_device_ref.name))
+            for instance in instances
         ]
+        profile_names = sorted(
+            {
+                device.profile_name
+                for instance, device in configured
+                if device is not None
+                and device.profile_name
+                == instance.physical_device_ref.expected_profile_name
+            }
+        )
+        profile_results = await asyncio.gather(
+            *(self.edgex.get_device_profile(name) for name in profile_names),
+            return_exceptions=True,
+        )
+        profiles: dict[str, object] = dict(zip(profile_names, profile_results))
+        profile_failures = [
+            value for value in profiles.values()
+            if isinstance(value, Exception) and not isinstance(value, EdgeXNotFoundError)
+        ]
+        if profile_names and len(profile_failures) == len(profile_names):
+            raise profile_failures[0]
+
+        semaphore = asyncio.Semaphore(self.settings.virtual_device_observer_concurrency)
+
+        async def event_for(device, group_instances):
+            async with semaphore:
+                max_freshness = max(
+                    capability.freshness_seconds
+                    for instance in group_instances
+                    for capability in instance.capabilities
+                )
+                history = await self.edgex.get_bounded_event_history(
+                    device.name,
+                    observation_time=observation_time,
+                    freshness_seconds=max_freshness,
+                    page_size=min(
+                        self.settings.virtual_device_event_query_page_size,
+                        self.bindings.event_query.page_size,
+                    ),
+                    max_pages=min(
+                        self.settings.virtual_device_event_query_max_pages,
+                        self.bindings.event_query.max_pages,
+                    ),
+                    max_events_per_device=min(
+                        self.settings.virtual_device_event_query_max_events_per_device,
+                        self.bindings.event_query.max_events_per_device,
+                    ),
+                    max_prior_probe_events_per_device=min(
+                        self.settings.virtual_device_event_query_max_prior_probe_events_per_device,
+                        self.bindings.event_query.max_prior_probe_events_per_device,
+                    ),
+                )
+                if history.history_truncated:
+                    return {
+                        instance.id: history.model_copy(
+                            update={
+                                "uncertain_source_resources": [
+                                    (
+                                        binding.source_name,
+                                        binding.resource_name,
+                                    )
+                                    for capability in instance.capabilities
+                                    for input_ in capability.inputs
+                                    for binding in input_.bindings
+                                ]
+                            }
+                        )
+                        for instance in group_instances
+                    }
+                profile = profiles[device.profile_name]
+                profile_resources = {
+                    resource.name for resource in profile.device_resources
+                }
+
+                def has_matching_point(input_, points):
+                    aliases = [
+                        (binding.source_name, binding.resource_name)
+                        for binding in input_.bindings
+                        if binding.resource_name in profile_resources
+                    ]
+                    for point in points:
+                        if (
+                            point.resource_name
+                            and point.resource_name not in profile_resources
+                        ):
+                            continue
+                        if (point.source_name, point.resource_name) in aliases:
+                            return True
+                        possible = [
+                            alias
+                            for alias in aliases
+                            if (
+                                not point.source_name
+                                or alias[0] == point.source_name
+                            )
+                            and (
+                                not point.resource_name
+                                or alias[1] == point.resource_name
+                            )
+                        ]
+                        if len(possible) == 1:
+                            return True
+                    return False
+
+                def missing_required(instance):
+                    return [
+                        input_
+                        for capability in instance.capabilities
+                        for input_ in capability.inputs
+                        if input_.required
+                        and not has_matching_point(input_, history.events)
+                    ]
+
+                missing_by_instance = {
+                    instance.id: missing_required(instance)
+                    for instance in group_instances
+                }
+                if not any(missing_by_instance.values()):
+                    return {
+                        instance.id: history for instance in group_instances
+                    }
+                prior_limit = min(
+                    self.settings.virtual_device_event_query_max_prior_probe_events_per_device,
+                    self.bindings.event_query.max_prior_probe_events_per_device,
+                )
+                prior_page = await self.edgex.get_prior_event_history(
+                    device.name,
+                    before=observation_time
+                    - timedelta(seconds=max_freshness, microseconds=1),
+                    limit=prior_limit,
+                )
+                instance_histories = {}
+                for instance in group_instances:
+                    missing = missing_by_instance[instance.id]
+                    uncertain_bindings = [
+                        (
+                            binding.source_name,
+                            binding.resource_name,
+                        )
+                        for input_ in missing
+                        if prior_page.history_truncated
+                        and not has_matching_point(input_, prior_page.events)
+                        for binding in input_.bindings
+                    ]
+                    instance_histories[instance.id] = history.model_copy(
+                        update={
+                            "prior_probe_events": prior_page.events,
+                            "history_truncated": bool(uncertain_bindings),
+                            "uncertain_source_resources": uncertain_bindings,
+                        }
+                    )
+                return instance_histories
+
+        event_groups: dict[
+            str, tuple[EdgeXDevice, list[VirtualDeviceInstance]]
+        ] = {}
+        for instance, device in configured:
+            if (
+                device is None
+                or device.profile_name
+                != instance.physical_device_ref.expected_profile_name
+                or isinstance(profiles.get(device.profile_name), Exception)
+            ):
+                continue
+            group = event_groups.get(device.name)
+            if group is None:
+                event_groups[device.name] = (device, [instance])
+            else:
+                group[1].append(instance)
+
+        event_results = await asyncio.gather(
+            *(
+                event_for(device, group_instances)
+                for device, group_instances in event_groups.values()
+            ),
+            return_exceptions=True,
+        )
+        events: dict[str, object] = {}
+        for (_, group_instances), result in zip(
+            event_groups.values(), event_results
+        ):
+            if isinstance(result, Exception):
+                for instance in group_instances:
+                    events[instance.id] = result
+            else:
+                events.update(result)
+        event_failures = [
+            result
+            for result in event_results
+            if isinstance(result, Exception)
+            and not isinstance(result, EdgeXNotFoundError)
+        ]
+        if event_groups and len(event_failures) == len(event_groups):
+            raise event_failures[0]
+
+        items: list[VirtualDeviceView] = []
+        failures = profile_failures + event_failures
+        for instance, device in configured:
+            if device is None:
+                items.append(resolve_virtual_device(
+                    instance, config_revision=revision, observation_time=observation_time,
+                    device=None, profile=None, history=None,
+                ))
+                continue
+            if device.profile_name != instance.physical_device_ref.expected_profile_name:
+                items.append(
+                    resolve_virtual_device(
+                        instance,
+                        config_revision=revision,
+                        observation_time=observation_time,
+                        device=device,
+                        profile=None,
+                        history=None,
+                    )
+                )
+                continue
+            profile_result = profiles[device.profile_name]
+            if isinstance(profile_result, Exception):
+                view = resolve_virtual_device(
+                    instance, config_revision=revision, observation_time=observation_time,
+                    device=device, profile=None, history=None,
+                )
+                if not isinstance(profile_result, EdgeXNotFoundError):
+                    view = view.model_copy(update={
+                        "binding_status": "degraded",
+                        "reason_codes": ["upstream_profile_error"],
+                    })
+                items.append(view)
+                continue
+            event_result = events.get(instance.id)
+            if isinstance(event_result, EdgeXNotFoundError):
+                event_result = None
+            if isinstance(event_result, Exception):
+                view = resolve_virtual_device(
+                    instance, config_revision=revision, observation_time=observation_time,
+                    device=device, profile=profile_result, history=None,
+                )
+                items.append(view.model_copy(update={
+                    "binding_status": "degraded",
+                    "reason_codes": ["upstream_event_error"],
+                }))
+                continue
+            if event_result is None:
+                from .models import EventHistoryPage
+                event_result = EventHistoryPage(total_count=0)
+            items.append(resolve_virtual_device(
+                instance, config_revision=revision, observation_time=observation_time,
+                device=device, profile=profile_result, history=event_result,
+            ))
+
+        observation_error = failures[0] if failures else None
+        return VirtualDeviceCollection(
+            generated_at=self._clock(), observation_time=observation_time,
+            config_revision=revision,
+            history_truncated=any(item.history_truncated for item in items),
+            items=items,
+            observation_error=(
+                ProjectionError(
+                    code=(
+                        "authority_access_denied"
+                        if getattr(observation_error, "status_code", None) in {401, 403}
+                        else "authority_profile_unavailable"
+                        if getattr(observation_error, "operation", None) == "profile"
+                        else "authority_event_unavailable"
+                    ),
+                    upstream="edgex", operation=getattr(observation_error, "operation", None),
+                    identity=(
+                        str(getattr(observation_error, "identity"))[:128]
+                        if getattr(observation_error, "identity", None)
+                        else None
+                    ),
+                    retryable=getattr(observation_error, "retryable", False),
+                    status_code=getattr(observation_error, "status_code", None),
+                ) if observation_error else None
+            ),
+        )
+
+    async def get_virtual_devices(self) -> VirtualDeviceCollection:
+        if not self.settings.virtual_device_projection_enabled or self.bindings is None:
+            raise RuntimeError("projection_not_active")
+        observation_time = self._clock()
+        return await self._resolve_virtual_device_instances(
+            self.bindings.instances, observation_time=observation_time,
+            revision=config_revision(self.bindings),
+        )
+
+    async def get_virtual_device(self, virtual_device_id: str) -> VirtualDeviceView | None:
+        if not self.settings.virtual_device_projection_enabled or self.bindings is None:
+            raise RuntimeError("projection_not_active")
+        instance = next((item for item in self.bindings.instances if item.id == virtual_device_id), None)
+        if instance is None:
+            return None
+        observation_time = self._clock()
+        collection = await self._resolve_virtual_device_instances(
+            [instance], observation_time=observation_time, revision=config_revision(self.bindings),
+        )
+        return collection.items[0]
+
+    async def record_virtual_device_observation(self) -> None:
+        try:
+            collection = await asyncio.wait_for(
+                self.get_virtual_devices(),
+                timeout=self.settings.virtual_device_observer_timeout_seconds,
+            )
+            capability_freshness = {
+                (instance.id, capability.id): capability.freshness_seconds
+                for instance in self.bindings.instances
+                for capability in instance.capabilities
+            }
+            binding_ready = {
+                item.id: item.binding_status == "ready" for item in collection.items
+            }
+            capability_ready = {
+                item.id: {
+                    capability.id: (
+                        item.physical_device_ref.profile_resolved
+                        and item.physical_device_ref.actual_profile_name
+                        == item.physical_device_ref.expected_profile_name
+                        and item.physical_device_ref.admin_state == "UNLOCKED"
+                        and item.physical_device_ref.operating_state == "UP"
+                        and all(
+                            not input_.required or input_.ready
+                            for input_ in capability.inputs
+                        )
+                    )
+                    for capability in item.capabilities
+                }
+                for item in collection.items
+            }
+            input_fresh = {
+                item.id: {
+                    capability.id: {
+                        input_.input_id: (
+                            input_.original_event_ref is not None
+                            and input_.observed_at is not None
+                            and input_.observed_at
+                            >= collection.observation_time
+                            - timedelta(
+                                seconds=capability_freshness[
+                                    (item.id, capability.id)
+                                ]
+                            )
+                            and input_.observed_at <= collection.observation_time
+                        )
+                        for input_ in capability.inputs
+                    }
+                    for capability in item.capabilities
+                }
+                for item in collection.items
+            }
+            self._projection_observation = ProjectionObservation(
+                config_revision=collection.config_revision,
+                completed_at=self._clock(),
+                last_success_at=self._clock(),
+                binding_ready=binding_ready,
+                capability_ready=capability_ready,
+                input_fresh=input_fresh,
+                reason_codes=sorted(
+                    {reason for item in collection.items for reason in item.reason_codes}
+                ),
+            )
+        except Exception as exc:
+            logger.exception("Virtual-device observation failed")
+            previous = self._projection_observation
+            self._projection_observation = ProjectionObservation(
+                config_revision=config_revision(self.bindings) if self.bindings else "",
+                completed_at=self._clock(),
+                last_success_at=previous.last_success_at if previous else None,
+                error_class=exc.__class__.__name__,
+            )
+    async def get_devices(self) -> list[DeviceState]:
+        now = self._monotonic()
+        if self._device_snapshot is not None and now < self._device_snapshot_expires_at:
+            return list(self._device_snapshot)
+        if self._device_snapshot_error is not None and now < self._device_snapshot_error_expires_at:
+            raise self._device_snapshot_error
+
+        async with self._device_snapshot_lock:
+            now = self._monotonic()
+            if self._device_snapshot is not None and now < self._device_snapshot_expires_at:
+                return list(self._device_snapshot)
+            if self._device_snapshot_error is not None and now < self._device_snapshot_error_expires_at:
+                raise self._device_snapshot_error
+
+            started_at = self._monotonic()
+            self._device_snapshot_refresh_count += 1
+            try:
+                devices = await self._refresh_devices()
+            except EdgeXError as exc:
+                self._device_snapshot_refresh_failure_count += 1
+                self._device_snapshot_error = EdgeXError(
+                    str(exc),
+                    operation=exc.operation,
+                    identity=exc.identity,
+                    status_code=exc.status_code,
+                    retryable=exc.retryable,
+                )
+                self._device_snapshot_error_expires_at = (
+                    self._monotonic()
+                    + self.settings.edgex_device_error_backoff_seconds
+                )
+                raise
+
+            completed_at = self._monotonic()
+            has_observation_error = any(
+                device.telemetry_observation_error for device in devices
+            )
+            ttl = (
+                self.settings.edgex_device_error_backoff_seconds
+                if has_observation_error
+                else self.settings.edgex_device_snapshot_ttl_seconds
+            )
+            self._device_snapshot = tuple(devices)
+            self._device_snapshot_expires_at = completed_at + ttl
+            self._device_snapshot_last_success_at = self._clock()
+            self._device_snapshot_last_duration_seconds = max(
+                0.0, completed_at - started_at
+            )
+            self._device_snapshot_error = None
+            self._device_snapshot_error_expires_at = 0.0
+            return list(self._device_snapshot)
+
+    async def _refresh_devices(self) -> list[DeviceState]:
+        inventory = await self.edgex.get_devices()
+
+        async def latest_readings(device_name: str):
+            async with self._edgex_event_query_semaphore:
+                try:
+                    return await self.edgex.get_latest_source_readings(device_name)
+                except EdgeXError as exc:
+                    return exc
+
+        latest_events = await asyncio.gather(
+            *(latest_readings(device.name) for device in inventory)
+        )
+        devices: list[DeviceState] = []
+        for device, readings in zip(inventory, latest_events):
+            if isinstance(readings, EdgeXError):
+                state = self._normalize_edgex_device(device, [])
+                devices.append(
+                    state.model_copy(
+                        update={
+                            "telemetry_observation_error": (
+                                f"{readings.__class__.__name__}"
+                                + (
+                                    f" (HTTP {readings.status_code})"
+                                    if readings.status_code is not None
+                                    else ""
+                                )
+                            ),
+                            "overall_status": "degraded",
+                            "reason": (
+                                "EdgeX Core Data event observation failed: "
+                                f"{readings.__class__.__name__}"
+                            ),
+                        }
+                    )
+                )
+                continue
+            devices.append(self._normalize_edgex_device(device, readings))
+        return devices
+
+    def device_snapshot_diagnostics(self) -> dict[str, Any]:
+        age_seconds = None
+        if self._device_snapshot_last_success_at is not None:
+            age_seconds = max(
+                0.0,
+                (self._clock() - self._device_snapshot_last_success_at).total_seconds(),
+            )
+        devices = self._device_snapshot or ()
+        return {
+            "age_seconds": age_seconds,
+            "last_duration_seconds": self._device_snapshot_last_duration_seconds,
+            "refresh_count": self._device_snapshot_refresh_count,
+            "refresh_failure_count": self._device_snapshot_refresh_failure_count,
+            "event_observation_error_count": sum(
+                bool(device.telemetry_observation_error) for device in devices
+            ),
+            "cached_device_count": len(devices),
+            "refresh_in_flight": self._device_snapshot_lock.locked(),
+        }
 
     async def get_dashboard(self) -> DashboardState:
         nodes = self.get_nodes()
@@ -453,6 +994,9 @@ class StateAggregatorService:
         stale_event_devices = [
             device for device in devices if device.telemetry_freshness == "stale"
         ]
+        event_observation_error_devices = [
+            device for device in devices if device.telemetry_observation_error
+        ]
         risk_workflows = [workflow for workflow in workflows if workflow.sla_risk != "low"]
         return {
             "node_online_ratio": self._ratio(len(online_nodes), len(nodes)),
@@ -484,6 +1028,9 @@ class StateAggregatorService:
             "core_data_event_device_count": len(event_devices),
             "fresh_core_data_event_device_count": len(fresh_event_devices),
             "stale_core_data_event_device_count": len(stale_event_devices),
+            "core_data_observation_error_device_count": len(
+                event_observation_error_devices
+            ),
             "core_data_freshness_ratio": self._ratio(
                 len(fresh_event_devices), len(devices)
             ),

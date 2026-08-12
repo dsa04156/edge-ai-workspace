@@ -50,6 +50,8 @@
 <li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="../저장소-구조.html">저장소 구조</a></li>
 <li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -120,195 +128,73 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>대시보드와 KPI 모델</h1>
-          <p class="subtitle">Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신…</p>
+          <p class="subtitle">대시보드 첫 화면은 운영자가 “무엇이 연결됐고, 무엇을 먼저 점검하며, 2차년도 서비스 입력이 준비됐는가”를 답하도록 구성한다.</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/대시보드와-kpi.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드와-kpi-모델">대시보드와 KPI 모델</h1>
-<h2 id="한-줄-요약">한 줄 요약</h2>
-<p>Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신 Event freshness를 같은 physical-device 판단으로 보여주고, Kubernetes/KubeEdge node·workload는 별도 진단 정보로 보여주는 운영 화면이다.</p>
-<h2 id="현재-dashboard-모델">현재 dashboard 모델</h2>
-<p><code>state-aggregator</code>의 EdgeX-backed API가 dashboard 입력이다.</p>
-<pre data-lang="text"><code>EdgeX Core Metadata + Core Data
-  -&gt; state-aggregator
-  -&gt; /state/devices, /state/dashboard, /state/summary
-  -&gt; dashboard</code></pre>
-<p>Dashboard는 다음 질문에 답해야 한다.</p>
-<ol><li>EdgeX에 어떤 physical Device, Profile, Device Service가 등록되어 있는가?</li><li>관리 상태와 Device Service 연결 상태는 어떤가?</li><li>최신 Core Data Event/Reading이 freshness 기준 안에 있는가?</li><li>어떤 device를 먼저 점검해야 하는가?</li><li>관련 Kubernetes/KubeEdge node와 workload는 정상 배치·실행 중인가?</li><li>이 device가 어떤 서비스 데모 consumer와 연결되는가?</li></ol>
-<p><code>workflows[]</code>와 workflow KPI는 호환 또는 dry-run planning 표면일 수 있지만 current physical health나 자동 orchestration 완료의 근거가 아니다.</p>
-<h2 id="device-api와-explain-panel">Device API와 Explain Panel</h2>
-<p><code>/state/devices</code>의 EdgeX physical-device contract는 다음 필드를 사용한다.</p>
+<h2 id="화면의-우선순위">화면의 우선순위</h2>
+<p>대시보드 첫 화면은 운영자가 “무엇이 연결됐고, 무엇을 먼저 점검하며, 2차년도 서비스 입력이 준비됐는가”를 답하도록 구성한다.</p>
+<ol><li>등록 Device 수와 available/degraded/unavailable 수</li><li>Core Data fresh 비율과 최근 수신 시각</li><li>서비스 데모별 입력 Device·리소스·데이터 준비 상태</li><li>오류·outbox·gateway·Core Data 진단</li><li>Kubernetes/KubeEdge node/workload 진단</li></ol>
+<p><code>state-aggregator</code>가 <code>/state/devices</code>, <code>/state/dashboard</code>, <code>/state/summary</code>를 제공하고 frontend는 이를 표시한다. EdgeX Device/Profile과 최신 Event는 화면의 기준값이며 node placement는 별도 진단 카드다.</p>
+<h2 id="device-상태-표시">Device 상태 표시</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>필드</th>
-<th>의미</th>
+<th>표시</th>
+<th>기준</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>source</code></td>
-<td>physical authority이며 현재 값은 <code>edgex</code></td>
+<td>available</td>
+<td>Core Metadata가 잠기지 않았고 <code>operatingState=UP</code>, 연결 상태가 정상이며 최신 Core Data Event가 fresh</td>
 </tr>
 <tr>
-<td><code>name</code></td>
-<td>Core Metadata Device 이름</td>
+<td>degraded</td>
+<td><code>UNKNOWN</code>, Event 없음/stale, source timestamp 해석 실패 등 일부 근거 부족</td>
 </tr>
 <tr>
-<td><code>profile_name</code></td>
-<td>Device Profile</td>
-</tr>
-<tr>
-<td><code>device_service_name</code></td>
-<td>Core Metadata 호환용 논리 수집 서비스 식별자</td>
-</tr>
-<tr>
-<td><code>protocol_names</code></td>
-<td>등록 protocol 목록</td>
-</tr>
-<tr>
-<td><code>admin_state</code></td>
-<td>Core Metadata 관리 허용 상태</td>
-</tr>
-<tr>
-<td><code>operating_state</code></td>
-<td>Device Service가 보고한 동작 상태</td>
-</tr>
-<tr>
-<td><code>connection_state</code></td>
-<td><code>connected</code>, <code>disconnected</code>, <code>unknown</code>으로 정규화한 연결 상태</td>
-</tr>
-<tr>
-<td><code>device_service_available</code></td>
-<td><code>operating_state=UP</code> 여부</td>
-</tr>
-<tr>
-<td><code>latest_event_timestamp</code></td>
-<td>최신 Core Data Event/Reading 시각</td>
-</tr>
-<tr>
-<td><code>latest_readings</code></td>
-<td>최신 Event의 source/resource/value type/value/unit 정보</td>
-</tr>
-<tr>
-<td><code>telemetry_freshness</code></td>
-<td><code>fresh</code>, <code>stale</code>, <code>no_events</code></td>
-</tr>
-<tr>
-<td><code>node_name</code></td>
-<td>선택적 Kubernetes placement 진단 정보</td>
+<td>unavailable</td>
+<td><code>LOCKED</code>, <code>DOWN</code>, <code>disconnected</code></td>
 </tr>
 </tbody></table></div>
-<p>Explain Panel은 최소한 overall status와 reason, Profile, Device Service, protocol, <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, 최신 Event 시각/age, <code>telemetry_freshness</code>, typed Readings, 선택적 <code>node_name</code>을 보여준다. node/workload 근거와 EdgeX state/event 근거를 하나의 physical availability reason으로 섞지 않는다.</p>
-<h2 id="physical-availability-판단">Physical availability 판단</h2>
-<p>Physical availability는 EdgeX 필드와 Core Data 최신 Event로만 계산한다.</p>
+<p>Explain panel에는 Profile, Device Service, protocol, 관리/운영 상태, 최신 Event 시각·age, latest readings와 판단 사유를 함께 보여준다. Kubernetes Node Ready만으로 available을 표시하지 않는다.</p>
+<h2 id="2차년도-서비스-카드">2차년도 서비스 카드</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>결과</th>
-<th>판단</th>
+<th>서비스</th>
+<th>입력 예</th>
+<th>화면에서 보여줄 것</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>unavailable</code></td>
-<td><code>admin_state=LOCKED</code>, <code>operating_state=DOWN</code>, 또는 <code>connection_state=disconnected</code></td>
+<td>생산품질 양품·불량 판별</td>
+<td>PLC/MES 생산 건, 공정 센서</td>
+<td>입력 신선도, 생산 건 연결, 추론 결과, 알림</td>
 </tr>
 <tr>
-<td><code>degraded</code></td>
-<td><code>operating_state=UNKNOWN</code>, <code>connection_state=unknown</code>, 최신 Event가 없거나 stale, 또는 origin을 해석할 수 없음</td>
-</tr>
-<tr>
-<td><code>available</code></td>
-<td>잠기지 않았고 <code>operating_state=UP</code>, <code>connection_state=connected</code>, 최신 Core Data Event가 fresh</td>
+<td>유압펌프·모터 이상감지</td>
+<td>진동 X/Y/Z, 전류, 온도</td>
+<td>샘플 수, 시간 정렬, 이상 점수, 최근 상태</td>
 </tr>
 </tbody></table></div>
-<p><code>device_service_available</code>은 Device Service 상태를 빠르게 보이는 보조 field이며 단독으로 <code>available</code>을 뜻하지 않는다. <code>node_name</code>, Kubernetes Node Ready, workload 상태는 service execution/placement 진단에는 중요하지만 위 physical availability의 gate가 아니다.</p>
-<h2 id="kpi">KPI</h2>
-<p>Physical-device KPI의 분모는 Core Metadata inventory다.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>KPI</th>
-<th>의미</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>registered_device_count</code></td>
-<td>Core Metadata 등록 Device 수</td>
-</tr>
-<tr>
-<td><code>available_device_count</code></td>
-<td>EdgeX 상태와 fresh Core Data Event 기준 available 수</td>
-</tr>
-<tr>
-<td><code>degraded_device_count</code></td>
-<td>EdgeX 또는 Event freshness가 불완전한 device 수</td>
-</tr>
-<tr>
-<td><code>unavailable_device_count</code></td>
-<td>locked/down/disconnected device 수</td>
-</tr>
-<tr>
-<td><code>edgex_connected_device_count</code> / <code>edgex_connection_ratio</code></td>
-<td>connected device 수 / registered device 수</td>
-</tr>
-<tr>
-<td><code>edgex_operating_up_count</code>, <code>edgex_operating_down_count</code>, <code>edgex_operating_unknown_count</code></td>
-<td>EdgeX operating state breakdown</td>
-</tr>
-<tr>
-<td><code>edgex_admin_unlocked_count</code>, <code>edgex_admin_locked_count</code></td>
-<td>EdgeX admin state breakdown</td>
-</tr>
-<tr>
-<td><code>device_service_available_count</code> / <code>device_service_availability_ratio</code></td>
-<td>Device Service available 수 / registered device 수</td>
-</tr>
-<tr>
-<td><code>core_data_event_device_count</code></td>
-<td>Core Data Event가 있는 device 수</td>
-</tr>
-<tr>
-<td><code>fresh_core_data_event_device_count</code>, <code>stale_core_data_event_device_count</code></td>
-<td>fresh/stale 최신 Core Data Event device 수</td>
-</tr>
-<tr>
-<td><code>core_data_freshness_ratio</code></td>
-<td>fresh 최신 Core Data Event device 수 / registered device 수</td>
-</tr>
-<tr>
-<td><code>operator_focus_count</code></td>
-<td>degraded + unavailable physical device 수</td>
-</tr>
-</tbody></table></div>
-<p><code>active_node_count</code>와 <code>node_online_ratio</code>는 node/workload 관찰용 별도 KPI다. <code>sla_risk_workflow_count</code>는 workflow dry-run/compatibility 영역이며 physical-device KPI나 <code>operator_focus_count</code>에 포함하지 않는다.</p>
-<h2 id="제외한-health-입력">제외한 health 입력</h2>
-<p>다음은 current physical health, availability, KPI의 입력이나 fallback이 아니다.</p>
-<ul><li>KubeEdge <code>DeviceStatus</code>와 DeviceStatus freshness</li><li>MapperFramework 또는 mapper readiness</li><li>direct InfluxDB latest sample</li><li>KubeEdge <code>Device</code>/<code>DeviceModel</code>, <code>mqttvirtual</code>, legacy mapper heartbeat</li></ul>
-<p>Kubernetes/KubeEdge node와 workload는 별도 card/filter에서 관찰한다. node 장애는 workload와 AI service에 영향을 줄 수 있지만 EdgeX physical availability를 덮어쓰지 않는다.</p>
-<h2 id="direct-전달-상태">direct 전달 상태</h2>
-<p>현재 운영 배포 진입점은 root <code>edgex/k8s/kustomization.yaml</code>이다. 중앙 namespace는 <code>edgex-system</code>, agent namespace는 <code>edgex-edge</code>다. 대시보드의 임시 검증 입력은 <code>sensehat-001</code> 1개이며 <code>arduino-001</code>, Jetson MQTT agent와 MQTT profile은 현재 contract에서 제거되었다.</p>
-<p>2026-07-14 UNO와 2026-07-15 Sense HAT canary, 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Event 계약과 durable replay의 과거 근거다. 현재 중앙 server2 Core/PostgreSQL과 대시보드 조회 전환은 같은 실행에서 새 live evidence를 확보해야 하며 특정 publisher 교체 여부와 분리한다.</p>
-<p>Serial, Modbus, OPC-UA와 추가 I2C adapter 및 RTSP workflow는 프로토콜별 live evidence가 확보되기 전까지 지원 완료로 표시하지 않는다.</p>
-<h2 id="workflow-augmentation-경계">Workflow/augmentation 경계</h2>
-<p>Workflow Designer와 augmentation resource 표면은 read-only 또는 dry-run이다. dashboard는 resource profile, validation, plan preview를 보여줄 수 있지만 Kubernetes workload 생성·이동, runtime offloading, EdgeX mutation, command publish를 수행하거나 완료된 운영 기능으로 주장하지 않는다.</p>
-<h2 id="관련-wiki">관련 Wiki</h2>
-<ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="운영-모델.html">운영 모델</a></li></ul>
-<h2 id="근거-문서">근거 문서</h2>
-<ul><li><a href="../대시보드-판단-정책.html">대시보드 판단 기준</a></li><li><a href="../프로젝트-배경.html">프로젝트 배경</a></li><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a></li></ul>
+<p>현재 checkout에는 서비스 카드용 설계와 binding 문서가 있고, 모델 실행·자동 배포를 완료 기능으로 표시하지 않는다. workflow builder는 validation/plan preview만 제공한다.</p>
+<h2 id="kpi-정의">KPI 정의</h2>
+<ul><li><code>registered_device_count</code>: Core Metadata inventory</li><li><code>available/degraded/unavailable_device_count</code>: EdgeX state와 Core Data freshness 결합 결과</li><li><code>core_data_freshness_ratio</code>: fresh 최신 Event device / 등록 Device</li><li><code>operator_focus_count</code>: degraded + unavailable</li><li>서비스 KPI: 품질 판정 정확도/불량 누락률, 이상감지 탐지율/오탐률, 추론 지연</li><li>운영 KPI: 수집 성공률, outbox 재전송 성공률, 장애 복구 시간</li></ul>
+<p>AI 모델 KPI와 물리 장비 availability KPI의 분모를 섞지 않는다. 세부 정의는 <a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a>를 따른다.</p>
+<h2 id="저장소-표현">저장소 표현</h2>
+<p>Core Data/PostgreSQL은 장기 Event·결과 저장, edge SQLite outbox는 미전송 보존, 메모리/애플리케이션 cache는 최근 화면 응답용이다. 선택적 InfluxDB resource-profile 기록은 물리 telemetry 권위가 아니며 <code>_start</code>/<code>_stop</code> query window, <code>_time</code> sample timestamp 의미를 유지한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
-<li class="toc-h2"><a href="#현재-dashboard-모델">현재 dashboard 모델</a></li>
-<li class="toc-h2"><a href="#device-api와-explain-panel">Device API와 Explain Panel</a></li>
-<li class="toc-h2"><a href="#physical-availability-판단">Physical availability 판단</a></li>
-<li class="toc-h2"><a href="#kpi">KPI</a></li>
-<li class="toc-h2"><a href="#제외한-health-입력">제외한 health 입력</a></li>
-<li class="toc-h2"><a href="#direct-전달-상태">direct 전달 상태</a></li>
-<li class="toc-h2"><a href="#workflow-augmentation-경계">Workflow/augmentation 경계</a></li>
-<li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
-<li class="toc-h2"><a href="#근거-문서">근거 문서</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#화면의-우선순위">화면의 우선순위</a></li>
+<li class="toc-h2"><a href="#device-상태-표시">Device 상태 표시</a></li>
+<li class="toc-h2"><a href="#2차년도-서비스-카드">2차년도 서비스 카드</a></li>
+<li class="toc-h2"><a href="#kpi-정의">KPI 정의</a></li>
+<li class="toc-h2"><a href="#저장소-표현">저장소 표현</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

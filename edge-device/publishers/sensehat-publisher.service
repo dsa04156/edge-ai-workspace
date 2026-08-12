@@ -1,5 +1,5 @@
 [Unit]
-Description=Sense HAT MQTT publisher for KubeEdge mqttvirtual
+Description=Sense HAT direct publisher for the edge telemetry agent
 After=network-online.target
 Wants=network-online.target
 
@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=etri
 WorkingDirectory=/home/etri
-ExecStart=/usr/bin/python3 /home/etri/sensehat_publisher.py --host 127.0.0.1 --port 1883 --interval 1
+ExecStart=/usr/bin/python3 /home/etri/sensehat_publisher.py --agent-url http://127.0.0.1:18080/v1/events --interval 1
 Restart=always
 RestartSec=5
 

@@ -50,6 +50,8 @@
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -120,275 +128,128 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>대시보드 정보 구조</h1>
-          <p class="subtitle">EdgeX를 물리 디바이스의 유일한 상태 권위로 사용하는 운영 dashboard 정보 구조를 정의한다. Dashboard는 Co…</p>
+          <p class="subtitle">대시보드는 “장비가 몇 개인가”만 보여주는 화면이 아니다. 운영자가 디바이스 입력, AI 서비스, 노드 자원, 결과·알림을 같은…</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 대시보드-정보-구조.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="대시보드-정보-구조">대시보드 정보 구조</h1>
-<h2 id="목적">목적</h2>
-<p>이 문서는 EdgeX를 물리 디바이스의 유일한 상태 권위로 사용하는 운영 dashboard 정보 구조를 정의한다. Dashboard는 Core Metadata의 등록·연결 상태와 Core Data event freshness를 함께 보여 주어 운영자가 점검 대상을 빠르게 좁히도록 돕는다.</p>
-<pre data-lang="text"><code>physical device -&gt; Protocol Adapter -&gt; SQLite edge agent -&gt; HTTPS gateway -&gt; Core Data -&gt; AI services / storage / dashboard</code></pre>
-<h2 id="정보-구조-원칙">정보 구조 원칙</h2>
-<ol><li>물리 디바이스 inventory는 EdgeX Core Metadata <code>Device</code>만 사용한다.</li><li>연결 상태는 Device Service, <code>adminState</code>, <code>operatingState</code>, <code>connection_state</code>로 설명한다.</li><li>데이터 최신성은 EdgeX Core Data의 최신 event timestamp로 판단한다.</li><li><code>latest_readings</code>는 최신 event에 포함된 reading이며, 별도 저장소의 최신값을 다시 조회한 결과가 아니다.</li><li>Kubernetes node와 workload 상태는 선택적 배치 진단 정보다. 물리 디바이스 availability의 선행조건이나 권위가 아니다.</li><li>Service binding은 orchestration이 아니라 EdgeX device data가 AI 서비스, 저장소, dashboard consumer로 전달되는 관계다.</li></ol>
-<h2 id="주요-api">주요 API</h2>
+<h2 id="화면-목표">화면 목표</h2>
+<p>대시보드는 “장비가 몇 개인가”만 보여주는 화면이 아니다. 운영자가 디바이스 입력, AI 서비스, 노드 자원, 결과·알림을 같은 기준으로 추적하게 하는 read-only 운영 화면이다.</p>
+<p>현재 화면의 데이터 authority는 다음과 같다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
+<th>화면 영역</th>
 <th>API</th>
-<th>역할</th>
+<th>원본</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>GET /state/dashboard</code></td>
-<td>device, node diagnostics, summary, KPI를 포함한 dashboard 전체 상태</td>
+<td>센서 디바이스</td>
+<td><code>/state/devices</code></td>
+<td>EdgeX Core Metadata + Core Data</td>
 </tr>
 <tr>
-<td><code>GET /state/devices</code></td>
-<td>EdgeX 기반 물리 디바이스 상태 목록</td>
+<td>센서 이력</td>
+<td><code>/state/devices/{id}/telemetry</code></td>
+<td>EdgeX Core Data</td>
 </tr>
 <tr>
-<td><code>GET /state/devices/{device_id}/telemetry</code></td>
-<td>해당 EdgeX device의 Core Data event reading history</td>
+<td>노드 상태</td>
+<td><code>/state/nodes</code></td>
+<td>Prometheus/node-exporter·Kubernetes 진단</td>
 </tr>
 <tr>
-<td><code>GET /state/nodes</code></td>
-<td>선택적 Kubernetes 배치·자원 진단</td>
+<td>서비스 workflow</td>
+<td><code>/state/workflows</code></td>
+<td>수신된 workflow event의 read model</td>
 </tr>
 <tr>
-<td><code>GET /state/summary</code></td>
-<td>운영 상태 요약</td>
+<td>서비스 자원</td>
+<td><code>/state/service-resource-profiles</code></td>
+<td>Kubernetes/Prometheus 관측, optional InfluxDB 기록</td>
 </tr>
 <tr>
-<td><code>GET /metrics</code></td>
-<td>Prometheus scrape metric</td>
+<td>자원증강 상태</td>
+<td><code>/state/augmentation-resources</code>, <code>/state/device-augmentations</code></td>
+<td>Kubernetes CRD read-only 조회</td>
+</tr>
+<tr>
+<td>전체 화면</td>
+<td><code>/state/dashboard</code></td>
+<td>위 응답의 합성</td>
 </tr>
 </tbody></table></div>
-<h2 id="state-devices-계약"><code>/state/devices</code> 계약</h2>
-<p>각 항목은 다음 필드를 사용한다.</p>
+<h2 id="첫-화면-배치">첫 화면 배치</h2>
+<h3 id="1-상단-요약">1. 상단 요약</h3>
+<ul><li>등록 Device 수</li><li>available/degraded/unavailable 수</li><li>Core Data fresh event 비율</li><li>Device Service availability 비율</li><li>우선 점검 대상 수</li><li>노드 online 비율</li></ul>
+<p>KPI의 상세 의미는 <a href="대시보드-판단-정책.html">대시보드 판단 정책</a>에서 정의한다.</p>
+<h3 id="2-센서-디바이스-목록">2. 센서 디바이스 목록</h3>
+<p>목록에는 다음만 먼저 표시한다.</p>
+<ul><li>센서 디바이스 이름</li><li>Protocol</li><li>연결 상태</li><li>최신 Event 시각</li><li>telemetry freshness</li><li>연결된 AI 서비스</li></ul>
+<p>카드를 과도하게 쌓지 않고, 클릭 시 Profile, Device Service, resource, latest reading, 입력 window, 서비스 결과, 장애 원인을 상세로 보여준다.</p>
+<h3 id="3-서비스-목록">3. 서비스 목록</h3>
+<p>현재 2차년도 대표 서비스는 두 그룹으로 표시한다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>API field</th>
-<th>EdgeX 의미</th>
+<th>서비스</th>
+<th>입력</th>
+<th>결과</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><code>name</code></td>
-<td>Core Metadata device 이름</td>
+<td>생산품질 판별</td>
+<td>MES 생산 건 + 센서 window</td>
+<td>양품/불량/unknown, confidence</td>
 </tr>
 <tr>
-<td><code>source</code></td>
-<td>물리 상태 권위. 현재 값은 <code>edgex</code></td>
-</tr>
-<tr>
-<td><code>profile_name</code></td>
-<td>Core Metadata <code>profileName</code></td>
-</tr>
-<tr>
-<td><code>device_service_name</code></td>
-<td>Core Metadata <code>serviceName</code></td>
-</tr>
-<tr>
-<td><code>protocol_names</code></td>
-<td>Core Metadata <code>protocols</code>의 protocol 이름 목록</td>
-</tr>
-<tr>
-<td><code>admin_state</code></td>
-<td>Core Metadata <code>adminState</code></td>
-</tr>
-<tr>
-<td><code>operating_state</code></td>
-<td>Core Metadata <code>operatingState</code></td>
-</tr>
-<tr>
-<td><code>connection_state</code></td>
-<td><code>connected</code>, <code>disconnected</code>, <code>unknown</code>으로 정규화한 연결 상태</td>
-</tr>
-<tr>
-<td><code>device_service_available</code></td>
-<td>Device Service 경로가 사용 가능한지 나타내는 값</td>
-</tr>
-<tr>
-<td><code>latest_event_timestamp</code></td>
-<td>최신 Core Data event/reading의 시각</td>
-</tr>
-<tr>
-<td><code>latest_readings</code></td>
-<td>최신 event의 reading 목록</td>
-</tr>
-<tr>
-<td><code>telemetry_freshness</code></td>
-<td><code>fresh</code>, <code>stale</code>, <code>no_events</code></td>
-</tr>
-<tr>
-<td><code>node_name</code></td>
-<td>EdgeX tags/properties에서 얻은 선택적 배치 진단값</td>
+<td>펌프·모터 이상감지</td>
+<td>진동 3축 + 전류·온도</td>
+<td>anomaly score, severity, reason code</td>
 </tr>
 </tbody></table></div>
-<p>대표 응답 항목:</p>
+<p>서비스 카드에는 source binding, 모델 버전, 입력 freshness, 실행 노드, 마지막 성공/실패, 결과 저장 상태를 표시한다.</p>
+<h3 id="4-노드-자원-진단">4. 노드·자원 진단</h3>
+<p>노드 상태는 센서 디바이스 상태와 분리한다. CPU/memory/GPU, pod 자원, resource profile, DeviceAugmentation은 배치·용량 진단이다. Kubernetes Ready가 센서 연결 성공을 의미하지 않는다.</p>
+<h2 id="상세-화면의-공통-구조">상세 화면의 공통 구조</h2>
+<pre data-lang="text"><code>식별
+  → EdgeX Device / Profile / Device Service / Protocol
+입력
+  → latest Event / readings / timestamp / freshness
+서비스
+  → binding / input window / model version / execution node
+결과
+  → classification 또는 anomaly / confidence / severity / alert
+운영
+  → last error / retry / next safe check / 관련 runbook</code></pre>
+<h2 id="ui에서-하지-않는-동작">UI에서 하지 않는 동작</h2>
+<ul><li>Device/Profile 생성·삭제·수정</li><li>Kubernetes apply/delete/restart</li><li>workflow 실제 실행(현재 범위에서 제외)</li><li>runtime migration/offloading(현재 범위에서 제외)</li><li>actuator command(현재 범위에서 제외)</li></ul>
+<p>현재 workflow builder는 stage 구성·resource bind/release·validation·execution plan preview만 브라우저 상태에서 수행한다.</p>
+<h2 id="api-오류-표시">API 오류 표시</h2>
+<p>EdgeX 관측 실패는 빈 목록으로 숨기지 않는다.</p>
 <pre data-lang="json"><code>{
-  &quot;name&quot;: &quot;sensehat-001&quot;,
-  &quot;source&quot;: &quot;edgex&quot;,
-  &quot;profile_name&quot;: &quot;etri-sensehat&quot;,
-  &quot;device_service_name&quot;: &quot;edge-telemetry-agent&quot;,
-  &quot;protocol_names&quot;: [&quot;i2c&quot;],
-  &quot;admin_state&quot;: &quot;UNLOCKED&quot;,
-  &quot;operating_state&quot;: &quot;UP&quot;,
-  &quot;connection_state&quot;: &quot;connected&quot;,
-  &quot;device_service_available&quot;: true,
-  &quot;latest_event_timestamp&quot;: &quot;2026-07-14T08:30:00Z&quot;,
-  &quot;latest_readings&quot;: [
-    {
-      &quot;device_name&quot;: &quot;sensehat-001&quot;,
-      &quot;source_name&quot;: &quot;humidity&quot;,
-      &quot;resource_name&quot;: &quot;humidity&quot;,
-      &quot;value_type&quot;: &quot;Float64&quot;,
-      &quot;value&quot;: 45.3,
-      &quot;timestamp&quot;: &quot;2026-07-14T08:30:00Z&quot;,
-      &quot;event_id&quot;: &quot;event-id&quot;,
-      &quot;units&quot;: &quot;%&quot;
-    }
-  ],
-  &quot;telemetry_freshness&quot;: &quot;fresh&quot;,
-  &quot;node_name&quot;: null
+  &quot;devices&quot;: [],
+  &quot;device_observation_error&quot;: &quot;EdgeX device observation unavailable: EdgeXBackendError&quot;
 }</code></pre>
-<p><code>source_name</code>은 Core Data event의 <code>sourceName</code>, <code>resource_name</code>은 reading의 <code>resourceName</code>이다. 예시의 식별자와 값은 계약 설명용이며 live 배포 증거가 아니다.</p>
-<h2 id="dashboard-영역">Dashboard 영역</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>영역</th>
-<th>표시 내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Overview KPI</td>
-<td>Core Metadata 등록 수, available 수, Device Service availability, Core Data freshness</td>
-</tr>
-<tr>
-<td>Device State</td>
-<td>source, profile, Device Service, protocol, admin/operating/connection 상태</td>
-</tr>
-<tr>
-<td>Latest Event</td>
-<td>event timestamp, freshness, source/resource별 최신 reading</td>
-</tr>
-<tr>
-<td>Device-Service Relation</td>
-<td>EdgeX Device → Device Service → AI/storage/dashboard consumer</td>
-</tr>
-<tr>
-<td>Issue / Focus</td>
-<td>locked, service down, disconnected, stale/no event 원인</td>
-</tr>
-<tr>
-<td>Node Diagnostics</td>
-<td>선택적 workload placement와 자원 상태. 물리 상태 판정에는 사용하지 않음</td>
-</tr>
-</tbody></table></div>
-<h2 id="상태-판단">상태 판단</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>상태</th>
-<th>판단 의미</th>
-<th>운영자 행동</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>available</code></td>
-<td><code>admin_state</code>가 허용 상태이고 <code>operating_state=UP</code>이며 최신 Core Data event가 fresh</td>
-<td>정상 관찰</td>
-</tr>
-<tr>
-<td><code>degraded</code></td>
-<td>Device Service는 UP이지만 event가 stale/no_events이거나 상태가 불명확</td>
-<td>Device Service와 event 발행 경로 점검</td>
-</tr>
-<tr>
-<td><code>unavailable</code></td>
-<td><code>admin_state=LOCKED</code> 또는 <code>operating_state=DOWN</code></td>
-<td>Core Metadata 정책과 Device Service 연결 점검</td>
-</tr>
-</tbody></table></div>
-<p><code>EDGEX_EVENT_FRESH_SECONDS</code>가 freshness 기준을 설정한다. <code>latest_event_timestamp</code>가 기준 시간 안이면 <code>fresh</code>, 벗어나면 <code>stale</code>, event가 없으면 <code>no_events</code>다.</p>
-<h2 id="kpi-구조">KPI 구조</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>KPI</th>
-<th>의미</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>registered_device_count</code></td>
-<td>Core Metadata 등록 device 수</td>
-</tr>
-<tr>
-<td><code>available_device_count</code></td>
-<td>EdgeX 상태와 Core Data freshness 기준 available 수</td>
-</tr>
-<tr>
-<td><code>degraded_device_count</code></td>
-<td>점검이 필요한 degraded 수</td>
-</tr>
-<tr>
-<td><code>unavailable_device_count</code></td>
-<td>locked/down 상태 수</td>
-</tr>
-<tr>
-<td><code>edgex_connected_device_count</code></td>
-<td>연결 상태가 connected인 수</td>
-</tr>
-<tr>
-<td><code>edgex_connection_ratio</code></td>
-<td>connected / registered</td>
-</tr>
-<tr>
-<td><code>device_service_available_count</code></td>
-<td>Device Service available 수</td>
-</tr>
-<tr>
-<td><code>device_service_availability_ratio</code></td>
-<td>Device Service available / registered</td>
-</tr>
-<tr>
-<td><code>core_data_event_device_count</code></td>
-<td>Core Data event가 관측된 device 수</td>
-</tr>
-<tr>
-<td><code>fresh_core_data_event_device_count</code></td>
-<td>최신 event가 fresh인 device 수</td>
-</tr>
-<tr>
-<td><code>stale_core_data_event_device_count</code></td>
-<td>최신 event가 stale인 device 수</td>
-</tr>
-<tr>
-<td><code>core_data_freshness_ratio</code></td>
-<td>fresh Core Data event device / registered</td>
-</tr>
-<tr>
-<td><code>operator_focus_count</code></td>
-<td>degraded + unavailable device 수</td>
-</tr>
-</tbody></table></div>
-<p>Node KPI는 인프라 진단용으로 별도 표시하며 물리 디바이스 KPI의 분모나 availability gate로 사용하지 않는다.</p>
-<h2 id="운영자-해석-순서">운영자 해석 순서</h2>
-<ol><li><code>source=edgex</code>와 <code>registered_device_count</code>로 관리 범위를 확인한다.</li><li>profile, Device Service, protocol이 의도한 바인딩인지 본다.</li><li>admin/operating/connection 상태를 확인한다.</li><li><code>latest_event_timestamp</code>와 <code>telemetry_freshness</code>를 본다.</li><li><code>latest_readings</code>의 source/resource/value를 확인한다.</li><li>AI 서비스, 저장소, dashboard consumer의 영향 범위를 확인한다.</li><li>필요한 경우에만 Kubernetes node placement를 진단 정보로 본다.</li></ol>
-<h2 id="현재-cutover-범위">현재 cutover 범위</h2>
-<p>현재 repository에 전달된 물리 경로는 loopback Protocol Adapter, direct-mode edge agent, SQLite outbox, HTTPS gateway와 EdgeX-backed aggregator/dashboard 계약이다. <code>sensehat-001</code>은 교체 가능한 검증 fixture다. 새 image의 live cutover evidence를 확보하기 전에는 운영 전환 완료로 표시하지 않는다. 현재 Jetson MQTT workload는 없으며 MQTT-only·Serial·Modbus·OPC-UA와 RTSP workflow는 각각 별도 검증과 승인 후 진행할 migration wave다.</p>
+<p>자원 관측 실패도 센서 디바이스 장애와 분리한다. 운영자는 “장비 없음”과 “관측 backend 장애”를 구분해야 한다.</p>
+<h2 id="저장-검색-용어">저장·검색 용어</h2>
+<p>물리 telemetry 최신성은 Core Data Event <code>origin</code>을 사용한다. optional InfluxDB resource-profile recording을 physical telemetry 저장소로 설명하지 않는다. InfluxDB latest 설명이 필요한 경우 <code>_start/_stop</code>은 Flux query window, <code>_time</code>은 실제 sample timestamp, 최신성은 device-level latest sample 기준이며 property별 freshness를 보장하지 않는다고 표시한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#정보-구조-원칙">정보 구조 원칙</a></li>
-<li class="toc-h2"><a href="#주요-api">주요 API</a></li>
-<li class="toc-h2"><a href="#state-devices-계약">/state/devices 계약</a></li>
-<li class="toc-h2"><a href="#dashboard-영역">Dashboard 영역</a></li>
-<li class="toc-h2"><a href="#상태-판단">상태 판단</a></li>
-<li class="toc-h2"><a href="#kpi-구조">KPI 구조</a></li>
-<li class="toc-h2"><a href="#운영자-해석-순서">운영자 해석 순서</a></li>
-<li class="toc-h2"><a href="#현재-cutover-범위">현재 cutover 범위</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#화면-목표">화면 목표</a></li>
+<li class="toc-h2"><a href="#첫-화면-배치">첫 화면 배치</a></li>
+<li class="toc-h3"><a href="#1-상단-요약">1. 상단 요약</a></li>
+<li class="toc-h3"><a href="#2-센서-디바이스-목록">2. 센서 디바이스 목록</a></li>
+<li class="toc-h3"><a href="#3-서비스-목록">3. 서비스 목록</a></li>
+<li class="toc-h3"><a href="#4-노드-자원-진단">4. 노드·자원 진단</a></li>
+<li class="toc-h2"><a href="#상세-화면의-공통-구조">상세 화면의 공통 구조</a></li>
+<li class="toc-h2"><a href="#ui에서-하지-않는-동작">UI에서 하지 않는 동작</a></li>
+<li class="toc-h2"><a href="#api-오류-표시">API 오류 표시</a></li>
+<li class="toc-h2"><a href="#저장-검색-용어">저장·검색 용어</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -43,11 +43,11 @@ class DocsEditorServerTest(unittest.TestCase):
         module = load_module()
         with tempfile.TemporaryDirectory() as td:
             docs = Path(td) / "docs"
-            target = docs / "project-context.md"
+            target = docs / "프로젝트-배경.md"
             target.parent.mkdir(parents=True)
             target.write_text("# old\n", encoding="utf-8")
 
-            saved = module.save_markdown(docs, "project-context.md", "# new\n")
+            saved = module.save_markdown(docs, "프로젝트-배경.md", "# new\n")
 
             self.assertEqual(saved, "# new\n")
             self.assertEqual(target.read_text(encoding="utf-8"), "# new\n")

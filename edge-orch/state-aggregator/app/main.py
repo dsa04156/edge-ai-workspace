@@ -28,11 +28,16 @@ from .models import (
     TelemetryPoint,
     WorkflowEvent,
     WorkflowState,
+    ProjectionError,
+    VirtualDeviceCollection,
+    VirtualDeviceView,
 )
 from .operator_assistant import degraded_operator_chat_response, operator_assistant_from_dashboard
 from .runtime_augmentation import RuntimeAugmentationState
 from .runtime_augmentation_api import RuntimeAugmentationQuery, runtime_resource_augmentation_state
+from .resource_pool import ResourcePoolState, build_resource_pool_state
 from .service import StateAggregatorService
+from .virtual_device_bindings import BindingConfigError, load_virtual_device_bindings
 from .virtual_resource_registry import RESOURCE_REGISTRY
 from .virtual_resources import (
     JsonMap,
@@ -49,9 +54,18 @@ augmentation_crds = AugmentationCrdReader()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if settings.virtual_device_projection_enabled and service.bindings is None:
+        path = settings.virtual_device_bindings_path
+        if path is None:
+            raise BindingConfigError(
+                "virtual_device_bindings_path is required when projection is enabled"
+            )
+        service.bindings = load_virtual_device_bindings(path)
     await service.start()
-    yield
-    await service.stop()
+    try:
+        yield
+    finally:
+        await service.stop()
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
@@ -246,6 +260,51 @@ async def get_virtual_resources(refresh: bool = False) -> VirtualResourceState:
     return await _virtual_resource_state(refresh=refresh)
 
 
+@app.get("/state/resource-pool", response_model=ResourcePoolState)
+async def get_resource_pool(refresh: bool = False) -> ResourcePoolState:
+    now = datetime.now(timezone.utc)
+    virtual_devices = VirtualDeviceCollection(
+        projection_enabled=False,
+        generated_at=now,
+        observation_time=now,
+        config_revision="",
+    )
+    if settings.virtual_device_projection_enabled:
+        try:
+            virtual_devices = await service.get_virtual_devices()
+        except EdgeXError as exc:
+            virtual_devices = VirtualDeviceCollection(
+                projection_enabled=True,
+                generated_at=now,
+                observation_time=now,
+                config_revision="",
+                observation_error=ProjectionError(
+                    code="authority_inventory_unavailable",
+                    upstream="edgex",
+                    operation=exc.operation,
+                    identity=exc.identity[:128] if exc.identity else None,
+                    retryable=exc.retryable,
+                    status_code=exc.status_code,
+                ),
+            )
+    try:
+        profile_state = await service.get_resource_profile_state(refresh=refresh)
+    except httpx.HTTPError:
+        profile_state = {}
+    virtual_resources = build_virtual_resource_state(
+        registry=RESOURCE_REGISTRY,
+        service_resource_profiles=profile_state.get("service_resource_profiles") or [],
+        nodes=service.get_nodes(),
+        observation_error=profile_state.get("observation_error"),
+    )
+    return build_resource_pool_state(
+        virtual_devices=virtual_devices,
+        nodes=service.get_nodes(),
+        virtual_resources=virtual_resources,
+        service_resource_profiles=profile_state.get("service_resource_profiles") or [],
+    )
+
+
 @app.get("/state/virtual-resources/{resource_id}", response_model=VirtualResourceProfile)
 async def get_virtual_resource(resource_id: str, refresh: bool = False) -> VirtualResourceProfile:
     state = await _virtual_resource_state(refresh=refresh)
@@ -284,20 +343,174 @@ async def record_service_resource_profiles(
     return await service.record_service_resource_profiles(window=window)
 
 
+def _projection_http_error(
+    code: str,
+    *,
+    status_code: int,
+    exc: Exception | None = None,
+) -> None:
+    detail = ProjectionError(
+        code=code,
+        upstream="edgex" if isinstance(exc, EdgeXError) else None,
+        operation=exc.operation if isinstance(exc, EdgeXError) else None,
+        identity=(
+            exc.identity[:128]
+            if isinstance(exc, EdgeXError) and exc.identity
+            else None
+        ),
+        retryable=exc.retryable if isinstance(exc, EdgeXError) else False,
+        status_code=exc.status_code if isinstance(exc, EdgeXError) else None,
+    )
+    raise HTTPException(status_code=status_code, detail=detail.model_dump())
+
+
+def _authority_http_error(exc: EdgeXError) -> None:
+    if exc.status_code in {401, 403}:
+        _projection_http_error(
+            "authority_access_denied", status_code=503, exc=exc
+        )
+    code = {
+        "profile": "authority_profile_unavailable",
+        "events": "authority_event_unavailable",
+    }.get(exc.operation, "authority_inventory_unavailable")
+    _projection_http_error(code, status_code=503, exc=exc)
+
+
+@app.get("/state/virtual-devices", response_model=VirtualDeviceCollection)
+async def get_global_virtual_devices() -> VirtualDeviceCollection:
+    if not settings.virtual_device_projection_enabled:
+        now = datetime.now(timezone.utc)
+        return VirtualDeviceCollection(
+            projection_enabled=False,
+            generated_at=now,
+            observation_time=now,
+            config_revision="",
+        )
+    try:
+        return await service.get_virtual_devices()
+    except EdgeXError as exc:
+        _authority_http_error(exc)
+
+
+@app.get(
+    "/state/virtual-devices/{virtual_device_id}",
+    response_model=VirtualDeviceView,
+)
+async def get_global_virtual_device(virtual_device_id: str) -> VirtualDeviceView:
+    if not settings.virtual_device_projection_enabled:
+        _projection_http_error("projection_not_active", status_code=404)
+    try:
+        item = await service.get_virtual_device(virtual_device_id)
+    except EdgeXError as exc:
+        _authority_http_error(exc)
+    if item is None:
+        _projection_http_error(
+            "virtual_device_not_configured", status_code=404
+        )
+    return item
+
 @app.get("/metrics", response_class=PlainTextResponse)
 async def get_metrics() -> PlainTextResponse:
     payload = render_metrics(
         node_states=service.get_nodes(),
         workflow_states=service.get_workflows(),
         summary=service.get_summary(),
+        projection_observation=service._projection_observation,
+        projection_enabled=settings.virtual_device_projection_enabled,
+        device_snapshot=service.device_snapshot_diagnostics(),
     )
     return PlainTextResponse(
         content=payload,
         media_type="text/plain; version=0.0.4; charset=utf-8",
     )
 
+def create_app(
+    injected_settings: Settings,
+    *,
+    dependencies: dict[str, object] | None = None,
+) -> FastAPI:
+    """Build an injectable projection boundary without changing the default app."""
+    dependencies = dependencies or {}
+    injected_service = dependencies.get("service")
+    if not isinstance(injected_service, StateAggregatorService):
+        injected_service = StateAggregatorService(
+            injected_settings,
+            edgex=dependencies.get("edgex"),
+            clock=dependencies.get("clock"),
+        )
+
+    @asynccontextmanager
+    async def injected_lifespan(application: FastAPI):
+        if injected_settings.virtual_device_projection_enabled:
+            if injected_service.bindings is None:
+                path = injected_settings.virtual_device_bindings_path
+                if path is None:
+                    raise BindingConfigError("virtual-device bindings path is required")
+                injected_service.bindings = load_virtual_device_bindings(
+                    path,
+                    allow_empty_for_tests=bool(dependencies.get("allow_empty_bindings")),
+                )
+        await injected_service.start()
+        try:
+            yield
+        finally:
+            await injected_service.stop()
+
+    injected_app = FastAPI(
+        title="state-aggregator",
+        version="0.1.0",
+        lifespan=injected_lifespan,
+    )
+
+
+    @injected_app.get("/state/virtual-devices", response_model=VirtualDeviceCollection)
+    async def get_virtual_devices() -> VirtualDeviceCollection:
+        if not injected_settings.virtual_device_projection_enabled:
+            now = datetime.now(timezone.utc)
+            return VirtualDeviceCollection(
+                projection_enabled=False,
+                generated_at=now,
+                observation_time=now,
+                config_revision="",
+            )
+        try:
+            return await injected_service.get_virtual_devices()
+        except EdgeXError as exc:
+            _authority_http_error(exc)
+
+    @injected_app.get(
+        "/state/virtual-devices/{virtual_device_id}",
+        response_model=VirtualDeviceView,
+    )
+    async def get_virtual_device(virtual_device_id: str) -> VirtualDeviceView:
+        if not injected_settings.virtual_device_projection_enabled:
+            _projection_http_error("projection_not_active", status_code=404)
+        try:
+            item = await injected_service.get_virtual_device(virtual_device_id)
+        except EdgeXError as exc:
+            _authority_http_error(exc)
+        if item is None:
+            _projection_http_error(
+                "virtual_device_not_configured", status_code=404
+            )
+        return item
+
+    @injected_app.get("/metrics", response_class=PlainTextResponse)
+    async def injected_metrics() -> PlainTextResponse:
+        return PlainTextResponse(
+            content=render_metrics(
+                node_states=injected_service.get_nodes(),
+                workflow_states=injected_service.get_workflows(),
+                summary=injected_service.get_summary(),
+                projection_observation=injected_service._projection_observation,
+                projection_enabled=injected_settings.virtual_device_projection_enabled,
+                device_snapshot=injected_service.device_snapshot_diagnostics(),
+            ),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
+
+    return injected_app
 
 @app.post("/internal/refresh")
 async def refresh_nodes():
     return await service.refresh_nodes()
-# trigger cds

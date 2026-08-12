@@ -94,6 +94,12 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("현재 구축 목표", banner)
         self.assertIn("archive/integration/통합-문서.md", banner)
 
+    def test_history_banner_warns_not_completion_evidence(self):
+        banner = build_docs_html.history_banner("superpowers/plans/계획.md")
+        self.assertIn("설계 이력", banner)
+        self.assertIn("완료 근거가 아닙니다", banner)
+        self.assertIn("superpowers/plans/계획.md", banner)
+
     def test_display_titles_are_korean_and_descriptions_are_short(self):
         self.assertEqual(build_docs_html.display_title("서비스-데모-시나리오.md", "# Service Demo Scenario\n"), "서비스 데모 시나리오")
         self.assertEqual(build_docs_html.display_title("archive/integration/통합-문서.md", "# 통합문서\n"), "통합 문서")

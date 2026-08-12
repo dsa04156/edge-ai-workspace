@@ -3,85 +3,127 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Edge AI Operations Dashboard</title>
+    <title>Edge AI 통합 운영 대시보드</title>
     <meta name="description" content="디바이스 운영 대시보드 서비스 바인딩" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M18 32h28M32 18v28' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
-    <link rel="stylesheet" href="/static/navigation.css?v=dashboard-pages-20260617" />
-    <link rel="stylesheet" href="/static/workflow.css?v=ai-pipeline-compact-20260622" />
+    <link rel="stylesheet" href="/static/navigation.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
-    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=reference-console-20260622" />
-    <link rel="stylesheet" href="/static/dashboard-screen.css?v=edgex-cutover-20260714" />
+    <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=multi-sensor-score-20260803" />
+    <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=infrastructure-observability-20260730" />
+    <link rel="stylesheet" href="/static/service-designer.css?v=multi-sensor-score-v10-20260803" />
+    <link rel="stylesheet" href="/static/resource-pool.css?v=evidence-chain-20260812" />
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
-          <p class="eyebrow">EdgeX Device + Kubernetes Edge Platform</p>
-          <h1>Edge AI Operations Dashboard</h1>
-          <span class="cluster-pill">default cluster</span>
+          <p class="eyebrow">센서 · 엣지 노드 · AI 서비스</p>
+          <h1>Edge AI 통합 운영 대시보드</h1>
+          <span class="cluster-pill">기본 클러스터</span>
         </div>
-        <label class="global-search" aria-label="Search resources">
-          <span>Search</span>
-          <input type="search" name="resourceSearch" placeholder="Search resources" autocomplete="off" />
-        </label>
+        <div class="global-search" role="search" aria-label="리소스 검색">
+          <label for="globalResourceSearch">검색</label>
+          <input
+            id="globalResourceSearch"
+            type="search"
+            name="resourceSearch"
+            placeholder="노드·디바이스·서비스 검색"
+            autocomplete="off"
+            aria-controls="globalSearchResults"
+            aria-expanded="false"
+          />
+          <span id="globalSearchStatus" class="global-search-status" aria-live="polite"></span>
+          <div id="globalSearchResults" class="global-search-results" role="listbox" hidden></div>
+        </div>
         <div class="refresh">
           <span id="updatedAt">-</span>
-          <button id="refreshButton" type="button" aria-label="Refresh dashboard">Refresh</button>
+          <button id="refreshButton" type="button" aria-label="대시보드 새로고침">새로고침</button>
         </div>
       </header>
 
-      <nav class="main-menu" aria-label="dashboard pages">
-        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">Overview</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">Assets</button>
-        <button type="button" data-dashboard-page="workflow" aria-pressed="false">AI Pipeline</button>
+      <nav class="main-menu" aria-label="대시보드 화면">
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
+        <button type="button" data-dashboard-page="resource-pool" aria-pressed="false">자원 풀</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
+        <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
       <section class="ops-shell">
         <div class="ops-main">
-          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="platform summary">
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="active_node_count" tabindex="0" role="button" aria-label="Active Nodes details">
-              <span class="metric-label">Active Nodes</span>
-              <strong id="activeNodeCount">0</strong>
-              <span id="nodeRatio">0%</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="registered_device_count" tabindex="0" role="button" aria-label="Registered Devices details">
-              <span class="metric-label">Registered Devices</span>
-              <strong id="deviceCount">0</strong>
-              <span id="deviceHealthRatio">0% service available · 0 data available</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="core_data_freshness_ratio" tabindex="0" role="button" aria-label="Core Data Freshness details">
-              <span class="metric-label">EdgeX Core Data</span>
-              <strong id="telemetryFreshnessRatio">0%</strong>
-              <span id="telemetryFreshnessCaption">0 fresh</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
-              <span class="metric-label">Service Profiles</span>
-              <strong id="resourceProfileCount">0</strong>
-              <span id="placementFitCaption">0 pods · 0 missing spec</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
-              <span class="metric-label">Service Pod CPU</span>
-              <strong id="serviceCpuUsage">0</strong>
-              <span id="serviceCpuUsageCaption">0 core request</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
-              <span class="metric-label">Service Pod Memory</span>
-              <strong id="serviceMemoryUsage">0</strong>
-              <span id="serviceMemoryUsageCaption">0 MiB request</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
-              <span class="metric-label">Pod Usage Coverage</span>
-              <strong id="usageCoverageRatio">0%</strong>
-              <span id="usageCoverageCaption">0/0 containers observed</span>
-            </article>
-            <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="Device Service Availability 설명 보기">
-              <span class="metric-label">Device Service Available</span>
-              <strong id="serviceBindingRatio">0%</strong>
-              <span id="serviceBindingCaption">0/0 devices available</span>
-            </article>
+          <section class="overview-heading dashboard-page active" data-page="overview" aria-labelledby="overviewTitle">
+            <div>
+              <p class="section-kicker">실시간 운영</p>
+              <h2 id="overviewTitle">운영 현황</h2>
+              <p>서버 자원과 디바이스 수집 상태를 한눈에 확인합니다.</p>
+            </div>
+            <strong id="overviewFleetStatus" class="overview-fleet-status" data-status="unknown">관측 중</strong>
           </section>
 
-          <section class="panel overview-visuals dashboard-page active" data-page="overview" aria-label="observability metrics">
+          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="리소스 분류 요약">
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="server" aria-label="엣지 AI 서버 목록 열기">
+              <span class="metric-label">엣지 AI 서버</span>
+              <strong id="edgeAiServerCount">0</strong>
+              <span id="edgeAiServerHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="physical" aria-label="물리 디바이스 목록 열기">
+              <span class="metric-label">물리 디바이스</span>
+              <strong id="physicalDeviceCount">0</strong>
+              <span id="physicalDeviceHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="virtual" aria-label="가상 디바이스 목록 열기">
+              <span class="metric-label">가상 디바이스</span>
+              <strong id="virtualDeviceCount">0</strong>
+              <span id="virtualDeviceHealth">0개 Available</span>
+            </button>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="sensor" aria-label="센서 디바이스 목록 열기">
+              <span class="metric-label">센서 디바이스</span>
+              <strong id="sensorDeviceCount">0</strong>
+              <span id="sensorDeviceHealth">0개 Available</span>
+            </button>
+            <details class="metric-details" hidden>
+              <summary>기술 운영 지표 4개 보기</summary>
+              <div class="metric-details-grid">
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="device_service_availability_ratio" tabindex="0" role="button" aria-label="수집 서비스 상태 설명 보기">
+                  <span class="metric-label">수집 서비스</span>
+                  <strong id="serviceBindingRatio">0%</strong>
+                  <span id="serviceBindingCaption">0/0개 센서 연결</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_profile_count" tabindex="0" role="button" aria-label="Service Resource Profiles 설명 보기">
+                  <span class="metric-label">Service Profiles</span>
+                  <strong id="resourceProfileCount">0</strong>
+                  <span id="placementFitCaption">0 pods · 0 missing spec</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_cpu_usage_cores" tabindex="0" role="button" aria-label="Service CPU Usage 설명 보기">
+                  <span class="metric-label">Service Pod CPU</span>
+                  <strong id="serviceCpuUsage">0</strong>
+                  <span id="serviceCpuUsageCaption">0 core request</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_current_memory_working_set_mib" tabindex="0" role="button" aria-label="Service Memory Usage 설명 보기">
+                  <span class="metric-label">Service Pod Memory</span>
+                  <strong id="serviceMemoryUsage">0</strong>
+                  <span id="serviceMemoryUsageCaption">0 MiB request</span>
+                </article>
+                <article class="metric explainable" data-explain-type="kpi" data-kpi-key="service_resource_usage_coverage_ratio" tabindex="0" role="button" aria-label="Usage Coverage 설명 보기">
+                  <span class="metric-label">Pod Usage Coverage</span>
+                  <strong id="usageCoverageRatio">0%</strong>
+                  <span id="usageCoverageCaption">0/0 containers observed</span>
+                </article>
+              </div>
+            </details>
+          </section>
+
+          <details class="panel overview-visuals dashboard-page active dashboard-disclosure" data-page="overview" aria-label="observability metrics" hidden>
+            <summary>상세 상태 지표</summary>
             <div class="panel-head">
               <div>
                 <p class="section-kicker">Observed Metrics</p>
@@ -89,7 +131,7 @@
               </div>
               <div class="panel-head-meta">
                 <span id="overviewMetricScope">node aggregation pending</span>
-                <span id="overviewHealthCaption">status aggregation pending</span>
+                <span id="overviewHealthCaptionLegacy">status aggregation pending</span>
               </div>
             </div>
             <div class="overview-visual-grid">
@@ -162,38 +204,165 @@
                 </div>
               </article>
             </div>
+          </details>
+
+          <div class="overview-primary dashboard-page active" data-page="overview">
+          <section class="panel server-observability-panel" aria-labelledby="serverOverviewTitle">
+            <div class="panel-head server-observability-head">
+              <div>
+                <p class="section-kicker">인프라 관측</p>
+                <h2 id="serverOverviewTitle">서버 상태</h2>
+              </div>
+              <div class="server-observability-actions">
+                <span id="serverOverviewAvailability" aria-live="polite">관측 중</span>
+                <button type="button" data-resource-category-link="server">서버 목록</button>
+              </div>
+            </div>
+            <dl class="server-observability-summary" aria-label="서버 자원 요약">
+              <div><dt>평균 CPU</dt><dd id="serverOverviewCpu">관측 대기</dd></div>
+              <div><dt>평균 메모리</dt><dd id="serverOverviewMemory">관측 대기</dd></div>
+              <div><dt>GPU 관측</dt><dd id="serverOverviewGpu">관측 대기</dd></div>
+              <div><dt>압력 주의</dt><dd id="serverOverviewPressure">관측 대기</dd></div>
+            </dl>
+            <div id="serverStatusList" class="server-status-list" aria-live="polite"></div>
+            <p id="serverOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
+          <section class="panel overview-attention-panel" aria-labelledby="overviewAttentionTitle">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">운영 알림</p>
+                <h2 id="overviewAttentionTitle">확인할 항목</h2>
+              </div>
+              <span id="overviewHealthCaption">센서 상태 집계 중</span>
+            </div>
+            <div id="overviewAlertList" class="overview-alert-list" aria-live="polite"></div>
+          </section>
+          </div>
+
+          <section
+            class="panel server-observability-panel physical-device-observability-panel dashboard-page active"
+            data-page="overview"
+            aria-labelledby="physicalDeviceOverviewTitle"
+          >
+            <div class="panel-head server-observability-head">
+              <div>
+                <p class="section-kicker">현장 노드</p>
+                <h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태</h2>
+              </div>
+              <div class="server-observability-actions">
+                <span id="physicalDeviceOverviewAvailability" aria-live="polite">관측 중</span>
+                <button type="button" data-resource-category-link="physical">물리 디바이스 목록</button>
+              </div>
+            </div>
+            <dl class="server-observability-summary" aria-label="물리 디바이스 자원 요약">
+              <div><dt>평균 CPU</dt><dd id="physicalDeviceOverviewCpu">관측 대기</dd></div>
+              <div><dt>평균 메모리</dt><dd id="physicalDeviceOverviewMemory">관측 대기</dd></div>
+              <div><dt>GPU 관측</dt><dd id="physicalDeviceOverviewGpu">관측 대기</dd></div>
+              <div><dt>압력 주의</dt><dd id="physicalDeviceOverviewPressure">관측 대기</dd></div>
+            </dl>
+            <div id="physicalDeviceStatusList" class="server-status-list" aria-live="polite"></div>
+            <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
+          </section>
+
+          <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle">
+            <summary class="overview-service-demo-summary">
+              <span>
+                <span class="section-kicker">서비스 데모</span>
+                <strong id="serviceDemoTitle">Jetson 센서 이상 탐지</strong>
+              </span>
+              <span class="service-demo-status" aria-live="polite">
+                <span>input <strong id="serviceDemoInputState">waiting</strong></span>
+                <strong id="serviceDemoState" class="service-demo-badge" data-state="starting">STARTING</strong>
+              </span>
+            </summary>
+            <div class="overview-service-demo-body">
+              <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
+              <dl class="service-demo-values">
+                <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>진동 점수</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>온도 점수</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
+                <div class="service-demo-value-primary"><dt>종합 / 임계값</dt><dd id="serviceDemoScore">관측 대기</dd></div>
+              </dl>
+              <details class="service-demo-details">
+                <summary>연결·모델 상세정보</summary>
+                <div class="service-demo-route" aria-label="physical source to AI consumer binding">
+                  <div>
+                    <span>Physical source</span>
+                    <strong id="serviceDemoPhysicalSource">관측 대기</strong>
+                  </div>
+                  <div>
+                    <span>수집 서비스</span>
+                    <strong id="serviceDemoDeviceService">관측 대기</strong>
+                  </div>
+                  <div>
+                    <span>AI consumer · node</span>
+                    <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
+                  </div>
+                </div>
+                <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+                <dl class="service-demo-values service-demo-detail-values">
+                  <div class="service-demo-value-detail"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>온도 입력</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                </dl>
+                <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
+              </details>
+              <p id="serviceDemoError" class="service-demo-error" role="status" aria-live="polite" hidden></p>
+            </div>
+          </details>
 
       <section class="layout">
         <section class="panel assets dashboard-page" data-page="inventory">
           <div class="panel-head">
             <div>
-              <p class="section-kicker">Assets</p>
-              <h2>Asset Inventory</h2>
+              <p class="section-kicker">디바이스 인벤토리</p>
+              <h2 id="inventoryTitle">센서 디바이스</h2>
             </div>
-            <span id="assetCount">0 assets</span>
+            <span id="assetCount">0개</span>
           </div>
-          <div class="split asset-split">
-            <div class="asset-column">
-              <div class="asset-column-head">
-                <h3>Edge Nodes</h3>
-              </div>
-              <div id="nodeList" class="stack asset-scroll" aria-label="Edge node cards"></div>
-            </div>
-            <div class="asset-column">
-              <div class="asset-column-head">
-                <h3>Devices</h3>
-                <div class="device-filter-bar">
-                  <span id="deviceFilterLabel" hidden>Registered Assets</span>
-                  <button id="clearNodeFilter" class="ghost-button" type="button" hidden>Clear Filter</button>
-                </div>
-              </div>
-              <div id="deviceList" class="stack asset-scroll" aria-label="Device cards"></div>
-            </div>
+          <div class="resource-category-tabs" role="group" aria-label="디바이스 분류">
+            <button type="button" data-resource-category="server" aria-pressed="false">
+              <span>엣지 AI 서버</span>
+              <strong id="serverCategoryCount">0</strong>
+            </button>
+            <button type="button" data-resource-category="physical" aria-pressed="false">
+              <span>물리 디바이스</span>
+              <strong id="physicalCategoryCount">0</strong>
+            </button>
+            <button type="button" data-resource-category="virtual" aria-pressed="false">
+              <span>가상 디바이스</span>
+              <strong id="virtualCategoryCount">0</strong>
+            </button>
+            <button class="active" type="button" data-resource-category="sensor" aria-pressed="true">
+              <span>센서 디바이스</span>
+              <strong id="sensorCategoryCount">0</strong>
+            </button>
+          </div>
+          <div class="sensor-inventory-toolbar">
+            <label for="nodeFilterSelect">노드</label>
+            <select id="nodeFilterSelect" aria-label="디바이스 노드 필터">
+              <option value="">모든 노드</option>
+            </select>
+            <span id="deviceFilterLabel">전체 0개</span>
+          </div>
+          <div class="sensor-table-shell" role="region" aria-label="디바이스 목록" tabindex="0">
+            <table class="sensor-device-table">
+              <thead>
+                <tr>
+                  <th scope="col">이름</th>
+                  <th scope="col">상태</th>
+                  <th id="inventoryLatestHeading" scope="col">최신 이벤트</th>
+                  <th scope="col"><span class="sr-only">상세정보</span></th>
+                </tr>
+              </thead>
+              <tbody id="deviceList"></tbody>
+            </table>
           </div>
         </section>
 
-        <section class="panel topology-panel dashboard-page" data-page="inventory">
+        <details id="sensorTopologyPanel" class="panel topology-panel dashboard-page dashboard-disclosure" data-page="inventory">
+          <summary>서비스 연결 구조</summary>
           <div class="panel-head">
             <div>
               <p class="section-kicker">Service Binding</p>
@@ -202,132 +371,887 @@
             <span>click service for pod/resource details · read-only</span>
           </div>
           <div id="topologyMap" class="topology-map"></div>
+        </details>
+
+        <section
+          class="resource-pool-page dashboard-page"
+          data-page="resource-pool"
+          aria-labelledby="resourcePoolTitle"
+        >
+          <header class="resource-pool-header">
+            <div>
+              <p class="section-kicker">READ-ONLY EVIDENCE VIEW</p>
+              <h2 id="resourcePoolTitle">서비스 실행 자원 확인</h2>
+              <p>자원 정의가 아니라 실제 런타임·엔드포인트·바인딩 증거까지 확인된 후보만 구분합니다.</p>
+            </div>
+            <div class="resource-pool-mode" aria-label="동작 범위">
+              <strong>읽기 전용</strong>
+              <span>apply · command · offloading 없음</span>
+            </div>
+          </header>
+
+          <aside class="resource-pool-contract" aria-label="자원 판정 기준">
+            <strong>판정 계약</strong>
+            <p>EdgeX는 물리 입력의 권위입니다. Kubernetes 노드는 배치 진단이며, 특수 실행 자원은 전용 ID 라벨과 Ready Endpoint가 모두 있어야 후보가 됩니다.</p>
+            <div class="resource-pool-chain" aria-label="증거 판정 순서">
+              <span>1 정의</span><i aria-hidden="true">→</i><span>2 런타임</span><i aria-hidden="true">→</i><span>3 엔드포인트</span><i aria-hidden="true">→</i><span>4 바인딩</span>
+            </div>
+          </aside>
+
+          <dl class="resource-pool-summary" aria-label="자원 풀 요약">
+            <div><dt>확인된 입력</dt><dd id="resourcePoolReadySources">—</dd><span id="resourcePoolSourceCaption">EdgeX 관측 대기</span></div>
+            <div><dt>검증된 실행 후보</dt><dd id="resourcePoolVerified">—</dd><span>4단계 증거 충족</span></div>
+            <div><dt>확인 필요</dt><dd id="resourcePoolAttention">—</dd><span>부분·장애 상태</span></div>
+            <div><dt>정의만 존재</dt><dd id="resourcePoolDeclared">—</dd><span>실행 자원 아님</span></div>
+          </dl>
+
+          <div class="resource-pool-toolbar">
+            <div class="resource-pool-tabs" role="group" aria-label="자원 역할 필터">
+              <button class="active" type="button" data-pool-class="all" aria-pressed="true">전체</button>
+              <button type="button" data-pool-class="data_source" aria-pressed="false">데이터 입력</button>
+              <button type="button" data-pool-class="runtime_candidate" aria-pressed="false">실행 후보</button>
+              <button type="button" data-pool-class="node_diagnostic" aria-pressed="false">노드 진단</button>
+              <button type="button" data-pool-class="service" aria-pressed="false">서비스</button>
+            </div>
+            <label class="resource-pool-search" for="resourcePoolSearch">
+              <span>목록 검색</span>
+              <input id="resourcePoolSearch" type="search" placeholder="이름·역할·위치" autocomplete="off" />
+            </label>
+          </div>
+
+          <div id="resourcePoolError" class="resource-pool-error" role="status" aria-live="polite" hidden></div>
+          <div id="resourcePoolList" class="resource-pool-list" aria-live="polite" aria-busy="true">
+            <div class="resource-pool-loading"><span></span><p>권위 소스와 실행 증거를 확인하고 있습니다.</p></div>
+          </div>
+          <footer class="resource-pool-footer">
+            <span><i data-state="verified"></i> 확인됨</span>
+            <span><i data-state="partial"></i> 일부 확인</span>
+            <span><i data-state="declared"></i> 정의만 존재</span>
+            <p id="resourcePoolUpdatedAt">마지막 관측 —</p>
+          </footer>
         </section>
 
-        <section class="panel workflow-workbench dashboard-page" data-page="workflow" aria-labelledby="workflowWorkbenchTitle">
-          <div class="panel-head">
+        <section
+          class="panel service-designer-page dashboard-page"
+          data-page="designer"
+          aria-labelledby="serviceDesignerTitle"
+        >
+          <div class="service-designer-head">
             <div>
-              <p class="section-kicker">AI Pipeline</p>
-              <h2 id="workflowWorkbenchTitle">AI Pipeline Builder</h2>
+              <p class="section-kicker">EdgeX 입력 · 실행 전 검증</p>
+              <h2 id="serviceDesignerTitle">서비스 설계</h2>
+              <p>등록된 센서 입력을 특징·센서 점수·종합 점수 단계에 연결합니다.</p>
             </div>
-            <div class="workflow-actions">
-              <span class="workflow-scope">EdgeX devices · Core Data event freshness · dry-run</span>
-              <span id="workflowStatus">device list pending</span>
-              <button id="workflowRefresh" type="button">Refresh Devices</button>
+            <div class="service-designer-state">
+              <strong id="serviceDesignerDraftState" data-state="draft">초안</strong>
+              <span id="serviceDesignerInventoryState">EdgeX 정보 확인 중</span>
             </div>
           </div>
 
-          <div class="workflow-summary" aria-label="device workflow summary">
-            <div>
-              <span>EdgeX Devices</span>
-              <strong id="workflowDeviceTotalCount">0</strong>
-            </div>
-            <div>
-              <span>Available</span>
-              <strong id="workflowDeviceAvailableCount">0</strong>
-            </div>
-            <div>
-              <span>Fresh Events</span>
-              <strong id="workflowFreshTelemetryCount">0</strong>
-            </div>
-            <div>
-              <span>AI HAT Resource</span>
-              <strong id="workflowAiHatCount">0</strong>
-            </div>
-            <div>
-              <span>Bound Nodes</span>
-              <strong id="workflowBoundCount">0</strong>
-            </div>
-            <div>
-              <span>Validation</span>
-              <strong id="workflowValidationSummary">WAIT</strong>
-            </div>
-          </div>
-
-          <div class="workflow-builder-bar" aria-label="workflow builder controls">
-            <label>
-              <span>Pipeline</span>
-              <select id="workflowSelector" name="workflowSelector"></select>
+          <div class="service-designer-toolbar">
+            <label for="serviceDesignerName">
+              <span>서비스 이름</span>
+              <input id="serviceDesignerName" type="text" maxlength="120" autocomplete="off" />
             </label>
-            <label>
-              <span>New Pipeline</span>
-              <input id="workflowNameInput" name="workflowName" type="text" maxlength="40" placeholder="factory-vision-inspection" />
-            </label>
-            <button id="createWorkflow" type="button">Create</button>
+            <div class="service-designer-actions">
+              <button
+                id="serviceDesignerReset"
+                type="button"
+                title="가속도 이상 감지 예시 서비스 불러오기"
+              >3축 데모</button>
+              <button
+                id="serviceDesignerMultiSensorExample"
+                type="button"
+                title="3축 진동과 보조 센서 점수를 결합하는 설계 예시 불러오기"
+              >복합 점수 예시</button>
+              <button id="serviceDesignerSave" type="button">이 브라우저에 저장</button>
+              <button id="serviceDesignerValidate" class="service-designer-primary" type="button">설계 검증</button>
+            </div>
+          </div>
+          <div
+            id="serviceDesignerFeedback"
+            class="service-designer-feedback"
+            role="status"
+            aria-live="polite"
+            data-state="ready"
+          >
+            단계를 선택해 설정하거나 포트를 눌러 연결하세요.
           </div>
 
-          <div class="workflow-studio" aria-label="n8n style workflow studio">
-            <aside class="workflow-palette">
-              <div class="inspector-head">
-                <span>Node Palette</span>
+          <div id="serviceDesignerWorkbench" class="service-designer-workbench palette-open">
+            <aside
+              id="serviceDesignerPalette"
+              class="service-designer-palette"
+              aria-labelledby="serviceDesignerPaletteTitle"
+            >
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>서비스 구성</span>
+                  <strong id="serviceDesignerPaletteTitle">서비스 카탈로그</strong>
+                </div>
+                <button
+                  id="serviceDesignerPaletteClose"
+                  class="service-designer-panel-close"
+                  type="button"
+                  aria-label="서비스 카탈로그 닫기"
+                >닫기</button>
               </div>
-              <div id="workflowNodePalette" class="workflow-node-palette" aria-label="workflow node palette"></div>
-              <div class="workflow-toolbar" aria-label="device source filters">
-                <button type="button" data-device-filter="all" class="active">All</button>
-                <button type="button" data-device-filter="telemetry">EdgeX Sources</button>
-                <button type="button" data-device-filter="fresh">Fresh Event</button>
-                <button type="button" data-device-filter="stale">Stale/No Event</button>
-                <button type="button" data-device-filter="sensehat">Sense HAT</button>
-                <button type="button" data-device-filter="aihat">AI HAT</button>
+              <label class="service-designer-search" for="serviceDesignerPaletteSearch">
+                <span class="sr-only">서비스 검색</span>
+                <input
+                  id="serviceDesignerPaletteSearch"
+                  type="search"
+                  placeholder="서비스 검색"
+                  autocomplete="off"
+                />
+              </label>
+              <p
+                id="serviceDesignerCatalogState"
+                class="service-designer-catalog-state"
+                role="status"
+                aria-live="polite"
+              >서비스 확인 중</p>
+              <div id="serviceDesignerPaletteList" class="service-designer-palette-list">
+                <p class="service-designer-empty">서비스 확인 중</p>
               </div>
-              <div id="deviceSourcePool" class="device-source-pool" aria-label="registered device source pool"></div>
             </aside>
 
-            <section class="workflow-canvas-shell">
-              <div class="workflow-graph-actions" aria-label="workflow graph actions">
-                <div class="workflow-action-cluster">
-                  <button id="startWorkflowLink" type="button">Start Link</button>
-                  <button id="removeWorkflowLink" type="button">Remove Link</button>
-                  <button id="removeWorkflowNode" type="button">Remove Node</button>
+            <section class="service-designer-canvas-pane" aria-labelledby="serviceDesignerCanvasTitle">
+              <div class="service-designer-canvas-toolbar">
+                <div class="service-designer-canvas-title">
+                  <button
+                    id="serviceDesignerPaletteToggle"
+                    class="service-designer-tool-button"
+                    type="button"
+                    aria-controls="serviceDesignerPalette"
+                    aria-expanded="true"
+                  >
+                    <span aria-hidden="true">+</span>
+                    서비스
+                  </button>
+                  <div>
+                    <strong id="serviceDesignerCanvasTitle">서비스 흐름</strong>
+                    <small id="serviceDesignerConnectHint">출력 포트 → 입력 포트</small>
+                  </div>
                 </div>
-                <div class="workflow-action-cluster workflow-zoom-controls" aria-label="canvas zoom controls">
-                  <button id="workflowAutoLayout" type="button">Auto Layout</button>
-                  <button id="workflowZoomOut" type="button" aria-label="Zoom canvas out">−</button>
-                  <button id="workflowZoomReset" type="button">100%</button>
-                  <button id="workflowZoomIn" type="button" aria-label="Zoom canvas in">+</button>
+                <div class="service-designer-view-actions" aria-label="캔버스 보기">
+                  <span id="serviceDesignerZoomLevel">100%</span>
+                  <button id="serviceDesignerFitView" class="service-designer-tool-button" type="button">
+                    전체 보기
+                  </button>
                 </div>
-                <span id="workflowLinkHint">Select a node, click Start Link, then click another node.</span>
               </div>
-              <div id="workflowGraphCanvas" class="workflow-graph-canvas" aria-label="workflow graph canvas">
-                <svg id="workflowGraphEdges" class="workflow-graph-edges" aria-hidden="true"></svg>
-                <div id="workflowGraphNodes" class="workflow-graph-nodes"></div>
+              <div
+                id="serviceDesignerCanvasViewport"
+                class="service-designer-canvas-viewport"
+                role="region"
+                aria-label="서비스 설계 캔버스"
+                tabindex="0"
+              >
+                <div id="serviceDesignerCanvas" class="service-designer-canvas">
+                  <svg
+                    id="serviceDesignerEdges"
+                    class="service-designer-edges"
+                    width="1120"
+                    height="700"
+                    viewBox="0 0 1120 700"
+                    aria-hidden="true"
+                  ></svg>
+                  <div
+                    id="serviceDesignerGuideVertical"
+                    class="service-designer-alignment-guide vertical"
+                    aria-hidden="true"
+                    hidden
+                  ></div>
+                  <div
+                    id="serviceDesignerGuideHorizontal"
+                    class="service-designer-alignment-guide horizontal"
+                    aria-hidden="true"
+                    hidden
+                  ></div>
+                  <div id="serviceDesignerNodes" class="service-designer-nodes"></div>
+                </div>
+                <div class="service-designer-view-controls" role="group" aria-label="캔버스 확대와 이동">
+                  <button id="serviceDesignerZoomOut" type="button" aria-label="캔버스 축소">−</button>
+                  <button id="serviceDesignerZoomReset" type="button" aria-label="캔버스 전체 보기">◎</button>
+                  <button id="serviceDesignerZoomIn" type="button" aria-label="캔버스 확대">＋</button>
+                </div>
+                <div class="service-designer-minimap" aria-label="서비스 흐름 미니맵">
+                  <span>미니맵</span>
+                  <svg
+                    id="serviceDesignerMiniMap"
+                    viewBox="0 0 1120 700"
+                    role="button"
+                    tabindex="0"
+                    aria-label="미니맵을 눌러 캔버스 이동"
+                  >
+                    <g id="serviceDesignerMiniMapNodes"></g>
+                    <rect id="serviceDesignerMiniMapViewport"></rect>
+                  </svg>
+                </div>
               </div>
+              <p class="service-designer-canvas-help">
+                빠른 드래그 · 화면 안에 고정 · 놓을 때 정렬 · Alt 정렬 해제
+              </p>
             </section>
 
-            <aside class="workflow-inspector" aria-live="polite">
-              <div class="inspector-head">
-                <span>Inspector</span>
-                <div class="inspector-actions">
-                  <button id="bindWorkflowDevice" type="button">Bind</button>
-                  <button id="releaseWorkflowDevice" type="button">Release</button>
-                  <button id="readLatestWorkflowDevice" type="button">Read Latest Event</button>
+            <aside
+              id="serviceDesignerInspector"
+              class="service-designer-inspector"
+              aria-labelledby="serviceDesignerInspectorTitle"
+            >
+              <div class="service-designer-pane-head">
+                <div>
+                  <span>설정</span>
+                  <strong id="serviceDesignerInspectorTitle">단계 선택</strong>
                 </div>
+                <button
+                  id="serviceDesignerInspectorClose"
+                  class="service-designer-panel-close"
+                  type="button"
+                  aria-label="단계 설정 닫기"
+                >닫기</button>
               </div>
-              <div id="workflowBindingInspector" class="workflow-binding-inspector">
-                <div class="workflow-empty">Select a node to inspect EdgeX identity, source binding, and Core Data event freshness.</div>
+              <div id="serviceDesignerInspectorBody" class="service-designer-inspector-body">
+                <p class="service-designer-empty">캔버스에서 단계를 선택하세요.</p>
               </div>
             </aside>
           </div>
 
-          <div class="workflow-bottom-grid">
-            <section class="workflow-validation-panel" aria-labelledby="workflowValidationTitle">
-              <div class="inspector-head">
-                <span id="workflowValidationTitle">Validation</span>
-                <strong id="workflowValidationBadge">WAIT</strong>
+          <details id="serviceDesignerReviewPanel" class="service-designer-review-panel">
+            <summary>
+              <span>
+                <strong>검증 결과와 실행 계획</strong>
+                <small>실제 배포·실행 없이 설계 계약만 확인합니다.</small>
+              </span>
+              <b id="serviceDesignerValidationSummary">검증 전</b>
+            </summary>
+            <div class="service-designer-review-grid">
+              <section class="service-designer-review" aria-labelledby="serviceDesignerValidationTitle">
+                <div class="service-designer-pane-head">
+                  <div>
+                    <span>검증</span>
+                    <strong id="serviceDesignerValidationTitle">설계 점검</strong>
+                  </div>
+                </div>
+                <div id="serviceDesignerValidation" class="service-designer-validation" aria-live="polite">
+                  <p class="service-designer-empty">설계 검증을 누르면 연결과 배치를 확인합니다.</p>
+                </div>
+              </section>
+              <section class="service-designer-review" aria-labelledby="serviceDesignerPlanTitle">
+                <div class="service-designer-pane-head">
+                  <div>
+                    <span>Dry-run</span>
+                    <strong id="serviceDesignerPlanTitle">실행 계획 미리보기</strong>
+                  </div>
+                  <small>배포·실행 없음</small>
+                </div>
+                <ol id="serviceDesignerPlan" class="service-designer-plan">
+                  <li class="service-designer-empty">검증된 설계의 단계 순서를 표시합니다.</li>
+                </ol>
+              </section>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel device-management-page dashboard-page" data-page="management" aria-labelledby="deviceManagementTitle">
+          <div class="management-page-content">
+            <div class="panel-head management-page-head">
+              <div>
+                <p class="section-kicker">센서 디바이스 운영</p>
+                <h2 id="deviceManagementTitle">장비 관리</h2>
+                <p class="management-page-summary">등록 장비와 연결 대기를 한 화면에서 관리합니다.</p>
               </div>
-              <ul id="workflowValidationList" class="workflow-validation-list"></ul>
-            </section>
-            <section class="workflow-plan-panel" aria-labelledby="workflowPlanTitle">
-              <div class="inspector-head">
-                <span id="workflowPlanTitle">Execution Plan</span>
-                <strong>Preview</strong>
+              <div class="management-head-actions">
+                <strong id="managementMutationMode" data-status="disabled">검증 전용 · 변경 기능 비활성화</strong>
+                <button id="managementRefresh" type="button">새로고침</button>
               </div>
-              <pre id="workflowExecutionPlan" class="workflow-plan-preview"></pre>
+            </div>
+
+            <details class="management-guardrail">
+              <summary>운영 안전 기준</summary>
+              <p>
+                EdgeX Core Metadata가 물리 디바이스 권위를 유지합니다. 검증된 런타임과 등록된 물리
+                연결만 사용하며 임의 이미지, hostPath, 고정 ClusterIP/PodIP, KubeEdge Device
+                CRD와 EdgeMesh는 이 화면에서 변경하지 않습니다.
+              </p>
+            </details>
+
+            <section class="management-node-scope" aria-labelledby="managementNodeTitle">
+              <div class="management-section-head">
+                <div>
+                  <span>1. 운영 범위 선택</span>
+                  <strong id="managementNodeTitle">노드 선택</strong>
+                </div>
+                <small id="managementSelectedNode">선택된 노드 없음</small>
+              </div>
+              <div id="managementNodeList" class="management-node-list" role="group" aria-label="관리 노드 선택" aria-live="polite"></div>
             </section>
+
+            <div
+              id="managementActionFeedback"
+              class="management-action-feedback"
+              role="status"
+              aria-live="polite"
+              data-status="ready"
+              data-kind="idle"
+            >
+              버튼을 누르면 진행 상태와 결과가 여기에 표시됩니다.
+            </div>
+
+            <section id="managementOverviewPanel" class="management-view-panel" aria-label="등록 현황" data-management-view-panel="overview">
+              <section class="management-device-inventory" aria-labelledby="managedDeviceTitle">
+                <div class="management-section-head">
+                  <div>
+                    <span>Core Metadata</span>
+                    <strong id="managedDeviceTitle">등록 장비</strong>
+                    <small>물리 장비별로 묶어 표시합니다.</small>
+                  </div>
+                  <div class="management-buttons">
+                    <button type="button" class="management-primary-action" data-management-open-register>장비 연결</button>
+                  </div>
+                </div>
+                <div id="managedDeviceList" class="managed-device-list" aria-live="polite"></div>
+                <details id="managementFixtureDeviceSection" class="management-fixture-section" hidden>
+                  <summary>
+                    검증용 센서 디바이스
+                    <span id="managementFixtureDeviceCount">0개</span>
+                  </summary>
+                  <p>시뮬레이터에서 생성한 Event를 확인하기 위한 개발용 등록입니다.</p>
+                  <div id="managementFixtureDeviceList" class="managed-device-list" aria-live="polite"></div>
+                </details>
+              </section>
+
+              <section class="management-profile-library" aria-labelledby="managementProfileLibraryTitle">
+                <div class="management-section-head">
+                  <div>
+                    <span>Core Metadata</span>
+                    <strong id="managementProfileLibraryTitle">디바이스 프로필</strong>
+                  </div>
+                  <div class="management-buttons">
+                    <small id="managementProfileLibraryCount">불러오는 중</small>
+                    <button
+                      id="managementOpenProfileDialog"
+                      type="button"
+                      data-management-open-profile
+                    >
+                      프로필 생성
+                    </button>
+                  </div>
+                </div>
+                <div
+                  id="managementProfileLibraryList"
+                  class="management-profile-library-list"
+                  aria-live="polite"
+                ></div>
+              </section>
+
+              <section id="managementDiscoveryPanel" class="management-discovery-shell" aria-labelledby="managementDiscoveryTitle">
+                <div class="management-discovery-head">
+                  <div>
+                    <span>승인 전 후보</span>
+                    <h3 id="managementDiscoveryTitle">연결 대기</h3>
+                  </div>
+                  <div class="management-discovery-actions">
+                    <span id="managementDiscoveryStatus" data-status="loading">탐색 상태 확인 중</span>
+                  </div>
+                </div>
+
+                <div class="management-discovery-stats" aria-label="연결 후보 요약">
+                  <article><span>관측</span><strong id="managementDiscoveryPresentCount">0</strong></article>
+                  <article><span>승인 대기</span><strong id="managementDiscoveryPendingCount">0</strong></article>
+                  <article><span>등록 가능</span><strong id="managementDiscoveryReadyCount">0</strong></article>
+                  <article class="management-detail-stat"><span>거절됨</span><strong id="managementDiscoveryIgnoredCount">0</strong></article>
+                </div>
+
+                <div class="management-discovery-toolbar">
+                  <label class="management-discovery-search">
+                    <span>후보 검색</span>
+                    <input id="managementDiscoverySearch" type="search" placeholder="이름, 경로, 프로토콜" />
+                  </label>
+                  <details class="management-discovery-filters">
+                    <summary>필터</summary>
+                    <div class="management-discovery-filter-grid">
+                      <label>
+                        <span>프로토콜</span>
+                        <select id="managementDiscoveryProtocolFilter">
+                          <option value="">전체 프로토콜</option>
+                          <option value="serial">Serial / USB</option>
+                          <option value="i2c">I²C</option>
+                          <option value="mqtt">MQTT</option>
+                          <option value="modbus">Modbus</option>
+                          <option value="opcua">OPC-UA</option>
+                          <option value="onvif">ONVIF 카메라 발견</option>
+                          <option value="rtsp">RTSP</option>
+                          <option value="rest">HTTP / REST</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>등록 상태</span>
+                        <select id="managementDiscoveryDecisionFilter">
+                          <option value="">전체 상태</option>
+                          <option value="DETECTED">발견됨</option>
+                          <option value="IDENTIFIED">식별됨</option>
+                          <option value="PENDING_APPROVAL">승인 대기</option>
+                          <option value="APPROVED">승인됨</option>
+                          <option value="SERVICE_READY">서비스 준비</option>
+                          <option value="METADATA_REGISTERED">Metadata 등록</option>
+                          <option value="EVENT_CONFIRMED">첫 Event 확인</option>
+                          <option value="BLOCKED">차단됨</option>
+                          <option value="REJECTED">거절됨</option>
+                          <option value="STALE">연결 끊김</option>
+                          <option value="FAILED">등록 실패</option>
+                        </select>
+                      </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryShowStale" type="checkbox" />
+                        <span>오래된 후보</span>
+                      </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryIncludeIgnored" type="checkbox" />
+                        <span>거절한 후보</span>
+                      </label>
+                      <label class="management-discovery-toggle">
+                        <input id="managementDiscoveryShowRegistered" type="checkbox" />
+                        <span>등록 완료 후보</span>
+                      </label>
+                    </div>
+                  </details>
+                </div>
+                <div class="management-discovery-filter-feedback" aria-live="polite">
+                  <span id="managementDiscoveryFilterStatus">전체 후보를 표시하고 있습니다.</span>
+                  <button id="managementDiscoveryResetFilters" type="button">필터 초기화</button>
+                </div>
+
+                <div id="managementDiscoveryNodeHealth" class="management-discovery-node-health" aria-live="polite"></div>
+                <div id="managementDiscoveryList" class="management-discovery-list" aria-live="polite"></div>
+                <details class="management-manual-candidate-access" hidden aria-hidden="true">
+                  <summary>자동 탐색에 장비가 나오지 않나요?</summary>
+                  <div>
+                    <p>허용된 물리 경로나 네트워크 엔드포인트를 탐색 후보로 직접 등록합니다.</p>
+                    <button id="managementOpenManualCandidate" type="button">
+                      직접 후보 등록
+                    </button>
+                  </div>
+                </details>
+              </section>
+
+              <section class="management-physical-inventory" aria-labelledby="managementDeviceServiceTitle">
+                <div class="management-section-head">
+                  <div>
+                    <span>수집 서비스</span>
+                    <strong id="managementDeviceServiceTitle">수집 서비스</strong>
+                  </div>
+                  <small>선택 노드</small>
+                </div>
+                <div id="managementDeviceServiceList" class="management-physical-list" aria-live="polite"></div>
+                <details id="managementFixtureServiceSection" class="management-fixture-section" hidden>
+                  <summary>
+                    검증용 연결
+                    <span id="managementFixtureServiceCount">0개</span>
+                  </summary>
+                  <p>실제 장비가 아닌 개발·연동 시험용 시뮬레이터입니다.</p>
+                  <div id="managementFixtureServiceList" class="management-physical-list" aria-live="polite"></div>
+                </details>
+              </section>
+            </section>
+
+            <dialog id="managementManualCandidateDialog" class="management-dialog" aria-labelledby="managementManualCandidateTitle">
+              <form id="managementManualCandidateForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>자동 탐색 보완</span>
+                    <h3 id="managementManualCandidateTitle">탐색 후보 직접 등록</h3>
+                    <p>이 이전 호환 화면은 탐색 증거만 저장합니다. 실제 연결은 장비 연결 마법사를 사용합니다.</p>
+                  </div>
+                  <button type="button" data-management-close-dialog aria-label="닫기">닫기</button>
+                </div>
+                <div class="management-form-grid">
+                  <label>
+                    <span>대상 노드</span>
+                    <select id="managementManualNode" required></select>
+                  </label>
+                  <label>
+                    <span>프로토콜</span>
+                    <select id="managementManualProtocol" required>
+                      <option value="serial">Serial / USB</option>
+                      <option value="i2c">I²C</option>
+                      <option value="mqtt">MQTT</option>
+                      <option value="modbus">Modbus</option>
+                      <option value="opcua">OPC-UA</option>
+                      <option value="rtsp">RTSP</option>
+                      <option value="rest">HTTP / REST</option>
+                    </select>
+                  </label>
+                  <label class="management-field-wide">
+                    <span>표시 이름</span>
+                    <input id="managementManualDisplayName" type="text" maxlength="255" required placeholder="라인 1 온도 센서" />
+                  </label>
+                </div>
+                <div id="managementManualProtocolFields" class="management-form-grid management-manual-fields"></div>
+                <label class="management-field-wide management-dialog-note">
+                  <span>운영 메모</span>
+                  <textarea id="managementManualNote" maxlength="1000" rows="3" placeholder="설치 위치, 담당자, 검토할 사항"></textarea>
+                </label>
+                <div id="managementManualCandidateResult" class="management-result" role="status" aria-live="polite"></div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-dialog>취소</button>
+                  <button id="managementCreateManualCandidate" type="submit" class="management-primary-action">후보 등록</button>
+                </div>
+              </form>
+            </dialog>
+
+            <dialog id="managementProfileDialog" class="management-dialog management-profile-dialog" aria-labelledby="managementProfileDialogTitle">
+              <form id="managementProfileForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>EdgeX Core Metadata</span>
+                    <h3 id="managementProfileDialogTitle">디바이스 프로필 생성</h3>
+                    <p>센서 데이터의 이름·자료형·단위를 정의합니다. 프로필은 연결 parser나 장비 승인을 대신하지 않습니다.</p>
+                  </div>
+                  <button type="button" data-management-close-profile aria-label="디바이스 프로필 생성 닫기">닫기</button>
+                </div>
+
+                <div id="managementProfileInventory" class="management-profile-inventory" role="status" aria-live="polite">
+                  등록된 프로필을 확인하는 중입니다.
+                </div>
+
+                <div class="management-form-grid">
+                  <label>
+                    <span>프로필 이름</span>
+                    <input id="managementNewProfileName" type="text" required maxlength="255" pattern="[A-Za-z0-9._~\-]+" placeholder="factory-temperature-v1" />
+                  </label>
+                  <label>
+                    <span>제조사</span>
+                    <input id="managementNewProfileManufacturer" type="text" required maxlength="255" placeholder="Arduino" />
+                  </label>
+                  <label>
+                    <span>모델</span>
+                    <input id="managementNewProfileModel" type="text" required maxlength="255" placeholder="uno-temperature-v1" />
+                  </label>
+                  <label>
+                    <span>레이블 · 쉼표로 구분</span>
+                    <input id="managementNewProfileLabels" type="text" maxlength="1000" placeholder="serial, temperature" />
+                  </label>
+                  <label class="management-field-wide">
+                    <span>설명</span>
+                    <input id="managementNewProfileDescription" type="text" required maxlength="1000" placeholder="라인 온도 센서의 읽기 전용 데이터 계약" />
+                  </label>
+                </div>
+
+                <section class="management-profile-resource-section" aria-labelledby="managementProfileResourcesTitle">
+                  <div class="management-section-head">
+                    <div>
+                      <span>읽기 전용 리소스</span>
+                      <strong id="managementProfileResourcesTitle">센서 데이터 항목</strong>
+                    </div>
+                    <button id="managementAddProfileResource" type="button">리소스 추가</button>
+                  </div>
+                  <div id="managementProfileResourceRows" class="management-profile-resource-rows"></div>
+                </section>
+
+                <p class="management-profile-safety-note">
+                  command, parser, Device Service 이미지와 장치 경로는 이 화면에서 만들거나 변경하지 않습니다.
+                </p>
+                <div id="managementProfileResult" class="management-result" role="status" aria-live="polite">
+                  필수 항목을 입력한 뒤 먼저 검증하세요.
+                </div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-profile>취소</button>
+                  <button id="managementValidateProfile" type="button">프로필 검증</button>
+                  <button id="managementCreateProfile" type="submit" class="management-primary-action" disabled>프로필 생성</button>
+                </div>
+              </form>
+            </dialog>
+
+            <section id="managementRegisterPanel" class="management-view-panel" aria-labelledby="managementRegisterTitle" data-management-view-panel="register" hidden>
+              <form id="deviceOnboardingForm" class="management-form management-registration-form" novalidate>
+                <div class="management-flow-head">
+                  <div>
+                    <span>연결 구성 마법사</span>
+                    <h3 id="managementRegisterTitle">장비 연결</h3>
+                    <p>프로토콜 연결 정보를 입력하면 Device Service 준비, EdgeX 등록, 첫 이벤트 확인까지 한 번에 처리합니다.</p>
+                  </div>
+                  <div class="management-flow-actions">
+                    <small id="managementAdapterNote">어댑터 목록 불러오는 중</small>
+                    <button type="button" data-management-return-overview>등록 현황으로</button>
+                  </div>
+                </div>
+
+                <ol id="managementRegistrationStepper" class="management-stepper" aria-label="등록 단계">
+                  <li><button type="button" data-management-step="1" aria-current="step"><span>1</span>연결 선택</button></li>
+                  <li><button type="button" data-management-step="2"><span>2</span>디바이스 정보</button></li>
+                  <li><button type="button" data-management-step="3"><span>3</span>프로필</button></li>
+                  <li><button type="button" data-management-step="4"><span>4</span>검증 및 연결</button></li>
+                </ol>
+
+                <div
+                  id="managementRegistrationFeedback"
+                  class="management-inline-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-status="ready"
+                >
+                  현재 단계의 필수 항목을 입력한 뒤 다음 단계로 이동하세요.
+                </div>
+
+                <section id="managementRegistrationStep1" class="management-step-panel" data-management-step-panel="1" aria-labelledby="managementStep1Title">
+                  <div class="management-step-head">
+                    <span>1단계</span>
+                    <h4 id="managementStep1Title">프로토콜과 연결 정보 입력</h4>
+                    <p>선택한 노드에서 검증된 프로토콜 패키지만 표시하며, 네트워크 주소와 장비 매핑값도 여기서 입력합니다.</p>
+                  </div>
+                  <div class="management-form-grid">
+                    <label class="management-field-wide">
+                      <span>프로토콜 패키지</span>
+                      <select id="managementAdapter" required></select>
+                    </label>
+                    <label>
+                      <span>대상 엣지 노드</span>
+                      <select id="managementTargetNode" required></select>
+                    </label>
+                    <label>
+                      <span>연결 대상</span>
+                      <select id="managementHardwareBinding" required></select>
+                    </label>
+                  </div>
+                  <input id="managementRuntimeMode" type="hidden" value="auto" />
+                  <div class="management-automation-summary" role="status">
+                    <strong>Device Service 자동 처리</strong>
+                    <span>사용 가능한 인스턴스는 재사용하고, 없으면 검증된 패키지만 대상 노드에 설치합니다.</span>
+                  </div>
+                  <div id="managementConnectionGuidance" class="management-connection-guidance" role="status" aria-live="polite"></div>
+                  <div class="management-subsection">
+                    <strong>연결 설정</strong>
+                    <div id="managementProtocolFields" class="management-protocol-groups"></div>
+                  </div>
+                  <p class="management-runtime-hint">USB·I²C 경로는 노드에서 탐색되고, MQTT 같은 네트워크 주소는 이 화면에서 입력합니다. 임의 컨테이너 이미지는 실행하지 않으며 검증된 프로토콜 패키지만 자동 설치합니다.</p>
+                  <div class="management-step-actions">
+                    <button type="button" class="management-primary-action" data-management-next-step>다음: 디바이스 정보</button>
+                  </div>
+                </section>
+
+                <section id="managementRegistrationStep2" class="management-step-panel" data-management-step-panel="2" aria-labelledby="managementStep2Title" hidden>
+                  <div class="management-step-head">
+                    <span>2단계</span>
+                    <h4 id="managementStep2Title">워크플로우에서 사용할 디바이스 이름 입력</h4>
+                    <p>물리 프로토콜과 분리된 고유한 센서 디바이스 이름을 사용합니다.</p>
+                  </div>
+                  <div class="management-form-grid">
+                    <label>
+                      <span>디바이스 이름</span>
+                      <input id="managementDeviceName" type="text" required maxlength="255" placeholder="virtual-temperature-002" />
+                    </label>
+                    <label>
+                      <span>설명</span>
+                      <input id="managementDeviceDescription" type="text" maxlength="1000" placeholder="물리 소스와 사용 목적" />
+                    </label>
+                    <label class="management-field-wide">
+                      <span>레이블 · 쉼표로 구분</span>
+                      <input id="managementDeviceLabels" type="text" placeholder="arduino, serial, virtual-device" />
+                    </label>
+                  </div>
+                  <div class="management-step-actions">
+                    <button type="button" data-management-previous-step>이전</button>
+                    <button type="button" class="management-primary-action" data-management-next-step>다음: 프로필</button>
+                  </div>
+                </section>
+
+                <section id="managementRegistrationStep3" class="management-step-panel" data-management-step-panel="3" aria-labelledby="managementStep3Title" hidden>
+                  <div class="management-step-head">
+                    <span>3단계</span>
+                    <h4 id="managementStep3Title">디바이스 프로필 선택</h4>
+                    <p>프로토콜 패키지의 기본 프로필은 연결할 때 자동 등록됩니다. 필요한 경우 기존 프로필을 선택할 수 있습니다.</p>
+                  </div>
+                  <div class="management-form-grid">
+                    <label class="management-field-wide">
+                      <span>디바이스 프로필</span>
+                      <select id="managementProfileName" required>
+                        <option value="">프로필을 불러오는 중입니다.</option>
+                      </select>
+                      <small id="managementProfileSelectionHint">
+                        프로필을 선택하면 모델과 리소스 수를 확인할 수 있습니다.
+                      </small>
+                    </label>
+                  </div>
+                  <div class="management-step-actions">
+                    <button
+                      id="managementOpenProfileFromRegistration"
+                      type="button"
+                      data-management-open-profile
+                    >
+                      프로필 생성
+                    </button>
+                    <button type="button" data-management-previous-step>이전</button>
+                    <button type="button" class="management-primary-action" data-management-next-step>다음: 검증</button>
+                  </div>
+                </section>
+
+                <section id="managementRegistrationStep4" class="management-step-panel" data-management-step-panel="4" aria-labelledby="managementStep4Title" hidden>
+                  <div class="management-step-head">
+                    <span>4단계</span>
+                    <h4 id="managementStep4Title">등록 내용 검증 및 연결</h4>
+                    <p>버튼 한 번으로 계획을 검증하고, Device Service 준비부터 첫 이벤트 확인까지 실행합니다.</p>
+                  </div>
+
+                  <dl class="management-review-grid">
+                    <div><dt>대상 노드</dt><dd id="managementReviewNode">-</dd></div>
+                    <div><dt>프로토콜 / Device Service</dt><dd id="managementReviewAdapter">-</dd></div>
+                    <div><dt>물리 연결</dt><dd id="managementReviewBinding">-</dd></div>
+                    <div><dt>디바이스 / 프로필</dt><dd id="managementReviewDevice">-</dd></div>
+                  </dl>
+
+                  <details class="management-advanced">
+                    <summary>고급 요청 설정</summary>
+                    <label>
+                      <span>중복 요청 방지 키</span>
+                      <input id="managementIdempotencyKey" type="text" autocomplete="off" />
+                    </label>
+                  </details>
+
+                  <div class="management-results-grid">
+                    <section aria-labelledby="managementValidationTitle">
+                      <div class="management-section-head">
+                        <strong id="managementValidationTitle">실행 계획</strong>
+                        <small>검증은 변경하지 않음</small>
+                      </div>
+                      <div id="managementValidation" class="management-result" role="status" aria-live="polite">
+                        <p>연결 검증을 실행하면 등록 계획을 표시합니다.</p>
+                      </div>
+                    </section>
+                    <section aria-labelledby="managementOperationTitle">
+                      <div class="management-section-head">
+                        <strong id="managementOperationTitle">연결 상태</strong>
+                        <small>첫 Event까지 추적</small>
+                      </div>
+                      <div id="managementOperation" class="management-result" role="status" aria-live="polite">
+                        <p>아직 연결 작업을 실행하지 않았습니다.</p>
+                      </div>
+                    </section>
+                  </div>
+
+                  <div class="management-apply-row">
+                    <button type="button" data-management-previous-step>이전</button>
+                    <div class="management-buttons">
+                      <button id="managementApply" type="button" class="management-primary-action">검증하고 연결</button>
+                    </div>
+                  </div>
+                </section>
+              </form>
+            </section>
+
+            <section id="managementEditPanel" class="management-view-panel" aria-labelledby="devicePatchTitle" data-management-view-panel="edit" hidden>
+              <form id="devicePatchForm" class="management-form management-edit-form" aria-labelledby="devicePatchTitle">
+                <div class="management-flow-head">
+                  <div>
+                    <span>허용 항목만 수정</span>
+                    <h3 id="devicePatchTitle">기존 디바이스 수정</h3>
+                    <p>이름·프로필·Device Service는 변경할 수 없습니다.</p>
+                  </div>
+                  <button type="button" data-management-return-overview>등록 현황으로</button>
+                </div>
+
+                <label class="management-device-picker">
+                  <span>수정할 디바이스</span>
+                  <select id="managementPatchDeviceSelect">
+                    <option value="">디바이스를 선택하세요</option>
+                  </select>
+                </label>
+
+                <div class="management-form-grid">
+                  <label>
+                    <span>디바이스 이름</span>
+                    <input id="patchDeviceName" type="text" required readonly />
+                  </label>
+                  <label>
+                    <span>관리 상태</span>
+                    <select id="patchDeviceAdminState">
+                      <option value="UNLOCKED">잠금 해제</option>
+                      <option value="LOCKED">잠김</option>
+                    </select>
+                  </label>
+                  <label class="management-field-wide">
+                    <span>설명</span>
+                    <input id="patchDeviceDescription" type="text" maxlength="1000" />
+                  </label>
+                  <label class="management-field-wide">
+                    <span>레이블 · 쉼표로 구분</span>
+                    <input id="patchDeviceLabels" type="text" />
+                  </label>
+                </div>
+
+                <details class="management-advanced">
+                  <summary>고급 프로토콜 설정</summary>
+                  <div class="management-form-grid">
+                    <label class="management-field-wide">
+                      <span>태그 JSON · 선택적 병합</span>
+                      <textarea id="patchDeviceTags" rows="3" placeholder='{"line":"B"}'></textarea>
+                    </label>
+                    <label class="management-field-wide">
+                      <span>프로토콜 속성 JSON · 선택적 전체 어댑터 속성</span>
+                      <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-001","ResourceName":"temperature_raw"}'></textarea>
+                    </label>
+                    <label class="management-field-wide">
+                      <span>중복 요청 방지 키</span>
+                      <input id="patchIdempotencyKey" type="text" autocomplete="off" />
+                    </label>
+                  </div>
+                </details>
+
+                <div
+                  id="managementPatchResult"
+                  class="management-inline-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-status="ready"
+                >
+                  디바이스를 선택하고 값을 변경하면 적용할 수 있습니다.
+                </div>
+
+                <div class="management-apply-row">
+                  <small>선택한 노드의 센서 디바이스만 수정할 수 있습니다.</small>
+                  <button id="managementPatchApply" type="submit" class="management-primary-action" disabled>변경 내용 적용</button>
+                </div>
+
+                <section class="management-danger-zone" aria-labelledby="managementDeleteDeviceTitle">
+                  <div>
+                    <strong id="managementDeleteDeviceTitle">디바이스 삭제</strong>
+                    <p>센서 디바이스를 삭제합니다. Controller가 등록한 장비는 연결 Runtime도 함께 정리합니다.</p>
+                  </div>
+                  <button id="managementDeleteDevice" type="button" class="management-danger-action" disabled>삭제…</button>
+                </section>
+              </form>
+
+            </section>
+
+            <dialog id="managementDeleteDeviceDialog" class="management-dialog management-delete-dialog" aria-labelledby="managementDeleteDialogTitle">
+              <form id="managementDeleteDeviceForm" method="dialog" novalidate>
+                <div class="management-dialog-head">
+                  <div>
+                    <span>되돌릴 수 없는 작업</span>
+                    <h3 id="managementDeleteDialogTitle">디바이스 삭제 확인</h3>
+                    <p id="managementDeleteDialogSummary">삭제할 디바이스를 확인하세요.</p>
+                  </div>
+                  <button type="button" data-management-close-delete-dialog aria-label="삭제 창 닫기">닫기</button>
+                </div>
+                <label class="management-field-wide">
+                  <span>확인을 위해 디바이스 이름을 정확히 입력</span>
+                  <input id="managementDeleteDeviceConfirm" type="text" autocomplete="off" required />
+                </label>
+                <div id="managementDeleteDeviceResult" class="management-inline-feedback" role="status" aria-live="polite" data-status="warning">
+                  정확한 이름을 입력해야 삭제할 수 있습니다.
+                </div>
+                <div class="management-dialog-actions">
+                  <button type="button" data-management-close-delete-dialog>취소</button>
+                  <button id="managementConfirmDeleteDevice" type="submit" class="management-danger-action" disabled>영구 삭제</button>
+                </div>
+              </form>
+            </dialog>
           </div>
         </section>
 
-        <section class="panel scenario dashboard-page active" data-page="overview">
+        <details class="panel scenario dashboard-page active dashboard-disclosure" data-page="overview" hidden>
+          <summary>운영 판단 기준</summary>
           <div class="panel-head">
             <div>
               <p class="section-kicker">Overview</p>
@@ -349,8 +1273,9 @@
               <strong id="handlingKpi">visible</strong>
             </div>
           </div>
-        </section>
-        <section class="overview-ops-grid dashboard-page active" data-page="overview" aria-label="collected operations metrics">
+        </details>
+        <details class="overview-ops-grid dashboard-page active dashboard-disclosure" data-page="overview" aria-label="collected operations metrics">
+          <summary>플랫폼 기술 지표</summary>
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -387,62 +1312,87 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">EdgeX Device Signals</p>
+                <p class="section-kicker">센서 이벤트</p>
                 <h2>Latest Core Data Events</h2>
               </div>
               <span>Core Data freshness basis</span>
             </div>
             <div id="deviceStatusList" class="device-status-list"></div>
           </section>
-        </section>
+        </details>
         <div id="alertList" hidden></div>
       </section>
         </div>
-        <aside class="side-rail t-panel-reveal" aria-label="sticky operator assistance">
+        <button
+          id="contextDetailBackdrop"
+          class="context-detail-backdrop"
+          type="button"
+          tabindex="-1"
+          aria-label="상세정보 닫기"
+          hidden
+        ></button>
+        <aside
+          id="contextDetailPanel"
+          class="side-rail t-panel-reveal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="선택 항목 상세정보"
+          aria-hidden="true"
+          tabindex="-1"
+          hidden
+        >
+          <div class="context-drawer-head">
+            <strong>상세정보</strong>
+            <button id="contextDetailClose" type="button" aria-label="상세정보 닫기">닫기</button>
+          </div>
           <section class="panel explain-panel operator-context-panel" aria-live="polite">
             <div class="panel-head">
               <div>
-                <p class="section-kicker">State Explanation</p>
-                <h2>Context Panel</h2>
+                <p class="section-kicker">상태 설명</p>
+                <h2>선택 항목</h2>
               </div>
-              <span>Operator context</span>
+              <span>판단 근거</span>
             </div>
             <div id="explainPanel" class="explain-content">
-              <div class="empty">Select a Device, KPI, or Service to inspect the status reason.</div>
+              <div class="empty">디바이스, 지표 또는 서비스를 선택하면 판단 근거를 표시합니다.</div>
             </div>
           </section>
-          <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
-            <div class="panel-head">
-              <div>
-                <p class="section-kicker">Read-only Qwen</p>
-                <h2 id="operatorChatTitle">Operator Assistant</h2>
+          <details class="context-assistant-details">
+            <summary>운영 도우미</summary>
+            <section class="panel operator-chat" aria-labelledby="operatorChatTitle">
+              <div class="panel-head">
+                <div>
+                  <p class="section-kicker">읽기 전용 Qwen</p>
+                  <h2 id="operatorChatTitle">운영 도우미</h2>
+                </div>
+                <span>관측 결과 설명 전용</span>
               </div>
-              <span>observed summary only</span>
-            </div>
-            <div class="chat-guardrail">
-              Qwen explains the current dashboard signals only. It does not mutate EdgeX devices, Kubernetes workloads, actuators, or pipeline state.
-            </div>
-            <div id="chatTranscript" class="chat-transcript" aria-live="polite">
-              <div class="chat-empty">Ask about status reasons, inspection order, or KPI meaning.</div>
-            </div>
-            <form id="operatorChatForm" class="chat-form">
-              <label for="operatorChatInput">Operator Question</label>
-              <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="Example: how should I read degraded devices first?"></textarea>
-              <div class="chat-actions">
-                <span id="chatStatus">read-only mode</span>
-                <button id="operatorChatSubmit" type="submit">Ask Qwen</button>
+              <div class="chat-guardrail">
+                현재 대시보드 관측값만 설명하며 EdgeX, Kubernetes, 장비와 파이프라인 상태는 변경하지 않습니다.
               </div>
-            </form>
-          </section>
+              <div id="chatTranscript" class="chat-transcript" aria-live="polite">
+                <div class="chat-empty">상태 원인, 점검 순서 또는 지표 의미를 질문하세요.</div>
+              </div>
+              <form id="operatorChatForm" class="chat-form">
+                <label for="operatorChatInput">질문</label>
+                <textarea id="operatorChatInput" name="message" rows="3" maxlength="1200" placeholder="예: 성능이 저하된 디바이스를 어떤 순서로 확인해야 하나요?"></textarea>
+                <div class="chat-actions">
+                  <span id="chatStatus">읽기 전용</span>
+                  <button id="operatorChatSubmit" type="submit">질문 보내기</button>
+                </div>
+              </form>
+            </section>
+          </details>
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=dashboard-pages-20260617"></script>
-    <script src="/static/dashboard.js?v=edgex-multisource-20260714"></script>
-    <script src="/static/workflow-state.js?v=edgex-cutover-20260714"></script>
-    <script src="/static/workflow-render.js?v=edgex-cutover-20260714"></script>
-    <script src="/static/workflow-render-panels.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow-actions.js?v=terminology-cleanup-20260622"></script>
-    <script src="/static/workflow.js?v=ai-pipeline-compact-20260622"></script>
+    <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
+    <script src="/static/dashboard.js?v=infrastructure-observability-20260730"></script>
+    <script src="/static/service-demo.js?v=multi-sensor-score-20260803"></script>
+    <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
+    <script src="/static/service-designer-model.js?v=multi-sensor-score-v10-20260803"></script>
+    <script src="/static/service-designer-viewport.js?v=bounded-fast-drag-v7-20260731"></script>
+    <script src="/static/service-designer.js?v=multi-sensor-score-v10-20260803"></script>
+    <script src="/static/resource-pool.js?v=evidence-chain-20260812"></script>
   </body>
 </html>

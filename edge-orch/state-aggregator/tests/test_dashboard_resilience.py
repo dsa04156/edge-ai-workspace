@@ -71,6 +71,23 @@ def test_dashboard_endpoint_isolates_edgex_device_observation_failure(monkeypatc
     )
 
 
+def test_metrics_scrape_does_not_read_virtual_device_authority(monkeypatch):
+    calls = 0
+
+    async def unexpected_projection_read():
+        nonlocal calls
+        calls += 1
+        raise AssertionError("metrics must not read EdgeX")
+
+    monkeypatch.setattr(service, "get_virtual_devices", unexpected_projection_read)
+
+    with TestClient(app) as client:
+        response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert calls == 0
+
+
 def test_dashboard_endpoint_has_no_device_observation_error_when_edgex_is_available(
     monkeypatch,
 ):

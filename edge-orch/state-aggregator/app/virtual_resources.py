@@ -24,7 +24,7 @@ class VirtualResourceRegistryEntry(BaseModel):
     desired_instances: int = 1
     stage_type: str
     capabilities: list[str] = Field(default_factory=list)
-    keywords: list[str] = Field(default_factory=list)
+    runtime_selector: dict[str, str] = Field(default_factory=dict)
 
 
 class VirtualResourceInstance(BaseModel):
@@ -35,7 +35,8 @@ class VirtualResourceInstance(BaseModel):
     pod: str
     container: str | None = None
     runtime_ready: bool
-    binding_state: Literal["free", "allocated", "unknown"] = "free"
+    endpoint_ready: bool = False
+    binding_state: Literal["free", "allocated", "unknown"] = "unknown"
     bound_workflow: str | None = None
     bound_stage: str | None = None
     current_load: str = "unknown"
@@ -115,20 +116,31 @@ def _build_resource_profile(
         if _profile_matches(profile, registry)
         for instance in _instances_from_profile(profile, registry)
     ]
-    allocated_instances = sum(1 for item in instances if item.binding_state == "allocated")
-    free_instances = len(instances) - allocated_instances
+    allocated_instances = sum(
+        1
+        for item in instances
+        if item.runtime_ready and item.endpoint_ready and item.binding_state == "allocated"
+    )
+    free_instances = sum(
+        1
+        for item in instances
+        if item.runtime_ready and item.endpoint_ready and item.binding_state == "free"
+    )
     node_ready = node_health.get(registry.node) in {"available", "healthy"}
     status = _resource_status(
         observed_instances=len(instances),
         node_ready=node_ready,
         free_instances=free_instances,
         allocated_instances=allocated_instances,
+        runtime_ready=bool(instances) and all(item.runtime_ready for item in instances),
+        endpoint_ready=bool(instances) and all(item.endpoint_ready for item in instances),
+        binding_known=bool(instances) and all(item.binding_state != "unknown" for item in instances),
     )
     twin = VirtualResourceTwin(
         availability=status,
         node_ready=node_ready,
-        pod_ready=bool(instances),
-        endpoint_ready=bool(instances) and node_ready,
+        pod_ready=bool(instances) and all(item.runtime_ready for item in instances),
+        endpoint_ready=bool(instances) and all(item.endpoint_ready for item in instances),
         current_load="normal" if instances else "unknown",
         binding_state=_binding_state(len(instances), free_instances, allocated_instances),
         status_reason=_status_reason(status),
@@ -151,8 +163,7 @@ def _build_resource_profile(
 
 
 def _profile_matches(profile: JsonMap, registry: VirtualResourceRegistryEntry) -> bool:
-    haystack = " ".join(_profile_terms(profile)).casefold()
-    return registry.node.casefold() in haystack or any(keyword.casefold() in haystack for keyword in registry.keywords)
+    return any(_container_matches(container, registry) for container in _dicts(profile.get("containers")))
 
 
 def _profile_terms(profile: JsonMap) -> list[str]:
@@ -175,23 +186,15 @@ def _instances_from_profile(profile: JsonMap, registry: VirtualResourceRegistryE
                 node=_string(container.get("node")) or registry.node,
                 pod=_string(container.get("pod")) or f"{registry.id}-pod-{index + 1}",
                 container=_string(container.get("container")) or None,
-                runtime_ready=True,
+                runtime_ready=container.get("pod_ready") is True,
+                endpoint_ready=container.get("endpoint_ready") is True,
+                binding_state=_binding_label(container),
+                bound_workflow=_label(container, "edge-ai.io/bound-workflow") or None,
+                bound_stage=_label(container, "edge-ai.io/bound-stage") or None,
             )
             for index, container in enumerate(containers)
         ]
-    nodes = _strings(profile.get("nodes"))
-    if nodes and registry.node.casefold() not in [node.casefold() for node in nodes]:
-        return []
-    pod_count = _int(profile.get("pod_count")) or 0
-    return [
-        VirtualResourceInstance(
-            id=f"{registry.id}-{index + 1:03d}",
-            node=registry.node,
-            pod=f"{_string(profile.get('service')) or registry.id}-pod-{index + 1}",
-            runtime_ready=True,
-        )
-        for index in range(pod_count)
-    ]
+    return []
 
 
 def _containers_for_registry(
@@ -200,14 +203,29 @@ def _containers_for_registry(
 ) -> list[JsonMap]:
     if not containers:
         return []
-    containers_with_node = [container for container in containers if _string(container.get("node"))]
-    if not containers_with_node:
-        return containers
     return [
         container
-        for container in containers_with_node
+        for container in containers
         if _string(container.get("node")).casefold() == registry.node.casefold()
+        and _container_matches(container, registry)
     ]
+
+
+def _container_matches(container: JsonMap, registry: VirtualResourceRegistryEntry) -> bool:
+    labels = container.get("labels")
+    if not isinstance(labels, dict) or not registry.runtime_selector:
+        return False
+    return all(_string(labels.get(key)) == value for key, value in registry.runtime_selector.items())
+
+
+def _label(container: JsonMap, key: str) -> str:
+    labels = container.get("labels")
+    return _string(labels.get(key)) if isinstance(labels, dict) else ""
+
+
+def _binding_label(container: JsonMap) -> Literal["free", "allocated", "unknown"]:
+    value = _label(container, "edge-ai.io/binding-state")
+    return value if value in {"free", "allocated"} else "unknown"
 
 
 def _resource_status(
@@ -216,11 +234,18 @@ def _resource_status(
     node_ready: bool,
     free_instances: int,
     allocated_instances: int,
+    runtime_ready: bool,
+    endpoint_ready: bool,
+    binding_known: bool,
 ) -> ResourceStatus:
     if observed_instances == 0:
         return "configured_not_running"
     if not node_ready:
         return "unavailable"
+    if not runtime_ready or not endpoint_ready:
+        return "degraded"
+    if not binding_known:
+        return "unknown"
     if allocated_instances > 0 and free_instances > 0:
         return "partially_available"
     if allocated_instances > 0:
@@ -235,6 +260,8 @@ def _binding_state(
 ) -> Literal["not_running", "available", "allocated", "partial", "unknown"]:
     if observed_instances == 0:
         return "not_running"
+    if free_instances + allocated_instances < observed_instances:
+        return "unknown"
     if allocated_instances > 0 and free_instances > 0:
         return "partial"
     if allocated_instances > 0:

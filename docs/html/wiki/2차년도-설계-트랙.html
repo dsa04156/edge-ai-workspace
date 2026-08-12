@@ -50,6 +50,8 @@
 <li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="../저장소-구조.html">저장소 구조</a></li>
 <li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -120,42 +128,65 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>2차년도 설계 트랙</h1>
-          <p class="subtitle">2차년도 설계 트랙은 현재 운영 가시화 PoC 위에 가상디바이스, 디바이스트윈, workflow 설계를 얹는 방향이다. 이는 설…</p>
+          <p class="subtitle">2026년도 2차년도는 옥동의 PLC·MES·센서 데이터를 활용해 생산품질 판별과 메인·보조 유압펌프·모터 이상감지 PoC를 완…</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/2차년도-설계-트랙.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="2차년도-설계-트랙">2차년도 설계 트랙</h1>
-<h2 id="한-줄-요약">한 줄 요약</h2>
-<p>2차년도 설계 트랙은 현재 운영 가시화 PoC 위에 가상디바이스, 디바이스트윈, workflow 설계를 얹는 방향이다. 이는 설계와 prototype 방향이지, dynamic workflow/offloading 구현 완료 주장이 아니다.</p>
-<h2 id="현재-기준">현재 기준</h2>
-<p>현재 PoC는 아래 운영 기반을 만든다.</p>
-<ul><li>등록된 device</li><li>node assignment</li><li>telemetry/status 분리</li><li>상태 통합</li><li>dashboard 가시화</li><li>service-demo binding</li></ul>
-<p>2차년도 트랙은 이 기반 위에서 아래를 설계한다.</p>
-<ul><li>물리 on-device 기능, 상태, 자원, I/O를 표현하는 가상디바이스</li><li>capability, resource, I/O, state, workflow binding snapshot을 관리하는 디바이스트윈</li><li>stage 기반 AI service workflow</li><li>validation과 execution-plan UI</li><li>후속 prototype 대상인 scheduling/resource placement 정책</li></ul>
-<h2 id="경계">경계</h2>
-<p>2차년도 가상디바이스는 legacy <code>test_device.py</code> fake MQTT publisher 의미와 다르다. 아래 legacy 경로를 현재 기능으로 조용히 승격하지 않는다.</p>
-<ul><li><code>edge-orch/workflow_executor/</code></li><li><code>edge-orch/workflow_reporter/</code></li><li><code>edge-orch/placement_engine/</code></li><li><code>workflow/</code></li><li>selective replanning 또는 offloading archive 자료</li></ul>
-<p>legacy 구현을 재사용하려면 먼저 <code>docs/프로젝트-범위.md</code>와 <code>docs/저장소-구조.md</code>에 승격 근거를 남긴다.</p>
-<h2 id="운영상-의미">운영상 의미</h2>
-<p>제안서나 보고서에서는 아래처럼 쓴다.</p>
-<ul><li>2차년도 작업은 단계적 설계/prototype 트랙으로 설명한다.</li><li>현재 dashboard 주장은 service demo visibility에 묶어 둔다.</li><li>LLM이나 agent가 전체 플랫폼을 제어한다고 쓰지 않는다.</li><li>workflow design/dry-run planning과 실제 runtime execution을 구분한다.</li></ul>
-<h2 id="관련-wiki">관련 Wiki</h2>
-<ul><li><a href="운영-모델.html">운영 모델</a></li><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li></ul>
-<h2 id="근거-문서">근거 문서</h2>
-<ul><li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로우 설계</a></li><li><a href="../프로젝트-범위.html">프로젝트 범위</a></li><li><a href="../저장소-구조.html">레포 구조</a></li><li><a href="../단계별-추진계획.html">로드맵</a></li></ul>
+<h2 id="목표">목표</h2>
+<p>2026년도 2차년도는 옥동의 PLC·MES·센서 데이터를 활용해 생산품질 판별과 메인·보조 유압펌프·모터 이상감지 PoC를 완성하는 단계다. <a href="../2차년도-ETRI-실행계획.html">ETRI 실행계획</a>이 목표·역할·월별 산출물·완료 gate의 단일 진입점이다.</p>
+<h2 id="단계">단계</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>시기</th>
+<th>트랙</th>
+<th>판단 기준</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>8월</td>
+<td>현장 범위·Device·데이터 명세</td>
+<td>입력 장비, 주기, 생산 건 식별자 확정</td>
+</tr>
+<tr>
+<td>9월</td>
+<td>수집·통합</td>
+<td>common timestamp, source/device contract, 장애 버퍼</td>
+</tr>
+<tr>
+<td>10월</td>
+<td>AI 서비스·workflow</td>
+<td>컨테이너 API와 수집→전처리→추론→저장→알림 연결</td>
+</tr>
+<tr>
+<td>11월</td>
+<td>엣지·서버 분산·복구</td>
+<td>배치 검토, 재실행, 가상 Device 시험</td>
+</tr>
+<tr>
+<td>12월</td>
+<td>통합 PoC</td>
+<td>dashboard·결과·장애 시나리오 시험결과서</td>
+</tr>
+</tbody></table></div>
+<h2 id="가상디바이스와-workflow의-위치">가상디바이스와 workflow의 위치</h2>
+<p>가상디바이스는 실제 장비, 시뮬레이터, replay 데이터를 동일한 source/resource 계약으로 표현하기 위한 후속 abstraction이다. Device/Profile과 Event를 중앙 EdgeX에 등록하는 기준은 현재 정책을 따른다.</p>
+<p>현재 workflow 화면에서 허용하는 것은 stage 구성, Device/resource binding, validation, execution-plan preview다. 다음은 후속 승격 gate가 필요하다.</p>
+<ul><li>AI 컨테이너 실제 실행과 결과 저장</li><li>edge/server 배치 및 재시작 정책</li><li>runtime migration/offloading</li><li>command/actuator mutation</li><li>운영자 승인·감사·rollback</li></ul>
+<p>따라서 <code>edge-orch/workflow_executor/</code>, <code>placement_engine/</code>, <code>workflow/</code>와 archive의 selective replanning 자료를 현재 운영 기능으로 설명하지 않는다.</p>
+<h2 id="보고서-표현">보고서 표현</h2>
+<p>“완전 자율형 오케스트레이션” 대신 “서비스 데모 우선, 디바이스-서비스 연결과 통합 운영 가시화, 단계적 확장”으로 쓴다. 완료를 주장할 때는 해당 단계의 코드, manifest, 테스트와 live evidence를 함께 제시한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
-<li class="toc-h2"><a href="#현재-기준">현재 기준</a></li>
-<li class="toc-h2"><a href="#경계">경계</a></li>
-<li class="toc-h2"><a href="#운영상-의미">운영상 의미</a></li>
-<li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
-<li class="toc-h2"><a href="#근거-문서">근거 문서</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목표">목표</a></li>
+<li class="toc-h2"><a href="#단계">단계</a></li>
+<li class="toc-h2"><a href="#가상디바이스와-workflow의-위치">가상디바이스와 workflow의 위치</a></li>
+<li class="toc-h2"><a href="#보고서-표현">보고서 표현</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

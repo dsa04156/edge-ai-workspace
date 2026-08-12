@@ -89,24 +89,14 @@ RPI_GROUPS = [
 ]
 
 
-RAW_TELEMETRY_KEYS = {
-    "raw",
-    "value",
-    "temperature",
-    "humidity",
-    "vibration",
-    "current",
-    "voltage",
-    "x",
-    "y",
-    "z",
+INFLUX_LIVENESS_PROPERTIES = {
+    ("act", "health"),
+    ("rpi-act", "health"),
 }
 
 
 def should_store_to_influx(device_type: str, key: str) -> bool:
-    # Raw telemetry is not reported through DeviceStatus, but MapperFramework DB
-    # export is allowed when a property has dbMethod configured.
-    return key in RAW_TELEMETRY_KEYS
+    return (device_type, key) in INFLUX_LIVENESS_PROPERTIES
 
 
 def yaml_quote(value: str) -> str:

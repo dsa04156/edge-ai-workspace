@@ -7,13 +7,26 @@ from app.resource_profile import (
 )
 
 
-def _pod(name: str, workload: str, node: str, requests=None, limits=None):
+def _pod(
+    name: str,
+    workload: str,
+    node: str,
+    requests=None,
+    limits=None,
+    *,
+    labels=None,
+    ready=True,
+    endpoint_ready=False,
+):
     return {
         "namespace": "default",
         "name": name,
         "workload": workload,
         "node": node,
         "phase": "Running",
+        "labels": labels or {},
+        "ready": ready,
+        "endpoint_ready": endpoint_ready,
         "containers": [
             {
                 "name": "app",
@@ -22,6 +35,30 @@ def _pod(name: str, workload: str, node: str, requests=None, limits=None):
             }
         ],
     }
+
+
+def test_service_resource_profile_preserves_runtime_identity_and_readiness_evidence():
+    profiles = build_service_resource_profiles(
+        [
+            _pod(
+                "gpu-runtime-a",
+                "gpu-runtime",
+                "gpu-node",
+                labels={
+                    "edge-ai.io/augmentation-resource": "vd-x86-gpu-inference",
+                    "edge-ai.io/binding-state": "free",
+                },
+                ready=True,
+                endpoint_ready=True,
+            )
+        ]
+    )
+
+    container = profiles[0]["containers"][0]
+    assert container["namespace"] == "default"
+    assert container["labels"]["edge-ai.io/augmentation-resource"] == "vd-x86-gpu-inference"
+    assert container["pod_ready"] is True
+    assert container["endpoint_ready"] is True
 
 
 def test_quantity_parsers_normalize_kubernetes_units():

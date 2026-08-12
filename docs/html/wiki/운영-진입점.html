@@ -50,6 +50,8 @@
 <li><a href="2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="../저장소-구조.html">저장소 구조</a></li>
 <li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../일일-기록.html">일일 기록</a></li>
@@ -120,69 +128,61 @@
         <header class="doc-header">
           <p class="eyebrow">위키</p>
           <h1>운영 진입점</h1>
-          <p class="subtitle">운영자는 현재 HTTPS 데모 운영 절차에서 시작한다. 과거 중앙 MessageBus 직접 수집 재구축 문서는 실행하지 않는다.</p>
+          <p class="subtitle">과거 canary 날짜나 문서의 “성공” 문구만으로 현재 live 상태를 판정하지 않는다. 현재 image digest, man…</p>
           <div class="meta">
             <span class="badge kind">위키</span>
             <span class="badge">원본: wiki/운영-진입점.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="운영-진입점">운영 진입점</h1>
-<h2 id="한-줄-요약">한 줄 요약</h2>
-<p>운영자는 현재 HTTPS 데모 운영 절차에서 시작한다. 과거 중앙 MessageBus 직접 수집 재구축 문서는 실행하지 않는다.</p>
-<h2 id="현재-기준">현재 기준</h2>
-<p>운영 문서는 개념 문서와 분리한다. 실행, 검증, 장애 원인 좁히기 질문은 Ops 문서에서 시작한다.</p>
+<h2 id="5분-점검-순서">5분 점검 순서</h2>
+<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>로 중앙·edge Pod와 TLS endpoint를 확인한다.</li><li>Core Metadata에서 Device/Profile과 <code>adminState</code>·<code>operatingState</code>를 확인한다.</li><li>Core Data에서 최신 Event/Reading의 <code>origin</code>, <code>sourceName</code>, typed value를 확인한다.</li><li><code>state-aggregator</code>의 <code>/state/devices</code>, <code>/state/dashboard</code>, <code>/state/summary</code>와 dashboard를 확인한다.</li><li>outbox depth와 gateway persisted ACK를 확인한다.</li><li>마지막으로 Kubernetes/KubeEdge Node/Pod 배치를 진단 정보로 본다.</li></ol>
+<h2 id="상황별-문서">상황별 문서</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>상황</th>
-<th>시작 문서</th>
+<th>시작점</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Protocol Adapter, outbox, gateway, EdgeX Core 점검</td>
-<td><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a></td>
+<td>전체 배포·재현</td>
+<td><a href="../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></td>
 </tr>
 <tr>
-<td>EdgeX state-aggregator dashboard API/UI 확인</td>
-<td><a href="../ops/대시보드-검증.html">Dashboard 검증</a></td>
+<td>현재 telemetry 데모</td>
+<td><a href="../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></td>
 </tr>
 <tr>
-<td>pod 또는 network 경로 점검</td>
-<td><a href="../ops/네트워크-문제해결.html">네트워크 트러블슈팅</a>, <a href="../ops/파드-연결성-점검.html">파드 통신 점검</a></td>
+<td>dashboard/API 검증</td>
+<td><a href="../ops/대시보드-검증.html">대시보드 검증</a></td>
 </tr>
 <tr>
-<td>edge node join 확인</td>
-<td><a href="../ops/엣지-노드-조인-점검.html">Edge 노드 조인 점검</a></td>
+<td>네트워크·EdgeMesh</td>
+<td><a href="../ops/네트워크-문제해결.html">네트워크 문제 해결</a></td>
 </tr>
 <tr>
-<td>GPU runtime 맥락 확인</td>
-<td><a href="../ops/gpu-hami-런타임-운영.html">HAMi GPU runtime</a></td>
+<td>Pod 연결</td>
+<td><a href="../ops/파드-연결성-점검.html">파드 연결성 점검</a></td>
+</tr>
+<tr>
+<td>Edge 노드</td>
+<td><a href="../ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></td>
 </tr>
 </tbody></table></div>
-<p>현재 중앙 EdgeX runtime은 <code>edgex-system</code>, edge agent는 <code>edgex-edge</code>, state-aggregator는 <code>default</code> namespace에 있다. 물리 inventory, 관리 상태, telemetry는 EdgeX가 authority이며 KubeEdge node/workload 정보는 별도 진단이다.</p>
-<h2 id="운영자-읽기-순서">운영자 읽기 순서</h2>
-<p>라이브 데모에서는 다음 순서로 본다.</p>
-<ol><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a>에서 loopback admission, SQLite outbox, HTTPS gateway와 Kubernetes workload 상태를 확인한다.</li><li>EdgeX Core Metadata의 Device/Profile/논리 수집 서비스와 <code>adminState</code>, <code>operatingState</code>를 확인한다.</li><li>EdgeX Core Data의 최신 Event/Reading <code>origin</code>, <code>sourceName</code>, typed value와 freshness를 확인한다.</li><li>namespace <code>default</code>의 state-aggregator API에서 <code>source=edgex</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>latest_event_timestamp</code>, <code>latest_readings</code>, <code>telemetry_freshness</code>, <code>overall_status</code>, <code>reason</code>을 확인한다.</li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a>으로 device row, Explain Panel, EdgeX KPI와 node/workload 진단의 분리를 확인한다.</li><li>자원증강 탭에서 AI HAT/GPU/cache Resource Profile과 실행 인스턴스 상태를 확인한다.</li><li>기술 상태가 보인 뒤 KPI 문서를 사용한다.</li></ol>
-<p>KubeEdge node readiness와 workload placement는 dashboard에서 볼 수 있지만 물리 availability를 결정하지 않는다. 물리 availability는 EdgeX 관리 상태와 Core Data 최신 Event freshness로만 해석한다.</p>
-<h2 id="현재-live-판정">현재 live 판정</h2>
-<p>2026-07-14 UNO, 2026-07-15 Sense HAT canary와 2026-07-16 G003 HTTPS/outbox smoke는 장비·profile·Reading·durable replay 계약의 과거 근거다. 현재 image, 중앙 server2 Core/PostgreSQL과 state-aggregator/dashboard 조회 전환은 같은 실행의 새 live evidence를 확보할 때까지 pending이다. Sense HAT publisher 교체 여부는 별도다.</p>
-<h2 id="경계">경계</h2>
-<p>Ops 문서는 operator assistant, workflow builder, 자원증강 화면이 infrastructure를 변경할 수 있는 것처럼 표현하지 않는다. 별도 승인된 control path가 생기기 전까지 이 기능은 read-only 요약, troubleshooting 안내, dry-run validation/plan preview로 제한한다.</p>
-<h2 id="관련-wiki">관련 Wiki</h2>
-<ul><li><a href="현재-데모-흐름.html">현재 데모 흐름</a></li><li><a href="상태와-텔레메트리.html">상태와 텔레메트리</a></li><li><a href="대시보드와-kpi.html">대시보드와 KPI 모델</a></li></ul>
-<h2 id="근거-운영-절차">근거 운영 절차</h2>
-<ul><li><a href="../ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 Runbook</a></li><li><a href="../ops/대시보드-검증.html">Dashboard 검증</a></li><li><a href="../카젠티-운영-보조-에이전트.html">Kagenti 운영 보조</a></li></ul>
+<h2 id="완료로-볼-수-없는-것">완료로 볼 수 없는 것</h2>
+<p>과거 canary 날짜나 문서의 “성공” 문구만으로 현재 live 상태를 판정하지 않는다. 현재 image digest, manifest, Core Metadata 응답, Core Data 최신 Event, dashboard 응답을 같은 실행에서 확인해야 한다.</p>
+<p>또한 node Ready와 physical availability를 동일시하지 않는다. physical 상태는 <a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a>의 EdgeX 관리 상태와 Core Data freshness를 따른다.</p>
+<h2 id="변경-주의">변경 주의</h2>
+<p>중앙 MessageBus 전체 재구축 문서는 파괴적 작업 전 승인 없이 실행하지 않는다. command 실행, 장비 제어, workload migration은 현재 비활성/설계 범위다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한-줄-요약">한 줄 요약</a></li>
-<li class="toc-h2"><a href="#현재-기준">현재 기준</a></li>
-<li class="toc-h2"><a href="#운영자-읽기-순서">운영자 읽기 순서</a></li>
-<li class="toc-h2"><a href="#현재-live-판정">현재 live 판정</a></li>
-<li class="toc-h2"><a href="#경계">경계</a></li>
-<li class="toc-h2"><a href="#관련-wiki">관련 Wiki</a></li>
-<li class="toc-h2"><a href="#근거-운영-절차">근거 운영 절차</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#5분-점검-순서">5분 점검 순서</a></li>
+<li class="toc-h2"><a href="#상황별-문서">상황별 문서</a></li>
+<li class="toc-h2"><a href="#완료로-볼-수-없는-것">완료로 볼 수 없는 것</a></li>
+<li class="toc-h2"><a href="#변경-주의">변경 주의</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

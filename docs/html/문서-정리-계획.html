@@ -50,6 +50,8 @@
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -124,13 +132,14 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-정리-계획.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-정리-계획">문서 정리 계획</h1>
 <p>이 문서는 <code>docs/프로젝트-범위.md</code>와 <code>docs/저장소-구조.md</code>를 기준으로 최신 문서, 탐색용 요약, 운영 절차, 설계 이력, 보관 자료의 노출 순서를 정한다. 원본 Markdown의 한국어 파일명·제목 통일, 진입점 단순화, 검색 노이즈 축소를 우선하며 원본 삭제는 별도 승인 대상으로 둔다.</p>
+<p>전체 문서 목록과 현재 읽는 순서는 <a href="문서-분류-목록.html">@@INLINE0@@</a>를 기준으로 한다.</p>
 <h2 id="정리-원칙">정리 원칙</h2>
 <ol><li>원본 Markdown은 계속 기준 자료로 유지한다.</li><li>Markdown 파일명과 최상위 제목은 한국어로 작성하되 EdgeX, KubeEdge, MQTT, API 같은 고유 기술명은 유지한다.</li><li>정적 HTML은 <code>scripts/build-docs-html.py</code>로 재생성되는 보기용 산출물로 두고 직접 편집하지 않는다.</li><li><code>docs/wiki/</code>는 질문과 탐색의 첫 진입점으로 둔다.</li><li>최신 기준 문서는 현재 시스템 구축 목표와 직접 연결되는 원본문서로 둔다.</li><li>운영 문서는 운영 점검, 장애 대응, 데모 실행에 필요한 원본문서로 둔다.</li><li><code>superpowers/</code>는 설계·구현 계획 이력이며 현재 완료 상태의 근거로 사용하지 않는다.</li><li>보관 문서는 과거 연구·논문·레거시 오케스트레이션 맥락으로만 둔다.</li><li>중복 문서는 최신 기준 문서로 내용을 통합한 뒤 원본의 삭제 여부를 별도로 승인한다.</li><li>워크플로·오프로딩·에이전트 보조 계획 계열은 현재 방향으로 보이지 않게 분리한다.</li></ol>
 <h2 id="위키-문서">위키 문서</h2>
@@ -376,7 +385,7 @@
 <p>처리 기준:</p>
 <ul><li>최신 정책과 구조는 <code>프로젝트-범위.md</code>, <code>원시-텔레메트리-데이터-플레인.md</code>, <code>저장소-구조.md</code>에만 반영한다.</li><li>과거 문서의 잘못된 현재형 표현은 보관 안내로 차단하고, 역사적 사실 자체는 보존한다.</li><li>중복 문서와 대형 로그는 기본 검색에서 제외한다.</li><li>원본 삭제는 링크·인용·실험 재현 필요성을 확인한 뒤 별도로 승인한다.</li></ul>
 <h2 id="이번-정리-결과">이번 정리 결과</h2>
-<ul><li>Markdown 파일명과 최상위 제목을 한국어 중심으로 통일했다.</li><li>문서 홈과 위키 지식 지도를 최신 중앙 EdgeX 데이터 플레인 기준으로 갱신했다.</li><li>내부 링크와 HTML 생성 목록을 변경된 파일명에 맞췄다.</li><li>과거 자료는 <code>archive/</code>, 설계·구현 계획 이력은 <code>superpowers/</code>에 보존했다.</li></ul>
+<ul><li>Markdown 파일명과 최상위 제목을 한국어 중심으로 통일했다.</li><li>문서 홈과 위키 지식 지도를 최신 중앙 EdgeX 데이터 플레인 기준으로 갱신했다.</li><li>내부 링크와 HTML 생성 목록을 변경된 파일명에 맞췄다.</li><li>과거 자료는 <code>archive/</code>, 설계·구현 계획 이력은 <code>superpowers/</code>에 보존했다.</li><li>2026-08-04 기준 Markdown 79개를 최신 기준·운영·위키·설계 이력·보관으로 분류하고 <a href="문서-분류-목록.html">문서 전체 분류 목록</a>에 고정했다.</li><li>2차년도 옥동 PoC 목표를 <code>2차년도-ETRI-실행계획.md</code>로 독립시켜 보고서용 목표·역할·월별 산출물과 현재 구현 근거를 한 문서에서 추적할 수 있게 했다.</li><li>현재 기준 문서(목표·범위·데이터 플레인·서비스 데모·대시보드·상태 정책)를 실제 코드와 manifest 기준으로 대폭 재작성했다. 설계 이력과 보관 문서는 삭제하지 않고 경계를 유지했다.</li><li>보관 문서와 설계 이력에는 현재 운영 기준이 아니라는 상태 표지를 추가하고, 생성 HTML과 검색 색인을 다시 만들었다.</li></ul>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#정리-원칙">정리 원칙</a></li>

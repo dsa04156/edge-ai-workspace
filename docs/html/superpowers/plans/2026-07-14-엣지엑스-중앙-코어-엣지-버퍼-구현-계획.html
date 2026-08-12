@@ -50,6 +50,8 @@
 <li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="../../저장소-구조.html">저장소 구조</a></li>
 <li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="../specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="../specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="../specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="../specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="../specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="../specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="../specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../../일일-기록.html">일일 기록</a></li>
@@ -120,17 +128,23 @@
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
           <h1>엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</h1>
-          <p class="subtitle">&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</p>
+          <p class="subtitle">&gt; 상태: 이력 보존 / 그대로 실행 금지. 이 계획의 “모든 source가 local MQTT를 사용한다”는 전제와 파일 경로…</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:49</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.md</code>
+</aside>
         <div class="doc-body">
           <h1 id="엣지엑스-중앙-코어와-엣지-버퍼-구현-계획">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</h1>
-<blockquote><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<blockquote><p><strong>상태: 이력 보존 / 그대로 실행 금지.</strong> 이 계획의 “모든 source가 local MQTT를 사용한다”는 전제와 파일 경로 일부는 폐기됐다. 현재 승인 설계와 구현 상태는 <code>../specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.md</code>, <code>../../원시-텔레메트리-데이터-플레인.md</code>, root <code>edgex/k8s/kustomization.yaml</code>을 따른다. 현재 기본 source는 direct loopback이고 MQTT는 optional compatibility mode다.</p></blockquote>
+<blockquote><p>분류: 설계 이력. 현재 운영 기능의 완료 근거가 아니다.</p></blockquote>
 <p><strong>Goal:</strong> 센서가 연결된 KubeEdge 노드에는 MQTT 수집·SQLite 임시 버퍼 agent 한 개만 두고, <code>etri-ser0002-cgnmsb</code>의 EdgeX Core Data와 PostgreSQL에 저장 확인 기반으로 telemetry를 통합 보관하는 MQTT 수직 슬라이스를 구현한다.</p>
 <p><strong>Architecture:</strong> 로컬 Mosquitto를 구독하는 ARM64 edge agent가 EdgeX Event UUID를 생성하고 SQLite outbox에 먼저 commit한 뒤 HTTPS ingest gateway로 전송한다. amd64 중앙 gateway는 제한된 <code>POST /v1/events</code>만 제공하고 EdgeX Core Data 4.0.2의 Add Event API 결과와 ID 조회를 이용해 PostgreSQL 저장 또는 동일 Event 재전송을 확인한다. 기존 Jetson 전체 EdgeX stack은 canary 전환이 끝날 때까지 그대로 보존한다.</p>
 <p><strong>Tech Stack:</strong> Python 3.12, paho-mqtt 2.x, PyYAML 6.x, SQLite WAL, Python standard-library HTTP/TLS, pytest 8.x, EdgeX Foundry 4.0.2, PostgreSQL 16.3, Kubernetes/KubeEdge, Kustomize, Argo CD, Kaniko, private registry <code>192.168.0.56:5000</code>.</p>

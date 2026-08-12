@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</title>
+  <title>EdgeX 중앙 Core와 HTTPS edge buffer 설계</title>
   <link rel="stylesheet" href="../../../assets/docs-site.css">
 </head>
 <body>
@@ -50,6 +50,8 @@
 <li><a href="../../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="../../문서-안내.html">문서 안내</a></li>
+<li><a href="../../문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="../../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="../../시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="../../프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="../../프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="../../저장소-구조.html">저장소 구조</a></li>
 <li><a href="../../단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="../../문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="../../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="../../ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="../../ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="../../ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="../../ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="../../ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="../../ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="../plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="../plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="../plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="../plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="../plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="../plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="../../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="../../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="../../일일-기록.html">일일 기록</a></li>
@@ -119,290 +127,127 @@
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">설계 이력</p>
-          <h1>엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</h1>
-          <p class="subtitle">각 KubeEdge EdgeCore 노드는 센서 수집과 실시간 추론을 담당한다. EdgeX Core와 PostgreSQL은 x8…</p>
+          <h1>EdgeX 중앙 Core와 HTTPS edge buffer 설계</h1>
+          <p class="subtitle">&gt; 상태: 설계 이력. 현재 운영 기능의 완료 근거가 아니며 승인 설계의 이력으로 보존한다.</p>
           <div class="meta">
             <span class="badge kind">설계 이력</span>
             <span class="badge">원본: superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:49</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
+        <aside class="history-banner" aria-label="설계 이력 안내">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
+  <code>superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.md</code>
+</aside>
         <div class="doc-body">
-          <h1 id="엣지엑스-중앙-코어와-엣지-임시-버퍼-배치-설계">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</h1>
-<h2 id="1-결정">1. 결정</h2>
-<p>각 KubeEdge EdgeCore 노드는 센서 수집과 실시간 추론을 담당한다. EdgeX Core와 PostgreSQL은 x86 엣지 AI 서버에 한 세트만 배치해 raw telemetry를 통합 영구 저장한다. EdgeCore 노드에는 네트워크 또는 서버 장애 동안 사용할 디스크 기반 임시 버퍼만 둔다.</p>
-<p>현재 Jetson에 배치된 EdgeX 전체 스택은 MQTT-only 수직 슬라이스를 검증하기 위한 구조다. 목표 구조에서는 다음처럼 역할을 분리한다.</p>
-<pre data-lang="text"><code>센서가 연결된 EdgeCore 노드
-  Sensor / collector
-    -&gt; local Mosquitto 127.0.0.1:1883
-       ├-&gt; local AI inference service
-       └-&gt; edge-telemetry-agent
-           - MQTT source adapter / allowlist normalizer
-           - SQLite durable outbox
-           - EdgeX Event uploader
-              |
-              | HTTPS + persisted acknowledgement
-              v
+          <h1 id="edgex-중앙-core와-https-edge-buffer-설계">EdgeX 중앙 Core와 HTTPS edge buffer 설계</h1>
+<blockquote><p>상태: 설계 이력. 현재 운영 기능의 완료 근거가 아니며 승인 설계의 이력으로 보존한다.</p></blockquote>
+<h2 id="상태">상태</h2>
+<p>현재 승인 설계다. 초기 문서의 “모든 edge source가 local Mosquitto를 사용한다”는 가정은 폐기했다.</p>
+<h2 id="문제">문제</h2>
+<p>물리 센서가 Jetson/Raspberry Pi에 연결돼 있고 원시 telemetry는 중앙 Edge AI 서버에 저장해야 한다. 중앙 네트워크나 Core Data가 잠시 중단돼도 edge 수집은 계속돼야 하며, MQTT를 지원하지 않는 Modbus/OPC-UA/Serial/I2C 장비에 broker를 강제하면 불필요한 운영 계층이 생긴다.</p>
+<h2 id="결정">결정</h2>
+<pre data-lang="text"><code>[physical / EdgeCore]
+Protocol Adapter
+  -&gt; canonical EdgeX Event
+  -&gt; edge-telemetry-agent
+  -&gt; SQLite outbox
+       |
+       | HTTPS + mTLS + HMAC
+       v
 
-etri-ser0002-cgnmsb (x86 Edge AI 서버)
-  edgex-ingest-gateway
-    -&gt; EdgeX Core Data REST API
-       ├-&gt; PostgreSQL (저장 확인 기준)
-       └-&gt; EdgeX internal MessageBus (후속 소비자용, 비동기)
-
-etri-ser0001-cg0msb (운영 서버)
-  state-aggregator / dashboard (후속 연계)
-    -&gt; 필요할 때 EdgeX Core Data API 조회</code></pre>
-<p>따라서 센서 엣지마다 EdgeX Pod 6~7개를 복제하지 않는다. 기존 로컬 Mosquitto와 AI 서비스를 제외하면 센서 엣지에 추가되는 것은 <code>edge-telemetry-agent</code> 한 Pod다. 중앙 EdgeX 서비스는 <code>etri-ser0002-cgnmsb</code> 한 곳에서만 실행한다.</p>
-<p>실시간성과 영구 저장도 분리한다.</p>
-<ul><li>실시간 추론: 센서 데이터를 노드 로컬 MQTT에서 바로 소비한다.</li><li>영구 저장: edge agent가 데이터를 outbox에 먼저 기록한 뒤 중앙으로 계속 전송한다.</li><li>대시보드 조회: 후속 연계 시 대시보드는 각 엣지를 직접 조회하지 않고 중앙 Core</li></ul>
-<p>Data에서 필요할 때 조회한다. 이번 변경 동안 기존 InfluxDB 조회는 유지한다.</p>
-<h2 id="2-목표와-비목표">2. 목표와 비목표</h2>
-<h3 id="목표">목표</h3>
-<ul><li>센서가 연결된 EdgeCore 노드마다 EdgeX 전체 Pod를 복제하지 않는다.</li><li>센서 수집과 실시간 추론은 중앙 서버 또는 네트워크 장애와 무관하게 계속한다.</li><li>raw telemetry의 영구 저장 위치를 Edge AI 서버의 PostgreSQL로 단일화한다.</li><li>장애 중 telemetry를 엣지 디스크에 임시 저장하고 연결 복구 후 재전송한다.</li><li>중앙 수신 broker 확인이 아니라 Core Data의 PostgreSQL 저장 결과를 기준으로 엣지</li></ul>
-<p>record를 제거한다.</p>
-<ul><li>KubeEdge DeviceStatus에는 raw telemetry를 기록하지 않는다.</li><li>Kustomize와 Argo CD에서 서버 data plane과 엣지 agent를 별도 배포 단위로 관리한다.</li></ul>
-<h3 id="비목표">비목표</h3>
-<ul><li>Modbus, OPC-UA, RTSP adapter를 이번 변경에서 동시에 구현하지 않는다.</li><li>EdgeX Core Data와 PostgreSQL의 고가용성 클러스터를 구현하지 않는다.</li><li>현재 dashboard의 InfluxDB 조회 경로를 즉시 EdgeX로 교체하지 않는다.</li><li>동적 workflow, placement, offloading 또는 Device CR 자동 생성을 추가하지 않는다.</li><li>모든 후속 소비자까지 포함한 exactly-once 처리를 보장하지 않는다. 엣지에서 중앙까지의</li></ul>
-<p>전송은 at-least-once이고, Event UUID를 이용해 중앙 저장을 멱등 확인한다. internal MessageBus의 후속 소비자는 같은 Event UUID를 기준으로 중복을 처리해야 한다.</p>
-<h2 id="3-노드별-배치">3. 노드별 배치</h2>
-<h3 id="etri-ser0002-cgnmsb-edge-ai-서버"><code>etri-ser0002-cgnmsb</code>: Edge AI 서버</h3>
-<p>프로젝트 문서에서 worker/추론 서버로 정의된 <code>etri-ser0002-cgnmsb</code>를 기본 EdgeX 영구 저장 서버로 사용한다.</p>
-<p>상시 실행 workload는 여섯 개다.</p>
-<ol><li><code>edgex-ingest-gateway</code></li><li>EdgeX Core Keeper</li><li>EdgeX Core Metadata</li><li>EdgeX internal MessageBus</li><li>EdgeX Core Data</li><li>PostgreSQL StatefulSet</li></ol>
-<p>Device/Profile bootstrap Job은 등록 작업이 끝나면 <code>Completed</code>가 되므로 상시 실행 Pod로 세지 않는다. 중앙 경로에서는 Device MQTT를 사용하지 않는다. edge agent가 이미 payload를 검증하고 EdgeX Event를 만들기 때문에 Device MQTT를 다시 거치면 변환 단계만 늘고 영구 저장 확인 문제는 해결되지 않는다.</p>
-<p>Core Data, Metadata, Keeper, internal MessageBus와 PostgreSQL은 ClusterIP로 유지한다. EdgeCore 노드에는 제한된 <code>edgex-ingest-gateway</code>만 노출한다. PostgreSQL은 외부에 노출하지 않는다.</p>
-<p>PostgreSQL은 <code>local-path</code> 20Gi PVC를 사용한다. 여기서 영구 저장은 Pod 재시작과 재배포 후에도 데이터가 유지된다는 뜻이다. 단일 서버와 local-path 자체는 서버 디스크 장애를 보호하지 않으므로 운영 전 백업 또는 복제 정책이 별도로 필요하다.</p>
-<h3 id="센서가-연결된-kubeedge-edgecore-노드">센서가 연결된 KubeEdge EdgeCore 노드</h3>
-<p><code>edgeai.etrilab/sensor-gateway=true</code> 라벨이 붙은 EdgeCore 노드에 <code>edge-telemetry-agent</code> DaemonSet을 한 개씩 배치한다. Jetson과 Raspberry Pi의 포함 여부는 이 라벨로 관리하고 모든 edge-role 노드에 무조건 배포하지 않는다.</p>
-<p>edge agent 책임:</p>
-<ul><li>노드 로컬 Mosquitto의 <code>factory/devices/+/telemetry</code> 구독</li><li>route profile에 선언된 device와 field만 allowlist 변환</li><li>source timestamp를 EdgeX Event/Reading의 <code>origin</code>으로 보존</li><li>정상·장애 상태와 관계없이 SQLite durable outbox에 먼저 기록</li><li>각 record에 클라이언트 생성 UUID와 안정적인 payload fingerprint 부여</li><li>중앙 ingest gateway에 HTTPS로 Event 업로드</li><li>중앙의 영구 저장 확인 응답 후에만 outbox record 제거</li><li>buffer depth, bytes, oldest age, dropped/rejected count를 metric과 health로 제공</li></ul>
-<p>현재 구현 범위의 source adapter는 MQTT 하나다. 이후 Modbus 또는 OPC-UA adapter를 추가하더라도 정규화 이후의 outbox와 업로드 경로는 재사용한다. RTSP 영상 frame은 이 경로로 보내지 않는다.</p>
-<p>실시간 추론 서비스는 edge agent에 합치지 않는다. AI 서비스와 edge agent가 같은 로컬 MQTT telemetry를 각각 구독하므로 중앙 연결이 끊겨도 추론은 계속된다.</p>
-<h2 id="4-데이터-흐름과-저장-확인">4. 데이터 흐름과 저장 확인</h2>
-<ol><li>센서 또는 collector가 로컬 Mosquitto의</li></ol>
-<p><code>factory/devices/{device-name}/telemetry</code>에 발행한다.</p>
-<ol><li>Mosquitto는 같은 sample을 로컬 AI 서비스와 edge agent에 fan-out한다.</li><li>edge agent가 route profile로 payload를 검증하고 EdgeX v3 <code>AddEventRequest</code>를 만든다.</li><li>edge agent가 Event와 전달 메타데이터를 SQLite outbox에 transaction commit한다.</li><li>uploader가 Device별 가장 오래된 record부터 중앙 gateway의 <code>POST /v1/events</code>로</li></ol>
-<p>전송한다.</p>
-<ol><li>gateway가 token, 크기, device/profile/source allowlist를 검증한다.</li><li>gateway가 Core Data의 다음 API로 요청을 전달한다.</li></ol>
-<pre data-lang="text"><code>   POST /api/v3/event/edge-telemetry-agent/{profileName}/{deviceName}/{sourceName}</code></pre>
-<ol><li><code>Writable.PersistData=true</code>인 Core Data가 Event와 Reading을 PostgreSQL에 저장한 뒤</li></ol>
-<p><code>201 Created</code>를 반환한다.</p>
-<ol><li>gateway는 Core Data의 <code>201</code>을 받은 경우에만 agent에 <code>201 persisted</code>를 반환한다.</li><li>agent는 <code>201 persisted</code>를 받은 뒤 해당 outbox record를 삭제한다.</li></ol>
-<p>MQTT PUBACK은 broker 수신만 확인하므로 outbox 삭제 기준으로 사용하지 않는다. EdgeX internal MessageBus도 영구 저장 확인이나 장애 완충 계층으로 사용하지 않는다. Core Data가 REST 입력 Event를 MessageBus로 발행하는 동작은 후속 소비자 통합용이며, PostgreSQL 저장 성공 여부는 Core Data REST 결과로 판단한다. 응답 유실 후 같은 Event를 재전송하면 internal MessageBus에는 중복 Event가 발행될 수 있으므로 후속 소비자는 Event UUID로 deduplicate해야 한다.</p>
-<h3 id="응답이-유실된-경우">응답이 유실된 경우</h3>
-<p>Core Data가 저장한 직후 gateway 또는 네트워크 응답이 유실될 수 있다. agent는 record를 지우지 않고 같은 Event UUID로 다시 전송한다.</p>
-<ol><li>Core Data는 이미 존재하는 UUID에 <code>409 Conflict</code>를 반환한다.</li><li>gateway가 내부 API <code>GET /api/v3/event/id/{id}</code>로 기존 Event를 조회한다.</li><li>gateway는 agent가 보낸 hash를 그대로 신뢰하지 않고, server-generated field를</li></ol>
-<p>제외한 device/profile/source, origin, tag와 Reading 값으로 canonical fingerprint를 다시 계산해 비교한다.</p>
-<ol><li>내용이 같으면 <code>200 already_persisted</code>를 반환하고 agent가 record를 삭제한다.</li><li>UUID는 같지만 내용이 다르면 <code>409 id_collision</code>을 반환하고 agent가 record를</li></ol>
-<p>quarantine한다.</p>
-<p>이 방식은 네트워크상 at-least-once 재전송을 허용하면서 같은 UUID의 중복 row 생성을 막는다. 전체 시스템의 exactly-once를 주장하지는 않는다.</p>
-<h2 id="5-event와-outbox-계약">5. Event와 outbox 계약</h2>
-<p><code>ingest_id</code>는 별도 hidden Reading으로 저장하지 않고 EdgeX Event의 <code>id</code>로 사용한다. <code>edge_node_id</code>는 Event tag로 저장한다.</p>
-<pre data-lang="json"><code>{
-  &quot;apiVersion&quot;: &quot;v3&quot;,
-  &quot;requestId&quot;: &quot;bbf129ff-9d1c-4e1e-a623-d0a170bb42d9&quot;,
-  &quot;event&quot;: {
-    &quot;apiVersion&quot;: &quot;v3&quot;,
-    &quot;id&quot;: &quot;8e284f84-61a3-4ec3-a9f5-01917e8409a7&quot;,
-    &quot;deviceName&quot;: &quot;vib-arduino-acceleration-01&quot;,
-    &quot;profileName&quot;: &quot;vibration-sensor&quot;,
-    &quot;sourceName&quot;: &quot;telemetry&quot;,
-    &quot;origin&quot;: 1783990800000000000,
-    &quot;tags&quot;: {
-      &quot;edge_node_id&quot;: &quot;etri-dev0001-jetorn&quot;
-    },
-    &quot;readings&quot;: [
-      {
-        &quot;deviceName&quot;: &quot;vib-arduino-acceleration-01&quot;,
-        &quot;profileName&quot;: &quot;vibration-sensor&quot;,
-        &quot;resourceName&quot;: &quot;vibration&quot;,
-        &quot;origin&quot;: 1783990800000000000,
-        &quot;valueType&quot;: &quot;Float64&quot;,
-        &quot;value&quot;: &quot;4.2&quot;
-      }
-    ]
-  }
-}</code></pre>
-<p>outbox에는 최소한 다음 값을 보존한다.</p>
-<pre data-lang="json"><code>{
-  &quot;ingest_id&quot;: &quot;8e284f84-61a3-4ec3-a9f5-01917e8409a7&quot;,
-  &quot;edge_node_id&quot;: &quot;etri-dev0001-jetorn&quot;,
-  &quot;device_name&quot;: &quot;vib-arduino-acceleration-01&quot;,
-  &quot;profile_name&quot;: &quot;vibration-sensor&quot;,
-  &quot;source_name&quot;: &quot;telemetry&quot;,
-  &quot;source_timestamp&quot;: 1783990800000000000,
-  &quot;queued_at&quot;: &quot;2026-07-14T10:00:00+09:00&quot;,
-  &quot;payload_sha256&quot;: &quot;canonical-event-sha256&quot;,
-  &quot;event&quot;: {}
-}</code></pre>
-<p>Core Metadata bootstrap은 논리 Device Service <code>edge-telemetry-agent</code>, Device Profile과 Device를 사전 등록한다. 이는 관리 조회와 schema의 기준이고, raw telemetry는 Device 또는 DeviceStatus CR에 복제하지 않는다.</p>
-<p>수집 mapping의 기준은 Git에 저장된 route profile이다. 같은 route profile에서 agent의 field allowlist와 EdgeX Device Profile bootstrap 입력을 만들고, test에서 resource 이름과 value type 일치를 검증한다. agent는 연결이 끊긴 동안에도 동작해야 하므로 runtime마다 Core Metadata에서 profile을 가져오지 않는다.</p>
-<p>여기서 EdgeX Device/Profile은 EdgeX Metadata의 관리 객체이며 KubeEdge <code>Device</code>/<code>DeviceModel</code> CRD와 다른 객체다. 이 변경은 KubeEdge CRD를 새로 정의하거나 Device CR을 자동 생성하지 않는다. 기존 KubeEdge Device는 프로젝트 정책대로 사전 등록 상태를 유지한다.</p>
-<h2 id="6-임시-버퍼-정책">6. 임시 버퍼 정책</h2>
-<p>임시 버퍼는 프로세스 메모리가 아니라 node-local hostPath의 SQLite WAL database를 사용한다.</p>
-<pre data-lang="text"><code>/var/lib/edge-telemetry-buffer/outbox.db</code></pre>
-<p>기본 정책:</p>
-<ul><li>최대 보존 시간: 24시간</li><li>최대 크기: 노드당 1GiB</li><li>제거 기준: 보존 시간과 크기 중 먼저 한도에 도달한 조건 적용</li><li>전송 순서: Device별 FIFO</li><li>재시도: exponential backoff, 1초에서 시작해 최대 60초</li><li>재연결 후 drain: live 수집을 막지 않도록 rate limit 적용</li><li>한도 초과: 가장 오래된 record부터 제거하고 dropped counter 증가</li><li>Pod 재시작: hostPath SQLite를 다시 열어 미전송 record 재개</li><li>잘못된 sensor payload: outbox에 넣지 않고 field 이름과 오류 code만 기록</li><li>중앙의 schema 오류 또는 과대 payload: dead-letter table로 이동하고 다음 record 진행</li><li>인증 실패: 전체 업로드를 중단하고 outbox를 유지한 채 degraded 상태로 재시도</li><li>UUID 충돌: 해당 record를 quarantine하고 critical 상태 발생</li></ul>
-<p>terminal record를 별도 table로 옮겨 한 record가 같은 Device의 전체 FIFO를 영구히 막지 않게 한다. dead-letter와 quarantine record는 자동 삭제하지 않고 운영자가 metadata와 오류 code를 확인한 후 처리한다. 로그와 metric에는 원본 telemetry를 노출하지 않는다.</p>
-<p>버퍼는 장애 복구용이며 영구 telemetry store가 아니다. backlog가 70%를 넘거나 oldest age가 30분을 넘으면 degraded, 90% 또는 dropped/quarantined record 발생 시 critical로 관측한다. 초기 구현에서는 다음 값을 Prometheus metric과 agent health API로 제공한다.</p>
-<ul><li><code>edge_outbox_pending_records</code></li><li><code>edge_outbox_bytes</code></li><li><code>edge_outbox_oldest_age_seconds</code></li><li><code>edge_outbox_dropped_total</code></li><li><code>edge_outbox_rejected_total</code></li><li><code>edge_upload_errors_total</code></li></ul>
-<p>이 값은 raw telemetry처럼 DeviceStatus에 기록하지 않는다.</p>
-<h2 id="7-장애-동작">7. 장애 동작</h2>
+[Edge AI server]
+edgex-ingest-gateway
+  -&gt; EdgeX Core Data REST
+  -&gt; PostgreSQL
+  -&gt; central consumers / dashboard</code></pre>
+<p>EdgeX Core Metadata는 Device/Profile inventory와 schema를 유지한다. 중앙 internal MessageBus는 stock EdgeX Core와 후속 consumer용이며 physical northbound가 아니다.</p>
+<h2 id="source-adapter-모드">Source adapter 모드</h2>
+<h3 id="direct">direct</h3>
+<ul><li>기본 모드</li><li><code>TELEMETRY_SOURCE_MODE=direct</code></li><li>host adapter가 <code>http://127.0.0.1:18080/v1/events</code>로 Event를 전달</li><li>Modbus, OPC-UA, Serial, I2C adapter가 공통 outbox/uploader를 재사용</li><li>local broker 불필요</li></ul>
+<p>loopback endpoint는 host에서 실행하는 adapter와 host-network agent 사이에서만 사용한다. 외부 interface bind는 설정 단계에서 거부한다.</p>
+<h3 id="mqtt">mqtt</h3>
+<ul><li>optional compatibility 모드</li><li><code>TELEMETRY_SOURCE_MODE=mqtt</code></li><li>MQTT-only 장비 또는 local pub/sub 요구가 있을 때만 사용</li><li>payload는 raw JSON이 아니라 canonical EdgeX v3 Event</li><li>QoS 1 ACK는 Event가 SQLite에 commit된 뒤에만 수행</li></ul>
+<p>현재 Sense HAT는 direct, Jetson canary는 mqtt mode다.</p>
+<h2 id="sense-hat-vertical-slice">Sense HAT vertical slice</h2>
+<ul><li>node: <code>etri-dev0003-raspi5</code></li><li>adapter: <code>edge-device/publishers/sensehat_publisher.py</code></li><li>protocol: I2C</li><li>Device: <code>sensehat-001</code></li><li>Profile: <code>etri-sensehat</code></li><li>source: temperature, humidity, pressure, compass, orientation, gyroscope</li><li>MQTT broker: 없음</li></ul>
+<p>publisher는 한 sample의 source별 Event ID를 만들고 local durable ACK가 모호하면 같은 Event를 재시도한다.</p>
+<h2 id="outbox">Outbox</h2>
+<p>SQLite는 WAL, <code>synchronous=FULL</code>과 transaction commit을 사용한다.</p>
+<ul><li>Event ID primary key</li><li>같은 ID/같은 canonical payload: deduplicated</li><li>같은 ID/다른 payload: conflict</li><li>device/source stream별 FIFO</li><li>inflight lease와 token fencing</li><li>retryable failure: exponential backoff</li><li>terminal Core validation/conflict: rejected/quarantine</li><li>persisted ACK: row 삭제</li><li>기본 logical maximum: 1GiB</li><li>PVC: agent별 2GiB</li></ul>
+<p>용량을 넘을 때 오래된 Event를 자동 삭제하지 않는다. adapter에 <code>507 outbox_full</code>을 반환해 저장되지 않은 sample을 성공으로 오인하지 않게 한다.</p>
+<h2 id="gateway와-persisted-ack">Gateway와 persisted ACK</h2>
+<p>gateway는 다음을 확인한다.</p>
+<ol><li>request body 상한</li><li>mTLS client identity</li><li>edge ID별 HMAC과 timestamp</li><li>strict EdgeX Event schema</li><li>Core Data REST response와 Event ID</li></ol>
+<p>Core Data add path:</p>
+<pre data-lang="text"><code>POST /api/v3/event/edgex-ingest-gateway/{profile}/{device}/{source}</code></pre>
+<p>Core Data <code>201</code>의 ID가 요청 Event ID와 같은 경우만 persisted ACK를 반환한다. 응답 유실 뒤 Core Data가 <code>409</code>를 반환하면 <code>GET /api/v3/event/id/{id}</code>로 읽고 server-generated field를 제외한 canonical fingerprint를 비교한다.</p>
+<ul><li>같은 payload: persisted/deduplicated ACK</li><li>다른 payload: <code>409 id_collision</code></li><li>Core Data timeout/5xx: retryable failure</li></ul>
+<p>전체 downstream exactly-once는 주장하지 않는다. edge-to-Core Data storage는 at-least-once retry와 Event ID idempotency를 제공한다.</p>
+<h2 id="metadata">Metadata</h2>
+<p><code>edgex-metadata-bootstrap</code>은 GET-before-POST 방식으로 다음을 등록한다.</p>
+<ol><li>Device Service <code>edge-telemetry-agent</code></li><li>Device Profile</li><li>Device</li></ol>
+<p>현재 service는 physical protocol process가 아니라 HTTPS telemetry plane을 나타내는 논리 Device Service다. command는 비활성이고 dashboard availability는 Metadata 관리 상태와 Core Data Event freshness를 함께 사용한다.</p>
+<h2 id="배치">배치</h2>
+<h3 id="server2-edgex-system">server2 / <code>edgex-system</code></h3>
+<ul><li>ingest gateway</li><li>Core Keeper</li><li>Core Metadata</li><li>Core Data</li><li>Core Command</li><li>internal MessageBus</li><li>PostgreSQL</li><li>Metadata bootstrap</li></ul>
+<h3 id="edge-edgex-edge">edge / <code>edgex-edge</code></h3>
+<ul><li>Jetson edge agent</li><li>Sense HAT edge agent</li><li>agent별 SQLite PVC</li></ul>
+<p>edge node에는 Core, internal MessageBus나 PostgreSQL을 배치하지 않는다.</p>
+<h2 id="rtsp와-workflow-pod">RTSP와 Workflow Pod</h2>
+<p>RTSP frame은 Event/Reading과 SQLite outbox에 넣지 않는다.</p>
+<pre data-lang="text"><code>camera -&gt; RTSP -&gt; on-demand Workflow Pod
+                     -&gt; AI result/status Event (optional)</code></pre>
+<p>Workflow Pod 생성·종료, GPU 배치와 offloading은 현재 telemetry plane의 범위 밖이다.</p>
+<h2 id="trust-boundary">Trust boundary</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>장애</th>
-<th>기대 동작</th>
+<th>crossing</th>
+<th>guard</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Edge AI 서버 또는 네트워크 단절</td>
-<td>엣지 수집·추론 지속, outbox 증가</td>
+<td>adapter -&gt; agent</td>
+<td>loopback bind, strict schema, body size, durable ACK</td>
 </tr>
 <tr>
-<td>연결 복구</td>
-<td>Device별 오래된 record부터 재전송, backlog 감소</td>
+<td>agent -&gt; gateway</td>
+<td>TLS verification, client cert, HMAC</td>
 </tr>
 <tr>
-<td>edge agent Pod 재시작</td>
-<td>hostPath outbox에서 재개</td>
+<td>gateway -&gt; Core Data</td>
+<td>cluster-only URL과 제한된 REST path</td>
 </tr>
 <tr>
-<td>ingest gateway 중단</td>
-<td>성공 응답이 없으므로 record 유지, backoff 재시도</td>
-</tr>
-<tr>
-<td>Core Data 중단</td>
-<td>gateway가 성공을 반환하지 않고 agent가 record 유지</td>
-</tr>
-<tr>
-<td>PostgreSQL 중단</td>
-<td>Core Data 저장 실패, agent가 record 유지</td>
-</tr>
-<tr>
-<td>저장 후 응답 유실</td>
-<td>같은 UUID 재전송, gateway가 ID 조회와 fingerprint 비교 후 확인</td>
-</tr>
-<tr>
-<td>internal MessageBus 중단</td>
-<td>중앙 후속 발행은 실패할 수 있으나 DB 저장 확인 기준에는 사용하지 않음</td>
-</tr>
-<tr>
-<td>저장 응답 유실 후 재전송</td>
-<td>DB row는 UUID로 중복 방지, MessageBus 소비자는 UUID로 중복 처리</td>
-</tr>
-<tr>
-<td>buffer 한도 초과</td>
-<td>oldest drop, dropped metric과 critical health 발생</td>
-</tr>
-<tr>
-<td>잘못된 sensor telemetry</td>
-<td>sample 거부, payload 비노출 오류 기록</td>
-</tr>
-<tr>
-<td>중앙 schema 거부</td>
-<td>dead-letter 이동, rejected metric 증가</td>
-</tr>
-<tr>
-<td>UUID와 payload 불일치</td>
-<td>quarantine, 자동 삭제 금지, critical health 발생</td>
+<td>Core Data -&gt; PostgreSQL</td>
+<td>Secret 기반 DB config와 Core Data 성공 응답</td>
 </tr>
 </tbody></table></div>
-<h2 id="8-네트워크와-보안-경계">8. 네트워크와 보안 경계</h2>
-<p>edge agent는 테스트베드 LAN의 다음 단일 endpoint만 사용한다.</p>
-<pre data-lang="text"><code>https://192.168.0.5:30443/v1/events</code></pre>
-<p><code>edgex-ingest-gateway</code>는 server2에 고정 배치하고 <code>externalTrafficPolicy: Local</code>인 NodePort <code>30443</code>으로 노출한다. 나머지 EdgeX API와 PostgreSQL은 ClusterIP다.</p>
-<p>현재 PoC에 적용할 보안 기준은 다음과 같다.</p>
-<ul><li>gateway는 Kubernetes TLS Secret의 인증서로 HTTPS만 제공한다.</li><li>서버 인증서의 subject alternative name에는 server2 InternalIP <code>192.168.0.5</code>를 넣는다.</li><li>agent는 배포된 CA bundle로 서버 인증서를 검증하며 검증 해제를 허용하지 않는다.</li><li>sensor-gateway agent는 Kubernetes Secret에 저장된 공용 PoC bearer token을 사용한다.</li><li>익명 요청, token 불일치, 허용되지 않은 device/profile/source는 거부한다.</li><li>gateway는 <code>POST /v1/events</code>만 외부에 제공하며 범용 Core Data reverse proxy로 동작하지</li></ul>
-<p>않는다.</p>
-<ul><li>요청 크기, 동시 요청 수와 source subnet을 제한한다.</li><li>server2 host firewall은 sensor-gateway가 속한 테스트베드 대역에서 오는 <code>30443</code>만</li></ul>
-<p>허용한다. 이 규칙 적용과 외부 대역 차단 확인을 배포 검증에 포함한다.</p>
-<ul><li>로그에 원본 telemetry, token, 인증서 key를 기록하지 않는다.</li><li>command endpoint와 actuator 실행은 이번 변경에 포함하지 않는다.</li></ul>
-<p>노드별 credential 또는 mTLS는 운영 전 필수 고도화 항목이지만 현재 PoC 범위에는 넣지 않는다. 따라서 이 단계에서 <code>edge_node_id</code>는 데이터 출처 tag이지 독립적으로 인증된 노드 신원이라고 설명하지 않는다.</p>
-<h2 id="9-kubernetes와-gitops-구조">9. Kubernetes와 GitOps 구조</h2>
-<p>현재 단일 <code>edgex/k8s</code> 구성을 다음 두 배포 단위로 분리한다.</p>
-<pre data-lang="text"><code>edgex/k8s/
-├── base/
-│   ├── server/
-│   └── edge-agent/
-└── overlays/
-    └── testbed/
-        ├── server2/
-        └── sensor-gateways/</code></pre>
-<p>Argo CD Application도 두 개로 분리한다.</p>
-<ul><li><code>edgex-central</code>: <code>etri-ser0002-cgnmsb</code>, namespace <code>edgex-system</code></li><li><code>edgex-edge-agent</code>: <code>sensor-gateway</code> label을 가진 EdgeCore 노드,</li></ul>
-<p>namespace <code>edgex-system</code></p>
-<p>서버 workload는 x86_64 EdgeX 4.0.2 이미지를 사용한다. edge agent는 Jetson과 Raspberry Pi에서 실행 가능한 ARM64 이미지를 사용한다. manifest test는 다음을 검증한다.</p>
-<ul><li>Core Data, Keeper, Metadata, MessageBus와 PostgreSQL은 server2에만 배치된다.</li><li>Device MQTT는 새 중앙 경로에 포함되지 않는다.</li><li>edge agent만 sensor-gateway EdgeCore 노드에 배치된다.</li><li>Core Data의 <code>Writable.PersistData</code>는 <code>true</code>다.</li><li>외부 노출 Service는 TLS ingest gateway 하나뿐이다.</li><li>PostgreSQL PVC는 20Gi이고 기존 Jetson PVC와 분리된다.</li><li>KubeEdge Device, DeviceModel과 DeviceStatus manifest는 변경하지 않는다.</li></ul>
-<p>구현을 현재 범위로 승격하기 전에 <code>docs/프로젝트-범위.md</code>, <code>docs/저장소-구조.md</code>, <code>docs/원시-텔레메트리-데이터-플레인.md</code>를 새 책임 경계와 검증 기준에 맞게 갱신한다.</p>
-<h2 id="10-단계적-전환-순서">10. 단계적 전환 순서</h2>
-<ol><li>범위 문서와 운영 책임을 먼저 갱신한다.</li><li><code>edgex-system</code> namespace에 중앙 EdgeX stack과 새 PostgreSQL PVC를 병렬 배포한다.</li><li>bootstrap Job으로 논리 Device Service, Device Profile과 canary Device를 등록한다.</li><li>Jetson 한 대에만 <code>sensor-gateway=true</code>를 부여하고 edge agent를 canary 배포한다.</li><li>별도 canary device/topic으로 Event 저장과 Event ID 조회를 검증한다.</li><li>gateway를 중단한 상태에서 sample을 발행해 outbox 증가와 로컬 추론 지속을</li></ol>
-<p>검증한다.</p>
-<ol><li>gateway를 복구해 backlog drain과 Core Data 저장을 검증한다.</li><li>저장 직후 응답 유실을 재현해 같은 UUID가 한 번만 저장되고 outbox가 제거되는지</li></ol>
-<p>검증한다.</p>
-<ol><li>canonical vibration topic을 새 경로로 전환하고 기존 Jetson Device MQTT 소비를</li></ol>
-<p>중지해 이중 저장을 막는다.</p>
-<ol><li>다른 실제 sensor-gateway 노드로 라벨과 edge agent 배치를 확대한다.</li><li>기존 Jetson EdgeX Core와 PostgreSQL은 별도 승인 전까지 삭제하지 않고 scale-down</li></ol>
-<p>상태로 보존한다.</p>
-<p>현재 Jetson PostgreSQL에는 smoke Event만 존재한다고 가정하더라도 파괴적 삭제나 PVC 정리를 자동으로 수행하지 않는다. 기존 데이터 폐기 여부는 전환 검증 후 별도 승인한다.</p>
-<h2 id="11-테스트와-완료-기준">11. 테스트와 완료 기준</h2>
-<h3 id="자동-테스트">자동 테스트</h3>
-<ul><li>MQTT route allowlist, 값 변환과 source timestamp 보존</li><li>network 호출 전에 SQLite transaction commit</li><li>Core Data <code>201</code> 또는 검증된 <code>already_persisted</code> 응답에서만 outbox delete</li><li>timeout, <code>5xx</code>, 인증 실패 시 record 유지</li><li>schema 오류의 dead-letter 이동과 UUID 충돌의 quarantine</li><li>동일 UUID 재전송 시 Event canonical fingerprint 비교</li><li>agent 재시작 후 outbox 복구</li><li>Device별 FIFO, backoff와 backlog drain rate limit</li><li>24시간/1GiB 한도와 oldest-drop counter</li><li>malformed payload와 로그 비노출</li><li>ingest gateway token, allowlist, request-size와 외부 route 제한</li><li>server/edge Kustomize 렌더링과 API server dry-run</li><li>node selector, namespace, image architecture, PVC와 Service 노출 정책</li><li>Core Data <code>Writable.PersistData=true</code></li><li>KubeEdge Device/DeviceModel/DeviceStatus manifest 비변경</li></ul>
-<h3 id="live-검증">live 검증</h3>
-<ol><li>중앙 상시 workload 여섯 개가 <code>etri-ser0002-cgnmsb</code>에서 Ready이고 PostgreSQL PVC가</li></ol>
-<p><code>Bound</code>다.</p>
-<ol><li><code>edge-telemetry-agent</code>만 라벨이 지정된 EdgeCore 노드에서 Ready다.</li><li>정상 MQTT sample이 Event UUID로 Core Data에서 조회된다.</li><li>Event의 source timestamp와 <code>edge_node_id</code> tag가 보존된다.</li><li>gateway 중단 중 edge inference가 계속되고 outbox가 증가한다.</li><li>gateway 복구 후 outbox가 drain되고 모든 Event가 조회된다.</li><li>저장 응답 유실 후 재전송해도 같은 UUID의 Event가 한 개만 존재한다.</li><li>edge agent 재시작 후에도 미전송 record가 유지된다.</li><li>Core Data와 PostgreSQL 재시작 후 Event가 유지된다.</li><li>외부에서는 gateway의 인증된 <code>POST /v1/events</code> 외 Core API에 접근할 수 없다.</li><li>KubeEdge DeviceStatus에 raw telemetry가 추가되지 않는다.</li><li>기존 Jetson 전체 EdgeX 경로를 중지한 후에도 새 경로 smoke가 통과한다.</li></ol>
-<h2 id="12-운영상-제약">12. 운영상 제약</h2>
-<ul><li>server2와 모든 sensor-gateway EdgeCore 사이의 테스트베드 LAN 연결을 전제로 한다.</li><li>PostgreSQL local-path는 server2 장애에 대한 HA가 아니다.</li><li>24시간/1GiB는 초기 기본값이며 실제 sensor rate 측정 후 조정한다.</li><li>장기간 단절로 buffer 한도를 넘으면 oldest-drop이 발생하므로 무손실 장기 보관 구조가</li></ul>
-<p>아니다.</p>
-<ul><li>outbox 보호는 edge agent가 MQTT sample을 받은 시점부터 시작한다. 현재 QoS 0</li></ul>
-<p>publisher가 agent 또는 로컬 broker 중단 중 발행한 sample까지 복구하지는 않는다. 로컬 MQTT 구간의 무손실 처리는 publisher QoS 1, persistent session과 broker persistence를 함께 적용하는 별도 고도화 범위다.</p>
-<ul><li>고대역폭 RTSP frame은 SQLite outbox나 Core Data Event에 넣지 않는다. RTSP는 별도</li></ul>
-<p>media buffer와 추론 event metadata 경로로 설계한다.</p>
-<ul><li>dashboard의 EdgeX 전환은 별도 작업이다. 이번 단계의 완료 기준은 MQTT 수직</li></ul>
-<p>슬라이스, 중앙 영구 저장과 장애 복구 검증까지다.</p>
-<h2 id="13-검토한-대안">13. 검토한 대안</h2>
-<h3 id="edgex-전체-스택을-모든-edgecore에-배치">EdgeX 전체 스택을 모든 EdgeCore에 배치</h3>
-<p>각 노드가 독립적으로 동작하는 장점은 있지만 Keeper, Metadata, MessageBus, Core Data와 PostgreSQL까지 노드마다 운영해야 한다. 현재 PoC의 중앙 통합 저장 요구와 맞지 않아 선택하지 않는다.</p>
-<h3 id="edge-agent에서-중앙-mqtt-device-mqtt로-전달">edge agent에서 중앙 MQTT/Device MQTT로 전달</h3>
-<p>현재 수직 슬라이스를 가장 적게 바꾸는 방법이다. 그러나 QoS 1 PUBACK은 중앙 broker가 메시지를 받았다는 뜻일 뿐 Core Data의 PostgreSQL 저장을 보장하지 않는다. Core Data 장애 중 outbox를 안전하게 비울 수 없으므로 목표 구조로 선택하지 않는다.</p>
-<h3 id="core-data-api를-edgecore에-직접-노출">Core Data API를 EdgeCore에 직접 노출</h3>
-<p>구현은 단순하지만 EdgeX Core API의 읽기·삭제 surface까지 센서망에 노출하기 쉽고, 인증·allowlist·중복 확인 책임이 agent마다 분산된다. 제한된 ingest gateway 한 곳에서 이 책임을 처리하는 방식을 선택한다.</p>
-<h2 id="14-edgex-근거">14. EdgeX 근거</h2>
-<ul><li>EdgeX 4.0.2 Core Data OpenAPI는 Event 추가 API를</li></ul>
-<p><code>POST /api/v3/event/{serviceName}/{profileName}/{deviceName}/{sourceName}</code>로 정의하며, 저장 성공은 <code>201</code>, 중복 Event ID는 <code>409</code>로 정의한다.</p>
-<ul><li>같은 API에는 <code>GET /api/v3/event/id/{id}</code>가 있어 응답 유실 후 저장 여부를 확인할 수</li></ul>
-<p>있다.</p>
-<ul><li>Event schema의 <code>id</code>는 UUID이며 <code>tags</code>에 gateway/edge context를 저장할 수 있다.</li></ul>
-<p>참조:</p>
-<ul><li>&lt;https://github.com/edgexfoundry/edgex-go/blob/v4.0.2/openapi/core-data.yaml&gt;</li><li>&lt;https://docs.edgexfoundry.org/4.0/microservices/core/data/ApiReference/&gt;</li></ul>
+<h2 id="known-risks">Known risks</h2>
+<ul><li>Sense HAT agent의 <code>hostNetwork</code>는 host publisher가 loopback에 접근하기 위한 선택이다. 8443는 mTLS이고 18080은 loopback-only지만 host port 충돌을 live preflight에서 확인해야 한다.</li><li>Metadata bootstrap은 기존 이름을 skip한다. contract drift update/delete는 별도 운영 절차가 필요하다.</li><li>PostgreSQL과 outbox PVC는 단일 node local storage라 disk failure backup이 아니다.</li><li>Jetson MQTT compatibility mode는 broker와 canonical Event publisher가 실제로 필요한지 확인 후 유지해야 한다.</li><li>중앙 internal MessageBus를 MQTT가 아닌 provider로 바꾸는 작업은 별도 EdgeX runtime migration이다.</li></ul>
+<h2 id="수용-기준">수용 기준</h2>
+<ul><li>direct mode가 MQTT 설정 없이 시작된다.</li><li>mqtt mode만 broker host/topic/session을 요구한다.</li><li>Sense HAT Event가 local queue ACK 뒤 Core Data에서 같은 ID로 조회된다.</li><li>gateway 중단 중 outbox가 유지되고 복구 뒤 drain된다.</li><li>같은 Event retry는 중복 row를 만들지 않는다.</li><li>root Kustomize에 <code>device-mqtt</code> workload가 없다.</li><li>central Core/DB는 server2, agents는 지정 edge node에만 배치된다.</li><li>dashboard가 <code>sensehat-001 / etri-sensehat / edge-telemetry-agent</code>와 latest Event freshness를 표시한다.</li></ul>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-결정">1. 결정</a></li>
-<li class="toc-h2"><a href="#2-목표와-비목표">2. 목표와 비목표</a></li>
-<li class="toc-h3"><a href="#목표">목표</a></li>
-<li class="toc-h3"><a href="#비목표">비목표</a></li>
-<li class="toc-h2"><a href="#3-노드별-배치">3. 노드별 배치</a></li>
-<li class="toc-h3"><a href="#etri-ser0002-cgnmsb-edge-ai-서버">etri-ser0002-cgnmsb: Edge AI 서버</a></li>
-<li class="toc-h3"><a href="#센서가-연결된-kubeedge-edgecore-노드">센서가 연결된 KubeEdge EdgeCore 노드</a></li>
-<li class="toc-h2"><a href="#4-데이터-흐름과-저장-확인">4. 데이터 흐름과 저장 확인</a></li>
-<li class="toc-h3"><a href="#응답이-유실된-경우">응답이 유실된 경우</a></li>
-<li class="toc-h2"><a href="#5-event와-outbox-계약">5. Event와 outbox 계약</a></li>
-<li class="toc-h2"><a href="#6-임시-버퍼-정책">6. 임시 버퍼 정책</a></li>
-<li class="toc-h2"><a href="#7-장애-동작">7. 장애 동작</a></li>
-<li class="toc-h2"><a href="#8-네트워크와-보안-경계">8. 네트워크와 보안 경계</a></li>
-<li class="toc-h2"><a href="#9-kubernetes와-gitops-구조">9. Kubernetes와 GitOps 구조</a></li>
-<li class="toc-h2"><a href="#10-단계적-전환-순서">10. 단계적 전환 순서</a></li>
-<li class="toc-h2"><a href="#11-테스트와-완료-기준">11. 테스트와 완료 기준</a></li>
-<li class="toc-h3"><a href="#자동-테스트">자동 테스트</a></li>
-<li class="toc-h3"><a href="#live-검증">live 검증</a></li>
-<li class="toc-h2"><a href="#12-운영상-제약">12. 운영상 제약</a></li>
-<li class="toc-h2"><a href="#13-검토한-대안">13. 검토한 대안</a></li>
-<li class="toc-h3"><a href="#edgex-전체-스택을-모든-edgecore에-배치">EdgeX 전체 스택을 모든 EdgeCore에 배치</a></li>
-<li class="toc-h3"><a href="#edge-agent에서-중앙-mqtt-device-mqtt로-전달">edge agent에서 중앙 MQTT/Device MQTT로 전달</a></li>
-<li class="toc-h3"><a href="#core-data-api를-edgecore에-직접-노출">Core Data API를 EdgeCore에 직접 노출</a></li>
-<li class="toc-h2"><a href="#14-edgex-근거">14. EdgeX 근거</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#상태">상태</a></li>
+<li class="toc-h2"><a href="#문제">문제</a></li>
+<li class="toc-h2"><a href="#결정">결정</a></li>
+<li class="toc-h2"><a href="#source-adapter-모드">Source adapter 모드</a></li>
+<li class="toc-h3"><a href="#direct">direct</a></li>
+<li class="toc-h3"><a href="#mqtt">mqtt</a></li>
+<li class="toc-h2"><a href="#sense-hat-vertical-slice">Sense HAT vertical slice</a></li>
+<li class="toc-h2"><a href="#outbox">Outbox</a></li>
+<li class="toc-h2"><a href="#gateway와-persisted-ack">Gateway와 persisted ACK</a></li>
+<li class="toc-h2"><a href="#metadata">Metadata</a></li>
+<li class="toc-h2"><a href="#배치">배치</a></li>
+<li class="toc-h3"><a href="#server2-edgex-system">server2 / edgex-system</a></li>
+<li class="toc-h3"><a href="#edge-edgex-edge">edge / edgex-edge</a></li>
+<li class="toc-h2"><a href="#rtsp와-workflow-pod">RTSP와 Workflow Pod</a></li>
+<li class="toc-h2"><a href="#trust-boundary">Trust boundary</a></li>
+<li class="toc-h2"><a href="#known-risks">Known risks</a></li>
+<li class="toc-h2"><a href="#수용-기준">수용 기준</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

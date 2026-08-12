@@ -32,6 +32,26 @@ Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-r
 `GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
 `DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
 이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
+가상 디바이스 projection은 기본 비활성 상태이며 EdgeX Core Metadata의 Device/Profile과
+Core Data Event/Reading만 권위 원본으로 읽는다. projection은 telemetry를 저장하거나
+fallback으로 사용하지 않는다. 이후 활성화되는 조회는 하나의 고정 관측 시각을 기준으로
+newest-first 페이지와 Device별 Event/prior-probe 상한을 적용하며, 상한 전에 증거를
+확정하지 못하면 `history_truncated`로 표시한다. Event ID, Event origin, Reading origin,
+profile/device/source/resource identity는 별도로 보존한다. EdgeX 404는 요청 작업별
+not-found 의미를 유지하고, 401/403, 429/5xx, transport, malformed response는 각각
+operation, safe identity, status, retryability를 가진 typed authority error로 구분한다.
+Projection API and observer behavior remain read-only; resolver and metrics state never become authority.
+Projection routes are implemented behind `VIRTUAL_DEVICE_PROJECTION_ENABLED=false` and
+return `404 {"detail":{"code":"projection_not_active",...}}` by default. Local or test
+enablement requires `VIRTUAL_DEVICE_BINDINGS_PATH` and validates the strict binding document
+before readiness; invalid, unreadable, missing, or production-empty documents fail startup.
+`eventQuery` 값은 binding 문서가 요구하는 의미상 상한이고 환경 설정은 운영상 하드 상한이다.
+실제 조회 예산은 각 항목의 더 작은 값(`min(binding, environment)`)으로 고정되며 revision은
+binding의 의미를 식별하고 환경 하드 상한은 별도 운영 설정으로 취급한다.
+Enabled list/detail reads are current EdgeX authority reads, never observer-cache fallback.
+`/metrics` consumes only bounded status-only observation metadata and never triggers EdgeX
+requests. Deployment, ingress, access policy, MQTT/runtime promotion, and live activation
+remain deferred.
 B. Prometheus reader
 
 Prometheus HTTP API를 사용해 아래 metric을 주기적으로 읽어오기

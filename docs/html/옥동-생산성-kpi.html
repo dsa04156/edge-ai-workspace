@@ -50,6 +50,8 @@
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
@@ -67,6 +69,7 @@
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
 <li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
+<li><a href="디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
@@ -77,6 +80,7 @@
 <li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
 <li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
 <li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
+<li><a href="ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
 <li class="group">설계 이력</li>
 <li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
@@ -84,11 +88,15 @@
 <li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
 <li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
+<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
 <li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
 <li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
+<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
+<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
 <li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
 <li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
 <li><a href="일일-기록.html">일일 기록</a></li>
@@ -120,299 +128,129 @@
         <header class="doc-header">
           <p class="eyebrow">최신 기준 문서</p>
           <h1>옥동 생산성 KPI</h1>
-          <p class="subtitle">EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는…</p>
+          <p class="subtitle">KPI는 모델 정확도만 나열하지 않고, 데이터가 서비스 결과와 운영 조치로 이어졌는지 측정한다.</p>
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 옥동-생산성-kpi.md</span>
-            <span class="badge">수정: 2026-07-20 17:28</span>
-            <span class="badge">HTML 생성: 2026-07-20 17:28</span>
+            <span class="badge">수정: 2026-08-12 11:51</span>
+            <span class="badge">HTML 생성: 2026-08-12 11:55</span>
           </div>
         </header>
         <div class="doc-body">
-          <h1 id="옥동-시나리오-생산성-kpi">옥동 시나리오 생산성 KPI</h1>
+          <h1 id="옥동-생산성-kpi">옥동 생산성 KPI</h1>
 <h2 id="목적">목적</h2>
-<p>이 문서는 EdgeX 기반 물리 디바이스 운영 가시화를 옥동 실공장 시나리오의 생산성 언어로 설명한다. 목표는 자동 제어 효과를 주장하는 것이 아니라, 운영자가 inventory, Device Service 연결, Core Data event freshness와 서비스 영향 범위를 빠르게 이해해 점검 시간을 줄일 수 있음을 보이는 것이다.</p>
-<pre data-lang="text"><code>EdgeX device 상태와 최신 event를 한 화면에서 보고 문제 위치를 좁히는 운영 가시화 PoC</code></pre>
-<h2 id="현장-문제와-개선점">현장 문제와 개선점</h2>
+<p>KPI는 모델 정확도만 나열하지 않고, 데이터가 서비스 결과와 운영 조치로 이어졌는지 측정한다.</p>
+<h2 id="1-생산품질-판별-kpi">1. 생산품질 판별 KPI</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>현장 문제</th>
-<th>Dashboard 정보</th>
-<th>생산성 의미</th>
+<th>KPI</th>
+<th>정의</th>
+<th>수집 위치</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>관리 대상 inventory가 분산됨</td>
-<td>Core Metadata <code>registered_device_count</code></td>
-<td>관리 범위를 한 기준으로 확인</td>
+<td>생산 건 coverage</td>
+<td>MES 생산 건 중 센서 window가 연결된 비율</td>
+<td>MES + Event metadata</td>
 </tr>
 <tr>
-<td>어떤 수집 서비스가 장치를 소유하는지 불명확</td>
-<td>profile, Device Service, protocol</td>
-<td>담당 수집 경로를 즉시 식별</td>
+<td>판정 latency</td>
+<td>마지막 입력 Event부터 결과 저장까지 시간</td>
+<td>service result</td>
 </tr>
 <tr>
-<td>등록 상태와 실제 데이터 유입을 혼동</td>
-<td>admin/operating/connection + Core Data freshness</td>
-<td>상태 문제와 event 문제를 분리</td>
+<td>unknown rate</td>
+<td>입력 결측·stale로 판정하지 못한 비율</td>
+<td>service result</td>
 </tr>
 <tr>
-<td>AI·저장소 영향 범위 추적이 느림</td>
-<td>source/resource/latest readings + consumer relation</td>
-<td>영향 범위를 빠르게 설명</td>
+<td>defect detection</td>
+<td>불량 검출 precision/recall</td>
+<td>품질 라벨 + 결과</td>
 </tr>
 <tr>
-<td>모든 장치를 수동 점검</td>
-<td>degraded/unavailable focus list</td>
-<td>우선 점검 대상 축소</td>
+<td>재검사 감소</td>
+<td>AI 판정으로 수동 확인이 줄어든 건수</td>
+<td>MES/운영 기록</td>
 </tr>
 </tbody></table></div>
-<p>Kubernetes node 정보는 AI/workload 배치 진단에만 사용한다. 물리 디바이스 KPI의 authority 또는 availability gate가 아니다.</p>
-<h2 id="핵심-kpi">핵심 KPI</h2>
-<h3 id="1-등록-디바이스-수">1. 등록 디바이스 수</h3>
+<h2 id="2-펌프-모터-이상감지-kpi">2. 펌프·모터 이상감지 KPI</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>항목</th>
-<th>내용</th>
+<th>KPI</th>
+<th>정의</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>이름</td>
-<td><code>registered_device_count</code></td>
+<td>telemetry coverage</td>
+<td>필요한 진동·전류·온도 resource의 fresh 비율</td>
 </tr>
 <tr>
-<td>의미</td>
-<td>EdgeX Core Metadata에 등록된 device 수</td>
+<td>detection lead time</td>
+<td>임계 이상부터 실제 점검까지 선행 시간</td>
 </tr>
 <tr>
-<td>운영자 해석</td>
-<td>현재 관리 대상 물리 device 규모</td>
+<td>false alarm rate</td>
+<td>정상 구간을 이상으로 표시한 비율</td>
+</tr>
+<tr>
+<td>missed anomaly</td>
+<td>라벨된 이상을 놓친 비율</td>
+</tr>
+<tr>
+<td>maintenance response</td>
+<td>알림부터 점검·조치까지 시간</td>
+</tr>
+<tr>
+<td>unplanned stop avoidance</td>
+<td>이상 조기 감지로 예방한 비가동 시간</td>
 </tr>
 </tbody></table></div>
-<h3 id="2-사용-가능-디바이스-수">2. 사용 가능 디바이스 수</h3>
+<h2 id="3-플랫폼-kpi">3. 플랫폼 KPI</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>항목</th>
-<th>내용</th>
+<th>KPI</th>
+<th>정의</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>이름</td>
-<td><code>available_device_count</code></td>
+<td>Event delivery success</td>
+<td>Core Data persisted ACK를 받은 Event 비율</td>
 </tr>
 <tr>
-<td>의미</td>
-<td>허용된 admin 상태, <code>operatingState=UP</code>, fresh Core Data event를 만족한 수</td>
+<td>outbox recovery</td>
+<td>장애 중 저장된 Event가 복구 후 재전송된 비율</td>
 </tr>
 <tr>
-<td>운영자 해석</td>
-<td>현재 EdgeX 경로에서 관측 가능한 device 규모</td>
+<td>duplicate rate</td>
+<td>replay 후 중복 결과가 발생한 비율</td>
+</tr>
+<tr>
+<td>data loss</td>
+<td>원인별 유실 건수. 목표는 0건</td>
+</tr>
+<tr>
+<td>service availability</td>
+<td>AI container readiness와 결과 성공 비율</td>
+</tr>
+<tr>
+<td>operator focus count</td>
+<td>degraded/unavailable Device 수</td>
 </tr>
 </tbody></table></div>
-<p><code>degraded_device_count</code>와 <code>unavailable_device_count</code>를 함께 제시해 점검 범위를 설명한다.</p>
-<h3 id="3-edgex-연결-비율">3. EdgeX 연결 비율</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td><code>edgex_connection_ratio</code></td>
-</tr>
-<tr>
-<td>분자</td>
-<td><code>edgex_connected_device_count</code></td>
-</tr>
-<tr>
-<td>분모</td>
-<td><code>registered_device_count</code></td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>Core Metadata/Device Service 상태로 connected인 관리 대상 비율</td>
-</tr>
-</tbody></table></div>
-<h3 id="4-device-service-가용-비율">4. Device Service 가용 비율</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td><code>device_service_availability_ratio</code></td>
-</tr>
-<tr>
-<td>분자</td>
-<td><code>device_service_available_count</code></td>
-</tr>
-<tr>
-<td>분모</td>
-<td><code>registered_device_count</code></td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>Core Metadata에 등록된 논리 수집 서비스와 device 운영 상태가 사용 가능한 비율</td>
-</tr>
-</tbody></table></div>
-<h3 id="5-core-data-event-관측-수">5. Core Data event 관측 수</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td><code>core_data_event_device_count</code></td>
-</tr>
-<tr>
-<td>의미</td>
-<td>최신 Core Data event가 존재하는 device 수</td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>등록 이후 실제 event가 한 번 이상 관측된 범위</td>
-</tr>
-</tbody></table></div>
-<h3 id="6-core-data-freshness-비율">6. Core Data freshness 비율</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td><code>core_data_freshness_ratio</code></td>
-</tr>
-<tr>
-<td>분자</td>
-<td><code>fresh_core_data_event_device_count</code></td>
-</tr>
-<tr>
-<td>분모</td>
-<td><code>registered_device_count</code></td>
-</tr>
-<tr>
-<td>보조 수치</td>
-<td><code>stale_core_data_event_device_count</code></td>
-</tr>
-<tr>
-<td>device field</td>
-<td><code>latest_event_timestamp</code>, <code>telemetry_freshness</code></td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>최근 event가 계속 들어오는 관리 대상 비율</td>
-</tr>
-</tbody></table></div>
-<p>Freshness는 <code>EDGEX_EVENT_FRESH_SECONDS</code>를 기준으로 <code>fresh</code>, <code>stale</code>, <code>no_events</code>를 구분한다. <code>latest_readings</code>는 최신 event의 <code>source_name</code>, <code>resource_name</code>, value와 timestamp를 제공한다.</p>
-<h3 id="7-운영자-우선-점검-대상-수">7. 운영자 우선 점검 대상 수</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td><code>operator_focus_count</code></td>
-</tr>
-<tr>
-<td>의미</td>
-<td>degraded device 수 + unavailable device 수</td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>전체를 순회하지 않고 먼저 점검할 물리 device 수</td>
-</tr>
-</tbody></table></div>
-<p>Focus reason은 <code>admin_state</code>, <code>operating_state</code>, <code>connection_state</code>, <code>device_service_available</code>, <code>telemetry_freshness</code>로 설명한다. Node 이상 수를 이 물리 device KPI에 더하지 않는다.</p>
-<h3 id="8-서비스-영향-범위">8. 서비스 영향 범위</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>항목</th>
-<th>내용</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>이름</td>
-<td>service binding coverage</td>
-</tr>
-<tr>
-<td>근거</td>
-<td><code>device_service_name</code>, profile, protocol, Core Data source/resource, consumer relation</td>
-</tr>
-<tr>
-<td>운영자 해석</td>
-<td>어느 device input이 AI 서비스, 저장소, dashboard에 영향을 주는지 확인</td>
-</tr>
-</tbody></table></div>
-<p>이 지표는 device → Protocol Adapter/edge agent → HTTPS gateway → Core Data → consumer의 추적 가능성을 설명한다. 자동 orchestration 성능 지표가 아니다.</p>
-<h2 id="direct-검증-fixture-kpi-해석">direct 검증 fixture KPI 해석</h2>
-<p>현재 repository 전달 범위의 교체 가능한 physical example은 <code>sensehat-001</code>이다. 다음 증거를 함께 제시한다.</p>
-<ol><li><code>source=edgex</code></li><li>profile과 논리 수집 서비스 identity</li><li><code>protocol_names</code>의 I2C</li><li>admin/operating/connection 상태</li><li>latest Core Data event timestamp와 freshness</li><li>latest temperature/humidity/pressure/orientation readings의 source/resource/value</li><li>AI/storage/dashboard consumer 관계</li></ol>
-<p>단일 direct demo 결과를 전체 공장, 전체 protocol 또는 장기 가용성 성과로 외삽하지 않는다. 새 image의 live cutover 증거가 없으면 repository-delivered 상태로만 표시한다.</p>
-<h2 id="생산성-설명-문구">생산성 설명 문구</h2>
-<pre data-lang="text"><code>본 PoC는 EdgeX Core Metadata의 device 등록·논리 수집 서비스 상태와 Core Data 최신 event를 통합 dashboard에서 가시화한다. 운영자는 profile, protocol, adapter/agent, admin/operating/connection 상태와 source/resource별 최신 reading을 한 흐름에서 확인하고, degraded/unavailable focus list로 점검 대상을 좁힐 수 있다. 이를 통해 현장 점검 경로 단순화와 원인 파악 시간 단축 가능성을 설명한다.</code></pre>
-<p>이는 측정된 인력 절감률, 자동 복구율 또는 생산량 증가율을 뜻하지 않는다. 실제 정량 효과는 현장 baseline, 반복 측정, 운영 승인으로 별도 검증해야 한다.</p>
-<h2 id="protocol-wave-경계">Protocol wave 경계</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>범위</th>
-<th>KPI 포함 여부</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>I2C <code>sensehat-001</code> direct</td>
-<td>새 image의 실제 Event와 중앙 readback 증거가 있을 때 포함</td>
-</tr>
-<tr>
-<td>MQTT-only 장비 adapter</td>
-<td>현재 제외; 별도 장비·broker·adapter 증거가 있을 때만 포함</td>
-</tr>
-<tr>
-<td>Serial</td>
-<td>구현·현장 검증 전에는 제외</td>
-</tr>
-<tr>
-<td>Modbus</td>
-<td>구현·현장 검증 전에는 제외</td>
-</tr>
-<tr>
-<td>OPC-UA</td>
-<td>구현·현장 검증 전에는 제외</td>
-</tr>
-<tr>
-<td>RTSP</td>
-<td>구현·현장 검증 전에는 제외</td>
-</tr>
-</tbody></table></div>
-<p>후속 wave는 각각 Core Metadata identity, Protocol Adapter, durable delivery, protocol contract, Core Data event freshness와 consumer 처리를 검증한 뒤 KPI에 포함한다.</p>
-<h2 id="현재-범위에서-말하지-않는-것">현재 범위에서 말하지 않는 것</h2>
-<ul><li>자동 device 제어 또는 자동 복구 효과</li><li>동적 workflow 실행 성능</li><li>runtime offloading 또는 자동 재배치 효과</li><li>미구현 protocol의 연결률</li><li>문서 예시만으로 입증한 live 배포 상태</li></ul>
-<p>Workflow/node 설계 화면과 운영 보조 agent는 read-only 또는 dry-run이다. EdgeX 또는 Kubernetes 리소스를 수정하지 않는다.</p>
+<p><code>device_telemetry_ratio</code>는 설정된 telemetry 대상 비율이지 최신성 비율이 아니다. 최신성은 <code>core_data_freshness_ratio</code>와 필요한 resource별 <code>telemetry_freshness</code>로 계산한다.</p>
+<h2 id="4-운영-가시화-kpi">4. 운영 가시화 KPI</h2>
+<ul><li>Device/Profile/Service를 찾는 데 걸리는 시간</li><li>장애 원인을 입력·전송·저장·모델 중 하나로 좁히는 시간</li><li>결과에서 원본 Event와 생산 건을 역추적하는 비율</li><li>장애 runbook 재현 성공률</li></ul>
+<h2 id="5-보고-원칙">5. 보고 원칙</h2>
+<ol><li>live 관찰값과 목표값을 분리한다.</li><li>fixture·시뮬레이터 결과를 현장 성과로 합산하지 않는다.</li><li>전체 Device 수와 resource/서비스 수를 같은 분모로 사용하지 않는다.</li><li>모델 결과와 platform delivery 결과를 별도 지표로 보고한다.</li><li>KPI가 낮을 때 원본 Event, adapter 로그, outbox, gateway, result store를 역추적한다.</li></ol>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#현장-문제와-개선점">현장 문제와 개선점</a></li>
-<li class="toc-h2"><a href="#핵심-kpi">핵심 KPI</a></li>
-<li class="toc-h3"><a href="#1-등록-디바이스-수">1. 등록 디바이스 수</a></li>
-<li class="toc-h3"><a href="#2-사용-가능-디바이스-수">2. 사용 가능 디바이스 수</a></li>
-<li class="toc-h3"><a href="#3-edgex-연결-비율">3. EdgeX 연결 비율</a></li>
-<li class="toc-h3"><a href="#4-device-service-가용-비율">4. Device Service 가용 비율</a></li>
-<li class="toc-h3"><a href="#5-core-data-event-관측-수">5. Core Data event 관측 수</a></li>
-<li class="toc-h3"><a href="#6-core-data-freshness-비율">6. Core Data freshness 비율</a></li>
-<li class="toc-h3"><a href="#7-운영자-우선-점검-대상-수">7. 운영자 우선 점검 대상 수</a></li>
-<li class="toc-h3"><a href="#8-서비스-영향-범위">8. 서비스 영향 범위</a></li>
-<li class="toc-h2"><a href="#direct-검증-fixture-kpi-해석">direct 검증 fixture KPI 해석</a></li>
-<li class="toc-h2"><a href="#생산성-설명-문구">생산성 설명 문구</a></li>
-<li class="toc-h2"><a href="#protocol-wave-경계">Protocol wave 경계</a></li>
-<li class="toc-h2"><a href="#현재-범위에서-말하지-않는-것">현재 범위에서 말하지 않는 것</a></li></ol></aside>
+<li class="toc-h2"><a href="#1-생산품질-판별-kpi">1. 생산품질 판별 KPI</a></li>
+<li class="toc-h2"><a href="#2-펌프-모터-이상감지-kpi">2. 펌프·모터 이상감지 KPI</a></li>
+<li class="toc-h2"><a href="#3-플랫폼-kpi">3. 플랫폼 KPI</a></li>
+<li class="toc-h2"><a href="#4-운영-가시화-kpi">4. 운영 가시화 KPI</a></li>
+<li class="toc-h2"><a href="#5-보고-원칙">5. 보고 원칙</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

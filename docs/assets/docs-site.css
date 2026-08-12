@@ -373,6 +373,33 @@ h1 {
   background: #f3e8ff;
   color: #5b21b6;
 }
+.history-banner {
+  margin: 28px 54px 0;
+  padding: 18px 20px;
+  border: 1px solid #bfdbfe;
+  border-left: 6px solid #2563eb;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #eff6ff, #fff);
+  color: #1e3a8a;
+}
+.history-banner strong {
+  display: block;
+  color: #1d4ed8;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+.history-banner span {
+  display: block;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.history-banner code {
+  display: inline-block;
+  margin-top: 8px;
+  background: #dbeafe;
+  color: #1e40af;
+}
 .doc-body > * { max-width: var(--reading); }
 .doc-body pre,
 .doc-body table,
@@ -514,6 +541,7 @@ footer { margin-top: 22px; color: var(--muted); text-align: center; font-size: 1
   .sidebar { position: static; max-height: 280px; }
   .doc-header, .doc-body, .home-hero, .home-body, .home-search, .home-intro { padding: 26px 22px; }
   .archive-banner { margin: 18px 22px 0; }
+  .history-banner { margin: 18px 22px 0; }
   .home-intro { grid-template-columns: 1fr; }
   .card-grid { grid-template-columns: 1fr; }
   .topbar { align-items: flex-start; flex-direction: column; }
