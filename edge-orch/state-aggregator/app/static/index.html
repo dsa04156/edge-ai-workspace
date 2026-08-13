@@ -21,7 +21,6 @@
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
     <link rel="stylesheet" href="/static/resource-pool.css?v=resource-pool-edgex-v2-20260812" />
-    <link rel="stylesheet" href="/static/documentation-shell.css?v=service-onboarding-20260813" />
   </head>
   <body>
     <main class="shell">
@@ -52,33 +51,12 @@
       </header>
 
       <nav class="main-menu" aria-label="대시보드 화면">
-        <div class="nav-brand" aria-label="Edge AI 운영 콘솔">
-          <span class="nav-brand-mark" aria-hidden="true">AI</span>
-          <span><strong>Edge AI Platform</strong><small>Operations handbook</small></span>
-        </div>
-        <div class="nav-group">
-          <p>시작하기</p>
-          <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true"><span>운영 현황</span><small>전체 상태와 확인할 항목</small></button>
-        </div>
-        <div class="nav-group">
-          <p>디바이스</p>
-          <button type="button" data-dashboard-page="inventory" aria-pressed="false"><span>디바이스 목록</span><small>노드·센서·가상 자원</small></button>
-          <button type="button" data-dashboard-page="management" aria-pressed="false"><span>장비 연결</span><small>EdgeX 등록과 Runtime</small></button>
-        </div>
-        <div class="nav-group">
-          <p>AI 서비스</p>
-          <button type="button" data-dashboard-page="services" aria-pressed="false"><span>서비스 운영</span><small>목록·DAG·실시간 판단</small></button>
-          <button type="button" data-dashboard-page="service-connect" aria-pressed="false"><span>서비스 연결</span><small>배포 후 등록 가이드</small></button>
-          <button type="button" data-dashboard-page="designer" aria-pressed="false"><span>서비스 설계</span><small>입력 계약 dry-run</small></button>
-        </div>
-        <div class="nav-group">
-          <p>인프라</p>
-          <button type="button" data-dashboard-page="resource-pool" aria-pressed="false"><span>자원 풀</span><small>서버 후보와 증강 판단</small></button>
-        </div>
-        <div class="nav-boundary">
-          <strong>관측 중심 PoC</strong>
-          <span>EdgeX physical authority · KubeEdge workload management</span>
-        </div>
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
+        <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
+        <button type="button" data-dashboard-page="services" aria-pressed="false">서비스</button>
+        <button type="button" data-dashboard-page="resource-pool" aria-pressed="false">자원 풀</button>
+        <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
       <section class="ops-shell">
@@ -287,117 +265,14 @@
             <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
 
-          <section class="service-connect-page dashboard-page" data-page="service-connect" aria-labelledby="serviceConnectTitle">
-            <header class="manual-page-heading">
-              <nav aria-label="현재 위치"><span>AI 서비스</span><i aria-hidden="true">/</i><strong>서비스 연결</strong></nav>
-              <p class="section-kicker">Service onboarding</p>
-              <h2 id="serviceConnectTitle">배포한 서비스를 대시보드에 연결하기</h2>
-              <p>서비스 Pod만 배포하면 의미를 자동 추측하지 않습니다. Git의 ServiceDescriptor로 workload, EdgeX 입력, 실행 DAG와 관측 API를 명시하면 대시보드가 live 상태를 결합합니다.</p>
-              <div class="manual-heading-actions">
-                <button type="button" class="manual-primary-action" data-dashboard-link="services">연결된 서비스 보기</button>
-                <button type="button" data-dashboard-link="designer">입력 계약 설계하기</button>
-              </div>
-            </header>
-
-            <div class="service-connect-layout">
-              <article class="service-connect-main">
-                <aside class="manual-callout" aria-label="자동 연결 범위">
-                  <strong>먼저 알아둘 점</strong>
-                  <p>Pod 자동 발견은 실행 여부만 알려줄 뿐 서비스의 의미를 설명하지 못합니다. 현재 연결 키는 <code>service_id</code>가 아니라 descriptor의 <code>workload.selector</code>, EdgeX 입력 계약과 versioned observability adapter의 조합입니다.</p>
-                </aside>
-
-                <section id="connect-path" class="manual-section" aria-labelledby="connectPathTitle">
-                  <div class="manual-section-heading">
-                    <span>01</span>
-                    <div><h3 id="connectPathTitle">연결 경로</h3><p>배포에서 화면 표시까지 다섯 단계가 모두 이어져야 합니다.</p></div>
-                  </div>
-                  <ol class="service-connection-path" aria-label="서비스 연결 단계">
-                    <li data-state="observed"><span>1</span><div><strong>Workload 배포</strong><p>Deployment 또는 StatefulSet과 안정적인 label selector를 준비합니다.</p><code id="serviceConnectWorkloadEvidence">workload 관측 대기</code></div></li>
-                    <li data-state="observed"><span>2</span><div><strong>ServiceDescriptor 등록</strong><p><code>service_catalog.json</code>에 서비스 정체성과 workload identity를 선언합니다.</p><code id="serviceConnectCatalogEvidence">catalog 관측 대기</code></div></li>
-                    <li data-state="observed"><span>3</span><div><strong>EdgeX 입력 계약</strong><p>schema와 필수 DeviceResource를 명시하고 실제 freshness를 확인합니다.</p><code id="serviceConnectInputEvidence">input contract 관측 대기</code></div></li>
-                    <li data-state="observed"><span>4</span><div><strong>관측 Adapter 연결</strong><p>state, results, alerts, augmentation 상대 경로를 versioned adapter에 연결합니다.</p><code id="serviceConnectObservabilityEvidence">observability 관측 대기</code></div></li>
-                    <li data-state="observed"><span>5</span><div><strong>GitOps 배포와 확인</strong><p>새 image digest를 Git에 기록하고 <code>/state/services</code>와 서비스 화면을 확인합니다.</p><code id="serviceConnectResultEvidence">dashboard 관측 대기</code></div></li>
-                  </ol>
-                </section>
-
-                <section id="connect-descriptor" class="manual-section" aria-labelledby="connectDescriptorTitle">
-                  <div class="manual-section-heading">
-                    <span>02</span>
-                    <div><h3 id="connectDescriptorTitle">최소 등록 파일</h3><p>아래 구조를 복사한 뒤 실제 workload와 입력·관측 계약으로 바꿉니다.</p></div>
-                  </div>
-                  <div class="manual-file-path"><span>파일</span><code>edge-orch/state-aggregator/app/config/service_catalog.json</code></div>
-                  <pre class="manual-code"><code>{
-  "service_id": "my-ai-service",
-  "display_name": "운영 화면에 표시할 이름",
-  "workload": {
-    "namespace": "edgex-edge",
-    "kind": "Deployment",
-    "name": "my-ai-service",
-    "selector": {"app": "my-ai-service"}
-  },
-  "input_contract": {
-    "authority": "EdgeX",
-    "schema": "company.machine.telemetry/v1",
-    "required_resources": ["temperature", "vibration"]
-  },
-  "observability": {
-    "adapter": "sensor-anomaly-v1",
-    "state_path": "/state/my-service",
-    "results_path": "/state/my-service/results",
-    "alerts_path": "/state/my-service/alerts",
-    "augmentation_path": "/state/my-service/augmentation"
-  }
-}</code></pre>
-                  <p class="manual-note">현재 지원 adapter는 <code>sensor-anomaly-v1</code>, DAG topology는 <code>linear-inference-split-v1</code>입니다. 다른 응답 구조나 DAG는 adapter·renderer와 테스트를 먼저 추가해야 합니다.</p>
-                </section>
-
-                <section id="connect-verify" class="manual-section" aria-labelledby="connectVerifyTitle">
-                  <div class="manual-section-heading">
-                    <span>03</span>
-                    <div><h3 id="connectVerifyTitle">배포 후 확인</h3><p>Git 정의와 live 증거를 같은 revision에서 확인합니다.</p></div>
-                  </div>
-                  <pre class="manual-code"><code>curl -fsS http://aggregator.192.168.0.56.sslip.io/state/services
-kubectl -n argocd get applications.argoproj.io edge-orch-state-aggregator
-kubectl -n default rollout status deployment/state-aggregator --timeout=180s</code></pre>
-                  <ul class="manual-checklist">
-                    <li><span aria-hidden="true">✓</span><p><strong>목록 표시</strong><small>descriptor가 `/state/services`와 서비스 목록에 나타납니다.</small></p></li>
-                    <li><span aria-hidden="true">✓</span><p><strong>실행 증거</strong><small>workload, 입력 freshness, 모델과 결과 상태가 실제 관측과 일치합니다.</small></p></li>
-                    <li><span aria-hidden="true">✓</span><p><strong>실패 가시성</strong><small>미연결·stale·not ready 상태가 숨겨지지 않고 원인과 함께 보입니다.</small></p></li>
-                  </ul>
-                </section>
-              </article>
-
-              <aside class="service-connect-aside" aria-label="서비스 연결 도움말">
-                <section>
-                  <span>현재 연결 상태</span>
-                  <strong id="serviceConnectStatus">catalog 확인 중</strong>
-                  <p id="serviceConnectStatusSummary">Git 서비스 정의와 live 관측을 불러오고 있습니다.</p>
-                </section>
-                <nav aria-label="이 페이지에서">
-                  <strong>이 페이지에서</strong>
-                  <a href="#connect-path">연결 경로</a>
-                  <a href="#connect-descriptor">최소 등록 파일</a>
-                  <a href="#connect-verify">배포 후 확인</a>
-                </nav>
-                <section class="service-connect-boundary">
-                  <span>운영 경계</span>
-                  <p>이 화면은 등록 방법과 관측 증거를 보여줍니다. Kubernetes apply, EdgeX mutation, 자동 offloading은 실행하지 않습니다.</p>
-                </section>
-              </aside>
-            </div>
-          </section>
-
           <section class="service-catalog dashboard-page" data-page="services" data-service-catalog="descriptor-driven" aria-labelledby="servicesTitle">
             <header class="service-catalog-heading">
               <div>
                 <p class="section-kicker">AI 서비스 운영</p>
                 <h2 id="servicesTitle">서비스</h2>
-                <p>먼저 서비스 상태를 고르고, 필요한 경우에만 실행 DAG와 상세 판단을 펼쳐 확인합니다.</p>
+                <p>배포된 AI 서비스의 입력, 실행 위치, 판단과 자원 증강 상태를 목록으로 확인합니다.</p>
               </div>
-              <div class="service-catalog-heading-actions">
-                <button type="button" data-dashboard-link="service-connect">새 서비스 연결 방법</button>
-                <span id="serviceCatalogAvailability" class="service-catalog-availability" data-state="observing">상태 관측 중</span>
-              </div>
+              <span id="serviceCatalogAvailability" class="service-catalog-availability" data-state="observing">상태 관측 중</span>
             </header>
             <section class="panel service-catalog-panel" aria-labelledby="serviceCatalogListTitle">
               <div class="panel-head service-catalog-panel-head">
@@ -414,7 +289,7 @@ kubectl -n default rollout status deployment/state-aggregator --timeout=180s</co
             </section>
           </section>
 
-          <details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services" aria-labelledby="serviceDemoTitle">
+          <details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services" aria-labelledby="serviceDemoTitle" open>
             <summary class="overview-service-demo-summary">
               <span>
                 <span class="section-kicker">서비스 데모</span>
@@ -1810,9 +1685,9 @@ kubectl -n default rollout status deployment/state-aggregator --timeout=180s</co
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=service-onboarding-20260813"></script>
+    <script src="/static/navigation.js?v=service-catalog-20260813"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-    <script src="/static/service-demo.js?v=service-onboarding-v2-20260813"></script>
+        <script src="/static/service-demo.js?v=service-catalog-v1-20260813"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

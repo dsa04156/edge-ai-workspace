@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "management", "services", "service-connect", "resource-pool", "designer"];
+const DASHBOARD_PAGES = ["overview", "inventory", "management", "services", "resource-pool", "designer"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -34,17 +34,6 @@ function bindDashboardNavigation() {
   document.querySelectorAll("[data-dashboard-page]").forEach((button) => {
     button.addEventListener("click", () => {
       const page = button.dataset.dashboardPage || "overview";
-      if (window.location.hash !== `#${page}`) {
-        window.location.hash = page;
-        return;
-      }
-      showDashboardPage(page);
-    });
-  });
-  document.querySelectorAll("[data-dashboard-link]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const page = button.dataset.dashboardLink || "overview";
-      if (!DASHBOARD_PAGES.includes(page)) return;
       if (window.location.hash !== `#${page}`) {
         window.location.hash = page;
         return;

@@ -279,98 +279,6 @@ function buildServiceInventoryView(data = {}) {
 }
 
 
-function buildServiceConnectionView(data = {}) {
-  const services = Array.isArray(data.services) ? data.services : [];
-  const service = services[0] || null;
-  const descriptor = service?.descriptor || {};
-  const workload = descriptor.workload || {};
-  const input = descriptor.input_contract || {};
-  const observability = descriptor.observability || {};
-  const resourceCount = Array.isArray(input.required_resources)
-    ? input.required_resources.length
-    : 0;
-  const descriptorReady = Boolean(service?.service_id && workload.selector && input.schema);
-  const adapterReady = Boolean(observability.adapter && observability.state_path);
-  const runtimeObserved = service?.mode === "live";
-  const healthy = runtimeObserved
-    && service?.input_state === "fresh"
-    && service?.model_state === "ready";
-
-  if (!service) {
-    return {
-      status: "연결 대기",
-      statusState: "pending",
-      summary: "등록된 ServiceDescriptor가 없습니다. workload와 입력·관측 계약을 Git에 먼저 등록하세요.",
-      workload: "workload 선언 대기",
-      workloadState: "pending",
-      catalog: "ServiceDescriptor 등록 대기",
-      catalogState: "pending",
-      input: "EdgeX 입력 계약 대기",
-      inputState: "pending",
-      observability: "versioned adapter 연결 대기",
-      observabilityState: "pending",
-      result: "/state/services 등록 결과 대기",
-      resultState: "pending",
-    };
-  }
-
-  const namespace = serviceDemoText(workload.namespace, "namespace 미등록");
-  const kind = serviceDemoText(workload.kind, "workload kind 미등록");
-  const name = serviceDemoText(workload.name, "workload name 미등록");
-  const status = healthy ? `${services.length}개 서비스 정상 연결`
-    : runtimeObserved ? `${services.length}개 서비스 확인 필요`
-      : `${services.length}개 descriptor 등록 · runtime 미연결`;
-  const summary = healthy
-    ? `${service.display_name || service.service_id}의 입력과 모델이 실제 관측에서 ready입니다.`
-    : runtimeObserved
-      ? `${service.display_name || service.service_id}는 관측 중이지만 입력 또는 모델 상태를 확인해야 합니다.`
-      : `${service.display_name || service.service_id} 정의는 보이지만 runtime adapter의 live 증거가 없습니다.`;
-
-  return {
-    status,
-    statusState: healthy ? "connected" : "attention",
-    summary,
-    workload: `${namespace} / ${kind} / ${name} · selector 선언`,
-    workloadState: workload.selector ? "connected" : "attention",
-    catalog: `${service.service_id} · ${serviceDemoText(service.definition_source, "출처 미등록")}`,
-    catalogState: descriptorReady ? "connected" : "attention",
-    input: `${serviceDemoText(input.schema, "schema 미등록")} · 필수 ${resourceCount}개 · ${serviceDemoText(service.input_state, "미관측")}`,
-    inputState: service.input_state === "fresh" ? "connected" : "attention",
-    observability: `${serviceDemoText(observability.adapter, "adapter 미등록")} · ${serviceDemoText(observability.state_path, "state path 미등록")}`,
-    observabilityState: adapterReady && runtimeObserved ? "connected" : "attention",
-    result: `/state/services · ${serviceDemoText(service.lifecycle, "lifecycle 미등록")} · ${serviceDemoText(service.status, "상태 미관측")}`,
-    resultState: runtimeObserved ? "connected" : "attention",
-  };
-}
-
-
-function renderServiceConnection(data, documentRef = document) {
-  const view = buildServiceConnectionView(data);
-  const evidence = [
-    ["serviceConnectWorkloadEvidence", "workload", "workloadState"],
-    ["serviceConnectCatalogEvidence", "catalog", "catalogState"],
-    ["serviceConnectInputEvidence", "input", "inputState"],
-    ["serviceConnectObservabilityEvidence", "observability", "observabilityState"],
-    ["serviceConnectResultEvidence", "result", "resultState"],
-  ];
-  evidence.forEach(([id, valueKey, stateKey]) => {
-    const element = documentRef.getElementById(id);
-    if (!element) return;
-    element.textContent = view[valueKey];
-    const step = element.closest?.("li");
-    if (step) step.dataset.state = view[stateKey];
-  });
-  const status = documentRef.getElementById("serviceConnectStatus");
-  if (status) {
-    status.textContent = view.status;
-    status.dataset.state = view.statusState;
-  }
-  const summary = documentRef.getElementById("serviceConnectStatusSummary");
-  if (summary) summary.textContent = view.summary;
-  return view;
-}
-
-
 function appendCatalogFact(documentRef, button, label, values, ids = []) {
   const wrapper = documentRef.createElement("span");
   wrapper.className = "service-catalog-fact";
@@ -418,7 +326,6 @@ function applyServiceDescriptor(service, documentRef = document) {
 
 function renderServiceInventory(data, documentRef = document) {
   const view = buildServiceInventoryView(data);
-  renderServiceConnection(data, documentRef);
   const list = documentRef.getElementById("serviceCatalogList");
   if (!list || typeof documentRef.createElement !== "function") return view;
   serviceInventoryById.clear();
@@ -432,7 +339,7 @@ function renderServiceInventory(data, documentRef = document) {
     if (row.adapter === "sensor-anomaly-v1") {
       button.dataset.serviceDetailTarget = "serviceDemoPanel";
       button.setAttribute("aria-controls", "serviceDemoPanel");
-      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-expanded", String(index === 0));
     }
     const identity = documentRef.createElement("span");
     identity.className = "service-catalog-identity";
@@ -733,9 +640,6 @@ function openServiceCatalogDetail(target, documentRef = document) {
   if (!trigger) return false;
   const panel = documentRef.getElementById(trigger.dataset.serviceDetailTarget);
   if (!panel) return false;
-  documentRef.querySelectorAll?.("[data-service-detail-target]").forEach((item) => {
-    item.setAttribute("aria-expanded", "false");
-  });
   panel.open = true;
   trigger.setAttribute("aria-expanded", "true");
   panel.scrollIntoView?.({behavior: "smooth", block: "start"});
@@ -957,7 +861,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     buildServiceAugmentationView,
     buildServiceCatalogView,
-    buildServiceConnectionView,
     buildServiceInventoryView,
     buildServiceDemoAlertView,
     buildServiceDemoResultsView,
@@ -971,7 +874,6 @@ if (typeof module !== "undefined") {
     refreshServiceInventory,
     renderServiceDemo,
     renderServiceCatalog,
-    renderServiceConnection,
     renderServiceInventory,
     applyServiceDescriptor,
     renderServiceDemoAlerts,

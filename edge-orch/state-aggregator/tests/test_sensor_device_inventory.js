@@ -330,7 +330,7 @@ test("keeps server and physical observability in overview and moves the demo und
   assert.match(html, /id="physicalDeviceStatusList"/);
   assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
   assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services"/);
-  assert.doesNotMatch(
+  assert.match(
     html,
     /<details id="serviceDemoPanel"[^>]*\sopen(?:\s|>)/,
   );
