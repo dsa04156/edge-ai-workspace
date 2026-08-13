@@ -17,13 +17,18 @@
   </nav>
   <main class="home">
     <article class="home-card">
-      <header class="home-hero">
-        <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
-        <h1>Edge AI 플랫폼 문서</h1>
-        <p class="subtitle">
-          AI 서비스를 현장 디바이스에 연결하고 배포·검증하는 운영 기준을 한곳에서 찾습니다.
-          최신 기준과 운영 문서를 먼저 확인하세요.
-        </p>
+      <header class="home-hero-grid">
+        <div class="home-hero">
+          <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
+          <h1>Edge AI 플랫폼 문서</h1>
+          <p class="subtitle">
+            현장 디바이스 연결부터 AI 서비스 배포·검증까지, 지금 운영하는 구조만 설명합니다.
+          </p>
+          <a class="hero-link" href="플랫폼-개요.html">현재 아키텍처 보기 →</a>
+        </div>
+        <figure class="hero-visual">
+          <img src="../assets/images/플랫폼-개념-비주얼-v2.png" alt="공장 설비와 엣지 컴퓨터, 중앙 플랫폼이 연결된 Edge AI 개념도">
+        </figure>
       </header>
       <div class="section-kicker"><span>START HERE</span><h2>무엇을 하시나요?</h2></div>
       <section class="home-intro" aria-label="빠른 시작">
@@ -49,19 +54,19 @@
   </a>
 </section>
       <div class="home-search">
-        <section class="search-panel" aria-label="문서 전체 검색">
+        <section class="search-panel" aria-label="공개 문서 검색">
   <div class="search-head">
-    <strong>문서 전체 검색</strong>
+    <strong>공개 문서 검색</strong>
     <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
   </div>
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
-      <button type="button" data-search-filter="wiki">위키</button>
-      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
       <button type="button" data-search-filter="ops">운영</button>
-      <button type="button" data-search-filter="history">설계 이력</button>
-      <button type="button" data-search-filter="archive">보관</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
     </div>
     <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
     <div id="doc-search-results" class="search-results" aria-live="polite"></div>
@@ -70,116 +75,18 @@
 </section>
       </div>
       <div class="home-body">
-        <div class="section-kicker"><span>REFERENCE</span><h2>전체 문서</h2><p>최신 기준과 운영 절차가 우선이며, 설계 이력과 보관 자료는 별도로 구분합니다.</p></div>
-        <section class="doc-collection"><div class="collection-head"><h2>위키</h2><span>9개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="wiki/지식-지도.html"><strong>쿠버엣지 PoC 지식 지도</strong><small>wiki/지식-지도.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/운영-규칙.html"><strong>위키 운영 규칙</strong><small>wiki/운영-규칙.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/변경-기록.html"><strong>위키 변경 기록</strong><small>wiki/변경-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/운영-모델.html"><strong>운영 모델</strong><small>wiki/운영-모델.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/현재-데모-흐름.html"><strong>현재 데모 흐름 요약</strong><small>wiki/현재-데모-흐름.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/상태와-텔레메트리.html"><strong>상태와 텔레메트리</strong><small>wiki/상태와-텔레메트리.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/대시보드와-kpi.html"><strong>대시보드와 KPI 모델</strong><small>wiki/대시보드와-kpi.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/운영-진입점.html"><strong>운영 진입점</strong><small>wiki/운영-진입점.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="wiki/2차년도-설계-트랙.html"><strong>2차년도 설계 트랙</strong><small>wiki/2차년도-설계-트랙.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>최신 기준 문서</h2><span>30개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="AI-서비스-등록-가이드.html"><strong>AI 서비스 등록 가이드</strong><small>AI-서비스-등록-가이드.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="문서-안내.html"><strong>문서 안내</strong><small>문서-안내.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="문서-분류-목록.html"><strong>문서 전체 분류 목록</strong><small>문서-분류-목록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="2차년도-ETRI-실행계획.html"><strong>2026년도 2차년도 ETRI 실행계획</strong><small>2차년도-ETRI-실행계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="시스템-구축-목표.html"><strong>시스템 구축 목표</strong><small>시스템-구축-목표.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="프로젝트-배경.html"><strong>프로젝트 배경</strong><small>프로젝트-배경.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="프로젝트-범위.html"><strong>프로젝트 범위</strong><small>프로젝트-범위.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="원시-텔레메트리-데이터-플레인.html"><strong>원시 텔레메트리 데이터 플레인</strong><small>원시-텔레메트리-데이터-플레인.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="서비스-데모-시나리오.html"><strong>서비스 데모 시나리오</strong><small>서비스-데모-시나리오.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="옥동-생산성-kpi.html"><strong>옥동 생산성 KPI</strong><small>옥동-생산성-kpi.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="카젠티-운영-보조-에이전트.html"><strong>카젠티 운영 보조 에이전트</strong><small>카젠티-운영-보조-에이전트.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="2차년도-가상디바이스-워크플로-설계.html"><strong>2차년도 가상디바이스·워크플로 설계</strong><small>2차년도-가상디바이스-워크플로-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="대시보드-정보-구조.html"><strong>대시보드 정보 구조</strong><small>대시보드-정보-구조.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="대시보드-판단-정책.html"><strong>대시보드 판단 정책</strong><small>대시보드-판단-정책.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="물리-디바이스-상태-정책.html"><strong>물리 디바이스 상태 정책</strong><small>물리-디바이스-상태-정책.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="쿠버엣지-엣지엑스-모델-매핑.html"><strong>쿠버엣지-엣지엑스 모델 매핑</strong><small>쿠버엣지-엣지엑스-모델-매핑.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="디바이스-서비스-연결.html"><strong>디바이스-서비스 연결</strong><small>디바이스-서비스-연결.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="현재-데모-경로.html"><strong>현재 데모 경로</strong><small>현재-데모-경로.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="저장소-구조.html"><strong>저장소 구조</strong><small>저장소-구조.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="단계별-추진계획.html"><strong>단계별 추진계획</strong><small>단계별-추진계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="문서-정리-계획.html"><strong>문서 정리 계획</strong><small>문서-정리-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="디바이스-등록-API.html"><strong>디바이스 발견 및 등록 API</strong><small>디바이스-등록-API.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="디바이스-발견-등록-정책.html"><strong>디바이스 발견·승인·등록 정책</strong><small>디바이스-발견-등록-정책.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="디바이스-발견-아키텍처.html"><strong>디바이스 발견 및 등록 아키텍처</strong><small>디바이스-발견-아키텍처.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="디바이스-카탈로그.html"><strong>디바이스 Binding 및 Profile Catalog</strong><small>디바이스-카탈로그.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="서비스-설계-캔버스.html"><strong>서비스 설계 캔버스</strong><small>서비스-설계-캔버스.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="옥동-데이터-계약.html"><strong>옥동 AI 서비스 데이터 계약</strong><small>옥동-데이터-계약.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="자원-풀.html"><strong>자원 풀</strong><small>자원-풀.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="프로토콜-독립형-디바이스-발견-등록-요구사항.html"><strong>프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</strong><small>프로토콜-독립형-디바이스-발견-등록-요구사항.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="현재-구현-상태.html"><strong>프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</strong><small>현재-구현-상태.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>운영 문서</h2><span>14개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="ops/현재-데모-운영-절차.html"><strong>현재 데모 운영 절차</strong><small>ops/현재-데모-운영-절차.md</small><span aria-hidden="true">→</span></a></li>
+        <div class="section-kicker"><span>REFERENCE</span><h2>유지 관리 문서</h2><p>현재 코드와 배포 기준에 맞춘 15개 문서만 공개합니다.</p></div>
+        <section class="doc-collection"><div class="collection-head"><h2>시작하기</h2><span>3개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="문서-안내.html"><strong>문서 안내</strong><small>문서-안내.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="플랫폼-개요.html"><strong>플랫폼 개요</strong><small>플랫폼-개요.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="현재-구현-상태.html"><strong>현재 구현 상태</strong><small>현재-구현-상태.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>연결 가이드</h2><span>2개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="디바이스-서비스-연결.html"><strong>디바이스 연결 가이드</strong><small>디바이스-서비스-연결.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="AI-서비스-등록-가이드.html"><strong>AI 서비스 등록 가이드</strong><small>AI-서비스-등록-가이드.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>운영</h2><span>4개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="ops/현재-데모-운영-절차.html"><strong>현재 데모 운영 절차</strong><small>ops/현재-데모-운영-절차.md</small><span aria-hidden="true">→</span></a></li>
 <li><a class="doc-card" href="ops/대시보드-배포.html"><strong>대시보드 배포</strong><small>ops/대시보드-배포.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html"><strong>EdgeX Core Data 1,000 디바이스 부하 검증</strong><small>ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/중앙-메시지버스-재구축-절차.html"><strong>중앙 메시지버스 배치 재구축 절차</strong><small>ops/중앙-메시지버스-재구축-절차.md</small><span aria-hidden="true">→</span></a></li>
 <li><a class="doc-card" href="ops/대시보드-검증.html"><strong>대시보드 검증 점검표</strong><small>ops/대시보드-검증.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/gpu-hami-런타임-운영.html"><strong>HAMi GPU 런타임 운영 메모</strong><small>ops/gpu-hami-런타임-운영.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/네트워크-문제해결.html"><strong>네트워크 문제 해결</strong><small>ops/네트워크-문제해결.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/엣지-노드-조인-점검.html"><strong>엣지 노드 조인 점검</strong><small>ops/엣지-노드-조인-점검.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/노드-조인-점검.html"><strong>노드 조인 점검</strong><small>ops/노드-조인-점검.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/파드-연결성-점검.html"><strong>파드 연결성 점검</strong><small>ops/파드-연결성-점검.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/노드-실측-사양표.html"><strong>노드 실측 사양표</strong><small>ops/노드-실측-사양표.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/다른-서버-배포-실행-가이드.html"><strong>다른 서버 배포 및 실행 가이드</strong><small>ops/다른-서버-배포-실행-가이드.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/디바이스-발견-등록-운영.html"><strong>디바이스 발견 및 등록 운영 절차</strong><small>ops/디바이스-발견-등록-운영.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="ops/어댑터-런타임-디바이스-연결-관리.html"><strong>어댑터 런타임과 디바이스 연결 관리</strong><small>ops/어댑터-런타임-디바이스-연결-관리.md</small><span aria-hidden="true">→</span></a></li></ul></section><details class="doc-collection muted"><summary>설계 이력 <span>40개 · 필요할 때 펼치기</span></summary><div class="collection-head"><h2>설계 이력</h2><span>40개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html"><strong>가상디바이스 런타임 구현 계획</strong><small>superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html"><strong>엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</strong><small>superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html"><strong>엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</strong><small>superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html"><strong>대시보드 데이터 소스 장애 격리 구현 계획</strong><small>superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html"><strong>EdgeX 디바이스 조회 단일 실행 구현 계획</strong><small>superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html"><strong>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</strong><small>superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html"><strong>기존 엣지 Agent 퇴역 구현 계획</strong><small>superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html"><strong>Raspberry Pi Sense HAT I2C Device Service 구현 계획</strong><small>superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html"><strong>아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</strong><small>superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html"><strong>젯슨 로컬 최근 데이터 캐시 Implementation Plan</strong><small>superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html"><strong>젯슨 Arduino Serial Device Service 구현 계획</strong><small>superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html"><strong>Jetson 엣지 텔레메트리 에이전트 구현 계획</strong><small>superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html"><strong>로컬 데이터 캐시 v2 구현 계획</strong><small>superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html"><strong>센서 이력 그래프 연결 Implementation Plan</strong><small>superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html"><strong>실측 센서 이상 탐지 서비스 데모 구현 계획</strong><small>superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html"><strong>EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</strong><small>superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html"><strong>대시보드 디바이스 온보딩 MVP Implementation Plan</strong><small>superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html"><strong>대시보드 어댑터 런타임 관리 구현 계획</strong><small>superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html"><strong>엣지엑스 MQTT 수집 수직 슬라이스 설계</strong><small>superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html"><strong>EdgeX 중앙 Core와 HTTPS edge buffer 설계</strong><small>superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html"><strong>대시보드 데이터 소스 장애 격리 설계</strong><small>superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html"><strong>EdgeX 디바이스 조회 단일 실행 설계</strong><small>superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html"><strong>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</strong><small>superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html"><strong>Jetson 엣지 텔레메트리 에이전트 설계</strong><small>superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html"><strong>가상디바이스 Runtime과 중앙 EdgeX 설계</strong><small>superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html"><strong>라즈베리파이 Sense HAT I2C Device Service 설계</strong><small>superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html"><strong>아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</strong><small>superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html"><strong>젯슨 로컬 최근 데이터 캐시 설계</strong><small>superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html"><strong>젯슨 아두이노 시리얼 내장 에이전트 설계</strong><small>superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html"><strong>젯슨 아두이노 EdgeX Serial Device Service 설계</strong><small>superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html"><strong>Local Data Cache v2 설계</strong><small>superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html"><strong>센서 이력 그래프 연결 설계</strong><small>superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html"><strong>실측 센서 이상 탐지 서비스 데모 설계</strong><small>superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html"><strong>EdgeX Core Data 1,000 디바이스 부하검증 설계</strong><small>superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html"><strong>대시보드 디바이스 온보딩 MVP 설계</strong><small>superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html"><strong>대시보드 어댑터 런타임 관리 설계</strong><small>superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="대시보드-화면-설계.html"><strong>대시보드 화면 설계</strong><small>대시보드-화면-설계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="런타임-자원-증강-데모-워크플로.html"><strong>런타임 자원 증강 데모 워크플로</strong><small>런타임-자원-증강-데모-워크플로.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="일일-기록.html"><strong>일일 기록</strong><small>일일-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="자원-증강-가상디바이스-대시보드.html"><strong>자원 증강 가상디바이스 대시보드 계획</strong><small>자원-증강-가상디바이스-대시보드.md</small><span aria-hidden="true">→</span></a></li></ul></details><details class="doc-collection muted"><summary>보관 문서 <span>20개 · 필요할 때 펼치기</span></summary><div class="collection-head"><h2>보관 문서</h2><span>20개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html"><strong>선택적 재계획 그림 자료</strong><small>archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html"><strong>선택적 재계획 결과 기록</strong><small>archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html"><strong>선택적 재계획 진행 기록</strong><small>archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/비용-모델과-런타임-방식.html"><strong>비용 모델 안내</strong><small>archive/embedded-conference/비용-모델과-런타임-방식.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html"><strong>2026-07-14 MQTT 브리지 CI/CD 기록</strong><small>archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html"><strong>2026-07-14 젯슨 MQTT 종단간 검증 기록</strong><small>archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html"><strong>2026-07-15 젯슨·센스햇 운영 검증 기록</strong><small>archive/integration/2026-07-15-젯슨-센스햇-운영-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/과거-인수인계.html"><strong>과거 인수인계</strong><small>archive/integration/과거-인수인계.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/통합-문서.html"><strong>통합 문서</strong><small>archive/integration/통합-문서.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/통합-상세-기록.html"><strong>통합 상세 기록</strong><small>archive/integration/통합-상세-기록.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/integration/통합-요약.html"><strong>통합 문서 요약</strong><small>archive/integration/통합-요약.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/비용-모델과-런타임-방식.html"><strong>비용 모델과 런타임 방식</strong><small>archive/legacy-orchestration/비용-모델과-런타임-방식.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/시스템-개요.html"><strong>레거시 시스템 개요</strong><small>archive/legacy-orchestration/시스템-개요.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/아키텍처.html"><strong>레거시 오케스트레이션 아키텍처</strong><small>archive/legacy-orchestration/아키텍처.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/논문-작성-점검표.html"><strong>논문 작성 점검표</strong><small>archive/research/논문-작성-점검표.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/논문-전략.html"><strong>논문 전략</strong><small>archive/research/논문-전략.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/연구-주제.html"><strong>연구 주제 정리</strong><small>archive/research/연구-주제.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/연구-초안-안내.html"><strong>연구 초안 안내</strong><small>archive/research/연구-초안-안내.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/투고처-전략.html"><strong>투고처 전략</strong><small>archive/research/투고처-전략.md</small><span aria-hidden="true">→</span></a></li>
-<li><a class="doc-card" href="archive/research/평가-계획.html"><strong>평가 계획</strong><small>archive/research/평가-계획.md</small><span aria-hidden="true">→</span></a></li></ul></details>
+<li><a class="doc-card" href="ops/네트워크-문제해결.html"><strong>네트워크 문제 해결</strong><small>ops/네트워크-문제해결.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>정책과 계약</h2><span>4개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="프로젝트-범위.html"><strong>프로젝트 범위</strong><small>프로젝트-범위.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="대시보드-판단-정책.html"><strong>대시보드 판단 정책</strong><small>대시보드-판단-정책.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="옥동-데이터-계약.html"><strong>옥동 AI 서비스 데이터 계약</strong><small>옥동-데이터-계약.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="옥동-생산성-kpi.html"><strong>옥동 생산성 KPI</strong><small>옥동-생산성-kpi.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>개발 참고</h2><span>2개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="저장소-구조.html"><strong>저장소 구조</strong><small>저장소-구조.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="단계별-추진계획.html"><strong>단계별 추진계획</strong><small>단계별-추진계획.md</small><span aria-hidden="true">→</span></a></li></ul></section>
       </div>
     </article>
   </main>

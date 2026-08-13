@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>플랫폼 개요</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">시작하기</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">플랫폼-개요.md</span>
+        <a class="edit-link" href="/__edit?file=플랫폼-개요.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a class="active" aria-current="page" href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">시작하기</p>
+          <h1>플랫폼 개요</h1>
+          <p class="subtitle">이 플랫폼은 KubeEdge의 노드·workload 관리와 EdgeX의 물리 디바이스 관리를 결합한 실공장 Edge AI PoC…</p>
+          <div class="meta">
+            <span class="badge kind">시작하기</span>
+            <span class="badge">원본: 플랫폼-개요.md</span>
+            <span class="badge">수정: 2026-08-13 18:21</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:33</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="플랫폼-개요">플랫폼 개요</h1>
+<p>이 플랫폼은 KubeEdge의 노드·workload 관리와 EdgeX의 물리 디바이스 관리를 결합한 실공장 Edge AI PoC다. 현재 목표는 범용 자동 오케스트레이션이 아니라, 실제 장비와 AI 서비스를 연결하고 그 근거를 운영 화면에서 추적할 수 있게 만드는 것이다.</p>
+<figure class="doc-figure"><img src="../assets/images/플랫폼-개념-비주얼-v2.png" alt="현장 장비, 엣지 컴퓨터와 중앙 서버가 연결된 Edge AI 플랫폼 개념 비주얼" loading="lazy"></figure>
+<p><em>개념 비주얼이다. 정확한 책임과 데이터 경로는 아래 아키텍처를 기준으로 한다.</em></p>
+<h2 id="현재-아키텍처">현재 아키텍처</h2>
+<figure class="doc-figure"><img src="../assets/images/현재-아키텍처.svg" alt="현재 Edge AI 플랫폼 아키텍처" loading="lazy"></figure>
+<h3 id="책임-경계">책임 경계</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>영역</th>
+<th>권위</th>
+<th>현재 역할</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 디바이스</td>
+<td>EdgeX Core Metadata</td>
+<td>Device, Device Profile, Device Service, 관리 상태</td>
+</tr>
+<tr>
+<td>텔레메트리</td>
+<td>EdgeX Core Data</td>
+<td>Event, Reading, nanosecond <code>origin</code>, 장기 이력</td>
+</tr>
+<tr>
+<td>노드·workload</td>
+<td>Kubernetes/KubeEdge</td>
+<td>배치, Ready, Pod/Service endpoint, 재시작</td>
+</tr>
+<tr>
+<td>서비스 정의</td>
+<td>Git <code>ServiceDescriptor</code></td>
+<td>서비스 identity, 입력 계약, DAG, 관측 API</td>
+</tr>
+<tr>
+<td>운영 화면</td>
+<td><code>state-aggregator</code></td>
+<td>권위 데이터 결합, freshness·상태 계산, read-only API</td>
+</tr>
+</tbody></table></div>
+<h2 id="데이터가-이동하는-방식">데이터가 이동하는 방식</h2>
+<pre data-lang="text"><code>Arduino / Sense HAT / 승인된 장비
+  → 노드의 EdgeX Device Service
+  → 중앙 EdgeX MessageBus
+  → Core Data / PostgreSQL
+  → state-aggregator / dashboard
+
+같은 노드의 AI 서비스
+  ← Device Service의 bounded Local Data API
+  → 서비스 소유 결과 저장소
+  → state-aggregator / dashboard</code></pre>
+<p>현재 Serial과 I2C 정상 경로는 Device Service가 물리 장치를 직접 소유한다. 이전 <code>edgex-edge-agent-*</code>, outbox PVC, mapper direct-to-Influx 경로는 현재 fallback이 아니다. 중앙 ingest gateway는 유지되지만 현재 Serial/I2C Event 정상 경로에는 참여하지 않는다.</p>
+<h2 id="현재-서비스-데모">현재 서비스 데모</h2>
+<p><code>sensor-anomaly-demo</code>는 Jetson의 Arduino 가속도 X/Y/Z와 온도 입력을 정렬해 진동·온도 특징과 종합 점수를 계산한다. 실행 과정은 다음 DAG로 표현한다.</p>
+<pre data-lang="text"><code>센서 수집 → 전처리 → 특징 추출 → AI 추론 ┬→ Device1
+                                           └→ Server1 후보
+                              → 결과 저장 → 대시보드</code></pre>
+<p>기본 실행은 Device1의 고정 edge-local 경로다. Server1 endpoint는 별도 overlay로 검증됐지만 승인 기반 선택 경로이며 자동 증설이나 범용 offloading이 아니다. 설비 이상 점수와 컴퓨팅 자원 증강 판단은 서로 독립이다.</p>
+<h2 id="현재-완료로-말하지-않는-것">현재 완료로 말하지 않는 것</h2>
+<ul><li>옥동 PLC·MES field mapping과 생산품질 판별 서비스</li><li>일반 OPC-UA·Modbus·MQTT·RTSP 장비 자동 지원</li><li>승인 없는 디바이스 자동 등록</li><li>workflow canvas에서 실제 Kubernetes workload 실행</li><li>자동 workload 증설, runtime migration, 전역 offloading</li><li>LLM의 Kubernetes·EdgeX 직접 제어</li></ul>
+<p>상세 경계는 <a href="프로젝트-범위.html">프로젝트 범위</a>, 실제 상태는 <a href="현재-구현-상태.html">현재 구현 상태</a>를 확인한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-아키텍처">현재 아키텍처</a></li>
+<li class="toc-h3"><a href="#책임-경계">책임 경계</a></li>
+<li class="toc-h2"><a href="#데이터가-이동하는-방식">데이터가 이동하는 방식</a></li>
+<li class="toc-h2"><a href="#현재-서비스-데모">현재 서비스 데모</a></li>
+<li class="toc-h2"><a href="#현재-완료로-말하지-않는-것">현재 완료로 말하지 않는 것</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

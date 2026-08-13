@@ -12,7 +12,7 @@
     <div class="topbar">
       <div class="topbar-left">
         <a class="docs-brand" href="../index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
-        <span class="section-label">운영 문서</span>
+        <span class="section-label">운영</span>
       </div>
       <div class="topbar-actions">
         <span class="doc-path">ops/현재-데모-운영-절차.md</span>
@@ -27,11 +27,11 @@
   <div class="search-box" data-search-index="../search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
-      <button type="button" data-search-filter="wiki">위키</button>
-      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
       <button type="button" data-search-filter="ops">운영</button>
-      <button type="button" data-search-filter="history">설계 이력</button>
-      <button type="button" data-search-filter="archive">보관</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
     </div>
     <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
     <div id="doc-search-results" class="search-results" aria-live="polite"></div>
@@ -42,657 +42,123 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
-<li class="group">위키</li>
-<li><a href="../wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
-<li><a href="../wiki/운영-규칙.html">위키 운영 규칙</a></li>
-<li><a href="../wiki/변경-기록.html">위키 변경 기록</a></li>
-<li><a href="../wiki/운영-모델.html">운영 모델</a></li>
-<li><a href="../wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
-<li><a href="../wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
-<li><a href="../wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
-<li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
-<li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
-<li class="group">최신 기준 문서</li>
-<li><a href="../AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">시작하기</li>
 <li><a href="../문서-안내.html">문서 안내</a></li>
-<li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
-<li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
-<li><a href="../시스템-구축-목표.html">시스템 구축 목표</a></li>
-<li><a href="../프로젝트-배경.html">프로젝트 배경</a></li>
-<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
-<li><a href="../원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
-<li><a href="../서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
-<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
-<li><a href="../카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
-<li><a href="../2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
-<li><a href="../대시보드-정보-구조.html">대시보드 정보 구조</a></li>
-<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
-<li><a href="../물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
-<li><a href="../쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
-<li><a href="../디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
-<li><a href="../현재-데모-경로.html">현재 데모 경로</a></li>
-<li><a href="../저장소-구조.html">저장소 구조</a></li>
-<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
-<li><a href="../문서-정리-계획.html">문서 정리 계획</a></li>
-<li><a href="../디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
-<li><a href="../디바이스-발견-등록-정책.html">디바이스 발견·승인·등록 정책</a></li>
-<li><a href="../디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
-<li><a href="../디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
-<li><a href="../서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
-<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
-<li><a href="../자원-풀.html">자원 풀</a></li>
-<li><a href="../프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
-<li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
-<li class="group">운영 문서</li>
+<li><a href="../플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="../현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="../디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="../AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
 <li><a class="active" aria-current="page" href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
 <li><a href="대시보드-배포.html">대시보드 배포</a></li>
-<li><a href="엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
-<li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
-<li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
 <li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
-<li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
-<li><a href="노드-조인-점검.html">노드 조인 점검</a></li>
-<li><a href="파드-연결성-점검.html">파드 연결성 점검</a></li>
-<li><a href="노드-실측-사양표.html">노드 실측 사양표</a></li>
-<li><a href="다른-서버-배포-실행-가이드.html">다른 서버 배포 및 실행 가이드</a></li>
-<li><a href="디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
-<li><a href="어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
-<li class="group">설계 이력</li>
-<li><a href="../superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
-<li><a href="../superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
-<li><a href="../superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
-<li><a href="../superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
-<li><a href="../superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
-<li><a href="../superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
-<li><a href="../superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">EdgeX 중앙 Core와 HTTPS edge buffer 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
-<li><a href="../superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
-<li><a href="../대시보드-화면-설계.html">대시보드 화면 설계</a></li>
-<li><a href="../런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
-<li><a href="../일일-기록.html">일일 기록</a></li>
-<li><a href="../자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
-<li class="group">보관 문서</li>
-<li><a href="../archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
-<li><a href="../archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
-<li><a href="../archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
-<li><a href="../archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
-<li><a href="../archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
-<li><a href="../archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
-<li><a href="../archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
-<li><a href="../archive/integration/과거-인수인계.html">과거 인수인계</a></li>
-<li><a href="../archive/integration/통합-문서.html">통합 문서</a></li>
-<li><a href="../archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
-<li><a href="../archive/integration/통합-요약.html">통합 문서 요약</a></li>
-<li><a href="../archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
-<li><a href="../archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
-<li><a href="../archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
-<li><a href="../archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
-<li><a href="../archive/research/논문-전략.html">논문 전략</a></li>
-<li><a href="../archive/research/연구-주제.html">연구 주제 정리</a></li>
-<li><a href="../archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
-<li><a href="../archive/research/투고처-전략.html">투고처 전략</a></li>
-<li><a href="../archive/research/평가-계획.html">평가 계획</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
 </ul>
 </nav>
       <article class="doc">
         <header class="doc-header">
-          <p class="eyebrow">운영 문서</p>
+          <p class="eyebrow">운영</p>
           <h1>현재 데모 운영 절차</h1>
-          <p class="subtitle">Jetson Arduino Uno의 Serial 경로와 Raspberry Pi Sense HAT v1의 직접 I2C 경로가 각각…</p>
+          <p class="subtitle">이 절차는 다음 두 흐름을 확인한다.</p>
           <div class="meta">
-            <span class="badge kind">운영 문서</span>
+            <span class="badge kind">운영</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-08-12 13:13</span>
-            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
+            <span class="badge">수정: 2026-08-13 18:24</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:33</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-서비스-데모-운영-절차">현재 서비스 데모 운영 절차</h1>
-<h2 id="목적">목적</h2>
-<p>이 문서는 Jetson Arduino Uno의 Serial 경로와 Raspberry Pi Sense HAT v1의 직접 I2C 경로가 각각 EdgeX Device Service → 기능별 가상 Device 6개 → 중앙 MessageBus/Core Data/PostgreSQL → state-aggregator/dashboard로 이어지는 현재 정상 경로를 점검한다. 또한 Jetson acceleration X/Y/Z와 temperature Local Data → <code>sensor-anomaly-demo</code> → <code>/state/service-demo</code> → dashboard로 이어지는 고정 AI 서비스 데모를 검증한다. 기존 Agent, SQLite outbox, aggregate Sense HAT bootstrap, edge-local MQTT broker와 InfluxDB workload는 현재 경로가 아니다.</p>
-<p>Core Data telemetry freshness는 latest Event의 nanosecond <code>origin</code>을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
-<h2 id="배치-기준">배치 기준</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>구분</th>
-<th>현재 기준</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>중앙 namespace</td>
-<td><code>edgex-system</code></td>
-</tr>
-<tr>
-<td>edge namespace</td>
-<td><code>edgex-edge</code></td>
-</tr>
-<tr>
-<td>중앙 노드</td>
-<td><code>etri-ser0002-cgnmsb</code></td>
-</tr>
-<tr>
-<td>중앙 workload</td>
-<td>Core Keeper/Metadata/Data/Command, internal MessageBus, PostgreSQL, 유지 중인 ingest gateway</td>
-</tr>
-<tr>
-<td>edge workload</td>
-<td><code>device-serial-jetson</code>, <code>device-sensehat-raspi</code> 각 1 replica</td>
-</tr>
-<tr>
-<td>AI service workload</td>
-<td><code>sensor-anomaly-demo</code> 1 replica, <code>etri-dev0001-jetorn</code></td>
-</tr>
-<tr>
-<td>physical node</td>
-<td><code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code></td>
-</tr>
-<tr>
-<td>physical source</td>
-<td>Arduino Uno <code>/dev/arduino-001</code>, Sense HAT v1 <code>/dev/i2c-1</code></td>
-</tr>
-<tr>
-<td>EdgeX inventory</td>
-<td>Serial 6개 + I2C 6개, 총 가상 Device/Profile 12개 / Device Service 2개</td>
-</tr>
-<tr>
-<td>운영 진입점</td>
-<td><code>edgex/k8s/kustomization.yaml</code></td>
-</tr>
-<tr>
-<td>Argo CD Application</td>
-<td><code>edgex-telemetry</code></td>
-</tr>
-<tr>
-<td>AI service Argo CD Application</td>
-<td><code>edge-orch-sensor-anomaly-demo</code></td>
-</tr>
-</tbody></table></div>
-<p>EdgeMesh 리소스는 이 절차의 변경 대상이 아니다. Kubernetes <code>ClusterIP Service</code> 객체는 정상 서비스 디스커버리에 사용하지만 고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다. Device Service는 중앙 Keeper, Metadata와 MessageBus의 <code>.svc.cluster.local</code> FQDN을 사용한다.</p>
-<p>KubeEdge <code>cloudcore</code> Helm release가 설치한 <code>kubeedge/DaemonSet/edge-eclipse-mosquitto</code>는 edge node 3개에 legacy 호환 구성으로 남아 있다. 이 DaemonSet은 <code>edgex/k8s</code>나 현재 서비스 데모가 생성한 local broker가 아니며 Serial/I2C → Local Data API → AI consumer 경로에서 사용하지 않는다. 현재 데모의 MQTT 부재 판정은 <code>edgex-device-mqtt</code>, edge Agent와 데모 전용 broker/consumer가 없다는 뜻이며, KubeEdge Helm 구성 제거는 별도 작업 범위다.</p>
-<h2 id="가상-device-계약">가상 Device 계약</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Device</th>
-<th>Profile</th>
-<th>Resource</th>
-<th>Command</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>virtual-temperature-001</code></td>
-<td><code>etri-arduino-temperature</code></td>
-<td><code>temperature_raw</code></td>
-<td><code>temperature</code></td>
-</tr>
-<tr>
-<td><code>virtual-light-001</code></td>
-<td><code>etri-arduino-light</code></td>
-<td><code>light_raw</code></td>
-<td><code>light</code></td>
-</tr>
-<tr>
-<td><code>virtual-magnetic-001</code></td>
-<td><code>etri-arduino-magnetic</code></td>
-<td><code>magnetic_raw</code></td>
-<td><code>magnetic</code></td>
-</tr>
-<tr>
-<td><code>virtual-acceleration-x-001</code></td>
-<td><code>etri-arduino-acceleration-x</code></td>
-<td><code>acceleration_x_raw</code></td>
-<td><code>acceleration_x</code></td>
-</tr>
-<tr>
-<td><code>virtual-acceleration-y-001</code></td>
-<td><code>etri-arduino-acceleration-y</code></td>
-<td><code>acceleration_y_raw</code></td>
-<td><code>acceleration_y</code></td>
-</tr>
-<tr>
-<td><code>virtual-acceleration-z-001</code></td>
-<td><code>etri-arduino-acceleration-z</code></td>
-<td><code>acceleration_z_raw</code></td>
-<td><code>acceleration_z</code></td>
-</tr>
-</tbody></table></div>
-<p>여섯 Device는 같은 <code>Port=/dev/arduino-001</code>, <code>BaudRate=115200</code>, <code>DeviceID=arduino-001</code>을 사용하고 <code>ResourceName</code>만 다르다. Driver는 이 공통 연결을 공유 Serial reader 1개로 열며, acceleration wire sample 하나를 X/Y/Z Event 세 개로 나눈다.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sense HAT Device</th>
-<th>Profile</th>
-<th>Resources</th>
-<th>Command</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>env-sensehat-temperature-01</code></td>
-<td><code>etri-sensehat-temperature</code></td>
-<td><code>temp_humidity</code>, <code>temp_pressure</code></td>
-<td><code>temperature</code></td>
-</tr>
-<tr>
-<td><code>env-sensehat-humidity-01</code></td>
-<td><code>etri-sensehat-humidity</code></td>
-<td><code>humidity</code></td>
-<td><code>humidity</code></td>
-</tr>
-<tr>
-<td><code>env-sensehat-pressure-01</code></td>
-<td><code>etri-sensehat-pressure</code></td>
-<td><code>pressure</code></td>
-<td><code>pressure</code></td>
-</tr>
-<tr>
-<td><code>imu-sensehat-compass-01</code></td>
-<td><code>etri-sensehat-compass</code></td>
-<td><code>compass</code></td>
-<td><code>compass</code></td>
-</tr>
-<tr>
-<td><code>imu-sensehat-orientation-01</code></td>
-<td><code>etri-sensehat-orientation</code></td>
-<td><code>pitch</code>, <code>roll</code>, <code>yaw</code></td>
-<td><code>orientation</code></td>
-</tr>
-<tr>
-<td><code>imu-sensehat-gyroscope-01</code></td>
-<td><code>etri-sensehat-gyroscope</code></td>
-<td><code>gyro_x</code>, <code>gyro_y</code>, <code>gyro_z</code></td>
-<td><code>gyroscope</code></td>
-</tr>
-</tbody></table></div>
-<p>Sense HAT Device 6개는 <code>Bus=/dev/i2c-1</code>, <code>DeviceID=sensehat-001</code>을 공유하고 <code>ResourceGroup</code>으로 기능별 route를 구분한다. Device Service 내부 RTIMULib reader process 하나가 실제 보드를 읽고 총 11개 <code>Float64</code> Reading으로 fan-out한다. <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
-<h2 id="1-로컬-render-검증">1. 로컬 render 검증</h2>
-<pre data-lang="bash"><code>kubectl kustomize edgex/k8s &gt;/tmp/edgex-current.yaml
+<h2 id="점검-대상">점검 대상</h2>
+<p>이 절차는 다음 두 흐름을 확인한다.</p>
+<pre data-lang="text"><code>Arduino / Sense HAT → EdgeX Device Service → Core Data → dashboard
+Arduino 가속도·온도 → sensor-anomaly-demo → 결과·알림 → 서비스 DAG</code></pre>
+<p>운영 namespace는 중앙 <code>edgex-system</code>, 물리 Device Service <code>edgex-edge</code>다. root 배포 진입점은 <code>edgex/k8s/kustomization.yaml</code>, Argo CD Application은 <code>edgex-telemetry</code>다.</p>
+<h2 id="1-git과-manifest-확인">1. Git과 manifest 확인</h2>
+<pre data-lang="bash"><code>git status --short
+kubectl kustomize edgex/k8s &gt;/tmp/edgex-current.yaml
 kubectl apply --dry-run=server -f /tmp/edgex-current.yaml</code></pre>
-<p>정상 기준:</p>
-<ul><li>중앙 Core/MessageBus/PostgreSQL/gateway가 render된다.</li><li><code>Namespace/edgex-edge</code>, default-deny와 Device Service별 최소 NetworkPolicy가 render된다.</li><li>두 <code>Service</code>와 <code>Deployment/device-serial-jetson</code>, <code>Deployment/device-sensehat-raspi</code>가 render된다.</li><li>Device Service는 각각 <code>etri-dev0001-jetorn</code>, <code>etri-dev0003-raspi5</code>에 고정되고 <code>hostNetwork: true</code>를 사용하지 않는다.</li><li>host의 Arduino by-id CharDevice와 Sense HAT I2C CharDevice만 각 Pod의 <code>/dev/arduino-001</code>, <code>/dev/i2c-1</code>에 정확히 마운트된다.</li><li>각 ConfigMap에는 해당 Profile 6개와 Device list 1개가 포함된다.</li><li>중앙 Keeper/Metadata/MessageBus는 <code>.svc.cluster.local</code> FQDN으로 참조된다.</li><li><code>edgex-edge-agent-*</code>, Agent PVC/ConfigMap/bootstrap, <code>device-mqtt</code>, edge-local broker와 InfluxDB workload를 배포하지 않는다.</li></ul>
-<p>현재 PoC의 Serial/I2C 장치 접근은 각 Device Service Pod에 <code>privileged: true</code>, UID/GID 0을 허용한다. 이 예외는 정확한 CharDevice mount, <code>Recreate</code> 전략과 service-account token 비마운트로 범위를 줄인다. NetworkPolicy는 manifest에 선언되어 있지만 현재 Flannel CNI에서는 강제되지 않는다. 후속 운영 강화에서는 Device Plugin 또는 더 좁은 장치 권한으로 대체한다.</p>
-<h2 id="2-argo-cd-상태">2. Argo CD 상태</h2>
+<p>render에는 중앙 EdgeX Core·MessageBus·PostgreSQL, <code>device-serial-jetson</code>, <code>device-sensehat-raspi</code>, Adapter Controller와 discovery workload가 포함돼야 한다. <code>edgex-edge-agent-*</code>, Agent outbox PVC, device-mqtt와 edge-local broker는 현재 정상 경로가 아니다.</p>
+<h2 id="2-argo-cd와-workload-확인">2. Argo CD와 workload 확인</h2>
 <pre data-lang="bash"><code>kubectl -n argocd get application edgex-telemetry \
-  -o jsonpath=&#x27;{.spec.source.targetRevision}{&quot;\n&quot;}{.status.sync.status}{&quot;\n&quot;}{.status.health.status}{&quot;\n&quot;}{.status.operationState.phase}{&quot;\n&quot;}&#x27;</code></pre>
-<p>정상 기준은 대상 revision이 의도한 Git commit이고 <code>Synced</code>, <code>Healthy</code>, <code>Succeeded</code>인 것이다. Application은 prune/self-heal을 사용하므로 live 리소스를 임의 수정하지 않고 Git의 root Kustomize를 고친다.</p>
-<p>서비스 데모는 EdgeX root render와 분리된 Application이다.</p>
-<pre data-lang="bash"><code>kubectl -n argocd get application edge-orch-sensor-anomaly-demo \
-  -o jsonpath=&#x27;{.spec.source.targetRevision}{&quot;\n&quot;}{.status.sync.status}{&quot;\n&quot;}{.status.health.status}{&quot;\n&quot;}{.status.operationState.phase}{&quot;\n&quot;}&#x27;</code></pre>
-<p><code>edgex-telemetry</code> revision을 불필요하게 바꾸지 않고, <code>edge-orch-sensor-anomaly-demo</code>와 <code>edge-orch-state-aggregator</code>만 같은 검증된 Git revision을 가리키게 한다.</p>
-<h2 id="3-live-workload와-장치-mount">3. live workload와 장치 mount</h2>
-<pre data-lang="bash"><code>kubectl -n edgex-system get deploy,statefulset,job,pod,service,pvc -o wide
-kubectl -n edgex-edge get deploy,pod,service,pvc,configmap,networkpolicy -o wide
-kubectl -n edgex-edge get deployment device-serial-jetson \
-  -o jsonpath=&#x27;{.spec.template.spec.nodeSelector.kubernetes\.io/hostname}{&quot;\n&quot;}{.spec.template.spec.hostNetwork}{&quot;\n&quot;}{.spec.template.spec.containers[0].image}{&quot;\n&quot;}&#x27;
+  -o jsonpath=&#x27;{.status.sync.status}{&quot;/&quot;}{.status.health.status}{&quot; &quot;}{.status.sync.revision}{&quot;\n&quot;}&#x27;
 
-kubectl -n edgex-edge get deployment device-sensehat-raspi \
-  -o jsonpath=&#x27;{.spec.template.spec.nodeSelector.kubernetes\.io/hostname}{&quot;\n&quot;}{.spec.template.spec.hostNetwork}{&quot;\n&quot;}{.spec.template.spec.containers[0].image}{&quot;\n&quot;}&#x27;</code></pre>
+kubectl -n edgex-system get deploy,statefulset,pod,service
+kubectl -n edgex-edge get deploy,pod,service,pvc</code></pre>
 <p>정상 기준:</p>
-<ul><li>중앙 Core 서비스와 PostgreSQL이 Ready다. common-config bootstrap Job은 Completed일 수 있다.</li><li><code>device-serial-jetson</code>과 <code>device-sensehat-raspi</code> Pod가 각각 Jetson과 Raspberry Pi에서 <code>1/1 Running</code>이다.</li><li>두 image는 immutable ARM64 digest다.</li><li>Pod restart가 반복 증가하지 않는다.</li><li><code>edgex-edge</code>에 Agent outbox PVC, local broker와 별도 telemetry DB가 없다.</li><li><code>sensor-anomaly-demo</code>가 Jetson에서 <code>1/1 Running</code>, restart 0이고 immutable ARM64 digest를 실행한다.</li><li>AI service는 <code>hostNetwork</code>, host device mount, MQTT/InfluxDB 연결을 사용하지 않는다.</li></ul>
-<p>파생 결과와 알림 전환만 <code>sensor-anomaly-demo-state</code> 1Gi RWO PVC에 저장한다.</p>
-<p>Serial 로그에서 시작 중 잘린 line 1~2개가 malformed로 폐기될 수 있다. 이후 metric 등록, reader restart, Metadata update가 반복되거나 ERROR가 계속 나오면 정상으로 보지 않는다. Sense HAT reader는 시작 시 IMU를 prime한 뒤 pressure/humidity를 초기화하며, bounded retry 이후에도 <code>sample</code> 응답이 없거나 reader가 반복 재시작하면 정상으로 보지 않는다.</p>
-<h2 id="4-core-metadata-binding">4. Core Metadata binding</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceservice/name/device-serial-jetson&#x27;
-
-for name in \
-  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
-  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/name/${name}&quot;
-done
-
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/deviceservice/name/device-sensehat-raspi&#x27;
-
-for name in \
-  env-sensehat-temperature-01 env-sensehat-humidity-01 env-sensehat-pressure-01 \
-  imu-sensehat-compass-01 imu-sensehat-orientation-01 imu-sensehat-gyroscope-01
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/name/${name}&quot;
-done</code></pre>
-<p>정상 기준:</p>
-<ul><li>Device Service base address는 <code>http://device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>이다.</li><li>위 Device 6개가 각각 <code>UNLOCKED</code>, <code>UP</code>이고 service/profile binding이 일치한다.</li><li>각 Device의 Serial protocol은 공통 물리 endpoint와 고유 <code>ResourceName</code>을 가진다.</li><li><code>tags.physicalDeviceId=arduino-001</code>, <code>tags.nodeName=etri-dev0001-jetorn</code>이다.</li><li>aggregate EdgeX Device <code>arduino-001</code>과 Profile <code>etri-arduino-serial</code>은 없다.</li><li>Sense HAT Device Service base address는 <code>http://device-sensehat-raspi.edgex-edge.svc.cluster.local:59911</code>이다.</li><li>Sense HAT Device 6개도 각각 <code>UNLOCKED</code>, <code>UP</code>이고 Profile과 <code>i2c</code> protocol binding이 일치한다.</li><li>각 I2C protocol은 공통 <code>Bus=/dev/i2c-1</code>, <code>DeviceID=sensehat-001</code>과 고유 <code>ResourceGroup</code>을 가진다.</li><li><code>tags.physicalDeviceId=sensehat-001</code>, <code>tags.nodeName=etri-dev0003-raspi5</code>이며 aggregate EdgeX Device <code>sensehat-001</code>은 없다.</li></ul>
-<h2 id="5-core-data-event-reading">5. Core Data Event/Reading</h2>
-<pre data-lang="bash"><code>for name in \
-  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
-  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/${name}?limit=1&quot;
-done
-
-for name in \
-  env-sensehat-temperature-01 env-sensehat-humidity-01 env-sensehat-pressure-01 \
-  imu-sensehat-compass-01 imu-sensehat-orientation-01 imu-sensehat-gyroscope-01
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/${name}?limit=1&quot;
-done</code></pre>
-<p>정상 기준:</p>
-<ul><li>Device별 latest Event에 계약된 <code>Int32</code> Reading 하나만 있다.</li><li>units는 <code>raw</code>이고 Event/Reading의 nanosecond <code>origin</code>이 계속 증가한다.</li><li>acceleration wire sample은 X/Y/Z Device에 각각 독립 Event로 저장된다.</li><li>Sense HAT Device 6개의 latest Event에는 각 Profile에 계약된 <code>Float64</code> Reading만 있고 총 resource 수는 11개다.</li><li>API readback으로 저장을 확인하며 중앙 MessageBus의 MQTT ACK만으로 persistence를 주장하지 않는다.</li></ul>
-<h2 id="6-read-only-core-command">6. read-only Core Command</h2>
-<pre data-lang="bash"><code>for pair in \
-  virtual-temperature-001/temperature \
-  virtual-light-001/light \
-  virtual-magnetic-001/magnetic \
-  virtual-acceleration-x-001/acceleration_x \
-  virtual-acceleration-y-001/acceleration_y \
-  virtual-acceleration-z-001/acceleration_z
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-command:59882/proxy/api/v3/device/name/${pair}&quot;
-done
-
-
-for pair in \
-  env-sensehat-temperature-01/temperature \
-  env-sensehat-humidity-01/humidity \
-  env-sensehat-pressure-01/pressure \
-  imu-sensehat-compass-01/compass \
-  imu-sensehat-orientation-01/orientation \
-  imu-sensehat-gyroscope-01/gyroscope
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/edgex-system/services/http:edgex-core-command:59882/proxy/api/v3/device/name/${pair}&quot;
-done</code></pre>
-<p>정상 기준은 두 Device Service가 10분 recent cache에서 해당 Device의 최신값과 <code>origin</code>을 반환하는 것이다. multi-resource command인 Sense HAT temperature, orientation과 gyroscope는 각각 2개, 3개, 3개 Reading을 반환한다. sample이 10분 보존 범위를 벗어나거나 Pod가 재시작해 아직 새 sample이 없으면 최신값 조회가 실패할 수 있다. Profile에는 writable resource가 없으므로 PUT이나 actuator command를 보내지 않는다.</p>
-<h2 id="7-jetson-local-data-api">7. Jetson Local Data API</h2>
-<p>의도된 client label과 같은-node 배치를 함께 확인하려면 임시 client Pod를 Jetson에 배치한다.</p>
-<pre data-lang="bash"><code>kubectl run local-data-check \
-  --namespace default \
-  --image=curlimages/curl:8.12.1 \
-  --restart=Never \
-  --labels=edge-ai.io/local-data-client=true \
-  --overrides=&#x27;{&quot;spec&quot;:{&quot;nodeSelector&quot;:{&quot;kubernetes.io/hostname&quot;:&quot;etri-dev0001-jetorn&quot;}}}&#x27; \
-  --command -- sleep 3600
-
-kubectl wait --namespace default \
-  --for=condition=Ready pod/local-data-check \
-  --timeout=120s
-
-kubectl exec --namespace default local-data-check -- \
-  curl --fail --silent --show-error \
-  &#x27;http://device-serial-jetson.edgex-edge.svc.cluster.local:59910/api/v3/localdata/device/name/virtual-temperature-001/resource/name/temperature_raw/latest&#x27;
-
-kubectl exec --namespace default local-data-check -- \
-  curl --fail --silent --show-error \
-  &#x27;http://device-serial-jetson.edgex-edge.svc.cluster.local:59910/api/v3/localdata/device/name/virtual-temperature-001/resource/name/temperature_raw?limit=20&#x27;
-
-kubectl exec --namespace default local-data-check -- \
-  curl --fail --silent --show-error \
-  &#x27;http://device-serial-jetson.edgex-edge.svc.cluster.local:59910/api/v3/localdata/stats&#x27;
-
-kubectl delete pod --namespace default local-data-check</code></pre>
-<p>정상 기준:</p>
-<ul><li>latest는 <code>count=1</code>이고 <code>temperature_raw</code>, <code>Int32</code>, 원본 nanosecond <code>origin</code>을 반환한다.</li><li>recent는 <code>origin</code> 오름차순이며 <code>count</code>와 <code>samples</code> 길이가 같다.</li><li>latest/recent의 <code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>, <code>retention.maxBytes=67108864</code>이다.</li><li>stats는 <code>series=6</code>, <code>samples&gt;0</code>, <code>slotBytes&gt;0</code>, <code>allocatedBytes&lt;=67108864</code>이고 eviction 원인별 누계를 반환한다.</li><li>알려진 source에 범위 데이터가 없으면 <code>200</code>과 빈 <code>samples</code>, latest가 없으면 <code>404</code>다.</li><li><code>limit</code>은 1~10,000이고 기본값은 1,000이다.</li></ul>
-<p>다른 5개 가상 Device도 각 Profile의 resource 이름으로 같은 계약을 확인한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
-<p>주의: 현재 테스트베드의 Flannel CNI는 Kubernetes NetworkPolicy를 집행하지 않는다. 2026-07-21 실측에서 <code>edge-ai.io/local-data-client=true</code> label이 없는 기존 Pod도 이 API에 접근했다. 따라서 label은 배치·정책 의도 표식이며 현재 보안 경계가 아니다. Local Data API는 unauthenticated read-only endpoint이므로 실제 접근 차단이 필요하면 NetworkPolicy 지원 CNI 또는 mTLS/애플리케이션 인증을 먼저 적용한다.</p>
-<h2 id="7a-raspberry-pi-sense-hat-local-data-api">7A. Raspberry Pi Sense HAT Local Data API</h2>
-<p>임시 client Pod를 <code>etri-dev0003-raspi5</code>에 배치하고 Service FQDN으로 직접 I2C 수집 결과를 확인한다.</p>
-<pre data-lang="bash"><code>kubectl run sensehat-local-data-check \
-  --namespace default \
-  --image=curlimages/curl:8.12.1 \
-  --restart=Never \
-  --labels=edge-ai.io/local-data-client=true \
-  --overrides=&#x27;{&quot;spec&quot;:{&quot;nodeSelector&quot;:{&quot;kubernetes.io/hostname&quot;:&quot;etri-dev0003-raspi5&quot;}}}&#x27; \
-  --command -- sleep 3600
-
-kubectl wait --namespace default \
-  --for=condition=Ready pod/sensehat-local-data-check \
-  --timeout=120s
-
-for source in \
-  env-sensehat-temperature-01/temp_humidity \
-  env-sensehat-temperature-01/temp_pressure \
-  env-sensehat-humidity-01/humidity \
-  env-sensehat-pressure-01/pressure \
-  imu-sensehat-compass-01/compass \
-  imu-sensehat-orientation-01/pitch \
-  imu-sensehat-orientation-01/roll \
-  imu-sensehat-orientation-01/yaw \
-  imu-sensehat-gyroscope-01/gyro_x \
-  imu-sensehat-gyroscope-01/gyro_y \
-  imu-sensehat-gyroscope-01/gyro_z
-do
-  kubectl exec --namespace default sensehat-local-data-check -- \
-    curl --fail --silent --show-error \
-    &quot;http://device-sensehat-raspi.edgex-edge.svc.cluster.local:59911/api/v3/localdata/device/name/${source%/*}/resource/name/${source#*/}/latest&quot;
-done
-
-kubectl exec --namespace default sensehat-local-data-check -- \
-  curl --fail --silent --show-error \
-  &#x27;http://device-sensehat-raspi.edgex-edge.svc.cluster.local:59911/api/v3/localdata/stats&#x27;
-
-kubectl delete pod --namespace default sensehat-local-data-check</code></pre>
-<p>정상 기준은 11개 source가 모두 유한한 <code>Float64</code> 값, 원본 nanosecond <code>origin</code>, <code>retention.maxAge=10m0s</code>, <code>retention.maxSamples=10000</code>, <code>retention.maxBytes=67108864</code>를 반환하는 것이다. stats는 <code>series=11</code>, <code>samples&gt;0</code>, <code>slotBytes&gt;0</code>, <code>allocatedBytes&lt;=67108864</code>여야 한다. 이 조회는 고정 ClusterIP/PodIP/node IP가 아닌 Service FQDN을 사용한다. 임시 Pod는 검증 뒤 반드시 삭제한다.</p>
-<h2 id="7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</h2>
-<pre data-lang="bash"><code>rtk kubectl -n edgex-edge get deployment,pod,service \
-  -l app.kubernetes.io/name=sensor-anomaly-demo -o wide
-
-rtk kubectl -n edgex-edge exec deploy/sensor-anomaly-demo -- \
-  python -c &#x27;import json,urllib.request; print(json.load(urllib.request.urlopen(&quot;http://127.0.0.1:8080/api/v1/status&quot;)))&#x27;
-
-rtk kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo&#x27;
-
-rtk kubectl -n edgex-edge get pvc sensor-anomaly-demo-state
-rtk kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo/results?limit=5&#x27;
-rtk kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo/alerts?limit=5&#x27;</code></pre>
-<p>2초 이상 간격으로 local status를 두 번 읽어 다음을 함께 확인한다.</p>
-<ul><li><code>mode=live</code>, <code>inputState=fresh</code>, <code>modelState=ready</code></li><li>source devices가 <code>virtual-acceleration-x-001</code>, <code>virtual-acceleration-y-001</code>, <code>virtual-acceleration-z-001</code>, <code>virtual-temperature-001</code>과 정확히 일치</li><li>두 번째 <code>latest.origin</code>과 <code>counters.framesProcessed</code>가 첫 번째보다 큼</li><li><code>latest.values</code>가 실제 <code>Int32</code> raw X/Y/Z이고 <code>magnitude</code>, <code>componentScores.vibration</code>, <code>componentScores.temperature</code>, 종합 <code>score</code>가 유한함</li><li><code>latest.temperatureFeatures.origin</code>이 실제 온도 sample이고 <code>alignmentLagMs&lt;=2000</code>, <code>weights</code>가 기본 <code>0.7/0.3</code>임</li><li><code>model.algorithm=weighted-multi-sensor-feature-score-v1</code>, <code>warmupSamples=30</code>, <code>threshold=4.0</code></li><li><code>model.version</code>과 <code>latest.modelVersion</code>이 배포한 모델 version과 일치</li><li>중앙 <code>/state/service-demo</code>가 <code>mode=live</code>, 같은 binding/result를 반환하고 <code>observation_error=null</code></li><li>PVC가 <code>Bound</code>이고 결과 API를 두 번 조회했을 때 저장된 origin이 증가</li><li>alert API는 실제 anomaly가 없으면 빈 배열이며 값을 꾸며내지 않음</li></ul>
-<p>서비스는 네 Local Data source를 500ms마다 조회한다. 이는 push stream이 아니다. X/Y/Z는 같은 nanosecond <code>origin</code>이 모두 모인 frame만 사용하고, 온도는 2초 이내 가장 가까운 sample만 연결한다. 온도가 없으면 해당 종합 점수를 계산하지 않는다. 10초보다 오래된 입력, 3회 연속 조회 실패는 <code>degraded</code>다. anomaly/clear 전이는 자동 테스트로 검증하지만 실제 장치를 움직여 anomaly를 만드는 현장 시연 전에는 실제 고장 검출 실증으로 판정하지 않는다.</p>
-<p>결과와 alert transition은 <code>/var/lib/sensor-anomaly-demo/results.db</code>에 origin 기준으로 idempotent 저장한다. 이 SQLite는 AI 파생 결과 전용이며 EdgeX Core Data/PostgreSQL의 원시 Event를 대체하지 않는다. Pod 삭제·재생성 뒤 동일 PVC에서 결과 건수와 최신 origin을 다시 읽어야 재시작 복구 PASS다. PVC 삭제, node 손실, 중앙 HA와 원시 Event offline replay는 이 검증에 포함되지 않는다.</p>
-<blockquote><p>2026-08-03 live PASS: <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>을 Jetson에 rollout해 Ready/restart 0을 확인했다. 기동 직후 temperature 605개와 acceleration frame 605개가 누락 0으로 정렬됐고, 두 status 조회에서 frame <code>621 → 623</code>, origin <code>1785734602955557669 → 1785734604991104923</code>, 온도 정렬 차이 약 11~12ms를 확인했다. CI가 같은 기능 revision에서 빌드한 <code>state-aggregator@sha256:e2a85cb3f776905405b93c2ea5aa4356260d130723142bff77580829b1df6140</code>의 내부 BFF와 외부 dashboard도 같은 네 source, 개별·종합 점수와 <code>observation_error=null</code>을 반환했다. 실제 장치 움직임 anomaly는 별도 현장 gate다.</p></blockquote>
-<blockquote><p>2026-08-03 persistence live PASS: commit <code>849f10f3eefa9c719bb18c5a8de16687f115e98e</code>, Actions run <code>30796771024</code>의 <code>sensor-anomaly-demo@sha256:9f0736a1c6b6eda612a3dd4257ff526d483c2f45cb5d94c52a66f61214232796</code>을 Jetson에 배포했다. <code>sensor-anomaly-demo-state</code> 1Gi RWO PVC는 <code>Bound</code>였고 재시작 전 결과 172건과 origin <code>1785746192559462095</code>를 기록했다. Deployment를 재시작한 새 Pod에서 같은 origin이 1건으로 재조회됐으며 결과는 217건으로 계속 증가했다. health/readiness, <code>live/fresh/ready</code>, <code>okdong.pump-motor.telemetry/v1</code>, <code>baseline-1.0.0</code>, 중앙 결과·알림 BFF를 함께 확인했다. 현재 실제 anomaly가 없어 live alert 이력은 빈 배열이며 이를 성공 이벤트로 꾸미지 않는다.</p></blockquote>
-<h2 id="8-dashboard-api">8. dashboard API</h2>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/dashboard&#x27;
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/service-demo&#x27;</code></pre>
-<p>정상 기준:</p>
-<ul><li>API에는 기존 Serial 6개, I2C 6개와 승인 Saga의 Arduino aggregate 1개, 총 13개</li></ul>
-<p>EdgeX Device identity가 나타난다. 대시보드 <code>장비 관리</code>의 등록 목록은 이를 물리 <code>arduino-001</code>, <code>sensehat-001</code> 카드로 묶고 개별 Device는 카드 상세에서 보여 준다.</p>
-<ul><li>각 행의 <code>device_service_name</code>이 <code>device-serial-jetson</code> 또는 <code>device-sensehat-raspi</code>이고 profile과 resource가 계약과 일치한다.</li><li><code>admin_state=UNLOCKED</code>, <code>operating_state=UP</code>, <code>connection_state=connected</code>다.</li><li><code>overall_status=available</code>, <code>telemetry_freshness=fresh</code>이고 latest Reading 집합이 각 Profile 계약과 일치한다.</li><li>service demo 응답은 raw inventory와 분리된 derived 결과이며 physical source, Device Service, acceleration Device 3개, AI consumer와 node binding을 포함한다.</li><li>upstream 장애 시 HTTP 200의 <code>mode=unavailable</code>, <code>status=degraded</code>, <code>observation_error</code>를 반환하고 값을 0으로 꾸며내지 않는다.</li></ul>
-<p>Kubernetes node/workload 상태는 별도 진단이며 위 Device availability를 덮어쓰지 않는다.</p>
-<h2 id="8a-edgex-device-저장-이력과-dashboard-그래프">8A. EdgeX Device 저장 이력과 dashboard 그래프</h2>
-<p>dashboard는 PostgreSQL에 직접 연결하지 않는다. 브라우저가 <code>state-aggregator</code>의 선택 Device API를 호출하고, <code>state-aggregator</code>가 중앙 EdgeX Core Data API에서 PostgreSQL-backed Event/Reading을 읽는다.</p>
-<pre data-lang="text"><code>Dashboard
-  -&gt; GET /state/devices/{device}/telemetry?window={range}&amp;limit=1000
-  -&gt; state-aggregator
-  -&gt; EdgeX Core Data API
-  -&gt; PostgreSQL</code></pre>
-<p>Core Data의 <code>GET /api/v3/event/device/name/{name}</code>에는 <code>start</code>/<code>end</code> query를 붙이지 않는다. 이 endpoint는 <code>offset</code>/<code>limit</code>만 지원하므로 <code>state-aggregator</code>가 최신 1,000 Event 이내에서 Event <code>origin</code>을 기준으로 <code>window</code>를 적용한다. 5분 결과의 가장 오래된 <code>origin</code>이 요청 시작시각보다 이전이면 정상으로 판정하지 않는다.</p>
-<p>12개 Device의 기본 30분 이력을 API에서 확인한다.</p>
-<pre data-lang="bash"><code>for name in \
-  virtual-temperature-001 virtual-light-001 virtual-magnetic-001 \
-  virtual-acceleration-x-001 virtual-acceleration-y-001 virtual-acceleration-z-001 \
-  env-sensehat-temperature-01 env-sensehat-humidity-01 env-sensehat-pressure-01 \
-  imu-sensehat-compass-01 imu-sensehat-orientation-01 imu-sensehat-gyroscope-01
-do
-  kubectl get --raw \
-    &quot;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/state/devices/${name}/telemetry?window=-30m&amp;limit=1000&quot;
-done</code></pre>
-<p>정상 기준:</p>
-<ul><li>모든 응답은 배열이고 각 Reading의 <code>device_name</code>이 요청 Device와 같다.</li><li><code>source_name</code>, <code>resource_name</code>, <code>value_type</code>, <code>value</code>, <code>timestamp</code>, nanosecond <code>origin</code>과 <code>event_id</code>가 보존된다.</li><li>Serial Device 6개는 각각 계약된 <code>Int32</code> resource series로 분리된다.</li><li>Sense HAT Device 6개는 Profile별 <code>Float64</code> series로 분리되며 temperature는 2개, orientation과 gyroscope는 각각 3개 resource를 표시할 수 있다.</li><li>조회 오류나 빈 결과를 <code>/state/devices</code>의 <code>latest_readings</code>로 대체하지 않는다.</li></ul>
-<p>브라우저에서는 Assets의 Device 행을 선택해 다음을 확인한다.</p>
-<ol><li>선택 직후 기본 <code>30분</code> 이력을 조회한다.</li><li><code>5분</code>, <code>30분</code>, <code>1시간</code>, <code>24시간</code>과 <code>새로고침</code>이 선택 Device에만 적용된다.</li><li>resource별 series, 반환 Reading 수, 실제 첫/마지막 timestamp가 보인다.</li><li><code>최신 1000 events 제한</code> 문구가 보인다. 한 Event에 Reading이 여러 개면 반환 Reading 수는 1,000보다 클 수 있다.</li><li>긴 범위가 최신 1,000 Event로 잘렸을 때 요청한 전체 기간을 모두 읽었다고 해석하지 않는다.</li><li>빠르게 Device나 범위를 바꿔도 이전 요청의 늦은 응답이 현재 선택을 덮어쓰지 않는다.</li><li>조회 중·빈 결과·오류 상태가 각각 구분되고 오류가 다른 Device나 dashboard 전체를 가짜 정상값으로 바꾸지 않는다.</li></ol>
-<h2 id="8b-dashboard-adapter-runtime과-device-연결-관리">8B. Dashboard Adapter Runtime과 Device 연결 관리</h2>
-<p><code>Device Management</code>는 Adapter Runtime 조회·재사용/승인 배포 plan과 EdgeX Profile/Device onboarding을 한 operation으로 관리한다. 자세한 Secret, API, 상태, 재시작·퇴역과 protocol 승격 절차는 <a href="어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a>를 따른다. Assets와 <code>/state/*</code> 조회 경계는 유지하며 AI Pipeline/Workflow Builder는 현재 dashboard와 전용 샘플 API에서 제거됐다.</p>
-<p>현재 Deployment는 management feature flag를 활성화하고 namespace별 <code>edgex-adapter-management-auth</code> Secret을 요구한다. 다음 조회와 validation은 mutation을 수행하지 않는다.</p>
-<pre data-lang="bash"><code>kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/management/adapters&#x27;
-
-kubectl get --raw \
-  &#x27;/api/v1/namespaces/default/services/http:state-aggregator:8000/proxy/management/adapter-runtimes&#x27;
-
-# 아래 curl을 사용할 때는 별도 터미널에서 실행한다.
-kubectl -n default port-forward service/state-aggregator 18000:8000
-
-curl --fail --silent --show-error \
-  -H &#x27;Content-Type: application/json&#x27; \
-  -d &#x27;{
-    &quot;adapterId&quot;:&quot;serial-jetson&quot;,
-    &quot;targetNode&quot;:&quot;etri-dev0001-jetorn&quot;,
-    &quot;hardwareBindingId&quot;:&quot;jetson-arduino-serial-001&quot;,
-    &quot;mode&quot;:&quot;auto&quot;
-  }&#x27; \
-  http://127.0.0.1:18000/management/adapter-runtimes/plan</code></pre>
-<p>Connection 전체 dry-run은 runtime 선택을 함께 전달한다.</p>
-<pre data-lang="bash"><code>curl --fail --silent --show-error \
-  -H &#x27;Content-Type: application/json&#x27; \
-  -d &#x27;{
-    &quot;adapterId&quot;:&quot;serial-jetson&quot;,
-    &quot;runtime&quot;:{
-      &quot;mode&quot;:&quot;auto&quot;,
-      &quot;targetNode&quot;:&quot;etri-dev0001-jetorn&quot;,
-      &quot;hardwareBindingId&quot;:&quot;jetson-arduino-serial-001&quot;
-    },
-    &quot;device&quot;:{
-      &quot;name&quot;:&quot;onboarding-dryrun-serial-001&quot;,
-      &quot;description&quot;:&quot;dry-run only&quot;,
-      &quot;labels&quot;:[&quot;serial&quot;,&quot;dry-run&quot;],
-      &quot;tags&quot;:{&quot;physicalDeviceId&quot;:&quot;arduino-001&quot;,&quot;nodeName&quot;:&quot;etri-dev0001-jetorn&quot;},
-      &quot;protocolProperties&quot;:{
-        &quot;Port&quot;:&quot;/dev/arduino-001&quot;,
-        &quot;BaudRate&quot;:115200,
-        &quot;DeviceID&quot;:&quot;arduino-001&quot;,
-        &quot;ResourceName&quot;:&quot;temperature_raw&quot;
-      },
-      &quot;adminState&quot;:&quot;UNLOCKED&quot;
-    },
-    &quot;profile&quot;:{&quot;mode&quot;:&quot;existing&quot;,&quot;name&quot;:&quot;etri-arduino-temperature&quot;}
-  }&#x27; \
-  http://127.0.0.1:18000/management/connections/validate</code></pre>
-<p>정상 기준:</p>
-<ul><li>adapter 응답의 Serial/Sense HAT I2C는 Device Service readback이 성공할 때 <code>installed</code>다.</li></ul>
-<p>Device Service가 없더라도 검증된 managed template과 <code>deploymentEnabled=true</code>이면 <code>installable</code>, 그 외에는 <code>unavailable</code>이다. MQTT 개발 package는 검증 Runtime이 없으면 <code>installable</code>이고, Modbus는 exact simulator binding에 한정한다. 실제 PLC, 운영 MQTT TLS/auth, OPC-UA와 RTSP는 <code>unsupported</code> 또는 <code>unavailable</code>이다.</p>
-<ul><li>runtime inventory의 Serial/I2C는 <code>managementMode=external</code>,</li></ul>
-<p><code>managementOwner=argocd</code>, <code>phase=SERVICE_READY</code>이고 대시보드 restart/retire가 비활성화된다.</p>
-<ul><li>Serial runtime plan은 exact binding의 기존 <code>device-serial-jetson</code>을 <code>REUSE</code>한다.</li><li>위 예시는 이미 <code>virtual-temperature-001</code>이 소유한 endpoint/resource를 다시 요청하므로</li></ul>
-<p><code>valid=false</code>와 <code>protocol_binding_exists</code>를 반환하는 것이 정상이다. dry-run은 <code>valid</code>, <code>issues</code>, <code>warnings</code>, <code>runtimePlan</code>, <code>edgeXPlan</code>을 반환하며 runtime/Profile/Device를 생성하지 않는다.</p>
-<ul><li>유효한 연결 실행은 browser 관리자 token 없이 요청별 <code>Idempotency-Key</code>를 요구한다.</li></ul>
-<p>결과는 runtime, Metadata와 first Event 상태를 분리한다. 내부 HMAC은 BFF와 Controller 사이 요청 무결성용이며 운영자 인증이 아니므로 운영 노출 전 별도 인증·인가가 필요하다.</p>
-<ul><li>기존 12개 route, external runtime과 EdgeMesh는 자동 검증에서 변경하지 않는다. live</li></ul>
-<p>connection canary는 충돌하지 않는 실장비 endpoint와 등록 binding이 생긴 뒤 수행한다.</p>
-<h2 id="9-저장과-캐시-경계">9. 저장과 캐시 경계</h2>
-<ul><li>Device Service 메모리: 공통 Go ring cache, Device/resource별 최근 10분·최대 10,000 sample, 서비스별 sample slot 합계 최대 64MiB, Core Command와 Local Data API용</li><li>중앙 Core Data/PostgreSQL: 최근·과거 Event/Reading의 영구 저장과 조회</li><li>로컬 recent window cache: 있음; <code>/api/v3/localdata/stats</code>와 custom metrics로 관측, Pod 재시작 시 초기화, 중앙 history fallback 없음</li><li>64MiB 계산 경계: sample slot 배열만 포함; Go map/runtime/HTTP buffer는 제외되며 Pod memory limit가 전체 프로세스 상한</li><li>SQLite outbox/offline replay: 없음</li><li>별도 InfluxDB: 없음</li><li><code>sensor-anomaly-demo</code> 결과: application-owned SQLite에 origin 기준 idempotent 저장,</li></ul>
-<p>기본 최대 100,000건과 alert transition을 1Gi RWO PVC에 보존; raw history 저장소나 중앙 HA 저장소가 아님</p>
-<p>따라서 각 Device Service와 같은 edge node의 Workflow Pod는 <code>edge-ai.io/local-data-client=true</code> label과 Service FQDN으로 최근 구간을 직접 소비한다. 이 label은 현재 Flannel 환경에서 접근 제어를 강제하지 않는다. 이 기능은 bounded read cache일 뿐 중앙 단절 중 미전송 Event 보존·재전송이나 장기 history를 제공하지 않는다.</p>
-<h2 id="10-장애-복구-검증">10. 장애·복구 검증</h2>
-<h3 id="10-1-2026-07-22-실측-결과">10.1 2026-07-22 실측 결과</h3>
+<ul><li><code>edgex-telemetry</code>가 <code>Synced/Healthy</code></li><li>중앙 Core와 PostgreSQL이 Ready</li><li>두 Device Service가 각각 <code>1/1 Ready</code></li><li><code>sensor-anomaly-demo</code>가 Jetson에서 Ready</li><li>image가 immutable digest이며 restart가 반복 증가하지 않음</li></ul>
+<h2 id="3-device-service와-물리-binding-확인">3. Device Service와 물리 binding 확인</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th>시나리오</th>
-<th>장애 중 관찰</th>
-<th>복구 결과</th>
-<th>판정</th>
+<th>Runtime</th>
+<th>node</th>
+<th>exact device</th>
+<th>기능별 Device 수</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Jetson Arduino USB driver detach</td>
-<td><code>cdc_acm</code> interface <code>1-2.1:1.0</code> detach 후 Serial 가상 Device 6개 <code>DOWN</code></td>
-<td>rebind 약 31초 뒤 6개 <code>UP</code>, Pod restart 0, 새 Local Data/Core Data origin</td>
-<td>driver-level PASS</td>
+<td><code>device-serial-jetson</code></td>
+<td><code>etri-dev0001-jetorn</code></td>
+<td><code>/dev/arduino-001</code></td>
+<td>6</td>
 </tr>
 <tr>
-<td>Sense HAT reader process 종료</td>
-<td>Python reader PID 종료 후 I2C 가상 Device 6개 <code>DOWN</code></td>
-<td>약 1.3초 뒤 새 PID로 재시작, 6개 <code>UP</code>, 11개 source와 중앙 Event 재개</td>
-<td>reader-level PASS</td>
-</tr>
-<tr>
-<td>중앙 MessageBus 0 replica</td>
-<td>Serial ring <code>1878 → 2094</code>, Sense HAT ring <code>3234 → 3641</code>; 당시 3축 <code>sensor-anomaly-demo</code>는 <code>live/fresh</code>; 두 Core Data count는 고정</td>
-<td>broker 복구 후 각 Device는 새 Event 1건부터 재개; Serial 약 128.213초, I2C 약 128.010초 저장 공백</td>
-<td>local continuity PASS, offline replay 없음</td>
-</tr>
-<tr>
-<td>Device Service Pod 재생성</td>
-<td>각 서비스 ring cache 초기화</td>
-<td>Serial <code>3540 → 78</code>, Sense HAT <code>6600 → 154</code> sample에서 다시 증가하고 중앙 Event 재개</td>
-<td>restart recovery PASS</td>
+<td><code>device-sensehat-raspi</code></td>
+<td><code>etri-dev0003-raspi5</code></td>
+<td><code>/dev/i2c-1</code></td>
+<td>6</td>
 </tr>
 </tbody></table></div>
-<p>Serial USB 장애 주입 대상은 VID/PID <code>2341:0043</code>, serial <code>75035303230351E0D171</code>, interface <code>1-2.1:1.0</code>으로 실측 확인한 Arduino 하나였다. 다른 테스트베드에서는 이 값을 재사용하지 말고 <code>/dev/serial/by-id</code>와 sysfs identity를 다시 대조한다. Serial의 약 31초 복구 시간은 reader의 지수 backoff가 포함된 값이다.</p>
-<h3 id="10-2-재실행-조건과-기대-결과">10.2 재실행 조건과 기대 결과</h3>
-<p><strong>Test Scenario: source 장애 후 Device 상태와 수집 복구</strong></p>
-<ul><li>시작 조건: 중앙 Core 서비스와 두 Device Service가 Ready이고 12개 Device가 <code>UP</code>, latest origin이 증가한다.</li><li>실행 역할: 테스트베드 운영자. 실제 장치 또는 kernel driver/reader process를 하나씩만 중단한다.</li><li>확인 순서: 장애 전 <code>tools/verify_e2e.sh</code> 실행 → 대상 source 중단 → Core Metadata의 해당 6개 Device <code>DOWN</code> 확인 → source 복구 → 6개 <code>UP</code> 확인 → Local Data와 Core Data origin 증가 확인.</li><li>기대 결과: 비대상 Device Service와 EdgeMesh는 변경되지 않고 대상 physical source에 묶인 6개 Device만 함께 상태 전이한다.</li></ul>
-<p><strong>Test Scenario: 중앙 MessageBus 장애 중 로컬 연속성</strong></p>
-<ul><li>시작 조건: Argo CD Application policy와 MessageBus replica를 기록하고 두 local stats 및 대표 Core Data Event를 저장한다.</li><li>실행 역할: 데이터 유실과 중앙 중단을 승인받은 운영자. MessageBus endpoint가 실제 0 Pod인지 확인한 뒤 제한된 시간만 중단한다.</li><li>확인 순서: 장애 중 두 Local Data latest/stats와 <code>sensor-anomaly-demo</code> 증가 확인 → Core Data count/origin 고정 확인 → MessageBus 1 replica와 Argo self-heal 원복 → 중앙 새 Event 확인.</li><li>기대 결과: 로컬 ring과 같은-node AI consumer는 지속되지만 중앙 Event는 멈춘다. 복구 후 새 Event는 재개되지만 outage 구간은 replay되지 않는다.</li></ul>
-<p>재검증 후에는 다음 read-only 진입점으로 전체 상태를 다시 확인한다.</p>
-<pre data-lang="bash"><code>rtk bash tools/verify_e2e.sh</code></pre>
-<p>이 결과는 실제 케이블·보드 손분리 현장 시연을 대체하지 않는다. 실제 손분리 → 해당 6개 Device <code>DOWN</code>/dashboard degraded → 재연결 → 새 Event 발행은 현장 gate로 남긴다. 현재 Device Service에는 durable outbox가 없으므로 중앙 단절 중 데이터 보존을 완료 기능으로 설명하지 않는다. Modbus와 OPC-UA는 실제 endpoint가 없어 완료로 판정하지 않는다.</p>
-<p><code>sensor-anomaly-demo</code> 복합 점수 revision은 2026-08-03 실제 증가 acceleration/temperature origin, <code>alignmentLagMs&lt;=2000</code>, 개별·종합 점수와 중앙 readback을 PASS했다. detector anomaly/clear 전이와 지연 temperature 복구는 결정론적 테스트 대상이고 실제 장치 움직임 anomaly는 별도 현장 시연 gate다. 이 고정 Deployment를 동적 workflow 실행, runtime migration 또는 offloading 완료로 설명하지 않는다.</p>
-<h3 id="10-3-실제-움직임-케이블-분리-현장-판정">10.3 실제 움직임·케이블 분리 현장 판정</h3>
-<p><code>tools/verify_sensor_service_demo.py</code>는 <code>state-aggregator</code>의 read-only <code>/state/service-demo</code>, <code>/state/devices</code>만 조회한다. Kubernetes, EdgeX Metadata와 장비 상태를 변경하지 않는다. 별도 터미널에서 port-forward를 유지하고 운영자가 안내에 맞춰 실제 센서를 움직이거나 USB를 분리·재연결한다.</p>
-<pre data-lang="bash"><code>rtk kubectl -n default port-forward service/state-aggregator 8000:8000</code></pre>
-<p>실제 움직임 검증은 fresh normal 기준선, 더 새로운 origin의 anomaly, 다시 더 새로운 origin의 normal 복구가 모두 관측된 경우에만 PASS다.</p>
-<pre data-lang="bash"><code>rtk python3 tools/verify_sensor_service_demo.py anomaly \
-  --base-url http://127.0.0.1:8000 \
-  --timeout 180 \
-  --output /tmp/sensor-anomaly-field-evidence.json</code></pre>
-<p>실제 USB 검증은 선택 Device와 서비스의 fresh 기준선, 명시적 degraded 상태, Device <code>UP/fresh/available</code>과 더 새로운 origin/frame 복구가 모두 관측된 경우에만 PASS다.</p>
-<pre data-lang="bash"><code>rtk python3 tools/verify_sensor_service_demo.py disconnect \
-  --base-url http://127.0.0.1:8000 \
-  --device-name virtual-acceleration-x-001 \
-  --timeout 240 \
-  --output /tmp/serial-disconnect-field-evidence.json</code></pre>
-<p>종료 코드 0과 JSON의 <code>passed=true</code>를 함께 확인한다. API가 일시적으로 안 보인 것만으로 장비 분리를 판정하지 않으며, 제한 시간 안에 필요한 상태 전이가 없으면 종료 코드 1과 현재 phase별 실패 사유를 남긴다.</p>
-<p>2026-08-03 최초 live 관측에서는 서비스가 <code>UP/fresh/available</code>, <code>live/fresh/normal</code>이고 frame <code>2429 → 2561</code>로 계속 증가했다. 움직임 관측 중 진동 component 최대값은 약 2.31로 현재 anomaly threshold 4를 넘지 않았고, USB도 실제로 분리되지 않아 두 시나리오 모두 상태 전이가 발생하지 않았다. 따라서 이 관측은 정상 경로 증거일 뿐 현장 anomaly 또는 손분리 PASS가 아니다. 짧은 verifier smoke도 정상 기준선을 잡은 뒤 <code>anomaly_not_observed</code>로 실패해 false PASS를 만들지 않음을 확인했다.</p>
+<pre data-lang="bash"><code>kubectl -n edgex-edge get deployment device-serial-jetson device-sensehat-raspi \
+  -o wide</code></pre>
+<p>두 Runtime은 host 전체가 아니라 필요한 CharDevice만 사용한다. 각 물리 연결은 내부 shared reader 하나가 소유하며 기능별 Profile/Device로 값을 fan-out한다.</p>
+<h2 id="4-core-metadata-확인">4. Core Metadata 확인</h2>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-metadata:59881/proxy/api/v3/device/all?offset=0&amp;limit=100&#x27;</code></pre>
+<p>확인 항목:</p>
+<ul><li>Device Service, Profile과 Device 이름이 manifest와 일치</li><li><code>adminState=UNLOCKED</code>, <code>operatingState=UP</code></li><li>Serial Device는 <code>physicalDeviceId=arduino-001</code></li><li>Sense HAT Device는 <code>physicalDeviceId=sensehat-001</code></li><li>aggregate Device를 중복 생성하지 않음</li></ul>
+<h2 id="5-core-data-freshness-확인">5. Core Data freshness 확인</h2>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/virtual-acceleration-x-001?limit=1&#x27;
+
+kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/env-sensehat-temperature-01?limit=1&#x27;</code></pre>
+<p>Event/Reading의 resource와 type이 Profile과 일치하고 nanosecond <code>origin</code>이 증가해야 한다. API 응답 시각이나 Kubernetes node 상태로 freshness를 대신하지 않는다.</p>
+<h2 id="6-ai-서비스-확인">6. AI 서비스 확인</h2>
+<pre data-lang="bash"><code>curl -fsS http://aggregator.192.168.0.56.sslip.io/state/services
+curl -fsS http://aggregator.192.168.0.56.sslip.io/state/service-demo
+curl -fsS http://aggregator.192.168.0.56.sslip.io/state/service-demo/augmentation</code></pre>
+<p>확인 항목:</p>
+<ul><li>필수 X/Y/Z/온도 입력 connected·fresh·schema valid</li><li>model ready와 model version</li><li>latest result와 최근 alert</li><li>현재 target과 Device1/Server1 처리 비율</li><li>증강 evaluator state, gate, metric과 <code>BLOCKED</code> reason</li></ul>
+<p>설비 anomaly가 발생해도 서비스 입력·모델이 정상이라면 서비스 실행 상태와 혼합하지 않는다. 반대로 anomaly가 없어도 latency/backlog 자원 압박은 별도로 평가한다.</p>
+<h2 id="7-대시보드-확인">7. 대시보드 확인</h2>
+<p>공식 주소:</p>
+<pre data-lang="text"><code>http://aggregator.192.168.0.56.sslip.io</code></pre>
+<p>브라우저에서 확인한다.</p>
+<ol><li>서비스 목록에 <code>sensor-anomaly-demo</code>가 보인다.</li><li>센서 수집→전처리→특징 추출→AI 추론→결과 저장 DAG가 보인다.</li><li>현재 단계, Device1/Server1 target, event timeline과 실시간 metric이 표시된다.</li><li>stale·missing·not ready를 정상처럼 표시하지 않는다.</li><li>브라우저 console에 JavaScript 오류가 없다.</li></ol>
+<h2 id="장애-시-우선순위">장애 시 우선순위</h2>
+<ol><li>Core Metadata 조회 가능 여부</li><li>Device <code>adminState</code>·<code>operatingState</code></li><li>Core Data latest Event와 <code>origin</code></li><li>Device Service log와 physical mount</li><li>AI input schema·window·model readiness</li><li>Server1 endpoint와 metric freshness</li><li>node·Pod 자원 상태</li></ol>
+<p>고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다. write command, actuator mutation, 자동 migration/offloading은 이 절차의 정상 조치가 아니다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적">목적</a></li>
-<li class="toc-h2"><a href="#배치-기준">배치 기준</a></li>
-<li class="toc-h2"><a href="#가상-device-계약">가상 Device 계약</a></li>
-<li class="toc-h2"><a href="#1-로컬-render-검증">1. 로컬 render 검증</a></li>
-<li class="toc-h2"><a href="#2-argo-cd-상태">2. Argo CD 상태</a></li>
-<li class="toc-h2"><a href="#3-live-workload와-장치-mount">3. live workload와 장치 mount</a></li>
-<li class="toc-h2"><a href="#4-core-metadata-binding">4. Core Metadata binding</a></li>
-<li class="toc-h2"><a href="#5-core-data-event-reading">5. Core Data Event/Reading</a></li>
-<li class="toc-h2"><a href="#6-read-only-core-command">6. read-only Core Command</a></li>
-<li class="toc-h2"><a href="#7-jetson-local-data-api">7. Jetson Local Data API</a></li>
-<li class="toc-h2"><a href="#7a-raspberry-pi-sense-hat-local-data-api">7A. Raspberry Pi Sense HAT Local Data API</a></li>
-<li class="toc-h2"><a href="#7b-jetson-실측-센서-이상-탐지-서비스">7B. Jetson 실측 센서 이상 탐지 서비스</a></li>
-<li class="toc-h2"><a href="#8-dashboard-api">8. dashboard API</a></li>
-<li class="toc-h2"><a href="#8a-edgex-device-저장-이력과-dashboard-그래프">8A. EdgeX Device 저장 이력과 dashboard 그래프</a></li>
-<li class="toc-h2"><a href="#8b-dashboard-adapter-runtime과-device-연결-관리">8B. Dashboard Adapter Runtime과 Device 연결 관리</a></li>
-<li class="toc-h2"><a href="#9-저장과-캐시-경계">9. 저장과 캐시 경계</a></li>
-<li class="toc-h2"><a href="#10-장애-복구-검증">10. 장애·복구 검증</a></li>
-<li class="toc-h3"><a href="#10-1-2026-07-22-실측-결과">10.1 2026-07-22 실측 결과</a></li>
-<li class="toc-h3"><a href="#10-2-재실행-조건과-기대-결과">10.2 재실행 조건과 기대 결과</a></li>
-<li class="toc-h3"><a href="#10-3-실제-움직임-케이블-분리-현장-판정">10.3 실제 움직임·케이블 분리 현장 판정</a></li></ol></aside>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#점검-대상">점검 대상</a></li>
+<li class="toc-h2"><a href="#1-git과-manifest-확인">1. Git과 manifest 확인</a></li>
+<li class="toc-h2"><a href="#2-argo-cd와-workload-확인">2. Argo CD와 workload 확인</a></li>
+<li class="toc-h2"><a href="#3-device-service와-물리-binding-확인">3. Device Service와 물리 binding 확인</a></li>
+<li class="toc-h2"><a href="#4-core-metadata-확인">4. Core Metadata 확인</a></li>
+<li class="toc-h2"><a href="#5-core-data-freshness-확인">5. Core Data freshness 확인</a></li>
+<li class="toc-h2"><a href="#6-ai-서비스-확인">6. AI 서비스 확인</a></li>
+<li class="toc-h2"><a href="#7-대시보드-확인">7. 대시보드 확인</a></li>
+<li class="toc-h2"><a href="#장애-시-우선순위">장애 시 우선순위</a></li></ol></aside>
     </div>
   </div>
   <footer>Generated from docs/*.md</footer>

@@ -10,77 +10,46 @@ import html
 import json
 import os
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
+DEFAULT_DOCS = DOCS
 OUT = DOCS / "html"
 CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
-SEARCH_EXCLUDED_PATHS = {"archive/integration/통합-상세-기록.md"}
-DESIGN_HISTORY_PATHS = {
-    "일일-기록.md",
-    "대시보드-화면-설계.md",
-    "자원-증강-가상디바이스-대시보드.md",
-    "런타임-자원-증강-데모-워크플로.md",
+PUBLICATION_SECTIONS = [
+    ("시작하기", "start", ["문서-안내.md", "플랫폼-개요.md", "현재-구현-상태.md"]),
+    ("연결 가이드", "guide", ["디바이스-서비스-연결.md", "AI-서비스-등록-가이드.md"]),
+    ("운영", "ops", [
+        "ops/현재-데모-운영-절차.md",
+        "ops/대시보드-배포.md",
+        "ops/대시보드-검증.md",
+        "ops/네트워크-문제해결.md",
+    ]),
+    ("정책과 계약", "policy", [
+        "프로젝트-범위.md",
+        "대시보드-판단-정책.md",
+        "옥동-데이터-계약.md",
+        "옥동-생산성-kpi.md",
+    ]),
+    ("개발 참고", "reference", ["저장소-구조.md", "단계별-추진계획.md"]),
+]
+PUBLIC_PATHS = [path for _, _, paths in PUBLICATION_SECTIONS for path in paths]
+PUBLIC_META = {
+    path: (section, filter_name, order)
+    for section, filter_name, paths in PUBLICATION_SECTIONS
+    for order, path in enumerate(paths)
 }
-
-WIKI_ORDER = [
-    "wiki/지식-지도.md",
-    "wiki/운영-규칙.md",
-    "wiki/변경-기록.md",
-    "wiki/운영-모델.md",
-    "wiki/현재-데모-흐름.md",
-    "wiki/상태와-텔레메트리.md",
-    "wiki/대시보드와-kpi.md",
-    "wiki/운영-진입점.md",
-    "wiki/2차년도-설계-트랙.md",
-]
-
-ACTIVE_ORDER = [
-    "AI-서비스-등록-가이드.md",
-    "문서-안내.md",
-    "문서-분류-목록.md",
-    "2차년도-ETRI-실행계획.md",
-    "시스템-구축-목표.md",
-    "프로젝트-배경.md",
-    "프로젝트-범위.md",
-    "원시-텔레메트리-데이터-플레인.md",
-    "서비스-데모-시나리오.md",
-    "옥동-생산성-kpi.md",
-    "카젠티-운영-보조-에이전트.md",
-    "2차년도-가상디바이스-워크플로-설계.md",
-    "대시보드-정보-구조.md",
-    "대시보드-판단-정책.md",
-    "물리-디바이스-상태-정책.md",
-    "쿠버엣지-엣지엑스-모델-매핑.md",
-    "디바이스-서비스-연결.md",
-    "현재-데모-경로.md",
-    "저장소-구조.md",
-    "단계별-추진계획.md",
-    "문서-정리-계획.md",
-]
-
-OPS_ORDER = [
-    "ops/현재-데모-운영-절차.md",
-    "ops/대시보드-배포.md",
-    "ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md",
-    "ops/중앙-메시지버스-재구축-절차.md",
-    "ops/대시보드-검증.md",
-    "ops/gpu-hami-런타임-운영.md",
-    "ops/네트워크-문제해결.md",
-    "ops/엣지-노드-조인-점검.md",
-    "ops/노드-조인-점검.md",
-    "ops/파드-연결성-점검.md",
-    "ops/노드-실측-사양표.md",
-]
 
 
 DISPLAY_TITLES = {
     "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "문서-안내.md": "문서 안내",
+    "플랫폼-개요.md": "플랫폼 개요",
     "문서-분류-목록.md": "문서 전체 분류 목록",
     "2차년도-ETRI-실행계획.md": "2026년도 2차년도 ETRI 실행계획",
     "시스템-구축-목표.md": "시스템 구축 목표",
@@ -94,7 +63,7 @@ DISPLAY_TITLES = {
     "대시보드-판단-정책.md": "대시보드 판단 정책",
     "물리-디바이스-상태-정책.md": "물리 디바이스 상태 정책",
     "쿠버엣지-엣지엑스-모델-매핑.md": "쿠버엣지-엣지엑스 모델 매핑",
-    "디바이스-서비스-연결.md": "디바이스-서비스 연결",
+    "디바이스-서비스-연결.md": "디바이스 연결 가이드",
     "카젠티-운영-보조-에이전트.md": "카젠티 운영 보조 에이전트",
     "2차년도-가상디바이스-워크플로-설계.md": "2차년도 가상디바이스·워크플로 설계",
     "원시-텔레메트리-데이터-플레인.md": "원시 텔레메트리 데이터 플레인",
@@ -139,20 +108,15 @@ DISPLAY_TITLES = {
 
 
 def md_files() -> list[Path]:
+    if DOCS.resolve() == DEFAULT_DOCS.resolve():
+        missing = [rel for rel in PUBLIC_PATHS if not (DOCS / rel).is_file()]
+        if missing:
+            raise FileNotFoundError(f"공개 문서가 없습니다: {', '.join(missing)}")
+        return [DOCS / rel for rel in PUBLIC_PATHS]
+
     files = sorted(DOCS.rglob("*.md"))
     files = [p for p in files if "/html/" not in p.as_posix()]
-    order = {
-        **{name: idx for idx, name in enumerate(WIKI_ORDER)},
-        **{name: idx for idx, name in enumerate(ACTIVE_ORDER)},
-        **{name: idx for idx, name in enumerate(OPS_ORDER)},
-    }
-    group_order = {"wiki": 0, "active": 1, "ops": 2, "history": 3, "archive": 4}
-
-    def key(p: Path):
-        rel = p.relative_to(DOCS).as_posix()
-        return (group_order[filter_of(rel)], order.get(rel, 999), rel)
-
-    return sorted(files, key=key)
+    return files
 
 
 def title_of(path: Path, text: str) -> str:
@@ -274,6 +238,25 @@ def inline_md(s: str, current_html: Path, current_md: Path) -> str:
     s = re.sub(r"__([^_]+)__", r"<strong>\1</strong>", s)
     s = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", s)
 
+    def image(m: re.Match[str]) -> str:
+        alt, url = m.group(1), html.unescape(m.group(2))
+        if url.startswith("/home/") or url.startswith("/") and not url.startswith("//"):
+            return stash(f'<code>{html.escape(url)}</code>')
+        if not re.match(r"^(?:https?:)?//|^data:", url):
+            source_asset = (current_md.parent / url).resolve()
+            try:
+                source_asset.relative_to(DOCS)
+                url = rel_to_asset(current_html, source_asset)
+            except ValueError:
+                pass
+        return stash(
+            '<figure class="doc-figure">'
+            f'<img src="{html.escape(url, quote=True)}" alt="{alt}" loading="lazy">'
+            '</figure>'
+        )
+
+    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", image, s)
+
     def link(m: re.Match[str]) -> str:
         label, url = m.group(1), html.unescape(m.group(2))
         if url.startswith("/home/") or url.startswith("/") and not url.startswith("//"):
@@ -345,6 +328,11 @@ def render_markdown(text: str, current_html: Path, current_md: Path) -> str:
             continue
         if not stripped:
             flush_para()
+            i += 1
+            continue
+        if re.fullmatch(r"!\[[^\]]*\]\([^)]+\)", stripped):
+            flush_para()
+            out.append(inline_md(stripped, current_html, current_md))
             i += 1
             continue
         if stripped.startswith("|") and "|" in stripped[1:]:
@@ -420,11 +408,11 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
   <div class=\"search-box\" data-search-index=\"{html.escape(index_href, quote=True)}\">
     <div class=\"search-filters\" role=\"group\" aria-label=\"검색 범위\">
       <button type=\"button\" class=\"active\" data-search-filter=\"all\">전체</button>
-      <button type=\"button\" data-search-filter=\"wiki\">위키</button>
-      <button type=\"button\" data-search-filter=\"active\">최신 기준</button>
+      <button type=\"button\" data-search-filter=\"start\">시작하기</button>
+      <button type=\"button\" data-search-filter=\"guide\">연결 가이드</button>
       <button type=\"button\" data-search-filter=\"ops\">운영</button>
-      <button type=\"button\" data-search-filter=\"history\">설계 이력</button>
-      <button type=\"button\" data-search-filter=\"archive\">보관</button>
+      <button type=\"button\" data-search-filter=\"policy\">정책과 계약</button>
+      <button type=\"button\" data-search-filter=\"reference\">개발 참고</button>
     </div>
     <input id=\"doc-search-input\" type=\"search\" placeholder=\"예: device status, dashboard, KPI, runbook\" autocomplete=\"off\">
     <div id=\"doc-search-results\" class=\"search-results\" aria-live=\"polite\"></div>
@@ -479,31 +467,23 @@ def render_search_index(files: list[Path]) -> None:
 
 
 def group_of(rel: str) -> str:
-    if rel.startswith("wiki/"):
-        return "위키"
-    if rel.startswith("archive/"):
-        return "보관 문서"
+    if rel in PUBLIC_META:
+        return PUBLIC_META[rel][0]
     if rel.startswith("ops/"):
-        return "운영 문서"
-    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
-        return "설계 이력"
-    return "최신 기준 문서"
+        return "운영"
+    return "개발 참고"
 
 
 def filter_of(rel: str) -> str:
-    if rel.startswith("wiki/"):
-        return "wiki"
-    if rel.startswith("archive/"):
-        return "archive"
+    if rel in PUBLIC_META:
+        return PUBLIC_META[rel][1]
     if rel.startswith("ops/"):
         return "ops"
-    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
-        return "history"
-    return "active"
+    return "reference"
 
 
 def is_search_excluded(rel: str) -> bool:
-    return rel in SEARCH_EXCLUDED_PATHS
+    return False
 
 
 def archive_banner(rel: str) -> str:
@@ -636,7 +616,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
 
 def render_index(files: list[Path]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    groups: dict[str, list[Path]] = {"위키": [], "최신 기준 문서": [], "운영 문서": [], "설계 이력": [], "보관 문서": []}
+    groups: dict[str, list[Path]] = {section: [] for section, _, _ in PUBLICATION_SECTIONS}
     for md in files:
         groups[group_of(md.relative_to(DOCS).as_posix())].append(md)
     sections = []
@@ -651,10 +631,7 @@ def render_index(files: list[Path]) -> None:
             href = Path(rel).with_suffix(".html").as_posix()
             cards.append(f'<li><a class="doc-card" href="{href}"><strong>{html.escape(title)}</strong><small>{html.escape(rel)}</small><span aria-hidden="true">→</span></a></li>')
         content = f'<div class="collection-head"><h2>{html.escape(name)}</h2><span>{len(group_files)}개 문서</span></div><ul class="card-grid">' + "\n".join(cards) + "</ul>"
-        if name in {"설계 이력", "보관 문서"}:
-            sections.append(f'<details class="doc-collection muted"><summary>{html.escape(name)} <span>{len(group_files)}개 · 필요할 때 펼치기</span></summary>{content}</details>')
-        else:
-            sections.append(f'<section class="doc-collection">{content}</section>')
+        sections.append(f'<section class="doc-collection">{content}</section>')
     index = f'''<!doctype html>
 <html lang="ko">
 <head>
@@ -674,21 +651,26 @@ def render_index(files: list[Path]) -> None:
   </nav>
   <main class="home">
     <article class="home-card">
-      <header class="home-hero">
-        <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
-        <h1>Edge AI 플랫폼 문서</h1>
-        <p class="subtitle">
-          AI 서비스를 현장 디바이스에 연결하고 배포·검증하는 운영 기준을 한곳에서 찾습니다.
-          최신 기준과 운영 문서를 먼저 확인하세요.
-        </p>
+      <header class="home-hero-grid">
+        <div class="home-hero">
+          <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
+          <h1>Edge AI 플랫폼 문서</h1>
+          <p class="subtitle">
+            현장 디바이스 연결부터 AI 서비스 배포·검증까지, 지금 운영하는 구조만 설명합니다.
+          </p>
+          <a class="hero-link" href="플랫폼-개요.html">현재 아키텍처 보기 →</a>
+        </div>
+        <figure class="hero-visual">
+          <img src="{html.escape(rel_to_asset(OUT / 'index.html', DOCS / 'assets' / 'images' / '플랫폼-개념-비주얼-v2.png'))}" alt="공장 설비와 엣지 컴퓨터, 중앙 플랫폼이 연결된 Edge AI 개념도">
+        </figure>
       </header>
       <div class="section-kicker"><span>START HERE</span><h2>무엇을 하시나요?</h2></div>
       {home_intro_markup()}
       <div class="home-search">
-        {search_box_markup("문서 전체 검색", rel_to_search_index(OUT / 'index.html'), rel_to_search_js(OUT / 'index.html'))}
+        {search_box_markup("공개 문서 검색", rel_to_search_index(OUT / 'index.html'), rel_to_search_js(OUT / 'index.html'))}
       </div>
       <div class="home-body">
-        <div class="section-kicker"><span>REFERENCE</span><h2>전체 문서</h2><p>최신 기준과 운영 절차가 우선이며, 설계 이력과 보관 자료는 별도로 구분합니다.</p></div>
+        <div class="section-kicker"><span>REFERENCE</span><h2>유지 관리 문서</h2><p>현재 코드와 배포 기준에 맞춘 {len(files)}개 문서만 공개합니다.</p></div>
         {''.join(sections)}
       </div>
     </article>
@@ -702,6 +684,10 @@ def render_index(files: list[Path]) -> None:
 
 def main() -> None:
     files = md_files()
+    if OUT.exists():
+        if OUT.resolve().parent != DOCS.resolve() or OUT.name != "html":
+            raise RuntimeError(f"생성 디렉터리 안전 검증 실패: {OUT}")
+        shutil.rmtree(OUT)
     render_index(files)
     render_search_index(files)
     for md in files:

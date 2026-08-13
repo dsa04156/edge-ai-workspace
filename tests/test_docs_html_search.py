@@ -56,19 +56,13 @@ class DocsHtmlSearchTest(unittest.TestCase):
         readme = next(item for item in data if item["path"] == "문서-안내.md")
         self.assertEqual(readme["title"], "문서 안내")
         self.assertEqual(readme["url"], "문서-안내.html")
-        self.assertEqual(readme["group"], "최신 기준 문서")
-        self.assertEqual(readme["filter"], "active")
+        self.assertEqual(readme["group"], "시작하기")
+        self.assertEqual(readme["filter"], "start")
         self.assertIn("서비스 데모", readme["text"])
         self.assertIn("디바이스 상태", readme["text"])
         self.assertNotIn("```", readme["text"])
         ops = next(item for item in data if item["path"] == "ops/운영-절차.md")
-        archive = next(item for item in data if item["path"] == "archive/과거-연구.md")
-        detail_log = next(item for item in data if item["path"] == "archive/integration/통합-상세-기록.md")
         self.assertEqual(ops["filter"], "ops")
-        self.assertEqual(archive["filter"], "archive")
-        self.assertFalse(archive["search_excluded"])
-        self.assertTrue(detail_log["search_excluded"])
-        self.assertEqual(detail_log["filter"], "archive")
 
     def test_index_page_exposes_search_ui(self):
         html = build_docs_html.search_box_markup("문서 검색", "search-index.json")
@@ -76,11 +70,22 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn('data-search-index="search-index.json"', html)
         self.assertIn('id="doc-search-results"', html)
         self.assertIn('data-search-filter="all"', html)
-        self.assertIn('data-search-filter="active"', html)
+        self.assertIn('data-search-filter="start"', html)
+        self.assertIn('data-search-filter="guide"', html)
         self.assertIn('data-search-filter="ops"', html)
-        self.assertIn('data-search-filter="history"', html)
-        self.assertIn('data-search-filter="archive"', html)
+        self.assertIn('data-search-filter="policy"', html)
+        self.assertIn('data-search-filter="reference"', html)
         self.assertIn('docs-search.js', html)
+
+    def test_publication_set_contains_only_current_maintained_docs(self):
+        files = build_docs_html.md_files()
+        paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
+
+        self.assertEqual(len(paths), 15)
+        self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
+        self.assertIn("플랫폼-개요.md", paths)
+        self.assertNotIn("일일-기록.md", paths)
+        self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
     def test_home_intro_prioritizes_current_scope(self):
         intro = build_docs_html.home_intro_markup()
@@ -128,36 +133,16 @@ class DocsHtmlSearchTest(unittest.TestCase):
 
         self.assertNotIn("ssl.create_default_context", runbook)
         self.assertNotIn("load_cert_chain", runbook)
-        self.assertIn("edge workload | `device-serial-jetson`, `device-sensehat-raspi` 각 1 replica", runbook)
+        self.assertIn("`device-serial-jetson`", runbook)
+        self.assertIn("`device-sensehat-raspi`", runbook)
         self.assertIn("`edgex-edge-agent-*`", runbook)
         self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
-        self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
-        self.assertIn("device-sensehat-raspi.edgex-edge.svc.cluster.local", runbook)
         self.assertIn("/dev/arduino-001", runbook)
         self.assertIn("/dev/i2c-1", runbook)
-        self.assertIn("공유 Serial reader 1개", runbook)
-        self.assertIn("Device/resource별 최근 10분·최대 10,000 sample", runbook)
-        self.assertIn("/api/v3/localdata/device/name/", runbook)
-        self.assertIn("edge-ai.io/local-data-client=true", runbook)
-        self.assertIn("Flannel", runbook)
-        self.assertIn("보안 경계가 아니다", runbook)
-        self.assertIn("SQLite outbox/offline replay: 없음", runbook)
-        self.assertIn("InfluxDB workload를 배포하지 않는다", runbook)
-        for device_name in (
-            "virtual-temperature-001",
-            "virtual-light-001",
-            "virtual-magnetic-001",
-            "virtual-acceleration-x-001",
-            "virtual-acceleration-y-001",
-            "virtual-acceleration-z-001",
-            "env-sensehat-temperature-01",
-            "env-sensehat-humidity-01",
-            "env-sensehat-pressure-01",
-            "imu-sensehat-compass-01",
-            "imu-sensehat-orientation-01",
-            "imu-sensehat-gyroscope-01",
-        ):
-            self.assertIn(device_name, runbook)
+        self.assertIn("nanosecond `origin`", runbook)
+        self.assertIn("sensor-anomaly-demo", runbook)
+        self.assertIn("설비 anomaly", runbook)
+        self.assertIn("latency/backlog", runbook)
 
     def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
         runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")
