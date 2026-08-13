@@ -58,6 +58,12 @@ from .runtime_augmentation_api import (
     runtime_resource_augmentation_state,
 )
 from .service import StateAggregatorService
+from .service_augmentation import (
+    ServiceAugmentationEvaluator,
+    ServiceAugmentationState,
+    build_service_augmentation_signals,
+    select_server1_candidate,
+)
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -89,6 +95,7 @@ service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_url,
     settings.sensor_anomaly_demo_timeout_seconds,
 )
+service_augmentation_evaluator = ServiceAugmentationEvaluator()
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
     settings.edgex_core_metadata_url,
@@ -263,6 +270,61 @@ async def get_service_demo() -> ServiceDemoState:
         return await service_demo_client.get_state()
     except ServiceDemoError as exc:
         return degraded_service_demo_state(exc)
+
+
+@app.get(
+    "/state/service-demo/augmentation",
+    response_model=ServiceAugmentationState,
+)
+async def get_service_demo_augmentation(
+    refresh: bool = False,
+) -> ServiceAugmentationState:
+    observed_at = datetime.now(timezone.utc)
+    demo = await get_service_demo()
+    try:
+        resource_state = await service.get_resource_profile_state(refresh=refresh)
+    except httpx.HTTPError:
+        resource_state = {}
+    profiles = resource_state.get("service_resource_profiles")
+    profile = next(
+        (
+            item
+            for item in profiles if isinstance(item, dict)
+            and item.get("service") == "sensor-anomaly-demo"
+        ),
+        None,
+    ) if isinstance(profiles, list) else None
+    resource_state = await augmentation_crds.get_augmentation_resources()
+    candidate = select_server1_candidate(resource_state.resources)
+    source_node = next(
+        (
+            node
+            for node in service.get_nodes()
+            if node.hostname.casefold() == demo.binding.node.casefold()
+        ),
+        None,
+    )
+    source_gpu_ratio = None
+    if source_node is not None:
+        gpu_values = [
+            source_node.raw_metrics.get("gpu_utilization"),
+            source_node.raw_metrics.get("gpu_memory_usage_ratio"),
+        ]
+        observed_gpu_values = [
+            float(value)
+            for value in gpu_values
+            if isinstance(value, int | float)
+        ]
+        if observed_gpu_values:
+            source_gpu_ratio = max(observed_gpu_values)
+    signals = build_service_augmentation_signals(
+        demo,
+        profile,
+        candidate,
+        now=observed_at,
+        source_gpu_ratio=source_gpu_ratio,
+    )
+    return service_augmentation_evaluator.evaluate(signals, now=observed_at)
 
 
 def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:

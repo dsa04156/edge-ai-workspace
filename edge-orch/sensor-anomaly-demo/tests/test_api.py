@@ -9,6 +9,7 @@ from app.models import (
     LatestObservation,
     ModelObservation,
     RuntimeCounters,
+    ServicePerformance,
     ServiceStatus,
     SourceIdentity,
     StorageStatus,
@@ -58,6 +59,15 @@ class FakeRuntime:
                 stddev_floor=1.0,
             ),
             counters=RuntimeCounters(frames_processed=30),
+            performance=ServicePerformance(
+                observed_at=datetime.now(timezone.utc),
+                window_seconds=300,
+                processing_latency_p95_ms=20,
+                backlog=0,
+                throughput_per_second=2,
+                sample_count=30,
+                metrics_valid=True,
+            ),
         )
 
     def results(
@@ -98,6 +108,8 @@ def test_status_results_and_probes_are_read_only_and_use_v1_schema() -> None:
         results = client.get("/api/v1/results?limit=1")
         alerts = client.get("/api/v1/alerts?limit=1")
         storage = client.get("/api/v1/storage")
+        metrics = client.get("/metrics")
+        augmentation_readiness = client.get("/api/v1/augmentation-readyz")
         contracts = client.get("/api/v1/contracts")
         assert client.get("/api/v1/results?limit=0").status_code == 422
         assert (
@@ -117,6 +129,11 @@ def test_status_results_and_probes_are_read_only_and_use_v1_schema() -> None:
     assert alerts.json() == {"apiVersion": "v1", "count": 0, "alerts": []}
     assert storage.json()["backend"] == "sqlite"
     assert storage.json()["durable"] is True
+    assert "sensor_anomaly_processing_latency_p95_ms 20.0" in metrics.text
+    assert augmentation_readiness.json() == {
+        "status": "ready",
+        "capability": "sensor-anomaly-inference",
+    }
     assert set(contracts.json()) == {"pump-motor", "production-quality"}
 
 

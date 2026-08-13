@@ -15,6 +15,8 @@ version을 명시적으로 구분한다. 옥동 실제 모델은 `PumpModelAdapt
 - application-owned SQLite 결과 저장과 Pod 재시작 복구
 - 1Gi `local-path` RWO PVC를 사용하는 Jetson 배포
 - 중앙 `state-aggregator`를 통한 상태, 결과, 알림 이력 조회
+- processing p95 latency, backlog, throughput과 승인된 inference routing 상태 조회
+- 선택적 server1 inference endpoint와 timeout/retry/로컬 rollback 경로
 
 ## API
 
@@ -25,6 +27,21 @@ version을 명시적으로 구분한다. 옥동 실제 모델은 `PumpModelAdapt
 | `GET /api/v1/alerts` | 이상 발생·정상 복귀 transition 이력 |
 | `GET /api/v1/storage` | SQLite 결과·알림 건수와 보존 설정 |
 | `GET /api/v1/contracts` | 지원 입력 계약 JSON Schema |
+| `GET /metrics` | processing latency, backlog, throughput Prometheus metric |
+| `POST /api/v1/inference` | `inference-server` 역할에서만 여는 versioned 추론 endpoint |
+
+## 자원 증강 실행 경계
+
+기본 `k8s/` 배포는 `REMOTE_INFERENCE_MODE=disabled`이며 Jetson 로컬 추론만 사용한다.
+`k8s/server1-observed-only`는 server1 후보의 모델 readiness와 endpoint를 독립적으로
+준비하는 선택 배포다. evaluator의 `RECOMMENDED` 이후 운영자가 승인한 경우에만
+`k8s-overlays/server1-approved-offload`를 별도 GitOps 변경으로 사용한다.
+
+승인 overlay는 저장소 밖에서 만든 `sensor-anomaly-augmentation-approval` Secret의
+`approval-id`가 없으면 시작되지 않는다. 활성화 후 원격 호출은 1초 timeout, 동일
+`requestId` 최대 2회 retry를 사용하며 3회 연속 실패하면 15분 동안 로컬 추론으로
+rollback한다. 로컬 모델은 원격 추론 중에도 계속 갱신된다. 이 경로는 단일 서비스의
+승인된 요청 전환이며 자동 workload 증설이나 범용 동적 offloading이 아니다.
 
 ## Replay 실행
 
@@ -59,3 +76,4 @@ curl -sS 'http://127.0.0.1:8080/api/v1/alerts?limit=20'
 - PVC는 단일 Jetson 노드의 Pod 재시작을 견디지만 중앙 HA 결과 저장소가 아니다.
 - replay server는 개발·시험 도구이며 root 운영 Kustomize에 배포하지 않는다.
 - 원시 데이터 통신 단절 구간을 재전송하는 outbox는 아직 구현하지 않았다.
+- `server1-approved-offload` overlay와 승인 Secret은 운영 root Kustomize에 포함되지 않는다.

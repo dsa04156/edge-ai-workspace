@@ -79,6 +79,18 @@ class UpstreamLatest(UpstreamModel):
     weights: UpstreamScoreWeights | None = None
     vibration_features: UpstreamVibrationFeatures | None = None
     temperature_features: UpstreamTemperatureFeatures | None = None
+    inference_target: Literal["edge-local", "server1"] = "edge-local"
+    augmentation_approval_id: str | None = None
+
+
+class UpstreamInferenceRouting(UpstreamModel):
+    configured_mode: Literal["disabled", "approved"] = "disabled"
+    state: Literal["disabled", "remote", "rolled-back"] = "disabled"
+    effective_target: Literal["edge-local", "server1"] = "edge-local"
+    approval_id: str | None = None
+    consecutive_failures: int = Field(default=0, ge=0)
+    rollback_remaining_seconds: int = Field(default=0, ge=0)
+    last_error: str | None = None
 
 
 class UpstreamFeatureModel(UpstreamModel):
@@ -113,6 +125,16 @@ class UpstreamCounters(UpstreamModel):
     unaligned_frames_dropped: int = Field(default=0, ge=0)
 
 
+class UpstreamServicePerformance(UpstreamModel):
+    observed_at: datetime
+    window_seconds: float = Field(gt=0)
+    processing_latency_p95_ms: float = Field(ge=0)
+    backlog: int = Field(ge=0)
+    throughput_per_second: float = Field(ge=0)
+    sample_count: int = Field(ge=0)
+    metrics_valid: bool
+
+
 class UpstreamServiceStatus(UpstreamModel):
     api_version: Literal["v1"]
     service: Literal["sensor-anomaly-demo"]
@@ -124,6 +146,10 @@ class UpstreamServiceStatus(UpstreamModel):
     latest: UpstreamLatest | None = None
     model: UpstreamDetectorModel
     counters: UpstreamCounters
+    performance: UpstreamServicePerformance | None = None
+    inference_routing: UpstreamInferenceRouting = Field(
+        default_factory=UpstreamInferenceRouting
+    )
     last_error: str | None = None
 
 
@@ -178,6 +204,8 @@ class ServiceDemoLatest(BaseModel):
     weights: ServiceDemoScoreWeights | None = None
     vibration_features: ServiceDemoVibrationFeatures | None = None
     temperature_features: ServiceDemoTemperatureFeatures | None = None
+    inference_target: Literal["edge-local", "server1"] = "edge-local"
+    augmentation_approval_id: str | None = None
 
 
 class ServiceDemoComponentScores(BaseModel):
@@ -239,6 +267,26 @@ class ServiceDemoCounters(BaseModel):
     unaligned_frames_dropped: int = 0
 
 
+class ServiceDemoPerformance(BaseModel):
+    observed_at: datetime
+    window_seconds: float
+    processing_latency_p95_ms: float
+    backlog: int
+    throughput_per_second: float
+    sample_count: int
+    metrics_valid: bool
+
+
+class ServiceDemoInferenceRouting(BaseModel):
+    configured_mode: Literal["disabled", "approved"] = "disabled"
+    state: Literal["disabled", "remote", "rolled-back"] = "disabled"
+    effective_target: Literal["edge-local", "server1"] = "edge-local"
+    approval_id: str | None = None
+    consecutive_failures: int = 0
+    rollback_remaining_seconds: int = 0
+    last_error: str | None = None
+
+
 class ServiceDemoState(BaseModel):
     generated_at: datetime
     mode: Literal["live", "unavailable"]
@@ -249,6 +297,10 @@ class ServiceDemoState(BaseModel):
     latest: ServiceDemoLatest | None = None
     model: ServiceDemoModel | None = None
     counters: ServiceDemoCounters = Field(default_factory=ServiceDemoCounters)
+    performance: ServiceDemoPerformance | None = None
+    inference_routing: ServiceDemoInferenceRouting = Field(
+        default_factory=ServiceDemoInferenceRouting
+    )
     last_error: str | None = None
     observation_error: str | None = None
 

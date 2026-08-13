@@ -5,6 +5,15 @@ from .virtual_resources import VirtualResourceRegistryEntry
 
 RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
     VirtualResourceRegistryEntry(
+        id="server1-sensor-anomaly-inference",
+        display_name="server1 Sensor Anomaly Inference",
+        node="etri-ser0001-cg0msb",
+        resource_type="cpu",
+        stage_type="ai_inference",
+        capabilities=["anomaly_model", "remote_inference"],
+        keywords=["sensor-anomaly-inference-server1"],
+    ),
+    VirtualResourceRegistryEntry(
         id="vd-aihat-inference",
         display_name="AI HAT Inference",
         node="etri-dev0002-raspi5",

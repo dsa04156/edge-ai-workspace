@@ -48,9 +48,11 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-demo
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:2abc03055426ea979a38e18fa3e58df1c6b49b4057a6c84fc4cc62342a9e641b
           imagePullPolicy: IfNotPresent
           env:
+            - name: REMOTE_INFERENCE_MODE
+              value: disabled
             - name: LOCAL_DATA_BASE_URL
               value: http://device-serial-jetson.edgex-edge.svc.cluster.local:59910
             - name: POLL_INTERVAL_SECONDS

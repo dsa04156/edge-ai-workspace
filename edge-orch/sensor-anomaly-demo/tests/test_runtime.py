@@ -8,7 +8,8 @@ from app.local_data import (
     LocalDataSource,
     LocalDataUnavailable,
 )
-from app.models import AxisSample
+from app.models import AxisSample, InferenceRoutingStatus
+from app.remote_inference import RoutedInference
 from app.runtime import AnomalyRuntime
 from app.storage import ResultStore
 
@@ -53,6 +54,52 @@ class ToggleFailureClient(FakeLocalDataClient):
         return await super().fetch(source, from_origin, to_origin)
 
 
+class FakeApprovedRouter:
+    def __init__(self) -> None:
+        self.closed = False
+
+    async def infer(self, frame, temperature, *, local, now=None):
+        return RoutedInference(_remote_decision(frame.origin, temperature.value), "server1")
+
+    def status(self, *, now=None) -> InferenceRoutingStatus:
+        return InferenceRoutingStatus(
+            configured_mode="approved",
+            state="remote",
+            effective_target="server1",
+            approval_id="approval-001",
+        )
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+def _remote_decision(origin: int, temperature: float):
+    from app.model_adapter import ModelDecision
+    from app.models import TemperatureFeatures, VibrationFeatures
+
+    return ModelDecision(
+        status="normal",
+        score=0.5,
+        vibration_score=0.4,
+        temperature_score=0.7,
+        vibration_features=VibrationFeatures(
+            origin=origin,
+            rms=1.0,
+            peak=2.0,
+            kurtosis=3.0,
+            sample_count=20,
+        ),
+        temperature_features=TemperatureFeatures(
+            origin=origin,
+            raw=temperature,
+            mean=temperature,
+            stddev=0.0,
+            delta=0.0,
+            sample_count=10,
+        ),
+    )
+
+
 def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> None:
     origin = 1_000_000_000
     client = FakeLocalDataClient(
@@ -88,6 +135,36 @@ def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> No
     assert second.counters.frames_processed == 1
     assert [call[1] for call in client.calls[4:7]] == [origin + 1] * 3
     assert client.calls[7][1] == origin - 9_999_999
+
+
+def test_runtime_uses_explicitly_approved_remote_inference_result() -> None:
+    origin = 1_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    router = FakeApprovedRouter()
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        inference_router=router,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origin + 100))
+    state = runtime.status(now_ns=origin + 100)
+    asyncio.run(runtime.stop())
+
+    assert state.latest is not None
+    assert state.latest.score == 0.5
+    assert state.latest.inference_target == "server1"
+    assert state.latest.augmentation_approval_id == "approval-001"
+    assert state.inference_routing.effective_target == "server1"
+    assert router.closed is True
 
 
 def test_runtime_recovers_pending_acceleration_when_temperature_arrives_late() -> None:

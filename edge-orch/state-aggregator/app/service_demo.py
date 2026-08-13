@@ -14,7 +14,9 @@ from .service_demo_models import (
     ServiceDemoComponentScores,
     ServiceDemoCounters,
     ServiceDemoLatest,
+    ServiceDemoInferenceRouting,
     ServiceDemoModel,
+    ServiceDemoPerformance,
     ServiceDemoResultState,
     ServiceDemoScoreWeights,
     ServiceDemoState,
@@ -155,6 +157,14 @@ class ServiceDemoClient:
             latest=latest,
             model=ServiceDemoModel(**upstream.model.model_dump()),
             counters=ServiceDemoCounters(**upstream.counters.model_dump()),
+            performance=(
+                ServiceDemoPerformance(**upstream.performance.model_dump())
+                if upstream.performance is not None
+                else None
+            ),
+            inference_routing=ServiceDemoInferenceRouting(
+                **upstream.inference_routing.model_dump()
+            ),
             last_error=upstream.last_error,
         )
 
@@ -195,6 +205,8 @@ class ServiceDemoClient:
                 if upstream.temperature_features is not None
                 else None
             ),
+            inference_target=upstream.inference_target,
+            augmentation_approval_id=upstream.augmentation_approval_id,
         )
 
 

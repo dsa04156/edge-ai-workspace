@@ -4,12 +4,18 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  buildServiceAugmentationView,
   buildServiceDemoAlertView,
+  buildServiceDemoResultsView,
   buildServiceDemoView,
   refreshServiceDemo,
   refreshServiceDemoAlerts,
+  refreshServiceDemoResults,
+  refreshServiceAugmentation,
   renderServiceDemo,
   renderServiceDemoAlerts,
+  renderServiceDemoResults,
+  renderServiceAugmentation,
 } = require("../app/static/service-demo.js");
 
 
@@ -62,7 +68,10 @@ test("builds an honest live device-to-consumer anomaly view", () => {
   assert.equal(view.score, "5.10 / 4.00");
   assert.equal(view.temperatureContext, "raw 301 · 정렬 12.5 ms");
   assert.equal(view.model, "online-gaussian-baseline-v1 · 40 samples · ready");
-  assert.equal(view.copy, "진동·온도 복합 이상 점수 · Jetson local inference");
+  assert.equal(view.copy, "진동·온도 복합 이상 점수 · edge-local inference");
+  assert.equal(view.inferenceRouting, "로컬 추론 · edge-local · 승인 없음");
+  assert.equal(view.decisionLabel, "이상 감지");
+  assert.equal(view.pipeline.map((step) => step.state).join(","), "ready,ready,active,anomaly,anomaly");
   assert.equal(view.error, "");
 });
 
@@ -92,6 +101,8 @@ test("shows unavailable observation without inventing zero values", () => {
   assert.equal(view.score, "관측 불가");
   assert.equal(view.temperatureContext, "관측 불가");
   assert.equal(view.model, "model 관측 불가");
+  assert.equal(Number.isFinite(view.scoreMax), true);
+  assert.equal(Number.isFinite(view.scoreValue), true);
   assert.match(view.error, /ConnectTimeout/);
 });
 
@@ -112,7 +123,35 @@ test("formats the latest input age from the observed timestamp", () => {
   assert.equal(view.inputAge, "2.5 s");
   assert.equal(view.vibrationScore, "0.50");
   assert.equal(view.temperatureScore, "관측 불가");
-  assert.equal(view.copy, "3축 진동 이상 점수 · Jetson local inference");
+  assert.equal(view.copy, "3축 진동 이상 점수 · edge-local inference");
+});
+
+
+test("shows approved server1 routing and rollback evidence independently", () => {
+  const remote = buildServiceDemoView({
+    status: "normal",
+    inference_routing: {
+      state: "remote",
+      effective_target: "server1",
+      approval_id: "approval-001",
+      consecutive_failures: 0,
+    },
+  });
+  const rollback = buildServiceDemoView({
+    status: "normal",
+    inference_routing: {
+      state: "rolled-back",
+      effective_target: "edge-local",
+      approval_id: "approval-001",
+      consecutive_failures: 3,
+      rollback_remaining_seconds: 840,
+    },
+  });
+
+  assert.equal(remote.inferenceRouting, "승인 원격 추론 · server1 · approval-001");
+  assert.equal(remote.inferenceRoutingTone, "remote");
+  assert.equal(rollback.inferenceRouting, "로컬 rollback · edge-local · approval-001 · 연속 실패 3 · 복귀까지 840초");
+  assert.equal(rollback.inferenceRoutingTone, "rollback");
 });
 
 
@@ -256,6 +295,116 @@ test("renders persisted alert transitions without injecting markup", async () =>
 });
 
 
+test("builds an oldest-to-newest recent decision rail from persisted results", () => {
+  const view = buildServiceDemoResultsView({
+    mode: "live",
+    results: [
+      {score: 0.8, anomaly: false, observed_at: "2026-08-13T10:00:01Z"},
+      {score: 5.2, anomaly: true, observed_at: "2026-08-13T10:00:02Z"},
+    ],
+  });
+  assert.equal(view.summary, "최근 2건 · 이상 1건");
+  assert.deepEqual(view.results.map((result) => result.anomaly), [false, true]);
+  assert.deepEqual(view.results.map((result) => result.score), ["0.80", "5.20"]);
+});
+
+
+test("refreshes the recent decision rail from the result endpoint", async () => {
+  let request = null;
+  const elements = {
+    serviceDemoHistorySummary: {textContent: ""},
+    serviceDemoHistoryRail: null,
+  };
+  const documentRef = {
+    getElementById: (id) => elements[id],
+  };
+  await refreshServiceDemoResults(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => ({mode: "live", count: 0, results: []}),
+    };
+  }, documentRef);
+  assert.deepEqual(request, {
+    url: "/state/service-demo/results?limit=12",
+    options: {cache: "no-store"},
+  });
+  assert.equal(elements.serviceDemoHistorySummary.textContent, "아직 저장된 판정 결과가 없습니다.");
+});
+
+
+test("builds a resource recommendation without mixing the equipment anomaly score", () => {
+  const view = buildServiceAugmentationView({
+    state: "RECOMMENDED",
+    recommendation: "scale-up",
+    apply_state: "observed-only",
+    reason_codes: ["sustained_resource_and_service_pressure"],
+    anomaly_signal_used: false,
+    metrics: {
+      cpu_percent: 91,
+      memory_percent: 72,
+      gpu_percent: 55,
+      processing_latency_p95_ms: 740,
+      backlog: 8,
+      throughput_per_second: 0.8,
+    },
+    dwell: {
+      resource_pressure_seconds: 300,
+      resource_pressure_required_seconds: 300,
+      service_pressure_seconds: 180,
+      service_pressure_required_seconds: 180,
+    },
+    gates: [{id: "input", label: "센서 입력", passed: true, reason: "input_ready"}],
+  });
+
+  assert.equal(view.state, "RECOMMENDED");
+  assert.equal(view.label, "증강 권고");
+  assert.equal(view.metrics, "CPU 91.0% · Memory 72.0% · GPU 55.0% · p95 740 ms · backlog 8 · 0.80 fps");
+  assert.equal(view.resourceDwell.value, 300);
+  assert.equal(view.serviceDwell.value, 180);
+  assert.equal(view.anomalyNote, "설비 anomaly 점수 미사용");
+  assert.equal(view.gates[0].passed, true);
+});
+
+
+test("renders blocked augmentation gates and polls the observed-only endpoint", async () => {
+  const elements = {
+    serviceAugmentationState: {textContent: "", dataset: {}},
+    serviceAugmentationSummary: {textContent: ""},
+    serviceAugmentationMetrics: {textContent: ""},
+    serviceAugmentationResourceDwellLabel: {textContent: ""},
+    serviceAugmentationServiceDwellLabel: {textContent: ""},
+    serviceAugmentationResourceDwell: {value: 0, max: 0},
+    serviceAugmentationServiceDwell: {value: 0, max: 0},
+    serviceAugmentationGateList: null,
+  };
+  const documentRef = {getElementById: (id) => elements[id]};
+  let request = null;
+  await refreshServiceAugmentation(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => ({
+        state: "BLOCKED",
+        reason_codes: ["sensor_stale"],
+        metrics: {},
+        dwell: {},
+        gates: [],
+        anomaly_signal_used: false,
+      }),
+    };
+  }, documentRef);
+
+  assert.deepEqual(request, {
+    url: "/state/service-demo/augmentation",
+    options: {cache: "no-store"},
+  });
+  assert.equal(elements.serviceAugmentationState.textContent, "차단");
+  assert.equal(elements.serviceAugmentationState.dataset.state, "BLOCKED");
+  assert.match(elements.serviceAugmentationSummary.textContent, /센서 입력이 오래됨/);
+});
+
+
 test("dashboard ships a responsive accessible live demo panel", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
@@ -271,15 +420,26 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoTemperatureContext", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
     "serviceDemoInputAge",
     "serviceDemoAlertCount", "serviceDemoAlertLatest",
+    "serviceDemoDecisionLabel", "serviceDemoDecisionSummary", "serviceDemoScoreMeter",
+    "serviceDemoStepInput", "serviceDemoStepAlignment", "serviceDemoStepFeatures",
+    "serviceDemoStepInference", "serviceDemoStepResult", "serviceDemoHistoryRail",
+    "serviceDemoHistorySummary", "serviceDemoFrames",
+    "serviceAugmentationState", "serviceAugmentationSummary",
+    "serviceAugmentationEquipmentState", "serviceAugmentationMetrics",
+    "serviceAugmentationResourceDwell", "serviceAugmentationServiceDwell",
+    "serviceAugmentationResourceDwellLabel", "serviceAugmentationServiceDwellLabel",
+    "serviceAugmentationGateList", "serviceAugmentationStateRail",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=persistent-alerts-20260803/);
-  assert.match(html, /service-demo\.js\?v=persistent-alerts-20260803/);
+  assert.match(html, /service-demo\.css\?v=approved-routing-20260813/);
+  assert.match(html, /service-demo\.js\?v=approved-routing-20260813/);
+  assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.service-demo-alert-summary/);
+  assert.match(css, /\.service-augmentation-dual-rail/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

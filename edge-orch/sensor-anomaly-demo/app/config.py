@@ -11,6 +11,15 @@ DEFAULT_LOCAL_DATA_BASE_URL = (
 
 
 class Settings(BaseModel):
+    service_role: Literal["edge-worker", "inference-server"] = "edge-worker"
+    inference_warmup_source_enabled: bool = False
+    remote_inference_mode: Literal["disabled", "approved"] = "disabled"
+    remote_inference_url: str | None = None
+    remote_inference_approval_id: str | None = None
+    remote_inference_timeout_seconds: float = Field(default=1.0, gt=0)
+    remote_inference_max_attempts: int = Field(default=2, ge=1, le=5)
+    remote_inference_failure_threshold: int = Field(default=3, ge=1, le=20)
+    remote_inference_rollback_cooldown_seconds: int = Field(default=900, ge=1)
     local_data_base_url: str = Field(
         default=DEFAULT_LOCAL_DATA_BASE_URL,
         min_length=1,
@@ -55,11 +64,39 @@ class Settings(BaseModel):
             raise ValueError(
                 "context_max_skew_seconds must not exceed pending_ttl_seconds"
             )
+        if self.remote_inference_mode == "approved":
+            if not self.remote_inference_url:
+                raise ValueError("remote_inference_url is required in approved mode")
+            if not self.remote_inference_approval_id:
+                raise ValueError(
+                    "remote_inference_approval_id is required in approved mode"
+                )
         return self
 
     @classmethod
     def from_env(cls) -> Settings:
         return cls(
+            service_role=os.getenv("SERVICE_ROLE", "edge-worker"),
+            inference_warmup_source_enabled=os.getenv(
+                "INFERENCE_WARMUP_SOURCE_ENABLED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+            remote_inference_mode=os.getenv("REMOTE_INFERENCE_MODE", "disabled"),
+            remote_inference_url=os.getenv("REMOTE_INFERENCE_URL") or None,
+            remote_inference_approval_id=os.getenv("REMOTE_INFERENCE_APPROVAL_ID")
+            or None,
+            remote_inference_timeout_seconds=float(
+                os.getenv("REMOTE_INFERENCE_TIMEOUT_SECONDS", "1")
+            ),
+            remote_inference_max_attempts=int(
+                os.getenv("REMOTE_INFERENCE_MAX_ATTEMPTS", "2")
+            ),
+            remote_inference_failure_threshold=int(
+                os.getenv("REMOTE_INFERENCE_FAILURE_THRESHOLD", "3")
+            ),
+            remote_inference_rollback_cooldown_seconds=int(
+                os.getenv("REMOTE_INFERENCE_ROLLBACK_COOLDOWN_SECONDS", "900")
+            ),
             local_data_base_url=os.getenv(
                 "LOCAL_DATA_BASE_URL",
                 DEFAULT_LOCAL_DATA_BASE_URL,

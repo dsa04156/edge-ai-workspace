@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-anomaly-demo
+  namespace: edgex-edge
+spec:
+  template:
+    metadata:
+      labels:
+        edge-ai.io/inference-routing: approved-server1
+    spec:
+      containers:
+        - name: sensor-anomaly-demo
+          env:
+            - name: REMOTE_INFERENCE_MODE
+              value: approved
+            - name: REMOTE_INFERENCE_URL
+              value: http://sensor-anomaly-inference-server1.edgex-edge.svc.cluster.local:8080
+            - name: REMOTE_INFERENCE_APPROVAL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sensor-anomaly-augmentation-approval
+                  key: approval-id
+            - name: REMOTE_INFERENCE_TIMEOUT_SECONDS
+              value: "1"
+            - name: REMOTE_INFERENCE_MAX_ATTEMPTS
+              value: "2"
+            - name: REMOTE_INFERENCE_FAILURE_THRESHOLD
+              value: "3"
+            - name: REMOTE_INFERENCE_ROLLBACK_COOLDOWN_SECONDS
+              value: "900"

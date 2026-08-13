@@ -5,7 +5,7 @@ import math
 import time
 from collections import deque
 from datetime import datetime, timezone
-from typing import Protocol
+from typing import Callable, Protocol
 
 from .alignment import TemporalAligner
 from .config import Settings
@@ -19,7 +19,7 @@ from .local_data import (
     LocalDataSource,
     ScalarSource,
 )
-from .model_adapter import PumpModelAdapter, build_model_adapter
+from .model_adapter import ModelDecision, PumpModelAdapter, build_model_adapter
 from .models import (
     AccelerationFrame,
     AlertTransition,
@@ -28,6 +28,7 @@ from .models import (
     ComponentScores,
     FeatureModelObservation,
     FeatureModelSnapshot,
+    InferenceRoutingStatus,
     LatestObservation,
     ModelObservation,
     RuntimeCounters,
@@ -36,6 +37,12 @@ from .models import (
     SourceIdentity,
     TemperatureFeatureObservation,
     VibrationFeatureObservation,
+)
+from .performance import PerformanceTracker
+from .remote_inference import (
+    RemoteInferenceClient,
+    RemoteInferenceRouter,
+    RoutedInference,
 )
 from .storage import ResultStore
 
@@ -51,6 +58,25 @@ class LocalDataReader(Protocol):
     async def close(self) -> None: ...
 
 
+class InferenceRouter(Protocol):
+    async def infer(
+        self,
+        frame: AccelerationFrame,
+        temperature: AxisSample,
+        *,
+        local: Callable[[], ModelDecision | None],
+        now: datetime | None = None,
+    ) -> RoutedInference | None: ...
+
+    def status(
+        self,
+        *,
+        now: datetime | None = None,
+    ) -> InferenceRoutingStatus: ...
+
+    async def close(self) -> None: ...
+
+
 class AnomalyRuntime:
     def __init__(
         self,
@@ -59,6 +85,7 @@ class AnomalyRuntime:
         sources: tuple[AxisSource, ...] = ACCELERATION_SOURCES,
         context_source: ScalarSource = TEMPERATURE_SOURCE,
         model_adapter: PumpModelAdapter | None = None,
+        inference_router: InferenceRouter | None = None,
         result_store: ResultStore | None = None,
     ) -> None:
         self.settings = settings
@@ -76,6 +103,15 @@ class AnomalyRuntime:
             max_pending=settings.max_pending_frames,
         )
         self.model_adapter = model_adapter or build_model_adapter(settings)
+        self.inference_router = inference_router or RemoteInferenceRouter(
+            mode="disabled",
+            approval_id=None,
+            client=None,
+            failure_threshold=settings.remote_inference_failure_threshold,
+            rollback_cooldown_seconds=(
+                settings.remote_inference_rollback_cooldown_seconds
+            ),
+        )
         self._cursors: dict[str, int | None] = {
             source.key: None for source in self._all_sources
         }
@@ -97,6 +133,8 @@ class AnomalyRuntime:
         self._task: asyncio.Task[None] | None = None
         self._client_closed = False
         self._store_closed = False
+        self._router_closed = False
+        self.performance = PerformanceTracker()
 
     async def start(self) -> None:
         if self._task is not None and not self._task.done():
@@ -116,12 +154,17 @@ class AnomalyRuntime:
         if not self._store_closed:
             self.result_store.close()
             self._store_closed = True
+        if not self._router_closed:
+            await self.inference_router.close()
+            self._router_closed = True
 
     @property
     def worker_started(self) -> bool:
         return self._task is not None and not self._task.done()
 
     async def poll_once(self, now_ns: int | None = None) -> None:
+        poll_started = time.perf_counter()
+        frames_before = self._frames_processed
         current = time.time_ns() if now_ns is None else now_ns
         rows_by_source = await asyncio.gather(
             *(
@@ -176,10 +219,19 @@ class AnomalyRuntime:
                 y=model_input.signals.acceleration_y.value,
                 z=model_input.signals.acceleration_z.value,
             )
-            decision = self.model_adapter.infer(
+            local_decision = self.model_adapter.infer(
                 validated_frame,
                 row.temperature.origin,
             )
+            routed = await self.inference_router.infer(
+                validated_frame,
+                row.temperature,
+                local=lambda: local_decision,
+                now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
+            )
+            if routed is None:
+                continue
+            decision = routed.decision
             if decision is None:
                 continue
             observation = LatestObservation(
@@ -232,6 +284,17 @@ class AnomalyRuntime:
                     ),
                 ),
                 input_contract=model_input.schema_version,
+                inference_target=routed.target,
+                augmentation_approval_id=(
+                    self.inference_router.status(
+                        now=datetime.fromtimestamp(
+                            current / 1_000_000_000,
+                            timezone.utc,
+                        )
+                    ).approval_id
+                    if routed.target == "server1"
+                    else None
+                ),
             )
             self.result_store.record_result(
                 observation,
@@ -253,6 +316,12 @@ class AnomalyRuntime:
         else:
             self._consecutive_failed_polls += 1
             self._last_error = first_error
+        self.performance.observe(
+            processing_latency_ms=(time.perf_counter() - poll_started) * 1_000,
+            processed_frames=self._frames_processed - frames_before,
+            backlog=len(self.joiner.pending_origins) + len(self.aligner.pending_origins),
+            observed_at=current / 1_000_000_000,
+        )
 
     def status(self, now_ns: int | None = None) -> ServiceStatus:
         current = time.time_ns() if now_ns is None else now_ns
@@ -319,6 +388,12 @@ class AnomalyRuntime:
                 input_errors=self._input_errors,
                 context_samples_processed=self._context_samples_processed,
                 unaligned_frames_dropped=drop_count,
+            ),
+            performance=self.performance.snapshot(
+                observed_at=current / 1_000_000_000,
+            ),
+            inference_routing=self.inference_router.status(
+                now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
             ),
             last_error=self._last_error,
         )
@@ -418,14 +493,35 @@ class AnomalyRuntime:
                 continue
 
 
-def build_runtime(settings: Settings) -> AnomalyRuntime:
+def build_runtime(
+    settings: Settings,
+    model_adapter: PumpModelAdapter | None = None,
+) -> AnomalyRuntime:
+    remote_client = (
+        RemoteInferenceClient(
+            base_url=settings.remote_inference_url or "",
+            timeout_seconds=settings.remote_inference_timeout_seconds,
+            max_attempts=settings.remote_inference_max_attempts,
+        )
+        if settings.remote_inference_mode == "approved"
+        else None
+    )
     return AnomalyRuntime(
         settings=settings,
         client=LocalDataClient(
             settings.local_data_base_url,
             settings.http_timeout_seconds,
         ),
-        model_adapter=build_model_adapter(settings),
+        model_adapter=model_adapter or build_model_adapter(settings),
+        inference_router=RemoteInferenceRouter(
+            mode=settings.remote_inference_mode,
+            approval_id=settings.remote_inference_approval_id,
+            client=remote_client,
+            failure_threshold=settings.remote_inference_failure_threshold,
+            rollback_cooldown_seconds=(
+                settings.remote_inference_rollback_cooldown_seconds
+            ),
+        ),
         result_store=ResultStore(
             settings.result_db_path,
             settings.result_retention_rows,

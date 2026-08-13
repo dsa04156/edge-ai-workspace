@@ -56,6 +56,7 @@ def test_demo_workload_is_edge_local_read_only_and_bounded() -> None:
     assert env["LOCAL_DATA_BASE_URL"] == (
         "http://device-serial-jetson.edgex-edge.svc.cluster.local:59910"
     )
+    assert env["REMOTE_INFERENCE_MODE"] == "disabled"
     assert env["POLL_INTERVAL_SECONDS"] == "0.5"
     assert env["INPUT_STALE_SECONDS"] == "10"
     assert env["CONTEXT_MAX_SKEW_SECONDS"] == "2"

@@ -342,6 +342,57 @@ def test_virtual_resources_do_not_treat_unrelated_pods_on_resource_node_as_insta
     assert storage["observed_instances"] == 0
 
 
+def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "namespace": "edgex-edge",
+                    "service": "sensor-anomaly-inference-server1",
+                    "pod_count": 1,
+                    "nodes": ["etri-ser0001-cg0msb"],
+                    "containers": [
+                        {
+                            "pod": "sensor-anomaly-inference-server1-abc",
+                            "container": "sensor-anomaly-inference",
+                            "node": "etri-ser0001-cg0msb",
+                        }
+                    ],
+                }
+            ]
+        }
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {
+        "etri-ser0001-cg0msb": NodeState(
+            hostname="etri-ser0001-cg0msb",
+            instance="192.168.0.56:9100",
+            node_type="server",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+
+    assert response.status_code == 200
+    candidate = next(
+        item
+        for item in response.json()["resources"]
+        if item["id"] == "server1-sensor-anomaly-inference"
+    )
+    assert candidate["node"] == "etri-ser0001-cg0msb"
+    assert candidate["observed_instances"] == 1
+    assert candidate["free_instances"] == 1
+    assert candidate["status"] == "idle"
+    assert candidate["capabilities"] == ["anomaly_model", "remote_inference"]
+
+
 def test_virtual_resources_endpoint_keeps_registry_when_observation_fails(monkeypatch):
     async def fake_resource_state(refresh=False):
         raise httpx.ConnectError("prometheus unavailable")
@@ -356,7 +407,7 @@ def test_virtual_resources_endpoint_keeps_registry_when_observation_fails(monkey
     assert response.status_code == 200
     payload = response.json()
     assert payload["observation_error"] == "service resource observation unavailable: ConnectError"
-    assert len(payload["resources"]) == 4
+    assert len(payload["resources"]) == 5
     assert {item["status"] for item in payload["resources"]} == {"configured_not_running"}
     assert twin_response.status_code == 200
     assert twin_response.json()["binding_state"] == "not_running"

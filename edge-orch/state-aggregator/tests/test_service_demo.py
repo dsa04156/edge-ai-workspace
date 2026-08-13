@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -10,6 +11,8 @@ from app.service_demo import (
     ServiceDemoClient,
     ServiceDemoResponseError,
 )
+from app.augmentation_crds import AugmentationResourceCrd, AugmentationResourceCrdState
+from app.service_augmentation import ServiceAugmentationEvaluator
 from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,6 +102,24 @@ def live_payload() -> dict:
             "contextSamplesProcessed": 30,
             "unalignedFramesDropped": 0,
         },
+        "performance": {
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+            "windowSeconds": 300,
+            "processingLatencyP95Ms": 20,
+            "backlog": 0,
+            "throughputPerSecond": 2,
+            "sampleCount": 30,
+            "metricsValid": True,
+        },
+        "inferenceRouting": {
+            "configuredMode": "approved",
+            "state": "remote",
+            "effectiveTarget": "server1",
+            "approvalId": "approval-001",
+            "consecutiveFailures": 0,
+            "rollbackRemainingSeconds": 0,
+            "lastError": None,
+        },
         "lastError": None,
     }
 
@@ -133,6 +154,10 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.model.version == "baseline-1.0.0"
     assert set(state.model.components) == {"vibration", "temperature"}
     assert state.counters.context_samples_processed == 30
+    assert state.performance is not None
+    assert state.performance.processing_latency_p95_ms == 20
+    assert state.inference_routing.effective_target == "server1"
+    assert state.inference_routing.approval_id == "approval-001"
     assert state.observation_error is None
 
 
@@ -369,3 +394,79 @@ def test_state_aggregator_deployment_uses_sensor_demo_service_fqdn() -> None:
         "http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080"
     )
     assert env["SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS"] == "2"
+
+
+def test_service_augmentation_route_combines_service_resource_and_server1_gates(
+    monkeypatch,
+) -> None:
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=live_payload())
+
+    observed = asyncio.run(
+        ServiceDemoClient(
+            "http://sensor-anomaly-demo.test",
+            timeout_seconds=2,
+            transport=httpx.MockTransport(handler),
+        ).get_state()
+    )
+
+    class StaticClient:
+        async def get_state(self):
+            return observed
+
+    async def resource_profiles(refresh: bool = False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "service": "sensor-anomaly-demo",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "resource_requirements": {
+                        "limits": {"cpu_cores": 1, "memory_mib": 1024}
+                    },
+                    "current_usage": {
+                        "cpu_cores": 0.3,
+                        "memory_working_set_mib": 256,
+                        "usage_coverage_ratio": 1,
+                    },
+                }
+            ]
+        }
+
+    async def resources():
+        return AugmentationResourceCrdState(
+            generated_at=datetime.now(timezone.utc),
+            resources=[
+                AugmentationResourceCrd(
+                    name="server1-sensor-anomaly-inference",
+                    display_name="server1 sensor anomaly inference",
+                    resource_type="gpu-inference",
+                    node="etri-ser0001-cg0msb",
+                    capabilities=["gpu_inference", "anomaly_model"],
+                    phase="Available",
+                    observed_instances=1,
+                    free_instances=1,
+                    binding_state="available",
+                    endpoint_ready=True,
+                )
+            ],
+        )
+
+    monkeypatch.setattr(main, "service_demo_client", StaticClient(), raising=False)
+    monkeypatch.setattr(main.service, "get_resource_profile_state", resource_profiles)
+    monkeypatch.setattr(main.augmentation_crds, "get_augmentation_resources", resources)
+    monkeypatch.setattr(
+        main,
+        "service_augmentation_evaluator",
+        ServiceAugmentationEvaluator(),
+    )
+
+    with TestClient(main.app) as client:
+        response = client.get("/state/service-demo/augmentation")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["service"] == "sensor-anomaly-demo"
+    assert payload["mode"] == "observed-only"
+    assert payload["state"] == "NORMAL"
+    assert payload["anomaly_signal_used"] is False
+    assert all(gate["passed"] for gate in payload["gates"])

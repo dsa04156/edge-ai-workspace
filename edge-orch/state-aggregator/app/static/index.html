@@ -15,9 +15,9 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=persistent-alerts-20260803" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=approved-routing-20260813" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
-    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
     <link rel="stylesheet" href="/static/resource-pool.css?v=resource-pool-edgex-v2-20260812" />
@@ -264,7 +264,7 @@
             <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
 
-          <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle">
+          <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle" open>
             <summary class="overview-service-demo-summary">
               <span>
                 <span class="section-kicker">서비스 데모</span>
@@ -277,12 +277,123 @@
             </summary>
             <div class="overview-service-demo-body">
               <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
-              <dl class="service-demo-values">
-                <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>진동 점수</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>온도 점수</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>종합 / 임계값</dt><dd id="serviceDemoScore">관측 대기</dd></div>
-              </dl>
+              <div class="service-demo-hero">
+                <section id="serviceDemoDecisionCard" class="service-demo-decision" data-state="starting" aria-labelledby="serviceDemoDecisionLabel">
+                  <span>최신 판정</span>
+                  <strong id="serviceDemoDecisionLabel">관측 대기</strong>
+                  <p id="serviceDemoDecisionSummary">입력과 모델 상태를 확인하고 있습니다.</p>
+                  <div class="service-demo-score-line">
+                    <span>이상 점수</span>
+                    <strong id="serviceDemoScore">관측 대기</strong>
+                  </div>
+                  <progress id="serviceDemoScoreMeter" max="100" value="0" aria-label="이상 점수와 판정 임계값 비교"></progress>
+                  <dl class="service-demo-component-scores">
+                    <div><dt>진동</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
+                    <div><dt>온도</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
+                  </dl>
+                </section>
+                <section class="service-demo-input-snapshot" aria-labelledby="serviceDemoInputSnapshotTitle">
+                  <div class="service-demo-section-title">
+                    <span>현재 입력</span>
+                    <strong id="serviceDemoInputSnapshotTitle">센서 원본</strong>
+                  </div>
+                  <dl>
+                    <div><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+                    <div><dt>온도·정렬</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
+                    <div><dt>입력 최신성</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                  </dl>
+                </section>
+              </div>
+
+              <section class="service-demo-process" aria-labelledby="serviceDemoProcessTitle">
+                <div class="service-demo-section-title">
+                  <span>Signal → Decision</span>
+                  <strong id="serviceDemoProcessTitle">서비스 처리 과정</strong>
+                </div>
+                <ol class="service-demo-process-rail">
+                  <li id="serviceDemoStepInput" data-state="pending">
+                    <span>01</span><strong>센서 입력</strong><small id="serviceDemoStepInputEvidence">입력 대기</small>
+                  </li>
+                  <li id="serviceDemoStepAlignment" data-state="pending">
+                    <span>02</span><strong>시간 정렬</strong><small id="serviceDemoStepAlignmentEvidence">정렬 대기</small>
+                  </li>
+                  <li id="serviceDemoStepFeatures" data-state="pending">
+                    <span>03</span><strong>특징 추출</strong><small id="serviceDemoStepFeaturesEvidence">window 대기</small>
+                  </li>
+                  <li id="serviceDemoStepInference" data-state="pending">
+                    <span>04</span><strong>이상 추론</strong><small id="serviceDemoStepInferenceEvidence">모델 대기</small>
+                  </li>
+                  <li id="serviceDemoStepResult" data-state="pending">
+                    <span>05</span><strong>저장·알림</strong><small id="serviceDemoStepResultEvidence">결과 대기</small>
+                  </li>
+                </ol>
+              </section>
+
+              <section class="service-augmentation" aria-labelledby="serviceAugmentationTitle">
+                <div class="service-demo-section-title service-augmentation-title">
+                  <span>Independent decisions · observed only</span>
+                  <strong id="serviceAugmentationTitle">설비 판단과 자원 증강 판단</strong>
+                </div>
+                <div class="service-augmentation-dual-rail">
+                  <article class="service-augmentation-lane equipment">
+                    <span>01 · 설비 상태</span>
+                    <strong id="serviceAugmentationEquipmentState">관측 대기</strong>
+                    <p>진동·온도와 anomaly score로 설비 이상만 판단</p>
+                  </article>
+                  <div class="service-augmentation-separator" aria-label="두 판단은 독립적임">
+                    <strong>≠</strong><span>신호 분리</span>
+                  </div>
+                  <article class="service-augmentation-lane compute">
+                    <span>02 · 컴퓨팅 상태</span>
+                    <strong id="serviceAugmentationState" data-state="BLOCKED">관측 대기</strong>
+                    <p id="serviceAugmentationSummary">자원·서비스 압력과 server1 준비도를 확인합니다.</p>
+                  </article>
+                </div>
+
+                <p id="serviceAugmentationMetrics" class="service-augmentation-metrics">운영 메트릭 관측 대기</p>
+                <p id="serviceDemoInferenceRouting" class="service-augmentation-routing" data-state="local">로컬 추론 · edge-local · 승인 없음</p>
+                <div class="service-augmentation-dwell" aria-label="증강 권고 지속시간">
+                  <div>
+                    <span>자원 압박 5분</span>
+                    <strong id="serviceAugmentationResourceDwellLabel">0 / 300초</strong>
+                    <progress id="serviceAugmentationResourceDwell" max="300" value="0">0 / 300초</progress>
+                  </div>
+                  <div>
+                    <span>서비스 압박 3분</span>
+                    <strong id="serviceAugmentationServiceDwellLabel">0 / 180초</strong>
+                    <progress id="serviceAugmentationServiceDwell" max="180" value="0">0 / 180초</progress>
+                  </div>
+                </div>
+
+                <div class="service-augmentation-lower">
+                  <div>
+                    <span class="service-augmentation-subtitle">권고 gate</span>
+                    <ul id="serviceAugmentationGateList" class="service-augmentation-gates" aria-label="자원 증강 권고 조건"></ul>
+                  </div>
+                  <div>
+                    <span class="service-augmentation-subtitle">상태 흐름</span>
+                    <ol id="serviceAugmentationStateRail" class="service-augmentation-state-rail" aria-label="자원 증강 상태 머신">
+                      <li data-augmentation-state="NORMAL">NORMAL</li>
+                      <li data-augmentation-state="OBSERVING">OBSERVING</li>
+                      <li data-augmentation-state="RECOMMENDED">RECOMMENDED</li>
+                      <li data-augmentation-state="AUGMENTED">AUGMENTED</li>
+                      <li data-augmentation-state="COOLDOWN">COOLDOWN</li>
+                    </ol>
+                    <p class="service-augmentation-boundary">BLOCKED는 별도 차단 상태 · Kubernetes/EdgeX 변경 없음</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="service-demo-history" aria-labelledby="serviceDemoHistoryTitle">
+                <div class="service-demo-section-title">
+                  <span>최근 판정</span>
+                  <strong id="serviceDemoHistoryTitle">결과 흐름</strong>
+                </div>
+                <div>
+                  <p id="serviceDemoHistorySummary">결과 이력을 불러오고 있습니다.</p>
+                  <ol id="serviceDemoHistoryRail" class="service-demo-history-rail" aria-label="최근 이상감지 결과"></ol>
+                </div>
+              </section>
               <details class="service-demo-details">
                 <summary>연결·모델 상세정보</summary>
                 <div class="service-demo-route" aria-label="physical source to AI consumer binding">
@@ -302,9 +413,8 @@
                 <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
                 <dl class="service-demo-values service-demo-detail-values">
                   <div class="service-demo-value-detail"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
-                  <div class="service-demo-value-detail"><dt>온도 입력</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
                   <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
-                  <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>처리 프레임</dt><dd id="serviceDemoFrames">관측 대기</dd></div>
                 </dl>
                 <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
                 <dl class="service-demo-alert-summary" aria-label="이상 알림 이력">
@@ -1459,7 +1569,7 @@
     </main>
     <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-    <script src="/static/service-demo.js?v=persistent-alerts-20260803"></script>
+    <script src="/static/service-demo.js?v=approved-routing-20260813"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

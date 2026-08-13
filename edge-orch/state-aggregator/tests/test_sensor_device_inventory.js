@@ -313,7 +313,7 @@ test("builds physical device status separately from server status", () => {
   assert.doesNotMatch(markup, /etri-ser0001/);
 });
 
-test("places server and physical observability before the collapsed service demo", () => {
+test("places server and physical observability before the expanded service demo", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
 
   const serverIndex = html.indexOf('id="serverOverviewTitle"');
@@ -328,7 +328,7 @@ test("places server and physical observability before the collapsed service demo
   assert.match(html, /id="physicalDeviceStatusList"/);
   assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
   assert.match(html, /<details class="panel service-demo-panel overview-service-demo/);
-  assert.doesNotMatch(
+  assert.match(
     html,
     /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
   );
