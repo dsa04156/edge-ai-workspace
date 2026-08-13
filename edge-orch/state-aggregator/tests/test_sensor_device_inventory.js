@@ -313,24 +313,26 @@ test("builds physical device status separately from server status", () => {
   assert.doesNotMatch(markup, /etri-ser0001/);
 });
 
-test("places server and physical observability before the expanded service demo", () => {
+test("keeps server and physical observability in overview and moves the demo under services", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
 
   const serverIndex = html.indexOf('id="serverOverviewTitle"');
   const physicalIndex = html.indexOf('id="physicalDeviceOverviewTitle"');
+  const serviceCatalogIndex = html.indexOf('id="serviceCatalogList"');
   const serviceDemoIndex = html.indexOf('id="serviceDemoTitle"');
 
   assert.ok(serverIndex < physicalIndex);
-  assert.ok(physicalIndex < serviceDemoIndex);
+  assert.ok(physicalIndex < serviceCatalogIndex);
+  assert.ok(serviceCatalogIndex < serviceDemoIndex);
   assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
   assert.match(html, /id="serverStatusList"/);
   assert.match(html, /<h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태<\/h2>/);
   assert.match(html, /id="physicalDeviceStatusList"/);
   assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
-  assert.match(html, /<details class="panel service-demo-panel overview-service-demo/);
+  assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services"/);
   assert.match(
     html,
-    /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
+    /<details id="serviceDemoPanel"[^>]*\sopen(?:\s|>)/,
   );
   assert.match(html, /dashboard\.js\?v=cpu-aware-pressure-v3-20260804/);
   assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);

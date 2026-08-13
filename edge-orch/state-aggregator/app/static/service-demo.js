@@ -158,6 +158,50 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
 }
 
 
+function buildServiceCatalogView(data = {}) {
+  const binding = data.binding || {};
+  const latest = data.latest || {};
+  const model = data.model || {};
+  const running = data.mode !== "unavailable"
+    && data.input_state === "fresh"
+    && data.model_state === "ready";
+  const routing = latest.inference_target
+    || data.inference_routing?.effective_target
+    || "edge-local";
+  return {
+    name: serviceDemoText(binding.consumer, "sensor-anomaly-demo"),
+    operatingState: running ? "running" : "attention",
+    operatingLabel: running ? "실행 중" : "확인 필요",
+    availability: running ? "1/1 실행 중" : "0/1 확인 필요",
+    input: serviceDemoText(data.input_state, "미확인"),
+    node: serviceDemoText(binding.node, "etri-dev0001-jetorn"),
+    model: serviceDemoText(latest.model_version || model.version, data.model_state || "미확인"),
+    decision: serviceDemoDecision(data.status).label,
+    routing: routing === "server1" ? "server1" : "edge-local",
+  };
+}
+
+
+function renderServiceCatalog(data, documentRef = document) {
+  const view = buildServiceCatalogView(data);
+  const text = (id, value) => {
+    const element = documentRef.getElementById(id);
+    if (element) element.textContent = value;
+    return element;
+  };
+  text("serviceCatalogName", view.name);
+  text("serviceCatalogInput", view.input);
+  text("serviceCatalogNode", view.node);
+  text("serviceCatalogModel", view.model);
+  text("serviceCatalogDecision", view.decision);
+  text("serviceCatalogRouting", view.routing);
+  const status = text("serviceCatalogStatus", view.operatingLabel);
+  if (status) status.dataset.state = view.operatingState;
+  const availability = text("serviceCatalogAvailability", view.availability);
+  if (availability) availability.dataset.state = view.operatingState;
+}
+
+
 function renderServiceDemo(data, documentRef = document) {
   const view = buildServiceDemoView(data);
   const text = (id, value) => {
@@ -203,6 +247,7 @@ function renderServiceDemo(data, documentRef = document) {
   });
   const error = text("serviceDemoError", view.error);
   if (error) error.hidden = !view.error;
+  renderServiceCatalog(data, documentRef);
 }
 
 
@@ -280,6 +325,8 @@ function renderServiceAugmentation(data, documentRef = document) {
   };
   const state = text("serviceAugmentationState", view.label);
   if (state) state.dataset.state = view.state;
+  const catalogState = text("serviceCatalogAugmentation", view.label);
+  if (catalogState) catalogState.dataset.state = view.state;
   text("serviceAugmentationSummary", `${view.summary} · ${view.anomalyNote}`);
   text("serviceAugmentationMetrics", view.metrics);
   const updateDwell = (id, labelId, dwell) => {
@@ -315,6 +362,19 @@ function renderServiceAugmentation(data, documentRef = document) {
       item.dataset.active = String(item.dataset.augmentationState === view.state);
     });
   }
+}
+
+
+function openServiceCatalogDetail(target, documentRef = document) {
+  const trigger = target?.closest?.("[data-service-detail-target]");
+  if (!trigger) return false;
+  const panel = documentRef.getElementById(trigger.dataset.serviceDetailTarget);
+  if (!panel) return false;
+  panel.open = true;
+  trigger.setAttribute("aria-expanded", "true");
+  panel.scrollIntoView?.({behavior: "smooth", block: "start"});
+  panel.querySelector?.("summary")?.focus?.({preventScroll: true});
+  return true;
 }
 
 
@@ -463,6 +523,7 @@ async function refreshServiceAugmentation(fetchFn = fetch, documentRef = documen
 if (typeof module !== "undefined") {
   module.exports = {
     buildServiceAugmentationView,
+    buildServiceCatalogView,
     buildServiceDemoAlertView,
     buildServiceDemoResultsView,
     buildServiceDemoView,
@@ -471,14 +532,19 @@ if (typeof module !== "undefined") {
     refreshServiceDemoResults,
     refreshServiceAugmentation,
     renderServiceDemo,
+    renderServiceCatalog,
     renderServiceDemoAlerts,
     renderServiceDemoResults,
     renderServiceAugmentation,
+    openServiceCatalogDetail,
   };
 }
 
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("serviceCatalogList")?.addEventListener("click", (event) => {
+      openServiceCatalogDetail(event.target);
+    });
     refreshServiceDemo();
     refreshServiceDemoAlerts();
     refreshServiceDemoResults();

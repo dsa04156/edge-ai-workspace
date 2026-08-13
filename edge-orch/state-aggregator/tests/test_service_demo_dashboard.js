@@ -6,6 +6,7 @@ const path = require("node:path");
 const {
   buildServiceAugmentationView,
   buildServiceDemoAlertView,
+  buildServiceCatalogView,
   buildServiceDemoResultsView,
   buildServiceDemoView,
   refreshServiceDemo,
@@ -13,10 +14,61 @@ const {
   refreshServiceDemoResults,
   refreshServiceAugmentation,
   renderServiceDemo,
+  renderServiceCatalog,
   renderServiceDemoAlerts,
   renderServiceDemoResults,
   renderServiceAugmentation,
 } = require("../app/static/service-demo.js");
+
+
+test("builds a service list row from live operating evidence", () => {
+  const view = buildServiceCatalogView({
+    status: "anomaly",
+    input_state: "fresh",
+    model_state: "ready",
+    binding: {
+      consumer: "sensor-anomaly-demo",
+      node: "etri-dev0001-jetorn",
+    },
+    latest: {
+      anomaly: true,
+      model_version: "baseline-1.0.0",
+      inference_target: "edge-local",
+    },
+  });
+
+  assert.equal(view.name, "sensor-anomaly-demo");
+  assert.equal(view.operatingState, "running");
+  assert.equal(view.operatingLabel, "실행 중");
+  assert.equal(view.input, "fresh");
+  assert.equal(view.node, "etri-dev0001-jetorn");
+  assert.equal(view.model, "baseline-1.0.0");
+  assert.equal(view.decision, "이상 감지");
+  assert.equal(view.routing, "edge-local");
+});
+
+
+test("renders service list status independently from equipment decision", () => {
+  const elements = Object.fromEntries([
+    "serviceCatalogName", "serviceCatalogStatus", "serviceCatalogAvailability",
+    "serviceCatalogInput", "serviceCatalogNode", "serviceCatalogModel",
+    "serviceCatalogDecision", "serviceCatalogRouting",
+  ].map((id) => [id, {textContent: "", dataset: {}}]));
+  const documentRef = {getElementById: (id) => elements[id]};
+
+  renderServiceCatalog({
+    status: "anomaly",
+    input_state: "fresh",
+    model_state: "ready",
+    binding: {consumer: "sensor-anomaly-demo", node: "etri-dev0001-jetorn"},
+    latest: {anomaly: true, model_version: "baseline-1.0.0"},
+  }, documentRef);
+
+  assert.equal(elements.serviceCatalogStatus.textContent, "실행 중");
+  assert.equal(elements.serviceCatalogStatus.dataset.state, "running");
+  assert.equal(elements.serviceCatalogAvailability.textContent, "1/1 실행 중");
+  assert.equal(elements.serviceCatalogDecision.textContent, "이상 감지");
+});
 
 
 test("builds an honest live device-to-consumer anomaly view", () => {
@@ -412,6 +464,11 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   const javascript = fs.readFileSync(path.join(root, "app/static/service-demo.js"), "utf8");
 
   assert.match(html, /aria-labelledby="serviceDemoTitle"/);
+  assert.match(html, /data-dashboard-page="services"/);
+  assert.match(html, /data-page="services"/);
+  assert.match(html, /id="serviceCatalogList"/);
+  assert.match(html, /id="serviceCatalogRow"/);
+  assert.doesNotMatch(html, /service-demo-panel[^>]+data-page="overview"/);
   for (const id of [
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
@@ -432,14 +489,15 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=approved-routing-20260813/);
-  assert.match(html, /service-demo\.js\?v=approved-routing-20260813/);
+  assert.match(html, /service-demo\.css\?v=service-catalog-20260813/);
+  assert.match(html, /service-demo\.js\?v=service-catalog-20260813/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.service-demo-alert-summary/);
   assert.match(css, /\.service-augmentation-dual-rail/);
+  assert.match(css, /\.service-catalog-row/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);
