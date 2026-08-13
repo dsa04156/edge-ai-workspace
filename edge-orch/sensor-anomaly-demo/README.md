@@ -37,6 +37,10 @@ version을 명시적으로 구분한다. 옥동 실제 모델은 `PumpModelAdapt
 준비하는 선택 배포다. evaluator의 `RECOMMENDED` 이후 운영자가 승인한 경우에만
 `k8s-overlays/server1-approved-offload`를 별도 GitOps 변경으로 사용한다.
 
+Jetson 운영 이미지는 `scripts/build-edge-arm64-oci.sh`, server1 이미지는
+`scripts/build-server1-oci.sh`로 플랫폼을 분리해 빌드한다. 두 digest를 서로 바꾸어
+사용하지 않는다.
+
 승인 overlay는 저장소 밖에서 만든 `sensor-anomaly-augmentation-approval` Secret의
 `approval-id`가 없으면 시작되지 않는다. 활성화 후 원격 호출은 1초 timeout, 동일
 `requestId` 최대 2회 retry를 사용하며 3회 연속 실패하면 15분 동안 로컬 추론으로
