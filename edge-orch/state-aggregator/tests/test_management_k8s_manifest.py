@@ -73,3 +73,18 @@ def test_dashboard_service_account_remains_read_only_for_kubernetes_workloads() 
                 set(rule.get("verbs", []))
                 & {"create", "update", "patch", "delete", "deletecollection"}
             )
+
+
+def test_dashboard_is_exposed_through_the_gitops_managed_traefik_route() -> None:
+    ingress_route = render()[("IngressRoute", "state-aggregator")]
+
+    assert ingress_route["metadata"]["namespace"] == "default"
+    assert ingress_route["spec"]["entryPoints"] == ["web"]
+
+    route = ingress_route["spec"]["routes"][0]
+    assert route["kind"] == "Rule"
+    assert route["match"] == (
+        "Host(`aggregator.192.168.0.56.sslip.io`) || "
+        "Host(`aggregator.10.254.192.217.sslip.io`)"
+    )
+    assert route["services"] == [{"name": "state-aggregator", "port": 8000}]
