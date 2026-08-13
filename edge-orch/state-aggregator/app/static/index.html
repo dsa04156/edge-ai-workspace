@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=service-catalog-20260813" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=service-operations-20260813" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
@@ -357,28 +357,121 @@
                 </section>
               </div>
 
-              <section class="service-demo-process" aria-labelledby="serviceDemoProcessTitle">
-                <div class="service-demo-section-title">
-                  <span>Signal → Decision</span>
-                  <strong id="serviceDemoProcessTitle">서비스 처리 과정</strong>
+              <section class="service-operations-cockpit" aria-labelledby="serviceDemoProcessTitle">
+                <header class="service-operations-head">
+                  <div>
+                    <span>LIVE SERVICE EXECUTION</span>
+                    <strong id="serviceDemoProcessTitle">서비스 실행 DAG</strong>
+                  </div>
+                  <div class="service-operations-run-meta">
+                    <span>sensor-anomaly-demo</span>
+                    <strong id="serviceOperationsRunState">OBSERVING</strong>
+                    <small>READ ONLY</small>
+                  </div>
+                </header>
+
+                <div class="service-operations-layout">
+                  <section class="service-dag-panel" aria-labelledby="serviceOperationsDagTitle">
+                    <div class="service-operations-subhead">
+                      <div>
+                        <span>WORKFLOW GRAPH</span>
+                        <strong id="serviceOperationsDagTitle">Sensor signal → AI decision</strong>
+                      </div>
+                      <span class="service-dag-legend"><i></i>현재 실행 단계</span>
+                    </div>
+                    <div id="serviceOperationsDag" class="service-dag-canvas" aria-label="센서 수집부터 결과 저장까지의 실행 DAG">
+                      <svg class="service-dag-edges" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                          <marker id="serviceDagArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                          </marker>
+                        </defs>
+                        <path d="M145 195 H205"></path>
+                        <path d="M345 195 H405"></path>
+                        <path d="M545 195 H590"></path>
+                        <path d="M590 195 C625 195 615 95 650 95"></path>
+                        <path d="M590 195 C625 195 615 295 650 295"></path>
+                        <path d="M790 95 C830 95 820 195 855 195"></path>
+                        <path d="M790 295 C830 295 820 195 855 195"></path>
+                      </svg>
+
+                      <div id="serviceDagAugmentationEvent" class="service-dag-augmentation-event" data-state="observing" hidden>
+                        <span id="serviceDagAugmentationEyebrow">OBSERVED ONLY</span>
+                        <strong id="serviceDagAugmentationLabel">자원 압박 관찰 중</strong>
+                      </div>
+
+                      <article id="serviceDemoStepInput" class="service-dag-node service-dag-collect" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">01</span>
+                        <div><small>SENSOR</small><strong>센서 수집</strong><p id="serviceDemoStepInputEvidence">입력 대기</p></div>
+                        <b><i></i><span id="serviceDagFreshness">freshness 대기</span></b>
+                      </article>
+                      <article id="serviceDemoStepAlignment" class="service-dag-node service-dag-preprocess" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">02</span>
+                        <div><small>TRANSFORM</small><strong>전처리</strong><p id="serviceDemoStepAlignmentEvidence">정렬 대기</p></div>
+                      </article>
+                      <article id="serviceDemoStepFeatures" class="service-dag-node service-dag-features" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">03</span>
+                        <div><small>FEATURES</small><strong>특징 추출</strong><p id="serviceDemoStepFeaturesEvidence">window 대기</p></div>
+                      </article>
+                      <article id="serviceDemoStepInference" class="service-dag-node service-dag-inference" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">04</span>
+                        <div><small>INFERENCE</small><strong>AI 추론</strong><p id="serviceDemoStepInferenceEvidence">모델 대기</p></div>
+                      </article>
+                      <article id="serviceDagDevice1" class="service-dag-node service-dag-device" data-state="ready" data-traffic="idle">
+                        <span class="service-dag-node-index">D1</span>
+                        <div><small>EDGE TARGET</small><strong>Device1</strong><p>Jetson · edge-local</p></div>
+                        <b><span>처리 비율</span><strong id="serviceDeviceRatio">—</strong></b>
+                      </article>
+                      <article id="serviceDagServer1" class="service-dag-node service-dag-server" data-state="pending" data-traffic="idle">
+                        <span class="service-dag-node-index">S1</span>
+                        <div><small>AUGMENT TARGET</small><strong>Server1</strong><p>승인 기반 endpoint</p></div>
+                        <b><span>처리 비율</span><strong id="serviceServerRatio">—</strong></b>
+                      </article>
+                      <article id="serviceDemoStepResult" class="service-dag-node service-dag-store" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">05</span>
+                        <div><small>PERSIST</small><strong>결과 저장</strong><p id="serviceDemoStepResultEvidence">결과 대기</p></div>
+                      </article>
+                    </div>
+                    <div class="service-routing-ratio" aria-label="Device1과 Server1 처리 비율">
+                      <div>
+                        <strong>처리 분산</strong>
+                        <span id="serviceRoutingSampleSummary">처리 표본 대기</span>
+                      </div>
+                      <div id="serviceRoutingSplit" class="service-routing-split" data-empty="true" aria-hidden="true"><span></span><i></i></div>
+                      <div class="service-routing-labels"><span><i></i>Device1</span><span><i></i>Server1</span></div>
+                    </div>
+                  </section>
+
+                  <aside id="serviceOperationsTimeline" class="service-operations-timeline" aria-labelledby="serviceOperationsTimelineTitle">
+                    <div class="service-operations-subhead">
+                      <div><span>EVENT STREAM</span><strong id="serviceOperationsTimelineTitle">운영 이벤트</strong></div>
+                      <span>최신순</span>
+                    </div>
+                    <ol id="serviceOperationsTimelineList" aria-live="polite">
+                      <li class="service-timeline-empty">운영 이벤트를 불러오고 있습니다.</li>
+                    </ol>
+                  </aside>
                 </div>
-                <ol class="service-demo-process-rail">
-                  <li id="serviceDemoStepInput" data-state="pending">
-                    <span>01</span><strong>센서 입력</strong><small id="serviceDemoStepInputEvidence">입력 대기</small>
-                  </li>
-                  <li id="serviceDemoStepAlignment" data-state="pending">
-                    <span>02</span><strong>시간 정렬</strong><small id="serviceDemoStepAlignmentEvidence">정렬 대기</small>
-                  </li>
-                  <li id="serviceDemoStepFeatures" data-state="pending">
-                    <span>03</span><strong>특징 추출</strong><small id="serviceDemoStepFeaturesEvidence">window 대기</small>
-                  </li>
-                  <li id="serviceDemoStepInference" data-state="pending">
-                    <span>04</span><strong>이상 추론</strong><small id="serviceDemoStepInferenceEvidence">모델 대기</small>
-                  </li>
-                  <li id="serviceDemoStepResult" data-state="pending">
-                    <span>05</span><strong>저장·알림</strong><small id="serviceDemoStepResultEvidence">결과 대기</small>
-                  </li>
-                </ol>
+
+                <section class="service-live-metrics" aria-label="서비스 실시간 지표">
+                  <article><span>DEVICE1 CPU</span><strong id="serviceMetricCpu">—</strong><small>resource pressure</small></article>
+                  <article><span>P95 LATENCY</span><strong id="serviceMetricLatency">—</strong><small>processing window</small></article>
+                  <article><span>BACKLOG</span><strong id="serviceMetricBacklog">—</strong><small>queued frames</small></article>
+                  <article><span>THROUGHPUT</span><strong id="serviceMetricThroughput">—</strong><small>frames / second</small></article>
+                </section>
+
+                <section class="service-performance-comparison" aria-labelledby="servicePerformanceComparisonTitle">
+                  <div class="service-performance-comparison-head">
+                    <div><span>PERFORMANCE SNAPSHOT</span><strong id="servicePerformanceComparisonTitle">증강 전 / 후 성능 비교</strong></div>
+                    <span id="servicePerformanceComparisonState" data-state="waiting">스냅샷 수집 대기</span>
+                  </div>
+                  <div class="service-performance-comparison-grid">
+                    <article><span>BEFORE · Device1</span><strong id="servicePerformanceBefore">전환 전 스냅샷 대기</strong></article>
+                    <div aria-hidden="true">→</div>
+                    <article><span>AFTER · Device1 + Server1</span><strong id="servicePerformanceAfter">증강 실행 후 수집</strong></article>
+                  </div>
+                  <p>실제 승인된 증강 전환의 관측 스냅샷만 비교하며, 현재는 Kubernetes/EdgeX 변경을 실행하지 않습니다.</p>
+                </section>
               </section>
 
               <section class="service-augmentation" aria-labelledby="serviceAugmentationTitle">
@@ -1621,7 +1714,7 @@
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-    <script src="/static/service-demo.js?v=service-catalog-20260813"></script>
+        <script src="/static/service-demo.js?v=service-operations-20260813"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

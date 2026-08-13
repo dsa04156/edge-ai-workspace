@@ -85,6 +85,13 @@ class AugmentationMetricSnapshot(BaseModel):
     throughput_per_second: float = Field(ge=0)
 
 
+class AugmentationPerformanceComparison(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    before: AugmentationMetricSnapshot | None = None
+    after: AugmentationMetricSnapshot | None = None
+
+
 class AugmentationTransition(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -116,6 +123,9 @@ class ServiceAugmentationState(BaseModel):
         "NORMAL",
     ]
     anomaly_signal_used: Literal[False] = False
+    performance_comparison: AugmentationPerformanceComparison = Field(
+        default_factory=AugmentationPerformanceComparison
+    )
     transitions: list[AugmentationTransition] = Field(default_factory=list)
 
 
@@ -127,6 +137,8 @@ class ServiceAugmentationEvaluator:
         self._scale_down_since: datetime | None = None
         self._last_augmented_at: datetime | None = None
         self._cooldown_since: datetime | None = None
+        self._before_metrics: AugmentationMetricSnapshot | None = None
+        self._after_metrics: AugmentationMetricSnapshot | None = None
         self._transitions: list[AugmentationTransition] = []
 
     def evaluate(
@@ -215,6 +227,19 @@ class ServiceAugmentationEvaluator:
         recommendation: Recommendation,
         reasons: list[str],
     ) -> ServiceAugmentationState:
+        metric_snapshot = AugmentationMetricSnapshot(
+            cpu_percent=round(signals.cpu_ratio * 100, 1),
+            memory_percent=round(signals.memory_ratio * 100, 1),
+            gpu_pressure=signals.gpu_pressure,
+            gpu_percent=signals.gpu_percent,
+            processing_latency_p95_ms=signals.processing_latency_p95_ms,
+            backlog=signals.backlog,
+            throughput_per_second=signals.throughput_per_second,
+        )
+        if self.state == "RECOMMENDED" and self._before_metrics is None:
+            self._before_metrics = metric_snapshot
+        if self.state == "AUGMENTED" and self._after_metrics is None:
+            self._after_metrics = metric_snapshot
         return ServiceAugmentationState(
             generated_at=now,
             state=self.state,
@@ -222,19 +247,15 @@ class ServiceAugmentationEvaluator:
             apply_state="blocked" if self.state == "BLOCKED" else "observed-only",
             reason_codes=reasons,
             gates=_gates(signals),
-            metrics=AugmentationMetricSnapshot(
-                cpu_percent=round(signals.cpu_ratio * 100, 1),
-                memory_percent=round(signals.memory_ratio * 100, 1),
-                gpu_pressure=signals.gpu_pressure,
-                gpu_percent=signals.gpu_percent,
-                processing_latency_p95_ms=signals.processing_latency_p95_ms,
-                backlog=signals.backlog,
-                throughput_per_second=signals.throughput_per_second,
-            ),
+            metrics=metric_snapshot,
             dwell=PressureDwell(
                 resource_pressure_seconds=_elapsed(self._resource_pressure_since, now),
                 service_pressure_seconds=_elapsed(self._service_pressure_since, now),
                 scale_down_seconds=_elapsed(self._scale_down_since, now),
+            ),
+            performance_comparison=AugmentationPerformanceComparison(
+                before=self._before_metrics,
+                after=self._after_metrics,
             ),
             transitions=self._transitions[-12:],
         )
@@ -243,6 +264,9 @@ class ServiceAugmentationEvaluator:
         if state == self.state:
             return
         previous = self.state
+        if state == "RECOMMENDED":
+            self._before_metrics = None
+            self._after_metrics = None
         self.state = state
         self._transitions.append(
             AugmentationTransition(

@@ -29,6 +29,58 @@ function serviceDemoDecision(status) {
 }
 
 
+function buildServiceRoutingView(data = {}) {
+  const results = (Array.isArray(data.results) ? data.results : []).filter((item) => (
+    item?.inference_target === "edge-local" || item?.inference_target === "server1"
+  ));
+  const deviceCount = results.filter((item) => item.inference_target === "edge-local").length;
+  const serverCount = results.filter((item) => item.inference_target === "server1").length;
+  const total = deviceCount + serverCount;
+  return {
+    deviceCount,
+    serverCount,
+    deviceRatio: total ? Math.round((deviceCount / total) * 100) : null,
+    serverRatio: total ? 100 - Math.round((deviceCount / total) * 100) : null,
+    summary: total ? `최근 ${total}건 기준` : "처리 표본 대기",
+  };
+}
+
+
+function buildServiceOperationsTimelineView(augmentation = {}, alertData = {}) {
+  const transitions = (Array.isArray(augmentation.transitions) ? augmentation.transitions : []).map((item) => {
+    const title = item?.to_state === "AUGMENTED" ? "자원 증강 실행"
+      : item?.to_state === "RECOMMENDED" ? "자원 증강 권고"
+        : item?.to_state === "BLOCKED" ? "자원 증강 차단"
+          : item?.to_state === "OBSERVING" ? "자원 압박 관찰"
+            : item?.to_state === "COOLDOWN" ? "증강 쿨다운"
+              : "자원 상태 정상";
+    return {
+      kind: "augmentation",
+      tone: item?.to_state === "AUGMENTED" ? "executed"
+        : item?.to_state === "BLOCKED" ? "blocked"
+          : item?.to_state === "RECOMMENDED" ? "recommended" : "observing",
+      title,
+      detail: `${serviceDemoText(item?.from_state, "-")} → ${serviceDemoText(item?.to_state, "-")} · ${serviceAugmentationReason(item?.reason)}`,
+      occurredAt: serviceDemoText(item?.occurred_at, ""),
+    };
+  });
+  const alerts = (Array.isArray(alertData.alerts) ? alertData.alerts : []).map((item) => ({
+    kind: "equipment",
+    tone: item?.transition === "opened" ? "blocked" : "normal",
+    title: item?.transition === "opened" ? "설비 이상 발생" : "설비 정상 복귀",
+    detail: `anomaly score ${serviceDemoNumber(item?.score, 2)} · 자원 증강 판단과 독립`,
+    occurredAt: serviceDemoText(item?.observed_at, ""),
+  }));
+  const events = [...transitions, ...alerts]
+    .sort((left, right) => (Date.parse(right.occurredAt) || 0) - (Date.parse(left.occurredAt) || 0))
+    .slice(0, 10);
+  return {events};
+}
+
+
+const serviceOperationsObservations = {augmentation: {}, alerts: {}};
+
+
 function serviceDemoPipeline(data, latest, model) {
   const inputState = data.input_state || "unknown";
   const counters = data.counters || {};
@@ -232,6 +284,8 @@ function renderServiceDemo(data, documentRef = document) {
   text("serviceDemoModel", `${view.model} · ${view.copy}`);
   text("serviceDemoOrigin", view.origin);
   text("serviceDemoInputAge", view.inputAge);
+  text("serviceDagFreshness", view.inputAge);
+  text("serviceOperationsRunState", view.inputState === "fresh" ? "STREAMING" : "ATTENTION");
   text("serviceDemoFrames", view.frames);
   const routing = text("serviceDemoInferenceRouting", view.inferenceRouting);
   if (routing) routing.dataset.state = view.inferenceRoutingTone;
@@ -240,9 +294,14 @@ function renderServiceDemo(data, documentRef = document) {
     scoreMeter.max = view.scoreMax;
     scoreMeter.value = view.scoreValue;
   }
+  const currentStep = view.inputState === "fresh" ? "Inference"
+    : view.pipeline.find((step) => ["active", "warn"].includes(step.state))?.id || "Input";
   view.pipeline.forEach((step) => {
     const stage = documentRef.getElementById(`serviceDemoStep${step.id}`);
-    if (stage) stage.dataset.state = step.state;
+    if (stage) {
+      stage.dataset.state = step.state;
+      stage.dataset.current = String(step.id === currentStep);
+    }
     text(`serviceDemoStep${step.id}Evidence`, step.evidence);
   });
   const error = text("serviceDemoError", view.error);
@@ -270,6 +329,11 @@ function serviceAugmentationReason(reason) {
     augmentation_active: "승인된 증강 상태의 축소 조건을 관찰하고 있습니다.",
     scale_down_recommended: "저부하 조건이 15분 지속되어 축소를 권고합니다.",
     cooldown_active: "마지막 변경 이후 cooldown을 적용하고 있습니다.",
+    approved_augmentation_observed: "승인된 server1 증강 전환을 관측했습니다.",
+    pressure_dwell_in_progress: "자원·서비스 압력 지속시간을 관찰하고 있습니다.",
+    pressure_cleared: "자원·서비스 압력이 정상 범위로 복귀했습니다.",
+    cooldown_complete: "증강 cooldown이 완료되었습니다.",
+    scale_down_envelope_sustained: "저부하 축소 조건이 15분 지속되었습니다.",
   }[reason] || serviceDemoText(reason, "판단 근거 관측 대기");
 }
 
@@ -296,6 +360,19 @@ function buildServiceAugmentationView(data = {}) {
     const current = Number.isFinite(Number(value)) ? Math.max(0, Number(value)) : 0;
     return {value: Math.min(current, maximum), max: maximum, label: `${Math.round(current)} / ${Math.round(maximum)}초`};
   };
+  const comparison = data.performance_comparison || {};
+  const comparisonText = (snapshot, fallback) => snapshot
+    ? `p95 ${number(snapshot.processing_latency_p95_ms)} ms · backlog ${number(snapshot.backlog)} · ${number(snapshot.throughput_per_second, 2)} fps`
+    : fallback;
+  const event = state === "AUGMENTED"
+    ? {hidden: false, tone: "executed", eyebrow: "APPROVED EVENT", label: "자원 증강 실행"}
+    : state === "RECOMMENDED"
+      ? {hidden: false, tone: "recommended", eyebrow: "OBSERVED ONLY", label: "자원 증강 권고"}
+      : state === "OBSERVING"
+        ? {hidden: false, tone: "observing", eyebrow: "DWELL GATE", label: "자원 압박 관찰 중"}
+        : state === "BLOCKED"
+          ? {hidden: false, tone: "blocked", eyebrow: "GATE BLOCKED", label: "자원 증강 차단"}
+          : {hidden: true, tone: "normal", eyebrow: "NORMAL", label: "자원 증강 이벤트 없음"};
   return {
     state,
     label: labels[state],
@@ -303,6 +380,19 @@ function buildServiceAugmentationView(data = {}) {
       ? `${reasonTexts[0]} 외 ${reasonTexts.length - 1}개 gate 차단`
       : reasonTexts[0] || "판단 근거 관측 대기",
     metrics: `CPU ${number(metrics.cpu_percent, 1)}% · Memory ${number(metrics.memory_percent, 1)}% · ${Number.isFinite(Number(metrics.gpu_percent)) ? `GPU ${number(metrics.gpu_percent, 1)}%` : "GPU 미관측"} · p95 ${number(metrics.processing_latency_p95_ms)} ms · backlog ${number(metrics.backlog)} · ${number(metrics.throughput_per_second, 2)} fps`,
+    metricValues: {
+      cpu: Number.isFinite(Number(metrics.cpu_percent)) ? `${number(metrics.cpu_percent, 1)}%` : "—",
+      latency: Number.isFinite(Number(metrics.processing_latency_p95_ms)) ? `${number(metrics.processing_latency_p95_ms)} ms` : "—",
+      backlog: Number.isFinite(Number(metrics.backlog)) ? number(metrics.backlog) : "—",
+      throughput: Number.isFinite(Number(metrics.throughput_per_second)) ? `${number(metrics.throughput_per_second, 2)} fps` : "—",
+    },
+    comparison: {
+      before: comparisonText(comparison.before, "전환 전 스냅샷 대기"),
+      after: comparisonText(comparison.after, state === "AUGMENTED" ? comparisonText(metrics, "관측 대기") : "증강 실행 후 수집"),
+      available: Boolean(comparison.before && comparison.after),
+    },
+    event,
+    transitions: Array.isArray(data.transitions) ? data.transitions : [],
     resourceDwell: dwellView(dwell.resource_pressure_seconds, dwell.resource_pressure_required_seconds),
     serviceDwell: dwellView(dwell.service_pressure_seconds, dwell.service_pressure_required_seconds),
     gates: (Array.isArray(data.gates) ? data.gates : []).map((gate) => ({
@@ -329,6 +419,24 @@ function renderServiceAugmentation(data, documentRef = document) {
   if (catalogState) catalogState.dataset.state = view.state;
   text("serviceAugmentationSummary", `${view.summary} · ${view.anomalyNote}`);
   text("serviceAugmentationMetrics", view.metrics);
+  text("serviceMetricCpu", view.metricValues.cpu);
+  text("serviceMetricLatency", view.metricValues.latency);
+  text("serviceMetricBacklog", view.metricValues.backlog);
+  text("serviceMetricThroughput", view.metricValues.throughput);
+  text("servicePerformanceBefore", view.comparison.before);
+  text("servicePerformanceAfter", view.comparison.after);
+  const comparisonState = text(
+    "servicePerformanceComparisonState",
+    view.comparison.available ? "전후 스냅샷 비교" : "스냅샷 수집 대기",
+  );
+  if (comparisonState) comparisonState.dataset.state = view.comparison.available ? "ready" : "waiting";
+  const event = documentRef.getElementById("serviceDagAugmentationEvent");
+  if (event) {
+    event.hidden = view.event.hidden;
+    event.dataset.state = view.event.tone;
+  }
+  text("serviceDagAugmentationEyebrow", view.event.eyebrow);
+  text("serviceDagAugmentationLabel", view.event.label);
   const updateDwell = (id, labelId, dwell) => {
     const progress = documentRef.getElementById(id);
     if (progress) {
@@ -362,6 +470,8 @@ function renderServiceAugmentation(data, documentRef = document) {
       item.dataset.active = String(item.dataset.augmentationState === view.state);
     });
   }
+  serviceOperationsObservations.augmentation = {transitions: view.transitions};
+  renderServiceOperationsTimeline(documentRef);
 }
 
 
@@ -399,9 +509,25 @@ function buildServiceDemoResultsView(data = {}) {
 
 function renderServiceDemoResults(data, documentRef = document) {
   const view = buildServiceDemoResultsView(data);
+  const routingView = buildServiceRoutingView(data);
   const summary = documentRef.getElementById("serviceDemoHistorySummary");
   const rail = documentRef.getElementById("serviceDemoHistoryRail");
   if (summary) summary.textContent = view.summary;
+  const deviceRatio = documentRef.getElementById("serviceDeviceRatio");
+  const serverRatio = documentRef.getElementById("serviceServerRatio");
+  const routingSummary = documentRef.getElementById("serviceRoutingSampleSummary");
+  if (deviceRatio) deviceRatio.textContent = routingView.deviceRatio === null ? "—" : `${routingView.deviceRatio}%`;
+  if (serverRatio) serverRatio.textContent = routingView.serverRatio === null ? "—" : `${routingView.serverRatio}%`;
+  if (routingSummary) routingSummary.textContent = routingView.summary;
+  const split = documentRef.getElementById("serviceRoutingSplit");
+  if (split) {
+    split.dataset.empty = String(routingView.deviceRatio === null);
+    split.style?.setProperty?.("--device-ratio", `${routingView.deviceRatio ?? 50}%`);
+  }
+  const deviceNode = documentRef.getElementById("serviceDagDevice1");
+  const serverNode = documentRef.getElementById("serviceDagServer1");
+  if (deviceNode) deviceNode.dataset.traffic = routingView.deviceCount > 0 ? "active" : "idle";
+  if (serverNode) serverNode.dataset.traffic = routingView.serverCount > 0 ? "active" : "idle";
   if (!rail || typeof documentRef.createElement !== "function") return;
   const nodes = view.results.map((result, index) => {
     const item = documentRef.createElement("li");
@@ -444,6 +570,46 @@ function renderServiceDemoAlerts(data, documentRef = document) {
   const latest = documentRef.getElementById("serviceDemoAlertLatest");
   if (count) count.textContent = view.count;
   if (latest) latest.textContent = view.error || view.latest;
+  serviceOperationsObservations.alerts = data;
+  renderServiceOperationsTimeline(documentRef);
+}
+
+
+function renderServiceOperationsTimeline(documentRef = document) {
+  const list = documentRef.getElementById("serviceOperationsTimelineList");
+  if (!list || typeof documentRef.createElement !== "function") return;
+  const view = buildServiceOperationsTimelineView(
+    serviceOperationsObservations.augmentation,
+    serviceOperationsObservations.alerts,
+  );
+  if (!view.events.length) {
+    const empty = documentRef.createElement("li");
+    empty.className = "service-timeline-empty";
+    empty.textContent = "관측된 운영 이벤트가 없습니다.";
+    list.replaceChildren(empty);
+    return;
+  }
+  const nodes = view.events.map((entry) => {
+    const item = documentRef.createElement("li");
+    item.dataset.kind = entry.kind;
+    item.dataset.state = entry.tone;
+    const marker = documentRef.createElement("span");
+    marker.className = "service-timeline-marker";
+    marker.setAttribute("aria-hidden", "true");
+    const body = documentRef.createElement("div");
+    const title = documentRef.createElement("strong");
+    title.textContent = entry.title;
+    const detail = documentRef.createElement("p");
+    detail.textContent = entry.detail;
+    const time = documentRef.createElement("time");
+    time.dateTime = entry.occurredAt;
+    const parsed = Date.parse(entry.occurredAt);
+    time.textContent = Number.isFinite(parsed) ? new Date(parsed).toLocaleString("ko-KR") : "시각 미확인";
+    body.append(title, detail, time);
+    item.append(marker, body);
+    return item;
+  });
+  list.replaceChildren(...nodes);
 }
 
 
@@ -527,6 +693,8 @@ if (typeof module !== "undefined") {
     buildServiceDemoAlertView,
     buildServiceDemoResultsView,
     buildServiceDemoView,
+    buildServiceOperationsTimelineView,
+    buildServiceRoutingView,
     refreshServiceDemo,
     refreshServiceDemoAlerts,
     refreshServiceDemoResults,
@@ -535,6 +703,7 @@ if (typeof module !== "undefined") {
     renderServiceCatalog,
     renderServiceDemoAlerts,
     renderServiceDemoResults,
+    renderServiceOperationsTimeline,
     renderServiceAugmentation,
     openServiceCatalogDetail,
   };

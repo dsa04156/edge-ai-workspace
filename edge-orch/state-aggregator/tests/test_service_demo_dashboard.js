@@ -5,6 +5,8 @@ const path = require("node:path");
 
 const {
   buildServiceAugmentationView,
+  buildServiceOperationsTimelineView,
+  buildServiceRoutingView,
   buildServiceDemoAlertView,
   buildServiceCatalogView,
   buildServiceDemoResultsView,
@@ -19,6 +21,61 @@ const {
   renderServiceDemoResults,
   renderServiceAugmentation,
 } = require("../app/static/service-demo.js");
+
+
+test("builds an observed Device1 and Server1 traffic split from persisted results", () => {
+  const view = buildServiceRoutingView({
+    mode: "live",
+    results: [
+      {inference_target: "edge-local"},
+      {inference_target: "server1"},
+      {inference_target: "edge-local"},
+      {inference_target: "edge-local"},
+    ],
+  });
+
+  assert.equal(view.deviceCount, 3);
+  assert.equal(view.serverCount, 1);
+  assert.equal(view.deviceRatio, 75);
+  assert.equal(view.serverRatio, 25);
+  assert.equal(view.summary, "최근 4건 기준");
+});
+
+
+test("keeps the traffic split unknown when there are no observed results", () => {
+  const view = buildServiceRoutingView({mode: "live", results: []});
+  assert.equal(view.deviceRatio, null);
+  assert.equal(view.serverRatio, null);
+  assert.equal(view.summary, "처리 표본 대기");
+});
+
+
+test("combines augmentation transitions and equipment alerts into one newest-first timeline", () => {
+  const view = buildServiceOperationsTimelineView({
+    transitions: [
+      {
+        occurred_at: "2026-08-13T10:00:03Z",
+        from_state: "RECOMMENDED",
+        to_state: "AUGMENTED",
+        reason: "approved_augmentation_observed",
+      },
+    ],
+  }, {
+    alerts: [
+      {
+        observed_at: "2026-08-13T10:00:01Z",
+        transition: "opened",
+        score: 5.2,
+      },
+    ],
+  });
+
+  assert.equal(view.events.length, 2);
+  assert.equal(view.events[0].kind, "augmentation");
+  assert.equal(view.events[0].title, "자원 증강 실행");
+  assert.equal(view.events[1].kind, "equipment");
+  assert.equal(view.events[1].title, "설비 이상 발생");
+});
 
 
 test("builds a service list row from live operating evidence", () => {
@@ -419,6 +476,23 @@ test("builds a resource recommendation without mixing the equipment anomaly scor
 });
 
 
+test("formats only observed augmentation snapshots for before and after comparison", () => {
+  const view = buildServiceAugmentationView({
+    state: "AUGMENTED",
+    metrics: {processing_latency_p95_ms: 320, backlog: 0, throughput_per_second: 2.4},
+    performance_comparison: {
+      before: {processing_latency_p95_ms: 700, backlog: 8, throughput_per_second: 0.8},
+      after: {processing_latency_p95_ms: 320, backlog: 0, throughput_per_second: 2.4},
+    },
+  });
+
+  assert.equal(view.event.label, "자원 증강 실행");
+  assert.equal(view.comparison.before, "p95 700 ms · backlog 8 · 0.80 fps");
+  assert.equal(view.comparison.after, "p95 320 ms · backlog 0 · 2.40 fps");
+  assert.equal(view.comparison.available, true);
+});
+
+
 test("renders blocked augmentation gates and polls the observed-only endpoint", async () => {
   const elements = {
     serviceAugmentationState: {textContent: "", dataset: {}},
@@ -486,11 +560,15 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceAugmentationResourceDwell", "serviceAugmentationServiceDwell",
     "serviceAugmentationResourceDwellLabel", "serviceAugmentationServiceDwellLabel",
     "serviceAugmentationGateList", "serviceAugmentationStateRail",
+    "serviceOperationsDag", "serviceOperationsTimeline", "serviceOperationsTimelineList",
+    "serviceDagAugmentationEvent", "serviceDeviceRatio", "serviceServerRatio",
+    "serviceMetricCpu", "serviceMetricLatency", "serviceMetricBacklog",
+    "serviceMetricThroughput", "servicePerformanceBefore", "servicePerformanceAfter",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=service-catalog-20260813/);
-  assert.match(html, /service-demo\.js\?v=service-catalog-20260813/);
+  assert.match(html, /service-demo\.css\?v=service-operations-20260813/);
+  assert.match(html, /service-demo\.js\?v=service-operations-20260813/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
@@ -498,6 +576,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /\.service-demo-alert-summary/);
   assert.match(css, /\.service-augmentation-dual-rail/);
   assert.match(css, /\.service-catalog-row/);
+  assert.match(css, /\.service-operations-cockpit/);
+  assert.match(css, /\.service-dag-node\[data-current="true"\]/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

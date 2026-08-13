@@ -132,3 +132,25 @@ def test_augmented_state_enters_cooldown_only_after_scale_down_dwell_and_cooldow
     assert cooldown.state == "COOLDOWN"
     assert cooldown.recommendation == "scale-down"
     assert normal.state == "NORMAL"
+
+
+def test_evaluator_records_observed_before_and_after_performance_snapshots() -> None:
+    evaluator = ServiceAugmentationEvaluator()
+    evaluator.evaluate(_signals(), now=NOW)
+    recommended = evaluator.evaluate(_signals(), now=NOW + timedelta(minutes=5))
+    evaluator.mark_augmented(now=NOW + timedelta(minutes=5))
+    augmented = evaluator.evaluate(
+        _signals(
+            cpu_ratio=0.55,
+            processing_latency_p95_ms=320,
+            backlog=0,
+            throughput_per_second=2.4,
+        ),
+        now=NOW + timedelta(minutes=5, seconds=5),
+    )
+
+    assert recommended.performance_comparison.before.processing_latency_p95_ms == 700
+    assert recommended.performance_comparison.after is None
+    assert augmented.performance_comparison.before.processing_latency_p95_ms == 700
+    assert augmented.performance_comparison.after.processing_latency_p95_ms == 320
+    assert augmented.performance_comparison.after.throughput_per_second == 2.4
