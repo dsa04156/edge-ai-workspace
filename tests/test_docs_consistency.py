@@ -64,6 +64,27 @@ class CurrentDeviceManagementScopeTest(unittest.TestCase):
         self.assertIn("Workflow Builder", scope)
 
 
+class DashboardDeploymentGuideTest(unittest.TestCase):
+    def test_guide_documents_gitops_image_and_traefik_completion_gates(self):
+        guide = (ROOT / "docs/ops/대시보드-배포.md").read_text(encoding="utf-8")
+
+        for required in (
+            "edge-orch/state-aggregator/k8s/ingressroute.yaml",
+            "edge-orch-state-aggregator",
+            "agent/edgex-central-docs",
+            "immutable digest",
+            "docker-build-push.yml",
+            "aggregator.192.168.0.56.sslip.io",
+            "Synced",
+            "Healthy",
+            "git revert",
+        ):
+            self.assertIn(required, guide)
+
+        self.assertIn("브랜치 push만으로는", guide)
+        self.assertIn("kubectl set image", guide)
+
+
 class SecondYearOkdongPlanTest(unittest.TestCase):
     def test_report_body_stays_concise_and_separates_technical_appendices(self):
         plan = (ROOT / "docs/단계별-추진계획.md").read_text(encoding="utf-8")

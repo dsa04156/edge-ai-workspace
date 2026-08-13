@@ -150,6 +150,9 @@ adapter가 연결되지 않은 descriptor도 목록과 DAG 정의에는 나타�
 
 ### 5. 검증하고 배포한다
 
+이미지 build, immutable digest 반영, Git push, Argo CD 동기화와 Traefik 확인은
+[대시보드 배포](ops/대시보드-배포.md)를 따른다.
+
 ```bash
 cd edge-orch/state-aggregator
 .venv/bin/python -m pytest -q tests/test_service_catalog.py tests/test_service_demo.py
