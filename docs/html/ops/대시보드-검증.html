@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>대시보드 검증 점검표</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="../index.html">← 문서 홈</a>
+        <a class="docs-brand" href="../index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">운영 문서</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">ops/대시보드-검증.md</span>
         <a class="edit-link" href="/__edit?file=ops/대시보드-검증.md">편집</a>
       </div>
-      <span>ops/대시보드-검증.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -49,6 +53,7 @@
 <li><a href="../wiki/운영-진입점.html">운영 진입점</a></li>
 <li><a href="../wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
+<li><a href="../AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
 <li><a href="../문서-안내.html">문서 안내</a></li>
 <li><a href="../문서-분류-목록.html">문서 전체 분류 목록</a></li>
 <li><a href="../2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
@@ -80,9 +85,10 @@
 <li><a href="../현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
-<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a class="active" aria-current="page" href="대시보드-검증.html">대시보드 검증 점검표</a></li>
 <li><a href="gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
 <li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li><a href="엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
@@ -164,8 +170,8 @@
           <div class="meta">
             <span class="badge kind">운영 문서</span>
             <span class="badge">원본: ops/대시보드-검증.md</span>
-            <span class="badge">수정: 2026-08-12 13:13</span>
-            <span class="badge">HTML 생성: 2026-08-12 13:22</span>
+            <span class="badge">수정: 2026-08-13 17:20</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -174,10 +180,8 @@
 <p>이 문서는 <code>state-aggregator</code>가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/UI와 별도 <code>Device Management</code> 관리 경계를 확인한다. 2026-07-21 기존 custom Agent와 aggregate <code>sensehat-001</code> bootstrap은 퇴역했다. 2026-07-30 현재 관측 검증 목표는 <strong>기존 Serial 6개, Sense HAT I2C 6개와 승인 Saga의 Arduino aggregate 1개, 총 13개 EdgeX Device identity를 정확히 집계하면서 등록 목록에서는 두 물리 source로 묶는 것</strong>이다.</p>
 <p>물리 디바이스 inventory, 관리 상태와 telemetry의 authority는 EdgeX다. KubeEdge는 node/workload 관찰에만 사용한다.</p>
 <h2 id="api-확인">API 확인</h2>
-<p>운영 acceptance는 ClusterIP, Pod IP, <code>port-forward</code> 우회가 아니라 외부 Traefik Ingress의 <code>/aggregator</code> 경로를 사용한다. 현재 테스트베드에서는 다음처럼 LoadBalancer 주소를 읽어서 기준 URL을 만든다.</p>
-<pre data-lang="bash"><code>TRAEFIK_ADDRESS=&quot;$(kubectl get service traefik -n traefik \
-  -o jsonpath=&#x27;{.status.loadBalancer.ingress[0].ip}&#x27;)&quot;
-DASHBOARD_BASE_URL=&quot;http://${TRAEFIK_ADDRESS}/aggregator&quot;
+<p>운영 acceptance는 ClusterIP, Pod IP, <code>port-forward</code> 우회나 LoadBalancer IP의 <code>/aggregator</code> 경로가 아니라 GitOps로 관리하는 외부 Traefik host route를 사용한다. 배포 절차와 소유권은 <a href="대시보드-배포.html">대시보드 배포</a>를 따른다.</p>
+<pre data-lang="bash"><code>DASHBOARD_BASE_URL=&quot;http://aggregator.192.168.0.56.sslip.io&quot;
 
 curl -fsS &quot;${DASHBOARD_BASE_URL}/state/devices&quot;
 curl -fsS &quot;${DASHBOARD_BASE_URL}/state/device-profiles&quot;
@@ -208,11 +212,11 @@ curl -fsS &quot;${DASHBOARD_BASE_URL}/management/adapter-runtimes&quot;</code></
 <p>수행하지 않는다. Runtime mode 선택은 노출하지 않고 <code>auto</code> plan만 사용한다.</p>
 <ol><li>외부/Argo runtime의 restart/retire는 비활성화되고 Controller 소유 runtime에만 action이</li></ol>
 <p>표시된다.</p>
-<ol><li><code>/aggregator/dashboard#management</code>로 열었을 때 관리 API도</li></ol>
-<p><code>/aggregator/management/*</code>로 요청되고 200을 반환한다. root <code>/management/*</code>, ClusterIP 또는 Pod IP로 우회하지 않는다.</p>
+<ol><li><code>${DASHBOARD_BASE_URL}/#management</code>로 열었을 때 관리 API도 같은 Traefik host의</li></ol>
+<p><code>/management/*</code>로 요청되고 200을 반환한다. ClusterIP 또는 Pod IP로 우회하지 않는다.</p>
 <ol><li>데스크톱 1440px와 모바일 390px에서 문서 가로 overflow가 없고 세 노드 전환 결과가</li></ol>
 <p>각각의 등록 연결·Device 수와 일치한다.</p>
-<ol><li><code>/aggregator/dashboard#designer</code>에서 Device/Profile resource와 node 수가 실제 API와</li></ol>
+<ol><li><code>${DASHBOARD_BASE_URL}/#designer</code>에서 Device/Profile resource와 node 수가 실제 API와</li></ol>
 <p>일치하고, 기본 설계가 <code>local_recent</code> source node 일치 검증을 통과한다.</p>
 <ol><li>단계 추가·삭제, 포트 연결, inspector 설정, 오류 항목 선택, localStorage 저장이</li></ol>
 <p>반응한다. 전체 보기, 확대·축소, 배경 이동, 단계 이동, 미니맵과 단계/설정 패널을 확인하며 390/768/1024/1440px에서 문서와 캔버스 모두 가로 overflow가 없다.</p>

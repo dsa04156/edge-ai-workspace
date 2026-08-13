@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="index.html">← 문서 홈</a>
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">최신 기준 문서</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">현재-구현-상태.md</span>
         <a class="edit-link" href="/__edit?file=현재-구현-상태.md">편집</a>
       </div>
-      <span>현재-구현-상태.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -49,6 +53,7 @@
 <li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
 <li><a href="문서-안내.html">문서 안내</a></li>
 <li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
 <li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
@@ -77,9 +82,10 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="자원-풀.html">자원 풀</a></li>
 <li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
-<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
+<li><a class="active" aria-current="page" href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
@@ -164,8 +170,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-08-12 13:16</span>
-            <span class="badge">HTML 생성: 2026-08-12 13:22</span>
+            <span class="badge">수정: 2026-08-13 14:39</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -177,6 +183,7 @@
 <p>고정 서비스 데모는 2026-08-03 Jetson에 복합 센서 image <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>을 rollout했다. 가속도 X/Y/Z와 온도 네 Local Data source를 정렬해 실제 origin/frame 증가, 누락 0, 약 11~12ms 정렬 차이를 확인했고 중앙 BFF와 외부 dashboard도 같은 진동·온도 개별 점수와 0.7/0.3 종합 점수를 표시했다. 이는 고정 read-only consumer이며 범용 workflow 실행이나 실제 고장 분류 완료를 뜻하지 않는다.</p>
 <p>후속 소스에는 펌프·모터와 생산품질용 versioned Pydantic/JSON Schema, contract-valid JSONL simulator와 Local Data v3 Replay server를 추가했다. 현재 통계 모델은 <code>PumpModelAdapter</code> 뒤의 명시적 <code>online-baseline</code> backend로 분리했다. 파생 결과와 이상 발생·정상 복귀 transition은 application-owned SQLite에 idempotent하게 저장하며 manifest는 Jetson 1Gi RWO PVC를 선언한다. 중앙 BFF 결과·알림 API와 dashboard 최근 알림 표시를 포함한 자동 테스트는 통과했다. commit <code>849f10f3eefa9c719bb18c5a8de16687f115e98e</code>와 GitHub Actions run <code>30796771024</code>를 통해 새 ARM64 image를 배포했고 Argo CD Application은 같은 revision에서 <code>Synced/Healthy</code>다. Jetson의 <code>sensor-anomaly-demo@sha256:9f0736a1c6b6eda612a3dd4257ff526d483c2f45cb5d94c52a66f61214232796</code>와 1Gi RWO <code>sensor-anomaly-demo-state</code> PVC를 확인했다. Pod 재시작 전 SQLite 결과 172건과 origin <code>1785746192559462095</code>를 기록한 뒤 새 Pod에서 같은 origin을 재조회했고 결과가 217건으로 계속 증가해 restart persistence를 live 검증했다. 생산품질 계약은 현장 field mapping 전 schema 단계다.</p>
 <p>실제 장치 움직임 anomaly와 USB 손분리·복구를 동일한 운영 API 계약으로 반복 판정하는 read-only 도구 <code>tools/verify_sensor_service_demo.py</code>를 추가했다. 정상 기준선 이후 필요한 상태 전이가 모두 발생해야만 종료 코드 0과 JSON <code>passed=true</code>를 반환한다. 현재 live 관측에서는 정상 입력 증가만 확인했고 anomaly와 실제 분리는 발생하지 않았으므로 현장 gate는 계속 미완료다.</p>
+<p>2026-08-13에는 설비 anomaly 판단과 독립된 컴퓨팅 자원 증강 evaluator를 소스에 추가했다. CPU/Memory/GPU 압박 5분과 p95/backlog/throughput 서비스 압박 3분, 입력·모델·메트릭과 server1 준비 gate를 사용하며 anomaly score는 증강 입력에서 제외한다. 기본 모드는 <code>observed-only</code>이고 상태는 <code>NORMAL/OBSERVING/RECOMMENDED/AUGMENTED/COOLDOWN</code>과 별도 <code>BLOCKED</code> reason으로 표현한다. server1용 role-gated inference API와 linux/amd64 image digest를 만들고 선택적 overlay를 수동 적용해 Pod Ready/restart 0, fresh 입력, ready 모델, EndpointSlice와 실제 inference/idempotency를 live 확인했다. 다만 live <code>state-aggregator</code>는 Argo CD가 기존 revision image로 복귀시켜 새 evaluator 화면·CRD 상태 연결은 아직 live 미반영이다. 같은 날 승인 ID가 Secret으로 주입된 경우에만 server1을 호출하는 선택적 <code>server1-approved-offload</code> overlay와 요청 routing을 구현했다. 1초 timeout, 같은 <code>requestId</code> 최대 2회 retry, 3회 연속 실패 시 15분 로컬 rollback을 적용하고 원격 사용 중에도 로컬 baseline을 계속 갱신한다. 새 AMD64 image <code>sensor-anomaly-demo@sha256:2abc03055426ea979a38e18fa3e58df1c6b49b4057a6c84fc4cc62342a9e641b</code>로 server1 Pod Ready/restart 0, EndpointSlice와 feature를 포함한 inference 응답을 다시 live 확인했다. 승인 overlay는 운영 root와 Argo Application에 포함하지 않았고 승인 Secret도 저장소에 만들지 않았으므로 실제 edge 요청 경로는 계속 로컬이다. 이는 자동 workload 증설, 동적 migration 또는 범용 offloading 완료가 아니다. checkout의 state-aggregator manifest는 승인 ID, 실제 inference target, 연속 실패와 rollback 잔여시간을 표시하는 AMD64 image <code>state-aggregator@sha256:8e7ef595925106d488ebdbe4be8d5a52cdd0ed4de2fb998819b06ad2381f81d2</code>를 가리키지만 live Argo revision에는 아직 반영되지 않았다.</p>
 <p>같은 날 일반 Discovery DaemonSet의 Serial-only passive inventory를 dev0003까지 확장했다. Raspberry Pi에 연결된 CH340 계열 USB Serial 장비를 <code>/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0</code>(VID/PID <code>1a86:7523</code>)에서 후보 <code>candidate-fb7190f...</code>로 반복 관측했다. 이후 exact Raspberry Pi hardware binding, <code>mpu6050-imu-v1</code> Profile/parser, Controller 배포 template과 MPU6050 6축 Float64 JSON-line 처리를 구현했다. exact 후보 승인부터 Runtime, Profile/Device, first Event까지의 fake backend 통합 테스트는 통과했다. live 승인도 실행했지만 당시 Serial telemetry가 없어 첫 Event timeout으로 <code>FAILED</code>가 됐고 Controller가 자신이 만든 동적 Runtime을 rollback했다. 이후 보드를 <code>ESP32-D0WD-V3 revision 3.1</code>로 식별하고 운영 firmware를 compile·flash해 115200 baud 상태 JSON까지 확인했다. firmware는 MPU6050을 1초마다 재탐색하지만 ESP32의 일반 I2C pin pair와 Raspberry Pi bus 1에서 <code>0x68</code>, <code>0x69</code> 모두 ACK가 없었다. 2026-07-30 MPU6050 실물을 분리했고 후보는 <code>STALE</code>/<code>ignored</code> 감사 이력으로 정리했으며 동적 Runtime은 없는 상태다. Profile/parser/template과 자동 테스트는 재연결 실험을 위한 dormant 지원 코드로 남기되 현재 연결 장비나 완료된 telemetry 경로로 표시하지 않는다. Serial Agent와 I2C Agent가 같은 node를 보고해도 서로의 후보를 <code>STALE</code> 처리하지 않도록 report에 <code>scannedProtocols</code> scope를 추가했고, Sense HAT 후보는 계속 <code>EVENT_CONFIRMED</code>를 유지했다. MQTT 자기등록 subscriber는 아직 없다. 대신 공식 <code>device-mqtt:4.0.2</code> immutable image, 노드별 network binding, allowlist broker/topic/QoS Runtime 설정, Device command topic/resource와 bundled <code>edgeai-mqtt-temperature-v1</code> Profile을 묶은 개발용 웹 연결 package를 구현했다. 대시보드의 <code>검증하고 연결</code> 한 번으로 validation, Runtime 재사용/배포, Profile/Device readback과 first Event 확인을 진행한다. anonymous broker/publisher는 root 운영 render 밖의 선택적 development fixture다. 이 경로는 자동 테스트와 manifest render뿐 아니라 2026-07-30 실제 클러스터 웹 canary도 통과했다. Jetson에 <code>adapter-mqtt-978887c832</code>를 배포하고 <code>mqtt-temperature-sim-001</code> Device와 <code>edgeai-mqtt-temperature-v1</code> Profile을 등록한 뒤 Core Data의 <code>temperature</code> Float64 Event와 <code>ACTIVE</code> operation을 확인했다. 첫 Event 뒤 <code>operatingState=UP</code> Metadata readback까지 성공해야 연결 완료로 판정한다. Modbus는 네트워크 discovery 없이 운영자가 선언한 고정 개발 endpoint에 한해 공식 EdgeX <code>device-modbus:4.0.2</code> Runtime, read-only Profile, Modbus TCP simulator와 승인 Saga를 연결했다. 2026-07-28 Unit 2 가상 온도 센서를 승인해 Controller-owned Runtime, Core Metadata Device, 1초 AutoEvent, Core Data 저장과 대시보드 <code>available</code> 상태까지 live 확인했다. 개발용 Modbus endpoint simulator Deployment는 root 운영 render 밖에 남아 있지만 해당 Controller Device Service Runtime은 검증 뒤 퇴역했으며 현재 live EdgeX inventory에는 포함되지 않는다. 이는 개발 simulator 수직 경로의 과거 증거이며 실제 PLC 지원 완료가 아니다. OPC-UA와 ONVIF는 확장 contract와 명시적 <code>not implemented</code> 상태만 있다.</p>
 <p>대시보드는 전역 <code>간편 보기</code>/<code>전체 보기</code> 토글을 제거했다. 기본 화면에는 핵심 상태만 두고 기술 KPI, 서비스 연결 근거, 후보 세부정보와 개별 EdgeX Device는 클릭해 펼친다. 등록 목록은 기본 운영 경로의 Core Metadata 13개 Device identity를 유지하면서 <code>arduino-001</code>과 <code>sensehat-001</code> 물리 source별 카드로 묶는다. 375px, 768px, 1024px 실제 브라우저 viewport와 MQTT 연결 마법사의 1440px viewport에서 문서 가로 overflow와 잘린 텍스트가 없음을 확인했다.</p>
 <p><code>디바이스</code> 화면은 <code>엣지 AI 서버</code>, <code>물리 디바이스</code>, <code>가상 디바이스</code>, <code>센서 디바이스</code>를 전환 탭 없이 한 화면의 네 연속 목록으로 렌더링한다. 공통 노드 필터가 네 목록에 함께 적용되고, 각 행은 이름·상태·최신 관측 또는 Event·상세보기만 유지한다. 1440/768/375px 실제 브라우저에서 네 목록 동시 표시와 문서 가로 overflow 부재를 확인했다.</p>
@@ -556,12 +563,12 @@
 <tr>
 <td>state-aggregator Python</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>201 passed</td>
+<td>215 passed</td>
 </tr>
 <tr>
 <td>dashboard JavaScript</td>
 <td><code>cd edge-orch/state-aggregator &amp;&amp; node --test tests/*.js</code></td>
-<td>131 passed</td>
+<td>137 passed</td>
 </tr>
 <tr>
 <td>dev0003 ESP32 firmware</td>
@@ -576,7 +583,7 @@
 <tr>
 <td>센서 이상탐지 데모</td>
 <td><code>cd edge-orch/sensor-anomaly-demo &amp;&amp; PYTHONPATH=. pytest -q</code></td>
-<td>66 passed</td>
+<td>74 passed</td>
 </tr>
 <tr>
 <td>Sense HAT reader</td>

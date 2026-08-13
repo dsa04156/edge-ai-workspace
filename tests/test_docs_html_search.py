@@ -84,9 +84,31 @@ class DocsHtmlSearchTest(unittest.TestCase):
 
     def test_home_intro_prioritizes_current_scope(self):
         intro = build_docs_html.home_intro_markup()
+        self.assertIn("AI 서비스 연결하기", intro)
+        self.assertIn("대시보드 배포하기", intro)
+        self.assertIn("현재 데모 운영하기", intro)
         self.assertIn("프로젝트 범위", intro)
-        self.assertIn("최신 기준과 운영 문서를 먼저", intro)
-        self.assertIn("설계 이력과 보관 자료", intro)
+
+    def test_sidebar_marks_current_document(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs = Path(tmp) / "docs"
+            out = docs / "html"
+            docs.mkdir()
+            first = docs / "문서-안내.md"
+            second = docs / "프로젝트-범위.md"
+            first.write_text("# 문서 안내\n", encoding="utf-8")
+            second.write_text("# 프로젝트 범위\n", encoding="utf-8")
+            old_docs, old_out = build_docs_html.DOCS, build_docs_html.OUT
+            try:
+                build_docs_html.DOCS = docs
+                build_docs_html.OUT = out
+                markup = build_docs_html.sidebar([first, second], out / "문서-안내.html")
+            finally:
+                build_docs_html.DOCS = old_docs
+                build_docs_html.OUT = old_out
+
+        self.assertEqual(markup.count('aria-current="page"'), 1)
+        self.assertIn('class="active" aria-current="page" href="문서-안내.html"', markup)
 
     def test_archive_banner_warns_not_current_direction(self):
         banner = build_docs_html.archive_banner("archive/integration/통합-문서.md")

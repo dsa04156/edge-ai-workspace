@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>프로젝트 범위</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="index.html">← 문서 홈</a>
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">최신 기준 문서</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">프로젝트-범위.md</span>
         <a class="edit-link" href="/__edit?file=프로젝트-범위.md">편집</a>
       </div>
-      <span>프로젝트-범위.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -49,12 +53,13 @@
 <li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
 <li><a href="문서-안내.html">문서 안내</a></li>
 <li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
 <li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
-<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a class="active" aria-current="page" href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
 <li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
@@ -80,6 +85,7 @@
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
@@ -164,8 +170,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-12 13:16</span>
-            <span class="badge">HTML 생성: 2026-08-12 13:22</span>
+            <span class="badge">수정: 2026-08-13 14:38</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -233,6 +239,7 @@
 <p>첫 서비스 데모 consumer는 <code>edge-orch/sensor-anomaly-demo/</code>다. 2026-08-03 소스 구현은 <code>etri-dev0001-jetorn</code>에서 <code>device-serial-jetson.edgex-edge.svc.cluster.local:59910</code>의 Local Data API를 500ms마다 조회한다. <code>virtual-acceleration-{x,y,z}-001</code>의 같은 nanosecond <code>origin</code>을 먼저 한 frame으로 결합하고, 별도 Serial 메시지인 <code>virtual-temperature-001</code>은 2초 이내의 가장 가까운 sample만 연결한다. 보간하거나 누락값을 만들지 않으며 시간 범위 안의 온도가 없으면 해당 frame의 종합 점수를 계산하지 않는다.</p>
 <p>가속도 최근 20개에서는 RMS·Peak·Kurtosis, 온도 최근 10개에서는 평균·표준편차·변화량을 만든다. 두 feature branch는 각각 30개 warm-up의 online Gaussian baseline 점수를 계산하고 기본 가중치 <code>진동 0.7 + 온도 0.3</code>으로 종합한다. 종합 점수가 두 번 연속 threshold 이상이면 anomaly, 세 번 연속 정상 범위면 clear한다. 이는 학습된 고장 분류기나 push stream이 아니다. 2026-08-03에는 ARM64 image <code>sensor-anomaly-demo@sha256:1a86c54a1a0692a682258b4a9c8a6f7a24e13f98000610afa56c04f95d52af68</code>을 Jetson에 배포해 Ready/restart 0을 확인했다. 기동 직후 temperature 605개와 acceleration frame 605개를 정렬해 누락 0이었고, 이어진 두 status 조회에서 frame <code>621 → 623</code>, origin <code>1785734602955557669 → 1785734604991104923</code>, 온도 정렬 차이 약 11~12ms를 확인했다. 중앙 BFF와 외부 dashboard도 같은 개별·종합 점수를 반환했다. 실제 장치를 움직여 anomaly를 유발하는 현장 시연은 여전히 별도 gate다.</p>
 <p>2026-08-03 후속 소스는 <code>okdong.pump-motor.telemetry/v1</code>과 <code>okdong.production-quality.telemetry/v1</code> schema, Float64 Local Data 호환 Replay server, 명시적 <code>online-baseline</code> model adapter, idempotent SQLite 결과와 발생·복귀 alert transition을 추가했다. 운영 manifest는 Jetson <code>local-path</code> 1Gi RWO PVC를 사용한다. 이 DB는 EdgeX 원시 Event/PostgreSQL과 분리된 AI 파생 결과이며 중앙 HA 저장소나 원시 telemetry outbox가 아니다. 생산품질 계약은 field map schema만 있고 현장 mapping·판별 서비스는 아직 없다.</p>
+<p>2026-08-13 소스에는 server1 후보를 위한 role-gated <code>POST /api/v1/inference</code> 계약이 추가됐다. <code>inference-server</code> 역할만 이 API를 열고, versioned X/Y/Z/온도 입력과 origin 정렬을 검증하며 <code>requestId</code> 재전송은 idempotent하게 처리한다. 별도 <code>server1-observed-only</code> overlay는 x86 server1 Pod가 같은 read-only Local Data 입력으로 online baseline을 warm-up한 뒤 readiness를 내도록 구성한다. 2026-08-13 Docker daemon 없는 빌드 경로로 linux/amd64 image를 생성해 immutable digest를 고정했고, 선택적 overlay를 수동 적용해 server1 Pod Ready/restart 0, fresh 입력, ready 모델, EndpointSlice, 실제 inference와 <code>requestId</code> 재전송/409 충돌 계약을 live 확인했다. 운영 root Kustomize에는 포함되지 않았고 <code>state-aggregator</code> live Pod는 Argo CD의 기존 revision으로 복귀해 새 evaluator 화면과 CRD 상태 연결은 아직 live 미반영이다. 후속 소스에는 승인 Secret의 ID가 있을 때만 edge worker가 server1을 쓰는 비활성 <code>k8s-overlays/server1-approved-offload</code> 경로를 추가했다. 1초 timeout, 동일 <code>requestId</code> 최대 2회 retry, 3회 연속 실패 시 15분 로컬 rollback을 수행하고 원격 결과를 쓰는 동안에도 로컬 baseline을 shadow-warm한다. 새 AMD64 image <code>sensor-anomaly-demo@sha256:2abc03055426ea979a38e18fa3e58df1c6b49b4057a6c84fc4cc62342a9e641b</code>로 server1 Ready와 feature 포함 inference 응답을 live 재검증했다. 이 승인 overlay와 승인 Secret은 운영 root/Argo에 포함되지 않아 현재 edge 요청은 로컬이다. 따라서 자동 workload 증설, runtime migration, 범용 offloading 또는 전역 최적화가 구현·활성화된 것으로 설명하지 않는다.</p>
 <p><code>state-aggregator</code>의 <code>/state/service-demo</code>와 대시보드는 이 derived 결과와 physical source → Device Service → EdgeX Device 4개 → AI consumer binding을 read-only로 표시한다. 구형 3축 응답도 선택 field 없이 계속 읽을 수 있고, 새 응답에서는 진동·온도 개별 점수, 종합 점수, 온도 정렬 차이를 추가로 표시한다. Device 선택 시 <code>/state/devices/{device_id}/telemetry</code>가 Core Data history를 조회하며 dashboard가 PostgreSQL에 직접 연결하지 않는다. UI는 5분·30분·1시간·24시간 범위와 새로고침을 제공하고 최신 1,000 Event 제한, 반환 Reading 수와 실제 구간을 분리해 보여 준다. EdgeX Core Metadata/Core Data의 raw inventory·telemetry 권위는 바뀌지 않는다. 이 고정 Deployment를 동적 Workflow Builder, runtime migration 또는 offloading 완성으로 설명하지 않는다.</p>
 <p><code>GET /state/services</code>는 현재 운영 배포 대상으로 관리하는 고정 AI 서비스 목록을 read-only로 제공한다. 현재 항목은 <code>sensor-anomaly-demo</code> 1개이며 서비스 상태, 입력 상태, 모델 상태, 배치 노드와 입력 Device 수를 <code>/state/service-demo</code>의 실제 관측으로 합성한다. 서비스가 응답하지 않아도 목록에서 숨기지 않고 <code>degraded</code> 상태와 관측 오류를 반환한다. 대시보드는 이 목록을 <code>센서 입력 → 전처리 → AI 분석 → 결과</code>의 4단계 흐름으로 요약하고, 실행 노드와 물리 소스 → Device Service 수집 경로를 함께 표시한다. 흐름은 아래 versioned 계약의 단계만 사용하며 runtime을 역추론하거나 실행 상태를 새로 만들지 않는다. 같은 응답의 <code>sensor-anomaly-demo-v1</code> 설계 계약은 가속도 X/Y/Z와 온도 입력, 두 feature branch, 개별 점수, 0.7/0.3 결합과 결과 단계를 식별한다. 이 계약은 편집 초안의 원본이며 범용 workflow 정의나 실행 명령이 아니다.</p>
 <p>2026-07-31에는 제거된 과거 AI Pipeline과 분리된 <code>서비스 설계</code> 캔버스를 2차년도 설계 트랙 프로토타입으로 대시보드에 추가했다. 이 화면은 <code>/state/dashboard</code>의 EdgeX Device와 <code>/state/device-profiles</code>의 안전한 DeviceResource 계약을 센서 입력으로 사용하고, 브라우저 안에서 단계 추가·이동·연결, 속성 편집, 검색 가능한 13종 설계 블록, 타입·배치 validation과 dry-run 실행 계획 미리보기만 수행한다. EdgeX 입력은 실제 선택 가능한 Device 수를 표시하고 나머지는 <code>설계용</code>으로 구분한다. 운영 서비스의 <code>설계 편집</code>은 위 versioned 계약만 10개 단계 graph의 브라우저 초안으로 복사한다. 단계·연결·설정·이름을 수정하고 서비스별로 저장·검증할 수 있지만 지원 계약이 없는 서비스는 설계가 있다고 추정하지 않는다. 기존 일반 초안과 서비스별 초안은 분리해 브라우저 <code>localStorage</code>에 저장하며, 화면의 주기적 상태 갱신은 편집 중인 graph를 덮어쓰지 않는다. <code>기존 초안으로 돌아가기</code>와 <code>원본으로 초기화</code>를 제공한다. 검증 시 모든 센서 입력의 최근 5분 Core Data 이력을 Device별 한 번만 읽고, 첫 window 전처리가 요구하는 표본 수와 실제 입력 최신 시각 정렬을 확인한다. 표본 부족·이력 조회 실패·2초 초과 시각 차이는 dry-run 계획을 차단한다. 이는 중앙 이력 기반 사전 점검이며 향후 <code>local_recent</code> Runtime이나 Device Service cache의 실행 준비를 확인하는 기능은 아니다. Kubernetes/EdgeX mutation, command, workload 실행, migration과 offloading은 없다.</p>
@@ -310,10 +317,14 @@
 <h3 id="보존-프로토타입-serial-json-virtual-device-runtime">보존 프로토타입: Serial JSON Virtual Device Runtime</h3>
 <p><code>virtual-device/</code>는 물리 디바이스의 Serial JSON 프로토콜과 원본 필드명을 profile 기반 표준 MQTT telemetry로 변환했던 2차년도 보존 프로토타입 경로다. 물리 디바이스 데이터 수집, 표준화, 로컬 MQTT 발행, 연결 상태와 heartbeat까지만 담당하며 AI 서비스가 아니다.</p>
 <p>이 프로토타입에는 KubeEdge CRD, MapperFramework 수정, EdgeX, 중앙 telemetry 전송, Virtual Device Registry, dashboard, AI 실행, 자원 증강, offloading을 포함하지 않는다. <code>sensor-collector/serial_mqtt_collector.py</code>와 <code>virtual-device/</code>는 서로 자동 대체/결합하지 않는 보존 프로토타입 또는 legacy comparison 경로다. 둘 다 EdgeX Serial migration wave 완료, current physical-device plane 또는 fallback으로 간주하지 않는다.</p>
-<h3 id="프로토타입-승격-후보-runtime-resource-augmentation-scheduler-v1">프로토타입 승격 후보: Runtime Resource Augmentation Scheduler v1</h3>
-<p>2026-06-19 기준 다음 작업 후보는 자원증강 리소스를 수동 실행 버튼으로 호출하는 것이 아니라, runtime 관측값을 기반으로 자동 스케줄링 판단까지 이어지는 최소 경로다. 현재 완료된 자원증강 상태 집계와 dashboard 가시화 위에 pod/service 사용량, resource pressure, capability matching, selected augmentation resource 상태를 얹는 형태로 다룬다.</p>
+<h3 id="현재-프로토타입-서비스-자원-증강-evaluator와-승인-경로">현재 프로토타입: 서비스 자원 증강 evaluator와 승인 경로</h3>
+<p>2026-08-13 소스는 <code>sensor-anomaly-demo</code>의 설비 이상 판단과 컴퓨팅 자원 증강 판단을 독립시켰다. evaluator는 CPU/Memory/GPU 압박 5분, p95 latency/backlog/throughput 서비스 압박 3분, 입력·모델·메트릭과 server1 준비 gate를 평가하며 anomaly score를 입력으로 쓰지 않는다. 기본 <code>observed-only</code> 상태와 reason만 반환하고 dashboard/state-aggregator는 Kubernetes를 변경하지 않는다.</p>
 <p>포함할 수 있는 범위:</p>
-<ul><li>Prometheus/Kubernetes에서 관측한 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 사용</li><li><code>AugmentationResource</code>와 <code>DeviceAugmentation</code>의 Available/Ready 상태를 scheduling 후보 필터로 사용</li><li>대상 edge workload와 보강 resource 사이의 capability matching, pressure reason, selected resource role을 status로 기록</li><li>dashboard에는 &quot;왜 증강 대상인지&quot;, &quot;어떤 자원이 선택됐는지&quot;, &quot;현재 적용/대기/불가 상태인지&quot;를 표시</li><li>실제 Kubernetes mutation은 dashboard나 버튼이 아니라 별도 scheduler/controller 정책 경로에서만 수행</li></ul>
+<ul><li>Prometheus/Kubernetes에서 관측한 pod/service CPU/GPU/memory 사용량을 자원증강 판단 입력으로 사용</li><li><code>AugmentationResource</code>와 <code>DeviceAugmentation</code>의 Available/Ready 상태를 scheduling 후보 필터로 사용</li><li>대상 edge workload와 보강 resource 사이의 capability matching, pressure reason, selected resource role을 status로 기록</li><li>dashboard에는 &quot;왜 증강 대상인지&quot;, &quot;어떤 자원이 선택됐는지&quot;, &quot;현재 적용/대기/불가 상태인지&quot;를 표시</li><li>승인 ID가 외부 Secret으로 주입된 선택적 GitOps overlay에서만 단일 서비스의 server1</li></ul>
+<p>inference 요청 경로를 활성화</p>
+<ul><li>원격 요청 timeout/retry와 연속 실패 시 로컬 rollback, 실행 target·승인 ID·실패 및</li></ul>
+<p>rollback 잔여시간 상태 기록</p>
+<ul><li>실제 Kubernetes mutation은 dashboard나 버튼이 아니라 별도 GitOps/Controller 정책 경로에서만 수행</li></ul>
 <p>포함하지 않는 범위:</p>
 <ul><li>수동 실행 버튼으로 임의 Job을 생성하는 흐름</li><li>고정 샘플 payload로 analyzer endpoint를 호출하는 smoke-test 실행</li><li>dashboard/state-aggregator가 승인 Controller를 우회해 임의 Kubernetes</li></ul>
 <p>apply/delete/restart를 수행하는 구조</p>
@@ -449,7 +460,7 @@
 <li class="toc-h3"><a href="#대시보드-노드별-adapter-runtime과-device-연결-관리">대시보드 노드별 Adapter Runtime과 Device 연결 관리</a></li>
 <li class="toc-h2"><a href="#2차년도-설계-트랙">2차년도 설계 트랙</a></li>
 <li class="toc-h3"><a href="#보존-프로토타입-serial-json-virtual-device-runtime">보존 프로토타입: Serial JSON Virtual Device Runtime</a></li>
-<li class="toc-h3"><a href="#프로토타입-승격-후보-runtime-resource-augmentation-scheduler-v1">프로토타입 승격 후보: Runtime Resource Augmentation Scheduler v1</a></li>
+<li class="toc-h3"><a href="#현재-프로토타입-서비스-자원-증강-evaluator와-승인-경로">현재 프로토타입: 서비스 자원 증강 evaluator와 승인 경로</a></li>
 <li class="toc-h2"><a href="#현재-구현-과정에-포함되는-컴포넌트">현재 구현 과정에 포함되는 컴포넌트</a></li>
 <li class="toc-h2"><a href="#현재-연구-방향에서-제외하는-것">현재 연구 방향에서 제외하는 것</a></li>
 <li class="toc-h2"><a href="#제외-대상-컴포넌트-처리-원칙">제외 대상 컴포넌트 처리 원칙</a></li>

@@ -40,6 +40,7 @@ WIKI_ORDER = [
 ]
 
 ACTIVE_ORDER = [
+    "AI-서비스-등록-가이드.md",
     "문서-안내.md",
     "문서-분류-목록.md",
     "2차년도-ETRI-실행계획.md",
@@ -78,6 +79,7 @@ OPS_ORDER = [
 
 
 DISPLAY_TITLES = {
+    "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "문서-안내.md": "문서 안내",
     "문서-분류-목록.md": "문서 전체 분류 목록",
     "2차년도-ETRI-실행계획.md": "2026년도 2차년도 ETRI 실행계획",
@@ -432,18 +434,26 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
 
 
 def home_intro_markup() -> str:
-    return """<section class=\"home-intro\" aria-label=\"문서 정리 기준\">
-  <a class=\"intro-card primary\" href=\"wiki/지식-지도.html\">
-    <strong>지식 지도</strong>
-    <span>질문이 있을 때 먼저 읽고 최신 원본문서로 이동합니다.</span>
+    return """<section class=\"home-intro\" aria-label=\"빠른 시작\">
+  <a class=\"intro-card primary\" href=\"AI-서비스-등록-가이드.html\">
+    <small>01 · SERVICE</small>
+    <strong>AI 서비스 연결하기</strong>
+    <span>서비스 정의, 입력 계약, 관측 API를 등록하는 기준입니다.</span>
+  </a>
+  <a class=\"intro-card\" href=\"ops/대시보드-배포.html\">
+    <small>02 · DEPLOY</small>
+    <strong>대시보드 배포하기</strong>
+    <span>Git push, Argo CD, Traefik 검증 절차를 확인합니다.</span>
+  </a>
+  <a class=\"intro-card\" href=\"ops/현재-데모-운영-절차.html\">
+    <small>03 · OPERATE</small>
+    <strong>현재 데모 운영하기</strong>
+    <span>EdgeX 수집부터 대시보드까지 운영 상태를 점검합니다.</span>
   </a>
   <a class=\"intro-card\" href=\"프로젝트-범위.html\">
+    <small>04 · SCOPE</small>
     <strong>프로젝트 범위</strong>
-    <span>현재 구현, 2차년도 설계, 레거시·보관 경계를 판단하는 최우선 기준입니다.</span>
-  </a>
-  <a class=\"intro-card\" href=\"문서-정리-계획.html\">
-    <strong>문서 정리 기준</strong>
-    <span>최신 기준과 운영 문서를 먼저 보고 설계 이력과 보관 자료는 필요할 때만 확인합니다.</span>
+    <span>현재 구현과 2차년도 목표, 레거시 경계를 구분합니다.</span>
   </a>
 </section>"""
 
@@ -524,7 +534,8 @@ def sidebar(files: list[Path], current: Path) -> str:
         title = display_title(rel, md.read_text(encoding="utf-8"))
         target = out_path_for(md)
         href = Path(__import__('os').path.relpath(target, current.parent)).as_posix()
-        chunks.append(f'<li><a href="{href}">{html.escape(title)}</a></li>')
+        current_attr = ' class="active" aria-current="page"' if target == current else ""
+        chunks.append(f'<li><a{current_attr} href="{href}">{html.escape(title)}</a></li>')
     chunks += ["</ul>", "</nav>"]
     return "\n".join(chunks)
 
@@ -579,16 +590,20 @@ def render_doc(md: Path, files: list[Path]) -> None:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{html.escape(title)}</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{html.escape(rel_to_css(out_path))}">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="{Path(os.path.relpath(OUT / 'index.html', out_path.parent)).as_posix()}">← 문서 홈</a>
+        <a class="docs-brand" href="{Path(os.path.relpath(OUT / 'index.html', out_path.parent)).as_posix()}"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">{html.escape(kind)}</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">{html.escape(rel)}</span>
         <a class="edit-link" href="/__edit?file={html.escape(rel, quote=True)}">편집</a>
       </div>
-      <span>{html.escape(rel)}</span>
     </div>
     {search_box_markup("문서 검색", rel_to_search_index(out_path), rel_to_search_js(out_path))}
     <div class="layout">
@@ -633,42 +648,47 @@ def render_index(files: list[Path]) -> None:
             text = md.read_text(encoding="utf-8")
             rel = md.relative_to(DOCS).as_posix()
             title = display_title(rel, text)
-            desc = short_desc(first_paragraph(text)) or rel
             href = Path(rel).with_suffix(".html").as_posix()
-            cards.append(f'<li><a class="doc-card" href="{href}"><strong>{html.escape(title)}</strong><span>{html.escape(desc)}</span><small>수정: {html.escape(format_mtime(md))}</small></a></li>')
-        sections.append(f'<h2 class="section-title">{html.escape(name)}</h2><ul class="card-grid">' + "\n".join(cards) + "</ul>")
+            cards.append(f'<li><a class="doc-card" href="{href}"><strong>{html.escape(title)}</strong><small>{html.escape(rel)}</small><span aria-hidden="true">→</span></a></li>')
+        content = f'<div class="collection-head"><h2>{html.escape(name)}</h2><span>{len(group_files)}개 문서</span></div><ul class="card-grid">' + "\n".join(cards) + "</ul>"
+        if name in {"설계 이력", "보관 문서"}:
+            sections.append(f'<details class="doc-collection muted"><summary>{html.escape(name)} <span>{len(group_files)}개 · 필요할 때 펼치기</span></summary>{content}</details>')
+        else:
+            sections.append(f'<section class="doc-collection">{content}</section>')
     index = f'''<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KubeEdge PoC 문서 HTML 보기</title>
+  <title>Edge AI 플랫폼 문서</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{html.escape(rel_to_css(OUT / 'index.html'))}">
 </head>
 <body>
+  <nav class="home-nav" aria-label="문서 사이트">
+    <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+    <div>
+      <span class="status-dot">운영 문서</span>
+      <a href="/__edit">문서 편집</a>
+    </div>
+  </nav>
   <main class="home">
     <article class="home-card">
       <header class="home-hero">
-        <p class="eyebrow">KubeEdge Edge AI PoC</p>
-        <h1>문서 HTML 보기</h1>
+        <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
+        <h1>Edge AI 플랫폼 문서</h1>
         <p class="subtitle">
-          기존 <code>docs/*.md</code> 문서를 브라우저에서 읽기 좋게 변환한 정적 HTML 목록이다.
-          원본 Markdown은 그대로 유지하고, 이 디렉터리는 읽기용 산출물로 재생성할 수 있다.
+          AI 서비스를 현장 디바이스에 연결하고 배포·검증하는 운영 기준을 한곳에서 찾습니다.
+          최신 기준과 운영 문서를 먼저 확인하세요.
         </p>
-        <div class="meta">
-          <span class="badge kind">Wiki 우선</span>
-          <span class="badge">운영자 기준</span>
-          <span class="badge">Markdown 원본 유지</span>
-          <span class="badge">정적 HTML</span>
-          <span class="badge">HTML 생성: {html.escape(generated_at())}</span>
-          <a class="badge edit-badge" href="/__edit">문서 편집 열기</a>
-        </div>
       </header>
+      <div class="section-kicker"><span>START HERE</span><h2>무엇을 하시나요?</h2></div>
       {home_intro_markup()}
       <div class="home-search">
         {search_box_markup("문서 전체 검색", rel_to_search_index(OUT / 'index.html'), rel_to_search_js(OUT / 'index.html'))}
       </div>
       <div class="home-body">
+        <div class="section-kicker"><span>REFERENCE</span><h2>전체 문서</h2><p>최신 기준과 운영 절차가 우선이며, 설계 이력과 보관 자료는 별도로 구분합니다.</p></div>
         {''.join(sections)}
       </div>
     </article>

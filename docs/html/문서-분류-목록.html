@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>문서 전체 분류 목록</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="index.html">← 문서 홈</a>
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">최신 기준 문서</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">문서-분류-목록.md</span>
         <a class="edit-link" href="/__edit?file=문서-분류-목록.md">편집</a>
       </div>
-      <span>문서-분류-목록.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -49,8 +53,9 @@
 <li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
 <li><a href="문서-안내.html">문서 안내</a></li>
-<li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
+<li><a class="active" aria-current="page" href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
 <li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
 <li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
@@ -80,6 +85,7 @@
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
@@ -164,8 +170,8 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-분류-목록.md</span>
-            <span class="badge">수정: 2026-08-12 11:49</span>
-            <span class="badge">HTML 생성: 2026-08-12 13:22</span>
+            <span class="badge">수정: 2026-08-13 17:20</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
           </div>
         </header>
         <div class="doc-body">
@@ -253,6 +259,10 @@
 <td>운영 상태 판정 기준</td>
 </tr>
 <tr>
+<td><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></td>
+<td>ServiceDescriptor 등록, 자동 목록·DAG 생성과 관측 adapter 연결 절차</td>
+</tr>
+<tr>
 <td><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></td>
 <td>우선 서비스 데모의 범위와 흐름</td>
 </tr>
@@ -271,7 +281,7 @@
 </tbody></table></div>
 <h2 id="운영-문서">운영 문서</h2>
 <p>운영자는 <a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>를 시작점으로 사용한다. 배포 대상이 다른 경우 <a href="ops/다른-서버-배포-실행-가이드.html">다른 서버 배포 실행 가이드</a>를 추가로 확인한다.</p>
-<ul><li><a href="ops/대시보드-검증.html">대시보드 검증</a></li><li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li><li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li><li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li><li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 재구축 절차</a> — 파괴적 작업 전 승인 필요</li><li><a href="ops/gpu-hami-런타임-운영.html">GPU/HAMi 런타임 운영</a></li></ul>
+<ul><li><a href="ops/대시보드-배포.html">대시보드 배포</a></li><li><a href="ops/대시보드-검증.html">대시보드 검증</a></li><li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li><li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li><li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li><li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 재구축 절차</a> — 파괴적 작업 전 승인 필요</li><li><a href="ops/gpu-hami-런타임-운영.html">GPU/HAMi 런타임 운영</a></li></ul>
 <h2 id="설계-이력">설계 이력</h2>
 <p><code>docs/superpowers/</code>와 다음 루트 문서는 계획·명세·실험을 보존한다.</p>
 <ul><li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li><li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강·가상디바이스 대시보드</a></li><li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li><li><a href="일일-기록.html">일일 기록</a></li></ul>

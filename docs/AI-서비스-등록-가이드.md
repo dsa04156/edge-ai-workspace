@@ -1,5 +1,29 @@
 # AI 서비스 등록 가이드
 
+## 먼저 답: 서비스를 올린 뒤 어떻게 연결하는가
+
+서비스를 배포할 때마다 대시보드 HTML을 새로 만들지 않는다. 서비스가 스스로 설명되지
+않는 부분만 Git의 `ServiceDescriptor`에 한 번 등록하고, 대시보드는 공용 API를 통해 목록과
+DAG를 자동 생성한다.
+
+1. Kubernetes workload에 변하지 않는 label/selector를 둔다.
+2. `service_catalog.json`에 서비스 이름, workload identity, DAG를 선언한다.
+3. EdgeX Device/DeviceResource와 입력 schema·freshness 계약을 연결한다.
+4. 서비스별 상태 응답이 다르면 state-aggregator에 versioned adapter와 테스트를 추가한다.
+5. immutable image digest를 배포한 뒤 `/state/services`와 Traefik 화면을 검증한다.
+
+```text
+AI workload + EdgeX input + ServiceDescriptor
+                 ↓
+        /state/services 공용 API
+                 ↓
+       서비스 목록 + 실행 DAG 자동 생성
+```
+
+Pod 이름이나 컨테이너 이미지만 보고 서비스 의미를 추측하지 않는다. descriptor 등록은
+현재 read-only 운영 가시화를 자동화하며, workload 생성·offloading·EdgeX metadata 변경은
+자동 실행하지 않는다.
+
 ## 목적
 
 대시보드는 Kubernetes Pod 이름이나 컨테이너 이미지를 보고 AI 서비스의 의미를 추측하지

@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>문서 안내</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="index.html">← 문서 홈</a>
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">최신 기준 문서</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">문서-안내.md</span>
         <a class="edit-link" href="/__edit?file=문서-안내.md">편집</a>
       </div>
-      <span>문서-안내.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -49,7 +53,8 @@
 <li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
 <li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
 <li class="group">최신 기준 문서</li>
-<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li><a class="active" aria-current="page" href="문서-안내.html">문서 안내</a></li>
 <li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li>
 <li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li>
 <li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
@@ -80,6 +85,7 @@
 <li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
 <li class="group">운영 문서</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
 <li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
@@ -164,15 +170,15 @@
           <div class="meta">
             <span class="badge kind">최신 기준 문서</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-08-12 13:16</span>
-            <span class="badge">HTML 생성: 2026-08-12 13:22</span>
+            <span class="badge">수정: 2026-08-13 17:20</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:01</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-안내">문서 안내</h1>
 <p>이 디렉터리는 옥동 2차년도 PoC의 현재 구현, 운영 절차, 설계 이력을 분리해 관리한다. 문서가 길어도 먼저 아래 순서로 읽는다.</p>
 <h2 id="가장-먼저-읽을-문서">가장 먼저 읽을 문서</h2>
-<ol><li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li><li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li><li><a href="프로젝트-범위.html">프로젝트 범위</a></li><li><a href="현재-데모-경로.html">현재 데모 경로</a></li><li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li><li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li></ol>
+<ol><li><a href="2차년도-ETRI-실행계획.html">2026년도 2차년도 ETRI 실행계획</a></li><li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li><li><a href="프로젝트-범위.html">프로젝트 범위</a></li><li><a href="현재-데모-경로.html">현재 데모 경로</a></li><li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li><li><a href="ops/대시보드-배포.html">대시보드 배포</a></li><li><a href="문서-분류-목록.html">문서 전체 분류 목록</a></li><li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li></ol>
 <p>질문별 요약은 <a href="wiki/지식-지도.html">지식 지도</a>를 사용한다. 과거 실험은 최신 문서의 근거가 아니라 <code>docs/archive/</code>와 <code>docs/superpowers/</code>에서만 확인한다.</p>
 <h2 id="문서가-답해야-하는-질문">문서가 답해야 하는 질문</h2>
 <ul><li>어떤 PLC·MES·센서가 어떤 EdgeX Device/Profile에 연결됐는가?</li><li>Event가 엣지 outbox와 중앙 Core Data에 저장됐는가?</li><li>품질 판별·펌프/모터 이상감지 서비스가 어떤 입력과 모델을 사용하는가?</li><li>결과·알림·KPI를 어디서 조회하는가?</li><li>장애가 Protocol Adapter, outbox, gateway, Core Data, AI consumer 중 어디에서 발생했는가?</li><li>현재 구현과 2차년도 설계, 과거 workflow 실험을 어떻게 구분하는가?</li></ul>
@@ -207,13 +213,13 @@ KubeEdge/Kubernetes
 </tr>
 <tr>
 <td>운영</td>
-<td><code>ops/현재-데모-운영-절차.md</code>, <code>ops/대시보드-검증.md</code></td>
-<td>실행·장애·검증</td>
+<td><code>ops/현재-데모-운영-절차.md</code>, <code>ops/대시보드-배포.md</code>, <code>ops/대시보드-검증.md</code></td>
+<td>실행·배포·장애·검증</td>
 </tr>
 <tr>
 <td>화면·KPI</td>
-<td><code>대시보드-정보-구조.md</code>, <code>대시보드-판단-정책.md</code>, <code>옥동-생산성-kpi.md</code></td>
-<td>운영자 해석</td>
+<td><code>AI-서비스-등록-가이드.md</code>, <code>대시보드-정보-구조.md</code>, <code>대시보드-판단-정책.md</code>, <code>옥동-생산성-kpi.md</code></td>
+<td>서비스 등록과 운영자 해석</td>
 </tr>
 <tr>
 <td>설계 이력</td>
