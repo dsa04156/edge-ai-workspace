@@ -9,6 +9,7 @@ const {
   buildServiceRoutingView,
   buildServiceDemoAlertView,
   buildServiceCatalogView,
+  buildServiceInventoryView,
   buildServiceDemoResultsView,
   buildServiceDemoView,
   refreshServiceDemo,
@@ -20,6 +21,7 @@ const {
   renderServiceDemoAlerts,
   renderServiceDemoResults,
   renderServiceAugmentation,
+  applyServiceDescriptor,
 } = require("../app/static/service-demo.js");
 
 
@@ -102,6 +104,64 @@ test("builds a service list row from live operating evidence", () => {
   assert.equal(view.model, "baseline-1.0.0");
   assert.equal(view.decision, "이상 감지");
   assert.equal(view.routing, "edge-local");
+});
+
+
+test("builds service catalog rows from Git descriptors without hardcoded HTML", () => {
+  const view = buildServiceInventoryView({
+    services: [{
+      service_id: "sensor-anomaly-demo",
+      display_name: "펌프·모터 진동·온도 이상감지",
+      description: "기준선",
+      mode: "live",
+      status: "normal",
+      input_state: "fresh",
+      model_state: "ready",
+      node: "etri-dev0001-jetorn",
+      model_version: "baseline-1.0.0",
+      inference_target: "edge-local",
+      definition_source: "git:service_catalog.json",
+      catalog_version: "edgeai.etri/service-catalog/v1",
+      descriptor: {observability: {adapter: "sensor-anomaly-v1"}},
+    }],
+  });
+
+  assert.equal(view.rows.length, 1);
+  assert.equal(view.rows[0].displayName, "펌프·모터 진동·온도 이상감지");
+  assert.equal(view.rows[0].operatingState, "running");
+  assert.equal(view.definitionSource, "git:service_catalog.json · edgeai.etri/service-catalog/v1");
+});
+
+
+test("applies descriptor stage and target labels to the operations DAG", () => {
+  const elements = Object.fromEntries([
+    "serviceDemoTitle", "serviceOperationsServiceId", "serviceOperationsDagTitle",
+    "serviceDemoStepInputLabel", "serviceDemoStepInferenceLabel",
+    "serviceDagDevice1Label", "serviceDagDevice1Description",
+  ].map((id) => [id, {textContent: ""}]));
+  applyServiceDescriptor({
+    service_id: "pump-monitor",
+    display_name: "펌프 감시",
+    descriptor: {
+      graph: {
+        title: "Pump signal → Decision",
+        stages: [
+          {slot: "Input", label: "PLC 수집"},
+          {slot: "Inference", label: "고장 추론"},
+        ],
+        targets: [
+          {slot: "Device1", label: "현장 Jetson", description: "local"},
+        ],
+      },
+      observability: {adapter: "sensor-anomaly-v1"},
+    },
+  }, {getElementById: (id) => elements[id]});
+
+  assert.equal(elements.serviceDemoTitle.textContent, "펌프 감시");
+  assert.equal(elements.serviceOperationsServiceId.textContent, "pump-monitor");
+  assert.equal(elements.serviceDemoStepInputLabel.textContent, "PLC 수집");
+  assert.equal(elements.serviceDemoStepInferenceLabel.textContent, "고장 추론");
+  assert.equal(elements.serviceDagDevice1Label.textContent, "현장 Jetson");
 });
 
 
@@ -541,7 +601,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(html, /data-dashboard-page="services"/);
   assert.match(html, /data-page="services"/);
   assert.match(html, /id="serviceCatalogList"/);
-  assert.match(html, /id="serviceCatalogRow"/);
+  assert.match(html, /data-service-catalog="descriptor-driven"/);
+  assert.doesNotMatch(html, /id="serviceCatalogRow"/);
   assert.doesNotMatch(html, /service-demo-panel[^>]+data-page="overview"/);
   for (const id of [
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
@@ -567,8 +628,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=service-operations-20260813/);
-  assert.match(html, /service-demo\.js\?v=service-operations-20260813/);
+  assert.match(html, /service-demo\.css\?v=service-catalog-v1-20260813/);
+  assert.match(html, /service-demo\.js\?v=service-catalog-v1-20260813/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);

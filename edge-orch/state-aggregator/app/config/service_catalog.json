@@ -1,0 +1,132 @@
+{
+  "version": "edgeai.etri/service-catalog/v1",
+  "services": [
+    {
+      "service_id": "sensor-anomaly-demo",
+      "display_name": "펌프·모터 진동·온도 이상감지",
+      "description": "테스트베드 가속도 3축·온도 기반 기준선 서비스",
+      "category": "ai_inference",
+      "lifecycle": "deployed",
+      "execution_mode": "fixed",
+      "workload": {
+        "namespace": "edgex-edge",
+        "kind": "Deployment",
+        "name": "sensor-anomaly-demo",
+        "selector": {
+          "app": "sensor-anomaly-demo"
+        }
+      },
+      "input_contract": {
+        "authority": "EdgeX",
+        "schema": "okdong.pump-motor.telemetry/v1",
+        "required_resources": [
+          "acceleration_x_raw",
+          "acceleration_y_raw",
+          "acceleration_z_raw",
+          "temperature_raw"
+        ]
+      },
+      "graph": {
+        "topology": "linear-inference-split-v1",
+        "title": "Sensor signal → AI decision",
+        "stages": [
+          {
+            "stage_id": "collect",
+            "slot": "Input",
+            "label": "센서 수집",
+            "kind": "source",
+            "depends_on": []
+          },
+          {
+            "stage_id": "align",
+            "slot": "Alignment",
+            "label": "전처리",
+            "kind": "transform",
+            "depends_on": ["collect"]
+          },
+          {
+            "stage_id": "features",
+            "slot": "Features",
+            "label": "특징 추출",
+            "kind": "features",
+            "depends_on": ["align"]
+          },
+          {
+            "stage_id": "inference",
+            "slot": "Inference",
+            "label": "AI 추론",
+            "kind": "inference",
+            "depends_on": ["features"]
+          },
+          {
+            "stage_id": "store",
+            "slot": "Result",
+            "label": "결과 저장",
+            "kind": "sink",
+            "depends_on": ["inference"]
+          }
+        ],
+        "targets": [
+          {
+            "target_id": "device1",
+            "slot": "Device1",
+            "label": "Device1",
+            "node": "etri-dev0001-jetorn",
+            "mode": "edge-local",
+            "description": "Jetson · edge-local"
+          },
+          {
+            "target_id": "server1",
+            "slot": "Server1",
+            "label": "Server1",
+            "node": "etri-ser0001-cg0msb",
+            "mode": "approval-gated",
+            "description": "승인 기반 endpoint"
+          }
+        ]
+      },
+      "observability": {
+        "adapter": "sensor-anomaly-v1",
+        "state_path": "/state/service-demo",
+        "results_path": "/state/service-demo/results?limit=12",
+        "alerts_path": "/state/service-demo/alerts?limit=10",
+        "augmentation_path": "/state/service-demo/augmentation"
+      },
+      "design_contract": {
+        "contract_id": "sensor-anomaly-demo-v1",
+        "source_mode": "local_recent",
+        "pipeline_algorithm": "weighted-multi-sensor-feature-score-v1",
+        "vibration_algorithm": "online-vibration-feature-gaussian-v1",
+        "temperature_algorithm": "online-temperature-feature-gaussian-v1",
+        "vibration_window_samples": 20,
+        "temperature_window_samples": 10,
+        "warmup_samples": 30,
+        "threshold": 4.0,
+        "vibration_weight": 0.7,
+        "temperature_weight": 0.3,
+        "inputs": [
+          {
+            "stage_id": "sensor-x",
+            "device_name": "virtual-acceleration-x-001",
+            "resource_name": "acceleration_x_raw"
+          },
+          {
+            "stage_id": "sensor-y",
+            "device_name": "virtual-acceleration-y-001",
+            "resource_name": "acceleration_y_raw"
+          },
+          {
+            "stage_id": "sensor-z",
+            "device_name": "virtual-acceleration-z-001",
+            "resource_name": "acceleration_z_raw"
+          },
+          {
+            "stage_id": "sensor-context",
+            "device_name": "virtual-temperature-001",
+            "resource_name": "temperature_raw"
+          }
+        ]
+      }
+    }
+  ]
+}

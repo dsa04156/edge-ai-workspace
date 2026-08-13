@@ -79,6 +79,13 @@ function buildServiceOperationsTimelineView(augmentation = {}, alertData = {}) {
 
 
 const serviceOperationsObservations = {augmentation: {}, alerts: {}};
+const serviceInventoryById = new Map();
+const serviceOperationsEndpoints = {
+  state: "/state/service-demo",
+  results: "/state/service-demo/results?limit=12",
+  alerts: "/state/service-demo/alerts?limit=10",
+  augmentation: "/state/service-demo/augmentation",
+};
 
 
 function serviceDemoPipeline(data, latest, model) {
@@ -231,6 +238,159 @@ function buildServiceCatalogView(data = {}) {
     decision: serviceDemoDecision(data.status).label,
     routing: routing === "server1" ? "server1" : "edge-local",
   };
+}
+
+
+function buildServiceInventoryView(data = {}) {
+  const services = Array.isArray(data.services) ? data.services : [];
+  const rows = services.map((service, index) => {
+    const running = service.mode !== "unavailable"
+      && service.input_state === "fresh"
+      && service.model_state === "ready";
+    return {
+      index: String(index + 1).padStart(2, "0"),
+      serviceId: serviceDemoText(service.service_id, "unknown-service"),
+      displayName: serviceDemoText(service.display_name, "이름 미등록"),
+      description: serviceDemoText(service.description, "설명 미등록"),
+      input: serviceDemoText(service.input_state, "미확인"),
+      node: serviceDemoText(service.node, "미확인"),
+      model: serviceDemoText(service.model_version, service.model_state || "미확인"),
+      routing: service.inference_target === "server1" ? "server1" : "edge-local",
+      decision: serviceDemoDecision(service.status).label,
+      operatingState: running ? "running" : "attention",
+      operatingLabel: running ? "실행 중" : "확인 필요",
+      descriptor: service.descriptor || null,
+      definitionSource: serviceDemoText(service.definition_source, "미등록"),
+      catalogVersion: serviceDemoText(service.catalog_version, "미등록"),
+      adapter: service.descriptor?.observability?.adapter || "unsupported",
+      raw: service,
+    };
+  });
+  const runningCount = rows.filter((row) => row.operatingState === "running").length;
+  return {
+    rows,
+    countLabel: `${rows.length}개 서비스`,
+    availability: `${runningCount}/${rows.length} 실행 중`,
+    availabilityState: rows.length > 0 && runningCount === rows.length ? "running" : "attention",
+    definitionSource: rows[0]
+      ? `${rows[0].definitionSource} · ${rows[0].catalogVersion}`
+      : "등록된 서비스 없음",
+  };
+}
+
+
+function appendCatalogFact(documentRef, button, label, values, ids = []) {
+  const wrapper = documentRef.createElement("span");
+  wrapper.className = "service-catalog-fact";
+  const caption = documentRef.createElement("small");
+  caption.textContent = label;
+  const value = documentRef.createElement("strong");
+  values.forEach((item, index) => {
+    if (index > 0) value.append(documentRef.createTextNode(" · "));
+    const part = documentRef.createElement("span");
+    if (ids[index]) part.id = ids[index];
+    part.textContent = item;
+    value.append(part);
+  });
+  wrapper.append(caption, value);
+  button.append(wrapper);
+}
+
+
+function applyServiceDescriptor(service, documentRef = document) {
+  const descriptor = service?.descriptor || {};
+  const graph = descriptor.graph || {};
+  const text = (id, value) => {
+    const element = documentRef.getElementById(id);
+    if (element && value) element.textContent = value;
+  };
+  text("serviceDemoTitle", service?.display_name);
+  text("serviceOperationsServiceId", service?.service_id);
+  text("serviceOperationsDagTitle", graph.title);
+  (Array.isArray(graph.stages) ? graph.stages : []).forEach((stage) => {
+    text(`serviceDemoStep${stage.slot}Label`, stage.label);
+  });
+  (Array.isArray(graph.targets) ? graph.targets : []).forEach((target) => {
+    text(`serviceDag${target.slot}Label`, target.label);
+    text(`serviceDag${target.slot}Description`, target.description);
+  });
+  const observability = descriptor.observability || {};
+  if (observability.adapter === "sensor-anomaly-v1") {
+    serviceOperationsEndpoints.state = observability.state_path || serviceOperationsEndpoints.state;
+    serviceOperationsEndpoints.results = observability.results_path || serviceOperationsEndpoints.results;
+    serviceOperationsEndpoints.alerts = observability.alerts_path || serviceOperationsEndpoints.alerts;
+    serviceOperationsEndpoints.augmentation = observability.augmentation_path || serviceOperationsEndpoints.augmentation;
+  }
+}
+
+
+function renderServiceInventory(data, documentRef = document) {
+  const view = buildServiceInventoryView(data);
+  const list = documentRef.getElementById("serviceCatalogList");
+  if (!list || typeof documentRef.createElement !== "function") return view;
+  serviceInventoryById.clear();
+  const nodes = view.rows.map((row, index) => {
+    serviceInventoryById.set(row.serviceId, row.raw);
+    const item = documentRef.createElement("li");
+    const button = documentRef.createElement("button");
+    button.className = "service-catalog-row";
+    button.type = "button";
+    button.dataset.serviceId = row.serviceId;
+    if (row.adapter === "sensor-anomaly-v1") {
+      button.dataset.serviceDetailTarget = "serviceDemoPanel";
+      button.setAttribute("aria-controls", "serviceDemoPanel");
+      button.setAttribute("aria-expanded", String(index === 0));
+    }
+    const identity = documentRef.createElement("span");
+    identity.className = "service-catalog-identity";
+    const sequence = documentRef.createElement("span");
+    sequence.className = "service-catalog-index";
+    sequence.setAttribute("aria-hidden", "true");
+    sequence.textContent = row.index;
+    const identityBody = documentRef.createElement("span");
+    const name = documentRef.createElement("strong");
+    if (index === 0) name.id = "serviceCatalogName";
+    name.textContent = row.serviceId;
+    const description = documentRef.createElement("small");
+    description.textContent = row.displayName;
+    identityBody.append(name, description);
+    identity.append(sequence, identityBody);
+    button.append(identity);
+    appendCatalogFact(documentRef, button, "입력", [row.input], index === 0 ? ["serviceCatalogInput"] : []);
+    appendCatalogFact(documentRef, button, "실행 위치", [row.node], index === 0 ? ["serviceCatalogNode"] : []);
+    appendCatalogFact(documentRef, button, "모델 · 추론", [row.model, row.routing], index === 0 ? ["serviceCatalogModel", "serviceCatalogRouting"] : []);
+    appendCatalogFact(documentRef, button, "설비 판정 · 자원 증강", [row.decision, "관측 대기"], index === 0 ? ["serviceCatalogDecision", "serviceCatalogAugmentation"] : []);
+    const status = documentRef.createElement("span");
+    if (index === 0) status.id = "serviceCatalogStatus";
+    status.className = "service-catalog-status";
+    status.dataset.state = row.operatingState;
+    status.textContent = row.operatingLabel;
+    const open = documentRef.createElement("span");
+    open.className = "service-catalog-open";
+    open.textContent = row.adapter === "sensor-anomaly-v1" ? "상세 보기 →" : "목록 관측";
+    button.append(status, open);
+    item.append(button);
+    return item;
+  });
+  if (nodes.length) {
+    list.replaceChildren(...nodes);
+    applyServiceDescriptor(view.rows[0].raw, documentRef);
+  } else {
+    const empty = documentRef.createElement("li");
+    empty.className = "service-catalog-loading";
+    empty.textContent = "등록된 서비스가 없습니다.";
+    list.replaceChildren(empty);
+  }
+  const count = documentRef.getElementById("serviceCatalogCount");
+  if (count) count.textContent = view.countLabel;
+  const source = documentRef.getElementById("serviceCatalogDefinitionSource");
+  if (source) source.textContent = view.definitionSource;
+  const availability = documentRef.getElementById("serviceCatalogAvailability");
+  if (availability) {
+    availability.textContent = view.availability;
+    availability.dataset.state = view.availabilityState;
+  }
+  return view;
 }
 
 
@@ -615,7 +775,7 @@ function renderServiceOperationsTimeline(documentRef = document) {
 
 async function refreshServiceDemo(fetchFn = fetch, documentRef = document) {
   try {
-    const response = await fetchFn("/state/service-demo", {cache: "no-store"});
+    const response = await fetchFn(serviceOperationsEndpoints.state, {cache: "no-store"});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     renderServiceDemo(await response.json(), documentRef);
   } catch (error) {
@@ -639,7 +799,7 @@ async function refreshServiceDemo(fetchFn = fetch, documentRef = document) {
 
 async function refreshServiceDemoAlerts(fetchFn = fetch, documentRef = document) {
   try {
-    const response = await fetchFn("/state/service-demo/alerts?limit=10", {cache: "no-store"});
+    const response = await fetchFn(serviceOperationsEndpoints.alerts, {cache: "no-store"});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     renderServiceDemoAlerts(await response.json(), documentRef);
   } catch (error) {
@@ -655,7 +815,7 @@ async function refreshServiceDemoAlerts(fetchFn = fetch, documentRef = document)
 
 async function refreshServiceDemoResults(fetchFn = fetch, documentRef = document) {
   try {
-    const response = await fetchFn("/state/service-demo/results?limit=12", {cache: "no-store"});
+    const response = await fetchFn(serviceOperationsEndpoints.results, {cache: "no-store"});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     renderServiceDemoResults(await response.json(), documentRef);
   } catch (error) {
@@ -670,7 +830,7 @@ async function refreshServiceDemoResults(fetchFn = fetch, documentRef = document
 
 async function refreshServiceAugmentation(fetchFn = fetch, documentRef = document) {
   try {
-    const response = await fetchFn("/state/service-demo/augmentation", {cache: "no-store"});
+    const response = await fetchFn(serviceOperationsEndpoints.augmentation, {cache: "no-store"});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     renderServiceAugmentation(await response.json(), documentRef);
   } catch (error) {
@@ -686,10 +846,22 @@ async function refreshServiceAugmentation(fetchFn = fetch, documentRef = documen
 }
 
 
+async function refreshServiceInventory(fetchFn = fetch, documentRef = document) {
+  try {
+    const response = await fetchFn("/state/services", {cache: "no-store"});
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return renderServiceInventory(await response.json(), documentRef);
+  } catch (error) {
+    return renderServiceInventory({services: []}, documentRef);
+  }
+}
+
+
 if (typeof module !== "undefined") {
   module.exports = {
     buildServiceAugmentationView,
     buildServiceCatalogView,
+    buildServiceInventoryView,
     buildServiceDemoAlertView,
     buildServiceDemoResultsView,
     buildServiceDemoView,
@@ -699,8 +871,11 @@ if (typeof module !== "undefined") {
     refreshServiceDemoAlerts,
     refreshServiceDemoResults,
     refreshServiceAugmentation,
+    refreshServiceInventory,
     renderServiceDemo,
     renderServiceCatalog,
+    renderServiceInventory,
+    applyServiceDescriptor,
     renderServiceDemoAlerts,
     renderServiceDemoResults,
     renderServiceOperationsTimeline,
@@ -712,8 +887,12 @@ if (typeof module !== "undefined") {
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("serviceCatalogList")?.addEventListener("click", (event) => {
+      const trigger = event.target?.closest?.("[data-service-id]");
+      const selected = trigger ? serviceInventoryById.get(trigger.dataset.serviceId) : null;
+      if (selected) applyServiceDescriptor(selected);
       openServiceCatalogDetail(event.target);
     });
+    refreshServiceInventory();
     refreshServiceDemo();
     refreshServiceDemoAlerts();
     refreshServiceDemoResults();
@@ -722,5 +901,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     window.setInterval(refreshServiceDemoAlerts, 5_000);
     window.setInterval(refreshServiceDemoResults, 5_000);
     window.setInterval(refreshServiceAugmentation, 5_000);
+    window.setInterval(refreshServiceInventory, 5_000);
   });
 }

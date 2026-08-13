@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:5fefa837cb75ee527d3b3d8ce1869d773eddb85e4e8292bc64180133cc9715bf
+          image: 192.168.0.56:5000/state-aggregator@sha256:58f69c16333d496221db3801ef6b1aa00147f6486338837b5b3413ddb4d309ad
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -35,6 +35,8 @@ spec:
               value: /app/app/config/instance_map.json
             - name: ADAPTER_CATALOG_PATH
               value: /app/app/config/adapter_catalog.json
+            - name: SERVICE_CATALOG_PATH
+              value: /app/app/config/service_catalog.json
             - name: DEVICE_MANAGEMENT_ENABLED
               value: "true"
             - name: DEVICE_MANAGEMENT_HMAC_KEY

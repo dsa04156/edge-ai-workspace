@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -371,8 +371,12 @@ class DeployedServiceItem(BaseModel):
     input_devices: list[str] = Field(default_factory=list)
     model_version: str | None = None
     latest_observed_at: datetime | None = None
+    inference_target: Literal["edge-local", "server1"] = "edge-local"
     observation_error: str | None = None
     design_contract: DeployedServiceDesignContract | None = None
+    catalog_version: str | None = None
+    definition_source: str | None = None
+    descriptor: dict[str, Any] | None = None
 
 
 class DeployedServiceState(BaseModel):

@@ -94,6 +94,14 @@ class Settings(BaseModel):
             )
         )
     )
+    service_catalog_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "SERVICE_CATALOG_PATH",
+                str(APP_CONFIG_DIR / "service_catalog.json"),
+            )
+        )
+    )
     adapter_runtime_management_enabled: bool = Field(
         default_factory=lambda: _env_bool("ADAPTER_RUNTIME_MANAGEMENT_ENABLED")
     )

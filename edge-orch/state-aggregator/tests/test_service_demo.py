@@ -311,7 +311,7 @@ def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
     payload = response.json()
     assert len(payload["services"]) == 1
     service = payload["services"][0]
-    assert service["display_name"] == "센서 이상 탐지"
+    assert service["display_name"] == "펌프·모터 진동·온도 이상감지"
     assert service["lifecycle"] == "deployed"
     assert service["execution_mode"] == "fixed"
     assert service["status"] == "normal"
@@ -319,6 +319,11 @@ def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
     assert len(service["input_devices"]) == 4
     assert service["model_version"] == "baseline-1.0.0"
     assert service["latest_observed_at"] == "2026-07-22T10:00:00Z"
+    assert service["inference_target"] == "edge-local"
+    assert service["catalog_version"] == "edgeai.etri/service-catalog/v1"
+    assert service["definition_source"] == "git:service_catalog.json"
+    assert service["descriptor"]["input_contract"]["authority"] == "EdgeX"
+    assert service["descriptor"]["graph"]["topology"] == "linear-inference-split-v1"
     assert service["design_contract"] == {
         "contract_id": "sensor-anomaly-demo-v1",
         "source_mode": "local_recent",

@@ -64,6 +64,7 @@ from .service_augmentation import (
     build_service_augmentation_signals,
     select_server1_candidate,
 )
+from .service_catalog import ServiceCatalog
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -72,7 +73,6 @@ from .service_demo import (
     degraded_service_demo_state,
 )
 from .service_demo_models import (
-    DeployedServiceDesignContract,
     DeployedServiceItem,
     DeployedServiceState,
     ServiceDemoAlertState,
@@ -96,6 +96,7 @@ service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_timeout_seconds,
 )
 service_augmentation_evaluator = ServiceAugmentationEvaluator()
+service_catalog = ServiceCatalog.load(settings.service_catalog_path)
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
     settings.edgex_core_metadata_url,
@@ -328,89 +329,140 @@ async def get_service_demo_augmentation(
 
 
 def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
+    descriptor = service_catalog.require("sensor-anomaly-demo")
     model_version = demo.model.version if demo.model is not None else None
     if model_version is None and demo.latest is not None:
         model_version = demo.latest.model_version
     vibration_model = demo.model.components.get("vibration") if demo.model else None
     temperature_model = demo.model.components.get("temperature") if demo.model else None
     weights = demo.model.weights if demo.model else None
-    design_contract = DeployedServiceDesignContract(
-        contract_id="sensor-anomaly-demo-v1",
-        pipeline_algorithm=(
-            demo.model.algorithm
-            if demo.model is not None
-            else "weighted-multi-sensor-feature-score-v1"
-        ),
-        vibration_algorithm=(
-            vibration_model.algorithm
-            if vibration_model is not None
-            else "online-vibration-feature-gaussian-v1"
-        ),
-        temperature_algorithm=(
-            temperature_model.algorithm
-            if temperature_model is not None
-            else "online-temperature-feature-gaussian-v1"
-        ),
-        # These window sizes are part of the versioned fixed workload contract.
-        # A changed deployment must publish a new contract version here.
-        vibration_window_samples=20,
-        temperature_window_samples=10,
-        warmup_samples=demo.model.warmup_samples if demo.model is not None else 30,
-        threshold=demo.model.threshold if demo.model is not None else 4.0,
-        vibration_weight=weights.vibration if weights is not None else 0.7,
-        temperature_weight=weights.temperature if weights is not None else 0.3,
-        inputs=[
-            {
-                "stage_id": "sensor-x",
-                "device_name": "virtual-acceleration-x-001",
-                "resource_name": "acceleration_x_raw",
-            },
-            {
-                "stage_id": "sensor-y",
-                "device_name": "virtual-acceleration-y-001",
-                "resource_name": "acceleration_y_raw",
-            },
-            {
-                "stage_id": "sensor-z",
-                "device_name": "virtual-acceleration-z-001",
-                "resource_name": "acceleration_z_raw",
-            },
-            {
-                "stage_id": "sensor-context",
-                "device_name": "virtual-temperature-001",
-                "resource_name": "temperature_raw",
-            },
-        ],
+    design_contract = descriptor.design_contract.model_copy(
+        update={
+            "pipeline_algorithm": (
+                demo.model.algorithm
+                if demo.model is not None
+                else descriptor.design_contract.pipeline_algorithm
+            ),
+            "vibration_algorithm": (
+                vibration_model.algorithm
+                if vibration_model is not None
+                else descriptor.design_contract.vibration_algorithm
+            ),
+            "temperature_algorithm": (
+                temperature_model.algorithm
+                if temperature_model is not None
+                else descriptor.design_contract.temperature_algorithm
+            ),
+            "warmup_samples": (
+                demo.model.warmup_samples
+                if demo.model is not None
+                else descriptor.design_contract.warmup_samples
+            ),
+            "threshold": (
+                demo.model.threshold
+                if demo.model is not None
+                else descriptor.design_contract.threshold
+            ),
+            "vibration_weight": (
+                weights.vibration
+                if weights is not None
+                else descriptor.design_contract.vibration_weight
+            ),
+            "temperature_weight": (
+                weights.temperature
+                if weights is not None
+                else descriptor.design_contract.temperature_weight
+            ),
+        }
     )
+    current_service = DeployedServiceItem(
+        service_id=descriptor.service_id,
+        display_name=descriptor.display_name,
+        description=descriptor.description,
+        category=descriptor.category,
+        lifecycle=descriptor.lifecycle,
+        execution_mode=descriptor.execution_mode,
+        mode=demo.mode,
+        status=demo.status,
+        input_state=demo.input_state,
+        model_state=demo.model_state,
+        node=demo.binding.node,
+        physical_source=demo.binding.physical_source,
+        device_service=demo.binding.device_service,
+        input_devices=demo.binding.devices,
+        model_version=model_version,
+        latest_observed_at=(
+            demo.latest.observed_at if demo.latest is not None else None
+        ),
+        inference_target=(
+            demo.latest.inference_target
+            if demo.latest is not None
+            else demo.inference_routing.effective_target
+        ),
+        observation_error=demo.observation_error,
+        design_contract=design_contract,
+        catalog_version=service_catalog.version,
+        definition_source=service_catalog.source,
+        descriptor=descriptor.model_dump(
+            exclude={"design_contract"},
+            by_alias=True,
+        ),
+    )
+    catalog_only_services = [
+        DeployedServiceItem(
+            service_id=item.service_id,
+            display_name=item.display_name,
+            description=item.description,
+            category=item.category,
+            lifecycle=item.lifecycle,
+            execution_mode=item.execution_mode,
+            mode="unavailable",
+            status="degraded",
+            input_state="unobserved",
+            model_state="unobserved",
+            node=next(
+                (
+                    target.node
+                    for target in item.graph.targets
+                    if target.slot == "Device1"
+                ),
+                "unobserved",
+            ),
+            physical_source="unobserved",
+            device_service="unobserved",
+            input_devices=[
+                binding.device_name for binding in item.design_contract.inputs
+            ],
+            observation_error="service runtime adapter is not connected",
+            design_contract=item.design_contract,
+            catalog_version=service_catalog.version,
+            definition_source=service_catalog.source,
+            descriptor=item.model_dump(exclude={"design_contract"}, by_alias=True),
+        )
+        for item in service_catalog.services
+        if item.service_id != descriptor.service_id
+    ]
     return DeployedServiceState(
         generated_at=datetime.now(timezone.utc),
-        services=[
-            DeployedServiceItem(
-                service_id="sensor-anomaly-demo",
-                display_name="센서 이상 탐지",
-                description="테스트베드 가속도 3축·온도 기반 기준선 서비스",
-                mode=demo.mode,
-                status=demo.status,
-                input_state=demo.input_state,
-                model_state=demo.model_state,
-                node=demo.binding.node,
-                physical_source=demo.binding.physical_source,
-                device_service=demo.binding.device_service,
-                input_devices=demo.binding.devices,
-                model_version=model_version,
-                latest_observed_at=(
-                    demo.latest.observed_at if demo.latest is not None else None
-                ),
-                observation_error=demo.observation_error,
-                design_contract=design_contract,
-            )
-        ],
+        services=[current_service, *catalog_only_services],
     )
 
 
 @app.get("/state/services", response_model=DeployedServiceState)
 async def get_deployed_services() -> DeployedServiceState:
     return _deployed_service_state(await get_service_demo())
+
+
+@app.get("/state/services/{service_id}", response_model=DeployedServiceItem)
+async def get_deployed_service(service_id: str) -> DeployedServiceItem:
+    deployed = _deployed_service_state(await get_service_demo())
+    match = next(
+        (item for item in deployed.services if item.service_id == service_id),
+        None,
+    )
+    if match is None:
+        raise HTTPException(status_code=404, detail="service is not registered")
+    return match
 
 
 @app.get("/state/service-demo/results", response_model=ServiceDemoResultState)
