@@ -81,18 +81,35 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 15)
+        self.assertEqual(len(paths), 16)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
+        self.assertIn("펌프-모터-이상감지-서비스.md", paths)
         self.assertNotIn("일일-기록.md", paths)
         self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
     def test_home_intro_prioritizes_current_scope(self):
         intro = build_docs_html.home_intro_markup()
-        self.assertIn("AI 서비스 연결하기", intro)
+        self.assertIn("현재 서비스 이해하기", intro)
+        self.assertIn("펌프-모터-이상감지-서비스.html", intro)
         self.assertIn("대시보드 배포하기", intro)
         self.assertIn("현재 데모 운영하기", intro)
         self.assertIn("프로젝트 범위", intro)
+
+    def test_current_service_document_explains_anomaly_and_augmentation_independently(self):
+        guide = (ROOT / "docs" / "펌프-모터-이상감지-서비스.md").read_text(encoding="utf-8")
+
+        for required in (
+            "현재 모델은 옥동 설비에서 학습한 고장 분류 AI가 아니라",
+            "`online-baseline`",
+            "RMS",
+            "kurtosis",
+            "`anomaly_score`는 자원 증강 evaluator에 들어가지 않는다",
+            "`BLOCKED` 자체가 서비스 Pod를 중지하는 명령은 아니다",
+            "`metrics_invalid_or_stale`",
+            "observed-only",
+        ):
+            self.assertIn(required, guide)
 
     def test_sidebar_marks_current_document(self):
         with tempfile.TemporaryDirectory() as tmp:

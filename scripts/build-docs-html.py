@@ -22,7 +22,12 @@ OUT = DOCS / "html"
 CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
 PUBLICATION_SECTIONS = [
-    ("시작하기", "start", ["문서-안내.md", "플랫폼-개요.md", "현재-구현-상태.md"]),
+    ("시작하기", "start", [
+        "문서-안내.md",
+        "플랫폼-개요.md",
+        "펌프-모터-이상감지-서비스.md",
+        "현재-구현-상태.md",
+    ]),
     ("연결 가이드", "guide", ["디바이스-서비스-연결.md", "AI-서비스-등록-가이드.md"]),
     ("운영", "ops", [
         "ops/현재-데모-운영-절차.md",
@@ -50,6 +55,7 @@ DISPLAY_TITLES = {
     "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "문서-안내.md": "문서 안내",
     "플랫폼-개요.md": "플랫폼 개요",
+    "펌프-모터-이상감지-서비스.md": "펌프·모터 이상감지 서비스",
     "문서-분류-목록.md": "문서 전체 분류 목록",
     "2차년도-ETRI-실행계획.md": "2026년도 2차년도 ETRI 실행계획",
     "시스템-구축-목표.md": "시스템 구축 목표",
@@ -423,10 +429,10 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
 
 def home_intro_markup() -> str:
     return """<section class=\"home-intro\" aria-label=\"빠른 시작\">
-  <a class=\"intro-card primary\" href=\"AI-서비스-등록-가이드.html\">
+  <a class=\"intro-card primary\" href=\"펌프-모터-이상감지-서비스.html\">
     <small>01 · SERVICE</small>
-    <strong>AI 서비스 연결하기</strong>
-    <span>서비스 정의, 입력 계약, 관측 API를 등록하는 기준입니다.</span>
+    <strong>현재 서비스 이해하기</strong>
+    <span>이상감지 입력, 판단 결과와 자원 증강 차단 기준을 설명합니다.</span>
   </a>
   <a class=\"intro-card\" href=\"ops/대시보드-배포.html\">
     <small>02 · DEPLOY</small>

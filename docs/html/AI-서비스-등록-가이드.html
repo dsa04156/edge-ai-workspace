@@ -45,6 +45,7 @@
 <li class="group">시작하기</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
 <li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
 <li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
 <li class="group">연결 가이드</li>
 <li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
@@ -72,8 +73,8 @@
           <div class="meta">
             <span class="badge kind">연결 가이드</span>
             <span class="badge">원본: AI-서비스-등록-가이드.md</span>
-            <span class="badge">수정: 2026-08-13 18:23</span>
-            <span class="badge">HTML 생성: 2026-08-13 18:33</span>
+            <span class="badge">수정: 2026-08-13 18:48</span>
+            <span class="badge">HTML 생성: 2026-08-13 18:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -86,6 +87,7 @@
                          ↓
               서비스 목록 + 실행 DAG</code></pre>
 <p>서비스마다 화면을 새로 만들 필요는 없다. 응답 계약이 다른 서비스만 versioned adapter와 테스트를 추가한다.</p>
+<p>현재 등록된 서비스가 실제로 무엇을 입력받아 어떻게 판단하는지는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>를 먼저 확인한다.</p>
 <h2 id="등록-순서">등록 순서</h2>
 <h3 id="1-입출력-계약을-먼저-고정한다">1. 입출력 계약을 먼저 고정한다</h3>
 <ul><li>versioned input schema와 필수 resource</li><li>입력 freshness, window, 결측·시각 정렬 기준</li><li>model readiness와 model version</li><li>결과·알림 API와 저장 위치</li><li>processing latency, backlog, throughput metric</li><li>workload와 기본 실행 target</li></ul>
