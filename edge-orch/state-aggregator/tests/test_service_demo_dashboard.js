@@ -9,6 +9,7 @@ const {
   buildServiceRoutingView,
   buildServiceDemoAlertView,
   buildServiceCatalogView,
+  buildServiceConnectionView,
   buildServiceInventoryView,
   buildServiceDemoResultsView,
   buildServiceDemoView,
@@ -130,6 +131,71 @@ test("builds service catalog rows from Git descriptors without hardcoded HTML", 
   assert.equal(view.rows[0].displayName, "펌프·모터 진동·온도 이상감지");
   assert.equal(view.rows[0].operatingState, "running");
   assert.equal(view.definitionSource, "git:service_catalog.json · edgeai.etri/service-catalog/v1");
+});
+
+
+test("builds the service connection path from descriptor and live evidence", () => {
+  const view = buildServiceConnectionView({
+    services: [{
+      service_id: "sensor-anomaly-demo",
+      display_name: "펌프·모터 진동·온도 이상감지",
+      lifecycle: "deployed",
+      mode: "live",
+      status: "normal",
+      input_state: "fresh",
+      model_state: "ready",
+      definition_source: "git:service_catalog.json",
+      descriptor: {
+        workload: {
+          namespace: "edgex-edge",
+          kind: "Deployment",
+          name: "sensor-anomaly-demo",
+          selector: {app: "sensor-anomaly-demo"},
+        },
+        input_contract: {
+          schema: "okdong.pump-motor.telemetry/v1",
+          required_resources: ["x", "y", "z", "temperature"],
+        },
+        observability: {
+          adapter: "sensor-anomaly-v1",
+          state_path: "/state/service-demo",
+        },
+      },
+    }],
+  });
+
+  assert.equal(view.status, "1개 서비스 정상 연결");
+  assert.equal(view.statusState, "connected");
+  assert.equal(view.workload, "edgex-edge / Deployment / sensor-anomaly-demo · selector 선언");
+  assert.equal(view.input, "okdong.pump-motor.telemetry/v1 · 필수 4개 · fresh");
+  assert.equal(view.observability, "sensor-anomaly-v1 · /state/service-demo");
+  assert.equal(view.result, "/state/services · deployed · normal");
+});
+
+
+test("does not claim a live connection for a catalog-only service", () => {
+  const view = buildServiceConnectionView({
+    services: [{
+      service_id: "catalog-only",
+      display_name: "등록 전 서비스",
+      lifecycle: "deployed",
+      mode: "unavailable",
+      status: "degraded",
+      input_state: "unobserved",
+      model_state: "unobserved",
+      definition_source: "git:service_catalog.json",
+      descriptor: {
+        workload: {selector: {app: "catalog-only"}},
+        input_contract: {schema: "example/v1", required_resources: []},
+        observability: {adapter: "sensor-anomaly-v1", state_path: "/state/catalog-only"},
+      },
+    }],
+  });
+
+  assert.equal(view.statusState, "attention");
+  assert.match(view.status, /runtime 미연결/);
+  assert.equal(view.observabilityState, "attention");
+  assert.equal(view.resultState, "attention");
 });
 
 
@@ -596,6 +662,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "app/static/service-demo.css"), "utf8");
   const javascript = fs.readFileSync(path.join(root, "app/static/service-demo.js"), "utf8");
+  const documentationCss = fs.readFileSync(path.join(root, "app/static/documentation-shell.css"), "utf8");
 
   assert.match(html, /aria-labelledby="serviceDemoTitle"/);
   assert.match(html, /data-dashboard-page="services"/);
@@ -629,8 +696,15 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /service-demo\.css\?v=service-catalog-v1-20260813/);
-  assert.match(html, /service-demo\.js\?v=service-catalog-v1-20260813/);
-  assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
+  assert.match(html, /service-demo\.js\?v=service-onboarding-v2-20260813/);
+  assert.doesNotMatch(html, /<details id="serviceDemoPanel"[^>]*\sopen(?:\s|>)/);
+  assert.match(html, /data-dashboard-page="service-connect"/);
+  assert.match(html, /id="serviceConnectWorkloadEvidence"/);
+  assert.match(html, /id="serviceConnectResultEvidence"/);
+  assert.match(html, /documentation-shell\.css\?v=service-onboarding-20260813/);
+  assert.match(documentationCss, /\.service-connect-layout/);
+  assert.match(documentationCss, /\.nav-group/);
+  assert.match(documentationCss, /@media \(max-width: 620px\)/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);

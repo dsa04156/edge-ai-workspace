@@ -1,5 +1,26 @@
 # AI 서비스 등록 가이드
 
+## 먼저 답: 서비스를 올린 뒤 어떻게 연결하는가
+
+AI 서비스 workload만 배포하면 대시보드에 자동 연결되지 않는다. 아래 다섯 항목을 한
+revision에 맞추면 대시보드가 서비스 정의와 실제 상태를 결합한다.
+
+1. Kubernetes에 Deployment 또는 StatefulSet을 배포하고 변하지 않는 label selector를 정한다.
+2. `edge-orch/state-aggregator/app/config/service_catalog.json`에 workload identity를 포함한
+   `ServiceDescriptor`를 추가한다.
+3. 같은 descriptor에 EdgeX 입력 schema와 필수 DeviceResource를 선언한다.
+4. 서비스의 state·results·alerts·augmentation API를 지원되는 versioned adapter에 연결한다.
+5. state-aggregator 이미지를 새 immutable digest로 배포한 뒤 `/state/services`와
+   `/#service-connect`에서 Git 정의와 live 증거를 확인한다.
+
+```text
+Workload → ServiceDescriptor → EdgeX 입력 계약 → 관측 Adapter → /state/services → Dashboard
+```
+
+서비스의 이름과 의미는 Pod 이름에서 추측하지 않는다. descriptor가 의미를 선언하고,
+Kubernetes·EdgeX·서비스 API의 관측값이 실행 상태를 채운다. 화면의 **AI 서비스 → 서비스
+연결** 메뉴에서도 같은 절차와 현재 연결 근거를 볼 수 있다.
+
 ## 목적
 
 대시보드는 Kubernetes Pod 이름이나 컨테이너 이미지를 보고 AI 서비스의 의미를 추측하지

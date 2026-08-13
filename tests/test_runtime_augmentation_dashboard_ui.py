@@ -59,11 +59,13 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     for label in (
-        'data-dashboard-page="overview" aria-pressed="true">운영 현황</button>',
-        'data-dashboard-page="inventory" aria-pressed="false">디바이스</button>',
-        'data-dashboard-page="management" aria-pressed="false">장비 관리</button>',
+        'data-dashboard-page="overview" aria-pressed="true"><span>운영 현황</span>',
+        'data-dashboard-page="inventory" aria-pressed="false"><span>디바이스 목록</span>',
+        'data-dashboard-page="management" aria-pressed="false"><span>장비 연결</span>',
+        'data-dashboard-page="services" aria-pressed="false"><span>서비스 운영</span>',
+        'data-dashboard-page="service-connect" aria-pressed="false"><span>서비스 연결</span>',
         "EdgeX",
-        "Kubernetes",
+        "KubeEdge",
     ):
         assert label in html
 
