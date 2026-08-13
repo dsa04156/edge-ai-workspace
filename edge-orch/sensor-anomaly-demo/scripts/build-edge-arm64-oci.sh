@@ -15,13 +15,20 @@ trap 'rm -rf "${build_dir}"' EXIT
 crane_version=v0.21.9
 crane_archive=go-containerregistry_Linux_x86_64.tar.gz
 crane_sha256=5c16d8ddb971cb1d5e6ed8b1e743da8224414eeba2c2762d8f1a61b2f095699e
-base_image=python:3.11-slim@sha256:78b39ef14d8e2b4d71f8dc304f1328c37df95fe0ef99477c2ae6bd3d03784553
+base_image=python:3.11-slim@sha256:20eadabc42589e6543b24a64ab305b9895e9fcf6dbb2cadb14812f394ecdbadf
 
 curl -fsSL \
   -o "${build_dir}/${crane_archive}" \
   "https://github.com/google/go-containerregistry/releases/download/${crane_version}/${crane_archive}"
 echo "${crane_sha256}  ${build_dir}/${crane_archive}" | sha256sum -c -
 tar -xzf "${build_dir}/${crane_archive}" -C "${build_dir}" crane
+
+base_architecture=$("${build_dir}/crane" config "${base_image}" \
+  | python3 -c 'import json, sys; print(json.load(sys.stdin)["architecture"])')
+if [[ "${base_architecture}" != arm64 ]]; then
+  echo "refusing to build ARM64 image from ${base_architecture} base manifest" >&2
+  exit 1
+fi
 
 rootfs=${build_dir}/rootfs
 mkdir -p "${rootfs}/usr/local/lib/python3.11/site-packages" "${rootfs}/app"
