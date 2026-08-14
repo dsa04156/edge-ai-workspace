@@ -44,6 +44,7 @@ def test_server1_image_includes_cuda_runtime_and_nvrtc() -> None:
     assert "cupy-cuda12x==13.6.0" in requirements
     assert "nvidia-cuda-runtime-cu12==12.8.90" in requirements
     assert "nvidia-cuda-nvrtc-cu12==12.8.93" in requirements
+    assert "--env CUPY_CACHE_DIR=/tmp/cupy-cache" in build_script
     assert "--env LD_LIBRARY_PATH=" in build_script
     assert "site-packages/nvidia/cuda_nvrtc/lib" in build_script
     assert "site-packages/nvidia/cuda_runtime/lib" in build_script

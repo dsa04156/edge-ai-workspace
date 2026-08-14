@@ -47,6 +47,7 @@ tar --numeric-owner --owner=0 --group=0 -C "${rootfs}" -cf "${build_dir}/layer.t
   --workdir /app \
   --env PYTHONDONTWRITEBYTECODE=1 \
   --env PYTHONUNBUFFERED=1 \
+  --env CUPY_CACHE_DIR=/tmp/cupy-cache \
   --env LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/lib/python3.11/site-packages/nvidia/cuda_runtime/lib \
   --exposed-ports 8080 \
   --cmd=python,-m,uvicorn,app.main:app,--host,0.0.0.0,--port,8080 \

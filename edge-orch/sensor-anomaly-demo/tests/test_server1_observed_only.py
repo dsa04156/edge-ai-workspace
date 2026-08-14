@@ -43,11 +43,12 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
     assert container["readinessProbe"]["httpGet"]["path"] == "/api/v1/augmentation-readyz"
     assert container["image"] == (
         "192.168.0.56:5000/sensor-anomaly-demo-server1@"
-        "sha256:0f16d643c4d74be0b396415bfa9a0b767a081c885a9e68dcdb40a506f1666479"
+        "sha256:b06ad91f17d6d5d220403c33df29bb8a04023cbe140d3ad435d19f6e0c0de994"
     )
     assert {item["name"]: item.get("value") for item in container["env"]}.items() >= {
         "SERVICE_ROLE": "inference-server",
         "INFERENCE_WARMUP_SOURCE_ENABLED": "true",
+        "CUPY_CACHE_DIR": "/tmp/cupy-cache",
         "MODEL_BACKEND": "cuda-online-baseline",
         "MODEL_VERSION": "cuda-baseline-1.0.0",
     }.items()
