@@ -48,7 +48,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-demo
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:6f342bdf80ba74f1d8f75af492001a1145feadda107a62b6e44461e6288e4a8a
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:9c0bf78ec255a162101fd4927c7ea1ef94c15aa13b8b38e342e24d98014bd6ba
           imagePullPolicy: IfNotPresent
           env:
             - name: REMOTE_INFERENCE_MODE

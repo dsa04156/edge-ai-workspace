@@ -32,12 +32,18 @@ class ProcessResourceTracker:
         wall_clock: Callable[[], float] = time.monotonic,
         cpu_clock: Callable[[], float] = time.process_time,
         rss_reader: Callable[[], int | None] = read_process_rss_bytes,
+        minimum_interval_seconds: float = 1.0,
     ) -> None:
+        if minimum_interval_seconds <= 0:
+            raise ValueError("minimum interval must be positive")
         self._wall_clock = wall_clock
         self._cpu_clock = cpu_clock
         self._rss_reader = rss_reader
+        self._minimum_interval_seconds = float(minimum_interval_seconds)
         self._previous_wall: float | None = None
         self._previous_cpu: float | None = None
+        self._last_cpu_cores: float | None = None
+        self._last_interval: float | None = None
         self._lock = Lock()
 
     def snapshot(self) -> ProcessResourceObservation:
@@ -46,13 +52,18 @@ class ProcessResourceTracker:
             cpu = self._cpu_clock()
             rss_bytes = self._rss_reader()
             interval = None
-            cpu_cores = None
+            cpu_cores = self._last_cpu_cores
             if self._previous_wall is not None and self._previous_cpu is not None:
                 interval = wall - self._previous_wall
-                if interval > 0:
+                if interval >= self._minimum_interval_seconds:
                     cpu_cores = max(0.0, (cpu - self._previous_cpu) / interval)
-            self._previous_wall = wall
-            self._previous_cpu = cpu
+                    self._last_cpu_cores = cpu_cores
+                    self._last_interval = interval
+                    self._previous_wall = wall
+                    self._previous_cpu = cpu
+            else:
+                self._previous_wall = wall
+                self._previous_cpu = cpu
 
         memory_mib = rss_bytes / 1024 / 1024 if rss_bytes is not None else None
         valid = cpu_cores is not None and memory_mib is not None
@@ -60,8 +71,6 @@ class ProcessResourceTracker:
             observed_at=datetime.now(timezone.utc),
             cpu_cores=round(cpu_cores, 6) if cpu_cores is not None else None,
             memory_rss_mib=round(memory_mib, 3) if memory_mib is not None else None,
-            sample_interval_seconds=(
-                interval if interval is not None and interval > 0 else None
-            ),
+            sample_interval_seconds=self._last_interval,
             metrics_valid=valid,
         )
