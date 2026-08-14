@@ -113,6 +113,54 @@ def test_evaluator_resets_pressure_dwell_when_pressure_clears() -> None:
     assert restarted.dwell.resource_pressure_seconds == 0
 
 
+def test_evaluator_tolerates_normal_one_hertz_service_jitter() -> None:
+    evaluator = ServiceAugmentationEvaluator()
+
+    state = evaluator.evaluate(
+        _signals(
+            cpu_ratio=0.4,
+            memory_ratio=0.4,
+            processing_latency_p95_ms=2_700,
+            backlog=0,
+            throughput_per_second=0.99,
+        ),
+        now=NOW,
+    )
+
+    assert state.state == "NORMAL"
+    assert state.reason_codes == ["within_operating_envelope"]
+
+
+def test_evaluator_still_observes_material_service_degradation() -> None:
+    evaluator = ServiceAugmentationEvaluator()
+
+    high_latency = evaluator.evaluate(
+        _signals(
+            cpu_ratio=0.4,
+            memory_ratio=0.4,
+            processing_latency_p95_ms=4_000,
+            backlog=0,
+            throughput_per_second=0.99,
+        ),
+        now=NOW,
+    )
+    low_throughput = ServiceAugmentationEvaluator().evaluate(
+        _signals(
+            cpu_ratio=0.4,
+            memory_ratio=0.4,
+            processing_latency_p95_ms=2_700,
+            backlog=0,
+            throughput_per_second=0.79,
+        ),
+        now=NOW,
+    )
+
+    assert high_latency.state == "OBSERVING"
+    assert low_throughput.state == "OBSERVING"
+    assert high_latency.reason_codes == ["service_pressure_observing"]
+    assert low_throughput.reason_codes == ["service_pressure_observing"]
+
+
 def test_augmented_state_enters_cooldown_only_after_scale_down_dwell_and_cooldown() -> None:
     evaluator = ServiceAugmentationEvaluator()
     evaluator.evaluate(_signals(), now=NOW)
@@ -136,6 +184,26 @@ def test_augmented_state_enters_cooldown_only_after_scale_down_dwell_and_cooldow
     assert cooldown.state == "COOLDOWN"
     assert cooldown.recommendation == "scale-down"
     assert normal.state == "NORMAL"
+
+
+def test_augmented_state_accepts_observed_baseline_latency_for_scale_down() -> None:
+    evaluator = ServiceAugmentationEvaluator()
+    evaluator.evaluate(_signals(), now=NOW)
+    evaluator.evaluate(_signals(), now=NOW + timedelta(minutes=5))
+    evaluator.mark_augmented(now=NOW + timedelta(minutes=5))
+
+    baseline = _signals(
+        cpu_ratio=0.5,
+        memory_ratio=0.5,
+        processing_latency_p95_ms=2_700,
+        backlog=0,
+        throughput_per_second=0.99,
+    )
+    evaluator.evaluate(baseline, now=NOW + timedelta(minutes=5))
+    cooldown = evaluator.evaluate(baseline, now=NOW + timedelta(minutes=20))
+
+    assert cooldown.state == "COOLDOWN"
+    assert cooldown.recommendation == "scale-down"
 
 
 def test_evaluator_records_observed_before_and_after_performance_snapshots() -> None:

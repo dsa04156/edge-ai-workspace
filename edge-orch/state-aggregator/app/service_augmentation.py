@@ -34,8 +34,9 @@ COOLDOWN_SECONDS = 900
 CPU_PRESSURE_RATIO = 0.85
 MEMORY_PRESSURE_RATIO = 0.85
 SCALE_DOWN_RATIO = 0.60
-LATENCY_PRESSURE_MS = 500.0
-THROUGHPUT_FLOOR_PER_SECOND = 1.0
+LATENCY_PRESSURE_MS = 4_000.0
+SCALE_DOWN_LATENCY_MS = 3_000.0
+THROUGHPUT_FLOOR_PER_SECOND = 0.8
 METRIC_FRESH_SECONDS = 60
 SERVER1_NODE = "etri-ser0001-cg0msb"
 
@@ -481,7 +482,7 @@ def _scale_down_condition(signals: ServiceAugmentationSignals) -> bool:
     return (
         signals.cpu_ratio < SCALE_DOWN_RATIO
         and signals.memory_ratio < SCALE_DOWN_RATIO
-        and signals.processing_latency_p95_ms < LATENCY_PRESSURE_MS
+        and signals.processing_latency_p95_ms < SCALE_DOWN_LATENCY_MS
         and signals.backlog == 0
     )
 
