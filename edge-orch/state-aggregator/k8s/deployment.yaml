@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:206ec9168919e38a7190ffd5b425f9315e8720e1a83c048dd6bfd21fd6a23381
+          image: 192.168.0.56:5000/state-aggregator@sha256:a28d02af75a2a59e2f016740545f868f532383288295f0e34a6089d5167a309b
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -70,7 +70,7 @@ spec:
             - name: SENSOR_ANOMALY_DEMO_URL
               value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
             - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
-              value: "5"
+              value: "10"
           volumeMounts:
             - name: state-data
               mountPath: /app/data

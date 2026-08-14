@@ -63,7 +63,7 @@ class Settings(BaseModel):
     )
     sensor_anomaly_demo_timeout_seconds: float = Field(
         default_factory=lambda: float(
-            os.getenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", "5")
+            os.getenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", "10")
         )
     )
     qwen_base_url: str = Field(
