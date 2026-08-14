@@ -279,6 +279,10 @@ test("builds an honest live device-to-consumer anomaly view", () => {
   assert.equal(view.model, "online-gaussian-baseline-v1 · 40 samples · ready");
   assert.equal(view.copy, "진동·온도 복합 이상 점수 · edge-local inference");
   assert.equal(view.inferenceRouting, "로컬 추론 · edge-local · 승인 없음");
+  assert.equal(view.flowing, true);
+  assert.equal(view.liveLabel, "데이터 처리 중");
+  assert.equal(view.liveFrames, "40건 처리");
+  assert.equal(view.inferenceTarget, "edge-local");
   assert.equal(view.decisionLabel, "이상 감지");
   assert.equal(view.pipeline.map((step) => step.state).join(","), "ready,ready,active,anomaly,anomaly");
   assert.equal(view.error, "");
@@ -310,6 +314,8 @@ test("shows unavailable observation without inventing zero values", () => {
   assert.equal(view.score, "관측 불가");
   assert.equal(view.temperatureContext, "관측 불가");
   assert.equal(view.model, "model 관측 불가");
+  assert.equal(view.flowing, false);
+  assert.equal(view.liveLabel, "데이터 확인 필요");
   assert.equal(Number.isFinite(view.scoreMax), true);
   assert.equal(Number.isFinite(view.scoreValue), true);
   assert.match(view.error, /ConnectTimeout/);
@@ -384,6 +390,13 @@ test("renders with textContent and a non-color status label", () => {
     "serviceDemoOrigin",
     "serviceDemoInputAge",
     "serviceDemoError",
+    "serviceOperationsRunState",
+    "serviceOperationsLiveAge",
+    "serviceOperationsLiveFrames",
+    "serviceOperationsLive",
+    "serviceOperationsDag",
+    "serviceDagDevice1",
+    "serviceDagServer1",
   ];
   const elements = Object.fromEntries(ids.map((id) => [
     id,
@@ -421,6 +434,12 @@ test("renders with textContent and a non-color status label", () => {
   assert.equal(elements.serviceDemoTemperatureScore.textContent, "0.70");
   assert.equal(elements.serviceDemoTemperatureContext.textContent, "raw 300 · 정렬 8.0 ms");
   assert.equal(elements.serviceDemoInputAge.textContent, "0.0 s");
+  assert.equal(elements.serviceOperationsRunState.textContent, "데이터 처리 중");
+  assert.equal(elements.serviceOperationsLive.dataset.state, "flowing");
+  assert.equal(elements.serviceOperationsDag.dataset.flowing, "true");
+  assert.equal(elements.serviceOperationsDag.dataset.target, "device1");
+  assert.equal(elements.serviceDagDevice1.dataset.currentRoute, "true");
+  assert.equal(elements.serviceDagServer1.dataset.currentRoute, "false");
   assert.equal(elements.serviceDemoError.hidden, true);
 });
 
@@ -571,6 +590,7 @@ test("builds a resource recommendation without mixing the equipment anomaly scor
   assert.equal(view.state, "RECOMMENDED");
   assert.equal(view.label, "증강 권고");
   assert.equal(view.metrics, "CPU 91.0% · Memory 72.0% · GPU 55.0% · p95 740 ms · backlog 8 · 0.80 fps · 입력 EdgeX · 자원 Prometheus node-exporter · 성능 서비스 API");
+  assert.equal(view.liveRate, "0.80건/초");
   assert.equal(view.resourceDwell.value, 300);
   assert.equal(view.serviceDwell.value, 180);
   assert.equal(view.anomalyNote, "설비 anomaly 점수 미사용");
@@ -670,11 +690,13 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDagAugmentationEvent", "serviceDeviceRatio", "serviceServerRatio",
     "serviceMetricCpu", "serviceMetricLatency", "serviceMetricBacklog",
     "serviceMetricThroughput", "servicePerformanceBefore", "servicePerformanceAfter",
+    "serviceOperationsLive", "serviceOperationsLiveRate", "serviceOperationsLiveAge",
+    "serviceOperationsLiveFrames",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=stage-placement-v1-20260814/);
-  assert.match(html, /service-demo\.js\?v=stage-placement-v1-20260814/);
+  assert.match(html, /service-demo\.css\?v=live-data-flow-v1-20260814/);
+  assert.match(html, /service-demo\.js\?v=live-data-flow-v1-20260814/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
@@ -685,6 +707,9 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /\.service-operations-cockpit/);
   assert.match(css, /\.service-dag-node\[data-current="true"\]/);
   assert.match(css, /\.service-dag-node > footer/);
+  assert.match(css, /@keyframes service-live-heartbeat/);
+  assert.match(css, /\[data-flowing="true"\]/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

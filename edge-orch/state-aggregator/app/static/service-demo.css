@@ -480,25 +480,82 @@
   font-weight: 800;
 }
 
-.service-operations-run-meta {
+.service-operations-live {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  gap: 10px;
+  min-width: 265px;
+  padding: 8px 11px;
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  border-radius: var(--radius-sm);
+  background: rgba(34, 197, 94, 0.07);
 }
 
-.service-operations-run-meta strong {
+.service-operations-live > i {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  border-radius: 50%;
+  background: var(--console-green);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.11);
+}
+
+.service-operations-live > i::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  border-radius: 50%;
+  animation: service-live-heartbeat 1.5s ease-out infinite;
+}
+
+.service-operations-live > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.service-operations-live strong {
   color: var(--console-green);
-  font-size: 10px;
+  font-size: 14px;
+  font-weight: 850;
 }
 
-.service-operations-run-meta small {
-  border: 1px solid var(--console-border-strong);
-  border-radius: 999px;
-  padding: 4px 7px;
+.service-operations-live span {
+  display: flex;
+  gap: 7px;
+  min-width: 0;
   color: var(--console-muted);
-  font-size: 8px;
-  font-weight: 850;
+  font: 650 9px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0;
+}
+
+.service-operations-live b {
+  color: var(--console-text);
+  font-weight: 800;
+}
+
+.service-operations-live em {
+  font-style: normal;
+}
+
+.service-operations-live[data-state="attention"] {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.service-operations-live[data-state="attention"] > i {
+  background: var(--console-orange);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.11);
+}
+
+.service-operations-live[data-state="attention"] > i::after {
+  display: none;
+}
+
+.service-operations-live[data-state="attention"] strong {
+  color: #fde68a;
 }
 
 .service-operations-layout {
@@ -561,6 +618,12 @@
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
   marker-end: url(#serviceDagArrow);
+}
+
+.service-dag-canvas[data-flowing="true"] .service-dag-edges path[data-flow-path="common"],
+.service-dag-canvas[data-flowing="true"][data-target="device1"] .service-dag-edges path[data-flow-path="device1"],
+.service-dag-canvas[data-flowing="true"][data-target="server1"] .service-dag-edges path[data-flow-path="server1"] {
+  stroke: var(--console-blue);
 }
 
 .service-dag-edges marker path {
@@ -669,8 +732,7 @@
 }
 
 .service-dag-node > footer em {
-  color: var(--console-muted);
-  font: 650 8px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  display: none;
 }
 
 .service-dag-node > b > i {
@@ -696,7 +758,7 @@
 }
 
 .service-dag-node[data-current="true"]::after {
-  content: "RUNNING";
+  content: "처리 중";
   position: absolute;
   top: -10px;
   right: 8px;
@@ -707,6 +769,94 @@
   background: #0b1017;
   font: 850 7px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
   letter-spacing: 0.08em;
+}
+
+.service-dag-node[data-live="true"]::before,
+.service-dag-node[data-current-route="true"]::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--console-green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+  animation: service-stage-pulse 1.4s ease-in-out infinite;
+}
+
+.service-dag-preprocess[data-live="true"]::before { animation-delay: 180ms; }
+.service-dag-features[data-live="true"]::before { animation-delay: 360ms; }
+.service-dag-inference[data-live="true"]::before { animation-delay: 540ms; }
+.service-dag-store[data-live="true"]::before { animation-delay: 900ms; }
+
+.service-dag-node[data-current-route="true"] {
+  border-color: rgba(34, 197, 94, 0.64);
+}
+
+.service-dag-flow-pulse {
+  position: absolute;
+  z-index: 1;
+  display: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a7f3d0;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+  pointer-events: none;
+}
+
+.service-dag-canvas[data-flowing="true"] .service-dag-flow-pulse-common {
+  left: 106px;
+  top: 216px;
+  display: block;
+  animation: service-flow-common 1.8s linear infinite;
+}
+
+.service-dag-canvas[data-flowing="true"][data-target="device1"] .service-dag-flow-pulse-device {
+  left: 438px;
+  top: 216px;
+  display: block;
+  animation: service-flow-device 1.4s linear infinite;
+}
+
+.service-dag-canvas[data-flowing="true"][data-target="server1"] .service-dag-flow-pulse-server {
+  left: 438px;
+  top: 216px;
+  display: block;
+  animation: service-flow-server 1.4s linear infinite;
+}
+
+@keyframes service-live-heartbeat {
+  from { opacity: 0.9; transform: scale(0.65); }
+  to { opacity: 0; transform: scale(1.45); }
+}
+
+@keyframes service-stage-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.82); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes service-flow-common {
+  0% { opacity: 0; transform: translateX(0); }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(330px); }
+}
+
+@keyframes service-flow-device {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 1; }
+  50% { opacity: 1; transform: translate(82px, -102px); }
+  100% { opacity: 0; transform: translate(262px, 0); }
+}
+
+@keyframes service-flow-server {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 1; }
+  50% { opacity: 1; transform: translate(82px, 138px); }
+  100% { opacity: 0; transform: translate(262px, 0); }
 }
 
 .service-dag-node[data-traffic="active"] {
@@ -1480,7 +1630,16 @@
   }
 
   .service-operations-head,
-  .service-operations-run-meta {
+  .service-operations-live {
+    flex-wrap: wrap;
+  }
+
+  .service-operations-live {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .service-operations-live span {
     flex-wrap: wrap;
   }
 
@@ -1535,6 +1694,15 @@
 
   .service-augmentation-title > span {
     grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-operations-live > i::after,
+  .service-dag-node[data-live="true"]::before,
+  .service-dag-node[data-current-route="true"]::before,
+  .service-dag-flow-pulse {
+    animation: none;
   }
 }
 

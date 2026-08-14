@@ -224,6 +224,9 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
   const approval = serviceDemoText(routing.approval_id, "승인 없음");
   const failures = Number(routing.consecutive_failures);
   const rollback = Number(routing.rollback_remaining_seconds);
+  const frames = Number(data.counters?.frames_processed);
+  const inputAge = latest ? serviceDemoAge(latest.observed_at, nowMs) : "관측 불가";
+  const flowing = data.input_state === "fresh" && Boolean(latest);
 
   return {
     badge: status.toUpperCase(),
@@ -259,8 +262,15 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
       ? `${serviceDemoText(model.algorithm)} · ${Number.isFinite(sampleCount) ? sampleCount : "관측 불가"} samples · ${serviceDemoText(data.model_state, "unknown")}`
       : "model 관측 불가",
     origin: latest ? serviceDemoText(latest.origin) : "관측 불가",
-    inputAge: latest ? serviceDemoAge(latest.observed_at, nowMs) : "관측 불가",
+    inputAge,
     frames: serviceDemoText(data.counters?.frames_processed),
+    flowing,
+    liveLabel: flowing ? "데이터 처리 중" : "데이터 확인 필요",
+    liveAge: latest ? `입력 ${inputAge.replace(" s", "초")} 전` : "입력 확인 중",
+    liveFrames: Number.isFinite(frames)
+      ? `${Math.max(0, Math.trunc(frames)).toLocaleString("ko-KR")}건 처리`
+      : "처리량 확인 중",
+    inferenceTarget,
     inferenceRouting: `${routingState} · ${inferenceTarget} · ${approval}${Number.isFinite(failures) && failures > 0 ? ` · 연속 실패 ${failures}` : ""}${Number.isFinite(rollback) && rollback > 0 ? ` · 복귀까지 ${rollback}초` : ""}`,
     inferenceRoutingTone: routing.state === "remote" ? "remote"
       : routing.state === "rolled-back" ? "rollback" : "local",
@@ -513,7 +523,11 @@ function renderServiceDemo(data, documentRef = document) {
   text("serviceDemoOrigin", view.origin);
   text("serviceDemoInputAge", view.inputAge);
   text("serviceDagFreshness", view.inputAge);
-  text("serviceOperationsRunState", view.inputState === "fresh" ? "STREAMING" : "ATTENTION");
+  text("serviceOperationsRunState", view.liveLabel);
+  text("serviceOperationsLiveAge", view.liveAge);
+  text("serviceOperationsLiveFrames", view.liveFrames);
+  const liveStatus = documentRef.getElementById("serviceOperationsLive");
+  if (liveStatus) liveStatus.dataset.state = view.flowing ? "flowing" : "attention";
   text("serviceDemoFrames", view.frames);
   const routing = text("serviceDemoInferenceRouting", view.inferenceRouting);
   if (routing) routing.dataset.state = view.inferenceRoutingTone;
@@ -529,9 +543,19 @@ function renderServiceDemo(data, documentRef = document) {
     if (stage) {
       stage.dataset.state = step.state;
       stage.dataset.current = String(step.id === currentStep);
+      stage.dataset.live = String(view.flowing && step.state !== "pending");
     }
     text(`serviceDemoStep${step.id}Evidence`, step.evidence);
   });
+  const dag = documentRef.getElementById("serviceOperationsDag");
+  if (dag) {
+    dag.dataset.flowing = String(view.flowing);
+    dag.dataset.target = view.inferenceTarget === "server1" ? "server1" : "device1";
+  }
+  const deviceTarget = documentRef.getElementById("serviceDagDevice1");
+  const serverTarget = documentRef.getElementById("serviceDagServer1");
+  if (deviceTarget) deviceTarget.dataset.currentRoute = String(view.flowing && view.inferenceTarget !== "server1");
+  if (serverTarget) serverTarget.dataset.currentRoute = String(view.flowing && view.inferenceTarget === "server1");
   renderServiceStagePlacements(data, serviceOperationsDescriptor || {}, documentRef);
   const error = text("serviceDemoError", view.error);
   if (error) error.hidden = !view.error;
@@ -624,6 +648,9 @@ function buildServiceAugmentationView(data = {}) {
       backlog: Number.isFinite(Number(metrics.backlog)) ? number(metrics.backlog) : "—",
       throughput: Number.isFinite(Number(metrics.throughput_per_second)) ? `${number(metrics.throughput_per_second, 2)} fps` : "—",
     },
+    liveRate: Number.isFinite(Number(metrics.throughput_per_second))
+      ? `${number(metrics.throughput_per_second, 2)}건/초`
+      : "속도 확인 중",
     comparison: {
       before: comparisonText(comparison.before, "전환 전 스냅샷 대기"),
       after: comparisonText(comparison.after, state === "AUGMENTED" ? comparisonText(metrics, "관측 대기") : "증강 실행 후 수집"),
@@ -661,6 +688,7 @@ function renderServiceAugmentation(data, documentRef = document) {
   text("serviceMetricLatency", view.metricValues.latency);
   text("serviceMetricBacklog", view.metricValues.backlog);
   text("serviceMetricThroughput", view.metricValues.throughput);
+  text("serviceOperationsLiveRate", view.liveRate);
   text("servicePerformanceBefore", view.comparison.before);
   text("servicePerformanceAfter", view.comparison.after);
   const comparisonState = text(

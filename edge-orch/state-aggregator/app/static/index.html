@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=stage-placement-v1-20260814" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=live-data-flow-v1-20260814" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
@@ -333,13 +333,15 @@
               <section class="service-operations-cockpit" aria-labelledby="serviceDemoProcessTitle">
                 <header class="service-operations-head">
                   <div>
-                    <span>LIVE SERVICE EXECUTION</span>
+                    <span id="serviceOperationsServiceId">LIVE SERVICE EXECUTION</span>
                     <strong id="serviceDemoProcessTitle">서비스 실행 DAG</strong>
                   </div>
-                  <div class="service-operations-run-meta">
-                    <span id="serviceOperationsServiceId">서비스 선택 대기</span>
-                    <strong id="serviceOperationsRunState">OBSERVING</strong>
-                    <small>READ ONLY</small>
+                  <div id="serviceOperationsLive" class="service-operations-live" data-state="waiting" role="status" aria-live="polite">
+                    <i aria-hidden="true"></i>
+                    <div>
+                      <strong id="serviceOperationsRunState">데이터 확인 중</strong>
+                      <span><b id="serviceOperationsLiveRate">속도 확인 중</b><em id="serviceOperationsLiveAge">입력 확인 중</em><em id="serviceOperationsLiveFrames">처리량 확인 중</em></span>
+                    </div>
                   </div>
                 </header>
 
@@ -359,14 +361,18 @@
                             <path d="M 0 0 L 10 5 L 0 10 z"></path>
                           </marker>
                         </defs>
-                        <path d="M110 220 H120"></path>
-                        <path d="M220 220 H230"></path>
-                        <path d="M330 220 H340"></path>
-                        <path d="M440 220 C458 220 452 118 470 118"></path>
-                        <path d="M440 220 C458 220 452 358 470 358"></path>
-                        <path d="M570 118 C612 118 608 220 650 220"></path>
-                        <path d="M570 358 C612 358 608 220 650 220"></path>
+                        <path data-flow-path="common" d="M110 220 H120"></path>
+                        <path data-flow-path="common" d="M220 220 H230"></path>
+                        <path data-flow-path="common" d="M330 220 H340"></path>
+                        <path data-flow-path="device1" d="M440 220 C458 220 452 118 470 118"></path>
+                        <path data-flow-path="server1" d="M440 220 C458 220 452 358 470 358"></path>
+                        <path data-flow-path="device1" d="M570 118 C612 118 608 220 650 220"></path>
+                        <path data-flow-path="server1" d="M570 358 C612 358 608 220 650 220"></path>
                       </svg>
+
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-common" aria-hidden="true"></span>
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-device" aria-hidden="true"></span>
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-server" aria-hidden="true"></span>
 
                       <div id="serviceDagAugmentationEvent" class="service-dag-augmentation-event" data-state="observing" hidden>
                         <span id="serviceDagAugmentationEyebrow">OBSERVED ONLY</span>
@@ -1694,7 +1700,7 @@
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-        <script src="/static/service-demo.js?v=stage-placement-v1-20260814"></script>
+        <script src="/static/service-demo.js?v=live-data-flow-v1-20260814"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
