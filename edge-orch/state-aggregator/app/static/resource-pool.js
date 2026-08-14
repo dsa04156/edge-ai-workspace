@@ -3,7 +3,7 @@
 
   const state = {
     payload: null,
-    category: "",
+    category: "data",
     status: "",
     search: "",
     selectedServiceId: "",
@@ -21,8 +21,8 @@
   };
 
   const CATEGORY_LABELS = {
-    data: "센서·데이터",
-    compute: "컴퓨팅",
+    data: "가상 디바이스",
+    compute: "실행 자원",
     service: "AI 서비스",
   };
 
@@ -39,13 +39,34 @@
     return STATUS_LABELS[status] || "상태 미확인";
   }
 
+  function resourceUsage(item = {}) {
+    const bindingIds = Array.isArray(item.current_bindings) ? item.current_bindings : [];
+    if (item.category === "data" && bindingIds.length) {
+      return {state: "in-use", label: "사용 중", bindingIds};
+    }
+    if (item.category === "data" && item.status === "ready") {
+      return {state: "available", label: "사용 가능", bindingIds};
+    }
+    return {
+      state: item.status || "unknown",
+      label: statusLabel(item.status),
+      bindingIds,
+    };
+  }
+
   function filterResources(resources, filters = {}) {
     const category = String(filters.category || "");
     const status = String(filters.status || "");
     const search = String(filters.search || "").trim().toLocaleLowerCase("ko");
     return (Array.isArray(resources) ? resources : []).filter((item) => {
       if (category && item.category !== category) return false;
-      if (status && item.status !== status) return false;
+      if (status) {
+        const usageState = resourceUsage(item).state;
+        const filterState = item.category === "data"
+          ? usageState
+          : item.status === "ready" ? "available" : item.status;
+        if (filterState !== status) return false;
+      }
       if (!search) return true;
       const haystack = [
         item.id,
@@ -78,11 +99,11 @@
 
   function renderSummary() {
     const summary = state.payload?.summary || {};
-    setText("resourcePoolReadyCount", summary.ready_resources || 0);
-    setText("resourcePoolDataCount", summary.data_resources || 0);
-    setText("resourcePoolComputeCount", summary.compute_resources || 0);
+    setText("resourcePoolVirtualCount", summary.virtual_devices || 0);
+    setText("resourcePoolInUseCount", summary.used_virtual_devices || 0);
+    setText("resourcePoolAvailableCount", summary.available_virtual_devices || 0);
+    setText("resourcePoolAttentionCount", summary.attention_virtual_devices || 0);
     setText("resourcePoolServiceCount", summary.service_resources || 0);
-    setText("resourcePoolBindingCount", summary.active_bindings || 0);
   }
 
   function renderNotice() {
@@ -133,24 +154,34 @@
   function resourceCard(item) {
     const selected = item.id === state.selectedDataId || item.id === state.selectedComputeId;
     const capabilities = (item.capabilities || []).slice(0, 4);
-    const metadata = [CATEGORY_LABELS[item.category] || item.category, item.node, item.authority]
+    const usage = resourceUsage(item);
+    const bindingNames = usage.bindingIds.map((serviceId) => (
+      resourceById(`service:${serviceId}`)?.name || serviceId
+    ));
+    const physicalDevice = item.metadata?.physical_device_id;
+    const metadata = [CATEGORY_LABELS[item.category] || item.category, physicalDevice, item.node]
       .filter(Boolean);
+    const usageDetail = bindingNames.length
+      ? `${bindingNames.join(", ")} 입력으로 연결됨`
+      : "현재 연결된 AI 서비스 없음";
     return `
       <button
         class="resource-pool-card${selected ? " selected" : ""}"
         type="button"
         data-resource-pool-item="${escapeHtml(item.id)}"
         data-category="${escapeHtml(item.category)}"
+        data-usage="${escapeHtml(usage.state)}"
         aria-pressed="${selected ? "true" : "false"}"
         aria-disabled="${item.selectable ? "false" : "true"}"
       >
         <span class="resource-pool-card-head">
           <span>${escapeHtml(item.name)}</span>
-          <span class="resource-pool-badge" data-status="${escapeHtml(item.status)}">${escapeHtml(statusLabel(item.status))}</span>
+          <span class="resource-pool-badge" data-status="${escapeHtml(usage.state)}">${escapeHtml(usage.label)}</span>
         </span>
         <span class="resource-pool-meta">${metadata.map((value) => `<span>${escapeHtml(value)}</span>`).join("")}</span>
         <p>${escapeHtml(item.description)}</p>
         <span class="resource-pool-capabilities">${capabilities.map((value) => `<span>${escapeHtml(value)}</span>`).join("")}</span>
+        ${item.category === "data" ? `<span class="resource-pool-usage" data-state="${escapeHtml(usage.state)}"><strong>${escapeHtml(usage.label)}</strong><span>${escapeHtml(usageDetail)}</span></span>` : ""}
       </button>
     `;
   }
@@ -241,13 +272,13 @@
     container.innerHTML = bindings.length
       ? bindings.map((binding) => `
           <article class="resource-pool-binding">
-            <div><span>EdgeX 센서 데이터</span><strong>${escapeHtml(binding.data_resource_name)}</strong></div>
+            <div><span>가상 디바이스</span><strong>${escapeHtml(binding.data_resource_name)}</strong></div>
             <span class="resource-pool-binding-arrow" aria-hidden="true">→</span>
             <div><span>${escapeHtml(binding.input_contract)}</span><strong>${escapeHtml(binding.service_name)}</strong></div>
-            <span class="resource-pool-badge" data-status="${binding.status === "ready" ? "ready" : "degraded"}">${escapeHtml(statusLabel(binding.status === "ready" ? "ready" : "degraded"))}</span>
+            <span class="resource-pool-badge" data-status="${binding.status === "ready" ? "in-use" : "degraded"}">${binding.status === "ready" ? "사용 중" : "확인 필요"}</span>
           </article>
         `).join("")
-      : '<p class="resource-pool-empty">현재 관측된 디바이스-서비스 연결이 없습니다.</p>';
+      : '<p class="resource-pool-empty">현재 사용 중인 가상 디바이스가 없습니다.</p>';
   }
 
   function renderAll() {
@@ -364,13 +395,14 @@
   };
   global.EdgeResourcePool = {
     filterResources,
+    resourceUsage,
     statusLabel,
     loadResourcePool,
     previewPlan,
   };
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {filterResources, statusLabel};
+    module.exports = {filterResources, resourceUsage, statusLabel};
   }
   if (typeof document !== "undefined") {
     if (document.readyState === "loading") {

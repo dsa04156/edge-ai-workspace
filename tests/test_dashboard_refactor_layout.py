@@ -80,7 +80,7 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "management", "resource-pool", "designer"]' in nav_js
+    assert '["overview", "inventory", "management", "services", "resource-pool", "designer"]' in nav_js
     assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 

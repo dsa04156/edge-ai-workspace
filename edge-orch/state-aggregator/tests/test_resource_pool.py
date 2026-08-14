@@ -40,6 +40,7 @@ def _devices(status: str = "ready") -> list[DeviceState]:
             overall_status="available" if status == "ready" else "degraded",
             reason="EdgeX Core Data fresh" if status == "ready" else "Core Data stale",
             node_name="edge-node",
+            physical_device_id="physical-sensor-001",
         )
     ]
 
@@ -79,6 +80,9 @@ def test_resource_pool_combines_authoritative_resources_and_bindings():
     assert state.summary.data_resources == 1
     assert state.summary.compute_resources == 1
     assert state.summary.service_resources == 1
+    assert state.summary.virtual_devices == 1
+    assert state.summary.used_virtual_devices == 1
+    assert state.summary.available_virtual_devices == 0
     assert state.summary.ready_resources == 3
     assert state.summary.active_bindings == 1
     assert {item.authority for item in state.resources} == {
@@ -87,6 +91,32 @@ def test_resource_pool_combines_authoritative_resources_and_bindings():
         "service_catalog",
     }
     assert state.bindings[0].data_resource_id == "data:sensor-001"
+    virtual_device = next(item for item in state.resources if item.category == "data")
+    assert virtual_device.kind == "edgex_virtual_device"
+    assert virtual_device.metadata["usage_state"] == "in_use"
+    assert virtual_device.metadata["physical_device_id"] == "physical-sensor-001"
+
+
+def test_resource_pool_only_exposes_split_virtual_devices_as_service_inputs():
+    raw_source = _devices()[0].model_copy(
+        update={
+            "name": "physical-sensor-source",
+            "profile_name": "multi-resource-profile",
+            "physical_device_id": None,
+        }
+    )
+
+    state = build_resource_pool_state(
+        devices=[raw_source, *_devices()],
+        virtual_resources=VirtualResourceState(
+            generated_at=datetime.now(timezone.utc), resources=[]
+        ),
+        nodes=[_node()],
+    )
+
+    assert "data:physical-sensor-source" not in {item.id for item in state.resources}
+    assert "data:sensor-001" in {item.id for item in state.resources}
+    assert state.summary.virtual_devices == 1
 
 
 def test_resource_pool_filters_without_changing_total_summary():

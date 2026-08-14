@@ -24,7 +24,7 @@ class VirtualResourceRegistryEntry(BaseModel):
     desired_instances: int = 1
     stage_type: str
     capabilities: list[str] = Field(default_factory=list)
-    keywords: list[str] = Field(default_factory=list)
+    workload_names: list[str] = Field(default_factory=list)
 
 
 class VirtualResourceInstance(BaseModel):
@@ -151,24 +151,12 @@ def _build_resource_profile(
 
 
 def _profile_matches(profile: JsonMap, registry: VirtualResourceRegistryEntry) -> bool:
-    haystack = " ".join(_profile_terms(profile)).casefold()
-    # A node identifies where a resource may run; it does not identify the
-    # resource itself. Matching on the node alone made every running Pod on a
-    # GPU/AI node look like another accelerator instance. Require an explicit
-    # workload/resource keyword and use the node only to scope matched
-    # containers in ``_containers_for_registry``.
-    return any(keyword.casefold() in haystack for keyword in registry.keywords)
-
-
-def _profile_terms(profile: JsonMap) -> list[str]:
-    terms = [_string(profile.get("namespace")), _string(profile.get("service"))]
-    terms.extend(_strings(profile.get("nodes")))
-    pods_by_node = profile.get("pods_by_node")
-    if isinstance(pods_by_node, dict):
-        terms.extend(str(node) for node in pods_by_node)
-    for container in _dicts(profile.get("containers")):
-        terms.extend([_string(container.get("pod")), _string(container.get("container")), _string(container.get("node"))])
-    return [term for term in terms if term]
+    workload = _string(profile.get("service")).casefold()
+    # Virtual resources are registered logical devices, so observation must
+    # use an exact stable workload identity. Keyword matching made
+    # ``device-serial-jetson`` look like a Jetson GPU virtual device and made
+    # one server inference Pod appear as two different GPU devices.
+    return workload in {name.casefold() for name in registry.workload_names}
 
 
 def _instances_from_profile(profile: JsonMap, registry: VirtualResourceRegistryEntry) -> list[VirtualResourceInstance]:

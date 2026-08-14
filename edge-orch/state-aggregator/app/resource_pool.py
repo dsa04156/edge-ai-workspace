@@ -84,6 +84,10 @@ class ResourcePoolSummary(BaseModel):
     compute_resources: int = 0
     service_resources: int = 0
     active_bindings: int = 0
+    virtual_devices: int = 0
+    used_virtual_devices: int = 0
+    available_virtual_devices: int = 0
+    attention_virtual_devices: int = 0
 
 
 class ResourcePoolQuery(BaseModel):
@@ -187,7 +191,9 @@ def build_resource_pool_state(
     }
     resources: list[ResourcePoolItem] = []
     resources.extend(
-        _data_resource(item, binding_service_by_device.get(item.name)) for item in devices
+        _data_resource(item, binding_service_by_device.get(item.name))
+        for item in devices
+        if _is_virtual_device(item)
     )
     resources.extend(_node_resource(node) for node in nodes)
     resources.extend(_compute_resource(item) for item in virtual_resources.resources)
@@ -211,6 +217,21 @@ def build_resource_pool_state(
         compute_resources=sum(item.category == "compute" for item in resources),
         service_resources=sum(item.category == "service" for item in resources),
         active_bindings=sum(item.status == "ready" for item in bindings),
+        virtual_devices=sum(item.category == "data" for item in resources),
+        used_virtual_devices=sum(
+            item.category == "data" and bool(item.current_bindings)
+            for item in resources
+        ),
+        available_virtual_devices=sum(
+            item.category == "data"
+            and item.status == "ready"
+            and not item.current_bindings
+            for item in resources
+        ),
+        attention_virtual_devices=sum(
+            item.category == "data" and item.status != "ready"
+            for item in resources
+        ),
     )
     errors = list(observation_errors or [])
     if virtual_resources.observation_error:
@@ -428,6 +449,9 @@ def _device_capabilities(item: DeviceState) -> list[str]:
 
 def _data_resource(item: DeviceState, bound_service_id: str | None) -> ResourcePoolItem:
     capabilities = _device_capabilities(item)
+    resource_names = sorted(
+        {reading.resource_name for reading in item.latest_readings if reading.resource_name}
+    )
     status: PoolStatus = {
         "available": "ready",
         "healthy": "ready",
@@ -437,11 +461,13 @@ def _data_resource(item: DeviceState, bound_service_id: str | None) -> ResourceP
     return ResourcePoolItem(
         id=f"data:{item.name}",
         category="data",
-        kind="edgex_device",
+        kind="edgex_virtual_device",
         name=item.name,
         description=(
-            f"{item.profile_name} · Core Data {item.telemetry_freshness} · "
-            f"{len(item.latest_readings)}개 최신 reading"
+            f"{item.physical_device_id}에서 분리 · "
+            f"{item.profile_name} · "
+            f"{', '.join(resource_names) if resource_names else item.profile_name} · "
+            f"Core Data {item.telemetry_freshness}"
         ),
         status=status,
         authority="edgex",
@@ -456,6 +482,16 @@ def _data_resource(item: DeviceState, bound_service_id: str | None) -> ResourceP
             "admin_state": item.admin_state,
             "operating_state": item.operating_state,
             "telemetry_freshness": item.telemetry_freshness,
+            "physical_device_id": item.physical_device_id,
+            "resource_names": resource_names,
+            "usage_state": (
+                "in_use"
+                if bound_service_id
+                else "available"
+                if status == "ready"
+                else "attention"
+            ),
+            "bound_service_ids": [bound_service_id] if bound_service_id else [],
             "latest_event_timestamp": (
                 item.latest_event_timestamp.isoformat()
                 if item.latest_event_timestamp is not None
@@ -464,6 +500,17 @@ def _data_resource(item: DeviceState, bound_service_id: str | None) -> ResourceP
             "reason": item.reason,
         },
     )
+
+
+def _is_virtual_device(item: DeviceState) -> bool:
+    """Return whether an EdgeX Device is a service-input virtual device.
+
+    ``physical_device_id`` is the explicit projection provenance populated
+    from EdgeX tags. Aggregate/raw EdgeX sources without that provenance stay
+    in device inventory and are not offered as allocatable service inputs.
+    """
+
+    return bool(item.physical_device_id)
 
 
 def _node_resource(node: NodeState) -> ResourcePoolItem:

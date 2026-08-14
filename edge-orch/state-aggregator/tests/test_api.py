@@ -192,7 +192,7 @@ def test_virtual_resources_endpoint_returns_resource_profiles_with_observed_inst
             "service_resource_profiles": [
                 {
                     "namespace": "edge-ai",
-                    "service": "gpu-inference-jetson-gpu-lite",
+                    "service": "vd-x86-gpu-inference",
                     "pod_count": 1,
                     "nodes": ["etri-ser0002-cgnmsb"],
                     "pods_by_node": {"etri-ser0002-cgnmsb": 1},
@@ -240,15 +240,23 @@ def test_virtual_resources_endpoint_scopes_instances_to_registry_node(monkeypatc
             "service_resource_profiles": [
                 {
                     "namespace": "edge-ai",
-                    "service": "gpu-inference",
-                    "pod_count": 2,
-                    "nodes": ["etri-ser0002-cgnmsb", "etri-dev0001-jetorn"],
+                    "service": "vd-x86-gpu-inference",
+                    "pod_count": 1,
+                    "nodes": ["etri-ser0002-cgnmsb"],
                     "containers": [
                         {
                             "pod": "gpu-server-abc",
                             "container": "runtime",
                             "node": "etri-ser0002-cgnmsb",
-                        },
+                        }
+                    ],
+                },
+                {
+                    "namespace": "edge-ai",
+                    "service": "vd-jetson-gpu-lite",
+                    "pod_count": 1,
+                    "nodes": ["etri-dev0001-jetorn"],
+                    "containers": [
                         {
                             "pod": "gpu-jetson-abc",
                             "container": "runtime",
@@ -340,6 +348,53 @@ def test_virtual_resources_do_not_treat_unrelated_pods_on_resource_node_as_insta
     storage = next(item for item in resources if item["id"] == "vd-storage-cache")
     assert server_gpu["observed_instances"] == 0
     assert storage["observed_instances"] == 0
+
+
+def test_virtual_resources_require_exact_registered_workload_identity(monkeypatch):
+    async def fake_resource_state(refresh=False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "namespace": "edgex-edge",
+                    "service": "device-serial-jetson",
+                    "pod_count": 1,
+                    "nodes": ["etri-dev0001-jetorn"],
+                    "containers": [
+                        {
+                            "pod": "device-serial-jetson-abc",
+                            "container": "device-serial-jetson",
+                            "node": "etri-dev0001-jetorn",
+                        }
+                    ],
+                }
+            ]
+        }
+
+    monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
+    service.store.nodes = {
+        "etri-dev0001-jetorn": NodeState(
+            hostname="etri-dev0001-jetorn",
+            instance="192.168.0.3:9100",
+            node_type="edge",
+            collected_at=datetime.now(timezone.utc),
+            raw_metrics={"up": 1.0},
+            compute_pressure="low",
+            memory_pressure="low",
+            network_pressure="low",
+            node_health="healthy",
+        )
+    }
+
+    with TestClient(app) as client:
+        response = client.get("/state/virtual-resources")
+
+    assert response.status_code == 200
+    jetson_gpu = next(
+        item
+        for item in response.json()["resources"]
+        if item["id"] == "vd-jetson-gpu-lite"
+    )
+    assert jetson_gpu["observed_instances"] == 0
 
 
 def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatch):
