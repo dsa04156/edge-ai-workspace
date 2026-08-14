@@ -45,7 +45,9 @@ Kubernetes 노드·workload 관측과 고정 서비스 카탈로그를 읽기 �
 EdgeX mutation, Kubernetes apply/restart, command 또는 runtime offloading을 수행하지 않는다.
 대시보드의 `디바이스 트윈` 화면은 `GET /state/device-twins`를 사용한다. 이 응답은
 실제 물리 디바이스에서 수집되어 EdgeX Metadata와 Core Data에 반영된 관측 상태와
-AI 서비스 입력 연결을 보여주며, 가상 하드웨어나 desired/reported 제어 트윈을 뜻하지 않는다.
+AI 서비스 입력 연결을 N:M `service_bindings`로 보여주며, 가상 하드웨어나
+desired/reported 제어 트윈을 뜻하지 않는다. 서비스 정의와 입력 바인딩은 별도 고정
+목록이 아니라 Git 기반 `/state/services` 서비스 inventory를 기준으로 합성한다.
 자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
 read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
 Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,

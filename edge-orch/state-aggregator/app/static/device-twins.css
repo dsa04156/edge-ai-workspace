@@ -237,8 +237,13 @@
   overflow-wrap: anywhere;
 }
 
+.device-twins-services,
 .device-twins-service {
   display: grid;
+}
+
+.device-twins-services {
+  gap: 6px;
 }
 
 .device-twins-service strong {

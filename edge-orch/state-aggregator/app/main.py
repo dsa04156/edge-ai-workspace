@@ -724,28 +724,18 @@ async def get_device_twins() -> DeviceTwinState:
             f"EdgeX device observation unavailable: {exc.__class__.__name__}"
         )
 
-    service_observations: dict[str, str] = {}
-    service_bindings: dict[str, list[str]] = {}
     try:
         demo_state = await service_demo_client.get_state()
-        service_bindings["sensor-anomaly-demo"] = demo_state.binding.devices
-        service_observations["sensor-anomaly-demo"] = (
-            "ready"
-            if demo_state.mode == "live"
-            and demo_state.input_state == "fresh"
-            and demo_state.model_state == "ready"
-            else "degraded"
-        )
     except ServiceDemoError as exc:
-        service_observations["sensor-anomaly-demo"] = "unavailable"
+        demo_state = degraded_service_demo_state(exc)
         observation_errors.append(
             f"AI service observation unavailable: {exc.__class__.__name__}"
         )
+    deployed_services = _deployed_service_state(demo_state)
 
     return build_device_twin_state(
         devices=devices,
-        service_bindings=service_bindings,
-        service_observations=service_observations,
+        deployed_services=deployed_services.services,
         observation_errors=observation_errors,
     )
 

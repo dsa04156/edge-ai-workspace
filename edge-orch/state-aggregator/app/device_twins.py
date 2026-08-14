@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .models import DeviceState
-from .resource_pool import ResourcePoolServiceDefinition, SERVICE_CATALOG
+from .service_demo_models import DeployedServiceItem
 
 
 TwinHealth = Literal["ready", "degraded", "unavailable"]
@@ -47,6 +47,7 @@ class DeviceTwinSummary(BaseModel):
     physical_devices: int = 0
     device_twins: int = 0
     service_bound_twins: int = 0
+    service_connections: int = 0
     unbound_twins: int = 0
     attention_twins: int = 0
 
@@ -66,23 +67,17 @@ class DeviceTwinState(BaseModel):
 def build_device_twin_state(
     *,
     devices: list[DeviceState],
-    services: tuple[ResourcePoolServiceDefinition, ...] = SERVICE_CATALOG,
-    service_bindings: dict[str, list[str]] | None = None,
-    service_observations: dict[str, str] | None = None,
+    deployed_services: list[DeployedServiceItem] | None = None,
     observation_errors: list[str] | None = None,
 ) -> DeviceTwinState:
-    binding_ids_by_device: dict[str, list[str]] = {}
-    for service_id, device_names in (service_bindings or {}).items():
-        for device_name in device_names:
-            binding_ids_by_device.setdefault(device_name, []).append(service_id)
-
-    services_by_id = {service.id: service for service in services}
+    services_by_device: dict[str, list[DeployedServiceItem]] = {}
+    for deployed_service in deployed_services or []:
+        for device_name in set(deployed_service.input_devices):
+            services_by_device.setdefault(device_name, []).append(deployed_service)
     twins = [
         _device_twin(
             device,
-            binding_ids=binding_ids_by_device.get(device.name, []),
-            services_by_id=services_by_id,
-            service_observations=service_observations or {},
+            deployed_services=services_by_device.get(device.name, []),
         )
         for device in devices
         if device.physical_device_id
@@ -100,6 +95,7 @@ def build_device_twin_state(
             physical_devices=len({twin.physical_device_id for twin in twins}),
             device_twins=len(twins),
             service_bound_twins=sum(bool(twin.service_bindings) for twin in twins),
+            service_connections=sum(len(twin.service_bindings) for twin in twins),
             unbound_twins=sum(not twin.service_bindings for twin in twins),
             attention_twins=sum(twin.health != "ready" for twin in twins),
         ),
@@ -111,9 +107,7 @@ def build_device_twin_state(
 def _device_twin(
     device: DeviceState,
     *,
-    binding_ids: list[str],
-    services_by_id: dict[str, ResourcePoolServiceDefinition],
-    service_observations: dict[str, str],
+    deployed_services: list[DeployedServiceItem],
 ) -> ObservedDeviceTwin:
     health: TwinHealth = {
         "available": "ready",
@@ -125,14 +119,8 @@ def _device_twin(
         {reading.resource_name for reading in device.latest_readings if reading.resource_name}
     )
     bindings = [
-        _service_binding(
-            service_id,
-            services_by_id=services_by_id,
-            service_observations=service_observations,
-            twin_health=health,
-        )
-        for service_id in sorted(set(binding_ids))
-        if service_id in services_by_id
+        _service_binding(service, twin_health=health)
+        for service in sorted(deployed_services, key=lambda item: item.service_id)
     ]
     return ObservedDeviceTwin(
         id=f"twin:{device.name}",
@@ -151,24 +139,36 @@ def _device_twin(
 
 
 def _service_binding(
-    service_id: str,
+    service: DeployedServiceItem,
     *,
-    services_by_id: dict[str, ResourcePoolServiceDefinition],
-    service_observations: dict[str, str],
     twin_health: TwinHealth,
 ) -> DeviceTwinBinding:
-    service = services_by_id[service_id]
-    observed_status = service_observations.get(service_id)
     status: BindingHealth = (
         "active"
-        if twin_health == "ready" and observed_status == "ready"
+        if twin_health == "ready"
+        and service.mode == "live"
+        and service.status == "normal"
+        and service.input_state == "fresh"
+        and service.model_state == "ready"
         else "unavailable"
-        if twin_health == "unavailable" or observed_status == "unavailable"
+        if twin_health == "unavailable" or service.mode == "unavailable"
         else "degraded"
     )
     return DeviceTwinBinding(
-        service_id=service.id,
-        service_name=service.name,
-        input_contract="okdong.pump-motor.telemetry/v1",
+        service_id=service.service_id,
+        service_name=service.display_name,
+        input_contract=_input_contract(service),
         status=status,
     )
+
+
+def _input_contract(service: DeployedServiceItem) -> str:
+    descriptor = service.descriptor if isinstance(service.descriptor, dict) else {}
+    input_contract = descriptor.get("input_contract")
+    if isinstance(input_contract, dict):
+        schema = input_contract.get("schema")
+        if isinstance(schema, str) and schema.strip():
+            return schema.strip()
+    if service.design_contract is not None:
+        return service.design_contract.contract_id
+    return "미지정"

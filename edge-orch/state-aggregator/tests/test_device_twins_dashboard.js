@@ -3,6 +3,7 @@ const test = require("node:test");
 
 const {
   filterTwins,
+  serviceMarkup,
   sortTwins,
   twinConnection,
 } = require("../app/static/device-twins.js");
@@ -64,4 +65,15 @@ test("device twin inventory puts service-bound twins first", () => {
     sortTwins([twins[1], twins[0]]).map((twin) => twin.id),
     ["twin:acceleration-x", "twin:humidity"],
   );
+});
+
+test("one device twin renders every connected service", () => {
+  const markup = serviceMarkup([
+    {service_name: "센서 이상 탐지", status: "active"},
+    {service_name: "생산품질 판별", status: "degraded"},
+  ]);
+
+  assert.match(markup, /센서 이상 탐지/);
+  assert.match(markup, /생산품질 판별/);
+  assert.match(markup, /device-twins-services/);
 });

@@ -75,7 +75,10 @@
     const summary = state.payload?.summary || {};
     setText("deviceTwinsPhysicalCount", summary.physical_devices || 0);
     setText("deviceTwinsTotalCount", summary.device_twins || 0);
-    setText("deviceTwinsBoundCount", summary.service_bound_twins || 0);
+    setText(
+      "deviceTwinsBoundCount",
+      summary.service_connections ?? summary.service_bound_twins ?? 0,
+    );
     setText("deviceTwinsAttentionCount", summary.attention_twins || 0);
   }
 
@@ -91,12 +94,12 @@
 
   function serviceMarkup(bindings) {
     if (!bindings.length) return '<span class="device-twins-unbound">미연결</span>';
-    return bindings.map((binding) => `
-      <span class="device-twins-service" data-status="${escapeHtml(binding.status)}">
-        <strong>${escapeHtml(binding.service_name)}</strong>
-        ${binding.status === "active" ? "" : "<small>서비스 상태 확인 필요</small>"}
-      </span>
-    `).join("");
+    return `<span class="device-twins-services">${bindings.map((binding) => `
+        <span class="device-twins-service" data-status="${escapeHtml(binding.status)}">
+          <strong>${escapeHtml(binding.service_name)}</strong>
+          ${binding.status === "active" ? "" : "<small>서비스 상태 확인 필요</small>"}
+        </span>
+      `).join("")}</span>`;
   }
 
   function twinRow(twin) {
@@ -183,10 +186,16 @@
   global.onDeviceTwinsVisible = function onDeviceTwinsVisible() {
     if (!state.payload) loadDeviceTwins().catch(() => undefined);
   };
-  global.EdgeDeviceTwins = {filterTwins, loadDeviceTwins, sortTwins, twinConnection};
+  global.EdgeDeviceTwins = {
+    filterTwins,
+    loadDeviceTwins,
+    serviceMarkup,
+    sortTwins,
+    twinConnection,
+  };
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {filterTwins, sortTwins, twinConnection};
+    module.exports = {filterTwins, serviceMarkup, sortTwins, twinConnection};
   }
   if (typeof document !== "undefined") {
     if (document.readyState === "loading") {
