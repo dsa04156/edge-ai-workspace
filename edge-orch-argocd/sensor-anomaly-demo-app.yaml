@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/dsa04156/edge-ai-workspace.git
     path: edge-orch/sensor-anomaly-demo/k8s
-    targetRevision: main
+    targetRevision: agent/edgex-central-docs
     kustomize: {}
   destination:
     server: https://kubernetes.default.svc

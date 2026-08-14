@@ -44,6 +44,7 @@
 <ul>
 <li class="group">시작하기</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
 <li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
 <li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
 <li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
@@ -73,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-13 18:22</span>
-            <span class="badge">HTML 생성: 2026-08-14 10:58</span>
+            <span class="badge">수정: 2026-08-14 12:01</span>
+            <span class="badge">HTML 생성: 2026-08-14 12:03</span>
           </div>
         </header>
         <div class="doc-body">
@@ -108,7 +109,7 @@
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
-<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload, 서비스 입력·모델·결과, 자원 증강 권고의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보</li><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload, 서비스 입력·모델·결과, 자원 증강 권고의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
 <h2 id="승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</h2>
 <p>다음은 코드나 개발 fixture가 있어도 일반 운영 기능으로 보지 않는다.</p>
 <div class="table-wrap"><table>
@@ -120,8 +121,8 @@
 <tbody>
 <tr>
 <td>Server1 inference</td>
-<td>선택 overlay와 endpoint 검증</td>
-<td>승인 주체·운영 root·실패 대응 검증</td>
+<td>observed-only GPU endpoint 운영</td>
+<td>요청 전환 승인 주체·실패 대응 검증</td>
 </tr>
 <tr>
 <td>자원 증강</td>

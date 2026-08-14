@@ -81,7 +81,8 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 16)
+        self.assertEqual(len(paths), 17)
+        self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
         self.assertIn("펌프-모터-이상감지-서비스.md", paths)

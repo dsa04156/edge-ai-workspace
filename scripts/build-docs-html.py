@@ -24,6 +24,7 @@ SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
 PUBLICATION_SECTIONS = [
     ("시작하기", "start", [
         "문서-안내.md",
+        "처음부터-배우는-Edge-AI-시스템.md",
         "플랫폼-개요.md",
         "펌프-모터-이상감지-서비스.md",
         "현재-구현-상태.md",
@@ -54,6 +55,7 @@ PUBLIC_META = {
 DISPLAY_TITLES = {
     "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "문서-안내.md": "문서 안내",
+    "처음부터-배우는-Edge-AI-시스템.md": "처음부터 배우는 Edge AI 시스템",
     "플랫폼-개요.md": "플랫폼 개요",
     "펌프-모터-이상감지-서비스.md": "펌프·모터 이상감지 서비스",
     "문서-분류-목록.md": "문서 전체 분류 목록",

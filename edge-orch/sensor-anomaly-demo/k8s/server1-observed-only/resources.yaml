@@ -37,6 +37,7 @@ spec:
         app.kubernetes.io/part-of: edge-ai-service-demo
         edge-ai.io/augmentation-resource: server1-sensor-anomaly-inference
     spec:
+      schedulerName: hami-scheduler
       nodeSelector:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       automountServiceAccountToken: false
@@ -46,7 +47,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-inference
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:2abc03055426ea979a38e18fa3e58df1c6b49b4057a6c84fc4cc62342a9e641b
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:6841a6250b6b3b95ac4aafb733eb58d77ac136ddc3956c18c89e54e65770d64a
           imagePullPolicy: IfNotPresent
           env:
             - name: SERVICE_ROLE
@@ -63,6 +64,10 @@ spec:
               value: "2"
             - name: WARMUP_SAMPLES
               value: "30"
+            - name: MODEL_BACKEND
+              value: cuda-online-baseline
+            - name: MODEL_VERSION
+              value: cuda-baseline-1.0.0
             - name: RESULT_DB_PATH
               value: /tmp/server1-shadow-results.db
             - name: SERVICE_NODE_ID
@@ -94,9 +99,15 @@ spec:
             requests:
               cpu: 250m
               memory: 256Mi
+              nvidia.com/gpu: "1"
+              nvidia.com/gpucores: "20"
+              nvidia.com/gpumem: "1024"
             limits:
               cpu: "2"
               memory: 1Gi
+              nvidia.com/gpu: "1"
+              nvidia.com/gpucores: "20"
+              nvidia.com/gpumem: "1024"
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -165,7 +176,7 @@ metadata:
     edge-ai.io/resource-class: server1-inference
 spec:
   displayName: server1 Sensor Anomaly Inference
-  resourceType: cpu
+  resourceType: gpu
   nodeSelector:
     kubernetes.io/hostname: etri-ser0001-cg0msb
   stageTypes:
@@ -173,6 +184,8 @@ spec:
   capabilities:
     - anomaly_model
     - remote_inference
+    - cuda_inference
+    - hami_vgpu
   runtimeRef:
     namespace: edgex-edge
     serviceSelector:

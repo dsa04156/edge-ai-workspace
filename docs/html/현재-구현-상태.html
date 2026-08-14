@@ -44,6 +44,7 @@
 <ul>
 <li class="group">시작하기</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
 <li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
 <li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
 <li><a class="active" aria-current="page" href="현재-구현-상태.html">현재 구현 상태</a></li>
@@ -73,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-08-13 18:48</span>
-            <span class="badge">HTML 생성: 2026-08-14 10:58</span>
+            <span class="badge">수정: 2026-08-14 11:59</span>
+            <span class="badge">HTML 생성: 2026-08-14 12:03</span>
           </div>
         </header>
         <div class="doc-body">
@@ -126,7 +127,7 @@
 <tr>
 <td>Server1 inference</td>
 <td>선택 경로</td>
-<td>endpoint 검증, 운영 root 밖의 승인 기반 overlay</td>
+<td>HAMi GPU·CUDA readiness, 운영 root 밖의 승인 기반 overlay</td>
 </tr>
 <tr>
 <td>생산품질 판별</td>
@@ -174,7 +175,7 @@
 <p>live cluster에는 5개 Kubernetes node가 Ready다. 중앙 EdgeX workload, 두 고정 Device Service, Adapter Controller, <code>sensor-anomaly-demo</code>, 선택적 Server1 inference endpoint와 <code>state-aggregator</code>가 각각 Ready로 관측됐다. 이 live 관측은 이후 변경될 수 있으므로 운영 판정 시 다시 조회한다.</p>
 <h2 id="서비스-데모-상태">서비스 데모 상태</h2>
 <p><a href="펌프-모터-이상감지-서비스.html">@@INLINE0@@</a>의 입력 계약은 <code>okdong.pump-motor.telemetry/v1</code>이다. 현재 Arduino raw 입력은 플랫폼 연결 기준선이며 옥동 설비 단위가 아니다.</p>
-<ul><li>가속도 X/Y/Z는 같은 <code>origin</code>으로 frame을 구성한다.</li><li>온도는 허용 시간차 안의 가장 가까운 sample만 결합한다.</li><li>진동 20개, 온도 10개 window와 30개 warm-up을 사용한다.</li><li>현재 backend는 학습된 고장 분류기가 아닌 <code>online-baseline</code>이다.</li><li>결과와 alert transition은 서비스 소유 SQLite에 idempotent하게 저장한다.</li></ul>
+<ul><li>가속도 X/Y/Z는 같은 <code>origin</code>으로 frame을 구성한다.</li><li>온도는 허용 시간차 안의 가장 가까운 sample만 결합한다.</li><li>진동 20개, 온도 10개 window와 30개 warm-up을 사용한다.</li><li>현재 backend는 학습된 고장 분류기가 아닌 <code>online-baseline</code>이다.</li><li>Server1 후보는 같은 기준선의 CUDA backend이며 HAMi GPU 할당과 CUDA probe를 readiness에 포함한다.</li><li>결과와 alert transition은 서비스 소유 SQLite에 idempotent하게 저장한다.</li></ul>
 <p>실제 설비 고장 분류 정확도와 생산성 개선 효과는 옥동 현장 데이터로 별도 검증해야 한다.</p>
 <h2 id="자원-증강-상태">자원 증강 상태</h2>
 <p>자원 증강 판단은 설비 이상 판단과 분리한다. <code>anomaly_score</code>는 evaluator 입력이 아니다.</p>

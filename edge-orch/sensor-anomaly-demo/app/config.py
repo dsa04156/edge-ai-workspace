@@ -41,7 +41,7 @@ class Settings(BaseModel):
     temperature_window_samples: int = Field(default=10, ge=2, le=1_000)
     vibration_weight: float = Field(default=0.7, ge=0)
     temperature_weight: float = Field(default=0.3, ge=0)
-    model_backend: Literal["online-baseline"] = "online-baseline"
+    model_backend: Literal["online-baseline", "cuda-online-baseline"] = "online-baseline"
     model_version: str = Field(default="baseline-1.0.0", min_length=1, max_length=64)
     service_device_id: str = Field(default="arduino-001", min_length=1, max_length=128)
     service_asset_id: str = Field(default="arduino-001", min_length=1, max_length=128)
@@ -71,6 +71,13 @@ class Settings(BaseModel):
                 raise ValueError(
                     "remote_inference_approval_id is required in approved mode"
                 )
+        if (
+            self.model_backend == "cuda-online-baseline"
+            and self.service_role != "inference-server"
+        ):
+            raise ValueError(
+                "cuda-online-baseline is allowed only for the inference-server role"
+            )
         return self
 
     @classmethod

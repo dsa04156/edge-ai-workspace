@@ -115,6 +115,9 @@ def create_app(
                 "status": "ready",
                 "capability": "sensor-anomaly-inference",
                 "role": "inference-server",
+                "modelBackend": selected_inference_engine.model_adapter.backend,
+                "accelerator": selected_inference_engine.model_adapter.accelerator,
+                "acceleratorDevice": selected_inference_engine.model_adapter.accelerator_device,
             }
         state = require_runtime().status()
         if state.input_state != "fresh" or state.model_state != "ready":

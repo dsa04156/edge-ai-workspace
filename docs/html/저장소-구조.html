@@ -44,6 +44,7 @@
 <ul>
 <li class="group">시작하기</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
 <li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
 <li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
 <li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
@@ -73,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-08-13 18:24</span>
-            <span class="badge">HTML 생성: 2026-08-14 10:58</span>
+            <span class="badge">수정: 2026-08-14 12:01</span>
+            <span class="badge">HTML 생성: 2026-08-14 12:03</span>
           </div>
         </header>
         <div class="doc-body">
@@ -124,7 +125,7 @@
 </tr>
 <tr>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
-<td>고정 이상감지 서비스와 선택 Server1 overlay</td>
+<td>고정 이상감지 서비스와 observed-only HAMi GPU 후보</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
@@ -183,8 +184,12 @@
 <td>Modbus 개발 fixture</td>
 </tr>
 <tr>
+<td><code>edge-orch/sensor-anomaly-demo/k8s/server1-observed-only/</code></td>
+<td>운영 root의 HAMi GPU 관측 후보, 라우팅 없음</td>
+</tr>
+<tr>
 <td><code>edge-orch/sensor-anomaly-demo/k8s-overlays/</code></td>
-<td>Server1 observed/approval 선택 경로</td>
+<td>승인 기반 Server1 라우팅 선택 경로</td>
 </tr>
 </tbody></table></div>
 <p>선택 overlay나 simulator가 존재한다는 사실만으로 운영 root 기능으로 설명하지 않는다.</p>

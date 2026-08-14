@@ -390,7 +390,12 @@ def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatc
     assert candidate["observed_instances"] == 1
     assert candidate["free_instances"] == 1
     assert candidate["status"] == "idle"
-    assert candidate["capabilities"] == ["anomaly_model", "remote_inference"]
+    assert candidate["capabilities"] == [
+        "anomaly_model",
+        "remote_inference",
+        "cuda_inference",
+        "hami_vgpu",
+    ]
 
 
 def test_virtual_resources_endpoint_keeps_registry_when_observation_fails(monkeypatch):

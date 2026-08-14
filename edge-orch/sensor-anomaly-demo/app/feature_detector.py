@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import Callable
 
 from .models import (
     DetectionStatus,
@@ -26,7 +27,11 @@ class FeatureDetectorConfig:
 class OnlineFeatureDetector:
     """Online per-feature Gaussian baseline with a maximum z-score."""
 
-    def __init__(self, config: FeatureDetectorConfig) -> None:
+    def __init__(
+        self,
+        config: FeatureDetectorConfig,
+        score_vector: Callable[[list[float], list[float], list[float]], float] | None = None,
+    ) -> None:
         if not config.feature_names:
             raise ValueError("feature_names must not be empty")
         if len(config.feature_names) != len(set(config.feature_names)):
@@ -34,6 +39,7 @@ class OnlineFeatureDetector:
         if config.stddev_floor <= 0:
             raise ValueError("stddev_floor must be positive")
         self.config = config
+        self._score_vector = score_vector
         self._count = 0
         self._means = {name: 0.0 for name in config.feature_names}
         self._m2 = {name: 0.0 for name in config.feature_names}
@@ -64,10 +70,18 @@ class OnlineFeatureDetector:
             )
             return self._result(origin, 0.0, status)
 
-        score = max(
-            abs(features[name] - self._means[name]) / self._stddev(name)
-            for name in self.config.feature_names
-        )
+        if self._score_vector is None:
+            score = max(
+                abs(features[name] - self._means[name]) / self._stddev(name)
+                for name in self.config.feature_names
+            )
+        else:
+            names = self.config.feature_names
+            score = self._score_vector(
+                [features[name] for name in names],
+                [self._means[name] for name in names],
+                [self._stddev(name) for name in names],
+            )
         if score >= self.config.threshold:
             self._above_threshold += 1
             self._below_threshold = 0

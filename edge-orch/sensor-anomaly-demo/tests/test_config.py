@@ -60,3 +60,16 @@ def test_settings_reject_zero_total_weight_and_impossible_alignment_ttl() -> Non
         Settings(vibration_weight=0, temperature_weight=0)
     with pytest.raises(ValidationError, match="must not exceed"):
         Settings(context_max_skew_seconds=11, pending_ttl_seconds=10)
+
+
+def test_settings_accept_cuda_backend_only_for_inference_server() -> None:
+    settings = Settings(
+        service_role="inference-server",
+        model_backend="cuda-online-baseline",
+        model_version="cuda-baseline-1.0.0",
+    )
+
+    assert settings.model_backend == "cuda-online-baseline"
+
+    with pytest.raises(ValidationError, match="inference-server"):
+        Settings(model_backend="cuda-online-baseline")

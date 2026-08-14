@@ -49,7 +49,11 @@ class InferenceEngine:
     @property
     def ready(self) -> bool:
         vibration, temperature = self.model_adapter.snapshots()
-        return min(vibration.sample_count, temperature.sample_count) >= self.settings.warmup_samples
+        return (
+            self.model_adapter.runtime_ready
+            and min(vibration.sample_count, temperature.sample_count)
+            >= self.settings.warmup_samples
+        )
 
     def infer(self, request: InferenceRequest) -> InferenceResponse:
         fingerprint = _fingerprint(request)

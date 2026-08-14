@@ -44,6 +44,38 @@ def test_feature_detector_rejects_wrong_or_non_finite_vectors() -> None:
         model.process(1, {"mean": float("nan"), "delta": 0.0})
 
 
+def test_feature_detector_delegates_ready_vector_scoring() -> None:
+    calls: list[tuple[list[float], list[float], list[float]]] = []
+
+    def score_vector(
+        values: list[float],
+        means: list[float],
+        standard_deviations: list[float],
+    ) -> float:
+        calls.append((values, means, standard_deviations))
+        return 7.5
+
+    model = OnlineFeatureDetector(
+        FeatureDetectorConfig(
+            algorithm="test-gpu-features-v1",
+            feature_names=("mean", "delta"),
+            warmup_samples=1,
+            stddev_floor=1,
+            anomaly_streak=1,
+        ),
+        score_vector=score_vector,
+    )
+    model.process(1, {"mean": 10.0, "delta": 0.0})
+
+    result = model.process(2, {"mean": 20.0, "delta": 4.0})
+
+    assert result.score == 7.5
+    assert len(calls) == 1
+    assert calls[0][0] == [20.0, 4.0]
+    assert calls[0][1] == [10.0, 0.0]
+    assert calls[0][2] == [1, 1]
+
+
 def test_fused_score_latch_applies_anomaly_and_clear_streaks() -> None:
     latch = ScoreLatch(threshold=4, anomaly_streak=2, clear_streak=2)
 

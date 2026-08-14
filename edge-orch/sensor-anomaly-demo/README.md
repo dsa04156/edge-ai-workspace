@@ -3,9 +3,10 @@
 이 서비스는 Jetson에서 EdgeX Serial Device Service의 Local Data API를 읽어 가속도 3축과
 온도를 정렬하고, 현재 검증용 통계 기준선으로 펌프·모터 이상 점수를 계산한다.
 
-현재 구현은 옥동 실장비 AI 모델이 아니다. `online-baseline`만 지원하며 모델 backend와
-version을 명시적으로 구분한다. 옥동 실제 모델은 `PumpModelAdapter` 계약을 구현한 뒤 별도
-시험을 통과해야 한다.
+현재 구현은 옥동 실장비 AI 모델이 아니다. Device1의 `online-baseline`과 Server1의
+`cuda-online-baseline`을 지원하며 model backend, version과 accelerator를 구분한다.
+Server1 backend는 같은 통계 기준선의 점수 계산을 CUDA에서 실행한다. 옥동 실제 모델은
+`PumpModelAdapter` 계약을 구현한 뒤 별도 시험을 통과해야 한다.
 
 ## 제공 기능
 
@@ -33,8 +34,9 @@ version을 명시적으로 구분한다. 옥동 실제 모델은 `PumpModelAdapt
 ## 자원 증강 실행 경계
 
 기본 `k8s/` 배포는 `REMOTE_INFERENCE_MODE=disabled`이며 Jetson 로컬 추론만 사용한다.
-`k8s/server1-observed-only`는 server1 후보의 모델 readiness와 endpoint를 독립적으로
-준비하는 선택 배포다. evaluator의 `RECOMMENDED` 이후 운영자가 승인한 경우에만
+`k8s/server1-observed-only`는 운영 root에 포함된 observed-only server1 후보다. 모델
+readiness와 endpoint를 준비하되 요청 전환은 활성화하지 않는다. HAMi가 GPU core와 memory를 배정하고 CUDA probe가 성공한 뒤에만
+readiness가 통과한다. evaluator의 `RECOMMENDED` 이후 운영자가 승인한 경우에만
 `k8s-overlays/server1-approved-offload`를 별도 GitOps 변경으로 사용한다.
 
 Jetson 운영 이미지는 `scripts/build-edge-arm64-oci.sh`, server1 이미지는
@@ -80,4 +82,5 @@ curl -sS 'http://127.0.0.1:8080/api/v1/alerts?limit=20'
 - PVC는 단일 Jetson 노드의 Pod 재시작을 견디지만 중앙 HA 결과 저장소가 아니다.
 - replay server는 개발·시험 도구이며 root 운영 Kustomize에 배포하지 않는다.
 - 원시 데이터 통신 단절 구간을 재전송하는 outbox는 아직 구현하지 않았다.
+- `server1-observed-only` GPU 후보는 운영 root에 포함되지만 요청을 전환하지 않는다.
 - `server1-approved-offload` overlay와 승인 Secret은 운영 root Kustomize에 포함되지 않는다.

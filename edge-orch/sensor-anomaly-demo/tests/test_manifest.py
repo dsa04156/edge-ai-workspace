@@ -168,7 +168,7 @@ def test_argocd_retires_fake_vision_app_and_declares_sensor_demo_app() -> None:
     assert application["spec"]["source"]["path"] == (
         "edge-orch/sensor-anomaly-demo/k8s"
     )
-    assert application["spec"]["source"]["targetRevision"] == "main"
+    assert application["spec"]["source"]["targetRevision"] == "agent/edgex-central-docs"
     assert application["spec"]["destination"]["namespace"] == "edgex-edge"
     assert application["spec"]["syncPolicy"]["automated"] == {
         "prune": True,

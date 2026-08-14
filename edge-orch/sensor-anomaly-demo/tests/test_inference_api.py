@@ -74,6 +74,9 @@ def test_inference_server_warms_model_and_exposes_real_readiness() -> None:
         "status": "ready",
         "capability": "sensor-anomaly-inference",
         "role": "inference-server",
+        "modelBackend": "online-baseline",
+        "accelerator": "cpu",
+        "acceleratorDevice": "host-cpu",
     }
 
 
