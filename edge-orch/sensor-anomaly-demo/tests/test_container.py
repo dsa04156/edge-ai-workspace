@@ -33,3 +33,17 @@ def test_platform_builders_pin_distinct_base_manifests() -> None:
     assert arm64_base.group(1) != amd64_base.group(1)
     assert "--platform linux/arm64" in arm64_script
     assert "--platform linux/amd64" in amd64_script
+
+
+def test_server1_image_includes_cuda_runtime_and_nvrtc() -> None:
+    requirements = (ROOT / "requirements-server1.txt").read_text(encoding="utf-8")
+    build_script = (ROOT / "scripts" / "build-server1-oci.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "cupy-cuda12x==13.6.0" in requirements
+    assert "nvidia-cuda-runtime-cu12==12.8.90" in requirements
+    assert "nvidia-cuda-nvrtc-cu12==12.8.93" in requirements
+    assert "--env LD_LIBRARY_PATH=" in build_script
+    assert "site-packages/nvidia/cuda_nvrtc/lib" in build_script
+    assert "site-packages/nvidia/cuda_runtime/lib" in build_script

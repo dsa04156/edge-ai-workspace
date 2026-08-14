@@ -47,7 +47,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-inference
-          image: 192.168.0.56:5000/sensor-anomaly-demo-server1@sha256:385deb3f4ab7a6d8b41ca5514e6758b93f433bfff2f8daea0aa19e469a26b40c
+          image: 192.168.0.56:5000/sensor-anomaly-demo-server1@sha256:0f16d643c4d74be0b396415bfa9a0b767a081c885a9e68dcdb40a506f1666479
           imagePullPolicy: IfNotPresent
           env:
             - name: SERVICE_ROLE
