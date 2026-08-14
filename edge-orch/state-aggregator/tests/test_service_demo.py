@@ -6,6 +6,7 @@ import httpx
 import pytest
 import yaml
 from app import main
+from app.models import NodeState
 from app.service_demo import (
     ServiceDemoBackendError,
     ServiceDemoClient,
@@ -475,3 +476,100 @@ def test_service_augmentation_route_combines_service_resource_and_server1_gates(
     assert payload["state"] == "NORMAL"
     assert payload["anomaly_signal_used"] is False
     assert all(gate["passed"] for gate in payload["gates"])
+
+
+def test_service_augmentation_route_uses_fresh_prometheus_node_metrics_when_cadvisor_is_missing(
+    monkeypatch,
+) -> None:
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=live_payload())
+
+    observed = asyncio.run(
+        ServiceDemoClient(
+            "http://sensor-anomaly-demo.test",
+            timeout_seconds=2,
+            transport=httpx.MockTransport(handler),
+        ).get_state()
+    )
+
+    class StaticClient:
+        async def get_state(self):
+            return observed
+
+    async def resource_profiles(refresh: bool = False):
+        return {
+            "service_resource_profiles": [
+                {
+                    "service": "sensor-anomaly-demo",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "resource_requirements": {
+                        "limits": {"cpu_cores": 0.25, "memory_mib": 128}
+                    },
+                    "current_usage": {
+                        "cpu_cores": 0,
+                        "memory_working_set_mib": 0,
+                        "usage_coverage_ratio": 0,
+                    },
+                }
+            ]
+        }
+
+    async def resources():
+        return AugmentationResourceCrdState(
+            generated_at=datetime.now(timezone.utc),
+            resources=[
+                AugmentationResourceCrd(
+                    name="server1-sensor-anomaly-inference",
+                    display_name="server1 sensor anomaly inference",
+                    resource_type="gpu-inference",
+                    node="etri-ser0001-cg0msb",
+                    capabilities=["gpu_inference", "anomaly_model"],
+                    phase="Available",
+                    observed_instances=1,
+                    free_instances=1,
+                    binding_state="available",
+                    endpoint_ready=True,
+                )
+            ],
+        )
+
+    node = NodeState(
+        hostname="etri-dev0001-jetorn",
+        instance="192.168.0.3:9100",
+        node_type="edge_ai_device",
+        collected_at=datetime.now(timezone.utc),
+        raw_metrics={
+            "up": 1.0,
+            "cpu_utilization": 0.9,
+            "memory_usage_ratio": 0.5,
+        },
+        compute_pressure="high",
+        memory_pressure="low",
+        network_pressure="low",
+        node_health="degraded",
+    )
+
+    monkeypatch.setattr(main, "service_demo_client", StaticClient(), raising=False)
+    monkeypatch.setattr(main.service, "get_resource_profile_state", resource_profiles)
+    monkeypatch.setattr(main.service, "get_nodes", lambda: [node])
+    monkeypatch.setattr(main.augmentation_crds, "get_augmentation_resources", resources)
+    monkeypatch.setattr(
+        main,
+        "service_augmentation_evaluator",
+        ServiceAugmentationEvaluator(),
+    )
+
+    with TestClient(main.app) as client:
+        response = client.get("/state/service-demo/augmentation")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["state"] == "OBSERVING"
+    assert payload["reason_codes"] == ["resource_pressure_observing"]
+    assert payload["metrics"]["cpu_percent"] == 90
+    assert payload["metrics"]["memory_percent"] == 50
+    assert payload["metrics"]["resource_metric_source"] == "prometheus-node"
+    assert payload["metrics"]["service_metric_source"] == "service-api"
+    assert next(gate for gate in payload["gates"] if gate["id"] == "metrics")[
+        "passed"
+    ] is True

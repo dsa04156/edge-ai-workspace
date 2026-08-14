@@ -513,6 +513,8 @@ test("builds a resource recommendation without mixing the equipment anomaly scor
       cpu_percent: 91,
       memory_percent: 72,
       gpu_percent: 55,
+      resource_metric_source: "prometheus-node",
+      service_metric_source: "service-api",
       processing_latency_p95_ms: 740,
       backlog: 8,
       throughput_per_second: 0.8,
@@ -528,7 +530,7 @@ test("builds a resource recommendation without mixing the equipment anomaly scor
 
   assert.equal(view.state, "RECOMMENDED");
   assert.equal(view.label, "증강 권고");
-  assert.equal(view.metrics, "CPU 91.0% · Memory 72.0% · GPU 55.0% · p95 740 ms · backlog 8 · 0.80 fps");
+  assert.equal(view.metrics, "CPU 91.0% · Memory 72.0% · GPU 55.0% · p95 740 ms · backlog 8 · 0.80 fps · 입력 EdgeX · 자원 Prometheus node-exporter · 성능 서비스 API");
   assert.equal(view.resourceDwell.value, 300);
   assert.equal(view.serviceDwell.value, 180);
   assert.equal(view.anomalyNote, "설비 anomaly 점수 미사용");

@@ -305,25 +305,15 @@ async def get_service_demo_augmentation(
         ),
         None,
     )
-    source_gpu_ratio = None
-    if source_node is not None:
-        gpu_values = [
-            source_node.raw_metrics.get("gpu_utilization"),
-            source_node.raw_metrics.get("gpu_memory_usage_ratio"),
-        ]
-        observed_gpu_values = [
-            float(value)
-            for value in gpu_values
-            if isinstance(value, int | float)
-        ]
-        if observed_gpu_values:
-            source_gpu_ratio = max(observed_gpu_values)
     signals = build_service_augmentation_signals(
         demo,
         profile,
         candidate,
         now=observed_at,
-        source_gpu_ratio=source_gpu_ratio,
+        source_node_metrics=source_node.raw_metrics if source_node is not None else None,
+        source_node_observed_at=(
+            source_node.collected_at if source_node is not None else None
+        ),
     )
     return service_augmentation_evaluator.evaluate(signals, now=observed_at)
 

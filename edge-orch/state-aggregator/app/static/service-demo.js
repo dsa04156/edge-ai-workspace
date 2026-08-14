@@ -478,6 +478,8 @@ function serviceAugmentationReason(reason) {
     input_schema_invalid: "입력 schema 계약이 일치하지 않습니다.",
     model_not_ready: "현재 모델이 준비되지 않았습니다.",
     metrics_invalid_or_stale: "자원 또는 서비스 메트릭이 부족하거나 오래되었습니다.",
+    resource_metrics_invalid_or_stale: "Prometheus에서 Device1 자원 메트릭을 확인할 수 없거나 오래되었습니다.",
+    service_metrics_invalid_or_stale: "서비스 latency·backlog·throughput 메트릭을 확인할 수 없거나 오래되었습니다.",
     server1_pod_not_ready: "server1 inference Pod가 준비되지 않았습니다.",
     server1_endpoint_not_ready: "server1 inference endpoint가 준비되지 않았습니다.",
     server1_model_not_ready: "server1 모델이 준비되지 않았습니다.",
@@ -521,6 +523,13 @@ function buildServiceAugmentationView(data = {}) {
     return {value: Math.min(current, maximum), max: maximum, label: `${Math.round(current)} / ${Math.round(maximum)}초`};
   };
   const comparison = data.performance_comparison || {};
+  const resourceSource = {
+    "prometheus-node": "Prometheus node-exporter",
+    "prometheus-container": "Prometheus cAdvisor",
+    unavailable: "자원 출처 미확인",
+  }[metrics.resource_metric_source] || "자원 출처 미확인";
+  const serviceSource = metrics.service_metric_source === "service-api"
+    ? "서비스 API" : "서비스 출처 미확인";
   const comparisonText = (snapshot, fallback) => snapshot
     ? `p95 ${number(snapshot.processing_latency_p95_ms)} ms · backlog ${number(snapshot.backlog)} · ${number(snapshot.throughput_per_second, 2)} fps`
     : fallback;
@@ -539,7 +548,7 @@ function buildServiceAugmentationView(data = {}) {
     summary: reasonTexts.length > 1
       ? `${reasonTexts[0]} 외 ${reasonTexts.length - 1}개 gate 차단`
       : reasonTexts[0] || "판단 근거 관측 대기",
-    metrics: `CPU ${number(metrics.cpu_percent, 1)}% · Memory ${number(metrics.memory_percent, 1)}% · ${Number.isFinite(Number(metrics.gpu_percent)) ? `GPU ${number(metrics.gpu_percent, 1)}%` : "GPU 미관측"} · p95 ${number(metrics.processing_latency_p95_ms)} ms · backlog ${number(metrics.backlog)} · ${number(metrics.throughput_per_second, 2)} fps`,
+    metrics: `CPU ${number(metrics.cpu_percent, 1)}% · Memory ${number(metrics.memory_percent, 1)}% · ${Number.isFinite(Number(metrics.gpu_percent)) ? `GPU ${number(metrics.gpu_percent, 1)}%` : "GPU 미관측"} · p95 ${number(metrics.processing_latency_p95_ms)} ms · backlog ${number(metrics.backlog)} · ${number(metrics.throughput_per_second, 2)} fps · 입력 EdgeX · 자원 ${resourceSource} · 성능 ${serviceSource}`,
     metricValues: {
       cpu: Number.isFinite(Number(metrics.cpu_percent)) ? `${number(metrics.cpu_percent, 1)}%` : "—",
       latency: Number.isFinite(Number(metrics.processing_latency_p95_ms)) ? `${number(metrics.processing_latency_p95_ms)} ms` : "—",

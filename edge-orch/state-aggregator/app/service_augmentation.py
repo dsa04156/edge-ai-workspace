@@ -20,6 +20,12 @@ AugmentationStateName = Literal[
 ]
 Recommendation = Literal["none", "scale-up", "scale-down"]
 ApplyState = Literal["observed-only", "blocked"]
+ResourceMetricSource = Literal[
+    "prometheus-node",
+    "prometheus-container",
+    "unavailable",
+]
+ServiceMetricSource = Literal["service-api", "unavailable"]
 
 RESOURCE_PRESSURE_SECONDS = 300
 SERVICE_PRESSURE_SECONDS = 180
@@ -40,6 +46,9 @@ class ServiceAugmentationSignals:
     input_reason: str
     model_ready: bool
     metrics_valid: bool
+    metrics_reason: str
+    resource_metric_source: ResourceMetricSource
+    service_metric_source: ServiceMetricSource
     cpu_ratio: float
     memory_ratio: float
     gpu_pressure: bool
@@ -78,6 +87,9 @@ class AugmentationMetricSnapshot(BaseModel):
 
     cpu_percent: float = Field(ge=0)
     memory_percent: float = Field(ge=0)
+    input_source: Literal["edgex-core-data"] = "edgex-core-data"
+    resource_metric_source: ResourceMetricSource
+    service_metric_source: ServiceMetricSource
     gpu_pressure: bool
     gpu_percent: float | None = Field(default=None, ge=0)
     processing_latency_p95_ms: float = Field(ge=0)
@@ -230,6 +242,8 @@ class ServiceAugmentationEvaluator:
         metric_snapshot = AugmentationMetricSnapshot(
             cpu_percent=round(signals.cpu_ratio * 100, 1),
             memory_percent=round(signals.memory_ratio * 100, 1),
+            resource_metric_source=signals.resource_metric_source,
+            service_metric_source=signals.service_metric_source,
             gpu_pressure=signals.gpu_pressure,
             gpu_percent=signals.gpu_percent,
             processing_latency_p95_ms=signals.processing_latency_p95_ms,
@@ -288,7 +302,8 @@ def build_service_augmentation_signals(
     server1: AugmentationResourceCrd | None,
     *,
     now: datetime | None = None,
-    source_gpu_ratio: float | None = None,
+    source_node_metrics: dict | None = None,
+    source_node_observed_at: datetime | str | None = None,
 ) -> ServiceAugmentationSignals:
     observed_at = _utc(now)
     input_valid, input_reason = _input_gate(demo)
@@ -298,13 +313,50 @@ def build_service_augmentation_signals(
     performance = demo.performance
     profile_fresh = _timestamp_fresh(profile.get("generated_at"), observed_at)
     coverage = _number(current_usage.get("usage_coverage_ratio"))
-    metrics_valid = bool(
+    profile_metrics_valid = bool(
+        profile_fresh
+        and coverage > 0
+        and _number(limits.get("cpu_cores")) > 0
+        and _number(limits.get("memory_mib")) > 0
+    )
+    node_metrics = _mapping(source_node_metrics)
+    node_cpu_ratio = _observed_ratio(node_metrics.get("cpu_utilization"))
+    node_memory_ratio = _observed_ratio(node_metrics.get("memory_usage_ratio"))
+    node_metrics_valid = bool(
+        _timestamp_fresh(source_node_observed_at, observed_at)
+        and _number(node_metrics.get("up")) >= 0.5
+        and node_cpu_ratio is not None
+        and node_memory_ratio is not None
+    )
+    service_metrics_valid = bool(
         performance is not None
         and performance.metrics_valid
         and _timestamp_fresh(performance.observed_at, observed_at)
-        and profile_fresh
-        and coverage > 0
     )
+    resource_metrics_valid = node_metrics_valid or profile_metrics_valid
+    metrics_valid = service_metrics_valid and resource_metrics_valid
+    if not service_metrics_valid:
+        metrics_reason = "service_metrics_invalid_or_stale"
+    elif not resource_metrics_valid:
+        metrics_reason = "resource_metrics_invalid_or_stale"
+    else:
+        metrics_reason = "metrics_fresh"
+    if node_metrics_valid:
+        cpu_ratio = node_cpu_ratio or 0.0
+        memory_ratio = node_memory_ratio or 0.0
+        resource_metric_source: ResourceMetricSource = "prometheus-node"
+    elif profile_metrics_valid:
+        cpu_ratio = _ratio(current_usage.get("cpu_cores"), limits.get("cpu_cores"))
+        memory_ratio = _ratio(
+            current_usage.get("memory_working_set_mib"),
+            limits.get("memory_mib"),
+        )
+        resource_metric_source = "prometheus-container"
+    else:
+        cpu_ratio = 0.0
+        memory_ratio = 0.0
+        resource_metric_source = "unavailable"
+    source_gpu_ratio = _source_gpu_ratio(node_metrics) if node_metrics_valid else None
     pod_ready = bool(
         server1 is not None
         and server1.phase == "Available"
@@ -322,11 +374,11 @@ def build_service_augmentation_signals(
         input_reason=input_reason,
         model_ready=demo.model_state == "ready",
         metrics_valid=metrics_valid,
-        cpu_ratio=_ratio(current_usage.get("cpu_cores"), limits.get("cpu_cores")),
-        memory_ratio=_ratio(
-            current_usage.get("memory_working_set_mib"),
-            limits.get("memory_mib"),
-        ),
+        metrics_reason=metrics_reason,
+        resource_metric_source=resource_metric_source,
+        service_metric_source="service-api" if service_metrics_valid else "unavailable",
+        cpu_ratio=cpu_ratio,
+        memory_ratio=memory_ratio,
         gpu_pressure=(
             source_gpu_ratio is not None
             and source_gpu_ratio >= CPU_PRESSURE_RATIO
@@ -385,7 +437,7 @@ def _blockers(signals: ServiceAugmentationSignals) -> list[str]:
     if not signals.model_ready:
         blockers.append("model_not_ready")
     if not signals.metrics_valid:
-        blockers.append("metrics_invalid_or_stale")
+        blockers.append(signals.metrics_reason)
     if not signals.server1_pod_ready:
         blockers.append("server1_pod_not_ready")
     if not signals.server1_endpoint_ready:
@@ -401,7 +453,7 @@ def _gates(signals: ServiceAugmentationSignals) -> list[EvaluationGate]:
     return [
         EvaluationGate(id="input", label="센서 입력", passed=signals.input_valid, reason=signals.input_reason),
         EvaluationGate(id="model", label="Edge 모델", passed=signals.model_ready, reason="model_ready" if signals.model_ready else "model_not_ready"),
-        EvaluationGate(id="metrics", label="운영 메트릭", passed=signals.metrics_valid, reason="metrics_fresh" if signals.metrics_valid else "metrics_invalid_or_stale"),
+        EvaluationGate(id="metrics", label="운영 메트릭", passed=signals.metrics_valid, reason=signals.metrics_reason),
         EvaluationGate(id="server1-pod", label="server1 Pod", passed=signals.server1_pod_ready, reason="pod_ready" if signals.server1_pod_ready else "server1_pod_not_ready"),
         EvaluationGate(id="server1-endpoint", label="server1 endpoint", passed=signals.server1_endpoint_ready, reason="endpoint_ready" if signals.server1_endpoint_ready else "server1_endpoint_not_ready"),
         EvaluationGate(id="server1-model", label="server1 모델", passed=signals.server1_model_ready, reason="model_ready" if signals.server1_model_ready else "server1_model_not_ready"),
@@ -485,6 +537,27 @@ def _number(value: object) -> float:
         return float(value)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _observed_ratio(value: object) -> float | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        ratio = float(value)
+    except (TypeError, ValueError):
+        return None
+    if ratio < 0 or ratio > 1:
+        return None
+    return ratio
+
+
+def _source_gpu_ratio(metrics: dict) -> float | None:
+    values = [
+        _observed_ratio(metrics.get("gpu_utilization")),
+        _observed_ratio(metrics.get("gpu_memory_usage_ratio")),
+    ]
+    observed = [value for value in values if value is not None]
+    return max(observed) if observed else None
 
 
 def _mapping(value: object) -> dict:
