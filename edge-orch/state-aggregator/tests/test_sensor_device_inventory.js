@@ -13,6 +13,7 @@ const {
   renderServerStatusRows,
   renderSensorDeviceRows,
   sensorDeviceStatusLabel,
+  sensorResourceDisplayName,
   serverOverviewModel,
 } = require("../app/static/dashboard.js");
 
@@ -21,6 +22,8 @@ const root = path.resolve(__dirname, "..");
 test("renders a scalable four-column sensor inventory row", () => {
   const device = {
     name: "virtual-temperature-001",
+    physical_device_id: "arduino-001",
+    latest_readings: [{resource_name: "temperature_raw"}],
     overall_status: "available",
     latest_event_timestamp: "2099-01-01T00:00:00Z",
   };
@@ -28,7 +31,8 @@ test("renders a scalable four-column sensor inventory row", () => {
   const markup = renderSensorDeviceRows([device]);
 
   assert.match(markup, /<tr class="sensor-device-row/);
-  assert.match(markup, />virtual-temperature-001</);
+  assert.match(markup, />arduino-001 · temperature_raw</);
+  assert.match(markup, /data-device-name="virtual-temperature-001"/);
   assert.match(markup, /Available/);
   assert.match(markup, /data-label="최신 이벤트"/);
   assert.match(markup, />상세보기</);
@@ -42,6 +46,14 @@ test("maps all sensor availability states to operator labels", () => {
   assert.equal(sensorDeviceStatusLabel({overall_status: "unexpected"}), "Degraded");
 });
 
+test("uses physical source and resource as the operator label while preserving the EdgeX id", () => {
+  assert.equal(sensorResourceDisplayName({
+    name: "virtual-temperature-001",
+    physical_device_id: "arduino-001",
+    latest_readings: [{resource_name: "temperature_raw"}],
+  }), "arduino-001 · temperature_raw");
+});
+
 test("dashboard exposes the three authoritative device categories in one continuous inventory", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(
@@ -52,7 +64,7 @@ test("dashboard exposes the three authoritative device categories in one continu
   assert.match(html, />디바이스</);
   assert.match(html, /<h2 id="inventoryTitle">전체 디바이스<\/h2>/);
   assert.match(html, /id="resourceInventorySections"/);
-  assert.match(html, /서버, 현장 엣지 노드와 EdgeX 물리 디바이스를 한 화면에서 확인합니다/);
+  assert.match(html, /서버, 현장 엣지 노드와 EdgeX 등록 디바이스를 한 화면에서 확인합니다/);
   assert.doesNotMatch(html, /class="resource-category-tabs"/);
   assert.doesNotMatch(html, /data-resource-category="server"/);
   assert.doesNotMatch(html, /EdgeX 디바이스/);
@@ -87,7 +99,7 @@ test("renders the three categories as simultaneous concise tables", () => {
   assert.match(markup, /id="resourceInventory-physical"/);
   assert.match(markup, />현장 엣지 노드<\/h3>/);
   assert.match(markup, /id="resourceInventory-sensor"/);
-  assert.match(markup, />물리 디바이스<\/h3>/);
+  assert.match(markup, />EdgeX 등록 디바이스<\/h3>/);
   assert.doesNotMatch(markup, /가상 디바이스/);
   assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 3);
 });
@@ -139,7 +151,7 @@ test("renders every category as the same concise list with contextual observatio
 test("provides concise Korean labels for each resource category", () => {
   assert.equal(resourceCategoryView("server").label, "엣지 AI 서버");
   assert.equal(resourceCategoryView("physical").label, "현장 엣지 노드");
-  assert.equal(resourceCategoryView("sensor").label, "물리 디바이스");
+  assert.equal(resourceCategoryView("sensor").label, "EdgeX 등록 디바이스");
   assert.equal(resourceCategoryView("sensor").latestLabel, "최신 이벤트");
   assert.equal(resourceCategoryView("server").latestLabel, "최신 관측");
 });
@@ -300,9 +312,9 @@ test("keeps server and physical observability in overview and moves the demo und
   assert.ok(serviceCatalogIndex < serviceDemoIndex);
   assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
   assert.match(html, /id="serverStatusList"/);
-  assert.match(html, /<h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태<\/h2>/);
+  assert.match(html, /<h2 id="physicalDeviceOverviewTitle">현장 엣지 노드 상태<\/h2>/);
   assert.match(html, /id="physicalDeviceStatusList"/);
-  assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
+  assert.match(html, /data-resource-category-link="physical">현장 엣지 노드 목록/);
   assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services"/);
   assert.match(
     html,

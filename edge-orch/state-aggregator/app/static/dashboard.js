@@ -50,10 +50,10 @@ const RESOURCE_CATEGORY_VIEWS = {
     emptyLabel: "관측된 현장 엣지 노드가 없습니다.",
   },
   sensor: {
-    label: "물리 디바이스",
+    label: "EdgeX 등록 디바이스",
     countId: "sensorCategoryCount",
     latestLabel: "최신 이벤트",
-    emptyLabel: "EdgeX에 등록된 물리 디바이스가 없습니다.",
+    emptyLabel: "EdgeX에 등록된 디바이스가 없습니다.",
   },
 };
 const RESOURCE_CATEGORY_ORDER = ["server", "physical", "sensor"];
@@ -106,11 +106,22 @@ function normalizeNodeResourceItem(node, index, kind) {
   };
 }
 
+function sensorResourceDisplayName(device = {}) {
+  const physicalDevice = text(device.physical_device_id, "");
+  const resources = [...new Set((device.latest_readings || [])
+    .map((reading) => text(reading.resource_name || reading.source_name, ""))
+    .filter(Boolean))];
+  if (physicalDevice && resources.length) {
+    return `${physicalDevice} · ${resources.join(", ")}`;
+  }
+  return physicalDevice || text(device.name, "등록 ID 없음");
+}
+
 function normalizeSensorResourceItem(device) {
   const status = deviceStatus(device);
   return {
     id: text(device.name),
-    name: text(device.name),
+    name: sensorResourceDisplayName(device),
     kind: "sensor",
     status,
     statusLabel: resourceStatusLabel(status),
@@ -176,8 +187,8 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
       results.push({
         kind: "device",
         id: device.name,
-        label: device.name,
-        detail: `물리 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
+        label: sensorResourceDisplayName(device),
+        detail: `EdgeX 등록 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
       });
     }
   });
@@ -699,7 +710,7 @@ function showDeviceExplanation(
   panel.innerHTML = `
     <div class="explain-header">
       <span class="explain-badge">센서 디바이스</span>
-      <strong>${escapeHtml(displayValue(device.name))}</strong>
+      <strong>${escapeHtml(sensorResourceDisplayName(device))}</strong>
     </div>
     <div class="explain-status-strip">
       <div>
@@ -716,6 +727,7 @@ function showDeviceExplanation(
       </div>
     </div>
     ${renderDeviceFactList([
+      ["EdgeX 등록 ID", device.name],
       ["수집 서비스", device.device_service_name],
       ["센서 프로필", device.profile_name],
       ["프로토콜", Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : null],
@@ -1179,7 +1191,7 @@ function render() {
   const deviceObservationFailed = deviceObservationUnavailable(data);
   const deviceObservationError = text(
     data.device_observation_error,
-    "물리 디바이스 관측 불가",
+    "EdgeX 등록 디바이스 관측 불가",
   );
   const unavailableDevices = devices.filter((device) => deviceStatus(device) === "unavailable").length;
   const degradedDevices = devices.filter((device) => deviceStatus(device) === "degraded").length;
@@ -1209,7 +1221,7 @@ function render() {
   setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
-  setText("serviceBindingCaption", deviceObservationFailed ? "물리 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
+  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX 등록 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderServerOverview(data);
@@ -1259,7 +1271,7 @@ function renderOverviewVisuals(data, kpis, devices) {
         unknown: unknown / statusTotal,
       });
   setText("overallHealthPercent", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
-  setText("overviewMetricScope", `${nodeScope} · 서버 · 엣지 노드 · 물리 디바이스`);
+  setText("overviewMetricScope", `${nodeScope} · 서버 · 엣지 노드 · EdgeX 등록 디바이스`);
   setText(
     "overviewHealthCaption",
     deviceObservationFailed
@@ -1488,7 +1500,7 @@ function renderServerStatusRows(items = []) {
 
 function renderPhysicalDeviceStatusRows(items = []) {
   return renderNodeStatusRows(items, {
-    emptyLabel: "관측된 물리 디바이스가 없습니다.",
+    emptyLabel: "관측된 현장 엣지 노드가 없습니다.",
     showNodeType: true,
   });
 }
@@ -1528,7 +1540,7 @@ function renderPhysicalDeviceOverview(data = {}) {
     "physicalDeviceOverviewAvailability",
     model.total
       ? `${model.available}/${model.total}대 Available`
-      : "물리 디바이스 관측 없음",
+      : "현장 엣지 노드 관측 없음",
   );
   setText(
     "physicalDeviceOverviewCpu",
@@ -2000,7 +2012,7 @@ function buildDashboardAlerts(data = {}) {
     alerts.push({
       kind: "source",
       level: "high",
-      title: "물리 디바이스 관측 불가",
+      title: "EdgeX 등록 디바이스 관측 불가",
       text: data.device_observation_error,
     });
   }
@@ -2426,6 +2438,7 @@ if (typeof module !== "undefined") {
     renderGlobalSearch,
     refreshDashboardNow,
     sensorDeviceStatusLabel,
+    sensorResourceDisplayName,
     resourceCategoryItems,
     resourceCategoryView,
     resourceAvailabilityStatus,
