@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from .json_types import JsonMap
 from .models import DashboardState, DeviceState, OperatorAssistantState, OperatorChatResponse
-from .virtual_resources import JsonMap
 
-SOURCE_ENDPOINTS = ["/state/dashboard", "/state/devices", "/state/nodes", "/state/summary", "/state/virtual-resources"]
+SOURCE_ENDPOINTS = [
+    "/state/dashboard",
+    "/state/devices",
+    "/state/device-twins",
+    "/state/nodes",
+    "/state/summary",
+]
 GUARDRAILS = [
     "read-only endpoint: EdgeX 및 Kubernetes 리소스를 수정하지 않는다.",
     "운영자에게 점검 순서만 제안하고 명령 또는 제어를 실행하지 않는다.",

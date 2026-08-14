@@ -74,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 플랫폼-개요.md</span>
-            <span class="badge">수정: 2026-08-14 11:59</span>
-            <span class="badge">HTML 생성: 2026-08-14 12:10</span>
+            <span class="badge">수정: 2026-08-14 17:29</span>
+            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
           </div>
         </header>
         <div class="doc-body">
@@ -136,7 +136,7 @@
 <pre data-lang="text"><code>센서 수집 → 전처리 → 특징 추출 → AI 추론 ┬→ Device1
                                            └→ Server1 후보
                               → 결과 저장 → 대시보드</code></pre>
-<p>기본 실행은 Device1의 고정 edge-local 경로다. Server1 후보는 HAMi GPU 할당과 실제 CUDA 시험 계산을 readiness에 포함한다. 같은 통계 기준선의 GPU 실행 경로이며 옥동 현장 학습 모델은 아니다. 승인 기반 선택 경로이고 자동 증설이나 범용 offloading이 아니다. 설비 이상 점수와 컴퓨팅 자원 증강 판단은 서로 독립이다. 입력·판단·출력과 <code>BLOCKED</code> 의미는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>에서 설명한다.</p>
+<p>기본 실행은 Device1의 고정 edge-local 경로다. Server1 후보는 HAMi GPU 할당과 실제 CUDA 시험 계산을 readiness에 포함한다. 같은 통계 기준선의 GPU 실행 경로이며 옥동 현장 학습 모델은 아니다. 승인 기반 선택 경로이고 자동 증설이나 범용 offloading이 아니다. 서비스 입력·판단·출력과 상태 의미는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>에서 설명한다.</p>
 <h2 id="현재-완료로-말하지-않는-것">현재 완료로 말하지 않는 것</h2>
 <ul><li>옥동 PLC·MES field mapping과 생산품질 판별 서비스</li><li>일반 OPC-UA·Modbus·MQTT·RTSP 장비 자동 지원</li><li>승인 없는 디바이스 자동 등록</li><li>workflow canvas에서 실제 Kubernetes workload 실행</li><li>자동 workload 증설, runtime migration, 전역 offloading</li><li>LLM의 Kubernetes·EdgeX 직접 제어</li></ul>
 <p>상세 경계는 <a href="프로젝트-범위.html">프로젝트 범위</a>, 실제 상태는 <a href="현재-구현-상태.html">현재 구현 상태</a>를 확인한다.</p>

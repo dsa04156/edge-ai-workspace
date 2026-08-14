@@ -4614,7 +4614,7 @@ function prefillRegistrationFromCandidate(
   );
   const labels = byId("managementDeviceLabels", documentRef);
   if (labels && !labels.value.trim()) {
-    labels.value = `${candidate.protocol}, virtual-device`;
+    labels.value = `${candidate.protocol}, physical-device`;
   }
   renderRegistrationReview(documentRef);
   setManagementView("register", documentRef);

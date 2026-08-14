@@ -121,7 +121,6 @@ class ServiceObservabilityDescriptor(CatalogModel):
     state_path: str
     results_path: str
     alerts_path: str
-    augmentation_path: str
 
     @model_validator(mode="after")
     def validate_paths(self) -> "ServiceObservabilityDescriptor":
@@ -129,7 +128,6 @@ class ServiceObservabilityDescriptor(CatalogModel):
             "state_path",
             "results_path",
             "alerts_path",
-            "augmentation_path",
         ):
             value = getattr(self, field_name)
             if not _SAFE_STATE_PATH.fullmatch(value) or "//" in value:

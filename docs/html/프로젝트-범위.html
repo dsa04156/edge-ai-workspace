@@ -74,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-14 12:01</span>
-            <span class="badge">HTML 생성: 2026-08-14 12:10</span>
+            <span class="badge">수정: 2026-08-14 17:27</span>
+            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
           </div>
         </header>
         <div class="doc-body">
@@ -109,7 +109,7 @@
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
-<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보</li><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload, 서비스 입력·모델·결과, 자원 증강 권고의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보</li><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload와 서비스 입력·모델·결과의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
 <h2 id="승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</h2>
 <p>다음은 코드나 개발 fixture가 있어도 일반 운영 기능으로 보지 않는다.</p>
 <div class="table-wrap"><table>
@@ -123,11 +123,6 @@
 <td>Server1 inference</td>
 <td>observed-only GPU endpoint 운영</td>
 <td>요청 전환 승인 주체·실패 대응 검증</td>
-</tr>
-<tr>
-<td>자원 증강</td>
-<td><code>observed-only</code> evaluator</td>
-<td>승인 기반 실행·rollback 운영 검증</td>
 </tr>
 <tr>
 <td>MQTT·Modbus</td>

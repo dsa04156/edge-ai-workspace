@@ -12,11 +12,6 @@ from fastapi.staticfiles import StaticFiles
 from .adapter_catalog import AdapterCatalog
 from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
-from .augmentation_crds import (
-    AugmentationCrdReader,
-    AugmentationResourceCrdState,
-    DeviceAugmentationCrdState,
-)
 from .config import Settings
 from .connection_management import ConnectionManagementService
 from .device_discovery import DeviceDiscoveryManagementService
@@ -25,6 +20,7 @@ from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
 from .device_twins import DeviceTwinState, build_device_twin_state
 from .edgex import EdgeXError
+from .json_types import JsonMap
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -44,27 +40,7 @@ from .operator_assistant import (
     degraded_operator_chat_response,
     operator_assistant_from_dashboard,
 )
-from .resource_pool import (
-    PoolCategory,
-    PoolStatus,
-    ResourcePoolPlan,
-    ResourcePoolPlanRequest,
-    ResourcePoolState,
-    build_resource_pool_plan,
-    build_resource_pool_state,
-)
-from .runtime_augmentation import RuntimeAugmentationState
-from .runtime_augmentation_api import (
-    RuntimeAugmentationQuery,
-    runtime_resource_augmentation_state,
-)
 from .service import StateAggregatorService
-from .service_augmentation import (
-    ServiceAugmentationEvaluator,
-    ServiceAugmentationState,
-    build_service_augmentation_signals,
-    select_server1_candidate,
-)
 from .service_catalog import ServiceCatalog
 from .service_demo import (
     ServiceDemoClient,
@@ -80,23 +56,13 @@ from .service_demo_models import (
     ServiceDemoResultState,
     ServiceDemoState,
 )
-from .virtual_resource_registry import RESOURCE_REGISTRY
-from .virtual_resources import (
-    JsonMap,
-    VirtualResourceProfile,
-    VirtualResourceState,
-    VirtualResourceTwin,
-    build_virtual_resource_state,
-)
 
 settings = Settings()
 service = StateAggregatorService(settings)
-augmentation_crds = AugmentationCrdReader()
 service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_url,
     settings.sensor_anomaly_demo_timeout_seconds,
 )
-service_augmentation_evaluator = ServiceAugmentationEvaluator()
 service_catalog = ServiceCatalog.load(settings.service_catalog_path)
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
@@ -272,51 +238,6 @@ async def get_service_demo() -> ServiceDemoState:
         return await service_demo_client.get_state()
     except ServiceDemoError as exc:
         return degraded_service_demo_state(exc)
-
-
-@app.get(
-    "/state/service-demo/augmentation",
-    response_model=ServiceAugmentationState,
-)
-async def get_service_demo_augmentation(
-    refresh: bool = False,
-) -> ServiceAugmentationState:
-    observed_at = datetime.now(timezone.utc)
-    demo = await get_service_demo()
-    try:
-        resource_state = await service.get_resource_profile_state(refresh=refresh)
-    except httpx.HTTPError:
-        resource_state = {}
-    profiles = resource_state.get("service_resource_profiles")
-    profile = next(
-        (
-            item
-            for item in profiles if isinstance(item, dict)
-            and item.get("service") == "sensor-anomaly-demo"
-        ),
-        None,
-    ) if isinstance(profiles, list) else None
-    resource_state = await augmentation_crds.get_augmentation_resources()
-    candidate = select_server1_candidate(resource_state.resources)
-    source_node = next(
-        (
-            node
-            for node in service.get_nodes()
-            if node.hostname.casefold() == demo.binding.node.casefold()
-        ),
-        None,
-    )
-    signals = build_service_augmentation_signals(
-        demo,
-        profile,
-        candidate,
-        now=observed_at,
-        source_node_metrics=source_node.raw_metrics if source_node is not None else None,
-        source_node_observed_at=(
-            source_node.collected_at if source_node is not None else None
-        ),
-    )
-    return service_augmentation_evaluator.evaluate(signals, now=observed_at)
 
 
 def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
@@ -606,113 +527,6 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
     }
 
 
-async def _virtual_resource_state(refresh: bool = False) -> VirtualResourceState:
-    observation_error: str | None = None
-    try:
-        resource_state = await service.get_resource_profile_state(refresh=refresh)
-    except httpx.HTTPError as exc:
-        observation_error = f"service resource observation unavailable: {exc.__class__.__name__}"
-        resource_state = {}
-    profiles = resource_state.get("service_resource_profiles") or []
-    return build_virtual_resource_state(
-        registry=RESOURCE_REGISTRY,
-        service_resource_profiles=profiles,
-        nodes=service.get_nodes(),
-        observation_error=observation_error,
-    )
-
-
-@app.get("/state/virtual-resources", response_model=VirtualResourceState)
-async def get_virtual_resources(refresh: bool = False) -> VirtualResourceState:
-    return await _virtual_resource_state(refresh=refresh)
-
-
-@app.get("/state/virtual-resources/{resource_id}", response_model=VirtualResourceProfile)
-async def get_virtual_resource(resource_id: str, refresh: bool = False) -> VirtualResourceProfile:
-    state = await _virtual_resource_state(refresh=refresh)
-    for resource in state.resources:
-        if resource.id == resource_id:
-            return resource
-    raise HTTPException(status_code=404, detail="Virtual resource not found")
-
-
-@app.get("/state/virtual-resources/{resource_id}/twin", response_model=VirtualResourceTwin)
-async def get_virtual_resource_twin(resource_id: str, refresh: bool = False) -> VirtualResourceTwin:
-    resource = await get_virtual_resource(resource_id=resource_id, refresh=refresh)
-    return resource.twin
-
-
-async def _resource_pool_state(
-    *,
-    refresh: bool = False,
-    search: str | None = None,
-    category: PoolCategory | None = None,
-    status: PoolStatus | None = None,
-) -> ResourcePoolState:
-    observation_errors: list[str] = []
-    try:
-        devices = await service.get_devices()
-    except EdgeXError as exc:
-        devices = []
-        observation_errors.append(
-            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
-        )
-
-    service_observations: dict[str, PoolStatus] = {}
-    service_bindings: dict[str, list[str]] = {}
-    try:
-        demo_state = await service_demo_client.get_state()
-        service_bindings["sensor-anomaly-demo"] = demo_state.binding.devices
-        service_observations["sensor-anomaly-demo"] = (
-            "ready"
-            if demo_state.mode == "live"
-            and demo_state.input_state == "fresh"
-            and demo_state.model_state == "ready"
-            else "degraded"
-        )
-    except ServiceDemoError as exc:
-        service_observations["sensor-anomaly-demo"] = "unavailable"
-        observation_errors.append(
-            f"AI service observation unavailable: {exc.__class__.__name__}"
-        )
-
-    virtual_resources = await _virtual_resource_state(refresh=refresh)
-    return build_resource_pool_state(
-        devices=devices,
-        virtual_resources=virtual_resources,
-        nodes=service.get_nodes(),
-        service_observations=service_observations,
-        service_bindings=service_bindings,
-        observation_errors=observation_errors,
-        search=search,
-        category=category,
-        status=status,
-    )
-
-
-@app.get("/state/resource-pool", response_model=ResourcePoolState)
-async def get_resource_pool(
-    refresh: bool = False,
-    q: str | None = Query(default=None, max_length=120),
-    category: PoolCategory | None = None,
-    status: PoolStatus | None = None,
-) -> ResourcePoolState:
-    return await _resource_pool_state(
-        refresh=refresh,
-        search=q,
-        category=category,
-        status=status,
-    )
-
-
-@app.post("/state/resource-pool/plan", response_model=ResourcePoolPlan)
-async def preview_resource_pool_plan(
-    request: ResourcePoolPlanRequest,
-) -> ResourcePoolPlan:
-    state = await _resource_pool_state()
-    return build_resource_pool_plan(request, state)
-
-
 @app.get("/state/device-twins", response_model=DeviceTwinState)
 async def get_device_twins() -> DeviceTwinState:
     observation_errors: list[str] = []
@@ -738,22 +552,6 @@ async def get_device_twins() -> DeviceTwinState:
         deployed_services=deployed_services.services,
         observation_errors=observation_errors,
     )
-
-
-@app.get("/state/augmentation-resources", response_model=AugmentationResourceCrdState)
-async def get_augmentation_resources() -> AugmentationResourceCrdState:
-    return await augmentation_crds.get_augmentation_resources()
-
-
-@app.get("/state/device-augmentations", response_model=DeviceAugmentationCrdState)
-async def get_device_augmentations(namespace: str = "default") -> DeviceAugmentationCrdState:
-    return await augmentation_crds.get_device_augmentations(namespace=namespace)
-
-
-@app.get("/state/runtime-resource-augmentation", response_model=RuntimeAugmentationState)
-async def get_runtime_resource_augmentation(refresh: bool = False, namespace: str = "default", mode: str = "observed") -> RuntimeAugmentationState:
-    query = RuntimeAugmentationQuery(refresh=refresh, namespace=namespace, mode=mode)
-    return await runtime_resource_augmentation_state(service=service, crds=augmentation_crds, query=query)
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

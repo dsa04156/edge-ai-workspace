@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_resource_augmentation_dashboard_surface_is_removed_for_redesign() -> None:
+def test_removed_resource_augmentation_surface_does_not_return() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
     assert ">Resource Augmentation<" not in html
@@ -28,10 +28,9 @@ def test_inventory_uses_concise_korean_operator_labels() -> None:
 
     assert ">디바이스 인벤토리<" in html
     assert "엣지 AI 서버" in html
+    assert "현장 엣지 노드" in html
     assert "물리 디바이스" in html
-    assert "가상 디바이스" in html
-    assert "센서 디바이스" in html
-    assert ">EdgeX 디바이스<" not in html
+    assert "가상 디바이스" not in html
     assert 'id="deviceFilterLabel"' in html
     assert "`전체 ${totalCount}개`" in js
     assert ">모든 노드<" in html
@@ -77,6 +76,7 @@ def test_dashboard_uses_korean_top_level_navigation_and_keeps_technical_terms() 
         "결과 가상디바이스",
         "스케줄링 결정",
         "자동 데모 진행",
+        "가상 디바이스",
     ):
         assert old_label not in html
 

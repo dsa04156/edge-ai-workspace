@@ -66,8 +66,7 @@ def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
     assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
     assert "Resource rail" in design
     assert "Resource Augmentation" not in html
-    assert "가상 디바이스 표시 경계" in screen_design
-    assert "동적 Workflow" in screen_design
+    assert "가상 디바이스 표시 경계" not in screen_design
     assert "읽기 전용" in screen_design
     assert "dark left resource rail" in screen_design
 

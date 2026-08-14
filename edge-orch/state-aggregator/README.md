@@ -39,21 +39,12 @@ Data API를 직접 읽으며 state-aggregator가 데이터 프록시 역할을 �
 대시보드 계약을 캔버스에 만들고, 현재 세 축 EdgeX Device가 같은 Jetson에 있으면
 읽기 전용 입력과 처리 노드를 자동 바인딩한다. 이는 새 workload를 배포하거나
 고정 데모를 실행하는 동작이 아니다.
-`GET /state/resource-pool`은 현재 `/state/devices`의 EdgeX Device/Core Data freshness,
-Kubernetes 노드·workload 관측과 고정 서비스 카탈로그를 읽기 전용으로 합성한다.
-`POST /state/resource-pool/plan`은 호환성과 연결 순서만 검증하는 비영속 dry-run이며,
-EdgeX mutation, Kubernetes apply/restart, command 또는 runtime offloading을 수행하지 않는다.
 대시보드의 `디바이스 트윈` 화면은 `GET /state/device-twins`를 사용한다. 이 응답은
 실제 물리 디바이스에서 수집되어 EdgeX Metadata와 Core Data에 반영된 관측 상태와
 AI 서비스 입력 연결을 N:M `service_bindings`로 보여주며, 가상 하드웨어나
 desired/reported 제어 트윈을 뜻하지 않는다. 서비스 정의와 입력 바인딩은 별도 고정
 목록이 아니라 Git 기반 `/state/services` 서비스 inventory를 기준으로 합성한다.
-자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
-read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
-Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
-`GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
-`DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
-이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
+현재 대시보드는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
 
 Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
 

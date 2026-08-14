@@ -105,8 +105,7 @@
         "adapter": "sensor-anomaly-v1",
         "state_path": "/state/service-demo",
         "results_path": "/state/service-demo/results?limit=12",
-        "alerts_path": "/state/service-demo/alerts?limit=10",
-        "augmentation_path": "/state/service-demo/augmentation"
+        "alerts_path": "/state/service-demo/alerts?limit=10"
       },
       "design_contract": {
         "contract_id": "sensor-anomaly-demo-v1",

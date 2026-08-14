@@ -78,8 +78,7 @@ Pod 이름처럼 rollout마다 바뀌는 값을 사용하지 않는다.
     "adapter": "sensor-anomaly-v1",
     "state_path": "/state/service-demo",
     "results_path": "/state/service-demo/results?limit=12",
-    "alerts_path": "/state/service-demo/alerts?limit=10",
-    "augmentation_path": "/state/service-demo/augmentation"
+    "alerts_path": "/state/service-demo/alerts?limit=10"
   }
 }
 ```
@@ -101,7 +100,7 @@ Input → Alignment → Features → Inference ┬→ Device1 ┐
 ### 5. 관측 adapter를 연결한다
 
 `observability`는 같은 `state-aggregator`의 상대 `/state/...` 경로만 사용한다. adapter는
-입력·모델·결과·alert·증강 상태를 공용 서비스 응답으로 변환한다. 연결되지 않은 descriptor도
+입력·모델·결과·alert 상태를 공용 서비스 응답으로 변환한다. 연결되지 않은 descriptor도
 목록에서 숨기지 않고 `degraded/unavailable`로 표시한다.
 
 ### 6. 검증하고 배포한다
@@ -119,8 +118,7 @@ kubectl kustomize k8s >/dev/null
 2. 서비스 이름·입력·workload·node·model이 실제 관측과 일치한다.
 3. DAG 단계와 target이 descriptor와 일치한다.
 4. stale input, model not ready, metric stale이 정상처럼 표시되지 않는다.
-5. 설비 anomaly와 자원 증강 판단이 독립적으로 표시된다.
-6. Argo CD `Synced/Healthy`, Pod Ready, Traefik HTTP 200과 브라우저 오류 0을 확인한다.
+5. Argo CD `Synced/Healthy`, Pod Ready, Traefik HTTP 200과 브라우저 오류 0을 확인한다.
 
 이미지 build, immutable digest, Git push와 Traefik 검증은
 [대시보드 배포](ops/대시보드-배포.md)를 따른다.

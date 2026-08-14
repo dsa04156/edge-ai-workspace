@@ -59,7 +59,7 @@ class CurrentDeviceManagementScopeTest(unittest.TestCase):
         self.assertIn("KubeEdge는 edge node와 workload 관리에만", scope)
         self.assertIn("`device-serial-jetson`", scope)
         self.assertIn("`device-sensehat-raspi`", scope)
-        self.assertIn("`observed-only` evaluator", scope)
+        self.assertIn("Server1 observed-only 추론 후보", scope)
         self.assertIn("임의 hostPath/image/command", scope)
         self.assertIn("동적 workflow·migration·offloading 전체 구현 완료 주장", scope)
 

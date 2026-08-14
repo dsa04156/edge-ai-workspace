@@ -42,7 +42,7 @@ test("maps all sensor availability states to operator labels", () => {
   assert.equal(sensorDeviceStatusLabel({overall_status: "unexpected"}), "Degraded");
 });
 
-test("dashboard exposes all device categories in one continuous inventory", () => {
+test("dashboard exposes the three authoritative device categories in one continuous inventory", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(
     path.join(root, "app/static/operations-dashboard.css"),
@@ -52,7 +52,7 @@ test("dashboard exposes all device categories in one continuous inventory", () =
   assert.match(html, />디바이스</);
   assert.match(html, /<h2 id="inventoryTitle">전체 디바이스<\/h2>/);
   assert.match(html, /id="resourceInventorySections"/);
-  assert.match(html, /서버, 현장 엣지 노드, 가상 자원과 EdgeX 센서를 한 화면에서 확인합니다/);
+  assert.match(html, /서버, 현장 엣지 노드와 EdgeX 물리 디바이스를 한 화면에서 확인합니다/);
   assert.doesNotMatch(html, /class="resource-category-tabs"/);
   assert.doesNotMatch(html, /data-resource-category="server"/);
   assert.doesNotMatch(html, /EdgeX 디바이스/);
@@ -62,11 +62,10 @@ test("dashboard exposes all device categories in one continuous inventory", () =
   assert.match(css, /@media \(max-width: 680px\)/);
 });
 
-test("renders the four categories as simultaneous concise tables", () => {
+test("renders the three categories as simultaneous concise tables", () => {
   const categoryItems = {
     server: "etri-ser0001",
     physical: "etri-dev0001",
-    virtual: "vd-gpu-001",
     sensor: "virtual-temperature-001",
   };
   const markup = Object.entries(categoryItems).map(([category, name]) => (
@@ -86,15 +85,14 @@ test("renders the four categories as simultaneous concise tables", () => {
   assert.match(markup, /id="resourceInventory-server"/);
   assert.match(markup, />엣지 AI 서버<\/h3>/);
   assert.match(markup, /id="resourceInventory-physical"/);
-  assert.match(markup, />물리 디바이스<\/h3>/);
-  assert.match(markup, /id="resourceInventory-virtual"/);
-  assert.match(markup, />가상 디바이스<\/h3>/);
+  assert.match(markup, />현장 엣지 노드<\/h3>/);
   assert.match(markup, /id="resourceInventory-sensor"/);
-  assert.match(markup, />센서 디바이스<\/h3>/);
-  assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 4);
+  assert.match(markup, />물리 디바이스<\/h3>/);
+  assert.doesNotMatch(markup, /가상 디바이스/);
+  assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 3);
 });
 
-test("classifies dashboard resources into four explicit operator categories", () => {
+test("classifies dashboard resources into three explicit operator categories", () => {
   const data = {
     nodes: [
       {hostname: "etri-ser0001", node_type: "cloud_server", node_health: "healthy"},
@@ -106,12 +104,6 @@ test("classifies dashboard resources into four explicit operator categories", ()
       {name: "sensor-temperature-001", overall_status: "available"},
       {name: "sensor-vibration-001", overall_status: "degraded"},
     ],
-    virtual_resources: {
-      generated_at: "2099-01-01T00:00:00Z",
-      resources: [
-        {id: "vd-gpu-001", display_name: "GPU Inference", status: "idle", node: "etri-ser0002"},
-      ],
-    },
   };
 
   assert.deepEqual(
@@ -121,10 +113,6 @@ test("classifies dashboard resources into four explicit operator categories", ()
   assert.deepEqual(
     resourceCategoryItems(data, "physical").map((item) => item.name),
     ["etri-dev0001", "etri-dev0002"],
-  );
-  assert.deepEqual(
-    resourceCategoryItems(data, "virtual").map((item) => item.name),
-    ["GPU Inference"],
   );
   assert.deepEqual(
     resourceCategoryItems(data, "sensor").map((item) => item.name),
@@ -143,29 +131,15 @@ test("renders every category as the same concise list with contextual observatio
       observedAt: "2099-01-01T00:00:00Z",
     },
   ], {category: "server"});
-  const virtualRows = renderResourceInventoryRows([
-    {
-      id: "vd-gpu-001",
-      name: "GPU Inference",
-      kind: "virtual",
-      status: "available",
-      statusLabel: "Available",
-      observedAt: "2099-01-01T00:00:00Z",
-    },
-  ], {category: "virtual"});
-
   assert.match(nodeRows, /data-resource-kind="server"/);
   assert.match(nodeRows, /data-label="최신 관측"/);
   assert.match(nodeRows, />상세보기</);
-  assert.match(virtualRows, /data-resource-kind="virtual"/);
-  assert.match(virtualRows, /GPU Inference/);
 });
 
 test("provides concise Korean labels for each resource category", () => {
   assert.equal(resourceCategoryView("server").label, "엣지 AI 서버");
-  assert.equal(resourceCategoryView("physical").label, "물리 디바이스");
-  assert.equal(resourceCategoryView("virtual").label, "가상 디바이스");
-  assert.equal(resourceCategoryView("sensor").label, "센서 디바이스");
+  assert.equal(resourceCategoryView("physical").label, "현장 엣지 노드");
+  assert.equal(resourceCategoryView("sensor").label, "물리 디바이스");
   assert.equal(resourceCategoryView("sensor").latestLabel, "최신 이벤트");
   assert.equal(resourceCategoryView("server").latestLabel, "최신 관측");
 });

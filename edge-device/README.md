@@ -61,4 +61,4 @@ Kubernetes Node/Pod 정보는 workload 배치와 진단에 표시할 수 있지�
 
 현재 repository에서 전달된 physical cutover 코드 범위는 loopback Protocol Adapter, direct-mode agent, SQLite/HTTPS plane과 EdgeX-backed aggregator/dashboard다. `sensehat-001`은 교체 가능한 검증 fixture이며 현재 Jetson/Arduino MQTT workload는 없다. 이는 repository artifact 범위이며 live cluster 배포 완료를 의미하지 않는다.
 
-Serial, Modbus, OPC-UA, RTSP는 각각 별도 migration gate를 통과해야 하는 후속 protocol wave다. `virtual-device/`의 Serial JSON runtime은 독립 프로토타입으로 유지하며 EdgeX Serial Device Service 또는 Serial wave 완료로 간주하지 않는다.
+Serial, Modbus, OPC-UA, RTSP는 각각 별도 migration gate를 통과해야 하는 후속 protocol wave다. 제거된 과거 Serial JSON publisher prototype은 EdgeX Serial Device Service 또는 Serial wave 완료 근거로 사용하지 않는다.

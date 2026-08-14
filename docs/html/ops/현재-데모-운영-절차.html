@@ -74,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">운영</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-08-13 18:24</span>
-            <span class="badge">HTML 생성: 2026-08-14 12:10</span>
+            <span class="badge">수정: 2026-08-14 17:23</span>
+            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
           </div>
         </header>
         <div class="doc-body">
@@ -137,8 +137,7 @@ kubectl get --raw \
 <p>Event/Reading의 resource와 type이 Profile과 일치하고 nanosecond <code>origin</code>이 증가해야 한다. API 응답 시각이나 Kubernetes node 상태로 freshness를 대신하지 않는다.</p>
 <h2 id="6-ai-서비스-확인">6. AI 서비스 확인</h2>
 <pre data-lang="bash"><code>curl -fsS http://aggregator.192.168.0.56.sslip.io/state/services
-curl -fsS http://aggregator.192.168.0.56.sslip.io/state/service-demo
-curl -fsS http://aggregator.192.168.0.56.sslip.io/state/service-demo/augmentation</code></pre>
+curl -fsS http://aggregator.192.168.0.56.sslip.io/state/service-demo</code></pre>
 <p>확인 항목:</p>
 <ul><li>필수 X/Y/Z/온도 입력 connected·fresh·schema valid</li><li>model ready와 model version</li><li>latest result와 최근 alert</li><li>현재 target과 Device1/Server1 처리 비율</li><li>증강 evaluator state, gate, metric과 <code>BLOCKED</code> reason</li></ul>
 <p>설비 anomaly가 발생해도 서비스 입력·모델이 정상이라면 서비스 실행 상태와 혼합하지 않는다. 반대로 anomaly가 없어도 latency/backlog 자원 압박은 별도로 평가한다.</p>

@@ -4,7 +4,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
-  buildServiceAugmentationView,
   buildServiceOperationsTimelineView,
   buildServiceRoutingView,
   buildServiceStagePlacementView,
@@ -16,12 +15,10 @@ const {
   refreshServiceDemo,
   refreshServiceDemoAlerts,
   refreshServiceDemoResults,
-  refreshServiceAugmentation,
   renderServiceDemo,
   renderServiceCatalog,
   renderServiceDemoAlerts,
   renderServiceDemoResults,
-  renderServiceAugmentation,
   applyServiceDescriptor,
 } = require("../app/static/service-demo.js");
 
@@ -92,17 +89,8 @@ test("keeps the traffic split unknown when there are no observed results", () =>
 });
 
 
-test("combines augmentation transitions and equipment alerts into one newest-first timeline", () => {
+test("renders equipment alerts in newest-first order", () => {
   const view = buildServiceOperationsTimelineView({
-    transitions: [
-      {
-        occurred_at: "2026-08-13T10:00:03Z",
-        from_state: "RECOMMENDED",
-        to_state: "AUGMENTED",
-        reason: "approved_augmentation_observed",
-      },
-    ],
-  }, {
     alerts: [
       {
         observed_at: "2026-08-13T10:00:01Z",
@@ -112,11 +100,9 @@ test("combines augmentation transitions and equipment alerts into one newest-fir
     ],
   });
 
-  assert.equal(view.events.length, 2);
-  assert.equal(view.events[0].kind, "augmentation");
-  assert.equal(view.events[0].title, "자원 증강 실행");
-  assert.equal(view.events[1].kind, "equipment");
-  assert.equal(view.events[1].title, "설비 이상 발생");
+  assert.equal(view.events.length, 1);
+  assert.equal(view.events[0].kind, "equipment");
+  assert.equal(view.events[0].title, "설비 이상 발생");
 });
 
 
@@ -561,98 +547,6 @@ test("refreshes the recent decision rail from the result endpoint", async () => 
 });
 
 
-test("builds a resource recommendation without mixing the equipment anomaly score", () => {
-  const view = buildServiceAugmentationView({
-    state: "RECOMMENDED",
-    recommendation: "scale-up",
-    apply_state: "observed-only",
-    reason_codes: ["sustained_resource_and_service_pressure"],
-    anomaly_signal_used: false,
-    metrics: {
-      cpu_percent: 91,
-      memory_percent: 72,
-      gpu_percent: 55,
-      resource_metric_source: "prometheus-node",
-      service_metric_source: "service-api",
-      processing_latency_p95_ms: 740,
-      backlog: 8,
-      throughput_per_second: 0.8,
-    },
-    dwell: {
-      resource_pressure_seconds: 300,
-      resource_pressure_required_seconds: 300,
-      service_pressure_seconds: 180,
-      service_pressure_required_seconds: 180,
-    },
-    gates: [{id: "input", label: "센서 입력", passed: true, reason: "input_ready"}],
-  });
-
-  assert.equal(view.state, "RECOMMENDED");
-  assert.equal(view.label, "증강 권고");
-  assert.equal(view.metrics, "CPU 91.0% · Memory 72.0% · GPU 55.0% · p95 740 ms · backlog 8 · 0.80 fps · 입력 EdgeX · 자원 Prometheus node-exporter · 성능 서비스 API");
-  assert.equal(view.liveRate, "0.80건/초");
-  assert.equal(view.resourceDwell.value, 300);
-  assert.equal(view.serviceDwell.value, 180);
-  assert.equal(view.anomalyNote, "설비 anomaly 점수 미사용");
-  assert.equal(view.gates[0].passed, true);
-});
-
-
-test("formats only observed augmentation snapshots for before and after comparison", () => {
-  const view = buildServiceAugmentationView({
-    state: "AUGMENTED",
-    metrics: {processing_latency_p95_ms: 320, backlog: 0, throughput_per_second: 2.4},
-    performance_comparison: {
-      before: {processing_latency_p95_ms: 700, backlog: 8, throughput_per_second: 0.8},
-      after: {processing_latency_p95_ms: 320, backlog: 0, throughput_per_second: 2.4},
-    },
-  });
-
-  assert.equal(view.event.label, "자원 증강 실행");
-  assert.equal(view.comparison.before, "p95 700 ms · backlog 8 · 0.80 fps");
-  assert.equal(view.comparison.after, "p95 320 ms · backlog 0 · 2.40 fps");
-  assert.equal(view.comparison.available, true);
-});
-
-
-test("renders blocked augmentation gates and polls the observed-only endpoint", async () => {
-  const elements = {
-    serviceAugmentationState: {textContent: "", dataset: {}},
-    serviceAugmentationSummary: {textContent: ""},
-    serviceAugmentationMetrics: {textContent: ""},
-    serviceAugmentationResourceDwellLabel: {textContent: ""},
-    serviceAugmentationServiceDwellLabel: {textContent: ""},
-    serviceAugmentationResourceDwell: {value: 0, max: 0},
-    serviceAugmentationServiceDwell: {value: 0, max: 0},
-    serviceAugmentationGateList: null,
-  };
-  const documentRef = {getElementById: (id) => elements[id]};
-  let request = null;
-  await refreshServiceAugmentation(async (url, options) => {
-    request = {url, options};
-    return {
-      ok: true,
-      json: async () => ({
-        state: "BLOCKED",
-        reason_codes: ["sensor_stale"],
-        metrics: {},
-        dwell: {},
-        gates: [],
-        anomaly_signal_used: false,
-      }),
-    };
-  }, documentRef);
-
-  assert.deepEqual(request, {
-    url: "/state/service-demo/augmentation",
-    options: {cache: "no-store"},
-  });
-  assert.equal(elements.serviceAugmentationState.textContent, "차단");
-  assert.equal(elements.serviceAugmentationState.dataset.state, "BLOCKED");
-  assert.match(elements.serviceAugmentationSummary.textContent, /센서 입력이 오래됨/);
-});
-
-
 test("dashboard ships a responsive accessible live demo panel", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
@@ -681,15 +575,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoStepFeaturesLocation", "serviceDemoStepInferenceLocation",
     "serviceDemoStepResultLocation", "serviceDagDevice1Node", "serviceDagServer1Node",
     "serviceDemoHistorySummary", "serviceDemoFrames",
-    "serviceAugmentationState", "serviceAugmentationSummary",
-    "serviceAugmentationEquipmentState", "serviceAugmentationMetrics",
-    "serviceAugmentationResourceDwell", "serviceAugmentationServiceDwell",
-    "serviceAugmentationResourceDwellLabel", "serviceAugmentationServiceDwellLabel",
-    "serviceAugmentationGateList", "serviceAugmentationStateRail",
     "serviceOperationsDag", "serviceOperationsTimeline", "serviceOperationsTimelineList",
-    "serviceDagAugmentationEvent", "serviceDeviceRatio", "serviceServerRatio",
-    "serviceMetricCpu", "serviceMetricLatency", "serviceMetricBacklog",
-    "serviceMetricThroughput", "servicePerformanceBefore", "servicePerformanceAfter",
+    "serviceDeviceRatio", "serviceServerRatio",
     "serviceOperationsLive", "serviceOperationsLiveRate", "serviceOperationsLiveAge",
     "serviceOperationsLiveFrames",
   ]) {
@@ -702,7 +589,6 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.service-demo-alert-summary/);
-  assert.match(css, /\.service-augmentation-dual-rail/);
   assert.match(css, /\.service-catalog-row/);
   assert.match(css, /\.service-operations-cockpit/);
   assert.match(css, /\.service-dag-node\[data-current="true"\]/);

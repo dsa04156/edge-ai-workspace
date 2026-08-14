@@ -74,8 +74,8 @@
           <div class="meta">
             <span class="badge kind">연결 가이드</span>
             <span class="badge">원본: AI-서비스-등록-가이드.md</span>
-            <span class="badge">수정: 2026-08-13 18:48</span>
-            <span class="badge">HTML 생성: 2026-08-14 12:10</span>
+            <span class="badge">수정: 2026-08-14 17:27</span>
+            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
           </div>
         </header>
         <div class="doc-body">
@@ -129,8 +129,7 @@
     &quot;adapter&quot;: &quot;sensor-anomaly-v1&quot;,
     &quot;state_path&quot;: &quot;/state/service-demo&quot;,
     &quot;results_path&quot;: &quot;/state/service-demo/results?limit=12&quot;,
-    &quot;alerts_path&quot;: &quot;/state/service-demo/alerts?limit=10&quot;,
-    &quot;augmentation_path&quot;: &quot;/state/service-demo/augmentation&quot;
+    &quot;alerts_path&quot;: &quot;/state/service-demo/alerts?limit=10&quot;
   }
 }</code></pre>
 <p>외부 URL, 비밀번호, token, URL userinfo와 임의 image/command/hostPath는 허용하지 않는다.</p>
@@ -140,14 +139,14 @@
                                         └→ Server1 ┴→ Result</code></pre>
 <p>중복 stage ID, 없는 단계 참조, cycle, 표준 slot 누락은 애플리케이션 시작 전에 차단한다. 다른 topology가 필요하면 화면을 복사하지 말고 versioned renderer를 먼저 추가한다.</p>
 <h3 id="5-관측-adapter를-연결한다">5. 관측 adapter를 연결한다</h3>
-<p><code>observability</code>는 같은 <code>state-aggregator</code>의 상대 <code>/state/...</code> 경로만 사용한다. adapter는 입력·모델·결과·alert·증강 상태를 공용 서비스 응답으로 변환한다. 연결되지 않은 descriptor도 목록에서 숨기지 않고 <code>degraded/unavailable</code>로 표시한다.</p>
+<p><code>observability</code>는 같은 <code>state-aggregator</code>의 상대 <code>/state/...</code> 경로만 사용한다. adapter는 입력·모델·결과·alert 상태를 공용 서비스 응답으로 변환한다. 연결되지 않은 descriptor도 목록에서 숨기지 않고 <code>degraded/unavailable</code>로 표시한다.</p>
 <h3 id="6-검증하고-배포한다">6. 검증하고 배포한다</h3>
 <pre data-lang="bash"><code>cd edge-orch/state-aggregator
 .venv/bin/python -m pytest -q tests/test_service_catalog.py tests/test_service_demo.py
 node --test tests/test_service_demo_dashboard.js
 kubectl kustomize k8s &gt;/dev/null</code></pre>
 <p>배포 후 확인한다.</p>
-<ol><li><code>/state/services</code>에 descriptor와 <code>definition_source</code>가 보인다.</li><li>서비스 이름·입력·workload·node·model이 실제 관측과 일치한다.</li><li>DAG 단계와 target이 descriptor와 일치한다.</li><li>stale input, model not ready, metric stale이 정상처럼 표시되지 않는다.</li><li>설비 anomaly와 자원 증강 판단이 독립적으로 표시된다.</li><li>Argo CD <code>Synced/Healthy</code>, Pod Ready, Traefik HTTP 200과 브라우저 오류 0을 확인한다.</li></ol>
+<ol><li><code>/state/services</code>에 descriptor와 <code>definition_source</code>가 보인다.</li><li>서비스 이름·입력·workload·node·model이 실제 관측과 일치한다.</li><li>DAG 단계와 target이 descriptor와 일치한다.</li><li>stale input, model not ready, metric stale이 정상처럼 표시되지 않는다.</li><li>Argo CD <code>Synced/Healthy</code>, Pod Ready, Traefik HTTP 200과 브라우저 오류 0을 확인한다.</li></ol>
 <p>이미지 build, immutable digest, Git push와 Traefik 검증은 <a href="ops/대시보드-배포.html">대시보드 배포</a>를 따른다.</p>
 <h2 id="자동화-경계">자동화 경계</h2>
 <p>descriptor가 자동화하는 것은 목록·DAG·read-only 관측 연결이다. Kubernetes workload 생성, EdgeX metadata 변경, command 실행, migration과 offloading은 자동 실행하지 않는다.</p>

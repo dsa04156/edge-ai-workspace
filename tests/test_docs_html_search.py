@@ -97,7 +97,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("현재 데모 운영하기", intro)
         self.assertIn("프로젝트 범위", intro)
 
-    def test_current_service_document_explains_anomaly_and_augmentation_independently(self):
+    def test_current_service_document_explains_the_observed_anomaly_contract(self):
         guide = (ROOT / "docs" / "펌프-모터-이상감지-서비스.md").read_text(encoding="utf-8")
 
         for required in (
@@ -105,10 +105,9 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "`online-baseline`",
             "RMS",
             "kurtosis",
-            "`anomaly_score`는 자원 증강 evaluator에 들어가지 않는다",
-            "`BLOCKED` 자체가 서비스 Pod를 중지하는 명령은 아니다",
-            "`metrics_invalid_or_stale`",
-            "observed-only",
+            "결과 이력",
+            "알림 이력",
+            "Server1 전환 경계",
         ):
             self.assertIn(required, guide)
 
