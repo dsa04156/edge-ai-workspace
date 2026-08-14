@@ -23,6 +23,7 @@ from .device_discovery import DeviceDiscoveryManagementService
 from .device_management import DeviceManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
+from .device_twins import DeviceTwinState, build_device_twin_state
 from .edgex import EdgeXError
 from .metrics import render_metrics
 from .models import (
@@ -710,6 +711,43 @@ async def preview_resource_pool_plan(
 ) -> ResourcePoolPlan:
     state = await _resource_pool_state()
     return build_resource_pool_plan(request, state)
+
+
+@app.get("/state/device-twins", response_model=DeviceTwinState)
+async def get_device_twins() -> DeviceTwinState:
+    observation_errors: list[str] = []
+    try:
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        observation_errors.append(
+            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
+        )
+
+    service_observations: dict[str, str] = {}
+    service_bindings: dict[str, list[str]] = {}
+    try:
+        demo_state = await service_demo_client.get_state()
+        service_bindings["sensor-anomaly-demo"] = demo_state.binding.devices
+        service_observations["sensor-anomaly-demo"] = (
+            "ready"
+            if demo_state.mode == "live"
+            and demo_state.input_state == "fresh"
+            and demo_state.model_state == "ready"
+            else "degraded"
+        )
+    except ServiceDemoError as exc:
+        service_observations["sensor-anomaly-demo"] = "unavailable"
+        observation_errors.append(
+            f"AI service observation unavailable: {exc.__class__.__name__}"
+        )
+
+    return build_device_twin_state(
+        devices=devices,
+        service_bindings=service_bindings,
+        service_observations=service_observations,
+        observation_errors=observation_errors,
+    )
 
 
 @app.get("/state/augmentation-resources", response_model=AugmentationResourceCrdState)

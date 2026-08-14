@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
-    <link rel="stylesheet" href="/static/resource-pool.css?v=virtual-device-inventory-v4-20260814" />
+    <link rel="stylesheet" href="/static/device-twins.css?v=observed-device-twins-v1-20260814" />
   </head>
   <body>
     <main class="shell">
@@ -55,7 +55,7 @@
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
         <button type="button" data-dashboard-page="services" aria-pressed="false">서비스</button>
-        <button type="button" data-dashboard-page="resource-pool" aria-pressed="false">가상 디바이스</button>
+        <button type="button" data-dashboard-page="device-twins" aria-pressed="false">디바이스 트윈</button>
         <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
@@ -541,7 +541,7 @@
                     <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
                   </div>
                 </div>
-                <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+                <p class="service-demo-devices"><span>입력 디바이스 트윈</span><strong id="serviceDemoDevices">관측 대기</strong></p>
                 <dl class="service-demo-values service-demo-detail-values">
                   <div class="service-demo-value-detail"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
                   <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
@@ -599,63 +599,61 @@
         </details>
 
         <section
-          class="panel resource-pool-page dashboard-page"
-          data-page="resource-pool"
-          aria-labelledby="resourcePoolTitle"
+          class="panel device-twins-page dashboard-page"
+          data-page="device-twins"
+          aria-labelledby="deviceTwinsTitle"
         >
-          <header class="resource-pool-head">
+          <header class="device-twins-head">
             <div>
-              <p class="section-kicker">EdgeX 데이터 입력</p>
-              <h2 id="resourcePoolTitle">가상 디바이스</h2>
-              <p>AI 서비스가 사용 중인 센서 데이터와 남아 있는 입력을 확인합니다.</p>
+              <p class="section-kicker">EdgeX 관측 모델</p>
+              <h2 id="deviceTwinsTitle">디바이스 트윈</h2>
+              <p>물리 디바이스에서 수집한 상태와 데이터를 EdgeX가 표현한 읽기 전용 트윈입니다.</p>
             </div>
           </header>
 
-          <div id="resourcePoolError" class="resource-pool-notice" role="status" aria-live="polite" hidden></div>
+          <div id="deviceTwinsError" class="device-twins-notice" role="status" aria-live="polite" hidden></div>
 
-          <dl class="resource-pool-summary" aria-label="가상 디바이스 요약">
-            <div><dt>전체</dt><dd id="resourcePoolVirtualCount">0</dd></div>
-            <div><dt>사용 중</dt><dd id="resourcePoolInUseCount">0</dd></div>
-            <div><dt>사용 가능</dt><dd id="resourcePoolAvailableCount">0</dd></div>
-            <div><dt>점검 필요</dt><dd id="resourcePoolAttentionCount">0</dd></div>
+          <dl class="device-twins-summary" aria-label="디바이스 트윈 요약">
+            <div><dt>물리 디바이스</dt><dd id="deviceTwinsPhysicalCount">0</dd></div>
+            <div><dt>디바이스 트윈</dt><dd id="deviceTwinsTotalCount">0</dd></div>
+            <div><dt>서비스 연결</dt><dd id="deviceTwinsBoundCount">0</dd></div>
+            <div><dt>점검 필요</dt><dd id="deviceTwinsAttentionCount">0</dd></div>
           </dl>
 
-          <section class="resource-pool-catalog" aria-labelledby="resourcePoolCatalogTitle">
-            <div class="resource-pool-section-head">
+          <section class="device-twins-inventory" aria-labelledby="deviceTwinsInventoryTitle">
+            <div class="device-twins-section-head">
               <div>
-                <h3 id="resourcePoolCatalogTitle">사용 현황</h3>
-                <span>사용 중인 항목부터 표시</span>
+                <h3 id="deviceTwinsInventoryTitle">트윈과 서비스 연결</h3>
+                <span>서비스에 연결된 트윈부터 표시</span>
               </div>
-              <strong id="resourcePoolVisibleCount">0개</strong>
+              <strong id="deviceTwinsVisibleCount">0개</strong>
             </div>
-            <div class="resource-pool-toolbar">
-              <label class="resource-pool-search" for="resourcePoolSearch">
+            <div class="device-twins-toolbar">
+              <label class="device-twins-search" for="deviceTwinsSearch">
                 <span>검색</span>
-                <input id="resourcePoolSearch" type="search" placeholder="이름, 원본 장비, 데이터" autocomplete="off" />
+                <input id="deviceTwinsSearch" type="search" placeholder="트윈, 물리 디바이스, 데이터" autocomplete="off" />
               </label>
-              <label for="resourcePoolStatusFilter">
-                <span>상태</span>
-                <select id="resourcePoolStatusFilter">
+              <label for="deviceTwinsBindingFilter">
+                <span>서비스 연결</span>
+                <select id="deviceTwinsBindingFilter">
                   <option value="">전체</option>
-                  <option value="in-use">사용 중</option>
-                  <option value="available">사용 가능</option>
-                  <option value="degraded">점검 필요</option>
-                  <option value="unavailable">사용 불가</option>
+                  <option value="bound">연결됨</option>
+                  <option value="unbound">미연결</option>
                 </select>
               </label>
             </div>
-            <div class="resource-pool-table-wrap">
-              <table class="resource-pool-table">
+            <div class="device-twins-table-wrap">
+              <table class="device-twins-table">
                 <thead>
                   <tr>
-                    <th scope="col">가상 디바이스</th>
-                    <th scope="col">원본 장비</th>
-                    <th scope="col">데이터</th>
+                    <th scope="col">디바이스 트윈</th>
+                    <th scope="col">물리 디바이스</th>
+                    <th scope="col">관측 데이터</th>
                     <th scope="col">사용 서비스</th>
-                    <th scope="col">상태</th>
+                    <th scope="col">트윈 상태</th>
                   </tr>
                 </thead>
-                <tbody id="resourcePoolList" aria-live="polite"></tbody>
+                <tbody id="deviceTwinsList" aria-live="polite"></tbody>
               </table>
             </div>
           </section>
@@ -1669,6 +1667,6 @@
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
-    <script src="/static/resource-pool.js?v=virtual-device-inventory-v4-20260814"></script>
+    <script src="/static/device-twins.js?v=observed-device-twins-v1-20260814"></script>
   </body>
 </html>
