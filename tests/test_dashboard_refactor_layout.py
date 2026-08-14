@@ -136,9 +136,9 @@ def test_dashboard_device_twin_inventory_is_read_only_and_responsive() -> None:
     assert 'id="deviceTwinsSearch"' in html
     assert 'class="device-twins-table"' in html
     assert "물리 디바이스" in html
-    assert "관측 데이터" in html
+    assert "관측 트윈" in html
     assert "사용 서비스" in html
-    assert "트윈 상태" in html
+    assert "물리 디바이스 → 트윈 → 서비스" in html
     assert 'fetchFn("/state/device-twins"' in js
     assert 'fetchFn("/state/resource-pool"' not in js
     assert "Kubernetes apply" not in js

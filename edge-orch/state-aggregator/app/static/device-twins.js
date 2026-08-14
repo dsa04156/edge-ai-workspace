@@ -107,14 +107,13 @@
       : '<span class="device-twins-unbound">관측값 없음</span>';
     return `
       <tr data-connection="${escapeHtml(connection.state)}">
-        <td data-label="디바이스 트윈"><strong>${escapeHtml(twin.name)}</strong></td>
         <td data-label="물리 디바이스">
           <strong>${escapeHtml(twin.physical_device_id)}</strong>
           <small>${escapeHtml(twin.node || "노드 미확인")}</small>
         </td>
-        <td data-label="관측 데이터"><span class="device-twins-data">${resourceMarkup}</span></td>
+        <td data-label="관측 트윈"><span class="device-twins-data">${resourceMarkup}</span></td>
         <td data-label="사용 서비스">${serviceMarkup(connection.bindings)}</td>
-        <td data-label="트윈 상태"><span class="device-twins-badge" data-status="${escapeHtml(twin.health)}">${escapeHtml(HEALTH_LABELS[twin.health] || "상태 미확인")}</span></td>
+        <td data-label="상태"><span class="device-twins-badge" data-status="${escapeHtml(twin.health)}">${escapeHtml(HEALTH_LABELS[twin.health] || "상태 미확인")}</span></td>
       </tr>
     `;
   }
@@ -129,7 +128,7 @@
     setText("deviceTwinsVisibleCount", `${twins.length}개`);
     container.innerHTML = twins.length
       ? twins.map(twinRow).join("")
-      : '<tr><td class="device-twins-empty" colspan="5">조건에 맞는 디바이스 트윈이 없습니다.</td></tr>';
+      : '<tr><td class="device-twins-empty" colspan="4">조건에 맞는 디바이스 트윈이 없습니다.</td></tr>';
   }
 
   function renderAll() {

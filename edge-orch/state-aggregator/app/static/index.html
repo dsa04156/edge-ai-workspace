@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
-    <link rel="stylesheet" href="/static/device-twins.css?v=observed-device-twins-v1-20260814" />
+    <link rel="stylesheet" href="/static/device-twins.css?v=observed-device-twins-v2-20260814" />
   </head>
   <body>
     <main class="shell">
@@ -605,9 +605,8 @@
         >
           <header class="device-twins-head">
             <div>
-              <p class="section-kicker">EdgeX 관측 모델</p>
               <h2 id="deviceTwinsTitle">디바이스 트윈</h2>
-              <p>물리 디바이스에서 수집한 상태와 데이터를 EdgeX가 표현한 읽기 전용 트윈입니다.</p>
+              <p>실제 물리 디바이스에서 온 데이터를 EdgeX 관측 트윈으로 보여줍니다.</p>
             </div>
           </header>
 
@@ -623,7 +622,7 @@
           <section class="device-twins-inventory" aria-labelledby="deviceTwinsInventoryTitle">
             <div class="device-twins-section-head">
               <div>
-                <h3 id="deviceTwinsInventoryTitle">트윈과 서비스 연결</h3>
+                <h3 id="deviceTwinsInventoryTitle">물리 디바이스 → 트윈 → 서비스</h3>
                 <span>서비스에 연결된 트윈부터 표시</span>
               </div>
               <strong id="deviceTwinsVisibleCount">0개</strong>
@@ -646,11 +645,10 @@
               <table class="device-twins-table">
                 <thead>
                   <tr>
-                    <th scope="col">디바이스 트윈</th>
                     <th scope="col">물리 디바이스</th>
-                    <th scope="col">관측 데이터</th>
+                    <th scope="col">관측 트윈</th>
                     <th scope="col">사용 서비스</th>
-                    <th scope="col">트윈 상태</th>
+                    <th scope="col">상태</th>
                   </tr>
                 </thead>
                 <tbody id="deviceTwinsList" aria-live="polite"></tbody>
@@ -1667,6 +1665,6 @@
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
-    <script src="/static/device-twins.js?v=observed-device-twins-v1-20260814"></script>
+    <script src="/static/device-twins.js?v=observed-device-twins-v2-20260814"></script>
   </body>
 </html>
