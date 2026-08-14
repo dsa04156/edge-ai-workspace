@@ -6,6 +6,7 @@ import httpx
 import pytest
 import yaml
 from app import main
+from app.config import Settings
 from app.models import NodeState
 from app.service_demo import (
     ServiceDemoBackendError,
@@ -399,7 +400,15 @@ def test_state_aggregator_deployment_uses_sensor_demo_service_fqdn() -> None:
     assert env["SENSOR_ANOMALY_DEMO_URL"] == (
         "http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080"
     )
-    assert env["SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS"] == "2"
+    assert env["SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS"] == "5"
+
+
+def test_sensor_demo_observation_timeout_covers_the_edge_round_trip(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", raising=False)
+
+    assert Settings().sensor_anomaly_demo_timeout_seconds == 5.0
 
 
 def test_service_augmentation_route_combines_service_resource_and_server1_gates(
