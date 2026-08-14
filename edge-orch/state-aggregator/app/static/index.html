@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
-    <link rel="stylesheet" href="/static/resource-pool.css?v=virtual-device-pool-v3-20260814" />
+    <link rel="stylesheet" href="/static/resource-pool.css?v=virtual-device-inventory-v4-20260814" />
   </head>
   <body>
     <main class="shell">
@@ -55,7 +55,7 @@
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
         <button type="button" data-dashboard-page="services" aria-pressed="false">서비스</button>
-        <button type="button" data-dashboard-page="resource-pool" aria-pressed="false">자원 풀</button>
+        <button type="button" data-dashboard-page="resource-pool" aria-pressed="false">가상 디바이스</button>
         <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
@@ -605,96 +605,59 @@
         >
           <header class="resource-pool-head">
             <div>
-              <p class="section-kicker">EdgeX 입력 단위 · 사용 현황</p>
-              <h2 id="resourcePoolTitle">가상 디바이스 자원 풀</h2>
-              <p>물리 장비의 데이터를 서비스 입력 단위 가상 디바이스로 나눠, 현재 사용 중인 항목과 연결된 AI 서비스를 확인합니다.</p>
-            </div>
-            <div class="resource-pool-mode" aria-label="자원 풀 동작 모드">
-              <strong>읽기 전용</strong>
-              <span>예약·연결은 dry-run</span>
+              <p class="section-kicker">EdgeX 데이터 입력</p>
+              <h2 id="resourcePoolTitle">가상 디바이스</h2>
+              <p>AI 서비스가 사용 중인 센서 데이터와 남아 있는 입력을 확인합니다.</p>
             </div>
           </header>
 
           <div id="resourcePoolError" class="resource-pool-notice" role="status" aria-live="polite" hidden></div>
 
-          <dl class="resource-pool-summary" aria-label="자원 풀 요약">
-            <div><dt>가상 디바이스</dt><dd id="resourcePoolVirtualCount">0</dd></div>
+          <dl class="resource-pool-summary" aria-label="가상 디바이스 요약">
+            <div><dt>전체</dt><dd id="resourcePoolVirtualCount">0</dd></div>
             <div><dt>사용 중</dt><dd id="resourcePoolInUseCount">0</dd></div>
             <div><dt>사용 가능</dt><dd id="resourcePoolAvailableCount">0</dd></div>
             <div><dt>점검 필요</dt><dd id="resourcePoolAttentionCount">0</dd></div>
-            <div><dt>AI 서비스</dt><dd id="resourcePoolServiceCount">0</dd></div>
           </dl>
 
-          <ol class="resource-pool-flow" aria-label="자원 연결 순서">
-            <li data-step="service"><span>1</span><strong>서비스 선택</strong><small>필요 계약 확인</small></li>
-            <li data-step="resource"><span>2</span><strong>가상 디바이스 선택</strong><small>사용·상태 확인</small></li>
-            <li data-step="plan"><span>3</span><strong>계획 검증</strong><small>변경 없는 미리보기</small></li>
-          </ol>
-
-          <div class="resource-pool-workspace">
-            <aside class="resource-pool-services" aria-labelledby="resourcePoolServicesTitle">
-              <div class="resource-pool-section-head">
-                <div><span>서비스 카탈로그</span><h3 id="resourcePoolServicesTitle">사용할 AI 서비스</h3></div>
-                <span id="resourcePoolServiceStatus">확인 중</span>
-              </div>
-              <div id="resourcePoolServiceList" class="resource-pool-service-list" aria-live="polite"></div>
-            </aside>
-
-            <section class="resource-pool-catalog" aria-labelledby="resourcePoolCatalogTitle">
-              <div class="resource-pool-section-head">
-                <div><span>물리 장비 → 서비스 입력</span><h3 id="resourcePoolCatalogTitle">가상 디바이스 사용 현황</h3></div>
-                <span id="resourcePoolVisibleCount">0개</span>
-              </div>
-              <div class="resource-pool-toolbar">
-                <label class="resource-pool-search" for="resourcePoolSearch">
-                  <span>가상 디바이스 검색</span>
-                  <input id="resourcePoolSearch" type="search" placeholder="이름·물리 장비·resource 검색" autocomplete="off" />
-                </label>
-                <label for="resourcePoolStatusFilter">
-                  <span>사용 상태</span>
-                  <select id="resourcePoolStatusFilter">
-                    <option value="">모든 상태</option>
-                    <option value="in-use">사용 중</option>
-                    <option value="available">사용 가능</option>
-                    <option value="degraded">확인 필요</option>
-                    <option value="configured">구성됨</option>
-                    <option value="unavailable">사용 불가</option>
-                  </select>
-                </label>
-              </div>
-              <div class="resource-pool-tabs" role="group" aria-label="자원 유형 필터">
-                <button class="active" type="button" data-pool-category="data" aria-pressed="true">가상 디바이스</button>
-                <button type="button" data-pool-category="compute" aria-pressed="false">실행 자원</button>
-                <button type="button" data-pool-category="service" aria-pressed="false">AI 서비스</button>
-                <button type="button" data-pool-category="" aria-pressed="false">전체</button>
-              </div>
-              <div id="resourcePoolList" class="resource-pool-list" aria-live="polite"></div>
-            </section>
-
-            <aside class="resource-pool-plan" aria-labelledby="resourcePoolPlanTitle">
-              <div class="resource-pool-section-head">
-                <div><span>호환성·안전 경계</span><h3 id="resourcePoolPlanTitle">연결 계획</h3></div>
-                <span id="resourcePoolPlanState" data-state="idle">선택 대기</span>
-              </div>
-              <dl class="resource-pool-selection">
-                <div><dt>서비스</dt><dd id="resourcePoolSelectedService">선택 안 됨</dd></div>
-                <div><dt>가상 디바이스</dt><dd id="resourcePoolSelectedData">추천 입력 자동 선택</dd></div>
-                <div><dt>컴퓨팅</dt><dd id="resourcePoolSelectedCompute">고정 Deployment 확인</dd></div>
-              </dl>
-              <button id="resourcePoolPlanButton" class="resource-pool-primary" type="button" disabled>호환 자원으로 계획 확인</button>
-              <p class="resource-pool-plan-caption">실제 자원을 점유하거나 배포를 변경하지 않습니다.</p>
-              <div id="resourcePoolPlanResult" class="resource-pool-plan-result" aria-live="polite">
-                <p>AI 서비스를 선택하면 필요한 입력과 사용 가능한 자원을 비교합니다.</p>
-              </div>
-            </aside>
-          </div>
-
-          <section class="resource-pool-bindings" aria-labelledby="resourcePoolBindingsTitle">
+          <section class="resource-pool-catalog" aria-labelledby="resourcePoolCatalogTitle">
             <div class="resource-pool-section-head">
-              <div><span>가상 디바이스 → AI 입력 계약</span><h3 id="resourcePoolBindingsTitle">사용 중인 가상 디바이스</h3></div>
-              <span>읽기 전용 projection</span>
+              <div>
+                <h3 id="resourcePoolCatalogTitle">사용 현황</h3>
+                <span>사용 중인 항목부터 표시</span>
+              </div>
+              <strong id="resourcePoolVisibleCount">0개</strong>
             </div>
-            <div id="resourcePoolBindingList" class="resource-pool-binding-list" aria-live="polite"></div>
+            <div class="resource-pool-toolbar">
+              <label class="resource-pool-search" for="resourcePoolSearch">
+                <span>검색</span>
+                <input id="resourcePoolSearch" type="search" placeholder="이름, 원본 장비, 데이터" autocomplete="off" />
+              </label>
+              <label for="resourcePoolStatusFilter">
+                <span>상태</span>
+                <select id="resourcePoolStatusFilter">
+                  <option value="">전체</option>
+                  <option value="in-use">사용 중</option>
+                  <option value="available">사용 가능</option>
+                  <option value="degraded">점검 필요</option>
+                  <option value="unavailable">사용 불가</option>
+                </select>
+              </label>
+            </div>
+            <div class="resource-pool-table-wrap">
+              <table class="resource-pool-table">
+                <thead>
+                  <tr>
+                    <th scope="col">가상 디바이스</th>
+                    <th scope="col">원본 장비</th>
+                    <th scope="col">데이터</th>
+                    <th scope="col">사용 서비스</th>
+                    <th scope="col">상태</th>
+                  </tr>
+                </thead>
+                <tbody id="resourcePoolList" aria-live="polite"></tbody>
+              </table>
+            </div>
           </section>
         </section>
 
@@ -1706,6 +1669,6 @@
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
-    <script src="/static/resource-pool.js?v=virtual-device-pool-v3-20260814"></script>
+    <script src="/static/resource-pool.js?v=virtual-device-inventory-v4-20260814"></script>
   </body>
 </html>

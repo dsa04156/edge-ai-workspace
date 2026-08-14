@@ -1,29 +1,27 @@
-(function resourcePoolModule(global) {
+(function virtualDeviceDashboard(global) {
   "use strict";
 
   const state = {
     payload: null,
-    category: "data",
     status: "",
     search: "",
-    selectedServiceId: "",
-    selectedDataId: "",
-    selectedComputeId: "",
-    plan: null,
     loading: false,
   };
 
   const STATUS_LABELS = {
     ready: "사용 가능",
-    degraded: "확인 필요",
+    degraded: "점검 필요",
     unavailable: "사용 불가",
     configured: "구성됨",
   };
 
-  const CATEGORY_LABELS = {
-    data: "가상 디바이스",
-    compute: "실행 자원",
-    service: "AI 서비스",
+  const USAGE_ORDER = {
+    "in-use": 0,
+    degraded: 1,
+    unavailable: 2,
+    available: 3,
+    configured: 4,
+    unknown: 5,
   };
 
   function escapeHtml(value) {
@@ -60,23 +58,27 @@
     const search = String(filters.search || "").trim().toLocaleLowerCase("ko");
     return (Array.isArray(resources) ? resources : []).filter((item) => {
       if (category && item.category !== category) return false;
-      if (status) {
-        const usageState = resourceUsage(item).state;
-        const filterState = item.category === "data"
-          ? usageState
-          : item.status === "ready" ? "available" : item.status;
-        if (filterState !== status) return false;
-      }
+      if (status && resourceUsage(item).state !== status) return false;
       if (!search) return true;
+      const metadata = item.metadata || {};
       const haystack = [
         item.id,
         item.name,
-        item.description,
-        item.kind,
         item.node,
+        metadata.physical_device_id,
+        ...(Array.isArray(metadata.resource_names) ? metadata.resource_names : []),
         ...(Array.isArray(item.capabilities) ? item.capabilities : []),
+        ...(Array.isArray(item.current_bindings) ? item.current_bindings : []),
       ].join(" ").toLocaleLowerCase("ko");
       return haystack.includes(search);
+    });
+  }
+
+  function sortVirtualDevices(resources) {
+    return [...resources].sort((left, right) => {
+      const usageDiff = (USAGE_ORDER[resourceUsage(left).state] ?? 9)
+        - (USAGE_ORDER[resourceUsage(right).state] ?? 9);
+      return usageDiff || String(left.name || "").localeCompare(String(right.name || ""), "ko");
     });
   }
 
@@ -84,17 +86,14 @@
     return document.getElementById(id);
   }
 
-  function resourceById(resourceId) {
-    return state.payload?.resources?.find((item) => item.id === resourceId) || null;
-  }
-
-  function serviceIdFromResource(resourceId) {
-    return String(resourceId || "").replace(/^service:/, "");
-  }
-
   function setText(id, value) {
     const element = byId(id);
     if (element) element.textContent = String(value ?? "");
+  }
+
+  function serviceName(serviceId) {
+    const resource = state.payload?.resources?.find((item) => item.id === `service:${serviceId}`);
+    return resource?.name || serviceId;
   }
 
   function renderSummary() {
@@ -103,279 +102,95 @@
     setText("resourcePoolInUseCount", summary.used_virtual_devices || 0);
     setText("resourcePoolAvailableCount", summary.available_virtual_devices || 0);
     setText("resourcePoolAttentionCount", summary.attention_virtual_devices || 0);
-    setText("resourcePoolServiceCount", summary.service_resources || 0);
   }
 
   function renderNotice() {
     const notice = byId("resourcePoolError");
     if (!notice) return;
     const errors = state.payload?.observation_errors || [];
-    if (!errors.length) {
-      notice.hidden = true;
-      notice.textContent = "";
-      return;
-    }
-    notice.hidden = false;
-    notice.textContent = `일부 권위 시스템 관측이 불완전합니다: ${errors.join(" · ")}`;
+    notice.hidden = !errors.length;
+    notice.textContent = errors.length
+      ? "AI 서비스 상태를 확인할 수 없어 사용 여부가 일부 누락될 수 있습니다."
+      : "";
   }
 
-  function renderServices() {
-    const container = byId("resourcePoolServiceList");
-    if (!container) return;
-    const services = (state.payload?.resources || []).filter((item) => item.category === "service");
-    setText("resourcePoolServiceStatus", services.length ? `${services.length}개 서비스` : "서비스 없음");
-    if (!services.length) {
-      container.innerHTML = '<p class="resource-pool-empty">현재 서비스 카탈로그가 비어 있습니다.</p>';
-      return;
-    }
-    container.innerHTML = services.map((service) => {
-      const selected = serviceIdFromResource(service.id) === state.selectedServiceId;
-      return `
-        <button
-          class="resource-pool-service-option${selected ? " selected" : ""}"
-          type="button"
-          data-resource-pool-service="${escapeHtml(service.id)}"
-          aria-pressed="${selected ? "true" : "false"}"
-        >
-          <strong>${escapeHtml(service.name)}</strong>
-          <span>${escapeHtml(service.description)}</span>
-        </button>
-      `;
-    }).join("");
-    container.querySelectorAll("[data-resource-pool-service]").forEach((button) => {
-      button.addEventListener("click", () => {
-        state.selectedServiceId = serviceIdFromResource(button.dataset.resourcePoolService);
-        state.plan = null;
-        renderAll();
-      });
-    });
-  }
-
-  function resourceCard(item) {
-    const selected = item.id === state.selectedDataId || item.id === state.selectedComputeId;
-    const capabilities = (item.capabilities || []).slice(0, 4);
+  function resourceRow(item) {
     const usage = resourceUsage(item);
-    const bindingNames = usage.bindingIds.map((serviceId) => (
-      resourceById(`service:${serviceId}`)?.name || serviceId
-    ));
-    const physicalDevice = item.metadata?.physical_device_id;
-    const metadata = [CATEGORY_LABELS[item.category] || item.category, physicalDevice, item.node]
-      .filter(Boolean);
-    const usageDetail = bindingNames.length
-      ? `${bindingNames.join(", ")} 입력으로 연결됨`
-      : "현재 연결된 AI 서비스 없음";
+    const metadata = item.metadata || {};
+    const resources = Array.isArray(metadata.resource_names) && metadata.resource_names.length
+      ? metadata.resource_names
+      : item.capabilities || [];
+    const services = usage.bindingIds.map(serviceName);
+    const serviceMarkup = services.length
+      ? services.map((name) => `<strong>${escapeHtml(name)}</strong>`).join("")
+      : '<span class="resource-pool-none">—</span>';
+    const resourceMarkup = resources.length
+      ? resources.map((name) => `<code>${escapeHtml(name)}</code>`).join("")
+      : '<span class="resource-pool-none">—</span>';
+
     return `
-      <button
-        class="resource-pool-card${selected ? " selected" : ""}"
-        type="button"
-        data-resource-pool-item="${escapeHtml(item.id)}"
-        data-category="${escapeHtml(item.category)}"
-        data-usage="${escapeHtml(usage.state)}"
-        aria-pressed="${selected ? "true" : "false"}"
-        aria-disabled="${item.selectable ? "false" : "true"}"
-      >
-        <span class="resource-pool-card-head">
-          <span>${escapeHtml(item.name)}</span>
-          <span class="resource-pool-badge" data-status="${escapeHtml(usage.state)}">${escapeHtml(usage.label)}</span>
-        </span>
-        <span class="resource-pool-meta">${metadata.map((value) => `<span>${escapeHtml(value)}</span>`).join("")}</span>
-        <p>${escapeHtml(item.description)}</p>
-        <span class="resource-pool-capabilities">${capabilities.map((value) => `<span>${escapeHtml(value)}</span>`).join("")}</span>
-        ${item.category === "data" ? `<span class="resource-pool-usage" data-state="${escapeHtml(usage.state)}"><strong>${escapeHtml(usage.label)}</strong><span>${escapeHtml(usageDetail)}</span></span>` : ""}
-      </button>
+      <tr data-usage="${escapeHtml(usage.state)}">
+        <td data-label="가상 디바이스"><strong>${escapeHtml(item.name)}</strong></td>
+        <td data-label="원본 장비">
+          <strong>${escapeHtml(metadata.physical_device_id || "미확인")}</strong>
+          <small>${escapeHtml(item.node || "노드 미확인")}</small>
+        </td>
+        <td data-label="데이터"><span class="resource-pool-data">${resourceMarkup}</span></td>
+        <td data-label="사용 서비스"><span class="resource-pool-service">${serviceMarkup}</span></td>
+        <td data-label="상태"><span class="resource-pool-badge" data-status="${escapeHtml(usage.state)}">${escapeHtml(usage.label)}</span></td>
+      </tr>
     `;
   }
 
-  function renderCatalog() {
+  function renderDevices() {
     const container = byId("resourcePoolList");
     if (!container) return;
-    const resources = filterResources(state.payload?.resources, {
-      category: state.category,
+    const resources = sortVirtualDevices(filterResources(state.payload?.resources, {
+      category: "data",
       status: state.status,
       search: state.search,
-    });
+    }));
     setText("resourcePoolVisibleCount", `${resources.length}개`);
     container.innerHTML = resources.length
-      ? resources.map(resourceCard).join("")
-      : '<p class="resource-pool-empty">조건에 맞는 자원이 없습니다. 검색어나 상태 필터를 바꿔보세요.</p>';
-    container.querySelectorAll("[data-resource-pool-item]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const item = resourceById(button.dataset.resourcePoolItem);
-        if (!item || !item.selectable) return;
-        if (item.category === "service") {
-          state.selectedServiceId = serviceIdFromResource(item.id);
-        } else if (item.category === "data") {
-          state.selectedDataId = state.selectedDataId === item.id ? "" : item.id;
-        } else if (item.category === "compute") {
-          state.selectedComputeId = state.selectedComputeId === item.id ? "" : item.id;
-        }
-        state.plan = null;
-        renderAll();
-      });
-    });
-  }
-
-  function renderSelection() {
-    const service = resourceById(`service:${state.selectedServiceId}`);
-    const data = resourceById(state.selectedDataId);
-    const compute = resourceById(state.selectedComputeId);
-    setText("resourcePoolSelectedService", service?.name || "선택 안 됨");
-    setText("resourcePoolSelectedData", data?.name || "추천 자원 자동 선택");
-    setText("resourcePoolSelectedCompute", compute?.name || "고정 Deployment 확인");
-    const button = byId("resourcePoolPlanButton");
-    if (button) button.disabled = !state.selectedServiceId || state.loading;
-  }
-
-  function renderFlow() {
-    document.querySelectorAll(".resource-pool-flow [data-step]").forEach((item) => {
-      item.classList.remove("complete", "active");
-    });
-    const serviceStep = document.querySelector('.resource-pool-flow [data-step="service"]');
-    const resourceStep = document.querySelector('.resource-pool-flow [data-step="resource"]');
-    const planStep = document.querySelector('.resource-pool-flow [data-step="plan"]');
-    if (state.selectedServiceId) serviceStep?.classList.add("complete");
-    if (state.selectedDataId || state.selectedComputeId || state.plan) {
-      resourceStep?.classList.add("complete");
-    } else if (state.selectedServiceId) {
-      resourceStep?.classList.add("active");
-    }
-    if (state.plan) planStep?.classList.add(state.plan.compatible ? "complete" : "active");
-  }
-
-  function renderPlan() {
-    const container = byId("resourcePoolPlanResult");
-    const badge = byId("resourcePoolPlanState");
-    if (!container || !badge) return;
-    if (!state.plan) {
-      badge.dataset.state = "idle";
-      badge.textContent = state.loading ? "검증 중" : "선택 대기";
-      container.innerHTML = "<p>서비스를 선택하고 계획을 확인하면 권위 데이터 기준의 호환성 결과가 표시됩니다.</p>";
-      return;
-    }
-    badge.dataset.state = state.plan.compatible ? "ready" : "blocked";
-    badge.textContent = state.plan.compatible ? "연결 가능" : "연결 차단";
-    const checks = (state.plan.checks || []).map((check) => `
-      <li data-status="${escapeHtml(check.status)}">
-        <span><strong>${escapeHtml(check.label)}</strong>${escapeHtml(check.detail)}</span>
-      </li>
-    `).join("");
-    const lease = state.plan.lease_preview
-      ? `<div class="resource-pool-lease"><strong>${escapeHtml(state.plan.lease_preview.id)}</strong><span>저장되지 않는 15분 예약 미리보기</span></div>`
-      : "";
-    container.innerHTML = `<ul class="resource-pool-checks">${checks}</ul>${lease}`;
-  }
-
-  function renderBindings() {
-    const container = byId("resourcePoolBindingList");
-    if (!container) return;
-    const bindings = state.payload?.bindings || [];
-    container.innerHTML = bindings.length
-      ? bindings.map((binding) => `
-          <article class="resource-pool-binding">
-            <div><span>가상 디바이스</span><strong>${escapeHtml(binding.data_resource_name)}</strong></div>
-            <span class="resource-pool-binding-arrow" aria-hidden="true">→</span>
-            <div><span>${escapeHtml(binding.input_contract)}</span><strong>${escapeHtml(binding.service_name)}</strong></div>
-            <span class="resource-pool-badge" data-status="${binding.status === "ready" ? "in-use" : "degraded"}">${binding.status === "ready" ? "사용 중" : "확인 필요"}</span>
-          </article>
-        `).join("")
-      : '<p class="resource-pool-empty">현재 사용 중인 가상 디바이스가 없습니다.</p>';
+      ? resources.map(resourceRow).join("")
+      : '<tr><td class="resource-pool-empty" colspan="5">조건에 맞는 가상 디바이스가 없습니다.</td></tr>';
   }
 
   function renderAll() {
     renderSummary();
     renderNotice();
-    renderServices();
-    renderCatalog();
-    renderSelection();
-    renderFlow();
-    renderPlan();
-    renderBindings();
+    renderDevices();
   }
 
   async function loadResourcePool(fetchFn = global.fetch) {
     if (state.loading || typeof fetchFn !== "function") return null;
     state.loading = true;
-    renderSelection();
     try {
       const response = await fetchFn("/state/resource-pool", {cache: "no-store"});
-      if (!response.ok) throw new Error(`resource pool ${response.status}`);
+      if (!response.ok) throw new Error(`virtual devices ${response.status}`);
       state.payload = await response.json();
-      const firstService = state.payload.resources?.find((item) => item.category === "service");
-      if (!state.selectedServiceId && firstService) {
-        state.selectedServiceId = serviceIdFromResource(firstService.id);
-      }
       renderAll();
       return state.payload;
     } catch (error) {
       const notice = byId("resourcePoolError");
       if (notice) {
         notice.hidden = false;
-        notice.textContent = "자원 풀을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        notice.textContent = "가상 디바이스를 불러오지 못했습니다.";
       }
       throw error;
     } finally {
       state.loading = false;
-      renderSelection();
-      renderPlan();
-    }
-  }
-
-  async function previewPlan(fetchFn = global.fetch) {
-    if (!state.selectedServiceId || state.loading || typeof fetchFn !== "function") return null;
-    state.loading = true;
-    state.plan = null;
-    renderSelection();
-    renderPlan();
-    try {
-      const response = await fetchFn("/state/resource-pool/plan", {
-        method: "POST",
-        cache: "no-store",
-        headers: {"Content-Type": "application/json", Accept: "application/json"},
-        body: JSON.stringify({
-          service_id: state.selectedServiceId,
-          data_resource_id: state.selectedDataId || null,
-          compute_resource_id: state.selectedComputeId || null,
-        }),
-      });
-      if (!response.ok) throw new Error(`resource plan ${response.status}`);
-      state.plan = await response.json();
-      state.selectedDataId = state.plan.selection?.data_resource_id || state.selectedDataId;
-      state.selectedComputeId = state.plan.selection?.compute_resource_id || state.selectedComputeId;
-      renderAll();
-      return state.plan;
-    } catch (error) {
-      const container = byId("resourcePoolPlanResult");
-      if (container) container.innerHTML = '<p class="resource-pool-empty">연결 계획을 검증하지 못했습니다. 관측 상태를 새로고침해 주세요.</p>';
-      throw error;
-    } finally {
-      state.loading = false;
-      renderSelection();
-      renderPlan();
     }
   }
 
   function bindControls() {
     byId("resourcePoolSearch")?.addEventListener("input", (event) => {
       state.search = event.target.value || "";
-      renderCatalog();
+      renderDevices();
     });
     byId("resourcePoolStatusFilter")?.addEventListener("change", (event) => {
       state.status = event.target.value || "";
-      renderCatalog();
-    });
-    document.querySelectorAll("[data-pool-category]").forEach((button) => {
-      button.addEventListener("click", () => {
-        state.category = button.dataset.poolCategory || "";
-        document.querySelectorAll("[data-pool-category]").forEach((item) => {
-          const active = item === button;
-          item.classList.toggle("active", active);
-          item.setAttribute("aria-pressed", active ? "true" : "false");
-        });
-        renderCatalog();
-      });
-    });
-    byId("resourcePoolPlanButton")?.addEventListener("click", () => {
-      previewPlan().catch(() => undefined);
+      renderDevices();
     });
     byId("refreshButton")?.addEventListener("click", () => {
       if (document.body.dataset.dashboardPage === "resource-pool") {
@@ -396,13 +211,13 @@
   global.EdgeResourcePool = {
     filterResources,
     resourceUsage,
+    sortVirtualDevices,
     statusLabel,
     loadResourcePool,
-    previewPlan,
   };
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {filterResources, resourceUsage, statusLabel};
+    module.exports = {filterResources, resourceUsage, sortVirtualDevices, statusLabel};
   }
   if (typeof document !== "undefined") {
     if (document.readyState === "loading") {

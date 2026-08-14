@@ -1,7 +1,12 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const {filterResources, resourceUsage, statusLabel} = require("../app/static/resource-pool.js");
+const {
+  filterResources,
+  resourceUsage,
+  sortVirtualDevices,
+  statusLabel,
+} = require("../app/static/resource-pool.js");
 
 const resources = [
   {
@@ -61,4 +66,27 @@ test("resource pool distinguishes virtual devices in use from available devices"
     filterResources(resources, {category: "data", status: "available"}),
     [],
   );
+});
+
+test("virtual device inventory puts used inputs first", () => {
+  const available = {...resources[0], id: "data:available", name: "가용 입력", current_bindings: []};
+  const used = {...resources[0], id: "data:used", name: "사용 입력"};
+
+  assert.deepEqual(
+    sortVirtualDevices([available, used]).map((item) => item.id),
+    ["data:used", "data:available"],
+  );
+});
+
+test("virtual device search includes physical source and resource names", () => {
+  const device = {
+    ...resources[0],
+    metadata: {
+      physical_device_id: "arduino-001",
+      resource_names: ["acceleration_x_raw"],
+    },
+  };
+
+  assert.equal(filterResources([device], {search: "arduino-001"}).length, 1);
+  assert.equal(filterResources([device], {search: "acceleration_x_raw"}).length, 1);
 });

@@ -121,28 +121,30 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">운영 현황<" in html
     assert ">디바이스<" in html
     assert ">장비 관리<" in html
-    assert ">자원 풀<" in html
+    assert ">가상 디바이스<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
 
 
-def test_dashboard_resource_pool_is_read_only_and_responsive() -> None:
+def test_dashboard_virtual_device_inventory_is_read_only_and_responsive() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
     css = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.css").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/resource-pool.js").read_text()
 
     assert 'data-page="resource-pool"' in html
     assert 'id="resourcePoolSearch"' in html
-    assert 'id="resourcePoolPlanButton"' in html
-    assert "읽기 전용" in html
-    assert "dry-run" in html
+    assert 'class="resource-pool-table"' in html
+    assert "원본 장비" in html
+    assert "사용 서비스" in html
+    assert 'id="resourcePoolPlanButton"' not in html
+    assert "서비스 카탈로그" not in html
+    assert "연결 계획" not in html
     assert 'fetchFn("/state/resource-pool"' in js
-    assert 'fetchFn("/state/resource-pool/plan"' in js
+    assert 'fetchFn("/state/resource-pool/plan"' not in js
     assert "Kubernetes apply" not in js
-    assert "@media (max-width: 1220px)" in css
-    assert "@media (max-width: 900px)" in css
-    assert "@media (max-width: 640px)" in css
+    assert "@media (max-width: 720px)" in css
+    assert "@media (max-width: 420px)" in css
     assert "overflow-wrap: anywhere;" in css
 
 
