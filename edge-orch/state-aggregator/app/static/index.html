@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=service-catalog-v1-20260813" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=stage-placement-v1-20260814" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
@@ -353,19 +353,19 @@
                       <span class="service-dag-legend"><i></i>현재 실행 단계</span>
                     </div>
                     <div id="serviceOperationsDag" class="service-dag-canvas" aria-label="센서 수집부터 결과 저장까지의 실행 DAG">
-                      <svg class="service-dag-edges" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
+                      <svg class="service-dag-edges" viewBox="0 0 1000 430" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                           <marker id="serviceDagArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 0 L 10 5 L 0 10 z"></path>
                           </marker>
                         </defs>
-                        <path d="M145 195 H205"></path>
-                        <path d="M345 195 H405"></path>
-                        <path d="M545 195 H590"></path>
-                        <path d="M590 195 C625 195 615 95 650 95"></path>
-                        <path d="M590 195 C625 195 615 295 650 295"></path>
-                        <path d="M790 95 C830 95 820 195 855 195"></path>
-                        <path d="M790 295 C830 295 820 195 855 195"></path>
+                        <path d="M142 220 H180"></path>
+                        <path d="M312 220 H350"></path>
+                        <path d="M482 220 H520"></path>
+                        <path d="M652 220 C675 220 667 118 690 118"></path>
+                        <path d="M652 220 C675 220 667 358 690 358"></path>
+                        <path d="M822 118 C848 118 832 220 858 220"></path>
+                        <path d="M822 358 C848 358 832 220 858 220"></path>
                       </svg>
 
                       <div id="serviceDagAugmentationEvent" class="service-dag-augmentation-event" data-state="observing" hidden>
@@ -376,33 +376,40 @@
                       <article id="serviceDemoStepInput" class="service-dag-node service-dag-collect" data-state="pending" data-current="false">
                         <span class="service-dag-node-index">01</span>
                         <div><small>SENSOR</small><strong id="serviceDemoStepInputLabel">센서 수집</strong><p id="serviceDemoStepInputEvidence">입력 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepInputLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepInputExecutor">device service</em></footer>
                         <b><i></i><span id="serviceDagFreshness">freshness 대기</span></b>
                       </article>
                       <article id="serviceDemoStepAlignment" class="service-dag-node service-dag-preprocess" data-state="pending" data-current="false">
                         <span class="service-dag-node-index">02</span>
                         <div><small>TRANSFORM</small><strong id="serviceDemoStepAlignmentLabel">전처리</strong><p id="serviceDemoStepAlignmentEvidence">정렬 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepAlignmentLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepAlignmentExecutor">service workload</em></footer>
                       </article>
                       <article id="serviceDemoStepFeatures" class="service-dag-node service-dag-features" data-state="pending" data-current="false">
                         <span class="service-dag-node-index">03</span>
                         <div><small>FEATURES</small><strong id="serviceDemoStepFeaturesLabel">특징 추출</strong><p id="serviceDemoStepFeaturesEvidence">window 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepFeaturesLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepFeaturesExecutor">service workload</em></footer>
                       </article>
                       <article id="serviceDemoStepInference" class="service-dag-node service-dag-inference" data-state="pending" data-current="false">
                         <span class="service-dag-node-index">04</span>
                         <div><small>INFERENCE</small><strong id="serviceDemoStepInferenceLabel">AI 추론</strong><p id="serviceDemoStepInferenceEvidence">모델 대기</p></div>
+                        <footer><span>CURRENTLY ON</span><strong id="serviceDemoStepInferenceLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepInferenceExecutor">service workload</em></footer>
                       </article>
                       <article id="serviceDagDevice1" class="service-dag-node service-dag-device" data-state="ready" data-traffic="idle">
                         <span class="service-dag-node-index">D1</span>
                         <div><small>EDGE TARGET</small><strong id="serviceDagDevice1Label">Device1</strong><p id="serviceDagDevice1Description">Jetson · edge-local</p></div>
+                        <footer><span>NODE</span><strong id="serviceDagDevice1Node">etri-dev0001-jetorn</strong></footer>
                         <b><span>처리 비율</span><strong id="serviceDeviceRatio">—</strong></b>
                       </article>
                       <article id="serviceDagServer1" class="service-dag-node service-dag-server" data-state="pending" data-traffic="idle">
                         <span class="service-dag-node-index">S1</span>
                         <div><small>HAMi GPU TARGET</small><strong id="serviceDagServer1Label">Server GPU</strong><p id="serviceDagServer1Description">CUDA 준비 확인 · 승인 기반 endpoint</p></div>
+                        <footer><span>NODE</span><strong id="serviceDagServer1Node">etri-ser0002-cgnmsb</strong></footer>
                         <b><span>처리 비율</span><strong id="serviceServerRatio">—</strong></b>
                       </article>
                       <article id="serviceDemoStepResult" class="service-dag-node service-dag-store" data-state="pending" data-current="false">
                         <span class="service-dag-node-index">05</span>
                         <div><small>PERSIST</small><strong id="serviceDemoStepResultLabel">결과 저장</strong><p id="serviceDemoStepResultEvidence">결과 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepResultLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepResultExecutor">service workload</em></footer>
                       </article>
                     </div>
                     <div class="service-routing-ratio" aria-label="Device1과 Server GPU 처리 비율">
@@ -1687,7 +1694,7 @@
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-        <script src="/static/service-demo.js?v=service-catalog-v1-20260813"></script>
+        <script src="/static/service-demo.js?v=stage-placement-v1-20260814"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

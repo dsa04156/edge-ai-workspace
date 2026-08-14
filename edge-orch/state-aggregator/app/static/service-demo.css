@@ -514,7 +514,7 @@
 }
 
 .service-operations-subhead {
-  min-width: 820px;
+  min-width: 1000px;
   height: 58px;
   padding: 0 15px;
   border-bottom: 1px solid var(--console-border);
@@ -538,8 +538,8 @@
 
 .service-dag-canvas {
   position: relative;
-  min-width: 820px;
-  height: 390px;
+  min-width: 1000px;
+  height: 430px;
   overflow: hidden;
   background-image:
     linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
@@ -574,8 +574,8 @@
   display: grid;
   grid-template-columns: 25px minmax(0, 1fr);
   gap: 8px;
-  width: 112px;
-  min-height: 82px;
+  width: 132px;
+  min-height: 136px;
   padding: 10px;
   border: 1px solid #2c3747;
   border-radius: 7px;
@@ -638,6 +638,40 @@
   font-weight: 750;
 }
 
+.service-dag-node > footer {
+  grid-column: 1 / -1;
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(148, 163, 184, 0.13);
+  font-style: normal;
+}
+
+.service-dag-node > footer span {
+  color: var(--console-dim);
+  font: 850 7px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.09em;
+}
+
+.service-dag-node > footer strong,
+.service-dag-node > footer em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-dag-node > footer strong {
+  color: #dbeafe;
+  font: 800 9px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.service-dag-node > footer em {
+  color: var(--console-muted);
+  font: 650 8px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
 .service-dag-node > b > i {
   width: 6px;
   height: 6px;
@@ -678,13 +712,13 @@
   border-color: rgba(56, 189, 248, 0.55);
 }
 
-.service-dag-collect { left: 1%; top: 154px; }
-.service-dag-preprocess { left: 18%; top: 154px; }
-.service-dag-features { left: 35%; top: 154px; }
-.service-dag-inference { left: 52%; top: 154px; }
-.service-dag-device { left: 70%; top: 54px; }
-.service-dag-server { left: 70%; top: 254px; }
-.service-dag-store { right: 1%; top: 154px; }
+.service-dag-collect { left: 10px; top: 152px; }
+.service-dag-preprocess { left: 180px; top: 152px; }
+.service-dag-features { left: 350px; top: 152px; }
+.service-dag-inference { left: 520px; top: 152px; }
+.service-dag-device { left: 690px; top: 50px; }
+.service-dag-server { left: 690px; top: 290px; }
+.service-dag-store { left: 858px; top: 152px; }
 
 .service-dag-device > b strong,
 .service-dag-server > b strong {
@@ -724,7 +758,7 @@
   grid-template-columns: auto minmax(160px, 1fr) auto;
   gap: 12px;
   align-items: center;
-  min-width: 820px;
+  min-width: 1000px;
   min-height: 61px;
   padding: 10px 15px;
   border-top: 1px solid var(--console-border);

@@ -37,6 +37,12 @@ class ServiceStageDescriptor(CatalogModel):
     label: str = Field(min_length=1)
     kind: Literal["source", "transform", "features", "inference", "sink"]
     depends_on: list[str] = Field(default_factory=list)
+    executions: list["ServiceStageExecutionDescriptor"] = Field(min_length=1)
+
+
+class ServiceStageExecutionDescriptor(CatalogModel):
+    target_slot: Literal["Device1", "Server1"]
+    executor: str = Field(min_length=1)
 
 
 class ServiceTargetDescriptor(CatalogModel):
@@ -70,12 +76,25 @@ class ServiceGraphDescriptor(CatalogModel):
                 raise ValueError(
                     f"stage {stage.stage_id!r} depends on unknown stages {sorted(unknown)!r}"
                 )
+            execution_slots = [execution.target_slot for execution in stage.executions]
+            if len(execution_slots) != len(set(execution_slots)):
+                raise ValueError(
+                    f"stage {stage.stage_id!r} execution target slots must be unique"
+                )
         target_ids = [target.target_id for target in self.targets]
         if len(target_ids) != len(set(target_ids)):
             raise ValueError("service graph targetId values must be unique")
         target_slots = [target.slot for target in self.targets]
         if set(target_slots) != {"Device1", "Server1"} or len(target_slots) != 2:
             raise ValueError("linear-inference-split-v1 requires Device1 and Server1 targets")
+        for stage in self.stages:
+            unknown_targets = {
+                execution.target_slot for execution in stage.executions
+            } - set(target_slots)
+            if unknown_targets:
+                raise ValueError(
+                    f"stage {stage.stage_id!r} uses unknown targets {sorted(unknown_targets)!r}"
+                )
 
         dependencies = {stage.stage_id: set(stage.depends_on) for stage in self.stages}
         visiting: set[str] = set()

@@ -7,6 +7,7 @@ const {
   buildServiceAugmentationView,
   buildServiceOperationsTimelineView,
   buildServiceRoutingView,
+  buildServiceStagePlacementView,
   buildServiceDemoAlertView,
   buildServiceCatalogView,
   buildServiceInventoryView,
@@ -23,6 +24,45 @@ const {
   renderServiceAugmentation,
   applyServiceDescriptor,
 } = require("../app/static/service-demo.js");
+
+
+test("maps every DAG stage to its declared live execution location", () => {
+  const descriptor = {
+    graph: {
+      targets: [
+        {slot: "Device1", label: "Device1", node: "etri-dev0001-jetorn"},
+        {slot: "Server1", label: "Server GPU", node: "etri-ser0002-cgnmsb"},
+      ],
+      stages: [
+        {slot: "Input", executions: [{target_slot: "Device1", executor: "device-serial-jetson"}]},
+        {slot: "Alignment", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+        {slot: "Features", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+        {slot: "Inference", executions: [
+          {target_slot: "Device1", executor: "sensor-anomaly-demo"},
+          {target_slot: "Server1", executor: "sensor-anomaly-inference-server1"},
+        ]},
+        {slot: "Result", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+      ],
+    },
+  };
+  const local = buildServiceStagePlacementView({
+    binding: {node: "etri-dev0001-jetorn"},
+    inference_routing: {effective_target: "edge-local"},
+  }, descriptor);
+  const remote = buildServiceStagePlacementView({
+    binding: {node: "etri-dev0001-jetorn"},
+    inference_routing: {effective_target: "server1"},
+  }, descriptor);
+
+  assert.equal(local.Input.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(local.Input.executor, "device-serial-jetson");
+  assert.equal(local.Alignment.executor, "sensor-anomaly-demo");
+  assert.equal(local.Features.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(local.Inference.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(remote.Inference.location, "Server GPU · etri-ser0002-cgnmsb");
+  assert.equal(remote.Inference.executor, "sensor-anomaly-inference-server1");
+  assert.equal(local.Result.executor, "sensor-anomaly-demo");
+});
 
 
 test("builds an observed Device1 and Server1 traffic split from persisted results", () => {
@@ -617,6 +657,9 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoDecisionLabel", "serviceDemoDecisionSummary", "serviceDemoScoreMeter",
     "serviceDemoStepInput", "serviceDemoStepAlignment", "serviceDemoStepFeatures",
     "serviceDemoStepInference", "serviceDemoStepResult", "serviceDemoHistoryRail",
+    "serviceDemoStepInputLocation", "serviceDemoStepAlignmentLocation",
+    "serviceDemoStepFeaturesLocation", "serviceDemoStepInferenceLocation",
+    "serviceDemoStepResultLocation", "serviceDagDevice1Node", "serviceDagServer1Node",
     "serviceDemoHistorySummary", "serviceDemoFrames",
     "serviceAugmentationState", "serviceAugmentationSummary",
     "serviceAugmentationEquipmentState", "serviceAugmentationMetrics",
@@ -630,8 +673,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=service-catalog-v1-20260813/);
-  assert.match(html, /service-demo\.js\?v=service-catalog-v1-20260813/);
+  assert.match(html, /service-demo\.css\?v=stage-placement-v1-20260814/);
+  assert.match(html, /service-demo\.js\?v=stage-placement-v1-20260814/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
@@ -641,6 +684,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /\.service-catalog-row/);
   assert.match(css, /\.service-operations-cockpit/);
   assert.match(css, /\.service-dag-node\[data-current="true"\]/);
+  assert.match(css, /\.service-dag-node > footer/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

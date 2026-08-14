@@ -80,12 +80,74 @@ function buildServiceOperationsTimelineView(augmentation = {}, alertData = {}) {
 
 const serviceOperationsObservations = {augmentation: {}, alerts: {}};
 const serviceInventoryById = new Map();
+let serviceOperationsDescriptor = null;
+let serviceOperationsLastData = null;
 const serviceOperationsEndpoints = {
   state: "/state/service-demo",
   results: "/state/service-demo/results?limit=12",
   alerts: "/state/service-demo/alerts?limit=10",
   augmentation: "/state/service-demo/augmentation",
 };
+
+
+function buildServiceStagePlacementView(data = {}, descriptor = {}) {
+  const graph = descriptor?.graph || {};
+  const binding = data.binding || {};
+  const targets = new Map((Array.isArray(graph.targets) ? graph.targets : []).map((target) => (
+    [target.slot, target]
+  )));
+  if (!targets.has("Device1")) {
+    targets.set("Device1", {
+      slot: "Device1",
+      label: "Device1",
+      node: serviceDemoText(binding.node, "위치 미확인"),
+    });
+  }
+  if (!targets.has("Server1")) {
+    targets.set("Server1", {slot: "Server1", label: "Server GPU", node: "위치 미확인"});
+  }
+  const stages = new Map((Array.isArray(graph.stages) ? graph.stages : []).map((stage) => (
+    [stage.slot, stage]
+  )));
+  const effectiveTarget = data.inference_routing?.effective_target === "server1"
+    || data.latest?.inference_target === "server1" ? "Server1" : "Device1";
+  const fallbackExecutors = {
+    Input: serviceDemoText(binding.device_service, "EdgeX Device Service"),
+    Alignment: serviceDemoText(binding.consumer, "service workload"),
+    Features: serviceDemoText(binding.consumer, "service workload"),
+    Inference: effectiveTarget === "Server1"
+      ? "sensor-anomaly-inference-server1"
+      : serviceDemoText(binding.consumer, "service workload"),
+    Result: serviceDemoText(binding.consumer, "service workload"),
+  };
+
+  return Object.fromEntries(["Input", "Alignment", "Features", "Inference", "Result"].map((slot) => {
+    const stage = stages.get(slot) || {};
+    const executions = Array.isArray(stage.executions) ? stage.executions : [];
+    const desiredTarget = slot === "Inference" ? effectiveTarget : "Device1";
+    const execution = executions.find((item) => item.target_slot === desiredTarget)
+      || executions[0]
+      || {target_slot: desiredTarget, executor: fallbackExecutors[slot]};
+    const target = targets.get(execution.target_slot) || targets.get(desiredTarget);
+    return [slot, {
+      targetSlot: execution.target_slot,
+      location: `${serviceDemoText(target?.label, execution.target_slot)} · ${serviceDemoText(target?.node, "위치 미확인")}`,
+      executor: serviceDemoText(execution.executor, fallbackExecutors[slot]),
+    }];
+  }));
+}
+
+
+function renderServiceStagePlacements(data, descriptor, documentRef = document) {
+  const placements = buildServiceStagePlacementView(data, descriptor);
+  Object.entries(placements).forEach(([slot, placement]) => {
+    const location = documentRef.getElementById(`serviceDemoStep${slot}Location`);
+    const executor = documentRef.getElementById(`serviceDemoStep${slot}Executor`);
+    if (location) location.textContent = placement.location;
+    if (executor) executor.textContent = placement.executor;
+  });
+  return placements;
+}
 
 
 function serviceDemoPipeline(data, latest, model) {
@@ -299,6 +361,7 @@ function appendCatalogFact(documentRef, button, label, values, ids = []) {
 
 function applyServiceDescriptor(service, documentRef = document) {
   const descriptor = service?.descriptor || {};
+  serviceOperationsDescriptor = descriptor;
   const graph = descriptor.graph || {};
   const text = (id, value) => {
     const element = documentRef.getElementById(id);
@@ -313,6 +376,7 @@ function applyServiceDescriptor(service, documentRef = document) {
   (Array.isArray(graph.targets) ? graph.targets : []).forEach((target) => {
     text(`serviceDag${target.slot}Label`, target.label);
     text(`serviceDag${target.slot}Description`, target.description);
+    text(`serviceDag${target.slot}Node`, target.node);
   });
   const observability = descriptor.observability || {};
   if (observability.adapter === "sensor-anomaly-v1") {
@@ -320,6 +384,9 @@ function applyServiceDescriptor(service, documentRef = document) {
     serviceOperationsEndpoints.results = observability.results_path || serviceOperationsEndpoints.results;
     serviceOperationsEndpoints.alerts = observability.alerts_path || serviceOperationsEndpoints.alerts;
     serviceOperationsEndpoints.augmentation = observability.augmentation_path || serviceOperationsEndpoints.augmentation;
+  }
+  if (serviceOperationsLastData) {
+    renderServiceStagePlacements(serviceOperationsLastData, descriptor, documentRef);
   }
 }
 
@@ -416,6 +483,7 @@ function renderServiceCatalog(data, documentRef = document) {
 
 function renderServiceDemo(data, documentRef = document) {
   const view = buildServiceDemoView(data);
+  serviceOperationsLastData = data;
   const text = (id, value) => {
     const element = documentRef.getElementById(id);
     if (element) element.textContent = value;
@@ -464,6 +532,7 @@ function renderServiceDemo(data, documentRef = document) {
     }
     text(`serviceDemoStep${step.id}Evidence`, step.evidence);
   });
+  renderServiceStagePlacements(data, serviceOperationsDescriptor || {}, documentRef);
   const error = text("serviceDemoError", view.error);
   if (error) error.hidden = !view.error;
   renderServiceCatalog(data, documentRef);
@@ -876,6 +945,7 @@ if (typeof module !== "undefined") {
     buildServiceDemoView,
     buildServiceOperationsTimelineView,
     buildServiceRoutingView,
+    buildServiceStagePlacementView,
     refreshServiceDemo,
     refreshServiceDemoAlerts,
     refreshServiceDemoResults,

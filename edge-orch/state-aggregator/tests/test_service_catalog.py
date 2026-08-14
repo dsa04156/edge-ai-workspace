@@ -40,6 +40,11 @@ def test_checked_in_service_catalog_loads_current_service() -> None:
         "Result",
     ]
     assert {target.slot for target in service.graph.targets} == {"Device1", "Server1"}
+    assert [execution.target_slot for execution in service.graph.stages[3].executions] == [
+        "Device1",
+        "Server1",
+    ]
+    assert service.graph.stages[0].executions[0].executor == "device-serial-jetson"
 
 
 def test_service_catalog_rejects_duplicate_service_ids(tmp_path: Path) -> None:

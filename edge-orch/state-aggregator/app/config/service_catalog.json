@@ -35,35 +35,51 @@
             "slot": "Input",
             "label": "센서 수집",
             "kind": "source",
-            "depends_on": []
+            "depends_on": [],
+            "executions": [
+              {"target_slot": "Device1", "executor": "device-serial-jetson"}
+            ]
           },
           {
             "stage_id": "align",
             "slot": "Alignment",
             "label": "전처리",
             "kind": "transform",
-            "depends_on": ["collect"]
+            "depends_on": ["collect"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
           },
           {
             "stage_id": "features",
             "slot": "Features",
             "label": "특징 추출",
             "kind": "features",
-            "depends_on": ["align"]
+            "depends_on": ["align"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
           },
           {
             "stage_id": "inference",
             "slot": "Inference",
             "label": "AI 추론",
             "kind": "inference",
-            "depends_on": ["features"]
+            "depends_on": ["features"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"},
+              {"target_slot": "Server1", "executor": "sensor-anomaly-inference-server1"}
+            ]
           },
           {
             "stage_id": "store",
             "slot": "Result",
             "label": "결과 저장",
             "kind": "sink",
-            "depends_on": ["inference"]
+            "depends_on": ["inference"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
           }
         ],
         "targets": [
@@ -78,10 +94,10 @@
           {
             "target_id": "server1",
             "slot": "Server1",
-            "label": "Server1",
+            "label": "Server GPU",
             "node": "etri-ser0002-cgnmsb",
             "mode": "approval-gated",
-            "description": "승인 기반 endpoint"
+            "description": "CUDA · HAMi · 승인 기반 endpoint"
           }
         ]
       },
