@@ -7,7 +7,7 @@ RESOURCE_REGISTRY: tuple[VirtualResourceRegistryEntry, ...] = (
     VirtualResourceRegistryEntry(
         id="server1-sensor-anomaly-inference",
         display_name="server1 Sensor Anomaly Inference",
-        node="etri-ser0001-cg0msb",
+        node="etri-ser0002-cgnmsb",
         resource_type="gpu",
         stage_type="ai_inference",
         capabilities=[

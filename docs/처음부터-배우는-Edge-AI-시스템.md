@@ -18,7 +18,7 @@
 | EdgeX | 선생님에게 숫자를 전달하는 반장 |
 | AI 서비스 | 숫자를 보고 “평소와 다른가?” 생각하는 선생님 |
 | Device1 | 교실 안의 작은 컴퓨터 |
-| Server1 GPU | 어려운 계산을 도와주는 큰 컴퓨터 |
+| Server GPU | 어려운 계산을 도와주는 큰 컴퓨터 |
 | 대시보드 | 모든 상황을 한눈에 보는 상황판 |
 | 자원 증강 | 작은 컴퓨터가 바쁠 때 큰 컴퓨터의 도움을 준비하는 것 |
 
@@ -44,15 +44,16 @@ Device1은 센서 가까이에 있는 작은 컴퓨터다. 현재 이름은
 Device1은 센서 값을 읽고, 값을 정리하고, 기본 AI 계산을 하고, 결과를 저장하고, 자기
 CPU와 메모리가 얼마나 바쁜지 알려 준다.
 
-### Server1 GPU
+### Server GPU
 
-Server1은 Device1보다 큰 서버다. 현재 이름은 `etri-ser0001-cg0msb`다.
+Server GPU는 Device1보다 큰 서버다. 현재 여유 GPU가 확인된 실제 노드는
+`etri-ser0002-cgnmsb`다. API의 `server1` 이름은 기존 호환을 위해 유지한다.
 
-Server1의 AI 추론 Pod는 HAMi를 통해 GPU 일부를 배정받는다. GPU backend 이름은
+Server GPU의 AI 추론 Pod는 HAMi를 통해 GPU 일부를 배정받는다. GPU backend 이름은
 `cuda-online-baseline`, 모델 버전은 `cuda-baseline-1.0.0`이다. CUDA는 NVIDIA GPU에서
 계산을 실행하는 기술 이름이다.
 
-Server1은 다음 세 가지가 모두 맞아야 “준비됨”이 된다.
+Server GPU는 다음 세 가지가 모두 맞아야 “준비됨”이 된다.
 
 1. HAMi가 GPU를 실제로 배정한다.
 2. 프로그램이 CUDA 장치를 연다.
@@ -89,7 +90,7 @@ Kubernetes는 센서 값의 주인이 아니다. 컴퓨터와 프로그램의 �
 
 HAMi는 여러 프로그램이 GPU를 나누어 쓸 수 있게 도와주는 GPU 스케줄러다.
 
-현재 Server1 AI Pod는 다음처럼 GPU를 요청한다.
+현재 Server GPU AI Pod는 다음처럼 GPU를 요청한다.
 
 | 요청 | 뜻 |
 |---|---|
@@ -125,7 +126,7 @@ AI 서비스의 결과 ───┘
 ```text
 센서 수집 → 전처리 → 특징 추출 → AI 추론 → 결과 저장 → 대시보드
                                       ├→ Device1 CPU
-                                      └→ Server1 GPU 후보
+                                      └→ Server GPU 후보
 ```
 
 ### 1단계: 센서 수집
@@ -153,7 +154,7 @@ Device Service가 Arduino에서 X/Y/Z/온도를 읽는다. 각 값에는 측정 
 처음 30개 값으로 “평소 모습”을 준비한다. 그 뒤 새 값이 평소와 얼마나 다른지 점수를 낸다.
 진동 점수 70%와 온도 점수 30%를 합친다.
 
-기본 경로는 Device1 CPU다. Server1 후보는 같은 설명 가능한 기준선 계산의 점수 계산 부분을
+기본 경로는 Device1 CPU다. Server GPU 후보는 같은 설명 가능한 기준선 계산의 점수 계산 부분을
 CUDA GPU에서 실행한다.
 
 ### 5단계: 결과 저장
@@ -167,7 +168,7 @@ CUDA GPU에서 실행한다.
 
 - 센서가 신선한지
 - 모델이 준비됐는지
-- Device1과 Server1이 몇 건씩 처리했는지
+- Device1과 Server GPU가 몇 건씩 처리했는지
 - CPU, GPU, latency, backlog, throughput
 - 설비 이상 알림
 - 자원 증강 상태와 이유
@@ -189,7 +190,7 @@ CPU·메모리·GPU가 바쁨
 
 ## 5. 자원 증강은 언제 권고하나요?
 
-자원 증강은 “Server1 GPU의 도움을 받을 준비를 하자”는 뜻이다. 현재는 `observed-only`라서
+자원 증강은 “Server GPU의 도움을 받을 준비를 하자”는 뜻이다. 현재는 `observed-only`라서
 화면에 권고만 표시하고 자동 전환하지 않는다.
 
 다음 문을 모두 통과해야 한다.
@@ -200,9 +201,9 @@ CPU·메모리·GPU가 바쁨
 4. 자원과 서비스 지표가 최신이다.
 5. CPU·메모리·GPU 중 하나의 압박이 5분 이어졌다.
 6. 처리 지연, backlog, throughput 저하 중 하나가 3분 이어졌다.
-7. Server1 Pod와 endpoint가 Ready다.
-8. Server1 CUDA 모델이 Ready다.
-9. Server1에 배정 가능한 GPU 몫이 남아 있다.
+7. Server GPU Pod와 endpoint가 Ready다.
+8. Server GPU CUDA 모델이 Ready다.
+9. Server GPU 노드에 배정 가능한 GPU 몫이 남아 있다.
 
 모두 통과하면 `RECOMMENDED`, 즉 “증강 권고”가 된다.
 
@@ -236,8 +237,8 @@ http://aggregator.192.168.0.56.sslip.io
 1. 서비스 목록에서 `펌프·모터 진동·온도 이상감지`를 찾는다.
 2. 센서 freshness가 `fresh`인지 본다.
 3. DAG에서 밝게 표시된 현재 단계를 본다.
-4. AI 추론 상자의 Device1과 Server1 GPU 분기를 본다.
-5. Device1/Server1 처리 비율을 본다.
+4. AI 추론 상자의 Device1과 Server GPU 분기를 본다.
+5. Device1/Server GPU 처리 비율을 본다.
 6. CPU, GPU, latency, backlog, throughput을 본다.
 7. 자원 증강 카드의 상태와 실패한 gate를 본다.
 8. 오른쪽 타임라인에서 이상 알림과 증강 이벤트의 시간을 본다.
@@ -257,15 +258,15 @@ http://aggregator.192.168.0.56.sslip.io
 항상 왼쪽에서 오른쪽 순서로 확인한다.
 
 ```text
-센서 → EdgeX → Device1 서비스 → Prometheus → Server1 GPU → 대시보드
+센서 → EdgeX → Device1 서비스 → Prometheus → Server GPU → 대시보드
 ```
 
 1. 센서의 최신 값이 EdgeX에 있는지 본다.
 2. Device Service와 AI Pod가 Ready인지 본다.
 3. AI 모델이 warm-up을 끝내고 Ready인지 본다.
 4. Prometheus 지표의 시각이 최신인지 본다.
-5. Server1 Pod에 HAMi GPU 할당 표시가 있는지 본다.
-6. Server1 준비 API에 `accelerator: cuda`와 GPU 이름이 나오는지 본다.
+5. Server GPU Pod에 HAMi GPU 할당 표시가 있는지 본다.
+6. Server GPU 준비 API에 `accelerator: cuda`와 GPU 이름이 나오는지 본다.
 7. 대시보드의 `BLOCKED` reason과 실패 gate를 본다.
 
 더 자세한 명령은 [현재 데모 운영 절차](ops/현재-데모-운영-절차.md)를 따른다.
@@ -278,14 +279,14 @@ http://aggregator.192.168.0.56.sslip.io
 - 센서 freshness를 판단한다.
 - Device1에서 기준선 이상감지를 실행한다.
 - 결과와 알림을 저장한다.
-- Server1에 HAMi GPU 추론 후보를 준비한다.
+- Server GPU에 HAMi GPU 추론 후보를 준비한다.
 - 자원 증강 조건과 차단 이유를 화면에 보여준다.
 - DAG와 운영 지표를 대시보드에서 본다.
 
 ### 아직 자동으로 하지 않는 것
 
 - AI가 마음대로 Kubernetes Pod를 늘리지 않는다.
-- 운영자 승인 없이 Server1로 요청을 보내지 않는다.
+- 운영자 승인 없이 Server GPU로 요청을 보내지 않는다.
 - 센서나 액추에이터에 쓰기 명령을 보내지 않는다.
 - 옥동 현장 고장 종류를 완성된 정확도로 분류하지 않는다.
 - 모든 장비를 자동 발견하고 등록하지 않는다.

@@ -79,7 +79,7 @@
             "target_id": "server1",
             "slot": "Server1",
             "label": "Server1",
-            "node": "etri-ser0001-cg0msb",
+            "node": "etri-ser0002-cgnmsb",
             "mode": "approval-gated",
             "description": "승인 기반 endpoint"
           }

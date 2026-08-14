@@ -38,7 +38,6 @@ LATENCY_PRESSURE_MS = 4_000.0
 SCALE_DOWN_LATENCY_MS = 3_000.0
 THROUGHPUT_FLOOR_PER_SECOND = 0.8
 METRIC_FRESH_SECONDS = 60
-SERVER1_NODE = "etri-ser0001-cg0msb"
 
 
 @dataclass(frozen=True)
@@ -406,14 +405,21 @@ def build_service_augmentation_signals(
 def select_server1_candidate(
     resources: list[AugmentationResourceCrd],
 ) -> AugmentationResourceCrd | None:
-    return next(
-        (
-            resource
-            for resource in resources
-            if resource.node.casefold() == SERVER1_NODE
-            and "anomaly_model" in resource.capabilities
+    candidates = [
+        resource
+        for resource in resources
+        if "anomaly_model" in resource.capabilities
+    ]
+    return max(
+        candidates,
+        key=lambda resource: (
+            resource.phase == "Available",
+            resource.endpoint_ready,
+            resource.free_instances,
+            "cuda_inference" in resource.capabilities,
+            resource.node,
         ),
-        None,
+        default=None,
     )
 
 

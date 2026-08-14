@@ -1,6 +1,6 @@
 # server1 observed-only inference candidate
 
-이 구성은 `etri-ser0001-cg0msb`의 observed-only inference 후보 endpoint와
+이 구성은 현재 GPU 여유가 확인된 `etri-ser0002-cgnmsb`의 observed-only inference 후보 endpoint와
 `AugmentationResource` 관측 계약을 준비한다. 상위 `k8s/kustomization.yaml`에 포함되어
 Argo CD가 Pod·Service·NetworkPolicy·후보 CRD를 관리한다. 요청 전환은 활성화하지 않는다.
 
@@ -27,7 +27,7 @@ Docker daemon 없이 `scripts/build-server1-oci.sh`로 linux/amd64 image를 생�
 - 모델 `ready`, `accelerator=cuda`, 입력 `fresh`, server1 CPU·Memory·GPU 여유
 - `AugmentationResource.status.phase=Available`, `endpointReady=true`, `freeInstances>0`
 
-2026-08-13 CPU 기반 선택 overlay에서 다음 observed-only 기준선 증거를 확인했다. 아래 값은
+2026-08-13 `etri-ser0001-cg0msb` CPU 기반 선택 overlay에서 다음 observed-only 기준선 증거를 확인했다. 아래 값은
 GPU 전환 완료 증거가 아니며 GPU image 배포 후 새로 측정해야 한다.
 
 - `etri-ser0001-cg0msb` Pod Ready, restart 0, 위 AMD64 imageID 일치

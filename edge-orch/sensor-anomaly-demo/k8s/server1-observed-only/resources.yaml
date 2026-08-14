@@ -39,7 +39,7 @@ spec:
     spec:
       schedulerName: hami-scheduler
       nodeSelector:
-        kubernetes.io/hostname: etri-ser0001-cg0msb
+        kubernetes.io/hostname: etri-ser0002-cgnmsb
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 15
       securityContext:
@@ -178,7 +178,7 @@ spec:
   displayName: server1 Sensor Anomaly Inference
   resourceType: gpu
   nodeSelector:
-    kubernetes.io/hostname: etri-ser0001-cg0msb
+    kubernetes.io/hostname: etri-ser0002-cgnmsb
   stageTypes:
     - ai_inference
   capabilities:

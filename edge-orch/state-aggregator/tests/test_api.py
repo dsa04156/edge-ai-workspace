@@ -350,12 +350,12 @@ def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatc
                     "namespace": "edgex-edge",
                     "service": "sensor-anomaly-inference-server1",
                     "pod_count": 1,
-                    "nodes": ["etri-ser0001-cg0msb"],
+                    "nodes": ["etri-ser0002-cgnmsb"],
                     "containers": [
                         {
                             "pod": "sensor-anomaly-inference-server1-abc",
                             "container": "sensor-anomaly-inference",
-                            "node": "etri-ser0001-cg0msb",
+                            "node": "etri-ser0002-cgnmsb",
                         }
                     ],
                 }
@@ -364,8 +364,8 @@ def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatc
 
     monkeypatch.setattr(service, "get_resource_profile_state", fake_resource_state)
     service.store.nodes = {
-        "etri-ser0001-cg0msb": NodeState(
-            hostname="etri-ser0001-cg0msb",
+        "etri-ser0002-cgnmsb": NodeState(
+            hostname="etri-ser0002-cgnmsb",
             instance="192.168.0.56:9100",
             node_type="server",
             collected_at=datetime.now(timezone.utc),
@@ -386,7 +386,7 @@ def test_virtual_resources_observe_server1_sensor_inference_candidate(monkeypatc
         for item in response.json()["resources"]
         if item["id"] == "server1-sensor-anomaly-inference"
     )
-    assert candidate["node"] == "etri-ser0001-cg0msb"
+    assert candidate["node"] == "etri-ser0002-cgnmsb"
     assert candidate["observed_instances"] == 1
     assert candidate["free_instances"] == 1
     assert candidate["status"] == "idle"

@@ -38,7 +38,7 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
     pod = deployment["spec"]["template"]
     container = pod["spec"]["containers"][0]
 
-    assert pod["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "etri-ser0001-cg0msb"
+    assert pod["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "etri-ser0002-cgnmsb"
     assert pod["spec"]["schedulerName"] == "hami-scheduler"
     assert container["readinessProbe"]["httpGet"]["path"] == "/api/v1/augmentation-readyz"
     assert container["image"] == (
@@ -62,7 +62,7 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
         "app.kubernetes.io/name": "sensor-anomaly-inference-server1"
     }
     assert candidate["spec"]["runtimeRef"]["serviceSelector"] == service["spec"]["selector"]
-    assert candidate["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "etri-ser0001-cg0msb"
+    assert candidate["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "etri-ser0002-cgnmsb"
     assert candidate["spec"]["resourceType"] == "gpu"
     assert {"cuda_inference", "hami_vgpu"}.issubset(candidate["spec"]["capabilities"])
     assert "automaticOffloading" not in yaml.safe_dump(resources)
