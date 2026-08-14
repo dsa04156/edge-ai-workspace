@@ -40,8 +40,9 @@ readiness가 통과한다. evaluator의 `RECOMMENDED` 이후 운영자가 승인
 `k8s-overlays/server1-approved-offload`를 별도 GitOps 변경으로 사용한다.
 
 Jetson 운영 이미지는 `scripts/build-edge-arm64-oci.sh`, server1 이미지는
-`scripts/build-server1-oci.sh`로 플랫폼을 분리해 빌드한다. 두 digest를 서로 바꾸어
-사용하지 않는다.
+`scripts/build-server1-oci.sh`로 플랫폼과 image repository를 분리해 빌드한다. Server1은
+`sensor-anomaly-demo-server1` repository를 사용하여 Argo의 Device1 image override가 GPU
+이미지를 덮어쓰지 못하게 한다. 두 digest를 서로 바꾸어 사용하지 않는다.
 
 승인 overlay는 저장소 밖에서 만든 `sensor-anomaly-augmentation-approval` Secret의
 `approval-id`가 없으면 시작되지 않는다. 활성화 후 원격 호출은 1초 timeout, 동일

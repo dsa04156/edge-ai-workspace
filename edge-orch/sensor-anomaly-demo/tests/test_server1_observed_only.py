@@ -42,8 +42,8 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
     assert pod["spec"]["schedulerName"] == "hami-scheduler"
     assert container["readinessProbe"]["httpGet"]["path"] == "/api/v1/augmentation-readyz"
     assert container["image"] == (
-        "192.168.0.56:5000/sensor-anomaly-demo@"
-        "sha256:6841a6250b6b3b95ac4aafb733eb58d77ac136ddc3956c18c89e54e65770d64a"
+        "192.168.0.56:5000/sensor-anomaly-demo-server1@"
+        "sha256:385deb3f4ab7a6d8b41ca5514e6758b93f433bfff2f8daea0aa19e469a26b40c"
     )
     assert {item["name"]: item.get("value") for item in container["env"]}.items() >= {
         "SERVICE_ROLE": "inference-server",
