@@ -135,6 +135,16 @@ class UpstreamServicePerformance(UpstreamModel):
     metrics_valid: bool
 
 
+class UpstreamProcessResources(UpstreamModel):
+    observed_at: datetime
+    source: Literal["process-self"]
+    scope: Literal["main-process"]
+    cpu_cores: float | None = Field(default=None, ge=0)
+    memory_rss_mib: float | None = Field(default=None, ge=0)
+    sample_interval_seconds: float | None = Field(default=None, gt=0)
+    metrics_valid: bool
+
+
 class UpstreamServiceStatus(UpstreamModel):
     api_version: Literal["v1"]
     service: Literal["sensor-anomaly-demo"]
@@ -147,6 +157,7 @@ class UpstreamServiceStatus(UpstreamModel):
     model: UpstreamDetectorModel
     counters: UpstreamCounters
     performance: UpstreamServicePerformance | None = None
+    process_resources: UpstreamProcessResources | None = None
     inference_routing: UpstreamInferenceRouting = Field(
         default_factory=UpstreamInferenceRouting
     )
@@ -277,6 +288,63 @@ class ServiceDemoPerformance(BaseModel):
     metrics_valid: bool
 
 
+class ServiceDemoProcessResources(BaseModel):
+    observed_at: datetime
+    source: Literal["process-self"] = "process-self"
+    scope: Literal["main-process"] = "main-process"
+    cpu_cores: float | None = None
+    memory_rss_mib: float | None = None
+    sample_interval_seconds: float | None = None
+    metrics_valid: bool
+
+
+class ServiceAugmentationGate(BaseModel):
+    id: str
+    label: str
+    passed: bool
+    reason: str
+
+
+class ServiceAugmentationMetrics(BaseModel):
+    cpu_percent: float | None = None
+    memory_percent: float | None = None
+    processing_latency_p95_ms: float | None = None
+    backlog: int | None = None
+    throughput_per_second: float | None = None
+
+
+class ServiceAugmentationDwell(BaseModel):
+    resource_pressure_seconds: int = 0
+    resource_pressure_required_seconds: int = 300
+    service_pressure_seconds: int = 0
+    service_pressure_required_seconds: int = 180
+
+
+class ServiceAugmentationObservation(BaseModel):
+    source: Literal["container-cadvisor", "process-self", "unavailable"]
+    scope: Literal["container", "main-process", "unknown"]
+
+
+class ServiceAugmentationCandidate(BaseModel):
+    target: str = "server1 GPU"
+    ready: bool = False
+
+
+class ServiceAugmentationState(BaseModel):
+    generated_at: datetime
+    service: Literal["sensor-anomaly-demo"] = "sensor-anomaly-demo"
+    state: Literal["NORMAL", "OBSERVING", "RECOMMENDED", "BLOCKED"]
+    recommendation: Literal["none", "scale-up"] = "none"
+    apply_state: Literal["observed-only", "blocked"] = "observed-only"
+    reason_codes: list[str] = Field(default_factory=list)
+    gates: list[ServiceAugmentationGate] = Field(default_factory=list)
+    metrics: ServiceAugmentationMetrics
+    dwell: ServiceAugmentationDwell = Field(default_factory=ServiceAugmentationDwell)
+    observation: ServiceAugmentationObservation
+    candidate: ServiceAugmentationCandidate
+    anomaly_signal_used: Literal[False] = False
+
+
 class ServiceDemoInferenceRouting(BaseModel):
     configured_mode: Literal["disabled", "approved"] = "disabled"
     state: Literal["disabled", "remote", "rolled-back"] = "disabled"
@@ -298,6 +366,8 @@ class ServiceDemoState(BaseModel):
     model: ServiceDemoModel | None = None
     counters: ServiceDemoCounters = Field(default_factory=ServiceDemoCounters)
     performance: ServiceDemoPerformance | None = None
+    process_resources: ServiceDemoProcessResources | None = None
+    augmentation: ServiceAugmentationState | None = None
     inference_routing: ServiceDemoInferenceRouting = Field(
         default_factory=ServiceDemoInferenceRouting
     )

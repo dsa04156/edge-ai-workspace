@@ -196,6 +196,7 @@ def create_app(
     async def metrics() -> PlainTextResponse:
         state = require_runtime().status()
         performance = state.performance
+        resources = state.process_resources
         lines = [
             "# HELP sensor_anomaly_processing_latency_p95_ms Five-minute processing latency p95.",
             "# TYPE sensor_anomaly_processing_latency_p95_ms gauge",
@@ -209,6 +210,15 @@ def create_app(
             "# HELP sensor_anomaly_performance_metrics_valid Whether the service SLI window is usable.",
             "# TYPE sensor_anomaly_performance_metrics_valid gauge",
             f"sensor_anomaly_performance_metrics_valid {1 if performance.metrics_valid else 0}",
+            "# HELP sensor_anomaly_process_cpu_cores Main process CPU cores used over the latest observation interval.",
+            "# TYPE sensor_anomaly_process_cpu_cores gauge",
+            f"sensor_anomaly_process_cpu_cores {resources.cpu_cores if resources.cpu_cores is not None else 'NaN'}",
+            "# HELP sensor_anomaly_process_resident_memory_bytes Main process resident memory.",
+            "# TYPE sensor_anomaly_process_resident_memory_bytes gauge",
+            f"sensor_anomaly_process_resident_memory_bytes {resources.memory_rss_mib * 1024 * 1024 if resources.memory_rss_mib is not None else 'NaN'}",
+            "# HELP sensor_anomaly_process_resource_metrics_valid Whether interval CPU and current RSS are both available.",
+            "# TYPE sensor_anomaly_process_resource_metrics_valid gauge",
+            f"sensor_anomaly_process_resource_metrics_valid {1 if resources.metrics_valid else 0}",
         ]
         return PlainTextResponse(
             content="\n".join(lines) + "\n",

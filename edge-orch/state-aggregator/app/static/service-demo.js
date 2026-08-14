@@ -29,6 +29,60 @@ function serviceDemoDecision(status) {
 }
 
 
+function buildServiceAugmentationView(augmentation = {}) {
+  const state = ["NORMAL", "OBSERVING", "RECOMMENDED", "BLOCKED"].includes(augmentation.state)
+    ? augmentation.state : "BLOCKED";
+  const labels = {
+    NORMAL: "정상",
+    OBSERVING: "관찰",
+    RECOMMENDED: "증강 권고",
+    BLOCKED: "차단",
+  };
+  const reasons = {
+    within_operating_envelope: "현재 자원 사용량과 서비스 처리 지표가 운영 범위 안에 있습니다.",
+    resource_pressure_observing: "자원 압력이 감지되어 지속 시간을 관찰하고 있습니다.",
+    service_pressure_observing: "지연·백로그·처리량 압력이 감지되어 지속 시간을 관찰하고 있습니다.",
+    sustained_resource_and_service_pressure: "자원과 서비스 압력이 기준 시간 이상 지속되어 증강을 권고합니다.",
+    augmentation_candidate_not_ready: "증강 조건은 충족했지만 server1 후보가 준비되지 않아 실행 판단을 차단합니다.",
+    resource_observation_unavailable: "실제 자원 사용량을 확인할 수 없어 증강 판단을 차단합니다.",
+    performance_observation_unavailable: "서비스 처리 지표를 확인할 수 없어 증강 판단을 차단합니다.",
+    input_invalid_or_stale: "입력이 없거나 오래되어 증강 판단을 차단합니다.",
+    model_not_ready: "모델이 준비되지 않아 증강 판단을 차단합니다.",
+  };
+  const metrics = augmentation.metrics || {};
+  const dwell = augmentation.dwell || {};
+  const reasonCodes = Array.isArray(augmentation.reason_codes) ? augmentation.reason_codes : [];
+  const reason = reasonCodes.map((code) => reasons[code]).filter(Boolean).join(" ")
+    || "판단 근거를 확인할 수 없습니다.";
+  const number = (value, digits, suffix) => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value))
+    ? `${Number(value).toFixed(digits)}${suffix}` : "관측 불가";
+  const backlog = Number(metrics.backlog);
+  const resourceSeconds = Number(dwell.resource_pressure_seconds);
+  const resourceRequired = Number(dwell.resource_pressure_required_seconds);
+  const observation = augmentation.observation || {};
+  return {
+    state,
+    label: labels[state],
+    reason,
+    cpu: number(metrics.cpu_percent, 1, "%"),
+    memory: number(metrics.memory_percent, 1, "%"),
+    latency: number(metrics.processing_latency_p95_ms, 0, " ms"),
+    backlog: metrics.backlog !== null && metrics.backlog !== undefined && Number.isFinite(backlog)
+      ? `${Math.max(0, Math.trunc(backlog))}건` : "관측 불가",
+    throughput: number(metrics.throughput_per_second, 2, " /s"),
+    observation: observation.source === "container-cadvisor" ? "컨테이너 · cAdvisor"
+      : observation.source === "process-self" ? "메인 프로세스 · 자체 관측"
+        : "관측 불가",
+    candidate: augmentation.candidate?.ready === true ? "server1 GPU 준비됨"
+      : augmentation.candidate?.ready === false ? "준비 안됨" : "관측 불가",
+    dwell: Number.isFinite(resourceSeconds) && Number.isFinite(resourceRequired)
+      ? `${Math.max(0, Math.trunc(resourceSeconds))} / ${Math.max(0, Math.trunc(resourceRequired))}초`
+      : "관측 불가",
+    boundary: "판단만 제공하며 자동 배포·라우팅·마이그레이션은 수행하지 않습니다.",
+  };
+}
+
+
 function buildServiceRoutingView(data = {}) {
   const results = (Array.isArray(data.results) ? data.results : []).filter((item) => (
     item?.inference_target === "edge-local" || item?.inference_target === "server1"
@@ -263,6 +317,7 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
       ? Math.max(threshold * 1.5, scoreValue)
       : Math.max(scoreValue, 1),
     pipeline: serviceDemoPipeline(data, latest, model),
+    augmentation: buildServiceAugmentationView(data.augmentation),
     copy: componentScores && temperatureFeatures
       ? `진동·온도 복합 이상 점수 · ${inferenceTarget} inference`
       : `3축 진동 이상 점수 · ${inferenceTarget} inference`,
@@ -509,6 +564,19 @@ function renderServiceDemo(data, documentRef = document) {
   const liveStatus = documentRef.getElementById("serviceOperationsLive");
   if (liveStatus) liveStatus.dataset.state = view.flowing ? "flowing" : "attention";
   text("serviceDemoFrames", view.frames);
+  const augmentationPanel = documentRef.getElementById("serviceAugmentationPanel");
+  if (augmentationPanel) augmentationPanel.dataset.state = view.augmentation.state;
+  text("serviceAugmentationState", view.augmentation.label);
+  text("serviceAugmentationReason", view.augmentation.reason);
+  text("serviceAugmentationCpu", view.augmentation.cpu);
+  text("serviceAugmentationMemory", view.augmentation.memory);
+  text("serviceAugmentationLatency", view.augmentation.latency);
+  text("serviceAugmentationBacklog", view.augmentation.backlog);
+  text("serviceAugmentationThroughput", view.augmentation.throughput);
+  text("serviceAugmentationObservation", view.augmentation.observation);
+  text("serviceAugmentationCandidate", view.augmentation.candidate);
+  text("serviceAugmentationDwell", view.augmentation.dwell);
+  text("serviceAugmentationBoundary", view.augmentation.boundary);
   const scoreMeter = documentRef.getElementById("serviceDemoScoreMeter");
   if (scoreMeter) {
     scoreMeter.max = view.scoreMax;

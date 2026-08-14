@@ -8,6 +8,7 @@ from app.models import (
     AxisValues,
     LatestObservation,
     ModelObservation,
+    ProcessResourceObservation,
     RuntimeCounters,
     ServicePerformance,
     ServiceStatus,
@@ -66,6 +67,13 @@ class FakeRuntime:
                 backlog=0,
                 throughput_per_second=2,
                 sample_count=30,
+                metrics_valid=True,
+            ),
+            process_resources=ProcessResourceObservation(
+                observed_at=datetime.now(timezone.utc),
+                cpu_cores=0.1,
+                memory_rss_mib=64,
+                sample_interval_seconds=5,
                 metrics_valid=True,
             ),
         )
@@ -130,6 +138,7 @@ def test_status_results_and_probes_are_read_only_and_use_v1_schema() -> None:
     assert storage.json()["backend"] == "sqlite"
     assert storage.json()["durable"] is True
     assert "sensor_anomaly_processing_latency_p95_ms 20.0" in metrics.text
+    assert "sensor_anomaly_process_cpu_cores 0.1" in metrics.text
     assert augmentation_readiness.json() == {
         "status": "ready",
         "capability": "sensor-anomaly-inference",

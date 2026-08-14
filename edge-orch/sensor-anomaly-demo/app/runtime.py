@@ -39,6 +39,7 @@ from .models import (
     VibrationFeatureObservation,
 )
 from .performance import PerformanceTracker
+from .resource_observation import ProcessResourceTracker
 from .remote_inference import (
     RemoteInferenceClient,
     RemoteInferenceRouter,
@@ -87,6 +88,7 @@ class AnomalyRuntime:
         model_adapter: PumpModelAdapter | None = None,
         inference_router: InferenceRouter | None = None,
         result_store: ResultStore | None = None,
+        resource_tracker: ProcessResourceTracker | None = None,
     ) -> None:
         self.settings = settings
         self.client = client
@@ -135,6 +137,7 @@ class AnomalyRuntime:
         self._store_closed = False
         self._router_closed = False
         self.performance = PerformanceTracker()
+        self.resource_tracker = resource_tracker or ProcessResourceTracker()
 
     async def start(self) -> None:
         if self._task is not None and not self._task.done():
@@ -392,6 +395,7 @@ class AnomalyRuntime:
             performance=self.performance.snapshot(
                 observed_at=current / 1_000_000_000,
             ),
+            process_resources=self.resource_tracker.snapshot(),
             inference_routing=self.inference_router.status(
                 now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
             ),

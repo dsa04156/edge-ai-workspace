@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=live-data-flow-v1-20260814" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=service-augmentation-v1-20260814" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
@@ -325,6 +325,30 @@
                   </dl>
                 </section>
               </div>
+
+              <section id="serviceAugmentationPanel" class="service-augmentation-rail" data-state="BLOCKED" aria-labelledby="serviceAugmentationTitle">
+                <header>
+                  <div>
+                    <span>RESOURCE DECISION · READ ONLY</span>
+                    <strong id="serviceAugmentationTitle">서비스 자원 증강 판단</strong>
+                  </div>
+                  <strong id="serviceAugmentationState">관측 대기</strong>
+                </header>
+                <p id="serviceAugmentationReason">자원과 서비스 처리 지표를 확인하고 있습니다.</p>
+                <dl class="service-augmentation-evidence" aria-label="자원 증강 판단 근거">
+                  <div><dt>CPU</dt><dd id="serviceAugmentationCpu">관측 불가</dd></div>
+                  <div><dt>메모리</dt><dd id="serviceAugmentationMemory">관측 불가</dd></div>
+                  <div><dt>p95 지연</dt><dd id="serviceAugmentationLatency">관측 불가</dd></div>
+                  <div><dt>백로그</dt><dd id="serviceAugmentationBacklog">관측 불가</dd></div>
+                  <div><dt>처리량</dt><dd id="serviceAugmentationThroughput">관측 불가</dd></div>
+                </dl>
+                <div class="service-augmentation-context">
+                  <span>관측 <strong id="serviceAugmentationObservation">확인 중</strong></span>
+                  <span>증강 후보 <strong id="serviceAugmentationCandidate">확인 중</strong></span>
+                  <span>압력 지속 <strong id="serviceAugmentationDwell">0 / 300초</strong></span>
+                </div>
+                <p id="serviceAugmentationBoundary" class="service-augmentation-boundary">판단만 제공하며 자동 배포·라우팅·마이그레이션은 수행하지 않습니다.</p>
+              </section>
 
               <section class="service-operations-cockpit" aria-labelledby="serviceDemoProcessTitle">
                 <header class="service-operations-head">
@@ -1578,7 +1602,7 @@
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-        <script src="/static/service-demo.js?v=live-data-flow-v1-20260814"></script>
+        <script src="/static/service-demo.js?v=service-augmentation-v1-20260814"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

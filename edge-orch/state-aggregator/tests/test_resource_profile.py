@@ -129,6 +129,26 @@ def test_service_resource_profiles_mark_missing_requests_limits():
     assert "요구량 프로파일 보강" in profile["interpretation"]
 
 
+def test_service_resource_profiles_do_not_report_zero_when_usage_was_not_sampled():
+    profiles = build_service_resource_profiles(
+        [
+            _pod(
+                "sensor-anomaly-demo-a",
+                "sensor-anomaly-demo",
+                "edge-node",
+                requests={"cpu": "25m", "memory": "64Mi"},
+                limits={"cpu": "250m", "memory": "128Mi"},
+            )
+        ]
+    )
+
+    usage = profiles[0]["current_usage"]
+    assert usage["sampled_container_count"] == 0
+    assert usage["usage_coverage_ratio"] == 0
+    assert usage["cpu_cores"] is None
+    assert usage["memory_working_set_mib"] is None
+
+
 def test_service_resource_summary_counts_profile_declaration_state_and_current_usage():
     profiles = build_service_resource_profiles(
         [

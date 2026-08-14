@@ -42,6 +42,10 @@ from .operator_assistant import (
 )
 from .service import StateAggregatorService
 from .service_catalog import ServiceCatalog
+from .service_augmentation import (
+    ServiceAugmentationEvaluator,
+    build_service_augmentation_signals,
+)
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -64,6 +68,7 @@ service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_timeout_seconds,
 )
 service_catalog = ServiceCatalog.load(settings.service_catalog_path)
+service_augmentation_evaluator = ServiceAugmentationEvaluator()
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
     settings.edgex_core_metadata_url,
@@ -235,9 +240,44 @@ async def get_device_profiles() -> list[DeviceProfileContract]:
 @app.get("/state/service-demo", response_model=ServiceDemoState)
 async def get_service_demo() -> ServiceDemoState:
     try:
-        return await service_demo_client.get_state()
+        demo = await service_demo_client.get_state()
     except ServiceDemoError as exc:
-        return degraded_service_demo_state(exc)
+        demo = degraded_service_demo_state(exc)
+    try:
+        resource_state = await service.get_resource_profile_state()
+        profiles = resource_state.get("service_resource_profiles") or []
+    except Exception:
+        profiles = []
+    source_profile = next(
+        (
+            profile
+            for profile in profiles
+            if profile.get("namespace") == "edgex-edge"
+            and profile.get("service") == "sensor-anomaly-demo"
+        ),
+        None,
+    )
+    candidate_profile = next(
+        (
+            profile
+            for profile in profiles
+            if profile.get("namespace") == "edgex-edge"
+            and profile.get("service") == "sensor-anomaly-inference-server1"
+        ),
+        None,
+    )
+    candidate_ready = bool(
+        candidate_profile
+        and int(candidate_profile.get("ready_pod_count") or 0) > 0
+    )
+    signals = build_service_augmentation_signals(
+        demo,
+        source_profile,
+        candidate_ready=candidate_ready,
+    )
+    return demo.model_copy(
+        update={"augmentation": service_augmentation_evaluator.evaluate(signals)}
+    )
 
 
 def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:

@@ -119,6 +119,7 @@ class KubeClient:
                     "workload": self._workload_name(pod),
                     "node": spec.node_name,
                     "phase": status.phase,
+                    "ready": self._pod_ready(pod),
                     "labels": labels,
                     "containers": [
                         {
@@ -131,6 +132,14 @@ class KubeClient:
                 }
             )
         return results
+
+    @staticmethod
+    def _pod_ready(pod: client.V1Pod) -> bool:
+        status = pod.status
+        for condition in (status.conditions if status is not None else []) or []:
+            if condition.type == "Ready":
+                return condition.status == "True"
+        return False
 
     def _workload_name(self, pod: client.V1Pod) -> str:
         metadata = pod.metadata

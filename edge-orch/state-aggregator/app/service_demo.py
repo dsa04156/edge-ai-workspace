@@ -17,6 +17,7 @@ from .service_demo_models import (
     ServiceDemoInferenceRouting,
     ServiceDemoModel,
     ServiceDemoPerformance,
+    ServiceDemoProcessResources,
     ServiceDemoResultState,
     ServiceDemoScoreWeights,
     ServiceDemoState,
@@ -160,6 +161,11 @@ class ServiceDemoClient:
             performance=(
                 ServiceDemoPerformance(**upstream.performance.model_dump())
                 if upstream.performance is not None
+                else None
+            ),
+            process_resources=(
+                ServiceDemoProcessResources(**upstream.process_resources.model_dump())
+                if upstream.process_resources is not None
                 else None
             ),
             inference_routing=ServiceDemoInferenceRouting(

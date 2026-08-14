@@ -356,6 +356,42 @@ test("shows approved server1 routing and rollback evidence independently", () =>
 });
 
 
+test("builds a fail-closed service augmentation decision rail", () => {
+  const view = buildServiceDemoView({
+    status: "normal",
+    augmentation: {
+      state: "OBSERVING",
+      recommendation: "none",
+      apply_state: "observed-only",
+      reason_codes: ["resource_pressure_observing"],
+      metrics: {
+        cpu_percent: 40,
+        memory_percent: 50,
+        processing_latency_p95_ms: 1200,
+        backlog: 0,
+        throughput_per_second: 1.2,
+      },
+      observation: {source: "process-self", scope: "main-process"},
+      candidate: {target: "server1 GPU", ready: false},
+      dwell: {
+        resource_pressure_seconds: 45,
+        resource_pressure_required_seconds: 300,
+        service_pressure_seconds: 0,
+        service_pressure_required_seconds: 180,
+      },
+    },
+  });
+
+  assert.equal(view.augmentation.state, "OBSERVING");
+  assert.equal(view.augmentation.label, "관찰");
+  assert.equal(view.augmentation.cpu, "40.0%");
+  assert.equal(view.augmentation.memory, "50.0%");
+  assert.equal(view.augmentation.latency, "1200 ms");
+  assert.equal(view.augmentation.candidate, "준비 안됨");
+  assert.match(view.augmentation.boundary, /자동 배포/);
+});
+
+
 test("renders with textContent and a non-color status label", () => {
   const ids = [
     "serviceDemoState",
@@ -579,11 +615,16 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDeviceRatio", "serviceServerRatio",
     "serviceOperationsLive", "serviceOperationsLiveRate", "serviceOperationsLiveAge",
     "serviceOperationsLiveFrames",
+    "serviceAugmentationPanel", "serviceAugmentationState", "serviceAugmentationReason",
+    "serviceAugmentationCpu", "serviceAugmentationMemory", "serviceAugmentationLatency",
+    "serviceAugmentationBacklog", "serviceAugmentationThroughput",
+    "serviceAugmentationObservation", "serviceAugmentationCandidate",
+    "serviceAugmentationDwell", "serviceAugmentationBoundary",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=live-data-flow-v1-20260814/);
-  assert.match(html, /service-demo\.js\?v=live-data-flow-v1-20260814/);
+  assert.match(html, /service-demo\.css\?v=service-augmentation-v1-20260814/);
+  assert.match(html, /service-demo\.js\?v=service-augmentation-v1-20260814/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
@@ -591,6 +632,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /\.service-demo-alert-summary/);
   assert.match(css, /\.service-catalog-row/);
   assert.match(css, /\.service-operations-cockpit/);
+  assert.match(css, /\.service-augmentation-rail/);
   assert.match(css, /\.service-dag-node\[data-current="true"\]/);
   assert.match(css, /\.service-dag-node > footer/);
   assert.match(css, /@keyframes service-live-heartbeat/);

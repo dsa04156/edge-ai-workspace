@@ -110,6 +110,15 @@ def live_payload() -> dict:
             "sampleCount": 30,
             "metricsValid": True,
         },
+        "processResources": {
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+            "source": "process-self",
+            "scope": "main-process",
+            "cpuCores": 0.1,
+            "memoryRssMib": 64,
+            "sampleIntervalSeconds": 5,
+            "metricsValid": True,
+        },
         "inferenceRouting": {
             "configuredMode": "approved",
             "state": "remote",
@@ -155,6 +164,9 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.counters.context_samples_processed == 30
     assert state.performance is not None
     assert state.performance.processing_latency_p95_ms == 20
+    assert state.process_resources is not None
+    assert state.process_resources.cpu_cores == 0.1
+    assert state.process_resources.memory_rss_mib == 64
     assert state.inference_routing.effective_target == "server1"
     assert state.inference_routing.approval_id == "approval-001"
     assert state.observation_error is None

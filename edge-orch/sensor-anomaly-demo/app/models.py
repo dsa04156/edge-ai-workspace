@@ -218,6 +218,16 @@ class ServicePerformance(ApiModel):
     metrics_valid: bool
 
 
+class ProcessResourceObservation(ApiModel):
+    observed_at: datetime
+    source: Literal["process-self"] = "process-self"
+    scope: Literal["main-process"] = "main-process"
+    cpu_cores: float | None = Field(default=None, ge=0)
+    memory_rss_mib: float | None = Field(default=None, ge=0)
+    sample_interval_seconds: float | None = Field(default=None, gt=0)
+    metrics_valid: bool
+
+
 class InferenceInputFrame(ApiModel):
     origin: int = Field(gt=0)
     x: float = Field(allow_inf_nan=False)
@@ -275,6 +285,7 @@ class ServiceStatus(ApiModel):
     model: ModelObservation
     counters: RuntimeCounters
     performance: ServicePerformance
+    process_resources: ProcessResourceObservation
     inference_routing: InferenceRoutingStatus = Field(
         default_factory=InferenceRoutingStatus
     )
