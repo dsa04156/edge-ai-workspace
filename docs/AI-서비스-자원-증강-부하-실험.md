@@ -2,6 +2,14 @@
 
 ## 결론
 
+> **장치별 핵심 결론:** 대표 temporal-convolution 성능 프록시에서 Raspberry Pi 5는
+> 약 1,180만 연산/frame 이상이고 실험 Pod CPU가 95% 이상 포화되며, 로컬 p95가
+> 90ms 이상이거나 처리량이 20/s 이하일 때 Server1 오프로딩이 유리했다.
+>
+> 이 기준은 동일 model version의 Server1이 지연 10% 개선·처리량 5% 비열등 gate를
+> 통과하고 상태가 기존 180초 debounce 동안 지속될 때 `RECOMMENDED`를 만드는 근거다.
+> 학습된 옥동 모델의 운영 자격이나 자동 전환 승인을 뜻하지 않는다.
+
 2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 `arduino-001` Reading
 120개 frame을 캡처하고, 같은 입력을 Device1 로컬 추론과 Server1 CUDA 후보에 고정해
 1·50·200 rps에서 총 18회 비교했다. 현재 모델 조합
