@@ -75,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 16:13</span>
-            <span class="badge">HTML 생성: 2026-08-18 16:14</span>
+            <span class="badge">수정: 2026-08-18 17:06</span>
+            <span class="badge">HTML 생성: 2026-08-18 17:07</span>
           </div>
         </header>
         <div class="doc-body">
@@ -85,6 +85,7 @@
 <p>2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 <code>arduino-001</code> Reading 120개 frame을 캡처하고, 같은 입력을 Device1 로컬 추론과 Server1 CUDA 후보에 고정해 1·50·200 rps에서 총 18회 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 9개 대응 run 모두에서 Server1의 p95 엣지 판단 E2E 지연이 더 길었고 처리량 우위도 없었다. 실제 유입 속도에 가까운 1 rps에서도 로컬 1.265ms, Server1 15.633ms였으며, 200 rps 가속 재생에서는 Server1 처리량이 84.389/s로 막히고 schedule lag p95가 5.450초까지 증가했다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
 <p>앞서 수행한 합성 입력 90 runs/45 pairs와 왕복 계측 확인 18 runs도 같은 방향이었다. 그 결과는 부하 축 탐색과 계측 검증 근거로 유지하되, 현재 연결된 장비의 데이터에 대한 판정은 위 실데이터 캡처·재생 실험을 우선 근거로 삼는다.</p>
 <p>이 결과는 GPU 오프로딩 일반이 효과가 없다는 뜻이 아니다. 현재 통계 기준선의 계산량이 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은 절차로 모델 버전별 자격을 다시 판정해야 한다.</p>
+<p>별도의 대표 temporal-convolution 부하 실험에서는 계산량이 약 1,180만 element 연산/추론인 구간부터 Device1 CPU 병목과 Server1 이득이 함께 관측됐다. 이 값은 실제 Arduino 입력으로 측정한 <strong>모델 크기별 용량 계획 근거</strong>지만 학습된 옥동 모델의 운영 자격은 아니다.</p>
 <h2 id="질문과-가설">질문과 가설</h2>
 <ul><li>질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을</li></ul>
 <p>유지하는가?</p>
@@ -307,6 +308,96 @@
 </tbody></table></div>
 <p>각 값은 독립 실험 단위인 3개 run의 p95 중앙값이다. run 내부의 개별 요청을 독립 반복으로 간주하지 않았다. error와 OOM은 모두 0건이었지만 Server1은 세 입력률 모두에서 10% 지연 개선 기준을 통과하지 못했고, 200 rps에서는 5% 처리량 비열등 기준도 통과하지 못했다. 200 rps Server1 경로의 CPU saturation 중앙값은 1.013, throttled time 중앙값은 6.000초로 요청 경로가 공급 속도를 따라가지 못했다. Server1 내부 처리 p95는 2.620ms였지만 엣지에서 결과를 받기까지의 왕복 오버헤드 p95가 59.619ms였으므로 판단은 내부 추론 시간만으로 하면 안 된다.</p>
 <p>대응 run의 exact two-sided sign test에서 Server1 지연 우위는 0/9 (<code>p=0.00390625</code>), 처리량 우위도 0/9(<code>p=0.00390625</code>)였다. 다만 조건별 반복은 3회이고 짧은 실행이므로 이 결과를 장시간 운영 SLA나 옥동 모델 성능으로 일반화하지 않는다.</p>
+<h2 id="대표-ai-모델의-병목-오프로딩-교차점">대표 AI 모델의 병목·오프로딩 교차점</h2>
+<p>실제 옥동 학습 모델 파일이 아직 없으므로 운영 baseline을 억지로 무겁게 만들지 않고, 센서 시계열 모델의 계산부를 나타내는 <code>representative-temporal-convolution-v1</code>을 별도 성능 proxy로 실행했다. 256개 실측 특성을 입력으로 받고 20개 temporal-convolution layer를 CPU NumPy와 Server1 CuPy에서 동일하게 계산한다. 가중치는 결정적이지만 학습되지 않았으므로 이상감지 정확도나 실제 옥동 모델 성능의 근거로 사용하지 않는다.</p>
+<ul><li>입력: <code>arduino-001</code>의 실제 EdgeX Reading 120 frames</li><li>데이터셋 SHA-256: <code>bb9ee7bc3edc6910a0402493d8e88757981e44fceefcb083e5c79f96f0b79b77</code></li><li>Device1 제한: CPU 250m, memory 512MiB</li><li>설계: 모델 크기·CPU 경쟁 부하·처리 경로의 seeded randomized block</li><li>반복: 조건·경로별 3 runs, run당 10 requests</li><li>비교 gate: Server1 p95 10% 이상 개선, 처리량 5% 비열등</li></ul>
+<p>아래 값은 각 조건의 3개 run-level p95 중앙값이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델 activation / 연산량</th>
+<th>Device1 CPU 경쟁 부하</th>
+<th>로컬 p95</th>
+<th>Server1 p95</th>
+<th>지연 개선</th>
+<th>로컬/서버 처리량</th>
+<th>판정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>16,384 / 약 295만</td>
+<td>0%</td>
+<td>84.756ms</td>
+<td>21.439ms</td>
+<td>74.7%</td>
+<td>37.630 / 111.861/s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>16,384 / 약 295만</td>
+<td>50%</td>
+<td>84.026ms</td>
+<td>83.937ms</td>
+<td>0.1%</td>
+<td>31.538 / 31.055/s</td>
+<td>거부</td>
+</tr>
+<tr>
+<td>16,384 / 약 295만</td>
+<td>75%</td>
+<td>86.612ms</td>
+<td>83.250ms</td>
+<td>3.9%</td>
+<td>24.515 / 26.083/s</td>
+<td>거부</td>
+</tr>
+<tr>
+<td>16,384 / 약 295만</td>
+<td>100%</td>
+<td>93.510ms</td>
+<td>98.079ms</td>
+<td>-4.9%</td>
+<td>19.833 / 17.391/s</td>
+<td>거부</td>
+</tr>
+<tr>
+<td>65,536 / 약 1,180만</td>
+<td>0%</td>
+<td>175.610ms</td>
+<td>48.759ms</td>
+<td>72.2%</td>
+<td>9.969 / 83.413/s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>65,536 / 약 1,180만</td>
+<td>50%</td>
+<td>104.096ms</td>
+<td>87.223ms</td>
+<td>16.2%</td>
+<td>10.053 / 33.025/s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>65,536 / 약 1,180만</td>
+<td>75%</td>
+<td>99.620ms</td>
+<td>83.250ms</td>
+<td>16.4%</td>
+<td>12.234 / 26.677/s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>65,536 / 약 1,180만</td>
+<td>100%</td>
+<td>193.101ms</td>
+<td>90.710ms</td>
+<td>53.0%</td>
+<td>6.707 / 20.598/s</td>
+<td>통과</td>
+</tr>
+</tbody></table></div>
+<p>약 295만 연산 모델은 CPU 경쟁 부하가 생기면 원격 요청을 만드는 Device1 클라이언트도 함께 throttling되어 4개 조건 중 1개만 통과했다. 반면 약 1,180만 연산 모델은 네 조건 모두 조건 중앙값 gate를 통과했다. 이 모델의 12개 대응 run 중 Server1 지연 우위와 개별 run gate 통과는 각각 11/12였고, 지연 방향 exact two-sided sign test는 <code>p=0.00634765625</code>였다. 대응 run 지연 감소율 중앙값은 40.9%, 처리량 비율 중앙값은 3.105배였다.</p>
+<p>따라서 이 대표 모델에서 병목은 <strong>약 1,180만 연산의 temporal feature 계산이 Device1 250m CPU quota를 포화시키고 throttling을 만드는 구간</strong>이다. Server1 내부 p95는 조건 중앙값 기준 2.98–7.11ms였고 나머지는 Device1 요청 처리와 왕복 비용이었다. 계산량이 충분히 크면 이 고정 비용보다 GPU 계산 이득이 커져 오프로딩 교차점이 생긴다.</p>
 <h2 id="통계-해석">통계 해석</h2>
 <p>기존 90-run 합성 입력 실험은 서로 다른 부하 조건을 같은 정규분포로 가정하지 않고, 대응된 local/server1 run의 방향만 보는 exact two-sided sign test를 사용했다.</p>
 <ul><li>Server1 p95 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>Server1 처리량 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>승격 기준 통과: 0/15 conditions</li></ul>
@@ -342,6 +433,9 @@
 </tbody></table></div>
 <p>CPU/memory 85%, 300초와 서비스 180초 기준은 보수적인 관찰·debounce 정책이다. 이번 짧은 부하 실험이 이 숫자를 최적 임계값으로 증명한 것은 아니다. 두 압력이 지속돼도 후보 자격이 <code>rejected</code>이면 <code>BLOCKED</code>로 표시한다. 자격이 <code>qualified</code>여도 화면은 <code>RECOMMENDED</code> 판단만 제공하며 자동 배포·라우팅·migration을 실행하지 않는다.</p>
 <p>이번 실데이터 결과에서 직접 확정할 수 있는 기준은 더 제한적이다. 자연 유입 수준인 1 rps와 가속 재생 50 rps에서 로컬 지연 저하는 관측되지 않았고, 200 rps에서도 로컬은 목표 처리율을 유지했다. 반대로 현재 Server1 경로의 측정 처리 한계는 약 84.4/s였으므로 이 후보를 200 rps 부하의 증강 대상으로 쓰면 안 된다. 따라서 현재 데이터와 모델만으로 “부하가 몇 이상이면 Server1로 전환”하는 양의 임계값은 만들 수 없다. 실제 옥동 모델에서 로컬 p95·backlog 저하가 재현되고 같은 조건에서 후보가 10% 지연 개선과 5% 처리량 비열등을 통과할 때만 전환 임계값을 확정한다. CPU/memory 85%와 지속 시간은 계속 조사 시작용 임시 정책이지 실증 완료 임계값이 아니다.</p>
+<p>대표 temporal 모델에 한해서는 다음을 모두 만족하면 Server1 오프로딩 검토가 이득이라는 실험 근거가 있다.</p>
+<ol><li>모델 workload가 약 1,180만 element 연산/frame 이상이다.</li><li>Device1 CPU saturation이 95% 이상이다.</li><li>로컬 p95가 95ms 이상이거나 처리량이 12.3/s 이하로 내려간다.</li><li>서비스 압력이 기존 debounce 180초 동안 지속된다.</li><li>동일 model version의 Server1이 10% 지연 개선·5% 처리량 비열등 gate를 통과한다.</li></ol>
+<p>1–3번은 이번 짧은 실험의 교차점에서 얻었고, 4번의 180초는 spike 방지 운영 정책이지 이번 실험이 최적화한 값이 아니다. 이 기준은 <code>RECOMMENDED</code>를 만드는 근거이며 자동 전환 승인은 아니다. 실제 옥동 모델이 준비되면 연산량 proxy가 아니라 그 모델 버전의 결과로 교체한다.</p>
 <h2 id="재현과-다음-검증">재현과 다음 검증</h2>
 <pre data-lang="bash"><code>python3 tools/sensor_augmentation_experiment.py --help
 python3 tools/analyze_sensor_augmentation_experiment.py \
@@ -350,8 +444,11 @@ python3 tools/analyze_sensor_augmentation_experiment.py \
 edge-orch/state-aggregator/.venv/bin/python -m pytest -q \
   tests/test_sensor_augmentation_experiment.py
 kubectl create --dry-run=client --validate=false \
-  -f tools/k8s/sensor-augmentation-experiment.yaml -o yaml &gt;/dev/null</code></pre>
-<p>원시 JSON은 <code>artifacts/sensor-augmentation/</code>의 로컬 실험 증거이며 Git 공개 문서 세트에는 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다. 실데이터 요약 증거는 <code>artifacts/sensor-augmentation/real-data-multirate-20260818.evidence</code>에 남겼다.</p>
+  -f tools/k8s/sensor-augmentation-experiment.yaml -o yaml &gt;/dev/null
+python3 tools/representative_ai_crossover_experiment.py --help
+kubectl create --dry-run=client --validate=false \
+  -f tools/k8s/representative-ai-crossover.yaml -o yaml &gt;/dev/null</code></pre>
+<p>원시 JSON은 <code>artifacts/sensor-augmentation/</code>의 로컬 실험 증거이며 Git 공개 문서 세트에는 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다. 실데이터 요약 증거는 <code>artifacts/sensor-augmentation/real-data-multirate-20260818.evidence</code>에 남겼다. 대표 모델 교차점 증거는 <code>artifacts/sensor-augmentation/representative-ai-crossover-20260818.evidence</code>에 남겼다.</p>
 <p>다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E 수집 주기, network delay/loss/timeout, 요청·응답 payload 크기, GPU utilization·전력, 실패 시 local rollback을 포함한다. 결과 소비자가 엣지인지 중앙인지도 먼저 고정하고 같은 소비 지점까지 측정한다. 후보가 바뀌면 <code>ServiceDescriptor.augmentation_qualification</code>을 자동 변경하지 않고 실험 보고서 검토 후 명시적으로 갱신한다.</p>
         </div>
       </article>
@@ -363,6 +460,7 @@ kubectl create --dry-run=client --validate=false \
 <li class="toc-h2"><a href="#주요-결과">주요 결과</a></li>
 <li class="toc-h2"><a href="#합성-입력-엣지-서버-왕복-분해-확인">합성 입력 엣지↔서버 왕복 분해 확인</a></li>
 <li class="toc-h2"><a href="#실제-arduino-데이터-비교-결과">실제 Arduino 데이터 비교 결과</a></li>
+<li class="toc-h2"><a href="#대표-ai-모델의-병목-오프로딩-교차점">대표 AI 모델의 병목·오프로딩 교차점</a></li>
 <li class="toc-h2"><a href="#통계-해석">통계 해석</a></li>
 <li class="toc-h2"><a href="#운영-판단-기준">운영 판단 기준</a></li>
 <li class="toc-h2"><a href="#재현과-다음-검증">재현과 다음 검증</a></li></ol></aside>

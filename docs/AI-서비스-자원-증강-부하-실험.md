@@ -19,6 +19,10 @@
 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은
 절차로 모델 버전별 자격을 다시 판정해야 한다.
 
+별도의 대표 temporal-convolution 부하 실험에서는 계산량이 약 1,180만 element 연산/추론인
+구간부터 Device1 CPU 병목과 Server1 이득이 함께 관측됐다. 이 값은 실제 Arduino 입력으로
+측정한 **모델 크기별 용량 계획 근거**지만 학습된 옥동 모델의 운영 자격은 아니다.
+
 ## 질문과 가설
 
 - 질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을
@@ -176,6 +180,46 @@ memory 128Mi이고 각 run은 10초, washout은 2초다. 운영 route는 변경�
 (`p=0.00390625`), 처리량 우위도 0/9(`p=0.00390625`)였다. 다만 조건별 반복은 3회이고
 짧은 실행이므로 이 결과를 장시간 운영 SLA나 옥동 모델 성능으로 일반화하지 않는다.
 
+## 대표 AI 모델의 병목·오프로딩 교차점
+
+실제 옥동 학습 모델 파일이 아직 없으므로 운영 baseline을 억지로 무겁게 만들지 않고,
+센서 시계열 모델의 계산부를 나타내는
+`representative-temporal-convolution-v1`을 별도 성능 proxy로 실행했다. 256개 실측 특성을
+입력으로 받고 20개 temporal-convolution layer를 CPU NumPy와 Server1 CuPy에서 동일하게
+계산한다. 가중치는 결정적이지만 학습되지 않았으므로 이상감지 정확도나 실제 옥동 모델
+성능의 근거로 사용하지 않는다.
+
+- 입력: `arduino-001`의 실제 EdgeX Reading 120 frames
+- 데이터셋 SHA-256: `bb9ee7bc3edc6910a0402493d8e88757981e44fceefcb083e5c79f96f0b79b77`
+- Device1 제한: CPU 250m, memory 512MiB
+- 설계: 모델 크기·CPU 경쟁 부하·처리 경로의 seeded randomized block
+- 반복: 조건·경로별 3 runs, run당 10 requests
+- 비교 gate: Server1 p95 10% 이상 개선, 처리량 5% 비열등
+
+아래 값은 각 조건의 3개 run-level p95 중앙값이다.
+
+| 모델 activation / 연산량 | Device1 CPU 경쟁 부하 | 로컬 p95 | Server1 p95 | 지연 개선 | 로컬/서버 처리량 | 판정 |
+|---|---:|---:|---:|---:|---:|---|
+| 16,384 / 약 295만 | 0% | 84.756ms | 21.439ms | 74.7% | 37.630 / 111.861/s | 통과 |
+| 16,384 / 약 295만 | 50% | 84.026ms | 83.937ms | 0.1% | 31.538 / 31.055/s | 거부 |
+| 16,384 / 약 295만 | 75% | 86.612ms | 83.250ms | 3.9% | 24.515 / 26.083/s | 거부 |
+| 16,384 / 약 295만 | 100% | 93.510ms | 98.079ms | -4.9% | 19.833 / 17.391/s | 거부 |
+| 65,536 / 약 1,180만 | 0% | 175.610ms | 48.759ms | 72.2% | 9.969 / 83.413/s | 통과 |
+| 65,536 / 약 1,180만 | 50% | 104.096ms | 87.223ms | 16.2% | 10.053 / 33.025/s | 통과 |
+| 65,536 / 약 1,180만 | 75% | 99.620ms | 83.250ms | 16.4% | 12.234 / 26.677/s | 통과 |
+| 65,536 / 약 1,180만 | 100% | 193.101ms | 90.710ms | 53.0% | 6.707 / 20.598/s | 통과 |
+
+약 295만 연산 모델은 CPU 경쟁 부하가 생기면 원격 요청을 만드는 Device1 클라이언트도 함께
+throttling되어 4개 조건 중 1개만 통과했다. 반면 약 1,180만 연산 모델은 네 조건 모두
+조건 중앙값 gate를 통과했다. 이 모델의 12개 대응 run 중 Server1 지연 우위와 개별 run gate
+통과는 각각 11/12였고, 지연 방향 exact two-sided sign test는 `p=0.00634765625`였다.
+대응 run 지연 감소율 중앙값은 40.9%, 처리량 비율 중앙값은 3.105배였다.
+
+따라서 이 대표 모델에서 병목은 **약 1,180만 연산의 temporal feature 계산이 Device1 250m
+CPU quota를 포화시키고 throttling을 만드는 구간**이다. Server1 내부 p95는 조건 중앙값 기준
+2.98–7.11ms였고 나머지는 Device1 요청 처리와 왕복 비용이었다. 계산량이 충분히 크면 이
+고정 비용보다 GPU 계산 이득이 커져 오프로딩 교차점이 생긴다.
+
 ## 통계 해석
 
 기존 90-run 합성 입력 실험은 서로 다른 부하 조건을 같은 정규분포로 가정하지 않고,
@@ -214,6 +258,19 @@ Server1로 전환”하는 양의 임계값은 만들 수 없다. 실제 옥동 
 확정한다. CPU/memory 85%와 지속 시간은 계속 조사 시작용 임시 정책이지 실증 완료 임계값이
 아니다.
 
+대표 temporal 모델에 한해서는 다음을 모두 만족하면 Server1 오프로딩 검토가 이득이라는
+실험 근거가 있다.
+
+1. 모델 workload가 약 1,180만 element 연산/frame 이상이다.
+2. Device1 CPU saturation이 95% 이상이다.
+3. 로컬 p95가 95ms 이상이거나 처리량이 12.3/s 이하로 내려간다.
+4. 서비스 압력이 기존 debounce 180초 동안 지속된다.
+5. 동일 model version의 Server1이 10% 지연 개선·5% 처리량 비열등 gate를 통과한다.
+
+1–3번은 이번 짧은 실험의 교차점에서 얻었고, 4번의 180초는 spike 방지 운영 정책이지 이번
+실험이 최적화한 값이 아니다. 이 기준은 `RECOMMENDED`를 만드는 근거이며 자동 전환 승인은
+아니다. 실제 옥동 모델이 준비되면 연산량 proxy가 아니라 그 모델 버전의 결과로 교체한다.
+
 ## 재현과 다음 검증
 
 ```bash
@@ -225,12 +282,17 @@ edge-orch/state-aggregator/.venv/bin/python -m pytest -q \
   tests/test_sensor_augmentation_experiment.py
 kubectl create --dry-run=client --validate=false \
   -f tools/k8s/sensor-augmentation-experiment.yaml -o yaml >/dev/null
+python3 tools/representative_ai_crossover_experiment.py --help
+kubectl create --dry-run=client --validate=false \
+  -f tools/k8s/representative-ai-crossover.yaml -o yaml >/dev/null
 ```
 
 원시 JSON은 `artifacts/sensor-augmentation/`의 로컬 실험 증거이며 Git 공개 문서 세트에는
 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다.
 실데이터 요약 증거는
 `artifacts/sensor-augmentation/real-data-multirate-20260818.evidence`에 남겼다.
+대표 모델 교차점 증거는
+`artifacts/sensor-augmentation/representative-ai-crossover-20260818.evidence`에 남겼다.
 
 다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E
 수집 주기, network delay/loss/timeout, 요청·응답 payload 크기, GPU utilization·전력, 실패 시
