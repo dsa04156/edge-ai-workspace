@@ -1,22 +1,7 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: representative-ai-server1
-  namespace: edgex-edge
-  labels:
-    edge-ai.io/representative-benchmark: "true"
-spec:
-  selector:
-    app.kubernetes.io/name: sensor-anomaly-inference-server1
-  ports:
-    - name: http
-      port: 8080
-      targetPort: 8081
----
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: representative-ai-crossover-20260818
+  name: representative-ai-crossover-raspi-20260818
   namespace: edgex-edge
   labels:
     edge-ai.io/representative-benchmark: "true"
@@ -27,10 +12,9 @@ spec:
       labels:
         app.kubernetes.io/name: representative-ai-crossover
         edge-ai.io/representative-benchmark: "true"
-        edge-ai.io/local-data-client: "true"
     spec:
       nodeSelector:
-        kubernetes.io/hostname: etri-dev0001-jetorn
+        kubernetes.io/hostname: etri-dev0003-raspi5
       restartPolicy: Never
       automountServiceAccountToken: false
       securityContext:
@@ -75,6 +59,8 @@ spec:
             - /benchmark/representative_ai_crossover_experiment.py
             - run
           args:
+            - --replay-input
+            - /dataset/jetson.json
             - --widths
             - 16384,65536
             - --depth
@@ -87,13 +73,15 @@ spec:
             - "10"
             - --washout-seconds
             - "0.2"
+            - --output
+            - /tmp/representative-ai-crossover-raspi.json
           env:
             - name: OPENBLAS_NUM_THREADS
               value: "1"
             - name: OMP_NUM_THREADS
               value: "1"
             - name: EXECUTION_SITE
-              value: jetson-device1
+              value: raspberry-pi-dev0003
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
@@ -117,65 +105,17 @@ spec:
             - name: benchmark
               mountPath: /benchmark
               readOnly: true
+            - name: dataset
+              mountPath: /dataset
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
         - name: benchmark
           configMap:
             name: representative-ai-crossover
+        - name: dataset
+          configMap:
+            name: representative-ai-crossover-dataset
         - name: tmp
           emptyDir: {}
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: representative-ai-server1-ingress
-  namespace: edgex-edge
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: sensor-anomaly-inference-server1
-  policyTypes: [Ingress]
-  ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: representative-ai-crossover
-      ports:
-        - protocol: TCP
-          port: 8081
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: representative-ai-crossover-egress
-  namespace: edgex-edge
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: representative-ai-crossover
-  policyTypes: [Egress]
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: device-serial-jetson
-      ports:
-        - protocol: TCP
-          port: 59910
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: sensor-anomaly-inference-server1
-      ports:
-        - protocol: TCP
-          port: 8081

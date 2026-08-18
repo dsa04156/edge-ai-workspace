@@ -12,6 +12,8 @@ import json
 import math
 import multiprocessing
 import os
+from pathlib import Path
+import platform
 import random
 import statistics
 import time
@@ -79,6 +81,42 @@ def model_input(frames: list[dict], sequence: int) -> list[float]:
     return values
 
 
+def dataset_sha256(frames: list[dict]) -> str:
+    import hashlib
+
+    encoded = json.dumps(
+        frames,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def load_replay_dataset(path: str) -> tuple[list[dict], dict]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    provenance = payload.get("input_provenance", payload)
+    frames = provenance.get("frames")
+    if not isinstance(frames, list) or len(frames) < INPUT_WIDTH // 4:
+        raise ValueError("replay input must contain at least 64 captured frames")
+    required = {
+        "frame_origin",
+        "x",
+        "y",
+        "z",
+        "temperature_origin",
+        "temperature",
+    }
+    if any(not isinstance(frame, dict) or not required.issubset(frame) for frame in frames):
+        raise ValueError("replay frames do not satisfy the captured sensor contract")
+    actual_hash = dataset_sha256(frames)
+    expected_hash = provenance.get("dataset_sha256")
+    if expected_hash != actual_hash:
+        raise ValueError(
+            f"replay dataset hash mismatch: expected {expected_hash}, got {actual_hash}"
+        )
+    return frames, provenance
+
+
 def create_server_app():
     import cupy
     from fastapi import FastAPI, HTTPException
@@ -141,14 +179,19 @@ def run_experiment(args: argparse.Namespace) -> dict:
     import numpy
     import sensor_augmentation_experiment as base
 
-    frames, provenance = base.capture_live_frames(
-        base_url=args.local_data_url,
-        frame_count=args.capture_frame_count,
-        timeout_seconds=5,
-        max_skew_seconds=5,
-        max_age_seconds=10,
-    )
-    frame_dicts = [frame.as_dict() for frame in frames]
+    if args.replay_input:
+        frame_dicts, provenance = load_replay_dataset(args.replay_input)
+        input_mode = "fixed-live-capture-replay"
+    else:
+        frames, provenance = base.capture_live_frames(
+            base_url=args.local_data_url,
+            frame_count=args.capture_frame_count,
+            timeout_seconds=5,
+            max_skew_seconds=5,
+            max_age_seconds=10,
+        )
+        frame_dicts = [frame.as_dict() for frame in frames]
+        input_mode = "live-capture"
     schedule = [
         (repetition, width, cpu_ratio, method)
         for repetition in range(1, args.repetitions + 1)
@@ -260,6 +303,13 @@ def run_experiment(args: argparse.Namespace) -> dict:
             "limitation": "performance proxy only; weights are deterministic and untrained",
         },
         "input_provenance": provenance,
+        "execution": {
+            "site": args.execution_site,
+            "node_name": os.getenv("NODE_NAME", "unknown"),
+            "machine": platform.machine(),
+            "python": platform.python_version(),
+            "input_mode": input_mode,
+        },
         "design": {
             "widths": args.widths,
             "cpu_ratios": args.cpu_ratios,
@@ -281,6 +331,11 @@ def parse_args() -> argparse.Namespace:
     run.add_argument("--server-url", default="http://representative-ai-server1:8080")
     run.add_argument("--local-data-url", default="http://device-serial-jetson.edgex-edge.svc.cluster.local:59910")
     run.add_argument("--capture-frame-count", type=int, default=120)
+    run.add_argument("--replay-input")
+    run.add_argument(
+        "--execution-site",
+        default=os.getenv("EXECUTION_SITE", "unspecified-edge"),
+    )
     run.add_argument("--widths", default="4096,65536,262144,1048576")
     run.add_argument("--depth", type=int, default=20)
     run.add_argument("--cpu-ratios", default="0,0.5,0.75,1")
