@@ -392,6 +392,21 @@ test("builds a fail-closed service augmentation decision rail", () => {
 });
 
 
+test("distinguishes a ready but experimentally rejected augmentation candidate", () => {
+  const view = buildServiceDemoView({
+    status: "normal",
+    augmentation: {
+      state: "BLOCKED",
+      reason_codes: ["augmentation_candidate_not_qualified"],
+      candidate: {target: "server1 GPU", ready: true, qualified: false},
+    },
+  });
+
+  assert.equal(view.augmentation.candidate, "server1 GPU 준비됨 · 성능 검증 실패");
+  assert.match(view.augmentation.reason, /부하 실험의 성능 기준/);
+});
+
+
 test("renders with textContent and a non-color status label", () => {
   const ids = [
     "serviceDemoState",
@@ -624,7 +639,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /service-demo\.css\?v=service-augmentation-v1-20260814/);
-  assert.match(html, /service-demo\.js\?v=service-augmentation-v1-20260814/);
+  assert.match(html, /service-demo\.js\?v=service-augmentation-v2-20260818/);
   assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);

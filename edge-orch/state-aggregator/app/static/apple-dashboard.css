@@ -1,44 +1,48 @@
 /*
- * Apple Operations UI — final visual contract.
- * Calm, layered and information-first; physical state remains visually distinct
+ * Daylight Operations UI — final visual contract.
+ * Bright, calm and information-first; physical state remains visually distinct
  * from actions and from EdgeX/service relationship metadata.
  */
 
 :root {
-  color-scheme: dark;
-  --apple-canvas: #07090d;
-  --apple-rail: #0b0e13;
-  --apple-surface: rgba(24, 28, 35, 0.78);
-  --apple-surface-solid: #181c23;
-  --apple-surface-raised: rgba(37, 42, 51, 0.84);
-  --apple-control: rgba(255, 255, 255, 0.075);
-  --apple-control-hover: rgba(255, 255, 255, 0.115);
-  --apple-line: rgba(255, 255, 255, 0.105);
-  --apple-line-strong: rgba(255, 255, 255, 0.18);
-  --apple-text: #f5f7fa;
-  --apple-secondary: #b6beca;
-  --apple-tertiary: #7e8897;
-  --apple-accent: #5ac8c8;
-  --apple-accent-soft: rgba(90, 200, 200, 0.14);
-  --apple-ok: #64d98a;
-  --apple-warn: #f1bb54;
-  --apple-bad: #ff727c;
-  --apple-info: #6fb5ff;
+  color-scheme: light;
+  --apple-canvas: #f2f5f7;
+  --apple-rail: #e9eef1;
+  --apple-surface: rgba(255, 255, 255, 0.84);
+  --apple-surface-solid: #ffffff;
+  --apple-surface-raised: rgba(248, 250, 252, 0.96);
+  --apple-control: rgba(15, 35, 48, 0.055);
+  --apple-control-hover: rgba(15, 35, 48, 0.09);
+  --apple-line: rgba(15, 35, 48, 0.12);
+  --apple-line-strong: rgba(15, 35, 48, 0.22);
+  --apple-text: #172632;
+  --apple-secondary: #526573;
+  --apple-tertiary: #748590;
+  --apple-accent: #087f8c;
+  --apple-accent-soft: rgba(8, 127, 140, 0.1);
+  --apple-ok: #168253;
+  --apple-warn: #986400;
+  --apple-bad: #c13f4c;
+  --apple-info: #286fae;
   --apple-radius-control: 10px;
   --apple-radius-card: 18px;
   --apple-radius-shell: 24px;
-  --apple-shadow: 0 18px 46px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.035) inset;
-  --apple-focus: 0 0 0 3px rgba(90, 200, 200, 0.34);
+  --apple-shadow: 0 16px 40px rgba(36, 58, 72, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --apple-focus: 0 0 0 3px rgba(8, 127, 140, 0.22);
   --apple-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Legacy aliases keep every dashboard module on the same visual system. */
   --console-bg: var(--apple-canvas);
   --console-rail: var(--apple-rail);
-  --console-command: rgba(11, 14, 19, 0.82);
+  --console-command: rgba(255, 255, 255, 0.9);
+  --console-workspace: var(--apple-canvas);
   --console-panel: var(--apple-surface);
   --console-panel-2: var(--apple-surface-raised);
   --console-panel-raised: var(--apple-surface-raised);
-  --console-row: rgba(255, 255, 255, 0.035);
+  --console-row: rgba(15, 35, 48, 0.035);
+  --console-row-hover: var(--apple-control-hover);
+  --console-bg-elevated: var(--apple-surface-raised);
+  --console-grid: rgba(15, 35, 48, 0.07);
   --console-control: var(--apple-control);
   --console-border: var(--apple-line);
   --console-border-strong: var(--apple-line-strong);
@@ -51,14 +55,39 @@
   --console-orange: var(--apple-warn);
   --console-red: var(--apple-bad);
   --console-blue: var(--apple-info);
-  --console-ink: #061111;
+  --console-ink: #ffffff;
   --console-focus: var(--apple-focus);
   --bg: var(--apple-canvas);
+  --bg-deep: var(--apple-rail);
   --surface: var(--apple-surface);
+  --surface-2: var(--apple-surface-raised);
+  --surface-3: var(--console-row);
+  --surface-accent: var(--apple-accent-soft);
   --line: var(--apple-line);
+  --line-strong: var(--apple-line-strong);
   --text: var(--apple-text);
   --muted: var(--apple-secondary);
+  --muted-2: var(--apple-tertiary);
   --accent: var(--apple-accent);
+  --green: var(--apple-ok);
+  --yellow: var(--apple-warn);
+  --red: var(--apple-bad);
+  --blue: var(--apple-info);
+  --blue-2: var(--apple-accent);
+  --ink: var(--apple-text);
+  --ops-bg: var(--apple-canvas);
+  --ops-grid: var(--console-grid);
+  --ops-panel-bg: var(--apple-surface);
+  --ops-panel-soft: var(--apple-surface-raised);
+  --ops-panel-border: var(--apple-line);
+  --ops-text: var(--apple-text);
+  --ops-muted: var(--apple-secondary);
+  --ops-accent: var(--apple-accent);
+  --ops-accent-soft: var(--apple-accent-soft);
+  --ops-success: var(--apple-ok);
+  --ops-warn: var(--apple-warn);
+  --ops-danger: var(--apple-bad);
+  --ops-shadow: var(--apple-shadow);
 }
 
 html {
@@ -123,8 +152,8 @@ summary:focus-visible,
   padding: 14px 24px !important;
   border: 0 !important;
   border-bottom: 1px solid var(--apple-line) !important;
-  background: rgba(11, 14, 19, 0.78) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 10px 30px rgba(36, 58, 72, 0.08) !important;
   -webkit-backdrop-filter: saturate(145%) blur(22px);
   backdrop-filter: saturate(145%) blur(22px);
 }
@@ -163,8 +192,8 @@ summary:focus-visible,
 .global-search {
   border: 1px solid var(--apple-line) !important;
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.055) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
+  background: var(--apple-control) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset !important;
 }
 
 .global-search:focus-within {
@@ -189,8 +218,8 @@ summary:focus-visible,
   border: 1px solid rgba(90, 200, 200, 0.38) !important;
   border-radius: 11px !important;
   background: var(--apple-accent-soft) !important;
-  color: #a7eeee !important;
-  -webkit-text-fill-color: #a7eeee !important;
+  color: #075f69 !important;
+  -webkit-text-fill-color: #075f69 !important;
   box-shadow: none !important;
 }
 
@@ -272,8 +301,8 @@ summary:focus-visible,
 .main-menu button[aria-pressed="true"] {
   border-color: rgba(90, 200, 200, 0.16) !important;
   background: var(--apple-accent-soft) !important;
-  color: #b8f2f0 !important;
-  -webkit-text-fill-color: #b8f2f0 !important;
+  color: #075f69 !important;
+  -webkit-text-fill-color: #075f69 !important;
 }
 
 .main-menu button.active::before,
@@ -444,7 +473,7 @@ summary:focus-visible,
 .device-twins-summary div {
   border-color: var(--apple-line) !important;
   border-radius: 14px !important;
-  background: rgba(255, 255, 255, 0.035) !important;
+  background: var(--console-row) !important;
   box-shadow: none !important;
 }
 
@@ -468,9 +497,9 @@ textarea,
   min-height: 44px;
   border-color: var(--apple-line) !important;
   border-radius: var(--apple-radius-control) !important;
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   color: var(--apple-text) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035) inset !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset !important;
 }
 
 .device-twins-page.dashboard-page.active,
@@ -490,7 +519,7 @@ textarea,
   padding: 8px !important;
   border: 1px solid var(--apple-line) !important;
   border-radius: 16px !important;
-  background: rgba(255, 255, 255, 0.025) !important;
+  background: var(--console-row) !important;
 }
 
 .device-twins-summary div {
@@ -521,7 +550,7 @@ textarea,
 
 .device-twins-table th {
   color: var(--apple-tertiary) !important;
-  background: rgba(0, 0, 0, 0.14) !important;
+  background: var(--apple-control) !important;
   font-size: 10px !important;
   letter-spacing: 0.08em !important;
 }
@@ -537,7 +566,7 @@ textarea,
 }
 
 .device-twins-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.035) !important;
+  background: var(--apple-control) !important;
 }
 
 .device-twins-table tbody tr[data-connection="bound"] td:first-child {
@@ -547,7 +576,7 @@ textarea,
 .device-twins-data code {
   border-color: var(--apple-line) !important;
   border-radius: 7px !important;
-  background: rgba(0, 0, 0, 0.24) !important;
+  background: var(--apple-control) !important;
 }
 
 .management-node-card[data-selected="true"] {
@@ -562,8 +591,8 @@ textarea,
   border-color: rgba(90, 200, 200, 0.5) !important;
   border-radius: 11px !important;
   background: var(--apple-accent) !important;
-  color: #061111 !important;
-  -webkit-text-fill-color: #061111 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .side-rail {
@@ -578,10 +607,171 @@ textarea,
 .operator-chat {
   border-color: var(--apple-line) !important;
   border-radius: var(--apple-radius-card) !important;
-  background: rgba(18, 22, 28, 0.88) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   box-shadow: var(--apple-shadow) !important;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
+}
+
+/* Modules authored against the former dark console keep their structure while
+ * inheriting daylight surfaces from this final stylesheet. */
+.service-operations-cockpit,
+.service-operations-timeline,
+.service-performance-comparison article,
+.service-designer-workbench,
+.service-designer-canvas,
+.service-designer-input-preview,
+.service-designer-validation,
+.service-designer-plan,
+.management-modal-dialog,
+.management-code-block {
+  border-color: var(--apple-line) !important;
+  background: var(--apple-surface-solid) !important;
+  color: var(--apple-text) !important;
+  box-shadow: var(--apple-shadow) !important;
+}
+
+.service-operations-head,
+.service-operations-subhead,
+.service-designer-node-head,
+.sensor-inventory-table thead th {
+  background: var(--apple-control) !important;
+}
+
+.service-dag-canvas,
+.service-designer-canvas,
+.service-designer-canvas-viewport,
+.service-designer-minimap svg {
+  background-color: #f8fafb !important;
+  background-image:
+    linear-gradient(var(--console-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--console-grid) 1px, transparent 1px) !important;
+}
+
+.service-designer-minimap-node {
+  fill: #9baab4 !important;
+  stroke: #6f818d !important;
+}
+
+.service-dag-edges path {
+  stroke: #8a9aa6;
+}
+
+.service-dag-edges marker path {
+  fill: #748590;
+}
+
+.service-dag-node,
+.service-designer-node {
+  border-color: var(--apple-line-strong) !important;
+  background: var(--apple-surface-solid) !important;
+  color: var(--apple-text) !important;
+  box-shadow: 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+}
+
+.service-dag-device {
+  box-shadow: inset 3px 0 0 var(--console-blue), 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+}
+
+.service-dag-server {
+  box-shadow: inset 3px 0 0 #7857b8, 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+}
+
+.service-dag-node-index,
+.service-routing-split,
+.service-designer-minimap,
+.service-designer-view-controls {
+  border-color: var(--apple-line) !important;
+  background: var(--apple-control) !important;
+  box-shadow: 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+}
+
+.service-designer-view-controls button {
+  background: rgba(255, 255, 255, 0.94) !important;
+}
+
+.service-dag-node > footer strong,
+.service-dag-node[data-current="true"]::after {
+  color: var(--apple-info) !important;
+}
+
+.service-dag-node[data-current="true"]::after {
+  background: #edf6fc !important;
+}
+
+.service-dag-augmentation-event {
+  background: #fff7e6 !important;
+  box-shadow: 0 10px 24px rgba(92, 67, 20, 0.12) !important;
+}
+
+.service-dag-augmentation-event strong {
+  color: #6f4900 !important;
+}
+
+.service-dag-augmentation-event[data-state="executed"] {
+  background: #edf6fc !important;
+}
+
+.service-dag-augmentation-event[data-state="blocked"] {
+  background: #fff0f1 !important;
+}
+
+.service-operations-live[data-state="attention"] strong,
+.service-designer-state strong[data-state="starting"],
+.service-designer-state strong[data-state="warming_up"] {
+  color: var(--apple-warn) !important;
+}
+
+.service-timeline-marker {
+  border-color: var(--apple-surface-solid) !important;
+}
+
+.service-designer-flow-stage {
+  background: var(--console-row) !important;
+}
+
+.service-designer-node-head,
+.service-designer-context-menu,
+.service-designer-canvas-menu,
+.service-designer-input-preview,
+.service-designer-config-panel,
+.service-designer-validation-panel {
+  border-color: var(--apple-line) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  box-shadow: 0 10px 28px rgba(36, 58, 72, 0.14) !important;
+}
+
+.service-designer-port {
+  border-color: #f8fafb !important;
+}
+
+.service-designer-state strong[data-state="saved"],
+.service-designer-state strong[data-state="valid"],
+.service-designer-service-status[data-status="normal"] {
+  color: var(--apple-ok) !important;
+}
+
+.service-designer-state strong[data-state="service-draft"],
+.service-designer-deployed-action[aria-pressed="true"] {
+  color: var(--apple-info) !important;
+}
+
+.service-designer-state strong[data-state="invalid"],
+.service-designer-service-status[data-status="anomaly"],
+.service-designer-service-status[data-status="degraded"] {
+  color: var(--apple-bad) !important;
+}
+
+.management-action-feedback[data-status="waiting"],
+.management-inline-feedback[data-status="waiting"] {
+  color: var(--apple-info) !important;
+}
+
+.management-action-feedback[data-status="success"],
+.management-action-feedback[data-status="verified"],
+.management-inline-feedback[data-status="success"],
+.management-inline-feedback[data-status="verified"] {
+  color: var(--apple-ok) !important;
 }
 
 ::-webkit-scrollbar {
@@ -592,7 +782,7 @@ textarea,
 ::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(15, 35, 48, 0.2);
   background-clip: padding-box;
 }
 
@@ -615,7 +805,7 @@ textarea,
     overflow-x: auto;
     border-right: 0 !important;
     border-bottom: 1px solid var(--apple-line) !important;
-    background: rgba(11, 14, 19, 0.9) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
     -webkit-backdrop-filter: blur(22px);
     backdrop-filter: blur(22px);
   }
@@ -796,10 +986,10 @@ textarea,
 
 @media (prefers-contrast: more) {
   :root {
-    --apple-line: rgba(255, 255, 255, 0.3);
-    --apple-line-strong: rgba(255, 255, 255, 0.52);
-    --apple-secondary: #dde2e9;
-    --apple-tertiary: #bdc5d0;
+    --apple-line: rgba(15, 35, 48, 0.28);
+    --apple-line-strong: rgba(15, 35, 48, 0.48);
+    --apple-secondary: #344957;
+    --apple-tertiary: #4d616d;
   }
   .panel,
   .kpi-grid.dashboard-page.active,

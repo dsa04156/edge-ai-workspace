@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">연결 가이드</span>
             <span class="badge">원본: 디바이스-서비스-연결.md</span>
-            <span class="badge">수정: 2026-08-13 18:23</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 12:42</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -125,6 +126,7 @@
 <p>등록은 idempotent해야 한다. 같은 identity·같은 계약은 재사용하고, 같은 이름의 다른 계약은 conflict로 차단한다. 최종 Device/Profile/state 권위는 계속 EdgeX다.</p>
 <h3 id="5-첫-event를-확인한다">5. 첫 Event를 확인한다</h3>
 <p>연결 완료에는 다음 증거가 모두 필요하다.</p>
+<p>telemetry freshness는 EdgeX Core Data latest Event의 nanosecond <code>origin</code>을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <ol><li>Device Service workload와 endpoint Ready</li><li>Core Metadata의 Device Service/Profile/Device readback</li><li>Device <code>adminState=UNLOCKED</code>, <code>operatingState=UP</code></li><li>Core Data의 계약된 resource와 type</li><li>latest Event <code>origin</code>이 freshness window 이내</li></ol>
 <h2 id="현재-protocol-상태">현재 protocol 상태</h2>
 <div class="table-wrap"><table>

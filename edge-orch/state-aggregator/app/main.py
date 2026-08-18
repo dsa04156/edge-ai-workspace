@@ -270,10 +270,25 @@ async def get_service_demo() -> ServiceDemoState:
         candidate_profile
         and int(candidate_profile.get("ready_pod_count") or 0) > 0
     )
+    descriptor = service_catalog.require("sensor-anomaly-demo")
+    qualification = descriptor.augmentation_qualification
+    source_model_version = demo.model.version if demo.model is not None else None
+    if source_model_version is None and demo.latest is not None:
+        source_model_version = demo.latest.model_version
+    candidate_qualified = bool(
+        qualification.status == "qualified"
+        and source_model_version == qualification.source_model_version
+    )
     signals = build_service_augmentation_signals(
         demo,
         source_profile,
         candidate_ready=candidate_ready,
+        candidate_qualified=candidate_qualified,
+        candidate_qualification_reason=(
+            "qualified"
+            if candidate_qualified
+            else qualification.reason
+        ),
     )
     return demo.model_copy(
         update={"augmentation": service_augmentation_evaluator.evaluate(signals)}

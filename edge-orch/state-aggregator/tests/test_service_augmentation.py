@@ -28,6 +28,8 @@ def _signals(**updates) -> ServiceAugmentationSignals:
         "backlog": 2,
         "throughput_per_second": 0.6,
         "candidate_ready": True,
+        "candidate_qualified": True,
+        "candidate_qualification_reason": "qualified",
         "observation_source": "process-self",
         "observation_scope": "main-process",
     }
@@ -66,6 +68,25 @@ def test_evaluator_blocks_missing_observation_and_unready_candidate_fail_closed(
     assert blocked.state == "BLOCKED"
     assert blocked.recommendation == "none"
     assert "augmentation_candidate_not_ready" in blocked.reason_codes
+
+
+def test_evaluator_blocks_a_ready_but_experimentally_rejected_candidate() -> None:
+    evaluator = ServiceAugmentationEvaluator()
+    rejected = _signals(
+        candidate_ready=True,
+        candidate_qualified=False,
+        candidate_qualification_reason=(
+            "server1_latency_regression_and_zero_observed_gpu_utilization"
+        ),
+    )
+    evaluator.evaluate(rejected, now=NOW)
+
+    blocked = evaluator.evaluate(rejected, now=NOW + timedelta(minutes=5))
+
+    assert blocked.state == "BLOCKED"
+    assert blocked.candidate.ready is True
+    assert blocked.candidate.qualified is False
+    assert "augmentation_candidate_not_qualified" in blocked.reason_codes
 
 
 def test_signal_builder_uses_process_fallback_when_cadvisor_has_no_sample() -> None:
@@ -111,6 +132,8 @@ def test_signal_builder_uses_process_fallback_when_cadvisor_has_no_sample() -> N
         demo,
         profile,
         candidate_ready=False,
+        candidate_qualified=False,
+        candidate_qualification_reason="not_evaluated",
         now=NOW,
     )
 

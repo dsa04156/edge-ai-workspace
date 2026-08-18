@@ -44,6 +44,7 @@ function buildServiceAugmentationView(augmentation = {}) {
     service_pressure_observing: "지연·백로그·처리량 압력이 감지되어 지속 시간을 관찰하고 있습니다.",
     sustained_resource_and_service_pressure: "자원과 서비스 압력이 기준 시간 이상 지속되어 증강을 권고합니다.",
     augmentation_candidate_not_ready: "증강 조건은 충족했지만 server1 후보가 준비되지 않아 실행 판단을 차단합니다.",
+    augmentation_candidate_not_qualified: "증강 조건은 충족했지만 server1 후보가 부하 실험의 성능 기준을 통과하지 못해 실행 판단을 차단합니다.",
     resource_observation_unavailable: "실제 자원 사용량을 확인할 수 없어 증강 판단을 차단합니다.",
     performance_observation_unavailable: "서비스 처리 지표를 확인할 수 없어 증강 판단을 차단합니다.",
     input_invalid_or_stale: "입력이 없거나 오래되어 증강 판단을 차단합니다.",
@@ -73,8 +74,11 @@ function buildServiceAugmentationView(augmentation = {}) {
     observation: observation.source === "container-cadvisor" ? "컨테이너 · cAdvisor"
       : observation.source === "process-self" ? "메인 프로세스 · 자체 관측"
         : "관측 불가",
-    candidate: augmentation.candidate?.ready === true ? "server1 GPU 준비됨"
-      : augmentation.candidate?.ready === false ? "준비 안됨" : "관측 불가",
+    candidate: augmentation.candidate?.ready === true && augmentation.candidate?.qualified === true
+      ? "server1 GPU 준비됨 · 성능 검증 통과"
+      : augmentation.candidate?.ready === true && augmentation.candidate?.qualified === false
+        ? "server1 GPU 준비됨 · 성능 검증 실패"
+        : augmentation.candidate?.ready === false ? "준비 안됨" : "관측 불가",
     dwell: Number.isFinite(resourceSeconds) && Number.isFinite(resourceRequired)
       ? `${Math.max(0, Math.trunc(resourceSeconds))} / ${Math.max(0, Math.trunc(resourceRequired))}초`
       : "관측 불가",

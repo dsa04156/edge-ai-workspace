@@ -33,6 +33,11 @@ Server1 backend는 같은 통계 기준선의 점수 계산을 CUDA에서 실행
 
 ## 자원 증강 실행 경계
 
+2026-08-18의 90-run CPU·메모리·요청률 실험에서 현재
+`baseline-1.0.0` → `cuda-baseline-1.0.0` 후보가 성능 승격 기준을 통과한 조건은
+0/15개였다. 따라서 Server1 endpoint가 Ready여도 현재 요청은 local에 유지한다. 실험 설계와
+수치는 `docs/AI-서비스-자원-증강-부하-실험.md`를 따른다.
+
 기본 `k8s/` 배포는 `REMOTE_INFERENCE_MODE=disabled`이며 Jetson 로컬 추론만 사용한다.
 `k8s/server1-observed-only`는 운영 root에 포함된 observed-only server1 후보다. 모델
 readiness와 endpoint를 준비하되 요청 전환은 활성화하지 않는다. HAMi가 GPU core와 memory를 배정하고 CUDA probe가 성공한 뒤에만

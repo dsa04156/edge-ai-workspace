@@ -1,10 +1,10 @@
-# Edge AI Apple Operations Interface System
+# Edge AI Daylight Operations Interface System
 
 ## 방향과 분위기
 
 - 대상: 엣지 AI 플랫폼 운영자. 운영 상태를 열고 10초 안에 장애 대상, 최신 관측,
   영향을 받는 물리 source와 서비스를 식별해야 한다.
-- 분위기: 차분하고 정밀한 산업 운영 화면. 제어반 흑연색, 알루미늄, 모니터 유리,
+- 분위기: 차분하고 정밀한 밝은 산업 운영 화면. 주간 제어실의 무광 패널, 백색 계기판,
   상태 LED에서 가져온 색과 재질을 사용한다.
 - 금지: 일반 SaaS의 동일 카드 반복, 장식용 gradient, 강한 초록색 면, 두꺼운 panel
   경계, 상태와 무관한 다색 accent.
@@ -17,20 +17,20 @@
 
 | 역할 | 값 | 규칙 |
 |---|---:|---|
-| Canvas | `#07090d` | 전체 배경 |
-| Rail | `#0b0e13` | canvas와 거의 같은 흑연색 |
-| Surface | `rgba(24, 28, 35, .78)` | 기본 반투명 panel |
-| Raised surface | `rgba(37, 42, 51, .84)` | popover·상세 표면 |
-| Control | `rgba(255, 255, 255, .075)` | inset control·inactive state |
-| Standard line | `rgba(255, 255, 255, .105)` | 조용한 구조 분리 |
-| Primary text | `#f5f7fa` | 핵심 상태·수치 |
-| Secondary text | `#b6beca` | 설명·label |
-| Tertiary text | `#7e8897` | metadata·timestamp |
-| Interaction accent | `#5ac8c8` | 선택·focus·주 동작만 |
-| Healthy | `#64d98a` | 정상 상태만 |
-| Warning | `#f1bb54` | 주의 상태만 |
-| Error | `#ff727c` | 장애 상태만 |
-| Information | `#6fb5ff` | 링크·정보 상태만 |
+| Canvas | `#f2f5f7` | 전체 배경 |
+| Rail | `#e9eef1` | canvas보다 한 단계 짙은 밝은 회색 |
+| Surface | `rgba(255, 255, 255, .84)` | 기본 반투명 panel |
+| Raised surface | `rgba(248, 250, 252, .96)` | popover·상세 표면 |
+| Control | `rgba(15, 35, 48, .055)` | inset control·inactive state |
+| Standard line | `rgba(15, 35, 48, .12)` | 조용한 구조 분리 |
+| Primary text | `#172632` | 핵심 상태·수치 |
+| Secondary text | `#526573` | 설명·label |
+| Tertiary text | `#748590` | metadata·timestamp |
+| Interaction accent | `#087f8c` | 선택·focus·주 동작만 |
+| Healthy | `#168253` | 정상 상태만 |
+| Warning | `#986400` | 주의 상태만 |
+| Error | `#c13f4c` | 장애 상태만 |
+| Information | `#286fae` | 링크·정보 상태만 |
 
 - 색상 비율은 중립 60%, 보조 표면 30%, accent와 상태색 10% 이하로 유지한다.
 - status 색상은 텍스트·아이콘·배지 상태와 함께 사용하며 색상만으로 의미를 전달하지 않는다.
@@ -38,9 +38,9 @@
 ## 깊이와 표면
 
 - 전략: 세 단계의 반투명 surface + 낮은 투명 shadow. 여러 depth 전략을 섞지 않는다.
-- Canvas → panel → raised detail 순으로 밝기를 소폭 높인다.
-- 기본 panel: `18px` radius, `1px` 저대비 line, `0 18px 46px rgba(0,0,0,.22)` shadow.
-- control: 주변보다 어두운 inset fill, `10px` radius.
+- Canvas → panel → raised detail 순으로 백색도와 불투명도를 소폭 높인다.
+- 기본 panel: `18px` radius, `1px` 저대비 line, `0 16px 40px rgba(36,58,72,.10)` shadow.
+- control: 주변보다 소폭 짙은 inset fill, `10px` radius.
 - mobile panel: `16px` radius.
 - sidebar는 canvas와 같은 계열을 사용하고 얇은 오른쪽 line으로만 분리한다.
 - `prefers-reduced-transparency`에서는 blur를 제거하고 solid surface를 사용한다.
@@ -85,7 +85,7 @@
 ### 상단 command bar
 
 - `76px` 최소 높이, `14px 24px` padding, blur `22px`.
-- 검색은 어두운 inset control이다. 새로고침은 청록 soft fill을 사용하는 보조 주 동작이다.
+- 검색은 밝은 inset control이다. 새로고침은 청록 soft fill을 사용하는 보조 주 동작이다.
 - Mobile은 제목·새로고침 한 행, 검색 한 행으로 쌓는다.
 
 ### 운영 분류 요약

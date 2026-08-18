@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a class="active" aria-current="page" href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-08-14 17:27</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:10</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -146,6 +147,38 @@
 <p>서비스는 다음 축을 독립적으로 표시한다.</p>
 <ul><li>workload/endpoint Ready</li><li>필수 입력 connected·fresh·schema valid</li><li>input window와 시각 정렬</li><li>model ready와 model version</li><li>결과 저장·알림 sink</li><li>현재 실행 target과 최근 처리 비율</li></ul>
 <p>Device가 available이어도 필수 resource가 빠졌거나 모델이 준비되지 않으면 서비스는 <code>degraded</code> 또는 <code>blocked</code>다.</p>
+<h2 id="ai-서비스-자원-증강-판단">AI 서비스 자원 증강 판단</h2>
+<p>자원 증강 rail은 read-only 판단이며 자동 배포·라우팅·migration을 실행하지 않는다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>gate</th>
+<th>기준</th>
+<th>지속 시간</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>자원 압력</td>
+<td>CPU limit 대비 85% 이상 또는 memory limit 대비 85% 이상</td>
+<td>300초</td>
+</tr>
+<tr>
+<td>서비스 압력</td>
+<td>p95 ≥ 4,000ms, backlog &gt; 0 또는 throughput &lt; 0.8/s</td>
+<td>180초</td>
+</tr>
+<tr>
+<td>후보 준비</td>
+<td>Server1 endpoint와 CUDA readiness</td>
+<td>현재 관측</td>
+</tr>
+<tr>
+<td>후보 성능 자격</td>
+<td>정확한 model version의 부하 실험이 지연 10% 개선, 처리량 5% 비열등, error/OOM 0을 충족</td>
+<td>실험 보고서</td>
+</tr>
+</tbody></table></div>
+<p>자원 압력과 서비스 압력이 모두 지속돼야 후보를 검토한다. 이때 후보가 준비되지 않았거나 성능 자격이 <code>rejected/pending</code>이면 <code>BLOCKED</code>다. 자격이 <code>qualified</code>인 경우에도 <code>RECOMMENDED</code>까지만 표시한다.</p>
+<p>현재 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code> 후보는 2026-08-18 실험의 15개 조건 중 통과 0개이므로 <code>rejected</code>다. 85%/300초와 4,000ms/180초는 일시 spike를 거르는 보수적 관찰 기준이며 최적 임계값으로 실험 입증된 값은 아니다. 상세 근거는 <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a>을 따른다.</p>
 <h2 id="운영-kpi">운영 KPI</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -180,6 +213,7 @@
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#기본-원칙">기본 원칙</a></li>
 <li class="toc-h2"><a href="#센서-디바이스-상태">센서 디바이스 상태</a></li>
 <li class="toc-h2"><a href="#ai-서비스-상태">AI 서비스 상태</a></li>
+<li class="toc-h2"><a href="#ai-서비스-자원-증강-판단">AI 서비스 자원 증강 판단</a></li>
 <li class="toc-h2"><a href="#운영-kpi">운영 KPI</a></li></ol></aside>
     </div>
   </div>

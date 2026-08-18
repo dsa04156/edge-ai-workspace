@@ -328,6 +328,8 @@ class ServiceAugmentationObservation(BaseModel):
 class ServiceAugmentationCandidate(BaseModel):
     target: str = "server1 GPU"
     ready: bool = False
+    qualified: bool = False
+    qualification_reason: str = "not_evaluated"
 
 
 class ServiceAugmentationState(BaseModel):

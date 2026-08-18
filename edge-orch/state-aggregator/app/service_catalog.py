@@ -135,6 +135,29 @@ class ServiceObservabilityDescriptor(CatalogModel):
         return self
 
 
+class ServiceAugmentationQualificationDescriptor(CatalogModel):
+    status: Literal["qualified", "rejected", "pending"]
+    source_model_version: str = Field(min_length=1)
+    candidate_model_version: str = Field(min_length=1)
+    experiment_id: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    max_validated_rps: float = Field(gt=0)
+    latency_p95_improvement_percent: float = Field(ge=0, le=100)
+    throughput_noninferiority_percent: float = Field(ge=0, le=100)
+    requires_zero_errors_and_oom: bool = True
+    qualified_condition_count: int = Field(ge=0)
+    validated_condition_count: int = Field(gt=0)
+    evidence_document: str = Field(pattern=r"^docs/[A-Za-z0-9가-힣._/-]+\.md$")
+
+    @model_validator(mode="after")
+    def validate_condition_counts(self) -> "ServiceAugmentationQualificationDescriptor":
+        if self.qualified_condition_count > self.validated_condition_count:
+            raise ValueError(
+                "qualified_condition_count cannot exceed validated_condition_count"
+            )
+        return self
+
+
 class ServiceDescriptor(CatalogModel):
     service_id: str
     display_name: str = Field(min_length=1)
@@ -146,6 +169,7 @@ class ServiceDescriptor(CatalogModel):
     input_contract: ServiceInputDescriptor
     graph: ServiceGraphDescriptor
     observability: ServiceObservabilityDescriptor
+    augmentation_qualification: ServiceAugmentationQualificationDescriptor
     design_contract: DeployedServiceDesignContract
 
     @model_validator(mode="after")

@@ -45,6 +45,19 @@ def test_checked_in_service_catalog_loads_current_service() -> None:
         "Server1",
     ]
     assert service.graph.stages[0].executions[0].executor == "device-serial-jetson"
+    assert service.augmentation_qualification.status == "rejected"
+    assert service.augmentation_qualification.experiment_id == (
+        "sensor-augmentation-20260818"
+    )
+    assert service.augmentation_qualification.max_validated_rps == 200
+    assert service.augmentation_qualification.latency_p95_improvement_percent == 10
+    assert service.augmentation_qualification.throughput_noninferiority_percent == 5
+    assert service.augmentation_qualification.requires_zero_errors_and_oom is True
+    assert service.augmentation_qualification.qualified_condition_count == 0
+    assert service.augmentation_qualification.validated_condition_count == 15
+    assert service.augmentation_qualification.evidence_document.endswith(
+        "AI-서비스-자원-증강-부하-실험.md"
+    )
 
 
 def test_service_catalog_rejects_duplicate_service_ids(tmp_path: Path) -> None:
@@ -68,6 +81,17 @@ def test_service_catalog_rejects_external_observability_urls(tmp_path: Path) -> 
     payload["services"][0]["observability"]["state_path"] = "http://example.test/state"
 
     with pytest.raises(ValidationError, match="relative /state/ path"):
+        ServiceCatalog.load(write_catalog(tmp_path, payload))
+
+
+def test_service_catalog_rejects_impossible_qualification_counts(
+    tmp_path: Path,
+) -> None:
+    payload = catalog_payload()
+    qualification = payload["services"][0]["augmentation_qualification"]
+    qualification["qualified_condition_count"] = 16
+
+    with pytest.raises(ValidationError, match="cannot exceed"):
         ServiceCatalog.load(write_catalog(tmp_path, payload))
 
 

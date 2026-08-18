@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a class="active" aria-current="page" href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -70,18 +71,155 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>옥동 AI 서비스 데이터 계약</h1>
-          <p class="subtitle">2차년도 옥동 PoC 서비스 2종의 입력 경계를 코드와 함께 버전 관리한다. 2026-08-03 현재 계약, simulator/…</p>
+          <p class="subtitle">2차년도 옥동 PoC 서비스 2종의 입력 경계를 코드와 함께 버전 관리한다. 2026-08-18 현재 계약, simulator/…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 옥동-데이터-계약.md</span>
-            <span class="badge">수정: 2026-08-12 13:13</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:09</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="옥동-ai-서비스-데이터-계약">옥동 AI 서비스 데이터 계약</h1>
 <h2 id="목적과-현재-상태">목적과 현재 상태</h2>
-<p>이 문서는 2차년도 옥동 PoC 서비스 2종의 입력 경계를 코드와 함께 버전 관리한다. 2026-08-03 현재 계약, simulator/replay, 유압펌프·모터 기준선 서비스의 결과·알림 저장은 구현되어 있다. 옥동 PLC tag, MES column, 실제 단위, 수집주기와 품질 label 시점은 현장 확정 전이므로 구현 완료로 간주하지 않는다.</p>
+<p>이 문서는 2차년도 옥동 PoC 서비스 2종의 입력 경계를 코드와 함께 버전 관리한다. 2026-08-18 현재 계약, simulator/replay, 유압펌프·모터 기준선 서비스의 결과·알림 저장은 구현되어 있다. 옥동 PLC tag, MES column, 실제 단위, 수집주기와 품질 label 시점은 현장 확정 전이므로 구현 완료로 간주하지 않는다.</p>
+<h2 id="통신-방식과-데이터-형식-분석">통신 방식과 데이터 형식 분석</h2>
+<p>다양한 장비를 하나의 protocol로 강제하지 않는다. 연결·decode는 EdgeX Device Service가 소유하고, 상위 서비스에는 EdgeX Event/Reading과 versioned AI 입력 계약으로 표준화한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>source</th>
+<th>예상 통신·형식</th>
+<th>현재 상태</th>
+<th>표준화 경계</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Arduino 센서</td>
+<td>USB Serial, line-delimited JSON</td>
+<td>실장비 수직 슬라이스 검증</td>
+<td><code>device-serial-jetson</code>이 resource별 Reading 생성</td>
+</tr>
+<tr>
+<td>Sense HAT</td>
+<td>I2C register/binary</td>
+<td>실장비 수직 슬라이스 검증</td>
+<td><code>device-sensehat-raspi</code>가 단위·resource 이름 부여</td>
+</tr>
+<tr>
+<td>PLC</td>
+<td>Modbus TCP register 또는 현장 제공 방식</td>
+<td>simulator/fixture만 검증, 옥동 endpoint 미확정</td>
+<td>register type·scale·endianness를 Device Profile에 고정</td>
+</tr>
+<tr>
+<td>PLC/SCADA</td>
+<td>OPC-UA node/value/status/timestamp</td>
+<td>후보 계약, 실장비 미검증</td>
+<td>node ID를 resource로 매핑하고 source timestamp·quality 보존</td>
+</tr>
+<tr>
+<td>MQTT 장비</td>
+<td>topic + JSON/binary payload</td>
+<td>개발 package/fixture 검증</td>
+<td>topic·payload schema를 Device Service adapter가 검증</td>
+</tr>
+<tr>
+<td>MES</td>
+<td>REST JSON, DB row 또는 파일 batch 중 현장 확정 필요</td>
+<td>접근 방식·column 미확정</td>
+<td>production ID와 event time 기준으로 별도 adapter가 정규화</td>
+</tr>
+<tr>
+<td>카메라</td>
+<td>RTSP video frame</td>
+<td>후속 후보</td>
+<td>승인된 AI Pod가 직접 구독하고 결과 metadata만 Event로 전달</td>
+</tr>
+</tbody></table></div>
+<p>Modbus·OPC-UA·MES가 표에 있다는 사실은 옥동 실장비 연동 완료를 뜻하지 않는다. endpoint, 인증, tag/node/column, 주기와 장애 동작은 현장 확인 후 adapter binding으로 확정한다.</p>
+<h2 id="공통-데이터-모델">공통 데이터 모델</h2>
+<p>서비스 입력 envelope는 protocol 차이를 다음 공통 의미로 바꾼다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>공통 요소</th>
+<th>규칙</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>계약 식별</td>
+<td><code>schemaVersion</code> 또는 계약 이름을 versioned 값으로 고정</td>
+</tr>
+<tr>
+<td>event identity</td>
+<td><code>eventId</code>는 source 내 중복 방지 키</td>
+</tr>
+<tr>
+<td>source identity</td>
+<td><code>sourceType</code>, <code>deviceId</code>, <code>assetId</code>, 선택 <code>nodeId</code>를 분리</td>
+</tr>
+<tr>
+<td>시간</td>
+<td><code>observedAt</code>은 timezone 포함 원 관측 시각, 수집 시각과 혼합 금지</td>
+</tr>
+<tr>
+<td>signal</td>
+<td>이름별 <code>value</code>, <code>unit</code>, <code>quality</code>를 보존하고 NaN·무한값 차단</td>
+</tr>
+<tr>
+<td>생산 문맥</td>
+<td><code>productionId</code>, lot, item 등은 현장 join 규칙 확정 후 연결</td>
+</tr>
+<tr>
+<td>확장</td>
+<td>임의 top-level field 대신 <code>signals.additional</code> 또는 version up 사용</td>
+</tr>
+</tbody></table></div>
+<p>EdgeX 쪽 공통 모델은 <code>DeviceProfile</code>이 resource schema를, <code>Device</code>가 endpoint와 물리 identity를, <code>Event/Reading</code>이 timestamped value를 제공한다. AI 계약은 여러 Reading을 하나의 분석 frame 또는 생산 건으로 정렬한 서비스 경계다. KubeEdge Device 객체를 이 데이터 모델의 병행 권위로 사용하지 않는다.</p>
+<h2 id="연동-인터페이스">연동 인터페이스</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>경계</th>
+<th>인터페이스</th>
+<th>소유권</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 장비 → 플랫폼</td>
+<td>EdgeX Device Service protocol driver</td>
+<td>연결, decode, scale, quality</td>
+</tr>
+<tr>
+<td>inventory/schema</td>
+<td>Core Metadata Device/Profile API</td>
+<td>EdgeX 권위</td>
+</tr>
+<tr>
+<td>중앙 telemetry</td>
+<td>Core Data Event/Reading API·MessageBus</td>
+<td>origin과 resource 값</td>
+</tr>
+<tr>
+<td>동일 노드 저지연 입력</td>
+<td>Device Service Local Data v3 read API</td>
+<td>service가 read-only 소비</td>
+</tr>
+<tr>
+<td>AI 서비스 입력</td>
+<td><code>okdong.*.telemetry/v1</code> JSON Schema</td>
+<td>서비스별 versioned 계약</td>
+</tr>
+<tr>
+<td>AI 결과</td>
+<td>서비스 <code>/api/v1/results</code>, <code>/api/v1/alerts</code></td>
+<td>application-owned 파생 데이터</td>
+</tr>
+<tr>
+<td>영상</td>
+<td>승인된 Pod의 RTSP direct subscription</td>
+<td>frame은 Core Data에 싣지 않음</td>
+</tr>
+</tbody></table></div>
+<p>따라서 공통 모델과 인터페이스의 <strong>플랫폼 기준은 정의돼 있고 현재 Serial/I2C 수직 슬라이스에서 구현</strong>됐다. 하지만 “다양한 센서·PLC·MES 연동 완료”라고 할 단계는 아니다. 옥동별 register/tag/column mapping과 실장비 E2E 증거가 남아 있다.</p>
 <h2 id="계약-목록">계약 목록</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -213,6 +351,9 @@ REPLAY_FILE=/tmp/pump-replay.jsonl REPLAY_REBASE_TO_NOW=true \
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-현재-상태">목적과 현재 상태</a></li>
+<li class="toc-h2"><a href="#통신-방식과-데이터-형식-분석">통신 방식과 데이터 형식 분석</a></li>
+<li class="toc-h2"><a href="#공통-데이터-모델">공통 데이터 모델</a></li>
+<li class="toc-h2"><a href="#연동-인터페이스">연동 인터페이스</a></li>
 <li class="toc-h2"><a href="#계약-목록">계약 목록</a></li>
 <li class="toc-h2"><a href="#펌프-모터-입력">펌프·모터 입력</a></li>
 <li class="toc-h2"><a href="#생산품질-입력">생산품질 입력</a></li>

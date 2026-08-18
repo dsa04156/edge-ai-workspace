@@ -9,7 +9,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 
     refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
     screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
-    apple_link = "/static/apple-dashboard.css?v=apple-operations-v1-20260814"
+    apple_link = "/static/apple-dashboard.css?v=daylight-operations-v2-20260818"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -29,14 +29,14 @@ def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
-    assert "--apple-canvas: #07090d;" in css
-    assert "--apple-rail: #0b0e13;" in css
-    assert "--apple-accent: #5ac8c8;" in css
+    assert "--apple-canvas: #f2f5f7;" in css
+    assert "--apple-rail: #e9eef1;" in css
+    assert "--apple-accent: #087f8c;" in css
     assert "--console-accent: var(--apple-accent);" in css
     assert "--line: var(--apple-line);" in css
     assert "--text: var(--apple-text);" in css
     assert "--muted: var(--apple-secondary);" in css
-    assert "color-scheme: dark;" in css
+    assert "color-scheme: light;" in css
     assert 'grid-template-areas: "rail command" "rail workspace" !important;' in css
     assert 'content: "Edge AI\\AOperations" !important;' in css
     assert ".global-search" in css
@@ -61,7 +61,7 @@ def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
     assert "Resource Augmentation" not in html
     assert "가상 디바이스 표시 경계" not in screen_design
     assert "읽기 전용" in screen_design
-    assert "흑연색 운영 레일" in screen_design
+    assert "밝은 회색 운영 레일" in screen_design
 
 
 def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:

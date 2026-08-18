@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-08-14 12:01</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:11</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -166,6 +167,18 @@
 <tr>
 <td><code>tests/</code></td>
 <td>workspace 문서·계약 회귀 테스트</td>
+</tr>
+<tr>
+<td><code>tools/sensor_augmentation_experiment.py</code></td>
+<td>local/server1 CPU·memory·요청률 부하 실험기</td>
+</tr>
+<tr>
+<td><code>tools/analyze_sensor_augmentation_experiment.py</code></td>
+<td>대응 비교·후보 자격 요약기</td>
+</tr>
+<tr>
+<td><code>tools/k8s/sensor-augmentation-experiment.yaml</code></td>
+<td>제한된 임시 실험 Job template</td>
 </tr>
 </tbody></table></div>
 <h2 id="선택-개발-fixture">선택 개발 fixture</h2>

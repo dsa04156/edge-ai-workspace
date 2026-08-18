@@ -31,6 +31,7 @@ Kubernetes workload + EdgeX input + ServiceDescriptor
 - 결과·알림 API와 저장 위치
 - processing latency, backlog, throughput metric
 - workload와 기본 실행 target
+- 자원 증강 후보의 정확한 source/candidate model version과 실험 자격
 
 현장 mapping이나 모델 계약이 없으면 `deployed`로 등록하지 않는다.
 
@@ -79,11 +80,27 @@ Pod 이름처럼 rollout마다 바뀌는 값을 사용하지 않는다.
     "state_path": "/state/service-demo",
     "results_path": "/state/service-demo/results?limit=12",
     "alerts_path": "/state/service-demo/alerts?limit=10"
+  },
+  "augmentation_qualification": {
+    "status": "rejected",
+    "source_model_version": "baseline-1.0.0",
+    "candidate_model_version": "cuda-baseline-1.0.0",
+    "experiment_id": "sensor-augmentation-20260818",
+    "reason": "server1_latency_regression_and_zero_observed_gpu_utilization",
+    "max_validated_rps": 200,
+    "latency_p95_improvement_percent": 10,
+    "throughput_noninferiority_percent": 5,
+    "requires_zero_errors_and_oom": true,
+    "qualified_condition_count": 0,
+    "validated_condition_count": 15,
+    "evidence_document": "docs/AI-서비스-자원-증강-부하-실험.md"
   }
 }
 ```
 
 외부 URL, 비밀번호, token, URL userinfo와 임의 image/command/hostPath는 허용하지 않는다.
+새 후보는 기본 `pending`으로 등록하고, 정확한 model version을 재현 가능한 부하 실험으로
+검토한 뒤에만 `qualified` 또는 `rejected`로 바꾼다. 분석기가 catalog를 자동 수정하지 않는다.
 
 ### 4. DAG 계약을 선언한다
 

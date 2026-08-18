@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a class="active" aria-current="page" href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-14 17:27</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:10</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -109,7 +110,11 @@
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
-<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보</li><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload와 서비스 입력·모델·결과의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보. 2026-08-18 현재</li></ul>
+<p>기준선 후보는 부하 실험에서 성능 자격이 거부되어 요청을 전환하지 않는다.</p>
+<ul><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload와 서비스 입력·모델·결과의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<h3 id="제한된-장비-관리">제한된 장비 관리</h3>
+<ul><li>passive discovery candidate 조회·검토와 exact Catalog binding validation</li><li>승인된 Profile/Device 등록 Saga와 first Event 확인</li><li>Controller가 소유한 Adapter Runtime만 제한적으로 restart·retire</li><li>임의 image·hostPath·raw manifest·command 입력 없음</li><li>사용자 인증·인가가 추가되기 전까지 테스트베드 접근 경계에서만 사용</li></ul>
 <h2 id="승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</h2>
 <p>다음은 코드나 개발 fixture가 있어도 일반 운영 기능으로 보지 않는다.</p>
 <div class="table-wrap"><table>
@@ -121,8 +126,8 @@
 <tbody>
 <tr>
 <td>Server1 inference</td>
-<td>observed-only GPU endpoint 운영</td>
-<td>요청 전환 승인 주체·실패 대응 검증</td>
+<td>observed-only GPU endpoint, 현재 기준선 성능 자격 <code>rejected</code></td>
+<td>정확한 모델 버전의 부하 실험 통과 + 요청 전환 승인 주체·실패 대응 검증</td>
 </tr>
 <tr>
 <td>MQTT·Modbus</td>
@@ -150,6 +155,7 @@
 <h2 id="완료-증거">완료 증거</h2>
 <p>기능은 다음 증거를 모두 연결할 수 있을 때만 현재 범위로 승격한다.</p>
 <ol><li>Git에서 검토한 계약과 immutable image</li><li>root Kustomize 또는 승인된 선택 overlay</li><li>관련 자동 테스트와 manifest render</li><li>Argo CD 또는 명시적 운영 소유권</li><li>Pod/endpoint Ready와 실제 API readback</li><li>실패·stale·누락 상태가 정상처럼 보이지 않는 대시보드 표시</li></ol>
+<p>Server1 후보의 실험 설계, 90회 실행 결과와 승격 gate는 <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a>을 따른다. CPU/GPU가 존재하거나 endpoint가 Ready라는 사실만으로 오프로딩 효과를 주장하지 않는다.</p>
 <p>과거 workflow·placement·replanning 코드는 <code>edge-orch/workflow_*</code>, <code>edge-orch/placement_engine/</code>, <code>workflow/</code>, <code>docs/archive/</code>에 보존하며 현재 요구사항으로 해석하지 않는다.</p>
         </div>
       </article>
@@ -158,6 +164,7 @@
 <li class="toc-h3"><a href="#물리-디바이스와-데이터">물리 디바이스와 데이터</a></li>
 <li class="toc-h3"><a href="#현재-수직-슬라이스">현재 수직 슬라이스</a></li>
 <li class="toc-h3"><a href="#서비스와-운영-화면">서비스와 운영 화면</a></li>
+<li class="toc-h3"><a href="#제한된-장비-관리">제한된 장비 관리</a></li>
 <li class="toc-h2"><a href="#승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</a></li>
 <li class="toc-h2"><a href="#명시적으로-제외하는-것">명시적으로 제외하는 것</a></li>
 <li class="toc-h2"><a href="#완료-증거">완료 증거</a></li></ol></aside>

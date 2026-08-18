@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 플랫폼-개요.md</span>
-            <span class="badge">수정: 2026-08-14 17:29</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 12:40</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -116,7 +117,12 @@
 <tr>
 <td>운영 화면</td>
 <td><code>state-aggregator</code></td>
-<td>권위 데이터 결합, freshness·상태 계산, read-only API</td>
+<td>권위 데이터 결합, freshness·상태 계산, read-only 상태 API</td>
+</tr>
+<tr>
+<td>장비 관리</td>
+<td>관리 BFF + Adapter Controller</td>
+<td>검증 Catalog 기반 Profile/Device 등록 Saga와 Controller Runtime 관리</td>
 </tr>
 </tbody></table></div>
 <h2 id="데이터가-이동하는-방식">데이터가 이동하는 방식</h2>
@@ -131,6 +137,7 @@
   → 서비스 소유 결과 저장소
   → state-aggregator / dashboard</code></pre>
 <p>현재 Serial과 I2C 정상 경로는 Device Service가 물리 장치를 직접 소유한다. 이전 <code>edgex-edge-agent-*</code>, outbox PVC, mapper direct-to-Influx 경로는 현재 fallback이 아니다. 중앙 ingest gateway는 유지되지만 현재 Serial/I2C Event 정상 경로에는 참여하지 않는다.</p>
+<p>서비스 설계 canvas는 브라우저 내부 validation과 plan preview만 수행한다. 이와 별도로 장비 관리 API는 기능 플래그·idempotency·내부 HMAC 경계에서 제한된 mutation을 수행한다. 내부 HMAC은 사용자 인증이 아니므로 현재 관리 기능은 테스트베드 접근 경계를 전제로 한다.</p>
 <h2 id="현재-서비스-데모">현재 서비스 데모</h2>
 <p><code>sensor-anomaly-demo</code>는 Jetson의 Arduino 가속도 X/Y/Z와 온도 입력을 정렬해 진동·온도 특징과 종합 점수를 계산한다. 실행 과정은 다음 DAG로 표현한다.</p>
 <pre data-lang="text"><code>센서 수집 → 전처리 → 특징 추출 → AI 추론 ┬→ Device1

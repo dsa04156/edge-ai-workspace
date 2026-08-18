@@ -35,6 +35,8 @@ class ServiceAugmentationSignals:
     backlog: int
     throughput_per_second: float
     candidate_ready: bool
+    candidate_qualified: bool
+    candidate_qualification_reason: str
     observation_source: str
     observation_scope: str
 
@@ -80,6 +82,13 @@ class ServiceAugmentationEvaluator:
                 signals,
                 observed_at,
                 ["augmentation_candidate_not_ready"],
+            )
+        if sustained and not signals.candidate_qualified:
+            return self._state(
+                "BLOCKED",
+                signals,
+                observed_at,
+                ["augmentation_candidate_not_qualified"],
             )
         if sustained:
             return self._state(
@@ -135,7 +144,11 @@ class ServiceAugmentationEvaluator:
                 source=signals.observation_source,
                 scope=signals.observation_scope,
             ),
-            candidate=ServiceAugmentationCandidate(ready=signals.candidate_ready),
+            candidate=ServiceAugmentationCandidate(
+                ready=signals.candidate_ready,
+                qualified=signals.candidate_qualified,
+                qualification_reason=signals.candidate_qualification_reason,
+            ),
         )
 
     def _reset_dwell(self) -> None:
@@ -148,6 +161,8 @@ def build_service_augmentation_signals(
     resource_profile: dict | None,
     *,
     candidate_ready: bool,
+    candidate_qualified: bool,
+    candidate_qualification_reason: str,
     now: datetime | None = None,
 ) -> ServiceAugmentationSignals:
     observed_at = _utc(now)
@@ -212,6 +227,8 @@ def build_service_augmentation_signals(
             performance.throughput_per_second if performance is not None else 0
         ),
         candidate_ready=candidate_ready,
+        candidate_qualified=candidate_qualified,
+        candidate_qualification_reason=candidate_qualification_reason,
         observation_source=source,
         observation_scope=scope,
     )
@@ -237,6 +254,7 @@ def _gates(signals: ServiceAugmentationSignals) -> list[ServiceAugmentationGate]
         ServiceAugmentationGate(id="performance", label="서비스 지표", passed=signals.performance_valid, reason="fresh" if signals.performance_valid else "unavailable"),
         ServiceAugmentationGate(id="resources", label="자원 지표", passed=signals.resource_valid, reason=signals.observation_source),
         ServiceAugmentationGate(id="candidate", label="server1 후보", passed=signals.candidate_ready, reason="ready" if signals.candidate_ready else "not_ready"),
+        ServiceAugmentationGate(id="qualification", label="후보 성능 검증", passed=signals.candidate_qualified, reason=signals.candidate_qualification_reason),
     ]
 
 

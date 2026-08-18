@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">연결 가이드</span>
             <span class="badge">원본: AI-서비스-등록-가이드.md</span>
-            <span class="badge">수정: 2026-08-14 17:27</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:10</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -91,7 +92,7 @@
 <p>현재 등록된 서비스가 실제로 무엇을 입력받아 어떻게 판단하는지는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>를 먼저 확인한다.</p>
 <h2 id="등록-순서">등록 순서</h2>
 <h3 id="1-입출력-계약을-먼저-고정한다">1. 입출력 계약을 먼저 고정한다</h3>
-<ul><li>versioned input schema와 필수 resource</li><li>입력 freshness, window, 결측·시각 정렬 기준</li><li>model readiness와 model version</li><li>결과·알림 API와 저장 위치</li><li>processing latency, backlog, throughput metric</li><li>workload와 기본 실행 target</li></ul>
+<ul><li>versioned input schema와 필수 resource</li><li>입력 freshness, window, 결측·시각 정렬 기준</li><li>model readiness와 model version</li><li>결과·알림 API와 저장 위치</li><li>processing latency, backlog, throughput metric</li><li>workload와 기본 실행 target</li><li>자원 증강 후보의 정확한 source/candidate model version과 실험 자격</li></ul>
 <p>현장 mapping이나 모델 계약이 없으면 <code>deployed</code>로 등록하지 않는다.</p>
 <h3 id="2-안정적인-workload-identity를-둔다">2. 안정적인 workload identity를 둔다</h3>
 <pre data-lang="json"><code>{
@@ -130,9 +131,23 @@
     &quot;state_path&quot;: &quot;/state/service-demo&quot;,
     &quot;results_path&quot;: &quot;/state/service-demo/results?limit=12&quot;,
     &quot;alerts_path&quot;: &quot;/state/service-demo/alerts?limit=10&quot;
+  },
+  &quot;augmentation_qualification&quot;: {
+    &quot;status&quot;: &quot;rejected&quot;,
+    &quot;source_model_version&quot;: &quot;baseline-1.0.0&quot;,
+    &quot;candidate_model_version&quot;: &quot;cuda-baseline-1.0.0&quot;,
+    &quot;experiment_id&quot;: &quot;sensor-augmentation-20260818&quot;,
+    &quot;reason&quot;: &quot;server1_latency_regression_and_zero_observed_gpu_utilization&quot;,
+    &quot;max_validated_rps&quot;: 200,
+    &quot;latency_p95_improvement_percent&quot;: 10,
+    &quot;throughput_noninferiority_percent&quot;: 5,
+    &quot;requires_zero_errors_and_oom&quot;: true,
+    &quot;qualified_condition_count&quot;: 0,
+    &quot;validated_condition_count&quot;: 15,
+    &quot;evidence_document&quot;: &quot;docs/AI-서비스-자원-증강-부하-실험.md&quot;
   }
 }</code></pre>
-<p>외부 URL, 비밀번호, token, URL userinfo와 임의 image/command/hostPath는 허용하지 않는다.</p>
+<p>외부 URL, 비밀번호, token, URL userinfo와 임의 image/command/hostPath는 허용하지 않는다. 새 후보는 기본 <code>pending</code>으로 등록하고, 정확한 model version을 재현 가능한 부하 실험으로 검토한 뒤에만 <code>qualified</code> 또는 <code>rejected</code>로 바꾼다. 분석기가 catalog를 자동 수정하지 않는다.</p>
 <h3 id="4-dag-계약을-선언한다">4. DAG 계약을 선언한다</h3>
 <p>현재 renderer는 <code>linear-inference-split-v1</code>을 지원한다.</p>
 <pre data-lang="text"><code>Input → Alignment → Features → Inference ┬→ Device1 ┐

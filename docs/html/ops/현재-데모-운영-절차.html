@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -74,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">운영</span>
             <span class="badge">원본: ops/현재-데모-운영-절차.md</span>
-            <span class="badge">수정: 2026-08-14 17:23</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 12:42</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
@@ -129,6 +130,7 @@ kubectl -n edgex-edge get deploy,pod,service,pvc</code></pre>
 <p>확인 항목:</p>
 <ul><li>Device Service, Profile과 Device 이름이 manifest와 일치</li><li><code>adminState=UNLOCKED</code>, <code>operatingState=UP</code></li><li>Serial Device는 <code>physicalDeviceId=arduino-001</code></li><li>Sense HAT Device는 <code>physicalDeviceId=sensehat-001</code></li><li>aggregate Device를 중복 생성하지 않음</li></ul>
 <h2 id="5-core-data-freshness-확인">5. Core Data freshness 확인</h2>
+<p>telemetry freshness는 EdgeX Core Data latest Event의 nanosecond <code>origin</code>을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</p>
 <pre data-lang="bash"><code>kubectl get --raw \
   &#x27;/api/v1/namespaces/edgex-system/services/http:edgex-core-data:59880/proxy/api/v3/event/device/name/virtual-acceleration-x-001?limit=1&#x27;
 

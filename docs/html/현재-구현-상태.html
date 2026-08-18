@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
@@ -70,17 +71,17 @@
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>현재 구현 상태</h1>
-          <p class="subtitle">&gt; 기준일: 2026-08-14 &gt; 근거: 현재 checkout, root Kustomize, 자동 테스트, live read-…</p>
+          <p class="subtitle">&gt; 기준일: 2026-08-18 &gt; 근거: 현재 checkout, root Kustomize, 자동 테스트, live read-…</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-08-14 17:30</span>
-            <span class="badge">HTML 생성: 2026-08-14 17:34</span>
+            <span class="badge">수정: 2026-08-18 14:10</span>
+            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-구현-상태">현재 구현 상태</h1>
-<blockquote><p>기준일: 2026-08-14 근거: 현재 checkout, root Kustomize, 자동 테스트, live read-only 조회</p></blockquote>
+<blockquote><p>기준일: 2026-08-18 근거: 현재 checkout, root Kustomize, 자동 테스트, live read-only 조회</p></blockquote>
 <h2 id="한눈에-보기">한눈에 보기</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -121,8 +122,8 @@
 </tr>
 <tr>
 <td>Server1 inference</td>
-<td>선택 경로</td>
-<td>HAMi GPU·CUDA readiness, 운영 root 밖의 승인 기반 overlay</td>
+<td>관측 후보</td>
+<td>HAMi GPU·CUDA Ready, 현재 기준선 부하 성능 자격 <code>rejected</code></td>
 </tr>
 <tr>
 <td>생산품질 판별</td>
@@ -170,10 +171,12 @@
 <p>live cluster에는 5개 Kubernetes node가 Ready다. 중앙 EdgeX workload, 두 고정 Device Service, Adapter Controller, <code>sensor-anomaly-demo</code>, 선택적 Server1 inference endpoint와 <code>state-aggregator</code>가 각각 Ready로 관측됐다. 이 live 관측은 이후 변경될 수 있으므로 운영 판정 시 다시 조회한다.</p>
 <h2 id="서비스-데모-상태">서비스 데모 상태</h2>
 <p><a href="펌프-모터-이상감지-서비스.html">@@INLINE0@@</a>의 입력 계약은 <code>okdong.pump-motor.telemetry/v1</code>이다. 현재 Arduino raw 입력은 플랫폼 연결 기준선이며 옥동 설비 단위가 아니다.</p>
-<ul><li>가속도 X/Y/Z는 같은 <code>origin</code>으로 frame을 구성한다.</li><li>온도는 허용 시간차 안의 가장 가까운 sample만 결합한다.</li><li>진동 20개, 온도 10개 window와 30개 warm-up을 사용한다.</li><li>현재 backend는 학습된 고장 분류기가 아닌 <code>online-baseline</code>이다.</li><li>Server1 후보는 같은 기준선의 CUDA backend이며 HAMi GPU 할당과 CUDA probe를 readiness에 포함한다.</li><li>결과와 alert transition은 서비스 소유 SQLite에 idempotent하게 저장한다.</li></ul>
+<ul><li>가속도 X/Y/Z는 같은 <code>origin</code>으로 frame을 구성한다.</li><li>온도는 허용 시간차 안의 가장 가까운 sample만 결합한다.</li><li>진동 20개, 온도 10개 window와 30개 warm-up을 사용한다.</li><li>현재 backend는 학습된 고장 분류기가 아닌 <code>online-baseline</code>이다.</li><li>Server1 후보는 같은 기준선의 CUDA backend이며 HAMi GPU 할당과 CUDA probe를 readiness에 포함한다.</li><li>2026-08-18 90-run 부하 실험에서 후보는 15개 조건 중 성능 승격 기준을 하나도 통과하지</li></ul>
+<p>못했으므로 현재 요청은 Device1 로컬에 유지한다.</p>
+<ul><li>결과와 alert transition은 서비스 소유 SQLite에 idempotent하게 저장한다.</li></ul>
 <p>실제 설비 고장 분류 정확도와 생산성 개선 효과는 옥동 현장 데이터로 별도 검증해야 한다.</p>
 <h2 id="남은-핵심-작업">남은 핵심 작업</h2>
-<ol><li>옥동 PLC·MES·센서 endpoint와 field map 확정</li><li>생산품질 label과 펌프·모터 모델 입력·출력 확정</li><li>실제 장애·고장·복구 시나리오 반복 검증</li><li>승인 기반 Server1 경로의 운영 책임과 rollback 검증</li><li>테스트베드 무인증 관리 BFF의 사용자 인증·인가 추가</li></ol>
+<ol><li>옥동 PLC·MES·센서 endpoint와 field map 확정</li><li>생산품질 label과 펌프·모터 모델 입력·출력 확정</li><li>실제 장애·고장·복구 시나리오 반복 검증</li><li>옥동 실제 모델로 Server1 성능 자격·운영 책임·rollback 재검증</li><li>테스트베드 무인증 관리 BFF의 사용자 인증·인가 추가</li></ol>
 <p>세부 포함·제외 기준은 <a href="프로젝트-범위.html">프로젝트 범위</a>를 따른다.</p>
         </div>
       </article>
