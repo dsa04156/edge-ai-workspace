@@ -75,14 +75,15 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 19:43</span>
-            <span class="badge">HTML 생성: 2026-08-18 19:43</span>
+            <span class="badge">수정: 2026-08-18 20:18</span>
+            <span class="badge">HTML 생성: 2026-08-18 20:18</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="ai-서비스-자원-증강-부하-실험">AI 서비스 자원 증강 부하 실험</h1>
 <h2 id="결론">결론</h2>
 <blockquote><p><strong>장치별 핵심 결론:</strong> 대표 temporal-convolution 성능 프록시에서 Raspberry Pi 5는 약 1,180만 연산/frame 이상이고 실험 Pod CPU가 95% 이상 포화되며, 로컬 p95가 90ms 이상이거나 처리량이 20/s 이하일 때 Server1 오프로딩이 유리했다.</p>
+<p><strong>Jetson 비교 결론:</strong> Jetson Device1도 같은 연산급에서 Server1이 12/12회 지연 우위를 보였지만 최종 gate 통과는 9/12회였다. 로컬 p95 95ms 이상 또는 처리량 12.3/s 이하를 조건부 검토 기준으로 사용하고, 현재 조건의 Server1 gate를 반드시 다시 확인한다.</p>
 <p>이 기준은 동일 model version의 Server1이 지연 10% 개선·처리량 5% 비열등 gate를 통과하고 상태가 기존 180초 debounce 동안 지속될 때 <code>RECOMMENDED</code>를 만드는 근거다. 학습된 옥동 모델의 운영 자격이나 자동 전환 승인을 뜻하지 않는다.</p></blockquote>
 <p>2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 <code>arduino-001</code> Reading 120개 frame을 캡처하고, 같은 입력을 Device1 로컬 추론과 Server1 CUDA 후보에 고정해 1·50·200 rps에서 총 18회 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 9개 대응 run 모두에서 Server1의 p95 엣지 판단 E2E 지연이 더 길었고 처리량 우위도 없었다. 실제 유입 속도에 가까운 1 rps에서도 로컬 1.265ms, Server1 15.633ms였으며, 200 rps 가속 재생에서는 Server1 처리량이 84.389/s로 막히고 schedule lag p95가 5.450초까지 증가했다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
 <p>앞서 수행한 합성 입력 90 runs/45 pairs와 왕복 계측 확인 18 runs도 같은 방향이었다. 그 결과는 부하 축 탐색과 계측 검증 근거로 유지하되, 현재 연결된 장비의 데이터에 대한 판정은 위 실데이터 캡처·재생 실험을 우선 근거로 삼는다.</p>
@@ -112,6 +113,12 @@
 <td>현재 약 1Hz 기준선 서비스의 성능 저하 여부를 확인한다.</td>
 </tr>
 <tr>
+<td>Jetson Device1 장치별 병목</td>
+<td>약 1,180만 연산/frame 이상 <strong>그리고</strong> CPU 포화도 95% 이상 <strong>그리고</strong> 로컬 p95 95ms 이상 또는 처리량 12.3건/s 이하</td>
+<td>180초</td>
+<td>조건별 Server1 후보 자격을 다시 확인한다. 12회 중 9회만 최종 gate를 통과했으므로 조건부 권고다.</td>
+</tr>
+<tr>
 <td>Raspberry Pi 장치별 병목</td>
 <td>약 1,180만 연산/frame 이상 <strong>그리고</strong> CPU 포화도 95% 이상 <strong>그리고</strong> 로컬 p95 90ms 이상 또는 처리량 20건/s 이하</td>
 <td>180초</td>
@@ -131,13 +138,16 @@
 <p>15.633ms였다. 계산량이 작으면 네트워크·HTTP 왕복 시간이 더 크므로 현재 운영 경로는 로컬 처리를 유지한다.</p>
 <ol><li><strong>약 295만 연산 대표 모델:</strong> 일부 조건에서 Server1이 빨랐지만 부하 전 범위에서 결과가</li></ol>
 <p>일정하지 않았다. Raspberry Pi의 개별 run gate 통과도 5/12에 그쳐 오프로딩 기준으로 채택하지 않았다.</p>
-<ol><li><strong>약 1,180만 연산 대표 모델:</strong> Raspberry Pi의 로컬 p95가 약 90~196ms, 처리량이 약</li></ol>
-<p>6~20건/s로 저하됐다. 동일 입력 12회 비교에서 Server1이 모두 지연 우위를 보였고 12/12 run이 후보 gate를 통과했다. 중앙값 기준 지연은 48.7% 감소하고 처리량은 3.806배로 증가했으며, 지연 방향 양측 sign test는 <code>p=0.000488</code>이었다.</p>
+<ol><li><strong>Jetson·약 1,180만 연산 대표 모델:</strong> 동일 입력 12회 비교에서 Server1이 모두 지연</li></ol>
+<p>우위를 보였지만 최종 후보 gate 통과는 9/12회였다. 중앙값 기준 지연은 50.8% 감소하고 처리량은 2.452배로 증가했다. CPU 경쟁 부하 75% 조건은 지연 개선이 9.9%여서 사전에 정한 10% gate에 0.1%p 부족했으며, 이를 반올림해 통과로 바꾸지 않았다.</p>
+<ol><li><strong>Raspberry Pi·약 1,180만 연산 대표 모델:</strong> 로컬 p95가 약 90~196ms, 처리량이 약</li></ol>
+<p>6~20건/s로 저하됐다. 동일 입력 12회 비교에서 Server1이 모두 지연 우위를 보였고 12/12 run이 후보 gate를 통과했다. 중앙값 기준 지연은 48.7% 감소하고 처리량은 3.806배로 증가했다. Jetson과 Raspberry Pi의 지연 방향 양측 sign test는 각각 <code>p=0.000488</code>이었다.</p>
 <ol><li><strong>전체 경로 측정:</strong> Server1 지연에는 요청 직렬화, 네트워크 전송, 서버 처리와 결과 반환을</li></ol>
 <p>모두 포함했다. 서버 내부 추론 시간만 비교해 오프로딩 효과를 과대평가하지 않았다.</p>
 <p>여기서 <code>RPS</code>는 1초에 들어오는 요청 수이고 <code>처리량</code>은 1초에 실제로 완료한 요청 수다. 예를 들어 50 RPS가 들어오는데 처리량이 20건/s라면 초당 약 30건이 대기열에 쌓인다. <code>p95 90ms</code>는 요청 100개 중 약 95개가 90ms 안에 끝나고, 느린 쪽 약 5개는 그보다 오래 걸린다는 뜻이다.</p>
 <h3 id="보고서-결론">보고서 결론</h3>
-<blockquote><p>Raspberry Pi 5에서 약 1,180만 연산급 모델을 실행할 때 CPU가 95% 이상 포화되고, 로컬 p95가 90ms 이상이거나 처리량이 초당 20건 이하로 떨어지는 상태가 180초 이상 지속되면 Server1 오프로딩을 검토한다. 단, 동일 모델의 Server1이 지연을 10% 이상 개선하고 처리량 감소를 5% 이내로 유지하며 오류·OOM이 없을 때만 자원 증강을 <code>RECOMMENDED</code>로 권고한다.</p></blockquote>
+<blockquote><p>Jetson Device1에서는 약 1,180만 연산급 모델을 실행할 때 CPU가 95% 이상 포화되고, 로컬 p95가 95ms 이상이거나 처리량이 초당 12.3건 이하인 상태가 180초 이상 지속되면 Server1 오프로딩을 조건부로 검토한다. Server1은 12회 모두 지연 우위를 보였지만 최종 gate는 9회만 통과했으므로, 현재 부하 조건에서 10% 지연 개선·5% 처리량 비열등 기준을 다시 통과한 경우에만 <code>RECOMMENDED</code>로 표시한다.</p>
+<p>Raspberry Pi 5에서 약 1,180만 연산급 모델을 실행할 때 CPU가 95% 이상 포화되고, 로컬 p95가 90ms 이상이거나 처리량이 초당 20건 이하로 떨어지는 상태가 180초 이상 지속되면 Server1 오프로딩을 검토한다. 단, 동일 모델의 Server1이 지연을 10% 이상 개선하고 처리량 감소를 5% 이내로 유지하며 오류·OOM이 없을 때만 자원 증강을 <code>RECOMMENDED</code>로 권고한다.</p></blockquote>
 <p>이 결론은 자동 전환 명령이 아니다. 현재 화면은 운영자에게 판단 근거만 제공하며 워크로드 이동이나 요청 경로 변경을 실행하지 않는다. 또한 약 1,180만 연산 모델은 실제 센서 값으로 계산 부하를 비교한 성능 프록시이므로, 실제 옥동 학습 모델이 준비되면 같은 절차로 기준치를 다시 검증해야 한다.</p>
 <h2 id="질문과-가설">질문과 가설</h2>
 <ul><li>질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을</li></ul>
