@@ -47,7 +47,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-inference
-          image: 192.168.0.56:5000/sensor-anomaly-demo-server1@sha256:b06ad91f17d6d5d220403c33df29bb8a04023cbe140d3ad435d19f6e0c0de994
+          image: 192.168.0.56:5000/sensor-anomaly-demo-server1@sha256:b31d45e138c431cc3f6a04be5757b0244942338cd2387b01ef7825359f464c1c
           imagePullPolicy: IfNotPresent
           env:
             - name: CUPY_CACHE_DIR

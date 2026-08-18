@@ -19,6 +19,21 @@ def median(values: list[float]) -> float:
     return round(statistics.median(values), 6) if values else 0.0
 
 
+def edge_decision_latency(run: dict) -> dict:
+    return run.get("edge_decision_e2e_latency_ms", run["latency_ms"])
+
+
+def optional_metric_median(
+    runs: list[dict], field: str, statistic: str
+) -> float | None:
+    values = [
+        run[field][statistic]
+        for run in runs
+        if run.get(field, {}).get("sample_count", 0) > 0
+    ]
+    return median(values) if values else None
+
+
 def repetition_index(run: dict, document: dict) -> int:
     runs_per_repetition = len(document["runs"]) // document["design"]["repetitions"]
     return (run["run_index"] - 1) // runs_per_repetition + 1
@@ -56,12 +71,18 @@ def summarize_document(document: dict, source: str) -> dict:
             "method": method,
             "n": len(runs),
             "latency_p95_ms_median": median(
-                [run["latency_ms"]["p95"] for run in runs]
+                [edge_decision_latency(run)["p95"] for run in runs]
             ),
             "latency_p95_ms_range": [
-                round(min(run["latency_ms"]["p95"] for run in runs), 6),
-                round(max(run["latency_ms"]["p95"] for run in runs), 6),
+                round(min(edge_decision_latency(run)["p95"] for run in runs), 6),
+                round(max(edge_decision_latency(run)["p95"] for run in runs), 6),
             ],
+            "server_processing_p95_ms_median": optional_metric_median(
+                runs, "server_processing_ms", "p95"
+            ),
+            "edge_server_roundtrip_overhead_p95_ms_median": optional_metric_median(
+                runs, "edge_server_roundtrip_overhead_ms", "p95"
+            ),
             "throughput_per_second_median": median(
                 [run["throughput_per_second"] for run in runs]
             ),
@@ -141,8 +162,8 @@ def summarize_document(document: dict, source: str) -> dict:
             continue
         local = methods["local"]
         server = methods["server1"]
-        local_p95 = local["latency_ms"]["p95"]
-        server_p95 = server["latency_ms"]["p95"]
+        local_p95 = edge_decision_latency(local)["p95"]
+        server_p95 = edge_decision_latency(server)["p95"]
         pair_rows.append(
             {
                 "repetition": repetition,
@@ -167,6 +188,15 @@ def summarize_document(document: dict, source: str) -> dict:
     throughput_wins = sum(row["server_throughput_win"] for row in pair_rows)
     return {
         "source": source,
+        "measurement_contract": document.get(
+            "measurement_contract",
+            {
+                "origin": "frame_ready_at_edge",
+                "endpoint": "decision_available_at_edge",
+                "primary_metric": "latency_ms",
+                "legacy_inference": True,
+            },
+        ),
         "target_rps": document["design"]["target_rps"],
         "run_count": len(document["runs"]),
         "pair_count": len(pair_rows),
@@ -217,8 +247,19 @@ def summarize(paths: list[Path]) -> dict:
         len(item["condition_comparisons"]) for item in experiments
     )
     return {
-        "schema_version": "sensor-augmentation-analysis/v2",
+        "schema_version": "sensor-augmentation-analysis/v3",
+        "measurement_contract": {
+            "comparison_origin": "frame_ready_at_edge",
+            "comparison_endpoint": "decision_available_at_edge",
+            "primary_metric": "edge_decision_e2e_latency_ms",
+            "common_upstream_excluded": "physical_sensor_to_frame_ready_at_edge",
+            "reason": (
+                "the upstream acquisition segment is common to both treatments; "
+                "report it separately when clocks are synchronized"
+            ),
+        },
         "qualification_rule": {
+            "latency_metric": "edge_decision_e2e_latency_p95",
             "latency_p95_improvement_percent": int(
                 LATENCY_IMPROVEMENT_MARGIN * 100
             ),

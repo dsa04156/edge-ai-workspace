@@ -261,6 +261,7 @@ class InferenceResponse(ApiModel):
     temperature_features: TemperatureFeatureObservation
     model_state: RuntimeModelState
     model_version: str
+    server_processing_ms: float | None = Field(default=None, ge=0)
 
 
 class InferenceRoutingStatus(ApiModel):

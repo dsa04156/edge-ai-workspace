@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from collections import OrderedDict
 from threading import Lock
 
@@ -56,6 +57,7 @@ class InferenceEngine:
         )
 
     def infer(self, request: InferenceRequest) -> InferenceResponse:
+        processing_started = time.perf_counter()
         fingerprint = _fingerprint(request)
         with self._lock:
             cached = self._cache.get(request.request_id)
@@ -122,6 +124,10 @@ class InferenceEngine:
                 ),
                 model_state="ready" if self.ready else "warming_up",
                 model_version=self.model_adapter.version,
+                server_processing_ms=round(
+                    (time.perf_counter() - processing_started) * 1_000,
+                    6,
+                ),
             )
             self._cache[request.request_id] = (fingerprint, response)
             while len(self._cache) > self.cache_size:

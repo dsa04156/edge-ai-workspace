@@ -66,6 +66,7 @@ def test_inference_server_warms_model_and_exposes_real_readiness() -> None:
     assert second.status_code == 200
     assert second.json()["modelState"] == "ready"
     assert second.json()["modelVersion"] == "baseline-1.0.0"
+    assert second.json()["serverProcessingMs"] >= 0
     assert second.json()["componentScores"] == {
         "vibration": 0.0,
         "temperature": 0.0,

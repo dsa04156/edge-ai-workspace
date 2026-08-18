@@ -43,7 +43,7 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
     assert container["readinessProbe"]["httpGet"]["path"] == "/api/v1/augmentation-readyz"
     assert container["image"] == (
         "192.168.0.56:5000/sensor-anomaly-demo-server1@"
-        "sha256:b06ad91f17d6d5d220403c33df29bb8a04023cbe140d3ad435d19f6e0c0de994"
+        "sha256:b31d45e138c431cc3f6a04be5757b0244942338cd2387b01ef7825359f464c1c"
     )
     assert {item["name"]: item.get("value") for item in container["env"]}.items() >= {
         "SERVICE_ROLE": "inference-server",

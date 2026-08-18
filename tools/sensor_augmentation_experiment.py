@@ -20,7 +20,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypedDict
 
 import httpx
 
@@ -41,6 +41,12 @@ CGROUP = Path("/sys/fs/cgroup")
 DEFAULT_SERVER_URL = "http://sensor-anomaly-inference-server1:8080"
 DEFAULT_SOURCE_MODEL_VERSION = "baseline-1.0.0"
 DEFAULT_CANDIDATE_MODEL_VERSION = "cuda-baseline-1.0.0"
+
+
+class InferenceMeasurement(TypedDict):
+    server_processing_ms: float | None
+    request_bytes: int
+    response_bytes: int
 
 
 @dataclass(frozen=True)
@@ -153,7 +159,7 @@ def _origin(run_index: int, sequence: int) -> int:
     return 1_900_000_000_000_000_000 + run_index * 1_000_000 + sequence
 
 
-def local_inferer(run_index: int) -> Callable[[int], None]:
+def local_inferer(run_index: int) -> Callable[[int], InferenceMeasurement]:
     settings = Settings.from_env().model_copy(
         update={
             "service_role": "edge-worker",
@@ -163,7 +169,7 @@ def local_inferer(run_index: int) -> Callable[[int], None]:
     )
     model = build_model_adapter(settings)
 
-    def infer(sequence: int) -> None:
+    def infer(sequence: int) -> InferenceMeasurement:
         origin = _origin(run_index, sequence)
         temperature = AxisSample(
             origin=origin,
@@ -182,6 +188,11 @@ def local_inferer(run_index: int) -> Callable[[int], None]:
         )
         if decision is None:
             raise RuntimeError("local model did not return a decision")
+        return {
+            "server_processing_ms": None,
+            "request_bytes": 0,
+            "response_bytes": 0,
+        }
 
     for sequence in range(settings.warmup_samples + 5):
         infer(sequence)
@@ -197,25 +208,32 @@ class Server1Inferer:
         self.expected_model_version = expected_model_version
         self.client = httpx.Client(timeout=5.0)
 
-    def __call__(self, sequence: int) -> None:
+    def __call__(self, sequence: int) -> InferenceMeasurement:
         origin = _origin(self.run_index, sequence)
+        request_payload = {
+            "apiVersion": "v1",
+            "requestId": f"augmentation-experiment-{self.run_index}-{sequence}",
+            "inputContract": "okdong.pump-motor.telemetry/v1",
+            "frame": {
+                "origin": origin,
+                "x": 250.0 + (sequence % 7),
+                "y": 245.0 + (sequence % 11),
+                "z": 255.0 + (sequence % 13),
+            },
+            "temperature": {
+                "origin": origin,
+                "value": 280.0 + (sequence % 5),
+            },
+        }
+        request_body = json.dumps(
+            request_payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
         response = self.client.post(
             f"{self.base_url}/api/v1/inference",
-            json={
-                "apiVersion": "v1",
-                "requestId": f"augmentation-experiment-{self.run_index}-{sequence}",
-                "inputContract": "okdong.pump-motor.telemetry/v1",
-                "frame": {
-                    "origin": origin,
-                    "x": 250.0 + (sequence % 7),
-                    "y": 245.0 + (sequence % 11),
-                    "z": 255.0 + (sequence % 13),
-                },
-                "temperature": {
-                    "origin": origin,
-                    "value": 280.0 + (sequence % 5),
-                },
-            },
+            content=request_body,
+            headers={"content-type": "application/json"},
         )
         response.raise_for_status()
         payload = response.json()
@@ -223,6 +241,17 @@ class Server1Inferer:
             raise RuntimeError("Server1 returned a mismatched requestId")
         if payload.get("modelVersion") != self.expected_model_version:
             raise RuntimeError("Server1 returned an unexpected modelVersion")
+        server_processing_ms = payload.get("serverProcessingMs")
+        if server_processing_ms is not None and (
+            not isinstance(server_processing_ms, (int, float))
+            or server_processing_ms < 0
+        ):
+            raise RuntimeError("Server1 returned invalid serverProcessingMs")
+        return {
+            "server_processing_ms": server_processing_ms,
+            "request_bytes": len(request_body),
+            "response_bytes": len(response.content),
+        }
 
     def close(self) -> None:
         self.client.close()
@@ -266,7 +295,7 @@ def run_condition(
     candidate_model_version: str,
 ) -> dict:
     quota_cores = cgroup_cpu_limit_cores()
-    inferer: Callable[[int], None]
+    inferer: Callable[[int], InferenceMeasurement]
     server_inferer: Server1Inferer | None = None
     if method == "local":
         inferer = local_inferer(run_index)
@@ -277,6 +306,10 @@ def run_condition(
         inferer = server_inferer
 
     latencies: list[float] = []
+    server_processing_latencies: list[float] = []
+    edge_server_overheads: list[float] = []
+    request_sizes: list[int] = []
+    response_sizes: list[int] = []
     schedule_lag: list[float] = []
     errors: list[str] = []
     memory_peak = 0
@@ -297,11 +330,24 @@ def run_condition(
                 actual_start = time.monotonic()
                 schedule_lag.append(max(0.0, (actual_start - next_start) * 1000))
                 request_started = time.perf_counter()
+                measurement: InferenceMeasurement | None = None
                 try:
-                    inferer(sequence)
+                    measurement = inferer(sequence)
                 except Exception as exc:
                     errors.append(exc.__class__.__name__)
-                latencies.append((time.perf_counter() - request_started) * 1000)
+                edge_decision_latency_ms = (
+                    time.perf_counter() - request_started
+                ) * 1_000
+                latencies.append(edge_decision_latency_ms)
+                if measurement is not None:
+                    server_processing_ms = measurement["server_processing_ms"]
+                    if server_processing_ms is not None:
+                        server_processing_latencies.append(server_processing_ms)
+                        edge_server_overheads.append(
+                            max(0.0, edge_decision_latency_ms - server_processing_ms)
+                        )
+                    request_sizes.append(measurement["request_bytes"])
+                    response_sizes.append(measurement["response_bytes"])
                 memory_peak = max(memory_peak, cgroup_snapshot().memory_current_bytes)
                 sequence += 1
                 next_start += interval
@@ -331,12 +377,38 @@ def run_condition(
         "error_count": len(errors),
         "error_types": sorted(set(errors)),
         "throughput_per_second": round(completed / wall_seconds, 6),
+        "edge_decision_e2e_latency_ms": {
+            "mean": round(statistics.fmean(latencies), 6) if latencies else 0.0,
+            "p50": round(percentile(latencies, 0.50), 6),
+            "p95": round(percentile(latencies, 0.95), 6),
+            "p99": round(percentile(latencies, 0.99), 6),
+            "max": round(max(latencies), 6) if latencies else 0.0,
+        },
+        # Backward-compatible alias for v1 analysis artifacts.
         "latency_ms": {
             "mean": round(statistics.fmean(latencies), 6) if latencies else 0.0,
             "p50": round(percentile(latencies, 0.50), 6),
             "p95": round(percentile(latencies, 0.95), 6),
             "p99": round(percentile(latencies, 0.99), 6),
             "max": round(max(latencies), 6) if latencies else 0.0,
+        },
+        "server_processing_ms": {
+            "sample_count": len(server_processing_latencies),
+            "p50": round(percentile(server_processing_latencies, 0.50), 6),
+            "p95": round(percentile(server_processing_latencies, 0.95), 6),
+        },
+        "edge_server_roundtrip_overhead_ms": {
+            "sample_count": len(edge_server_overheads),
+            "p50": round(percentile(edge_server_overheads, 0.50), 6),
+            "p95": round(percentile(edge_server_overheads, 0.95), 6),
+        },
+        "http_payload_bytes": {
+            "request_mean": round(statistics.fmean(request_sizes), 3)
+            if request_sizes
+            else 0.0,
+            "response_mean": round(statistics.fmean(response_sizes), 3)
+            if response_sizes
+            else 0.0,
         },
         "schedule_lag_ms": {
             "p95": round(percentile(schedule_lag, 0.95), 6),
@@ -438,8 +510,23 @@ def main() -> None:
         args.seed,
     )
     document = {
-        "schema_version": "sensor-augmentation-experiment/v1",
+        "schema_version": "sensor-augmentation-experiment/v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "measurement_contract": {
+            "origin": "frame_ready_at_edge",
+            "endpoint": "decision_available_at_edge",
+            "primary_metric": "edge_decision_e2e_latency_ms",
+            "common_upstream_excluded": "physical_sensor_to_frame_ready_at_edge",
+            "local_path": "edge_input_build_and_local_inference",
+            "server1_path": (
+                "edge_request_build_and_serialization_network_server_queue_and_"
+                "processing_response_network_parse_and_validation"
+            ),
+            "server_processing_scope": (
+                "server_request_fingerprint_lock_wait_and_model_processing; "
+                "excludes_http_parse_and_response_serialization"
+            ),
+        },
         "design": {
             "experimental_unit": "one timed run in the live sensor container cgroup",
             "block": "repetition and background CPU ratio",
