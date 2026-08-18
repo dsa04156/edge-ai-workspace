@@ -75,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 18:34</span>
-            <span class="badge">HTML 생성: 2026-08-18 18:34</span>
+            <span class="badge">수정: 2026-08-18 19:20</span>
+            <span class="badge">HTML 생성: 2026-08-18 19:20</span>
           </div>
         </header>
         <div class="doc-body">
@@ -88,6 +88,34 @@
 <p>앞서 수행한 합성 입력 90 runs/45 pairs와 왕복 계측 확인 18 runs도 같은 방향이었다. 그 결과는 부하 축 탐색과 계측 검증 근거로 유지하되, 현재 연결된 장비의 데이터에 대한 판정은 위 실데이터 캡처·재생 실험을 우선 근거로 삼는다.</p>
 <p>이 결과는 GPU 오프로딩 일반이 효과가 없다는 뜻이 아니다. 현재 통계 기준선의 계산량이 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은 절차로 모델 버전별 자격을 다시 판정해야 한다.</p>
 <p>별도의 대표 temporal-convolution 부하 실험에서는 계산량이 약 1,180만 element 연산/추론인 구간부터 Device1 CPU 병목과 Server1 이득이 함께 관측됐다. 이 값은 실제 Arduino 입력으로 측정한 <strong>모델 크기별 용량 계획 근거</strong>지만 학습된 옥동 모델의 운영 자격은 아니다. 같은 모델과 실데이터를 Raspberry Pi 5 <code>etri-dev0003-raspi5</code>에서도 재생한 후속 비교에서는 약 1,180만 연산 프로필의 12개 대응 run 모두 Server1이 지연·처리량 gate를 통과했다.</p>
+<h2 id="주요-결과를-쉽게-읽기">주요 결과를 쉽게 읽기</h2>
+<p>이번 실험의 핵심은 <strong>모든 AI 작업을 Server1으로 보내는 것이 아니라, 엣지에서 처리하기 버거운 무거운 모델만 오프로딩 후보로 삼는 것</strong>이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>비교 대상</th>
+<th>실제로 관측한 결과</th>
+<th>운영 해석</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>현재 가벼운 기준선 모델</td>
+<td>Device1 로컬이 Server1보다 빨랐다. 실제 입력에 가까운 1 RPS에서 로컬은 1.265ms, Server1은 15.633ms였다.</td>
+<td>네트워크·HTTP 왕복 시간이 계산 이득보다 크므로 <strong>로컬 처리를 유지</strong>한다.</td>
+</tr>
+<tr>
+<td>약 295만 연산 대표 모델</td>
+<td>일부 조건에서는 Server1이 빨랐지만 CPU 부하가 달라지면 결과가 일정하지 않았다.</td>
+<td>안정적인 전환 기준으로 쓰지 않고 <strong>오프로딩 대상에서 제외</strong>한다.</td>
+</tr>
+<tr>
+<td>약 1,180만 연산 대표 모델</td>
+<td>Raspberry Pi CPU가 포화되면서 로컬 p95가 약 90~196ms, 처리량이 약 6~20건/s까지 내려갔다. Server1은 12회 비교 모두에서 더 유리했다.</td>
+<td>아래 조건이 지속되면 <strong>Server1 오프로딩 검토를 권고</strong>한다.</td>
+</tr>
+</tbody></table></div>
+<p>쉽게 말하면 Raspberry Pi가 1,180만 연산급 모델을 혼자 처리할 때 CPU가 꽉 차고, 요청 100개 중 느린 쪽 5개가 90ms 이상 걸리거나 초당 완료 건수가 20건 이하로 떨어지는 구간에서 서버로 보내는 편이 이득이었다. 비교 run의 중앙값 기준으로 Server1은 지연을 약 48.7% 줄였고 처리량을 약 3.8배 높였다.</p>
+<p>여기서 <code>RPS</code>는 1초에 들어오는 요청 수, <code>처리량</code>은 1초에 실제로 끝낸 요청 수다. 예를 들어 50 RPS가 들어오는데 처리량이 20건/s라면 초당 약 30건이 대기열에 쌓이는 병목 상태다. <code>p95 90ms</code>는 요청 100개 가운데 약 95개는 90ms 안에 끝나지만 느린 쪽 약 5개는 그보다 오래 걸린다는 뜻이다.</p>
+<p>운영에서는 이 수치만 한 번 넘었다고 바로 전환하지 않는다. 같은 상태가 180초 동안 지속되고, 같은 모델을 실행한 Server1이 지연을 10% 이상 줄이면서 처리량은 5% 넘게 떨어뜨리지 않아야 <code>RECOMMENDED</code>로 표시한다. 현재 화면은 권고만 제공하며 자동으로 워크로드를 이동하거나 요청 경로를 바꾸지 않는다. 또한 약 1,180만 연산 모델은 실제 센서 값으로 계산 부하를 비교하기 위한 성능 프록시이므로, 실제 옥동 학습 모델이 준비되면 같은 절차로 다시 검증해야 한다.</p>
 <h2 id="질문과-가설">질문과 가설</h2>
 <ul><li>질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을</li></ul>
 <p>유지하는가?</p>
@@ -605,6 +633,7 @@ kubectl create --dry-run=client --validate=false \
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#결론">결론</a></li>
+<li class="toc-h2"><a href="#주요-결과를-쉽게-읽기">주요 결과를 쉽게 읽기</a></li>
 <li class="toc-h2"><a href="#질문과-가설">질문과 가설</a></li>
 <li class="toc-h2"><a href="#실데이터-범위와-계보">실데이터 범위와 계보</a></li>
 <li class="toc-h2"><a href="#엣지-컴퓨팅-비교-경계">엣지 컴퓨팅 비교 경계</a></li>
