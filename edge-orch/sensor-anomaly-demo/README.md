@@ -29,7 +29,7 @@ Server1 backend는 같은 통계 기준선의 점수 계산을 CUDA에서 실행
 | `GET /api/v1/storage` | SQLite 결과·알림 건수와 보존 설정 |
 | `GET /api/v1/contracts` | 지원 입력 계약 JSON Schema |
 | `GET /metrics` | processing latency, backlog, throughput Prometheus metric |
-| `POST /api/v1/inference` | `inference-server` 역할에서만 여는 versioned 추론 endpoint |
+| `POST /api/v1/inference` | `inference-server` 역할에서만 여는 versioned 추론 endpoint; 응답의 `serverProcessingMs`로 서버 내부 구간 계측 |
 
 ## 자원 증강 실행 경계
 

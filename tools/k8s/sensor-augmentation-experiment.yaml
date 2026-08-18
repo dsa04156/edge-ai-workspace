@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sensor-augmentation-exp-20260818d
+  name: sensor-augmentation-edge-rtt-20260818
   namespace: edgex-edge
   labels:
     edge-ai.io/augmentation-experiment: "true"
@@ -30,17 +30,19 @@ spec:
             - --cpu-ratios
             - "0"
             - --memory-loads-mib
-            - 0,32,64,80
+            - "0"
             - --repetitions
             - "3"
             - --duration-seconds
-            - "8"
+            - "10"
             - --target-rps
             - "50"
             - --washout-seconds
             - "2"
             - --seed
             - "20260818"
+            - --output
+            - /tmp/result.json
           env:
             - name: WARMUP_SAMPLES
               value: "30"

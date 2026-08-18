@@ -75,22 +75,30 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 14:14</span>
-            <span class="badge">HTML 생성: 2026-08-18 14:15</span>
+            <span class="badge">수정: 2026-08-18 15:28</span>
+            <span class="badge">HTML 생성: 2026-08-18 15:29</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="ai-서비스-자원-증강-부하-실험">AI 서비스 자원 증강 부하 실험</h1>
 <h2 id="결론">결론</h2>
-<p>2026-08-18 테스트베드에서 <code>sensor-anomaly-demo</code>의 Device1 로컬 추론과 Server1 CUDA 후보를 90회 실행해 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 45개 대응쌍 모두에서 Server1의 p95 처리 지연이 더 길었고, 처리량 우위도 한 번도 없었다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
+<p>2026-08-18 테스트베드에서 <code>sensor-anomaly-demo</code>의 Device1 로컬 추론과 Server1 CUDA 후보를 90회 실행해 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 45개 대응쌍 모두에서 Server1의 p95 엣지 판단 E2E 지연이 더 길었고, 처리량 우위도 한 번도 없었다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
 <p>이 결과는 GPU 오프로딩 일반이 효과가 없다는 뜻이 아니다. 현재 통계 기준선의 계산량이 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은 절차로 모델 버전별 자격을 다시 판정해야 한다.</p>
 <h2 id="질문과-가설">질문과 가설</h2>
 <ul><li>질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을</li></ul>
 <p>유지하는가?</p>
 <ul><li>대립 가설: Server1의 p95 지연이 로컬보다 낮다.</li><li>경쟁 설명: 모델 계산량이 너무 작아 원격 호출 비용이 GPU 이득보다 크다.</li></ul>
 <p>향후 후보 승격 기준은 조건별로 다음을 모두 만족하는 것으로 고정했다.</p>
-<ol><li>동일 입력과 정확한 source/candidate model version을 비교하고 응답 version을 검증한다.</li><li>Server1 p95 지연이 로컬보다 10% 이상 개선된다.</li><li>Server1 처리량이 로컬보다 5% 넘게 낮아지지 않는다.</li><li>검증하기로 선택한 운영 범위의 모든 조건에서 2번과 3번을 통과하고 error와 OOM이 0건이다.</li><li>endpoint readiness, 승인 주체와 rollback 책임을 별도로 확인한다.</li></ol>
+<ol><li>동일 입력과 정확한 source/candidate model version을 비교하고 응답 version을 검증한다.</li><li>같은 엣지 입력 준비 시점부터 결과가 엣지에 돌아올 때까지 잰 Server1 p95 지연이</li></ol>
+<p>로컬보다 10% 이상 개선된다.</p>
+<ol><li>Server1 처리량이 로컬보다 5% 넘게 낮아지지 않는다.</li><li>검증하기로 선택한 운영 범위의 모든 조건에서 2번과 3번을 통과하고 error와 OOM이 0건이다.</li><li>endpoint readiness, 승인 주체와 rollback 책임을 별도로 확인한다.</li></ol>
 <p>이 10%/5% 값은 향후 운영 승격을 위한 실용적 마진이며, 이번 결과에서 사후 추정한 통계적 임계값이 아니다.</p>
+<h2 id="엣지-컴퓨팅-비교-경계">엣지 컴퓨팅 비교 경계</h2>
+<p>로컬 처리와 서버 처리는 시작점과 종료점을 같게 두어야 한다. 현재 실험의 시작점은 <code>Device1에서 입력 frame이 준비된 시점</code>, 종료점은 <code>판단 결과를 Device1에서 사용할 수 있는 시점</code>이다.</p>
+<ul><li>로컬 전체 지연: <code>센서→엣지 입력 준비 + 엣지 입력 구성·로컬 추론</code></li><li>서버 전체 지연: `센서→엣지 입력 준비 + 요청 직렬화·업로드 + 서버 대기·추론 + 응답</li></ul>
+<p>다운로드·파싱`</p>
+<p>두 경로에 공통인 <code>센서→엣지 입력 준비</code> 구간은 후보 비교에서는 상쇄되므로, 승격 gate는 분기 이후의 <code>edge_decision_e2e_latency_ms</code>를 사용한다. 단, 현장 KPI에는 공통 수집 지연도 별도로 표시한다. 물리 센서 <code>origin</code>과 엣지 시계의 동기화가 검증되지 않았다면 이 구간을 분기 지연에 합산하지 않는다. 서버가 중앙 데이터 소스를 직접 읽는 별도 구조라면 공통 구간이 아니므로 센서 원시 시점부터 결과 소비 지점까지 다시 E2E 측정해야 한다.</p>
+<p>Server1 응답의 <code>serverProcessingMs</code>는 API request parsing 이후 fingerprint, lock 대기와 모델 처리를 잰다. <code>edge_decision_e2e_latency_ms - serverProcessingMs</code>는 엣지 요청 구성·직렬화, 양방향 네트워크, HTTP parsing·response serialization과 엣지 응답 parsing을 포함하는 왕복 오버헤드다. 서로 다른 p95 분위수끼리는 산술적으로 정확히 더해지지 않으므로 각 항목을 독립 지표로 해석한다.</p>
 <h2 id="실험-설계">실험 설계</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -143,7 +151,7 @@
 <td>15조건, 90 runs, local/server1 대응쌍 45개</td>
 </tr>
 </tbody></table></div>
-<p>운영 서비스 route는 바꾸지 않았다. 실험 Pod에만 임시 NetworkPolicy를 적용해 Server1 endpoint를 호출했고, 종료 후 Job·ConfigMap·NetworkPolicy를 제거했다. 측정값은 p95 처리 지연, 처리량, 요청 schedule lag, CPU saturation/throttle, peak memory, error와 OOM이다.</p>
+<p>운영 서비스 route는 바꾸지 않았다. 실험 Pod에만 임시 NetworkPolicy를 적용해 Server1 endpoint를 호출했고, 종료 후 Job·ConfigMap·NetworkPolicy를 제거했다. 측정값은 엣지 입력 준비부터 결과 반환까지의 p95 E2E 지연, 처리량, 요청 schedule lag, CPU saturation/throttle, peak memory, error와 OOM이다.</p>
 <h2 id="주요-결과">주요 결과</h2>
 <p>아래 값은 각 조건의 3회 반복 중앙값이다.</p>
 <div class="table-wrap"><table>
@@ -205,8 +213,47 @@
 <td>Server1 병목이 가장 뚜렷함</td>
 </tr>
 </tbody></table></div>
+<p>위 90회 실험은 Device1 실험 Pod가 로컬 함수를 호출하거나 Server1 HTTP 응답을 기다리는 전체 호출을 동일하게 계측했으므로 Server1 값에 직렬화·네트워크·응답 반환이 이미 포함되어 있다. 다만 당시 <code>v1</code> 산출물은 서버 내부 처리와 왕복 오버헤드를 분리하지 않았다.</p>
 <p>메모리 실험에서 추가 메모리 0/32/64/80MiB일 때 Device1 peak memory 중앙값은 각각 33.2/63.9/98.7/114.0MiB였다. 그러나 Device1 p95는 0.447–0.542ms, 처리량은 약 50.12/s를 유지했다. Server1 p95는 약 9.44–9.67ms로 모든 조건에서 더 길었다. error와 OOM은 총 0건이다.</p>
 <p>50 rps Server1 실행 중 <code>nvidia-smi</code>를 1초 간격으로 6회 관측했을 때 GPU utilization과 memory utilization은 모두 0%였고 프로세스 GPU memory는 264MiB였다. 짧은 표본이므로 정밀 GPU 사용률 연구로 해석하지 않지만, 현재 계산이 GPU 이득을 만들 만큼 크지 않다는 실험 결과와 일치한다.</p>
+<h2 id="엣지-서버-왕복-분해-확인-실험">엣지↔서버 왕복 분해 확인 실험</h2>
+<p>2026-08-18에 계측 필드를 추가한 Server1 image <code>sha256:b31d45e138c431cc3f6a04be5757b0244942338cd2387b01ef7825359f464c1c</code>를 배포하고, Device1에서 CPU·메모리 추가 압력 없이 1·50·200 rps를 경로별 3회씩, 총 18 runs 재실행했다. 이는 측정 범위와 지연 구성요소를 확인하는 실험이며 앞의 90회 후보 자격 실험을 대체하지 않는다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>목표 입력률</th>
+<th>로컬 E2E p95</th>
+<th>Server1 E2E p95</th>
+<th>Server1 내부 p95</th>
+<th>왕복 오버헤드 p95</th>
+<th>로컬/서버 처리량</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1 rps</td>
+<td>1.300 ms</td>
+<td>18.541 ms</td>
+<td>3.070 ms</td>
+<td>16.130 ms</td>
+<td>1.100 / 1.098/s</td>
+</tr>
+<tr>
+<td>50 rps</td>
+<td>0.438 ms</td>
+<td>9.144 ms</td>
+<td>2.723 ms</td>
+<td>6.877 ms</td>
+<td>50.093 / 50.068/s</td>
+</tr>
+<tr>
+<td>200 rps</td>
+<td>0.286 ms</td>
+<td>60.902 ms</td>
+<td>2.690 ms</td>
+<td>59.872 ms</td>
+<td>200.085 / 82.277/s</td>
+</tr>
+</tbody></table></div>
+<p>각 값은 3회 run의 p95 중앙값이다. 총 error는 0건이었다. Server1 E2E p95는 로컬 대비 각각 14.3배, 20.9배, 213.0배였고, 200 rps에서는 처리량도 로컬의 약 41.1%에 그쳤다. 현재 소형 모델에서는 서버 내부 계산보다 왕복/API 경로 비용이 더 크며 높은 입력률에서는 전송·HTTP queue를 포함한 경로 병목이 확대된다는 근거다. 따라서 이 후보를 오프로딩하면 개선되는 것이 아니라 오히려 느려진다는 기존 <code>rejected</code> 판정을 유지한다.</p>
 <h2 id="통계-해석">통계 해석</h2>
 <p>서로 다른 부하 조건을 같은 정규분포로 가정하지 않고, 대응된 local/server1 run의 방향만 보는 exact two-sided sign test를 사용했다.</p>
 <ul><li>Server1 p95 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>Server1 처리량 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>승격 기준 통과: 0/15 conditions</li></ul>
@@ -235,7 +282,7 @@
 </tr>
 <tr>
 <td>후보 자격</td>
-<td>정확한 모델 버전이 10% 지연 개선·5% 처리량 비열등·오류 0 기준 통과</td>
+<td>정확한 모델 버전이 엣지 판단 E2E p95 10% 개선·5% 처리량 비열등·오류 0 기준 통과</td>
 <td>실험별</td>
 <td>자원 압력과 별개인 전환 gate</td>
 </tr>
@@ -251,13 +298,15 @@ edge-orch/state-aggregator/.venv/bin/python -m pytest -q \
 kubectl create --dry-run=client --validate=false \
   -f tools/k8s/sensor-augmentation-experiment.yaml -o yaml &gt;/dev/null</code></pre>
 <p>원시 JSON은 <code>artifacts/sensor-augmentation/</code>의 로컬 실험 증거이며 Git 공개 문서 세트에는 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다.</p>
-<p>다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E 수집 주기, network loss/timeout, GPU utilization·전력, 실패 시 local rollback을 포함한다. 후보가 바뀌면 <code>ServiceDescriptor.augmentation_qualification</code>을 자동 변경하지 않고 실험 보고서 검토 후 명시적으로 갱신한다.</p>
+<p>다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E 수집 주기, network delay/loss/timeout, 요청·응답 payload 크기, GPU utilization·전력, 실패 시 local rollback을 포함한다. 결과 소비자가 엣지인지 중앙인지도 먼저 고정하고 같은 소비 지점까지 측정한다. 후보가 바뀌면 <code>ServiceDescriptor.augmentation_qualification</code>을 자동 변경하지 않고 실험 보고서 검토 후 명시적으로 갱신한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#결론">결론</a></li>
 <li class="toc-h2"><a href="#질문과-가설">질문과 가설</a></li>
+<li class="toc-h2"><a href="#엣지-컴퓨팅-비교-경계">엣지 컴퓨팅 비교 경계</a></li>
 <li class="toc-h2"><a href="#실험-설계">실험 설계</a></li>
 <li class="toc-h2"><a href="#주요-결과">주요 결과</a></li>
+<li class="toc-h2"><a href="#엣지-서버-왕복-분해-확인-실험">엣지↔서버 왕복 분해 확인 실험</a></li>
 <li class="toc-h2"><a href="#통계-해석">통계 해석</a></li>
 <li class="toc-h2"><a href="#운영-판단-기준">운영 판단 기준</a></li>
 <li class="toc-h2"><a href="#재현과-다음-검증">재현과 다음 검증</a></li></ol></aside>
