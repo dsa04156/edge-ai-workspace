@@ -53,6 +53,23 @@ def test_schedule_is_seeded_blocked_and_balanced() -> None:
             assert methods.count("server1") == 3
 
 
+def test_multi_rate_schedule_uses_each_rate_in_every_repetition() -> None:
+    module = load_module()
+    schedule = module.build_rate_schedule(
+        [1, 50, 200], [0], [0], repetitions=3, seed=42
+    )
+
+    assert len(schedule) == 18
+    for target_rps in (1, 50, 200):
+        methods = [
+            method
+            for observed_rps, _cpu, _memory, method in schedule
+            if observed_rps == target_rps
+        ]
+        assert methods.count("local") == 3
+        assert methods.count("server1") == 3
+
+
 def test_percentile_uses_nearest_rank() -> None:
     module = load_module()
     assert module.percentile([], 0.95) == 0
@@ -62,6 +79,16 @@ def test_percentile_uses_nearest_rank() -> None:
 
 def test_server1_measurement_separates_server_time_and_payload_size() -> None:
     module = load_module()
+    frames = [
+        module.ExperimentFrame(
+            frame_origin=123,
+            x=291,
+            y=221,
+            z=253,
+            temperature_origin=120,
+            temperature=284,
+        )
+    ]
 
     def handler(request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content)
@@ -69,6 +96,7 @@ def test_server1_measurement_separates_server_time_and_payload_size() -> None:
             200,
             json={
                 "requestId": payload["requestId"],
+                "origin": payload["frame"]["origin"],
                 "modelVersion": "cuda-baseline-1.0.0",
                 "serverProcessingMs": 1.25,
             },
@@ -78,6 +106,8 @@ def test_server1_measurement_separates_server_time_and_payload_size() -> None:
         "http://server1",
         run_index=7,
         expected_model_version="cuda-baseline-1.0.0",
+        frames=frames,
+        request_prefix="real-data-test",
     )
     inferer.client.close()
     inferer.client = httpx.Client(transport=httpx.MockTransport(handler))
@@ -87,6 +117,56 @@ def test_server1_measurement_separates_server_time_and_payload_size() -> None:
     assert measurement["server_processing_ms"] == 1.25
     assert measurement["request_bytes"] > 0
     assert measurement["response_bytes"] > 0
+
+
+def test_live_capture_joins_real_axis_origins_and_nearest_temperature(
+    monkeypatch,
+) -> None:
+    module = load_module()
+
+    async def fake_fetch(*_args, **_kwargs):
+        return {
+            "x": [
+                module.AxisSample(origin, "Int32", value)
+                for origin, value in ((100, 1), (200, 2), (300, 3))
+            ],
+            "y": [
+                module.AxisSample(origin, "Int32", value)
+                for origin, value in ((100, 4), (200, 5), (300, 6))
+            ],
+            "z": [
+                module.AxisSample(origin, "Int32", value)
+                for origin, value in ((100, 7), (200, 8), (300, 9))
+            ],
+            "temperature": [
+                module.AxisSample(origin, "Int32", value)
+                for origin, value in ((95, 280), (195, 281), (295, 282))
+            ],
+        }
+
+    monkeypatch.setattr(module, "_fetch_live_sources", fake_fetch)
+    frames, provenance = module.capture_live_frames(
+        base_url="http://local-data",
+        frame_count=2,
+        timeout_seconds=1,
+        max_skew_seconds=1,
+        max_age_seconds=1,
+        now_ns=400,
+    )
+
+    assert [frame.frame_origin for frame in frames] == [200, 300]
+    assert [frame.temperature_origin for frame in frames] == [195, 295]
+    assert frames[-1].as_dict() == {
+        "frame_origin": 300,
+        "x": 3.0,
+        "y": 6.0,
+        "z": 9.0,
+        "temperature_origin": 295,
+        "temperature": 282.0,
+    }
+    assert provenance["mode"] == "live-local-data-capture-replay"
+    assert provenance["frame_count"] == 2
+    assert len(provenance["dataset_sha256"]) == 64
 
 
 def test_script_never_mutates_the_active_route_or_deployment() -> None:
@@ -115,6 +195,9 @@ def test_experiment_job_is_isolated_pinned_and_not_part_of_gitops_root() -> None
     assert container["resources"]["limits"] == {"cpu": "250m", "memory": "128Mi"}
     assert container["securityContext"]["readOnlyRootFilesystem"] is True
     assert container["securityContext"]["allowPrivilegeEscalation"] is False
+    assert container["args"][container["args"].index("--input-mode") + 1] == (
+        "live-local-data"
+    )
     assert policy["spec"]["ingress"][0]["from"][0]["podSelector"]["matchLabels"] == {
         "edge-ai.io/augmentation-experiment": "true"
     }
@@ -174,6 +257,7 @@ def test_analysis_pairs_methods_within_repetition_and_pressure_block() -> None:
     summary = analyzer.summarize_document(document, "fixture.json")
 
     assert summary["pair_count"] == 1
+    assert summary["paired_comparisons"][0]["target_rps"] == 1.0
     assert summary["server_latency_wins"] == 0
     assert summary["paired_comparisons"][0]["server_minus_local_p95_ms"] == 3.0
     server_group = next(

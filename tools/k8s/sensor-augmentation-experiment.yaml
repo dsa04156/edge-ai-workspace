@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sensor-augmentation-edge-rtt-20260818
+  name: sensor-augmentation-real-data-20260818
   namespace: edgex-edge
   labels:
     edge-ai.io/augmentation-experiment: "true"
@@ -27,6 +27,12 @@ spec:
             - python
             - /experiment/sensor_augmentation_experiment.py
           args:
+            - --input-mode
+            - live-local-data
+            - --capture-frame-count
+            - "120"
+            - --capture-max-age-seconds
+            - "10"
             - --cpu-ratios
             - "0"
             - --memory-loads-mib
@@ -35,8 +41,8 @@ spec:
             - "3"
             - --duration-seconds
             - "10"
-            - --target-rps
-            - "50"
+            - --target-rates
+            - 1,50,200
             - --washout-seconds
             - "2"
             - --seed

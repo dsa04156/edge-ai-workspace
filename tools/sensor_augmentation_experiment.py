@@ -9,6 +9,8 @@ It never changes the Deployment or the active inference route.
 from __future__ import annotations
 
 import argparse
+import asyncio
+import hashlib
 import json
 import math
 import multiprocessing
@@ -32,7 +34,8 @@ for service_root in (Path("/app"), REPOSITORY_SERVICE_ROOT):
         sys.path.insert(0, str(service_root))
         break
 
-from app.config import Settings
+from app.config import DEFAULT_LOCAL_DATA_BASE_URL, Settings
+from app.local_data import ACCELERATION_SOURCES, TEMPERATURE_SOURCE, LocalDataClient
 from app.model_adapter import build_model_adapter
 from app.models import AccelerationFrame, AxisSample
 
@@ -47,6 +50,26 @@ class InferenceMeasurement(TypedDict):
     server_processing_ms: float | None
     request_bytes: int
     response_bytes: int
+
+
+@dataclass(frozen=True)
+class ExperimentFrame:
+    frame_origin: int
+    x: float
+    y: float
+    z: float
+    temperature_origin: int
+    temperature: float
+
+    def as_dict(self) -> dict[str, int | float]:
+        return {
+            "frame_origin": self.frame_origin,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "temperature_origin": self.temperature_origin,
+            "temperature": self.temperature,
+        }
 
 
 @dataclass(frozen=True)
@@ -97,6 +120,144 @@ def percentile(values: list[float], quantile: float) -> float:
     ordered = sorted(values)
     index = max(0, math.ceil(len(ordered) * quantile) - 1)
     return ordered[index]
+
+
+async def _fetch_live_sources(
+    base_url: str,
+    timeout_seconds: float,
+    to_origin: int,
+) -> dict[str, list[AxisSample]]:
+    client = LocalDataClient(base_url, timeout_seconds)
+    try:
+        sources = (*ACCELERATION_SOURCES, TEMPERATURE_SOURCE)
+        rows = await asyncio.gather(
+            *(client.fetch(source, None, to_origin) for source in sources)
+        )
+        return {
+            source.key: samples
+            for source, samples in zip(sources, rows, strict=True)
+        }
+    finally:
+        await client.close()
+
+
+def capture_live_frames(
+    *,
+    base_url: str,
+    frame_count: int,
+    timeout_seconds: float,
+    max_skew_seconds: float,
+    max_age_seconds: float,
+    now_ns: int | None = None,
+) -> tuple[list[ExperimentFrame], dict]:
+    captured_at_ns = time.time_ns() if now_ns is None else now_ns
+    rows_by_source = asyncio.run(
+        _fetch_live_sources(base_url, timeout_seconds, captured_at_ns)
+    )
+    axis_values = {
+        source.axis: {
+            row.origin: float(row.value) for row in rows_by_source[source.key]
+        }
+        for source in ACCELERATION_SOURCES
+    }
+    common_origins = sorted(
+        set(axis_values["x"])
+        & set(axis_values["y"])
+        & set(axis_values["z"])
+    )
+    temperatures = rows_by_source[TEMPERATURE_SOURCE.key]
+    if not temperatures:
+        raise RuntimeError("live Local Data returned no temperature samples")
+
+    maximum_skew_ns = int(max_skew_seconds * 1_000_000_000)
+    aligned: list[ExperimentFrame] = []
+    for origin in common_origins:
+        temperature = min(
+            temperatures,
+            key=lambda sample: abs(sample.origin - origin),
+        )
+        if abs(temperature.origin - origin) > maximum_skew_ns:
+            continue
+        aligned.append(
+            ExperimentFrame(
+                frame_origin=origin,
+                x=axis_values["x"][origin],
+                y=axis_values["y"][origin],
+                z=axis_values["z"][origin],
+                temperature_origin=temperature.origin,
+                temperature=float(temperature.value),
+            )
+        )
+    if len(aligned) < frame_count:
+        raise RuntimeError(
+            f"live Local Data provided {len(aligned)} aligned frames; "
+            f"{frame_count} required"
+        )
+    frames = aligned[-frame_count:]
+    latest_age_seconds = (captured_at_ns - frames[-1].frame_origin) / 1_000_000_000
+    if latest_age_seconds < 0 or latest_age_seconds > max_age_seconds:
+        raise RuntimeError(
+            f"latest live frame age {latest_age_seconds:.3f}s exceeds "
+            f"the {max_age_seconds:.3f}s capture limit"
+        )
+
+    encoded = json.dumps(
+        [frame.as_dict() for frame in frames],
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    skew_ms = [
+        abs(frame.frame_origin - frame.temperature_origin) / 1_000_000
+        for frame in frames
+    ]
+    values = {
+        "x": [frame.x for frame in frames],
+        "y": [frame.y for frame in frames],
+        "z": [frame.z for frame in frames],
+        "temperature": [frame.temperature for frame in frames],
+    }
+    provenance = {
+        "mode": "live-local-data-capture-replay",
+        "physical_source": "arduino-001",
+        "device_service": "device-serial-jetson",
+        "local_data_api": "v3",
+        "captured_at": datetime.fromtimestamp(
+            captured_at_ns / 1_000_000_000, timezone.utc
+        ).isoformat(),
+        "frame_count": len(frames),
+        "first_frame_origin": frames[0].frame_origin,
+        "last_frame_origin": frames[-1].frame_origin,
+        "latest_frame_age_seconds": round(latest_age_seconds, 6),
+        "dataset_sha256": hashlib.sha256(encoded).hexdigest(),
+        "source_sample_counts": {
+            key: len(rows) for key, rows in rows_by_source.items()
+        },
+        "temperature_alignment_lag_ms": {
+            "p50": round(percentile(skew_ms, 0.50), 6),
+            "p95": round(percentile(skew_ms, 0.95), 6),
+            "max": round(max(skew_ms), 6),
+        },
+        "value_ranges": {
+            key: {"min": min(rows), "max": max(rows)}
+            for key, rows in values.items()
+        },
+        "frames": [frame.as_dict() for frame in frames],
+    }
+    return frames, provenance
+
+
+def synthetic_frames(frame_count: int) -> list[ExperimentFrame]:
+    return [
+        ExperimentFrame(
+            frame_origin=_origin(0, sequence),
+            x=250.0 + (sequence % 7),
+            y=245.0 + (sequence % 11),
+            z=255.0 + (sequence % 13),
+            temperature_origin=_origin(0, sequence),
+            temperature=280.0 + (sequence % 5),
+        )
+        for sequence in range(frame_count)
+    ]
 
 
 def _cpu_burn(stop: multiprocessing.synchronize.Event, duty_cycle: float) -> None:
@@ -159,7 +320,13 @@ def _origin(run_index: int, sequence: int) -> int:
     return 1_900_000_000_000_000_000 + run_index * 1_000_000 + sequence
 
 
-def local_inferer(run_index: int) -> Callable[[int], InferenceMeasurement]:
+def _selected_frame(frames: list[ExperimentFrame], sequence: int) -> ExperimentFrame:
+    return frames[sequence % len(frames)]
+
+
+def local_inferer(
+    frames: list[ExperimentFrame],
+) -> Callable[[int], InferenceMeasurement]:
     settings = Settings.from_env().model_copy(
         update={
             "service_role": "edge-worker",
@@ -170,21 +337,21 @@ def local_inferer(run_index: int) -> Callable[[int], InferenceMeasurement]:
     model = build_model_adapter(settings)
 
     def infer(sequence: int) -> InferenceMeasurement:
-        origin = _origin(run_index, sequence)
+        captured = _selected_frame(frames, sequence)
         temperature = AxisSample(
-            origin=origin,
+            origin=captured.temperature_origin,
             value_type="Float64",
-            value=280.0 + (sequence % 5),
+            value=captured.temperature,
         )
         model.ingest_temperature(temperature)
         decision = model.infer(
             AccelerationFrame(
-                origin=origin,
-                x=250.0 + (sequence % 7),
-                y=245.0 + (sequence % 11),
-                z=255.0 + (sequence % 13),
+                origin=captured.frame_origin,
+                x=captured.x,
+                y=captured.y,
+                z=captured.z,
             ),
-            origin,
+            captured.temperature_origin,
         )
         if decision is None:
             raise RuntimeError("local model did not return a decision")
@@ -201,28 +368,36 @@ def local_inferer(run_index: int) -> Callable[[int], InferenceMeasurement]:
 
 class Server1Inferer:
     def __init__(
-        self, base_url: str, run_index: int, expected_model_version: str
+        self,
+        base_url: str,
+        run_index: int,
+        expected_model_version: str,
+        frames: list[ExperimentFrame],
+        request_prefix: str,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.run_index = run_index
         self.expected_model_version = expected_model_version
+        self.frames = frames
+        self.request_prefix = request_prefix
         self.client = httpx.Client(timeout=5.0)
 
     def __call__(self, sequence: int) -> InferenceMeasurement:
-        origin = _origin(self.run_index, sequence)
+        captured = _selected_frame(self.frames, sequence)
+        request_id = f"augmentation-{self.request_prefix}-{self.run_index}-{sequence}"
         request_payload = {
             "apiVersion": "v1",
-            "requestId": f"augmentation-experiment-{self.run_index}-{sequence}",
+            "requestId": request_id,
             "inputContract": "okdong.pump-motor.telemetry/v1",
             "frame": {
-                "origin": origin,
-                "x": 250.0 + (sequence % 7),
-                "y": 245.0 + (sequence % 11),
-                "z": 255.0 + (sequence % 13),
+                "origin": captured.frame_origin,
+                "x": captured.x,
+                "y": captured.y,
+                "z": captured.z,
             },
             "temperature": {
-                "origin": origin,
-                "value": 280.0 + (sequence % 5),
+                "origin": captured.temperature_origin,
+                "value": captured.temperature,
             },
         }
         request_body = json.dumps(
@@ -237,8 +412,10 @@ class Server1Inferer:
         )
         response.raise_for_status()
         payload = response.json()
-        if payload.get("requestId") != f"augmentation-experiment-{self.run_index}-{sequence}":
+        if payload.get("requestId") != request_id:
             raise RuntimeError("Server1 returned a mismatched requestId")
+        if payload.get("origin") != captured.frame_origin:
+            raise RuntimeError("Server1 returned a mismatched input origin")
         if payload.get("modelVersion") != self.expected_model_version:
             raise RuntimeError("Server1 returned an unexpected modelVersion")
         server_processing_ms = payload.get("serverProcessingMs")
@@ -293,15 +470,21 @@ def run_condition(
     run_index: int,
     server_url: str,
     candidate_model_version: str,
+    frames: list[ExperimentFrame],
+    request_prefix: str,
 ) -> dict:
     quota_cores = cgroup_cpu_limit_cores()
     inferer: Callable[[int], InferenceMeasurement]
     server_inferer: Server1Inferer | None = None
     if method == "local":
-        inferer = local_inferer(run_index)
+        inferer = local_inferer(frames)
     else:
         server_inferer = Server1Inferer(
-            server_url, run_index, candidate_model_version
+            server_url,
+            run_index,
+            candidate_model_version,
+            frames,
+            request_prefix,
         )
         inferer = server_inferer
 
@@ -371,6 +554,13 @@ def run_condition(
         "background_cpu_ratio": background_cpu_ratio,
         "memory_load_mib": memory_load_mib,
         "target_rps": target_rps,
+        "input_dataset_sha256": hashlib.sha256(
+            json.dumps(
+                [frame.as_dict() for frame in frames],
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest(),
         "duration_seconds": round(wall_seconds, 6),
         "request_count": len(latencies),
         "completed_count": completed,
@@ -471,13 +661,53 @@ def build_schedule(
     return schedule
 
 
+def build_rate_schedule(
+    target_rates: list[float],
+    cpu_ratios: list[float],
+    memory_loads_mib: list[int],
+    repetitions: int,
+    seed: int,
+) -> list[tuple[float, float, int, str]]:
+    randomizer = random.Random(seed)
+    schedule: list[tuple[float, float, int, str]] = []
+    for _repetition in range(repetitions):
+        levels = [
+            (target_rps, ratio, memory_load_mib)
+            for target_rps in target_rates
+            for ratio in cpu_ratios
+            for memory_load_mib in memory_loads_mib
+        ]
+        randomizer.shuffle(levels)
+        for target_rps, ratio, memory_load_mib in levels:
+            methods = ["local", "server1"]
+            randomizer.shuffle(methods)
+            schedule.extend(
+                (target_rps, ratio, memory_load_mib, method)
+                for method in methods
+            )
+    return schedule
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--input-mode",
+        choices=("synthetic", "live-local-data"),
+        default="synthetic",
+    )
+    parser.add_argument("--capture-frame-count", type=int, default=120)
+    parser.add_argument("--capture-max-age-seconds", type=float, default=10)
+    parser.add_argument("--local-data-url", default=DEFAULT_LOCAL_DATA_BASE_URL)
+    parser.add_argument("--local-data-timeout-seconds", type=float, default=5)
     parser.add_argument("--cpu-ratios", default="0,0.25,0.5,0.75,1")
     parser.add_argument("--memory-loads-mib", default="0")
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--duration-seconds", type=float, default=10)
     parser.add_argument("--target-rps", type=float, default=1)
+    parser.add_argument(
+        "--target-rates",
+        help="comma-separated target rates captured in one randomized block",
+    )
     parser.add_argument("--seed", type=int, default=20260818)
     parser.add_argument("--washout-seconds", type=float, default=2)
     parser.add_argument("--server-url", default=DEFAULT_SERVER_URL)
@@ -488,12 +718,25 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.repetitions < 1 or args.duration_seconds <= 0 or args.target_rps <= 0:
         parser.error("repetitions, duration-seconds and target-rps must be positive")
+    if (
+        args.capture_frame_count < 2
+        or args.capture_max_age_seconds <= 0
+        or args.local_data_timeout_seconds <= 0
+    ):
+        parser.error("capture settings must be positive and frame count at least 2")
     args.cpu_ratios = [float(value) for value in args.cpu_ratios.split(",")]
+    args.target_rates = (
+        [float(value) for value in args.target_rates.split(",")]
+        if args.target_rates
+        else [args.target_rps]
+    )
     args.memory_loads_mib = [
         int(value) for value in args.memory_loads_mib.split(",")
     ]
     if not args.cpu_ratios or any(value < 0 or value > 1 for value in args.cpu_ratios):
         parser.error("cpu-ratios must contain values between 0 and 1")
+    if not args.target_rates or any(value <= 0 for value in args.target_rates):
+        parser.error("target-rates must contain positive values")
     if not args.memory_loads_mib or any(
         value < 0 or value > 80 for value in args.memory_loads_mib
     ):
@@ -503,15 +746,41 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    schedule = build_schedule(
+    if args.input_mode == "live-local-data":
+        frames, input_provenance = capture_live_frames(
+            base_url=args.local_data_url,
+            frame_count=args.capture_frame_count,
+            timeout_seconds=args.local_data_timeout_seconds,
+            max_skew_seconds=Settings.from_env().context_max_skew_seconds,
+            max_age_seconds=args.capture_max_age_seconds,
+        )
+    else:
+        frames = synthetic_frames(args.capture_frame_count)
+        encoded = json.dumps(
+            [frame.as_dict() for frame in frames],
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        input_provenance = {
+            "mode": "deterministic-synthetic",
+            "frame_count": len(frames),
+            "dataset_sha256": hashlib.sha256(encoded).hexdigest(),
+            "frames": [frame.as_dict() for frame in frames],
+        }
+    request_prefix = (
+        f"{time.time_ns()}-{input_provenance['dataset_sha256'][:12]}"
+    )
+    schedule = build_rate_schedule(
+        args.target_rates,
         args.cpu_ratios,
         args.memory_loads_mib,
         args.repetitions,
         args.seed,
     )
     document = {
-        "schema_version": "sensor-augmentation-experiment/v2",
+        "schema_version": "sensor-augmentation-experiment/v3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "input_provenance": input_provenance,
         "measurement_contract": {
             "origin": "frame_ready_at_edge",
             "endpoint": "decision_available_at_edge",
@@ -526,25 +795,39 @@ def main() -> None:
                 "server_request_fingerprint_lock_wait_and_model_processing; "
                 "excludes_http_parse_and_response_serialization"
             ),
+            "input_semantics": (
+                "captured real sensor frames are fixed before treatment and replayed "
+                "identically through both paths"
+                if args.input_mode == "live-local-data"
+                else "deterministic synthetic frames"
+            ),
         },
         "design": {
             "experimental_unit": "one timed run in the live sensor container cgroup",
-            "block": "repetition and background CPU ratio",
+            "block": "repetition, target request rate and pressure level",
             "treatments": ["local", "server1"],
             "randomization_seed": args.seed,
             "cpu_ratios": args.cpu_ratios,
             "memory_loads_mib": args.memory_loads_mib,
             "repetitions": args.repetitions,
             "duration_seconds": args.duration_seconds,
-            "target_rps": args.target_rps,
+            "target_rps": (
+                args.target_rates[0]
+                if len(args.target_rates) == 1
+                else args.target_rates
+            ),
+            "target_rates": args.target_rates,
+            "input_mode": args.input_mode,
+            "capture_frame_count": len(frames),
             "washout_seconds": args.washout_seconds,
             "schedule": [
                 {
                     "background_cpu_ratio": ratio,
                     "memory_load_mib": memory_load_mib,
+                    "target_rps": target_rps,
                     "method": method,
                 }
-                for ratio, memory_load_mib, method in schedule
+                for target_rps, ratio, memory_load_mib, method in schedule
             ],
         },
         "environment": {
@@ -553,14 +836,18 @@ def main() -> None:
             "server_url": args.server_url,
             "source_model_version": DEFAULT_SOURCE_MODEL_VERSION,
             "candidate_model_version": args.candidate_model_version,
+            "request_prefix": request_prefix,
         },
         "runs": [],
     }
     total = len(schedule)
-    for index, (ratio, memory_load_mib, method) in enumerate(schedule, start=1):
+    for index, (target_rps, ratio, memory_load_mib, method) in enumerate(
+        schedule, start=1
+    ):
         print(
             f"run {index}/{total}: method={method} "
-            f"background_cpu_ratio={ratio} memory_load_mib={memory_load_mib}",
+            f"target_rps={target_rps} background_cpu_ratio={ratio} "
+            f"memory_load_mib={memory_load_mib}",
             flush=True,
         )
         document["runs"].append(
@@ -569,10 +856,12 @@ def main() -> None:
                 background_cpu_ratio=ratio,
                 memory_load_mib=memory_load_mib,
                 duration_seconds=args.duration_seconds,
-                target_rps=args.target_rps,
+                target_rps=target_rps,
                 run_index=index,
                 server_url=args.server_url,
                 candidate_model_version=args.candidate_model_version,
+                frames=frames,
+                request_prefix=request_prefix,
             )
         )
         if index < total and args.washout_seconds > 0:

@@ -39,6 +39,13 @@ def repetition_index(run: dict, document: dict) -> int:
     return (run["run_index"] - 1) // runs_per_repetition + 1
 
 
+def run_target_rps(run: dict, document: dict) -> float:
+    target = run.get("target_rps", document["design"]["target_rps"])
+    if isinstance(target, list):
+        raise ValueError("multi-rate experiments must record target_rps on each run")
+    return float(target)
+
+
 def exact_two_sided_sign_test_p(wins: int, losses: int) -> float:
     """Return the exact two-sided binomial sign-test p-value, ignoring ties."""
     observations = wins + losses
@@ -52,10 +59,11 @@ def exact_two_sided_sign_test_p(wins: int, losses: int) -> float:
 
 
 def summarize_document(document: dict, source: str) -> dict:
-    grouped: dict[tuple[float, int, str], list[dict]] = defaultdict(list)
+    grouped: dict[tuple[float, float, int, str], list[dict]] = defaultdict(list)
     for run in document["runs"]:
         grouped[
             (
+                run_target_rps(run, document),
                 float(run["background_cpu_ratio"]),
                 int(run.get("memory_load_mib", 0)),
                 run["method"],
@@ -63,9 +71,14 @@ def summarize_document(document: dict, source: str) -> dict:
         ].append(run)
 
     groups = []
-    groups_by_condition: dict[tuple[float, int], dict[str, dict]] = defaultdict(dict)
-    for (cpu_ratio, memory_mib, method), runs in sorted(grouped.items()):
+    groups_by_condition: dict[
+        tuple[float, float, int], dict[str, dict]
+    ] = defaultdict(dict)
+    for (target_rps, cpu_ratio, memory_mib, method), runs in sorted(
+        grouped.items()
+    ):
         group = {
+            "target_rps": target_rps,
             "background_cpu_ratio": cpu_ratio,
             "memory_load_mib": memory_mib,
             "method": method,
@@ -104,10 +117,12 @@ def summarize_document(document: dict, source: str) -> dict:
             ),
         }
         groups.append(group)
-        groups_by_condition[(cpu_ratio, memory_mib)][method] = group
+        groups_by_condition[(target_rps, cpu_ratio, memory_mib)][method] = group
 
     condition_comparisons = []
-    for (cpu_ratio, memory_mib), methods in sorted(groups_by_condition.items()):
+    for (target_rps, cpu_ratio, memory_mib), methods in sorted(
+        groups_by_condition.items()
+    ):
         if set(methods) != {"local", "server1"}:
             continue
         local = methods["local"]
@@ -133,6 +148,7 @@ def summarize_document(document: dict, source: str) -> dict:
         )
         condition_comparisons.append(
             {
+                "target_rps": target_rps,
                 "background_cpu_ratio": cpu_ratio,
                 "memory_load_mib": memory_mib,
                 "server_to_local_p95_ratio": round(latency_ratio, 6),
@@ -148,16 +164,19 @@ def summarize_document(document: dict, source: str) -> dict:
             }
         )
 
-    pairs: dict[tuple[int, float, int], dict[str, dict]] = defaultdict(dict)
+    pairs: dict[tuple[int, float, float, int], dict[str, dict]] = defaultdict(dict)
     for run in document["runs"]:
         key = (
             repetition_index(run, document),
+            run_target_rps(run, document),
             float(run["background_cpu_ratio"]),
             int(run.get("memory_load_mib", 0)),
         )
         pairs[key][run["method"]] = run
     pair_rows = []
-    for (repetition, cpu_ratio, memory_mib), methods in sorted(pairs.items()):
+    for (repetition, target_rps, cpu_ratio, memory_mib), methods in sorted(
+        pairs.items()
+    ):
         if set(methods) != {"local", "server1"}:
             continue
         local = methods["local"]
@@ -167,6 +186,7 @@ def summarize_document(document: dict, source: str) -> dict:
         pair_rows.append(
             {
                 "repetition": repetition,
+                "target_rps": target_rps,
                 "background_cpu_ratio": cpu_ratio,
                 "memory_load_mib": memory_mib,
                 "server_minus_local_p95_ms": round(server_p95 - local_p95, 6),
