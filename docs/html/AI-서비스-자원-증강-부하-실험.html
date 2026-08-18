@@ -75,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 17:06</span>
-            <span class="badge">HTML 생성: 2026-08-18 17:07</span>
+            <span class="badge">수정: 2026-08-18 17:41</span>
+            <span class="badge">HTML 생성: 2026-08-18 17:41</span>
           </div>
         </header>
         <div class="doc-body">
@@ -85,7 +85,7 @@
 <p>2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 <code>arduino-001</code> Reading 120개 frame을 캡처하고, 같은 입력을 Device1 로컬 추론과 Server1 CUDA 후보에 고정해 1·50·200 rps에서 총 18회 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 9개 대응 run 모두에서 Server1의 p95 엣지 판단 E2E 지연이 더 길었고 처리량 우위도 없었다. 실제 유입 속도에 가까운 1 rps에서도 로컬 1.265ms, Server1 15.633ms였으며, 200 rps 가속 재생에서는 Server1 처리량이 84.389/s로 막히고 schedule lag p95가 5.450초까지 증가했다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
 <p>앞서 수행한 합성 입력 90 runs/45 pairs와 왕복 계측 확인 18 runs도 같은 방향이었다. 그 결과는 부하 축 탐색과 계측 검증 근거로 유지하되, 현재 연결된 장비의 데이터에 대한 판정은 위 실데이터 캡처·재생 실험을 우선 근거로 삼는다.</p>
 <p>이 결과는 GPU 오프로딩 일반이 효과가 없다는 뜻이 아니다. 현재 통계 기준선의 계산량이 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은 절차로 모델 버전별 자격을 다시 판정해야 한다.</p>
-<p>별도의 대표 temporal-convolution 부하 실험에서는 계산량이 약 1,180만 element 연산/추론인 구간부터 Device1 CPU 병목과 Server1 이득이 함께 관측됐다. 이 값은 실제 Arduino 입력으로 측정한 <strong>모델 크기별 용량 계획 근거</strong>지만 학습된 옥동 모델의 운영 자격은 아니다.</p>
+<p>별도의 대표 temporal-convolution 부하 실험에서는 계산량이 약 1,180만 element 연산/추론인 구간부터 Device1 CPU 병목과 Server1 이득이 함께 관측됐다. 이 값은 실제 Arduino 입력으로 측정한 <strong>모델 크기별 용량 계획 근거</strong>지만 학습된 옥동 모델의 운영 자격은 아니다. 같은 모델과 실데이터를 Raspberry Pi 5 <code>etri-dev0003-raspi5</code>에서도 재생한 후속 비교에서는 약 1,180만 연산 프로필의 12개 대응 run 모두 Server1이 지연·처리량 gate를 통과했다.</p>
 <h2 id="질문과-가설">질문과 가설</h2>
 <ul><li>질문: CPU·메모리·입력률 부하에서 Server1 후보가 로컬보다 지연을 줄이면서 처리량을</li></ul>
 <p>유지하는가?</p>
@@ -398,6 +398,148 @@
 </tbody></table></div>
 <p>약 295만 연산 모델은 CPU 경쟁 부하가 생기면 원격 요청을 만드는 Device1 클라이언트도 함께 throttling되어 4개 조건 중 1개만 통과했다. 반면 약 1,180만 연산 모델은 네 조건 모두 조건 중앙값 gate를 통과했다. 이 모델의 12개 대응 run 중 Server1 지연 우위와 개별 run gate 통과는 각각 11/12였고, 지연 방향 exact two-sided sign test는 <code>p=0.00634765625</code>였다. 대응 run 지연 감소율 중앙값은 40.9%, 처리량 비율 중앙값은 3.105배였다.</p>
 <p>따라서 이 대표 모델에서 병목은 <strong>약 1,180만 연산의 temporal feature 계산이 Device1 250m CPU quota를 포화시키고 throttling을 만드는 구간</strong>이다. Server1 내부 p95는 조건 중앙값 기준 2.98–7.11ms였고 나머지는 Device1 요청 처리와 왕복 비용이었다. 계산량이 충분히 크면 이 고정 비용보다 GPU 계산 이득이 커져 오프로딩 교차점이 생긴다.</p>
+<h3 id="jetson-raspberry-pi-server1-동일-입력-비교">Jetson·Raspberry Pi·Server1 동일 입력 비교</h3>
+<p>후속 비교는 Jetson에서 실제 Arduino Reading 120개를 한 번만 캡처하고, 그 JSON과 SHA-256을 Raspberry Pi에 전달해 동일 순서로 재생했다. 두 엣지는 모두 같은 arm64 image, CPU 250m, memory 512MiB, 모델 크기, CPU 경쟁 부하, seed, 반복 수를 사용했다. Jetson과 Raspberry Pi Job은 Server1 GPU 경쟁을 피하려고 순차 실행했으며 운영 추론 포트와 route는 변경하지 않았다.</p>
+<ul><li>캡처 시각: <code>2026-08-18T08:34:25.047569Z</code></li><li>데이터셋 SHA-256: <code>f728f12378126176c8df4a66c2e5f422337c0cc4882e0d116eb1f1b36f681bc5</code></li><li>frame <code>origin</code>: <code>1787041943945871517</code>–<code>1787042065032288393</code></li><li>실행 노드: Jetson <code>etri-dev0001-jetorn</code>, Raspberry Pi 5 <code>etri-dev0003-raspi5</code></li><li>독립 반복: 노드·모델 크기·부하·경로별 3 runs, run당 요청 10개</li></ul>
+<p>약 1,180만 연산 프로필의 조건별 3개 run 중앙값은 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>엣지</th>
+<th>CPU 경쟁 부하</th>
+<th>로컬 p95</th>
+<th>Server1 p95</th>
+<th>로컬/서버 처리량</th>
+<th>로컬 CPU 포화</th>
+<th>로컬 throttle</th>
+<th>판정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Jetson Device1</td>
+<td>0%</td>
+<td>102.815ms</td>
+<td>38.807ms</td>
+<td>9.972 / 104.450/s</td>
+<td>102.6%</td>
+<td>0.744s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Jetson Device1</td>
+<td>50%</td>
+<td>185.314ms</td>
+<td>76.241ms</td>
+<td>8.336 / 33.561/s</td>
+<td>100.5%</td>
+<td>1.745s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Jetson Device1</td>
+<td>75%</td>
+<td>99.698ms</td>
+<td>89.793ms</td>
+<td>12.206 / 21.173/s</td>
+<td>108.4%</td>
+<td>1.296s</td>
+<td>경계 거부</td>
+</tr>
+<tr>
+<td>Jetson Device1</td>
+<td>100%</td>
+<td>194.915ms</td>
+<td>97.494ms</td>
+<td>6.641 / 14.651/s</td>
+<td>99.2%</td>
+<td>2.526s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>0%</td>
+<td>89.739ms</td>
+<td>12.848ms</td>
+<td>19.798 / 161.721/s</td>
+<td>104.9%</td>
+<td>0.226s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>50%</td>
+<td>96.013ms</td>
+<td>61.590ms</td>
+<td>15.178 / 86.781/s</td>
+<td>105.7%</td>
+<td>0.583s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>75%</td>
+<td>97.719ms</td>
+<td>74.180ms</td>
+<td>12.770 / 34.185/s</td>
+<td>102.5%</td>
+<td>0.991s</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>100%</td>
+<td>195.771ms</td>
+<td>94.353ms</td>
+<td>6.389 / 20.135/s</td>
+<td>96.6%</td>
+<td>1.772s</td>
+<td>통과</td>
+</tr>
+</tbody></table></div>
+<p>Jetson의 75% 조건은 지연 개선이 9.9%여서 사전 고정한 10% gate에 0.1%p 부족했다. 이를 반올림해 통과로 바꾸지 않았다. 모델 크기별 대응 run 결과는 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>엣지·프로필</th>
+<th>Server1 지연 우위</th>
+<th>개별 run gate 통과</th>
+<th>지연 감소율 중앙값</th>
+<th>처리량 비율 중앙값</th>
+<th>양측 sign test</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Jetson·약 295만 연산</td>
+<td>6/12</td>
+<td>6/12</td>
+<td>6.6%</td>
+<td>1.214배</td>
+<td>p=1.0</td>
+</tr>
+<tr>
+<td>Raspberry Pi·약 295만 연산</td>
+<td>10/12</td>
+<td>5/12</td>
+<td>10.6%</td>
+<td>1.353배</td>
+<td>p=0.0386</td>
+</tr>
+<tr>
+<td>Jetson·약 1,180만 연산</td>
+<td>12/12</td>
+<td>9/12</td>
+<td>50.8%</td>
+<td>2.452배</td>
+<td>p=0.000488</td>
+</tr>
+<tr>
+<td>Raspberry Pi·약 1,180만 연산</td>
+<td>12/12</td>
+<td>12/12</td>
+<td>48.7%</td>
+<td>3.806배</td>
+<td>p=0.000488</td>
+</tr>
+</tbody></table></div>
+<p>약 295만 연산 프로필은 한 지표가 좋아도 부하 전 범위의 지연·처리량 gate가 안정적으로 통과하지 않아 두 엣지 모두 오프로딩 대상으로 채택하지 않는다. 약 1,180만 연산 프로필은 두 엣지 모두 CPU quota 포화 구간에서 Server1 지연 우위가 일관됐고, Raspberry Pi는 선택한 모든 개별 run에서 gate까지 통과했다. 다만 이 비교는 서로 다른 시점에 순차 실행했으므로 노드의 동시 상주 workload와 시간대 네트워크 변동을 완전히 제거한 하드웨어 벤치마크는 아니다.</p>
 <h2 id="통계-해석">통계 해석</h2>
 <p>기존 90-run 합성 입력 실험은 서로 다른 부하 조건을 같은 정규분포로 가정하지 않고, 대응된 local/server1 run의 방향만 보는 exact two-sided sign test를 사용했다.</p>
 <ul><li>Server1 p95 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>Server1 처리량 우위: 0/45 pairs, 양측 p = <code>5.7e-14</code></li><li>승격 기준 통과: 0/15 conditions</li></ul>
@@ -436,6 +578,9 @@
 <p>대표 temporal 모델에 한해서는 다음을 모두 만족하면 Server1 오프로딩 검토가 이득이라는 실험 근거가 있다.</p>
 <ol><li>모델 workload가 약 1,180만 element 연산/frame 이상이다.</li><li>Device1 CPU saturation이 95% 이상이다.</li><li>로컬 p95가 95ms 이상이거나 처리량이 12.3/s 이하로 내려간다.</li><li>서비스 압력이 기존 debounce 180초 동안 지속된다.</li><li>동일 model version의 Server1이 10% 지연 개선·5% 처리량 비열등 gate를 통과한다.</li></ol>
 <p>1–3번은 이번 짧은 실험의 교차점에서 얻었고, 4번의 180초는 spike 방지 운영 정책이지 이번 실험이 최적화한 값이 아니다. 이 기준은 <code>RECOMMENDED</code>를 만드는 근거이며 자동 전환 승인은 아니다. 실제 옥동 모델이 준비되면 연산량 proxy가 아니라 그 모델 버전의 결과로 교체한다.</p>
+<p>Raspberry Pi 5 <code>etri-dev0003-raspi5</code>는 같은 대표 모델에 대해 다음 장치별 기준을 사용한다.</p>
+<ol><li>모델 workload가 약 1,180만 element 연산/frame 이상이다.</li><li>Raspberry Pi 실험 Pod의 CPU saturation이 95% 이상이다.</li><li>로컬 p95가 90ms 이상이거나 처리량이 20/s 이하로 내려간다.</li><li>서비스 압력이 기존 debounce 180초 동안 지속된다.</li><li>동일 model version의 Server1이 10% 지연 개선·5% 처리량 비열등 gate를 통과한다.</li></ol>
+<p>Raspberry Pi의 90ms·20/s는 이번 고부하 프로필 네 조건에서 관측한 보수적 경계이며 장치 전체나 다른 모델의 일반 임계값이 아니다. 따라서 대시보드는 node name, model version과 workload class가 모두 일치할 때만 이 기준을 사용해야 한다. Jetson과 Raspberry Pi 중 어느 장치도 약 295만 연산 프로필에는 양의 오프로딩 기준을 적용하지 않는다.</p>
 <h2 id="재현과-다음-검증">재현과 다음 검증</h2>
 <pre data-lang="bash"><code>python3 tools/sensor_augmentation_experiment.py --help
 python3 tools/analyze_sensor_augmentation_experiment.py \
@@ -446,9 +591,14 @@ edge-orch/state-aggregator/.venv/bin/python -m pytest -q \
 kubectl create --dry-run=client --validate=false \
   -f tools/k8s/sensor-augmentation-experiment.yaml -o yaml &gt;/dev/null
 python3 tools/representative_ai_crossover_experiment.py --help
+python3 tools/analyze_representative_ai_platforms.py \
+  artifacts/sensor-augmentation/representative-ai-crossover-jetson-20260818.json \
+  artifacts/sensor-augmentation/representative-ai-crossover-raspi-20260818.json
 kubectl create --dry-run=client --validate=false \
-  -f tools/k8s/representative-ai-crossover.yaml -o yaml &gt;/dev/null</code></pre>
-<p>원시 JSON은 <code>artifacts/sensor-augmentation/</code>의 로컬 실험 증거이며 Git 공개 문서 세트에는 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다. 실데이터 요약 증거는 <code>artifacts/sensor-augmentation/real-data-multirate-20260818.evidence</code>에 남겼다. 대표 모델 교차점 증거는 <code>artifacts/sensor-augmentation/representative-ai-crossover-20260818.evidence</code>에 남겼다.</p>
+  -f tools/k8s/representative-ai-crossover.yaml -o yaml &gt;/dev/null
+kubectl create --dry-run=client --validate=false \
+  -f tools/k8s/representative-ai-crossover-raspi.yaml -o yaml &gt;/dev/null</code></pre>
+<p>원시 JSON은 <code>artifacts/sensor-augmentation/</code>의 로컬 실험 증거이며 Git 공개 문서 세트에는 포함하지 않는다. 스크립트, Kubernetes 실험 manifest, 판정기와 이 보고서는 버전 관리한다. 실데이터 요약 증거는 <code>artifacts/sensor-augmentation/real-data-multirate-20260818.evidence</code>에 남겼다. 대표 모델 교차점 증거는 <code>artifacts/sensor-augmentation/representative-ai-crossover-20260818.evidence</code>에 남겼다. 동일 입력 Jetson·Raspberry Pi 비교의 원시 결과와 분석 결과는 각각 <code>representative-ai-crossover-jetson-20260818.json</code>, <code>representative-ai-crossover-raspi-20260818.json</code>, <code>representative-ai-platform-comparison-20260818.json</code>에 남겼다.</p>
 <p>다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E 수집 주기, network delay/loss/timeout, 요청·응답 payload 크기, GPU utilization·전력, 실패 시 local rollback을 포함한다. 결과 소비자가 엣지인지 중앙인지도 먼저 고정하고 같은 소비 지점까지 측정한다. 후보가 바뀌면 <code>ServiceDescriptor.augmentation_qualification</code>을 자동 변경하지 않고 실험 보고서 검토 후 명시적으로 갱신한다.</p>
         </div>
       </article>
@@ -461,6 +611,7 @@ kubectl create --dry-run=client --validate=false \
 <li class="toc-h2"><a href="#합성-입력-엣지-서버-왕복-분해-확인">합성 입력 엣지↔서버 왕복 분해 확인</a></li>
 <li class="toc-h2"><a href="#실제-arduino-데이터-비교-결과">실제 Arduino 데이터 비교 결과</a></li>
 <li class="toc-h2"><a href="#대표-ai-모델의-병목-오프로딩-교차점">대표 AI 모델의 병목·오프로딩 교차점</a></li>
+<li class="toc-h3"><a href="#jetson-raspberry-pi-server1-동일-입력-비교">Jetson·Raspberry Pi·Server1 동일 입력 비교</a></li>
 <li class="toc-h2"><a href="#통계-해석">통계 해석</a></li>
 <li class="toc-h2"><a href="#운영-판단-기준">운영 판단 기준</a></li>
 <li class="toc-h2"><a href="#재현과-다음-검증">재현과 다음 검증</a></li></ol></aside>
