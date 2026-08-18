@@ -4,4 +4,4 @@ resources:
   - k8s.yaml
 images:
   - name: 192.168.0.56:5000/docs-html
-    digest: sha256:d43b60ebf2f78f41a1090cdb3d7afbab9b0ac8be10ad066c70aeaa10c6b29e90
+    digest: sha256:709ed4f5682ddc53b3bada556b0bf86be7147da1991ce92155e8137528076661
