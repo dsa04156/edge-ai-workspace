@@ -17,20 +17,20 @@
 
 | 역할 | 값 | 규칙 |
 |---|---:|---|
-| Canvas | `#f2f5f7` | 전체 배경 |
-| Rail | `#e9eef1` | canvas보다 한 단계 짙은 밝은 회색 |
-| Surface | `rgba(255, 255, 255, .84)` | 기본 반투명 panel |
-| Raised surface | `rgba(248, 250, 252, .96)` | popover·상세 표면 |
-| Control | `rgba(15, 35, 48, .055)` | inset control·inactive state |
-| Standard line | `rgba(15, 35, 48, .12)` | 조용한 구조 분리 |
-| Primary text | `#172632` | 핵심 상태·수치 |
-| Secondary text | `#526573` | 설명·label |
-| Tertiary text | `#748590` | metadata·timestamp |
-| Interaction accent | `#087f8c` | 선택·focus·주 동작만 |
-| Healthy | `#168253` | 정상 상태만 |
-| Warning | `#986400` | 주의 상태만 |
-| Error | `#c13f4c` | 장애 상태만 |
-| Information | `#286fae` | 링크·정보 상태만 |
+| Canvas | `#edf2f1` | 전체 배경 |
+| Rail | `#dfe9e7` | canvas보다 한 단계 짙은 금속성 청회색 |
+| Surface | `rgba(255, 255, 255, .90)` | 기본 반투명 panel |
+| Raised surface | `rgba(246, 249, 248, .98)` | popover·상세 표면 |
+| Control | `rgba(20, 54, 57, .06)` | inset control·inactive state |
+| Standard line | `rgba(20, 54, 57, .13)` | 조용한 구조 분리 |
+| Primary text | `#132e35` | 핵심 상태·수치 |
+| Secondary text | `#49616a` | 설명·label |
+| Tertiary text | `#6d8187` | metadata·timestamp |
+| Interaction accent | `#006d77` | 선택·focus·주 동작만 |
+| Healthy | `#19724c` | 정상 상태만 |
+| Warning | `#946200` | 주의 상태만 |
+| Error | `#b83248` | 장애 상태만 |
+| Information | `#2769a3` | 링크·정보 상태만 |
 
 - 색상 비율은 중립 60%, 보조 표면 30%, accent와 상태색 10% 이하로 유지한다.
 - status 색상은 텍스트·아이콘·배지 상태와 함께 사용하며 색상만으로 의미를 전달하지 않는다.
@@ -39,7 +39,7 @@
 
 - 전략: 세 단계의 반투명 surface + 낮은 투명 shadow. 여러 depth 전략을 섞지 않는다.
 - Canvas → panel → raised detail 순으로 백색도와 불투명도를 소폭 높인다.
-- 기본 panel: `18px` radius, `1px` 저대비 line, `0 16px 40px rgba(36,58,72,.10)` shadow.
+- 기본 panel: `18px` radius, `1px` 저대비 line, `0 12px 28px rgba(31,57,60,.075)` shadow.
 - control: 주변보다 소폭 짙은 inset fill, `10px` radius.
 - mobile panel: `16px` radius.
 - sidebar는 canvas와 같은 계열을 사용하고 얇은 오른쪽 line으로만 분리한다.

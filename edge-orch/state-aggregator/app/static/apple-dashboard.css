@@ -6,43 +6,43 @@
 
 :root {
   color-scheme: light;
-  --apple-canvas: #f2f5f7;
-  --apple-rail: #e9eef1;
-  --apple-surface: rgba(255, 255, 255, 0.84);
-  --apple-surface-solid: #ffffff;
-  --apple-surface-raised: rgba(248, 250, 252, 0.96);
-  --apple-control: rgba(15, 35, 48, 0.055);
-  --apple-control-hover: rgba(15, 35, 48, 0.09);
-  --apple-line: rgba(15, 35, 48, 0.12);
-  --apple-line-strong: rgba(15, 35, 48, 0.22);
-  --apple-text: #172632;
-  --apple-secondary: #526573;
-  --apple-tertiary: #748590;
-  --apple-accent: #087f8c;
-  --apple-accent-soft: rgba(8, 127, 140, 0.1);
-  --apple-ok: #168253;
-  --apple-warn: #986400;
-  --apple-bad: #c13f4c;
-  --apple-info: #286fae;
+  --apple-canvas: #edf2f1;
+  --apple-rail: #dfe9e7;
+  --apple-surface: rgba(255, 255, 255, 0.9);
+  --apple-surface-solid: #fcfdfd;
+  --apple-surface-raised: rgba(246, 249, 248, 0.98);
+  --apple-control: rgba(20, 54, 57, 0.06);
+  --apple-control-hover: rgba(0, 109, 119, 0.1);
+  --apple-line: rgba(20, 54, 57, 0.13);
+  --apple-line-strong: rgba(20, 54, 57, 0.24);
+  --apple-text: #132e35;
+  --apple-secondary: #49616a;
+  --apple-tertiary: #6d8187;
+  --apple-accent: #006d77;
+  --apple-accent-soft: rgba(0, 109, 119, 0.11);
+  --apple-ok: #19724c;
+  --apple-warn: #946200;
+  --apple-bad: #b83248;
+  --apple-info: #2769a3;
   --apple-radius-control: 10px;
   --apple-radius-card: 18px;
   --apple-radius-shell: 24px;
-  --apple-shadow: 0 16px 40px rgba(36, 58, 72, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
-  --apple-focus: 0 0 0 3px rgba(8, 127, 140, 0.22);
+  --apple-shadow: 0 0 0 1px rgba(20, 54, 57, 0.025), 0 12px 28px rgba(31, 57, 60, 0.075);
+  --apple-focus: 0 0 0 3px rgba(0, 109, 119, 0.2);
   --apple-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Legacy aliases keep every dashboard module on the same visual system. */
   --console-bg: var(--apple-canvas);
   --console-rail: var(--apple-rail);
-  --console-command: rgba(255, 255, 255, 0.9);
+  --console-command: rgba(252, 253, 253, 0.94);
   --console-workspace: var(--apple-canvas);
   --console-panel: var(--apple-surface);
   --console-panel-2: var(--apple-surface-raised);
   --console-panel-raised: var(--apple-surface-raised);
-  --console-row: rgba(15, 35, 48, 0.035);
+  --console-row: rgba(20, 54, 57, 0.035);
   --console-row-hover: var(--apple-control-hover);
   --console-bg-elevated: var(--apple-surface-raised);
-  --console-grid: rgba(15, 35, 48, 0.07);
+  --console-grid: rgba(20, 54, 57, 0.065);
   --console-control: var(--apple-control);
   --console-border: var(--apple-line);
   --console-border-strong: var(--apple-line-strong);
@@ -152,8 +152,8 @@ summary:focus-visible,
   padding: 14px 24px !important;
   border: 0 !important;
   border-bottom: 1px solid var(--apple-line) !important;
-  background: rgba(255, 255, 255, 0.82) !important;
-  box-shadow: 0 10px 30px rgba(36, 58, 72, 0.08) !important;
+  background: rgba(252, 253, 253, 0.9) !important;
+  box-shadow: 0 8px 24px rgba(31, 57, 60, 0.065) !important;
   -webkit-backdrop-filter: saturate(145%) blur(22px);
   backdrop-filter: saturate(145%) blur(22px);
 }
@@ -197,7 +197,7 @@ summary:focus-visible,
 }
 
 .global-search:focus-within {
-  border-color: rgba(90, 200, 200, 0.55) !important;
+  border-color: rgba(0, 109, 119, 0.5) !important;
   box-shadow: var(--apple-focus) !important;
 }
 
@@ -215,17 +215,17 @@ summary:focus-visible,
 .shell .topbar #refreshButton {
   min-height: 42px !important;
   padding-inline: 15px !important;
-  border: 1px solid rgba(90, 200, 200, 0.38) !important;
+  border: 1px solid rgba(0, 109, 119, 0.28) !important;
   border-radius: 11px !important;
   background: var(--apple-accent-soft) !important;
-  color: #075f69 !important;
-  -webkit-text-fill-color: #075f69 !important;
+  color: #005b63 !important;
+  -webkit-text-fill-color: #005b63 !important;
   box-shadow: none !important;
 }
 
 .refresh button:hover,
 .topbar #refreshButton:hover {
-  background: rgba(90, 200, 200, 0.22) !important;
+  background: rgba(0, 109, 119, 0.17) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -299,10 +299,11 @@ summary:focus-visible,
 
 .main-menu button.active,
 .main-menu button[aria-pressed="true"] {
-  border-color: rgba(90, 200, 200, 0.16) !important;
+  border-color: rgba(0, 109, 119, 0.16) !important;
   background: var(--apple-accent-soft) !important;
-  color: #075f69 !important;
-  -webkit-text-fill-color: #075f69 !important;
+  color: #005b63 !important;
+  -webkit-text-fill-color: #005b63 !important;
+  box-shadow: none !important;
 }
 
 .main-menu button.active::before,
@@ -366,12 +367,13 @@ summary:focus-visible,
 
 /* A single segmented surface makes the operating categories read as one system. */
 .kpi-grid.dashboard-page.active {
+  position: relative;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 0 !important;
   overflow: hidden;
   border: 1px solid var(--apple-line) !important;
   border-radius: var(--apple-radius-card) !important;
-  background: var(--apple-surface) !important;
+  background: var(--apple-surface-solid) !important;
   box-shadow: var(--apple-shadow) !important;
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
@@ -385,6 +387,16 @@ summary:focus-visible,
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+.kpi-grid.dashboard-page.active::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--apple-accent);
+  opacity: 0.72;
 }
 
 .kpi-grid > .metric:last-of-type {
@@ -497,7 +509,7 @@ textarea,
   min-height: 44px;
   border-color: var(--apple-line) !important;
   border-radius: var(--apple-radius-control) !important;
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: var(--apple-surface-solid) !important;
   color: var(--apple-text) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset !important;
 }
@@ -580,7 +592,7 @@ textarea,
 }
 
 .management-node-card[data-selected="true"] {
-  border-color: rgba(90, 200, 200, 0.45) !important;
+  border-color: rgba(0, 109, 119, 0.42) !important;
   background: var(--apple-accent-soft) !important;
   box-shadow: var(--apple-focus) !important;
 }
@@ -588,7 +600,7 @@ textarea,
 .management-primary-action,
 .management-adapter-action[data-action="connect"],
 .management-form button[type="submit"] {
-  border-color: rgba(90, 200, 200, 0.5) !important;
+  border-color: rgba(0, 109, 119, 0.5) !important;
   border-radius: 11px !important;
   background: var(--apple-accent) !important;
   color: #ffffff !important;
@@ -607,7 +619,7 @@ textarea,
 .operator-chat {
   border-color: var(--apple-line) !important;
   border-radius: var(--apple-radius-card) !important;
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(252, 253, 253, 0.95) !important;
   box-shadow: var(--apple-shadow) !important;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
@@ -642,23 +654,23 @@ textarea,
 .service-designer-canvas,
 .service-designer-canvas-viewport,
 .service-designer-minimap svg {
-  background-color: #f8fafb !important;
+  background-color: #f5f8f7 !important;
   background-image:
     linear-gradient(var(--console-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--console-grid) 1px, transparent 1px) !important;
 }
 
 .service-designer-minimap-node {
-  fill: #9baab4 !important;
-  stroke: #6f818d !important;
+  fill: #91a5a6 !important;
+  stroke: #61797b !important;
 }
 
 .service-dag-edges path {
-  stroke: #8a9aa6;
+  stroke: #7b9092;
 }
 
 .service-dag-edges marker path {
-  fill: #748590;
+  fill: #647c7e;
 }
 
 .service-dag-node,
@@ -666,15 +678,15 @@ textarea,
   border-color: var(--apple-line-strong) !important;
   background: var(--apple-surface-solid) !important;
   color: var(--apple-text) !important;
-  box-shadow: 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+  box-shadow: 0 8px 20px rgba(31, 57, 60, 0.1) !important;
 }
 
 .service-dag-device {
-  box-shadow: inset 3px 0 0 var(--console-blue), 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+  box-shadow: inset 3px 0 0 var(--console-blue), 0 8px 20px rgba(31, 57, 60, 0.1) !important;
 }
 
 .service-dag-server {
-  box-shadow: inset 3px 0 0 #7857b8, 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+  box-shadow: inset 3px 0 0 #7559a8, 0 8px 20px rgba(31, 57, 60, 0.1) !important;
 }
 
 .service-dag-node-index,
@@ -683,7 +695,7 @@ textarea,
 .service-designer-view-controls {
   border-color: var(--apple-line) !important;
   background: var(--apple-control) !important;
-  box-shadow: 0 8px 20px rgba(36, 58, 72, 0.12) !important;
+  box-shadow: 0 8px 20px rgba(31, 57, 60, 0.1) !important;
 }
 
 .service-designer-view-controls button {
@@ -696,12 +708,12 @@ textarea,
 }
 
 .service-dag-node[data-current="true"]::after {
-  background: #edf6fc !important;
+  background: #eaf3fa !important;
 }
 
 .service-dag-augmentation-event {
-  background: #fff7e6 !important;
-  box-shadow: 0 10px 24px rgba(92, 67, 20, 0.12) !important;
+  background: #fff6df !important;
+  box-shadow: 0 10px 24px rgba(92, 67, 20, 0.1) !important;
 }
 
 .service-dag-augmentation-event strong {
@@ -709,11 +721,11 @@ textarea,
 }
 
 .service-dag-augmentation-event[data-state="executed"] {
-  background: #edf6fc !important;
+  background: #eaf3fa !important;
 }
 
 .service-dag-augmentation-event[data-state="blocked"] {
-  background: #fff0f1 !important;
+  background: #fff0f2 !important;
 }
 
 .service-operations-live[data-state="attention"] strong,
@@ -737,8 +749,8 @@ textarea,
 .service-designer-config-panel,
 .service-designer-validation-panel {
   border-color: var(--apple-line) !important;
-  background: rgba(255, 255, 255, 0.97) !important;
-  box-shadow: 0 10px 28px rgba(36, 58, 72, 0.14) !important;
+  background: rgba(252, 253, 253, 0.98) !important;
+  box-shadow: 0 10px 28px rgba(31, 57, 60, 0.11) !important;
 }
 
 .service-designer-port {
@@ -774,6 +786,72 @@ textarea,
   color: var(--apple-ok) !important;
 }
 
+/* Daylight semantic states: status color is reserved for operational meaning. */
+.overview-fleet-status[data-status="available"],
+.status.available,
+.pill.available,
+.service-catalog-availability[data-state="running"],
+.service-catalog-status[data-state="running"] {
+  border-color: rgba(25, 114, 76, 0.3) !important;
+  background: #e9f5ee !important;
+  color: #12643f !important;
+  -webkit-text-fill-color: #12643f !important;
+}
+
+.overview-fleet-status[data-status="degraded"],
+.status.degraded,
+.pill.degraded,
+.service-catalog-availability[data-state="attention"],
+.service-catalog-status[data-state="attention"] {
+  border-color: rgba(148, 98, 0, 0.32) !important;
+  background: #fff5dc !important;
+  color: #805300 !important;
+  -webkit-text-fill-color: #805300 !important;
+}
+
+.overview-fleet-status[data-status="unavailable"],
+.status.unavailable,
+.pill.unavailable,
+.service-demo-badge[data-state="anomaly"] {
+  border-color: rgba(184, 50, 72, 0.32) !important;
+  background: #fff0f2 !important;
+  color: #9f263c !important;
+  -webkit-text-fill-color: #9f263c !important;
+}
+
+.service-demo-badge[data-state="normal"] {
+  border-color: rgba(25, 114, 76, 0.3) !important;
+  background: #e9f5ee !important;
+  color: #12643f !important;
+  -webkit-text-fill-color: #12643f !important;
+}
+
+.service-demo-badge[data-state="degraded"],
+.service-demo-badge[data-state="warming_up"] {
+  border-color: rgba(148, 98, 0, 0.32) !important;
+  background: #fff5dc !important;
+  color: #805300 !important;
+  -webkit-text-fill-color: #805300 !important;
+}
+
+.service-demo-decision[data-state="normal"] progress,
+.service-demo-decision[data-state="normal"] progress::-webkit-progress-value {
+  accent-color: var(--apple-ok) !important;
+  background-color: var(--apple-ok) !important;
+}
+
+.service-demo-decision[data-state="anomaly"] progress,
+.service-demo-decision[data-state="anomaly"] progress::-webkit-progress-value {
+  accent-color: var(--apple-bad) !important;
+  background-color: var(--apple-bad) !important;
+}
+
+.service-demo-decision[data-state="degraded"] progress,
+.service-demo-decision[data-state="degraded"] progress::-webkit-progress-value {
+  accent-color: var(--apple-warn) !important;
+  background-color: var(--apple-warn) !important;
+}
+
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -782,7 +860,7 @@ textarea,
 ::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: rgba(15, 35, 48, 0.2);
+  background: rgba(20, 54, 57, 0.2);
   background-clip: padding-box;
 }
 
@@ -805,7 +883,7 @@ textarea,
     overflow-x: auto;
     border-right: 0 !important;
     border-bottom: 1px solid var(--apple-line) !important;
-    background: rgba(255, 255, 255, 0.94) !important;
+    background: rgba(252, 253, 253, 0.96) !important;
     -webkit-backdrop-filter: blur(22px);
     backdrop-filter: blur(22px);
   }
@@ -986,10 +1064,10 @@ textarea,
 
 @media (prefers-contrast: more) {
   :root {
-    --apple-line: rgba(15, 35, 48, 0.28);
-    --apple-line-strong: rgba(15, 35, 48, 0.48);
-    --apple-secondary: #344957;
-    --apple-tertiary: #4d616d;
+    --apple-line: rgba(20, 54, 57, 0.29);
+    --apple-line-strong: rgba(20, 54, 57, 0.5);
+    --apple-secondary: #324d55;
+    --apple-tertiary: #49646a;
   }
   .panel,
   .kpi-grid.dashboard-page.active,

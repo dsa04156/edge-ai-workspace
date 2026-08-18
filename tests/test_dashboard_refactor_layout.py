@@ -9,7 +9,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 
     refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
     screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
-    apple_link = "/static/apple-dashboard.css?v=daylight-operations-v2-20260818"
+    apple_link = "/static/apple-dashboard.css?v=daylight-operations-v3-20260818"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -29,9 +29,9 @@ def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
-    assert "--apple-canvas: #f2f5f7;" in css
-    assert "--apple-rail: #e9eef1;" in css
-    assert "--apple-accent: #087f8c;" in css
+    assert "--apple-canvas: #edf2f1;" in css
+    assert "--apple-rail: #dfe9e7;" in css
+    assert "--apple-accent: #006d77;" in css
     assert "--console-accent: var(--apple-accent);" in css
     assert "--line: var(--apple-line);" in css
     assert "--text: var(--apple-text);" in css
