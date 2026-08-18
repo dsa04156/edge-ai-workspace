@@ -75,8 +75,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 20:18</span>
-            <span class="badge">HTML 생성: 2026-08-18 20:18</span>
+            <span class="badge">수정: 2026-08-18 20:20</span>
+            <span class="badge">HTML 생성: 2026-08-18 20:20</span>
           </div>
         </header>
         <div class="doc-body">
@@ -131,6 +131,36 @@
 <td>모두 통과하면 <code>RECOMMENDED</code>, 통과하지 못하면 <code>BLOCKED</code>로 표시한다.</td>
 </tr>
 </tbody></table></div>
+<h3 id="노드-부하가-어느-정도일-때-오프로딩하는가">노드 부하가 어느 정도일 때 오프로딩하는가</h3>
+<p>노드 전체 사용률과 AI 서비스 Pod의 CPU 포화도는 다른 지표다. 노드 CPU·메모리 85%는 다른 workload까지 포함한 <strong>조사 시작 기준</strong>이고, 실험 Pod CPU 포화도 95%는 할당된 CPU quota를 AI 계산이 사실상 모두 사용하는 <strong>장치별 병목 기준</strong>이다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>관측 상태</th>
+<th>운영 판단</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>노드 CPU·메모리 85% 미만이고 서비스 지연·처리량 저하가 없음</td>
+<td>로컬 처리를 유지한다.</td>
+</tr>
+<tr>
+<td>노드 CPU 또는 메모리 85% 이상이 300초 지속</td>
+<td>원인을 조사한다. 이 조건만으로 오프로딩하지 않는다.</td>
+</tr>
+<tr>
+<td>AI 서비스 Pod CPU 포화도 95% 미만이거나 장치별 p95·처리량 경계를 넘지 않음</td>
+<td>로컬 처리를 유지하고 관찰한다.</td>
+</tr>
+<tr>
+<td>Pod CPU 포화도 95% 이상 <strong>그리고</strong> 장치별 p95·처리량 저하가 180초 지속</td>
+<td>동일 모델의 Server1 후보 시험 결과를 확인한다.</td>
+</tr>
+<tr>
+<td>위 조건에서 Server1이 지연 10% 개선·처리량 감소 5% 이내·오류 0을 만족</td>
+<td>오프로딩을 <code>RECOMMENDED</code>로 권고한다.</td>
+</tr>
+</tbody></table></div>
+<p>실험에서는 CPU 경쟁 부하를 0%·50%·75%·100%로 바꿔 비교했다. Raspberry Pi는 약 1,180만 연산 모델의 네 단계 모두에서 Server1 gate를 통과했다. Jetson은 0%·50%·100% 조건은 통과했지만 75% 조건의 지연 개선이 9.9%로 10% gate에 미달했다. 따라서 “노드 CPU 75%부터 무조건 오프로딩”처럼 단일 사용률로 판단할 수 없다. <strong>노드 자원 압력, AI Pod 포화, 서비스 지연·처리량과 Server1 실측 이득을 함께 확인</strong>해야 한다.</p>
 <h3 id="실험-근거">실험 근거</h3>
 <ol><li><strong>실데이터 사용:</strong> EdgeX를 통해 실제 유입된 <code>arduino-001</code> Reading 120개를 고정하고</li></ol>
 <p>로컬과 Server1에 같은 순서로 재생했다. 따라서 두 경로의 입력 차이를 제거했다.</p>
@@ -668,6 +698,7 @@ kubectl create --dry-run=client --validate=false \
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#결론">결론</a></li>
 <li class="toc-h2"><a href="#자원-증강-기준치-설계">자원 증강 기준치 설계</a></li>
 <li class="toc-h3"><a href="#기준치-표">기준치 표</a></li>
+<li class="toc-h3"><a href="#노드-부하가-어느-정도일-때-오프로딩하는가">노드 부하가 어느 정도일 때 오프로딩하는가</a></li>
 <li class="toc-h3"><a href="#실험-근거">실험 근거</a></li>
 <li class="toc-h3"><a href="#보고서-결론">보고서 결론</a></li>
 <li class="toc-h2"><a href="#질문과-가설">질문과 가설</a></li>
