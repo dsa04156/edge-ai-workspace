@@ -71,17 +71,19 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>AI 서비스 자원 증강 부하 실험</h1>
-          <p class="subtitle">2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 arduino-001 Reading 120개…</p>
+          <p class="subtitle">&gt; 장치별 핵심 결론: 대표 temporal-convolution 성능 프록시에서 Raspberry Pi 5는 &gt; 약 1,180…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: AI-서비스-자원-증강-부하-실험.md</span>
-            <span class="badge">수정: 2026-08-18 17:41</span>
-            <span class="badge">HTML 생성: 2026-08-18 17:41</span>
+            <span class="badge">수정: 2026-08-18 18:34</span>
+            <span class="badge">HTML 생성: 2026-08-18 18:34</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="ai-서비스-자원-증강-부하-실험">AI 서비스 자원 증강 부하 실험</h1>
 <h2 id="결론">결론</h2>
+<blockquote><p><strong>장치별 핵심 결론:</strong> 대표 temporal-convolution 성능 프록시에서 Raspberry Pi 5는 약 1,180만 연산/frame 이상이고 실험 Pod CPU가 95% 이상 포화되며, 로컬 p95가 90ms 이상이거나 처리량이 20/s 이하일 때 Server1 오프로딩이 유리했다.</p>
+<p>이 기준은 동일 model version의 Server1이 지연 10% 개선·처리량 5% 비열등 gate를 통과하고 상태가 기존 180초 debounce 동안 지속될 때 <code>RECOMMENDED</code>를 만드는 근거다. 학습된 옥동 모델의 운영 자격이나 자동 전환 승인을 뜻하지 않는다.</p></blockquote>
 <p>2026-08-18 테스트베드에서 EdgeX Local Data v3로 실제 유입된 <code>arduino-001</code> Reading 120개 frame을 캡처하고, 같은 입력을 Device1 로컬 추론과 Server1 CUDA 후보에 고정해 1·50·200 rps에서 총 18회 비교했다. 현재 모델 조합 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code>은 <strong>Server1 전환 대상으로 부적합</strong>하다. 9개 대응 run 모두에서 Server1의 p95 엣지 판단 E2E 지연이 더 길었고 처리량 우위도 없었다. 실제 유입 속도에 가까운 1 rps에서도 로컬 1.265ms, Server1 15.633ms였으며, 200 rps 가속 재생에서는 Server1 처리량이 84.389/s로 막히고 schedule lag p95가 5.450초까지 증가했다. 따라서 현재 운영 경로는 Device1 로컬을 유지한다.</p>
 <p>앞서 수행한 합성 입력 90 runs/45 pairs와 왕복 계측 확인 18 runs도 같은 방향이었다. 그 결과는 부하 축 탐색과 계측 검증 근거로 유지하되, 현재 연결된 장비의 데이터에 대한 판정은 위 실데이터 캡처·재생 실험을 우선 근거로 삼는다.</p>
 <p>이 결과는 GPU 오프로딩 일반이 효과가 없다는 뜻이 아니다. 현재 통계 기준선의 계산량이 작아 HTTP·직렬화·네트워크 비용이 지배적이라는 뜻이다. 옥동 학습 모델이 준비되면 같은 절차로 모델 버전별 자격을 다시 판정해야 한다.</p>
