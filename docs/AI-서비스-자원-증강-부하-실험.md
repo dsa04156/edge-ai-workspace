@@ -10,6 +10,12 @@
 > 보였지만 최종 gate 통과는 9/12회였다. 로컬 p95 95ms 이상 또는 처리량 12.3/s 이하를
 > 조건부 검토 기준으로 사용하고, 현재 조건의 Server1 gate를 반드시 다시 확인한다.
 >
+> **GPU 자원 부족 결론:** 현재 Server1의 20%-core HAMi slice에서는 GPU 사용률 p95가
+> 35% 이상이거나 정상 기준선보다 10%p 이상 높아지고, 동시에 추론 p95가 20% 이상
+> 증가하거나 처리량이 5% 이상 감소하는 상태가 180초 지속되면 GPU 계산 부족으로 본다.
+> GPU 메모리 90% 이상은 경고 기준이며, 할당 실패·CUDA OOM 또는 실제 서비스 저하가
+> 함께 확인될 때만 자원 부족으로 확정한다.
+>
 > 이 기준은 동일 model version의 Server1이 지연 10% 개선·처리량 5% 비열등 gate를
 > 통과하고 상태가 기존 180초 debounce 동안 지속될 때 `RECOMMENDED`를 만드는 근거다.
 > 학습된 옥동 모델의 운영 자격이나 자동 전환 승인을 뜻하지 않는다.
@@ -43,6 +49,25 @@
 성능 저하, 동일 모델의 Server1 개선 효과**를 순서대로 확인하며, 일시적인 spike를 제외하기
 위해 지속시간을 적용한다.
 
+### 자원 증강 조건 명시표
+
+아래 표의 `AND`는 조건을 모두 충족한다는 뜻이고, 괄호 안의 `OR`는 둘 중 하나 이상을
+충족한다는 뜻이다. 노드 전체 부하는 조사 시작 신호이며, 실제 오프로딩 권고는 장치별 병목과
+동일 모델의 Server1 이득을 함께 확인한 뒤 결정한다.
+
+| 대상 | 조건 A: 자원 압력 | 조건 B: 서비스 영향·후보 자격 | 최종 판단 |
+|---|---|---|---|
+| 공통 노드 관찰 | 노드 CPU 85% 이상 **OR** 메모리 85% 이상이 300초 지속 | 적용하지 않음 | 원인 조사를 시작한다. 이 조건만으로는 오프로딩하지 않는다. |
+| Jetson Device1 | 약 1,180만 연산/frame 이상 **AND** AI Pod CPU 95% 이상 **AND** (로컬 p95 95ms 이상 **OR** 처리량 12.3건/s 이하)가 180초 지속 | 동일 모델이 로컬 대비 p95 지연 10% 이상 개선 **AND** 처리량 감소 5% 이내 **AND** 오류·OOM 0건 | 두 조건을 모두 통과하면 `RECOMMENDED` 후보로 표시한다. 실험 gate가 9/12회 통과했으므로 조건부 권고다. |
+| Raspberry Pi 5 | 약 1,180만 연산/frame 이상 **AND** AI Pod CPU 95% 이상 **AND** (로컬 p95 90ms 이상 **OR** 처리량 20건/s 이하)가 180초 지속 | 동일 모델이 로컬 대비 p95 지연 10% 이상 개선 **AND** 처리량 감소 5% 이내 **AND** 오류·OOM 0건 | 두 조건을 모두 통과하면 `RECOMMENDED`로 권고한다. 실험 gate는 12/12회 통과했다. |
+| Server1 GPU 계산 | (현재 20%-core HAMi slice에서 GPU 사용률 p95 35% 이상 **OR** 정상 기준선보다 10%p 이상 상승) | (추론 p95 20% 이상 증가 **OR** 처리량 5% 이상 감소)가 180초 지속 | GPU core 추가 할당 또는 다른 GPU worker 재배치를 `RECOMMENDED` 후보로 표시한다. GPU p95 85% 이상이면 심각 포화다. |
+| Server1 GPU 메모리 경고 | 신뢰 가능한 HAMi/vGPU 할당 대비 사용량 90% 이상이 180초 지속 | 할당 실패·CUDA OOM과 서비스 저하 없음 | `WARNING`으로 표시하고 신규 모델·batch의 workspace 여유를 확인한다. 이 조건만으로 재배치하지 않는다. |
+| Server1 GPU 메모리 부족 | CUDA allocation 실패 **OR** OOM **OR** 필요한 model workspace가 남은 vGPU 메모리보다 큼 | 요청 실패 또는 추론 지연·처리량 저하가 확인됨 | `BLOCKED`로 표시하고 GPU 메모리 추가 할당 또는 다른 GPU worker 재배치를 검토한다. |
+| 모든 장치 | 조건 A를 충족하지 않음 | 조건 B를 충족하지 않거나 결과를 확인하지 못함 | `BLOCKED`로 표시하고 로컬 처리를 유지한다. |
+
+즉, `오프로딩 권고 = 장치별 엣지 병목 180초 지속 AND Server1 후보 자격 통과`다.
+`노드 CPU·메모리 85% 이상`은 이 식의 자동 전환 조건이 아니라 원인 조사 조건이다.
+
 ### 기준치 표
 
 | 판단 단계 | 기준치 | 지속시간 | 판단 및 조치 |
@@ -51,6 +76,9 @@
 | 서비스 성능 저하 관찰 | p95 4,000ms 이상, backlog 발생 또는 처리량 0.8건/s 미만 | 180초 | 현재 약 1Hz 기준선 서비스의 성능 저하 여부를 확인한다. |
 | Jetson Device1 장치별 병목 | 약 1,180만 연산/frame 이상 **그리고** CPU 포화도 95% 이상 **그리고** 로컬 p95 95ms 이상 또는 처리량 12.3건/s 이하 | 180초 | 조건별 Server1 후보 자격을 다시 확인한다. 12회 중 9회만 최종 gate를 통과했으므로 조건부 권고다. |
 | Raspberry Pi 장치별 병목 | 약 1,180만 연산/frame 이상 **그리고** CPU 포화도 95% 이상 **그리고** 로컬 p95 90ms 이상 또는 처리량 20건/s 이하 | 180초 | 동일 모델의 Server1 후보 자격 시험을 확인한다. |
+| Server1 GPU 계산 부족 | (현재 20%-core HAMi slice의 GPU p95 35% 이상 또는 정상 기준선 +10%p) **그리고** (추론 p95 20% 증가 또는 처리량 5% 감소) | 180초 | GPU core 추가 할당이나 다른 GPU worker 재배치를 검토한다. GPU p95 85% 이상은 심각 포화로 표시한다. |
+| Server1 GPU 메모리 경고 | 신뢰 가능한 vGPU 할당 대비 사용량 90% 이상 | 180초 | workspace 여유를 조사한다. 사용률만으로는 증강하지 않는다. |
+| Server1 GPU 메모리 부족 | CUDA allocation 실패, OOM 또는 필요한 workspace 부족 | 즉시 | 후보를 `BLOCKED`로 표시하고 GPU 메모리 증강 또는 재배치를 검토한다. |
 | Server1 후보 자격 | 로컬 대비 p95 지연 10% 이상 개선, 처리량 감소 5% 이내, 오류·OOM 0건 | 실험별 | 모두 통과하면 `RECOMMENDED`, 통과하지 못하면 `BLOCKED`로 표시한다. |
 
 ### 노드 부하가 어느 정도일 때 오프로딩하는가
@@ -72,6 +100,43 @@ quota를 AI 계산이 사실상 모두 사용하는 **장치별 병목 기준**�
 조건은 통과했지만 75% 조건의 지연 개선이 9.9%로 10% gate에 미달했다. 따라서 “노드 CPU
 75%부터 무조건 오프로딩”처럼 단일 사용률로 판단할 수 없다. **노드 자원 압력, AI Pod 포화,
 서비스 지연·처리량과 Server1 실측 이득을 함께 확인**해야 한다.
+
+### GPU 자원 부족 실험 결과
+
+2026-08-19 Server1 `etri-ser0002-cgnmsb`의 RTX 5080에서 실제 `arduino-001`
+Reading 120개를 고정 입력으로 사용했다. 현재 observed-only 추론 Pod와 같은 HAMi 할당인
+GPU core 20%, GPU 메모리 1,024MiB 안에서 약 1,180만 연산 temporal-convolution 성능
+프록시를 실행했다. GPU 계산 duty 4단계와 추가 GPU 메모리 4단계를 무작위 순서로 배치하고
+각 조건을 6회 반복해 총 96개 4초 run을 측정했다. 개별 요청이 아니라 각 run을 독립
+반복으로 분석했다.
+
+| 계산 조건·추가 메모리 | GPU 사용률 p95 중앙값 | 추론 p95 중앙값 | 처리량 중앙값 | 정상 기준선 대비 | 반복 판정 |
+|---|---:|---:|---:|---|---:|
+| duty 0%, 0MiB | 24.0% | 1.431ms | 726.7건/s | 정상 기준선 | 저하 0/6 |
+| duty 50%, 0MiB | 37.0% | 2.313ms | 592.5건/s | 지연 61.5% 증가, 처리량 18.6% 감소 | 저하 6/6 |
+| duty 75%, 0MiB | 53.0% | 2.441ms | 523.3건/s | 지연 70.5% 증가, 처리량 27.9% 감소 | 저하 6/6 |
+| duty 100%, 0MiB | 98.5% | 2.658ms | 429.7건/s | 지연 85.8% 증가, 처리량 40.9% 감소 | 저하 6/6 |
+| duty 0%, 384MiB | 24.0% | 1.426ms | 728.3건/s | 관측 Pod 메모리 92.2%, 성능 변화 없음 | 저하 0/6 |
+
+최초 계산 부하 구간인 duty 50%에서 GPU p95는 반복별 36~61%였고 지연은 6/6회 모두
+증가했다. 양측 exact sign test는 `p=0.03125`였다. 따라서 사전에 검토한 GPU 85% 단일
+기준은 이 20%-core slice의 서비스 저하를 너무 늦게 잡는다. 현재 테스트베드에서는
+**GPU p95 35% 또는 정상 기준선 +10%p와 서비스 성능 저하를 함께 보는 잠정 기준**을
+사용한다. 이 값은 전체 GPU나 다른 HAMi core 할당에 그대로 적용하지 않는다.
+
+GPU 메모리 경계는 별도 6회 반복으로 확인했다. 추가 버퍼 1,016MiB는 6/6회 할당과 추론에
+성공했고 지연 중앙값은 정상 기준선의 1.001배였다. 1,024MiB 추가 할당은 6/6회 CUDA
+allocation 실패로 추론을 시작하지 못했다. 한편 `nvidia-smi`의 visible process memory에는
+HAMi가 별도로 계산하는 CUDA context가 포함돼 할당량 대비 100%를 넘을 수 있었다. 따라서
+이 비율을 hard quota로 사용하지 않고, **신뢰 가능한 vGPU 사용량 90%는 경고**, 실제
+allocation 실패·OOM 또는 workspace 부족은 자원 부족으로 판정한다.
+
+원시 확증 결과와 분석 결과는 로컬 실험 증거
+`artifacts/sensor-augmentation/gpu-resource-pressure-confirmatory-20260819.json`,
+`gpu-resource-pressure-analysis-20260819.json`,
+`gpu-resource-memory-boundary-confirmatory-20260819.json`에 보존했다. 운영 route는 변경하지
+않았고 실험 후 observed-only Pod가 Ready, restart 0인 것을 확인했다. 이 실험도 학습된
+옥동 모델이 아니라 성능 프록시이므로 실제 모델·HAMi 할당이 달라지면 다시 검증한다.
 
 ### 실험 근거
 
@@ -436,6 +501,10 @@ python3 tools/representative_ai_crossover_experiment.py --help
 python3 tools/analyze_representative_ai_platforms.py \
   artifacts/sensor-augmentation/representative-ai-crossover-jetson-20260818.json \
   artifacts/sensor-augmentation/representative-ai-crossover-raspi-20260818.json
+python3 tools/gpu_resource_pressure_experiment.py --help
+python3 tools/analyze_gpu_resource_pressure_experiment.py \
+  artifacts/sensor-augmentation/gpu-resource-pressure-confirmatory-20260819.json \
+  --output artifacts/sensor-augmentation/gpu-resource-pressure-analysis-20260819.json
 kubectl create --dry-run=client --validate=false \
   -f tools/k8s/representative-ai-crossover.yaml -o yaml >/dev/null
 kubectl create --dry-run=client --validate=false \
@@ -452,6 +521,11 @@ kubectl create --dry-run=client --validate=false \
 `representative-ai-crossover-jetson-20260818.json`,
 `representative-ai-crossover-raspi-20260818.json`,
 `representative-ai-platform-comparison-20260818.json`에 남겼다.
+GPU 계산·메모리 압력의 원시 결과, 분석과 해시 요약은
+`gpu-resource-pressure-confirmatory-20260819.json`,
+`gpu-resource-pressure-analysis-20260819.json`,
+`gpu-resource-memory-boundary-confirmatory-20260819.json`,
+`gpu-resource-pressure-20260819.evidence`에 남겼다.
 
 다음 승격 시험은 옥동 실제 모델과 입력 계약을 고정한 뒤 30분 이상 endurance, 실제 E2E
 수집 주기, network delay/loss/timeout, 요청·응답 payload 크기, GPU utilization·전력, 실패 시
