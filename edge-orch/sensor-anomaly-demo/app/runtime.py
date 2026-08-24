@@ -214,6 +214,7 @@ class AnomalyRuntime:
             temperatures,
             current,
         )
+        observations: list[LatestObservation] = []
         for row in aligned:
             model_input = self._model_input(row.acceleration, row.temperature)
             validated_frame = AccelerationFrame(
@@ -299,13 +300,16 @@ class AnomalyRuntime:
                     else None
                 ),
             )
+            observations.append(observation)
+
+        if observations:
             await asyncio.to_thread(
-                self.result_store.record_result,
-                observation,
+                self.result_store.record_results,
+                observations,
                 asset_id=self.settings.service_asset_id,
             )
-            self._results.append(observation)
-            self._frames_processed += 1
+            self._results.extend(observations)
+            self._frames_processed += len(observations)
 
         drop_count = self.aligner.counters.unaligned_frames_dropped
         dropped_this_poll = drop_count - self._last_unaligned_drops

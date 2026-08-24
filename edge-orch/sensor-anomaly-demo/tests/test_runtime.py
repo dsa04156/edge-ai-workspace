@@ -429,7 +429,7 @@ def test_runtime_does_not_publish_a_result_before_sqlite_commit(monkeypatch) -> 
     def fail_commit(*_, **__) -> None:
         raise RuntimeError("sqlite unavailable")
 
-    monkeypatch.setattr(store, "record_result", fail_commit)
+    monkeypatch.setattr(store, "record_results", fail_commit, raising=False)
     runtime = AnomalyRuntime(
         settings=Settings(warmup_samples=1),
         client=client,
@@ -463,7 +463,7 @@ def test_runtime_keeps_event_loop_responsive_during_slow_sqlite_commit(
     def slow_commit(*_, **__) -> None:
         time.sleep(0.2)
 
-    monkeypatch.setattr(store, "record_result", slow_commit)
+    monkeypatch.setattr(store, "record_results", slow_commit, raising=False)
     runtime = AnomalyRuntime(
         settings=Settings(warmup_samples=1),
         client=client,
@@ -482,3 +482,45 @@ def test_runtime_keeps_event_loop_responsive_during_slow_sqlite_commit(
     health_tick_delay = asyncio.run(run_poll_with_health_tick())
 
     assert health_tick_delay < 0.1
+
+
+def test_runtime_persists_replayed_results_in_one_sqlite_batch(monkeypatch) -> None:
+    origins = [14_000_000_000, 14_000_000_001, 14_000_000_002]
+    client = FakeLocalDataClient(
+        {
+            axis: [
+                AxisSample(origin, "Int32", index + 1)
+                for index, origin in enumerate(origins)
+            ]
+            for axis in ("x", "y", "z")
+        }
+        | {
+            "temperature": [
+                AxisSample(origin - 10, "Int32", 300 + index)
+                for index, origin in enumerate(origins)
+            ]
+        }
+    )
+    store = ResultStore(":memory:", retention_rows=10)
+    batch_sizes: list[int] = []
+
+    def record_results(results, *, asset_id) -> list:
+        batch_sizes.append(len(results))
+        return []
+
+    def fail_row_commit(*_, **__) -> None:
+        raise AssertionError("runtime used one transaction per result")
+
+    monkeypatch.setattr(store, "record_results", record_results, raising=False)
+    monkeypatch.setattr(store, "record_result", fail_row_commit)
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        result_store=store,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origins[-1] + 100))
+
+    assert batch_sizes == [3]
+    assert runtime.status(now_ns=origins[-1] + 100).counters.frames_processed == 3

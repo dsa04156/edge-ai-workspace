@@ -68,6 +68,29 @@ def test_store_retention_and_filters_are_bounded() -> None:
     store.close()
 
 
+def test_store_records_batch_atomically_with_one_retention_pass() -> None:
+    store = ResultStore(":memory:", retention_rows=2)
+
+    transitions = store.record_results(
+        [
+            observation(1, anomaly=False, score=0.1),
+            observation(2, anomaly=True, score=5.0),
+            observation(3, anomaly=False, score=0.2),
+        ],
+        asset_id="pump-1",
+    )
+
+    assert [row.origin for row in store.results(10)] == [2, 3]
+    assert [transition.transition for transition in transitions] == [
+        "opened",
+        "cleared",
+    ]
+    assert store.status().result_count == 2
+    assert store.status().alert_event_count == 2
+    assert store.status().open_alert_count == 0
+    store.close()
+
+
 def test_open_alert_state_survives_restart_and_closes_once(tmp_path) -> None:
     path = tmp_path / "results.db"
     first = ResultStore(str(path), retention_rows=10)
