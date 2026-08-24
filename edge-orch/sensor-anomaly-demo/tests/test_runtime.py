@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 import pytest
 
@@ -443,3 +444,41 @@ def test_runtime_does_not_publish_a_result_before_sqlite_commit(monkeypatch) -> 
     assert state.latest is None
     assert state.counters.frames_processed == 0
     asyncio.run(runtime.stop())
+
+
+def test_runtime_keeps_event_loop_responsive_during_slow_sqlite_commit(
+    monkeypatch,
+) -> None:
+    origin = 13_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    store = ResultStore(":memory:", retention_rows=10)
+
+    def slow_commit(*_, **__) -> None:
+        time.sleep(0.2)
+
+    monkeypatch.setattr(store, "record_result", slow_commit)
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        result_store=store,
+    )
+
+    async def run_poll_with_health_tick() -> float:
+        poll_task = asyncio.create_task(runtime.poll_once(now_ns=origin + 100))
+        started_at = asyncio.get_running_loop().time()
+        await asyncio.sleep(0.02)
+        health_tick_delay = asyncio.get_running_loop().time() - started_at
+        await poll_task
+        return health_tick_delay
+
+    health_tick_delay = asyncio.run(run_poll_with_health_tick())
+
+    assert health_tick_delay < 0.1

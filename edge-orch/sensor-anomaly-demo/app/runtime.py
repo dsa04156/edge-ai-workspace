@@ -299,7 +299,8 @@ class AnomalyRuntime:
                     else None
                 ),
             )
-            self.result_store.record_result(
+            await asyncio.to_thread(
+                self.result_store.record_result,
                 observation,
                 asset_id=self.settings.service_asset_id,
             )
