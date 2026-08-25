@@ -18,6 +18,9 @@ Python FastAPI 기반 서버 구현
 
 POST /workflow-event
 GET /state/nodes
+GET /api/resources
+POST /api/placements/select
+POST /api/deployments
 GET /state/node/{hostname}
 GET /state/workflows
 GET /state/workflow/{workflow_id}
@@ -68,8 +71,9 @@ Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
 - Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.
 - 인증된 `POST /management/connections`는 Adapter Controller를 통해 승인 runtime을
   준비한 뒤 EdgeX Profile/Device를 등록하고 first Event까지 추적한다.
-- state-aggregator 자체는 Kubernetes 쓰기 권한이 없고, 외부/Argo runtime을
-  restart/retire하지 않는다.
+- state-aggregator의 일반 read model과 Device Management BFF는 기존 Kubernetes
+  workload를 수정하지 않는다. 별도 `/api/deployments` Controller만 전용 namespace에
+  신규 Deployment를 생성하며 외부/Argo runtime을 restart/retire하지 않는다.
 - raw manifest, 임의 image/hostPath/hostNetwork, 고정 ClusterIP/PodIP, EdgeMesh와 KubeEdge
   Device CRD 변경은 API schema에 없다.
 
@@ -158,6 +162,58 @@ status
 /state/nodes
 
 전체 노드의 최신 normalized state 반환
+
+/api/resources
+
+Placement Engine이 읽을 수 있는 노드별 scheduling snapshot을 반환한다. Kubernetes Node
+allocatable에서 노드에 할당된 비종료 Pod requests를 차감해 CPU·memory·확장 accelerator
+가용량을 계산하고, 기존 `/state/nodes`의 Prometheus utilization과 health를 별도 관측값으로
+결합한다. 응답의 `allocatable`, `requested`, `available`은 계산 근거이며 이 API는
+Kubernetes workload를 변경하거나 노드를 예약하지 않는 read-only endpoint다.
+
+/api/placements/select
+
+`namespace`, `service`, `architecture`와 선택 `accelerator`·`acceleratorUnits` 조건을 받아
+해당 실행 서비스의 `/state/service-resource-profiles` CPU·memory requests와
+`/api/resources` 노드 snapshot을 결합한다. 먼저 schedulable, CPU, memory, architecture,
+accelerator 조건을 fail-closed Filter하고, 통과 노드는 배치 후 CPU·memory headroom 60%와
+현재 Prometheus CPU·memory idle 40%를 합산한 0~100점으로 Score한다. 결과는 선택 노드,
+점수 세부내역, 모든 후보의 `reasonCodes`를 반환하며 workload apply·migration·offloading은
+실행하지 않는다.
+
+/api/deployments
+
+`placement` 필드에 `/api/placements/select`와 같은 서비스 프로파일·architecture·accelerator
+조건을 넣고, 신규 `deploymentName`과 immutable digest `image`를 전달한다. Controller는
+선택 노드를 exact hostname `nodeSelector`와 required node affinity에 함께 적용하고,
+프로파일 CPU·memory·accelerator requests를 단일 replica Deployment에 설정한다. 생성 후
+Deployment와 Pod를 관측해 `ready`, `failed`, `rejected`, `podReady`, Pod 상태와 안정적인
+`reasonCodes`를 반환한다.
+
+v1 경계:
+
+- 대상 namespace는 `edge-ai-workloads`로 고정
+- 단일 Pod에서 완전하게 수집된 서비스 자원 프로파일만 허용
+- allowlist의 로컬 registry image와 `@sha256:<digest>`만 허용
+- `X-Deployment-Token`과 `Idempotency-Key` header 필수
+- raw manifest, env, command, volume, Service/Ingress 입력 없음
+- 기존 Deployment update·patch·delete, migration·offloading 없음
+
+예시:
+
+```json
+{
+  "deploymentName": "quality-ai-v1",
+  "image": "192.168.0.56:5000/state-aggregator@sha256:<64-hex-digest>",
+  "placement": {
+    "namespace": "default",
+    "service": "redis",
+    "architecture": "amd64"
+  },
+  "containerPort": 8000,
+  "readinessPath": "/"
+}
+```
 
 /state/workflows
 

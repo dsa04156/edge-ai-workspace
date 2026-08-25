@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:435a9809836f26d40b612cd366c899f21727b8a6633ab6ec44d752303530fc07
+          image: 192.168.0.56:5000/state-aggregator@sha256:cc90491a19c7719dcc4c0f429467cd572a7267f19f6d96ea1ea2eaf526c3266e
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -71,6 +71,21 @@ spec:
               value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
             - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
               value: "10"
+            - name: DEPLOYMENT_CONTROLLER_ENABLED
+              value: "true"
+            - name: DEPLOYMENT_TARGET_NAMESPACE
+              value: edge-ai-workloads
+            - name: DEPLOYMENT_ALLOWED_IMAGE_PREFIXES
+              value: "192.168.0.56:5000/state-aggregator@sha256:,192.168.0.56:5000/sensor-anomaly-demo@sha256:"
+            - name: DEPLOYMENT_READY_TIMEOUT_SECONDS
+              value: "90"
+            - name: DEPLOYMENT_POLL_INTERVAL_SECONDS
+              value: "2"
+            - name: DEPLOYMENT_MANAGEMENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: management-hmac-key
           volumeMounts:
             - name: state-data
               mountPath: /app/data

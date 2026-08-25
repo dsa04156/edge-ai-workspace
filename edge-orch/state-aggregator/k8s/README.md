@@ -22,10 +22,34 @@ The Deployment remains on `etri-ser0001-cg0msb` and reaches Core Metadata and
 Core Data through the `edgex-system` namespace services on ports `59881` and
 `59880`. Telemetry history is read from Core Data and persisted by the central
 PostgreSQL backend; this service has no separate time-series recorder.
-Kubernetes access is retained only for node, workload, and
-augmentation-resource observation. The service account has no KubeEdge
+Kubernetes access includes node/workload observation and the separately bounded
+new-Deployment Controller described below. The service account has no KubeEdge
 `Device` or `DeviceStatus` permissions, and no MapperFramework settings are
 used.
+
+## 제한된 신규 Deployment Controller
+
+`POST /api/deployments`는 `/api/placements/select` 결과가 `selected`일 때만
+`edge-ai-workloads` namespace에 단일 replica Deployment를 생성하고 Pod Ready를 기다린다.
+호출에는 `X-Deployment-Token`과 `Idempotency-Key`가 필요하다. token은 Git에 저장하지 않고
+`default/edgex-adapter-management-auth`의 `management-hmac-key`를 재사용한다.
+
+허용 범위:
+
+- immutable digest와 `DEPLOYMENT_ALLOWED_IMAGE_PREFIXES` allowlist
+- exact hostname `nodeSelector` + required node affinity
+- 서비스 프로파일의 CPU·memory·accelerator requests
+- Deployment create/get/list/watch와 Pod 상태 read
+
+금지 범위:
+
+- 기존 Deployment update·patch·delete
+- migration, offloading, runtime replanning
+- raw manifest, env, command, volume, hostPath, privilege, Service/Ingress 입력
+
+Controller 자체와 namespace/RBAC는 Argo CD가 소유하지만, Controller가 생성한 개별
+Deployment는 동적 객체이며 Argo CD manifest에 추가하지 않는다. 현재 shared token은
+개발 테스트베드 경계이며 사용자별 운영 인증·인가는 아니다.
 
 The historical mqttvirtual mapper source remains in the repository, but its
 kustomization renders no resources and it is not managed by the active Argo CD
@@ -38,7 +62,8 @@ Dashboard `Device Management`와 `/management/*` API는 Runtime 선택부터 Edg
 Metadata readback과 first Event까지 하나의 connection operation으로 관리한다. EdgeX
 Core Metadata/Core Data가 계속 물리 Device 권위다.
 
-`state-aggregator`는 browser BFF이며 Kubernetes 쓰기 권한을 갖지 않는다. 내부 HMAC으로
+Device Management의 `state-aggregator`는 browser BFF이며 해당 Adapter Runtime Kubernetes
+쓰기를 직접 수행하지 않는다. 내부 HMAC으로
 `edgex-edge`의 `edgex-adapter-controller`를 호출하고, Controller만 승인된
 `AdapterRuntime`과 namespaced workload를 reconcile한다.
 
@@ -93,7 +118,8 @@ Kubernetes manifests:
 
 - `deployment.yaml`: Deployment + Service
 - `ingressroute.yaml`: Traefik host route for the dashboard
-- `rbac.yaml`: node, pod, and augmentation-resource read access
+- `managed-workloads-namespace.yaml`: bounded dynamic workload namespace
+- `rbac.yaml`: cluster node/pod read와 전용 namespace Deployment create/read
 - `service-monitor.yaml`: kube-prometheus `ServiceMonitor`
 
 Apply these manifests through the directory kustomization (or the

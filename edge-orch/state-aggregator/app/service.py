@@ -9,16 +9,22 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .config import Settings, load_instance_map
+from .deployment_controller import DeploymentController
 from .edgex import EdgeXClient
 from .models import (
     CostModelState,
     DashboardState,
+    DeploymentCreateRequest,
+    DeploymentCreateResult,
     DeviceState,
     EdgeXDevice,
+    NodeSchedulingResource,
     NodeState,
     OperatorAssistantState,
     OperatorChatRequest,
     OperatorChatResponse,
+    PlacementSelectionRequest,
+    PlacementSelectionResult,
     SummaryState,
     TelemetryPoint,
     WorkflowEvent,
@@ -26,11 +32,17 @@ from .models import (
 )
 from .normalizer import build_summary, normalize_node_state, normalize_workflow_state
 from .prometheus import PrometheusClient
+from .placement import select_placement
 from .resource_profile import build_service_resource_profiles, summarize_service_resource_profiles
+from .resource_pool import build_node_scheduling_resources
 from .storage import StateStore
 from .kube import KubeClient
 
 logger = logging.getLogger(__name__)
+
+
+class PlacementProfileNotFound(LookupError):
+    pass
 
 
 class StateAggregatorService:
@@ -47,6 +59,7 @@ class StateAggregatorService:
         )
         self._service_resource_profiles: list[dict[str, Any]] = []
         self.kube = KubeClient()
+        self.deployment_controller = DeploymentController(settings, self.kube)
         self._poller_task: asyncio.Task | None = None
 
     async def start(self) -> None:
@@ -98,6 +111,42 @@ class StateAggregatorService:
 
     def get_node(self, hostname: str) -> NodeState | None:
         return self.store.nodes.get(hostname)
+
+    async def get_scheduling_resources(self) -> list[NodeSchedulingResource]:
+        snapshots = await self.kube.get_scheduling_resource_snapshots()
+        return build_node_scheduling_resources(snapshots, self.get_nodes())
+
+    async def select_placement(
+        self,
+        request: PlacementSelectionRequest,
+    ) -> PlacementSelectionResult:
+        profile_state = await self.get_resource_profile_state(
+            refresh=request.refresh_profile
+        )
+        profiles = [
+            profile
+            for profile in profile_state.get("service_resource_profiles") or []
+            if profile.get("namespace") == request.namespace
+            and profile.get("service") == request.service
+        ]
+        if not profiles:
+            raise PlacementProfileNotFound(
+                f"Service resource profile not found: {request.namespace}/{request.service}"
+            )
+        resources = await self.get_scheduling_resources()
+        return select_placement(profiles[0], resources, request)
+
+    async def deploy_workload(
+        self,
+        request: DeploymentCreateRequest,
+        operation_id: str,
+    ) -> DeploymentCreateResult:
+        placement = await self.select_placement(request.placement)
+        return await self.deployment_controller.deploy(
+            request,
+            placement,
+            operation_id,
+        )
 
     def get_workflows(self) -> list[WorkflowState]:
         return self.store.get_workflow_states()

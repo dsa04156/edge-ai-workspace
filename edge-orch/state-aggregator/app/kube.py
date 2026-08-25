@@ -1,11 +1,28 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
 from kubernetes import client, config
+from kubernetes.client.exceptions import ApiException
+
+from .resource_pool import (
+    KubernetesNodeResourceSnapshot,
+    build_kubernetes_resource_snapshots,
+)
 
 logger = logging.getLogger(__name__)
+
+
+class KubeResourceReadError(RuntimeError):
+    pass
+
+
+class KubeDeploymentError(RuntimeError):
+    def __init__(self, reason_code: str, message: str) -> None:
+        super().__init__(message)
+        self.reason_code = reason_code
 
 
 class KubeClient:
@@ -21,6 +38,7 @@ class KubeClient:
                 self.enabled = False
         
         self.v1 = client.CoreV1Api()
+        self.apps = client.AppsV1Api()
 
     async def get_node_map(self) -> dict[str, dict[str, str]]:
         """
@@ -93,6 +111,116 @@ class KubeClient:
             if name:
                 readiness[name] = ready
         return readiness
+
+    async def get_scheduling_resource_snapshots(
+        self,
+    ) -> list[KubernetesNodeResourceSnapshot]:
+        """Read allocatable capacity and requests reserved by non-terminal Pods."""
+        if not self.enabled:
+            raise KubeResourceReadError("Kubernetes client is unavailable")
+        try:
+            nodes = self.v1.list_node().items
+            pods = self.v1.list_pod_for_all_namespaces().items
+        except Exception as exc:
+            logger.exception("Failed to read Kubernetes scheduling resources")
+            raise KubeResourceReadError(
+                "Failed to read Kubernetes scheduling resources"
+            ) from exc
+        return build_kubernetes_resource_snapshots(
+            nodes,
+            pods,
+            self._determine_node_type,
+        )
+
+    async def deployment_exists(self, namespace: str, name: str) -> bool:
+        if not self.enabled:
+            raise KubeDeploymentError(
+                "kubernetes_client_unavailable",
+                "Kubernetes client is unavailable",
+            )
+        try:
+            await asyncio.to_thread(
+                self.apps.read_namespaced_deployment,
+                name=name,
+                namespace=namespace,
+            )
+            return True
+        except ApiException as exc:
+            if exc.status == 404:
+                return False
+            reason = (
+                "deployment_read_forbidden"
+                if exc.status == 403
+                else "deployment_state_unavailable"
+            )
+            raise KubeDeploymentError(reason, _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "deployment_state_unavailable",
+                f"Failed to read Deployment: {type(exc).__name__}",
+            ) from exc
+
+    async def create_deployment(self, namespace: str, body: dict[str, Any]) -> Any:
+        if not self.enabled:
+            raise KubeDeploymentError(
+                "kubernetes_client_unavailable",
+                "Kubernetes client is unavailable",
+            )
+        try:
+            return await asyncio.to_thread(
+                self.apps.create_namespaced_deployment,
+                namespace=namespace,
+                body=body,
+            )
+        except ApiException as exc:
+            reason = {
+                403: "deployment_create_forbidden",
+                409: "deployment_already_exists",
+                422: "deployment_manifest_rejected",
+            }.get(exc.status, "deployment_create_failed")
+            raise KubeDeploymentError(reason, _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "deployment_create_failed",
+                f"Failed to create Deployment: {type(exc).__name__}",
+            ) from exc
+
+    async def read_deployment(self, namespace: str, name: str) -> Any:
+        try:
+            return await asyncio.to_thread(
+                self.apps.read_namespaced_deployment,
+                name=name,
+                namespace=namespace,
+            )
+        except ApiException as exc:
+            raise KubeDeploymentError(
+                "deployment_state_unavailable",
+                _api_error_message(exc),
+            ) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "deployment_state_unavailable",
+                f"Failed to observe Deployment: {type(exc).__name__}",
+            ) from exc
+
+    async def list_deployment_pods(self, namespace: str, name: str) -> list[Any]:
+        try:
+            result = await asyncio.to_thread(
+                self.v1.list_namespaced_pod,
+                namespace=namespace,
+                label_selector=f"edge-ai.io/deployment={name}",
+            )
+            return list(result.items)
+        except ApiException as exc:
+            raise KubeDeploymentError(
+                "pod_state_unavailable",
+                _api_error_message(exc),
+            ) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "pod_state_unavailable",
+                f"Failed to observe Pods: {type(exc).__name__}",
+            ) from exc
 
     async def get_running_service_pods(self) -> list[dict[str, Any]]:
         """Return running pod resource declarations for service requirement profiling."""
@@ -171,3 +299,8 @@ class KubeClient:
             return "edge_device"
             
         return "unknown"
+
+
+def _api_error_message(exc: ApiException) -> str:
+    detail = exc.reason or f"Kubernetes API status {exc.status}"
+    return str(detail)[:500]

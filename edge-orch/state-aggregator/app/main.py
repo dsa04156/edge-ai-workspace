@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+import hashlib
+import hmac
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -21,6 +23,7 @@ from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
 from .device_twins import DeviceTwinState, build_device_twin_state
 from .edgex import EdgeXError
 from .json_types import JsonMap
+from .kube import KubeResourceReadError
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -28,9 +31,14 @@ from .models import (
     DeviceProfileContract,
     DeviceResourceContract,
     DeviceState,
+    DeploymentCreateRequest,
+    DeploymentCreateResult,
+    NodeSchedulingResource,
     OperatorAssistantState,
     OperatorChatRequest,
     OperatorChatResponse,
+    PlacementSelectionRequest,
+    PlacementSelectionResult,
     SummaryState,
     TelemetryPoint,
     WorkflowEvent,
@@ -40,7 +48,7 @@ from .operator_assistant import (
     degraded_operator_chat_response,
     operator_assistant_from_dashboard,
 )
-from .service import StateAggregatorService
+from .service import PlacementProfileNotFound, StateAggregatorService
 from .service_catalog import ServiceCatalog
 from .service_augmentation import (
     ServiceAugmentationEvaluator,
@@ -157,6 +165,104 @@ async def post_workflow_event(event: WorkflowEvent) -> WorkflowState:
 @app.get("/state/nodes")
 async def get_nodes():
     return service.get_nodes()
+
+
+@app.get("/api/resources", response_model=list[NodeSchedulingResource])
+async def get_scheduling_resources() -> list[NodeSchedulingResource]:
+    try:
+        return await service.get_scheduling_resources()
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
+
+
+@app.post("/api/placements/select", response_model=PlacementSelectionResult)
+async def select_scheduling_placement(
+    request: PlacementSelectionRequest,
+) -> PlacementSelectionResult:
+    try:
+        return await service.select_placement(request)
+    except PlacementProfileNotFound as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "service_resource_profile_not_found",
+                "message": str(exc),
+            },
+        ) from exc
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
+
+
+@app.post("/api/deployments", response_model=DeploymentCreateResult)
+async def create_scheduling_deployment(
+    request: DeploymentCreateRequest,
+    deployment_token: str | None = Header(default=None, alias="X-Deployment-Token"),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> DeploymentCreateResult:
+    if not settings.deployment_controller_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "deployment_controller_disabled",
+                "message": "Deployment Controller is disabled.",
+            },
+        )
+    configured_token = settings.deployment_management_token
+    if (
+        not configured_token
+        or not deployment_token
+        or not hmac.compare_digest(configured_token, deployment_token)
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "deployment_authentication_failed",
+                "message": "A valid X-Deployment-Token header is required.",
+            },
+        )
+    if not idempotency_key or len(idempotency_key) > 128:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_idempotency_key",
+                "message": "Idempotency-Key is required and must be at most 128 characters.",
+            },
+        )
+    operation_id = hmac.new(
+        configured_token.encode("utf-8"),
+        idempotency_key.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    try:
+        return await service.deploy_workload(request, operation_id)
+    except PlacementProfileNotFound as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "service_resource_profile_not_found",
+                "message": str(exc),
+            },
+        ) from exc
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
 
 
 @app.get("/state/devices", response_model=list[DeviceState])

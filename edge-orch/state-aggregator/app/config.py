@@ -17,6 +17,13 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_csv(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return tuple(item.strip() for item in value.split(",") if item.strip())
+
+
 class Settings(BaseModel):
     prometheus_url: str = Field(
         default_factory=lambda: os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
@@ -131,6 +138,44 @@ class Settings(BaseModel):
         ),
         gt=0,
         le=60,
+    )
+    deployment_controller_enabled: bool = Field(
+        default_factory=lambda: _env_bool("DEPLOYMENT_CONTROLLER_ENABLED")
+    )
+    deployment_target_namespace: str = Field(
+        default_factory=lambda: os.getenv(
+            "DEPLOYMENT_TARGET_NAMESPACE",
+            "edge-ai-workloads",
+        ),
+        min_length=1,
+        max_length=63,
+        pattern=r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+    )
+    deployment_management_token: str | None = Field(
+        default_factory=lambda: os.getenv("DEPLOYMENT_MANAGEMENT_TOKEN") or None
+    )
+    deployment_allowed_image_prefixes: tuple[str, ...] = Field(
+        default_factory=lambda: _env_csv(
+            "DEPLOYMENT_ALLOWED_IMAGE_PREFIXES",
+            (
+                "192.168.0.56:5000/state-aggregator@sha256:",
+                "192.168.0.56:5000/sensor-anomaly-demo@sha256:",
+            ),
+        )
+    )
+    deployment_ready_timeout_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("DEPLOYMENT_READY_TIMEOUT_SECONDS", "90")
+        ),
+        gt=0,
+        le=600,
+    )
+    deployment_poll_interval_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("DEPLOYMENT_POLL_INTERVAL_SECONDS", "2")
+        ),
+        ge=0.1,
+        le=30,
     )
 
 

@@ -49,30 +49,50 @@ def test_dashboard_management_uses_internal_controller_and_secret_refs() -> None
         "key": "internal-hmac-key",
     }
     assert "192.168." not in env["ADAPTER_CONTROLLER_URL"]["value"]
+    assert env["DEPLOYMENT_CONTROLLER_ENABLED"]["value"] == "true"
+    assert env["DEPLOYMENT_TARGET_NAMESPACE"]["value"] == "edge-ai-workloads"
+    assert env["DEPLOYMENT_MANAGEMENT_TOKEN"]["valueFrom"]["secretKeyRef"] == {
+        "name": "edgex-adapter-management-auth",
+        "key": "management-hmac-key",
+    }
 
 
-def test_dashboard_service_account_remains_read_only_for_kubernetes_workloads() -> None:
+def test_deployment_controller_has_create_only_access_in_its_bounded_namespace() -> None:
     resources = render()
-    roles = [
-        item
-        for (kind, _), item in resources.items()
-        if kind in {"Role", "ClusterRole"}
-    ]
-    rules = [rule for item in roles for rule in item.get("rules", [])]
+    namespace = resources[("Namespace", "edge-ai-workloads")]
+    reader = resources[("ClusterRole", "state-aggregator-node-reader")]
+    creator = resources[("Role", "state-aggregator-deployment-creator")]
+    binding = resources[("RoleBinding", "state-aggregator-deployment-creator")]
 
-    for rule in rules:
-        resources_in_rule = set(rule.get("resources", []))
-        if resources_in_rule & {
-            "deployments",
-            "services",
-            "configmaps",
-            "networkpolicies",
-            "adapterruntimes",
-        }:
-            assert not (
-                set(rule.get("verbs", []))
-                & {"create", "update", "patch", "delete", "deletecollection"}
-            )
+    assert namespace["metadata"]["name"] == "edge-ai-workloads"
+    assert all(
+        not (
+            set(rule.get("verbs", []))
+            & {"create", "update", "patch", "delete", "deletecollection"}
+        )
+        for rule in reader["rules"]
+    )
+    assert creator["metadata"]["namespace"] == "edge-ai-workloads"
+    assert creator["rules"] == [
+        {
+            "apiGroups": ["apps"],
+            "resources": ["deployments"],
+            "verbs": ["create", "get", "list", "watch"],
+        }
+    ]
+    assert binding["metadata"]["namespace"] == "edge-ai-workloads"
+    assert binding["subjects"] == [
+        {
+            "kind": "ServiceAccount",
+            "name": "state-aggregator",
+            "namespace": "default",
+        }
+    ]
+    assert binding["roleRef"] == {
+        "kind": "Role",
+        "name": "state-aggregator-deployment-creator",
+        "apiGroup": "rbac.authorization.k8s.io",
+    }
 
 
 def test_dashboard_is_exposed_through_the_gitops_managed_traefik_route() -> None:
