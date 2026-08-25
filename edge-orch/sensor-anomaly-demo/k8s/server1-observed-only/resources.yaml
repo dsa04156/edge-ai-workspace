@@ -37,7 +37,6 @@ spec:
         app.kubernetes.io/part-of: edge-ai-service-demo
         edge-ai.io/augmentation-resource: server1-sensor-anomaly-inference
     spec:
-      schedulerName: hami-scheduler
       nodeSelector:
         kubernetes.io/hostname: etri-ser0002-cgnmsb
       automountServiceAccountToken: false
@@ -102,14 +101,10 @@ spec:
               cpu: 250m
               memory: 256Mi
               nvidia.com/gpu: "1"
-              nvidia.com/gpucores: "20"
-              nvidia.com/gpumem: "1024"
             limits:
               cpu: "2"
               memory: 1Gi
               nvidia.com/gpu: "1"
-              nvidia.com/gpucores: "20"
-              nvidia.com/gpumem: "1024"
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
