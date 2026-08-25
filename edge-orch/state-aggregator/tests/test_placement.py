@@ -238,6 +238,21 @@ def test_placement_breaks_equal_scores_by_node_name():
     ]
 
 
+def test_placement_can_exclude_current_runtime_node_without_hiding_it():
+    result = select_placement(
+        _profile(cpu=1, memory_mib=1024),
+        [_resource("current-node"), _resource("alternative-node")],
+        _request(),
+        excluded_nodes={"current-node"},
+    )
+    candidates = {candidate.node: candidate for candidate in result.candidates}
+
+    assert result.status == "selected"
+    assert result.selected_node == "alternative-node"
+    assert candidates["current-node"].eligible is False
+    assert candidates["current-node"].reason_codes == ["current_node_excluded"]
+
+
 def test_placement_returns_no_fit_and_incomplete_profile_blocking_states():
     no_fit = select_placement(
         _profile(),

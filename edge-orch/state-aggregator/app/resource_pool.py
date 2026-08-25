@@ -109,21 +109,46 @@ def build_node_scheduling_resources(
 
 def _pod_requests(pod: Any) -> SchedulingResourceAmounts:
     spec = getattr(pod, "spec", None)
+    return pod_spec_requests(spec)
+
+
+def pod_spec_requests(spec: Any) -> SchedulingResourceAmounts:
+    """Calculate the scheduler-effective requests for a Pod spec/template."""
     regular = _empty_amounts()
     for container in getattr(spec, "containers", None) or []:
-        regular = _add_amounts(regular, _container_requests(container))
+        regular = _add_amounts(regular, _container_resources(container, "requests"))
 
     effective = regular
     for container in getattr(spec, "init_containers", None) or []:
-        effective = _max_amounts(effective, _container_requests(container))
+        effective = _max_amounts(
+            effective,
+            _container_resources(container, "requests"),
+        )
 
     overhead = _resource_amounts(getattr(spec, "overhead", None) or {})
     return _add_amounts(effective, overhead)
 
 
-def _container_requests(container: Any) -> SchedulingResourceAmounts:
+def pod_spec_limits(spec: Any) -> SchedulingResourceAmounts:
+    """Calculate effective declared limits for one Pod template."""
+    regular = _empty_amounts()
+    for container in getattr(spec, "containers", None) or []:
+        regular = _add_amounts(regular, _container_resources(container, "limits"))
+    effective = regular
+    for container in getattr(spec, "init_containers", None) or []:
+        effective = _max_amounts(
+            effective,
+            _container_resources(container, "limits"),
+        )
+    return effective
+
+
+def _container_resources(
+    container: Any,
+    field_name: str,
+) -> SchedulingResourceAmounts:
     resources = getattr(container, "resources", None)
-    return _resource_amounts(getattr(resources, "requests", None) or {})
+    return _resource_amounts(getattr(resources, field_name, None) or {})
 
 
 def _resource_amounts(values: dict[str, Any]) -> SchedulingResourceAmounts:

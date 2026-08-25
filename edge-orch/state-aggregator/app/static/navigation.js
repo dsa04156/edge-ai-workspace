@@ -1,4 +1,4 @@
-const DASHBOARD_PAGES = ["overview", "inventory", "management", "services", "device-twins", "designer"];
+const DASHBOARD_PAGES = ["overview", "operations", "inventory", "management", "designer"];
 
 function requestedDashboardPage() {
   const hashPage = window.location.hash.replace(/^#/, "");
@@ -23,10 +23,10 @@ function showDashboardPage(page) {
     globalThis.onServiceDesignerVisible();
   }
   if (
-    nextPage === "device-twins"
-    && typeof globalThis.onDeviceTwinsVisible === "function"
+    nextPage === "operations"
+    && typeof globalThis.onRuntimeOperationsVisible === "function"
   ) {
-    globalThis.onDeviceTwinsVisible();
+    globalThis.onRuntimeOperationsVisible();
   }
 }
 
@@ -47,4 +47,17 @@ function bindDashboardNavigation() {
 
 if (typeof document !== "undefined") {
   bindDashboardNavigation();
+}
+
+if (typeof globalThis !== "undefined") {
+  globalThis.DASHBOARD_PAGES = DASHBOARD_PAGES;
+  globalThis.showDashboardPage = showDashboardPage;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    DASHBOARD_PAGES,
+    requestedDashboardPage,
+    showDashboardPage,
+  };
 }

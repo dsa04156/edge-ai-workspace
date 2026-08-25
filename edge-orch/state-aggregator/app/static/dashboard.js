@@ -756,6 +756,15 @@ function showResourceExplanation(item) {
   const view = resourceCategoryView(item.kind);
   const raw = item.raw || {};
   const metrics = raw.raw_metrics || {};
+  const schedulingResource = globalThis.runtimeOperations?.findSchedulingResource?.(
+    raw.hostname || item.name,
+  ) || null;
+  const resourceEvidence = globalThis.runtimeOperations?.renderSchedulingResourceDetails
+    ? globalThis.runtimeOperations.renderSchedulingResourceDetails(
+        schedulingResource,
+        metrics,
+      )
+    : `<section class="node-resource-evidence"><div class="runtime-section-empty">Scheduling Resource 관측 불가 · /api/resources 데이터 없음</div></section>`;
   const statusStrip = [
     ["상태", item.statusLabel],
     ["분류", view.label],
@@ -764,9 +773,6 @@ function showResourceExplanation(item) {
   const facts = [
     ["호스트 이름", raw.hostname || item.name],
     ["노드 분류", view.label],
-    ["CPU 사용률", pct(metrics.cpu_utilization)],
-    ["메모리 사용률", pct(metrics.memory_usage_ratio)],
-    ["GPU 사용률", metrics.gpu_utilization === null || metrics.gpu_utilization === undefined ? "N/A" : pct(metrics.gpu_utilization)],
     ["Compute / Memory / Network 압력", `${text(raw.compute_pressure, "unknown")} / ${text(raw.memory_pressure, "unknown")} / ${text(raw.network_pressure, "unknown")}`],
     ["최신 관측 시각", item.observedAt || "관측 없음"],
   ];
@@ -786,6 +792,7 @@ function showResourceExplanation(item) {
       `).join("")}
     </div>
     ${renderDeviceFactList(facts)}
+    ${resourceEvidence}
     ${renderDeviceReasonList([{
       title: "상태 근거",
       text: reason,
@@ -986,6 +993,9 @@ async function refreshDashboardNow() {
     const requests = [loadDashboard()];
     if (typeof globalThis.refreshServiceDemo === "function") {
       requests.push(globalThis.refreshServiceDemo());
+    }
+    if (typeof globalThis.refreshRuntimeOperations === "function") {
+      requests.push(globalThis.refreshRuntimeOperations());
     }
     if (
       typeof document !== "undefined"
@@ -2395,6 +2405,13 @@ function scheduleDashboardRefresh() {
 }
 
 if (typeof document !== "undefined") {
+  document.addEventListener("runtime-resources-updated", () => {
+    if (!state.selectedResourceId || !isContextDetailPanelOpen()) return;
+    const item = RESOURCE_CATEGORY_ORDER
+      .flatMap((category) => resourceCategoryItems(state.data || {}, category))
+      .find((resource) => resource.id === state.selectedResourceId);
+    if (item && item.kind !== "sensor") showResourceExplanation(item);
+  });
   scheduleDashboardRefresh();
 }
 

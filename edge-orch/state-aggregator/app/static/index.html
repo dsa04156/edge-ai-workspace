@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
     <link rel="stylesheet" href="/static/device-twins.css?v=multi-service-twins-v3-20260814" />
+    <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-operations-v1-20260825" />
     <link rel="stylesheet" href="/static/apple-dashboard.css?v=daylight-operations-v3-20260818" />
   </head>
   <body>
@@ -53,10 +54,9 @@
 
       <nav class="main-menu" aria-label="대시보드 화면">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
+        <button type="button" data-dashboard-page="operations" aria-pressed="false">서비스 운영</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
-        <button type="button" data-dashboard-page="services" aria-pressed="false">서비스</button>
-        <button type="button" data-dashboard-page="device-twins" aria-pressed="false">디바이스 트윈</button>
         <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
       </nav>
 
@@ -261,6 +261,39 @@
             <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
 
+          <section
+            class="runtime-operations-page dashboard-page"
+            data-page="operations"
+            aria-labelledby="runtimeOperationsTitle"
+          >
+            <header class="runtime-operations-heading">
+              <div>
+                <p class="section-kicker">Runtime Recommendation</p>
+                <h2 id="runtimeOperationsTitle">서비스 운영</h2>
+                <p>실행 상태부터 배치 근거, 읽기 전용 실행 계획과 판단 이력까지 확인합니다.</p>
+              </div>
+              <label class="runtime-service-selector" for="runtimeOperationsServiceSelect">
+                <span>서비스</span>
+                <select id="runtimeOperationsServiceSelect" aria-label="서비스 운영 대상 선택">
+                  <option value="">서비스 관측 중</option>
+                </select>
+              </label>
+            </header>
+            <div
+              id="runtimeOperationsAvailability"
+              class="runtime-operations-notice"
+              data-state="observing"
+              role="status"
+              aria-live="polite"
+            >Runtime Recommendation을 확인하고 있습니다.</div>
+            <div id="runtimeOperationsContent" class="runtime-operations-content" aria-live="polite">
+              <section class="panel runtime-empty-panel">
+                <strong>서비스 운영 데이터 확인 중</strong>
+                <p>Runtime Recommendation, Scheduling Resource와 판단 이력을 불러오고 있습니다.</p>
+              </section>
+            </div>
+          </section>
+
           <section class="service-catalog dashboard-page" data-page="services" data-service-catalog="descriptor-driven" aria-labelledby="servicesTitle">
             <header class="service-catalog-heading">
               <div>
@@ -285,7 +318,7 @@
             </section>
           </section>
 
-          <details id="serviceDemoPanel" class="panel service-demo-panel dashboard-page dashboard-disclosure" data-page="services" aria-labelledby="serviceDemoTitle" open>
+          <details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle" open>
             <summary class="overview-service-demo-summary">
               <span>
                 <span class="section-kicker">서비스 데모</span>
@@ -297,6 +330,22 @@
               </span>
             </summary>
             <div class="overview-service-demo-body">
+              <section class="runtime-overview-summary" aria-labelledby="runtimeOverviewTitle">
+                <div class="runtime-overview-identity">
+                  <span>Runtime Recommendation</span>
+                  <strong id="runtimeOverviewTitle">판단 관측 중</strong>
+                  <small id="runtimeOverviewReasons">근거 데이터 확인 중</small>
+                </div>
+                <dl class="runtime-overview-metrics">
+                  <div><dt>현재 노드</dt><dd id="runtimeOverviewCurrentNode">N/A</dd></div>
+                  <div><dt>CPU</dt><dd id="runtimeOverviewCpu">N/A</dd></div>
+                  <div><dt>Memory</dt><dd id="runtimeOverviewMemory">N/A</dd></div>
+                  <div><dt>Latency</dt><dd id="runtimeOverviewLatency">N/A</dd></div>
+                  <div><dt>추천</dt><dd id="runtimeOverviewSelectedNode">N/A</dd></div>
+                  <div><dt>Score</dt><dd id="runtimeOverviewScore">N/A</dd></div>
+                </dl>
+                <button type="button" class="runtime-overview-link" data-runtime-operations-link>서비스 운영 보기</button>
+              </section>
               <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
               <div class="service-demo-hero">
                 <section id="serviceDemoDecisionCard" class="service-demo-decision" data-state="starting" aria-labelledby="serviceDemoDecisionLabel">
@@ -325,30 +374,6 @@
                   </dl>
                 </section>
               </div>
-
-              <section id="serviceAugmentationPanel" class="service-augmentation-rail" data-state="BLOCKED" aria-labelledby="serviceAugmentationTitle">
-                <header>
-                  <div>
-                    <span>RESOURCE DECISION · READ ONLY</span>
-                    <strong id="serviceAugmentationTitle">서비스 자원 증강 판단</strong>
-                  </div>
-                  <strong id="serviceAugmentationState">관측 대기</strong>
-                </header>
-                <p id="serviceAugmentationReason">자원과 서비스 처리 지표를 확인하고 있습니다.</p>
-                <dl class="service-augmentation-evidence" aria-label="자원 증강 판단 근거">
-                  <div><dt>CPU</dt><dd id="serviceAugmentationCpu">관측 불가</dd></div>
-                  <div><dt>메모리</dt><dd id="serviceAugmentationMemory">관측 불가</dd></div>
-                  <div><dt>p95 지연</dt><dd id="serviceAugmentationLatency">관측 불가</dd></div>
-                  <div><dt>백로그</dt><dd id="serviceAugmentationBacklog">관측 불가</dd></div>
-                  <div><dt>처리량</dt><dd id="serviceAugmentationThroughput">관측 불가</dd></div>
-                </dl>
-                <div class="service-augmentation-context">
-                  <span>관측 <strong id="serviceAugmentationObservation">확인 중</strong></span>
-                  <span>증강 후보 <strong id="serviceAugmentationCandidate">확인 중</strong></span>
-                  <span>압력 지속 <strong id="serviceAugmentationDwell">0 / 300초</strong></span>
-                </div>
-                <p id="serviceAugmentationBoundary" class="service-augmentation-boundary">판단만 제공하며 자동 배포·라우팅·마이그레이션은 수행하지 않습니다.</p>
-              </section>
 
               <section class="service-operations-cockpit" aria-labelledby="serviceDemoProcessTitle">
                 <header class="service-operations-head">
@@ -1601,8 +1626,9 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
+    <script src="/static/runtime-operations.js?v=runtime-operations-v1-20260825"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-        <script src="/static/service-demo.js?v=service-augmentation-v2-20260818"></script>
+    <script src="/static/service-demo.js?v=service-augmentation-v2-20260818"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>

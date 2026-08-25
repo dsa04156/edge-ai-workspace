@@ -177,6 +177,50 @@ class Settings(BaseModel):
         ge=0.1,
         le=30,
     )
+    runtime_recommendation_enabled: bool = Field(
+        default_factory=lambda: _env_bool("RUNTIME_RECOMMENDATION_ENABLED", True)
+    )
+    runtime_recommendation_poll_interval_seconds: float = Field(
+        default_factory=lambda: float(
+            os.getenv("RUNTIME_RECOMMENDATION_POLL_INTERVAL_SECONDS", "15")
+        ),
+        ge=1,
+        le=300,
+    )
+    runtime_recommendation_database_path: Path | None = Field(
+        default_factory=lambda: (
+            Path(os.environ["RUNTIME_RECOMMENDATION_DATABASE_PATH"])
+            if os.getenv("RUNTIME_RECOMMENDATION_DATABASE_PATH")
+            else None
+        )
+    )
+    runtime_recommendation_history_limit: int = Field(
+        default_factory=lambda: int(
+            os.getenv("RUNTIME_RECOMMENDATION_HISTORY_LIMIT", "1000")
+        ),
+        ge=1,
+        le=100000,
+    )
+    execution_controller_enabled: bool = Field(
+        default_factory=lambda: _env_bool("EXECUTION_CONTROLLER_ENABLED")
+    )
+    execution_management_token: str | None = Field(
+        default_factory=lambda: os.getenv("EXECUTION_MANAGEMENT_TOKEN") or None
+    )
+    runtime_execution_database_path: Path | None = Field(
+        default_factory=lambda: (
+            Path(os.environ["RUNTIME_EXECUTION_DATABASE_PATH"])
+            if os.getenv("RUNTIME_EXECUTION_DATABASE_PATH")
+            else None
+        )
+    )
+    runtime_execution_history_limit: int = Field(
+        default_factory=lambda: int(
+            os.getenv("RUNTIME_EXECUTION_HISTORY_LIMIT", "1000")
+        ),
+        ge=1,
+        le=100000,
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

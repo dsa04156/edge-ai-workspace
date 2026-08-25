@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from kubernetes import client, config
@@ -10,7 +11,10 @@ from kubernetes.client.exceptions import ApiException
 from .resource_pool import (
     KubernetesNodeResourceSnapshot,
     build_kubernetes_resource_snapshots,
+    pod_spec_limits,
+    pod_spec_requests,
 )
+from .runtime_recommendation import RuntimeWorkloadSnapshot
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +265,133 @@ class KubeClient:
             )
         return results
 
+    async def get_runtime_workload(
+        self,
+        *,
+        namespace: str,
+        kind: str,
+        name: str,
+        selector: dict[str, str],
+    ) -> RuntimeWorkloadSnapshot:
+        """Read one catalog-owned workload and all Pods selected by its labels."""
+        if not self.enabled:
+            return RuntimeWorkloadSnapshot(
+                namespace=namespace,
+                kind=kind,
+                name=name,
+                observed=False,
+                exists=False,
+                reason_codes=("kubernetes_client_unavailable",),
+            )
+        try:
+            if kind == "Deployment":
+                workload = await asyncio.to_thread(
+                    self.apps.read_namespaced_deployment,
+                    name=name,
+                    namespace=namespace,
+                )
+            elif kind == "StatefulSet":
+                workload = await asyncio.to_thread(
+                    self.apps.read_namespaced_stateful_set,
+                    name=name,
+                    namespace=namespace,
+                )
+            else:
+                return RuntimeWorkloadSnapshot(
+                    namespace=namespace,
+                    kind=kind,
+                    name=name,
+                    observed=False,
+                    exists=False,
+                    reason_codes=("workload_kind_unsupported",),
+                )
+            label_selector = ",".join(
+                f"{key}={value}" for key, value in sorted(selector.items())
+            )
+            pods = await asyncio.to_thread(
+                self.v1.list_namespaced_pod,
+                namespace=namespace,
+                label_selector=label_selector,
+            )
+        except ApiException as exc:
+            if exc.status == 404:
+                return RuntimeWorkloadSnapshot(
+                    namespace=namespace,
+                    kind=kind,
+                    name=name,
+                    observed=True,
+                    exists=False,
+                    reason_codes=("runtime_workload_not_found",),
+                )
+            logger.exception("Failed to read runtime workload %s/%s", namespace, name)
+            return RuntimeWorkloadSnapshot(
+                namespace=namespace,
+                kind=kind,
+                name=name,
+                observed=False,
+                exists=False,
+                reason_codes=(
+                    "runtime_workload_read_forbidden"
+                    if exc.status == 403
+                    else "runtime_workload_observation_unavailable",
+                ),
+            )
+        except Exception:
+            logger.exception("Failed to read runtime workload %s/%s", namespace, name)
+            return RuntimeWorkloadSnapshot(
+                namespace=namespace,
+                kind=kind,
+                name=name,
+                observed=False,
+                exists=False,
+                reason_codes=("runtime_workload_observation_unavailable",),
+            )
+
+        status = getattr(workload, "status", None)
+        spec = getattr(workload, "spec", None)
+        template = getattr(spec, "template", None)
+        pod_spec = getattr(template, "spec", None)
+        desired = int(getattr(spec, "replicas", None) or 0)
+        ready = int(getattr(status, "ready_replicas", None) or 0)
+        current_nodes = sorted(
+            {
+                pod.spec.node_name
+                for pod in pods.items
+                if getattr(pod, "spec", None) is not None and pod.spec.node_name
+            }
+        )
+        restart_count = sum(
+            int(getattr(container_status, "restart_count", None) or 0)
+            for pod in pods.items
+            for container_status in (
+                getattr(getattr(pod, "status", None), "container_statuses", None) or []
+            )
+        )
+        pod_failure = bool(
+            _workload_progress_failed(status)
+            or any(_runtime_pod_failed(pod) for pod in pods.items)
+        )
+        return RuntimeWorkloadSnapshot(
+            namespace=namespace,
+            kind=kind,
+            name=name,
+            observed=True,
+            exists=True,
+            desired_replicas=desired,
+            ready_replicas=ready,
+            current_nodes=tuple(current_nodes),
+            pod_restart_count=restart_count,
+            pod_failure=pod_failure,
+            reason_codes=tuple(_runtime_workload_reasons(pods.items, desired, ready)),
+            placement_profile=_runtime_placement_profile(
+                namespace,
+                name,
+                pod_spec,
+                desired,
+                ready,
+            ),
+        )
+
     @staticmethod
     def _pod_ready(pod: client.V1Pod) -> bool:
         status = pod.status
@@ -304,3 +435,116 @@ class KubeClient:
 def _api_error_message(exc: ApiException) -> str:
     detail = exc.reason or f"Kubernetes API status {exc.status}"
     return str(detail)[:500]
+
+
+def _runtime_pod_failed(pod: Any) -> bool:
+    status = getattr(pod, "status", None)
+    if getattr(status, "phase", None) == "Failed":
+        return True
+    failure_reasons = {
+        "CrashLoopBackOff",
+        "CreateContainerConfigError",
+        "CreateContainerError",
+        "ErrImagePull",
+        "ImagePullBackOff",
+        "RunContainerError",
+    }
+    for item in getattr(status, "container_statuses", None) or []:
+        waiting = getattr(getattr(item, "state", None), "waiting", None)
+        terminated = getattr(getattr(item, "state", None), "terminated", None)
+        if getattr(waiting, "reason", None) in failure_reasons:
+            return True
+        if terminated is not None and int(getattr(terminated, "exit_code", 0) or 0) != 0:
+            return True
+    return False
+
+
+def _workload_progress_failed(status: Any) -> bool:
+    for condition in getattr(status, "conditions", None) or []:
+        if (
+            getattr(condition, "type", None) == "Progressing"
+            and getattr(condition, "status", None) == "False"
+            and getattr(condition, "reason", None) == "ProgressDeadlineExceeded"
+        ):
+            return True
+    return False
+
+
+def _runtime_workload_reasons(
+    pods: list[Any],
+    desired: int,
+    ready: int,
+) -> list[str]:
+    reasons = []
+    if ready < desired:
+        reasons.append("workload_ready_replicas_insufficient")
+    if any(_runtime_pod_failed(pod) for pod in pods):
+        reasons.append("pod_runtime_failure")
+    if not pods:
+        reasons.append("runtime_pods_not_found")
+    return reasons
+
+
+def _runtime_placement_profile(
+    namespace: str,
+    name: str,
+    pod_spec: Any,
+    desired: int,
+    ready: int,
+) -> dict[str, Any] | None:
+    if pod_spec is None:
+        return None
+    containers = [
+        *(getattr(pod_spec, "containers", None) or []),
+        *(getattr(pod_spec, "init_containers", None) or []),
+    ]
+    missing_cpu = sum(
+        1
+        for container in containers
+        if "cpu"
+        not in dict(
+            getattr(getattr(container, "resources", None), "requests", None) or {}
+        )
+    )
+    missing_memory = sum(
+        1
+        for container in containers
+        if "memory"
+        not in dict(
+            getattr(getattr(container, "resources", None), "requests", None) or {}
+        )
+    )
+    requests = pod_spec_requests(pod_spec)
+    limits = pod_spec_limits(pod_spec)
+    container_count = len(containers)
+    coverage = (
+        ((container_count - missing_cpu) + (container_count - missing_memory))
+        / (container_count * 2)
+        if container_count
+        else 0
+    )
+    gpu_units = max(limits.accelerator_units.values(), default=0.0)
+    return {
+        "namespace": namespace,
+        "service": name,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "pod_count": 1,
+        "ready_pod_count": min(1, ready),
+        "observed_desired_replicas": desired,
+        "request_coverage_ratio": round(coverage, 6),
+        "resource_requirements": {
+            "requests": {
+                "cpu_cores": requests.cpu_cores,
+                "memory_mib": round(requests.memory_bytes / 1024 / 1024, 6),
+            },
+            "limits": {
+                "cpu_cores": limits.cpu_cores,
+                "memory_mib": round(limits.memory_bytes / 1024 / 1024, 6),
+                "gpu_units": gpu_units,
+            },
+            "missing": {
+                "cpu_request_containers": missing_cpu,
+                "memory_request_containers": missing_memory,
+            },
+        },
+    }

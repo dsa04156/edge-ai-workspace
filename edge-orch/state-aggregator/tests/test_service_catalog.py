@@ -30,6 +30,9 @@ def test_checked_in_service_catalog_loads_current_service() -> None:
     service = catalog.require("sensor-anomaly-demo")
 
     assert catalog.version == "edgeai.etri/service-catalog/v1"
+    assert service.workload.selector == {
+        "app.kubernetes.io/name": "sensor-anomaly-demo"
+    }
     assert service.input_contract.authority == "EdgeX"
     assert service.input_contract.schema_name == "okdong.pump-motor.telemetry/v1"
     assert [stage.slot for stage in service.graph.stages] == [
@@ -58,6 +61,13 @@ def test_checked_in_service_catalog_loads_current_service() -> None:
     assert service.augmentation_qualification.evidence_document.endswith(
         "AI-서비스-자원-증강-부하-실험.md"
     )
+    policy = service.runtime_recommendation
+    assert policy is not None
+    assert policy.architecture == "arm64"
+    assert policy.cpu_high_ratio == 0.85
+    assert policy.cpu_recovery_ratio == 0.7
+    assert policy.resource_dwell_seconds == 300
+    assert policy.cooldown_seconds == 600
 
 
 def test_service_catalog_rejects_duplicate_service_ids(tmp_path: Path) -> None:

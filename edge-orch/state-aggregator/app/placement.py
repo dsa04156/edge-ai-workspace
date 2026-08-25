@@ -27,6 +27,7 @@ def select_placement(
     resources: list[NodeSchedulingResource],
     request: PlacementSelectionRequest,
     *,
+    excluded_nodes: set[str] | None = None,
     now: datetime | None = None,
 ) -> PlacementSelectionResult:
     generated_at = _utc(now)
@@ -42,7 +43,11 @@ def select_placement(
         )
 
     candidates = [
-        _evaluate_candidate(resource, requirements)
+        (
+            _excluded_candidate(resource)
+            if resource.node in (excluded_nodes or set())
+            else _evaluate_candidate(resource, requirements)
+        )
         for resource in sorted(resources, key=lambda item: item.node)
     ]
     eligible = [candidate for candidate in candidates if candidate.eligible]
@@ -209,6 +214,19 @@ def _evaluate_candidate(
         available_after=available_after,
         utilization=resource.utilization,
         score_breakdown=score_breakdown,
+    )
+
+
+def _excluded_candidate(resource: NodeSchedulingResource) -> PlacementCandidate:
+    return PlacementCandidate(
+        node=resource.node,
+        eligible=False,
+        reason_codes=["current_node_excluded"],
+        health=resource.health,
+        architecture=resource.architecture,
+        accelerator=resource.accelerator,
+        available_before=resource.available,
+        utilization=resource.utilization,
     )
 
 

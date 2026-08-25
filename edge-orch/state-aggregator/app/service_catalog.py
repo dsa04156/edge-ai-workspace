@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .service_demo_models import DeployedServiceDesignContract
+from .runtime_recommendation_models import RuntimeRecommendationPolicy
 
 
 _ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$")
@@ -117,7 +118,7 @@ class ServiceGraphDescriptor(CatalogModel):
 
 
 class ServiceObservabilityDescriptor(CatalogModel):
-    adapter: Literal["sensor-anomaly-v1"]
+    adapter: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*-v[0-9]+$")
     state_path: str
     results_path: str
     alerts_path: str
@@ -170,6 +171,7 @@ class ServiceDescriptor(CatalogModel):
     graph: ServiceGraphDescriptor
     observability: ServiceObservabilityDescriptor
     augmentation_qualification: ServiceAugmentationQualificationDescriptor
+    runtime_recommendation: RuntimeRecommendationPolicy | None = None
     design_contract: DeployedServiceDesignContract
 
     @model_validator(mode="after")

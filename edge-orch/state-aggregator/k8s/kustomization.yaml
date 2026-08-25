@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - managed-workloads-namespace.yaml
+  - state-pvc.yaml
   - deployment.yaml
   - ingressroute.yaml
   - service-monitor.yaml

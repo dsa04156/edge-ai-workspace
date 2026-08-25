@@ -54,6 +54,29 @@ from .service_augmentation import (
     ServiceAugmentationEvaluator,
     build_service_augmentation_signals,
 )
+from .runtime_recommendation_models import (
+    RuntimeRecommendationDecision,
+    RuntimeRecommendationHistory,
+    RuntimeRecommendationList,
+)
+from .runtime_execution_plan import (
+    RuntimeExecutionPlan,
+    build_runtime_execution_plan,
+)
+from .runtime_execution_controller import (
+    RuntimeExecutionApproval,
+    RuntimeExecutionAuditLog,
+    RuntimeExecutionController,
+    RuntimeExecutionDryRun,
+    RuntimeExecutionHistory,
+    RuntimeExecutionPlanReference,
+    RuntimeExecutionRecord,
+    RuntimeExecutionStore,
+)
+from .runtime_recommendation_monitor import (
+    RuntimeRecommendationMonitor,
+    SensorAnomalyRuntimeAdapter,
+)
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -77,6 +100,24 @@ service_demo_client = ServiceDemoClient(
 )
 service_catalog = ServiceCatalog.load(settings.service_catalog_path)
 service_augmentation_evaluator = ServiceAugmentationEvaluator()
+runtime_recommendation_monitor = RuntimeRecommendationMonitor(
+    settings,
+    service,
+    service_catalog,
+    {
+        "sensor-anomaly-v1": SensorAnomalyRuntimeAdapter(service_demo_client),
+    },
+)
+runtime_execution_store = RuntimeExecutionStore(
+    settings.runtime_execution_database_path
+    or (Path(settings.data_dir) / "runtime-executions.sqlite3"),
+    history_limit=settings.runtime_execution_history_limit,
+)
+runtime_execution_controller = RuntimeExecutionController(
+    settings,
+    service.kube,
+    runtime_execution_store,
+)
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
     settings.edgex_core_metadata_url,
@@ -124,7 +165,9 @@ if settings.adapter_runtime_management_enabled:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await service.start()
+    await runtime_recommendation_monitor.start()
     yield
+    await runtime_recommendation_monitor.stop()
     await service.stop()
 
 
@@ -203,6 +246,256 @@ async def select_scheduling_placement(
                 "message": str(exc),
             },
         ) from exc
+
+
+@app.get(
+    "/api/runtime-recommendations",
+    response_model=RuntimeRecommendationList,
+)
+async def get_runtime_recommendations() -> RuntimeRecommendationList:
+    return RuntimeRecommendationList(
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_recommendation_monitor.latest_all(),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}/history",
+    response_model=RuntimeRecommendationHistory,
+)
+async def get_runtime_recommendation_history(
+    service_id: str,
+    limit: int = Query(default=100, ge=1, le=500),
+) -> RuntimeRecommendationHistory:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    return RuntimeRecommendationHistory(
+        service_id=service_id,
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_recommendation_monitor.history(service_id, limit=limit),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}/execution-plan",
+    response_model=RuntimeExecutionPlan,
+)
+async def get_runtime_execution_plan(service_id: str) -> RuntimeExecutionPlan:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return build_runtime_execution_plan(
+        decision,
+        candidate_namespace=settings.deployment_target_namespace,
+    )
+
+
+@app.post(
+    "/api/runtime-recommendations/{service_id}/execution-plan/dry-run",
+    response_model=RuntimeExecutionDryRun,
+)
+async def dry_run_runtime_execution_plan(
+    service_id: str,
+    request: RuntimeExecutionPlanReference,
+) -> RuntimeExecutionDryRun:
+    plan = _latest_runtime_execution_plan(service_id)
+    if request.plan_id != plan.plan_id:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "execution_plan_stale",
+                "message": "planId does not match the latest Runtime Recommendation.",
+            },
+        )
+    return await runtime_execution_controller.dry_run(plan)
+
+
+@app.post(
+    "/api/runtime-recommendations/{service_id}/execution-plan/execute",
+    response_model=RuntimeExecutionRecord,
+)
+async def execute_runtime_execution_plan(
+    service_id: str,
+    approval: RuntimeExecutionApproval,
+    execution_token: str | None = Header(default=None, alias="X-Execution-Token"),
+) -> RuntimeExecutionRecord:
+    if not settings.execution_controller_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "execution_controller_disabled",
+                "message": "Execution Controller is disabled.",
+            },
+        )
+    configured_token = settings.execution_management_token
+    if (
+        not configured_token
+        or not execution_token
+        or not hmac.compare_digest(configured_token, execution_token)
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "execution_authentication_failed",
+                "message": "A valid X-Execution-Token header is required.",
+            },
+        )
+    if not approval.approved:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "execution_approval_required",
+                "message": "approved=true is required before execution.",
+            },
+        )
+    plan = _latest_runtime_execution_plan(service_id)
+    if approval.plan_id != plan.plan_id:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "execution_plan_stale",
+                "message": "planId does not match the latest Runtime Recommendation.",
+            },
+        )
+    return await runtime_execution_controller.execute(plan, approval)
+
+
+@app.get("/api/execution-plans/{plan_id}/audit", response_model=RuntimeExecutionAuditLog)
+async def get_runtime_execution_audit(
+    plan_id: str,
+    limit: int = Query(default=500, ge=1, le=1000),
+) -> RuntimeExecutionAuditLog:
+    if runtime_execution_store.get(plan_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "execution_not_found", "message": "Execution was not found."},
+        )
+    return RuntimeExecutionAuditLog(
+        plan_id=plan_id,
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_execution_store.audit(plan_id, limit=limit),
+    )
+
+
+@app.get("/api/execution-plans/{plan_id}", response_model=RuntimeExecutionRecord)
+async def get_runtime_execution(plan_id: str) -> RuntimeExecutionRecord:
+    record = runtime_execution_store.get(plan_id)
+    if record is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "execution_not_found", "message": "Execution was not found."},
+        )
+    return record
+
+
+@app.get("/api/executions", response_model=RuntimeExecutionHistory)
+async def get_runtime_execution_history(
+    service_id: str | None = Query(default=None, alias="serviceId"),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> RuntimeExecutionHistory:
+    return RuntimeExecutionHistory(
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_execution_store.history(service_id=service_id, limit=limit),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}",
+    response_model=RuntimeRecommendationDecision,
+)
+async def get_runtime_recommendation(
+    service_id: str,
+) -> RuntimeRecommendationDecision:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return decision
+
+
+def _latest_runtime_execution_plan(service_id: str) -> RuntimeExecutionPlan:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return build_runtime_execution_plan(
+        decision,
+        candidate_namespace=settings.deployment_target_namespace,
+    )
 
 
 @app.post("/api/deployments", response_model=DeploymentCreateResult)

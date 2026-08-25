@@ -13,7 +13,7 @@
         "kind": "Deployment",
         "name": "sensor-anomaly-demo",
         "selector": {
-          "app": "sensor-anomaly-demo"
+          "app.kubernetes.io/name": "sensor-anomaly-demo"
         }
       },
       "input_contract": {
@@ -120,6 +120,29 @@
         "qualified_condition_count": 0,
         "validated_condition_count": 15,
         "evidence_document": "docs/AI-서비스-자원-증강-부하-실험.md"
+      },
+      "runtime_recommendation": {
+        "enabled": true,
+        "architecture": "arm64",
+        "accelerator": null,
+        "accelerator_units": {},
+        "cpu_high_ratio": 0.85,
+        "cpu_recovery_ratio": 0.7,
+        "memory_high_ratio": 0.85,
+        "memory_recovery_ratio": 0.7,
+        "latency_high_ms": 4000,
+        "latency_recovery_ms": 2500,
+        "throughput_floor_per_second": 0.8,
+        "throughput_recovery_per_second": 1.0,
+        "backlog_high": 1,
+        "backlog_recovery": 0,
+        "resource_dwell_seconds": 300,
+        "service_dwell_seconds": 180,
+        "replacement_dwell_seconds": 60,
+        "recovery_dwell_seconds": 120,
+        "cooldown_seconds": 600,
+        "metric_fresh_seconds": 60,
+        "max_restart_count": 3
       },
       "design_contract": {
         "contract_id": "sensor-anomaly-demo-v1",

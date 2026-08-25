@@ -181,6 +181,73 @@ accelerator 조건을 fail-closed Filter하고, 통과 노드는 배치 후 CPU�
 점수 세부내역, 모든 후보의 `reasonCodes`를 반환하며 workload apply·migration·offloading은
 실행하지 않는다.
 
+/api/runtime-recommendations
+
+Git `ServiceDescriptor.runtime_recommendation`이 활성화된 AI 서비스를 지속 감시한다.
+Deployment/StatefulSet·Pod·현재 Node 상태, Prometheus 자원 사용량과 observability adapter의
+입력 freshness·model readiness·latency·backlog·throughput을 결합한다. 진입 threshold와
+회복 threshold를 분리한 hysteresis, pressure/failure/recovery dwell과 recommendation
+cooldown을 적용해 다음 상태를 반환한다.
+
+- `NORMAL`: 회복 threshold 안에서 안정적
+- `OBSERVING`: 진입·회복 dwell 또는 cooldown 진행 중
+- `AUGMENT_RECOMMENDED`: Ready workload의 자원 압력과 서비스 압력이 함께 지속됨
+- `REPLACE_RECOMMENDED`: Deployment/Pod/Node 실패가 지속됨
+- `BLOCKED`: EdgeX 입력 stale/장애, model 미준비, 관측 누락 또는 적합 후보 없음
+
+증강·대체 판단 시 현재 실행 노드는 Placement 후보에 남지만
+`current_node_excluded`로 탈락한다. 나머지 노드는 기존 Filter/Score 규칙으로 재평가하며
+최적 노드, 점수와 전체 후보 `reasonCodes`를 반환한다. 최신 판단은
+`GET /api/runtime-recommendations/{serviceId}`, 이력은
+`GET /api/runtime-recommendations/{serviceId}/history?limit=100`으로 조회한다.
+
+SQLite에는 최신 판단뿐 아니라 pressure/failure latch, 각 dwell·회복 시작시각과 마지막
+추천시각을 저장한다. `/app/data`는 PVC이고 Deployment strategy는 `Recreate`이므로 Pod
+재시작 뒤에도 timer와 이력이 유지되며 동시에 두 poller가 쓰지 않는다. 이 API는
+read-only 추천이며 `/api/deployments`를 호출하거나 traffic 전환·삭제를 수행하지 않는다.
+
+### `/api/runtime-recommendations/{serviceId}/execution-plan`
+
+최신 영속 Runtime Recommendation을 운영자·후속 Controller 검토용 read-only 실행 계획으로
+변환한다. 동일 추천의 `observedAt`, workload identity와 선택 node로 결정적인 `planId`와
+후보 workload 이름을 만들며, 조회할 때 추천 timer나 판단 이력을 변경하지 않는다.
+
+- `AUGMENT_RECOMMENDED`: `create_candidate → verify_ready → distribute_traffic`
+- `REPLACE_RECOMMENDED`: `create_candidate → verify_ready → switch_traffic →
+  terminate_current → rollback`
+- `NORMAL`·`OBSERVING`: `not_applicable`, 단계 없음
+- `BLOCKED` 또는 불완전한 Placement: `blocked`, 단계 없음
+
+각 단계는 `sequence`, `action`, `executionMode`, 대상 node/workload, `dependsOn`, 안정적인 code와
+설명이 포함된 `prerequisites`·`failureConditions`를 반환한다. 대체 계획의 `rollback`은
+`on_failure` 보상 단계이며 실행 성공을 주장하지 않는다. 이 GET API는 Deployment Controller,
+Kubernetes, Service/Ingress 또는 traffic plane을 호출하지 않는다.
+
+### 승인 기반 Execution Controller
+
+- `POST /api/runtime-recommendations/{serviceId}/execution-plan/dry-run`
+- `POST /api/runtime-recommendations/{serviceId}/execution-plan/execute`
+- `GET /api/execution-plans/{planId}`
+- `GET /api/execution-plans/{planId}/audit`
+- `GET /api/executions?serviceId={serviceId}&limit=100`
+
+dry-run은 최신 `planId`, source Deployment, immutable allowlisted image, Placement requirements와
+단계 지원 경계를 읽기 전용으로 확인한다. 1차 candidate 계약이 복제하지 않는 env/envFrom,
+command/args, initContainer와 volume/mount가 source에 있으면 조용히 제거하지 않고
+`source_workload_contract_unsupported`로 차단한다. 실행 API는 `EXECUTION_CONTROLLER_ENABLED=true`,
+`X-Execution-Token`, 본문의 동일 `planId`, `approved=true`, `approvedBy`가 모두 필요하다.
+planId가 idempotency key이므로 중복 요청은 저장된 최초 record를 반환한다.
+
+현재 실제 지원 단계는 `create_candidate`와 `verify_ready`뿐이다. candidate는
+`edge-ai-workloads`에 단일 replica Deployment로 생성하고 선택 node에 exact hostname으로
+고정한다. 이후 traffic·terminate·rollback 단계는 `unsupported_step`으로 중단하며 후속 단계는
+`BLOCKED`가 된다. 실패 후 source workload를 update/delete하지 않고 생성된 candidate도 자동
+삭제하지 않는다.
+
+실행과 단계 상태는 `PENDING/RUNNING/SUCCEEDED/FAILED/BLOCKED`이며 승인·상태 전이·reason을
+`/app/data/runtime-executions.sqlite3`의 record와 append-only audit log에 저장한다. 재시작 시
+남은 PENDING/RUNNING record는 중복 실행하지 않고 `execution_interrupted`로 차단한다.
+
 /api/deployments
 
 `placement` 필드에 `/api/placements/select`와 같은 서비스 프로파일·architecture·accelerator

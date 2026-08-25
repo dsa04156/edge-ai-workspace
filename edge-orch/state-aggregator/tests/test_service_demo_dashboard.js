@@ -605,12 +605,12 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   const javascript = fs.readFileSync(path.join(root, "app/static/service-demo.js"), "utf8");
 
   assert.match(html, /aria-labelledby="serviceDemoTitle"/);
-  assert.match(html, /data-dashboard-page="services"/);
-  assert.match(html, /data-page="services"/);
+  assert.match(html, /data-dashboard-page="operations"/);
+  assert.match(html, /data-page="operations"/);
   assert.match(html, /id="serviceCatalogList"/);
   assert.match(html, /data-service-catalog="descriptor-driven"/);
   assert.doesNotMatch(html, /id="serviceCatalogRow"/);
-  assert.doesNotMatch(html, /service-demo-panel[^>]+data-page="overview"/);
+  assert.match(html, /service-demo-panel[^>]+data-page="overview"/);
   for (const id of [
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
@@ -629,12 +629,9 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceOperationsDag", "serviceOperationsTimeline", "serviceOperationsTimelineList",
     "serviceDeviceRatio", "serviceServerRatio",
     "serviceOperationsLive", "serviceOperationsLiveRate", "serviceOperationsLiveAge",
-    "serviceOperationsLiveFrames",
-    "serviceAugmentationPanel", "serviceAugmentationState", "serviceAugmentationReason",
-    "serviceAugmentationCpu", "serviceAugmentationMemory", "serviceAugmentationLatency",
-    "serviceAugmentationBacklog", "serviceAugmentationThroughput",
-    "serviceAugmentationObservation", "serviceAugmentationCandidate",
-    "serviceAugmentationDwell", "serviceAugmentationBoundary",
+    "serviceOperationsLiveFrames", "runtimeOverviewTitle", "runtimeOverviewReasons",
+    "runtimeOverviewCurrentNode", "runtimeOverviewCpu", "runtimeOverviewMemory",
+    "runtimeOverviewLatency", "runtimeOverviewSelectedNode", "runtimeOverviewScore",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
@@ -647,7 +644,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(css, /\.service-demo-alert-summary/);
   assert.match(css, /\.service-catalog-row/);
   assert.match(css, /\.service-operations-cockpit/);
-  assert.match(css, /\.service-augmentation-rail/);
+  assert.doesNotMatch(html, /id="serviceAugmentationPanel"/);
   assert.match(css, /\.service-dag-node\[data-current="true"\]/);
   assert.match(css, /\.service-dag-node > footer/);
   assert.match(css, /@keyframes service-live-heartbeat/);

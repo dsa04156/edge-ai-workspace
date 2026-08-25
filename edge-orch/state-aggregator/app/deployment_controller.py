@@ -27,7 +27,7 @@ class DeploymentController:
         placement: PlacementSelectionResult,
         operation_id: str,
     ) -> DeploymentCreateResult:
-        rejected = self._validate_request(request, placement, operation_id)
+        rejected = self.validate_request(request, placement, operation_id)
         if rejected is not None:
             return rejected
 
@@ -64,9 +64,9 @@ class DeploymentController:
                 message=str(exc),
             )
 
-        return await self._wait_until_ready(request, placement, operation_id)
+        return await self.wait_until_ready(request, placement, operation_id)
 
-    def _validate_request(
+    def validate_request(
         self,
         request: DeploymentCreateRequest,
         placement: PlacementSelectionResult,
@@ -107,7 +107,7 @@ class DeploymentController:
             )
         return None
 
-    async def _wait_until_ready(
+    async def wait_until_ready(
         self,
         request: DeploymentCreateRequest,
         placement: PlacementSelectionResult,

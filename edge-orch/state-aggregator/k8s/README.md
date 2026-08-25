@@ -51,6 +51,38 @@ Controller 자체와 namespace/RBAC는 Argo CD가 소유하지만, Controller가
 Deployment는 동적 객체이며 Argo CD manifest에 추가하지 않는다. 현재 shared token은
 개발 테스트베드 경계이며 사용자별 운영 인증·인가는 아니다.
 
+## Runtime Recommendation Engine
+
+Service Catalog에서 policy가 활성화된 workload를 15초마다 읽어 다음 신호를 분리해
+평가한다.
+
+- apps API의 Deployment/StatefulSet desired/ready 상태
+- Pod phase, Ready, restart count와 container failure reason
+- Node schedulable/health와 Prometheus utilization
+- 서비스 adapter의 EdgeX input freshness, model readiness, latency, backlog, throughput
+
+ClusterRole의 apps 권한은 `get/list/watch`뿐이며 추천 엔진은 Kubernetes mutation API를
+호출하지 않는다. 최신 상태와 dwell/cooldown anchor, deduplicated 판단 이력은
+`state-aggregator-state` PVC의 `/app/data/runtime-recommendations.sqlite3`에 저장한다.
+Deployment는 replica 1과 `Recreate` strategy로 SQLite single-writer 경계를 유지한다.
+승인 기반 Execution Controller의 planId 실행 record와 감사 event는 같은 PVC의
+`/app/data/runtime-executions.sqlite3`에 별도로 저장한다. Controller는 기존
+`edge-ai-workloads` Deployment create/read 권한만 재사용하며 Service, Ingress, update, patch,
+delete 권한은 추가하지 않는다. 실행 API는 `EXECUTION_MANAGEMENT_TOKEN`을 요구하고
+`create_candidate`·`verify_ready` 이후 단계는 `unsupported_step`으로 차단한다.
+
+```text
+RUNTIME_RECOMMENDATION_ENABLED=true
+RUNTIME_RECOMMENDATION_POLL_INTERVAL_SECONDS=15
+RUNTIME_RECOMMENDATION_DATABASE_PATH=/app/data/runtime-recommendations.sqlite3
+RUNTIME_RECOMMENDATION_HISTORY_LIMIT=1000
+```
+
+조회 API는 `/api/runtime-recommendations`,
+`/api/runtime-recommendations/{serviceId}`와
+`/api/runtime-recommendations/{serviceId}/history`다. 실제 신규 배포는 별도 인증된
+`POST /api/deployments` 호출이며 추천 결과가 이를 자동 호출하지 않는다.
+
 The historical mqttvirtual mapper source remains in the repository, but its
 kustomization renders no resources and it is not managed by the active Argo CD
 applications. KubeEdge remains responsible only for Kubernetes edge nodes and
@@ -119,7 +151,8 @@ Kubernetes manifests:
 - `deployment.yaml`: Deployment + Service
 - `ingressroute.yaml`: Traefik host route for the dashboard
 - `managed-workloads-namespace.yaml`: bounded dynamic workload namespace
-- `rbac.yaml`: cluster node/pod read와 전용 namespace Deployment create/read
+- `state-pvc.yaml`: recommendation timer와 판단 이력 영속 저장
+- `rbac.yaml`: cluster node/pod/workload read와 전용 namespace Deployment create/read
 - `service-monitor.yaml`: kube-prometheus `ServiceMonitor`
 
 Apply these manifests through the directory kustomization (or the
