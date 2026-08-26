@@ -118,6 +118,7 @@ class UpstreamDetectorModel(UpstreamModel):
 
 class UpstreamCounters(UpstreamModel):
     frames_processed: int = Field(ge=0)
+    shadow_frames_processed: int = Field(default=0, ge=0)
     duplicates_ignored: int = Field(ge=0)
     incomplete_frames_dropped: int = Field(ge=0)
     input_errors: int = Field(ge=0)
@@ -145,6 +146,22 @@ class UpstreamProcessResources(UpstreamModel):
     metrics_valid: bool
 
 
+class UpstreamExecutionOwnership(UpstreamModel):
+    configured_mode: Literal["ACTIVE", "STANDBY", "SHADOW"]
+    effective_mode: Literal["ACTIVE", "STANDBY", "SHADOW"]
+    enabled: bool
+    lease_namespace: str | None = None
+    lease_name: str | None = None
+    holder_identity: str | None = None
+    owner_identity: str | None = None
+    lease_valid: bool
+    renew_time: datetime | None = None
+    lease_duration_seconds: int | None = Field(default=None, ge=1)
+    resource_version: str | None = None
+    reason_code: str | None = None
+    observed_at: datetime
+
+
 class UpstreamServiceStatus(UpstreamModel):
     api_version: Literal["v1"]
     service: Literal["sensor-anomaly-demo"]
@@ -158,6 +175,7 @@ class UpstreamServiceStatus(UpstreamModel):
     counters: UpstreamCounters
     performance: UpstreamServicePerformance | None = None
     process_resources: UpstreamProcessResources | None = None
+    execution_ownership: UpstreamExecutionOwnership | None = None
     inference_routing: UpstreamInferenceRouting = Field(
         default_factory=UpstreamInferenceRouting
     )
@@ -271,6 +289,7 @@ class ServiceDemoModel(BaseModel):
 
 class ServiceDemoCounters(BaseModel):
     frames_processed: int = 0
+    shadow_frames_processed: int = 0
     duplicates_ignored: int = 0
     incomplete_frames_dropped: int = 0
     input_errors: int = 0
@@ -296,6 +315,22 @@ class ServiceDemoProcessResources(BaseModel):
     memory_rss_mib: float | None = None
     sample_interval_seconds: float | None = None
     metrics_valid: bool
+
+
+class ServiceDemoExecutionOwnership(BaseModel):
+    configured_mode: Literal["ACTIVE", "STANDBY", "SHADOW"]
+    effective_mode: Literal["ACTIVE", "STANDBY", "SHADOW"]
+    enabled: bool
+    lease_namespace: str | None = None
+    lease_name: str | None = None
+    holder_identity: str | None = None
+    owner_identity: str | None = None
+    lease_valid: bool
+    renew_time: datetime | None = None
+    lease_duration_seconds: int | None = None
+    resource_version: str | None = None
+    reason_code: str | None = None
+    observed_at: datetime
 
 
 class ServiceAugmentationGate(BaseModel):
@@ -369,6 +404,7 @@ class ServiceDemoState(BaseModel):
     counters: ServiceDemoCounters = Field(default_factory=ServiceDemoCounters)
     performance: ServiceDemoPerformance | None = None
     process_resources: ServiceDemoProcessResources | None = None
+    execution_ownership: ServiceDemoExecutionOwnership | None = None
     augmentation: ServiceAugmentationState | None = None
     inference_routing: ServiceDemoInferenceRouting = Field(
         default_factory=ServiceDemoInferenceRouting

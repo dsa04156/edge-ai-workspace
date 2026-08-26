@@ -13,6 +13,7 @@ from .service_demo_models import (
     ServiceDemoBinding,
     ServiceDemoComponentScores,
     ServiceDemoCounters,
+    ServiceDemoExecutionOwnership,
     ServiceDemoLatest,
     ServiceDemoInferenceRouting,
     ServiceDemoModel,
@@ -166,6 +167,13 @@ class ServiceDemoClient:
             process_resources=(
                 ServiceDemoProcessResources(**upstream.process_resources.model_dump())
                 if upstream.process_resources is not None
+                else None
+            ),
+            execution_ownership=(
+                ServiceDemoExecutionOwnership(
+                    **upstream.execution_ownership.model_dump()
+                )
+                if upstream.execution_ownership is not None
                 else None
             ),
             inference_routing=ServiceDemoInferenceRouting(

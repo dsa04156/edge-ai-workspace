@@ -95,6 +95,7 @@ def live_payload() -> dict:
         },
         "counters": {
             "framesProcessed": 30,
+            "shadowFramesProcessed": 0,
             "duplicatesIgnored": 0,
             "incompleteFramesDropped": 0,
             "inputErrors": 0,
@@ -118,6 +119,21 @@ def live_payload() -> dict:
             "memoryRssMib": 64,
             "sampleIntervalSeconds": 5,
             "metricsValid": True,
+        },
+        "executionOwnership": {
+            "configuredMode": "SHADOW",
+            "effectiveMode": "ACTIVE",
+            "enabled": True,
+            "leaseNamespace": "edgex-edge",
+            "leaseName": "sensor-anomaly-demo-execution",
+            "holderIdentity": "sensor-anomaly-demo",
+            "ownerIdentity": "sensor-anomaly-demo",
+            "leaseValid": True,
+            "renewTime": datetime.now(timezone.utc).isoformat(),
+            "leaseDurationSeconds": 15,
+            "resourceVersion": "42",
+            "reasonCode": None,
+            "observedAt": datetime.now(timezone.utc).isoformat(),
         },
         "inferenceRouting": {
             "configuredMode": "approved",
@@ -162,11 +178,15 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.model.version == "baseline-1.0.0"
     assert set(state.model.components) == {"vibration", "temperature"}
     assert state.counters.context_samples_processed == 30
+    assert state.counters.shadow_frames_processed == 0
     assert state.performance is not None
     assert state.performance.processing_latency_p95_ms == 20
     assert state.process_resources is not None
     assert state.process_resources.cpu_cores == 0.1
     assert state.process_resources.memory_rss_mib == 64
+    assert state.execution_ownership is not None
+    assert state.execution_ownership.effective_mode == "ACTIVE"
+    assert state.execution_ownership.holder_identity == "sensor-anomaly-demo"
     assert state.inference_routing.effective_target == "server1"
     assert state.inference_routing.approval_id == "approval-001"
     assert state.observation_error is None
