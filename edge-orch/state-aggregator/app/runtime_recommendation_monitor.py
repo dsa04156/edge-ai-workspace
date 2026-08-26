@@ -23,6 +23,8 @@ from .runtime_recommendation_models import (
 
 logger = logging.getLogger(__name__)
 
+OBSERVATION_CLOCK_SKEW_SECONDS = 5
+
 
 @dataclass(frozen=True)
 class RuntimeServiceObservation:
@@ -406,7 +408,12 @@ def _fresh(value: object, now: datetime, max_age_seconds: int) -> bool:
             return False
     else:
         return False
-    return 0 <= (now - observed_at).total_seconds() <= max_age_seconds
+    age_seconds = (now - observed_at).total_seconds()
+    return (
+        -OBSERVATION_CLOCK_SKEW_SECONDS
+        <= age_seconds
+        <= max_age_seconds
+    )
 
 
 def _utc(value: datetime) -> datetime:

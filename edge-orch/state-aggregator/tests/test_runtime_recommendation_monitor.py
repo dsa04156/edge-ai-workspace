@@ -14,6 +14,7 @@ from app.runtime_recommendation import RuntimeWorkloadSnapshot
 from app.runtime_recommendation_monitor import (
     RuntimeRecommendationMonitor,
     RuntimeServiceObservation,
+    _fresh,
 )
 from app.service_catalog import ServiceCatalog
 
@@ -164,3 +165,8 @@ def test_monitor_blocks_stale_input_without_calling_it_resource_pressure(tmp_pat
     assert decision.state == "BLOCKED"
     assert decision.reason_codes == ["input_stale"]
     assert decision.placement is None
+
+
+def test_freshness_tolerates_bounded_observation_clock_skew() -> None:
+    assert _fresh("2026-08-25T00:00:04Z", NOW, 60) is True
+    assert _fresh("2026-08-25T00:00:06Z", NOW, 60) is False
