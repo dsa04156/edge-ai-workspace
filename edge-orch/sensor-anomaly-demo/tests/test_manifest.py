@@ -88,6 +88,8 @@ def test_demo_workload_is_edge_local_read_only_and_bounded() -> None:
         }
     }
     assert env["EXECUTION_LEASE_DURATION_SECONDS"] == "15"
+    assert env["KUBERNETES_SERVICE_HOST"] == "192.168.0.56"
+    assert env["KUBERNETES_SERVICE_PORT_HTTPS"] == "6443"
     assert pod["spec"]["securityContext"]["fsGroup"] == 65532
     assert pod["spec"].get("hostNetwork") is not True
     assert container["securityContext"]["runAsNonRoot"] is True
@@ -151,8 +153,8 @@ def test_network_policy_declares_only_dns_device_input_and_dashboard_reader() ->
         for rule in egress
     )
     assert any(
-        rule.get("ports") == [{"port": 443, "protocol": "TCP"}]
-        and "to" not in rule
+        rule.get("ports") == [{"port": 6443, "protocol": "TCP"}]
+        and rule.get("to") == [{"ipBlock": {"cidr": "192.168.0.56/32"}}]
         for rule in egress
     )
     assert any(

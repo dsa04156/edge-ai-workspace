@@ -49,6 +49,11 @@ candidate가 ACTIVE가 된다. Lease는 실행 권한만 결정하며 Service/En
 별도다. source와 candidate는 각각 replica 1, `Recreate` strategy와 서로 다른 holder identity를
 사용한다.
 
+현재 KubeEdge edge Pod에서는 `kubernetes.default` Service VIP가 routable하지 않고 표준
+`KUBERNETES_SERVICE_HOST`도 주입되지 않는다. 따라서 Git workload 계약은 Lease 전용 Kubernetes
+API endpoint를 `192.168.0.56:6443`으로 고정하며 NetworkPolicy는 해당 `/32`와 port만 허용한다.
+권한은 계속 이름이 고정된 단일 Lease의 `get/update`로 제한한다.
+
 ## 자원 증강 실행 경계
 
 2026-08-18의 90-run CPU·메모리·요청률 실험에서 현재

@@ -41,9 +41,12 @@ spec:
       ports:
         - protocol: TCP
           port: 59910
-    # Kubernetes NetworkPolicy cannot select the apiserver Service by name.
-    # Lease access is therefore restricted to HTTPS while RBAC limits the
-    # workload to get/update on its one named Lease.
-    - ports:
+    # KubeEdge edge Pods cannot route the kubernetes.default Service VIP.
+    # Permit only the control-plane API endpoint used for the named Lease;
+    # RBAC further limits the workload to get/update on that Lease.
+    - to:
+        - ipBlock:
+            cidr: 192.168.0.56/32
+      ports:
         - protocol: TCP
-          port: 443
+          port: 6443
