@@ -7,7 +7,7 @@ import hmac
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Response
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -15,6 +15,8 @@ from .adapter_catalog import AdapterCatalog
 from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
 from .config import Settings
+from .candidate_workload_template import CandidateTemplateCatalog
+from .candidate_validation import ValidationContractCatalog
 from .connection_management import ConnectionManagementService
 from .device_discovery import DeviceDiscoveryManagementService
 from .device_management import DeviceManagementService
@@ -117,6 +119,8 @@ runtime_execution_controller = RuntimeExecutionController(
     settings,
     service.kube,
     runtime_execution_store,
+    CandidateTemplateCatalog.load(settings.candidate_template_catalog_path),
+    ValidationContractCatalog.load(settings.candidate_validation_contract_path),
 )
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
@@ -165,8 +169,16 @@ if settings.adapter_runtime_management_enabled:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await service.start()
+    reconcile_routing = getattr(
+        runtime_execution_controller,
+        "reconcile_interrupted_routing",
+        None,
+    )
+    if reconcile_routing is not None:
+        await reconcile_routing()
     await runtime_recommendation_monitor.start()
     yield
+    await runtime_execution_controller.shutdown()
     await runtime_recommendation_monitor.stop()
     await service.stop()
 
@@ -351,6 +363,7 @@ async def dry_run_runtime_execution_plan(
 async def execute_runtime_execution_plan(
     service_id: str,
     approval: RuntimeExecutionApproval,
+    response: Response,
     execution_token: str | None = Header(default=None, alias="X-Execution-Token"),
 ) -> RuntimeExecutionRecord:
     if not settings.execution_controller_enabled:
@@ -391,7 +404,11 @@ async def execute_runtime_execution_plan(
                 "message": "planId does not match the latest Runtime Recommendation.",
             },
         )
-    return await runtime_execution_controller.execute(plan, approval)
+    record, created = await runtime_execution_controller.start(plan, approval)
+    response.status_code = (
+        202 if created or record.status in {"PENDING", "RUNNING"} else 200
+    )
+    return record
 
 
 @app.get("/api/execution-plans/{plan_id}/audit", response_model=RuntimeExecutionAuditLog)

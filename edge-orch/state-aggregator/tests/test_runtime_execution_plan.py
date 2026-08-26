@@ -71,16 +71,21 @@ def test_augment_plan_has_create_ready_and_traffic_distribution_steps() -> None:
     assert [step.action for step in plan.steps] == [
         "create_candidate",
         "verify_ready",
+        "validate_candidate_pre_activation",
+        "handoff_execution_ownership",
+        "verify_active_candidate",
         "distribute_traffic",
+        "rollback_execution_ownership",
     ]
-    assert all(step.execution_mode == "always" for step in plan.steps)
+    assert all(step.execution_mode == "always" for step in plan.steps[:-1])
+    assert plan.steps[-1].execution_mode == "on_failure"
     assert all(step.prerequisites for step in plan.steps)
     assert all(step.failure_conditions for step in plan.steps)
     candidate = plan.steps[0].targets[0]
     assert candidate.node == "server-b"
     assert candidate.workload.role == "candidate"
     assert candidate.workload.name.startswith("quality-ai-augment-")
-    traffic_targets = plan.steps[-1].targets
+    traffic_targets = plan.steps[5].targets
     assert {(item.node, item.workload.role) for item in traffic_targets} == {
         ("edge-a", "current"),
         ("server-b", "candidate"),
@@ -99,17 +104,27 @@ def test_replace_plan_has_cutover_termination_and_conditional_rollback() -> None
     assert [step.action for step in plan.steps] == [
         "create_candidate",
         "verify_ready",
+        "validate_candidate_pre_activation",
+        "handoff_execution_ownership",
+        "verify_active_candidate",
         "switch_traffic",
+        "verify_switched_traffic",
         "terminate_current",
-        "rollback",
+        "rollback_traffic",
+        "rollback_execution_ownership",
     ]
     assert plan.steps[-1].execution_mode == "on_failure"
-    assert plan.steps[-1].depends_on == ["terminate-current"]
+    assert plan.steps[-1].depends_on == [
+        "handoff-execution-ownership",
+        "verify-active-candidate",
+        "switch-traffic",
+        "verify-switched-traffic",
+    ]
     assert {target.workload.role for target in plan.steps[-1].targets} == {
         "current",
         "candidate",
     }
-    terminate = plan.steps[3]
+    terminate = plan.steps[7]
     assert terminate.targets[0].node == "edge-a"
     assert terminate.targets[0].workload.name == "quality-ai"
 

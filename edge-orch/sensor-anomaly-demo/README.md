@@ -31,6 +31,24 @@ Server1 backend는 같은 통계 기준선의 점수 계산을 CUDA에서 실행
 | `GET /metrics` | processing latency, backlog, throughput Prometheus metric |
 | `POST /api/v1/inference` | `inference-server` 역할에서만 여는 versioned 추론 endpoint; 응답의 `serverProcessingMs`로 서버 내부 구간 계측 |
 
+## Lease 기반 실행 권한
+
+`sensor-anomaly-demo` workload는 Git에 고정된 Kubernetes Lease의 holder만 production
+polling·inference·SQLite 결과 저장을 수행한다. 설정 모드는 `ACTIVE`, `STANDBY`, `SHADOW`이며
+실제 동작 모드는 Lease 관측 결과로 fail-closed 결정한다.
+
+- `ACTIVE`: 현재 holder identity와 Pod identity가 정확히 일치하고 Lease 갱신 CAS가 성공한 동안만
+  production 결과를 저장한다. SQLite commit 직전에도 Lease를 다시 확인한다.
+- `STANDBY`: 입력 polling과 inference를 수행하지 않는다. Lease 조회 실패, 만료, holder 불일치와
+  resourceVersion 충돌은 모두 이 모드로 수렴한다.
+- `SHADOW`: 유효한 다른 holder가 있는 동안만 입력·모델·inference를 검증하고 결과를 메모리에만
+  보관한다. production SQLite, 결과 counter와 alert side effect는 변경하지 않는다.
+
+승인된 Execution Controller가 source에서 candidate로 Lease holder를 CAS 전환한 뒤에만
+candidate가 ACTIVE가 된다. Lease는 실행 권한만 결정하며 Service/Endpoints 기반 traffic routing과
+별도다. source와 candidate는 각각 replica 1, `Recreate` strategy와 서로 다른 holder identity를
+사용한다.
+
 ## 자원 증강 실행 경계
 
 2026-08-18의 90-run CPU·메모리·요청률 실험에서 현재

@@ -1,0 +1,32 @@
+{
+  "apiVersion": "edge-ai.io/v1alpha1",
+  "kind": "TrafficRoutingContractCatalog",
+  "contracts": [
+    {
+      "serviceId": "sensor-anomaly-demo",
+      "contractVersion": "sensor-anomaly-demo-routing-v1",
+      "mode": "runtime-endpointslice",
+      "compatibilityStatus": "blocked",
+      "compatibilityReasonCodes": ["routing_mode_unsupported"],
+      "serviceName": "sensor-anomaly-demo",
+      "namespace": "edgex-edge",
+      "endpointSliceName": "sensor-anomaly-demo-runtime-routing",
+      "portName": "http",
+      "port": 8080,
+      "protocol": "TCP",
+      "source": {
+        "workload": "sensor-anomaly-demo",
+        "selector": {"app.kubernetes.io/name": "sensor-anomaly-demo"}
+      },
+      "switchPolicy": {
+        "requireCandidateValidation": true,
+        "postSwitchObservationSeconds": 30,
+        "pollIntervalSeconds": 5,
+        "timeoutSeconds": 120,
+        "requiredConsecutiveSuccesses": 6,
+        "counterPointer": "/counters/framesProcessed"
+      },
+      "rollbackPolicy": {"enabled": true, "target": "source"}
+    }
+  ]
+}

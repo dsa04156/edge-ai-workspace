@@ -5,11 +5,16 @@ import math
 import time
 from collections import deque
 from datetime import datetime, timezone
-from typing import Callable, Protocol
+from typing import Callable, Literal, Protocol
 
 from .alignment import TemporalAligner
 from .config import Settings
 from .contracts import Measurement, PumpMotorSignals, PumpMotorTelemetry
+from .execution_ownership import (
+    ExecutionMode,
+    ExecutionOwnershipGuard,
+    build_execution_ownership_guard,
+)
 from .joiner import FrameJoiner
 from .local_data import (
     ACCELERATION_SOURCES,
@@ -26,6 +31,7 @@ from .models import (
     AxisSample,
     AxisValues,
     ComponentScores,
+    ExecutionOwnershipObservation,
     FeatureModelObservation,
     FeatureModelSnapshot,
     InferenceRoutingStatus,
@@ -89,6 +95,7 @@ class AnomalyRuntime:
         inference_router: InferenceRouter | None = None,
         result_store: ResultStore | None = None,
         resource_tracker: ProcessResourceTracker | None = None,
+        ownership_guard: ExecutionOwnershipGuard | None = None,
     ) -> None:
         self.settings = settings
         self.client = client
@@ -125,7 +132,11 @@ class AnomalyRuntime:
             self.result_store.results(settings.recent_result_limit),
             maxlen=settings.recent_result_limit,
         )
+        self._shadow_results: deque[LatestObservation] = deque(
+            maxlen=settings.recent_result_limit
+        )
         self._frames_processed = 0
+        self._shadow_frames_processed = 0
         self._context_samples_processed = 0
         self._input_errors = 0
         self._consecutive_failed_polls = 0
@@ -138,11 +149,14 @@ class AnomalyRuntime:
         self._router_closed = False
         self.performance = PerformanceTracker()
         self.resource_tracker = resource_tracker or ProcessResourceTracker()
+        self.ownership_guard = ownership_guard
 
     async def start(self) -> None:
         if self._task is not None and not self._task.done():
             return
         self._stop.clear()
+        if self.ownership_guard is not None:
+            await self.ownership_guard.start()
         self._task = asyncio.create_task(self._run())
 
     async def stop(self) -> None:
@@ -151,6 +165,8 @@ class AnomalyRuntime:
         if task is not None:
             await task
             self._task = None
+        if self.ownership_guard is not None:
+            await self.ownership_guard.stop()
         if not self._client_closed:
             await self.client.close()
             self._client_closed = True
@@ -165,7 +181,15 @@ class AnomalyRuntime:
     def worker_started(self) -> bool:
         return self._task is not None and not self._task.done()
 
-    async def poll_once(self, now_ns: int | None = None) -> None:
+    async def poll_once(
+        self,
+        now_ns: int | None = None,
+        *,
+        execution_mode: ExecutionMode | None = None,
+    ) -> None:
+        mode = execution_mode or self._effective_execution_mode()
+        if mode == "STANDBY":
+            return
         poll_started = time.perf_counter()
         frames_before = self._frames_processed
         current = time.time_ns() if now_ns is None else now_ns
@@ -302,14 +326,25 @@ class AnomalyRuntime:
             )
             observations.append(observation)
 
-        if observations:
-            await asyncio.to_thread(
-                self.result_store.record_results,
-                observations,
-                asset_id=self.settings.service_asset_id,
+        if observations and mode == "ACTIVE":
+            still_active = (
+                True
+                if self.ownership_guard is None
+                else await self.ownership_guard.confirm_active()
             )
-            self._results.extend(observations)
-            self._frames_processed += len(observations)
+            if still_active:
+                await asyncio.to_thread(
+                    self.result_store.record_results,
+                    observations,
+                    asset_id=self.settings.service_asset_id,
+                )
+                self._results.extend(observations)
+                self._frames_processed += len(observations)
+            else:
+                self._last_error = "execution_ownership_lost_before_commit"
+        elif observations and mode == "SHADOW":
+            self._shadow_results.extend(observations)
+            self._shadow_frames_processed += len(observations)
 
         drop_count = self.aligner.counters.unaligned_frames_dropped
         dropped_this_poll = drop_count - self._last_unaligned_drops
@@ -333,7 +368,11 @@ class AnomalyRuntime:
 
     def status(self, now_ns: int | None = None) -> ServiceStatus:
         current = time.time_ns() if now_ns is None else now_ns
-        latest = self._results[-1] if self._results else None
+        effective_mode = self._effective_execution_mode()
+        visible_results = (
+            self._shadow_results if effective_mode == "SHADOW" else self._results
+        )
+        latest = visible_results[-1] if visible_results else None
         vibration_snapshot, temperature_snapshot = self.model_adapter.snapshots()
         drop_count = self.aligner.counters.unaligned_frames_dropped
         sample_count = min(
@@ -389,6 +428,7 @@ class AnomalyRuntime:
             ),
             counters=RuntimeCounters(
                 frames_processed=self._frames_processed,
+                shadow_frames_processed=self._shadow_frames_processed,
                 duplicates_ignored=self.joiner.counters.duplicates_ignored,
                 incomplete_frames_dropped=(
                     self.joiner.counters.incomplete_frames_dropped
@@ -404,6 +444,7 @@ class AnomalyRuntime:
             inference_routing=self.inference_router.status(
                 now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
             ),
+            execution_ownership=self._execution_ownership_observation(current),
             last_error=self._last_error,
         )
 
@@ -415,6 +456,15 @@ class AnomalyRuntime:
         from_origin: int | None = None,
         to_origin: int | None = None,
     ) -> list[LatestObservation]:
+        if self._effective_execution_mode() == "SHADOW":
+            rows = list(reversed(self._shadow_results))
+            if anomaly is not None:
+                rows = [row for row in rows if row.anomaly is anomaly]
+            if from_origin is not None:
+                rows = [row for row in rows if row.origin >= from_origin]
+            if to_origin is not None:
+                rows = [row for row in rows if row.origin <= to_origin]
+            return rows[:limit]
         return self.result_store.results(
             limit,
             anomaly=anomaly,
@@ -492,7 +542,9 @@ class AnomalyRuntime:
 
     async def _run(self) -> None:
         while not self._stop.is_set():
-            await self.poll_once()
+            mode = self._effective_execution_mode()
+            if mode != "STANDBY":
+                await self.poll_once(execution_mode=mode)
             try:
                 await asyncio.wait_for(
                     self._stop.wait(),
@@ -500,6 +552,45 @@ class AnomalyRuntime:
                 )
             except TimeoutError:
                 continue
+
+    def _effective_execution_mode(self) -> ExecutionMode:
+        if self.ownership_guard is not None:
+            return self.ownership_guard.state().effective_mode
+        return self.settings.execution_mode
+
+    def _execution_ownership_observation(
+        self,
+        current_ns: int,
+    ) -> ExecutionOwnershipObservation:
+        if self.ownership_guard is None:
+            return ExecutionOwnershipObservation(
+                configured_mode=self.settings.execution_mode,
+                effective_mode=self.settings.execution_mode,
+                enabled=False,
+                holder_identity=self.settings.execution_owner_id,
+                owner_identity=self.settings.execution_owner_id,
+                lease_valid=True,
+                observed_at=datetime.fromtimestamp(
+                    current_ns / 1_000_000_000,
+                    timezone.utc,
+                ),
+            )
+        state = self.ownership_guard.state()
+        return ExecutionOwnershipObservation(
+            configured_mode=state.configured_mode,
+            effective_mode=state.effective_mode,
+            enabled=state.enabled,
+            lease_namespace=state.lease_namespace,
+            lease_name=state.lease_name,
+            holder_identity=state.holder_identity,
+            owner_identity=state.owner_identity,
+            lease_valid=state.lease_valid,
+            renew_time=state.renew_time,
+            lease_duration_seconds=state.lease_duration_seconds,
+            resource_version=state.resource_version,
+            reason_code=state.reason_code,
+            observed_at=state.observed_at,
+        )
 
 
 def build_runtime(
@@ -535,4 +626,5 @@ def build_runtime(
             settings.result_db_path,
             settings.result_retention_rows,
         ),
+        ownership_guard=build_execution_ownership_guard(settings),
     )

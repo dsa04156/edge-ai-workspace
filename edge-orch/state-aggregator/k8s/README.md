@@ -67,9 +67,22 @@ ClusterRole의 apps 권한은 `get/list/watch`뿐이며 추천 엔진은 Kuberne
 Deployment는 replica 1과 `Recreate` strategy로 SQLite single-writer 경계를 유지한다.
 승인 기반 Execution Controller의 planId 실행 record와 감사 event는 같은 PVC의
 `/app/data/runtime-executions.sqlite3`에 별도로 저장한다. Controller는 기존
-`edge-ai-workloads` Deployment create/read 권한만 재사용하며 Service, Ingress, update, patch,
-delete 권한은 추가하지 않는다. 실행 API는 `EXECUTION_MANAGEMENT_TOKEN`을 요구하고
-`create_candidate`·`verify_ready` 이후 단계는 `unsupported_step`으로 차단한다.
+`edge-ai-workloads` Deployment create/read 권한을 재사용한다. preflight를 위해 source
+Service·PVC와 StorageClass에는 read-only 권한만 추가하며 Service, PVC, Ingress의 mutation과
+Deployment update, patch, delete 권한은 추가하지 않는다. 승인 template은
+`/app/app/config/candidate_workload_templates.json`에서 읽는다. 실행 API는
+`EXECUTION_MANAGEMENT_TOKEN`을 요구하고
+`create_candidate`·`verify_ready`·`validate_candidate_pre_activation`, Git 승인 Lease 계약의
+`handoff_execution_ownership`·`verify_active_candidate`·`rollback_execution_ownership`과 승인된 routing 계약의
+`switch_traffic`·`verify_switched_traffic`·`rollback_traffic`을 구현한다. validation contract는
+`/app/app/config/candidate_validation_contracts.json`에서 읽으며 결과와 check별 측정값을 같은
+실행 SQLite와 감사 log에 저장한다. Lease write 권한은 `edgex-edge`의 승인된 단일 Lease
+`get/update`로 제한하고 resourceVersion CAS를 사용한다. routing write 권한은 `edgex-edge`의 EndpointSlice
+`get/list/watch/update`로만 제한하고 Service mutation 권한은 부여하지 않는다. 코드도
+Controller 소유 label과 resourceVersion이 일치한 EndpointSlice만 replace한다. 현재
+`sensor-anomaly-demo`의 EdgeMesh EndpointSlice 호환성이 입증되지 않아 계약은 blocked이며
+실클러스터 cutover는 수행하지 않는다. `terminate_current`와 workload/PVC 삭제·promotion은
+`unsupported_step`으로 차단한다.
 
 ```text
 RUNTIME_RECOMMENDATION_ENABLED=true
@@ -152,7 +165,8 @@ Kubernetes manifests:
 - `ingressroute.yaml`: Traefik host route for the dashboard
 - `managed-workloads-namespace.yaml`: bounded dynamic workload namespace
 - `state-pvc.yaml`: recommendation timer와 판단 이력 영속 저장
-- `rbac.yaml`: cluster node/pod/workload read와 전용 namespace Deployment create/read
+- `rbac.yaml`: cluster node/pod/workload read, 전용 namespace Deployment create/read와
+  `edgex-edge` Controller 소유 EndpointSlice update
 - `service-monitor.yaml`: kube-prometheus `ServiceMonitor`
 
 Apply these manifests through the directory kustomization (or the

@@ -64,6 +64,18 @@ def test_dashboard_management_uses_internal_controller_and_secret_refs() -> None
     assert env["RUNTIME_EXECUTION_DATABASE_PATH"]["value"] == (
         "/app/data/runtime-executions.sqlite3"
     )
+    assert env["CANDIDATE_TEMPLATE_CATALOG_PATH"]["value"] == (
+        "/app/app/config/candidate_workload_templates.json"
+    )
+    assert env["CANDIDATE_VALIDATION_CONTRACT_PATH"]["value"] == (
+        "/app/app/config/candidate_validation_contracts.json"
+    )
+    assert env["TRAFFIC_ROUTING_CONTRACT_PATH"]["value"] == (
+        "/app/app/config/traffic_routing_contracts.json"
+    )
+    assert env["EXECUTION_OWNERSHIP_CONTRACT_PATH"]["value"] == (
+        "/app/app/config/execution_ownership_contracts.json"
+    )
     assert env["EXECUTION_MANAGEMENT_TOKEN"]["valueFrom"]["secretKeyRef"] == {
         "name": "edgex-adapter-management-auth",
         "key": "management-hmac-key",
@@ -88,6 +100,16 @@ def test_deployment_controller_has_create_only_access_in_its_bounded_namespace()
     assert {
         "apiGroups": ["apps"],
         "resources": ["deployments", "statefulsets"],
+        "verbs": ["get", "list", "watch"],
+    } in reader["rules"]
+    assert {
+        "apiGroups": [""],
+        "resources": ["services", "persistentvolumeclaims"],
+        "verbs": ["get", "list", "watch"],
+    } in reader["rules"]
+    assert {
+        "apiGroups": ["storage.k8s.io"],
+        "resources": ["storageclasses"],
         "verbs": ["get", "list", "watch"],
     } in reader["rules"]
     assert creator["metadata"]["namespace"] == "edge-ai-workloads"
@@ -129,6 +151,23 @@ def test_runtime_recommendation_state_uses_single_writer_persistent_storage() ->
     }
 
 
+def test_runtime_controller_can_update_only_the_approved_execution_lease() -> None:
+    resources = render()
+    role = resources[("Role", "state-aggregator-runtime-routing")]
+    lease_rules = [
+        item
+        for item in role["rules"]
+        if item.get("apiGroups") == ["coordination.k8s.io"]
+    ]
+
+    assert lease_rules == [
+        {
+            "apiGroups": ["coordination.k8s.io"],
+            "resources": ["leases"],
+            "resourceNames": ["sensor-anomaly-demo-execution"],
+            "verbs": ["get", "update"],
+        }
+    ]
 def test_dashboard_is_exposed_through_the_gitops_managed_traefik_route() -> None:
     ingress_route = render()[("IngressRoute", "state-aggregator")]
 

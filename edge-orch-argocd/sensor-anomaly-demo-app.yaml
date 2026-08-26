@@ -13,7 +13,16 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: edgex-edge
+  ignoreDifferences:
+    - group: coordination.k8s.io
+      kind: Lease
+      name: sensor-anomaly-demo-execution
+      namespace: edgex-edge
+      jsonPointers:
+        - /spec
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true

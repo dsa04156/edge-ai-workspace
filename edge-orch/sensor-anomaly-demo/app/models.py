@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -201,6 +201,7 @@ class ModelObservation(ApiModel):
 
 class RuntimeCounters(ApiModel):
     frames_processed: int = 0
+    shadow_frames_processed: int = 0
     duplicates_ignored: int = 0
     incomplete_frames_dropped: int = 0
     input_errors: int = 0
@@ -274,6 +275,24 @@ class InferenceRoutingStatus(ApiModel):
     last_error: str | None = None
 
 
+class ExecutionOwnershipObservation(ApiModel):
+    configured_mode: Literal["ACTIVE", "STANDBY", "SHADOW"] = "ACTIVE"
+    effective_mode: Literal["ACTIVE", "STANDBY", "SHADOW"] = "ACTIVE"
+    enabled: bool = False
+    lease_namespace: str | None = None
+    lease_name: str | None = None
+    holder_identity: str | None = None
+    owner_identity: str | None = None
+    lease_valid: bool = True
+    renew_time: datetime | None = None
+    lease_duration_seconds: int | None = Field(default=None, ge=1)
+    resource_version: str | None = None
+    reason_code: str | None = None
+    observed_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+
 class ServiceStatus(ApiModel):
     api_version: Literal["v1"] = "v1"
     service: Literal["sensor-anomaly-demo"] = "sensor-anomaly-demo"
@@ -289,6 +308,9 @@ class ServiceStatus(ApiModel):
     process_resources: ProcessResourceObservation
     inference_routing: InferenceRoutingStatus = Field(
         default_factory=InferenceRoutingStatus
+    )
+    execution_ownership: ExecutionOwnershipObservation = Field(
+        default_factory=ExecutionOwnershipObservation
     )
     last_error: str | None = None
 

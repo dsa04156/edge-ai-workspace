@@ -55,6 +55,16 @@ class Settings(BaseModel):
         min_length=1,
     )
     result_retention_rows: int = Field(default=100_000, ge=1, le=10_000_000)
+    execution_mode: Literal["ACTIVE", "STANDBY", "SHADOW"] = "ACTIVE"
+    execution_ownership_enabled: bool = False
+    execution_lease_namespace: str = Field(default="edgex-edge", min_length=1)
+    execution_lease_name: str = Field(
+        default="sensor-anomaly-demo-execution",
+        min_length=1,
+    )
+    execution_owner_id: str | None = None
+    execution_lease_duration_seconds: int = Field(default=15, ge=5, le=300)
+    execution_lease_poll_interval_seconds: float = Field(default=2.0, gt=0, le=30)
 
     @model_validator(mode="after")
     def validate_multi_sensor_settings(self) -> Self:
@@ -78,6 +88,16 @@ class Settings(BaseModel):
             raise ValueError(
                 "cuda-online-baseline is allowed only for the inference-server role"
             )
+        if self.execution_ownership_enabled:
+            if self.service_role != "edge-worker":
+                raise ValueError("execution ownership is supported only for edge-worker")
+            if not self.execution_owner_id:
+                raise ValueError("execution_owner_id is required when ownership is enabled")
+            if (
+                self.execution_lease_poll_interval_seconds
+                >= self.execution_lease_duration_seconds / 2
+            ):
+                raise ValueError("execution Lease poll interval must be less than half its duration")
         return self
 
     @classmethod
@@ -140,4 +160,22 @@ class Settings(BaseModel):
                 "/tmp/sensor-anomaly-demo/results.db",
             ),
             result_retention_rows=int(os.getenv("RESULT_RETENTION_ROWS", "100000")),
+            execution_mode=os.getenv("EXECUTION_MODE", "ACTIVE").upper(),
+            execution_ownership_enabled=os.getenv(
+                "EXECUTION_OWNERSHIP_ENABLED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+            execution_lease_namespace=os.getenv(
+                "EXECUTION_LEASE_NAMESPACE", "edgex-edge"
+            ),
+            execution_lease_name=os.getenv(
+                "EXECUTION_LEASE_NAME", "sensor-anomaly-demo-execution"
+            ),
+            execution_owner_id=os.getenv("EXECUTION_OWNER_ID") or None,
+            execution_lease_duration_seconds=int(
+                os.getenv("EXECUTION_LEASE_DURATION_SECONDS", "15")
+            ),
+            execution_lease_poll_interval_seconds=float(
+                os.getenv("EXECUTION_LEASE_POLL_INTERVAL_SECONDS", "2")
+            ),
         )

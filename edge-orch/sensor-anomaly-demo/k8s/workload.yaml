@@ -35,11 +35,13 @@ spec:
       labels:
         app.kubernetes.io/name: sensor-anomaly-demo
         app.kubernetes.io/part-of: edge-ai-service-demo
+        edge-ai.io/deployment: sensor-anomaly-demo
         edge-ai.io/local-data-client: "true"
     spec:
+      serviceAccountName: sensor-anomaly-demo-execution
       nodeSelector:
         kubernetes.io/hostname: etri-dev0001-jetorn
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       terminationGracePeriodSeconds: 15
       securityContext:
         fsGroup: 65532
@@ -48,7 +50,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-demo
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:9c0bf78ec255a162101fd4927c7ea1ef94c15aa13b8b38e342e24d98014bd6ba
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:1fbf18f39f99e434122b29b70d88a6eb6673915665cea3debfdbb300c0f36a72
           imagePullPolicy: IfNotPresent
           env:
             - name: REMOTE_INFERENCE_MODE
@@ -105,6 +107,22 @@ spec:
               value: /var/lib/sensor-anomaly-demo/results.db
             - name: RESULT_RETENTION_ROWS
               value: "100000"
+            - name: EXECUTION_MODE
+              value: SHADOW
+            - name: EXECUTION_OWNERSHIP_ENABLED
+              value: "true"
+            - name: EXECUTION_LEASE_NAMESPACE
+              value: edgex-edge
+            - name: EXECUTION_LEASE_NAME
+              value: sensor-anomaly-demo-execution
+            - name: EXECUTION_OWNER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['edge-ai.io/deployment']
+            - name: EXECUTION_LEASE_DURATION_SECONDS
+              value: "15"
+            - name: EXECUTION_LEASE_POLL_INTERVAL_SECONDS
+              value: "2"
           ports:
             - name: http
               containerPort: 8080
@@ -120,13 +138,15 @@ spec:
               path: /readyz
               port: http
             periodSeconds: 5
-            failureThreshold: 3
+            timeoutSeconds: 2
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /healthz
               port: http
             periodSeconds: 10
-            failureThreshold: 3
+            timeoutSeconds: 2
+            failureThreshold: 6
           resources:
             requests:
               cpu: 25m

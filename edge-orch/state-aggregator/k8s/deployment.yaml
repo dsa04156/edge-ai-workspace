@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:2a1866709efeb3af966be873982d1e71598551cf423d27646d92d5eb2b4ed866
+          image: 192.168.0.56:5000/state-aggregator@sha256:9af87dab0b35beb09fc23132f84efba04c3930f64865fc939dcb2b2f0b9b6ff4
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -107,6 +107,14 @@ spec:
               value: /app/data/runtime-executions.sqlite3
             - name: RUNTIME_EXECUTION_HISTORY_LIMIT
               value: "1000"
+            - name: CANDIDATE_TEMPLATE_CATALOG_PATH
+              value: /app/app/config/candidate_workload_templates.json
+            - name: CANDIDATE_VALIDATION_CONTRACT_PATH
+              value: /app/app/config/candidate_validation_contracts.json
+            - name: TRAFFIC_ROUTING_CONTRACT_PATH
+              value: /app/app/config/traffic_routing_contracts.json
+            - name: EXECUTION_OWNERSHIP_CONTRACT_PATH
+              value: /app/app/config/execution_ownership_contracts.json
           volumeMounts:
             - name: state-data
               mountPath: /app/data

@@ -41,3 +41,9 @@ spec:
       ports:
         - protocol: TCP
           port: 59910
+    # Kubernetes NetworkPolicy cannot select the apiserver Service by name.
+    # Lease access is therefore restricted to HTTPS while RBAC limits the
+    # workload to get/update on its one named Lease.
+    - ports:
+        - protocol: TCP
+          port: 443

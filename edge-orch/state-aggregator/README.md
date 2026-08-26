@@ -212,9 +212,12 @@ read-only 추천이며 `/api/deployments`를 호출하거나 traffic 전환·삭
 변환한다. 동일 추천의 `observedAt`, workload identity와 선택 node로 결정적인 `planId`와
 후보 workload 이름을 만들며, 조회할 때 추천 timer나 판단 이력을 변경하지 않는다.
 
-- `AUGMENT_RECOMMENDED`: `create_candidate → verify_ready → distribute_traffic`
-- `REPLACE_RECOMMENDED`: `create_candidate → verify_ready → switch_traffic →
-  terminate_current → rollback`
+- `AUGMENT_RECOMMENDED`: `create_candidate → verify_ready → validate_candidate_pre_activation →
+  handoff_execution_ownership → verify_active_candidate → distribute_traffic`
+- `REPLACE_RECOMMENDED`: `create_candidate → verify_ready → validate_candidate_pre_activation →
+  handoff_execution_ownership → verify_active_candidate → switch_traffic →
+  verify_switched_traffic → terminate_current`, 실패 보상 `rollback_traffic`과
+  `rollback_execution_ownership`
 - `NORMAL`·`OBSERVING`: `not_applicable`, 단계 없음
 - `BLOCKED` 또는 불완전한 Placement: `blocked`, 단계 없음
 
@@ -231,22 +234,64 @@ Kubernetes, Service/Ingress 또는 traffic plane을 호출하지 않는다.
 - `GET /api/execution-plans/{planId}/audit`
 - `GET /api/executions?serviceId={serviceId}&limit=100`
 
-dry-run은 최신 `planId`, source Deployment, immutable allowlisted image, Placement requirements와
-단계 지원 경계를 읽기 전용으로 확인한다. 1차 candidate 계약이 복제하지 않는 env/envFrom,
-command/args, initContainer와 volume/mount가 source에 있으면 조용히 제거하지 않고
-`source_workload_contract_unsupported`로 차단한다. 실행 API는 `EXECUTION_CONTROLLER_ENABLED=true`,
+dry-run은 최신 `planId`, source Deployment·Service·PVC, target Node, immutable allowlisted image,
+Placement requirements와 단계 지원 경계를 읽기 전용으로 확인한다. candidate는 source
+Deployment를 복제하지 않고 `app/config/candidate_workload_templates.json`에 서비스별로 승인된
+image digest, env, port/probe, resources, securityContext, namespace, architecture/accelerator와
+state policy만 사용한다. source와 승인 계약이 다르면 `candidate_template_mismatch`, 템플릿이
+없거나 유효하지 않으면 `candidate_template_not_found`·`candidate_contract_invalid`로 생성 전에
+차단한다. 실행 API는 `EXECUTION_CONTROLLER_ENABLED=true`,
 `X-Execution-Token`, 본문의 동일 `planId`, `approved=true`, `approvedBy`가 모두 필요하다.
 planId가 idempotency key이므로 중복 요청은 저장된 최초 record를 반환한다.
+신규 실행은 `202 Accepted`와 PENDING record를 즉시 반환하고 background task가 단계를 진행한다.
+진행 상태와 validation 상세는 `GET /api/execution-plans/{planId}`로 조회한다.
 
-현재 실제 지원 단계는 `create_candidate`와 `verify_ready`뿐이다. candidate는
+현재 코드 지원 단계는 `create_candidate`, `verify_ready`,
+`validate_candidate_pre_activation`, `handoff_execution_ownership`,
+`verify_active_candidate`, `rollback_execution_ownership`, `switch_traffic`,
+`verify_switched_traffic`, `rollback_traffic`이다. candidate는
 `edge-ai-workloads`에 단일 replica Deployment로 생성하고 선택 node에 exact hostname으로
-고정한다. 이후 traffic·terminate·rollback 단계는 `unsupported_step`으로 중단하며 후속 단계는
-`BLOCKED`가 된다. 실패 후 source workload를 update/delete하지 않고 생성된 candidate도 자동
-삭제하지 않는다.
+고정한다. `terminate_current`와 workload/PVC 삭제·promotion은 `unsupported_step`으로 중단한다.
+실패 후 source workload를 update/delete하지 않고 생성된 candidate도 자동 삭제하지 않는다.
+`sensor-anomaly-demo` v1은 `fresh_state`이며 기존 RWO `local-path` PVC를
+재사용하거나 복제하지 않고 candidate의 `/var/lib/sensor-anomaly-demo`를 `emptyDir`로 만든다.
+`ResultStore`가 빈 경로에 SQLite schema를 생성하므로 기존 `results.db` 없이도 `/readyz`까지
+진행할 수 있다. candidate identity와 생성 PVC 목록(현재는 빈 목록)은 실행 record에 보존한다.
+pre-activation validation은 `app/config/candidate_validation_contracts.json`을 읽어 Pod Ready,
+health, 유효한 source Lease 아래의 candidate SHADOW 상태, fresh input, model ready와 shadow
+inference를 확인한다. handoff 뒤 active validation은 candidate의 Lease ACTIVE 상태, production
+`framesProcessed` 증가, 최근 결과 freshness와 측정 가능한 latency SLO를 다시 확인한다. 모든
+필수 검사가 계약의 dwell 조건을 만족해야 성공하며 source와 candidate 관측값은 비교용으로
+저장하되 candidate가 source보다 빨라야 한다는 조건은 없다.
+
+`app/config/execution_ownership_contracts.json`은 서비스별 Lease namespace/name, 허용 holder
+identity와 lease duration을 Git 계약으로 고정한다. Controller는 현재 source holder와
+resourceVersion을 preflight하고 CAS로 candidate holder로 전환한다. 서비스별 SQLite lock이
+동시 handoff를 막으며 snapshot·전환·rollback을 실행 record와 audit에 저장한다. handoff 또는
+active validation 실패 시 persisted snapshot의 source holder로 CAS rollback하고 candidate는
+삭제하지 않는다. 재시작 중 RUNNING handoff는 자동 재개하지 않고
+`execution_ownership_recovery_required`로 차단한다.
 
 실행과 단계 상태는 `PENDING/RUNNING/SUCCEEDED/FAILED/BLOCKED`이며 승인·상태 전이·reason을
 `/app/data/runtime-executions.sqlite3`의 record와 append-only audit log에 저장한다. 재시작 시
 남은 PENDING/RUNNING record는 중복 실행하지 않고 `execution_interrupted`로 차단한다.
+`app/config/traffic_routing_contracts.json`은 Service/namespace/port, source selector,
+post-switch dwell과 rollback 정책을 고정한다. Controller는 Argo CD 소유 Service를 patch하지 않고
+selectorless Service에 연결된 Controller 단독 소유 EndpointSlice만 resourceVersion 조건부
+replace한다. switch 직전 source endpoint snapshot을 SQLite/audit에 저장하고 Service 주소를 통해
+동일 기능 검증을 30초 다시 수행한다. 실패하면 저장한 snapshot만 사용해 source로 rollback한다.
+서비스별 SQLite routing lock은 서로 다른 plan의 동시 cutover를 막는다.
+
+현재 live `sensor-anomaly-demo` Service에는 Argo CD 소유 selector와 Kubernetes endpoint-slice
+controller 소유 slice가 있고, edge node의 EdgeMesh는 legacy Endpoints를 관측한다. EndpointSlice
+소비 호환성이 입증되지 않았으므로 Git routing contract의 `compatibilityStatus`는 `blocked`이며
+실제 실행은 `routing_mode_unsupported`로 차단된다. selectorless Service 전환, Runtime 소유 source
+EndpointSlice bootstrap과 EdgeMesh traffic 시험이 완료되기 전에는 실클러스터 cutover를 수행하지 않는다.
+
+2026-08-26 별도 격리 namespace에서는 selectorless Service와 Controller 소유 core `Endpoints`를
+통한 source→candidate→source가 edge-resident probe와 EdgeMesh libp2p 로그로 확인됐다. 상세 증거는
+`docs/ops/EdgeMesh-Endpoints-라우팅-검증.md`에 있다. 이 결과는 후속 `runtime-endpoints` 모드의
+근거이며 현재 EndpointSlice 계약을 unblocked하거나 production Service를 변경하지 않는다.
 
 /api/deployments
 

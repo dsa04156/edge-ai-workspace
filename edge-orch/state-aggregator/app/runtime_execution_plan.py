@@ -19,9 +19,16 @@ RuntimeExecutionMode = Literal["always", "on_failure"]
 RuntimeExecutionStepAction = Literal[
     "create_candidate",
     "verify_ready",
+    "validate_candidate",
+    "validate_candidate_pre_activation",
+    "handoff_execution_ownership",
+    "verify_active_candidate",
     "distribute_traffic",
     "switch_traffic",
+    "verify_switched_traffic",
     "terminate_current",
+    "rollback_traffic",
+    "rollback_execution_ownership",
     "rollback",
 ]
 RuntimeExecutionWorkloadRole = Literal["current", "candidate"]
@@ -194,19 +201,87 @@ def _augment_steps(
             ),
         ),
         RuntimeExecutionStep(
-            step_id="distribute-traffic",
+            step_id="validate-candidate-pre-activation",
             sequence=3,
-            action="distribute_traffic",
+            action="validate_candidate_pre_activation",
             targets=[*current, candidate],
             depends_on=["verify-ready"],
             prerequisites=_conditions(
-                ("candidate_ready", "The candidate is Ready and passes its service health check."),
+                ("candidate_ready", "The candidate Pod is Ready on the selected node."),
+                ("candidate_validation_contract_available", "A reviewed service validation contract is available."),
+                ("source_workload_preserved", "The source workload and traffic remain unchanged during validation."),
+            ),
+            failure_conditions=_conditions(
+                ("candidate_validation_timeout", "The candidate does not remain functionally healthy for the approved dwell period."),
+                ("candidate_service_contract_failed", "The candidate cannot perform the approved service contract."),
+                ("candidate_input_or_model_unavailable", "The candidate input or model is not ready for inference."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="handoff-execution-ownership",
+            sequence=4,
+            action="handoff_execution_ownership",
+            targets=[*current, candidate],
+            depends_on=["validate-candidate-pre-activation"],
+            prerequisites=_conditions(
+                ("candidate_pre_activation_validated", "The candidate passed SHADOW validation without production side effects."),
+                ("source_execution_lease_valid", "The source holds a valid, unexpired approved execution Lease."),
+                ("execution_ownership_contract_available", "A reviewed service execution ownership contract is available."),
+            ),
+            failure_conditions=_conditions(
+                ("execution_lease_cas_conflict", "The Lease changed while ownership handoff was attempted."),
+                ("execution_lease_expired", "The current execution owner Lease is expired."),
+                ("execution_ownership_rollback_failed", "The source ownership cannot be restored after a failed handoff."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="verify-active-candidate",
+            sequence=5,
+            action="verify_active_candidate",
+            targets=[*current, candidate],
+            depends_on=["handoff-execution-ownership"],
+            prerequisites=_conditions(
+                ("candidate_holds_execution_lease", "The candidate is the current valid Lease holder."),
+                ("source_production_processing_stopped", "The source no longer has production execution authority."),
+                ("active_validation_contract_available", "A reviewed active processing validation contract is available."),
+            ),
+            failure_conditions=_conditions(
+                ("candidate_not_active", "The candidate does not enter ACTIVE mode."),
+                ("candidate_inference_not_observed", "Production inference does not advance after activation."),
+                ("execution_ownership_rollback_failed", "The source ownership cannot be restored after active validation failure."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="distribute-traffic",
+            sequence=6,
+            action="distribute_traffic",
+            targets=[*current, candidate],
+            depends_on=["verify-active-candidate"],
+            prerequisites=_conditions(
+                ("candidate_validated", "The candidate passed its functional validation contract."),
                 ("current_instance_healthy", "At least one current instance remains healthy during distribution."),
                 ("traffic_policy_approved", "An approved traffic distribution policy is available."),
             ),
             failure_conditions=_conditions(
                 ("traffic_distribution_failed", "Traffic cannot be distributed to the candidate."),
                 ("post_distribution_health_degraded", "Service health degrades after traffic distribution."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="rollback-execution-ownership",
+            sequence=7,
+            action="rollback_execution_ownership",
+            execution_mode="on_failure",
+            targets=[*current, candidate],
+            depends_on=["handoff-execution-ownership", "verify-active-candidate"],
+            prerequisites=_conditions(
+                ("ownership_rollback_triggered", "Activation or a later operation failed after Lease handoff."),
+                ("source_workload_preserved", "The source remains available to resume processing."),
+                ("persisted_lease_snapshot_available", "The approved source holder is stored in the execution record."),
+            ),
+            failure_conditions=_conditions(
+                ("execution_ownership_state_conflict", "The Lease is held by an unexpected workload."),
+                ("execution_ownership_rollback_failed", "The Lease cannot be returned to the source."),
             ),
         ),
     ]
@@ -250,13 +325,64 @@ def _replacement_steps(
             ),
         ),
         RuntimeExecutionStep(
-            step_id="switch-traffic",
+            step_id="validate-candidate-pre-activation",
             sequence=3,
-            action="switch_traffic",
+            action="validate_candidate_pre_activation",
             targets=[*current, candidate],
             depends_on=["verify-ready"],
             prerequisites=_conditions(
-                ("candidate_ready", "The replacement is Ready and passes its service health check."),
+                ("candidate_ready", "The replacement Pod is Ready on the selected node."),
+                ("candidate_validation_contract_available", "A reviewed service validation contract is available."),
+                ("source_workload_preserved", "The source workload and traffic remain unchanged during validation."),
+            ),
+            failure_conditions=_conditions(
+                ("candidate_validation_timeout", "The replacement does not remain functionally healthy for the approved dwell period."),
+                ("candidate_service_contract_failed", "The replacement cannot perform the approved service contract."),
+                ("candidate_input_or_model_unavailable", "The replacement input or model is not ready for inference."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="handoff-execution-ownership",
+            sequence=4,
+            action="handoff_execution_ownership",
+            targets=[*current, candidate],
+            depends_on=["validate-candidate-pre-activation"],
+            prerequisites=_conditions(
+                ("candidate_pre_activation_validated", "The replacement passed SHADOW validation without production side effects."),
+                ("source_execution_lease_valid", "The source holds a valid, unexpired approved execution Lease."),
+                ("execution_ownership_contract_available", "A reviewed service execution ownership contract is available."),
+            ),
+            failure_conditions=_conditions(
+                ("execution_lease_cas_conflict", "The Lease changed while ownership handoff was attempted."),
+                ("execution_lease_expired", "The current execution owner Lease is expired."),
+                ("execution_ownership_rollback_failed", "The source ownership cannot be restored after a failed handoff."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="verify-active-candidate",
+            sequence=5,
+            action="verify_active_candidate",
+            targets=[*current, candidate],
+            depends_on=["handoff-execution-ownership"],
+            prerequisites=_conditions(
+                ("candidate_holds_execution_lease", "The replacement is the current valid Lease holder."),
+                ("source_production_processing_stopped", "The source no longer has production execution authority."),
+                ("active_validation_contract_available", "A reviewed active processing validation contract is available."),
+            ),
+            failure_conditions=_conditions(
+                ("candidate_not_active", "The replacement does not enter ACTIVE mode."),
+                ("candidate_inference_not_observed", "Production inference does not advance after activation."),
+                ("execution_ownership_rollback_failed", "The source ownership cannot be restored after active validation failure."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="switch-traffic",
+            sequence=6,
+            action="switch_traffic",
+            targets=[*current, candidate],
+            depends_on=["verify-active-candidate"],
+            prerequisites=_conditions(
+                ("candidate_validated", "The replacement passed its functional validation contract."),
                 ("traffic_cutover_approved", "Traffic cutover has explicit operator or controller approval."),
                 ("rollback_material_retained", "The current workload specification and routing state are retained."),
             ),
@@ -266,11 +392,28 @@ def _replacement_steps(
             ),
         ),
         RuntimeExecutionStep(
+            step_id="verify-switched-traffic",
+            sequence=7,
+            action="verify_switched_traffic",
+            targets=[*current, candidate],
+            depends_on=["switch-traffic"],
+            prerequisites=_conditions(
+                ("traffic_switched", "The approved routing object targets the candidate."),
+                ("post_switch_validation_contract_available", "A reviewed post-switch observation policy is available."),
+                ("source_workload_preserved", "The source remains available for exact traffic rollback."),
+            ),
+            failure_conditions=_conditions(
+                ("post_switch_validation_timeout", "The candidate does not remain healthy during the observation window."),
+                ("post_switch_service_contract_failed", "The candidate fails its service contract while receiving Service traffic."),
+                ("traffic_rollback_failed", "Traffic cannot be restored from the persisted routing snapshot."),
+            ),
+        ),
+        RuntimeExecutionStep(
             step_id="terminate-current",
-            sequence=4,
+            sequence=8,
             action="terminate_current",
             targets=current,
-            depends_on=["switch-traffic"],
+            depends_on=["verify-switched-traffic"],
             prerequisites=_conditions(
                 ("cutover_verified", "Traffic cutover and service health have been verified."),
                 ("candidate_serving", "The replacement is serving the expected workload."),
@@ -282,12 +425,12 @@ def _replacement_steps(
             ),
         ),
         RuntimeExecutionStep(
-            step_id="rollback",
-            sequence=5,
-            action="rollback",
+            step_id="rollback-traffic",
+            sequence=9,
+            action="rollback_traffic",
             execution_mode="on_failure",
             targets=[*current, candidate],
-            depends_on=["terminate-current"],
+            depends_on=["switch-traffic", "verify-switched-traffic"],
             prerequisites=_conditions(
                 ("rollback_triggered", "A post-cutover or termination failure requires compensation."),
                 ("rollback_material_retained", "The previous workload and routing specifications remain recoverable."),
@@ -297,6 +440,23 @@ def _replacement_steps(
                 ("current_restore_failed", "The previous workload cannot be restored to a healthy state."),
                 ("traffic_rollback_failed", "Traffic cannot be restored to the previous healthy target."),
                 ("rollback_health_failed", "Service health does not recover after rollback."),
+            ),
+        ),
+        RuntimeExecutionStep(
+            step_id="rollback-execution-ownership",
+            sequence=10,
+            action="rollback_execution_ownership",
+            execution_mode="on_failure",
+            targets=[*current, candidate],
+            depends_on=["handoff-execution-ownership", "verify-active-candidate", "switch-traffic", "verify-switched-traffic"],
+            prerequisites=_conditions(
+                ("ownership_rollback_triggered", "Activation or a later operation failed after Lease handoff."),
+                ("source_workload_preserved", "The source remains available to resume processing."),
+                ("persisted_lease_snapshot_available", "The approved source holder is stored in the execution record."),
+            ),
+            failure_conditions=_conditions(
+                ("execution_ownership_state_conflict", "The Lease is held by an unexpected workload."),
+                ("execution_ownership_rollback_failed", "The Lease cannot be returned to the source."),
             ),
         ),
     ]
@@ -353,6 +513,7 @@ def _conditions(*values: tuple[str, str]) -> list[RuntimeExecutionCondition]:
 def _identity(decision: RuntimeRecommendationDecision) -> tuple[str, str]:
     seed = "|".join(
         (
+            "execution-plan-v4-execution-ownership",
             decision.service_id,
             decision.namespace,
             decision.workload_kind,

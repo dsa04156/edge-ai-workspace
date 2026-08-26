@@ -43,6 +43,9 @@ class KubeClient:
         
         self.v1 = client.CoreV1Api()
         self.apps = client.AppsV1Api()
+        self.storage = client.StorageV1Api()
+        self.discovery = client.DiscoveryV1Api()
+        self.coordination = client.CoordinationV1Api()
 
     async def get_node_map(self) -> dict[str, dict[str, str]]:
         """
@@ -207,12 +210,167 @@ class KubeClient:
                 f"Failed to observe Deployment: {type(exc).__name__}",
             ) from exc
 
+    async def read_service(self, namespace: str, name: str) -> Any:
+        return await self._read_preflight_resource(
+            self.v1.read_namespaced_service,
+            name=name,
+            namespace=namespace,
+            unavailable_reason="source_service_state_unavailable",
+        )
+
+    async def list_endpoint_slices(self, namespace: str, service_name: str) -> list[Any]:
+        if not self.enabled:
+            raise KubeDeploymentError("kubernetes_client_unavailable", "Kubernetes client is unavailable")
+        try:
+            result = await asyncio.to_thread(
+                self.discovery.list_namespaced_endpoint_slice,
+                namespace=namespace,
+                label_selector=f"kubernetes.io/service-name={service_name}",
+            )
+            return list(result.items)
+        except ApiException as exc:
+            raise KubeDeploymentError("routing_state_unavailable", _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError("routing_state_unavailable", f"Failed to list EndpointSlices: {type(exc).__name__}") from exc
+
+    async def read_endpoint_slice(self, namespace: str, name: str) -> Any:
+        try:
+            return await asyncio.to_thread(
+                self.discovery.read_namespaced_endpoint_slice,
+                namespace=namespace,
+                name=name,
+            )
+        except ApiException as exc:
+            raise KubeDeploymentError("routing_state_unavailable", _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError("routing_state_unavailable", f"Failed to read EndpointSlice: {type(exc).__name__}") from exc
+
+    async def replace_endpoint_slice(self, namespace: str, name: str, body: dict[str, Any]) -> Any:
+        try:
+            return await asyncio.to_thread(
+                self.discovery.replace_namespaced_endpoint_slice,
+                namespace=namespace,
+                name=name,
+                body=body,
+            )
+        except ApiException as exc:
+            reason = "routing_state_conflict" if exc.status == 409 else "endpointslice_update_failed"
+            raise KubeDeploymentError(reason, _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError("endpointslice_update_failed", f"Failed to update EndpointSlice: {type(exc).__name__}") from exc
+
+    async def read_lease(self, namespace: str, name: str) -> Any:
+        if not self.enabled:
+            raise KubeDeploymentError(
+                "kubernetes_client_unavailable",
+                "Kubernetes client is unavailable",
+            )
+        try:
+            return await asyncio.to_thread(
+                self.coordination.read_namespaced_lease,
+                name=name,
+                namespace=namespace,
+            )
+        except ApiException as exc:
+            reason = {
+                403: "execution_lease_access_forbidden",
+                404: "execution_lease_not_found",
+            }.get(exc.status, "execution_lease_unavailable")
+            raise KubeDeploymentError(reason, _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "execution_lease_unavailable",
+                f"Failed to read Lease: {type(exc).__name__}",
+            ) from exc
+
+    async def replace_lease(
+        self,
+        namespace: str,
+        name: str,
+        body: dict[str, Any],
+    ) -> Any:
+        if not self.enabled:
+            raise KubeDeploymentError(
+                "kubernetes_client_unavailable",
+                "Kubernetes client is unavailable",
+            )
+        try:
+            return await asyncio.to_thread(
+                self.coordination.replace_namespaced_lease,
+                name=name,
+                namespace=namespace,
+                body=body,
+            )
+        except ApiException as exc:
+            reason = {
+                403: "execution_lease_access_forbidden",
+                404: "execution_lease_not_found",
+                409: "execution_lease_cas_conflict",
+                422: "execution_ownership_contract_invalid",
+            }.get(exc.status, "execution_lease_update_failed")
+            raise KubeDeploymentError(reason, _api_error_message(exc)) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                "execution_lease_update_failed",
+                f"Failed to update Lease: {type(exc).__name__}",
+            ) from exc
+
+    async def read_persistent_volume_claim(self, namespace: str, name: str) -> Any:
+        return await self._read_preflight_resource(
+            self.v1.read_namespaced_persistent_volume_claim,
+            name=name,
+            namespace=namespace,
+            unavailable_reason="source_pvc_state_unavailable",
+        )
+
+    async def read_storage_class(self, name: str) -> Any:
+        return await self._read_preflight_resource(
+            self.storage.read_storage_class,
+            name=name,
+            unavailable_reason="storage_class_unavailable",
+        )
+
+    async def _read_preflight_resource(
+        self,
+        reader: Any,
+        *,
+        name: str,
+        unavailable_reason: str,
+        namespace: str | None = None,
+    ) -> Any:
+        if not self.enabled:
+            raise KubeDeploymentError(
+                "kubernetes_client_unavailable",
+                "Kubernetes client is unavailable",
+            )
+        arguments = {"name": name}
+        if namespace is not None:
+            arguments["namespace"] = namespace
+        try:
+            return await asyncio.to_thread(reader, **arguments)
+        except ApiException as exc:
+            raise KubeDeploymentError(
+                unavailable_reason,
+                _api_error_message(exc),
+            ) from exc
+        except Exception as exc:
+            raise KubeDeploymentError(
+                unavailable_reason,
+                f"Failed to read preflight resource: {type(exc).__name__}",
+            ) from exc
+
     async def list_deployment_pods(self, namespace: str, name: str) -> list[Any]:
+        return await self.list_pods(
+            namespace,
+            f"edge-ai.io/deployment={name}",
+        )
+
+    async def list_pods(self, namespace: str, label_selector: str) -> list[Any]:
         try:
             result = await asyncio.to_thread(
                 self.v1.list_namespaced_pod,
                 namespace=namespace,
-                label_selector=f"edge-ai.io/deployment={name}",
+                label_selector=label_selector,
             )
             return list(result.items)
         except ApiException as exc:

@@ -69,4 +69,6 @@ def test_approved_overlay_adds_only_the_server1_inference_egress() -> None:
         and rule.get("ports") == [{"port": 8080, "protocol": "TCP"}]
         for rule in egress
     )
-    assert len(egress) == 3
+    # Base policy includes DNS, EdgeX input and the Lease API. This overlay
+    # contributes only the server1 inference destination.
+    assert len(egress) == 4

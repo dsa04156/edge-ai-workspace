@@ -221,6 +221,38 @@ class Settings(BaseModel):
         ge=1,
         le=100000,
     )
+    candidate_template_catalog_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "CANDIDATE_TEMPLATE_CATALOG_PATH",
+                str(APP_CONFIG_DIR / "candidate_workload_templates.json"),
+            )
+        )
+    )
+    candidate_validation_contract_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "CANDIDATE_VALIDATION_CONTRACT_PATH",
+                str(APP_CONFIG_DIR / "candidate_validation_contracts.json"),
+            )
+        )
+    )
+    traffic_routing_contract_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "TRAFFIC_ROUTING_CONTRACT_PATH",
+                str(APP_CONFIG_DIR / "traffic_routing_contracts.json"),
+            )
+        )
+    )
+    execution_ownership_contract_path: Path = Field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "EXECUTION_OWNERSHIP_CONTRACT_PATH",
+                str(APP_CONFIG_DIR / "execution_ownership_contracts.json"),
+            )
+        )
+    )
 
 
 def load_instance_map(path: Path) -> dict[str, dict[str, str]]:

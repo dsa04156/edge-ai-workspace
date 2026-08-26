@@ -73,7 +73,21 @@ def test_demo_workload_is_edge_local_read_only_and_bounded() -> None:
     }
     assert env["RESULT_DB_PATH"] == "/var/lib/sensor-anomaly-demo/results.db"
     assert env["RESULT_RETENTION_ROWS"] == "100000"
-    assert pod["spec"]["automountServiceAccountToken"] is False
+    assert pod["spec"]["automountServiceAccountToken"] is True
+    assert pod["spec"]["serviceAccountName"] == "sensor-anomaly-demo-execution"
+    assert pod["metadata"]["labels"]["edge-ai.io/deployment"] == "sensor-anomaly-demo"
+    assert env["EXECUTION_MODE"] == "SHADOW"
+    assert env["EXECUTION_OWNERSHIP_ENABLED"] == "true"
+    assert env["EXECUTION_LEASE_NAMESPACE"] == "edgex-edge"
+    assert env["EXECUTION_LEASE_NAME"] == "sensor-anomaly-demo-execution"
+    assert env["EXECUTION_OWNER_ID"] == {
+        "valueFrom": {
+            "fieldRef": {
+                "fieldPath": "metadata.labels['edge-ai.io/deployment']"
+            }
+        }
+    }
+    assert env["EXECUTION_LEASE_DURATION_SECONDS"] == "15"
     assert pod["spec"]["securityContext"]["fsGroup"] == 65532
     assert pod["spec"].get("hostNetwork") is not True
     assert container["securityContext"]["runAsNonRoot"] is True
@@ -137,6 +151,11 @@ def test_network_policy_declares_only_dns_device_input_and_dashboard_reader() ->
         for rule in egress
     )
     assert any(
+        rule.get("ports") == [{"port": 443, "protocol": "TCP"}]
+        and "to" not in rule
+        for rule in egress
+    )
+    assert any(
         rule.get("to")
         == [
             {
@@ -150,6 +169,48 @@ def test_network_policy_declares_only_dns_device_input_and_dashboard_reader() ->
     )
 
 
+def test_execution_ownership_lease_and_rbac_are_git_owned_but_spec_is_ignored() -> None:
+    _, resources = render_resources()
+    lease = resource(resources, "Lease", "sensor-anomaly-demo-execution")
+    role = resource(resources, "Role", "sensor-anomaly-demo-execution-lease")
+    binding = resource(resources, "RoleBinding", "sensor-anomaly-demo-execution-lease")
+
+    assert lease["metadata"]["namespace"] == "edgex-edge"
+    assert lease["spec"] == {
+        "holderIdentity": "sensor-anomaly-demo",
+        "leaseDurationSeconds": 15,
+        "leaseTransitions": 0,
+    }
+    assert role["rules"] == [
+        {
+            "apiGroups": ["coordination.k8s.io"],
+            "resources": ["leases"],
+            "resourceNames": ["sensor-anomaly-demo-execution"],
+            "verbs": ["get", "update"],
+        }
+    ]
+    assert {item["namespace"] for item in binding["subjects"]} == {
+        "edgex-edge",
+        "edge-ai-workloads",
+    }
+
+    application = yaml.safe_load(
+        (REPO_ROOT / "edge-orch-argocd/sensor-anomaly-demo-app.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert application["spec"]["ignoreDifferences"] == [
+        {
+            "group": "coordination.k8s.io",
+            "kind": "Lease",
+            "name": "sensor-anomaly-demo-execution",
+            "namespace": "edgex-edge",
+            "jsonPointers": ["/spec"],
+        }
+    ]
+    assert "RespectIgnoreDifferences=true" in application["spec"]["syncPolicy"][
+        "syncOptions"
+    ]
 def test_argocd_retires_fake_vision_app_and_declares_sensor_demo_app() -> None:
     apps_text = (REPO_ROOT / "edge-orch-argocd/argocd-apps.yaml").read_text(
         encoding="utf-8"

@@ -80,7 +80,11 @@ def test_execution_plan_api_is_read_only_and_uses_latest_decision(monkeypatch) -
     assert [step["action"] for step in payload["steps"]] == [
         "create_candidate",
         "verify_ready",
+        "validate_candidate_pre_activation",
+        "handoff_execution_ownership",
+        "verify_active_candidate",
         "distribute_traffic",
+        "rollback_execution_ownership",
     ]
     assert deploy_calls == []
 
