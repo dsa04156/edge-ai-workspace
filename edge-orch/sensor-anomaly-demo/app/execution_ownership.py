@@ -60,17 +60,19 @@ class KubernetesLeaseClient:
         self,
         *,
         client: httpx.AsyncClient | None = None,
+        api_url: str | None = None,
         token_path: Path = Path("/var/run/secrets/kubernetes.io/serviceaccount/token"),
         ca_path: Path = Path("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"),
     ) -> None:
         host = os.getenv("KUBERNETES_SERVICE_HOST")
         port = os.getenv("KUBERNETES_SERVICE_PORT_HTTPS", "443")
+        base_url = api_url or (f"https://{host}:{port}" if host else None)
         if client is None:
-            if not host or not token_path.exists() or not ca_path.exists():
+            if not base_url or not token_path.exists() or not ca_path.exists():
                 raise LeaseAccessError("in-cluster Kubernetes credentials are unavailable")
             token = token_path.read_text(encoding="utf-8").strip()
             client = httpx.AsyncClient(
-                base_url=f"https://{host}:{port}",
+                base_url=base_url.rstrip("/"),
                 headers={"Authorization": f"Bearer {token}"},
                 verify=str(ca_path),
                 timeout=2.0,
@@ -375,7 +377,10 @@ class ExecutionOwnershipGuard:
 def build_execution_ownership_guard(settings: Settings) -> ExecutionOwnershipGuard | None:
     if not settings.execution_ownership_enabled:
         return None
-    return ExecutionOwnershipGuard(settings, KubernetesLeaseClient())
+    return ExecutionOwnershipGuard(
+        settings,
+        KubernetesLeaseClient(api_url=settings.execution_kubernetes_api_url),
+    )
 
 
 def _parse_time(value: Any) -> datetime | None:

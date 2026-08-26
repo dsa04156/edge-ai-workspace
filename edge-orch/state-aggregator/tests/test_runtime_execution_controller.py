@@ -47,7 +47,7 @@ NOW = datetime(2026, 8, 25, 14, 0, tzinfo=timezone.utc)
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "app/config/candidate_workload_templates.json"
 IMAGE = (
     "192.168.0.56:5000/sensor-anomaly-demo@sha256:"
-    "1fbf18f39f99e434122b29b70d88a6eb6673915665cea3debfdbb300c0f36a72"
+    "988854fa33e86d00d7b17e36362fbc99b263b8af8956a623b579851c81a11bca"
 )
 
 

@@ -88,8 +88,7 @@ def test_demo_workload_is_edge_local_read_only_and_bounded() -> None:
         }
     }
     assert env["EXECUTION_LEASE_DURATION_SECONDS"] == "15"
-    assert env["KUBERNETES_SERVICE_HOST"] == "192.168.0.56"
-    assert env["KUBERNETES_SERVICE_PORT_HTTPS"] == "6443"
+    assert env["EXECUTION_KUBERNETES_API_URL"] == "https://192.168.0.56:6443"
     assert pod["spec"]["securityContext"]["fsGroup"] == 65532
     assert pod["spec"].get("hostNetwork") is not True
     assert container["securityContext"]["runAsNonRoot"] is True

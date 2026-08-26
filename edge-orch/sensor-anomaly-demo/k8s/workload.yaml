@@ -50,7 +50,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: sensor-anomaly-demo
-          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:1fbf18f39f99e434122b29b70d88a6eb6673915665cea3debfdbb300c0f36a72
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:988854fa33e86d00d7b17e36362fbc99b263b8af8956a623b579851c81a11bca
           imagePullPolicy: IfNotPresent
           env:
             - name: REMOTE_INFERENCE_MODE
@@ -123,13 +123,10 @@ spec:
               value: "15"
             - name: EXECUTION_LEASE_POLL_INTERVAL_SECONDS
               value: "2"
-            # KubeEdge edge Pods do not receive the standard Kubernetes
-            # Service env vars and cannot route the kubernetes.default VIP.
-            # Use the cluster's control-plane endpoint for Lease-only access.
-            - name: KUBERNETES_SERVICE_HOST
-              value: "192.168.0.56"
-            - name: KUBERNETES_SERVICE_PORT_HTTPS
-              value: "6443"
+            # KubeEdge clears the reserved KUBERNETES_SERVICE_HOST variable
+            # and cannot route the kubernetes.default VIP on edge nodes.
+            - name: EXECUTION_KUBERNETES_API_URL
+              value: https://192.168.0.56:6443
           ports:
             - name: http
               containerPort: 8080

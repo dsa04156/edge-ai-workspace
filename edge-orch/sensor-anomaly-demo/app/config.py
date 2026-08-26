@@ -65,6 +65,7 @@ class Settings(BaseModel):
     execution_owner_id: str | None = None
     execution_lease_duration_seconds: int = Field(default=15, ge=5, le=300)
     execution_lease_poll_interval_seconds: float = Field(default=2.0, gt=0, le=30)
+    execution_kubernetes_api_url: str | None = None
 
     @model_validator(mode="after")
     def validate_multi_sensor_settings(self) -> Self:
@@ -98,6 +99,11 @@ class Settings(BaseModel):
                 >= self.execution_lease_duration_seconds / 2
             ):
                 raise ValueError("execution Lease poll interval must be less than half its duration")
+            if (
+                self.execution_kubernetes_api_url is not None
+                and not self.execution_kubernetes_api_url.startswith("https://")
+            ):
+                raise ValueError("execution Kubernetes API URL must use HTTPS")
         return self
 
     @classmethod
@@ -177,5 +183,8 @@ class Settings(BaseModel):
             ),
             execution_lease_poll_interval_seconds=float(
                 os.getenv("EXECUTION_LEASE_POLL_INTERVAL_SECONDS", "2")
+            ),
+            execution_kubernetes_api_url=(
+                os.getenv("EXECUTION_KUBERNETES_API_URL") or None
             ),
         )

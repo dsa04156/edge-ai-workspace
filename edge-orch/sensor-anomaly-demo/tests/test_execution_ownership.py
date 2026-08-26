@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.config import Settings
 from app.execution_ownership import (
     ExecutionOwnershipGuard,
+    KubernetesLeaseClient,
     LeaseConflictError,
 )
 from app.local_data import ACCELERATION_SOURCES, LocalDataSource
@@ -67,6 +68,38 @@ def _settings(owner: str, mode: str = "SHADOW") -> Settings:
         execution_lease_duration_seconds=15,
         execution_lease_poll_interval_seconds=2,
     )
+
+
+def test_custom_api_url_does_not_depend_on_reserved_kubernetes_host(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    token_path = tmp_path / "token"
+    ca_path = tmp_path / "ca.crt"
+    token_path.write_text("test-token", encoding="utf-8")
+    ca_path.write_text("test-ca", encoding="utf-8")
+    captured = {}
+    sentinel = object()
+
+    def fake_async_client(**kwargs):
+        captured.update(kwargs)
+        return sentinel
+
+    monkeypatch.setenv("KUBERNETES_SERVICE_HOST", "")
+    monkeypatch.setattr(
+        "app.execution_ownership.httpx.AsyncClient",
+        fake_async_client,
+    )
+
+    client = KubernetesLeaseClient(
+        api_url="https://192.168.0.56:6443",
+        token_path=token_path,
+        ca_path=ca_path,
+    )
+
+    assert client._client is sentinel
+    assert captured["base_url"] == "https://192.168.0.56:6443"
+    assert captured["headers"] == {"Authorization": "Bearer test-token"}
 
 
 def test_exact_unexpired_holder_renews_with_resource_version_cas() -> None:
