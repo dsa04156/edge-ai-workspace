@@ -589,12 +589,12 @@
 .runtime-live-events > li {
   position: relative;
   display: grid;
-  grid-template-columns: 56px 12px minmax(0, 1fr) auto;
+  grid-template-columns: 82px 12px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   min-height: 35px;
 }
-.runtime-live-events > li:not(:last-child)::after { content: ""; position: absolute; top: 24px; bottom: -11px; left: 69px; width: 1px; background: var(--apple-line-strong, var(--line-strong)); }
+.runtime-live-events > li:not(:last-child)::after { content: ""; position: absolute; top: 24px; bottom: -11px; left: 95px; width: 1px; background: var(--apple-line-strong, var(--line-strong)); }
 .runtime-live-events time { color: var(--apple-secondary, var(--muted)); font-size: 10px; font-variant-numeric: tabular-nums; }
 .runtime-live-event-marker { z-index: 1; width: 8px; height: 8px; border: 2px solid var(--apple-info, #2769a3); border-radius: 50%; background: var(--apple-surface-raised, #f6f9f8); }
 .runtime-live-events > li[data-status="succeeded"] .runtime-live-event-marker { border-color: var(--apple-ok, #19724c); }
@@ -938,8 +938,8 @@
   .runtime-live-recent > header { flex-direction: column; gap: 4px; }
   .runtime-live-rollback { flex-direction: column; }
   .runtime-live-rollback i { transform: rotate(90deg); }
-  .runtime-live-events > li { grid-template-columns: 48px 12px minmax(0, 1fr); padding: 6px 0; }
-  .runtime-live-events > li:not(:last-child)::after { top: 27px; bottom: -11px; left: 61px; }
+  .runtime-live-events > li { grid-template-columns: 70px 12px minmax(0, 1fr); padding: 6px 0; }
+  .runtime-live-events > li:not(:last-child)::after { top: 27px; bottom: -11px; left: 83px; }
   .runtime-live-events small { grid-column: 3; justify-self: start; }
   .runtime-details-disclosure > summary { align-items: flex-start; flex-direction: column; justify-content: center; }
   .runtime-details-stack { padding: 12px; }

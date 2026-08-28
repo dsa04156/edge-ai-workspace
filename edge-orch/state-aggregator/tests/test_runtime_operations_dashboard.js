@@ -530,6 +530,7 @@ test("reduces the default live demo to current state, execution flow, and five r
   assert.match(rendered, /현재 처리 노드/);
   assert.match(rendered, /Source → Candidate → Rollback/);
   assert.match(rendered, /핵심 전환 기록/);
+  assert.match(rendered, /08\.26 /);
   assert.match(rendered, /12,430/);
   assert.match(rendered, /rollback 후 workload 보존 · 삭제되지 않음/);
   assert.doesNotMatch(rendered, /resourceVersion|reasonCode|91\.03/);
