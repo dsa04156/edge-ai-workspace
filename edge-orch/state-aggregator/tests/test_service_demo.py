@@ -136,6 +136,7 @@ def live_payload() -> dict:
             "observedAt": datetime.now(timezone.utc).isoformat(),
         },
         "storage": {
+            "apiVersion": "v1",
             "backend": "sqlite",
             "durable": True,
             "resultCount": 30,

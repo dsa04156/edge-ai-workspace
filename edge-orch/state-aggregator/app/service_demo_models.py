@@ -188,6 +188,7 @@ class UpstreamExecutionOwnership(UpstreamModel):
 
 
 class UpstreamStorageStatus(UpstreamModel):
+    api_version: Literal["v1"]
     backend: Literal["sqlite"] = "sqlite"
     durable: bool
     result_count: int = Field(ge=0)
