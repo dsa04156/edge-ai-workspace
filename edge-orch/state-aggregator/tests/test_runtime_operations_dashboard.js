@@ -7,16 +7,20 @@ const {
   DASHBOARD_PAGES,
 } = require("../app/static/navigation.js");
 const {
+  buildLiveExecutionSummary,
   buildRuntimeOperationsView,
   calculateExecutionDurations,
   dryRunRuntimePlan,
   loadRuntimeOperationsData,
   mergeExecutionSteps,
+  recentLiveEvents,
   renderInferenceOffloading,
+  renderLiveExecutionDemo,
   renderOwnership,
   renderRuntimeCandidates,
   renderRuntimeHistory,
   renderRuntimePlan,
+  renderRuntimeOperations,
   renderSchedulingResourceDetails,
   runtimeDuration,
   runtimeOperationsState,
@@ -254,6 +258,8 @@ test("renders recommendation reasons, duration, and all placement outcomes", () 
   assert.equal(view.currentScheduling.cpu, "3.00 cores available");
   assert.equal(view.currentScheduling.memory, "4.00 GB");
   assert.equal(view.currentScheduling.accelerator, "JetsonGPU");
+  assert.equal(view.source.mode, "N/A");
+  assert.equal(buildLiveExecutionSummary(view).status, "관측 불가");
   assert.deepEqual(view.reasonCodes, ["sustained_cpu_pressure", "latency_slo_violated"]);
   assert.deepEqual(view.candidates.map((candidate) => candidate.result), [
     "SELECTED", "ELIGIBLE", "REJECTED",
@@ -476,6 +482,64 @@ test("shows Pod readiness separately from ACTIVE ownership and persisted rollbac
   assert.match(liveDemo, /최근 inference/);
   assert.match(liveDemo, /failure detected/);
   assert.match(liveDemo, /workload 보존/);
+});
+
+test("reduces the default live demo to current state, execution flow, and five real events", () => {
+  const record = executionFixture();
+  const history = {items: [{
+    recordedAt: "2026-08-26T07:16:00Z", previousState: "NORMAL", state: "OBSERVING",
+    decision: decisionFixture(),
+  }, {
+    recordedAt: "2026-08-26T07:17:00Z", previousState: "OBSERVING", state: "REPLACE_RECOMMENDED",
+    decision: decisionFixture(),
+  }]};
+  const audit = {items: [{
+    eventType: "execution_ownership_handed_off", status: "SUCCEEDED", recordedAt: "2026-08-26T07:18:50.368Z",
+  }, {
+    eventType: "execution_ownership_restored_to_source", status: "SUCCEEDED", recordedAt: "2026-08-26T07:20:50.432Z",
+  }, {
+    eventType: "execution_ownership_rollback_succeeded", status: "SUCCEEDED", recordedAt: "2026-08-26T07:20:50.432Z",
+  }]};
+  const view = buildRuntimeOperationsView({
+    decision: decisionFixture(), history, plan: planFixture(), executionRecord: record,
+    executions: [record], audit, resources: [], services: [],
+    serviceDemo: {
+      input_state: "fresh", model_state: "ready", binding: {node: "etri-dev0001-jetorn"},
+      counters: {frames_processed: 12430}, storage: {result_count: 12390},
+      latest: {observed_at: "2026-08-26T07:20:59.900Z"},
+      execution_ownership: {effective_mode: "ACTIVE", holder_identity: "sensor-anomaly-demo",
+        lease_valid: true, resource_version: "44", observed_at: "2026-08-26T07:21:00Z"},
+    },
+  });
+
+  const summary = buildLiveExecutionSummary(view);
+  assert.equal(summary.activeNode, "Jetson");
+  assert.equal(summary.status, "ACTIVE");
+  assert.equal(summary.latestInference, "정상");
+  assert.deepEqual(summary.candidate, {
+    node: "Raspberry Pi", nodeId: "etri-dev0002-raspi5", podReady: "NOT READY", mode: "STANDBY",
+  });
+
+  const events = recentLiveEvents(view);
+  assert.equal(events.length <= 5, true);
+  assert.equal(events.some((event) => event.label === "Raspberry Pi 추천"), true);
+  assert.equal(events.some((event) => event.label === "Jetson → Raspberry Pi 전환" && event.duration === "54ms"), true);
+  assert.equal(events.some((event) => event.label === "Candidate 장애 → Jetson Rollback" && event.duration === "123ms"), true);
+
+  const rendered = renderLiveExecutionDemo(view);
+  assert.match(rendered, /현재 처리 노드/);
+  assert.match(rendered, /Source → Candidate → Rollback/);
+  assert.match(rendered, /핵심 전환 기록/);
+  assert.match(rendered, /12,430/);
+  assert.match(rendered, /rollback 후 workload 보존 · 삭제되지 않음/);
+  assert.doesNotMatch(rendered, /resourceVersion|reasonCode|91\.03/);
+
+  const content = {innerHTML: ""};
+  const notice = {dataset: {}, textContent: ""};
+  renderRuntimeOperations(view, {getElementById: (id) => id === "runtimeOperationsContent" ? content : notice});
+  assert.match(content.innerHTML, /^<section class="panel runtime-live-demo"/);
+  assert.match(content.innerHTML, /<details class="runtime-details-disclosure"><summary><span>상세 보기/);
+  assert.doesNotMatch(content.innerHTML, /runtime-details-disclosure" open/);
 });
 
 test("merges persisted step state and keeps ownership and traffic planes distinct", () => {

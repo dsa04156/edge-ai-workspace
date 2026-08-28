@@ -140,7 +140,9 @@ function sourceExecutionMode(serviceDemo, record) {
   const live = runtimeField(serviceDemo, "executionOwnership", "execution_ownership");
   const effective = runtimeField(live, "effectiveMode", "effective_mode");
   if (["ACTIVE", "STANDBY", "SHADOW"].includes(effective)) return effective;
-  return record?.executionOwnership?.activeOwner === "candidate" ? "STANDBY" : "ACTIVE";
+  if (record?.executionOwnership?.activeOwner === "candidate") return "STANDBY";
+  if (record?.executionOwnership?.activeOwner === "source") return "ACTIVE";
+  return "N/A";
 }
 function candidatePodReady(record) {
   const check = validationCheck(latestValidation(record), "pod_ready");
@@ -293,6 +295,82 @@ function runtimeTimeline(history = [], audit = [], record = null) {
   const sorted = [...decisions, ...executions, ...derived].filter((event) => Number.isFinite(Date.parse(event.at)))
     .sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   return sorted.map((event, index) => ({...event, durationFromPrevious: index ? runtimeDuration(sorted[index - 1].at, event.at) : "N/A"}));
+}
+
+function runtimeNodeLabel(node) {
+  const value = runtimeValue(node);
+  const normalized = value.toLowerCase();
+  if (normalized.includes("jetson") || normalized.includes("jetorn")) return "Jetson";
+  if (normalized.includes("raspi") || normalized.includes("raspberry")) return "Raspberry Pi";
+  return value;
+}
+function runtimeClock(value) {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? new Date(parsed).toLocaleTimeString("ko-KR", {
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }) : "N/A";
+}
+function runtimeCounter(value) {
+  const number = runtimeNumber(value);
+  return number === null ? "N/A" : number.toLocaleString("ko-KR");
+}
+function runtimeDurationByLabel(view, label) {
+  return runtimeList(view?.durations).find((item) => item.label === label)?.value || "N/A";
+}
+function buildLiveExecutionSummary(view = {}) {
+  const source = view.source || {};
+  const candidate = view.candidate || {};
+  const activeWorkload = view.ownership?.leaseValid === false ? null
+    : source.mode === "ACTIVE" ? source : candidate.mode === "ACTIVE" ? candidate : null;
+  const inferenceHealthy = Boolean(activeWorkload?.latestInferenceAt)
+    && String(activeWorkload.inputState || view.inputState).toLowerCase() === "fresh"
+    && String(activeWorkload.modelState || view.modelState).toLowerCase() === "ready";
+  const latestInference = !activeWorkload?.latestInferenceAt ? "N/A"
+    : inferenceHealthy ? "정상" : "확인 필요";
+  const recommendationTarget = runtimeNodeLabel(view.selectedNode);
+  const recommendation = view.action && !["N/A", "NO CHANGE"].includes(view.action)
+    ? `${view.action} → ${recommendationTarget}` : runtimeValue(view.state);
+  return {
+    activeRole: activeWorkload?.role || "none",
+    activeNode: runtimeNodeLabel(activeWorkload?.node),
+    activeNodeId: runtimeValue(activeWorkload?.node),
+    status: activeWorkload?.mode || "관측 불가",
+    recommendation,
+    latestInference,
+    latestInferenceAt: activeWorkload?.latestInferenceAt || null,
+    candidate: view.candidateExists ? {
+      node: runtimeNodeLabel(candidate.node), nodeId: runtimeValue(candidate.node),
+      podReady: runtimeValue(candidate.podReady), mode: runtimeValue(candidate.mode),
+    } : null,
+  };
+}
+function recentLiveEvents(view = {}, limit = 5) {
+  const sourceName = runtimeNodeLabel(view.source?.node);
+  const candidateName = runtimeNodeLabel(view.candidate?.node);
+  const timeline = runtimeList(view.timeline);
+  const latest = (labels) => timeline.filter((event) => labels.includes(event.label)).at(-1) || null;
+  const failure = latest(["Candidate 장애"]);
+  const rollback = latest(["Source ACTIVE 복구", "rollback 완료"]);
+  const stageDefinitions = [
+    {key: "problem", event: latest(["문제 감지"]), label: "문제 감지"},
+    {key: "recommendation", event: latest(["REPLACE_RECOMMENDED"]), label: `${candidateName} 추천`},
+    {key: "ready", event: latest(["Candidate Ready"]), label: "Candidate 준비 완료", duration: "승인 → Candidate Ready"},
+    {key: "handoff", event: latest(["Lease handoff"]), label: `${sourceName} → ${candidateName} 전환`, duration: "Lease handoff"},
+    {key: "active", event: rollback ? null : latest(["Candidate ACTIVE"]), label: `${candidateName} ACTIVE`, duration: "Candidate inference 재개"},
+    {key: "failure", event: failure && !rollback ? failure : null, label: "Candidate 장애 감지"},
+    {key: "rollback", event: rollback, label: failure ? `Candidate 장애 → ${sourceName} Rollback` : `${sourceName}으로 Rollback`, duration: "Lease rollback"},
+  ];
+  const primary = stageDefinitions.filter((stage) => stage.event).map((stage) => ({
+    key: stage.key, at: stage.event.at, label: stage.label, status: stage.event.status,
+    duration: stage.duration ? runtimeDurationByLabel(view, stage.duration) : "N/A",
+  }));
+  if (primary.length >= Math.min(4, limit)) return primary.sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-limit);
+  const usedTimes = new Set(primary.map((event) => `${event.at}|${event.label}`));
+  const extras = timeline.filter((event) => ["승인", "Pre-validation 완료"].includes(event.label))
+    .map((event) => ({key: event.label, at: event.at, label: event.label, status: event.status,
+      duration: event.label === "Pre-validation 완료" ? runtimeDurationByLabel(view, "Pre-validation") : "N/A"}))
+    .filter((event) => !usedTimes.has(`${event.at}|${event.label}`));
+  return [...primary, ...extras].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-limit);
 }
 
 function buildRuntimeOperationsView({decision, history, plan, resources, services, serviceDemo,
@@ -515,14 +593,60 @@ function renderAuditTimeline(view) {
     <dl><div><dt>reason</dt><dd><code>${runtimeEscape(event.reasonCodes.join(", ") || "-")}</code></dd></div><div><dt>source</dt><dd>${runtimeEscape(event.sourceNode || "N/A")}</dd></div><div><dt>candidate</dt><dd>${runtimeEscape(event.candidateNode || "N/A")}</dd></div></dl></div></li>`).join("")}</ol>`;
 }
 
+function renderLiveNodeCard(workload = {}) {
+  if (!workload.exists) return `<article class="runtime-live-node" data-mode="unknown">
+    <span class="runtime-live-node-role">Candidate</span><strong>Candidate 없음</strong>
+    <p>승인된 execution의 candidate 기록이 없습니다.</p></article>`;
+  const label = runtimeNodeLabel(workload.node);
+  const exactNode = label === workload.node ? "" : `<small>${runtimeEscape(workload.node)}</small>`;
+  return `<article class="runtime-live-node" data-mode="${runtimeEscape(runtimeExecutionTone(workload.mode))}"${workload.mode === "ACTIVE" ? " aria-current=\"true\"" : ""}>
+    <header><span class="runtime-live-node-role">${runtimeEscape(workload.title)}</span><span class="runtime-state-badge" data-state="${runtimeEscape(runtimeExecutionTone(workload.mode))}">${runtimeEscape(workload.mode)}</span></header>
+    <div class="runtime-live-node-name"><strong>${runtimeEscape(label)}</strong>${exactNode}</div>
+    <dl class="runtime-live-node-counter"><div><dt>frames</dt><dd>${runtimeEscape(runtimeCounter(workload.framesProcessed))}</dd></div></dl>
+    <dl class="runtime-live-node-meta"><div><dt>Pod Ready</dt><dd>${runtimeEscape(workload.podReady)}</dd></div><div><dt>Lease</dt><dd>${workload.mode === "ACTIVE" ? "보유" : "미보유"}</dd></div></dl>
+    ${workload.shadowNote ? `<p class="runtime-live-node-note">${runtimeEscape(workload.shadowNote)}</p>` : ""}
+    ${workload.preservedNote ? `<p class="runtime-live-node-note" data-note="preserved">${runtimeEscape(workload.preservedNote)}</p>` : ""}</article>`;
+}
+function renderLiveExecutionDemo(view) {
+  const summary = buildLiveExecutionSummary(view);
+  const events = recentLiveEvents(view);
+  const rollback = view.rollback || {};
+  const candidateState = summary.candidate ? `<div class="runtime-live-candidate"><span>Candidate</span><strong>${runtimeEscape(summary.candidate.node)}</strong><small>${runtimeEscape(summary.candidate.podReady)} · ${runtimeEscape(summary.candidate.mode)}</small></div>` : "";
+  const rollbackFlow = rollback.started || rollback.failureDetected ? `<div class="runtime-live-rollback" aria-label="Candidate 장애부터 Source 복구까지의 rollback 흐름">
+    <span data-state="complete">Source</span><i>→</i><span data-state="${rollback.failureDetected ? "failed" : "current"}">Candidate 장애</span><i>→</i>
+    <span data-state="${rollback.succeeded ? "complete" : "current"}">Rollback</span><i>→</i><span data-state="${rollback.sourceRestored ? "complete" : "pending"}">Source ACTIVE</span></div>` : "";
+  const eventList = events.length ? `<ol class="runtime-live-events">${events.map((event) => `<li data-status="${runtimeEscape(runtimeExecutionTone(event.status))}">
+    <time datetime="${runtimeEscape(event.at)}">${runtimeEscape(runtimeClock(event.at))}</time><span class="runtime-live-event-marker"></span><strong>${runtimeEscape(event.label)}</strong>
+    ${event.duration !== "N/A" ? `<small>${runtimeEscape(event.key === "rollback" ? "Rollback" : event.key === "handoff" ? "Handoff" : "소요")} ${runtimeEscape(event.duration)}</small>` : ""}</li>`).join("")}</ol>`
+    : `<div class="runtime-section-empty">실제 audit/execution timestamp 기반 핵심 이벤트가 아직 없습니다.</div>`;
+  const leaseState = view.ownership?.leaseValid === true ? "유효" : view.ownership?.leaseValid === false ? "무효" : "관측 불가";
+  return `<section class="panel runtime-live-demo" aria-labelledby="runtimeLiveDemoTitle">
+    <div class="runtime-section-head"><div><span>Runtime Orchestration</span><h3 id="runtimeLiveDemoTitle">Live Execution Demo</h3></div><span>2–5초 live polling</span></div>
+    <section class="runtime-live-status" aria-labelledby="runtimeLiveStatusTitle">
+      <div class="runtime-live-primary" data-state="${runtimeEscape(runtimeExecutionTone(summary.status))}"><span id="runtimeLiveStatusTitle">현재 처리 노드</span><strong>${runtimeEscape(summary.activeNode)}</strong><small>${summary.activeNodeId !== summary.activeNode ? runtimeEscape(summary.activeNodeId) : "실행 권한 관측값"}</small></div>
+      <dl class="runtime-live-status-facts"><div><dt>상태</dt><dd data-state="${runtimeEscape(runtimeExecutionTone(summary.status))}">${runtimeEscape(summary.status)}</dd></div>
+      <div><dt>추천</dt><dd>${runtimeEscape(summary.recommendation)}</dd></div><div><dt>최근 추론</dt><dd>${runtimeEscape(summary.latestInference)}${summary.latestInferenceAt ? `<small>${runtimeEscape(runtimeAge(summary.latestInferenceAt))}</small>` : ""}</dd></div></dl>${candidateState}
+    </section>
+    <section class="runtime-live-flow" aria-labelledby="runtimeLiveFlowTitle"><header><div><span>실행 흐름</span><h4 id="runtimeLiveFlowTitle">Source → Candidate → Rollback</h4></div><small>Lease ${runtimeEscape(leaseState)} · ${runtimeEscape(runtimeValue(view.ownership?.holderIdentity))}</small></header>
+      <div class="runtime-live-sensor"><span>Sensor input</span><i aria-hidden="true">→</i><small>${runtimeEscape(view.inputState)} · production frame</small></div>
+      <div class="runtime-live-rail" data-active-role="${runtimeEscape(summary.activeRole)}">${renderLiveNodeCard(view.source)}
+        <div class="runtime-live-handoff"><span>Lease Handoff</span><i aria-hidden="true">→</i><small>${runtimeEscape(view.source?.mode)} → ${runtimeEscape(view.candidate?.mode)}</small></div>
+        ${renderLiveNodeCard(view.candidate)}</div>${rollbackFlow}
+    </section>
+    <section class="runtime-live-recent" aria-labelledby="runtimeLiveRecentTitle"><header><div><span>최근 이벤트</span><h4 id="runtimeLiveRecentTitle">핵심 전환 기록</h4></div><small>실제 audit / execution timestamp</small></header>${eventList}</section>
+  </section>`;
+}
+
 function renderRuntimeOperations(view, documentRef = document) {
   const content = documentRef.getElementById("runtimeOperationsContent");
   const notice = documentRef.getElementById("runtimeOperationsAvailability");
   if (!content || !notice) return view;
   notice.dataset.state = view.available ? view.tone : "unknown";
-  notice.textContent = view.available ? `${view.serviceId} · ${view.state} · ACTIVE ${view.activeNode} · ${runtimeDate(view.observedAt)}`
+  const liveSummary = buildLiveExecutionSummary(view);
+  notice.textContent = view.available ? `${view.serviceId} · ${view.state} · ${liveSummary.status} ${liveSummary.activeNode} · ${runtimeDate(view.observedAt)}`
     : `Runtime Recommendation 관측 불가${view.errors?.decision ? ` · ${view.errors.decision}` : ""}`;
-  content.innerHTML = `
+  content.innerHTML = `${renderLiveExecutionDemo(view)}
+    <details class="runtime-details-disclosure"><summary><span>상세 보기</span><small>Placement · Plan · Validation · Audit</small></summary><div class="runtime-details-stack">
     <section class="panel runtime-service-panel"><div class="runtime-section-head"><div><span>Service Runtime</span><h3>${runtimeEscape(view.serviceId)}</h3></div><span class="runtime-state-badge" data-state="${runtimeEscape(view.statusTone)}">${runtimeEscape(view.status)}</span></div>
     <div class="runtime-service-grid"><dl class="runtime-fact-list"><div><dt>현재 ACTIVE 노드</dt><dd>${runtimeEscape(view.activeNode)}</dd></div><div><dt>Source 노드</dt><dd>${runtimeEscape(view.currentNode)}</dd></div><div><dt>Node Health</dt><dd>${runtimeEscape(runtimeValue(view.currentHealth))}</dd></div>
     <div><dt>Input 상태</dt><dd>${runtimeEscape(view.inputState)}</dd></div><div><dt>Model 상태</dt><dd>${runtimeEscape(view.modelState)}</dd></div><div><dt>Workload</dt><dd>${runtimeEscape(runtimeValue(view.workload))}</dd></div></dl>
@@ -550,7 +674,7 @@ function renderRuntimeOperations(view, documentRef = document) {
 
     <section class="panel runtime-history-panel"><div class="runtime-section-head"><div><span>Decision Timeline</span><h3>Runtime History / Audit</h3></div><span>${runtimeEscape(view.timeline?.length || 0)} events</span></div>
     <dl class="runtime-duration-strip">${runtimeList(view.durations).map((item) => `<div><dt>${runtimeEscape(item.label)}</dt><dd>${runtimeEscape(item.value)}</dd></div>`).join("") || "<div><dt>측정</dt><dd>N/A</dd></div>"}</dl>
-    ${renderAuditTimeline(view)}<details class="runtime-decision-history"><summary>Runtime Recommendation 판단 이력만 보기</summary>${renderRuntimeHistory(view.history)}</details></section>
+    ${renderAuditTimeline(view)}<details class="runtime-decision-history"><summary>Runtime Recommendation 판단 이력만 보기</summary>${renderRuntimeHistory(view.history)}</details></section></div></details>
     <p class="runtime-observation-source">관측 ${runtimeEscape(runtimeValue(view.observationSource))} · ${runtimeEscape(runtimeValue(view.observationScope))} · candidate/Lease는 persisted execution 및 service-demo API 기준 · 각 시각의 age를 확인하세요.</p>`;
   return view;
 }
@@ -779,10 +903,10 @@ if (typeof globalThis !== "undefined") {
   globalThis.onRuntimeOperationsVisible = () => refreshRuntimeOperations();
 }
 if (typeof module !== "undefined") {
-  module.exports = {RUNTIME_ENDPOINTS, buildRuntimeOperationsView, calculateExecutionDurations,
+  module.exports = {RUNTIME_ENDPOINTS, buildLiveExecutionSummary, buildRuntimeOperationsView, calculateExecutionDurations,
     candidateExecutionMode, candidateView, dryRunRuntimePlan, executeRuntimePlan,
     findSchedulingResource, loadRuntimeOperationsData, mergeExecutionSteps, observedDurationSeconds,
-    refreshRuntimeOperations, renderAuditTimeline, renderRuntimeCandidates, renderRuntimeHistory,
+    recentLiveEvents, refreshRuntimeOperations, renderAuditTimeline, renderLiveExecutionDemo, renderRuntimeCandidates, renderRuntimeHistory,
     renderInferenceOffloading, renderOwnership, renderRuntimeOperations, renderRuntimeOverview, renderRuntimePlan, renderSchedulingResourceDetails,
     runtimeDuration, runtimeOperationsState, runtimeSecureExecutionContext, runtimeTimeline,
     scheduleRuntimePolling, selectRuntimeExecution, selectRuntimeService, serviceRuntimeStatus};
