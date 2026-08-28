@@ -39,7 +39,7 @@
         "serviceName": "sensor-anomaly-demo",
         "containerName": "sensor-anomaly-demo",
         "compatibleImages": [
-          "192.168.0.56:5000/sensor-anomaly-demo@sha256:988854fa33e86d00d7b17e36362fbc99b263b8af8956a623b579851c81a11bca"
+          "192.168.0.56:5000/sensor-anomaly-demo@sha256:0106bea35f4a09df4041020907fef0787d7d5a010f577ad190392d6d5b517650"
         ],
         "sourceStateVolume": {
           "volumeName": "state",
@@ -68,7 +68,7 @@
         },
         "container": {
           "name": "sensor-anomaly-demo",
-          "image": "192.168.0.56:5000/sensor-anomaly-demo@sha256:988854fa33e86d00d7b17e36362fbc99b263b8af8956a623b579851c81a11bca",
+          "image": "192.168.0.56:5000/sensor-anomaly-demo@sha256:0106bea35f4a09df4041020907fef0787d7d5a010f577ad190392d6d5b517650",
           "imagePullPolicy": "IfNotPresent",
           "env": [
             {"name": "REMOTE_INFERENCE_MODE", "value": "disabled"},
