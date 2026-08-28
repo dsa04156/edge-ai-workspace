@@ -81,6 +81,16 @@ class UpstreamLatest(UpstreamModel):
     temperature_features: UpstreamTemperatureFeatures | None = None
     inference_target: Literal["edge-local", "server1"] = "edge-local"
     augmentation_approval_id: str | None = None
+    request_id: str | None = None
+    execution_mode: Literal["local", "remote", "fallback"] = "local"
+    source_node: str | None = None
+    remote_node: str | None = None
+    local_latency_ms: float | None = Field(default=None, ge=0)
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    remote_processing_ms: float | None = Field(default=None, ge=0)
+    total_latency_ms: float | None = Field(default=None, ge=0)
+    fallback: bool = False
+    reason_code: str | None = None
 
 
 class UpstreamInferenceRouting(UpstreamModel):
@@ -91,6 +101,21 @@ class UpstreamInferenceRouting(UpstreamModel):
     consecutive_failures: int = Field(default=0, ge=0)
     rollback_remaining_seconds: int = Field(default=0, ge=0)
     last_error: str | None = None
+    inference_mode: Literal["LOCAL", "REMOTE", "LOCAL_FALLBACK"] = "LOCAL"
+    source_node: str | None = None
+    remote_node: str | None = None
+    remote_ready: bool | None = None
+    target_model_version: str | None = None
+    local_latency_ms: float | None = Field(default=None, ge=0)
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    remote_processing_ms: float | None = Field(default=None, ge=0)
+    total_latency_ms: float | None = Field(default=None, ge=0)
+    remote_attempts: int = Field(default=0, ge=0)
+    remote_successes: int = Field(default=0, ge=0)
+    offload_success_rate: float | None = Field(default=None, ge=0, le=1)
+    fallback_count: int = Field(default=0, ge=0)
+    last_reason_code: str | None = None
+    observed_at: datetime | None = None
 
 
 class UpstreamFeatureModel(UpstreamModel):
@@ -162,6 +187,15 @@ class UpstreamExecutionOwnership(UpstreamModel):
     observed_at: datetime
 
 
+class UpstreamStorageStatus(UpstreamModel):
+    backend: Literal["sqlite"] = "sqlite"
+    durable: bool
+    result_count: int = Field(ge=0)
+    alert_event_count: int = Field(ge=0)
+    open_alert_count: int = Field(ge=0)
+    retention_rows: int = Field(ge=1)
+
+
 class UpstreamServiceStatus(UpstreamModel):
     api_version: Literal["v1"]
     service: Literal["sensor-anomaly-demo"]
@@ -176,6 +210,7 @@ class UpstreamServiceStatus(UpstreamModel):
     performance: UpstreamServicePerformance | None = None
     process_resources: UpstreamProcessResources | None = None
     execution_ownership: UpstreamExecutionOwnership | None = None
+    storage: UpstreamStorageStatus | None = None
     inference_routing: UpstreamInferenceRouting = Field(
         default_factory=UpstreamInferenceRouting
     )
@@ -235,6 +270,16 @@ class ServiceDemoLatest(BaseModel):
     temperature_features: ServiceDemoTemperatureFeatures | None = None
     inference_target: Literal["edge-local", "server1"] = "edge-local"
     augmentation_approval_id: str | None = None
+    request_id: str | None = None
+    execution_mode: Literal["local", "remote", "fallback"] = "local"
+    source_node: str | None = None
+    remote_node: str | None = None
+    local_latency_ms: float | None = None
+    network_latency_ms: float | None = None
+    remote_processing_ms: float | None = None
+    total_latency_ms: float | None = None
+    fallback: bool = False
+    reason_code: str | None = None
 
 
 class ServiceDemoComponentScores(BaseModel):
@@ -333,6 +378,15 @@ class ServiceDemoExecutionOwnership(BaseModel):
     observed_at: datetime
 
 
+class ServiceDemoStorageStatus(BaseModel):
+    backend: Literal["sqlite"] = "sqlite"
+    durable: bool
+    result_count: int = Field(ge=0)
+    alert_event_count: int = Field(ge=0)
+    open_alert_count: int = Field(ge=0)
+    retention_rows: int = Field(ge=1)
+
+
 class ServiceAugmentationGate(BaseModel):
     id: str
     label: str
@@ -390,6 +444,21 @@ class ServiceDemoInferenceRouting(BaseModel):
     consecutive_failures: int = 0
     rollback_remaining_seconds: int = 0
     last_error: str | None = None
+    inference_mode: Literal["LOCAL", "REMOTE", "LOCAL_FALLBACK"] = "LOCAL"
+    source_node: str | None = None
+    remote_node: str | None = None
+    remote_ready: bool | None = None
+    target_model_version: str | None = None
+    local_latency_ms: float | None = None
+    network_latency_ms: float | None = None
+    remote_processing_ms: float | None = None
+    total_latency_ms: float | None = None
+    remote_attempts: int = 0
+    remote_successes: int = 0
+    offload_success_rate: float | None = None
+    fallback_count: int = 0
+    last_reason_code: str | None = None
+    observed_at: datetime | None = None
 
 
 class ServiceDemoState(BaseModel):
@@ -405,6 +474,7 @@ class ServiceDemoState(BaseModel):
     performance: ServiceDemoPerformance | None = None
     process_resources: ServiceDemoProcessResources | None = None
     execution_ownership: ServiceDemoExecutionOwnership | None = None
+    storage: ServiceDemoStorageStatus | None = None
     augmentation: ServiceAugmentationState | None = None
     inference_routing: ServiceDemoInferenceRouting = Field(
         default_factory=ServiceDemoInferenceRouting

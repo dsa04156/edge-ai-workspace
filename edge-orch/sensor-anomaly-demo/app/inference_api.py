@@ -4,6 +4,7 @@ import hashlib
 import json
 import time
 from collections import OrderedDict
+from datetime import datetime, timezone
 from threading import Lock
 
 from .config import Settings
@@ -24,6 +25,10 @@ class InferenceRequestConflict(ValueError):
 
 
 class InferenceInputError(ValueError):
+    pass
+
+
+class InferenceModelVersionMismatch(ValueError):
     pass
 
 
@@ -70,6 +75,11 @@ class InferenceEngine:
                 self._cache.move_to_end(request.request_id)
                 return response
 
+            if request.model_version != self.model_adapter.version:
+                raise InferenceModelVersionMismatch(
+                    "requested modelVersion does not match the active inference model"
+                )
+
             lag_ns = abs(request.frame.origin - request.temperature.origin)
             maximum_lag_ns = int(self.settings.context_max_skew_seconds * 1_000_000_000)
             if lag_ns > maximum_lag_ns:
@@ -96,8 +106,20 @@ class InferenceEngine:
             if decision is None:
                 raise InferenceInputError("temperature context was not available")
 
+            processing_time_ms = round(
+                (time.perf_counter() - processing_started) * 1_000,
+                6,
+            )
             response = InferenceResponse(
+                service_id=request.service_id,
                 request_id=request.request_id,
+                timestamp=(
+                    request.timestamp
+                    or datetime.fromtimestamp(
+                        request.frame.origin / 1_000_000_000,
+                        timezone.utc,
+                    )
+                ),
                 input_contract=request.input_contract,
                 origin=request.frame.origin,
                 status=decision.status,
@@ -124,10 +146,8 @@ class InferenceEngine:
                 ),
                 model_state="ready" if self.ready else "warming_up",
                 model_version=self.model_adapter.version,
-                server_processing_ms=round(
-                    (time.perf_counter() - processing_started) * 1_000,
-                    6,
-                ),
+                processing_time_ms=processing_time_ms,
+                server_processing_ms=processing_time_ms,
             )
             self._cache[request.request_id] = (fingerprint, response)
             while len(self._cache) > self.cache_size:

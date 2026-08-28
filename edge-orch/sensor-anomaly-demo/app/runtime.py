@@ -35,6 +35,7 @@ from .models import (
     FeatureModelObservation,
     FeatureModelSnapshot,
     InferenceRoutingStatus,
+    InferenceRoutingPreflight,
     LatestObservation,
     ModelObservation,
     RuntimeCounters,
@@ -73,6 +74,8 @@ class InferenceRouter(Protocol):
         *,
         local: Callable[[], ModelDecision | None],
         now: datetime | None = None,
+        request_id: str | None = None,
+        allow_remote: bool = True,
     ) -> RoutedInference | None: ...
 
     def status(
@@ -82,6 +85,16 @@ class InferenceRouter(Protocol):
     ) -> InferenceRoutingStatus: ...
 
     async def close(self) -> None: ...
+
+    def activate_remote(self, approval_id: str) -> InferenceRoutingStatus: ...
+
+    def activate_local(
+        self,
+        *,
+        reason_code: str = "local_mode_requested",
+    ) -> InferenceRoutingStatus: ...
+
+    async def preflight(self) -> InferenceRoutingPreflight: ...
 
 
 class AnomalyRuntime:
@@ -134,6 +147,13 @@ class AnomalyRuntime:
         )
         self._shadow_results: deque[LatestObservation] = deque(
             maxlen=settings.recent_result_limit
+        )
+        self._authoritative_request_ids: set[str] = {
+            row.request_id for row in self._results if row.request_id is not None
+        }
+        self._authoritative_request_order: deque[str] = deque(
+            self._authoritative_request_ids,
+            maxlen=settings.recent_result_limit,
         )
         self._frames_processed = 0
         self._shadow_frames_processed = 0
@@ -247,17 +267,24 @@ class AnomalyRuntime:
                 y=model_input.signals.acceleration_y.value,
                 z=model_input.signals.acceleration_z.value,
             )
-            local_decision = self.model_adapter.infer(
-                validated_frame,
-                row.temperature.origin,
+            owner_identity = self.settings.execution_owner_id or self.settings.service_node_id
+            request_id = (
+                f"sensor-anomaly-demo:{owner_identity}:{validated_frame.origin}"
             )
             routed = await self.inference_router.infer(
                 validated_frame,
                 row.temperature,
-                local=lambda: local_decision,
+                local=lambda: self.model_adapter.infer(
+                    validated_frame,
+                    row.temperature.origin,
+                ),
                 now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
+                request_id=request_id,
+                allow_remote=mode == "ACTIVE",
             )
             if routed is None:
+                continue
+            if routed.request_id in self._authoritative_request_ids:
                 continue
             decision = routed.decision
             if decision is None:
@@ -283,7 +310,7 @@ class AnomalyRuntime:
                 ),
                 score=decision.score,
                 anomaly=decision.status == "anomaly",
-                model_version=self.model_adapter.version,
+                model_version=routed.execution.model_version,
                 component_scores=ComponentScores(
                     vibration=decision.vibration_score,
                     temperature=decision.temperature_score,
@@ -323,6 +350,16 @@ class AnomalyRuntime:
                     if routed.target == "server1"
                     else None
                 ),
+                request_id=routed.request_id,
+                execution_mode=routed.execution.execution_mode,
+                source_node=routed.execution.source_node,
+                remote_node=routed.execution.remote_node,
+                local_latency_ms=routed.execution.local_latency_ms,
+                network_latency_ms=routed.execution.network_latency_ms,
+                remote_processing_ms=routed.execution.remote_processing_ms,
+                total_latency_ms=routed.execution.total_latency_ms,
+                fallback=routed.execution.fallback,
+                reason_code=routed.execution.reason_code,
             )
             observations.append(observation)
 
@@ -339,6 +376,11 @@ class AnomalyRuntime:
                     asset_id=self.settings.service_asset_id,
                 )
                 self._results.extend(observations)
+                for observation in observations:
+                    if observation.request_id is not None:
+                        self._remember_authoritative_request(
+                            observation.request_id
+                        )
                 self._frames_processed += len(observations)
             else:
                 self._last_error = "execution_ownership_lost_before_commit"
@@ -379,7 +421,14 @@ class AnomalyRuntime:
             vibration_snapshot.sample_count,
             temperature_snapshot.sample_count,
         )
+        routing_status = self.inference_router.status(
+            now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
+        )
         model_state = (
+            "ready"
+            if routing_status.inference_mode == "REMOTE"
+            and routing_status.remote_ready is True
+            else
             "ready" if sample_count >= self.settings.warmup_samples else "warming_up"
         )
         if self._consecutive_failed_polls >= 3:
@@ -441,10 +490,9 @@ class AnomalyRuntime:
                 observed_at=current / 1_000_000_000,
             ),
             process_resources=self.resource_tracker.snapshot(),
-            inference_routing=self.inference_router.status(
-                now=datetime.fromtimestamp(current / 1_000_000_000, timezone.utc),
-            ),
+            inference_routing=routing_status,
             execution_ownership=self._execution_ownership_observation(current),
+            storage=self.storage_status(),
             last_error=self._last_error,
         )
 
@@ -558,6 +606,15 @@ class AnomalyRuntime:
             return self.ownership_guard.state().effective_mode
         return self.settings.execution_mode
 
+    def _remember_authoritative_request(self, request_id: str) -> None:
+        if request_id in self._authoritative_request_ids:
+            return
+        if len(self._authoritative_request_order) == self._authoritative_request_order.maxlen:
+            oldest = self._authoritative_request_order.popleft()
+            self._authoritative_request_ids.discard(oldest)
+        self._authoritative_request_order.append(request_id)
+        self._authoritative_request_ids.add(request_id)
+
     def _execution_ownership_observation(
         self,
         current_ns: int,
@@ -602,6 +659,7 @@ def build_runtime(
             base_url=settings.remote_inference_url or "",
             timeout_seconds=settings.remote_inference_timeout_seconds,
             max_attempts=settings.remote_inference_max_attempts,
+            remote_node=settings.remote_inference_node,
         )
         if settings.remote_inference_mode == "approved"
         else None
@@ -621,6 +679,15 @@ def build_runtime(
             rollback_cooldown_seconds=(
                 settings.remote_inference_rollback_cooldown_seconds
             ),
+            source_node=settings.service_node_id,
+            remote_node=settings.remote_inference_node,
+            local_model_version=settings.model_version,
+            remote_model_version=settings.remote_inference_model_version,
+            latency_threshold_ms=settings.remote_inference_latency_threshold_ms,
+            latency_failure_threshold=(
+                settings.remote_inference_latency_failure_threshold
+            ),
+            initial_target=settings.remote_inference_initial_target,
         ),
         result_store=ResultStore(
             settings.result_db_path,

@@ -8,16 +8,26 @@ const {
 } = require("../app/static/navigation.js");
 const {
   buildRuntimeOperationsView,
+  calculateExecutionDurations,
+  dryRunRuntimePlan,
   loadRuntimeOperationsData,
+  mergeExecutionSteps,
+  renderInferenceOffloading,
+  renderOwnership,
   renderRuntimeCandidates,
   renderRuntimeHistory,
   renderRuntimePlan,
   renderSchedulingResourceDetails,
+  runtimeDuration,
   runtimeOperationsState,
+  runtimeSecureExecutionContext,
+  runtimeTimeline,
+  scheduleRuntimePolling,
 } = require("../app/static/runtime-operations.js");
 
 const staticDir = path.join(__dirname, "../app/static");
 const indexHtml = fs.readFileSync(path.join(staticDir, "index.html"), "utf8");
+const runtimeJavascript = fs.readFileSync(path.join(staticDir, "runtime-operations.js"), "utf8");
 
 function decisionFixture() {
   return {
@@ -104,19 +114,97 @@ function planFixture() {
     },
   };
   const condition = {code: "candidate_ready", description: "candidate is Ready"};
+  const steps = [
+    ["create-candidate", "create_candidate", "always"],
+    ["verify-ready", "verify_ready", "always"],
+    ["validate-candidate-pre-activation", "validate_candidate_pre_activation", "always"],
+    ["handoff-execution-ownership", "handoff_execution_ownership", "always"],
+    ["verify-active-candidate", "verify_active_candidate", "always"],
+    ["switch-traffic", "switch_traffic", "always"],
+    ["verify-switched-traffic", "verify_switched_traffic", "always"],
+    ["terminate-current", "terminate_current", "always"],
+    ["rollback-traffic", "rollback_traffic", "on_failure"],
+    ["rollback-execution-ownership", "rollback_execution_ownership", "on_failure"],
+  ].map(([stepId, action, executionMode], index) => ({
+    stepId,
+    sequence: index + 1,
+    action,
+    executionMode,
+    targets: [target],
+    prerequisites: [condition],
+    failureConditions: [condition],
+  }));
   return {
     planId: "runtime-plan-abcd",
     serviceId: "sensor-anomaly-demo",
     status: "planned",
     mode: "read_only",
     reasonCodes: ["execution_plan_generated"],
+    steps,
+  };
+}
+
+function executionFixture() {
+  const plan = planFixture();
+  const startedAt = "2026-08-26T07:18:02.681Z";
+  const step = (stepId, action, status, start, end, reasonCodes = []) => ({
+    stepId, action, status, reasonCodes, startedAt: start, completedAt: end,
+  });
+  return {
+    planId: plan.planId,
+    serviceId: plan.serviceId,
+    status: "FAILED",
+    approvedBy: "operator",
+    approvedAt: startedAt,
+    candidateCreated: true,
+    candidateReady: true,
+    candidateWorkload: {
+      namespace: "edge-ai-workloads",
+      name: "sensor-anomaly-demo-replace-abcd",
+      targetNode: "etri-dev0002-raspi5",
+    },
+    validation: {
+      status: "SUCCEEDED",
+      observedAt: "2026-08-26T07:18:50.309Z",
+      consecutiveSuccesses: 7,
+      requiredConsecutiveSuccesses: 6,
+      minimumStableSeconds: 30,
+      checks: [
+        {name: "pod_ready", status: "SUCCEEDED", reasonCodes: [], measurements: {pod: "candidate-pod"}},
+        {name: "execution_shadow", status: "SUCCEEDED", reasonCodes: [], measurements: {executionMode: "SHADOW"}},
+      ],
+      source: {node: "etri-dev0001-jetorn", pod: "source-pod", inputState: "fresh", modelState: "ready"},
+      candidate: {node: "etri-dev0002-raspi5", pod: "candidate-pod", inputState: "fresh", modelState: "ready", framesProcessed: 35,
+        dbWriteCount: 0, resultObservedAt: "2026-08-26T07:18:50.100Z"},
+    },
+    activeCandidateValidation: {
+      status: "FAILED",
+      observedAt: "2026-08-26T07:20:50.309Z",
+      checks: [{name: "pod_ready", status: "BLOCKED", reasonCodes: ["candidate_not_ready"]}],
+      source: {node: "etri-dev0001-jetorn", pod: "source-pod"},
+      candidate: {node: "etri-dev0002-raspi5", pod: null},
+    },
+    executionOwnership: {
+      leaseName: "sensor-anomaly-demo-execution",
+      activeOwner: "source",
+      rollbackAvailable: true,
+      handedOffAt: "2026-08-26T07:18:50.337Z",
+      rolledBackAt: "2026-08-26T07:20:50.400Z",
+      before: {holderIdentity: "sensor-anomaly-demo", resourceVersion: "41"},
+      after: {holderIdentity: "sensor-anomaly-demo", resourceVersion: "43"},
+    },
+    routing: null,
+    plan,
     steps: [
-      {sequence: 1, action: "create_candidate", executionMode: "always", targets: [target], prerequisites: [condition], failureConditions: [condition]},
-      {sequence: 2, action: "verify_ready", executionMode: "always", targets: [target], prerequisites: [condition], failureConditions: [condition]},
-      {sequence: 3, action: "switch_traffic", executionMode: "always", targets: [target], prerequisites: [condition], failureConditions: [condition]},
-      {sequence: 4, action: "terminate_current", executionMode: "always", targets: [target], prerequisites: [condition], failureConditions: [condition]},
-      {sequence: 5, action: "rollback", executionMode: "on_failure", targets: [target], prerequisites: [condition], failureConditions: [condition]},
+      step("create-candidate", "create_candidate", "SUCCEEDED", "2026-08-26T07:18:02.700Z", "2026-08-26T07:18:02.800Z"),
+      step("verify-ready", "verify_ready", "SUCCEEDED", "2026-08-26T07:18:02.800Z", "2026-08-26T07:18:19.481Z"),
+      step("validate-candidate-pre-activation", "validate_candidate_pre_activation", "SUCCEEDED", "2026-08-26T07:18:19.485Z", "2026-08-26T07:18:50.309Z"),
+      step("handoff-execution-ownership", "handoff_execution_ownership", "SUCCEEDED", "2026-08-26T07:18:50.314Z", "2026-08-26T07:18:50.368Z"),
+      step("verify-active-candidate", "verify_active_candidate", "FAILED", "2026-08-26T07:18:50.374Z", "2026-08-26T07:20:50.309Z", ["candidate_not_ready"]),
+      step("switch-traffic", "switch_traffic", "BLOCKED", null, "2026-08-26T07:20:50.309Z", ["previous_step_blocked"]),
+      step("rollback-execution-ownership", "rollback_execution_ownership", "SUCCEEDED", "2026-08-26T07:20:50.309Z", "2026-08-26T07:20:50.432Z", ["execution_ownership_rollback_succeeded"]),
     ],
+    updatedAt: "2026-08-26T07:20:50.432Z",
   };
 }
 
@@ -177,6 +265,57 @@ test("renders recommendation reasons, duration, and all placement outcomes", () 
   assert.match(candidates, /REJECTED/);
   assert.match(candidates, /architecture_mismatch/);
   assert.match(candidates, /91\.03/);
+});
+
+test("renders API-backed partial offloading mode, target, latency, and fallback evidence", () => {
+  const decision = decisionFixture();
+  decision.state = "OFFLOAD_RECOMMENDED";
+  decision.recommendation.action = "offload";
+  decision.offloading = {
+    state: "OFFLOAD_RECOMMENDED",
+    targetWorkload: "edgex-edge/sensor-anomaly-inference-server1",
+    targetNode: "etri-ser0002-cgnmsb",
+    targetReady: true,
+    networkLatencyMs: 12.5,
+    maxNetworkLatencyMs: 250,
+    candidateQualified: true,
+    reasonCodes: ["remote_target_ready"],
+  };
+  const view = buildRuntimeOperationsView({
+    decision,
+    history: {items: []},
+    resources: [],
+    services: [],
+    serviceDemo: {
+      generated_at: "2026-08-26T08:00:00Z",
+      inference_routing: {
+        inference_mode: "LOCAL_FALLBACK",
+        remote_node: "etri-ser0002-cgnmsb",
+        remote_ready: false,
+        local_latency_ms: 3.2,
+        network_latency_ms: 18.4,
+        remote_processing_ms: 6.1,
+        total_latency_ms: 27.7,
+        offload_success_rate: 0.875,
+        fallback_count: 2,
+        last_reason_code: "remote_timeout",
+        observed_at: "2026-08-26T08:00:00Z",
+      },
+    },
+  });
+
+  assert.equal(view.state, "OFFLOAD_RECOMMENDED");
+  assert.equal(view.action, "OFFLOAD");
+  assert.equal(view.offloading.mode, "LOCAL_FALLBACK");
+  assert.equal(view.offloading.remoteTarget, "etri-ser0002-cgnmsb");
+  assert.equal(view.offloading.successRate, "87.5%");
+  const rendered = renderInferenceOffloading(view);
+  assert.match(rendered, /Inference Execution/);
+  assert.match(rendered, /LOCAL_FALLBACK/);
+  assert.match(rendered, /etri-ser0002-cgnmsb/);
+  assert.match(rendered, /18\.40 ms/);
+  assert.match(rendered, /remote_timeout/);
+  assert.match(rendered, /production 처리를 계속/);
 });
 
 test("renders read-only execution steps and the rollback branch", () => {
@@ -255,9 +394,11 @@ test("refresh reads only GET projections and never calls placement selection", a
     ["/api/runtime-recommendations", {items: [decision]}],
     ["/api/resources", []],
     ["/state/services", {services: []}],
+    ["/state/service-demo", {input_state: "fresh", model_state: "ready"}],
     ["/api/runtime-recommendations/sensor-anomaly-demo", decision],
     ["/api/runtime-recommendations/sensor-anomaly-demo/history?limit=50", {items: []}],
     ["/api/runtime-recommendations/sensor-anomaly-demo/execution-plan", planFixture()],
+    ["/api/executions?serviceId=sensor-anomaly-demo&limit=20", {items: []}],
   ]);
   const fetchFn = async (url, options = {}) => {
     calls.push([url, options]);
@@ -275,11 +416,177 @@ test("refresh reads only GET projections and never calls placement selection", a
   assert.equal(runtimeOperationsState.decision.state, "REPLACE_RECOMMENDED");
 });
 
-test("does not expose execution controls or revive removed orchestration UI", () => {
+test("adds explicit execution controls without reviving removed orchestration UI", () => {
   const operationsSection = indexHtml.match(/<section\s+class="runtime-operations-page[\s\S]*?<section class="service-catalog/)[0];
-  assert.doesNotMatch(operationsSection, /<button[^>]*>\s*(실행|적용|승인)\s*<\/button>/);
+  assert.match(runtimeJavascript, /Dry Run → 승인 → Execute/);
+  assert.match(runtimeJavascript, /type="password" autocomplete="off"/);
+  assert.match(runtimeJavascript, /data-runtime-execute disabled/);
+  assert.doesNotMatch(runtimeJavascript, /localStorage|sessionStorage/);
+  assert.doesNotMatch(runtimeJavascript, /api\/v1\/inference-routing/);
   assert.doesNotMatch(indexHtml, /id="serviceAugmentationPanel"/);
   assert.doesNotMatch(indexHtml, /AI Pipeline Builder/);
   assert.doesNotMatch(indexHtml, /Workflow Builder/);
   assert.doesNotMatch(indexHtml, /data-dashboard-page="resource-augmentation"/);
+});
+
+test("shows Pod readiness separately from ACTIVE ownership and persisted rollback", () => {
+  const record = executionFixture();
+  const view = buildRuntimeOperationsView({
+    decision: decisionFixture(),
+    history: {items: []},
+    plan: planFixture(),
+    executionRecord: record,
+    executions: [record],
+    audit: {items: []},
+    resources: [],
+    services: [],
+    serviceDemo: {
+      input_state: "fresh",
+      model_state: "ready",
+      binding: {node: "etri-dev0001-jetorn"},
+      counters: {frames_processed: 81},
+      storage: {result_count: 80},
+      latest: {observed_at: "2026-08-26T07:20:59.900Z"},
+      execution_ownership: {
+        effective_mode: "ACTIVE",
+        lease_name: "sensor-anomaly-demo-execution",
+        holder_identity: "sensor-anomaly-demo",
+        lease_valid: true,
+        resource_version: "44",
+        observed_at: "2026-08-26T07:21:00Z",
+      },
+    },
+  });
+
+  assert.equal(view.source.podReady, "READY");
+  assert.equal(view.source.mode, "ACTIVE");
+  assert.equal(view.candidate.podReady, "NOT READY");
+  assert.equal(view.candidate.mode, "STANDBY");
+  assert.equal(view.ownership.holderIdentity, "sensor-anomaly-demo");
+  assert.equal(view.ownership.rollbackAvailable, true);
+  assert.equal(view.activeNode, "etri-dev0001-jetorn");
+  assert.equal(view.source.framesProcessed, 81);
+  assert.equal(view.source.dbWriteCount, 80);
+  assert.equal(view.candidate.framesProcessed, 35);
+  assert.equal(view.candidate.dbWriteCount, 0);
+  assert.equal(view.candidate.preservedNote, "rollback 후 workload 보존 · 삭제되지 않음");
+  const liveDemo = renderOwnership(view);
+  assert.match(liveDemo, /CURRENT LEASE HOLDER/);
+  assert.match(liveDemo, /DB write count/);
+  assert.match(liveDemo, /최근 inference/);
+  assert.match(liveDemo, /failure detected/);
+  assert.match(liveDemo, /workload 보존/);
+});
+
+test("merges persisted step state and keeps ownership and traffic planes distinct", () => {
+  const merged = mergeExecutionSteps(planFixture(), executionFixture());
+  assert.equal(merged.find((step) => step.action === "handoff_execution_ownership").status, "SUCCEEDED");
+  assert.equal(merged.find((step) => step.action === "handoff_execution_ownership").plane, "ownership");
+  assert.equal(merged.find((step) => step.action === "switch_traffic").status, "BLOCKED");
+  assert.equal(merged.find((step) => step.action === "switch_traffic").plane, "traffic");
+  assert.equal(merged.find((step) => step.action === "terminate_current").plane, "lifecycle");
+
+  const rendered = renderRuntimePlan(planFixture(), merged);
+  assert.match(rendered, /Execution Ownership/);
+  assert.match(rendered, /Traffic Routing · 필요 시/);
+  assert.match(rendered, /previous_step_blocked/);
+});
+
+test("calculates handoff, validation, inference resume, and rollback durations from audit timestamps", () => {
+  const record = executionFixture();
+  const audit = [{
+    eventType: "active_candidate_validation_observed",
+    recordedAt: "2026-08-26T07:18:55.427Z",
+    details: {validation: {checks: [{name: "processing_counter_increased", status: "SUCCEEDED"}]}},
+  }];
+  const durations = Object.fromEntries(calculateExecutionDurations(record, audit).map((item) => [item.label, item.value]));
+  assert.equal(durations["Pre-validation"], "30.8s");
+  assert.equal(durations["Lease handoff"], "54ms");
+  assert.equal(durations["Candidate inference 재개"], "5.09s");
+  assert.equal(durations["Lease rollback"], "123ms");
+  assert.equal(runtimeDuration("2026-08-26T00:00:00.000Z", "2026-08-26T00:00:00.054Z"), "54ms");
+});
+
+test("builds a chronological recommendation and audit timeline with elapsed durations", () => {
+  const timeline = runtimeTimeline([{
+    recordedAt: "2026-08-26T07:17:00Z",
+    previousState: "OBSERVING",
+    state: "REPLACE_RECOMMENDED",
+    decision: decisionFixture(),
+  }], [{
+    eventType: "approval_received",
+    status: "PENDING",
+    recordedAt: "2026-08-26T07:17:10Z",
+    reasonCodes: [],
+  }]);
+  assert.equal(timeline[0].label, "REPLACE_RECOMMENDED");
+  assert.equal(timeline[1].label, "승인");
+  assert.equal(timeline[1].durationFromPrevious, "10.0s");
+});
+
+test("connects read-only execution history, record, and audit APIs", async () => {
+  runtimeOperationsState.selectedServiceId = null;
+  runtimeOperationsState.selectedExecutionPlanId = null;
+  const decision = decisionFixture();
+  const record = executionFixture();
+  const calls = [];
+  const responses = new Map([
+    ["/api/runtime-recommendations", {items: [decision]}],
+    ["/api/resources", []],
+    ["/state/services", {services: []}],
+    ["/state/service-demo", {input_state: "fresh", model_state: "ready"}],
+    ["/api/runtime-recommendations/sensor-anomaly-demo", decision],
+    ["/api/runtime-recommendations/sensor-anomaly-demo/history?limit=50", {items: []}],
+    ["/api/runtime-recommendations/sensor-anomaly-demo/execution-plan", planFixture()],
+    ["/api/executions?serviceId=sensor-anomaly-demo&limit=20", {items: [record]}],
+    ["/api/execution-plans/runtime-plan-abcd", record],
+    ["/api/execution-plans/runtime-plan-abcd/audit?limit=500", {items: []}],
+  ]);
+  const fetchFn = async (url, options = {}) => {
+    calls.push([url, options]);
+    return {ok: responses.has(url), status: responses.has(url) ? 200 : 404, json: async () => responses.get(url)};
+  };
+  await loadRuntimeOperationsData(fetchFn);
+  assert.equal(runtimeOperationsState.executionRecord.planId, "runtime-plan-abcd");
+  assert.equal(calls.some(([url]) => url === "/api/execution-plans/runtime-plan-abcd"), true);
+  assert.equal(calls.some(([url]) => url.endsWith("/audit?limit=500")), true);
+  assert.equal(calls.every(([, options]) => !options.method || options.method === "GET"), true);
+});
+
+test("dry-run posts the current plan without an execution token or approval", async () => {
+  runtimeOperationsState.selectedServiceId = "sensor-anomaly-demo";
+  runtimeOperationsState.plan = planFixture();
+  runtimeOperationsState.dryRun = null;
+  const calls = [];
+  const fetchFn = async (url, options) => {
+    calls.push([url, options]);
+    return {ok: true, status: 200, json: async () => ({
+      planId: "runtime-plan-abcd", status: "partial", reasonCodes: ["unsupported_step"], steps: [], generatedAt: "2026-08-26T08:00:00Z",
+    })};
+  };
+  const documentRef = {getElementById: () => null};
+  await dryRunRuntimePlan(fetchFn, documentRef);
+  const [, options] = calls[0];
+  assert.equal(options.method, "POST");
+  assert.deepEqual(JSON.parse(options.body), {planId: "runtime-plan-abcd"});
+  assert.equal(Object.hasOwn(options.headers, "X-Execution-Token"), false);
+});
+
+test("execution token entry is blocked outside trusted HTTPS and polling uses 5s or 2s", () => {
+  assert.equal(runtimeSecureExecutionContext({isSecureContext: false, location: {protocol: "http:"}}), false);
+  assert.equal(runtimeSecureExecutionContext({isSecureContext: true, location: {protocol: "https:"}}), true);
+  const root = {setTimeout: (_callback, delay) => delay, clearTimeout: () => {}};
+  const documentRef = {querySelector: () => null};
+  runtimeOperationsState.executionRecord = {status: "SUCCEEDED"};
+  assert.equal(scheduleRuntimePolling(() => {}, documentRef, root), 5000);
+  runtimeOperationsState.executionRecord = {status: "RUNNING"};
+  assert.equal(scheduleRuntimePolling(() => {}, documentRef, root), 2000);
+  runtimeOperationsState.pollTimer = null;
+});
+
+test("reports the verified Endpoints route and blocked EndpointSlice route exactly", () => {
+  assert.match(runtimeJavascript, /runtime-endpoints<\/dt><dd>VERIFIED/);
+  assert.match(runtimeJavascript, /runtime-endpointslice<\/dt><dd>BLOCKED/);
+  assert.match(runtimeJavascript, /routing_mode_unsupported/);
+  assert.match(runtimeJavascript, /polling workload는 Lease handoff만으로/);
 });

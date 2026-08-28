@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
     <link rel="stylesheet" href="/static/device-twins.css?v=multi-service-twins-v3-20260814" />
-    <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-operations-v1-20260825" />
+    <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-offloading-v3-20260826" />
     <link rel="stylesheet" href="/static/apple-dashboard.css?v=daylight-operations-v3-20260818" />
   </head>
   <body>
@@ -270,7 +270,7 @@
               <div>
                 <p class="section-kicker">Runtime Recommendation</p>
                 <h2 id="runtimeOperationsTitle">서비스 운영</h2>
-                <p>실행 상태부터 배치 근거, 읽기 전용 실행 계획과 판단 이력까지 확인합니다.</p>
+                <p>실행 상태, 배치 근거, Lease 실행 권한, 승인 실행과 롤백 이력을 실제 API로 확인합니다.</p>
               </div>
               <label class="runtime-service-selector" for="runtimeOperationsServiceSelect">
                 <span>서비스</span>
@@ -337,12 +337,14 @@
                   <small id="runtimeOverviewReasons">근거 데이터 확인 중</small>
                 </div>
                 <dl class="runtime-overview-metrics">
-                  <div><dt>현재 노드</dt><dd id="runtimeOverviewCurrentNode">N/A</dd></div>
+                  <div><dt>ACTIVE Node</dt><dd id="runtimeOverviewCurrentNode">N/A</dd></div>
                   <div><dt>CPU</dt><dd id="runtimeOverviewCpu">N/A</dd></div>
                   <div><dt>Memory</dt><dd id="runtimeOverviewMemory">N/A</dd></div>
                   <div><dt>Latency</dt><dd id="runtimeOverviewLatency">N/A</dd></div>
                   <div><dt>추천</dt><dd id="runtimeOverviewSelectedNode">N/A</dd></div>
                   <div><dt>Score</dt><dd id="runtimeOverviewScore">N/A</dd></div>
+                  <div><dt>Candidate</dt><dd id="runtimeOverviewCandidate">N/A</dd></div>
+                  <div><dt>Execution</dt><dd id="runtimeOverviewExecution">N/A</dd></div>
                 </dl>
                 <button type="button" class="runtime-overview-link" data-runtime-operations-link>서비스 운영 보기</button>
               </section>
@@ -1626,7 +1628,7 @@
       </section>
     </main>
     <script src="/static/navigation.js?v=service-catalog-20260813"></script>
-    <script src="/static/runtime-operations.js?v=runtime-operations-v1-20260825"></script>
+    <script src="/static/runtime-operations.js?v=runtime-offloading-v3-20260826"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
     <script src="/static/service-demo.js?v=service-augmentation-v2-20260818"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>

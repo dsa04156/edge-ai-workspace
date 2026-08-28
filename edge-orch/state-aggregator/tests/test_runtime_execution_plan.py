@@ -32,7 +32,11 @@ def _placement(selected_node: str = "server-b") -> PlacementSelectionResult:
 
 
 def _decision(state: str = "AUGMENT_RECOMMENDED") -> RuntimeRecommendationDecision:
-    action = "augment" if state == "AUGMENT_RECOMMENDED" else "replace"
+    action = {
+        "AUGMENT_RECOMMENDED": "augment",
+        "OFFLOAD_RECOMMENDED": "offload",
+        "REPLACE_RECOMMENDED": "replace",
+    }[state]
     return RuntimeRecommendationDecision(
         service_id="quality-ai",
         namespace="factory",
@@ -149,6 +153,17 @@ def test_non_actionable_and_blocked_recommendations_never_create_steps() -> None
     assert blocked_plan.status == "blocked"
     assert blocked_plan.steps == []
     assert blocked_plan.reason_codes == ["runtime_recommendation_blocked", "input_stale"]
+
+
+def test_offload_recommendation_never_becomes_a_workload_replacement_plan() -> None:
+    plan = build_runtime_execution_plan(_decision("OFFLOAD_RECOMMENDED"), now=NOW)
+
+    assert plan.status == "blocked"
+    assert plan.steps == []
+    assert plan.reason_codes == [
+        "offload_execution_requires_explicit_service_approval",
+        "whole_workload_execution_plan_not_applicable",
+    ]
 
 
 def test_inconsistent_recommendation_fails_closed_without_steps() -> None:

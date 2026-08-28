@@ -68,6 +68,18 @@ def test_checked_in_service_catalog_loads_current_service() -> None:
     assert policy.cpu_recovery_ratio == 0.7
     assert policy.resource_dwell_seconds == 300
     assert policy.cooldown_seconds == 600
+    offloading = service.runtime_offloading
+    assert offloading is not None
+    assert offloading.stage_id == "inference"
+    assert offloading.target_workload.name == "sensor-anomaly-inference-server1"
+    assert offloading.endpoint_base_url.endswith(".svc.cluster.local:8080")
+    assert offloading.readiness_path == "/api/v1/augmentation-readyz"
+    assert offloading.inference_path == "/infer"
+    assert offloading.source_probe_path == "/api/v1/inference-routing/preflight"
+    assert offloading.architecture == "amd64"
+    assert offloading.accelerator == "nvidia-gpu"
+    assert offloading.accelerator_units == {"nvidia.com/gpu": 1}
+    assert offloading.qualification_required is True
 
 
 def test_service_catalog_rejects_duplicate_service_ids(tmp_path: Path) -> None:

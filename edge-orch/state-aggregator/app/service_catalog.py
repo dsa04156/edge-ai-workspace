@@ -159,6 +159,34 @@ class ServiceAugmentationQualificationDescriptor(CatalogModel):
         return self
 
 
+class RuntimeOffloadingDescriptor(CatalogModel):
+    enabled: bool = True
+    stage_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
+    target_workload: ServiceWorkloadDescriptor
+    endpoint_base_url: str = Field(
+        pattern=(
+            r"^http://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?"
+            r"\.svc\.cluster\.local:[0-9]{2,5}$"
+        )
+    )
+    readiness_path: Literal["/api/v1/augmentation-readyz"]
+    inference_path: Literal["/infer"]
+    source_probe_path: Literal["/api/v1/inference-routing/preflight"]
+    architecture: str = Field(min_length=1, max_length=64)
+    accelerator: str | None = Field(default=None, min_length=1, max_length=128)
+    accelerator_units: dict[str, float] = Field(default_factory=dict)
+    max_network_latency_ms: float = Field(gt=0)
+    qualification_required: bool = True
+
+    @model_validator(mode="after")
+    def validate_target_contract(self) -> "RuntimeOffloadingDescriptor":
+        if self.target_workload.name == "sensor-anomaly-demo":
+            raise ValueError("offloading target must not be the source workload")
+        if any(value <= 0 for value in self.accelerator_units.values()):
+            raise ValueError("offloading accelerator units must be positive")
+        return self
+
+
 class ServiceDescriptor(CatalogModel):
     service_id: str
     display_name: str = Field(min_length=1)
@@ -172,6 +200,7 @@ class ServiceDescriptor(CatalogModel):
     observability: ServiceObservabilityDescriptor
     augmentation_qualification: ServiceAugmentationQualificationDescriptor
     runtime_recommendation: RuntimeRecommendationPolicy | None = None
+    runtime_offloading: RuntimeOffloadingDescriptor | None = None
     design_contract: DeployedServiceDesignContract
 
     @model_validator(mode="after")

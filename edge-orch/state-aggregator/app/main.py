@@ -76,6 +76,7 @@ from .runtime_execution_controller import (
     RuntimeExecutionStore,
 )
 from .runtime_recommendation_monitor import (
+    HttpRuntimeOffloadTargetProbe,
     RuntimeRecommendationMonitor,
     SensorAnomalyRuntimeAdapter,
 )
@@ -109,6 +110,13 @@ runtime_recommendation_monitor = RuntimeRecommendationMonitor(
     {
         "sensor-anomaly-v1": SensorAnomalyRuntimeAdapter(service_demo_client),
     },
+    offload_probe=HttpRuntimeOffloadTargetProbe(
+        settings.sensor_anomaly_demo_url,
+        timeout_seconds=min(
+            settings.sensor_anomaly_demo_timeout_seconds,
+            2.0,
+        )
+    ),
 )
 runtime_execution_store = RuntimeExecutionStore(
     settings.runtime_execution_database_path

@@ -39,7 +39,7 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
     container = pod["spec"]["containers"][0]
 
     assert pod["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "etri-ser0002-cgnmsb"
-    assert pod["spec"]["schedulerName"] == "hami-scheduler"
+    assert "schedulerName" not in pod["spec"]
     assert container["readinessProbe"]["httpGet"]["path"] == "/api/v1/augmentation-readyz"
     assert container["image"] == (
         "192.168.0.56:5000/sensor-anomaly-demo-server1@"
@@ -52,13 +52,8 @@ def test_server1_endpoint_uses_model_readiness_and_never_enables_offloading() ->
         "MODEL_BACKEND": "cuda-online-baseline",
         "MODEL_VERSION": "cuda-baseline-1.0.0",
     }.items()
-    assert container["resources"]["requests"].items() >= {
-        "nvidia.com/gpu": "1",
-        "nvidia.com/gpucores": "20",
-        "nvidia.com/gpumem": "1024",
-    }.items()
-    for resource_name in ("nvidia.com/gpu", "nvidia.com/gpucores", "nvidia.com/gpumem"):
-        assert container["resources"]["limits"][resource_name] == container["resources"]["requests"][resource_name]
+    assert container["resources"]["requests"]["nvidia.com/gpu"] == "1"
+    assert container["resources"]["limits"]["nvidia.com/gpu"] == "1"
     assert service["spec"]["selector"] == {
         "app.kubernetes.io/name": "sensor-anomaly-inference-server1"
     }

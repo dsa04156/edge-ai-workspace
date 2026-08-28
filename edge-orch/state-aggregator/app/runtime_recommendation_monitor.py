@@ -7,10 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
+import httpx
+
 from .models import PlacementSelectionRequest
 from .placement import select_placement
 from .runtime_recommendation import (
     RuntimeRecommendationEngine,
+    RuntimeOffloadingSignals,
     RuntimeRecommendationSignals,
     RuntimeRecommendationStore,
 )
@@ -41,6 +44,70 @@ class RuntimeServiceObservation:
     throughput_per_second: float | None
     source: str
     scope: str
+    model_version: str | None = None
+    inference_mode: str = "LOCAL"
+    remote_network_latency_ms: float | None = None
+
+
+@dataclass(frozen=True)
+class RuntimeOffloadTargetObservation:
+    ready: bool
+    network_latency_ms: float | None
+    reason_codes: tuple[str, ...] = ()
+
+
+class RuntimeOffloadTargetProbe(Protocol):
+    async def observe(self, contract: Any) -> RuntimeOffloadTargetObservation: ...
+
+
+class HttpRuntimeOffloadTargetProbe:
+    def __init__(
+        self,
+        source_base_url: str,
+        timeout_seconds: float = 2.0,
+    ) -> None:
+        self.source_base_url = source_base_url.rstrip("/")
+        self.timeout_seconds = timeout_seconds
+
+    async def observe(self, contract: Any) -> RuntimeOffloadTargetObservation:
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                response = await client.get(
+                    f"{self.source_base_url}{contract.source_probe_path}"
+                )
+                response.raise_for_status()
+        except httpx.TimeoutException:
+            return RuntimeOffloadTargetObservation(
+                ready=False,
+                network_latency_ms=None,
+                reason_codes=("remote_readiness_timeout",),
+            )
+        except httpx.HTTPError:
+            return RuntimeOffloadTargetObservation(
+                ready=False,
+                network_latency_ms=None,
+                reason_codes=("remote_inference_service_unreachable",),
+            )
+        try:
+            payload = response.json()
+            ready = payload.get("ready") is True
+            latency = _optional_number(payload.get("networkLatencyMs"))
+            reasons = tuple(
+                item
+                for item in payload.get("reasonCodes", [])
+                if isinstance(item, str)
+            )
+        except (ValueError, AttributeError):
+            return RuntimeOffloadTargetObservation(
+                ready=False,
+                network_latency_ms=None,
+                reason_codes=("source_remote_probe_invalid_response",),
+            )
+        return RuntimeOffloadTargetObservation(
+            ready=ready,
+            network_latency_ms=latency,
+            reason_codes=reasons,
+        )
 
 
 class RuntimeServiceObservationAdapter(Protocol):
@@ -138,6 +205,15 @@ class SensorAnomalyRuntimeAdapter:
             ),
             source=source,
             scope=scope,
+            model_version=(
+                demo.model.version
+                if demo.model is not None
+                else demo.latest.model_version
+                if demo.latest is not None
+                else None
+            ),
+            inference_mode=demo.inference_routing.inference_mode,
+            remote_network_latency_ms=demo.inference_routing.network_latency_ms,
         )
 
 
@@ -148,6 +224,7 @@ class RuntimeRecommendationMonitor:
         aggregator_service: Any,
         service_catalog: Any,
         adapters: dict[str, RuntimeServiceObservationAdapter],
+        offload_probe: RuntimeOffloadTargetProbe | None = None,
     ) -> None:
         database_path = settings.runtime_recommendation_database_path or (
             Path(settings.data_dir) / "runtime-recommendations.sqlite3"
@@ -156,6 +233,7 @@ class RuntimeRecommendationMonitor:
         self.aggregator_service = aggregator_service
         self.service_catalog = service_catalog
         self.adapters = adapters
+        self.offload_probe = offload_probe
         self.store = RuntimeRecommendationStore(
             database_path,
             history_limit=settings.runtime_recommendation_history_limit,
@@ -318,6 +396,84 @@ class RuntimeRecommendationMonitor:
             observation_scope=observation.scope,
         )
 
+        offloading: RuntimeOffloadingSignals | None = None
+        offload_placement_provider = None
+        offload_contract = descriptor.runtime_offloading
+        if offload_contract is not None and offload_contract.enabled:
+            target_ref = offload_contract.target_workload
+            target_workload = await self.aggregator_service.kube.get_runtime_workload(
+                namespace=target_ref.namespace,
+                kind=target_ref.kind,
+                name=target_ref.name,
+                selector=target_ref.selector,
+            )
+            target_profile = profile_by_workload.get(
+                (target_ref.namespace, target_ref.name)
+            ) or target_workload.placement_profile
+            target_nodes = list(target_workload.current_nodes)
+            target_node = target_nodes[0] if len(target_nodes) == 1 else None
+            probe = (
+                await self.offload_probe.observe(offload_contract)
+                if self.offload_probe is not None
+                else RuntimeOffloadTargetObservation(
+                    ready=False,
+                    network_latency_ms=observation.remote_network_latency_ms,
+                    reason_codes=("remote_readiness_probe_unavailable",),
+                )
+            )
+            workload_ready = bool(
+                target_workload.observed
+                and target_workload.exists
+                and target_workload.desired_replicas > 0
+                and target_workload.ready_replicas
+                >= target_workload.desired_replicas
+                and target_node is not None
+            )
+            qualification = descriptor.augmentation_qualification
+            candidate_qualified = bool(
+                qualification.status == "qualified"
+                and observation.model_version == qualification.source_model_version
+            )
+            offload_reasons = list(probe.reason_codes)
+            if not workload_ready:
+                offload_reasons.append("remote_inference_workload_not_ready")
+            if target_profile is None:
+                offload_reasons.append("offload_service_profile_unavailable")
+            if target_node is None:
+                offload_reasons.append("remote_target_node_ambiguous")
+            offloading = RuntimeOffloadingSignals(
+                enabled=True,
+                current_mode=observation.inference_mode,
+                target_workload=f"{target_ref.namespace}/{target_ref.name}",
+                target_node=target_node,
+                target_ready=workload_ready and probe.ready,
+                network_latency_ms=(
+                    probe.network_latency_ms
+                    if probe.network_latency_ms is not None
+                    else observation.remote_network_latency_ms
+                ),
+                max_network_latency_ms=offload_contract.max_network_latency_ms,
+                candidate_qualified=candidate_qualified,
+                qualification_required=offload_contract.qualification_required,
+                reason_codes=tuple(dict.fromkeys(offload_reasons)),
+            )
+
+            if target_profile is not None:
+                async def offload_placement_provider(excluded_nodes: set[str]):
+                    return select_placement(
+                        target_profile,
+                        resources,
+                        PlacementSelectionRequest(
+                            namespace=target_ref.namespace,
+                            service=target_ref.name,
+                            architecture=offload_contract.architecture,
+                            accelerator=offload_contract.accelerator,
+                            accelerator_units=offload_contract.accelerator_units,
+                        ),
+                        excluded_nodes=excluded_nodes,
+                        now=now,
+                    )
+
         async def placement_provider(excluded_nodes: set[str]):
             assert placement_profile is not None
             return select_placement(
@@ -338,6 +494,8 @@ class RuntimeRecommendationMonitor:
             signals,
             policy,
             placement_provider,
+            offloading=offloading,
+            offload_placement_provider=offload_placement_provider,
             now=now,
         )
 

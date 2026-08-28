@@ -14,12 +14,34 @@ class Settings(BaseModel):
     service_role: Literal["edge-worker", "inference-server"] = "edge-worker"
     inference_warmup_source_enabled: bool = False
     remote_inference_mode: Literal["disabled", "approved"] = "disabled"
+    remote_inference_initial_target: Literal["local", "remote"] = "local"
     remote_inference_url: str | None = None
     remote_inference_approval_id: str | None = None
+    remote_inference_control_token: str | None = Field(
+        default=None,
+        min_length=16,
+        max_length=512,
+    )
+    remote_inference_node: str = Field(
+        default="etri-ser0002-cgnmsb",
+        min_length=1,
+        max_length=128,
+    )
+    remote_inference_model_version: str = Field(
+        default="cuda-baseline-1.0.0",
+        min_length=1,
+        max_length=64,
+    )
     remote_inference_timeout_seconds: float = Field(default=1.0, gt=0)
     remote_inference_max_attempts: int = Field(default=2, ge=1, le=5)
     remote_inference_failure_threshold: int = Field(default=3, ge=1, le=20)
     remote_inference_rollback_cooldown_seconds: int = Field(default=900, ge=1)
+    remote_inference_latency_threshold_ms: float = Field(default=250.0, gt=0)
+    remote_inference_latency_failure_threshold: int = Field(
+        default=3,
+        ge=1,
+        le=20,
+    )
     local_data_base_url: str = Field(
         default=DEFAULT_LOCAL_DATA_BASE_URL,
         min_length=1,
@@ -82,6 +104,10 @@ class Settings(BaseModel):
                 raise ValueError(
                     "remote_inference_approval_id is required in approved mode"
                 )
+            if not self.remote_inference_control_token:
+                raise ValueError(
+                    "remote_inference_control_token is required in approved mode"
+                )
         if (
             self.model_backend == "cuda-online-baseline"
             and self.service_role != "inference-server"
@@ -115,9 +141,25 @@ class Settings(BaseModel):
             ).lower()
             in {"1", "true", "yes"},
             remote_inference_mode=os.getenv("REMOTE_INFERENCE_MODE", "disabled"),
+            remote_inference_initial_target=os.getenv(
+                "REMOTE_INFERENCE_INITIAL_TARGET",
+                "local",
+            ).lower(),
             remote_inference_url=os.getenv("REMOTE_INFERENCE_URL") or None,
             remote_inference_approval_id=os.getenv("REMOTE_INFERENCE_APPROVAL_ID")
             or None,
+            remote_inference_control_token=os.getenv(
+                "REMOTE_INFERENCE_CONTROL_TOKEN"
+            )
+            or None,
+            remote_inference_node=os.getenv(
+                "REMOTE_INFERENCE_NODE",
+                "etri-ser0002-cgnmsb",
+            ),
+            remote_inference_model_version=os.getenv(
+                "REMOTE_INFERENCE_MODEL_VERSION",
+                "cuda-baseline-1.0.0",
+            ),
             remote_inference_timeout_seconds=float(
                 os.getenv("REMOTE_INFERENCE_TIMEOUT_SECONDS", "1")
             ),
@@ -129,6 +171,12 @@ class Settings(BaseModel):
             ),
             remote_inference_rollback_cooldown_seconds=int(
                 os.getenv("REMOTE_INFERENCE_ROLLBACK_COOLDOWN_SECONDS", "900")
+            ),
+            remote_inference_latency_threshold_ms=float(
+                os.getenv("REMOTE_INFERENCE_LATENCY_THRESHOLD_MS", "250")
+            ),
+            remote_inference_latency_failure_threshold=int(
+                os.getenv("REMOTE_INFERENCE_LATENCY_FAILURE_THRESHOLD", "3")
             ),
             local_data_base_url=os.getenv(
                 "LOCAL_DATA_BASE_URL",

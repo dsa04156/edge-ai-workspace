@@ -147,6 +147,16 @@ class LatestObservation(ApiModel):
     temperature_features: TemperatureFeatureObservation | None = None
     inference_target: Literal["edge-local", "server1"] = "edge-local"
     augmentation_approval_id: str | None = None
+    request_id: str | None = None
+    execution_mode: Literal["local", "remote", "fallback"] = "local"
+    source_node: str | None = None
+    remote_node: str | None = None
+    local_latency_ms: float | None = Field(default=None, ge=0)
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    remote_processing_ms: float | None = Field(default=None, ge=0)
+    total_latency_ms: float | None = Field(default=None, ge=0)
+    fallback: bool = False
+    reason_code: str | None = None
 
 
 class ComponentScores(ApiModel):
@@ -243,7 +253,11 @@ class InferenceTemperature(ApiModel):
 
 class InferenceRequest(ApiModel):
     api_version: Literal["v1"] = "v1"
+    service_id: Literal["sensor-anomaly-demo"] = "sensor-anomaly-demo"
     request_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9._:-]+$")
+    timestamp: datetime | None = None
+    model_version: str = Field(default="baseline-1.0.0", min_length=1, max_length=64)
+    source_node: str | None = Field(default=None, min_length=1, max_length=128)
     input_contract: InputContractName
     frame: InferenceInputFrame
     temperature: InferenceTemperature
@@ -251,7 +265,9 @@ class InferenceRequest(ApiModel):
 
 class InferenceResponse(ApiModel):
     api_version: Literal["v1"] = "v1"
+    service_id: Literal["sensor-anomaly-demo"] = "sensor-anomaly-demo"
     request_id: str
+    timestamp: datetime
     input_contract: InputContractName
     origin: int = Field(gt=0)
     status: DetectionStatus
@@ -262,6 +278,7 @@ class InferenceResponse(ApiModel):
     temperature_features: TemperatureFeatureObservation
     model_state: RuntimeModelState
     model_version: str
+    processing_time_ms: float | None = Field(default=None, ge=0)
     server_processing_ms: float | None = Field(default=None, ge=0)
 
 
@@ -273,6 +290,37 @@ class InferenceRoutingStatus(ApiModel):
     consecutive_failures: int = Field(default=0, ge=0)
     rollback_remaining_seconds: int = Field(default=0, ge=0)
     last_error: str | None = None
+    inference_mode: Literal["LOCAL", "REMOTE", "LOCAL_FALLBACK"] = "LOCAL"
+    source_node: str | None = None
+    remote_node: str | None = None
+    remote_ready: bool | None = None
+    target_model_version: str | None = None
+    local_latency_ms: float | None = Field(default=None, ge=0)
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    remote_processing_ms: float | None = Field(default=None, ge=0)
+    total_latency_ms: float | None = Field(default=None, ge=0)
+    remote_attempts: int = Field(default=0, ge=0)
+    remote_successes: int = Field(default=0, ge=0)
+    offload_success_rate: float | None = Field(default=None, ge=0, le=1)
+    fallback_count: int = Field(default=0, ge=0)
+    last_reason_code: str | None = None
+    observed_at: datetime | None = None
+
+
+class InferenceRoutingChangeRequest(ApiModel):
+    mode: Literal["LOCAL", "REMOTE"]
+
+
+class InferenceRoutingPreflight(ApiModel):
+    ready: bool
+    source_node: str
+    remote_node: str
+    target_model_version: str
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    reason_codes: list[str] = Field(default_factory=list)
+    observed_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
 
 class ExecutionOwnershipObservation(ApiModel):
@@ -291,6 +339,16 @@ class ExecutionOwnershipObservation(ApiModel):
     observed_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
+
+
+class StorageStatus(ApiModel):
+    api_version: Literal["v1"] = "v1"
+    backend: Literal["sqlite"] = "sqlite"
+    durable: bool
+    result_count: int = Field(ge=0)
+    alert_event_count: int = Field(ge=0)
+    open_alert_count: int = Field(ge=0)
+    retention_rows: int = Field(ge=1)
 
 
 class ServiceStatus(ApiModel):
@@ -312,6 +370,7 @@ class ServiceStatus(ApiModel):
     execution_ownership: ExecutionOwnershipObservation = Field(
         default_factory=ExecutionOwnershipObservation
     )
+    storage: StorageStatus | None = None
     last_error: str | None = None
 
 
@@ -337,13 +396,3 @@ class AlertEnvelope(ApiModel):
     api_version: Literal["v1"] = "v1"
     count: int
     alerts: list[AlertTransition]
-
-
-class StorageStatus(ApiModel):
-    api_version: Literal["v1"] = "v1"
-    backend: Literal["sqlite"] = "sqlite"
-    durable: bool
-    result_count: int = Field(ge=0)
-    alert_event_count: int = Field(ge=0)
-    open_alert_count: int = Field(ge=0)
-    retention_rows: int = Field(ge=1)

@@ -92,6 +92,7 @@ class ValidationComparisonContract(SchedulingModel):
     model_state_pointer: str = "/modelState"
     latency_pointer: str = "/performance/processingLatencyP95Ms"
     result_observed_at_pointer: str = "/latest/observedAt"
+    db_write_count_pointer: str = "/storage/resultCount"
 
     @field_validator(
         "path",
@@ -99,6 +100,7 @@ class ValidationComparisonContract(SchedulingModel):
         "model_state_pointer",
         "latency_pointer",
         "result_observed_at_pointer",
+        "db_write_count_pointer",
     )
     @classmethod
     def validate_relative_value(cls, value: str) -> str:
@@ -220,6 +222,7 @@ class CandidateValidationWorkloadObservation(SchedulingModel):
     latency_ms: float | None = Field(default=None, ge=0)
     result_observed_at: datetime | None = None
     frames_processed: int | None = Field(default=None, ge=0)
+    db_write_count: int | None = Field(default=None, ge=0)
     observed_at: datetime
 
 
@@ -738,6 +741,10 @@ def _workload_observation(
         contract.result_observed_at_pointer,
     )
     frames_processed, frames_present = _json_pointer(payload, frames_processed_pointer)
+    db_write_count, db_write_count_present = _json_pointer(
+        payload,
+        contract.db_write_count_pointer,
+    )
     return CandidateValidationWorkloadObservation(
         node=node,
         pod=pod,
@@ -758,6 +765,14 @@ def _workload_observation(
             and isinstance(frames_processed, (int, float))
             and not isinstance(frames_processed, bool)
             and frames_processed >= 0
+            else None
+        ),
+        db_write_count=(
+            int(db_write_count)
+            if db_write_count_present
+            and isinstance(db_write_count, (int, float))
+            and not isinstance(db_write_count, bool)
+            and db_write_count >= 0
             else None
         ),
         observed_at=observed_at,

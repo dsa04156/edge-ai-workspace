@@ -144,6 +144,29 @@
         "metric_fresh_seconds": 60,
         "max_restart_count": 3
       },
+      "runtime_offloading": {
+        "enabled": true,
+        "stage_id": "inference",
+        "target_workload": {
+          "namespace": "edgex-edge",
+          "kind": "Deployment",
+          "name": "sensor-anomaly-inference-server1",
+          "selector": {
+            "app.kubernetes.io/name": "sensor-anomaly-inference-server1"
+          }
+        },
+        "endpoint_base_url": "http://sensor-anomaly-inference-server1.edgex-edge.svc.cluster.local:8080",
+        "readiness_path": "/api/v1/augmentation-readyz",
+        "inference_path": "/infer",
+        "source_probe_path": "/api/v1/inference-routing/preflight",
+        "architecture": "amd64",
+        "accelerator": "nvidia-gpu",
+        "accelerator_units": {
+          "nvidia.com/gpu": 1
+        },
+        "max_network_latency_ms": 250,
+        "qualification_required": true
+      },
       "design_contract": {
         "contract_id": "sensor-anomaly-demo-v1",
         "source_mode": "local_recent",

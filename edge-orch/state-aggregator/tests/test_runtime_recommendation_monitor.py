@@ -12,6 +12,7 @@ from app.models import (
 )
 from app.runtime_recommendation import RuntimeWorkloadSnapshot
 from app.runtime_recommendation_monitor import (
+    RuntimeOffloadTargetObservation,
     RuntimeRecommendationMonitor,
     RuntimeServiceObservation,
     _fresh,
@@ -24,7 +25,19 @@ CATALOG_PATH = Path(__file__).resolve().parents[1] / "app/config/service_catalog
 
 
 class StubKube:
-    async def get_runtime_workload(self, **_: object) -> RuntimeWorkloadSnapshot:
+    async def get_runtime_workload(self, **values: object) -> RuntimeWorkloadSnapshot:
+        if values.get("name") == "sensor-anomaly-inference-server1":
+            return RuntimeWorkloadSnapshot(
+                namespace="edgex-edge",
+                kind="Deployment",
+                name="sensor-anomaly-inference-server1",
+                observed=True,
+                exists=True,
+                desired_replicas=1,
+                ready_replicas=1,
+                current_nodes=("server-b",),
+                placement_profile=_profile("sensor-anomaly-inference-server1", gpu=True),
+            )
         return RuntimeWorkloadSnapshot(
             namespace="edgex-edge",
             kind="Deployment",
@@ -34,21 +47,7 @@ class StubKube:
             desired_replicas=1,
             ready_replicas=1,
             current_nodes=("edge-a",),
-            placement_profile={
-                "namespace": "edgex-edge",
-                "service": "sensor-anomaly-demo",
-                "generated_at": NOW.isoformat(),
-                "pod_count": 1,
-                "request_coverage_ratio": 1,
-                "resource_requirements": {
-                    "requests": {"cpu_cores": 1, "memory_mib": 512},
-                    "limits": {"gpu_units": 0},
-                    "missing": {
-                        "cpu_request_containers": 0,
-                        "memory_request_containers": 0,
-                    },
-                },
-            },
+            placement_profile=_profile("sensor-anomaly-demo"),
         )
 
 
@@ -61,7 +60,16 @@ class StubAggregator:
         return {"service_resource_profiles": []}
 
     async def get_scheduling_resources(self) -> list[NodeSchedulingResource]:
-        return [_resource("edge-a", 0.4), _resource("server-b", 0.1)]
+        return [
+            _resource("edge-a", 0.4, architecture="arm64"),
+            _resource(
+                "server-b",
+                0.1,
+                architecture="amd64",
+                accelerator="nvidia-gpu",
+                accelerator_units={"nvidia.com/gpu": 1},
+            ),
+        ]
 
 
 class StubAdapter:
@@ -83,12 +91,51 @@ class StubAdapter:
             throughput_per_second=0.6,
             source="container-cadvisor",
             scope="container",
+            model_version="baseline-1.0.0",
         )
 
 
-def _resource(node: str, cpu_ratio: float) -> NodeSchedulingResource:
+class StubOffloadProbe:
+    async def observe(self, _contract: object) -> RuntimeOffloadTargetObservation:
+        return RuntimeOffloadTargetObservation(ready=True, network_latency_ms=12.5)
+
+
+def _profile(service: str, *, gpu: bool = False) -> dict:
+    return {
+        "namespace": "edgex-edge",
+        "service": service,
+        "generated_at": NOW.isoformat(),
+        "pod_count": 1,
+        "request_coverage_ratio": 1,
+        "resource_requirements": {
+            "requests": {
+                "cpu_cores": 1,
+                "memory_mib": 512,
+                "accelerator_units": {"nvidia.com/gpu": 1} if gpu else {},
+            },
+            "limits": {"gpu_units": 1 if gpu else 0},
+            "missing": {
+                "cpu_request_containers": 0,
+                "memory_request_containers": 0,
+            },
+        },
+    }
+
+
+def _resource(
+    node: str,
+    cpu_ratio: float,
+    *,
+    architecture: str,
+    accelerator: str | None = None,
+    accelerator_units: dict[str, float] | None = None,
+) -> NodeSchedulingResource:
     gib = 1024**3
-    available = SchedulingResourceAmounts(cpu_cores=6, memory_bytes=12 * gib)
+    available = SchedulingResourceAmounts(
+        cpu_cores=6,
+        memory_bytes=12 * gib,
+        accelerator_units=accelerator_units or {},
+    )
     return NodeSchedulingResource(
         node=node,
         cpu_available=6,
@@ -96,9 +143,14 @@ def _resource(node: str, cpu_ratio: float) -> NodeSchedulingResource:
         health="healthy",
         schedulable=True,
         reason_codes=["ready"],
-        architecture="arm64",
-        node_type="edge_ai_device",
-        allocatable=SchedulingResourceAmounts(cpu_cores=8, memory_bytes=16 * gib),
+        architecture=architecture,
+        accelerator=accelerator,
+        node_type="edge_ai_device" if architecture == "arm64" else "cloud_server",
+        allocatable=SchedulingResourceAmounts(
+            cpu_cores=8,
+            memory_bytes=16 * gib,
+            accelerator_units=accelerator_units or {},
+        ),
         requested=SchedulingResourceAmounts(cpu_cores=2, memory_bytes=4 * gib),
         available=available,
         utilization=NodeResourceUtilization(
@@ -130,6 +182,11 @@ def _catalog_with_zero_dwell() -> ServiceCatalog:
             "cooldown_seconds": 0,
         }
     )
+    descriptor.augmentation_qualification = (
+        descriptor.augmentation_qualification.model_copy(
+            update={"status": "qualified", "qualified_condition_count": 15}
+        )
+    )
     return catalog
 
 
@@ -139,17 +196,45 @@ def test_monitor_combines_runtime_signals_and_reuses_placement_engine(tmp_path) 
         StubAggregator(),
         _catalog_with_zero_dwell(),
         {"sensor-anomaly-v1": StubAdapter()},
+        offload_probe=StubOffloadProbe(),
     )
 
     decisions = asyncio.run(monitor.evaluate_all(now=NOW))
 
     assert len(decisions) == 1
     decision = decisions[0]
-    assert decision.state == "AUGMENT_RECOMMENDED"
+    assert decision.state == "OFFLOAD_RECOMMENDED"
+    assert decision.recommendation.action == "offload"
     assert decision.recommendation.selected_node == "server-b"
+    assert decision.offloading is not None
+    assert decision.offloading.target_ready is True
+    assert decision.offloading.network_latency_ms == 12.5
     candidates = {candidate.node: candidate for candidate in decision.placement.candidates}
     assert candidates["edge-a"].reason_codes == ["current_node_excluded"]
     assert monitor.latest("sensor-anomaly-demo") == decision
+
+
+def test_monitor_blocks_offload_when_git_qualification_is_rejected(tmp_path) -> None:
+    catalog = _catalog_with_zero_dwell()
+    descriptor = catalog.require("sensor-anomaly-demo")
+    descriptor.augmentation_qualification = (
+        descriptor.augmentation_qualification.model_copy(
+            update={"status": "rejected", "qualified_condition_count": 0}
+        )
+    )
+    monitor = RuntimeRecommendationMonitor(
+        _settings(tmp_path),
+        StubAggregator(),
+        catalog,
+        {"sensor-anomaly-v1": StubAdapter()},
+        offload_probe=StubOffloadProbe(),
+    )
+
+    decision = asyncio.run(monitor.evaluate_all(now=NOW))[0]
+
+    assert decision.state == "BLOCKED"
+    assert "offload_candidate_not_qualified" in decision.reason_codes
+    assert decision.placement is None
 
 
 def test_monitor_blocks_stale_input_without_calling_it_resource_pressure(tmp_path) -> None:

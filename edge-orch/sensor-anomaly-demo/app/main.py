@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from .config import Settings
@@ -11,12 +11,16 @@ from .contracts import contract_schemas
 from .inference_api import (
     InferenceEngine,
     InferenceInputError,
+    InferenceModelVersionMismatch,
     InferenceRequestConflict,
 )
 from .models import (
     AlertEnvelope,
     InferenceRequest,
     InferenceResponse,
+    InferenceRoutingChangeRequest,
+    InferenceRoutingPreflight,
+    InferenceRoutingStatus,
     ResultEnvelope,
     ServiceStatus,
     StorageStatus,
@@ -115,6 +119,7 @@ def create_app(
                 "status": "ready",
                 "capability": "sensor-anomaly-inference",
                 "role": "inference-server",
+                "modelVersion": selected_inference_engine.model_adapter.version,
                 "modelBackend": selected_inference_engine.model_adapter.backend,
                 "accelerator": selected_inference_engine.model_adapter.accelerator,
                 "acceleratorDevice": selected_inference_engine.model_adapter.accelerator_device,
@@ -127,6 +132,20 @@ def create_app(
             )
         return {"status": "ready", "capability": "sensor-anomaly-inference"}
 
+    @application.get(
+        "/api/v1/inference-routing/preflight",
+        response_model=InferenceRoutingPreflight,
+    )
+    async def inference_routing_preflight() -> InferenceRoutingPreflight:
+        runtime_instance = require_runtime()
+        if selected_settings.remote_inference_mode != "approved":
+            raise HTTPException(
+                status_code=409,
+                detail="remote inference routing is not approved for this workload",
+            )
+        return await runtime_instance.inference_router.preflight()
+
+    @application.post("/infer", response_model=InferenceResponse)
     @application.post("/api/v1/inference", response_model=InferenceResponse)
     async def inference(request: InferenceRequest) -> InferenceResponse:
         if (
@@ -138,8 +157,44 @@ def create_app(
             return selected_inference_engine.infer(request)
         except InferenceRequestConflict as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except InferenceModelVersionMismatch as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except InferenceInputError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @application.post(
+        "/api/v1/inference-routing",
+        response_model=InferenceRoutingStatus,
+    )
+    async def change_inference_routing(
+        request: InferenceRoutingChangeRequest,
+        approval_id: str | None = Header(
+            default=None,
+            alias="X-Offload-Approval",
+        ),
+    ) -> InferenceRoutingStatus:
+        runtime_instance = require_runtime()
+        if selected_settings.remote_inference_mode != "approved":
+            raise HTTPException(
+                status_code=409,
+                detail="remote inference routing is not approved for this workload",
+            )
+        if (
+            approval_id is None
+            or approval_id != selected_settings.remote_inference_control_token
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="a valid offload approval is required",
+            )
+        try:
+            if request.mode == "REMOTE":
+                return runtime_instance.inference_router.activate_remote(
+                    selected_settings.remote_inference_approval_id or ""
+                )
+            return runtime_instance.inference_router.activate_local()
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     @application.get("/api/v1/status", response_model=ServiceStatus)
     async def status() -> ServiceStatus:
@@ -197,6 +252,12 @@ def create_app(
         state = require_runtime().status()
         performance = state.performance
         resources = state.process_resources
+        routing = state.inference_routing
+        inference_mode_value = {
+            "LOCAL": 0,
+            "REMOTE": 1,
+            "LOCAL_FALLBACK": 2,
+        }[routing.inference_mode]
         lines = [
             "# HELP sensor_anomaly_processing_latency_p95_ms Five-minute processing latency p95.",
             "# TYPE sensor_anomaly_processing_latency_p95_ms gauge",
@@ -219,6 +280,24 @@ def create_app(
             "# HELP sensor_anomaly_process_resource_metrics_valid Whether interval CPU and current RSS are both available.",
             "# TYPE sensor_anomaly_process_resource_metrics_valid gauge",
             f"sensor_anomaly_process_resource_metrics_valid {1 if resources.metrics_valid else 0}",
+            "# HELP sensor_anomaly_inference_mode Current inference execution mode: 0 local, 1 remote, 2 fallback.",
+            "# TYPE sensor_anomaly_inference_mode gauge",
+            f"sensor_anomaly_inference_mode {inference_mode_value}",
+            "# HELP sensor_anomaly_remote_inference_success_ratio Successful remote inference requests divided by attempts.",
+            "# TYPE sensor_anomaly_remote_inference_success_ratio gauge",
+            f"sensor_anomaly_remote_inference_success_ratio {routing.offload_success_rate if routing.offload_success_rate is not None else 'NaN'}",
+            "# HELP sensor_anomaly_remote_inference_fallback_total Number of per-request local fallbacks.",
+            "# TYPE sensor_anomaly_remote_inference_fallback_total counter",
+            f"sensor_anomaly_remote_inference_fallback_total {routing.fallback_count}",
+            "# HELP sensor_anomaly_inference_total_latency_ms Latest authoritative inference latency.",
+            "# TYPE sensor_anomaly_inference_total_latency_ms gauge",
+            f"sensor_anomaly_inference_total_latency_ms {routing.total_latency_ms if routing.total_latency_ms is not None else 'NaN'}",
+            "# HELP sensor_anomaly_remote_network_latency_ms Latest remote round-trip latency excluding reported server processing.",
+            "# TYPE sensor_anomaly_remote_network_latency_ms gauge",
+            f"sensor_anomaly_remote_network_latency_ms {routing.network_latency_ms if routing.network_latency_ms is not None else 'NaN'}",
+            "# HELP sensor_anomaly_remote_processing_latency_ms Latest remote server processing latency.",
+            "# TYPE sensor_anomaly_remote_processing_latency_ms gauge",
+            f"sensor_anomaly_remote_processing_latency_ms {routing.remote_processing_ms if routing.remote_processing_ms is not None else 'NaN'}",
         ]
         return PlainTextResponse(
             content="\n".join(lines) + "\n",

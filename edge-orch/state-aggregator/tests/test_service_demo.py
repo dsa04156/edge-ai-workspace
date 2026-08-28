@@ -135,6 +135,14 @@ def live_payload() -> dict:
             "reasonCode": None,
             "observedAt": datetime.now(timezone.utc).isoformat(),
         },
+        "storage": {
+            "backend": "sqlite",
+            "durable": True,
+            "resultCount": 30,
+            "alertEventCount": 2,
+            "openAlertCount": 1,
+            "retentionRows": 100000,
+        },
         "inferenceRouting": {
             "configuredMode": "approved",
             "state": "remote",
@@ -143,6 +151,18 @@ def live_payload() -> dict:
             "consecutiveFailures": 0,
             "rollbackRemainingSeconds": 0,
             "lastError": None,
+            "inferenceMode": "REMOTE",
+            "sourceNode": "etri-dev0001-jetorn",
+            "remoteNode": "etri-ser0002-cgnmsb",
+            "remoteReady": True,
+            "networkLatencyMs": 12.5,
+            "remoteProcessingMs": 4.5,
+            "totalLatencyMs": 17.0,
+            "remoteAttempts": 8,
+            "remoteSuccesses": 7,
+            "offloadSuccessRate": 0.875,
+            "fallbackCount": 1,
+            "lastReasonCode": None,
         },
         "lastError": None,
     }
@@ -187,8 +207,14 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.execution_ownership is not None
     assert state.execution_ownership.effective_mode == "ACTIVE"
     assert state.execution_ownership.holder_identity == "sensor-anomaly-demo"
+    assert state.storage is not None and state.storage.result_count == 30
     assert state.inference_routing.effective_target == "server1"
     assert state.inference_routing.approval_id == "approval-001"
+    assert state.inference_routing.inference_mode == "REMOTE"
+    assert state.inference_routing.remote_node == "etri-ser0002-cgnmsb"
+    assert state.inference_routing.network_latency_ms == 12.5
+    assert state.inference_routing.offload_success_rate == 0.875
+    assert state.inference_routing.fallback_count == 1
     assert state.observation_error is None
 
 

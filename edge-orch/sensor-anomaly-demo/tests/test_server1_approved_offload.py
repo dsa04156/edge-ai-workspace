@@ -38,6 +38,7 @@ def test_approved_overlay_is_inactive_and_requires_external_approval_secret() ->
     assert "server1-approved-offload" not in active["resources"]
     assert not any(item["kind"] == "Secret" for item in resources)
     assert env["REMOTE_INFERENCE_MODE"]["value"] == "approved"
+    assert env["REMOTE_INFERENCE_INITIAL_TARGET"]["value"] == "local"
     assert env["REMOTE_INFERENCE_URL"]["value"] == (
         "http://sensor-anomaly-inference-server1.edgex-edge.svc.cluster.local:8080"
     )
@@ -45,6 +46,14 @@ def test_approved_overlay_is_inactive_and_requires_external_approval_secret() ->
         "name": "sensor-anomaly-augmentation-approval",
         "key": "approval-id",
     }
+    assert env["REMOTE_INFERENCE_CONTROL_TOKEN"]["valueFrom"]["secretKeyRef"] == {
+        "name": "sensor-anomaly-augmentation-approval",
+        "key": "control-token",
+    }
+    assert env["REMOTE_INFERENCE_NODE"]["value"] == "etri-ser0002-cgnmsb"
+    assert env["REMOTE_INFERENCE_MODEL_VERSION"]["value"] == "cuda-baseline-1.0.0"
+    assert env["REMOTE_INFERENCE_LATENCY_THRESHOLD_MS"]["value"] == "250"
+    assert env["REMOTE_INFERENCE_LATENCY_FAILURE_THRESHOLD"]["value"] == "3"
     assert "approval-id:" not in rendered
 
 

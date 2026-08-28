@@ -12,10 +12,11 @@ RuntimeRecommendationState = Literal[
     "NORMAL",
     "OBSERVING",
     "AUGMENT_RECOMMENDED",
+    "OFFLOAD_RECOMMENDED",
     "REPLACE_RECOMMENDED",
     "BLOCKED",
 ]
-RuntimeRecommendationAction = Literal["none", "augment", "replace"]
+RuntimeRecommendationAction = Literal["none", "augment", "offload", "replace"]
 
 
 class RuntimeRecommendationPolicy(SchedulingModel):
@@ -86,6 +87,22 @@ class RuntimeRecommendationTarget(SchedulingModel):
     selected_score: float | None = Field(default=None, ge=0, le=100)
 
 
+class RuntimeOffloadingObservation(SchedulingModel):
+    state: Literal[
+        "LOCAL",
+        "OFFLOAD_RECOMMENDED",
+        "REMOTE",
+        "LOCAL_FALLBACK",
+    ] = "LOCAL"
+    target_workload: str | None = None
+    target_node: str | None = None
+    target_ready: bool | None = None
+    network_latency_ms: float | None = Field(default=None, ge=0)
+    max_network_latency_ms: float | None = Field(default=None, gt=0)
+    candidate_qualified: bool | None = None
+    reason_codes: list[str] = Field(default_factory=list)
+
+
 class RuntimeRecommendationDecision(SchedulingModel):
     service_id: str
     namespace: str
@@ -102,6 +119,7 @@ class RuntimeRecommendationDecision(SchedulingModel):
         default_factory=RuntimeRecommendationTarget
     )
     placement: PlacementSelectionResult | None = None
+    offloading: RuntimeOffloadingObservation | None = None
     observation_source: str
     observation_scope: str
     observed_at: datetime

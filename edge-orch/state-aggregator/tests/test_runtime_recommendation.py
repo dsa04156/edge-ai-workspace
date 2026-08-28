@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from app.models import (
     NodeResourceUtilization,
     NodeSchedulingResource,
@@ -11,6 +13,7 @@ from app.models import (
 )
 from app.placement import select_placement
 from app.runtime_recommendation import (
+    RuntimeOffloadingSignals,
     RuntimeRecommendationEngine,
     RuntimeRecommendationSignals,
     RuntimeRecommendationStore,
@@ -135,6 +138,23 @@ async def _placement(current_nodes: set[str]):
     )
 
 
+def _offloading(**updates) -> RuntimeOffloadingSignals:
+    values = {
+        "enabled": True,
+        "current_mode": "LOCAL",
+        "target_workload": "factory/quality-ai-inference",
+        "target_node": "server-b",
+        "target_ready": True,
+        "network_latency_ms": 12.5,
+        "max_network_latency_ms": 250,
+        "candidate_qualified": True,
+        "qualification_required": True,
+        "reason_codes": (),
+    }
+    values.update(updates)
+    return RuntimeOffloadingSignals(**values)
+
+
 def test_engine_applies_dwell_hysteresis_and_cooldown(tmp_path) -> None:
     store = RuntimeRecommendationStore(tmp_path / "runtime.sqlite3")
     engine = RuntimeRecommendationEngine(store)
@@ -219,6 +239,83 @@ def test_engine_prioritizes_runtime_failure_for_replacement(tmp_path) -> None:
     candidates = {item.node: item for item in replacement.placement.candidates}
     assert candidates["edge-a"].eligible is False
     assert candidates["edge-a"].reason_codes == ["current_node_excluded"]
+
+
+def test_engine_recommends_partial_offload_for_sustained_pressure(tmp_path) -> None:
+    engine = RuntimeRecommendationEngine(
+        RuntimeRecommendationStore(tmp_path / "runtime.sqlite3")
+    )
+    policy = _policy(resource_dwell_seconds=0, service_dwell_seconds=0)
+
+    decision = asyncio.run(
+        engine.evaluate(
+            _signals(),
+            policy,
+            _placement,
+            offloading=_offloading(),
+            offload_placement_provider=_placement,
+            now=NOW,
+        )
+    )
+
+    assert decision.state == "OFFLOAD_RECOMMENDED"
+    assert decision.recommendation.action == "offload"
+    assert decision.recommendation.selected_node == "server-b"
+    assert decision.offloading is not None
+    assert decision.offloading.state == "OFFLOAD_RECOMMENDED"
+
+
+def test_engine_keeps_whole_workload_failure_on_replace_path(tmp_path) -> None:
+    engine = RuntimeRecommendationEngine(
+        RuntimeRecommendationStore(tmp_path / "runtime.sqlite3")
+    )
+    policy = _policy(replacement_dwell_seconds=0)
+    decision = asyncio.run(
+        engine.evaluate(
+            _signals(ready_replicas=0, pod_failure=True, node_failure=True),
+            policy,
+            _placement,
+            offloading=_offloading(),
+            offload_placement_provider=_placement,
+            now=NOW,
+        )
+    )
+
+    assert decision.state == "REPLACE_RECOMMENDED"
+    assert decision.recommendation.action == "replace"
+
+
+@pytest.mark.parametrize(
+    ("updates", "reason"),
+    [
+        ({"target_ready": False}, "remote_inference_service_not_ready"),
+        ({"network_latency_ms": None}, "remote_network_latency_unavailable"),
+        ({"network_latency_ms": 300}, "remote_network_latency_exceeded"),
+        ({"candidate_qualified": False}, "offload_candidate_not_qualified"),
+    ],
+)
+def test_engine_blocks_offload_when_remote_contract_gate_fails(
+    tmp_path,
+    updates,
+    reason,
+) -> None:
+    engine = RuntimeRecommendationEngine(
+        RuntimeRecommendationStore(tmp_path / f"{reason}.sqlite3")
+    )
+    decision = asyncio.run(
+        engine.evaluate(
+            _signals(),
+            _policy(resource_dwell_seconds=0, service_dwell_seconds=0),
+            _placement,
+            offloading=_offloading(**updates),
+            offload_placement_provider=_placement,
+            now=NOW,
+        )
+    )
+
+    assert decision.state == "BLOCKED"
+    assert reason in decision.reason_codes
+    assert decision.placement is None
 
 
 def test_historical_restart_count_does_not_keep_a_ready_pod_failed(tmp_path) -> None:

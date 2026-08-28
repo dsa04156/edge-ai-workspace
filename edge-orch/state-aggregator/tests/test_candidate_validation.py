@@ -119,6 +119,7 @@ def _status(
             "framesProcessed": frames_processed,
             "shadowFramesProcessed": frames_processed,
         },
+        "storage": {"resultCount": frames_processed},
         "executionOwnership": {
             "enabled": True,
             "effectiveMode": execution_mode,
@@ -250,6 +251,7 @@ def test_contract_loads_and_candidate_stabilizes_before_success() -> None:
     assert result.stable_since == result.started_at
     assert clock.elapsed == 10
     assert result.candidate is not None and result.candidate.latency_ms == 82
+    assert result.candidate.db_write_count == result.candidate.frames_processed
     assert result.source is not None and result.source.latency_ms == 180
     assert all(item.status == "SUCCEEDED" for item in result.checks)
     assert [item.status for item in observations] == [

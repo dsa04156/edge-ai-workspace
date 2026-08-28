@@ -4,6 +4,7 @@ import time
 import pytest
 
 from app.config import Settings
+from app.inference_executor import InferenceExecutionResult
 from app.local_data import (
     ACCELERATION_SOURCES,
     LocalDataSource,
@@ -59,8 +60,31 @@ class FakeApprovedRouter:
     def __init__(self) -> None:
         self.closed = False
 
-    async def infer(self, frame, temperature, *, local, now=None):
-        return RoutedInference(_remote_decision(frame.origin, temperature.value), "server1")
+    async def infer(
+        self,
+        frame,
+        temperature,
+        *,
+        local,
+        now=None,
+        request_id=None,
+        allow_remote=True,
+    ):
+        assert allow_remote is True
+        return RoutedInference(
+            InferenceExecutionResult(
+                decision=_remote_decision(frame.origin, temperature.value),
+                request_id=request_id,
+                execution_mode="remote",
+                model_version="baseline-1.0.0",
+                source_node="etri-dev0001-jetorn",
+                remote_node="etri-ser0002-cgnmsb",
+                network_latency_ms=2.5,
+                remote_processing_ms=1.5,
+                total_latency_ms=4.0,
+            ),
+            "server1",
+        )
 
     def status(self, *, now=None) -> InferenceRoutingStatus:
         return InferenceRoutingStatus(
@@ -68,10 +92,43 @@ class FakeApprovedRouter:
             state="remote",
             effective_target="server1",
             approval_id="approval-001",
+            inference_mode="REMOTE",
+            remote_ready=True,
+            remote_node="etri-ser0002-cgnmsb",
         )
 
     async def close(self) -> None:
         self.closed = True
+
+
+class CapturingRouter(FakeApprovedRouter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.allow_remote_values = []
+
+    async def infer(
+        self,
+        frame,
+        temperature,
+        *,
+        local,
+        now=None,
+        request_id=None,
+        allow_remote=True,
+    ):
+        self.allow_remote_values.append(allow_remote)
+        decision = local()
+        assert decision is not None
+        return RoutedInference(
+            InferenceExecutionResult(
+                decision=decision,
+                request_id=request_id,
+                execution_mode="local",
+                model_version="baseline-1.0.0",
+                source_node="etri-dev0001-jetorn",
+            ),
+            "edge-local",
+        )
 
 
 def _remote_decision(origin: int, temperature: float):
@@ -133,6 +190,7 @@ def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> No
     assert first.latest.temperature_features.raw == 300
     assert first.latest.temperature_features.alignment_lag_ms == 10.0
     assert first.counters.frames_processed == 1
+    assert first.storage is not None and first.storage.result_count >= 1
     assert second.counters.frames_processed == 1
     assert [call[1] for call in client.calls[4:7]] == [origin + 1] * 3
     assert client.calls[7][1] == origin - 9_999_999
@@ -164,8 +222,38 @@ def test_runtime_uses_explicitly_approved_remote_inference_result() -> None:
     assert state.latest.score == 0.5
     assert state.latest.inference_target == "server1"
     assert state.latest.augmentation_approval_id == "approval-001"
+    assert state.latest.execution_mode == "remote"
+    assert state.latest.remote_node == "etri-ser0002-cgnmsb"
+    assert state.latest.total_latency_ms == 4.0
     assert state.inference_routing.effective_target == "server1"
     assert router.closed is True
+
+
+def test_shadow_workload_never_authorizes_remote_offload_or_production_commit() -> None:
+    origin = 1_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    router = CapturingRouter()
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1, execution_mode="SHADOW"),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        inference_router=router,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origin + 100))
+    state = runtime.status(now_ns=origin + 100)
+
+    assert router.allow_remote_values == [False]
+    assert state.counters.frames_processed == 0
+    assert state.counters.shadow_frames_processed == 1
+    assert runtime.storage_status().result_count == 0
 
 
 def test_runtime_recovers_pending_acceleration_when_temperature_arrives_late() -> None:

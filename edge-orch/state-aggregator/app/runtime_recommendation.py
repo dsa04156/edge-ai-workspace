@@ -20,6 +20,7 @@ from .runtime_recommendation_models import (
     RuntimeRecommendationPolicy,
     RuntimeRecommendationState,
     RuntimeRecommendationTarget,
+    RuntimeOffloadingObservation,
 )
 
 
@@ -54,6 +55,20 @@ class RuntimeRecommendationSignals:
     throughput_per_second: float | None = None
     observation_source: str = "unavailable"
     observation_scope: str = "unknown"
+
+
+@dataclass(frozen=True)
+class RuntimeOffloadingSignals:
+    enabled: bool = False
+    current_mode: str = "LOCAL"
+    target_workload: str | None = None
+    target_node: str | None = None
+    target_ready: bool | None = None
+    network_latency_ms: float | None = None
+    max_network_latency_ms: float | None = None
+    candidate_qualified: bool | None = None
+    qualification_required: bool = True
+    reason_codes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -249,6 +264,8 @@ class RuntimeRecommendationEngine:
         policy: RuntimeRecommendationPolicy,
         placement_provider: PlacementProvider,
         *,
+        offloading: RuntimeOffloadingSignals | None = None,
+        offload_placement_provider: PlacementProvider | None = None,
         now: datetime | None = None,
     ) -> RuntimeRecommendationDecision:
         observed_at = _utc(now or datetime.now(timezone.utc))
@@ -265,6 +282,7 @@ class RuntimeRecommendationEngine:
                 previous_state=previous_state,
                 reason_codes=blockers,
                 now=observed_at,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
@@ -330,6 +348,7 @@ class RuntimeRecommendationEngine:
                 previous_state=previous_state,
                 reason_codes=["recovery_dwell_active"],
                 now=observed_at,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
@@ -347,7 +366,7 @@ class RuntimeRecommendationEngine:
             and resource_elapsed >= policy.resource_dwell_seconds
             and service_elapsed >= policy.service_dwell_seconds
         ):
-            desired_action = "augment"
+            desired_action = "offload" if offloading and offloading.enabled else "augment"
             reason_codes = [
                 "sustained_resource_and_service_pressure",
                 *_pressure_reasons(signals, policy),
@@ -372,6 +391,7 @@ class RuntimeRecommendationEngine:
                 previous_state=previous_state,
                 reason_codes=_unique(reason_codes),
                 now=observed_at,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
@@ -384,6 +404,7 @@ class RuntimeRecommendationEngine:
                 previous_state=previous_state,
                 reason_codes=["within_operating_envelope"],
                 now=observed_at,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
@@ -391,6 +412,8 @@ class RuntimeRecommendationEngine:
         recommended_state: RuntimeRecommendationState = (
             "REPLACE_RECOMMENDED"
             if desired_action == "replace"
+            else "OFFLOAD_RECOMMENDED"
+            if desired_action == "offload"
             else "AUGMENT_RECOMMENDED"
         )
         continuing = previous_state == recommended_state
@@ -405,11 +428,46 @@ class RuntimeRecommendationEngine:
                 reason_codes=["recommendation_cooldown_active", *reason_codes],
                 now=observed_at,
                 cooldown_remaining=cooldown_remaining,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
 
-        placement = await placement_provider(set(signals.current_nodes))
+        if desired_action == "offload":
+            offload_blockers = _offload_blockers(offloading)
+            if offload_blockers:
+                decision = _decision(
+                    signals,
+                    policy,
+                    memory,
+                    state="BLOCKED",
+                    previous_state=previous_state,
+                    reason_codes=[*reason_codes, *offload_blockers],
+                    now=observed_at,
+                    offloading=offloading,
+                )
+                self.store.save(memory, decision)
+                return decision
+            if offload_placement_provider is None:
+                decision = _decision(
+                    signals,
+                    policy,
+                    memory,
+                    state="BLOCKED",
+                    previous_state=previous_state,
+                    reason_codes=[*reason_codes, "offload_placement_unavailable"],
+                    now=observed_at,
+                    offloading=offloading,
+                )
+                self.store.save(memory, decision)
+                return decision
+        selected_provider = (
+            offload_placement_provider
+            if desired_action == "offload"
+            else placement_provider
+        )
+        assert selected_provider is not None
+        placement = await selected_provider(set(signals.current_nodes))
         recommendation = RuntimeRecommendationTarget(
             action=desired_action,
             selected_node=placement.selected_node,
@@ -430,6 +488,30 @@ class RuntimeRecommendationEngine:
                 now=observed_at,
                 recommendation=recommendation,
                 placement=placement,
+                offloading=offloading,
+            )
+            self.store.save(memory, decision)
+            return decision
+        if (
+            desired_action == "offload"
+            and offloading is not None
+            and offloading.target_node is not None
+            and placement.selected_node != offloading.target_node
+        ):
+            decision = _decision(
+                signals,
+                policy,
+                memory,
+                state="BLOCKED",
+                previous_state=previous_state,
+                reason_codes=[
+                    *reason_codes,
+                    "remote_inference_service_not_ready_on_selected_node",
+                ],
+                now=observed_at,
+                recommendation=recommendation,
+                placement=placement,
+                offloading=offloading,
             )
             self.store.save(memory, decision)
             return decision
@@ -446,6 +528,7 @@ class RuntimeRecommendationEngine:
             now=observed_at,
             recommendation=recommendation,
             placement=placement,
+            offloading=offloading,
         )
         self.store.save(memory, decision)
         return decision
@@ -463,6 +546,7 @@ def _decision(
     cooldown_remaining: int = 0,
     recommendation: RuntimeRecommendationTarget | None = None,
     placement: PlacementSelectionResult | None = None,
+    offloading: RuntimeOffloadingSignals | None = None,
 ) -> RuntimeRecommendationDecision:
     recovery_starts = [
         value
@@ -509,9 +593,68 @@ def _decision(
         cooldown_remaining_seconds=cooldown_remaining,
         recommendation=recommendation or RuntimeRecommendationTarget(),
         placement=placement,
+        offloading=_offloading_observation(
+            offloading,
+            decision_state=state,
+            selected_node=(
+                recommendation.selected_node
+                if recommendation is not None
+                else None
+            ),
+        ),
         observation_source=signals.observation_source,
         observation_scope=signals.observation_scope,
         observed_at=now,
+    )
+
+
+def _offload_blockers(
+    signals: RuntimeOffloadingSignals | None,
+) -> list[str]:
+    if signals is None or not signals.enabled:
+        return ["offloading_contract_not_configured"]
+    blockers = list(signals.reason_codes)
+    if signals.target_ready is not True:
+        blockers.append("remote_inference_service_not_ready")
+    if signals.network_latency_ms is None:
+        blockers.append("remote_network_latency_unavailable")
+    elif (
+        signals.max_network_latency_ms is not None
+        and signals.network_latency_ms > signals.max_network_latency_ms
+    ):
+        blockers.append("remote_network_latency_exceeded")
+    if signals.qualification_required and signals.candidate_qualified is not True:
+        blockers.append("offload_candidate_not_qualified")
+    return _unique(blockers)
+
+
+def _offloading_observation(
+    signals: RuntimeOffloadingSignals | None,
+    *,
+    decision_state: RuntimeRecommendationState,
+    selected_node: str | None,
+) -> RuntimeOffloadingObservation | None:
+    if signals is None or not signals.enabled:
+        return None
+    current_mode = (
+        signals.current_mode
+        if signals.current_mode in {"LOCAL", "REMOTE", "LOCAL_FALLBACK"}
+        else "LOCAL"
+    )
+    state = (
+        "OFFLOAD_RECOMMENDED"
+        if decision_state == "OFFLOAD_RECOMMENDED"
+        else current_mode
+    )
+    return RuntimeOffloadingObservation(
+        state=state,
+        target_workload=signals.target_workload,
+        target_node=selected_node or signals.target_node,
+        target_ready=signals.target_ready,
+        network_latency_ms=signals.network_latency_ms,
+        max_network_latency_ms=signals.max_network_latency_ms,
+        candidate_qualified=signals.candidate_qualified,
+        reason_codes=list(signals.reason_codes),
     )
 
 
@@ -741,6 +884,11 @@ def _history_fingerprint(decision: RuntimeRecommendationDecision) -> str:
             decision.placement.status if decision.placement is not None else None
         ),
         "candidates": candidates,
+        "offloading": (
+            decision.offloading.model_dump(mode="json", by_alias=True)
+            if decision.offloading is not None
+            else None
+        ),
     }
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 

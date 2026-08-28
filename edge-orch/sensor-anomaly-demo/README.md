@@ -28,8 +28,9 @@ Server1 backend는 같은 통계 기준선의 점수 계산을 CUDA에서 실행
 | `GET /api/v1/alerts` | 이상 발생·정상 복귀 transition 이력 |
 | `GET /api/v1/storage` | SQLite 결과·알림 건수와 보존 설정 |
 | `GET /api/v1/contracts` | 지원 입력 계약 JSON Schema |
-| `GET /metrics` | processing latency, backlog, throughput Prometheus metric |
-| `POST /api/v1/inference` | `inference-server` 역할에서만 여는 versioned 추론 endpoint; 응답의 `serverProcessingMs`로 서버 내부 구간 계측 |
+| `GET /metrics` | processing latency, backlog, throughput, inference mode와 offload/fallback Prometheus metric |
+| `POST /infer`, `POST /api/v1/inference` | `inference-server` 역할에서만 여는 동일한 idempotent 추론 endpoint; 요청 ID·model version·timestamp와 서버 처리 시간을 검증 |
+| `POST /api/v1/inference-routing` | 승인 overlay의 edge worker에서만 별도 control token을 `X-Offload-Approval`로 제출해 LOCAL/REMOTE를 명시적으로 전환 |
 
 ## Lease 기반 실행 권한
 
@@ -64,8 +65,9 @@ NetworkPolicy는 해당 `/32`와 port만 허용한다.
 
 기본 `k8s/` 배포는 `REMOTE_INFERENCE_MODE=disabled`이며 Jetson 로컬 추론만 사용한다.
 `k8s/server1-observed-only`는 운영 root에 포함된 observed-only server1 후보다. 모델
-readiness와 endpoint를 준비하되 요청 전환은 활성화하지 않는다. HAMi가 GPU core와 memory를 배정하고 CUDA probe가 성공한 뒤에만
-readiness가 통과한다. evaluator의 `RECOMMENDED` 이후 운영자가 승인한 경우에만
+readiness와 endpoint를 준비하되 요청 전환은 활성화하지 않는다. 현재 NVIDIA device plugin이
+GPU 1개를 배정하고 CUDA probe가 성공한 뒤에만 readiness가 통과한다. evaluator의
+`RECOMMENDED` 이후 운영자가 승인한 경우에만
 `k8s-overlays/server1-approved-offload`를 별도 GitOps 변경으로 사용한다.
 
 Jetson 운영 이미지는 `scripts/build-edge-arm64-oci.sh`, server1 이미지는
@@ -74,10 +76,21 @@ Jetson 운영 이미지는 `scripts/build-edge-arm64-oci.sh`, server1 이미지�
 이미지를 덮어쓰지 못하게 한다. 두 digest를 서로 바꾸어 사용하지 않는다.
 
 승인 overlay는 저장소 밖에서 만든 `sensor-anomaly-augmentation-approval` Secret의
-`approval-id`가 없으면 시작되지 않는다. 활성화 후 원격 호출은 1초 timeout, 동일
-`requestId` 최대 2회 retry를 사용하며 3회 연속 실패하면 15분 동안 로컬 추론으로
-rollback한다. 로컬 모델은 원격 추론 중에도 계속 갱신된다. 이 경로는 단일 서비스의
+`approval-id`와 별도 `control-token`이 없으면 시작되지 않는다. `approval-id`는 감사용 식별자라
+상태 API에 보일 수 있고, mutation credential인 `control-token`은 상태에 노출하지 않는다. Pod는
+승인 overlay에서도 LOCAL로 시작하며 control token을 header로 제출한 명시적 API 호출 뒤에만
+REMOTE가 된다. 원격 호출은 1초 timeout,
+동일 `requestId` 최대 2회 retry를 사용하며 3회 연속 실패하거나 latency 한계를 지속 위반하면
+15분 동안 로컬 추론으로 rollback한다. 성공한 REMOTE 경로에서는 local model을 먼저 실행하지
+않으므로, 전환 전 local warm-up 완료가 fallback precondition이다. 이 경로는 단일 서비스의
 승인된 요청 전환이며 자동 workload 증설이나 범용 동적 offloading이 아니다.
+
+2026-08-26 격리 smoke test에서는 새 ARM64 edge image와 AMD64 server image로
+LOCAL → REMOTE → server 장애 → LOCAL_FALLBACK을 확인했다. 첫 REMOTE 결과는 전환 요청 후
+약 543ms 안에 관측됐고, 한 sample의 remote total 33.46ms(관측 network 33.12ms, server
+processing 0.34ms), 장애 후 fallback 결과는 scale 요청 뒤 약 1.08s 안에 관측됐다. 이 smoke
+server는 GPU 자격과 무관한 CPU backend로 protocol·network·fallback만 검증했으며, 기존
+Server1 GPU 후보의 성능 자격 `rejected`를 변경하지 않는다. 격리 workload는 시험 후 삭제했다.
 
 ## Replay 실행
 

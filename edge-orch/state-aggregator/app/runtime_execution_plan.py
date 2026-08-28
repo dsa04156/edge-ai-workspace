@@ -111,6 +111,17 @@ def build_runtime_execution_plan(
                 ["runtime_recommendation_blocked", *decision.reason_codes]
             ),
         )
+    if decision.state == "OFFLOAD_RECOMMENDED":
+        return RuntimeExecutionPlan(
+            **common,
+            action="offload",
+            status="blocked",
+            reason_codes=[
+                "offload_execution_requires_explicit_service_approval",
+                "whole_workload_execution_plan_not_applicable",
+            ],
+            selected_node=decision.recommendation.selected_node,
+        )
 
     expected_action: RuntimeRecommendationAction = (
         "augment" if decision.state == "AUGMENT_RECOMMENDED" else "replace"

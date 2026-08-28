@@ -21,6 +21,7 @@ from .service_demo_models import (
     ServiceDemoProcessResources,
     ServiceDemoResultState,
     ServiceDemoScoreWeights,
+    ServiceDemoStorageStatus,
     ServiceDemoState,
     ServiceDemoTemperatureFeatures,
     ServiceDemoVibrationFeatures,
@@ -176,6 +177,11 @@ class ServiceDemoClient:
                 if upstream.execution_ownership is not None
                 else None
             ),
+            storage=(
+                ServiceDemoStorageStatus(**upstream.storage.model_dump())
+                if upstream.storage is not None
+                else None
+            ),
             inference_routing=ServiceDemoInferenceRouting(
                 **upstream.inference_routing.model_dump()
             ),
@@ -221,6 +227,16 @@ class ServiceDemoClient:
             ),
             inference_target=upstream.inference_target,
             augmentation_approval_id=upstream.augmentation_approval_id,
+            request_id=upstream.request_id,
+            execution_mode=upstream.execution_mode,
+            source_node=upstream.source_node,
+            remote_node=upstream.remote_node,
+            local_latency_ms=upstream.local_latency_ms,
+            network_latency_ms=upstream.network_latency_ms,
+            remote_processing_ms=upstream.remote_processing_ms,
+            total_latency_ms=upstream.total_latency_ms,
+            fallback=upstream.fallback,
+            reason_code=upstream.reason_code,
         )
 
 
