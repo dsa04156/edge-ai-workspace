@@ -114,12 +114,19 @@ def test_serial_configmap_is_identical_to_canonical_sdk_resources() -> None:
         "LocalDataCacheMaxAge": "10m",
         "LocalDataCacheMaxSamplesPerSeries": "10000",
         "LocalDataCacheMaxBytes": "67108864",
+        "SerialRecoveryTarget": "400ms",
+        "SerialReconnectDelays": "25ms,50ms,100ms,200ms,1s,2s,4s,8s,16s,30s",
     }
     assert configuration["Writable"]["Telemetry"]["Metrics"] == {
         "LocalDataCacheSamples": True,
         "LocalDataCacheSeries": True,
         "LocalDataCacheAllocatedBytes": True,
         "LocalDataCacheEvictions": True,
+        "SerialRecoveryDetected": True,
+        "SerialRecoveryCompleted": True,
+        "SerialRecoveryLastDurationMs": True,
+        "SerialRecoveryLastAttempts": True,
+        "SerialRecoveryTargetMisses": True,
     }
 
 

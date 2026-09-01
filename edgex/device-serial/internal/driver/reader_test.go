@@ -14,13 +14,19 @@ import (
 )
 
 func TestReconnectDelayIsBounded(t *testing.T) {
-	assert.Equal(t, time.Second, reconnectDelay(0))
-	assert.Equal(t, 2*time.Second, reconnectDelay(1))
-	assert.Equal(t, 4*time.Second, reconnectDelay(2))
-	assert.Equal(t, 8*time.Second, reconnectDelay(3))
-	assert.Equal(t, 16*time.Second, reconnectDelay(4))
-	assert.Equal(t, 30*time.Second, reconnectDelay(5))
-	assert.Equal(t, 30*time.Second, reconnectDelay(100))
+	assert.Equal(t, 25*time.Millisecond, reconnectDelay(0, defaultSerialReconnectDelays))
+	assert.Equal(t, 50*time.Millisecond, reconnectDelay(1, defaultSerialReconnectDelays))
+	assert.Equal(t, 100*time.Millisecond, reconnectDelay(2, defaultSerialReconnectDelays))
+	assert.Equal(t, 200*time.Millisecond, reconnectDelay(3, defaultSerialReconnectDelays))
+	assert.Equal(t, time.Second, reconnectDelay(4, defaultSerialReconnectDelays))
+	assert.Equal(t, 30*time.Second, reconnectDelay(100, defaultSerialReconnectDelays))
+	assert.Equal(t, 25*time.Millisecond, reconnectDelay(0, nil))
+	assert.Equal(t, 375*time.Millisecond,
+		defaultSerialReconnectDelays[0]+
+			defaultSerialReconnectDelays[1]+
+			defaultSerialReconnectDelays[2]+
+			defaultSerialReconnectDelays[3],
+	)
 }
 
 func TestReaderDropsInvalidLineAndEmitsFollowingSample(t *testing.T) {
@@ -118,6 +124,8 @@ func TestReaderMarksDownAndRetriesOpenWithBackoff(t *testing.T) {
 	delays := make(chan time.Duration, 1)
 	states := make(chan models.OperatingState, 2)
 	samples := make(chan Sample, 1)
+	recoveryStarts := make(chan time.Time, 1)
+	recoveries := make(chan RecoveryObservation, 1)
 	reader := NewReader(testSerialConfig(), ReaderOptions{
 		Open: func(string, int) (Port, error) {
 			openCount++
@@ -132,6 +140,12 @@ func TestReaderMarksDownAndRetriesOpenWithBackoff(t *testing.T) {
 		},
 		OnState:  func(state models.OperatingState) { states <- state },
 		OnSample: func(sample Sample, _ int64) { samples <- sample },
+		OnRecoveryStarted: func(detectedAt time.Time) {
+			recoveryStarts <- detectedAt
+		},
+		OnRecovery: func(observation RecoveryObservation) {
+			recoveries <- observation
+		},
 	})
 
 	done := make(chan struct{})
@@ -152,9 +166,11 @@ func TestReaderMarksDownAndRetriesOpenWithBackoff(t *testing.T) {
 	}, time.Second, 5*time.Millisecond)
 
 	assert.Equal(t, 2, openCount)
-	assert.Equal(t, time.Second, <-delays)
+	assert.Equal(t, 25*time.Millisecond, <-delays)
 	assert.Equal(t, models.OperatingState(models.Down), <-states)
 	assert.Equal(t, models.OperatingState(models.Up), <-states)
+	assert.Empty(t, recoveryStarts)
+	assert.Empty(t, recoveries)
 }
 
 func TestReaderResetsBackoffAfterReceivingBytes(t *testing.T) {
@@ -204,8 +220,77 @@ func TestReaderResetsBackoffAfterReceivingBytes(t *testing.T) {
 		}
 	}, time.Second, 5*time.Millisecond)
 
-	assert.Equal(t, time.Second, <-delays)
-	assert.Equal(t, time.Second, <-delays)
+	assert.Equal(t, 25*time.Millisecond, <-delays)
+	assert.Equal(t, 25*time.Millisecond, <-delays)
+}
+
+func TestReaderMeasuresEstablishedStreamRecoveryToFirstValidSample(t *testing.T) {
+	firstPort := newScriptedPort(
+		readResult{data: []byte(`{"device_id":"arduino-001","sensor":"temperature","raw":354}` + "\n")},
+		readResult{err: io.ErrUnexpectedEOF},
+	)
+	recoveredPort := newScriptedPort(
+		readResult{data: []byte(`_id":"arduino-001","sensor":"light","value":1}` + "\n")},
+		readResult{data: []byte(`{"device_id":"arduino-001","sensor":"light","value":400}` + "\n")},
+	)
+	clock := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
+	var openCount int
+	var waited []time.Duration
+	samples := make(chan Sample, 2)
+	started := make(chan time.Time, 1)
+	recovered := make(chan RecoveryObservation, 1)
+	reader := NewReader(testSerialConfig(), ReaderOptions{
+		Open: func(string, int) (Port, error) {
+			openCount++
+			switch openCount {
+			case 1:
+				return firstPort, nil
+			case 2:
+				return nil, errors.New("USB endpoint is re-enumerating")
+			default:
+				return recoveredPort, nil
+			}
+		},
+		Wait: func(_ context.Context, delay time.Duration) bool {
+			waited = append(waited, delay)
+			clock = clock.Add(delay)
+			return true
+		},
+		RecoveryNow: func() time.Time { return clock },
+		OnSample:    func(sample Sample, _ int64) { samples <- sample },
+		OnRecoveryStarted: func(detectedAt time.Time) {
+			started <- detectedAt
+		},
+		OnRecovery: func(observation RecoveryObservation) {
+			recovered <- observation
+		},
+	})
+
+	done := make(chan struct{})
+	go func() {
+		reader.Run(context.Background())
+		close(done)
+	}()
+
+	require.Eventually(t, func() bool { return len(recovered) == 1 }, time.Second, 5*time.Millisecond)
+	require.NoError(t, reader.Close())
+	require.Eventually(t, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	}, time.Second, 5*time.Millisecond)
+
+	observation := <-recovered
+	assert.Equal(t, clock.Add(-75*time.Millisecond), <-started)
+	assert.Equal(t, 75*time.Millisecond, observation.Duration)
+	assert.Equal(t, 2, observation.Attempts)
+	assert.Equal(t, observation.DetectedAt.Add(75*time.Millisecond), observation.ResumedAt)
+	assert.Equal(t, []time.Duration{25 * time.Millisecond, 50 * time.Millisecond}, waited)
+	assert.Equal(t, 3, openCount)
+	assert.Len(t, samples, 2)
 }
 
 func TestReaderCloseInterruptsActivePort(t *testing.T) {

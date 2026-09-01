@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
@@ -71,12 +72,12 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>저장소 구조</h1>
-          <p class="subtitle">선택 overlay나 simulator가 존재한다는 사실만으로 운영 root 기능으로 설명하지 않는다.</p>
+          <p class="subtitle">edgex/device-serial/internal/driver/reader.go는 established stream의 Seri…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-08-18 17:41</span>
-            <span class="badge">HTML 생성: 2026-08-18 17:41</span>
+            <span class="badge">수정: 2026-09-01 15:30</span>
+            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -126,17 +127,18 @@
 </tr>
 <tr>
 <td><code>edge-orch/sensor-anomaly-demo/</code></td>
-<td>고정 이상감지 서비스와 observed-only HAMi GPU 후보</td>
+<td>고정 이상감지 서비스, Lease 실행 권한, Local/Remote inference executor와 승인 기반 Server1 부분 오프로딩 PoC</td>
 </tr>
 <tr>
 <td><code>edge-orch/state-aggregator/</code></td>
-<td>EdgeX·Kubernetes·Prometheus read model과 대시보드</td>
+<td>EdgeX·Kubernetes·Prometheus read model, Runtime Recommendation·Placement projection, 대시보드와 제한된 신규 Deployment/Execution Controller</td>
 </tr>
 <tr>
 <td><code>docs-site/</code></td>
 <td>정적 문서 이미지와 Traefik 배포</td>
 </tr>
 </tbody></table></div>
+<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→첫 유효 sample 전송 재개 구간을 소유한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
 <h2 id="운영-지원">운영 지원</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -249,6 +251,11 @@
 <td><code>main</code> + image updater digest</td>
 </tr>
 </tbody></table></div>
+<p><code>state-aggregator</code> Deployment Controller가 생성하는 AI workload는 <code>edge-ai-workloads</code> namespace에만 존재한다. 이 동적 workload의 소유자는 Controller이며 Argo CD가 개별 Deployment manifest를 소유하지 않는다. Controller의 권한은 신규 create와 상태 read로 제한하고 기존 Deployment update·patch·delete, migration과 offloading은 지원하지 않는다. Controller 자체, 전용 namespace와 RBAC는 계속 <code>edge-orch-state-aggregator</code> Application이 GitOps로 소유한다.</p>
+<p>Runtime Recommendation Engine은 Git Service Catalog에 선언된 workload만 읽고, Deployment/StatefulSet·Pod·Node·서비스 지표를 결합한다. 최신 상태, dwell/cooldown과 판단 이력은 <code>state-aggregator</code> PVC의 SQLite가 소유한다. 추천 결과는 Placement Engine 입력일 뿐 Controller 실행 요청으로 연결되지 않으며 자동 배포·traffic 전환·삭제를 수행하지 않는다. 같은 모듈의 Runtime Execution Plan은 최신 추천을 결정적인 단계 목록으로 projection하며, 별도 실행 상태를 저장하거나 Deployment Controller·Kubernetes·traffic plane을 호출하지 않는다. 대상 workload와 node, 선행조건, 실패조건, 조건부 rollback은 계획 설명에만 존재한다.</p>
+<p><code>sensor-anomaly-demo/app/inference_executor.py</code>는 local/remote/fallback 추론 실행 계약과 요청별 latency·authoritative-result metadata를 소유한다. <code>remote_inference.py</code>는 Git/Secret으로 승인된 Server1 endpoint 호출, 응답 identity/model/freshness 검증과 runtime mode 전환을 담당하고, <code>inference_api.py</code>는 같은 model adapter를 재사용하는 idempotent Server1 <code>/infer</code> endpoint를 제공한다. raw telemetry와 결과 저장은 계속 각각 EdgeX와 ACTIVE edge worker가 소유한다. <code>state-aggregator</code>의 Service Catalog offloading contract는 remote workload/API/architecture/ accelerator/network threshold를 고정하고 기존 <code>placement.py</code>의 Filter/Score를 재사용한다. 이는 legacy <code>placement_engine/</code>을 운영 경로로 되살리는 것이 아니다. 이 partial offloading 경로는 2026-08-28 현재 checkout의 로컬 검증 대상이며 Argo CD가 동기화한 <code>07fc3b1</code> 배포 기준선에는 포함되지 않는다.</p>
+<p>Execution Controller는 별도 승인 API에서만 plan을 소비한다. <code>app/config/candidate_workload_templates.json</code>이 source 복제 대신 사용할 서비스별 승인 candidate 계약과 state policy를 소유한다. Controller는 source Deployment·Service·PVC/StorageClass와 target Node를 읽기 전용 preflight한 뒤 전용 namespace에 신규 Deployment만 생성하고 Ready를 관측한다. <code>app/config/candidate_validation_contracts.json</code>은 Ready 이후 Pod-IP read-only health/input/model/ inference/freshness/latency 검증과 dwell을 소유한다. planId별 실행 record와 단계 상태, candidate/PVC 식별자, validation check와 감사 event는 같은 PVC의 별도 SQLite 파일이 소유한다. <code>app/config/traffic_routing_contracts.json</code>은 Service/namespace/port/source와 post-switch·rollback 정책을 고정한다. Runtime Controller는 Service selector를 patch하지 않고 자신이 소유한 단일 EndpointSlice만 resourceVersion compare-and-swap으로 갱신하며, switch 전후 snapshot과 서비스별 lock을 SQLite에 보존한다. 현재 EdgeMesh의 EndpointSlice 소비가 입증되지 않아 <code>sensor-anomaly-demo</code> 계약은 blocked이고 실클러스터 traffic mutation은 수행하지 않는다. <code>terminate_current</code>, source/candidate 삭제와 promotion은 지원하지 않는다.</p>
+<p>대시보드의 <code>static/runtime-operations.js</code>와 <code>static/runtime-operations.css</code>는 서비스 운영 read model의 화면 소유 경로다. Runtime Recommendation에 포함된 Placement 후보를 그대로 표시하고 화면 갱신 때 <code>/api/placements/select</code>를 호출하지 않는다. <code>dashboard.js</code>의 노드 상세는 이 모듈이 읽은 <code>/api/resources</code> snapshot을 사용해 Prometheus usage와 Kubernetes scheduling capacity를 분리한다. 화면에는 Execution Controller 승인·실행 동작을 연결하지 않는다.</p>
 <p>live 리소스를 직접 수정해 Git과 충돌시키지 않는다. image를 바꾸면 tag가 아니라 registry에서 확인한 immutable digest와 실제 Pod <code>imageID</code>까지 검증한다.</p>
 <h2 id="문서-구조">문서 구조</h2>
 <p><code>docs/</code>에는 공개 문서와 내부 이력이 함께 있지만 <code>scripts/build-docs-html.py</code>는 공개 목록만 생성한다. <code>docs/html/</code>과 검색 색인은 생성물이므로 직접 편집하지 않는다.</p>

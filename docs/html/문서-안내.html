@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
@@ -75,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-08-18 14:10</span>
-            <span class="badge">HTML 생성: 2026-08-18 15:29</span>
+            <span class="badge">수정: 2026-09-01 15:30</span>
+            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -118,6 +119,10 @@
 <td><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></td>
 </tr>
 <tr>
+<td>성능지표 8의 400 ms 개발 gate 확인</td>
+<td><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></td>
+</tr>
+<tr>
 <td>데모 점검</td>
 <td><a href="ops/현재-데모-운영-절차.html">현재 서비스 데모 운영 절차</a></td>
 </tr>
@@ -131,7 +136,9 @@
 </tr>
 </tbody></table></div>
 <h2 id="문서가-따르는-원칙">문서가 따르는 원칙</h2>
-<ol><li>실제 코드, root Kustomize, 테스트와 live read-only 증거를 우선한다.</li><li>EdgeX는 물리 디바이스 inventory·schema·상태·telemetry의 권위다.</li><li>KubeEdge/Kubernetes는 노드와 workload의 권위다.</li><li>대시보드는 두 권위의 값을 읽고 연결 관계와 판단 근거를 보여준다.</li><li>구현되지 않은 workflow·offloading·자동 제어는 현재 기능처럼 설명하지 않는다.</li><li>비밀번호, token, URL userinfo와 Secret 값은 문서에 기록하지 않는다.</li></ol>
+<ol><li>실제 코드, root Kustomize, 테스트와 live read-only 증거를 우선한다.</li><li>EdgeX는 물리 디바이스 inventory·schema·상태·telemetry의 권위다.</li><li>KubeEdge/Kubernetes는 노드와 workload의 권위다.</li><li>대시보드는 두 권위의 값을 읽고 연결 관계와 판단 근거를 보여준다.</li><li>서비스 설계 dry-run, 제한된 Runtime 검증, 운영 traffic 전환과 범용 offloading을 서로</li></ol>
+<p>구분하고, 격리 시험이나 로컬 구현을 운영 완료 기능처럼 설명하지 않는다.</p>
+<ol><li>비밀번호, token, URL userinfo와 Secret 값은 문서에 기록하지 않는다.</li></ol>
 <h2 id="공개-문서와-내부-이력">공개 문서와 내부 이력</h2>
 <p>문서 웹에는 시작하기, 연결 가이드, 운영, 정책·계약, 개발 참고 문서만 게시한다. <code>docs/archive/</code>와 <code>docs/superpowers/</code>는 과거 실험·설계 이력이며 공개 문서 생성과 검색에서 제외한다. 이력 원본은 비교와 재현에 필요하므로 저장소에는 보존한다.</p>
 <p>원본 Markdown을 수정한 뒤에는 다음 명령으로 HTML을 다시 만든다.</p>

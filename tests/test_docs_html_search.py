@@ -81,12 +81,13 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 18)
+        self.assertEqual(len(paths), 19)
         self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
         self.assertIn("펌프-모터-이상감지-서비스.md", paths)
         self.assertIn("AI-서비스-자원-증강-부하-실험.md", paths)
+        self.assertIn("가상화-노드-오류-복구시간.md", paths)
         self.assertNotIn("일일-기록.md", paths)
         self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
@@ -109,6 +110,21 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "결과 이력",
             "알림 이력",
             "Server1 전환 경계",
+        ):
+            self.assertIn(required, guide)
+
+    def test_serial_recovery_kpi_separates_engineering_gate_from_full_failover(self):
+        guide = (ROOT / "docs" / "가상화-노드-오류-복구시간.md").read_text(encoding="utf-8")
+
+        for required in (
+            "과제 최종 목표 | 250 ms",
+            "2차년도 개발 gate | 400 ms",
+            "첫 유효 frame",
+            "/api/v3/serial-recovery/stats",
+            "SerialRecoveryTargetMisses",
+            "전체 failover 시간이 아니다",
+            "400 ms heartbeat",
+            "실장비 400 ms 통과 증거가 아니다",
         ):
             self.assertIn(required, guide)
 
@@ -161,6 +177,8 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("sensor-anomaly-demo", runbook)
         self.assertIn("설비 anomaly", runbook)
         self.assertIn("latency/backlog", runbook)
+        self.assertIn("/api/v3/serial-recovery/stats", runbook)
+        self.assertIn("targetMs=400", runbook)
 
     def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
         runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")

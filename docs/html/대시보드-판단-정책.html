@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a class="active" aria-current="page" href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
@@ -75,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 대시보드-판단-정책.md</span>
-            <span class="badge">수정: 2026-08-18 14:10</span>
-            <span class="badge">HTML 생성: 2026-08-18 15:29</span>
+            <span class="badge">수정: 2026-08-31 18:42</span>
+            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -148,7 +149,7 @@
 <ul><li>workload/endpoint Ready</li><li>필수 입력 connected·fresh·schema valid</li><li>input window와 시각 정렬</li><li>model ready와 model version</li><li>결과 저장·알림 sink</li><li>현재 실행 target과 최근 처리 비율</li></ul>
 <p>Device가 available이어도 필수 resource가 빠졌거나 모델이 준비되지 않으면 서비스는 <code>degraded</code> 또는 <code>blocked</code>다.</p>
 <h2 id="ai-서비스-자원-증강-판단">AI 서비스 자원 증강 판단</h2>
-<p>자원 증강 rail은 read-only 판단이며 자동 배포·라우팅·migration을 실행하지 않는다.</p>
+<p>기존 sensor 전용 자원 증강 rail의 기준은 범용 Runtime Recommendation Engine의 초기 서비스 policy로 유지한다. 엔진은 read-only 판단이며 자동 배포·라우팅·migration을 실행하지 않는다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>gate</th>
@@ -179,6 +180,173 @@
 </tbody></table></div>
 <p>자원 압력과 서비스 압력이 모두 지속돼야 후보를 검토한다. 이때 후보가 준비되지 않았거나 성능 자격이 <code>rejected/pending</code>이면 <code>BLOCKED</code>다. 자격이 <code>qualified</code>인 경우에도 <code>RECOMMENDED</code>까지만 표시한다.</p>
 <p>현재 <code>baseline-1.0.0</code> → <code>cuda-baseline-1.0.0</code> 후보는 2026-08-18 실험의 15개 조건 중 통과 0개이므로 <code>rejected</code>다. 85%/300초와 4,000ms/180초는 일시 spike를 거르는 보수적 관찰 기준이며 최적 임계값으로 실험 입증된 값은 아니다. 상세 근거는 <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a>을 따른다.</p>
+<p>범용 판단 상태는 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>상태</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>NORMAL</code></td>
+<td>workload와 서비스가 회복 threshold 안에서 안정적</td>
+</tr>
+<tr>
+<td><code>OBSERVING</code></td>
+<td>압력·실패 신호가 진입 dwell 중이거나 회복 dwell/cooldown 적용 중</td>
+</tr>
+<tr>
+<td><code>AUGMENT_RECOMMENDED</code></td>
+<td>workload는 Ready지만 자원 압력과 서비스 압력이 함께 지속됨</td>
+</tr>
+<tr>
+<td><code>OFFLOAD_RECOMMENDED</code></td>
+<td>정상 workload의 지속 압력에 대해 승인된 원격 추론 후보가 모든 추가 gate를 통과함</td>
+</tr>
+<tr>
+<td><code>REPLACE_RECOMMENDED</code></td>
+<td>Pod/Deployment/Node 실패가 replacement dwell 이상 지속됨</td>
+</tr>
+<tr>
+<td><code>BLOCKED</code></td>
+<td>EdgeX 입력 stale/장애, model 미준비, 필수 지표 누락 또는 적합 후보 없음</td>
+</tr>
+</tbody></table></div>
+<p>추천 시 현재 실행 노드는 후보 목록에 남기되 <code>current_node_excluded</code>로 탈락시킨다. 다른 노드는 CPU·memory·architecture·accelerator·health로 Filter한 뒤 available 자원과 utilization으로 Score한다. 같은 압력이 지속되는 동안 같은 추천을 반복 기록하지 않으며, 회복 후 재발에는 cooldown을 적용한다. 누락·stale 신호는 0이나 정상으로 대체하지 않는다.</p>
+<h3 id="재배치-추천-노드-선정-기준">재배치 추천 노드 선정 기준</h3>
+<p>재배치 필요성 판단과 추천 노드 선정은 분리한다. 먼저 위의 SLO·자원·실행 실패 gate와 dwell/cooldown으로 <code>augment</code>, <code>offload</code>, <code>replace</code> 필요성을 판단한다. 변경 필요성이 확정된 경우에만 현재 실행 노드를 제외하고 대체 후보를 Filter/Score한다. 높은 점수가 hard constraint 위반을 보상할 수 없다.</p>
+<h4 id="입력과-자원-계산">입력과 자원 계산</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>입력</th>
+<th>권위와 계산</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>서비스 요구량</td>
+<td>실제 workload의 서비스 자원 profile에 선언된 CPU·memory request와 Git 계약의 architecture·accelerator 요구사항</td>
+</tr>
+<tr>
+<td>scheduling 가용량</td>
+<td>Kubernetes Node <code>allocatable</code>에서 종료되지 않은 Pod의 scheduler-effective request를 뺀 값</td>
+</tr>
+<tr>
+<td>현재 사용률</td>
+<td>Prometheus node snapshot의 CPU·memory utilization</td>
+</tr>
+<tr>
+<td>현재 실행 위치</td>
+<td>Kubernetes workload와 Pod placement</td>
+</tr>
+<tr>
+<td>원격 추론 상태</td>
+<td>source workload가 호출한 read-only preflight의 endpoint readiness·network RTT, 원격 workload 상태와 Git 성능 자격 계약</td>
+</tr>
+</tbody></table></div>
+<p>Pod의 scheduler-effective request는 일반 container request 합계와 init container별 request 중 큰 값을 택한 뒤 Pod overhead를 더한다. 서비스 profile의 CPU·memory request coverage가 100%가 아니거나 필수 request가 빠지면 <code>service_profile_requests_incomplete</code>로 후보 선정을 시작하지 않는다.</p>
+<p>노드의 scheduling 가용량은 다음과 같이 계산한다.</p>
+<pre data-lang="text"><code>available = allocatable - requested
+available_after = available - service_requirement</code></pre>
+<p><code>available</code>은 Kubernetes 예약 관점의 값이고 Prometheus utilization은 현재 부하 관측값이다. 두 값을 하나의 “남은 자원”으로 섞지 않고 각각 Filter와 Score에 사용한다.</p>
+<h4 id="1단계-부적합-후보-제거">1단계: 부적합 후보 제거</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Filter</th>
+<th>탈락 조건</th>
+<th>대표 reason code</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>현재 실행 위치</td>
+<td>이미 서비스를 실행 중인 node</td>
+<td><code>current_node_excluded</code></td>
+</tr>
+<tr>
+<td>node schedulability</td>
+<td>Node가 Ready가 아니거나 unschedulable, node 관측이 없거나 health가 unavailable</td>
+<td><code>node_not_schedulable</code>, <code>node_not_ready</code>, <code>node_unschedulable</code></td>
+</tr>
+<tr>
+<td>CPU·memory 수용 가능성</td>
+<td><code>available</code>이 서비스 request보다 작음</td>
+<td><code>insufficient_cpu</code>, <code>insufficient_memory</code></td>
+</tr>
+<tr>
+<td>architecture</td>
+<td>요구 architecture가 없거나 node와 다름</td>
+<td><code>architecture_unreported</code>, <code>architecture_mismatch</code></td>
+</tr>
+<tr>
+<td>accelerator 종류</td>
+<td>요구 GPU/NPU 등이 없거나 종류가 다름</td>
+<td><code>accelerator_unavailable</code>, <code>accelerator_mismatch</code></td>
+</tr>
+<tr>
+<td>accelerator 수량</td>
+<td>확장 자원 용량이 관측되지 않거나 요구량보다 작음</td>
+<td><code>accelerator_capacity_unreported</code>, <code>insufficient_accelerator</code></td>
+</tr>
+<tr>
+<td>utilization 관측</td>
+<td>CPU 또는 memory utilization이 없음</td>
+<td><code>utilization_unavailable</code></td>
+</tr>
+</tbody></table></div>
+<p>하나 이상의 탈락 사유가 있으면 해당 node는 점수를 계산하지 않는다. 모든 후보가 탈락하면 <code>no_eligible_nodes</code>와 함께 <code>BLOCKED</code>로 남기며 현재 workload를 변경하지 않는다.</p>
+<h4 id="2단계-적격-후보-점수화">2단계: 적격 후보 점수화</h4>
+<p>적격 후보만 0~100점으로 계산한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>점수 항목</th>
+<th>산식</th>
+<th>가중치</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>배치 후 CPU 여유</td>
+<td><code>available_after.cpu / allocatable.cpu</code></td>
+<td>30점</td>
+</tr>
+<tr>
+<td>배치 후 memory 여유</td>
+<td><code>available_after.memory / allocatable.memory</code></td>
+<td>30점</td>
+</tr>
+<tr>
+<td>현재 CPU idle</td>
+<td><code>1 - cpu_utilization</code></td>
+<td>20점</td>
+</tr>
+<tr>
+<td>현재 memory idle</td>
+<td><code>1 - memory_utilization</code></td>
+<td>20점</td>
+</tr>
+</tbody></table></div>
+<pre data-lang="text"><code>score = CPU 배치 후 여유 × 30
+      + memory 배치 후 여유 × 30
+      + CPU idle × 20
+      + memory idle × 20</code></pre>
+<p>가장 높은 점수의 node를 <code>selected_highest_score</code>로 선택한다. 점수가 같으면 배치 후 CPU 여유, 배치 후 memory 여유, node 이름 오름차순으로 결정해 같은 입력에는 같은 결과를 반환한다. 선택되지 않은 적격 후보도 <code>eligible_lower_score</code>와 점수 상세를 함께 보존한다.</p>
+<h4 id="server1-추론-오프로딩-추가-gate">Server1 추론 오프로딩 추가 gate</h4>
+<p>일반 node의 network RX/TX rate는 현재 관측·표시 정보이며 위 점수식에는 직접 포함하지 않는다. Edge AI Server에 추론만 위임하는 <code>offload</code> 판단에서는 다음 조건을 모두 별도 hard gate로 적용한다.</p>
+<ul><li>원격 inference workload가 Ready이고 단일 target node가 식별돼야 한다.</li><li>source workload의 read-only preflight에서 원격 endpoint readiness와 network RTT를 관측해야</li></ul>
+<p>한다. RTT가 없으면 <code>remote_network_latency_unavailable</code>, 계약 상한을 넘으면 <code>remote_network_latency_exceeded</code>로 차단한다.</p>
+<ul><li>원격 workload의 architecture·accelerator·확장 자원 수량이 Git offloading contract와</li></ul>
+<p>일치해야 한다.</p>
+<ul><li>정확한 source model version의 성능 자격이 <code>qualified</code>여야 한다. 그렇지 않으면</li></ul>
+<p><code>offload_candidate_not_qualified</code>로 차단한다.</p>
+<ul><li>Placement가 고른 node와 실제 원격 inference workload의 node가 같아야 한다.</li></ul>
+<p>현재 <code>sensor-anomaly-demo</code> 계약은 전체 workload 대체에 <code>arm64</code>를 요구하므로 <code>amd64</code> Server는 <code>architecture_mismatch</code>로 탈락한다. Server1은 전체 workload 재배치 후보가 아니라 <code>amd64</code>·<code>nvidia-gpu</code>·<code>nvidia.com/gpu: 1</code>을 요구하는 서비스 전용 추론 offloading 후보이며, network RTT 상한은 250ms다. 현재 모델 성능 자격이 <code>rejected</code>이므로 자동 요청 전환 근거로 사용하지 않는다.</p>
+<p>이 선정 결과는 추천과 실행 계획의 입력이다. 추천만으로 Deployment, Service routing, traffic cutover, 기존 workload 종료를 자동 수행하지 않는다.</p>
+<h3 id="runtime-execution-plan-판단-경계">Runtime Execution Plan 판단 경계</h3>
+<p>최신 추천 상태가 <code>AUGMENT_RECOMMENDED</code> 또는 <code>REPLACE_RECOMMENDED</code>이고 Placement가 실제 대체 node를 선택한 경우에만 read-only 실행 계획을 만든다. 증강 계획은 <code>create → ready → traffic distribute</code>, 대체 계획은 <code>create → ready → traffic cutover → terminate current → conditional rollback</code> 순서를 보존한다. 각 단계는 이전 단계 성공, 대상 node 적합성, workload identity 유지와 health 확인 같은 선행조건 및 timeout, scheduling 실패, readiness 실패, traffic health 악화 같은 실패조건을 안정적인 code로 제공한다.</p>
+<p><code>OFFLOAD_RECOMMENDED</code>는 전체 workload 대체 계획으로 변환하지 않는다. 서비스 전용 추론 offloading은 별도 명시적 승인이 필요하므로 <code>offload_execution_requires_explicit_service_approval</code>과 <code>whole_workload_execution_plan_not_applicable</code>로 차단하고 실행 step을 만들지 않는다.</p>
+<p><code>NORMAL</code>·<code>OBSERVING</code>에는 변경할 근거가 없으므로 <code>not_applicable</code>, <code>BLOCKED</code>나 선택 node가 없는 추천에는 <code>blocked</code>를 반환한다. 계획 생성 자체는 dwell/cooldown을 변경하거나 새 판단 이력을 기록하지 않으며 Kubernetes, Service/Ingress, traffic plane과 기존 workload를 수정하지 않는다. rollback 단계도 실패 시 수행할 보상 절차를 기술할 뿐 자동 실행하지 않는다.</p>
+<p>대시보드 <code>서비스 운영</code>은 최신 판단의 <code>reasonCodes</code>, 관측 duration, 현재 node, Placement의 전체 후보와 Execution Plan·판단 이력을 같은 화면에 표시한다. 후보가 추천 응답에 포함되면 화면 갱신을 위해 <code>/api/placements/select</code>를 다시 호출하지 않는다. 계획은 항상 <code>실행 계획 / Read-only</code>로 표시하고 승인·실행·적용 control을 만들지 않는다. API 실패나 계약에 없는 값은 <code>N/A</code>, <code>관측 불가</code>, <code>데이터 없음</code>으로 드러낸다.</p>
+<h3 id="승인-기반-실행-정책">승인 기반 실행 정책</h3>
+<p>Execution Controller는 최신 planId 일치, 명시적 승인 boolean, 승인자 식별자와 관리 token을 모두 통과해야 실행한다. planId당 실행은 하나이며 재시도는 저장된 동일 결과를 조회한다. 지원 범위는 candidate Deployment 생성과 Ready 확인이다. 각 단계 상태와 전이는 영속화하며 첫 <code>FAILED</code> 또는 <code>BLOCKED</code>에서 멈춘다. traffic 분산·전환, 기존 instance 종료와 rollback은 항상 <code>unsupported_step</code>으로 차단하고 후속 단계도 <code>previous_step_blocked</code>로 남긴다. 이때 기존 workload를 update/delete하지 않으며 candidate cleanup도 자동 수행하지 않는다.</p>
+<p>dry-run은 plan freshness, source workload 종류, Placement completeness와 단계 지원 여부를 보여주지만 승인이나 실행 record를 만들지 않는다. process 재시작 때 남은 <code>RUNNING</code>은 임의 재개하지 않고 <code>execution_interrupted</code>로 차단해 중복 생성보다 수동 확인을 우선한다.</p>
 <h2 id="운영-kpi">운영 KPI</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -214,6 +382,9 @@
 <li class="toc-h2"><a href="#센서-디바이스-상태">센서 디바이스 상태</a></li>
 <li class="toc-h2"><a href="#ai-서비스-상태">AI 서비스 상태</a></li>
 <li class="toc-h2"><a href="#ai-서비스-자원-증강-판단">AI 서비스 자원 증강 판단</a></li>
+<li class="toc-h3"><a href="#재배치-추천-노드-선정-기준">재배치 추천 노드 선정 기준</a></li>
+<li class="toc-h3"><a href="#runtime-execution-plan-판단-경계">Runtime Execution Plan 판단 경계</a></li>
+<li class="toc-h3"><a href="#승인-기반-실행-정책">승인 기반 실행 정책</a></li>
 <li class="toc-h2"><a href="#운영-kpi">운영 KPI</a></li></ol></aside>
     </div>
   </div>

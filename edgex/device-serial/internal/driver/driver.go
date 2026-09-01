@@ -142,6 +142,8 @@ type Driver struct {
 	connections map[connectionKey]*managedConnection
 	bindings    map[string]*deviceBinding
 	cache       *recentCache
+	recovery    *serialRecoveryMetrics
+	retryDelays []time.Duration
 	now         func() int64
 	newReader   readerFactory
 	stopped     bool
@@ -158,6 +160,8 @@ func newDriver(factory readerFactory) *Driver {
 		connections: make(map[connectionKey]*managedConnection),
 		bindings:    make(map[string]*deviceBinding),
 		cache:       newRecentCache(recentCacheMaxAge, recentCacheMaxSamples),
+		recovery:    newSerialRecoveryMetrics(defaultSerialRecoveryTarget),
+		retryDelays: append([]time.Duration(nil), defaultSerialReconnectDelays...),
 		now:         func() int64 { return time.Now().UnixNano() },
 		newReader:   factory,
 	}
@@ -180,22 +184,34 @@ func (driver *Driver) Initialize(sdk interfaces.DeviceServiceSDK) error {
 	if driver.sdk != nil {
 		return errors.New("serial driver is already initialized")
 	}
-	cacheConfig, err := parseRecentCacheConfig(sdk.DriverConfigs())
+	driverConfigs := sdk.DriverConfigs()
+	cacheConfig, err := parseRecentCacheConfig(driverConfigs)
 	if err != nil {
 		return fmt.Errorf("invalid local data cache configuration: %w", err)
+	}
+	recoveryConfig, err := parseSerialRecoveryConfig(driverConfigs)
+	if err != nil {
+		return fmt.Errorf("invalid serial recovery configuration: %w", err)
 	}
 	cacheMetrics := newLocalDataCacheMetrics()
 	cache, err := newConfiguredRecentCache(cacheConfig, cacheMetrics.observe)
 	if err != nil {
 		return err
 	}
-	if err := cacheMetrics.register(sdk.MetricsManager()); err != nil {
+	recoveryMetrics := newSerialRecoveryMetrics(recoveryConfig.target)
+	metricsManager := sdk.MetricsManager()
+	if err := cacheMetrics.register(metricsManager); err != nil {
+		return err
+	}
+	if err := recoveryMetrics.register(metricsManager); err != nil {
 		return err
 	}
 	driver.sdk = sdk
 	driver.logger = sdk.LoggingClient()
 	driver.async = async
 	driver.cache = cache
+	driver.recovery = recoveryMetrics
+	driver.retryDelays = append([]time.Duration(nil), recoveryConfig.reconnectDelays...)
 	driver.ctx, driver.cancel = context.WithCancel(context.Background())
 	return nil
 }
@@ -233,6 +249,14 @@ func (driver *Driver) Start() error {
 		http.MethodGet,
 	); err != nil {
 		return fmt.Errorf("register local stats route: %w", err)
+	}
+	if err := sdk.AddCustomRoute(
+		serialRecoveryStatsRoute,
+		interfaces.Unauthenticated,
+		driver.recovery.stats,
+		http.MethodGet,
+	); err != nil {
+		return fmt.Errorf("register serial recovery stats route: %w", err)
 	}
 
 	for _, device := range sdk.Devices() {
@@ -370,6 +394,13 @@ func (driver *Driver) UpdateDevice(
 			OnInvalidLine: func(err error) {
 				driver.warn("discarding malformed serial telemetry for %s: %v", config.DeviceID, err)
 			},
+			OnRecoveryStarted: func(detectedAt time.Time) {
+				driver.handleRecoveryStarted(target, detectedAt)
+			},
+			OnRecovery: func(observation RecoveryObservation) {
+				driver.handleRecovery(target, observation)
+			},
+			ReconnectDelays: append([]time.Duration(nil), driver.retryDelays...),
 		}
 		target.reader = driver.newReader(config, options)
 		driver.connections[key] = target
@@ -634,6 +665,51 @@ func (driver *Driver) handleState(
 	}
 }
 
+func (driver *Driver) handleRecoveryStarted(
+	managed *managedConnection,
+	detectedAt time.Time,
+) {
+	driver.mu.RLock()
+	active := driver.connections[managed.config.key()] == managed && !driver.stopped
+	metrics := driver.recovery
+	driver.mu.RUnlock()
+	if !active || metrics == nil {
+		return
+	}
+	metrics.observeStarted()
+	driver.info(
+		"serial recovery started for %s at %d",
+		managed.config.DeviceID,
+		detectedAt.UnixNano(),
+	)
+}
+
+func (driver *Driver) handleRecovery(
+	managed *managedConnection,
+	observation RecoveryObservation,
+) {
+	driver.mu.RLock()
+	active := driver.connections[managed.config.key()] == managed && !driver.stopped
+	metrics := driver.recovery
+	driver.mu.RUnlock()
+	if !active || metrics == nil {
+		return
+	}
+	metrics.observeCompleted(observation)
+	message := "serial recovery completed for %s in %.3fms after %d open attempts (target %.3fms)"
+	arguments := []any{
+		managed.config.DeviceID,
+		float64(observation.Duration) / float64(time.Millisecond),
+		observation.Attempts,
+		float64(metrics.target) / float64(time.Millisecond),
+	}
+	if observation.Duration > metrics.target {
+		driver.warn(message, arguments...)
+		return
+	}
+	driver.info(message, arguments...)
+}
+
 func (driver *Driver) stopDevice(deviceName string, clearLatest bool) {
 	driver.mu.Lock()
 	binding := driver.bindings[deviceName]
@@ -698,5 +774,14 @@ func (driver *Driver) warn(message string, args ...any) {
 	driver.mu.RUnlock()
 	if loggingClient != nil {
 		loggingClient.Warnf(message, args...)
+	}
+}
+
+func (driver *Driver) info(message string, args ...any) {
+	driver.mu.RLock()
+	loggingClient := driver.logger
+	driver.mu.RUnlock()
+	if loggingClient != nil {
+		loggingClient.Infof(message, args...)
 	}
 }

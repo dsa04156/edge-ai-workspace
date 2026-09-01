@@ -59,6 +59,7 @@
 <li class="group">정책과 계약</li>
 <li><a class="active" aria-current="page" href="프로젝트-범위.html">프로젝트 범위</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
@@ -75,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-08-18 16:13</span>
-            <span class="badge">HTML 생성: 2026-08-18 16:14</span>
+            <span class="badge">수정: 2026-09-01 15:30</span>
+            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -109,12 +110,100 @@
 </tr>
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
+<p><code>device-serial-jetson</code>의 현재 checkout에는 established stream 오류 뒤 25·50·100·200ms fast-retry, 첫 유효 sample의 SDK async enqueue 완료 시점까지의 복구시간 계측, 400ms 개발 gate metric과 read-only stats API가 구현돼 있다. 이는 로컬 코드·manifest 기준이며 새 image 배포와 실장비 반복시험 전에는 400ms 달성을 주장하지 않는다. Kubernetes node/Pod 전체 failover와 통신 단절 중 durable 저장·재전송은 별도 범위다. 상세 측정 경계는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
 <ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보. 2026-08-18 현재</li></ul>
 <p>기준선 후보는 부하 실험에서 성능 자격이 거부되어 요청을 전환하지 않는다.</p>
-<ul><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload와 서비스 입력·모델·결과의 가시화</li><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<ul><li>Git <code>ServiceDescriptor</code> 기반 서비스 목록과 실행 DAG</li><li>EdgeX·Kubernetes·Prometheus를 결합하는 <code>state-aggregator</code> read model</li><li>센서 freshness, 노드/workload와 서비스 입력·모델·결과의 가시화</li><li>대시보드 <code>서비스 운영</code> 화면에서 Runtime Recommendation의 상태·reason code·dwell,</li></ul>
+<p>기존 Placement Engine이 반환한 전체 후보와 read-only Execution Plan·판단 이력을 조회</p>
+<ul><li>디바이스 상세에서 Prometheus 실사용률과 Kubernetes allocatable/requested/available을</li></ul>
+<p>서로 다른 근거로 분리 표시</p>
+<ul><li>브라우저 안에서만 동작하는 workflow 설계·validation·execution plan preview</li></ul>
+<h3 id="제한된-ai-서비스-신규-배포">제한된 AI 서비스 신규 배포</h3>
+<ul><li><code>state-aggregator</code>의 <code>POST /api/deployments</code>는 기존 서비스 자원 프로파일과</li></ul>
+<p><code>/api/placements/select</code> 결과를 이용해 단일 replica의 <strong>신규</strong> Deployment만 생성한다.</p>
+<ul><li>배포 대상은 전용 <code>edge-ai-workloads</code> namespace로 고정하고, 선택 노드는 exact hostname</li></ul>
+<p><code>nodeSelector</code>와 required node affinity를 함께 적용한다.</p>
+<ul><li>CPU·memory와 accelerator requests는 완전하게 선언된 단일 Pod 서비스 프로파일에서</li></ul>
+<p>가져온다. 복수 Pod 집계 프로파일과 requests 누락 프로파일은 배포하지 않는다.</p>
+<ul><li>입력은 DNS label 배포명, allowlist에 포함된 로컬 registry의 immutable digest image,</li></ul>
+<p>선택적 container port/readiness path로 제한한다. raw manifest, env, command, volume, hostPath, privilege, Service와 Ingress 입력은 받지 않는다.</p>
+<ul><li>Controller service account는 전용 namespace의 Deployment <code>create/get/list/watch</code>와</li></ul>
+<p>기존 Pod 관측 권한만 가진다. update·patch·delete 권한은 갖지 않는다.</p>
+<ul><li>API는 Placement 탈락, Deployment 생성 성공·실패, Pod Ready와 Kubernetes 실패 reason을</li></ul>
+<p>명시적으로 반환한다. 이 경로는 shared-token으로 보호되는 개발 테스트베드용이다.</p>
+<h3 id="runtime-recommendation-engine">Runtime Recommendation Engine</h3>
+<ul><li>Git <code>ServiceDescriptor</code>에서 runtime recommendation policy와 observability adapter가</li></ul>
+<p>선언된 AI 서비스만 지속 감시한다.</p>
+<ul><li>Kubernetes Deployment/StatefulSet, Pod와 Node 상태, Prometheus 자원 사용량, 서비스가</li></ul>
+<p>제공하는 입력 freshness·model readiness·latency·backlog·throughput을 서로 다른 근거로 유지한 채 결합한다.</p>
+<ul><li>판단 상태는 <code>NORMAL</code>, <code>OBSERVING</code>, <code>AUGMENT_RECOMMENDED</code>,</li></ul>
+<p><code>REPLACE_RECOMMENDED</code>, <code>BLOCKED</code>이며 threshold 진입/회복 기준을 분리한 hysteresis, dwell과 cooldown을 적용한다.</p>
+<ul><li>EdgeX 입력 장애·stale, model 미준비, 필수 관측 누락은 자원 부족으로 해석하지 않고</li></ul>
+<p><code>BLOCKED</code>와 명시적 reason code로 반환한다.</p>
+<ul><li>증강·대체가 필요할 때 현재 실행 노드를 제외하고 기존 Placement Engine으로 후보를</li></ul>
+<p>다시 Filter/Score한다. 결과에는 최적 노드와 현재 노드를 포함한 전체 후보의 <code>reasonCodes</code>를 보존한다.</p>
+<ul><li>dwell timer, latch, cooldown과 최신 판단은 PVC의 SQLite에 저장하며 상태 변화와 판단</li></ul>
+<p>근거 이력을 조회 API로 제공한다.</p>
+<ul><li>이 엔진은 read-only 추천만 수행하며 Deployment 생성·수정·삭제, Service routing,</li></ul>
+<p>traffic cutover, migration과 offloading을 실행하지 않는다.</p>
+<h3 id="sensor-anomaly-demo-제한적-runtime-offloading-poc">sensor-anomaly-demo 제한적 Runtime Offloading PoC</h3>
+<blockquote><p>이 절은 로컬 구현과 2026-08-26 격리 smoke test 범위다. 2026-08-28 Argo 배포 기준선에는 포함되지 않으며 현재 production 요청은 edge-local에 유지된다.</p></blockquote>
+<ul><li>전체 workload를 옮기는 <code>REPLACE_RECOMMENDED</code> 경로와 별도로, ACTIVE</li></ul>
+<p><code>sensor-anomaly-demo</code>가 입력 수집·전처리·결과 저장을 Jetson에 유지하고 승인된 Server1 endpoint에 추론 요청만 전달하는 서비스 전용 부분 오프로딩 경로를 둔다.</p>
+<ul><li>edge worker의 공통 <code>InferenceExecutor</code> 계약 아래 local executor와 remote executor를</li></ul>
+<p>분리한다. Remote 요청은 Git에 고정된 service/model/target 계약과 <code>requestId</code>를 사용하며, 응답 identity·model version·freshness를 검증한 한 결과만 application-owned SQLite에 authoritative result로 저장한다.</p>
+<ul><li>Kubernetes Lease는 누가 production polling·저장을 수행하는지를 계속 결정한다. 오프로딩은</li></ul>
+<p>그 ACTIVE workload 내부에서 추론 위치만 <code>LOCAL</code>, <code>REMOTE</code>, <code>LOCAL_FALLBACK</code>으로 바꾸며 source Deployment·PVC·Service·EdgeX inventory를 수정하지 않는다.</p>
+<ul><li>timeout, 연결 실패, endpoint/model 미준비, 잘못된 응답, model version 불일치 또는 지속적인</li></ul>
+<p>latency 한계 초과는 즉시 local executor로 fail over한다. 늦거나 중복된 remote 응답은 기존 결과를 덮어쓰지 않는다.</p>
+<ul><li>Runtime Recommendation은 node/workload failure에는 기존 전체 <code>REPLACE_RECOMMENDED</code>를</li></ul>
+<p>우선한다. 정상 workload의 지속 자원·서비스 압력에는 Git offloading contract, remote Pod/API readiness, network latency와 기존 Placement Filter/Score를 모두 통과한 경우에만 <code>OFFLOAD_RECOMMENDED</code>를 반환한다.</p>
+<ul><li>현재 <code>baseline-1.0.0</code> Server1 후보의 성능 자격은 2026-08-18 실험에서 <code>rejected</code>다.</li></ul>
+<p>구현과 장애 fallback 시험이 성공해도 이 실험 gate를 우회해 자동 오프로딩을 권고하거나 운영 경로로 자동 승격하지 않는다. LOCAL→REMOTE 변경은 승인 Secret을 사용하는 서비스 전용 API 또는 검토된 Git overlay에서만 허용하며 자동 추천→실행 연결은 범위 밖이다.</p>
+<ul><li>이 경로는 모델 분할·distributed inference·범용 workflow stage offloading이 아니다.</li></ul>
+<p>첫 PoC 범위는 Jetson 전처리 → Server1 추론 → Jetson 결과 저장의 단일 서비스 경로다.</p>
+<ul><li>2026-08-26 격리 실클러스터 smoke test에서 새 ARM64 edge image와 AMD64 CPU server</li></ul>
+<p>image로 LOCAL → REMOTE → server 장애 → LOCAL_FALLBACK protocol 경로와 Jetson의 결과 저장 지속을 확인했다. 첫 REMOTE 결과는 전환 요청 후 약 543ms, remote sample total은 33.46ms(network 33.12ms, server processing 0.34ms), 장애 후 fallback 결과는 scale 요청 뒤 약 1.08s 안에 관측됐다. 이는 GPU 성능 자격이나 운영 자동 오프로딩 승격 근거가 아니며 격리 workload는 시험 후 삭제했다.</p>
+<h3 id="runtime-execution-plan">Runtime Execution Plan</h3>
+<ul><li>최신 Runtime Recommendation을 입력으로 사용하는</li></ul>
+<p><code>GET /api/runtime-recommendations/{serviceId}/execution-plan</code>은 실행 가능한 변경 요청이 아니라 운영자·후속 Controller 검토용 read-only 계획을 반환한다.</p>
+<ul><li><code>AUGMENT_RECOMMENDED</code>는 신규 인스턴스 생성, Ready 확인, 트래픽 분산 순서로 계획한다.</li></ul>
+<p><code>REPLACE_RECOMMENDED</code>는 대체 workload 생성, Ready 확인, 트래픽 전환, 기존 인스턴스 종료와 조건부 rollback 순서로 계획한다.</p>
+<ul><li>각 단계에는 순번, 실행 방식, 대상 node/workload, 선행조건과 실패조건을 명시한다.</li></ul>
+<p>계획 ID와 후보 workload 이름은 추천 시각·대상 node·workload identity에서 결정적으로 생성해 동일한 추천의 조회 결과가 흔들리지 않게 한다.</p>
+<ul><li><code>NORMAL</code>·<code>OBSERVING</code>은 <code>not_applicable</code>, <code>BLOCKED</code>나 선택 node가 불완전한 추천은</li></ul>
+<p><code>blocked</code>로 반환하고 변경 단계는 만들지 않는다.</p>
+<ul><li>API 조회는 <code>/api/deployments</code>, Kubernetes apply/update/delete 또는 Service·Ingress와</li></ul>
+<p>외부 traffic API를 호출하지 않는다. rollback도 실행 단계가 아니라 조건부 보상 계획이다.</p>
+<ul><li>대시보드에서는 이 GET 계획만 <code>실행 계획 / Read-only</code>로 표시하며 승인·실행·적용 버튼과</li></ul>
+<p>Execution Controller mutation API를 노출하지 않는다.</p>
+<h3 id="승인-기반-execution-controller">승인 기반 Execution Controller</h3>
+<ul><li>사용자가 최신 plan의 <code>planId</code>를 본문에 다시 제출하고 <code>approved=true</code>, 승인자 식별자와</li></ul>
+<p>유효한 관리 token을 함께 제공한 경우에만 실행 record를 만든다. <code>planId</code>는 실행의 idempotency key이며 동일 plan의 재호출은 최초 record를 반환하고 단계를 반복하지 않는다.</p>
+<ul><li>현재 실행 코드는 고정 <code>edge-ai-workloads</code> namespace의 <code>create_candidate</code>, <code>verify_ready</code>,</li></ul>
+<p><code>validate_candidate_pre_activation</code>, Git 승인 Kubernetes Lease 계약에 의한 <code>handoff_execution_ownership</code>·<code>verify_active_candidate</code>·<code>rollback_execution_ownership</code>과 Git 승인 Traffic Routing Contract에 의한 <code>switch_traffic</code>, <code>verify_switched_traffic</code>, 실패 시 <code>rollback_traffic</code>까지 구현한다. source workload를 복제하지 않고 Git의 서비스별 Candidate Workload Template에 승인된 immutable image, env, port/probe, resources, securityContext, namespace, architecture/accelerator, state policy만 materialize한다. source Deployment·Service·PVC/StorageClass와 target Node를 읽기 전용 preflight하고 계약 불일치나 미지원 storage는 fail-closed한다.</p>
+<ul><li><code>sensor-anomaly-demo</code> v1은 <code>fresh_state</code>다. source의 RWO <code>local-path</code> PVC와 <code>results.db</code>는</li></ul>
+<p>candidate에 재사용·복제하지 않고 state mount를 <code>emptyDir</code>로 제공한다. 생성 candidate와 PVC 식별자는 실행 record에 저장하며 현재 PVC 목록은 비어 있다. Candidate Validation은 Git의 서비스별 계약에 따라 handoff 전 SHADOW의 health, fresh input, model ready와 memory-only inference를 확인하고, handoff 뒤 ACTIVE의 production <code>framesProcessed</code>, 실제 결과 freshness와 측정 가능한 latency SLO를 다시 확인한다.</p>
+<ul><li>Lease는 실제 AI processing 권한만 소유하고 Traffic Manager는 요청 routing만 소유한다.</li></ul>
+<p>source와 candidate 중 Lease holder 하나만 ACTIVE이며 holder 전환과 rollback은 resourceVersion CAS, 서비스별 SQLite lock, 영속 snapshot과 audit를 사용한다. Lease 만료, stale holder, 충돌 또는 API 관측 실패 시 workload는 production 처리를 하지 않는다. handoff/active validation 실패 시 source holder로 rollback하고 candidate는 자동 삭제하지 않는다.</p>
+<ul><li>단계 상태는 <code>PENDING</code>, <code>RUNNING</code>, <code>SUCCEEDED</code>, <code>FAILED</code>, <code>BLOCKED</code>로 저장한다. 승인,</li></ul>
+<p>상태 전이, 실패 reason과 actor를 SQLite 실행 record·append-only audit log에 기록하며 PVC에서 재시작 후에도 유지한다. 중단 시 <code>RUNNING</code> record는 자동 재실행하지 않고 <code>BLOCKED</code>로 복구한다.</p>
+<ul><li><code>switch_traffic</code>은 selectorless Service와 Runtime Controller 단독 소유 EndpointSlice가 있고</li></ul>
+<p>모든 data-plane consumer의 EndpointSlice 호환성이 입증된 계약에서만 atomic source→candidate cutover를 수행한다. 전환 후 기존 validation 계약을 Service 주소로 다시 실행하고 실패하면 저장한 source routing snapshot으로 즉시 복구한다. Service selector는 수정하지 않는다.</p>
+<ul><li>현재 EdgeMesh는 Service·Endpoints를 관측하지만 EndpointSlice 소비가 입증되지 않았고 실제</li></ul>
+<p>Service도 Argo CD 소유 selector를 유지하므로 <code>sensor-anomaly-demo</code> routing 계약은 <code>routing_mode_unsupported</code>로 fail-closed다. 따라서 이 서비스의 실클러스터 traffic mutation은 아직 운영 기능이 아니다.</p>
+<ul><li>2026-08-26 격리 실클러스터 시험에서는 selectorless Service와 Controller 소유 core</li></ul>
+<p><code>Endpoints</code>로 Jetson source→Raspberry Pi candidate→Jetson source 전환이 실제 HTTP 응답과 EdgeMesh libp2p 로그에서 확인됐다. 이는 후속 <code>runtime-endpoints</code> 모드의 근거이며 현재 <code>runtime-endpointslice</code> Controller나 production Service가 활성화됐다는 뜻은 아니다.</p>
+<ul><li><code>distribute_traffic</code>, <code>terminate_current</code>, source/candidate 삭제·promotion은 여전히</li></ul>
+<p><code>unsupported_step</code>이다. source Deployment·PVC는 유지하고 candidate도 자동 삭제하지 않는다.</p>
+<ul><li><code>sensor-anomaly-demo</code> Service는 Argo CD automated sync/self-heal 대상이다. Runtime Controller는</li></ul>
+<p>Service를 patch하지 않으며, Git이 selectorless 전환과 정적 routing 허용 정책을 소유하고 Runtime Controller가 전용 EndpointSlice의 동적 active endpoint만 소유하는 구조를 승인안으로 둔다.</p>
+<ul><li>dry-run은 최신 plan 일치, 승인 없이 확인 가능한 preflight와 지원 단계 경계를 반환하며</li></ul>
+<p>Kubernetes와 영속 실행·감사 상태를 변경하지 않는다.</p>
+<p>2026-08-28 live 기준 source workload가 Lease holder로 ACTIVE이며 Runtime Recommendation은 <code>NORMAL/read_only</code>다. 과거 격리 검증 candidate가 남아 있어도 production traffic이나 source 소유권을 대체하지 않는다. 현재 승인 실행 이력의 최종 상태는 traffic routing 미지원 또는 candidate 장애 검증으로 <code>FAILED</code>이며, 자동 migration/offloading 성공으로 집계하지 않는다.</p>
 <h3 id="제한된-장비-관리">제한된 장비 관리</h3>
-<ul><li>passive discovery candidate 조회·검토와 exact Catalog binding validation</li><li>승인된 Profile/Device 등록 Saga와 first Event 확인</li><li>Controller가 소유한 Adapter Runtime만 제한적으로 restart·retire</li><li>임의 image·hostPath·raw manifest·command 입력 없음</li><li>사용자 인증·인가가 추가되기 전까지 테스트베드 접근 경계에서만 사용</li></ul>
+<ul><li>passive discovery candidate 조회·검토와 exact Catalog binding validation</li><li>승인된 Profile/Device 등록 Saga와 first Event 확인</li><li>Controller가 소유한 Adapter Runtime만 제한적으로 restart·retire</li><li>임의 image·hostPath·raw manifest·command 입력 없음</li><li>제한된 신규 AI 서비스 배포는 별도 allowlist와 immutable digest를 통과한 image만 허용</li><li>사용자 인증·인가가 추가되기 전까지 테스트베드 접근 경계에서만 사용</li></ul>
 <h2 id="승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</h2>
 <p>다음은 코드나 개발 fixture가 있어도 일반 운영 기능으로 보지 않는다.</p>
 <div class="table-wrap"><table>
@@ -145,13 +234,18 @@
 <td>승인·Catalog binding·first Event</td>
 </tr>
 <tr>
+<td>Serial 오류 복구 400ms</td>
+<td>fast-retry·계측 로컬 구현, 미배포·미실측</td>
+<td>immutable image 배포 + 30회 장애 주입에서 max ≤ 400ms·miss 0 + Core Data readback</td>
+</tr>
+<tr>
 <td>생산품질 판별</td>
 <td>versioned 입력 schema</td>
 <td>PLC·MES mapping, label, 모델과 E2E</td>
 </tr>
 </tbody></table></div>
 <h2 id="명시적으로-제외하는-것">명시적으로 제외하는 것</h2>
-<ul><li>EdgeX와 병행하는 KubeEdge Device/DeviceModel/DeviceStatus 물리 권위</li><li>MapperFramework, mapper direct-to-Influx와 legacy MQTT topic을 fallback으로 사용</li><li>광역 네트워크 probe나 임의 hostPath/image/command 실행</li><li>dashboard의 Kubernetes apply/delete/restart 또는 EdgeX metadata mutation</li><li>승인 없는 actuator command와 write command</li><li>동적 workflow·migration·offloading 전체 구현 완료 주장</li></ul>
+<ul><li>EdgeX와 병행하는 KubeEdge Device/DeviceModel/DeviceStatus 물리 권위</li><li>MapperFramework, mapper direct-to-Influx와 legacy MQTT topic을 fallback으로 사용</li><li>광역 네트워크 probe나 임의 hostPath/image/command 실행</li><li>서비스 설계 화면의 Kubernetes apply/delete/restart 또는 EdgeX metadata mutation</li><li>Controller가 생성한 Deployment의 update·patch·delete, 기존 workload 변경</li><li>승인 없는 Runtime Recommendation/Execution Plan 적용 또는 traffic cutover와 rollback 실행</li><li>EndpointSlice 소비가 입증되지 않은 EdgeMesh 환경의 traffic mutation</li><li>승인 없는 actuator command와 write command</li><li>동적 workflow·migration·offloading 전체 구현 완료 주장</li><li>승인·계약·후보 자격을 우회한 sensor-anomaly-demo 자동 오프로딩</li></ul>
 <h2 id="완료-증거">완료 증거</h2>
 <p>기능은 다음 증거를 모두 연결할 수 있을 때만 현재 범위로 승격한다.</p>
 <ol><li>Git에서 검토한 계약과 immutable image</li><li>root Kustomize 또는 승인된 선택 overlay</li><li>관련 자동 테스트와 manifest render</li><li>Argo CD 또는 명시적 운영 소유권</li><li>Pod/endpoint Ready와 실제 API readback</li><li>실패·stale·누락 상태가 정상처럼 보이지 않는 대시보드 표시</li></ol>
@@ -164,6 +258,11 @@
 <li class="toc-h3"><a href="#물리-디바이스와-데이터">물리 디바이스와 데이터</a></li>
 <li class="toc-h3"><a href="#현재-수직-슬라이스">현재 수직 슬라이스</a></li>
 <li class="toc-h3"><a href="#서비스와-운영-화면">서비스와 운영 화면</a></li>
+<li class="toc-h3"><a href="#제한된-ai-서비스-신규-배포">제한된 AI 서비스 신규 배포</a></li>
+<li class="toc-h3"><a href="#runtime-recommendation-engine">Runtime Recommendation Engine</a></li>
+<li class="toc-h3"><a href="#sensor-anomaly-demo-제한적-runtime-offloading-poc">sensor-anomaly-demo 제한적 Runtime Offloading PoC</a></li>
+<li class="toc-h3"><a href="#runtime-execution-plan">Runtime Execution Plan</a></li>
+<li class="toc-h3"><a href="#승인-기반-execution-controller">승인 기반 Execution Controller</a></li>
 <li class="toc-h3"><a href="#제한된-장비-관리">제한된 장비 관리</a></li>
 <li class="toc-h2"><a href="#승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</a></li>
 <li class="toc-h2"><a href="#명시적으로-제외하는-것">명시적으로 제외하는 것</a></li>

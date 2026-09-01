@@ -25,26 +25,39 @@ type PortOpener func(path string, baudRate int) (Port, error)
 type WaitFunc func(ctx context.Context, delay time.Duration) bool
 
 type ReaderOptions struct {
-	Open          PortOpener
-	Wait          WaitFunc
-	Now           func() int64
-	OnSample      func(sample Sample, origin int64)
-	OnState       func(state models.OperatingState)
-	OnInvalidLine func(err error)
-	MaxLineBytes  int
-	ReadTimeout   time.Duration
+	Open              PortOpener
+	Wait              WaitFunc
+	Now               func() int64
+	RecoveryNow       func() time.Time
+	OnSample          func(sample Sample, origin int64)
+	OnState           func(state models.OperatingState)
+	OnInvalidLine     func(err error)
+	OnRecoveryStarted func(detectedAt time.Time)
+	OnRecovery        func(observation RecoveryObservation)
+	ReconnectDelays   []time.Duration
+	MaxLineBytes      int
+	ReadTimeout       time.Duration
 }
 
 type Reader struct {
-	config        SerialConfig
-	open          PortOpener
-	wait          WaitFunc
-	now           func() int64
-	onSample      func(Sample, int64)
-	onState       func(models.OperatingState)
-	onInvalidLine func(error)
-	maxLineBytes  int
-	readTimeout   time.Duration
+	config            SerialConfig
+	open              PortOpener
+	wait              WaitFunc
+	now               func() int64
+	recoveryNow       func() time.Time
+	onSample          func(Sample, int64)
+	onState           func(models.OperatingState)
+	onInvalidLine     func(error)
+	onRecoveryStarted func(time.Time)
+	onRecovery        func(RecoveryObservation)
+	reconnectDelays   []time.Duration
+	maxLineBytes      int
+	readTimeout       time.Duration
+
+	hasTransmitted   bool
+	recoveryActive   bool
+	recoveryStarted  time.Time
+	recoveryAttempts int
 
 	mu       sync.Mutex
 	active   Port
@@ -64,6 +77,9 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 	if options.Now == nil {
 		options.Now = func() int64 { return time.Now().UnixNano() }
 	}
+	if options.RecoveryNow == nil {
+		options.RecoveryNow = time.Now
+	}
 	if options.OnSample == nil {
 		options.OnSample = func(Sample, int64) {}
 	}
@@ -73,6 +89,15 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 	if options.OnInvalidLine == nil {
 		options.OnInvalidLine = func(error) {}
 	}
+	if options.OnRecoveryStarted == nil {
+		options.OnRecoveryStarted = func(time.Time) {}
+	}
+	if options.OnRecovery == nil {
+		options.OnRecovery = func(RecoveryObservation) {}
+	}
+	if len(options.ReconnectDelays) == 0 {
+		options.ReconnectDelays = defaultSerialReconnectDelays
+	}
 	if options.MaxLineBytes <= 0 {
 		options.MaxLineBytes = defaultMaxLineBytes
 	}
@@ -81,15 +106,19 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 	}
 
 	return &Reader{
-		config:        config,
-		open:          options.Open,
-		wait:          options.Wait,
-		now:           options.Now,
-		onSample:      options.OnSample,
-		onState:       options.OnState,
-		onInvalidLine: options.OnInvalidLine,
-		maxLineBytes:  options.MaxLineBytes,
-		readTimeout:   options.ReadTimeout,
+		config:            config,
+		open:              options.Open,
+		wait:              options.Wait,
+		now:               options.Now,
+		recoveryNow:       options.RecoveryNow,
+		onSample:          options.OnSample,
+		onState:           options.OnState,
+		onInvalidLine:     options.OnInvalidLine,
+		onRecoveryStarted: options.OnRecoveryStarted,
+		onRecovery:        options.OnRecovery,
+		reconnectDelays:   append([]time.Duration(nil), options.ReconnectDelays...),
+		maxLineBytes:      options.MaxLineBytes,
+		readTimeout:       options.ReadTimeout,
 	}
 }
 
@@ -109,10 +138,12 @@ func (reader *Reader) Run(ctx context.Context) {
 			return
 		}
 
+		reader.recordRecoveryAttempt()
 		port, err := reader.open(reader.config.Port, reader.config.BaudRate)
 		if err != nil {
+			reader.beginRecovery()
 			reader.emitState(models.OperatingState(models.Down))
-			if !reader.wait(ctx, reconnectDelay(failures)) {
+			if !reader.wait(ctx, reconnectDelay(failures, reader.reconnectDelays)) {
 				return
 			}
 			failures++
@@ -128,8 +159,9 @@ func (reader *Reader) Run(ctx context.Context) {
 			if reader.stopped(ctx) {
 				return
 			}
+			reader.beginRecovery()
 			reader.emitState(models.OperatingState(models.Down))
-			if !reader.wait(ctx, reconnectDelay(failures)) {
+			if !reader.wait(ctx, reconnectDelay(failures, reader.reconnectDelays)) {
 				return
 			}
 			failures++
@@ -146,11 +178,12 @@ func (reader *Reader) Run(ctx context.Context) {
 			return
 		}
 
+		reader.beginRecovery()
 		reader.emitState(models.OperatingState(models.Down))
 		if receivedBytes {
 			failures = 0
 		}
-		if !reader.wait(ctx, reconnectDelay(failures)) {
+		if !reader.wait(ctx, reconnectDelay(failures, reader.reconnectDelays)) {
 			return
 		}
 		failures++
@@ -191,13 +224,50 @@ func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
 					reader.onInvalidLine(parseErr)
 					continue
 				}
-				reader.onSample(sample, reader.now())
+				reader.emitSample(sample)
 			}
 		}
 		if err != nil {
 			return receivedBytes, err
 		}
 	}
+}
+
+func (reader *Reader) beginRecovery() {
+	if !reader.hasTransmitted || reader.recoveryActive {
+		return
+	}
+	reader.recoveryActive = true
+	reader.recoveryStarted = reader.recoveryNow()
+	reader.recoveryAttempts = 0
+	reader.onRecoveryStarted(reader.recoveryStarted)
+}
+
+func (reader *Reader) recordRecoveryAttempt() {
+	if reader.recoveryActive {
+		reader.recoveryAttempts++
+	}
+}
+
+func (reader *Reader) emitSample(sample Sample) {
+	origin := reader.now()
+	reader.onSample(sample, origin)
+	reader.hasTransmitted = true
+	if !reader.recoveryActive {
+		return
+	}
+
+	resumedAt := reader.recoveryNow()
+	observation := RecoveryObservation{
+		DetectedAt: reader.recoveryStarted,
+		ResumedAt:  resumedAt,
+		Duration:   resumedAt.Sub(reader.recoveryStarted),
+		Attempts:   reader.recoveryAttempts,
+	}
+	reader.recoveryActive = false
+	reader.recoveryStarted = time.Time{}
+	reader.recoveryAttempts = 0
+	reader.onRecovery(observation)
 }
 
 func (reader *Reader) activate(port Port) bool {
@@ -241,14 +311,9 @@ func (reader *Reader) emitState(state models.OperatingState) {
 	reader.onState(state)
 }
 
-func reconnectDelay(failures int) time.Duration {
-	delays := [...]time.Duration{
-		time.Second,
-		2 * time.Second,
-		4 * time.Second,
-		8 * time.Second,
-		16 * time.Second,
-		30 * time.Second,
+func reconnectDelay(failures int, delays []time.Duration) time.Duration {
+	if len(delays) == 0 {
+		delays = defaultSerialReconnectDelays
 	}
 	if failures < 0 {
 		return delays[0]

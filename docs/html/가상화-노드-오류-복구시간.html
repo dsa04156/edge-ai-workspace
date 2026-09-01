@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>가상화 노드 오류 복구시간</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">정책과 계약</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">가상화-노드-오류-복구시간.md</span>
+        <a class="edit-link" href="/__edit?file=가상화-노드-오류-복구시간.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a class="active" aria-current="page" href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">정책과 계약</p>
+          <h1>가상화 노드 오류 복구시간</h1>
+          <p class="subtitle">&gt; 상태: Serial Device Service 로컬 구현 완료, 이미지 배포·실장비 반복 시험 전 &gt; &gt; 기준일: 2026-…</p>
+          <div class="meta">
+            <span class="badge kind">정책과 계약</span>
+            <span class="badge">원본: 가상화-노드-오류-복구시간.md</span>
+            <span class="badge">수정: 2026-09-01 16:28</span>
+            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="가상화-노드-오류-복구시간-구현-시험-기준">가상화 노드 오류 복구시간 구현·시험 기준</h1>
+<blockquote><p>상태: Serial Device Service 로컬 구현 완료, 이미지 배포·실장비 반복 시험 전</p>
+<p>기준일: 2026-09-01</p></blockquote>
+<h2 id="지표-경계">지표 경계</h2>
+<p>성능지표 8의 측정 구간은 다음과 같다.</p>
+<pre data-lang="text"><code>정상 전송 이력이 있는 Serial stream의 오류 감지
+  → 포트 재연결
+  → 첫 유효 frame decode·validation
+  → EdgeX SDK 비동기 전송 채널 enqueue 완료</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>값</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>과제 최종 목표</td>
+<td>250 ms</td>
+<td>기존 과제 문서의 공식 목표. 별도 변경 승인 전 유지</td>
+</tr>
+<tr>
+<td>2차년도 개발 gate</td>
+<td>400 ms</td>
+<td>현재 구현·반복시험의 중간 합격 기준</td>
+</tr>
+<tr>
+<td>비교값</td>
+<td>300 ms</td>
+<td>기존 비교 기준인 미국 VMware 값</td>
+</tr>
+</tbody></table></div>
+<p>400 ms를 통과해도 250 ms 최종 목표를 달성한 것으로 기록하지 않는다. 반대로 이 지표는 장애 발생부터 Kubernetes/KubeEdge node 판정, 다른 노드의 Pod 생성과 완전 기동까지 걸리는 전체 failover 시간이 아니다.</p>
+<p>초기 기동 시 포트를 열지 못한 경우도 복구시간 표본에서 제외한다. 정상 sample을 한 번 이상 전송한 stream에서 오류가 검출된 뒤 다시 유효 sample을 전송한 경우만 한 건으로 센다.</p>
+<h2 id="현재-구현">현재 구현</h2>
+<p><code>device-serial-jetson</code>의 shared Serial Reader는 다음 fast-retry profile을 사용한다.</p>
+<pre data-lang="text"><code>대기:       25 ms → 50 ms → 100 ms → 200 ms → 1 s → 2 s → 4 s → 8 s → 16 s → 30 s
+누적 시도: 25 ms → 75 ms → 175 ms → 375 ms → 1.375 s → ...</code></pre>
+<ul><li>포트 <code>open</code>, read timeout 설정 또는 established stream의 read 오류에서 <code>DOWN</code>을 알린다.</li><li>이미 복구 중이면 후속 오류가 검출 시각을 다시 시작하지 않는다.</li><li>포트가 다시 열렸다는 사실만으로 완료 처리하지 않는다.</li><li>malformed line은 버리고, 첫 유효 frame이 실제 SDK async channel까지 전달된 뒤 완료한다.</li><li><code>time.Time</code>의 monotonic 차이를 사용해 process 내부의 감지→재개 시간을 계산한다.</li><li>400 ms를 넘으면 target miss를 누적하고 warning log를 남긴다.</li></ul>
+<p>배포 설정은 다음 두 값으로 고정한다.</p>
+<pre data-lang="yaml"><code>Driver:
+  SerialRecoveryTarget: &quot;400ms&quot;
+  SerialReconnectDelays: &quot;25ms,50ms,100ms,200ms,1s,2s,4s,8s,16s,30s&quot;</code></pre>
+<p>재시도 간격은 1~16개의 양수 duration, 비감소 순서, 각 30초 이하만 허용한다. 잘못된 값이면 Device Service 초기화를 실패시켜 조용히 기본값으로 우회하지 않는다.</p>
+<h2 id="관측값">관측값</h2>
+<p>EdgeX custom metric은 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>metric</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SerialRecoveryDetected</code></td>
+<td>established stream에서 복구를 시작한 누적 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryCompleted</code></td>
+<td>첫 유효 frame 전송까지 완료한 누적 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryLastDurationMs</code></td>
+<td>마지막 완료 표본의 감지→전송 재개 시간</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryLastAttempts</code></td>
+<td>마지막 완료 표본의 재개방 시도 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryTargetMisses</code></td>
+<td>400 ms를 초과한 완료 표본의 누적 횟수</td>
+</tr>
+</tbody></table></div>
+<p>같은 값은 Device Service의 read-only API에서도 확인할 수 있다.</p>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-edge/services/http:device-serial-jetson:59910/proxy/api/v3/serial-recovery/stats&#x27;</code></pre>
+<p>응답의 <code>inProgress</code>는 <code>detected &gt; completed</code>, <code>last.withinTarget</code>은 마지막 표본이 현재 target 이하인지를 뜻한다. 값은 process-local 관측 상태이므로 Pod 재시작 전에 시험결과서로 보존한다. 장기 이력이나 durable outbox가 아니다.</p>
+<h2 id="400-ms-내부-qualification">400 ms 내부 qualification</h2>
+<p>현재 내부 합격 절차는 다음과 같다. TTA 또는 과제 공식 시험절차가 확정되면 그 절차를 우선한다.</p>
+<ol><li>새 immutable image를 배포하고 정상 sample과 Core Data <code>origin</code> 증가를 먼저 확인한다.</li><li>API의 초기 counter를 기록한다.</li><li>정상 전송 중 승인된 Serial 단절·복구를 30회 반복한다. Pod 삭제나 node 전원 차단은 이</li></ol>
+<p>지표가 아닌 별도 전체 failover 시험으로 분리한다.</p>
+<ol><li>각 회차의 process log, recovery API와 첫 후속 Core Data Event를 같은 시험 record에 묶는다.</li><li><code>completed</code> 증가, <code>targetMisses=0</code>, 30회 <code>max ≤ 400 ms</code>일 때 400 ms 내부 gate를 통과한다.</li><li>p50·p95·max, 미완료 건수와 Core Data readback 누락을 함께 보고한다.</li></ol>
+<p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, 누적 75 ms 뒤 두 번째 재개방에서 유효 sample이 오면 75 ms·2 attempts로 기록되는지, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다.</p>
+<h2 id="현장-한계와-후속-조치">현장 한계와 후속 조치</h2>
+<ul><li>400 ms heartbeat를 설정하는 것만으로 이 목표를 달성할 수 없다. heartbeat 400 ms는 오류</li></ul>
+<p>검출에만 최대 400 ms를 쓰며 포트 복구와 다음 sample 시간을 포함하지 않는다.</p>
+<ul><li>현재 live Arduino의 특정 resource Event는 약 1초 간격으로 관측된 적이 있다. 정상 수집</li></ul>
+<p>주기는 복구시간 실측값이 아니지만, 재연결 후 다음 유효 frame도 1초를 기다려야 한다면 400 ms gate는 실패한다. 현장 firmware의 실제 frame cadence와 reconnect 직후 frame 생성 동작을 별도로 확인해야 한다.</p>
+<ul><li>USB 장치 재열거가 400 ms보다 오래 걸리거나 stable char device가 복구되지 않으면 software</li></ul>
+<p>retry만으로는 통과할 수 없다.</p>
+<ul><li>node 전원·망 장애까지 400 ms 안에 복구하려면 hot-standby Device Service, 이중화된 물리</li></ul>
+<p>수집 경로와 전송 경로가 필요하다. 현재 단일 Arduino→단일 Jetson 연결에는 이 보장이 없다.</p>
+<ul><li>통신 단절 중 telemetry 보존과 중앙 재전송은 <a href="장애-저장-재전송-시스템-설계.html">장애 저장·재전송 시스템 설계</a>의</li></ul>
+<p>별도 범위다. 현재 Local Data cache를 durable outbox로 해석하지 않는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#지표-경계">지표 경계</a></li>
+<li class="toc-h2"><a href="#현재-구현">현재 구현</a></li>
+<li class="toc-h2"><a href="#관측값">관측값</a></li>
+<li class="toc-h2"><a href="#400-ms-내부-qualification">400 ms 내부 qualification</a></li>
+<li class="toc-h2"><a href="#현장-한계와-후속-조치">현장 한계와 후속 조치</a></li></ol></aside>
+    </div>
+  </div>
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

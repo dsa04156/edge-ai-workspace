@@ -58,19 +58,19 @@
 <body>
   <main>
     <h1>Docs-Code Consistency Report</h1>
-    <p class="subtitle">Generated at 2026-08-12 13:22:45 KST · Overall <span class="badge warn">WARN</span></p>
+    <p class="subtitle">Generated at 2026-09-01 16:20:10 KST · Overall <span class="badge pass">PASS</span></p>
 
     <h2>1. Summary</h2>
     <div class="summary-grid">
             <div class="summary-card pass-card">
               <div class="summary-label">PASS</div>
-              <div class="summary-value">6</div>
+              <div class="summary-value">7</div>
             </div>
 
 
             <div class="summary-card warn-card">
               <div class="summary-label">WARN</div>
-              <div class="summary-value">1</div>
+              <div class="summary-value">0</div>
             </div>
 
 
@@ -127,7 +127,7 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:190: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:239: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> DeviceStatus freshness는 legacy status-plane 신호다. 현재 physical availability는 EdgeX Core Metadata 상태와 Core Data latest Event origin으로 판단한다고 설명한다.</div>
             </section>
@@ -141,7 +141,7 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:177: focus_devices = []</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:226: focus_devices = []</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> `operator_focus_count`는 degraded/unavailable device 수 + non-healthy node 수로 설명한다. workflow/SLA risk는 현재 데모 범위 count에서 제외한다.</div>
             </section>
@@ -155,56 +155,26 @@
               <div class="meta"><strong>Matched files:</strong> edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:428: online_nodes = [node for node in nodes if node.node_health != &quot;unavailable&quot;]</span></li></ul>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:477: online_nodes = [node for node in nodes if node.node_health != &quot;unavailable&quot;]</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> dashboard `node_ready`는 Kubernetes Ready condition 자체가 아니라 state-aggregator가 Prometheus/node-exporter 기반 `node_health`를 보고 `unavailable`이 아니라고 판단한 값이라고 설명한다. Kubernetes Ready는 `kubectl get nodes` 기준으로 별도 표현한다.</div>
             </section>
 
 
-            <section class="rule-card warn-border">
+            <section class="rule-card pass-border">
               <div class="rule-head">
                 <h3>R6 Core Data freshness uses Event origin</h3>
-                <span class="badge warn">WARN</span>
+                <span class="badge pass">PASS</span>
               </div>
               <div class="meta"><strong>Matched files:</strong> docs/ops/현재-데모-운영-절차.md, docs/대시보드-정보-구조.md, docs/디바이스-서비스-연결.md, docs/물리-디바이스-상태-정책.md, docs/서비스-데모-시나리오.md, docs/카젠티-운영-보조-에이전트.md, docs/현재-데모-경로.md, edge-orch/state-aggregator/app/service.py</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list">
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/현재-데모-경로.md:67</code>
-              <div class="evidence-text">`/state/devices`는 Core Metadata의 Device를 읽고 Core Data의 latest Event를 결합한다. `deviceName`, `profileName`, `serviceName`, `protocols`, `adminState`, `operatingState`는 EdgeX 원본을 보존한다. `connection_state`, `device_service_available`, `telemetry_freshness`, `overall_status`는 aggregator…</div>
-              <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-            </li>
-
-
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/디바이스-서비스-연결.md:18</code>
-              <div class="evidence-text">| 객체 | 식별자 | 권위 | |---|---|---| | Physical Device | `deviceName` | EdgeX Core Metadata | | Schema | `profileName` | EdgeX Device Profile | | 수집 Runtime | `serviceName` | EdgeX Core Metadata와 배포 manifest | | Telemetry | `sourceName`, `resourceName`, `origin` | EdgeX Core Data | |…</div>
-              <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-            </li>
-
-
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/물리-디바이스-상태-정책.md:9</code>
-              <div class="evidence-text">| 상태 | 필드 | 원본 | |---|---|---| | 등록 | `name`, `profileName`, `serviceName`, `protocols` | Core Metadata | | 관리 | `adminState` | Core Metadata | | 실행 | `operatingState` | Core Metadata/Device Service | | 연결 | `connection_state` | aggregator가 admin/operating으로 계산 | | 수집기 | `device…</div>
-              <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-            </li>
-
-
-            <li>
-              <span class="badge warn">WARN</span>
-              <code>docs/서비스-데모-시나리오.md:85</code>
-              <div class="evidence-text">| 장애 | 서비스 결과 | 운영 조치 | |---|---|---| | 장비 단절 | 입력 stale/unknown | adapter·케이블·전원 점검 | | 중앙 연결 단절 | outbox pending, 추론은 정책에 따라 중지/로컬 실행 | gateway와 replay 확인 | | Core Data 저장 실패 | 결과 확정 보류 | DB/gateway 복구 후 재처리 | | 모델 container not ready | 서비스 degraded | Pod 로그·image·resource 점검 …</div>
-              <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-            </li>
-
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:100: 물리 telemetry 최신성은 Core Data Event `origin`을 사용한다. optional InfluxDB resource-profile recording을 physical telemetry 저장소로 설명하지 않는다. InfluxDB latest 설명이 필요한 경우 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, 최신성은 device-level latest sample 기준이며 property별 freshness를…</span></li>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:109: 물리 telemetry 최신성은 Core Data Event `origin`을 사용한다. optional InfluxDB resource-profile recording을 physical telemetry 저장소로 설명하지 않는다. InfluxDB latest 설명이 필요한 경우 `_start/_stop`은 Flux query window, `_time`은 실제 sample timestamp, 최신성은 device-level latest sample 기준이며 property별 freshness를…</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/카젠티-운영-보조-에이전트.md:15: Core Data telemetry freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 계산한다. Assistant는 API 조회 시각이나 Kubernetes 상태로 이 값을 보정하지 않는다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/ops/현재-데모-운영-절차.md:7: Core Data telemetry freshness는 latest Event의 nanosecond `origin`을 sample 시각으로 계산하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다.</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">edge-orch/state-aggregator/app/service.py:190: &quot;telemetry_freshness&quot;: device.telemetry_freshness,</span></li></ul>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/현재-데모-경로.md:32: telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/디바이스-서비스-연결.md:56: telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/물리-디바이스-상태-정책.md:7: telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/서비스-데모-시나리오.md:85: telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로</span></li></ul>
               </details>
               <div class="fix"><strong>Recommended fix:</strong> telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다고 설명한다.</div>
             </section>
@@ -215,13 +185,13 @@
                 <h3>R7 workflow/offloading/placement/autonomous agent are not current implementation scope</h3>
                 <span class="badge pass">PASS</span>
               </div>
-              <div class="meta"><strong>Matched files:</strong> docs/ops/현재-데모-운영-절차.md, docs/대시보드-정보-구조.md, docs/디바이스-서비스-연결.md, docs/서비스-데모-시나리오.md, docs/카젠티-운영-보조-에이전트.md, docs/현재-데모-경로.md</div>
+              <div class="meta"><strong>Matched files:</strong> docs/ops/현재-데모-운영-절차.md, docs/대시보드-정보-구조.md, docs/서비스-데모-시나리오.md, docs/카젠티-운영-보조-에이전트.md</div>
               <details open>
                 <summary>Evidence</summary>
-                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:14: | 서비스 workflow | `/state/workflows` | 수신된 workflow event의 read model |</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:79: - workflow 실제 실행(현재 범위에서 제외)</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:80: - runtime migration/offloading(현재 범위에서 제외)</span></li>
-<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:83: 현재 workflow builder는 stage 구성·resource bind/release·validation·execution plan preview만 브라우저 상태에서 수행한다.</span></li>
+                <ul class="evidence-list"><li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:17: | 서비스 workflow | `/state/workflows` | 수신된 workflow event의 read model |</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:80: - workflow 실제 실행</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:81: - Runtime candidate·Lease·traffic mutation 또는 partial offloading 실행</span></li>
+<li><span class="badge pass">PASS</span> <span class="evidence-text">docs/대시보드-정보-구조.md:84: 현재 workflow builder는 stage 구성·resource bind/release·validation·execution plan preview만 브라우저 상태에서 수행한다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/카젠티-운영-보조-에이전트.md:7: Kagenti operator assistant는 EdgeX-backed `state-aggregator` API를 read-only로 조회해 한국어 운영 요약과 점검 순서를 제안한다. 자율 제어, 자동 복구 또는 배치 계층이 아니다.</span></li>
 <li><span class="badge pass">PASS</span> <span class="evidence-text">docs/카젠티-운영-보조-에이전트.md:109: - 필요할 때에만 node/workload placement를 별도 진단한다.</span></li></ul>
               </details>
@@ -230,42 +200,7 @@
 
 
     <h2>3. File-level Findings</h2>
-    <section class='file-card'><h3>docs/디바이스-서비스-연결.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R6 Core Data freshness uses Event origin</strong>
-                  <code>line 18</code>
-                  <div class="evidence-text">| 객체 | 식별자 | 권위 | |---|---|---| | Physical Device | `deviceName` | EdgeX Core Metadata | | Schema | `profileName` | EdgeX Device Profile | | 수집 Runtime | `serviceName` | EdgeX Core Metadata와 배포 manifest | | Telemetry | `sourceName`, `resourceName`, `origin` | EdgeX Core Data | |…</div>
-                  <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-                </li>
-                </ul></section>
-<section class='file-card'><h3>docs/물리-디바이스-상태-정책.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R6 Core Data freshness uses Event origin</strong>
-                  <code>line 9</code>
-                  <div class="evidence-text">| 상태 | 필드 | 원본 | |---|---|---| | 등록 | `name`, `profileName`, `serviceName`, `protocols` | Core Metadata | | 관리 | `adminState` | Core Metadata | | 실행 | `operatingState` | Core Metadata/Device Service | | 연결 | `connection_state` | aggregator가 admin/operating으로 계산 | | 수집기 | `device…</div>
-                  <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-                </li>
-                </ul></section>
-<section class='file-card'><h3>docs/서비스-데모-시나리오.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R6 Core Data freshness uses Event origin</strong>
-                  <code>line 85</code>
-                  <div class="evidence-text">| 장애 | 서비스 결과 | 운영 조치 | |---|---|---| | 장비 단절 | 입력 stale/unknown | adapter·케이블·전원 점검 | | 중앙 연결 단절 | outbox pending, 추론은 정책에 따라 중지/로컬 실행 | gateway와 replay 확인 | | Core Data 저장 실패 | 결과 확정 보류 | DB/gateway 복구 후 재처리 | | 모델 container not ready | 서비스 degraded | Pod 로그·image·resource 점검 …</div>
-                  <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-                </li>
-                </ul></section>
-<section class='file-card'><h3>docs/현재-데모-경로.md</h3><ul>
-                <li>
-                  <span class="badge warn">WARN</span>
-                  <strong>R6 Core Data freshness uses Event origin</strong>
-                  <code>line 67</code>
-                  <div class="evidence-text">`/state/devices`는 Core Metadata의 Device를 읽고 Core Data의 latest Event를 결합한다. `deviceName`, `profileName`, `serviceName`, `protocols`, `adminState`, `operatingState`는 EdgeX 원본을 보존한다. `connection_state`, `device_service_available`, `telemetry_freshness`, `overall_status`는 aggregator…</div>
-                  <div class="message">Core Data freshness 설명에 Event origin sample 시각이 없습니다.</div>
-                </li>
-                </ul></section>
+    <p class="ok-text">No file-level WARN/FAIL findings.</p>
 
     <h2>4. Recommended Patches</h2>
 
@@ -300,7 +235,7 @@
 
 
             <div class="patch-card">
-              <div><span class="badge warn">WARN</span> <strong>R6 Core Data freshness uses Event origin</strong></div>
+              <div><span class="badge pass">PASS</span> <strong>R6 Core Data freshness uses Event origin</strong></div>
               <pre>telemetry freshness는 EdgeX Core Data latest Event의 nanosecond `origin`을 sample 시각으로 사용하며 API 조회 시각이나 Kubernetes 상태로 대체하지 않는다고 설명한다.</pre>
             </div>
 
