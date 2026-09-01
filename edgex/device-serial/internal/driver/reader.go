@@ -3,6 +3,7 @@ package driver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -22,6 +23,7 @@ type Port interface {
 }
 
 type PortOpener func(path string, baudRate int) (Port, error)
+type serialModeOpener func(path string, mode *serial.Mode) (Port, error)
 type WaitFunc func(ctx context.Context, delay time.Duration) bool
 
 type ReaderOptions struct {
@@ -125,7 +127,26 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 }
 
 func OpenSerial(path string, baudRate int) (Port, error) {
-	return serial.Open(path, &serial.Mode{
+	return openConfiguredSerial(
+		path,
+		baudRate,
+		disableHangupOnClose,
+		func(path string, mode *serial.Mode) (Port, error) {
+			return serial.Open(path, mode)
+		},
+	)
+}
+
+func openConfiguredSerial(
+	path string,
+	baudRate int,
+	prepare func(path string) error,
+	open serialModeOpener,
+) (Port, error) {
+	if err := prepare(path); err != nil {
+		return nil, fmt.Errorf("prepare serial port without HUPCL: %w", err)
+	}
+	return open(path, &serial.Mode{
 		BaudRate: baudRate,
 		DataBits: 8,
 		Parity:   serial.NoParity,
