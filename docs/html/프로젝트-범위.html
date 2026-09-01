@@ -76,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-09-01 15:30</span>
-            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
+            <span class="badge">수정: 2026-09-01 18:16</span>
+            <span class="badge">HTML 생성: 2026-09-01 18:17</span>
           </div>
         </header>
         <div class="doc-body">
@@ -110,7 +110,7 @@
 </tr>
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
-<p><code>device-serial-jetson</code>의 현재 checkout에는 established stream 오류 뒤 25·50·100·200ms fast-retry, 첫 유효 sample의 SDK async enqueue 완료 시점까지의 복구시간 계측, 400ms 개발 gate metric과 read-only stats API가 구현돼 있다. 이는 로컬 코드·manifest 기준이며 새 image 배포와 실장비 반복시험 전에는 400ms 달성을 주장하지 않는다. Kubernetes node/Pod 전체 failover와 통신 단절 중 durable 저장·재전송은 별도 범위다. 상세 측정 경계는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
+<p><code>device-serial-jetson</code>에는 established stream 오류 뒤 25·50·100·200ms fast-retry, 첫 유효 sample의 SDK async enqueue 완료 시점까지의 복구시간 계측, 400ms 개발 gate metric과 read-only stats API가 배포돼 있다. 2026-09-01 실장비 canary 1회는 자동 재연결과 Core Data readback에는 성공했지만 2,215.225 ms로 gate를 초과했다. 30회 <code>max ≤ 400ms</code> 합격 조건은 첫 초과로 실패가 확정돼 나머지 29회를 조기 중단했으며, 400ms 달성을 주장하지 않는다. Kubernetes node/Pod 전체 failover와 통신 단절 중 durable 저장·재전송은 별도 범위다. 상세 측정 경계는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
 <ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보. 2026-08-18 현재</li></ul>
 <p>기준선 후보는 부하 실험에서 성능 자격이 거부되어 요청을 전환하지 않는다.</p>
@@ -235,8 +235,8 @@
 </tr>
 <tr>
 <td>Serial 오류 복구 400ms</td>
-<td>fast-retry·계측 로컬 구현, 미배포·미실측</td>
-<td>immutable image 배포 + 30회 장애 주입에서 max ≤ 400ms·miss 0 + Core Data readback</td>
+<td>immutable image 배포, 실장비 canary 2,215.225 ms로 실패</td>
+<td>병목 개선 + 30회 장애 주입에서 max ≤ 400ms·miss 0 + Core Data readback</td>
 </tr>
 <tr>
 <td>생산품질 판별</td>

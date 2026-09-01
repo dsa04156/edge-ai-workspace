@@ -72,17 +72,17 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>가상화 노드 오류 복구시간</h1>
-          <p class="subtitle">&gt; 상태: Serial Device Service 로컬 구현 완료, 이미지 배포·실장비 반복 시험 전 &gt; &gt; 기준일: 2026-…</p>
+          <p class="subtitle">&gt; 상태: immutable image 배포 완료, 실장비 canary 1회에서 2,215.225 ms로 400 ms gate…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 가상화-노드-오류-복구시간.md</span>
-            <span class="badge">수정: 2026-09-01 16:28</span>
-            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
+            <span class="badge">수정: 2026-09-01 18:15</span>
+            <span class="badge">HTML 생성: 2026-09-01 18:17</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="가상화-노드-오류-복구시간-구현-시험-기준">가상화 노드 오류 복구시간 구현·시험 기준</h1>
-<blockquote><p>상태: Serial Device Service 로컬 구현 완료, 이미지 배포·실장비 반복 시험 전</p>
+<blockquote><p>상태: immutable image 배포 완료, 실장비 canary 1회에서 2,215.225 ms로 400 ms gate 실패; 30회 반복 qualification은 조기 중단</p>
 <p>기준일: 2026-09-01</p></blockquote>
 <h2 id="지표-경계">지표 경계</h2>
 <p>성능지표 8의 측정 구간은 다음과 같다.</p>
@@ -163,6 +163,66 @@
 <ol><li>새 immutable image를 배포하고 정상 sample과 Core Data <code>origin</code> 증가를 먼저 확인한다.</li><li>API의 초기 counter를 기록한다.</li><li>정상 전송 중 승인된 Serial 단절·복구를 30회 반복한다. Pod 삭제나 node 전원 차단은 이</li></ol>
 <p>지표가 아닌 별도 전체 failover 시험으로 분리한다.</p>
 <ol><li>각 회차의 process log, recovery API와 첫 후속 Core Data Event를 같은 시험 record에 묶는다.</li><li><code>completed</code> 증가, <code>targetMisses=0</code>, 30회 <code>max ≤ 400 ms</code>일 때 400 ms 내부 gate를 통과한다.</li><li>p50·p95·max, 미완료 건수와 Core Data readback 누락을 함께 보고한다.</li></ol>
+<h2 id="2026-09-01-실장비-canary-결과">2026-09-01 실장비 canary 결과</h2>
+<p>Jetson <code>etri-dev0001-jetorn</code>의 실제 Arduino stream이 정상 전송 중일 때 USB 전체 전원이나 node·Pod를 끄지 않고 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>만 50 ms unbind→rebind했다. 장애 주입은 운영 기능이 아닌 일회성 관리자 qualification Pod에서 수행했고 시험 뒤 삭제했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>관측값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Git revision</td>
+<td><code>dd63476a154f982a108e6efc1241ae5d9cfc005a</code></td>
+</tr>
+<tr>
+<td>Device Service image</td>
+<td><code>edgex-device-serial@sha256:db8e21c3bf8ad6ad984ac0b3178a009308aa3dae55111a5f17e957781232e141</code></td>
+</tr>
+<tr>
+<td>시험 전 counter</td>
+<td><code>detected=0</code>, <code>completed=0</code>, <code>targetMisses=0</code></td>
+</tr>
+<tr>
+<td>시험 후 counter</td>
+<td><code>detected=1</code>, <code>completed=1</code>, <code>targetMisses=1</code></td>
+</tr>
+<tr>
+<td>오류 감지</td>
+<td><code>1788253656891239314</code> ns</td>
+</tr>
+<tr>
+<td>첫 유효 sample 전송 재개</td>
+<td><code>1788253659106463975</code> ns</td>
+</tr>
+<tr>
+<td>복구시간</td>
+<td><strong>2,215.224661 ms</strong></td>
+</tr>
+<tr>
+<td>재개방 시도</td>
+<td>4회</td>
+</tr>
+<tr>
+<td>400 ms 판정</td>
+<td><code>withinTarget=false</code>, <strong>FAIL</strong></td>
+</tr>
+<tr>
+<td>첫 후속 Core Data Event</td>
+<td>temperature Event <code>origin=1788253659110680000</code></td>
+</tr>
+<tr>
+<td>workload 상태</td>
+<td>같은 Pod <code>Ready</code>, restart 0</td>
+</tr>
+<tr>
+<td>물리 경로 복원</td>
+<td>stable by-id→<code>ttyACM0</code>, char device <code>166:0</code></td>
+</tr>
+</tbody></table></div>
+<p>복구시간 API와 process log는 같은 2,215.225 ms를 기록했고, 첫 후속 temperature Event는 서비스의 전송 재개 시각 뒤 약 4.216 ms에 Core Data에서 조회됐다. 장애 전 마지막 temperature Event와 첫 후속 Event의 <code>origin</code> 간격은 약 2,563.902 ms였다. 따라서 자동 재연결과 중앙 readback은 성공했지만 데이터 공백을 피하지 못했고 400 ms gate는 통과하지 못했다.</p>
+<p>30회 합격 조건은 <code>max ≤ 400 ms</code>와 <code>targetMisses=0</code>이므로 첫 canary의 초과만으로 이번 qualification은 실패가 확정됐다. 불필요한 추가 물리 장애를 피하기 위해 나머지 29회는 실행하지 않았으며 p50·p95 분포도 산출하지 않는다. 이 결과를 30회 시험 완료나 공식 250 ms 목표 달성으로 해석하지 않는다.</p>
+<p>장치 파일은 오류 감지 뒤 약 301.410 ms에 다시 생성됐지만 첫 유효 frame까지 추가로 약 1,913.815 ms가 걸렸다. 현재 증거상 병목은 heartbeat가 아니라 재개방 뒤 유효 frame 도착 구간이다. live temperature Event도 약 1.016초 간격이므로, 실제 firmware cadence, Serial open 시 reset/DTR 동작, port-open→first-byte→first-valid-frame 구간을 각각 계측한 뒤 재시험해야 한다. reset/DTR은 현재 원인 후보이지 이번 시험만으로 확정한 사실은 아니다.</p>
 <p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, 누적 75 ms 뒤 두 번째 재개방에서 유효 sample이 오면 75 ms·2 attempts로 기록되는지, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다.</p>
 <h2 id="현장-한계와-후속-조치">현장 한계와 후속 조치</h2>
 <ul><li>400 ms heartbeat를 설정하는 것만으로 이 목표를 달성할 수 없다. heartbeat 400 ms는 오류</li></ul>
@@ -181,6 +241,7 @@
 <li class="toc-h2"><a href="#현재-구현">현재 구현</a></li>
 <li class="toc-h2"><a href="#관측값">관측값</a></li>
 <li class="toc-h2"><a href="#400-ms-내부-qualification">400 ms 내부 qualification</a></li>
+<li class="toc-h2"><a href="#2026-09-01-실장비-canary-결과">2026-09-01 실장비 canary 결과</a></li>
 <li class="toc-h2"><a href="#현장-한계와-후속-조치">현장 한계와 후속 조치</a></li></ol></aside>
     </div>
   </div>

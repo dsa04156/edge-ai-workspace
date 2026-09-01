@@ -76,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-09-01 15:30</span>
-            <span class="badge">HTML 생성: 2026-09-01 16:28</span>
+            <span class="badge">수정: 2026-09-01 18:16</span>
+            <span class="badge">HTML 생성: 2026-09-01 18:17</span>
           </div>
         </header>
         <div class="doc-body">
@@ -104,8 +104,8 @@
 </tr>
 <tr>
 <td>Serial fast recovery</td>
-<td>로컬 구현·미배포</td>
-<td>25/50/100/200ms fast-retry, 400ms 계측 gate와 stats API; 실장비 반복시험 전</td>
+<td>배포됨·400ms gate 실패</td>
+<td>실장비 canary 1회 2,215.225 ms, 4 attempts, miss 1; 자동 복구·Core Data readback은 성공</td>
 </tr>
 <tr>
 <td>I2C Device Service</td>
@@ -172,12 +172,12 @@
 <div class="table-wrap"><table>
 <thead><tr>
 <th>대상</th>
-<th>2026-08-28 확인 결과</th>
+<th>2026-09-01 확인 결과</th>
 </tr></thead>
 <tbody>
 <tr>
 <td>배포 branch/revision</td>
-<td><code>agent/edgex-central-docs</code> · <code>07fc3b1</code></td>
+<td><code>agent/edgex-central-docs</code> · <code>dd63476a</code></td>
 </tr>
 <tr>
 <td>EdgeX root</td>
@@ -208,7 +208,7 @@
 <td><code>docs-html</code> · <code>Synced/Healthy</code></td>
 </tr>
 </tbody></table></div>
-<p>배포 branch는 <code>origin/main</code>보다 81개 commit 앞서며 아직 <code>main</code>에 통합되지 않았다. 로컬 partial offloading과 관련 dashboard 변경은 이 Argo revision에 포함되지 않는다.</p>
+<p>배포 branch는 <code>origin/main</code>보다 93개 commit 앞서며 아직 <code>main</code>에 통합되지 않았다. 로컬 partial offloading과 관련 dashboard 변경은 이 Argo revision에 포함되지 않는다.</p>
 <h2 id="live-상태-스냅샷">live 상태 스냅샷</h2>
 <p>2026-08-28 조회 시 전체 6개 node 중 5개가 Ready다. 중앙 EdgeX workload, Serial Device Service, Adapter Controller, source <code>sensor-anomaly-demo</code>, Server1 endpoint와 <code>state-aggregator</code>는 Ready다.</p>
 <p><code>etri-dev0003-raspi5</code>는 2026-08-27 06:32 UTC부터 <code>NodeStatusUnknown</code>이며 <code>node.kubernetes.io/unreachable</code> taint가 적용됐다. 이 노드에 고정된 Sense HAT Pod는 schedule되지 않아 <code>device-sensehat-raspi</code>가 <code>0/1</code>이고, 이 때문에 <code>edgex-telemetry</code>가 <code>Progressing</code>이다. 확인된 직접 증거는 “kubelet이 node status를 게시하지 않음”까지이며, 전원·네트워크·EdgeCore 중 하위 원인은 별도 현장 진단이 필요하다.</p>
@@ -218,8 +218,10 @@
 <ul><li>승인된 immutable candidate Deployment 생성과 Pod Ready</li><li>SHADOW 상태의 health·input·model·memory-only inference validation</li><li>Kubernetes Lease의 source→candidate handoff와 candidate ACTIVE 처리</li><li>candidate 장애 후 source로 Lease rollback과 inference 재개</li><li>selectorless Service와 controller 소유 core <code>Endpoints</code>를 이용한</li></ul>
 <p>Jetson source→Raspberry Pi candidate→Jetson source HTTP 전환</p>
 <p>그러나 현재 production Service는 Argo CD 소유 selector를 유지하고 Runtime Controller의 계약은 EndpointSlice 기반이다. EdgeMesh의 EndpointSlice 소비가 입증되지 않아 <code>sensor-anomaly-demo</code> traffic 단계는 <code>routing_mode_unsupported</code>로 차단된다. 승인 실행 이력 2건도 각각 routing 미지원과 candidate 장애 검증으로 최종 <code>FAILED</code>이며, 이는 실패를 숨기지 않는 fail-closed 증거이지 운영 migration/offloading 완료 근거가 아니다.</p>
+<h2 id="serial-recovery-배포-실측-상태">Serial recovery 배포·실측 상태</h2>
+<p>Serial Device Service에는 established stream의 오류 감지부터 첫 유효 sample이 EdgeX SDK async channel에 전달될 때까지를 재는 계측과 400ms 개발 gate가 추가됐다. 초기 open 실패는 표본에서 제외하고 포트 open만으로 완료 처리하지 않는다. 25·50·100·200ms fast-retry와 <code>SerialRecoveryTargetMisses</code> metric을 포함한 immutable image가 Jetson에 배포됐다.</p>
+<p>2026-09-01 실제 Arduino의 <code>cdc_acm</code> 인터페이스를 50ms 단절·복원한 canary에서 <code>detected=1</code>, <code>completed=1</code>, <code>durationMs=2215.224661</code>, <code>attempts=4</code>, <code>targetMisses=1</code>을 관측했다. 같은 Device Service Pod는 restart 0으로 Ready를 유지했고 stable Serial path와 첫 후속 Core Data Event도 복원됐다. 자동 복구는 성공했지만 400ms gate는 실패했으며 첫 초과로 30회 <code>max ≤ 400ms</code> 합격이 불가능해 나머지 29회는 조기 중단했다. 공식 250ms 목표와 전체 node/Pod failover는 별도다. 상세 증거와 후속 계측 항목은 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
 <h2 id="로컬-검증-중인-미배포-구현">로컬 검증 중인 미배포 구현</h2>
-<p>Serial Device Service에는 established stream의 오류 감지부터 첫 유효 sample이 EdgeX SDK async channel에 전달될 때까지를 재는 계측과 400ms 개발 gate가 추가됐다. 초기 open 실패는 표본에서 제외하고 포트 open만으로 완료 처리하지 않는다. 25·50·100·200ms fast-retry와 <code>SerialRecoveryTargetMisses</code> metric을 포함하지만, 새 image 배포와 30회 실장비 장애 주입을 아직 수행하지 않았으므로 400ms 달성 상태는 <code>미측정</code>이다. 공식 250ms 목표와 전체 node/Pod failover는 별도다. 상세 기준은 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
 <p>현재 checkout에는 ACTIVE Jetson이 수집·전처리·저장을 유지하고 Server1에 inference만 요청하는 부분 offloading 구현이 있다. stable request ID, 응답 identity/model/freshness 검증, 중복 결과 차단, source 측 network preflight와 LOCAL_FALLBACK을 포함한다. 2026-08-28 현재 파일 기준 검증 결과는 다음과 같다.</p>
 <ul><li><code>sensor-anomaly-demo</code>: 118 tests passed</li><li><code>state-aggregator</code>: 317 Python tests passed</li><li>dashboard: 167 JavaScript tests passed</li><li><code>state-aggregator/k8s</code>: Kustomize render 성공</li></ul>
 <p>이 변경은 아직 커밋·Argo 배포되지 않았으며, <code>baseline-1.0.0</code> Server1 후보의 기존 GPU 성능 자격도 계속 <code>rejected</code>다. 따라서 실제 운영 요청은 자동으로 REMOTE로 바뀌지 않는다.</p>
@@ -228,7 +230,9 @@
 <ul><li>가속도 X/Y/Z는 같은 <code>origin</code>으로 frame을 구성한다.</li><li>온도는 허용 시간차 안의 가장 가까운 sample만 결합한다.</li><li>진동 20개, 온도 10개 window와 30개 warm-up을 사용한다.</li><li>현재 backend는 학습된 고장 분류기가 아닌 <code>online-baseline</code>이다.</li><li>결과와 alert transition은 서비스 소유 SQLite에 idempotent하게 저장한다.</li><li>화면의 <code>anomaly</code>는 현재 통계 기준선 판정이며 실제 설비 고장을 입증하지 않는다.</li></ul>
 <p>실제 설비 고장 분류 정확도와 생산성 개선 효과는 옥동 현장 데이터로 별도 검증해야 한다.</p>
 <h2 id="남은-핵심-작업">남은 핵심 작업</h2>
-<ol><li><code>etri-dev0003-raspi5</code> 연결 중단의 현장 원인 확인과 Sense HAT 수직 슬라이스 복구</li><li>로컬 partial offloading 변경을 기능별로 분리하고 commit·배포 여부 결정</li><li>core <code>Endpoints</code> 기반 Runtime routing 계약의 구현·소유권·rollback 재검증</li><li>옥동 PLC·MES·센서 endpoint와 field map 확정</li><li>생산품질 label과 펌프·모터 실제 모델 입력·출력 확정</li><li>Serial fast-retry image 배포와 30회 실장비 장애 주입으로 400ms 개발 gate 검증</li><li>장애 저장·재전송 구현과 통신 단절 반복 시험</li><li>옥동 실제 모델의 Server1 성능 자격·운영 책임·rollback 재검증</li><li>테스트베드 관리 BFF 앞의 신뢰 가능한 사용자 인증·인가 추가</li></ol>
+<ol><li><code>etri-dev0003-raspi5</code> 연결 중단의 현장 원인 확인과 Sense HAT 수직 슬라이스 복구</li><li>로컬 partial offloading 변경을 기능별로 분리하고 commit·배포 여부 결정</li><li>core <code>Endpoints</code> 기반 Runtime routing 계약의 구현·소유권·rollback 재검증</li><li>옥동 PLC·MES·센서 endpoint와 field map 확정</li><li>생산품질 label과 펌프·모터 실제 모델 입력·출력 확정</li><li>Serial 재개방 뒤 first-byte·first-valid-frame 병목과 실제 firmware cadence를 개선한 뒤</li></ol>
+<p>30회 실장비 장애 주입으로 400ms 개발 gate 재검증</p>
+<ol><li>장애 저장·재전송 구현과 통신 단절 반복 시험</li><li>옥동 실제 모델의 Server1 성능 자격·운영 책임·rollback 재검증</li><li>테스트베드 관리 BFF 앞의 신뢰 가능한 사용자 인증·인가 추가</li></ol>
 <p>세부 포함·제외 기준은 <a href="프로젝트-범위.html">프로젝트 범위</a>를 따른다.</p>
         </div>
       </article>
@@ -236,6 +240,7 @@
 <li class="toc-h2"><a href="#배포-기준선">배포 기준선</a></li>
 <li class="toc-h2"><a href="#live-상태-스냅샷">live 상태 스냅샷</a></li>
 <li class="toc-h2"><a href="#runtime-실행-검증-경계">Runtime 실행 검증 경계</a></li>
+<li class="toc-h2"><a href="#serial-recovery-배포-실측-상태">Serial recovery 배포·실측 상태</a></li>
 <li class="toc-h2"><a href="#로컬-검증-중인-미배포-구현">로컬 검증 중인 미배포 구현</a></li>
 <li class="toc-h2"><a href="#서비스-데모-의미">서비스 데모 의미</a></li>
 <li class="toc-h2"><a href="#남은-핵심-작업">남은 핵심 작업</a></li></ol></aside>
