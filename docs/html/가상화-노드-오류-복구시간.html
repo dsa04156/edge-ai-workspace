@@ -72,17 +72,17 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>가상화 노드 오류 복구시간</h1>
-          <p class="subtitle">&gt; 상태: 구간 계측 immutable image 배포 완료. 최초 qualification canary는 2,215.225 m…</p>
+          <p class="subtitle">&gt; 상태: Linux Serial HUPCL 해제와 Arduino 100 ms cadence 운영 펌웨어를 배포했다. &gt; 같은…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 가상화-노드-오류-복구시간.md</span>
-            <span class="badge">수정: 2026-09-01 19:17</span>
-            <span class="badge">HTML 생성: 2026-09-01 19:18</span>
+            <span class="badge">수정: 2026-09-01 20:47</span>
+            <span class="badge">HTML 생성: 2026-09-01 20:47</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="가상화-노드-오류-복구시간-구현-시험-기준">가상화 노드 오류 복구시간 구현·시험 기준</h1>
-<blockquote><p>상태: 구간 계측 immutable image 배포 완료. 최초 qualification canary는 2,215.225 ms로 실패했고, 후속 원인 진단 6건도 1건 통과·5건 실패해 400 ms gate는 미달성</p>
+<blockquote><p>상태: Linux Serial <code>HUPCL</code> 해제와 Arduino 100 ms cadence 운영 펌웨어를 배포했다. 같은 50 ms 단절·복구의 최종 qualification 30회가 모두 400 ms 이내여서 2차년도 개발 gate를 통과했다. 과제 최종 250 ms 목표는 별도 시험 전까지 미달성으로 유지한다.</p>
 <p>기준일: 2026-09-01</p></blockquote>
 <h2 id="지표-경계">지표 경계</h2>
 <p>성능지표 8의 측정 구간은 다음과 같다.</p>
@@ -119,9 +119,12 @@
 <p><code>device-serial-jetson</code>의 shared Serial Reader는 다음 fast-retry profile을 사용한다.</p>
 <pre data-lang="text"><code>대기:       25 ms → 50 ms → 100 ms → 200 ms → 1 s → 2 s → 4 s → 8 s → 16 s → 30 s
 누적 시도: 25 ms → 75 ms → 175 ms → 375 ms → 1.375 s → ...</code></pre>
-<ul><li>포트 <code>open</code>, read timeout 설정 또는 established stream의 read 오류에서 <code>DOWN</code>을 알린다.</li><li>이미 복구 중이면 후속 오류가 검출 시각을 다시 시작하지 않는다.</li><li>포트가 다시 열렸다는 사실만으로 완료 처리하지 않는다.</li><li>malformed line은 버리고, 첫 유효 frame이 실제 SDK async channel까지 전달된 뒤 완료한다.</li><li>복구 중 성공한 port open과 read timeout 설정 완료를 <code>portReadyAt</code>, 최초 수신 byte를</li></ul>
+<ul><li>포트 <code>open</code>, read timeout 설정 또는 established stream의 read 오류에서 <code>DOWN</code>을 알린다.</li><li>Linux에서는 serial library가 포트를 열기 전에 현재 termios의 다른 flag를 보존하면서</li></ul>
+<p><code>HUPCL</code>만 해제한다. 포트 close·재open에 따른 DTR 하강과 Uno auto-reset을 억제한다.</p>
+<ul><li>이미 복구 중이면 후속 오류가 검출 시각을 다시 시작하지 않는다.</li><li>포트가 다시 열렸다는 사실만으로 완료 처리하지 않는다.</li><li>malformed line은 버리고, 첫 유효 frame이 실제 SDK async channel까지 전달된 뒤 완료한다.</li><li>복구 중 성공한 port open과 read timeout 설정 완료를 <code>portReadyAt</code>, 최초 수신 byte를</li></ul>
 <p><code>firstByteAt</code>으로 기록해 병목 구간을 분리한다.</p>
 <ul><li><code>time.Time</code>의 monotonic 차이를 사용해 process 내부의 감지→재개 시간을 계산한다.</li><li>400 ms를 넘으면 target miss를 누적하고 warning log를 남긴다.</li></ul>
+<p>Arduino Uno 운영 펌웨어는 <code>edgex/device-serial/firmware/arduino_uno_multisensor/arduino_uno_multisensor.ino</code>가 소유한다. 기존 A0·A1·D4·A2·A3·A4 pin, 115200 bps와 JSON wire contract를 유지하고 sample cycle delay만 1,000 ms에서 100 ms로 줄였다. 원본 source와 application rollback image도 같은 디렉터리의 <code>backup/</code>에 보존한다.</p>
 <p>배포 설정은 다음 두 값으로 고정한다.</p>
 <pre data-lang="yaml"><code>Driver:
   SerialRecoveryTarget: &quot;400ms&quot;
@@ -257,14 +260,98 @@
 </tbody></table></div>
 <p>후속 5회에서 포트는 모두 85 ms 안에 준비됐고 재개방도 각 1회 만에 성공했다. 반면 포트가 준비된 뒤 첫 byte까지 약 1.75초의 정지 구간이 반복됐으며, byte가 도착한 뒤 유효 frame을 전송하기까지는 최대 8.704 ms였다. 따라서 현재 반복 실패의 지배 병목은 heartbeat, retry backoff, JSON decode가 아니라 <strong>Serial 재개방 뒤 장치가 첫 byte를 보내기 전 구간</strong>이다.</p>
 <p>최근 temperature Event 100개에서 계산한 정상 주기는 99개 간격 기준 min 1,013.869 ms, p50 1,016.088 ms, p95 1,020.303 ms, max 1,021.805 ms였다. 포트 open 때 DTR/RTS를 올리는 현재 라이브러리 기본 동작과 Arduino auto-reset/firmware startup은 강한 원인 후보지만, 이번 계측만으로 DTR reset과 firmware 내부 초기화 시간을 분리해 확정하지는 않는다. 실제 firmware source와 pin/resource 계약을 확인한 뒤 DTR auto-reset 억제 또는 startup·첫 frame 지연 축소를 한 항목씩 시험해야 한다.</p>
-<p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, port ready·first byte·first valid frame의 단조 시각과 구간 계산, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다.</p>
+<h2 id="2026-09-01-개선-및-30회-qualification-결과">2026-09-01 개선 및 30회 qualification 결과</h2>
+<p>Jetson에서 운영 중인 원본 sketch와 Uno를 먼저 식별하고 application flash를 백업한 뒤 두 원인을 독립적으로 확인했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>확인 항목</th>
+<th>결과</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 장치</td>
+<td>Arduino Uno R3 <code>2341:0043</code>, serial <code>75035303230351E0D171</code></td>
+</tr>
+<tr>
+<td>stable port</td>
+<td><code>/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00</code></td>
+</tr>
+<tr>
+<td>원본 source SHA-256</td>
+<td><code>49eda328bb58b76f66f93ba28f8a7eca2c0f50adce94fa405cf2ea1d3a29b234</code></td>
+</tr>
+<tr>
+<td>원본 application rollback SHA-256</td>
+<td><code>95728fbdbf78e472d503b4b85599522f402922de5985b3c8eca0a7ba4e736f4c</code></td>
+</tr>
+<tr>
+<td>개선 application SHA-256</td>
+<td><code>1fa56ec998101da2a0d83039d28524a430c0b21c59032848f8c3d62d560654f5</code></td>
+</tr>
+</tbody></table></div>
+<p>기존 1초 펌웨어에서 <code>HUPCL</code>을 유지한 3회는 1,828.631~1,832.486 ms였고, <code>HUPCL</code>을 해제한 3회는 353.260·812.379·816.853 ms였다. 이 결과는 auto-reset 억제만으로 약 1.75초 정지는 제거하지만 1초 sample cadence 때문에 여전히 400 ms를 보장하지 못함을 보여준다. <code>HUPCL</code> 해제와 100 ms 펌웨어를 함께 적용한 운영 전 raw serial 시험은 10/10회 통과했고 min 69.498 ms, max 354.166 ms, mean 103.540 ms였다.</p>
+<p>application flash만 <code>-D</code>로 기록하고 readback verify했다. bootloader, fuse, EEPROM과 물리 auto-reset 회로는 변경하지 않았다. pin·JSON 계약은 자동 계약시험으로 고정했다.</p>
+<p>revision <code>d9adba1ba573299464b7a5c1046f6c0d50b20fd6</code>, image <code>edgex-device-serial@sha256:fe0377db16757fde48f70029088c72e6c21ac86ba7c3d7d11b51d3b5af55dcfe</code> 를 배포하고 같은 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>의 50 ms unbind→rebind를 사용했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>관측값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>사전 canary</td>
+<td>104.169 ms, 통과</td>
+</tr>
+<tr>
+<td>정식 qualification</td>
+<td>30회 완료, 30/30회 통과</td>
+</tr>
+<tr>
+<td>min</td>
+<td>90.469 ms</td>
+</tr>
+<tr>
+<td>p50</td>
+<td>108.062 ms</td>
+</tr>
+<tr>
+<td>p95</td>
+<td>231.078 ms, nearest-rank</td>
+</tr>
+<tr>
+<td>max</td>
+<td><strong>232.432 ms</strong></td>
+</tr>
+<tr>
+<td>mean</td>
+<td>127.539 ms</td>
+</tr>
+<tr>
+<td>최종 process counter</td>
+<td><code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code></td>
+</tr>
+<tr>
+<td>workload</td>
+<td>동일 Pod <code>Ready</code>, restart 0, exact image digest 일치</td>
+</tr>
+<tr>
+<td>Core Data readback</td>
+<td>temperature Event 100개/99간격, p50 118.623 ms, p95 118.992 ms</td>
+</tr>
+<tr>
+<td>400 ms 판정</td>
+<td><strong>PASS</strong></td>
+</tr>
+</tbody></table></div>
+<p>이 결과는 오류 감지부터 첫 유효 sample의 SDK async enqueue까지를 측정한 2차년도 400 ms 내부 개발 gate의 통과 증거다. TTA 공식 성적, 과제 최종 250 ms, node 전원·망 장애나 다른 노드의 Pod 재기동 시간을 통과했다는 뜻은 아니다.</p>
+<p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, port ready·first byte·first valid frame의 단조 시각과 구간 계산, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다. 위 30회 qualification을 실장비 근거로 사용한다.</p>
 <h2 id="현장-한계와-후속-조치">현장 한계와 후속 조치</h2>
 <ul><li>400 ms heartbeat를 설정하는 것만으로 이 목표를 달성할 수 없다. heartbeat 400 ms는 오류</li></ul>
 <p>검출에만 최대 400 ms를 쓰며 포트 복구와 다음 sample 시간을 포함하지 않는다.</p>
-<ul><li>현재 live Arduino의 특정 resource Event는 약 1.016초 간격이다. 정상 수집 주기는 복구시간</li></ul>
-<p>자체가 아니지만, 재연결 뒤 첫 frame과 정상 cadence가 400 ms보다 길면 retry 간격만 줄여서는 gate를 통과할 수 없다.</p>
-<ul><li>firmware flash, DTR/reset 동작 변경과 물리 auto-reset 회로 변경은 현재 배포 변경보다 위험</li></ul>
-<p>범위가 크다. 현장 sketch·pin mapping을 확보하고 별도 승인한 뒤 한 변수씩 적용한다.</p>
+<ul><li>약 1.016초였던 Event 간격은 개선 전 진단 기준선이다. 현재 temperature Event 99개 간격의</li></ul>
+<p>p50은 118.623 ms다. 정상 수집 주기는 복구시간 자체가 아니지만 재연결 뒤 첫 frame의 상한에 직접 영향을 주므로 재시도 간격과 함께 관리한다.</p>
+<ul><li>현장 sketch·pin mapping을 확인하고 원본 application을 백업한 뒤 승인된 application</li></ul>
+<p>flash와 host termios 변경만 적용했다. 물리 auto-reset 회로는 변경하지 않았다.</p>
 <ul><li>USB 장치 재열거가 400 ms보다 오래 걸리거나 stable char device가 복구되지 않으면 software</li></ul>
 <p>retry만으로는 통과할 수 없다.</p>
 <ul><li>node 전원·망 장애까지 400 ms 안에 복구하려면 hot-standby Device Service, 이중화된 물리</li></ul>
@@ -279,6 +366,7 @@
 <li class="toc-h2"><a href="#400-ms-내부-qualification">400 ms 내부 qualification</a></li>
 <li class="toc-h2"><a href="#2026-09-01-최초-qualification-canary-결과">2026-09-01 최초 qualification canary 결과</a></li>
 <li class="toc-h2"><a href="#2026-09-01-구간-계측-진단">2026-09-01 구간 계측 진단</a></li>
+<li class="toc-h2"><a href="#2026-09-01-개선-및-30회-qualification-결과">2026-09-01 개선 및 30회 qualification 결과</a></li>
 <li class="toc-h2"><a href="#현장-한계와-후속-조치">현장 한계와 후속 조치</a></li></ol></aside>
     </div>
   </div>

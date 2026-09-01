@@ -76,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-01 19:17</span>
-            <span class="badge">HTML 생성: 2026-09-01 19:18</span>
+            <span class="badge">수정: 2026-09-01 20:46</span>
+            <span class="badge">HTML 생성: 2026-09-01 20:47</span>
           </div>
         </header>
         <div class="doc-body">
@@ -118,6 +118,10 @@
 <td>공식 EdgeX Device SDK 기반 Serial 구현</td>
 </tr>
 <tr>
+<td><code>edgex/device-serial/firmware/arduino_uno_multisensor/</code></td>
+<td>Jetson 연결 Uno 운영 sketch, pin·wire 계약과 application rollback</td>
+</tr>
+<tr>
 <td><code>edgex/device-sensehat/</code></td>
 <td>공식 EdgeX Device SDK 기반 Sense HAT 구현</td>
 </tr>
@@ -138,7 +142,7 @@
 <td>정적 문서 이미지와 Traefik 배포</td>
 </tr>
 </tbody></table></div>
-<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→port ready→first byte→첫 유효 sample 전송 재개 구간을 소유한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
+<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→port ready→first byte→첫 유효 sample 전송 재개 구간을 소유한다. <code>hangup_linux.go</code>는 기존 termios flag를 보존하면서 <code>HUPCL</code>을 해제해 Uno auto-reset을 억제한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
 <h2 id="운영-지원">운영 지원</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -238,7 +242,7 @@
 <tr>
 <td>중앙 EdgeX·Device Service</td>
 <td><code>edgex-telemetry</code></td>
-<td><code>main</code>의 <code>edgex/k8s</code></td>
+<td>Application에 선언된 Git ref의 <code>edgex/k8s</code></td>
 </tr>
 <tr>
 <td>대시보드</td>
@@ -248,7 +252,7 @@
 <tr>
 <td>문서 사이트</td>
 <td><code>docs-html</code></td>
-<td><code>main</code> + image updater digest</td>
+<td>Application에 선언된 Git ref + immutable image digest</td>
 </tr>
 </tbody></table></div>
 <p><code>state-aggregator</code> Deployment Controller가 생성하는 AI workload는 <code>edge-ai-workloads</code> namespace에만 존재한다. 이 동적 workload의 소유자는 Controller이며 Argo CD가 개별 Deployment manifest를 소유하지 않는다. Controller의 권한은 신규 create와 상태 read로 제한하고 기존 Deployment update·patch·delete, migration과 offloading은 지원하지 않는다. Controller 자체, 전용 namespace와 RBAC는 계속 <code>edge-orch-state-aggregator</code> Application이 GitOps로 소유한다.</p>
