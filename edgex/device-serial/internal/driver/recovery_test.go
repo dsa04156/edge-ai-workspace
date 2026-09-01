@@ -49,10 +49,12 @@ func TestSerialRecoveryMetricsExposeTargetAndMisses(t *testing.T) {
 	detectedAt := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
 	metrics.observeStarted()
 	metrics.observeCompleted(RecoveryObservation{
-		DetectedAt: detectedAt,
-		ResumedAt:  detectedAt.Add(401 * time.Millisecond),
-		Duration:   401 * time.Millisecond,
-		Attempts:   4,
+		DetectedAt:  detectedAt,
+		PortReadyAt: detectedAt.Add(300 * time.Millisecond),
+		FirstByteAt: detectedAt.Add(350 * time.Millisecond),
+		ResumedAt:   detectedAt.Add(401 * time.Millisecond),
+		Duration:    401 * time.Millisecond,
+		Attempts:    4,
 	})
 
 	response := metrics.snapshot()
@@ -62,6 +64,11 @@ func TestSerialRecoveryMetricsExposeTargetAndMisses(t *testing.T) {
 	assert.False(t, response.InProgress)
 	assert.Equal(t, int64(1), response.TargetMisses)
 	require.NotNil(t, response.Last)
+	assert.Equal(t, detectedAt.Add(300*time.Millisecond).UnixNano(), response.Last.PortReadyAtUnixNano)
+	assert.Equal(t, detectedAt.Add(350*time.Millisecond).UnixNano(), response.Last.FirstByteAtUnixNano)
+	assert.Equal(t, float64(300), response.Last.DetectionToPortReadyMs)
+	assert.Equal(t, float64(50), response.Last.PortReadyToFirstByteMs)
+	assert.Equal(t, float64(51), response.Last.FirstByteToResumeMs)
 	assert.Equal(t, float64(401), response.Last.DurationMs)
 	assert.Equal(t, 4, response.Last.Attempts)
 	assert.False(t, response.Last.WithinTarget)

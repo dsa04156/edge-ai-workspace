@@ -54,10 +54,12 @@ type Reader struct {
 	maxLineBytes      int
 	readTimeout       time.Duration
 
-	hasTransmitted   bool
-	recoveryActive   bool
-	recoveryStarted  time.Time
-	recoveryAttempts int
+	hasTransmitted    bool
+	recoveryActive    bool
+	recoveryStarted   time.Time
+	recoveryPortReady time.Time
+	recoveryFirstByte time.Time
+	recoveryAttempts  int
 
 	mu       sync.Mutex
 	active   Port
@@ -168,6 +170,7 @@ func (reader *Reader) Run(ctx context.Context) {
 			continue
 		}
 
+		reader.recordRecoveryPortReady()
 		reader.emitState(models.OperatingState(models.Up))
 		receivedBytes, readErr := reader.read(ctx, port)
 		reader.deactivate()
@@ -213,6 +216,7 @@ func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
 
 		count, err := port.Read(buffer)
 		if count > 0 {
+			reader.recordRecoveryFirstByte()
 			receivedBytes = true
 			for _, line := range framer.Push(buffer[:count]) {
 				sample, parseErr := ParseLineWithParser(
@@ -249,6 +253,18 @@ func (reader *Reader) recordRecoveryAttempt() {
 	}
 }
 
+func (reader *Reader) recordRecoveryPortReady() {
+	if reader.recoveryActive && reader.recoveryPortReady.IsZero() {
+		reader.recoveryPortReady = reader.recoveryNow()
+	}
+}
+
+func (reader *Reader) recordRecoveryFirstByte() {
+	if reader.recoveryActive && reader.recoveryFirstByte.IsZero() {
+		reader.recoveryFirstByte = reader.recoveryNow()
+	}
+}
+
 func (reader *Reader) emitSample(sample Sample) {
 	origin := reader.now()
 	reader.onSample(sample, origin)
@@ -259,13 +275,17 @@ func (reader *Reader) emitSample(sample Sample) {
 
 	resumedAt := reader.recoveryNow()
 	observation := RecoveryObservation{
-		DetectedAt: reader.recoveryStarted,
-		ResumedAt:  resumedAt,
-		Duration:   resumedAt.Sub(reader.recoveryStarted),
-		Attempts:   reader.recoveryAttempts,
+		DetectedAt:  reader.recoveryStarted,
+		PortReadyAt: reader.recoveryPortReady,
+		FirstByteAt: reader.recoveryFirstByte,
+		ResumedAt:   resumedAt,
+		Duration:    resumedAt.Sub(reader.recoveryStarted),
+		Attempts:    reader.recoveryAttempts,
 	}
 	reader.recoveryActive = false
 	reader.recoveryStarted = time.Time{}
+	reader.recoveryPortReady = time.Time{}
+	reader.recoveryFirstByte = time.Time{}
 	reader.recoveryAttempts = 0
 	reader.onRecovery(observation)
 }

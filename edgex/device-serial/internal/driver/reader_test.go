@@ -225,15 +225,22 @@ func TestReaderResetsBackoffAfterReceivingBytes(t *testing.T) {
 }
 
 func TestReaderMeasuresEstablishedStreamRecoveryToFirstValidSample(t *testing.T) {
+	clock := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
+	detectedAt := clock
 	firstPort := newScriptedPort(
 		readResult{data: []byte(`{"device_id":"arduino-001","sensor":"temperature","raw":354}` + "\n")},
 		readResult{err: io.ErrUnexpectedEOF},
 	)
 	recoveredPort := newScriptedPort(
-		readResult{data: []byte(`_id":"arduino-001","sensor":"light","value":1}` + "\n")},
-		readResult{data: []byte(`{"device_id":"arduino-001","sensor":"light","value":400}` + "\n")},
+		readResult{
+			data:   []byte(`_id":"arduino-001","sensor":"light","value":1}` + "\n"),
+			before: func() { clock = clock.Add(25 * time.Millisecond) },
+		},
+		readResult{
+			data:   []byte(`{"device_id":"arduino-001","sensor":"light","value":400}` + "\n"),
+			before: func() { clock = clock.Add(50 * time.Millisecond) },
+		},
 	)
-	clock := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
 	var openCount int
 	var waited []time.Duration
 	samples := make(chan Sample, 2)
@@ -284,10 +291,12 @@ func TestReaderMeasuresEstablishedStreamRecoveryToFirstValidSample(t *testing.T)
 	}, time.Second, 5*time.Millisecond)
 
 	observation := <-recovered
-	assert.Equal(t, clock.Add(-75*time.Millisecond), <-started)
-	assert.Equal(t, 75*time.Millisecond, observation.Duration)
+	assert.Equal(t, detectedAt, <-started)
+	assert.Equal(t, detectedAt.Add(75*time.Millisecond), observation.PortReadyAt)
+	assert.Equal(t, detectedAt.Add(100*time.Millisecond), observation.FirstByteAt)
+	assert.Equal(t, 150*time.Millisecond, observation.Duration)
 	assert.Equal(t, 2, observation.Attempts)
-	assert.Equal(t, observation.DetectedAt.Add(75*time.Millisecond), observation.ResumedAt)
+	assert.Equal(t, detectedAt.Add(150*time.Millisecond), observation.ResumedAt)
 	assert.Equal(t, []time.Duration{25 * time.Millisecond, 50 * time.Millisecond}, waited)
 	assert.Equal(t, 3, openCount)
 	assert.Len(t, samples, 2)
@@ -326,8 +335,9 @@ func testSerialConfig() SerialConfig {
 }
 
 type readResult struct {
-	data []byte
-	err  error
+	data   []byte
+	err    error
+	before func()
 }
 
 type scriptedPort struct {
@@ -348,6 +358,9 @@ func (port *scriptedPort) Read(buffer []byte) (int, error) {
 		result := port.results[0]
 		port.results = port.results[1:]
 		port.mu.Unlock()
+		if result.before != nil {
+			result.before()
+		}
 		return copy(buffer, result.data), result.err
 	}
 	port.mu.Unlock()

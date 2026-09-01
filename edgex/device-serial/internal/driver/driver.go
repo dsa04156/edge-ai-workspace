@@ -696,11 +696,16 @@ func (driver *Driver) handleRecovery(
 		return
 	}
 	metrics.observeCompleted(observation)
-	message := "serial recovery completed for %s in %.3fms after %d open attempts (target %.3fms)"
+	message := "serial recovery completed for %s in %.3fms after %d open attempts " +
+		"(detect-to-port-ready %.3fms, port-ready-to-first-byte %.3fms, " +
+		"first-byte-to-valid-frame %.3fms, target %.3fms)"
 	arguments := []any{
 		managed.config.DeviceID,
 		float64(observation.Duration) / float64(time.Millisecond),
 		observation.Attempts,
+		elapsedMilliseconds(observation.DetectedAt, observation.PortReadyAt),
+		elapsedMilliseconds(observation.PortReadyAt, observation.FirstByteAt),
+		elapsedMilliseconds(observation.FirstByteAt, observation.ResumedAt),
 		float64(metrics.target) / float64(time.Millisecond),
 	}
 	if observation.Duration > metrics.target {

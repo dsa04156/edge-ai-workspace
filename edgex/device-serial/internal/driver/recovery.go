@@ -42,10 +42,12 @@ var defaultSerialReconnectDelays = []time.Duration{
 }
 
 type RecoveryObservation struct {
-	DetectedAt time.Time
-	ResumedAt  time.Time
-	Duration   time.Duration
-	Attempts   int
+	DetectedAt  time.Time
+	PortReadyAt time.Time
+	FirstByteAt time.Time
+	ResumedAt   time.Time
+	Duration    time.Duration
+	Attempts    int
 }
 
 type serialRecoveryConfig struct {
@@ -176,11 +178,16 @@ func (metrics *serialRecoveryMetrics) observeCompleted(observation RecoveryObser
 }
 
 type serialRecoveryLastResponse struct {
-	DetectedAtUnixNano int64   `json:"detectedAtUnixNano"`
-	ResumedAtUnixNano  int64   `json:"resumedAtUnixNano"`
-	DurationMs         float64 `json:"durationMs"`
-	Attempts           int     `json:"attempts"`
-	WithinTarget       bool    `json:"withinTarget"`
+	DetectedAtUnixNano     int64   `json:"detectedAtUnixNano"`
+	PortReadyAtUnixNano    int64   `json:"portReadyAtUnixNano"`
+	FirstByteAtUnixNano    int64   `json:"firstByteAtUnixNano"`
+	ResumedAtUnixNano      int64   `json:"resumedAtUnixNano"`
+	DetectionToPortReadyMs float64 `json:"detectionToPortReadyMs"`
+	PortReadyToFirstByteMs float64 `json:"portReadyToFirstByteMs"`
+	FirstByteToResumeMs    float64 `json:"firstByteToResumeMs"`
+	DurationMs             float64 `json:"durationMs"`
+	Attempts               int     `json:"attempts"`
+	WithinTarget           bool    `json:"withinTarget"`
 }
 
 type serialRecoveryStatsResponse struct {
@@ -213,14 +220,33 @@ func (metrics *serialRecoveryMetrics) snapshot() serialRecoveryStatsResponse {
 	last := metrics.last
 	if last != nil {
 		response.Last = &serialRecoveryLastResponse{
-			DetectedAtUnixNano: last.DetectedAt.UnixNano(),
-			ResumedAtUnixNano:  last.ResumedAt.UnixNano(),
-			DurationMs:         float64(last.Duration) / float64(time.Millisecond),
-			Attempts:           last.Attempts,
-			WithinTarget:       last.Duration <= metrics.target,
+			DetectedAtUnixNano:     unixNanoOrZero(last.DetectedAt),
+			PortReadyAtUnixNano:    unixNanoOrZero(last.PortReadyAt),
+			FirstByteAtUnixNano:    unixNanoOrZero(last.FirstByteAt),
+			ResumedAtUnixNano:      unixNanoOrZero(last.ResumedAt),
+			DetectionToPortReadyMs: elapsedMilliseconds(last.DetectedAt, last.PortReadyAt),
+			PortReadyToFirstByteMs: elapsedMilliseconds(last.PortReadyAt, last.FirstByteAt),
+			FirstByteToResumeMs:    elapsedMilliseconds(last.FirstByteAt, last.ResumedAt),
+			DurationMs:             float64(last.Duration) / float64(time.Millisecond),
+			Attempts:               last.Attempts,
+			WithinTarget:           last.Duration <= metrics.target,
 		}
 	}
 	return response
+}
+
+func unixNanoOrZero(value time.Time) int64 {
+	if value.IsZero() {
+		return 0
+	}
+	return value.UnixNano()
+}
+
+func elapsedMilliseconds(start time.Time, end time.Time) float64 {
+	if start.IsZero() || end.IsZero() || end.Before(start) {
+		return 0
+	}
+	return float64(end.Sub(start)) / float64(time.Millisecond)
 }
 
 func (metrics *serialRecoveryMetrics) stats(context echo.Context) error {
