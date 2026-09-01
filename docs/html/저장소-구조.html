@@ -76,8 +76,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-01 15:30</span>
-            <span class="badge">HTML 생성: 2026-09-01 18:17</span>
+            <span class="badge">수정: 2026-09-01 19:17</span>
+            <span class="badge">HTML 생성: 2026-09-01 19:18</span>
           </div>
         </header>
         <div class="doc-body">
@@ -138,7 +138,7 @@
 <td>정적 문서 이미지와 Traefik 배포</td>
 </tr>
 </tbody></table></div>
-<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→첫 유효 sample 전송 재개 구간을 소유한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
+<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→port ready→first byte→첫 유효 sample 전송 재개 구간을 소유한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
 <h2 id="운영-지원">운영 지원</h2>
 <div class="table-wrap"><table>
 <thead><tr>
