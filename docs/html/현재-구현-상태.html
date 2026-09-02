@@ -74,17 +74,17 @@
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>현재 구현 상태</h1>
-          <p class="subtitle">&gt; 기준일: 2026-09-01 &gt; 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read…</p>
+          <p class="subtitle">&gt; 기준일: 2026-09-02 &gt; 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read…</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-09-01 20:46</span>
-            <span class="badge">HTML 생성: 2026-09-02 15:34</span>
+            <span class="badge">수정: 2026-09-02 15:44</span>
+            <span class="badge">HTML 생성: 2026-09-02 15:57</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-구현-상태">현재 구현 상태</h1>
-<blockquote><p>기준일: 2026-09-01 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read-only 조회</p></blockquote>
+<blockquote><p>기준일: 2026-09-02 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read-only 조회</p></blockquote>
 <p>이 문서는 <strong>배포된 운영 기준선</strong>, <strong>격리 환경에서 검증한 제한 기능</strong>, <strong>로컬 검증 중인 미배포 구현</strong>, <strong>설계·계약 단계</strong>를 구분한다. 코드나 시험 결과가 존재하더라도 Git/Argo 기준선과 운영 승격 조건을 통과하지 않은 기능은 운영 완료로 표시하지 않는다.</p>
 <h2 id="한눈에-보기">한눈에 보기</h2>
 <div class="table-wrap"><table>
@@ -96,18 +96,18 @@
 <tbody>
 <tr>
 <td>중앙 EdgeX</td>
-<td>운영 중</td>
-<td>Core Keeper/Metadata/Data/Command, MessageBus, PostgreSQL Ready</td>
+<td>부분 장애</td>
+<td>workload는 Ready이나 Core Data Event/Reading query가 503; Keeper/Metadata/Command·MessageBus·PostgreSQL은 응답</td>
 </tr>
 <tr>
 <td>Serial Device Service</td>
 <td>운영 중</td>
-<td>Jetson Arduino, 6개 Device/Profile, fresh Core Data Event</td>
+<td>Jetson Arduino, 6개 Device/Profile, fresh Local Data; Core Data query 503은 별도 장애</td>
 </tr>
 <tr>
 <td>Serial fast recovery</td>
-<td>운영 중·400ms gate 통과</td>
-<td><code>HUPCL</code> 해제·100ms 펌웨어, 30회 30/30 통과; max 232.432ms·miss 0</td>
+<td>운영 중·400ms process gate 통과</td>
+<td>평시 1초 + 복구 중 제한 요청, 30회 30/30 통과; max 309.848ms·miss 0</td>
 </tr>
 <tr>
 <td>I2C Device Service</td>
@@ -174,12 +174,12 @@
 <div class="table-wrap"><table>
 <thead><tr>
 <th>대상</th>
-<th>2026-09-01 확인 결과</th>
+<th>2026-09-02 확인 결과</th>
 </tr></thead>
 <tbody>
 <tr>
 <td>배포 branch/revision</td>
-<td><code>agent/edgex-central-docs</code> · <code>d9adba1b</code></td>
+<td><code>agent/edgex-central-docs</code> · <code>f96b851f</code></td>
 </tr>
 <tr>
 <td>EdgeX root</td>
@@ -199,7 +199,11 @@
 </tr>
 <tr>
 <td>Serial Device Service image</td>
-<td><code>edgex-device-serial@sha256:fe0377db16757fde48f70029088c72e6c21ac86ba7c3d7d11b51d3b5af55dcfe</code></td>
+<td><code>edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63</code></td>
+</tr>
+<tr>
+<td>Adapter Controller image</td>
+<td><code>edge-adapter-controller@sha256:627b161e9a40d1b9ff0e0f78fb4e42fea1238fb9b6b96aca8baf45cc4628884b</code></td>
 </tr>
 <tr>
 <td>이상감지 서비스</td>
@@ -230,6 +234,8 @@
 <p>후속 원인 진단은 같은 50ms 단절을 6건으로 제한해 수행했다. 1건은 158.629ms로 통과했지만 5건은 1,817.702~1,843.971ms로 실패해 process-local counter가 <code>detected=6</code>, <code>completed=6</code>, <code>targetMisses=5</code>가 됐다. 실패 5건의 감지→port ready는 61.218~84.425ms, port ready→첫 byte는 1,750.519~1,754.341ms, 첫 byte→유효 frame은 4.170~8.704ms였다. 같은 Pod는 Ready·restart 0을 유지했고 Core Data Event도 계속 증가했다. 이 6건은 원인 진단이며 당시에는 30회 qualification 통과 증거가 아니었다.</p>
 <p>원본 sketch·pin·JSON 계약과 application rollback을 확보한 뒤 Linux termios의 <code>HUPCL</code>만 해제하고 Arduino sample cycle을 1,000ms에서 100ms로 줄였다. physical auto-reset 회로, bootloader, fuse와 EEPROM은 변경하지 않았다. revision <code>d9adba1b</code>, immutable image <code>edgex-device-serial@sha256:fe0377db16757fde48f70029088c72e6c21ac86ba7c3d7d11b51d3b5af55dcfe</code> 를 배포했다.</p>
 <p>같은 50ms 단절·복원의 사전 canary는 104.169ms였고 이어서 실행한 정식 30회는 30/30회 통과했다. min 90.469ms, p50 108.062ms, p95 231.078ms, max 232.432ms, mean 127.539ms이며 최종 process counter는 <code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code>이었다. 동일 Pod가 Ready·restart 0을 유지했고 Core Data temperature Event도 p50 118.623ms cadence로 계속 증가했다. 이 결과는 2차년도 400ms 내부 개발 gate 통과 근거이며 과제 최종 250ms나 전체 node/Pod failover 합격 근거는 아니다.</p>
+<p>2026-09-02에는 정상 전송을 1,000ms로 복원하고 재연결 뒤 첫 byte가 없을 때만 25ms 간격으로 최대 네 번 <code>READ_NOW</code>를 보내는 저빈도 방식으로 교체했다. USB 재열거로 <code>ttyACM</code> 번호가 바뀌어도 Pod가 따라가도록 승인된 udev identity rule이 <code>/run/edgeai/devices/arduino-001</code>을 현재 major/minor로 교체하고, Device Service에는 이 좁은 디렉터리만 read-only mount한다. 전체 <code>/dev</code>·<code>/sys</code> mount는 추가하지 않았다.</p>
+<p>최종 canary는 199.839ms였고 별도 정식 30회는 30/30회 통과했다. min 181.833ms, p50 196.619ms, p95 304.244ms, max 309.848ms, mean 214.674ms이며 canary 포함 최종 counter는 <code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code>이다. 같은 Pod는 Ready·restart 0을 유지했고 Local Data 정상 sample 11개 간격은 998.627~1,003.651ms였다. Core Data Event query가 사전부터 503인 별도 장애로 이번 30회의 중앙 Event 개별 readback은 확보하지 못했으므로, 400ms process gate 통과와 중앙 저장 E2E acceptance를 구분한다.</p>
 <h2 id="로컬-검증-중인-미배포-구현">로컬 검증 중인 미배포 구현</h2>
 <p>현재 checkout에는 ACTIVE Jetson이 수집·전처리·저장을 유지하고 Server1에 inference만 요청하는 부분 offloading 구현이 있다. stable request ID, 응답 identity/model/freshness 검증, 중복 결과 차단, source 측 network preflight와 LOCAL_FALLBACK을 포함한다. 2026-08-28 현재 파일 기준 검증 결과는 다음과 같다.</p>
 <ul><li><code>sensor-anomaly-demo</code>: 118 tests passed</li><li><code>state-aggregator</code>: 317 Python tests passed</li><li>dashboard: 167 JavaScript tests passed</li><li><code>state-aggregator/k8s</code>: Kustomize render 성공</li></ul>

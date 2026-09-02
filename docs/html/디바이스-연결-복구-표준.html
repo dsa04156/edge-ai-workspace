@@ -74,17 +74,17 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>디바이스 연결 복구 표준</h1>
-          <p class="subtitle">&gt; 상태: 공통 계약은 현재 기준이다. Serial + Arduino Uno의 on-demand-read 구현은 &gt; 로컬 자동시…</p>
+          <p class="subtitle">&gt; 상태: 공통 계약은 현재 기준이다. Serial + Arduino Uno의 on-demand-read와 동적 &gt; endpoi…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 디바이스-연결-복구-표준.md</span>
-            <span class="badge">수정: 2026-09-02 15:33</span>
-            <span class="badge">HTML 생성: 2026-09-02 15:34</span>
+            <span class="badge">수정: 2026-09-02 15:43</span>
+            <span class="badge">HTML 생성: 2026-09-02 15:57</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="디바이스-연결-복구-표준">디바이스 연결 복구 표준</h1>
-<blockquote><p>상태: 공통 계약은 현재 기준이다. <code>Serial + Arduino Uno</code>의 <code>on-demand-read</code> 구현은 로컬 자동시험을 통과했으며 실장비 배포·반복시험 전까지 운영 완료로 표시하지 않는다. MQTT·Modbus·OPC-UA·RTSP 항목은 후속 Device Service가 따라야 할 설계 계약이다.</p>
+<blockquote><p>상태: 공통 계약은 현재 기준이다. <code>Serial + Arduino Uno</code>의 <code>on-demand-read</code>와 동적 endpoint는 운영 배포됐고 50 ms 단절·복원 30회가 30/30회 400 ms 이내였다. MQTT·Modbus·OPC-UA·RTSP 항목은 후속 Device Service가 따라야 할 설계 계약이다.</p>
 <p>기준일: 2026-09-02</p></blockquote>
 <h2 id="다섯-살에게-설명하면">다섯 살에게 설명하면</h2>
 <p>센서가 계속 “나 여기 있어”라고 아주 자주 외치게 하지 않는다. 평소에는 정해진 속도로 말하게 두고, 선이 끊겼다가 다시 이어진 순간에만 컴퓨터가 “지금 값 알려 줘”라고 묻는다. 첫말이 USB 준비 중에 사라지면 25 ms 간격으로 최대 세 번만 더 묻는다. 센서가 대답하면 즉시 멈추므로 평소 통신량은 늘지 않는다.</p>

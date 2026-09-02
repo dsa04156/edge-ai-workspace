@@ -33,9 +33,9 @@
       const requestsNow = request.checked;
       const cadenceMs = Number(cadence.value);
       const heartbeatMs = Number(heartbeat.value);
-      const portReadyMs = 80;
-      const firstDataMs = hasReset ? 1750 : requestsNow ? 20 : cadenceMs;
-      const enqueueMs = 1;
+      const portReadyMs = 125;
+      const firstDataMs = hasReset ? 1750 : requestsNow ? 70 : cadenceMs;
+      const enqueueMs = 5;
       const officialMs = portReadyMs + firstDataMs + enqueueMs;
       return { hasReset, requestsNow, cadenceMs, heartbeatMs, portReadyMs, firstDataMs, enqueueMs, officialMs };
     };

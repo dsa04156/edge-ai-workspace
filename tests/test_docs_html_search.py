@@ -207,7 +207,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("`device-sensehat-raspi`", runbook)
         self.assertIn("`edgex-edge-agent-*`", runbook)
         self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
-        self.assertIn("/dev/arduino-001", runbook)
+        self.assertIn("/dev/edgeai/arduino-001", runbook)
         self.assertIn("/dev/i2c-1", runbook)
         self.assertIn("nanosecond `origin`", runbook)
         self.assertIn("sensor-anomaly-demo", runbook)

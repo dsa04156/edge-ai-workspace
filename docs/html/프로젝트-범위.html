@@ -78,8 +78,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-09-01 20:46</span>
-            <span class="badge">HTML 생성: 2026-09-02 15:34</span>
+            <span class="badge">수정: 2026-09-02 15:45</span>
+            <span class="badge">HTML 생성: 2026-09-02 15:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -112,7 +112,7 @@
 </tr>
 </tbody></table></div>
 <p>두 Runtime은 같은 물리 연결을 여러 기능별 Device로 fan-out한다. <code>arduino-001</code>과 <code>sensehat-001</code>은 물리 source ID이며 aggregate EdgeX Device가 아니다.</p>
-<p><code>device-serial-jetson</code>에는 established stream 오류 뒤 25·50·100·200ms fast-retry, 첫 유효 sample의 SDK async enqueue 완료 시점까지의 복구시간 계측, 400ms 개발 gate metric과 read-only stats API가 배포돼 있다. 후속 image는 port ready·first byte·first valid frame 구간도 분리한다. 최초 실장비 canary와 후속 진단에서 확인한 약 1.75초 first-byte 병목은 Linux termios의 <code>HUPCL</code>에 따른 Uno auto-reset과 기존 1초 firmware cadence의 결합이었다. <code>HUPCL</code> 해제와 pin·JSON 계약을 유지한 100ms 운영 펌웨어를 적용한 뒤 같은 50ms 단절의 정식 30회 qualification은 30/30회 통과했다. max 232.432ms, p95 231.078ms였고 사전 canary를 포함한 process counter도 <code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code>이었다. 따라서 2차년도 400ms 내부 개발 gate는 통과했지만 공식 250ms 목표 달성을 주장하지 않는다. Kubernetes node/Pod 전체 failover와 통신 단절 중 durable 저장·재전송은 별도 범위다. 상세 측정 경계는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
+<p><code>device-serial-jetson</code>에는 established stream 오류 뒤 25·50·100·200ms fast-retry, 첫 유효 sample의 SDK async enqueue 완료 시점까지의 복구시간 계측, 400ms 개발 gate metric과 read-only stats API가 배포돼 있다. 후속 image는 port ready·first byte·first valid frame 구간도 분리한다. 현재 운영 구성은 정상 sample을 1,000ms로 유지하고 established stream 재연결 때 첫 byte가 없을 때만 25ms 간격으로 최대 네 번 고정 <code>READ_NOW</code>를 수행한다. USB 재열거는 승인된 udev identity rule과 좁은 <code>/run/edgeai/devices</code> endpoint 디렉터리로 따라가며 전체 호스트 <code>/dev</code>·<code>/sys</code>를 Device Service에 mount하지 않는다. 같은 50ms 단절의 정식 30회는 30/30회 통과했고 p50 196.619ms, p95 304.244ms, max 309.848ms, miss 0이었다. 따라서 2차년도 400ms process 개발 gate는 통과했지만 당시 Core Data Event query 503으로 중앙 저장 개별 readback은 별도 재검증이 필요하고 공식 250ms 목표 달성을 주장하지 않는다. Kubernetes node/Pod 전체 failover와 통신 단절 중 durable 저장·재전송은 별도 범위다. 상세 측정 경계는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
 <h3 id="서비스와-운영-화면">서비스와 운영 화면</h3>
 <ul><li><code>sensor-anomaly-demo</code> 고정 서비스와 application-owned SQLite 결과·알림 저장</li><li>HAMi GPU와 CUDA probe를 사용하는 Server1 observed-only 추론 후보. 2026-08-18 현재</li></ul>
 <p>기준선 후보는 부하 실험에서 성능 자격이 거부되어 요청을 전환하지 않는다.</p>
@@ -237,8 +237,8 @@
 </tr>
 <tr>
 <td>Serial 오류 복구 400ms</td>
-<td><code>HUPCL</code> 해제·100ms 펌웨어 배포, 30회 장애 주입 30/30 통과; max 232.432ms·miss 0·Core Data readback</td>
-<td>과제 최종 250ms 공식 절차와 node/Pod 전체 failover는 별도 검증</td>
+<td>평시 1초·복구 중 제한 요청·동적 endpoint 배포, 30회 30/30 통과; max 309.848ms·miss 0</td>
+<td>Core Data 503 해소 뒤 중앙 readback, 과제 최종 250ms 공식 절차와 node/Pod 전체 failover는 별도 검증</td>
 </tr>
 <tr>
 <td>생산품질 판별</td>

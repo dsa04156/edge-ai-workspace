@@ -78,8 +78,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-01 20:46</span>
-            <span class="badge">HTML 생성: 2026-09-02 15:34</span>
+            <span class="badge">수정: 2026-09-02 15:45</span>
+            <span class="badge">HTML 생성: 2026-09-02 15:57</span>
           </div>
         </header>
         <div class="doc-body">
@@ -120,6 +120,10 @@
 <td>공식 EdgeX Device SDK 기반 Serial 구현</td>
 </tr>
 <tr>
+<td><code>edgex/device-serial/host/</code></td>
+<td>USB serial identity 기반 동적 endpoint helper·udev·tmpfiles 계약</td>
+</tr>
+<tr>
 <td><code>edgex/device-serial/firmware/arduino_uno_multisensor/</code></td>
 <td>Jetson 연결 Uno 운영 sketch, pin·wire 계약과 application rollback</td>
 </tr>
@@ -144,7 +148,7 @@
 <td>정적 문서 이미지와 Traefik 배포</td>
 </tr>
 </tbody></table></div>
-<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→port ready→first byte→첫 유효 sample 전송 재개 구간을 소유한다. <code>hangup_linux.go</code>는 기존 termios flag를 보존하면서 <code>HUPCL</code>을 해제해 Uno auto-reset을 억제한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
+<p><code>edgex/device-serial/internal/driver/reader.go</code>는 established stream의 Serial fast-retry와 오류 감지→port ready→first byte→첫 유효 sample 전송 재개 구간, 복구 중에만 수행하는 제한된 현재값 재요청을 소유한다. <code>hangup_linux.go</code>는 기존 termios flag를 보존하면서 <code>HUPCL</code>을 해제해 Uno auto-reset을 억제한다. <code>recovery.go</code>는 400ms 개발 target, 재시도 설정 validation, EdgeX custom metric과 <code>/api/v3/serial-recovery/stats</code> read-only API를 소유한다. 이 process-local 계측은 Kubernetes node failover나 durable telemetry delivery를 대체하지 않는다.</p>
 <h2 id="운영-지원">운영 지원</h2>
 <div class="table-wrap"><table>
 <thead><tr>

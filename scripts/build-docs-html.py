@@ -284,15 +284,15 @@ def serial_recovery_playground_markup() -> str:
     <div class="recovery-track">
       <div class="recovery-stage stage-port" data-recovery-stage="port">
         <span>② 선을 다시 잡음</span>
-        <strong>80 ms</strong>
+        <strong>125 ms</strong>
       </div>
       <div class="recovery-stage stage-data" data-recovery-stage="data">
         <span data-recovery-data-label>③ “지금 값” 요청·응답</span>
-        <strong data-recovery-first-data>20 ms</strong>
+        <strong data-recovery-first-data>70 ms</strong>
       </div>
       <div class="recovery-stage stage-send" data-recovery-stage="send">
         <span>④ EdgeX로 전달</span>
-        <strong>1 ms</strong>
+        <strong>5 ms</strong>
       </div>
       <div class="recovery-stage stage-result" data-recovery-stage="result">
         <span>결과</span>
@@ -304,23 +304,23 @@ def serial_recovery_playground_markup() -> str:
   <div class="recovery-results">
     <div class="recovery-result official-result">
       <span>오류 감지 뒤 데이터 재개</span>
-      <strong><output data-recovery-total>101 ms</output></strong>
+      <strong><output data-recovery-total>200 ms</output></strong>
       <small data-recovery-score>400 ms 내부 gate 통과 예상</small>
     </div>
     <div class="recovery-result">
       <span>사람이 체감할 수 있는 상한</span>
-      <strong><output data-recovery-experience>501 ms</output></strong>
+      <strong><output data-recovery-experience>600 ms</output></strong>
       <small>오류 발견 간격 + 공식 복구 구간</small>
     </div>
     <div class="recovery-result actual-result">
-      <span>이전 100 ms 연속 전송 시험</span>
-      <strong>232.432 ms</strong>
-      <small>새 방식의 실장비 반복시험은 별도 확인</small>
+      <span>현재 1초 + 제한 요청 실장비 시험</span>
+      <strong>max 309.848 ms</strong>
+      <small>30/30 통과 · p50 196.619 ms · p95 304.244 ms</small>
     </div>
   </div>
 
   <p class="recovery-explain" data-recovery-explain aria-live="polite"></p>
-  <p class="recovery-footnote">교실 모델은 port 준비 80 ms, 즉시 요청·응답 20 ms, Uno auto-reset 1,750 ms 또는 다음 sample 대기 최대 1회, EdgeX enqueue 1 ms를 사용합니다. 실제 판정은 Device Service의 phase metric과 실장비 반복시험을 따릅니다.</p>
+  <p class="recovery-footnote">교실 모델은 현재 p50에 가까운 port 준비 125 ms, 제한 요청·응답 70 ms, EdgeX enqueue 5 ms를 단순화해 사용합니다. 실제 판정은 Device Service의 phase metric과 실장비 반복시험을 따릅니다.</p>
 </section>"""
 
 
