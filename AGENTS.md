@@ -98,6 +98,11 @@
   node snapshot으로 판단한다.
 - 센서 디바이스 availability는 중앙 EdgeX `adminState`, `operatingState`, Core Data
   최신 Event freshness로 판단하며 Kubernetes node placement를 gate로 사용하지 않는다.
+- transport 연결 복구는 `docs/디바이스-연결-복구-표준.md`의 공통 상태와 측정 경계를
+  따른다. `RecoveryStrategy`는 의미 기반 allowlist로 선언하고 Device Service adapter가
+  고정 동작으로 구현한다. 대시보드나 등록 입력에서 임의 Serial byte, MQTT topic 또는
+  command를 받지 않는다. protocol 행이나 설계 계약만 존재하는 기능을 구현 완료로
+  설명하지 않고 실제 adapter·binding·자동시험·실장비 반복시험을 모두 확인한다.
 
 
 ## Legacy / Archive Boundary

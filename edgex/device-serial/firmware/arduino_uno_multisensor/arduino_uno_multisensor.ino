@@ -1,8 +1,12 @@
-void setup() {
-  Serial.begin(115200);
-}
+const unsigned long kSampleIntervalMs = 1000;
+const char kReadNowCommand[] = "READ_NOW";
+const size_t kCommandBufferSize = 24;
 
-void loop() {
+char commandBuffer[kCommandBufferSize];
+size_t commandLength = 0;
+unsigned long lastSampleAt = 0;
+
+void emitSample() {
   int light = analogRead(A0);
   int temperature_raw = analogRead(A1);
   int magnetic = digitalRead(4);
@@ -30,6 +34,42 @@ void loop() {
   Serial.print(",\"z\":");
   Serial.print(accel_z);
   Serial.println("}");
+}
 
-  delay(100);
+void handleCommandByte(char value) {
+  if (value == '\r') {
+    return;
+  }
+  if (value == '\n') {
+    commandBuffer[commandLength] = '\0';
+    if (strcmp(commandBuffer, kReadNowCommand) == 0) {
+      emitSample();
+      lastSampleAt = millis();
+    }
+    commandLength = 0;
+    return;
+  }
+  if (commandLength + 1 < kCommandBufferSize) {
+    commandBuffer[commandLength++] = value;
+    return;
+  }
+  commandLength = 0;
+}
+
+void setup() {
+  Serial.begin(115200);
+  emitSample();
+  lastSampleAt = millis();
+}
+
+void loop() {
+  while (Serial.available() > 0) {
+    handleCommandByte(static_cast<char>(Serial.read()));
+  }
+
+  unsigned long now = millis();
+  if (now - lastSampleAt >= kSampleIntervalMs) {
+    emitSample();
+    lastSampleAt = now;
+  }
 }

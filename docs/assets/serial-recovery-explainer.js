@@ -7,17 +7,20 @@
   labs.forEach((lab) => {
     const reset = lab.querySelector('[data-recovery-reset]');
     const cadence = lab.querySelector('[data-recovery-cadence]');
+    const request = lab.querySelector('[data-recovery-request]');
     const heartbeat = lab.querySelector('[data-recovery-heartbeat]');
     const play = lab.querySelector('[data-recovery-play]');
     const presetButtons = lab.querySelectorAll('[data-recovery-preset]');
-    if (!reset || !cadence || !heartbeat || !play) return;
+    if (!reset || !cadence || !request || !heartbeat || !play) return;
 
     const output = (selector) => lab.querySelector(selector);
     const resetLabel = output('[data-recovery-reset-label]');
+    const requestLabel = output('[data-recovery-request-label]');
     const cadenceOutput = output('[data-recovery-cadence-output]');
     const heartbeatOutput = output('[data-recovery-heartbeat-output]');
     const heartbeatTimeline = output('[data-recovery-heartbeat-timeline]');
     const firstData = output('[data-recovery-first-data]');
+    const dataLabel = output('[data-recovery-data-label]');
     const total = output('[data-recovery-total]');
     const experience = output('[data-recovery-experience]');
     const score = output('[data-recovery-score]');
@@ -27,13 +30,14 @@
 
     const values = () => {
       const hasReset = reset.checked;
+      const requestsNow = request.checked;
       const cadenceMs = Number(cadence.value);
       const heartbeatMs = Number(heartbeat.value);
       const portReadyMs = 80;
-      const firstDataMs = hasReset ? 1750 : cadenceMs;
+      const firstDataMs = hasReset ? 1750 : requestsNow ? 20 : cadenceMs;
       const enqueueMs = 1;
       const officialMs = portReadyMs + firstDataMs + enqueueMs;
-      return { hasReset, cadenceMs, heartbeatMs, portReadyMs, firstDataMs, enqueueMs, officialMs };
+      return { hasReset, requestsNow, cadenceMs, heartbeatMs, portReadyMs, firstDataMs, enqueueMs, officialMs };
     };
 
     const update = () => {
@@ -41,10 +45,12 @@
       const pass = state.officialMs <= 400;
       const perceivedMs = state.heartbeatMs + state.officialMs;
       resetLabel.textContent = state.hasReset ? '켜짐' : '꺼짐';
+      requestLabel.textContent = state.requestsNow ? '켜짐' : '꺼짐';
       cadenceOutput.value = `${state.cadenceMs} ms`;
       heartbeatOutput.value = `${state.heartbeatMs} ms`;
       heartbeatTimeline.textContent = `${state.heartbeatMs} ms`;
       firstData.textContent = `${state.firstDataMs.toLocaleString('ko-KR')} ms`;
+      dataLabel.textContent = state.requestsNow ? '③ “지금 값” 요청·응답' : '③ 다음 쪽지를 기다림';
       total.value = `${state.officialMs.toLocaleString('ko-KR')} ms`;
       experience.value = `${perceivedMs.toLocaleString('ko-KR')} ms`;
       status.textContent = pass ? '통과 예상' : '초과 예상';
@@ -53,9 +59,9 @@
       lab.classList.toggle('is-fail', !pass);
       explain.textContent = state.hasReset
         ? `아두이노가 다시 시작하면 약 1,750 ms를 기다려야 합니다. 전송 간격을 줄여도 400 ms 안에는 들어올 수 없습니다.`
-        : state.cadenceMs > 300
-          ? `자동 리셋은 막았지만 다음 쪽지가 최대 ${state.cadenceMs} ms 뒤에 옵니다. 센서 전송 주기도 400 ms 예산 안에 있어야 합니다.`
-          : `자동 리셋을 막고 센서가 100 ms마다 쪽지를 보내면, port 준비와 EdgeX 전달까지 포함해 400 ms 안에 여유를 만들 수 있습니다.`;
+        : state.requestsNow
+          ? `평소에는 ${state.cadenceMs.toLocaleString('ko-KR')} ms마다 보내지만, 재연결 때만 “지금 값”을 한 번 요청하므로 계속 자주 보낼 필요가 없습니다.`
+          : `즉시 요청이 없으면 다음 쪽지를 최대 ${state.cadenceMs.toLocaleString('ko-KR')} ms 기다립니다. 1초 주기에서는 400 ms를 보장할 수 없습니다.`;
       return state;
     };
 
@@ -83,17 +89,18 @@
     };
 
     const presets = {
-      current: { reset: false, cadence: 100, heartbeat: 400 },
-      reset: { reset: true, cadence: 100, heartbeat: 400 },
-      slow: { reset: false, cadence: 1000, heartbeat: 400 },
+      current: { reset: false, request: true, cadence: 1000, heartbeat: 400 },
+      passive: { reset: false, request: false, cadence: 1000, heartbeat: 400 },
+      reset: { reset: true, request: true, cadence: 1000, heartbeat: 400 },
     };
 
-    [reset, cadence, heartbeat].forEach((control) => control.addEventListener('input', update));
+    [reset, request, cadence, heartbeat].forEach((control) => control.addEventListener('input', update));
     play.addEventListener('click', animate);
     presetButtons.forEach((button) => button.addEventListener('click', () => {
       const preset = presets[button.dataset.recoveryPreset];
       if (!preset) return;
       reset.checked = preset.reset;
+      request.checked = preset.request;
       cadence.value = String(preset.cadence);
       heartbeat.value = String(preset.heartbeat);
       animate();

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -12,12 +13,14 @@ import (
 )
 
 const (
-	defaultMaxLineBytes = 4096
-	defaultReadTimeout  = time.Second
+	defaultMaxLineBytes      = 4096
+	defaultReadTimeout       = time.Second
+	serialReadCurrentCommand = "READ_NOW\n"
 )
 
 type Port interface {
 	Read(buffer []byte) (int, error)
+	Write(buffer []byte) (int, error)
 	SetReadTimeout(timeout time.Duration) error
 	Close() error
 }
@@ -27,34 +30,36 @@ type serialModeOpener func(path string, mode *serial.Mode) (Port, error)
 type WaitFunc func(ctx context.Context, delay time.Duration) bool
 
 type ReaderOptions struct {
-	Open              PortOpener
-	Wait              WaitFunc
-	Now               func() int64
-	RecoveryNow       func() time.Time
-	OnSample          func(sample Sample, origin int64)
-	OnState           func(state models.OperatingState)
-	OnInvalidLine     func(err error)
-	OnRecoveryStarted func(detectedAt time.Time)
-	OnRecovery        func(observation RecoveryObservation)
-	ReconnectDelays   []time.Duration
-	MaxLineBytes      int
-	ReadTimeout       time.Duration
+	Open                      PortOpener
+	Wait                      WaitFunc
+	Now                       func() int64
+	RecoveryNow               func() time.Time
+	OnSample                  func(sample Sample, origin int64)
+	OnState                   func(state models.OperatingState)
+	OnInvalidLine             func(err error)
+	OnRecoveryStarted         func(detectedAt time.Time)
+	OnRecovery                func(observation RecoveryObservation)
+	RequestDataAfterReconnect func(port Port) error
+	ReconnectDelays           []time.Duration
+	MaxLineBytes              int
+	ReadTimeout               time.Duration
 }
 
 type Reader struct {
-	config            SerialConfig
-	open              PortOpener
-	wait              WaitFunc
-	now               func() int64
-	recoveryNow       func() time.Time
-	onSample          func(Sample, int64)
-	onState           func(models.OperatingState)
-	onInvalidLine     func(error)
-	onRecoveryStarted func(time.Time)
-	onRecovery        func(RecoveryObservation)
-	reconnectDelays   []time.Duration
-	maxLineBytes      int
-	readTimeout       time.Duration
+	config                    SerialConfig
+	open                      PortOpener
+	wait                      WaitFunc
+	now                       func() int64
+	recoveryNow               func() time.Time
+	onSample                  func(Sample, int64)
+	onState                   func(models.OperatingState)
+	onInvalidLine             func(error)
+	onRecoveryStarted         func(time.Time)
+	onRecovery                func(RecoveryObservation)
+	requestDataAfterReconnect func(Port) error
+	reconnectDelays           []time.Duration
+	maxLineBytes              int
+	readTimeout               time.Duration
 
 	hasTransmitted    bool
 	recoveryActive    bool
@@ -110,19 +115,20 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 	}
 
 	return &Reader{
-		config:            config,
-		open:              options.Open,
-		wait:              options.Wait,
-		now:               options.Now,
-		recoveryNow:       options.RecoveryNow,
-		onSample:          options.OnSample,
-		onState:           options.OnState,
-		onInvalidLine:     options.OnInvalidLine,
-		onRecoveryStarted: options.OnRecoveryStarted,
-		onRecovery:        options.OnRecovery,
-		reconnectDelays:   append([]time.Duration(nil), options.ReconnectDelays...),
-		maxLineBytes:      options.MaxLineBytes,
-		readTimeout:       options.ReadTimeout,
+		config:                    config,
+		open:                      options.Open,
+		wait:                      options.Wait,
+		now:                       options.Now,
+		recoveryNow:               options.RecoveryNow,
+		onSample:                  options.OnSample,
+		onState:                   options.OnState,
+		onInvalidLine:             options.OnInvalidLine,
+		onRecoveryStarted:         options.OnRecoveryStarted,
+		onRecovery:                options.OnRecovery,
+		requestDataAfterReconnect: options.RequestDataAfterReconnect,
+		reconnectDelays:           append([]time.Duration(nil), options.ReconnectDelays...),
+		maxLineBytes:              options.MaxLineBytes,
+		readTimeout:               options.ReadTimeout,
 	}
 }
 
@@ -192,6 +198,20 @@ func (reader *Reader) Run(ctx context.Context) {
 		}
 
 		reader.recordRecoveryPortReady()
+		if reader.recoveryActive && reader.requestDataAfterReconnect != nil {
+			if err := reader.requestDataAfterReconnect(port); err != nil {
+				reader.deactivate()
+				if reader.stopped(ctx) {
+					return
+				}
+				reader.emitState(models.OperatingState(models.Down))
+				if !reader.wait(ctx, reconnectDelay(failures, reader.reconnectDelays)) {
+					return
+				}
+				failures++
+				continue
+			}
+		}
 		reader.emitState(models.OperatingState(models.Up))
 		receivedBytes, readErr := reader.read(ctx, port)
 		reader.deactivate()
@@ -212,6 +232,18 @@ func (reader *Reader) Run(ctx context.Context) {
 		}
 		failures++
 	}
+}
+
+func requestCurrentSerialData(port Port) error {
+	request := []byte(serialReadCurrentCommand)
+	written, err := port.Write(request)
+	if err != nil {
+		return fmt.Errorf("request current serial data: %w", err)
+	}
+	if written != len(request) {
+		return fmt.Errorf("request current serial data: %w", io.ErrShortWrite)
+	}
+	return nil
 }
 
 func (reader *Reader) Close() error {

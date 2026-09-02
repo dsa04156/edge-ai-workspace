@@ -23,12 +23,30 @@ func TestParseSerialConfig(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, SerialConfig{
-		Port:         "/dev/arduino-001",
-		BaudRate:     115200,
-		DeviceID:     "arduino-001",
-		Parser:       defaultSerialParser,
-		ResourceName: "temperature_raw",
+		Port:             "/dev/arduino-001",
+		BaudRate:         115200,
+		DeviceID:         "arduino-001",
+		Parser:           defaultSerialParser,
+		ResourceName:     "temperature_raw",
+		RecoveryStrategy: passiveFirstDataRecoveryStrategy,
 	}, config)
+}
+
+func TestParseSerialConfigAcceptsOnDemandRecovery(t *testing.T) {
+	protocols := map[string]models.ProtocolProperties{
+		"serial": {
+			"Port":             "/dev/arduino-001",
+			"BaudRate":         "115200",
+			"DeviceID":         "arduino-001",
+			"ResourceName":     "temperature_raw",
+			"RecoveryStrategy": onDemandReadRecoveryStrategy,
+		},
+	}
+
+	config, err := ParseSerialConfig(protocols)
+
+	require.NoError(t, err)
+	assert.Equal(t, onDemandReadRecoveryStrategy, config.RecoveryStrategy)
 }
 
 func TestParseSerialConfigAcceptsAggregateResourceWildcard(t *testing.T) {
@@ -155,6 +173,18 @@ func TestParseSerialConfigRejectsUnsafeOrIncompleteProperties(t *testing.T) {
 			name: "invalid property type",
 			protocols: map[string]models.ProtocolProperties{"serial": {
 				"Port": true, "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "temperature_raw",
+			}},
+		},
+		{
+			name: "unsupported recovery strategy",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/arduino-001", "BaudRate": "115200", "DeviceID": "arduino-001", "ResourceName": "temperature_raw", "RecoveryStrategy": "arbitrary-command",
+			}},
+		},
+		{
+			name: "on demand recovery unsupported by parser",
+			protocols: map[string]models.ProtocolProperties{"serial": {
+				"Port": "/dev/mpu6050-001", "BaudRate": "115200", "DeviceID": "mpu6050-001", "Parser": mpu6050SerialParser, "ResourceName": "*", "RecoveryStrategy": onDemandReadRecoveryStrategy,
 			}},
 		},
 	}

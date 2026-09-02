@@ -2,9 +2,6 @@ package driver
 
 import (
 	"os"
-	"regexp"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,13 +31,14 @@ func TestArduinoUnoMultisensorFirmwarePreservesWireAndPinContract(t *testing.T) 
 	}
 }
 
-func TestArduinoUnoMultisensorFirmwareBoundsSamplingInterval(t *testing.T) {
+func TestArduinoUnoMultisensorFirmwareUsesOnDemandRecoveryWithOneSecondBaseline(t *testing.T) {
 	contents, err := os.ReadFile("../../firmware/arduino_uno_multisensor/arduino_uno_multisensor.ino")
 	require.NoError(t, err)
+	source := string(contents)
 
-	match := regexp.MustCompile(`delay\((\d+)\);`).FindStringSubmatch(string(contents))
-	require.Len(t, match, 2, "firmware must use an explicit bounded delay")
-	interval, err := strconv.Atoi(strings.TrimSpace(match[1]))
-	require.NoError(t, err)
-	assert.LessOrEqual(t, interval, 100)
+	assert.Contains(t, source, "kSampleIntervalMs = 1000")
+	assert.Contains(t, source, `kReadNowCommand[] = "READ_NOW"`)
+	assert.Contains(t, source, "Serial.available()")
+	assert.Contains(t, source, "emitSample()")
+	assert.NotContains(t, source, "delay(100)")
 }

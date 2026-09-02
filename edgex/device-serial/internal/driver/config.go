@@ -24,27 +24,35 @@ var supportedBaudRates = map[int]struct{}{
 	921600: {},
 }
 
+const (
+	passiveFirstDataRecoveryStrategy = "passive-first-data"
+	onDemandReadRecoveryStrategy     = "on-demand-read"
+)
+
 type SerialConfig struct {
-	Port         string
-	BaudRate     int
-	DeviceID     string
-	Parser       string
-	ResourceName string
+	Port             string
+	BaudRate         int
+	DeviceID         string
+	Parser           string
+	ResourceName     string
+	RecoveryStrategy string
 }
 
 type connectionKey struct {
-	port     string
-	baudRate int
-	deviceID string
-	parser   string
+	port             string
+	baudRate         int
+	deviceID         string
+	parser           string
+	recoveryStrategy string
 }
 
 func (config SerialConfig) key() connectionKey {
 	return connectionKey{
-		port:     config.Port,
-		baudRate: config.BaudRate,
-		deviceID: config.DeviceID,
-		parser:   config.Parser,
+		port:             config.Port,
+		baudRate:         config.BaudRate,
+		deviceID:         config.DeviceID,
+		parser:           config.Parser,
+		recoveryStrategy: config.RecoveryStrategy,
 	}
 }
 
@@ -112,12 +120,37 @@ func ParseSerialConfig(protocols map[string]models.ProtocolProperties) (SerialCo
 		return SerialConfig{}, fmt.Errorf("unsupported serial ResourceName %q", resourceName)
 	}
 
+	recoveryStrategy := passiveFirstDataRecoveryStrategy
+	if _, found := properties["RecoveryStrategy"]; found {
+		recoveryStrategy, err = requiredString(properties, "RecoveryStrategy")
+		if err != nil {
+			return SerialConfig{}, err
+		}
+	}
+	switch recoveryStrategy {
+	case passiveFirstDataRecoveryStrategy:
+	case onDemandReadRecoveryStrategy:
+		if parser != defaultSerialParser {
+			return SerialConfig{}, fmt.Errorf(
+				"serial RecoveryStrategy %q is unsupported for Parser %q",
+				recoveryStrategy,
+				parser,
+			)
+		}
+	default:
+		return SerialConfig{}, fmt.Errorf(
+			"unsupported serial RecoveryStrategy %q",
+			recoveryStrategy,
+		)
+	}
+
 	return SerialConfig{
-		Port:         port,
-		BaudRate:     baudRate,
-		DeviceID:     deviceID,
-		Parser:       parser,
-		ResourceName: resourceName,
+		Port:             port,
+		BaudRate:         baudRate,
+		DeviceID:         deviceID,
+		Parser:           parser,
+		ResourceName:     resourceName,
+		RecoveryStrategy: recoveryStrategy,
 	}, nil
 }
 

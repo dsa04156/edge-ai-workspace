@@ -402,6 +402,9 @@ func (driver *Driver) UpdateDevice(
 			},
 			ReconnectDelays: append([]time.Duration(nil), driver.retryDelays...),
 		}
+		if config.RecoveryStrategy == onDemandReadRecoveryStrategy {
+			options.RequestDataAfterReconnect = requestCurrentSerialData
+		}
 		target.reader = driver.newReader(config, options)
 		driver.connections[key] = target
 		created = target

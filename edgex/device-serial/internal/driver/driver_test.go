@@ -205,6 +205,28 @@ func TestDriverValidatesDeviceIdentityAndSerialProperties(t *testing.T) {
 	assert.Error(t, driver.ValidateDevice(badPort))
 }
 
+func TestDriverConfiguresOnDemandReadForRecovery(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+	protocols := testSerialProtocols()
+	protocols["serial"]["RecoveryStrategy"] = onDemandReadRecoveryStrategy
+	require.NoError(t, driver.AddDevice("virtual-temperature-001", protocols, models.AdminState(models.Unlocked)))
+
+	reader := factory.only(t)
+	require.NotNil(t, reader.options.RequestDataAfterReconnect)
+	port := newScriptedPort()
+	require.NoError(t, reader.options.RequestDataAfterReconnect(port))
+	assert.Equal(t, [][]byte{[]byte(serialReadCurrentCommand)}, port.written())
+}
+
 func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
 	sdk := newTestDeviceServiceSDK(t)
