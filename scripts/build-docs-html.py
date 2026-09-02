@@ -48,7 +48,11 @@ PUBLICATION_SECTIONS = [
         "옥동-데이터-계약.md",
         "옥동-생산성-kpi.md",
     ]),
-    ("개발 참고", "reference", ["저장소-구조.md", "단계별-추진계획.md"]),
+    ("개발 참고", "reference", [
+        "2026-09-02-성능지표8-주간-추진현황.md",
+        "저장소-구조.md",
+        "단계별-추진계획.md",
+    ]),
 ]
 PUBLIC_PATHS = [path for _, _, paths in PUBLICATION_SECTIONS for path in paths]
 PUBLIC_META = {
@@ -59,6 +63,7 @@ PUBLIC_META = {
 
 
 DISPLAY_TITLES = {
+    "2026-09-02-성능지표8-주간-추진현황.md": "성능지표 8 주간 추진현황",
     "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "AI-서비스-자원-증강-부하-실험.md": "AI 서비스 자원 증강 부하 실험",
     "문서-안내.md": "문서 안내",

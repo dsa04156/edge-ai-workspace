@@ -81,7 +81,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 21)
+        self.assertEqual(len(paths), 22)
         self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
@@ -90,6 +90,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("가상화-노드-오류-복구시간.md", paths)
         self.assertIn("디바이스-연결-복구-표준.md", paths)
         self.assertIn("400ms-복구-체험하기.md", paths)
+        self.assertIn("2026-09-02-성능지표8-주간-추진현황.md", paths)
         self.assertNotIn("일일-기록.md", paths)
         self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
