@@ -34,7 +34,7 @@ def request_payload():
                 "name": "virtual-temperature-002",
                 "description": "dashboard connection",
                 "protocolProperties": {
-                    "Port": "/dev/arduino-001",
+                    "Port": "/dev/edgeai/arduino-001",
                     "BaudRate": 115200,
                     "DeviceID": "arduino-001",
                     "Parser": "arduino-multisensor-v1",

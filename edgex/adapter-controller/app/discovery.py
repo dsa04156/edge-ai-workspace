@@ -834,7 +834,7 @@ class DeviceCandidateRegistry:
                 if (
                     binding.node_name == candidate.node_name
                     and candidate.device_path is not None
-                    and binding.host_device_path == candidate.device_path
+                    and binding.approved_discovery_path == candidate.device_path
                 ):
                     if template.verification_state == "unverified":
                         return (

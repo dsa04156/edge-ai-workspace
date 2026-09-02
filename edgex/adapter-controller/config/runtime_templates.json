@@ -16,9 +16,11 @@
           "bindingId": "jetson-arduino-serial-001",
           "displayName": "Jetson Arduino USB Serial",
           "nodeName": "etri-dev0001-jetorn",
-          "hostDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
-          "containerDevicePath": "/dev/arduino-001",
-          "deviceType": "CharDevice",
+          "hostDevicePath": "/run/edgeai/devices",
+          "discoveryDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
+          "containerDevicePath": "/dev/edgeai",
+          "deviceType": "Directory",
+          "mountReadOnly": true,
           "requiresPrivileged": true
         },
         {

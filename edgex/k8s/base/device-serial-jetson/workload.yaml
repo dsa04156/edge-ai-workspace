@@ -100,7 +100,8 @@ spec:
               mountPath: /res
               readOnly: true
             - name: arduino-serial
-              mountPath: /dev/arduino-001
+              mountPath: /dev/edgeai
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -126,8 +127,8 @@ spec:
                 path: devices/arduino-virtual-devices.yaml
         - name: arduino-serial
           hostPath:
-            path: /dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00
-            type: CharDevice
+            path: /run/edgeai/devices
+            type: Directory
         - name: tmp
           emptyDir: {}
 ---

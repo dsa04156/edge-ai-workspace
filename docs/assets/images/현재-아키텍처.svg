@@ -30,7 +30,7 @@
   <rect class="lane" x="42" y="286" width="1356" height="180" rx="12"/>
   <text class="lane-title" x="62" y="316">엣지 실행 영역 · edgex-edge</text>
   <rect class="edge" x="80" y="342" width="260" height="86" rx="8"/>
-  <text class="badge" x="100" y="366">DEVICE SERVICE</text><text class="label" x="100" y="392">device-serial-jetson</text><text class="small" x="100" y="414">/dev/arduino-001 직접 소유</text>
+  <text class="badge" x="100" y="366">DEVICE SERVICE</text><text class="label" x="100" y="392">device-serial-jetson</text><text class="small" x="100" y="414">/dev/edgeai/arduino-001 직접 소유</text>
   <rect class="edge" x="380" y="342" width="260" height="86" rx="8"/>
   <text class="badge" x="400" y="366">DEVICE SERVICE</text><text class="label" x="400" y="392">device-sensehat-raspi</text><text class="small" x="400" y="414">/dev/i2c-1 직접 소유</text>
   <rect class="service" x="770" y="342" width="270" height="86" rx="8"/>

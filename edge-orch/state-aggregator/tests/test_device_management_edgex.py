@@ -185,7 +185,7 @@ async def test_add_device_sends_official_v3_request_array():
         "profileName": "profile-01",
         "adminState": "UNLOCKED",
         "operatingState": "UNKNOWN",
-        "protocols": {"serial": {"Port": "/dev/arduino-001"}},
+        "protocols": {"serial": {"Port": "/dev/edgeai/arduino-001"}},
         "properties": {},
     }
 

@@ -11,10 +11,8 @@ import yaml
 
 K8S_DIR = Path(__file__).resolve().parents[1]
 DEVICE_SERVICE_DIR = K8S_DIR.parents[0] / "device-serial"
-STABLE_ARDUINO_PATH = (
-    "/dev/serial/by-id/"
-    "usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00"
-)
+HOST_ENDPOINT_DIR = DEVICE_SERVICE_DIR / "host"
+DYNAMIC_ENDPOINT_DIR = "/run/edgeai/devices"
 IMAGE = (
     "192.168.0.56:5000/edgex-device-serial@"
     "sha256:30d6f91b65e7947efb4487175b0be2b776ef4da715f4e79dc901a3c680dff948"
@@ -175,16 +173,43 @@ def test_serial_deployment_has_one_narrow_privileged_device_exception() -> None:
         volume for volume in pod["volumes"] if volume["name"] == "arduino-serial"
     )
     assert serial_volume["hostPath"] == {
-        "path": STABLE_ARDUINO_PATH,
-        "type": "CharDevice",
+        "path": DYNAMIC_ENDPOINT_DIR,
+        "type": "Directory",
     }
     serial_mount = next(
         mount for mount in container["volumeMounts"] if mount["name"] == "arduino-serial"
     )
     assert serial_mount == {
         "name": "arduino-serial",
-        "mountPath": "/dev/arduino-001",
+        "mountPath": "/dev/edgeai",
+        "readOnly": True,
     }
+    assert all(
+        volume["hostPath"]["path"] != "/dev"
+        for volume in pod["volumes"]
+        if "hostPath" in volume
+    )
+
+
+def test_serial_host_endpoint_is_identity_pinned_and_atomically_replaced() -> None:
+    helper = HOST_ENDPOINT_DIR / "edgeai-device-node"
+    rules = (
+        HOST_ENDPOINT_DIR / "90-edgeai-serial-endpoints.rules"
+    ).read_text()
+    tmpfiles = (HOST_ENDPOINT_DIR / "edgeai-serial-endpoints.conf").read_text()
+    helper_text = helper.read_text()
+
+    assert helper.stat().st_mode & 0o111
+    assert 'logical_name="$2"' in helper_text
+    assert 'mknod "$temporary" c "$major" "$minor"' in helper_text
+    assert 'mv -fT "$temporary" "$target"' in helper_text
+    assert 'stat -c \'%t:%T\' "$target"' in helper_text
+    assert 'ENV{ID_VENDOR_ID}=="2341"' in rules
+    assert 'ENV{ID_MODEL_ID}=="0043"' in rules
+    assert 'ENV{ID_SERIAL_SHORT}=="75035303230351E0D171"' in rules
+    assert "add arduino-001 %M %m" in rules
+    assert "remove arduino-001 %M %m" in rules
+    assert "/run/edgeai/devices" in tmpfiles
 
 
 def test_serial_service_uses_edgemesh_fqdns_without_registry_short_names() -> None:
