@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: state-aggregator
+  namespace: default
+  labels:
+    app: state-aggregator
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`aggregator.192.168.0.56.sslip.io`) || Host(`aggregator.10.254.192.217.sslip.io`)
+      services:
+        - name: state-aggregator
+          port: 8000

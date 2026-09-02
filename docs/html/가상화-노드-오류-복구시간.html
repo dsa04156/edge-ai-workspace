@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>가상화 노드 오류 복구시간</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">정책과 계약</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">가상화-노드-오류-복구시간.md</span>
+        <a class="edit-link" href="/__edit?file=가상화-노드-오류-복구시간.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a class="active" aria-current="page" href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">정책과 계약</p>
+          <h1>가상화 노드 오류 복구시간</h1>
+          <p class="subtitle">&gt; 상태: Arduino 정상 전송을 1,000 ms로 유지하고 재연결 때만 제한된 READNOW 요청을 &gt; 수행하는 운영 구성…</p>
+          <div class="meta">
+            <span class="badge kind">정책과 계약</span>
+            <span class="badge">원본: 가상화-노드-오류-복구시간.md</span>
+            <span class="badge">수정: 2026-09-02 17:25</span>
+            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="가상화-노드-오류-복구시간-구현-시험-기준">가상화 노드 오류 복구시간 구현·시험 기준</h1>
+<blockquote><p>상태: Arduino 정상 전송을 1,000 ms로 유지하고 재연결 때만 제한된 <code>READ_NOW</code> 요청을 수행하는 운영 구성을 배포했다. 같은 50 ms 단절·복구 30회가 모두 400 ms 이내여서 2차년도 process 개발 gate를 통과했다. 후속 Core Data 수정 뒤 205.724 ms 복구 canary와 전송 재개 4.130 ms 뒤 중앙 Event 저장도 확인했다. 과제 최종 250 ms 목표는 별도 시험 전까지 미달성으로 유지한다.</p>
+<p>기준일: 2026-09-02</p></blockquote>
+<h2 id="지표-경계">지표 경계</h2>
+<p>성능지표 8의 측정 구간은 다음과 같다.</p>
+<pre data-lang="text"><code>정상 전송 이력이 있는 Serial stream의 오류 감지
+  → 포트 재연결
+  → 첫 유효 frame decode·validation
+  → EdgeX SDK 비동기 전송 채널 enqueue 완료</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>값</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>과제 최종 목표</td>
+<td>250 ms</td>
+<td>기존 과제 문서의 공식 목표. 별도 변경 승인 전 유지</td>
+</tr>
+<tr>
+<td>2차년도 개발 gate</td>
+<td>400 ms</td>
+<td>현재 구현·반복시험의 중간 합격 기준</td>
+</tr>
+<tr>
+<td>비교값</td>
+<td>300 ms</td>
+<td>기존 비교 기준인 미국 VMware 값</td>
+</tr>
+</tbody></table></div>
+<p>400 ms를 통과해도 250 ms 최종 목표를 달성한 것으로 기록하지 않는다. 반대로 이 지표는 장애 발생부터 Kubernetes/KubeEdge node 판정, 다른 노드의 Pod 생성과 완전 기동까지 걸리는 전체 failover 시간이 아니다.</p>
+<p>초기 기동 시 포트를 열지 못한 경우도 복구시간 표본에서 제외한다. 정상 sample을 한 번 이상 전송한 stream에서 오류가 검출된 뒤 다시 유효 sample을 전송한 경우만 한 건으로 센다.</p>
+<h2 id="현재-구현">현재 구현</h2>
+<p><code>device-serial-jetson</code>의 shared Serial Reader는 다음 fast-retry profile을 사용한다.</p>
+<pre data-lang="text"><code>대기:       25 ms → 50 ms → 100 ms → 200 ms → 1 s → 2 s → 4 s → 8 s → 16 s → 30 s
+누적 시도: 25 ms → 75 ms → 175 ms → 375 ms → 1.375 s → ...</code></pre>
+<ul><li>포트 <code>open</code>, read timeout 설정 또는 established stream의 read 오류에서 <code>DOWN</code>을 알린다.</li><li>Linux에서는 serial library가 포트를 열기 전에 현재 termios의 다른 flag를 보존하면서</li></ul>
+<p><code>HUPCL</code>만 해제한다. 포트 close·재open에 따른 DTR 하강과 Uno auto-reset을 억제한다.</p>
+<ul><li>이미 복구 중이면 후속 오류가 검출 시각을 다시 시작하지 않는다.</li><li>포트가 다시 열렸다는 사실만으로 완료 처리하지 않는다.</li><li>malformed line은 버리고, 첫 유효 frame이 실제 SDK async channel까지 전달된 뒤 완료한다.</li><li>복구 중 성공한 port open과 read timeout 설정 완료를 <code>portReadyAt</code>, 최초 수신 byte를</li></ul>
+<p><code>firstByteAt</code>으로 기록해 병목 구간을 분리한다.</p>
+<ul><li><code>time.Time</code>의 monotonic 차이를 사용해 process 내부의 감지→재개 시간을 계산한다.</li><li>400 ms를 넘으면 target miss를 누적하고 warning log를 남긴다.</li></ul>
+<p>Arduino Uno 운영 펌웨어는 <code>edgex/device-serial/firmware/arduino_uno_multisensor/arduino_uno_multisensor.ino</code>가 소유한다. 기존 A0·A1·D4·A2·A3·A4 pin, 115200 bps와 JSON wire contract를 유지하고 정상 sample 주기는 1,000 ms다. established stream 재연결 직후 <code>READ_NOW</code>를 보내며 첫 byte가 없을 때만 25 ms 간격으로 최대 세 번 더 요청한다. byte가 오거나 네 번째 요청을 보낸 뒤에는 정상 1초 read timeout으로 돌아간다. 원본 source와 application rollback image도 같은 디렉터리의 <code>backup/</code>에 보존한다.</p>
+<p>USB 재열거 때 <code>ttyACM</code> 번호가 바뀌어도 실행 중인 Pod가 따라가도록 발견 identity와 실행 endpoint를 분리한다. 호스트 udev는 승인된 VID·PID·USB serial을 exact match해 <code>/run/edgeai/devices/arduino-001</code> 문자 장치를 현재 major/minor로 원자 교체한다. Device Service에는 이 좁은 디렉터리만 <code>/dev/edgeai</code>에 read-only mount한다. 전체 호스트 <code>/dev</code>나 <code>/sys</code>를 mount하지 않는다.</p>
+<p>배포 설정은 다음 두 값으로 고정한다.</p>
+<pre data-lang="yaml"><code>Driver:
+  SerialRecoveryTarget: &quot;400ms&quot;
+  SerialReconnectDelays: &quot;25ms,50ms,100ms,200ms,1s,2s,4s,8s,16s,30s&quot;</code></pre>
+<p>재시도 간격은 1~16개의 양수 duration, 비감소 순서, 각 30초 이하만 허용한다. 잘못된 값이면 Device Service 초기화를 실패시켜 조용히 기본값으로 우회하지 않는다.</p>
+<h2 id="관측값">관측값</h2>
+<p>EdgeX custom metric은 다음과 같다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>metric</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SerialRecoveryDetected</code></td>
+<td>established stream에서 복구를 시작한 누적 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryCompleted</code></td>
+<td>첫 유효 frame 전송까지 완료한 누적 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryLastDurationMs</code></td>
+<td>마지막 완료 표본의 감지→전송 재개 시간</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryLastAttempts</code></td>
+<td>마지막 완료 표본의 재개방 시도 횟수</td>
+</tr>
+<tr>
+<td><code>SerialRecoveryTargetMisses</code></td>
+<td>400 ms를 초과한 완료 표본의 누적 횟수</td>
+</tr>
+</tbody></table></div>
+<p>같은 값은 Device Service의 read-only API에서도 확인할 수 있다.</p>
+<pre data-lang="bash"><code>kubectl get --raw \
+  &#x27;/api/v1/namespaces/edgex-edge/services/http:device-serial-jetson:59910/proxy/api/v3/serial-recovery/stats&#x27;</code></pre>
+<p>응답의 <code>inProgress</code>는 <code>detected &gt; completed</code>, <code>last.withinTarget</code>은 마지막 표본이 현재 target 이하인지를 뜻한다. 값은 process-local 관측 상태이므로 Pod 재시작 전에 시험결과서로 보존한다. 장기 이력이나 durable outbox가 아니다.</p>
+<p><code>last.detectionToPortReadyMs</code>, <code>last.portReadyToFirstByteMs</code>, <code>last.firstByteToResumeMs</code>는 각각 오류 감지→포트 준비, 포트 준비→첫 byte, 첫 byte→첫 유효 frame 전송 재개의 구간 시간이다. <code>portReadyAt</code>은 char device 생성시각이 아니라 Device Service가 포트를 열고 read timeout 설정까지 마친 process 내부 시각이다.</p>
+<h2 id="400-ms-내부-qualification">400 ms 내부 qualification</h2>
+<p>현재 내부 합격 절차는 다음과 같다. TTA 또는 과제 공식 시험절차가 확정되면 그 절차를 우선한다.</p>
+<ol><li>새 immutable image를 배포하고 정상 sample과 Core Data <code>origin</code> 증가를 먼저 확인한다.</li><li>API의 초기 counter를 기록한다.</li><li>정상 전송 중 승인된 Serial 단절·복구를 30회 반복한다. Pod 삭제나 node 전원 차단은 이</li></ol>
+<p>지표가 아닌 별도 전체 failover 시험으로 분리한다.</p>
+<ol><li>각 회차의 process log, recovery API와 첫 후속 Core Data Event를 같은 시험 record에 묶는다.</li><li><code>completed</code> 증가, <code>targetMisses=0</code>, 30회 <code>max ≤ 400 ms</code>일 때 400 ms 내부 gate를 통과한다.</li><li>p50·p95·max, 미완료 건수와 Core Data readback 누락을 함께 보고한다.</li></ol>
+<h2 id="2026-09-01-최초-qualification-canary-결과">2026-09-01 최초 qualification canary 결과</h2>
+<p>Jetson <code>etri-dev0001-jetorn</code>의 실제 Arduino stream이 정상 전송 중일 때 USB 전체 전원이나 node·Pod를 끄지 않고 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>만 50 ms unbind→rebind했다. 장애 주입은 운영 기능이 아닌 일회성 관리자 qualification Pod에서 수행했고 시험 뒤 삭제했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>관측값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Git revision</td>
+<td><code>dd63476a154f982a108e6efc1241ae5d9cfc005a</code></td>
+</tr>
+<tr>
+<td>Device Service image</td>
+<td><code>edgex-device-serial@sha256:db8e21c3bf8ad6ad984ac0b3178a009308aa3dae55111a5f17e957781232e141</code></td>
+</tr>
+<tr>
+<td>시험 전 counter</td>
+<td><code>detected=0</code>, <code>completed=0</code>, <code>targetMisses=0</code></td>
+</tr>
+<tr>
+<td>시험 후 counter</td>
+<td><code>detected=1</code>, <code>completed=1</code>, <code>targetMisses=1</code></td>
+</tr>
+<tr>
+<td>오류 감지</td>
+<td><code>1788253656891239314</code> ns</td>
+</tr>
+<tr>
+<td>첫 유효 sample 전송 재개</td>
+<td><code>1788253659106463975</code> ns</td>
+</tr>
+<tr>
+<td>복구시간</td>
+<td><strong>2,215.224661 ms</strong></td>
+</tr>
+<tr>
+<td>재개방 시도</td>
+<td>4회</td>
+</tr>
+<tr>
+<td>400 ms 판정</td>
+<td><code>withinTarget=false</code>, <strong>FAIL</strong></td>
+</tr>
+<tr>
+<td>첫 후속 Core Data Event</td>
+<td>temperature Event <code>origin=1788253659110680000</code></td>
+</tr>
+<tr>
+<td>workload 상태</td>
+<td>같은 Pod <code>Ready</code>, restart 0</td>
+</tr>
+<tr>
+<td>물리 경로 복원</td>
+<td>stable by-id→<code>ttyACM0</code>, char device <code>166:0</code></td>
+</tr>
+</tbody></table></div>
+<p>복구시간 API와 process log는 같은 2,215.225 ms를 기록했고, 첫 후속 temperature Event는 서비스의 전송 재개 시각 뒤 약 4.216 ms에 Core Data에서 조회됐다. 장애 전 마지막 temperature Event와 첫 후속 Event의 <code>origin</code> 간격은 약 2,563.902 ms였다. 따라서 자동 재연결과 중앙 readback은 성공했지만 데이터 공백을 피하지 못했고 400 ms gate는 통과하지 못했다.</p>
+<p>30회 합격 조건은 <code>max ≤ 400 ms</code>와 <code>targetMisses=0</code>이므로 첫 canary의 초과만으로 이번 qualification은 실패가 확정됐다. 불필요한 추가 물리 장애를 피하기 위해 나머지 29회는 실행하지 않았으며 p50·p95 분포도 산출하지 않는다. 이 결과를 30회 시험 완료나 공식 250 ms 목표 달성으로 해석하지 않는다.</p>
+<p>장치 파일은 오류 감지 뒤 약 301.410 ms에 다시 생성됐지만 첫 유효 frame까지 추가로 약 1,913.815 ms가 걸렸다. 이 결과를 근거로 port-ready와 first-byte 구간 계측을 추가했다.</p>
+<h2 id="2026-09-01-구간-계측-진단">2026-09-01 구간 계측 진단</h2>
+<p>구간 계측이 포함된 revision <code>c3f62556da848e90ed55712004476555d9093604</code>, image <code>edgex-device-serial@sha256:65b31240e1f798c2c8a1bbd9257573520cd95148e03488566b806db99e011146</code> 를 같은 Jetson에 배포했다. 최초 qualification을 다시 시작한 것이 아니라, 원인을 분리하기 위해 같은 50 ms <code>cdc_acm</code> unbind→rebind를 1회 canary와 5회 진단 series로 제한 실행했다. 시험 전 process-local counter는 모두 0이었고 시험 후 <code>detected=6</code>, <code>completed=6</code>, <code>targetMisses=5</code>였다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>표본</th>
+<th>전체 복구</th>
+<th>감지→port ready</th>
+<th>port ready→첫 byte</th>
+<th>첫 byte→유효 frame</th>
+<th>판정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>진단 canary 1회</td>
+<td>158.629 ms</td>
+<td>131.299 ms</td>
+<td>26.955 ms</td>
+<td>0.375 ms</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>후속 5회 범위</td>
+<td>1,817.702~1,843.971 ms</td>
+<td>61.218~84.425 ms</td>
+<td>1,750.519~1,754.341 ms</td>
+<td>4.170~8.704 ms</td>
+<td>5회 모두 실패</td>
+</tr>
+</tbody></table></div>
+<p>후속 5회에서 포트는 모두 85 ms 안에 준비됐고 재개방도 각 1회 만에 성공했다. 반면 포트가 준비된 뒤 첫 byte까지 약 1.75초의 정지 구간이 반복됐으며, byte가 도착한 뒤 유효 frame을 전송하기까지는 최대 8.704 ms였다. 따라서 현재 반복 실패의 지배 병목은 heartbeat, retry backoff, JSON decode가 아니라 <strong>Serial 재개방 뒤 장치가 첫 byte를 보내기 전 구간</strong>이다.</p>
+<p>최근 temperature Event 100개에서 계산한 정상 주기는 99개 간격 기준 min 1,013.869 ms, p50 1,016.088 ms, p95 1,020.303 ms, max 1,021.805 ms였다. 포트 open 때 DTR/RTS를 올리는 현재 라이브러리 기본 동작과 Arduino auto-reset/firmware startup은 강한 원인 후보지만, 이번 계측만으로 DTR reset과 firmware 내부 초기화 시간을 분리해 확정하지는 않는다. 실제 firmware source와 pin/resource 계약을 확인한 뒤 DTR auto-reset 억제 또는 startup·첫 frame 지연 축소를 한 항목씩 시험해야 한다.</p>
+<h2 id="2026-09-01-개선-및-30회-qualification-결과">2026-09-01 개선 및 30회 qualification 결과</h2>
+<p>Jetson에서 운영 중인 원본 sketch와 Uno를 먼저 식별하고 application flash를 백업한 뒤 두 원인을 독립적으로 확인했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>확인 항목</th>
+<th>결과</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>물리 장치</td>
+<td>Arduino Uno R3 <code>2341:0043</code>, serial <code>75035303230351E0D171</code></td>
+</tr>
+<tr>
+<td>stable port</td>
+<td><code>/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00</code></td>
+</tr>
+<tr>
+<td>원본 source SHA-256</td>
+<td><code>49eda328bb58b76f66f93ba28f8a7eca2c0f50adce94fa405cf2ea1d3a29b234</code></td>
+</tr>
+<tr>
+<td>원본 application rollback SHA-256</td>
+<td><code>95728fbdbf78e472d503b4b85599522f402922de5985b3c8eca0a7ba4e736f4c</code></td>
+</tr>
+<tr>
+<td>개선 application SHA-256</td>
+<td><code>1fa56ec998101da2a0d83039d28524a430c0b21c59032848f8c3d62d560654f5</code></td>
+</tr>
+</tbody></table></div>
+<p>기존 1초 펌웨어에서 <code>HUPCL</code>을 유지한 3회는 1,828.631~1,832.486 ms였고, <code>HUPCL</code>을 해제한 3회는 353.260·812.379·816.853 ms였다. 이 결과는 auto-reset 억제만으로 약 1.75초 정지는 제거하지만 1초 sample cadence 때문에 여전히 400 ms를 보장하지 못함을 보여준다. <code>HUPCL</code> 해제와 100 ms 펌웨어를 함께 적용한 운영 전 raw serial 시험은 10/10회 통과했고 min 69.498 ms, max 354.166 ms, mean 103.540 ms였다.</p>
+<p>application flash만 <code>-D</code>로 기록하고 readback verify했다. bootloader, fuse, EEPROM과 물리 auto-reset 회로는 변경하지 않았다. pin·JSON 계약은 자동 계약시험으로 고정했다.</p>
+<p>revision <code>d9adba1ba573299464b7a5c1046f6c0d50b20fd6</code>, image <code>edgex-device-serial@sha256:fe0377db16757fde48f70029088c72e6c21ac86ba7c3d7d11b51d3b5af55dcfe</code> 를 배포하고 같은 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>의 50 ms unbind→rebind를 사용했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>관측값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>사전 canary</td>
+<td>104.169 ms, 통과</td>
+</tr>
+<tr>
+<td>정식 qualification</td>
+<td>30회 완료, 30/30회 통과</td>
+</tr>
+<tr>
+<td>min</td>
+<td>90.469 ms</td>
+</tr>
+<tr>
+<td>p50</td>
+<td>108.062 ms</td>
+</tr>
+<tr>
+<td>p95</td>
+<td>231.078 ms, nearest-rank</td>
+</tr>
+<tr>
+<td>max</td>
+<td><strong>232.432 ms</strong></td>
+</tr>
+<tr>
+<td>mean</td>
+<td>127.539 ms</td>
+</tr>
+<tr>
+<td>최종 process counter</td>
+<td><code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code></td>
+</tr>
+<tr>
+<td>workload</td>
+<td>동일 Pod <code>Ready</code>, restart 0, exact image digest 일치</td>
+</tr>
+<tr>
+<td>Core Data readback</td>
+<td>temperature Event 100개/99간격, p50 118.623 ms, p95 118.992 ms</td>
+</tr>
+<tr>
+<td>400 ms 판정</td>
+<td><strong>PASS</strong></td>
+</tr>
+</tbody></table></div>
+<p>이 결과는 오류 감지부터 첫 유효 sample의 SDK async enqueue까지를 측정한 2차년도 400 ms 내부 개발 gate의 통과 증거다. TTA 공식 성적, 과제 최종 250 ms, node 전원·망 장애나 다른 노드의 Pod 재기동 시간을 통과했다는 뜻은 아니다.</p>
+<p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, port ready·first byte·first valid frame의 단조 시각과 구간 계산, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다. 위 30회 qualification을 실장비 근거로 사용한다.</p>
+<h2 id="2026-09-02-저빈도-on-demand-qualification-결과">2026-09-02 저빈도 on-demand qualification 결과</h2>
+<p>평상시 100 ms 연속 전송은 통과하기 쉬운 대신 센서·전송 부하를 계속 늘린다. 이를 대체하기 위해 정상 sample 주기를 1,000 ms로 복원하고 연결이 실제로 끊겼다가 다시 열린 때만 고정 <code>READ_NOW</code>를 수행했다. Git revision은 <code>f96b851f</code>, 운영 Device Service image는 <code>edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63</code>, Adapter Controller image는 <code>edge-adapter-controller@sha256:627b161e9a40d1b9ff0e0f78fb4e42fea1238fb9b6b96aca8baf45cc4628884b</code>다. Uno application SHA-256은 <code>91335ccd78130878daba31ff4184b227147f9b38239d85d6ff677a868ec85366</code>이다.</p>
+<p>첫 canary는 Kubernetes가 기존 <code>by-id</code> 문자 장치를 Pod 생성 시점의 <code>166:1</code>로 고정한 상태에서 USB가 <code>166:0</code>으로 재열거돼 완료되지 않았다. 전체 <code>/dev</code>를 mount하지 않고 udev가 관리하는 좁은 동적 endpoint 디렉터리를 도입해 container-visible major/minor가 현재 장치를 따라가게 했다. 동적 endpoint와 단일 요청을 적용한 다음 canary는 502.033 ms로 자동 복구됐지만 첫 요청이 USB 준비 구간에 유실돼 400 ms를 넘었다. 첫 byte가 없을 때만 25 ms 간격으로 최대 세 번 재요청하도록 제한한 최종 canary는 199.839 ms였다.</p>
+<p>같은 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>을 50 ms unbind→rebind하고 회차 사이 1초를 둔 정식 30회 결과는 다음과 같다. canary는 이 30회에서 제외했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>관측값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>정식 qualification</td>
+<td>30회 완료, 30/30회 통과</td>
+</tr>
+<tr>
+<td>min</td>
+<td>181.833 ms</td>
+</tr>
+<tr>
+<td>p50</td>
+<td>196.619 ms</td>
+</tr>
+<tr>
+<td>p95</td>
+<td>304.244 ms, nearest-rank</td>
+</tr>
+<tr>
+<td>max</td>
+<td><strong>309.848 ms</strong></td>
+</tr>
+<tr>
+<td>mean</td>
+<td>214.674 ms</td>
+</tr>
+<tr>
+<td>400 ms 초과</td>
+<td>0건</td>
+</tr>
+<tr>
+<td>최종 process counter</td>
+<td>canary 포함 <code>detected=31</code>, <code>completed=31</code>, <code>targetMisses=0</code></td>
+</tr>
+<tr>
+<td>workload</td>
+<td>같은 Pod <code>Ready</code>, restart 0, exact image digest 일치</td>
+</tr>
+<tr>
+<td>정상 sample 주기</td>
+<td>최근 11간격 min 998.627 ms, max 1,003.651 ms, mean 1,000.852 ms</td>
+</tr>
+<tr>
+<td>400 ms process 판정</td>
+<td><strong>PASS</strong></td>
+</tr>
+</tbody></table></div>
+<p>24회차 후 통계 조회용 KubeEdge exec가 <code>unexpected EOF</code>로 한 번 끊겼다. Device Service counter readback은 해당 복구가 196.740 ms로 완료됐음을 확인했고, 장애를 중복 주입하지 않고 남은 6회만 이어서 총 30회를 맞췄다. 이는 시험 제어 통로 오류이며 Device Service 미완료나 Pod 재시작으로 계산하지 않는다.</p>
+<p>동일 시점 Core Data Pod <code>/ping</code>은 응답했지만 Event/Reading query는 약 5초 뒤 503을 반환했다. 따라서 지표 정의인 Device Service SDK async enqueue까지의 400 ms process gate와 Local Data 재개는 통과했지만 이번 30회의 중앙 Core Data Event 개별 readback 증거는 확보하지 못했다. 이 503은 새 Serial 배포 전부터 있던 별도 운영 장애이며 중앙 저장 E2E acceptance는 복구 후 다시 확인한다. 이를 과제 최종 250 ms, TTA 공식 성적이나 node/Pod 전체 failover 합격으로 확대 해석하지 않는다.</p>
+<h2 id="2026-09-02-core-data-복구-및-중앙-저장-e2e-canary">2026-09-02 Core Data 복구 및 중앙 저장 E2E canary</h2>
+<h3 id="다섯-살에게-설명하면">다섯 살에게 설명하면</h3>
+<p>센서는 이미 400 ms 안에 다시 말하기 시작했지만, 중앙 창고 직원 네 명이 오래된 상자를 찾다가 각자 열쇠를 하나씩 쥔 채 다른 열쇠를 기다려 창고가 멈췄다. 오래된 센서의 상자를 창고 전체에서 찾지 않고 그 센서 칸에서만 찾게 했고, 첫 열쇠를 반납한 다음 상세 상자를 열게 바꿨다. 그 뒤 센서가 다시 말한 값이 중앙 창고에도 들어오는 것을 확인했다.</p>
+<p>Core Data 4.0.2의 DB pool은 최대 4 connection이고 HTTP request timeout은 5초였다. 오래 멈춘 Sense HAT의 latest Event 조회는 전체 origin index에서 약 1,051만 Event row를 훑어 8.383초가 걸렸다. 동시에 네 요청이 들어오면 각 요청이 외부 Event rows connection을 잡은 채 Reading 조회용 다섯 번째 connection을 기다려 신규 Event 저장까지 멈췄다.</p>
+<p>revision <code>3efaa982</code>, image <code>edgex-core-data@sha256:1d0eb4f7a23d0087887de598f74472cbfdd88af27764a084e6899014dae0d9a6</code> 에는 다음 두 수정을 배포했다.</p>
+<ol><li>먼저 <code>device_info</code>를 고르고 기존 <code>(device_info_id, origin DESC)</code> index로 해당 디바이스의 최근 Event만 읽는다.</li><li>Event rows를 모두 수집해 외부 connection을 반납한 뒤 각 Event의 Reading을 읽는다.</li></ol>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>검증 항목</th>
+<th>결과</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>stale Sense HAT latest Event</td>
+<td>HTTP 200, 22.719 ms</td>
+</tr>
+<tr>
+<td>stale Sense HAT 동시 요청</td>
+<td>8/8 HTTP 200, 109.084~202.137 ms</td>
+</tr>
+<tr>
+<td>Arduino latest Reading</td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>신규 중앙 적재</td>
+<td>확인 직전 10초 60 Event, latest age 0.123초</td>
+</tr>
+<tr>
+<td>추가 50 ms 단절 canary</td>
+<td><strong>205.724 ms</strong>, <code>withinTarget=true</code></td>
+</tr>
+<tr>
+<td>canary 후 첫 temperature Event</td>
+<td>전송 재개 <strong>4.130 ms</strong> 뒤 DB 저장, Event ID API HTTP 200</td>
+</tr>
+<tr>
+<td>최종 process counter</td>
+<td><code>detected=32</code>, <code>completed=32</code>, <code>targetMisses=0</code></td>
+</tr>
+</tbody></table></div>
+<p>이 canary로 현재 구성의 process 복구와 중앙 저장 재개가 연결됨을 확인했다. 다만 이전 정식 30회의 각 회차에 중앙 Event ID를 소급해서 붙일 수는 없으므로, 공식 시험에서는 처음부터 process log·stats와 첫 후속 Core Data Event를 회차별로 함께 보존한다.</p>
+<h2 id="현장-한계와-후속-조치">현장 한계와 후속 조치</h2>
+<ul><li>400 ms heartbeat를 설정하는 것만으로 이 목표를 달성할 수 없다. heartbeat 400 ms는 오류</li></ul>
+<p>검출에만 최대 400 ms를 쓰며 포트 복구와 다음 sample 시간을 포함하지 않는다.</p>
+<ul><li>2026-09-01의 100 ms 연속 전송 구성은 비교 이력이다. 현재 정상 주기는 약 1초이며 복구</li></ul>
+<p>중에만 최대 네 번의 제한 요청을 사용한다. 정상 수집 주기는 복구시간 자체가 아니므로 transport 오류 감지와 첫 유효 데이터 완료 시각을 별도로 계측한다.</p>
+<ul><li>현장 sketch·pin mapping을 확인하고 원본 application을 백업한 뒤 승인된 application</li></ul>
+<p>flash와 host termios 변경만 적용했다. 물리 auto-reset 회로는 변경하지 않았다.</p>
+<ul><li>USB 장치 재열거가 400 ms보다 오래 걸리거나 stable char device가 복구되지 않으면 software</li></ul>
+<p>retry만으로는 통과할 수 없다.</p>
+<ul><li>node 전원·망 장애까지 400 ms 안에 복구하려면 hot-standby Device Service, 이중화된 물리</li></ul>
+<p>수집 경로와 전송 경로가 필요하다. 현재 단일 Arduino→단일 Jetson 연결에는 이 보장이 없다.</p>
+<ul><li>통신 단절 중 telemetry 보존과 중앙 재전송은 <a href="장애-저장-재전송-시스템-설계.html">장애 저장·재전송 시스템 설계</a>의</li></ul>
+<p>별도 범위다. 현재 Local Data cache를 durable outbox로 해석하지 않는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#지표-경계">지표 경계</a></li>
+<li class="toc-h2"><a href="#현재-구현">현재 구현</a></li>
+<li class="toc-h2"><a href="#관측값">관측값</a></li>
+<li class="toc-h2"><a href="#400-ms-내부-qualification">400 ms 내부 qualification</a></li>
+<li class="toc-h2"><a href="#2026-09-01-최초-qualification-canary-결과">2026-09-01 최초 qualification canary 결과</a></li>
+<li class="toc-h2"><a href="#2026-09-01-구간-계측-진단">2026-09-01 구간 계측 진단</a></li>
+<li class="toc-h2"><a href="#2026-09-01-개선-및-30회-qualification-결과">2026-09-01 개선 및 30회 qualification 결과</a></li>
+<li class="toc-h2"><a href="#2026-09-02-저빈도-on-demand-qualification-결과">2026-09-02 저빈도 on-demand qualification 결과</a></li>
+<li class="toc-h2"><a href="#2026-09-02-core-data-복구-및-중앙-저장-e2e-canary">2026-09-02 Core Data 복구 및 중앙 저장 E2E canary</a></li>
+<li class="toc-h3"><a href="#다섯-살에게-설명하면">다섯 살에게 설명하면</a></li>
+<li class="toc-h2"><a href="#현장-한계와-후속-조치">현장 한계와 후속 조치</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

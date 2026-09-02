@@ -1,0 +1,136 @@
+diff --git a/cloud/pkg/cloudstream/containermetrics_connection.go b/cloud/pkg/cloudstream/containermetrics_connection.go
+index a0e8b7ef..2a78656e 100644
+--- a/cloud/pkg/cloudstream/containermetrics_connection.go
++++ b/cloud/pkg/cloudstream/containermetrics_connection.go
+@@ -122,7 +122,7 @@ func (ms *ContainerMetricsConnection) Serve() error {
+ 			return nil
+ 		case <-ms.EdgePeerDone():
+ 			klog.V(6).Infof("%s find edge peer done, so stop this connection", ms.String())
+-			return fmt.Errorf("%s find edge peer done, so stop this connection", ms.String())
++			return nil
+ 		}
+ 	}
+ }
+diff --git a/cloud/pkg/cloudstream/containermetrics_connection_test.go b/cloud/pkg/cloudstream/containermetrics_connection_test.go
+index 156b9056..13e91ea0 100644
+--- a/cloud/pkg/cloudstream/containermetrics_connection_test.go
++++ b/cloud/pkg/cloudstream/containermetrics_connection_test.go
+@@ -17,6 +17,7 @@ limitations under the License.
+ package cloudstream
+ 
+ import (
++	"context"
+ 	"net"
+ 	"net/http"
+ 	"net/url"
+@@ -167,3 +168,25 @@ func TestSendConnection_Metrics(t *testing.T) {
+ 	assert.NotNil(mockTunneler.lastMessage)
+ 	assert.Equal(stream.MessageTypeMetricConnect, mockTunneler.lastMessage.MessageType)
+ }
++
++func TestServeMetricsTreatsEdgeCompletionAsSuccess(t *testing.T) {
++	mockReq := &http.Request{
++		URL:    &url.URL{Path: "/metrics/resource"},
++		Header: http.Header{},
++	}
++	mockTunneler := &MockTunneler{}
++	session := &Session{tunnel: mockTunneler}
++	metricsConn := &ContainerMetricsConnection{
++		MessageID:    1,
++		ctx:          context.Background(),
++		r:            &restful.Request{Request: mockReq},
++		session:      session,
++		edgePeerStop: make(chan struct{}, 1),
++		closeChan:    make(chan bool),
++	}
++	metricsConn.edgePeerStop <- struct{}{}
++
++	err := metricsConn.Serve()
++
++	assert.NoError(t, err)
++}
+diff --git a/cloud/pkg/cloudstream/streamserver.go b/cloud/pkg/cloudstream/streamserver.go
+index dfdd449f..293f222f 100644
+--- a/cloud/pkg/cloudstream/streamserver.go
++++ b/cloud/pkg/cloudstream/streamserver.go
+@@ -209,10 +209,7 @@ func (s *StreamServer) getMetrics(r *restful.Request, w *restful.Response) {
+ 	}
+ 
+ 	defer func() {
+-		if err != nil {
+-			session.DeleteAPIServerConnection(metricsConnection)
+-			klog.Infof("Delete %s from %s", metricsConnection.String(), session.String())
+-		}
++		session.DeleteAPIServerConnection(metricsConnection)
+ 	}()
+ 
+ 	if err = metricsConnection.Serve(); err != nil {
+diff --git a/cloud/pkg/cloudstream/streamserver_test.go b/cloud/pkg/cloudstream/streamserver_test.go
+new file mode 100644
+index 00000000..e0188d91
+--- /dev/null
++++ b/cloud/pkg/cloudstream/streamserver_test.go
+@@ -0,0 +1,63 @@
++/*
++Copyright 2026 The KubeEdge Authors.
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++   http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an "AS IS" BASIS,
++WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++See the License for the specific language governing permissions and
++limitations under the License.
++*/
++
++package cloudstream
++
++import (
++	"context"
++	"net/http"
++	"net/http/httptest"
++	"sync"
++	"testing"
++
++	"github.com/emicklei/go-restful"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++
++	"github.com/kubeedge/kubeedge/pkg/stream"
++)
++
++func TestGetMetricsDeletesConnectionOnRequestCancel(t *testing.T) {
++	ctx, cancel := context.WithCancel(context.Background())
++	cancel()
++
++	req := httptest.NewRequest(http.MethodGet, "/metrics", nil).WithContext(ctx)
++	req.Host = "edge-node"
++	resp := httptest.NewRecorder()
++
++	tunnel := &TunnelServer{
++		sessions: make(map[string]*Session),
++	}
++	mockTunneler := &MockTunneler{}
++	session := &Session{
++		sessionID:     "edge-node",
++		tunnel:        mockTunneler,
++		apiServerConn: make(map[uint64]APIServerConnection),
++		apiConnlock:   &sync.RWMutex{},
++	}
++	tunnel.addSession("edge-node", session)
++
++	streamServer := &StreamServer{
++		tunnel: tunnel,
++	}
++
++	streamServer.getMetrics(restful.NewRequest(req), restful.NewResponse(resp))
++
++	assert.Equal(t, http.StatusOK, resp.Code)
++	require.NotNil(t, mockTunneler.lastMessage)
++	assert.Equal(t, stream.MessageTypeRemoveConnect, mockTunneler.lastMessage.MessageType)
++	assert.Empty(t, session.apiServerConn)
++}

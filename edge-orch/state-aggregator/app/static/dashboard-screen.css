@@ -444,7 +444,6 @@ button:focus-visible,
 .workflow-palette,
 .workflow-canvas-shell,
 .augmentation-workbench,
-.augmentation-resource-pool,
 .augmentation-resource-inspector,
 .augmentation-recommendation-row,
 .augmentation-instance-chip {
@@ -924,7 +923,6 @@ button:focus-visible,
 .augmentation-recommendation-layout,
 .augmentation-workspace,
 .augmentation-runtime-grid,
-.resource-pool-layout,
 .workflow-canvas-grid {
   display: grid;
   grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
@@ -948,7 +946,6 @@ button:focus-visible,
 .augmentation-recommendation-detail,
 .augmentation-flow-panel,
 .augmentation-decision-panel,
-.augmentation-resource-pool,
 .augmentation-resource-inspector,
 .workflow-palette,
 .workflow-inspector,
@@ -2061,7 +2058,6 @@ button[aria-disabled="true"] {
   .augmentation-recommendation-layout,
   .augmentation-workspace,
   .augmentation-runtime-grid,
-  .resource-pool-layout,
   .workflow-canvas-grid,
   .side-rail {
     grid-template-columns: minmax(0, 1fr);
@@ -2185,7 +2181,6 @@ button[aria-disabled="true"] {
   .augmentation-workflow-demo,
   .augmentation-flow-panel,
   .augmentation-decision-panel,
-  .augmentation-resource-pool,
   .augmentation-resource-inspector {
     padding: 10px !important;
   }

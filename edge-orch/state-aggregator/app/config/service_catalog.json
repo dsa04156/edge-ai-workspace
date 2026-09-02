@@ -1,0 +1,207 @@
+{
+  "version": "edgeai.etri/service-catalog/v1",
+  "services": [
+    {
+      "service_id": "sensor-anomaly-demo",
+      "display_name": "펌프·모터 진동·온도 이상감지",
+      "description": "테스트베드 가속도 3축·온도 기반 기준선 서비스",
+      "category": "ai_inference",
+      "lifecycle": "deployed",
+      "execution_mode": "fixed",
+      "workload": {
+        "namespace": "edgex-edge",
+        "kind": "Deployment",
+        "name": "sensor-anomaly-demo",
+        "selector": {
+          "app.kubernetes.io/name": "sensor-anomaly-demo"
+        }
+      },
+      "input_contract": {
+        "authority": "EdgeX",
+        "schema": "okdong.pump-motor.telemetry/v1",
+        "required_resources": [
+          "acceleration_x_raw",
+          "acceleration_y_raw",
+          "acceleration_z_raw",
+          "temperature_raw"
+        ]
+      },
+      "graph": {
+        "topology": "linear-inference-split-v1",
+        "title": "Sensor signal → AI decision",
+        "stages": [
+          {
+            "stage_id": "collect",
+            "slot": "Input",
+            "label": "센서 수집",
+            "kind": "source",
+            "depends_on": [],
+            "executions": [
+              {"target_slot": "Device1", "executor": "device-serial-jetson"}
+            ]
+          },
+          {
+            "stage_id": "align",
+            "slot": "Alignment",
+            "label": "전처리",
+            "kind": "transform",
+            "depends_on": ["collect"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
+          },
+          {
+            "stage_id": "features",
+            "slot": "Features",
+            "label": "특징 추출",
+            "kind": "features",
+            "depends_on": ["align"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
+          },
+          {
+            "stage_id": "inference",
+            "slot": "Inference",
+            "label": "AI 추론",
+            "kind": "inference",
+            "depends_on": ["features"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"},
+              {"target_slot": "Server1", "executor": "sensor-anomaly-inference-server1"}
+            ]
+          },
+          {
+            "stage_id": "store",
+            "slot": "Result",
+            "label": "결과 저장",
+            "kind": "sink",
+            "depends_on": ["inference"],
+            "executions": [
+              {"target_slot": "Device1", "executor": "sensor-anomaly-demo"}
+            ]
+          }
+        ],
+        "targets": [
+          {
+            "target_id": "device1",
+            "slot": "Device1",
+            "label": "Device1",
+            "node": "etri-dev0001-jetorn",
+            "mode": "edge-local",
+            "description": "Jetson · edge-local"
+          },
+          {
+            "target_id": "server1",
+            "slot": "Server1",
+            "label": "Server GPU",
+            "node": "etri-ser0002-cgnmsb",
+            "mode": "approval-gated",
+            "description": "CUDA · HAMi · 승인 기반 endpoint"
+          }
+        ]
+      },
+      "observability": {
+        "adapter": "sensor-anomaly-v1",
+        "state_path": "/state/service-demo",
+        "results_path": "/state/service-demo/results?limit=12",
+        "alerts_path": "/state/service-demo/alerts?limit=10"
+      },
+      "augmentation_qualification": {
+        "status": "rejected",
+        "source_model_version": "baseline-1.0.0",
+        "candidate_model_version": "cuda-baseline-1.0.0",
+        "experiment_id": "sensor-augmentation-20260818",
+        "reason": "server1_latency_regression_and_zero_observed_gpu_utilization",
+        "max_validated_rps": 200,
+        "latency_p95_improvement_percent": 10,
+        "throughput_noninferiority_percent": 5,
+        "requires_zero_errors_and_oom": true,
+        "qualified_condition_count": 0,
+        "validated_condition_count": 15,
+        "evidence_document": "docs/AI-서비스-자원-증강-부하-실험.md"
+      },
+      "runtime_recommendation": {
+        "enabled": true,
+        "architecture": "arm64",
+        "accelerator": null,
+        "accelerator_units": {},
+        "cpu_high_ratio": 0.85,
+        "cpu_recovery_ratio": 0.7,
+        "memory_high_ratio": 0.85,
+        "memory_recovery_ratio": 0.7,
+        "latency_high_ms": 4000,
+        "latency_recovery_ms": 2500,
+        "throughput_floor_per_second": 0.8,
+        "throughput_recovery_per_second": 1.0,
+        "backlog_high": 1,
+        "backlog_recovery": 0,
+        "resource_dwell_seconds": 300,
+        "service_dwell_seconds": 180,
+        "replacement_dwell_seconds": 60,
+        "recovery_dwell_seconds": 120,
+        "cooldown_seconds": 600,
+        "metric_fresh_seconds": 60,
+        "max_restart_count": 3
+      },
+      "runtime_offloading": {
+        "enabled": true,
+        "stage_id": "inference",
+        "target_workload": {
+          "namespace": "edgex-edge",
+          "kind": "Deployment",
+          "name": "sensor-anomaly-inference-server1",
+          "selector": {
+            "app.kubernetes.io/name": "sensor-anomaly-inference-server1"
+          }
+        },
+        "endpoint_base_url": "http://sensor-anomaly-inference-server1.edgex-edge.svc.cluster.local:8080",
+        "readiness_path": "/api/v1/augmentation-readyz",
+        "inference_path": "/infer",
+        "source_probe_path": "/api/v1/inference-routing/preflight",
+        "architecture": "amd64",
+        "accelerator": "nvidia-gpu",
+        "accelerator_units": {
+          "nvidia.com/gpu": 1
+        },
+        "max_network_latency_ms": 250,
+        "qualification_required": true
+      },
+      "design_contract": {
+        "contract_id": "sensor-anomaly-demo-v1",
+        "source_mode": "local_recent",
+        "pipeline_algorithm": "weighted-multi-sensor-feature-score-v1",
+        "vibration_algorithm": "online-vibration-feature-gaussian-v1",
+        "temperature_algorithm": "online-temperature-feature-gaussian-v1",
+        "vibration_window_samples": 20,
+        "temperature_window_samples": 10,
+        "warmup_samples": 30,
+        "threshold": 4.0,
+        "vibration_weight": 0.7,
+        "temperature_weight": 0.3,
+        "inputs": [
+          {
+            "stage_id": "sensor-x",
+            "device_name": "virtual-acceleration-x-001",
+            "resource_name": "acceleration_x_raw"
+          },
+          {
+            "stage_id": "sensor-y",
+            "device_name": "virtual-acceleration-y-001",
+            "resource_name": "acceleration_y_raw"
+          },
+          {
+            "stage_id": "sensor-z",
+            "device_name": "virtual-acceleration-z-001",
+            "resource_name": "acceleration_z_raw"
+          },
+          {
+            "stage_id": "sensor-context",
+            "device_name": "virtual-temperature-001",
+            "resource_name": "temperature_raw"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -14,3 +14,8 @@ spec:
           port: 8000
       middlewares:
         - name: strip-edge-orch-prefix
+    - match: PathPrefix(`/static`) || PathPrefix(`/state`)
+      kind: Rule
+      services:
+        - name: state-aggregator
+          port: 8000

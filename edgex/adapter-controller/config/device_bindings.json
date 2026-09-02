@@ -1,7 +1,7 @@
 {
   "version": 1,
   "imageAllowlist": [
-    "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+    "192.168.0.56:5000/edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63",
     "192.168.0.56:5000/edgex-device-sensehat@sha256:dd7ea84f91f1bc351ff47b1ffc81696f2f53ffdc3857b194acba3c2b0fafae38",
     "docker.io/edgexfoundry/device-modbus:4.0.2@sha256:db8aeb83bae186c93929e33b82b47eb490289265babf7247a5b37405d73221f9"
   ],
@@ -29,15 +29,16 @@
       },
       "runtimeHardwareBindingId": "jetson-arduino-serial-001",
       "connection": {
-        "Port": "/dev/arduino-001",
+        "Port": "/dev/edgeai/arduino-001",
         "BaudRate": 115200,
         "DeviceID": "arduino-001",
+        "RecoveryStrategy": "on-demand-read",
         "ResourceName": "*"
       },
       "adapter": {
         "runtimeAdapterId": "serial-jetson",
         "serviceName": "device-serial-jetson",
-        "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+        "image": "192.168.0.56:5000/edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63",
         "parser": "arduino-multisensor-v1"
       },
       "profile": {
@@ -69,7 +70,7 @@
       "adapter": {
         "runtimeAdapterId": "serial-jetson",
         "serviceName": "device-serial-raspi",
-        "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+        "image": "192.168.0.56:5000/edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63",
         "parser": "mpu6050-imu-v1"
       },
       "profile": {

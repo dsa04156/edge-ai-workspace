@@ -73,10 +73,11 @@ func TestResourceFilesDefineExactVirtualDevices(t *testing.T) {
 
 		protocols := requireMap(t, device, "protocols")
 		serial := requireMap(t, protocols, "serial")
-		assert.Equal(t, "/dev/arduino-001", serial["Port"])
+		assert.Equal(t, "/dev/edgeai/arduino-001", serial["Port"])
 		assert.Equal(t, "115200", serial["BaudRate"])
 		assert.Equal(t, "arduino-001", serial["DeviceID"])
 		assert.Equal(t, expected.resource, serial["ResourceName"])
+		assert.Equal(t, "on-demand-read", serial["RecoveryStrategy"])
 
 		tags := requireMap(t, device, "tags")
 		assert.Equal(t, "arduino-001", tags["physicalDeviceId"])

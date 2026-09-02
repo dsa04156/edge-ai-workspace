@@ -103,13 +103,18 @@ class HardwareBindingTemplate(ControllerModel):
     node_name: str = Field(min_length=1, max_length=253)
     host_device_path: str | None = Field(
         default=None,
+        pattern=r"^(?:/dev/[A-Za-z0-9._/,:@+~-]+|/run/edgeai/devices)$",
+    )
+    discovery_device_path: str | None = Field(
+        default=None,
         pattern=r"^/dev/[A-Za-z0-9._/,:@+~-]+$",
     )
     container_device_path: str | None = Field(
         default=None,
         pattern=r"^/dev/[A-Za-z0-9._/,:@+~-]+$",
     )
-    device_type: Literal["CharDevice", "BlockDevice"] | None = None
+    device_type: Literal["CharDevice", "BlockDevice", "Directory"] | None = None
+    mount_read_only: bool = False
     requires_privileged: bool = False
 
     @model_validator(mode="after")
@@ -123,7 +128,16 @@ class HardwareBindingTemplate(ControllerModel):
             item is not None for item in values
         ):
             raise ValueError("hardware device mount fields must be provided together")
+        if self.device_type == "Directory":
+            if self.host_device_path != "/run/edgeai/devices":
+                raise ValueError("dynamic endpoint directory is not allowlisted")
+            if not self.mount_read_only:
+                raise ValueError("dynamic endpoint directory must be read-only")
         return self
+
+    @property
+    def approved_discovery_path(self) -> str | None:
+        return self.discovery_device_path or self.host_device_path
 
 
 class ExternalRuntimeDefinition(ControllerModel):

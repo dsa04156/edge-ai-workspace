@@ -89,72 +89,87 @@ class ResultStore:
         *,
         asset_id: str,
     ) -> AlertTransition | None:
-        payload = observation.model_dump_json(by_alias=True)
+        transitions = self.record_results([observation], asset_id=asset_id)
+        return transitions[0] if transitions else None
+
+    def record_results(
+        self,
+        observations: list[LatestObservation],
+        *,
+        asset_id: str,
+    ) -> list[AlertTransition]:
+        if not observations:
+            return []
+        transitions: list[AlertTransition] = []
         with self._lock:
             connection = self._connection
             connection.execute("BEGIN IMMEDIATE")
             try:
-                inserted = connection.execute(
-                    """
-                    INSERT OR IGNORE INTO inference_results(
-                        origin, observed_at, anomaly, score, model_version, payload_json
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        observation.origin,
-                        observation.observed_at.isoformat(),
-                        int(observation.anomaly),
-                        observation.score,
-                        observation.model_version,
-                        payload,
-                    ),
-                ).rowcount
-                if inserted == 0:
-                    connection.execute("COMMIT")
-                    return None
+                for observation in observations:
+                    payload = observation.model_dump_json(by_alias=True)
+                    inserted = connection.execute(
+                        """
+                        INSERT OR IGNORE INTO inference_results(
+                            origin, observed_at, anomaly, score,
+                            model_version, payload_json
+                        ) VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            observation.origin,
+                            observation.observed_at.isoformat(),
+                            int(observation.anomaly),
+                            observation.score,
+                            observation.model_version,
+                            payload,
+                        ),
+                    ).rowcount
+                    if inserted == 0:
+                        continue
 
-                current_status = self._state_value("alert_status") or "closed"
-                open_alert_id = self._state_value("open_alert_id")
-                transition: AlertTransition | None = None
-                if observation.anomaly and current_status != "open":
-                    alert_id = self._alert_id(
-                        asset_id,
-                        observation.origin,
-                        observation.model_version,
-                    )
-                    transition = AlertTransition(
-                        alert_id=alert_id,
-                        transition="opened",
-                        status="open",
-                        origin=observation.origin,
-                        observed_at=observation.observed_at,
-                        asset_id=asset_id,
-                        score=observation.score,
-                        model_version=observation.model_version,
-                        message="펌프·모터 이상 점수가 임계 상태로 전환되었습니다.",
-                    )
-                    self._insert_alert(transition)
-                    self._set_state("alert_status", "open")
-                    self._set_state("open_alert_id", alert_id)
-                elif (
-                    not observation.anomaly
-                    and current_status == "open"
-                    and open_alert_id
-                ):
-                    transition = AlertTransition(
-                        alert_id=open_alert_id,
-                        transition="cleared",
-                        status="closed",
-                        origin=observation.origin,
-                        observed_at=observation.observed_at,
-                        asset_id=asset_id,
-                        score=observation.score,
-                        model_version=observation.model_version,
-                        message="펌프·모터 이상 상태가 정상 범위로 복귀했습니다.",
-                    )
-                    self._insert_alert(transition)
-                    self._set_state("alert_status", "closed")
-                    self._set_state("open_alert_id", "")
+                    current_status = self._state_value("alert_status") or "closed"
+                    open_alert_id = self._state_value("open_alert_id")
+                    transition: AlertTransition | None = None
+                    if observation.anomaly and current_status != "open":
+                        alert_id = self._alert_id(
+                            asset_id,
+                            observation.origin,
+                            observation.model_version,
+                        )
+                        transition = AlertTransition(
+                            alert_id=alert_id,
+                            transition="opened",
+                            status="open",
+                            origin=observation.origin,
+                            observed_at=observation.observed_at,
+                            asset_id=asset_id,
+                            score=observation.score,
+                            model_version=observation.model_version,
+                            message="펌프·모터 이상 점수가 임계 상태로 전환되었습니다.",
+                        )
+                        self._insert_alert(transition)
+                        self._set_state("alert_status", "open")
+                        self._set_state("open_alert_id", alert_id)
+                    elif (
+                        not observation.anomaly
+                        and current_status == "open"
+                        and open_alert_id
+                    ):
+                        transition = AlertTransition(
+                            alert_id=open_alert_id,
+                            transition="cleared",
+                            status="closed",
+                            origin=observation.origin,
+                            observed_at=observation.observed_at,
+                            asset_id=asset_id,
+                            score=observation.score,
+                            model_version=observation.model_version,
+                            message="펌프·모터 이상 상태가 정상 범위로 복귀했습니다.",
+                        )
+                        self._insert_alert(transition)
+                        self._set_state("alert_status", "closed")
+                        self._set_state("open_alert_id", "")
+                    if transition is not None:
+                        transitions.append(transition)
 
                 connection.execute(
                     """
@@ -168,10 +183,10 @@ class ResultStore:
                     (self.retention_rows,),
                 )
                 connection.execute("COMMIT")
-                return transition
             except Exception:
                 connection.execute("ROLLBACK")
                 raise
+        return transitions
 
     def results(
         self,

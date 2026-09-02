@@ -56,19 +56,13 @@ class DocsHtmlSearchTest(unittest.TestCase):
         readme = next(item for item in data if item["path"] == "문서-안내.md")
         self.assertEqual(readme["title"], "문서 안내")
         self.assertEqual(readme["url"], "문서-안내.html")
-        self.assertEqual(readme["group"], "최신 기준 문서")
-        self.assertEqual(readme["filter"], "active")
+        self.assertEqual(readme["group"], "시작하기")
+        self.assertEqual(readme["filter"], "start")
         self.assertIn("서비스 데모", readme["text"])
         self.assertIn("디바이스 상태", readme["text"])
         self.assertNotIn("```", readme["text"])
         ops = next(item for item in data if item["path"] == "ops/운영-절차.md")
-        archive = next(item for item in data if item["path"] == "archive/과거-연구.md")
-        detail_log = next(item for item in data if item["path"] == "archive/integration/통합-상세-기록.md")
         self.assertEqual(ops["filter"], "ops")
-        self.assertEqual(archive["filter"], "archive")
-        self.assertFalse(archive["search_excluded"])
-        self.assertTrue(detail_log["search_excluded"])
-        self.assertEqual(detail_log["filter"], "archive")
 
     def test_index_page_exposes_search_ui(self):
         html = build_docs_html.search_box_markup("문서 검색", "search-index.json")
@@ -76,17 +70,121 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn('data-search-index="search-index.json"', html)
         self.assertIn('id="doc-search-results"', html)
         self.assertIn('data-search-filter="all"', html)
-        self.assertIn('data-search-filter="active"', html)
+        self.assertIn('data-search-filter="start"', html)
+        self.assertIn('data-search-filter="guide"', html)
         self.assertIn('data-search-filter="ops"', html)
-        self.assertIn('data-search-filter="history"', html)
-        self.assertIn('data-search-filter="archive"', html)
+        self.assertIn('data-search-filter="policy"', html)
+        self.assertIn('data-search-filter="reference"', html)
         self.assertIn('docs-search.js', html)
+
+    def test_publication_set_contains_only_current_maintained_docs(self):
+        files = build_docs_html.md_files()
+        paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
+
+        self.assertEqual(len(paths), 22)
+        self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
+        self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
+        self.assertIn("플랫폼-개요.md", paths)
+        self.assertIn("펌프-모터-이상감지-서비스.md", paths)
+        self.assertIn("AI-서비스-자원-증강-부하-실험.md", paths)
+        self.assertIn("가상화-노드-오류-복구시간.md", paths)
+        self.assertIn("디바이스-연결-복구-표준.md", paths)
+        self.assertIn("400ms-복구-체험하기.md", paths)
+        self.assertIn("2026-09-02-성능지표8-주간-추진현황.md", paths)
+        self.assertNotIn("일일-기록.md", paths)
+        self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
     def test_home_intro_prioritizes_current_scope(self):
         intro = build_docs_html.home_intro_markup()
+        self.assertIn("현재 서비스 이해하기", intro)
+        self.assertIn("펌프-모터-이상감지-서비스.html", intro)
+        self.assertIn("대시보드 배포하기", intro)
+        self.assertIn("현재 데모 운영하기", intro)
         self.assertIn("프로젝트 범위", intro)
-        self.assertIn("최신 기준과 운영 문서를 먼저", intro)
-        self.assertIn("설계 이력과 보관 자료", intro)
+
+    def test_current_service_document_explains_the_observed_anomaly_contract(self):
+        guide = (ROOT / "docs" / "펌프-모터-이상감지-서비스.md").read_text(encoding="utf-8")
+
+        for required in (
+            "현재 모델은 옥동 설비에서 학습한 고장 분류 AI가 아니라",
+            "`online-baseline`",
+            "RMS",
+            "kurtosis",
+            "결과 이력",
+            "알림 이력",
+            "Server1 전환 경계",
+        ):
+            self.assertIn(required, guide)
+
+    def test_serial_recovery_kpi_separates_engineering_gate_from_full_failover(self):
+        guide = (ROOT / "docs" / "가상화-노드-오류-복구시간.md").read_text(encoding="utf-8")
+
+        for required in (
+            "과제 최종 목표 | 250 ms",
+            "2차년도 개발 gate | 400 ms",
+            "첫 유효 frame",
+            "/api/v3/serial-recovery/stats",
+            "SerialRecoveryTargetMisses",
+            "전체 failover 시간이 아니다",
+            "400 ms heartbeat",
+            "실장비 400 ms 통과 증거가 아니다",
+        ):
+            self.assertIn(required, guide)
+
+    def test_device_recovery_standard_is_semantic_and_fail_closed(self):
+        guide = (ROOT / "docs" / "디바이스-연결-복구-표준.md").read_text(encoding="utf-8")
+
+        for required in (
+            "DISCONNECTED",
+            "WAITING_FOR_DATA",
+            "on-demand-read",
+            "resubscribe",
+            "passive-first-data",
+            "READ_NOW",
+            "임의 Serial byte",
+            "실장비 반복시험",
+            "공식 250 ms 목표 달성 주장",
+        ):
+            self.assertIn(required, guide)
+
+    def test_eli5_guideline_and_serial_recovery_playground_are_public(self):
+        root_rules = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        docs_guide = (ROOT / "docs" / "문서-안내.md").read_text(encoding="utf-8")
+        playground = (ROOT / "docs" / "400ms-복구-체험하기.md").read_text(encoding="utf-8")
+
+        self.assertIn("ELI5", root_rules)
+        self.assertIn("문서 작성 ELI5 지침", docs_guide)
+        self.assertIn("400 ms 복구 체험하기", docs_guide)
+        self.assertIn("교육용 시뮬레이터", playground)
+        self.assertIn("250 ms", playground)
+
+        markup = build_docs_html.serial_recovery_playground_markup()
+        self.assertIn('data-recovery-lab', markup)
+        self.assertIn('data-recovery-reset', markup)
+        self.assertIn('data-recovery-cadence', markup)
+        self.assertIn('data-recovery-request', markup)
+        self.assertIn('data-recovery-play', markup)
+
+    def test_sidebar_marks_current_document(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs = Path(tmp) / "docs"
+            out = docs / "html"
+            docs.mkdir()
+            first = docs / "문서-안내.md"
+            second = docs / "프로젝트-범위.md"
+            first.write_text("# 문서 안내\n", encoding="utf-8")
+            second.write_text("# 프로젝트 범위\n", encoding="utf-8")
+            old_docs, old_out = build_docs_html.DOCS, build_docs_html.OUT
+            try:
+                build_docs_html.DOCS = docs
+                build_docs_html.OUT = out
+                markup = build_docs_html.sidebar([first, second], out / "문서-안내.html")
+            finally:
+                build_docs_html.DOCS = old_docs
+                build_docs_html.OUT = old_out
+
+        self.assertEqual(markup.count('aria-current="page"'), 1)
+        self.assertIn('class="active" aria-current="page" href="문서-안내.html"', markup)
 
     def test_archive_banner_warns_not_current_direction(self):
         banner = build_docs_html.archive_banner("archive/integration/통합-문서.md")
@@ -106,36 +204,18 @@ class DocsHtmlSearchTest(unittest.TestCase):
 
         self.assertNotIn("ssl.create_default_context", runbook)
         self.assertNotIn("load_cert_chain", runbook)
-        self.assertIn("edge workload | `device-serial-jetson`, `device-sensehat-raspi` 각 1 replica", runbook)
+        self.assertIn("`device-serial-jetson`", runbook)
+        self.assertIn("`device-sensehat-raspi`", runbook)
         self.assertIn("`edgex-edge-agent-*`", runbook)
         self.assertIn("고정 ClusterIP, PodIP와 node IP를 설정에 넣거나 우회 경로로 사용하지 않는다", runbook)
-        self.assertIn("device-serial-jetson.edgex-edge.svc.cluster.local", runbook)
-        self.assertIn("device-sensehat-raspi.edgex-edge.svc.cluster.local", runbook)
-        self.assertIn("/dev/arduino-001", runbook)
+        self.assertIn("/dev/edgeai/arduino-001", runbook)
         self.assertIn("/dev/i2c-1", runbook)
-        self.assertIn("공유 Serial reader 1개", runbook)
-        self.assertIn("Device/resource별 최근 10분·최대 10,000 sample", runbook)
-        self.assertIn("/api/v3/localdata/device/name/", runbook)
-        self.assertIn("edge-ai.io/local-data-client=true", runbook)
-        self.assertIn("Flannel", runbook)
-        self.assertIn("보안 경계가 아니다", runbook)
-        self.assertIn("SQLite outbox/offline replay: 없음", runbook)
-        self.assertIn("InfluxDB workload를 배포하지 않는다", runbook)
-        for device_name in (
-            "virtual-temperature-001",
-            "virtual-light-001",
-            "virtual-magnetic-001",
-            "virtual-acceleration-x-001",
-            "virtual-acceleration-y-001",
-            "virtual-acceleration-z-001",
-            "env-sensehat-temperature-01",
-            "env-sensehat-humidity-01",
-            "env-sensehat-pressure-01",
-            "imu-sensehat-compass-01",
-            "imu-sensehat-orientation-01",
-            "imu-sensehat-gyroscope-01",
-        ):
-            self.assertIn(device_name, runbook)
+        self.assertIn("nanosecond `origin`", runbook)
+        self.assertIn("sensor-anomaly-demo", runbook)
+        self.assertIn("설비 anomaly", runbook)
+        self.assertIn("latency/backlog", runbook)
+        self.assertIn("/api/v3/serial-recovery/stats", runbook)
+        self.assertIn("targetMs=400", runbook)
 
     def test_network_runbook_records_cloud_only_edgemesh_service_filters(self):
         runbook = (ROOT / "docs" / "ops" / "네트워크-문제해결.md").read_text(encoding="utf-8")

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from .config import Settings
+from .cuda_runtime import CudaRuntime, CupyCudaRuntime
 from .feature_detector import (
     FeatureDetectorConfig,
     OnlineFeatureDetector,
@@ -38,6 +39,10 @@ class ModelDecision:
 class PumpModelAdapter(Protocol):
     algorithm: str
     version: str
+    backend: str
+    accelerator: str
+    accelerator_device: str
+    runtime_ready: bool
 
     def ingest_temperature(self, sample: AxisSample) -> None: ...
 
@@ -61,8 +66,16 @@ class OnlineBaselinePumpModel:
     """
 
     algorithm = PIPELINE_ALGORITHM
+    backend = "online-baseline"
+    accelerator = "cpu"
+    accelerator_device = "host-cpu"
+    runtime_ready = True
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        cuda_runtime: CudaRuntime | None = None,
+    ) -> None:
         self.version = settings.model_version
         self.vibration_weight = settings.vibration_weight
         self.temperature_weight = settings.temperature_weight
@@ -84,7 +97,8 @@ class OnlineBaselinePumpModel:
                 feature_names=("rms", "peak", "kurtosis"),
                 stddev_floor_overrides={"kurtosis": 0.1},
                 **shared_detector,
-            )
+            ),
+            score_vector=(cuda_runtime.score_vector if cuda_runtime else None),
         )
         self.temperature_detector = OnlineFeatureDetector(
             FeatureDetectorConfig(
@@ -92,8 +106,10 @@ class OnlineBaselinePumpModel:
                 feature_names=("mean", "stddev", "delta"),
                 stddev_floor_overrides={"stddev": 0.1, "delta": 0.1},
                 **shared_detector,
-            )
+            ),
+            score_vector=(cuda_runtime.score_vector if cuda_runtime else None),
         )
+        self._cuda_runtime = cuda_runtime
         self.score_latch = ScoreLatch(
             threshold=settings.anomaly_threshold,
             anomaly_streak=settings.anomaly_streak,
@@ -160,13 +176,39 @@ class OnlineBaselinePumpModel:
         )
 
     def _fused_score(self, vibration: float, temperature: float) -> float:
+        if self._cuda_runtime is not None:
+            return self._cuda_runtime.weighted_average(
+                [vibration, temperature],
+                [self.vibration_weight, self.temperature_weight],
+            )
         total_weight = self.vibration_weight + self.temperature_weight
         return (
             self.vibration_weight * vibration + self.temperature_weight * temperature
         ) / total_weight
 
 
+class CudaOnlineBaselinePumpModel(OnlineBaselinePumpModel):
+    """The same explainable baseline with detector scoring executed on CUDA."""
+
+    backend = "cuda-online-baseline"
+    accelerator = "cuda"
+
+    def __init__(
+        self,
+        settings: Settings,
+        cuda_runtime: CudaRuntime | None = None,
+    ) -> None:
+        runtime = cuda_runtime or CupyCudaRuntime()
+        if not runtime.ready:
+            raise RuntimeError("CUDA runtime is not ready")
+        self.accelerator_device = runtime.device_name
+        self.runtime_ready = runtime.ready
+        super().__init__(settings, cuda_runtime=runtime)
+
+
 def build_model_adapter(settings: Settings) -> PumpModelAdapter:
     if settings.model_backend == "online-baseline":
         return OnlineBaselinePumpModel(settings)
+    if settings.model_backend == "cuda-online-baseline":
+        return CudaOnlineBaselinePumpModel(settings)
     raise ValueError(f"unsupported model backend: {settings.model_backend}")

@@ -55,13 +55,34 @@ class CurrentDeviceManagementScopeTest(unittest.TestCase):
     def test_current_docs_define_bounded_edgex_device_management_scope(self):
         scope = (ROOT / "docs/프로젝트-범위.md").read_text(encoding="utf-8")
 
-        self.assertIn("edgex-adapter-controller", scope)
-        self.assertIn("ADAPTER_RUNTIME_MUTATION_ENABLED", scope)
-        self.assertIn("Controller가 만든 `AdapterRuntime`", scope)
-        self.assertIn("임의 image", scope)
-        self.assertIn("고정\n  ClusterIP/PodIP", scope)
-        self.assertIn("Modbus, OPC-UA, MQTT와 RTSP", scope)
-        self.assertIn("Workflow Builder", scope)
+        self.assertIn("EdgeX Core Metadata", scope)
+        self.assertIn("KubeEdge는 edge node와 workload 관리에만", scope)
+        self.assertIn("`device-serial-jetson`", scope)
+        self.assertIn("`device-sensehat-raspi`", scope)
+        self.assertIn("Server1 observed-only 추론 후보", scope)
+        self.assertIn("임의 hostPath/image/command", scope)
+        self.assertIn("동적 workflow·migration·offloading 전체 구현 완료 주장", scope)
+
+
+class DashboardDeploymentGuideTest(unittest.TestCase):
+    def test_guide_documents_gitops_image_and_traefik_completion_gates(self):
+        guide = (ROOT / "docs/ops/대시보드-배포.md").read_text(encoding="utf-8")
+
+        for required in (
+            "edge-orch/state-aggregator/k8s/ingressroute.yaml",
+            "edge-orch-state-aggregator",
+            "agent/edgex-central-docs",
+            "immutable digest",
+            "docker-build-push.yml",
+            "aggregator.192.168.0.56.sslip.io",
+            "Synced",
+            "Healthy",
+            "git revert",
+        ):
+            self.assertIn(required, guide)
+
+        self.assertIn("브랜치 push만으로는", guide)
+        self.assertIn("kubectl set image", guide)
 
 
 class SecondYearOkdongPlanTest(unittest.TestCase):

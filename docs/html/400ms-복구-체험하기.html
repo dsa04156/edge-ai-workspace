@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>400 ms 복구 체험하기</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">정책과 계약</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">400ms-복구-체험하기.md</span>
+        <a class="edit-link" href="/__edit?file=400ms-복구-체험하기.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a class="active" aria-current="page" href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">정책과 계약</p>
+          <h1>400 ms 복구 체험하기</h1>
+          <p class="subtitle">&gt; 상태: 2026-09-02 평소 1초 전송과 재연결 시 제한된 즉시 요청 방식을 운영 배포했다. &gt; 50 ms Serial…</p>
+          <div class="meta">
+            <span class="badge kind">정책과 계약</span>
+            <span class="badge">원본: 400ms-복구-체험하기.md</span>
+            <span class="badge">수정: 2026-09-02 15:43</span>
+            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <section class="recovery-lab" data-recovery-lab aria-labelledby="recovery-lab-title">
+  <div class="recovery-lab-head">
+    <div>
+      <p class="recovery-lab-kicker">손으로 만져 보는 설명</p>
+      <h2 id="recovery-lab-title">센서 쪽지가 다시 도착하는 길</h2>
+      <p>아래 조건을 바꿔 보세요. <strong>400 ms 판정</strong>은 오류를 알아챈 뒤부터 새 쪽지를 받기까지입니다.</p>
+    </div>
+    <p class="recovery-lab-model">교육용 시뮬레이터 · 실제 시험 성적을 다시 계산하지 않습니다</p>
+  </div>
+
+  <div class="recovery-controls" aria-label="복구 조건 조절">
+    <label class="recovery-control recovery-toggle">
+      <span>아두이노를 다시 시작하게 만들기</span>
+      <small>Serial 포트를 닫을 때 Uno auto-reset이 일어나는 경우</small>
+      <input type="checkbox" data-recovery-reset>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-reset-label>꺼짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>평소 센서 전송 간격</span>
+      <small>연결이 정상일 때 보내는 주기입니다</small>
+      <input type="range" data-recovery-cadence min="500" max="2000" step="500" value="1000">
+      <output data-recovery-cadence-output>1,000 ms</output>
+    </label>
+    <label class="recovery-control recovery-toggle">
+      <span>재연결 때 “지금 값” 제한 요청</span>
+      <small>첫 byte가 없을 때만 25 ms 간격, 최대 네 번 요청합니다</small>
+      <input type="checkbox" data-recovery-request checked>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-request-label>켜짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>오류를 알아차리는 간격</span>
+      <small>사람이 체감하는 시간에는 더해지지만, 공식 400 ms 계측은 여기서 시작합니다</small>
+      <input type="range" data-recovery-heartbeat min="50" max="400" step="50" value="400">
+      <output data-recovery-heartbeat-output>400 ms</output>
+    </label>
+  </div>
+
+  <div class="recovery-presets" aria-label="빠른 조건 선택">
+    <button type="button" data-recovery-preset="current">새 방식</button>
+    <button type="button" data-recovery-preset="passive">요청 없이 기다리기</button>
+    <button type="button" data-recovery-preset="reset">자동 리셋만 켜기</button>
+    <button type="button" class="play-button" data-recovery-play>한 번 재생하기</button>
+  </div>
+
+  <div class="recovery-timeline" aria-label="복구 타임라인">
+    <div class="recovery-not-scored">
+      <span>① 오류를 알아차림</span>
+      <strong data-recovery-heartbeat-timeline>400 ms</strong>
+      <small>공식 400 ms 타이머 전</small>
+    </div>
+    <div class="recovery-score-bracket" aria-label="공식 400 ms 계측 구간">
+      <span>공식 400 ms 계측 구간</span>
+    </div>
+    <div class="recovery-track">
+      <div class="recovery-stage stage-port" data-recovery-stage="port">
+        <span>② 선을 다시 잡음</span>
+        <strong>125 ms</strong>
+      </div>
+      <div class="recovery-stage stage-data" data-recovery-stage="data">
+        <span data-recovery-data-label>③ “지금 값” 요청·응답</span>
+        <strong data-recovery-first-data>70 ms</strong>
+      </div>
+      <div class="recovery-stage stage-send" data-recovery-stage="send">
+        <span>④ EdgeX로 전달</span>
+        <strong>5 ms</strong>
+      </div>
+      <div class="recovery-stage stage-result" data-recovery-stage="result">
+        <span>결과</span>
+        <strong data-recovery-status>통과 예상</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="recovery-results">
+    <div class="recovery-result official-result">
+      <span>오류 감지 뒤 데이터 재개</span>
+      <strong><output data-recovery-total>200 ms</output></strong>
+      <small data-recovery-score>400 ms 내부 gate 통과 예상</small>
+    </div>
+    <div class="recovery-result">
+      <span>사람이 체감할 수 있는 상한</span>
+      <strong><output data-recovery-experience>600 ms</output></strong>
+      <small>오류 발견 간격 + 공식 복구 구간</small>
+    </div>
+    <div class="recovery-result actual-result">
+      <span>현재 1초 + 제한 요청 실장비 시험</span>
+      <strong>max 309.848 ms</strong>
+      <small>30/30 통과 · p50 196.619 ms · p95 304.244 ms</small>
+    </div>
+  </div>
+
+  <p class="recovery-explain" data-recovery-explain aria-live="polite"></p>
+  <p class="recovery-footnote">교실 모델은 현재 p50에 가까운 port 준비 125 ms, 제한 요청·응답 70 ms, EdgeX enqueue 5 ms를 단순화해 사용합니다. 실제 판정은 Device Service의 phase metric과 실장비 반복시험을 따릅니다.</p>
+</section><h1 id="400-ms-복구-체험하기">400 ms 복구 체험하기</h1>
+<blockquote><p>상태: 2026-09-02 평소 1초 전송과 재연결 시 제한된 즉시 요청 방식을 운영 배포했다. 50 ms Serial 단절·복원 30회는 30/30회 400 ms 이내였고 max는 309.848 ms였다. 이 페이지의 패널은 원리를 이해하기 위한 <strong>교육용 시뮬레이터</strong>이며 운영 제어·실시간 계측· 공식 시험 도구가 아니다.</p></blockquote>
+<h2 id="먼저-다섯-살에게-설명하면">먼저, 다섯 살에게 설명하면</h2>
+<p>센서는 평소에는 1초마다 쪽지를 보낸다. 선이 잠깐 끊겼다가 다시 이어지면 컴퓨터가 “지금 값 알려 줘”라고 묻는다. 첫 질문이 USB 준비 중 사라지면 25 ms 간격으로 최대 세 번만 더 묻고, 답이 오면 바로 멈춘다. 계속 0.1초마다 쪽지를 보내지 않아도 복구 순간의 기다림을 줄이는 방식이다.</p>
+<p>현재 1초 + 제한 요청 방식은 “고장을 알아챈 뒤 다음 정상 쪽지가 EdgeX에 전달될 때까지”의 내부 400 ms gate를 <strong>30번 모두 통과</strong>했다. p50 196.619 ms, p95 304.244 ms, 가장 느린 한 번은 309.848 ms였다. 2026-09-01의 100 ms 연속 전송 시험도 비교 이력으로 보존한다.</p>
+<h2 id="손으로-바꿔-보기">손으로 바꿔 보기</h2>
+<p>위 패널에서 “지금 값” 요청을 끄면 1초 주기의 다음 쪽지를 기다리게 된다. 반대로 요청을 켜면 재연결 순간에만 즉시 답을 받아 평소 트래픽을 늘리지 않는다. 아두이노 자동 리셋이 다시 생기면 요청을 처리할 수도 없으므로 여전히 늦어진다. 하트비트는 고장을 알아차리는 데 도움이 되지만 공식 400 ms 측정은 알아챈 뒤부터 시작하므로 하트비트만 400 ms로 맞춘다고 해결되지 않는다.</p>
+<h2 id="실제로-바꾼-것">실제로 바꾼 것</h2>
+<ul><li>Linux Serial은 <code>HUPCL</code>을 해제해 포트를 다시 열 때 Uno auto-reset이 일어나지 않게 했다.</li><li>Arduino의 pin과 JSON 계약은 유지하면서 평소 sample 주기를 1,000 ms로 둔다.</li><li>재연결 직후 Device Service가 고정 <code>READ_NOW</code>를 보내고, 첫 byte가 없을 때만 25 ms 간격으로</li></ul>
+<p>최대 세 번 재요청하면 Arduino가 현재 sample을 즉시 응답하도록 했다.</p>
+<ul><li>이 요청은 내부 복구 handshake이며 공개 EdgeX write command나 actuator 제어가 아니다.</li><li>bootloader, fuse, EEPROM과 물리 auto-reset 회로는 바꾸지 않았다.</li></ul>
+<p>다른 장비에 같은 원칙을 적용하는 방법은 <a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a>을 따른다.</p>
+<h2 id="꼭-구분할-것">꼭 구분할 것</h2>
+<p>이 문서의 400 ms는 <strong>오류 감지 → 첫 유효 sample의 EdgeX SDK async enqueue</strong> 구간이다. Kubernetes node 장애 판정, 다른 node에 Pod를 새로 띄우는 시간이나 과제의 최종 250 ms 목표를 통과했다는 뜻은 아니다. 정확한 시험 경계와 원본 evidence는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#먼저-다섯-살에게-설명하면">먼저, 다섯 살에게 설명하면</a></li>
+<li class="toc-h2"><a href="#손으로-바꿔-보기">손으로 바꿔 보기</a></li>
+<li class="toc-h2"><a href="#실제로-바꾼-것">실제로 바꾼 것</a></li>
+<li class="toc-h2"><a href="#꼭-구분할-것">꼭 구분할 것</a></li></ol></aside>
+    </div>
+  </div>
+  <script src="../assets/serial-recovery-explainer.js" defer></script>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

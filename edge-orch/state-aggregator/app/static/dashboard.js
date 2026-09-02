@@ -44,25 +44,19 @@ const RESOURCE_CATEGORY_VIEWS = {
     emptyLabel: "관측된 엣지 AI 서버가 없습니다.",
   },
   physical: {
-    label: "물리 디바이스",
+    label: "현장 엣지 노드",
     countId: "physicalCategoryCount",
     latestLabel: "최신 관측",
-    emptyLabel: "관측된 물리 디바이스가 없습니다.",
-  },
-  virtual: {
-    label: "가상 디바이스",
-    countId: "virtualCategoryCount",
-    latestLabel: "최신 관측",
-    emptyLabel: "등록된 가상 디바이스가 없습니다.",
+    emptyLabel: "관측된 현장 엣지 노드가 없습니다.",
   },
   sensor: {
-    label: "센서 디바이스",
+    label: "EdgeX 등록 디바이스",
     countId: "sensorCategoryCount",
     latestLabel: "최신 이벤트",
-    emptyLabel: "등록된 센서 디바이스가 없습니다.",
+    emptyLabel: "EdgeX에 등록된 디바이스가 없습니다.",
   },
 };
-const RESOURCE_CATEGORY_ORDER = ["server", "physical", "virtual", "sensor"];
+const RESOURCE_CATEGORY_ORDER = ["server", "physical", "sensor"];
 
 function resourceCategoryView(category = "sensor") {
   return RESOURCE_CATEGORY_VIEWS[category] || RESOURCE_CATEGORY_VIEWS.sensor;
@@ -112,25 +106,22 @@ function normalizeNodeResourceItem(node, index, kind) {
   };
 }
 
-function normalizeVirtualResourceItem(resource, generatedAt) {
-  const status = resourceAvailabilityStatus(resource.status);
-  return {
-    id: text(resource.id),
-    name: text(resource.display_name, resource.id),
-    kind: "virtual",
-    status,
-    statusLabel: resourceStatusLabel(status),
-    observedAt: generatedAt,
-    nodeName: text(resource.node, ""),
-    raw: resource,
-  };
+function sensorResourceDisplayName(device = {}) {
+  const physicalDevice = text(device.physical_device_id, "");
+  const resources = [...new Set((device.latest_readings || [])
+    .map((reading) => text(reading.resource_name || reading.source_name, ""))
+    .filter(Boolean))];
+  if (physicalDevice && resources.length) {
+    return `${physicalDevice} · ${resources.join(", ")}`;
+  }
+  return physicalDevice || text(device.name, "등록 ID 없음");
 }
 
 function normalizeSensorResourceItem(device) {
   const status = deviceStatus(device);
   return {
     id: text(device.name),
-    name: text(device.name),
+    name: sensorResourceDisplayName(device),
     kind: "sensor",
     status,
     statusLabel: resourceStatusLabel(status),
@@ -157,14 +148,6 @@ function resourceCategoryItems(data = {}, category = "sensor") {
         category === "server" ? isServerNode(node) : !isServerNode(node)
       ))
       .map(({node, index}) => normalizeNodeResourceItem(node, index, category));
-  } else if (category === "virtual") {
-    const virtualState = data.virtual_resources || {};
-    items = (virtualState.resources || []).map(
-      (resource) => normalizeVirtualResourceItem(
-        resource,
-        virtualState.generated_at || data.generated_at,
-      ),
-    );
   } else {
     items = (data.devices || []).map(normalizeSensorResourceItem);
   }
@@ -188,7 +171,7 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
         id: name,
         label: name,
         category: isServerNode(node) ? "server" : "physical",
-        detail: isServerNode(node) ? "엣지 AI 서버" : "물리 디바이스",
+        detail: isServerNode(node) ? "엣지 AI 서버" : "현장 엣지 노드",
         index,
       });
     }
@@ -204,25 +187,8 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
       results.push({
         kind: "device",
         id: device.name,
-        label: device.name,
-        detail: `센서 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
-      });
-    }
-  });
-  (data.virtual_resources?.resources || []).forEach((resource) => {
-    if (includesQuery(
-      resource.id,
-      resource.display_name,
-      resource.node,
-      resource.resource_type,
-      resource.capabilities,
-    )) {
-      results.push({
-        kind: "virtual",
-        id: resource.id,
-        label: text(resource.display_name, resource.id),
-        category: "virtual",
-        detail: `가상 디바이스 · ${text(resource.resource_type, "유형 미확인")}`,
+        label: sensorResourceDisplayName(device),
+        detail: `EdgeX 등록 디바이스 · ${text(device.device_service_name, "서비스 미확인")}`,
       });
     }
   });
@@ -744,7 +710,7 @@ function showDeviceExplanation(
   panel.innerHTML = `
     <div class="explain-header">
       <span class="explain-badge">센서 디바이스</span>
-      <strong>${escapeHtml(displayValue(device.name))}</strong>
+      <strong>${escapeHtml(sensorResourceDisplayName(device))}</strong>
     </div>
     <div class="explain-status-strip">
       <div>
@@ -761,6 +727,7 @@ function showDeviceExplanation(
       </div>
     </div>
     ${renderDeviceFactList([
+      ["EdgeX 등록 ID", device.name],
       ["수집 서비스", device.device_service_name],
       ["센서 프로필", device.profile_name],
       ["프로토콜", Array.isArray(device.protocol_names) ? device.protocol_names.join(", ") : null],
@@ -789,40 +756,27 @@ function showResourceExplanation(item) {
   const view = resourceCategoryView(item.kind);
   const raw = item.raw || {};
   const metrics = raw.raw_metrics || {};
-  const statusStrip = item.kind === "virtual"
-    ? [
-        ["상태", item.statusLabel],
-        ["실행 인스턴스", text(raw.observed_instances, 0)],
-        ["가용 인스턴스", text(raw.free_instances, 0)],
-      ]
-    : [
-        ["상태", item.statusLabel],
-        ["분류", view.label],
-        ["최신 관측", timestampAge(item.observedAt)],
-      ];
-  const facts = item.kind === "virtual"
-    ? [
-        ["리소스 ID", raw.id],
-        ["배치 노드", raw.node],
-        ["리소스 유형", raw.resource_type],
-        ["필요 / 관측 인스턴스", `${text(raw.desired_instances, 0)} / ${text(raw.observed_instances, 0)}`],
-        ["가용 / 할당 인스턴스", `${text(raw.free_instances, 0)} / ${text(raw.allocated_instances, 0)}`],
-        ["기능", (raw.capabilities || []).join(", ") || "등록 없음"],
-        ["지원 단계", (raw.supported_stage_types || []).join(", ") || "등록 없음"],
-        ["최신 관측 시각", item.observedAt || "관측 없음"],
-      ]
-    : [
-        ["호스트 이름", raw.hostname || item.name],
-        ["디바이스 분류", view.label],
-        ["CPU 사용률", pct(metrics.cpu_utilization)],
-        ["메모리 사용률", pct(metrics.memory_usage_ratio)],
-        ["GPU 사용률", metrics.gpu_utilization === null || metrics.gpu_utilization === undefined ? "N/A" : pct(metrics.gpu_utilization)],
-        ["Compute / Memory / Network 압력", `${text(raw.compute_pressure, "unknown")} / ${text(raw.memory_pressure, "unknown")} / ${text(raw.network_pressure, "unknown")}`],
-        ["최신 관측 시각", item.observedAt || "관측 없음"],
-      ];
-  const reason = item.kind === "virtual"
-    ? text(raw.twin?.status_reason, `가상 디바이스 상태는 ${text(raw.status, "unknown")}입니다.`)
-    : `Prometheus와 Kubernetes 노드 관측 결과가 ${text(raw.node_health, "unknown")}입니다.`;
+  const schedulingResource = globalThis.runtimeOperations?.findSchedulingResource?.(
+    raw.hostname || item.name,
+  ) || null;
+  const resourceEvidence = globalThis.runtimeOperations?.renderSchedulingResourceDetails
+    ? globalThis.runtimeOperations.renderSchedulingResourceDetails(
+        schedulingResource,
+        metrics,
+      )
+    : `<section class="node-resource-evidence"><div class="runtime-section-empty">Scheduling Resource 관측 불가 · /api/resources 데이터 없음</div></section>`;
+  const statusStrip = [
+    ["상태", item.statusLabel],
+    ["분류", view.label],
+    ["최신 관측", timestampAge(item.observedAt)],
+  ];
+  const facts = [
+    ["호스트 이름", raw.hostname || item.name],
+    ["노드 분류", view.label],
+    ["Compute / Memory / Network 압력", `${text(raw.compute_pressure, "unknown")} / ${text(raw.memory_pressure, "unknown")} / ${text(raw.network_pressure, "unknown")}`],
+    ["최신 관측 시각", item.observedAt || "관측 없음"],
+  ];
+  const reason = `Prometheus와 Kubernetes 노드 관측 결과가 ${text(raw.node_health, "unknown")}입니다.`;
 
   panel.innerHTML = `
     <div class="explain-header">
@@ -838,6 +792,7 @@ function showResourceExplanation(item) {
       `).join("")}
     </div>
     ${renderDeviceFactList(facts)}
+    ${resourceEvidence}
     ${renderDeviceReasonList([{
       title: "상태 근거",
       text: reason,
@@ -1007,34 +962,10 @@ async function loadDeviceTelemetryHistory(
   return true;
 }
 
-async function fetchVirtualResourceState(fetchFn = fetch) {
-  const response = await fetchFn("/state/virtual-resources", {cache: "no-store"});
-  if (!response.ok) {
-    throw new Error(`virtual resource api failed: ${response.status}`);
-  }
-  const payload = await response.json();
-  if (!payload || !Array.isArray(payload.resources)) {
-    throw new Error("virtual resource response contract is invalid");
-  }
-  return payload;
-}
-
 async function loadDashboard() {
-  const [response, virtualResult] = await Promise.all([
-    fetch("/state/dashboard", { cache: "no-store" }),
-    fetchVirtualResourceState()
-      .then((value) => ({value, error: null}))
-      .catch((error) => ({
-        value: {resources: []},
-        error: error instanceof Error ? error.message : "virtual resource observation failed",
-      })),
-  ]);
+  const response = await fetch("/state/dashboard", { cache: "no-store" });
   if (!response.ok) throw new Error(`dashboard api failed: ${response.status}`);
-  state.data = {
-    ...(await response.json()),
-    virtual_resources: virtualResult.value,
-    virtual_resource_observation_error: virtualResult.error,
-  };
+  state.data = await response.json();
   globalThis.edgeDashboardData = state.data;
   if (typeof globalThis.updateServiceDesignerInventory === "function") {
     globalThis.updateServiceDesignerInventory(state.data);
@@ -1062,6 +993,9 @@ async function refreshDashboardNow() {
     const requests = [loadDashboard()];
     if (typeof globalThis.refreshServiceDemo === "function") {
       requests.push(globalThis.refreshServiceDemo());
+    }
+    if (typeof globalThis.refreshRuntimeOperations === "function") {
+      requests.push(globalThis.refreshRuntimeOperations());
     }
     if (
       typeof document !== "undefined"
@@ -1115,7 +1049,7 @@ function renderGlobalSearch(query = $("globalResourceSearch")?.value || "") {
           data-global-result-category="${escapeHtml(result.category ?? "")}"
           ${index === 0 ? 'data-global-first-result="true"' : ""}
         >
-          <span>${escapeHtml({node: "NODE", device: "SENSOR", virtual: "VIRTUAL", service: "SERVICE"}[result.kind] || result.kind)}</span>
+          <span>${escapeHtml({node: "NODE", device: "DEVICE", service: "SERVICE"}[result.kind] || result.kind)}</span>
           <strong>${escapeHtml(result.label)}</strong>
           <small>${escapeHtml(result.detail)}</small>
         </button>
@@ -1135,10 +1069,10 @@ function openGlobalSearchResult(target) {
   if (globalThis.location && globalThis.location.hash !== "#inventory") {
     globalThis.location.hash = "inventory";
   }
-  if (kind === "node" || kind === "device" || kind === "virtual") {
+  if (kind === "node" || kind === "device") {
     const category = kind === "node"
       ? button.dataset.globalResultCategory || "physical"
-      : kind === "device" ? "sensor" : "virtual";
+      : "sensor";
     selectResourceCategory(category, {render: false});
     state.selectedNodeName = null;
     state.selectedNodeFilterValues = [];
@@ -1262,13 +1196,12 @@ function render() {
   const nodes = data.nodes || [];
   const serverItems = resourceCategoryItems(data, "server");
   const physicalItems = resourceCategoryItems(data, "physical");
-  const virtualItems = resourceCategoryItems(data, "virtual");
   const sensorItems = resourceCategoryItems(data, "sensor");
   const resourceState = data.resource_profiles || {};
   const deviceObservationFailed = deviceObservationUnavailable(data);
   const deviceObservationError = text(
     data.device_observation_error,
-    "센서 디바이스 관측 불가",
+    "EdgeX 등록 디바이스 관측 불가",
   );
   const unavailableDevices = devices.filter((device) => deviceStatus(device) === "unavailable").length;
   const degradedDevices = devices.filter((device) => deviceStatus(device) === "degraded").length;
@@ -1282,16 +1215,6 @@ function render() {
   setText("edgeAiServerHealth", `${availableCount(serverItems)}/${serverItems.length}개 Available`);
   setText("physicalDeviceCount", physicalItems.length);
   setText("physicalDeviceHealth", `${availableCount(physicalItems)}/${physicalItems.length}개 Available`);
-  setText(
-    "virtualDeviceCount",
-    data.virtual_resource_observation_error ? "관측 불가" : virtualItems.length,
-  );
-  setText(
-    "virtualDeviceHealth",
-    data.virtual_resource_observation_error
-      ? data.virtual_resource_observation_error
-      : `${availableCount(virtualItems)}/${virtualItems.length}개 Available`,
-  );
   setText("sensorDeviceCount", deviceObservationFailed ? "관측 불가" : sensorItems.length);
   setText(
     "sensorDeviceHealth",
@@ -1308,7 +1231,7 @@ function render() {
   setText("usageCoverageRatio", pct(kpis.service_resource_usage_coverage_ratio));
   setText("usageCoverageCaption", `${sampledContainers}/${profiledContainers}개 컨테이너 수집`);
   setText("serviceBindingRatio", deviceObservationFailed ? "관측 불가" : pct(kpis.device_service_availability_ratio));
-  setText("serviceBindingCaption", deviceObservationFailed ? "센서 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 센서 연결`);
+  setText("serviceBindingCaption", deviceObservationFailed ? "EdgeX 등록 디바이스 관측 불가" : `${boundDevices}/${registeredDevices}개 디바이스 연결`);
   setText("riskCount", deviceObservationFailed ? "EdgeX 관측 불가" : `${unavailableDevices}개 unavailable · ${degradedDevices}개 degraded`);
   renderOverviewVisuals(data, kpis, devices);
   renderServerOverview(data);
@@ -1327,8 +1250,7 @@ function render() {
 
 function renderOverviewVisuals(data, kpis, devices) {
   const nodes = data?.nodes || [];
-  const deviceObservationFailed = deviceObservationUnavailable(data)
-    || Boolean(data?.virtual_resource_observation_error);
+  const deviceObservationFailed = deviceObservationUnavailable(data);
   const resourceItems = Object.keys(RESOURCE_CATEGORY_VIEWS)
     .flatMap((category) => resourceCategoryItems(data, category));
   const total = resourceItems.length || 0;
@@ -1359,7 +1281,7 @@ function renderOverviewVisuals(data, kpis, devices) {
         unknown: unknown / statusTotal,
       });
   setText("overallHealthPercent", deviceObservationFailed ? "관측 불가" : pct(deviceRatio));
-  setText("overviewMetricScope", `${nodeScope} · 서버 · 물리 · 가상 · 센서 디바이스`);
+  setText("overviewMetricScope", `${nodeScope} · 서버 · 엣지 노드 · EdgeX 등록 디바이스`);
   setText(
     "overviewHealthCaption",
     deviceObservationFailed
@@ -1588,7 +1510,7 @@ function renderServerStatusRows(items = []) {
 
 function renderPhysicalDeviceStatusRows(items = []) {
   return renderNodeStatusRows(items, {
-    emptyLabel: "관측된 물리 디바이스가 없습니다.",
+    emptyLabel: "관측된 현장 엣지 노드가 없습니다.",
     showNodeType: true,
   });
 }
@@ -1628,7 +1550,7 @@ function renderPhysicalDeviceOverview(data = {}) {
     "physicalDeviceOverviewAvailability",
     model.total
       ? `${model.available}/${model.total}대 Available`
-      : "물리 디바이스 관측 없음",
+      : "현장 엣지 노드 관측 없음",
   );
   setText(
     "physicalDeviceOverviewCpu",
@@ -1714,11 +1636,6 @@ function resourceCategoryObservationError(
   category = state.selectedResourceCategory,
 ) {
   if (category === "sensor") return data?.device_observation_error || "";
-  if (category === "virtual") {
-    return data?.virtual_resource_observation_error
-      || data?.virtual_resources?.observation_error
-      || "";
-  }
   return "";
 }
 
@@ -2105,7 +2022,7 @@ function buildDashboardAlerts(data = {}) {
     alerts.push({
       kind: "source",
       level: "high",
-      title: "센서 디바이스 관측 불가",
+      title: "EdgeX 등록 디바이스 관측 불가",
       text: data.device_observation_error,
     });
   }
@@ -2488,6 +2405,13 @@ function scheduleDashboardRefresh() {
 }
 
 if (typeof document !== "undefined") {
+  document.addEventListener("runtime-resources-updated", () => {
+    if (!state.selectedResourceId || !isContextDetailPanelOpen()) return;
+    const item = RESOURCE_CATEGORY_ORDER
+      .flatMap((category) => resourceCategoryItems(state.data || {}, category))
+      .find((resource) => resource.id === state.selectedResourceId);
+    if (item && item.kind !== "sensor") showResourceExplanation(item);
+  });
   scheduleDashboardRefresh();
 }
 
@@ -2516,7 +2440,6 @@ if (typeof module !== "undefined") {
     createDeviceTelemetryHistoryState,
     deviceTelemetryHistoryUrl,
     fetchDeviceTelemetryHistory,
-    fetchVirtualResourceState,
     handleTelemetryHistoryAction,
     loadDeviceTelemetryHistory,
     openContextDetailPanel,
@@ -2532,6 +2455,7 @@ if (typeof module !== "undefined") {
     renderGlobalSearch,
     refreshDashboardNow,
     sensorDeviceStatusLabel,
+    sensorResourceDisplayName,
     resourceCategoryItems,
     resourceCategoryView,
     resourceAvailabilityStatus,

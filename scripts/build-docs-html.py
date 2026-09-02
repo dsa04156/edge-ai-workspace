@@ -10,72 +10,68 @@ import html
 import json
 import os
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
+DEFAULT_DOCS = DOCS
 OUT = DOCS / "html"
 CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
-SEARCH_EXCLUDED_PATHS = {"archive/integration/통합-상세-기록.md"}
-DESIGN_HISTORY_PATHS = {
-    "일일-기록.md",
-    "대시보드-화면-설계.md",
-    "자원-증강-가상디바이스-대시보드.md",
-    "런타임-자원-증강-데모-워크플로.md",
+SERIAL_RECOVERY_EXPLAINER_JS_PATH = DOCS / "assets" / "serial-recovery-explainer.js"
+SERIAL_RECOVERY_EXPLAINER_PATH = "400ms-복구-체험하기.md"
+PUBLICATION_SECTIONS = [
+    ("시작하기", "start", [
+        "문서-안내.md",
+        "처음부터-배우는-Edge-AI-시스템.md",
+        "플랫폼-개요.md",
+        "펌프-모터-이상감지-서비스.md",
+        "현재-구현-상태.md",
+    ]),
+    ("연결 가이드", "guide", ["디바이스-서비스-연결.md", "AI-서비스-등록-가이드.md"]),
+    ("운영", "ops", [
+        "ops/현재-데모-운영-절차.md",
+        "ops/대시보드-배포.md",
+        "ops/대시보드-검증.md",
+        "ops/네트워크-문제해결.md",
+    ]),
+    ("정책과 계약", "policy", [
+        "프로젝트-범위.md",
+        "대시보드-판단-정책.md",
+        "디바이스-연결-복구-표준.md",
+        "가상화-노드-오류-복구시간.md",
+        SERIAL_RECOVERY_EXPLAINER_PATH,
+        "AI-서비스-자원-증강-부하-실험.md",
+        "옥동-데이터-계약.md",
+        "옥동-생산성-kpi.md",
+    ]),
+    ("개발 참고", "reference", [
+        "2026-09-02-성능지표8-주간-추진현황.md",
+        "저장소-구조.md",
+        "단계별-추진계획.md",
+    ]),
+]
+PUBLIC_PATHS = [path for _, _, paths in PUBLICATION_SECTIONS for path in paths]
+PUBLIC_META = {
+    path: (section, filter_name, order)
+    for section, filter_name, paths in PUBLICATION_SECTIONS
+    for order, path in enumerate(paths)
 }
-
-WIKI_ORDER = [
-    "wiki/지식-지도.md",
-    "wiki/운영-규칙.md",
-    "wiki/변경-기록.md",
-    "wiki/운영-모델.md",
-    "wiki/현재-데모-흐름.md",
-    "wiki/상태와-텔레메트리.md",
-    "wiki/대시보드와-kpi.md",
-    "wiki/운영-진입점.md",
-    "wiki/2차년도-설계-트랙.md",
-]
-
-ACTIVE_ORDER = [
-    "문서-안내.md",
-    "시스템-구축-목표.md",
-    "프로젝트-배경.md",
-    "프로젝트-범위.md",
-    "원시-텔레메트리-데이터-플레인.md",
-    "서비스-데모-시나리오.md",
-    "옥동-생산성-kpi.md",
-    "카젠티-운영-보조-에이전트.md",
-    "2차년도-가상디바이스-워크플로-설계.md",
-    "대시보드-정보-구조.md",
-    "대시보드-판단-정책.md",
-    "물리-디바이스-상태-정책.md",
-    "쿠버엣지-엣지엑스-모델-매핑.md",
-    "디바이스-서비스-연결.md",
-    "현재-데모-경로.md",
-    "저장소-구조.md",
-    "단계별-추진계획.md",
-    "문서-정리-계획.md",
-]
-
-OPS_ORDER = [
-    "ops/현재-데모-운영-절차.md",
-    "ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md",
-    "ops/중앙-메시지버스-재구축-절차.md",
-    "ops/대시보드-검증.md",
-    "ops/gpu-hami-런타임-운영.md",
-    "ops/네트워크-문제해결.md",
-    "ops/엣지-노드-조인-점검.md",
-    "ops/노드-조인-점검.md",
-    "ops/파드-연결성-점검.md",
-    "ops/노드-실측-사양표.md",
-]
 
 
 DISPLAY_TITLES = {
+    "2026-09-02-성능지표8-주간-추진현황.md": "성능지표 8 주간 추진현황",
+    "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
+    "AI-서비스-자원-증강-부하-실험.md": "AI 서비스 자원 증강 부하 실험",
     "문서-안내.md": "문서 안내",
+    "처음부터-배우는-Edge-AI-시스템.md": "처음부터 배우는 Edge AI 시스템",
+    "플랫폼-개요.md": "플랫폼 개요",
+    "펌프-모터-이상감지-서비스.md": "펌프·모터 이상감지 서비스",
+    "문서-분류-목록.md": "문서 전체 분류 목록",
+    "2차년도-ETRI-실행계획.md": "2026년도 2차년도 ETRI 실행계획",
     "시스템-구축-목표.md": "시스템 구축 목표",
     "문서-정리-계획.md": "문서 정리 계획",
     "프로젝트-배경.md": "프로젝트 배경",
@@ -85,11 +81,13 @@ DISPLAY_TITLES = {
     "옥동-생산성-kpi.md": "옥동 생산성 KPI",
     "대시보드-정보-구조.md": "대시보드 정보 구조",
     "대시보드-판단-정책.md": "대시보드 판단 정책",
+    "디바이스-연결-복구-표준.md": "디바이스 연결 복구 표준",
+    "가상화-노드-오류-복구시간.md": "가상화 노드 오류 복구시간",
+    "400ms-복구-체험하기.md": "400 ms 복구 체험하기",
     "물리-디바이스-상태-정책.md": "물리 디바이스 상태 정책",
     "쿠버엣지-엣지엑스-모델-매핑.md": "쿠버엣지-엣지엑스 모델 매핑",
-    "디바이스-서비스-연결.md": "디바이스-서비스 연결",
+    "디바이스-서비스-연결.md": "디바이스 연결 가이드",
     "카젠티-운영-보조-에이전트.md": "카젠티 운영 보조 에이전트",
-    "2차년도-가상디바이스-워크플로-설계.md": "2차년도 가상디바이스·워크플로 설계",
     "원시-텔레메트리-데이터-플레인.md": "원시 텔레메트리 데이터 플레인",
     "저장소-구조.md": "저장소 구조",
     "단계별-추진계획.md": "단계별 추진계획",
@@ -103,6 +101,7 @@ DISPLAY_TITLES = {
     "wiki/운영-진입점.md": "운영 진입점",
     "wiki/2차년도-설계-트랙.md": "2차년도 설계 트랙",
     "ops/현재-데모-운영-절차.md": "현재 데모 운영 절차",
+    "ops/대시보드-배포.md": "대시보드 배포",
     "ops/엣지엑스-코어데이터-1000-디바이스-부하검증.md": "EdgeX Core Data 1,000 디바이스 부하 검증",
     "ops/중앙-메시지버스-재구축-절차.md": "중앙 메시지버스 배치 재구축 절차",
     "ops/네트워크-문제해결.md": "네트워크 문제 해결",
@@ -131,20 +130,15 @@ DISPLAY_TITLES = {
 
 
 def md_files() -> list[Path]:
+    if DOCS.resolve() == DEFAULT_DOCS.resolve():
+        missing = [rel for rel in PUBLIC_PATHS if not (DOCS / rel).is_file()]
+        if missing:
+            raise FileNotFoundError(f"공개 문서가 없습니다: {', '.join(missing)}")
+        return [DOCS / rel for rel in PUBLIC_PATHS]
+
     files = sorted(DOCS.rglob("*.md"))
     files = [p for p in files if "/html/" not in p.as_posix()]
-    order = {
-        **{name: idx for idx, name in enumerate(WIKI_ORDER)},
-        **{name: idx for idx, name in enumerate(ACTIVE_ORDER)},
-        **{name: idx for idx, name in enumerate(OPS_ORDER)},
-    }
-    group_order = {"wiki": 0, "active": 1, "ops": 2, "history": 3, "archive": 4}
-
-    def key(p: Path):
-        rel = p.relative_to(DOCS).as_posix()
-        return (group_order[filter_of(rel)], order.get(rel, 999), rel)
-
-    return sorted(files, key=key)
+    return files
 
 
 def title_of(path: Path, text: str) -> str:
@@ -232,6 +226,109 @@ def rel_to_search_js(from_html: Path) -> str:
     return rel_to_asset(from_html, SEARCH_JS_PATH)
 
 
+def rel_to_serial_recovery_explainer_js(from_html: Path) -> str:
+    return rel_to_asset(from_html, SERIAL_RECOVERY_EXPLAINER_JS_PATH)
+
+
+def serial_recovery_playground_markup() -> str:
+    return """<section class="recovery-lab" data-recovery-lab aria-labelledby="recovery-lab-title">
+  <div class="recovery-lab-head">
+    <div>
+      <p class="recovery-lab-kicker">손으로 만져 보는 설명</p>
+      <h2 id="recovery-lab-title">센서 쪽지가 다시 도착하는 길</h2>
+      <p>아래 조건을 바꿔 보세요. <strong>400 ms 판정</strong>은 오류를 알아챈 뒤부터 새 쪽지를 받기까지입니다.</p>
+    </div>
+    <p class="recovery-lab-model">교육용 시뮬레이터 · 실제 시험 성적을 다시 계산하지 않습니다</p>
+  </div>
+
+  <div class="recovery-controls" aria-label="복구 조건 조절">
+    <label class="recovery-control recovery-toggle">
+      <span>아두이노를 다시 시작하게 만들기</span>
+      <small>Serial 포트를 닫을 때 Uno auto-reset이 일어나는 경우</small>
+      <input type="checkbox" data-recovery-reset>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-reset-label>꺼짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>평소 센서 전송 간격</span>
+      <small>연결이 정상일 때 보내는 주기입니다</small>
+      <input type="range" data-recovery-cadence min="500" max="2000" step="500" value="1000">
+      <output data-recovery-cadence-output>1,000 ms</output>
+    </label>
+    <label class="recovery-control recovery-toggle">
+      <span>재연결 때 “지금 값” 제한 요청</span>
+      <small>첫 byte가 없을 때만 25 ms 간격, 최대 네 번 요청합니다</small>
+      <input type="checkbox" data-recovery-request checked>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-request-label>켜짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>오류를 알아차리는 간격</span>
+      <small>사람이 체감하는 시간에는 더해지지만, 공식 400 ms 계측은 여기서 시작합니다</small>
+      <input type="range" data-recovery-heartbeat min="50" max="400" step="50" value="400">
+      <output data-recovery-heartbeat-output>400 ms</output>
+    </label>
+  </div>
+
+  <div class="recovery-presets" aria-label="빠른 조건 선택">
+    <button type="button" data-recovery-preset="current">새 방식</button>
+    <button type="button" data-recovery-preset="passive">요청 없이 기다리기</button>
+    <button type="button" data-recovery-preset="reset">자동 리셋만 켜기</button>
+    <button type="button" class="play-button" data-recovery-play>한 번 재생하기</button>
+  </div>
+
+  <div class="recovery-timeline" aria-label="복구 타임라인">
+    <div class="recovery-not-scored">
+      <span>① 오류를 알아차림</span>
+      <strong data-recovery-heartbeat-timeline>400 ms</strong>
+      <small>공식 400 ms 타이머 전</small>
+    </div>
+    <div class="recovery-score-bracket" aria-label="공식 400 ms 계측 구간">
+      <span>공식 400 ms 계측 구간</span>
+    </div>
+    <div class="recovery-track">
+      <div class="recovery-stage stage-port" data-recovery-stage="port">
+        <span>② 선을 다시 잡음</span>
+        <strong>125 ms</strong>
+      </div>
+      <div class="recovery-stage stage-data" data-recovery-stage="data">
+        <span data-recovery-data-label>③ “지금 값” 요청·응답</span>
+        <strong data-recovery-first-data>70 ms</strong>
+      </div>
+      <div class="recovery-stage stage-send" data-recovery-stage="send">
+        <span>④ EdgeX로 전달</span>
+        <strong>5 ms</strong>
+      </div>
+      <div class="recovery-stage stage-result" data-recovery-stage="result">
+        <span>결과</span>
+        <strong data-recovery-status>통과 예상</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="recovery-results">
+    <div class="recovery-result official-result">
+      <span>오류 감지 뒤 데이터 재개</span>
+      <strong><output data-recovery-total>200 ms</output></strong>
+      <small data-recovery-score>400 ms 내부 gate 통과 예상</small>
+    </div>
+    <div class="recovery-result">
+      <span>사람이 체감할 수 있는 상한</span>
+      <strong><output data-recovery-experience>600 ms</output></strong>
+      <small>오류 발견 간격 + 공식 복구 구간</small>
+    </div>
+    <div class="recovery-result actual-result">
+      <span>현재 1초 + 제한 요청 실장비 시험</span>
+      <strong>max 309.848 ms</strong>
+      <small>30/30 통과 · p50 196.619 ms · p95 304.244 ms</small>
+    </div>
+  </div>
+
+  <p class="recovery-explain" data-recovery-explain aria-live="polite"></p>
+  <p class="recovery-footnote">교실 모델은 현재 p50에 가까운 port 준비 125 ms, 제한 요청·응답 70 ms, EdgeX enqueue 5 ms를 단순화해 사용합니다. 실제 판정은 Device Service의 phase metric과 실장비 반복시험을 따릅니다.</p>
+</section>"""
+
+
 def out_path_for(md: Path) -> Path:
     rel = md.relative_to(DOCS)
     return OUT / rel.with_suffix(".html")
@@ -265,6 +362,25 @@ def inline_md(s: str, current_html: Path, current_md: Path) -> str:
     s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
     s = re.sub(r"__([^_]+)__", r"<strong>\1</strong>", s)
     s = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", s)
+
+    def image(m: re.Match[str]) -> str:
+        alt, url = m.group(1), html.unescape(m.group(2))
+        if url.startswith("/home/") or url.startswith("/") and not url.startswith("//"):
+            return stash(f'<code>{html.escape(url)}</code>')
+        if not re.match(r"^(?:https?:)?//|^data:", url):
+            source_asset = (current_md.parent / url).resolve()
+            try:
+                source_asset.relative_to(DOCS)
+                url = rel_to_asset(current_html, source_asset)
+            except ValueError:
+                pass
+        return stash(
+            '<figure class="doc-figure">'
+            f'<img src="{html.escape(url, quote=True)}" alt="{alt}" loading="lazy">'
+            '</figure>'
+        )
+
+    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", image, s)
 
     def link(m: re.Match[str]) -> str:
         label, url = m.group(1), html.unescape(m.group(2))
@@ -337,6 +453,11 @@ def render_markdown(text: str, current_html: Path, current_md: Path) -> str:
             continue
         if not stripped:
             flush_para()
+            i += 1
+            continue
+        if re.fullmatch(r"!\[[^\]]*\]\([^)]+\)", stripped):
+            flush_para()
+            out.append(inline_md(stripped, current_html, current_md))
             i += 1
             continue
         if stripped.startswith("|") and "|" in stripped[1:]:
@@ -412,11 +533,11 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
   <div class=\"search-box\" data-search-index=\"{html.escape(index_href, quote=True)}\">
     <div class=\"search-filters\" role=\"group\" aria-label=\"검색 범위\">
       <button type=\"button\" class=\"active\" data-search-filter=\"all\">전체</button>
-      <button type=\"button\" data-search-filter=\"wiki\">위키</button>
-      <button type=\"button\" data-search-filter=\"active\">최신 기준</button>
+      <button type=\"button\" data-search-filter=\"start\">시작하기</button>
+      <button type=\"button\" data-search-filter=\"guide\">연결 가이드</button>
       <button type=\"button\" data-search-filter=\"ops\">운영</button>
-      <button type=\"button\" data-search-filter=\"history\">설계 이력</button>
-      <button type=\"button\" data-search-filter=\"archive\">보관</button>
+      <button type=\"button\" data-search-filter=\"policy\">정책과 계약</button>
+      <button type=\"button\" data-search-filter=\"reference\">개발 참고</button>
     </div>
     <input id=\"doc-search-input\" type=\"search\" placeholder=\"예: device status, dashboard, KPI, runbook\" autocomplete=\"off\">
     <div id=\"doc-search-results\" class=\"search-results\" aria-live=\"polite\"></div>
@@ -426,18 +547,26 @@ def search_box_markup(label: str, index_href: str, script_href: str = "docs-sear
 
 
 def home_intro_markup() -> str:
-    return """<section class=\"home-intro\" aria-label=\"문서 정리 기준\">
-  <a class=\"intro-card primary\" href=\"wiki/지식-지도.html\">
-    <strong>지식 지도</strong>
-    <span>질문이 있을 때 먼저 읽고 최신 원본문서로 이동합니다.</span>
+    return """<section class=\"home-intro\" aria-label=\"빠른 시작\">
+  <a class=\"intro-card primary\" href=\"펌프-모터-이상감지-서비스.html\">
+    <small>01 · SERVICE</small>
+    <strong>현재 서비스 이해하기</strong>
+    <span>이상감지 입력, 판단 결과와 알림 흐름을 설명합니다.</span>
+  </a>
+  <a class=\"intro-card\" href=\"ops/대시보드-배포.html\">
+    <small>02 · DEPLOY</small>
+    <strong>대시보드 배포하기</strong>
+    <span>Git push, Argo CD, Traefik 검증 절차를 확인합니다.</span>
+  </a>
+  <a class=\"intro-card\" href=\"ops/현재-데모-운영-절차.html\">
+    <small>03 · OPERATE</small>
+    <strong>현재 데모 운영하기</strong>
+    <span>EdgeX 수집부터 대시보드까지 운영 상태를 점검합니다.</span>
   </a>
   <a class=\"intro-card\" href=\"프로젝트-범위.html\">
+    <small>04 · SCOPE</small>
     <strong>프로젝트 범위</strong>
-    <span>현재 구현, 2차년도 설계, 레거시·보관 경계를 판단하는 최우선 기준입니다.</span>
-  </a>
-  <a class=\"intro-card\" href=\"문서-정리-계획.html\">
-    <strong>문서 정리 기준</strong>
-    <span>최신 기준과 운영 문서를 먼저 보고 설계 이력과 보관 자료는 필요할 때만 확인합니다.</span>
+    <span>현재 구현과 2차년도 목표, 레거시 경계를 구분합니다.</span>
   </a>
 </section>"""
 
@@ -463,37 +592,37 @@ def render_search_index(files: list[Path]) -> None:
 
 
 def group_of(rel: str) -> str:
-    if rel.startswith("wiki/"):
-        return "위키"
-    if rel.startswith("archive/"):
-        return "보관 문서"
+    if rel in PUBLIC_META:
+        return PUBLIC_META[rel][0]
     if rel.startswith("ops/"):
-        return "운영 문서"
-    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
-        return "설계 이력"
-    return "최신 기준 문서"
+        return "운영"
+    return "개발 참고"
 
 
 def filter_of(rel: str) -> str:
-    if rel.startswith("wiki/"):
-        return "wiki"
-    if rel.startswith("archive/"):
-        return "archive"
+    if rel in PUBLIC_META:
+        return PUBLIC_META[rel][1]
     if rel.startswith("ops/"):
         return "ops"
-    if rel.startswith("superpowers/") or rel in DESIGN_HISTORY_PATHS:
-        return "history"
-    return "active"
+    return "reference"
 
 
 def is_search_excluded(rel: str) -> bool:
-    return rel in SEARCH_EXCLUDED_PATHS
+    return False
 
 
 def archive_banner(rel: str) -> str:
     return f"""<aside class=\"archive-banner\" aria-label=\"보관 문서 안내\">
   <strong>과거 자료</strong>
   <span>현재 구축 목표가 아니라 과거 연구·통합·레거시 맥락 확인용입니다. 현재 판단은 최신 기준 문서를 우선하세요.</span>
+  <code>{html.escape(rel)}</code>
+</aside>"""
+
+
+def history_banner(rel: str) -> str:
+    return f"""<aside class=\"history-banner\" aria-label=\"설계 이력 안내\">
+  <strong>설계 이력</strong>
+  <span>현재 운영 기능의 완료 근거가 아닙니다. 계획·명세·실험 이력은 최신 기준 문서와 실제 코드·manifest·테스트를 함께 확인하세요.</span>
   <code>{html.escape(rel)}</code>
 </aside>"""
 
@@ -510,7 +639,8 @@ def sidebar(files: list[Path], current: Path) -> str:
         title = display_title(rel, md.read_text(encoding="utf-8"))
         target = out_path_for(md)
         href = Path(__import__('os').path.relpath(target, current.parent)).as_posix()
-        chunks.append(f'<li><a href="{href}">{html.escape(title)}</a></li>')
+        current_attr = ' class="active" aria-current="page"' if target == current else ""
+        chunks.append(f'<li><a{current_attr} href="{href}">{html.escape(title)}</a></li>')
     chunks += ["</ul>", "</nav>"]
     return "\n".join(chunks)
 
@@ -551,28 +681,40 @@ def render_doc(md: Path, files: list[Path]) -> None:
     title = display_title(rel, text)
     out_path = out_path_for(md)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    body = render_markdown(text, out_path, md)
+    is_serial_recovery_explainer = rel == SERIAL_RECOVERY_EXPLAINER_PATH
+    playground = serial_recovery_playground_markup() if is_serial_recovery_explainer else ""
+    body = playground + render_markdown(text, out_path, md)
+    interactive_script = (
+        f'  <script src="{html.escape(rel_to_serial_recovery_explainer_js(out_path))}" defer></script>\n'
+        if is_serial_recovery_explainer else ""
+    )
     is_archive = rel.startswith("archive/")
+    is_history = filter_of(rel) == "history"
     kind = group_of(rel)
     desc = short_desc(first_paragraph(text))
     page_class = "doc archive" if is_archive else "doc"
     archive_note = f"        {archive_banner(rel)}\n" if is_archive else ""
+    history_note = f"        {history_banner(rel)}\n" if is_history else ""
     html_text = f'''<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{html.escape(title)}</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{html.escape(rel_to_css(out_path))}">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="{Path(os.path.relpath(OUT / 'index.html', out_path.parent)).as_posix()}">← 문서 홈</a>
+        <a class="docs-brand" href="{Path(os.path.relpath(OUT / 'index.html', out_path.parent)).as_posix()}"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">{html.escape(kind)}</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">{html.escape(rel)}</span>
         <a class="edit-link" href="/__edit?file={html.escape(rel, quote=True)}">편집</a>
       </div>
-      <span>{html.escape(rel)}</span>
     </div>
     {search_box_markup("문서 검색", rel_to_search_index(out_path), rel_to_search_js(out_path))}
     <div class="layout">
@@ -589,13 +731,14 @@ def render_doc(md: Path, files: list[Path]) -> None:
             <span class="badge">HTML 생성: {html.escape(generated_at())}</span>
           </div>
         </header>
-{archive_note}        <div class="doc-body">
+{archive_note}{history_note}        <div class="doc-body">
           {body}
         </div>
       </article>
       {toc_for(text)}
     </div>
   </div>
+{interactive_script}
   <footer>Generated from docs/*.md</footer>
 </body>
 </html>
@@ -605,7 +748,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
 
 def render_index(files: list[Path]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    groups: dict[str, list[Path]] = {"위키": [], "최신 기준 문서": [], "운영 문서": [], "설계 이력": [], "보관 문서": []}
+    groups: dict[str, list[Path]] = {section: [] for section, _, _ in PUBLICATION_SECTIONS}
     for md in files:
         groups[group_of(md.relative_to(DOCS).as_posix())].append(md)
     sections = []
@@ -617,42 +760,49 @@ def render_index(files: list[Path]) -> None:
             text = md.read_text(encoding="utf-8")
             rel = md.relative_to(DOCS).as_posix()
             title = display_title(rel, text)
-            desc = short_desc(first_paragraph(text)) or rel
             href = Path(rel).with_suffix(".html").as_posix()
-            cards.append(f'<li><a class="doc-card" href="{href}"><strong>{html.escape(title)}</strong><span>{html.escape(desc)}</span><small>수정: {html.escape(format_mtime(md))}</small></a></li>')
-        sections.append(f'<h2 class="section-title">{html.escape(name)}</h2><ul class="card-grid">' + "\n".join(cards) + "</ul>")
+            cards.append(f'<li><a class="doc-card" href="{href}"><strong>{html.escape(title)}</strong><small>{html.escape(rel)}</small><span aria-hidden="true">→</span></a></li>')
+        content = f'<div class="collection-head"><h2>{html.escape(name)}</h2><span>{len(group_files)}개 문서</span></div><ul class="card-grid">' + "\n".join(cards) + "</ul>"
+        sections.append(f'<section class="doc-collection">{content}</section>')
     index = f'''<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KubeEdge PoC 문서 HTML 보기</title>
+  <title>Edge AI 플랫폼 문서</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{html.escape(rel_to_css(OUT / 'index.html'))}">
 </head>
 <body>
+  <nav class="home-nav" aria-label="문서 사이트">
+    <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+    <div>
+      <span class="status-dot">운영 문서</span>
+      <a href="/__edit">문서 편집</a>
+    </div>
+  </nav>
   <main class="home">
     <article class="home-card">
-      <header class="home-hero">
-        <p class="eyebrow">KubeEdge Edge AI PoC</p>
-        <h1>문서 HTML 보기</h1>
-        <p class="subtitle">
-          기존 <code>docs/*.md</code> 문서를 브라우저에서 읽기 좋게 변환한 정적 HTML 목록이다.
-          원본 Markdown은 그대로 유지하고, 이 디렉터리는 읽기용 산출물로 재생성할 수 있다.
-        </p>
-        <div class="meta">
-          <span class="badge kind">Wiki 우선</span>
-          <span class="badge">운영자 기준</span>
-          <span class="badge">Markdown 원본 유지</span>
-          <span class="badge">정적 HTML</span>
-          <span class="badge">HTML 생성: {html.escape(generated_at())}</span>
-          <a class="badge edit-badge" href="/__edit">문서 편집 열기</a>
+      <header class="home-hero-grid">
+        <div class="home-hero">
+          <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
+          <h1>Edge AI 플랫폼 문서</h1>
+          <p class="subtitle">
+            현장 디바이스 연결부터 AI 서비스 배포·검증까지, 지금 운영하는 구조만 설명합니다.
+          </p>
+          <a class="hero-link" href="플랫폼-개요.html">현재 아키텍처 보기 →</a>
         </div>
+        <figure class="hero-visual">
+          <img src="{html.escape(rel_to_asset(OUT / 'index.html', DOCS / 'assets' / 'images' / '플랫폼-개념-비주얼-v2.png'))}" alt="공장 설비와 엣지 컴퓨터, 중앙 플랫폼이 연결된 Edge AI 개념도">
+        </figure>
       </header>
+      <div class="section-kicker"><span>START HERE</span><h2>무엇을 하시나요?</h2></div>
       {home_intro_markup()}
       <div class="home-search">
-        {search_box_markup("문서 전체 검색", rel_to_search_index(OUT / 'index.html'), rel_to_search_js(OUT / 'index.html'))}
+        {search_box_markup("공개 문서 검색", rel_to_search_index(OUT / 'index.html'), rel_to_search_js(OUT / 'index.html'))}
       </div>
       <div class="home-body">
+        <div class="section-kicker"><span>REFERENCE</span><h2>유지 관리 문서</h2><p>현재 코드와 배포 기준에 맞춘 {len(files)}개 문서만 공개합니다.</p></div>
         {''.join(sections)}
       </div>
     </article>
@@ -666,6 +816,10 @@ def render_index(files: list[Path]) -> None:
 
 def main() -> None:
     files = md_files()
+    if OUT.exists():
+        if OUT.resolve().parent != DOCS.resolve() or OUT.name != "html":
+            raise RuntimeError(f"생성 디렉터리 안전 검증 실패: {OUT}")
+        shutil.rmtree(OUT)
     render_index(files)
     render_search_index(files)
     for md in files:

@@ -9,67 +9,59 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 
     refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
     screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
+    apple_link = "/static/apple-dashboard.css?v=daylight-operations-v3-20260818"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
     assert theme_link in html
     assert refactor_link in html
     assert screen_link in html
+    assert apple_link in html
     assert html.index(refactor_link) > html.index(theme_link)
     assert html.index(screen_link) > html.index(refactor_link)
+    assert html.index(apple_link) > html.index("/static/device-twins.css")
+    assert html.rfind('rel="stylesheet"') < html.index(apple_link)
 
 
-def test_dashboard_screen_layer_codifies_screen_design_contract() -> None:
+def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
-    css = (ROOT / "edge-orch/state-aggregator/app/static/dashboard-screen.css").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/apple-dashboard.css").read_text()
     design = (ROOT / "DESIGN.md").read_text()
     screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
-    assert "--console-bg: #020617;" in css
-    assert "--console-rail: #020617;" in css
-    assert "--console-accent: #22c55e;" in css
-    assert "--console-yellow: var(--console-accent);" in css
-    assert "--line: var(--console-border);" in css
-    assert "--text: var(--console-text);" in css
-    assert "--muted: var(--console-muted);" in css
-    assert "color-scheme: dark;" in css
-    assert ".dashboard-page:not(.active)" in css
-    assert 'grid-template-areas:\n    "rail command"\n    "rail workspace";' in css
-    assert "grid-area: rail;" in css
-    assert 'content: "Edge AI\\AResource Console";' in css
+    assert "--apple-canvas: #edf2f1;" in css
+    assert "--apple-rail: #dfe9e7;" in css
+    assert "--apple-accent: #006d77;" in css
+    assert "--console-accent: var(--apple-accent);" in css
+    assert "--line: var(--apple-line);" in css
+    assert "--text: var(--apple-text);" in css
+    assert "--muted: var(--apple-secondary);" in css
+    assert "color-scheme: light;" in css
+    assert 'grid-template-areas: "rail command" "rail workspace" !important;' in css
+    assert 'content: "Edge AI\\AOperations" !important;' in css
     assert ".global-search" in css
     assert "리소스 검색" in html
-    assert "flex: 0 0 auto;" in css
-    assert "border-left: 4px solid transparent;" in css
-    assert "border-left-color: var(--console-yellow);" in css
-    assert "background: var(--console-yellow);" in css
-    assert "grid-template-columns: minmax(0, 1fr) 376px;" in css
-    assert "grid-column: 2 !important;" in css
-    assert "grid-column: 1 / -1 !important;" in css
-    assert "word-break: keep-all;" in css
-    assert ".ring-legend" in css
-    assert "grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));" in css
-    assert "white-space: nowrap;" in css
-    assert ".panel-head-meta span" in css
-    assert ".metric," in css
-    assert 'grid-template-areas:\n    "label value"\n    "caption value";' in css
+    assert "backdrop-filter: saturate(145%) blur(22px);" in css
+    assert "border-radius: var(--apple-radius-card)" in css
+    assert ".kpi-grid.dashboard-page.active" in css
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr)) !important;" in css
+    assert 'grid-template-areas:\n      "label value"\n      "caption value" !important;' in css
     assert ".side-rail" in css
-    assert "position: sticky;" in css
-    assert "top: 86px;" in css
-    assert "color: var(--console-ink) !important;" in css
-    assert "overflow-wrap: normal;" in css
+    assert ".device-twins-inventory::before" in css
+    assert 'tr[data-connection="bound"] td:first-child' in css
     assert "@media (max-width: 1180px)" in css
-    assert "@media (max-width: 900px)" in css
     assert "@media (max-width: 760px)" in css
-    assert "clamp(" not in css
-    assert "# Edge AI Resource Console Design System" in design
-    assert "`dashboard-screen.css` is the final Resource Console visual contract." in design
-    assert "Resource rail" in design
+    assert "@media (prefers-reduced-motion: reduce)" in css
+    assert "@media (prefers-reduced-transparency: reduce)" in css
+    assert "@media (prefers-contrast: more)" in css
+    assert "transition: all" not in css
+    assert "# Edge AI Apple Operations Design System" in design
+    assert "`apple-dashboard.css` is the final visual contract." in design
+    assert "물리 source → 관측 트윈 → AI 서비스" in design
     assert "Resource Augmentation" not in html
-    assert "가상 디바이스 표시 경계" in screen_design
-    assert "동적 Workflow" in screen_design
+    assert "가상 디바이스 표시 경계" not in screen_design
     assert "읽기 전용" in screen_design
-    assert "dark left resource rail" in screen_design
+    assert "밝은 회색 운영 레일" in screen_design
 
 
 def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
@@ -80,7 +72,7 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "management", "designer"]' in nav_js
+    assert '["overview", "inventory", "management", "services", "device-twins", "designer"]' in nav_js
     assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 
@@ -121,9 +113,30 @@ def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     assert ">운영 현황<" in html
     assert ">디바이스<" in html
     assert ">장비 관리<" in html
+    assert ">디바이스 트윈<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
+
+
+def test_dashboard_device_twin_inventory_is_read_only_and_responsive() -> None:
+    html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
+    css = (ROOT / "edge-orch/state-aggregator/app/static/device-twins.css").read_text()
+    js = (ROOT / "edge-orch/state-aggregator/app/static/device-twins.js").read_text()
+
+    assert 'data-page="device-twins"' in html
+    assert 'id="deviceTwinsSearch"' in html
+    assert 'class="device-twins-table"' in html
+    assert "물리 디바이스" in html
+    assert "관측 트윈" in html
+    assert "사용 서비스" in html
+    assert "물리 디바이스 → 트윈 → 서비스" in html
+    assert 'fetchFn("/state/device-twins"' in js
+    assert 'fetchFn("/state/resource-pool"' not in js
+    assert "Kubernetes apply" not in js
+    assert "@media (max-width: 720px)" in css
+    assert "@media (max-width: 420px)" in css
+    assert "overflow-wrap: anywhere;" in css
 
 
 def test_dashboard_screen_copy_omits_removed_augmentation_preview() -> None:

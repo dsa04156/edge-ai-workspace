@@ -128,9 +128,9 @@ def test_operator_assistant_endpoint_degrades_when_resource_observation_fails(mo
     assert payload["source_endpoints"] == [
         "/state/dashboard",
         "/state/devices",
+        "/state/device-twins",
         "/state/nodes",
         "/state/summary",
-        "/state/virtual-resources",
     ]
 
 
@@ -156,7 +156,7 @@ def test_operator_chat_endpoint_degrades_when_resource_observation_fails(monkeyp
     assert payload["source_endpoints"] == [
         "/state/dashboard",
         "/state/devices",
+        "/state/device-twins",
         "/state/nodes",
         "/state/summary",
-        "/state/virtual-resources",
     ]

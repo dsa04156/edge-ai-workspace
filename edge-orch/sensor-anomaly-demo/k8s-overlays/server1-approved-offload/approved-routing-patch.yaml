@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-anomaly-demo
+  namespace: edgex-edge
+spec:
+  template:
+    metadata:
+      labels:
+        edge-ai.io/inference-routing: approved-server1
+    spec:
+      containers:
+        - name: sensor-anomaly-demo
+          env:
+            - name: REMOTE_INFERENCE_MODE
+              value: approved
+            - name: REMOTE_INFERENCE_INITIAL_TARGET
+              value: local
+            - name: REMOTE_INFERENCE_URL
+              value: http://sensor-anomaly-inference-server1.edgex-edge.svc.cluster.local:8080
+            - name: REMOTE_INFERENCE_NODE
+              value: etri-ser0002-cgnmsb
+            - name: REMOTE_INFERENCE_MODEL_VERSION
+              value: cuda-baseline-1.0.0
+            - name: REMOTE_INFERENCE_APPROVAL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sensor-anomaly-augmentation-approval
+                  key: approval-id
+            - name: REMOTE_INFERENCE_CONTROL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sensor-anomaly-augmentation-approval
+                  key: control-token
+            - name: REMOTE_INFERENCE_TIMEOUT_SECONDS
+              value: "1"
+            - name: REMOTE_INFERENCE_MAX_ATTEMPTS
+              value: "2"
+            - name: REMOTE_INFERENCE_FAILURE_THRESHOLD
+              value: "3"
+            - name: REMOTE_INFERENCE_ROLLBACK_COOLDOWN_SECONDS
+              value: "900"
+            - name: REMOTE_INFERENCE_LATENCY_THRESHOLD_MS
+              value: "250"
+            - name: REMOTE_INFERENCE_LATENCY_FAILURE_THRESHOLD
+              value: "3"

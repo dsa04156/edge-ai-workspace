@@ -2,28 +2,30 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+import hashlib
+import hmac
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Response
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from .adapter_catalog import AdapterCatalog
 from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
-from .augmentation_crds import (
-    AugmentationCrdReader,
-    AugmentationResourceCrdState,
-    DeviceAugmentationCrdState,
-)
 from .config import Settings
+from .candidate_workload_template import CandidateTemplateCatalog
+from .candidate_validation import ValidationContractCatalog
 from .connection_management import ConnectionManagementService
 from .device_discovery import DeviceDiscoveryManagementService
 from .device_management import DeviceManagementService
 from .device_management_api import create_device_management_router
 from .device_management_edgex import EdgeXManagementClient, EdgeXManagementError
+from .device_twins import DeviceTwinState, build_device_twin_state
 from .edgex import EdgeXError
+from .json_types import JsonMap
+from .kube import KubeResourceReadError
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -31,9 +33,14 @@ from .models import (
     DeviceProfileContract,
     DeviceResourceContract,
     DeviceState,
+    DeploymentCreateRequest,
+    DeploymentCreateResult,
+    NodeSchedulingResource,
     OperatorAssistantState,
     OperatorChatRequest,
     OperatorChatResponse,
+    PlacementSelectionRequest,
+    PlacementSelectionResult,
     SummaryState,
     TelemetryPoint,
     WorkflowEvent,
@@ -43,12 +50,36 @@ from .operator_assistant import (
     degraded_operator_chat_response,
     operator_assistant_from_dashboard,
 )
-from .runtime_augmentation import RuntimeAugmentationState
-from .runtime_augmentation_api import (
-    RuntimeAugmentationQuery,
-    runtime_resource_augmentation_state,
+from .service import PlacementProfileNotFound, StateAggregatorService
+from .service_catalog import ServiceCatalog
+from .service_augmentation import (
+    ServiceAugmentationEvaluator,
+    build_service_augmentation_signals,
 )
-from .service import StateAggregatorService
+from .runtime_recommendation_models import (
+    RuntimeRecommendationDecision,
+    RuntimeRecommendationHistory,
+    RuntimeRecommendationList,
+)
+from .runtime_execution_plan import (
+    RuntimeExecutionPlan,
+    build_runtime_execution_plan,
+)
+from .runtime_execution_controller import (
+    RuntimeExecutionApproval,
+    RuntimeExecutionAuditLog,
+    RuntimeExecutionController,
+    RuntimeExecutionDryRun,
+    RuntimeExecutionHistory,
+    RuntimeExecutionPlanReference,
+    RuntimeExecutionRecord,
+    RuntimeExecutionStore,
+)
+from .runtime_recommendation_monitor import (
+    HttpRuntimeOffloadTargetProbe,
+    RuntimeRecommendationMonitor,
+    SensorAnomalyRuntimeAdapter,
+)
 from .service_demo import (
     ServiceDemoClient,
     ServiceDemoError,
@@ -57,28 +88,47 @@ from .service_demo import (
     degraded_service_demo_state,
 )
 from .service_demo_models import (
-    DeployedServiceDesignContract,
     DeployedServiceItem,
     DeployedServiceState,
     ServiceDemoAlertState,
     ServiceDemoResultState,
     ServiceDemoState,
 )
-from .virtual_resource_registry import RESOURCE_REGISTRY
-from .virtual_resources import (
-    JsonMap,
-    VirtualResourceProfile,
-    VirtualResourceState,
-    VirtualResourceTwin,
-    build_virtual_resource_state,
-)
 
 settings = Settings()
 service = StateAggregatorService(settings)
-augmentation_crds = AugmentationCrdReader()
 service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_url,
     settings.sensor_anomaly_demo_timeout_seconds,
+)
+service_catalog = ServiceCatalog.load(settings.service_catalog_path)
+service_augmentation_evaluator = ServiceAugmentationEvaluator()
+runtime_recommendation_monitor = RuntimeRecommendationMonitor(
+    settings,
+    service,
+    service_catalog,
+    {
+        "sensor-anomaly-v1": SensorAnomalyRuntimeAdapter(service_demo_client),
+    },
+    offload_probe=HttpRuntimeOffloadTargetProbe(
+        settings.sensor_anomaly_demo_url,
+        timeout_seconds=min(
+            settings.sensor_anomaly_demo_timeout_seconds,
+            2.0,
+        )
+    ),
+)
+runtime_execution_store = RuntimeExecutionStore(
+    settings.runtime_execution_database_path
+    or (Path(settings.data_dir) / "runtime-executions.sqlite3"),
+    history_limit=settings.runtime_execution_history_limit,
+)
+runtime_execution_controller = RuntimeExecutionController(
+    settings,
+    service.kube,
+    runtime_execution_store,
+    CandidateTemplateCatalog.load(settings.candidate_template_catalog_path),
+    ValidationContractCatalog.load(settings.candidate_validation_contract_path),
 )
 management_catalog = AdapterCatalog.load(settings.adapter_catalog_path)
 management_client = EdgeXManagementClient(
@@ -127,7 +177,17 @@ if settings.adapter_runtime_management_enabled:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await service.start()
+    reconcile_routing = getattr(
+        runtime_execution_controller,
+        "reconcile_interrupted_routing",
+        None,
+    )
+    if reconcile_routing is not None:
+        await reconcile_routing()
+    await runtime_recommendation_monitor.start()
     yield
+    await runtime_execution_controller.shutdown()
+    await runtime_recommendation_monitor.stop()
     await service.stop()
 
 
@@ -168,6 +228,359 @@ async def post_workflow_event(event: WorkflowEvent) -> WorkflowState:
 @app.get("/state/nodes")
 async def get_nodes():
     return service.get_nodes()
+
+
+@app.get("/api/resources", response_model=list[NodeSchedulingResource])
+async def get_scheduling_resources() -> list[NodeSchedulingResource]:
+    try:
+        return await service.get_scheduling_resources()
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
+
+
+@app.post("/api/placements/select", response_model=PlacementSelectionResult)
+async def select_scheduling_placement(
+    request: PlacementSelectionRequest,
+) -> PlacementSelectionResult:
+    try:
+        return await service.select_placement(request)
+    except PlacementProfileNotFound as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "service_resource_profile_not_found",
+                "message": str(exc),
+            },
+        ) from exc
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
+
+
+@app.get(
+    "/api/runtime-recommendations",
+    response_model=RuntimeRecommendationList,
+)
+async def get_runtime_recommendations() -> RuntimeRecommendationList:
+    return RuntimeRecommendationList(
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_recommendation_monitor.latest_all(),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}/history",
+    response_model=RuntimeRecommendationHistory,
+)
+async def get_runtime_recommendation_history(
+    service_id: str,
+    limit: int = Query(default=100, ge=1, le=500),
+) -> RuntimeRecommendationHistory:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    return RuntimeRecommendationHistory(
+        service_id=service_id,
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_recommendation_monitor.history(service_id, limit=limit),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}/execution-plan",
+    response_model=RuntimeExecutionPlan,
+)
+async def get_runtime_execution_plan(service_id: str) -> RuntimeExecutionPlan:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return build_runtime_execution_plan(
+        decision,
+        candidate_namespace=settings.deployment_target_namespace,
+    )
+
+
+@app.post(
+    "/api/runtime-recommendations/{service_id}/execution-plan/dry-run",
+    response_model=RuntimeExecutionDryRun,
+)
+async def dry_run_runtime_execution_plan(
+    service_id: str,
+    request: RuntimeExecutionPlanReference,
+) -> RuntimeExecutionDryRun:
+    plan = _latest_runtime_execution_plan(service_id)
+    if request.plan_id != plan.plan_id:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "execution_plan_stale",
+                "message": "planId does not match the latest Runtime Recommendation.",
+            },
+        )
+    return await runtime_execution_controller.dry_run(plan)
+
+
+@app.post(
+    "/api/runtime-recommendations/{service_id}/execution-plan/execute",
+    response_model=RuntimeExecutionRecord,
+)
+async def execute_runtime_execution_plan(
+    service_id: str,
+    approval: RuntimeExecutionApproval,
+    response: Response,
+    execution_token: str | None = Header(default=None, alias="X-Execution-Token"),
+) -> RuntimeExecutionRecord:
+    if not settings.execution_controller_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "execution_controller_disabled",
+                "message": "Execution Controller is disabled.",
+            },
+        )
+    configured_token = settings.execution_management_token
+    if (
+        not configured_token
+        or not execution_token
+        or not hmac.compare_digest(configured_token, execution_token)
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "execution_authentication_failed",
+                "message": "A valid X-Execution-Token header is required.",
+            },
+        )
+    if not approval.approved:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "execution_approval_required",
+                "message": "approved=true is required before execution.",
+            },
+        )
+    plan = _latest_runtime_execution_plan(service_id)
+    if approval.plan_id != plan.plan_id:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "execution_plan_stale",
+                "message": "planId does not match the latest Runtime Recommendation.",
+            },
+        )
+    record, created = await runtime_execution_controller.start(plan, approval)
+    response.status_code = (
+        202 if created or record.status in {"PENDING", "RUNNING"} else 200
+    )
+    return record
+
+
+@app.get("/api/execution-plans/{plan_id}/audit", response_model=RuntimeExecutionAuditLog)
+async def get_runtime_execution_audit(
+    plan_id: str,
+    limit: int = Query(default=500, ge=1, le=1000),
+) -> RuntimeExecutionAuditLog:
+    if runtime_execution_store.get(plan_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "execution_not_found", "message": "Execution was not found."},
+        )
+    return RuntimeExecutionAuditLog(
+        plan_id=plan_id,
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_execution_store.audit(plan_id, limit=limit),
+    )
+
+
+@app.get("/api/execution-plans/{plan_id}", response_model=RuntimeExecutionRecord)
+async def get_runtime_execution(plan_id: str) -> RuntimeExecutionRecord:
+    record = runtime_execution_store.get(plan_id)
+    if record is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "execution_not_found", "message": "Execution was not found."},
+        )
+    return record
+
+
+@app.get("/api/executions", response_model=RuntimeExecutionHistory)
+async def get_runtime_execution_history(
+    service_id: str | None = Query(default=None, alias="serviceId"),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> RuntimeExecutionHistory:
+    return RuntimeExecutionHistory(
+        generated_at=datetime.now(timezone.utc),
+        items=runtime_execution_store.history(service_id=service_id, limit=limit),
+    )
+
+
+@app.get(
+    "/api/runtime-recommendations/{service_id}",
+    response_model=RuntimeRecommendationDecision,
+)
+async def get_runtime_recommendation(
+    service_id: str,
+) -> RuntimeRecommendationDecision:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return decision
+
+
+def _latest_runtime_execution_plan(service_id: str) -> RuntimeExecutionPlan:
+    try:
+        descriptor = service_catalog.require(service_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "service_not_found", "message": str(exc)},
+        ) from exc
+    if descriptor.runtime_recommendation is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "runtime_recommendation_not_configured",
+                "message": f"Runtime recommendation is not configured: {service_id}",
+            },
+        )
+    decision = runtime_recommendation_monitor.latest(service_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "runtime_recommendation_not_observed",
+                "message": f"Runtime recommendation has not been observed: {service_id}",
+            },
+        )
+    return build_runtime_execution_plan(
+        decision,
+        candidate_namespace=settings.deployment_target_namespace,
+    )
+
+
+@app.post("/api/deployments", response_model=DeploymentCreateResult)
+async def create_scheduling_deployment(
+    request: DeploymentCreateRequest,
+    deployment_token: str | None = Header(default=None, alias="X-Deployment-Token"),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> DeploymentCreateResult:
+    if not settings.deployment_controller_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "deployment_controller_disabled",
+                "message": "Deployment Controller is disabled.",
+            },
+        )
+    configured_token = settings.deployment_management_token
+    if (
+        not configured_token
+        or not deployment_token
+        or not hmac.compare_digest(configured_token, deployment_token)
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "deployment_authentication_failed",
+                "message": "A valid X-Deployment-Token header is required.",
+            },
+        )
+    if not idempotency_key or len(idempotency_key) > 128:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_idempotency_key",
+                "message": "Idempotency-Key is required and must be at most 128 characters.",
+            },
+        )
+    operation_id = hmac.new(
+        configured_token.encode("utf-8"),
+        idempotency_key.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    try:
+        return await service.deploy_workload(request, operation_id)
+    except PlacementProfileNotFound as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "service_resource_profile_not_found",
+                "message": str(exc),
+            },
+        ) from exc
+    except KubeResourceReadError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "kubernetes_resource_snapshot_unavailable",
+                "message": str(exc),
+            },
+        ) from exc
 
 
 @app.get("/state/devices", response_model=list[DeviceState])
@@ -251,95 +664,196 @@ async def get_device_profiles() -> list[DeviceProfileContract]:
 @app.get("/state/service-demo", response_model=ServiceDemoState)
 async def get_service_demo() -> ServiceDemoState:
     try:
-        return await service_demo_client.get_state()
+        demo = await service_demo_client.get_state()
     except ServiceDemoError as exc:
-        return degraded_service_demo_state(exc)
+        demo = degraded_service_demo_state(exc)
+    try:
+        resource_state = await service.get_resource_profile_state()
+        profiles = resource_state.get("service_resource_profiles") or []
+    except Exception:
+        profiles = []
+    source_profile = next(
+        (
+            profile
+            for profile in profiles
+            if profile.get("namespace") == "edgex-edge"
+            and profile.get("service") == "sensor-anomaly-demo"
+        ),
+        None,
+    )
+    candidate_profile = next(
+        (
+            profile
+            for profile in profiles
+            if profile.get("namespace") == "edgex-edge"
+            and profile.get("service") == "sensor-anomaly-inference-server1"
+        ),
+        None,
+    )
+    candidate_ready = bool(
+        candidate_profile
+        and int(candidate_profile.get("ready_pod_count") or 0) > 0
+    )
+    descriptor = service_catalog.require("sensor-anomaly-demo")
+    qualification = descriptor.augmentation_qualification
+    source_model_version = demo.model.version if demo.model is not None else None
+    if source_model_version is None and demo.latest is not None:
+        source_model_version = demo.latest.model_version
+    candidate_qualified = bool(
+        qualification.status == "qualified"
+        and source_model_version == qualification.source_model_version
+    )
+    signals = build_service_augmentation_signals(
+        demo,
+        source_profile,
+        candidate_ready=candidate_ready,
+        candidate_qualified=candidate_qualified,
+        candidate_qualification_reason=(
+            "qualified"
+            if candidate_qualified
+            else qualification.reason
+        ),
+    )
+    return demo.model_copy(
+        update={"augmentation": service_augmentation_evaluator.evaluate(signals)}
+    )
 
 
 def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
+    descriptor = service_catalog.require("sensor-anomaly-demo")
     model_version = demo.model.version if demo.model is not None else None
     if model_version is None and demo.latest is not None:
         model_version = demo.latest.model_version
     vibration_model = demo.model.components.get("vibration") if demo.model else None
     temperature_model = demo.model.components.get("temperature") if demo.model else None
     weights = demo.model.weights if demo.model else None
-    design_contract = DeployedServiceDesignContract(
-        contract_id="sensor-anomaly-demo-v1",
-        pipeline_algorithm=(
-            demo.model.algorithm
-            if demo.model is not None
-            else "weighted-multi-sensor-feature-score-v1"
-        ),
-        vibration_algorithm=(
-            vibration_model.algorithm
-            if vibration_model is not None
-            else "online-vibration-feature-gaussian-v1"
-        ),
-        temperature_algorithm=(
-            temperature_model.algorithm
-            if temperature_model is not None
-            else "online-temperature-feature-gaussian-v1"
-        ),
-        # These window sizes are part of the versioned fixed workload contract.
-        # A changed deployment must publish a new contract version here.
-        vibration_window_samples=20,
-        temperature_window_samples=10,
-        warmup_samples=demo.model.warmup_samples if demo.model is not None else 30,
-        threshold=demo.model.threshold if demo.model is not None else 4.0,
-        vibration_weight=weights.vibration if weights is not None else 0.7,
-        temperature_weight=weights.temperature if weights is not None else 0.3,
-        inputs=[
-            {
-                "stage_id": "sensor-x",
-                "device_name": "virtual-acceleration-x-001",
-                "resource_name": "acceleration_x_raw",
-            },
-            {
-                "stage_id": "sensor-y",
-                "device_name": "virtual-acceleration-y-001",
-                "resource_name": "acceleration_y_raw",
-            },
-            {
-                "stage_id": "sensor-z",
-                "device_name": "virtual-acceleration-z-001",
-                "resource_name": "acceleration_z_raw",
-            },
-            {
-                "stage_id": "sensor-context",
-                "device_name": "virtual-temperature-001",
-                "resource_name": "temperature_raw",
-            },
-        ],
+    design_contract = descriptor.design_contract.model_copy(
+        update={
+            "pipeline_algorithm": (
+                demo.model.algorithm
+                if demo.model is not None
+                else descriptor.design_contract.pipeline_algorithm
+            ),
+            "vibration_algorithm": (
+                vibration_model.algorithm
+                if vibration_model is not None
+                else descriptor.design_contract.vibration_algorithm
+            ),
+            "temperature_algorithm": (
+                temperature_model.algorithm
+                if temperature_model is not None
+                else descriptor.design_contract.temperature_algorithm
+            ),
+            "warmup_samples": (
+                demo.model.warmup_samples
+                if demo.model is not None
+                else descriptor.design_contract.warmup_samples
+            ),
+            "threshold": (
+                demo.model.threshold
+                if demo.model is not None
+                else descriptor.design_contract.threshold
+            ),
+            "vibration_weight": (
+                weights.vibration
+                if weights is not None
+                else descriptor.design_contract.vibration_weight
+            ),
+            "temperature_weight": (
+                weights.temperature
+                if weights is not None
+                else descriptor.design_contract.temperature_weight
+            ),
+        }
     )
+    current_service = DeployedServiceItem(
+        service_id=descriptor.service_id,
+        display_name=descriptor.display_name,
+        description=descriptor.description,
+        category=descriptor.category,
+        lifecycle=descriptor.lifecycle,
+        execution_mode=descriptor.execution_mode,
+        mode=demo.mode,
+        status=demo.status,
+        input_state=demo.input_state,
+        model_state=demo.model_state,
+        node=demo.binding.node,
+        physical_source=demo.binding.physical_source,
+        device_service=demo.binding.device_service,
+        input_devices=demo.binding.devices,
+        model_version=model_version,
+        latest_observed_at=(
+            demo.latest.observed_at if demo.latest is not None else None
+        ),
+        inference_target=(
+            demo.latest.inference_target
+            if demo.latest is not None
+            else demo.inference_routing.effective_target
+        ),
+        observation_error=demo.observation_error,
+        design_contract=design_contract,
+        catalog_version=service_catalog.version,
+        definition_source=service_catalog.source,
+        descriptor=descriptor.model_dump(
+            exclude={"design_contract"},
+            by_alias=True,
+        ),
+    )
+    catalog_only_services = [
+        DeployedServiceItem(
+            service_id=item.service_id,
+            display_name=item.display_name,
+            description=item.description,
+            category=item.category,
+            lifecycle=item.lifecycle,
+            execution_mode=item.execution_mode,
+            mode="unavailable",
+            status="degraded",
+            input_state="unobserved",
+            model_state="unobserved",
+            node=next(
+                (
+                    target.node
+                    for target in item.graph.targets
+                    if target.slot == "Device1"
+                ),
+                "unobserved",
+            ),
+            physical_source="unobserved",
+            device_service="unobserved",
+            input_devices=[
+                binding.device_name for binding in item.design_contract.inputs
+            ],
+            observation_error="service runtime adapter is not connected",
+            design_contract=item.design_contract,
+            catalog_version=service_catalog.version,
+            definition_source=service_catalog.source,
+            descriptor=item.model_dump(exclude={"design_contract"}, by_alias=True),
+        )
+        for item in service_catalog.services
+        if item.service_id != descriptor.service_id
+    ]
     return DeployedServiceState(
         generated_at=datetime.now(timezone.utc),
-        services=[
-            DeployedServiceItem(
-                service_id="sensor-anomaly-demo",
-                display_name="센서 이상 탐지",
-                description="테스트베드 가속도 3축·온도 기반 기준선 서비스",
-                mode=demo.mode,
-                status=demo.status,
-                input_state=demo.input_state,
-                model_state=demo.model_state,
-                node=demo.binding.node,
-                physical_source=demo.binding.physical_source,
-                device_service=demo.binding.device_service,
-                input_devices=demo.binding.devices,
-                model_version=model_version,
-                latest_observed_at=(
-                    demo.latest.observed_at if demo.latest is not None else None
-                ),
-                observation_error=demo.observation_error,
-                design_contract=design_contract,
-            )
-        ],
+        services=[current_service, *catalog_only_services],
     )
 
 
 @app.get("/state/services", response_model=DeployedServiceState)
 async def get_deployed_services() -> DeployedServiceState:
     return _deployed_service_state(await get_service_demo())
+
+
+@app.get("/state/services/{service_id}", response_model=DeployedServiceItem)
+async def get_deployed_service(service_id: str) -> DeployedServiceItem:
+    deployed = _deployed_service_state(await get_service_demo())
+    match = next(
+        (item for item in deployed.services if item.service_id == service_id),
+        None,
+    )
+    if match is None:
+        raise HTTPException(status_code=404, detail="service is not registered")
+    return match
 
 
 @app.get("/state/service-demo/results", response_model=ServiceDemoResultState)
@@ -492,56 +1006,31 @@ async def get_service_resource_profiles(refresh: bool = False, namespace: str | 
     }
 
 
-async def _virtual_resource_state(refresh: bool = False) -> VirtualResourceState:
-    observation_error: str | None = None
+@app.get("/state/device-twins", response_model=DeviceTwinState)
+async def get_device_twins() -> DeviceTwinState:
+    observation_errors: list[str] = []
     try:
-        resource_state = await service.get_resource_profile_state(refresh=refresh)
-    except httpx.HTTPError as exc:
-        observation_error = f"service resource observation unavailable: {exc.__class__.__name__}"
-        resource_state = {}
-    profiles = resource_state.get("service_resource_profiles") or []
-    return build_virtual_resource_state(
-        registry=RESOURCE_REGISTRY,
-        service_resource_profiles=profiles,
-        nodes=service.get_nodes(),
-        observation_error=observation_error,
+        devices = await service.get_devices()
+    except EdgeXError as exc:
+        devices = []
+        observation_errors.append(
+            f"EdgeX device observation unavailable: {exc.__class__.__name__}"
+        )
+
+    try:
+        demo_state = await service_demo_client.get_state()
+    except ServiceDemoError as exc:
+        demo_state = degraded_service_demo_state(exc)
+        observation_errors.append(
+            f"AI service observation unavailable: {exc.__class__.__name__}"
+        )
+    deployed_services = _deployed_service_state(demo_state)
+
+    return build_device_twin_state(
+        devices=devices,
+        deployed_services=deployed_services.services,
+        observation_errors=observation_errors,
     )
-
-
-@app.get("/state/virtual-resources", response_model=VirtualResourceState)
-async def get_virtual_resources(refresh: bool = False) -> VirtualResourceState:
-    return await _virtual_resource_state(refresh=refresh)
-
-
-@app.get("/state/virtual-resources/{resource_id}", response_model=VirtualResourceProfile)
-async def get_virtual_resource(resource_id: str, refresh: bool = False) -> VirtualResourceProfile:
-    state = await _virtual_resource_state(refresh=refresh)
-    for resource in state.resources:
-        if resource.id == resource_id:
-            return resource
-    raise HTTPException(status_code=404, detail="Virtual resource not found")
-
-
-@app.get("/state/virtual-resources/{resource_id}/twin", response_model=VirtualResourceTwin)
-async def get_virtual_resource_twin(resource_id: str, refresh: bool = False) -> VirtualResourceTwin:
-    resource = await get_virtual_resource(resource_id=resource_id, refresh=refresh)
-    return resource.twin
-
-
-@app.get("/state/augmentation-resources", response_model=AugmentationResourceCrdState)
-async def get_augmentation_resources() -> AugmentationResourceCrdState:
-    return await augmentation_crds.get_augmentation_resources()
-
-
-@app.get("/state/device-augmentations", response_model=DeviceAugmentationCrdState)
-async def get_device_augmentations(namespace: str = "default") -> DeviceAugmentationCrdState:
-    return await augmentation_crds.get_device_augmentations(namespace=namespace)
-
-
-@app.get("/state/runtime-resource-augmentation", response_model=RuntimeAugmentationState)
-async def get_runtime_resource_augmentation(refresh: bool = False, namespace: str = "default", mode: str = "observed") -> RuntimeAugmentationState:
-    query = RuntimeAugmentationQuery(refresh=refresh, namespace=namespace, mode=mode)
-    return await runtime_resource_augmentation_state(service=service, crds=augmentation_crds, query=query)
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

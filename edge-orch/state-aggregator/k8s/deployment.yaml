@@ -7,6 +7,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: state-aggregator
@@ -20,7 +22,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:da38d9c2b8059b03a985c305cbd3886e142348a21979ad86b8acbe9f8278dca8
+          image: 192.168.0.56:5000/state-aggregator@sha256:8e8691e815cb3992c68f4a53f27102f18511ff2ec4da7ea1c817b8baa2998a94
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -35,6 +37,8 @@ spec:
               value: /app/app/config/instance_map.json
             - name: ADAPTER_CATALOG_PATH
               value: /app/app/config/adapter_catalog.json
+            - name: SERVICE_CATALOG_PATH
+              value: /app/app/config/service_catalog.json
             - name: DEVICE_MANAGEMENT_ENABLED
               value: "true"
             - name: DEVICE_MANAGEMENT_HMAC_KEY
@@ -68,13 +72,56 @@ spec:
             - name: SENSOR_ANOMALY_DEMO_URL
               value: http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080
             - name: SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS
+              value: "10"
+            - name: DEPLOYMENT_CONTROLLER_ENABLED
+              value: "true"
+            - name: DEPLOYMENT_TARGET_NAMESPACE
+              value: edge-ai-workloads
+            - name: DEPLOYMENT_ALLOWED_IMAGE_PREFIXES
+              value: "192.168.0.56:5000/state-aggregator@sha256:,192.168.0.56:5000/sensor-anomaly-demo@sha256:"
+            - name: DEPLOYMENT_READY_TIMEOUT_SECONDS
+              value: "90"
+            - name: DEPLOYMENT_POLL_INTERVAL_SECONDS
               value: "2"
+            - name: DEPLOYMENT_MANAGEMENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: management-hmac-key
+            - name: RUNTIME_RECOMMENDATION_ENABLED
+              value: "true"
+            - name: RUNTIME_RECOMMENDATION_POLL_INTERVAL_SECONDS
+              value: "15"
+            - name: RUNTIME_RECOMMENDATION_DATABASE_PATH
+              value: /app/data/runtime-recommendations.sqlite3
+            - name: RUNTIME_RECOMMENDATION_HISTORY_LIMIT
+              value: "1000"
+            - name: EXECUTION_CONTROLLER_ENABLED
+              value: "true"
+            - name: EXECUTION_MANAGEMENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: edgex-adapter-management-auth
+                  key: management-hmac-key
+            - name: RUNTIME_EXECUTION_DATABASE_PATH
+              value: /app/data/runtime-executions.sqlite3
+            - name: RUNTIME_EXECUTION_HISTORY_LIMIT
+              value: "1000"
+            - name: CANDIDATE_TEMPLATE_CATALOG_PATH
+              value: /app/app/config/candidate_workload_templates.json
+            - name: CANDIDATE_VALIDATION_CONTRACT_PATH
+              value: /app/app/config/candidate_validation_contracts.json
+            - name: TRAFFIC_ROUTING_CONTRACT_PATH
+              value: /app/app/config/traffic_routing_contracts.json
+            - name: EXECUTION_OWNERSHIP_CONTRACT_PATH
+              value: /app/app/config/execution_ownership_contracts.json
           volumeMounts:
             - name: state-data
               mountPath: /app/data
       volumes:
         - name: state-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: state-aggregator-state
 ---
 apiVersion: v1
 kind: Service

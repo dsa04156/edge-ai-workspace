@@ -43,7 +43,7 @@ def async_test(function):
 
 def serial_protocol(device_id="arduino-001", resource_name="temperature_raw"):
     return {
-        "Port": "/dev/arduino-001",
+        "Port": "/dev/edgeai/arduino-001",
         "BaudRate": 115200,
         "DeviceID": device_id,
         "Parser": "arduino-multisensor-v1",

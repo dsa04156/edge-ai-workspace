@@ -13,6 +13,7 @@ const {
   renderServerStatusRows,
   renderSensorDeviceRows,
   sensorDeviceStatusLabel,
+  sensorResourceDisplayName,
   serverOverviewModel,
 } = require("../app/static/dashboard.js");
 
@@ -21,6 +22,8 @@ const root = path.resolve(__dirname, "..");
 test("renders a scalable four-column sensor inventory row", () => {
   const device = {
     name: "virtual-temperature-001",
+    physical_device_id: "arduino-001",
+    latest_readings: [{resource_name: "temperature_raw"}],
     overall_status: "available",
     latest_event_timestamp: "2099-01-01T00:00:00Z",
   };
@@ -28,7 +31,8 @@ test("renders a scalable four-column sensor inventory row", () => {
   const markup = renderSensorDeviceRows([device]);
 
   assert.match(markup, /<tr class="sensor-device-row/);
-  assert.match(markup, />virtual-temperature-001</);
+  assert.match(markup, />arduino-001 · temperature_raw</);
+  assert.match(markup, /data-device-name="virtual-temperature-001"/);
   assert.match(markup, /Available/);
   assert.match(markup, /data-label="최신 이벤트"/);
   assert.match(markup, />상세보기</);
@@ -42,7 +46,15 @@ test("maps all sensor availability states to operator labels", () => {
   assert.equal(sensorDeviceStatusLabel({overall_status: "unexpected"}), "Degraded");
 });
 
-test("dashboard exposes all device categories in one continuous inventory", () => {
+test("uses physical source and resource as the operator label while preserving the EdgeX id", () => {
+  assert.equal(sensorResourceDisplayName({
+    name: "virtual-temperature-001",
+    physical_device_id: "arduino-001",
+    latest_readings: [{resource_name: "temperature_raw"}],
+  }), "arduino-001 · temperature_raw");
+});
+
+test("dashboard exposes the three authoritative device categories in one continuous inventory", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(
     path.join(root, "app/static/operations-dashboard.css"),
@@ -52,7 +64,7 @@ test("dashboard exposes all device categories in one continuous inventory", () =
   assert.match(html, />디바이스</);
   assert.match(html, /<h2 id="inventoryTitle">전체 디바이스<\/h2>/);
   assert.match(html, /id="resourceInventorySections"/);
-  assert.match(html, /서버, 현장 엣지 노드, 가상 자원과 EdgeX 센서를 한 화면에서 확인합니다/);
+  assert.match(html, /서버, 현장 엣지 노드와 EdgeX 등록 디바이스를 한 화면에서 확인합니다/);
   assert.doesNotMatch(html, /class="resource-category-tabs"/);
   assert.doesNotMatch(html, /data-resource-category="server"/);
   assert.doesNotMatch(html, /EdgeX 디바이스/);
@@ -62,11 +74,10 @@ test("dashboard exposes all device categories in one continuous inventory", () =
   assert.match(css, /@media \(max-width: 680px\)/);
 });
 
-test("renders the four categories as simultaneous concise tables", () => {
+test("renders the three categories as simultaneous concise tables", () => {
   const categoryItems = {
     server: "etri-ser0001",
     physical: "etri-dev0001",
-    virtual: "vd-gpu-001",
     sensor: "virtual-temperature-001",
   };
   const markup = Object.entries(categoryItems).map(([category, name]) => (
@@ -86,15 +97,14 @@ test("renders the four categories as simultaneous concise tables", () => {
   assert.match(markup, /id="resourceInventory-server"/);
   assert.match(markup, />엣지 AI 서버<\/h3>/);
   assert.match(markup, /id="resourceInventory-physical"/);
-  assert.match(markup, />물리 디바이스<\/h3>/);
-  assert.match(markup, /id="resourceInventory-virtual"/);
-  assert.match(markup, />가상 디바이스<\/h3>/);
+  assert.match(markup, />현장 엣지 노드<\/h3>/);
   assert.match(markup, /id="resourceInventory-sensor"/);
-  assert.match(markup, />센서 디바이스<\/h3>/);
-  assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 4);
+  assert.match(markup, />EdgeX 등록 디바이스<\/h3>/);
+  assert.doesNotMatch(markup, /가상 디바이스/);
+  assert.equal((markup.match(/class="sensor-device-table"/g) || []).length, 3);
 });
 
-test("classifies dashboard resources into four explicit operator categories", () => {
+test("classifies dashboard resources into three explicit operator categories", () => {
   const data = {
     nodes: [
       {hostname: "etri-ser0001", node_type: "cloud_server", node_health: "healthy"},
@@ -106,12 +116,6 @@ test("classifies dashboard resources into four explicit operator categories", ()
       {name: "sensor-temperature-001", overall_status: "available"},
       {name: "sensor-vibration-001", overall_status: "degraded"},
     ],
-    virtual_resources: {
-      generated_at: "2099-01-01T00:00:00Z",
-      resources: [
-        {id: "vd-gpu-001", display_name: "GPU Inference", status: "idle", node: "etri-ser0002"},
-      ],
-    },
   };
 
   assert.deepEqual(
@@ -121,10 +125,6 @@ test("classifies dashboard resources into four explicit operator categories", ()
   assert.deepEqual(
     resourceCategoryItems(data, "physical").map((item) => item.name),
     ["etri-dev0001", "etri-dev0002"],
-  );
-  assert.deepEqual(
-    resourceCategoryItems(data, "virtual").map((item) => item.name),
-    ["GPU Inference"],
   );
   assert.deepEqual(
     resourceCategoryItems(data, "sensor").map((item) => item.name),
@@ -143,29 +143,15 @@ test("renders every category as the same concise list with contextual observatio
       observedAt: "2099-01-01T00:00:00Z",
     },
   ], {category: "server"});
-  const virtualRows = renderResourceInventoryRows([
-    {
-      id: "vd-gpu-001",
-      name: "GPU Inference",
-      kind: "virtual",
-      status: "available",
-      statusLabel: "Available",
-      observedAt: "2099-01-01T00:00:00Z",
-    },
-  ], {category: "virtual"});
-
   assert.match(nodeRows, /data-resource-kind="server"/);
   assert.match(nodeRows, /data-label="최신 관측"/);
   assert.match(nodeRows, />상세보기</);
-  assert.match(virtualRows, /data-resource-kind="virtual"/);
-  assert.match(virtualRows, /GPU Inference/);
 });
 
 test("provides concise Korean labels for each resource category", () => {
   assert.equal(resourceCategoryView("server").label, "엣지 AI 서버");
-  assert.equal(resourceCategoryView("physical").label, "물리 디바이스");
-  assert.equal(resourceCategoryView("virtual").label, "가상 디바이스");
-  assert.equal(resourceCategoryView("sensor").label, "센서 디바이스");
+  assert.equal(resourceCategoryView("physical").label, "현장 엣지 노드");
+  assert.equal(resourceCategoryView("sensor").label, "EdgeX 등록 디바이스");
   assert.equal(resourceCategoryView("sensor").latestLabel, "최신 이벤트");
   assert.equal(resourceCategoryView("server").latestLabel, "최신 관측");
 });
@@ -313,24 +299,28 @@ test("builds physical device status separately from server status", () => {
   assert.doesNotMatch(markup, /etri-ser0001/);
 });
 
-test("places server and physical observability before the collapsed service demo", () => {
+test("keeps server, physical observability, and the demo in overview beside service operations", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
 
   const serverIndex = html.indexOf('id="serverOverviewTitle"');
   const physicalIndex = html.indexOf('id="physicalDeviceOverviewTitle"');
+  const operationsIndex = html.indexOf('id="runtimeOperationsTitle"');
+  const serviceCatalogIndex = html.indexOf('id="serviceCatalogList"');
   const serviceDemoIndex = html.indexOf('id="serviceDemoTitle"');
 
   assert.ok(serverIndex < physicalIndex);
-  assert.ok(physicalIndex < serviceDemoIndex);
+  assert.ok(physicalIndex < operationsIndex);
+  assert.ok(operationsIndex < serviceCatalogIndex);
+  assert.ok(serviceCatalogIndex < serviceDemoIndex);
   assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
   assert.match(html, /id="serverStatusList"/);
-  assert.match(html, /<h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태<\/h2>/);
+  assert.match(html, /<h2 id="physicalDeviceOverviewTitle">현장 엣지 노드 상태<\/h2>/);
   assert.match(html, /id="physicalDeviceStatusList"/);
-  assert.match(html, /data-resource-category-link="physical">물리 디바이스 목록/);
-  assert.match(html, /<details class="panel service-demo-panel overview-service-demo/);
-  assert.doesNotMatch(
+  assert.match(html, /data-resource-category-link="physical">현장 엣지 노드 목록/);
+  assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="overview"/);
+  assert.match(
     html,
-    /<details class="panel service-demo-panel overview-service-demo[^>]*\sopen(?:\s|>)/,
+    /<details id="serviceDemoPanel"[^>]*\sopen(?:\s|>)/,
   );
   assert.match(html, /dashboard\.js\?v=cpu-aware-pressure-v3-20260804/);
   assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);

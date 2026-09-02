@@ -1,14 +1,17 @@
 import asyncio
+import time
 
 import pytest
 
 from app.config import Settings
+from app.inference_executor import InferenceExecutionResult
 from app.local_data import (
     ACCELERATION_SOURCES,
     LocalDataSource,
     LocalDataUnavailable,
 )
-from app.models import AxisSample
+from app.models import AxisSample, InferenceRoutingStatus
+from app.remote_inference import RoutedInference
 from app.runtime import AnomalyRuntime
 from app.storage import ResultStore
 
@@ -53,6 +56,108 @@ class ToggleFailureClient(FakeLocalDataClient):
         return await super().fetch(source, from_origin, to_origin)
 
 
+class FakeApprovedRouter:
+    def __init__(self) -> None:
+        self.closed = False
+
+    async def infer(
+        self,
+        frame,
+        temperature,
+        *,
+        local,
+        now=None,
+        request_id=None,
+        allow_remote=True,
+    ):
+        assert allow_remote is True
+        return RoutedInference(
+            InferenceExecutionResult(
+                decision=_remote_decision(frame.origin, temperature.value),
+                request_id=request_id,
+                execution_mode="remote",
+                model_version="baseline-1.0.0",
+                source_node="etri-dev0001-jetorn",
+                remote_node="etri-ser0002-cgnmsb",
+                network_latency_ms=2.5,
+                remote_processing_ms=1.5,
+                total_latency_ms=4.0,
+            ),
+            "server1",
+        )
+
+    def status(self, *, now=None) -> InferenceRoutingStatus:
+        return InferenceRoutingStatus(
+            configured_mode="approved",
+            state="remote",
+            effective_target="server1",
+            approval_id="approval-001",
+            inference_mode="REMOTE",
+            remote_ready=True,
+            remote_node="etri-ser0002-cgnmsb",
+        )
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+class CapturingRouter(FakeApprovedRouter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.allow_remote_values = []
+
+    async def infer(
+        self,
+        frame,
+        temperature,
+        *,
+        local,
+        now=None,
+        request_id=None,
+        allow_remote=True,
+    ):
+        self.allow_remote_values.append(allow_remote)
+        decision = local()
+        assert decision is not None
+        return RoutedInference(
+            InferenceExecutionResult(
+                decision=decision,
+                request_id=request_id,
+                execution_mode="local",
+                model_version="baseline-1.0.0",
+                source_node="etri-dev0001-jetorn",
+            ),
+            "edge-local",
+        )
+
+
+def _remote_decision(origin: int, temperature: float):
+    from app.model_adapter import ModelDecision
+    from app.models import TemperatureFeatures, VibrationFeatures
+
+    return ModelDecision(
+        status="normal",
+        score=0.5,
+        vibration_score=0.4,
+        temperature_score=0.7,
+        vibration_features=VibrationFeatures(
+            origin=origin,
+            rms=1.0,
+            peak=2.0,
+            kurtosis=3.0,
+            sample_count=20,
+        ),
+        temperature_features=TemperatureFeatures(
+            origin=origin,
+            raw=temperature,
+            mean=temperature,
+            stddev=0.0,
+            delta=0.0,
+            sample_count=10,
+        ),
+    )
+
+
 def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> None:
     origin = 1_000_000_000
     client = FakeLocalDataClient(
@@ -85,9 +190,70 @@ def test_runtime_processes_joined_frame_once_and_advances_source_cursors() -> No
     assert first.latest.temperature_features.raw == 300
     assert first.latest.temperature_features.alignment_lag_ms == 10.0
     assert first.counters.frames_processed == 1
+    assert first.storage is not None and first.storage.result_count >= 1
     assert second.counters.frames_processed == 1
     assert [call[1] for call in client.calls[4:7]] == [origin + 1] * 3
     assert client.calls[7][1] == origin - 9_999_999
+
+
+def test_runtime_uses_explicitly_approved_remote_inference_result() -> None:
+    origin = 1_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    router = FakeApprovedRouter()
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        inference_router=router,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origin + 100))
+    state = runtime.status(now_ns=origin + 100)
+    asyncio.run(runtime.stop())
+
+    assert state.latest is not None
+    assert state.latest.score == 0.5
+    assert state.latest.inference_target == "server1"
+    assert state.latest.augmentation_approval_id == "approval-001"
+    assert state.latest.execution_mode == "remote"
+    assert state.latest.remote_node == "etri-ser0002-cgnmsb"
+    assert state.latest.total_latency_ms == 4.0
+    assert state.inference_routing.effective_target == "server1"
+    assert router.closed is True
+
+
+def test_shadow_workload_never_authorizes_remote_offload_or_production_commit() -> None:
+    origin = 1_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    router = CapturingRouter()
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1, execution_mode="SHADOW"),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        inference_router=router,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origin + 100))
+    state = runtime.status(now_ns=origin + 100)
+
+    assert router.allow_remote_values == [False]
+    assert state.counters.frames_processed == 0
+    assert state.counters.shadow_frames_processed == 1
+    assert runtime.storage_status().result_count == 0
 
 
 def test_runtime_recovers_pending_acceleration_when_temperature_arrives_late() -> None:
@@ -351,7 +517,7 @@ def test_runtime_does_not_publish_a_result_before_sqlite_commit(monkeypatch) -> 
     def fail_commit(*_, **__) -> None:
         raise RuntimeError("sqlite unavailable")
 
-    monkeypatch.setattr(store, "record_result", fail_commit)
+    monkeypatch.setattr(store, "record_results", fail_commit, raising=False)
     runtime = AnomalyRuntime(
         settings=Settings(warmup_samples=1),
         client=client,
@@ -366,3 +532,83 @@ def test_runtime_does_not_publish_a_result_before_sqlite_commit(monkeypatch) -> 
     assert state.latest is None
     assert state.counters.frames_processed == 0
     asyncio.run(runtime.stop())
+
+
+def test_runtime_keeps_event_loop_responsive_during_slow_sqlite_commit(
+    monkeypatch,
+) -> None:
+    origin = 13_000_000_000
+    client = FakeLocalDataClient(
+        {
+            "x": [AxisSample(origin, "Int32", 3)],
+            "y": [AxisSample(origin, "Int32", 4)],
+            "z": [AxisSample(origin, "Int32", 0)],
+            "temperature": [AxisSample(origin - 10, "Int32", 300)],
+        }
+    )
+    store = ResultStore(":memory:", retention_rows=10)
+
+    def slow_commit(*_, **__) -> None:
+        time.sleep(0.2)
+
+    monkeypatch.setattr(store, "record_results", slow_commit, raising=False)
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        result_store=store,
+    )
+
+    async def run_poll_with_health_tick() -> float:
+        poll_task = asyncio.create_task(runtime.poll_once(now_ns=origin + 100))
+        started_at = asyncio.get_running_loop().time()
+        await asyncio.sleep(0.02)
+        health_tick_delay = asyncio.get_running_loop().time() - started_at
+        await poll_task
+        return health_tick_delay
+
+    health_tick_delay = asyncio.run(run_poll_with_health_tick())
+
+    assert health_tick_delay < 0.1
+
+
+def test_runtime_persists_replayed_results_in_one_sqlite_batch(monkeypatch) -> None:
+    origins = [14_000_000_000, 14_000_000_001, 14_000_000_002]
+    client = FakeLocalDataClient(
+        {
+            axis: [
+                AxisSample(origin, "Int32", index + 1)
+                for index, origin in enumerate(origins)
+            ]
+            for axis in ("x", "y", "z")
+        }
+        | {
+            "temperature": [
+                AxisSample(origin - 10, "Int32", 300 + index)
+                for index, origin in enumerate(origins)
+            ]
+        }
+    )
+    store = ResultStore(":memory:", retention_rows=10)
+    batch_sizes: list[int] = []
+
+    def record_results(results, *, asset_id) -> list:
+        batch_sizes.append(len(results))
+        return []
+
+    def fail_row_commit(*_, **__) -> None:
+        raise AssertionError("runtime used one transaction per result")
+
+    monkeypatch.setattr(store, "record_results", record_results, raising=False)
+    monkeypatch.setattr(store, "record_result", fail_row_commit)
+    runtime = AnomalyRuntime(
+        settings=Settings(warmup_samples=1),
+        client=client,
+        sources=ACCELERATION_SOURCES,
+        result_store=store,
+    )
+
+    asyncio.run(runtime.poll_once(now_ns=origins[-1] + 100))
+
+    assert batch_sizes == [3]
+    assert runtime.status(now_ns=origins[-1] + 100).counters.frames_processed == 3

@@ -37,6 +37,20 @@ func TestDriverPublishesRoutedAsyncValuesAndServesLatestReads(t *testing.T) {
 	require.NoError(t, driver.AddDevice("virtual-temperature-001", testSerialProtocols(), models.AdminState(models.Unlocked)))
 	managed := factory.only(t)
 	require.Eventually(t, managed.isRunning, time.Second, 5*time.Millisecond)
+	assert.Equal(t, defaultSerialReconnectDelays, managed.options.ReconnectDelays)
+	detectedAt := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
+	managed.options.OnRecoveryStarted(detectedAt)
+	managed.options.OnRecovery(RecoveryObservation{
+		DetectedAt: detectedAt,
+		ResumedAt:  detectedAt.Add(75 * time.Millisecond),
+		Duration:   75 * time.Millisecond,
+		Attempts:   2,
+	})
+	recovery := driver.recovery.snapshot()
+	assert.Equal(t, int64(1), recovery.Detected)
+	assert.Equal(t, int64(1), recovery.Completed)
+	require.NotNil(t, recovery.Last)
+	assert.True(t, recovery.Last.WithinTarget)
 
 	managed.options.OnState(models.OperatingState(models.Up))
 	managed.options.OnSample(Sample{
@@ -191,6 +205,28 @@ func TestDriverValidatesDeviceIdentityAndSerialProperties(t *testing.T) {
 	assert.Error(t, driver.ValidateDevice(badPort))
 }
 
+func TestDriverConfiguresOnDemandReadForRecovery(t *testing.T) {
+	asyncValues := make(chan *sdkModels.AsyncValues, 1)
+	sdk := newTestDeviceServiceSDK(t)
+	sdk.On("AsyncReadingsEnabled").Return(true).Once()
+	sdk.On("AsyncValuesChannel").Return(asyncValues).Once()
+	sdk.On("LoggingClient").Return(nil).Once()
+
+	factory := &recordingReaderFactory{}
+	driver := newDriver(factory.create)
+	require.NoError(t, driver.Initialize(sdk))
+	t.Cleanup(func() { require.NoError(t, driver.Stop(false)) })
+	protocols := testSerialProtocols()
+	protocols["serial"]["RecoveryStrategy"] = onDemandReadRecoveryStrategy
+	require.NoError(t, driver.AddDevice("virtual-temperature-001", protocols, models.AdminState(models.Unlocked)))
+
+	reader := factory.only(t)
+	require.NotNil(t, reader.options.RequestDataAfterReconnect)
+	port := newScriptedPort()
+	require.NoError(t, reader.options.RequestDataAfterReconnect(port))
+	assert.Equal(t, [][]byte{[]byte(serialReadCurrentCommand)}, port.written())
+}
+
 func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 	asyncValues := make(chan *sdkModels.AsyncValues, 1)
 	sdk := newTestDeviceServiceSDK(t)
@@ -204,6 +240,9 @@ func TestDriverStartsExistingDeviceAndStopsItWhenLocked(t *testing.T) {
 		Return(nil).
 		Once()
 	sdk.On("AddCustomRoute", statsRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
+		Return(nil).
+		Once()
+	sdk.On("AddCustomRoute", serialRecoveryStatsRoute, interfaces.Unauthenticated, mock.Anything, http.MethodGet).
 		Return(nil).
 		Once()
 	sdk.On("Devices").Return([]models.Device{{
@@ -691,6 +730,8 @@ func TestDriverUsesConfiguredCacheAndRegistersMetrics(t *testing.T) {
 		localDataCacheMaxAgeConfig:     "30s",
 		localDataCacheMaxSamplesConfig: "2",
 		localDataCacheMaxBytesConfig:   "4096",
+		serialRecoveryTargetConfig:     "350ms",
+		serialReconnectDelaysConfig:    "10ms,20ms,100ms",
 	}).Once()
 	sdk.On("LoggingClient").Return(nil).Once()
 
@@ -701,6 +742,11 @@ func TestDriverUsesConfiguredCacheAndRegistersMetrics(t *testing.T) {
 		localDataCacheSeriesMetric,
 		localDataCacheAllocatedBytesMetric,
 		localDataCacheEvictionsMetric,
+		serialRecoveryDetectedMetric,
+		serialRecoveryCompletedMetric,
+		serialRecoveryLastDurationMsMetric,
+		serialRecoveryLastAttemptsMetric,
+		serialRecoveryTargetMissesMetric,
 	} {
 		metricName := name
 		manager.On("Register", metricName, mock.Anything, mock.Anything).
@@ -720,6 +766,12 @@ func TestDriverUsesConfiguredCacheAndRegistersMetrics(t *testing.T) {
 	assert.Equal(t, 30*time.Second, stats.MaxAge)
 	assert.Equal(t, 2, stats.MaxSamplesPerSeries)
 	assert.Equal(t, int64(4096), stats.MaxBytes)
+	assert.Equal(t, 350*time.Millisecond, driver.recovery.target)
+	assert.Equal(t, []time.Duration{
+		10 * time.Millisecond,
+		20 * time.Millisecond,
+		100 * time.Millisecond,
+	}, driver.retryDelays)
 
 	for origin := int64(1); origin <= 3; origin++ {
 		driver.cache.append("device", "resource", cachedSample{

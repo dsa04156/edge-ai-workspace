@@ -140,6 +140,15 @@ const EXAMPLE_WORKFLOWS = {
 };
 
 const state = { workflow: clone(EXAMPLE_WORKFLOWS["factory-anomaly-detection"]), nodes: COMPUTE_NODES, endpoints: PLATFORM_ENDPOINTS, devices: INPUT_DEVICES, planFormat: "json", apiMode: "example mode", selectedStage: "" };
+const DYNAMIC_LAB_GUARDRAILS = [
+  "experimental read-only dry-run only",
+  "no Kubernetes apply/delete/restart",
+  "no MQTT command publish",
+  "no actuator command",
+  "no Device CR mutation",
+  "no runtime migration/offloading execution",
+  "no autonomous platform control",
+];
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function $(id) { return document.getElementById(id); }
@@ -333,10 +342,120 @@ function validateWorkflowPlan(workflow, nodes = COMPUTE_NODES, endpoints = PLATF
   return { status: results.some((item) => item.level === "FAIL") ? "FAIL" : results.some((item) => item.level === "WARN") ? "WARN" : "PASS", results };
 }
 
+function buildDynamicLabCurrentStateSummary(targetState = state) {
+  const workflow = targetState.workflow || {};
+  return {
+    title: "Experimental Dynamic Workflow Lab",
+    apiMode: targetState.apiMode || "example mode",
+    serviceName: workflow.serviceName || "-",
+    mode: workflow.mode || "dry-run",
+    counts: {
+      inputDevices: (workflow.inputDevices || []).length,
+      stages: (workflow.stages || []).length,
+      placements: (workflow.placements || []).length,
+      computeNodes: (targetState.nodes || []).length,
+      devices: (targetState.devices || []).length,
+      endpoints: (targetState.endpoints || []).length,
+    },
+    guardrails: [...DYNAMIC_LAB_GUARDRAILS],
+  };
+}
+
+function buildGeneratedWorkflowProposal(workflow = state.workflow) {
+  return {
+    source: "selected example workflow",
+    mode: "proposal-only dry-run",
+    serviceName: workflow.serviceName || "-",
+    summary: workflow.description || "",
+    inputDevices: [...(workflow.inputDevices || [])],
+    stageSequence: (workflow.stages || []).map((stage) => ({ stage: stage.name, type: stage.type, input: stage.input || "", output: stage.output || "" })),
+    endpoints: [...(workflow.endpoints || [])],
+  };
+}
+
+function placementReason(stage, node) {
+  const type = `${stage.type || ""} ${stage.name || ""}`.toLowerCase();
+  if (!node) return "No target node selected in the dry-run placement model.";
+  if (type.includes("inference")) return `${node.label || node.name} is selected because inference stages prefer accelerator-capable targets when available.`;
+  if (type.includes("collect") || type.includes("input") || type.includes("preprocess")) return `${node.label || node.name} keeps input-adjacent or preprocessing work close to edge devices in this dry-run.`;
+  if (type.includes("sink") || type.includes("output") || type.includes("publish")) return `${node.label || node.name} is the platform-facing dry-run target for output or sink routing.`;
+  return `${node.label || node.name} matches the current deterministic stage assignment.`;
+}
+
+function buildDynamicPlacementPlan(workflow = state.workflow, nodes = COMPUTE_NODES) {
+  const nodeMap = computeNodeByName(nodes);
+  const placementMap = placementByStage(workflow);
+  return (workflow.stages || []).map((stage) => {
+    const targetNode = (placementMap.get(stage.name) || {}).targetNode || "";
+    const node = nodeMap.get(targetNode);
+    return { stage: stage.name, targetNode, targetLabel: nodeLabel(targetNode, nodes), reason: placementReason(stage, node) };
+  });
+}
+
+function buildDynamicLabCanvasModel(workflow = state.workflow, nodes = COMPUTE_NODES) {
+  const stages = workflow.stages || [];
+  const placementMap = placementByStage(workflow);
+  const nodeWidth = 250;
+  const nodeHeight = 132;
+  const stageWidth = 190;
+  const stageHeight = 88;
+  const stageGap = 34;
+  const stageStartX = 46;
+  const stageTopY = 72;
+  const stageBottomY = 206;
+  const nodeY = 438;
+  const nodeGap = 42;
+  const canvasWidth = Math.max(1120, stageStartX + stages.length * (stageWidth + stageGap) + 64, 58 + nodes.length * (nodeWidth + nodeGap) + 58);
+  const canvasHeight = 620;
+  const stageModels = stages.map((stage, index) => {
+    const targetNode = (placementMap.get(stage.name) || {}).targetNode || "";
+    return {
+      id: `dynamic-stage:${stage.name}`,
+      name: stage.name,
+      type: stage.type || "stage",
+      input: stage.input || "",
+      output: stage.output || "",
+      requiredResource: stage.requiredResource || "",
+      targetNode,
+      targetLabel: nodeLabel(targetNode, nodes),
+      x: stageStartX + index * (stageWidth + stageGap),
+      y: index % 2 === 0 ? stageTopY : stageBottomY,
+      width: stageWidth,
+      height: stageHeight,
+    };
+  });
+  const nodeModels = nodes.map((node, index) => ({
+    id: `dynamic-node:${node.name}`,
+    name: node.name,
+    label: node.label || node.name,
+    role: node.role || "compute",
+    arch: node.arch || "",
+    type: node.type || "",
+    accelerator: node.accelerator || "",
+    availableFor: [...(node.availableFor || [])],
+    x: 58 + index * (nodeWidth + nodeGap),
+    y: nodeY,
+    width: nodeWidth,
+    height: nodeHeight,
+  }));
+  const nodeModelByName = new Map(nodeModels.map((node) => [node.name, node]));
+  const edges = stageModels.map((stage) => {
+    const target = nodeModelByName.get(stage.targetNode);
+    return target ? { from: stage.id, to: target.id, stage: stage.name, targetNode: target.name } : null;
+  }).filter(Boolean);
+  return { stages: stageModels, nodes: nodeModels, edges, width: canvasWidth, height: canvasHeight };
+}
+
+
+function buildDynamicLabDryRunValidation(workflow = state.workflow, nodes = COMPUTE_NODES, endpoints = PLATFORM_ENDPOINTS, devices = INPUT_DEVICES) {
+  const validation = validateWorkflowPlan(workflow, nodes, endpoints, devices);
+  return { status: validation.status, mode: "read-only dry-run validation", guardrails: [...DYNAMIC_LAB_GUARDRAILS], results: validation.results.map((item) => ({ ...item })) };
+}
+
 function normalizeLiveNodes(dashboardPayload) { return COMPUTE_NODES.map((node) => ({ ...node, live: ((dashboardPayload && dashboardPayload.nodes) || []).some((item) => item.name === node.name) })); }
 function normalizeLiveDevices(dashboardPayload) { return ((dashboardPayload && dashboardPayload.devices) || []).map((device) => ({ name: device.name, nodeName: device.node_name || device.nodeName, status: device.overall_status || device.status })); }
 
-function render() { if (typeof document === "undefined") return; renderServices(); renderDag(); renderPlacement(); renderTransport(); renderPlan(); renderValidation(); renderApiMode(); renderSummary(); }
+function render() { if (typeof document === "undefined") return; renderServices(); renderDag(); renderPlacement(); renderTransport(); renderPlan(); renderValidation(); renderApiMode(); renderSummary(); renderDynamicLab(); }
 function renderSummary() {
   if (typeof document === "undefined") return;
   const validation = validateWorkflowPlan(state.workflow, state.nodes, state.endpoints, state.devices);
@@ -392,11 +511,119 @@ function levelClass(level) { return String(level || "PASS").toLowerCase(); }
 function renderValidation() { const root = $("validationResult"); if (!root) return; const validation = validateWorkflowPlan(state.workflow, state.nodes, state.endpoints, state.devices); const status = $("validationStatus"); if (status) { status.textContent = validation.status; status.className = `status-pill ${levelClass(validation.status)}`; } root.innerHTML = validation.results.map((item) => `<li class="validation-item ${levelClass(item.level)}"><strong>${item.level}</strong><span>${item.message}</span></li>`).join(""); }
 function renderApiMode() { const root = $("apiMode"); if (root) root.textContent = state.apiMode; }
 
+function dynamicItem(label, value) { return `<li class="dynamic-item"><strong>${label}</strong><span>${value}</span></li>`; }
+
+function dynamicEdgePath(from, to) {
+  const x1 = from.x + (from.width || 0) / 2;
+  const y1 = from.y + (from.height || 0);
+  const x2 = to.x + (to.width || 0) / 2;
+  const y2 = to.y;
+  const midY = y1 + Math.max(76, (y2 - y1) * 0.44);
+  return { d: `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`, labelX: (x1 + x2) / 2, labelY: midY - 8 };
+}
+
+function renderDynamicLabCanvas(model) {
+  const canvas = $("dynamicWorkflowCanvas");
+  const edgeRoot = $("dynamicCanvasEdges");
+  const stageRoot = $("dynamicStageLayer");
+  const nodeRoot = $("dynamicNodeDropLayer");
+  if (!canvas || !edgeRoot || !stageRoot || !nodeRoot) return;
+  const surface = canvas.querySelector(".dynamic-canvas-surface");
+  if (surface) { surface.style.width = `${model.width}px`; surface.style.height = `${model.height}px`; }
+  edgeRoot.setAttribute("width", String(model.width));
+  edgeRoot.setAttribute("height", String(model.height));
+  edgeRoot.setAttribute("viewBox", `0 0 ${model.width} ${model.height}`);
+  edgeRoot.style.width = `${model.width}px`;
+  edgeRoot.style.height = `${model.height}px`;
+  const stageMap = new Map(model.stages.map((stage) => [stage.id, stage]));
+  const nodeMap = new Map(model.nodes.map((node) => [node.id, node]));
+  edgeRoot.innerHTML = model.edges.map((edge) => {
+    const from = stageMap.get(edge.from);
+    const to = nodeMap.get(edge.to);
+    if (!from || !to) return "";
+    const path = dynamicEdgePath(from, to);
+    return `<path d="${path.d}"></path><text x="${path.labelX}" y="${path.labelY}">${edge.stage} -> ${edge.targetNode}</text>`;
+  }).join("");
+  stageRoot.innerHTML = model.stages.map((stage) => `<article class="dynamic-stage-node type-${stageTypeClass(stage.type)} ${state.selectedStage === stage.name ? "selected" : ""}" draggable="true" data-dynamic-stage="${stage.name}" style="left:${stage.x}px;top:${stage.y}px;width:${stage.width}px;min-height:${stage.height}px" title="Drag this stage onto a compute-node drop zone inside the lab canvas"><strong>${stage.name}</strong><span>${stage.type}</span><small>in ${stage.input || "-"} -> out ${stage.output || "-"}</small><small>now ${stage.targetLabel}</small></article>`).join("");
+  nodeRoot.innerHTML = model.nodes.map((node) => `<article class="dynamic-node-drop-zone ${state.selectedStage ? "click-target" : ""}" data-dynamic-node="${node.name}" style="left:${node.x}px;top:${node.y}px;width:${node.width}px;min-height:${node.height}px" title="Drop a Dynamic Lab stage here"><strong>${node.label}</strong><small>${node.name}</small><div class="node-loadout"><span>${node.arch}</span><span>${node.type}</span><span>${node.accelerator}</span></div><em>${state.selectedStage ? `${state.selectedStage} dry-run placement` : "Drop stage node here"}</em></article>`).join("");
+}
+
+function renderDynamicLab() {
+  const currentRoot = $("dynamicCurrentState");
+  const guardrailsRoot = $("dynamicCurrentGuardrails");
+  const proposalRoot = $("dynamicWorkflowProposal");
+  const placementRoot = $("dynamicPlacementPlan");
+  const validationRoot = $("dynamicDryRunValidation");
+  if (!currentRoot || !proposalRoot || !placementRoot || !validationRoot) return;
+  const current = buildDynamicLabCurrentStateSummary(state);
+  const proposal = buildGeneratedWorkflowProposal(state.workflow);
+  const placement = buildDynamicPlacementPlan(state.workflow, state.nodes);
+  const validation = buildDynamicLabDryRunValidation(state.workflow, state.nodes, state.endpoints, state.devices);
+  const canvasModel = buildDynamicLabCanvasModel(state.workflow, state.nodes);
+
+  renderDynamicLabCanvas(canvasModel);
+  currentRoot.innerHTML = `
+    <div class="lab-stat"><span class="lab-stat-value">${state.workflow.stages?.length || 0}</span><span class="lab-stat-label">Stages</span></div>
+    <div class="lab-stat"><span class="lab-stat-value">${state.nodes?.length || 0}</span><span class="lab-stat-label">Compute Nodes</span></div>
+    <div class="lab-stat"><span class="lab-stat-value">${state.devices?.length || 0}</span><span class="lab-stat-label">Devices</span></div>
+    <div class="lab-stat"><span class="lab-stat-value">${state.endpoints?.length || 0}</span><span class="lab-stat-label">Endpoints</span></div>
+    <div class="lab-stat"><span class="lab-stat-value">${state.workflow.inputDevices?.length || 0}</span><span class="lab-stat-label">Input Devices</span></div>
+    <div class="lab-stat"><span class="lab-stat-value">${current.counts.placements}</span><span class="lab-stat-label">Placements</span></div>
+  `;
+  if (guardrailsRoot) guardrailsRoot.innerHTML = current.guardrails.map((guardrail) => `<li class="guardrail-item">${guardrail}</li>`).join("");
+
+  proposalRoot.innerHTML = `
+    <div class="lab-flow-item"><span class="flow-key">Service</span><span class="flow-val">${state.workflow.serviceName || "-"} · ${state.workflow.mode}</span></div>
+    <div class="lab-flow-item"><span class="flow-key">Inputs</span><span class="flow-val">${proposal.inputDevices.join(", ") || "-"}</span></div>
+    <div class="lab-flow-item" style="flex-direction:column;align-items:stretch;"><span class="flow-key">Stage Flow</span><div class="stage-flow">${proposal.stageSequence.map((stage) => `<span class="stage-pill ${stageTypeClass(stage.type)}">${stage.stage}</span>`).join(`<span class="stage-arrow">›</span>`)}${proposal.stageSequence.length ? "" : `<span class="stage-pill">none</span>`}</div></div>
+    <div class="lab-flow-item"><span class="flow-key">Endpoints</span><span class="flow-val">${proposal.endpoints.join(", ") || "-"}</span></div>
+  `;
+
+  placementRoot.innerHTML = placement.map((item) => `<article class="placement-card"><span class="pc-stage">${item.stage}</span><span class="pc-node"><span class="pc-node-dot"></span>${item.targetLabel}</span><span class="pc-reason">${item.reason}</span></article>`).join("");
+
+  const statusEl = $("dynamicValidationStatus");
+  if (statusEl) { statusEl.textContent = validation.status; statusEl.className = `status-pill ${levelClass(validation.status)}`; }
+  validationRoot.innerHTML = validation.results.map((item) => {
+    const icon = item.level === "PASS" ? "✓" : item.level === "WARN" ? "!" : "✕";
+    return `<div class="valid-item ${levelClass(item.level)}"><span class="valid-icon">${icon}</span><div><span class="valid-msg">${item.message}</span><span class="valid-rule">${item.rule}</span></div></div>`;
+  }).join("");
+}
+
+function rebindPlacementCards() {
+  if (typeof document === "undefined") return;
+  document.querySelectorAll("[data-placement-stage]").forEach((card) => {
+    card.addEventListener("dragstart", (e) => {
+      selectStageForPlacement(state, card.dataset.placementStage);
+      card.classList.add("selected");
+      if (e.dataTransfer) { e.dataTransfer.setData("text/plain", card.dataset.placementStage); e.dataTransfer.effectAllowed = "move"; }
+    });
+    card.addEventListener("dragend", () => { card.classList.remove("selected"); });
+    card.addEventListener("dragover", (e) => { e.preventDefault(); card.classList.add("drag-over"); });
+    card.addEventListener("dragleave", (e) => { if (!card.contains(e.relatedTarget)) card.classList.remove("drag-over"); });
+    card.addEventListener("drop", (e) => {
+      e.preventDefault();
+      card.classList.remove("drag-over");
+      const targetNode = card.querySelector(".pc-node")?.textContent?.trim() || "";
+      const node = state.nodes.find((n) => (n.label || n.name) === targetNode || n.name === targetNode);
+      if (node) {
+        const stage = e.dataTransfer?.getData("text/plain") || state.selectedStage;
+        state.workflow = applyStagePlacement(state.workflow, stage, node.name);
+        state.selectedStage = "";
+        render();
+      }
+    });
+  });
+}
+
 function bindDomEvents() {
   if (typeof document === "undefined") return;
   document.addEventListener("click", (event) => {
     const serviceButton = event.target.closest("[data-service]");
     if (serviceButton) { state.workflow = clone(EXAMPLE_WORKFLOWS[serviceButton.dataset.service]); state.selectedStage = ""; render(); return; }
+    const dynamicStage = event.target.closest("[data-dynamic-stage]");
+    if (dynamicStage) { selectStageForPlacement(state, dynamicStage.dataset.dynamicStage); renderDynamicLab(); return; }
+    const dynamicNodeTarget = event.target.closest("[data-dynamic-node]");
+    if (dynamicNodeTarget && state.selectedStage) { state.workflow = assignSelectedStageToNode(state.workflow, state, dynamicNodeTarget.dataset.dynamicNode); render(); return; }
     const placementRow = event.target.closest("[data-stage]");
     if (placementRow && !event.target.closest("select")) { selectStageForPlacement(state, placementRow.dataset.stage); renderPlacement(); return; }
     const nodeTarget = event.target.closest("[data-node]");
@@ -405,11 +632,57 @@ function bindDomEvents() {
     if (formatButton) { state.planFormat = formatButton.dataset.format; document.querySelectorAll("[data-format]").forEach((btn) => btn.classList.toggle("selected", btn.dataset.format === state.planFormat)); renderPlan(); }
   });
   document.addEventListener("change", (event) => { const select = event.target.closest("[data-placement-stage]"); if (!select) return; state.workflow = applyStagePlacement(state.workflow, select.dataset.placementStage, select.value); render(); });
-  document.addEventListener("dragstart", (event) => { const row = event.target.closest("[data-stage]"); if (!row || event.target.closest("select")) return; selectStageForPlacement(state, row.dataset.stage); row.classList.add("selected"); document.querySelectorAll("[data-node]").forEach((item) => item.classList.add("click-target")); if (event.dataTransfer) { event.dataTransfer.setData("text/plain", row.dataset.stage); event.dataTransfer.effectAllowed = "move"; } });
+  document.addEventListener("dragstart", (event) => {
+    const dynamicStage = event.target.closest("[data-dynamic-stage]");
+    if (dynamicStage) {
+      selectStageForPlacement(state, dynamicStage.dataset.dynamicStage);
+      dynamicStage.classList.add("selected");
+      document.querySelectorAll("[data-dynamic-node]").forEach((item) => item.classList.add("click-target"));
+      if (event.dataTransfer) { event.dataTransfer.setData("text/plain", dynamicStage.dataset.dynamicStage); event.dataTransfer.effectAllowed = "move"; }
+      return;
+    }
+    const row = event.target.closest("[data-stage]");
+    if (!row || event.target.closest("select")) return;
+    selectStageForPlacement(state, row.dataset.stage);
+    row.classList.add("selected");
+    document.querySelectorAll("[data-node]").forEach((item) => item.classList.add("click-target"));
+    if (event.dataTransfer) { event.dataTransfer.setData("text/plain", row.dataset.stage); event.dataTransfer.effectAllowed = "move"; }
+  });
   document.addEventListener("dragend", () => { document.querySelectorAll(".drop-target").forEach((item) => item.classList.remove("drop-target")); });
-  document.addEventListener("dragover", (event) => { const target = event.target.closest("[data-node]"); if (!target) return; event.preventDefault(); target.classList.add("drop-target"); });
-  document.addEventListener("dragleave", (event) => { const target = event.target.closest("[data-node]"); if (target && !target.contains(event.relatedTarget)) target.classList.remove("drop-target"); });
-  document.addEventListener("drop", (event) => { const target = event.target.closest("[data-node]"); if (!target) return; event.preventDefault(); const stage = event.dataTransfer ? event.dataTransfer.getData("text/plain") : state.selectedStage; state.workflow = applyStagePlacement(state.workflow, stage || state.selectedStage, target.dataset.node); state.selectedStage = ""; document.querySelectorAll(".drop-target").forEach((item) => item.classList.remove("drop-target")); render(); });
+  document.addEventListener("dragover", (event) => {
+    const dynamicTarget = event.target.closest("[data-dynamic-node]");
+    if (dynamicTarget) { event.preventDefault(); dynamicTarget.classList.add("drop-target"); return; }
+    const target = event.target.closest("[data-node]");
+    if (!target) return;
+    event.preventDefault();
+    target.classList.add("drop-target");
+  });
+  document.addEventListener("dragleave", (event) => {
+    const dynamicTarget = event.target.closest("[data-dynamic-node]");
+    if (dynamicTarget && !dynamicTarget.contains(event.relatedTarget)) { dynamicTarget.classList.remove("drop-target"); return; }
+    const target = event.target.closest("[data-node]");
+    if (target && !target.contains(event.relatedTarget)) target.classList.remove("drop-target");
+  });
+  document.addEventListener("drop", (event) => {
+    const dynamicTarget = event.target.closest("[data-dynamic-node]");
+    if (dynamicTarget) {
+      event.preventDefault();
+      const stage = event.dataTransfer ? event.dataTransfer.getData("text/plain") : state.selectedStage;
+      if (stage || state.selectedStage) state.workflow = applyStagePlacement(state.workflow, stage || state.selectedStage, dynamicTarget.dataset.dynamicNode);
+      state.selectedStage = "";
+      document.querySelectorAll(".drop-target").forEach((item) => item.classList.remove("drop-target"));
+      render();
+      return;
+    }
+    const target = event.target.closest("[data-node]");
+    if (!target) return;
+    event.preventDefault();
+    const stage = event.dataTransfer ? event.dataTransfer.getData("text/plain") : state.selectedStage;
+    state.workflow = applyStagePlacement(state.workflow, stage || state.selectedStage, target.dataset.node);
+    state.selectedStage = "";
+    document.querySelectorAll(".drop-target").forEach((item) => item.classList.remove("drop-target"));
+    render();
+  });
 }
 
 async function fetchJson(url) { const response = await fetch(url, { cache: "no-store" }); if (!response.ok) throw new Error(`${url} ${response.status}`); return response.json(); }
@@ -423,4 +696,4 @@ async function tryLoadStateAggregator() {
 }
 function init() { bindDomEvents(); render(); tryLoadStateAggregator(); }
 if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", init);
-if (typeof module !== "undefined") module.exports = { COMPUTE_NODES, NODE_POOL, PLATFORM_ENDPOINTS, INPUT_DEVICES, EXAMPLE_WORKFLOWS, buildExecutionPlan, toYaml, applyStagePlacement, selectStageForPlacement, assignSelectedStageToNode, rectanglesOverlap, buildWorkflowDagModel, buildPlacementModel, buildTransportModel, validateWorkflowPlan, normalizeLiveNodes, normalizeLiveDevices };
+if (typeof module !== "undefined") module.exports = { COMPUTE_NODES, NODE_POOL, PLATFORM_ENDPOINTS, INPUT_DEVICES, EXAMPLE_WORKFLOWS, DYNAMIC_LAB_GUARDRAILS, buildExecutionPlan, toYaml, applyStagePlacement, selectStageForPlacement, assignSelectedStageToNode, rectanglesOverlap, buildWorkflowDagModel, buildPlacementModel, buildTransportModel, validateWorkflowPlan, buildDynamicLabCurrentStateSummary, buildGeneratedWorkflowProposal, buildDynamicPlacementPlan, buildDynamicLabCanvasModel, buildDynamicLabDryRunValidation, normalizeLiveNodes, normalizeLiveDevices };

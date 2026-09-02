@@ -31,6 +31,14 @@ def test_catalog_records_serial_deploy_path_and_external_runtime(catalog):
         "jetson-arduino-serial-001",
         "raspi5-mpu6050-serial-001",
     ]
+    assert serial.hardware_bindings[0].host_device_path == "/run/edgeai/devices"
+    assert serial.hardware_bindings[0].approved_discovery_path == (
+        "/dev/serial/by-id/"
+        "usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00"
+    )
+    assert serial.hardware_bindings[0].container_device_path == "/dev/edgeai"
+    assert serial.hardware_bindings[0].device_type == "Directory"
+    assert serial.hardware_bindings[0].mount_read_only is True
     assert serial.hardware_bindings[1].node_name == "etri-dev0003-raspi5"
     assert serial.hardware_bindings[1].host_device_path == (
         "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"

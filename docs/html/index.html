@@ -3,56 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KubeEdge PoC 문서 HTML 보기</title>
+  <title>Edge AI 플랫폼 문서</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
+  <nav class="home-nav" aria-label="문서 사이트">
+    <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+    <div>
+      <span class="status-dot">운영 문서</span>
+      <a href="/__edit">문서 편집</a>
+    </div>
+  </nav>
   <main class="home">
     <article class="home-card">
-      <header class="home-hero">
-        <p class="eyebrow">KubeEdge Edge AI PoC</p>
-        <h1>문서 HTML 보기</h1>
-        <p class="subtitle">
-          기존 <code>docs/*.md</code> 문서를 브라우저에서 읽기 좋게 변환한 정적 HTML 목록이다.
-          원본 Markdown은 그대로 유지하고, 이 디렉터리는 읽기용 산출물로 재생성할 수 있다.
-        </p>
-        <div class="meta">
-          <span class="badge kind">Wiki 우선</span>
-          <span class="badge">운영자 기준</span>
-          <span class="badge">Markdown 원본 유지</span>
-          <span class="badge">정적 HTML</span>
-          <span class="badge">HTML 생성: 2026-08-04 14:24</span>
-          <a class="badge edit-badge" href="/__edit">문서 편집 열기</a>
+      <header class="home-hero-grid">
+        <div class="home-hero">
+          <p class="eyebrow">KUBEEDGE · EDGEX · GITOPS</p>
+          <h1>Edge AI 플랫폼 문서</h1>
+          <p class="subtitle">
+            현장 디바이스 연결부터 AI 서비스 배포·검증까지, 지금 운영하는 구조만 설명합니다.
+          </p>
+          <a class="hero-link" href="플랫폼-개요.html">현재 아키텍처 보기 →</a>
         </div>
+        <figure class="hero-visual">
+          <img src="../assets/images/플랫폼-개념-비주얼-v2.png" alt="공장 설비와 엣지 컴퓨터, 중앙 플랫폼이 연결된 Edge AI 개념도">
+        </figure>
       </header>
-      <section class="home-intro" aria-label="문서 정리 기준">
-  <a class="intro-card primary" href="wiki/지식-지도.html">
-    <strong>지식 지도</strong>
-    <span>질문이 있을 때 먼저 읽고 최신 원본문서로 이동합니다.</span>
+      <div class="section-kicker"><span>START HERE</span><h2>무엇을 하시나요?</h2></div>
+      <section class="home-intro" aria-label="빠른 시작">
+  <a class="intro-card primary" href="펌프-모터-이상감지-서비스.html">
+    <small>01 · SERVICE</small>
+    <strong>현재 서비스 이해하기</strong>
+    <span>이상감지 입력, 판단 결과와 알림 흐름을 설명합니다.</span>
+  </a>
+  <a class="intro-card" href="ops/대시보드-배포.html">
+    <small>02 · DEPLOY</small>
+    <strong>대시보드 배포하기</strong>
+    <span>Git push, Argo CD, Traefik 검증 절차를 확인합니다.</span>
+  </a>
+  <a class="intro-card" href="ops/현재-데모-운영-절차.html">
+    <small>03 · OPERATE</small>
+    <strong>현재 데모 운영하기</strong>
+    <span>EdgeX 수집부터 대시보드까지 운영 상태를 점검합니다.</span>
   </a>
   <a class="intro-card" href="프로젝트-범위.html">
+    <small>04 · SCOPE</small>
     <strong>프로젝트 범위</strong>
-    <span>현재 구현, 2차년도 설계, 레거시·보관 경계를 판단하는 최우선 기준입니다.</span>
-  </a>
-  <a class="intro-card" href="문서-정리-계획.html">
-    <strong>문서 정리 기준</strong>
-    <span>최신 기준과 운영 문서를 먼저 보고 설계 이력과 보관 자료는 필요할 때만 확인합니다.</span>
+    <span>현재 구현과 2차년도 목표, 레거시 경계를 구분합니다.</span>
   </a>
 </section>
       <div class="home-search">
-        <section class="search-panel" aria-label="문서 전체 검색">
+        <section class="search-panel" aria-label="공개 문서 검색">
   <div class="search-head">
-    <strong>문서 전체 검색</strong>
+    <strong>공개 문서 검색</strong>
     <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
   </div>
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
-      <button type="button" data-search-filter="wiki">위키</button>
-      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
       <button type="button" data-search-filter="ops">운영</button>
-      <button type="button" data-search-filter="history">설계 이력</button>
-      <button type="button" data-search-filter="archive">보관</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
     </div>
     <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
     <div id="doc-search-results" class="search-results" aria-live="polite"></div>
@@ -61,108 +75,25 @@
 </section>
       </div>
       <div class="home-body">
-        <h2 class="section-title">위키</h2><ul class="card-grid"><li><a class="doc-card" href="wiki/지식-지도.html"><strong>쿠버엣지 PoC 지식 지도</strong><span>이 위키는 센서 엣지 원시 텔레메트리, 중앙 EdgeX 데이터 플레인, KubeEdge 노드·워크로드 관리, 운영 대시보드 문서…</span><small>수정: 2026-08-03 17:06</small></a></li>
-<li><a class="doc-card" href="wiki/운영-규칙.html"><strong>위키 운영 규칙</strong><span>docs/wiki/는 KubeEdge 기반 혼합 디바이스 엣지 AI PoC 문서를 위한 LLM 유지형 지식 지도다. 기존 doc…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="wiki/변경-기록.html"><strong>위키 변경 기록</strong><span>이 파일은 append-only로 유지한다. ingest, query, lint 과정에서 wiki가 어떻게 바뀌었는지 기록한다.</span><small>수정: 2026-08-03 17:39</small></a></li>
-<li><a class="doc-card" href="wiki/운영-모델.html"><strong>운영 모델</strong><span>현재 시스템은 중앙 EdgeX Core·PostgreSQL과 KubeEdge 노드·워크로드 관리 기반을 유지한 채, 정식 Edg…</span><small>수정: 2026-08-03 16:26</small></a></li>
-<li><a class="doc-card" href="wiki/현재-데모-흐름.html"><strong>현재 데모 흐름 요약</strong><span>중앙 EdgeX는 유지되고 기존 custom edge Agent는 퇴역했다. 현재 Jetson Arduino Serial과 Ra…</span><small>수정: 2026-07-30 17:00</small></a></li>
-<li><a class="doc-card" href="wiki/상태와-텔레메트리.html"><strong>상태와 텔레메트리</strong><span>현재 physical-device 상태는 EdgeX Core Metadata 관리 상태와 Core Data 최신 Event/Re…</span><small>수정: 2026-07-30 14:08</small></a></li>
-<li><a class="doc-card" href="wiki/대시보드와-kpi.html"><strong>대시보드와 KPI 모델</strong><span>Dashboard는 EdgeX Core Metadata inventory/management state와 Core Data 최신…</span><small>수정: 2026-07-30 19:45</small></a></li>
-<li><a class="doc-card" href="wiki/운영-진입점.html"><strong>운영 진입점</strong><span>운영자는 Jetson Serial/Raspberry Pi I2C Device Service, Jetson sensor-anoma…</span><small>수정: 2026-08-03 14:29</small></a></li>
-<li><a class="doc-card" href="wiki/2차년도-설계-트랙.html"><strong>2차년도 설계 트랙</strong><span>2차년도는 옥동 PLC·MES·센서 데이터를 활용한 생산품질 판별과 유압펌프·모터 이상감지 서비스 2종을 중심으로 데이터 수집,…</span><small>수정: 2026-08-03 17:06</small></a></li></ul><h2 class="section-title">최신 기준 문서</h2><ul class="card-grid"><li><a class="doc-card" href="문서-안내.html"><strong>문서 안내</strong><span>이 디렉터리는 EdgeX 기반 물리 디바이스 관리와 KubeEdge 기반 엣지 노드·워크로드 관리를 결합한 엣지 AI 플랫폼 P…</span><small>수정: 2026-08-04 13:51</small></a></li>
-<li><a class="doc-card" href="시스템-구축-목표.html"><strong>시스템 구축 목표</strong><span>EdgeX 기반 물리 디바이스와 KubeEdge 기반 edge node/workload를 결합한 엣지 AI PoC에서 흔들리지…</span><small>수정: 2026-08-03 16:26</small></a></li>
-<li><a class="doc-card" href="프로젝트-배경.html"><strong>프로젝트 배경</strong><span>현재 단계는 혼합 디바이스 엣지 AI 플랫폼의 전체 동적 오케스트레이션을 먼저 완성하는 단계가 아니라, 디바이스와 서비스를 실제…</span><small>수정: 2026-08-03 16:26</small></a></li>
-<li><a class="doc-card" href="프로젝트-범위.html"><strong>프로젝트 범위</strong><span>현재 PoC에서 무엇을 구현 범위로 볼지, 무엇을 현재 연구 방향에서 제외할지 정리한다. 레포 안에는 현재 구현물, 과거 실험,…</span><small>수정: 2026-08-04 13:51</small></a></li>
-<li><a class="doc-card" href="원시-텔레메트리-데이터-플레인.html"><strong>원시 텔레메트리 데이터 플레인</strong><span>2026-07-22 Agent 퇴역 이후의 현재 기준을 설명한다. 이전 Protocol Adapter → edge-telemet…</span><small>수정: 2026-07-30 17:00</small></a></li>
-<li><a class="doc-card" href="서비스-데모-시나리오.html"><strong>서비스 데모 시나리오</strong><span>기존 MQTT 기반 Sense HAT Agent 데모는 2026-07-21 퇴역했다. 현재 소스의 서비스 데모는 Jetson A…</span><small>수정: 2026-08-03 14:33</small></a></li>
-<li><a class="doc-card" href="옥동-생산성-kpi.html"><strong>옥동 생산성 KPI</strong><span>&gt; 현재 실증 표본: 기존 MQTT/Agent 기반 sensehat-001 fixture는 퇴역했다. 현재 KPI 표본은 Jet…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="카젠티-운영-보조-에이전트.html"><strong>카젠티 운영 보조 에이전트</strong><span>&gt; 현재 상태: 2026-07-21 custom edge Agent와 aggregate sensehat-001 bootstrap…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="2차년도-가상디바이스-워크플로-설계.html"><strong>2차년도 가상디바이스·워크플로 설계</strong><span>docs/단계별-추진계획.md의 별첨 기술 설계다. 2차년도 옥동 PoC는 현재 확보된 PLC·MES·센서 데이터를 활용한 생산…</span><small>수정: 2026-08-03 16:26</small></a></li>
-<li><a class="doc-card" href="대시보드-정보-구조.html"><strong>대시보드 정보 구조</strong><span>엣지 AI 서버, 현장 엣지 노드, 논리 자원과 EdgeX 센서 endpoint를 구분하는 운영 dashboard 정보 구조를…</span><small>수정: 2026-08-04 13:51</small></a></li>
-<li><a class="doc-card" href="대시보드-판단-정책.html"><strong>대시보드 판단 정책</strong><span>대시보드는 현장 센서·PLC·카메라 endpoint에 EdgeX를 단일 authority로 사용한다.</span><small>수정: 2026-08-04 14:21</small></a></li>
-<li><a class="doc-card" href="물리-디바이스-상태-정책.html"><strong>물리 디바이스 상태 정책</strong><span>물리 디바이스의 inventory, state, telemetry, command에 대한 권위는 EdgeX다.</span><small>수정: 2026-07-24 16:28</small></a></li>
-<li><a class="doc-card" href="쿠버엣지-엣지엑스-모델-매핑.html"><strong>쿠버엣지-엣지엑스 모델 매핑</strong><span>legacy KubeEdge/MapperFramework 모델을 EdgeX로 이관할 때 참고할 resource 대응 관계를 정리…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="디바이스-서비스-연결.html"><strong>디바이스-서비스 연결</strong><span>Core Data telemetry freshness는 latest Event의 nanosecond origin을 sample…</span><small>수정: 2026-07-30 20:35</small></a></li>
-<li><a class="doc-card" href="현재-데모-경로.html"><strong>현재 데모 경로</strong><span>Core Data telemetry freshness는 latest Event의 nanosecond origin을 sample…</span><small>수정: 2026-08-03 14:29</small></a></li>
-<li><a class="doc-card" href="저장소-구조.html"><strong>저장소 구조</strong><span>레포 안의 디렉터리와 주요 파일을 현재 PoC 범위 기준으로 분류한다. 새 작업을 시작할 때 어떤 경로를 현재 구현 경로로 볼지…</span><small>수정: 2026-08-04 13:51</small></a></li>
-<li><a class="doc-card" href="단계별-추진계획.html"><strong>단계별 추진계획</strong><span>&gt; 보고서 본문용 추진계획이다. 아래 내용은 2차년도 목표이며 현재 구현 완료 &gt; 상태를 뜻하지 않는다. 세부 데이터 항목, 기…</span><small>수정: 2026-08-03 17:04</small></a></li>
-<li><a class="doc-card" href="문서-정리-계획.html"><strong>문서 정리 계획</strong><span>docs/프로젝트-범위.md와 docs/저장소-구조.md를 기준으로 최신 문서, 탐색용 요약, 운영 절차, 설계 이력, 보관 자…</span><small>수정: 2026-08-03 16:25</small></a></li>
-<li><a class="doc-card" href="디바이스-등록-API.html"><strong>디바이스 발견 및 등록 API</strong><span>&gt; 기준 구현: edgex/adapter-controller/app/api.py &gt; OpenAPI: Adapter Control…</span><small>수정: 2026-07-30 20:36</small></a></li>
-<li><a class="doc-card" href="디바이스-발견-아키텍처.html"><strong>디바이스 발견 및 등록 아키텍처</strong><span>&gt; 기준일: 2026-07-28 &gt; 상태: Current 구현 기준 &gt; 요구사항 원문: 프로토콜-독립형-디바이스-발견-등록-요구…</span><small>수정: 2026-07-28 17:16</small></a></li>
-<li><a class="doc-card" href="디바이스-카탈로그.html"><strong>디바이스 Binding 및 Profile Catalog</strong><span>발견 API가 임의의 container image, parser, Profile, host path를 선택하지 못하게 한다. 새…</span><small>수정: 2026-07-30 20:36</small></a></li>
-<li><a class="doc-card" href="서비스-설계-캔버스.html"><strong>서비스 설계 캔버스</strong><span>state-aggregator 대시보드의 서비스 설계는 현재 EdgeX 센서 입력을 전처리·추론·결과 단계에 연결하고 실행 전에…</span><small>수정: 2026-08-04 13:51</small></a></li>
-<li><a class="doc-card" href="옥동-데이터-계약.html"><strong>옥동 AI 서비스 데이터 계약</strong><span>2차년도 옥동 PoC 서비스 2종의 입력 경계를 코드와 함께 버전 관리한다. 2026-08-03 현재 계약, simulator/…</span><small>수정: 2026-08-03 17:04</small></a></li>
-<li><a class="doc-card" href="프로토콜-독립형-디바이스-발견-등록-요구사항.html"><strong>프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</strong><span>&gt; 상태: 승인된 구현 기준 명세 &gt; 적용 대상: https://github.com/dsa04156/edge-ai-workspa…</span><small>수정: 2026-07-24 16:49</small></a></li>
-<li><a class="doc-card" href="현재-구현-상태.html"><strong>프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</strong><span>&gt; 기준일: 2026-08-04 &gt; 판정 기준: 실제 코드, 테스트, edgex/k8s render &gt; “구현”과 “실장비 운영…</span><small>수정: 2026-08-04 14:24</small></a></li></ul><h2 class="section-title">운영 문서</h2><ul class="card-grid"><li><a class="doc-card" href="ops/현재-데모-운영-절차.html"><strong>현재 데모 운영 절차</strong><span>Jetson Arduino Uno의 Serial 경로와 Raspberry Pi Sense HAT v1의 직접 I2C 경로가 각각…</span><small>수정: 2026-08-03 17:39</small></a></li>
-<li><a class="doc-card" href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html"><strong>EdgeX Core Data 1,000 디바이스 부하 검증</strong><span>현재 단일 EdgeX Core Data와 PostgreSQL이 합성 가상 디바이스 Event를 어느 입력률까지 저장하는지 재현…</span><small>수정: 2026-07-22 19:09</small></a></li>
-<li><a class="doc-card" href="ops/중앙-메시지버스-재구축-절차.html"><strong>중앙 메시지버스 배치 재구축 절차</strong><span>더 이상 실행 가능한 운영 절차가 아니다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/대시보드-검증.html"><strong>대시보드 검증 점검표</strong><span>state-aggregator가 EdgeX Core Metadata와 Core Data를 읽어 만든 dashboard API/U…</span><small>수정: 2026-07-31 11:56</small></a></li>
-<li><a class="doc-card" href="ops/gpu-hami-런타임-운영.html"><strong>HAMi GPU 런타임 운영 메모</strong><span>x86 GPU 서버의 GPU 공유/스케줄링 기반으로 설치된 HAMi 상태를 기록한다. 현재 PoC에서 HAMi는 GPU 자원 운…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/네트워크-문제해결.html"><strong>네트워크 문제 해결</strong><span>새 워커 노드 etri-ser0002-cgnmsb를 클러스터에 추가한 뒤 발생한 네트워크 연결 문제와 복구 과정을 기록한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/엣지-노드-조인-점검.html"><strong>엣지 노드 조인 점검</strong><span>KubeEdge edgecore 노드 전용 프리플라이트 스크립트다. 새 Jetson/Raspberry Pi 같은 edge nod…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/노드-조인-점검.html"><strong>노드 조인 점검</strong><span>새 노드를 클러스터에 조인한 뒤, 우리가 실제로 겪었던 문제를 빠르게 확인하기 위한 프리플라이트 스크립트다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/파드-연결성-점검.html"><strong>파드 연결성 점검</strong><span>조인 체크가 기본 인프라 상태를 본다면, 이 스크립트는 실제 same-node / cross-node 파드 간 통신을 확인한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/노드-실측-사양표.html"><strong>노드 실측 사양표</strong><span>실제 장비 기준으로 서버/Jetson/Raspberry Pi의 CPU, RAM, GPU/NPU 모델명을 정리한 문서다. 저장소…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="ops/디바이스-발견-등록-운영.html"><strong>디바이스 발견 및 등록 운영 절차</strong><span>일반 edge-device-discovery, I2C 전용 edge-device-discovery-i2c와 edgex-adapt…</span><small>수정: 2026-07-30 14:35</small></a></li>
-<li><a class="doc-card" href="ops/어댑터-런타임-디바이스-연결-관리.html"><strong>어댑터 런타임과 디바이스 연결 관리</strong><span>운영자가 Kubernetes manifest를 직접 작성하지 않고 대시보드 디바이스 관리에서 다음 순서로 물리 장비 연결을 관리…</span><small>수정: 2026-07-30 21:13</small></a></li></ul><h2 class="section-title">설계 이력</h2><ul class="card-grid"><li><a class="doc-card" href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html"><strong>가상디바이스 런타임 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:executing-pl…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html"><strong>엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html"><strong>엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html"><strong>대시보드 데이터 소스 장애 격리 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html"><strong>EdgeX 디바이스 조회 단일 실행 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html"><strong>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html"><strong>기존 엣지 Agent 퇴역 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html"><strong>Raspberry Pi Sense HAT I2C Device Service 구현 계획</strong><span>&gt; 실행 방식: 테스트를 먼저 실패시키고 최소 구현으로 통과시킨 뒤, ARM64 image와 &gt; live EdgeX readba…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html"><strong>아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html"><strong>젯슨 로컬 최근 데이터 캐시 Implementation Plan</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html"><strong>젯슨 Arduino Serial Device Service 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html"><strong>Jetson 엣지 텔레메트리 에이전트 구현 계획</strong><span>&gt; 상태: 퇴역한 구현 계획. 이 계획으로 배포했던 edgex-edge-agent-jetson과 outbox PVC는 2026-…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html"><strong>로컬 데이터 캐시 v2 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-24 14:27</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html"><strong>센서 이력 그래프 연결 Implementation Plan</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html"><strong>실측 센서 이상 탐지 서비스 데모 구현 계획</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html"><strong>EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-dri…</span><small>수정: 2026-07-22 19:04</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html"><strong>대시보드 디바이스 온보딩 MVP Implementation Plan</strong><span>&gt; For agentic workers: REQUIRED SUB-SKILL: Use superpowers:executing-pl…</span><small>수정: 2026-07-23 11:22</small></a></li>
-<li><a class="doc-card" href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html"><strong>대시보드 어댑터 런타임 관리 구현 계획</strong><span>&gt; 실행 기준: 각 작업은 실패 테스트를 먼저 확인하고 최소 구현으로 통과시킨 뒤 관련 회귀 &gt; 테스트를 실행한다. 기존 Edg…</span><small>수정: 2026-07-23 14:40</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html"><strong>엣지엑스 MQTT 수집 수직 슬라이스 설계</strong><span>이 설계는 etri-dev0001-jetorn의 로컬 MQTT telemetry를 EdgeX 물리 디바이스 통합 계층으로 수집하…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html"><strong>엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</strong><span>각 KubeEdge EdgeCore 노드는 센서 수집과 실시간 추론을 담당한다. EdgeX Core와 PostgreSQL은 x8…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html"><strong>대시보드 데이터 소스 장애 격리 설계</strong><span>state-aggregator 대시보드는 /state/dashboard 한 응답에 node, EdgeX device, workf…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html"><strong>EdgeX 디바이스 조회 단일 실행 설계</strong><span>state-aggregator의 /state/devices, /state/dashboard, 운영 보조 API가 같은 시점에 호…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html"><strong>엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</strong><span>현재 Jetson 중심 EdgeX 전체 스택을 중앙 Core와 엣지 Device Service로 분리한다. EdgeX Core와…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html"><strong>Jetson 엣지 텔레메트리 에이전트 설계</strong><span>&gt; 상태: 퇴역한 설계 이력. 이 설계로 배포했던 Jetson Agent와 SQLite PVC는 2026-07-21 운영 경로에…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html"><strong>가상디바이스 Runtime과 중앙 EdgeX 설계</strong><span>&gt; 상태: 후속 설계 이력 / 재정렬 필요. 2026-07-21 운영 결정으로 기존 custom edge Agent는 퇴역했다.…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html"><strong>라즈베리파이 Sense HAT I2C Device Service 설계</strong><span>Raspberry Pi 5에 연결된 Sense HAT를 MQTT publisher나 KubeEdge MapperFramework…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html"><strong>아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</strong><span>Jetson에 연결된 Arduino Uno의 시리얼 포트는 한 번만 열되, 수집되는 여섯 Reading을 EdgeX Core M…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html"><strong>젯슨 로컬 최근 데이터 캐시 설계</strong><span>Jetson에서 실행되는 Workflow Pod가 중앙 EdgeX Core Data를 왕복하지 않고도 6개 가상 디바이스의 최신…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html"><strong>젯슨 아두이노 시리얼 내장 에이전트 설계</strong><span>&gt; 상태: 폐기됨(Superseded). 단방향 Agent 중심 설계이며 해당 Agent &gt; Deployment/PVC는 202…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html"><strong>젯슨 아두이노 EdgeX Serial Device Service 설계</strong><span>etri-dev0001-jetorn에 연결된 Arduino Uno를 공식 EdgeX Go Device SDK 기반의 read-o…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html"><strong>Local Data Cache v2 설계</strong><span>Jetson Arduino Serial과 Raspberry Pi Sense HAT I2C Device Service의 로컬 최근…</span><small>수정: 2026-07-22 14:27</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html"><strong>센서 이력 그래프 연결 설계</strong><span>대시보드에서 EdgeX Device를 선택했을 때 최신 Event의 Reading 몇 개가 아니라 중앙 EdgeX Core Da…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html"><strong>실측 센서 이상 탐지 서비스 데모 설계</strong><span>현재 검증된 Serial 수집 경로를 실제 AI 서비스 consumer까지 연결한다. 데모는 Arduino의 가속도 X/Y/Z…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html"><strong>EdgeX Core Data 1,000 디바이스 부하검증 설계</strong><span>기본 EdgeX Core Data의 Event 단위 즉시 저장 방식을 변경하기 전에, 현재 단일 Core Data와 Postgr…</span><small>수정: 2026-07-22 19:14</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html"><strong>대시보드 디바이스 온보딩 MVP 설계</strong><span>설치되어 실행 중인 EdgeX Device Service에 새 물리 장비를 대시보드에서 등록하고, Device Profile·D…</span><small>수정: 2026-07-23 11:22</small></a></li>
-<li><a class="doc-card" href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html"><strong>대시보드 어댑터 런타임 관리 설계</strong><span>운영자가 물리 장비를 연결할 때 Kubernetes manifest나 kubectl을 직접 다루지 않고 대시보드 한곳에서 다음…</span><small>수정: 2026-07-23 14:40</small></a></li>
-<li><a class="doc-card" href="대시보드-화면-설계.html"><strong>대시보드 화면 설계</strong><span>검증을 거쳐 실행한다.</span><small>수정: 2026-07-30 19:45</small></a></li>
-<li><a class="doc-card" href="런타임-자원-증강-데모-워크플로.html"><strong>런타임 자원 증강 데모 워크플로</strong><span>&gt; 상태: 설계 이력. 이 문서의 factory-vision-inspection-ai와 고정 후보/결과 값은 실제 센서 입력이…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="일일-기록.html"><strong>일일 기록</strong><span>KubeEdge 기반 혼합 디바이스 edge AI 운영 가시화 PoC의 일일 작업 기록을 남기기 위한 문서다.</span><small>수정: 2026-08-03 17:39</small></a></li>
-<li><a class="doc-card" href="자원-증강-가상디바이스-대시보드.html"><strong>자원 증강 가상디바이스 대시보드 계획</strong><span>가상디바이스를 센서 생성기가 아니라 물리 디바이스의 부족한 CPU/GPU/NPU/storage를 보강하는 논리 자원 객체로 표현…</span><small>수정: 2026-07-22 14:22</small></a></li></ul><h2 class="section-title">보관 문서</h2><ul class="card-grid"><li><a class="doc-card" href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html"><strong>선택적 재계획 그림 자료</strong><span>Source logs: docs/archive/embedded-conference/archive/selective-replann…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html"><strong>선택적 재계획 결과 기록</strong><span>&gt; 작성 일시: 2026-04-23 &gt; 진행도: 13/16 조합 완료 (약 81%)</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html"><strong>선택적 재계획 진행 기록</strong><span>현재 mixed-device KubeEdge 환경에서 stage-level selective replanning 연구 방향으로…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/embedded-conference/비용-모델과-런타임-방식.html"><strong>비용 모델 안내</strong><span>중복 정리로 축소된 안내 문서다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html"><strong>2026-07-14 MQTT 브리지 CI/CD 기록</strong><span>&gt; 상태: 중앙 MessageBus 분리 배치 이전의 브리지 배포 기록. 현재 운영 기준이 아니다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html"><strong>2026-07-14 젯슨 MQTT 종단간 검증 기록</strong><span>&gt; 상태: 중앙 MessageBus 분리 배치 이전의 Jetson-local canary 검증 기록. 현재 운영 절차가 아니다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html"><strong>2026-07-15 젯슨·센스햇 운영 검증 기록</strong><span>&gt; 상태: 중앙 MessageBus 분리 배치 이전의 운영 검증 기록. 현재 운영 절차가 아니다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/과거-인수인계.html"><strong>과거 인수인계</strong><span>현재 작업의 중심은 KubeEdge mqttvirtual mapper 기반 가상 센서 디바이스 실험이다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/통합-문서.html"><strong>통합 문서</strong><span>현재 작업 판단을 빠르게 맞추기 위한 정리본이다. 긴 실험 로그와 과거 상세 기록은 docs/archive/integration…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/통합-상세-기록.html"><strong>통합 상세 기록</strong><span>저장소 전반의 핵심 문서를 한 번에 읽을 수 있도록 정리한 통합 참조본이다. 기존 원본 문서를 대체하지 않으며, 개요부터 구현…</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/integration/통합-요약.html"><strong>통합 문서 요약</strong><span>docs/archive/integration/통합-문서.md에서 실제 실행/연구에 필요한 핵심만 추린 요약본이다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/비용-모델과-런타임-방식.html"><strong>비용 모델과 런타임 방식</strong><span>현재 구현 기준으로 아래 2가지를 한 번에 설명한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/시스템-개요.html"><strong>레거시 시스템 개요</strong><span>이 프로젝트는 KubeEdge/Kubernetes 기반의 혼합 디바이스 엣지 AI 환경을 대상으로 한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/legacy-orchestration/아키텍처.html"><strong>레거시 오케스트레이션 아키텍처</strong><span>---</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/논문-작성-점검표.html"><strong>논문 작성 점검표</strong><span>제출 전에 이 체크리스트를 사용한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/논문-전략.html"><strong>논문 전략</strong><span>현재 mixed-device edge AI orchestration 프로젝트의 논문 채택 가능성을 최대화한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/연구-주제.html"><strong>연구 주제 정리</strong><span>이기종 혼합 디바이스 엣지 AI 워크플로우를 위한 런타임 오케스트레이션</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/연구-초안-안내.html"><strong>연구 초안 안내</strong><span>&gt; 상태: 레거시 / 보관된 연구 초안</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/투고처-전략.html"><strong>투고처 전략</strong><span>현재 연구 방향에서 논문 성공 가능성을 가장 높이는 투고처 전략을 정한다.</span><small>수정: 2026-07-22 14:22</small></a></li>
-<li><a class="doc-card" href="archive/research/평가-계획.html"><strong>평가 계획</strong><span>오케스트레이션 논문을 publishable하게 만들기 위한 최소 평가 패키지를 정의한다.</span><small>수정: 2026-07-22 14:22</small></a></li></ul>
+        <div class="section-kicker"><span>REFERENCE</span><h2>유지 관리 문서</h2><p>현재 코드와 배포 기준에 맞춘 22개 문서만 공개합니다.</p></div>
+        <section class="doc-collection"><div class="collection-head"><h2>시작하기</h2><span>5개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="문서-안내.html"><strong>문서 안내</strong><small>문서-안내.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="처음부터-배우는-Edge-AI-시스템.html"><strong>처음부터 배우는 Edge AI 시스템</strong><small>처음부터-배우는-Edge-AI-시스템.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="플랫폼-개요.html"><strong>플랫폼 개요</strong><small>플랫폼-개요.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="펌프-모터-이상감지-서비스.html"><strong>펌프·모터 이상감지 서비스</strong><small>펌프-모터-이상감지-서비스.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="현재-구현-상태.html"><strong>현재 구현 상태</strong><small>현재-구현-상태.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>연결 가이드</h2><span>2개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="디바이스-서비스-연결.html"><strong>디바이스 연결 가이드</strong><small>디바이스-서비스-연결.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="AI-서비스-등록-가이드.html"><strong>AI 서비스 등록 가이드</strong><small>AI-서비스-등록-가이드.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>운영</h2><span>4개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="ops/현재-데모-운영-절차.html"><strong>현재 데모 운영 절차</strong><small>ops/현재-데모-운영-절차.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="ops/대시보드-배포.html"><strong>대시보드 배포</strong><small>ops/대시보드-배포.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="ops/대시보드-검증.html"><strong>대시보드 검증 점검표</strong><small>ops/대시보드-검증.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="ops/네트워크-문제해결.html"><strong>네트워크 문제 해결</strong><small>ops/네트워크-문제해결.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>정책과 계약</h2><span>8개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="프로젝트-범위.html"><strong>프로젝트 범위</strong><small>프로젝트-범위.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="대시보드-판단-정책.html"><strong>대시보드 판단 정책</strong><small>대시보드-판단-정책.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="디바이스-연결-복구-표준.html"><strong>디바이스 연결 복구 표준</strong><small>디바이스-연결-복구-표준.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="가상화-노드-오류-복구시간.html"><strong>가상화 노드 오류 복구시간</strong><small>가상화-노드-오류-복구시간.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="400ms-복구-체험하기.html"><strong>400 ms 복구 체험하기</strong><small>400ms-복구-체험하기.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="AI-서비스-자원-증강-부하-실험.html"><strong>AI 서비스 자원 증강 부하 실험</strong><small>AI-서비스-자원-증강-부하-실험.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="옥동-데이터-계약.html"><strong>옥동 AI 서비스 데이터 계약</strong><small>옥동-데이터-계약.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="옥동-생산성-kpi.html"><strong>옥동 생산성 KPI</strong><small>옥동-생산성-kpi.md</small><span aria-hidden="true">→</span></a></li></ul></section><section class="doc-collection"><div class="collection-head"><h2>개발 참고</h2><span>3개 문서</span></div><ul class="card-grid"><li><a class="doc-card" href="2026-09-02-성능지표8-주간-추진현황.html"><strong>성능지표 8 주간 추진현황</strong><small>2026-09-02-성능지표8-주간-추진현황.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="저장소-구조.html"><strong>저장소 구조</strong><small>저장소-구조.md</small><span aria-hidden="true">→</span></a></li>
+<li><a class="doc-card" href="단계별-추진계획.html"><strong>단계별 추진계획</strong><small>단계별-추진계획.md</small><span aria-hidden="true">→</span></a></li></ul></section>
       </div>
     </article>
   </main>

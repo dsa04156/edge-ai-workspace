@@ -1,10 +1,12 @@
 import asyncio
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
 import pytest
 import yaml
 from app import main
+from app.config import Settings
 from app.service_demo import (
     ServiceDemoBackendError,
     ServiceDemoClient,
@@ -93,11 +95,75 @@ def live_payload() -> dict:
         },
         "counters": {
             "framesProcessed": 30,
+            "shadowFramesProcessed": 0,
             "duplicatesIgnored": 0,
             "incompleteFramesDropped": 0,
             "inputErrors": 0,
             "contextSamplesProcessed": 30,
             "unalignedFramesDropped": 0,
+        },
+        "performance": {
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+            "windowSeconds": 300,
+            "processingLatencyP95Ms": 20,
+            "backlog": 0,
+            "throughputPerSecond": 2,
+            "sampleCount": 30,
+            "metricsValid": True,
+        },
+        "processResources": {
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+            "source": "process-self",
+            "scope": "main-process",
+            "cpuCores": 0.1,
+            "memoryRssMib": 64,
+            "sampleIntervalSeconds": 5,
+            "metricsValid": True,
+        },
+        "executionOwnership": {
+            "configuredMode": "SHADOW",
+            "effectiveMode": "ACTIVE",
+            "enabled": True,
+            "leaseNamespace": "edgex-edge",
+            "leaseName": "sensor-anomaly-demo-execution",
+            "holderIdentity": "sensor-anomaly-demo",
+            "ownerIdentity": "sensor-anomaly-demo",
+            "leaseValid": True,
+            "renewTime": datetime.now(timezone.utc).isoformat(),
+            "leaseDurationSeconds": 15,
+            "resourceVersion": "42",
+            "reasonCode": None,
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+        },
+        "storage": {
+            "apiVersion": "v1",
+            "backend": "sqlite",
+            "durable": True,
+            "resultCount": 30,
+            "alertEventCount": 2,
+            "openAlertCount": 1,
+            "retentionRows": 100000,
+        },
+        "inferenceRouting": {
+            "configuredMode": "approved",
+            "state": "remote",
+            "effectiveTarget": "server1",
+            "approvalId": "approval-001",
+            "consecutiveFailures": 0,
+            "rollbackRemainingSeconds": 0,
+            "lastError": None,
+            "inferenceMode": "REMOTE",
+            "sourceNode": "etri-dev0001-jetorn",
+            "remoteNode": "etri-ser0002-cgnmsb",
+            "remoteReady": True,
+            "networkLatencyMs": 12.5,
+            "remoteProcessingMs": 4.5,
+            "totalLatencyMs": 17.0,
+            "remoteAttempts": 8,
+            "remoteSuccesses": 7,
+            "offloadSuccessRate": 0.875,
+            "fallbackCount": 1,
+            "lastReasonCode": None,
         },
         "lastError": None,
     }
@@ -133,6 +199,23 @@ def test_client_normalizes_live_upstream_into_consumer_binding() -> None:
     assert state.model.version == "baseline-1.0.0"
     assert set(state.model.components) == {"vibration", "temperature"}
     assert state.counters.context_samples_processed == 30
+    assert state.counters.shadow_frames_processed == 0
+    assert state.performance is not None
+    assert state.performance.processing_latency_p95_ms == 20
+    assert state.process_resources is not None
+    assert state.process_resources.cpu_cores == 0.1
+    assert state.process_resources.memory_rss_mib == 64
+    assert state.execution_ownership is not None
+    assert state.execution_ownership.effective_mode == "ACTIVE"
+    assert state.execution_ownership.holder_identity == "sensor-anomaly-demo"
+    assert state.storage is not None and state.storage.result_count == 30
+    assert state.inference_routing.effective_target == "server1"
+    assert state.inference_routing.approval_id == "approval-001"
+    assert state.inference_routing.inference_mode == "REMOTE"
+    assert state.inference_routing.remote_node == "etri-ser0002-cgnmsb"
+    assert state.inference_routing.network_latency_ms == 12.5
+    assert state.inference_routing.offload_success_rate == 0.875
+    assert state.inference_routing.fallback_count == 1
     assert state.observation_error is None
 
 
@@ -286,7 +369,7 @@ def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
     payload = response.json()
     assert len(payload["services"]) == 1
     service = payload["services"][0]
-    assert service["display_name"] == "센서 이상 탐지"
+    assert service["display_name"] == "펌프·모터 진동·온도 이상감지"
     assert service["lifecycle"] == "deployed"
     assert service["execution_mode"] == "fixed"
     assert service["status"] == "normal"
@@ -294,6 +377,11 @@ def test_service_inventory_lists_current_deployed_service(monkeypatch) -> None:
     assert len(service["input_devices"]) == 4
     assert service["model_version"] == "baseline-1.0.0"
     assert service["latest_observed_at"] == "2026-07-22T10:00:00Z"
+    assert service["inference_target"] == "edge-local"
+    assert service["catalog_version"] == "edgeai.etri/service-catalog/v1"
+    assert service["definition_source"] == "git:service_catalog.json"
+    assert service["descriptor"]["input_contract"]["authority"] == "EdgeX"
+    assert service["descriptor"]["graph"]["topology"] == "linear-inference-split-v1"
     assert service["design_contract"] == {
         "contract_id": "sensor-anomaly-demo-v1",
         "source_mode": "local_recent",
@@ -368,4 +456,12 @@ def test_state_aggregator_deployment_uses_sensor_demo_service_fqdn() -> None:
     assert env["SENSOR_ANOMALY_DEMO_URL"] == (
         "http://sensor-anomaly-demo.edgex-edge.svc.cluster.local:8080"
     )
-    assert env["SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS"] == "2"
+    assert env["SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS"] == "10"
+
+
+def test_sensor_demo_observation_timeout_covers_the_edge_round_trip(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", raising=False)
+
+    assert Settings().sensor_anomaly_demo_timeout_seconds == 10.0

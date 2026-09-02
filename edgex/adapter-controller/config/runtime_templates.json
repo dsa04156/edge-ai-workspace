@@ -9,16 +9,18 @@
       "protocolName": "serial",
       "verificationState": "template-verified",
       "deploymentEnabled": true,
-      "image": "192.168.0.56:5000/edgex-device-serial@sha256:215dc73e86c7e9e69938b4e0b1f991947705083f61ca851758c1fb259c883eda",
+      "image": "192.168.0.56:5000/edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63",
       "servicePort": 59910,
       "hardwareBindings": [
         {
           "bindingId": "jetson-arduino-serial-001",
           "displayName": "Jetson Arduino USB Serial",
           "nodeName": "etri-dev0001-jetorn",
-          "hostDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
-          "containerDevicePath": "/dev/arduino-001",
-          "deviceType": "CharDevice",
+          "hostDevicePath": "/run/edgeai/devices",
+          "discoveryDevicePath": "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_75035303230351E0D171-if00",
+          "containerDevicePath": "/dev/edgeai",
+          "deviceType": "Directory",
+          "mountReadOnly": true,
           "requiresPrivileged": true
         },
         {

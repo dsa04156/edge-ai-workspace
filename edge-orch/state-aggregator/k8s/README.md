@@ -22,10 +22,79 @@ The Deployment remains on `etri-ser0001-cg0msb` and reaches Core Metadata and
 Core Data through the `edgex-system` namespace services on ports `59881` and
 `59880`. Telemetry history is read from Core Data and persisted by the central
 PostgreSQL backend; this service has no separate time-series recorder.
-Kubernetes access is retained only for node, workload, and
-augmentation-resource observation. The service account has no KubeEdge
+Kubernetes access includes node/workload observation and the separately bounded
+new-Deployment Controller described below. The service account has no KubeEdge
 `Device` or `DeviceStatus` permissions, and no MapperFramework settings are
 used.
+
+## 제한된 신규 Deployment Controller
+
+`POST /api/deployments`는 `/api/placements/select` 결과가 `selected`일 때만
+`edge-ai-workloads` namespace에 단일 replica Deployment를 생성하고 Pod Ready를 기다린다.
+호출에는 `X-Deployment-Token`과 `Idempotency-Key`가 필요하다. token은 Git에 저장하지 않고
+`default/edgex-adapter-management-auth`의 `management-hmac-key`를 재사용한다.
+
+허용 범위:
+
+- immutable digest와 `DEPLOYMENT_ALLOWED_IMAGE_PREFIXES` allowlist
+- exact hostname `nodeSelector` + required node affinity
+- 서비스 프로파일의 CPU·memory·accelerator requests
+- Deployment create/get/list/watch와 Pod 상태 read
+
+금지 범위:
+
+- 기존 Deployment update·patch·delete
+- migration, offloading, runtime replanning
+- raw manifest, env, command, volume, hostPath, privilege, Service/Ingress 입력
+
+Controller 자체와 namespace/RBAC는 Argo CD가 소유하지만, Controller가 생성한 개별
+Deployment는 동적 객체이며 Argo CD manifest에 추가하지 않는다. 현재 shared token은
+개발 테스트베드 경계이며 사용자별 운영 인증·인가는 아니다.
+
+## Runtime Recommendation Engine
+
+Service Catalog에서 policy가 활성화된 workload를 15초마다 읽어 다음 신호를 분리해
+평가한다.
+
+- apps API의 Deployment/StatefulSet desired/ready 상태
+- Pod phase, Ready, restart count와 container failure reason
+- Node schedulable/health와 Prometheus utilization
+- 서비스 adapter의 EdgeX input freshness, model readiness, latency, backlog, throughput
+
+ClusterRole의 apps 권한은 `get/list/watch`뿐이며 추천 엔진은 Kubernetes mutation API를
+호출하지 않는다. 최신 상태와 dwell/cooldown anchor, deduplicated 판단 이력은
+`state-aggregator-state` PVC의 `/app/data/runtime-recommendations.sqlite3`에 저장한다.
+Deployment는 replica 1과 `Recreate` strategy로 SQLite single-writer 경계를 유지한다.
+승인 기반 Execution Controller의 planId 실행 record와 감사 event는 같은 PVC의
+`/app/data/runtime-executions.sqlite3`에 별도로 저장한다. Controller는 기존
+`edge-ai-workloads` Deployment create/read 권한을 재사용한다. preflight를 위해 source
+Service·PVC와 StorageClass에는 read-only 권한만 추가하며 Service, PVC, Ingress의 mutation과
+Deployment update, patch, delete 권한은 추가하지 않는다. 승인 template은
+`/app/app/config/candidate_workload_templates.json`에서 읽는다. 실행 API는
+`EXECUTION_MANAGEMENT_TOKEN`을 요구하고
+`create_candidate`·`verify_ready`·`validate_candidate_pre_activation`, Git 승인 Lease 계약의
+`handoff_execution_ownership`·`verify_active_candidate`·`rollback_execution_ownership`과 승인된 routing 계약의
+`switch_traffic`·`verify_switched_traffic`·`rollback_traffic`을 구현한다. validation contract는
+`/app/app/config/candidate_validation_contracts.json`에서 읽으며 결과와 check별 측정값을 같은
+실행 SQLite와 감사 log에 저장한다. Lease write 권한은 `edgex-edge`의 승인된 단일 Lease
+`get/update`로 제한하고 resourceVersion CAS를 사용한다. routing write 권한은 `edgex-edge`의 EndpointSlice
+`get/list/watch/update`로만 제한하고 Service mutation 권한은 부여하지 않는다. 코드도
+Controller 소유 label과 resourceVersion이 일치한 EndpointSlice만 replace한다. 현재
+`sensor-anomaly-demo`의 EdgeMesh EndpointSlice 호환성이 입증되지 않아 계약은 blocked이며
+실클러스터 cutover는 수행하지 않는다. `terminate_current`와 workload/PVC 삭제·promotion은
+`unsupported_step`으로 차단한다.
+
+```text
+RUNTIME_RECOMMENDATION_ENABLED=true
+RUNTIME_RECOMMENDATION_POLL_INTERVAL_SECONDS=15
+RUNTIME_RECOMMENDATION_DATABASE_PATH=/app/data/runtime-recommendations.sqlite3
+RUNTIME_RECOMMENDATION_HISTORY_LIMIT=1000
+```
+
+조회 API는 `/api/runtime-recommendations`,
+`/api/runtime-recommendations/{serviceId}`와
+`/api/runtime-recommendations/{serviceId}/history`다. 실제 신규 배포는 별도 인증된
+`POST /api/deployments` 호출이며 추천 결과가 이를 자동 호출하지 않는다.
 
 The historical mqttvirtual mapper source remains in the repository, but its
 kustomization renders no resources and it is not managed by the active Argo CD
@@ -38,7 +107,8 @@ Dashboard `Device Management`와 `/management/*` API는 Runtime 선택부터 Edg
 Metadata readback과 first Event까지 하나의 connection operation으로 관리한다. EdgeX
 Core Metadata/Core Data가 계속 물리 Device 권위다.
 
-`state-aggregator`는 browser BFF이며 Kubernetes 쓰기 권한을 갖지 않는다. 내부 HMAC으로
+Device Management의 `state-aggregator`는 browser BFF이며 해당 Adapter Runtime Kubernetes
+쓰기를 직접 수행하지 않는다. 내부 HMAC으로
 `edgex-edge`의 `edgex-adapter-controller`를 호출하고, Controller만 승인된
 `AdapterRuntime`과 namespaced workload를 reconcile한다.
 
@@ -92,18 +162,28 @@ Device/DeviceModel/DeviceStatus 변경은 제공하지 않는다.
 Kubernetes manifests:
 
 - `deployment.yaml`: Deployment + Service
-- `rbac.yaml`: node, pod, and augmentation-resource read access
+- `ingressroute.yaml`: Traefik host route for the dashboard
+- `managed-workloads-namespace.yaml`: bounded dynamic workload namespace
+- `state-pvc.yaml`: recommendation timer와 판단 이력 영속 저장
+- `rbac.yaml`: cluster node/pod/workload read, 전용 namespace Deployment create/read와
+  `edgex-edge` Controller 소유 EndpointSlice update
 - `service-monitor.yaml`: kube-prometheus `ServiceMonitor`
 
 Apply these manifests through the directory kustomization (or the
 `edge-orch-state-aggregator` Argo CD application).
 
-`main` CI 배포는 빌드 결과의 immutable digest를 읽고 Argo CD Application의
-`spec.source.targetRevision`을 해당 Git SHA로, `spec.source.kustomize.images`를 해당
-digest로 함께 갱신한다. `kubectl set image`로 Deployment를 직접 변경하면 Argo CD
-`selfHeal`이 Git에 기록된 이전 image로 되돌릴 수 있으므로 운영 배포 경로로 사용하지 않는다.
-CI는 Argo CD refresh 뒤 Deployment가 목표 digest를 가리키는지 확인한 다음 rollout 완료를
-기다린다.
+대시보드 공식 진입점은 Traefik host route다.
+
+```text
+http://aggregator.192.168.0.56.sslip.io
+http://aggregator.10.254.192.217.sslip.io
+```
+
+현재 `edge-orch-state-aggregator` Argo CD Application은
+`agent/edgex-central-docs` 브랜치를 추적한다. 이미지 빌드 후 immutable digest를
+`deployment.yaml`에 기록해 같은 브랜치로 커밋·푸시하면 automated sync와 self-heal이
+Deployment와 Traefik route를 함께 반영한다. `kubectl set image`나 IngressRoute 수동
+apply는 Git 상태와 충돌하므로 운영 배포 경로로 사용하지 않는다.
 
 워크플로 파일 자체가 바뀌어 legacy `mqttvirtual` 단계가 평가되더라도 현재 클러스터에
 `mqttvirtual-mapper` DaemonSet이 없으면 rollout을 명시적으로 건너뛴다. 이 guard는

@@ -11,6 +11,37 @@ DEFAULT_LOCAL_DATA_BASE_URL = (
 
 
 class Settings(BaseModel):
+    service_role: Literal["edge-worker", "inference-server"] = "edge-worker"
+    inference_warmup_source_enabled: bool = False
+    remote_inference_mode: Literal["disabled", "approved"] = "disabled"
+    remote_inference_initial_target: Literal["local", "remote"] = "local"
+    remote_inference_url: str | None = None
+    remote_inference_approval_id: str | None = None
+    remote_inference_control_token: str | None = Field(
+        default=None,
+        min_length=16,
+        max_length=512,
+    )
+    remote_inference_node: str = Field(
+        default="etri-ser0002-cgnmsb",
+        min_length=1,
+        max_length=128,
+    )
+    remote_inference_model_version: str = Field(
+        default="cuda-baseline-1.0.0",
+        min_length=1,
+        max_length=64,
+    )
+    remote_inference_timeout_seconds: float = Field(default=1.0, gt=0)
+    remote_inference_max_attempts: int = Field(default=2, ge=1, le=5)
+    remote_inference_failure_threshold: int = Field(default=3, ge=1, le=20)
+    remote_inference_rollback_cooldown_seconds: int = Field(default=900, ge=1)
+    remote_inference_latency_threshold_ms: float = Field(default=250.0, gt=0)
+    remote_inference_latency_failure_threshold: int = Field(
+        default=3,
+        ge=1,
+        le=20,
+    )
     local_data_base_url: str = Field(
         default=DEFAULT_LOCAL_DATA_BASE_URL,
         min_length=1,
@@ -32,7 +63,7 @@ class Settings(BaseModel):
     temperature_window_samples: int = Field(default=10, ge=2, le=1_000)
     vibration_weight: float = Field(default=0.7, ge=0)
     temperature_weight: float = Field(default=0.3, ge=0)
-    model_backend: Literal["online-baseline"] = "online-baseline"
+    model_backend: Literal["online-baseline", "cuda-online-baseline"] = "online-baseline"
     model_version: str = Field(default="baseline-1.0.0", min_length=1, max_length=64)
     service_device_id: str = Field(default="arduino-001", min_length=1, max_length=128)
     service_asset_id: str = Field(default="arduino-001", min_length=1, max_length=128)
@@ -46,6 +77,17 @@ class Settings(BaseModel):
         min_length=1,
     )
     result_retention_rows: int = Field(default=100_000, ge=1, le=10_000_000)
+    execution_mode: Literal["ACTIVE", "STANDBY", "SHADOW"] = "ACTIVE"
+    execution_ownership_enabled: bool = False
+    execution_lease_namespace: str = Field(default="edgex-edge", min_length=1)
+    execution_lease_name: str = Field(
+        default="sensor-anomaly-demo-execution",
+        min_length=1,
+    )
+    execution_owner_id: str | None = None
+    execution_lease_duration_seconds: int = Field(default=15, ge=5, le=300)
+    execution_lease_poll_interval_seconds: float = Field(default=2.0, gt=0, le=30)
+    execution_kubernetes_api_url: str | None = None
 
     @model_validator(mode="after")
     def validate_multi_sensor_settings(self) -> Self:
@@ -55,11 +97,87 @@ class Settings(BaseModel):
             raise ValueError(
                 "context_max_skew_seconds must not exceed pending_ttl_seconds"
             )
+        if self.remote_inference_mode == "approved":
+            if not self.remote_inference_url:
+                raise ValueError("remote_inference_url is required in approved mode")
+            if not self.remote_inference_approval_id:
+                raise ValueError(
+                    "remote_inference_approval_id is required in approved mode"
+                )
+            if not self.remote_inference_control_token:
+                raise ValueError(
+                    "remote_inference_control_token is required in approved mode"
+                )
+        if (
+            self.model_backend == "cuda-online-baseline"
+            and self.service_role != "inference-server"
+        ):
+            raise ValueError(
+                "cuda-online-baseline is allowed only for the inference-server role"
+            )
+        if self.execution_ownership_enabled:
+            if self.service_role != "edge-worker":
+                raise ValueError("execution ownership is supported only for edge-worker")
+            if not self.execution_owner_id:
+                raise ValueError("execution_owner_id is required when ownership is enabled")
+            if (
+                self.execution_lease_poll_interval_seconds
+                >= self.execution_lease_duration_seconds / 2
+            ):
+                raise ValueError("execution Lease poll interval must be less than half its duration")
+            if (
+                self.execution_kubernetes_api_url is not None
+                and not self.execution_kubernetes_api_url.startswith("https://")
+            ):
+                raise ValueError("execution Kubernetes API URL must use HTTPS")
         return self
 
     @classmethod
     def from_env(cls) -> Settings:
         return cls(
+            service_role=os.getenv("SERVICE_ROLE", "edge-worker"),
+            inference_warmup_source_enabled=os.getenv(
+                "INFERENCE_WARMUP_SOURCE_ENABLED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+            remote_inference_mode=os.getenv("REMOTE_INFERENCE_MODE", "disabled"),
+            remote_inference_initial_target=os.getenv(
+                "REMOTE_INFERENCE_INITIAL_TARGET",
+                "local",
+            ).lower(),
+            remote_inference_url=os.getenv("REMOTE_INFERENCE_URL") or None,
+            remote_inference_approval_id=os.getenv("REMOTE_INFERENCE_APPROVAL_ID")
+            or None,
+            remote_inference_control_token=os.getenv(
+                "REMOTE_INFERENCE_CONTROL_TOKEN"
+            )
+            or None,
+            remote_inference_node=os.getenv(
+                "REMOTE_INFERENCE_NODE",
+                "etri-ser0002-cgnmsb",
+            ),
+            remote_inference_model_version=os.getenv(
+                "REMOTE_INFERENCE_MODEL_VERSION",
+                "cuda-baseline-1.0.0",
+            ),
+            remote_inference_timeout_seconds=float(
+                os.getenv("REMOTE_INFERENCE_TIMEOUT_SECONDS", "1")
+            ),
+            remote_inference_max_attempts=int(
+                os.getenv("REMOTE_INFERENCE_MAX_ATTEMPTS", "2")
+            ),
+            remote_inference_failure_threshold=int(
+                os.getenv("REMOTE_INFERENCE_FAILURE_THRESHOLD", "3")
+            ),
+            remote_inference_rollback_cooldown_seconds=int(
+                os.getenv("REMOTE_INFERENCE_ROLLBACK_COOLDOWN_SECONDS", "900")
+            ),
+            remote_inference_latency_threshold_ms=float(
+                os.getenv("REMOTE_INFERENCE_LATENCY_THRESHOLD_MS", "250")
+            ),
+            remote_inference_latency_failure_threshold=int(
+                os.getenv("REMOTE_INFERENCE_LATENCY_FAILURE_THRESHOLD", "3")
+            ),
             local_data_base_url=os.getenv(
                 "LOCAL_DATA_BASE_URL",
                 DEFAULT_LOCAL_DATA_BASE_URL,
@@ -96,4 +214,25 @@ class Settings(BaseModel):
                 "/tmp/sensor-anomaly-demo/results.db",
             ),
             result_retention_rows=int(os.getenv("RESULT_RETENTION_ROWS", "100000")),
+            execution_mode=os.getenv("EXECUTION_MODE", "ACTIVE").upper(),
+            execution_ownership_enabled=os.getenv(
+                "EXECUTION_OWNERSHIP_ENABLED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+            execution_lease_namespace=os.getenv(
+                "EXECUTION_LEASE_NAMESPACE", "edgex-edge"
+            ),
+            execution_lease_name=os.getenv(
+                "EXECUTION_LEASE_NAME", "sensor-anomaly-demo-execution"
+            ),
+            execution_owner_id=os.getenv("EXECUTION_OWNER_ID") or None,
+            execution_lease_duration_seconds=int(
+                os.getenv("EXECUTION_LEASE_DURATION_SECONDS", "15")
+            ),
+            execution_lease_poll_interval_seconds=float(
+                os.getenv("EXECUTION_LEASE_POLL_INTERVAL_SECONDS", "2")
+            ),
+            execution_kubernetes_api_url=(
+                os.getenv("EXECUTION_KUBERNETES_API_URL") or None
+            ),
         )

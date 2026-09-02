@@ -8,9 +8,10 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: temperature_raw
   - name: virtual-light-001
     profileName: etri-arduino-light
@@ -21,9 +22,10 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: light_raw
   - name: virtual-magnetic-001
     profileName: etri-arduino-magnetic
@@ -34,9 +36,10 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: magnetic_raw
   - name: virtual-acceleration-x-001
     profileName: etri-arduino-acceleration-x
@@ -47,9 +50,10 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: acceleration_x_raw
   - name: virtual-acceleration-y-001
     profileName: etri-arduino-acceleration-y
@@ -60,9 +64,10 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: acceleration_y_raw
   - name: virtual-acceleration-z-001
     profileName: etri-arduino-acceleration-z
@@ -73,7 +78,8 @@ deviceList:
       nodeName: etri-dev0001-jetorn
     protocols:
       serial:
-        Port: /dev/arduino-001
+        Port: /dev/edgeai/arduino-001
         BaudRate: "115200"
         DeviceID: arduino-001
+        RecoveryStrategy: on-demand-read
         ResourceName: acceleration_z_raw

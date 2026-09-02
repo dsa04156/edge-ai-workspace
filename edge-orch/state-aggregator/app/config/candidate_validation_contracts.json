@@ -1,0 +1,267 @@
+{
+  "apiVersion": "edge-ai.io/v1alpha1",
+  "kind": "CandidateValidationContractCatalog",
+  "contracts": [
+    {
+      "serviceId": "sensor-anomaly-demo",
+      "contractVersion": "sensor-anomaly-demo-validation-v1",
+      "candidatePortName": "http",
+      "stabilization": {
+        "timeoutSeconds": 120,
+        "requestTimeoutSeconds": 2,
+        "pollIntervalSeconds": 5,
+        "minimumStableSeconds": 30,
+        "requiredConsecutiveSuccesses": 6
+      },
+      "preActivationChecks": [
+        {
+          "name": "pod_ready",
+          "source": "kubernetes",
+          "required": true,
+          "failureReasonCode": "candidate_not_ready"
+        },
+        {
+          "name": "health",
+          "source": "http_json",
+          "required": true,
+          "path": "/healthz",
+          "failureReasonCode": "candidate_endpoint_unreachable",
+          "unreachableReasonCode": "candidate_endpoint_unreachable",
+          "assertions": [
+            {"pointer": "/status", "operator": "equals", "value": "ok", "measurement": "healthStatus", "reasonCode": "candidate_endpoint_unreachable"}
+          ]
+        },
+        {
+          "name": "execution_shadow",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_shadow_mode_unavailable",
+          "assertions": [
+            {"pointer": "/executionOwnership/enabled", "operator": "equals", "value": true, "measurement": "ownershipEnabled", "reasonCode": "candidate_execution_ownership_unavailable"},
+            {"pointer": "/executionOwnership/effectiveMode", "operator": "equals", "value": "SHADOW", "measurement": "executionMode", "reasonCode": "candidate_shadow_mode_unavailable"},
+            {"pointer": "/executionOwnership/leaseValid", "operator": "equals", "value": true, "measurement": "leaseValid", "reasonCode": "candidate_execution_lease_invalid"}
+          ]
+        },
+        {
+          "name": "input_state",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_input_unavailable",
+          "assertions": [
+            {"pointer": "/inputState", "operator": "equals", "value": "fresh", "measurement": "inputState", "reasonCode": "candidate_input_unavailable", "reasonByValue": {"stale": "candidate_input_stale", "waiting": "candidate_input_unavailable", "error": "candidate_input_unavailable"}}
+          ]
+        },
+        {
+          "name": "model_state",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_model_not_ready",
+          "assertions": [
+            {"pointer": "/modelState", "operator": "equals", "value": "ready", "measurement": "modelState", "reasonCode": "candidate_model_not_ready"}
+          ]
+        },
+        {
+          "name": "shadow_inference",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_inference_not_observed",
+          "assertions": [
+            {"pointer": "/counters/shadowFramesProcessed", "operator": "greater_than", "value": 0, "measurement": "shadowFramesProcessed", "reasonCode": "candidate_inference_not_observed"},
+            {"pointer": "/latest/observedAt", "operator": "exists", "measurement": "latestObservedAt", "reasonCode": "candidate_inference_not_observed"},
+            {"pointer": "/latest/observedAt", "operator": "max_age_seconds", "value": 10, "reasonCode": "candidate_input_stale"}
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "pod_ready",
+          "source": "kubernetes",
+          "required": true,
+          "failureReasonCode": "candidate_not_ready"
+        },
+        {
+          "name": "health",
+          "source": "http_json",
+          "required": true,
+          "path": "/healthz",
+          "failureReasonCode": "candidate_endpoint_unreachable",
+          "unreachableReasonCode": "candidate_endpoint_unreachable",
+          "assertions": [
+            {
+              "pointer": "/status",
+              "operator": "equals",
+              "value": "ok",
+              "measurement": "healthStatus",
+              "reasonCode": "candidate_endpoint_unreachable"
+            }
+          ]
+        },
+        {
+          "name": "service_ready",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/augmentation-readyz",
+          "failureReasonCode": "candidate_not_ready",
+          "unreachableReasonCode": "candidate_endpoint_unreachable",
+          "assertions": [
+            {
+              "pointer": "/status",
+              "operator": "equals",
+              "value": "ready",
+              "measurement": "serviceReadyStatus",
+              "reasonCode": "candidate_not_ready"
+            },
+            {
+              "pointer": "/capability",
+              "operator": "equals",
+              "value": "sensor-anomaly-inference",
+              "measurement": "capability",
+              "reasonCode": "candidate_validation_contract_unsupported"
+            }
+          ]
+        },
+        {
+          "name": "execution_active",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_execution_ownership_unavailable",
+          "assertions": [
+            {"pointer": "/executionOwnership/enabled", "operator": "equals", "value": true, "measurement": "ownershipEnabled", "reasonCode": "candidate_execution_ownership_unavailable"},
+            {"pointer": "/executionOwnership/effectiveMode", "operator": "equals", "value": "ACTIVE", "measurement": "executionMode", "reasonCode": "candidate_not_active"},
+            {"pointer": "/executionOwnership/leaseValid", "operator": "equals", "value": true, "measurement": "leaseValid", "reasonCode": "candidate_execution_lease_invalid"}
+          ]
+        },
+        {
+          "name": "input_state",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_input_unavailable",
+          "assertions": [
+            {
+              "pointer": "/inputState",
+              "operator": "equals",
+              "value": "fresh",
+              "measurement": "inputState",
+              "reasonCode": "candidate_input_unavailable",
+              "reasonByValue": {
+                "stale": "candidate_input_stale",
+                "waiting": "candidate_input_unavailable",
+                "error": "candidate_input_unavailable"
+              }
+            }
+          ]
+        },
+        {
+          "name": "model_state",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_model_not_ready",
+          "assertions": [
+            {
+              "pointer": "/modelState",
+              "operator": "equals",
+              "value": "ready",
+              "measurement": "modelState",
+              "reasonCode": "candidate_model_not_ready"
+            }
+          ]
+        },
+        {
+          "name": "freshness",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_input_stale",
+          "assertions": [
+            {
+              "pointer": "/latest/observedAt",
+              "operator": "exists",
+              "measurement": "latestObservedAt",
+              "reasonCode": "candidate_inference_not_observed"
+            },
+            {
+              "pointer": "/latest/observedAt",
+              "operator": "max_age_seconds",
+              "value": 10,
+              "reasonCode": "candidate_input_stale"
+            }
+          ]
+        },
+        {
+          "name": "inference_result",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/results",
+          "query": {"limit": 1},
+          "failureReasonCode": "candidate_inference_not_observed",
+          "assertions": [
+            {
+              "pointer": "/count",
+              "operator": "greater_than",
+              "value": 0,
+              "measurement": "resultCount",
+              "reasonCode": "candidate_inference_not_observed"
+            },
+            {
+              "pointer": "/results/0/observedAt",
+              "operator": "exists",
+              "measurement": "resultObservedAt",
+              "reasonCode": "candidate_inference_not_observed"
+            },
+            {
+              "pointer": "/results/0/observedAt",
+              "operator": "max_age_seconds",
+              "value": 10,
+              "reasonCode": "candidate_input_stale"
+            }
+          ]
+        },
+        {
+          "name": "active_processing",
+          "source": "http_json",
+          "required": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_inference_not_observed",
+          "assertions": [
+            {"pointer": "/counters/framesProcessed", "operator": "greater_than", "value": 0, "measurement": "framesProcessed", "reasonCode": "candidate_inference_not_observed"}
+          ]
+        },
+        {
+          "name": "latency",
+          "source": "http_json",
+          "required": false,
+          "enforceWhenObserved": true,
+          "path": "/api/v1/status",
+          "failureReasonCode": "candidate_latency_slo_violated",
+          "condition": {
+            "pointer": "/performance/metricsValid",
+            "equals": true
+          },
+          "assertions": [
+            {
+              "pointer": "/performance/processingLatencyP95Ms",
+              "operator": "less_or_equal",
+              "value": 4000,
+              "measurement": "processingLatencyP95Ms",
+              "reasonCode": "candidate_latency_slo_violated"
+            }
+          ]
+        }
+      ],
+      "comparison": {
+        "path": "/api/v1/status",
+        "inputStatePointer": "/inputState",
+        "modelStatePointer": "/modelState",
+        "latencyPointer": "/performance/processingLatencyP95Ms",
+        "resultObservedAtPointer": "/latest/observedAt"
+      }
+    }
+  ]
+}

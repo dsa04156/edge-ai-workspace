@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>단계별 추진계획</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../assets/docs-site.css">
 </head>
 <body>
   <div class="site-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a href="index.html">← 문서 홈</a>
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">개발 참고</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">단계별-추진계획.md</span>
         <a class="edit-link" href="/__edit?file=단계별-추진계획.md">편집</a>
       </div>
-      <span>단계별-추진계획.md</span>
     </div>
     <section class="search-panel" aria-label="문서 검색">
   <div class="search-head">
@@ -23,11 +27,11 @@
   <div class="search-box" data-search-index="search-index.json">
     <div class="search-filters" role="group" aria-label="검색 범위">
       <button type="button" class="active" data-search-filter="all">전체</button>
-      <button type="button" data-search-filter="wiki">위키</button>
-      <button type="button" data-search-filter="active">최신 기준</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
       <button type="button" data-search-filter="ops">운영</button>
-      <button type="button" data-search-filter="history">설계 이력</button>
-      <button type="button" data-search-filter="archive">보관</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
     </div>
     <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
     <div id="doc-search-results" class="search-results" aria-live="polite"></div>
@@ -38,134 +42,54 @@
       <nav class="sidebar" aria-label="문서 목록">
 <h2>문서 목록</h2>
 <ul>
-<li class="group">위키</li>
-<li><a href="wiki/지식-지도.html">쿠버엣지 PoC 지식 지도</a></li>
-<li><a href="wiki/운영-규칙.html">위키 운영 규칙</a></li>
-<li><a href="wiki/변경-기록.html">위키 변경 기록</a></li>
-<li><a href="wiki/운영-모델.html">운영 모델</a></li>
-<li><a href="wiki/현재-데모-흐름.html">현재 데모 흐름 요약</a></li>
-<li><a href="wiki/상태와-텔레메트리.html">상태와 텔레메트리</a></li>
-<li><a href="wiki/대시보드와-kpi.html">대시보드와 KPI 모델</a></li>
-<li><a href="wiki/운영-진입점.html">운영 진입점</a></li>
-<li><a href="wiki/2차년도-설계-트랙.html">2차년도 설계 트랙</a></li>
-<li class="group">최신 기준 문서</li>
+<li class="group">시작하기</li>
 <li><a href="문서-안내.html">문서 안내</a></li>
-<li><a href="시스템-구축-목표.html">시스템 구축 목표</a></li>
-<li><a href="프로젝트-배경.html">프로젝트 배경</a></li>
-<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
-<li><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li>
-<li><a href="서비스-데모-시나리오.html">서비스 데모 시나리오</a></li>
-<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
-<li><a href="카젠티-운영-보조-에이전트.html">카젠티 운영 보조 에이전트</a></li>
-<li><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></li>
-<li><a href="대시보드-정보-구조.html">대시보드 정보 구조</a></li>
-<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
-<li><a href="물리-디바이스-상태-정책.html">물리 디바이스 상태 정책</a></li>
-<li><a href="쿠버엣지-엣지엑스-모델-매핑.html">쿠버엣지-엣지엑스 모델 매핑</a></li>
-<li><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li>
-<li><a href="현재-데모-경로.html">현재 데모 경로</a></li>
-<li><a href="저장소-구조.html">저장소 구조</a></li>
-<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
-<li><a href="문서-정리-계획.html">문서 정리 계획</a></li>
-<li><a href="디바이스-등록-API.html">디바이스 발견 및 등록 API</a></li>
-<li><a href="디바이스-발견-아키텍처.html">디바이스 발견 및 등록 아키텍처</a></li>
-<li><a href="디바이스-카탈로그.html">디바이스 Binding 및 Profile Catalog</a></li>
-<li><a href="서비스-설계-캔버스.html">서비스 설계 캔버스</a></li>
-<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
-<li><a href="프로토콜-독립형-디바이스-발견-등록-요구사항.html">프로토콜 독립형 디바이스 Discovery 및 Registration 요구사항</a></li>
-<li><a href="현재-구현-상태.html">프로토콜 독립형 디바이스 발견·등록 현재 구현 상태</a></li>
-<li class="group">운영 문서</li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
 <li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
-<li><a href="ops/엣지엑스-코어데이터-1000-디바이스-부하검증.html">EdgeX Core Data 1,000 디바이스 부하 검증</a></li>
-<li><a href="ops/중앙-메시지버스-재구축-절차.html">중앙 메시지버스 배치 재구축 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
 <li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
-<li><a href="ops/gpu-hami-런타임-운영.html">HAMi GPU 런타임 운영 메모</a></li>
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
-<li><a href="ops/엣지-노드-조인-점검.html">엣지 노드 조인 점검</a></li>
-<li><a href="ops/노드-조인-점검.html">노드 조인 점검</a></li>
-<li><a href="ops/파드-연결성-점검.html">파드 연결성 점검</a></li>
-<li><a href="ops/노드-실측-사양표.html">노드 실측 사양표</a></li>
-<li><a href="ops/디바이스-발견-등록-운영.html">디바이스 발견 및 등록 운영 절차</a></li>
-<li><a href="ops/어댑터-런타임-디바이스-연결-관리.html">어댑터 런타임과 디바이스 연결 관리</a></li>
-<li class="group">설계 이력</li>
-<li><a href="superpowers/plans/2026-07-10-가상디바이스-런타임-구현-계획.html">가상디바이스 런타임 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-13-엣지엑스-mqtt-수집-구현-계획.html">엣지엑스 MQTT 수집 수직 슬라이스 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-구현-계획.html">엣지엑스 중앙 코어와 엣지 버퍼 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-20-대시보드-데이터소스-장애격리-구현-계획.html">대시보드 데이터 소스 장애 격리 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-20-엣지엑스-디바이스-조회-단일실행.html">EdgeX 디바이스 조회 단일 실행 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-구현-계획.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-21-기존-엣지-에이전트-퇴역-구현-계획.html">기존 엣지 Agent 퇴역 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-구현-계획.html">Raspberry Pi Sense HAT I2C Device Service 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-구현-계획.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-21-젯슨-로컬-최근-데이터-캐시-구현-계획.html">젯슨 로컬 최근 데이터 캐시 Implementation Plan</a></li>
-<li><a href="superpowers/plans/2026-07-21-젯슨-아두이노-시리얼-디바이스서비스-구현-계획.html">젯슨 Arduino Serial Device Service 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-21-젯슨-엣지-텔레메트리-에이전트-구현-계획.html">Jetson 엣지 텔레메트리 에이전트 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-22-로컬-데이터-캐시-v2-구현-계획.html">로컬 데이터 캐시 v2 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-22-센서-이력-그래프-연결-구현-계획.html">센서 이력 그래프 연결 Implementation Plan</a></li>
-<li><a href="superpowers/plans/2026-07-22-실측-센서-이상탐지-서비스-데모-구현-계획.html">실측 센서 이상 탐지 서비스 데모 구현 계획</a></li>
-<li><a href="superpowers/plans/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-구현-계획.html">EdgeX Core Data 1,000 디바이스 부하검증 Implementation Plan</a></li>
-<li><a href="superpowers/plans/2026-07-23-대시보드-디바이스-온보딩-MVP-구현-계획.html">대시보드 디바이스 온보딩 MVP Implementation Plan</a></li>
-<li><a href="superpowers/plans/2026-07-23-대시보드-어댑터-런타임-관리-구현.html">대시보드 어댑터 런타임 관리 구현 계획</a></li>
-<li><a href="superpowers/specs/2026-07-13-엣지엑스-mqtt-수집-설계.html">엣지엑스 MQTT 수집 수직 슬라이스 설계</a></li>
-<li><a href="superpowers/specs/2026-07-14-엣지엑스-중앙-코어-엣지-버퍼-설계.html">엣지엑스 중앙 코어와 엣지 임시 버퍼 배치 설계</a></li>
-<li><a href="superpowers/specs/2026-07-20-대시보드-데이터소스-장애격리-설계.html">대시보드 데이터 소스 장애 격리 설계</a></li>
-<li><a href="superpowers/specs/2026-07-20-엣지엑스-디바이스-조회-단일실행-설계.html">EdgeX 디바이스 조회 단일 실행 설계</a></li>
-<li><a href="superpowers/specs/2026-07-20-엣지엑스-중앙-메시지버스-엣지-디바이스서비스-설계.html">엣지엑스 중앙 메시지버스와 엣지 디바이스 서비스 분리 배치 설계</a></li>
-<li><a href="superpowers/specs/2026-07-20-젯슨-엣지-텔레메트리-에이전트-설계.html">Jetson 엣지 텔레메트리 에이전트 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-가상디바이스-런타임-중앙-엣지엑스-설계.html">가상디바이스 Runtime과 중앙 EdgeX 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-라즈베리파이-센스햇-I2C-디바이스서비스-설계.html">라즈베리파이 Sense HAT I2C Device Service 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-아두이노-6개-가상디바이스-인플럭스DB-제거-설계.html">아두이노 6개 가상 디바이스와 InfluxDB 제거 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-젯슨-로컬-최근-데이터-캐시-설계.html">젯슨 로컬 최근 데이터 캐시 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-시리얼-에이전트-설계.html">젯슨 아두이노 시리얼 내장 에이전트 설계</a></li>
-<li><a href="superpowers/specs/2026-07-21-젯슨-아두이노-엣지엑스-시리얼-디바이스서비스-설계.html">젯슨 아두이노 EdgeX Serial Device Service 설계</a></li>
-<li><a href="superpowers/specs/2026-07-22-로컬-데이터-캐시-v2-설계.html">Local Data Cache v2 설계</a></li>
-<li><a href="superpowers/specs/2026-07-22-센서-이력-그래프-연결-설계.html">센서 이력 그래프 연결 설계</a></li>
-<li><a href="superpowers/specs/2026-07-22-실측-센서-이상탐지-서비스-데모-설계.html">실측 센서 이상 탐지 서비스 데모 설계</a></li>
-<li><a href="superpowers/specs/2026-07-22-엣지엑스-코어데이터-1000-디바이스-부하검증-설계.html">EdgeX Core Data 1,000 디바이스 부하검증 설계</a></li>
-<li><a href="superpowers/specs/2026-07-23-대시보드-디바이스-온보딩-MVP-설계.html">대시보드 디바이스 온보딩 MVP 설계</a></li>
-<li><a href="superpowers/specs/2026-07-23-대시보드-어댑터-런타임-관리-설계.html">대시보드 어댑터 런타임 관리 설계</a></li>
-<li><a href="대시보드-화면-설계.html">대시보드 화면 설계</a></li>
-<li><a href="런타임-자원-증강-데모-워크플로.html">런타임 자원 증강 데모 워크플로</a></li>
-<li><a href="일일-기록.html">일일 기록</a></li>
-<li><a href="자원-증강-가상디바이스-대시보드.html">자원 증강 가상디바이스 대시보드 계획</a></li>
-<li class="group">보관 문서</li>
-<li><a href="archive/embedded-conference/archive/selective-replanning-2026-04-23/figures/선택적-재계획-그림-자료.html">선택적 재계획 그림 자료</a></li>
-<li><a href="archive/embedded-conference/experiments/선택적-재계획-결과-2026-04-23.html">선택적 재계획 결과 기록</a></li>
-<li><a href="archive/embedded-conference/experiments/선택적-재계획-진행-2026-04-23.html">선택적 재계획 진행 기록</a></li>
-<li><a href="archive/embedded-conference/비용-모델과-런타임-방식.html">비용 모델 안내</a></li>
-<li><a href="archive/integration/2026-07-14-mqtt-브리지-ci-cd-기록.html">2026-07-14 MQTT 브리지 CI/CD 기록</a></li>
-<li><a href="archive/integration/2026-07-14-젯슨-mqtt-종단간-검증-기록.html">2026-07-14 젯슨 MQTT 종단간 검증 기록</a></li>
-<li><a href="archive/integration/2026-07-15-젯슨-센스햇-운영-기록.html">2026-07-15 젯슨·센스햇 운영 검증 기록</a></li>
-<li><a href="archive/integration/과거-인수인계.html">과거 인수인계</a></li>
-<li><a href="archive/integration/통합-문서.html">통합 문서</a></li>
-<li><a href="archive/integration/통합-상세-기록.html">통합 상세 기록</a></li>
-<li><a href="archive/integration/통합-요약.html">통합 문서 요약</a></li>
-<li><a href="archive/legacy-orchestration/비용-모델과-런타임-방식.html">비용 모델과 런타임 방식</a></li>
-<li><a href="archive/legacy-orchestration/시스템-개요.html">레거시 시스템 개요</a></li>
-<li><a href="archive/legacy-orchestration/아키텍처.html">레거시 오케스트레이션 아키텍처</a></li>
-<li><a href="archive/research/논문-작성-점검표.html">논문 작성 점검표</a></li>
-<li><a href="archive/research/논문-전략.html">논문 전략</a></li>
-<li><a href="archive/research/연구-주제.html">연구 주제 정리</a></li>
-<li><a href="archive/research/연구-초안-안내.html">연구 초안 안내</a></li>
-<li><a href="archive/research/투고처-전략.html">투고처 전략</a></li>
-<li><a href="archive/research/평가-계획.html">평가 계획</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a class="active" aria-current="page" href="단계별-추진계획.html">단계별 추진계획</a></li>
 </ul>
 </nav>
       <article class="doc">
         <header class="doc-header">
-          <p class="eyebrow">최신 기준 문서</p>
+          <p class="eyebrow">개발 참고</p>
           <h1>단계별 추진계획</h1>
           <p class="subtitle">&gt; 보고서 본문용 추진계획이다. 아래 내용은 2차년도 목표이며 현재 구현 완료 &gt; 상태를 뜻하지 않는다. 세부 데이터 항목, 기…</p>
           <div class="meta">
-            <span class="badge kind">최신 기준 문서</span>
+            <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-08-03 17:04</span>
-            <span class="badge">HTML 생성: 2026-08-04 11:57</span>
+            <span class="badge">수정: 2026-09-01 15:30</span>
+            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="2026년도-2차년도-옥동-poc-추진계획-안">2026년도 2차년도 옥동 PoC 추진계획(안)</h1>
 <blockquote><p>이 문서는 보고서 본문용 추진계획이다. 아래 내용은 2차년도 목표이며 현재 구현 완료 상태를 뜻하지 않는다. 세부 데이터 항목, 기술 설계, 장애 시나리오, 화면 목록과 실제 검증 결과는 문서 하단의 별첨 기준 문서에서 관리한다.</p></blockquote>
+<blockquote><p>현재 테스트베드에서는 HAMi GPU와 CUDA readiness를 사용하는 Server1 observed-only 후보까지 운영한다. 2026-08-18 현재 통계 기준선 후보는 90-run 부하 실험에서 성능 자격이 거부됐다. 이는 10월 엣지·서버 배치 검토의 선행 증거이며 승인 기반 요청 전환 완료를 뜻하지 않는다.</p></blockquote>
+<blockquote><p>2026-08-25 승인된 선행 구현 범위는 서비스 자원 프로파일과 노드 자원 snapshot을 이용한 <strong>신규 단일 replica Deployment 생성</strong>까지다. 전용 namespace, immutable image allowlist, exact-node placement와 Pod Ready 확인을 포함하지만 기존 workload migration, offloading, runtime replanning과 자동 장애복구를 완료 기능으로 포함하지 않는다.</p></blockquote>
+<blockquote><p>Runtime Recommendation은 자원·서비스 지표로 증강/대체 필요성과 후보를 read-only로 추천하고 dwell/cooldown 이력을 남기지만 자동 배포·전환·삭제는 하지 않는다. 별도 승인 Controller의 candidate 생성, SHADOW validation, Lease handoff/rollback과 core <code>Endpoints</code> 전환은 2026-08-26 격리 시험에서 확인했다. production은 Argo CD selector와 EndpointSlice 계약을 유지하므로 traffic 단계가 <code>routing_mode_unsupported</code>로 차단되고, 기존 workload 종료·candidate promotion·자동 정리도 지원하지 않는다.</p></blockquote>
+<blockquote><p>Jetson 수집·저장을 유지하고 Server1에 추론만 요청하는 LOCAL/REMOTE/LOCAL_FALLBACK도 격리 시험에서 확인했다. 2026-08-28 현재 관련 코드는 테스트를 통과했지만 미커밋·미배포이며, Server1 성능 자격은 <code>rejected</code>이므로 범용 offloading이나 운영 요청 전환 완료가 아니다.</p></blockquote>
 <h2 id="1-추진-배경">1. 추진 배경</h2>
 <p>2차년도에는 대규모 혼합 디바이스 제어·관리 플랫폼의 요소기술을 개발하고 프로토타입을 구축한다.</p>
 <p>2026년 7월 29일 옥동 현장회의 결과, 신규 장비가 필요한 서비스보다 현재 확보된 PLC·MES·센서 데이터를 활용할 수 있는 서비스를 우선 추진하기로 하였다.</p>
@@ -207,8 +131,8 @@
 <td>통신 단절 시 로컬 저장·재전송, 서비스 실패 시 재실행·재배포</td>
 </tr>
 <tr>
-<td>가상 디바이스</td>
-<td>실제 장비 미확보 구간의 데이터 생성, 장애 및 다중 디바이스 시험</td>
+<td>합성·Replay 데이터</td>
+<td>실제 장비 미확보 구간의 데이터 생성, 장애 및 다중 입력 시험</td>
 </tr>
 <tr>
 <td>통합 화면</td>
@@ -241,7 +165,7 @@
 </tr>
 <tr>
 <td>11월</td>
-<td>엣지·서버 배치, 장애복구 및 가상 디바이스 시험</td>
+<td>엣지·서버 배치, 장애복구 및 합성·Replay 입력 시험</td>
 <td>장애·분산실행 시험결과</td>
 </tr>
 <tr>
@@ -287,7 +211,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="6-주요-산출물">6. 주요 산출물</h2>
-<ul><li>옥동 PoC 시스템 및 서비스 설계서</li><li>현장 디바이스·데이터 명세서</li><li>데이터 수집 미들웨어 프로토타입</li><li>AI 서비스 2종 프로토타입</li><li>AI 서비스 배포·관리 워크플로우 프로토타입</li><li>물리·가상 디바이스 관리 및 장애복구 기능</li><li>통합 모니터링 화면</li><li>단위 및 통합 시험결과서</li></ul>
+<ul><li>옥동 PoC 시스템 및 서비스 설계서</li><li>현장 디바이스·데이터 명세서</li><li>데이터 수집 미들웨어 프로토타입</li><li>AI 서비스 2종 프로토타입</li><li>AI 서비스 배포·관리 워크플로우 프로토타입</li><li>물리 디바이스 관리 및 합성·Replay 기반 장애복구 검증</li><li>통합 모니터링 화면</li><li>단위 및 통합 시험결과서</li></ul>
 <h2 id="7-최종-추진-방향">7. 최종 추진 방향</h2>
 <p>2026년도 2차년도에는 옥동의 PLC·MES·센서 데이터를 기반으로 생산품질 판별과 유압펌프·모터 이상감지 서비스를 우선 구현한다.</p>
 <p>이를 통해 데이터 수집, AI 서비스 배포, 엣지·서버 작업 분산, 결과 저장, 알림 및 장애복구 기능이 연결된 대규모 혼합 디바이스 제어·관리 플랫폼 프로토타입을 구축하고 검증한다.</p>
@@ -295,12 +219,12 @@
 <p>보고서 본문에는 위 추진계획만 유지하고 세부사항은 다음 문서에서 관리한다.</p>
 <ul><li>현장·테스트베드 데이터 경로와 저장 경계:</li></ul>
 <p><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></p>
-<ul><li>AI 서비스 입력·결과·Replay 계약: <a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li>물리 디바이스와 서비스 연결 명세:</li></ul>
+<ul><li>AI 서비스 입력·결과·Replay 계약: <a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li>CPU·memory·지연·처리량 기반 자원 증강 실험과 후보 자격:</li></ul>
+<p><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></p>
+<ul><li>물리 디바이스와 서비스 연결·디바이스 트윈:</li></ul>
 <p><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></p>
-<ul><li>가상 디바이스·디바이스트윈·워크플로 기술 설계:</li></ul>
-<p><a href="2차년도-가상디바이스-워크플로-설계.html">2차년도 가상디바이스·워크플로 설계</a></p>
 <ul><li>장애·복구 시나리오와 운영 검증:</li></ul>
-<p><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></p>
+<p><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>, <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></p>
 <ul><li>통합 화면의 정보 구조와 상태 판단:</li></ul>
 <p><a href="대시보드-정보-구조.html">대시보드 정보 구조</a>, <a href="대시보드-판단-정책.html">대시보드 판단 정책</a></p>
 <ul><li>구현 완료·부분 구현·미구현 구분:</li></ul>
@@ -320,6 +244,7 @@
 <li class="toc-h2"><a href="#별첨-기준-문서">별첨 기준 문서</a></li></ol></aside>
     </div>
   </div>
+
   <footer>Generated from docs/*.md</footer>
 </body>
 </html>

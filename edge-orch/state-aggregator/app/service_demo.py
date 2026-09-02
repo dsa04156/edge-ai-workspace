@@ -13,10 +13,15 @@ from .service_demo_models import (
     ServiceDemoBinding,
     ServiceDemoComponentScores,
     ServiceDemoCounters,
+    ServiceDemoExecutionOwnership,
     ServiceDemoLatest,
+    ServiceDemoInferenceRouting,
     ServiceDemoModel,
+    ServiceDemoPerformance,
+    ServiceDemoProcessResources,
     ServiceDemoResultState,
     ServiceDemoScoreWeights,
+    ServiceDemoStorageStatus,
     ServiceDemoState,
     ServiceDemoTemperatureFeatures,
     ServiceDemoVibrationFeatures,
@@ -155,6 +160,31 @@ class ServiceDemoClient:
             latest=latest,
             model=ServiceDemoModel(**upstream.model.model_dump()),
             counters=ServiceDemoCounters(**upstream.counters.model_dump()),
+            performance=(
+                ServiceDemoPerformance(**upstream.performance.model_dump())
+                if upstream.performance is not None
+                else None
+            ),
+            process_resources=(
+                ServiceDemoProcessResources(**upstream.process_resources.model_dump())
+                if upstream.process_resources is not None
+                else None
+            ),
+            execution_ownership=(
+                ServiceDemoExecutionOwnership(
+                    **upstream.execution_ownership.model_dump()
+                )
+                if upstream.execution_ownership is not None
+                else None
+            ),
+            storage=(
+                ServiceDemoStorageStatus(**upstream.storage.model_dump())
+                if upstream.storage is not None
+                else None
+            ),
+            inference_routing=ServiceDemoInferenceRouting(
+                **upstream.inference_routing.model_dump()
+            ),
             last_error=upstream.last_error,
         )
 
@@ -195,6 +225,18 @@ class ServiceDemoClient:
                 if upstream.temperature_features is not None
                 else None
             ),
+            inference_target=upstream.inference_target,
+            augmentation_approval_id=upstream.augmentation_approval_id,
+            request_id=upstream.request_id,
+            execution_mode=upstream.execution_mode,
+            source_node=upstream.source_node,
+            remote_node=upstream.remote_node,
+            local_latency_ms=upstream.local_latency_ms,
+            network_latency_ms=upstream.network_latency_ms,
+            remote_processing_ms=upstream.remote_processing_ms,
+            total_latency_ms=upstream.total_latency_ms,
+            fallback=upstream.fallback,
+            reason_code=upstream.reason_code,
         )
 
 

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-07-16T00:00:00.000Z" agent="GJC" version="24.7.17" type="device">
+  <diagram id="edgex-edge-ai-target" name="권장 아키텍처">
+    <mxGraphModel dx="1800" dy="1040" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1040" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;b&gt;EdgeX 기반 엣지 AI 데이터 수집·워크플로우 권장 아키텍처&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1720" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="현행 데이터 plane + 2차년도 workflow control plane 설계 (구현 완료 주장이 아님)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="30" y="55" width="1720" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lane-field" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#A6A6A6;strokeWidth=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="30" y="100" width="230" height="760" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane-edge" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;strokeWidth=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="280" y="100" width="650" height="760" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane-server" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#A6A6A6;strokeWidth=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="950" y="100" width="820" height="760" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="header-field" value="&lt;b&gt;현장 장비&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=17;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="45" y="112" width="200" height="28" as="geometry"/>
+        </mxCell>
+        <mxCell id="header-edge" value="&lt;b&gt;물리디바이스 / Edge Node ×N&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=17;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="300" y="112" width="610" height="28" as="geometry"/>
+        </mxCell>
+        <mxCell id="header-server" value="&lt;b&gt;엣지 AI 서버&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=17;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="970" y="112" width="780" height="28" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sensors" value="센서 · PLC&lt;br&gt;MQTT / 산업 프로토콜" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="55" y="180" width="180" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="camera" value="카메라&lt;br&gt;RTSP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="55" y="400" width="180" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="actuator" value="PLC · 액추에이터&lt;br&gt;안전 제어 대상" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="55" y="675" width="180" height="62" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="device-service" value="Protocol Owner&lt;br&gt;Adapter / gated Device Svc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="315" y="175" width="185" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="local-bus" value="Local MQTT Broker&lt;br&gt;(fan-out 필요 시)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="540" y="175" width="170" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="outbox" value="SQLite Outbox&lt;br&gt;UUID · seq · checksum" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="755" y="165" width="145" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="outage-note" value="장애: bounded Outbox 보관&lt;br&gt;복구: device별 FIFO 재전송" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#A6A6A6;dashed=1;dashPattern=4 4;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="520" y="285" width="205" height="58" as="geometry"/>
+        </mxCell>
+        <mxCell id="relay" value="Durable Relay&lt;br&gt;mTLS · retry · ACK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="755" y="300" width="145" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="workflow-agent" value="Future Workflow Agent&lt;br&gt;상시 · cached policy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="315" y="510" width="185" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="edgecore" value="KubeEdge EdgeCore&lt;br&gt;node · workload agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="540" y="510" width="185" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="workflow-pod" value="Workflow / AI Pod&lt;br&gt;요청·이벤트 시 실행" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;dashed=1;dashPattern=7 5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="540" y="390" width="185" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache" value="Workflow Spec Cache&lt;br&gt;로컬 승인본" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="315" y="640" width="185" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="command-agent" value="Future Command Agent&lt;br&gt;TTL · 중복 · 안전 gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="755" y="585" width="145" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-role-note" value="현재 상시: owner · broker(선택) · relay/outbox&lt;br&gt;후속: workflow agent + on-demand worker" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="315" y="760" width="570" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ingress" value="Ingest Gateway&lt;br&gt;server2 · auth / allowlist" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="985" y="165" width="165" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-data" value="EdgeX Core Data&lt;br&gt;Event / Reading" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="165" width="155" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="postgres" value="PostgreSQL&lt;br&gt;권위 영구 저장" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="155" width="145" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="metadata" value="Core Metadata / Keeper&lt;br&gt;Device · Profile 권위" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="285" width="155" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="central-bus" value="Internal MessageBus&lt;br&gt;persist 후 async fan-out" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="285" width="145" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="app-services" value="Application Services&lt;br&gt;idempotent consumer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="285" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="state-aggregator" value="state-aggregator&lt;br&gt;권위 read model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="405" width="145" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="influx" value="InfluxDB&lt;br&gt;파생 시계열" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="395" width="160" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="dashboard" value="Dashboard&lt;br&gt;통합 운영 가시화" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="505" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="command-gateway" value="Future Command Gateway&lt;br&gt;비동기 결과 relay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="985" y="585" width="165" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-command" value="Core Command&lt;br&gt;명령 API 권위" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="585" width="155" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="twin" value="Future DeviceTwin&lt;br&gt;desired · snapshot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="585" width="145" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai-offload" value="AI / Offloading&lt;br&gt;후속 설계" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;dashed=1;dashPattern=7 5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="585" width="160" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="orchestrator" value="Future Workflow Control&lt;br&gt;정의 · run 상태 권위" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="985" y="710" width="165" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="cloudcore" value="KubeEdge CloudCore&lt;br&gt;server1 · workload 관리" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="710" width="155" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="server-role-note" value="EdgeX: physical authority · KubeEdge: node/workload&lt;br&gt;Twin: derived snapshot · Orchestrator: workflow binding authority" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="720" width="350" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e-sensor-ds" value="telemetry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="sensors" target="device-service">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-ds-bus" value="local fan-out" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="device-service" target="local-bus">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-bus-outbox" value="durable commit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="device-service" target="outbox">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="260"/>
+              <mxPoint x="735" y="260"/>
+              <mxPoint x="735" y="210"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-outbox-relay" value="oldest ready" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="outbox" target="relay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-relay-ingress" value="retry / replay" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="relay" target="ingress">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-ingress-core" value="validated Event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ingress" target="core-data">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-core-postgres" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="core-data" target="postgres">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-core-bus" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="core-data" target="central-bus">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-bus-app" value="event_id dedup" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="central-bus" target="app-services">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-app-influx" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="app-services" target="influx">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-core-state" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="core-data" target="state-aggregator">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1365" y="200"/>
+              <mxPoint x="1365" y="440"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-metadata-state" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="metadata" target="state-aggregator">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1365" y="320"/>
+              <mxPoint x="1365" y="440"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-state-dashboard" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="state-aggregator" target="dashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1555" y="440"/>
+              <mxPoint x="1555" y="540"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-ingress-ack" value="persisted / duplicate ACK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.6;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ingress" target="relay">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="265"/>
+              <mxPoint x="925" y="365"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-relay-delete" value="ACK 후 삭제" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.6;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="relay" target="outbox">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-note-outbox" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#A6A6A6;strokeWidth=1;dashed=1;dashPattern=4 4;endArrow=open;endFill=0;" edge="1" parent="1" source="outage-note" target="outbox">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e-bus-workflow" value="local event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="local-bus" target="workflow-agent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625" y="360"/>
+              <mxPoint x="410" y="360"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-agent-pod" value="start / stop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.6;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="workflow-agent" target="workflow-pod">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="545"/>
+              <mxPoint x="520" y="435"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-cache-agent" value="approved spec" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.6;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="cache" target="workflow-agent">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-camera-pod" value="RTSP 직접 소비" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=3;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="camera" target="workflow-pod">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-pod-outbox" value="result / status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="workflow-pod" target="outbox">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="435"/>
+              <mxPoint x="735" y="260"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-core-command-gateway" value="command_id · TTL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="core-command" target="command-gateway">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-command-relay" value="downlink / result" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="command-gateway" target="relay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-relay-command-agent" value="verified command" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="relay" target="command-agent">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-command-bus" value="command topic" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="command-agent" target="local-bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="621"/>
+              <mxPoint x="735" y="270"/>
+              <mxPoint x="625" y="270"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-bus-ds-command" value="Device command" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="local-bus" target="device-service">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="270"/>
+              <mxPoint x="410" y="270"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-ds-actuator" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="device-service" target="actuator">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="705"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-orch-cloud" value="placement / activate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="orchestrator" target="cloudcore">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-cloud-agent" value="workload 관리" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="cloudcore" target="edgecore">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1160" y="825"/>
+              <mxPoint x="285" y="825"/>
+              <mxPoint x="515" y="545"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-edgecore-workflow" value="local activate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="edgecore" target="workflow-agent">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-twin-orch" value="binding ref" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="twin" target="orchestrator">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1462" y="680"/>
+              <mxPoint x="1068" y="680"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-metadata-twin" value="observed snapshot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#2F3B45;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="state-aggregator" target="twin">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-ai-orch" value="recommendation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;fontSize=10;fontColor=#666666;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ai-offload" target="orchestrator">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1660" y="695"/>
+              <mxPoint x="1080" y="695"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend-title" value="&lt;b&gt;표현 규칙&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="35" y="885" width="90" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-always" value="상시 실행" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="130" y="880" width="100" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-ondemand" value="요청 시 실행" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;strokeWidth=1.7;dashed=1;dashPattern=7 5;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="250" y="880" width="110" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-store" value="영속 저장" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#FFFFFF;strokeColor=#7F8C8D;strokeWidth=1.5;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="380" y="875" width="105" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-data-line" value="데이터 / 결과 (실선)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="550" y="880" width="135" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-data-edge" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6C8EBF;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="505" y="896" as="sourcePoint"/>
+            <mxPoint x="545" y="896" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-control-line" value="명령 / 관리 / ACK (점선)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="755" y="880" width="175" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-control-edge" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7F8C8D;strokeWidth=1.8;dashed=1;dashPattern=6 4;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="705" y="896" as="sourcePoint"/>
+            <mxPoint x="750" y="896" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-rtsp-line" value="RTSP 직접 경로" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#2F3B45;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="880" width="120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-rtsp-edge" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6C8EBF;strokeWidth=3;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="896" as="sourcePoint"/>
+            <mxPoint x="995" y="896" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-note" value="Bounded at-least-once (기본 24h / 1GiB) · PostgreSQL persisted ACK 뒤 Outbox 삭제" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="875" width="585" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="footer" value="권위: Metadata=Device/Profile · Core Data/PostgreSQL=Event/Reading · Core Command=명령 API · Twin=desired/derived snapshot · Orchestrator=workflow/binding" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="35" y="945" width="1710" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

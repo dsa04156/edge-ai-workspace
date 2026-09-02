@@ -919,9 +919,9 @@ test("physical connection observation separates registration, presence, communic
         bindingId: "jetson-arduino-serial-001",
         displayName: "Jetson Arduino USB Serial",
         nodeName: "edge-a",
-        devicePath: "/dev/arduino-001",
+        devicePath: "/dev/edgeai/arduino-001",
         protocolProperties: {
-          Port: "/dev/arduino-001",
+          Port: "/dev/edgeai/arduino-001",
           BaudRate: 115200,
           DeviceID: "arduino-001",
         },
@@ -1382,7 +1382,7 @@ test("binding values override adapter defaults and explain a second Serial endpo
     },
   };
   assert.deepEqual(
-    bindingProtocolValue({name: "Port", default: "/dev/arduino-001"}, binding),
+    bindingProtocolValue({name: "Port", default: "/dev/edgeai/arduino-001"}, binding),
     {value: "/dev/arduino-002", locked: true},
   );
   assert.deepEqual(
@@ -1927,7 +1927,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(html, /data-view-mode=/);
   assert.doesNotMatch(html, /dashboardViewModeToggle/);
   assert.doesNotMatch(html, /simple-mode\.css/);
-  assert.match(html, /dashboard-responsive\.css\?v=device-taxonomy-20260730/);
+  assert.match(html, /dashboard-responsive\.css\?v=mobile-menu-flow-20260813/);
   assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);
   assert.match(html, /device-management\.css\?v=web-connection-flow-20260730/);
   assert.match(html, /device-management\.js\?v=web-connection-flow-20260730/);

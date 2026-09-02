@@ -1,0 +1,21 @@
+{
+  "apiVersion": "edge-ai.io/v1alpha1",
+  "kind": "ExecutionOwnershipContractCatalog",
+  "contracts": [
+    {
+      "serviceId": "sensor-anomaly-demo",
+      "contractVersion": "sensor-anomaly-demo-execution-ownership-v1",
+      "mode": "runtime-lease",
+      "namespace": "edgex-edge",
+      "leaseName": "sensor-anomaly-demo-execution",
+      "leaseDurationSeconds": 15,
+      "managedBy": "runtime-execution-controller",
+      "source": {
+        "namespace": "edgex-edge",
+        "workload": "sensor-anomaly-demo",
+        "holderIdentity": "sensor-anomaly-demo"
+      },
+      "candidateHolderPattern": "{candidateName}"
+    }
+  ]
+}

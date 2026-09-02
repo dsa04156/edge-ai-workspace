@@ -168,6 +168,7 @@ def build_service_resource_profiles(
                 "profile_type": "running_service_resource_requirements",
                 "generated_at": generated_at,
                 "pod_count": len(items),
+                "ready_pod_count": sum(1 for pod in items if pod.get("ready") is True),
                 "container_count": container_count,
                 "nodes": sorted(pods_by_node),
                 "pods_by_node": dict(sorted(pods_by_node.items())),
@@ -192,8 +193,16 @@ def build_service_resource_profiles(
                     },
                 },
                 "current_usage": {
-                    "cpu_cores": round(current_cpu_usage_cores, 3),
-                    "memory_working_set_mib": round(current_memory_working_set_mib, 3),
+                    "cpu_cores": (
+                        round(current_cpu_usage_cores, 3)
+                        if usage_sample_count > 0
+                        else None
+                    ),
+                    "memory_working_set_mib": (
+                        round(current_memory_working_set_mib, 3)
+                        if usage_sample_count > 0
+                        else None
+                    ),
                     "sampled_container_count": usage_sample_count,
                     "usage_coverage_ratio": _ratio(usage_sample_count, container_count),
                 },

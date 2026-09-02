@@ -19,9 +19,9 @@
             "bindingId": "jetson-arduino-serial-001",
             "displayName": "Jetson Arduino USB Serial",
             "nodeName": "etri-dev0001-jetorn",
-            "devicePath": "/dev/arduino-001",
+            "devicePath": "/dev/edgeai/arduino-001",
             "protocolProperties": {
-              "Port": "/dev/arduino-001",
+              "Port": "/dev/edgeai/arduino-001",
               "BaudRate": 115200,
               "DeviceID": "arduino-001",
               "Parser": "arduino-multisensor-v1"
@@ -53,7 +53,7 @@
           "label": "Device path",
           "type": "string",
           "required": true,
-          "default": "/dev/arduino-001"
+          "default": "/dev/edgeai/arduino-001"
         },
         {
           "name": "BaudRate",

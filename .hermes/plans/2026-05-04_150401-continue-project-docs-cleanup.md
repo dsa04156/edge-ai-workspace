@@ -18,17 +18,17 @@
 
 이미 완료한 정리 작업은 다음과 같다.
 
-1. `docs/scope.md` 작성
+1. `docs/프로젝트-범위.md` 작성
    - 현재 PoC 범위를 정의했다.
    - 현재 구현 과정에 포함되는 컴포넌트를 정리했다.
    - workflow/offloading/agent-assisted planning 계열을 현재 연구 방향에서 제외한다고 명시했다.
 
-2. `docs/README.md` 수정
-   - `scope.md`를 Active Guides에 추가했다.
-   - 이후 `repo-structure.md`도 Active Guides에 추가했다.
-   - `roadmap.md` 설명에서 동적 offloading / agent-assisted planning을 후속 계획처럼 보이게 하는 표현을 제거했다.
+2. `docs/문서-안내.md` 수정
+   - `프로젝트-범위.md`를 Active Guides에 추가했다.
+   - 이후 `저장소-구조.md`도 Active Guides에 추가했다.
+   - `단계별-추진계획.md` 설명에서 동적 offloading / agent-assisted planning을 후속 계획처럼 보이게 하는 표현을 제거했다.
 
-3. `docs/roadmap.md` 재작성
+3. `docs/단계별-추진계획.md` 재작성
    - 기존 “후속 고도화” 표현을 제거했다.
    - 현재 구현 방향을 다음 흐름으로 정리했다.
      - device
@@ -39,7 +39,7 @@
      - dashboard
    - 현재 범위에서 제외하는 경로를 별도 섹션으로 명시했다.
 
-4. `docs/repo-structure.md` 작성
+4. `docs/저장소-구조.md` 작성
    - 레포 디렉터리를 다음 기준으로 분류했다.
      - 현재 범위
      - 현재 범위 보조
@@ -51,10 +51,10 @@
 이 계획 작성 직전 기준 변경 상태는 다음과 같았다.
 
 ```text
-M docs/README.md
-M docs/roadmap.md
-?? docs/repo-structure.md
-?? docs/scope.md
+M docs/문서-안내.md
+M docs/단계별-추진계획.md
+?? docs/저장소-구조.md
+?? docs/프로젝트-범위.md
 ?? traefik/gemma-ingressroute.yaml
 ```
 
@@ -76,16 +76,16 @@ M docs/roadmap.md
 
 권장 순서는 다음과 같다.
 
-1. `docs/current-demo-path.md`
-2. `docs/device-service-binding.md`
-3. `docs/service-demo-scenario.md`
-4. `docs/dashboard-information-structure.md`
-5. `docs/ops/runbook-current-demo.md`
+1. `docs/현재-데모-경로.md`
+2. `docs/디바이스-서비스-연결.md`
+3. `docs/서비스-데모-시나리오.md`
+4. `docs/대시보드-정보-구조.md`
+5. `docs/ops/현재-데모-운영-절차.md`
 6. 필요 시 archive/excluded 경로 안내 문서 보강
 
 ## 단계별 계획
 
-### 1단계: `docs/current-demo-path.md` 작성
+### 1단계: `docs/현재-데모-경로.md` 작성
 
 목적:
 
@@ -93,7 +93,7 @@ M docs/roadmap.md
 
 생성할 파일:
 
-- `docs/current-demo-path.md`
+- `docs/현재-데모-경로.md`
 
 권장 목차:
 
@@ -172,10 +172,10 @@ physical / virtual device -> MQTT -> mqttvirtual mapper -> DeviceStatus snapshot
 검증:
 
 - dynamic offloading, placement, agent-assisted planning을 후속 계획처럼 표현하지 않는다.
-- `docs/scope.md`, `docs/device-status-policy.md`, `docs/dashboard-policy.md`와 충돌하지 않는다.
+- `docs/프로젝트-범위.md`, `docs/물리-디바이스-상태-정책.md`, `docs/대시보드-판단-정책.md`와 충돌하지 않는다.
 - 문서 전체를 한국어로 작성한다. 단, 파일명, API path, 환경변수, Kubernetes resource 이름은 원문을 유지한다.
 
-### 2단계: `docs/README.md`에 `current-demo-path.md` 연결
+### 2단계: `docs/문서-안내.md`에 `현재-데모-경로.md` 연결
 
 목적:
 
@@ -183,29 +183,29 @@ physical / virtual device -> MQTT -> mqttvirtual mapper -> DeviceStatus snapshot
 
 수정할 파일:
 
-- `docs/README.md`
+- `docs/문서-안내.md`
 
 추가할 항목 예시:
 
 ```markdown
-- `current-demo-path.md`: 현재 디바이스/MQTT/mapper/telemetry/state-aggregator/dashboard 연결 경로
+- `현재-데모-경로.md`: 현재 디바이스/MQTT/mapper/telemetry/state-aggregator/dashboard 연결 경로
 ```
 
 권장 Active Guides 순서:
 
-1. `scope.md`
-2. `repo-structure.md`
-3. `project-context.md`
-4. `current-demo-path.md`
-5. `device-status-policy.md`
-6. `dashboard-policy.md`
-7. `roadmap.md`
+1. `프로젝트-범위.md`
+2. `저장소-구조.md`
+3. `프로젝트-배경.md`
+4. `현재-데모-경로.md`
+5. `물리-디바이스-상태-정책.md`
+6. `대시보드-판단-정책.md`
+7. `단계별-추진계획.md`
 
 검증:
 
-- `docs/README.md`를 읽어서 링크 설명이 현재 방향과 맞는지 확인한다.
+- `docs/문서-안내.md`를 읽어서 링크 설명이 현재 방향과 맞는지 확인한다.
 
-### 3단계: `docs/device-service-binding.md` 작성
+### 3단계: `docs/디바이스-서비스-연결.md` 작성
 
 목적:
 
@@ -214,7 +214,7 @@ workflow/offloading 경로를 바인딩 모델로 쓰지 않는다.
 
 생성할 파일:
 
-- `docs/device-service-binding.md`
+- `docs/디바이스-서비스-연결.md`
 
 권장 목차:
 
@@ -262,7 +262,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 - workflow scheduling 또는 offloading처럼 보이지 않게 한다.
 - 문서는 한국어로 작성한다.
 
-### 4단계: `docs/service-demo-scenario.md` 작성
+### 4단계: `docs/서비스-데모-시나리오.md` 작성
 
 목적:
 
@@ -270,7 +270,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 
 생성할 파일:
 
-- `docs/service-demo-scenario.md`
+- `docs/서비스-데모-시나리오.md`
 
 권장 목차:
 
@@ -334,7 +334,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 - 서비스 데모, 디바이스-서비스 연결 구조, 운영 가시화 중심으로 유지한다.
 - 문서는 한국어로 작성한다.
 
-### 5단계: `docs/dashboard-information-structure.md` 작성
+### 5단계: `docs/대시보드-정보-구조.md` 작성
 
 목적:
 
@@ -342,7 +342,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 
 생성할 파일:
 
-- `docs/dashboard-information-structure.md`
+- `docs/대시보드-정보-구조.md`
 
 권장 목차:
 
@@ -370,7 +370,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 
 ## Device status 해석
 
-`docs/dashboard-policy.md` 기준을 따른다.
+`docs/대시보드-판단-정책.md` 기준을 따른다.
 
 ## KPI 해석
 
@@ -387,11 +387,11 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 
 검증:
 
-- `docs/dashboard-policy.md`와 충돌하지 않는다.
+- `docs/대시보드-판단-정책.md`와 충돌하지 않는다.
 - 아직 코드를 수정하지 않는다.
 - 문서는 한국어로 작성한다.
 
-### 6단계: `docs/ops/runbook-current-demo.md` 작성
+### 6단계: `docs/ops/현재-데모-운영-절차.md` 작성
 
 목적:
 
@@ -399,7 +399,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 
 생성할 파일:
 
-- `docs/ops/runbook-current-demo.md`
+- `docs/ops/현재-데모-운영-절차.md`
 
 권장 목차:
 
@@ -472,26 +472,26 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
 원칙:
 
 - 즉시 rename하지 않는다.
-- 먼저 `docs/dashboard-information-structure.md`에 naming 주의점으로 기록한다.
+- 먼저 `docs/대시보드-정보-구조.md`에 naming 주의점으로 기록한다.
 - 실제 API/UI rename은 사용자 승인 후 별도 작업으로 진행한다.
 
 ## 변경 가능 파일
 
 문서 파일:
 
-- `docs/README.md`
-- `docs/current-demo-path.md`
-- `docs/device-service-binding.md`
-- `docs/service-demo-scenario.md`
-- `docs/dashboard-information-structure.md`
-- `docs/ops/runbook-current-demo.md`
+- `docs/문서-안내.md`
+- `docs/현재-데모-경로.md`
+- `docs/디바이스-서비스-연결.md`
+- `docs/서비스-데모-시나리오.md`
+- `docs/대시보드-정보-구조.md`
+- `docs/ops/현재-데모-운영-절차.md`
 
 이미 변경된 파일:
 
-- `docs/scope.md`
-- `docs/repo-structure.md`
-- `docs/roadmap.md`
-- `docs/README.md`
+- `docs/프로젝트-범위.md`
+- `docs/저장소-구조.md`
+- `docs/단계별-추진계획.md`
+- `docs/문서-안내.md`
 
 사용자 승인 후 나중에 검토할 수 있는 코드 파일:
 
@@ -512,7 +512,7 @@ workflow_executor, placement_engine, dynamic offloading을 현재 바인딩 모�
    - `완전 자율형`
    - `LLM이 전체 제어`
 3. 제외 경로가 future work처럼 설명되지 않는지 확인한다.
-4. `docs/README.md`에 active guide 링크가 빠지지 않았는지 확인한다.
+4. `docs/문서-안내.md`에 active guide 링크가 빠지지 않았는지 확인한다.
 5. 문서 본문이 한국어 중심으로 작성됐는지 확인한다.
    - 파일명, API path, 환경변수, Kubernetes resource 이름은 원문 유지 가능.
 
@@ -532,15 +532,15 @@ PYTHONPATH=. .venv/bin/pytest -q tests
 ## 위험 요소와 대응
 
 1. 서비스 데모가 아직 정확히 확정되지 않은 상태에서 문서가 과도하게 구체화될 수 있다.
-   - 대응: `service-demo-scenario.md`는 확정 항목과 후보 항목을 분리해서 작성한다.
+   - 대응: `서비스-데모-시나리오.md`는 확정 항목과 후보 항목을 분리해서 작성한다.
 
 2. 기존 API/UI에 workflow 용어가 남아 있어 현재 방향과 충돌할 수 있다.
    - 대응: 먼저 문서에 naming 주의점으로 기록하고, rename은 별도 승인 후 진행한다.
 
 3. 제외/보관 경로가 레포 안에 그대로 있어 새 작업자가 혼동할 수 있다.
-   - 대응: `repo-structure.md`와 이후 archive index에서 분류를 명확히 한다.
+   - 대응: `저장소-구조.md`와 이후 archive index에서 분류를 명확히 한다.
 
-4. `docs/roadmap.md`에서 과거 연구 목표가 사라져 기존 보고 자료와 연결이 약해질 수 있다.
+4. `docs/단계별-추진계획.md`에서 과거 연구 목표가 사라져 기존 보고 자료와 연결이 약해질 수 있다.
    - 대응: 필요하면 active roadmap이 아니라 archive note로 과거 방향 전환 사유를 남긴다.
 
 5. `traefik/gemma-ingressroute.yaml`이 실수로 commit에 포함될 수 있다.
@@ -569,24 +569,24 @@ PYTHONPATH=. .venv/bin/pytest -q tests
 실행 단계에서 commit한다면 다음처럼 나눌 수 있다.
 
 1. `docs: define project scope and repo structure`
-   - `docs/scope.md`
-   - `docs/repo-structure.md`
-   - `docs/README.md`
-   - `docs/roadmap.md`
+   - `docs/프로젝트-범위.md`
+   - `docs/저장소-구조.md`
+   - `docs/문서-안내.md`
+   - `docs/단계별-추진계획.md`
 
 2. `docs: document current demo path`
-   - `docs/current-demo-path.md`
-   - `docs/README.md`
+   - `docs/현재-데모-경로.md`
+   - `docs/문서-안내.md`
 
 3. `docs: define device-service binding and demo scenario`
-   - `docs/device-service-binding.md`
-   - `docs/service-demo-scenario.md`
-   - `docs/README.md`
+   - `docs/디바이스-서비스-연결.md`
+   - `docs/서비스-데모-시나리오.md`
+   - `docs/문서-안내.md`
 
 4. `docs: define dashboard information structure and demo runbook`
-   - `docs/dashboard-information-structure.md`
-   - `docs/ops/runbook-current-demo.md`
-   - `docs/README.md`
+   - `docs/대시보드-정보-구조.md`
+   - `docs/ops/현재-데모-운영-절차.md`
+   - `docs/문서-안내.md`
 
 주의:
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 PressureLevel = Literal["low", "medium", "high"]
@@ -111,6 +112,194 @@ class NodeState(BaseModel):
     memory_pressure: PressureLevel
     network_pressure: PressureLevel
     node_health: HealthLevel
+
+
+def _to_camel(value: str) -> str:
+    head, *tail = value.split("_")
+    return head + "".join(part.capitalize() for part in tail)
+
+
+class SchedulingModel(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=_to_camel,
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+
+class SchedulingResourceAmounts(SchedulingModel):
+    cpu_cores: float = Field(ge=0)
+    memory_bytes: int = Field(ge=0)
+    accelerator_units: dict[str, float] = Field(default_factory=dict)
+
+
+class NodeResourceUtilization(SchedulingModel):
+    cpu_ratio: float | None = Field(default=None, ge=0)
+    memory_ratio: float | None = Field(default=None, ge=0)
+    gpu_ratio: float | None = Field(default=None, ge=0)
+    gpu_memory_ratio: float | None = Field(default=None, ge=0)
+    load_average: float | None = Field(default=None, ge=0)
+    network_rx_bytes_per_second: float | None = Field(default=None, ge=0)
+    network_tx_bytes_per_second: float | None = Field(default=None, ge=0)
+    observed_at: datetime | None = None
+
+
+class NodeSchedulingResource(SchedulingModel):
+    node: str
+    cpu_available: float = Field(ge=0)
+    memory_available_gb: float = Field(
+        ge=0,
+        serialization_alias="memoryAvailableGB",
+        validation_alias="memoryAvailableGB",
+    )
+    accelerator: str | None = None
+    health: HealthLevel
+    schedulable: bool
+    reason_codes: list[str] = Field(default_factory=list)
+    architecture: str | None = None
+    node_type: str | None = None
+    allocatable: SchedulingResourceAmounts
+    requested: SchedulingResourceAmounts
+    available: SchedulingResourceAmounts
+    utilization: NodeResourceUtilization | None = None
+    capacity_source: str = "kubernetes-allocatable"
+    reservation_source: str = "kubernetes-pod-requests"
+    utilization_source: str = "prometheus"
+
+
+class PlacementSelectionRequest(SchedulingModel):
+    namespace: str = Field(min_length=1, max_length=253)
+    service: str = Field(min_length=1, max_length=253)
+    architecture: str = Field(min_length=1, max_length=64)
+    accelerator: str | None = Field(default=None, min_length=1, max_length=128)
+    accelerator_units: dict[str, float] = Field(default_factory=dict)
+    refresh_profile: bool = False
+
+    @field_validator("accelerator_units")
+    @classmethod
+    def validate_accelerator_units(
+        cls, values: dict[str, float]
+    ) -> dict[str, float]:
+        if any(not name or amount < 0 for name, amount in values.items()):
+            raise ValueError("acceleratorUnits must use non-empty names and non-negative values")
+        return values
+
+
+class PlacementRequirements(SchedulingModel):
+    cpu_cores: float = Field(ge=0)
+    memory_bytes: int = Field(ge=0)
+    memory_gb: float = Field(ge=0)
+    architecture: str
+    accelerator: str | None = None
+    accelerator_units: dict[str, float] = Field(default_factory=dict)
+    source: str = "service-resource-profile"
+
+
+class PlacementServiceProfileRef(SchedulingModel):
+    namespace: str
+    service: str
+    generated_at: datetime | None = None
+    pod_count: int = Field(ge=0)
+    request_coverage_ratio: float = Field(ge=0, le=1)
+
+
+class PlacementScoreBreakdown(SchedulingModel):
+    cpu_headroom_ratio: float = Field(ge=0, le=1)
+    memory_headroom_ratio: float = Field(ge=0, le=1)
+    cpu_idle_ratio: float = Field(ge=0, le=1)
+    memory_idle_ratio: float = Field(ge=0, le=1)
+    cpu_headroom_points: float = Field(ge=0)
+    memory_headroom_points: float = Field(ge=0)
+    cpu_idle_points: float = Field(ge=0)
+    memory_idle_points: float = Field(ge=0)
+    total: float = Field(ge=0, le=100)
+
+
+class PlacementCandidate(SchedulingModel):
+    node: str
+    eligible: bool
+    score: float | None = Field(default=None, ge=0, le=100)
+    reason_codes: list[str] = Field(default_factory=list)
+    health: HealthLevel
+    architecture: str | None = None
+    accelerator: str | None = None
+    available_before: SchedulingResourceAmounts
+    available_after: SchedulingResourceAmounts | None = None
+    utilization: NodeResourceUtilization | None = None
+    score_breakdown: PlacementScoreBreakdown | None = None
+
+
+class PlacementSelectionResult(SchedulingModel):
+    generated_at: datetime
+    mode: Literal["read_only"] = "read_only"
+    status: Literal["selected", "no_fit", "blocked"]
+    service_profile: PlacementServiceProfileRef
+    requirements: PlacementRequirements | None = None
+    selected_node: str | None = None
+    selected_score: float | None = Field(default=None, ge=0, le=100)
+    reason_codes: list[str] = Field(default_factory=list)
+    candidates: list[PlacementCandidate] = Field(default_factory=list)
+
+
+DeploymentExecutionStatus = Literal["ready", "failed", "rejected"]
+
+
+class DeploymentCreateRequest(SchedulingModel):
+    deployment_name: str = Field(
+        min_length=1,
+        max_length=63,
+        pattern=r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+    )
+    image: str = Field(min_length=1, max_length=512)
+    placement: PlacementSelectionRequest
+    container_port: int | None = Field(default=None, ge=1, le=65535)
+    readiness_path: str | None = Field(default=None, min_length=1, max_length=256)
+
+    @field_validator("image")
+    @classmethod
+    def validate_immutable_image(cls, value: str) -> str:
+        if re.fullmatch(r"[^\s]+@sha256:[0-9a-f]{64}", value) is None:
+            raise ValueError("image must use an immutable sha256 digest")
+        return value
+
+    @field_validator("readiness_path")
+    @classmethod
+    def validate_readiness_path(cls, value: str | None) -> str | None:
+        if value is not None and not value.startswith("/"):
+            raise ValueError("readiness_path must start with '/'")
+        return value
+
+    @model_validator(mode="after")
+    def validate_probe_contract(self) -> "DeploymentCreateRequest":
+        if self.readiness_path is not None and self.container_port is None:
+            raise ValueError("container_port is required with readiness_path")
+        return self
+
+
+class DeploymentPodObservation(SchedulingModel):
+    name: str
+    phase: str | None = None
+    node: str | None = None
+    ready: bool = False
+    reason_code: str | None = None
+    reason: str | None = None
+    message: str | None = None
+
+
+class DeploymentCreateResult(SchedulingModel):
+    operation_id: str
+    namespace: str
+    deployment_name: str
+    image: str
+    status: DeploymentExecutionStatus
+    created: bool = False
+    selected_node: str | None = None
+    pod_ready: bool = False
+    reason_codes: list[str] = Field(default_factory=list)
+    message: str
+    placement: PlacementSelectionResult
+    pods: list[DeploymentPodObservation] = Field(default_factory=list)
+    observed_at: datetime
 
 
 class EdgeXDevice(BaseModel):

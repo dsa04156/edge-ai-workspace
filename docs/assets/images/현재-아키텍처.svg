@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
+  <title id="title">현재 Edge AI 플랫폼 아키텍처</title>
+  <desc id="desc">물리 장비에서 EdgeX Device Service, 중앙 EdgeX, AI 서비스와 대시보드로 이어지는 현재 데이터 및 관리 흐름</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#5d7290"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#326ce5"/>
+    </marker>
+    <style>
+      .bg{fill:#f7f9fc}.lane{fill:#fff;stroke:#dce4ef;stroke-width:2}.node{fill:#fff;stroke:#cbd6e5;stroke-width:2}.edge{fill:#f0f7ff;stroke:#8db2f2}.core{fill:#edf9f4;stroke:#79c4a5}.service{fill:#f5f2ff;stroke:#a998d4}.optional{fill:#fff9eb;stroke:#dba755;stroke-dasharray:8 6}.title{font:700 24px system-ui,sans-serif;fill:#17243b}.lane-title{font:700 15px system-ui,sans-serif;fill:#52647d}.label{font:700 16px system-ui,sans-serif;fill:#1e2d44}.small{font:500 12px system-ui,sans-serif;fill:#65758c}.badge{font:700 11px system-ui,sans-serif;fill:#326ce5}.line{fill:none;stroke:#5d7290;stroke-width:2.5;marker-end:url(#arrow)}.blue{stroke:#326ce5;marker-end:url(#arrowBlue)}.dash{stroke-dasharray:8 7}.rule{font:600 12px system-ui,sans-serif;fill:#41546f}
+    </style>
+  </defs>
+  <rect class="bg" width="1440" height="820" rx="18"/>
+  <text class="title" x="56" y="54">현재 운영 아키텍처</text>
+  <text class="small" x="56" y="80">EdgeX는 물리 디바이스와 텔레메트리의 권위, KubeEdge/Kubernetes는 노드와 워크로드의 권위다.</text>
+
+  <rect class="lane" x="42" y="112" width="1356" height="150" rx="12"/>
+  <text class="lane-title" x="62" y="142">현장 입력</text>
+  <rect class="node" x="80" y="166" width="230" height="66" rx="8"/>
+  <text class="label" x="100" y="193">Arduino · Serial</text><text class="small" x="100" y="215">가속도 X/Y/Z · 온도 등</text>
+  <rect class="node" x="350" y="166" width="230" height="66" rx="8"/>
+  <text class="label" x="370" y="193">Sense HAT · I2C</text><text class="small" x="370" y="215">환경 · 자세 · 자이로</text>
+  <rect class="optional" x="620" y="166" width="250" height="66" rx="8"/>
+  <text class="label" x="640" y="193">PLC · MES · 기타 장비</text><text class="small" x="640" y="215">현장 계약 확정 후 연결</text>
+  <rect class="node" x="1040" y="166" width="290" height="66" rx="8"/>
+  <text class="label" x="1060" y="193">카메라 · RTSP</text><text class="small" x="1060" y="215">프레임은 Workflow Pod가 직접 구독</text>
+
+  <rect class="lane" x="42" y="286" width="1356" height="180" rx="12"/>
+  <text class="lane-title" x="62" y="316">엣지 실행 영역 · edgex-edge</text>
+  <rect class="edge" x="80" y="342" width="260" height="86" rx="8"/>
+  <text class="badge" x="100" y="366">DEVICE SERVICE</text><text class="label" x="100" y="392">device-serial-jetson</text><text class="small" x="100" y="414">/dev/edgeai/arduino-001 직접 소유</text>
+  <rect class="edge" x="380" y="342" width="260" height="86" rx="8"/>
+  <text class="badge" x="400" y="366">DEVICE SERVICE</text><text class="label" x="400" y="392">device-sensehat-raspi</text><text class="small" x="400" y="414">/dev/i2c-1 직접 소유</text>
+  <rect class="service" x="770" y="342" width="270" height="86" rx="8"/>
+  <text class="badge" x="790" y="366">FIXED AI SERVICE</text><text class="label" x="790" y="392">sensor-anomaly-demo</text><text class="small" x="790" y="414">Local Data · 결과 SQLite</text>
+  <rect class="optional" x="1080" y="342" width="250" height="86" rx="8"/>
+  <text class="badge" x="1100" y="366">OPTIONAL · APPROVAL</text><text class="label" x="1100" y="392">Server1 inference</text><text class="small" x="1100" y="414">기본 root 밖 · 자동 증설 아님</text>
+
+  <path class="line" d="M195 232V342"/><path class="line" d="M465 232V342"/>
+  <path class="line blue" d="M340 385H770"/><text class="rule" x="500" y="373">read-only Local Data</text>
+  <path class="line blue dash" d="M1040 385H1080"/>
+
+  <rect class="lane" x="42" y="490" width="1356" height="190" rx="12"/>
+  <text class="lane-title" x="62" y="520">중앙 데이터·운영 영역 · edgex-system / default</text>
+  <rect class="core" x="80" y="548" width="240" height="92" rx="8"/>
+  <text class="badge" x="100" y="572">EDGEX INVENTORY</text><text class="label" x="100" y="598">Core Metadata</text><text class="small" x="100" y="620">Device · Profile · Device Service</text>
+  <rect class="core" x="360" y="548" width="240" height="92" rx="8"/>
+  <text class="badge" x="380" y="572">EDGEX TELEMETRY</text><text class="label" x="380" y="598">Core Data · PostgreSQL</text><text class="small" x="380" y="620">Event · Reading · origin</text>
+  <rect class="node" x="690" y="548" width="250" height="92" rx="8"/>
+  <text class="badge" x="710" y="572">READ MODEL</text><text class="label" x="710" y="598">state-aggregator</text><text class="small" x="710" y="620">EdgeX + Kubernetes + Prometheus</text>
+  <rect class="node" x="980" y="548" width="220" height="92" rx="8"/>
+  <text class="badge" x="1000" y="572">OPERATIONS</text><text class="label" x="1000" y="598">Dashboard</text><text class="small" x="1000" y="620">상태 · 서비스 DAG · 근거</text>
+  <rect class="node" x="1240" y="548" width="120" height="92" rx="8"/>
+  <text class="badge" x="1258" y="572">GITOPS</text><text class="label" x="1258" y="598">Argo CD</text><text class="small" x="1258" y="620">배포</text>
+
+  <path class="line" d="M210 428V548"/><path class="line" d="M510 428V548"/>
+  <path class="line blue" d="M320 594H360"/><path class="line blue" d="M600 594H690"/><path class="line blue" d="M940 594H980"/>
+  <path class="line dash" d="M1300 548V454H1205V428"/>
+  <path class="line dash" d="M815 548V456"/>
+
+  <rect x="42" y="706" width="1356" height="76" rx="10" fill="#17243b"/>
+  <text x="68" y="736" style="font:700 13px system-ui,sans-serif;fill:#8eb3ff">책임 경계</text>
+  <text x="68" y="760" style="font:500 13px system-ui,sans-serif;fill:#e8eef8">EdgeX: 물리 디바이스·스키마·상태·Event</text>
+  <text x="432" y="760" style="font:500 13px system-ui,sans-serif;fill:#e8eef8">KubeEdge/Kubernetes: 노드·워크로드</text>
+  <text x="790" y="760" style="font:500 13px system-ui,sans-serif;fill:#e8eef8">Dashboard: 읽기·판단·가시화</text>
+  <text x="1080" y="760" style="font:500 13px system-ui,sans-serif;fill:#ffd17c">미승인 자동 제어 없음</text>
+</svg>

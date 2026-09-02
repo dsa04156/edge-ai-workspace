@@ -250,6 +250,7 @@ def main() -> int:
     results = run_rules(corpus)
     generated_at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
     html = build_html(results, generated_at)
+    html = "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
     report = root / REPORT_PATH
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(html, encoding="utf-8")

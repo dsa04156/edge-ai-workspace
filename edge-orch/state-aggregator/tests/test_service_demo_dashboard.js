@@ -4,13 +4,214 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  buildServiceOperationsTimelineView,
+  buildServiceRoutingView,
+  buildServiceStagePlacementView,
   buildServiceDemoAlertView,
+  buildServiceCatalogView,
+  buildServiceInventoryView,
+  buildServiceDemoResultsView,
   buildServiceDemoView,
   refreshServiceDemo,
   refreshServiceDemoAlerts,
+  refreshServiceDemoResults,
   renderServiceDemo,
+  renderServiceCatalog,
   renderServiceDemoAlerts,
+  renderServiceDemoResults,
+  applyServiceDescriptor,
 } = require("../app/static/service-demo.js");
+
+
+test("maps every DAG stage to its declared live execution location", () => {
+  const descriptor = {
+    graph: {
+      targets: [
+        {slot: "Device1", label: "Device1", node: "etri-dev0001-jetorn"},
+        {slot: "Server1", label: "Server GPU", node: "etri-ser0002-cgnmsb"},
+      ],
+      stages: [
+        {slot: "Input", executions: [{target_slot: "Device1", executor: "device-serial-jetson"}]},
+        {slot: "Alignment", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+        {slot: "Features", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+        {slot: "Inference", executions: [
+          {target_slot: "Device1", executor: "sensor-anomaly-demo"},
+          {target_slot: "Server1", executor: "sensor-anomaly-inference-server1"},
+        ]},
+        {slot: "Result", executions: [{target_slot: "Device1", executor: "sensor-anomaly-demo"}]},
+      ],
+    },
+  };
+  const local = buildServiceStagePlacementView({
+    binding: {node: "etri-dev0001-jetorn"},
+    inference_routing: {effective_target: "edge-local"},
+  }, descriptor);
+  const remote = buildServiceStagePlacementView({
+    binding: {node: "etri-dev0001-jetorn"},
+    inference_routing: {effective_target: "server1"},
+  }, descriptor);
+
+  assert.equal(local.Input.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(local.Input.executor, "device-serial-jetson");
+  assert.equal(local.Alignment.executor, "sensor-anomaly-demo");
+  assert.equal(local.Features.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(local.Inference.location, "Device1 · etri-dev0001-jetorn");
+  assert.equal(remote.Inference.location, "Server GPU · etri-ser0002-cgnmsb");
+  assert.equal(remote.Inference.executor, "sensor-anomaly-inference-server1");
+  assert.equal(local.Result.executor, "sensor-anomaly-demo");
+});
+
+
+test("builds an observed Device1 and Server1 traffic split from persisted results", () => {
+  const view = buildServiceRoutingView({
+    mode: "live",
+    results: [
+      {inference_target: "edge-local"},
+      {inference_target: "server1"},
+      {inference_target: "edge-local"},
+      {inference_target: "edge-local"},
+    ],
+  });
+
+  assert.equal(view.deviceCount, 3);
+  assert.equal(view.serverCount, 1);
+  assert.equal(view.deviceRatio, 75);
+  assert.equal(view.serverRatio, 25);
+  assert.equal(view.summary, "최근 4건 기준");
+});
+
+
+test("keeps the traffic split unknown when there are no observed results", () => {
+  const view = buildServiceRoutingView({mode: "live", results: []});
+  assert.equal(view.deviceRatio, null);
+  assert.equal(view.serverRatio, null);
+  assert.equal(view.summary, "처리 표본 대기");
+});
+
+
+test("renders equipment alerts in newest-first order", () => {
+  const view = buildServiceOperationsTimelineView({
+    alerts: [
+      {
+        observed_at: "2026-08-13T10:00:01Z",
+        transition: "opened",
+        score: 5.2,
+      },
+    ],
+  });
+
+  assert.equal(view.events.length, 1);
+  assert.equal(view.events[0].kind, "equipment");
+  assert.equal(view.events[0].title, "설비 이상 발생");
+});
+
+
+test("builds a service list row from live operating evidence", () => {
+  const view = buildServiceCatalogView({
+    status: "anomaly",
+    input_state: "fresh",
+    model_state: "ready",
+    binding: {
+      consumer: "sensor-anomaly-demo",
+      node: "etri-dev0001-jetorn",
+    },
+    latest: {
+      anomaly: true,
+      model_version: "baseline-1.0.0",
+      inference_target: "edge-local",
+    },
+  });
+
+  assert.equal(view.name, "sensor-anomaly-demo");
+  assert.equal(view.operatingState, "running");
+  assert.equal(view.operatingLabel, "실행 중");
+  assert.equal(view.input, "fresh");
+  assert.equal(view.node, "etri-dev0001-jetorn");
+  assert.equal(view.model, "baseline-1.0.0");
+  assert.equal(view.decision, "이상 감지");
+  assert.equal(view.routing, "edge-local");
+});
+
+
+test("builds service catalog rows from Git descriptors without hardcoded HTML", () => {
+  const view = buildServiceInventoryView({
+    services: [{
+      service_id: "sensor-anomaly-demo",
+      display_name: "펌프·모터 진동·온도 이상감지",
+      description: "기준선",
+      mode: "live",
+      status: "normal",
+      input_state: "fresh",
+      model_state: "ready",
+      node: "etri-dev0001-jetorn",
+      model_version: "baseline-1.0.0",
+      inference_target: "edge-local",
+      definition_source: "git:service_catalog.json",
+      catalog_version: "edgeai.etri/service-catalog/v1",
+      descriptor: {observability: {adapter: "sensor-anomaly-v1"}},
+    }],
+  });
+
+  assert.equal(view.rows.length, 1);
+  assert.equal(view.rows[0].displayName, "펌프·모터 진동·온도 이상감지");
+  assert.equal(view.rows[0].operatingState, "running");
+  assert.equal(view.definitionSource, "git:service_catalog.json · edgeai.etri/service-catalog/v1");
+});
+
+
+test("applies descriptor stage and target labels to the operations DAG", () => {
+  const elements = Object.fromEntries([
+    "serviceDemoTitle", "serviceOperationsServiceId", "serviceOperationsDagTitle",
+    "serviceDemoStepInputLabel", "serviceDemoStepInferenceLabel",
+    "serviceDagDevice1Label", "serviceDagDevice1Description",
+  ].map((id) => [id, {textContent: ""}]));
+  applyServiceDescriptor({
+    service_id: "pump-monitor",
+    display_name: "펌프 감시",
+    descriptor: {
+      graph: {
+        title: "Pump signal → Decision",
+        stages: [
+          {slot: "Input", label: "PLC 수집"},
+          {slot: "Inference", label: "고장 추론"},
+        ],
+        targets: [
+          {slot: "Device1", label: "현장 Jetson", description: "local"},
+        ],
+      },
+      observability: {adapter: "sensor-anomaly-v1"},
+    },
+  }, {getElementById: (id) => elements[id]});
+
+  assert.equal(elements.serviceDemoTitle.textContent, "펌프 감시");
+  assert.equal(elements.serviceOperationsServiceId.textContent, "pump-monitor");
+  assert.equal(elements.serviceDemoStepInputLabel.textContent, "PLC 수집");
+  assert.equal(elements.serviceDemoStepInferenceLabel.textContent, "고장 추론");
+  assert.equal(elements.serviceDagDevice1Label.textContent, "현장 Jetson");
+});
+
+
+test("renders service list status independently from equipment decision", () => {
+  const elements = Object.fromEntries([
+    "serviceCatalogName", "serviceCatalogStatus", "serviceCatalogAvailability",
+    "serviceCatalogInput", "serviceCatalogNode", "serviceCatalogModel",
+    "serviceCatalogDecision", "serviceCatalogRouting",
+  ].map((id) => [id, {textContent: "", dataset: {}}]));
+  const documentRef = {getElementById: (id) => elements[id]};
+
+  renderServiceCatalog({
+    status: "anomaly",
+    input_state: "fresh",
+    model_state: "ready",
+    binding: {consumer: "sensor-anomaly-demo", node: "etri-dev0001-jetorn"},
+    latest: {anomaly: true, model_version: "baseline-1.0.0"},
+  }, documentRef);
+
+  assert.equal(elements.serviceCatalogStatus.textContent, "실행 중");
+  assert.equal(elements.serviceCatalogStatus.dataset.state, "running");
+  assert.equal(elements.serviceCatalogAvailability.textContent, "1/1 실행 중");
+  assert.equal(elements.serviceCatalogDecision.textContent, "이상 감지");
+});
 
 
 test("builds an honest live device-to-consumer anomaly view", () => {
@@ -62,7 +263,14 @@ test("builds an honest live device-to-consumer anomaly view", () => {
   assert.equal(view.score, "5.10 / 4.00");
   assert.equal(view.temperatureContext, "raw 301 · 정렬 12.5 ms");
   assert.equal(view.model, "online-gaussian-baseline-v1 · 40 samples · ready");
-  assert.equal(view.copy, "진동·온도 복합 이상 점수 · Jetson local inference");
+  assert.equal(view.copy, "진동·온도 복합 이상 점수 · edge-local inference");
+  assert.equal(view.inferenceRouting, "로컬 추론 · edge-local · 승인 없음");
+  assert.equal(view.flowing, true);
+  assert.equal(view.liveLabel, "데이터 처리 중");
+  assert.equal(view.liveFrames, "40건 처리");
+  assert.equal(view.inferenceTarget, "edge-local");
+  assert.equal(view.decisionLabel, "이상 감지");
+  assert.equal(view.pipeline.map((step) => step.state).join(","), "ready,ready,active,anomaly,anomaly");
   assert.equal(view.error, "");
 });
 
@@ -92,6 +300,10 @@ test("shows unavailable observation without inventing zero values", () => {
   assert.equal(view.score, "관측 불가");
   assert.equal(view.temperatureContext, "관측 불가");
   assert.equal(view.model, "model 관측 불가");
+  assert.equal(view.flowing, false);
+  assert.equal(view.liveLabel, "데이터 확인 필요");
+  assert.equal(Number.isFinite(view.scoreMax), true);
+  assert.equal(Number.isFinite(view.scoreValue), true);
   assert.match(view.error, /ConnectTimeout/);
 });
 
@@ -112,7 +324,86 @@ test("formats the latest input age from the observed timestamp", () => {
   assert.equal(view.inputAge, "2.5 s");
   assert.equal(view.vibrationScore, "0.50");
   assert.equal(view.temperatureScore, "관측 불가");
-  assert.equal(view.copy, "3축 진동 이상 점수 · Jetson local inference");
+  assert.equal(view.copy, "3축 진동 이상 점수 · edge-local inference");
+});
+
+
+test("shows approved server1 routing and rollback evidence independently", () => {
+  const remote = buildServiceDemoView({
+    status: "normal",
+    inference_routing: {
+      state: "remote",
+      effective_target: "server1",
+      approval_id: "approval-001",
+      consecutive_failures: 0,
+    },
+  });
+  const rollback = buildServiceDemoView({
+    status: "normal",
+    inference_routing: {
+      state: "rolled-back",
+      effective_target: "edge-local",
+      approval_id: "approval-001",
+      consecutive_failures: 3,
+      rollback_remaining_seconds: 840,
+    },
+  });
+
+  assert.equal(remote.inferenceRouting, "승인 원격 추론 · server1 · approval-001");
+  assert.equal(remote.inferenceRoutingTone, "remote");
+  assert.equal(rollback.inferenceRouting, "로컬 rollback · edge-local · approval-001 · 연속 실패 3 · 복귀까지 840초");
+  assert.equal(rollback.inferenceRoutingTone, "rollback");
+});
+
+
+test("builds a fail-closed service augmentation decision rail", () => {
+  const view = buildServiceDemoView({
+    status: "normal",
+    augmentation: {
+      state: "OBSERVING",
+      recommendation: "none",
+      apply_state: "observed-only",
+      reason_codes: ["resource_pressure_observing"],
+      metrics: {
+        cpu_percent: 40,
+        memory_percent: 50,
+        processing_latency_p95_ms: 1200,
+        backlog: 0,
+        throughput_per_second: 1.2,
+      },
+      observation: {source: "process-self", scope: "main-process"},
+      candidate: {target: "server1 GPU", ready: false},
+      dwell: {
+        resource_pressure_seconds: 45,
+        resource_pressure_required_seconds: 300,
+        service_pressure_seconds: 0,
+        service_pressure_required_seconds: 180,
+      },
+    },
+  });
+
+  assert.equal(view.augmentation.state, "OBSERVING");
+  assert.equal(view.augmentation.label, "관찰");
+  assert.equal(view.augmentation.cpu, "40.0%");
+  assert.equal(view.augmentation.memory, "50.0%");
+  assert.equal(view.augmentation.latency, "1200 ms");
+  assert.equal(view.augmentation.candidate, "준비 안됨");
+  assert.match(view.augmentation.boundary, /자동 배포/);
+});
+
+
+test("distinguishes a ready but experimentally rejected augmentation candidate", () => {
+  const view = buildServiceDemoView({
+    status: "normal",
+    augmentation: {
+      state: "BLOCKED",
+      reason_codes: ["augmentation_candidate_not_qualified"],
+      candidate: {target: "server1 GPU", ready: true, qualified: false},
+    },
+  });
+
+  assert.equal(view.augmentation.candidate, "server1 GPU 준비됨 · 성능 검증 실패");
+  assert.match(view.augmentation.reason, /부하 실험의 성능 기준/);
 });
 
 
@@ -136,6 +427,13 @@ test("renders with textContent and a non-color status label", () => {
     "serviceDemoOrigin",
     "serviceDemoInputAge",
     "serviceDemoError",
+    "serviceOperationsRunState",
+    "serviceOperationsLiveAge",
+    "serviceOperationsLiveFrames",
+    "serviceOperationsLive",
+    "serviceOperationsDag",
+    "serviceDagDevice1",
+    "serviceDagServer1",
   ];
   const elements = Object.fromEntries(ids.map((id) => [
     id,
@@ -173,6 +471,12 @@ test("renders with textContent and a non-color status label", () => {
   assert.equal(elements.serviceDemoTemperatureScore.textContent, "0.70");
   assert.equal(elements.serviceDemoTemperatureContext.textContent, "raw 300 · 정렬 8.0 ms");
   assert.equal(elements.serviceDemoInputAge.textContent, "0.0 s");
+  assert.equal(elements.serviceOperationsRunState.textContent, "데이터 처리 중");
+  assert.equal(elements.serviceOperationsLive.dataset.state, "flowing");
+  assert.equal(elements.serviceOperationsDag.dataset.flowing, "true");
+  assert.equal(elements.serviceOperationsDag.dataset.target, "device1");
+  assert.equal(elements.serviceDagDevice1.dataset.currentRoute, "true");
+  assert.equal(elements.serviceDagServer1.dataset.currentRoute, "false");
   assert.equal(elements.serviceDemoError.hidden, true);
 });
 
@@ -256,6 +560,44 @@ test("renders persisted alert transitions without injecting markup", async () =>
 });
 
 
+test("builds an oldest-to-newest recent decision rail from persisted results", () => {
+  const view = buildServiceDemoResultsView({
+    mode: "live",
+    results: [
+      {score: 0.8, anomaly: false, observed_at: "2026-08-13T10:00:01Z"},
+      {score: 5.2, anomaly: true, observed_at: "2026-08-13T10:00:02Z"},
+    ],
+  });
+  assert.equal(view.summary, "최근 2건 · 이상 1건");
+  assert.deepEqual(view.results.map((result) => result.anomaly), [false, true]);
+  assert.deepEqual(view.results.map((result) => result.score), ["0.80", "5.20"]);
+});
+
+
+test("refreshes the recent decision rail from the result endpoint", async () => {
+  let request = null;
+  const elements = {
+    serviceDemoHistorySummary: {textContent: ""},
+    serviceDemoHistoryRail: null,
+  };
+  const documentRef = {
+    getElementById: (id) => elements[id],
+  };
+  await refreshServiceDemoResults(async (url, options) => {
+    request = {url, options};
+    return {
+      ok: true,
+      json: async () => ({mode: "live", count: 0, results: []}),
+    };
+  }, documentRef);
+  assert.deepEqual(request, {
+    url: "/state/service-demo/results?limit=12",
+    options: {cache: "no-store"},
+  });
+  assert.equal(elements.serviceDemoHistorySummary.textContent, "아직 저장된 판정 결과가 없습니다.");
+});
+
+
 test("dashboard ships a responsive accessible live demo panel", () => {
   const root = path.resolve(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
@@ -263,6 +605,12 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   const javascript = fs.readFileSync(path.join(root, "app/static/service-demo.js"), "utf8");
 
   assert.match(html, /aria-labelledby="serviceDemoTitle"/);
+  assert.match(html, /data-dashboard-page="operations"/);
+  assert.match(html, /data-page="operations"/);
+  assert.match(html, /id="serviceCatalogList"/);
+  assert.match(html, /data-service-catalog="descriptor-driven"/);
+  assert.doesNotMatch(html, /id="serviceCatalogRow"/);
+  assert.match(html, /service-demo-panel[^>]+data-page="overview"/);
   for (const id of [
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
@@ -271,15 +619,37 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     "serviceDemoTemperatureContext", "serviceDemoModel", "serviceDemoOrigin", "serviceDemoError",
     "serviceDemoInputAge",
     "serviceDemoAlertCount", "serviceDemoAlertLatest",
+    "serviceDemoDecisionLabel", "serviceDemoDecisionSummary", "serviceDemoScoreMeter",
+    "serviceDemoStepInput", "serviceDemoStepAlignment", "serviceDemoStepFeatures",
+    "serviceDemoStepInference", "serviceDemoStepResult", "serviceDemoHistoryRail",
+    "serviceDemoStepInputLocation", "serviceDemoStepAlignmentLocation",
+    "serviceDemoStepFeaturesLocation", "serviceDemoStepInferenceLocation",
+    "serviceDemoStepResultLocation", "serviceDagDevice1Node", "serviceDagServer1Node",
+    "serviceDemoHistorySummary", "serviceDemoFrames",
+    "serviceOperationsDag", "serviceOperationsTimeline", "serviceOperationsTimelineList",
+    "serviceDeviceRatio", "serviceServerRatio",
+    "serviceOperationsLive", "serviceOperationsLiveRate", "serviceOperationsLiveAge",
+    "serviceOperationsLiveFrames", "runtimeOverviewTitle", "runtimeOverviewReasons",
+    "runtimeOverviewCurrentNode", "runtimeOverviewCpu", "runtimeOverviewMemory",
+    "runtimeOverviewLatency", "runtimeOverviewSelectedNode", "runtimeOverviewScore",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /service-demo\.css\?v=persistent-alerts-20260803/);
-  assert.match(html, /service-demo\.js\?v=persistent-alerts-20260803/);
+  assert.match(html, /service-demo\.css\?v=service-augmentation-v1-20260814/);
+  assert.match(html, /service-demo\.js\?v=service-augmentation-v2-20260818/);
+  assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.service-demo-alert-summary/);
+  assert.match(css, /\.service-catalog-row/);
+  assert.match(css, /\.service-operations-cockpit/);
+  assert.doesNotMatch(html, /id="serviceAugmentationPanel"/);
+  assert.match(css, /\.service-dag-node\[data-current="true"\]/);
+  assert.match(css, /\.service-dag-node > footer/);
+  assert.match(css, /@keyframes service-live-heartbeat/);
+  assert.match(css, /\[data-flowing="true"\]/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /\.service-demo-route > div > span,/);
   assert.doesNotMatch(css, /\.service-demo-route span,/);
   assert.doesNotMatch(javascript, /\.innerHTML\s*=/);

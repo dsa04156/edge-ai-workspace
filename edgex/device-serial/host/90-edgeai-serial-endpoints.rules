@@ -1,0 +1,4 @@
+# Arduino Uno R3 physical source arduino-001.
+# Match the immutable USB serial identity, not the changing ttyACM number.
+ACTION=="add", SUBSYSTEM=="tty", ENV{ID_BUS}=="usb", ENV{ID_VENDOR_ID}=="2341", ENV{ID_MODEL_ID}=="0043", ENV{ID_SERIAL_SHORT}=="75035303230351E0D171", RUN+="/usr/local/sbin/edgeai-device-node add arduino-001 %M %m"
+ACTION=="remove", SUBSYSTEM=="tty", ENV{ID_BUS}=="usb", ENV{ID_VENDOR_ID}=="2341", ENV{ID_MODEL_ID}=="0043", ENV{ID_SERIAL_SHORT}=="75035303230351E0D171", RUN+="/usr/local/sbin/edgeai-device-node remove arduino-001 %M %m"

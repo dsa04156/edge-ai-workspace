@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>대시보드 배포</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="../index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">운영</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">ops/대시보드-배포.md</span>
+        <a class="edit-link" href="/__edit?file=ops/대시보드-배포.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="../search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="../문서-안내.html">문서 안내</a></li>
+<li><a href="../처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="../플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="../펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="../현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="../디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="../AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a class="active" aria-current="page" href="대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="../프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="../대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="../디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="../가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="../400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="../AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="../옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="../옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="../2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="../저장소-구조.html">저장소 구조</a></li>
+<li><a href="../단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">운영</p>
+          <h1>대시보드 배포</h1>
+          <p class="subtitle">state-aggregator API와 Edge AI 운영 대시보드를 Git push로 배포하고, Traefik 주소와 Argo…</p>
+          <div class="meta">
+            <span class="badge kind">운영</span>
+            <span class="badge">원본: ops/대시보드-배포.md</span>
+            <span class="badge">수정: 2026-08-13 17:58</span>
+            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="대시보드-배포">대시보드 배포</h1>
+<h2 id="목적과-배포-소유권">목적과 배포 소유권</h2>
+<p>이 문서는 <code>state-aggregator</code> API와 Edge AI 운영 대시보드를 Git push로 배포하고, Traefik 주소와 Argo CD 상태를 같은 revision에서 검증하는 운영 절차다.</p>
+<p>새 AI 서비스를 목록과 DAG에 연결하려는 경우에는 먼저 <a href="../AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a>를 따른다. 서비스 등록은 descriptor와 관측 adapter를 정의하는 작업이고, 이 문서의 대시보드 배포는 그 변경을 이미지·GitOps·Traefik 경로에 반영하는 작업이다.</p>
+<p>배포 소유권은 다음처럼 고정한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>대상</th>
+<th>Git 기준</th>
+<th>운영 소유자</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Deployment·Service·RBAC·ServiceMonitor</td>
+<td><code>edge-orch/state-aggregator/k8s/</code></td>
+<td>Argo CD <code>edge-orch-state-aggregator</code></td>
+</tr>
+<tr>
+<td>대시보드 외부 주소</td>
+<td><code>edge-orch/state-aggregator/k8s/ingressroute.yaml</code></td>
+<td>같은 Argo CD Application과 Traefik</td>
+</tr>
+<tr>
+<td>컨테이너 이미지</td>
+<td><code>edge-orch/state-aggregator/k8s/deployment.yaml</code>의 immutable digest</td>
+<td>Git 또는 <code>main</code> 이미지 배포 CI</td>
+</tr>
+<tr>
+<td>서비스 목록·DAG 정의</td>
+<td><code>edge-orch/state-aggregator/app/config/service_catalog.json</code></td>
+<td>state-aggregator image</td>
+</tr>
+</tbody></table></div>
+<p>공식 외부 주소는 다음 Traefik host route다.</p>
+<pre data-lang="text"><code>http://aggregator.192.168.0.56.sslip.io
+http://aggregator.10.254.192.217.sslip.io</code></pre>
+<p>ClusterIP, Pod IP, <code>port-forward</code>와 <code>http://&lt;LoadBalancer IP&gt;/aggregator</code>는 운영 acceptance 주소로 사용하지 않는다. IngressRoute를 <code>kubectl apply</code>로 따로 관리하거나 Deployment에 <code>kubectl set image</code>를 실행하지 않는다. Argo CD self-heal과 충돌하기 때문이다.</p>
+<h2 id="배포-전-검증">배포 전 검증</h2>
+<p>저장소 루트에서 사용자 작업이 섞이지 않았는지 먼저 확인한 뒤, 변경한 파일만 커밋한다.</p>
+<pre data-lang="bash"><code>git status --short
+
+cd edge-orch/state-aggregator
+.venv/bin/python -m pytest -q
+node --test tests/*.js
+kubectl kustomize k8s &gt;/dev/null
+cd ../..
+
+git diff --check</code></pre>
+<p>현재 Application이 추적하는 ref와 image override도 확인한다.</p>
+<pre data-lang="bash"><code>kubectl -n argocd get applications.argoproj.io edge-orch-state-aggregator \
+  -o jsonpath=&#x27;{.spec.source.targetRevision}{&quot;\n&quot;}{.spec.source.kustomize.images}{&quot;\n&quot;}&#x27;</code></pre>
+<p>2026-08-13 현재 즉시 반영 ref는 <code>agent/edgex-central-docs</code> 브랜치이며 image override는 없다. 이 상태에서는 해당 브랜치의 Kustomize manifest push를 Argo CD automated sync가 반영한다. 조회 결과가 다른 브랜치나 exact Git SHA라면 그 ref의 배포 정책을 먼저 확인하고 임의로 다른 브랜치를 push하지 않는다.</p>
+<h2 id="manifest와-문서만-변경한-경우">Manifest와 문서만 변경한 경우</h2>
+<p>변경한 파일만 stage하고 Application이 추적하는 브랜치로 push한다.</p>
+<pre data-lang="bash"><code>git add &lt;변경한-파일&gt;
+git commit -m &quot;docs: document dashboard deployment&quot;
+git push origin agent/edgex-central-docs
+
+kubectl -n argocd annotate applications.argoproj.io edge-orch-state-aggregator \
+  argocd.argoproj.io/refresh=hard --overwrite</code></pre>
+<p><code>refresh=hard</code>는 새 Git revision 확인을 앞당길 뿐 리소스를 직접 변경하지 않는다. automated sync와 self-heal이 Deployment와 IngressRoute를 Git 상태로 맞춘다.</p>
+<h2 id="애플리케이션-코드를-변경한-경우">애플리케이션 코드를 변경한 경우</h2>
+<p>브랜치 push만으로는 새 Python·HTML·CSS·JavaScript가 실행 중인 컨테이너에 들어가지 않는다. 새 이미지를 build/push하고 immutable digest를 배포해야 한다.</p>
+<h3 id="정식-main-배포">정식 <code>main</code> 배포</h3>
+<p><code>.github/workflows/docker-build-push.yml</code>은 <code>main</code>의 <code>edge-orch/state-aggregator/**</code> 변경을 감지하면 다음을 수행한다.</p>
+<ol><li>linux/amd64·linux/arm64 이미지를 빌드한다.</li><li><code>192.168.0.56:5000/state-aggregator:latest</code>로 push하고 registry digest를 읽는다.</li><li>Argo CD Application을 해당 Git SHA와 immutable image digest로 고정한다.</li><li>실제 Deployment image가 목표 digest가 될 때까지 기다린 뒤 rollout을 확인한다.</li></ol>
+<p>따라서 <code>main</code> CI가 실행된 뒤에는 Application의 <code>targetRevision</code>이 브랜치가 아니라 exact SHA로 보이는 것이 정상이다. CI 성공 여부와 배포 digest를 확인하지 않고 코드 배포 완료로 판정하지 않는다.</p>
+<h3 id="현재-작업-브랜치에서-긴급-검증하는-경우">현재 작업 브랜치에서 긴급 검증하는 경우</h3>
+<p><code>main</code> 병합 전 검증이 승인된 경우에만 저장소의 비권한 amd64 OCI 빌드 스크립트를 사용한다. state-aggregator가 배치된 서버가 amd64인지 먼저 확인한다.</p>
+<pre data-lang="bash"><code>kubectl -n default get deployment state-aggregator \
+  -o jsonpath=&#x27;{.spec.template.spec.nodeSelector.kubernetes\.io/hostname}{&quot;\n&quot;}&#x27;
+
+TAG=&quot;git-$(git rev-parse --short=12 HEAD)&quot;
+IMAGE=&quot;192.168.0.56:5000/state-aggregator:${TAG}&quot;
+edge-orch/state-aggregator/scripts/build-amd64-oci.sh &quot;${IMAGE}&quot;</code></pre>
+<p>스크립트가 반환한 digest를 <code>edge-orch/state-aggregator/k8s/deployment.yaml</code>의 <code>image</code>에 <code>192.168.0.56:5000/state-aggregator@sha256:...</code> 형식으로 기록한다. 테스트 후 manifest와 코드 변경을 같은 커밋으로 push한다. tag나 <code>latest</code>만 manifest에 기록하지 않는다.</p>
+<h2 id="배포-완료-확인">배포 완료 확인</h2>
+<p>Argo CD, Pod, IngressRoute, HTTP와 브라우저를 순서대로 확인한다.</p>
+<pre data-lang="bash"><code>kubectl -n argocd get applications.argoproj.io edge-orch-state-aggregator \
+  -o jsonpath=&#x27;target={.spec.source.targetRevision}{&quot; sync=&quot;}{.status.sync.status}{&quot; health=&quot;}{.status.health.status}{&quot; revision=&quot;}{.status.sync.revision}{&quot;\n&quot;}&#x27;
+
+kubectl -n default rollout status deployment/state-aggregator --timeout=180s
+kubectl -n default get deployment state-aggregator \
+  -o jsonpath=&#x27;{.status.readyReplicas}/{.status.replicas}{&quot; ready, image=&quot;}{.spec.template.spec.containers[0].image}{&quot;\n&quot;}&#x27;
+
+kubectl -n default get ingressroute state-aggregator \
+  -o jsonpath=&#x27;{.metadata.annotations.argocd\.argoproj\.io/tracking-id}{&quot;\n&quot;}{.spec.routes[0].match}{&quot;\n&quot;}&#x27;
+
+curl -fsS -o /dev/null -w &#x27;dashboard_http=%{http_code}\n&#x27; \
+  http://aggregator.192.168.0.56.sslip.io/
+curl -fsS http://aggregator.192.168.0.56.sslip.io/state/services</code></pre>
+<p>완료 기준은 다음과 같다.</p>
+<ul><li>Argo CD revision이 push한 commit과 같고 <code>Synced</code>, <code>Healthy</code>다.</li><li>Deployment가 <code>1/1 Ready</code>이고 의도한 immutable image digest를 실행한다.</li><li>IngressRoute tracking ID가 <code>edge-orch-state-aggregator</code> 소유권을 표시한다.</li><li>공식 Traefik 주소와 <code>/state/services</code>가 HTTP 200을 반환한다.</li><li><code>/#services</code> 브라우저 화면에서 서비스 목록과 DAG가 보이고 console 오류가 없다.</li></ul>
+<p>세부 화면·API acceptance는 <a href="대시보드-검증.html">대시보드 검증</a>을 따른다.</p>
+<h2 id="롤백">롤백</h2>
+<p>Git에 반영된 잘못된 변경은 이력을 지우지 않고 revert한다.</p>
+<pre data-lang="bash"><code>git revert &lt;문제가-발생한-커밋&gt;
+git push origin &lt;Application이-추적하는-브랜치&gt;</code></pre>
+<p>Argo CD revision, image digest, rollout과 Traefik HTTP를 다시 확인한다. 장애 중에도 Deployment image나 IngressRoute를 수동 patch해 Git과 다른 정상 상태를 만들지 않는다.</p>
+<h2 id="자주-발생하는-문제">자주 발생하는 문제</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>증상</th>
+<th>우선 확인</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>push했지만 revision이 바뀌지 않음</td>
+<td>Application이 다른 브랜치 또는 exact SHA를 추적하는지 확인</td>
+</tr>
+<tr>
+<td>revision은 바뀌었지만 화면 코드가 그대로임</td>
+<td>새 image가 빌드됐는지, Deployment digest가 바뀌었는지 확인</td>
+</tr>
+<tr>
+<td>host 주소가 404 또는 연결 실패</td>
+<td>Traefik Service 외부 IP, IngressRoute host rule과 backend <code>state-aggregator:8000</code> 확인</td>
+</tr>
+<tr>
+<td>Argo CD <code>OutOfSync</code></td>
+<td>수동 변경 여부와 Kustomize render 오류 확인</td>
+</tr>
+<tr>
+<td>API는 200인데 화면이 비어 있음</td>
+<td><code>/state/services</code>, 서비스 관측 API와 브라우저 console을 순서대로 확인</td>
+</tr>
+</tbody></table></div>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목적과-배포-소유권">목적과 배포 소유권</a></li>
+<li class="toc-h2"><a href="#배포-전-검증">배포 전 검증</a></li>
+<li class="toc-h2"><a href="#manifest와-문서만-변경한-경우">Manifest와 문서만 변경한 경우</a></li>
+<li class="toc-h2"><a href="#애플리케이션-코드를-변경한-경우">애플리케이션 코드를 변경한 경우</a></li>
+<li class="toc-h3"><a href="#정식-main-배포">정식 main 배포</a></li>
+<li class="toc-h3"><a href="#현재-작업-브랜치에서-긴급-검증하는-경우">현재 작업 브랜치에서 긴급 검증하는 경우</a></li>
+<li class="toc-h2"><a href="#배포-완료-확인">배포 완료 확인</a></li>
+<li class="toc-h2"><a href="#롤백">롤백</a></li>
+<li class="toc-h2"><a href="#자주-발생하는-문제">자주 발생하는 문제</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

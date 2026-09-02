@@ -11,15 +11,18 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M18 32h28M32 18v28' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="/static/styles.css?v=explain-panel-slim-20260622" />
-    <link rel="stylesheet" href="/static/navigation.css?v=ai-pipeline-removed-20260730" />
+    <link rel="stylesheet" href="/static/navigation.css?v=service-catalog-20260813" />
     <link rel="stylesheet" href="/static/theme-refresh.css?v=asset-device-slim-20260622" />
     <link rel="stylesheet" href="/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" />
     <link rel="stylesheet" href="/static/dashboard-screen.css?v=ai-pipeline-removed-20260730" />
-    <link rel="stylesheet" href="/static/service-demo.css?v=persistent-alerts-20260803" />
+    <link rel="stylesheet" href="/static/service-demo.css?v=service-augmentation-v1-20260814" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
-    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=device-taxonomy-20260730" />
+    <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
     <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
+    <link rel="stylesheet" href="/static/device-twins.css?v=multi-service-twins-v3-20260814" />
+    <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-offloading-v3-20260826" />
+    <link rel="stylesheet" href="/static/apple-dashboard.css?v=daylight-operations-v3-20260818" />
   </head>
   <body>
     <main class="shell">
@@ -51,6 +54,7 @@
 
       <nav class="main-menu" aria-label="대시보드 화면">
         <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
+        <button type="button" data-dashboard-page="operations" aria-pressed="false">서비스 운영</button>
         <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
         <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
         <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
@@ -73,18 +77,13 @@
               <strong id="edgeAiServerCount">0</strong>
               <span id="edgeAiServerHealth">0개 Available</span>
             </button>
-            <button class="metric resource-category-kpi" type="button" data-resource-category-link="physical" aria-label="물리 디바이스 목록 열기">
-              <span class="metric-label">물리 디바이스</span>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="physical" aria-label="현장 엣지 노드 목록 열기">
+              <span class="metric-label">현장 엣지 노드</span>
               <strong id="physicalDeviceCount">0</strong>
               <span id="physicalDeviceHealth">0개 Available</span>
             </button>
-            <button class="metric resource-category-kpi" type="button" data-resource-category-link="virtual" aria-label="가상 디바이스 목록 열기">
-              <span class="metric-label">가상 디바이스</span>
-              <strong id="virtualDeviceCount">0</strong>
-              <span id="virtualDeviceHealth">0개 Available</span>
-            </button>
-            <button class="metric resource-category-kpi" type="button" data-resource-category-link="sensor" aria-label="센서 디바이스 목록 열기">
-              <span class="metric-label">센서 디바이스</span>
+            <button class="metric resource-category-kpi" type="button" data-resource-category-link="sensor" aria-label="EdgeX 등록 디바이스 목록 열기">
+              <span class="metric-label">EdgeX 등록 디바이스</span>
               <strong id="sensorDeviceCount">0</strong>
               <span id="sensorDeviceHealth">0개 Available</span>
             </button>
@@ -245,14 +244,14 @@
             <div class="panel-head server-observability-head">
               <div>
                 <p class="section-kicker">현장 노드</p>
-                <h2 id="physicalDeviceOverviewTitle">물리 디바이스 상태</h2>
+                <h2 id="physicalDeviceOverviewTitle">현장 엣지 노드 상태</h2>
               </div>
               <div class="server-observability-actions">
                 <span id="physicalDeviceOverviewAvailability" aria-live="polite">관측 중</span>
-                <button type="button" data-resource-category-link="physical">물리 디바이스 목록</button>
+                <button type="button" data-resource-category-link="physical">현장 엣지 노드 목록</button>
               </div>
             </div>
-            <dl class="server-observability-summary" aria-label="물리 디바이스 자원 요약">
+            <dl class="server-observability-summary" aria-label="현장 엣지 노드 자원 요약">
               <div><dt>평균 CPU</dt><dd id="physicalDeviceOverviewCpu">관측 대기</dd></div>
               <div><dt>평균 메모리</dt><dd id="physicalDeviceOverviewMemory">관측 대기</dd></div>
               <div><dt>GPU 관측</dt><dd id="physicalDeviceOverviewGpu">관측 대기</dd></div>
@@ -262,11 +261,68 @@
             <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
 
-          <details class="panel service-demo-panel overview-service-demo dashboard-page active dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle">
+          <section
+            class="runtime-operations-page dashboard-page"
+            data-page="operations"
+            aria-labelledby="runtimeOperationsTitle"
+          >
+            <header class="runtime-operations-heading">
+              <div>
+                <p class="section-kicker">Runtime Recommendation</p>
+                <h2 id="runtimeOperationsTitle">서비스 운영</h2>
+                <p>실행 상태, 배치 근거, Lease 실행 권한, 승인 실행과 롤백 이력을 실제 API로 확인합니다.</p>
+              </div>
+              <label class="runtime-service-selector" for="runtimeOperationsServiceSelect">
+                <span>서비스</span>
+                <select id="runtimeOperationsServiceSelect" aria-label="서비스 운영 대상 선택">
+                  <option value="">서비스 관측 중</option>
+                </select>
+              </label>
+            </header>
+            <div
+              id="runtimeOperationsAvailability"
+              class="runtime-operations-notice"
+              data-state="observing"
+              role="status"
+              aria-live="polite"
+            >Runtime Recommendation을 확인하고 있습니다.</div>
+            <div id="runtimeOperationsContent" class="runtime-operations-content" aria-live="polite">
+              <section class="panel runtime-empty-panel">
+                <strong>서비스 운영 데이터 확인 중</strong>
+                <p>Runtime Recommendation, Scheduling Resource와 판단 이력을 불러오고 있습니다.</p>
+              </section>
+            </div>
+          </section>
+
+          <section class="service-catalog dashboard-page" data-page="services" data-service-catalog="descriptor-driven" aria-labelledby="servicesTitle">
+            <header class="service-catalog-heading">
+              <div>
+                <p class="section-kicker">AI 서비스 운영</p>
+                <h2 id="servicesTitle">서비스</h2>
+                <p>배포된 AI 서비스의 입력, 실행 위치와 최근 판단을 목록으로 확인합니다.</p>
+              </div>
+              <span id="serviceCatalogAvailability" class="service-catalog-availability" data-state="observing">상태 관측 중</span>
+            </header>
+            <section class="panel service-catalog-panel" aria-labelledby="serviceCatalogListTitle">
+              <div class="panel-head service-catalog-panel-head">
+                <div>
+                  <p class="section-kicker">운영 서비스</p>
+                  <h3 id="serviceCatalogListTitle">서비스 목록</h3>
+                </div>
+                <span id="serviceCatalogCount">등록 정보 불러오는 중</span>
+              </div>
+              <ul id="serviceCatalogList" class="service-catalog-list" aria-label="AI 서비스 목록">
+                <li class="service-catalog-loading">Git 서비스 정의를 읽고 있습니다.</li>
+              </ul>
+              <p class="service-catalog-source">정의 출처 <strong id="serviceCatalogDefinitionSource">확인 중</strong></p>
+            </section>
+          </section>
+
+          <details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle" open>
             <summary class="overview-service-demo-summary">
               <span>
                 <span class="section-kicker">서비스 데모</span>
-                <strong id="serviceDemoTitle">Jetson 센서 이상 탐지</strong>
+                <strong id="serviceDemoTitle">AI 서비스</strong>
               </span>
               <span class="service-demo-status" aria-live="polite">
                 <span>input <strong id="serviceDemoInputState">waiting</strong></span>
@@ -274,13 +330,170 @@
               </span>
             </summary>
             <div class="overview-service-demo-body">
+              <section class="runtime-overview-summary" aria-labelledby="runtimeOverviewTitle">
+                <div class="runtime-overview-identity">
+                  <span>Runtime Recommendation</span>
+                  <strong id="runtimeOverviewTitle">판단 관측 중</strong>
+                  <small id="runtimeOverviewReasons">근거 데이터 확인 중</small>
+                </div>
+                <dl class="runtime-overview-metrics">
+                  <div><dt>ACTIVE Node</dt><dd id="runtimeOverviewCurrentNode">N/A</dd></div>
+                  <div><dt>CPU</dt><dd id="runtimeOverviewCpu">N/A</dd></div>
+                  <div><dt>Memory</dt><dd id="runtimeOverviewMemory">N/A</dd></div>
+                  <div><dt>Latency</dt><dd id="runtimeOverviewLatency">N/A</dd></div>
+                  <div><dt>추천</dt><dd id="runtimeOverviewSelectedNode">N/A</dd></div>
+                  <div><dt>Score</dt><dd id="runtimeOverviewScore">N/A</dd></div>
+                  <div><dt>Candidate</dt><dd id="runtimeOverviewCandidate">N/A</dd></div>
+                  <div><dt>Execution</dt><dd id="runtimeOverviewExecution">N/A</dd></div>
+                </dl>
+                <button type="button" class="runtime-overview-link" data-runtime-operations-link>서비스 운영 보기</button>
+              </section>
               <p id="serviceDemoFlow" class="service-demo-flow">source binding pending</p>
-              <dl class="service-demo-values">
-                <div class="service-demo-value-primary"><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>진동 점수</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>온도 점수</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
-                <div class="service-demo-value-primary"><dt>종합 / 임계값</dt><dd id="serviceDemoScore">관측 대기</dd></div>
-              </dl>
+              <div class="service-demo-hero">
+                <section id="serviceDemoDecisionCard" class="service-demo-decision" data-state="starting" aria-labelledby="serviceDemoDecisionLabel">
+                  <span>최신 판정</span>
+                  <strong id="serviceDemoDecisionLabel">관측 대기</strong>
+                  <p id="serviceDemoDecisionSummary">입력과 모델 상태를 확인하고 있습니다.</p>
+                  <div class="service-demo-score-line">
+                    <span>이상 점수</span>
+                    <strong id="serviceDemoScore">관측 대기</strong>
+                  </div>
+                  <progress id="serviceDemoScoreMeter" max="100" value="0" aria-label="이상 점수와 판정 임계값 비교"></progress>
+                  <dl class="service-demo-component-scores">
+                    <div><dt>진동</dt><dd id="serviceDemoVibrationScore">관측 대기</dd></div>
+                    <div><dt>온도</dt><dd id="serviceDemoTemperatureScore">관측 대기</dd></div>
+                  </dl>
+                </section>
+                <section class="service-demo-input-snapshot" aria-labelledby="serviceDemoInputSnapshotTitle">
+                  <div class="service-demo-section-title">
+                    <span>현재 입력</span>
+                    <strong id="serviceDemoInputSnapshotTitle">센서 원본</strong>
+                  </div>
+                  <dl>
+                    <div><dt>Raw X/Y/Z</dt><dd id="serviceDemoValues">관측 대기</dd></div>
+                    <div><dt>온도·정렬</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
+                    <div><dt>입력 최신성</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                  </dl>
+                </section>
+              </div>
+
+              <section class="service-operations-cockpit" aria-labelledby="serviceDemoProcessTitle">
+                <header class="service-operations-head">
+                  <div>
+                    <span id="serviceOperationsServiceId">LIVE SERVICE EXECUTION</span>
+                    <strong id="serviceDemoProcessTitle">서비스 실행 DAG</strong>
+                  </div>
+                  <div id="serviceOperationsLive" class="service-operations-live" data-state="waiting" role="status" aria-live="polite">
+                    <i aria-hidden="true"></i>
+                    <div>
+                      <strong id="serviceOperationsRunState">데이터 확인 중</strong>
+                      <span><b id="serviceOperationsLiveRate">속도 확인 중</b><em id="serviceOperationsLiveAge">입력 확인 중</em><em id="serviceOperationsLiveFrames">처리량 확인 중</em></span>
+                    </div>
+                  </div>
+                </header>
+
+                <div class="service-operations-layout">
+                  <section class="service-dag-panel" aria-labelledby="serviceOperationsDagTitle">
+                    <div class="service-operations-subhead">
+                      <div>
+                        <span>WORKFLOW GRAPH</span>
+                        <strong id="serviceOperationsDagTitle">Sensor signal → AI decision</strong>
+                      </div>
+                      <span class="service-dag-legend"><i></i>현재 실행 단계</span>
+                    </div>
+                    <div id="serviceOperationsDag" class="service-dag-canvas" aria-label="센서 수집부터 결과 저장까지의 실행 DAG">
+                      <svg class="service-dag-edges" viewBox="0 0 760 430" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                          <marker id="serviceDagArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                          </marker>
+                        </defs>
+                        <path data-flow-path="common" d="M110 220 H120"></path>
+                        <path data-flow-path="common" d="M220 220 H230"></path>
+                        <path data-flow-path="common" d="M330 220 H340"></path>
+                        <path data-flow-path="device1" d="M440 220 C458 220 452 118 470 118"></path>
+                        <path data-flow-path="server1" d="M440 220 C458 220 452 358 470 358"></path>
+                        <path data-flow-path="device1" d="M570 118 C612 118 608 220 650 220"></path>
+                        <path data-flow-path="server1" d="M570 358 C612 358 608 220 650 220"></path>
+                      </svg>
+
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-common" aria-hidden="true"></span>
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-device" aria-hidden="true"></span>
+                      <span class="service-dag-flow-pulse service-dag-flow-pulse-server" aria-hidden="true"></span>
+
+
+                      <article id="serviceDemoStepInput" class="service-dag-node service-dag-collect" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">01</span>
+                        <div><small>SENSOR</small><strong id="serviceDemoStepInputLabel">센서 수집</strong><p id="serviceDemoStepInputEvidence">입력 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepInputLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepInputExecutor">device service</em></footer>
+                        <b><i></i><span id="serviceDagFreshness">freshness 대기</span></b>
+                      </article>
+                      <article id="serviceDemoStepAlignment" class="service-dag-node service-dag-preprocess" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">02</span>
+                        <div><small>TRANSFORM</small><strong id="serviceDemoStepAlignmentLabel">전처리</strong><p id="serviceDemoStepAlignmentEvidence">정렬 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepAlignmentLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepAlignmentExecutor">service workload</em></footer>
+                      </article>
+                      <article id="serviceDemoStepFeatures" class="service-dag-node service-dag-features" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">03</span>
+                        <div><small>FEATURES</small><strong id="serviceDemoStepFeaturesLabel">특징 추출</strong><p id="serviceDemoStepFeaturesEvidence">window 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepFeaturesLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepFeaturesExecutor">service workload</em></footer>
+                      </article>
+                      <article id="serviceDemoStepInference" class="service-dag-node service-dag-inference" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">04</span>
+                        <div><small>INFERENCE</small><strong id="serviceDemoStepInferenceLabel">AI 추론</strong><p id="serviceDemoStepInferenceEvidence">모델 대기</p></div>
+                        <footer><span>CURRENTLY ON</span><strong id="serviceDemoStepInferenceLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepInferenceExecutor">service workload</em></footer>
+                      </article>
+                      <article id="serviceDagDevice1" class="service-dag-node service-dag-device" data-state="ready" data-traffic="idle">
+                        <span class="service-dag-node-index">D1</span>
+                        <div><small>EDGE TARGET</small><strong id="serviceDagDevice1Label">Device1</strong><p id="serviceDagDevice1Description">Jetson · edge-local</p></div>
+                        <footer><span>NODE</span><strong id="serviceDagDevice1Node">etri-dev0001-jetorn</strong></footer>
+                        <b><span>처리 비율</span><strong id="serviceDeviceRatio">—</strong></b>
+                      </article>
+                      <article id="serviceDagServer1" class="service-dag-node service-dag-server" data-state="pending" data-traffic="idle">
+                        <span class="service-dag-node-index">S1</span>
+                        <div><small>HAMi GPU TARGET</small><strong id="serviceDagServer1Label">Server GPU</strong><p id="serviceDagServer1Description">CUDA 준비 확인 · 승인 기반 endpoint</p></div>
+                        <footer><span>NODE</span><strong id="serviceDagServer1Node">etri-ser0002-cgnmsb</strong></footer>
+                        <b><span>처리 비율</span><strong id="serviceServerRatio">—</strong></b>
+                      </article>
+                      <article id="serviceDemoStepResult" class="service-dag-node service-dag-store" data-state="pending" data-current="false">
+                        <span class="service-dag-node-index">05</span>
+                        <div><small>PERSIST</small><strong id="serviceDemoStepResultLabel">결과 저장</strong><p id="serviceDemoStepResultEvidence">결과 대기</p></div>
+                        <footer><span>RUNS ON</span><strong id="serviceDemoStepResultLocation">Device1 · 위치 확인 중</strong><em id="serviceDemoStepResultExecutor">service workload</em></footer>
+                      </article>
+                    </div>
+                    <div class="service-routing-ratio" aria-label="Device1과 Server GPU 처리 비율">
+                      <div>
+                        <strong>처리 분산</strong>
+                        <span id="serviceRoutingSampleSummary">처리 표본 대기</span>
+                      </div>
+                      <div id="serviceRoutingSplit" class="service-routing-split" data-empty="true" aria-hidden="true"><span></span><i></i></div>
+                      <div class="service-routing-labels"><span><i></i>Device1</span><span><i></i>Server GPU</span></div>
+                    </div>
+                  </section>
+
+                  <aside id="serviceOperationsTimeline" class="service-operations-timeline" aria-labelledby="serviceOperationsTimelineTitle">
+                    <div class="service-operations-subhead">
+                      <div><span>EVENT STREAM</span><strong id="serviceOperationsTimelineTitle">운영 이벤트</strong></div>
+                      <span>최신순</span>
+                    </div>
+                    <ol id="serviceOperationsTimelineList" aria-live="polite">
+                      <li class="service-timeline-empty">운영 이벤트를 불러오고 있습니다.</li>
+                    </ol>
+                  </aside>
+                </div>
+
+              </section>
+
+              <section class="service-demo-history" aria-labelledby="serviceDemoHistoryTitle">
+                <div class="service-demo-section-title">
+                  <span>최근 판정</span>
+                  <strong id="serviceDemoHistoryTitle">결과 흐름</strong>
+                </div>
+                <div>
+                  <p id="serviceDemoHistorySummary">결과 이력을 불러오고 있습니다.</p>
+                  <ol id="serviceDemoHistoryRail" class="service-demo-history-rail" aria-label="최근 이상감지 결과"></ol>
+                </div>
+              </section>
               <details class="service-demo-details">
                 <summary>연결·모델 상세정보</summary>
                 <div class="service-demo-route" aria-label="physical source to AI consumer binding">
@@ -297,12 +510,11 @@
                     <strong><span id="serviceDemoConsumer">sensor-anomaly-demo</span> · <span id="serviceDemoNode">etri-dev0001-jetorn</span></strong>
                   </div>
                 </div>
-                <p class="service-demo-devices"><span>Input virtual devices</span><strong id="serviceDemoDevices">관측 대기</strong></p>
+                <p class="service-demo-devices"><span>입력 디바이스 트윈</span><strong id="serviceDemoDevices">관측 대기</strong></p>
                 <dl class="service-demo-values service-demo-detail-values">
                   <div class="service-demo-value-detail"><dt>Magnitude</dt><dd id="serviceDemoMagnitude">관측 대기</dd></div>
-                  <div class="service-demo-value-detail"><dt>온도 입력</dt><dd id="serviceDemoTemperatureContext">관측 대기</dd></div>
                   <div class="service-demo-value-detail"><dt>Sample origin</dt><dd id="serviceDemoOrigin">관측 대기</dd></div>
-                  <div class="service-demo-value-detail"><dt>Input age</dt><dd id="serviceDemoInputAge">관측 대기</dd></div>
+                  <div class="service-demo-value-detail"><dt>처리 프레임</dt><dd id="serviceDemoFrames">관측 대기</dd></div>
                 </dl>
                 <p id="serviceDemoModel" class="service-demo-model">online model 관측 대기 · 실측 raw 변화 이상 탐지</p>
                 <dl class="service-demo-alert-summary" aria-label="이상 알림 이력">
@@ -324,7 +536,7 @@
             <span id="assetCount">0개</span>
           </div>
           <p class="resource-inventory-intro">
-            서버, 현장 엣지 노드, 가상 자원과 EdgeX 센서를 한 화면에서 확인합니다.
+            서버, 현장 엣지 노드와 EdgeX 등록 디바이스를 한 화면에서 확인합니다.
           </p>
           <div class="sensor-inventory-toolbar">
             <label for="nodeFilterSelect">노드</label>
@@ -354,6 +566,65 @@
           </div>
           <div id="topologyMap" class="topology-map"></div>
         </details>
+
+        <section
+          class="panel device-twins-page dashboard-page"
+          data-page="device-twins"
+          aria-labelledby="deviceTwinsTitle"
+        >
+          <header class="device-twins-head">
+            <div>
+              <h2 id="deviceTwinsTitle">디바이스 트윈</h2>
+              <p>실제 물리 디바이스에서 온 데이터를 EdgeX 관측 트윈으로 보여줍니다.</p>
+            </div>
+          </header>
+
+          <div id="deviceTwinsError" class="device-twins-notice" role="status" aria-live="polite" hidden></div>
+
+          <dl class="device-twins-summary" aria-label="디바이스 트윈 요약">
+            <div><dt>물리 디바이스</dt><dd id="deviceTwinsPhysicalCount">0</dd></div>
+            <div><dt>디바이스 트윈</dt><dd id="deviceTwinsTotalCount">0</dd></div>
+            <div><dt>서비스 연결</dt><dd id="deviceTwinsBoundCount">0</dd></div>
+            <div><dt>점검 필요</dt><dd id="deviceTwinsAttentionCount">0</dd></div>
+          </dl>
+
+          <section class="device-twins-inventory" aria-labelledby="deviceTwinsInventoryTitle">
+            <div class="device-twins-section-head">
+              <div>
+                <h3 id="deviceTwinsInventoryTitle">물리 디바이스 → 트윈 → 서비스</h3>
+                <span>서비스에 연결된 트윈부터 표시</span>
+              </div>
+              <strong id="deviceTwinsVisibleCount">0개</strong>
+            </div>
+            <div class="device-twins-toolbar">
+              <label class="device-twins-search" for="deviceTwinsSearch">
+                <span>검색</span>
+                <input id="deviceTwinsSearch" type="search" placeholder="트윈, 물리 디바이스, 데이터" autocomplete="off" />
+              </label>
+              <label for="deviceTwinsBindingFilter">
+                <span>서비스 연결</span>
+                <select id="deviceTwinsBindingFilter">
+                  <option value="">전체</option>
+                  <option value="bound">연결됨</option>
+                  <option value="unbound">미연결</option>
+                </select>
+              </label>
+            </div>
+            <div class="device-twins-table-wrap">
+              <table class="device-twins-table">
+                <thead>
+                  <tr>
+                    <th scope="col">물리 디바이스</th>
+                    <th scope="col">관측 트윈</th>
+                    <th scope="col">사용 서비스</th>
+                    <th scope="col">상태</th>
+                  </tr>
+                </thead>
+                <tbody id="deviceTwinsList" aria-live="polite"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
 
         <section
           class="panel service-designer-page dashboard-page"
@@ -1010,7 +1281,7 @@
                   <div class="management-form-grid">
                     <label>
                       <span>디바이스 이름</span>
-                      <input id="managementDeviceName" type="text" required maxlength="255" placeholder="virtual-temperature-002" />
+                      <input id="managementDeviceName" type="text" required maxlength="255" placeholder="temperature-sensor-002" />
                     </label>
                     <label>
                       <span>설명</span>
@@ -1018,7 +1289,7 @@
                     </label>
                     <label class="management-field-wide">
                       <span>레이블 · 쉼표로 구분</span>
-                      <input id="managementDeviceLabels" type="text" placeholder="arduino, serial, virtual-device" />
+                      <input id="managementDeviceLabels" type="text" placeholder="arduino, serial, temperature" />
                     </label>
                   </div>
                   <div class="management-step-actions">
@@ -1159,7 +1430,7 @@
                     </label>
                     <label class="management-field-wide">
                       <span>프로토콜 속성 JSON · 선택적 전체 어댑터 속성</span>
-                      <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/arduino-001","BaudRate":115200,"DeviceID":"arduino-001","ResourceName":"temperature_raw"}'></textarea>
+                      <textarea id="patchDeviceProtocol" rows="4" placeholder='{"Port":"/dev/edgeai/arduino-001","BaudRate":115200,"DeviceID":"arduino-001","ResourceName":"temperature_raw"}'></textarea>
                     </label>
                     <label class="management-field-wide">
                       <span>중복 요청 방지 키</span>
@@ -1356,12 +1627,14 @@
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=ai-pipeline-removed-20260730"></script>
+    <script src="/static/navigation.js?v=service-catalog-20260813"></script>
+    <script src="/static/runtime-operations.js?v=runtime-offloading-v3-20260826"></script>
     <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-    <script src="/static/service-demo.js?v=persistent-alerts-20260803"></script>
+    <script src="/static/service-demo.js?v=service-augmentation-v2-20260818"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
+    <script src="/static/device-twins.js?v=multi-service-twins-v3-20260814"></script>
   </body>
 </html>

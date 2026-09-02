@@ -18,6 +18,9 @@ Python FastAPI 기반 서버 구현
 
 POST /workflow-event
 GET /state/nodes
+GET /api/resources
+POST /api/placements/select
+POST /api/deployments
 GET /state/node/{hostname}
 GET /state/workflows
 GET /state/workflow/{workflow_id}
@@ -39,12 +42,12 @@ Data API를 직접 읽으며 state-aggregator가 데이터 프록시 역할을 �
 대시보드 계약을 캔버스에 만들고, 현재 세 축 EdgeX Device가 같은 Jetson에 있으면
 읽기 전용 입력과 처리 노드를 자동 바인딩한다. 이는 새 workload를 배포하거나
 고정 데모를 실행하는 동작이 아니다.
-자원증강 탭은 `GET /state/virtual-resources`를 통해 AI HAT/GPU/cache 같은
-read-only Resource Profile과 관측된 실행 인스턴스를 표시한다.
-Kubernetes CRD로 관리되는 자원증강 상태는 `GET /state/augmentation-resources`,
-`GET /state/device-augmentations`를 통해 조회하며 dashboard `자원증강` 탭에서
-`DeviceAugmentation.status.conditions`와 `selectedResources`를 read-only로 표시한다.
-이 경로는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
+대시보드의 `디바이스 트윈` 화면은 `GET /state/device-twins`를 사용한다. 이 응답은
+실제 물리 디바이스에서 수집되어 EdgeX Metadata와 Core Data에 반영된 관측 상태와
+AI 서비스 입력 연결을 N:M `service_bindings`로 보여주며, 가상 하드웨어나
+desired/reported 제어 트윈을 뜻하지 않는다. 서비스 정의와 입력 바인딩은 별도 고정
+목록이 아니라 Git 기반 `/state/services` 서비스 inventory를 기준으로 합성한다.
+현재 대시보드는 workload 생성, 자동 offloading, runtime migration을 수행하지 않는다.
 
 Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
 
@@ -68,8 +71,9 @@ Dashboard의 별도 `Device Management` 화면은 승인된 관리 경로다.
 - Runtime/Device 통합 validation은 mutation 없이 `REUSE`, `DEPLOY`, `BLOCKED` plan을 만든다.
 - 인증된 `POST /management/connections`는 Adapter Controller를 통해 승인 runtime을
   준비한 뒤 EdgeX Profile/Device를 등록하고 first Event까지 추적한다.
-- state-aggregator 자체는 Kubernetes 쓰기 권한이 없고, 외부/Argo runtime을
-  restart/retire하지 않는다.
+- state-aggregator의 일반 read model과 Device Management BFF는 기존 Kubernetes
+  workload를 수정하지 않는다. 별도 `/api/deployments` Controller만 전용 namespace에
+  신규 Deployment를 생성하며 외부/Argo runtime을 restart/retire하지 않는다.
 - raw manifest, 임의 image/hostPath/hostNetwork, 고정 ClusterIP/PodIP, EdgeMesh와 KubeEdge
   Device CRD 변경은 API schema에 없다.
 
@@ -158,6 +162,170 @@ status
 /state/nodes
 
 전체 노드의 최신 normalized state 반환
+
+/api/resources
+
+Placement Engine이 읽을 수 있는 노드별 scheduling snapshot을 반환한다. Kubernetes Node
+allocatable에서 노드에 할당된 비종료 Pod requests를 차감해 CPU·memory·확장 accelerator
+가용량을 계산하고, 기존 `/state/nodes`의 Prometheus utilization과 health를 별도 관측값으로
+결합한다. 응답의 `allocatable`, `requested`, `available`은 계산 근거이며 이 API는
+Kubernetes workload를 변경하거나 노드를 예약하지 않는 read-only endpoint다.
+
+/api/placements/select
+
+`namespace`, `service`, `architecture`와 선택 `accelerator`·`acceleratorUnits` 조건을 받아
+해당 실행 서비스의 `/state/service-resource-profiles` CPU·memory requests와
+`/api/resources` 노드 snapshot을 결합한다. 먼저 schedulable, CPU, memory, architecture,
+accelerator 조건을 fail-closed Filter하고, 통과 노드는 배치 후 CPU·memory headroom 60%와
+현재 Prometheus CPU·memory idle 40%를 합산한 0~100점으로 Score한다. 결과는 선택 노드,
+점수 세부내역, 모든 후보의 `reasonCodes`를 반환하며 workload apply·migration·offloading은
+실행하지 않는다.
+
+/api/runtime-recommendations
+
+Git `ServiceDescriptor.runtime_recommendation`이 활성화된 AI 서비스를 지속 감시한다.
+Deployment/StatefulSet·Pod·현재 Node 상태, Prometheus 자원 사용량과 observability adapter의
+입력 freshness·model readiness·latency·backlog·throughput을 결합한다. 진입 threshold와
+회복 threshold를 분리한 hysteresis, pressure/failure/recovery dwell과 recommendation
+cooldown을 적용해 다음 상태를 반환한다.
+
+- `NORMAL`: 회복 threshold 안에서 안정적
+- `OBSERVING`: 진입·회복 dwell 또는 cooldown 진행 중
+- `AUGMENT_RECOMMENDED`: Ready workload의 자원 압력과 서비스 압력이 함께 지속됨
+- `REPLACE_RECOMMENDED`: Deployment/Pod/Node 실패가 지속됨
+- `BLOCKED`: EdgeX 입력 stale/장애, model 미준비, 관측 누락 또는 적합 후보 없음
+
+증강·대체 판단 시 현재 실행 노드는 Placement 후보에 남지만
+`current_node_excluded`로 탈락한다. 나머지 노드는 기존 Filter/Score 규칙으로 재평가하며
+최적 노드, 점수와 전체 후보 `reasonCodes`를 반환한다. 최신 판단은
+`GET /api/runtime-recommendations/{serviceId}`, 이력은
+`GET /api/runtime-recommendations/{serviceId}/history?limit=100`으로 조회한다.
+
+SQLite에는 최신 판단뿐 아니라 pressure/failure latch, 각 dwell·회복 시작시각과 마지막
+추천시각을 저장한다. `/app/data`는 PVC이고 Deployment strategy는 `Recreate`이므로 Pod
+재시작 뒤에도 timer와 이력이 유지되며 동시에 두 poller가 쓰지 않는다. 이 API는
+read-only 추천이며 `/api/deployments`를 호출하거나 traffic 전환·삭제를 수행하지 않는다.
+
+### `/api/runtime-recommendations/{serviceId}/execution-plan`
+
+최신 영속 Runtime Recommendation을 운영자·후속 Controller 검토용 read-only 실행 계획으로
+변환한다. 동일 추천의 `observedAt`, workload identity와 선택 node로 결정적인 `planId`와
+후보 workload 이름을 만들며, 조회할 때 추천 timer나 판단 이력을 변경하지 않는다.
+
+- `AUGMENT_RECOMMENDED`: `create_candidate → verify_ready → validate_candidate_pre_activation →
+  handoff_execution_ownership → verify_active_candidate → distribute_traffic`
+- `REPLACE_RECOMMENDED`: `create_candidate → verify_ready → validate_candidate_pre_activation →
+  handoff_execution_ownership → verify_active_candidate → switch_traffic →
+  verify_switched_traffic → terminate_current`, 실패 보상 `rollback_traffic`과
+  `rollback_execution_ownership`
+- `NORMAL`·`OBSERVING`: `not_applicable`, 단계 없음
+- `BLOCKED` 또는 불완전한 Placement: `blocked`, 단계 없음
+
+각 단계는 `sequence`, `action`, `executionMode`, 대상 node/workload, `dependsOn`, 안정적인 code와
+설명이 포함된 `prerequisites`·`failureConditions`를 반환한다. 대체 계획의 `rollback`은
+`on_failure` 보상 단계이며 실행 성공을 주장하지 않는다. 이 GET API는 Deployment Controller,
+Kubernetes, Service/Ingress 또는 traffic plane을 호출하지 않는다.
+
+### 승인 기반 Execution Controller
+
+- `POST /api/runtime-recommendations/{serviceId}/execution-plan/dry-run`
+- `POST /api/runtime-recommendations/{serviceId}/execution-plan/execute`
+- `GET /api/execution-plans/{planId}`
+- `GET /api/execution-plans/{planId}/audit`
+- `GET /api/executions?serviceId={serviceId}&limit=100`
+
+dry-run은 최신 `planId`, source Deployment·Service·PVC, target Node, immutable allowlisted image,
+Placement requirements와 단계 지원 경계를 읽기 전용으로 확인한다. candidate는 source
+Deployment를 복제하지 않고 `app/config/candidate_workload_templates.json`에 서비스별로 승인된
+image digest, env, port/probe, resources, securityContext, namespace, architecture/accelerator와
+state policy만 사용한다. source와 승인 계약이 다르면 `candidate_template_mismatch`, 템플릿이
+없거나 유효하지 않으면 `candidate_template_not_found`·`candidate_contract_invalid`로 생성 전에
+차단한다. 실행 API는 `EXECUTION_CONTROLLER_ENABLED=true`,
+`X-Execution-Token`, 본문의 동일 `planId`, `approved=true`, `approvedBy`가 모두 필요하다.
+planId가 idempotency key이므로 중복 요청은 저장된 최초 record를 반환한다.
+신규 실행은 `202 Accepted`와 PENDING record를 즉시 반환하고 background task가 단계를 진행한다.
+진행 상태와 validation 상세는 `GET /api/execution-plans/{planId}`로 조회한다.
+
+현재 코드 지원 단계는 `create_candidate`, `verify_ready`,
+`validate_candidate_pre_activation`, `handoff_execution_ownership`,
+`verify_active_candidate`, `rollback_execution_ownership`, `switch_traffic`,
+`verify_switched_traffic`, `rollback_traffic`이다. candidate는
+`edge-ai-workloads`에 단일 replica Deployment로 생성하고 선택 node에 exact hostname으로
+고정한다. `terminate_current`와 workload/PVC 삭제·promotion은 `unsupported_step`으로 중단한다.
+실패 후 source workload를 update/delete하지 않고 생성된 candidate도 자동 삭제하지 않는다.
+`sensor-anomaly-demo` v1은 `fresh_state`이며 기존 RWO `local-path` PVC를
+재사용하거나 복제하지 않고 candidate의 `/var/lib/sensor-anomaly-demo`를 `emptyDir`로 만든다.
+`ResultStore`가 빈 경로에 SQLite schema를 생성하므로 기존 `results.db` 없이도 `/readyz`까지
+진행할 수 있다. candidate identity와 생성 PVC 목록(현재는 빈 목록)은 실행 record에 보존한다.
+pre-activation validation은 `app/config/candidate_validation_contracts.json`을 읽어 Pod Ready,
+health, 유효한 source Lease 아래의 candidate SHADOW 상태, fresh input, model ready와 shadow
+inference를 확인한다. handoff 뒤 active validation은 candidate의 Lease ACTIVE 상태, production
+`framesProcessed` 증가, 최근 결과 freshness와 측정 가능한 latency SLO를 다시 확인한다. 모든
+필수 검사가 계약의 dwell 조건을 만족해야 성공하며 source와 candidate 관측값은 비교용으로
+저장하되 candidate가 source보다 빨라야 한다는 조건은 없다.
+
+`app/config/execution_ownership_contracts.json`은 서비스별 Lease namespace/name, 허용 holder
+identity와 lease duration을 Git 계약으로 고정한다. Controller는 현재 source holder와
+resourceVersion을 preflight하고 CAS로 candidate holder로 전환한다. 서비스별 SQLite lock이
+동시 handoff를 막으며 snapshot·전환·rollback을 실행 record와 audit에 저장한다. handoff 또는
+active validation 실패 시 persisted snapshot의 source holder로 CAS rollback하고 candidate는
+삭제하지 않는다. 재시작 중 RUNNING handoff는 자동 재개하지 않고
+`execution_ownership_recovery_required`로 차단한다.
+
+실행과 단계 상태는 `PENDING/RUNNING/SUCCEEDED/FAILED/BLOCKED`이며 승인·상태 전이·reason을
+`/app/data/runtime-executions.sqlite3`의 record와 append-only audit log에 저장한다. 재시작 시
+남은 PENDING/RUNNING record는 중복 실행하지 않고 `execution_interrupted`로 차단한다.
+`app/config/traffic_routing_contracts.json`은 Service/namespace/port, source selector,
+post-switch dwell과 rollback 정책을 고정한다. Controller는 Argo CD 소유 Service를 patch하지 않고
+selectorless Service에 연결된 Controller 단독 소유 EndpointSlice만 resourceVersion 조건부
+replace한다. switch 직전 source endpoint snapshot을 SQLite/audit에 저장하고 Service 주소를 통해
+동일 기능 검증을 30초 다시 수행한다. 실패하면 저장한 snapshot만 사용해 source로 rollback한다.
+서비스별 SQLite routing lock은 서로 다른 plan의 동시 cutover를 막는다.
+
+현재 live `sensor-anomaly-demo` Service에는 Argo CD 소유 selector와 Kubernetes endpoint-slice
+controller 소유 slice가 있고, edge node의 EdgeMesh는 legacy Endpoints를 관측한다. EndpointSlice
+소비 호환성이 입증되지 않았으므로 Git routing contract의 `compatibilityStatus`는 `blocked`이며
+실제 실행은 `routing_mode_unsupported`로 차단된다. selectorless Service 전환, Runtime 소유 source
+EndpointSlice bootstrap과 EdgeMesh traffic 시험이 완료되기 전에는 실클러스터 cutover를 수행하지 않는다.
+
+2026-08-26 별도 격리 namespace에서는 selectorless Service와 Controller 소유 core `Endpoints`를
+통한 source→candidate→source가 edge-resident probe와 EdgeMesh libp2p 로그로 확인됐다. 상세 증거는
+`docs/ops/EdgeMesh-Endpoints-라우팅-검증.md`에 있다. 이 결과는 후속 `runtime-endpoints` 모드의
+근거이며 현재 EndpointSlice 계약을 unblocked하거나 production Service를 변경하지 않는다.
+
+/api/deployments
+
+`placement` 필드에 `/api/placements/select`와 같은 서비스 프로파일·architecture·accelerator
+조건을 넣고, 신규 `deploymentName`과 immutable digest `image`를 전달한다. Controller는
+선택 노드를 exact hostname `nodeSelector`와 required node affinity에 함께 적용하고,
+프로파일 CPU·memory·accelerator requests를 단일 replica Deployment에 설정한다. 생성 후
+Deployment와 Pod를 관측해 `ready`, `failed`, `rejected`, `podReady`, Pod 상태와 안정적인
+`reasonCodes`를 반환한다.
+
+v1 경계:
+
+- 대상 namespace는 `edge-ai-workloads`로 고정
+- 단일 Pod에서 완전하게 수집된 서비스 자원 프로파일만 허용
+- allowlist의 로컬 registry image와 `@sha256:<digest>`만 허용
+- `X-Deployment-Token`과 `Idempotency-Key` header 필수
+- raw manifest, env, command, volume, Service/Ingress 입력 없음
+- 기존 Deployment update·patch·delete, migration·offloading 없음
+
+예시:
+
+```json
+{
+  "deploymentName": "quality-ai-v1",
+  "image": "192.168.0.56:5000/state-aggregator@sha256:<64-hex-digest>",
+  "placement": {
+    "namespace": "default",
+    "service": "redis",
+    "architecture": "amd64"
+  },
+  "containerPort": 8000,
+  "readinessPath": "/"
+}
+```
 
 /state/workflows
 

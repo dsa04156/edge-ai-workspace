@@ -463,6 +463,8 @@ body.context-detail-open {
 
 @media (max-width: 520px) {
   .main-menu {
+    position: static;
+    top: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 

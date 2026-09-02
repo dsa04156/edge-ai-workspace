@@ -1,0 +1,106 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sensor-augmentation-real-data-20260818
+  namespace: edgex-edge
+  labels:
+    edge-ai.io/augmentation-experiment: "true"
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        edge-ai.io/augmentation-experiment: "true"
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/hostname: etri-dev0001-jetorn
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: benchmark
+          image: 192.168.0.56:5000/sensor-anomaly-demo@sha256:9c0bf78ec255a162101fd4927c7ea1ef94c15aa13b8b38e342e24d98014bd6ba
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /experiment/sensor_augmentation_experiment.py
+          args:
+            - --input-mode
+            - live-local-data
+            - --capture-frame-count
+            - "120"
+            - --capture-max-age-seconds
+            - "10"
+            - --cpu-ratios
+            - "0"
+            - --memory-loads-mib
+            - "0"
+            - --repetitions
+            - "3"
+            - --duration-seconds
+            - "10"
+            - --target-rates
+            - 1,50,200
+            - --washout-seconds
+            - "2"
+            - --seed
+            - "20260818"
+            - --output
+            - /tmp/result.json
+          env:
+            - name: WARMUP_SAMPLES
+              value: "30"
+            - name: MODEL_BACKEND
+              value: online-baseline
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: experiment
+              mountPath: /experiment
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: experiment
+          configMap:
+            name: sensor-augmentation-experiment
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sensor-augmentation-experiment-to-server1
+  namespace: edgex-edge
+  labels:
+    edge-ai.io/augmentation-experiment: "true"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sensor-anomaly-inference-server1
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              edge-ai.io/augmentation-experiment: "true"
+      ports:
+        - protocol: TCP
+          port: 8080

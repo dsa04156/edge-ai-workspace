@@ -154,6 +154,7 @@ def test_device_catalog_exact_match_and_allowlists():
     assert catalog.errors == []
     assert match.confidence == "exact"
     assert match.binding.profile.name == "arduino-multisensor-v1"
+    assert match.binding.connection["RecoveryStrategy"] == "on-demand-read"
     assert catalog.profile_document(match.binding)["deviceResources"]
 
 

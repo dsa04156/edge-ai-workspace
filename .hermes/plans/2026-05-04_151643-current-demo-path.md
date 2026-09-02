@@ -2,7 +2,7 @@
 
 ## 목표
 
-다음 작업은 `docs/current-demo-path.md`를 작성하는 것이다.
+다음 작업은 `docs/현재-데모-경로.md`를 작성하는 것이다.
 
 이 문서는 현재 KubeEdge 기반 혼합 디바이스 엣지 AI PoC에서 디바이스가 등록되고, telemetry가 들어오고, mapper와 InfluxDB/state-aggregator/dashboard로 이어지는 현재 데모 경로를 한국어로 정리한다.
 
@@ -12,17 +12,17 @@
 
 이미 정리된 기준 문서는 다음이다.
 
-- `docs/scope.md`
+- `docs/프로젝트-범위.md`
   - 현재 PoC 범위와 제외 범위 정의
-- `docs/repo-structure.md`
+- `docs/저장소-구조.md`
   - 레포 디렉터리 역할 분류
-- `docs/roadmap.md`
+- `docs/단계별-추진계획.md`
   - 현재 산출물과 단계별 작업 방향 정리
-- `docs/device-status-policy.md`
+- `docs/물리-디바이스-상태-정책.md`
   - DeviceStatus와 raw telemetry 분리 정책
-- `docs/dashboard-policy.md`
+- `docs/대시보드-판단-정책.md`
   - dashboard의 상태 판단 기준
-- `docs/project-context.md`
+- `docs/프로젝트-배경.md`
   - 프로젝트 배경과 테스트베드 기준
 
 현재 문서 작성 기준은 다음이다.
@@ -35,15 +35,15 @@
 
 ## 작성할 파일
 
-- `docs/current-demo-path.md`
+- `docs/현재-데모-경로.md`
 
 작성 후 연결할 파일:
 
-- `docs/README.md`
+- `docs/문서-안내.md`
 
 ## 제안 목차
 
-`docs/current-demo-path.md`는 다음 구조로 작성한다.
+`docs/현재-데모-경로.md`는 다음 구조로 작성한다.
 
 ```markdown
 # Current Demo Path
@@ -177,7 +177,7 @@ factory/devices/{device-name}/heartbeat
 
 참조 문서:
 
-- `docs/device-status-policy.md`
+- `docs/물리-디바이스-상태-정책.md`
 
 ### 7. state-aggregator 경로
 
@@ -215,7 +215,7 @@ GET /metrics
 
 참조 문서:
 
-- `docs/dashboard-policy.md`
+- `docs/대시보드-판단-정책.md`
 
 ### 9. degraded 상태 의미
 
@@ -249,30 +249,30 @@ GET /metrics
 - 위 항목을 “후속 고도화” 또는 “다음 단계 핵심”으로 표현하지 않는다.
 - 현재 연구 방향과 데모 경로에서는 제외된 과거 경로 또는 보관 경로로만 설명한다.
 
-## `docs/README.md` 수정 계획
+## `docs/문서-안내.md` 수정 계획
 
-`docs/current-demo-path.md` 작성 후 `docs/README.md`의 Active Guides에 다음 항목을 추가한다.
+`docs/현재-데모-경로.md` 작성 후 `docs/문서-안내.md`의 Active Guides에 다음 항목을 추가한다.
 
 ```markdown
-- `current-demo-path.md`: 현재 디바이스/MQTT/mapper/telemetry/state-aggregator/dashboard 연결 경로
+- `현재-데모-경로.md`: 현재 디바이스/MQTT/mapper/telemetry/state-aggregator/dashboard 연결 경로
 ```
 
 권장 순서:
 
-1. `scope.md`
-2. `repo-structure.md`
-3. `project-context.md`
-4. `current-demo-path.md`
-5. `device-status-policy.md`
-6. `dashboard-policy.md`
-7. `roadmap.md`
+1. `프로젝트-범위.md`
+2. `저장소-구조.md`
+3. `프로젝트-배경.md`
+4. `현재-데모-경로.md`
+5. `물리-디바이스-상태-정책.md`
+6. `대시보드-판단-정책.md`
+7. `단계별-추진계획.md`
 
 ## 검증 계획
 
 문서 작성 후 다음을 확인한다.
 
-1. `docs/current-demo-path.md`가 한국어 본문으로 작성됐는지 확인한다.
-2. `docs/README.md`에 새 문서가 Active Guides로 연결됐는지 확인한다.
+1. `docs/현재-데모-경로.md`가 한국어 본문으로 작성됐는지 확인한다.
+2. `docs/문서-안내.md`에 새 문서가 Active Guides로 연결됐는지 확인한다.
 3. 다음 표현이 부적절하게 남아 있지 않은지 확인한다.
    - `후속 고도화`
    - `완전 자율형`
@@ -288,8 +288,8 @@ GET /metrics
 
 이번 실행 단계에서 변경할 파일:
 
-- `docs/current-demo-path.md`
-- `docs/README.md`
+- `docs/현재-데모-경로.md`
+- `docs/문서-안내.md`
 
 이번 실행 단계에서 건드리지 않을 파일:
 
@@ -326,16 +326,16 @@ PYTHONPATH=. .venv/bin/pytest -q tests
    - 대응: 제외 항목으로만 작성하고 후속 계획으로 표현하지 않는다.
 
 3. DeviceStatus와 telemetry data-plane 경계가 흐려질 수 있다.
-   - 대응: `docs/device-status-policy.md` 기준을 그대로 따른다.
+   - 대응: `docs/물리-디바이스-상태-정책.md` 기준을 그대로 따른다.
 
 4. dashboard healthy/degraded 판단이 단순화될 수 있다.
-   - 대응: `docs/dashboard-policy.md` 기준을 그대로 따른다.
+   - 대응: `docs/대시보드-판단-정책.md` 기준을 그대로 따른다.
 
 ## 열린 질문
 
-이번 `docs/current-demo-path.md` 작성에는 큰 추가 확인이 필요하지 않다.
+이번 `docs/현재-데모-경로.md` 작성에는 큰 추가 확인이 필요하지 않다.
 
-다만 다음 문서인 `docs/service-demo-scenario.md` 작성 전에는 대표 서비스 데모 주제를 확정해야 한다.
+다만 다음 문서인 `docs/서비스-데모-시나리오.md` 작성 전에는 대표 서비스 데모 주제를 확정해야 한다.
 
 후보:
 
@@ -350,8 +350,8 @@ PYTHONPATH=. .venv/bin/pytest -q tests
 
 사용자가 실행을 요청하면 다음 순서로 진행한다.
 
-1. `docs/current-demo-path.md` 작성
-2. `docs/README.md` Active Guides에 연결
+1. `docs/현재-데모-경로.md` 작성
+2. `docs/문서-안내.md` Active Guides에 연결
 3. 작성 파일 읽어서 검증
-4. `git diff -- docs/current-demo-path.md docs/README.md | cat`으로 변경 내용 확인
+4. `git diff -- docs/현재-데모-경로.md docs/문서-안내.md | cat`으로 변경 내용 확인
 5. 결과 요약

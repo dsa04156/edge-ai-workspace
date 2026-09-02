@@ -156,6 +156,10 @@ def test_renderer_uses_only_template_pinned_runtime_details():
         if "value" in item
     }["MESSAGEBUS_HOST"] == "edgex-messagebus.edgex-system.svc.cluster.local"
     assert container["securityContext"]["privileged"] is True
+    device_mount = next(
+        item for item in container["volumeMounts"] if item["name"] == "hardware-device"
+    )
+    assert device_mount["readOnly"] is False
     device_volume = next(
         item for item in pod["volumes"] if item["name"] == "hardware-device"
     )
@@ -168,6 +172,40 @@ def test_renderer_uses_only_template_pinned_runtime_details():
     assert "clusterIP" not in service["spec"]
     assert service["spec"]["ports"][0]["port"] == 59930
     assert "podIP" not in str(resources)
+
+
+def test_renderer_mounts_only_allowlisted_dynamic_endpoint_directory_read_only():
+    template = deployable_template().model_copy(deep=True)
+    binding = template.hardware_bindings[0]
+    binding.host_device_path = "/run/edgeai/devices"
+    binding.container_device_path = "/dev/edgeai"
+    binding.device_type = "Directory"
+    binding.mount_read_only = True
+
+    resources = render_runtime_workload(
+        runtime_cr(),
+        template,
+        namespace="edgex-edge",
+    )
+    deployment = next(item for item in resources if item["kind"] == "Deployment")
+    pod = deployment["spec"]["template"]["spec"]
+    container = pod["containers"][0]
+    device_mount = next(
+        item for item in container["volumeMounts"] if item["name"] == "hardware-device"
+    )
+    device_volume = next(
+        item for item in pod["volumes"] if item["name"] == "hardware-device"
+    )
+
+    assert device_mount == {
+        "name": "hardware-device",
+        "mountPath": "/dev/edgeai",
+        "readOnly": True,
+    }
+    assert device_volume["hostPath"] == {
+        "path": "/run/edgeai/devices",
+        "type": "Directory",
+    }
 
 
 def test_restart_nonce_only_changes_controller_owned_pod_template_annotation():

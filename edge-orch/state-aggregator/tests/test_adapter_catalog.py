@@ -20,7 +20,7 @@ def catalog() -> AdapterCatalog:
 
 def serial_protocol(**overrides):
     values = {
-        "Port": "/dev/arduino-001",
+        "Port": "/dev/edgeai/arduino-001",
         "BaudRate": 115200,
         "DeviceID": "arduino-001",
         "Parser": "arduino-multisensor-v1",
@@ -69,9 +69,11 @@ def test_catalog_exposes_serial_reuse_and_approved_deployment_bindings(catalog):
         "raspi5-mpu6050-serial-001",
     ]
     assert serial.runtime.hardware_bindings[0].node_name == "etri-dev0001-jetorn"
-    assert serial.runtime.hardware_bindings[0].device_path == "/dev/arduino-001"
+    assert serial.runtime.hardware_bindings[0].device_path == (
+        "/dev/edgeai/arduino-001"
+    )
     assert serial.runtime.hardware_bindings[0].protocol_properties == {
-        "Port": "/dev/arduino-001",
+        "Port": "/dev/edgeai/arduino-001",
         "BaudRate": 115200,
         "DeviceID": "arduino-001",
         "Parser": "arduino-multisensor-v1",

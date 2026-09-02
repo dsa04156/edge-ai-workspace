@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor-anomaly-inference-server1
+  namespace: edgex-edge
+  labels:
+    app.kubernetes.io/name: sensor-anomaly-inference-server1
+    app.kubernetes.io/part-of: edge-ai-service-demo
+spec:
+  selector:
+    app.kubernetes.io/name: sensor-anomaly-inference-server1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-anomaly-inference-server1
+  namespace: edgex-edge
+  labels:
+    app.kubernetes.io/name: sensor-anomaly-inference-server1
+    app.kubernetes.io/part-of: edge-ai-service-demo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sensor-anomaly-inference-server1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sensor-anomaly-inference-server1
+        app.kubernetes.io/part-of: edge-ai-service-demo
+        edge-ai.io/augmentation-resource: server1-sensor-anomaly-inference
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0002-cgnmsb
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 15
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sensor-anomaly-inference
+          image: 192.168.0.56:5000/sensor-anomaly-demo-server1@sha256:b31d45e138c431cc3f6a04be5757b0244942338cd2387b01ef7825359f464c1c
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CUPY_CACHE_DIR
+              value: /tmp/cupy-cache
+            - name: SERVICE_ROLE
+              value: inference-server
+            - name: INFERENCE_WARMUP_SOURCE_ENABLED
+              value: "true"
+            - name: LOCAL_DATA_BASE_URL
+              value: http://device-serial-jetson.edgex-edge.svc.cluster.local:59910
+            - name: POLL_INTERVAL_SECONDS
+              value: "0.5"
+            - name: INPUT_STALE_SECONDS
+              value: "10"
+            - name: HTTP_TIMEOUT_SECONDS
+              value: "2"
+            - name: WARMUP_SAMPLES
+              value: "30"
+            - name: MODEL_BACKEND
+              value: cuda-online-baseline
+            - name: MODEL_VERSION
+              value: cuda-baseline-1.0.0
+            - name: RESULT_DB_PATH
+              value: /tmp/server1-shadow-results.db
+            - name: SERVICE_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/v1/augmentation-readyz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              nvidia.com/gpu: "1"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sensor-anomaly-inference-server1-network
+  namespace: edgex-edge
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sensor-anomaly-inference-server1
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: state-aggregator
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sensor-anomaly-demo
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: device-serial-jetson
+      ports:
+        - protocol: TCP
+          port: 59910
+---
+apiVersion: augmentation.edge-ai.io/v1alpha1
+kind: AugmentationResource
+metadata:
+  name: server1-sensor-anomaly-inference
+  labels:
+    edge-ai.io/resource-class: server1-inference
+spec:
+  displayName: server1 Sensor Anomaly Inference
+  resourceType: gpu
+  nodeSelector:
+    kubernetes.io/hostname: etri-ser0002-cgnmsb
+  stageTypes:
+    - ai_inference
+  capabilities:
+    - anomaly_model
+    - remote_inference
+    - cuda_inference
+    - hami_vgpu
+  runtimeRef:
+    namespace: edgex-edge
+    serviceSelector:
+      app.kubernetes.io/name: sensor-anomaly-inference-server1
+    podSelector:
+      edge-ai.io/augmentation-resource: server1-sensor-anomaly-inference
+  allocationPolicy:
+    maxBindings: 1
+    allowShared: false

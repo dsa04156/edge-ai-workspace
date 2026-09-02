@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 서비스 등록 가이드</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">연결 가이드</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">AI-서비스-등록-가이드.md</span>
+        <a class="edit-link" href="/__edit?file=AI-서비스-등록-가이드.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a class="active" aria-current="page" href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">연결 가이드</p>
+          <h1>AI 서비스 등록 가이드</h1>
+          <p class="subtitle">대시보드는 Pod 이름이나 image 이름으로 서비스 의미를 추측하지 않는다. Git에서 검토한 ServiceDescriptor…</p>
+          <div class="meta">
+            <span class="badge kind">연결 가이드</span>
+            <span class="badge">원본: AI-서비스-등록-가이드.md</span>
+            <span class="badge">수정: 2026-08-18 14:10</span>
+            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="ai-서비스-등록-가이드">AI 서비스 등록 가이드</h1>
+<h2 id="먼저-답-배포한-서비스를-대시보드가-어떻게-아는가">먼저 답: 배포한 서비스를 대시보드가 어떻게 아는가</h2>
+<p>대시보드는 Pod 이름이나 image 이름으로 서비스 의미를 추측하지 않는다. Git에서 검토한 <code>ServiceDescriptor</code>가 workload identity, EdgeX 입력 계약, 실행 DAG와 관측 API를 선언한다. <code>state-aggregator</code>의 <code>/state/services</code>가 이 정의와 live evidence를 결합하고, 대시보드는 공용 목록과 DAG를 자동 생성한다.</p>
+<pre data-lang="text"><code>Kubernetes workload + EdgeX input + ServiceDescriptor
+                         ↓
+                /state/services
+                         ↓
+              서비스 목록 + 실행 DAG</code></pre>
+<p>서비스마다 화면을 새로 만들 필요는 없다. 응답 계약이 다른 서비스만 versioned adapter와 테스트를 추가한다.</p>
+<p>현재 등록된 서비스가 실제로 무엇을 입력받아 어떻게 판단하는지는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>를 먼저 확인한다.</p>
+<h2 id="등록-순서">등록 순서</h2>
+<h3 id="1-입출력-계약을-먼저-고정한다">1. 입출력 계약을 먼저 고정한다</h3>
+<ul><li>versioned input schema와 필수 resource</li><li>입력 freshness, window, 결측·시각 정렬 기준</li><li>model readiness와 model version</li><li>결과·알림 API와 저장 위치</li><li>processing latency, backlog, throughput metric</li><li>workload와 기본 실행 target</li><li>자원 증강 후보의 정확한 source/candidate model version과 실험 자격</li></ul>
+<p>현장 mapping이나 모델 계약이 없으면 <code>deployed</code>로 등록하지 않는다.</p>
+<h3 id="2-안정적인-workload-identity를-둔다">2. 안정적인 workload identity를 둔다</h3>
+<pre data-lang="json"><code>{
+  &quot;namespace&quot;: &quot;edgex-edge&quot;,
+  &quot;kind&quot;: &quot;Deployment&quot;,
+  &quot;name&quot;: &quot;sensor-anomaly-demo&quot;,
+  &quot;selector&quot;: {&quot;app&quot;: &quot;sensor-anomaly-demo&quot;}
+}</code></pre>
+<p>Pod 이름처럼 rollout마다 바뀌는 값을 사용하지 않는다.</p>
+<h3 id="3-servicedescriptor를-추가한다">3. ServiceDescriptor를 추가한다</h3>
+<p>현재 파일은 <code>edge-orch/state-aggregator/app/config/service_catalog.json</code>이다.</p>
+<pre data-lang="json"><code>{
+  &quot;service_id&quot;: &quot;sensor-anomaly-demo&quot;,
+  &quot;display_name&quot;: &quot;펌프·모터 진동·온도 이상감지&quot;,
+  &quot;category&quot;: &quot;ai_inference&quot;,
+  &quot;lifecycle&quot;: &quot;deployed&quot;,
+  &quot;execution_mode&quot;: &quot;fixed&quot;,
+  &quot;workload&quot;: {
+    &quot;namespace&quot;: &quot;edgex-edge&quot;,
+    &quot;kind&quot;: &quot;Deployment&quot;,
+    &quot;name&quot;: &quot;sensor-anomaly-demo&quot;,
+    &quot;selector&quot;: {&quot;app&quot;: &quot;sensor-anomaly-demo&quot;}
+  },
+  &quot;input_contract&quot;: {
+    &quot;authority&quot;: &quot;EdgeX&quot;,
+    &quot;schema&quot;: &quot;okdong.pump-motor.telemetry/v1&quot;,
+    &quot;required_resources&quot;: [
+      &quot;acceleration_x_raw&quot;,
+      &quot;acceleration_y_raw&quot;,
+      &quot;acceleration_z_raw&quot;,
+      &quot;temperature_raw&quot;
+    ]
+  },
+  &quot;observability&quot;: {
+    &quot;adapter&quot;: &quot;sensor-anomaly-v1&quot;,
+    &quot;state_path&quot;: &quot;/state/service-demo&quot;,
+    &quot;results_path&quot;: &quot;/state/service-demo/results?limit=12&quot;,
+    &quot;alerts_path&quot;: &quot;/state/service-demo/alerts?limit=10&quot;
+  },
+  &quot;augmentation_qualification&quot;: {
+    &quot;status&quot;: &quot;rejected&quot;,
+    &quot;source_model_version&quot;: &quot;baseline-1.0.0&quot;,
+    &quot;candidate_model_version&quot;: &quot;cuda-baseline-1.0.0&quot;,
+    &quot;experiment_id&quot;: &quot;sensor-augmentation-20260818&quot;,
+    &quot;reason&quot;: &quot;server1_latency_regression_and_zero_observed_gpu_utilization&quot;,
+    &quot;max_validated_rps&quot;: 200,
+    &quot;latency_p95_improvement_percent&quot;: 10,
+    &quot;throughput_noninferiority_percent&quot;: 5,
+    &quot;requires_zero_errors_and_oom&quot;: true,
+    &quot;qualified_condition_count&quot;: 0,
+    &quot;validated_condition_count&quot;: 15,
+    &quot;evidence_document&quot;: &quot;docs/AI-서비스-자원-증강-부하-실험.md&quot;
+  }
+}</code></pre>
+<p>외부 URL, 비밀번호, token, URL userinfo와 임의 image/command/hostPath는 허용하지 않는다. 새 후보는 기본 <code>pending</code>으로 등록하고, 정확한 model version을 재현 가능한 부하 실험으로 검토한 뒤에만 <code>qualified</code> 또는 <code>rejected</code>로 바꾼다. 분석기가 catalog를 자동 수정하지 않는다.</p>
+<h3 id="4-dag-계약을-선언한다">4. DAG 계약을 선언한다</h3>
+<p>현재 renderer는 <code>linear-inference-split-v1</code>을 지원한다.</p>
+<pre data-lang="text"><code>Input → Alignment → Features → Inference ┬→ Device1 ┐
+                                        └→ Server1 ┴→ Result</code></pre>
+<p>중복 stage ID, 없는 단계 참조, cycle, 표준 slot 누락은 애플리케이션 시작 전에 차단한다. 다른 topology가 필요하면 화면을 복사하지 말고 versioned renderer를 먼저 추가한다.</p>
+<h3 id="5-관측-adapter를-연결한다">5. 관측 adapter를 연결한다</h3>
+<p><code>observability</code>는 같은 <code>state-aggregator</code>의 상대 <code>/state/...</code> 경로만 사용한다. adapter는 입력·모델·결과·alert 상태를 공용 서비스 응답으로 변환한다. 연결되지 않은 descriptor도 목록에서 숨기지 않고 <code>degraded/unavailable</code>로 표시한다.</p>
+<h3 id="6-검증하고-배포한다">6. 검증하고 배포한다</h3>
+<pre data-lang="bash"><code>cd edge-orch/state-aggregator
+.venv/bin/python -m pytest -q tests/test_service_catalog.py tests/test_service_demo.py
+node --test tests/test_service_demo_dashboard.js
+kubectl kustomize k8s &gt;/dev/null</code></pre>
+<p>배포 후 확인한다.</p>
+<ol><li><code>/state/services</code>에 descriptor와 <code>definition_source</code>가 보인다.</li><li>서비스 이름·입력·workload·node·model이 실제 관측과 일치한다.</li><li>DAG 단계와 target이 descriptor와 일치한다.</li><li>stale input, model not ready, metric stale이 정상처럼 표시되지 않는다.</li><li>Argo CD <code>Synced/Healthy</code>, Pod Ready, Traefik HTTP 200과 브라우저 오류 0을 확인한다.</li></ol>
+<p>이미지 build, immutable digest, Git push와 Traefik 검증은 <a href="ops/대시보드-배포.html">대시보드 배포</a>를 따른다.</p>
+<h2 id="자동화-경계">자동화 경계</h2>
+<p>descriptor가 자동화하는 것은 목록·DAG·read-only 관측 연결이다. Kubernetes workload 생성, EdgeX metadata 변경, command 실행, migration과 offloading은 자동 실행하지 않는다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#먼저-답-배포한-서비스를-대시보드가-어떻게-아는가">먼저 답: 배포한 서비스를 대시보드가 어떻게 아는가</a></li>
+<li class="toc-h2"><a href="#등록-순서">등록 순서</a></li>
+<li class="toc-h3"><a href="#1-입출력-계약을-먼저-고정한다">1. 입출력 계약을 먼저 고정한다</a></li>
+<li class="toc-h3"><a href="#2-안정적인-workload-identity를-둔다">2. 안정적인 workload identity를 둔다</a></li>
+<li class="toc-h3"><a href="#3-servicedescriptor를-추가한다">3. ServiceDescriptor를 추가한다</a></li>
+<li class="toc-h3"><a href="#4-dag-계약을-선언한다">4. DAG 계약을 선언한다</a></li>
+<li class="toc-h3"><a href="#5-관측-adapter를-연결한다">5. 관측 adapter를 연결한다</a></li>
+<li class="toc-h3"><a href="#6-검증하고-배포한다">6. 검증하고 배포한다</a></li>
+<li class="toc-h2"><a href="#자동화-경계">자동화 경계</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

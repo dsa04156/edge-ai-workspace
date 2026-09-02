@@ -12,14 +12,7 @@ import json
 import sys
 import urllib.error
 import urllib.request
-from pathlib import Path
 from typing import Any
-
-try:
-    from tools.check_virtual_resources import check_virtual_resources, print_virtual_resource_summary
-except ModuleNotFoundError:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from check_virtual_resources import check_virtual_resources, print_virtual_resource_summary
 
 DEVICE_FIELDS = [
     "name",
@@ -203,7 +196,6 @@ def main() -> int:
     parser.add_argument("--base-url", default="http://localhost:8000", help="state-aggregator base URL")
     parser.add_argument("--device", help="check and print one device only")
     parser.add_argument("--json", action="store_true", help="print raw /state/dashboard JSON")
-    parser.add_argument("--skip-virtual-resources", action="store_true", help="skip /state/virtual-resources checks")
     args = parser.parse_args()
 
     base_url = args.base_url.rstrip("/")
@@ -216,26 +208,11 @@ def main() -> int:
         print("  kubectl -n default port-forward svc/state-aggregator 8000:8000", file=sys.stderr)
         return 2
 
-    virtual_payload = None
-    if not args.skip_virtual_resources:
-        virtual_url = base_url + "/state/virtual-resources"
-        try:
-            virtual_payload = fetch_json(virtual_url)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            print(f"ERROR: failed to fetch {virtual_url}: {exc}", file=sys.stderr)
-            return 2
-
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
 
     print_summary(payload, args.device)
     errors, warnings = check_payload(payload, args.device)
-    if virtual_payload is not None:
-        print_virtual_resource_summary(virtual_payload)
-        virtual_errors, virtual_warnings = check_virtual_resources(virtual_payload)
-        errors.extend(virtual_errors)
-        warnings.extend(virtual_warnings)
-
     if warnings:
         print("\nWARN")
         for item in warnings:
@@ -246,7 +223,7 @@ def main() -> int:
             print(f"  - {item}")
         return 1
 
-    print("\nPASS: required dashboard and virtual resource API fields are present")
+    print("\nPASS: required dashboard API fields are present")
     return 0
 
 

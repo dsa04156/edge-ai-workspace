@@ -211,6 +211,7 @@ def render_runtime_workload(
             {
                 "name": "hardware-device",
                 "mountPath": binding.container_device_path,
+                "readOnly": binding.mount_read_only,
             }
         )
         volumes.append(
