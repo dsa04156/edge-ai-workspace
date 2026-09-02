@@ -601,7 +601,7 @@ spec:
             runAsGroup: 70
       containers:
         - name: core-data
-          image: edgexfoundry/core-data:4.0.2@sha256:0c49d77206fa9c7ab5346c78ef7316e687ac4ecb3899cb4f5d26bfcaa51c1ede
+          image: 192.168.0.56:5000/edgex-core-data@sha256:7fad5aa1e262e9cfb8bce09245e76c1855900c47ea51250910cd19dac8a91f53
           imagePullPolicy: IfNotPresent
           args:
             - --registry

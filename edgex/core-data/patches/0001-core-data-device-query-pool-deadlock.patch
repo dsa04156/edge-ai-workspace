@@ -1,0 +1,74 @@
+diff --git a/internal/pkg/infrastructure/postgres/event.go b/internal/pkg/infrastructure/postgres/event.go
+index b9b309d..596dee0 100644
+--- a/internal/pkg/infrastructure/postgres/event.go
++++ b/internal/pkg/infrastructure/postgres/event.go
+@@ -336,26 +336,21 @@ func queryEvents(ctx context.Context, connPool *pgxpool.Pool, sql string, args p
+ 		return nil, pgClient.WrapDBError("query failed", err)
+ 	}
+ 
+-	var events []model.Event
+-	events, err = pgx.CollectRows(rows, func(row pgx.CollectableRow) (model.Event, error) {
+-		event, err := pgx.RowToStructByNameLax[model.Event](row)
+-		if err != nil {
+-			return model.Event{}, err
+-		}
++	events, err := pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Event])
+ 
+-		// query reading by the specific even_id and origin descending
+-		readings, err := queryReadings(ctx, connPool, sqlQueryAllReadingAndDescWithConds(originCol, eventIdFKCol), pgx.NamedArgs{eventIdFKCol: event.Id})
++	if err != nil {
++		return nil, pgClient.WrapDBError("failed to scan events", err)
++	}
+ 
++	// CollectRows closes the outer event rows and releases its pool connection.
++	// Fetch readings only after that release so concurrent event requests cannot
++	// exhaust the pool while each waits for another connection.
++	for i := range events {
++		readings, err := queryReadings(ctx, connPool, sqlQueryAllReadingAndDescWithConds(originCol, eventIdFKCol), pgx.NamedArgs{eventIdFKCol: events[i].Id})
+ 		if err != nil {
+-			return model.Event{}, err
++			return nil, pgClient.WrapDBError("failed to query readings", err)
+ 		}
+-
+-		event.Readings = readings
+-		return event, nil
+-	})
+-
+-	if err != nil {
+-		return nil, pgClient.WrapDBError("failed to scan events", err)
++		events[i].Readings = readings
+ 	}
+ 
+ 	return events, nil
+diff --git a/internal/pkg/infrastructure/postgres/event_test.go b/internal/pkg/infrastructure/postgres/event_test.go
+index 5504bae..ceccc2a 100644
+--- a/internal/pkg/infrastructure/postgres/event_test.go
++++ b/internal/pkg/infrastructure/postgres/event_test.go
+@@ -147,3 +147,12 @@ func TestDeleteReadingsBySubQuery(t *testing.T) {
+ 		})
+ 	}
+ }
++
++func TestEventQueryUsesDeviceFirstPagination(t *testing.T) {
++	sqlStatement := sqlQueryAllEventAndDescWithCondsAndPage(originCol, deviceNameCol)
++
++	assert.Contains(t, sqlStatement, "JOIN LATERAL")
++	assert.Contains(t, sqlStatement, "event.device_info_id = device_info.id")
++	assert.Contains(t, sqlStatement, "LIMIT (@offset + @limit)")
++	assert.Contains(t, sqlStatement, "ORDER BY origin DESC OFFSET @offset LIMIT @limit")
++}
+diff --git a/internal/pkg/infrastructure/postgres/sql.go b/internal/pkg/infrastructure/postgres/sql.go
+index 926e167..0e8830d 100644
+--- a/internal/pkg/infrastructure/postgres/sql.go
++++ b/internal/pkg/infrastructure/postgres/sql.go
+@@ -106,8 +106,8 @@ func sqlQueryAllEventAndDescWithCondsAndPage(descCol string, columns ...string)
+ 	whereCondition := constructWhereNamedArgCondition(columns...)
+ 
+ 	return fmt.Sprintf(
+-		"SELECT %s FROM %s join %s on event.device_info_id = device_info.id WHERE %s = false AND %s ORDER BY %s DESC OFFSET @%s LIMIT @%s",
+-		eventColumns, eventTableName, deviceInfoTableName, markDeletedCol,
++		"SELECT %s FROM %s JOIN LATERAL (SELECT id, origin FROM %s WHERE event.device_info_id = device_info.id ORDER BY %s DESC LIMIT (@%s + @%s)) event ON true WHERE %s = false AND %s ORDER BY %s DESC OFFSET @%s LIMIT @%s",
++		eventColumns, deviceInfoTableName, eventTableName, descCol, offsetCondition, limitCondition, markDeletedCol,
+ 		whereCondition, descCol,
+ 		offsetCondition, limitCondition)
+ }
