@@ -54,7 +54,7 @@ index 5504bae..ceccc2a 100644
 +
 +	assert.Contains(t, sqlStatement, "JOIN LATERAL")
 +	assert.Contains(t, sqlStatement, "event.device_info_id = device_info.id")
-+	assert.Contains(t, sqlStatement, "LIMIT (@offset + @limit)")
++	assert.Contains(t, sqlStatement, "LIMIT (CAST(@offset AS BIGINT) + CAST(@limit AS BIGINT))")
 +	assert.Contains(t, sqlStatement, "ORDER BY origin DESC OFFSET @offset LIMIT @limit")
 +}
 diff --git a/internal/pkg/infrastructure/postgres/sql.go b/internal/pkg/infrastructure/postgres/sql.go
@@ -67,7 +67,7 @@ index 926e167..0e8830d 100644
  	return fmt.Sprintf(
 -		"SELECT %s FROM %s join %s on event.device_info_id = device_info.id WHERE %s = false AND %s ORDER BY %s DESC OFFSET @%s LIMIT @%s",
 -		eventColumns, eventTableName, deviceInfoTableName, markDeletedCol,
-+		"SELECT %s FROM %s JOIN LATERAL (SELECT id, origin FROM %s WHERE event.device_info_id = device_info.id ORDER BY %s DESC LIMIT (@%s + @%s)) event ON true WHERE %s = false AND %s ORDER BY %s DESC OFFSET @%s LIMIT @%s",
++		"SELECT %s FROM %s JOIN LATERAL (SELECT id, origin FROM %s WHERE event.device_info_id = device_info.id ORDER BY %s DESC LIMIT (CAST(@%s AS BIGINT) + CAST(@%s AS BIGINT))) event ON true WHERE %s = false AND %s ORDER BY %s DESC OFFSET @%s LIMIT @%s",
 +		eventColumns, deviceInfoTableName, eventTableName, descCol, offsetCondition, limitCondition, markDeletedCol,
  		whereCondition, descCol,
  		offsetCondition, limitCondition)
