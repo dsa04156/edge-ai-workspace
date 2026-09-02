@@ -81,13 +81,14 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 19)
+        self.assertEqual(len(paths), 20)
         self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
         self.assertIn("펌프-모터-이상감지-서비스.md", paths)
         self.assertIn("AI-서비스-자원-증강-부하-실험.md", paths)
         self.assertIn("가상화-노드-오류-복구시간.md", paths)
+        self.assertIn("400ms-복구-체험하기.md", paths)
         self.assertNotIn("일일-기록.md", paths)
         self.assertFalse(any(path.startswith(("archive/", "superpowers/", "wiki/")) for path in paths))
 
@@ -127,6 +128,23 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "실장비 400 ms 통과 증거가 아니다",
         ):
             self.assertIn(required, guide)
+
+    def test_eli5_guideline_and_serial_recovery_playground_are_public(self):
+        root_rules = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        docs_guide = (ROOT / "docs" / "문서-안내.md").read_text(encoding="utf-8")
+        playground = (ROOT / "docs" / "400ms-복구-체험하기.md").read_text(encoding="utf-8")
+
+        self.assertIn("ELI5", root_rules)
+        self.assertIn("문서 작성 ELI5 지침", docs_guide)
+        self.assertIn("400 ms 복구 체험하기", docs_guide)
+        self.assertIn("교육용 시뮬레이터", playground)
+        self.assertIn("250 ms", playground)
+
+        markup = build_docs_html.serial_recovery_playground_markup()
+        self.assertIn('data-recovery-lab', markup)
+        self.assertIn('data-recovery-reset', markup)
+        self.assertIn('data-recovery-cadence', markup)
+        self.assertIn('data-recovery-play', markup)
 
     def test_sidebar_marks_current_document(self):
         with tempfile.TemporaryDirectory() as tmp:

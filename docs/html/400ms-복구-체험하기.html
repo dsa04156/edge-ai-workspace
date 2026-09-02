@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>400 ms 복구 체험하기</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">정책과 계약</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">400ms-복구-체험하기.md</span>
+        <a class="edit-link" href="/__edit?file=400ms-복구-체험하기.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a class="active" aria-current="page" href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">정책과 계약</p>
+          <h1>400 ms 복구 체험하기</h1>
+          <p class="subtitle">&gt; 상태: 2026-09-01 Jetson Arduino Serial 경로의 30회 qualification은 모두 400 ms…</p>
+          <div class="meta">
+            <span class="badge kind">정책과 계약</span>
+            <span class="badge">원본: 400ms-복구-체험하기.md</span>
+            <span class="badge">수정: 2026-09-02 11:15</span>
+            <span class="badge">HTML 생성: 2026-09-02 13:01</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <section class="recovery-lab" data-recovery-lab aria-labelledby="recovery-lab-title">
+  <div class="recovery-lab-head">
+    <div>
+      <p class="recovery-lab-kicker">손으로 만져 보는 설명</p>
+      <h2 id="recovery-lab-title">센서 쪽지가 다시 도착하는 길</h2>
+      <p>아래 세 가지를 바꿔 보세요. <strong>400 ms 판정</strong>은 오류를 알아챈 뒤부터 새 쪽지를 받기까지입니다.</p>
+    </div>
+    <p class="recovery-lab-model">교육용 시뮬레이터 · 실제 시험 성적을 다시 계산하지 않습니다</p>
+  </div>
+
+  <div class="recovery-controls" aria-label="복구 조건 조절">
+    <label class="recovery-control recovery-toggle">
+      <span>아두이노를 다시 시작하게 만들기</span>
+      <small>Serial 포트를 닫을 때 Uno auto-reset이 일어나는 경우</small>
+      <input type="checkbox" data-recovery-reset>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-reset-label>꺼짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>센서가 쪽지를 보내는 간격</span>
+      <small>다시 연결된 뒤 다음 쪽지를 기다릴 수 있는 최대 시간</small>
+      <input type="range" data-recovery-cadence min="100" max="1000" step="100" value="100">
+      <output data-recovery-cadence-output>100 ms</output>
+    </label>
+    <label class="recovery-control">
+      <span>오류를 알아차리는 간격</span>
+      <small>사람이 체감하는 시간에는 더해지지만, 공식 400 ms 계측은 여기서 시작합니다</small>
+      <input type="range" data-recovery-heartbeat min="50" max="400" step="50" value="400">
+      <output data-recovery-heartbeat-output>400 ms</output>
+    </label>
+  </div>
+
+  <div class="recovery-presets" aria-label="빠른 조건 선택">
+    <button type="button" data-recovery-preset="current">현재 통과 구성</button>
+    <button type="button" data-recovery-preset="reset">자동 리셋만 켜기</button>
+    <button type="button" data-recovery-preset="slow">전송을 1초로</button>
+    <button type="button" class="play-button" data-recovery-play>한 번 재생하기</button>
+  </div>
+
+  <div class="recovery-timeline" aria-label="복구 타임라인">
+    <div class="recovery-not-scored">
+      <span>① 오류를 알아차림</span>
+      <strong data-recovery-heartbeat-timeline>400 ms</strong>
+      <small>공식 400 ms 타이머 전</small>
+    </div>
+    <div class="recovery-score-bracket" aria-label="공식 400 ms 계측 구간">
+      <span>공식 400 ms 계측 구간</span>
+    </div>
+    <div class="recovery-track">
+      <div class="recovery-stage stage-port" data-recovery-stage="port">
+        <span>② 선을 다시 잡음</span>
+        <strong>80 ms</strong>
+      </div>
+      <div class="recovery-stage stage-data" data-recovery-stage="data">
+        <span>③ 다음 쪽지를 기다림</span>
+        <strong data-recovery-first-data>100 ms</strong>
+      </div>
+      <div class="recovery-stage stage-send" data-recovery-stage="send">
+        <span>④ EdgeX로 전달</span>
+        <strong>1 ms</strong>
+      </div>
+      <div class="recovery-stage stage-result" data-recovery-stage="result">
+        <span>결과</span>
+        <strong data-recovery-status>통과 예상</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="recovery-results">
+    <div class="recovery-result official-result">
+      <span>오류 감지 뒤 데이터 재개</span>
+      <strong><output data-recovery-total>181 ms</output></strong>
+      <small data-recovery-score>400 ms 내부 gate 통과 예상</small>
+    </div>
+    <div class="recovery-result">
+      <span>사람이 체감할 수 있는 상한</span>
+      <strong><output data-recovery-experience>581 ms</output></strong>
+      <small>오류 발견 간격 + 공식 복구 구간</small>
+    </div>
+    <div class="recovery-result actual-result">
+      <span>실제 30회 시험의 최대값</span>
+      <strong>232.432 ms</strong>
+      <small>현재 운영 구성, 30/30 통과</small>
+    </div>
+  </div>
+
+  <p class="recovery-explain" data-recovery-explain aria-live="polite"></p>
+  <p class="recovery-footnote">교실 모델은 port 준비 80 ms, Uno auto-reset 1,750 ms 또는 다음 sample 대기 최대 1회, EdgeX enqueue 1 ms를 사용합니다. 실제 판정은 Device Service의 phase metric과 30회 장애 주입 결과를 따릅니다.</p>
+</section><h1 id="400-ms-복구-체험하기">400 ms 복구 체험하기</h1>
+<blockquote><p>상태: 2026-09-01 Jetson Arduino Serial 경로의 30회 qualification은 모두 400 ms 안에 들어왔다. 이 페이지의 패널은 그 원리를 이해하기 위한 <strong>교육용 시뮬레이터</strong>이며, 운영 제어·실시간 계측·공식 시험 도구가 아니다.</p></blockquote>
+<h2 id="먼저-다섯-살에게-설명하면">먼저, 다섯 살에게 설명하면</h2>
+<p>센서는 0.1초마다 “나는 괜찮아”라는 쪽지를 보낸다. 선이 잠깐 끊기면 컴퓨터는 선을 다시 잡아야 한다. 그런데 선을 잡을 때 아두이노가 “처음부터 다시 할래” 하고 약 1.75초 동안 잠들어 버리면 너무 늦다. 그래서 컴퓨터가 아두이노를 다시 재우지 않게 하고, 센서는 더 자주 쪽지를 보내게 했다.</p>
+<p>그 결과는 “고장을 알아챈 뒤 다음 정상 쪽지가 EdgeX에 전달될 때까지”의 내부 400 ms gate를 통과했다. <strong>30번 모두 통과했고 가장 느린 한 번도 232.432 ms</strong>였다.</p>
+<h2 id="손으로-바꿔-보기">손으로 바꿔 보기</h2>
+<p>위 패널에서 아두이노를 다시 시작하게 만들거나, 센서 쪽지 간격을 1초로 바꿔 보자. 어느 한 가지만 느려도 400 ms를 넘는다. 하트비트는 고장을 알아차리는 데 도움이 되지만, 공식 400 ms 측정은 알아챈 뒤부터 시작하므로 하트비트만 400 ms로 맞춘다고 해결되지 않는다.</p>
+<h2 id="실제로-바꾼-것">실제로 바꾼 것</h2>
+<ul><li>Linux Serial은 <code>HUPCL</code>을 해제해 포트를 다시 열 때 Uno auto-reset이 일어나지 않게 했다.</li><li>Arduino의 pin과 JSON 계약은 유지하고 sample cycle만 1,000 ms에서 100 ms로 줄였다.</li><li>bootloader, fuse, EEPROM과 물리 auto-reset 회로는 바꾸지 않았다.</li></ul>
+<h2 id="꼭-구분할-것">꼭 구분할 것</h2>
+<p>이 문서의 400 ms는 <strong>오류 감지 → 첫 유효 sample의 EdgeX SDK async enqueue</strong> 구간이다. Kubernetes node 장애 판정, 다른 node에 Pod를 새로 띄우는 시간이나 과제의 최종 250 ms 목표를 통과했다는 뜻은 아니다. 정확한 시험 경계와 원본 evidence는 <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a>을 따른다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#먼저-다섯-살에게-설명하면">먼저, 다섯 살에게 설명하면</a></li>
+<li class="toc-h2"><a href="#손으로-바꿔-보기">손으로 바꿔 보기</a></li>
+<li class="toc-h2"><a href="#실제로-바꾼-것">실제로 바꾼 것</a></li>
+<li class="toc-h2"><a href="#꼭-구분할-것">꼭 구분할 것</a></li></ol></aside>
+    </div>
+  </div>
+  <script src="../assets/serial-recovery-explainer.js" defer></script>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

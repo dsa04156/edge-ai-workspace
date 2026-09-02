@@ -21,6 +21,8 @@ DEFAULT_DOCS = DOCS
 OUT = DOCS / "html"
 CSS_PATH = DOCS / "assets" / "docs-site.css"
 SEARCH_JS_PATH = DOCS / "assets" / "docs-search.js"
+SERIAL_RECOVERY_EXPLAINER_JS_PATH = DOCS / "assets" / "serial-recovery-explainer.js"
+SERIAL_RECOVERY_EXPLAINER_PATH = "400ms-복구-체험하기.md"
 PUBLICATION_SECTIONS = [
     ("시작하기", "start", [
         "문서-안내.md",
@@ -40,6 +42,7 @@ PUBLICATION_SECTIONS = [
         "프로젝트-범위.md",
         "대시보드-판단-정책.md",
         "가상화-노드-오류-복구시간.md",
+        SERIAL_RECOVERY_EXPLAINER_PATH,
         "AI-서비스-자원-증강-부하-실험.md",
         "옥동-데이터-계약.md",
         "옥동-생산성-kpi.md",
@@ -73,6 +76,7 @@ DISPLAY_TITLES = {
     "대시보드-정보-구조.md": "대시보드 정보 구조",
     "대시보드-판단-정책.md": "대시보드 판단 정책",
     "가상화-노드-오류-복구시간.md": "가상화 노드 오류 복구시간",
+    "400ms-복구-체험하기.md": "400 ms 복구 체험하기",
     "물리-디바이스-상태-정책.md": "물리 디바이스 상태 정책",
     "쿠버엣지-엣지엑스-모델-매핑.md": "쿠버엣지-엣지엑스 모델 매핑",
     "디바이스-서비스-연결.md": "디바이스 연결 가이드",
@@ -213,6 +217,102 @@ def rel_to_search_index(from_html: Path) -> str:
 
 def rel_to_search_js(from_html: Path) -> str:
     return rel_to_asset(from_html, SEARCH_JS_PATH)
+
+
+def rel_to_serial_recovery_explainer_js(from_html: Path) -> str:
+    return rel_to_asset(from_html, SERIAL_RECOVERY_EXPLAINER_JS_PATH)
+
+
+def serial_recovery_playground_markup() -> str:
+    return """<section class="recovery-lab" data-recovery-lab aria-labelledby="recovery-lab-title">
+  <div class="recovery-lab-head">
+    <div>
+      <p class="recovery-lab-kicker">손으로 만져 보는 설명</p>
+      <h2 id="recovery-lab-title">센서 쪽지가 다시 도착하는 길</h2>
+      <p>아래 세 가지를 바꿔 보세요. <strong>400 ms 판정</strong>은 오류를 알아챈 뒤부터 새 쪽지를 받기까지입니다.</p>
+    </div>
+    <p class="recovery-lab-model">교육용 시뮬레이터 · 실제 시험 성적을 다시 계산하지 않습니다</p>
+  </div>
+
+  <div class="recovery-controls" aria-label="복구 조건 조절">
+    <label class="recovery-control recovery-toggle">
+      <span>아두이노를 다시 시작하게 만들기</span>
+      <small>Serial 포트를 닫을 때 Uno auto-reset이 일어나는 경우</small>
+      <input type="checkbox" data-recovery-reset>
+      <span class="toggle-visual" aria-hidden="true"></span>
+      <strong data-recovery-reset-label>꺼짐</strong>
+    </label>
+    <label class="recovery-control">
+      <span>센서가 쪽지를 보내는 간격</span>
+      <small>다시 연결된 뒤 다음 쪽지를 기다릴 수 있는 최대 시간</small>
+      <input type="range" data-recovery-cadence min="100" max="1000" step="100" value="100">
+      <output data-recovery-cadence-output>100 ms</output>
+    </label>
+    <label class="recovery-control">
+      <span>오류를 알아차리는 간격</span>
+      <small>사람이 체감하는 시간에는 더해지지만, 공식 400 ms 계측은 여기서 시작합니다</small>
+      <input type="range" data-recovery-heartbeat min="50" max="400" step="50" value="400">
+      <output data-recovery-heartbeat-output>400 ms</output>
+    </label>
+  </div>
+
+  <div class="recovery-presets" aria-label="빠른 조건 선택">
+    <button type="button" data-recovery-preset="current">현재 통과 구성</button>
+    <button type="button" data-recovery-preset="reset">자동 리셋만 켜기</button>
+    <button type="button" data-recovery-preset="slow">전송을 1초로</button>
+    <button type="button" class="play-button" data-recovery-play>한 번 재생하기</button>
+  </div>
+
+  <div class="recovery-timeline" aria-label="복구 타임라인">
+    <div class="recovery-not-scored">
+      <span>① 오류를 알아차림</span>
+      <strong data-recovery-heartbeat-timeline>400 ms</strong>
+      <small>공식 400 ms 타이머 전</small>
+    </div>
+    <div class="recovery-score-bracket" aria-label="공식 400 ms 계측 구간">
+      <span>공식 400 ms 계측 구간</span>
+    </div>
+    <div class="recovery-track">
+      <div class="recovery-stage stage-port" data-recovery-stage="port">
+        <span>② 선을 다시 잡음</span>
+        <strong>80 ms</strong>
+      </div>
+      <div class="recovery-stage stage-data" data-recovery-stage="data">
+        <span>③ 다음 쪽지를 기다림</span>
+        <strong data-recovery-first-data>100 ms</strong>
+      </div>
+      <div class="recovery-stage stage-send" data-recovery-stage="send">
+        <span>④ EdgeX로 전달</span>
+        <strong>1 ms</strong>
+      </div>
+      <div class="recovery-stage stage-result" data-recovery-stage="result">
+        <span>결과</span>
+        <strong data-recovery-status>통과 예상</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="recovery-results">
+    <div class="recovery-result official-result">
+      <span>오류 감지 뒤 데이터 재개</span>
+      <strong><output data-recovery-total>181 ms</output></strong>
+      <small data-recovery-score>400 ms 내부 gate 통과 예상</small>
+    </div>
+    <div class="recovery-result">
+      <span>사람이 체감할 수 있는 상한</span>
+      <strong><output data-recovery-experience>581 ms</output></strong>
+      <small>오류 발견 간격 + 공식 복구 구간</small>
+    </div>
+    <div class="recovery-result actual-result">
+      <span>실제 30회 시험의 최대값</span>
+      <strong>232.432 ms</strong>
+      <small>현재 운영 구성, 30/30 통과</small>
+    </div>
+  </div>
+
+  <p class="recovery-explain" data-recovery-explain aria-live="polite"></p>
+  <p class="recovery-footnote">교실 모델은 port 준비 80 ms, Uno auto-reset 1,750 ms 또는 다음 sample 대기 최대 1회, EdgeX enqueue 1 ms를 사용합니다. 실제 판정은 Device Service의 phase metric과 30회 장애 주입 결과를 따릅니다.</p>
+</section>"""
 
 
 def out_path_for(md: Path) -> Path:
@@ -567,7 +667,13 @@ def render_doc(md: Path, files: list[Path]) -> None:
     title = display_title(rel, text)
     out_path = out_path_for(md)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    body = render_markdown(text, out_path, md)
+    is_serial_recovery_explainer = rel == SERIAL_RECOVERY_EXPLAINER_PATH
+    playground = serial_recovery_playground_markup() if is_serial_recovery_explainer else ""
+    body = playground + render_markdown(text, out_path, md)
+    interactive_script = (
+        f'  <script src="{html.escape(rel_to_serial_recovery_explainer_js(out_path))}" defer></script>\n'
+        if is_serial_recovery_explainer else ""
+    )
     is_archive = rel.startswith("archive/")
     is_history = filter_of(rel) == "history"
     kind = group_of(rel)
@@ -618,6 +724,7 @@ def render_doc(md: Path, files: list[Path]) -> None:
       {toc_for(text)}
     </div>
   </div>
+{interactive_script}
   <footer>Generated from docs/*.md</footer>
 </body>
 </html>
