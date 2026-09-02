@@ -15,6 +15,8 @@ import (
 const (
 	defaultMaxLineBytes      = 4096
 	defaultReadTimeout       = time.Second
+	defaultRecoveryPoll      = 25 * time.Millisecond
+	defaultRecoveryRequests  = 4
 	serialReadCurrentCommand = "READ_NOW\n"
 )
 
@@ -40,6 +42,8 @@ type ReaderOptions struct {
 	OnRecoveryStarted         func(detectedAt time.Time)
 	OnRecovery                func(observation RecoveryObservation)
 	RequestDataAfterReconnect func(port Port) error
+	RecoveryRequestInterval   time.Duration
+	RecoveryRequestMax        int
 	ReconnectDelays           []time.Duration
 	MaxLineBytes              int
 	ReadTimeout               time.Duration
@@ -57,6 +61,8 @@ type Reader struct {
 	onRecoveryStarted         func(time.Time)
 	onRecovery                func(RecoveryObservation)
 	requestDataAfterReconnect func(Port) error
+	recoveryRequestInterval   time.Duration
+	recoveryRequestMax        int
 	reconnectDelays           []time.Duration
 	maxLineBytes              int
 	readTimeout               time.Duration
@@ -113,6 +119,12 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 	if options.ReadTimeout <= 0 {
 		options.ReadTimeout = defaultReadTimeout
 	}
+	if options.RecoveryRequestInterval <= 0 {
+		options.RecoveryRequestInterval = defaultRecoveryPoll
+	}
+	if options.RecoveryRequestMax <= 0 {
+		options.RecoveryRequestMax = defaultRecoveryRequests
+	}
 
 	return &Reader{
 		config:                    config,
@@ -126,6 +138,8 @@ func NewReader(config SerialConfig, options ReaderOptions) *Reader {
 		onRecoveryStarted:         options.OnRecoveryStarted,
 		onRecovery:                options.OnRecovery,
 		requestDataAfterReconnect: options.RequestDataAfterReconnect,
+		recoveryRequestInterval:   options.RecoveryRequestInterval,
+		recoveryRequestMax:        options.RecoveryRequestMax,
 		reconnectDelays:           append([]time.Duration(nil), options.ReconnectDelays...),
 		maxLineBytes:              options.MaxLineBytes,
 		readTimeout:               options.ReadTimeout,
@@ -183,7 +197,12 @@ func (reader *Reader) Run(ctx context.Context) {
 			_ = port.Close()
 			return
 		}
-		if err := port.SetReadTimeout(reader.readTimeout); err != nil {
+		pollRecoveryRequest := reader.recoveryActive && reader.requestDataAfterReconnect != nil
+		activeReadTimeout := reader.readTimeout
+		if pollRecoveryRequest && reader.recoveryRequestInterval < activeReadTimeout {
+			activeReadTimeout = reader.recoveryRequestInterval
+		}
+		if err := port.SetReadTimeout(activeReadTimeout); err != nil {
 			reader.deactivate()
 			if reader.stopped(ctx) {
 				return
@@ -198,7 +217,7 @@ func (reader *Reader) Run(ctx context.Context) {
 		}
 
 		reader.recordRecoveryPortReady()
-		if reader.recoveryActive && reader.requestDataAfterReconnect != nil {
+		if pollRecoveryRequest {
 			if err := reader.requestDataAfterReconnect(port); err != nil {
 				reader.deactivate()
 				if reader.stopped(ctx) {
@@ -213,7 +232,7 @@ func (reader *Reader) Run(ctx context.Context) {
 			}
 		}
 		reader.emitState(models.OperatingState(models.Up))
-		receivedBytes, readErr := reader.read(ctx, port)
+		receivedBytes, readErr := reader.read(ctx, port, pollRecoveryRequest)
 		reader.deactivate()
 		if reader.stopped(ctx) {
 			return
@@ -258,10 +277,18 @@ func (reader *Reader) Close() error {
 	return active.Close()
 }
 
-func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
+func (reader *Reader) read(
+	ctx context.Context,
+	port Port,
+	pollRecoveryRequest bool,
+) (bool, error) {
 	buffer := make([]byte, 1024)
 	framer := NewLineFramer(reader.maxLineBytes)
 	receivedBytes := false
+	recoveryRequests := 0
+	if pollRecoveryRequest {
+		recoveryRequests = 1
+	}
 	for {
 		if reader.stopped(ctx) {
 			return receivedBytes, nil
@@ -269,6 +296,12 @@ func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
 
 		count, err := port.Read(buffer)
 		if count > 0 {
+			if pollRecoveryRequest {
+				if err := port.SetReadTimeout(reader.readTimeout); err != nil {
+					return receivedBytes, fmt.Errorf("restore serial read timeout: %w", err)
+				}
+				pollRecoveryRequest = false
+			}
 			reader.recordRecoveryFirstByte()
 			receivedBytes = true
 			for _, line := range framer.Push(buffer[:count]) {
@@ -286,6 +319,19 @@ func (reader *Reader) read(ctx context.Context, port Port) (bool, error) {
 		}
 		if err != nil {
 			return receivedBytes, err
+		}
+		if count == 0 && pollRecoveryRequest {
+			if recoveryRequests >= reader.recoveryRequestMax {
+				if err := port.SetReadTimeout(reader.readTimeout); err != nil {
+					return receivedBytes, fmt.Errorf("restore serial read timeout: %w", err)
+				}
+				pollRecoveryRequest = false
+				continue
+			}
+			if err := reader.requestDataAfterReconnect(port); err != nil {
+				return receivedBytes, err
+			}
+			recoveryRequests++
 		}
 	}
 }

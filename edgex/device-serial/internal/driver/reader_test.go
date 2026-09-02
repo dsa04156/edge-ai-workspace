@@ -375,6 +375,62 @@ func TestReaderRequestsCurrentDataOnlyAfterReconnect(t *testing.T) {
 	assert.Equal(t, [][]byte{[]byte(serialReadCurrentCommand)}, recovered.written())
 }
 
+func TestReaderRepeatsCurrentDataRequestOnlyWhileRecoveredPortIsSilent(t *testing.T) {
+	initial := newScriptedPort(readResult{
+		data: []byte(`{"device_id":"arduino-001","sensor":"light","value":1}` + "\n"),
+		err:  io.EOF,
+	})
+	recovered := newScriptedPort(
+		readResult{},
+		readResult{},
+		readResult{data: []byte(
+			`{"device_id":"arduino-001","sensor":"light","value":2}` + "\n",
+		)},
+	)
+	ports := []Port{initial, recovered}
+	samples := make(chan Sample, 2)
+	reader := NewReader(testSerialConfig(), ReaderOptions{
+		Open: func(string, int) (Port, error) {
+			port := ports[0]
+			ports = ports[1:]
+			return port, nil
+		},
+		Wait:                      func(context.Context, time.Duration) bool { return true },
+		RequestDataAfterReconnect: requestCurrentSerialData,
+		RecoveryRequestInterval:   25 * time.Millisecond,
+		RecoveryRequestMax:        4,
+		OnSample:                  func(sample Sample, _ int64) { samples <- sample },
+	})
+
+	done := make(chan struct{})
+	go func() {
+		reader.Run(context.Background())
+		close(done)
+	}()
+
+	require.Eventually(t, func() bool { return len(samples) == 2 }, time.Second, 5*time.Millisecond)
+	require.NoError(t, reader.Close())
+	require.Eventually(t, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	}, time.Second, 5*time.Millisecond)
+
+	assert.Empty(t, initial.written())
+	assert.Equal(t, [][]byte{
+		[]byte(serialReadCurrentCommand),
+		[]byte(serialReadCurrentCommand),
+		[]byte(serialReadCurrentCommand),
+	}, recovered.written())
+	assert.Equal(t, []time.Duration{
+		25 * time.Millisecond,
+		defaultReadTimeout,
+	}, recovered.readTimeouts())
+}
+
 func TestRequestCurrentSerialDataRejectsFailedOrPartialWrite(t *testing.T) {
 	failed := newScriptedPort()
 	failed.writeErr = errors.New("USB endpoint disappeared")
@@ -402,6 +458,7 @@ type scriptedPort struct {
 	writeErr   error
 	shortWrite bool
 	timeout    time.Duration
+	timeouts   []time.Duration
 	closed     chan struct{}
 	once       sync.Once
 }
@@ -443,6 +500,7 @@ func (port *scriptedPort) SetReadTimeout(timeout time.Duration) error {
 	port.mu.Lock()
 	defer port.mu.Unlock()
 	port.timeout = timeout
+	port.timeouts = append(port.timeouts, timeout)
 	return nil
 }
 
@@ -455,6 +513,12 @@ func (port *scriptedPort) readTimeout() time.Duration {
 	port.mu.Lock()
 	defer port.mu.Unlock()
 	return port.timeout
+}
+
+func (port *scriptedPort) readTimeouts() []time.Duration {
+	port.mu.Lock()
+	defer port.mu.Unlock()
+	return append([]time.Duration(nil), port.timeouts...)
 }
 
 func (port *scriptedPort) written() [][]byte {

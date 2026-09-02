@@ -29,7 +29,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: edgex-adapter-controller
-          image: 192.168.0.56:5000/edge-adapter-controller@sha256:3f66f42cdba0f882ebf38708c7e54ae2295fe114f860b792aeb3eb41e2844ee3
+          image: 192.168.0.56:5000/edge-adapter-controller@sha256:627b161e9a40d1b9ff0e0f78fb4e42fea1238fb9b6b96aca8baf45cc4628884b
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

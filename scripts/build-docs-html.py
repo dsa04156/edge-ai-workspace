@@ -251,8 +251,8 @@ def serial_recovery_playground_markup() -> str:
       <output data-recovery-cadence-output>1,000 ms</output>
     </label>
     <label class="recovery-control recovery-toggle">
-      <span>재연결 때 “지금 값” 한 번 요청</span>
-      <small>평소 전송 주기와 관계없이 복구 순간에만 요청합니다</small>
+      <span>재연결 때 “지금 값” 제한 요청</span>
+      <small>첫 byte가 없을 때만 25 ms 간격, 최대 네 번 요청합니다</small>
       <input type="checkbox" data-recovery-request checked>
       <span class="toggle-visual" aria-hidden="true"></span>
       <strong data-recovery-request-label>켜짐</strong>

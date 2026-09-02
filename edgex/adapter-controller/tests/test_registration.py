@@ -29,7 +29,7 @@ from fakes import FakeKubernetesGateway
 BASE = Path(__file__).resolve().parents[1]
 SERIAL_IMAGE = (
     "192.168.0.56:5000/edgex-device-serial@"
-    "sha256:30d6f91b65e7947efb4487175b0be2b776ef4da715f4e79dc901a3c680dff948"
+    "sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63"
 )
 MODBUS_IMAGE = (
     "docker.io/edgexfoundry/device-modbus:4.0.2@"

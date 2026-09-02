@@ -60,7 +60,7 @@
       explain.textContent = state.hasReset
         ? `아두이노가 다시 시작하면 약 1,750 ms를 기다려야 합니다. 전송 간격을 줄여도 400 ms 안에는 들어올 수 없습니다.`
         : state.requestsNow
-          ? `평소에는 ${state.cadenceMs.toLocaleString('ko-KR')} ms마다 보내지만, 재연결 때만 “지금 값”을 한 번 요청하므로 계속 자주 보낼 필요가 없습니다.`
+          ? `평소에는 ${state.cadenceMs.toLocaleString('ko-KR')} ms마다 보냅니다. 재연결 뒤 첫 byte가 없을 때만 25 ms 간격으로 최대 네 번 묻고 답이 오면 멈추므로 계속 자주 보낼 필요가 없습니다.`
           : `즉시 요청이 없으면 다음 쪽지를 최대 ${state.cadenceMs.toLocaleString('ko-KR')} ms 기다립니다. 1초 주기에서는 400 ms를 보장할 수 없습니다.`;
       return state;
     };
