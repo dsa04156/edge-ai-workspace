@@ -5,8 +5,10 @@ ARG EDGEX_GO_COMMIT=2526184332b489189495cbaa1266ec9db759a3df
 ARG EDGEX_VERSION=4.0.2
 
 RUN apk add --update --no-cache git make
-RUN git clone --filter=blob:none https://github.com/edgexfoundry/edgex-go.git /edgex-go \
-    && git -C /edgex-go checkout --detach "${EDGEX_GO_COMMIT}"
+RUN git init /edgex-go \
+    && git -C /edgex-go remote add origin https://github.com/edgexfoundry/edgex-go.git \
+    && git -C /edgex-go fetch --depth=1 origin "${EDGEX_GO_COMMIT}" \
+    && git -C /edgex-go checkout --detach FETCH_HEAD
 
 COPY patches/0001-core-data-device-query-pool-deadlock.patch /tmp/core-data.patch
 RUN git -C /edgex-go apply --check /tmp/core-data.patch \
