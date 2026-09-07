@@ -18,14 +18,14 @@
 | 역할 | 값 | 규칙 |
 |---|---:|---|
 | Canvas | `#edf2f1` | 전체 배경 |
-| Rail | `#dfe9e7` | canvas보다 한 단계 짙은 금속성 청회색 |
-| Surface | `rgba(255, 255, 255, .90)` | 기본 반투명 panel |
+| Rail | `#edf2f1` | canvas와 같은 청회색 |
+| Surface | `#ffffff` | 기본 백색 panel |
 | Raised surface | `rgba(246, 249, 248, .98)` | popover·상세 표면 |
 | Control | `rgba(20, 54, 57, .06)` | inset control·inactive state |
 | Standard line | `rgba(20, 54, 57, .13)` | 조용한 구조 분리 |
 | Primary text | `#132e35` | 핵심 상태·수치 |
 | Secondary text | `#49616a` | 설명·label |
-| Tertiary text | `#6d8187` | metadata·timestamp |
+| Tertiary text | `#60777d` | metadata·timestamp |
 | Interaction accent | `#006d77` | 선택·focus·주 동작만 |
 | Healthy | `#19724c` | 정상 상태만 |
 | Warning | `#946200` | 주의 상태만 |
@@ -37,11 +37,10 @@
 
 ## 깊이와 표면
 
-- 전략: 세 단계의 반투명 surface + 낮은 투명 shadow. 여러 depth 전략을 섞지 않는다.
-- Canvas → panel → raised detail 순으로 백색도와 불투명도를 소폭 높인다.
-- 기본 panel: `18px` radius, `1px` 저대비 line, `0 12px 28px rgba(31,57,60,.075)` shadow.
-- control: 주변보다 소폭 짙은 inset fill, `10px` radius.
-- mobile panel: `16px` radius.
+- 전략: 백색 surface + 얕은 shadow. Canvas → panel → raised detail의 계층을 유지한다.
+- 기본 panel: `12px` radius, `1px` 저대비 line, `0 2px 8px rgba(31,57,60,.04)` shadow.
+- control: 주변보다 소폭 짙은 inset fill, `8px` radius.
+- mobile panel: `12px` radius.
 - sidebar는 canvas와 같은 계열을 사용하고 얇은 오른쪽 line으로만 분리한다.
 - `prefers-reduced-transparency`에서는 blur를 제거하고 solid surface를 사용한다.
 
@@ -60,15 +59,15 @@
 
 - 기본 단위: `4px`.
 - 반복 간격: micro `4/8px`, component `12/16px`, section `24/32px`.
-- desktop workspace padding: `24px 26px 40px`.
+- desktop workspace padding: `32px`.
 - mobile workspace padding: `18px 16px 32px`.
 - control hit area: 기본 `44px`, mobile 탭은 최소 `40px`.
 - 관련 정보는 조밀하게 묶고 section 사이에는 24px 이상의 명확한 호흡을 둔다.
 
 ## 레이아웃 패턴
 
-- Desktop: `232px` 운영 레일 + command bar + workspace. 보조 inspector는
-  `300–340px`이고 main content에 종속된다.
+- Desktop: `224px` 운영 레일 + command bar + workspace. 운영 개요의 보조 관측 패널은
+  `300px`이고 main content에 종속된다. 선택 항목 상세는 기존 modal side sheet를 사용한다.
 - `1180px` 이하: 운영 레일을 sticky 가로 스크롤 탭으로 전환한다.
 - `760px` 이하: 단일열 workspace, compact header, 가로 스크롤 탭을 사용한다.
 - 페이지 전체의 가로 overflow는 허용하지 않는다. 넓은 table/graph만 내부 scroller를 쓴다.
@@ -77,10 +76,10 @@
 
 ### 운영 레일 탭
 
-- Desktop `44px` 높이, `11px` radius, `13px/590`.
+- Desktop `44px` 높이, `8px` radius, `13px/590`.
 - inactive는 투명, hover는 control fill.
-- active는 `rgba(90,200,200,.14)` fill과 `3px` 청록 indicator를 함께 사용한다.
-- Mobile은 `40px` 높이의 가로 탭이며 indicator를 아래쪽 `2px` line으로 전환한다.
+- active는 백색 surface와 청록 글자로 표시한다.
+- Mobile은 `40px` 높이의 가로 탭으로 전환한다.
 
 ### 상단 command bar
 
@@ -90,13 +89,13 @@
 
 ### 운영 분류 요약
 
-- 세 개의 독립 카드 대신 하나의 `18px` segmented surface를 사용한다.
-- Desktop은 3열, segment 사이에 저대비 divider를 둔다.
-- Mobile은 세로 3행으로 바꾸고 label/caption 왼쪽, value 오른쪽에 둔다.
+- 하나의 `12px` segmented surface를 사용한다.
+- 운영 개요는 desktop 4열(1.2:1:1:1), mobile 2×2이며 segment 사이에 저대비 divider를 둔다.
+- 노드·자원 요약은 서버와 현장 엣지 노드의 2분류다.
 
 ### Panel
 
-- `18px` radius, `1px` low-opacity border, translucent surface, shallow shadow.
+- `12px` radius, white surface, shallow shadow. 운영 개요 panel의 외곽선은 생략하고 내부 관계는 divider로 표시한다.
 - nested content는 더 밝은 동일 계열 surface 또는 divider로만 구분한다.
 - 경고 panel은 panel 전체를 상태색으로 채우지 않고 indicator·label에만 상태색을 쓴다.
 
@@ -108,9 +107,9 @@
 
 ### Button과 form control
 
-- 기본 높이 `44px`, control radius `10–11px`.
+- 기본 높이 `44px`, control radius `8px`.
 - hover는 색과 표면만 미세하게 변하고, active는 `scale(.97)`을 사용한다.
-- focus는 `0 0 0 3px rgba(90,200,200,.34)`.
+- focus는 `0 0 0 3px rgba(0,109,119,.2)`.
 - native button/input/select/details 의미와 keyboard 동작을 유지한다.
 - `transition: all`은 금지하고 속성을 명시한다.
 
@@ -126,7 +125,31 @@
 ## 적용 규칙
 
 - 새 화면을 만들기 전에 이 파일과 `apple-dashboard.css`를 읽는다.
-- 기존 native DOM·데이터 권위·상태 판단 계약은 시각 개선 때문에 바꾸지 않는다.
+- native control과 데이터 권위·상태 판단 계약을 유지한다. 메뉴·DOM 변경은 승인된 정보 구조를 따른다.
 - 새 색상·radius·spacing을 임의로 추가하지 않고 위 토큰과 4px grid를 먼저 재사용한다.
 - 반복 컴포넌트의 측정값이 바뀌면 구현과 이 파일을 함께 갱신한다.
 - 최종 화면은 desktop과 390px mobile에서 직접 확인한다.
+
+## 2026-09-07 승인 시안 적용
+
+- 주 메뉴: 운영 개요, 디바이스·서비스 연결, AI 서비스, 노드·자원, 장비 연결·관리, 서비스 설계. 기존 별도 시험 메뉴는 분리 보존한다.
+- 운영 개요의 초점: 우선 점검 → source/관측 트윈/서비스 연결 → 근거 상세. 기존 서버 자원 요약과 기술 지표는 노드·자원으로 이동한다.
+- 운영 개요 4분류 요약은 desktop 1.2:1:1:1, mobile 2×2다. 주 영역과 보조 관측 패널은 desktop minmax(0,1fr):300px, 1180px 이하 단일열이다.
+- 레일 활성 항목은 백색 배경과 청록 글자, 그림자 없는 상단바와 44px 검색·버튼을 사용한다.
+- 새 overview 패널은 불투명 백색, 12px radius, 24px padding과 gap, 얕은 shadow다. 모바일 padding은 16–20px다. 기존 관리·설계의 내부 밀도는 유지한다.
+- 연결 행은 세 대상과 얇은 청록 화살표를 유지하고 모바일에서 세로로 쌓는다. 원본 ID와 API reason은 줄바꿈하며 생략만으로 숨기지 않는다.
+- API 실패 시 대시보드 notice와 이전 관측 시각을 표시한다. 요약은 0 대신 —, 바인딩 관측 실패는 미연결 대신 관측 불가다.
+
+## 2026-09-07 NEXUS 과제 전체 작업 공간
+
+위 운영 UI 규칙은 `/classic`과 재사용 내부 도구에 적용한다. 기본 진입점 `/`의 NEXUS는 과제 전체 구조를 기준으로 새로 설계한 별도 시스템이다.
+
+- 기준 구현: `edge-orch/state-aggregator/app/static/nexus/platform.css`.
+- 6개 영역: 플랫폼 개요, 디바이스·트윈, 서비스·워크플로우, 자원·배치, 데이터·복구, 실증·성능.
+- 3개 관점: 실제 관측 / 목표 시스템 / 현재 구현 근거. 실측값·목표·문서 근거를 같은 상태색으로 합치지 않는다.
+- 배경 `#f3f5f7`, 표면 `#fff`, 본문 `#202d3e`, 보조 `#637084`, 선 `#dce2e9`, 강조 `#315fbc`, 활성 레일 `#223248`.
+- 물리 `#257e80`, 논리 실행체 `#7966b1`, 연산 `#315fbc`는 객체 계층을 나타낸다. 경고 `#996922`, 정상 `#357855`는 별도 상태 의미다.
+- desktop 레일 220px, 패널 radius 12px, 기본 글꼴 Pretendard/한국어 시스템 폴백 14px. 작은 데이터 표는 행별 원 식별자와 관측 시각을 보존한다.
+- 기존 도구는 같은 출처 iframe 안에 두고 원래 탐색 chrome만 숨긴다. 상위 자동 갱신은 열린 도구를 교체하지 않는다. 내부 form, validation, 권한 계약은 유지한다.
+- 도구 프레임: 폭 100%, 높이 `calc(100dvh - 140px)`, 최소 640px, 모바일 최소 720px. 내부 스크롤로 기존 긴 관리 절차와 캔버스를 유지한다.
+- 실제 관측의 제목은 확인·검토 동작을 설명한다. 목표 시안의 실행·복구 표현을 운영 완료 주장으로 재사용하지 않는다.
