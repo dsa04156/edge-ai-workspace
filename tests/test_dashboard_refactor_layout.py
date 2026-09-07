@@ -9,7 +9,7 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
 
     refactor_link = "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730"
     screen_link = "/static/dashboard-screen.css?v=ai-pipeline-removed-20260730"
-    apple_link = "/static/apple-dashboard.css?v=daylight-operations-v3-20260818"
+    apple_link = "/static/apple-dashboard.css?v=workspace-20260907"
     base_link = "/static/styles.css?v=explain-panel-slim-20260622"
     theme_link = "/static/theme-refresh.css?v=asset-device-slim-20260622"
     assert base_link in html
@@ -20,7 +20,11 @@ def test_dashboard_refactor_stylesheet_is_last_ui_layer() -> None:
     assert html.index(refactor_link) > html.index(theme_link)
     assert html.index(screen_link) > html.index(refactor_link)
     assert html.index(apple_link) > html.index("/static/device-twins.css")
-    assert html.rfind('rel="stylesheet"') < html.index(apple_link)
+    embed_link = "/static/nexus/embed.css"
+    assert html.index(embed_link) > html.index(apple_link)
+    assert html.rfind('rel="stylesheet"') < html.index(embed_link)
+    embed_css = (ROOT / "edge-orch/state-aggregator/app/static/nexus/embed.css").read_text()
+    assert all(line.startswith("html.nexus-embedded") for line in embed_css.splitlines() if line.strip())
 
 
 def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
@@ -30,7 +34,7 @@ def test_apple_dashboard_layer_codifies_screen_design_contract() -> None:
     screen_design = (ROOT / "docs/대시보드-화면-설계.md").read_text()
 
     assert "--apple-canvas: #edf2f1;" in css
-    assert "--apple-rail: #dfe9e7;" in css
+    assert "--apple-rail: #edf2f1;" in css
     assert "--apple-accent: #006d77;" in css
     assert "--console-accent: var(--apple-accent);" in css
     assert "--line: var(--apple-line);" in css
@@ -72,7 +76,7 @@ def test_dashboard_screen_does_not_load_resource_augmentation_surface() -> None:
     assert 'data-page="augmentation"' not in html
     assert "resource-augmentation.css" not in html
     assert "resource-augmentation.js" not in html
-    assert '["overview", "inventory", "management", "services", "device-twins", "designer"]' in nav_js
+    assert '["overview", "connections", "operations", "nodes", "management", "designer", "virtual-devices"]' in nav_js
     assert "workflow" not in nav_js
     assert "augmentation" not in nav_js
 
@@ -110,10 +114,10 @@ def test_dashboard_screen_overrides_legacy_light_surfaces_across_pages() -> None
 def test_dashboard_screen_navigation_keeps_only_current_poc_pages() -> None:
     html = (ROOT / "edge-orch/state-aggregator/app/static/index.html").read_text()
 
-    assert ">운영 현황<" in html
-    assert ">디바이스<" in html
-    assert ">장비 관리<" in html
-    assert ">디바이스 트윈<" in html
+    assert ">운영 개요<" in html
+    assert ">디바이스·서비스 연결<" in html
+    assert ">장비 연결·관리<" in html
+    assert ">노드·자원<" in html
     assert ">AI 파이프라인<" not in html
     assert 'data-page="workflow"' not in html
     assert ">Resource Augmentation<" not in html
@@ -124,7 +128,7 @@ def test_dashboard_device_twin_inventory_is_read_only_and_responsive() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/device-twins.css").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/device-twins.js").read_text()
 
-    assert 'data-page="device-twins"' in html
+    assert 'data-page="connections"' in html
     assert 'id="deviceTwinsSearch"' in html
     assert 'class="device-twins-table"' in html
     assert "물리 디바이스" in html
@@ -184,7 +188,7 @@ def test_device_selection_loads_core_data_history_instead_of_latest_snapshot() -
     show_device = js[js.index("function showDeviceExplanation") : js.index("function kpiKeysForCard")]
 
     assert "/static/dashboard-refactor.css?v=ai-pipeline-removed-20260730" in html
-    assert "/static/dashboard.js?v=cpu-aware-pressure-v3-20260804" in html
+    assert "/static/dashboard.js?v=workspace-20260907" in html
     assert "renderDeviceTelemetryHistory(history)" in show_device
     assert "renderTelemetryChart(device.latest_readings" not in show_device
     assert "void loadDeviceTelemetryHistory(device);" in js

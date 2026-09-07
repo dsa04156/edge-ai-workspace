@@ -73,7 +73,7 @@ def test_dashboard_screen_uses_a_hidden_responsive_context_drawer() -> None:
     ).read_text()
 
     assert '<section class="ops-shell">' in html
-    assert '<div class="ops-main">' in html
+    assert '<div class="ops-main" id="workspaceMain" tabindex="-1">' in html
     assert 'id="contextDetailPanel"' in html
     assert 'id="contextDetailBackdrop"' in html
     assert 'role="dialog"' in html
@@ -104,8 +104,9 @@ def test_sensor_device_table_does_not_collapse_or_clip_at_scale() -> None:
     css = (ROOT / "edge-orch/state-aggregator/app/static/operations-dashboard.css").read_text()
     js = (ROOT / "edge-orch/state-aggregator/app/static/dashboard.js").read_text()
 
-    assert 'aria-label="전체 디바이스 목록"' in html
-    assert 'id="inventoryTitle">전체 디바이스<' in html
+    assert 'aria-label="서버와 현장 엣지 노드 목록"' in html
+    assert 'id="inventoryTitle">노드 목록<' in html
+    assert 'id="sensorInventorySections"' in html
     assert 'id="resourceInventorySections"' in html
     assert 'class="sensor-device-table"' in js
     assert ".sensor-table-shell" in css

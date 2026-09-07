@@ -212,18 +212,20 @@ function executionFixture() {
   };
 }
 
-test("registers service operations between overview and the four existing pages", () => {
+test("groups operations around connections and keeps the isolated virtual-device test page", () => {
   assert.deepEqual(DASHBOARD_PAGES, [
-    "overview", "operations", "inventory", "management", "designer",
+    "overview", "connections", "operations", "nodes", "management", "designer", "virtual-devices",
   ]);
   const menuLabels = [...indexHtml.matchAll(/data-dashboard-page="([^"]+)"[^>]*>([^<]+)<\/button>/g)]
     .map((match) => [match[1], match[2].trim()]);
   assert.deepEqual(menuLabels, [
-    ["overview", "운영 현황"],
-    ["operations", "서비스 운영"],
-    ["inventory", "디바이스"],
-    ["management", "장비 관리"],
+    ["overview", "운영 개요"],
+    ["connections", "디바이스·서비스 연결"],
+    ["operations", "AI 서비스"],
+    ["nodes", "노드·자원"],
+    ["management", "장비 연결·관리"],
     ["designer", "서비스 설계"],
+    ["virtual-devices", "가상 디바이스 시험"],
   ]);
   assert.match(indexHtml, /data-page="operations"/);
   assert.match(indexHtml, /runtime-operations\.js/);
@@ -423,7 +425,7 @@ test("refresh reads only GET projections and never calls placement selection", a
 });
 
 test("adds explicit execution controls without reviving removed orchestration UI", () => {
-  const operationsSection = indexHtml.match(/<section\s+class="runtime-operations-page[\s\S]*?<section class="service-catalog/)[0];
+  assert.match(indexHtml, /class="runtime-operations-page dashboard-page"\s+data-page="operations"/);
   assert.match(runtimeJavascript, /Dry Run → 승인 → Execute/);
   assert.match(runtimeJavascript, /type="password" autocomplete="off"/);
   assert.match(runtimeJavascript, /data-runtime-execute disabled/);

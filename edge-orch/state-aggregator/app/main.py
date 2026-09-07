@@ -26,6 +26,7 @@ from .device_twins import DeviceTwinState, build_device_twin_state
 from .edgex import EdgeXError
 from .json_types import JsonMap
 from .kube import KubeResourceReadError
+from .virtual_resources import create_virtual_device_router
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -192,6 +193,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
+app.include_router(create_virtual_device_router(service.kube))
 app.include_router(
     create_device_management_router(
         settings,
@@ -208,15 +210,20 @@ if STATIC_DIR.exists():
 
 @app.get("/")
 async def index():
-    if (STATIC_DIR / "index.html").exists():
-        return FileResponse(STATIC_DIR / "index.html")
+    if (STATIC_DIR / "nexus/index.html").exists():
+        return FileResponse(STATIC_DIR / "nexus/index.html")
     return {"service": "state-aggregator", "dashboard": "/dashboard"}
 
 
 @app.get("/dashboard")
 async def dashboard():
-    if not (STATIC_DIR / "index.html").exists():
+    if not (STATIC_DIR / "nexus/index.html").exists():
         raise HTTPException(status_code=404, detail="Dashboard assets not found")
+    return FileResponse(STATIC_DIR / "nexus/index.html")
+
+
+@app.get("/classic")
+async def classic_dashboard():
     return FileResponse(STATIC_DIR / "index.html")
 
 

@@ -610,7 +610,7 @@ test("dashboard ships a responsive accessible live demo panel", () => {
   assert.match(html, /id="serviceCatalogList"/);
   assert.match(html, /data-service-catalog="descriptor-driven"/);
   assert.doesNotMatch(html, /id="serviceCatalogRow"/);
-  assert.match(html, /service-demo-panel[^>]+data-page="overview"/);
+  assert.match(html, /service-demo-panel[^>]+data-page="operations"/);
   for (const id of [
     "serviceDemoState", "serviceDemoFlow", "serviceDemoPhysicalSource",
     "serviceDemoDeviceService", "serviceDemoConsumer", "serviceDemoNode",
@@ -636,8 +636,8 @@ test("dashboard ships a responsive accessible live demo panel", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /service-demo\.css\?v=service-augmentation-v1-20260814/);
-  assert.match(html, /service-demo\.js\?v=service-augmentation-v2-20260818/);
-  assert.match(html, /aria-labelledby="serviceDemoTitle" open/);
+  assert.match(html, /service-demo\.js\?v=workspace-20260907/);
+  assert.doesNotMatch(html, /aria-labelledby="serviceDemoTitle" open/);
   assert.match(css, /\[data-state="anomaly"\]/);
   assert.match(css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media \(max-width: 760px\)/);

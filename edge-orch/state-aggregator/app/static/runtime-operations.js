@@ -905,6 +905,7 @@ if (typeof globalThis !== "undefined") {
     refresh: refreshRuntimeOperations, renderSchedulingResourceDetails};
   globalThis.refreshRuntimeOperations = refreshRuntimeOperations;
   globalThis.onRuntimeOperationsVisible = () => refreshRuntimeOperations();
+  globalThis.selectRuntimeService = selectRuntimeService;
 }
 if (typeof module !== "undefined") {
   module.exports = {RUNTIME_ENDPOINTS, buildLiveExecutionSummary, buildRuntimeOperationsView, calculateExecutionDurations,

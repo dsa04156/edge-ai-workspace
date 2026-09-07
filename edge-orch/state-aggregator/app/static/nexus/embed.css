@@ -1,0 +1,9 @@
+html.nexus-embedded body { background:#f3f5f7 !important; }
+html.nexus-embedded .shell { margin:0 !important; padding:12px !important; width:100% !important; max-width:none !important; display:block !important; }
+html.nexus-embedded .shell>.topbar, html.nexus-embedded .main-menu,html.nexus-embedded .workspace-skip {display:none !important;}
+html.nexus-embedded .ops-shell {margin:0 !important; padding:0 !important; display:block !important; grid-template-columns:minmax(0,1fr) !important;}
+html.nexus-embedded .ops-main {min-width:0; margin:0 !important;}
+html.nexus-embedded .ops-sidebar {position:static !important; width:100% !important;}
+html.nexus-embedded .panel {border-radius:12px !important;}
+html.nexus-embedded .overview-heading {padding:4px 0 !important;}
+html.nexus-embedded body {min-width:0 !important;}

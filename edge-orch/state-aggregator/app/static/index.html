@@ -18,19 +18,22 @@
     <link rel="stylesheet" href="/static/service-demo.css?v=service-augmentation-v1-20260814" />
     <link rel="stylesheet" href="/static/device-management.css?v=web-connection-flow-20260730" />
     <link rel="stylesheet" href="/static/dashboard-responsive.css?v=mobile-menu-flow-20260813" />
-    <link rel="stylesheet" href="/static/operations-dashboard.css?v=unified-device-inventory-v2-20260804" />
+    <link rel="stylesheet" href="/static/operations-dashboard.css?v=workspace-20260907" />
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
-    <link rel="stylesheet" href="/static/device-twins.css?v=multi-service-twins-v3-20260814" />
+    <link rel="stylesheet" href="/static/device-twins.css?v=workspace-20260907" />
     <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-offloading-v3-20260826" />
-    <link rel="stylesheet" href="/static/apple-dashboard.css?v=daylight-operations-v3-20260818" />
+    <link rel="stylesheet" href="/static/virtual-devices.css?v=1" />
+    <link rel="stylesheet" href="/static/apple-dashboard.css?v=workspace-20260907" />
+  <script src="/static/nexus/embed.js"></script>
+    <link rel="stylesheet" href="/static/nexus/embed.css" />
   </head>
-  <body>
+  <body class="operations-workspace">
+    <a class="workspace-skip" href="#workspaceMain">본문으로 이동</a>
     <main class="shell">
       <header class="topbar">
         <div class="cluster-context">
-          <p class="eyebrow">센서 · 엣지 노드 · AI 서비스</p>
-          <h1>Edge AI 통합 운영 대시보드</h1>
-          <span class="cluster-pill">기본 클러스터</span>
+          <h1 class="workspace-product-title">Edge AI 통합 운영 대시보드</h1>
+          <p class="workspace-breadcrumb">테스트베드 <span aria-hidden="true">/</span> <span id="workspaceBreadcrumb">운영 개요</span></p>
         </div>
         <div class="global-search" role="search" aria-label="리소스 검색">
           <label for="globalResourceSearch">검색</label>
@@ -53,39 +56,77 @@
       </header>
 
       <nav class="main-menu" aria-label="대시보드 화면">
-        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 현황</button>
-        <button type="button" data-dashboard-page="operations" aria-pressed="false">서비스 운영</button>
-        <button type="button" data-dashboard-page="inventory" aria-pressed="false">디바이스</button>
-        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 관리</button>
+        <div class="workspace-brand"><span class="workspace-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h6v6H4zM14 13h6v6h-6zM14 5h6M17 2v6M4 17h6"/></svg></span><strong>Edge AI<small>OPERATIONS WORKSPACE</small></strong></div>
+        <span class="workspace-nav-label">모니터링</span>
+        <button class="active" type="button" data-dashboard-page="overview" aria-pressed="true">운영 개요</button>
+        <button type="button" data-dashboard-page="connections" aria-pressed="false">디바이스·서비스 연결</button>
+        <button type="button" data-dashboard-page="operations" aria-pressed="false">AI 서비스</button>
+        <button type="button" data-dashboard-page="nodes" aria-pressed="false">노드·자원</button>
+        <span class="workspace-nav-label">구성</span>
+        <button type="button" data-dashboard-page="management" aria-pressed="false">장비 연결·관리</button>
         <button type="button" data-dashboard-page="designer" aria-pressed="false">서비스 설계</button>
+        <span class="workspace-nav-label">별도 시험</span>
+        <button type="button" data-dashboard-page="virtual-devices" aria-pressed="false">가상 디바이스 시험</button>
+        <div class="workspace-rail-foot"><strong>테스트베드 PoC</strong><span>EdgeX · KubeEdge</span></div>
       </nav>
 
       <section class="ops-shell">
-        <div class="ops-main">
+        <div class="ops-main" id="workspaceMain" tabindex="-1">
+          <p id="dashboardObservationNotice" class="workspace-notice" role="status" hidden></p>
+          <section class="dashboard-page vd-page" data-page="virtual-devices" aria-labelledby="vdTitle">
+            <div class="panel-head">
+              <div><p class="section-kicker">기능 실행·관리 프로토타입</p>
+                <h2 id="vdTitle">가상 디바이스 시험</h2>
+                <p>등록 정의와 서버 실행체를 구분합니다. 상태 조회 전용 · 10초 자동 갱신</p>
+              </div>
+              <button type="button" id="vdRefresh">새로고침</button>
+            </div>
+            <p id="vdObservation" role="status" aria-live="polite">관측 대기</p>
+            <div id="vdSummary" class="vd-summary" aria-label="가상 디바이스 시험 요약"></div>
+            <div class="vd-tools">
+              <label>가상 디바이스 검색 <input id="vdSearch" type="search" placeholder="ID·기능·연결 대상" /></label>
+              <label>실제 실행 노드 <select id="vdNodeFilter"><option value="">전체 노드</option></select></label>
+            </div>
+            <div class="vd-workspace">
+              <section class="panel vd-placement"><h3>실제 실행체 배치</h3><div id="vdPlacement"></div></section>
+              <section class="panel vd-list"><h3>등록된 가상 디바이스</h3><div id="vdList"></div></section>
+              <section class="panel vd-detail" aria-label="선택한 가상 디바이스 상세"><h3>선택 항목 상세</h3><div id="vdDetail"></div></section>
+            </div>
+          </section>
           <section class="overview-heading dashboard-page active" data-page="overview" aria-labelledby="overviewTitle">
             <div>
-              <p class="section-kicker">실시간 운영</p>
-              <h2 id="overviewTitle">운영 현황</h2>
-              <p>서버 자원과 디바이스 수집 상태를 한눈에 확인합니다.</p>
+              <p class="section-kicker">FIELD TO SERVICE</p>
+              <h2 id="overviewTitle">운영 개요</h2>
+              <p>지금 확인할 문제와 서비스에 미치는 영향을 살펴보세요.</p>
             </div>
             <strong id="overviewFleetStatus" class="overview-fleet-status" data-status="unknown">관측 중</strong>
           </section>
 
-          <section class="kpi-grid dashboard-page active" data-page="overview" aria-label="리소스 분류 요약">
+          <section class="dashboard-page active workspace-overview" data-page="overview" aria-label="운영 우선 점검">
+            <div id="workspaceSummary" class="workspace-summary" aria-live="polite"><p class="empty">운영 요약을 확인하고 있습니다.</p></div>
+            <div class="workspace-overview-grid">
+              <div class="workspace-primary">
+                <section class="panel workspace-attention"><header class="panel-head"><div><p class="section-kicker">ATTENTION FIRST</p><h2>먼저 확인할 항목</h2></div><span id="workspaceAttentionCount" class="workspace-badge">관측 중</span></header><div id="workspaceAttentionList" aria-live="polite"><p class="empty">관측 응답을 기다리고 있습니다.</p></div></section>
+                <section class="panel workspace-connections"><header class="panel-head"><div><h2>디바이스에서 서비스까지</h2><p>물리 source와 관측 트윈, 연결된 서비스를 함께 확인합니다.</p></div><button class="workspace-text-button" type="button" data-workspace-page="connections">전체 연결 ↗</button></header><div id="workspaceConnections" aria-live="polite"><p class="empty">EdgeX 관측 트윈을 확인하고 있습니다.</p></div></section>
+              </div>
+              <aside class="workspace-secondary" aria-label="관측 경로와 실행 환경">
+                <section class="panel"><header class="panel-head"><div><h2>관측 경로</h2><p>데이터 출처별 관측 결과</p></div></header><div id="workspaceSources" aria-live="polite"></div><p class="workspace-panel-foot">관측 응답과 개별 장비의 정상 상태는 구분합니다.</p></section>
+                <section class="panel"><header class="panel-head"><h2>실행 환경</h2><button class="workspace-text-button" type="button" data-workspace-page="nodes">노드 보기 ↗</button></header><div id="workspaceNodes"></div></section>
+                <section class="workspace-next-step"><h3>옥동 서비스 준비</h3><p>생산품질 판별과 펌프·모터 이상감지는 입력·출력 계약 확정 단계로 구분합니다.</p><button class="workspace-text-button" type="button" data-workspace-page="operations">AI 서비스 보기 ↗</button></section>
+              </aside>
+            </div>
+          </section>
+          <section class="overview-heading dashboard-page" data-page="nodes"><div><p class="section-kicker">EXECUTION ENVIRONMENT</p><h2>노드·자원</h2><p>서버와 현장 엣지 노드의 관측·자원·워크로드를 확인합니다.</p></div></section>
+          <section class="kpi-grid dashboard-page" data-page="nodes" aria-label="리소스 분류 요약">
             <button class="metric resource-category-kpi" type="button" data-resource-category-link="server" aria-label="엣지 AI 서버 목록 열기">
               <span class="metric-label">엣지 AI 서버</span>
-              <strong id="edgeAiServerCount">0</strong>
-              <span id="edgeAiServerHealth">0개 Available</span>
+              <strong id="edgeAiServerCount">—</strong>
+              <span id="edgeAiServerHealth">관측 대기</span>
             </button>
             <button class="metric resource-category-kpi" type="button" data-resource-category-link="physical" aria-label="현장 엣지 노드 목록 열기">
               <span class="metric-label">현장 엣지 노드</span>
-              <strong id="physicalDeviceCount">0</strong>
-              <span id="physicalDeviceHealth">0개 Available</span>
-            </button>
-            <button class="metric resource-category-kpi" type="button" data-resource-category-link="sensor" aria-label="EdgeX 등록 디바이스 목록 열기">
-              <span class="metric-label">EdgeX 등록 디바이스</span>
-              <strong id="sensorDeviceCount">0</strong>
-              <span id="sensorDeviceHealth">0개 Available</span>
+              <strong id="physicalDeviceCount">—</strong>
+              <span id="physicalDeviceHealth">관측 대기</span>
             </button>
             <details class="metric-details" hidden>
               <summary>기술 운영 지표 4개 보기</summary>
@@ -203,7 +244,7 @@
             </div>
           </details>
 
-          <div class="overview-primary dashboard-page active" data-page="overview">
+          <div class="overview-primary dashboard-page" data-page="nodes">
           <section class="panel server-observability-panel" aria-labelledby="serverOverviewTitle">
             <div class="panel-head server-observability-head">
               <div>
@@ -224,21 +265,11 @@
             <div id="serverStatusList" class="server-status-list" aria-live="polite"></div>
             <p id="serverOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
           </section>
-          <section class="panel overview-attention-panel" aria-labelledby="overviewAttentionTitle">
-            <div class="panel-head">
-              <div>
-                <p class="section-kicker">운영 알림</p>
-                <h2 id="overviewAttentionTitle">확인할 항목</h2>
-              </div>
-              <span id="overviewHealthCaption">센서 상태 집계 중</span>
-            </div>
-            <div id="overviewAlertList" class="overview-alert-list" aria-live="polite"></div>
-          </section>
           </div>
 
           <section
-            class="panel server-observability-panel physical-device-observability-panel dashboard-page active"
-            data-page="overview"
+            class="panel server-observability-panel physical-device-observability-panel dashboard-page"
+            data-page="nodes"
             aria-labelledby="physicalDeviceOverviewTitle"
           >
             <div class="panel-head server-observability-head">
@@ -259,6 +290,30 @@
             </dl>
             <div id="physicalDeviceStatusList" class="server-status-list" aria-live="polite"></div>
             <p id="physicalDeviceOverviewObservedAt" class="server-observability-source">현재 관측값 · Prometheus / Kubernetes</p>
+          </section>
+
+          <section class="service-catalog dashboard-page" data-page="operations" data-service-catalog="descriptor-driven" aria-labelledby="servicesTitle">
+            <header class="service-catalog-heading">
+              <div>
+                <p class="section-kicker">INPUT · EXECUTION · RESULT</p>
+                <h2 id="servicesTitle">AI 서비스</h2>
+                <p>배포된 AI 서비스의 입력, 실행 위치와 최근 판단을 목록으로 확인합니다.</p>
+              </div>
+              <span id="serviceCatalogAvailability" class="service-catalog-availability" data-state="observing">상태 관측 중</span>
+            </header>
+            <section class="panel service-catalog-panel" aria-labelledby="serviceCatalogListTitle">
+              <div class="panel-head service-catalog-panel-head">
+                <div>
+                  <p class="section-kicker">운영 서비스</p>
+                  <h3 id="serviceCatalogListTitle">서비스 목록</h3>
+                </div>
+                <span id="serviceCatalogCount">등록 정보 불러오는 중</span>
+              </div>
+              <ul id="serviceCatalogList" class="service-catalog-list" aria-label="AI 서비스 목록">
+                <li class="service-catalog-loading">Git 서비스 정의를 읽고 있습니다.</li>
+              </ul>
+              <p class="service-catalog-source">정의 출처 <strong id="serviceCatalogDefinitionSource">확인 중</strong></p>
+            </section>
           </section>
 
           <section
@@ -294,31 +349,7 @@
             </div>
           </section>
 
-          <section class="service-catalog dashboard-page" data-page="services" data-service-catalog="descriptor-driven" aria-labelledby="servicesTitle">
-            <header class="service-catalog-heading">
-              <div>
-                <p class="section-kicker">AI 서비스 운영</p>
-                <h2 id="servicesTitle">서비스</h2>
-                <p>배포된 AI 서비스의 입력, 실행 위치와 최근 판단을 목록으로 확인합니다.</p>
-              </div>
-              <span id="serviceCatalogAvailability" class="service-catalog-availability" data-state="observing">상태 관측 중</span>
-            </header>
-            <section class="panel service-catalog-panel" aria-labelledby="serviceCatalogListTitle">
-              <div class="panel-head service-catalog-panel-head">
-                <div>
-                  <p class="section-kicker">운영 서비스</p>
-                  <h3 id="serviceCatalogListTitle">서비스 목록</h3>
-                </div>
-                <span id="serviceCatalogCount">등록 정보 불러오는 중</span>
-              </div>
-              <ul id="serviceCatalogList" class="service-catalog-list" aria-label="AI 서비스 목록">
-                <li class="service-catalog-loading">Git 서비스 정의를 읽고 있습니다.</li>
-              </ul>
-              <p class="service-catalog-source">정의 출처 <strong id="serviceCatalogDefinitionSource">확인 중</strong></p>
-            </section>
-          </section>
-
-          <details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="overview" aria-labelledby="serviceDemoTitle" open>
+          <details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="operations" aria-labelledby="serviceDemoTitle">
             <summary class="overview-service-demo-summary">
               <span>
                 <span class="section-kicker">서비스 데모</span>
@@ -527,16 +558,16 @@
           </details>
 
       <section class="layout">
-        <section class="panel assets dashboard-page" data-page="inventory">
+        <section class="panel assets dashboard-page" data-page="nodes">
           <div class="panel-head">
             <div>
               <p class="section-kicker">디바이스 인벤토리</p>
-              <h2 id="inventoryTitle">전체 디바이스</h2>
+              <h2 id="inventoryTitle">노드 목록</h2>
             </div>
             <span id="assetCount">0개</span>
           </div>
           <p class="resource-inventory-intro">
-            서버, 현장 엣지 노드와 EdgeX 등록 디바이스를 한 화면에서 확인합니다.
+            서버와 현장 엣지 노드를 분리해 확인합니다. 센서 관측은 디바이스·서비스 연결에서 확인합니다.
           </p>
           <div class="sensor-inventory-toolbar">
             <label for="nodeFilterSelect">노드</label>
@@ -548,14 +579,14 @@
           <div
             id="resourceInventorySections"
             class="resource-inventory-sections"
-            aria-label="전체 디바이스 목록"
+            aria-label="서버와 현장 엣지 노드 목록"
             aria-live="polite"
           >
             <p class="empty">디바이스 목록을 확인하는 중입니다.</p>
           </div>
         </section>
 
-        <details id="sensorTopologyPanel" class="panel topology-panel dashboard-page dashboard-disclosure" data-page="inventory">
+        <details id="sensorTopologyPanel" class="panel topology-panel dashboard-page dashboard-disclosure" data-page="nodes">
           <summary>서비스 연결 구조</summary>
           <div class="panel-head">
             <div>
@@ -569,23 +600,23 @@
 
         <section
           class="panel device-twins-page dashboard-page"
-          data-page="device-twins"
+          data-page="connections"
           aria-labelledby="deviceTwinsTitle"
         >
           <header class="device-twins-head">
             <div>
-              <h2 id="deviceTwinsTitle">디바이스 트윈</h2>
-              <p>실제 물리 디바이스에서 온 데이터를 EdgeX 관측 트윈으로 보여줍니다.</p>
+              <p class="section-kicker">FIELD TO SERVICE</p><h2 id="deviceTwinsTitle">디바이스·서비스 연결</h2>
+              <p>물리 source → EdgeX 관측 트윈 → AI 서비스의 연결과 입력 상태를 확인합니다.</p>
             </div>
           </header>
 
           <div id="deviceTwinsError" class="device-twins-notice" role="status" aria-live="polite" hidden></div>
 
           <dl class="device-twins-summary" aria-label="디바이스 트윈 요약">
-            <div><dt>물리 디바이스</dt><dd id="deviceTwinsPhysicalCount">0</dd></div>
-            <div><dt>디바이스 트윈</dt><dd id="deviceTwinsTotalCount">0</dd></div>
-            <div><dt>서비스 연결</dt><dd id="deviceTwinsBoundCount">0</dd></div>
-            <div><dt>점검 필요</dt><dd id="deviceTwinsAttentionCount">0</dd></div>
+            <div><dt>물리 source</dt><dd id="deviceTwinsPhysicalCount">—</dd></div>
+            <div><dt>디바이스 트윈</dt><dd id="deviceTwinsTotalCount">—</dd></div>
+            <div><dt>서비스 연결</dt><dd id="deviceTwinsBoundCount">—</dd></div>
+            <div><dt>점검 필요</dt><dd id="deviceTwinsAttentionCount">—</dd></div>
           </dl>
 
           <section class="device-twins-inventory" aria-labelledby="deviceTwinsInventoryTitle">
@@ -599,7 +630,7 @@
             <div class="device-twins-toolbar">
               <label class="device-twins-search" for="deviceTwinsSearch">
                 <span>검색</span>
-                <input id="deviceTwinsSearch" type="search" placeholder="트윈, 물리 디바이스, 데이터" autocomplete="off" />
+                <input id="deviceTwinsSearch" type="search" placeholder="source·등록 ID·데이터·서비스" autocomplete="off" />
               </label>
               <label for="deviceTwinsBindingFilter">
                 <span>서비스 연결</span>
@@ -609,6 +640,7 @@
                   <option value="unbound">미연결</option>
                 </select>
               </label>
+              <label for="deviceTwinsHealthFilter"><span>입력 상태</span><select id="deviceTwinsHealthFilter"><option value="">전체</option><option value="attention">점검 필요</option><option value="ready">정상</option></select></label>
             </div>
             <div class="device-twins-table-wrap">
               <table class="device-twins-table">
@@ -620,12 +652,16 @@
                     <th scope="col">상태</th>
                   </tr>
                 </thead>
-                <tbody id="deviceTwinsList" aria-live="polite"></tbody>
+                <tbody id="deviceTwinsList" aria-live="polite"><tr><td colspan="4" class="device-twins-empty">관측 트윈을 확인하고 있습니다.</td></tr></tbody>
               </table>
             </div>
           </section>
         </section>
 
+        <section class="panel dashboard-page" data-page="connections" aria-labelledby="registeredDevicesTitle">
+          <header class="panel-head"><div><h2 id="registeredDevicesTitle">EdgeX 등록 디바이스</h2><p>source identity가 없는 등록 항목도 이 목록에서 확인할 수 있습니다.</p></div><span id="registeredDevicesCount">관측 중</span></header>
+          <div id="sensorInventorySections" class="resource-inventory-sections" aria-live="polite"></div>
+        </section>
         <section
           class="panel service-designer-page dashboard-page"
           data-page="designer"
@@ -1515,7 +1551,7 @@
             </div>
           </div>
         </details>
-        <details class="overview-ops-grid dashboard-page active dashboard-disclosure" data-page="overview" aria-label="collected operations metrics">
+        <details class="overview-ops-grid dashboard-page dashboard-disclosure" data-page="nodes" aria-label="collected operations metrics">
           <summary>플랫폼 기술 지표</summary>
           <section class="panel">
             <div class="panel-head">
@@ -1627,14 +1663,16 @@
         </aside>
       </section>
     </main>
-    <script src="/static/navigation.js?v=service-catalog-20260813"></script>
-    <script src="/static/runtime-operations.js?v=runtime-offloading-v3-20260826"></script>
-    <script src="/static/dashboard.js?v=cpu-aware-pressure-v3-20260804"></script>
-    <script src="/static/service-demo.js?v=service-augmentation-v2-20260818"></script>
+    <script src="/static/operations-overview.js?v=workspace-20260907"></script>
+    <script src="/static/navigation.js?v=workspace-20260907"></script>
+    <script src="/static/virtual-devices.js?v=1"></script>
+    <script src="/static/runtime-operations.js?v=workspace-20260907"></script>
+    <script src="/static/dashboard.js?v=workspace-20260907"></script>
+    <script src="/static/service-demo.js?v=workspace-20260907"></script>
     <script src="/static/device-management.js?v=web-connection-flow-20260730"></script>
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
-    <script src="/static/device-twins.js?v=multi-service-twins-v3-20260814"></script>
+    <script src="/static/device-twins.js?v=workspace-20260907"></script>
   </body>
 </html>

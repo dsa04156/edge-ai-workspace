@@ -54,17 +54,19 @@ test("uses physical source and resource as the operator label while preserving t
   }), "arduino-001 · temperature_raw");
 });
 
-test("dashboard exposes the three authoritative device categories in one continuous inventory", () => {
+test("dashboard separates node inventory from EdgeX connections without removing either authority", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
   const css = fs.readFileSync(
     path.join(root, "app/static/operations-dashboard.css"),
     "utf8",
   );
 
-  assert.match(html, />디바이스</);
-  assert.match(html, /<h2 id="inventoryTitle">전체 디바이스<\/h2>/);
+  assert.match(html, />디바이스·서비스 연결</);
+  assert.match(html, /<h2 id="inventoryTitle">노드 목록<\/h2>/);
   assert.match(html, /id="resourceInventorySections"/);
-  assert.match(html, /서버, 현장 엣지 노드와 EdgeX 등록 디바이스를 한 화면에서 확인합니다/);
+  assert.match(html, /id="sensorInventorySections"/);
+  assert.match(html, /data-page="connections"/);
+  assert.match(html, /data-page="nodes"/);
   assert.doesNotMatch(html, /class="resource-category-tabs"/);
   assert.doesNotMatch(html, /data-resource-category="server"/);
   assert.doesNotMatch(html, /EdgeX 디바이스/);
@@ -299,7 +301,7 @@ test("builds physical device status separately from server status", () => {
   assert.doesNotMatch(markup, /etri-ser0001/);
 });
 
-test("keeps server, physical observability, and the demo in overview beside service operations", () => {
+test("keeps node observability separate and places service catalog before runtime details", () => {
   const html = fs.readFileSync(path.join(root, "app/static/index.html"), "utf8");
 
   const serverIndex = html.indexOf('id="serverOverviewTitle"');
@@ -310,18 +312,18 @@ test("keeps server, physical observability, and the demo in overview beside serv
 
   assert.ok(serverIndex < physicalIndex);
   assert.ok(physicalIndex < operationsIndex);
-  assert.ok(operationsIndex < serviceCatalogIndex);
+  assert.ok(serviceCatalogIndex < operationsIndex);
   assert.ok(serviceCatalogIndex < serviceDemoIndex);
   assert.match(html, /<h2 id="serverOverviewTitle">서버 상태<\/h2>/);
   assert.match(html, /id="serverStatusList"/);
   assert.match(html, /<h2 id="physicalDeviceOverviewTitle">현장 엣지 노드 상태<\/h2>/);
   assert.match(html, /id="physicalDeviceStatusList"/);
   assert.match(html, /data-resource-category-link="physical">현장 엣지 노드 목록/);
-  assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="overview"/);
-  assert.match(
+  assert.match(html, /<details id="serviceDemoPanel" class="panel service-demo-panel overview-service-demo dashboard-page dashboard-disclosure" data-page="operations"/);
+  assert.doesNotMatch(
     html,
     /<details id="serviceDemoPanel"[^>]*\sopen(?:\s|>)/,
   );
-  assert.match(html, /dashboard\.js\?v=cpu-aware-pressure-v3-20260804/);
-  assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);
+  assert.match(html, /dashboard\.js\?v=workspace-20260907/);
+  assert.match(html, /operations-dashboard\.css\?v=workspace-20260907/);
 });

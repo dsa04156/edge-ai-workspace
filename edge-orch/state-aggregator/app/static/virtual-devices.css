@@ -1,0 +1,37 @@
+.vd-page { min-width: 0; }
+body[data-dashboard-page="virtual-devices"] .ops-shell { grid-template-columns: minmax(0, 1fr) !important; }
+body[data-dashboard-page="virtual-devices"] .ops-shell > aside { display: none; }
+.vd-summary { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--apple-surface); border: 1px solid var(--apple-line); border-radius: var(--apple-radius-card); margin: 16px 0 24px; }
+.vd-summary > div { padding: 20px 24px; }
+.vd-summary > div + div { border-left: 1px solid var(--apple-line); }
+.vd-summary strong { display: block; font-size: 32px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.vd-summary span, .vd-detail dt { color: var(--apple-secondary); }
+.vd-tools { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.vd-tools label { display: grid; gap: 8px; }
+.vd-tools input, .vd-tools select { min-height: 44px; max-width: 100%; color: var(--apple-text); background: var(--apple-control); border: 1px solid var(--apple-line); border-radius: var(--apple-radius-control); padding: 8px 12px; }
+.vd-workspace { display: grid; grid-template-columns: minmax(160px, .8fr) minmax(200px, 1fr) minmax(260px, 1.5fr); gap: 16px; align-items: start; }
+.vd-workspace .panel { min-width: 0; padding: 20px; margin: 0; }
+.vd-workspace h3 { margin: 0 0 16px; font-size: 16px; }
+.vd-node, .vd-instance { padding: 12px 0; border-top: 1px solid var(--apple-line); }
+.vd-node strong, .vd-node span { display: block; overflow-wrap: anywhere; }
+.vd-item { display: grid; gap: 8px; text-align: left; width: 100%; margin: 0 0 8px; min-height: 44px; padding: 12px; border: 1px solid var(--apple-line); border-radius: var(--apple-radius-control); background: var(--apple-control); color: var(--apple-text); overflow-wrap: anywhere; }
+.vd-item[aria-pressed="true"] { border-color: var(--apple-accent); background: var(--apple-accent-soft); }
+.vd-item:hover { background: var(--apple-control-hover); }
+.vd-page button:focus-visible, .vd-page input:focus-visible, .vd-page select:focus-visible { outline: 2px solid var(--apple-accent); outline-offset: 2px; }
+.vd-page button:disabled { opacity: .55; cursor: wait; }
+.vd-detail dl { margin: 0; display: grid; grid-template-columns: minmax(80px, .55fr) minmax(0, 1fr); gap: 8px 12px; }
+.vd-detail dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; font-variant-numeric: tabular-nums; }
+.vd-detail details { margin-top: 12px; }
+.vd-detail summary { cursor: pointer; padding: 12px 0; min-height: 44px; }
+.vd-detail pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.vd-state { color: var(--apple-secondary); font-size: 13px; }
+.vd-error { color: var(--apple-bad); overflow-wrap: anywhere; }
+.vd-muted { color: var(--apple-secondary); line-height: 1.6; }
+@media (max-width: 1050px) { .vd-workspace { grid-template-columns: 1fr 1fr; } .vd-detail { grid-column: 1 / -1; } }
+@media (max-width: 760px) {
+  .vd-workspace { grid-template-columns: minmax(0, 1fr); }
+  .vd-summary { grid-template-columns: 1fr; }
+  .vd-summary > div { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; }
+  .vd-summary > div + div { border-left: 0; border-top: 1px solid var(--apple-line); }
+  .vd-tools, .vd-tools label, .vd-tools input, .vd-tools select { width: 100%; min-width: 0; }
+}

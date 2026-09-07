@@ -183,6 +183,8 @@ function buildGlobalSearchResults(query, data = {}, limit = 10) {
       device.device_service_name,
       device.protocol_names,
       device.node_name,
+      device.physical_device_id,
+      (device.latest_readings || []).map((reading) => reading.resource_name),
     )) {
       results.push({
         kind: "device",
@@ -963,14 +965,20 @@ async function loadDeviceTelemetryHistory(
 }
 
 async function loadDashboard() {
-  const response = await fetch("/state/dashboard", { cache: "no-store" });
-  if (!response.ok) throw new Error(`dashboard api failed: ${response.status}`);
-  state.data = await response.json();
-  globalThis.edgeDashboardData = state.data;
-  if (typeof globalThis.updateServiceDesignerInventory === "function") {
-    globalThis.updateServiceDesignerInventory(state.data);
+  try {
+    const response = await fetch("/state/dashboard", { cache: "no-store" });
+    if (!response.ok) throw new Error(`dashboard api failed: ${response.status}`);
+    state.data = await response.json();
+    globalThis.edgeDashboardData = state.data;
+    if (typeof globalThis.updateServiceDesignerInventory === "function") {
+      globalThis.updateServiceDesignerInventory(state.data);
+    }
+    render();
+    globalThis.EdgeOperationsOverview?.updateDashboard(state.data);
+  } catch (error) {
+    globalThis.EdgeOperationsOverview?.updateDashboard(null, error.message);
+    throw error;
   }
-  render();
 }
 
 function setAsyncButtonState(button, {
@@ -991,6 +999,9 @@ async function refreshDashboardNow() {
   setAsyncButtonState(button, {busy: true, label: "새로고침 중…"});
   try {
     const requests = [loadDashboard()];
+    if (typeof globalThis.EdgeDeviceTwins?.loadDeviceTwins === "function") {
+      requests.push(globalThis.EdgeDeviceTwins.loadDeviceTwins());
+    }
     if (typeof globalThis.refreshServiceDemo === "function") {
       requests.push(globalThis.refreshServiceDemo());
     }
@@ -1063,11 +1074,12 @@ function openGlobalSearchResult(target) {
   if (!button) return false;
   const kind = button.dataset.globalResultKind;
   const id = button.dataset.globalResultId;
+  const page = kind === "device" ? "connections" : "nodes";
   if (typeof globalThis.showDashboardPage === "function") {
-    globalThis.showDashboardPage("inventory");
+    globalThis.showDashboardPage(page);
   }
-  if (globalThis.location && globalThis.location.hash !== "#inventory") {
-    globalThis.location.hash = "inventory";
+  if (globalThis.location && globalThis.location.hash !== `#${page}`) {
+    globalThis.location.hash = page;
   }
   if (kind === "node" || kind === "device") {
     const category = kind === "node"
@@ -1098,6 +1110,8 @@ function openGlobalSearchResult(target) {
   } else if (kind === "service") {
     state.selectedTopologyService = id;
     renderTopology(state.data?.resource_profiles || {}, state.data?.kpis || {});
+    const topology = $("sensorTopologyPanel");
+    if (topology) { topology.open = true; topology.scrollIntoView({block: "start"}); }
   }
   const input = $("globalResourceSearch");
   const container = $("globalSearchResults");
@@ -1807,7 +1821,7 @@ function renderDevices(devices, data = state.data) {
   );
   const list = $("resourceInventorySections");
   renderDeviceFilterSummary(total, visibleTotal);
-  setText("inventoryTitle", "전체 디바이스");
+  setText("inventoryTitle", "노드 목록");
   setText(
     "assetCount",
     `${visibleTotal}개 · Available ${available}개`,
@@ -1815,7 +1829,7 @@ function renderDevices(devices, data = state.data) {
   const topology = $("sensorTopologyPanel");
   if (topology) topology.hidden = false;
   if (!list) return;
-  list.innerHTML = inventories.map((inventory) => renderResourceInventorySection({
+  const renderInventory = (inventory) => renderResourceInventorySection({
     ...inventory,
     selectedResourceId: inventory.category === "sensor"
       ? state.selectedDeviceName
@@ -1827,8 +1841,16 @@ function renderDevices(devices, data = state.data) {
       dashboardData,
       inventory.category,
     ),
-    filtered: Boolean(state.selectedNodeName),
-  })).join("");
+    filtered: inventory.category !== "sensor" && Boolean(state.selectedNodeName),
+  });
+  list.innerHTML = inventories.filter((inventory) => inventory.category !== "sensor").map(renderInventory).join("");
+  const nodeInventories = inventories.filter((inventory) => inventory.category !== "sensor");
+  setText("assetCount", `${nodeInventories.reduce((sum, inventory) => sum + inventory.visibleItems.length, 0)}개 노드`);
+  const sensors = inventories.find((inventory) => inventory.category === "sensor");
+  if ($("sensorInventorySections") && sensors) {
+    $("sensorInventorySections").innerHTML = renderInventory({...sensors, visibleItems: sensors.items});
+    setText("registeredDevicesCount", deviceObservationUnavailable(dashboardData) ? "관측 불가" : `${sensors.items.length}개 등록`);
+  }
 }
 
 function renderResourceProfiles(resourceState, kpis) {
@@ -2177,6 +2199,9 @@ function isContextDetailPanelOpen(documentRef = document) {
 
 function resolveContextDetailTrigger(documentRef = document) {
   if (contextDetailTrigger?.isConnected) return contextDetailTrigger;
+  const workspaceDevice = contextDetailTrigger?.dataset?.workspaceDevice;
+  if (workspaceDevice) return Array.from(documentRef.querySelectorAll?.("[data-workspace-device]") || [])
+    .find((item) => item.dataset.workspaceDevice === workspaceDevice && item.getClientRects().length) || null;
   const type = contextDetailTrigger?.dataset?.explainType;
   const deviceName = contextDetailTrigger?.dataset?.deviceName;
   const resourceId = contextDetailTrigger?.dataset?.resourceId;
@@ -2207,7 +2232,6 @@ function closeContextDetailPanel(
   const panel = documentRef.getElementById("contextDetailPanel");
   const backdrop = documentRef.getElementById("contextDetailBackdrop");
   if (!panel || panel.hidden) return false;
-  const restoreTarget = resolveContextDetailTrigger(documentRef);
   panel.hidden = true;
   panel.setAttribute("aria-hidden", "true");
   if (backdrop) backdrop.hidden = true;
@@ -2218,6 +2242,7 @@ function closeContextDetailPanel(
   state.selectedResourceId = null;
   renderDevices(state.data?.devices || [], state.data);
   markSelectedExplain(null, documentRef);
+  const restoreTarget = resolveContextDetailTrigger(documentRef);
   if (restoreFocus && restoreTarget?.isConnected) {
     restoreTarget.focus?.({preventScroll: true});
   }
@@ -2294,6 +2319,17 @@ function handleExplainSelection(target) {
 
 if (typeof document !== "undefined") {
   document.addEventListener("click", (event) => {
+    const observedDevice = event.target.closest?.("[data-workspace-device]");
+    if (observedDevice) {
+      const device = state.data?.devices?.find((item) => item.name === observedDevice.dataset.workspaceDevice);
+      if (device) {
+        void loadDeviceTelemetryHistory(device);
+      } else if ($("explainPanel")) {
+        $("explainPanel").innerHTML = '<p class="empty">이 디바이스의 상세 관측을 아직 확인할 수 없습니다. 새로고침 후 다시 확인하세요.</p>';
+      }
+      openContextDetailPanel(observedDevice);
+      return;
+    }
     const categoryTarget = event.target.closest?.("[data-resource-category]");
     if (categoryTarget) {
       selectResourceCategory(categoryTarget.dataset.resourceCategory);
@@ -2302,12 +2338,13 @@ if (typeof document !== "undefined") {
     const categoryLink = event.target.closest?.("[data-resource-category-link]");
     if (categoryLink) {
       const category = categoryLink.dataset.resourceCategoryLink;
+      const page = category === "sensor" ? "connections" : "nodes";
       selectResourceCategory(category);
       if (typeof globalThis.showDashboardPage === "function") {
-        globalThis.showDashboardPage("inventory");
+        globalThis.showDashboardPage(page);
       }
-      if (globalThis.location && globalThis.location.hash !== "#inventory") {
-        globalThis.location.hash = "inventory";
+      if (globalThis.location && globalThis.location.hash !== `#${page}`) {
+        globalThis.location.hash = page;
       }
       globalThis.requestAnimationFrame?.(() => {
         scrollResourceCategoryIntoView(category);
@@ -2319,6 +2356,17 @@ if (typeof document !== "undefined") {
     handleExplainSelection(event.target);
   });
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Tab" && isContextDetailPanelOpen()) {
+      const focusable = Array.from($("contextDetailPanel").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], summary, [tabindex="0"]'))
+        .filter((element) => element.getClientRects().length);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !$("contextDetailPanel").contains(document.activeElement))) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first?.focus();
+      }
+    }
     if (event.key === "Escape" && closeContextDetailPanel()) {
       event.preventDefault();
       return;

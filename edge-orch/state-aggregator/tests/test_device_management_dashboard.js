@@ -1928,7 +1928,7 @@ test("dashboard ships an accessible token-free device management page", () => {
   assert.doesNotMatch(html, /dashboardViewModeToggle/);
   assert.doesNotMatch(html, /simple-mode\.css/);
   assert.match(html, /dashboard-responsive\.css\?v=mobile-menu-flow-20260813/);
-  assert.match(html, /operations-dashboard\.css\?v=unified-device-inventory-v2-20260804/);
+  assert.match(html, /operations-dashboard\.css\?v=workspace-20260907/);
   assert.match(html, /device-management\.css\?v=web-connection-flow-20260730/);
   assert.match(html, /device-management\.js\?v=web-connection-flow-20260730/);
   assert.match(html, /class="metric-details"/);

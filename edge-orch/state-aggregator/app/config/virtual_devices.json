@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "apiVersion": "augmentation.edge-ai.io/v1alpha1",
+      "kind": "AugmentationResource",
+      "metadata": {
+        "name": "vd-demo-001"
+      },
+      "spec": {
+        "displayName": "CPU Iris 분류 시험 디바이스",
+        "resourceType": "cpu",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-ser0002-cgnmsb"
+        },
+        "stageTypes": [
+          "ai_inference"
+        ],
+        "capabilities": [
+          "iris_classification"
+        ],
+        "runtimeRef": {
+          "namespace": "virtual-device-test",
+          "workloadRef": {
+            "kind": "Deployment",
+            "name": "vd-demo-001"
+          },
+          "podSelector": {
+            "edge-ai.io/virtual-device-id": "vd-demo-001"
+          },
+          "port": 8080
+        },
+        "model": {
+          "id": "iris-centroid",
+          "version": "1.0.0"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "apiVersion": "augmentation.edge-ai.io/v1alpha1",
+      "kind": "DeviceAugmentation",
+      "metadata": {
+        "name": "jetson-vd-demo"
+      },
+      "spec": {
+        "targetDevice": {
+          "kind": "EdgeNode",
+          "name": "etri-dev0001-jetorn"
+        },
+        "bindings": {
+          "inferenceResource": "vd-demo-001"
+        },
+        "workloadPolicy": {
+          "mode": "manual_test",
+          "automaticOffloading": false,
+          "runtimeMigration": false
+        }
+      }
+    }
+  ]
+}

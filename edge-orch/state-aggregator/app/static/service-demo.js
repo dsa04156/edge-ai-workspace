@@ -841,6 +841,23 @@ if (typeof module !== "undefined") {
 
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("click", (event) => {
+      const trigger = event.target?.closest?.("[data-workspace-service]");
+      if (!trigger) return;
+      globalThis.showDashboardPage?.("operations");
+      window.location.hash = "operations";
+      const selected = serviceInventoryById.get(trigger.dataset.workspaceService);
+      if (selected) applyServiceDescriptor(selected);
+      const catalogButton = Array.from(document.querySelectorAll("#serviceCatalogList [data-service-id]"))
+        .find((button) => button.dataset.serviceId === trigger.dataset.workspaceService);
+      if (catalogButton) {
+        catalogButton.focus({preventScroll: true});
+        catalogButton.scrollIntoView({block: "center"});
+      }
+      if (typeof globalThis.selectRuntimeService === "function") {
+        globalThis.selectRuntimeService(trigger.dataset.workspaceService).catch(() => undefined);
+      }
+    });
     document.getElementById("serviceCatalogList")?.addEventListener("click", (event) => {
       const trigger = event.target?.closest?.("[data-service-id]");
       const selected = trigger ? serviceInventoryById.get(trigger.dataset.serviceId) : null;
