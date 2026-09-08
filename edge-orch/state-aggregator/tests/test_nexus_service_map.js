@@ -46,3 +46,8 @@ test("service scoping isolates same-name workloads, shared endpoints and exact i
  assert.deepEqual(M.serviceDevices({device_service:"serial",physical_source:"another"},devices),[]);
  assert.deepEqual(M.serviceDevices({design_contract:{inputs:[{device_name:"vibration"}]}},devices),[devices[1]]);
 });
+
+test('physical source fanout keeps identity and ambiguous node mappings unassigned',()=>{
+ const devices=[{name:'temperature',physical_device_id:'sensor-a',node_name:'edge-a'},{name:'vibration',physical_device_id:'sensor-a',node_name:'edge-a'},{name:'unknown-identity',node_name:'edge-a'},{name:'unassigned',physical_device_id:'sensor-b'},{name:'conflicting',physical_device_id:'sensor-a',node_name:'edge-b'}];
+ const groups=M.sourceGroups(devices);assert.equal(groups.length,2);assert.deepEqual(groups[0].nodes,['edge-a','edge-b']);assert.equal(groups[0].devices.length,3);assert.deepEqual(groups[1].nodes,[]);
+});
