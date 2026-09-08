@@ -51,3 +51,13 @@ Aggregator 코드는 기존 GitOps 배포 경로로 반영한다.
 배포 이미지의 ARM64 manifest를 확인해 `python:3.11-slim@sha256:6c5ae9d998f4cc06f892f428d7af53a566c24ad0dc29fa572696b647cf2762a7`로 고정했다.
 내부 registry에도 동일 digest를 보관했지만 AGX의 HTTP registry 미허용 정책을
 변경하지 않고 공식 HTTPS registry를 사용한다. exporter Python 의존성 설치는 없다.
+
+## 설치 검증 결과 (2026-09-08 15:19 KST)
+
+- Nano/AGX exporter 각각 1/1 Ready, restart 0. Prometheus 두 target up=1.
+- 두 `/metrics`의 collector_success=1, 유휴 GPU ratio=0.0을 확인했다.
+- `/api/resources`의 두 Jetson gpuRatio=0.0과 원 관측 시각을 확인했다.
+  서버 두 대의 기존 DCGM gpuRatio도 유지된다.
+- 대시보드 API 배포 f3a8d9e8, Argo Synced/Healthy.
+- exporter 단위시험 2개, aggregator Prometheus/resource 회귀 11개 통과.
+- 이는 수집 설치·유휴 측정 확인이며 GPU 부하 성능 시험 또는 소비전력 검증이 아니다.
