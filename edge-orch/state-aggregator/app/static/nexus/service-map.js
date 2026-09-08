@@ -72,7 +72,7 @@ function advance(before,after,now=Date.now()){
 const entries=Object.fromEntries(Object.keys(paths).map(k=>[k,{data:null,error:null,receivedAt:0}]));
 let serviceSelection=null,viewMode='graph',graphZoom=1,graphScroll={left:0,top:0};
 let pending=null,selected=null,contextService=null,scope='linked',showEmpty=false,example=false,step=0,playing=false,lastExampleTick=0;
-const disclosures=new Set();
+const disclosures=new Set();let watchedService=null,highlightResults=true;const observationLog=[];let observationPrevious=new Map();const graphFlashes=new Map();
 let previous=null,events=[],pulseUntil=0,changedUntil=new Map(),lastCycle=0,installed=false;
 const scenarios=[
  {title:'현장에서 처리',note:'예시 엣지 A가 수집·전처리·추론·저장을 수행합니다.',mode:'LOCAL',node:'예시 엣지 A'},
@@ -85,7 +85,7 @@ function sample(){
  const svc={service_id:'example-anomaly',display_name:'예시 이상감지 서비스',mode:'live',status:'healthy',input_state:'fresh',model_state:'ready',model_version:'example-model',physical_source:'예시 센서',input_devices:['example-input'],execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'},descriptor:{workload:{namespace:'example',name:'edge-analysis'},runtime_offloading:{target_workload:{namespace:'example',name:'server-inference'}},augmentation_qualification:{status:'example'}}};
  const profiles=[{namespace:'example',service:'edge-analysis',nodes:[x.node],pods_by_node:{[x.node]:1},pod_count:1,ready_pod_count:1,current_usage:{}},{namespace:'example',service:'server-inference',nodes:['예시 서버'],pods_by_node:{'예시 서버':1},pod_count:1,ready_pod_count:step===2?0:1,current_usage:{}}];
  const resources=['예시 엣지 A','예시 엣지 B','예시 서버'].map(node=>({node,nodeType:node==='예시 서버'?'cloud_server':'edge_device',health:'healthy',utilization:{}}));
- const demo={mode:'live',input_state:'fresh',model_state:'ready',execution_ownership:svc.execution_ownership,inference_routing:{inference_mode:x.mode,observed_at:now,source_node:x.node,remote_node:'예시 서버'},latest:{observed_at:now,source_node:x.node,remote_node:'예시 서버'},performance:{metrics_valid:false}};
+ const demo={mode:'live',input_state:'fresh',model_state:'ready',execution_ownership:svc.execution_ownership,inference_routing:{inference_mode:x.mode,observed_at:now,source_node:x.node,remote_node:'예시 서버'},latest:{observed_at:now,source_node:x.node,remote_node:'예시 서버',execution_mode:x.mode==='REMOTE'?'remote':'local',model_version:'example-model'},performance:{metrics_valid:false}};
  return {profiles,services:[svc],resources,devices:[{name:'example-input',physical_device_id:'예시 센서',node_name:x.node,device_service_name:'example-collector'}],demo,valid:{profiles:true,services:true,resources:true,devices:true,demo:true}};
 }
 function data(){if(example)return sample();return {profiles:entries.profiles.data?.service_resource_profiles||[],services:entries.services.data?.services||[],resources:entries.resources.data||[],devices:entries.devices.data||[],demo:entries.demo.data,valid:Object.fromEntries(Object.entries(entries).map(([k,e])=>[k,fresh(e)&&(!['profiles','services'].includes(k)||recent(e.data?.generated_at))]))};}
@@ -104,7 +104,7 @@ async function refresh(){
   }
   if(k==='demo'&&fresh(entry,now)&&advance(entry.data,d,now))pulseUntil=now+2400;
   entry.data=d;entry.error=null;entry.receivedAt=now;
- }catch(error){entry.error=error.name==='AbortError'?'요청 시간 초과':error.message;}finally{clearTimeout(timer);}})).finally(()=>{pending=null;lastCycle=Date.now();paint();});
+ }catch(error){entry.error=error.name==='AbortError'?'요청 시간 초과':error.message;}finally{clearTimeout(timer);}})).finally(()=>{pending=null;lastCycle=Date.now();observeRuntime();paint();});
  paint();return pending;
 }
 const nodeTitle=n=>({'etri-dev0001-jetorn':'Jetson 01','etri-dev0002-raspi5':'Raspberry Pi 02','etri-dev0003-raspi5':'Raspberry Pi 03','etri-dev0004-tedger':'Tinker Edge R','etri-dev0005-jetagx':'Jetson AGX','etri-ser0001-cg0msb':'서버 01','etri-ser0002-cgnmsb':'서버 02'}[n]||n);
@@ -157,6 +157,48 @@ function graphModel(d,services,visible,profiles,allSources=false){
  }
  return {nodes,edges};
 }
+function runtimeObservation(s,d,now=Date.now()){
+ const valid=Boolean(d.valid.services&&s.mode==='live'&&!s.observation_error);
+ const ds=s.service_id==='sensor-anomaly-demo'||example&&s.service_id==='example-anomaly'?d.demo:null;
+ const r=routeState(ds,d.valid.demo,now),owner=s.execution_ownership;
+ const ownerValid=!owner?.enabled||(owner.lease_valid===true&&owner.effective_mode==='ACTIVE');
+ const w=s.descriptor?.workload,p=d.profiles.find(x=>key(x)===w?.namespace+'/'+w?.name);
+ const profileValid=Boolean(d.valid.profiles&&p&&(!p.generated_at||recent(p.generated_at,now)));
+ const latest=ds?.latest,resultAt=latest?.observed_at||s.latest_observed_at;
+ const path=ds?.inference_routing,executionMode=String(latest?.execution_mode||'').toUpperCase();
+ const routeMatches=r.mode==='REMOTE'?executionMode==='REMOTE'&&latest?.remote_node===path?.remote_node:['LOCAL','LOCAL_FALLBACK'].includes(executionMode);
+ const modelMatches=!s.model_version||latest?.model_version===s.model_version;
+ const endpoints=Boolean(path?.source_node&&latest?.source_node===path.source_node&&p?.nodes.includes(path.source_node));
+ const target=s.descriptor?.runtime_offloading?.target_workload,targetProfile=d.profiles.find(x=>key(x)===target?.namespace+'/'+target?.name);
+ const remoteMatches=r.mode!=='REMOTE'||Boolean(path?.remote_node&&targetProfile?.nodes.includes(path.remote_node));
+ const confirmed=Boolean(valid&&profileValid&&ownerValid&&r.canFlow&&recent(resultAt,now)&&routeMatches&&modelMatches&&endpoints&&remoteMatches);
+ let text='처리 관측 확인 불가',reason='현재 서비스 실행 관측을 확인할 수 없습니다.',tone='unknown';
+ if(valid){if(!ownerValid){text='대기 · 실행 권한 없음';reason='실행 권한이 만료됐거나 활성 소유자가 아닙니다.';tone='warn';}
+ else if(s.input_state!=='fresh'){text='입력 대기';reason='서비스 입력이 최신 상태가 아닙니다.';tone='warn';}
+ else if(s.model_state!=='ready'){text='모델 준비 중';reason='추론 모델 준비가 확인되지 않았습니다.';tone='warn';}
+ else if(confirmed){text='최근 처리 확인';reason=r.mode==='REMOTE'?'서버에서 처리한 최신 저장 결과를 확인했습니다.':'현장에서 처리한 최신 저장 결과를 확인했습니다.';tone='ok';}
+ else {text='새 처리 결과 미확인';reason='준비 상태와 실제 처리 결과를 구분해 관측합니다.';}}
+ const perf=confirmed&&d.valid.demo&&ds?.performance?.metrics_valid?ds.performance:null;
+ return {id:s.service_id,name:s.display_name,valid,observationValid:Boolean(valid&&d.valid.demo&&profileValid),atTime:now,confirmed,text,reason,tone,resultAt,mode:r.canFlow&&ownerValid?r.mode:'UNKNOWN',source:path?.source_node,remote:path?.remote_node,running:profileValid?p.pod_count:null,ready:profileValid?p.ready_pod_count:null,latency:perf?.processing_latency_p95_ms,rate:perf?.throughput_per_second};
+}
+function runtimeChanges(before,after){
+ if(!before?.valid||!after.valid||!before.observationValid||!after.observationValid||after.atTime-before.atTime>=90000)return [];
+ const changes=[];if(after.confirmed&&Date.parse(after.resultAt)>Date.parse(before.resultAt))changes.push({kind:'result',text:'새 처리 결과 관측',at:after.resultAt});
+ if(before.text!==after.text)changes.push({kind:'state',text:before.text+' → '+after.text});
+ if(before.mode!==after.mode&&after.mode!=='UNKNOWN')changes.push({kind:'route',text:'추론 경로 관측: '+after.mode});
+ return changes;
+}
+function observeRuntime(){
+ if(example)return;const d=data(),next=new Map();
+ for(const s of d.services){const o=runtimeObservation(s,d);next.set(s.service_id,o);for(const change of runtimeChanges(observationPrevious.get(s.service_id),o)){observationLog.unshift({...change,id:s.service_id,name:s.display_name,time:Date.now()});if(change.kind==='result')graphFlashes.set(s.service_id,{until:Date.now()+2200,at:o.resultAt});}}
+ observationPrevious=next;observationLog.splice(18);
+}
+function runtimePanel(d,services){
+ const picked=services.find(s=>s.service_id===watchedService)||services[0];if(!picked)return '';
+ const current=runtimeObservation(picked,d),logs=example?[]:observationLog.filter(e=>e.id===picked.service_id);
+ return `<section class="sm-live-panel" aria-label="현재 실행 관측"><header><div><h2>현재 실행 관측</h2><p>${example?'설명용 예시 데이터':'15초 간격 관측 · 새 결과가 확인될 때만 경로 강조'}</p></div><button class="button" id="sm-highlight" data-sm-action="highlight" aria-pressed="${highlightResults}">결과 강조 ${highlightResults?'켜짐':'꺼짐'}</button></header><div class="sm-live-services">${services.map(s=>{const o=runtimeObservation(s,d);return `<button data-sm-watch="${E(s.service_id)}" aria-pressed="${picked.service_id===s.service_id}"><strong>${E(s.display_name)}</strong>${pill(o.text,o.tone)}<span>실행체 ${o.running??'—'} · 준비 ${o.ready??'—'}</span></button>`;}).join('')}</div><div class="sm-live-current"><p role="status"><strong>${E(current.text)}</strong> ${E(current.reason)}</p><dl><div><dt>마지막 저장 결과</dt><dd>${current.resultAt?E(new Date(current.resultAt).toLocaleString('ko-KR')):'관측 없음'}</dd></div><div><dt>유효한 추론 경로</dt><dd>${E(current.mode==='REMOTE'?'서버 추론':current.mode==='LOCAL_FALLBACK'?'로컬 복귀':current.mode==='LOCAL'?'로컬 추론':'처리 경로 미확인')}</dd></div><div><dt>지연 p95 / 처리량</dt><dd>${num(current.latency)} ms / ${num(current.rate)} 건/s</dd></div></dl></div><details class="sm-live-log" data-sm-disclosure="runtime-log" ${disclosures.has('runtime-log')?'open':''}><summary>최근 실행 관측 <span>${logs.length}건 · 이 화면을 연 이후</span></summary>${logs.length?`<ol>${logs.slice(0,8).map(e=>`<li><time>${E(clock(e.time))}</time><span>${E(e.text)}</span></li>`).join('')}</ol>`:'<p>새로 관측된 변화가 없습니다. 첫 조회와 과거 저장 결과는 새 처리 이벤트로 만들지 않습니다.</p>'}</details></section>`;
+}
+function flashDelay(id){return example||!graphFlashes.has(id)?'0s':Math.min(0,((graphFlashes.get(id)?.until||0)-Date.now()-2200)/1000)+'s';}
 function graphPanel(d,services,visible,profiles,links){
  const m=graphModel(d,services,visible,profiles,!example&&serviceSelection==='*'),columns=['source','edge','server'],positions=new Map();
  const cardWidth=240,gapY=280;
@@ -166,11 +208,11 @@ function graphPanel(d,services,visible,profiles,links){
  const canvasWidth=1120;
  const edgePaths=m.edges.map((e,i)=>{const a=positions.get(e.from),b=positions.get(e.to);if(!a||!b)return '';const forward=b.x>a.x,offset=e.kind==='response'?30:0,x1=a.x+(forward?cardWidth:0),x2=b.x+(forward?0:cardWidth),y1=a.y+82+offset,y2=b.y+82+offset;
  const dx=Math.max(60,Math.abs(x2-x1)/2),path=a.x===b.x?`M ${a.x+cardWidth} ${y1} C ${a.x+cardWidth+120} ${y1}, ${b.x+cardWidth+120} ${y2}, ${b.x+cardWidth} ${y2}`:`M ${x1} ${y1} C ${x1+(forward?dx:-dx)} ${y1}, ${x2+(forward?-dx:dx)} ${y2}, ${x2} ${y2}`;
- const mode=e.active?'active':e.fallback?'fallback':'configured';
- return `<g class="sm-graph-edge ${mode}" data-graph-edge="${E(e.kind)}"><title>${E(e.service?.display_name||'물리 입력')} · ${E(e.text)}</title><path d="${path}" marker-end="url(#sm-arrow-${mode})"/><text x="${a.x===b.x?a.x+cardWidth+90:(x1+x2)/2}" y="${(y1+y2)/2-8}" text-anchor="middle">${E(e.kind==='input'?'수집 연결':e.kind==='request'?'추론 요청 →':'← 결과 반환')}</text></g>`;}).join('');
- const items=m.nodes.map(n=>{const p=positions.get(n.id);return `<article class="sm-graph-node ${n.kind}" style="left:${p.x}px;top:${p.y}px;width:${cardWidth}px"><small>${E(n.kind==='source'?'물리 입력 장비':n.kind==='server'?'추론·공용 서버':'현장 엣지')}</small><h3>${E(n.title)}</h3>${n.kind==='source'?`<span>${d.valid.devices?'EdgeX 등록 기능 '+n.group.devices.length+'개':'장비 관측 확인 불가'}</span>${n.group.nodes.length!==1?'<span>연결 노드 확인 필요</span>':''}${services.filter(s=>serviceDevices(s,n.group.devices).length).map(s=>`<button data-sm-service="${E(s.service_id)}" ${example?'disabled':''}>${E(s.display_name)} ↗</button>`).join('')}`:`<span>${E(d.valid.resources?label(n.resource.health):'노드 관측 확인 불가')} · ${d.valid.profiles?n.profiles.length:'—'}개 워크로드</span>${n.profiles.slice(0,2).map(w=>`<button data-sm-select="${E(key(w))}" data-sm-node="${E(n.resource.node)}" aria-pressed="${selected===key(w)}">${E(cardTitle(w,links.get(key(w))))} ↗</button>`).join('')}${n.profiles.length>2?`<small>외 ${n.profiles.length-2}개 · 장비 카드에서 확인</small>`:''}`}</article>`;}).join('');
+ const mode=e.active?'active':e.fallback?'fallback':'configured';const o=e.service?runtimeObservation(e.service,d):null;const flash=highlightResults&&o?.confirmed&&(example||graphFlashes.get(e.service.service_id)?.until>Date.now());
+ return `<g class="sm-graph-edge ${mode} ${flash?'result-flash':''} ${watchedService&&e.service?.service_id===watchedService?'watched':''}" data-graph-edge="${E(e.kind)}" style="--sm-flash-delay:${flashDelay(e.service?.service_id)}"><title>${E(e.service?.display_name||'물리 입력')} · ${E(e.text)}</title><path d="${path}" marker-end="url(#sm-arrow-${mode})"/><text x="${a.x===b.x?a.x+cardWidth+90:(x1+x2)/2}" y="${(y1+y2)/2-8}" text-anchor="middle">${E(e.kind==='input'?'수집 연결':e.kind==='request'?'추론 요청 →':'← 결과 반환')}</text></g>`;}).join('');
+ const items=m.nodes.map(n=>{const p=positions.get(n.id),flashing=services.find(s=>{const o=runtimeObservation(s,d);return highlightResults&&o.confirmed&&o.source===n.resource?.node&&(example||graphFlashes.get(s.service_id)?.until>Date.now());});return `<article class="sm-graph-node ${n.kind} ${flashing?'result-flash':''}" style="left:${p.x}px;top:${p.y}px;width:${cardWidth}px;--sm-flash-delay:${flashDelay(flashing?.service_id)}"><small>${E(n.kind==='source'?'물리 입력 장비':n.kind==='server'?'추론·공용 서버':'현장 엣지')}</small><h3>${E(n.title)}</h3>${n.kind==='source'?`<span>${d.valid.devices?'EdgeX 등록 기능 '+n.group.devices.length+'개':'장비 관측 확인 불가'}</span>${n.group.nodes.length!==1?'<span>연결 노드 확인 필요</span>':''}${services.filter(s=>serviceDevices(s,n.group.devices).length).map(s=>`<button data-sm-service="${E(s.service_id)}" ${example?'disabled':''}>${E(s.display_name)} ↗</button>`).join('')}`:`<span>${E(d.valid.resources?label(n.resource.health):'노드 관측 확인 불가')} · ${d.valid.profiles?n.profiles.length:'—'}개 워크로드</span>${n.profiles.slice(0,2).map(w=>`<button data-sm-select="${E(key(w))}" data-sm-node="${E(n.resource.node)}" aria-pressed="${selected===key(w)}">${E(cardTitle(w,links.get(key(w))))} ↗</button>`).join('')}${n.profiles.length>2?`<small>외 ${n.profiles.length-2}개 · 장비 카드에서 확인</small>`:''}`}</article>`;}).join('');
  const routes=m.edges.filter(e=>e.kind==='request');
- return `<section class="sm-graph" aria-label="장비 연결과 오프로딩 그래프"><header><div><h2>장비 연결 · 오프로딩</h2><p>입력 장비 → 현장 처리 → 서버 추론</p></div><div class="sm-graph-zoom"><button class="button" id="sm-zoom-out" data-sm-zoom="-1" aria-label="그래프 축소" ${graphZoom<=.5?'disabled':''}>−</button><button class="button" id="sm-zoom-reset" data-sm-zoom="0">${Math.round(graphZoom*100)}%</button><button class="button" id="sm-zoom-in" data-sm-zoom="1" aria-label="그래프 확대" ${graphZoom>=1.5?'disabled':''}>+</button></div></header><div class="sm-graph-key"><span class="active">실선: 원격 경로 관측</span><span>점선: 등록·설정 연결</span><span class="fallback">주황 점선: 로컬 복귀</span></div><div class="sm-graph-scroll" tabindex="0" role="region" aria-label="연결 그래프, 가로·세로 스크롤 가능"><div style="width:${canvasWidth*graphZoom}px;height:${height*graphZoom}px"><div class="sm-graph-stage" style="width:${canvasWidth}px;height:${height}px;transform:scale(${graphZoom})"><svg width="${canvasWidth}" height="${height}" aria-hidden="true"><defs>${['active','configured','fallback'].map(mode=>`<marker id="sm-arrow-${mode}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker>`).join('')}</defs>${edgePaths}</svg>${columns.map((k,i)=>`<span class="sm-graph-column" style="left:${20+i*420}px">${['입력 장비','현장 엣지','서버'][i]}</span>`).join('')}${items}</div></div></div><div class="sm-graph-routes">${routes.map(e=>`<div class="${e.active?'active':e.fallback?'fallback':''}"><button class="text-button" data-sm-service="${E(e.service.service_id)}" ${example?'disabled':''}>${E(e.service.display_name)} ↗</button><span>${E(nodeTitle(e.from.slice(5)))} → ${E(nodeTitle(e.to.slice(5)))}</span><strong>${E(e.text)}</strong></div>`).join('')||'<p class="sm-caption">표시할 서버 연결 위치가 없습니다. 실행체 배치와 서비스 계약을 확인하세요.</p>'}</div><p class="sm-caption">화살표는 요청·결과 방향이며 패킷량이나 전송 속도가 아닙니다. 점선만으로 실행·통신 성공을 판단하지 않습니다.</p></section>`;
+ return `${runtimePanel(d,services)}<section class="sm-graph" aria-label="장비 연결과 오프로딩 그래프"><header><div><h2>장비 연결 · 오프로딩</h2><p>입력 장비 → 현장 처리 → 서버 추론</p></div><div class="sm-graph-zoom"><button class="button" id="sm-zoom-out" data-sm-zoom="-1" aria-label="그래프 축소" ${graphZoom<=.5?'disabled':''}>−</button><button class="button" id="sm-zoom-reset" data-sm-zoom="0">${Math.round(graphZoom*100)}%</button><button class="button" id="sm-zoom-in" data-sm-zoom="1" aria-label="그래프 확대" ${graphZoom>=1.5?'disabled':''}>+</button></div></header><div class="sm-graph-key"><span class="active">실선: 원격 경로 관측</span><span>점선: 등록·설정 연결</span><span class="fallback">주황 점선: 로컬 복귀</span></div><div class="sm-graph-scroll" tabindex="0" role="region" aria-label="연결 그래프, 가로·세로 스크롤 가능"><div style="width:${canvasWidth*graphZoom}px;height:${height*graphZoom}px"><div class="sm-graph-stage" style="width:${canvasWidth}px;height:${height}px;transform:scale(${graphZoom})"><svg width="${canvasWidth}" height="${height}" aria-hidden="true"><defs>${['active','configured','fallback'].map(mode=>`<marker id="sm-arrow-${mode}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker>`).join('')}</defs>${edgePaths}</svg>${columns.map((k,i)=>`<span class="sm-graph-column" style="left:${20+i*420}px">${['입력 장비','현장 엣지','서버'][i]}</span>`).join('')}${items}</div></div></div><div class="sm-graph-routes">${routes.map(e=>`<div class="${e.active?'active':e.fallback?'fallback':''}"><button class="text-button" data-sm-service="${E(e.service.service_id)}" ${example?'disabled':''}>${E(e.service.display_name)} ↗</button><span>${E(nodeTitle(e.from.slice(5)))} → ${E(nodeTitle(e.to.slice(5)))}</span><strong>${E(e.text)}</strong></div>`).join('')||'<p class="sm-caption">표시할 서버 연결 위치가 없습니다. 실행체 배치와 서비스 계약을 확인하세요.</p>'}</div><p class="sm-caption">화살표는 요청·결과 방향이며 패킷량이나 전송 속도가 아닙니다. 점선만으로 실행·통신 성공을 판단하지 않습니다.</p></section>`;
 }
 function details(p,a,d,active){
  if(!p&&active)return '<section class="sm-detail"><p class="sm-caption">서비스는 등록되어 있지만 연결된 Running 실행체가 현재 관측되지 않습니다.</p></section>';
@@ -236,6 +278,7 @@ function install(){if(installed)return;installed=true;
  root.document.addEventListener('scroll',e=>{if(e.target.matches?.('.sm-graph-scroll'))graphScroll={left:e.target.scrollLeft,top:e.target.scrollTop};},true);
  root.document.addEventListener('toggle',e=>{if(e.target.isConnected&&e.target.dataset?.smDisclosure){const k=e.target.dataset.smDisclosure;if(e.target.open)disclosures.add(k);else disclosures.delete(k);}},true);
  root.document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!b.closest('#service-placement-map'))return;
+  if(b.dataset.smWatch){watchedService=b.dataset.smWatch;const d=data(),svc=d.services.find(s=>s.service_id===watchedService),w=svc?.descriptor?.workload;selected=w?w.namespace+'/'+w.name:null;contextService=watchedService;paint();}
   if(b.dataset.smService){chooseService(b.dataset.smService);}
   if(b.hasAttribute('data-sm-back'))chooseService(null);
   if(b.hasAttribute('data-sm-overview'))chooseService('*');
@@ -244,7 +287,8 @@ function install(){if(installed)return;installed=true;
   if(b.dataset.smZoom){graphZoom=b.dataset.smZoom==='0'?1:Math.max(.5,Math.min(1.5,graphZoom+Number(b.dataset.smZoom)*.25));paint();}
   if(b.dataset.smScope){scope=b.dataset.smScope;paint();}
   const action=b.dataset.smAction;if(action==='refresh')refresh();
-  if(action==='example'){example=!example;selected=null;step=0;playing=false;paint();if(!example)refresh();}
+  if(action==='highlight'){highlightResults=!highlightResults;paint();}
+  if(action==='example'){example=!example;selected=null;step=0;playing=false;watchedService=null;graphFlashes.clear();observationPrevious=new Map();paint();if(!example)refresh();}
   if(action==='next'){step=(step+1)%scenarios.length;lastExampleTick=Date.now();paint();}
   if(action==='play'){playing=!playing;lastExampleTick=Date.now();paint();}
  });
@@ -256,6 +300,6 @@ function install(){if(installed)return;installed=true;
  },1000);
 }
 function render(){if(root.document){install();syncSelection();root.queueMicrotask(()=>{paint();if(!example&&Date.now()-lastCycle>=15000)refresh();});}return '<section id="service-placement-map" class="service-map" aria-label="서비스 배치 지도"></section>';}
-const api={render,graphModel,graphRoute,sourceGroups,isOverview:()=>new URLSearchParams(root.location.search).get('workloads')==='all',openOverview:()=>chooseService('*'),openCatalog:()=>chooseService(null),serviceDevices,serviceKeys,scopedProfiles,validate,associations,placements,changes,execution,routeState,advance,fresh,recent,escape:E};
+const api={render,runtimeObservation,runtimeChanges,graphModel,graphRoute,sourceGroups,isOverview:()=>new URLSearchParams(root.location.search).get('workloads')==='all',openOverview:()=>chooseService('*'),openCatalog:()=>chooseService(null),serviceDevices,serviceKeys,scopedProfiles,validate,associations,placements,changes,execution,routeState,advance,fresh,recent,escape:E};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NexusServiceMap=api;
 })(typeof window!=='undefined'?window:globalThis);

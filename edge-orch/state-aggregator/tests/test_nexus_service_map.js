@@ -72,3 +72,15 @@ test('graph keeps idle nodes, separates source fanout and isolates selected-serv
  assert.equal(all.nodes.length,5);assert.equal(scoped.nodes.some(n=>n.id==='source:sensor-b'),false);
  assert.deepEqual(all.edges.filter(e=>e.kind!=='input').map(e=>[e.from,e.to]),[['node:edge','node:server'],['node:server','node:edge']]);assert.equal(all.edges.some(e=>e.active),false);
 });
+
+test('interactive execution distinguishes Ready pods from actual results and never replays first or repeated results',()=>{
+ const now=Date.now(),at=n=>new Date(n).toISOString();
+ const s={service_id:'sensor-anomaly-demo',display_name:'service',mode:'live',model_version:'v1',input_state:'fresh',model_state:'ready',execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'},descriptor:{workload:{namespace:'prod',name:'main'},runtime_offloading:{target_workload:{namespace:'prod',name:'remote'}}}};
+ const d={valid:{services:true,profiles:true,demo:true},profiles:[{namespace:'prod',service:'main',nodes:['edge'],pod_count:1,ready_pod_count:1},{namespace:'prod',service:'remote',nodes:['server']}],demo:{mode:'live',input_state:'fresh',model_state:'ready',execution_ownership:s.execution_ownership,inference_routing:{inference_mode:'REMOTE',observed_at:at(now),source_node:'edge',remote_node:'server'},latest:{observed_at:at(now-1000),source_node:'edge',remote_node:'server',execution_mode:'remote',model_version:'v1'}}};
+ const before=M.runtimeObservation(s,d,now),after=M.runtimeObservation(s,{...d,demo:{...d.demo,latest:{...d.demo.latest,observed_at:at(now)}}},now+10);
+ assert.equal(before.confirmed,true);assert.deepEqual(M.runtimeChanges(null,after),[]);assert.deepEqual(M.runtimeChanges(after,after),[]);assert.equal(M.runtimeChanges(before,after).filter(e=>e.kind==='result').length,1);
+ const standby=M.runtimeObservation({...s,execution_ownership:{enabled:true,lease_valid:false}},d,now);assert.equal(standby.ready,1);assert.equal(standby.confirmed,false);assert.match(standby.text,/실행 권한 없음/);
+ for(const change of [{model_version:'wrong'},{remote_node:'wrong'},{source_node:null},{observed_at:at(now-200000)}])assert.equal(M.runtimeObservation(s,{...d,demo:{...d.demo,latest:{...d.demo.latest,...change}}},now).confirmed,false);
+ assert.deepEqual(M.runtimeChanges({...before,observationValid:false},after),[]);assert.deepEqual(M.runtimeChanges(before,{...after,atTime:now+120000}),[]);
+ assert.equal(M.runtimeObservation({...s,service_id:'another-service'},d,now).confirmed,false);
+});
