@@ -50,3 +50,10 @@ test('node panel separates Kubernetes Ready, metric health, missing GPU and stal
  assert.match(failed,/node-a/);assert.doesNotMatch(failed,/<b>Ready<\/b>/);assert.doesNotMatch(failed,/<b>0%<\/b>/);
  const stale=O.nodePanel(r,nodes,true,true,now+120000);assert.doesNotMatch(stale,/네트워크 높음/);
 });
+
+test('usage meters retain measured zero and omit meter values for missing or invalid samples',()=>{
+ assert.match(O.usageMeter('CPU',0,'node'),/aria-valuenow="0.0"/);
+ assert.match(O.usageMeter('CPU',.42,'node'),/width:42.0%/);
+ for(const value of [null,undefined,NaN,-1,2]){const html=O.usageMeter('GPU',value,'node');assert.match(html,/미관측/);assert.doesNotMatch(html,/aria-valuenow/);}
+ assert.match(O.usageMeter('CPU',.2,'<node>'),/&lt;node&gt;/);
+});
