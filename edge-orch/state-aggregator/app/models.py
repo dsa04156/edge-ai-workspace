@@ -146,6 +146,7 @@ class NodeResourceUtilization(SchedulingModel):
 
 class NodeSchedulingResource(SchedulingModel):
     node: str
+    kubernetes_ready: bool | None = None
     cpu_available: float = Field(ge=0)
     memory_available_gb: float = Field(
         ge=0,

@@ -85,6 +85,7 @@ def build_node_scheduling_resources(
         resources.append(
             NodeSchedulingResource(
                 node=snapshot.node,
+                kubernetes_ready=snapshot.ready,
                 cpu_available=available.cpu_cores,
                 memory_available_gb=round(available.memory_bytes / 1_000_000_000, 3),
                 accelerator=_accelerator_identity(snapshot),

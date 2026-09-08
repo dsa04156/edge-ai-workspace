@@ -39,3 +39,14 @@ test('stage locations describe workload observation without claiming AI executio
  const html=O.stageView({label:'추론',state:'STANDBY',stage_id:'inference',depends_on:[],evidence:'공유 지표',executors:[{state:'Observed',observed_nodes:['node-a'],configured_node:'node-b',pod_ready_count:1,workload:'svc',pods:['pod-a']}]});
  assert.match(html,/관측된 배포 노드/);assert.match(html,/AI 처리 상태와 별도/);assert.match(html,/AI 처리 중단/);assert.doesNotMatch(html,/실행 위치/);
 });
+
+test('node panel separates Kubernetes Ready, metric health, missing GPU and stale observations',()=>{
+ const now=Date.parse('2026-09-08T00:00:00Z');
+ const r=[{node:'node-a',kubernetesReady:true,reasonCodes:[]}];
+ const nodes=[{hostname:'node-a',collected_at:new Date(now).toISOString(),node_health:'degraded',network_pressure:'high',raw_metrics:{cpu_utilization:0,memory_usage_ratio:.2,up:1}}];
+ const html=O.nodePanel(r,nodes,true,true,now);
+ assert.match(html,/Ready/);assert.match(html,/네트워크 높음/);assert.match(html,/0%/);assert.match(html,/GPU 사용률<\/span><b>미관측/);
+ const failed=O.nodePanel(r,nodes,false,false,now);
+ assert.match(failed,/node-a/);assert.doesNotMatch(failed,/<b>Ready<\/b>/);assert.doesNotMatch(failed,/<b>0%<\/b>/);
+ const stale=O.nodePanel(r,nodes,true,true,now+120000);assert.doesNotMatch(stale,/네트워크 높음/);
+});

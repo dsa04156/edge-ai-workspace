@@ -113,6 +113,7 @@ def test_build_resource_pool_uses_allocatable_minus_non_terminal_pod_requests():
     assert resource.cpu_available == 5.5
     assert resource.memory_available_gb == 14.898
     assert resource.accelerator == "RTX5060Ti"
+    assert resource.kubernetes_ready is True
     assert resource.health == "healthy"
     assert resource.schedulable is True
     assert resource.reason_codes == ["ready"]
@@ -172,6 +173,7 @@ def test_resource_pool_fails_closed_for_not_ready_or_unobserved_nodes():
     )
     by_node = {resource.node: resource for resource in resources}
 
+    assert by_node["not-ready"].kubernetes_ready is False
     assert by_node["not-ready"].health == "unavailable"
     assert by_node["not-ready"].schedulable is False
     assert "node_not_ready" in by_node["not-ready"].reason_codes
