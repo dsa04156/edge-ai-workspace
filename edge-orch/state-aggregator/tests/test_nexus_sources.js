@@ -39,9 +39,31 @@ test('missing and failed twin observations remain unknown, distinct from a confi
 });
 test('source selection and untrusted identifiers render safely with no imaginary augmentation binding',()=>{
   const html=render({selected:'sensehat-001'});
-  assert.match(html,/id="source-detail-title">sensehat-001/);
-  assert.doesNotMatch(html,/id="source-detail-title">arduino-001/);
+  assert.match(html,/id="source-detail-title"[^>]*>sensehat-001/);
+  assert.doesNotMatch(html,/id="source-detail-title"[^>]*>arduino-001/);
   assert.match(html,/별도 시험/);
   const malicious=render({devices:[{name:'<img src=x onerror=alert(1)>',physical_device_id:'<script>evil</script>'}],twins:[]});
   assert.doesNotMatch(malicious,/<script>|<img/);assert.match(malicious,/&lt;script&gt;/);
+});
+test('physical virtual identity survives readings, runtime changes and function reordering',()=>{
+  const a=S.buildSources(devices,twins).sources[0];
+  const changed=S.buildSources([...devices].reverse().map(d=>({...d,node_name:'new-node',latest_readings:[{resource_name:'temperature',value:999}]})),twins).sources[0];
+  assert.deepEqual(S.virtualDevice(a),S.virtualDevice(changed));
+  const vd=S.virtualDevice(a);assert.equal(vd.id,'physical-vd:arduino-001');assert.equal(vd.physicalSourceId,'arduino-001');
+  assert.deepEqual(vd.serviceIds,['s1','s2']);assert.equal(vd.accessMode,'read-only');
+  assert.notEqual(S.virtualDevice({...a,id:'a/b'}).id,S.virtualDevice({...a,id:'a%2Fb'}).id);
+});
+test('virtual view exposes distinct logical identity and exact original source navigation',()=>{
+  const html=render({view:'virtual',selected:'sensehat-001'});
+  assert.match(html,/가상 디바이스 선택/);assert.match(html,/id="physical-vd-id">physical-vd:sensehat-001/);
+  assert.match(html,/data-live-source="sensehat-001">원본 장비 보기/);
+  assert.match(render({selected:'arduino-001'}),/data-open-physical-vd="arduino-001"/);
+  const groups=S.buildSources(devices,twins);
+  assert.equal(S.searchSources(groups.sources,'physical-vd:sensehat-001')[0].id,'sensehat-001');
+});
+test('unassigned devices cannot manufacture a physical virtual device; unavailable source stays unknown',()=>{
+  const g=S.buildSources([{name:'arduino-001',node_name:'arduino-001'}],[]);
+  assert.equal(g.sources.length,0);assert.equal(g.unassigned.length,1);
+  const html=render({view:'virtual',deviceCurrent:false,twinCurrent:false});
+  assert.match(html,/physical-vd:arduino-001/);assert.match(html,/마지막으로 받은 등록/);assert.match(html,/연결 서비스 —개/);
 });
