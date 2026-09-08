@@ -51,3 +51,24 @@ test('physical source fanout keeps identity and ambiguous node mappings unassign
  const devices=[{name:'temperature',physical_device_id:'sensor-a',node_name:'edge-a'},{name:'vibration',physical_device_id:'sensor-a',node_name:'edge-a'},{name:'unknown-identity',node_name:'edge-a'},{name:'unassigned',physical_device_id:'sensor-b'},{name:'conflicting',physical_device_id:'sensor-a',node_name:'edge-b'}];
  const groups=M.sourceGroups(devices);assert.equal(groups.length,2);assert.deepEqual(groups[0].nodes,['edge-a','edge-b']);assert.equal(groups[0].devices.length,3);assert.deepEqual(groups[1].nodes,[]);
 });
+
+test('offloading graph requires fresh routing and exact source and remote identities',()=>{
+ const now=new Date().toISOString(),s={service_id:'sensor-anomaly-demo',mode:'live'};
+ const demo={mode:'live',input_state:'fresh',model_state:'ready',execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'},inference_routing:{inference_mode:'REMOTE',observed_at:now,source_node:'edge',remote_node:'server'}};
+ const d={demo,valid:{demo:true,profiles:true,services:true}};
+ assert.equal(M.graphRoute(s,d,'edge','server').active,true);
+ for(const [from,to] of [['other','server'],['edge','other']])assert.equal(M.graphRoute(s,d,from,to).active,false);
+ assert.equal(M.graphRoute({...s,service_id:'another-service'},d,'edge','server').active,false);
+ assert.equal(M.graphRoute(s,{...d,valid:{...d.valid,profiles:false}},'edge','server').active,false);
+ assert.equal(M.graphRoute(s,{...d,demo:{...demo,execution_ownership:{enabled:true,lease_valid:false}}},'edge','server').active,false);
+ assert.equal(M.graphRoute(s,{...d,demo:{...demo,inference_routing:{...demo.inference_routing,observed_at:'2000-01-01'}}},'edge','server').active,false);
+ const fallback=M.graphRoute(s,{...d,demo:{...demo,inference_routing:{...demo.inference_routing,inference_mode:'LOCAL_FALLBACK'}}},'edge','server');assert.equal(fallback.active,false);assert.equal(fallback.fallback,true);
+});
+test('graph keeps idle nodes, separates source fanout and isolates selected-service inputs',()=>{
+ const service={service_id:'a',input_devices:['t'],descriptor:{workload:{namespace:'prod',name:'main'},runtime_offloading:{target_workload:{namespace:'prod',name:'remote'}}}};
+ const d={services:[service],devices:[{name:'t',physical_device_id:'sensor-a',node_name:'edge'},{name:'other',physical_device_id:'sensor-b',node_name:'idle'}],valid:{},demo:null};
+ const resources=[{node:'edge'},{node:'server',nodeType:'cloud_server'},{node:'idle'}],profiles=[{namespace:'prod',service:'main',nodes:['edge']},{namespace:'prod',service:'remote',nodes:['server']}];
+ const all=M.graphModel(d,d.services,resources,profiles,true),scoped=M.graphModel(d,d.services,resources,profiles);
+ assert.equal(all.nodes.length,5);assert.equal(scoped.nodes.some(n=>n.id==='source:sensor-b'),false);
+ assert.deepEqual(all.edges.filter(e=>e.kind!=='input').map(e=>[e.from,e.to]),[['node:edge','node:server'],['node:server','node:edge']]);assert.equal(all.edges.some(e=>e.active),false);
+});
