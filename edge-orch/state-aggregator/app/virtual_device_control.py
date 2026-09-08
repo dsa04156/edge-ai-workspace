@@ -17,6 +17,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from .virtual_resource_registry import ID_LABEL, VirtualDeviceRegistry
+from .virtual_device_test_access import verify as verify_test_access
 from .virtual_resources import KubernetesVirtualDeviceReader, VirtualDeviceObserver, utcnow
 
 DEVICE_ID = "vd-demo-001"
@@ -214,7 +215,8 @@ def create_virtual_device_control_router(kube, settings, controller=None):
         target(device_id)
         if not enabled or not settings.execution_management_token:
             raise HTTPException(404, "virtual_device_control_disabled")
-        if not token or not hmac.compare_digest(token, settings.execution_management_token):
+        if not token or not (hmac.compare_digest(token.encode(), settings.execution_management_token.encode())
+                             or verify_test_access(token, settings.execution_management_token)):
             raise HTTPException(403, "execution_authentication_failed")
         origin = request.headers.get("origin")
         if origin and origin != str(request.base_url).rstrip("/"):

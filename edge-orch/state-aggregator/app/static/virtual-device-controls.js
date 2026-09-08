@@ -15,18 +15,19 @@
   if(typeof document==='undefined')return;
   const host=document.getElementById('vdControls');if(!host)return;
   const $=id=>document.getElementById(id);
-  let row=null,enabled=false,busy=false,pending=null,loading=false,lastReceipt=null;
+  let row=null,enabled=false,busy=false,pending=null,loading=false,lastReceipt=null,testExpiry=null;
   host.innerHTML=`<div class="vd-control-heading"><div><p class="section-kicker">가상 디바이스 운영</p><h3>실행하고, 요청하고, 반환하기</h3><p>CPU Iris 시험 모델 · 실행 위치와 자원은 등록 계약을 따릅니다.</p></div><span id="vdControlAvailability">연결 확인 중</span></div>
     <ol class="vd-lifecycle"><li>01 <strong>등록 정의</strong><span>vd-demo-001</span></li><li>02 <strong>실행체 시작</strong><span>Pod·모델 준비 확인</span></li><li>03 <strong>시험 요청</strong><span>입력·결과 영수증</span></li><li>04 <strong>정지·반환</strong><span>정의와 이력 유지</span></li></ol>
     <details class="vd-auth"><summary>운영 권한</summary><label for="vdControlToken">기존 실행 운영 토큰</label><input id="vdControlToken" type="password" autocomplete="off" placeholder="X-Execution-Token" aria-describedby="vdTokenNote"><button id="vdClearToken" type="button">지우기</button><p id="vdTokenNote">이 화면에만 유지합니다. 브라우저 저장소에는 저장하지 않습니다.</p></details>
     <div class="vd-control-actions"><button type="button" id="vdStart" data-vd-action="start" disabled>시작</button><button type="button" id="vdStop" data-vd-action="stop" disabled>정지</button><span id="vdLiveState">관측 대기</span></div>
-    <form id="vdInferForm"><fieldset><legend>Iris 분류 시험 · 길이 단위 cm</legend><div class="vd-feature-inputs">${[['꽃받침 길이',5.1],['꽃받침 너비',3.5],['꽃잎 길이',1.4],['꽃잎 너비',0.2]].map(([name,value],i)=>`<label>${name}<input id="vdFeature${i}" type="number" min="0" max="30" step="any" required value="${value}"></label>`).join('')}</div><div class="vd-control-actions"><button id="vdInfer" type="submit" disabled>시험 요청 보내기</button><span>대시보드 발신 · Jetson 요청과 구분</span></div></fieldset></form>
+    <form id="vdInferForm"><fieldset><legend>Iris 분류 시험 · 길이 단위 cm</legend><div class="vd-control-actions vd-samples"><button type="button" data-vd-sample="0">예제 1</button><button type="button" data-vd-sample="1">예제 2</button><button type="button" data-vd-sample="2">예제 3</button></div><div class="vd-feature-inputs">${[['꽃받침 길이',5.1],['꽃받침 너비',3.5],['꽃잎 길이',1.4],['꽃잎 너비',0.2]].map(([name,value],i)=>`<label>${name}<input id="vdFeature${i}" type="number" min="0" max="30" step="any" required value="${value}"></label>`).join('')}</div><div class="vd-control-actions"><button id="vdInfer" type="submit" disabled>시험 요청 보내기</button><span>대시보드 발신 · Jetson 요청과 구분</span></div></fieldset></form>
     <p id="vdActionMessage" role="status" aria-live="polite">운영 토큰을 입력하면 현재 상태에 맞는 작업이 활성화됩니다.</p><button id="vdRetryAction" type="button" hidden>같은 요청 키로 재전송</button>
     <div id="vdActionResult"></div><details class="vd-journal"><summary>작업 이력 · 정지 후에도 유지</summary><div id="vdActionHistory">조회 중</div></details>`;
   function render(){
-    const permitted=allowed(row,enabled&&Boolean($('vdControlToken').value.trim()),busy||Boolean(pending));
+    const testActive=!testExpiry||Date.now()<testExpiry;
+    const permitted=allowed(row,enabled&&testActive&&Boolean($('vdControlToken').value.trim()),busy||Boolean(pending));
     for(const [id,action] of [['vdStart','start'],['vdStop','stop'],['vdInfer','infer']])$(id).disabled=!permitted[action];
-    $('vdControlAvailability').textContent=enabled?'운영 기능 연결':'조회 전용 · 운영 기능 비활성';
+    $('vdControlAvailability').textContent=!enabled?'조회 전용 · 운영 기능 비활성':testExpiry?(testActive?'테스트 모드 · '+new Date(testExpiry).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false})+' KST까지':'테스트 링크 만료 · 새 링크가 필요합니다.'):'운영 기능 연결';
     const state=!row||row.observationError||!Number.isFinite(Date.parse(row.observedAt))||Date.now()-Date.parse(row.observedAt)>30000?'관측 확인 불가':row.desiredReplicas===0&&row.observedInstances===0?'정지 확인 · 실행체 0개':row.desiredReplicas===0?'종료 중 · 자원 반환 확인 대기':row.executionState==='ready'?'모델 준비 완료':row.executionState==='processing'?'요청 처리 중':'시작 요청 상태 · 모델 준비 확인 중';
     $('vdLiveState').textContent=state;
     $('vdRetryAction').hidden=!pending;$('vdRetryAction').disabled=busy;
@@ -58,6 +59,18 @@
     }finally{busy=false;await history();globalThis.refreshVirtualDevices?.();render();}
   }
   function uuid(){const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;}
+  const samples=[[5.1,3.5,1.4,0.2],[6.0,2.2,4.0,1.0],[6.5,3.0,5.8,2.2]];
+  host.querySelectorAll('[data-vd-sample]').forEach(button=>button.onclick=()=>{samples[Number(button.dataset.vdSample)].forEach((value,i)=>{$('vdFeature'+i).value=value;});});
+  window.addEventListener('message',event=>{
+    if(window.parent===window||event.source!==window.parent||event.origin!==location.origin||event.data?.type!=='vd-test-access')return;
+    const value=event.data.token;
+    if(typeof value!=='string'||!/^vdtest\.\d+\.[a-f0-9]{32}\.[a-f0-9]{64}$/.test(value))return;
+    testExpiry=Number(value.split('.')[1])*1000;$('vdControlToken').value=value;
+    host.querySelector('.vd-auth').hidden=true;
+    $('vdActionMessage').textContent='준비됐습니다. 시작을 누르고 모델이 준비되면 예제를 선택해 시험 요청을 보내세요. 끝나면 정지를 눌러주세요.';
+    render();
+  });
+  if(window.parent!==window)window.parent.postMessage({type:'vd-test-ready'},location.origin);
   $('vdControlToken').addEventListener('input',render);
   $('vdClearToken').onclick=()=>{$('vdControlToken').value='';render();};
   $('vdStart').onclick=()=>send('start');$('vdStop').onclick=()=>send('stop');

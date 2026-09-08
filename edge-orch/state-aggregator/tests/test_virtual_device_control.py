@@ -153,3 +153,15 @@ def test_inference_receipt_matches_exact_pod_boot_model_input_and_request(tmp_pa
         with pytest.raises(ControlError): asyncio.run(c.infer(c.definition(),row,key(),features))
     else:
         assert asyncio.run(c.infer(c.definition(),row,key(),features))['result']['label']=='setosa'
+
+def test_scoped_test_access_authorizes_only_this_control_target(tmp_path):
+    from app.virtual_device_test_access import issue
+    client,c=api(tmp_path)
+    token=issue('test-token')
+    headers={'X-Execution-Token':token,'Idempotency-Key':key()}
+    response=client.post('/api/virtual-devices/vd-demo-001/actions',headers=headers,json={'action':'start'})
+    assert response.status_code==200 and response.json()['state']=='accepted'
+    assert client.post('/api/virtual-devices/other/actions',headers=headers,json={'action':'start'}).status_code==404
+    assert len(c.apps.updates)==1
+    headers['X-Execution-Token']=issue('test-token',now=1)
+    assert client.post('/api/virtual-devices/vd-demo-001/actions',headers=headers,json={'action':'stop'}).status_code==403
