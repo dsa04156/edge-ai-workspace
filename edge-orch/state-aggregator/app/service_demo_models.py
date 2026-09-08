@@ -534,6 +534,7 @@ class DeployedServiceDesignContract(BaseModel):
 
 
 class DeployedServiceItem(BaseModel):
+    execution_ownership: ServiceDemoExecutionOwnership | None = None
     service_id: str
     display_name: str
     description: str

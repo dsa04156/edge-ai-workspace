@@ -465,3 +465,33 @@ def test_sensor_demo_observation_timeout_covers_the_edge_round_trip(
     monkeypatch.delenv("SENSOR_ANOMALY_DEMO_TIMEOUT_SECONDS", raising=False)
 
     assert Settings().sensor_anomaly_demo_timeout_seconds == 10.0
+
+
+def test_service_inventory_preserves_expired_execution_ownership(monkeypatch):
+    async def handler(_):
+        payload = live_payload()
+        payload["executionOwnership"] = {
+            "configuredMode": "SHADOW", "effectiveMode": "STANDBY",
+            "enabled": True, "leaseValid": False,
+            "reasonCode": "execution_lease_expired",
+            "observedAt": "2026-09-08T03:20:00Z",
+        }
+        return httpx.Response(200, json=payload)
+
+    observed = asyncio.run(ServiceDemoClient(
+        "http://sensor.test", timeout_seconds=2,
+        transport=httpx.MockTransport(handler),
+    ).get_state())
+
+    class StaticClient:
+        async def get_state(self):
+            return observed
+
+    monkeypatch.setattr(main, "service_demo_client", StaticClient())
+    with TestClient(main.app) as client:
+        response = client.get("/state/services")
+    assert response.status_code == 200
+    ownership = response.json()["services"][0]["execution_ownership"]
+    assert ownership["reason_code"] == "execution_lease_expired"
+    assert ownership["effective_mode"] == "STANDBY"
+    assert ownership["lease_valid"] is False

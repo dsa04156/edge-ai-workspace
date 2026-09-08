@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="/static/virtual-devices.css?v=20260908" />
     <link rel="stylesheet" href="/static/apple-dashboard.css?v=workspace-20260907" />
   <script src="/static/nexus/embed.js"></script>
+<link rel="stylesheet" href="/static/nexus/operations.css">
     <link rel="stylesheet" href="/static/nexus/embed.css" />
   </head>
   <body class="operations-workspace">
@@ -736,6 +737,23 @@
             단계를 선택해 설정하거나 포트를 눌러 연결하세요.
           </div>
 
+          <details class="panel" id="serviceDesignRegistry">
+            <summary>서버 서비스 버전 · 모델 · 배치 계약</summary>
+            <p>서버에 설계 버전을 저장합니다. 저장과 계획 검증은 실제 배포가 아닙니다.</p>
+            <div class="service-designer-toolbar">
+              <label>서비스 ID<input id="registryServiceId" value="sensor-analysis" maxlength="63" /></label>
+              <label>서비스 버전<input id="registryVersion" value="1.0.0" maxlength="64" /></label>
+              <label>관리 토큰<input id="registryToken" type="password" autocomplete="off" /></label>
+            </div>
+            <button id="registryRefresh" type="button">모델·자원·저장 버전 조회</button>
+            <div id="registryStages"></div>
+            <button id="registryValidate" type="button">서버 실행 계획 검증</button>
+            <button id="registrySave" type="button">서버에 버전 저장</button>
+            <button type="button" disabled title="범용 Designer deployment adapter 미연결">배포 미연결</button>
+            <p id="registryFeedback" role="status" aria-live="polite">버전을 저장해도 runtime은 변경되지 않습니다.</p>
+            <div id="registryVersions"></div>
+            <pre id="registryPlan" style="white-space:pre-wrap;max-height:360px;overflow:auto"></pre>
+          </details>
           <div id="serviceDesignerWorkbench" class="service-designer-workbench palette-open">
             <aside
               id="serviceDesignerPalette"
@@ -1675,6 +1693,7 @@
     <script src="/static/service-designer-model.js?v=input-window-v14-20260804"></script>
     <script src="/static/service-designer-viewport.js?v=free-canvas-v9-20260804"></script>
     <script src="/static/service-designer.js?v=input-preflight-v18-20260804"></script>
+    <script src="/static/service-design-registry.js"></script>
     <script src="/static/device-twins.js?v=workspace-20260907"></script>
   </body>
 </html>

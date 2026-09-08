@@ -255,7 +255,13 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
   const score = Number(latest?.score);
   const threshold = Number(model?.threshold);
   const scoreValue = Number.isFinite(score) ? score : 0;
-  const decision = serviceDemoDecision(status);
+  const ownership = data.execution_ownership;
+  const leaseExpired = !data.observation_error && data.mode !== "unavailable"
+    && ownership?.enabled === true && ownership.lease_valid === false
+    && ownership.reason_code === "execution_lease_expired";
+  const decision = leaseExpired
+    ? {label: "추론 중단 · Lease 만료", summary: `실행 Lease 만료로 추론 중단 (${ownership.effective_mode}). 마지막 결과: ${serviceDemoText(latest?.observed_at)}. 센서 수집 상태와 별개의 서비스 실행 문제입니다.`}
+    : serviceDemoDecision(status);
   const routing = data.inference_routing || {};
   const inferenceTarget = routing.effective_target === "server1" ? "server1" : "edge-local";
   const routingState = routing.state === "remote" ? "승인 원격 추론"
@@ -266,7 +272,7 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
   const rollback = Number(routing.rollback_remaining_seconds);
   const frames = Number(data.counters?.frames_processed);
   const inputAge = latest ? serviceDemoAge(latest.observed_at, nowMs) : "관측 불가";
-  const flowing = data.input_state === "fresh" && Boolean(latest);
+  const flowing = !leaseExpired && data.input_state === "fresh" && Boolean(latest);
 
   return {
     badge: status.toUpperCase(),
@@ -305,7 +311,7 @@ function buildServiceDemoView(data = {}, nowMs = Date.now()) {
     inputAge,
     frames: serviceDemoText(data.counters?.frames_processed),
     flowing,
-    liveLabel: flowing ? "데이터 처리 중" : "데이터 확인 필요",
+    liveLabel: leaseExpired ? "추론 중단 · Lease 만료" : flowing ? "데이터 처리 중" : "데이터 확인 필요",
     liveAge: latest ? `입력 ${inputAge.replace(" s", "초")} 전` : "입력 확인 중",
     liveFrames: Number.isFinite(frames)
       ? `${Math.max(0, Math.trunc(frames)).toLocaleString("ko-KR")}건 처리`

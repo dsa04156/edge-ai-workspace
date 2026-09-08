@@ -62,6 +62,15 @@ class Settings(BaseModel):
     edgex_timeout_seconds: float = Field(
         default_factory=lambda: float(os.getenv("EDGEX_TIMEOUT_SECONDS", "10"))
     )
+    edgex_device_snapshot_ttl_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("EDGEX_DEVICE_SNAPSHOT_TTL_SECONDS", "10")), ge=0, le=30
+    )
+    edgex_device_snapshot_timeout_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("EDGEX_DEVICE_SNAPSHOT_TIMEOUT_SECONDS", "15")), gt=0, le=18
+    )
+    edgex_device_error_backoff_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("EDGEX_DEVICE_ERROR_BACKOFF_SECONDS", "5")), ge=0, le=60
+    )
     edgex_event_fresh_seconds: int = Field(
         default_factory=lambda: int(os.getenv("EDGEX_EVENT_FRESH_SECONDS", "90"))
     )

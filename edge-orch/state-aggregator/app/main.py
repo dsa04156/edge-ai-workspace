@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import hmac
 from pathlib import Path
+import os
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Query, Response
@@ -52,6 +53,9 @@ from .operator_assistant import (
     degraded_operator_chat_response,
     operator_assistant_from_dashboard,
 )
+from .operations import create_operations_router, plain as operations_plain
+from .design_registry import DesignStore, create_design_router
+from .benchmark_registry import BenchmarkStore, create_benchmark_router
 from .service import PlacementProfileNotFound, StateAggregatorService
 from .service_catalog import ServiceCatalog
 from .service_augmentation import (
@@ -776,6 +780,7 @@ def _deployed_service_state(demo: ServiceDemoState) -> DeployedServiceState:
         }
     )
     current_service = DeployedServiceItem(
+        execution_ownership=demo.execution_ownership,
         service_id=descriptor.service_id,
         display_name=descriptor.display_name,
         description=descriptor.description,
@@ -1059,3 +1064,44 @@ async def get_metrics() -> PlainTextResponse:
 async def refresh_nodes():
     return await service.refresh_nodes()
 # trigger cds
+
+
+async def _operations_profiles():
+    state = await service.get_resource_profile_state()
+    return {"service_resource_profiles": state.get("service_resource_profiles", []),
+            "observation_error": state.get("observation_error")}
+
+
+async def _operations_recommendations():
+    return runtime_recommendation_monitor.latest_all()
+
+
+async def _operations_executions():
+    return runtime_execution_store.history(service_id=None, limit=30)
+
+
+async def _operations_decisions():
+    return {item.service_id: operations_plain(runtime_recommendation_monitor.history(item.service_id, limit=30))
+            for item in service_catalog.services}
+
+
+async def _operations_alerts():
+    return await get_service_demo_alerts(limit=30)
+
+
+app.include_router(create_operations_router(service_catalog, {
+    "demo": get_service_demo, "devices": get_devices, "profiles": _operations_profiles,
+    "recommendations": _operations_recommendations, "executions": _operations_executions,
+    "decisions": _operations_decisions, "alerts": _operations_alerts,
+}))
+
+app.include_router(create_design_router(
+    DesignStore(Path(settings.data_dir) / "service-designs.sqlite3"), service_catalog,
+    os.getenv("SERVICE_DESIGN_MANAGEMENT_TOKEN") or settings.execution_management_token,
+    get_devices, get_scheduling_resources,
+))
+
+app.include_router(create_benchmark_router(
+    BenchmarkStore(Path(settings.data_dir) / "service-designs.sqlite3"),
+    os.getenv("SERVICE_DESIGN_MANAGEMENT_TOKEN") or settings.execution_management_token,
+))

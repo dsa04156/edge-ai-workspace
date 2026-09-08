@@ -169,6 +169,16 @@
 - 기능은 native details/summary로 펼친다. 최초에는 첫 기능만 열고 사용자의 펼침 상태를 갱신·검색 중 유지한다. 요약은 최소84px, 상세는 padding20px(모바일16px), 왼쪽2px physical 선, radius8px. 최근 관측값 / 트윈 / 이용 서비스의 3열, 1150px 이하2열, 700px 이하1열이다. 값20px, 기능 제목14px, 원 식별자와 시각10–12px를 사용한다.
 - 장비별 서비스 요약은 기능 행 뒤에 두며 독립 실행 기능 시험은 마지막 중립 표면에 둔다. 기능 검색과 주기 갱신은 선택 장비·형제 기능·키보드 focus를 유지한다.
 
+
+### 통합 서비스 운영 연결 (2026-09-08)
+
+- 기존 NEXUS 토큰을 유지하며 8개 메뉴는 운영 현황/디바이스/데이터/AI 서비스/서비스 제작/자원·오프로딩/장애·이력/검증·설정이다. 기존 classic 관리·설계 작업 공간을 재사용한다.
+- 서비스의 Input→Alignment→Features→Inference→Result를 desktop 가로 흐름, 700px 이하 세로 흐름으로 표시한다. 단계 표면은 16px padding, 190px 최소폭, 위쪽 3px compute 선이다.
+- Configured 위치와 Observed Pod·node를 분리하고 세부 자원은 native details로 펼친다. 공유 workload 지표를 독립 stage 계측으로 표시하지 않는다.
+- 서비스 품질은 4열 definition list, 모바일 2열이다. 수치는 18px/650, label 12px, 간격16px, 섹션24px를 사용한다.
+- Data Explorer는 resource별 세로축과 공통 시간축을 사용하며 표본 점만 표시한다. 선으로 결측 구간을 이어 붙이지 않는다.
+- 서버 설계 저장 controls는 기존 canvas 밖의 접힌 details에 두며 viewport·local draft·관리 토큰 입력을 polling으로 교체하지 않는다.
+
 ### 물리 장비의 가상 디바이스 (2026-09-08)
 
 - 디바이스 화면은 물리 장비와 가상 디바이스를 별도 탭으로 선택한다. 가상 표현은 기존 virtual/virtual-soft 토큰, 원본은 physical/physical-soft 토큰으로 구분한다.

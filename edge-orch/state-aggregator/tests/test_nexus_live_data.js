@@ -1,6 +1,15 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const D=require('../app/static/nexus/live-data.js');
+test('execution interruption is distinct from input/model health and unknown observation',()=>{
+ const s={mode:'live',execution_ownership:{enabled:true,lease_valid:false,effective_mode:'STANDBY',reason_code:'execution_lease_expired'}};
+ assert.match(D.executionLabel(s),/Lease 만료로 추론 중단 \(STANDBY\)/);
+ assert.equal(D.executionLabel(s,false),'실행 소유권 확인 불가');
+ assert.equal(D.executionLabel({...s,observation_error:'offline'}),'실행 소유권 확인 불가');
+ assert.equal(D.executionLabel({mode:'live'}),'실행 소유권 확인 불가');
+ assert.doesNotMatch(D.executionLabel({...s,execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'}}),/중단/);
+ assert.doesNotMatch(D.executionLabel({...s,execution_ownership:{enabled:true,lease_valid:true,effective_mode:'SHADOW'}}),/만료/);
+});
 const payloads={resources:[{node:'edge-1'}],recommendations:{items:[{serviceId:'svc-1'}]},devices:[{name:'temperature',physical_device_id:'source-1'}],twins:{twins:[{id:'twin:temperature',physical_device_id:'source-1',service_bindings:[{service_id:'svc-1'}]}],observation_errors:[]},services:{services:[{service_id:'svc-1'}]},results:{results:[{observed_at:'2026-09-07T10:00:00Z',anomaly:false}]}};
 function key(url){return Object.keys(D.endpoints).find(k=>D.endpoints[k]===url);}
 const response=data=>({ok:true,json:async()=>data});
@@ -27,4 +36,18 @@ test('fanout and N:M bindings do not create extra physical sources or merge unkn
 });
 test('API identifiers and values cannot insert HTML; absent anomaly is unknown',()=>{
  assert.equal(D.escape('<img src=x onerror="x">'), '&lt;img src=x onerror=&quot;x&quot;&gt;');assert.equal(D.resultLabel({}), '판정 확인 불가');assert.equal(D.resultLabel({anomaly:false}), '정상 범위');
+});
+
+test('fast endpoint notifies before slow endpoint and refresh preserves last valid status',async()=>{
+ let release;let slow=false;const gate=new Promise(r=>release=r);const notified=[];
+ const store=D.createStore(async url=>{if(slow&&key(url)==='devices')await gate;return response(payloads[key(url)]);},()=>1000,k=>notified.push(k));
+ await store.refresh();notified.length=0;slow=true;const pending=store.refresh();
+ assert.equal(D.isCurrent(store.entries.services,1001),true);
+ assert.equal(store.entries.services.refreshing,true);
+ await new Promise(r=>setImmediate(r));
+ assert.ok(notified.includes('services'));
+ assert.equal(notified.includes('devices'),false);
+ assert.equal(store.entries.devices.refreshing,true);
+ assert.equal(store.entries.services.refreshing,false);
+ release();await pending;assert.equal(store.entries.devices.refreshing,false);
 });

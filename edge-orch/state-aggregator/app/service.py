@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 
 import httpx
 from datetime import datetime, timedelta, timezone
@@ -10,7 +11,7 @@ from typing import Any
 
 from .config import Settings, load_instance_map
 from .deployment_controller import DeploymentController
-from .edgex import EdgeXClient
+from .edgex import EdgeXClient, EdgeXError, EdgeXBackendError
 from .models import (
     CostModelState,
     DashboardState,
@@ -61,13 +62,20 @@ class StateAggregatorService:
         self.kube = KubeClient()
         self.deployment_controller = DeploymentController(settings, self.kube)
         self._poller_task: asyncio.Task | None = None
+        self._device_task: asyncio.Task | None = None
+        self._device_snapshot: list[tuple[EdgeXDevice, list[TelemetryPoint]]] | None = None
+        self._device_snapshot_at = 0.0
+        self._device_error: EdgeXError | None = None
+        self._device_error_at = 0.0
 
     async def start(self) -> None:
         if self._poller_task is None:
+            self._device_snapshot = None
+            self._device_error = None
             self._poller_task = asyncio.create_task(self._poll_prometheus())
 
     async def stop(self) -> None:
-        tasks = [task for task in (self._poller_task,) if task is not None]
+        tasks = [task for task in (self._poller_task, self._device_task) if task is not None and not task.done()]
         for task in tasks:
             task.cancel()
         for task in tasks:
@@ -76,6 +84,9 @@ class StateAggregatorService:
             except asyncio.CancelledError:
                 pass
         self._poller_task = None
+        self._device_task = None
+        self._device_snapshot = None
+        self._device_error = None
 
     async def _poll_prometheus(self) -> None:
         while True:
@@ -194,14 +205,42 @@ class StateAggregatorService:
         return await self.edgex.get_event_history(device_id, limit=limit, start=start)
 
     async def get_devices(self) -> list[DeviceState]:
+        now = time.monotonic()
+        if self._device_error is not None and now - self._device_error_at < self.settings.edgex_device_error_backoff_seconds:
+            raise self._device_error
+        if self._device_snapshot is None or now - self._device_snapshot_at >= self.settings.edgex_device_snapshot_ttl_seconds:
+            if self._device_task is None or self._device_task.done():
+                self._device_task = asyncio.create_task(self._refresh_device_snapshot())
+                # A disconnected caller must not cancel other readers or leak an exception.
+                self._device_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+            await asyncio.shield(self._device_task)
+        # Recompute freshness from the original Event timestamp even on a cache hit.
+        return [self._normalize_edgex_device(device, readings) for device, readings in self._device_snapshot]
+
+    async def _refresh_device_snapshot(self) -> None:
+        try:
+            snapshot = await asyncio.wait_for(
+                self._read_device_snapshot(), self.settings.edgex_device_snapshot_timeout_seconds
+            )
+        except (EdgeXError, TimeoutError) as exc:
+            self._device_error = exc if isinstance(exc, EdgeXError) else EdgeXBackendError("EdgeX device snapshot deadline exceeded")
+            self._device_error_at = time.monotonic()
+            self._device_snapshot = None
+            raise self._device_error from exc
+        self._device_snapshot = snapshot
+        self._device_snapshot_at = time.monotonic()
+        self._device_error = None
+
+    async def _read_device_snapshot(self) -> list[tuple[EdgeXDevice, list[TelemetryPoint]]]:
         inventory = await self.edgex.get_devices()
         latest_events = await asyncio.gather(
-            *(self.edgex.get_latest_source_readings(device.name) for device in inventory)
+            *(self.edgex.get_latest_source_readings(device.name) for device in inventory),
+            return_exceptions=True,
         )
-        return [
-            self._normalize_edgex_device(device, readings)
-            for device, readings in zip(inventory, latest_events)
-        ]
+        for result in latest_events:
+            if isinstance(result, BaseException):
+                raise result
+        return list(zip(inventory, latest_events))
 
     async def get_dashboard(self) -> DashboardState:
         nodes = self.get_nodes()

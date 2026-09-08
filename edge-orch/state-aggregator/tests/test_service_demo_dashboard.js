@@ -1,6 +1,17 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+test("expired execution lease is visible without treating old results as current processing", () => {
+  const data = {mode: "live", status: "degraded", input_state: "fresh", model_state: "warming_up",
+    latest: {observed_at: "2026-08-28T06:49:02Z"},
+    execution_ownership: {enabled: true, lease_valid: false, effective_mode: "STANDBY", reason_code: "execution_lease_expired"}};
+  const view = buildServiceDemoView(data);
+  assert.equal(view.flowing, false);
+  assert.match(view.liveLabel, /Lease 만료/);
+  assert.match(view.decisionSummary, /STANDBY/);
+  assert.match(view.decisionSummary, /2026-08-28/);
+  assert.doesNotMatch(buildServiceDemoView({...data, observation_error: "offline"}).decisionSummary, /Lease 만료/);
+});
 const path = require("node:path");
 
 const {

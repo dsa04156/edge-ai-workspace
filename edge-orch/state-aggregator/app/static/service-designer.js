@@ -3617,6 +3617,16 @@
     ]);
   }
 
+  root.ServiceDesignerRegistryBridge = {
+    snapshot: () => model.normalizeDesign(state.design),
+    restore: design => {
+      state.design = model.normalizeDesign(design);
+      state.designMode = "draft";
+      state.selectedNodeId = null;
+      renderAll();
+    },
+  };
+
   root.updateServiceDesignerInventory = (data) => updateInventory(data);
   root.refreshServiceDesignerProfiles = () => refreshProfiles(root.fetch);
   root.onServiceDesignerVisible = () => {
