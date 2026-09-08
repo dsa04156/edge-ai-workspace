@@ -34,3 +34,15 @@ test('invalid observations and stale or future timestamps fail closed',()=>{
  assert.equal(M.fresh({data:{},receivedAt:now,error:'HTTP 503'},now),false);
  assert.equal(M.escape('<img src=x onerror="bad">'),'&lt;img src=x onerror=&quot;bad&quot;&gt;');
 });
+test("service scoping isolates same-name workloads, shared endpoints and exact input collectors",()=>{
+ const a={service_id:"a",input_devices:["temperature"],descriptor:{workload:{namespace:"prod",name:"analysis"},runtime_offloading:{target_workload:{namespace:"shared",name:"inference"}}}};
+ const b={...a,service_id:"b",input_devices:["vibration"],descriptor:{...a.descriptor,workload:{namespace:"test",name:"analysis"}}};
+ const devices=[{name:"temperature",device_service_name:"serial",physical_device_id:"arduino"},{name:"vibration",device_service_name:"sensehat",physical_device_id:"pi"}];
+ const profiles=[{namespace:"prod",service:"analysis"},{namespace:"test",service:"analysis"},{namespace:"shared",service:"inference"},{namespace:"edgex-edge",service:"serial"},{namespace:"edgex-edge",service:"sensehat"},{namespace:"other",service:"serial"}];
+ assert.deepEqual(M.scopedProfiles(a,devices,profiles),[profiles[0],profiles[2],profiles[3]]);
+ assert.deepEqual(M.scopedProfiles(b,devices,profiles),[profiles[1],profiles[2],profiles[4]]);
+ assert.deepEqual(M.scopedProfiles(a,devices,[]),[]);
+ assert.deepEqual(M.serviceDevices({...a,input_devices:["missing"]},devices),[]);
+ assert.deepEqual(M.serviceDevices({device_service:"serial",physical_source:"another"},devices),[]);
+ assert.deepEqual(M.serviceDevices({design_contract:{inputs:[{device_name:"vibration"}]}},devices),[devices[1]]);
+});
