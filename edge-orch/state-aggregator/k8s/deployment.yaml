@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:d1754a961b5a8b29d45222bb91fa1785b49c05a7ad7674c96263083c85ffce42
+          image: 192.168.0.56:5000/state-aggregator@sha256:0e82e7cbe8c3e93fa59849aedb5209cb196ae2db8b9f06832821c499b2beced6
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
