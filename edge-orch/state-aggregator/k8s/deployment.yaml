@@ -22,11 +22,13 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:2fd9da9bc51b4036bf32efa191cc072981c9354c791d4b829f1fb1760648ba78
+          image: 192.168.0.56:5000/state-aggregator@sha256:590dc8a683fe2d5667b23fa2bf341969ecfd7e0ed9ae4ff9cddf096912ecfde5
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
+            - name: VIRTUAL_DEVICE_CONTROL_ENABLED
+              value: "true"
             - name: PROMETHEUS_URL
               value: http://prometheus-kube-prometheus-prometheus.kube-system:9090
             - name: POLL_INTERVAL_SECONDS

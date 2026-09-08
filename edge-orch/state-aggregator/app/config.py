@@ -39,6 +39,9 @@ class Settings(BaseModel):
             )
         )
     )
+    virtual_device_control_enabled: bool = Field(
+        default_factory=lambda: os.getenv("VIRTUAL_DEVICE_CONTROL_ENABLED", "false").lower() == "true"
+    )
     data_dir: Path = Field(
         default_factory=lambda: Path(
             os.getenv("DATA_DIR", str(Path(__file__).resolve().parent / "data"))

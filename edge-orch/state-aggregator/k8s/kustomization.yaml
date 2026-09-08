@@ -8,3 +8,4 @@ resources:
   - ingressroute.yaml
   - service-monitor.yaml
   - rbac.yaml
+  - virtual-device-control-rbac.yaml

@@ -1,0 +1,28 @@
+# The test Deployment remains independently registered; only its scale is writable.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: state-aggregator-virtual-device-control
+  namespace: virtual-device-test
+rules:
+  - apiGroups: [apps]
+    resources: [deployments/scale]
+    resourceNames: [vd-demo-001]
+    verbs: [get, update]
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: state-aggregator-virtual-device-control
+  namespace: virtual-device-test
+subjects:
+  - kind: ServiceAccount
+    name: state-aggregator
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: state-aggregator-virtual-device-control

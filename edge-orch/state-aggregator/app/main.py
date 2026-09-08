@@ -27,6 +27,7 @@ from .edgex import EdgeXError
 from .json_types import JsonMap
 from .kube import KubeResourceReadError
 from .virtual_resources import create_virtual_device_router
+from .virtual_device_control import create_virtual_device_control_router
 from .metrics import render_metrics
 from .models import (
     CostModelState,
@@ -194,6 +195,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
 app.include_router(create_virtual_device_router(service.kube))
+app.include_router(create_virtual_device_control_router(service.kube, settings))
 app.include_router(
     create_device_management_router(
         settings,

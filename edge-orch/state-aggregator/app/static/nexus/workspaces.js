@@ -4,7 +4,7 @@
 const E=root.NexusData.escape;
 const tools={
  management:{page:'devices',route:'management',title:'장비 연결·관리',description:'발견 후보 검토, 승인된 등록 계약, 첫 Event 확인과 소유 런타임 관리를 기존 절차로 진행합니다.'},
- virtual:{page:'devices',route:'virtual-devices',title:'가상 실행체',description:'등록 정의와 실제 Pod·모델·요청 관측을 구분하는 읽기 전용 시험 화면입니다.'},
+ virtual:{page:'devices',route:'virtual-devices',title:'가상 실행체',description:'등록된 가상 디바이스를 시작하고 시험 요청을 보낸 뒤 정지합니다. 실제 실행체·모델 준비·결과와 작업 이력을 함께 확인합니다.'},
  designer:{page:'services',route:'designer',title:'서비스 설계',description:'실제 입력과 Git 계약으로 초안·검증·실행 계획을 확인합니다. 브라우저 내부 dry-run이며 배포·실행하지 않습니다.'},
  runtime:{page:'resources',route:'operations',title:'서비스 운영·배치 검토',description:'추천 근거, 실행 계획, 실행·복구 이력을 확인합니다. 기존의 제한된 운영 절차와 권한을 유지합니다.'},
  nodes:{page:'resources',route:'nodes',title:'노드·워크로드 상세',description:'KubeEdge 노드, Kubernetes 예약 자원과 Prometheus 측정 자원을 확인합니다.'},

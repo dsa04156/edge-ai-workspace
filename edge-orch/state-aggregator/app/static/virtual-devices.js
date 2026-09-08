@@ -107,6 +107,7 @@
       <span class="vd-state">실행: ${esc(label(row.executionState))}</span><span class="vd-state">연결: ${esc(label(row.connectionState))}</span></button>`).join("")
       || '<p class="vd-muted">일치하는 등록 정의가 없습니다.</p>';
     const row = rows.find(row => row.id === selected);
+    globalThis.VirtualDeviceControls?.observe(row);
     $("vdDetail").innerHTML = row ? detail(row) : '<p class="vd-muted">목록에서 항목을 선택하세요.</p>';
     $("vdDetail").querySelectorAll("details").forEach((item, index) => { item.open = Boolean(openDetails[index]); });
     if (focusedId) [...$("vdList").querySelectorAll("[data-vd-id]")].find(item => item.dataset.vdId === focusedId)?.focus();
@@ -114,6 +115,7 @@
     $("vdObservation").textContent = failed || expired ? "확인 불가 · 최근 조회 실패 또는 관측 만료" :
       snapshot ? `관측 ${snapshot.observedAt}${snapshot.nodeError ? " · 노드 조회 확인 불가" : ""}` : "관측 대기";
   }
+  globalThis.refreshVirtualDevices = () => refresh();
   async function refresh() {
     if (loading) return;
     loading = true; $("vdRefresh").disabled = true;

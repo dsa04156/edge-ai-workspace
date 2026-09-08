@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="/static/service-designer.css?v=input-preflight-v17-20260804" />
     <link rel="stylesheet" href="/static/device-twins.css?v=workspace-20260907" />
     <link rel="stylesheet" href="/static/runtime-operations.css?v=runtime-offloading-v3-20260826" />
-    <link rel="stylesheet" href="/static/virtual-devices.css?v=1" />
+    <link rel="stylesheet" href="/static/virtual-devices.css?v=20260908" />
     <link rel="stylesheet" href="/static/apple-dashboard.css?v=workspace-20260907" />
   <script src="/static/nexus/embed.js"></script>
     <link rel="stylesheet" href="/static/nexus/embed.css" />
@@ -77,11 +77,12 @@
             <div class="panel-head">
               <div><p class="section-kicker">기능 실행·관리 프로토타입</p>
                 <h2 id="vdTitle">가상 디바이스 시험</h2>
-                <p>등록 정의와 서버 실행체를 구분합니다. 상태 조회 전용 · 10초 자동 갱신</p>
+                <p>등록 정의는 유지하고 실행체를 시작·사용·정지합니다. 관측은 10초마다 갱신합니다.</p>
               </div>
               <button type="button" id="vdRefresh">새로고침</button>
             </div>
             <p id="vdObservation" role="status" aria-live="polite">관측 대기</p>
+            <section id="vdControls" class="vd-controls" aria-label="가상 디바이스 실행 관리"></section>
             <div id="vdSummary" class="vd-summary" aria-label="가상 디바이스 시험 요약"></div>
             <div class="vd-tools">
               <label>가상 디바이스 검색 <input id="vdSearch" type="search" placeholder="ID·기능·연결 대상" /></label>
@@ -1665,7 +1666,8 @@
     </main>
     <script src="/static/operations-overview.js?v=workspace-20260907"></script>
     <script src="/static/navigation.js?v=workspace-20260907"></script>
-    <script src="/static/virtual-devices.js?v=1"></script>
+    <script src="/static/virtual-device-controls.js?v=20260908"></script>
+    <script src="/static/virtual-devices.js?v=20260908"></script>
     <script src="/static/runtime-operations.js?v=workspace-20260907"></script>
     <script src="/static/dashboard.js?v=workspace-20260907"></script>
     <script src="/static/service-demo.js?v=workspace-20260907"></script>
