@@ -2,3 +2,19 @@
 #serviceDesignRegistry{padding:20px;margin:20px 0}#serviceDesignRegistry summary{cursor:pointer;min-height:44px}#serviceDesignRegistry input,#serviceDesignRegistry select{min-height:44px;max-width:100%;width:100%;box-sizing:border-box}#serviceDesignRegistry td{padding:12px;min-width:120px}#serviceDesignRegistry .table-wrap{overflow:auto}#serviceDesignRegistry button{margin:8px 8px 8px 0;min-height:44px}#serviceDesignRegistry small{display:block}
 .ops-dag{display:flex;align-items:flex-start;overflow-x:auto;max-width:100%;gap:8px;padding-bottom:16px}.ops-stage{flex:1 0 190px;min-width:0;border-left:0;border-top:3px solid #315fbc;padding:16px;overflow-wrap:anywhere}.ops-stage .section-heading{display:block}.ops-stage .section-heading .badge{margin-top:8px;font-size:10px}.ops-stage .ops-executor>b{display:block;margin-top:8px}.ops-stage .evidence>div{display:block}.ops-stage small{display:block;font-size:11px}.ops-arrow{flex:0 0 16px;transform:rotate(-90deg);margin-top:24px}.ops-stage summary{font-size:12px}.ops-stage .evidence dd{margin:4px 0 12px}@media(max-width:700px){.ops-dag{display:block}.ops-stage{margin:0}.ops-arrow{transform:none;margin:0}.ops-stage .section-heading{display:flex}}
 .explorer-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.explorer-choices label{overflow-wrap:anywhere;min-height:44px;font-size:12px;padding:8px;background:#f3f5f7;border-radius:8px}.explorer-series{margin:20px 0;border-top:1px solid #dce2e9}.explorer-series svg{display:block;width:100%;height:auto}.explorer-series p{font-variant-numeric:tabular-nums;font-size:12px}.ops-section fieldset{border:0;margin:16px 0;padding:0}.ops-section select{min-height:44px}@media(max-width:700px){.explorer-choices{grid-template-columns:1fr}}
+
+/* Service meaning and readable evidence, shared with the existing designer. */
+.ops-section{font-size:15px}.ops-section h2{font-size:22px}.ops-section h3{font-size:18px}
+.ops-section small,.ops-origin,.ops-stage small,.ops-stage summary,.ops-stage .section-heading .badge,.ops-metrics dt,.explorer-choices label,.explorer-series p{font-size:14px}
+.ops-metrics dd{font-size:21px}.ops-section .note{font-size:15px}.ops-section pre{font-size:14px}
+.ops-summary{border-left:4px solid var(--warn,#996922);background:var(--warn-soft,#fcf2dc);padding:24px;margin:20px 0}
+.ops-summary-active{border-color:var(--ok,#357855);background:var(--ok-soft,#ebf5ef)}
+.ops-summary .ops-summary-kicker{font-size:14px;font-weight:650}.ops-summary h3{font-size:26px;margin:8px 0 12px;line-height:1.4}
+.ops-summary-facts{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line,#dce2e9);font-size:14px}
+.ops-dag{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;overflow:visible;align-items:stretch}
+.ops-arrow{display:none}.ops-stage{min-width:0;padding:16px;position:relative}.ops-stage+.ops-arrow+.ops-stage:before{content:'→';position:absolute;left:-17px;top:20px;color:var(--accent,#315fbc)}
+.ops-stage .badge{white-space:normal;line-height:1.5}.ops-stage .ops-executor>b{font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.ops-location-label{font-size:13px;color:var(--secondary,#526075)}.ops-pod{font-size:13px;margin-top:8px;color:var(--secondary,#526075)}
+.ops-stage .evidence dd{max-width:100%;text-align:left}.ops-stage summary{line-height:1.6}
+@media(max-width:1150px){.ops-dag{display:block}.ops-arrow{display:block;transform:none;margin:0}.ops-stage+.ops-arrow+.ops-stage:before{display:none}.ops-stage .section-heading{display:flex}.ops-stage .ops-executor{display:block}.ops-stage .section-heading .badge{margin:0}}
+@media(max-width:700px){.ops-summary{padding:18px}.ops-summary h3{font-size:23px}.ops-metrics{grid-template-columns:1fr 1fr}.ops-metrics dd{font-size:18px}.ops-summary-facts{display:grid}}
