@@ -1,0 +1,170 @@
+/* Read-only placement map. Running Pod snapshots are not execution ownership or migration events. */
+(function(root){
+'use strict';
+const paths={profiles:'/state/service-resource-profiles',services:'/state/services',resources:'/api/resources',devices:'/state/devices',demo:'/state/service-demo'};
+const E=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=p=>p.namespace+'/'+p.service;
+const recent=(time,now=Date.now())=>Number.isFinite(Date.parse(time))&&now-Date.parse(time)>=-5000&&now-Date.parse(time)<90000;
+const fresh=(entry,now=Date.now())=>Boolean(entry?.data&&!entry.error&&now-entry.receivedAt<90000);
+const num=(v,d=1)=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(d):'—';
+const clock=t=>t?new Date(t).toLocaleTimeString('ko-KR',{hour12:false}):'—';
+const names={healthy:'정상',degraded:'주의',unhealthy:'장애',unknown:'확인 불가',fresh:'최신',stale:'오래됨',ready:'준비됨',warming_up:'준비 중',STANDBY:'대기',SHADOW:'검증 대기',ACTIVE:'실행 권한 활성'};
+const label=v=>names[v]||v||'확인 불가';
+function validate(k,d){
+ const rows=k==='profiles'?d?.service_resource_profiles:k==='services'?d?.services:k==='demo'?null:d;
+ if(k==='demo'){if(!d||typeof d!=='object'||!d.inference_routing)throw Error('서비스 실행 응답 형식 확인 필요');}
+ else if(!Array.isArray(rows)||rows.some(x=>!x||typeof x!=='object'||(k==='profiles'?(typeof x.namespace!=='string'||typeof x.service!=='string'||!Array.isArray(x.nodes)):typeof x[k==='services'?'service_id':k==='resources'?'node':'name']!=='string')))throw Error('배치 관측 응답 형식 확인 필요');
+ return d;
+}
+function associations(services,devices){
+ const out=new Map();
+ const add=(id,s,role,title)=>{const a=out.get(id);if(a){if(!a.services.some(x=>x.service_id===s.service_id))a.services.push(s);if(a.services.length>1)a.title=(role==='remote'?'공유 서버 추론':'공유 실행체')+' · 서비스 '+a.services.length+'개';}else out.set(id,{service:s,services:[s],role,title});};
+ for(const s of services){
+  const w=s.descriptor?.workload;if(w)add(w.namespace+'/'+w.name,s,'service',s.display_name);
+  const r=s.descriptor?.runtime_offloading?.target_workload;if(r)add(r.namespace+'/'+r.name,s,'remote','서버 추론 · '+s.display_name);
+ }
+ // Device Service names come from EdgeX; namespace is the approved edge collection boundary.
+ for(const d of devices)if(d.device_service_name){const id='edgex-edge/'+d.device_service_name;if(!out.has(id))out.set(id,{role:'source',title:d.device_service_name,sources:[]});const a=out.get(id);if(a.role==='source'&&d.physical_device_id&&!a.sources.includes(d.physical_device_id))a.sources.push(d.physical_device_id);}
+ return out;
+}
+function placements(profiles){return new Map(profiles.map(p=>[key(p),[...new Set(p.nodes)].sort()]));}
+function changes(before,after){
+ if(!before)return [];
+ const out=[];
+ for(const [id,nodes] of after){const prev=before.get(id);if(!prev)out.push({id,text:'Running 목록에 나타남',to:nodes});else if(JSON.stringify(prev)!==JSON.stringify(nodes))out.push({id,text:'배치 관측 변경',from:prev,to:nodes});}
+ for(const [id,nodes] of before)if(!after.has(id))out.push({id,text:'Running 목록에서 사라짐',from:nodes,to:[]});
+ return out;
+}
+function execution(s,valid){
+ if(!valid||s?.mode!=='live'||s?.observation_error)return {text:'처리 상태 확인 불가',tone:'unknown'};
+ const o=s.execution_ownership;
+ if(o?.enabled&&o.lease_valid===false)return {text:'대기 · 실행 권한 없음',tone:'warn'};
+ if(o?.effective_mode&&o.effective_mode!=='ACTIVE')return {text:label(o.effective_mode),tone:'warn'};
+ return {text:'서비스 '+label(s.status),tone:s.status==='healthy'?'ok':'warn'};
+}
+function routeState(d,valid,now=Date.now()){
+ const r=d?.inference_routing;
+ if(!valid||!r||!recent(r.observed_at,now)||d.mode!=='live'||d.observation_error)return {mode:'UNKNOWN',text:'추론 경로 확인 불가',canFlow:false};
+ const owner=d.execution_ownership;
+ const canFlow=['LOCAL','REMOTE','LOCAL_FALLBACK'].includes(r.inference_mode)&&d.input_state==='fresh'&&d.model_state==='ready'&&(!owner?.enabled||(owner.lease_valid===true&&owner.effective_mode==='ACTIVE'));
+ return {mode:r.inference_mode||'UNKNOWN',text:r.inference_mode==='REMOTE'?'서버 추론 경로':r.inference_mode==='LOCAL_FALLBACK'?'로컬 복귀 경로':r.inference_mode==='LOCAL'?'로컬 추론 경로':'추론 경로 확인 불가',canFlow};
+}
+function advance(before,after,now=Date.now()){
+ // Only a newer, fresh saved result is evidence for a finite pulse, never a looping traffic rate.
+ if(!before||!after||!recent(after.latest?.observed_at,now))return false;
+ const route=routeState(after,true,now),mode=String(after.latest.execution_mode||'').toUpperCase();
+ const samePath=route.mode==='REMOTE'?mode==='REMOTE':mode==='LOCAL'||mode==='LOCAL_FALLBACK';
+ return Date.parse(after.latest.observed_at)>Date.parse(before.latest?.observed_at)&&route.canFlow&&samePath;
+}
+const entries=Object.fromEntries(Object.keys(paths).map(k=>[k,{data:null,error:null,receivedAt:0}]));
+let pending=null,selected=null,contextService=null,scope='linked',showEmpty=false,example=false,step=0,playing=false,lastExampleTick=0;
+let previous=null,events=[],pulseUntil=0,changedUntil=new Map(),lastCycle=0,installed=false;
+const scenarios=[
+ {title:'현장에서 처리',note:'예시 엣지 A가 수집·전처리·추론·저장을 수행합니다.',mode:'LOCAL',node:'예시 엣지 A'},
+ {title:'서버 자원으로 추론',note:'수집과 저장은 유지하고 추론 요청·결과만 서버를 오갑니다.',mode:'REMOTE',node:'예시 엣지 A'},
+ {title:'서버 장애 · 로컬 복귀',note:'서버 호출 실패 후 현장 추론 경로로 복귀하는 예시입니다.',mode:'LOCAL_FALLBACK',node:'예시 엣지 A'},
+ {title:'실행 위치 전환',note:'새 위치의 준비와 실행 권한 전환이 확인된 상황을 가정합니다.',mode:'LOCAL',node:'예시 엣지 B'}
+];
+function sample(){
+ const x=scenarios[step],now=new Date().toISOString();
+ const svc={service_id:'example-anomaly',display_name:'예시 이상감지 서비스',mode:'live',status:'healthy',input_state:'fresh',model_state:'ready',model_version:'example-model',physical_source:'예시 센서',execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'},descriptor:{workload:{namespace:'example',name:'edge-analysis'},runtime_offloading:{target_workload:{namespace:'example',name:'server-inference'}},augmentation_qualification:{status:'example'}}};
+ const profiles=[{namespace:'example',service:'edge-analysis',nodes:[x.node],pods_by_node:{[x.node]:1},pod_count:1,ready_pod_count:1,current_usage:{}},{namespace:'example',service:'server-inference',nodes:['예시 서버'],pods_by_node:{'예시 서버':1},pod_count:1,ready_pod_count:step===2?0:1,current_usage:{}}];
+ const resources=['예시 엣지 A','예시 엣지 B','예시 서버'].map(node=>({node,nodeType:node==='예시 서버'?'cloud_server':'edge_device',health:'healthy',utilization:{}}));
+ const demo={mode:'live',input_state:'fresh',model_state:'ready',execution_ownership:svc.execution_ownership,inference_routing:{inference_mode:x.mode,observed_at:now},latest:{observed_at:now},performance:{metrics_valid:false}};
+ return {profiles,services:[svc],resources,devices:[],demo,valid:{profiles:true,services:true,resources:true,devices:true,demo:true}};
+}
+function data(){if(example)return sample();return {profiles:entries.profiles.data?.service_resource_profiles||[],services:entries.services.data?.services||[],resources:entries.resources.data||[],devices:entries.devices.data||[],demo:entries.demo.data,valid:Object.fromEntries(Object.entries(entries).map(([k,e])=>[k,fresh(e)&&(!['profiles','services'].includes(k)||recent(e.data?.generated_at))]))};}
+async function refresh(){
+ if(pending||example)return pending;
+ pending=Promise.all(Object.entries(paths).map(async([k,url])=>{const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),12000),entry=entries[k];try{
+  const res=await root.fetch(url,{method:'GET',cache:'no-store',headers:{Accept:'application/json'},signal:abort.signal});if(!res.ok)throw Error('HTTP '+res.status);
+  const d=validate(k,await res.json()),now=Date.now();
+  if(k==='profiles'){
+   // Generated timestamps must progress. API receipt alone must not fabricate a placement event.
+   if(recent(d.generated_at,now)&&(!entry.data||Date.parse(d.generated_at)>Date.parse(entry.data.generated_at))){
+    const next=placements(d.service_resource_profiles);
+    if(fresh(entry,now))for(const event of changes(previous,next)){events.unshift({...event,time:now});changedUntil.set(event.id,now+4000);}
+    previous=next;events=events.slice(0,24);
+   }
+  }
+  if(k==='demo'&&fresh(entry,now)&&advance(entry.data,d,now))pulseUntil=now+2400;
+  entry.data=d;entry.error=null;entry.receivedAt=now;
+ }catch(error){entry.error=error.name==='AbortError'?'요청 시간 초과':error.message;}finally{clearTimeout(timer);}})).finally(()=>{pending=null;lastCycle=Date.now();paint();});
+ paint();return pending;
+}
+function pill(text,tone=''){return `<span class="sm-pill ${tone}">${E(text)}</span>`;}
+function usage(r,valid){const u=r?.utilization||{},ok=valid&&recent(u.observedAt);return `<div class="sm-util"><span>CPU <b>${ok?num(typeof u.cpuRatio==='number'?u.cpuRatio*100:null,0):'—'}%</b></span><span>메모리 <b>${ok?num(typeof u.memoryRatio==='number'?u.memoryRatio*100:null,0):'—'}%</b></span></div>`;}
+function card(p,node,a,d){
+ const isSelected=selected===key(p),valid=d.valid.profiles&&recent(p.generated_at||entries.profiles.data?.generated_at)||example;
+ const ready=valid&&p.ready_pod_count===p.pod_count&&p.pod_count>0;
+ const podText=!valid?'Pod 관측 확인 불가':ready?'Pod 준비됨':p.nodes.length===1?`Pod 준비 ${p.ready_pod_count}/${p.pod_count}`:`전체 Pod 준비 ${p.ready_pod_count}/${p.pod_count}`;
+ const appState=a?.role==='service'?(a.services.length>1?{text:'서비스별 상태 확인',tone:'unknown'}:execution(a.service,d.valid.services)):null;
+ const selectedLink=associations(d.services,d.devices).get(selected);
+ const related=selected&&a?.services?.some(s=>selectedLink?.services?.some(x=>x.service_id===s.service_id));
+ return `<button class="sm-card ${isSelected?'selected':''} ${related?'related':''} ${a?.role||'workload'} ${!example&&changedUntil.get(key(p))>Date.now()?'changed':''}" data-sm-select="${E(key(p))}" data-sm-node="${E(node)}" aria-pressed="${isSelected}"><span class="sm-card-top"><span>${E(a?.role==='service'?'AI 서비스':a?.role==='remote'?'증강 실행체':a?.role==='source'?'센서 수집':'워크로드')}</span><span>${E(p.pods_by_node?.[node]??'—')} Pod</span></span><strong>${E(a?.title||p.service)}</strong><small>${E(p.namespace)} / ${E(p.service)}</small><span class="sm-card-status">${pill(podText,valid?(ready?'ok':'warn'):'unknown')}${appState?pill(appState.text,appState.tone):''}</span></button>`;
+}
+function nodePanel(r,ps,links,d){return `<article class="sm-node"><header><div><span class="sm-node-icon" aria-hidden="true">${r.nodeType==='cloud_server'?'▤':'▣'}</span><h3>${E(r.node)}</h3></div>${pill(d.valid.resources?label(r.health):'관측 확인 불가',d.valid.resources&&r.health==='healthy'?'ok':'unknown')}</header>${usage(r,d.valid.resources)}<div class="sm-node-apps">${ps.map(p=>card(p,r.node,links.get(key(p)),d)).join('')||'<p class="sm-vacant">이 필터의 Running 워크로드 없음</p>'}</div></article>`;}
+function flow(s,d){
+ const isDemo=example||s.service_id==='sensor-anomaly-demo';
+ const ds=isDemo?d.demo:null,rs=routeState(ds,d.valid.demo);
+ const local=s.descriptor?.workload,remote=s.descriptor?.runtime_offloading?.target_workload;
+ const lp=d.profiles.find(p=>key(p)===local?.namespace+'/'+local?.name),rp=d.profiles.find(p=>key(p)===remote?.namespace+'/'+remote?.name);
+ const localNode=lp?.nodes.join(', ')||'실행 위치 미관측',remoteNode=rp?.nodes.join(', ')||'서버 위치 미관측';
+ const remoteActive=rs.mode==='REMOTE'&&rs.canFlow;
+ const pulse=(example||(pulseUntil>Date.now()))&&rs.canFlow;
+ const q=s.descriptor?.augmentation_qualification?.status;
+ return `<section class="sm-flow ${pulse?'pulse':''} ${remoteActive?'remote-active':''}"><div class="sm-section-title"><div><span class="eyebrow">선택한 서비스의 처리 경로</span><h3>${E(s.display_name)}</h3></div>${pill(rs.text,rs.mode==='UNKNOWN'?'unknown':'')}</div><div class="sm-flow-grid"><div class="sm-flow-box source"><small>입력 장비</small><strong>${E(s.physical_source||'물리 source 미지정')}</strong><span>${d.valid.services?'입력 '+E(label(s.input_state)):'입력 확인 불가'}</span></div><div class="sm-hop ${pulse?'observed-pulse':''}" aria-hidden="true">→</div><div class="sm-flow-box edge"><small>전처리 · 결과 저장 / ${rs.mode==='REMOTE'?'원격 요청':'로컬 추론'}</small><strong>${E(localNode)}</strong><span>${E(execution(s,d.valid.services).text)}</span></div><div class="sm-exchange ${remoteActive?'active':''}"><span>추론 요청 →</span><i class="sm-packet outbound" aria-hidden="true"></i><i class="sm-packet inbound" aria-hidden="true"></i><span>← 결과 반환</span></div><div class="sm-flow-box remote"><small>서버 추론</small><strong>${E(remoteNode)}</strong><span>${remoteActive?'원격 경로 활성':rs.mode==='LOCAL_FALLBACK'?'로컬 복귀 관측':q==='rejected'?'성능 자격 미통과':'증강 후보 · 사용 여부 별도 확인'}</span></div></div><p class="sm-caption">${example?'동작 설명용 예시입니다. 실제 요청·배포·이동은 실행하지 않습니다.':rs.canFlow?'화살표는 연결 구조입니다. 최신 저장 결과가 증가할 때만 짧게 강조하며 개별 패킷 수·속도를 나타내지 않습니다.':'현재 처리 흐름을 확인할 수 없어 움직임을 멈췄습니다. 화살표는 연결 구조를 나타냅니다.'}</p></section>`;
+}
+function details(p,a,d){
+ if(!p)return `<section class="sm-detail"><h3>${selected?'선택한 워크로드가 현재 목록에 없습니다.':'서비스 카드를 선택하세요.'}</h3><p>입력과 실행 위치, 모델 및 자원 사용 근거가 여기에 표시됩니다.</p></section>`;
+ const s=a?.services?.find(x=>x.service_id===contextService)||a?.service,valid=d.valid.profiles,perf=(s?.service_id==='sensor-anomaly-demo'||example)&&d.valid.demo?d.demo?.performance:null;
+ const chooser=a?.services?.length>1?`<div class="sm-service-context"><label for="sm-service-context">이 실행체를 이용하는 서비스</label><select id="sm-service-context">${a.services.map(x=>`<option value="${E(x.service_id)}" ${s.service_id===x.service_id?'selected':''}>${E(x.display_name)}</option>`).join('')}</select></div>`:'';
+ return `${chooser}${s?flow(s,d):''}<section class="sm-detail"><div class="sm-section-title"><div><span class="eyebrow">선택한 실행체</span><h3>${E(a?.title||p.service)}</h3></div>${s&&!example?`<button class="button" data-live-service="${E(s.service_id)}">서비스 상세 ↗</button>`:''}</div><dl class="sm-facts"><div><dt>실행 위치 · Running 관측</dt><dd>${E(p.nodes.join(', '))}</dd></div><div><dt>워크로드 식별자</dt><dd>${E(key(p))}</dd></div><div><dt>CPU · 전체 실행체 합계</dt><dd>${valid?num(p.current_usage?.cpu_cores,3):'—'} cores</dd></div><div><dt>메모리 · 전체 실행체 합계</dt><dd>${valid?num(p.current_usage?.memory_working_set_mib):'—'} MiB</dd></div><div><dt>모델</dt><dd>${E(s?.model_version||'모델 계약 미연결')}</dd></div><div><dt>서비스 지연 p95 / 처리량</dt><dd>${perf?.metrics_valid?num(perf.processing_latency_p95_ms)+' ms / '+num(perf.throughput_per_second)+' 건/s':'유효한 처리 지표 없음'}</dd></div></dl>${a?.role==='source'?`<p class="sm-caption">EdgeX 물리 source: ${E(a.sources.join(', '))}</p>`:''}<p class="sm-caption">${example?'예시 데이터':`배치 원 관측 ${E(clock(p.generated_at||entries.profiles.data?.generated_at))} · 자원 값은 노드별 분할값이 아닌 워크로드 합계입니다.`}</p></section>`;
+}
+function historyPanel(){return `<section class="sm-history"><div class="sm-section-title"><h3>화면을 연 뒤의 배치 변화</h3><small>최근 24건 · 브라우저 메모리</small></div>${events.length?`<ol>${events.map(e=>`<li><time>${E(clock(e.time))}</time><div><strong>${E(e.text)}</strong><span>${E(e.id)}</span><small>${E((e.from||[]).join(', ')||'미관측')} → ${E((e.to||[]).join(', ')||'미관측')}</small></div></li>`).join('')}</ol>`:'<p class="sm-caption">아직 새로운 배치 변화가 관측되지 않았습니다. Pod 배치의 변화는 서비스 실행 권한 전환이나 무중단 이동을 증명하지 않습니다.</p>'}</section>`;}
+function html(){
+ const d=data(),links=associations(d.services,d.devices);
+ const profiles=d.profiles.filter(p=>scope==='all'||links.has(key(p)));
+ if(!selected&&profiles.length&&(example||entries.services.data))selected=key(profiles.find(p=>links.get(key(p))?.role==='service')||profiles[0]);
+ const chosen=d.profiles.find(p=>key(p)===selected),a=links.get(selected);
+ const nodes=new Map(d.resources.map(r=>[r.node,r]));for(const p of profiles)for(const node of p.nodes)if(!nodes.has(node))nodes.set(node,{node,health:'unknown',nodeType:'unknown'});
+ const visible=[...nodes.values()].filter(r=>showEmpty||example||profiles.some(p=>p.nodes.includes(r.node))).sort((a,b)=>a.node.localeCompare(b.node));
+ const edges=visible.filter(r=>r.nodeType!=='cloud_server'),servers=visible.filter(r=>r.nodeType==='cloud_server');
+ const errors=example?[]:Object.entries(entries).filter(([k,e])=>e.error||e.data&&!d.valid[k]).map(([k,e])=>`${({profiles:'워크로드',services:'서비스',resources:'노드',devices:'장비',demo:'추론'})[k]}: ${e.error||'갱신 지연'}`);
+ const board=(rows)=>rows.map(r=>nodePanel(r,profiles.filter(p=>p.nodes.includes(r.node)),links,d)).join('')||'<p class="sm-vacant">표시할 장비 없음</p>';
+ return `<div class="sm-top"><div><span class="eyebrow">${example?'동작 예시 / 실제 운영과 분리':'KUBEEDGE · 서비스 배치 지도'}</span><h2>어디에서 일하고 있나요?</h2><p>장비 안의 카드를 선택해 서비스의 실행 위치와 처리 경로를 확인하세요.</p></div><button id="sm-example" class="button ${example?'primary':''}" data-sm-action="example">${example?'실제 관측으로 돌아가기':'움직임 예시 보기'}</button></div>
+ ${example?`<div class="sm-example-banner"><div><b>예시 ${step+1}/4 · ${scenarios[step].title}</b><p>${scenarios[step].note}</p></div><div><button class="button" id="sm-play" data-sm-action="play">${playing?'예시 일시정지':'예시 자동 재생'}</button><button class="button" id="sm-next" data-sm-action="next">다음 장면 →</button></div></div>`:''}
+ <div class="sm-controls"><div class="sm-segment" aria-label="지도 표시 범위">${[['linked','등록 서비스·수집기'],['all','전체 워크로드']].map(([k,t])=>`<button id="sm-scope-${k}" data-sm-scope="${k}" aria-pressed="${scope===k}">${t}</button>`).join('')}</div><label><input id="sm-empty" type="checkbox" ${showEmpty?'checked':''}>빈 장비도 표시</label><span class="sm-refresh">${example?'예시 데이터':`15초 갱신 · 수신 ${clock(lastCycle)}`}</span><button class="button" id="sm-refresh" data-sm-action="refresh" ${pending||example?'disabled':''}>${pending?'조회 중…':'새로고침'}</button></div>
+ ${errors.length?`<div class="sm-error" role="status"><b>일부 관측을 확인할 수 없습니다.</b> ${E(errors.join(' / '))} · 이전 응답이 있으면 보존합니다.</div>`:''}
+ <div class="sm-legend"><span><i class="service"></i>AI 서비스</span><span><i class="source"></i>센서 수집</span><span><i class="remote"></i>증강 실행체</span><span>${example?'예시 장비':d.valid.profiles?`${profiles.length}개 워크로드 · ${visible.length}개 장비 표시`:'워크로드 수 확인 불가'}</span></div>
+ <div class="sm-board"><section class="sm-zone"><div class="sm-zone-label"><span>현장 엣지</span><small>수집 · 전처리 · 로컬 실행</small></div><div class="sm-edge-grid">${board(edges)}</div></section><section class="sm-zone server"><div class="sm-zone-label"><span>서버</span><small>추론 · 공용 서비스</small></div><div class="sm-server-grid">${board(servers)}</div></section></div>
+ ${!d.profiles.length?`<p class="sm-caption">${entries.profiles.data?'Running 워크로드 관측이 비어 있습니다. 정지·삭제 또는 수집 실패 여부는 별도 확인이 필요합니다.':'워크로드 배치를 조회하고 있습니다.'}</p>`:''}
+ ${details(chosen,a,d)}${example?'':historyPanel()}
+ <details class="sm-boundary"><summary>이 지도에서 관측하는 범위</summary><p>Running Pod의 워크로드·노드별 배치입니다. Pending·정지된 Deployment 전체 목록은 포함하지 않습니다. 카탈로그에 연결되지 않은 워크로드는 AI 서비스로 분류하지 않습니다. 실행체가 준비됐다는 사실과 실제 서비스 처리 성공은 별도입니다. 배치 변화 기록은 이 브라우저에서 관측한 두 스냅샷의 차이이며 새로고침하면 초기화됩니다.</p></details>`;
+}
+function paint(){const el=root.document?.getElementById('service-placement-map');if(!el)return;const focused=root.document.activeElement,id=focused?.id,sel=focused?.dataset?.smSelect,node=focused?.dataset?.smNode;
+ const oldRects=new Map();for(const b of el.querySelectorAll('[data-sm-select]')){const k=b.dataset.smSelect;const rows=oldRects.get(k)||[];rows.push({node:b.dataset.smNode,rect:b.getBoundingClientRect()});oldRects.set(k,rows);}
+ el.classList.toggle('is-example',example);el.innerHTML=html();
+ if(!root.matchMedia('(prefers-reduced-motion: reduce)').matches){const cards=[...el.querySelectorAll('[data-sm-select]')];for(const b of cards){const old=oldRects.get(b.dataset.smSelect);if(old?.length===1&&old[0].node!==b.dataset.smNode&&cards.filter(c=>c.dataset.smSelect===b.dataset.smSelect).length===1){const to=b.getBoundingClientRect(),from=old[0].rect,ghost=b.cloneNode(true);ghost.removeAttribute('data-sm-select');ghost.removeAttribute('data-sm-node');ghost.setAttribute('aria-hidden','true');ghost.tabIndex=-1;Object.assign(ghost.style,{position:'fixed',zIndex:'30',pointerEvents:'none',left:from.x+'px',top:from.y+'px',width:to.width+'px'});root.document.body.append(ghost);ghost.animate([{transform:'translate(0,0)',opacity:.9},{transform:`translate(${to.x-from.x}px,${to.y-from.y}px)`,opacity:.5}],{duration:260,easing:'cubic-bezier(.23,1,.32,1)'}).finished.finally(()=>ghost.remove());b.animate([{opacity:0},{opacity:1}],{duration:260});}}}
+ if(id&&el.contains(root.document.getElementById(id)))root.document.getElementById(id).focus({preventScroll:true});
+ else if(sel){const replacement=[...el.querySelectorAll('[data-sm-select]')].find(b=>b.dataset.smSelect===sel&&b.dataset.smNode===node);replacement?.focus({preventScroll:true});}
+}
+function install(){if(installed)return;installed=true;
+ root.document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!b.closest('#service-placement-map'))return;
+  if(b.dataset.smSelect){selected=b.dataset.smSelect;paint();}
+  if(b.dataset.smScope){scope=b.dataset.smScope;paint();}
+  const action=b.dataset.smAction;if(action==='refresh')refresh();
+  if(action==='example'){example=!example;selected=null;step=0;playing=false;paint();if(!example)refresh();}
+  if(action==='next'){step=(step+1)%scenarios.length;lastExampleTick=Date.now();paint();}
+  if(action==='play'){playing=!playing;lastExampleTick=Date.now();paint();}
+ });
+ root.document.addEventListener('change',e=>{if(e.target.id==='sm-empty'){showEmpty=e.target.checked;paint();}if(e.target.id==='sm-service-context'){contextService=e.target.value;paint();}});
+ root.setInterval(()=>{if(root.document.hidden||!root.document.getElementById('service-placement-map'))return;
+  if(example){if(playing&&Date.now()-lastExampleTick>=3500){step=(step+1)%scenarios.length;lastExampleTick=Date.now();paint();}return;}
+  if(Date.now()-lastCycle>=15000&&!pending)refresh();
+ },1000);
+}
+function render(){if(root.document){install();root.queueMicrotask(()=>{paint();if(!example&&Date.now()-lastCycle>=15000)refresh();});}return '<section id="service-placement-map" class="service-map" aria-label="서비스 배치 지도"></section>';}
+const api={render,validate,associations,placements,changes,execution,routeState,advance,fresh,recent,escape:E};
+if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NexusServiceMap=api;
+})(typeof window!=='undefined'?window:globalThis);
