@@ -39,7 +39,7 @@ class FakeAsyncClient:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9100"}, "value": [0, "6"]},
             ])
-        if query == "DCGM_FI_DEV_GPU_UTIL":
+        if query == PROMETHEUS_QUERIES["gpu_utilization"]:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9400", "gpu": "0"}, "value": [0, "47"]},
             ])
@@ -103,7 +103,7 @@ def test_collect_node_metrics_merges_dcgm_pod_ip_with_node_exporter(monkeypatch)
                 return FakeResponse([
                     {"metric": {"instance": "192.168.0.56:9100"}, "value": [0, "24"]},
                 ])
-            if query == "DCGM_FI_DEV_GPU_UTIL":
+            if query == PROMETHEUS_QUERIES["gpu_utilization"]:
                 return FakeResponse([
                     {"metric": {"instance": "10.244.0.160:9400", "pod": "dcgm-exporter-qvf62"}, "value": [0, "33"]},
                 ])
@@ -214,3 +214,19 @@ def test_collect_service_resource_profile_usage_returns_window_statistics(monkey
             "p95_memory_working_set_mib": 290.0,
         }
     ]
+
+
+def test_jetson_metric_joins_node_exporter_without_fabricating_gpu_memory(monkeypatch):
+    import app.prometheus as mod
+    class JetsonClient(FakeAsyncClient):
+        async def get(self, url, params):
+            if params['query'] == PROMETHEUS_QUERIES['gpu_utilization']:
+                return FakeResponse([{'metric': {'instance': '192.168.0.3:9100'}, 'value': [0, '37.5']}])
+            if params['query'].startswith('DCGM_'): return FakeResponse([])
+            return await super().get(url, params)
+    monkeypatch.setattr(mod.httpx, 'AsyncClient', JetsonClient)
+    result=asyncio.run(PrometheusClient('http://prom',{'192.168.0.3:9100':{'hostname':'etri-dev0001-jetorn'}}).collect_node_metrics())
+    assert len(result)==1 and result[0].gpu_utilization==.375
+    assert result[0].gpu_memory_total_mib is None
+    assert 'jetson_gpu_collector_success == 1' in PROMETHEUS_QUERIES['gpu_utilization']
+    assert 'up{job="jetson-gpu-exporter"} == 1' in PROMETHEUS_QUERIES['gpu_utilization']

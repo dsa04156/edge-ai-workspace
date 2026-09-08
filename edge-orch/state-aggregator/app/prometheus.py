@@ -15,7 +15,7 @@ PROMETHEUS_QUERIES = {
     "load_average": "node_load1",
     "network_rx_rate": 'sum by(instance) (rate(node_network_receive_bytes_total{device!="lo"}[5m]))',
     "network_tx_rate": 'sum by(instance) (rate(node_network_transmit_bytes_total{device!="lo"}[5m]))',
-    "gpu_utilization": "DCGM_FI_DEV_GPU_UTIL",
+    "gpu_utilization": 'DCGM_FI_DEV_GPU_UTIL or on(instance) (100 * (jetson_gpu_utilization_ratio and on(instance) (jetson_gpu_collector_success == 1) and on(instance) (up{job="jetson-gpu-exporter"} == 1)))',
     "gpu_memory_used_mib": "DCGM_FI_DEV_FB_USED",
     "gpu_memory_free_mib": "DCGM_FI_DEV_FB_FREE",
     "gpu_temperature_celsius": "DCGM_FI_DEV_GPU_TEMP",

@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jetson-gpu-exporter
+  labels: {app: jetson-gpu-exporter}
+spec:
+  selector:
+    matchLabels: {app: jetson-gpu-exporter}
+  template:
+    metadata:
+      labels: {app: jetson-gpu-exporter}
+    spec:
+      automountServiceAccountToken: false
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [etri-dev0001-jetorn, etri-dev0005-jetagx]
+      tolerations:
+        - key: node-role.kubernetes.io/edge
+          operator: Exists
+          effect: NoSchedule
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: exporter
+          image: python:3.11-slim@sha256:6c5ae9d998f4cc06f892f428d7af53a566c24ad0dc29fa572696b647cf2762a7
+          command: [python, -B, /app/exporter.py]
+          ports:
+            - {name: metrics, containerPort: 9401, hostPort: 9401}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 10m, memory: 24Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          readinessProbe:
+            httpGet: {path: /healthz, port: metrics}
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /healthz, port: metrics}
+            periodSeconds: 30
+          volumeMounts:
+            - {name: code, mountPath: /app, readOnly: true}
+            - {name: gpu-load, mountPath: /host-gpu/load, readOnly: true}
+      volumes:
+        - name: code
+          configMap: {name: jetson-gpu-exporter-code}
+        - name: gpu-load
+          hostPath:
+            path: /sys/devices/platform/bus@0/17000000.gpu/load
+            type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jetson-gpu-exporter
+  labels: {app: jetson-gpu-exporter}
+spec:
+  selector: {app: jetson-gpu-exporter}
+  ports:
+    - {name: metrics, port: 9401, targetPort: metrics}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jetson-gpu-exporter
+  labels: {app: jetson-gpu-exporter, release: prometheus}
+spec:
+  jobLabel: app
+  selector:
+    matchLabels: {app: jetson-gpu-exporter}
+  namespaceSelector:
+    matchNames: [kube-system]
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 5s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_host_ip]
+          targetLabel: instance
+          replacement: '${1}:9100'
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
