@@ -3615,6 +3615,10 @@
         ? Promise.resolve(true)
         : refreshInventory(root.fetch, documentRef),
     ]);
+    const requestedService = new URLSearchParams(root.location?.search || "").get("service");
+    if (requestedService && documentRef.body?.dataset.dashboardPage === "designer") {
+      editDeployedServiceDesign(requestedService, documentRef);
+    }
   }
 
   root.ServiceDesignerRegistryBridge = {

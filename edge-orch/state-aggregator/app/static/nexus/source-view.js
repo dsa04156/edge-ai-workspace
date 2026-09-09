@@ -1,6 +1,6 @@
 /* Physical source identity comes only from EdgeX mappings; views never bind or mutate. */
 (function(root){
-'use strict';
+'use strict';const UX=root.NexusUX||(typeof require==='function'?require('./ux-policy.js'):null);
 const resourceLabels={temperature_raw:'온도 원시값',light_raw:'조도 원시값',magnetic_raw:'자기 센서 원시값',acceleration_x_raw:'가속도 X축 원시값',acceleration_y_raw:'가속도 Y축 원시값',acceleration_z_raw:'가속도 Z축 원시값',temp_humidity:'습도 센서 온도',temp_pressure:'기압 센서 온도',humidity:'습도',pressure:'기압',compass:'방위',pitch:'피치',roll:'롤',yaw:'요',gyro_x:'각속도 X축',gyro_y:'각속도 Y축',gyro_z:'각속도 Z축'};
 const resourceLabel=name=>resourceLabels[name]||name;
 function functionLabel(d){const names=[...new Set((d.latest_readings||[]).map(r=>resourceLabel(r.resource_name)).filter(Boolean))];return names.length?names.join(' · '):d.name;}
@@ -33,21 +33,21 @@ function searchSources(sources,query){
   const q=query.trim().toLocaleLowerCase();
   return sources.filter(s=>[s.id,virtualDevice(s).id,...s.functions.flatMap(({device:d,twin:t})=>[d.name,d.profile_name,d.device_service_name,d.node_name,...(d.latest_readings||[]).map(r=>r.resource_name),...(t?.service_bindings||[]).flatMap(b=>[b.service_id,b.service_name])])].filter(Boolean).join(' ').toLocaleLowerCase().includes(q));
 }
-function render({devices,twins,services,query,selected,deviceCurrent,twinCurrent,serviceCurrent,escape:E,status,date,expanded=new Map(),view='physical'}){
+function render({devices,twins,services,query,selected,deviceCurrent,twinCurrent,serviceCurrent,escape:E,status,date,expanded=new Map(),view='physical',page=0,health='all',node='',checked=new Set()}){
   const logical=view==='virtual';
-  const grouped=buildSources(devices,twins),sources=searchSources(grouped.sources,query);
-  const source=sources.find(s=>s.id===selected)||sources[0];
+  const grouped=buildSources(devices,twins),sources=UX.filterSources(searchSources(grouped.sources,query),{health,node,current:deviceCurrent});const slice=UX.pageItems(sources,page);const nodes=[...new Set(devices.map(d=>d.node_name).filter(Boolean))].sort();
+  const source=sources.find(s=>s.id===selected);
   const count=(value,current)=>current?value:'—';
   const connectionsKnown=s=>deviceCurrent&&twinCurrent&&s.functions.every(f=>f.twin);
   const header=logical?`<div class="source-intro"><div><p class="eyebrow">물리 장비의 소프트웨어 표현</p><h2>가상 디바이스</h2><p>원본 장비의 식별 정보, 기능과 관측 상태를 하나의 논리 디바이스로 묶었습니다. 각 디바이스를 선택해 원본과 이용 서비스를 확인하세요.</p></div><span class="badge">EdgeX 기반 · 읽기 전용</span></div>`:`<div class="source-intro"><div><p class="eyebrow">물리 장비 → 가상 디바이스 → 기능·서비스</p><h2>장비 하나를 기준으로 연결을 살펴보세요.</h2><p>물리 장비에 대응하는 가상 디바이스에서 제공 기능과 최신 상태를 확인할 수 있습니다.</p></div><span class="badge">EdgeX 장비 기준</span></div>`;
-  const chooser=`<nav class="source-picker ${logical?'physical-vd-picker':''}" aria-label="${logical?'가상 디바이스 선택':'물리 장비 선택'}">${sources.map(s=>`<button id="source-${E(encodeURIComponent(s.id))}" data-source-select="${E(s.id)}" aria-pressed="${s.id===source?.id}"><span class="source-kind">${logical?'가상 디바이스':'물리 장비'}</span><strong>${E(s.id)}${logical?' 가상 디바이스':''}</strong>${logical?`<code>${E(virtualDevice(s).id)}</code><span>원본 장비 · ${E(s.id)}</span>`:''}<span>등록 기능 ${count(s.functions.length,deviceCurrent)}개 · 연결 서비스 ${count(s.services.size,connectionsKnown(s))}개</span></button>`).join('')}</nav>`;
+  const chooser=`<nav class="source-picker ${logical?'physical-vd-picker':''}" aria-label="${logical?'가상 디바이스 선택':'물리 장비 선택'}">${slice.items.map(s=>`<div class="source-option"><input type="checkbox" data-source-check="${E(s.id)}" aria-label="${E(s.id)} 선택" ${checked.has(s.id)?'checked':''}><button id="source-${E(encodeURIComponent(s.id))}" data-source-select="${E(s.id)}" aria-pressed="${s.id===source?.id}"><span class="source-kind">${logical?'가상 디바이스':'물리 장비'}</span><strong>${E(s.id)}${logical?' 가상 디바이스':''}</strong>${logical?`<code>${E(virtualDevice(s).id)}</code><span>원본 장비 · ${E(s.id)}</span>`:''}<span>등록 기능 ${count(s.functions.length,deviceCurrent)}개 · 연결 서비스 ${count(s.services.size,connectionsKnown(s))}개</span></button></div>`).join('')}</nav>`;
   let detail='';
   if(source){
     const nodes=[...new Set(source.functions.map(f=>f.device.node_name).filter(Boolean))];
     const adapters=[...new Set(source.functions.map(f=>f.device.device_service_name).filter(Boolean))];
     const bindings=[...source.services];
     const vd=virtualDevice(source);
-    detail=`<section class="source-detail" aria-labelledby="source-detail-title">
+    detail=`<aside class="source-drawer" aria-label="장비 상세 패널"><button id="source-close" class="button" data-source-close>상세 닫기 · Esc</button><section class="source-detail" aria-labelledby="source-detail-title">
       <div class="source-identity"><div><span class="source-kind">${logical?'선택한 가상 디바이스':'선택한 물리 장비'}</span><h3 id="source-detail-title" tabindex="-1">${E(source.id)}${logical?' 가상 디바이스':''}</h3>${logical?`<code id="physical-vd-id">${E(vd.id)}</code>`:''}</div><p>등록 기능 ${count(source.functions.length,deviceCurrent)}개 · 관측 트윈 ${count(source.functions.filter(f=>f.twin).length,deviceCurrent&&twinCurrent)}개</p></div>
       ${logical?`<div class="physical-vd-map" aria-label="원본 장비와 가상 디바이스 연결"><div><span>원본 물리 장비</span><strong>${E(source.id)}</strong><button class="text-button" data-live-source="${E(source.id)}">원본 장비 보기 ↗</button></div><span class="physical-vd-arrow" aria-hidden="true">→</span><div><span>가상 디바이스</span><strong>${E(vd.id)}</strong><p>원본의 등록 기능과 관측 상태를 함께 제공</p></div></div><dl class="physical-vd-contract"><div><dt>표현 방식</dt><dd>물리 장비의 읽기 전용 가상 표현</dd></div><div><dt>등록·데이터 원본</dt><dd>EdgeX Device·Profile·Event</dd></div><div><dt>원본 식별자</dt><dd>${E(source.id)}</dd></div><div><dt>논리 ID 유지 기준</dt><dd>원본 장비 ID가 같으면 유지</dd></div></dl><p class="physical-vd-boundary">장비별 기능·관측 트윈을 묶은 조회 객체입니다. 시뮬레이터나 별도로 실행되는 컨테이너가 아니며, 센서 제어·증강 실행은 제공하지 않습니다.</p>`:`<div class="physical-vd-entry"><div><span>이 장비의 가상 디바이스</span><strong>${E(vd.id)}</strong><p>원본 장비의 기능과 관측 상태를 묶은 논리 디바이스</p></div><button class="button" data-open-physical-vd="${E(source.id)}">가상 디바이스 열기 ↗</button></div>`}
       <dl class="source-context"><div><dt>연결·수집 담당</dt><dd>${E(adapters.join(', ')||'미지정')}</dd></div><div><dt>수집 실행 노드</dt><dd>${E(nodes.join(', ')||'미지정')} <button class="text-button" data-live-page="resources">노드 상태 보기 ↗</button></dd></div></dl>
@@ -65,10 +65,12 @@ function render({devices,twins,services,query,selected,deviceCurrent,twinCurrent
       ${!twinCurrent?'<p class="source-alert" role="status">서비스 연결을 현재 확인할 수 없습니다. 이전 연결이 있으면 참고용으로 표시합니다.</p>':''}
       ${bindings.length?bindings.map(([id,uses])=>{const service=services.find(s=>s.service_id===id);return `<article class="source-consumer"><div><button class="text-button" data-live-service="${E(id)}">${E(service?.display_name||uses[0].binding.service_name||id)} ↗</button><p>${E(id)} · 연결 기능 ${uses.length}개</p></div><div><span class="source-label">서비스 입력 상태</span>${status(service?.input_state,Boolean(service&&serviceCurrent&&service.mode==='live'&&!service.observation_error))}</div><p>${E(uses.map(u=>u.device).join(', '))}</p></article>`;}).join(''):`<p class="note">${connectionsKnown(source)?'이 장비의 기능에 등록된 서비스 연결이 없습니다.':'서비스 연결 확인 불가'}</p>`}</section>
       <aside class="source-extension"><div><h3>추가 실행 기능</h3><p>CPU Iris 가상 실행체는 별도 시험입니다. 이 장비의 센서 기능이나 서비스에 연결됐다는 근거는 아직 없습니다.</p></div><button class="button" data-workspace="virtual">독립 실행 기능 시험 ↗</button></aside>
-    </section>`;
-  }else detail=`<div class="empty">${query?`검색과 일치하는 ${logical?'가상 디바이스':'물리 장비'}가 없습니다.`:deviceCurrent?'물리 장비가 지정된 등록 항목이 없습니다.':'물리 장비 정보를 기다리고 있습니다. 조회 실패 여부는 위 관측 정보를 확인하세요.'}</div>`;
+    </section></aside>`;
+  }else if(!sources.length)detail=`<div class="empty">${query?`검색과 일치하는 ${logical?'가상 디바이스':'물리 장비'}가 없습니다.`:deviceCurrent?'물리 장비가 지정된 등록 항목이 없습니다.':'물리 장비 정보를 기다리고 있습니다. 조회 실패 여부는 위 관측 정보를 확인하세요.'}</div>`;
   const unknown=grouped.unassigned.filter(d=>!query||[d.name,d.profile_name].join(' ').toLowerCase().includes(query.toLowerCase()));
-  return header+chooser+detail+(unknown.length?`<section class="source-unassigned"><h3>물리 장비 미지정 · ${unknown.length}개</h3><p>장비 ID 연결이 없어 특정 장비의 기능으로 묶지 않았습니다.</p>${unknown.map(d=>`<button class="text-button" data-live-device="${E(d.name)}">${E(d.name)} ↗</button>`).join('')}</section>`:'');
+  const controls=`<div class="inventory-controls"><label>통신 상태 <select id="source-health">${[['all','전체'],['healthy','수신 정상'],['attention','점검 필요'],['unknown','확인 불가']].map(([v,l])=>`<option value="${v}" ${health===v?'selected':''}>${l}</option>`).join('')}</select></label><label>연결 노드 <select id="source-node"><option value="">전체 노드</option>${nodes.map(n=>`<option value="${E(n)}" ${node===n?'selected':''}>${E(n)}</option>`).join('')}</select></label><span id="source-selection-count" role="status">${checked.size}개 선택</span><button class="button" data-copy-sources>선택 ID 복사</button><button class="button" data-clear-sources>선택 해제</button></div>`;
+ const pager=`<div class="pager"><span>${sources.length? slice.page*25+1:0}–${Math.min((slice.page+1)*25,sources.length)} / ${sources.length}개 · 페이지당 25개</span><div><button class="button" data-source-page="${slice.page}" ${slice.page===0?'disabled':''}>이전</button> <button class="button" data-source-page="${slice.page+2}" ${slice.page+1>=slice.pages?'disabled':''}>다음</button></div></div>`;
+ return header+controls+chooser+pager+detail+(unknown.length?`<section class="source-unassigned"><h3>물리 장비 미지정 · ${unknown.length}개</h3><p>장비 ID 연결이 없어 특정 장비의 기능으로 묶지 않았습니다.</p>${unknown.slice(0,25).map(d=>`<button class="text-button" data-live-device="${E(d.name)}">${E(d.name)} ↗</button>`).join('')}${unknown.length>25?'<p>처음 25개 표시 · 전체 항목은 등록 디바이스 탭에서 검색하세요.</p>':''}</section>`:'');
 }
 const api={buildSources,virtualDevice,searchSources,render};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;

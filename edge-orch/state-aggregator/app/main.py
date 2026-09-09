@@ -16,6 +16,9 @@ from .adapter_catalog import AdapterCatalog
 from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
 from .config import Settings
+from .model_offload_api import create_model_offload_router
+from .model_offload_contract import ModelOffloadContract
+from .model_offload_controller import ModelOffloadExecutionController, OffloadJournal, WorkerTransport
 from .candidate_workload_template import CandidateTemplateCatalog
 from .candidate_validation import ValidationContractCatalog
 from .connection_management import ConnectionManagementService
@@ -103,6 +106,16 @@ from .service_demo_models import (
 
 settings = Settings()
 service = StateAggregatorService(settings)
+model_offload_controller = None
+if settings.model_offload_enabled:
+    if not settings.execution_management_token:
+        raise ValueError("MODEL_OFFLOAD_ENABLED requires EXECUTION_MANAGEMENT_TOKEN")
+    model_offload_contract = ModelOffloadContract.model_validate_json(settings.model_offload_contract_path.read_text())
+    model_offload_controller = ModelOffloadExecutionController(
+        model_offload_contract,
+        OffloadJournal(Path(settings.data_dir) / "model-offload.sqlite3"),
+        WorkerTransport(model_offload_contract, service.kube),
+    )
 service_demo_client = ServiceDemoClient(
     settings.sensor_anomaly_demo_url,
     settings.sensor_anomaly_demo_timeout_seconds,
@@ -191,13 +204,18 @@ async def lifespan(_: FastAPI):
     if reconcile_routing is not None:
         await reconcile_routing()
     await runtime_recommendation_monitor.start()
+    if model_offload_controller is not None:
+        await model_offload_controller.start()
     yield
+    if model_offload_controller is not None:
+        await model_offload_controller.stop()
     await runtime_execution_controller.shutdown()
     await runtime_recommendation_monitor.stop()
     await service.stop()
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
+app.include_router(create_model_offload_router(model_offload_controller, settings.execution_management_token))
 app.include_router(create_virtual_device_router(service.kube))
 app.include_router(create_virtual_device_control_router(service.kube, settings))
 app.include_router(

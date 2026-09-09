@@ -34,6 +34,23 @@ RuntimeExecutionStepAction = Literal[
 RuntimeExecutionWorkloadRole = Literal["current", "candidate"]
 
 
+def build_model_offload_execution_plan(recommendation: dict) -> dict:
+    """Model lifecycle executor contract; never a whole-workload replacement."""
+    selected = recommendation.get("selected_node")
+    return {
+        "service_id": recommendation["service_id"],
+        "executor": "model_offload",
+        "status": "planned" if selected else "not_applicable",
+        "selected_node": selected,
+        "reason_codes": recommendation["reason_codes"],
+        "steps": (["activate_model", "probe_server", "route_new_requests_to_server",
+                   "observe_low_arrival_rate", "probe_edge", "route_new_requests_to_edge",
+                   "drain_server", "release_model", "verify_cached", "rearm"] if selected else []),
+        "preserves": ["edge_collection", "pods", "gpu_shared_reservation", "service_selectors"],
+        "mode": "read_only",
+    }
+
+
 class RuntimeExecutionCondition(SchedulingModel):
     code: str = Field(min_length=1, max_length=128)
     description: str = Field(min_length=1, max_length=500)

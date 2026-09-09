@@ -24,17 +24,17 @@
 
 ## 핵심 컴포넌트
 
-- 왼쪽 밝은 회색 운영 레일: 활성 화면은 채도가 낮은 청록 재질과 가는 표시선으로 구분한다.
-- 상단바: 클러스터 문맥, 검색, 갱신을 얇은 반투명 재질에 배치한다.
-- 운영 요약: 세 분류를 각각 떨어진 카드로 만들지 않고 하나의 segmented surface로 묶는다.
-- 패널: 18px radius, 얕은 그림자, 반투명 표면으로 일관되게 구성한다.
+- 왼쪽 224px 운영 레일: canvas와 같은 색이며 활성 화면은 백색 표면과 청록 글자로 구분한다.
+- 상단바: 테스트베드 문맥·현재 메뉴, 검색, 갱신을 배치한다.
+- 운영 요약: 우선 점검·영향 서비스·물리 source·현장 노드를 한 표면에 묶는다.
+- 패널: 12px radius, 얕은 그림자, 백색 표면으로 일관되게 구성한다.
 - 연결 signature: `물리 source → 관측 트윈 → AI 서비스`를 가는 청록 status rail로 반복한다.
 - 폼과 버튼: 최소 44px hit target, 명확한 focus ring, 누를 때 0.97 scale 피드백을 제공한다.
 
 ## 반응형과 접근성
 
 - 1180px 아래에서는 왼쪽 레일을 가로 스크롤 가능한 탭으로 전환한다.
-- 760px 아래에서는 요약을 하나의 세로 segmented surface로 바꾸고 패널을 한 열로 쌓는다.
+- 760px 아래에서는 운영 요약을 2×2로 바꾸고 패널·연결 행을 한 열로 쌓는다.
 - `prefers-reduced-motion`, `prefers-reduced-transparency`, `prefers-contrast`를 지원한다.
 - 색상만으로 상태를 전달하지 않고 텍스트와 배지를 함께 유지한다.
 
@@ -42,7 +42,9 @@
 
 `apple-dashboard.css` is the final visual contract. 기존 기능별 CSS를 제거하지 않지만 마지막에
 로드하여 토큰, app frame, navigation, surface, control, motion과 responsive 규칙을 한곳에서
-통제한다. 기능별 DOM과 이벤트 계약은 바꾸지 않는다.
+통제한다. 2026-09-07 승인 시안 적용에서 메뉴·DOM 배치는 변경하고 기존 API·관리·설계 계약은
+유지했다. 화면 흐름은 [대시보드 정보 구조](docs/대시보드-정보-구조.md), 정확한 토큰과
+측정값은 [.interface-design/system.md](.interface-design/system.md)를 따른다.
 
 ## 범위 경계
 

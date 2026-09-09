@@ -11,6 +11,7 @@ from threading import Lock
 from pydantic import BaseModel, Field
 
 from .models import PlacementSelectionResult
+from .model_offload_contract import recommend_model_offload
 from .runtime_recommendation_models import (
     RuntimeRecommendationAction,
     RuntimeRecommendationDecision,
