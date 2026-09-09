@@ -1,0 +1,4 @@
+# Frontend-only release: preserve the verified running backend and configuration.
+FROM 192.168.0.56:5000/state-aggregator@sha256:572fcfb78575e84767e25a3058b01c5aa470e3a56ac0866d6b5cfe2b80b4de3b
+COPY app/static/nexus/ /app/app/static/nexus/
+COPY app/static/service-designer.js /app/app/static/service-designer.js
