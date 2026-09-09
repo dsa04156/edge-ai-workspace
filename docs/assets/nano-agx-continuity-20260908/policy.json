@@ -1,0 +1,72 @@
+{
+  "schema": "nano-agx-continuity/v2",
+  "contract": {
+    "nodes": {
+      "nano": "etri-dev0001-jetorn",
+      "agx": "etri-dev0005-jetagx"
+    },
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime_image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+    "runtime_images": {
+      "nano": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+      "agx": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28"
+    },
+    "runtime_version": "0.33.2",
+    "gpu_backend": "cuda_jetpack6",
+    "calibration_low_rps": 0.25,
+    "calibration_busy_strategy": "30-sequential-requests-three-repeats/v1",
+    "agx_model_storage": "sd-ext4:c6889d5e-37bb-4b07-8e0b-757d3de8c877",
+    "prediction_model": "fcfs-overlapped-activation/v2",
+    "calibration_load_strategy": "three-repeats-until-first-failing-step",
+    "prompt": "In one short sentence, explain why edge computing reduces latency.",
+    "max_tokens": 8,
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "worker_concurrency": 1,
+    "clock": "client-monotonic",
+    "ttft_boundary": "scheduled-arrival-to-first-stream-token"
+  },
+  "baseline_digest": "ac10d7d0f76a212065d0aa7467414879c218d07e61463901c7466c2c630b994d",
+  "slo_ms": 548.4096340078395,
+  "capacity_rps": {
+    "nano": 4.0,
+    "agx": 4.8
+  },
+  "service_ms": {
+    "nano": 246.70672298816498,
+    "agx": 172.49755300872494
+  },
+  "low_ttft_ms": {
+    "nano": 136.13359098962974,
+    "agx": 274.20481700391974
+  },
+  "activation_max_ms": 22298.116231992026,
+  "activation_slo_ms": 22846.525865999865,
+  "queue_limit": 111,
+  "settings": {
+    "high_ratio": 0.85,
+    "low_ratio": 0.6,
+    "pressure_seconds": 5.0,
+    "return_seconds": 30.0,
+    "cooldown_seconds": 60.0,
+    "idle_seconds": 30.0,
+    "min_gain": 0.15,
+    "fresh_seconds": 3.0,
+    "rate_window_seconds": 10.0
+  },
+  "routing_semantics": "pin-at-admission-drain-existing/v2",
+  "qualification_forecast": {
+    "model": "fcfs-overlapped-activation/v2",
+    "horizon_seconds": 82.29811623199203,
+    "rate_rps": 4.8,
+    "pending": 0,
+    "requests": 395,
+    "local_during_activation": 107,
+    "remote_after_ready": 288,
+    "local_mean_response_ms": 7806.264484990001,
+    "candidate_mean_response_ms": 743.5250819210042,
+    "gain": 0.9047527683246366
+  },
+  "policy_id": "c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3"
+}

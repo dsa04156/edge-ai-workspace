@@ -66,6 +66,7 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
+<li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
@@ -75,16 +76,18 @@
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>현재 구현 상태</h1>
-          <p class="subtitle">&gt; 기준일: 2026-09-02 &gt; 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read…</p>
+          <p class="subtitle">이번 승인 범위는 기존 NEXUS의 서비스 중심 운영 projection, 데이터 비교, 추천·실행 이력 연결과 서버 설계 버전…</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-09-02 17:23</span>
-            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+            <span class="badge">수정: 2026-09-09 09:51</span>
+            <span class="badge">HTML 생성: 2026-09-09 09:52</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-구현-상태">현재 구현 상태</h1>
+<h2 id="2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</h2>
+<p>이번 승인 범위는 기존 NEXUS의 서비스 중심 운영 projection, 데이터 비교, 추천·실행 이력 연결과 서버 설계 버전·시험 원장 저장이다. EdgeX 물리 권위와 Kubernetes/KubeEdge node/workload 권위를 유지한다. 설계 저장은 Configured이며 범용 배포·오프로딩을 실행하지 않는다. 현재 실제 가능/부분 구현/미구현과 API·검증·운영 책임은 <a href="통합-운영-대시보드-고도화.html">통합 운영 대시보드 고도화</a>를 따른다. 로컬 수정 및 검증 상태이며 운영 image 반영은 별도다. 아래 과거 날짜의 운영 기록은 그 시각의 근거로만 읽는다.</p>
 <blockquote><p>기준일: 2026-09-02 근거: 현재 checkout, 자동 테스트, Argo CD와 live cluster read-only 조회</p></blockquote>
 <p>이 문서는 <strong>배포된 운영 기준선</strong>, <strong>격리 환경에서 검증한 제한 기능</strong>, <strong>로컬 검증 중인 미배포 구현</strong>, <strong>설계·계약 단계</strong>를 구분한다. 코드나 시험 결과가 존재하더라도 Git/Argo 기준선과 운영 승격 조건을 통과하지 않은 기능은 운영 완료로 표시하지 않는다.</p>
 <h2 id="한눈에-보기">한눈에 보기</h2>
@@ -257,7 +260,8 @@
 <p>세부 포함·제외 기준은 <a href="프로젝트-범위.html">프로젝트 범위</a>를 따른다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#한눈에-보기">한눈에 보기</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</a></li>
+<li class="toc-h2"><a href="#한눈에-보기">한눈에 보기</a></li>
 <li class="toc-h2"><a href="#배포-기준선">배포 기준선</a></li>
 <li class="toc-h2"><a href="#live-상태-스냅샷">live 상태 스냅샷</a></li>
 <li class="toc-h2"><a href="#runtime-실행-검증-경계">Runtime 실행 검증 경계</a></li>

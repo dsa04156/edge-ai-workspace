@@ -1,0 +1,52 @@
+{
+  "observed_at": "2026-09-08T13:47:56.166777+00:00",
+  "passed": true,
+  "policy_id": "c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3",
+  "candidate_runs": 10,
+  "control_runs": 10,
+  "candidate_requests": 8760,
+  "total_requests": 17520,
+  "slo_ms": 548.4096340078395,
+  "activation_slo_ms": 22846.525865999865,
+  "warm_p95_ttft_ms": {
+    "min": 103.03138567542192,
+    "median": 287.01972749695415,
+    "max": 379.46679831657093
+  },
+  "activation_overlap_max_ttft_ms": 2407.4175029963953,
+  "measured_activation_ms": {
+    "min": 22131.991577000008,
+    "median": 22287.160162501095,
+    "max": 22546.87899000419
+  },
+  "activation_download_ms": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "paired_p95_response_improvement_percent": {
+    "min": 62.10867169630837,
+    "median": 81.11158785827982,
+    "max": 88.10850833218163
+  },
+  "candidate_max_completion_gap_ms": 1890.0417230033781,
+  "candidate_status_counts": {
+    "ok": 8760,
+    "unknown": 0,
+    "rejected": 0
+  },
+  "actual_nodes": [
+    "etri-dev0001-jetorn",
+    "etri-dev0005-jetagx"
+  ],
+  "all_candidate_checks_passed": true,
+  "scope": "Fixed Llama 3.2 1B prompt, 8 tokens, both nodes alive; development qualification, not whole-node failure recovery or a production gateway guarantee",
+  "failed_attempt_retained": "attempt-01"
+}

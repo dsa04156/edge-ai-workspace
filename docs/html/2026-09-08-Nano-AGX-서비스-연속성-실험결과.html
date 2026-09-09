@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nano–AGX 서비스 연속성 실험 결과</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">개발 참고</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">2026-09-08-Nano-AGX-서비스-연속성-실험결과.md</span>
+        <a class="edit-link" href="/__edit?file=2026-09-08-Nano-AGX-서비스-연속성-실험결과.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a class="active" aria-current="page" href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">개발 참고</p>
+          <h1>Nano–AGX 서비스 연속성 실험 결과</h1>
+          <p class="subtitle">&gt; 실험일: 2026-09-08 · 문서 작성: 2026-09-09 · 분류: 격리 자격시험 / 개발 참고 &gt; 최종 판정: 실제…</p>
+          <div class="meta">
+            <span class="badge kind">개발 참고</span>
+            <span class="badge">원본: 2026-09-08-Nano-AGX-서비스-연속성-실험결과.md</span>
+            <span class="badge">수정: 2026-09-09 09:52</span>
+            <span class="badge">HTML 생성: 2026-09-09 09:52</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="nano-agx-서비스-연속성-실험-결과">Nano–AGX 서비스 연속성 실험 결과</h1>
+<blockquote><p>실험일: 2026-09-08 · 문서 작성: 2026-09-09 · 분류: 격리 자격시험 / 개발 참고 최종 판정: <strong>실제 Nano → AGX Orin → Nano 왕복 10회와 Nano 단독 비교 10회 모두 합격</strong>.</p></blockquote>
+<h2 id="결과를-쉽게-설명하면">결과를 쉽게 설명하면</h2>
+<p>Nano에 일이 몰리면 AGX를 준비하고, 준비가 끝난 뒤 새 일을 AGX에 맡겼다. 준비하는 동안에도 Nano는 계속 일했다. 일이 줄면 Nano로 돌려주고 AGX의 모델 메모리를 비웠다. 이 과정을 실제 장비에서 10번 반복했고, 비교 시험까지 <strong>17,520건 모두 결과를 받았다</strong>.</p>
+<p>이는 양쪽 장비가 켜져 있는 상태의 고정 Llama 데모 시험이다. 모든 요청에 지연이 없었다는 뜻은 아니다. AGX 준비와 겹친 요청의 첫 토큰 지연은 최대 2.407초였다. 외부 서비스용 공용 진입점이나 Nano 전원·네트워크 전체 장애 복구를 검증한 결과로 확대하지 않는다.</p>
+<h2 id="무엇을-검증했나">무엇을 검증했나</h2>
+<p>목적은 AI 모델 자체의 품질 평가가 아니라, 서비스를 계속 처리하면서 <strong>부하 전환·복귀·자원 해제</strong>를 수행할 수 있는지 확인하는 것이다. KubeEdge/Kubernetes는 노드와 workload를 관리하고, 시험 시작·정지·원장 회수는 별도 운영자가 소유한다. 격리된 시험 client가 고정 Kubernetes Service <code>llama-nano</code>, <code>llama-agx</code> 중 요청 대상을 선택한다. Service selector나 EndpointSlice를 동적으로 바꾸지 않는다. EdgeX 물리 디바이스 경로와 기존 센서 서비스를 변경하지 않았다.</p>
+<ol><li>AGX는 모델 파일이 SD에 있는 <code>CACHED</code> 상태에서 시작한다. 모델을 GPU에 미리 유지하지 않는다.</li><li>Nano의 부하 조건을 만족하면 AGX를 활성화한다. 준비 중 요청은 Nano가 계속 처리한다.</li><li>AGX의 실제 추론 응답에서 요청 ID·모델·장비를 확인한 후 새 접수 요청을 AGX에 보낸다.</li><li>전환 전에 Nano에 접수한 요청은 Nano가 마저 처리한다. 복귀 때도 기존 AGX 요청을 마저 처리한다.</li><li>부하 감소 조건과 Nano의 실제 응답을 확인하면 새 요청을 Nano로 돌린다.</li><li>AGX의 처리 중·대기 요청이 없고 유휴 시간이 충족되면 모델 메모리를 해제한다.</li></ol>
+<p>모델 메모리 해제 이후에도 AGX 관리 Pod와 GPU 공유 슬롯은 유지한다. 실행 중 요청이나 LLM의 KV-cache를 다른 장비로 옮기는 방식은 아니다.</p>
+<h2 id="장비-입력-측정-조건">장비·입력·측정 조건</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>고정 조건</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>원래 처리 장비</td>
+<td>실제 Orin Nano, <code>etri-dev0001-jetorn</code></td>
+</tr>
+<tr>
+<td>넘겨받는 장비</td>
+<td>실제 AGX Orin, <code>etri-dev0005-jetagx</code>; RTX 대체 사용 없음</td>
+</tr>
+<tr>
+<td>격리 namespace</td>
+<td><code>llama-continuity-test</code></td>
+</tr>
+<tr>
+<td>모델·runtime</td>
+<td><code>llama3.2:1b</code>, Ollama 0.33.2, 실제 CUDA 추론</td>
+</tr>
+<tr>
+<td>모델 digest</td>
+<td><code>baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878</code></td>
+</tr>
+<tr>
+<td>입력</td>
+<td>동일 prompt, 최대 출력 8토큰, temperature 0, seed 42, context 2048</td>
+</tr>
+<tr>
+<td>처리 동시성</td>
+<td>worker별 1개; 전환 전 접수 요청은 기존 장비에서 완료</td>
+</tr>
+<tr>
+<td>AGX 모델 저장소</td>
+<td>ext4 SD <code>/srv/agx-model-cache/ollama</code>; 활성화 중 다운로드 0ms</td>
+</tr>
+<tr>
+<td>1회 부하</td>
+<td>30초 × 2건/초 → 120초 × 4.8건/초 → 120초 × 2건/초</td>
+</tr>
+<tr>
+<td>반복</td>
+<td>단독/왕복 10쌍, 회차마다 선후 순서 교대; 회당 876건, 부하 시간 합계 약 90분</td>
+</tr>
+<tr>
+<td>지연 측정 시작</td>
+<td>client의 <strong>예정 도착 시각</strong>; 대기·네트워크·처리 시간을 포함</td>
+</tr>
+<tr>
+<td>첫 응답 지연</td>
+<td>실제 스트리밍 첫 토큰 수신까지의 TTFT</td>
+</tr>
+<tr>
+<td>전체 응답시간</td>
+<td>마지막 결과 수신까지; p95는 nearest-rank 방식</td>
+</tr>
+</tbody></table></div>
+<p>고정 prompt는 <code>In one short sentence, explain why edge computing reduces latency.</code>다. 더 긴 입력·출력을 사용하는 장비별 GPU 성능 시험과는 작업 조건이 다르므로 처리율과 지연 수치를 섞어 사용하지 않는다.</p>
+<h2 id="먼저-고정한-기준">먼저 고정한 기준</h2>
+<p>저부하 TTFT와 바쁜 상태의 직렬 처리시간을 각각 3회 측정했다. 부하 단계별 시험에서 Nano의 검증 처리율은 4.0건/초였고, AGX의 4.8건/초 수용은 별도 3회, 총 432건으로 확인했다. SD에서 AGX를 준비하는 시간도 10회 측정한 후 baseline과 정책을 동결했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>판단</th>
+<th>동결한 기준</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>정상 지연 S</td>
+<td>양쪽 저부하 p95 TTFT 최댓값 × 2 = <strong>548.41ms</strong></td>
+</tr>
+<tr>
+<td>전환 압력</td>
+<td>Nano 처리율의 85% 이상 또는 예상 대기 지연이 S를 넘는 상태가 5초 지속</td>
+</tr>
+<tr>
+<td>AGX 자격</td>
+<td>해당 입력률 수용 가능, 준비 중 Nano 처리를 포함한 예상 이득 15% 이상</td>
+</tr>
+<tr>
+<td>Nano 복귀</td>
+<td>전체 입력률이 Nano 처리율의 60% 이하로 30초 지속, 60초 cooldown과 실제 Nano 응답 확인</td>
+</tr>
+<tr>
+<td>AGX 모델 해제</td>
+<td>처리 중·client 대기·worker 대기 요청 0, 30초 유휴</td>
+</tr>
+<tr>
+<td>유한 대기열</td>
+<td>최대 111건; 거절 발생 시 이번 왕복 시험 불합격</td>
+</tr>
+<tr>
+<td>활성화 중 요청 지연</td>
+<td>기준선 활성화 최대 22,298.12ms + S = <strong>22,846.53ms</strong> 이하</td>
+</tr>
+<tr>
+<td>요청 검증</td>
+<td>누락·중복·거절·오류 0, 단일 전송, 실제 node/model identity 확인</td>
+</tr>
+</tbody></table></div>
+<p>예측은 이후 입력률이 현재 수준으로 유지된다는 가정을 사용한다. 예측식의 <strong>평균 비용 이득</strong>과 아래의 <strong>실측 p95 전체 응답시간 감소율</strong>은 다른 지표다.</p>
+<h2 id="최종-결과">최종 결과</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>측정 항목</th>
+<th>결과</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>전환·복귀·모델 해제</td>
+<td><strong>10/10회 합격</strong></td>
+</tr>
+<tr>
+<td>같은 부하의 Nano 단독 비교</td>
+<td><strong>10/10회 합격</strong></td>
+</tr>
+<tr>
+<td>성공 요청</td>
+<td>왕복 8,760건 + 단독 8,760건 = <strong>17,520/17,520건</strong></td>
+</tr>
+<tr>
+<td>누락·중복 전송·거절·오류</td>
+<td><strong>0건</strong></td>
+</tr>
+<tr>
+<td>정상 구간 p95 TTFT</td>
+<td>회차별 <strong>103.03~379.47ms</strong>, 모두 S 548.41ms 이하</td>
+</tr>
+<tr>
+<td>활성화와 겹친 요청의 최대 TTFT</td>
+<td><strong>2,407.42ms</strong>, 예산 22,846.53ms 이하</td>
+</tr>
+<tr>
+<td>AGX 준비부터 실제 시험 응답 완료까지</td>
+<td><strong>22.132~22.547초</strong>, 다운로드는 10회 모두 0ms</td>
+</tr>
+<tr>
+<td>단독 대비 p95 전체 응답시간 감소</td>
+<td><strong>62.11~88.11%</strong>, 회차별 감소율 중앙값 <strong>81.11%</strong></td>
+</tr>
+<tr>
+<td>왕복 응답 완료 사이 최대 간격</td>
+<td><strong>1,890.04ms</strong>; 0ms 간격이나 무지연을 뜻하지 않음</td>
+</tr>
+</tbody></table></div>
+<p>정상 구간 지표에서는 활성화와 겹친 요청을 분리한다. 분리한 요청도 버리지 않고 별도 최대 TTFT 기준으로 판정한다. 아래 전체 응답시간 p95에는 그 요청들도 포함한다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>반복</th>
+<th>왕복·단독 판정</th>
+<th>정상 p95 TTFT (ms)</th>
+<th>왕복 p95 전체 응답 (ms)</th>
+<th>단독 p95 전체 응답 (ms)</th>
+<th>감소율</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>모두 합격</td>
+<td>103.03</td>
+<td>437.11</td>
+<td>2096.40</td>
+<td>79.15%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>모두 합격</td>
+<td>244.65</td>
+<td>699.75</td>
+<td>5343.72</td>
+<td>86.91%</td>
+</tr>
+<tr>
+<td>3</td>
+<td>모두 합격</td>
+<td>309.16</td>
+<td>984.42</td>
+<td>3131.86</td>
+<td>68.57%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>모두 합격</td>
+<td>201.37</td>
+<td>806.22</td>
+<td>5012.22</td>
+<td>83.91%</td>
+</tr>
+<tr>
+<td>5</td>
+<td>모두 합격</td>
+<td>356.72</td>
+<td>1068.91</td>
+<td>3181.01</td>
+<td>66.40%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>모두 합격</td>
+<td>331.56</td>
+<td>1327.09</td>
+<td>3502.36</td>
+<td>62.11%</td>
+</tr>
+<tr>
+<td>7</td>
+<td>모두 합격</td>
+<td>305.37</td>
+<td>903.17</td>
+<td>7595.10</td>
+<td>88.11%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>모두 합격</td>
+<td>236.96</td>
+<td>916.41</td>
+<td>5414.11</td>
+<td>83.07%</td>
+</tr>
+<tr>
+<td>9</td>
+<td>모두 합격</td>
+<td>379.47</td>
+<td>2109.30</td>
+<td>6541.85</td>
+<td>67.76%</td>
+</tr>
+<tr>
+<td>10</td>
+<td>모두 합격</td>
+<td>268.67</td>
+<td>1234.55</td>
+<td>9364.03</td>
+<td>86.82%</td>
+</tr>
+</tbody></table></div>
+<p>실제 활성화 최대 22.547초는 기준선 최대 22.298초보다 약 0.249초 길었다. 기준선 최대를 절대 상한으로 보장하지 않는다. 동결한 <strong>요청 지연 예산</strong>은 변경하지 않았고 모든 회차가 통과했다. 더 긴 작업과 SD·입력률 변동은 별도 검증이 필요하다.</p>
+<h2 id="첫-실패와-수정-근거">첫 실패와 수정 근거</h2>
+<p>첫 <code>v2-sd-01</code> 왕복도 876건을 모두 처리하고 AGX 전환·Nano 복귀·모델 해제를 수행했다. 그러나 정상 구간 p95 TTFT가 <strong>6,640.0ms</strong>로 S를 넘어 실패했고, 후속 반복을 자동 중단했다.</p>
+<p>원인은 요청이 늘수록 접수·전송·첫 토큰·완료마다 누적 JSON 전체를 다시 저장하는 기록 경로였다. 실제 실패 원본으로 수행한 로컬 진단에서 전체 저장 중앙값은 39.44ms, 변경 항목 저장은 4.11ms였다. 이는 로컬 원장 비용 비교이며 Jetson 추론 성능 측정값이 아니다.</p>
+<p>요청·이벤트·표본별 변경분을 저장하도록 수정하면서 SQLite WAL과 <code>synchronous=FULL</code>을 유지했다. 전송 의도와 dispatch 이벤트는 네트워크 전송 전에 같은 트랜잭션으로 확정한다. 재시작 시 변경분을 합쳐 원장을 복구하며, 이미 전송해 결과가 불확실한 요청을 자동 재실행하지 않는다.</p>
+<p>그 후 <strong>같은 기준선·정책·부하</strong>로 <code>v2-sd-02</code>에서 10쌍을 처음부터 다시 실행했다. 첫 실패 기록은 보존했으며 성공 부분만 골라 최종 10쌍에 섞지 않았다.</p>
+<h2 id="종료-상태와-검증-범위">종료 상태와 검증 범위</h2>
+<p>2026-09-08 22:48 KST 종료 확인 기록에서 Nano는 추론 가능 상태였고, AGX는 <code>CACHED</code>, 모델 VRAM·active·queue 모두 0이었다. SD 여유는 약 122.76GB, AGX eMMC 여유는 약 14.86GB였으며 저장소 점검을 통과했다. 7개 노드는 Ready이고 Disk/Memory/PID pressure가 없었다. 기존 Llama·EdgeX Pod의 UID·컨테이너 ID·재시작 횟수·Ready 상태는 시험 시작 기록과 같았다. 이 수치는 <strong>실험 종료 당시 관측</strong>이며 현재 실시간 상태를 대신하지 않는다.</p>
+<p>원격 전체 판정과 내보낸 원본 20회로 재계산한 로컬 판정이 일치했다. 원본·verdict 40개 파일의 SHA-256을 확인했고, 미완료 원장은 없었다. 93개 자동시험을 통과한 코드와 실제 controller 코드 해시가 일치했다.</p>
+<p>외부 서비스용 공용 gateway, NEXUS 자동 제어, Nano 전체 전원·네트워크 장애, 긴 생성·다른 모델, 실제 SD 재부팅·실행 중 카드 분리는 이번 시험에 포함하지 않았다. 다음 단계는 이 접수·전송·복귀 계약을 외부 서비스의 공용 진입점에 연결하고 같은 기준으로 검증하는 것이다.</p>
+<h2 id="내려받을-근거와-재현-위치">내려받을 근거와 재현 위치</h2>
+<ul><li><a href="assets/nano-agx-continuity-20260908/report.json">전체 20회 판정과 대응 비교</a></li><li><a href="assets/nano-agx-continuity-20260908/summary.json">최종 수치 요약</a></li><li><a href="assets/nano-agx-continuity-20260908/policy.json">동결 정책과 측정 계약</a></li><li><a href="assets/nano-agx-continuity-20260908/final-verification.json">종료 장비·기존 서비스·코드 검증</a></li><li><a href="assets/nano-agx-continuity-20260908/export-sha256.json">내보낸 원본의 SHA-256</a></li></ul>
+<p>위 파일은 실험 원본의 복사본이며 이번 문서 커밋에 함께 포함한다. 요청별 원장·첫 실패·기준선 전체는 실험 수행 작업 폴더의 <code>qualification/llama-offloading/results/2026-09-08-nano-agx-v2/</code>에 보존한다. 실행 절차는 <code>qualification/llama-offloading/continuity-runbook.md</code>, 판정 코드는 <code>continuity_report.py</code>, 전환 정책은 <code>continuity_policy.py</code>, 실행·영속 기록은 <code>continuity_runner.py</code>다.</p>
+<p>최종 정책 ID는 <code>c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3</code>다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#결과를-쉽게-설명하면">결과를 쉽게 설명하면</a></li>
+<li class="toc-h2"><a href="#무엇을-검증했나">무엇을 검증했나</a></li>
+<li class="toc-h2"><a href="#장비-입력-측정-조건">장비·입력·측정 조건</a></li>
+<li class="toc-h2"><a href="#먼저-고정한-기준">먼저 고정한 기준</a></li>
+<li class="toc-h2"><a href="#최종-결과">최종 결과</a></li>
+<li class="toc-h2"><a href="#첫-실패와-수정-근거">첫 실패와 수정 근거</a></li>
+<li class="toc-h2"><a href="#종료-상태와-검증-범위">종료 상태와 검증 범위</a></li>
+<li class="toc-h2"><a href="#내려받을-근거와-재현-위치">내려받을 근거와 재현 위치</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

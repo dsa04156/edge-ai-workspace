@@ -66,6 +66,7 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
+<li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a class="active" aria-current="page" href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
@@ -75,16 +76,32 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>저장소 구조</h1>
-          <p class="subtitle">edgex/device-serial/internal/driver/reader.go는 established stream의 Seri…</p>
+          <p class="subtitle">사용자의 명시적인 구현 요청에 따라 물리 source별 읽기 전용 가상 디바이스 표현을 추가한다. physical-vd:&lt;인코딩…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-02 17:23</span>
-            <span class="badge">HTML 생성: 2026-09-02 17:29</span>
+            <span class="badge">수정: 2026-09-09 09:51</span>
+            <span class="badge">HTML 생성: 2026-09-09 09:52</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="저장소-구조">저장소 구조</h1>
+<h2 id="물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</h2>
+<p>사용자의 명시적인 구현 요청에 따라 물리 source별 읽기 전용 가상 디바이스 표현을 추가한다. <code>physical-vd:&lt;인코딩된 source ID&gt;</code>라는 대시보드 논리 ID를 두고 원본 장비, EdgeX 등록 기능, 기존 관측 트윈과 이용 서비스를 연결한다. 이 용어는 장비 수준의 조회 표현에 한정하며 EdgeX inventory·상태 권위나 기능별 관측 트윈의 계약을 변경하지 않는다. simulator·센서 제어·실행 컨테이너가 아니다. 원본 없는 항목에는 가상 ID를 만들지 않는다.</p>
+<p>NEXUS의 <strong>가상 디바이스</strong> 탭과 <code>/#physical-virtual-devices</code>에서 선택·상세·원본 이동을 제공한다. <code>source-view.js</code>의 논리 모델과 기존 GET API를 재사용하며 별도 inventory 저장·등록·쓰기 API는 추가하지 않는다. 상세 계약과 검증 기준은 <a href="물리-가상-디바이스.html">물리 장비의 가상 디바이스</a>를 따른다.</p>
+<h2 id="2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</h2>
+<p>이번 승인 범위는 기존 NEXUS의 서비스 중심 운영 projection, 데이터 비교, 추천·실행 이력 연결과 서버 설계 버전·시험 원장 저장이다. EdgeX 물리 권위와 Kubernetes/KubeEdge node/workload 권위를 유지한다. 설계 저장은 Configured이며 범용 배포·오프로딩을 실행하지 않는다. 현재 실제 가능/부분 구현/미구현과 API·검증·운영 책임은 <a href="통합-운영-대시보드-고도화.html">통합 운영 대시보드 고도화</a>를 따른다. 로컬 수정 및 검증 상태이며 운영 image 반영은 별도다. 아래 과거 날짜의 운영 기록은 그 시각의 근거로만 읽는다.</p>
+<h2 id="2026-09-08-가상-디바이스-운영-사이클">2026-09-08 가상 디바이스 운영 사이클</h2>
+<p>사용자 승인 구현 범위는 <code>virtual-device-test/vd-demo-001</code> 한 개의 시작·시험 추론·정지와 영속 작업 이력이다. <code>state-aggregator/app/virtual_device_control.py</code>가 기존 운영 토큰, 고정 계약과 SQLite 요청 원장을 사용하고 <code>static/virtual-device-controls.js</code>가 NEXUS 내부 가상 디바이스 화면에 연결된다. Argo CD <code>edge-orch-state-aggregator</code>는 UI/API 및 해당 이름의 <code>/scale</code> 권한을 배포한다. 시험 Deployment 자체는 기존 독립 경로를 유지한다. 상세 경계와 검증 gate는 <a href="프로젝트-범위.html">프로젝트 범위</a>의 가상 디바이스 운영 사이클 절을 따른다. 범용 워크플로우 실행·오프로딩·옥동 현장 모델 실증 완료를 뜻하지 않는다.</p>
+<h2 id="컨테이너-가상-디바이스-시험-경로">컨테이너 가상 디바이스 시험 경로</h2>
+<ul><li><code>edge-orch/virtual-device-runtime/</code>: Pod 내부 CPU 추론 API, 모델 어댑터·학습 artifact,</li></ul>
+<p>독립 시험 manifest, Jetson 클라이언트와 자동시험. 기본 replicas는 0이다.</p>
+<ul><li><code>edge-orch/state-aggregator/app/virtual_resource_registry.py</code> 및</li></ul>
+<p><code>app/config/virtual_devices.json</code>: Git 등록 정의와 연결 설정. 과거 AugmentationResource의 <code>runtimeRef</code>, DeviceAugmentation의 <code>targetDevice</code>·<code>bindings</code> 역할을 유지한 파일 registry다.</p>
+<ul><li><code>app/virtual_resources.py</code>, <code>app/static/virtual-devices.*</code>: 명시적 identity 기반 읽기 전용</li></ul>
+<p>관측과 기존 대시보드 확장. 과거 가상 자원 풀의 추정 상태 판정을 복원하지 않는다.</p>
+<ul><li>시험 배포 소유자는 승인받은 운영자이며 <code>edgex/k8s/kustomization.yaml</code> 및 Argo CD</li></ul>
+<p><code>edgex-telemetry</code>와 분리한다. 기존 센서 수집·서비스에는 변경을 가하지 않는다.</p>
 <h2 id="현재-구현-경로">현재 구현 경로</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -238,11 +255,24 @@
 <td>승인 기반 Server1 라우팅 선택 경로</td>
 </tr>
 </tbody></table></div>
+<h2 id="격리-자격시험">격리 자격시험</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>경로</th>
+<th>의미</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>qualification/llama-offloading/</code></td>
+<td>Llama 3.2 1B의 요청 단위 offloading, COLD/CACHED/ACTIVE 수명주기와 포화점을 검증하는 격리 prototype. Nano는 실제 Orin Nano에서 JetPack 6 CUDA로 실행했다. RTX 5060 Ti와 RTX 5080 x86 GPU 대체시험은 각각 AGX·Spark 논리 역할의 참고값일 뿐 실장비 값이 아니다. 과거 amd64 CPU 역할 대체 결과는 이력으로만 둔다. 현재 운영 root·대시보드 경로가 아니다.</td>
+</tr>
+</tbody></table></div>
 <p>선택 overlay나 simulator가 존재한다는 사실만으로 운영 root 기능으로 설명하지 않는다.</p>
 <h2 id="레거시-보관">레거시·보관</h2>
 <p>다음은 비교와 역사 확인용이며 현재 fallback이 아니다.</p>
 <ul><li><code>edge-orch/workflow_executor/</code>, <code>workflow_reporter/</code>, <code>placement_engine/</code></li><li><code>workflow/</code></li><li><code>mappers/mqttvirtual/</code>, <code>mappers/script/</code></li><li><code>edge-device/</code></li><li><code>edgex/telemetry-plane/</code>의 과거 edge Agent 코드</li><li><code>docs/archive/</code>, <code>docs/superpowers/</code></li></ul>
 <h2 id="배포-소유권">배포 소유권</h2>
+<p>격리 Llama 버튼 시연의 선택 배포 진입점은 <code>qualification/llama-offloading/demo-k8s/</code>다. <code>gpu_session.py</code>는 승인된 RTX 5080 임시 사용 및 영속 보상 기록을 소유한다. 전용 SA는 exact-name worker scale과 exact-name 센서 Argo Application patch만 수행하며, 기존 <code>state-aggregator</code> 권한은 넓히지 않는다. 센서 Application의 원래 설정은 보존하고 자기 소유 override만 제거한다. 운영 EdgeX root나 legacy placement engine을 이 실험에 연결하지 않는다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>대상</th>
@@ -276,9 +306,14 @@
 <p><code>docs/</code>에는 공개 문서와 내부 이력이 함께 있지만 <code>scripts/build-docs-html.py</code>는 공개 목록만 생성한다. <code>docs/html/</code>과 검색 색인은 생성물이므로 직접 편집하지 않는다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#현재-구현-경로">현재 구현 경로</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</a></li>
+<li class="toc-h2"><a href="#2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</a></li>
+<li class="toc-h2"><a href="#2026-09-08-가상-디바이스-운영-사이클">2026-09-08 가상 디바이스 운영 사이클</a></li>
+<li class="toc-h2"><a href="#컨테이너-가상-디바이스-시험-경로">컨테이너 가상 디바이스 시험 경로</a></li>
+<li class="toc-h2"><a href="#현재-구현-경로">현재 구현 경로</a></li>
 <li class="toc-h2"><a href="#운영-지원">운영 지원</a></li>
 <li class="toc-h2"><a href="#선택-개발-fixture">선택 개발 fixture</a></li>
+<li class="toc-h2"><a href="#격리-자격시험">격리 자격시험</a></li>
 <li class="toc-h2"><a href="#레거시-보관">레거시·보관</a></li>
 <li class="toc-h2"><a href="#배포-소유권">배포 소유권</a></li>
 <li class="toc-h2"><a href="#문서-구조">문서 구조</a></li></ol></aside>
