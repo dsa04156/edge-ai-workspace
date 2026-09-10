@@ -80,18 +80,18 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</h1>
-          <p class="subtitle">&gt; 최신 안내 (2026-09-08): 실제 AGX Orin 연결 후의 &gt; 장비별 로컬 GPU 성능측정을 별도로 공개했다. &gt;…</p>
+          <p class="subtitle">&gt; 최신 안내 (2026-09-10): 실제 AGX Orin과 DGX Spark의 GPU 실측은 완료했다. &gt; 장비별 GPU 성…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: Llama-오프로딩-부하-판단-기준.md</span>
-            <span class="badge">수정: 2026-09-08 14:17</span>
-            <span class="badge">HTML 생성: 2026-09-10 11:27</span>
+            <span class="badge">수정: 2026-09-10 11:28</span>
+            <span class="badge">HTML 생성: 2026-09-10 11:28</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="llama-오프로딩-부하-판단-기준-실제-orin-nano-gpu-시험">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</h1>
-<blockquote><p><strong>최신 안내 (2026-09-08):</strong> 실제 AGX Orin 연결 후의 <a href="Llama-장비별-GPU-성능측정.html">장비별 로컬 GPU 성능측정</a>을 별도로 공개했다. 아래 내용은 9월 4일의 짧은 8토큰 시연 조건이다. 여기의 임계값을 새 512/128토큰 시험이나 실제 AGX의 확정 기준으로 사용하지 않는다.</p></blockquote>
-<blockquote><p><strong>2026-09-04 현재 측정 범위:</strong> <code>etri-dev0001-jetorn</code>의 실제 Jetson Orin Nano에서 Ollama JetPack 6 CUDA runner로 <code>llama3.2:1b</code>를 실행했다. 로그에서 Orin compute capability 8.7을 확인했고 <code>ollama ps</code>는 모델을 <code>100% GPU</code>로 표시했다. 실제 Jetson AGX Orin과 NVIDIA DGX Spark는 아직 없다. 대신 RTX 5060 Ti와 RTX 5080 x86 서버에서 같은 모델의 GPU 대체시험을 수행했으며, 두 결과를 실제 AGX·Spark 성능값으로 해석하지 않는다.</p></blockquote>
+<blockquote><p><strong>최신 안내 (2026-09-10): 실제 AGX Orin과 DGX Spark의 GPU 실측은 완료했다.</strong> <a href="Llama-장비별-GPU-성능측정.html">장비별 GPU 성능측정</a>에서 실제 Spark의 8토큰 상한 조건 640/640건 성공을 확인할 수 있다. Spark의 512/128토큰 공통 비교는 미측정이다. 아래는 <strong>9월 4일 초기 시험의 이력</strong>이다. 당시 RTX 대체 결과를 실제 AGX·Spark 값으로 바꾸어 읽거나 당시 임계값을 다른 요청 길이의 확정 기준으로 사용하지 않는다.</p></blockquote>
+<blockquote><p><strong>2026-09-04 당시 측정 범위:</strong> <code>etri-dev0001-jetorn</code>의 실제 Jetson Orin Nano에서 Ollama JetPack 6 CUDA runner로 <code>llama3.2:1b</code>를 실행했다. 로그에서 Orin compute capability 8.7을 확인했고 <code>ollama ps</code>는 모델을 <code>100% GPU</code>로 표시했다. 이 초기 시험에는 실제 Jetson AGX Orin과 NVIDIA DGX Spark가 포함되지 않았다. 대신 RTX 5060 Ti와 RTX 5080 x86 서버에서 같은 모델의 GPU 대체시험을 수행했으며, 두 결과를 실제 AGX·Spark 성능값으로 해석하지 않는다.</p></blockquote>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>역할</th>
@@ -108,14 +108,14 @@
 </tr>
 <tr>
 <td>AGX</td>
-<td>실제 장비 없음</td>
-<td>실제 AGX는 아니오</td>
+<td>당시 시험에는 미포함</td>
+<td>후속 실제 AGX 실측은 상단 링크</td>
 <td>RTX 5060 Ti x86 대체 서버에서 <code>100% GPU</code> 별도 측정</td>
 </tr>
 <tr>
 <td>Spark</td>
-<td>실제 장비 없음</td>
-<td>실제 Spark는 아니오</td>
+<td>당시 시험에는 미포함</td>
+<td>후속 실제 Spark 실측은 상단 링크</td>
 <td>RTX 5080 x86 대체 서버에서 <code>100% GPU</code> 별도 측정</td>
 </tr>
 </tbody></table></div>
@@ -237,7 +237,7 @@
 <p>이번 짧은 8-token 요청에서 대체 서버의 단독 p95 전체 지연은 220.5ms로 Nano 208.0ms보다 6.0% 느렸고, 최대 처리량은 4.7%만 높았다. 따라서 “서버 GPU이므로 무조건 요청 하나가 빨라진다”는 결론은 틀리다. Cached activation까지 포함하면 Nano 앞에 약 12건 이상 대기해야 첫 offload 요청의 근사 gain이 양수가 되고, 15% 이득 기준은 약 14건이다.</p>
 <p>두 worker가 이미 ACTIVE이고 backlog가 충분하다는 단순 합산에서는 10.376 req/s로 Nano-only보다 약 104.7% 높은 잠재 처리량이 나온다. 이것은 아직 동적 burst 라우팅 실측이 아니며 실제 AGX 성능값도 아니다. 원자료와 계산 경계는 <code>qualification/llama-offloading/results/2026-09-04-rtx5060ti-gpu/검증-보고서.md</code>에 있다.</p>
 <h3 id="rtx-5080-x86-대체-서버에서-확인한-참고값">RTX 5080 x86 대체 서버에서 확인한 참고값</h3>
-<p>실제 DGX Spark가 없는 상태에서 <code>etri-ser0002-cgnmsb</code>의 RTX 5080을 Spark <strong>대체 역할</strong>로 측정했다. 기존 센서 GPU 서비스는 승인받아 시험 동안만 중단했고, 시험 직후 원래 1/1 Ready, CUDA RTX 5080, GPU 예약 1/1 상태로 복구했다.</p>
+<p>9월 4일 시험에서 실제 DGX Spark를 사용하지 않고 <code>etri-ser0002-cgnmsb</code>의 RTX 5080을 Spark <strong>대체 역할</strong>로 측정했다. 기존 센서 GPU 서비스는 승인받아 시험 동안만 중단했고, 시험 직후 원래 1/1 Ready, CUDA RTX 5080, GPU 예약 1/1 상태로 복구했다.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th>항목</th>
@@ -297,13 +297,13 @@ rtk curl -fsS http://192.168.0.3:18100/health</code></pre>
 <p>2초다.</p>
 <ul><li>GPU 실행은 CPU-only 기준보다 최대 처리량이 약 2.01배(2.525 → 5.070 req/s), 단독</li></ul>
 <p>tokens/s가 약 1.92배(25.661 → 49.352) 높았다.</p>
-<ul><li>CPU-only 때 안전 동시 요청 2·첫 과부하 4였던 경계가 GPU에서는 각각 8·16으로 이동했다.</li><li>이것은 Nano 단독 포화점 결론이다. <strong>실제 AGX Orin과 DGX Spark의 성능 결론은 아직 없다.</strong></li><li>RTX 5060 Ti 대체시험에서는 Cached activation이 Cold보다 87.8% 짧았지만, 짧은 요청의</li></ul>
+<ul><li>CPU-only 때 안전 동시 요청 2·첫 과부하 4였던 경계가 GPU에서는 각각 8·16으로 이동했다.</li><li>이것은 Nano 단독 포화점 결론이다. <strong>이 초기 시험으로 실제 AGX Orin과 DGX Spark의 성능을 판단하지 않는다. 후속 실측은 상단 링크를 따른다.</strong></li><li>RTX 5060 Ti 대체시험에서는 Cached activation이 Cold보다 87.8% 짧았지만, 짧은 요청의</li></ul>
 <p>단독 p95 latency는 Nano보다 개선되지 않았다. 충분한 backlog에서 병행 처리량을 늘리는 용도로만 이득 가능성이 확인됐다.</p>
 <ul><li>RTX 5080 대체시험에서는 오류 0 기준 동시 요청 16까지 안전했고 Cached activation은</li></ul>
 <p>1.847초였다. Nano 선행 대기 9건에서 gain이 양수, 11건에서 15% 이득 기준을 넘었다.</p>
 <ul><li>현재 대체 장비 중 activation 대비 성능 향상은 RTX 5080 Spark 역할이 가장 컸다. 다만</li></ul>
 <p>RTX 5060은 호스트 Ollama, RTX 5080은 Kubernetes 컨테이너 Ollama라 순수 GPU 비교가 아니다.</p>
-<ul><li>실제 AGX/Spark가 준비되면 같은 GPU runtime·local SSD cache·모델·prompt·workload로</li></ul>
+<ul><li>실제 AGX/Spark의 후속 실측과 별도로, 같은 GPU runtime·local SSD cache·모델·prompt·workload로</li></ul>
 <p>세 방식의 idle 자원, activation과 최종 break-even을 다시 측정해야 한다.</p>
         </div>
       </article>

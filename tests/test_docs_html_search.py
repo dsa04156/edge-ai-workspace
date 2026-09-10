@@ -185,7 +185,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "실제 Orin Nano GPU 시험",
             "JetPack 6 CUDA",
             "`100% GPU`",
-            "AGX Orin과 NVIDIA DGX Spark는 아직 없다",
+            "이 초기 시험에는 실제 Jetson AGX Orin과 NVIDIA DGX Spark가 포함되지 않았다",
             "RTX 5080 x86 대체 서버",
             "Cached activation 평균 | 1.847초",
             "Nano 선행 대기 9건에서 gain이 양수",
@@ -195,7 +195,7 @@ class DocsHtmlSearchTest(unittest.TestCase):
             "## 결론",
             "8까지 p95 TTFT 1.5초 SLO를 지켰고",
             "16부터 과부하가 시작됐다",
-            "실제 AGX Orin과 DGX Spark의 성능 결론은 아직 없다",
+            "실제 AGX Orin과 DGX Spark의 GPU 실측은 완료했다",
             "최종 선택 임계값은 아직 확정",
             "같은 GPU runtime·local SSD cache·모델·prompt·workload",
         ):

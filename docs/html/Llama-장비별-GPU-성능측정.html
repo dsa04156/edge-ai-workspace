@@ -84,8 +84,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: Llama-장비별-GPU-성능측정.md</span>
-            <span class="badge">수정: 2026-09-10 11:16</span>
-            <span class="badge">HTML 생성: 2026-09-10 11:27</span>
+            <span class="badge">수정: 2026-09-10 11:28</span>
+            <span class="badge">HTML 생성: 2026-09-10 11:28</span>
           </div>
         </header>
         <div class="doc-body">
@@ -266,9 +266,9 @@
 </tr>
 <tr>
 <td><strong>DGX Spark</strong></td>
-<td>이 조건 미측정</td>
-<td>이 조건 미측정</td>
-<td>위 8토큰 조건의 실측 참고. 직접 성능비 비교 불가</td>
+<td>512/128 조건 미측정</td>
+<td>512/128 조건 미측정</td>
+<td><strong>8토큰 GPU 실측은 완료</strong> — 위 Spark 실측 표 참고</td>
 </tr>
 </tbody></table></div>
 <p>¹ 요청 1개는 <strong>n=1 실측값</strong>, 요청 8개는 <strong>n=8 표본 p95</strong>(느린 쪽 응답시간)다. 각 조건을 한 번 탐색한 결과로, 장시간 운영 p95나 장비의 최대 성능을 뜻하지 않는다. slot 1로 고정했으므로, 동시에 8개를 계산한 것이 아니라 <strong>대기를 포함해</strong> 측정했다.</p>
@@ -486,9 +486,9 @@ rtk qualification/llama-offloading/.venv/bin/python qualification/llama-boundari
 </tr>
 <tr>
 <td>NVIDIA DGX Spark</td>
-<td>접속 가능한 실제 장비 미확인</td>
-<td>미검증</td>
-<td>RTX 5080으로 대체 표기하지 않음</td>
+<td>이 과거 시험 당시 미확인</td>
+<td>해당 시험에는 미포함</td>
+<td>9월 9일 실제 GB10의 8토큰 실측 완료 — 문서 상단 참고</td>
 </tr>
 </tbody></table></div>
 <p>9월 7일의 Nano→RTX 5080 실측은 <strong>원격 API 경로</strong> 결과여서 위 로컬 결과에 섞지 않았다. 측정하지 못한 값은 0이나 실패율 0%로 표시하지 않는다.</p>
