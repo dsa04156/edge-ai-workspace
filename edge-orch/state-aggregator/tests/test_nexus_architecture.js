@@ -122,3 +122,47 @@ test('runtime payload design contract is used and operation link preserves servi
   assert.equal(url.searchParams.get('service'), 'service/a?b&c');
   assert.equal(url.hash, '#service-detail');
 });
+
+const resultService=()=>architecture.normalize(catalog.services.find(s=>s.service_id==='sensor-anomaly-demo'));
+const resultRow=(now,extra={})=>({origin:now,observed_at:new Date(now).toISOString(),score:0,anomaly:false,inference_target:'edge-local',...extra});
+const resultPayload=(now,rows)=>({generated_at:new Date(now).toISOString(),mode:'live',results:rows});
+
+test('result contract is restricted to the registered service and known read endpoint',()=>{
+ const s=resultService();assert.equal(architecture.resultsPath(s),'/state/service-demo/results?limit=12');
+ for(const patch of [{kind:'workload'},{id:'unrelated'},{observability:{adapter:'sensor-anomaly-v1',results_path:'https://example.com/results'}},{observability:{adapter:'sensor-anomaly-v1',results_path:'/state/service-demo/results?limit=12&write=true'}}])assert.equal(architecture.resultsPath({...s,...patch}),null);
+});
+
+test('result values preserve zero, deduplicate and order by actual observation time',()=>{
+ const now=Date.now(),a=resultRow(now-1000),b=resultRow(now-2000);
+ const data=architecture.parseResults(resultPayload(now,[b,a,a]),now);
+ assert.deepEqual(data.rows,[a,b]);assert.equal(data.rows[0].score,0);
+ const markup=architecture.resultMarkup(resultService(),architecture.mergeResults(null,data,now),now);
+ assert.match(markup,/통합 이상 점수/);assert.match(markup,/<strong>0<\/strong>/);assert.match(markup,/최근 결과 2건/);assert.doesNotMatch(markup,/새 결과 수신/);
+});
+
+test('result validation rejects unavailable, malformed, stale and future observations',()=>{
+ const now=Date.now(),good=resultPayload(now,[resultRow(now)]);
+ for(const data of [{...good,mode:'unavailable'},{...good,observation_error:'failed'},{...good,generated_at:new Date(now-91000).toISOString()},{...good,results:[resultRow(now+6000)]},{...good,results:[resultRow(now,{score:null})]},{...good,results:[resultRow(now,{anomaly:'false'})]}])assert.throws(()=>architecture.parseResults(data,now));
+});
+
+test('new result indicator requires forward progress, not repeated fetches or backfilled rows',()=>{
+ const now=Date.now(),old=resultRow(now-3000),fresh=resultRow(now-1000);
+ const first=architecture.mergeResults(null,architecture.parseResults(resultPayload(now,[old]),now),now);
+ const unchanged=architecture.mergeResults(first,architecture.parseResults(resultPayload(now,[old]),now),now);
+ assert.equal(unchanged.added,0);
+ const backfilled=architecture.mergeResults(first,architecture.parseResults(resultPayload(now,[old,resultRow(now-6000)]),now),now);
+ assert.equal(backfilled.added,0);
+ const next=architecture.mergeResults(first,architecture.parseResults(resultPayload(now,[fresh,old]),now),now);
+ assert.equal(next.added,1);assert.match(architecture.resultSummary(next,now).label,/새 결과 수신/);
+ assert.equal(architecture.resultSummary({...next,error:true},now).tone,'waiting');
+ assert.equal(architecture.resultSummary(next,now+91000).tone,'waiting');
+ const aged=architecture.mergeResults(null,architecture.parseResults(resultPayload(now,[resultRow(now-91000)]),now),now);
+ assert.equal(architecture.resultSummary(aged,now).label,'최근 처리 미관측');
+});
+
+test('result failures preserve explicitly historical values and escape server text',()=>{
+ const now=Date.now(),feed=architecture.mergeResults(null,architecture.parseResults(resultPayload(now,[resultRow(now,{model_version:'<img src=x onerror=alert(1)>'})]),now),now);
+ const markup=architecture.resultMarkup(resultService(),{...feed,error:true},now);
+ assert.match(markup,/결과 조회 실패/);assert.match(markup,/마지막 저장 판정/);assert.match(markup,/&lt;img/);assert.doesNotMatch(markup,/<img/);
+ assert.equal(architecture.resultSummary(architecture.mergeResults(null,architecture.parseResults(resultPayload(now,[]),now),now),now).label,'저장된 결과 없음');
+});

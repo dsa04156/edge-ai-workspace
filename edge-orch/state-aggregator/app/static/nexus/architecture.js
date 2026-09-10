@@ -4,7 +4,7 @@
   const icons={physical:'<path d="M4 8h16v12H4zM8 4v4m8-4v4M8 12v4m4-4v4m4-4v4"/>',collector:'<path d="M4 5h16v5H4zM4 14h16v5H4zM8 7.5h.01M8 16.5h.01M15 10v4"/>',edgecore:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9l3 3-3 3m5 0h3"/>',ai:'<path d="M8 4h8v4h4v8h-4v4H8v-4H4V8h4zM9 9h6v6H9z"/>',edgex:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',kube:'<path d="M12 2l9 5v10l-9 5-9-5V7zM3 7l9 5 9-5m-9 5v10"/>',results:'<path d="M6 3h9l4 4v14H6zM10 11h5m-5 4h5M15 3v5h4"/>',aggregator:'<path d="M3 5h5v5H3zM3 14h5v5H3zM16 9h5v6h-5zM8 7h4v5h4M8 17h4v-5"/>',prometheus:'<path d="M3 19h18M5 15V9m5 6V4m5 11v-5m5 5V7"/>',dashboard:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4M7 8h3v5H7m6-5h4m-4 4h4"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',fit:'<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',route:'<circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M5 7v8a4 4 0 0 0 4 4h8M5 5h10a4 4 0 0 1 0 8H9"/>'};
   const icon=id=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[id]||icons[({metadata:'edgex',coredata:'edgex',command:'edgecore',bus:'collector',postgres:'edgex',keeper:'kube'})[id]]||icons.route}</svg>`;
   const E=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const state={services:[],workloads:[],id:null,stage:null,link:null,source:null,loading:false,loaded:false,error:null,query:'',profiles:null,profileError:true,expired:false,zoom:null,auto:true,checkedAt:null};
+  const state={services:[],workloads:[],id:null,stage:null,link:null,source:null,loading:false,loaded:false,error:null,query:'',profiles:null,profileError:true,expired:false,zoom:null,auto:true,checkedAt:null,results:new Map()};
   const descriptions={
     Input:'Device Service가 센서 입력을 읽어 서비스가 사용할 데이터로 제공합니다.',
     Alignment:'입력 표본의 시각과 형식을 맞추고 처리 가능한 입력으로 정리합니다.',
@@ -23,7 +23,8 @@
     const ordered=[],pending=[...stages];
     while(pending.length){const index=pending.findIndex(s=>s.depends_on.every(id=>ordered.some(n=>n.stage_id===id)));if(index<0)throw Error('서비스 단계에 순환 연결이 있습니다.');ordered.push(pending.splice(index,1)[0]);}
     const contract=item.design_contract||d.design_contract||{};
-    return {id:item.service_id,kind:'registered',title:String(item.display_name||d.display_name||item.service_id),description:String(item.description||d.description||''),physicalSource:item.physical_source&&item.physical_source!=='unobserved'?String(item.physical_source):null,stages:ordered,links,targets:Array.isArray(g.targets)?g.targets:[],inputs:Array.isArray(contract.inputs)?contract.inputs:[],sourceMode:contract.source_mode||null,workload:d.workload||{},remoteWorkload:d.runtime_offloading?.target_workload||null,ownership:recent(item.execution_ownership?.observed_at)?item.execution_ownership?.effective_mode||null:null,runtime:{mode:item.mode,status:item.status,latest:item.latest_observed_at,target:item.inference_target,ownership:item.execution_ownership},contract};
+    const observability=d.observability||{};
+    return {id:item.service_id,kind:'registered',observability,title:String(item.display_name||d.display_name||item.service_id),description:String(item.description||d.description||''),physicalSource:item.physical_source&&item.physical_source!=='unobserved'?String(item.physical_source):null,stages:ordered,links,targets:Array.isArray(g.targets)?g.targets:[],inputs:Array.isArray(contract.inputs)?contract.inputs:[],sourceMode:contract.source_mode||null,workload:d.workload||{},remoteWorkload:d.runtime_offloading?.target_workload||null,ownership:recent(item.execution_ownership?.observed_at)?item.execution_ownership?.effective_mode||null:null,runtime:{mode:item.mode,status:item.status,latest:item.latest_observed_at,target:item.inference_target,ownership:item.execution_ownership},contract};
   }
   function parse(data){if(!data||!Array.isArray(data.services))throw Error('서비스 목록 응답 형식이 올바르지 않습니다.');const ids=new Set();return data.services.map(item=>{const s=normalize(item);s.observedAt=data.generated_at;if(ids.has(s.id))throw Error('서비스 ID가 중복되었습니다.');ids.add(s.id);return s;});}
   const entries=()=>[...state.services,...state.workloads];
@@ -53,6 +54,56 @@
   const targetFor=(s,slot)=>s.targets.find(t=>t.slot===slot);
   const targetTitle=(s,x)=>{const t=targetFor(s,x.target_slot);return t?.node||t?.label||x.target_slot||'대상 미지정';};
   const recent=(value,now=Date.now())=>Number.isFinite(Date.parse(value))&&now-Date.parse(value)>=-5000&&now-Date.parse(value)<90000;
+  function resultsPath(s){
+    const o=s?.observability;
+    return s?.kind==='registered'&&s.id==='sensor-anomaly-demo'&&o?.adapter==='sensor-anomaly-v1'&&/^\/state\/service-demo\/results(?:\?limit=(?:[1-9]|[1-9]\d))?$/.test(o.results_path||'')?o.results_path:null;
+  }
+  const resultKey=r=>JSON.stringify([r.origin,r.observed_at,r.request_id||null]);
+  function parseResults(data,now=Date.now()){
+    if(data?.mode!=='live'||data.observation_error||!recent(data.generated_at,now)||!Array.isArray(data.results))throw Error('처리 결과 조회 실패');
+    const seen=new Set(),rows=[];
+    for(const r of data.results){
+      if(!r||!Number.isFinite(Date.parse(r.observed_at))||Date.parse(r.observed_at)>now+5000||!Number.isFinite(r.origin)||!Number.isFinite(r.score)||typeof r.anomaly!=='boolean')throw Error('처리 결과 형식 오류');
+      const key=resultKey(r);if(!seen.has(key)){seen.add(key);rows.push(r);}
+    }
+    return {generatedAt:data.generated_at,rows:rows.sort((a,b)=>Date.parse(b.observed_at)-Date.parse(a.observed_at)).slice(0,12)};
+  }
+  function mergeResults(previous,data,now=Date.now()){
+    const known=new Set((previous?.rows||[]).map(resultKey)),last=Date.parse(previous?.rows?.[0]?.observed_at);
+    const added=Number.isFinite(last)?data.rows.filter(r=>Date.parse(r.observed_at)>last&&!known.has(resultKey(r))).length:0;
+    return {...data,checkedAt:new Date(now).toISOString(),error:false,loading:false,added};
+  }
+  function resultSummary(feed,now=Date.now()){
+    if(!feed)return {label:'처리 결과 불러오는 중',tone:'neutral'};
+    if(feed.error)return {label:'결과 조회 실패',tone:'waiting'};
+    if(!feed.checkedAt)return {label:'처리 결과 불러오는 중',tone:'neutral'};
+    if(!recent(feed.checkedAt,now)||!recent(feed.generatedAt,now))return {label:'결과 관측 오래됨',tone:'waiting'};
+    if(!feed.rows?.length)return {label:'저장된 결과 없음',tone:'neutral'};
+    if(!recent(feed.rows[0].observed_at,now))return {label:'최근 처리 미관측',tone:'waiting'};
+    return {label:feed.added?'새 결과 수신 · +'+feed.added:'최근 결과 확인',tone:'observed'};
+  }
+  const number=value=>typeof value==='number'&&Number.isFinite(value)?value.toLocaleString('ko-KR',{maximumFractionDigits:3}):'—';
+  const resultTime=value=>Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'—';
+  function resultMarkup(s,feed=state.results.get(s.id),now=Date.now()){
+    if(!resultsPath(s)||state.source==='git')return `<section class="sa-results sa-results-empty" aria-label="최근 처리 결과"><strong>처리 결과 미연동</strong><span>이 항목에는 연결된 결과 조회 계약이 없습니다.</span></section>`;
+    const status=resultSummary(feed,now),latest=feed?.rows?.[0];
+    const age=latest?Math.max(0,Math.floor((now-Date.parse(latest.observed_at))/1000)):null;
+    const elapsed=age===null?'':age<60?age+'초 전':age<3600?Math.floor(age/60)+'분 전':age<86400?Math.floor(age/3600)+'시간 전':Math.floor(age/86400)+'일 전';
+    const old=feed?.error||status.tone==='waiting',target=r=>r.inference_target==='server1'?'서버':r.inference_target==='edge-local'?'엣지':'미확인';
+    return `<section class="sa-results" aria-label="최근 처리 결과" data-result-state="${feed?.error?'error':latest?'available':'empty'}"><div class="sa-results-heading"><h2>${icon('results')}최근 처리 결과</h2><span class="sa-result-status" data-tone="${status.tone}" role="status">${E(status.label)}</span><small>${feed?.checkedAt?'결과 조회 '+stamp(feed.checkedAt):'15초 자동 갱신'}</small></div>
+      ${latest?`<div class="sa-result-metrics"><div><span>${old?'마지막 저장 판정':'최근 판정'}</span><strong data-anomaly="${latest.anomaly}">${latest.anomaly?'이상 감지':'정상'}</strong><small>${E(resultTime(latest.observed_at))} · ${elapsed}</small></div><div><span>통합 이상 점수</span><strong>${number(latest.score)}</strong><small>진동 ${number(latest.component_scores?.vibration)} · 온도 ${number(latest.component_scores?.temperature)}</small></div><div><span>처리된 특징값</span><strong>${number(latest.vibration_features?.rms)}<small>진동 RMS</small></strong><small>온도 평균 ${number(latest.temperature_features?.mean)} · raw 기준</small></div><div><span>처리 경로 · 소요 시간</span><strong>${target(latest)}<small>${number(latest.total_latency_ms)} ms</small></strong><small>${E(latest.model_version||'모델 버전 미제공')}</small></div></div>
+      <div class="sa-results-note">${old?'마지막으로 확인한 저장값입니다. 현재 처리 중이라는 의미는 아닙니다.':feed.added?'이전 조회 이후 더 새로운 처리 결과를 받았습니다.': '같은 결과는 새 처리로 집계하지 않습니다. 새 결과가 오면 수신 표시가 바뀝니다.'}</div>
+      <details class="sa-result-history"><summary>최근 결과 ${feed.rows.length}건 보기</summary><div class="sa-result-table"><table><caption class="sa-sr-only">서비스에 저장된 최근 처리 결과</caption><thead><tr><th>처리 시각</th><th>판정</th><th>점수</th><th>경로</th><th>소요 시간</th></tr></thead><tbody>${feed.rows.map(r=>`<tr><td>${E(resultTime(r.observed_at))}</td><td>${r.anomaly?'이상':'정상'}</td><td>${number(r.score)}</td><td>${target(r)}</td><td>${number(r.total_latency_ms)} ms</td></tr>`).join('')}</tbody></table></div></details>`:`<p class="sa-results-note">${feed?.error?'결과 서비스가 응답하지 않아 처리값을 확인할 수 없습니다. 다음 갱신 때 다시 조회합니다.':feed?.checkedAt?'서비스가 결과를 저장하면 판정값·점수·처리 시각이 여기에 표시됩니다.':'실제 서비스에 저장된 결과를 조회하고 있습니다.'}</p>`}
+    </section>`;
+  }
+  async function loadResults(s){
+    const path=resultsPath(s);if(!path||state.source!=='api')return;
+    const before=state.results.get(s.id);if(before?.loading)return;
+    state.results.set(s.id,{...before,loading:true});
+    try{const data=await read(path,parseResults);state.results.set(s.id,mergeResults(before,data));}
+    catch(_){state.results.set(s.id,{...before,loading:false,error:true,added:0,checkedAt:new Date().toISOString()});}
+    if(selected()?.id===s.id)paintLive();
+  }
   function parseProfiles(data){if(!data||!Array.isArray(data.service_resource_profiles)||data.service_resource_profiles.some(p=>!p||typeof p.namespace!=='string'||typeof p.service!=='string'||!Array.isArray(p.nodes)))throw Error('배치 응답 형식 오류');return data;}
   function executionKey(s,n,x){const remote=s.remoteWorkload;const namespace=x.namespace||(x.executor===remote?.name?remote.namespace:n.kind==='source'?'edgex-edge':s.workload.namespace);return namespace&&x.executor?namespace+'/'+x.executor:null;}
   function placement(s,n,x,data=state.profiles,failed=state.profileError,now=Date.now()){
@@ -112,7 +163,7 @@
     const stageButtons=(stages,node,key)=>stages.map(n=>`<button data-sa-stage="${E(n.stage_id)}" ${node?`data-sa-port="${E(JSON.stringify([node,key,n.stage_id]))}"`:''} aria-haspopup="dialog" aria-controls="sa-detail-dialog"><span>${icon(stageIcon(n))}${E(n.label)}</span><small>${String(s.stages.indexOf(n)+1).padStart(2,'0')}</small></button>`).join('');
     const observed=workloads.size-missing.length,showInput=s.kind!=='workload'&&(s.inputs.length>0||!!s.physicalSource),count=Math.max(1,nodes.size);const podCount=selectedLocations(s).filter(w=>w.p.status==='observed').reduce((sum,w)=>sum+(Number.isInteger(w.p.profile.pod_count)?w.p.profile.pod_count:0),0);
     return `${currentMarkup(s)}<div class="sa-observation-bar"><div><span>관측 노드</span><strong>${nodes.size}</strong></div><div><span>관측 실행체</span><strong>${observed}<small> / ${workloads.size}</small></strong></div><div><span>${s.kind!=='workload'?'처리 단계':'Running Pod'}</span><strong>${s.kind!=='workload'?s.stages.length:observed?podCount:'—'}</strong></div><div class="sa-ownership"><span>위치 응답</span><strong>${state.profileError?'조회 실패':stamp(state.profiles?.generated_at)}</strong></div></div>
-      <div class="sa-map-toolbar"><div>${icon('route')}<strong>서비스 토폴로지</strong><span>단계와 연결을 선택해 상세 확인</span></div><div class="sa-map-tools"><button data-sa-zoom="out" aria-label="축소">${icon('minus')}</button><span data-sa-scale>100%</span><button data-sa-zoom="in" aria-label="확대">${icon('plus')}</button><button data-sa-zoom="fit" aria-label="화면에 맞춤">${icon('fit')}</button></div></div>
+      ${resultMarkup(s)}<div class="sa-map-toolbar"><div>${icon('route')}<strong>서비스 토폴로지</strong><span>단계와 연결을 선택해 상세 확인</span></div><div class="sa-map-tools"><button data-sa-zoom="out" aria-label="축소">${icon('minus')}</button><span data-sa-scale>100%</span><button data-sa-zoom="in" aria-label="확대">${icon('plus')}</button><button data-sa-zoom="fit" aria-label="화면에 맞춤">${icon('fit')}</button></div></div>
       <div class="sa-map-viewport" tabindex="0" role="region" aria-label="서비스 배치 지도, 작은 화면에서는 가로로 스크롤"><div class="sa-map-sizer"><div class="sa-unified-map" style="--sa-nodes:${count};grid-template-columns:${showInput?'160px ':''}repeat(${count},320px);width:${(showInput?208:-64)+count*432}px"><svg class="sa-node-wires" aria-hidden="true"></svg><div class="sa-wire-labels"></div>
         ${showInput?`<div class="sa-input-lane"><div class="sa-lane-label"><span>01</span>데이터 입력</div><button class="sa-map-input" data-sa-stage="inputs" aria-haspopup="dialog" aria-controls="sa-detail-dialog"><span class="sa-input-symbol">${icon('physical')}</span><strong>${E(s.physicalSource||'EdgeX 등록 입력')}</strong><span>${s.inputs.length}개 입력 항목</span><small>물리 source</small></button></div>`:''}
         <div class="sa-node-grid">${[...nodes].map(([node,items],i)=>`<article class="sa-node-place" data-sa-node="${E(node)}" data-hardware="${hardware(node).kind}"><div class="sa-lane-label"><span>${String(i+(showInput?2:1)).padStart(2,'0')}</span>${E(hardware(node).kind==='server'?'서버 실행 영역':hardware(node).kind==='unknown'?'관측 실행 영역':'현장 엣지')}</div><div class="sa-hardware">${hardware(node).src?`<img src="${hardware(node).src}" alt="" width="64" height="64">`:icon('kube')}<div><span>${E(hardware(node).label.split(' · ')[0])}</span><strong>${E(node)}</strong></div><span class="sa-node-observed" title="Running Pod 위치 관측">Running</span></div>
@@ -124,7 +175,7 @@
       <div class="sa-map-legend"><span><i></i>계약상 데이터 연결</span><span>장비 그림은 유형 예시 · Pod 실행과 AI 처리 성공은 별도</span><span>${state.auto?'15초 자동 갱신':'자동 갱신 일시정지'}</span></div>`;
   }
   function stagePlacement(s,n){return [...new Set(n.executions.map(x=>placement(s,n,x).label))].join(' / ')||'실행 대상 미지정';}
-  function updatePlacements(){if(!selected()||!root.document.querySelector('.architecture')||state.expired)return;if(state.profiles&&recent(state.profiles.generated_at)&&state.profiles.service_resource_profiles.every(p=>recent(p.generated_at||state.profiles.generated_at)))return;state.expired=true;paintLive();}
+  function updatePlacements(){const resultEl=root.document.querySelector('.sa-results');if(selected()&&resultEl){const open=!!resultEl.querySelector('details')?.open;resultEl.outerHTML=resultMarkup(selected());const history=root.document.querySelector('.sa-result-history');if(history)history.open=open;}if(!selected()||!root.document.querySelector('.architecture')||state.expired)return;if(state.profiles&&recent(state.profiles.generated_at)&&state.profiles.service_resource_profiles.every(p=>recent(p.generated_at||state.profiles.generated_at)))return;state.expired=true;paintLive();}
   const sourceLabel=()=>state.source==='api'?'등록 서비스 계약':state.source==='git'?'Git 계약 미리보기':'서비스 계약';
   function serviceLink(s){return '/?service='+encodeURIComponent(s.id)+'#service-detail';}
   function podDetails(s,n,x){const p=placement(s,n,x);if(!p.profile)return '';return `<details class="sa-pod-detail"><summary>Pod · 관측 시각</summary>${[...new Set((p.profile.containers||[]).filter(c=>typeof c.pod==='string').map(c=>c.pod+' · '+c.node))].map(v=>`<code>${E(v)}</code>`).join('')||'<p>Pod 이름 미제공</p>'}<p>${E(p.profile.generated_at||state.profiles?.generated_at)}</p></details>`;}
@@ -147,8 +198,9 @@
   function paintLive(){
     const s=selected(),el=root.document.querySelector('.architecture');if(!el)return;
     if(!s||el.dataset.saSelected!==s.id){paint();return;}
+    const historyOpen=!!el.querySelector('.sa-result-history')?.open;
     const viewport=el.querySelector('.sa-map-viewport'),scroll={x:viewport?.scrollLeft||0,y:viewport?.scrollTop||0};
-    el.querySelector('.sa-service-heading h1').textContent=s.title;el.querySelector('.sa-service-heading p').textContent=s.description;const placementEl=el.querySelector('#sa-placement');placementEl.innerHTML=placementMarkup(s);
+    el.querySelector('.sa-service-heading h1').textContent=s.title;el.querySelector('.sa-service-heading p').textContent=s.description;const placementEl=el.querySelector('#sa-placement');placementEl.innerHTML=placementMarkup(s);if(historyOpen&&placementEl.querySelector('.sa-result-history'))placementEl.querySelector('.sa-result-history').open=true;
     const select=el.querySelector('#sa-select'),desired=entries().map(s=>s.id);
     if(JSON.stringify([...select.options].map(o=>o.value))!==JSON.stringify(desired))select.innerHTML=selectorOptions();
     select.value=state.id;select.disabled=!desired.length;
@@ -178,17 +230,18 @@
     else if(state.stage&&state.stage!=='inputs'&&!selected()?.stages.some(n=>n.stage_id===state.stage)){state.stage=null;state.link=null;}
     state.checkedAt=new Date().toISOString();state.loading=false;state.loaded=true;
     if(background)paintLive();else paint();
+    if(selected())loadResults(selected());
   }
   function draw(){if(!state.loaded&&!state.loading)load();else root.requestAnimationFrame(fitCanvas);}
   function setup(){root.setInterval(()=>{if(!root.document.querySelector('.architecture'))return;updatePlacements();if(state.auto&&!root.document.hidden)load(true);},15000);root.document.addEventListener('click',e=>{if(!e.target.closest('.architecture'))return;const service=e.target.closest('[data-sa-service]'),stage=e.target.closest('[data-sa-stage]'),link=e.target.closest('[data-sa-link]'),action=e.target.closest('[data-sa-action]');if(service){state.id=service.dataset.saService;state.stage=null;state.link=null;state.zoom=null;paint();root.document.querySelector(`[data-sa-service="${root.CSS.escape(state.id)}"]`)?.focus({preventScroll:true});}if(stage){state.stage=stage.dataset.saStage;state.link=null;paintSelection();}if(link){state.link=link.dataset.saLink;paintSelection();}const zoom=e.target.closest('[data-sa-zoom]');if(zoom){const viewport=root.document.querySelector('.sa-map-viewport'),scene=root.document.querySelector('.sa-unified-map');const current=scene.getBoundingClientRect().width/scene.offsetWidth;state.zoom=zoom.dataset.saZoom==='fit'?Math.min(1,viewport.clientWidth/scene.offsetWidth):Math.max(0.35,Math.min(1.5,current+(zoom.dataset.saZoom==='in'?0.15:-0.15)));fitCanvas();}if(e.target.closest('[data-sa-close]'))root.document.querySelector('#sa-detail-dialog')?.close();if(e.target.closest('[data-sa-auto]')){state.auto=!state.auto;paintLive();if(state.auto)load(true);}if(action)load(true);});
-    root.document.addEventListener('change',e=>{if(e.target.id!=='sa-select')return;state.id=e.target.value;state.stage=null;state.link=null;state.zoom=null;rememberSelection();paint();root.document.querySelector('#sa-select')?.focus({preventScroll:true});});
+    root.document.addEventListener('change',e=>{if(e.target.id!=='sa-select')return;state.id=e.target.value;state.stage=null;state.link=null;state.zoom=null;rememberSelection();paint();loadResults(selected());root.document.querySelector('#sa-select')?.focus({preventScroll:true});});
     root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&state.auto&&root.document.querySelector('.architecture'))load(true);});
     root.document.addEventListener('close',e=>{if(e.target.id!=='sa-detail-dialog')return;const area=root.document.querySelector('#sa-placement');const selector=state.link?'[data-sa-link="'+root.CSS.escape(state.link)+'"]':'[data-sa-stage="'+root.CSS.escape(state.stage||'inputs')+'"]';area?.querySelector(selector)?.focus({preventScroll:true});},true);
     root.addEventListener('resize',()=>root.requestAnimationFrame(fitCanvas));
     root.document.addEventListener('toggle',e=>{if(e.target.closest('.sa-node-grid'))root.requestAnimationFrame(fitCanvas);},true);
     root.document.addEventListener('input',e=>{if(e.target.id==='sa-search'){const pos=e.target.selectionStart;state.query=e.target.value;paint();const input=root.document.querySelector('#sa-search');input.focus();if(input.type!=='search')input.setSelectionRange(pos,pos);}});
   }
-  const api={render,draw,setup,normalize,parse,serviceLink,executionKey,placement,parseProfiles,hardware,nodeLinks,workloadEntries,runtimeSummary,selectedLocations};
+  const api={render,draw,setup,normalize,parse,serviceLink,executionKey,placement,parseProfiles,hardware,nodeLinks,workloadEntries,runtimeSummary,selectedLocations,resultsPath,parseResults,mergeResults,resultSummary,resultMarkup};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   root.NexusArchitecture=api;
 })(typeof window!=='undefined'?window:globalThis);
