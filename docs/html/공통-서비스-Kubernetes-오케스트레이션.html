@@ -85,8 +85,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 공통-서비스-Kubernetes-오케스트레이션.md</span>
-            <span class="badge">수정: 2026-09-10 16:40</span>
-            <span class="badge">HTML 생성: 2026-09-10 16:40</span>
+            <span class="badge">수정: 2026-09-10 16:47</span>
+            <span class="badge">HTML 생성: 2026-09-10 16:47</span>
           </div>
         </header>
         <div class="doc-body">
@@ -354,6 +354,54 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 </tbody></table></div>
 <p>브라우저 접수 일부는 5초 안에 응답을 받지 못했다. Llama 왕복은 원장에서 기존 ID를 찾아 확인했고, 합성 중단 시험은 같은 ID 재접수 후 진행했다. 중복 실행으로 성공률을 부풀리지 않았다. 원장에는 네 실행에 해당하는 자식 요청 <strong>845개</strong>가 모두 completed로 기록되어 있다. 1440px desktop과 390px mobile을 확인했으며 mobile 문서 폭은 390px다.</p>
 <p>근거는 <code>edge-orch/runtime-operator/results/2026-09-10-token-free-demo/</code>의 <code>runs.json</code>, <code>same-id-replay.json</code>, <code>durable-journal.json</code>, <code>running-images.json</code>이다. 새 operator 이미지 <code>4bb7abaa…</code>, aggregator 이미지 <code>799f8ab1…</code>의 실제 Pod imageID를 확인했다. Python root+operator 171개 통과·기존 센서 Argo CD 기대 브랜치 불일치 1개 실패, aggregator 420개 통과·기존 virtual-device-runtime 경로 누락 1개 실패, JavaScript 249개 통과다. 공통 operator 자체는 56개 통과다. 이 결과는 streaming·stateful 서비스, NPU 모델 호환, 제어기 HA 또는 모든 장애에서 무중단을 보장하는 근거가 아니다. 접수 지연 원인도 이 시험만으로 확정하지 않았다.</p>
+<h2 id="공통-오케스트레이션-완료-검수-2026-09-10">공통 오케스트레이션 완료 검수 (2026-09-10)</h2>
+<p>위에 정의한 최초 지원 계약과 7개 합격 기준을 코드·시험·실배포 근거로 다시 대조했다. 장비 이름을 정책 순서로 사용하는 부분은 없으며, resident 예제의 장비 연결은 기존 Pod의 소유권·모델 자격을 확인하기 위한 명시적 binding이다. 새 서비스 등록은 Kubernetes <code>RuntimeService</code> apply로 제공한다. 서비스 등록 UI가 있어야만 등록할 수 있는 구조가 아니다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>합격 기준</th>
+<th>확인 근거와 측정 경계</th>
+<th>판정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1. 임의 서비스·노드 이름으로 배치</td>
+<td>arbitrary names 단위시험, 고정 selector 없는 live 합성 CR, 173/173 Tinker→서버→AGX 왕복</td>
+<td>충족</td>
+</tr>
+<tr>
+<td>2. 비정상·자원·호환성 제외</td>
+<td>NotReady/pressure/taint/CPU·메모리 부족, GPU≠NPU, RuntimeClass 검사 시험 및 live 후보 제외 목록</td>
+<td>충족; NPU 실제 모델 실행 검증과 구분</td>
+</tr>
+<tr>
+<td>3. Pod·애플리케이션 준비 후 전환</td>
+<td><code>test_never_switch_until_pod_and_application_ready</code>, resident 실제 모델 준비 관측</td>
+<td>충족</td>
+</tr>
+<tr>
+<td>4. 준비 실패 시 경로 유지·진행 요청 drain</td>
+<td><code>test_failed_prepare_preserves_active_and_releases_unrouted_pod</code>, <code>test_pressure_switch_drain_return_and_scale_retry</code>, 실제 왕복·retiring 0</td>
+<td>충족; 전체 노드 강제 장애 무손실 보장은 아님</td>
+</tr>
+<tr>
+<td>5. dwell/cooldown·복귀·후보 부재</td>
+<td>pressure/return 및 latency 시험, 지연 v2 383/383과 데모 GPU 261/261, 후보 제외 이유 UI</td>
+<td>충족</td>
+</tr>
+<tr>
+<td>6. 재시작 결과 불명·중복 방지</td>
+<td>원장 재개·timeout 단위시험, general-v7/restart-replay 및 resident-v2 재접수 시 처리 건수 불변</td>
+<td>충족; 재시작 중 gateway 접속 공백은 존재</td>
+</tr>
+<tr>
+<td>7. 실제 Kubernetes 배치·전환·반환과 시험 분리</td>
+<td>general-v7, resident-v2, latency, token-free-demo의 요청 원장·Pod UID·imageID·상태 JSON</td>
+<td>충족</td>
+</tr>
+</tbody></table></div>
+<p>추가 요구인 모델 메모리만 반환, 토큰 없는 단일/왕복 요청·중단·결과 조회, docs 공개와 main 반영도 앞 절의 실측 근거를 따른다. 최종 읽기 전용 점검에서 세 서비스 모두 Serving, 실제 readiness true, 준비 대상 없음, retiring 0이고 네 데모 실행은 모두 종료 상태였다. CRD는 API 서버가 생략한 <code>default: null</code>을 제외하면 저장소 schema와 동일했다. 운영 operator·aggregator의 Ready imageID도 선언한 digest와 일치했다.</p>
+<p>검수 중 README의 operator 단독 pytest 명령이 import 수집 순서에 의존하는 결함을 발견했다. 경로 초기화를 테스트 공통 <code>conftest.py</code>로 옮겼고 CPU 부족 제외 회귀를 추가했다. 수정 후 operator 단독 57개, root+operator 172개가 통과했다. 후자의 기존 센서 Argo CD 브랜치 기대값 실패 1개는 그대로 남아 있다. 앱 실행 코드는 바꾸지 않아 이미 검증한 이미지와 845개 요청 원장 근거를 재사용한다. 점검 snapshot은 <code>edge-orch/runtime-operator/results/2026-09-10-completion-audit/</code>에 보관한다.</p>
+<p>이 완료 판정은 명시한 공통 bounded HTTP 오케스트레이션과 데모의 합격 기준에 대한 것이다. 전체 플랫폼 상용화, 일반 NPU 모델 변환·전환, streaming·state migration·HA까지 완료했다는 뜻이 아니다. 이 항목들은 최초 지원 경계와 현재 한계 절에서 계속 후속 범위로 유지한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#쉽게-설명하면">쉽게 설명하면</a></li>
@@ -369,7 +417,8 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 <li class="toc-h3"><a href="#운영-절차">운영 절차</a></li>
 <li class="toc-h2"><a href="#nexus-공통-실행-관측-2026-09-10">NEXUS 공통 실행 관측 (2026-09-10)</a></li>
 <li class="toc-h2"><a href="#선택적-요청-지연-정책-2026-09-10">선택적 요청 지연 정책 (2026-09-10)</a></li>
-<li class="toc-h2"><a href="#토큰-없는-제한형-데모-실행-2026-09-10">토큰 없는 제한형 데모 실행 (2026-09-10)</a></li></ol></aside>
+<li class="toc-h2"><a href="#토큰-없는-제한형-데모-실행-2026-09-10">토큰 없는 제한형 데모 실행 (2026-09-10)</a></li>
+<li class="toc-h2"><a href="#공통-오케스트레이션-완료-검수-2026-09-10">공통 오케스트레이션 완료 검수 (2026-09-10)</a></li></ol></aside>
     </div>
   </div>
 

@@ -1,14 +1,11 @@
 import asyncio
 import copy
 import json
-from pathlib import Path
-import sys
 
 import httpx
 import pytest
 from pydantic import ValidationError
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from runtime_operator.api import create_app
 from runtime_operator.contract import ServiceSpec
 from runtime_operator.controller import Controller
@@ -131,6 +128,7 @@ def test_arbitrary_names_and_architecture():
     (lambda n: n["status"]["conditions"][1].update(status="True"), "node_pressure_or_unknown"),
     (lambda n: n["spec"].update(unschedulable=True), "node_cordoned"),
     (lambda n: n["spec"].update(taints=[{"key": "dedicated", "effect": "NoSchedule"}]), "untolerated_taint"),
+    (lambda n: n["status"]["allocatable"].update(cpu="0"), "insufficient:cpu"),
     (lambda n: n["status"]["allocatable"].update(memory="32Mi"), "insufficient:memory"),
 ])
 def test_exclusion_reasons(change, reason):

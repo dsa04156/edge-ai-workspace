@@ -1,0 +1,319 @@
+{
+  "enabled": true,
+  "items": [
+    {
+      "name": "llama-inference",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "label": "실제 GPU Llama · 검증된 8-token 입력",
+      "inputPreview": "{\"max_tokens\": 8, \"prompt\": \"In one short sentence, explain why edge computing reduces latency.\"}",
+      "maxRequests": 512,
+      "concurrency": 6,
+      "pressureSeconds": 25.0,
+      "recoverySeconds": 120.0,
+      "available": true,
+      "retryAfterSeconds": 0
+    },
+    {
+      "name": "quality-api-demo",
+      "uid": "105b0004-5698-4a21-9a91-e1a0a00afb39",
+      "label": "합성 HTTP 응답 · synthetic.quality.v1",
+      "inputPreview": "{\"delaySeconds\": 0.5, \"input\": {\"contract\": \"synthetic.quality.v1\", \"message\": \"common runtime demo\"}}",
+      "maxRequests": 512,
+      "concurrency": 6,
+      "pressureSeconds": 25.0,
+      "recoverySeconds": 120.0,
+      "available": true,
+      "retryAfterSeconds": 0
+    },
+    {
+      "name": "telemetry-transform-demo",
+      "uid": "64e77cbd-c38c-4cd1-be0a-4643fd2d517a",
+      "label": "합성 HTTP 응답 · synthetic.telemetry.v1",
+      "inputPreview": "{\"delaySeconds\": 0.5, \"input\": {\"contract\": \"synthetic.telemetry.v1\", \"message\": \"common runtime demo\"}}",
+      "maxRequests": 512,
+      "concurrency": 6,
+      "pressureSeconds": 25.0,
+      "recoverySeconds": 120.0,
+      "available": true,
+      "retryAfterSeconds": 0
+    }
+  ],
+  "runs": [
+    {
+      "id": "66a442ecf6714b16bf63f2fcb2b60c6e",
+      "uid": "64e77cbd-c38c-4cd1-be0a-4643fd2d517a",
+      "name": "telemetry-transform-demo",
+      "label": "합성 HTTP 응답 · synthetic.telemetry.v1",
+      "mode": "round-trip",
+      "phase": "Completed",
+      "stage": "recovery",
+      "createdAt": 1789025879.8610797,
+      "finishedAt": 1789025975.2626576,
+      "sent": 173,
+      "succeeded": 173,
+      "failed": 0,
+      "unknown": 0,
+      "lastResult": "{\"requestId\": \"demo-9e412ec1b76a28d8ca9877b1-172\", \"node\": \"etri-dev0005-jetagx\", \"ioContract\": \"synthetic.telemetry.v1\", \"output\": {\"contract\": \"synthetic.telemetry.v1\", \"message\": \"common runtime demo\"}, \"synthetic\": true}",
+      "routeHistory": [
+        {
+          "at": 1789025879.8684895,
+          "node": "etri-dev0004-tedger",
+          "role": "edge",
+          "reason": "healthy_current_placement"
+        },
+        {
+          "at": 1789025894.2599916,
+          "node": "etri-ser0001-cg0msb",
+          "role": "server",
+          "reason": "sustained_pressure"
+        },
+        {
+          "at": 1789025920.491167,
+          "node": "etri-dev0005-jetagx",
+          "role": "edge",
+          "reason": "sustained_low_load_return"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-9e412ec1b76a28d8ca9877b1-168",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-64e77cbdc38c-af262bb1d620",
+          "elapsedMilliseconds": 524.3016330059618
+        },
+        {
+          "id": "demo-9e412ec1b76a28d8ca9877b1-169",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-64e77cbdc38c-af262bb1d620",
+          "elapsedMilliseconds": 636.2210160004906
+        },
+        {
+          "id": "demo-9e412ec1b76a28d8ca9877b1-170",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-64e77cbdc38c-af262bb1d620",
+          "elapsedMilliseconds": 959.37090399093
+        },
+        {
+          "id": "demo-9e412ec1b76a28d8ca9877b1-171",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-64e77cbdc38c-af262bb1d620",
+          "elapsedMilliseconds": 517.5717939855531
+        },
+        {
+          "id": "demo-9e412ec1b76a28d8ca9877b1-172",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-64e77cbdc38c-af262bb1d620",
+          "elapsedMilliseconds": 535.0643109995872
+        }
+      ],
+      "startNode": "etri-dev0004-tedger",
+      "startRole": "edge",
+      "currentNode": "etri-dev0005-jetagx",
+      "returned": true,
+      "retiring": 0,
+      "reason": "requests_and_route_verified",
+      "stopRequested": false
+    },
+    {
+      "id": "ae90afc1a5ab4be98de77af552c1e324",
+      "uid": "105b0004-5698-4a21-9a91-e1a0a00afb39",
+      "name": "quality-api-demo",
+      "label": "합성 HTTP 응답 · synthetic.quality.v1",
+      "mode": "round-trip",
+      "phase": "Stopped",
+      "stage": "recovery",
+      "createdAt": 1789025803.388414,
+      "finishedAt": 1789025830.9701746,
+      "sent": 410,
+      "succeeded": 410,
+      "failed": 0,
+      "unknown": 0,
+      "lastResult": "{\"requestId\": \"demo-02b4f0aeaf2a0e048cf509c4-409\", \"node\": \"etri-ser0001-cg0msb\", \"ioContract\": \"synthetic.quality.v1\", \"output\": {\"contract\": \"synthetic.quality.v1\", \"message\": \"common runtime demo\"}, \"synthetic\": true}",
+      "routeHistory": [
+        {
+          "at": 1789025803.3907616,
+          "node": "etri-dev0004-tedger",
+          "role": "edge",
+          "reason": "healthy_current_placement"
+        },
+        {
+          "at": 1789025814.6290421,
+          "node": "etri-ser0001-cg0msb",
+          "role": "server",
+          "reason": "sustained_pressure"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-02b4f0aeaf2a0e048cf509c4-405",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-105b00045698-0fe712a2a9a9",
+          "elapsedMilliseconds": 142.3752630071249
+        },
+        {
+          "id": "demo-02b4f0aeaf2a0e048cf509c4-406",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-105b00045698-0fe712a2a9a9",
+          "elapsedMilliseconds": 132.09241998265497
+        },
+        {
+          "id": "demo-02b4f0aeaf2a0e048cf509c4-407",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-105b00045698-0fe712a2a9a9",
+          "elapsedMilliseconds": 147.02273698640056
+        },
+        {
+          "id": "demo-02b4f0aeaf2a0e048cf509c4-408",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-105b00045698-0fe712a2a9a9",
+          "elapsedMilliseconds": 109.12319799535908
+        },
+        {
+          "id": "demo-02b4f0aeaf2a0e048cf509c4-409",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-105b00045698-0fe712a2a9a9",
+          "elapsedMilliseconds": 287.86196498549543
+        }
+      ],
+      "startNode": "etri-dev0004-tedger",
+      "startRole": "edge",
+      "currentNode": "etri-ser0001-cg0msb",
+      "returned": false,
+      "retiring": 1,
+      "reason": "operator_stopped_demo",
+      "stopRequested": true
+    },
+    {
+      "id": "add76945562e490292883ea47698034d",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "name": "llama-inference",
+      "label": "실제 GPU Llama · 검증된 8-token 입력",
+      "mode": "round-trip",
+      "phase": "Completed",
+      "stage": "recovery",
+      "createdAt": 1789025759.5061946,
+      "finishedAt": 1789025884.1992133,
+      "sent": 261,
+      "succeeded": 261,
+      "failed": 0,
+      "unknown": 0,
+      "lastResult": "{\"request_id\": \"demo-afcc6fdf1337684d1bc1be6e-260\", \"node_id\": \"etri-dev0005-jetagx\", \"role\": \"agx\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.035, \"ttft_ms\": 52.24, \"tokens_per_second\": 39.469, \"inference_ms\": 257.004, \"actual_e2e_ms\": 257.038, \"eval_count\": 8}",
+      "routeHistory": [
+        {
+          "at": 1789025759.5191615,
+          "node": "etri-dev0005-jetagx",
+          "role": "edge",
+          "reason": "sustained_low_load_return"
+        },
+        {
+          "at": 1789025773.4660003,
+          "node": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "reason": "sustained_pressure"
+        },
+        {
+          "at": 1789025882.3667243,
+          "node": "etri-dev0005-jetagx",
+          "role": "edge",
+          "reason": "sustained_low_load_return"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-afcc6fdf1337684d1bc1be6e-256",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-ec979c5d642b",
+          "elapsedMilliseconds": 71.8641119892709
+        },
+        {
+          "id": "demo-afcc6fdf1337684d1bc1be6e-257",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-ec979c5d642b",
+          "elapsedMilliseconds": 67.10263100103475
+        },
+        {
+          "id": "demo-afcc6fdf1337684d1bc1be6e-258",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-ec979c5d642b",
+          "elapsedMilliseconds": 777.3597570194397
+        },
+        {
+          "id": "demo-afcc6fdf1337684d1bc1be6e-259",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-c1095c46c3d2",
+          "elapsedMilliseconds": 323.04980198387057
+        },
+        {
+          "id": "demo-afcc6fdf1337684d1bc1be6e-260",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-c1095c46c3d2",
+          "elapsedMilliseconds": 658.032681007171
+        }
+      ],
+      "startNode": "etri-dev0005-jetagx",
+      "startRole": "edge",
+      "currentNode": "etri-dev0005-jetagx",
+      "returned": true,
+      "retiring": 0,
+      "reason": "requests_and_route_verified",
+      "stopRequested": false
+    },
+    {
+      "id": "946ba26efd6345dda9b5876bb0ebe667",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "name": "llama-inference",
+      "label": "실제 GPU Llama · 검증된 8-token 입력",
+      "mode": "single",
+      "phase": "Completed",
+      "stage": "single",
+      "createdAt": 1789025740.0146768,
+      "finishedAt": 1789025740.581269,
+      "sent": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "unknown": 0,
+      "lastResult": "{\"request_id\": \"demo-5901e01f36b885a50ca6afcf-0\", \"node_id\": \"etri-dev0005-jetagx\", \"role\": \"agx\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.032, \"ttft_ms\": 227.513, \"tokens_per_second\": 51.66, \"inference_ms\": 376.56, \"actual_e2e_ms\": 376.592, \"eval_count\": 8}",
+      "routeHistory": [
+        {
+          "at": 1789025740.0169067,
+          "node": "etri-dev0005-jetagx",
+          "role": "edge",
+          "reason": "sustained_low_load_return"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-5901e01f36b885a50ca6afcf-0",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-c1095c46c3d2",
+          "elapsedMilliseconds": 530.78062197892
+        }
+      ],
+      "startNode": "etri-dev0005-jetagx",
+      "startRole": "edge",
+      "currentNode": "etri-dev0005-jetagx",
+      "returned": false,
+      "retiring": 0,
+      "reason": "requests_and_route_verified",
+      "stopRequested": false
+    }
+  ],
+  "observedAt": 1789026413.8550465,
+  "observation_error": null
+}

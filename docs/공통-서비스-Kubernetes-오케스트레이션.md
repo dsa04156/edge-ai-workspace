@@ -369,3 +369,38 @@ aggregator 420개 통과·기존 virtual-device-runtime 경로 누락 1개 실�
 JavaScript 249개 통과다. 공통 operator 자체는 56개 통과다.
 이 결과는 streaming·stateful 서비스, NPU 모델 호환, 제어기 HA 또는 모든 장애에서
 무중단을 보장하는 근거가 아니다. 접수 지연 원인도 이 시험만으로 확정하지 않았다.
+
+
+## 공통 오케스트레이션 완료 검수 (2026-09-10)
+
+위에 정의한 최초 지원 계약과 7개 합격 기준을 코드·시험·실배포 근거로 다시 대조했다.
+장비 이름을 정책 순서로 사용하는 부분은 없으며, resident 예제의 장비 연결은 기존 Pod의
+소유권·모델 자격을 확인하기 위한 명시적 binding이다. 새 서비스 등록은 Kubernetes
+`RuntimeService` apply로 제공한다. 서비스 등록 UI가 있어야만 등록할 수 있는 구조가 아니다.
+
+| 합격 기준 | 확인 근거와 측정 경계 | 판정 |
+|---|---|---|
+| 1. 임의 서비스·노드 이름으로 배치 | arbitrary names 단위시험, 고정 selector 없는 live 합성 CR, 173/173 Tinker→서버→AGX 왕복 | 충족 |
+| 2. 비정상·자원·호환성 제외 | NotReady/pressure/taint/CPU·메모리 부족, GPU≠NPU, RuntimeClass 검사 시험 및 live 후보 제외 목록 | 충족; NPU 실제 모델 실행 검증과 구분 |
+| 3. Pod·애플리케이션 준비 후 전환 | `test_never_switch_until_pod_and_application_ready`, resident 실제 모델 준비 관측 | 충족 |
+| 4. 준비 실패 시 경로 유지·진행 요청 drain | `test_failed_prepare_preserves_active_and_releases_unrouted_pod`, `test_pressure_switch_drain_return_and_scale_retry`, 실제 왕복·retiring 0 | 충족; 전체 노드 강제 장애 무손실 보장은 아님 |
+| 5. dwell/cooldown·복귀·후보 부재 | pressure/return 및 latency 시험, 지연 v2 383/383과 데모 GPU 261/261, 후보 제외 이유 UI | 충족 |
+| 6. 재시작 결과 불명·중복 방지 | 원장 재개·timeout 단위시험, general-v7/restart-replay 및 resident-v2 재접수 시 처리 건수 불변 | 충족; 재시작 중 gateway 접속 공백은 존재 |
+| 7. 실제 Kubernetes 배치·전환·반환과 시험 분리 | general-v7, resident-v2, latency, token-free-demo의 요청 원장·Pod UID·imageID·상태 JSON | 충족 |
+
+추가 요구인 모델 메모리만 반환, 토큰 없는 단일/왕복 요청·중단·결과 조회, docs 공개와
+main 반영도 앞 절의 실측 근거를 따른다. 최종 읽기 전용 점검에서 세 서비스 모두 Serving,
+실제 readiness true, 준비 대상 없음, retiring 0이고 네 데모 실행은 모두 종료 상태였다.
+CRD는 API 서버가 생략한 `default: null`을 제외하면 저장소 schema와 동일했다.
+운영 operator·aggregator의 Ready imageID도 선언한 digest와 일치했다.
+
+검수 중 README의 operator 단독 pytest 명령이 import 수집 순서에 의존하는 결함을 발견했다.
+경로 초기화를 테스트 공통 `conftest.py`로 옮겼고 CPU 부족 제외 회귀를 추가했다.
+수정 후 operator 단독 57개, root+operator 172개가 통과했다. 후자의 기존 센서 Argo CD
+브랜치 기대값 실패 1개는 그대로 남아 있다. 앱 실행 코드는 바꾸지 않아 이미 검증한
+이미지와 845개 요청 원장 근거를 재사용한다. 점검 snapshot은
+`edge-orch/runtime-operator/results/2026-09-10-completion-audit/`에 보관한다.
+
+이 완료 판정은 명시한 공통 bounded HTTP 오케스트레이션과 데모의 합격 기준에 대한 것이다.
+전체 플랫폼 상용화, 일반 NPU 모델 변환·전환, streaming·state migration·HA까지 완료했다는
+뜻이 아니다. 이 항목들은 최초 지원 경계와 현재 한계 절에서 계속 후속 범위로 유지한다.

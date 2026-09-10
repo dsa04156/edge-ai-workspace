@@ -1,0 +1,18 @@
+{
+  "capturedAt": 1789026414.0793636,
+  "codeCommit": "2eb3fa4a361ddeccc7cbcba5930af8f495ca512e",
+  "crdSchemaMatchesAfterRemovingNullDefaults": true,
+  "fixtureHasNoNodeSelector": true,
+  "images": [
+    {
+      "deployment": "runtime-operator",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:4bb7abaad26b1cbc99783fc7b15c221c4b945a895f4c25f3df8d28cecee07edb",
+      "readyImageMatches": true
+    },
+    {
+      "deployment": "state-aggregator",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:799f8ab1d3c87cfd2d37193994234ceebc11286b3ebc73f568faf7cdc4f78280",
+      "readyImageMatches": true
+    }
+  ]
+}
