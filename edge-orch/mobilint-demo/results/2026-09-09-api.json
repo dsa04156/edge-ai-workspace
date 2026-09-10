@@ -1,0 +1,196 @@
+{
+  "checked_at": "2026-09-09T12:07:48.881056+00:00",
+  "endpoint": "http://10.77.0.10:31881",
+  "status": {
+    "demo": "Mobilint ARIES2 core sharing",
+    "input": "synthetic fixture",
+    "device": "aries0",
+    "allocation": "one NPU to one Pod",
+    "models": [
+      {
+        "id": "candy",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core0)",
+        "input_shape": [
+          224,
+          344,
+          3
+        ],
+        "model_sha256": "aa158a35735a876cc9f9220f9967b711b8e49ce5de49126f0597e994c6b543da",
+        "pid": 8,
+        "ready": true,
+        "busy": false
+      },
+      {
+        "id": "mosaic",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core1)",
+        "input_shape": [
+          224,
+          344,
+          3
+        ],
+        "model_sha256": "42921cd69830d5b05e8e697602e50e611a53b3d1da85ae24d5258303a90e0f03",
+        "pid": 28,
+        "ready": true,
+        "busy": false
+      }
+    ],
+    "last_result": null,
+    "limits": "No Pod-level core, memory or fault isolation"
+  },
+  "single": {
+    "candy": {
+      "results": [
+        {
+          "model": "candy",
+          "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core0)",
+          "pid": 8,
+          "seed": 7,
+          "iterations": 1,
+          "start_ns": 16194784015398,
+          "end_ns": 16194813493035,
+          "duration_ms": 29.477637,
+          "output_shape": [
+            224,
+            344,
+            3
+          ],
+          "output_sha256": "f1e1a5ba14c3265196ab2b73a15ddd8d8971117d31ef2919ef710a5cf02065b8",
+          "output_mean": 0.4607705771923065,
+          "finite": true
+        }
+      ],
+      "overlap_ms": 0,
+      "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+    },
+    "mosaic": {
+      "results": [
+        {
+          "model": "mosaic",
+          "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core1)",
+          "pid": 28,
+          "seed": 7,
+          "iterations": 1,
+          "start_ns": 16194860226668,
+          "end_ns": 16194889112306,
+          "duration_ms": 28.885638,
+          "output_shape": [
+            224,
+            344,
+            3
+          ],
+          "output_sha256": "fe035ac041bdc9d8be918f17c5636935340fc9746fea4bea2c577383ddf256d5",
+          "output_mean": 0.5494263768196106,
+          "finite": true
+        }
+      ],
+      "overlap_ms": 0,
+      "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+    }
+  },
+  "independent_clients": [
+    [
+      200,
+      {
+        "results": [
+          {
+            "model": "candy",
+            "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core0)",
+            "pid": 8,
+            "seed": 7,
+            "iterations": 20,
+            "start_ns": 16194934188306,
+            "end_ns": 16195486502084,
+            "duration_ms": 552.313778,
+            "output_shape": [
+              224,
+              344,
+              3
+            ],
+            "output_sha256": "f1e1a5ba14c3265196ab2b73a15ddd8d8971117d31ef2919ef710a5cf02065b8",
+            "output_mean": 0.4607705771923065,
+            "finite": true
+          }
+        ],
+        "overlap_ms": 0,
+        "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+      }
+    ],
+    [
+      200,
+      {
+        "results": [
+          {
+            "model": "mosaic",
+            "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core1)",
+            "pid": 28,
+            "seed": 7,
+            "iterations": 20,
+            "start_ns": 16194935554474,
+            "end_ns": 16195487211346,
+            "duration_ms": 551.656872,
+            "output_shape": [
+              224,
+              344,
+              3
+            ],
+            "output_sha256": "fe035ac041bdc9d8be918f17c5636935340fc9746fea4bea2c577383ddf256d5",
+            "output_mean": 0.5494263768196106,
+            "finite": true
+          }
+        ],
+        "overlap_ms": 0,
+        "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+      }
+    ]
+  ],
+  "parallel": {
+    "results": [
+      {
+        "model": "candy",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core0)",
+        "pid": 8,
+        "seed": 7,
+        "iterations": 50,
+        "start_ns": 16195543641911,
+        "end_ns": 16196894092995,
+        "duration_ms": 1350.451084,
+        "output_shape": [
+          224,
+          344,
+          3
+        ],
+        "output_sha256": "f1e1a5ba14c3265196ab2b73a15ddd8d8971117d31ef2919ef710a5cf02065b8",
+        "output_mean": 0.4607705771923065,
+        "finite": true
+      },
+      {
+        "model": "mosaic",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core1)",
+        "pid": 28,
+        "seed": 7,
+        "iterations": 50,
+        "start_ns": 16195543663756,
+        "end_ns": 16196893282309,
+        "duration_ms": 1349.618553,
+        "output_shape": [
+          224,
+          344,
+          3
+        ],
+        "output_sha256": "fe035ac041bdc9d8be918f17c5636935340fc9746fea4bea2c577383ddf256d5",
+        "output_mean": 0.5494263768196106,
+        "finite": true
+      }
+    ],
+    "overlap_ms": 1349.618553,
+    "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+  },
+  "errors": {
+    "{'iterations': 51}": 400,
+    "{'seed': True}": 400,
+    "{'model_path': '/tmp/x'}": 400,
+    "{}": 404,
+    "busy": 409
+  },
+  "boundary": "Synthetic fixture, actual SDK inference; overlap is host call timing, not kernel timing."
+}

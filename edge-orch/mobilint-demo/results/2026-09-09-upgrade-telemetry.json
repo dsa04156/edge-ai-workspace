@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-09-09T12:20:55.720372+00:00",
+  "metrics": "# HELP mobilint_npu_health 1 if device monitor sample can be read, 0 otherwise.\n# TYPE mobilint_npu_health gauge\nmobilint_npu_health{device=\"aries0\"} 1\n# HELP mobilint_npu_info Static ARIES device information.\n# TYPE mobilint_npu_info gauge\nmobilint_npu_info{device=\"aries0\",model=\"ARIES\",driver_version=\"1.14.0+rev1\",firmware_version=\"1.2.4+rev0\",firmware_crc=\"-859045884\",vendor_id=\"0x209f\",device_id=\"0x0000\",sub_vendor_id=\"0x0402\",sub_device_id=\"0x109b\",pcie_gen=\"4\",pcie_lanes=\"8\",pcie_rev=\"2\",pcie_class_code=\"0x07800002\"} 1\n# HELP mobilint_npu_temperature_celsius Die temperature in degrees Celsius.\n# TYPE mobilint_npu_temperature_celsius gauge\nmobilint_npu_temperature_celsius{device=\"aries0\"} 55\n# HELP mobilint_npu_clock_npu_hz NPU clock in Hz.\n# TYPE mobilint_npu_clock_npu_hz gauge\nmobilint_npu_clock_npu_hz{device=\"aries0\"} 1250000000\n# HELP mobilint_npu_clock_noc_hz NoC clock in Hz.\n# TYPE mobilint_npu_clock_noc_hz gauge\nmobilint_npu_clock_noc_hz{device=\"aries0\"} 1000000000\n# HELP mobilint_npu_power_watts Total power in watts.\n# TYPE mobilint_npu_power_watts gauge\nmobilint_npu_power_watts{device=\"aries0\"} 0\n# HELP mobilint_npu_current_amperes Total current in amperes.\n# TYPE mobilint_npu_current_amperes gauge\nmobilint_npu_current_amperes{device=\"aries0\"} 0\n# HELP mobilint_npu_voltage_volts Total supply voltage in volts.\n# TYPE mobilint_npu_voltage_volts gauge\nmobilint_npu_voltage_volts{device=\"aries0\"} 0\n# HELP mobilint_npu_fan_duty Fan duty cycle from the ARIES monitor.\n# TYPE mobilint_npu_fan_duty gauge\nmobilint_npu_fan_duty{device=\"aries0\"} 54\n# HELP mobilint_npu_fd_count Open fd count for this device from ARIES_IOC_GET_FD_COUNT.\n# TYPE mobilint_npu_fd_count gauge\nmobilint_npu_fd_count{device=\"aries0\"} 3\n# HELP mobilint_npu_memory_total_bytes Total NPU memory in bytes.\n# TYPE mobilint_npu_memory_total_bytes gauge\nmobilint_npu_memory_total_bytes{device=\"aries0\"} 17179869184\n# HELP mobilint_npu_memory_used_bytes Used NPU memory in bytes.\n# TYPE mobilint_npu_memory_used_bytes gauge\nmobilint_npu_memory_used_bytes{device=\"aries0\"} 56547328\n# HELP mobilint_npu_process_count Number of processes currently using the NPU.\n# TYPE mobilint_npu_process_count gauge\nmobilint_npu_process_count{device=\"aries0\"} 2\n# HELP mobilint_npu_utilization_ratio Total NPU utilization, 0-1.\n# TYPE mobilint_npu_utilization_ratio gauge\nmobilint_npu_utilization_ratio{device=\"aries0\"} 0.140633375\n# HELP mobilint_npu_core_utilization_ratio Per-core NPU utilization, 0-1.\n# TYPE mobilint_npu_core_utilization_ratio gauge\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"1\"} 0.564977\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"2\"} 0.56009\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"3\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"4\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"1\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"2\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"3\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"4\"} 0\n",
+  "processes": [
+    {
+      "device": "aries0",
+      "processes": [
+        {
+          "pid": 204598,
+          "memory_used_bytes": 28273664,
+          "utilization": 0.07036025
+        },
+        {
+          "pid": 204578,
+          "memory_used_bytes": 28273664,
+          "utilization": 0.070971125
+        }
+      ]
+    }
+  ],
+  "inference": {
+    "results": [
+      {
+        "model": "candy",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core0)",
+        "pid": 8,
+        "seed": 7,
+        "iterations": 50,
+        "start_ns": 16983622043588,
+        "end_ns": 16984961977073,
+        "duration_ms": 1339.933485,
+        "output_shape": [
+          224,
+          344,
+          3
+        ],
+        "output_sha256": "f1e1a5ba14c3265196ab2b73a15ddd8d8971117d31ef2919ef710a5cf02065b8",
+        "output_mean": 0.4607705771923065,
+        "finite": true
+      },
+      {
+        "model": "mosaic",
+        "core": "CoreId(cluster=Cluster.Cluster0, core=Core.Core1)",
+        "pid": 28,
+        "seed": 7,
+        "iterations": 50,
+        "start_ns": 16983622043435,
+        "end_ns": 16984962886425,
+        "duration_ms": 1340.84299,
+        "output_shape": [
+          224,
+          344,
+          3
+        ],
+        "output_sha256": "fe035ac041bdc9d8be918f17c5636935340fc9746fea4bea2c577383ddf256d5",
+        "output_mean": 0.5494263768196106,
+        "finite": true
+      }
+    ],
+    "overlap_ms": 1339.933485,
+    "overlap_boundary": "host intervals around SDK inference loops, not NPU kernel timing"
+  }
+}

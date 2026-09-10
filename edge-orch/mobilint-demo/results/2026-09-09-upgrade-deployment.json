@@ -1,0 +1,172 @@
+{
+  "checked_at": "2026-09-09T12:22:36.759787+00:00",
+  "nodes_ready": {
+    "etri-dev0001-jetorn": "True",
+    "etri-dev0002-raspi5": "True",
+    "etri-dev0003-raspi5": "True",
+    "etri-dev0004-tedger": "True",
+    "etri-dev0005-jetagx": "True",
+    "etri-ser0001-cg0msb": "True",
+    "etri-ser0002-cgnmsb": "True",
+    "etri-ser0003-cg0ms0": "True",
+    "etri-ser0004-cgnms0": "True"
+  },
+  "capacity": "1",
+  "allocatable": "1",
+  "app": {
+    "pod": "mobilint-core-demo-68d6644c6d-k9xtw",
+    "node": "etri-ser0004-cgnms0",
+    "containers": [
+      {
+        "containerID": "containerd://398358dc1fb092a24857610daf0c38a2e955f6ea1632494e0651baf28983d978",
+        "image": "sha256:654a0708763a52c73ce8f651b50be65effc0bebc5f4dbafe76b658b26a331308",
+        "imageID": "192.168.0.56:5000/mobilint-core-demo@sha256:aebf1c571cef39fd36207e6b19ef4826bbdcc4df97a820ba24359fcad5cd8232",
+        "lastState": {},
+        "name": "inference",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T12:20:12Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ]
+  },
+  "plugin": {
+    "pod": "mobilint-device-plugin-6n4wh",
+    "containers": [
+      {
+        "containerID": "containerd://64b53615af5e8a7b352fa7e6125923ee303c8bd9c79c6c4ff15599e434bd4ebb",
+        "image": "ghcr.io/mobilint/mobilint-device-plugin:v1.1.1",
+        "imageID": "ghcr.io/mobilint/mobilint-device-plugin@sha256:4da52f77ba9f2f6607c5639053fa8d292c42872fb82d32b4f2389a551d11844c",
+        "lastState": {},
+        "name": "mobilint-device-plugin",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T12:20:21Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/var/lib/kubelet/device-plugins",
+            "name": "device-plugin"
+          },
+          {
+            "mountPath": "/var/run/cdi",
+            "name": "cdi"
+          }
+        ]
+      }
+    ],
+    "metrics": "# HELP mobilint_npu_health 1 if device monitor sample can be read, 0 otherwise.\n# TYPE mobilint_npu_health gauge\nmobilint_npu_health{device=\"aries0\"} 1\n# HELP mobilint_npu_info Static ARIES device information.\n# TYPE mobilint_npu_info gauge\nmobilint_npu_info{device=\"aries0\",model=\"ARIES\",driver_version=\"1.14.0+rev1\",firmware_version=\"1.2.4+rev0\",firmware_crc=\"-859045884\",vendor_id=\"0x209f\",device_id=\"0x0000\",sub_vendor_id=\"0x0402\",sub_device_id=\"0x109b\",pcie_gen=\"4\",pcie_lanes=\"8\",pcie_rev=\"2\",pcie_class_code=\"0x07800002\"} 1\n# HELP mobilint_npu_temperature_celsius Die temperature in degrees Celsius.\n# TYPE mobilint_npu_temperature_celsius gauge\nmobilint_npu_temperature_celsius{device=\"aries0\"} 54\n# HELP mobilint_npu_clock_npu_hz NPU clock in Hz.\n# TYPE mobilint_npu_clock_npu_hz gauge\nmobilint_npu_clock_npu_hz{device=\"aries0\"} 1250000000\n# HELP mobilint_npu_clock_noc_hz NoC clock in Hz.\n# TYPE mobilint_npu_clock_noc_hz gauge\nmobilint_npu_clock_noc_hz{device=\"aries0\"} 1000000000\n# HELP mobilint_npu_power_watts Total power in watts.\n# TYPE mobilint_npu_power_watts gauge\nmobilint_npu_power_watts{device=\"aries0\"} 0\n# HELP mobilint_npu_current_amperes Total current in amperes.\n# TYPE mobilint_npu_current_amperes gauge\nmobilint_npu_current_amperes{device=\"aries0\"} 0\n# HELP mobilint_npu_voltage_volts Total supply voltage in volts.\n# TYPE mobilint_npu_voltage_volts gauge\nmobilint_npu_voltage_volts{device=\"aries0\"} 0\n# HELP mobilint_npu_fan_duty Fan duty cycle from the ARIES monitor.\n# TYPE mobilint_npu_fan_duty gauge\nmobilint_npu_fan_duty{device=\"aries0\"} 50\n# HELP mobilint_npu_fd_count Open fd count for this device from ARIES_IOC_GET_FD_COUNT.\n# TYPE mobilint_npu_fd_count gauge\nmobilint_npu_fd_count{device=\"aries0\"} 3\n# HELP mobilint_npu_memory_total_bytes Total NPU memory in bytes.\n# TYPE mobilint_npu_memory_total_bytes gauge\nmobilint_npu_memory_total_bytes{device=\"aries0\"} 17179869184\n# HELP mobilint_npu_memory_used_bytes Used NPU memory in bytes.\n# TYPE mobilint_npu_memory_used_bytes gauge\nmobilint_npu_memory_used_bytes{device=\"aries0\"} 56547328\n# HELP mobilint_npu_process_count Number of processes currently using the NPU.\n# TYPE mobilint_npu_process_count gauge\nmobilint_npu_process_count{device=\"aries0\"} 2\n# HELP mobilint_npu_utilization_ratio Total NPU utilization, 0-1.\n# TYPE mobilint_npu_utilization_ratio gauge\nmobilint_npu_utilization_ratio{device=\"aries0\"} 0\n# HELP mobilint_npu_core_utilization_ratio Per-core NPU utilization, 0-1.\n# TYPE mobilint_npu_core_utilization_ratio gauge\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"1\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"2\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"3\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"0\",core=\"4\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"1\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"2\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"3\"} 0\nmobilint_npu_core_utilization_ratio{device=\"aries0\",cluster=\"1\",core=\"4\"} 0\n",
+    "local_patch_active": false
+  },
+  "host": "mobilint-aries-driver\t1.14\nmobilint-cli\t1.4.0\nmobilint-qb-runtime\t1.4.0\naries-driver/1.14, 6.8.0-138-generic, x86_64: installed\naries-driver/1.14, 6.8.0-79-generic, x86_64: installed\n2026-09-09 21:22:36\n+------------------------------------------------------------------------------------------+\n| Mobilint-NPU-Monitor      Drivers - ARIES: 1.14.0  REGULUS: N/A     REGULUS-USB: N/A     |\n+------------------------------------------------------------------------------------------+\n| NPU  Name    On-Device Driver |   Pwr:NPU/Total |     Clock:NPU/Bus |       Memory-Usage |\n| Sig  Temp            Firmware |   Cur:NPU/Total |                   |           NPU-Util |\n|===============================+=================+===================+====================|\n|   0  aries-rb             N/A |   6.50W   0.00W | 1250MHz / 1000MHz |     53MB / 16384MB |\n|   0  54 C              v1.2.4 |   6.75A   0.00A |                   |              0.00% |\n+-------------------------------+-----------------+-------------------+--------------------+\n\n+------------------------------------------------------------------------------------------+\n| Processes:                                                                               |\n| NPU      PID   Process name                               NPU-MEM       Count       %NPU |\n|==========================================================================================|\n|   0   204598   /usr/local/bin/python3 -B -c from mult...     26MB         122      0.00% |\n|   0   204578   /usr/local/bin/python3 -B -c from mult...     26MB         172      0.00% |\n+------------------------------------------------------------------------------------------+\n",
+  "firmware_flashed": false,
+  "host_rebooted": false,
+  "backup": "/var/backups/mobilint-20260909",
+  "sensors": [
+    {
+      "name": "virtual-temperature-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.706647Z"
+    },
+    {
+      "name": "virtual-light-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.702652Z"
+    },
+    {
+      "name": "virtual-magnetic-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.710734Z"
+    },
+    {
+      "name": "virtual-acceleration-x-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.718756Z"
+    },
+    {
+      "name": "virtual-acceleration-y-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.718756Z"
+    },
+    {
+      "name": "virtual-acceleration-z-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.718756Z"
+    },
+    {
+      "name": "env-sensehat-temperature-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.918768Z"
+    },
+    {
+      "name": "env-sensehat-humidity-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.918768Z"
+    },
+    {
+      "name": "env-sensehat-pressure-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.918768Z"
+    },
+    {
+      "name": "imu-sensehat-compass-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.918768Z"
+    },
+    {
+      "name": "imu-sensehat-orientation-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:26.918768Z"
+    },
+    {
+      "name": "imu-sensehat-gyroscope-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:22:27.918843Z"
+    }
+  ],
+  "verification": {
+    "python_tests": 4,
+    "api": "2026-09-09-upgrade-api.json",
+    "load_telemetry": "2026-09-09-upgrade-telemetry.json",
+    "both_model_output_hashes_match_previous_runtime": true
+  },
+  "limitation": "New driver built for both installed kernels; no reboot test. Power values reported as zero, not energy measurements."
+}

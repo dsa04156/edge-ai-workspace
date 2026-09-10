@@ -1,0 +1,174 @@
+{
+  "checked_at": "2026-09-09T12:10:14.428148+00:00",
+  "nodes_ready": {
+    "etri-dev0001-jetorn": "True",
+    "etri-dev0002-raspi5": "True",
+    "etri-dev0003-raspi5": "True",
+    "etri-dev0004-tedger": "True",
+    "etri-dev0005-jetagx": "True",
+    "etri-ser0001-cg0msb": "True",
+    "etri-ser0002-cgnmsb": "True",
+    "etri-ser0003-cg0ms0": "True",
+    "etri-ser0004-cgnms0": "True"
+  },
+  "npu_capacity": "1",
+  "npu_allocatable": "1",
+  "app": {
+    "name": "mobilint-core-demo-64df4696f-p482n",
+    "node": "etri-ser0004-cgnms0",
+    "containers": [
+      {
+        "containerID": "containerd://759a91faa639a24d90858e774bbf1b73fa37188f61f669208967c0be6161e072",
+        "image": "sha256:53d82953e8502e32f70f5c1ca5e407a9e6cac072234c1dceb9d48465274eab73",
+        "imageID": "192.168.0.56:5000/mobilint-core-demo@sha256:68e8f4f11a76f70f3e44293ce1dded5864f01341564a1412f1b1c096bd852533",
+        "lastState": {},
+        "name": "inference",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T12:07:31Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ],
+    "limits": {
+      "cpu": "4",
+      "memory": "1Gi",
+      "mobilint.com/npu": "1"
+    }
+  },
+  "plugin": {
+    "name": "mobilint-device-plugin-h8gd9",
+    "containers": [
+      {
+        "containerID": "containerd://0324a13a8ca6222175947745732aacd175707a203b76601067c8004481ca2a7a",
+        "image": "sha256:4a967be0d053978d9101d37823176badbd089a833fd2b43d9bc07a7a051c51f9",
+        "imageID": "192.168.0.56:5000/mobilint-device-plugin@sha256:8b0ad962234cf5ebbcbaffb0e2e127f36dcc9f094c6072081c7e6007aab3f2d1",
+        "lastState": {},
+        "name": "mobilint-device-plugin",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T12:07:17Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/var/lib/kubelet/device-plugins",
+            "name": "device-plugin"
+          },
+          {
+            "mountPath": "/var/run/cdi",
+            "name": "cdi"
+          }
+        ]
+      }
+    ],
+    "metrics": "# HELP mobilint_legacy_device_available Verified legacy identity and clock queries respond; not an inference test.\n# TYPE mobilint_legacy_device_available gauge\nmobilint_legacy_device_available{device=\"aries0\"} 1\n# HELP mobilint_legacy_telemetry_supported Full upstream telemetry supported by this compatibility build.\n# TYPE mobilint_legacy_telemetry_supported gauge\nmobilint_legacy_telemetry_supported{device=\"aries0\"} 0\n",
+    "upstream": "6faba61da27c5a83342abc6b375927f5c35033ba",
+    "compatibility": "local ARIES2 1.8.0 / FW 1.2 opt-in patch"
+  },
+  "sensors": [
+    {
+      "name": "virtual-temperature-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:05.189693Z"
+    },
+    {
+      "name": "virtual-light-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:05.181786Z"
+    },
+    {
+      "name": "virtual-magnetic-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:05.193893Z"
+    },
+    {
+      "name": "virtual-acceleration-x-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:05.197742Z"
+    },
+    {
+      "name": "virtual-acceleration-y-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:12.205390Z"
+    },
+    {
+      "name": "virtual-acceleration-z-001",
+      "physical_device_id": "arduino-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.204958Z"
+    },
+    {
+      "name": "env-sensehat-temperature-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    },
+    {
+      "name": "env-sensehat-humidity-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    },
+    {
+      "name": "env-sensehat-pressure-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    },
+    {
+      "name": "imu-sensehat-compass-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    },
+    {
+      "name": "imu-sensehat-orientation-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    },
+    {
+      "name": "imu-sensehat-gyroscope-01",
+      "physical_device_id": "sensehat-001",
+      "telemetry_freshness": "fresh",
+      "overall_status": "available",
+      "latest_event_timestamp": "2026-09-09T12:10:13.864249Z"
+    }
+  ],
+  "tests": {
+    "python_contract": 4,
+    "plugin_unit": 9,
+    "excluded_upstream": [
+      "TestLifecycleRace: no NPU device in build container; empty CDI spec"
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mobilint-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mobilint-core-demo
+  namespace: mobilint-demo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mobilint-core-demo
+  template:
+    metadata:
+      labels:
+        app: mobilint-core-demo
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0004-cgnms0
+        kubernetes.io/arch: amd64
+      containers:
+      - name: inference
+        image: 192.168.0.56:5000/mobilint-core-demo@sha256:aebf1c571cef39fd36207e6b19ef4826bbdcc4df97a820ba24359fcad5cd8232
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: '1'
+            memory: 256Mi
+            mobilint.com/npu: 1
+          limits:
+            cpu: '4'
+            memory: 1Gi
+            mobilint.com/npu: 1
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 3
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mobilint-core-demo
+  namespace: mobilint-demo
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  selector:
+    app: mobilint-core-demo
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+    nodePort: 31881

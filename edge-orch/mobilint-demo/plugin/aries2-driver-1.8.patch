@@ -1,0 +1,148 @@
+diff --git a/Dockerfile b/Dockerfile
+index 03d7ff2..4ffdd73 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -5,6 +5,9 @@ COPY go.mod go.sum ./
+ RUN go mod download
+ 
+ COPY . .
++RUN gofmt -w pkg/plugin/aries/legacy*.go pkg/plugin/aries/aries_ioctl.go pkg/plugin/metrics/metrics.go
++# Upstream TestLifecycleRace requires real /dev/aries* discovery (no NPU in builder).
++RUN go test -v ./... -skip ^TestLifecycleRace$
+ RUN CGO_ENABLED=0 GOOS=linux go build -buildvcs=false -o /mobilint-device-plugin ./cmd/mobilint-device-plugin
+ 
+ FROM gcr.io/distroless/static-debian12
+diff --git a/pkg/plugin/aries/aries_ioctl.go b/pkg/plugin/aries/aries_ioctl.go
+index f0ad250..f342c50 100644
+--- a/pkg/plugin/aries/aries_ioctl.go
++++ b/pkg/plugin/aries/aries_ioctl.go
+@@ -101,6 +101,9 @@ func IsHealthy(path string) error {
+ 	}
+ 	defer unix.Close(fd)
+ 
++	if LegacyEnabled() {
++		return legacyCheck(fd, ioctlReadInt)
++	}
+ 	return driverInfoCheck(fd)
+ }
+ 
+diff --git a/pkg/plugin/aries/legacy.go b/pkg/plugin/aries/legacy.go
+new file mode 100644
+index 0000000..967b9e0
+--- /dev/null
++++ b/pkg/plugin/aries/legacy.go
+@@ -0,0 +1,26 @@
++package aries
++
++import (
++    "fmt"
++    "os"
++)
++
++// Explicit, node-scoped compatibility for the verified ARIES2 1.8.0 / FW 1.2 ABI.
++// No fallback on unknown versions and no write/reset/inference ioctls.
++func LegacyEnabled() bool { return os.Getenv("MOBILINT_ARIES2_DRIVER_1_8") == "true" }
++
++func legacyCheck(fd int, read func(int, uintptr) (int32, error)) error {
++    for _, c := range []struct{ nr uintptr; value int32 }{
++        {1, 0x010800}, {10, 0x010002}, {18, 2}, {19, 16},
++    } {
++        v, err := read(fd, 0x4100 | c.nr)
++        if err != nil { return fmt.Errorf("legacy ioctl %d: %w", c.nr, err) }
++        if v != c.value { return fmt.Errorf("unsupported legacy identity ioctl %d: got %d want %d", c.nr, v, c.value) }
++    }
++    for _, nr := range []uintptr{8, 9} {
++        v, err := read(fd, 0x4100 | nr)
++        if err != nil { return fmt.Errorf("legacy clock %d: %w", nr, err) }
++        if v <= 0 { return fmt.Errorf("legacy clock %d unavailable: %d", nr, v) }
++    }
++    return nil
++}
+diff --git a/pkg/plugin/aries/legacy_test.go b/pkg/plugin/aries/legacy_test.go
+new file mode 100644
+index 0000000..0798c48
+--- /dev/null
++++ b/pkg/plugin/aries/legacy_test.go
+@@ -0,0 +1,23 @@
++package aries
++
++import (
++    "testing"
++    "golang.org/x/sys/unix"
++)
++func TestLegacyCheck(t *testing.T) {
++    values := map[uintptr]int32{1:0x010800,10:0x010002,18:2,19:16,8:1250000000,9:1000000000}
++    read := func(fd int, req uintptr)(int32,error){ return values[req & 255],nil }
++    if err:=legacyCheck(0,read);err!=nil { t.Fatal(err) }
++    for nr,v := range values {
++        values[nr]=0
++        if legacyCheck(0,read)==nil { t.Fatalf("accepted invalid ioctl %d",nr) }
++        values[nr]=v
++    }
++    if legacyCheck(0,func(int,uintptr)(int32,error){return 0,unix.ENOTTY})==nil {t.Fatal("accepted ioctl failure")}
++}
++func TestLegacyOptIn(t *testing.T) {
++    t.Setenv("MOBILINT_ARIES2_DRIVER_1_8", "")
++    if LegacyEnabled(){t.Fatal("must be disabled by default")}
++    t.Setenv("MOBILINT_ARIES2_DRIVER_1_8", "true")
++    if !LegacyEnabled(){t.Fatal("explicit enable failed")}
++}
+diff --git a/pkg/plugin/metrics/legacy_test.go b/pkg/plugin/metrics/legacy_test.go
+new file mode 100644
+index 0000000..f3b9518
+--- /dev/null
++++ b/pkg/plugin/metrics/legacy_test.go
+@@ -0,0 +1,17 @@
++package metrics
++import (
++    "testing"
++    "net/http/httptest"
++    "strings"
++)
++func TestLegacyTelemetryUnavailable(t *testing.T) {
++    t.Setenv("MOBILINT_ARIES2_DRIVER_1_8", "true")
++    h:=NewHandler(func()bool{return true})
++    w:=httptest.NewRecorder()
++    h.ServeHTTP(w,httptest.NewRequest("GET","/metrics",nil))
++    s:=w.Body.String()
++    if !strings.Contains(s,"mobilint_legacy_telemetry_supported{device=\"aries0\"} 0") || strings.Contains(s,"mobilint_npu_memory") {t.Fatal(s)}
++    w=httptest.NewRecorder()
++    h.ServeHTTP(w,httptest.NewRequest("GET","/process",nil))
++    if w.Code!=501 {t.Fatal(w.Code)}
++}
+diff --git a/pkg/plugin/metrics/metrics.go b/pkg/plugin/metrics/metrics.go
+index 4ff3bd9..e75ec3b 100644
+--- a/pkg/plugin/metrics/metrics.go
++++ b/pkg/plugin/metrics/metrics.go
+@@ -14,8 +14,13 @@ import (
+ 
+ func NewHandler(ready func() bool) http.Handler {
+ 	mux := http.NewServeMux()
+-	mux.HandleFunc("/metrics", handleMetrics)
++	if aries.LegacyEnabled() {
++        mux.HandleFunc("/metrics", handleLegacyMetrics)
++        mux.HandleFunc("/process", func(w http.ResponseWriter, r *http.Request) { http.Error(w, "process telemetry unsupported for ARIES2 driver 1.8", http.StatusNotImplemented) })
++    } else {
++        mux.HandleFunc("/metrics", handleMetrics)
+ 	mux.HandleFunc("/process", handleProcesses)
++    }
+ 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+ 		if ready != nil && ready() {
+ 			w.WriteHeader(http.StatusOK)
+@@ -203,3 +208,16 @@ func handleProcesses(w http.ResponseWriter, r *http.Request) {
+ 		klog.V(2).Infof("metrics: encode /process: %v", err)
+ 	}
+ }
++
++// The old ABI cannot supply the upstream monitor sample. Never manufacture zeros.
++func handleLegacyMetrics(w http.ResponseWriter, r *http.Request) {
++    w.Header().Set("Content-Type", "text/plain; version=0.0.4")
++    v := 0
++    if aries.IsHealthy("/dev/aries0") == nil { v = 1 }
++    fmt.Fprintln(w, "# HELP mobilint_legacy_device_available Verified legacy identity and clock queries respond; not an inference test.")
++    fmt.Fprintln(w, "# TYPE mobilint_legacy_device_available gauge")
++    fmt.Fprintf(w, "mobilint_legacy_device_available{device=\"aries0\"} %d\n", v)
++    fmt.Fprintln(w, "# HELP mobilint_legacy_telemetry_supported Full upstream telemetry supported by this compatibility build.")
++    fmt.Fprintln(w, "# TYPE mobilint_legacy_telemetry_supported gauge")
++    fmt.Fprintln(w, "mobilint_legacy_telemetry_supported{device=\"aries0\"} 0")
++}
