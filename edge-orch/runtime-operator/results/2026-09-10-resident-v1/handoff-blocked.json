@@ -1,0 +1,175 @@
+{
+  "active": {},
+  "eligibleCandidates": [],
+  "excludedCandidates": [
+    {
+      "node": "etri-dev0001-jetorn",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-dev0001-jetorn",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-dev0002-raspi5",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-dev0002-raspi5",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-dev0003-raspi5",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-dev0003-raspi5",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-dev0004-tedger",
+      "reasons": [
+        "resident_on_different_node"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-dev0004-tedger",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "reasons": [
+        "previous_controller_not_stopped"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-ser0001-cg0msb",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-ser0001-cg0msb",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-ser0002-cgnmsb",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-ser0002-cgnmsb",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-ser0003-cg0ms0",
+      "reasons": [
+        "resident_on_different_node"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-ser0003-cg0ms0",
+      "reasons": [
+        "previous_controller_not_stopped"
+      ],
+      "variant": "resident-llama-spark"
+    },
+    {
+      "node": "etri-ser0004-cgnms0",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-agx"
+    },
+    {
+      "node": "etri-ser0004-cgnms0",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ],
+      "variant": "resident-llama-spark"
+    }
+  ],
+  "load": {
+    "inFlightAndPending": 0,
+    "utilization": 0
+  },
+  "observedGeneration": 1,
+  "phase": "Blocked",
+  "reason": "initial_or_unhealthy_or_policy_changed",
+  "retiring": []
+}

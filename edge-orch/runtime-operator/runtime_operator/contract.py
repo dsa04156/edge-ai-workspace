@@ -14,6 +14,27 @@ class Contract(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
+class WorkloadRef(Contract):
+    namespace: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+    name: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+
+
+class ResidentRuntime(Contract):
+    protocol: Literal["llama-worker-v1"]
+    namespace: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+    service: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+    selector: dict[str, str] = Field(min_length=1)
+    container: str = Field(min_length=1, max_length=63)
+    # Explicit handoff: refuse lifecycle calls while any previous controller runs.
+    previousControllers: list[WorkloadRef] = Field(min_length=1, max_length=8)
+
+
+class InferenceContract(Contract):
+    modelDigest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    prompt: str = Field(min_length=1, max_length=4096)
+    maxTokens: int = Field(ge=1, le=256)
+
+
 class Variant(Contract):
     name: str = Field(pattern=r"^[a-z][a-z0-9-]{0,30}$")
     image: str = Field(pattern=r"^[^\s]+@sha256:[0-9a-f]{64}$")
@@ -26,6 +47,8 @@ class Variant(Contract):
     # Reviewed concurrency qualification, not inferred from device names or RAM.
     maxInFlight: int = Field(ge=1, le=256)
     qualification: str = Field(min_length=1, max_length=256)
+    resident: ResidentRuntime | None = None
+    qualifiedRps: float | None = Field(default=None, gt=0, le=100000)
 
     @model_validator(mode="after")
     def valid_resources(self):
@@ -75,6 +98,7 @@ class ServiceSpec(Contract):
     variants: list[Variant] = Field(min_length=1, max_length=32)
     policy: Policy = Field(default_factory=Policy)
     suspended: bool = False
+    inference: InferenceContract | None = None
 
     @field_validator("readyPath", "requestPath")
     @classmethod
@@ -87,11 +111,23 @@ class ServiceSpec(Contract):
     def unique_variants(self):
         if len({v.name for v in self.variants}) != len(self.variants):
             raise ValueError("duplicate variant")
+        if any(v.resident for v in self.variants):
+            if not self.inference or not all(v.resident for v in self.variants):
+                raise ValueError("resident Llama variants require one common inference contract")
+        elif self.inference:
+            raise ValueError("inference contract is only consumed by the resident Llama adapter")
         return self
 
 
 def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
     # Policy-only edits do not replace healthy workload revisions.
-    content = {"variant": variant.model_dump(), "node": node, "port": spec.port,
+    variant_data = variant.model_dump()
+    if variant.resident is None:
+        variant_data.pop("resident")
+    if variant.qualifiedRps is None:
+        variant_data.pop("qualifiedRps")
+    content = {"variant": variant_data, "node": node, "port": spec.port,
                "readyPath": spec.readyPath, "ioContract": spec.ioContract}
+    if variant.resident:
+        content["inference"] = spec.inference.model_dump()
     return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:12]

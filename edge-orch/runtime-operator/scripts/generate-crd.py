@@ -30,6 +30,7 @@ def structural(schema, definitions):
             raise ValueError("unsupported nullable union")
         schema.update(choices[0])
         schema["nullable"] = True
+        return structural(schema, definitions)
     # Kubernetes structural schemas prune unknown fields. The runtime validator
     # additionally rejects unknown values when called directly.
     if schema.get("additionalProperties") is False:

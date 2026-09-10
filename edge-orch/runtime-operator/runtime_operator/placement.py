@@ -49,7 +49,7 @@ def pod_requests(pod):
 
 
 def candidates(spec: ServiceSpec, nodes: list[dict], pods: list[dict], runtime_classes: list[dict],
-               existing_revisions: dict | None = None):
+               existing_revisions: dict | None = None, snapshot: dict | None = None):
     """existing_revisions maps (node, variant) to owned revision identity.
 
     Its own reservations are credited only for that same revision; never credit
@@ -90,6 +90,24 @@ def candidates(spec: ServiceSpec, nodes: list[dict], pods: list[dict], runtime_c
                     overhead = quantities(runtime.get("overhead", {}).get("podFixed", {}))
             if any(labels.get(k) != v for s in selectors for k, v in s.items()):
                 reasons.append("selector_or_architecture_mismatch")
+            if variant.resident:
+                from .resident import verify_binding, matching_pods
+                reason = verify_binding(variant.resident, variant.image, name, snapshot or {"pods": pods, "deployments": []}, spec.port)
+                if reason:
+                    reasons.append(reason)
+                else:
+                    bound = matching_pods(variant.resident, pods)[0]
+                    container = next(c for c in bound["spec"]["containers"] if c["name"] == variant.resident.container)
+                    reserved = quantities(container.get("resources", {}).get("requests", {}))
+                    if any(reserved.get(k, 0) < v for k, v in quantities(variant.requests).items()):
+                        reasons.append("resident_reservation_below_contract")
+                    if bound["spec"].get("runtimeClassName") != variant.runtimeClassName:
+                        reasons.append("resident_runtime_class_mismatch")
+                if reasons:
+                    rejected.append({"node": name, "variant": variant.name, "reasons": sorted(set(reasons))})
+                else:
+                    accepted.append(Candidate(name, role, variant))
+                continue  # Existing Pod already owns its reservation; no second GPU request.
             available = quantities(node.get("status", {}).get("allocatable", {}))
             credited = (existing_revisions or {}).get((name, variant.name))
             credited_one = False

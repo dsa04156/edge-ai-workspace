@@ -39,8 +39,8 @@ Kubernetes Service는 gateway의 고정 주소를 제공한다. 요청 대상은
 복수 제어기 HA와 네트워크 분할 중 fencing은 후속 범위다.
 
 기본 자원 반환은 기존 Deployment를 0 replica로 내려 Kubernetes 예약도 반환하는 방식이다.
-GPU 프로세스의 모델 메모리만 해제하고 Pod 예약을 유지하는 기존 Llama 데모는 별도 검증
-경로이며, 공통 제어기의 Pod 해제와 같은 의미로 설명하지 않는다.
+기존 runtime을 연결한 `resident` 변형은 Pod와 GPU 예약을 유지하고 모델 메모리만 반환한다.
+Pod 자원 반환과 모델 메모리 반환은 다른 결과이며 아래에 별도 실측 근거를 기록한다.
 
 ## 합격 기준과 증거
 
@@ -98,6 +98,8 @@ Prometheus 실사용량이나 Llama 장비별 벤치마크를 이 예약량과 �
 
 부하 판단은 서비스별 실행 중+대기 요청 수와 검토한 변형별 `maxInFlight`를 사용한다.
 고부하가 `pressureSeconds` 이상 지속되면 더 큰 검증 동시성의 호환 후보를 준비한다.
+`qualifiedRps`가 양쪽 변형에 있으면 동일 입력 계약에서 검증한 처리율로 후보를 비교한다.
+Llama에서는 실제 worker 동시성을 1로 유지하며 AGX 4.8 rps·Spark 6 rps 자격을 사용한다.
 저부하가 `returnSeconds` 이상 지속되면 `preferredRole`의 수용 가능한 후보로 돌아간다.
 같은 역할·같은 용량의 노드끼리 낮은 부하만으로 이동하지 않는다. latency SLO 최적화,
 전력·가격 최적화나 실제 GPU/NPU 성능 우열은 이 초기 정책의 구현 범위가 아니다.
@@ -127,20 +129,87 @@ Prometheus 실사용량이나 Llama 장비별 벤치마크를 이 예약량과 �
 제어기 재시작 중 무중단 HTTP 접속을 검증한 결과는 아니다. 단일 gateway 교체 중에는
 접속 공백이 있으며 Pod 안에서 진행 중이던 결과 불명 요청은 자동 재전송하지 않는다.
 
-단위·배포 계약 시험 33개가 통과했다. 저장소 전체와 함께 실행한 결과는 148 통과·1 실패다.
+HTTP 제어기 v7 시점의 단위·배포 계약 시험 33개가 통과했다. 저장소 전체와 함께 실행한 결과는 148 통과·1 실패다.
 실패는 기존 sensor-anomaly Argo CD `targetRevision`이 `agent/edgex-central-docs`인 반면
 시험이 `main`을 기대하는 기존 불일치다. 원격 기준 커밋에도 같은 설정이 있음을 확인했고, 해당 manifest·시험의 의미를 이번 변경으로 수정하지 않았다. 공통 실행 제어기 시험과 문서 생성 검증은 통과했다.
 
 ## 현재 한계와 다음 연결
 
 - 현재 클러스터 내부 ClusterIP gateway다. 외부 공개·사용자 인증·NEXUS 등록 UI는 연결 전이다.
-- 일반 CPU/GPU/NPU 확장 자원과 RuntimeClass 필터는 구현·단위 검증했지만 이 공통
-  제어기에서 GPU/NPU AI 모델 왕복을 실측하지 않았다. 기존 Llama·Mobilint 증거는 별개다.
+- CPU/GPU/NPU 확장 자원과 RuntimeClass 필터를 구현했고, 아래 resident 계약으로 실제
+  AGX·Spark GPU Llama 왕복을 검증했다. 공통 NPU 모델 전환은 아직 실측하지 않았다.
 - 신규 Pod를 만들려면 예약 가능한 가속기가 필요하다. 기존 Llama Pod의 모델 메모리만
-  비웠다고 다른 Pod가 그 GPU 예약을 얻는 것으로 보지 않는다. 기존 runtime 채택·메모리
-  해제 adapter 연결은 다음 범위다.
+  비웠다고 다른 Pod가 그 GPU 예약을 얻는 것으로 보지 않는다. 기존 runtime 연결·메모리
+  해제 adapter는 아래 계약으로 구현했다. 이 경우 GPU 예약은 해당 기존 Pod에 남는다.
 - 현재 bounded HTTP JSON만 지원한다. streaming, 장시간 Job, checkpoint·state migration,
   API 서버·gateway·전체 노드 장애 중 무손실 및 다중 gateway HA는 검증 완료가 아니다.
 - 원장은 local-path PVC에 있으므로 제어 노드의 영구 손실은 별도 복구·백업이 필요하다.
   실행 중 재시작은 결과 불명으로 기록하고 worker가 이전 요청을 끝냈는지 확인한다.
 - 합성 왕복은 v5·v7에서 각각 수행한 약 70초 시나리오다. 장시간·대규모·실공장 SLA 합격으로 확대하지 않는다.
+
+## 기존 runtime 연결과 모델 메모리 반환
+
+`Variant.resident`는 공급자가 이미 배포한 runtime을 가리킨다. 현재 adapter는
+`llama-worker-v1`이며 `resident.py`가 기존 worker의 health·metrics·activate·deactivate·
+generate API를 공통 제어기 계약으로 변환한다. 대상 선택과 drain·복귀는 공통 제어기가
+담당하며 Nano→Orin→Spark 같은 순차 제어기를 호출하지 않는다.
+
+- 같은 namespace의 Service selector와 유일한 Pod, 정확한 runtime container image,
+  실제 실행 node, Pod Ready, RuntimeClass와 예약량을 검증한다. 새 GPU 예약은 요구하지 않는다.
+- `previousControllers`의 Deployment가 0 replica이고 해당 Pod가 완전히 사라져야 제어를
+  인계한다. 다른 RuntimeService 또는 두 변형이 같은 resident Pod를 중복 선언하면 차단한다.
+- 서비스의 공통 `inference` 계약은 정확한 model digest·prompt·maxTokens를 고정한다.
+  현재 자격은 8토큰 조건이며 512/128 벤치마크를 자동 전용하거나 임의 입력을 허용하지 않는다.
+- 모델 준비는 별도 async 작업으로 수행한다. AGX 준비에 약 23초가 걸려도 제어기의
+  다른 서비스 관측·요청 처리 루프를 막지 않는다.
+- 이전 gateway 요청과 worker 자체 queue·active 요청이 모두 0일 때 모델을 해제한다.
+  해제 후 CACHED·model_loaded=false·model_vram_mib=0을 확인해야 retiring을 끝낸다.
+- resident Pod와 GPU 예약을 scale/delete하지 않는다. 계약 버전 변경이 같은 resident를
+  가리키는 경우에도 새 active 모델을 이전 revision 정리로 해제하지 않는다.
+
+### 실장비 결과
+
+`demo/llama-resident.yaml`로 `platform-runtime/llama-inference`를 등록했다. 기존 두
+전용 제어기가 켜져 있을 때 차단되는 것을 먼저 확인하고, 실행 중이 아닌 상태에서
+`llama-continuity-test/ordered-offload-controller`와 `continuity-controller`를 0 replica로
+내려 인계했다. 이 둘은 현재 중단 상태이며 Llama 실행·복귀는 공통 제어기가 담당한다.
+
+| 검증 | 실제 결과 | 원본 |
+|---|---|---|
+| 기존 제어기와 중복 제어 차단 | previous_controller_not_stopped로 배치 차단 | `handoff-blocked.json` |
+| 실제 모델 요청 | 210/210 ID·model digest·출력·토큰 수 검증 통과 | `round-trip.json` |
+| 자동 왕복 | AGX(edge)→Spark(server)→AGX(edge) | `round-trip.json`, `after.json` events |
+| Pod 유지 | AGX·Spark Pod UID 동일, 두 Pod 모든 container restart 0 | `before.json`, `after.json` |
+| 최종 모델 상태 | AGX ACTIVE 1348.45 MiB, Spark CACHED 0 MiB | `after.json` |
+| Spark GPU process | nvidia-smi exit 0, compute process 없음 | `spark-gpu-processes.json` |
+| GPU 예약 | 기존 Pod의 GPU/GPU.shared 요청 각 1 유지 | `after.json` pod resources |
+
+원본 경로는 `edge-orch/runtime-operator/results/2026-09-10-resident-v1/`이다. 이 시험은
+실제 GPU 모델 추론이며 앞의 CPU 합성 HTTP fixture와 구분한다. Nano는 현재 runtime이
+정상 준비되지 않아 이 인계 계약에 넣지 않았다. 전체 노드 장애·gateway HA·임의 LLM
+입력 및 NPU artifact 이전을 검증한 결과는 아니다.
+
+### 운영 절차
+
+기존 제어기의 실행 여부와 worker active/queue=0을 확인한 뒤 기존 제어기를 중단하고
+Pod 종료까지 기다린다. 그다음 다음 계약을 적용한다. 공통 제어기는 인계 조건이
+충족되지 않으면 실행하지 않는다. 운영자는 gateway를 통하지 않는 직접 generate나
+activate/deactivate를 병행하지 않는다.
+
+```bash
+rtk proxy kubectl --context kubernetes-admin@kubernetes apply -f edge-orch/runtime-operator/demo/llama-resident.yaml
+rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get runtimeservices
+```
+
+예제 실부하 스크립트 `scripts/smoke-resident.py`는 명시한 gateway·서비스에만 고정
+계약 요청을 보낸다. 서비스 중단은 RuntimeService의 suspended=true로 접수를 막고
+모델 해제를 기다린다. 이전 제어기로 돌아가려면 공통 서비스 drain·모델 해제 확인 후
+기존 제어기를 복원해야 한다. 기존 토큰 없는 순차 데모 웹은 인계로 중단 상태이며
+공통 운영 화면 연결은 후속 작업이다.
+
+최종 resident-v2에서는 기존 Pod가 계약에 적힌 가속기·CPU·메모리 예약을 실제 보유하는지
+검사한다. 제어기 교체 후 저장 요청 재조회에서는 worker completed_requests가 증가하지
+않았고 새 GPU 요청에서는 AGX 처리 건수가 정확히 1 증가했다. 이 근거는
+`results/2026-09-10-resident-v2/restart-and-reservation-gate.json`에 보관한다.
+공통 제어기의 단위·배포 계약 시험은 현재 39개 통과다. 전체 시험의 기존 센서 Argo CD
+브랜치 불일치는 위 v7 기록과 같은 별도 문제다.

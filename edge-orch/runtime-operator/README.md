@@ -39,3 +39,14 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes apply --dry-run=server -
 
 서비스 중단은 RuntimeService의 `spec.suspended`를 true로 변경한다. 삭제는 finalizer가
 drain을 마치도록 기다린다. 결과가 불명인 요청은 임의로 재실행하거나 원장에서 지우지 않는다.
+
+## 기존 모델 runtime 인계
+
+`demo/llama-resident.yaml`은 기존 AGX·Spark worker를 연결하는 예제다. 전용 제어기 2개를
+중단하고 해당 Pod가 사라진 뒤에만 공통 제어기가 모델을 활성화한다. 기존 모델 Pod를
+삭제하거나 GPU 예약을 다시 잡지 않는다. 실제 210/210 요청 왕복과 Pod 유지·Spark 모델
+메모리 0 확인 근거는 `results/2026-09-10-resident-v1/`에 있다.
+
+`Variant.resident`는 Service/Pod/container/image를 묶고 `ServiceSpec.inference`가
+동일 모델·입력 자격을 고정한다. 같은 Pod 중복 claim은 차단한다. 원래 제어기로
+복원할 때는 먼저 공통 RuntimeService를 suspend하고 모델 해제를 확인해야 한다.

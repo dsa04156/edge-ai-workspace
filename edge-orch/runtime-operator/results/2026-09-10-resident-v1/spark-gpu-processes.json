@@ -1,0 +1,6 @@
+{
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "interpretation": "no GPU compute process after model release; Pod GPU reservation retained"
+}

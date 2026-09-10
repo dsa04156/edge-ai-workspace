@@ -37,7 +37,8 @@ class Kube:
                                                                    _request_timeout=5)["items"],
             "nodes": self.raw(self.core.list_node(_request_timeout=5))["items"],
             "pods": self.raw(self.core.list_pod_for_all_namespaces(_request_timeout=5))["items"],
-            "deployments": self.raw(self.apps.list_namespaced_deployment(self.namespace, _request_timeout=5))["items"],
+            "deployments": self.raw(self.apps.list_deployment_for_all_namespaces(_request_timeout=5))["items"],
+            "kubeServices": self.raw(self.core.list_service_for_all_namespaces(_request_timeout=5))["items"],
             "runtimeClasses": self.raw(self.node.list_runtime_class(_request_timeout=5))["items"],
         }
 
