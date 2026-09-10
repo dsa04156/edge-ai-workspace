@@ -1,0 +1,89 @@
+apiVersion: platform.jinuk.io/v1alpha1
+kind: RuntimeService
+metadata:
+  name: quality-api-demo
+  namespace: platform-runtime
+spec:
+  execution: http-json-v1
+  ioContract: synthetic.quality.v1
+  variants:
+  - name: cpu-arm64
+    image: 192.168.0.56:5000/runtime-contract-demo@sha256:0c70aaa5f6f1d3f01bb71e6e6656ceac5bdc197cd23ac0f5c1239883d67d8005
+    architecture: arm64
+    backend: cpu
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: '1'
+      memory: 128Mi
+    maxInFlight: 2
+    qualification: synthetic concurrency gate; not AI performance qualification
+  - name: cpu-amd64
+    image: 192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558
+    architecture: amd64
+    backend: cpu
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: '1'
+      memory: 128Mi
+    maxInFlight: 8
+    qualification: synthetic concurrency gate; not AI performance qualification
+  timeoutSeconds: 30
+  policy:
+    mode: automatic
+    preferredRole: edge
+    allowedRoles:
+    - edge
+    - server
+    pressureSeconds: 4
+    returnSeconds: 8
+    cooldownSeconds: 5
+    prepareTimeoutSeconds: 45
+---
+apiVersion: platform.jinuk.io/v1alpha1
+kind: RuntimeService
+metadata:
+  name: telemetry-transform-demo
+  namespace: platform-runtime
+spec:
+  execution: http-json-v1
+  ioContract: synthetic.telemetry.v1
+  variants:
+  - name: cpu-arm64
+    image: 192.168.0.56:5000/runtime-contract-demo@sha256:0c70aaa5f6f1d3f01bb71e6e6656ceac5bdc197cd23ac0f5c1239883d67d8005
+    architecture: arm64
+    backend: cpu
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: '1'
+      memory: 128Mi
+    maxInFlight: 2
+    qualification: synthetic concurrency gate; not AI performance qualification
+  - name: cpu-amd64
+    image: 192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558
+    architecture: amd64
+    backend: cpu
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: '1'
+      memory: 128Mi
+    maxInFlight: 8
+    qualification: synthetic concurrency gate; not AI performance qualification
+  timeoutSeconds: 30
+  policy:
+    mode: automatic
+    preferredRole: edge
+    allowedRoles:
+    - edge
+    - server
+    pressureSeconds: 4
+    returnSeconds: 8
+    cooldownSeconds: 5
+    prepareTimeoutSeconds: 45

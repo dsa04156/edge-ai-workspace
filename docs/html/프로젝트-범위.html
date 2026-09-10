@@ -66,6 +66,7 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
+<li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
 <li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
 <li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
 <li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
@@ -84,8 +85,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-09-10 11:27</span>
-            <span class="badge">HTML 생성: 2026-09-10 13:07</span>
+            <span class="badge">수정: 2026-09-10 14:18</span>
+            <span class="badge">HTML 생성: 2026-09-10 14:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -303,6 +304,9 @@
 <p><code>edge-orch/mobilint-demo/</code>에 ARIES2 NPU를 사용하는 독립 시험 추론 서버를 구현한다. 드라이버 1.14 및 qb Runtime 1.4.0과 공식 Mobilint device plugin v1.1.1을 사용하여 정확한 <code>etri-ser0004-cgnms0</code>에서 장치 한 개를 등록하고, <code>mobilint-demo</code> namespace의 단일 서버 Pod가 <code>mobilint.com/npu: 1</code>을 요청한다. 서버 내부의 두 고정 예제 모델(Candy/Mosaic)을 SDK Single 모드의 서로 다른 코어로 지정하고 합성 입력으로 실제 추론·동시 요청을 검증한다. NPU의 Pod별 코어 분할·메모리 격리, 센서 연결, 옥동 생산 품질/이상감지 모델 구현, 자동 offloading으로 표현하지 않는다. 운영자는 시험 배포·중지 책임을 갖고 EdgeX/대시보드 Argo root와 별도로 수동 배포한다. 완료 기준은 plugin Ready, NPU 자원 등록, 두 모델 실제 실행 코어·출력·동시 실행 근거, API 오류·동시 요청 제어, 기존 센서 freshness 유지다. 2026-09-09 실장비에서 단일 Pod의 두 모델 코어 0/0·0/1 배치, 병렬 추론 및 API 오류 검증을 통과했다. NPU 1개 등록, 전체 노드 9개 Ready, 기존 물리 센서 projection 12개 fresh/available을 확인했다. 후속 업데이트에서 드라이버 1.14 및 SDK/CLI 1.4.0으로 전환하고 공식 플러그인 원본의 등록·메모리·사용률과 추론을 재검증했다. 펌웨어 flash는 수행하지 않았다. 이전 1.8 호환 패치는 이력으로만 보존한다. 상세 재배포 절차와 측정 경계는 <a href="../edge-orch/mobilint-demo/README.md">모빌인트 코어 분리 데모</a>를 따른다.</p>
 <h3 id="2026-09-09-nano-orin-spark-실장비-데모-화면">2026-09-09 Nano·Orin·Spark 실장비 데모 화면</h3>
 <p>후속 사용자 요청으로 격리 <code>ordered-offload-controller</code>에 전용 웹 화면과 고정 부하 시작·중지 API를 추가한다. 기존 순차 실행기를 재사용하며 서비스 설계 dry-run 화면은 변경하지 않는다. 단일 실행, 영속 기록, 중지 시 접수 요청 마무리·Nano 복귀·상위 모델 해제 확인을 검증한다. 2026-09-10 후속 사용자 요청에 따라 고정 웹 데모의 시작·중지는 토큰 없이 제공한다. 별도 직접 추론·요청 조회 API의 인증은 유지한다. 상세 범위·증거는 <a href="서버-엣지-반복-오프로딩.html">반복 오프로딩</a>을 따른다.</p>
+<h2 id="2026-09-10-장비-독립-공통-실행-제어기-승인-범위">2026-09-10 장비 독립 공통 실행 제어기 승인 범위</h2>
+<p>사용자 지시에 따라 Nano·Orin·Spark를 예시로 한 고정 순서를 플랫폼 정책으로 사용하지 않는다. <code>edge-orch/runtime-operator/</code>에서 서비스 실행 계약, 노드 호환성·가용 자원, 배치 정책을 분리하고 Kubernetes 사용자 정의 리소스와 지속적인 reconcile로 연결하는 구현을 진행한다. 전용 <code>platform-runtime</code> namespace의 workload·요청 gateway·실행 이력은 이 제어기가 소유한다. 기존 EdgeX, Argo CD 소유 센서 서비스와 서비스 설계 dry-run의 책임은 유지한다.</p>
+<p>검증 기준은 임의 서비스·노드 이름, CPU/GPU/NPU 및 ARM64/AMD64 호환성, 비정상 노드 제외, 대상 준비 후 요청 전환, 기존 요청 drain 후 자원 반환, 저부하 복귀와 제어기 재시작 복구다. 운영자는 검토한 서비스 image·실행 계약 및 정책을 Kubernetes RBAC로 등록하고 전용 제어기를 배포·중단한다. 구현·시험·라이브 배포 상태와 지원 실행 방식은 <a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a>에서 구분한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</a></li>

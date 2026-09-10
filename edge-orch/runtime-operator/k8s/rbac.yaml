@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: runtime-operator
+  namespace: platform-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: runtime-operator-observer
+rules:
+  - apiGroups: [""]
+    resources: [nodes, pods]
+    verbs: [get, list]
+  - apiGroups: [node.k8s.io]
+    resources: [runtimeclasses]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: runtime-operator-observer
+subjects:
+  - kind: ServiceAccount
+    name: runtime-operator
+    namespace: platform-runtime
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: runtime-operator-observer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: runtime-operator
+  namespace: platform-runtime
+rules:
+  - apiGroups: [platform.jinuk.io]
+    resources: [runtimeservices]
+    verbs: [get, list, update]
+  - apiGroups: [platform.jinuk.io]
+    resources: [runtimeservices/status]
+    verbs: [get, patch]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, create, patch, delete]
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [get, create, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: runtime-operator
+  namespace: platform-runtime
+subjects:
+  - kind: ServiceAccount
+    name: runtime-operator
+    namespace: platform-runtime
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: runtime-operator

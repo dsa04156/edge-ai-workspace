@@ -1,0 +1,39 @@
+{
+  "replayedRequest": "9be42cca-quality-api-demo-baseline-0-0",
+  "replay": {
+    "status": 200,
+    "body": {
+      "requestId": "9be42cca-quality-api-demo-baseline-0-0",
+      "node": "etri-dev0004-tedger",
+      "ioContract": "synthetic.quality.v1",
+      "output": "9be42cca-quality-api-demo-baseline-0-0",
+      "synthetic": true
+    },
+    "target": "rt-105b00045698-a3432af1cc4f",
+    "outcome": "completed"
+  },
+  "originalTargetStillActive": false,
+  "operatorPod": {
+    "name": "runtime-operator-6fc8b44c97-lxvc7",
+    "uid": "c755ee24-87eb-4dd4-b20a-fa7b9d991325",
+    "imageID": "192.168.0.56:5000/runtime-operator@sha256:9f8ea5ea1e0a66a652a853f111369da2257ae1ae570057fb98ee10cb34af6de7"
+  },
+  "services": [
+    {
+      "name": "quality-api-demo",
+      "phase": "Serving",
+      "active": "rt-105b00045698-150b53945291",
+      "node": "etri-dev0005-jetagx",
+      "recovering": false,
+      "retiring": 0
+    },
+    {
+      "name": "telemetry-transform-demo",
+      "phase": "Serving",
+      "active": "rt-64e77cbdc38c-9bf5cf69efea",
+      "node": "etri-dev0004-tedger",
+      "recovering": false,
+      "retiring": 0
+    }
+  ]
+}

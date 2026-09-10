@@ -66,6 +66,7 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
+<li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
 <li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
 <li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
 <li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
@@ -84,8 +85,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-09-09 20:17</span>
-            <span class="badge">HTML 생성: 2026-09-10 13:07</span>
+            <span class="badge">수정: 2026-09-10 14:40</span>
+            <span class="badge">HTML 생성: 2026-09-10 14:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -227,16 +228,8 @@
 <p>이를 통해 데이터 수집, AI 서비스 배포, 엣지·서버 작업 분산, 결과 저장, 알림 및 장애복구 기능이 연결된 대규모 혼합 디바이스 제어·관리 플랫폼 프로토타입을 구축하고 검증한다.</p>
 <h2 id="별첨-기준-문서">별첨 기준 문서</h2>
 <p>보고서 본문에는 위 추진계획만 유지하고 세부사항은 다음 문서에서 관리한다.</p>
-<ul><li>현장·테스트베드 데이터 경로와 저장 경계:</li></ul>
-<p><a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></p>
-<ul><li>AI 서비스 입력·결과·Replay 계약: <a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li>CPU·memory·지연·처리량 기반 자원 증강 실험과 후보 자격:</li></ul>
-<p><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></p>
-<ul><li>운영자 소유 격리 CLI의 실제 Nano·AGX 왕복 10회 합격과 검증 기준:</li></ul>
-<p><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">서비스 연속성 실험 결과</a> — 양노드 생존·8토큰 범위이며 전체 장애 복구는 후속; <a href="서버-엣지-반복-오프로딩.html">Nano·AGX·Spark 단계형 데모</a></p>
-<ul><li>물리 디바이스와 서비스 연결·디바이스 트윈:</li></ul>
-<p><a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></p>
-<ul><li>장애·복구 시나리오와 운영 검증:</li></ul>
-<p><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>, <a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></p>
+<ul><li>현장·테스트베드 데이터 경로와 저장 경계: <a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li><li>AI 서비스 입력·결과·Replay 계약: <a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li>CPU·memory·지연·처리량 기반 자원 증강 실험과 후보 자격: <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li><li>운영자 소유 격리 CLI의 실제 Nano·AGX 왕복 10회 합격과 검증 기준: <a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">서비스 연속성 실험 결과</a> — 양노드 생존·8토큰 범위이며 전체 장애 복구는 후속; <a href="서버-엣지-반복-오프로딩.html">Nano·AGX·Spark 단계형 데모</a></li><li>물리 디바이스와 서비스 연결·디바이스 트윈: <a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li><li>장애·복구 시나리오와 운영 검증: <a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>,</li></ul>
+<p><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></p>
 <ul><li>통합 화면의 정보 구조와 상태 판단:</li></ul>
 <p><a href="대시보드-정보-구조.html">대시보드 정보 구조</a>, <a href="대시보드-판단-정책.html">대시보드 판단 정책</a></p>
 <ul><li>구현 완료·부분 구현·미구현 구분:</li></ul>
@@ -244,6 +237,8 @@
 <ul><li>현장 생산성 지표 정의:</li></ul>
 <p><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></p>
 <p>옥동 PLC·MES·품질 데이터의 실제 항목, 접근 권한, 생산 건 식별자와 수집주기는 8월 현장 협의 결과로 확정하며, 현재 테스트베드의 Arduino·Sense HAT 명세를 옥동 데이터 명세로 대체하지 않는다.</p>
+<h2 id="2026-09-10-공통-실행-제어기-승인-범위">2026-09-10 공통 실행 제어기 승인 범위</h2>
+<p>장비 이름과 무관한 서비스 계약·노드 호환성·배치 정책 및 Kubernetes reconcile 구현을 승인 범위에 추가한다. 전용 <code>platform-runtime</code> 운영자는 계약 등록·제어기 배포·중단을 책임진다. 배치·준비·전환·drain·복귀·재시작 검증 기준과 구현 상태는 <a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a>을 따른다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</a></li>
@@ -255,7 +250,8 @@
 <li class="toc-h2"><a href="#5-기관별-역할">5. 기관별 역할</a></li>
 <li class="toc-h2"><a href="#6-주요-산출물">6. 주요 산출물</a></li>
 <li class="toc-h2"><a href="#7-최종-추진-방향">7. 최종 추진 방향</a></li>
-<li class="toc-h2"><a href="#별첨-기준-문서">별첨 기준 문서</a></li></ol></aside>
+<li class="toc-h2"><a href="#별첨-기준-문서">별첨 기준 문서</a></li>
+<li class="toc-h2"><a href="#2026-09-10-공통-실행-제어기-승인-범위">2026-09-10 공통 실행 제어기 승인 범위</a></li></ol></aside>
     </div>
   </div>
 

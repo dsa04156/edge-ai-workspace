@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: runtime-journal
+  namespace: platform-runtime
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runtime-operator
+  namespace: platform-runtime
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: runtime-operator
+  template:
+    metadata:
+      labels:
+        app: runtime-operator
+    spec:
+      serviceAccountName: runtime-operator
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        node-role.kubernetes.io/control-plane: ""
+      terminationGracePeriodSeconds: 330
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+      containers:
+        - name: operator
+          image: 192.168.0.56:5000/runtime-operator@sha256:9f8ea5ea1e0a66a652a853f111369da2257ae1ae570057fb98ee10cb34af6de7
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JOURNAL_PATH
+              value: /data/runtime.sqlite3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 3
+          volumeMounts:
+            - name: journal
+              mountPath: /data
+      volumes:
+        - name: journal
+          persistentVolumeClaim:
+            claimName: runtime-journal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runtime-gateway
+  namespace: platform-runtime
+spec:
+  selector:
+    app: runtime-operator
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,194 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: runtimeservices.platform.jinuk.io
+spec:
+  group: platform.jinuk.io
+  scope: Namespaced
+  names:
+    plural: runtimeservices
+    singular: runtimeservice
+    kind: RuntimeService
+    shortNames:
+    - rtsvc
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Node
+      type: string
+      jsonPath: .status.active.node
+    schema:
+      openAPIV3Schema:
+        type: object
+        required:
+        - spec
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              execution:
+                default: http-json-v1
+                type: string
+                enum:
+                - http-json-v1
+              ioContract:
+                maxLength: 128
+                minLength: 1
+                type: string
+              port:
+                default: 8080
+                maximum: 65535
+                minimum: 1024
+                type: integer
+              readyPath:
+                default: /ready
+                type: string
+              requestPath:
+                default: /infer
+                type: string
+              timeoutSeconds:
+                default: 30
+                maximum: 300
+                minimum: 1
+                type: number
+              maxBodyBytes:
+                default: 65536
+                maximum: 1048576
+                minimum: 1
+                type: integer
+              variants:
+                items:
+                  properties:
+                    name:
+                      pattern: ^[a-z][a-z0-9-]{0,30}$
+                      type: string
+                    image:
+                      pattern: ^[^\s]+@sha256:[0-9a-f]{64}$
+                      type: string
+                    architecture:
+                      enum:
+                      - arm64
+                      - amd64
+                      type: string
+                    backend:
+                      maxLength: 64
+                      minLength: 1
+                      type: string
+                    nodeSelector:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    runtimeClassName:
+                      default: null
+                      type: string
+                      nullable: true
+                    requests:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    limits:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    maxInFlight:
+                      maximum: 256
+                      minimum: 1
+                      type: integer
+                    qualification:
+                      maxLength: 256
+                      minLength: 1
+                      type: string
+                  required:
+                  - name
+                  - image
+                  - architecture
+                  - backend
+                  - requests
+                  - limits
+                  - maxInFlight
+                  - qualification
+                  type: object
+                maxItems: 32
+                minItems: 1
+                type: array
+              policy:
+                properties:
+                  mode:
+                    default: automatic
+                    enum:
+                    - automatic
+                    - preferred
+                    type: string
+                  preferredRole:
+                    default: edge
+                    enum:
+                    - edge
+                    - server
+                    type: string
+                  allowedRoles:
+                    items:
+                      enum:
+                      - edge
+                      - server
+                      type: string
+                    minItems: 1
+                    type: array
+                  nodeSelector:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  highWatermark:
+                    default: 0.8
+                    exclusiveMinimum: true
+                    maximum: 1
+                    type: number
+                    minimum: 0
+                  lowWatermark:
+                    default: 0.2
+                    exclusiveMaximum: true
+                    minimum: 0
+                    type: number
+                    maximum: 1
+                  pressureSeconds:
+                    default: 10
+                    maximum: 3600
+                    minimum: 1
+                    type: number
+                  returnSeconds:
+                    default: 60
+                    maximum: 86400
+                    minimum: 1
+                    type: number
+                  cooldownSeconds:
+                    default: 30
+                    maximum: 86400
+                    minimum: 1
+                    type: number
+                  prepareTimeoutSeconds:
+                    default: 180
+                    maximum: 1800
+                    minimum: 5
+                    type: number
+                type: object
+              suspended:
+                default: false
+                type: boolean
+            required:
+            - ioContract
+            - variants
+            type: object
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true

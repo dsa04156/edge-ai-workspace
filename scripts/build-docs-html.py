@@ -49,6 +49,7 @@ PUBLICATION_SECTIONS = [
         "옥동-생산성-kpi.md",
     ]),
     ("개발 참고", "reference", [
+        "공통-서비스-Kubernetes-오케스트레이션.md",
         "서버-엣지-반복-오프로딩.md",
         "통합-운영-대시보드-고도화.md",
         "Llama-오프로딩-부하-판단-기준.md",

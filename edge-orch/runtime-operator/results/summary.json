@@ -1,0 +1,38 @@
+[
+  {
+    "version": "v3",
+    "requests": 142,
+    "valid": 142,
+    "nodes": [
+      "etri-dev0005-jetagx",
+      "etri-ser0001-cg0msb",
+      "etri-ser0003-cg0ms0"
+    ],
+    "durationSeconds": 73.744,
+    "roundTripGate": false
+  },
+  {
+    "version": "v5",
+    "requests": 134,
+    "valid": 134,
+    "nodes": [
+      "etri-dev0004-tedger",
+      "etri-dev0005-jetagx",
+      "etri-ser0001-cg0msb"
+    ],
+    "durationSeconds": 72.936,
+    "roundTripGate": true
+  },
+  {
+    "version": "v7",
+    "requests": 135,
+    "valid": 135,
+    "nodes": [
+      "etri-dev0004-tedger",
+      "etri-dev0005-jetagx",
+      "etri-ser0001-cg0msb"
+    ],
+    "durationSeconds": 72.785,
+    "roundTripGate": true
+  }
+]
