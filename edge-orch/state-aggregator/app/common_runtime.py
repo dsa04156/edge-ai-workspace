@@ -53,6 +53,23 @@ class Exclusion(BaseModel):
     reasons: list[str]
 
 
+class LatencyObservation(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+    at: float
+    target: str
+    samples: int = Field(ge=0)
+    successfulSamples: int = Field(ge=0)
+    failures: int = Field(ge=0)
+    p95Milliseconds: float | None = Field(default=None, ge=0)
+    valid: bool
+    reason: str
+    maxP95Milliseconds: float = Field(gt=0)
+    returnP95Milliseconds: float = Field(gt=0)
+    windowSeconds: float = Field(gt=0)
+    scope: Literal["gateway_queue_and_worker_response"]
+    processLocal: bool
+
+
 class RuntimeItem(BaseModel):
     name: str
     uid: str
@@ -67,6 +84,7 @@ class RuntimeItem(BaseModel):
     lastRelease: Release | None = None
     excludedCandidates: list[Exclusion] = Field(default_factory=list)
     observation_error: str | None = None
+    latency: LatencyObservation | None = None
 
 
 class RuntimeState(BaseModel):
@@ -93,6 +111,9 @@ def project(payload: dict, now: float) -> RuntimeState:
         if result.observation_error or not current:
             item.observation_error = result.observation_error or "runtime_service_observation_stale"
             item.serving = False
+        if (item.latency and (item.observation_error or not item.active
+                or item.latency.target != item.active.name or not 0 <= now - item.latency.at < 15)):
+            item.latency = None
         for target in [item.active, item.target, *item.retiring]:
             if target:
                 target.memoryOnlyRelease = target.resident is not None

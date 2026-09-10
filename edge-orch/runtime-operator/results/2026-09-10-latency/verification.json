@@ -1,0 +1,25 @@
+{
+  "operatorUnitAndDeploymentPassed": 49,
+  "aggregatorApiPassed": 4,
+  "javascriptPassed": 246,
+  "rootAndOperator": {
+    "passed": 164,
+    "failed": 1,
+    "existingFailure": "sensor Argo branch mismatch"
+  },
+  "aggregator": {
+    "passed": 418,
+    "failed": 1,
+    "existingFailure": "virtual-device-runtime directory missing"
+  },
+  "browser": {
+    "width": 390,
+    "documentScrollWidth": 390,
+    "serviceRows": 3,
+    "latencyDisplayed": true
+  },
+  "screenshots": {
+    "browser-desktop.png": "768f10cdc4252062cd3af9f34e7adc588350dd6aeba35a47e0c2f4d253adc318",
+    "browser-mobile-table.png": "aee397e79157d274957e8cace90150261c3b60e2535dd093c882a3ff15a88f26"
+  }
+}

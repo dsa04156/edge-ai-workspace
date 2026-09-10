@@ -1,0 +1,436 @@
+{
+  "at": 1789023489.1319673,
+  "service": "llama-inference",
+  "node": "etri-dev0005-jetagx",
+  "variant": "resident-llama-agx",
+  "ioContract": "llama.qualified-eight-token.v1",
+  "inference": {
+    "modelDigest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "prompt": "In one short sentence, explain why edge computing reduces latency.",
+    "maxTokens": 8
+  },
+  "scope": "serial_client_gateway_roundtrip_including_port_forward",
+  "requests": [
+    {
+      "id": "b326741b-qualification-0",
+      "status": 200,
+      "milliseconds": 543.1904580036644,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-0",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 103.124,
+        "tokens_per_second": 50.466,
+        "inference_ms": 256.573,
+        "actual_e2e_ms": 256.587,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-1",
+      "status": 200,
+      "milliseconds": 213.87426400906406,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-1",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.018,
+        "ttft_ms": 51.987,
+        "tokens_per_second": 56.334,
+        "inference_ms": 194.539,
+        "actual_e2e_ms": 194.557,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-2",
+      "status": 200,
+      "milliseconds": 239.99825899954885,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-2",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.019,
+        "ttft_ms": 54.928,
+        "tokens_per_second": 49.648,
+        "inference_ms": 214.777,
+        "actual_e2e_ms": 214.796,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-3",
+      "status": 200,
+      "milliseconds": 202.23290400463156,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-3",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.012,
+        "ttft_ms": 42.84,
+        "tokens_per_second": 66.271,
+        "inference_ms": 170.115,
+        "actual_e2e_ms": 170.127,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-4",
+      "status": 200,
+      "milliseconds": 212.35532098216936,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-4",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 40.833,
+        "tokens_per_second": 57.011,
+        "inference_ms": 183.947,
+        "actual_e2e_ms": 183.96,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-5",
+      "status": 200,
+      "milliseconds": 239.1781169862952,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-5",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.014,
+        "ttft_ms": 47.689,
+        "tokens_per_second": 51.276,
+        "inference_ms": 203.31,
+        "actual_e2e_ms": 203.324,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-6",
+      "status": 200,
+      "milliseconds": 531.5780680102762,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-6",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.014,
+        "ttft_ms": 44.095,
+        "tokens_per_second": 63.816,
+        "inference_ms": 170.121,
+        "actual_e2e_ms": 170.136,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-7",
+      "status": 200,
+      "milliseconds": 218.74660800676793,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-7",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.012,
+        "ttft_ms": 48.276,
+        "tokens_per_second": 57.094,
+        "inference_ms": 189.43,
+        "actual_e2e_ms": 189.442,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-8",
+      "status": 200,
+      "milliseconds": 194.65756000136025,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-8",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 42.214,
+        "tokens_per_second": 64.452,
+        "inference_ms": 169.555,
+        "actual_e2e_ms": 169.568,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-9",
+      "status": 200,
+      "milliseconds": 202.10004202090204,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-9",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 42.705,
+        "tokens_per_second": 65.393,
+        "inference_ms": 166.767,
+        "actual_e2e_ms": 166.778,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-10",
+      "status": 200,
+      "milliseconds": 215.8476439944934,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-10",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.012,
+        "ttft_ms": 42.874,
+        "tokens_per_second": 61.117,
+        "inference_ms": 174.85,
+        "actual_e2e_ms": 174.862,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-11",
+      "status": 200,
+      "milliseconds": 198.23511200957,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-11",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 39.608,
+        "tokens_per_second": 61.86,
+        "inference_ms": 169.916,
+        "actual_e2e_ms": 169.927,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-12",
+      "status": 200,
+      "milliseconds": 332.65117401606403,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-12",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 47.358,
+        "tokens_per_second": 66.36,
+        "inference_ms": 164.9,
+        "actual_e2e_ms": 164.912,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-13",
+      "status": 200,
+      "milliseconds": 363.86238801060244,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-13",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 41.14,
+        "tokens_per_second": 55.738,
+        "inference_ms": 185.915,
+        "actual_e2e_ms": 185.929,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-14",
+      "status": 200,
+      "milliseconds": 201.726728992071,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-14",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 41.164,
+        "tokens_per_second": 61.968,
+        "inference_ms": 171.685,
+        "actual_e2e_ms": 171.696,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-15",
+      "status": 200,
+      "milliseconds": 194.7567769966554,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-15",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 41.429,
+        "tokens_per_second": 61.321,
+        "inference_ms": 173.093,
+        "actual_e2e_ms": 173.104,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-16",
+      "status": 200,
+      "milliseconds": 218.52514901547693,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-16",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.012,
+        "ttft_ms": 43.225,
+        "tokens_per_second": 52.222,
+        "inference_ms": 195.358,
+        "actual_e2e_ms": 195.371,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-17",
+      "status": 200,
+      "milliseconds": 201.0910459794104,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-17",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.013,
+        "ttft_ms": 46.309,
+        "tokens_per_second": 59.514,
+        "inference_ms": 180.858,
+        "actual_e2e_ms": 180.871,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-18",
+      "status": 200,
+      "milliseconds": 187.74947099154815,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-18",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 42.931,
+        "tokens_per_second": 66.097,
+        "inference_ms": 165.218,
+        "actual_e2e_ms": 165.23,
+        "eval_count": 8
+      }
+    },
+    {
+      "id": "b326741b-qualification-19",
+      "status": 200,
+      "milliseconds": 303.1722309824545,
+      "valid": true,
+      "body": {
+        "request_id": "b326741b-qualification-19",
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b",
+        "response": "Edge computing reduces latency by processing data closer",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.011,
+        "ttft_ms": 40.2,
+        "tokens_per_second": 63.966,
+        "inference_ms": 165.753,
+        "actual_e2e_ms": 165.764,
+        "eval_count": 8
+      }
+    }
+  ],
+  "p95Milliseconds": 531.5780680102762
+}

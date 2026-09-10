@@ -1,0 +1,20 @@
+[
+  {
+    "name": "llama-agx-6fbd4fd799-cmt94",
+    "uid": "8357b7b5-642e-4ca7-8d50-b02351ffec4b",
+    "node": "etri-dev0005-jetagx",
+    "restarts": [
+      0,
+      0
+    ]
+  },
+  {
+    "name": "llama-spark-5458cd78f4-dtcqm",
+    "uid": "086be06c-82b4-45f1-8c43-8375009800ca",
+    "node": "etri-ser0003-cg0ms0",
+    "restarts": [
+      0,
+      0
+    ]
+  }
+]

@@ -164,6 +164,13 @@ spec:
                       type: number
                       nullable: true
                       minimum: 0
+                    qualifiedP95Milliseconds:
+                      default: null
+                      exclusiveMinimum: true
+                      maximum: 300000
+                      type: number
+                      nullable: true
+                      minimum: 0
                   required:
                   - name
                   - image
@@ -235,6 +242,39 @@ spec:
                     maximum: 1800
                     minimum: 5
                     type: number
+                  latency:
+                    properties:
+                      maxP95Milliseconds:
+                        exclusiveMinimum: true
+                        maximum: 300000
+                        type: number
+                        minimum: 0
+                      returnP95Milliseconds:
+                        exclusiveMinimum: true
+                        maximum: 300000
+                        type: number
+                        minimum: 0
+                      windowSeconds:
+                        default: 60
+                        maximum: 600
+                        minimum: 5
+                        type: number
+                      minSamples:
+                        default: 20
+                        maximum: 1024
+                        minimum: 3
+                        type: integer
+                      breachSeconds:
+                        default: 10
+                        maximum: 3600
+                        minimum: 1
+                        type: number
+                    required:
+                    - maxP95Milliseconds
+                    - returnP95Milliseconds
+                    type: object
+                    default: null
+                    nullable: true
                 type: object
               suspended:
                 default: false

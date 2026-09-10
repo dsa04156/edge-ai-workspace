@@ -1,0 +1,111 @@
+{
+  "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+  "spec": {
+    "execution": "http-json-v1",
+    "inference": {
+      "maxTokens": 8,
+      "modelDigest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "prompt": "In one short sentence, explain why edge computing reduces latency."
+    },
+    "ioContract": "llama.qualified-eight-token.v1",
+    "maxBodyBytes": 65536,
+    "policy": {
+      "allowedRoles": [
+        "edge",
+        "server"
+      ],
+      "cooldownSeconds": 5,
+      "highWatermark": 0.8,
+      "lowWatermark": 0.2,
+      "mode": "automatic",
+      "preferredRole": "edge",
+      "prepareTimeoutSeconds": 90,
+      "pressureSeconds": 4,
+      "returnSeconds": 8
+    },
+    "port": 18110,
+    "readyPath": "/ready",
+    "requestPath": "/infer",
+    "suspended": false,
+    "timeoutSeconds": 30,
+    "variants": [
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-agx",
+        "qualification": "nano-agx-continuity/v2:policy:c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3",
+        "qualifiedRps": 4.8,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-agx"
+          },
+          "service": "llama-agx"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-spark",
+        "qualification": "ordered-demo-spark-profile/v1:sha256:4d9e86b60cf333edfe6a4ed3c09d88ce3f1721e5a7b738d8d09d9732cc731545",
+        "qualifiedRps": 6,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-spark"
+          },
+          "service": "llama-spark"
+        },
+        "runtimeClassName": "nvidia-spark"
+      }
+    ]
+  }
+}

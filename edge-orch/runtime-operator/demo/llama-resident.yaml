@@ -28,7 +28,7 @@ spec:
       nvidia.com/gpu.shared: '1'
     maxInFlight: 1
     qualifiedRps: 4.8
-    qualification: nano-agx-continuity/v2:policy:c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3
+    qualification: '8-token Llama: RPS qualification plus results/2026-09-10-latency/edge-qualification.json'
     resident:
       protocol: llama-worker-v1
       namespace: llama-continuity-test
@@ -41,6 +41,7 @@ spec:
         name: ordered-offload-controller
       - namespace: llama-continuity-test
         name: continuity-controller
+    qualifiedP95Milliseconds: 531.578
   - name: resident-llama-spark
     image: docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2
     architecture: arm64
@@ -56,7 +57,7 @@ spec:
       nvidia.com/gpu: '1'
     maxInFlight: 1
     qualifiedRps: 6
-    qualification: ordered-demo-spark-profile/v1:sha256:4d9e86b60cf333edfe6a4ed3c09d88ce3f1721e5a7b738d8d09d9732cc731545
+    qualification: '8-token Llama: RPS qualification plus results/2026-09-10-latency/server-qualification.json'
     resident:
       protocol: llama-worker-v1
       namespace: llama-continuity-test
@@ -69,6 +70,7 @@ spec:
         name: ordered-offload-controller
       - namespace: llama-continuity-test
         name: continuity-controller
+    qualifiedP95Milliseconds: 456.092
   policy:
     mode: automatic
     preferredRole: edge
@@ -79,3 +81,9 @@ spec:
     returnSeconds: 8
     cooldownSeconds: 5
     prepareTimeoutSeconds: 90
+    latency:
+      maxP95Milliseconds: 900
+      returnP95Milliseconds: 700
+      windowSeconds: 20
+      minSamples: 10
+      breachSeconds: 4

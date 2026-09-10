@@ -1,0 +1,14 @@
+{
+  "runtime-operator": {
+    "pod": "runtime-operator-ddcd44446-24bgr",
+    "imageIDs": [
+      "192.168.0.56:5000/runtime-operator@sha256:d71a4e8be0ff373c66ebeb9958793b55ec8fe7c66bd3eb09212affccc9d8c036"
+    ]
+  },
+  "state-aggregator": {
+    "pod": "state-aggregator-7dd8b4545-f5rt4",
+    "imageIDs": [
+      "192.168.0.56:5000/state-aggregator@sha256:88e7b02fd65c5b3ebf5d5cc934f1f4ad4a26832a8c428a1cb0e1986e1b0c99f0"
+    ]
+  }
+}

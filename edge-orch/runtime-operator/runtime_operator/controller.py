@@ -10,6 +10,7 @@ from .kube import FINALIZER, owned
 from .placement import candidates
 from . import resident
 from .contract import ResidentRuntime
+from .latency import LatencyWindow
 
 
 class Controller:
@@ -25,10 +26,14 @@ class Controller:
         self.stopping = False
         self.snapshot = None
         self.lifecycle_tasks = {}
+        self.latencies = LatencyWindow()
         # Never serve a persisted route until the current cluster and service are revalidated.
         for state in self.states.values():
             state["serving"] = False
             state["recovering"] = True
+            state["latencyHighSince"] = None
+            state["latencyLowSince"] = None
+            state.pop("latency", None)
 
     def save(self, uid, state, event=None):
         self.journal.save(uid, state, event)
@@ -171,6 +176,10 @@ class Controller:
                  "switchedAt": 0, "highSince": None, "lowSince": None,
                  **copy.deepcopy(self.states.get(uid, {}))}
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
+        policy_key = spec.policy.model_dump_json()
+        if state.get("policyKey") != policy_key:
+            state.update(policyKey=policy_key, highSince=None, lowSince=None,
+                         latencyHighSince=None, latencyLowSince=None)
         if FINALIZER not in resource["metadata"].get("finalizers", []):
             if resource["metadata"].get("deletionTimestamp"):
                 return
@@ -236,6 +245,25 @@ class Controller:
         utilization = load / active["capacity"] if active else 0
         state["load"] = {"inFlightAndPending": load, "utilization": utilization}
         now = self.clock()
+        latency_policy = spec.policy.latency
+        observed_latency = self.latencies.observe(uid, active["name"], now, latency_policy,
+                                                  state.get("switchedAt", 0)) if latency_policy and active else None
+        state["latency"] = observed_latency
+        breached = bool(observed_latency and observed_latency["valid"]
+                        and observed_latency["p95Milliseconds"] > latency_policy.maxP95Milliseconds)
+        recovered = bool(observed_latency and observed_latency["valid"]
+                         and observed_latency["p95Milliseconds"] <= latency_policy.returnP95Milliseconds)
+        state["latencyHighSince"] = (state.get("latencyHighSince") or now) if breached else None
+        state["latencyLowSince"] = (state.get("latencyLowSince") or now) if recovered else None
+
+        def qualified(candidate, limit):
+            value = candidate.variant.qualifiedP95Milliseconds
+            if value is None or value > limit:
+                return False
+            candidate_name = self.target(resource, spec, candidate)["name"]
+            recent = self.latencies.observe(uid, candidate_name, now, latency_policy)
+            return not recent["failures"] and not (recent["valid"] and recent["p95Milliseconds"] > limit)
+
         state["highSince"] = (state.get("highSince") or now) if utilization >= spec.policy.highWatermark else None
         state["lowSince"] = (state.get("lowSince") or now) if utilization <= spec.policy.lowWatermark else None
         choice = None
@@ -245,18 +273,31 @@ class Controller:
             choice = alternatives[0] if alternatives else None
             reason = "initial_or_unhealthy_or_policy_changed"
         elif not state.get("target") and now - state["switchedAt"] >= spec.policy.cooldownSeconds:
-            if spec.policy.mode == "automatic" and state["highSince"] is not None and now - state["highSince"] >= spec.policy.pressureSeconds:
+            if (spec.policy.mode == "automatic" and breached
+                    and now - state["latencyHighSince"] >= latency_policy.breachSeconds):
+                faster = [c for c in eligible if self.target(resource, spec, c)["name"] != active["name"]
+                          and (current.variant.qualifiedP95Milliseconds is None
+                               or (c.variant.qualifiedP95Milliseconds is not None
+                                   and c.variant.qualifiedP95Milliseconds < current.variant.qualifiedP95Milliseconds))
+                          and qualified(c, latency_policy.maxP95Milliseconds)]
+                choice = min(faster, key=lambda c: (c.variant.qualifiedP95Milliseconds, c.node)) if faster else None
+                reason = "sustained_latency_breach" if choice else "latency_no_qualified_target"
+            elif spec.policy.mode == "automatic" and state["highSince"] is not None and now - state["highSince"] >= spec.policy.pressureSeconds:
                 larger = [c for c in eligible if
                           (c.variant.qualifiedRps is not None and active.get("qualifiedRps") is not None
                            and c.variant.qualifiedRps > active["qualifiedRps"])
                           or (c.variant.qualifiedRps is None and active.get("qualifiedRps") is None
                               and c.variant.maxInFlight > active["capacity"])]
+                if latency_policy:
+                    larger = [c for c in larger if qualified(c, latency_policy.maxP95Milliseconds)]
                 choice = min(larger, key=lambda c: (c.variant.qualifiedRps or c.variant.maxInFlight, c.node)) if larger else None
                 reason = "sustained_pressure" if choice else "pressure_no_qualified_capacity"
             elif state["lowSince"] is not None and now - state["lowSince"] >= spec.policy.returnSeconds:
-                small = [c for c in eligible if c.role == spec.policy.preferredRole
+                return_ready = (not latency_policy or (recovered and now - state["latencyLowSince"] >= spec.policy.returnSeconds))
+                small = [c for c in eligible if return_ready and c.role == spec.policy.preferredRole
                          and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"])
-                         and load <= c.variant.maxInFlight * spec.policy.highWatermark]
+                         and load <= c.variant.maxInFlight * spec.policy.highWatermark
+                         and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 choice = small[0] if small else None
                 reason = "sustained_low_load_return" if choice else "healthy_current_placement"
         if choice and active and self.target(resource, spec, choice)["name"] == active["name"]:
@@ -295,7 +336,8 @@ class Controller:
                         state["retiring"].append(active)
                     target["everRouted"] = True
                     state.update(active=target, target=None, serving=True, recovering=False,
-                                 switchedAt=now, highSince=None, lowSince=None)
+                                 switchedAt=now, highSince=None, lowSince=None,
+                                 latency=None, latencyHighSince=None, latencyLowSince=None)
                     self.save(uid, state, "route_switched")
                     reason = "target_ready_route_switched"
                 else:
@@ -308,6 +350,7 @@ class Controller:
         self.save(uid, state)
 
     async def tick(self):
+        self.latencies.prune(self.clock())
         try:
             snapshot = await asyncio.to_thread(self.kube.snapshot)
         except Exception as exc:
@@ -345,7 +388,7 @@ class Controller:
                 self.save(uid, state)
             state = self.states.get(uid)
             if state:
-                status = {k: state[k] for k in ("phase", "reason", "observedGeneration", "eligibleCandidates", "excludedCandidates", "load") if k in state}
+                status = {k: state[k] for k in ("phase", "reason", "observedGeneration", "eligibleCandidates", "excludedCandidates", "load", "latency") if k in state}
                 status.update(active={k: state["active"][k] for k in ("name", "node", "variant")} if state.get("active") else {},
                               retiring=[t["name"] for t in state.get("retiring", [])])
                 try:

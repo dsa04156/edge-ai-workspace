@@ -18,3 +18,12 @@ test('loading, empty, malformed strings and absent measurements remain explicit'
  assert.match(R.targetView({...target,node:'<img onerror=bad>',observation:null},100,true),/&lt;img/);
  assert.match(R.targetView({...target,observation:null},100,true),/메모리 —/);
 });
+test('latency sample shortage, request failure and stale observations are not SLO success',()=>{
+ const s={latency:{at:99,valid:true,p95Milliseconds:123,maxP95Milliseconds:100,windowSeconds:60,successfulSamples:20,failures:0}};
+ assert.match(R.latencyView(s,100,true),/p95 123.0 ms \/ 기준 100 ms/);
+ assert.match(R.latencyView(s,200,true),/확인 불가/);
+ assert.doesNotMatch(R.latencyView(s,200,true),/123/);
+ s.latency.valid=false;s.latency.failures=1;
+ assert.match(R.latencyView(s,100,true),/지연 판단 대기/);
+ assert.doesNotMatch(R.latencyView(s,100,true),/요청 p95/);
+});

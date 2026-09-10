@@ -49,6 +49,7 @@ class Variant(Contract):
     qualification: str = Field(min_length=1, max_length=256)
     resident: ResidentRuntime | None = None
     qualifiedRps: float | None = Field(default=None, gt=0, le=100000)
+    qualifiedP95Milliseconds: float | None = Field(default=None, gt=0, le=300000)
 
     @model_validator(mode="after")
     def valid_resources(self):
@@ -68,6 +69,20 @@ class Variant(Contract):
         return self
 
 
+class LatencyPolicy(Contract):
+    maxP95Milliseconds: float = Field(gt=0, le=300000)
+    returnP95Milliseconds: float = Field(gt=0, le=300000)
+    windowSeconds: float = Field(default=60, ge=5, le=600)
+    minSamples: int = Field(default=20, ge=3, le=1024)
+    breachSeconds: float = Field(default=10, ge=1, le=3600)
+
+    @model_validator(mode="after")
+    def hysteresis(self):
+        if self.returnP95Milliseconds >= self.maxP95Milliseconds:
+            raise ValueError("return latency must be below breach threshold")
+        return self
+
+
 class Policy(Contract):
     mode: Literal["automatic", "preferred"] = "automatic"
     preferredRole: Literal["edge", "server"] = "edge"
@@ -79,6 +94,7 @@ class Policy(Contract):
     returnSeconds: float = Field(default=60, ge=1, le=86400)
     cooldownSeconds: float = Field(default=30, ge=1, le=86400)
     prepareTimeoutSeconds: float = Field(default=180, ge=5, le=1800)
+    latency: LatencyPolicy | None = None
 
     @model_validator(mode="after")
     def thresholds(self):
@@ -122,6 +138,7 @@ class ServiceSpec(Contract):
 def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
     # Policy-only edits do not replace healthy workload revisions.
     variant_data = variant.model_dump()
+    variant_data.pop("qualifiedP95Milliseconds")  # Measurement metadata does not replace a Pod.
     if variant.resident is None:
         variant_data.pop("resident")
     if variant.qualifiedRps is None:

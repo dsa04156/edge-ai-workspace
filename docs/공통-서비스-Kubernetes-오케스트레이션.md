@@ -101,8 +101,7 @@ Prometheus 실사용량이나 Llama 장비별 벤치마크를 이 예약량과 �
 `qualifiedRps`가 양쪽 변형에 있으면 동일 입력 계약에서 검증한 처리율로 후보를 비교한다.
 Llama에서는 실제 worker 동시성을 1로 유지하며 AGX 4.8 rps·Spark 6 rps 자격을 사용한다.
 저부하가 `returnSeconds` 이상 지속되면 `preferredRole`의 수용 가능한 후보로 돌아간다.
-같은 역할·같은 용량의 노드끼리 낮은 부하만으로 이동하지 않는다. latency SLO 최적화,
-전력·가격 최적화나 실제 GPU/NPU 성능 우열은 이 초기 정책의 구현 범위가 아니다.
+같은 역할·같은 용량의 노드끼리 낮은 부하만으로 이동하지 않는다. 초기 v7은 동시 요청 수 기반이며, 후속 선택적 지연 정책은 아래 절을 따른다. 전력·가격 최적화와 일반 GPU/NPU 성능 우열 판단은 미구현이다.
 
 ## 2026-09-10 실배포 증거
 
@@ -248,3 +247,73 @@ state-aggregator는 417개 통과·기존 `virtual-device-runtime` 디렉터리 
 관측을 보관했다. `running-images.json`은 operator와 aggregator의 실제 Ready Pod
 imageID다. operator `597e6145…`, aggregator `1c8e3f8b…`를 확인했다.
 이 실험은 무손실 일반 장애 복구·HA·임의 서비스 SLO 보장의 근거가 아니다.
+
+
+## 선택적 요청 지연 정책 (2026-09-10)
+
+ELI5: 줄이 길어졌다는 신호뿐 아니라 손님이 실제로 얼마나 기다렸는지도 본다.
+잠깐 느렸다는 이유로 바로 옮기지 않는다. 여러 요청이 계속 늦고, 같은 서비스를 실행할
+검증된 후보가 있을 때 새 실행체를 준비한다. 돌아올 때는 더 엄격한 회복 기준을 적용한다.
+
+`policy.latency`는 기본 비활성이다. 활성 서비스만 서비스 UID·실행 revision별로 최근
+window의 p95를 사용한다. 유효한 새 요청의 gateway 접수 대기부터 worker 응답 수신까지
+monotonic clock으로 측정한다. 네트워크가 포함되지만 클라이언트에서 gateway까지의
+전송과 응답 이후 브라우저 렌더링은 포함하지 않는다. 저장 결과 replay는 새 표본이 아니다.
+
+- `maxP95Milliseconds`: 이 값을 초과하는 유효 p95가 `breachSeconds` 동안 지속되면
+  automatic 모드에서 후보를 찾는다. 동시 요청 수가 낮아도 적용한다.
+- `returnP95Milliseconds`: 이동 임계값보다 낮아야 한다. 현재 실행체 p95 회복과 낮은
+  동시 부하가 각각 `returnSeconds` 동안 유지되어야 선호 역할로 복귀한다.
+- `windowSeconds`, `minSamples`: 창 안의 성공 표본 수가 부족하면 판단 대기다. worker
+  실패·결과 불명·접수 queue 포화·접수 timeout이 있으면 성공 p95만 보고 회복으로 판단하지 않는다.
+- `qualifiedP95Milliseconds`: 후보별 검증 결과다. 이동 후보는 이동 기준, 복귀 후보는
+  복귀 기준을 만족해야 한다. 지연 초과로 이동할 때는 현재 실행 변형보다 검증 p95가 더 낮아야 한다(현재 검증값이 없으면 검증된 후보만 허용). 같은 후보의 최근 실측이 나쁘거나 실패가 있으면 재선택을 막는다. serial qualification보다 높은 부하에서는 이동 뒤에도 기준을 초과할 수 있으며, 더 나은 검증 후보가 없으면 이를 그대로 표시한다.
+  정상 호환성·자원·readiness·drain 검사는 그대로 적용한다.
+- 모델 준비/노드 장애에 의한 기본 failover는 계속 별도 근거다. 지연 정책이 없는 서비스의
+  동시 부하 기반 동작은 유지한다. 정책 변경은 dwell 시각을 초기화하고 건강한 Pod를
+  정책 자체만으로 교체하지 않는다.
+
+표본은 서비스/revision별 최근 최대 2,048개, 최대 600초의 process-local 상태다.
+제어기 재시작 후 새 표본이 쌓여야 지연을 판단한다. 원장에 저장된 과거 p95로 자동 이동을
+재개하지 않는다. 최근 표본 창은 작은 기준선이며 장기 SLO 달성률·통계적 신뢰구간은 아니다.
+NEXUS와 RuntimeService status에는 p95·표본 수·실패 수·측정 범위를 함께 표시한다.
+
+실장비 후보 검증은 `scripts/qualify-latency.py`의 같은 qualified 8-token 입력에 대해
+직렬 20회씩 수행했다. 엣지 AGX 20/20 성공·p95 **531.578ms**, 서버 Spark 20/20
+성공·p95 **456.092ms**다. 이는 port-forward를 포함한 client↔gateway 왕복이며,
+분리된 과부하 상황의 p95 보장이 아니다. 원자료는 `results/2026-09-10-latency/`의
+`edge-qualification.json`, `server-qualification.json`에 있다.
+
+데모는 900ms 초과 4초 지속, 복귀 700ms 이하·낮은 부하 8초 지속, 20초 창·최소 10개
+성공 표본으로 설정했다. 다른 서비스는 같은 숫자를 복사하지 않고 자신의 입력·모델·부하로
+검증해야 한다. 공통 제어기는 장비 이름 순서를 사용하지 않는다.
+
+
+첫 지연 전환 시험 `round-trip-v1.json`은 409/409 요청 성공이지만 **복귀 gate 실패**다.
+서버도 과부하인 동안 이전 엣지의 나쁜 표본이 window에서 사라지자 엣지를 다시 지연
+전환 후보로 고른 것이 원인이다. 두 전환 모두 `sustained_latency_breach`였으며
+회복·복귀로 기록하지 않는다. 수정은 현재 실행 변형보다 검증 p95가 더 낮은 후보만
+지연 확대 대상으로 허용한다. 느린 변형으로의 복귀는 별도 낮은 부하·지연 회복 조건을
+통과해야 한다. 실패 원자료를 유지하고 이 상황을 재현하는 단위 회귀 검사를 추가했다.
+
+제어기 재시작 직후 `restart-warmup.json`은 정상 실행 위치를 재검증한 상태에서도
+latency 표본 수 0·valid=false임을 보여준다. 상태 조회 경로가 살아 있다는 사실을
+새 지연 측정이 완료된 것으로 해석하지 않는다.
+
+
+수정 후 `round-trip-v2.json`은 **383/383 요청 성공**, `sustained_latency_breach`에
+의한 AGX → Spark, `sustained_low_load_return`에 의한 Spark → AGX와 retiring=0을
+확인했다. 시험 중 동시성 pressure dwell은 3,600초로 두어 900ms 지연 조건이 전환
+원인임을 분리했다. 종료 후 Git 데모 계약의 4초로 복원했다. 이 값과 지연 조건은
+서비스별 선언이며 노드 이름을 조건문으로 사용하지 않는다.
+
+과부하 중 Spark의 p95도 900ms를 넘었고 `latency_no_qualified_target`을 표시했다.
+이는 숨기지 않은 미달 구간이다. 검증 결과는 지연 기반 전환·회복 후 복귀와 요청 결과
+연속성의 근거이며, 부하 전 구간의 900ms SLO 달성 증거가 아니다.
+`after-runtime-services.json`, `final-contract.json`, `resident-workers.json`과
+`running-images.json`에 최종 실행 위치·해제·정책·기존 Pod restart=0·실제 imageID를
+보관한다. operator `d71a4e8b…`, aggregator `88e7b02f…`를 확인했다.
+
+현재 operator 단위/배포 49개, aggregator API 4개, 전체 JavaScript 246개 통과다.
+root+operator는 164개 통과·기존 Argo 브랜치 기대값 1개 실패,
+aggregator 전체는 418개 통과·기존 virtual-device-runtime 디렉터리 누락 1개 실패다.

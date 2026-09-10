@@ -110,9 +110,12 @@ def create_app(controller=None):
         if key in c.pending_ids:
             return JSONResponse({"reason": "request_id_pending"}, status_code=409)
         if c.pending.get(uid, 0) >= 128:
+            c.latencies.record(uid, state["active"]["name"], c.clock(), 0, False)
             return JSONResponse({"reason": "queue_full", "accepted": False}, status_code=429)
         c.pending_ids[key] = fingerprint
+        started = time.monotonic()
         c.pending[uid] = c.pending.get(uid, 0) + 1
+        admitted_revision = state["active"]["name"]
         deadline = time.monotonic() + spec["timeoutSeconds"]
         target = None
         try:
@@ -121,6 +124,7 @@ def create_app(controller=None):
                 active = state.get("active")
                 if (c.stopping or not state.get("serving") or not active
                         or c.clock() - state.get("checkedAt", 0) > 15 or c.clock() - c.last_snapshot > 15):
+                    c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
                     return JSONResponse({"reason": "route_unavailable", "accepted": False}, status_code=503)
                 if active["spec"]["ioContract"] != spec["ioContract"]:
                     return JSONResponse({"reason": "io_contract_changed", "accepted": False}, status_code=409)
@@ -140,6 +144,7 @@ def create_app(controller=None):
             c.pending_ids.pop(key, None)
             c.pending[uid] -= 1
         if target is None:
+            c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
             return JSONResponse({"reason": "admission_timeout", "accepted": False}, status_code=503)
         status, result, outcome = 503, {"reason": "worker_outcome_unknown", "accepted": True}, "unknown"
         try:
@@ -165,10 +170,13 @@ def create_app(controller=None):
             pass
         except asyncio.CancelledError:
             c.journal.finish(uid, request_id, outcome, status, result)
+            c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000, False)
             raise
         finally:
             c.inflight[target["name"]] -= 1
         c.journal.finish(uid, request_id, outcome, status, result)
+        c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000,
+                           outcome == "completed" and 200 <= status < 300)
         return JSONResponse(result, status_code=status, headers={"X-Runtime-Target": target["name"], "X-Request-State": outcome})
 
     return app

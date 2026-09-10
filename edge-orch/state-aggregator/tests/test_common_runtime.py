@@ -40,6 +40,19 @@ def test_stale_snapshot_service_or_worker_cannot_claim_current_model_state():
             assert not result.services[0].serving
 
 
+def test_latency_is_only_projected_for_current_active_revision_and_fresh_sample():
+    data = payload()
+    data["services"][0]["latency"] = {"at": 99, "target": "revision", "samples": 20,
+        "successfulSamples": 20, "failures": 0, "p95Milliseconds": 123, "valid": True,
+        "reason": "measured", "maxP95Milliseconds": 100, "returnP95Milliseconds": 80,
+        "windowSeconds": 60, "scope": "gateway_queue_and_worker_response", "processLocal": True}
+    assert project(data, 100).services[0].latency.p95Milliseconds == 123
+    data["services"][0]["latency"]["target"] = "old-revision"
+    assert project(data, 100).services[0].latency is None
+    data["services"][0]["latency"].update(target="revision", at=50)
+    assert project(data, 100).services[0].latency is None
+
+
 def test_read_route_handles_invalid_and_unreachable_sources_without_mutations():
     async def run():
         for mode in ("ok", "unavailable", "invalid", "redirect"):
