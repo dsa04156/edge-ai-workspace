@@ -1,12 +1,146 @@
 # 공통 서비스 Kubernetes 오케스트레이션
 
-> 상태: 공통 Kubernetes 제어기 구현·배포. 합성 HTTP 서비스 왕복과 실제 AGX·Spark Llama 모델 메모리 왕복(210/210)을 검증했다. 임의 AI 서비스 이전·운영 HA 완료를 뜻하지 않는다.
+> 상태: 공통 Kubernetes 제어기와 NEXUS 데모 운영 중. 아래에 구성·등록·자동 전환 기준·화면 사용 순서를 정리했다. 실제 GPU 왕복 261/261과 합성 HTTP 왕복 173/173을 검증했으며 임의 AI 서비스 이전·운영 HA 완료를 뜻하지 않는다.
 
 ## 쉽게 설명하면
 
 서비스는 해야 할 일과 필요한 장비 조건을 제출한다. 플랫폼은 현재 일을 맡을 수 있는
 노드를 찾는다. 이동할 때는 새 작업자를 먼저 준비하고 새 요청을 넘긴 뒤 이전 작업자의
 남은 요청이 끝나야 자원을 반납한다. Nano·Orin·Spark는 그 과정을 시험하는 장비 예시다.
+
+## 지금 어떻게 구성해 두었나
+
+**서비스 공급자는 실행 가능한 서비스와 조건을 등록하고, 플랫폼의 공통 Operator가 전체
+노드를 살펴 배치·이동·복귀를 맡는다.** Nano·Orin·Spark를 순서대로 호출하는 코드는
+플랫폼 정책에 없다. 아래 절차는 현재 구현된 HTTP JSON 서비스 기준이다.
+
+### 구성 요소와 실제 요청 경로
+
+```text
+서비스 공급자 → 컨테이너 이미지 + 입출력·준비 상태 계약
+운영자       → RuntimeService 등록 (Kubernetes API)
+                         ↓
+공통 Operator ← 노드 상태·예약 자원·서비스 요청 부하
+       ↓ 후보 선택·배포·모델 준비 확인·경로 전환·반환
+Kubernetes scheduler / kubelet / KubeEdge → 실제 Pod 실행·관리
+
+클라이언트 → runtime-gateway 고정 주소 → 현재 준비된 실행체 → 응답
+NEXUS      → 등록된 데모 입력으로 요청 + 실행 위치·전환·결과 조회
+```
+
+| 실제 구성 | 무엇을 하는가 | 확인 위치 |
+|---|---|---|
+| `platform-runtime/RuntimeService` | 서비스마다 실행 이미지·장비 조건·배치 정책을 보관 | `demo/services.yaml`, `demo/llama-resident.yaml` |
+| `platform-runtime/runtime-operator` Deployment | 계약과 실제 상태를 반복 비교하고 필요한 동작 실행 | `runtime_operator/controller.py` |
+| `platform-runtime/runtime-gateway` Service | 요청의 고정 진입점. 현재는 같은 Operator Pod의 API로 연결 | `runtime_operator/api.py` |
+| 서비스별 실행체 | 새 Deployment로 실행하거나 명시적으로 연결한 기존 모델 Pod 사용 | `runtime_operator/kube.py`, `resident.py` |
+| `runtime-journal` PVC | 요청 ID·결과·전환 상태·데모 실행 이력 저장 | `/data/runtime.sqlite3` |
+| NEXUS `AI 서비스 → 클러스터 실행` | 서비스별 현재 위치, 준비·반환 대상, 판단 이유, 시험·결과 표시 | `state-aggregator/app/common_runtime*.py` |
+
+오프로딩 정책 판단은 Kubernetes에 상주하는 공통 Operator가 맡고, scheduler는 선택된
+조건에 맞춰 Pod를 배치한다. 운영자가 이동 스크립트를 계속 켜 놓을 필요는 없다.
+gateway와 Operator는 현재 한 Pod 안에 있다. 이 구조를 이중화된 별도 gateway로
+해석하지 않는다. EdgeX는 계속 물리 디바이스·센서 데이터의 권위를 맡는다.
+
+### 서비스를 붙이는 순서
+
+1. **공급자가 서비스 계약을 맞춘다.** 요청은 JSON object를 받고 JSON으로 응답한다.
+   준비 상태 API는 모델까지 준비됐을 때 `ready: true`, 현재 처리 중 건수 `inFlight`,
+   등록된 `ioContract`를 반환해야 한다. 모든 실행 변형은 같은 입출력 의미를 제공한다.
+2. **운영자가 실행 변형을 등록한다.** ARM64/AMD64 이미지 digest, CPU·메모리·GPU/NPU
+   요청량, 필요한 RuntimeClass와 selector, 검증된 동시 처리량을 `spec.variants`에 적는다.
+   GPU라는 이름만 같다고 이미지·모델이 호환되는 것은 아니다.
+3. **정책을 정한다.** `allowedRoles`는 허용할 엣지·서버 역할, `preferredRole`은 저부하 때
+   선호할 역할이다. 이동·복귀 임계값과 지속 시간은 `spec.policy`에 둔다.
+4. **Kubernetes에 등록한다.** 새 Pod 방식은 `demo/services.yaml`을 계약 예제로 사용한다.
+   운영 서비스 이름과 공급자 이미지·입출력 계약·자원 요구량으로 수정한 뒤 검증·등록한다.
+   기존 모델 Pod 인계 방식은 아래 ‘기존 runtime 연결과 모델 메모리 반환’의 운영 절차를 먼저 따른다.
+5. **실제 준비 상태를 확인한다.** `Serving`과 NEXUS의 준비 상태를 확인한 뒤 요청한다.
+   `Preparing`은 준비 중, `Blocked`는 후보·계약·자원 등의 이유로 진행할 수 없는 상태다.
+
+저장소 루트에서, 검토한 파일이 `my-runtime-service.yaml`인 경우:
+
+```bash
+rtk proxy kubectl --context kubernetes-admin@kubernetes apply --dry-run=server -f my-runtime-service.yaml
+rtk proxy kubectl --context kubernetes-admin@kubernetes apply -f my-runtime-service.yaml
+rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get runtimeservices
+```
+
+API server dry-run은 schema 검증이며 모델 실행 성공 검증은 아니다. 현재 등록 UI 대신
+Kubernetes RBAC로 등록한다. `서비스 설계` 화면의 초안은 자동으로 배포되지 않는다.
+
+### 어떤 기준으로 올렸다가 내리는가
+
+먼저 전체 후보에서 **노드 정상 여부 → 역할·아키텍처·selector·RuntimeClass → 예약 가능한
+CPU·메모리·가속기 → 실행 변형의 검증값**을 확인한다. 조건이 맞지 않으면 이유를 남기고
+후보에서 제외한다. GPU 실사용 메모리와 Kubernetes가 이미 예약한 GPU 개수는 따로 본다.
+
+아래는 **현재 데모에 등록한 값**이다. 플랫폼 모든 서비스에 강제로 적용하는 값은 아니다.
+
+| 조건 | 현재 데모 값 | 판단과 다음 동작 |
+|---|---|---|
+| 요청 부하 증가 | `(진행 중 + 대기) / maxInFlight ≥ 0.8`가 4초 지속 | 더 큰 검증 처리 용량의 호환 후보 준비 |
+| 낮은 부하 | 같은 비율이 `≤ 0.2`로 8초 지속 | 현재 부하를 받을 수 있는 선호 역할 `edge` 후보로 복귀 |
+| 잦은 재이동 억제 | 전환 후 5초 | 정상 위치에서 부하에 따른 다음 이동을 바로 반복하지 않음 |
+| Llama 지연 초과 | 20초 창, 성공 표본 최소 10개, p95 `> 900ms`가 4초 지속 | 더 낮은 검증 p95를 가진 적합 후보로 이동 |
+| Llama 지연 회복 | p95 `≤ 700ms`와 낮은 부하가 각각 8초 유지 | 복귀 후보의 검증값까지 확인 후 엣지 복귀 |
+
+부하 확대는 양쪽에 `qualifiedRps`가 있으면 같은 입력에서 검증한 처리율을 비교한다.
+양쪽에 없으면 `maxInFlight`를 비교한다. 현재 Llama는 실제 동시성 1을 유지하고
+검증된 RPS로 이동을 판단한다. 따라서 부하 비율은 CPU/GPU 사용률을 뜻하지 않는다.
+지연 정책은 선택 사항이며 현재 합성 HTTP 데모에는 켜지 않았다.
+
+적합 후보가 없으면 무조건 서버로 보내지 않고 현재 상태와 제외 이유를 보여준다.
+복귀는 **처음 실행한 장비가 아니라 선호 역할의 적합한 장비**를 고르는 것이다.
+실제로 합성 시험은 Tinker에서 시작해 서버를 거쳐 AGX 엣지로 돌아왔다.
+
+### 요청을 끊지 않고 전환하는 순서
+
+1. 기존 실행체가 요청을 처리하는 동안 새 실행체를 준비한다.
+2. 새 Pod와 애플리케이션·모델이 실제로 준비됐는지 확인한다.
+3. gateway가 **새 요청부터** 새 실행체로 보낸다. 진행 중인 요청은 원래 대상에 남는다.
+4. 기존 실행체의 gateway 요청과 worker `inFlight`가 끝날 때까지 기다린다.
+5. 새 Pod 방식은 이전 Deployment를 0 replica로 내려 예약을 반환한다.
+   resident 방식은 모델을 해제하고 `CACHED`·모델 메모리 0을 확인하며 Pod와 GPU 예약은 유지한다.
+
+준비가 실패하면 준비 중인 대상을 정리하고 기존의 정상 요청 경로를 유지한다.
+이미 보낸 요청의 결과를 잃었을 때는 `unknown`으로 기록하고 자동 재실행하지 않는다.
+이 방식은 계획된 요청 전환을 위한 것으로, 전체 노드가 갑자기 사라져도 진행 중인
+모든 요청을 복원하거나 제어기 교체 중 접속 공백까지 없애는 방식은 아니다.
+
+### 지금 화면에서 데모 실행하기
+
+1. [NEXUS 클러스터 실행](http://aggregator.192.168.0.56.sslip.io/#runtime-services)을 연다.
+2. 실행 가능한 서비스 행에서 **시험 요청 1건** 또는 **왕복 시험**을 누른다. 토큰 입력은 없다.
+3. 왕복 시험은 고정 입력으로 최대 동시 6건, 25초 부하를 발생시킨 뒤 1초 간격의 요청으로
+   최대 120초 회복을 관측한다. 총 요청은 최대 512건이다. 이동 자체는 위 정책이 판단한다.
+4. 아래 `데모 실행·결과`에서 성공·실패·미확인 건수, 실행 위치 경로와 반환 중 개수를 확인한다.
+   왕복은 요청이 모두 성공하고 역할 복귀와 반환 완료가 확인돼야 `검증 통과`다.
+5. **새 시험 요청 중단**은 추가 시험 요청만 멈춘다. 이미 보낸 요청은 마무리하며 서비스는 계속 운영된다.
+
+버튼은 `spec.demo`를 명시한 서비스에만 나타난다. 고정 입력을 사용하며 화면에서 임의
+모델·명령·대상 노드를 넣지 않는다. 서비스당 한 시험, 전체 두 시험까지 진행하고 종료 후
+10초를 기다린다. 버튼이 비활성이면 준비·반환 중인지, 관측이 오래됐는지, 시험이 이미 진행
+중인지 확인한다. 접수 응답을 받지 못하면 표시된 **같은 실행 ID로 확인·재접수**를 사용한다.
+결과 확인 없이 새 ID로 같은 시험을 반복 접수하지 않는다.
+
+### 서비스 자체를 멈추거나 문제를 확인할 때
+
+시험 중단과 서비스 중단은 다르다. 운영자가 서비스 자체를 멈추려면 해당 CR의
+`spec.suspended: true`를 적용한다. 제어기가 신규 접수를 막고 기존 요청을 마친 뒤
+자원을 반환하며 `Suspended`로 전환한다. 재개는 false로 바꾸고 다시 준비 완료를 기다린다.
+
+| 화면·관측 | 확인할 것 |
+|---|---|
+| `Preparing` | 새 Pod 준비, 이미지·RuntimeClass·애플리케이션 readiness |
+| `Blocked` / 후보 없음 | 서비스 행의 후보 제외 근거, 실제 자원 예약과 계약 조건 |
+| 반환 중 대상이 남음 | 진행 요청·worker inFlight, Pod 종료 또는 모델 해제 확인 |
+| `unknown` / `Interrupted` | 저장된 요청·실행 ID의 결과 확인. 제어기는 이를 임의 재실행하지 않음 |
+| 현재 관측 확인 불가 | Operator/API 연결과 15초 freshness. 과거 위치를 현재 정상으로 해석하지 않음 |
+
+요청별 자세한 결과는 공통 gateway의 `GET /services/{name}/requests/{request_id}`,
+서비스별 상태는 `GET /services`로 확인한다. API 서버·전체 노드 장애 복구와 HA의 한계,
+정확한 계약·실험 수치는 아래 절에 이어진다.
 
 ## 계약과 책임
 
