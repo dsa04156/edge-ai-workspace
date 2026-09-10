@@ -81,17 +81,17 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>공통 서비스 Kubernetes 오케스트레이션</h1>
-          <p class="subtitle">&gt; 상태: 공통 HTTP 실행 제어기 구현 및 격리 Kubernetes 배포. 2026-09-10 합성 요청의 역할 간 왕복을…</p>
+          <p class="subtitle">&gt; 상태: 공통 Kubernetes 제어기 구현·배포. 합성 HTTP 서비스 왕복과 실제 AGX·Spark Llama 모델 메모…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 공통-서비스-Kubernetes-오케스트레이션.md</span>
-            <span class="badge">수정: 2026-09-10 15:23</span>
-            <span class="badge">HTML 생성: 2026-09-10 15:23</span>
+            <span class="badge">수정: 2026-09-10 15:27</span>
+            <span class="badge">HTML 생성: 2026-09-10 15:27</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="공통-서비스-kubernetes-오케스트레이션">공통 서비스 Kubernetes 오케스트레이션</h1>
-<blockquote><p>상태: 공통 HTTP 실행 제어기 구현 및 격리 Kubernetes 배포. 2026-09-10 합성 요청의 역할 간 왕복을 검증했다. 실제 AI 모델 전환·운영 HA 완료를 뜻하지 않는다.</p></blockquote>
+<blockquote><p>상태: 공통 Kubernetes 제어기 구현·배포. 합성 HTTP 서비스 왕복과 실제 AGX·Spark Llama 모델 메모리 왕복(210/210)을 검증했다. 임의 AI 서비스 이전·운영 HA 완료를 뜻하지 않는다.</p></blockquote>
 <h2 id="쉽게-설명하면">쉽게 설명하면</h2>
 <p>서비스는 해야 할 일과 필요한 장비 조건을 제출한다. 플랫폼은 현재 일을 맡을 수 있는 노드를 찾는다. 이동할 때는 새 작업자를 먼저 준비하고 새 요청을 넘긴 뒤 이전 작업자의 남은 요청이 끝나야 자원을 반납한다. Nano·Orin·Spark는 그 과정을 시험하는 장비 예시다.</p>
 <h2 id="계약과-책임">계약과 책임</h2>
@@ -133,7 +133,7 @@
 <p>기본 자원 반환은 기존 Deployment를 0 replica로 내려 Kubernetes 예약도 반환하는 방식이다. 기존 runtime을 연결한 <code>resident</code> 변형은 Pod와 GPU 예약을 유지하고 모델 메모리만 반환한다. Pod 자원 반환과 모델 메모리 반환은 다른 결과이며 아래에 별도 실측 근거를 기록한다.</p>
 <h2 id="합격-기준과-증거">합격 기준과 증거</h2>
 <ol><li>고정 장비 이름 없이 서로 다른 서비스의 후보 선별과 배치가 가능하다.</li><li>NotReady·pressure·taint·CPU/메모리/가속기 부족·아키텍처/런타임 불일치는 후보 제외 이유로 남는다.</li><li>대상 Pod Ready와 서비스 readiness 확인 전에 신규 요청을 넘기지 않는다.</li><li>준비 중 실패하면 기존 요청 경로를 유지한다. 전환 후 이전 요청이 끝나기 전에 이전 Pod를 내리지 않는다.</li><li>부하 증가·저부하 복귀의 dwell/cooldown을 적용하고 후보가 없으면 차단 이유를 보인다.</li><li>제어기 재시작 시 원장의 전송 중 요청은 결과 불명으로 복구하며 중복 전송하지 않는다.</li><li>실제 Kubernetes 배치·전환·drain·자원 반환 결과와 단위시험을 별도 기록한다.</li></ol>
-<p>현재 실장비 Llama 왕복 결과는 <a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a>의 전용 제어기 증거다. 공통 제어기 검증으로 전용하지 않는다.</p>
+<p>과거 <a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a>의 전용 제어기 결과는 이력으로 구분한다. 이 문서 하단의 210/210 실장비 결과는 공통 제어기로 새로 측정한 증거다.</p>
 <h2 id="kubernetes-근거">Kubernetes 근거</h2>
 <ul><li><a href="https://kubernetes.io/docs/concepts/extend-kubernetes/operator/">Operator 패턴</a>: 사용자 정의 리소스의 의도와 실제 상태를 제어 루프로 조정한다.</li><li><a href="https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/">Pod 노드 배치</a>: affinity/selector와 실제 scheduler 역할을 분리한다.</li><li><a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination">Pod 종료</a>: 종료 유예만으로 application 요청 완료를 보장하지 않으므로 gateway drain을 확인한다.</li></ul>
 <h2 id="구현과-운영-진입점">구현과 운영 진입점</h2>

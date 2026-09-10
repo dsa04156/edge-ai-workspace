@@ -1,0 +1,6 @@
+{
+  "name": "runtime-operator-54f4f4d4c-9fznp",
+  "uid": "d6aea477-5cd3-4313-b1c7-4eb19e662e5f",
+  "imageID": "192.168.0.56:5000/runtime-operator@sha256:ddf5fbbb07b9d0dfc92ce5a520f121fca35fc4e259e28ec76112a1ca4f786ebf",
+  "ready": true
+}
