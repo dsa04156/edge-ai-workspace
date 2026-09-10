@@ -13,4 +13,16 @@
 .runtime-table details ul { padding-left:16px; font-size:12px; }
 .runtime-table details li { margin:8px 0; }
 .runtime-warning { color:var(--warn); border-left:3px solid currentColor; padding:8px 12px; }
+.runtime-demo-actions { display:grid; gap:8px; margin-top:12px; }
+.runtime-demo-actions .button { min-height:44px; white-space:normal; padding:8px; }
+.runtime-demo-panel { margin-top:24px; }
+.runtime-demo-panel h2 { margin-bottom:16px; }
+.runtime-demo-result { padding:24px 0; border-top:1px solid var(--line); }
+.runtime-demo-result:first-of-type { margin-top:24px; }
+.runtime-demo-result h3 { font-size:16px; margin-bottom:8px; }
+.runtime-demo-result p { margin:12px 0; font-variant-numeric:tabular-nums; }
+.runtime-demo-result small,.runtime-demo-route { overflow-wrap:anywhere; }
+.runtime-demo-result pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:240px; overflow:auto; padding:16px; background:var(--canvas); font:13px/1.7 ui-monospace,monospace; }
+.runtime-demo-intent { padding:16px; margin:16px 0; background:var(--warn-soft); }
+.runtime-demo-result .section-heading { gap:16px; flex-wrap:wrap; }
 @media(max-width:760px){.runtime-panel .section-heading{flex-direction:column}.runtime-panel{padding:16px}.runtime-table{min-width:860px}}

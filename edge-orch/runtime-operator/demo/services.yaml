@@ -42,6 +42,18 @@ spec:
     returnSeconds: 8
     cooldownSeconds: 5
     prepareTimeoutSeconds: 45
+  demo:
+    label: 합성 HTTP 응답 · synthetic.quality.v1
+    payload:
+      input:
+        message: common runtime demo
+        contract: synthetic.quality.v1
+      delaySeconds: 0.5
+    maxRequests: 512
+    concurrency: 6
+    pressureSeconds: 25
+    recoverySeconds: 120
+    recoveryIntervalSeconds: 1
 ---
 apiVersion: platform.jinuk.io/v1alpha1
 kind: RuntimeService
@@ -87,3 +99,15 @@ spec:
     returnSeconds: 8
     cooldownSeconds: 5
     prepareTimeoutSeconds: 45
+  demo:
+    label: 합성 HTTP 응답 · synthetic.telemetry.v1
+    payload:
+      input:
+        message: common runtime demo
+        contract: synthetic.telemetry.v1
+      delaySeconds: 0.5
+    maxRequests: 512
+    concurrency: 6
+    pressureSeconds: 25
+    recoverySeconds: 120
+    recoveryIntervalSeconds: 1

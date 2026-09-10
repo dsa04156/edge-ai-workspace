@@ -15,6 +15,7 @@ from .controller import Controller
 from .journal import Journal
 from .kube import Kube
 from . import resident
+from .demo import router as demo_router
 
 
 def create_app(controller=None):
@@ -29,6 +30,7 @@ def create_app(controller=None):
             yield
         finally:
             c.stopping = True
+            await app.state.demo_runner.close()
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
             for action in c.lifecycle_tasks.values():
@@ -39,6 +41,7 @@ def create_app(controller=None):
 
     app = FastAPI(title="Common Service Runtime", lifespan=lifespan)
     app.state.controller = controller
+    app.include_router(demo_router(app))
 
     @app.get("/health")
     async def health():
@@ -76,6 +79,8 @@ def create_app(controller=None):
             return JSONResponse({"reason": "service_not_registered"}, status_code=404)
         state = matching[0]
         uid = state["uid"]
+        if request.headers.get("X-Runtime-Service-Uid", uid) != uid:
+            return JSONResponse({"reason": "service_identity_changed", "accepted": False}, status_code=409)
         if not state.get("active"):
             return JSONResponse({"reason": "no_ready_target", "accepted": False}, status_code=503)
         spec = state["active"]["spec"]

@@ -24,13 +24,13 @@ function renderState(entry,now=Date.now()/1000,expanded=new Set()){
  return `<section class="panel runtime-panel">${intro}<p class="note">Kubernetes RuntimeService · 마지막 수신 ${E(time(data.observed_at))} · 5초마다 조회</p>${notice?`<p class="runtime-warning" role="status">관측 확인 필요 · ${E(notice)}</p>`:''}${data.services.length?`<div class="table-wrap"><table class="data-table runtime-table"><thead><tr><th>서비스 / 상태</th><th>요청을 받는 실행체</th><th>이동 준비 / 반환 중</th><th>전환 근거</th></tr></thead><tbody>${data.services.map(s=>{
  const ok=current&&!s.observation_error;
  const release=s.lastRelease,transition=s.lastTransition;
- return `<tr><td><strong>${E(s.name)}</strong><span class="badge ${ok&&s.serving?'ok':''}">${ok?E(phases[s.phase]||s.phase):'현재 관측 확인 불가'}</span><small>${s.active?.memoryOnlyRelease?'모델 메모리 관리':'Pod 생성·축소 관리'}</small>${latencyView(s,now,ok)}</td><td>${targetView(s.active,now,ok)}</td><td>${s.target?'<small>준비 중</small>'+targetView(s.target,now,ok):''}${s.retiring.map(t=>'<small>반환 중</small>'+targetView(t,now,ok)).join('')}${!s.target&&!s.retiring.length?'<small>진행 중인 전환 없음</small>':''}${release?`<small>마지막 모델 해제: ${E(release.node)} · ${E(release.modelVramMiB)} MiB<br>${E(time(release.at))} · ${release.reservationRetained?'GPU 예약 유지':'예약 유지 확인 안 됨'}</small>`:''}</td><td><span>${E(reasons[s.reason]||s.reason)}</span>${transition?`<small>${E(transition.fromNode||'최초 배치')} → ${E(transition.toNode)}<br>${E(reasons[transition.reason]||transition.reason)}<br>${E(time(transition.at))}</small>`:''}<details data-runtime-details="${E(s.uid)}" ${expanded.has(s.uid)?'open':''}><summary>후보 제외 근거 ${s.excludedCandidates.length}건</summary><ul>${s.excludedCandidates.map(c=>`<li>${E(c.node)} / ${E(c.variant)}<br>${E(c.reasons.join(', '))}</li>`).join('')}</ul></details></td></tr>`;
+ return `<tr><td><strong>${E(s.name)}</strong><span class="badge ${ok&&s.serving?'ok':''}">${ok?E(phases[s.phase]||s.phase):'현재 관측 확인 불가'}</span><small>${s.active?.memoryOnlyRelease?'모델 메모리 관리':'Pod 생성·축소 관리'}</small>${latencyView(s,now,ok)}${root.NexusRuntimeDemo?.renderActions(s.uid,ok)||''}</td><td>${targetView(s.active,now,ok)}</td><td>${s.target?'<small>준비 중</small>'+targetView(s.target,now,ok):''}${s.retiring.map(t=>'<small>반환 중</small>'+targetView(t,now,ok)).join('')}${!s.target&&!s.retiring.length?'<small>진행 중인 전환 없음</small>':''}${release?`<small>마지막 모델 해제: ${E(release.node)} · ${E(release.modelVramMiB)} MiB<br>${E(time(release.at))} · ${release.reservationRetained?'GPU 예약 유지':'예약 유지 확인 안 됨'}</small>`:''}</td><td><span>${E(reasons[s.reason]||s.reason)}</span>${transition?`<small>${E(transition.fromNode||'최초 배치')} → ${E(transition.toNode)}<br>${E(reasons[transition.reason]||transition.reason)}<br>${E(time(transition.at))}</small>`:''}<details data-runtime-details="${E(s.uid)}" ${expanded.has(s.uid)?'open':''}><summary>후보 제외 근거 ${s.excludedCandidates.length}건</summary><ul>${s.excludedCandidates.map(c=>`<li>${E(c.node)} / ${E(c.variant)}<br>${E(c.reasons.join(', '))}</li>`).join('')}</ul></details></td></tr>`;
  }).join('')}</tbody></table></div>`:'<p class="empty">공통 제어기에 등록된 서비스가 없습니다.</p>'}<p class="note">마지막 메모리 해제는 과거 확인 기록입니다. GPU 예약 반환이나 현재 대기 모델 상태를 뜻하지 않습니다. 서비스 등록·정책 변경은 Kubernetes 계약으로 관리합니다.</p></section>`;
 }
 let entry={data:null,error:null},timer=null,pending=null,draw=()=>{},enabled=false;
 const expanded=new Set();
 async function refresh(){
- if(pending)return pending;
+ if(pending)return pending;root.NexusRuntimeDemo?.refresh();
  pending=(async()=>{const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4500);try{
   const r=await root.fetch('/state/runtime-services',{method:'GET',cache:'no-store',signal:controller.signal});
   if(!r.ok)throw new Error('HTTP '+r.status);
@@ -42,7 +42,7 @@ async function refresh(){
  return pending;
 }
 function activate(value){if(value===enabled)return;enabled=value;if(timer)clearInterval(timer);timer=null;if(value){refresh();timer=setInterval(()=>{if(!root.document.hidden)refresh();},5000);}}
-function setup(callback){draw=callback;root.document.addEventListener('click',e=>{if(e.target.closest('[data-runtime-refresh]'))refresh();});root.document.addEventListener('toggle',e=>{const id=e.target.dataset?.runtimeDetails;if(id&&e.target.isConnected){if(e.target.open)expanded.add(id);else expanded.delete(id);}},true);}
-const api={renderState,targetView,latencyView,activate,setup,render:()=>renderState(entry,Date.now()/1000,expanded)};
+function setup(callback){draw=callback;root.NexusRuntimeDemo?.setup(callback);root.document.addEventListener('click',e=>{if(e.target.closest('[data-runtime-refresh]'))refresh();});root.document.addEventListener('toggle',e=>{const id=e.target.dataset?.runtimeDetails;if(id&&e.target.isConnected){if(e.target.open)expanded.add(id);else expanded.delete(id);}},true);}
+const api={renderState,targetView,latencyView,activate,setup,render:()=>renderState(entry,Date.now()/1000,expanded)+(root.NexusRuntimeDemo?.renderPanel()||'')};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NexusCommonRuntime=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -47,6 +47,7 @@ def structural(schema, definitions):
 def generate():
     model = ServiceSpec.model_json_schema()
     spec = structural(model, model.get("$defs", {}))
+    spec["properties"]["demo"]["properties"]["payload"] = {"type": "object", "x-kubernetes-preserve-unknown-fields": True}
     return {"apiVersion": "apiextensions.k8s.io/v1", "kind": "CustomResourceDefinition", "metadata": {
         "name": "runtimeservices.platform.jinuk.io"}, "spec": {"group": "platform.jinuk.io", "scope": "Namespaced",
         "names": {"plural": "runtimeservices", "singular": "runtimeservice", "kind": "RuntimeService", "shortNames": ["rtsvc"]},

@@ -1,0 +1,43 @@
+{
+  "status": 202,
+  "run": {
+    "id": "946ba26efd6345dda9b5876bb0ebe667",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "label": "실제 GPU Llama · 검증된 8-token 입력",
+    "mode": "single",
+    "phase": "Completed",
+    "stage": "single",
+    "createdAt": 1789025740.0146768,
+    "finishedAt": 1789025740.581269,
+    "sent": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "unknown": 0,
+    "lastResult": "{\"request_id\": \"demo-5901e01f36b885a50ca6afcf-0\", \"node_id\": \"etri-dev0005-jetagx\", \"role\": \"agx\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.032, \"ttft_ms\": 227.513, \"tokens_per_second\": 51.66, \"inference_ms\": 376.56, \"actual_e2e_ms\": 376.592, \"eval_count\": 8}",
+    "routeHistory": [
+      {
+        "at": 1789025740.0169067,
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "reason": "sustained_low_load_return"
+      }
+    ],
+    "recentRequests": [
+      {
+        "id": "demo-5901e01f36b885a50ca6afcf-0",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-c1095c46c3d2",
+        "elapsedMilliseconds": 530.78062197892
+      }
+    ],
+    "startNode": "etri-dev0005-jetagx",
+    "startRole": "edge",
+    "currentNode": "etri-dev0005-jetagx",
+    "returned": false,
+    "retiring": 0,
+    "reason": "requests_and_route_verified",
+    "stopRequested": false
+  }
+}

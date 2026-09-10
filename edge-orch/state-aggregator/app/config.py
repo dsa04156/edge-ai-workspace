@@ -25,6 +25,7 @@ def _env_csv(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 
 
 class Settings(BaseModel):
+    common_runtime_demo_enabled: bool = Field(default_factory=lambda: _env_bool("COMMON_RUNTIME_DEMO_ENABLED"))
     common_runtime_url: str = Field(default_factory=lambda: os.getenv(
         "COMMON_RUNTIME_URL", "http://runtime-gateway.platform-runtime.svc.cluster.local:8080"))
     model_offload_enabled: bool = Field(default_factory=lambda: _env_bool("MODEL_OFFLOAD_ENABLED"))

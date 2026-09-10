@@ -85,8 +85,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 공통-서비스-Kubernetes-오케스트레이션.md</span>
-            <span class="badge">수정: 2026-09-10 16:10</span>
-            <span class="badge">HTML 생성: 2026-09-10 16:10</span>
+            <span class="badge">수정: 2026-09-10 16:40</span>
+            <span class="badge">HTML 생성: 2026-09-10 16:40</span>
           </div>
         </header>
         <div class="doc-body">
@@ -271,7 +271,7 @@
 <p>기존 제어기의 실행 여부와 worker active/queue=0을 확인한 뒤 기존 제어기를 중단하고 Pod 종료까지 기다린다. 그다음 다음 계약을 적용한다. 공통 제어기는 인계 조건이 충족되지 않으면 실행하지 않는다. 운영자는 gateway를 통하지 않는 직접 generate나 activate/deactivate를 병행하지 않는다.</p>
 <pre data-lang="bash"><code>rtk proxy kubectl --context kubernetes-admin@kubernetes apply -f edge-orch/runtime-operator/demo/llama-resident.yaml
 rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get runtimeservices</code></pre>
-<p>예제 실부하 스크립트 <code>scripts/smoke-resident.py</code>는 명시한 gateway·서비스에만 고정 계약 요청을 보낸다. 서비스 중단은 RuntimeService의 suspended=true로 접수를 막고 모델 해제를 기다린다. 이전 제어기로 돌아가려면 공통 서비스 drain·모델 해제 확인 후 기존 제어기를 복원해야 한다. 기존 토큰 없는 순차 데모 웹은 인계로 중단 상태이며 공통 운영 관측은 NEXUS의 서비스 → 클러스터 실행으로 연결한다. 시험 요청 버튼과 계약 등록 UI는 후속이며 현재 등록은 Kubernetes 계약, 요청은 공통 gateway를 사용한다.</p>
+<p>예제 실부하 스크립트 <code>scripts/smoke-resident.py</code>는 명시한 gateway·서비스에만 고정 계약 요청을 보낸다. 서비스 중단은 RuntimeService의 suspended=true로 접수를 막고 모델 해제를 기다린다. 이전 제어기로 돌아가려면 공통 서비스 drain·모델 해제 확인 후 기존 제어기를 복원해야 한다. 기존 토큰 없는 순차 데모 웹은 인계로 중단 상태이며 공통 운영 관측은 NEXUS의 서비스 → 클러스터 실행으로 연결한다. 계약 등록은 Kubernetes 계약을 사용한다. 아래 토큰 없는 데모 실행 절에 한해 등록된 시험 입력을 NEXUS에서 보낼 수 있다.</p>
 <p>최종 resident-v2에서는 기존 Pod가 계약에 적힌 가속기·CPU·메모리 예약을 실제 보유하는지 검사한다. 제어기 교체 후 저장 요청 재조회에서는 worker completed_requests가 증가하지 않았고 새 GPU 요청에서는 AGX 처리 건수가 정확히 1 증가했다. 이 근거는 <code>results/2026-09-10-resident-v2/restart-and-reservation-gate.json</code>에 보관한다. 공통 제어기의 단위·배포 계약 시험은 현재 39개 통과다. 전체 시험의 기존 센서 Argo CD 브랜치 불일치는 위 v7 기록과 같은 별도 문제다.</p>
 <h2 id="nexus-공통-실행-관측-2026-09-10">NEXUS 공통 실행 관측 (2026-09-10)</h2>
 <p><a href="http://aggregator.192.168.0.56.sslip.io/#runtime-services">서비스 → 클러스터 실행</a>에서 장비 이름에 고정되지 않은 서비스별 실행 위치를 확인한다. 현재 두 합성 HTTP 서비스와 qualified 8-token Llama 추론 서비스가 같은 공통 제어기에 등록되어 있다.</p>
@@ -284,7 +284,7 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 <ul><li>5초마다 관측하며 조회 실패 시 경고와 과거 위치를 유지하되 현재 모델 메모리는 숨긴다.</li></ul>
 <p>마지막 모델 해제는 시각이 붙은 과거 기록이다. GPU 예약 반환 또는 현재 대기 모델 상태로 해석하지 않는다. 메모리만 해제하는 resident 방식은 Pod/GPU 예약을 유지한다.</p>
 <ul><li>서비스 등록·정책 변경은 <code>RuntimeService</code>와 Kubernetes RBAC가 담당한다.</li></ul>
-<p>NEXUS 서비스 설계는 기존 dry-run이며 이 탭에서도 실행 명령을 보내지 않는다.</p>
+<p>NEXUS 서비스 설계는 기존 dry-run이다. 클러스터 실행 탭의 별도 데모 버튼은 명시적으로 허용된 고정 입력만 공통 gateway로 보낸다.</p>
 <p>검증: API·operator 관련 Python 42개, 전체 JavaScript 245개 통과. 독립 실행한 root+operator는 154개 통과·기존 센서 Argo CD 브랜치 기대값 1개 실패, state-aggregator는 417개 통과·기존 <code>virtual-device-runtime</code> 디렉터리 누락 시험 1개 실패다. 서로 다른 서비스의 <code>app</code> 패키지를 같은 pytest 프로세스에 섞으면 import 충돌이 있어 두 suite를 분리 실행했다. 실패를 없애기 위한 테스트 삭제·skip은 하지 않았다. 1440px desktop·390px mobile에서 확인했으며 모바일 document 폭은 390px, 860px 표는 312px 내부 컨테이너에서 스크롤한다. 브라우저만 503 응답으로 가로챈 관측 장애 시험에서 경고·현재 메모리 숨김을 확인했다. 실제 cluster 서비스는 중단하지 않았다.</p>
 <p>추가 실장비 재검증은 <strong>201/201 요청 성공</strong>, AGX → Spark → AGX의 왕복이며 고정된 qualified 8-token 계약을 유지했다. <code>results/2026-09-10-nexus/round-trip.json</code>에 요청별 결과를, <code>runtime-services.json</code>에 NEXUS가 실제 받은 위치·마지막 전환·해제 관측을 보관했다. <code>running-images.json</code>은 operator와 aggregator의 실제 Ready Pod imageID다. operator <code>597e6145…</code>, aggregator <code>1c8e3f8b…</code>를 확인했다. 이 실험은 무손실 일반 장애 복구·HA·임의 서비스 SLO 보장의 근거가 아니다.</p>
 <h2 id="선택적-요청-지연-정책-2026-09-10">선택적 요청 지연 정책 (2026-09-10)</h2>
@@ -308,6 +308,52 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 <p>수정 후 <code>round-trip-v2.json</code>은 <strong>383/383 요청 성공</strong>, <code>sustained_latency_breach</code>에 의한 AGX → Spark, <code>sustained_low_load_return</code>에 의한 Spark → AGX와 retiring=0을 확인했다. 시험 중 동시성 pressure dwell은 3,600초로 두어 900ms 지연 조건이 전환 원인임을 분리했다. 종료 후 Git 데모 계약의 4초로 복원했다. 이 값과 지연 조건은 서비스별 선언이며 노드 이름을 조건문으로 사용하지 않는다.</p>
 <p>과부하 중 Spark의 p95도 900ms를 넘었고 <code>latency_no_qualified_target</code>을 표시했다. 이는 숨기지 않은 미달 구간이다. 검증 결과는 지연 기반 전환·회복 후 복귀와 요청 결과 연속성의 근거이며, 부하 전 구간의 900ms SLO 달성 증거가 아니다. <code>after-runtime-services.json</code>, <code>final-contract.json</code>, <code>resident-workers.json</code>과 <code>running-images.json</code>에 최종 실행 위치·해제·정책·기존 Pod restart=0·실제 imageID를 보관한다. operator <code>d71a4e8b…</code>, aggregator <code>88e7b02f…</code>를 확인했다.</p>
 <p>현재 operator 단위/배포 49개, aggregator API 4개, 전체 JavaScript 246개 통과다. root+operator는 164개 통과·기존 Argo 브랜치 기대값 1개 실패, aggregator 전체는 418개 통과·기존 virtual-device-runtime 디렉터리 누락 1개 실패다.</p>
+<h2 id="토큰-없는-제한형-데모-실행-2026-09-10">토큰 없는 제한형 데모 실행 (2026-09-10)</h2>
+<p>ELI5: 서비스 옆 버튼으로 미리 정해 둔 시험 요청을 보낸다. 왕복 시험은 잠시 요청을 늘렸다가 줄인다. 어디로 옮길지는 전체 클러스터 후보와 서비스 정책으로 결정한다. HTTP 응답만 성공하고 복귀하지 못하면 화면에 <strong>검증 미완료</strong>로 남는다.</p>
+<p>NEXUS의 <a href="http://aggregator.192.168.0.56.sslip.io/#runtime-services">AI 서비스 → 클러스터 실행</a>에서 <code>시험 요청 1건</code>, <code>왕복 시험</code>, <code>새 시험 요청 중단</code>을 제공한다. 실행 토큰 입력은 없다. 등록·정책 편집은 Kubernetes 계약을 사용하며 서비스 설계 화면의 dry-run 경계는 유지한다.</p>
+<ul><li>운영자가 <code>RuntimeService.spec.demo</code>에 명시한 고정 JSON 입력만 보낸다.</li></ul>
+<p>브라우저에서 임의 payload·대상 URL·노드·Kubernetes 명령을 입력할 수 없다. resident Llama는 qualification과 동일한 prompt·8-token 계약을 강제한다.</p>
+<ul><li>현재 demo 설정은 최대 512건, 동시 6건, 부하 25초 후 회복 관측 최대 120초다.</li></ul>
+<p>회복 요청 간격은 1초다. 합성 HTTP 입력에는 0.5초 응답 지연을 넣어 빠른 응답이 부하 단계에서 요청 한도를 소진하지 않도록 했다. AI 성능 측정값은 아니다.</p>
+<ul><li>서비스 UID당 진행 시험 1개, 전체 2개, 종료 후 10초 대기를 적용한다.</li></ul>
+<p>런타임 snapshot이 오래되거나 준비·반환 중이면 새 시험을 받지 않는다.</p>
+<ul><li>aggregator는 <code>COMMON_RUNTIME_DEMO_ENABLED</code>와 같은 Origin·전용 요청 헤더를 검사한다.</li></ul>
+<p>이는 LAN 데모의 제한된 실행 경로이며 사용자별 인증·권한 관리의 대체가 아니다. 공통 gateway는 내부 ClusterIP를 유지한다. EdgeX·actuator 제어 권한은 추가하지 않는다.</p>
+<ul><li>실행 ID와 자식 요청 ID를 PVC SQLite 원장에 기록한다. 접수 응답이 불명확하면</li></ul>
+<p>같은 ID로 확인·재접수한다. 이미 접수된 ID는 과거 결과를 반환한다. 서비스 삭제·재등록으로 UID가 바뀌면 새 서비스로 요청을 넘기지 않는다.</p>
+<ul><li>중단은 새 요청 생성을 멈추고 이미 보낸 요청을 마무리한다. 서비스 자체를 중단하지 않는다.</li></ul>
+<p>controller 재시작 시 진행 시험은 <code>Interrupted</code>로 남기며 자동 재실행하지 않는다. 미확인 요청은 성공으로 합산하지 않는다. 완료 결과의 경로·반환 개수는 종료 시점 기록이다.</p>
+<p>실제 브라우저 버튼으로 실행한 결과:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>시험</th>
+<th>결과</th>
+<th>경계</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>실제 GPU Llama 단일 요청</td>
+<td>1/1 성공</td>
+<td>동일 ID 재접수도 원장 자식 요청은 1개</td>
+</tr>
+<tr>
+<td>실제 GPU Llama 왕복</td>
+<td><strong>261/261 성공</strong>, 엣지 AGX → 서버 Spark → 엣지 AGX, 반환 중 0</td>
+<td>모델 메모리만 해제, GPU 예약과 resident Pod 유지</td>
+</tr>
+<tr>
+<td>합성 HTTP 왕복</td>
+<td><strong>173/173 성공</strong>, Tinker → 서버 cg0msb → 엣지 AGX, 반환 중 0</td>
+<td>시작 장비와 다른 엣지 복귀도 허용하는 전체 후보 선택</td>
+</tr>
+<tr>
+<td>합성 HTTP 사용자 중단</td>
+<td>410/410 응답 완료 후 <code>Stopped</code></td>
+<td>종료 당시 반환 중 1개; 왕복 통과로 집계하지 않음</td>
+</tr>
+</tbody></table></div>
+<p>브라우저 접수 일부는 5초 안에 응답을 받지 못했다. Llama 왕복은 원장에서 기존 ID를 찾아 확인했고, 합성 중단 시험은 같은 ID 재접수 후 진행했다. 중복 실행으로 성공률을 부풀리지 않았다. 원장에는 네 실행에 해당하는 자식 요청 <strong>845개</strong>가 모두 completed로 기록되어 있다. 1440px desktop과 390px mobile을 확인했으며 mobile 문서 폭은 390px다.</p>
+<p>근거는 <code>edge-orch/runtime-operator/results/2026-09-10-token-free-demo/</code>의 <code>runs.json</code>, <code>same-id-replay.json</code>, <code>durable-journal.json</code>, <code>running-images.json</code>이다. 새 operator 이미지 <code>4bb7abaa…</code>, aggregator 이미지 <code>799f8ab1…</code>의 실제 Pod imageID를 확인했다. Python root+operator 171개 통과·기존 센서 Argo CD 기대 브랜치 불일치 1개 실패, aggregator 420개 통과·기존 virtual-device-runtime 경로 누락 1개 실패, JavaScript 249개 통과다. 공통 operator 자체는 56개 통과다. 이 결과는 streaming·stateful 서비스, NPU 모델 호환, 제어기 HA 또는 모든 장애에서 무중단을 보장하는 근거가 아니다. 접수 지연 원인도 이 시험만으로 확정하지 않았다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#쉽게-설명하면">쉽게 설명하면</a></li>
@@ -322,7 +368,8 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 <li class="toc-h3"><a href="#실장비-결과">실장비 결과</a></li>
 <li class="toc-h3"><a href="#운영-절차">운영 절차</a></li>
 <li class="toc-h2"><a href="#nexus-공통-실행-관측-2026-09-10">NEXUS 공통 실행 관측 (2026-09-10)</a></li>
-<li class="toc-h2"><a href="#선택적-요청-지연-정책-2026-09-10">선택적 요청 지연 정책 (2026-09-10)</a></li></ol></aside>
+<li class="toc-h2"><a href="#선택적-요청-지연-정책-2026-09-10">선택적 요청 지연 정책 (2026-09-10)</a></li>
+<li class="toc-h2"><a href="#토큰-없는-제한형-데모-실행-2026-09-10">토큰 없는 제한형 데모 실행 (2026-09-10)</a></li></ol></aside>
     </div>
   </div>
 

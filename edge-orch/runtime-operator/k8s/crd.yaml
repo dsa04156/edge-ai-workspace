@@ -299,6 +299,46 @@ spec:
                 type: object
                 default: null
                 nullable: true
+              demo:
+                properties:
+                  label:
+                    maxLength: 80
+                    minLength: 1
+                    type: string
+                  payload:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  maxRequests:
+                    default: 512
+                    maximum: 512
+                    minimum: 1
+                    type: integer
+                  concurrency:
+                    default: 6
+                    maximum: 8
+                    minimum: 1
+                    type: integer
+                  pressureSeconds:
+                    default: 25
+                    maximum: 40
+                    minimum: 1
+                    type: number
+                  recoverySeconds:
+                    default: 120
+                    maximum: 120
+                    minimum: 1
+                    type: number
+                  recoveryIntervalSeconds:
+                    default: 1
+                    maximum: 10
+                    minimum: 0.5
+                    type: number
+                required:
+                - label
+                - payload
+                type: object
+                default: null
+                nullable: true
             required:
             - ioContract
             - variants

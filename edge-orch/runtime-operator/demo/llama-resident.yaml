@@ -87,3 +87,13 @@ spec:
       windowSeconds: 20
       minSamples: 10
       breachSeconds: 4
+  demo:
+    label: 실제 GPU Llama · 검증된 8-token 입력
+    payload:
+      prompt: In one short sentence, explain why edge computing reduces latency.
+      max_tokens: 8
+    maxRequests: 512
+    concurrency: 6
+    pressureSeconds: 25
+    recoverySeconds: 120
+    recoveryIntervalSeconds: 1

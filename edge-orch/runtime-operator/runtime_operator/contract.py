@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from typing import Literal
+from typing import Any, Literal
 
 from kubernetes.utils.quantity import parse_quantity
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -103,6 +103,16 @@ class Policy(Contract):
         return self
 
 
+class DemoContract(Contract):
+    label: str = Field(min_length=1, max_length=80)
+    payload: dict[str, Any]
+    maxRequests: int = Field(default=512, ge=1, le=512)
+    concurrency: int = Field(default=6, ge=1, le=8)
+    pressureSeconds: float = Field(default=25, ge=1, le=40)
+    recoverySeconds: float = Field(default=120, ge=1, le=120)
+    recoveryIntervalSeconds: float = Field(default=1, ge=.5, le=10)
+
+
 class ServiceSpec(Contract):
     execution: Literal["http-json-v1"] = "http-json-v1"
     ioContract: str = Field(min_length=1, max_length=128)
@@ -115,6 +125,7 @@ class ServiceSpec(Contract):
     policy: Policy = Field(default_factory=Policy)
     suspended: bool = False
     inference: InferenceContract | None = None
+    demo: DemoContract | None = None
 
     @field_validator("readyPath", "requestPath")
     @classmethod
@@ -132,6 +143,11 @@ class ServiceSpec(Contract):
                 raise ValueError("resident Llama variants require one common inference contract")
         elif self.inference:
             raise ValueError("inference contract is only consumed by the resident Llama adapter")
+        if self.demo:
+            if self.timeoutSeconds > 30 or len(json.dumps(self.demo.payload, allow_nan=False).encode()) > min(self.maxBodyBytes, 65536):
+                raise ValueError("demo requires timeout <= 30s and a bounded JSON input")
+            if self.inference and self.demo.payload != {"prompt": self.inference.prompt, "max_tokens": self.inference.maxTokens}:
+                raise ValueError("demo input must match the qualified inference contract")
         return self
 
 

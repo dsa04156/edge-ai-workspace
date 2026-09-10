@@ -22,11 +22,13 @@ spec:
         kubernetes.io/hostname: etri-ser0001-cg0msb
       containers:
         - name: state-aggregator
-          image: 192.168.0.56:5000/state-aggregator@sha256:88e7b02fd65c5b3ebf5d5cc934f1f4ad4a26832a8c428a1cb0e1986e1b0c99f0
+          image: 192.168.0.56:5000/state-aggregator@sha256:799f8ab1d3c87cfd2d37193994234ceebc11286b3ebc73f568faf7cdc4f78280
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
+            - name: COMMON_RUNTIME_DEMO_ENABLED
+              value: "true"
             - name: VIRTUAL_DEVICE_CONTROL_ENABLED
               value: "true"
             - name: PROMETHEUS_URL

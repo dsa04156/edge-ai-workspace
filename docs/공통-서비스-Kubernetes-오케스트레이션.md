@@ -204,7 +204,7 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 계약 요청을 보낸다. 서비스 중단은 RuntimeService의 suspended=true로 접수를 막고
 모델 해제를 기다린다. 이전 제어기로 돌아가려면 공통 서비스 drain·모델 해제 확인 후
 기존 제어기를 복원해야 한다. 기존 토큰 없는 순차 데모 웹은 인계로 중단 상태이며
-공통 운영 관측은 NEXUS의 서비스 → 클러스터 실행으로 연결한다. 시험 요청 버튼과 계약 등록 UI는 후속이며 현재 등록은 Kubernetes 계약, 요청은 공통 gateway를 사용한다.
+공통 운영 관측은 NEXUS의 서비스 → 클러스터 실행으로 연결한다. 계약 등록은 Kubernetes 계약을 사용한다. 아래 토큰 없는 데모 실행 절에 한해 등록된 시험 입력을 NEXUS에서 보낼 수 있다.
 
 최종 resident-v2에서는 기존 Pod가 계약에 적힌 가속기·CPU·메모리 예약을 실제 보유하는지
 검사한다. 제어기 교체 후 저장 요청 재조회에서는 worker completed_requests가 증가하지
@@ -230,7 +230,7 @@ qualified 8-token Llama 추론 서비스가 같은 공통 제어기에 등록되
   마지막 모델 해제는 시각이 붙은 과거 기록이다. GPU 예약 반환 또는 현재 대기 모델 상태로
   해석하지 않는다. 메모리만 해제하는 resident 방식은 Pod/GPU 예약을 유지한다.
 - 서비스 등록·정책 변경은 `RuntimeService`와 Kubernetes RBAC가 담당한다.
-  NEXUS 서비스 설계는 기존 dry-run이며 이 탭에서도 실행 명령을 보내지 않는다.
+  NEXUS 서비스 설계는 기존 dry-run이다. 클러스터 실행 탭의 별도 데모 버튼은 명시적으로 허용된 고정 입력만 공통 gateway로 보낸다.
 
 검증: API·operator 관련 Python 42개, 전체 JavaScript 245개 통과.
 독립 실행한 root+operator는 154개 통과·기존 센서 Argo CD 브랜치 기대값 1개 실패,
@@ -317,3 +317,55 @@ latency 표본 수 0·valid=false임을 보여준다. 상태 조회 경로가 �
 현재 operator 단위/배포 49개, aggregator API 4개, 전체 JavaScript 246개 통과다.
 root+operator는 164개 통과·기존 Argo 브랜치 기대값 1개 실패,
 aggregator 전체는 418개 통과·기존 virtual-device-runtime 디렉터리 누락 1개 실패다.
+
+
+## 토큰 없는 제한형 데모 실행 (2026-09-10)
+
+ELI5: 서비스 옆 버튼으로 미리 정해 둔 시험 요청을 보낸다. 왕복 시험은 잠시 요청을
+늘렸다가 줄인다. 어디로 옮길지는 전체 클러스터 후보와 서비스 정책으로 결정한다.
+HTTP 응답만 성공하고 복귀하지 못하면 화면에 **검증 미완료**로 남는다.
+
+NEXUS의 [AI 서비스 → 클러스터 실행](http://aggregator.192.168.0.56.sslip.io/#runtime-services)에서
+`시험 요청 1건`, `왕복 시험`, `새 시험 요청 중단`을 제공한다. 실행 토큰 입력은 없다.
+등록·정책 편집은 Kubernetes 계약을 사용하며 서비스 설계 화면의 dry-run 경계는 유지한다.
+
+- 운영자가 `RuntimeService.spec.demo`에 명시한 고정 JSON 입력만 보낸다.
+  브라우저에서 임의 payload·대상 URL·노드·Kubernetes 명령을 입력할 수 없다.
+  resident Llama는 qualification과 동일한 prompt·8-token 계약을 강제한다.
+- 현재 demo 설정은 최대 512건, 동시 6건, 부하 25초 후 회복 관측 최대 120초다.
+  회복 요청 간격은 1초다. 합성 HTTP 입력에는 0.5초 응답 지연을 넣어 빠른 응답이
+  부하 단계에서 요청 한도를 소진하지 않도록 했다. AI 성능 측정값은 아니다.
+- 서비스 UID당 진행 시험 1개, 전체 2개, 종료 후 10초 대기를 적용한다.
+  런타임 snapshot이 오래되거나 준비·반환 중이면 새 시험을 받지 않는다.
+- aggregator는 `COMMON_RUNTIME_DEMO_ENABLED`와 같은 Origin·전용 요청 헤더를 검사한다.
+  이는 LAN 데모의 제한된 실행 경로이며 사용자별 인증·권한 관리의 대체가 아니다.
+  공통 gateway는 내부 ClusterIP를 유지한다. EdgeX·actuator 제어 권한은 추가하지 않는다.
+- 실행 ID와 자식 요청 ID를 PVC SQLite 원장에 기록한다. 접수 응답이 불명확하면
+  같은 ID로 확인·재접수한다. 이미 접수된 ID는 과거 결과를 반환한다.
+  서비스 삭제·재등록으로 UID가 바뀌면 새 서비스로 요청을 넘기지 않는다.
+- 중단은 새 요청 생성을 멈추고 이미 보낸 요청을 마무리한다. 서비스 자체를 중단하지 않는다.
+  controller 재시작 시 진행 시험은 `Interrupted`로 남기며 자동 재실행하지 않는다.
+  미확인 요청은 성공으로 합산하지 않는다. 완료 결과의 경로·반환 개수는 종료 시점 기록이다.
+
+실제 브라우저 버튼으로 실행한 결과:
+
+| 시험 | 결과 | 경계 |
+|---|---|---|
+| 실제 GPU Llama 단일 요청 | 1/1 성공 | 동일 ID 재접수도 원장 자식 요청은 1개 |
+| 실제 GPU Llama 왕복 | **261/261 성공**, 엣지 AGX → 서버 Spark → 엣지 AGX, 반환 중 0 | 모델 메모리만 해제, GPU 예약과 resident Pod 유지 |
+| 합성 HTTP 왕복 | **173/173 성공**, Tinker → 서버 cg0msb → 엣지 AGX, 반환 중 0 | 시작 장비와 다른 엣지 복귀도 허용하는 전체 후보 선택 |
+| 합성 HTTP 사용자 중단 | 410/410 응답 완료 후 `Stopped` | 종료 당시 반환 중 1개; 왕복 통과로 집계하지 않음 |
+
+브라우저 접수 일부는 5초 안에 응답을 받지 못했다. Llama 왕복은 원장에서 기존 ID를
+찾아 확인했고, 합성 중단 시험은 같은 ID 재접수 후 진행했다. 중복 실행으로 성공률을
+부풀리지 않았다. 원장에는 네 실행에 해당하는 자식 요청 **845개**가 모두 completed로
+기록되어 있다. 1440px desktop과 390px mobile을 확인했으며 mobile 문서 폭은 390px다.
+
+근거는 `edge-orch/runtime-operator/results/2026-09-10-token-free-demo/`의
+`runs.json`, `same-id-replay.json`, `durable-journal.json`, `running-images.json`이다.
+새 operator 이미지 `4bb7abaa…`, aggregator 이미지 `799f8ab1…`의 실제 Pod imageID를 확인했다.
+Python root+operator 171개 통과·기존 센서 Argo CD 기대 브랜치 불일치 1개 실패,
+aggregator 420개 통과·기존 virtual-device-runtime 경로 누락 1개 실패,
+JavaScript 249개 통과다. 공통 operator 자체는 56개 통과다.
+이 결과는 streaming·stateful 서비스, NPU 모델 호환, 제어기 HA 또는 모든 장애에서
+무중단을 보장하는 근거가 아니다. 접수 지연 원인도 이 시험만으로 확정하지 않았다.

@@ -1,0 +1,91 @@
+[
+  {
+    "namespace": "default",
+    "name": "state-aggregator-686fff54f6-z8zjx",
+    "uid": "53fc162a-0873-43e1-b24a-1b0de8d387fd",
+    "node": "etri-ser0001-cg0msb",
+    "containers": [
+      {
+        "name": "state-aggregator",
+        "imageID": "192.168.0.56:5000/state-aggregator@sha256:799f8ab1d3c87cfd2d37193994234ceebc11286b3ebc73f568faf7cdc4f78280",
+        "ready": true,
+        "restartCount": 0
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-agx-6fbd4fd799-cmt94",
+    "uid": "8357b7b5-642e-4ca7-8d50-b02351ffec4b",
+    "node": "etri-dev0005-jetagx",
+    "containers": [
+      {
+        "name": "api",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "ready": true,
+        "restartCount": 0
+      },
+      {
+        "name": "inference-runtime",
+        "imageID": "localhost/qualification/ollama-jetson@sha256:3e663d7d9eff51f99e81be82c0eaaca50502b6e98a2f131b9c607812f2ff08aa",
+        "ready": true,
+        "restartCount": 0
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-nano-5754d87c87-4c2sk",
+    "uid": "75b04b68-ebce-47c6-a7e7-a33f5e031e34",
+    "node": null,
+    "containers": []
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-nano-5754d87c87-f9fj9",
+    "uid": "d3fa2de3-bb12-40a2-8285-c15d1c5eda45",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "name": "api",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "ready": true,
+        "restartCount": 0
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-spark-5458cd78f4-dtcqm",
+    "uid": "086be06c-82b4-45f1-8c43-8375009800ca",
+    "node": "etri-ser0003-cg0ms0",
+    "containers": [
+      {
+        "name": "api",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "ready": true,
+        "restartCount": 0
+      },
+      {
+        "name": "inference-runtime",
+        "imageID": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "ready": true,
+        "restartCount": 0
+      }
+    ]
+  },
+  {
+    "namespace": "platform-runtime",
+    "name": "runtime-operator-f9f79468-tcs7z",
+    "uid": "72632b08-0b5d-486a-a94b-9aeb6bd68c53",
+    "node": "etri-ser0001-cg0msb",
+    "containers": [
+      {
+        "name": "operator",
+        "imageID": "192.168.0.56:5000/runtime-operator@sha256:4bb7abaad26b1cbc99783fc7b15c221c4b945a895f4c25f3df8d28cecee07edb",
+        "ready": true,
+        "restartCount": 0
+      }
+    ]
+  }
+]

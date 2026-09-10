@@ -1,0 +1,30 @@
+{
+  "docsImageDigest": "sha256:70da922fc6225b22dbd724732ea1ef29afbd7faa200264d4326d6962e2f0809b",
+  "publicHtmlByteEqual": true,
+  "publicHtmlSha256": "31a5e7c768b8f0b4f57317474692cc8dbeb0738987e766ae311efb27a0bf9ddf",
+  "tests": {
+    "rootAndOperator": {
+      "passed": 171,
+      "existingFailures": 1
+    },
+    "aggregator": {
+      "passed": 420,
+      "existingFailures": 1
+    },
+    "javascript": {
+      "passed": 249
+    },
+    "docsFocused": {
+      "passed": 22
+    }
+  },
+  "browser": {
+    "desktopWidth": 1440,
+    "mobileViewport": 390,
+    "mobileDocumentWidth": 390
+  },
+  "journal": {
+    "runs": 4,
+    "uniqueCompletedRequests": 845
+  }
+}
