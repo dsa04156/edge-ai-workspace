@@ -87,6 +87,12 @@ def test_resident_activation_routing_and_model_release_preserve_pods(tmp_path):
             await asyncio.sleep(0)
             await c.tick()
             old = c.states[uid]["active"]["name"]
+            now[0] += 120
+            await c.tick()
+            now[0] += 120
+            await c.tick()
+            assert c.states[uid]["reason"] == "healthy_current_placement"
+            assert c.states[uid]["active"]["name"] == old
             c.inflight[old] = 1
             now[0] += 2
             await c.tick()
@@ -102,6 +108,13 @@ def test_resident_activation_routing_and_model_release_preserve_pods(tmp_path):
             await c.tick()
             assert states == {"small": "CACHED", "large": "ACTIVE"}
             assert not c.states[uid]["retiring"]
+            observed = c.states[uid]["active"]["observation"]
+            assert observed["health"]["nodeState"] == "ACTIVE"
+            assert observed["health"]["modelVramMiB"] == 1000
+            assert c.states[uid]["lastTransition"]["fromNode"] == "field-any"
+            assert c.states[uid]["lastTransition"]["toNode"] == "datacenter-any"
+            assert c.states[uid]["lastRelease"]["modelVramMiB"] == 0
+            assert c.states[uid]["lastRelease"]["reservationRetained"] is True
             assert len(k.data["pods"]) == 2 and not k.actions
             assert ("small", "/deactivate") in actions
         finally:

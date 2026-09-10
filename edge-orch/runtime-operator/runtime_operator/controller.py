@@ -125,12 +125,15 @@ class Controller:
                     remaining.append(target)
                     continue
                 health = await self.probe(target)
+                target["observation"] = {"at": self.clock(), "health": health}
                 activating = self.lifecycle_tasks.get((name, "activate"))
                 if activating is not None and not activating.done():
                     remaining.append(target)
                     continue
                 if health and health["released"] and health["inFlight"] == 0:
                     target["releasedModelVramMiB"] = health["modelVramMiB"]
+                    state["lastRelease"] = {"node": target["node"], "at": self.clock(),
+                                            "modelVramMiB": health["modelVramMiB"], "reservationRetained": True}
                     self.save(uid, state, "resident_model_released")
                     continue
                 if health and health["inFlight"] == 0:
@@ -215,6 +218,8 @@ class Controller:
         state["eligibleCandidates"] = [{"node": c.node, "variant": c.variant.name, "role": c.role} for c in eligible]
         active = state.get("active")
         health = await self.probe(active) if active and self.pod_ready(active, uid, snapshot) else None
+        if active:
+            active["observation"] = {"at": self.clock(), "health": health}
         healthy = bool(health and health["ready"])
         if healthy and state.get("recovering") and health["inFlight"]:
             # Process-local counters were lost. Do not admit extra work on top
@@ -253,7 +258,7 @@ class Controller:
                          and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"])
                          and load <= c.variant.maxInFlight * spec.policy.highWatermark]
                 choice = small[0] if small else None
-                reason = "sustained_low_load_return"
+                reason = "sustained_low_load_return" if choice else "healthy_current_placement"
         if choice and active and self.target(resource, spec, choice)["name"] == active["name"]:
             choice = None
         if not choice and not state.get("target") and active and active.get("resident") and health and not healthy:
@@ -264,6 +269,7 @@ class Controller:
             reason = "candidate_still_draining"
         if choice and not state.get("target") and now >= state.get("retryAfter", 0):
             state["target"] = self.target(resource, spec, choice)
+            state["target"]["triggerReason"] = reason
             self.save(uid, state, "prepare")
         target = state.get("target")
         if target:
@@ -278,9 +284,13 @@ class Controller:
                 if not target.get("resident"):
                     await asyncio.to_thread(self.kube.ensure, resource, spec, candidate, target["name"])
                 target_health = await self.probe(target) if self.pod_ready(target, uid, snapshot) else None
+                target["observation"] = {"at": self.clock(), "health": target_health}
                 if target.get("resident") and target_health and not target_health["ready"]:
                     self.lifecycle(target, "activate")
                 if target_health and target_health["ready"]:
+                    state["lastTransition"] = {"fromNode": active["node"] if active else None,
+                                               "toNode": target["node"], "at": self.clock(),
+                                               "reason": target.get("triggerReason", reason)}
                     if active:
                         state["retiring"].append(active)
                     target["everRouted"] = True

@@ -205,7 +205,7 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 계약 요청을 보낸다. 서비스 중단은 RuntimeService의 suspended=true로 접수를 막고
 모델 해제를 기다린다. 이전 제어기로 돌아가려면 공통 서비스 drain·모델 해제 확인 후
 기존 제어기를 복원해야 한다. 기존 토큰 없는 순차 데모 웹은 인계로 중단 상태이며
-공통 운영 화면 연결은 후속 작업이다.
+공통 운영 관측은 NEXUS의 서비스 → 클러스터 실행으로 연결한다. 시험 요청 버튼과 계약 등록 UI는 후속이며 현재 등록은 Kubernetes 계약, 요청은 공통 gateway를 사용한다.
 
 최종 resident-v2에서는 기존 Pod가 계약에 적힌 가속기·CPU·메모리 예약을 실제 보유하는지
 검사한다. 제어기 교체 후 저장 요청 재조회에서는 worker completed_requests가 증가하지
@@ -213,3 +213,38 @@ rtk proxy kubectl --context kubernetes-admin@kubernetes -n platform-runtime get 
 `results/2026-09-10-resident-v2/restart-and-reservation-gate.json`에 보관한다.
 공통 제어기의 단위·배포 계약 시험은 현재 39개 통과다. 전체 시험의 기존 센서 Argo CD
 브랜치 불일치는 위 v7 기록과 같은 별도 문제다.
+
+
+## NEXUS 공통 실행 관측 (2026-09-10)
+
+[서비스 → 클러스터 실행](http://aggregator.192.168.0.56.sslip.io/#runtime-services)에서
+장비 이름에 고정되지 않은 서비스별 실행 위치를 확인한다. 현재 두 합성 HTTP 서비스와
+qualified 8-token Llama 추론 서비스가 같은 공통 제어기에 등록되어 있다.
+
+- `/state/runtime-services`는 고정된 내부 operator `/services`만 읽는 typed projection이다.
+  EdgeX inventory·센서 서비스 catalog와 별도로 관리한다. Kubernetes write 권한을 추가하지 않는다.
+- 현재 요청을 받는 실행체, 새 준비 대상, drain·반환 중 대상과 후보 제외 이유를 표시한다.
+  마지막 전환의 이전/다음 노드·이유·시각은 현재 배치 유지 이유와 구분해 보존한다.
+- 모델 메모리와 실행 중 요청은 실제 worker probe에서 가져온다. Pod Ready로 모델 준비를
+  추측하지 않는다. 15초 이상 오래된 snapshot·service·worker 관측은 현재 정상으로 표시하지 않는다.
+- 5초마다 관측하며 조회 실패 시 경고와 과거 위치를 유지하되 현재 모델 메모리는 숨긴다.
+  마지막 모델 해제는 시각이 붙은 과거 기록이다. GPU 예약 반환 또는 현재 대기 모델 상태로
+  해석하지 않는다. 메모리만 해제하는 resident 방식은 Pod/GPU 예약을 유지한다.
+- 서비스 등록·정책 변경은 `RuntimeService`와 Kubernetes RBAC가 담당한다.
+  NEXUS 서비스 설계는 기존 dry-run이며 이 탭에서도 실행 명령을 보내지 않는다.
+
+검증: API·operator 관련 Python 42개, 전체 JavaScript 245개 통과.
+독립 실행한 root+operator는 154개 통과·기존 센서 Argo CD 브랜치 기대값 1개 실패,
+state-aggregator는 417개 통과·기존 `virtual-device-runtime` 디렉터리 누락 시험 1개 실패다.
+서로 다른 서비스의 `app` 패키지를 같은 pytest 프로세스에 섞으면 import 충돌이 있어
+두 suite를 분리 실행했다. 실패를 없애기 위한 테스트 삭제·skip은 하지 않았다.
+1440px desktop·390px mobile에서 확인했으며 모바일 document 폭은 390px,
+860px 표는 312px 내부 컨테이너에서 스크롤한다. 브라우저만 503 응답으로 가로챈
+관측 장애 시험에서 경고·현재 메모리 숨김을 확인했다. 실제 cluster 서비스는 중단하지 않았다.
+
+추가 실장비 재검증은 **201/201 요청 성공**, AGX → Spark → AGX의 왕복이며
+고정된 qualified 8-token 계약을 유지했다. `results/2026-09-10-nexus/round-trip.json`에
+요청별 결과를, `runtime-services.json`에 NEXUS가 실제 받은 위치·마지막 전환·해제
+관측을 보관했다. `running-images.json`은 operator와 aggregator의 실제 Ready Pod
+imageID다. operator `597e6145…`, aggregator `1c8e3f8b…`를 확인했다.
+이 실험은 무손실 일반 장애 복구·HA·임의 서비스 SLO 보장의 근거가 아니다.

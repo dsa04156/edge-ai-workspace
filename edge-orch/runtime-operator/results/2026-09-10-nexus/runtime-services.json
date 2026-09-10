@@ -1,0 +1,462 @@
+{
+  "schema_version": "edgeai.common-runtime/v1",
+  "source": "kubernetes-runtime-operator",
+  "observed_at": 1789022942.4776497,
+  "snapshot_age_seconds": 0.9888300895690918,
+  "observation_error": null,
+  "services": [
+    {
+      "name": "llama-inference",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "phase": "Serving",
+      "reason": "healthy_current_placement",
+      "serving": true,
+      "checkedAt": 1789022941.5262475,
+      "active": {
+        "name": "rt-a6755c109718-0464c480dca7",
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "variant": "resident-llama-agx",
+        "capacity": 1,
+        "observation": {
+          "at": 1789022941.5262444,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE"
+          }
+        },
+        "memoryOnlyRelease": true
+      },
+      "target": null,
+      "retiring": [],
+      "lastTransition": {
+        "fromNode": "etri-ser0003-cg0ms0",
+        "toNode": "etri-dev0005-jetagx",
+        "at": 1789022892.7157938,
+        "reason": "sustained_low_load_return"
+      },
+      "lastRelease": {
+        "node": "etri-ser0003-cg0ms0",
+        "at": 1789022895.6249304,
+        "modelVramMiB": 0.0,
+        "reservationRetained": true
+      },
+      "excludedCandidates": [
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        }
+      ],
+      "observation_error": null
+    },
+    {
+      "name": "quality-api-demo",
+      "uid": "105b0004-5698-4a21-9a91-e1a0a00afb39",
+      "phase": "Serving",
+      "reason": "healthy_current_placement",
+      "serving": true,
+      "checkedAt": 1789022941.587176,
+      "active": {
+        "name": "rt-105b00045698-a3432af1cc4f",
+        "node": "etri-dev0004-tedger",
+        "role": "edge",
+        "variant": "cpu-arm64",
+        "capacity": 2,
+        "observation": {
+          "at": 1789022941.5871737,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": null,
+            "nodeState": null
+          }
+        },
+        "memoryOnlyRelease": false
+      },
+      "target": null,
+      "retiring": [],
+      "lastTransition": null,
+      "lastRelease": null,
+      "excludedCandidates": [
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "insufficient:cpu",
+            "insufficient:memory",
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "insufficient:cpu",
+            "insufficient:memory",
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        }
+      ],
+      "observation_error": null
+    },
+    {
+      "name": "telemetry-transform-demo",
+      "uid": "64e77cbd-c38c-4cd1-be0a-4643fd2d517a",
+      "phase": "Serving",
+      "reason": "healthy_current_placement",
+      "serving": true,
+      "checkedAt": 1789022941.6540635,
+      "active": {
+        "name": "rt-64e77cbdc38c-9bf5cf69efea",
+        "node": "etri-dev0004-tedger",
+        "role": "edge",
+        "variant": "cpu-arm64",
+        "capacity": 2,
+        "observation": {
+          "at": 1789022941.654061,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": null,
+            "nodeState": null
+          }
+        },
+        "memoryOnlyRelease": false
+      },
+      "target": null,
+      "retiring": [],
+      "lastTransition": null,
+      "lastRelease": null,
+      "excludedCandidates": [
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "insufficient:cpu",
+            "insufficient:memory",
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "insufficient:cpu",
+            "insufficient:memory",
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "cpu-amd64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "cpu-arm64",
+          "reasons": [
+            "selector_or_architecture_mismatch"
+          ]
+        }
+      ],
+      "observation_error": null
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+.runtime-panel { margin-top:24px; }
+.runtime-panel .section-heading { align-items:flex-start; gap:16px; }
+.runtime-panel .section-heading p { margin-bottom:0; max-width:64ch; }
+.runtime-panel .section-heading .button { flex-shrink:0; min-height:44px; }
+.runtime-table { min-width:920px; table-layout:fixed; }
+.runtime-table th:first-child { width:20%; }
+.runtime-table td { vertical-align:top; overflow-wrap:anywhere; }
+.runtime-table td strong,.runtime-table td small { display:block; margin-bottom:8px; }
+.runtime-table td small { line-height:1.6; font-variant-numeric:tabular-nums; }
+.runtime-table .badge { margin:0 0 8px; }
+.runtime-table details { margin-top:12px; }
+.runtime-table summary { cursor:pointer; min-height:44px; padding:12px 0; }
+.runtime-table details ul { padding-left:16px; font-size:12px; }
+.runtime-table details li { margin:8px 0; }
+.runtime-warning { color:var(--warn); border-left:3px solid currentColor; padding:8px 12px; }
+@media(max-width:760px){.runtime-panel .section-heading{flex-direction:column}.runtime-panel{padding:16px}.runtime-table{min-width:860px}}

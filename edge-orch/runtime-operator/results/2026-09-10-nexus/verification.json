@@ -1,0 +1,38 @@
+{
+  "url": "http://aggregator.192.168.0.56.sslip.io/#runtime-services",
+  "desktop": {
+    "width": 1440,
+    "height": 1100,
+    "serviceRows": 3
+  },
+  "mobile": {
+    "width": 390,
+    "documentScrollWidth": 390,
+    "tableScrollWidth": 860,
+    "tableContainerWidth": 312
+  },
+  "browserOnly503Injection": {
+    "warningShown": true,
+    "liveModelMemoryHidden": true,
+    "routeRemoved": true
+  },
+  "screenshots": {
+    "browser-transition.png": "4a1c6faa5e1e19b36d6a511bcfec2067152538bbdc9faa66c128d3301ef87624",
+    "browser-unavailable.png": "b6b1893358f8d0106b93a87b9b5efb65d190b7bc1c02fd01233f56d635d7b0c0",
+    "browser-mobile.png": "fb5181d37d04d41eb22dfd0a066d824282de4c04d08d4d1c146fdb10cb095948"
+  },
+  "tests": {
+    "operator": 39,
+    "aggregator": {
+      "passed": 417,
+      "failed": 1,
+      "reason": "preexisting missing edge-orch/virtual-device-runtime"
+    },
+    "rootAndOperator": {
+      "passed": 154,
+      "failed": 1,
+      "reason": "preexisting sensor Argo targetRevision expectation"
+    },
+    "javascript": 245
+  }
+}

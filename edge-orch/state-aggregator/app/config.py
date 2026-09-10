@@ -25,6 +25,8 @@ def _env_csv(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 
 
 class Settings(BaseModel):
+    common_runtime_url: str = Field(default_factory=lambda: os.getenv(
+        "COMMON_RUNTIME_URL", "http://runtime-gateway.platform-runtime.svc.cluster.local:8080"))
     model_offload_enabled: bool = Field(default_factory=lambda: _env_bool("MODEL_OFFLOAD_ENABLED"))
     model_offload_contract_path: Path = Field(default_factory=lambda: Path(os.getenv(
         "MODEL_OFFLOAD_CONTRACT_PATH", str(APP_CONFIG_DIR / "model_offload_llama.json"))))

@@ -1,0 +1,24 @@
+{
+  "runtime-operator": {
+    "pod": "runtime-operator-9c77754bc-5pl8s",
+    "uid": "45261a2f-186f-495d-b67b-6763548547a3",
+    "containers": [
+      {
+        "name": "operator",
+        "imageID": "192.168.0.56:5000/runtime-operator@sha256:597e61459a5485d982b52dd14622a8328fd4e0f9f52fbc5383ce4e2ab5e147bb",
+        "ready": true
+      }
+    ]
+  },
+  "state-aggregator": {
+    "pod": "state-aggregator-869f4849bf-m777v",
+    "uid": "bccb174a-eb6f-4c13-8298-3ed5200d018c",
+    "containers": [
+      {
+        "name": "state-aggregator",
+        "imageID": "192.168.0.56:5000/state-aggregator@sha256:1c8e3f8bb03a9bb77e024682e8f90b040b484e32722031296d5d6cf47406d0ba",
+        "ready": true
+      }
+    ]
+  }
+}
