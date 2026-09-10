@@ -9,7 +9,8 @@ from analyze_sweep import summarize
 
 ROOT=Path(__file__).resolve().parents[2]
 RUNS={'Nano':'sweep-nano-session-a/benchmark/sweep','AGX Orin':'sweep-agx-a/sweep',
-      'RTX 5060 Ti':'sweep-rtx5060ti-a/sweep','RTX 5080':'sweep-rtx5080-c/sweep'}
+      'RTX 5060 Ti':'sweep-rtx5060ti-a/sweep','RTX 5080':'sweep-rtx5080-c/sweep',
+      'DGX Spark':'sweep-spark-20260910-b/sweep'}
 
 
 def main():
@@ -29,7 +30,7 @@ def main():
         w=csv.DictWriter(f,fieldnames=sorted(set().union(*(r.keys() for r in raw))))
         w.writeheader();w.writerows(raw)
     fig,axes=plt.subplots(1,3,figsize=(14,4),layout='constrained')
-    for (name, report),color,marker in zip(data.items(),['#0072B2','#D55E00','#009E73','#000000'],['o','s','^','D']):
+    for (name, report),color,marker in zip(data.items(),['#0072B2','#D55E00','#009E73','#000000','#CC79A7'],['o','s','^','D','P']):
         cases=report['cases']
         keys=[f'i512-o128-c{c}' for c in [1,2,4,8]]
         axes[0].plot([1,2,4,8],[cases[k]['p95_latency_ms']/1000 for k in keys],marker=marker,color=color,label=name)

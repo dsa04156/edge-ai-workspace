@@ -21,7 +21,7 @@ class SweepTests(unittest.TestCase):
         self.assertIn((2048,256,1),sweep.cases())
 
     def test_common_context(self):
-        for name in ('nano','agx','rtx5060ti'):
+        for name in ('nano','agx','rtx5060ti','spark'):
             cfg=bench.load_config(Path(__file__).with_name(name+'-sweep.json'))
             self.assertEqual(cfg['runtime']['context'],4096)
             self.assertEqual(cfg['runtime']['threads'],4)

@@ -1,0 +1,3 @@
+{"event": "demo_paused", "timestamp": 1789012879.2020972}
+{"event": "gpu_ready", "layers": ["17", "17"], "gpu_process": "1223, /usr/lib/ollama/llama-server, 1688 MiB\n", "timestamp": 1789012888.9513574}
+{"event": "demo_replicas_restored", "replicas": 1, "timestamp": 1789012937.6687372}

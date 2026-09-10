@@ -84,13 +84,13 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: Llama-오프로딩-부하-판단-기준.md</span>
-            <span class="badge">수정: 2026-09-10 11:28</span>
-            <span class="badge">HTML 생성: 2026-09-10 11:28</span>
+            <span class="badge">수정: 2026-09-10 13:06</span>
+            <span class="badge">HTML 생성: 2026-09-10 13:07</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="llama-오프로딩-부하-판단-기준-실제-orin-nano-gpu-시험">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</h1>
-<blockquote><p><strong>최신 안내 (2026-09-10): 실제 AGX Orin과 DGX Spark의 GPU 실측은 완료했다.</strong> <a href="Llama-장비별-GPU-성능측정.html">장비별 GPU 성능측정</a>에서 실제 Spark의 8토큰 상한 조건 640/640건 성공을 확인할 수 있다. Spark의 512/128토큰 공통 비교는 미측정이다. 아래는 <strong>9월 4일 초기 시험의 이력</strong>이다. 당시 RTX 대체 결과를 실제 AGX·Spark 값으로 바꾸어 읽거나 당시 임계값을 다른 요청 길이의 확정 기준으로 사용하지 않는다.</p></blockquote>
+<blockquote><p><strong>최신 안내 (2026-09-10): 실제 AGX Orin과 DGX Spark의 GPU 실측은 완료했다.</strong> <a href="Llama-장비별-GPU-성능측정.html">장비별 GPU 성능측정</a>에서 실제 Spark의 8토큰 상한 조건 640/640건과 9월 10일 공통 설정 sweep 44/44건 성공을 확인할 수 있다. Spark의 512/128토큰 단일 요청은 0.871초, 동시 요청 8개 표본 p95는 6.491초다. 아래는 <strong>9월 4일 초기 시험의 이력</strong>이다. 당시 RTX 대체 결과를 실제 AGX·Spark 값으로 바꾸어 읽거나 당시 임계값을 다른 요청 길이의 확정 기준으로 사용하지 않는다.</p></blockquote>
 <blockquote><p><strong>2026-09-04 당시 측정 범위:</strong> <code>etri-dev0001-jetorn</code>의 실제 Jetson Orin Nano에서 Ollama JetPack 6 CUDA runner로 <code>llama3.2:1b</code>를 실행했다. 로그에서 Orin compute capability 8.7을 확인했고 <code>ollama ps</code>는 모델을 <code>100% GPU</code>로 표시했다. 이 초기 시험에는 실제 Jetson AGX Orin과 NVIDIA DGX Spark가 포함되지 않았다. 대신 RTX 5060 Ti와 RTX 5080 x86 서버에서 같은 모델의 GPU 대체시험을 수행했으며, 두 결과를 실제 AGX·Spark 성능값으로 해석하지 않는다.</p></blockquote>
 <div class="table-wrap"><table>
 <thead><tr>

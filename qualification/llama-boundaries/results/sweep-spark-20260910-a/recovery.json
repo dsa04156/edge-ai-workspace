@@ -1,0 +1,15 @@
+{
+  "measurement_completed": true,
+  "requests": 45,
+  "success": 45,
+  "automatic_cleanup": "failed: PID file path /tmp is read-only in inference-runtime",
+  "owned_process_identification": "ps verified PID 1223, native llama-server, loopback port 18200, exact model path",
+  "manual_recovery": "SIGTERM sent only to verified owned PID 1223; subsequent nvidia-smi compute process list empty",
+  "demo_restored": {
+    "active": false,
+    "can_start": true,
+    "state": "LOCAL"
+  },
+  "followup": "Use writable /dev/shm PID file and fail shell before runtime launch on PID write error; repeat full identical sweep in run b",
+  "primary_comparison": false
+}

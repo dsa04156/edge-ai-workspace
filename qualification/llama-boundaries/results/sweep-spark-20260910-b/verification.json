@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-10",
+  "run": "sweep-spark-20260910-b",
+  "requests": 44,
+  "success": 44,
+  "input_output_counts_verified": true,
+  "zero_prefix_reuse_verified": true,
+  "fixtures_identical_to": "sweep-rtx5060ti-a/sweep/fixtures.json",
+  "model_sha256_verified": "74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45",
+  "gpu_layers": "17/17",
+  "native_gpu_process_memory_mib": 1688,
+  "gpu_processes_after": [],
+  "demo_after": {
+    "active": false,
+    "can_start": true,
+    "state": "LOCAL"
+  },
+  "raw_sha256": "68f14e44258fbd2eb817cfe1c42f65e8ee9ac33e5b6451dd777a16a925ba24ef",
+  "initial_attempt": "a:45/45 measured, PID-file cleanup failed; manually recovered; retained separately"
+}

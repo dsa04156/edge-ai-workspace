@@ -288,3 +288,31 @@ RTX smoke는 finally에서 자신이 시작한 process group만 종료하고 GPU
 Nano client는 완료 후 종료되며 기존 모델을 종료하지 않는다.
 공유 모델·이미지·호스트 파일 캐시는 삭제하지 않았다. 기존 센서 서비스는 유지했다.
 결과·실험 코드·불완전 다운로드는 재현을 위해 남겼다. SSH 비밀번호는 저장하지 않는다.
+
+## 2026-09-10 실제 DGX Spark 공통 설정 sweep
+
+`spark_sweep.py`는 기존 유휴 Spark Pod에서 같은 Llama Instruct Q8_0 파일과
+`d222767c7` native 서버를 사용한다. Spark 전용 `cuda_v13` backend 외에는
+context4096/slot1/thread4/batch512·128/f16 KV/FA off로 기존 sweep과 같다.
+측정 요청은 기존 `sweep.py`를 변경 없이 같은 Pod의 API 컨테이너에서 발생시킨다.
+
+```bash
+rtk proxy python3 qualification/llama-boundaries/spark_sweep.py \
+  --output qualification/llama-boundaries/results/sweep-spark-새-ID
+```
+
+운영자가 승인한 측정 창에서 실행한다. 시작 조건은 고정 Spark 노드·단일 기존 Pod,
+GPU compute 프로세스 0, 모델 CACHED, 왕복 데모 비실행 및 시작 가능한 상태다.
+스크립트는 왕복 컨트롤러 replica만 잠시 0으로 바꾸고 종료 시 원래 1로 복원한다.
+Spark 관리 Pod·GPU 예약·모델 파일·Ollama daemon은 유지하며 native 서버는
+loopback18200에만 바인딩한다. 온도80°C·실행시간 상한을 넘으면 중지하고,
+서버에는 독립360초 timeout이 있다. 프로세스 ID는 읽기 전용 `/tmp`가 아닌 `/dev/shm`에
+기록한다. 접속 상실로 replica 복원에 실패하면 운영자가 기록된 controller를 복구해야 한다.
+
+최종 `sweep-spark-20260910-b`는 44/44건과 자동 종료·demo 복구를 통과했다.
+입력 fixture는 기존 RTX5060Ti sweep과 동일하고 모든 요청의 실제 토큰 수·prefix
+미재사용을 확인했다. 최초 a는 측정45/45 성공 후 PID 기록 경로 오류로 자동 정리가
+실패했으며, 수동 정리와 복구 기록을 따로 보존한다. b를 최종 비교에 사용한다.
+`verification.json`, `events.jsonl`, `resources.jsonl`, 압축 runtime/client 로그와
+`sweep/requests.jsonl`·`fixtures.json`·`complete.json`이 근거다.
+결과와 비교표는 [장비별 GPU 성능측정](../../docs/Llama-장비별-GPU-성능측정.md)을 따른다.
