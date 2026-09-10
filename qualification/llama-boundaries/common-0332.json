@@ -1,0 +1,17 @@
+{
+  "extends": "config.json",
+  "ramp_concurrency": [2, 4],
+  "runtime": {
+    "reported_revision": "d222767c7",
+    "distribution": "Same immutable Ollama 0.33.2 multiarch image; architecture-specific CUDA backend",
+    "image_digest": "sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+    "threads": 4,
+    "context": 2048,
+    "batch": 512,
+    "ubatch": 128,
+    "parallel_slots": 1,
+    "gpu_layers": 99,
+    "kv_type": "f16",
+    "flash_attention": "off"
+  }
+}

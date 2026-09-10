@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-09-08T08:15:02.454910+00:00",
+  "storage_devices": "NAME           SIZE FSTYPE   MOUNTPOINTS                  MODEL\nloop0           16M vfat                                  \nloop1         43.5M squashfs /snap/snapd/27740            \nloop2         61.9M squashfs /snap/core24/1644            \nloop3            4K squashfs /snap/bare/5                 \nloop4         91.7M squashfs /snap/gtk-common-themes/1535 \nloop5        248.4M squashfs /snap/firefox/8862           \nloop6        188.2M squashfs /snap/mesa-2404/1836         \nloop7        552.9M squashfs /snap/gnome-46-2404/154      \nmmcblk0       59.2G                                       \n|-mmcblk0p1   57.7G ext4     /                            \n|-mmcblk0p2    128M                                       \n|-mmcblk0p3    768K                                       \n|-mmcblk0p4   31.6M                                       \n|-mmcblk0p5    128M                                       \n|-mmcblk0p6    768K                                       \n|-mmcblk0p7   31.6M                                       \n|-mmcblk0p8    100M                                       \n|-mmcblk0p9    512K                                       \n|-mmcblk0p10    64M vfat     /boot/efi                    \n|-mmcblk0p11   100M                                       \n|-mmcblk0p12   512K                                       \n|-mmcblk0p13    64M                                       \n|-mmcblk0p14   400M                                       \n`-mmcblk0p15 479.5M                                       \nmmcblk0boot0     4M                                       \nmmcblk0boot1     4M                                       \n",
+  "apt_cache_cleanup": {
+    "operation": "delete_complete_apt_download_cache",
+    "files": 385,
+    "bytes": 1985751772
+  },
+  "filesystem_after_cache_cleanup": "Filesystem       1B-blocks        Used   Available Use% Mounted on\n/dev/mmcblk0p1 57806061568 36850806784 17985687552  68% /\n",
+  "preserved": [
+    "installed packages",
+    "/home/etri/llama-boundaries-20260908",
+    "containerd configuration",
+    "existing workloads"
+  ],
+  "apt_binary_index_cache_cleanup": {
+    "operation": "remove_regenerable_apt_binary_index_cache",
+    "removed": [
+      {
+        "path": "/var/cache/apt/pkgcache.bin",
+        "bytes": 59473285
+      },
+      {
+        "path": "/var/cache/apt/srcpkgcache.bin",
+        "bytes": 59432105
+      }
+    ]
+  }
+}

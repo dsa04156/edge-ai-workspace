@@ -1,0 +1,7 @@
+series,method,concurrency,p95_latency_ms,p95_ttft_ms,throughput_requests_per_second
+Cached On-Demand,cached_on_demand,1,570.8951,113.56944999999999,2.0953555600066007
+Cached On-Demand,cached_on_demand,2,1141.8435,541.6545,2.3191168654712975
+Cached On-Demand,cached_on_demand,4,1691.8757,1200.0336,2.4694151628234295
+Cached On-Demand,cached_on_demand,8,3391.55325,2082.117199999999,4.501244207473355
+Cached On-Demand,cached_on_demand,16,3314.69925,3067.2167499999996,5.300490325375131
+Cached On-Demand,cached_on_demand,32,6610.80165,6363.6663,4.83641238266264

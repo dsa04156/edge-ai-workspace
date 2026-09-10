@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: llama-continuity-test
+resources: [resources.yaml]
+configMapGenerator:
+  - name: ordered-offload-code
+    files:
+      - ../../../edge-orch/state-aggregator/app/model_offload_demo.py
+      - ../../../edge-orch/state-aggregator/app/model_offload_demo_run.py
+      - ../../../edge-orch/state-aggregator/app/model_offload_ordered.py
+      - ../../../edge-orch/state-aggregator/app/model_offload_controller.py
+      - ../../../edge-orch/state-aggregator/app/model_offload_contract.py
+      - ../../../edge-orch/state-aggregator/app/model_offload_api.py
+      - ../../../edge-orch/state-aggregator/app/runtime_recommendation.py
+      - ../../../edge-orch/state-aggregator/app/runtime_execution_plan.py
+  - name: ordered-offload-contract
+    files:
+      - ../../../edge-orch/state-aggregator/app/config/model_offload_llama.json
+  - name: ordered-offload-ui
+    files:
+      - ../../../edge-orch/state-aggregator/app/static/ordered-demo/index.html
+      - ../../../edge-orch/state-aggregator/app/static/ordered-demo/demo.js
+      - ../../../edge-orch/state-aggregator/app/static/ordered-demo/demo.css

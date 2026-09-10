@@ -1,0 +1,63 @@
+{
+  "timestamp": 1788845372.7463365,
+  "activation": {
+    "activation_required": true,
+    "node_state_before": "CACHED",
+    "node_state": "ACTIVE",
+    "activation_started_timestamp": 1788845346.395727,
+    "ready_timestamp": 1788845372.73465,
+    "worker_start_ms": 1.379,
+    "model_remote_download_ms": 0.0,
+    "model_load_ms": 26327.913,
+    "cuda_initialization_ms": null,
+    "endpoint_ready_ms": 26339.075,
+    "activation_time_ms": 26339.079,
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "transition": {
+      "timestamp": 1788845372.7346618,
+      "node": "nano",
+      "physical_node": "etri-dev0001-jetorn",
+      "old_state": "CACHED",
+      "new_state": "ACTIVE",
+      "reason": "approved_local_sweep_restore"
+    }
+  },
+  "health": {
+    "agent_healthy": true,
+    "inference_ready": true,
+    "node_state": "ACTIVE",
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_loaded": true,
+    "node_id": "etri-dev0001-jetorn",
+    "role": "nano",
+    "model": "llama3.2:1b",
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime": "ollama"
+  },
+  "loaded": {
+    "models": [
+      {
+        "name": "llama3.2:1b",
+        "model": "llama3.2:1b",
+        "size": 1413952307,
+        "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "1.2B",
+          "quantization_level": "Q8_0"
+        },
+        "expires_at": "2318-12-19T05:16:49.581184249Z",
+        "size_vram": 1413952307,
+        "context_length": 2048
+      }
+    ]
+  }
+}

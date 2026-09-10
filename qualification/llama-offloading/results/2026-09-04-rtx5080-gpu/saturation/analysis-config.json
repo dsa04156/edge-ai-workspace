@@ -1,0 +1,7 @@
+{
+  "execution_profile": "x86_gpu_substitute",
+  "ttft_slo_ms": 1500.0,
+  "queue_high": 16,
+  "input_requests": "requests.csv",
+  "input_resources": "resources.csv"
+}

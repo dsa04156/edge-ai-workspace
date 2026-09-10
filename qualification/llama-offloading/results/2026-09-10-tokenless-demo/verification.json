@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-10",
+  "url": "http://offload-demo.192.168.0.56.sslip.io/",
+  "browser_actions": [
+    "start_without_token",
+    "stop_without_token"
+  ],
+  "run": {
+    "id": "82babf4f27ca4a62b0936b82c8938020",
+    "status": "stopped",
+    "started_at": 1789006524.131276,
+    "finished_at": 1789006546.0058544,
+    "phase": 0,
+    "phase_label": "요청 마무리 · 모델 메모리 해제 확인",
+    "offered_rps": 0,
+    "planned": 1622,
+    "attempted": 24,
+    "completed": 24,
+    "ok": 24,
+    "errors": {},
+    "by_node": {
+      "etri-dev0001-jetorn": 24
+    },
+    "visited": [
+      "etri-dev0001-jetorn"
+    ],
+    "transitions": [],
+    "baseline_cycles": 2,
+    "expected": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "passed": false,
+    "last_result": {
+      "node": "etri-dev0001-jetorn",
+      "text": "Edge computing reduces latency by processing data closer",
+      "ttft_ms": 95.9623160015326,
+      "at": 1789006535.9895
+    },
+    "reason": null,
+    "journal_checkpoint": {
+      "busy": 0,
+      "wal_pages": 135,
+      "checkpointed_pages": 135
+    },
+    "elapsed_seconds": 21.87457847595215
+  },
+  "active": false,
+  "can_start": true,
+  "direct_generate_without_token_http_status": 403,
+  "controller_code_configmap": "ordered-offload-code-6h42d6bt6b",
+  "ui_configmap": "ordered-offload-ui-tfgkdhbgfh"
+}

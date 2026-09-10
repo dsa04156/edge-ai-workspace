@@ -1,0 +1,142 @@
+[
+  {
+    "name": "device-sensehat-raspi-995f8896b-mxrqd",
+    "uid": "e107d888-5844-4829-a13b-dfb939b9788c",
+    "node": "etri-dev0003-raspi5",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "device-sensehat-raspi",
+        "containerID": "containerd://805d1b08eeccfd9b7bacf04d9bda6a99fe8595e48bf9e56c30962b31cdbb5697",
+        "restartCount": 2,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "device-serial-jetson-76b6c976fd-kmgc2",
+    "uid": "bb9d3c87-f9e3-4ec6-bea5-4cce0bd8ba80",
+    "node": "etri-dev0001-jetorn",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "device-serial-jetson",
+        "containerID": "containerd://347c8ee556231c523b049210f1d33316cbd6347503a0595d67838b8123d12b9b",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edge-device-discovery-8gjgm",
+    "uid": "de085c56-1a1a-4f6e-8eef-dbe530dbffdc",
+    "node": "etri-dev0002-raspi5",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "discovery",
+        "containerID": "containerd://48f075324ea21e29df70721cbbff2bd9eac1c9876abbdc34c3db661d32c2440f",
+        "restartCount": 1,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edge-device-discovery-9lrcx",
+    "uid": "f956637e-c8d3-43bd-ac84-b7c09f32d9b2",
+    "node": "etri-dev0001-jetorn",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "discovery",
+        "containerID": "containerd://f3b0e16fe334488b1fc6660163919badcd5f524372a8cf9d033a98cc0763a779",
+        "restartCount": 2,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edge-device-discovery-i2c-b9gq6",
+    "uid": "51885132-14ca-41cd-bad4-fa40497152eb",
+    "node": "etri-dev0003-raspi5",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "discovery",
+        "containerID": "containerd://a9f2e8473866134a8bd2530acc931e159e4fdac73fab24a59f3ef0e14d087dcb",
+        "restartCount": 3,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edge-device-discovery-qxpmp",
+    "uid": "51f7c057-a600-4dca-aac4-d0f6821548fa",
+    "node": "etri-dev0003-raspi5",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "discovery",
+        "containerID": "containerd://3c50dbf022e262ae58a34a8e3ae506f6e714d084cfc59bb43ab801d6c3e33832",
+        "restartCount": 3,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edge-modbus-simulator-765b5b547b-47sk2",
+    "uid": "7c2fa23e-1f3d-4a74-86c3-83754e28a5a5",
+    "node": "etri-dev0001-jetorn",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "simulator",
+        "containerID": "containerd://371d5956a43f72979aca409f5c67001fff98b503b6be576d00800edc772e003e",
+        "restartCount": 2,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "edgex-adapter-controller-74f754844f-vqvpq",
+    "uid": "56fd2453-1f07-4d22-9bb4-e4957dbe7b98",
+    "node": "etri-ser0002-cgnmsb",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "edgex-adapter-controller",
+        "containerID": "containerd://30eab3a4bb604a8845a6ca39cc148b2d2b60768882df331227eace0eccee25b9",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "sensor-anomaly-demo-579cdb4d76-9nnn8",
+    "uid": "3c8513a6-ce82-4fe6-a74c-9038b7bc7d26",
+    "node": "etri-dev0001-jetorn",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "sensor-anomaly-demo",
+        "containerID": "containerd://303eccfcaf312debd3eff10236775a749bb4af6893b8fc568c9e6e234e142d78",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "sensor-anomaly-inference-server1-69f86ddcdc-kgbj7",
+    "uid": "812a47bc-1382-453d-a19a-325f838388e9",
+    "node": "etri-ser0002-cgnmsb",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "sensor-anomaly-inference",
+        "containerID": "containerd://118745269cd2ce7a4a941d557b3221fc5f0664444e27aae9e75c4566f8546ce9",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "pod_uid": "24f7ee60-138d-4aee-af2a-cb4e4333c58c",
+  "pod": "llama-worker-spark-85bb57c85d-9qtt2",
+  "node": "etri-ser0002-cgnmsb",
+  "config": {
+    "schema_version": 1,
+    "experiment_only": true,
+    "automatic_production_switching": false,
+    "model": {
+      "family": "Llama-3.2-1B-Instruct",
+      "quantization": "Q8_0",
+      "source": "Ollama registry library/llama3.2:1b, existing local GGUF",
+      "upstream_revision": null,
+      "sha256": "74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45",
+      "path": "/models/blobs/sha256-74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45"
+    },
+    "runtime": {
+      "binary": "/usr/lib/ollama/llama-server",
+      "library_path": "/home/jinuk/.local/lib/ollama:/home/jinuk/.local/lib/ollama/cuda_v12",
+      "backend_path": "/home/jinuk/.local/lib/ollama/cuda_v12/libggml-cuda.so",
+      "reported_revision": "d222767c7",
+      "distribution": "Same immutable Ollama 0.33.2 multiarch image; architecture-specific CUDA backend",
+      "host": "0.0.0.0",
+      "port": 18200,
+      "threads": 4,
+      "context": 4096,
+      "batch": 512,
+      "ubatch": 128,
+      "parallel_slots": 1,
+      "gpu_layers": 99,
+      "kv_type": "f16",
+      "flash_attention": "off",
+      "image_digest": "sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2"
+    },
+    "workload": {
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "seed": 20260907,
+      "cache_prompt": false,
+      "ignore_eos": true
+    },
+    "safety": {
+      "request_timeout_s": 30,
+      "activation_timeout_s": 90,
+      "max_smoke_requests": 3,
+      "max_smoke_duration_s": 180,
+      "max_temperature_c": 80,
+      "min_available_ram_mib": 1024
+    },
+    "policy_proposals_not_validated": {
+      "slo_ttft_ms": null,
+      "slo_latency_ms": null,
+      "minimum_gain_fraction": 0.15,
+      "cooldown_s": 30
+    },
+    "ramp_concurrency": [
+      2,
+      4
+    ]
+  },
+  "binary_sha256": "234b05b2138264f8fb263c3205e85f4c290e8afe5067e280a4f6f90cdac5696b  /usr/lib/ollama/llama-server\n",
+  "gpu_inventory": "Tue Sep  8 05:31:16 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.84                 Driver Version: 595.84         CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 5080        Off |   00000000:02:00.0 Off |                  N/A |\n|  0%   42C    P8              7W /  360W |      15MiB /  16303MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+\n",
+  "reservation": "nvidia.com/gpu=1 on borrowed Pod; released only when that Pod is deleted"
+}

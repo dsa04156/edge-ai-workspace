@@ -209,6 +209,7 @@ class ModelOffloadExecutionController:
         self.started_at = time.monotonic()
         self.changed_at = self.started_at
         self.last_remote = self.started_at
+        self.last_finished = {node: self.started_at for node in self.workers}
         self.high_since: float | None = None
         self.low_since: float | None = None
         self.recommendation: dict = {"service_id": contract.service_id, "tier": "edge",
@@ -240,7 +241,8 @@ class ModelOffloadExecutionController:
     def snapshot(self) -> dict:
         return {"service_id": self.contract.service_id, "state": self.state,
                 "reason_code": self.reason, "target_node": self.target,
-                "target_tier": self.workers[self.target].role, "selected_server": self.selected,
+                "target_tier": self.workers[self.target].role, "selected_worker": self.selected,
+                "selected_server": self.selected if self.selected and self.workers[self.selected].role == "server" else None,
                 "cycles_completed": self.cycles, "accepting": self.accepting,
                 "arrival_rps": self.rate(), "recommendation": self.recommendation,
                 "execution_plan": build_model_offload_execution_plan(self.recommendation),
@@ -329,6 +331,7 @@ class ModelOffloadExecutionController:
                     self.transition("DRAINING", "remote_failure_new_requests_return_to_edge")
             finally:
                 self.inflight[node] -= 1
+                self.last_finished[node] = time.monotonic()
                 if node != self.edge:
                     self.last_remote = time.monotonic()
                 future = self.futures.pop(request_id, None)

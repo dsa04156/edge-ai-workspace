@@ -1,0 +1,9 @@
+{
+  "raw": "requests.csv",
+  "matplotlib": "3.10.6",
+  "n": "Concurrency panel n=1,2,4,8; length panels n=1 per cell",
+  "uncertainty": "not estimated; no independent repeats",
+  "smoothing": null,
+  "lines": "connect observed conditions only, not a fitted model",
+  "destination": "repository exploratory report"
+}

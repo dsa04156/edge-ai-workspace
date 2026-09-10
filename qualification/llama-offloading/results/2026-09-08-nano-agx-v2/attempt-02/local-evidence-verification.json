@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "raw_runs": 20,
+  "exported_files_sha256_verified": 40,
+  "local_report_matches_remote": true,
+  "baseline_freeze_matches_policy": true
+}

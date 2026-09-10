@@ -1,0 +1,19 @@
+{
+  "created_at": "2026-09-08T12:01:09.134054+00:00",
+  "tests_passed": 92,
+  "sha256": {
+    "continuity_policy.py": "5c9784ebc20a406ce457209b918ef36beeb1e485299bef2d356e447d9b055067",
+    "continuity_runner.py": "4e17d87915823baa22cac273dee78cb7159954a1a3dd8ea86514554428848ef1",
+    "continuity_report.py": "01431c388cb7a17dd5e4e71a7d953ff76ab3bd47a4330428f4091ef8fdcc8be8",
+    "continuity_preflight.py": "56ba5e60b4a3d57e617a0b5bf62fa9aa98cb2c56445e9917417a8f742eb1bece",
+    "tests/test_continuity.py": "2d78681dd533a5a7cfd4b53ffda3db9d4ed8efd2d953bc1518358b683f8ccf90"
+  },
+  "measurement_contract_unchanged": true,
+  "note": "Admission-pinned drain and paired-control validation finalized before first live v2 roundtrip; baseline collection methods unchanged.",
+  "live_controller_sha256": {
+    "continuity_policy.py": "5c9784ebc20a406ce457209b918ef36beeb1e485299bef2d356e447d9b055067",
+    "continuity_runner.py": "4e17d87915823baa22cac273dee78cb7159954a1a3dd8ea86514554428848ef1",
+    "continuity_report.py": "01431c388cb7a17dd5e4e71a7d953ff76ab3bd47a4330428f4091ef8fdcc8be8"
+  },
+  "frozen_policy_id": "c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3"
+}

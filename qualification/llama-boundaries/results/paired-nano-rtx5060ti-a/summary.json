@@ -1,0 +1,84 @@
+{
+  "nano": {
+    "1": {
+      "n": 3,
+      "successful": 3,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 3569.5603350177407,
+      "p95_latency_ms": 3601.455300906673,
+      "p50_ttft_ms": 363.5231901425868,
+      "p95_ttft_ms": 381.4761597197503,
+      "completed_requests_per_s": 0.05129716048723846,
+      "output_tokens_per_s": 6.566036542366523,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "2": {
+      "n": 6,
+      "successful": 6,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 5167.20552649349,
+      "p95_latency_ms": 6882.726406271104,
+      "p50_ttft_ms": 2059.1246450785547,
+      "p95_ttft_ms": 3766.029672231525,
+      "completed_requests_per_s": 0.09629326608170108,
+      "output_tokens_per_s": 12.325538058457738,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "4": {
+      "n": 12,
+      "successful": 12,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 8530.905799008906,
+      "p95_latency_ms": 13624.891286098864,
+      "p50_ttft_ms": 5417.820791946724,
+      "p95_ttft_ms": 10510.980605054647,
+      "completed_requests_per_s": 0.16829469652027884,
+      "output_tokens_per_s": 21.54172115459569,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    }
+  },
+  "remote": {
+    "1": {
+      "n": 3,
+      "successful": 3,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 545.539733953774,
+      "p95_latency_ms": 548.0783488135785,
+      "p50_ttft_ms": 46.40981392003596,
+      "p95_ttft_ms": 51.4688725117594,
+      "completed_requests_per_s": 0.0503433759928713,
+      "output_tokens_per_s": 6.443952127087527,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "2": {
+      "n": 6,
+      "successful": 6,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 804.827590007335,
+      "p95_latency_ms": 1074.7780275414698,
+      "p50_ttft_ms": 310.6854211073369,
+      "p95_ttft_ms": 580.438185017556,
+      "completed_requests_per_s": 0.10620838299691074,
+      "output_tokens_per_s": 13.594673023604575,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "4": {
+      "n": 12,
+      "successful": 12,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 1350.3392924321815,
+      "p95_latency_ms": 2149.5365872164257,
+      "p50_ttft_ms": 856.1263814335689,
+      "p95_ttft_ms": 1655.151021759957,
+      "completed_requests_per_s": 0.2725454486332683,
+      "output_tokens_per_s": 34.88581742505834,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    }
+  }
+}

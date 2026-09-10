@@ -1,0 +1,119 @@
+{
+  "config": {
+    "schema_version": 1,
+    "experiment_only": true,
+    "automatic_production_switching": false,
+    "model": {
+      "family": "Llama-3.2-1B-Instruct",
+      "quantization": "Q8_0",
+      "source": "Ollama registry library/llama3.2:1b, existing local GGUF",
+      "upstream_revision": null,
+      "sha256": "74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45",
+      "path": "/home/etri/llama-boundaries-20260908/model.gguf"
+    },
+    "runtime": {
+      "binary": "/home/etri/llama-boundaries-20260908/runtime-0332/llama-server",
+      "library_path": "/home/etri/llama-boundaries-20260908/runtime-0332:/home/etri/llama-boundaries-20260908/runtime-0332/cuda_jetpack6:/usr/lib/aarch64-linux-gnu/nvidia",
+      "backend_path": "/home/etri/llama-boundaries-20260908/runtime-0332/cuda_jetpack6/libggml-cuda.so",
+      "reported_revision": "d222767c7",
+      "distribution": "Same immutable Ollama 0.33.2 multiarch image; architecture-specific CUDA backend",
+      "host": "127.0.0.1",
+      "port": 18200,
+      "threads": 4,
+      "context": 4096,
+      "batch": 512,
+      "ubatch": 128,
+      "parallel_slots": 1,
+      "gpu_layers": 99,
+      "kv_type": "f16",
+      "flash_attention": "off",
+      "image_digest": "sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+      "gpu_verification": "jetson-owned-cuda-maps"
+    },
+    "workload": {
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "seed": 20260907,
+      "cache_prompt": false,
+      "ignore_eos": true
+    },
+    "safety": {
+      "request_timeout_s": 30,
+      "activation_timeout_s": 90,
+      "max_smoke_requests": 1,
+      "max_smoke_duration_s": 180,
+      "max_temperature_c": 80,
+      "min_available_ram_mib": 1024
+    },
+    "policy_proposals_not_validated": {
+      "slo_ttft_ms": null,
+      "slo_latency_ms": null,
+      "minimum_gain_fraction": 0.15,
+      "cooldown_s": 30
+    },
+    "ramp_concurrency": []
+  },
+  "hostname": "etri-dev0005-jetagx",
+  "architecture": "aarch64",
+  "kernel": "6.8.12-1021-tegra",
+  "os_release": "PRETTY_NAME=\"Ubuntu 24.04.4 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.4 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "runtime_version": "version: 0.3.0-dev (build 1, commit d222767c7)\nbuilt with Clang 21.1.8 for Linux aarch64\n",
+  "binary_sha256": "f6e05586c5e7dd2110b2d8efadf23ff3b081dcdd53be67cfd32884af7b476163",
+  "model_sha256_verified": true,
+  "arguments": [
+    "/home/etri/llama-boundaries-20260908/runtime-0332/llama-server",
+    "--model",
+    "/home/etri/llama-boundaries-20260908/model.gguf",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "18200",
+    "--threads",
+    "4",
+    "--ctx-size",
+    "4096",
+    "--batch-size",
+    "512",
+    "--ubatch-size",
+    "128",
+    "--parallel",
+    "1",
+    "--gpu-layers",
+    "99",
+    "--cache-type-k",
+    "f16",
+    "--cache-type-v",
+    "f16",
+    "--flash-attn",
+    "off",
+    "--cache-ram",
+    "0",
+    "--cache-reuse",
+    "0",
+    "--metrics",
+    "--verbose"
+  ],
+  "cpu": {
+    "exit_code": 0,
+    "stdout": "Architecture:                            aarch64\nCPU op-mode(s):                          32-bit, 64-bit\nByte Order:                              Little Endian\nCPU(s):                                  12\nOn-line CPU(s) list:                     0-11\nVendor ID:                               ARM\nModel name:                              Cortex-A78AE\nModel:                                   1\nThread(s) per core:                      1\nCore(s) per cluster:                     12\nSocket(s):                               -\nCluster(s):                              1\nStepping:                                r0p1\nCPU(s) scaling MHz:                      51%\nCPU max MHz:                             2201.6001\nCPU min MHz:                             115.2000\nBogoMIPS:                                62.50\nFlags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp uscat ilrcpc flagm paca pacg\nL1d cache:                               768 KiB (12 instances)\nL1i cache:                               768 KiB (12 instances)\nL2 cache:                                3 MiB (12 instances)\nL3 cache:                                6 MiB (3 instances)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-11\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; CSV2, BHB\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected",
+    "stderr": ""
+  },
+  "driver": {
+    "exit_code": 0,
+    "stdout": "Tue Sep  8 14:26:26 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.78                 Driver Version: 595.78         CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  Orin (nvgpu)                  N/A  |   N/A              N/A |                  N/A |\n| N/A   N/A  N/A             N/A  /  N/A  | Not Supported          |     N/A          N/A |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+",
+    "stderr": ""
+  },
+  "cuda_toolkit": {
+    "exit_code": null,
+    "stdout": null,
+    "stderr": "[Errno 2] No such file or directory: 'nvcc'"
+  },
+  "power_mode": {
+    "exit_code": 0,
+    "stdout": "NV Power Mode: MODE_50W\n3",
+    "stderr": ""
+  },
+  "upstream_revision_verified": false,
+  "method": "cached-on-demand",
+  "image_preparation": "not applicable: host process"
+}

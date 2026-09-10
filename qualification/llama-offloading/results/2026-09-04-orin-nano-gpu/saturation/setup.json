@@ -1,0 +1,27 @@
+{
+  "activation": {
+    "nano": {
+      "activation_required": false,
+      "activation_started_timestamp": 1788515773.810518,
+      "activation_time_ms": 64229.091,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 64229.087,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 26141.371,
+      "model_remote_download_ms": 38072.92,
+      "node_state": "ACTIVE",
+      "node_state_before": "ACTIVE",
+      "ready_timestamp": 1788515838.0394592,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "nano",
+        "old_state": "COLD",
+        "physical_node": "etri-dev0001-jetorn",
+        "reason": "orin_nano_gpu_validation",
+        "timestamp": 1788515838.0394762
+      },
+      "worker_start_ms": 1.131
+    }
+  },
+  "method": "direct_selected_workers"
+}

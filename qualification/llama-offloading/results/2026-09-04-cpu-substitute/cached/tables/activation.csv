@@ -1,0 +1,5 @@
+method,node,activation_time_ms,worker_start_ms,model_remote_download_ms,model_load_ms,first_offloaded_request_latency_ms
+Cold On-Demand,AGX,,,,,
+Cold On-Demand,SPARK,,,,,
+Cached On-Demand,AGX,1187.222,1.092,0.0,1181.609,1535.747
+Cached On-Demand,SPARK,1187.079,0.38,0.0,1182.687,1609.976

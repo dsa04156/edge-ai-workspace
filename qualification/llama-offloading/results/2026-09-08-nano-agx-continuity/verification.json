@@ -1,0 +1,106 @@
+{
+  "verified_at": "2026-09-08T07:56:26.320429+00:00",
+  "implementation": "local criteria/calibration/runner/verifier complete; dedicated controller deployed",
+  "automatic_tests": {
+    "suite": "qualification/llama-offloading/tests",
+    "passed": 76,
+    "failed": 0
+  },
+  "live_controller_sha256": {
+    "continuity_policy.py": "f0050fb37cd30ce0ca65c119183934464fb1fd406a3f9a7b9f2082270990fa42",
+    "continuity_runner.py": "5d12e3053fdd3576894b983d283ea3ca1c1fc2379d62dd85c1f98609ac2ed978",
+    "continuity_report.py": "30fc62d0e3344689ec458976cdc3f45d6d31f0ecf6a04b9fde0ba354f55585b5"
+  },
+  "live_matches_local": true,
+  "service_dns_identity_readback": [
+    "etri-dev0001-jetorn",
+    "etri-dev0005-jetagx"
+  ],
+  "baseline_status": "failed during setup; HTTP 502 / AGX DiskPressure and eviction observed",
+  "baseline_batches": 0,
+  "activation_samples": 0,
+  "policy_frozen": false,
+  "round_trip_runs": 0,
+  "agx_default_replicas": 0,
+  "original_agx_model_pvc_removed": true,
+  "replacement_model_pvc": "empty Pending definition, no volume provisioned until consumer",
+  "final_cluster": [
+    {
+      "kind": "Pod",
+      "name": "continuity-controller-567f847fc7-wkjlf",
+      "phase": "Running",
+      "replicas": null,
+      "readyReplicas": null,
+      "containers": [
+        {
+          "name": "controller",
+          "ready": true,
+          "restartCount": 0,
+          "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254"
+        }
+      ]
+    },
+    {
+      "kind": "Pod",
+      "name": "llama-nano-5754d87c87-f9fj9",
+      "phase": "Running",
+      "replicas": null,
+      "readyReplicas": null,
+      "containers": [
+        {
+          "name": "api",
+          "ready": true,
+          "restartCount": 0,
+          "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254"
+        }
+      ]
+    },
+    {
+      "kind": "PersistentVolumeClaim",
+      "name": "continuity-records",
+      "phase": "Bound",
+      "replicas": null,
+      "readyReplicas": null,
+      "containers": []
+    },
+    {
+      "kind": "PersistentVolumeClaim",
+      "name": "llama-agx-cache",
+      "phase": "Pending",
+      "replicas": null,
+      "readyReplicas": null,
+      "containers": []
+    },
+    {
+      "kind": "Deployment",
+      "name": "continuity-controller",
+      "phase": null,
+      "replicas": 1,
+      "readyReplicas": 1,
+      "containers": []
+    },
+    {
+      "kind": "Deployment",
+      "name": "llama-agx",
+      "phase": null,
+      "replicas": 0,
+      "readyReplicas": null,
+      "containers": []
+    },
+    {
+      "kind": "Deployment",
+      "name": "llama-nano",
+      "phase": null,
+      "replicas": 1,
+      "readyReplicas": 1,
+      "containers": []
+    }
+  ],
+  "preflight_exit_code": 2,
+  "remaining_requirement": "AGX disk capacity/headroom sufficient for cold pinned image + model, then recalibration under a new immutable baseline path",
+  "scope_exclusions": [
+    "full-node failover",
+    "generic external-service gateway",
+    "production routing mutation"
+  ]
+}

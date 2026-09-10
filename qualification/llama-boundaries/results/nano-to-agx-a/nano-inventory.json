@@ -1,0 +1,113 @@
+{
+  "timestamp": 1788844132.7597039,
+  "hostname": "etri-dev0001-jetorn",
+  "architecture": "aarch64",
+  "kernel": "5.15.148-tegra",
+  "files": {
+    "/proc/device-tree/model": "NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super",
+    "/etc/nv_tegra_release": "# R36 (release), REVISION: 4.7, GCID: 42132812, BOARD: generic, EABI: aarch64, DATE: Thu Sep 18 22:54:44 UTC 2025\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+    "/etc/os-release": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=jammy"
+  },
+  "power_mode": {
+    "exit_code": 0,
+    "stdout": "NV Power Mode: 25W\n1",
+    "stderr": ""
+  },
+  "cuda_toolkit": {
+    "exit_code": 0,
+    "stdout": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\nCuda compilation tools, release 12.6, V12.6.68\nBuild cuda_12.6.r12.6/compiler.34714021_0",
+    "stderr": ""
+  },
+  "gpu": {
+    "exit_code": 0,
+    "stdout": "Tue Sep  8 14:08:52 2026       \n+---------------------------------------------------------------------------------------+\n| NVIDIA-SMI 540.4.0                Driver Version: 540.4.0      CUDA Version: 12.6     |\n|-----------------------------------------+----------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |\n|                                         |                      |               MIG M. |\n|=========================================+======================+======================|\n|   0  Orin (nvgpu)                  N/A  | N/A              N/A |                  N/A |\n| N/A   N/A  N/A               N/A /  N/A | Not Supported        |     N/A          N/A |\n|                                         |                      |                  N/A |\n+-----------------------------------------+----------------------+----------------------+\n                                                                                         \n+---------------------------------------------------------------------------------------+\n| Processes:                                                                            |\n|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |\n|        ID   ID                                                             Usage      |\n|=======================================================================================|\n|  No running processes found                                                           |\n+---------------------------------------------------------------------------------------+",
+    "stderr": ""
+  },
+  "inference_processes": {
+    "exit_code": 0,
+    "stdout": "2262014 /bin/ollama serve\n2263165 /usr/lib/ollama/llama-server --model /root/.ollama/models/blobs/sha256-74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45 --port 38073 --host 127.0.0.1 --no-webui --offline -c 2048 -np 1 --log-verbosity 4 --no-log-prefix --no-log-timestamps --no-jinja --chat-template chatml --load-mode dio --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn auto -b 512 -ub 512 --context-shift --keep 4",
+    "stderr": ""
+  },
+  "resources": {
+    "timestamp": 1788844132.9719627,
+    "host": "etri-dev0001-jetorn",
+    "cpu_ticks": [
+      21136890,
+      16356,
+      16765195,
+      739652507,
+      1895390,
+      2274567,
+      2516210,
+      0
+    ],
+    "ram_used_mib": 3627.3984375,
+    "ram_available_mib": 3992.44140625,
+    "gpu": [
+      {
+        "uuid": "fa3cafc6-9948-5d92-8c81-fa5172db713e",
+        "name": "Orin (nvgpu)",
+        "memory_used_mib": null,
+        "memory_total_mib": null,
+        "utilization_pct": null,
+        "temperature_c": null,
+        "power_w": null,
+        "power_limit_w": null
+      }
+    ],
+    "gpu_error": null,
+    "thermal_zones": [
+      {
+        "name": "thermal_zone2",
+        "temperature_c": null,
+        "error": "TypeError"
+      },
+      {
+        "name": "cpu-thermal",
+        "temperature_c": 37.843
+      },
+      {
+        "name": "soc2-thermal",
+        "temperature_c": 37.375
+      },
+      {
+        "name": "soc0-thermal",
+        "temperature_c": 37.687
+      },
+      {
+        "name": "thermal_zone3",
+        "temperature_c": null,
+        "error": "TypeError"
+      },
+      {
+        "name": "gpu-thermal",
+        "temperature_c": 37.625
+      },
+      {
+        "name": "tj-thermal",
+        "temperature_c": 37.812
+      },
+      {
+        "name": "soc1-thermal",
+        "temperature_c": 36.437
+      },
+      {
+        "name": "thermal_zone4",
+        "temperature_c": null,
+        "error": "TypeError"
+      }
+    ],
+    "system_power_w": null,
+    "power_scope": "GPU device only, includes other processes",
+    "throttling": {
+      "exit_code": 0,
+      "stdout": "[N/A]",
+      "stderr": ""
+    }
+  },
+  "disk": {
+    "exit_code": 0,
+    "stdout": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/mmcblk0p1  468G   55G  395G  13% /",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,1 @@
+{"extends":"nano-0332.json","runtime":{"context":4096},"ramp_concurrency":[],"safety":{"max_smoke_requests":1}}

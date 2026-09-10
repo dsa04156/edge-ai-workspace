@@ -1,0 +1,180 @@
+{
+  "observed_at": "2026-09-09T05:49:22.179900+00:00",
+  "kind": "read-only-live-preflight",
+  "node": "etri-dev0005-jetagx",
+  "conditions": [
+    {
+      "type": "NetworkUnavailable",
+      "status": "False",
+      "reason": "FlannelIsUp",
+      "lastTransitionTime": "2026-09-08T04:33:30Z"
+    },
+    {
+      "type": "MemoryPressure",
+      "status": "Unknown",
+      "reason": "NodeStatusUnknown",
+      "lastTransitionTime": "2026-09-09T05:13:06Z"
+    },
+    {
+      "type": "DiskPressure",
+      "status": "Unknown",
+      "reason": "NodeStatusUnknown",
+      "lastTransitionTime": "2026-09-09T05:13:06Z"
+    },
+    {
+      "type": "PIDPressure",
+      "status": "Unknown",
+      "reason": "NodeStatusUnknown",
+      "lastTransitionTime": "2026-09-09T05:13:06Z"
+    },
+    {
+      "type": "Ready",
+      "status": "Unknown",
+      "reason": "NodeStatusUnknown",
+      "lastTransitionTime": "2026-09-09T05:13:06Z"
+    }
+  ],
+  "pods": [
+    {
+      "name": "continuity-controller-65f4bddc94-zhvhb",
+      "node": "etri-ser0001-cg0msb",
+      "phase": "Running",
+      "deleting": false,
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T12:17:22Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T12:17:21Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T12:17:22Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T12:17:22Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T12:17:21Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ]
+    },
+    {
+      "name": "llama-agx-6fbd4fd799-ngbfl",
+      "node": "etri-dev0005-jetagx",
+      "phase": "Running",
+      "deleting": true,
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T11:06:11Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T11:06:14Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-09T05:13:06Z",
+          "status": "False",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T11:06:17Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T11:06:09Z",
+          "status": "True",
+          "type": "PodScheduled"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-09T05:18:12Z",
+          "message": "Taint manager: deleting due to NoExecute taint",
+          "reason": "DeletionByTaintManager",
+          "status": "True",
+          "type": "DisruptionTarget"
+        }
+      ]
+    },
+    {
+      "name": "llama-agx-6fbd4fd799-zz9fx",
+      "node": null,
+      "phase": "Pending",
+      "deleting": false,
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-09T05:18:12Z",
+          "message": "0/7 nodes are available: 1 node(s) had untolerated taint {node.kubernetes.io/unreachable: }, 6 node(s) didn't match Pod's node affinity/selector. preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling.",
+          "reason": "Unschedulable",
+          "status": "False",
+          "type": "PodScheduled"
+        }
+      ]
+    },
+    {
+      "name": "llama-nano-5754d87c87-f9fj9",
+      "node": "etri-dev0001-jetorn",
+      "phase": "Running",
+      "deleting": false,
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T07:46:43Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T07:46:41Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T07:46:45Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T07:46:45Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T07:46:41Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ]
+    }
+  ],
+  "ssh_result": "No route to host",
+  "new_controller_live_roundtrip": "not_run",
+  "deployment_mutated": false
+}

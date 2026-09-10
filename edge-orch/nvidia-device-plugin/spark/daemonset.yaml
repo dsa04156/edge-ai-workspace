@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-spark-device-plugin
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-spark-device-plugin
+  template:
+    metadata:
+      labels:
+        app: nvidia-spark-device-plugin
+    spec:
+      runtimeClassName: nvidia-spark
+      priorityClassName: system-node-critical
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0003-cg0ms0
+        kubernetes.io/arch: arm64
+        kubernetes.io/os: linux
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: device-plugin
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.19.0
+          args:
+            - --fail-on-init-error=true
+            - --mig-strategy=none
+          env:
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: all
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: compute,utility
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+            type: Directory

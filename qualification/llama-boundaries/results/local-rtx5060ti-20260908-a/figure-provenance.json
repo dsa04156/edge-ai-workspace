@@ -1,0 +1,11 @@
+{
+  "raw": "requests.jsonl",
+  "matplotlib": "3.10.6",
+  "python": "3.12.3",
+  "estimator": "linear-interpolated empirical p95 among successful equal-length measurement requests",
+  "uncertainty": "not estimated: insufficient independent repeated blocks",
+  "warmup": "excluded from displayed quantiles, retained in raw CSV",
+  "missing": "null, not zero",
+  "smoothing": null,
+  "description": "Three scatter panels show latency, first-token delay and throughput by concurrency; each point is labelled with request count. No between-device inference is made."
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "block": 0,
+    "concurrency": 1,
+    "route": "remote"
+  },
+  {
+    "block": 0,
+    "concurrency": 2,
+    "route": "remote"
+  },
+  {
+    "block": 0,
+    "concurrency": 4,
+    "route": "remote"
+  },
+  {
+    "block": 1,
+    "concurrency": 1,
+    "route": "remote"
+  },
+  {
+    "block": 1,
+    "concurrency": 2,
+    "route": "remote"
+  },
+  {
+    "block": 1,
+    "concurrency": 4,
+    "route": "remote"
+  },
+  {
+    "block": 2,
+    "concurrency": 1,
+    "route": "remote"
+  },
+  {
+    "block": 2,
+    "concurrency": 2,
+    "route": "remote"
+  },
+  {
+    "block": 2,
+    "concurrency": 4,
+    "route": "remote"
+  }
+]

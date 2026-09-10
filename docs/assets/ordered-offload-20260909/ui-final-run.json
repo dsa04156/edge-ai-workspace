@@ -1,0 +1,104 @@
+{
+  "run": {
+    "id": "9b9d977f8e5043309a7702288afb06c4",
+    "status": "passed",
+    "started_at": 1788956471.41099,
+    "finished_at": 1788956949.9073353,
+    "phase": 4,
+    "phase_label": "요청 마무리 · 모델 메모리 해제 확인",
+    "offered_rps": 0,
+    "planned": 1622,
+    "attempted": 1622,
+    "completed": 1622,
+    "ok": 1622,
+    "errors": {},
+    "by_node": {
+      "etri-dev0001-jetorn": 319,
+      "etri-dev0005-jetagx": 678,
+      "etri-ser0003-cg0ms0": 625
+    },
+    "visited": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "transitions": [
+      {
+        "at": 1788956535.5328248,
+        "node": "etri-dev0005-jetagx",
+        "reason": "next_hop_verified"
+      },
+      {
+        "at": 1788956649.1894948,
+        "node": "etri-ser0003-cg0ms0",
+        "reason": "next_hop_verified"
+      },
+      {
+        "at": 1788956781.3076537,
+        "node": "etri-dev0005-jetagx",
+        "reason": "previous_hop_verified"
+      },
+      {
+        "at": 1788956876.4201052,
+        "node": "etri-dev0001-jetorn",
+        "reason": "previous_hop_verified"
+      }
+    ],
+    "baseline_cycles": 1,
+    "expected": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "passed": true,
+    "last_result": {
+      "node": "etri-dev0001-jetorn",
+      "text": "Edge computing reduces latency by processing data closer",
+      "ttft_ms": 64.30862098932266,
+      "at": 1788956939.8897312
+    },
+    "reason": null,
+    "journal_checkpoint": {
+      "busy": 0,
+      "wal_pages": 8384,
+      "checkpointed_pages": 8384
+    },
+    "elapsed_seconds": 478.49634528160095
+  },
+  "final_workers": [
+    {
+      "node_id": "etri-dev0001-jetorn",
+      "node_state": "ACTIVE",
+      "model_loaded": true,
+      "model_vram_mib": 1348.45,
+      "active_requests": 0,
+      "queue_length": 0
+    },
+    {
+      "node_id": "etri-dev0005-jetagx",
+      "node_state": "CACHED",
+      "model_loaded": false,
+      "model_vram_mib": 0.0,
+      "active_requests": 0,
+      "queue_length": 0
+    },
+    {
+      "node_id": "etri-ser0003-cg0ms0",
+      "node_state": "CACHED",
+      "model_loaded": false,
+      "model_vram_mib": 0.0,
+      "active_requests": 0,
+      "queue_length": 0
+    }
+  ],
+  "can_start": true,
+  "active": false,
+  "retained_models": [],
+  "normal_cycles_total": 2,
+  "code_configmap": "ordered-offload-code-8m6bfktbbc",
+  "ui_configmap": "ordered-offload-ui-bg272f2mm4"
+}

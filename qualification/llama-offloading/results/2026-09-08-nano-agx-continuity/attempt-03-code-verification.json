@@ -1,0 +1,12 @@
+{
+  "controller_code_matches": true,
+  "sha256": {
+    "continuity_policy.py": "bfd84622e93a75886ed702c30ee0d6e961c26c46a0966cef5ed8c28af60c83ed",
+    "continuity_runner.py": "de059c60df1c1b4d64fe25b3be5c5a78a00b040334f03e354c8c527ed29702ef",
+    "continuity_report.py": "30fc62d0e3344689ec458976cdc3f45d6d31f0ecf6a04b9fde0ba354f55585b5"
+  },
+  "tests": {
+    "passed": 80,
+    "command": "/tmp/nano-agx-qualification-venv/bin/python -m unittest discover -s qualification/llama-offloading/tests -q"
+  }
+}

@@ -81,13 +81,17 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 23)
+        self.assertEqual(len(paths), 27)
+        self.assertIn("서버-엣지-반복-오프로딩.md", paths)
         self.assertIn("2026-09-08-Nano-AGX-서비스-연속성-실험결과.md", paths)
+        self.assertIn("Llama-장비별-GPU-성능측정.md", paths)
+        self.assertIn("통합-운영-대시보드-고도화.md", paths)
         self.assertIn("처음부터-배우는-Edge-AI-시스템.md", paths)
         self.assertEqual(paths, build_docs_html.PUBLIC_PATHS)
         self.assertIn("플랫폼-개요.md", paths)
         self.assertIn("펌프-모터-이상감지-서비스.md", paths)
         self.assertIn("AI-서비스-자원-증강-부하-실험.md", paths)
+        self.assertIn("Llama-오프로딩-부하-판단-기준.md", paths)
         self.assertIn("가상화-노드-오류-복구시간.md", paths)
         self.assertIn("디바이스-연결-복구-표준.md", paths)
         self.assertIn("400ms-복구-체험하기.md", paths)
@@ -165,6 +169,46 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn('data-recovery-cadence', markup)
         self.assertIn('data-recovery-request', markup)
         self.assertIn('data-recovery-play', markup)
+
+    def test_llama_load_eli5_keeps_measurement_and_scope_boundaries(self):
+        guide = (ROOT / "docs" / "Llama-오프로딩-부하-판단-기준.md").read_text(encoding="utf-8")
+
+        for required in (
+            "ELI5: 언제 “부하가 걸렸다”고 하나",
+            "queue_length >= 8",
+            "**2초 동안 지속될 때**",
+            "p95 또는 worker EWMA TTFT가 1,500ms 이상",
+            "동시 요청 8까지",
+            "동시 요청 16부터",
+            "최소 15%",
+            "신규 요청",
+            "실제 Orin Nano GPU 시험",
+            "JetPack 6 CUDA",
+            "`100% GPU`",
+            "AGX Orin과 NVIDIA DGX Spark는 아직 없다",
+            "RTX 5080 x86 대체 서버",
+            "Cached activation 평균 | 1.847초",
+            "Nano 선행 대기 9건에서 gain이 양수",
+            "`etri-dev0001-jetorn`",
+            "GPU utilization과 GPU memory는 `null`",
+            "운영 공통 패턴으로 승격하지",
+            "## 결론",
+            "8까지 p95 TTFT 1.5초 SLO를 지켰고",
+            "16부터 과부하가 시작됐다",
+            "실제 AGX Orin과 DGX Spark의 성능 결론은 아직 없다",
+            "최종 선택 임계값은 아직 확정",
+            "같은 GPU runtime·local SSD cache·모델·prompt·workload",
+        ):
+            self.assertIn(required, guide)
+
+        self.assertNotIn("## Nano 역할에서 실제로 관측된 구간", guide)
+        self.assertNotIn("Jetson Orin Nano에서 측정한 값이 하나도 없다", guide)
+        self.assertNotIn("Nano 역할 대체값(실장비 아님)", guide)
+        self.assertNotIn("# Llama 오프로딩 부하 판단 기준 — 혼합 장비 CPU-only 시험", guide)
+        self.assertEqual(
+            build_docs_html.DISPLAY_TITLES["Llama-오프로딩-부하-판단-기준.md"],
+            "Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험",
+        )
 
     def test_sidebar_marks_current_document(self):
         with tempfile.TemporaryDirectory() as tmp:

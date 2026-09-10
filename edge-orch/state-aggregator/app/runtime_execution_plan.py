@@ -37,6 +37,18 @@ RuntimeExecutionWorkloadRole = Literal["current", "candidate"]
 def build_model_offload_execution_plan(recommendation: dict) -> dict:
     """Model lifecycle executor contract; never a whole-workload replacement."""
     selected = recommendation.get("selected_node")
+    if recommendation.get("execution_order"):
+        return {"service_id": recommendation["service_id"], "executor": "ordered_model_offload",
+                "status": "planned" if selected else "not_applicable", "selected_node": selected,
+                "source_node": recommendation.get("source_node"),
+                "execution_order": recommendation["execution_order"],
+                "reason_codes": recommendation["reason_codes"],
+                "steps": (["prepare_adjacent_hop", "probe_adjacent_hop", "route_new_requests",
+                           "observe_lower_hop_capacity", "probe_previous_hop", "return_one_hop",
+                           "drain_departed_hop", "release_departed_model", "verify_cached", "rearm"]
+                          if selected else []),
+                "preserves": ["edge_collection", "pods", "gpu_reservations", "lower_hop_models"],
+                "mode": "read_only"}
     return {
         "service_id": recommendation["service_id"],
         "executor": "model_offload",

@@ -1,0 +1,16 @@
+{
+  "agx_url": "http://127.0.0.1:18100",
+  "blocks": 1,
+  "concurrency": "16",
+  "cooldown_seconds": 0.0,
+  "max_tokens": 8,
+  "nano_url": "http://192.168.0.3:18100",
+  "output_dir": "qualification/llama-offloading/results/2026-09-04-rtx5060ti-gpu/gpu-util-proof-2",
+  "proxy_url": "http://192.168.0.56:18101",
+  "sample_interval": 1.0,
+  "seed": 20260904,
+  "spark_url": "http://192.168.0.5:18100",
+  "stage_seconds": 15.0,
+  "tiers": "agx",
+  "timeout": 900.0
+}

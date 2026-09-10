@@ -19,6 +19,7 @@ from .config import Settings
 from .model_offload_api import create_model_offload_router
 from .model_offload_contract import ModelOffloadContract
 from .model_offload_controller import ModelOffloadExecutionController, OffloadJournal, WorkerTransport
+from .model_offload_ordered import OrderedModelOffloadExecutionController
 from .candidate_workload_template import CandidateTemplateCatalog
 from .candidate_validation import ValidationContractCatalog
 from .connection_management import ConnectionManagementService
@@ -111,7 +112,8 @@ if settings.model_offload_enabled:
     if not settings.execution_management_token:
         raise ValueError("MODEL_OFFLOAD_ENABLED requires EXECUTION_MANAGEMENT_TOKEN")
     model_offload_contract = ModelOffloadContract.model_validate_json(settings.model_offload_contract_path.read_text())
-    model_offload_controller = ModelOffloadExecutionController(
+    model_offload_controller = (OrderedModelOffloadExecutionController if model_offload_contract.execution_order
+                               else ModelOffloadExecutionController)(
         model_offload_contract,
         OffloadJournal(Path(settings.data_dir) / "model-offload.sqlite3"),
         WorkerTransport(model_offload_contract, service.kube),

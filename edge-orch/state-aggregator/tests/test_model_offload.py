@@ -19,8 +19,13 @@ from app.model_offload_controller import (
 
 
 def contract():
-    return ModelOffloadContract.model_validate_json(
-        (Path(__file__).parents[1] / "app/config/model_offload_llama.json").read_text())
+    # Preserve coverage of the original ranked-candidate executor separately
+    # from the ordered edge/edge/server demo contract.
+    value = json.loads((Path(__file__).parents[1] / "app/config/model_offload_llama.json").read_text())
+    value["workers"] = value["workers"][:2]
+    value["workers"][1]["role"] = "server"
+    value.pop("execution_order", None)
+    return ModelOffloadContract.model_validate(value)
 
 
 def sample(worker, **updates):
@@ -89,7 +94,7 @@ def test_fixed_configuration_matches_frozen_qualification_forecast():
 class FakeTransport:
     def __init__(self, c):
         self.c = c
-        self.loaded = {w.node: w.role == "edge" for w in c.workers}
+        self.loaded = {w.node: w.node == c.edge.node for w in c.workers}
         self.calls = []
         self.activation_gate = None
         self.request_gate = None
@@ -407,7 +412,12 @@ def test_background_controller_rearms_without_restart(tmp_path):
         try:
             await until(lambda: controller.state == "LOCAL" and controller.accepting)
             for cycle in range(2):
-                for index in range(100):
+                # Stop the load when the actual handoff is observed. A fixed
+                # 100-request burst can already return/rearm before the later
+                # REMOTE assertion under these deliberately tiny timings.
+                for index in range(1000):
+                    if controller.state == "REMOTE":
+                        break
                     await controller.submit(f"load-{cycle}-{index}", c.prompt, 8)
                     await asyncio.sleep(.002)
                 await until(lambda: controller.state == "REMOTE")

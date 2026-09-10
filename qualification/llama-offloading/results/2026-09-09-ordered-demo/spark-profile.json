@@ -1,0 +1,4944 @@
+{
+  "kind": "ordered-demo-spark-profile/v1",
+  "started_at": 1788951920.6226273,
+  "node": "etri-ser0003-cg0ms0",
+  "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+  "busy_batches": [
+    [
+      {
+        "request_id": "busy-0-0-6dfad33d5fab4f68b8787a1b6b92f25b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 22.22661001724191,
+        "latency_ms": 786.3622730073985,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-1-b9e3ee4811874e028de718435f593071",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.361948989564553,
+        "latency_ms": 72.26840397925116,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-2-deca1020cb6f4178a3c07c80b6bf716f",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 23.583072004839778,
+        "latency_ms": 87.64072300982662,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-3-30586e99270b412e904ddba9bf56f334",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.721665010554716,
+        "latency_ms": 80.33258299110457,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-4-8f61b4e7c65342249933520f7e31690a",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.554167991969734,
+        "latency_ms": 77.62030599405989,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-5-4f4b8cf3c7434098a064c1f1e4673984",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.7049390100874,
+        "latency_ms": 79.85814000130631,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-6-368af03656d34d6c8ff7b55550539823",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.366788985673338,
+        "latency_ms": 58.220501989126205,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-7-c7bf66ea6b1043fba302046f66c992f8",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.541494983248413,
+        "latency_ms": 82.78219099156559,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-8-a194ded58cfe435f8e5889ca19e30dfa",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 14.829347026534379,
+        "latency_ms": 91.04704300989397,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-9-9b01b1502caf4342a234048ea78078ff",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.246148991631344,
+        "latency_ms": 98.62505400087684,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-10-38d7f8033d094f288068cca8bed0b160",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.796070019248873,
+        "latency_ms": 88.67238400853239,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-11-ab23341fee2c4814927be25eccd4c524",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.410438997903839,
+        "latency_ms": 87.08675799425691,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-12-6d8bbfc7108d4df98a9919b75277248a",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.019079993478954,
+        "latency_ms": 57.207375997677445,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-13-af0203792c54411eb6599b1dd284f95f",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.234071023296565,
+        "latency_ms": 81.70341502409428,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-14-c7aed18e008349e2a57f1b8465adbe76",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.320961006684229,
+        "latency_ms": 86.92571299616247,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-15-e0c9ce8b259f48b0b404ef9d0a20d2a2",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.223574988543987,
+        "latency_ms": 93.62053399672732,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-16-87a113c4c2ea4a4997386ad4eda4fb51",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 17.507468990515918,
+        "latency_ms": 92.69862298970111,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-17-43171b87b6d2437eb2b9c239c2e523de",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.967819988261908,
+        "latency_ms": 86.84537900262512,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-18-84450de04e884b079ed462c0314b5d5a",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.225852988194674,
+        "latency_ms": 57.58942800457589,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-19-dd00ac0ecb1b466f8407f8a8393ccc9c",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 34.83054801472463,
+        "latency_ms": 80.60441300040111,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-20-420cda486da6468683f157a277e0aac1",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.853522999444976,
+        "latency_ms": 87.64511399203911,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-21-0a500622d14342cd9cc332832fc237b9",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.32964698667638,
+        "latency_ms": 85.45306799351238,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-22-fd8caf65ce574a10ae915ccbb29fb654",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.14802500908263,
+        "latency_ms": 81.73665098729543,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-23-9dfb56cbce9f49c7afe3f9c48471573d",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.92947298497893,
+        "latency_ms": 100.66497899242677,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-24-1bcbf9e126bb45aab0c1d7671782009c",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.501772987889126,
+        "latency_ms": 58.455321996007115,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-25-9ea2a17f8eef46578a84b0851714f314",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 41.72157499124296,
+        "latency_ms": 87.4353550025262,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-26-ab42f2d472c3449890102f095da8051b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.086144997738302,
+        "latency_ms": 92.7663600014057,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-27-79cc322977ba4d18b8db09bd0d7adf8a",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 14.492470014374703,
+        "latency_ms": 85.44562800670974,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-28-9560b86d7406402ea87a02968354b1b1",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.703347990987822,
+        "latency_ms": 88.27566099353135,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-0-29-a9e7afd4d43942598c3cfe37fb3e04a6",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.008334004553035,
+        "latency_ms": 85.98872300353833,
+        "status": "ok"
+      }
+    ],
+    [
+      {
+        "request_id": "busy-1-0-561d25aa14ac4a888f3f5950663b1103",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.333766983123496,
+        "latency_ms": 57.65417599468492,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-1-1db1cf30413f42d09a7be19340ebb5e0",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 43.769281008280814,
+        "latency_ms": 87.67481200629845,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-2-efa382c3dd6443589132cfea9fddcea8",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.182158986339346,
+        "latency_ms": 88.79533098661341,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-3-3ad29fd185ca4019887a006e730b28a8",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.794490990927443,
+        "latency_ms": 85.52672099904157,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-4-ed560963f331490eb54679cbc54a4c07",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.511202007066458,
+        "latency_ms": 87.26297700195573,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-5-2358e6bc91f6454c88b35f97581abfc3",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 10.917990992311388,
+        "latency_ms": 56.53725398587994,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-6-e7271baf63f342dbaf9b2615dd4492de",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.43039000942372,
+        "latency_ms": 82.70063300733455,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-7-681b027005134730901ee1b4bcd1a12d",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 17.017817008309066,
+        "latency_ms": 87.13386300951242,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-8-b7fbd61ad4484a99bd4e062cc1c3d788",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.024935993598774,
+        "latency_ms": 80.40209600585513,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-9-b631c16a713745f987a35347ec335a76",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.875457974383608,
+        "latency_ms": 87.97511798911728,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-10-25bc0d801b614d5a9c2525cff5559b68",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 15.392614994198084,
+        "latency_ms": 62.26569501450285,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-11-19874480c20d4f65884f6572d5c23be3",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.44416598742828,
+        "latency_ms": 83.26688600936905,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-12-5938fc74ae8c4d54b184075f5847a695",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 15.828767995117232,
+        "latency_ms": 78.10295099625364,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-13-673b5dfa4b8d4afa8f803a91dbf91b96",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.49911101674661,
+        "latency_ms": 86.98489802191034,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-14-3b90d4f0a40943939499a2340cb9f798",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.500229011289775,
+        "latency_ms": 94.48027500184253,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-15-92b62077cc9946a992453e0b82e3684d",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.318672001129016,
+        "latency_ms": 57.59655399015173,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-16-309a86ef24de45c18eb8e0c51be15e5e",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.35377301159315,
+        "latency_ms": 80.07268901565112,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-17-0841012a28df4d3c851d66ddf5460945",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.42729099956341,
+        "latency_ms": 94.00806899066083,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-18-37220f2d7eda494088ccc660fc4ee1f5",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.548275011591613,
+        "latency_ms": 87.09217500290833,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-19-3b5742839fa2401cb4de05b862f6fcf5",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.045608004787937,
+        "latency_ms": 95.36210200167261,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-20-b153805bb1cd47bbb8b3196b0162af16",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 14.11832301528193,
+        "latency_ms": 86.71699301339686,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-21-7ec2db46a78e4a3682c3d73d881a4d51",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.481722020311281,
+        "latency_ms": 57.76946200057864,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-22-d469176f5a324094b2491518b6d7b87f",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 32.46674101683311,
+        "latency_ms": 78.2339760044124,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-23-eb6b2ecf2b684e1ba55ef143ef9b90d5",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.922818002058193,
+        "latency_ms": 88.79289799369872,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-24-b4bb968be3d2433093dbbb7d6dd3b766",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 18.024950986728072,
+        "latency_ms": 86.58906898926944,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-25-3dd4b36d176a4a7aa45976a48ca54d2b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 18.261371995322406,
+        "latency_ms": 86.86088101239875,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-26-b6b81036b42b4e94a4c3c1a962e5db36",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.951794993365183,
+        "latency_ms": 57.24129299051128,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-27-829d314ab13441838c06ff28a7b11a3e",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.99619399756193,
+        "latency_ms": 81.81962199159898,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-28-9915b61384234d01871e259628e0feae",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.969944986049086,
+        "latency_ms": 93.33242199500091,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-1-29-cda9c827e02f4035b221f26ff3829966",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.582019979367033,
+        "latency_ms": 87.12474099593237,
+        "status": "ok"
+      }
+    ],
+    [
+      {
+        "request_id": "busy-2-0-b82ad6c5b0d74cfdbcf10e303ce56770",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.864435004303232,
+        "latency_ms": 86.66073001222685,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-1-a98b0714584541198b45ddaf4a05edb5",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.123289983719587,
+        "latency_ms": 87.74547098437324,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-2-50e2e28fb6034bca82c31019a6289837",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 17.38244600710459,
+        "latency_ms": 63.01080898265354,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-3-8e6dfad9219645b1a4bd62f4b77544b9",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 34.86567101208493,
+        "latency_ms": 80.98153199534863,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-4-1cee65bf5c5e42ec901ee5566b18948e",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.735890981275588,
+        "latency_ms": 87.60732199880295,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-5-a79b8afff1944422ab380d77681105cb",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.133675005519763,
+        "latency_ms": 86.75425298861228,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-6-aa32e2341a024b499fdd1ae8726f27a2",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.291713024955243,
+        "latency_ms": 80.88475000113249,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-7-9fd9da379727466d9a0e4cee4b089ec3",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.565655011916533,
+        "latency_ms": 59.15525299496949,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-8-2aa74cf7aa3a431b81492d146f20dce5",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 40.14981602085754,
+        "latency_ms": 85.33230100874789,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-9-fa2cf600a912473b8573256b51ef87fc",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.079604999395087,
+        "latency_ms": 88.2543670013547,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-10-f5f6ba7968b94feeb2577763fa4b9b41",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.649524996755645,
+        "latency_ms": 85.65813300083391,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-11-e9efbb6c1d3b4674b19a76c338e222c9",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.878303008619696,
+        "latency_ms": 86.69758500764146,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-12-d4b82623dab243798f20e4293f1dc17b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.013407016638666,
+        "latency_ms": 57.54105900996365,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-13-23111fff945f44f49a5711bda3357d87",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 41.74733700347133,
+        "latency_ms": 87.92775002075359,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-14-64f152deed8b40a4852d065a9e7ee0cb",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 47.46302799321711,
+        "latency_ms": 91.41551799257286,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-15-b7d378fcaa5f44609717e069ab32d2ef",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.191006000852212,
+        "latency_ms": 89.47113799513318,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-16-1be8e2a0b380427287a36855214ff8e9",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 13.203803013311699,
+        "latency_ms": 88.47075002267957,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-17-789104d3e0f64a2db8f964cf27ebd159",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.615404980257154,
+        "latency_ms": 91.13978999084793,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-18-71a2a13ecf9d4db38a5e82636d83e4ac",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.84887599083595,
+        "latency_ms": 87.57827099179849,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-19-656450adfd8f4eee8a1efd12689a33e3",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.783320024842396,
+        "latency_ms": 62.851700000464916,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-20-67815dbadf6a49e9be3f2f4567e6caeb",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 35.86368801188655,
+        "latency_ms": 83.06823301245458,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-21-71b7e7db6fec443a8d07ff5a381b7d0b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 19.13363899802789,
+        "latency_ms": 89.02047798619606,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-22-0f43d7bb03e64d52b88415d524b2e8d0",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 16.166760004125535,
+        "latency_ms": 89.35335002024658,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-23-9bdd7d31891249abb8953ad10d692e2a",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 11.839323997264728,
+        "latency_ms": 88.49066699622199,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-24-a2a2a669479448d9bb3ba644d463a431",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.374533980619162,
+        "latency_ms": 87.30368898250163,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-25-066c9a128b3d4afe940a128a00803a91",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 14.68741599819623,
+        "latency_ms": 58.0337870051153,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-26-7ceaa3575a4a4b949e903622420a4fa2",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 40.76468199491501,
+        "latency_ms": 87.10556698497385,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-27-74efc4257e864e9790a0f90e111d8fc0",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 15.872715011937544,
+        "latency_ms": 86.59235801314935,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-28-6f79548adb994252ba9e65f77d91c513",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.213576002977788,
+        "latency_ms": 93.20331100025214,
+        "status": "ok"
+      },
+      {
+        "request_id": "busy-2-29-c4e362cc911740a587a892558bccb8d7",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 12.323964008828625,
+        "latency_ms": 87.35653400071897,
+        "status": "ok"
+      }
+    ]
+  ],
+  "activations": [
+    {
+      "elapsed_ms": 3107.2994629794266,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951948.3924477,
+        "ready_timestamp": 1788951951.3926177,
+        "worker_start_ms": 0.206,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2998.591,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 3000.198,
+        "activation_time_ms": 3000.199,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951951.3926208,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-0eebf581dad84ba5b028003a4ca62342",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 14.48441098909825,
+        "latency_ms": 100.14833800960332,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2767.5805749895517,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951951.7710385,
+        "ready_timestamp": 1788951954.4423816,
+        "worker_start_ms": 0.111,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2669.038,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2671.386,
+        "activation_time_ms": 2671.387,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951954.4423847,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-ae9ac9b3b822426c8049c63be172bfac",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 17.46074401307851,
+        "latency_ms": 86.4595000166446,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2768.9676489972044,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951955.0282571,
+        "ready_timestamp": 1788951957.7095485,
+        "worker_start_ms": 0.312,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2678.628,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2681.332,
+        "activation_time_ms": 2681.333,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951957.7095516,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-59736e2266d2468b964797c906bfc377",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 19.83945700339973,
+        "latency_ms": 83.00211699679494,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2747.819535987219,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951958.0650284,
+        "ready_timestamp": 1788951960.7332737,
+        "worker_start_ms": 0.107,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2666.451,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2668.289,
+        "activation_time_ms": 2668.289,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951960.7332766,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-4bd68b77a7fb4011b13941ca5b35856d",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 18.106645002262667,
+        "latency_ms": 72.56683698506095,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2770.7038410007954,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951961.0733218,
+        "ready_timestamp": 1788951963.7658877,
+        "worker_start_ms": 0.186,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2690.896,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2692.595,
+        "activation_time_ms": 2692.595,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951963.7658901,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-7f043925707e4f4bac5ade2d101d86c2",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 23.44389000791125,
+        "latency_ms": 71.38661900535226,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 3053.7686809839215,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951964.1459491,
+        "ready_timestamp": 1788951967.117378,
+        "worker_start_ms": 0.105,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2970.0,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2971.458,
+        "activation_time_ms": 2971.459,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951967.1173801,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-957116a03d014178ac7e8fc3ea59ac27",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 17.747275007423013,
+        "latency_ms": 75.52841599681415,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2920.461524015991,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951967.4768784,
+        "ready_timestamp": 1788951970.2976801,
+        "worker_start_ms": 0.367,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2817.935,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2820.844,
+        "activation_time_ms": 2820.844,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951970.297683,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-995c01dc4a7a4c3faf94dadb0214f84e",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 21.72956199501641,
+        "latency_ms": 95.25352698983625,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2799.1152860049624,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951970.6410363,
+        "ready_timestamp": 1788951973.3413389,
+        "worker_start_ms": 0.253,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2697.244,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2700.346,
+        "activation_time_ms": 2700.347,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951973.341342,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-d323b4c024564d048b05caf0a8b20634",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 22.642993979388848,
+        "latency_ms": 93.8520320050884,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2785.3548350103665,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951973.7131724,
+        "ready_timestamp": 1788951976.3884284,
+        "worker_start_ms": 0.159,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2673.448,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2675.295,
+        "activation_time_ms": 2675.296,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951976.3884313,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-30cf03a662f74ca3834582cff7f7e93b",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 21.351599018089473,
+        "latency_ms": 104.34161900775507,
+        "status": "ok"
+      }
+    },
+    {
+      "elapsed_ms": 2781.004647986265,
+      "activation": {
+        "activation_required": true,
+        "node_state_before": "CACHED",
+        "node_state": "ACTIVE",
+        "activation_started_timestamp": 1788951976.7599614,
+        "ready_timestamp": 1788951979.446995,
+        "worker_start_ms": 0.306,
+        "model_remote_download_ms": 0.0,
+        "model_load_ms": 2685.226,
+        "cuda_initialization_ms": null,
+        "endpoint_ready_ms": 2687.062,
+        "activation_time_ms": 2687.063,
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "transition": {
+          "timestamp": 1788951979.4469972,
+          "node": "server",
+          "physical_node": "etri-ser0003-cg0ms0",
+          "old_state": "CACHED",
+          "new_state": "ACTIVE",
+          "reason": "ordered_profile"
+        }
+      },
+      "probe": {
+        "request_id": "activation-cd4bb5d05ba440b58129b3dcad113789",
+        "node": "etri-ser0003-cg0ms0",
+        "ttft_ms": 19.961715006502345,
+        "latency_ms": 89.70141099416651,
+        "status": "ok"
+      }
+    }
+  ],
+  "load_batches": [
+    {
+      "rps": 6,
+      "duration_seconds": 30,
+      "completion_seconds": 29.895483753003646,
+      "requests": [
+        {
+          "request_id": "load-0-0-b0a621d862aa4d87b6504d51fc4ee46d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.929876001086086,
+          "latency_ms": 61.05925599695183,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-1-1d7842e0a89b47439aaa0408d2907bd1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.984594337875023,
+          "latency_ms": 62.045567319728434,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-2-e170be44d8954445babe099aa77309a3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.73106864048168,
+          "latency_ms": 60.33874364220537,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-3-32aa5eea243b487ab02cacca909dc986",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.355988992378116,
+          "latency_ms": 66.66972697712481,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-4-5922362cdfc44319947587b31df6e6cf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.38024434214458,
+          "latency_ms": 62.62247933773324,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-5-e1b1f9592e4342ef8c748f170b876e72",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.717155635589734,
+          "latency_ms": 64.70302664092742,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-6-00acaa63eb6c4d518d2a673a1ae7dd49",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.92917899810709,
+          "latency_ms": 68.21118597872555,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-7-c459e167e32143cbb23aec2df642ea88",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.320450329454616,
+          "latency_ms": 60.87885133456439,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-8-2206f209011645f79365b283d32ed7a5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.52547565754503,
+          "latency_ms": 61.34783665766008,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-9-2f548134c8454b28a855e97f462e5f8e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.6124309792649,
+          "latency_ms": 59.1322589898482,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-10-165f372da8614228ad1afe09376fb8d4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.970451339147985,
+          "latency_ms": 61.87368632527068,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-11-b6bd22a5590b405e8adc777d445a5105",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.363349645165727,
+          "latency_ms": 63.54823365109041,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-12-b42637d7f5cf447c92f62e0810550965",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.425553986569867,
+          "latency_ms": 66.67279900284484,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-13-1d80fb10a4c94936b0fc63ced6a1805f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.546009327517822,
+          "latency_ms": 65.69302233401686,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-14-e5e2527b11f344febd9781903c5b5ae9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.667432654183358,
+          "latency_ms": 63.21049865800887,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-15-00226050aade4c0d89b633f3d6ca369e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 138.71430497965775,
+          "latency_ms": 184.51440500211902,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-16-e9df2022e1b54a0ab37d3003d66e5db1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 26.633455330738798,
+          "latency_ms": 102.40766833885573,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-17-7e3e2d25a33e4d5ea7b398ecb2c36693",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.500388639746234,
+          "latency_ms": 61.965094646438956,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-18-d2ef7cb89f2d424c89808faf22860469",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.272640990791842,
+          "latency_ms": 61.26433299505152,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-19-d0e13b88c27e42cab69599e59ab3a23d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.508887336589396,
+          "latency_ms": 62.24174832459539,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-20-3345cb198db541dc9510cad45e80c6d5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.245934654260054,
+          "latency_ms": 63.06935063912533,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-21-b6b3f79d9cc44a389548b05507f8a23f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.927585987607017,
+          "latency_ms": 62.12073197821155,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-22-fbb58000473d4d9389392417486aaf8a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.770499332575127,
+          "latency_ms": 60.86528833839111,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-23-5d38fd5a99594119b9fdff8eb1f59893",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.646609652321786,
+          "latency_ms": 61.418394645443186,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-24-ae33a7838aaf4a92912af810e39e3e0c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.766583994263783,
+          "latency_ms": 60.61249098274857,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-25-79cdf75c7bd6454091010073d5055846",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.992671320214868,
+          "latency_ms": 60.68605132168159,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-26-2ba2f3a8e4b44b2abdd127df5e04f08d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.523891634074971,
+          "latency_ms": 59.95630566030741,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-27-45b703205956410d8e3555e7a2d83a8a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.576897982507944,
+          "latency_ms": 64.09775000065565,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-28-c5c1d913370a44fda4166d5e823320cd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.492482322268188,
+          "latency_ms": 63.41026534209959,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-29-362e04a444224b959e9169a7d8748c7b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.470084639266133,
+          "latency_ms": 58.080069662537426,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-30-4a73042996f1455eba9f21b0d414e4a4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.575502999126911,
+          "latency_ms": 61.095643002772704,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-31-39cd4eebcec14218af2b97a1e4418317",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.84262533672154,
+          "latency_ms": 62.10071034729481,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-32-268ddb225dbd48fdbad0510cb7a7e2f3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.467063650954515,
+          "latency_ms": 59.65995564474724,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-33-0654e8031e494e3e93104c651d27a4e9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.822414985857904,
+          "latency_ms": 63.28889698488638,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-34-f3f8b1f92f4347fd954b60c2bae696ee",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.427058329805732,
+          "latency_ms": 61.48208034574054,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-35-420de93a683644bba81f4c971995289e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.876929646357894,
+          "latency_ms": 61.55467763892375,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-36-ecd3993260df45a2a93f873c159bf10b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.604143980657682,
+          "latency_ms": 63.090732001001015,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-37-45138eea68e04618a90993a6a6f2d2a9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.44551133783534,
+          "latency_ms": 64.61335232597776,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-38-8c0ede1cab2148b9ab0025f40d73eafc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.370449651731178,
+          "latency_ms": 62.729028635658324,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-39-3f8e7b610c6e4b8eb42c8bb70c706259",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.96814497699961,
+          "latency_ms": 63.90775999170728,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-40-b565b1e55f13475ca55e9017272139e8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.51852432405576,
+          "latency_ms": 65.167755325092,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-41-2c8022015e184302bb5083dcf4605cec",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.59785264241509,
+          "latency_ms": 63.89206866151653,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-42-a286b3622c174ddabf8a8e41b3650ede",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.793403004063293,
+          "latency_ms": 68.31234999117441,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-43-dd6c45191107425ea8ee911b39847bcd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.946651340229437,
+          "latency_ms": 64.00581332854927,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-44-f622d3ea0d3248fab91acf92d752cf6c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.246579656377435,
+          "latency_ms": 61.59327464411035,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-45-2eb4d4d8c751493bb35a6a0b65d9095d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.02974399086088,
+          "latency_ms": 62.69629398593679,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-46-a94cae488ecf4ffeb0e3a2c4f05db0c9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.264102342072874,
+          "latency_ms": 62.96521134208888,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-47-2198f294047e4d2b822aeb8bf7f564e3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.37480264273472,
+          "latency_ms": 61.57762964721769,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-48-90f27f1fe2924b67a2b64795946f2790",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.552389988442883,
+          "latency_ms": 61.27159300376661,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-49-2296eede00ed4cbf8cb2b531d76c2b48",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.183686341624707,
+          "latency_ms": 64.36108532943763,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-50-2496fa754ddd4b2e883eec7c991409cb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.040454637026414,
+          "latency_ms": 62.04402365256101,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-51-c87f741d19ad48ae9cfd550d051e0450",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.085843002656475,
+          "latency_ms": 61.817901994800195,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-52-5f374fa650f84e05be3d2c5ccc7d5240",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.822131332242861,
+          "latency_ms": 60.51856532576494,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-53-c59adf7797e9446e89a9710796610efe",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.901019661920145,
+          "latency_ms": 60.87880764971487,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-54-f9d1fbb45e714c33a7f8b3b33a24a3a4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.480216981610283,
+          "latency_ms": 61.07823399361223,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-55-a287782deee14a3183aaa42c19a22a65",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.853239339776337,
+          "latency_ms": 62.29268532479182,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-56-22b3bbd48cf443b88beee52e6ff8a38d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.962198660010472,
+          "latency_ms": 59.064273635158315,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-57-3c8273487bee4588a0e4e017c02e0496",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.604920987039804,
+          "latency_ms": 60.168160998728126,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-58-913dc5f7d0bd43069fdfee826aca2a15",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.740370341110975,
+          "latency_ms": 59.78554533794522,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-59-3db13909068247db8551dd929e38579e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.82173364679329,
+          "latency_ms": 63.61734465463087,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-60-2db6752a0ebc4e0cb4ef6449329c115f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.689776988234371,
+          "latency_ms": 61.298769986024126,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-61-2a42f1b50e824e1baeffb77312b02481",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.854554319754243,
+          "latency_ms": 60.825475346064195,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-62-4fe2c34ebb934992bfdc3b325012adfb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.850246651098132,
+          "latency_ms": 61.71716164681129,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-63-4ba5f6f6eb6043c0a80bc99b20fdb592",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.14153299224563,
+          "latency_ms": 57.78351399931125,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-64-63e9a481a292420cbf1073b0c7a44fc6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.67628132761456,
+          "latency_ms": 61.15614832378924,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-65-378ff22c5d544af185238370fe002fda",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.096105635166168,
+          "latency_ms": 58.94863564753905,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-66-b160edc5359344a497095cf2a888770e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.915659002028406,
+          "latency_ms": 63.5811849788297,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-67-751aacf2a1164c07b1eb977d54b0bc22",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.910385340452194,
+          "latency_ms": 62.83840234391391,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-68-dad96397a69b41b4a48eca13822275b4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.262969642411917,
+          "latency_ms": 61.05297463363968,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-69-2fb9e02629714531b858523568c9cf06",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.754031993215904,
+          "latency_ms": 65.02620197716169,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-70-c18515646b3742a999687ee7f2632047",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.012193344067782,
+          "latency_ms": 62.150012323400006,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-71-a7c61b176f5f4c8c854950a9d315bdbe",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.73493564967066,
+          "latency_ms": 66.29806963610463,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-72-7c22338a8a344ef589b9a92811b7f15d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.38601999427192,
+          "latency_ms": 65.42527198325843,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-73-3978141065c14d12a86a40834fe37404",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.205252319807187,
+          "latency_ms": 64.82798533397727,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-74-853cbba3d39a4a72ac31382a324bcb4f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.505130650941283,
+          "latency_ms": 65.58707865769975,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-75-4efa0b24738b4e63b88379da16cfdd5a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.448317990172654,
+          "latency_ms": 59.95408300077543,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-76-386330cabc154027ae90be82b4e8a1e0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.781726320507005,
+          "latency_ms": 59.97409133124165,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-77-64c288c6654e42bf87a8fdad68e498e9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.98763864603825,
+          "latency_ms": 61.68756165425293,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-78-2f245808c6e14839b5342d7a81d0e034",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.068149995291606,
+          "latency_ms": 62.92596698040143,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-79-8411b6bdee654c12b8f2b013c5535e2e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.747791341505945,
+          "latency_ms": 60.16534133232199,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-80-eb2c28b9781b47c9a3116a1178e8cd1d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.755311644170433,
+          "latency_ms": 61.88514464884065,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-81-decce83b0c5541f2af63bbe9e1dd6a3a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.162598981987685,
+          "latency_ms": 60.84426699089818,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-82-ce5eaa8c995143d2b8f74c0cd5d39302",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.725359331350774,
+          "latency_ms": 58.15494732814841,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-83-477d295bbb28475f9a3f8f9138204859",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.830275653162971,
+          "latency_ms": 59.75514865713194,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-84-d336e204d8054f58b0c1712d2cf33d99",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.07623798190616,
+          "latency_ms": 62.5839080021251,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-85-661cf2583fb64430b241f7908d4a66a6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.94267533882521,
+          "latency_ms": 64.65987034607679,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-86-c352ba909de24a68873ea83a71e9be6c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.70063065062277,
+          "latency_ms": 61.385293636703864,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-87-38b0de7a037b4685bbd9f21f1bc1ffbb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.701093983603641,
+          "latency_ms": 59.741969977039844,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-88-f0950d21939e4cf180a31027f8732051",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.70547033427283,
+          "latency_ms": 62.22881333087571,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-89-73c2a34225244e89a52bc4b248dc9386",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.896942651830614,
+          "latency_ms": 61.80410864180885,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-90-d674bc2fbec44adeb874e6c11dedec04",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.223806004039943,
+          "latency_ms": 63.08068797807209,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-91-b5143f7792b745428f1a02c82cc2b0c8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.19870532886125,
+          "latency_ms": 60.924466321012005,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-92-7509aa29c59f40ba93fa586559224c47",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.942016645567492,
+          "latency_ms": 63.040968641871586,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-93-390d5558da0a41648daf40d8c4380476",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.331754992483184,
+          "latency_ms": 62.078970979200676,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-94-6e273cfaf03644c8aa4de79c52062d58",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.761716320412233,
+          "latency_ms": 59.15628734510392,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-95-d3f5b71e50e44dadba21bdb228aa1d73",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.840326661011204,
+          "latency_ms": 59.74648264236748,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-96-a89d310296aa4b28aea9cd53d9d9b9be",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.05771600548178,
+          "latency_ms": 59.21089599723928,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-97-98f72a27617340c1a8782115fac8737a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.706612331792712,
+          "latency_ms": 60.00954334740527,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-98-b071655b3f2e46fd94e1e19013e4db92",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.478128654649481,
+          "latency_ms": 61.427118635037914,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-99-80c46b3fcc8f4c738eb5b240f26910d3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.470007984433323,
+          "latency_ms": 63.09563899412751,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-100-ab6beaea8fd445d0b95d9b7169d4c347",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.726416328921914,
+          "latency_ms": 64.14553534705192,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-101-a7016cbb00b6400e851346118b6cabc3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.13257665769197,
+          "latency_ms": 64.23236164846458,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-102-606db02156d94bd3aba84d1300742e8b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.63205899321474,
+          "latency_ms": 66.34534898330458,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-103-83eb4ce133da4d738fd1c929d6a4d25e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.963749330490828,
+          "latency_ms": 61.64005532627925,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-104-1b565ad2a90843de9a23c2235b79238e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.295809658709913,
+          "latency_ms": 61.003550654277205,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-105-8ae1f51144034adcbd3cc96701692228",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.493568003876135,
+          "latency_ms": 60.02431298838928,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-106-7081660976184cf9bb397852de206a95",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.40645432821475,
+          "latency_ms": 65.03901034011506,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-107-9600cff0c5ee44d6993a86a27b130278",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.75329066044651,
+          "latency_ms": 64.26928963628598,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-108-8d7107aa6fcc41e2b858a83361fd7d52",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.430529984878376,
+          "latency_ms": 65.49496698426083,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-109-45e80c74e5d94398acbf2d02fb85b837",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.150382325984538,
+          "latency_ms": 64.40024534822442,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-110-8a32da65dbd843c79c960b863422d15e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.70907764066942,
+          "latency_ms": 58.84299665922299,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-111-69236d0d0208419387db3031d958ab21",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.15214698924683,
+          "latency_ms": 59.24351199064404,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-112-01deff44eb72480988612d3fdfff9058",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.821491339011118,
+          "latency_ms": 62.09677932201885,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-113-9b5703c445234980b835551a9f7ce7cc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.598464648472145,
+          "latency_ms": 62.22472063382156,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-114-8076c6ce836e49f2aa1c0237f503410b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.830761993536726,
+          "latency_ms": 63.31301899626851,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-115-df8041721fc9486482dede63927dd20d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.246043323306367,
+          "latency_ms": 59.09652134869248,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-116-1d11105ae4cc41e68104d25cd8a523b3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.94144564680755,
+          "latency_ms": 60.968106641666964,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-117-032c29016cfb4c578e35a76bef787905",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.58724300027825,
+          "latency_ms": 61.089050985174254,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-118-6952b0921cda41db9cb522a44d7af6e2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.798198331845924,
+          "latency_ms": 61.20234332047403,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-119-2bc9d7a0c62643258b90e5da547646b4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.1946296361275,
+          "latency_ms": 63.94629363785498,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-120-de137bb091f64b83be131d645a241a69",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 22.67398199182935,
+          "latency_ms": 69.0855149878189,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-121-529eff882e0d44489cf8e6a32991a7bf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.89993532677181,
+          "latency_ms": 64.90745933842845,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-122-d569e10ef225409dbf1e04a96ff7ce97",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.728297643363476,
+          "latency_ms": 63.24719765689224,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-123-b12d7e292db54d65bae7525d6b090264",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.470465999096632,
+          "latency_ms": 64.5352519932203,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-124-66773df5178a46d5ba2b3bf466ceb63a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.0086873434484,
+          "latency_ms": 59.81328233610839,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-125-1f338843d94f44aea28a7069c4af35e7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.682252640137449,
+          "latency_ms": 59.718788659665734,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-126-fe5951db5d064192bf90c93e50e159a5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.141188997309655,
+          "latency_ms": 62.99410498468205,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-127-786edfe4af6147bc9f6e60081b34e8b7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.41019934322685,
+          "latency_ms": 62.72773232194595,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-128-d6fa16ff62eb48dbbacc78a9886ef93d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.829152660444379,
+          "latency_ms": 61.4120296377223,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-129-43f3bd5ef7da40ffa7da6693b8a5b00b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.295201004249975,
+          "latency_ms": 64.25009298254736,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-130-ddb80ed3b5fc4e06bfd9b66802e31fed",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.35611232672818,
+          "latency_ms": 63.81146633066237,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-131-b5e01ad2ce0a4ea2bd1a567588588460",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.088457653997466,
+          "latency_ms": 58.56872964068316,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-132-2f6b8f10f35644a4a39a862e369e7490",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.402476977324113,
+          "latency_ms": 66.33393498486839,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-133-f7b42eb5bf2c4f8a9793be6f69a6dad4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.056908320635557,
+          "latency_ms": 67.24505632882938,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-134-a1379a9964c64a1dbfe411c1e3fd8c61",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.813952661119401,
+          "latency_ms": 62.55426866118796,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-135-adb3ae3466b74fb1b20ea79efb7788fd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.02368798921816,
+          "latency_ms": 60.99567798082717,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-136-b9c56b7992ca436286cae44630a1bea6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.415337333455682,
+          "latency_ms": 61.3806453475263,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-137-2ea1a18742fe41eeabbd20da42a546aa",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.687768649309874,
+          "latency_ms": 59.650678653270006,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-138-c6dc8ede40a54d61815ae68c7fd6ca70",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.36722099687904,
+          "latency_ms": 64.39111498184502,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-139-4ad8a45ade834611a1629c8a452c5663",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.473447340307757,
+          "latency_ms": 64.42682733177207,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-140-283337a148bb4a19ac24f0fba16e22f3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.766939661465585,
+          "latency_ms": 60.76209666207433,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-141-44614773a35049958fab37313282e0fb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.082930979086086,
+          "latency_ms": 62.44269700255245,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-142-798acc18551a4701b0c959ba6176df09",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.3690153460484,
+          "latency_ms": 61.711008340353146,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-143-57884539ccd248cb818d315ad94be501",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.61157063790597,
+          "latency_ms": 61.363081651506945,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-144-94013a48d8f240a79ab483e299b121d3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.645361981820315,
+          "latency_ms": 61.78071498288773,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-145-e558d8f653924bafaa9d064c4c8eff09",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.588539347751066,
+          "latency_ms": 64.0403863217216,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-146-a83947d89a0947c3b7d0a65b5532d3e6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.653492650017142,
+          "latency_ms": 59.43712065345608,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-147-d0931d628263407ea5dc76c00de0f015",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.843522983137518,
+          "latency_ms": 65.63681797706522,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-148-6e62b6ba85844325a1ef19abf6c257c6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.476111333351582,
+          "latency_ms": 60.59421834652312,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-149-73964209883c45da97f0aefbca67c83b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.631347661837935,
+          "latency_ms": 64.1590986342635,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-150-a823ffc2e4054216b69efbef64ba3e8d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 22.262596001382917,
+          "latency_ms": 68.90674200258218,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-151-09df212742da4f2185d7122b5f061a95",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.539644325850531,
+          "latency_ms": 60.23102533072233,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-152-7f0b83d6067243a8a1ee93af37ae1cdc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.12240364192985,
+          "latency_ms": 62.503326655132696,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-153-3ed30fd6613d481eb3be66574db04517",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.390893986681476,
+          "latency_ms": 62.852773000486195,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-154-35fd892c6f784843863cf08f3daf1e15",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.303589334711432,
+          "latency_ms": 60.91804034076631,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-155-b56d46acf45c4aeb9f062ccce15c1220",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.279107661219314,
+          "latency_ms": 58.09640564257279,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-156-2ae4077e5f344bc585936210a31621d4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.868002988398075,
+          "latency_ms": 58.82222097716294,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-157-b607866e5d3d49ee825cb058de42a654",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.38216434023343,
+          "latency_ms": 64.55069332150742,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-158-90b927468dbf470ea9433513c3cb186b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.566715650493279,
+          "latency_ms": 60.537988640135154,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-159-a1f329eae6624406bae6365948608fe6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.498108997941017,
+          "latency_ms": 60.92789399554022,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-160-c89971205f254f99bdf6c155d4cced2a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.3365363413468,
+          "latency_ms": 65.44042433961295,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-161-05274e1d867b42648296b70b2372b858",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.574643639614806,
+          "latency_ms": 62.57088165148161,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-162-1b734ea428794a3284691ea77dc80d3f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.037342993309721,
+          "latency_ms": 63.362298998981714,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-163-4de35238cade426195bc0263da6bc8a5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.598510333802551,
+          "latency_ms": 61.864651332143694,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-164-73d15b746abe4103817be81f5cf4749e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.546647635754198,
+          "latency_ms": 63.48055764101446,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-165-c47f2dc3657d4b2b80e4573ed1215658",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.161920983809978,
+          "latency_ms": 64.84544798149727,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-166-0f8184e7f9e1467a84b8f3fd623d406c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.050037327455357,
+          "latency_ms": 61.674029333516955,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-167-d1471a9d06a841d0bce5f208d6922ec2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.62321764160879,
+          "latency_ms": 61.53767465730198,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-168-11f2163484264cf8baa4317751a9f7af",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.898401983780786,
+          "latency_ms": 61.847675999160856,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-169-2d148df1249f4a81b82ea3be2762a1f2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.987241338938475,
+          "latency_ms": 62.77453032089397,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-170-36110cac216e4e13991a24095feb56ca",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.25266165076755,
+          "latency_ms": 58.00391364027746,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-171-e3013e1db0044ea0b8a453502d6aab66",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.342521980637684,
+          "latency_ms": 64.04063699301332,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-172-e6e6bfdd2cc94d2e872364c9f9018a72",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.89135133731179,
+          "latency_ms": 63.63442033762112,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-173-f5d04853636a4db2955d03ade86e194a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.54650565655902,
+          "latency_ms": 65.3719776601065,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-174-c44b7f0d5b4046318008fb1f39f213bb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.179173978045583,
+          "latency_ms": 63.63702297676355,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-175-c6bab75e828749cb9e5a0e9ac7a65608",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.100679338909686,
+          "latency_ms": 60.97789533669129,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-176-0dde2d41adab42a08f68800929054f6f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.841540658380836,
+          "latency_ms": 60.04759864299558,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-177-f9858800a09a40caa957e695eed7763c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.744193999329582,
+          "latency_ms": 62.45235298410989,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-178-b5507d6eff814f5e85e3f0213417a3e7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.152166324900463,
+          "latency_ms": 60.5141373234801,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-0-179-40493044a2844575ac759f961e836244",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.394437639974058,
+          "latency_ms": 61.926051654154435,
+          "status": "ok"
+        }
+      ],
+      "p95_ttft_ms": 20.63205899321474
+    },
+    {
+      "rps": 6,
+      "duration_seconds": 30,
+      "completion_seconds": 29.896333987970138,
+      "requests": [
+        {
+          "request_id": "load-1-0-c4552347b2c84d32acb046e7311616cd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.978549967054278,
+          "latency_ms": 59.23157397774048,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-1-a131ea885325476597b6d142553ef907",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.404187317471951,
+          "latency_ms": 62.93996231397614,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-2-bc6dbb45166b479e93ec5c48c85eedc5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.095149618806317,
+          "latency_ms": 64.35234262607992,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-3-4c1680f60257439a997f923b4b1dba92",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.012464977800846,
+          "latency_ms": 64.89108997629955,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-4-09bfbc352d4549f18968050173f016bd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.787338321795687,
+          "latency_ms": 63.21182331885211,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-5-ababb61abcd34a2fae27db25bd853d16",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.40582162933424,
+          "latency_ms": 64.31826463085599,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-6-bb178da1322e4b0597dcdc4a91526810",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.80701697175391,
+          "latency_ms": 61.82542396709323,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-7-bad92c1047744f6f9b958b6d48c9a2d0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.33103031781502,
+          "latency_ms": 59.78224432328716,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-8-7453ad1dcb1645e1b10ef5027bf2bcf0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.357633634470403,
+          "latency_ms": 61.083515640348196,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-9-90e880804d6f46f58365a2c25a4a47cf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.33924597222358,
+          "latency_ms": 59.339612984331325,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-10-8e842a5b15b44592a2a26862e985ba74",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.883612330071628,
+          "latency_ms": 61.50925630936399,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-11-d600155111fb439392107d881d718c1a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.025809629354626,
+          "latency_ms": 60.58611563639715,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-12-b0599093d6c24327a235fad0fac63b08",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.595477970549837,
+          "latency_ms": 67.06187097006477,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-13-30d6d8c40e5444a9bb505ba6b86e1d97",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.43078131484799,
+          "latency_ms": 66.15323430742137,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-14-cc21df295c384fc0a36e394690b51bf8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.936555647291243,
+          "latency_ms": 66.27636062330566,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-15-6849dcbd1bf14128a2f0e4ab671a7138",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.350940983509645,
+          "latency_ms": 63.16723398049362,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-16-fa2cf18dab4e4d1faa151f34da0d29d7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.240322314435616,
+          "latency_ms": 59.38265332952142,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-17-931d0fd645414cf39e35444a26033fce",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.806449646130204,
+          "latency_ms": 58.26257562148385,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-18-838f0f2d1cb94f83929587ed872c0ab9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.74500198289752,
+          "latency_ms": 58.796051976969466,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-19-15a5a7a4ea3342a8806446f9ea7b45c7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.67876831581816,
+          "latency_ms": 60.303592326818034,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-20-81e5f59448f94a82a656a830f4c97af1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.666434636339545,
+          "latency_ms": 60.50867662997916,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-21-6bdb0fc4475942ba8eda451db5481d91",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.96052396739833,
+          "latency_ms": 58.13031896832399,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-22-cefc303e0d70499785850639da9653d2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.18882832210511,
+          "latency_ms": 60.78207632526755,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-23-c8b236161d7b48359a48ff0073ff9e84",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.66442061914131,
+          "latency_ms": 65.2081546431873,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-24-cda8ac86ee234096bc8cc50c66abb6c0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.03878798475489,
+          "latency_ms": 63.56846197741106,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-25-efc182d9f5a5432c8d7c64f89a070895",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.31561731523834,
+          "latency_ms": 63.17815033253282,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-26-2864f0468c7a4ca8b92692b252a33523",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.82943163602613,
+          "latency_ms": 63.05429362691939,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-27-17306662bccc4a0382a558a65b516f20",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.681602978380397,
+          "latency_ms": 65.86236096336506,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-28-519b688a2791411087a8bf18b8c75445",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.177078309236094,
+          "latency_ms": 61.93191831698641,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-29-530ce2a8b0b34b988d51759819f3f5c3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.515434643020853,
+          "latency_ms": 60.12694162200205,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-30-c6a79968ddc841d9bca39fb4922a3746",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.48647398967296,
+          "latency_ms": 64.58584597567096,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-31-84bd03c15e64489dba84675e072a2b03",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.686413306975737,
+          "latency_ms": 64.61141031468287,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-32-6fb5e831343e46b6a1bfacff63bc3e0f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.62835861882195,
+          "latency_ms": 61.756575625622645,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-33-e6fb77628bc54bc49e2576f0cd18d8be",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.938939973944798,
+          "latency_ms": 60.53661697660573,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-34-87f86f2537d94a789ffbe8cd01d0d178",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.02737031155266,
+          "latency_ms": 64.75376032176428,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-35-3184d2c4b3674fec86d00c392c627122",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 95.26625162106939,
+          "latency_ms": 95.69396064034663,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-36-9c7d166929974e3997ba9f187b5a3989",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 43.32595597952604,
+          "latency_ms": 88.77755797584541,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-37-f870dfa3940b481a9242cc15a1ed13e3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.258998316014186,
+          "latency_ms": 63.984579319367185,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-38-e156dcb2a48b4e2d82347dd3aee73c1c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.500950645422563,
+          "latency_ms": 61.83333264198154,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-39-87092fbe202940fe8b577b9213733719",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.747594974935055,
+          "latency_ms": 61.16356098209508,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-40-94585e44608e4647b0cc630f4cc08e86",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.083812311990187,
+          "latency_ms": 62.75628332514316,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-41-69988c963b814f568591e299f2fd8f6c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.834254646208137,
+          "latency_ms": 63.93496063537896,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-42-5f7923535915433e80ca98be2cd69cb6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.525430964771658,
+          "latency_ms": 61.16782798198983,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-43-c95b42aeda6545eea15b33ca50e8d05c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.149737329920754,
+          "latency_ms": 61.23429333092645,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-44-33a81ac2900047ba807cdcca3f3261af",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.932955625932664,
+          "latency_ms": 60.07933663204312,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-45-6ddd7887bb4647e1a075b95d56ee87d3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.83402098226361,
+          "latency_ms": 63.89292696258053,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-46-9bf54ee3e64f4f34adb32b5ffb92ade2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.168462313245982,
+          "latency_ms": 63.45588932163082,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-47-ebb87721db4d42a7837cb6393d7f76e7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.737618621438742,
+          "latency_ms": 58.56972062611021,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-48-8b30ebed845042259c58b0f75df27d34",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.229171985993162,
+          "latency_ms": 60.50194596173242,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-49-9ffecbe4bd304fb79b664290eae0420f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.833322304999456,
+          "latency_ms": 63.49866330856457,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-50-a239098a4e5743c3a3dd020c3d70a526",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.36984562780708,
+          "latency_ms": 63.66628562682308,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-51-77df8f959d944e2c8c7a01729b28d638",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.986200978048146,
+          "latency_ms": 58.79778097732924,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-52-5dc2b721f33d4347b8b77af623be6869",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.78653632896021,
+          "latency_ms": 60.23621832719073,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-53-a302eff32e7e4473905c266f26131d65",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.430442639626563,
+          "latency_ms": 60.006104642525315,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-54-6d340868ba41439182aff21f892b5b95",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.11292298953049,
+          "latency_ms": 62.58567498298362,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-55-dc37db9fb46947b89e7dec199a0431c4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.02441430906765,
+          "latency_ms": 64.45720931515098,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-56-f97e6c9e1ca84815ad77f5a708a05055",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.442155640106648,
+          "latency_ms": 61.879280634457245,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-57-c194b8caeef241c4ab0b894daf83121a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.76060797763057,
+          "latency_ms": 61.61821898422204,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-58-fbaedfb76284400aac47997857031788",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.978595332242548,
+          "latency_ms": 58.53690730873495,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-59-5bb19859107946e7b84c18fc3dc6ce91",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.53062362736091,
+          "latency_ms": 63.74862362281419,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-60-f2661bd0f98d485a80754d8e82edd344",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.308183985529467,
+          "latency_ms": 62.761227978626266,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-61-eba296da6d2c4b96aa9a4f15679b9115",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.282051314599812,
+          "latency_ms": 64.27445731242187,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-62-27f783b8b7384ac787e396598825b37e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.380553628550842,
+          "latency_ms": 60.70228363387287,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-63-48f11ea6f21442bba2db3f0bc6d2cfc9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.673566966550425,
+          "latency_ms": 62.19701998634264,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-64-626f05dde5f84d92bde5a340d794f1f8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.519622324267402,
+          "latency_ms": 61.92638131324202,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-65-a40f1d9a54124d2dafd2d48ff5962769",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.452184637775645,
+          "latency_ms": 60.1938626205083,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-66-07924db747a74b53aef50f542b8c5b66",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.871862968197092,
+          "latency_ms": 61.19296798715368,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-67-2f502f106d7f4c8780da135a0cc17c6c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.17767131049186,
+          "latency_ms": 63.34799830801785,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-68-f30d85b7993b4fe9a15fb4aa993ffcbc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.690046632196754,
+          "latency_ms": 63.592800637707114,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-69-8902db43fd844e4ea46e050ebadcfa9b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.86250897264108,
+          "latency_ms": 65.29473297996446,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-70-fb17c0795b11474c934fa5faac9c9545",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.62648332118988,
+          "latency_ms": 66.21376832481474,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-71-084f771131ac4be0a05cce6a61827388",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.453580626053736,
+          "latency_ms": 65.63186962739564,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-72-181a923e7b00460ca143dc669b3c528d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.51164296385832,
+          "latency_ms": 64.7152419842314,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-73-a7180bf752694ab993376c3c1ec057ab",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.278601314406842,
+          "latency_ms": 66.36403131415136,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-74-2ff1b9732ca840f6bf5c2ec4d5b39001",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.396809628233314,
+          "latency_ms": 63.69120263843797,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-75-9d6c5576cae445e484ef5887f2671cb2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.517606979003176,
+          "latency_ms": 63.944547990104184,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-76-c7d58624bb5341339d3fafe539dbd67d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.746118318522349,
+          "latency_ms": 59.506545308977365,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-77-f814cfb9283c4e719955fd0915a574b8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.510873636230826,
+          "latency_ms": 60.15834762365557,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-78-7ee6806b480345b5b8c23f5b36d5174e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.676970979664475,
+          "latency_ms": 61.1280599841848,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-79-62a3a45f049d40818114712925b52997",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.01875833189115,
+          "latency_ms": 63.71019431389868,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-80-3a817aac73ec4704bf6a0765ab760cc5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.568602637154981,
+          "latency_ms": 61.81059664231725,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-81-91828c6c973f479aa10047fa05c5a334",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.642255962826312,
+          "latency_ms": 61.19202697300352,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-82-c3d1477e565b45e38ce08f106470e5da",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.948226326145232,
+          "latency_ms": 61.465015314752236,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-83-11621e1ea2a246aaa5ed9fbe5591fc4f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.120205641025677,
+          "latency_ms": 64.0490556252189,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-84-0e6a237276664a6f8762cf6f6ffcf070",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.934920967789367,
+          "latency_ms": 61.236661975272,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-85-4410a817ffc0442581356cb854527f30",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.784167321631685,
+          "latency_ms": 65.35367132164538,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-86-70303e454f53466c8627c32c37d7b174",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 22.175380639964715,
+          "latency_ms": 67.00486963381991,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-87-3c3569dd8bf54948907edf8b175527ae",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.64816596894525,
+          "latency_ms": 62.39969498710707,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-88-4918acdb96a443c7bf14505020ebdc78",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.11878432938829,
+          "latency_ms": 62.170255318051204,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-89-58d388d3e17c4a3081836dc9eee3cc75",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.336674619698897,
+          "latency_ms": 59.394206618890166,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-90-20c1cf865bd04b5bb88688710ff413e8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.437201975146309,
+          "latency_ms": 60.41780696250498,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-91-b4bb55aa4d9742d2b627c9613a4e4a30",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.889040307840332,
+          "latency_ms": 63.83370130788535,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-92-74edaf99ec774b5fa6f6bd52dc583fda",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.143132641445845,
+          "latency_ms": 60.627663624472916,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-93-619d129c0f2f49238c28548c2c63debc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.863765988498926,
+          "latency_ms": 62.2484419727698,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-94-27eaf87e4ce540a59db8ee8184ea9fb0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.233043326996267,
+          "latency_ms": 63.41131031513214,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-95-d5bfe612a2cc42d3b7aa538fd5967d77",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.285172634525225,
+          "latency_ms": 61.08413462061435,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-96-f640ef1fa51241299d095c29cfad987e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.099112981464714,
+          "latency_ms": 60.43348697130568,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-97-3208ee3da3084e2491c14a5585509dd3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.364943320397288,
+          "latency_ms": 65.4060153174214,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-98-7f12032b28834d91baadef819f0628b5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.512459641788155,
+          "latency_ms": 59.323777619283646,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-99-7bc06d59f32c41228468e50c5eb14ee5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.892468985635787,
+          "latency_ms": 60.21949098794721,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-100-d567e345b57d41c99fa2cf6518f357bf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.032082330435514,
+          "latency_ms": 61.50267331395298,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-101-519b547ccdfe41e0ad7dca26e79f8124",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.096354647539556,
+          "latency_ms": 60.58034463785589,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-102-1cc09847e2d24b2a936d499ddbfae709",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.91572697320953,
+          "latency_ms": 60.05179698695429,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-103-dd02926669af4f56a49d235cef2e7569",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.838442322798073,
+          "latency_ms": 61.1641823197715,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-104-94ad50605266491eab10751c111aa892",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.40231763990596,
+          "latency_ms": 59.238922636723146,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-105-55bd7da320f5437c804384761ea3da6f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.670928969280794,
+          "latency_ms": 59.99009698280133,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-106-53bc93525e094601b7ba2cbcac24eec8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.271047323243693,
+          "latency_ms": 61.59090233268216,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-107-c12698aa03a243a38dea487bc3a5cf7a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.331885631894693,
+          "latency_ms": 61.05364064569585,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-108-3b119640a7dc4762bcf3f946bd5e30e5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.553940979065374,
+          "latency_ms": 61.44460296491161,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-109-b69da42a24df47b3a292f9be843a8322",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.974027323769405,
+          "latency_ms": 64.52921230811626,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-110-3a69dbf2a71e4091ae82b8e558b82a23",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.93304063216783,
+          "latency_ms": 66.596115619177,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-111-55471ad48c9c484b9a9946c033f5c03d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 11.920808989088982,
+          "latency_ms": 57.99737898632884,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-112-888239899ed146eeaf1e4055decca4ce",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.89974732371047,
+          "latency_ms": 65.34345232648775,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-113-b14fc1c41c5f4f8190237b4543c54224",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.329714647028595,
+          "latency_ms": 64.98713564360514,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-114-8c1e345677c649488ab685b4fd180582",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.074421968776733,
+          "latency_ms": 65.62064797617495,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-115-20f95e6d22e041bc94c0abedaa18fa90",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.782737323315814,
+          "latency_ms": 65.31825731508434,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-116-e8fbfdd9ca1849e8890ee69bafead2d3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.093707643449306,
+          "latency_ms": 62.221067637437955,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-117-a36db60ff3194fc2980b72fef9311a72",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.504730981774628,
+          "latency_ms": 62.13353096973151,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-118-2f4ad7120a374edea501a8c04f247f63",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.20929933153093,
+          "latency_ms": 65.32348733162507,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-119-cc5a03c28dc04e16a9fcd15fc8b380a6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.647630625404418,
+          "latency_ms": 60.407186625525355,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-120-6627babfdffc4a95a1c08d35d62102cb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.1662389873527,
+          "latency_ms": 62.727875978453085,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-121-dbcbc8d83d7d4cb7a3c1e0eab9cfde09",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.951773315668106,
+          "latency_ms": 62.69686430459842,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-122-148bde807b9f430682da5c3c7eee0954",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.935950621496886,
+          "latency_ms": 61.813959619030356,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-123-baebf5b0e69747acbb8642770ff08768",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.124685985734686,
+          "latency_ms": 59.33854597969912,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-124-39eef9abdb8747df9af6901951606752",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.064618322066963,
+          "latency_ms": 64.06407631584443,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-125-3579950b9b9e43f7ba348447dc80591b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.683006619336084,
+          "latency_ms": 63.817394635407254,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-126-0d33fbfa7d9442ccba934bad90eb906f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.076900982530788,
+          "latency_ms": 65.31945097958669,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-127-6fdc1c0846644e5983ec21ff77f92e3f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.149862320162356,
+          "latency_ms": 60.17602331121452,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-128-c32e126d1ea14e679915aac3c9e305c8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.823754624463618,
+          "latency_ms": 65.5299786303658,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-129-5d744162f9c74e55b4937a5f01c6fd17",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.555886974558234,
+          "latency_ms": 64.78356197476387,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-130-3b3d677741774b0786b80e25ae43f78f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.951615318655968,
+          "latency_ms": 63.21840232703835,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-131-1deb005530194b249e6979d2fc661308",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.037043620599434,
+          "latency_ms": 60.29475262039341,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-132-fa122781377c4a928e709e95880de61c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.43408397003077,
+          "latency_ms": 64.2172709631268,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-133-c75a438d6e5841d68dcf44f5a3d97cd5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.74049930484034,
+          "latency_ms": 63.4676773333922,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-134-37f29413d67740009c656cfb233f58d2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.042798633454368,
+          "latency_ms": 59.23490162240341,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-135-718fb6bc001f46a9be8bcd6814bf0449",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.079162967391312,
+          "latency_ms": 61.34215596830472,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-136-b28dce49feb2431d9c50c2a79f2084f6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.212541311280802,
+          "latency_ms": 59.940072329482064,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-137-eebb5c5d58e2497b90f51c0ac4e558d2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.242716646753252,
+          "latency_ms": 61.29216164117679,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-138-c73ede9cca3d47db8f55f2e7c5a983e8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.392865967238322,
+          "latency_ms": 60.1511939894408,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-139-97647b9f426d4c7782f9fffe9e8947a6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.271819323766977,
+          "latency_ms": 59.42410230636597,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-140-84497394f30b4c9885cdaacfe4522ee4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.887336620129645,
+          "latency_ms": 60.18250362831168,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-141-73270fde8b584988bfe567b0a8d1d44f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.932229961734265,
+          "latency_ms": 58.86220297543332,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-142-82bc05c08e774b1d9d17b74cb64afe79",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.662653324194252,
+          "latency_ms": 60.420522320782766,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-143-206875b5f6324f3dbd4ae9414dd20cf4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.0788146359846,
+          "latency_ms": 64.78216062532738,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-144-79db29bfefaf44d9bc8ba69fcd2df4e8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.289884981233627,
+          "latency_ms": 60.93007596791722,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-145-3e0a20dcbfe94a75ac2c6f74b7e3cf7c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.951980323530734,
+          "latency_ms": 60.82188131404109,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-146-deb82c9b655b4b2bb1dad39b01f643bc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.791759619489312,
+          "latency_ms": 63.80294464179315,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-147-d7245aeec08846ae81f3a4b1b9dddce4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.29964098194614,
+          "latency_ms": 62.218837963882834,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-148-ded3b293549940e7aeddd0451099aae3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.454974308842793,
+          "latency_ms": 60.0654503214173,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-149-b64b0f2064994a3d9e7952f451536978",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.292231641476974,
+          "latency_ms": 63.29331564484164,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-150-3b9dececb5424aae8e751fc119a31b3f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.00274896575138,
+          "latency_ms": 63.0748669791501,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-151-6c3756df592749a6808aa5c6e40e4322",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.87635632394813,
+          "latency_ms": 65.21428332780488,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-152-e29991d9f92342aa82fe5000f1f333f5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.54086061939597,
+          "latency_ms": 64.48116863612086,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-153-8d596d2849dd439b98efa3daf5aea0d1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.36559997475706,
+          "latency_ms": 63.52535396581516,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-154-39b3e0219d0c4fe4a46967e310efb394",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.844650304643437,
+          "latency_ms": 61.95848432253115,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-155-4becef0dcfc84c4b9a6ebdf6ef528cd6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.263334625866264,
+          "latency_ms": 62.25463963346556,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-156-6b75a6cf73a64d34a6d61bd72454f21a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.144188964972273,
+          "latency_ms": 61.95812099031173,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-157-6825abe9647f4c6396052a34282ed771",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.786443328484893,
+          "latency_ms": 65.52130432100967,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-158-b1f613b9061e4787b7de69d651abfcb3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.673326624091715,
+          "latency_ms": 66.16674162796699,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-159-73c48757a6944245a4bd37a10bea471a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.006811961531639,
+          "latency_ms": 58.25977498898283,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-160-d7ad39969fc1432ab75e798c91178688",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.395381320966408,
+          "latency_ms": 62.80490930657834,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-161-38b39a0f0eeb433fae898d232b8a06c4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.216900636209175,
+          "latency_ms": 61.546630633529276,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-162-c6a7eb42b012403d9ca85dc7544c2b95",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.682650978211313,
+          "latency_ms": 62.44745998992585,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-163-de432b0df2e74b2686006c49917fc82b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 22.158512321766466,
+          "latency_ms": 67.5937773194164,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-164-b0be897773784705a32f24d14527db32",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.54127362417057,
+          "latency_ms": 63.37470363359898,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-165-cead50974f6643728122b52e5dbea0fb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.406007981160656,
+          "latency_ms": 64.8583879810758,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-166-1a90cffaf9884f53a34c4f564209b991",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.787640316877514,
+          "latency_ms": 59.804299322422594,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-167-b42e5b4275b74385a618c61fa75d00c5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.376800631405786,
+          "latency_ms": 62.52889262395911,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-168-af1c0878ed164b849a919fe8940efac7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.787726977374405,
+          "latency_ms": 60.98159996327013,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-169-ddedba0b1b5144c1a5721c3673a44da0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.986868312116712,
+          "latency_ms": 64.42807131679729,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-170-9380f62dd8a64e6bae9e61dbc5e54654",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.798913639737293,
+          "latency_ms": 65.53785662981682,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-171-bf2d0579a4224ec1bf91f900fe9f97c6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.855294961715117,
+          "latency_ms": 63.14294197363779,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-172-1553baabe6dd4663b92e173a2111fdcc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.705495310015976,
+          "latency_ms": 65.81558031029999,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-173-21c03e1182b4428180fa5a7b30f6d6e4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.42762463982217,
+          "latency_ms": 63.106136629357934,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-174-538688947eb74a199421968594a223f5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.014108976582065,
+          "latency_ms": 63.037812971742824,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-175-de356f15be4046218db3775da6259f82",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.987517309142277,
+          "latency_ms": 63.92013133154251,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-176-393a6f0510a6413aba947fbaeea985e8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.73189562279731,
+          "latency_ms": 61.77485463558696,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-177-bceaae3c64a94fc98e45c2da658b8292",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.151913962559775,
+          "latency_ms": 65.46954697114415,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-178-fb49e864dd21429892e619abee705b20",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.208471330581233,
+          "latency_ms": 64.22093731816858,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-1-179-779a5ea0e0ed483aab089be799945d5d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.568198625463992,
+          "latency_ms": 62.899653625208884,
+          "status": "ok"
+        }
+      ],
+      "p95_ttft_ms": 21.0788146359846
+    },
+    {
+      "rps": 6,
+      "duration_seconds": 30,
+      "completion_seconds": 29.894328852999024,
+      "requests": [
+        {
+          "request_id": "load-2-0-37cc1051bbba42f3bb2170caeb5e3aea",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.557234008563682,
+          "latency_ms": 61.62433500867337,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-1-8ac941cc13c14b21ad354b22cd27334f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.929956338368356,
+          "latency_ms": 59.943390340777114,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-2-437c8ec4edfe4dc7878aa6b26a60eddb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.148681665072218,
+          "latency_ms": 62.53427965566516,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-3-f57ce3ee8a794ae2a2bcafbc45ca8dfa",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.4149230113253,
+          "latency_ms": 60.11576400487684,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-4-5834b4d4d66d4c80ae59b2259bfd8946",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.894336353288963,
+          "latency_ms": 62.6989433367271,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-5-fc7e09ba335644b1943e2e0bac41fc8c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.347204665886238,
+          "latency_ms": 61.04643165599555,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-6-491b2b97b339471db90ec8460d107fdb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.461300001945347,
+          "latency_ms": 62.94914099271409,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-7-b7f5a6847114422a8eb1d8d5bf43a94a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.77851933729835,
+          "latency_ms": 60.613227338762954,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-8-a3cd4c58a2ea4654bfe2e92d7f6ad33e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.136248664930463,
+          "latency_ms": 59.81566765694879,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-9-39121ad459c54c7ea1b23ec270ad9645",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.935196009697393,
+          "latency_ms": 59.250518010230735,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-10-0863d55b4a9c412eb7ca3ba6e8145b32",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.815533337648958,
+          "latency_ms": 61.44846335519105,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-11-6a4beae4dc574ce19856bb4e032be99c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.250679658493027,
+          "latency_ms": 60.00102066900581,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-12-c6417ce8606c48fb8d463694fdd36e83",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.99764999304898,
+          "latency_ms": 62.80804699053988,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-13-39d80e25e15245a497e4c14092d0f36d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.266106336843222,
+          "latency_ms": 62.75499833282083,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-14-450c2f9fac4e465caf67d9689860febf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.269806653028354,
+          "latency_ms": 66.43854264984839,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-15-4fbc08fe8164426a916806e6eb820f42",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.050612008664757,
+          "latency_ms": 63.5785449994728,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-16-ae804ef924894fd5b6a00da60c56a62f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.016778353834525,
+          "latency_ms": 60.08568633114919,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-17-38025e31b6f44595ad7a9f3eb1046cba",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.042406652355567,
+          "latency_ms": 61.850560654420406,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-18-71cd568f9912478ba53a8f7f7852af7e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.44345299853012,
+          "latency_ms": 65.69089399999939,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-19-d0a1cea5f9c948258013c0340db83a44",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.35406235093251,
+          "latency_ms": 62.69807735225186,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-20-bd68da6b1a97426981914e23aede029b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.030516668455675,
+          "latency_ms": 60.80357066821307,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-21-3555811b3a88425299e7f832c680f2fe",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.43875300255604,
+          "latency_ms": 63.19861699012108,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-22-f66832f4682d4d5a949434201fc327d9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.318707340862602,
+          "latency_ms": 61.087810347089544,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-23-12822eeb4ef34d8d8aac7a0d3f12a567",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.275536668719724,
+          "latency_ms": 60.728208656655625,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-24-74632bad278e4157814b6e92a49a5514",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.649658998474479,
+          "latency_ms": 59.92543199681677,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-25-702ab5405bda49f5a0e80acda6ff40f8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.671434335876256,
+          "latency_ms": 62.84832433448173,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-26-de2f8133e2c74bcaad2e0bc1a4436b4e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.595662663457915,
+          "latency_ms": 66.11600166070275,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-27-118d940997d14ea59c6e721c6d59aea2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.807182004209608,
+          "latency_ms": 62.27195300743915,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-28-99eed002826b40c48b19085e38b47681",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.69931733724661,
+          "latency_ms": 61.47770435200073,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-29-eb4b7dc549974d4dbfeefa7e755b3702",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.148914659628645,
+          "latency_ms": 62.274678668472916,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-30-c4f8344aa41742c9b7d2b3c87c8bf23e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.447783990064636,
+          "latency_ms": 63.07117801043205,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-31-2e791c4e028d4b138e8a1c5d1afb3d67",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.003650332801044,
+          "latency_ms": 61.29696435527876,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-32-a95e5f1c75654c01b7a4c33cec92aaed",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.179961651796475,
+          "latency_ms": 64.42988265189342,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-33-33234cc504f544f481ad64fc2198b419",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.492727008881047,
+          "latency_ms": 62.31423301505856,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-34-b048ff77e03547578caa8a99f7074394",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.421399333514273,
+          "latency_ms": 62.654235342051834,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-35-82bd8061d0e445b69739e77a992be185",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.434680667473003,
+          "latency_ms": 66.18028366938233,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-36-1e45dea7e9c04609bebcf2be98276281",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.12388400826603,
+          "latency_ms": 62.568143010139465,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-37-031815e52d444ac3aeb4a197e810cef9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.864217344438657,
+          "latency_ms": 61.48050035699271,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-38-79a35ff842cf49c39e6c5a364ec69aec",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.07551664346829,
+          "latency_ms": 61.862727656261995,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-39-cb2c4839ed9d40a5a46d8a26c0d293a1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.3460520056542,
+          "latency_ms": 64.0414280060213,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-40-63ee75ec3cf1433883a9b1084494d554",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.550685344962403,
+          "latency_ms": 62.94277333654463,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-41-0085320c6d714a6b9f3b7d7a4136015b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.03395865135826,
+          "latency_ms": 63.35665166261606,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-42-f0dc8453c3b24f8daac2de8f384a91e4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.545838003978133,
+          "latency_ms": 65.27599200489931,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-43-cccc4ce01b624675a89d129cf1569457",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.266577345551923,
+          "latency_ms": 60.73132835444994,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-44-58aafba5dae9461db95b824511a4b9f1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.80369266634807,
+          "latency_ms": 64.25917864544317,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-45-d74e4f5168ae41169015ce841f43c5ab",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.231603007530794,
+          "latency_ms": 63.851980987237766,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-46-09ce81e1749b452691182c2ae68c81a7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.545946349855512,
+          "latency_ms": 61.81958634988405,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-47-6d443a6b15a548218113ef9821037070",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.923484651371837,
+          "latency_ms": 66.55940465861931,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-48-c2e41123b64c4bceac7efc8e2f676b81",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.05252900905907,
+          "latency_ms": 65.15637499978766,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-49-b24e6947d1d04d0ab9f0e519cb2472ba",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.682606354355812,
+          "latency_ms": 61.65287233307026,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-50-4206526f3b13479086c355ab95944128",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.23837066371925,
+          "latency_ms": 65.63427366199903,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-51-8d1773147505454d8ac6da92271ec75f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.132906013401225,
+          "latency_ms": 60.38854698999785,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-52-8ea0b7454edd4fe4a1f6b6904dd5e42f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.399538329802454,
+          "latency_ms": 60.74837234336883,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-53-ddfad28317904682bb816dd7caa0232e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.330336667830124,
+          "latency_ms": 60.636577662080526,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-54-ad8f612f304d44b6adcc287de160f8d2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.291245992761105,
+          "latency_ms": 60.445662995334715,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-55-d52e81117c2741789cc53235c81dc55a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.95923335500993,
+          "latency_ms": 61.58184734522365,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-56-32d78f7d4e7f4a6bbfa286b07839aa8b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.244902653852478,
+          "latency_ms": 60.329703672323376,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-57-4a5d5a022f814e59b508ff29f47da28e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.27115298854187,
+          "latency_ms": 61.099157988792285,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-58-f269af9a9210469a9af11988205299ac",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.540150343440473,
+          "latency_ms": 60.41215933510102,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-59-5f3d4101f9484b74ba942e2dd5d0720d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.443598663201556,
+          "latency_ms": 65.6728916510474,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-60-506c13a18e864448ac00d425f7653bb6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.4516379928682,
+          "latency_ms": 66.81264899089001,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-61-4e7b3182987046f094f08d7578c5c5c9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.37031733803451,
+          "latency_ms": 59.23395534045994,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-62-017f4eaa71d34735b7268c06b01bb48f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.302533651469275,
+          "latency_ms": 62.1575576660689,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-63-f34e3b8a21884f86a087ebdb8c989d96",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.696626011049375,
+          "latency_ms": 60.975884000072256,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-64-59a5408f24674bec8a2ff1063acdd29e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.892483352217823,
+          "latency_ms": 62.615844333777204,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-65-1aacb1bec5e4431fbc7d5769e8d012ba",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.063980646431446,
+          "latency_ms": 65.85844664368778,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-66-c3ab00629bcd41a1baa405192f3840ee",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.502266997937113,
+          "latency_ms": 66.19070100714453,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-67-4f0183b3a296425bb83c6d40e231c60e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.787982349749655,
+          "latency_ms": 66.2324913428165,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-68-155dd25721524d0480ea9b466cb41c63",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.772549660643563,
+          "latency_ms": 60.00630767084658,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-69-ecace52544cd40a6a3dd9d32a6464a98",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.21860299585387,
+          "latency_ms": 61.69226698693819,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-70-415cb4f54fa2401f810f3edb4e8e6515",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.69525435520336,
+          "latency_ms": 62.841413338901475,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-71-5545f1ea51d34be89cdc785f776101c8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.43298866110854,
+          "latency_ms": 63.19895765045658,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-72-bb6418c576ed487098ca25c83418043e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.602335010655224,
+          "latency_ms": 64.68913299613632,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-73-598427bc22be478380f40fe8e02ef0a6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.41570433275774,
+          "latency_ms": 62.894455331843346,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-74-c717dd21da3440bb9c6bb219f9df456d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.031643663765863,
+          "latency_ms": 65.32768465694971,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-75-d049830716e740efb801f767b999798f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 12.248285987880081,
+          "latency_ms": 57.242022012360394,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-76-0a851dfefcf5469ba183a6abdeff47c5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.718614340992644,
+          "latency_ms": 63.567666336894035,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-77-48d2b4e7bbad4561b4b80ac280d08ebf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.18486364511773,
+          "latency_ms": 62.2381076682359,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-78-7c2635720804479aa7b9587f43aae68e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.042839986970648,
+          "latency_ms": 62.93854699470103,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-79-d76964a89e104b238ae9ee5ddbac681f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.40520535572432,
+          "latency_ms": 63.16259334562346,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-80-feb2d0ff6ad64ea689f1f5eb30eaea5d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.762228664243594,
+          "latency_ms": 60.61698865960352,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-81-562149f21b0b4897b5eb598713077211",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.79003199771978,
+          "latency_ms": 63.45418599084951,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-82-7957f72c6c144b91973496ff66160b6f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.126047351164743,
+          "latency_ms": 64.51197635033168,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-83-66c600dd66a645498fac3c0608b88f78",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.28250866290182,
+          "latency_ms": 62.988425663206726,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-84-edb27b84a4e0414d868eb565d7424d56",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.894344015279785,
+          "latency_ms": 63.37430200073868,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-85-4d1ccacd9c514569bff4c9186d49e047",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.685213351389393,
+          "latency_ms": 61.493972345488146,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-86-f88bafc4a68843b5b3c4289bd664d473",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.810218647355214,
+          "latency_ms": 63.184559665387496,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-87-5fcd0421ce504d31aec9e18ba2e22320",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.05452600051649,
+          "latency_ms": 60.00974899507128,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-88-a9d80bae46f64913b9dc1dfb994cf0eb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.292188356397673,
+          "latency_ms": 60.23391734925099,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-89-ae6d460618c147cc96a407990fd76021",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.461498649325222,
+          "latency_ms": 60.89776466251351,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-90-cef9ce3608da4d28b50ee9807b7cef2b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.077991990139708,
+          "latency_ms": 62.95225501526147,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-91-7d82d922ae6644d3a4e93299cf8411a0",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.368203341495246,
+          "latency_ms": 60.42783334851265,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-92-a2c065917f86406993d59ede4357e291",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.83262665453367,
+          "latency_ms": 64.00606565875933,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-93-dcde2eb1435f4decb22462c8d528685e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.96391501557082,
+          "latency_ms": 62.279047997435555,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-94-740d7a0bf4e94e92a2e882b19a735f37",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.893990337848663,
+          "latency_ms": 61.28278633696027,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-95-40d158ee6dfc4e13a9f5eb51459479ea",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.717381669674069,
+          "latency_ms": 61.2840426620096,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-96-cc80774bd5d04fb185af14752301a5ac",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.887538010952994,
+          "latency_ms": 61.41574098728597,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-97-a6a29b2cc2b042ee928c8b09506e200e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.081427351105958,
+          "latency_ms": 60.64753534155898,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-98-8fe9d6fd0aa54194844078e4f7e294f5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.762275666929781,
+          "latency_ms": 60.69993166602217,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-99-2675b5920f9c40a59ce55211377a01d9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.904808996012434,
+          "latency_ms": 63.2587390136905,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-100-e5d600849f9f4888bd00526553d66518",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.650601351400837,
+          "latency_ms": 61.259995331056416,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-101-e041bcd582c54326a0ad79130dfe315b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.04417265439406,
+          "latency_ms": 60.18436767044477,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-102-01e96d6d37d440caa6e0d8648ef62ca8",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.944454011740163,
+          "latency_ms": 62.588186992798,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-103-4ceaf760b9d84f8587d0e223ef3c1ec5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.29042435181327,
+          "latency_ms": 61.84010935248807,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-104-1e9f16ec00e34ffe9c7b84992a4253b1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.85403965227306,
+          "latency_ms": 65.44867766206153,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-105-5a68288ebe4f47d39ed3912dde4729ff",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.49711500108242,
+          "latency_ms": 64.90835099248216,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-106-2b96dfe40992472aaaf66ababa3ccafa",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.39946534205228,
+          "latency_ms": 66.68938635266386,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-107-5483edfd833d486b9513ec0212e1e585",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.684800666756928,
+          "latency_ms": 62.74336265050806,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-108-b6edc39545654133b66777a676e77162",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.881079987389967,
+          "latency_ms": 61.62444700021297,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-109-7a9d0bbe969d4d09a2f81cba91a2de53",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.698619353817776,
+          "latency_ms": 60.5767953384202,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-110-eaecf93c14094305b4bc61a65ecc5314",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.609570651780814,
+          "latency_ms": 61.52034265687689,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-111-5123821e2e114016bc0996082f089c3d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.933413007995114,
+          "latency_ms": 62.26474398863502,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-112-d04e195574cb4f26bc37f6c683c9f22b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.20807933411561,
+          "latency_ms": 62.24495734204538,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-113-fa4b6e045b6a40138b228987640f958a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.9084706439171,
+          "latency_ms": 64.83555366867222,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-114-c15d8bbd30f04ec88d6e9f55c163e53b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.1136029898189,
+          "latency_ms": 63.33289699978195,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-115-dd603d5a9a154a9dbcb7ba93d943420a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.190413330448791,
+          "latency_ms": 59.73433333565481,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-116-30c19b022cc142f18663771c81bf546e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.95293466723524,
+          "latency_ms": 60.66650664433837,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-117-b274835bc2d74ca281ece7cd5a5289de",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.65344900195487,
+          "latency_ms": 62.66498999320902,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-118-f7813f75d5054e1daf5480687ddb0a23",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.770936341956258,
+          "latency_ms": 66.17783135152422,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-119-1ab30814d3fc4be99f3f249ca14e2a6b",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.80838366621174,
+          "latency_ms": 66.63165867212228,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-120-281e258d3cdb4890a25037bca5f78905",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.026993991341442,
+          "latency_ms": 60.90765100088902,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-121-6c3bcd94a3ec426f9381597e826b3877",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.599299349356443,
+          "latency_ms": 60.91500833281316,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-122-f0892f6c658941b09eeba8f06a54b73a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.983894663397223,
+          "latency_ms": 59.99589466955513,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-123-2c3aeb9ea8b04ad79b5177b4fa8d4b42",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.930080990074202,
+          "latency_ms": 60.54030000814237,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-124-1008b43cca144db884ff9a2448dddf4d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.236620354698971,
+          "latency_ms": 58.734276331961155,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-125-828042e78f9d4c51aac8dba7c7e0b350",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.484760653227568,
+          "latency_ms": 60.16082165297121,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-126-c65b492a972548ffba3b3b56a7af1255",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.019954989431426,
+          "latency_ms": 58.42419998953119,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-127-ec4d048dd9a94e5b8a9b749f5a950c4a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.203878352418542,
+          "latency_ms": 63.97015234688297,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-128-2e43237b2e0b4f649d3344c47228a2c7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.796074662124738,
+          "latency_ms": 62.09184764884412,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-129-b300b913b5ad49e79338f20e0d4e5edf",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.875075994292274,
+          "latency_ms": 58.0625039874576,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-130-7d81ec2f75d34aaf9cca6bc565ebb5e6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.181454335106537,
+          "latency_ms": 59.35227434383705,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-131-0c4ca1b0737744fd860d7b2ec7fd95ff",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 13.495317660272121,
+          "latency_ms": 59.76057966472581,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-132-3edd06fb5d604cf69688cca4e713a8ec",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.74572701449506,
+          "latency_ms": 62.30903000687249,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-133-8d4c8afedcac40f387e775a24e5432b9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.310851340880617,
+          "latency_ms": 62.41466733627021,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-134-da022053bd674ca39da3e1bade7ac9ed",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.453905660659075,
+          "latency_ms": 62.99258265062235,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-135-248d33c7a8744b66a58f19cc9158f4f3",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.61746800527908,
+          "latency_ms": 62.80286601395346,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-136-7622842b92ea4a52af77cb37db22cccc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.842943346593529,
+          "latency_ms": 61.8470283516217,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-137-fb06c2b329024a4cbabe13a1f8121526",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 21.46642265142873,
+          "latency_ms": 65.11912166024558,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-138-85ec0a035e214db89be0edf92acaed9e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.058576991781592,
+          "latency_ms": 60.86285298806615,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-139-ef41283b71424e1b8d0541d6888c1f3f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.07802834082395,
+          "latency_ms": 61.76726834382862,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-140-bf1603ca32544833923a5ed59fa9670d",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.139852665830404,
+          "latency_ms": 64.68886564834975,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-141-801358c55c764a8d84b3f4a8a5ff316a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.751365000847727,
+          "latency_ms": 60.72418499388732,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-142-0abf897473294c43812c87163c249efc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.14249835256487,
+          "latency_ms": 64.42215133574791,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-143-59fa62f3a1004b9cb994f777d5826ea1",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.27983365324326,
+          "latency_ms": 63.38728865375742,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-144-542f57c80f0c4fe8bcd546c535a38a97",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.871646996354684,
+          "latency_ms": 63.37637500837445,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-145-7d80069a976f446399d3d65987064bcd",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.666126350173727,
+          "latency_ms": 64.15545934578404,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-146-347e226675f14b9e9179ad440fa6f0c2",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.37905666232109,
+          "latency_ms": 64.26155465305783,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-147-a99935434eec45958aa9b99b72efe0fb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.832972003612667,
+          "latency_ms": 62.68639498739503,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-148-91bc07c3cb6a4e8ea5b22e300e23e03c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.11666432977654,
+          "latency_ms": 61.02009935420938,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-149-f5e1a077d3f44cab97ed466cd2caf979",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.350727644748986,
+          "latency_ms": 63.55736666591838,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-150-0248bba12bfd44d081e2227eba626130",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.274331992259249,
+          "latency_ms": 61.098990991013125,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-151-6b3cad019d7b49a18ed091022dbf2a59",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.12194034573622,
+          "latency_ms": 64.67603633063845,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-152-9b9092a3f7d740a88a0f2f2baaa5c905",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.45468466449529,
+          "latency_ms": 62.82842165092006,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-153-83d1e1ff573a4e39a03aeb43239e474c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.57224800530821,
+          "latency_ms": 65.07574999704957,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-154-87e32cab1b8c4420b660739cb84870ed",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.010258354479447,
+          "latency_ms": 63.805739337112755,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-155-627046bb951a4578ac51c37a0246b7d9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.57784066325985,
+          "latency_ms": 67.12619564495981,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-156-1b96a5db5213482e9492ce5982af7f14",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.59650799795054,
+          "latency_ms": 61.22825699276291,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-157-2c82c4883c9f4386a7f44872b6aca792",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.05880735628307,
+          "latency_ms": 63.64220633986406,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-158-645778d9c218460ea697f92415ef819f",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.157818645704538,
+          "latency_ms": 62.68080565496348,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-159-ecf1fe45d80e4d3097e4365a0268b145",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.7319000067655,
+          "latency_ms": 62.19382499693893,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-160-9623761be71c4e7e9a12831eaa129ec4",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 16.10386633547023,
+          "latency_ms": 61.86670233728364,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-161-2b274ea86aa543b390ea9e58e16f3c8c",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.672567646717653,
+          "latency_ms": 64.31427467032336,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-162-836b886982a846e7b9b5d1be5758b973",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.12040399434045,
+          "latency_ms": 62.50209201243706,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-163-957aaf7f5d754564831d0cf725f13f33",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.921871352475137,
+          "latency_ms": 62.23589333239943,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-164-3ac0587a35b34e51893962f789bd865e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.119167655939236,
+          "latency_ms": 60.23466365877539,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-165-3556e550becb474795cf314fbe7c7eb6",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.549971994711086,
+          "latency_ms": 59.19854700914584,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-166-814111df8fd6408ebe8b5a8da74de5b9",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 14.134267345070839,
+          "latency_ms": 59.7370243340265,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-167-395eea70f41348aeb22f6d731883f65a",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.61540865805,
+          "latency_ms": 62.57332264794968,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-168-34ca86f92e27426dbfeac6132653cc06",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.868220009608194,
+          "latency_ms": 62.26656399667263,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-169-69e071a0627946569ad039e8e274be87",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.29663135181181,
+          "latency_ms": 64.8089733440429,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-170-a4939ce6aa0348a199859b7b9b899d0e",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.77563467132859,
+          "latency_ms": 63.02787965978496,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-171-7866a3a0c803404d823d768a372f35c7",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 22.003830003086478,
+          "latency_ms": 65.69507101085037,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-172-dc388767491e447a80f2902c89b064e5",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.81664334400557,
+          "latency_ms": 66.4506503380835,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-173-fd7d8ccf3d114c47aa00d74d6f684473",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 20.649951649829745,
+          "latency_ms": 65.84475765703246,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-174-d710782b13cb44a896ed4fd2ba9c67eb",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 19.97371399193071,
+          "latency_ms": 63.28910301090218,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-175-ceae963afa4e42f6aa91acb11baecb22",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.275604353519157,
+          "latency_ms": 61.22596634668298,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-176-306a3f2615c94798b73bae5f501fafdc",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.634023668710142,
+          "latency_ms": 63.87773764436133,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-177-a3715177e742478d802cff85b6541486",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 18.641094997292385,
+          "latency_ms": 62.4158940045163,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-178-bba3913d548b40d7a5988fc85197aa25",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 17.345398344332352,
+          "latency_ms": 62.160672358004376,
+          "status": "ok"
+        },
+        {
+          "request_id": "load-2-179-ea677ee961ea42b7866b4d8c190f4f65",
+          "node": "etri-ser0003-cg0ms0",
+          "ttft_ms": 15.286657668184489,
+          "latency_ms": 60.85549166891724,
+          "status": "ok"
+        }
+      ],
+      "p95_ttft_ms": 20.649951649829745
+    }
+  ],
+  "before": {
+    "timestamp": 1788951939.996712,
+    "node_id": "etri-ser0003-cg0ms0",
+    "role": "server",
+    "model": "llama3.2:1b",
+    "max_concurrency": 1,
+    "profile_inference_ms": 1000.0,
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_cache_bytes": 1321098329,
+    "model_vram_mib": 1348.45,
+    "inference_process_rss_mib": 0.0,
+    "management_process_rss_mib": 0.0,
+    "cpu_utilization_percent": null,
+    "ram_utilization_percent": 4.302,
+    "temperature_celsius": 58.7,
+    "gpu_model": null,
+    "gpu_utilization_percent": null,
+    "gpu_memory_used_mib": null,
+    "gpu_memory_total_mib": null,
+    "gpu_memory_utilization_percent": null,
+    "gpu_temperature_celsius": null,
+    "gpu_metrics_reason": "dcgm_not_available_for_node",
+    "gpu_measurement_attributable": false,
+    "node_state": "ACTIVE",
+    "state_changed_timestamp": 1788951939.9899776,
+    "activation_started_timestamp": 1788951920.6224272,
+    "ready_timestamp": 1788951939.9899743,
+    "last_request_timestamp": null,
+    "deactivation_timestamp": null,
+    "idle_seconds": null,
+    "active_requests": 0,
+    "queue_length": 0,
+    "completed_requests": 0,
+    "failed_requests": 0,
+    "last_ttft_ms": 0.0,
+    "last_tokens_per_second": 0.0,
+    "last_inference_ms": 0.0,
+    "ewma_ttft_ms": 0.0,
+    "ewma_tokens_per_second": 0.0,
+    "ewma_inference_ms": 1000.0,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "COLD",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1788951920.6224272,
+      "ready_timestamp": 1788951939.9899743,
+      "worker_start_ms": 0.194,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 19365.797,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 19367.575,
+      "activation_time_ms": 19367.576,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1788951939.9899776,
+        "node": "server",
+        "physical_node": "etri-ser0003-cg0ms0",
+        "old_state": "COLD",
+        "new_state": "ACTIVE",
+        "reason": "ordered_profile_prepare"
+      }
+    },
+    "last_deactivation": {},
+    "agent_healthy": true,
+    "inference_ready": true,
+    "model_loaded": true,
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime": "ollama"
+  },
+  "qualified": true,
+  "profile": {
+    "capacity_rps": 6,
+    "service_ms": 100.66497899242677,
+    "low_ttft_ms": 41.74733700347133,
+    "activation_ms": 3107.2994629794266
+  },
+  "after": {
+    "timestamp": 1788952070.102283,
+    "node_id": "etri-ser0003-cg0ms0",
+    "role": "server",
+    "model": "llama3.2:1b",
+    "max_concurrency": 1,
+    "profile_inference_ms": 1000.0,
+    "management_runtime_running": true,
+    "inference_worker_running": false,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_cache_bytes": 1321098329,
+    "model_vram_mib": 0.0,
+    "inference_process_rss_mib": 0.0,
+    "management_process_rss_mib": 0.0,
+    "cpu_utilization_percent": 14.81,
+    "ram_utilization_percent": 2.331,
+    "temperature_celsius": 57.2,
+    "gpu_model": null,
+    "gpu_utilization_percent": null,
+    "gpu_memory_used_mib": null,
+    "gpu_memory_total_mib": null,
+    "gpu_memory_utilization_percent": null,
+    "gpu_temperature_celsius": null,
+    "gpu_metrics_reason": "dcgm_not_available_for_node",
+    "gpu_measurement_attributable": false,
+    "node_state": "CACHED",
+    "state_changed_timestamp": 1788952070.0987232,
+    "activation_started_timestamp": 1788951976.7599614,
+    "ready_timestamp": null,
+    "last_request_timestamp": 1788952069.8360467,
+    "deactivation_timestamp": 1788952070.0987587,
+    "idle_seconds": 0.2662363052368164,
+    "active_requests": 0,
+    "queue_length": 0,
+    "completed_requests": 640,
+    "failed_requests": 0,
+    "last_ttft_ms": 8.481,
+    "last_tokens_per_second": 180.18,
+    "last_inference_ms": 54.033,
+    "ewma_ttft_ms": 8.944,
+    "ewma_tokens_per_second": 182.257,
+    "ewma_inference_ms": 53.615,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "CACHED",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1788951976.7599614,
+      "ready_timestamp": 1788951979.446995,
+      "worker_start_ms": 0.306,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 2685.226,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 2687.062,
+      "activation_time_ms": 2687.063,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1788951979.4469972,
+        "node": "server",
+        "physical_node": "etri-ser0003-cg0ms0",
+        "old_state": "CACHED",
+        "new_state": "ACTIVE",
+        "reason": "ordered_profile"
+      }
+    },
+    "last_deactivation": {
+      "deactivation_required": true,
+      "node_state_before": "ACTIVE",
+      "node_state": "CACHED",
+      "deactivation_started_timestamp": 1788952069.8430672,
+      "deactivation_timestamp": 1788952070.0987587,
+      "worker_start_ms": 0.135,
+      "model_unload_ms": 255.29,
+      "model_delete_ms": 0.0,
+      "worker_stop_ms": 255.29,
+      "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+      "deactivation_time_ms": 255.708,
+      "transition": {
+        "timestamp": 1788952070.0987232,
+        "node": "server",
+        "physical_node": "etri-ser0003-cg0ms0",
+        "old_state": "ACTIVE",
+        "new_state": "CACHED",
+        "reason": "ordered_profile_complete"
+      }
+    },
+    "agent_healthy": true,
+    "inference_ready": false,
+    "model_loaded": false,
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime": "ollama"
+  },
+  "finished_at": 1788952070.130884
+}

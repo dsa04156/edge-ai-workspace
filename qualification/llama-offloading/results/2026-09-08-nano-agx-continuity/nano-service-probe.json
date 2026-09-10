@@ -1,0 +1,16 @@
+{
+  "scope": "single real Service DNS streaming probe; not a baseline or qualification",
+  "request": {
+    "request_id": "probe-374c4c17fb3442cd99788a8eef37b394",
+    "arrival_at": 78862.352066814,
+    "first_token_at": 78862.484513994,
+    "status": "ok",
+    "identity_verified": true,
+    "actual_node": "etri-dev0001-jetorn",
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "response": "Edge computing reduces latency by processing data closer",
+    "ttft_ms": 132.44718000350986,
+    "completed_at": 78862.758486119,
+    "latency_ms": 406.4193049998721
+  }
+}

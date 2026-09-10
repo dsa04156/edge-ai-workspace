@@ -1,0 +1,21 @@
+{
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "experiments": "idle,single,activation,increasing,burst,repeated",
+  "high_seconds": 20.0,
+  "idle_seconds": 300.0,
+  "low_seconds": 35.0,
+  "max_tokens": 8,
+  "methods": "always_on",
+  "output_dir": "qualification/llama-offloading/results/2026-09-04-cpu-substitute/always",
+  "proxy_url": "http://192.168.0.56:18101",
+  "sample_interval": 1.0,
+  "stage_seconds": 15.0,
+  "timeout": 1800.0
+}

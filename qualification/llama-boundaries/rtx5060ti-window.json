@@ -1,0 +1,6 @@
+{
+  "extends": "rtx5060ti-0332.json",
+  "runtime": {"host": "0.0.0.0"},
+  "ramp_concurrency": [],
+  "safety": {"max_smoke_requests": 1}
+}

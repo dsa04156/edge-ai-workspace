@@ -1,0 +1,2 @@
+node,baseline_p95_ttft_ms,baseline_median_tokens_per_second,tokens_per_second_low,max_observed_throughput_rps,throughput_knee_concurrency,slo_capacity_concurrency,first_slo_overload_concurrency,ttft_high_ms
+nano,36.1674,49.352000000000004,39.48160000000001,5.0695980303225605,1,8,16,1500.0

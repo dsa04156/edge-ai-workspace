@@ -1,0 +1,4371 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:46:23Z",
+        "generateName": "continuity-controller-567f847fc7-",
+        "labels": {
+          "app": "continuity-controller",
+          "pod-template-hash": "567f847fc7"
+        },
+        "name": "continuity-controller-567f847fc7-wkjlf",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "continuity-controller-567f847fc7",
+            "uid": "7dd0e8b0-d906-420e-9064-1bcbb639a2ff"
+          }
+        ],
+        "resourceVersion": "27819199",
+        "uid": "c5c8366d-7b05-4bb6-8099-5f17be04a52f"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/continuity_runner.py",
+              "idle"
+            ],
+            "env": [
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "controller",
+            "ports": [
+              {
+                "containerPort": 18112,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "100m",
+                "memory": "128Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/data",
+                "name": "records"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-ser0001-cg0msb",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-code-4mchf9t255"
+            },
+            "name": "code"
+          },
+          {
+            "name": "records",
+            "persistentVolumeClaim": {
+              "claimName": "continuity-records"
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:24Z",
+            "status": "True",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:23Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:24Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:24Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:23Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://426906b91a12b414f87288c2e06f17562b40966a0c9604af9a847ad38fbab9bd",
+            "image": "sha256:59bf1d95c965f12dfc14afaf5af778fc1dbe5b372bd5c281645fc34d4c75d4e7",
+            "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "lastState": {},
+            "name": "controller",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2026-09-08T07:46:24Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/data",
+                "name": "records"
+              }
+            ]
+          }
+        ],
+        "hostIP": "192.168.0.56",
+        "hostIPs": [
+          {
+            "ip": "192.168.0.56"
+          }
+        ],
+        "phase": "Running",
+        "podIP": "10.244.0.10",
+        "podIPs": [
+          {
+            "ip": "10.244.0.10"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-09-08T07:46:23Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-47msx",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819433",
+        "uid": "d83c9966-30cc-4137-900d-73db899515fe"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-5ncrk",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819514",
+        "uid": "9c0256a2-0969-4d67-bc0d-9eab0ff20a30"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-6zwft",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819420",
+        "uid": "a4ee4980-1807-4476-b503-a7443f36e252"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-bflr7",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819542",
+        "uid": "5670a95e-3d75-46d5-9160-9c9aa287f745"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-g5bqn",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819488",
+        "uid": "7f4ebadf-862d-4321-8653-a82bfd72f9be"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-jvswt",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819555",
+        "uid": "eb4c3328-4026-4342-bf14-193897513bca"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-m5hsq",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819568",
+        "uid": "156ee34b-4517-434d-b0db-bb26387738e8"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:45:10Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-n5wdw",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819388",
+        "uid": "a63f2396-4e8c-4bb0-9ad2-423b2ab71518"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:47:19Z",
+            "message": "The node was low on resource: ephemeral-storage. Threshold quantity: 8670909579, available: 7589932Ki. Container api was using 16Ki, request is 0, has larger consumption of ephemeral-storage. Container inference-runtime was using 292Ki, request is 0, has larger consumption of ephemeral-storage. ",
+            "reason": "TerminationByKubelet",
+            "status": "True",
+            "type": "DisruptionTarget"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:47:19Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:45:10Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:47:19Z",
+            "reason": "PodFailed",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:47:19Z",
+            "reason": "PodFailed",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:45:10Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://2e51c6e8a1188e8d2aba3a1031c1f603b86dc9392c35c72934900c8b327348c5",
+            "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+            "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "lastState": {},
+            "name": "api",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://2e51c6e8a1188e8d2aba3a1031c1f603b86dc9392c35c72934900c8b327348c5",
+                "exitCode": 137,
+                "finishedAt": "2026-09-08T07:47:14Z",
+                "reason": "Error",
+                "startedAt": "2026-09-08T07:45:11Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              }
+            ]
+          },
+          {
+            "containerID": "containerd://90a8e006e7d65edb2e202495f3aea3101980b9fb3d9bea958acaa32495d2d495",
+            "image": "sha256:1f056210d4aed0704392da5c1b7d90104698d64728a33ba70e9808b0079654c3",
+            "imageID": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "lastState": {},
+            "name": "inference-runtime",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://90a8e006e7d65edb2e202495f3aea3101980b9fb3d9bea958acaa32495d2d495",
+                "exitCode": 0,
+                "finishedAt": "2026-09-08T07:47:12Z",
+                "reason": "Completed",
+                "startedAt": "2026-09-08T07:45:12Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "hostIP": "192.168.0.8",
+        "hostIPs": [
+          {
+            "ip": "192.168.0.8"
+          }
+        ],
+        "message": "The node was low on resource: ephemeral-storage. Threshold quantity: 8670909579, available: 7589932Ki. Container api was using 16Ki, request is 0, has larger consumption of ephemeral-storage. Container inference-runtime was using 292Ki, request is 0, has larger consumption of ephemeral-storage. ",
+        "phase": "Failed",
+        "podIP": "192.168.0.8",
+        "podIPs": [
+          {
+            "ip": "192.168.0.8"
+          }
+        ],
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:45:10Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-nvw9k",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819528",
+        "uid": "266f0a68-0a82-486c-81e6-b6ae6f92b8fd"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:20Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-p5cbk",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819583",
+        "uid": "6b2dde86-4412-4cde-ade3-40e6248a2fce"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-p8gtr",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819461",
+        "uid": "9322ca5d-f374-4529-a268-be3cce98c604"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-r5pzg",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819406",
+        "uid": "7c30dadf-0f73-4555-aa3e-aa590da01faf"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-t8vts",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819474",
+        "uid": "e6b09551-d57f-4983-9041-907b99922668"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-trjfx",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819501",
+        "uid": "504456cc-001d-4522-b25c-b2e463998688"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:20Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:47:19Z",
+        "generateName": "llama-agx-7dd6dc5d57-",
+        "labels": {
+          "app": "llama-agx",
+          "pod-template-hash": "7dd6dc5d57"
+        },
+        "name": "llama-agx-7dd6dc5d57-xfr64",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-agx-7dd6dc5d57",
+            "uid": "d5a2262e-ca0f-4202-aa34-e4c47058f332"
+          }
+        ],
+        "resourceVersion": "27819446",
+        "uid": "47f9b675-ce20-4cd2-925e-f636b7ccf699"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0005-jetagx"
+              },
+              {
+                "name": "ROLE",
+                "value": "agx"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/ollama",
+              "serve"
+            ],
+            "env": [
+              {
+                "name": "OLLAMA_HOST",
+                "value": "127.0.0.1:11435"
+              },
+              {
+                "name": "OLLAMA_MODELS",
+                "value": "/models"
+              },
+              {
+                "name": "OLLAMA_NUM_PARALLEL",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_MAX_LOADED_MODELS",
+                "value": "1"
+              },
+              {
+                "name": "OLLAMA_KEEP_ALIVE",
+                "value": "-1"
+              },
+              {
+                "name": "OLLAMA_KV_CACHE_TYPE",
+                "value": "q8_0"
+              },
+              {
+                "name": "NVIDIA_DRIVER_CAPABILITIES",
+                "value": "compute,utility"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/ollama"
+              }
+            ],
+            "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "inference-runtime",
+            "resources": {
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/home/ollama",
+                "name": "runtime-home"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0005-jetagx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "fsGroupChangePolicy": "OnRootMismatch"
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          },
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "llama-agx-cache"
+            }
+          },
+          {
+            "emptyDir": {},
+            "name": "runtime-home"
+          }
+        ]
+      },
+      "status": {
+        "message": "Pod was rejected: The node had condition: [DiskPressure]. ",
+        "phase": "Failed",
+        "qosClass": "Burstable",
+        "reason": "Evicted",
+        "startTime": "2026-09-08T07:47:19Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-08T07:46:41Z",
+        "generateName": "llama-nano-5754d87c87-",
+        "labels": {
+          "app": "llama-nano",
+          "pod-template-hash": "5754d87c87"
+        },
+        "name": "llama-nano-5754d87c87-f9fj9",
+        "namespace": "llama-continuity-test",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "llama-nano-5754d87c87",
+            "uid": "7b6d6319-6e17-4683-ad68-2090d1d9871d"
+          }
+        ],
+        "resourceVersion": "27819293",
+        "uid": "d3fa2de3-bb12-40a2-8285-c15d1c5eda45"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python",
+              "/app/worker.py"
+            ],
+            "env": [
+              {
+                "name": "NODE_ID",
+                "value": "etri-dev0001-jetorn"
+              },
+              {
+                "name": "ROLE",
+                "value": "nano"
+              },
+              {
+                "name": "PORT",
+                "value": "18110"
+              },
+              {
+                "name": "OLLAMA_URL",
+                "value": "http://127.0.0.1:11435"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "MAX_CONCURRENCY",
+                "value": "1"
+              },
+              {
+                "name": "CONTINUITY_SOURCE",
+                "value": "1"
+              }
+            ],
+            "image": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "api",
+            "ports": [
+              {
+                "containerPort": 18110,
+                "hostPort": 18110,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 5
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "25m",
+                "memory": "64Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true,
+              "runAsGroup": 65532,
+              "runAsNonRoot": true,
+              "runAsUser": 65532
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "nodeName": "etri-dev0001-jetorn",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0001-jetorn"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 150,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "continuity-worker-code-5tk9th46f7"
+            },
+            "name": "code"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:43Z",
+            "status": "True",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:41Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:45Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:45Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-09-08T07:46:41Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://8696f8232e8a901cd98eca77a99c7f786f14f538ed0c25de3d29772d97577313",
+            "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+            "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+            "lastState": {},
+            "name": "api",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2026-09-08T07:46:42Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/app",
+                "name": "code",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              }
+            ]
+          }
+        ],
+        "hostIP": "192.168.0.3",
+        "hostIPs": [
+          {
+            "ip": "192.168.0.3"
+          }
+        ],
+        "phase": "Running",
+        "podIP": "192.168.0.3",
+        "podIPs": [
+          {
+            "ip": "192.168.0.3"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-09-08T07:46:41Z"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}

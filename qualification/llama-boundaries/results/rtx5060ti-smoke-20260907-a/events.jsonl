@@ -1,0 +1,3 @@
+{"timestamp": 1788767120.3014598, "event": "activation_requested", "old_state": "CACHED", "new_state": "LOADING"}
+{"timestamp": 1788767120.9433305, "event": "deactivation_requested", "pid": 3851427}
+{"timestamp": 1788767121.0842075, "event": "release_checked", "old_state": "ACTIVE", "new_state": "CACHED", "process_exited": true, "gpu_allocation_released": true, "kubernetes_reservation": "not applicable: host process", "release_ms": 140.8796540054027, "model_file_retained": true}

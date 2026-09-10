@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-09-08T10:48:52.365023+00:00",
+  "node": "etri-dev0005-jetagx",
+  "disk": "/dev/mmcblk1",
+  "disk_bytes": 127999672320,
+  "partition": "/dev/mmcblk1p1",
+  "partition_bytes": 127982895104,
+  "filesystem": "exfat",
+  "filesystem_total_bytes": 127966117888,
+  "filesystem_available_bytes": 127965724672,
+  "root_entry_count": 0,
+  "inspection_mount_options": [
+    "ro",
+    "nodev",
+    "nosuid",
+    "noexec"
+  ],
+  "inspection_mount_removed": true,
+  "formatted": false,
+  "model_cache_moved": false,
+  "next_proposal": "Format this SD partition as ext4 and use dedicated model-cache storage; destructive format awaits user authorization. No change to containerd/root disk."
+}

@@ -1,0 +1,6 @@
+{"timestamp": 1788768791.6687355, "event": "activation_requested", "old_state": "CACHED", "new_state": "LOADING"}
+{"timestamp": 1788768792.537966, "event": "health_ok", "elapsed_ms": 869.2328839970287, "gpu_layers": ["17", "17"], "pid": 4014922}
+{"timestamp": 1788768792.632665, "event": "inference_ready", "old_state": "LOADING", "new_state": "ACTIVE", "activation_ms": 963.9310740167275, "cuda_init_ms": null, "model_read_ms": null, "gpu_load_ms": null, "note": "Composite includes tokenizer fixture preparation and explicit probe; component times unavailable."}
+{"timestamp": 1788768793.7100797, "event": "paired_client_window", "maximum_seconds": 180}
+{"timestamp": 1788768973.7331784, "event": "deactivation_requested", "pid": 4014922}
+{"timestamp": 1788768974.241664, "event": "release_checked", "old_state": "ACTIVE", "new_state": "CACHED", "process_exited": true, "gpu_allocation_released": true, "kubernetes_reservation": "not applicable: host process", "release_ms": 508.4894979954697, "model_file_retained": true}

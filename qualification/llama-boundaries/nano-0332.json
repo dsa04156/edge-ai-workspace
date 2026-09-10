@@ -1,0 +1,10 @@
+{
+  "extends": "common-0332.json",
+  "model": {"path": "/home/etri/llama-boundaries-20260907/model.gguf"},
+  "runtime": {
+    "binary": "/home/etri/llama-boundaries-20260907/runtime-0332/llama-server",
+    "library_path": "/home/etri/llama-boundaries-20260907/runtime-0332:/home/etri/llama-boundaries-20260907/runtime-0332/cuda_jetpack6:/usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/tegra",
+    "backend_path": "/home/etri/llama-boundaries-20260907/runtime-0332/cuda_jetpack6/libggml-cuda.so",
+    "gpu_verification": "jetson-owned-cuda-maps"
+  }
+}

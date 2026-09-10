@@ -1,0 +1,225 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "spec": {
+    "progressDeadlineSeconds": 600,
+    "replicas": 1,
+    "revisionHistoryLimit": 10,
+    "selector": {
+      "matchLabels": {
+        "app": "ordered-offload-controller"
+      }
+    },
+    "strategy": {
+      "type": "Recreate"
+    },
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "ordered-offload-controller"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "command": [
+              "python",
+              "-m",
+              "uvicorn",
+              "app.model_offload_demo:app",
+              "--host",
+              "0.0.0.0",
+              "--port",
+              "18113"
+            ],
+            "env": [
+              {
+                "name": "MODEL_OFFLOAD_ENABLED",
+                "value": "true"
+              },
+              {
+                "name": "MODEL_OFFLOAD_CONTRACT_PATH",
+                "value": "/contract/model_offload_llama.json"
+              },
+              {
+                "name": "DATA_DIR",
+                "value": "/data/runtime-v2"
+              },
+              {
+                "name": "EXECUTION_MANAGEMENT_TOKEN",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "token",
+                    "name": "ordered-offload-auth"
+                  }
+                }
+              }
+            ],
+            "image": "192.168.0.56:5000/state-aggregator@sha256:05fe65ce2085264486d462dc513ab9243e0ebb6e9433ccf3a13308a3d1f1c086",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "controller",
+            "ports": [
+              {
+                "containerPort": 18113,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "memory": "1Gi"
+              },
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi"
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/app/app/model_offload_demo.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_demo.py"
+              },
+              {
+                "mountPath": "/app/app/model_offload_ordered.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_ordered.py"
+              },
+              {
+                "mountPath": "/app/app/model_offload_controller.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_controller.py"
+              },
+              {
+                "mountPath": "/app/app/model_offload_contract.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_contract.py"
+              },
+              {
+                "mountPath": "/app/app/model_offload_api.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_api.py"
+              },
+              {
+                "mountPath": "/app/app/runtime_recommendation.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "runtime_recommendation.py"
+              },
+              {
+                "mountPath": "/app/app/runtime_execution_plan.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "runtime_execution_plan.py"
+              },
+              {
+                "mountPath": "/contract",
+                "name": "contract",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/data",
+                "name": "journal"
+              },
+              {
+                "mountPath": "/app/app/model_offload_demo_run.py",
+                "name": "code",
+                "readOnly": true,
+                "subPath": "model_offload_demo_run.py"
+              },
+              {
+                "mountPath": "/app/app/static/ordered-demo",
+                "name": "ui",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+        },
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "ordered-offload-controller",
+        "serviceAccountName": "ordered-offload-controller",
+        "terminationGracePeriodSeconds": 180,
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "ordered-offload-code-8m6bfktbbc"
+            },
+            "name": "code"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "ordered-offload-contract-kh4gc44mkd"
+            },
+            "name": "contract"
+          },
+          {
+            "name": "journal",
+            "persistentVolumeClaim": {
+              "claimName": "ordered-offload-journal"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "ordered-offload-ui-bg272f2mm4"
+            },
+            "name": "ui"
+          }
+        ]
+      }
+    }
+  },
+  "status": {
+    "availableReplicas": 1,
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-09-09T12:20:28Z",
+        "lastUpdateTime": "2026-09-09T12:20:28Z",
+        "message": "Deployment has minimum availability.",
+        "reason": "MinimumReplicasAvailable",
+        "status": "True",
+        "type": "Available"
+      },
+      {
+        "lastTransitionTime": "2026-09-09T11:08:44Z",
+        "lastUpdateTime": "2026-09-09T12:20:28Z",
+        "message": "ReplicaSet \"ordered-offload-controller-d9b97447c\" has successfully progressed.",
+        "reason": "NewReplicaSetAvailable",
+        "status": "True",
+        "type": "Progressing"
+      }
+    ],
+    "observedGeneration": 8,
+    "readyReplicas": 1,
+    "replicas": 1,
+    "updatedReplicas": 1
+  }
+}

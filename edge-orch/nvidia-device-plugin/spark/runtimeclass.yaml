@@ -1,0 +1,8 @@
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: nvidia-spark
+handler: nvidia
+scheduling:
+  nodeSelector:
+    kubernetes.io/hostname: etri-ser0003-cg0ms0

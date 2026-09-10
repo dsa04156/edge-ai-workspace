@@ -1,0 +1,23 @@
+{
+  "scope": "local journal scaling diagnostic, not live controller throughput",
+  "measurements": [
+    {
+      "requests": 30,
+      "record_bytes": 18754,
+      "save_median_ms": 3.8949595036683604,
+      "save_max_ms": 9.178471998893656
+    },
+    {
+      "requests": 300,
+      "record_bytes": 189395,
+      "save_median_ms": 5.093789994134568,
+      "save_max_ms": 14.424845998291858
+    },
+    {
+      "requests": 900,
+      "record_bytes": 569120,
+      "save_median_ms": 11.921495002752636,
+      "save_max_ms": 32.986827005515806
+    }
+  ]
+}

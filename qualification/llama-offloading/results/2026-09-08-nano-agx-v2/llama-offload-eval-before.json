@@ -1,0 +1,50 @@
+[
+  {
+    "name": "llama-demo-86d8f74d46-vbzkv",
+    "uid": "2caef1d4-2101-417c-b190-bea5fc5dc4f6",
+    "node": "etri-ser0001-cg0msb",
+    "containers": [
+      {
+        "name": "demo",
+        "containerID": "containerd://368c185602ca530c0dceddb0b1e1dc8737d4106e41fa058c52140a1b18719c12",
+        "restartCount": 1,
+        "ready": true
+      }
+    ],
+    "model_cache_claim": null
+  },
+  {
+    "name": "llama-offloading-proxy-78c85cb4d5-r65k9",
+    "uid": "930fc7a3-4414-4ad2-9f3c-adad36ca3020",
+    "node": "etri-ser0001-cg0msb",
+    "containers": [
+      {
+        "name": "proxy",
+        "containerID": "containerd://78bca84be703216609045fcf42e532bfb2561228e9cf3f8307676afbbd7feb04",
+        "restartCount": 1,
+        "ready": true
+      }
+    ],
+    "model_cache_claim": null
+  },
+  {
+    "name": "llama-worker-nano-799fc9d6c5-lzm5n",
+    "uid": "5ee77067-db06-4942-8115-9f2cf88f0993",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "name": "api",
+        "containerID": "containerd://55074a96aacc27cd9e3d519437c6a7e2555159b290ce59434b9de2a16c23a0c4",
+        "restartCount": 0,
+        "ready": true
+      },
+      {
+        "name": "inference-runtime",
+        "containerID": "containerd://480d9677c1b9fcf460bba37ecb0a7d122876fa28bed4d82ebd20844baec97eee",
+        "restartCount": 0,
+        "ready": true
+      }
+    ],
+    "model_cache_claim": null
+  }
+]

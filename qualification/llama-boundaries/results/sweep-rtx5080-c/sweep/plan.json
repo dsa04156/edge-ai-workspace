@@ -1,0 +1,67 @@
+{
+  "cases": [
+    [
+      512,
+      128,
+      1
+    ],
+    [
+      512,
+      128,
+      2
+    ],
+    [
+      512,
+      128,
+      4
+    ],
+    [
+      512,
+      128,
+      8
+    ],
+    [
+      128,
+      128,
+      1
+    ],
+    [
+      2048,
+      128,
+      1
+    ],
+    [
+      512,
+      64,
+      1
+    ],
+    [
+      512,
+      256,
+      1
+    ],
+    [
+      128,
+      64,
+      4
+    ],
+    [
+      2048,
+      256,
+      1
+    ]
+  ],
+  "seed": 20260908,
+  "context": 4096,
+  "max_seconds": 240,
+  "max_inflight": 8,
+  "rate_seconds_each": 10,
+  "rate_factors": [
+    0.5,
+    1.2
+  ],
+  "rate_cap_rps": 5,
+  "replication": "one screening pass; no holdout",
+  "arrival": "finite simultaneous waves then open-loop rates based on C1 measured capacity",
+  "production_enabled": false
+}

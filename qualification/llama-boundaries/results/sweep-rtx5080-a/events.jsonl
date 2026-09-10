@@ -1,0 +1,4 @@
+{"event": "activation_requested", "timestamp": 1788845267.58437, "old_state": "CACHED", "new_state": "LOADING"}
+{"event": "health_ok", "timestamp": 1788845268.4846408, "elapsed_ms": 900.2724299934926, "gpu_evidence": "426, /usr/lib/ollama/llama-server, 1752\n"}
+{"event": "inference_ready", "timestamp": 1788845268.6018786, "activation_ms": 1017.5094470032491, "old_state": "LOADING", "new_state": "ACTIVE"}
+{"event": "teardown_delegated_to_borrowing_saga", "timestamp": 1788845269.1281915}

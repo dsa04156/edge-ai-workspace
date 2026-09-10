@@ -1,0 +1,7 @@
+{
+  "execution_profile": "orin_nano_gpu",
+  "ttft_slo_ms": 1500.0,
+  "queue_high": 8,
+  "input_requests": "requests.csv",
+  "input_resources": "resources.csv"
+}

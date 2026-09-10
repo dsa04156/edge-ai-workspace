@@ -1,0 +1,89 @@
+# Explicit cross-namespace opt-in; apply separately, not via namespace-transforming kustomize.
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: llama-demo, namespace: llama-offload-eval}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: llama-demo-worker, namespace: llama-offload-eval}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [llama-worker-spark]
+    verbs: [get]
+  - apiGroups: [apps]
+    resources: [deployments/scale]
+    resourceNames: [llama-worker-spark]
+    verbs: [get, patch]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: llama-demo-worker, namespace: llama-offload-eval}
+subjects: [{kind: ServiceAccount, name: llama-demo, namespace: llama-offload-eval}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: llama-demo-worker}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: llama-demo-sensor-read, namespace: edgex-edge}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [sensor-anomaly-inference-server1]
+    verbs: [get]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: llama-demo-sensor-read, namespace: edgex-edge}
+subjects: [{kind: ServiceAccount, name: llama-demo, namespace: llama-offload-eval}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: llama-demo-sensor-read}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: llama-demo-sensor-override, namespace: argocd}
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [applications]
+    resourceNames: [edge-orch-sensor-anomaly-demo]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: llama-demo-sensor-override, namespace: argocd}
+subjects: [{kind: ServiceAccount, name: llama-demo, namespace: llama-offload-eval}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: llama-demo-sensor-override}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: llama-demo-node-read}
+rules:
+  - apiGroups: ['']
+    resources: [nodes]
+    resourceNames: [etri-ser0002-cgnmsb]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: llama-demo-node-read}
+subjects: [{kind: ServiceAccount, name: llama-demo, namespace: llama-offload-eval}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: llama-demo-node-read}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: llama-demo-sensor-health, namespace: edgex-edge}
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: sensor-anomaly-inference-server1}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: llama-offload-eval}
+          podSelector:
+            matchLabels: {app: llama-demo}
+      ports: [{protocol: TCP, port: 8080}]

@@ -1,0 +1,4 @@
+method,requests,mean_latency_ms,p95_latency_ms,mean_ttft_ms,p95_ttft_ms,mean_tokens_per_second,throughput_requests_per_second,slo_violation_union_seconds
+Always-On,0,,,,,,,0.0
+Cold On-Demand,0,,,,,,,0.0
+Cached On-Demand,1396,1818.1534541547278,6570.638,1343.658986389685,4770.175,39.40521346704871,3.6695377184075815,124.55314445495605

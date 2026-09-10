@@ -1,5 +1,5 @@
 {
-  "service_id": "llama-continuity-v1",
+  "service_id": "llama-nano-orin-spark-v1",
   "prompt": "In one short sentence, explain why edge computing reduces latency.",
   "max_tokens": 8,
   "workers": [
@@ -16,11 +16,11 @@
       "runtime_image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
       "runtime_container": "inference-runtime",
       "runtime_namespace": "llama-offload-eval",
-      "runtime_selector": "app=llama-worker-nano"
+      "runtime_selector": "edge-ai.io/qualification-role=nano"
     },
     {
       "node": "etri-dev0005-jetagx",
-      "role": "server",
+      "role": "edge",
       "endpoint": "http://llama-agx.llama-continuity-test.svc.cluster.local:18110",
       "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
       "evidence": "nano-agx-continuity/v2:policy:c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3",
@@ -32,6 +32,22 @@
       "runtime_container": "inference-runtime",
       "runtime_namespace": "llama-continuity-test",
       "runtime_selector": "app=llama-agx"
+    },
+    {
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "endpoint": "http://llama-spark.llama-continuity-test.svc.cluster.local:18110",
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "evidence": "ordered-demo-spark-profile/v1:sha256:4d9e86b60cf333edfe6a4ed3c09d88ce3f1721e5a7b738d8d09d9732cc731545",
+      "capacity_rps": 6,
+      "service_ms": 100.66497899242677,
+      "low_ttft_ms": 41.74733700347133,
+      "activation_ms": 3107.2994629794266,
+      "runtime_image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+      "runtime_container": "inference-runtime",
+      "runtime_namespace": "llama-continuity-test",
+      "runtime_selector": "app=llama-spark",
+      "qualified": true
     }
   ],
   "slo_ms": 548.4096340078395,
@@ -44,5 +60,10 @@
   "idle_seconds": 30.0,
   "min_gain": 0.15,
   "fresh_seconds": 3.0,
-  "rate_window_seconds": 10.0
+  "rate_window_seconds": 10.0,
+  "execution_order": [
+    "etri-dev0001-jetorn",
+    "etri-dev0005-jetagx",
+    "etri-ser0003-cg0ms0"
+  ]
 }

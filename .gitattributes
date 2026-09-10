@@ -1,1 +1,6 @@
 edgex/core-data/patches/*.patch -whitespace
+
+# Preserve qualification evidence bytes, including raw CLI whitespace and CSV CRLF.
+qualification/llama-boundaries/results/** -text -whitespace
+qualification/llama-offloading/results/** -text -whitespace
+docs/assets/llama-sweep-20260908/*.csv -text whitespace=cr-at-eol

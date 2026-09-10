@@ -1,0 +1,19 @@
+{
+  "scope": "local diagnostic using actual failed candidate record; not live Jetson performance",
+  "source_run_id": "f33a68bfc9a94a2abbe5e7b460059746",
+  "source_json_bytes": 2150111,
+  "results": [
+    {
+      "mode": "whole_record",
+      "median_ms": 39.43752150371438,
+      "max_ms": 70.34938300785143,
+      "transactions": 20
+    },
+    {
+      "mode": "incremental",
+      "median_ms": 4.10913899395382,
+      "max_ms": 24.328186991624534,
+      "transactions": 20
+    }
+  ]
+}

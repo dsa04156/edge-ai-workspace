@@ -1,0 +1,65 @@
+{
+  "schema": "edge-ai.llm-observation/v1",
+  "experiment_id": "nano-ramp-a",
+  "raw_sha256": "d40c94840b9c763d7012d8f6e3e08b3b7a1f93d9a892a36e3216574376ee88f2",
+  "node": "etri-dev0001-jetorn",
+  "requester": "etri-dev0001-jetorn",
+  "measurements": {
+    "1": {
+      "n": 3,
+      "successful": 3,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 3218.004460912198,
+      "p95_latency_ms": 3224.4068619795144,
+      "p50_ttft_ms": 224.09857693128288,
+      "p95_ttft_ms": 231.88352116849273,
+      "completed_requests_per_s": 0.31065641668612143,
+      "output_tokens_per_s": 39.76402133582354,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "2": {
+      "n": 2,
+      "successful": 2,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 4819.221346522681,
+      "p95_latency_ms": 6266.841404873412,
+      "p50_ttft_ms": 1831.096237525344,
+      "p95_ttft_ms": 3278.181857871823,
+      "completed_requests_per_s": 0.3106477654831208,
+      "output_tokens_per_s": 39.76291398183946,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    },
+    "4": {
+      "n": 4,
+      "successful": 4,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 8021.221093367785,
+      "p95_latency_ms": 12348.302566551136,
+      "p50_ttft_ms": 5031.352076912299,
+      "p95_ttft_ms": 9362.757606082594,
+      "completed_requests_per_s": 0.31170943904115195,
+      "output_tokens_per_s": 39.89880819726745,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    }
+  },
+  "condition": {
+    "input_tokens": 512,
+    "output_tokens": 128,
+    "cache_prompt": false,
+    "ignore_eos": true
+  },
+  "production_enabled": false,
+  "thresholds_validated": false,
+  "routing_boundary": null,
+  "activation_boundary": null,
+  "reclamation_boundary": null,
+  "limitations": [
+    "No matched local/remote arrival-trace comparison yet",
+    "No independent repeated blocks or holdout validation",
+    "Single-wave small-n latency quantiles are descriptive",
+    "See provenance.json for runtime differences"
+  ]
+}

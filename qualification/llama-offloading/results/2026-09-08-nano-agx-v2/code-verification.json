@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-09-08T11:21:02.265683+00:00",
+  "tests_passed": 89,
+  "sha256": {
+    "continuity_policy.py": "a1d131d0f633ea2f55a4bccdd1a74ff43baa5235acf97cb596dec38a71de3afc",
+    "continuity_runner.py": "39b65a7cf010427a37e54d2969a0896f7612a791af1aa188fc5cc60304be6271",
+    "continuity_report.py": "bee36938d1f39b7573d76132e365942489b35732b547c38a3641fa6a39650c96",
+    "continuity_preflight.py": "56ba5e60b4a3d57e617a0b5bf62fa9aa98cb2c56445e9917417a8f742eb1bece",
+    "tests/test_continuity.py": "a28fb1b23e0d4777548039558eaa2521d07052d06355f37d771a3028edf95111"
+  },
+  "live_controller_sha256": {
+    "continuity_policy.py": "a1d131d0f633ea2f55a4bccdd1a74ff43baa5235acf97cb596dec38a71de3afc",
+    "continuity_runner.py": "39b65a7cf010427a37e54d2969a0896f7612a791af1aa188fc5cc60304be6271",
+    "continuity_report.py": "bee36938d1f39b7573d76132e365942489b35732b547c38a3641fa6a39650c96"
+  }
+}

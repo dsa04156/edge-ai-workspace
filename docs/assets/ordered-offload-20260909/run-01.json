@@ -1,0 +1,134 @@
+{
+  "kind": "actual-ordered-demo/v1",
+  "planned": 1622,
+  "completed": 1622,
+  "ok": 1616,
+  "unique_ids": 1622,
+  "visited": [
+    "etri-dev0001-jetorn",
+    "etri-dev0005-jetagx",
+    "etri-ser0003-cg0ms0",
+    "etri-dev0005-jetagx",
+    "etri-dev0001-jetorn"
+  ],
+  "expected": [
+    "etri-dev0001-jetorn",
+    "etri-dev0005-jetagx",
+    "etri-ser0003-cg0ms0",
+    "etri-dev0005-jetagx",
+    "etri-dev0001-jetorn"
+  ],
+  "passed": false,
+  "status_counts": {
+    "ok": 1616,
+    "client_error": 1,
+    "unknown": 1,
+    "failed_unsent": 4
+  },
+  "normal_cycles_completed": 0,
+  "final_state": "LOCAL",
+  "retained_models": [],
+  "failure": "AGX transient disconnection; emergency Nano fallback is not a completed normal cycle",
+  "history": {
+    "items": [
+      {
+        "sequence": 14,
+        "at": 1788952937.1525657,
+        "state": "LOCAL",
+        "reason": "ordered_models_released_rearmed",
+        "selected_node": null
+      },
+      {
+        "sequence": 13,
+        "at": 1788952937.14695,
+        "state": "LOCAL",
+        "reason": "released_hop:etri-dev0005-jetagx",
+        "selected_node": null
+      },
+      {
+        "sequence": 12,
+        "at": 1788952936.4698637,
+        "state": "LOCAL",
+        "reason": "release_hop:etri-dev0005-jetagx",
+        "selected_node": null
+      },
+      {
+        "sequence": 11,
+        "at": 1788952777.8292964,
+        "state": "LOCAL",
+        "reason": "emergency_source_fallback",
+        "selected_node": null
+      },
+      {
+        "sequence": 10,
+        "at": 1788952715.3580194,
+        "state": "REMOTE",
+        "reason": "released_hop:etri-ser0003-cg0ms0",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 9,
+        "at": 1788952715.0775368,
+        "state": "REMOTE",
+        "reason": "release_hop:etri-ser0003-cg0ms0",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 8,
+        "at": 1788952684.9966137,
+        "state": "REMOTE",
+        "reason": "previous_hop_verified",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 7,
+        "at": 1788952684.5662665,
+        "state": "RETURNING",
+        "reason": "ordered_previous_hop_low_dwell",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 6,
+        "at": 1788952554.0203192,
+        "state": "REMOTE",
+        "reason": "next_hop_verified",
+        "selected_node": "etri-ser0003-cg0ms0"
+      },
+      {
+        "sequence": 5,
+        "at": 1788952551.1658177,
+        "state": "PREPARING",
+        "reason": "ordered_next_hop_selected",
+        "selected_node": "etri-ser0003-cg0ms0"
+      },
+      {
+        "sequence": 4,
+        "at": 1788952439.9917002,
+        "state": "REMOTE",
+        "reason": "next_hop_verified",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 3,
+        "at": 1788952417.0825458,
+        "state": "PREPARING",
+        "reason": "ordered_next_hop_selected",
+        "selected_node": "etri-dev0005-jetagx"
+      },
+      {
+        "sequence": 2,
+        "at": 1788952332.9107924,
+        "state": "LOCAL",
+        "reason": "ordered_startup_edge_verified",
+        "selected_node": null
+      },
+      {
+        "sequence": 1,
+        "at": 1788952332.8007433,
+        "state": "RECOVERING",
+        "reason": "startup_reconciliation",
+        "selected_node": null
+      }
+    ]
+  }
+}

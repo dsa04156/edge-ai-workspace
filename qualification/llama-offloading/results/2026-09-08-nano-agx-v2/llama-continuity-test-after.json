@@ -1,0 +1,50 @@
+[
+  {
+    "name": "continuity-controller-65f4bddc94-zhvhb",
+    "uid": "f301f28c-b534-4dcf-bcd7-3d73c3a4fbee",
+    "node": "etri-ser0001-cg0msb",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "controller",
+        "containerID": "containerd://83c050f6347dac0f227d2cc35e8cebc3a8c8208b02523e98f0c71c66941ef901",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "llama-agx-6fbd4fd799-ngbfl",
+    "uid": "b5964c97-fcb1-4f89-b5ef-79809f3c62bc",
+    "node": "etri-dev0005-jetagx",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "api",
+        "containerID": "containerd://deb5e916e8ebcd30d9781c08cc9e9a4878cf1cdb9c115c28d27b21e1eaaa8992",
+        "restartCount": 0,
+        "ready": true
+      },
+      {
+        "name": "inference-runtime",
+        "containerID": "containerd://b20b41f72fe31bdade32c0d30509a2602f0287cd3635a5a9200ac55b403b8f23",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  },
+  {
+    "name": "llama-nano-5754d87c87-f9fj9",
+    "uid": "d3fa2de3-bb12-40a2-8285-c15d1c5eda45",
+    "node": "etri-dev0001-jetorn",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "api",
+        "containerID": "containerd://8696f8232e8a901cd98eca77a99c7f786f14f538ed0c25de3d29772d97577313",
+        "restartCount": 0,
+        "ready": true
+      }
+    ]
+  }
+]

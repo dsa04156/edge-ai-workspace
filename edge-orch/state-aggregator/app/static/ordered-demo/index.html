@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><title>Nano · Orin · Spark — 오프로딩 데모</title><link rel="stylesheet" href="/demo.css"><script src="/demo.js" defer></script></head>
+<body><header><a href="/" class="brand">EDGE AI <span>LIVE DEMO</span></a><span id="connection" class="connection">연결 확인 중</span></header>
+<main>
+<section class="intro"><div><p class="eyebrow">실장비 · Llama 3.2 1B</p><h1>부하를 올리고,<br>다시 엣지로.</h1><p class="lead">Nano에서 시작해 Orin, Spark로.<br>부하가 줄면 한 단계씩 돌아오고 모델 메모리를 비웁니다.</p></div>
+<div class="controls"><div class="actions"><button id="start" class="primary" disabled>왕복 데모 시작 <span aria-hidden="true">↗</span></button><button id="stop" disabled>신규 요청 중지</button></div><p>약 8분 · 고정 요청 1,622건 · 장비가 준비되면 시작 가능</p><p id="action-message" role="status"></p></div></section>
+<div id="error" class="error" role="alert" hidden></div>
+<section class="flow panel" aria-labelledby="flow-title"><div class="section-heading"><div><p class="eyebrow">지금 신규 요청을 받는 곳</p><h2 id="flow-title">관측 연결 중</h2></div><span id="run-status" class="badge">대기</span></div>
+<div id="nodes" class="nodes"></div>
+<div class="journey"><span>실제 이동</span><ol id="visited"><li>아직 실행하지 않았습니다</li></ol></div>
+<p class="footnote">Nano·Orin은 엣지, Spark는 서버입니다. Pod는 유지하고 새 요청의 처리 노드를 전환합니다.</p></section>
+<section class="run-panel panel" aria-labelledby="run-title"><div class="section-heading"><h2 id="run-title">실행 진행</h2><span id="elapsed">00:00 / 약 07:50</span></div><div id="phases" class="phases"></div><progress id="progress" max="1622" value="0" aria-label="요청 완료 진행률"></progress>
+<div class="stats"><div><span>정상 완료</span><strong id="ok">0</strong></div><div><span>실패·불명확</span><strong id="failed">0</strong></div><div><span>처리 대기</span><strong id="pending">0</strong></div><div><span>현재 유입률</span><strong id="rate">—</strong></div></div><p id="run-note" class="footnote">시작하면 부하를 단계적으로 조절합니다. 노드 전환은 실행기가 판단합니다.</p></section>
+<section class="details-grid"><article class="panel"><div class="section-heading"><h2>최근 실제 응답</h2><span id="result-node" class="badge">대기</span></div><blockquote id="result-text">첫 요청의 응답을 기다립니다.</blockquote><p id="result-time" class="footnote">고정 질문 · 최대 8토큰</p></article><article class="panel"><h2>이 데모가 확인하는 것</h2><ul class="checks"><li>준비 중에는 현재 노드가 계속 처리</li><li>실제 추론 확인 후 신규 요청 전환</li><li>복귀 후 남은 요청 완료와 모델 메모리 해제</li></ul><p class="footnote">실행 중 요청 자체를 옮기는 방식은 아닙니다. 노드 단절까지 포함한 무손실 보장은 별도 검증입니다.</p></article></section>
+<details class="technical"><summary>판단 기준과 실행 기록</summary><p>상승: 현재 용량의 85% 이상 5초 + 준비 비용을 포함한 이득 확인. 복귀: 직전 용량의 60% 이하 30초. 전환 간격 60초. 요청 완료·30초 유휴 후 상위 모델 해제.</p><p>중지는 새 부하만 멈춥니다. 이미 접수한 요청과 Nano 복귀·메모리 해제는 계속 확인합니다.</p><pre id="diagnostics">관측 대기</pre></details>
+</main><footer>실제 관측을 표시합니다. 응답 지연이나 연결 단절 시 마지막 관측을 정상 상태로 표시하지 않습니다.</footer></body></html>

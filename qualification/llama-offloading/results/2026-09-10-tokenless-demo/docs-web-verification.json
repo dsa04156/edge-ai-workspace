@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-10",
+  "url": "http://docs.192.168.0.56.sslip.io/",
+  "checks": [
+    {
+      "path": "Llama-장비별-GPU-성능측정.html",
+      "http_status": 200,
+      "matches_local_html": true
+    },
+    {
+      "path": "서버-엣지-반복-오프로딩.html",
+      "http_status": 200,
+      "matches_local_html": true
+    }
+  ],
+  "running_image_ids": [
+    "192.168.0.56:5000/docs-html@sha256:3852701d0670b91d09a2341f078ba44e4e890670cc992455d0a731e4f0087ee2"
+  ],
+  "deployment_owner": "Argo CD docs-html",
+  "deployment_method": "existing Application kustomize images override"
+}

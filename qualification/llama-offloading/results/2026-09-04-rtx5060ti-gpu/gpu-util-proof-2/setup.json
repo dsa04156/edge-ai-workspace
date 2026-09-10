@@ -1,0 +1,27 @@
+{
+  "activation": {
+    "agx": {
+      "activation_required": false,
+      "activation_started_timestamp": 1788521485.037993,
+      "activation_time_ms": 71834.501,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 71834.5,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 71831.933,
+      "model_remote_download_ms": 0.0,
+      "node_state": "ACTIVE",
+      "node_state_before": "ACTIVE",
+      "ready_timestamp": 1788521556.8724682,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "agx",
+        "old_state": "COLD",
+        "physical_node": "etri-ser0001-cg0msb",
+        "reason": "x86_gpu_saturation",
+        "timestamp": 1788521556.8724713
+      },
+      "worker_start_ms": 0.491
+    }
+  },
+  "method": "direct_selected_workers"
+}

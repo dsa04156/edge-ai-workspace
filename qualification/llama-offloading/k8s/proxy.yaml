@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-offloading-proxy
+  labels:
+    app.kubernetes.io/name: llama-offloading-proxy
+    app.kubernetes.io/part-of: llama-offload-prototype
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llama-offloading-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: llama-offloading-proxy
+        app.kubernetes.io/part-of: llama-offload-prototype
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: etri-ser0001-cg0msb
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: proxy
+          image: docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254
+          imagePullPolicy: IfNotPresent
+          command: [python, /app/proxy.py]
+          env:
+            - name: PORT
+              value: "18101"
+            - name: NANO_URL
+              value: http://192.168.0.3:18100
+            - name: AGX_URL
+              value: http://192.168.0.56:18100
+            - name: SPARK_URL
+              value: http://192.168.0.5:18100
+            - name: MIN_IMPROVEMENT
+              value: "0.15"
+            - name: OVERLOAD_DWELL_SECONDS
+              value: "2"
+            - name: RECOVERY_DWELL_SECONDS
+              value: "4"
+            - name: COOLDOWN_SECONDS
+              value: "5"
+            - name: QUEUE_HIGH
+              value: "8"
+            - name: TTFT_HIGH_MS
+              value: "1500"
+            - name: MIN_TOKENS_PER_SECOND
+              value: "39.5"
+            # Nano thresholds come from the 2026-09-04 Orin Nano JetPack 6
+            # CUDA run. Remote activation values below are historical CPU
+            # substitutes and must be replaced by AGX/Spark GPU measurements.
+            - name: COLD_AGX_ACTIVATION_MS
+              value: "40646"
+            - name: COLD_SPARK_ACTIVATION_MS
+              value: "38465"
+            - name: CACHED_AGX_ACTIVATION_MS
+              value: "1187"
+            - name: CACHED_SPARK_ACTIVATION_MS
+              value: "1187"
+            - name: DATA_DIR
+              value: /data
+            - name: IDLE_TIMEOUT_SECONDS
+              value: "30"
+          ports:
+            - name: http
+              containerPort: 18101
+              hostPort: 18101
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 240
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: proxy-code
+              mountPath: /app
+              readOnly: true
+            - name: logs
+              mountPath: /data
+      volumes:
+        - name: proxy-code
+          configMap:
+            name: llama-proxy-code
+        - name: logs
+          emptyDir: {}

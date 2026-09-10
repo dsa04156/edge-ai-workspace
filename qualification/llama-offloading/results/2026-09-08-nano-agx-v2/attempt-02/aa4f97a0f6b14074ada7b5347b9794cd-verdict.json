@@ -1,0 +1,28 @@
+{
+  "id": "aa4f97a0f6b14074ada7b5347b9794cd",
+  "repeat": 1,
+  "control": true,
+  "passed": true,
+  "checks": {
+    "same_contract_policy": true,
+    "run_completed": true,
+    "all_offered_accounted": true,
+    "fixed_workload": true,
+    "no_missing_or_duplicate_ids": true,
+    "no_rejection_or_error": true,
+    "identity": true,
+    "single_dispatch": true,
+    "fresh_ready_dispatch": true,
+    "request_timestamps": true
+  },
+  "offered": 876,
+  "completed": 876,
+  "rejected": 0,
+  "unknown": 0,
+  "p95_ttft_ms": 5176.637983327964,
+  "p95_latency_ms": 5343.718537333189,
+  "warm_p95_ttft_ms": 5176.637983327964,
+  "activation_max_ttft_ms": null,
+  "throughput_rps": 3.2475634347860542,
+  "max_completion_gap_ms": 1552.9280670016306
+}

@@ -1,0 +1,5 @@
+{
+  "extends": "nano-0332.json",
+  "ramp_concurrency": [],
+  "safety": {"max_smoke_requests": 1}
+}

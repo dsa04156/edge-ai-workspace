@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "nodes": [
+    {
+      "node": "etri-dev0001-jetorn",
+      "passed": true,
+      "checks": {
+        "ready": true,
+        "no_pressure": true,
+        "model_storage_headroom": true,
+        "cold_runtime_headroom": true
+      },
+      "available_bytes": 422982230016,
+      "capacity_bytes": 502085459968,
+      "model_scratch_reserve_bytes": 3221225472,
+      "cold_image_reserve_bytes": 0,
+      "budgeted_runtime_image": null,
+      "exact_runtime_running": null,
+      "minimum_remaining_fraction": 0.2,
+      "observed_at": "2026-09-08T09:12:18Z"
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "passed": true,
+      "checks": {
+        "ready": true,
+        "no_pressure": true,
+        "model_storage_headroom": true,
+        "cold_runtime_headroom": true
+      },
+      "available_bytes": 14873190400,
+      "capacity_bytes": 57806061568,
+      "model_scratch_reserve_bytes": 3221225472,
+      "cold_image_reserve_bytes": 0,
+      "budgeted_runtime_image": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28",
+      "exact_runtime_running": true,
+      "minimum_remaining_fraction": 0.2,
+      "observed_at": "2026-09-08T09:12:17Z"
+    }
+  ]
+}

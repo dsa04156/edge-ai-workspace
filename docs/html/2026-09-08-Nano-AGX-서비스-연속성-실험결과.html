@@ -66,6 +66,10 @@
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
+<li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
+<li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
+<li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
+<li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
 <li><a class="active" aria-current="page" href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a href="저장소-구조.html">저장소 구조</a></li>
@@ -80,8 +84,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 2026-09-08-Nano-AGX-서비스-연속성-실험결과.md</span>
-            <span class="badge">수정: 2026-09-09 09:52</span>
-            <span class="badge">HTML 생성: 2026-09-09 09:52</span>
+            <span class="badge">수정: 2026-09-09 09:48</span>
+            <span class="badge">HTML 생성: 2026-09-10 11:22</span>
           </div>
         </header>
         <div class="doc-body">
@@ -154,7 +158,7 @@
 <td>마지막 결과 수신까지; p95는 nearest-rank 방식</td>
 </tr>
 </tbody></table></div>
-<p>고정 prompt는 <code>In one short sentence, explain why edge computing reduces latency.</code>다. 더 긴 입력·출력을 사용하는 장비별 GPU 성능 시험과는 작업 조건이 다르므로 처리율과 지연 수치를 섞어 사용하지 않는다.</p>
+<p>고정 prompt는 <code>In one short sentence, explain why edge computing reduces latency.</code>다. 더 긴 입력·출력의 <a href="Llama-장비별-GPU-성능측정.html">장비별 GPU 성능측정</a>과는 작업 조건이 다르므로 처리율과 지연 수치를 섞어 사용하지 않는다.</p>
 <h2 id="먼저-고정한-기준">먼저 고정한 기준</h2>
 <p>저부하 TTFT와 바쁜 상태의 직렬 처리시간을 각각 3회 측정했다. 부하 단계별 시험에서 Nano의 검증 처리율은 4.0건/초였고, AGX의 4.8건/초 수용은 별도 3회, 총 432건으로 확인했다. SD에서 AGX를 준비하는 시간도 10회 측정한 후 baseline과 정책을 동결했다.</p>
 <div class="table-wrap"><table>
@@ -345,7 +349,7 @@
 <p>외부 서비스용 공용 gateway, NEXUS 자동 제어, Nano 전체 전원·네트워크 장애, 긴 생성·다른 모델, 실제 SD 재부팅·실행 중 카드 분리는 이번 시험에 포함하지 않았다. 다음 단계는 이 접수·전송·복귀 계약을 외부 서비스의 공용 진입점에 연결하고 같은 기준으로 검증하는 것이다.</p>
 <h2 id="내려받을-근거와-재현-위치">내려받을 근거와 재현 위치</h2>
 <ul><li><a href="assets/nano-agx-continuity-20260908/report.json">전체 20회 판정과 대응 비교</a></li><li><a href="assets/nano-agx-continuity-20260908/summary.json">최종 수치 요약</a></li><li><a href="assets/nano-agx-continuity-20260908/policy.json">동결 정책과 측정 계약</a></li><li><a href="assets/nano-agx-continuity-20260908/final-verification.json">종료 장비·기존 서비스·코드 검증</a></li><li><a href="assets/nano-agx-continuity-20260908/export-sha256.json">내보낸 원본의 SHA-256</a></li></ul>
-<p>위 파일은 실험 원본의 복사본이며 이번 문서 커밋에 함께 포함한다. 요청별 원장·첫 실패·기준선 전체는 실험 수행 작업 폴더의 <code>qualification/llama-offloading/results/2026-09-08-nano-agx-v2/</code>에 보존한다. 실행 절차는 <code>qualification/llama-offloading/continuity-runbook.md</code>, 판정 코드는 <code>continuity_report.py</code>, 전환 정책은 <code>continuity_policy.py</code>, 실행·영속 기록은 <code>continuity_runner.py</code>다.</p>
+<p>위 파일은 저장소 원본의 복사본이다. 요청별 원장·첫 실패·기준선은 저장소의 <code>qualification/llama-offloading/results/2026-09-08-nano-agx-v2/</code>에 보존한다. 실행 절차는 <code>qualification/llama-offloading/continuity-runbook.md</code>, 판정 코드는 <code>continuity_report.py</code>, 전환 정책은 <code>continuity_policy.py</code>, 실행·영속 기록은 <code>continuity_runner.py</code>다.</p>
 <p>최종 정책 ID는 <code>c1368446293834f1e5bdfe1f7c0e085673e0004a2c27978be96e32be86c740b3</code>다.</p>
         </div>
       </article>

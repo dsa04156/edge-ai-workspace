@@ -1,0 +1,24 @@
+{
+  "timestamp": 1788845222.9706922,
+  "result": {
+    "deactivation_required": true,
+    "node_state_before": "ACTIVE",
+    "node_state": "CACHED",
+    "deactivation_started_timestamp": 1788845222.6558168,
+    "deactivation_timestamp": 1788845222.967497,
+    "worker_start_ms": 2.093,
+    "model_unload_ms": 306.372,
+    "model_delete_ms": 0.0,
+    "worker_stop_ms": 306.372,
+    "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+    "deactivation_time_ms": 311.703,
+    "transition": {
+      "timestamp": 1788845222.9673414,
+      "node": "nano",
+      "physical_node": "etri-dev0001-jetorn",
+      "old_state": "ACTIVE",
+      "new_state": "CACHED",
+      "reason": "approved_local_sweep"
+    }
+  }
+}

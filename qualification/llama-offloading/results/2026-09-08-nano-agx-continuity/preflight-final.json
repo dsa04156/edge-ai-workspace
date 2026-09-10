@@ -1,0 +1,37 @@
+{
+  "passed": false,
+  "nodes": [
+    {
+      "node": "etri-dev0001-jetorn",
+      "passed": true,
+      "checks": {
+        "ready": true,
+        "no_pressure": true,
+        "model_storage_headroom": true,
+        "cold_runtime_headroom": true
+      },
+      "available_bytes": 422994632704,
+      "capacity_bytes": 502085459968,
+      "model_scratch_reserve_bytes": 3221225472,
+      "cold_image_reserve_bytes": 0,
+      "minimum_remaining_fraction": 0.2,
+      "observed_at": "2026-09-08T07:56:22Z"
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "passed": false,
+      "checks": {
+        "ready": true,
+        "no_pressure": true,
+        "model_storage_headroom": true,
+        "cold_runtime_headroom": false
+      },
+      "available_bytes": 15999467520,
+      "capacity_bytes": 57806061568,
+      "model_scratch_reserve_bytes": 3221225472,
+      "cold_image_reserve_bytes": 8589934592,
+      "minimum_remaining_fraction": 0.2,
+      "observed_at": "2026-09-08T07:56:25Z"
+    }
+  ]
+}

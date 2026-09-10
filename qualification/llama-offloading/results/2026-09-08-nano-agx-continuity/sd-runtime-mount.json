@@ -1,0 +1,9 @@
+{
+  "container_id": "b20b41f72fe31bdade32c0d30509a2602f0287cd3635a5a9200ac55b403b8f23",
+  "model_mount": "5502 5497 179:97 /ollama /models rw,noatime - ext4 /dev/mmcblk1p1 rw,errors=remount-ro",
+  "expected_sd_major_minor": "179:97",
+  "storage_uuid": "c6889d5e-37bb-4b07-8e0b-757d3de8c877",
+  "mounted_on_sd": true,
+  "pod": "llama-agx-6fbd4fd799-ngbfl",
+  "claim": "llama-agx-cache-sd"
+}

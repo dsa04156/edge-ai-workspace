@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "experiment_only": true,
+  "automatic_production_switching": false,
+  "model": {
+    "family": "Llama-3.2-1B-Instruct",
+    "quantization": "Q8_0",
+    "source": "Ollama registry library/llama3.2:1b, existing local GGUF",
+    "upstream_revision": null,
+    "sha256": "74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45",
+    "path": "/home/jinuk/.ollama/models/blobs/sha256-74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45"
+  },
+  "runtime": {
+    "binary": "/home/jinuk/.local/lib/ollama/llama-server",
+    "library_path": "/home/jinuk/.local/lib/ollama:/home/jinuk/.local/lib/ollama/cuda_v12",
+    "backend_path": "/home/jinuk/.local/lib/ollama/cuda_v12/libggml-cuda.so",
+    "reported_revision": "b4d6c7d8f",
+    "distribution": "Ollama 0.32.5 bundled llama-server; not yet matched across devices",
+    "host": "127.0.0.1",
+    "port": 18200,
+    "threads": 4,
+    "context": 4096,
+    "batch": 512,
+    "ubatch": 128,
+    "parallel_slots": 1,
+    "gpu_layers": 99,
+    "kv_type": "f16",
+    "flash_attention": "off"
+  },
+  "workload": {"input_tokens": 512, "output_tokens": 128, "seed": 20260907, "cache_prompt": false, "ignore_eos": true},
+  "safety": {"request_timeout_s": 30, "activation_timeout_s": 90, "max_smoke_requests": 3, "max_smoke_duration_s": 180, "max_temperature_c": 80, "min_available_ram_mib": 1024},
+  "policy_proposals_not_validated": {"slo_ttft_ms": null, "slo_latency_ms": null, "minimum_gain_fraction": 0.15, "cooldown_s": 30}
+}

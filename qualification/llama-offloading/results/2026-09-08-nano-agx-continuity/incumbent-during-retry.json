@@ -1,0 +1,39 @@
+{
+  "llama-offload-eval": [
+    {
+      "name": "llama-worker-nano-799fc9d6c5-lzm5n",
+      "uid": "5ee77067-db06-4942-8115-9f2cf88f0993",
+      "phase": "Running",
+      "containers": [
+        {
+          "name": "api",
+          "ready": true,
+          "restartCount": 0,
+          "containerID": "containerd://55074a96aacc27cd9e3d519437c6a7e2555159b290ce59434b9de2a16c23a0c4"
+        },
+        {
+          "name": "inference-runtime",
+          "ready": true,
+          "restartCount": 0,
+          "containerID": "containerd://480d9677c1b9fcf460bba37ecb0a7d122876fa28bed4d82ebd20844baec97eee"
+        }
+      ]
+    }
+  ],
+  "edgex-edge": [
+    {
+      "name": "sensor-anomaly-demo-579cdb4d76-9nnn8",
+      "uid": "3c8513a6-ce82-4fe6-a74c-9038b7bc7d26",
+      "phase": "Running",
+      "containers": [
+        {
+          "name": "sensor-anomaly-demo",
+          "ready": true,
+          "restartCount": 0,
+          "containerID": "containerd://303eccfcaf312debd3eff10236775a749bb4af6893b8fc568c9e6e234e142d78"
+        }
+      ]
+    }
+  ],
+  "incumbent_demo_busy": false
+}

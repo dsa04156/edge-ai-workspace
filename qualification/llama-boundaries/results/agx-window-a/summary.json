@@ -1,0 +1,28 @@
+{
+  "n": 1,
+  "successful": 1,
+  "failure_rate": 0.0,
+  "p50_latency_ms": 2105.8547899956466,
+  "p95_latency_ms": 2105.8547899956466,
+  "p50_ttft_ms": 172.60267299570842,
+  "p95_ttft_ms": 172.60267299570842,
+  "completed_requests_per_s": 0.47486623702349967,
+  "output_tokens_per_s": 60.78287833900796,
+  "threshold_validated": false,
+  "note": "Smoke quantiles are descriptive, not a saturation boundary.",
+  "by_concurrency": {
+    "1": {
+      "n": 1,
+      "successful": 1,
+      "failure_rate": 0.0,
+      "p50_latency_ms": 2105.8547899956466,
+      "p95_latency_ms": 2105.8547899956466,
+      "p50_ttft_ms": 172.60267299570842,
+      "p95_ttft_ms": 172.60267299570842,
+      "completed_requests_per_s": 0.47486623702349967,
+      "output_tokens_per_s": 60.78287833900796,
+      "threshold_validated": false,
+      "note": "Smoke quantiles are descriptive, not a saturation boundary."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "n": 3,
+  "successful": 3,
+  "failure_rate": 0.0,
+  "p50_latency_ms": 3218.8688290771097,
+  "p95_latency_ms": 3221.3312226813287,
+  "p50_ttft_ms": 228.2374461647123,
+  "p95_ttft_ms": 228.71778327971697,
+  "completed_requests_per_s": 0.3106658047068458,
+  "output_tokens_per_s": 39.76522300247626,
+  "threshold_validated": false,
+  "note": "Smoke quantiles are descriptive, not a saturation boundary."
+}

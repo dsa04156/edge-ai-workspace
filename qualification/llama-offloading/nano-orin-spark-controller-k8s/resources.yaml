@@ -1,0 +1,299 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "ordered-offload-controller"
+      }
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRole",
+      "metadata": {
+        "name": "ordered-offload-readonly"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "nodes",
+            "pods"
+          ],
+          "verbs": [
+            "get",
+            "list"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "ClusterRoleBinding",
+      "metadata": {
+        "name": "ordered-offload-readonly"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "ordered-offload-controller",
+          "namespace": "llama-continuity-test"
+        }
+      ],
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "ordered-offload-readonly"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "ordered-offload-journal"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "local-path",
+        "resources": {
+          "requests": {
+            "storage": "2Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "ordered-offload-controller"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "Recreate"
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "ordered-offload-controller"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "ordered-offload-controller"
+            }
+          },
+          "spec": {
+            "nodeSelector": {
+              "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+            },
+            "serviceAccountName": "ordered-offload-controller",
+            "terminationGracePeriodSeconds": 180,
+            "containers": [
+              {
+                "name": "controller",
+                "image": "192.168.0.56:5000/state-aggregator@sha256:05fe65ce2085264486d462dc513ab9243e0ebb6e9433ccf3a13308a3d1f1c086",
+                "command": [
+                  "python",
+                  "-m",
+                  "uvicorn",
+                  "app.model_offload_demo:app",
+                  "--host",
+                  "0.0.0.0",
+                  "--port",
+                  "18113"
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 18113
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "MODEL_OFFLOAD_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "MODEL_OFFLOAD_CONTRACT_PATH",
+                    "value": "/contract/model_offload_llama.json"
+                  },
+                  {
+                    "name": "DATA_DIR",
+                    "value": "/data/runtime-v2"
+                  },
+                  {
+                    "name": "EXECUTION_MANAGEMENT_TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "ordered-offload-auth",
+                        "key": "token"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "250m",
+                    "memory": "256Mi"
+                  },
+                  "limits": {
+                    "cpu": "2",
+                    "memory": "1Gi"
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": "http"
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_demo.py",
+                    "subPath": "model_offload_demo.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_ordered.py",
+                    "subPath": "model_offload_ordered.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_controller.py",
+                    "subPath": "model_offload_controller.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_contract.py",
+                    "subPath": "model_offload_contract.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_api.py",
+                    "subPath": "model_offload_api.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/runtime_recommendation.py",
+                    "subPath": "runtime_recommendation.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/runtime_execution_plan.py",
+                    "subPath": "runtime_execution_plan.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "contract",
+                    "mountPath": "/contract",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "journal",
+                    "mountPath": "/data"
+                  },
+                  {
+                    "name": "code",
+                    "mountPath": "/app/app/model_offload_demo_run.py",
+                    "subPath": "model_offload_demo_run.py",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "ui",
+                    "mountPath": "/app/app/static/ordered-demo",
+                    "readOnly": true
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "code",
+                "configMap": {
+                  "name": "ordered-offload-code"
+                }
+              },
+              {
+                "name": "contract",
+                "configMap": {
+                  "name": "ordered-offload-contract"
+                }
+              },
+              {
+                "name": "journal",
+                "persistentVolumeClaim": {
+                  "claimName": "ordered-offload-journal"
+                }
+              },
+              {
+                "name": "ui",
+                "configMap": {
+                  "name": "ordered-offload-ui"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "ordered-offload-controller"
+      },
+      "spec": {
+        "selector": {
+          "app": "ordered-offload-controller"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 18113,
+            "targetPort": "http"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "traefik.io/v1alpha1",
+      "kind": "IngressRoute",
+      "metadata": {
+        "name": "ordered-offload-demo"
+      },
+      "spec": {
+        "entryPoints": [
+          "web"
+        ],
+        "routes": [
+          {
+            "match": "Host(`offload-demo.192.168.0.56.sslip.io`)",
+            "kind": "Rule",
+            "services": [
+              {
+                "name": "ordered-offload-controller",
+                "port": 18113
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

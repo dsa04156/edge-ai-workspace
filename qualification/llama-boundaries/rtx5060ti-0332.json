@@ -1,0 +1,8 @@
+{
+  "extends": "common-0332.json",
+  "runtime": {
+    "binary": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.runtime/ollama-0.33.2/llama-server",
+    "library_path": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.runtime/ollama-0.33.2:/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.runtime/ollama-0.33.2/cuda_v12",
+    "backend_path": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.runtime/ollama-0.33.2/cuda_v12/libggml-cuda.so"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "automated": {
+    "focused_offload": 43,
+    "full_python_rerun": 414,
+    "full_python_rerun_seconds": 32.36,
+    "initial_full_run": {
+      "passed": 413,
+      "failed": 1,
+      "failure": "test_background_controller_rearms_without_restart: timing timeout; isolated rerun passed; no test or controller threshold changed"
+    }
+  },
+  "browser": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "mobile_horizontal_overflow": false,
+    "reload_restores_server_run": true,
+    "reload_clears_token_field": true,
+    "invalid_token_stop": 403,
+    "offline_banner_and_disabled_controls": true
+  },
+  "live_short_stop": {
+    "attempted": 29,
+    "ok": 29,
+    "status": "stopped"
+  },
+  "first_ui_full_attempt": {
+    "status": "stopped",
+    "attempted": 585,
+    "ok": 565,
+    "errors": {
+      "routing_target_not_ready": 20
+    },
+    "visited": [
+      "Nano",
+      "AGX",
+      "Nano"
+    ],
+    "passed": false,
+    "root_cause": "not established; controller recorded emergency_source_fallback"
+  },
+  "second_ui_attempt": {
+    "attempted": 767,
+    "ok": 683,
+    "errors": {
+      "failed_unsent": 33,
+      "routing_target_not_ready": 49,
+      "load_generator_capacity": 2
+    },
+    "passed": false
+  },
+  "storage_fix": {
+    "code_configmap": "ordered-offload-code-k72mdh4hdk",
+    "ui_configmap": "ordered-offload-ui-bg272f2mm4",
+    "summary": "separate atomic JSON writes off the event loop; request FULL WAL unchanged",
+    "regression": "slow disk write permits concurrent heartbeat",
+    "observed_io_pressure_full_avg60": 13.42,
+    "cpu_throttled_periods": 0
+  },
+  "timing_test_fix": "Fixed burst could already complete REMOTE\u2192LOCAL before REMOTE assertion. Journal confirmed complete transition sequence; synthetic producer now stops on observed REMOTE. Runtime thresholds unchanged.",
+  "final_automated": {
+    "full_python": 415,
+    "seconds": 31.92
+  },
+  "files_sha256": {
+    "edge-orch/state-aggregator/app/model_offload_demo.py": "8fed06cb5515733bf5968142ecd1b81e48f5f867714465d2903e998ed54eb001",
+    "edge-orch/state-aggregator/app/model_offload_demo_run.py": "2f04a3b18e56c6cbc5068cd1edf1aa231a049f609f6d360202980db0e0772c55",
+    "edge-orch/state-aggregator/app/static/ordered-demo/demo.css": "58ffe2d39fa5cdb743c3449ab454ee2df6ea01c9639843c03e025431d1801928",
+    "edge-orch/state-aggregator/app/static/ordered-demo/demo.js": "1f0cae8b72c2010440edef2251b07efa83f4eda41ddcdf0ae31a2979035c944b",
+    "edge-orch/state-aggregator/app/static/ordered-demo/index.html": "bd762d1c35e9c5d65d7b8dbf32396be9ab4e5fbc63e039c4ee418591e53e96c0"
+  },
+  "third_ui_attempt": {
+    "id": "3bac9f9385f243f3b36a02b3ed47ede9",
+    "attempted": 1622,
+    "completed": 1622,
+    "ok": 1578,
+    "errors": {
+      "routing_target_not_ready": 42,
+      "failed_unsent": 2
+    },
+    "visited": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "passed": false
+  },
+  "checkpoint_fix": {
+    "code_configmap": "ordered-offload-code-8m6bfktbbc",
+    "focused_tests": 44,
+    "synchronous": "FULL unchanged",
+    "during_run": "automatic checkpoint disabled only for bounded UI run",
+    "after_run": "PASSIVE checkpoint in a separate connection and background thread; restore previous automatic checkpoint threshold",
+    "during_run_io_pressure_sample": {
+      "full_avg60": 0.19,
+      "cpu_throttled_periods": 0
+    }
+  },
+  "final_live_run": {
+    "id": "9b9d977f8e5043309a7702288afb06c4",
+    "planned": 1622,
+    "attempted": 1622,
+    "completed": 1622,
+    "ok": 1622,
+    "errors": {},
+    "visited": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "passed": true,
+    "journal_checkpoint": {
+      "busy": 0,
+      "wal_pages": 8384,
+      "checkpointed_pages": 8384
+    }
+  },
+  "final_code_sha256": {
+    "edge-orch/state-aggregator/app/model_offload_demo.py": "8fed06cb5515733bf5968142ecd1b81e48f5f867714465d2903e998ed54eb001",
+    "edge-orch/state-aggregator/app/model_offload_demo_run.py": "74ef405a8a527534963d8d8e097606a7a2443bf9c9f4b8d6bf5929568fe4bf1d",
+    "edge-orch/state-aggregator/app/static/ordered-demo/demo.css": "58ffe2d39fa5cdb743c3449ab454ee2df6ea01c9639843c03e025431d1801928",
+    "edge-orch/state-aggregator/app/static/ordered-demo/demo.js": "1f0cae8b72c2010440edef2251b07efa83f4eda41ddcdf0ae31a2979035c944b",
+    "edge-orch/state-aggregator/app/static/ordered-demo/index.html": "bd762d1c35e9c5d65d7b8dbf32396be9ab4e5fbc63e039c4ee418591e53e96c0"
+  },
+  "final_request_ledger": {
+    "count": 1622,
+    "distinct_ids": 1622,
+    "all_ok_and_node_identity_match": true,
+    "sha256": "0f00d188f5387a4616918bc2f7bfb35360b8c3aed352ca02e0154cfe890e98a2"
+  },
+  "documentation_checks": {
+    "focused_tests": 22,
+    "generated_documents": 27,
+    "git_diff_check": "passed"
+  }
+}

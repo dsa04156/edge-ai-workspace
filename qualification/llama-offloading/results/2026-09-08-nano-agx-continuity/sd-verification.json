@@ -1,0 +1,159 @@
+{
+  "observed_at": "2026-09-08T11:09:04.481037+00:00",
+  "tests": {
+    "command": "rtk proxy /tmp/nano-agx-qualification-venv/bin/python -m unittest discover -s qualification/llama-offloading/tests -q",
+    "passed": 84
+  },
+  "code_sha256": {
+    "continuity_preflight.py": "56ba5e60b4a3d57e617a0b5bf62fa9aa98cb2c56445e9917417a8f742eb1bece",
+    "tests/test_continuity.py": "acc3d6b7d9b7cce4991981c210612ba8b8a3d039a6f8cc5a23743f1c30cdc39c",
+    "nano-agx-k8s/resources.yaml": "57db0f5e3d3336ab03af1dff0f887d2023071a6b995c59ffd9e638905bfe016f",
+    "nano-agx-k8s/kustomization.yaml": "a837a8b44e1331492bf38828aa20445f079f7e1b3359e0278c7e32350bf8021a",
+    "nano-agx-k8s/sd-storage.yaml": "8a8cd2b38fdc0ba9ac1b6995e4775703d9e263bba21674615efab7ad10671225"
+  },
+  "incumbents_unchanged": true,
+  "incumbents": {
+    "llama-offload-eval/llama-demo-86d8f74d46-vbzkv": {
+      "uid": "2caef1d4-2101-417c-b190-bea5fc5dc4f6",
+      "containers": [
+        {
+          "name": "demo",
+          "containerID": "containerd://368c185602ca530c0dceddb0b1e1dc8737d4106e41fa058c52140a1b18719c12",
+          "restartCount": 1,
+          "ready": true
+        }
+      ]
+    },
+    "llama-offload-eval/llama-worker-nano-799fc9d6c5-lzm5n": {
+      "uid": "5ee77067-db06-4942-8115-9f2cf88f0993",
+      "containers": [
+        {
+          "name": "api",
+          "containerID": "containerd://55074a96aacc27cd9e3d519437c6a7e2555159b290ce59434b9de2a16c23a0c4",
+          "restartCount": 0,
+          "ready": true
+        },
+        {
+          "name": "inference-runtime",
+          "containerID": "containerd://480d9677c1b9fcf460bba37ecb0a7d122876fa28bed4d82ebd20844baec97eee",
+          "restartCount": 0,
+          "ready": true
+        }
+      ]
+    },
+    "edgex-edge/sensor-anomaly-demo-579cdb4d76-9nnn8": {
+      "uid": "3c8513a6-ce82-4fe6-a74c-9038b7bc7d26",
+      "containers": [
+        {
+          "name": "sensor-anomaly-demo",
+          "containerID": "containerd://303eccfcaf312debd3eff10236775a749bb4af6893b8fc568c9e6e234e142d78",
+          "restartCount": 0,
+          "ready": true
+        }
+      ]
+    },
+    "llama-continuity-test/continuity-controller-7b7997d9db-f9vxq": {
+      "uid": "0515ca63-54ee-41b7-9792-ce0df013a00e",
+      "containers": [
+        {
+          "name": "controller",
+          "containerID": "containerd://c5d3bef32516434bcb669b52628ee7800ffdaef7af9b32972e6d31ba9fadfb4a",
+          "restartCount": 0,
+          "ready": true
+        }
+      ]
+    },
+    "llama-continuity-test/llama-nano-5754d87c87-f9fj9": {
+      "uid": "d3fa2de3-bb12-40a2-8285-c15d1c5eda45",
+      "containers": [
+        {
+          "name": "api",
+          "containerID": "containerd://8696f8232e8a901cd98eca77a99c7f786f14f538ed0c25de3d29772d97577313",
+          "restartCount": 0,
+          "ready": true
+        }
+      ]
+    }
+  },
+  "nodes": {
+    "etri-dev0001-jetorn": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0002-raspi5": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0003-raspi5": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0004-tedger": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0005-jetagx": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-ser0001-cg0msb": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-ser0002-cgnmsb": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    }
+  },
+  "storage_preflight_passed": true,
+  "activation_smoke_ms": [
+    24579.28150400403,
+    24463.488863999373
+  ],
+  "download_ms": [
+    0.0,
+    0.0
+  ],
+  "final_agx_state": "CACHED",
+  "final_agx_model_vram_mib": 0.0,
+  "nano_probe_succeeded": true,
+  "automatic_roundtrips_run": 0,
+  "reboot_tested": false,
+  "fstab_remount_tested": true,
+  "old_emmc_model_pvc_preserved": true,
+  "admin_pods_removed": true,
+  "qualification_pods": [
+    {
+      "name": "continuity-controller-7b7997d9db-f9vxq",
+      "uid": "0515ca63-54ee-41b7-9792-ce0df013a00e",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "name": "llama-agx-6fbd4fd799-ngbfl",
+      "uid": "b5964c97-fcb1-4f89-b5ef-79809f3c62bc",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "name": "llama-nano-5754d87c87-f9fj9",
+      "uid": "d3fa2de3-bb12-40a2-8285-c15d1c5eda45",
+      "ready": true,
+      "restarts": 0
+    }
+  ]
+}

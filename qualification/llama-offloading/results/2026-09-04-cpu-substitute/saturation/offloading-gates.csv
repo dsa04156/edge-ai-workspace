@@ -1,0 +1,7 @@
+method,target_node,activation_ms,nano_median_service_ms,target_median_service_ms,saved_ms_per_subsequent_request,sequential_break_even_requests,minimum_nano_requests_ahead_for_15pct_first_request_gain,reachable_before_tested_connection_failure_ceiling
+always_on,agx,0.0,388.082,208.096,179.986,1,0,True
+always_on,spark,0.0,388.082,211.063,177.019,1,0,True
+cached_on_demand,agx,1187.222,388.082,208.096,179.986,7,4,True
+cached_on_demand,spark,1187.079,388.082,211.063,177.019,7,4,True
+cold_on_demand,agx,40646.331,388.082,208.096,179.986,226,123,False
+cold_on_demand,spark,38465.279,388.082,211.063,177.019,218,117,False

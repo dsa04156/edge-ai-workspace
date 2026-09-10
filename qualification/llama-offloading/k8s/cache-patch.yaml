@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-worker-agx
+spec:
+  template:
+    spec:
+      containers:
+        - name: inference-runtime
+          env:
+            - {name: OLLAMA_MODELS, value: /models}
+          volumeMounts:
+            - {name: model-cache, mountPath: /models}
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim: {claimName: llama-cache-agx}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-worker-spark
+spec:
+  template:
+    spec:
+      containers:
+        - name: inference-runtime
+          env:
+            - {name: OLLAMA_MODELS, value: /models}
+          volumeMounts:
+            - {name: model-cache, mountPath: /models}
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim: {claimName: llama-cache-spark}

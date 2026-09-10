@@ -1,0 +1,74 @@
+{
+  "observed_at": "2026-09-08T09:11:14.877285+00:00",
+  "tests_passed": 81,
+  "controller_code_matches": true,
+  "controller_code_sha256": {
+    "continuity_policy.py": "6112e87ab8359f45bc24fc41dd6d6c746ebcd462ff6d6190b4a391e161a43c46",
+    "continuity_runner.py": "384aaff267edf379ece46378ae2ad1b3422100afc7b2a4f27ad5e07f52a1eb1e",
+    "continuity_report.py": "30fc62d0e3344689ec458976cdc3f45d6d31f0ecf6a04b9fde0ba354f55585b5"
+  },
+  "incumbent_uid_container_id_restarts_unchanged": true,
+  "node_status": {
+    "etri-dev0001-jetorn": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0002-raspi5": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0003-raspi5": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0004-tedger": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-dev0005-jetagx": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-ser0001-cg0msb": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    },
+    "etri-ser0002-cgnmsb": {
+      "MemoryPressure": "False",
+      "DiskPressure": "False",
+      "PIDPressure": "False",
+      "Ready": "True"
+    }
+  },
+  "final_worker_state": {
+    "agx": {
+      "node_state": "CACHED",
+      "model_cached": true,
+      "model_loaded": false,
+      "model_vram_mib": 0.0,
+      "active_requests": 0,
+      "queue_length": 0
+    },
+    "nano_inference_ready": true,
+    "policy_exists": false,
+    "unfinished": []
+  },
+  "calibration_completed": true,
+  "policy_qualified": false,
+  "round_trip_runs": 0,
+  "temporary_admin_pods_removed": true,
+  "final_storage_preflight_passed": true,
+  "final_agx_available_bytes": 14873190400
+}

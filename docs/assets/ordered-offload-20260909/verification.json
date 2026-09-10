@@ -1,0 +1,45 @@
+{
+  "automated_checks": {
+    "state_aggregator_python": {
+      "passed": 411,
+      "seconds": 32.16
+    },
+    "offload_focused": {
+      "passed": 40,
+      "seconds": 6.81
+    },
+    "docs_focused": {
+      "passed": 22
+    }
+  },
+  "scope": "Synthetic automatic tests are not hardware continuity evidence; actual run results are separate.",
+  "race_fix": "Immediately clear reached_top and mark recovery on admission/dispatch DRAINING, before pending adjacent-hop action can replace the state. Reproduced with a blocked Orin return probe and Spark observation loss.",
+  "sha256": {
+    "edge-orch/state-aggregator/app/model_offload_ordered.py": "fc47fd69f2273fce0b99485802198ad6bd8cec2bfa2a72059c5896a0c018a4e4",
+    "edge-orch/state-aggregator/app/model_offload_contract.py": "1f9b999d3b064475825aee3cf7df6cb2979a5dd11d6a5a8c7b3e068126578708",
+    "edge-orch/state-aggregator/app/model_offload_controller.py": "844c80e489fadadda4b4cbc61fb4bb10a24f764785a184d0f00707834a68f392",
+    "edge-orch/state-aggregator/app/model_offload_demo.py": "23eb5353484ecdc0bde12e2b7811a96093bdb274bfa91e476beff1d73e2e7b49",
+    "edge-orch/state-aggregator/app/config/model_offload_llama.json": "d72c38c6b79c21ab56f3a6d3052d9df68a7b2fe37edc80a501c61eb994d929f7",
+    "qualification/llama-offloading/ordered_demo.py": "f2f479c8d696aac11c1ace82f20be2d3617bbf4e7cd86e8525a5e2d64522da71",
+    "qualification/llama-offloading/ordered_calibrate.py": "01b33623730107edeac7ded9bba9944851bc2fb09bb33a61a8bee11cbe54bfde"
+  },
+  "deployed_code_configmap": "ordered-offload-code-5dkc79b9k8",
+  "post_fix_restart": {
+    "state": "LOCAL",
+    "cycles_completed": 1,
+    "retained_models": [],
+    "probe_status": "ok",
+    "probe_node": "etri-dev0001-jetorn"
+  },
+  "documentation": {
+    "public_sources": 27,
+    "generated_html": 27,
+    "relative_links_and_korean_titles": "passed",
+    "live_publication": "not_performed",
+    "live_read_only_check": {
+      "error": "HTTPError",
+      "status": 404
+    }
+  },
+  "git_diff_check": "passed"
+}

@@ -1,0 +1,83 @@
+{
+  "actions": [
+    {
+      "activation_required": true,
+      "activation_started_timestamp": 1788492765.4992259,
+      "activation_time_ms": 260.74,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 260.737,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 247.719,
+      "model_remote_download_ms": 0.0,
+      "node": "nano",
+      "node_state": "ACTIVE",
+      "node_state_before": "COLD",
+      "ready_timestamp": 1788492765.7595692,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "nano",
+        "old_state": "COLD",
+        "physical_node": "etri-dev0001-jetorn",
+        "reason": "method_setup:cached_on_demand",
+        "timestamp": 1788492765.7595828
+      },
+      "worker_start_ms": 2.037
+    },
+    {
+      "activation_required": true,
+      "activation_started_timestamp": 1788503765.8072093,
+      "activation_time_ms": 24555.067,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 24555.066,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 1139.22,
+      "model_remote_download_ms": 23412.39,
+      "node": "agx",
+      "node_state": "ACTIVE",
+      "node_state_before": "COLD",
+      "ready_timestamp": 1788503790.3622265,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "agx",
+        "old_state": "COLD",
+        "physical_node": "etri-ser0001-cg0msb",
+        "reason": "method_setup:always_on",
+        "timestamp": 1788503790.36223
+      },
+      "worker_start_ms": 0.219
+    },
+    {
+      "activation_required": true,
+      "activation_started_timestamp": 1788503790.375924,
+      "activation_time_ms": 20500.277,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 20500.276,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 1191.031,
+      "model_remote_download_ms": 19305.78,
+      "node": "spark",
+      "node_state": "ACTIVE",
+      "node_state_before": "COLD",
+      "ready_timestamp": 1788503810.87617,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "spark",
+        "old_state": "COLD",
+        "physical_node": "etri-ser0002-cgnmsb",
+        "reason": "method_setup:always_on",
+        "timestamp": 1788503810.8761723
+      },
+      "worker_start_ms": 0.314
+    }
+  ],
+  "duration_ms": 45161.0,
+  "event": "method_configured",
+  "method": "always_on",
+  "started_timestamp": 1788503765.7953322,
+  "states": {
+    "agx": "ACTIVE",
+    "nano": "ACTIVE",
+    "spark": "ACTIVE"
+  },
+  "timestamp": 1788503810.9563313
+}

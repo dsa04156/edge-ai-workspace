@@ -1,0 +1,27 @@
+{
+  "activation": {
+    "spark": {
+      "activation_required": false,
+      "activation_started_timestamp": 1788523155.4658194,
+      "activation_time_ms": 35085.45,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 35085.449,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "model_load_ms": 17493.29,
+      "model_remote_download_ms": 17584.103,
+      "node_state": "ACTIVE",
+      "node_state_before": "ACTIVE",
+      "ready_timestamp": 1788523190.5512455,
+      "transition": {
+        "new_state": "ACTIVE",
+        "node": "spark",
+        "old_state": "COLD",
+        "physical_node": "etri-ser0002-cgnmsb",
+        "reason": "rtx5080_cold_trial_1",
+        "timestamp": 1788523190.5512486
+      },
+      "worker_start_ms": 1.502
+    }
+  },
+  "method": "direct_selected_workers"
+}

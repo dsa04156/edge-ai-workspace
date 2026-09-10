@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-09-09T10:51:23.511437+00:00",
+  "node": "etri-ser0003-cg0ms0",
+  "capacity": "1",
+  "allocatable": "1",
+  "smoke": {
+    "result": "PASS",
+    "architecture": "aarch64",
+    "gpu": "NVIDIA GB10",
+    "visible_gpu_count": 1,
+    "elements": 256,
+    "checksum": 32896
+  },
+  "smokeImageID": "docker.io/library/python@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534",
+  "exitCode": 0,
+  "runtimeClass": "nvidia-spark",
+  "limitations": [
+    "GB10 NVML memory query Not Supported",
+    "no time slicing or memory partitioning",
+    "production inference and actual reboot not tested"
+  ]
+}

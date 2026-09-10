@@ -1,0 +1,20 @@
+{
+  "pod": "llama-agx-599cfc87cf-7vs6k",
+  "node": "etri-dev0005-jetagx",
+  "containers": [
+    {
+      "name": "api",
+      "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+      "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+      "ready": true,
+      "restartCount": 0
+    },
+    {
+      "name": "inference-runtime",
+      "image": "sha256:96b6c6ec9dfe42f51819834fc0dc89d8ede5967df3e5fb441f3a7fe54c1a6b5a",
+      "imageID": "localhost/qualification/ollama-jetson@sha256:3e663d7d9eff51f99e81be82c0eaaca50502b6e98a2f131b9c607812f2ff08aa",
+      "ready": true,
+      "restartCount": 0
+    }
+  ]
+}

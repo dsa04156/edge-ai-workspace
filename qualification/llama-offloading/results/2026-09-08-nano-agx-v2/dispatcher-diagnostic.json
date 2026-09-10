@@ -1,0 +1,47 @@
+{
+  "scope": "local synthetic 20ms service and 60rps arrivals; diagnostic only, not Jetson performance",
+  "runs": [
+    {
+      "repeat": 0,
+      "dispatcher": "periodic_50ms",
+      "requests": 30,
+      "duration_ms": 1822.5813169992762,
+      "p95_ttft_ms": 1301.536931336159
+    },
+    {
+      "repeat": 0,
+      "dispatcher": "completion_driven",
+      "requests": 30,
+      "duration_ms": 1023.8673649873817,
+      "p95_ttft_ms": 523.7131303292699
+    },
+    {
+      "repeat": 1,
+      "dispatcher": "periodic_50ms",
+      "requests": 30,
+      "duration_ms": 1861.2027180060977,
+      "p95_ttft_ms": 1339.811998346704
+    },
+    {
+      "repeat": 1,
+      "dispatcher": "completion_driven",
+      "requests": 30,
+      "duration_ms": 987.8162599925417,
+      "p95_ttft_ms": 483.7682063371176
+    },
+    {
+      "repeat": 2,
+      "dispatcher": "periodic_50ms",
+      "requests": 30,
+      "duration_ms": 1825.7500699983211,
+      "p95_ttft_ms": 1304.658297332935
+    },
+    {
+      "repeat": 2,
+      "dispatcher": "completion_driven",
+      "requests": 30,
+      "duration_ms": 1336.1909759987611,
+      "p95_ttft_ms": 836.474902331247
+    }
+  ]
+}

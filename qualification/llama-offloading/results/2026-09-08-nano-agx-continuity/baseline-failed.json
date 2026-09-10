@@ -1,0 +1,27 @@
+{
+  "id": "72981e8e1793461c9d46b6e432735bcb",
+  "kind": "live-calibration/v1",
+  "contract": {
+    "nodes": {
+      "nano": "etri-dev0001-jetorn",
+      "agx": "etri-dev0005-jetagx"
+    },
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime_image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+    "prompt": "In one short sentence, explain why edge computing reduces latency.",
+    "max_tokens": 8,
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "worker_concurrency": 1,
+    "clock": "client-monotonic",
+    "ttft_boundary": "scheduled-arrival-to-first-stream-token"
+  },
+  "started_at": 1788853620.3333173,
+  "status": "failed",
+  "batches": [],
+  "activations": [],
+  "gpu_evidence": {},
+  "error": "HTTP Error 502: Bad Gateway",
+  "cleanup_error": "Remote end closed connection without response"
+}

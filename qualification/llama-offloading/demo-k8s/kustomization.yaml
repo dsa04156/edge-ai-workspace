@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: llama-offload-eval
+resources: [deployment.yaml]
+configMapGenerator:
+  - name: llama-demo-code
+    files: [../demo.py, ../gpu_session.py]
+  - name: llama-demo-web
+    files: [../demo-web/index.html, ../demo-web/app.js, ../demo-web/style.css, ../demo-web/replay.js]

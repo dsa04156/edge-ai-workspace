@@ -1,0 +1,11 @@
+{
+  "raw": "requests.jsonl",
+  "python": "3.12.3",
+  "matplotlib": "3.10.6",
+  "estimator": "linear empirical p95 of successful equal-length requests; throughput sums active wave durations",
+  "n": "3,6,12 requests; 3 within-session blocks per condition",
+  "uncertainty": "not estimated",
+  "missing": "null, not zero",
+  "smoothing": null,
+  "destination": "exploratory repository report; not journal submission"
+}

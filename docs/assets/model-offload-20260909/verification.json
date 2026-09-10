@@ -1,0 +1,43 @@
+{
+  "recorded_at": "2026-09-09T05:50:49.136458+00:00",
+  "status": "local_implementation_verified_live_blocked",
+  "tests": {
+    "state_aggregator_python": {
+      "passed": 402,
+      "failed": 0,
+      "new_model_offload_tests": 31
+    },
+    "state_aggregator_javascript": {
+      "passed": 228,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 21,
+      "failed": 0
+    },
+    "repository_tests": {
+      "passed": 115,
+      "failed": 1,
+      "existing_failure": "test_sensor_anomaly_demo_argocd_application_contract expects main but HEAD already uses agent/edgex-central-docs"
+    }
+  },
+  "manifest_render": "state-aggregator/k8s passed; default model execution disabled",
+  "whitespace_check": "git diff --check passed",
+  "model_loop_evidence": {
+    "manual_clock_cycles": 3,
+    "background_controller_cycles": 2,
+    "worker": "synthetic; not hardware SLO evidence"
+  },
+  "real_roundtrip": "not_run: AGX NotReady / SSH No route to host",
+  "live_mutations": false,
+  "sha256": {
+    "edge-orch/state-aggregator/app/model_offload_contract.py": "d0cd728351c90d374100637a57fea57e27e013e64c90137ae23a44fd9a7af513",
+    "edge-orch/state-aggregator/app/model_offload_controller.py": "65f0646e745e1cf224052614ee83012c736f6403b490edbc05d4459bce191fa6",
+    "edge-orch/state-aggregator/app/model_offload_api.py": "ae3a6bb04b01b987d7a52371fe9939e0363b98ec62a3d9e52d323dd6e13059e4",
+    "edge-orch/state-aggregator/app/runtime_recommendation.py": "56d5529ebd19a87198f418a02ce55846ddbc8da81f782d9069aaa0bbf2aedef4",
+    "edge-orch/state-aggregator/app/runtime_execution_plan.py": "c87703f7bc67fa8ef3d114fe0d24b24b4d33d7b148abc149953b009f52bb75f6",
+    "edge-orch/state-aggregator/app/main.py": "9174ef821e0d4a74958b08da1e604d92103d1023434b2b61f4ccad233dbfc019",
+    "edge-orch/state-aggregator/app/config.py": "12f8de7bffbc138393505c06f870a9ffa4f2a2eca5fa1e15d9c6e7f1f5117e91",
+    "edge-orch/state-aggregator/app/config/model_offload_llama.json": "78ad60e4fa701cee4196c7617e1aaf17665c2ebb3de787b99ccee46c0e02eeaa"
+  }
+}

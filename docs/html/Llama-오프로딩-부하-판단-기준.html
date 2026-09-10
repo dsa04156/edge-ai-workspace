@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">개발 참고</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">Llama-오프로딩-부하-판단-기준.md</span>
+        <a class="edit-link" href="/__edit?file=Llama-오프로딩-부하-판단-기준.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
+<li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
+<li><a class="active" aria-current="page" href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
+<li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">개발 참고</p>
+          <h1>Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</h1>
+          <p class="subtitle">&gt; 최신 안내 (2026-09-08): 실제 AGX Orin 연결 후의 &gt; 장비별 로컬 GPU 성능측정을 별도로 공개했다. &gt;…</p>
+          <div class="meta">
+            <span class="badge kind">개발 참고</span>
+            <span class="badge">원본: Llama-오프로딩-부하-판단-기준.md</span>
+            <span class="badge">수정: 2026-09-08 14:17</span>
+            <span class="badge">HTML 생성: 2026-09-10 11:22</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="llama-오프로딩-부하-판단-기준-실제-orin-nano-gpu-시험">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</h1>
+<blockquote><p><strong>최신 안내 (2026-09-08):</strong> 실제 AGX Orin 연결 후의 <a href="Llama-장비별-GPU-성능측정.html">장비별 로컬 GPU 성능측정</a>을 별도로 공개했다. 아래 내용은 9월 4일의 짧은 8토큰 시연 조건이다. 여기의 임계값을 새 512/128토큰 시험이나 실제 AGX의 확정 기준으로 사용하지 않는다.</p></blockquote>
+<blockquote><p><strong>2026-09-04 현재 측정 범위:</strong> <code>etri-dev0001-jetorn</code>의 실제 Jetson Orin Nano에서 Ollama JetPack 6 CUDA runner로 <code>llama3.2:1b</code>를 실행했다. 로그에서 Orin compute capability 8.7을 확인했고 <code>ollama ps</code>는 모델을 <code>100% GPU</code>로 표시했다. 실제 Jetson AGX Orin과 NVIDIA DGX Spark는 아직 없다. 대신 RTX 5060 Ti와 RTX 5080 x86 서버에서 같은 모델의 GPU 대체시험을 수행했으며, 두 결과를 실제 AGX·Spark 성능값으로 해석하지 않는다.</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>역할</th>
+<th>실제 장비</th>
+<th>이번 결과에 포함</th>
+<th>실행 backend</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Nano</td>
+<td><code>etri-dev0001-jetorn</code>, Jetson Orin Nano</td>
+<td>예</td>
+<td>JetPack 6 CUDA, <code>100% GPU</code></td>
+</tr>
+<tr>
+<td>AGX</td>
+<td>실제 장비 없음</td>
+<td>실제 AGX는 아니오</td>
+<td>RTX 5060 Ti x86 대체 서버에서 <code>100% GPU</code> 별도 측정</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>실제 장비 없음</td>
+<td>실제 Spark는 아니오</td>
+<td>RTX 5080 x86 대체 서버에서 <code>100% GPU</code> 별도 측정</td>
+</tr>
+</tbody></table></div>
+<h2 id="eli5-언제-부하가-걸렸다-고-하나">ELI5: 언제 “부하가 걸렸다”고 하나</h2>
+<p>급식실에 배식 창구가 하나 있다고 생각하면 된다.</p>
+<ul><li>한 명씩 오면 바로 밥을 받는다. 아직 여유가 있다.</li><li>앞사람이 끝나기 전에 새 사람이 계속 오면 줄이 생긴다.</li><li>사람이 더 와도 1초에 배식하는 수가 늘지 않고 기다리는 시간만 길어지면 포화다.</li><li>첫 숟가락을 받기까지 1.5초보다 오래 걸리면 이번 시험의 서비스 한계를 넘은 것이다.</li></ul>
+<p>Orin Nano GPU worker도 generation을 한 번에 하나씩 처리하도록 고정했다. 그래서 GPU 사용률 하나로 판단하지 않고 다음 세 신호를 함께 본다.</p>
+<ol><li><strong>줄이 안전 범위를 넘었는가?</strong> <code>queue_length &gt;= 8</code></li><li><strong>첫 토큰이 늦는가?</strong> p95 또는 worker EWMA TTFT가 1,500ms 이상</li><li><strong>생성 속도가 떨어지는가?</strong> <code>tokens/s &lt;= 39.5</code></li></ol>
+<p>위 신호 중 하나가 한 번 튄 것만으로는 원격 장비를 켜지 않는다. <strong>2초 동안 지속될 때</strong> 오프로딩 검토를 시작한다. 이것은 전환 명령이 아니라 “다른 창구를 열어야 할지 계산하자”는 신호다.</p>
+<h2 id="실제-orin-nano-gpu에서-관측한-구간">실제 Orin Nano GPU에서 관측한 구간</h2>
+<p>동일 모델과 prompt, 최대 생성 토큰 8개, worker concurrency 1 조건에서 client concurrency를 1·2·4·8·16·32로 늘렸다. 각 조건은 무작위 순서로 3회 반복했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>동시 요청</th>
+<th>p95 TTFT</th>
+<th>p95 전체 지연</th>
+<th>처리량</th>
+<th>실패</th>
+<th>판단</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>36.2ms</td>
+<td>208.0ms</td>
+<td>4.959 req/s</td>
+<td>0/180</td>
+<td>여유</td>
+</tr>
+<tr>
+<td>2</td>
+<td>234.9ms</td>
+<td>402.2ms</td>
+<td>5.053 req/s</td>
+<td>0/186</td>
+<td>안전 범위</td>
+</tr>
+<tr>
+<td>4</td>
+<td>624.3ms</td>
+<td>790.1ms</td>
+<td>5.070 req/s</td>
+<td>0/193</td>
+<td>안전 범위</td>
+</tr>
+<tr>
+<td>8</td>
+<td>1,405.3ms</td>
+<td>1,573.3ms</td>
+<td>5.055 req/s</td>
+<td>0/204</td>
+<td>SLO 안쪽 마지막 구간</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2,960.6ms</td>
+<td>3,135.4ms</td>
+<td>5.058 req/s</td>
+<td>1/229</td>
+<td>첫 과부하</td>
+</tr>
+<tr>
+<td>32</td>
+<td>6,110.3ms</td>
+<td>6,290.7ms</td>
+<td>5.066 req/s</td>
+<td>8/284</td>
+<td>과부하·연결 실패 증가</td>
+</tr>
+</tbody></table></div>
+<p>따라서 이번 짧은 prompt 자격시험에서는 다음처럼 정한다.</p>
+<ul><li><strong>동시 요청 8까지:</strong> p95 TTFT 1,500ms SLO와 오류 0을 함께 지킨 범위</li><li><strong>동시 요청 16부터:</strong> p95 TTFT가 SLO를 넘고 오류가 처음 생긴 과부하 구간</li><li><strong>처리량 약 5.07 req/s:</strong> 동시 요청을 더 늘려도 거의 증가하지 않은 관측 상한</li><li><strong>단독 생성 속도 49.352 tokens/s:</strong> 이 값의 80%인 39.482 tokens/s를 저하 신호로 사용</li></ul>
+<p>동시 요청 8은 p95 TTFT가 1,405.3ms라 SLO에 가깝다. 그래서 <code>queue_length &gt;= 8</code>을 즉시 오프로딩 조건이 아니라 2초 지속되는 조기 검토 신호로 둔다. 더 긴 prompt, 더 많은 출력 토큰, 높은 온도에서는 한계가 달라질 수 있으므로 운영 확정값이 아니라 현재 자격시험의 초기값이다.</p>
+<h2 id="그러면-언제-오프로딩하나">그러면 언제 오프로딩하나</h2>
+<p>두 문을 모두 통과해야 한다.</p>
+<h3 id="1문-nano-부하가-계속되는가">1문: Nano 부하가 계속되는가</h3>
+<pre data-lang="text"><code>(queue_length &gt;= 8
+ OR worker EWMA TTFT &gt;= 1,500ms
+ OR tokens/s &lt;= 39.5)
+가 2초 지속</code></pre>
+<h3 id="2문-원격-실행이-실제로-더-빠른가">2문: 원격 실행이 실제로 더 빠른가</h3>
+<pre data-lang="text"><code>Offloading Gain
+= Nano에서 계속 기다릴 예상시간
+ - (원격 activation + RTT + 원격 queue wait + 원격 inference)</code></pre>
+<p><code>Gain &gt; 0</code>이면서 원격 예상 완료시간이 Nano보다 <strong>최소 15% 짧아야</strong> 신규 요청을 보낸다. 원격 node가 READY가 되기 전에는 보내지 않는다. 아래 x86 대체값으로 prototype 기준은 계산할 수 있지만, 실제 AGX/Spark의 최종 선택 임계값은 아직 확정할 수 없다.</p>
+<h3 id="rtx-5060-ti-x86-대체-서버에서-확인한-참고값">RTX 5060 Ti x86 대체 서버에서 확인한 참고값</h3>
+<p>실제 AGX가 없는 상태에서 오프로딩 코드와 GPU 경로를 검증하기 위해 <code>etri-ser0001-cg0msb</code>의 RTX 5060 Ti를 AGX <strong>대체 역할</strong>로만 측정했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>측정값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SLO capacity / first overload</td>
+<td>동시 요청 4 / 8</td>
+</tr>
+<tr>
+<td>최대 처리량</td>
+<td>5.306 req/s</td>
+</tr>
+<tr>
+<td>Cold activation 평균</td>
+<td>19.074초</td>
+</tr>
+<tr>
+<td>Cached activation 평균</td>
+<td>2.329초</td>
+</tr>
+<tr>
+<td>Cached의 activation 단축</td>
+<td>16.745초, 87.8%</td>
+</tr>
+<tr>
+<td>ACTIVE / CACHED GPU memory</td>
+<td>1,764MiB / 228MiB</td>
+</tr>
+</tbody></table></div>
+<p>이번 짧은 8-token 요청에서 대체 서버의 단독 p95 전체 지연은 220.5ms로 Nano 208.0ms보다 6.0% 느렸고, 최대 처리량은 4.7%만 높았다. 따라서 “서버 GPU이므로 무조건 요청 하나가 빨라진다”는 결론은 틀리다. Cached activation까지 포함하면 Nano 앞에 약 12건 이상 대기해야 첫 offload 요청의 근사 gain이 양수가 되고, 15% 이득 기준은 약 14건이다.</p>
+<p>두 worker가 이미 ACTIVE이고 backlog가 충분하다는 단순 합산에서는 10.376 req/s로 Nano-only보다 약 104.7% 높은 잠재 처리량이 나온다. 이것은 아직 동적 burst 라우팅 실측이 아니며 실제 AGX 성능값도 아니다. 원자료와 계산 경계는 <code>qualification/llama-offloading/results/2026-09-04-rtx5060ti-gpu/검증-보고서.md</code>에 있다.</p>
+<h3 id="rtx-5080-x86-대체-서버에서-확인한-참고값">RTX 5080 x86 대체 서버에서 확인한 참고값</h3>
+<p>실제 DGX Spark가 없는 상태에서 <code>etri-ser0002-cgnmsb</code>의 RTX 5080을 Spark <strong>대체 역할</strong>로 측정했다. 기존 센서 GPU 서비스는 승인받아 시험 동안만 중단했고, 시험 직후 원래 1/1 Ready, CUDA RTX 5080, GPU 예약 1/1 상태로 복구했다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>측정값</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SLO capacity / first overload</td>
+<td>동시 요청 16 / 32</td>
+</tr>
+<tr>
+<td>최대 처리량</td>
+<td>50.006 req/s</td>
+</tr>
+<tr>
+<td>Cold activation 평균</td>
+<td>26.980초</td>
+</tr>
+<tr>
+<td>Cached activation 평균</td>
+<td>1.847초</td>
+</tr>
+<tr>
+<td>Cached의 activation 단축</td>
+<td>25.133초, 93.2%</td>
+</tr>
+<tr>
+<td>ACTIVE / CACHED GPU memory</td>
+<td>1,673MiB / 16MiB</td>
+</tr>
+<tr>
+<td>부하 중 GPU 사용률 평균 / 최대</td>
+<td>69.8% / 80.0%</td>
+</tr>
+</tbody></table></div>
+<p>동시 요청 32의 p95 TTFT는 653.9ms였지만 첫 블록에서 오류 3건이 발생했으므로, 오류 0을 요구하는 안전 상한은 16으로 둔다. Cached activation을 포함한 첫 요청은 Nano 앞에 약 9건 이상 대기할 때 gain이 양수가 되고, 최소 15% 이득 기준은 약 11건이다. Cold는 각각 약 136건과 160건이 필요하므로 짧은 burst에는 켜지 않는다.</p>
+<p>요청 하나당 중앙 서비스시간 절감으로 activation 비용을 상쇄하는 지속 workload 기준은 Cached 약 11건, Cold 약 153건이다. Nano와 RTX 5080 worker가 이미 ACTIVE라는 단순 합산 상한은 약 55.075 req/s로 Nano-only보다 약 986.4% 높지만, 아직 동적 burst 라우팅을 동시에 실행해 얻은 결과는 아니다. 원자료와 계산 경계는 <code>qualification/llama-offloading/results/2026-09-04-rtx5080-gpu/검증-보고서.md</code>에 있다.</p>
+<h2 id="요청이-이동하는-범위">요청이 이동하는 범위</h2>
+<ul><li>이미 답변을 생성 중인 요청은 다른 장비로 옮기지 않는다.</li><li>overload 판정 뒤 들어온 <strong>신규 요청</strong>의 실행 위치만 바꾼다.</li><li>Llama layer를 여러 장비에 나누지 않는다.</li><li>원격 worker가 READY가 되기 전에는 요청을 보내지 않는다.</li><li>부하가 사라져 queue 0과 active request 0이 4초 지속되면 복귀를 검토하고, 경로 변경 뒤</li></ul>
+<p>5초 cooldown을 적용한다.</p>
+<h2 id="배포-상태">배포 상태</h2>
+<p>자격시험은 운영 EdgeX·대시보드와 분리한 <code>llama-offload-eval</code> namespace에 배포했다. Nano worker는 실제 <code>etri-dev0001-jetorn</code>에 고정했다. AGX/Spark Deployment는 실장비 연결용 placeholder만 남기고 replica 0으로 두어, 현재 신규 요청이 amd64 CPU 역할 대체 Pod로 잘못 전환되지 않게 했다.</p>
+<pre data-lang="bash"><code>rtk kubectl apply -k qualification/llama-offloading
+rtk kubectl -n llama-offload-eval get pods -o wide
+rtk curl -fsS http://192.168.0.3:18100/health</code></pre>
+<p>현재 클러스터의 Jetson edgecore에는 cluster-scoped <code>RuntimeClass</code>가 전달되지 않아 일반적인 <code>runtimeClassName: nvidia</code> 경로를 사용할 수 없었다. 격리된 Nano inference container에만 Jetson host driver library를 read-only로 mount하고 <code>JETSON_JETPACK=6</code>을 설정했다. 이 container는 해당 장치 접근을 위해 privileged로 실행하므로 운영 공통 패턴으로 승격하지 않는다. EdgeCore/containerd 기본값과 기존 EdgeX workload는 바꾸지 않았다.</p>
+<p>Nano의 <code>/metrics</code>에서 GPU utilization과 GPU memory는 <code>null</code>이다. Jetson용 DCGM exporter가 현재 없기 때문이다. 따라서 이번 GPU 실행 증거는 CUDA 8.7 runner 탐지와 <code>ollama ps</code>의 <code>100% GPU</code>이며, idle GPU memory 절감량은 아직 측정 완료로 주장하지 않는다.</p>
+<h2 id="측정-근거와-제한">측정 근거와 제한</h2>
+<ul><li>원자료: <code>qualification/llama-offloading/results/2026-09-04-orin-nano-gpu/saturation/</code></li><li>요청 수: warm-up 1건 제외 1,276건, 성공 1,267건, 실패 9건</li><li>실패 위치: concurrency 16에서 1건, 32에서 8건의 connection reset</li><li>포화시험 전 Nano activation: 모델 다운로드 38.073초 + load/ready 26.141초 = 64.229초</li><li>배포 갱신 후 재검증 activation: 모델 다운로드 24.891초 + load/ready 27.355초 = 52.261초</li><li>모델 digest: <code>baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878</code></li><li>분석기: <code>qualification/llama-offloading/analyze_saturation.py</code></li><li>RTX 5060 Ti x86 GPU 대체시험 원자료:</li></ul>
+<p><code>qualification/llama-offloading/results/2026-09-04-rtx5060ti-gpu/</code></p>
+<ul><li>RTX 5080 x86 GPU 대체시험 원자료:</li></ul>
+<p><code>qualification/llama-offloading/results/2026-09-04-rtx5080-gpu/</code></p>
+<p>두 값은 Nano Pod의 빈 writable layer에서 모델을 받은 Cold activation 실측이다. AGX/Spark Cold 또는 Cached activation 시간으로 바꿔 쓰면 안 된다. 과거 CPU-only 혼합 역할 시험은 <code>results/2026-09-04-cpu-substitute/</code>에 이력으로 남기되 현재 GPU 기준과 섞지 않는다.</p>
+<h2 id="결론">결론</h2>
+<blockquote><p><strong>한 줄 결론:</strong> Llama 3.2 1B를 실제 Orin Nano GPU에서 실행한 이번 조건에서는 동시 요청 8까지 p95 TTFT 1.5초 SLO를 지켰고, 16부터 과부하가 시작됐다.</p></blockquote>
+<ul><li>초기 Nano 부하 검토값은 <code>queue_length &gt;= 8</code>, TTFT 1,500ms, 39.5 tokens/s, 지속시간</li></ul>
+<p>2초다.</p>
+<ul><li>GPU 실행은 CPU-only 기준보다 최대 처리량이 약 2.01배(2.525 → 5.070 req/s), 단독</li></ul>
+<p>tokens/s가 약 1.92배(25.661 → 49.352) 높았다.</p>
+<ul><li>CPU-only 때 안전 동시 요청 2·첫 과부하 4였던 경계가 GPU에서는 각각 8·16으로 이동했다.</li><li>이것은 Nano 단독 포화점 결론이다. <strong>실제 AGX Orin과 DGX Spark의 성능 결론은 아직 없다.</strong></li><li>RTX 5060 Ti 대체시험에서는 Cached activation이 Cold보다 87.8% 짧았지만, 짧은 요청의</li></ul>
+<p>단독 p95 latency는 Nano보다 개선되지 않았다. 충분한 backlog에서 병행 처리량을 늘리는 용도로만 이득 가능성이 확인됐다.</p>
+<ul><li>RTX 5080 대체시험에서는 오류 0 기준 동시 요청 16까지 안전했고 Cached activation은</li></ul>
+<p>1.847초였다. Nano 선행 대기 9건에서 gain이 양수, 11건에서 15% 이득 기준을 넘었다.</p>
+<ul><li>현재 대체 장비 중 activation 대비 성능 향상은 RTX 5080 Spark 역할이 가장 컸다. 다만</li></ul>
+<p>RTX 5060은 호스트 Ollama, RTX 5080은 Kubernetes 컨테이너 Ollama라 순수 GPU 비교가 아니다.</p>
+<ul><li>실제 AGX/Spark가 준비되면 같은 GPU runtime·local SSD cache·모델·prompt·workload로</li></ul>
+<p>세 방식의 idle 자원, activation과 최종 break-even을 다시 측정해야 한다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#eli5-언제-부하가-걸렸다-고-하나">ELI5: 언제 “부하가 걸렸다”고 하나</a></li>
+<li class="toc-h2"><a href="#실제-orin-nano-gpu에서-관측한-구간">실제 Orin Nano GPU에서 관측한 구간</a></li>
+<li class="toc-h2"><a href="#그러면-언제-오프로딩하나">그러면 언제 오프로딩하나</a></li>
+<li class="toc-h3"><a href="#1문-nano-부하가-계속되는가">1문: Nano 부하가 계속되는가</a></li>
+<li class="toc-h3"><a href="#2문-원격-실행이-실제로-더-빠른가">2문: 원격 실행이 실제로 더 빠른가</a></li>
+<li class="toc-h3"><a href="#rtx-5060-ti-x86-대체-서버에서-확인한-참고값">RTX 5060 Ti x86 대체 서버에서 확인한 참고값</a></li>
+<li class="toc-h3"><a href="#rtx-5080-x86-대체-서버에서-확인한-참고값">RTX 5080 x86 대체 서버에서 확인한 참고값</a></li>
+<li class="toc-h2"><a href="#요청이-이동하는-범위">요청이 이동하는 범위</a></li>
+<li class="toc-h2"><a href="#배포-상태">배포 상태</a></li>
+<li class="toc-h2"><a href="#측정-근거와-제한">측정 근거와 제한</a></li>
+<li class="toc-h2"><a href="#결론">결론</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

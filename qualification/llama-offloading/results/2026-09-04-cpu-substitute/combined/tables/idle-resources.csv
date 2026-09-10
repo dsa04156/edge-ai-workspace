@@ -1,0 +1,10 @@
+method,node,idle_gpu_memory_mib,idle_inference_runner_rss_mib,local_checkpoint_bytes,average_gpu_utilization_percent,average_ram_utilization_percent,idle_power_watts,gpu_attribution_note
+Always-On,NANO,,1657.801,1321098329.0,,42.14128158844765,,direct measurement unavailable
+Always-On,AGX,,1372.9299999999998,1321098329.0,,19.284790613718414,,direct measurement unavailable
+Always-On,SPARK,,1372.758,1321098329.0,,29.458422382671483,,direct measurement unavailable
+Cold On-Demand,NANO,,1659.7540000000004,1321098329.0,,42.1939928057554,,direct measurement unavailable
+Cold On-Demand,AGX,,0.0,0.0,,18.199956834532372,,direct measurement unavailable
+Cold On-Demand,SPARK,,0.0,0.0,,25.073129496402878,,direct measurement unavailable
+Cached On-Demand,NANO,,1654.1230791366904,1321098329.0,,41.913586330935246,,direct measurement unavailable
+Cached On-Demand,AGX,,0.0,1321098329.0,,18.276622302158273,,direct measurement unavailable
+Cached On-Demand,SPARK,,0.0,1321098329.0,,24.95490647482014,,direct measurement unavailable
